@@ -1534,10 +1534,12 @@ class TableView {
 
   /**
    * Checks whether the event path points into the grid. The path counts as internal when it
-   * contains the grid's root element, its portal element, or any shadow host the grid is
-   * rendered within. The host chain check matters for sandboxed hosts (e.g. Salesforce
-   * Lightning Web Security) that retarget events observed at the document level to the
-   * nearest visible shadow host, hiding the grid internals from the path.
+   * contains the grid's root element or its portal element. A complete path (one that crosses
+   * shadow boundaries and therefore contains ShadowRoot entries) is trusted as-is - a miss
+   * means a genuine outside click, even when the path shares the grid's shadow hosts. Only a
+   * filtered path (no ShadowRoot entries) falls back to the shadow host chain check, which
+   * matters for sandboxed hosts (e.g. Salesforce Lightning Web Security) that collapse paths
+   * observed at the document level to the visible host chain, hiding the grid internals.
    *
    * @param {EventTarget[]} eventPath The event propagation path (`event.composedPath()`).
    * @private
@@ -1546,9 +1548,16 @@ class TableView {
   #isPathWithinGrid(eventPath: EventTarget[]): boolean {
     const { rootElement, rootPortalElement } = this.hot;
 
-    return eventPath.includes(rootElement) ||
-      (!!rootPortalElement && eventPath.includes(rootPortalElement)) ||
-      getShadowHostChain(rootElement).some(host => eventPath.includes(host));
+    if (eventPath.includes(rootElement) ||
+        (!!rootPortalElement && eventPath.includes(rootPortalElement))) {
+      return true;
+    }
+
+    if (eventPath.some(entry => isShadowRoot(entry))) {
+      return false;
+    }
+
+    return getShadowHostChain(rootElement).some(host => eventPath.includes(host));
   }
 
   /**

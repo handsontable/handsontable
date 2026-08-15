@@ -1504,11 +1504,15 @@ export function isHTMLInputElement(element: HTMLElement): element is HTMLInputEl
 /**
  * Check if the node is a ShadowRoot (a document fragment attached to a host element).
  *
- * @param {Node} node Node to check.
+ * @param {Node|EventTarget} node Node to check.
  * @returns {boolean} `true` if the node is a ShadowRoot.
  */
-export function isShadowRoot(node: Node): node is ShadowRoot {
-  return node.nodeType === Node.DOCUMENT_FRAGMENT_NODE && 'host' in node;
+export function isShadowRoot(node: Node | EventTarget): node is ShadowRoot {
+  if (typeof node !== 'object' || node === null) {
+    return false;
+  }
+
+  return 'nodeType' in node && node.nodeType === Node.DOCUMENT_FRAGMENT_NODE && 'host' in node;
 }
 
 /**

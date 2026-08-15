@@ -81,6 +81,15 @@ test.describe('grid inside a native shadow root', () => {
     await expect(grid.page.locator('.ht_master .htCore tbody tr')).toHaveCount(6);
   });
 
+  test('deselects when a non-focusable sibling in the same shadow root is clicked', async () => {
+    await grid.cell(0, 0).click();
+    await expect.poll(() => grid.selected()).toEqual([[0, 0, 0, 0]]);
+
+    await grid.shadowSibling.click();
+
+    await expect.poll(() => grid.selected()).toBeNull();
+  });
+
   test('deselects when a light-DOM element outside the shadow host is clicked', async () => {
     await grid.cell(0, 0).click();
     await expect.poll(() => grid.selected()).toEqual([[0, 0, 0, 0]]);

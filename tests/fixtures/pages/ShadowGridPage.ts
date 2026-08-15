@@ -15,6 +15,7 @@ export class ShadowGridPage {
   readonly grid: Locator;
   readonly outsideTextarea: Locator;
   readonly outsideInput: Locator;
+  readonly shadowSibling: Locator;
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
@@ -23,6 +24,7 @@ export class ShadowGridPage {
     this.grid = page.getByTestId('grid');
     this.outsideTextarea = page.getByTestId('outside-textarea');
     this.outsideInput = page.getByTestId('outside-input');
+    this.shadowSibling = page.getByTestId('shadow-sibling');
   }
 
   /**

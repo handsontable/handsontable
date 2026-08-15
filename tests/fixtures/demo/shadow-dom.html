@@ -63,6 +63,13 @@
     container.setAttribute('data-testid', 'grid');
     shadowRoot.appendChild(container);
 
+    const shadowSibling = document.createElement('div');
+    shadowSibling.setAttribute('data-testid', 'shadow-sibling');
+    shadowSibling.style.cssText = 'padding: 16px; margin-top: 8px; background: #eee;';
+    shadowSibling.textContent = 'Non-focusable sibling inside the same shadow root';
+    shadowSibling.addEventListener('mousedown', (event) => event.preventDefault());
+    shadowRoot.appendChild(shadowSibling);
+
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
       td.setAttribute('data-testid', `cell-${row}-${col}`);
