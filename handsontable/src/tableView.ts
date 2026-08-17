@@ -441,8 +441,10 @@ class TableView {
       }
 
       if (activeHTMLElement !== null && isFocusLostToOutside && selection.isSelected()) {
+        const clickTarget = eventPath.length > 0 ? eventPath[0] : event.target;
+        const clickTargetElement = isHTMLElement(clickTarget) ? clickTarget : activeHTMLElement;
         const outsideClickDeselects = typeof this.settings.outsideClickDeselects === 'function' ?
-          this.settings.outsideClickDeselects(activeHTMLElement) :
+          this.settings.outsideClickDeselects(clickTargetElement) :
           this.settings.outsideClickDeselects;
 
         if (outsideClickDeselects) {

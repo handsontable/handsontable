@@ -90,6 +90,18 @@ test.describe('grid inside a native shadow root', () => {
     await expect.poll(() => grid.selected()).toBeNull();
   });
 
+  test('passes the clicked element to the outsideClickDeselects callback when focus moves elsewhere', async () => {
+    await grid.armOutsideClickRecorder();
+    await grid.cell(0, 0).click();
+    await expect.poll(() => grid.selected()).toEqual([[0, 0, 0, 0]]);
+
+    await grid.focusMover.click();
+
+    await expect(grid.outsideInput).toBeFocused();
+    await expect.poll(() => grid.selected()).toEqual([[0, 0, 0, 0]]);
+    expect(await grid.outsideClickTargets()).toEqual(['focus-mover', 'focus-mover']);
+  });
+
   test('deselects when a light-DOM element outside the shadow host is clicked', async () => {
     await grid.cell(0, 0).click();
     await expect.poll(() => grid.selected()).toEqual([[0, 0, 0, 0]]);

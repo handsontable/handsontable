@@ -38,6 +38,7 @@
   <div id="outside-area">
     <textarea data-testid="outside-textarea" rows="3" cols="40"></textarea>
     <input data-testid="outside-input" type="text">
+    <button data-testid="focus-mover" type="button">Move focus to the input</button>
   </div>
 
   <script>
@@ -90,10 +91,29 @@
       licenseKey: 'non-commercial-and-evaluation',
     });
 
+    document.querySelector('[data-testid="focus-mover"]').addEventListener('mousedown', (event) => {
+      event.preventDefault();
+      document.querySelector('[data-testid="outside-input"]').focus();
+    });
+
     window.__hotProbe = {
       isListening: () => hot.isListening(),
       selected: () => hot.getSelected() ?? null,
       valueAt: (row, col) => hot.getDataAtCell(row, col),
+      armOutsideClickRecorder: () => {
+        const targets = [];
+
+        hot.updateSettings({
+          outsideClickDeselects: (target) => {
+            targets.push(target.getAttribute('data-testid') || target.tagName.toLowerCase());
+
+            return target.getAttribute('data-testid') !== 'focus-mover';
+          },
+        });
+
+        window.__outsideClickTargets = targets;
+      },
+      outsideClickTargets: () => window.__outsideClickTargets,
     };
   </script>
 </body>

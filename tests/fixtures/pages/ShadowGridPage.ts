@@ -16,6 +16,7 @@ export class ShadowGridPage {
   readonly outsideTextarea: Locator;
   readonly outsideInput: Locator;
   readonly shadowSibling: Locator;
+  readonly focusMover: Locator;
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
@@ -25,6 +26,7 @@ export class ShadowGridPage {
     this.outsideTextarea = page.getByTestId('outside-textarea');
     this.outsideInput = page.getByTestId('outside-input');
     this.shadowSibling = page.getByTestId('shadow-sibling');
+    this.focusMover = page.getByTestId('focus-mover');
   }
 
   /**
@@ -66,5 +68,19 @@ export class ShadowGridPage {
   /** The grid's current selection as `[startRow, startCol, endRow, endCol]` (fixture probe). */
   async selected(): Promise<number[][] | null> {
     return this.page.evaluate(() => (window as any).__hotProbe.selected());
+  }
+
+  /**
+   * Swap `outsideClickDeselects` for a recording callback (fixture probe). The callback keeps
+   * the selection when the clicked element is the focus-mover button and records the test id
+   * of every element it receives.
+   */
+  async armOutsideClickRecorder(): Promise<void> {
+    await this.page.evaluate(() => (window as any).__hotProbe.armOutsideClickRecorder());
+  }
+
+  /** Test ids of the elements passed to the recording `outsideClickDeselects` callback. */
+  async outsideClickTargets(): Promise<string[]> {
+    return this.page.evaluate(() => (window as any).__hotProbe.outsideClickTargets());
   }
 }
