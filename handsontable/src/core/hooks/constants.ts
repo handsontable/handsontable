@@ -2562,6 +2562,18 @@ export const REGISTERED_HOOKS = [
   'afterColumnMove',
 
   /**
+   * Fired by the {@link CustomBorders} plugin after all custom borders from the configuration have
+   * been applied. With [`customBordersProgressive`](@/api/options.md#custombordersprogressive)
+   * disabled it fires once, synchronously, right after the borders are built. With progressive
+   * application enabled it fires when the last background batch has been applied, signaling that
+   * `getBorders()` and the borders' cell meta are now complete.
+   *
+   * @since 18.1.0
+   * @event Hooks#afterCustomBordersUpdate
+   */
+  'afterCustomBordersUpdate',
+
+  /**
    * Fired by the {@link ManualColumnFreeze} plugin, before unfreezing a column.
    *
    * @event Hooks#beforeColumnUnfreeze

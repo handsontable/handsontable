@@ -171,6 +171,7 @@ export interface GridSettings {
   comments?: boolean | object | object[];
   contextMenu?: boolean | object | string[];
   customBorders?: boolean | object[];
+  customBordersProgressive?: boolean | { chunkSize?: number };
   dialog?: boolean | object;
   dataProvider?: DataProviderConfig;
   dragToScroll?: boolean | { interval?: { min?: number; max?: number }; rampDistance?: number };
@@ -256,6 +257,7 @@ export interface GridSettings {
     movePossible: boolean, orderChanged: boolean) => void;
   afterColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void;
   afterColumnSequenceChange?: (source: ChangeSource) => void;
+  afterCustomBordersUpdate?: () => void;
   afterColumnSequenceCacheUpdate?: (indexesChangesState: {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean; hiddenIndexesChanged: boolean;
   }) => void;
@@ -498,7 +500,7 @@ export interface GridSettings {
   beforeRefreshDimensions?: (previousDimensions: { width: number; height: number },
     currentDimensions: { width: number; height: number }, actionPossible: boolean) => boolean | void;
   beforeRemoveCellClassNames?: () => string[] | void;
-  beforeRemoveCellMeta?: (row: number, column: number, key: string, value: unknown) => void;
+  beforeRemoveCellMeta?: (row: number, column: number, key: string, value: unknown) => boolean | void;
   beforeRemoveCol?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
   beforeRemoveRow?: (index: number, amount: number, physicalRows: number[], source?: ChangeSource) => void;
   beforeRender?: (isForced: boolean) => void;

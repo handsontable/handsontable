@@ -207,6 +207,39 @@ The following example shows different border styles on selected cell ranges.
 
 :::
 
+### Apply borders progressively for large configurations
+
+Building a very large [`customBorders`](@/api/options.md#customborders) configuration before the first render can delay the initial paint. To render the grid first and apply the borders in background batches, set [`customBordersProgressive`](@/api/options.md#custombordersprogressive) to `true`:
+
+```js
+const hot = new Handsontable(container, {
+  data,
+  customBorders: largeBorderConfig,
+  customBordersProgressive: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+Pass an object to control how many border entries are applied per batch:
+
+```js
+customBordersProgressive: { chunkSize: 5000 },
+```
+
+With progressive application enabled, the borders fill in after the grid becomes interactive, so [`getBorders()`](@/api/customBorders.md#getborders) and the cells' border metadata are complete only once the [`afterCustomBordersUpdate`](@/api/hooks.md#aftercustombordersupdate) hook fires:
+
+```js
+const hot = new Handsontable(container, {
+  data,
+  customBorders: largeBorderConfig,
+  customBordersProgressive: true,
+  licenseKey: 'non-commercial-and-evaluation',
+  afterCustomBordersUpdate() {
+    // every custom border is now applied
+  },
+});
+```
+
 ## Result
 
 The grid renders your configured classes, inline styles, and border definitions. Formatting stays consistent after each render.
@@ -232,6 +265,7 @@ The grid renders your configured classes, inline styles, and border definitions.
 - [currentHeaderClassName](@/api/options.md#currentheaderclassname)
 - [currentRowClassName](@/api/options.md#currentrowclassname)
 - [customBorders](@/api/options.md#customborders)
+- [customBordersProgressive](@/api/options.md#custombordersprogressive)
 - [invalidCellClassName](@/api/options.md#invalidcellclassname)
 - [noWordWrapClassName](@/api/options.md#nowordwrapclassname)
 - [placeholder](@/api/options.md#placeholder)
