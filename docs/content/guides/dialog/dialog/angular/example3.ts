@@ -2,6 +2,34 @@
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 
+const ALLOWED_TAGS = ['H2', 'P', 'STRONG', 'BUTTON', 'BR'];
+const ALLOWED_ATTRIBUTES = ['id', 'class', 'type'];
+
+// The dialog content below is HTML, so it needs a sanitizer. Handsontable has no
+// built-in one since v18.0. This minimal allowlist keeps the example self-contained
+// -- in production, use a vetted library such as DOMPurify.
+// See https://handsontable.com/docs/security/
+const sanitizeDialogContent = (html: string): string => {
+  const template = document.createElement('template');
+
+  template.innerHTML = html;
+
+  template.content.querySelectorAll('*').forEach((element) => {
+    if (ALLOWED_TAGS.includes(element.tagName)) {
+      Array.from(element.attributes).forEach((attribute) => {
+        if (!ALLOWED_ATTRIBUTES.includes(attribute.name)) {
+          element.removeAttribute(attribute.name);
+        }
+      });
+    } else {
+      // Unwrap a disallowed element, keeping its text content
+      element.replaceWith(...Array.from(element.childNodes));
+    }
+  });
+
+  return template.innerHTML;
+};
+
 @Component({
   selector: 'app-example3',
   template: `
@@ -106,6 +134,8 @@ export class AppComponent implements AfterViewInit {
       content: '<p>This dialog contains <strong>HTML</strong> content with formatting.</p><button type="button" class="hot-doc-dialog-html-button" id="example3-button">Hide dialog</button>',
       closable: true,
     },
+    // Required for the dialog's HTML content to be rendered safely
+    sanitizer: sanitizeDialogContent,
   };
 
   ngAfterViewInit() {

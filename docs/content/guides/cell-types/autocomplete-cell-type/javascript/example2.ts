@@ -20,12 +20,35 @@ const colors: string[] = [
 ];
 
 const cars: string[] = ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'];
+const ALLOWED_TAGS = ['BR'];
+
+// The column headers below contain a line break, so they need a sanitizer. Handsontable
+// has no built-in one since v18.0. This minimal allowlist keeps the example
+// self-contained -- in production, use a vetted library such as DOMPurify.
+// See https://handsontable.com/docs/security/
+const sanitizeHeader = (html: string): string => {
+  const template = document.createElement('template');
+
+  template.innerHTML = html;
+
+  template.content.querySelectorAll('*').forEach((element) => {
+    if (ALLOWED_TAGS.includes(element.tagName)) {
+      Array.from(element.attributes).forEach((attribute) => element.removeAttribute(attribute.name));
+    } else {
+      // Unwrap a disallowed element, keeping its text content
+      element.replaceWith(...Array.from(element.childNodes));
+    }
+  });
+
+  return template.innerHTML;
+};
 
 const container = document.querySelector('#example2')!;
 
 new Handsontable(container, {
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
+  sanitizer: sanitizeHeader,
   data: [
     ['BMW', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],

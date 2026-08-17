@@ -5,6 +5,28 @@ import { ContextMenu } from 'handsontable/plugins/contextMenu';
 // register Handsontable's modules
 registerAllModules();
 
+const ALLOWED_TAGS = ['B', 'I', 'EM', 'STRONG', 'BR'];
+
+// Handsontable has no built-in sanitizer since v18.0. This minimal allowlist keeps
+// the example self-contained -- in production, use a vetted library such as DOMPurify.
+// See https://handsontable.com/docs/security/
+const sanitizeMenuLabel = (html) => {
+  const template = document.createElement('template');
+
+  template.innerHTML = html;
+
+  template.content.querySelectorAll('*').forEach((element) => {
+    if (ALLOWED_TAGS.includes(element.tagName)) {
+      Array.from(element.attributes).forEach((attribute) => element.removeAttribute(attribute.name));
+    } else {
+      // Unwrap a disallowed element, keeping its text content
+      element.replaceWith(...Array.from(element.childNodes));
+    }
+  });
+
+  return template.innerHTML;
+};
+
 const contextMenuSettings = {
   callback(key, selection, clickEvent) {
     // Common callback for all options
@@ -98,6 +120,8 @@ const ExampleComponent = () => {
       licenseKey="non-commercial-and-evaluation"
       height="auto"
       contextMenu={contextMenuSettings}
+      // Required for the HTML in the `about` item's label to be rendered safely
+      sanitizer={sanitizeMenuLabel}
     />
   );
 };

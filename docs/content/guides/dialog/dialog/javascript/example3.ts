@@ -4,6 +4,34 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const ALLOWED_TAGS = ['H2', 'P', 'STRONG', 'BUTTON', 'BR'];
+const ALLOWED_ATTRIBUTES = ['id', 'class', 'type'];
+
+// The dialog content below is HTML, so it needs a sanitizer. Handsontable has no
+// built-in one since v18.0. This minimal allowlist keeps the example self-contained
+// -- in production, use a vetted library such as DOMPurify.
+// See https://handsontable.com/docs/security/
+const sanitizeDialogContent = (html: string): string => {
+  const template = document.createElement('template');
+
+  template.innerHTML = html;
+
+  template.content.querySelectorAll('*').forEach((element) => {
+    if (ALLOWED_TAGS.includes(element.tagName)) {
+      Array.from(element.attributes).forEach((attribute) => {
+        if (!ALLOWED_ATTRIBUTES.includes(attribute.name)) {
+          element.removeAttribute(attribute.name);
+        }
+      });
+    } else {
+      // Unwrap a disallowed element, keeping its text content
+      element.replaceWith(...Array.from(element.childNodes));
+    }
+  });
+
+  return template.innerHTML;
+};
+
 const data = [
   { model: 'Trail Helmet', price: 1298.14, sellDate: '2025-08-31', sellTime: '14:12', inStock: true },
   { model: 'Windbreaker Jacket', price: 178.9, sellDate: '2025-05-10', sellTime: '22:26', inStock: false },
@@ -91,6 +119,8 @@ const hot = new Handsontable(container, {
       '<p>This dialog contains <strong>HTML</strong> content with formatting.</p><button type="button" class="hot-doc-dialog-html-button" id="example3-button">Hide dialog</button>',
     closable: true,
   },
+  // Required for the dialog's HTML content to be rendered safely
+  sanitizer: sanitizeDialogContent,
   licenseKey: 'non-commercial-and-evaluation',
 });
 

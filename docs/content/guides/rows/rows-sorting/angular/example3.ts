@@ -2,6 +2,29 @@
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 
+const ALLOWED_TAGS = ['BR'];
+
+// The column titles below contain a line break, so they need a sanitizer. Handsontable
+// has no built-in one since v18.0. This minimal allowlist keeps the example
+// self-contained -- in production, use a vetted library such as DOMPurify.
+// See https://handsontable.com/docs/security/
+const sanitizeHeader = (html: string): string => {
+  const template = document.createElement('template');
+
+  template.innerHTML = html;
+
+  template.content.querySelectorAll('*').forEach((element) => {
+    if (ALLOWED_TAGS.includes(element.tagName)) {
+      Array.from(element.attributes).forEach((attribute) => element.removeAttribute(attribute.name));
+    } else {
+      // Unwrap a disallowed element, keeping its text content
+      element.replaceWith(...Array.from(element.childNodes));
+    }
+  });
+
+  return template.innerHTML;
+};
+
 @Component({
   selector: 'app-example3',
   template: `
@@ -140,6 +163,7 @@ export class AppComponent {
     stretchH: 'all',
     autoWrapRow: true,
     autoWrapCol: true,
+    sanitizer: sanitizeHeader,
   };
 }
 /* end-file */

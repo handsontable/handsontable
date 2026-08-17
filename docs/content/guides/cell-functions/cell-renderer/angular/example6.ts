@@ -4,6 +4,34 @@ import {GridSettings, HotTableComponent, HotTableModule} from '@handsontable/ang
 import Handsontable from 'handsontable/base';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
 
+const ALLOWED_TAGS = ['B', 'EM', 'INPUT', 'BR'];
+const ALLOWED_ATTRIBUTES = ['type', 'class', 'checked'];
+
+// The column headers below return HTML, so they need a sanitizer. Handsontable has no
+// built-in one since v18.0. This allowlist keeps the interactive checkbox working while
+// dropping everything else -- in production, use a vetted library such as DOMPurify.
+// See https://handsontable.com/docs/security/
+const sanitizeHeader = (html: string): string => {
+  const template = document.createElement('template');
+
+  template.innerHTML = html;
+
+  template.content.querySelectorAll('*').forEach((element) => {
+    if (ALLOWED_TAGS.includes(element.tagName)) {
+      Array.from(element.attributes).forEach((attribute) => {
+        if (!ALLOWED_ATTRIBUTES.includes(attribute.name)) {
+          element.removeAttribute(attribute.name);
+        }
+      });
+    } else {
+      // Unwrap a disallowed element, keeping its text content
+      element.replaceWith(...Array.from(element.childNodes));
+    }
+  });
+
+  return template.innerHTML;
+};
+
 @Component({
   standalone: true,
   imports: [HotTableModule],
@@ -50,6 +78,7 @@ export class AppComponent implements AfterViewInit {
             componentThis.isChecked ? 'checked="checked"' : ''
           }> checkbox`;
       },
+      sanitizer: sanitizeHeader,
       autoWrapRow: true,
       autoWrapCol: true,
     };
