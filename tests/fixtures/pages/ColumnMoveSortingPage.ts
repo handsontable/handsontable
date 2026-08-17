@@ -23,12 +23,13 @@ export class ColumnMoveSortingPage {
   /**
    * Navigate to the fixture and wait for the grid to render. The active theme is passed
    * as a query param so the fixture loads the matching stylesheet; `colWidths` drives the
-   * narrow-column case.
+   * narrow-column case. `withMove: false` drops ManualColumnMove.
    */
-  async goto(colWidths?: number): Promise<void> {
+  async goto(colWidths?: number, options: { withMove?: boolean } = {}): Promise<void> {
     const width = colWidths === undefined ? '' : `&colWidths=${colWidths}`;
+    const move = options.withMove === false ? '&move=off' : '';
 
-    await this.page.goto(`/tests/fixtures/demo/column-move-sorting.html?theme=${this.theme}${width}`);
+    await this.page.goto(`/tests/fixtures/demo/column-move-sorting.html?theme=${this.theme}${width}${move}`);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 

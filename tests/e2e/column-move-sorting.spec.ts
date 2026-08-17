@@ -41,6 +41,22 @@ test.describe('column move with sorting enabled', () => {
     await grid.expectCell(0, 2, 'C5');
   });
 
+  test('sorts a dragged header when no move plugin can consume the drag', async ({ page }) => {
+    await grid.goto(undefined, { withMove: false });
+
+    // Without ManualColumnMove nothing can turn this into a column move, so the press has to sort
+    // however far the pointer travels - the browser still calls it a click.
+    const label = await grid.sortLabel(2).boundingBox();
+
+    await page.mouse.move(label.x + (label.width / 2), label.y + (label.height / 2));
+    await page.mouse.down();
+    await page.mouse.move(label.x + (label.width / 2) + 20, label.y + (label.height / 2), { steps: 4 });
+    await page.mouse.up();
+
+    await expect(grid.sortLabel(2)).toHaveClass(/ascending/);
+    await grid.expectCell(0, 2, 'C1');
+  });
+
   test('sorts on a header click made while a validated cell is being edited', async ({ page }) => {
     await grid.goto();
 

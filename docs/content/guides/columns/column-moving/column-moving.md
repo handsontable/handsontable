@@ -195,6 +195,8 @@ For more on how physical and visual indexes relate, see [Understanding data and 
 
 Use the [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) hook to decide whether each column move is allowed. Returning `false` cancels the move while keeping the [`manualColumnMove`](@/api/options.md#manualcolumnmove) plugin enabled.
 
+Both [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) and [`afterColumnMove`](@/api/hooks.md#aftercolumnmove) run only when the pointer actually drags a column. A click on a column header does not fire them.
+
 In the following example, select **Allow column moving** before you drag a column to a new position. Clear the checkbox to block column moving again.
 
 :::: only-for javascript

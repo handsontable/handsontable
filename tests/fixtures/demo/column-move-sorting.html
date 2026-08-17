@@ -39,6 +39,9 @@
     container.className = `ht-theme-${window.htTheme}`;
 
     const colWidths = Number(new URLSearchParams(location.search).get('colWidths')) || 120;
+    // ?move=off drops ManualColumnMove, so a spec can cover the sorting-only grid - the one where
+    // nothing can consume a drag, and a header press therefore has to sort however far it travels.
+    const withMove = new URLSearchParams(location.search).get('move') !== 'off';
 
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
@@ -57,7 +60,7 @@
       colHeaders: true,
       rowHeaders: true,
       columnSorting: true,
-      manualColumnMove: true,
+      manualColumnMove: withMove,
       renderer: testIdRenderer,
       // Column A is validated so a spec can sort while its editor is open. Selecting the column
       // closes the editor and validates in a microtask, which finishes before the browser sends

@@ -269,6 +269,19 @@ export class ManualColumnMove extends BasePlugin {
   }
 
   /**
+   * Checks whether a column drag is in progress - the header is held down and the pointer has
+   * travelled far enough to count as a drag rather than a click.
+   *
+   * `ColumnSorting` asks this on release to tell a click apart from a drag, so the two plugins
+   * cannot disagree about where that line is.
+   *
+   * @returns {boolean}
+   */
+  isDragging(): boolean {
+    return this.enabled && this.#pressed && this.#dragged;
+  }
+
+  /**
    * Indicates if it's possible to move columns to the desired position. Some of the actions aren't
    * possible, i.e. You can’t move more than one element to the last position.
    *

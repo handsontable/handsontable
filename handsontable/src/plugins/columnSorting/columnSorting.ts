@@ -54,32 +54,12 @@ export const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 export const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 /**
- * How far, in pixels, the pointer may travel between pressing a column header and releasing it
- * and still count as a click. Pointers jitter by a pixel or two on trackpads and high-density
- * screens, so an exact-zero test would swallow ordinary clicks and header clicks would appear
- * to do nothing.
- */
-const POINTER_DRAG_TOLERANCE = 3;
-/**
  * Marks the header container of a column that is showing a sort indicator. The indicator is
  * positioned against that container, so the room it needs is reserved there rather than as padding
  * on the label - padding on the label would enlarge the area that sorts on click, which is exactly
  * what it must not do. A class rather than a `:has()` selector, which is banned in this package.
  */
 const CONTAINER_WITH_INDICATOR_CLASS = 'has-sort-indicator';
-
-/**
- * Checks whether the pointer has travelled far enough from where it was pressed to count as a
- * drag rather than a click.
- *
- * @param {{ x: number, y: number }} pressOrigin Pointer client coordinates captured on press.
- * @param {MouseEvent} event The event holding the current pointer position.
- * @returns {boolean}
- */
-function isPointerDragged(pressOrigin: { x: number, y: number }, event: MouseEvent): boolean {
-  return Math.abs(event.clientX - pressOrigin.x) > POINTER_DRAG_TOLERANCE ||
-    Math.abs(event.clientY - pressOrigin.y) > POINTER_DRAG_TOLERANCE;
-}
 
 registerRootComparator(PLUGIN_KEY, rootComparator);
 
@@ -89,13 +69,11 @@ registerRootComparator(PLUGIN_KEY, rootComparator);
 export interface HeaderSortPress {
   column: number;
   isCtrlPressed: boolean;
-  pressOrigin: { x: number, y: number };
   /**
    * Settles once the cell that was being edited at press time has finished validating, or `null`
    * when nothing was being edited.
    */
   validation: Promise<void> | null;
-  hasMoved: boolean;
 }
 
 export interface SortConfig {
@@ -193,8 +171,7 @@ export class ColumnSorting extends BasePlugin {
    */
   columnMetaCache: IndexToValueMap | null = null;
   /**
-   * Sort queued by a header press, applied on mouse up when the pointer has not travelled.
-   * Holds the pressed column, whether Ctrl/Cmd was held, and where the pointer went down.
+   * Sort queued by a header press, applied on mouse up unless the press became a column drag.
    */
   #pendingHeaderSort: HeaderSortPress | null = null;
   /**
@@ -269,8 +246,6 @@ export class ColumnSorting extends BasePlugin {
     this.addHook('afterOnCellMouseUp', this.#resolvePendingSort);
     // Fallback for a release that lands outside any cell - that is the drag case, and the queued
     // sort still has to be cleared rather than left pending for the next release.
-    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mousemove',
-      (event: Event) => this.#onDocumentMouseMove(event as MouseEvent));
     this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mouseup',
       () => this.#resolvePendingSort());
 
@@ -1004,7 +979,6 @@ export class ColumnSorting extends BasePlugin {
     this.#pendingHeaderSort = {
       column: coords.col,
       isCtrlPressed,
-      pressOrigin: { x: (event as MouseEvent).clientX, y: (event as MouseEvent).clientY },
       // Subscribed on press, not on release: selecting the column closes the editor and its
       // validation runs in a microtask, so it is already over before mouse up. Reading
       // `awaitsValidation` on release is wrong too - by then the new selection has opened an
@@ -1012,7 +986,6 @@ export class ColumnSorting extends BasePlugin {
       validation: awaitsValidation ? new Promise<void>((resolve) => {
         this.hot.addHookOnce('postAfterValidate', () => resolve());
       }) : null,
-      hasMoved: false,
     };
   }
 
@@ -1030,27 +1003,8 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Watches a queued header press for pointer travel.
-   *
-   * Travel is measured from `mousemove` rather than by comparing the press and release
-   * positions, because a press can scroll a partly visible header into view - that moves the
-   * header under a stationary pointer, which is not a drag.
-   *
-   * @param {MouseEvent} event The `mousemove` event.
-   */
-  #onDocumentMouseMove = (event: MouseEvent) => {
-    const pending = this.#pendingHeaderSort;
-
-    if (pending === null || pending.hasMoved) {
-      return;
-    }
-
-    pending.hasMoved = isPointerDragged(pending.pressOrigin, event);
-  };
-
-  /**
-   * Resolves a header press on release: sorts when the pointer stayed put, and stands aside when
-   * it travelled, leaving that gesture to ManualColumnMove.
+   * Resolves a header press on release: sorts, unless ManualColumnMove turned the press into a
+   * drag.
    *
    * Safe to call more than once for the same gesture - the queued press is taken first, so
    * whichever release signal arrives first wins and the rest are no-ops.
@@ -1058,9 +1012,18 @@ export class ColumnSorting extends BasePlugin {
   #resolvePendingSort = () => {
     const pending = this.#pendingHeaderSort;
 
+    if (pending === null) {
+      return;
+    }
+
     this.#pendingHeaderSort = null;
 
-    if (pending === null || pending.hasMoved) {
+    // Ask ManualColumnMove whether it turned this press into a drag, rather than measuring pointer
+    // travel here. Only that plugin knows whether a drag was ever armed - it needs the column
+    // selected by its header - so a travel test here would silence the sort on every grid where
+    // nothing can consume the gesture. Its state is still set at this point; it resets on its own
+    // `mouseup` listener, which runs later in the same dispatch.
+    if (this.#isColumnBeingDragged()) {
       return;
     }
 
@@ -1074,6 +1037,15 @@ export class ColumnSorting extends BasePlugin {
 
     void pending.validation.then(() => this.applyHeaderClickSort(pending));
   };
+
+  /**
+   * Whether ManualColumnMove is mid-drag. False when that plugin is absent or disabled.
+   */
+  #isColumnBeingDragged(): boolean {
+    const manualColumnMove = this.hot.getPlugin('manualColumnMove');
+
+    return manualColumnMove?.isDragging() === true;
+  }
 
   /**
    * Destroys the plugin instance.
