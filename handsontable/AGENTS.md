@@ -7,6 +7,7 @@ This is the core data grid package. **TypeScript** - source files in `src/` are 
 - Use `throwWithCause()` from `src/helpers/errors.ts`, never `throw new Error()`
 - No barrel imports from `plugins/index`, `editors/index`, `renderers/index`, `validators/index`, `cellTypes/index`, `i18n/index` - import from specific submodule paths. Only exception: `src/registry.ts`
 - No global `window`, `document`, `console` - use `this.hot.rootWindow`, `this.hot.rootDocument`, and helpers from `src/helpers/console.ts`
+- **Shadow DOM / sandboxed hosts:** never decide "is the focus / this click inside the grid" from raw `document.activeElement` or a `parentNode` walk — both lie when the grid renders inside a shadow root, and Salesforce Lightning Web Security additionally filters `composedPath()` down to the host chain and collapses `activeElement` to the outermost shadow host. Use `getDeepActiveElement()` and `getShadowHostChain()` from `src/helpers/dom/element.ts`, `event.composedPath()` (checking for `ShadowRoot` entries to detect a filtered path), and `getFocusManager().hasBrowserFocus()` / `.isForeignFocusTarget()` — see `tableView.ts` outside-click handling and the `focusManager` for the reference patterns.
 - Private fields use `#` prefix, not `@private` JSDoc
 - **Required**: Plugin hook callbacks must be arrow function class fields — `#onAfterX = (arg1, arg2) => { ... }` — and passed directly: `this.addHook('afterX', this.#onAfterX)`. Never wrap in `(args) => this.#onX(args)` or use `.bind(this)`.
 - Cognitive complexity: keep each function at 15 or below
