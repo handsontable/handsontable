@@ -57,6 +57,41 @@ test.describe('moveCells edge move bands', () => {
     }
   });
 
+  test('cancels a drag on Escape when the grid was not listening at press time', async ({ page }) => {
+    await grid.selectCells(1, 1, 1, 1);
+    // An outside click with `outsideClickDeselects: false` (or focusing another instance)
+    // unlistens the grid while the selection — and its move bands — stays visible. The band
+    // swallows the mousedown before TableView can re-listen, and the Escape cancel shortcut
+    // lives in the `grid` context, which only dispatches while the instance is listening.
+    await grid.unlisten();
+
+    const band = grid.visibleMoveZones().first();
+    const box = await band.boundingBox();
+
+    expect(box).not.toBeNull();
+
+    await page.mouse.move(box!.x + (box!.width / 2), box!.y + (box!.height / 2));
+    await page.mouse.down();
+
+    await expect(grid.movingRoot()).toHaveCount(1);
+
+    // Park the pointer over another cell so that, if Escape failed to cancel, the release
+    // below would commit a real move and the data assertions would catch it.
+    const targetBox = await grid.cell(4, 4).boundingBox();
+
+    expect(targetBox).not.toBeNull();
+
+    await page.mouse.move(targetBox!.x + (targetBox!.width / 2), targetBox!.y + (targetBox!.height / 2));
+    await page.keyboard.press('Escape');
+
+    await expect(grid.movingRoot()).toHaveCount(0);
+
+    await page.mouse.up();
+
+    await expect(grid.cell(1, 1)).toHaveText('R2C2');
+    await expect(grid.cell(4, 4)).toHaveText('R5C5');
+  });
+
   test('hides source move affordances while a drag preview is active', async ({ page }) => {
     await grid.selectCells(1, 1, 3, 3);
     await grid.hoverCell(2, 2);

@@ -320,6 +320,13 @@ export class MoveCells extends BasePlugin {
       return;
     }
 
+    // The band swallowed the mousedown (`stopImmediatePropagation`), so TableView's
+    // `onCellMouseDown` never ran and the grid may still be unlistened (an outside click with
+    // `outsideClickDeselects: false`, or focus parked on another instance). The Escape shortcut
+    // that cancels the drag lives in the `grid` context, which only dispatches while the
+    // instance is listening — so mark it listening, exactly as an unswallowed press would have.
+    this.hot.listen();
+
     const start = range.getTopStartCorner();
     const end = range.getBottomEndCorner();
     const pointer = getCellCoordsFromMousePosition(this.hot, event.clientX, event.clientY);

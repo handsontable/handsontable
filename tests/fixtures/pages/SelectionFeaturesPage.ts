@@ -86,6 +86,14 @@ export class SelectionFeaturesPage {
     await this.page.evaluate(() => window.hot.deselectCell());
   }
 
+  /**
+   * Stop the instance from listening to keyboard input, as an outside click with
+   * `outsideClickDeselects: false` (or focusing another instance) would.
+   */
+  async unlisten(): Promise<void> {
+    await this.page.evaluate(() => window.hot.unlisten());
+  }
+
   /** Destroy the grid instance. */
   async destroyGrid(): Promise<void> {
     await this.page.evaluate(() => window.hot.destroy());
