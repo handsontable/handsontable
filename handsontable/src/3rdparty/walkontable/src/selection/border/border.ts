@@ -376,6 +376,11 @@ class Border {
       handleStyleTarget.background = `color-mix(in srgb, ${cellMobileHandleBackgroundColor} ${cellMobileHandleBackgroundOpacity}%, transparent)`;
       handleStyleTarget.border = `${cellMobileHandleBorderWidth}px solid ${cellMobileHandleBorderColor}`;
     }
+
+    this.main!.appendChild(this.selectionHandles.top);
+    this.main!.appendChild(this.selectionHandles.bottom);
+    this.main!.appendChild(this.selectionHandles.topHitArea);
+    this.main!.appendChild(this.selectionHandles.bottomHitArea);
   }
 
   /**
