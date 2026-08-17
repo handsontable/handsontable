@@ -4,14 +4,111 @@
 
 @mixin output {
   .handsontable {
+    // The label is the sort button, so it must not fill the header cell: the bare header around it
+    // is what selects a column and starts a drag. Sized to its text, so only the text and the
+    // indicator sort on click.
+    // Three classes beat the `_base.scss` rule that makes the label fill the row - class count is
+    // compared before element count - so the structural path is not repeated here.
+    .colHeader.columnSorting.sortAction {
+      box-sizing: border-box;
+      flex-grow: 0;
+      // Centres the label; `htLeft`/`htRight` move the box instead, below.
+      margin-inline: auto;
+      // Never collapse in a narrow column, never grow past the header.
+      min-width: min(calc(var(--ht-icon-size, 16px) + 8px), 100%);
+      max-width: 100%;
+      // Hands the absolutely positioned indicators to `.relative`, so they stay pinned to the
+      // header edge while the label shrinks away from it. Clicking one still sorts: an event on a
+      // pseudo-element targets the element that owns it.
+      position: static;
+
+      // `.relative`'s padding box is the new containing block, so add the cell padding back.
+      &::before,
+      &::after {
+        margin-inline: var(--ht-sort-indicator-offset);
+        margin-inline-end: var(--ht-sort-indicator-offset-end);
+      }
+    }
+
+    // `text-align` used to place the text inside a full-width label. The label is now sized to its
+    // text, so the alignment has to move the box or every aligned header renders centred. Physical
+    // margins, because `htLeft`/`htRight` are physical in either direction. Matched as an ancestor:
+    // `headerClassName` puts the class on `.relative`, code that sets it by hand puts it on the
+    // `th`.
+    .htLeft .colHeader.columnSorting.sortAction {
+      margin-left: 0;
+      margin-right: auto;
+    }
+
+    .htRight .colHeader.columnSorting.sortAction {
+      margin-left: auto;
+      margin-right: 0;
+    }
+
+    // The distances the indicator needs, kept as custom properties so the alignment, direction and
+    // ghost-table rules can override them without having to out-rank every rule that reads them.
+    // Internal to this file, not theme tokens.
+    th .relative {
+      // Distance from the header edge.
+      --ht-sort-indicator-offset: var(--ht-cell-horizontal-padding);
+      // The same, on the inline-end side that a trailing button shares.
+      --ht-sort-indicator-offset-end: var(--ht-cell-horizontal-padding);
+      // Room the container holds back for the indicator.
+      --ht-sort-indicator-reserve: var(--ht-cell-horizontal-padding);
+      // The same, inline-end only - split so the button case can drop it on its own.
+      --ht-sort-indicator-reserve-end: var(--ht-sort-indicator-reserve);
+      // Room held open before a trailing button for the indicator to sit in.
+      --ht-header-button-slot: calc(var(--ht-icon-size, 16px) + 2px);
+    }
+
+    // Step the indicator over a trailing icon button. What has to be cleared is the button's border
+    // box, which overhangs its slot by half of (hit area - icon): `_dropdown-menu.scss` sizes it to
+    // the hit area and pulls it back with a uniform negative margin. Derived from those tokens
+    // rather than a fixed number - the classic theme uses a smaller icon with the same hit area.
+    .relative.has-header-button {
+      --ht-sort-indicator-offset-end: calc(
+        var(--ht-cell-horizontal-padding) + var(--ht-icon-size, 16px) +
+        (var(--ht-icon-button-hit-area-size, 24px) - var(--ht-icon-size, 16px)) * 0.5
+      );
+
+      // The gap below already separates the label from the indicator here. Reserving as well drags
+      // the button - the last flex item - left over the indicator, which it then hides (`z-index: 1`).
+      --ht-sort-indicator-reserve-end: var(--ht-cell-horizontal-padding);
+    }
+
+    // Hold the indicator's slot open between the label and the button. Done with the gap, not a
+    // margin on the button: the button carries a uniform negative margin that a one-sided override
+    // would cancel, widening the header.
+    .relative.has-sort-indicator.has-header-button {
+      // 2px is the base gap between header items (`_base.scss`).
+      column-gap: calc(2px + var(--ht-header-button-slot));
+    }
+
+    // Room for the indicator, held on the container rather than as padding on the label - padding
+    // would grow the box that sorts on click. The side follows where `::before` is pinned:
+    // inline-end, unless the alignment class points against the direction (`htRight` in LTR,
+    // `htLeft` in RTL).
+    .relative.has-sort-indicator {
+      --ht-sort-indicator-reserve: calc(var(--ht-cell-horizontal-padding) + var(--ht-icon-size, 16px) + 2px);
+
+      padding-inline-end: var(--ht-sort-indicator-reserve-end);
+    }
+
+    // Two selectors, because the room is held on the container itself: `headerClassName` puts the
+    // alignment class on that same `.relative`, code that sets it by hand puts it on the `th`.
+    .relative.htRight.has-sort-indicator,
+    .htRight .relative.has-sort-indicator {
+      padding-inline-start: var(--ht-sort-indicator-reserve);
+      padding-inline-end: var(--ht-cell-horizontal-padding);
+
+      // The indicator is opposite the button here, so nothing needs holding open.
+      --ht-header-button-slot: 0px;
+    }
+
     .columnSorting:not(.indicatorDisabled) {
       position: relative;
 
       &.sortAction {
-        &.ascending, &.descending {
-          padding-inline-end: calc(var(--ht-icon-size, 16px) + 2px);
-        }
-
         &:hover {
           text-decoration: none;
           cursor: pointer;
@@ -33,11 +130,6 @@
     .htRight {
       .columnSorting {
         &.sortAction {
-          &.ascending, &.descending {
-            padding-inline-start: calc(var(--ht-icon-size, 16px) + 2px);
-            padding-inline-end: 0;
-          }
-
           &::before {
             left: 2px;
             right: auto;
@@ -50,6 +142,28 @@
 
   [dir="rtl"] {
     .handsontable {
+      // In RTL the indicator sits inline-end by default, so `htRight` matches the default and has
+      // to undo the LTR rule above.
+      .relative.htRight.has-sort-indicator,
+      .htRight .relative.has-sort-indicator {
+        padding-inline-start: var(--ht-cell-horizontal-padding);
+        padding-inline-end: var(--ht-sort-indicator-reserve-end);
+
+        // Back on the button's side, so the slot is needed again.
+        --ht-header-button-slot: calc(var(--ht-icon-size, 16px) + 2px);
+      }
+
+      // `htLeft` is the class that points against the direction here - the mirror of `htRight` in
+      // LTR.
+      .relative.htLeft.has-sort-indicator,
+      .htLeft .relative.has-sort-indicator {
+        padding-inline-start: var(--ht-sort-indicator-reserve);
+        padding-inline-end: var(--ht-cell-horizontal-padding);
+
+        // Opposite the button, so nothing needs holding open.
+        --ht-header-button-slot: 0px;
+      }
+
       .columnSorting {
         &.sortAction {
           &::before {
@@ -60,25 +174,9 @@
         }
       }
 
-      .htRight {
-        .columnSorting {
-          &.sortAction {
-            &.ascending, &.descending {
-              padding-inline-start: 0;
-              padding-inline-end: calc(var(--ht-icon-size, 16px) + 2px);
-            }
-          }
-        }
-      }
-
       .htLeft {
         .columnSorting {
           &.sortAction {
-            &.ascending, &.descending {
-              padding-inline-start: calc(var(--ht-icon-size, 16px) + 2px);
-              padding-inline-end: 0;
-            }
-
             &::before {
               left: auto;
               right: 2px;
@@ -90,12 +188,30 @@
     }
   }
 
+  // In the ghost table the indicator is in flow, so `autoColumnSize` already measures it. Counting
+  // the offsets and the button's slot on top would make every auto-sized column wider. Overriding
+  // the properties rather than the rules that read them keeps this to one rule.
+  .htGhostTable .htCore .relative {
+    --ht-sort-indicator-offset: 0px;
+    --ht-sort-indicator-offset-end: 0px;
+    --ht-header-button-slot: 0px;
+  }
+
+  // The reserve stays: it stands in for the space the indicator takes in the real table, and the
+  // measurement needs it. The exception is a header with a trailing button, which
+  // `_multi-column-sorting.scss` already gives its own gap here.
+  .htGhostTable .htCore .relative.has-header-button {
+    --ht-sort-indicator-reserve: var(--ht-cell-horizontal-padding);
+    --ht-sort-indicator-reserve-end: var(--ht-cell-horizontal-padding);
+  }
+
   .htGhostTable
     .htCore
     span.colHeader.columnSorting:not(.indicatorDisabled)::before {
     content: "*";
     display: inline-block;
     position: relative;
+
 
     /* The multi-line header and header with longer text need more padding to not hide arrow,
         we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */

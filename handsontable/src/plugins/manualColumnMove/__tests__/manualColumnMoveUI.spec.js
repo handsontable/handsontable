@@ -88,7 +88,7 @@ describe('manualColumnMove', () => {
       expect($('.ht__manualColumnMove--guideline').css('z-index')).toBeGreaterThan(getTopClone().css('z-index'));
     });
 
-    it('should not run moving ui if mousedown was fired on sorting element', async() => {
+    it('should not move the column when the sorting element is pressed and released without moving', async() => {
       handsontable({
         data: createSpreadsheetData(30, 30),
         colHeaders: true,
@@ -104,14 +104,15 @@ describe('manualColumnMove', () => {
       $headerTH.simulate('mousedown');
       $headerTH.simulate('mouseup');
 
-      const $backlight = spec().$container.find('.ht__manualColumnMove--backlight')[0];
-
+      // The sorting label is part of the draggable header, so pressing it does arm a move.
+      // Releasing without any pointer movement has to leave the column order untouched - that
+      // gesture is a click to sort, and only a press that travels moves the column.
       $summaryElement.simulate('mousedown');
+      $summaryElement.simulate('mouseup');
 
-      const displayProp = $backlight.currentStyle ?
-        $backlight.currentStyle.display : getComputedStyle($backlight, null).display;
-
-      expect(displayProp).toEqual('none');
+      expect(getDataAtRow(0)).toEqual(getSourceDataAtRow(0));
+      expect(columnIndexMapper().getIndexesSequence())
+        .toEqual(Array.from({ length: 30 }, (_, index) => index));
     });
 
     it('should run moving ui if mousedown was fired on sorting element when sort header action is not enabled', async() => {
