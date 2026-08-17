@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Formulas fill-handle e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    HyperFormula-backed grid for fill-handle drags over a RANGE selection (the
+    `.area.corner` handle), including drags past the viewport edge — the
+    interaction the legacy simulateFillHandleDrag helper could never produce
+    (DEV-99). Migrated from the skipped formulas autofill spec (DEV-2183).
+    Every leg runs exactly ONE engine: the `umd` legs load HyperFormula as an
+    external script (the base bundle ships none — the DEV-2190 wiring); the
+    `full-min` legs use the engine baked into the bundle.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // HyperFormula comes from THIS package's own node_modules (declared in
+    // tests/package.json, pinned to the exact version the handsontable
+    // package locks): CI installs only the filtered handsontable-tests
+    // workspace, so a path into another package's node_modules would 404
+    // there. Loaded ONLY on the base-bundle legs — handsontable.full.min.js
+    // sets window.HyperFormula itself as it loads and would overwrite this
+    // global anyway; gating gives every leg exactly one engine.
+    if (window.htBundle === 'handsontable.js') {
+      document.write('<scr' + 'ipt src="/tests/node_modules/hyperformula/dist/hyperformula.full.min.js"></scr' + 'ipt>');
+    }
+  </script>
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const dateColumn = {
+      type: 'date',
+      dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' },
+    };
+
+    window.hot = new Handsontable(container, {
+      data: [
+        [null, null, null, null, null],
+        [null, null, '1900-02-28', '1900-02-28', '1900-02-28'],
+        [null, null, '=C2', '=D2', '=E2'],
+        [null, null, null, null, null],
+        [null, null, null, null, null],
+        [null, null, null, null, null],
+        [null, null, null, null, null],
+      ],
+      formulas: {
+        engine: HyperFormula,
+        sheetName: 'Sheet1',
+      },
+      columns: [{}, {}, dateColumn, dateColumn, dateColumn],
+      // autoInsertRow off: a real drag past the last row would otherwise keep
+      // appending rows for as long as the pointer lingers — nondeterministic.
+      // The behavior under test is the range fill itself, not row insertion.
+      fillHandle: { autoInsertRow: false },
+      width: 400,
+      height: 130,
+      rowHeaders: true,
+      colHeaders: true,
+      // Stamp test ids without displacing the per-type (date) renderers.
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

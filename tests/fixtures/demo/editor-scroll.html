@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Handsontable e2e fixture</title>
+  <title>Editor window-scroll e2e fixture</title>
   <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
   <script>
     // Theme and bundle come from the ?theme=/?bundle= query params set by the
@@ -27,18 +27,19 @@
       throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
     }
   </script>
-  <style> body { font-family: sans-serif; margin: 1rem; } #toolbar { margin-bottom: .8rem; } </style>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
 </head>
 <body>
   <!--
-    E2E fixture. Cells are stamped with data-testid via a renderer so tests hook
-    into them unambiguously (data-testid="cell-<row>-<col>") instead of brittle
-    structural selectors. This mirrors the convention the authoring skill teaches.
+    Exercises editor positioning when the WINDOW is the vertical scroller:
+    preventOverflow: 'horizontal' + no grid height, in a 400px-wide container,
+    with frozen rows/columns — the layout the legacy textEditor spec "editor
+    should move with the page when scrolled…" could not drive (the Jasmine env
+    cannot really window-scroll). Migrated from that spec (DEV-2183).
   -->
-  <div id="toolbar">
-    <button data-testid="add-row" type="button">Add row</button>
+  <div id="container" style="width: 400px">
+    <div id="grid" data-testid="grid"></div>
   </div>
-  <div id="grid" data-testid="grid"></div>
 
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The
@@ -50,28 +51,23 @@
 
     container.className = `ht-theme-${window.htTheme}`;
 
+    const data = Array.from({ length: 100 }, (_, r) =>
+      Array.from({ length: 20 }, (_, c) => `R${r + 1}C${c + 1}`));
+
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
-    const hot = new Handsontable(container, {
-      data: [
-        ['A1', 'B1', 'C1'],
-        ['A2', 'B2', 'C2'],
-        ['A3', 'B3', 'C3'],
-        ['A4', 'B4', 'C4'],
-        ['A5', 'B5', 'C5'],
-      ],
-      colHeaders: true,
+    window.hot = new Handsontable(container, {
+      data,
+      preventOverflow: 'horizontal',
+      fixedColumnsStart: 2,
+      fixedRowsTop: 2,
       rowHeaders: true,
-      contextMenu: true,
+      colHeaders: true,
       renderer: testIdRenderer,
       licenseKey: 'non-commercial-and-evaluation',
-    });
-
-    document.querySelector('[data-testid="add-row"]').addEventListener('click', () => {
-      hot.alter('insert_row_below', hot.countRows() - 1);
     });
   </script>
 </body>

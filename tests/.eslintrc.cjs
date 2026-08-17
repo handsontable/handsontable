@@ -47,6 +47,10 @@ module.exports = {
         selector: "CallExpression[callee.property.name='skip']",
         message: 'No skipped test (.skip) — a skipped test proves nothing. Fix the test or the code, or remove it. See the test-writing-discipline skill.',
       },
+      {
+        selector: "CallExpression[callee.property.name='fixme']",
+        message: 'test.fixme() parks a known product bug and is allowed ONLY with an eslint-disable line naming the tracking task (`// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`), so the exception stays counted and attributable. See tests/AGENTS.md.',
+      },
     ],
   },
 };

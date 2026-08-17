@@ -1566,69 +1566,6 @@ describe('TextEditor', () => {
     expect($(getCell(10, 6, true)).offset().top).toEqual($inputHolder.offset().top + 1);
   });
 
-  // after refactoring that test it turned out that it won't work. The editor does not move after window scroll.
-  xit('editor should move with the page when scrolled with fixed rows and horizontal overflow without a set height', async() => {
-    spec().$container[0].style = 'width: 400px';
-
-    handsontable({
-      data: createSpreadsheetData(300, 300),
-      preventOverflow: 'horizontal',
-      fixedColumnsStart: 2,
-      fixedRowsTop: 2,
-      rowHeaders: true,
-      colHeaders: true,
-    });
-
-    await render();
-    await waitForNextAnimationFrames(2);
-
-    // corner
-    await scrollWindowBy(300, 300);
-
-    await selectCell(1, 1);
-    await keyDownUp('enter');
-
-    await scrollWindowBy(-300, -300);
-
-    const $inputHolder = $('.handsontableInputHolder');
-
-    expect($(getCell(1, 1, true)).offset().left).toEqual($inputHolder.offset().left + 1);
-    expect($(getCell(1, 1, true)).offset().top).toEqual($inputHolder.offset().top + 1);
-
-    // // top
-    await scrollWindowBy(0, 300);
-
-    await selectCell(1, 4);
-    await keyDownUp('enter');
-
-    await scrollWindowBy(0, -300);
-
-    expect($(getCell(1, 4, true)).offset().left).toEqual($inputHolder.offset().left + 1);
-    expect($(getCell(1, 4, true)).offset().top).toEqual($inputHolder.offset().top + 1);
-
-    // left
-    await scrollWindowBy(300, 0);
-
-    await selectCell(4, 1);
-    await keyDownUp('enter');
-
-    await scrollWindowBy(-300, 0);
-
-    expect($(getCell(4, 1, true)).offset().left).toEqual($inputHolder.offset().left + 1);
-    expect($(getCell(4, 1, true)).offset().top).toEqual($inputHolder.offset().top + 1);
-
-    // non-fixed
-    await scrollWindowBy(300, 300);
-
-    await selectCell(10, 6);
-    await keyDownUp('enter');
-
-    await scrollWindowBy(-300, -300);
-
-    expect($(getCell(10, 6, true)).offset().left).toEqual($inputHolder.offset().left + 1);
-    expect($(getCell(10, 6, true)).offset().top).toEqual($inputHolder.offset().top + 1);
-  });
-
   it('should open editor at the same coordinates as the edited cell after the table had been scrolled (corner)', async() => {
     handsontable({
       data: createSpreadsheetData(16, 8),
