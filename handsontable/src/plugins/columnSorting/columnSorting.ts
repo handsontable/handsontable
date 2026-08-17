@@ -74,6 +74,8 @@ export interface HeaderSortPress {
    * when nothing was being edited.
    */
   validation: Promise<void> | null;
+  /** Set when ManualColumnMove ran its move before this press was resolved. */
+  consumedByMove: boolean;
 }
 
 export interface SortConfig {
@@ -248,6 +250,7 @@ export class ColumnSorting extends BasePlugin {
     // sort still has to be cleared rather than left pending for the next release.
     this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mouseup',
       () => this.#resolvePendingSort());
+    this.addHook('afterColumnMove', this.#onAfterColumnMove);
 
     this.addHook('afterInit', this.#loadOrSortBySettings);
     this.addHook('afterLoadData', this.#onAfterLoadData);
@@ -986,6 +989,7 @@ export class ColumnSorting extends BasePlugin {
       validation: awaitsValidation ? new Promise<void>((resolve) => {
         this.hot.addHookOnce('postAfterValidate', () => resolve());
       }) : null,
+      consumedByMove: false,
     };
   }
 
@@ -1018,12 +1022,11 @@ export class ColumnSorting extends BasePlugin {
 
     this.#pendingHeaderSort = null;
 
-    // Ask ManualColumnMove whether it turned this press into a drag, rather than measuring pointer
-    // travel here. Only that plugin knows whether a drag was ever armed - it needs the column
-    // selected by its header - so a travel test here would silence the sort on every grid where
-    // nothing can consume the gesture. Its state is still set at this point; it resets on its own
-    // `mouseup` listener, which runs later in the same dispatch.
-    if (this.#isColumnBeingDragged()) {
+    // Two signals, because both plugins handle the same `mouseup` and the listener order is not
+    // fixed - re-enabling `columnSorting` after `manualColumnMove` appends this plugin's listener
+    // last. Running first, the drag is still in progress; running second, the move has already
+    // fired. Either one cancels the sort.
+    if (pending.consumedByMove || this.#isColumnBeingDragged()) {
       return;
     }
 
@@ -1036,6 +1039,15 @@ export class ColumnSorting extends BasePlugin {
     }
 
     void pending.validation.then(() => this.applyHeaderClickSort(pending));
+  };
+
+  /**
+   * Marks a queued press as spent once ManualColumnMove has moved the column.
+   */
+  #onAfterColumnMove = () => {
+    if (this.#pendingHeaderSort !== null) {
+      this.#pendingHeaderSort.consumedByMove = true;
+    }
   };
 
   /**

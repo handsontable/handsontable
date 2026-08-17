@@ -57,6 +57,26 @@ test.describe('column move with sorting enabled', () => {
     await grid.expectCell(0, 2, 'C1');
   });
 
+  test('does not sort a drag released outside the grid, whatever order the plugins listen in', async ({ page }) => {
+    await grid.goto();
+
+    // Re-enabling sorting re-registers its document listener, so it now runs after the move
+    // plugin's. A release outside every cell is resolved by that listener alone.
+    await page.evaluate(() => {
+      const hot = (window as unknown as { hot: { updateSettings: (s: object) => void } }).hot;
+
+      hot.updateSettings({ columnSorting: false });
+      hot.updateSettings({ columnSorting: true });
+    });
+
+    await grid.sortByHeader(2);
+    await grid.dragColumnFromHeaderCentreReleasingOutside(2);
+
+    // Counted, not read off the headers: a stray sort lands on whatever column now occupies the
+    // dragged column's old index, so the header classes look unchanged either way.
+    await expect.poll(async () => grid.sortCount()).toBe(1);
+  });
+
   test('sorts on a header click made while a validated cell is being edited', async ({ page }) => {
     await grid.goto();
 

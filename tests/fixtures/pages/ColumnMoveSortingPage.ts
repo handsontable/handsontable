@@ -48,6 +48,11 @@ export class ColumnMoveSortingPage {
     return this.header(col).locator('span.colHeader');
   }
 
+  /** How many times the grid has sorted since it loaded. */
+  async sortCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as { sortCount?: number }).sortCount ?? 0);
+  }
+
   /** Assert a cell shows the expected text (web-first, auto-retrying). */
   async expectCell(row: number, col: number, text: string): Promise<void> {
     await expect(this.cell(row, col)).toHaveText(text);
@@ -87,6 +92,24 @@ export class ColumnMoveSortingPage {
     await this.page.mouse.down();
     await this.page.mouse.move(startX + 20, y, { steps: 5 });
     await this.page.mouse.move(to.x + (to.width / 2), y, { steps: 10 });
+    await this.page.mouse.up();
+  }
+
+  /**
+   * Drag a column from its header centre and release well below the grid, so the release lands
+   * on no cell at all. That path is resolved by the document listener rather than the cell hook.
+   */
+  async dragColumnFromHeaderCentreReleasingOutside(fromCol: number): Promise<void> {
+    const from = await this.headerBox(fromCol);
+    const y = from.y + (from.height / 2);
+    const startX = from.x + (from.width / 2);
+    const viewport = this.page.viewportSize();
+
+    await this.page.mouse.move(startX, y);
+    await this.page.mouse.down();
+    await this.page.mouse.move(startX + 20, y, { steps: 5 });
+    await this.page.mouse.move(startX + 200, y, { steps: 8 });
+    await this.page.mouse.move(startX + 200, (viewport?.height ?? 600) - 20, { steps: 8 });
     await this.page.mouse.up();
   }
 
