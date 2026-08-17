@@ -1869,6 +1869,10 @@ describe('MergeCells', () => {
     expect(getInlineStartClone().find('.htCore').height()).toBe(getThemeLayout().overlayHeight({ rows: 5 }));
   });
 
+  // Verified still failing (2026-08-05): the top overlay keeps the 2-row height
+  // (59px in the main theme) instead of expanding to cover the 3-row merge
+  // (88px) — the sibling left-overlay test shows the expected behavior. Real
+  // product bug tracked in DEV-2194; unskip with the fix.
   xit('should not collapse the top overlay height when the merge cell covers all overlay cells width', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
@@ -1880,19 +1884,19 @@ describe('MergeCells', () => {
       mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 5 }],
     });
 
-    expect(getTopClone().height()).toBe(70);
+    expect(getTopClone().height()).toBe(getThemeLayout().overlayHeight({ rows: 3 }));
 
     await updateSettings({
       mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 5 }],
     });
 
-    expect(getTopClone().height()).toBe(47);
+    expect(getTopClone().height()).toBe(getThemeLayout().overlayHeight({ rows: 2 }));
 
     await updateSettings({
       mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 5 }],
     });
 
-    expect(getTopClone().height()).toBe(47);
+    expect(getTopClone().height()).toBe(getThemeLayout().overlayHeight({ rows: 2 }));
   });
 
   it('should correctly render all overlay\'s heights when they are contain merge cells', async() => {

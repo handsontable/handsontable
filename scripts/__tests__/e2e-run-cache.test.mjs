@@ -29,6 +29,9 @@ function fakeRoot(shape = 'clone') {
   mkdirSync(path.join(root, 'tests/fixtures/pages'), { recursive: true });
   writeFileSync(path.join(root, 'handsontable/dist/handsontable.js'), 'dist-umd-v1');
   writeFileSync(path.join(root, 'handsontable/dist/handsontable.full.min.js'), 'dist-v1');
+  mkdirSync(path.join(root, 'tests/node_modules/hyperformula/dist'), { recursive: true });
+  writeFileSync(path.join(root, 'tests/package.json'), 'pkg-v1');
+  writeFileSync(path.join(root, 'tests/node_modules/hyperformula/dist/hyperformula.full.min.js'), 'hf-v1');
   writeFileSync(path.join(root, 'tests/fixtures/pages/GridPage.ts'), 'pom-v1');
   writeFileSync(path.join(root, 'tests/playwright.config.ts'), 'cfg-v1');
   writeFileSync(path.join(root, 'tests/e2e/a.spec.ts'), 'spec-v1');
@@ -102,6 +105,20 @@ test('rebuilding ONLY the base UMD bundle invalidates the cache (the e2e-main le
   // `build:umd` rewrites handsontable.js and leaves the min files alone — the
   // hook must re-run the spec against the new bundle, not skip it as green.
   writeFileSync(path.join(root, 'handsontable/dist/handsontable.js'), 'dist-umd-v2');
+  assert.deepEqual(filterCached(root, ['e2e/a.spec.ts']).toRun, ['e2e/a.spec.ts']);
+});
+
+test('reinstalling a different fixture-served engine invalidates the cache', () => {
+  const root = fakeRoot();
+
+  recordGreen(root, ['e2e/a.spec.ts']);
+  // A different HyperFormula lands in tests/node_modules — the formulas
+  // fixture would serve it, so the recorded green no longer proves anything.
+  writeFileSync(path.join(root, 'tests/node_modules/hyperformula/dist/hyperformula.full.min.js'), 'hf-v2');
+  assert.deepEqual(filterCached(root, ['e2e/a.spec.ts']).toRun, ['e2e/a.spec.ts']);
+
+  recordGreen(root, ['e2e/a.spec.ts']);
+  writeFileSync(path.join(root, 'tests/package.json'), 'pkg-v2');
   assert.deepEqual(filterCached(root, ['e2e/a.spec.ts']).toRun, ['e2e/a.spec.ts']);
 });
 

@@ -73,29 +73,34 @@ function listFiles(dir) {
 /**
  * Hash of the environment a spec runs against: BOTH dist bundles the fixtures
  * can load (`?bundle=` umd → `handsontable.js`, full-min →
- * `handsontable.full.min.js`) + the theme stylesheets they also load (the
- * fixtures pull `handsontable.min.css` + `ht-theme-<theme>.min.css` per the
- * ?theme= project) + every file under tests/fixtures (page objects, demo
- * pages) + the Playwright config. Hashing only one bundle would let a rebuild
- * of the other slip through as "environment unchanged", and the pre-push hook
- * would skip specs as already-green against a bundle they never ran on. ''
- * when either bundle is absent (never skip then).
+ * `handsontable.full.min.js`), the fixture-served HyperFormula artifact plus
+ * `tests/package.json` that pins it (the formulas fixture loads the engine
+ * from tests/node_modules — reinstalling a different version must invalidate
+ * the cache, or the hook skips formulas specs against an engine they never
+ * ran on), the theme stylesheets (the fixtures pull `handsontable.min.css` +
+ * `ht-theme-<theme>.min.css` per the ?theme= project), every file under
+ * tests/fixtures (page objects, demo pages), and the Playwright config.
+ * Hashing only part of that set lets a rebuild or reinstall of the rest slip
+ * through as "environment unchanged". '' when any required input is absent
+ * (never skip then).
  *
  * @param {string} root Repo root.
  * @returns {string} Hex digest, or '' when the environment is incomplete.
  */
 export function envHash(root) {
-  const bundles = [
+  const inputs = [
     'handsontable/dist/handsontable.js',
     'handsontable/dist/handsontable.full.min.js',
+    'tests/package.json',
+    'tests/node_modules/hyperformula/dist/hyperformula.full.min.js',
   ].map(rel => fileHash(path.join(root, rel)));
 
-  if (bundles.some(bundle => !bundle)) {
+  if (inputs.some(input => !input)) {
     return '';
   }
   const h = createHash('sha256');
 
-  bundles.forEach(bundle => h.update(bundle));
+  inputs.forEach(input => h.update(input));
 
   // Theme CSS the demo fixtures load — a styles-only rebuild must invalidate the
   // cache (the per-theme render depends on it), even though the JS is unchanged.

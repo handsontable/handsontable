@@ -34,13 +34,29 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   warning and silently stays off) and **no languages pack** (an i18n fixture
   loads `dist/languages/all.js` explicitly — the Puppeteer harness does that
   for you, this tier does not).
-- The green-run cache (`scripts/e2e-run-cache.mjs`) hashes BOTH bundles plus
-  every file under `fixtures/`; rebuilding either bundle re-runs affected
-  specs. Do not narrow that hash.
+- A fixture-served library MUST be a dependency of THIS package, loaded from
+  `/tests/node_modules/…` — CI installs only the filtered `handsontable-tests`
+  workspace, so a path into any other package's `node_modules` does not exist
+  there (and the static server refuses it locally too, for CI parity). **Pin
+  the exact version the owning package's lockfile carries** — an identical
+  RANGE is not enough (both packages declared `^3.0.0` and still locked 3.3.0
+  vs 3.4.0, because pnpm resolves each importer at its own time). One
+  `hyperformula` entry in `pnpm-lock.yaml` is the invariant; two entries mean
+  the `umd` legs test a different engine than the one baked into `full.min`.
+  Moving the version into the pnpm catalog is the durable upgrade when the
+  core package can take that change.
+- The green-run cache (`scripts/e2e-run-cache.mjs`) hashes BOTH bundles, the
+  fixture-served HyperFormula artifact + `tests/package.json`, and every file
+  under `fixtures/`; rebuilding a bundle or reinstalling the engine re-runs
+  affected specs. Do not narrow that hash.
 
 ## Determinism
 
 Ships at `error` in `.eslintrc.cjs`: no `waitForTimeout`, `sleep`,
-`networkidle`, `.only`, or `.skip` in specs. Wait on web-first assertions;
-`expect.poll` for data probes. Full rules: the `handsontable-playwright-e2e`
-skill and its `references/determinism.md`.
+`networkidle`, `.only`, `.skip`, or bare `test.fixme` in specs. Wait on
+web-first assertions; `expect.poll` for data probes. `test.fixme` is the
+tracked exception for a real product bug: it requires an eslint-disable line
+naming the task (`// eslint-disable-next-line no-restricted-syntax --
+DEV-1234: <why>`), which keeps every parked test counted and attributable.
+Full rules: the `handsontable-playwright-e2e` skill and its
+`references/determinism.md`.

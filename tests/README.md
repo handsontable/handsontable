@@ -47,6 +47,27 @@ only; the `-min` legs run in CI. Run a single other leg by hand with
 
 When enforcement requires a new test, you run it here to prove it works before you push — that is the point of a single, locally-runnable install.
 
+### If the install seems missing
+
+`Cannot find module '@playwright/test'` or an empty `tests/node_modules` means
+the checkout's install predates this package joining the workspace, or was made
+with `--filter`. The fix is always the same: `pnpm install` from the repo root
+(`corepack enable` first if pnpm is not set up — the version is pinned by
+`packageManager` in the root `package.json`). The static server also prints an
+actionable warning at startup when the fixture-served HyperFormula is absent.
+
+### The Puppeteer (legacy Jasmine) tier, locally
+
+The frozen suite lives in the `handsontable` package and needs nothing beyond
+the same one root `pnpm install` — the Chromium download runs via puppeteer's
+allowed install script (`onlyBuiltDependencies` in `pnpm-workspace.yaml`):
+
+```bash
+npm --prefix handsontable run test:e2e         # full legacy suite (base bundle); scope with -- --testPathPattern=<name>
+npm --prefix handsontable run test:production  # the same suite against handsontable.full.min.js
+npm --prefix handsontable run test:walkontable # the rendering engine's own pipeline
+```
+
 ## One Playwright version across the monorepo
 
 There must be **one** Playwright version, installed once, aligned to the version CI runs — currently **1.61.1**. The mechanism is the pnpm **catalog**: `pnpm-workspace.yaml` declares `catalog: { '@playwright/test': 1.61.1 }` and this package sets `"@playwright/test": "catalog:"`. `visual-tests/` (and later `performance-tests/`, `docs/`) move onto the catalog in their own reviewed bumps.

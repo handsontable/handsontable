@@ -659,6 +659,9 @@ importers:
       eslint:
         specifier: 8.57.1
         version: 8.57.1
+      hyperformula:
+        specifier: 3.3.0
+        version: 3.3.0
 
   visual-tests:
     devDependencies:

@@ -881,42 +881,6 @@ describe('AutocompleteEditor', () => {
         .toBeGreaterThan(editor.find('.handsontableInput').width());
     });
 
-    // TODO: This test never properly tests the case of refreshing editor after re-render the table. Previously this
-    // test passes because sleep timeout was small enough to read the valid width before the editor element was resized.
-    // Related issue #5103
-    xit('autocomplete textarea should have cell dimensions (after render)', async() => {
-      const data = [
-        ['a', 'b'],
-        ['c', 'd']
-      ];
-
-      handsontable({
-        data,
-        minRows: 4,
-        minCols: 4,
-        minSpareRows: 4,
-        minSpareCols: 4,
-        cells() {
-          return {
-            type: Handsontable.AutocompleteCell
-          };
-        }
-      });
-
-      await selectCell(1, 1);
-      await keyDownUp('enter');
-      await waitForNextAnimationFrames(1);
-
-      data[1][1] = 'dddddddddddddddddddd';
-      await render();
-
-      await waitForNextAnimationFrames(1);
-
-      const $td = spec().$container.find('.htCore tbody tr:eq(1) td:eq(1)');
-
-      expect(autocompleteEditor().width()).toEqual($td.width());
-    });
-
     it('should invoke beginEditing only once after doubleclicking on a cell (#1011)', async() => {
       handsontable({
         columns: [
