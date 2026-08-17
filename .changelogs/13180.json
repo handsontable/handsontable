@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the dropdown and autocomplete editor list rendering narrower than the edited column when `trimDropdown` is set to `false`.",
+  "type": "fixed",
+  "issueOrPR": 13180,
+  "breaking": false,
+  "framework": "none"
+}
