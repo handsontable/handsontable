@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Auto-size valueFormatter e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    A renderer's own `valueFormatter` static (numericRenderer's Intl formatting, or a custom
+    renderer's) changes the string the cell renders — and therefore the geometry the auto-size
+    plugins must measure. The samplers have to apply the SAME formatter precedence as the render
+    path (cell-level `valueFormatter` option first, then the renderer's static): when they miss the
+    static, AutoColumnSize sizes the column for the raw value and AutoRowSize records a one-line
+    height for a cell the renderer draws on several lines, desyncing the row-header overlay from
+    the master (the DEV-2126 symptom family).
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const MULTILINE_ROW = 2;
+    const MULTILINE_MARKER = 'MULTILINE';
+
+    // A custom renderer whose `valueFormatter` static turns one marker value into three lines —
+    // the same upstream-formatting contract the built-in numeric and date renderers rely on. It
+    // also stamps the row test ids on the master side (the numeric columns keep their built-in
+    // renderer, so the stamping lives here).
+    const multilineRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+
+      if (td.parentNode) {
+        td.parentNode.setAttribute('data-testid', `row-${row}`);
+      }
+    };
+
+    multilineRenderer.valueFormatter = function(value) {
+      return value === MULTILINE_MARKER ? 'line 1\nline 2\nline 3' : value;
+    };
+
+    // The row headers live in the inline-start overlay, whose rows carry no data cell to stamp.
+    // Stamp them from the row-header renderer instead, so the page object can address a row in
+    // BOTH tables the same way.
+    const rowHeaderRenderer = function(row, th) {
+      th.textContent = row + 1;
+
+      if (th.parentNode) {
+        th.parentNode.setAttribute('data-testid', `row-${row}`);
+      }
+    };
+
+    // Columns 0 and 1 hold the SAME numbers; only column 1 carries a `numericFormat`, whose
+    // currency string is strictly longer than the raw value — so any width difference between the
+    // two columns comes from the renderer-static formatting alone. `renderer: 'numeric'` is used
+    // deliberately instead of `type: 'numeric'`: the TYPE copies the formatter into the cell meta
+    // (where the samplers always applied it), while a bare renderer leaves formatting to the
+    // renderer's `valueFormatter` static — the exact path under test.
+    const hot = new Handsontable(container, {
+      data: [
+        [123456789.55, 123456789.55, 'C1'],
+        [123456789.55, 123456789.55, 'C2'],
+        [123456789.55, 123456789.55, MULTILINE_MARKER],
+        [123456789.55, 123456789.55, 'C4'],
+        [123456789.55, 123456789.55, 'C5'],
+      ],
+      columns: [
+        { renderer: 'numeric' },
+        { renderer: 'numeric', numericFormat: { style: 'currency', currency: 'USD' } },
+        { renderer: multilineRenderer },
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      autoRowSize: true,
+      autoColumnSize: true,
+      afterGetRowHeaderRenderers(renderers) {
+        renderers.push(rowHeaderRenderer);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    window.hot = hot;
+  </script>
+</body>
+</html>
