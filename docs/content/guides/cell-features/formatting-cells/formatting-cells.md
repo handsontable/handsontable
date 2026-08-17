@@ -85,6 +85,22 @@ To add a CSS class to a cell, column, or row, use the [`className`](@/api/option
 
 :::
 
+### Give your rule enough specificity
+
+A theme styles cells through rules such as `.ht-theme-main .htCore td`, which is more specific than a single class selector. A rule like `.custom-cell { font-size: 24px; }` therefore loses to the theme, and the cell keeps the theme's font size.
+
+To win, include the theme class and the element in your selector:
+
+```css
+.ht-theme-main .htCore td.custom-cell {
+  font-size: 24px;
+}
+```
+
+Adding `!important` to your original rule works too, but the selector above keeps the cascade readable.
+
+[`autoRowSize`](@/api/options.md#autorowsize) and [`autoColumnSize`](@/api/options.md#autocolumnsize) measure each cell with its class applied, so a class that changes a cell's font size, padding, or borders is reflected in the calculated row heights and column widths.
+
 ## Apply inline styles
 
 Apply inline styles directly to a cell's DOM element through the `style` property. Use the [`renderer`](@/api/options.md#renderer) option to run this logic on each render.

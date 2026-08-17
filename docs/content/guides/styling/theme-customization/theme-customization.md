@@ -271,6 +271,31 @@ Here's an example for `.ht-theme-main`:
 
 :::
 
+### Target the theme class, not the container
+
+Set your overrides on the theme class. Handsontable renders an inner wrapper that also carries the theme class, and that wrapper redefines every variable the theme owns. A value you set on the container element is inherited by the wrapper and then overwritten there, so it never reaches the cells:
+
+```css
+/* No effect - the inner wrapper redefines these variables. */
+#my-grid {
+  --ht-font-size: 24px;
+  --ht-line-height: 32px;
+}
+```
+
+Raising the specificity of that selector does not help, because the wrapper's own declaration is closer to the cells rather than weaker.
+
+Scope your rule to the theme class instead. Writing it as a descendant of your container keeps the override local to one grid and independent of stylesheet order:
+
+```css
+#my-grid .ht-theme-main {
+  --ht-font-size: 24px;
+  --ht-line-height: 32px;
+}
+```
+
+A bare `.ht-theme-main { ... }` rule works as well, but it matches the wrapper with the same specificity as the theme's own rule. It wins only when your stylesheet comes after the theme stylesheet, which depends on how your bundler orders CSS.
+
 ## Option 4: Use the Theme Builder UI
 
 If you prefer a visual approach to creating themes, use the [Handsontable Theme Builder](https://handsontable.com/theme-builder). This online tool provides an intuitive interface for customizing colors, spacing, and other theme properties without writing code. Once you're satisfied with your design, you can export the generated your theme and integrate it into your project.
