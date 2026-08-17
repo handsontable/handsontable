@@ -315,7 +315,7 @@ export interface GridSettings {
   /**
    * Fired after a `moveCells` drag has relocated a selection.
    *
-   * @since 18.0.0
+   * @since 18.1.0
    */
   afterMoveCells?: (sourceRange: WalkontableCellRange, targetRange: WalkontableCellRange, isCopy: boolean) => void;
   afterNamedExpressionAdded?: (namedExpressionName: string, changes: unknown[]) => void;
@@ -483,7 +483,7 @@ export interface GridSettings {
   /**
    * Fired before a `moveCells` drag relocates a selection. Return `false` to cancel the move.
    *
-   * @since 18.0.0
+   * @since 18.1.0
    */
   beforeMoveCells?: (
     sourceRange: WalkontableCellRange,

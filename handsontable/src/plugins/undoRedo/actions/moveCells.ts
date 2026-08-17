@@ -5,10 +5,12 @@ import type CellRange from '../../../3rdparty/walkontable/src/cell/range';
 import { isCellRangeLike } from '../../../3rdparty/walkontable/src/cell/range';
 import { BaseAction } from './_base';
 import { hasOwnProperty } from '../../../helpers/object';
-// Imported rather than duplicated: undo must restore exactly the key set `moveCellRange` moved, and
-// two copies would silently drift the moment a key is added to one of them.
-import { collectMovableMeta, MOVABLE_META_KEYS } from '../../moveCells/helpers';
-import type { MovableMetaEntry } from '../../moveCells/helpers';
+// Imported from the shared module rather than duplicated: undo must restore exactly the key set
+// `moveCellRange` moved, and two copies would silently drift the moment a key is added to one of
+// them. The module lives in `utils/` (not in the MoveCells plugin) so this action does not import
+// another plugin — registering just `UndoRedo` must not pull MoveCells code into the bundle.
+import { collectMovableMeta, MOVABLE_META_KEYS } from '../../../utils/movableMeta';
+import type { MovableMetaEntry } from '../../../utils/movableMeta';
 
 /**
  * A snapshot of the values and movable meta for a rectangular cell region.

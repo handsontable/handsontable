@@ -613,7 +613,7 @@ export const REGISTERED_HOOKS = [
    * Fired after the user presses a selection-adjustment handle (see [`selectionHandles`](@/api/options.md#selectionhandles)).
    *
    * @event Hooks#afterOnSelectionHandleMouseDown
-   * @since 18.0.0
+   * @since 18.1.0
    * @param {Event} event The `mousedown` event.
    * @param {'top' | 'bottom' | 'start' | 'end'} edge The pressed handle's edge.
    */
@@ -623,7 +623,7 @@ export const REGISTERED_HOOKS = [
    * Fired after the user presses a selection edge move zone.
    *
    * @event Hooks#afterOnSelectionEdgeMouseDown
-   * @since 18.0.0
+   * @since 18.1.0
    * @param {Event} event The `mousedown` event.
    * @param {'top' | 'bottom' | 'start' | 'end'} edge The pressed edge.
    */
@@ -633,7 +633,7 @@ export const REGISTERED_HOOKS = [
    * Fired before a `moveCells` drag relocates a selection. Return `false` to cancel the move.
    *
    * @event Hooks#beforeMoveCells
-   * @since 18.0.0
+   * @since 18.1.0
    * @param {CellRange} sourceRange The range being moved.
    * @param {CellCoords} targetTopLeft The top-left target cell.
    * @param {boolean} isCopy `true` when copying (Ctrl held) instead of moving.
@@ -645,7 +645,7 @@ export const REGISTERED_HOOKS = [
    * Fired after a `moveCells` drag has relocated a selection.
    *
    * @event Hooks#afterMoveCells
-   * @since 18.0.0
+   * @since 18.1.0
    * @param {CellRange} sourceRange The original range.
    * @param {CellRange} targetRange The range the data was moved to.
    * @param {boolean} isCopy `true` when the operation was a copy.

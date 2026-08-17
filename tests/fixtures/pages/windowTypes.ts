@@ -40,9 +40,22 @@ export interface FixtureHotInstance {
   getPlugin(name: 'moveCells'): {
     moveCellRange(sourceRange: unknown, targetTopLeft: unknown, isCopy?: boolean): boolean,
     isDragActive(): boolean,
+    enablePlugin(): void,
+    disablePlugin(): void,
   };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
-  getPlugin(name: 'selectionHandles'): { isDragActive(): boolean };
+  getPlugin(name: 'selectionHandles'): {
+    isDragActive(): boolean,
+    enablePlugin(): void,
+    disablePlugin(): void,
+  };
+  getActiveEditor(): {
+    isOpened(): boolean,
+    beginEditing(): void,
+    finishEditing(restoreOriginalValue?: boolean): void,
+  } | undefined;
+  render(): void;
+  listen(): void;
   getFirstFullyVisibleRow(): number;
   getLastFullyVisibleRow(): number;
   getLastRenderedVisibleRow(): number;

@@ -4,11 +4,25 @@ import { BasePlugin } from '../base';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
 import { isRightClick } from '../../helpers/dom/event';
+import { warn } from '../../helpers/console';
 import { hasOwnProperty } from '../../helpers/object';
-import { clampMoveTarget, collectMovableMeta, MOVABLE_META_KEYS } from './helpers';
+import { clampMoveTarget } from './helpers';
+import { collectMovableMeta, MOVABLE_META_KEYS } from '../../utils/movableMeta';
 
 export const PLUGIN_KEY = 'moveCells';
 export const PLUGIN_PRIORITY = 25;
+
+const SHORTCUTS_GROUP = PLUGIN_KEY;
+
+/**
+ * Ceiling on the number of cells one move or copy may span. `moveCellRange` makes roughly six full
+ * passes over the source and target regions before anything changes (two read-only scans, two
+ * movable-meta collections, the value snapshot, plus the UndoRedo plugin's two region snapshots),
+ * and the undo stack retains two whole value matrices — so an unbounded range freezes the tab.
+ * The drag path cannot produce a range anywhere near this size; the ceiling protects the public
+ * `moveCellRange` API called with a programmatically built range.
+ */
+export const CELLS_LIMIT = 100000;
 
 // Used only when the theme tokens cannot be resolved (the ghost lives outside the theme scope —
 // see `#createGhost`). Mirrors the `main` theme's selection border.
@@ -20,28 +34,37 @@ const GHOST_BORDER_COLOR = '#4b89ff';
  */
 export class MoveCells extends BasePlugin {
   /**
+   * The plugin's registration key (the name of the setting that enables it).
    *
+   * @returns {string}
    */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
   /**
+   * The plugin's initialization priority within the plugin registry.
    *
+   * @returns {number}
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
   /**
+   * The settings whose change through `updateSettings` triggers `updatePlugin`.
    *
+   * @returns {string[]}
    */
   static get SETTING_KEYS() {
     return [PLUGIN_KEY];
   }
 
   /**
-   *
+   * State of the drag in progress: the source range corners in visual coordinates, the offset of
+   * the grabbed cell from the range's top-start corner (keeps the block anchored under the pointer
+   * while dragging), and the cell the press resolved to (used to tell a plain click from a drag on
+   * release). `null` when no drag is active.
    */
   #drag: {
     fromRow: number;
@@ -55,12 +78,13 @@ export class MoveCells extends BasePlugin {
   } | null = null;
 
   /**
-   *
+   * The drag preview element — a dashed outline of the block appended to `document.body`
+   * (see `#createGhost` for why it lives outside the grid root). `null` when no drag is active.
    */
   #ghost: HTMLElement | null = null;
 
   /**
-   *
+   * The `document.body` inline cursor captured when a drag starts, restored when the drag ends.
    */
   #bodyCursor = '';
 
@@ -88,6 +112,7 @@ export class MoveCells extends BasePlugin {
 
     this.addHook('afterOnSelectionEdgeMouseDown', this.#onSelectionEdgeMouseDown);
     this.addHook('afterScroll', this.#onAfterScroll);
+    this.#registerShortcuts();
     super.enablePlugin();
   }
 
@@ -104,6 +129,7 @@ export class MoveCells extends BasePlugin {
    * Disables selection move interactions and cancels an active drag.
    */
   disablePlugin(): void {
+    this.#unregisterShortcuts();
     super.disablePlugin();
     this.#endDrag(false, null);
   }
@@ -135,8 +161,8 @@ export class MoveCells extends BasePlugin {
    * @param {CellCoords} targetTopLeft The destination top-left cell.
    * @param {boolean} [isCopy=false] Whether to keep the source values.
    * @returns {boolean} Whether the operation completed. Returns `false` when the target equals the
-   * source top-left (a no-op — no hook fires and no undo entry is recorded) or when any guard
-   * vetoes the operation.
+   * source top-left (a no-op — no hook fires and no undo entry is recorded), when the range spans
+   * more than {@link CELLS_LIMIT} cells, or when any other guard vetoes the operation.
    */
   moveCellRange(sourceRange: CellRange, targetTopLeft: CellCoords, isCopy = false): boolean {
     const sourceStart = sourceRange.getTopStartCorner();
@@ -161,14 +187,27 @@ export class MoveCells extends BasePlugin {
       return false;
     }
 
+    // Bail before the region scans below (and before any hook lets UndoRedo snapshot the regions)
+    // — see the `CELLS_LIMIT` doc for the cost model.
+    if (height * width > CELLS_LIMIT) {
+      warn(`The moved range spans more than ${CELLS_LIMIT} cells — the operation was skipped.`);
+
+      return false;
+    }
+
     // A read-only cell vetoes the move from either end. The target case is the obvious one; the
     // source case matters just as much, because `populateFromArray` skips read-only cells (see
     // `core.ts`, which exempts only `'UndoRedo.undo'`). Without this check the source values survive
     // and the move silently degrades into a copy — and with the Formulas plugin active it is worse
     // still: HyperFormula has already relocated the cell, so the engine and the data source diverge.
+    // The source bounds matter for the public `moveCellRange` API: the drag path always hands over
+    // a real selection, but a caller-built range past the grid edge would read `undefined` off the
+    // end of the data source and write it into the target instead of failing cleanly.
     if (
       targetRow < 0 || targetCol < 0 ||
       targetBottom >= this.hot.countRows() || targetRight >= this.hot.countCols() ||
+      fromRow < 0 || fromCol < 0 ||
+      toRow >= this.hot.countRows() || toCol >= this.hot.countCols() ||
       this.#hasReadOnlyCell(targetRow, targetCol, height, width) ||
       (!isCopy && this.#hasReadOnlyCell(fromRow, fromCol, height, width))
     ) {
@@ -307,7 +346,6 @@ export class MoveCells extends BasePlugin {
     this.#positionGhost(fromRow, fromCol, toRow, toCol);
     this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mousemove', this.#onMouseMove);
     this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mouseup', this.#onMouseUp);
-    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'keydown', this.#onKeyDown);
   };
 
   /**
@@ -376,13 +414,24 @@ export class MoveCells extends BasePlugin {
   };
 
   /**
-   * Cancels a drag on Escape.
+   * Registers the shortcut that cancels an active drag on Escape. Registered once for the
+   * plugin's lifetime and gated by `runOnlyIf`, so it stays inert while no drag is in progress.
    */
-  #onKeyDown = (event: Event): void => {
-    if ((event as KeyboardEvent).key === 'Escape') {
-      this.#endDrag(false, null);
-    }
-  };
+  #registerShortcuts(): void {
+    this.hot.getShortcutManager().getContext('grid')?.addShortcut({
+      keys: [['Escape']],
+      callback: () => this.#endDrag(false, null),
+      runOnlyIf: () => this.#drag !== null,
+      group: SHORTCUTS_GROUP,
+    });
+  }
+
+  /**
+   * Unregisters the plugin's shortcuts.
+   */
+  #unregisterShortcuts(): void {
+    this.hot.getShortcutManager().getContext('grid')?.removeShortcutsByGroup(SHORTCUTS_GROUP);
+  }
 
   /**
    * Ends the active drag and optionally performs the move.
@@ -398,7 +447,6 @@ export class MoveCells extends BasePlugin {
     this.#pointerPosition = null;
     this.eventManager.removeEventListener(this.hot.rootDocument.documentElement, 'mousemove', this.#onMouseMove);
     this.eventManager.removeEventListener(this.hot.rootDocument.documentElement, 'mouseup', this.#onMouseUp);
-    this.eventManager.removeEventListener(this.hot.rootDocument.documentElement, 'keydown', this.#onKeyDown);
     this.#ghost?.remove();
     this.#ghost = null;
     removeClass(this.hot.rootElement, 'ht__moving');
@@ -413,8 +461,14 @@ export class MoveCells extends BasePlugin {
     // A gesture that starts and ends in the same cell is a click, not a move. The move bands
     // straddle the selection border, so a press can resolve to the cell just OUTSIDE the range —
     // committing there would shift the block by one cell on a plain click (and on macOS a
-    // Ctrl+click would commit a spurious copy the same way).
+    // Ctrl+click would commit a spurious copy the same way). The band swallowed the mousedown
+    // (`stopImmediatePropagation` + `preventDefault`), so the usual click-to-select never ran —
+    // select the cell under the pointer here, exactly as an unswallowed click would have.
     if (pointer.row === drag.pressRow && pointer.col === drag.pressCol) {
+      if (pointer.row !== null && pointer.col !== null) {
+        this.hot.selectCell(pointer.row, pointer.col);
+      }
+
       return;
     }
 

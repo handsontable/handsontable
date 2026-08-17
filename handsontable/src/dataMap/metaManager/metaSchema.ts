@@ -5569,7 +5569,7 @@ export default (): Record<string, unknown> => {
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      *
-     * @since 18.0.0
+     * @since 18.1.0
      * @memberof Options#
      * @type {boolean}
      * @default false
@@ -5586,18 +5586,21 @@ export default (): Record<string, unknown> => {
     /**
      * The `moveCells` option lets you move a [selection](@/guides/cell-features/selection/selection.md) by
      * dragging its edge. When enabled, hovering the border of a selected cell range shows a grab cursor;
-     * dragging the border moves the block's data (values, formatting, and – with the
+     * dragging the border moves the block's data (values, the [`className`](#classname) cell meta, and – with the
      * [`formulas`](@/api/options.md#formulas) plugin – adjusted formula references) to the new location.
+     * Other cell meta (for example [`numericFormat`](#numericformat) or [`readOnly`](#readonly)) stays at the
+     * source cells.
      * Hold <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> during the drag to copy instead of move.
      *
      * The move applies to a single contiguous cell range only. It has no effect on full-row, full-column,
-     * select-all, or multiple selections, and the target must stay within the grid. Neither the target nor
+     * select-all, or multiple selections, the range may span at most 100,000 cells, and the source and
+     * target must stay within the grid. Neither the target nor
      * the source may overlap read-only cells, because a move has to clear the source — a copy leaves the
      * source in place, so a read-only source cell blocks a move but not a copy.
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      *
-     * @since 18.0.0
+     * @since 18.1.0
      * @memberof Options#
      * @type {boolean}
      * @default false

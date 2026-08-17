@@ -22,6 +22,44 @@ test.describe('selectionHandles adjust handles', () => {
     await grid.goto();
   });
 
+  test('hides the handles while a cell editor is open', async () => {
+    await grid.selectCells(1, 1, 3, 3);
+    await grid.hoverCell(2, 2);
+
+    await expect(grid.visibleHandles()).toHaveCount(4);
+
+    // Resizing mid-edit would swallow the mousedown that normally commits the editor — the handles
+    // must not render (matching the fill-handle corner, which also hides while an editor is open).
+    await grid.openEditor();
+
+    await expect(grid.visibleHandles()).toHaveCount(0);
+
+    await grid.closeEditor();
+    await grid.hoverCell(2, 2);
+
+    await expect(grid.visibleHandles()).toHaveCount(4);
+  });
+
+  test('hides the handles when the plugin is disabled at runtime', async () => {
+    await grid.selectCells(1, 1, 3, 3);
+    await grid.hoverCell(2, 2);
+
+    await expect(grid.visibleHandles()).toHaveCount(4);
+
+    // `disablePlugin()` must win over the still-`true` setting.
+    await grid.setPluginEnabled('selectionHandles', false);
+
+    await expect(grid.visibleHandles()).toHaveCount(0);
+
+    await grid.setPluginEnabled('selectionHandles', true);
+    // The pointer still rests on (2, 2) from the earlier hover, so hovering it again fires no
+    // fresh `mouseover` — leave the selection first so re-entering it re-arms the hover wiring.
+    await grid.hoverCell(0, 0);
+    await grid.hoverCell(2, 2);
+
+    await expect(grid.visibleHandles()).toHaveCount(4);
+  });
+
   test('shows one handle per edge when hovering inside an interior selection', async () => {
     await grid.selectCells(1, 1, 3, 3);
     await grid.hoverCell(2, 2);

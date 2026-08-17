@@ -377,6 +377,54 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * Whether a cell editor is currently open.
+   */
+  async isEditorOpened(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.getActiveEditor()?.isOpened() === true);
+  }
+
+  /**
+   * Open the cell editor on the focused cell through the editor API — the selection stays intact,
+   * unlike a dblclick, which collapses it to the clicked cell first.
+   */
+  async openEditor(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.listen();
+      window.hot.getActiveEditor()?.beginEditing();
+    });
+    await expect.poll(() => this.isEditorOpened()).toBe(true);
+  }
+
+  /**
+   * Close the open cell editor without committing its value.
+   */
+  async closeEditor(): Promise<void> {
+    await this.page.evaluate(() => window.hot.getActiveEditor()?.finishEditing(true));
+    await expect.poll(() => this.isEditorOpened()).toBe(false);
+  }
+
+  /**
+   * Enable or disable a selection-affordance plugin at runtime, then re-render so the borders
+   * re-evaluate their visibility callbacks.
+   */
+  async setPluginEnabled(name: 'moveCells' | 'selectionHandles', enabled: boolean): Promise<void> {
+    await this.page.evaluate(({ pluginName, isEnabled }) => {
+      // Branch instead of passing the union — the `getPlugin` fixture typing resolves per literal.
+      const plugin = pluginName === 'moveCells'
+        ? window.hot.getPlugin('moveCells')
+        : window.hot.getPlugin('selectionHandles');
+
+      if (isEnabled) {
+        plugin.enablePlugin();
+      } else {
+        plugin.disablePlugin();
+      }
+
+      window.hot.render();
+    }, { pluginName: name, isEnabled: enabled });
+  }
+
+  /**
    * Whether the SelectionHandles plugin reports an active drag.
    */
   async isHandleDragActive(): Promise<boolean> {

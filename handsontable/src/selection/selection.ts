@@ -976,16 +976,21 @@ class Selection {
 
   /**
    * Tells whether the current selection is eligible for a `moveCells` drag at all: the feature is
-   * on, visual selection is not disabled, and the selection shape passes {@link canMoveRange}
+   * on (the setting is enabled AND the plugin has not been disabled at runtime), no editor is open,
+   * visual selection is not disabled, and the selection shape passes {@link canMoveRange}
    * (exactly one contiguous range that is not a full row, full column, or header selection).
    * Mirrors the eligibility gate applied when a move drag starts, so the move zone and grab
-   * cursor never show for a selection that a drag would reject.
+   * cursor never show for a selection that a drag would reject. The editor check matches
+   * {@link Selection#isCellCornerVisible} — starting a drag mid-edit would swallow the mousedown
+   * that normally commits the editor, so the release could rewrite a cell whose editor still holds
+   * an uncommitted value.
    *
    * @private
    * @returns {boolean}
    */
   #isSelectionMovable() {
-    if (this.settings.moveCells !== true || this.settings.disableVisualSelection) {
+    if (this.settings.moveCells !== true || this.settings.disableVisualSelection ||
+        this.tableProps.isEditorOpened() || !this.tableProps.isPluginEnabled('moveCells')) {
       return false;
     }
 
@@ -1207,7 +1212,11 @@ class Selection {
    * @returns {boolean}
    */
   isAdjustHandlesVisibleFor(layerLevel: number) {
-    if (this.settings.selectionHandles !== true) {
+    // The editor check matches `isCellCornerVisible`/`isAreaCornerVisible`: the handles must not
+    // render (nor start a drag) while a cell editor holds an uncommitted value. The plugin check
+    // keeps a runtime `disablePlugin()` effective even though the setting still reads `true`.
+    if (this.settings.selectionHandles !== true || this.tableProps.isEditorOpened() ||
+        !this.tableProps.isPluginEnabled('selectionHandles')) {
       return false;
     }
 

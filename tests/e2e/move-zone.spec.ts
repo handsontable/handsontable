@@ -468,6 +468,62 @@ test.describe('moveCells edge move bands', () => {
     await expect(grid.visibleMoveZones()).toHaveCount(0);
   });
 
+  test('selects the cell under the pointer when a band press resolves to a click', async ({ page }) => {
+    // The band swallowed the mousedown (`stopImmediatePropagation` + `preventDefault`), so without
+    // an explicit selection here a click on the band did nothing at all — no move (correct) but
+    // also no selection change, unlike a click anywhere else in the grid.
+    await grid.selectCells(2, 2, 3, 3);
+
+    const box = await grid.visibleMoveZones().first().boundingBox();
+
+    expect(box).not.toBeNull();
+
+    await page.mouse.move(box!.x + (box!.width / 2), box!.y + (box!.height / 2));
+    await page.mouse.down();
+    await page.mouse.up();
+
+    // The click collapses the selection to the single cell under the pointer, exactly as an
+    // unswallowed click would; the data and undo stack stay untouched.
+    const bounds = await grid.selectedBounds();
+
+    expect(bounds.top).toBe(bounds.bottom);
+    expect(bounds.start).toBe(bounds.end);
+    expect(await grid.cellValue(2, 2)).toBe('R3C3');
+    expect(await grid.isUndoAvailable()).toBe(false);
+  });
+
+  test('shows no move bands while a cell editor is open', async () => {
+    await grid.selectCells(2, 2, 3, 3);
+
+    await expect(grid.visibleMoveZones()).toHaveCount(4);
+
+    // Starting a drag mid-edit would swallow the mousedown that normally commits the editor, so
+    // the release could rewrite a cell whose editor still holds an uncommitted value.
+    await grid.openEditor();
+
+    await expect(grid.visibleMoveZones()).toHaveCount(0);
+
+    await grid.closeEditor();
+
+    await expect(grid.visibleMoveZones()).toHaveCount(4);
+  });
+
+  test('hides the move bands when the plugin is disabled at runtime', async () => {
+    await grid.selectCells(2, 2, 3, 3);
+
+    await expect(grid.visibleMoveZones()).toHaveCount(4);
+
+    // `disablePlugin()` must win over the still-`true` setting — otherwise the bands keep
+    // rendering (and keep calling `preventDefault()`) with a mousedown that does nothing.
+    await grid.setPluginEnabled('moveCells', false);
+
+    await expect(grid.visibleMoveZones()).toHaveCount(0);
+
+    await grid.setPluginEnabled('moveCells', true);
+
+    await expect(grid.visibleMoveZones()).toHaveCount(4);
+  });
+
   test('does not start a move drag on a right-press', async () => {
     await grid.selectCells(2, 2, 3, 3);
 
