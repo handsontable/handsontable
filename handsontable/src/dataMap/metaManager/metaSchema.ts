@@ -6222,14 +6222,14 @@ export default (): Record<string, unknown> => {
      *
      * When set to `true` (default), the list is trimmed to match the width of the edited cell,
      * which can truncate long option labels. When set to `false`, the list expands to fit its
-     * longest option, which may make the list wider than the cell.
+     * longest option – it can grow wider than the cell, but never narrower.
      *
      * You can set the `trimDropdown` option to one of the following:
      *
      * | Setting          | Description                                                                     |
      * | ---------------- | ------------------------------------------------------------------------------- |
      * | `true` (default) | Make the dropdown/autocomplete list's width the same as the edited cell's width |
-     * | `false`          | Scale the dropdown/autocomplete list's width to the list's content              |
+     * | `false`          | Expand the list to its content, but keep it at least as wide as the edited cell |
      *
      * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
      * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
