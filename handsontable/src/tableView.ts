@@ -22,6 +22,7 @@ import {
   getParentWindow,
 } from './helpers/dom/element';
 import EventManager from './eventManager';
+import { formatCellValue, renderCell } from './renderers/renderCell';
 import { RenderSizeProbe } from './renderSizeProbe';
 import { isImmediatePropagationStopped, isRightClick, isLeftClick, isMiddleClick } from './helpers/dom/event';
 import Walkontable from './3rdparty/walkontable/src';
@@ -936,18 +937,7 @@ class TableView {
         }
 
         const renderer = this.hot.getCellRenderer(cellProperties);
-        let formattedValue = value;
-
-        if (typeof cellProperties.valueFormatter === 'function') {
-          formattedValue = cellProperties.valueFormatter(formattedValue, cellProperties);
-
-        } else if (typeof renderer === 'function' && 'valueFormatter' in renderer) {
-          const { valueFormatter } = renderer as { valueFormatter: unknown };
-
-          if (typeof valueFormatter === 'function') {
-            formattedValue = valueFormatter.call(cellProperties, formattedValue, cellProperties);
-          }
-        }
+        const formattedValue = formatCellValue(value, cellProperties, renderer);
 
         this.hot.runHooks('beforeRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
 
@@ -961,14 +951,9 @@ class TableView {
           cellProperties,
         ];
 
-        renderer(...rendererArgs);
-
-        if (!cellProperties._isBaseRendererCalled) {
-          this.hot.getCellRenderer({ renderer: 'base' })(...rendererArgs);
-        }
+        renderCell(renderer, rendererArgs);
 
         this.hot.runHooks('afterRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
-        cellProperties._isBaseRendererCalled = false;
       },
       selections: this.hot.selection.highlight,
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,

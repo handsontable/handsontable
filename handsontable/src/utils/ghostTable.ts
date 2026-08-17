@@ -1,5 +1,7 @@
 import type { HotInstance } from '../core/types';
 import type { CellProperties } from '../settings';
+import type { BaseRenderer } from '../renderers/baseRenderer';
+import { renderCell } from '../renderers/renderCell';
 import { addClass } from './../helpers/dom/element';
 import { arrayEach } from './../helpers/array';
 import { throwWithCause } from '../helpers/errors';
@@ -523,17 +525,15 @@ class GhostTable {
   }
 
   /**
-   * Renders one sampled cell into the TD that will be measured, following the same renderer
-   * contract as `TableView.cellRenderer`: run the cell's own renderer, then run the base renderer
-   * when that renderer did not chain it itself.
-   *
-   * The built-in renderers no longer call `baseRenderer` themselves — `TableView` does it, guarded
-   * by the flag below. Calling only the cell renderer here would leave the measured TD without
-   * `cellProperties.className` and the other base-renderer classes, so AutoRowSize and
-   * AutoColumnSize would measure a cell styled differently from the one the user sees.
+   * Renders one sampled cell into the TD that will be measured, through the same `renderCell`
+   * contract `TableView.cellRenderer` uses: run the cell's own renderer, run the base renderer
+   * when that renderer did not chain it itself, then reset the chaining flag. Calling only the
+   * cell renderer here would leave the measured TD without `cellProperties.className` and the
+   * other base-renderer classes, so AutoRowSize and AutoColumnSize would measure a cell styled
+   * differently from the one the user sees.
    *
    * The sampled value must be rendered verbatim — the AutoRowSize and AutoColumnSize samplers
-   * already run `cellProperties.valueFormatter` when building samples. Formatting here again would
+   * already run `formatCellValue` when building samples. Formatting here again would
    * double-format: a date sample already formatted to `1/1/24` fails the ISO-only
    * `parseToLocalDate` and renders as `#bad-value#`, inflating the measured width.
    *
@@ -550,10 +550,7 @@ class GhostTable {
     value: unknown,
     cellProperties: CellProperties
   ) {
-    const renderer = this.hot!.getCellRenderer(cellProperties);
-    const rendererArgs: [
-      HotInstance, HTMLTableCellElement, number, number, string | number, unknown, CellProperties
-    ] = [
+    const rendererArgs: Parameters<BaseRenderer> = [
       this.hot!,
       td,
       row,
@@ -563,16 +560,7 @@ class GhostTable {
       cellProperties,
     ];
 
-    renderer(...rendererArgs);
-
-    if (!cellProperties._isBaseRendererCalled) {
-      this.hot!.getCellRenderer({ renderer: 'base' })(...rendererArgs);
-    }
-
-    // The flag lives on the cell meta, which for a materialized cell is the same object the render
-    // path uses. Leaving it set would make the next `TableView.cellRenderer` skip the base renderer
-    // and drop the classes from the REAL cell.
-    cellProperties._isBaseRendererCalled = false;
+    renderCell(this.hot!.getCellRenderer(cellProperties), rendererArgs);
   }
 
   /**
