@@ -60,7 +60,13 @@ export default defineComponent({
     >
       <HotColumn data="companyName" />
       <HotColumn data="name" />
-      <HotColumn data="sellDate" type="date" :allowInvalid="false" />
+      <HotColumn
+        data="sellDate"
+        type="date"
+        :allowInvalid="false"
+        :dateFormat="{ day: '2-digit', month: '2-digit', year: 'numeric' }"
+        locale="en-GB"
+      />
       <HotColumn
         data="inStock"
         type="checkbox"

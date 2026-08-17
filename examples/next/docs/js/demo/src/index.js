@@ -71,7 +71,9 @@ new Handsontable(example, {
       data: 4,
       type: "date",
       allowInvalid: false,
-      dateFormat: isArabicDemoEnabled() ? "M/D/YYYY" : "DD/MM/YYYY",
+      dateFormat: { day: "2-digit", month: "2-digit", year: "numeric" },
+      // `language` drives the i18n dictionary; `locale` drives Intl date formatting
+      locale: isArabicDemoEnabled() ? "ar" : "en-GB",
     },
     {
       data: 6,
