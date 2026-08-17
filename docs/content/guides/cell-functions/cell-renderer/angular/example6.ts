@@ -4,12 +4,13 @@ import {GridSettings, HotTableComponent, HotTableModule} from '@handsontable/ang
 import Handsontable from 'handsontable/base';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
 
-const ALLOWED_TAGS = ['B', 'EM', 'INPUT', 'BR'];
-const ALLOWED_ATTRIBUTES = ['type', 'class', 'checked'];
+const ALLOWED_TAGS = ['B', 'EM', 'INPUT', 'BR', 'TABLE', 'THEAD', 'TBODY', 'TR', 'TD', 'TH'];
+const ALLOWED_ATTRIBUTES = ['type', 'class', 'checked', 'colspan', 'rowspan'];
+const DROPPED_TAGS = ['SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE'];
 
-// The column headers below return HTML, so they need a sanitizer. Handsontable has no
-// built-in one since v18.0. This allowlist keeps the interactive checkbox working while
-// dropping everything else -- in production, use a vetted library such as DOMPurify.
+// Handsontable has no built-in sanitizer since v18.0, and `sanitizer` is grid-level:
+// it also filters pasted HTML, so the table tags have to survive -- otherwise pasting
+// a range degrades to plain text. In production, use a vetted library such as DOMPurify.
 // See https://handsontable.com/docs/security/
 const sanitizeHeader = (html: string): string => {
   const template = document.createElement('template');
@@ -17,7 +18,10 @@ const sanitizeHeader = (html: string): string => {
   template.innerHTML = html;
 
   template.content.querySelectorAll('*').forEach((element) => {
-    if (ALLOWED_TAGS.includes(element.tagName)) {
+    if (DROPPED_TAGS.includes(element.tagName)) {
+      // Unwrapping these would promote their source text into the output
+      element.remove();
+    } else if (ALLOWED_TAGS.includes(element.tagName)) {
       Array.from(element.attributes).forEach((attribute) => {
         if (!ALLOWED_ATTRIBUTES.includes(attribute.name)) {
           element.removeAttribute(attribute.name);
