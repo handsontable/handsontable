@@ -133,4 +133,19 @@ describe('renderCell', () => {
 
     expect(cellProperties._isBaseRendererCalled).toBe(false);
   });
+
+  it('should reset the chaining flag even when the cell renderer throws after chaining', () => {
+    // The flag lives on the shared cell meta. A renderer that chains the base renderer and THEN
+    // throws must not leave the flag set — the next real draw would skip the base renderer and
+    // silently drop the cell's classes.
+    const cellProperties = createCellProperties({ className: 'my-big-font' });
+    const throwingRenderer = (...args: Parameters<BaseRenderer>) => {
+      baseRenderer(...args);
+      throw new Error('renderer failure');
+    };
+
+    expect(() => renderCell(throwingRenderer, createRendererArgs(cellProperties)))
+      .toThrow('renderer failure');
+    expect(cellProperties._isBaseRendererCalled).toBe(false);
+  });
 });

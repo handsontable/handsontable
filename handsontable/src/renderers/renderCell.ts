@@ -53,11 +53,15 @@ export function renderCell(renderer: BaseRenderer, rendererArgs: Parameters<Base
   const [hotInstance] = rendererArgs;
   const cellProperties = rendererArgs[6];
 
-  renderer(...rendererArgs);
+  try {
+    renderer(...rendererArgs);
 
-  if (!cellProperties._isBaseRendererCalled) {
-    hotInstance.getCellRenderer({ renderer: 'base' })(...rendererArgs);
+    if (!cellProperties._isBaseRendererCalled) {
+      hotInstance.getCellRenderer({ renderer: 'base' })(...rendererArgs);
+    }
+  } finally {
+    // Reset even when a renderer throws — a chained-then-thrown flag would survive on the shared
+    // cell meta and make the next draw skip the base renderer.
+    cellProperties._isBaseRendererCalled = false;
   }
-
-  cellProperties._isBaseRendererCalled = false;
 }
