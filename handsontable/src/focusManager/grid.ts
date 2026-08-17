@@ -132,7 +132,7 @@ export class FocusGridManager {
     this.#eventManager = new EventManager(this.#hot);
 
     const focusRootElements = [this.#hot.rootWrapperElement ?? this.#hot.rootElement, this.#hot.rootPortalElement]
-      .filter(element => element instanceof HTMLElement);
+      .filter(element => isHTMLElement(element));
 
     focusRootElements.forEach((focusRootElement) => {
       this.#eventManager!.addEventListener(focusRootElement, 'focusin', () => {
@@ -142,7 +142,7 @@ export class FocusGridManager {
       this.#eventManager!.addEventListener(focusRootElement, 'focusout', (event) => {
         const relatedTarget = (event as FocusEvent).relatedTarget;
 
-        this.#hasBrowserFocus = relatedTarget instanceof Node &&
+        this.#hasBrowserFocus = isHTMLElement(relatedTarget) &&
           focusRootElements.some(focusRoot => focusRoot.contains(relatedTarget));
       });
     });
