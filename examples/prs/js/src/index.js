@@ -131,7 +131,9 @@ new Handsontable(container, {
     {
       data: "restockDate",
       type: "date",
-      dateFormat: "YYYY-MM-DD",
+      // `en-CA` renders the ISO-style YYYY-MM-DD order
+      dateFormat: { year: "numeric", month: "2-digit", day: "2-digit" },
+      locale: "en-CA",
       headerClassName: "htRight",
       className: "htRight",
       width: 150,

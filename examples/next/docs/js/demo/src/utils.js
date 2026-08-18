@@ -4,8 +4,9 @@ const randomName = () =>
   ["عمر", "علي", "عبد الله", "معتصم"][Math.floor(Math.random() * 3)];
 const randomCountry = () =>
   ["تركيا", "مصر", "لبنان", "العراق"][Math.floor(Math.random() * 3)];
+// Date cells require ISO 8601 source data; the `dateFormat` option controls display only.
 const randomDate = () =>
-  new Date(Math.floor(Math.random() * Date.now())).toLocaleDateString('en-gb')
+  new Date(Math.floor(Math.random() * Date.now())).toISOString().slice(0, 10)
 const randomBool = () => Math.random() > 0.5;
 const randomNumber = (a = 0, b = 1000) => a + Math.floor(Math.random() * b);
 const randomPhrase = () =>
