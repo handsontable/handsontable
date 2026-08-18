@@ -18,6 +18,7 @@ vue:
   metaTitle: Context menu - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
+menuTag: updated
 ---
 The context menu provides cell-level actions accessible by right-clicking. This page lists all available menu items and their configuration keys.
 
@@ -243,7 +244,7 @@ Each configuration object in `items` can have these properties:
 | Option | Description |
 | ------ | ----------- |
 | `key` | The unique identifier for the item. For top-level items, this is the key of the `items` object (for example `'row_above'` or `'myOption'`). For submenu items, it must follow the `parent_key:child_key` format (for example `'colors:red'`). |
-| `name` | The label shown in the menu. Can be a `string` or a function returning a string. Supports HTML. When a function, `this` refers to the Handsontable instance. |
+| `name` | The label shown in the menu. Can be a `string` or a function returning a string. Supports HTML -- see the note below. When a function, `this` refers to the Handsontable instance. |
 | `disabled` | Whether the item is grayed out and non-clickable. Can be a `boolean` or a function returning a boolean. When a function, `this` refers to the Handsontable instance. |
 | `hidden` | Whether the item is hidden from the menu entirely. Can be a `boolean` or a function returning a boolean. When a function, `this` refers to the Handsontable instance. |
 | `callback` | A function called when the item is clicked. Receives `key`, `selection`, and `clickEvent` as arguments. |
@@ -251,6 +252,12 @@ Each configuration object in `items` can have these properties:
 | `renderer` | A custom function for rendering the item's HTML. Must return an `HTMLElement`. |
 | `disableSelection` | When `true`, hovering over the item does not highlight it. |
 | `isCommand` | When `false`, clicking the item does not execute a command or close the menu. |
+
+::: warning HTML labels need a sanitizer
+An HTML `name` is written to the DOM as-is. Starting with v18.0, Handsontable ships no built-in sanitizer, so set the [`sanitizer`](@/api/options.md#sanitizer) option whenever a label contains HTML -- otherwise Handsontable logs a warning and any markup in the label executes. `sanitizer` works at the grid level only. See [Security](@/guides/security/security/security.md).
+
+A `renderer` is not affected: it returns an `HTMLElement` that Handsontable appends directly, so nothing passes through the sanitizer.
+:::
 
 The following example shows how to:
 

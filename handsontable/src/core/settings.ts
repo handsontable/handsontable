@@ -143,6 +143,8 @@ export interface GridSettings {
   navigableHeaders?: boolean;
   outsideClickDeselects?: boolean | ((target: HTMLElement, coords?: WalkontableCellCoords) => boolean);
   selectionMode?: 'single' | 'range' | 'multiple';
+  selectionHandles?: boolean;
+  moveCells?: boolean;
   tabNavigation?: boolean;
   autoWrapCol?: boolean;
   autoWrapRow?: boolean;
@@ -171,6 +173,7 @@ export interface GridSettings {
   comments?: boolean | object | object[];
   contextMenu?: boolean | object | string[];
   customBorders?: boolean | object[];
+  customBordersProgressive?: boolean | { chunkSize?: number };
   dialog?: boolean | object;
   dataProvider?: DataProviderConfig;
   dragToScroll?: boolean | { interval?: { min?: number; max?: number }; rampDistance?: number };
@@ -214,6 +217,7 @@ export interface GridSettings {
   locale?: string;
   language?: string;
   numericFormat?: object;
+  preserveNumericLiteral?: boolean;
   selectOptions?: string[] | number[] | object[] | Record<string, string>
     | ((visualRow: number, visualColumn: number, prop: string | number) => string[] | Record<string, string>);
   strict?: boolean;
@@ -256,6 +260,7 @@ export interface GridSettings {
     movePossible: boolean, orderChanged: boolean) => void;
   afterColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void;
   afterColumnSequenceChange?: (source: ChangeSource) => void;
+  afterCustomBordersUpdate?: () => void;
   afterColumnSequenceCacheUpdate?: (indexesChangesState: {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean; hiddenIndexesChanged: boolean;
   }) => void;
@@ -310,6 +315,12 @@ export interface GridSettings {
   afterModifyTransformFocus?: (coords: WalkontableCellCoords, rowTransformDir: number, colTransformDir: number) => void;
   afterModifyTransformStart?: (coords: WalkontableCellCoords, rowTransformDir: number, colTransformDir: number) => void;
   afterMomentumScroll?: () => void;
+  /**
+   * Fired after a `moveCells` drag has relocated a selection.
+   *
+   * @since 18.1.0
+   */
+  afterMoveCells?: (sourceRange: WalkontableCellRange, targetRange: WalkontableCellRange, isCopy: boolean) => void;
   afterNamedExpressionAdded?: (namedExpressionName: string, changes: unknown[]) => void;
   afterNamedExpressionRemoved?: (namedExpressionName: string, changes: unknown[]) => void;
   afterNotificationHide?: (id: string) => void;
@@ -326,6 +337,8 @@ export interface GridSettings {
   afterOnCellContextMenu?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellCornerDblClick?: (event: MouseEvent) => void;
   afterOnCellCornerMouseDown?: (event: MouseEvent) => void;
+  afterOnSelectionHandleMouseDown?: (event: MouseEvent, edge: 'top' | 'bottom' | 'start' | 'end') => void;
+  afterOnSelectionEdgeMouseDown?: (event: MouseEvent, edge: 'top' | 'bottom' | 'start' | 'end') => void;
   afterOnCellMouseDown?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseOut?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseOver?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
@@ -470,6 +483,16 @@ export interface GridSettings {
   beforeLoadingHide?: () => boolean | void;
   beforeLoadingShow?: () => boolean | void;
   beforeMergeCells?: (cellRange: WalkontableCellRange, auto: boolean) => void;
+  /**
+   * Fired before a `moveCells` drag relocates a selection. Return `false` to cancel the move.
+   *
+   * @since 18.1.0
+   */
+  beforeMoveCells?: (
+    sourceRange: WalkontableCellRange,
+    targetTopLeft: WalkontableCellCoords,
+    isCopy: boolean
+  ) => void | boolean;
   beforeNotificationHide?: (id: string) => boolean | void;
   beforeNotificationShow?: (options: {
     id: string;
@@ -498,7 +521,7 @@ export interface GridSettings {
   beforeRefreshDimensions?: (previousDimensions: { width: number; height: number },
     currentDimensions: { width: number; height: number }, actionPossible: boolean) => boolean | void;
   beforeRemoveCellClassNames?: () => string[] | void;
-  beforeRemoveCellMeta?: (row: number, column: number, key: string, value: unknown) => void;
+  beforeRemoveCellMeta?: (row: number, column: number, key: string, value: unknown) => boolean | void;
   beforeRemoveCol?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
   beforeRemoveRow?: (index: number, amount: number, physicalRows: number[], source?: ChangeSource) => void;
   beforeRender?: (isForced: boolean) => void;

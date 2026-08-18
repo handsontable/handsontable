@@ -234,6 +234,42 @@ describe('licenseNotification', () => {
       focusSpy2.mockRestore();
     });
 
+    it('should focus the outermost link, not the second one, when there are more than two focusable links', () => {
+      const hotInstance = createMockHotInstance();
+      const notificationEl = document.createElement('div');
+      const links = [1, 2, 3].map((n) => {
+        const link = document.createElement('a');
+
+        link.href = `#${n}`;
+
+        return link;
+      });
+
+      notificationEl.className = `handsontable ${LICENSE_INFO_CLASS}`;
+      links.forEach(link => notificationEl.appendChild(link));
+      hotInstance.rootSlotBottomElement.appendChild(notificationEl);
+
+      _injectProductInfo.mockImplementation(() => notificationEl);
+
+      const focusSpies = links.map(link => jest.spyOn(link, 'focus').mockImplementation(() => {}));
+
+      initLicenseNotification(hotInstance);
+
+      const onActivate = hotInstance.getFocusScopeManager().registerScope.mock.calls[0][2].onActivate;
+
+      onActivate('tab_from_above');
+
+      expect(focusSpies.map(spy => spy.mock.calls.length)).toEqual([1, 0, 0]);
+
+      onActivate('tab_from_below');
+
+      // The last index has to be derived from `length`, so a hardcoded `[1]` (or a stale
+      // `Array#at(-1)`, which is above the browser-targets.js Safari baseline) fails here.
+      expect(focusSpies.map(spy => spy.mock.calls.length)).toEqual([1, 0, 1]);
+
+      focusSpies.forEach(spy => spy.mockRestore());
+    });
+
     it('should not throw when onActivate is called and notification has no focusable elements', () => {
       const hotInstance = createMockHotInstance();
       const notificationEl = document.createElement('div');

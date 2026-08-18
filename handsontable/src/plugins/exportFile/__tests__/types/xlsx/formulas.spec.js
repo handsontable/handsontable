@@ -158,31 +158,6 @@ describe('exportFile XLSX type — formulas', () => {
       expect(cell.value).toBe('99');
     });
 
-    // Known limitation: `custom` summaries use arbitrary JavaScript functions that
-    // have no generic Excel formula equivalent, so they cannot be exported as live
-    // formulas even when `exportFormulas` is true.
-    xit('should export a `custom` summary function as a live Excel formula', async() => {
-      handsontable({
-        data: [[10], [20], [30], [null]],
-        columnSummary: [{
-          type: 'custom',
-          destinationRow: 3,
-          destinationColumn: 0,
-          // Example: range = max - min (arbitrary JS, no direct Excel equivalent).
-          customFunction(endpoint) {
-            return this.calculateMinMax(endpoint, 'max') - this.calculateMinMax(endpoint, 'min');
-          },
-        }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx({ exportFormulas: true });
-      const cell = ws.getRow(4).getCell(1);
-
-      // Currently fails: custom summaries always export as static values.
-      expect(cell.value?.formula).toBeDefined();
-    });
-
     it('should offset the formula row references when column headers are exported', async() => {
       handsontable({
         data: [[100], [200], [null]],

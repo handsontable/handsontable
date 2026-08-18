@@ -24,12 +24,14 @@ import { ManualColumnResize } from './manualColumnResize';
 import { ManualRowMove } from './manualRowMove';
 import { ManualRowResize } from './manualRowResize';
 import { MergeCells } from './mergeCells';
+import { MoveCells } from './moveCells';
 import { MultiColumnSorting } from './multiColumnSorting';
 import { MultipleSelectionHandles } from './multipleSelectionHandles';
 import { NestedHeaders } from './nestedHeaders';
 import { NestedRows } from './nestedRows';
 import { Pagination } from './pagination';
 import { Search } from './search';
+import { SelectionHandles } from './selectionHandles';
 import { StretchColumns } from './stretchColumns';
 import { TouchScroll } from './touchScroll';
 import { TrimRows } from './trimRows';
@@ -74,12 +76,14 @@ declare module './registry' {
     manualRowMove: typeof ManualRowMove;
     manualRowResize: typeof ManualRowResize;
     mergeCells: typeof MergeCells;
+    moveCells: typeof MoveCells;
     multiColumnSorting: typeof MultiColumnSorting;
     multipleSelectionHandles: typeof MultipleSelectionHandles;
     nestedHeaders: typeof NestedHeaders;
     nestedRows: typeof NestedRows;
     pagination: typeof Pagination;
     search: typeof Search;
+    selectionHandles: typeof SelectionHandles;
     stretchColumns: typeof StretchColumns;
     touchScroll: typeof TouchScroll;
     trimRows: typeof TrimRows;
@@ -120,12 +124,14 @@ export function registerAllPlugins() {
   registerPlugin(ManualRowMove);
   registerPlugin(ManualRowResize);
   registerPlugin(MergeCells);
+  registerPlugin(MoveCells);
   registerPlugin(MultiColumnSorting);
   registerPlugin(MultipleSelectionHandles);
   registerPlugin(NestedHeaders);
   registerPlugin(NestedRows);
   registerPlugin(Pagination);
   registerPlugin(Search);
+  registerPlugin(SelectionHandles);
   registerPlugin(StretchColumns);
   registerPlugin(TouchScroll);
   registerPlugin(TrimRows);
@@ -162,12 +168,14 @@ export {
   ManualRowMove,
   ManualRowResize,
   MergeCells,
+  MoveCells,
   MultiColumnSorting,
   MultipleSelectionHandles,
   NestedHeaders,
   NestedRows,
   Pagination,
   Search,
+  SelectionHandles,
   StretchColumns,
   TouchScroll,
   TrimRows,

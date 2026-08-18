@@ -45,6 +45,11 @@ Handsontable provides two plugins for sorting rows:
 - [`ColumnSorting`](@/api/columnSorting.md) -- sorts rows by a **single column** at a time. Clicking a column header cycles through ascending, descending, and unsorted states.
 - [`MultiColumnSorting`](@/api/multiColumnSorting.md) -- sorts rows by **multiple columns** simultaneously. Hold Ctrl/Cmd and click column headers to add more sort criteria.
 
+Sorting runs when you release the mouse button, not when you press it, and only the header label and its sort
+indicator respond to the click. Pressing the header around them selects the column without sorting it. If the
+pointer moves while the button is held, Handsontable treats the gesture as a column drag instead of a sort, so
+[column moving](@/guides/columns/column-moving/column-moving.md) can share the same header.
+
 Both plugins sort the view only. The source data array is never modified. To persist the sorted order back to the data source, see [Saving data](@/guides/getting-started/saving-data/saving-data.md).
 
 `ColumnSorting` and `MultiColumnSorting` are mutually exclusive. Enable only one at a time. If both options are set to `true`, `ColumnSorting` is automatically disabled.

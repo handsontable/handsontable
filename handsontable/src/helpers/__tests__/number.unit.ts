@@ -10,6 +10,7 @@ import {
   clamp,
   isUnsignedNumber,
   getParsedNumber,
+  isLossyNumericConversion,
 } from 'handsontable/helpers/number';
 
 describe('Number helper', () => {
@@ -512,6 +513,99 @@ describe('Number helper', () => {
       expect(getParsedNumber('100,000', dotDecimal)).toBe(100000);
       expect(getParsedNumber('1,234,567', dotDecimal)).toBe(1234567);
       expect(getParsedNumber('-12,345', dotDecimal)).toBe(-12345);
+    });
+  });
+
+  //
+  // Handsontable.helper.isLossyNumericConversion
+  //
+  describe('isLossyNumericConversion', () => {
+    it('should return false when the string round-trips to its parsed number without loss', () => {
+      expect(isLossyNumericConversion('9', 9)).toBe(false);
+      expect(isLossyNumericConversion('9.5', 9.5)).toBe(false);
+      expect(isLossyNumericConversion('1000', 1000)).toBe(false);
+      expect(isLossyNumericConversion('-123.456', -123.456)).toBe(false);
+      expect(isLossyNumericConversion('0', 0)).toBe(false);
+    });
+
+    it('should return false when only leading zeros or a leading plus differ (cosmetic, not information)', () => {
+      expect(isLossyNumericConversion('09', 9)).toBe(false);
+      expect(isLossyNumericConversion('+9', 9)).toBe(false);
+      expect(isLossyNumericConversion('007', 7)).toBe(false);
+      expect(isLossyNumericConversion('.5', 0.5)).toBe(false);
+      expect(isLossyNumericConversion('5.', 5)).toBe(false);
+    });
+
+    it('should return true when trailing fractional zeros would be lost', () => {
+      expect(isLossyNumericConversion('9.0', 9)).toBe(true);
+      expect(isLossyNumericConversion('9.50', 9.5)).toBe(true);
+      expect(isLossyNumericConversion('0.0', 0)).toBe(true);
+      expect(isLossyNumericConversion('1000.0', 1000)).toBe(true);
+      expect(isLossyNumericConversion('-9.0', -9)).toBe(true);
+    });
+
+    it('should return true when precision beyond Number.MAX_SAFE_INTEGER would be lost', () => {
+      expect(isLossyNumericConversion('12345678901234567.8', 12345678901234568)).toBe(true);
+      expect(isLossyNumericConversion('9007199254740989.00', 9007199254740989)).toBe(true);
+    });
+
+    it('should handle whitespace-padded input by trimming before comparison', () => {
+      expect(isLossyNumericConversion('  9.0  ', 9)).toBe(true);
+      expect(isLossyNumericConversion('  9  ', 9)).toBe(false);
+    });
+
+    it('should return false when only scientific notation differs on either side (not information loss)', () => {
+      // `String(parsedNumber)` uses scientific notation for these exact values.
+      expect(isLossyNumericConversion('0.0000001', 1e-7)).toBe(false);
+      expect(isLossyNumericConversion('0.000000015', 1.5e-8)).toBe(false);
+      expect(isLossyNumericConversion('-0.0000001', -1e-7)).toBe(false);
+
+      // Scientific notation in the input parses to the same exact value.
+      expect(isLossyNumericConversion('1e2', 100)).toBe(false);
+      expect(isLossyNumericConversion('1.5e3', 1500)).toBe(false);
+      expect(isLossyNumericConversion('1e-7', 1e-7)).toBe(false);
+      expect(isLossyNumericConversion('-1.5E3', -1500)).toBe(false);
+    });
+
+    it('should still detect trailing fractional zeros written in scientific notation', () => {
+      // 1.230e2 === 123 exactly, but the trailing zero of the mantissa is dropped on parse.
+      expect(isLossyNumericConversion('1.2300e2', 123)).toBe(true);
+      // The mantissa zero of 1.10e1 stays fractional after the shift (11.0) and is dropped.
+      expect(isLossyNumericConversion('1.10e1', 11)).toBe(true);
+    });
+
+    it('should not treat a plain `-0` as loss (the parsed number keeps the sign)', () => {
+      expect(isLossyNumericConversion('-0', -0)).toBe(false);
+      expect(isLossyNumericConversion('-0e0', -0)).toBe(false);
+      // The trailing fractional zero is still real information loss.
+      expect(isLossyNumericConversion('-0.0', -0)).toBe(true);
+    });
+
+    it('should not throw on exponents far beyond the finite double range', () => {
+      // Without the `pointIndex` bound these threw `RangeError: Invalid string length`
+      // in `padEnd`/`repeat` while expanding the decimal form.
+      expect(() => isLossyNumericConversion('1e999999999', Infinity)).not.toThrow();
+      expect(() => isLossyNumericConversion('1e-999999999', 0)).not.toThrow();
+      expect(() => isLossyNumericConversion('1e100000000', Infinity)).not.toThrow();
+
+      expect(isLossyNumericConversion('1e999999999', Infinity)).toBe(true);
+      expect(isLossyNumericConversion('1e-999999999', 0)).toBe(true);
+    });
+
+    it('should still normalize very long leading-zero literals (only the exponent is bounded)', () => {
+      // A 1200-digit leading-zero integer needs no expansion at all — it must keep
+      // normalizing to `5` instead of tripping the exponent bound and reading as lossy.
+      expect(isLossyNumericConversion(`${'0'.repeat(1200)}5`, 5)).toBe(false);
+      expect(isLossyNumericConversion(`${'0'.repeat(1200)}5.0`, 5)).toBe(true);
+      // An in-range exponent on a long literal still expands correctly.
+      expect(isLossyNumericConversion(`${'0'.repeat(1200)}5e1`, 50)).toBe(false);
+    });
+
+    it('should not treat mantissa trailing zeros shifted onto integer positions as loss', () => {
+      // 1.0e2 === 100 and 1.10e2 === 110 exactly: the mantissa zero becomes an integer
+      // digit of the parsed value, so no typed digit disappears — same class as `1e2`.
+      expect(isLossyNumericConversion('1.0e2', 100)).toBe(false);
+      expect(isLossyNumericConversion('1.10e2', 110)).toBe(false);
     });
   });
 });

@@ -48,7 +48,7 @@ The variable modules are typed (they import from `src/themes/types.ts`) and cons
 ## Tests
 
 ```bash
-node --test scripts/themes/figma/__tests__/
+node --test scripts/themes/figma/__tests__/*.test.mjs
 ```
 
 Covers the typed-module emitter and the iconsMap drift guard. See `.ai/` for architecture, conventions, and known concerns.

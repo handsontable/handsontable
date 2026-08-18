@@ -1,5 +1,7 @@
 import type { HotInstance } from '../core/types';
 import type { CellProperties } from '../settings';
+import type { BaseRenderer } from '../renderers/baseRenderer';
+import { renderCell } from '../renderers/renderCell';
 import { addClass } from './../helpers/dom/element';
 import { arrayEach } from './../helpers/array';
 import { throwWithCause } from '../helpers/errors';
@@ -323,13 +325,12 @@ class GhostTable {
       arrayEach(sample.strings, (string: SampleString) => {
         const column = string.col!;
         const cellProperties = this.hot!.getCellMetaTransient<CellProperties>(row, column);
-        const renderer = this.hot!.getCellRenderer(cellProperties);
         const td = rootDocument.createElement('td');
 
         // Indicate that this element is created and supported by GhostTable. It can be useful to
         // exclude rendering performance costly logic or exclude logic which doesn't work within a hidden table.
         td.setAttribute('ghost-table', '1');
-        renderer(this.hot!, td, row, column, this.hot!.colToProp(column), string.value, cellProperties);
+        this.#renderCell(td, row, column, string.value, cellProperties);
         fragment.appendChild(td);
       });
     });
@@ -390,14 +391,13 @@ class GhostTable {
       arrayEach(sample.strings, (string: SampleString) => {
         const row = string.row!;
         const cellProperties = this.hot!.getCellMetaTransient<CellProperties>(row, column);
-        const renderer = this.hot!.getCellRenderer(cellProperties);
         const td = rootDocument.createElement('td');
         const tr = rootDocument.createElement('tr');
 
         // Indicate that this element is created and supported by GhostTable. It can be useful to
         // exclude rendering performance costly logic or exclude logic which doesn't work within a hidden table.
         td.setAttribute('ghost-table', '1');
-        renderer(this.hot!, td, row, column, this.hot!.colToProp(column), string.value, cellProperties);
+        this.#renderCell(td, row, column, string.value, cellProperties);
         tr.appendChild(td);
         fragment.appendChild(tr);
       });
@@ -525,6 +525,45 @@ class GhostTable {
     fragment.appendChild(container);
 
     return { fragment, container };
+  }
+
+  /**
+   * Renders one sampled cell into the TD that will be measured, through the same `renderCell`
+   * contract `TableView.cellRenderer` uses: run the cell's own renderer, run the base renderer
+   * when that renderer did not chain it itself, then reset the chaining flag. Calling only the
+   * cell renderer here would leave the measured TD without `cellProperties.className` and the
+   * other base-renderer classes, so AutoRowSize and AutoColumnSize would measure a cell styled
+   * differently from the one the user sees.
+   *
+   * The sampled value must be rendered verbatim — the AutoRowSize and AutoColumnSize samplers
+   * already run `formatCellValue` when building samples. Formatting here again would
+   * double-format: a date sample already formatted to `1/1/24` fails the ISO-only
+   * `parseToLocalDate` and renders as `#bad-value#`, inflating the measured width.
+   *
+   * @param {HTMLTableCellElement} td The cell element that will be measured.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {*} value The sampled cell value, already formatted by the sampler.
+   * @param {object} cellProperties The cell meta object.
+   */
+  #renderCell(
+    td: HTMLTableCellElement,
+    row: number,
+    column: number,
+    value: unknown,
+    cellProperties: CellProperties
+  ) {
+    const rendererArgs: Parameters<BaseRenderer> = [
+      this.hot!,
+      td,
+      row,
+      column,
+      this.hot!.colToProp(column),
+      value,
+      cellProperties,
+    ];
+
+    renderCell(this.hot!.getCellRenderer(cellProperties), rendererArgs);
   }
 
   /**

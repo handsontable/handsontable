@@ -5,8 +5,8 @@ test.describe('keyboard navigation', () => {
   // A library-level, granular interaction: Handsontable *implements* keyboard
   // navigation, so we drive real keys and assert the observable outcome (where the
   // edit lands), hooking in by the stable data-testids the fixture stamps.
-  test('arrow keys move the selection; an edit commits to the landed cell', async ({ page, theme }) => {
-    const grid = new GridPage(page, theme);
+  test('arrow keys move the selection; an edit commits to the landed cell', async ({ page, theme, bundle }) => {
+    const grid = new GridPage(page, theme, bundle);
 
     await grid.goto();
 

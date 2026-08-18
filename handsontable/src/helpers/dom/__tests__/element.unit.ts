@@ -22,6 +22,7 @@ import {
   outerHeight,
   outerWidth,
   getTrimmingContainer,
+  observeVisibilityChangeOnce,
 } from 'handsontable/helpers/dom/element';
 import { setPlatformMeta } from 'handsontable/helpers/browser';
 
@@ -1226,6 +1227,109 @@ describe('DomElement helper', () => {
       wrapper.style.overflow = 'inherit';
 
       expect(getTrimmingContainer(base)).toBe(window);
+    });
+  });
+
+  describe('observeVisibilityChangeOnce', () => {
+    // The shared `IntersectionObserverMock` (installed by `test/bootstrap.js`) drops the callback, so it can
+    // never deliver anything. This stub keeps the callback and lets a test deliver an entry synchronously,
+    // honoring `disconnect` the way a browser does - a disconnected observer delivers nothing more.
+    class IntersectionObserverStub {
+      static instances: IntersectionObserverStub[] = [];
+
+      observed: Element[] = [];
+
+      disconnectCount = 0;
+
+      #callback: IntersectionObserverCallback;
+
+      constructor(callback: IntersectionObserverCallback) {
+        this.#callback = callback;
+
+        IntersectionObserverStub.instances.push(this);
+      }
+
+      observe(element: Element) {
+        this.observed.push(element);
+      }
+
+      unobserve() {}
+
+      disconnect() {
+        this.disconnectCount += 1;
+      }
+
+      deliver(isIntersecting: boolean) {
+        if (this.disconnectCount > 0) {
+          return;
+        }
+
+        this.#callback(
+          [{ isIntersecting } as IntersectionObserverEntry],
+          this as unknown as IntersectionObserver
+        );
+      }
+    }
+
+    // `test/bootstrap.js` installs the shared mock in a `beforeAll`, so the global only exists from here on.
+    let nativeIntersectionObserver: typeof IntersectionObserver;
+
+    beforeEach(() => {
+      nativeIntersectionObserver = window.IntersectionObserver;
+      IntersectionObserverStub.instances = [];
+      window.IntersectionObserver = IntersectionObserverStub as unknown as typeof IntersectionObserver;
+    });
+
+    // Restored here, not at the end of each test body - a failing assertion would otherwise leak the stub
+    // into every later test in this file.
+    afterEach(() => {
+      window.IntersectionObserver = nativeIntersectionObserver;
+    });
+
+    it('should return the observer watching the element', () => {
+      const element = document.createElement('div');
+      const observer = observeVisibilityChangeOnce(element, () => {});
+
+      expect(IntersectionObserverStub.instances.length).toBe(1);
+      expect(observer).toBe(IntersectionObserverStub.instances[0] as unknown as IntersectionObserver);
+      expect(IntersectionObserverStub.instances[0].observed).toEqual([element]);
+    });
+
+    it('should call the callback once and disconnect itself when the element becomes visible', () => {
+      const element = document.createElement('div');
+      const callbackSpy = jasmine.createSpy('callbackSpy');
+
+      observeVisibilityChangeOnce(element, callbackSpy);
+
+      IntersectionObserverStub.instances[0].deliver(true);
+
+      expect(callbackSpy).toHaveBeenCalledTimes(1);
+      expect(IntersectionObserverStub.instances[0].disconnectCount).toBe(1);
+    });
+
+    it('should not call the callback for a delivery that reports the element as not intersecting', () => {
+      const element = document.createElement('div');
+      const callbackSpy = jasmine.createSpy('callbackSpy');
+
+      observeVisibilityChangeOnce(element, callbackSpy);
+
+      IntersectionObserverStub.instances[0].deliver(false);
+
+      expect(callbackSpy).not.toHaveBeenCalled();
+      expect(IntersectionObserverStub.instances[0].disconnectCount).toBe(0);
+    });
+
+    it('should not call the callback once the returned observer is disconnected by the caller', () => {
+      const element = document.createElement('div');
+      const callbackSpy = jasmine.createSpy('callbackSpy');
+      const observer = observeVisibilityChangeOnce(element, callbackSpy);
+
+      observer.disconnect();
+
+      IntersectionObserverStub.instances[0].deliver(true);
+
+      expect(callbackSpy).not.toHaveBeenCalled();
+      expect(IntersectionObserverStub.instances[0].disconnectCount).toBe(1);
     });
   });
 });

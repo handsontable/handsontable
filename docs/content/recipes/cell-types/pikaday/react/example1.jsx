@@ -1,10 +1,10 @@
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import moment from 'moment';
-import Pikaday from '@handsontable/pikaday';
+import Pikaday from 'pikaday';
+import 'pikaday/css/pikaday.css';
 import { editorFactory } from 'handsontable/editors';
 import { rendererFactory } from 'handsontable/renderers';
-import Handsontable from 'handsontable/base';
 import './example1.css';
 
 registerAllModules();
@@ -79,6 +79,11 @@ const pikadayEditor = editorFactory({
     options.bound = false;
     options.keyboardInput = false;
     options.format = options.format ?? editor.getDateFormat(editor);
+    // Pikaday only formats and parses through Moment.js when it can reach `moment` itself, which
+    // it cannot under a bundler. These two hooks take precedence over its internal path, so the
+    // `format` above is honored both on display and on input.
+    options.toString = (date, format) => moment(date).format(format);
+    options.parse = (dateString, format) => moment(dateString, format).toDate();
     options.reposition = options.reposition || false;
     options.isRTL = false;
     options.onSelect = function (date) {
@@ -94,7 +99,7 @@ const pikadayEditor = editorFactory({
         origOnSelect.call(editor.pickaday, date);
       }
 
-      if (Handsontable.helper.isMobileBrowser()) {
+      if (editor.hot.rootWindow.matchMedia('(pointer: coarse)').matches) {
         editor.hideDatepicker(editor);
       }
     };
@@ -117,18 +122,13 @@ const pikadayEditor = editorFactory({
     const dateFormat = editor.getDateFormat(editor);
     // @ts-ignore
     const isMouseDown = editor.hot.view.isMouseDown();
-    const isMeta = event && 'keyCode' in event ? Handsontable.helper.isFunctionKey(event.keyCode) : false;
+    // A printable character reports a single-character `key`; anything else is a function key.
+    const isMeta = event && 'key' in event ? event.key.length > 1 : false;
 
     let dateStr;
 
     editor.datePicker.style.display = 'block';
     editor.pickaday = new Pikaday(editor.getDatePickerConfig(editor));
-
-    // @ts-ignore
-    if (typeof editor.pickaday.useMoment === 'function') {
-      // @ts-ignore
-      editor.pickaday.useMoment(moment);
-    }
 
     // @ts-ignore
     editor.pickaday._onInputFocus = function () {};
@@ -137,7 +137,7 @@ const pikadayEditor = editorFactory({
       dateStr = editor.originalValue;
 
       if (moment(dateStr, dateFormat, true).isValid()) {
-        editor.pickaday.setMoment(moment(dateStr, dateFormat), true);
+        editor.pickaday.setDate(moment(dateStr, dateFormat).toDate(), true);
       }
 
       if (editor.getValue() !== editor.originalValue) {
@@ -151,7 +151,7 @@ const pikadayEditor = editorFactory({
       dateStr = editor.cellProperties.defaultDate;
 
       if (moment(dateStr, dateFormat, true).isValid()) {
-        editor.pickaday.setMoment(moment(dateStr, dateFormat), true);
+        editor.pickaday.setDate(moment(dateStr, dateFormat).toDate(), true);
       }
 
       if (!isMeta && !isMouseDown) {
@@ -403,7 +403,8 @@ const ExampleComponent = () => {
         type="numeric"
         width={120}
         className="htRight"
-        numericFormat={{ pattern: '$0,0.00', culture: 'en-US' }}
+        locale="en-US"
+        numericFormat={{ style: 'currency', currency: 'USD', minimumFractionDigits: 2 }}
       />
     </HotTable>
   );

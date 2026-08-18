@@ -1,7 +1,8 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import moment from 'moment';
-import Pikaday from '@handsontable/pikaday';
+import Pikaday from 'pikaday';
+import 'pikaday/css/pikaday.css';
 import { editorFactory } from 'handsontable/editors';
 import { rendererFactory } from 'handsontable/renderers';
 
@@ -236,7 +237,6 @@ const cellDefinition = {
       editor.parentDestroyed = false;
       // create the input element on init. This is a text input that color picker will be attached to.
       editor.input = editor.hot.rootDocument.createElement('INPUT');
-      // editor.showDatepicker = (editor, event) => {
       editor.datePicker = editor.container;
       /**
        * Prevent recognizing clicking on datepicker as clicking outside of table.
@@ -246,13 +246,7 @@ const cellDefinition = {
           editor.hideDatepicker(editor);
         }
       });
-      // TODO: fix this https://github.com/handsontable/dev-handsontable/issues/3004
-      // @ts-ignore
-      // editor.hot.rootPortalElement.appendChild(editor.datePicker);
     },
-    // afterInit(editor) {
-    //   editor.pickaday = new Pikaday(editor.getDatePickerConfig(editor));
-    // },
     getDatePickerConfig(editor) {
       const htInput = editor.input;
       const options = {};
@@ -270,6 +264,11 @@ const cellDefinition = {
       options.bound = false;
       options.keyboardInput = false;
       options.format = options.format ?? editor.getDateFormat(editor);
+      // Pikaday only formats and parses through Moment.js when it can reach `moment` itself, which
+      // it cannot under a bundler. These two hooks take precedence over its internal path, so the
+      // `format` above is honored both on display and on input.
+      options.toString = (date, format) => moment(date).format(format);
+      options.parse = (dateString, format) => moment(dateString, format).toDate();
       options.reposition = options.reposition || false;
       // Set the RTL to `false`. Due to the https://github.com/Pikaday/Pikaday/issues/647 bug, the layout direction
       // of the date picker is controlled by juggling the "dir" attribute of the root date picker element.
@@ -287,7 +286,7 @@ const cellDefinition = {
           origOnSelect.call(editor.pickaday, date);
         }
 
-        if (Handsontable.helper.isMobileBrowser()) {
+        if (editor.hot.rootWindow.matchMedia('(pointer: coarse)').matches) {
           editor.hideDatepicker(editor);
         }
       };
@@ -311,19 +310,14 @@ const cellDefinition = {
       // TODO: view is not exported in the handsontable library d.ts, so we need to use @ts-ignore
       // @ts-ignore
       const isMouseDown = editor.hot.view.isMouseDown();
-      const isMeta = event && 'keyCode' in event ? Handsontable.helper.isFunctionKey(event.keyCode) : false;
+      // A printable character reports a single-character `key`; anything else is a function key.
+      const isMeta = event && 'key' in event ? event.key.length > 1 : false;
 
       let dateStr;
 
       editor.datePicker.style.display = 'block';
       editor.pickaday = new Pikaday(editor.getDatePickerConfig(editor));
 
-      // TODO: useMoment is not exported in the pikaday library d.ts, so we need to use @ts-ignore
-      // @ts-ignore
-      if (typeof editor.pickaday.useMoment === 'function') {
-        // @ts-ignore
-        editor.pickaday.useMoment(moment);
-      }
 
       // TODO: _onInputFocus is not exported in the pikaday library d.ts, so we need to use @ts-ignore
       // @ts-ignore
@@ -333,7 +327,7 @@ const cellDefinition = {
         dateStr = editor.originalValue;
 
         if (moment(dateStr, dateFormat, true).isValid()) {
-          editor.pickaday.setMoment(moment(dateStr, dateFormat), true);
+          editor.pickaday.setDate(moment(dateStr, dateFormat).toDate(), true);
         }
 
         // workaround for date/time cells - pikaday resets the cell value to 12:00 AM by default, this will overwrite the value.
@@ -348,7 +342,7 @@ const cellDefinition = {
         dateStr = editor.cellProperties.defaultDate;
 
         if (moment(dateStr, dateFormat, true).isValid()) {
-          editor.pickaday.setMoment(moment(dateStr, dateFormat), true);
+          editor.pickaday.setDate(moment(dateStr, dateFormat).toDate(), true);
         }
 
         if (!isMeta && !isMouseDown) {
@@ -419,9 +413,11 @@ const hotOptions = {
       type: 'numeric',
       width: 120,
       className: 'htRight',
+      locale: 'en-US',
       numericFormat: {
-        pattern: '$0,0.00',
-        culture: 'en-US',
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
       },
     },
   ],

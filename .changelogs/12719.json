@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed open menus (context menu, dropdown menu, and filters) becoming detached from the grid when a scrollable parent container or the grid viewport was scrolled. Menus now follow their anchor and close when it scrolls out of view.",
+  "type": "fixed",
+  "issueOrPR": 12719,
+  "breaking": false,
+  "framework": "none"
+}

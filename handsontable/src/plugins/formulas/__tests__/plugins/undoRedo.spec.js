@@ -185,7 +185,7 @@ describe('Formulas integration with undo/redo', () => {
       .toEqual([2012, null, '=SUM(A5:A8)', '=SUM(C8,H6)', null, null, '=A5/C5', 12, '\'=SUM(E5)']);
   });
 
-  xit('should restore previous state after alter table (mixed remove operations)', async() => {
+  it('should restore previous state after alter table (mixed remove operations)', async() => {
     handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: {
@@ -203,21 +203,21 @@ describe('Formulas integration with undo/redo', () => {
     getPlugin('undoRedo').undo();
 
     expect(getSourceDataAtRow(0)).toEqual([2011, 4, 552, 6127]);
-    expect(getSourceDataAtRow(1)).toEqual([2012, '=SUM(A1:A2)', 12, '=SUM(E5)']);
+    expect(getSourceDataAtRow(1)).toEqual([2012, '=SUM(A1:A2)', 12, '\'=SUM(E5)']);
 
     getPlugin('undoRedo').undo();
 
     expect(getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mini', '=A$1']);
     expect(getSourceDataAtRow(1)).toEqual([2009, 0, 354, 5814]);
     expect(getSourceDataAtRow(2)).toEqual([2011, 4, 552, 6127]);
-    expect(getSourceDataAtRow(3)).toEqual([2012, '=SUM(A2:A4)', 12, '=SUM(E5)']);
+    expect(getSourceDataAtRow(3)).toEqual([2012, '=SUM(A2:A4)', 12, '\'=SUM(E5)']);
 
     getPlugin('undoRedo').undo();
 
     expect(getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
     expect(getSourceDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
     expect(getSourceDataAtRow(2)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-    expect(getSourceDataAtRow(3)).toEqual([2012, '=SUM(A2:A4)', '=SUM(B4,#REF!)', '=A2/B2', 12, '=SUM(E5)']);
+    expect(getSourceDataAtRow(3)).toEqual([2012, '=SUM(A2:A4)', '=SUM(B4,#REF!)', '=A2/B2', 12, '\'=SUM(E5)']);
 
     getPlugin('undoRedo').undo();
 
@@ -225,10 +225,10 @@ describe('Formulas integration with undo/redo', () => {
     expect(getSourceDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
     expect(getSourceDataAtRow(2)).toEqual([2010, 5, 2905, 2867, '=SUM(A4,2,3)', '=$B1']);
     expect(getSourceDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-    expect(getSourceDataAtRow(4)).toEqual([2012, '=Sum(a2:a5)', '=SUM(B5,E3)', '=A2/B2', 12, '=SUM(E5)']);
+    expect(getSourceDataAtRow(4)).toEqual([2012, '=SUM(A2:A5)', '=SUM(B5,E3)', '=A2/B2', 12, '\'=SUM(E5)']);
   });
 
-  xit('should redo into the next state after alter table (mixed remove operations)', async() => {
+  it('should redo into the next state after alter table (mixed remove operations)', async() => {
     handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: {
@@ -252,26 +252,26 @@ describe('Formulas integration with undo/redo', () => {
     expect(getSourceDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
     expect(getSourceDataAtRow(2)).toEqual([2010, 5, 2905, 2867, '=SUM(A4,2,3)', '=$B1']);
     expect(getSourceDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-    expect(getSourceDataAtRow(4)).toEqual([2012, '=Sum(a2:a5)', '=SUM(B5,E3)', '=A2/B2', 12, '=SUM(E5)']);
+    expect(getSourceDataAtRow(4)).toEqual([2012, '=SUM(A2:A5)', '=SUM(B5,E3)', '=A2/B2', 12, '\'=SUM(E5)']);
 
     getPlugin('undoRedo').redo();
 
     expect(getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
     expect(getSourceDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
     expect(getSourceDataAtRow(2)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-    expect(getSourceDataAtRow(3)).toEqual([2012, '=SUM(A2:A4)', '=SUM(B4,#REF!)', '=A2/B2', 12, '=SUM(E5)']);
+    expect(getSourceDataAtRow(3)).toEqual([2012, '=SUM(A2:A4)', '=SUM(B4,#REF!)', '=A2/B2', 12, '\'=SUM(E5)']);
 
     getPlugin('undoRedo').redo();
 
     expect(getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mini', '=A$1']);
     expect(getSourceDataAtRow(1)).toEqual([2009, 0, 354, 5814]);
     expect(getSourceDataAtRow(2)).toEqual([2011, 4, 552, 6127]);
-    expect(getSourceDataAtRow(3)).toEqual([2012, '=SUM(A2:A4)', 12, '=SUM(E5)']);
+    expect(getSourceDataAtRow(3)).toEqual([2012, '=SUM(A2:A4)', 12, '\'=SUM(E5)']);
 
     getPlugin('undoRedo').redo();
 
     expect(getSourceDataAtRow(0)).toEqual([2011, 4, 552, 6127]);
-    expect(getSourceDataAtRow(1)).toEqual([2012, '=SUM(A1:A2)', 12, '=SUM(E5)']);
+    expect(getSourceDataAtRow(1)).toEqual([2012, '=SUM(A1:A2)', 12, '\'=SUM(E5)']);
   });
 
   it('should work properly while doing cell used by some formula empty', async() => {

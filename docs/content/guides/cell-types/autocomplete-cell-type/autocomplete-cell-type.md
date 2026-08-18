@@ -44,7 +44,7 @@ This example uses the `autocomplete` feature in the default flexible mode. In th
 
 The [`visibleRows`](@/api/options.md#visiblerows) option sets how many suggestions the dropdown shows without scrolling. The default is 10 rows. The **Chassis color** column sets `visibleRows: 4`, so the dropdown shows only four suggestions at a time and scrolls to reveal the rest.
 
-The [`trimDropdown`](@/api/options.md#trimdropdown) option controls the dropdown's width. By default (`trimDropdown: true`), the dropdown matches the width of the edited cell, which can truncate long suggestions. The **Bumper color** column sets `trimDropdown: false`, so the dropdown expands to fit its widest suggestion, even if that makes it wider than the cell.
+The [`trimDropdown`](@/api/options.md#trimdropdown) option controls the dropdown's width. By default (`trimDropdown: true`), the dropdown matches the width of the edited cell, which can truncate long suggestions. The **Bumper color** column sets `trimDropdown: false`, so the dropdown expands to fit its widest suggestion. It can grow wider than the cell, but never narrower.
 
 ::: only-for javascript
 

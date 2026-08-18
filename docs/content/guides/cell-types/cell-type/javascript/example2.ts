@@ -45,7 +45,7 @@ new Handsontable(container, {
     { type: 'password' },
   ],
   preventOverflow: 'horizontal',
-  colHeaders: ['value<br>underneath', 'type:text', 'type:numeric', 'type:checkbox', 'type:dropdown', 'type:password'],
+  colHeaders: ['value underneath', 'type:text', 'type:numeric', 'type:checkbox', 'type:dropdown', 'type:password'],
   autoWrapRow: true,
   autoWrapCol: true,
   height: 'auto',

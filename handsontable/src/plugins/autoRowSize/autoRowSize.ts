@@ -6,6 +6,7 @@ import { isObject } from '../../helpers/object';
 import { valueAccordingPercent, rangeEach } from '../../helpers/number';
 import SamplesGenerator from '../../utils/samplesGenerator';
 import { isPercentValue } from '../../helpers/string';
+import { formatCellValue } from '../../renderers/renderCell';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { addClass, removeClass } from '../../helpers/dom/element';
 
@@ -264,8 +265,10 @@ export class AutoRowSize extends BasePlugin {
     if (row >= 0) {
       cellValue = this.hot.getDataAtCell(row, column);
 
-      if (typeof cellMeta?.valueFormatter === 'function') {
-        cellValue = (cellMeta.valueFormatter as (v: unknown, meta: unknown) => unknown)(cellValue, cellMeta);
+      if (cellMeta) {
+        // Format through the same precedence as the render path (cell-level `valueFormatter`, then
+        // the renderer's own static), so the measured string matches what the renderer produces.
+        cellValue = formatCellValue(cellValue, cellMeta, this.hot.getCellRenderer(cellMeta));
       }
     } else if (row === -1) {
       cellValue = this.hot.getColHeader(column);
