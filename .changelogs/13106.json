@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Added support for entitlement license keys - plain-English license text followed by a machine-readable block: console messages around the expiration date, a corner Handsontable badge with a status tooltip for trial keys, a blocking screen once a trial's grace period ends, and a notice below the grid when a perpetual key does not cover the installed version. Keys can also turn off the console messages, the on-grid messages, or both. Also fixed an 18.0.0 regression where browser builds did not report expired 25-character license keys - keys whose support period ended before the release date show their expiration notices again.",
+  "title": "Added support for entitlement license keys.",
   "type": "added",
   "issueOrPR": 13106,
   "breaking": false,
