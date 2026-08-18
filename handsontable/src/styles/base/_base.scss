@@ -572,7 +572,11 @@
     // Box-sizing normalize — grid chrome only. Scoped so it never forces `content-box` onto a
     // table/div/input a user renders inside a cell, which would fight a host `border-box` (#4363).
     table.htCore,
-    :where(.htGhostTable) > table,
+    // `&:where(...)`, not a descendant selector: a ghost container carries `handsontable` and
+    // `htGhostTable` on the SAME element, and the NestedHeaders ghost is appended to `<body>`,
+    // so `.handsontable :where(.htGhostTable)` would never match it. `:where()` keeps the
+    // specificity at the former bare `table` selector's (0,1,1).
+    &:where(.htGhostTable) > table,
     :where(table.htCore, #{$ghost-table}) > thead,
     :where(table.htCore, #{$ghost-table}) > tbody,
     input:not(:where(#{$user-cell-content})),
