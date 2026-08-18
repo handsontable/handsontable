@@ -219,6 +219,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   sanitizer: (content: string, source: 'innerHTML' | 'CopyPaste.paste') => content,
   search: true,
   selectionMode: oneOf('single', 'range', 'multiple'),
+  selectionHandles: true,
+  moveCells: true,
   selectOptions: oneOf(
     ['A', 'B', 'C'],
     { a: 'A', b: 'B', c: 'C' },
@@ -460,11 +462,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const colTransform: number = colTransformDir;
   },
   afterMomentumScroll: () => {},
+  afterMoveCells: (sourceRange, targetRange, isCopy) => {},
   afterNamedExpressionAdded: (namedExpressionName, changes) => {},
   afterNamedExpressionRemoved: (namedExpressionName, changes) => {},
   afterOnCellContextMenu: (event, coords, TD) => {},
   afterOnCellCornerDblClick: (event) => {},
   afterOnCellCornerMouseDown: (event) => {},
+  afterOnSelectionHandleMouseDown: (event, edge) => {},
+  afterOnSelectionEdgeMouseDown: (event, edge) => {},
   afterOnCellMouseDown: (event, coords, TD) => {},
   afterOnCellMouseOver: (event, coords, TD) => {},
   afterOnCellMouseOverOutside: (event, coords, TD) => {},
@@ -641,6 +646,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeLanguageChange: (languageCode) => {},
   beforeLoadData: (sourceData, firstTime, source) => {},
   beforeMergeCells: (cellRange, auto) => {},
+  beforeMoveCells: (sourceRange, targetTopLeft, isCopy) => {},
   beforeOnCellContextMenu: (event, coords, TD) => {},
   beforeOnCellMouseDown: (event, coords, TD, controller) => {},
   beforeOnCellMouseOut: (event, coords, TD) => {},
@@ -939,3 +945,21 @@ hot.addHook('afterCreateRow', (index: number, amount: number, source: string) =>
 // Rung 3: a dynamic/plugin-only hook name still compiles, including with a typed callback
 // (the `HookCallback` fallback is the sound function top type, not `(...args: unknown[])`).
 hot.addHook('someCustomPluginHook', (payload: { id: number }, flag: boolean) => {});
+
+// Regression: selectionHandles must be accepted by updateSettings.
+hot.updateSettings({ selectionHandles: true });
+
+// Regression: moveCells must be accepted by updateSettings.
+hot.updateSettings({ moveCells: true });
+
+// Regression: afterOnSelectionHandleMouseDown must be accepted by updateSettings.
+hot.updateSettings({ afterOnSelectionHandleMouseDown(event, edge) {} });
+hot.updateSettings({ afterOnSelectionEdgeMouseDown(event, edge) {} });
+
+// Regression: beforeMoveCells and afterMoveCells must be accepted by updateSettings.
+hot.updateSettings({ beforeMoveCells(sourceRange, targetTopLeft, isCopy) { return true; } });
+hot.updateSettings({ afterMoveCells(sourceRange, targetRange, isCopy) {} });
+
+// Regression: MoveCells exposes moveCellRange with correct arg/return types.
+const moveResult: boolean = hot.getPlugin('moveCells')
+  .moveCellRange(hot.getSelectedRangeLast()!, hot._createCellCoords(5, 5), false);

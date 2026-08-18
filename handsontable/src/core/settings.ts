@@ -143,6 +143,8 @@ export interface GridSettings {
   navigableHeaders?: boolean;
   outsideClickDeselects?: boolean | ((target: HTMLElement, coords?: WalkontableCellCoords) => boolean);
   selectionMode?: 'single' | 'range' | 'multiple';
+  selectionHandles?: boolean;
+  moveCells?: boolean;
   tabNavigation?: boolean;
   autoWrapCol?: boolean;
   autoWrapRow?: boolean;
@@ -312,6 +314,12 @@ export interface GridSettings {
   afterModifyTransformFocus?: (coords: WalkontableCellCoords, rowTransformDir: number, colTransformDir: number) => void;
   afterModifyTransformStart?: (coords: WalkontableCellCoords, rowTransformDir: number, colTransformDir: number) => void;
   afterMomentumScroll?: () => void;
+  /**
+   * Fired after a `moveCells` drag has relocated a selection.
+   *
+   * @since 18.1.0
+   */
+  afterMoveCells?: (sourceRange: WalkontableCellRange, targetRange: WalkontableCellRange, isCopy: boolean) => void;
   afterNamedExpressionAdded?: (namedExpressionName: string, changes: unknown[]) => void;
   afterNamedExpressionRemoved?: (namedExpressionName: string, changes: unknown[]) => void;
   afterNotificationHide?: (id: string) => void;
@@ -328,6 +336,8 @@ export interface GridSettings {
   afterOnCellContextMenu?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellCornerDblClick?: (event: MouseEvent) => void;
   afterOnCellCornerMouseDown?: (event: MouseEvent) => void;
+  afterOnSelectionHandleMouseDown?: (event: MouseEvent, edge: 'top' | 'bottom' | 'start' | 'end') => void;
+  afterOnSelectionEdgeMouseDown?: (event: MouseEvent, edge: 'top' | 'bottom' | 'start' | 'end') => void;
   afterOnCellMouseDown?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseOut?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseOver?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
@@ -472,6 +482,16 @@ export interface GridSettings {
   beforeLoadingHide?: () => boolean | void;
   beforeLoadingShow?: () => boolean | void;
   beforeMergeCells?: (cellRange: WalkontableCellRange, auto: boolean) => void;
+  /**
+   * Fired before a `moveCells` drag relocates a selection. Return `false` to cancel the move.
+   *
+   * @since 18.1.0
+   */
+  beforeMoveCells?: (
+    sourceRange: WalkontableCellRange,
+    targetTopLeft: WalkontableCellCoords,
+    isCopy: boolean
+  ) => void | boolean;
   beforeNotificationHide?: (id: string) => boolean | void;
   beforeNotificationShow?: (options: {
     id: string;

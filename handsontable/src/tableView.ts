@@ -1137,6 +1137,12 @@ class TableView {
         event.preventDefault();
         this.hot.runHooks('afterOnCellCornerDblClick', event);
       },
+      onSelectionHandleMouseDown: (event: MouseEvent, edge: 'top' | 'bottom' | 'start' | 'end') => {
+        this.hot.runHooks('afterOnSelectionHandleMouseDown', event, edge);
+      },
+      onSelectionEdgeMouseDown: (event: MouseEvent, edge: 'top' | 'bottom' | 'start' | 'end') => {
+        this.hot.runHooks('afterOnSelectionEdgeMouseDown', event, edge);
+      },
       beforeDraw: (force: boolean, skipRender: boolean) => this.beforeRender(force, skipRender),
       onDraw: (force: boolean) => this.afterRender(force),
       onBeforeViewportScrollVertically: (renderableRow: number, snapping: string) => {

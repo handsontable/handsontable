@@ -25,6 +25,10 @@ export interface HyperFormulaEngine {
   removeRows(sheetId: number | null, ...indexes: [number, number][]): void;
   removeColumns(sheetId: number | null, ...indexes: [number, number][]): void;
   getFillRangeData(sourceRange: object, targetRange: object): unknown[][];
+  isItPossibleToMoveCells(source: object, destinationLeftCorner: object): boolean;
+  moveCells(source: object, destinationLeftCorner: object): unknown[];
+  copy(source: object): unknown[][];
+  paste(targetLeftCorner: object): unknown[];
   batch(callback: () => void): unknown[];
   getConfig(): Record<string, unknown>;
   updateConfig(config: Record<string, unknown>): void;

@@ -12,6 +12,7 @@ import { createObjectPropListener, mixin } from './../helpers/object';
 import { isUndefined } from './../helpers/mixed';
 import { clamp } from './../helpers/number';
 import localHooks from './../mixins/localHooks';
+import { canMoveRange } from './moveCells';
 import { ExtenderTransformation, FocusTransformation } from './transformation';
 import {
   detectSelectionType,
@@ -171,6 +172,12 @@ class Selection {
    * @type {number}
    */
   #activeSelectionLayer = 0;
+  /**
+   * Visual layer index of the range currently hovered while `selectionHandles` is on, or `null`.
+   *
+   * @type {number | null}
+   */
+  #handlesHoveredLayer: number | null = null;
 
   /**
    * Initializes the Selection manager with grid settings and table API references, and sets up transformation modules and highlight layers.
@@ -189,6 +196,9 @@ class Selection {
       disabledCellSelection: (row: number, column: number) => this.tableProps.isDisabledCellSelection(row, column),
       cellCornerVisible: () => this.isCellCornerVisible(),
       areaCornerVisible: (layerLevel: number) => this.isAreaCornerVisible(layerLevel),
+      adjustHandlesVisible: (layerLevel: number) => this.isAdjustHandlesVisibleFor(layerLevel),
+      moveEnabled: () => this.isRangeMovable(),
+      cellMoveEnabled: () => this.isSingleCellMovable(),
       visualToRenderableCoords: (coords: CellCoords) => this.tableProps.visualToRenderableCoords(coords),
       renderableToVisualCoords: (coords: CellCoords) => this.tableProps.renderableToVisualCoords(coords),
       createCellCoords: (row: number, column: number) => this.tableProps.createCellCoords(row, column),
@@ -965,6 +975,61 @@ class Selection {
   }
 
   /**
+   * Tells whether the current selection is eligible for a `moveCells` drag at all: the feature is
+   * on (the setting is enabled AND the plugin has not been disabled at runtime), no editor is open,
+   * visual selection is not disabled, and the selection shape passes {@link canMoveRange}
+   * (exactly one contiguous range that is not a full row, full column, or header selection).
+   * Mirrors the eligibility gate applied when a move drag starts, so the move zone and grab
+   * cursor never show for a selection that a drag would reject. The editor check matches
+   * {@link Selection#isCellCornerVisible} — starting a drag mid-edit would swallow the mousedown
+   * that normally commits the editor, so the release could rewrite a cell whose editor still holds
+   * an uncommitted value.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  #isSelectionMovable() {
+    if (this.settings.moveCells !== true || this.settings.disableVisualSelection ||
+        this.tableProps.isEditorOpened() || !this.tableProps.isPluginEnabled('moveCells')) {
+      return false;
+    }
+
+    return canMoveRange({
+      rangeCount: this.getSelectedRange().size(),
+      isEntireRow: this.isEntireRowSelected(),
+      isEntireColumn: this.isEntireColumnSelected(),
+      isHeader: this.isSelectedByRowHeader() || this.isSelectedByColumnHeader(),
+    });
+  }
+
+  /**
+   * Tells whether the `moveCells` move zone should show on the area (multi-cell) selection border:
+   * the selection is movable (see {@link Selection##isSelectionMovable}) and spans more than one cell.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isRangeMovable() {
+    const range = this.getActiveSelectedRange();
+
+    return this.#isSelectionMovable() && !!range && !range.isSingle();
+  }
+
+  /**
+   * Tells whether the `moveCells` move zone should show on the focus (single-cell) selection border:
+   * the selection is movable (see {@link Selection##isSelectionMovable}) and there is exactly one
+   * selected cell.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isSingleCellMovable() {
+    const range = this.getActiveSelectedRange();
+
+    return this.#isSelectionMovable() && !!range && range.isSingle();
+  }
+
+  /**
    * Checks if the last selection involves changing the focus cell position only.
    *
    * @returns {boolean}
@@ -1082,6 +1147,27 @@ class Selection {
   }
 
   /**
+   * Returns the visual layer index of the selected range containing the given coords, or `null`.
+   * When multiple ranges overlap the coord, the topmost layer (highest index) wins.
+   *
+   * @param {CellCoords} coords The visual cell coordinates to test.
+   * @returns {number | null} The highest-index (topmost) layer that contains `coords`, or `null` if none do.
+   */
+  getLayerContaining(coords: CellCoords): number | null {
+    if (this.selectedRange.isEmpty()) {
+      return null;
+    }
+
+    for (let layer = this.selectedRange.size() - 1; layer >= 0; layer--) {
+      if (this.selectedRange.peekByIndex(layer)?.includes(coords)) {
+        return layer;
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Returns `true` if the cell corner should be visible.
    *
    * @private
@@ -1116,6 +1202,74 @@ class Selection {
     }
 
     return this.settings.fillHandle && !this.tableProps.isEditorOpened() && this.isMultiple();
+  }
+
+  /**
+   * Tells whether the adjustment handles should render for the given highlight layer.
+   *
+   * @private
+   * @param {number} layerLevel The area highlight layer level.
+   * @returns {boolean}
+   */
+  isAdjustHandlesVisibleFor(layerLevel: number) {
+    // The editor check matches `isCellCornerVisible`/`isAreaCornerVisible`: the handles must not
+    // render (nor start a drag) while a cell editor holds an uncommitted value. The plugin check
+    // keeps a runtime `disablePlugin()` effective even though the setting still reads `true`.
+    if (this.settings.selectionHandles !== true || this.tableProps.isEditorOpened() ||
+        !this.tableProps.isPluginEnabled('selectionHandles')) {
+      return false;
+    }
+
+    if (this.settings.selectionMode === 'single') {
+      return false;
+    }
+
+    if (this.#handlesHoveredLayer !== layerLevel) {
+      return false;
+    }
+
+    // Hide handles for full-row, full-column, and select-all selections
+    // because those cannot be meaningfully resized via edge handles.
+    // A select-all range spans all columns (isEntireRowSelected) AND all rows
+    // (isEntireColumnSelected), so it is already covered by those two checks —
+    // no separate isSelectedByCorner() call is needed here, and adding one would
+    // incorrectly suppress handles on valid non-top layers in multiple-selection
+    // mode (isSelectedByCorner() always inspects the topmost layer via getLayerLevel()).
+    if (this.isEntireRowSelected(layerLevel) ||
+        this.isEntireColumnSelected(layerLevel)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Returns the selection layer currently showing adjustment handles, or `null`.
+   * This is an internal method used by the SelectionHandles plugin's hover and drag wiring, and is
+   * not part of the public API.
+   *
+   * @private
+   * @returns {number | null}
+   */
+  getHandlesHoveredLayer() {
+    return this.#handlesHoveredLayer;
+  }
+
+  /**
+   * Sets which selection layer currently shows adjustment handles and refreshes the borders.
+   * This is an internal method called by the SelectionHandles plugin's hover wiring, and is not part
+   * of the public API.
+   *
+   * @private
+   * @param {number | null} layer The hovered layer level, or `null` to hide all handles.
+   */
+  setHandlesHoveredLayer(layer: number | null) {
+    if (this.#handlesHoveredLayer === layer) {
+      return;
+    }
+
+    this.#handlesHoveredLayer = layer;
+    this.refresh();
   }
 
   /**
