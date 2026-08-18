@@ -2,14 +2,10 @@ import { initLicenseBranding } from '../licenseBranding';
 
 jest.mock('../../helpers/mixed', () => ({
   _getLicenseState: jest.fn(),
-  // The real formatter (not a jest.fn) - the popover copy tests assert the formatted date.
-  _formatUtcDate: timestamp => new Intl.DateTimeFormat('en-US', {
-    year: 'numeric', month: 'long', day: '2-digit', timeZone: 'UTC',
-  }).format(timestamp),
   // The shared license copy the branding content imports (real values - the lock/popover tests
   // assert this exact wording).
-  LICENSE_EXPIRED_TITLE: 'Your Handsontable license has expired.',
-  PURCHASE_COMMERCIAL_LICENSE_TEXT: 'To continue using Handsontable, you need to purchase a commercial license.',
+  LICENSE_EXPIRED_TITLE: 'Your Handsontable license key has expired.',
+  PURCHASE_LICENSE_TEXT: 'To continue using Handsontable, you need to purchase a license.',
 }));
 
 const { _getLicenseState } = require('../../helpers/mixed');
@@ -121,19 +117,6 @@ function roamPointerOver(element) {
 }
 
 /**
- * Grants of a verified typed key licensing Handsontable in the given deployment mode.
- *
- * @param {string} mode The deployment mode stamped in the key payload.
- * @returns {object} The grants object.
- */
-function grantsWithMode(mode) {
-  return {
-    unrestricted: false,
-    products: { handsontable: { tier: 'enterprise', mode, addons: [] } },
-  };
-}
-
-/**
  * Finds a registered shortcut config by its key name (e.g. 'Escape', 'Tab').
  *
  * @param {object} hotInstance The mock instance.
@@ -147,10 +130,13 @@ function findShortcut(hotInstance, key) {
   return call?.[0];
 }
 
-function setLifecycle(state, extra = {}, grants = { unrestricted: false, products: {} }) {
+function setLifecycle(state, extra = {}, channels = { console: true, ui: true }) {
   _getLicenseState.mockReturnValue({
-    lifecycle: { state, daysRemaining: null, expiryTimestamp: null, hardStopTimestamp: null, ...extra },
-    grants,
+    lifecycle: {
+      state, isTrial: state.indexOf('trial') === 0, daysRemaining: null, licensedUntil: null, ...extra,
+    },
+    channels,
+    grants: { unrestricted: false, products: {} },
   });
 }
 
@@ -161,7 +147,7 @@ function setLifecycle(state, extra = {}, grants = { unrestricted: false, product
  * @returns {object} The mock instance.
  */
 function mountTrialLock(overrides = {}) {
-  setLifecycle('trial_expired_hard');
+  setLifecycle('trial_hard_stop', { licensedUntil: '2026-09-26' });
   const hotInstance = createMockHotInstance(overrides);
 
   initLicenseBranding(hotInstance);
@@ -176,16 +162,16 @@ describe('licenseBranding', () => {
   });
 
   describe('unbranded states', () => {
-    // The corner badge is reserved for trial and freemium; every other non-hard-stop state renders
-    // no badge here (missing/invalid/legacy-expired/non-commercial keep only their notification-path
-    // console message and bottom bar).
+    // The corner badge is reserved for a trial; every other non-hard-stop state renders no badge
+    // here (missing/invalid/legacy-expired/non-commercial keep only their notification-path console
+    // message and bottom bar).
     it.each([
-      'sub_ending', 'sub_expired', 'perp_expired', 'legacy_valid',
-      'missing', 'invalid', 'legacy_expired', 'non_commercial',
+      'usage_valid', 'usage_notice', 'usage_soft_stop', 'usage_hard_stop', 'release_valid',
+      'release_expired', 'legacy_valid', 'missing', 'invalid', 'legacy_expired', 'non_commercial',
     ])(
       'should render nothing for the "%s" state',
       (state) => {
-        setLifecycle(state, { expiryTimestamp: Date.UTC(2011, 4, 24) });
+        setLifecycle(state, { licensedUntil: '2011-05-24' });
         const hotInstance = createMockHotInstance();
 
         initLicenseBranding(hotInstance);
@@ -199,8 +185,8 @@ describe('licenseBranding', () => {
     );
   });
 
-  describe('badge states (trial active, trial soft-stop, freemium)', () => {
-    it.each(['trial_active', 'trial_expired', 'freemium'])(
+  describe('badge states (a running or soft-stopped trial)', () => {
+    it.each(['trial_valid', 'trial_notice', 'trial_soft_stop'])(
       'should mount the corner badge + popover for the "%s" state',
       (state) => {
         setLifecycle(state, { daysRemaining: 5 });
@@ -220,10 +206,10 @@ describe('licenseBranding', () => {
       }
     );
 
-    it.each(['trial_active', 'trial_expired', 'freemium'])(
+    it.each(['trial_valid', 'trial_notice', 'trial_soft_stop'])(
       'should keep the "%s" badge and popover entirely out of the Tab order (a floating visual only)',
       (state) => {
-        setLifecycle(state, { daysRemaining: 5, expiryTimestamp: Date.UTC(2026, 7, 27) });
+        setLifecycle(state, { daysRemaining: 5, licensedUntil: '2026-09-26' });
         const hotInstance = createMockHotInstance();
 
         initLicenseBranding(hotInstance);
@@ -248,7 +234,7 @@ describe('licenseBranding', () => {
 
   describe('corner presence and popover anchor', () => {
     it('should stamp `is-cornerless` when there is no corner cell, and re-sync it on settings updates', () => {
-      setLifecycle('trial_expired');
+      setLifecycle('trial_soft_stop');
       const hotInstance = createMockHotInstance({ rowHeaders: false });
 
       initLicenseBranding(hotInstance);
@@ -270,7 +256,7 @@ describe('licenseBranding', () => {
     });
 
     it('should not stamp `is-cornerless` when both header types are on', () => {
-      setLifecycle('trial_expired');
+      setLifecycle('trial_soft_stop');
       const hotInstance = createMockHotInstance();
 
       initLicenseBranding(hotInstance);
@@ -281,7 +267,7 @@ describe('licenseBranding', () => {
     });
 
     it('should mark this grid\'s own corner clone so the CSS glyph never leaks into a nested grid', () => {
-      setLifecycle('trial_active', { daysRemaining: 5 });
+      setLifecycle('trial_notice', { daysRemaining: 5 });
       const hotInstance = createMockHotInstance();
 
       initLicenseBranding(hotInstance);
@@ -299,7 +285,7 @@ describe('licenseBranding', () => {
     });
 
     it('should measure the corner width for the popover anchor and re-sync it on renders', () => {
-      setLifecycle('trial_active', { daysRemaining: 5 });
+      setLifecycle('trial_notice', { daysRemaining: 5 });
       const hotInstance = createMockHotInstance();
 
       Object.defineProperty(hotInstance.cornerTable, 'offsetWidth', { configurable: true, value: 48 });
@@ -318,7 +304,7 @@ describe('licenseBranding', () => {
     });
 
     it('should ignore the 1px corner flutter of the scrolled-state border compensation', () => {
-      setLifecycle('trial_active', { daysRemaining: 5 });
+      setLifecycle('trial_notice', { daysRemaining: 5 });
       const hotInstance = createMockHotInstance();
 
       Object.defineProperty(hotInstance.cornerTable, 'offsetWidth', { configurable: true, value: 50 });
@@ -345,8 +331,8 @@ describe('licenseBranding', () => {
   });
 
   describe('popover copy', () => {
-    it('should show the trial-active tooltip copy with the days remaining and a Contact Sales link', () => {
-      setLifecycle('trial_active', { daysRemaining: 5 });
+    it('should show the running-trial tooltip copy with the days remaining and a Contact Sales link', () => {
+      setLifecycle('trial_notice', { daysRemaining: 5 });
       const hotInstance = createMockHotInstance();
 
       initLicenseBranding(hotInstance);
@@ -364,25 +350,20 @@ describe('licenseBranding', () => {
       expect(popover.querySelector('.ht-license-popover__close')).toBe(null);
     });
 
-    it('should show the freemium upgrade copy with a Learn more link', () => {
-      setLifecycle('freemium');
+    it('should pluralize the last day of the trial', () => {
+      setLifecycle('trial_notice', { daysRemaining: 1 });
       const hotInstance = createMockHotInstance();
 
       initLicenseBranding(hotInstance);
 
-      const popover = hotInstance.rootOverlaysElement.querySelector('.ht-license-popover');
-
-      expect(popover.querySelector('.ht-license-popover__title').textContent)
-        .toBe('You\'re using the Handsontable Free plan.');
-      expect(popover.querySelector('.ht-license-popover__link').textContent).toBe('Learn more');
-      expect(popover.querySelector('.ht-license-popover__link').getAttribute('href'))
-        .toBe('https://handsontable.com/pricing');
+      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-popover__body').textContent)
+        .toContain('expires in 1 day.');
     });
   });
 
   describe('soft-stop popover dismissal', () => {
     it('should auto-open the soft-stop popover with a working (mouse-only) close button', () => {
-      setLifecycle('trial_expired');
+      setLifecycle('trial_soft_stop');
       const hotInstance = createMockHotInstance();
 
       initLicenseBranding(hotInstance);
@@ -392,7 +373,7 @@ describe('licenseBranding', () => {
       const popover = overlays.querySelector('.ht-license-popover');
       const closeButton = popover.querySelector('.ht-license-popover__close');
 
-      expect(popover.querySelector('.ht-license-popover__title').textContent).toBe('Expired trial license key');
+      expect(popover.querySelector('.ht-license-popover__title').textContent).toBe('Handsontable Trial Expired');
       expect(popover.classList.contains('is-open')).toBe(true);
       expect(closeButton).not.toBe(null);
 
@@ -406,7 +387,7 @@ describe('licenseBranding', () => {
     });
 
     it('should re-arm the dismissed soft-stop popover once the pointer leaves', () => {
-      setLifecycle('trial_expired');
+      setLifecycle('trial_soft_stop');
       const hotInstance = createMockHotInstance();
 
       initLicenseBranding(hotInstance);
@@ -430,7 +411,7 @@ describe('licenseBranding', () => {
 
   describe('corner hover detection', () => {
     it('should stamp `is-corner-hover` while the pointer roams the corner header (click-through hover)', () => {
-      setLifecycle('trial_active', { daysRemaining: 5 });
+      setLifecycle('trial_notice', { daysRemaining: 5 });
       const hotInstance = createMockHotInstance();
 
       initLicenseBranding(hotInstance);
@@ -449,7 +430,7 @@ describe('licenseBranding', () => {
     });
 
     it('should NOT stamp `is-corner-hover` over frozen data cells inside the corner clone', () => {
-      setLifecycle('trial_active', { daysRemaining: 5 });
+      setLifecycle('trial_notice', { daysRemaining: 5 });
       const hotInstance = createMockHotInstance();
       // With `fixedRowsTop` + `fixedColumnsStart`, the corner clone also holds the user's frozen
       // DATA cells - hovering them must never pop the license tooltip.
@@ -468,7 +449,7 @@ describe('licenseBranding', () => {
     });
 
     it('should resolve event targets against the grid\'s own realm, not the library\'s globals', () => {
-      setLifecycle('trial_active', { daysRemaining: 5 });
+      setLifecycle('trial_notice', { daysRemaining: 5 });
       // An iframe-hosted grid delivers events whose targets are NOT instances of the loading
       // window's `Element`. Simulated by inverting the realms: with a foreign `rootWindow.Element`,
       // a roam over a test-realm node must be ignored - proof the detector consults `rootWindow`
@@ -486,7 +467,7 @@ describe('licenseBranding', () => {
     });
 
     it('should NOT stamp `is-corner-hover` when there is no corner cell (is-cornerless)', () => {
-      setLifecycle('trial_active', { daysRemaining: 5 });
+      setLifecycle('trial_notice', { daysRemaining: 5 });
       const hotInstance = createMockHotInstance({ rowHeaders: false });
 
       initLicenseBranding(hotInstance);
@@ -511,9 +492,10 @@ describe('licenseBranding', () => {
       expect(lock.getAttribute('role')).toBe('alertdialog');
       expect(lock.getAttribute('aria-modal')).toBe('true');
       expect(lock.querySelector('.ht-dialog__title').textContent)
-        .toBe('Your Handsontable license has expired.');
+        .toBe('Your Handsontable trial license key expired on 2026-09-26.');
       expect(lock.querySelector('.ht-dialog__description').textContent)
-        .toContain('purchase a commercial license');
+        .toBe('You may no longer use Handsontable under the trial license. To continue using the ' +
+          'software, contact sales@handsontable.com to purchase a valid license.');
 
       const buttons = lock.querySelectorAll('button');
 
@@ -526,7 +508,7 @@ describe('licenseBranding', () => {
     });
 
     it('should defer moving focus into the lock to afterInit (the grid is unrendered during init)', () => {
-      setLifecycle('trial_expired_hard');
+      setLifecycle('trial_hard_stop', { licensedUntil: '2026-09-26' });
       const hotInstance = createMockHotInstance();
 
       initLicenseBranding(hotInstance);
@@ -572,30 +554,44 @@ describe('licenseBranding', () => {
     });
   });
 
-  describe('subscription hard stop', () => {
-    // The subscription hard stop renders no front-end surface for ANY deployment mode - it is
-    // developer-facing (a console error, in the notification path) only.
-    it.each(['internal', 'saas', 'some-future-mode'])(
-      'should render nothing for the "%s" mode: no lock, no badge, no focus scope',
-      (mode) => {
-        setLifecycle('sub_expired_hard', {}, grantsWithMode(mode));
+  describe('a hard-stopped subscription', () => {
+    // It renders no front-end surface at all - it is developer-facing (a console error, in the
+    // notification path) only. 18.1 never blocks a paying customer.
+    it('should render nothing: no lock, no badge, no focus scope', () => {
+      setLifecycle('usage_hard_stop', { licensedUntil: '2027-08-12' });
+      const hotInstance = createMockHotInstance();
+
+      initLicenseBranding(hotInstance);
+
+      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
+      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-badge')).toBe(null);
+      expect(hotInstance.rootOverlaysElement.children).toHaveLength(0);
+      expect(hotInstance.focusScope.registerScope).not.toHaveBeenCalled();
+      expect(hotInstance.addHook).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('the no-ui-warns flag', () => {
+    // A key issued for external use must show its end users nothing, whatever state it is in.
+    it.each(['trial_notice', 'trial_soft_stop', 'trial_hard_stop'])(
+      'should render nothing for the "%s" state when the UI channel is closed',
+      (state) => {
+        setLifecycle(state, { licensedUntil: '2026-09-26' }, { console: true, ui: false });
         const hotInstance = createMockHotInstance();
 
         initLicenseBranding(hotInstance);
 
-        expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
-        expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-badge')).toBe(null);
         expect(hotInstance.rootOverlaysElement.children).toHaveLength(0);
+        expect(hotInstance.rootElement.classList.contains('ht-license-badge-on')).toBe(false);
         expect(hotInstance.focusScope.registerScope).not.toHaveBeenCalled();
-        expect(hotInstance.addHook).not.toHaveBeenCalled();
       }
     );
   });
 
   describe('init-only license key', () => {
     it('should resolve the license state exactly once (no re-classification)', () => {
-      setLifecycle('freemium');
-      const hotInstance = createMockHotInstance({ licenseKey: 'A-FREE-KEY' });
+      setLifecycle('trial_notice', { daysRemaining: 5 });
+      const hotInstance = createMockHotInstance({ licenseKey: '[a-trial-key]' });
 
       initLicenseBranding(hotInstance);
 

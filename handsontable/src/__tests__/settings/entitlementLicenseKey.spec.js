@@ -1,22 +1,19 @@
 import {
   TRIAL_KEY,
-  FREEMIUM_KEY,
   SUBSCRIPTION_KEY,
-  SUBSCRIPTION_SAAS_KEY,
-  FIXTURE_EXPIRY_TIMESTAMP,
-} from '../../utils/typedLicenseKey/__tests__/fixtures';
+  SUBSCRIPTION_EXTERNAL_KEY,
+} from '../../utils/entitlementLicenseKey/__tests__/fixtures';
 
 /* eslint no-console: off */
 describe('settings', () => {
-  describe('licenseKey (typed keys)', () => {
+  describe('licenseKey (entitlement keys)', () => {
     const id = 'testContainer';
-    const DAY = 24 * 60 * 60 * 1000;
-    // TRIAL_KEY expires on FIXTURE_EXPIRY_TIMESTAMP with a 15-day grace.
-    const WITHIN_TRIAL = FIXTURE_EXPIRY_TIMESTAMP - (10 * DAY);
-    const WITHIN_GRACE = FIXTURE_EXPIRY_TIMESTAMP + (5 * DAY); // soft stop (0..-15d)
-    const AFTER_GRACE = FIXTURE_EXPIRY_TIMESTAMP + (20 * DAY); // hard stop (>15d)
-    // The subscription fixtures carry a 90-day grace.
-    const SUB_AFTER_GRACE = FIXTURE_EXPIRY_TIMESTAMP + (95 * DAY); // subscription hard stop (>90d)
+    // TRIAL_KEY runs to 2026-09-26 with a 45-day notice and a 15-day grace.
+    const WITHIN_TRIAL = Date.parse('2026-09-16T00:00:00Z');
+    const WITHIN_GRACE = Date.parse('2026-10-01T00:00:00Z'); // soft stop, inside the grace period
+    const AFTER_GRACE = Date.parse('2026-10-12T00:00:00Z'); // hard stop, the grace period is over
+    // The subscription fixtures run to 2027-08-12 with a 90-day grace.
+    const SUB_AFTER_GRACE = Date.parse('2027-12-01T00:00:00Z');
 
     beforeEach(function() {
       this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -151,23 +148,6 @@ describe('settings', () => {
       });
     });
 
-    describe('freemium', () => {
-      it('should show the corner badge with the freemium tooltip and no bottom bar', async() => {
-        handsontable({ licenseKey: FREEMIUM_KEY }, true);
-
-        const badge = hot().rootOverlaysElement.querySelector('.ht-license-badge');
-        const popover = hot().rootOverlaysElement.querySelector('.ht-license-popover');
-
-        expect(badge).not.toBe(null);
-        expect(popover.querySelector('.ht-license-popover__title').innerText)
-          .toContain('Free plan');
-        expect(popover.querySelector('.ht-license-popover__link').innerText).toBe('Learn more');
-        // Exactly one badge wrapper - a duplicate would mean a mount ran twice.
-        expect(hot().rootOverlaysElement.querySelectorAll('.ht-license-badge-wrapper').length).toBe(1);
-        expect(spec().$container[0].querySelector('.hot-display-license-info')).toBe(null);
-      });
-    });
-
     describe('soft stop (expired, within grace)', () => {
       it('should show the bottom bar and the auto-open badge popover, and no dialog', async() => {
         spyOn(Date, 'now').and.returnValue(WITHIN_GRACE);
@@ -179,7 +159,9 @@ describe('settings', () => {
 
         expect(getPlugin('dialog').isVisible()).toBe(false);
         expect(bar).not.toBe(null);
-        expect(bar.innerText).toContain('Your Handsontable license has expired');
+        expect(bar.innerText).toContain('Your Handsontable license key has expired');
+        // Exactly one badge wrapper - a duplicate would mean a mount ran twice.
+        expect(hot().rootOverlaysElement.querySelectorAll('.ht-license-badge-wrapper').length).toBe(1);
         // The soft-stop popover auto-opens and is dismissible.
         expect(popover.classList.contains('is-open')).toBe(true);
         expect(popover.querySelector('.ht-license-popover__close')).not.toBe(null);
@@ -275,7 +257,7 @@ describe('settings', () => {
 
         expect(lock).not.toBe(null);
         expect(lock.getAttribute('role')).toBe('alertdialog');
-        expect(lock.innerText).toContain('Your Handsontable license has expired.');
+        expect(lock.innerText).toContain('Your Handsontable trial license key expired on 2026-09-26.');
         expect(lock.innerText).toContain('Contact Sales');
         // Non-closable: no Close button, and Escape (through the real shortcut pipeline - the
         // lock's shortcuts context is active while focus is inside it) does nothing.
@@ -329,13 +311,13 @@ describe('settings', () => {
     });
 
     describe('subscription hard stop (grace elapsed)', () => {
-      // The subscription hard stop is developer-facing only, for every deployment mode: the console
+      // A hard-stopped subscription is developer-facing only, however the key was issued: the console
       // error (asserted in the unit tests - it logs once per page, so a prior spec may have already
       // consumed it here) with no frontend surface at all - no lock, no bottom bar, no corner badge.
       it.each([
-        ['Internal-mode', SUBSCRIPTION_KEY],
-        ['SaaS-mode', SUBSCRIPTION_SAAS_KEY],
-      ])('should stay console-only for a %s key: no lock, no bar, no badge', async(_label, key) => {
+        ['internal-use', SUBSCRIPTION_KEY],
+        ['external-use', SUBSCRIPTION_EXTERNAL_KEY],
+      ])('should stay console-only for an %s key: no lock, no bar, no badge', async(_label, key) => {
         spyOn(Date, 'now').and.returnValue(SUB_AFTER_GRACE);
 
         handsontable({ licenseKey: key }, true);

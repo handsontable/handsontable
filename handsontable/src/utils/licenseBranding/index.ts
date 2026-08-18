@@ -6,14 +6,17 @@ import type { HotInstance } from '../../core/types';
 
 /**
  * Mounts the branding surface for one resolved license state:
- *   - `trial_active`, `trial_expired`, `freemium` -> the corner "H." badge with its popover;
- *   - `trial_expired_hard` -> the Core-owned, non-dismissable lock screen.
+ *   - a running or soft-stopped trial -> the corner "H." badge with its popover;
+ *   - a hard-stopped trial -> the Core-owned, non-dismissable lock screen.
  *
- * Every other state renders nothing here - the corner badge is reserved for trial and freemium, and
- * the only hard-stop lock is the trial one. A hard-stopped subscription (`sub_expired_hard`, any
- * mode) is developer-facing only: no lock, no bar, no badge - just its console error. `missing`,
- * `invalid`, `non_commercial`, expired/valid legacy, running subscription, and perpetual likewise
- * render nothing here; their console warning and any bottom bar come from `initLicenseNotification`.
+ * Every other state renders nothing here. The corner badge is reserved for a trial, and the only
+ * hard-stop lock is the trial one: a hard-stopped subscription is developer-facing only (its console
+ * error, no lock, no bar, no badge). A missing, invalid or non-commercial key, an expired or valid
+ * legacy key, a running subscription and a covered perpetual license likewise render nothing here;
+ * their console message and any bottom bar come from `initLicenseNotification`.
+ *
+ * A key carrying `no-ui-warns` renders nothing at all - the flag closes this whole surface, which is
+ * what keeps a licensed SaaS application from showing license copy to its own end users.
  *
  * @param {HotInstance} hotInstance The root Handsontable instance.
  * @param {ReturnType<typeof _getLicenseState>} descriptor The resolved license state descriptor.
@@ -23,10 +26,16 @@ function mountBrandingSurface(
   hotInstance: HotInstance,
   descriptor: ReturnType<typeof _getLicenseState>,
 ): void {
-  const { lifecycle } = descriptor;
+  const { lifecycle, channels } = descriptor;
 
-  if (lifecycle.state === 'trial_expired_hard') {
-    mountLicenseLock(hotInstance, LOCK_CONTENT.trial_expired_hard);
+  if (!channels.ui) {
+    return;
+  }
+
+  const buildLockContent = LOCK_CONTENT[lifecycle.state];
+
+  if (buildLockContent) {
+    mountLicenseLock(hotInstance, buildLockContent(lifecycle));
 
     return;
   }

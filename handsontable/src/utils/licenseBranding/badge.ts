@@ -91,9 +91,8 @@ function wireCornerHoverDetection(
 }
 
 /**
- * Builds the corner badge + popover and mounts it into the overlays layer. Only the trial and
- * freemium states carry `POPOVER_CONTENT`; for every other state this is a no-op (no badge, no
- * popover). The VISUAL glyph is pure CSS inside the corner header cell (gated by the
+ * Builds the corner badge + popover and mounts it into the overlays layer. Only the trial states
+ * carry `POPOVER_CONTENT`; for every other state this is a no-op (no badge, no popover). The VISUAL glyph is pure CSS inside the corner header cell (gated by the
  * `ht-license-badge-on` root class - see `_license-branding.scss`), so it can never overflow or
  * drift out of the corner. The badge button itself is screen-reader-only: it carries the accessible
  * name, the popover wiring, and the keyboard entry point. The soft-stop popovers additionally
@@ -113,7 +112,7 @@ export function mountLicenseBadge(hotInstance: HotInstance, lifecycle: LicenseLi
   const content = POPOVER_CONTENT[lifecycle.state];
   const host = hotInstance.rootOverlaysElement;
 
-  // The badge (and its popover) render ONLY for the trial and freemium states in `POPOVER_CONTENT`;
+  // The badge (and its popover) render ONLY for the trial states in `POPOVER_CONTENT`;
   // every other state returns here with no badge - its console message and any bottom bar come from
   // `initLicenseNotification` instead.
   if (!content || !host) {

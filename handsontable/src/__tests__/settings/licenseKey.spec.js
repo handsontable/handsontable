@@ -49,9 +49,9 @@ describe('settings', () => {
       expect(document.querySelectorAll('.hot-display-license-info').length).toBe(0);
     });
 
-    describe('non-typed license states show no corner badge', () => {
-      // The corner badge is reserved for trial and freemium keys. Non-typed states keep only their
-      // notification-path output (the legacy console message and bottom bar), unchanged.
+    describe('license states outside the entitlement format show no corner badge', () => {
+      // The corner badge is reserved for a trial. Every other state keeps only its notification-path
+      // output (the legacy console message and bottom bar), unchanged.
       it('should show no badge for a missing key, keeping the legacy missing-key bottom bar', async() => {
         handsontable({}, true);
 

@@ -3760,7 +3760,7 @@ export default (): Record<string, unknown> => {
      * | Setting                                                                                                 | Description                                                                                       |
      * | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
      * | A string with your [commercial license key](@/guides/getting-started/license-key/license-key.md#commercial-license) | For [commercial use](@/guides/technical-specification/software-license/software-license.md#commercial-use)         |
-     * | A string with your [typed license key](@/guides/getting-started/license-key/license-key.md#typed-license-keys) (starts with `[TRIAL]`, `[FREE]`, `[SUB]`, or `[PERP]`) | For trial, Free-plan, subscription, or perpetual use |
+     * | A string with your [entitlement license key](@/guides/getting-started/license-key/license-key.md#entitlement-license-keys) (plain-English text ending with a `[...]` block) | For trial, subscription, or perpetual use |
      * | `'non-commercial-and-evaluation'`                                                                       | For [non-commercial use](@/guides/technical-specification/software-license/software-license.md#non-commercial-use) |
      *
      * Read more:
@@ -3779,9 +3779,9 @@ export default (): Record<string, unknown> => {
      * // for commercial use (legacy 25-character format)
      * licenseKey: 'xxxxx-xxxxx-xxxxx-xxxxx-xxxxx', // your commercial license key
      *
-     * // for a typed license key (trial, Free plan, subscription, or perpetual),
+     * // for an entitlement license key (trial, subscription, or perpetual),
      * // pass the whole key string exactly as you received it
-     * licenseKey: '[SUB]_this_{Handsontable}_key_is_granted_under_a_subscription_license___...',
+     * licenseKey: 'This is a Handsontable license key for Acme Corp, ... [eyJwcm9kdWN0cyI6...3a4f8361]',
      *
      * // for non-commercial use
      * licenseKey: 'non-commercial-and-evaluation',
