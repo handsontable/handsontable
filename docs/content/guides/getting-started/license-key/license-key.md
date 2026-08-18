@@ -309,13 +309,6 @@ against the build date of your Handsontable version, never against the current d
 versions released on or before that date indefinitely, including offline. On a newer version, the
 console reports an error and the grid shows a notice below the table.
 
-### Keys that keep quiet
-
-A key issued for external use - where the grid is part of a product you sell to your own customers -
-carries two settings that keep license messages away from your end users. One turns off all console
-output. The other turns off everything the grid displays: the badge, the notice below the table, and
-the blocking screen. Your Sales contact can also set them for a key issued for internal use.
-
 ## Result
 
 Your grid is now licensed. A valid commercial key removes the license notice from the grid header.
