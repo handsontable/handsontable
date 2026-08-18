@@ -1,50 +1,206 @@
+import { type Locator, type Page } from '@playwright/test';
 import { test, expect } from '../fixtures/test';
-import { NestedTablePage } from '../fixtures/pages/NestedTablePage';
 
 /**
- * Issue #4363 — Handsontable must not leak its cell styling into a `<table>` a
- * user renders inside a cell, and doing so must not knock the row-header overlay
- * out of alignment with the grid body.
+ * Issue #4363 — Handsontable must not leak its cell styling into content a
+ * user renders inside a cell, and the scoping must not break the grid's own
+ * in-cell chrome or measurements.
  *
- * Two guarantees, each a real-browser check:
- *  1. Grid cell styling (box-sizing, borders) does not reach the nested table's
- *     cells, while the grid's own cells keep that styling.
- *  2. A tall custom-rendered cell (which auto-expands its row) keeps the
- *     inline-start row-header overlay pixel-aligned with the grid body. This
- *     guards the row-height measurement path: cell CSS is scoped to
- *     `table.htCore`, so the `stylesHandler` box-sizing probe must also be an
- *     `htCore` table or `areCellsBorderBox()` flips and rows mis-measure.
+ * The page under test is served inline via `page.route()` (no committed
+ * fixture file): a grid where cell (0, 1) hosts a user-rendered `<table>`
+ * (tall enough to auto-expand its row) and column 2 is the grid's own
+ * checkbox column. The host page carries the kind of global CSS the grid
+ * must coexist with (`input { min-height: … }`).
+ *
+ * Four guarantees, each a real-browser check:
+ *  1. Grid cell styling (box-sizing, borders) does not reach the nested
+ *     table's cells.
+ *  2. The grid still styles its own cells.
+ *  3. A tall custom-rendered cell keeps the inline-start row-header overlay
+ *     pixel-aligned with the grid body — guards the row-height measurement
+ *     path: cell CSS is scoped to `table.htCore`, so the `stylesHandler`
+ *     box-sizing probe must also be an `htCore` table or `areCellsBorderBox()`
+ *     flips and rows mis-measure.
+ *  4. The normalize split is exact: the grid's own checkbox `<input>` (the one
+ *     element the grid renders inside a cell) keeps the `min-height` normalize
+ *     against host CSS, while a user's in-cell `<input>` keeps the host CSS.
  */
-test.describe('nested table in a cell (#4363)', () => {
-  let grid: NestedTablePage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new NestedTablePage(page, theme);
-    await grid.goto();
+const FIXTURE_URL = '/nested-table-css-leak-fixture.html';
+
+/**
+ * The inline page: stylesheets and the dist bundle are loaded from the static
+ * server (same assets a committed fixture would use); only the HTML shell is
+ * synthesized. `theme` comes from the Playwright project matrix (a literal
+ * from a fixed set — never user input).
+ */
+function fixtureHtml(theme: string): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e inline fixture — nested table in a cell (#4363)</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <link rel="stylesheet" href="/handsontable/styles/ht-theme-${theme}.min.css">
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    /* Host-page global rule the grid must not let leak into its own checkbox input,
+       while a user's in-cell input must keep it (#4363). */
+    input { min-height: 40px; }
+    /* A table a user renders inside a cell, with its OWN box model. It never sets
+       box-sizing, so a border-box reading on its cells is a leak from the grid. Its
+       explicit border + padding also make the host row auto-expand, which exercises
+       the oversized-row height measurement (the row-header-alignment guard). */
+    .nested-user-table { border-collapse: collapse; }
+    .nested-user-table td { border: 2px solid #008000; padding: 6px; }
+  </style>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+  <script src="/handsontable/dist/handsontable.full.min.js"></script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = 'ht-theme-${theme}';
+
+    // Stamp data cells so specs hook cells unambiguously.
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', 'cell-' + row + '-' + col);
+    };
+
+    // Renders a bare user <table> inside the cell — tall enough to force the host row
+    // to auto-expand. One of its cells holds a user <input> (host CSS must win there).
+    const nestedTableRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      td.setAttribute('data-testid', 'cell-' + row + '-' + col);
+      td.innerHTML = '';
+      const t = document.createElement('table');
+
+      t.className = 'nested-user-table';
+      t.innerHTML =
+        '<tbody>' +
+        '<tr><td data-testid="nested-cell">Mo</td><td>Tu</td></tr>' +
+        '<tr><td><input data-testid="nested-input"></td><td>2</td></tr>' +
+        '<tr><td>3</td><td>4</td></tr>' +
+        '</tbody>';
+      td.appendChild(t);
+
+      return td;
+    };
+
+    new Handsontable(container, {
+      data: [
+        ['Alice', null, true],
+        ['Bob', 'plain', false],
+        ['Carol', 'plain', true],
+      ],
+      colHeaders: ['Name', 'Nested', 'Done'],
+      columns: [
+        { renderer: testIdRenderer },
+        { renderer: testIdRenderer },
+        { type: 'checkbox' },
+      ],
+      rowHeaders: true,
+      rowHeights: 90,
+      colWidths: [120, 220, 120],
+      cells(row, col) {
+        if (row === 0 && col === 1) {
+          return { renderer: nestedTableRenderer };
+        }
+
+        return {};
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>`;
+}
+
+test.describe('nested table in a cell (#4363)', () => {
+  let page: Page;
+
+  test.beforeEach(async({ page: activePage, theme }) => {
+    page = activePage;
+    await page.route(`**${FIXTURE_URL}`, route => route.fulfill({
+      contentType: 'text/html',
+      body: fixtureHtml(theme),
+    }));
+    await page.goto(FIXTURE_URL);
+    await expect(cell(0, 1)).toBeVisible();
+    await expect(nestedCell()).toBeVisible();
   });
 
-  test('grid cell styling does not leak into the nested table', async () => {
+  /** The grid data cell (visual row/col) in the master overlay. */
+  function cell(row: number, col: number): Locator {
+    return page.locator('.ht_master').getByTestId(`cell-${row}-${col}`);
+  }
+
+  /** A `<td>` inside the user's nested table (never a grid cell). */
+  function nestedCell(): Locator {
+    return page.locator('.ht_master').getByTestId('nested-cell');
+  }
+
+  /** Read a computed style property off a locator's element. */
+  function computedStyle(locator: Locator, property: string): Promise<string> {
+    return locator.evaluate((el, prop) => getComputedStyle(el).getPropertyValue(prop), property);
+  }
+
+  /** The vertical gap (px) between a row header's bottom edge and its data row's bottom edge. */
+  async function rowHeaderBottomGap(row: number): Promise<number> {
+    const header = await page
+      .locator('.ht_clone_inline_start .htCore tbody tr')
+      .nth(row)
+      .locator('th[role="rowheader"]')
+      .boundingBox();
+    const dataCell = await cell(row, 1).boundingBox();
+
+    if (!header || !dataCell) {
+      throw new Error(`Missing bounding box for row ${row}`);
+    }
+
+    return Math.abs((header.y + header.height) - (dataCell.y + dataCell.height));
+  }
+
+  test('grid cell styling does not leak into the nested table', async() => {
     // The nested table never sets `box-sizing`, so a `border-box` reading is the grid's
     // cell rule leaking in. Before the fix this read 'border-box'.
-    expect(await grid.computedStyle(grid.nestedCell(), 'box-sizing')).toBe('content-box');
+    expect(await computedStyle(nestedCell(), 'box-sizing')).toBe('content-box');
     // The nested table's own box model is fully respected (not overridden by the grid).
-    expect(await grid.computedStyle(grid.nestedCell(), 'border-top-width')).toBe('2px');
-    expect(await grid.computedStyle(grid.nestedCell(), 'padding')).toBe('6px');
+    expect(await computedStyle(nestedCell(), 'border-top-width')).toBe('2px');
+    expect(await computedStyle(nestedCell(), 'padding')).toBe('6px');
   });
 
-  test('the grid keeps styling its own cells', async () => {
+  test('the grid keeps styling its own cells', async() => {
     // The scoping must not be so tight that real grid cells lose their styling.
-    const ownCell = grid.cell(1, 0);
+    const ownCell = cell(1, 0);
 
-    expect(await grid.computedStyle(ownCell, 'box-sizing')).toBe('border-box');
-    expect(await grid.computedStyle(ownCell, 'border-bottom-style')).toBe('solid');
+    expect(await computedStyle(ownCell, 'box-sizing')).toBe('border-box');
+    expect(await computedStyle(ownCell, 'border-bottom-style')).toBe('solid');
   });
 
-  test('row headers stay aligned with an auto-expanded custom-content row', async () => {
+  test('row headers stay aligned with an auto-expanded custom-content row', async() => {
     // Row 0 is taller than the default (it holds the nested table), forcing the
     // oversized-row measurement path. The row-header overlay must track it.
-    expect(await grid.rowHeaderBottomGap(0)).toBeLessThanOrEqual(1);
+    expect(await rowHeaderBottomGap(0)).toBeLessThanOrEqual(1);
     // Rows below the tall one must not accumulate the drift either.
-    expect(await grid.rowHeaderBottomGap(1)).toBeLessThanOrEqual(1);
+    expect(await rowHeaderBottomGap(1)).toBeLessThanOrEqual(1);
+  });
+
+  test('input normalize splits exactly between grid chrome and user content', async() => {
+    // The grid's own checkbox input must keep the `min-height` normalize, so the
+    // host page's `input { min-height: 40px }` cannot inflate it (and its row).
+    const checkboxInput = page.locator('.ht_master input.htCheckboxRendererInput').first();
+
+    await expect(checkboxInput).toBeVisible();
+    expect(await computedStyle(checkboxInput, 'min-height')).not.toBe('40px');
+
+    const checkboxBox = await checkboxInput.boundingBox();
+
+    expect(checkboxBox).not.toBeNull();
+    expect(checkboxBox!.height).toBeLessThan(30);
+
+    // A user's in-cell input is user content — the host rule must keep applying to it.
+    expect(await computedStyle(page.getByTestId('nested-input'), 'min-height')).toBe('40px');
   });
 });

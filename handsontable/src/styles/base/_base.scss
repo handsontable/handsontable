@@ -13,7 +13,10 @@
   $grid-sections: "table.htCore > thead, table.htCore > tbody";
   // Anything a user renders inside a body cell. Used with `:not(:where(...))` to keep grid
   // normalize rules off user content without changing their specificity (`:where()` = 0) (#4363).
-  $user-cell-content: "table.htCore > tbody > tr > td *";
+  // The checkbox renderer's `<input>` is the one element the grid itself renders inside a cell,
+  // so it is carved out here — it must keep the `input` normalize (`box-sizing`/`min-height`)
+  // or host-page rules like `input { min-height: 40px }` inflate grid checkboxes.
+  $user-cell-content: "table.htCore > tbody > tr > td *:not(.htCheckboxRendererInput)";
 
   // Root wrapper
   .ht-root-wrapper {
