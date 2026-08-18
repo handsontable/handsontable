@@ -1547,7 +1547,9 @@ export function getShadowHostChain(node: Node): HTMLElement[] {
  * the element that actually holds the focus.
  *
  * @param {Document} rootDocument The document to read the active element from.
- * @returns {Element|null} The deepest focused element, or `null` when nothing is focused.
+ * @returns {Element|null} The deepest focused element. The browser reports `document.body`
+ * when no other element holds the focus; `null` appears only in edge cases such as
+ * a document with no body.
  */
 export function getDeepActiveElement(rootDocument: Document): Element | null {
   let element = rootDocument.activeElement;
