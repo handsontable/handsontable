@@ -35,4 +35,29 @@ test.describe('walkontable overlays', { tag: '@walkontable' }, () => {
     await expect(wt.topOverlay.getByText('R1C3', { exact: true }).first()).toBeVisible();
     await expect(wt.corner).toBeVisible();
   });
+
+  /**
+   * The fill handle of the cell at the far edge of the grid is pulled back
+   * inside the viewport, so it never enlarges the scrollable area. With frozen
+   * panes the master table is shifted by the frozen pane, and missing that
+   * shift made the handle hang past the last column/row and grow a scrollbar
+   * on the master table alone (#13143).
+   */
+  test('selecting the last column does not widen the scrollable area', async () => {
+    await wt.scrollToEnd();
+    const { width } = await wt.scrollSize();
+
+    await wt.selectCell(wt.lastRow - 1, wt.lastColumn);
+
+    await expect.poll(async () => (await wt.scrollSize()).width).toBe(width);
+  });
+
+  test('selecting the last row does not heighten the scrollable area', async () => {
+    await wt.scrollToEnd();
+    const { height } = await wt.scrollSize();
+
+    await wt.selectCell(wt.lastRow, wt.lastColumn - 1);
+
+    await expect.poll(async () => (await wt.scrollSize()).height).toBe(height);
+  });
 });
