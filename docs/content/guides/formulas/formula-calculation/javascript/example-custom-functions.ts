@@ -1,9 +1,14 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { FunctionArgumentType, FunctionPlugin, HyperFormula } from 'hyperformula';
-import type { ProcedureAst } from 'hyperformula/typings/parser/Ast';
-import type { InterpreterState } from 'hyperformula/typings/interpreter/InterpreterState';
-import type { InterpreterValue } from 'hyperformula/typings/interpreter/InterpreterValue';
+
+// HyperFormula does not export its parser and interpreter types from the package
+// entry point, so derive them from the inherited `runFunction` signature.
+type RunFunction = FunctionPlugin['runFunction'];
+type Ast = Parameters<RunFunction>[0][number];
+type ProcedureAst = Extract<Ast, { procedureName: string }>;
+type InterpreterState = Parameters<RunFunction>[1];
+type InterpreterValue = ReturnType<Parameters<RunFunction>[3]>;
 
 // Register all Handsontable's modules.
 registerAllModules();

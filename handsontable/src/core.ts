@@ -269,6 +269,9 @@ export default function Core(
   let focusGridManager: FocusGridManager;
   let viewportScroller: ViewportScrollerInstance;
   let firstRun: boolean | [null, string] = true;
+  // Set only when the table is initialized while invisible (see the `init` method). Kept in the closure, not on
+  // the instance, because `destroy` nulls every instance property before it could be read there.
+  let visibilityObserver: IntersectionObserver | null = null;
 
   const mergedUserSettings: GridSettings = {
     ...userSettings.initialState,
@@ -682,6 +685,7 @@ export default function Core(
 
       return editor ? (editor.isOpened() as boolean) : false;
     },
+    isPluginEnabled: (pluginName: string) => instance.getPlugin(pluginName)?.enabled === true,
     countRenderableColumns: () => instance.view.countRenderableColumns() as number,
     countRenderableRows: () => instance.view.countRenderableRows() as number,
     countRowHeaders: () => instance.countRowHeaders() as number,
@@ -1658,7 +1662,13 @@ export default function Core(
 
     // Run the logic only if it's the table's initialization and the root element is not visible.
     if (!!firstRun && instance.rootElement.offsetParent === null) {
-      observeVisibilityChangeOnce(instance.rootElement, () => {
+      visibilityObserver = observeVisibilityChangeOnce(instance.rootElement, () => {
+        // A delivery carries the state from the moment its snapshot was taken, so it can arrive after the
+        // instance is gone even though `destroy` disconnects the observer.
+        if (!instance || instance.isDestroyed || !instance.view) {
+          return;
+        }
+
         // Update the spreader size cache before rendering.
         instance.view._wt.wtOverlays.updateLastSpreaderSize();
         instance.view.adjustElementsSize();
@@ -3517,11 +3527,23 @@ export default function Core(
     // width blocks ran) so partial updateSettings calls see the correct state.
     // When height IS set, the height block's `overflow: clip` shorthand handles both axes — leave
     // overflowX untouched to avoid breaking that shorthand.
+    // Only clip for a definite width. A relative width (`100%`, other percentages, viewport units,
+    // or a `calc()` that mixes them in) fills its container, and content wider than that scrolls
+    // with the window — matching the long-standing behavior where the page gains a horizontal
+    // scrollbar and every column stays reachable. Clipping those would silently hide the off-width
+    // columns with no scrollbar. A definite width (`px`, `em`, `rem`, and other absolute lengths)
+    // establishes a fixed box the table must not visually overflow, so it is clipped.
     // Browser compatibility: `overflow-x: clip` requires Safari 16+. On Safari 14.1–15.x it silently
     // falls back to `visible` (graceful degradation — pre-existing behavior, not a new regression).
     if (typeof settings.height !== 'undefined' || typeof settings.width !== 'undefined') {
       const effectiveHeight = instance.rootElement.style.height;
       const effectiveWidth = instance.rootElement.style.width;
+      // Relative: percentages and viewport units resolve against an ancestor, so a `%` or a viewport
+      // unit (`vw`/`vh`/`vmin`/`vmax`, and dynamic `dvh`/`svh`/`lvh` via the `vh` match) anywhere —
+      // including inside `calc()` — marks the width as container-driven. No word boundaries: the unit
+      // is preceded by digits (`100vw`), which are word characters, so `\bv` would never match.
+      const isRelativeWidth = /%|v(?:w|h|min|max)/i.test(effectiveWidth);
+      const isDefiniteWidth = effectiveWidth !== '' && effectiveWidth !== 'auto' && !isRelativeWidth;
 
       if (!effectiveHeight) {
         const currentOverflowX = instance.rootElement.style.overflowX;
@@ -3531,8 +3553,7 @@ export default function Core(
         // by `clip`. Unlike `hidden`, `clip` creates no block formatting context and allows no
         // programmatic scroll.
         if (currentOverflowX === '' || currentOverflowX === 'clip') {
-          instance.rootElement.style.overflowX =
-            (effectiveWidth && effectiveWidth !== 'auto') ? 'clip' : '';
+          instance.rootElement.style.overflowX = isDefiniteWidth ? 'clip' : '';
         }
       }
     }
@@ -5174,9 +5195,9 @@ export default function Core(
    * @returns {number} Returns -1 if table is not visible.
    */
   this.countRenderedRows = function(): number {
-    const view = instance.view as TableView;
+    const view = instance.view as TableView | undefined;
 
-    return view._wt.drawn ? view._wt.wtTable.getRenderedRowsCount() as number : -1;
+    return view?._wt.drawn ? view._wt.wtTable.getRenderedRowsCount() as number : -1;
   };
 
   /**
@@ -5188,9 +5209,9 @@ export default function Core(
    * @returns {number} Number of visible rows or -1.
    */
   this.countVisibleRows = function(): number {
-    const view = instance.view as TableView;
+    const view = instance.view as TableView | undefined;
 
-    return view._wt.drawn ? view._wt.wtTable.getVisibleRowsCount() as number : -1;
+    return view?._wt.drawn ? view._wt.wtTable.getVisibleRowsCount() as number : -1;
   };
 
   /**
@@ -5202,9 +5223,9 @@ export default function Core(
    * @returns {number} Returns -1 if table is not visible.
    */
   this.countRenderedCols = function(): number {
-    const view = instance.view as TableView;
+    const view = instance.view as TableView | undefined;
 
-    return view._wt.drawn ? view._wt.wtTable.getRenderedColumnsCount() as number : -1;
+    return view?._wt.drawn ? view._wt.wtTable.getRenderedColumnsCount() as number : -1;
   };
 
   /**
@@ -5216,9 +5237,9 @@ export default function Core(
    * @returns {number} Number of visible columns or -1.
    */
   this.countVisibleCols = function(): number {
-    const view = instance.view as TableView;
+    const view = instance.view as TableView | undefined;
 
-    return view._wt.drawn ? view._wt.wtTable.getVisibleColumnsCount() as number : -1;
+    return view?._wt.drawn ? view._wt.wtTable.getVisibleColumnsCount() as number : -1;
   };
 
   /**
@@ -5813,6 +5834,11 @@ export default function Core(
   this.destroy = function() {
     instance._clearTimeouts();
     instance._clearMicrotasks();
+
+    // Drop the hidden-init visibility observer before the teardown below nulls the instance. Otherwise a
+    // delivery queued while the table was becoming visible runs its callback on a destroyed instance.
+    visibilityObserver?.disconnect();
+    visibilityObserver = null;
 
     if (instance.view) { // in case HT is destroyed before initialization has finished
       instance.view.destroy();

@@ -139,6 +139,13 @@ const VALID_TOKEN_KEYS = new Set([
   'cellMobileHandleBorderColor',
   'cellMobileHandleBackgroundColor',
   'cellMobileHandleBackgroundOpacity',
+  // Cell selection handle
+  'cellSelectionHandleSize',
+  'cellSelectionHandleLength',
+  'cellSelectionHandleBorderWidth',
+  'cellSelectionHandleBorderRadius',
+  'cellSelectionHandleBorderColor',
+  'cellSelectionHandleBackgroundColor',
   // Resize/Move indicators
   'resizeIndicatorColor',
   'moveBacklightColor',

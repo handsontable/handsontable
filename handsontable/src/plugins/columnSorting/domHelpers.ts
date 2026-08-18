@@ -2,11 +2,12 @@ import { isDefined } from '../../helpers/mixed';
 import { ASC_SORT_STATE, DESC_SORT_STATE } from './utils';
 import type { ColumnStatesManager } from './columnStatesManager';
 
-const HEADER_CLASS_ASC_SORT = 'ascending';
-const HEADER_CLASS_DESC_SORT = 'descending';
+export const HEADER_CLASS_ASC_SORT = 'ascending';
+export const HEADER_CLASS_DESC_SORT = 'descending';
 const HEADER_CLASS_INDICATOR_DISABLED = 'indicatorDisabled';
 const HEADER_SORT_CLASS = 'columnSorting';
-const HEADER_ACTION_CLASS = 'sortAction';
+
+export const HEADER_ACTION_CLASS = 'sortAction';
 
 const orderToCssClass = new Map([
   [ASC_SORT_STATE, HEADER_CLASS_ASC_SORT],

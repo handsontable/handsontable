@@ -1,0 +1,185 @@
+name: Integration
+
+# "Does the built package work for consumers" — the framework wrappers, the
+# ESM/CJS bundle-format checks, and the pkg.pr.new preview publish. All
+# build-dependent (consume the ES+CJS / UMD artifacts). Wrappers and formats
+# are matrices; preview is a single job. The wrapper build artifacts are
+# uploaded here and consumed by the Visual module.
+on:
+  workflow_call:
+    inputs:
+      run-all: { type: boolean, default: false }
+      run-pkg-preview: { type: boolean, default: false }
+      hot-prebuilt: { type: boolean, default: false }
+      wrapper-matrix:
+        description: 'JSON array of wrappers to test (precomputed by the Checks scope job)'
+        type: string
+        default: '[]'
+
+permissions:
+  contents: read
+
+jobs:
+  # The wrapper list is precomputed by the Checks scope job and passed in, so
+  # this fans out with NO setup-job stage — it starts as soon as the build is
+  # ready, alongside the E2E jobs.
+  wrapper:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    if: ${{ inputs.wrapper-matrix != '' && inputs.wrapper-matrix != '[]' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(inputs.wrapper-matrix) }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/setup-workspace
+      # No fallback build: this download relies on the invariant that each
+      # wrapper scope filter is a SUBSET of the build-es-cjs filter (both include
+      # hot-shared + wrappers/**), so the ES+CJS artifact always exists whenever
+      # a wrapper job runs. Keep that subset relationship if editing checks.yml.
+      - name: Download the Handsontable build artifact
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          name: handsontable-build-es-cjs
+          path: ./
+      - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
+      - run: npm run in ${{ matrix.pkg }} build
+      - run: tar --exclude='node_modules' -zcf ${{ matrix.pkg }}.tar.gz ./wrappers/${{ matrix.pkg }}
+      - name: Upload the wrapper build artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.pkg }}.tar.gz
+      - name: Test
+        run: npm run in ${{ matrix.pkg }} ${{ matrix.test }}
+
+  # ESM and CJS bundle-format consumption ran on run-all (trunk) only. Kept as
+  # two explicit jobs (not a matrix) so on a PR they show as clean skipped
+  # entries ("Integration / ESM", "Integration / CJS") rather than an
+  # unexpanded "matrix.label". They share the reusable esm-cjs composite.
+  esm:
+    name: ESM
+    runs-on: ubuntu-latest
+    if: inputs.run-all
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/e2e-esm-cjs
+        with:
+          from: esm
+
+  cjs:
+    name: CJS
+    runs-on: ubuntu-latest
+    if: inputs.run-all
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/e2e-esm-cjs
+        with:
+          from: cjs
+
+  # NOTE: The pkg.pr.new GitHub App must be installed on this repository for the
+  # publish step to post a PR comment with install links.
+  preview-packages:
+    name: preview packages
+    runs-on: ubuntu-latest
+    # Only THIS job needs pull-requests: write (it posts the preview comment) —
+    # job-level keeps the rest of the module least-privilege. NOTE: job-scoping
+    # alone does NOT protect the release path: GitHub validates every job-level
+    # request in a called workflow STATICALLY at run init, even for jobs whose
+    # `if:` will skip them (actions/runner#4151; verified on this repo). The
+    # release path works because publish.yml's test-call jobs grant a matching
+    # ceiling — if you add a NEW permission scope anywhere in the Tests module
+    # graph, extend that ceiling too, or every RC run fails at startup.
+    permissions:
+      contents: read
+      pull-requests: write
+    # PR-only (never publishes a preview on a trunk/release run-all).
+    if: github.event_name == 'pull_request' && (inputs.run-all || inputs.run-pkg-preview)
+    env:
+      HOT_PREBUILT: ${{ inputs.hot-prebuilt }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/setup-workspace
+      # Reuse the shared tmp build; only the wrappers still need building here.
+      - name: Download the Handsontable ES + CJS build artifact
+        if: env.HOT_PREBUILT == 'true'
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          name: handsontable-build-es-cjs
+      - name: Extract the prebuilt tmp
+        if: env.HOT_PREBUILT == 'true'
+        run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
+      # The published preview IS handsontable/tmp — merge the UMD dist/ + styles/
+      # so it ships its unpkg/jsdelivr bundles and CSS.
+      - name: Download the Handsontable UMD build artifact
+        if: env.HOT_PREBUILT == 'true'
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          name: handsontable-build-umd
+      - name: Merge dist and styles into the preview package
+        if: env.HOT_PREBUILT == 'true'
+        run: |
+          tar -zxf dist.tar.gz ./handsontable/dist ./handsontable/styles && rm dist.tar.gz
+          rm -rf handsontable/tmp/dist
+          cp -R handsontable/dist handsontable/tmp/dist
+          # Merge the CSS into tmp/styles instead of replacing the directory —
+          # tmp/styles also holds the generated handsontableStyles.{js,mjs,d.ts}
+          # module that utils/stylesHandler imports at runtime.
+          cp -R handsontable/styles/. handsontable/tmp/styles/
+      - name: Build wrapper packages (handsontable prebuilt)
+        if: env.HOT_PREBUILT == 'true'
+        run: npm run all build -- --e examples visual-tests handsontable
+      - name: Build all packages
+        if: env.HOT_PREBUILT != 'true'
+        run: npm run all build -- --e examples visual-tests
+      - name: Publish preview packages
+        run: |
+          npx pkg-pr-new publish \
+            --template ./examples/prs/js \
+            --template ./examples/prs/ts \
+            --template ./examples/prs/react \
+            ./handsontable/tmp \
+            './wrappers/angular-wrapper/dist/hot-table' \
+            ./wrappers/react-wrapper \
+            ./wrappers/vue3
+      - name: Compute short SHA
+        id: vars
+        run: echo "short_sha=${PR_HEAD_SHA::7}" >> $GITHUB_OUTPUT
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      - name: Post PR preview comment
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
+        with:
+          header: pr-preview
+          message: |
+            ## 📦 PR Preview Packages
+
+            Install packages from this PR (commit `${{ steps.vars.outputs.short_sha }}`):
+
+            ```sh
+            npm i https://pkg.pr.new/handsontable@${{ github.event.pull_request.number }}
+            npm i https://pkg.pr.new/@handsontable/react-wrapper@${{ github.event.pull_request.number }}
+            npm i https://pkg.pr.new/@handsontable/vue3@${{ github.event.pull_request.number }}
+            npm i https://pkg.pr.new/@handsontable/angular-wrapper@${{ github.event.pull_request.number }}
+            ```
+
+            ## 📚 Examples
+
+            | Framework | Link |
+            |-----------|------|
+            | Angular | [Open live demo](https://demos.handsontable.com/?example=angular&v=${{ github.event.pull_request.number }}) |
+            | Vanilla JS | [Open live demo](https://demos.handsontable.com/?example=javascript&v=${{ github.event.pull_request.number }}) |
+            | React TS | [Open live demo](https://demos.handsontable.com/?example=react&v=${{ github.event.pull_request.number }}) |
+            | React JS | [Open live demo](https://demos.handsontable.com/?example=react-js&v=${{ github.event.pull_request.number }}) |
+            | TypeScript | [Open live demo](https://demos.handsontable.com/?example=typescript&v=${{ github.event.pull_request.number }}) |
+            | Vue 3 | [Open live demo](https://demos.handsontable.com/?example=vue&v=${{ github.event.pull_request.number }}) |
+
+            **SSR Examples:**
+
+            | Framework | Link |
+            |-----------|------|
+            | Next.js | [Open live demo](https://demos.handsontable.com/?example=next.js&v=${{ github.event.pull_request.number }}) |
+            | Astro | [Open live demo](https://demos.handsontable.com/?example=astro&v=${{ github.event.pull_request.number }}) |
+            | Remix | [Open live demo](https://demos.handsontable.com/?example=remix&v=${{ github.event.pull_request.number }}) |
+            | Nuxt | [Open live demo](https://demos.handsontable.com/?example=nuxt&v=${{ github.event.pull_request.number }}) |

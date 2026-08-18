@@ -8,6 +8,7 @@ import sitemap from '@astrojs/sitemap';
 import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers';
 import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections';
 import { vuepressPreprocessor } from './src/plugins/vuepress-preprocessor.mjs';
+import { replaceTemplateVariables } from './src/plugins/template-variables.mjs';
 import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
 import { replaceHasSelectors } from './src/plugins/replace-has-selectors.mjs';
@@ -579,6 +580,20 @@ function markdownRoutesIntegration() {
   const publicMdDir = resolve(__dirname, 'public', '_md');
   const PREFIXES = ['javascript-data-grid', 'react-data-grid', 'angular-data-grid'];
 
+  /**
+   * Assembles one output file: an H1 from the frontmatter title, then the body
+   * with its template variables resolved. Without the substitution a reader
+   * copying the Markdown of a page gets a literal `{{$examplesBranch}}` (or
+   * `{{$currentMinorVersion}}`) instead of a working link.
+   *
+   * @param {string} title The page title from frontmatter.
+   * @param {string} content The page body, frontmatter already stripped.
+   * @returns {string}
+   */
+  function buildMarkdown(title, content) {
+    return replaceTemplateVariables(`# ${title}\n\n${content.trim()}`);
+  }
+
   function buildRouteMap() {
     const routeMap = new Map();
 
@@ -608,14 +623,14 @@ function markdownRoutesIntegration() {
         const rel = relative(contentDir, full);
 
         if (rel === 'index.md') {
-          routeMap.set('index.md', `# ${data.title}\n\n${content.trim()}`);
+          routeMap.set('index.md', buildMarkdown(data.title, content));
           continue;
         }
 
         if (!data.permalink) continue;
 
         const slug = data.permalink.replace(/^\//, '').replace(/\/$/, '') || 'index';
-        const md = `# ${data.title}\n\n${content.trim()}`;
+        const md = buildMarkdown(data.title, content);
 
         for (const prefix of PREFIXES) {
           routeMap.set(`${prefix}/${slug}.md`, md);
@@ -731,6 +746,24 @@ export default defineConfig({
       ],
 
       head: [
+        // Opaque-origin storage guard — MUST stay the first head entry (Sentry
+        // HANDSONTABLE-DOCS-206). Headless crawlers render the page with
+        // `page.setContent()`, which leaves the document at about:blank with an opaque
+        // origin (`location.origin === 'null'`); sandboxed and srcdoc iframes behave the
+        // same. There, `window.localStorage` is an own accessor that throws SecurityError
+        // on read, so `typeof localStorage !== 'undefined'` throws instead of
+        // short-circuiting. That kills Starlight's inline ThemeProvider script (no theme
+        // applied, `window.StarlightThemeProvider` never defined, cascading
+        // ReferenceErrors), plus ThemeSelect, SidebarPersister, and our own
+        // DocsAssistant storage reads. Running first means every later script — ours or
+        // third-party — sees a working storage object.
+        {
+          tag: 'script',
+          content: readFileSync(
+            resolve(__dirname, 'src', 'scripts', 'opaque-origin-storage-guard.js'),
+            'utf8'
+          ),
+        },
         {
           tag: 'script',
           attrs: { src: '/docs/example-tabs.js', defer: true },
@@ -745,27 +778,165 @@ export default defineConfig({
         },
         // ── All-environment 3rd-party scripts ──────────────────────────────
         // Sentry: filter out expected demo errors before the Loader Script auto-inits.
-        // The server-side data recipes (/recipes/data-management/server-side-*) run their
-        // examples live, but the docs site has no `/api/products` backend, so the example
-        // `fetchRows()` correctly throws `HTTP <status>` (e.g. 404). That is expected here
-        // (not a product bug), so drop those events instead of reporting them.
         // `window.sentryOnLoad` is the Loader Script's documented custom-config hook — the
         // DSN and any dashboard-enabled integrations (Performance/Replay) are applied
         // automatically, so adding `beforeSend` does not disturb the rest of the setup.
+        //
+        // Six classes of expected errors are dropped:
+        //
+        //   1. Failed requests from server-side data recipe examples.
+        //      The docs site runs no backend for those examples, so every request from
+        //      them fails. It surfaces two ways: fetchRows() throws `HTTP <status>`
+        //      (e.g. 404) when a response does come back, and the browser raises an
+        //      engine-worded network error when the request never completes at all
+        //      (Sentry HANDSONTABLE-DOCS-1FM - 11 of its 18 events are on the current
+        //      `/docs/angular-data-grid/recipes/data-management/server-side-*` pages).
+        //      Each engine words the network failure differently, hence the phrase list.
+        //      The URL gate keeps genuine network failures on every other page visible.
+        //
+        //      What this rule cannot do is silence the same failure on a frozen version
+        //      build under `/docs/<major>.<minor>/` (one 1FM event, on
+        //      `/docs/17.1/.../server-side-nestjs/`, whose bundle still hard-codes
+        //      `http://localhost:3000/tickets`). Those pages serve the HTML that shipped
+        //      in that version's Docker image, copied verbatim by
+        //      `deploy/build_previous_versions.sh`, so they run whichever `beforeSend`
+        //      existed at their release - never this one. Archived-build noise can only
+        //      be dropped by a Sentry project-level inbound filter on the message; the
+        //      group is archived forever instead. Every rule below has the same limit.
+        //
+        //   2. Errors thrown by Handsontable's throwWithCause() helper.
+        //      All such errors carry `error.cause.handsontable` (set to `true` today,
+        //      but the check only tests for presence so any truthy value works). These
+        //      are intentional developer-feedback errors (e.g. ColumnSummary data-type
+        //      errors in demo examples) and should not be forwarded to Sentry.
+        //
+        //   3. Errors from documents whose URL is `about:blank` or another `about:` page.
+        //      No real visitor browses there; these come from headless crawlers that
+        //      inject the fetched HTML with `page.setContent()`. Every stack frame reads
+        //      `about:blank:<line>:<col>`, so the events are unattributable to a page and
+        //      the storage guard above already fixes the behavior for such contexts.
+        //
+        //   4. `SyntaxError: Unexpected token …` script-parse failures reported by
+        //      browser engines that predate the ES2020 syntax every bundle on this site
+        //      ships (optional chaining, nullish coalescing). Chrome WebView 57 and the
+        //      Android in-app browsers that spoof a modern Chrome UA cannot parse those
+        //      bundles at all, so each page load files one issue per bundle -- and the
+        //      same clients also fail on third-party code we do not build (Cloudflare's
+        //      `beacon.min.js`). The site's supported range is `browserslist` in
+        //      docs/package.json ("last 2 versions"), so these clients are out of scope
+        //      and nothing in our source can fix them.
+        //
+        //      The filter is gated on a runtime feature test, not on the message alone:
+        //      an engine that CAN parse `?.`/`??` still reports its parse errors, so a
+        //      real build regression on a supported browser keeps reaching Sentry.
+        //      Matching `^Unexpected token` also keeps genuine
+        //      `SyntaxError: Failed to execute 'querySelectorAll'` bugs (the Starlight
+        //      TOC `:has()` defect) visible.
+        //
+        //   5. Failed dynamic imports of content-hashed `_astro/*.js` chunks
+        //      (Sentry HANDSONTABLE-DOCS-1FH, HANDSONTABLE-DOCS-1FX). A reader holding
+        //      cached HTML from a previous deployment asks for chunks that the new
+        //      deployment no longer serves; an offline or throttled mobile connection
+        //      and a blocking extension produce the same failure. None of it says
+        //      anything about our code.
+        //
+        //      `src/lib/example-error-reporting.mjs` drops the same three phrasings for
+        //      failures the example runner catches, and `docs-assistant-bootstrap.ts`
+        //      repeats them for its own mount. Neither can reach these events: they
+        //      arrive through `onunhandledrejection` from Astro's own island hydration,
+        //      outside any try/catch of ours. Keep the three lists in step.
+        //
+        //      Tradeoff: this also hides a deployment that ships HTML referencing a
+        //      chunk that was never uploaded. Deploy-time asset verification, not error
+        //      volume from readers, is the right detector for that.
         {
           tag: 'script',
           content: `window.sentryOnLoad = function () {
+  var supportsModernSyntax = (function () {
+    try {
+      new Function('var o = {}; return o?.a ?? 1');
+
+      return true;
+    } catch (e) {
+      // Only a SyntaxError means the engine cannot parse the syntax. A CSP that
+      // blocks \`new Function\` throws EvalError instead -- treat that as a supported
+      // engine so real parse errors keep reaching Sentry.
+      return !(e instanceof SyntaxError);
+    }
+  })();
+
   Sentry.init({
-    beforeSend: function (event) {
+    beforeSend: function (event, hint) {
       try {
+        // Drop failed requests from server-side data recipe pages: the HTTP <status>
+        // thrown when a response arrives, and the engine-worded network error when the
+        // request never completes. These pages have no backend on the docs site.
         var values = (event.exception && event.exception.values) || [];
-        var isDemoHttpError = values.some(function (value) {
-          return value && typeof value.value === 'string' && /^HTTP \\d{3}$/.test(value.value);
+        var demoRequestFailures = [
+          'Failed to fetch', // Chrome, Edge
+          'NetworkError when attempting to fetch resource.', // Firefox
+          'Load failed', // Safari
+        ];
+        var isDemoRequestFailure = values.some(function (value) {
+          if (!value || typeof value.value !== 'string') {
+            return false;
+          }
+
+          return (
+            /^HTTP \\d{3}$/.test(value.value) || demoRequestFailures.indexOf(value.value) !== -1
+          );
         });
         var url = (event.request && event.request.url) || '';
 
-        if (isDemoHttpError && url.indexOf('/recipes/data-management/server-side') !== -1) {
+        if (isDemoRequestFailure && url.indexOf('/recipes/data-management/server-side') !== -1) {
           return null;
+        }
+
+        // Drop failed dynamic imports of content-hashed chunks. Each engine words it
+        // differently; all three mean the same stale-deploy or blocked-request failure.
+        var chunkLoadFailures = [
+          'Failed to fetch dynamically imported module', // Chrome, Edge
+          'error loading dynamically imported module', // Firefox
+          'Importing a module script failed', // Safari
+        ];
+        var isChunkLoadError = values.some(function (value) {
+          if (!value || typeof value.value !== 'string') {
+            return false;
+          }
+
+          return chunkLoadFailures.some(function (phrase) {
+            return value.value.indexOf(phrase) !== -1;
+          });
+        });
+
+        if (isChunkLoadError) {
+          return null;
+        }
+
+        // Drop crawler noise from opaque-origin renders (about:blank and friends).
+        if (url.indexOf('about:') === 0) {
+          return null;
+        }
+
+        // Drop errors thrown by Handsontable's throwWithCause() helper.
+        // error.cause.handsontable is currently true but may become an object,
+        // so only check that the property is present.
+        var error = hint && hint.originalException;
+
+        if (error && error.cause && 'handsontable' in error.cause) {
+          return null;
+        }
+
+        // Drop script-parse failures from engines too old to parse our bundles.
+        if (!supportsModernSyntax) {
+          var isParseError = values.some(function (value) {
+            return value && value.type === 'SyntaxError' &&
+              typeof value.value === 'string' && /^Unexpected token/.test(value.value);
+          });
+
+          if (isParseError) {
+            return null;
+          }
         }
       } catch (e) {
         // never let the filter break error reporting

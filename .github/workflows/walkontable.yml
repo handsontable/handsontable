@@ -1,0 +1,47 @@
+name: Walkontable
+
+# The rendering engine's own build + Puppeteer test (its own rspack build, not
+# the shared bundle). Gated by the orchestrator on the fast build-validity
+# checks (don't build a flawed engine). build → test within this module.
+on:
+  workflow_call:
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/setup-workspace
+      - name: Build the engine + spec bundle
+        run: |
+          cd handsontable
+          node scripts/run.mjs build:walkontable
+          node scripts/run.mjs test:walkontable.dump
+      # The generated set is exactly: dist/, test/dist/, and test/SpecRunner.html
+      # (the Jasmine runner page rspack emits one level above test/dist).
+      - run: tar -zcf walkontable.tar.gz ./handsontable/src/3rdparty/walkontable/dist ./handsontable/src/3rdparty/walkontable/test/dist ./handsontable/src/3rdparty/walkontable/test/SpecRunner.html
+      - name: Upload the Walkontable engine artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: walkontable-build
+          path: walkontable.tar.gz
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/setup-workspace
+        with:
+          puppeteer-chrome: 'true'
+      - name: Download the Walkontable engine artifact
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          name: walkontable-build
+      - run: tar -zxf walkontable.tar.gz && rm walkontable.tar.gz
+      - name: Test
+        run: |
+          cd handsontable
+          node scripts/run.mjs test:walkontable.puppeteer

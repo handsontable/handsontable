@@ -1,0 +1,87 @@
+name: Build
+
+# Builds the shared bundles once, uploaded as artifacts every build-dependent
+# module (E2E, Integration, Emitted Types, Performance, Visual) downloads.
+# UMD and ES+CJS are different build commands → two explicit jobs, not a matrix.
+# The orchestrator gates this on the fast build-validity checks (lint/unit/types).
+on:
+  workflow_call:
+    inputs:
+      run-all:
+        type: boolean
+        default: false
+      run-umd:
+        type: boolean
+        default: false
+      run-es-cjs:
+        type: boolean
+        default: false
+    outputs:
+      # 'true' only when the respective job actually built + uploaded its
+      # artifact (empty when scope-skipped). Consumers must gate `hot-prebuilt`
+      # on the SPECIFIC artifacts they download — the module succeeding does not
+      # imply both bundles exist (e.g. a wrappers-only PR builds ES+CJS only).
+      umd-built:
+        description: "'true' when the UMD artifact was produced"
+        value: ${{ jobs.umd.outputs.built }}
+      es-cjs-built:
+        description: "'true' when the ES+CJS artifact was produced"
+        value: ${{ jobs.es-cjs.outputs.built }}
+
+jobs:
+  umd:
+    name: UMD
+    runs-on: ubuntu-latest
+    if: inputs.run-all || inputs.run-umd
+    outputs:
+      # Set by a step AFTER a successful build+upload (canonical GHA mechanism)
+      # — reliably empty when the job is skipped or fails, so consumers can trust
+      # it to mean "the UMD artifact exists".
+      built: ${{ steps.mark.outputs.built }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/setup-workspace
+      - name: Build
+        run: |
+          cd handsontable
+          npm run build:umd
+          npm run build:umd.min
+          npm run build:languages
+          npm run build:languages.min
+      - run: tar -zcf dist.tar.gz ./handsontable/dist ./handsontable/styles
+      - name: Upload the Handsontable UMD build artifact.
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: handsontable-build-umd
+          path: dist.tar.gz
+      - id: mark
+        run: echo "built=true" >> "$GITHUB_OUTPUT"
+
+  es-cjs:
+    name: ES + CJS
+    runs-on: ubuntu-latest
+    if: inputs.run-all || inputs.run-es-cjs
+    outputs:
+      built: ${{ steps.mark.outputs.built }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/setup-workspace
+      - name: Build
+        run: |
+          cd handsontable
+          npm run build:es
+          npm run build:commonjs
+          npm run build:types
+          node scripts/run.mjs downlevel:types
+          npm run build:languages.es
+          npm run build:languages
+          npm run build:languages.min
+          npm run postbuild
+      - run: tar -zcf tmp.tar.gz ./handsontable/tmp
+      - name: Upload the Handsontable ES + CJS build artifact.
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: handsontable-build-es-cjs
+          path: tmp.tar.gz
+      - id: mark
+        run: echo "built=true" >> "$GITHUB_OUTPUT"

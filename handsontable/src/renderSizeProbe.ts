@@ -61,14 +61,23 @@ export class RenderSizeProbe {
 
     this.#measureRows(wt.wtTable, borderBoxSizing);
 
-    // Frozen bottom rows render in the bottom overlay's own table, not the master TBODY. The engine
-    // runs `markOversizedRows` for the master and the bottom clone, both writing into the shared
-    // `oversizedRows`, so the probe measures both to stay a faithful mirror.
-    const bottomClone = wt.wtOverlays?.bottomOverlay?.clone;
-
-    if (bottomClone?.wtTable) {
-      this.#measureRows(bottomClone.wtTable, borderBoxSizing);
-    }
+    // Frozen rows render in the top and bottom overlays' own tables, not the master TBODY, and the
+    // master's band leaves them behind as soon as the grid is scrolled. Every table that can hold a
+    // row the shared `oversizedRows` has a record for must be measured, or the probe silently stops
+    // mirroring it:
+    //
+    // - the bottom clone measures itself (`markOversizedRows`, from `renderCellBand`);
+    // - frozen ROW heights that came from a frozen COLUMN are measured off the inline-start clone
+    //   and the two corners by `syncOversizedRowsWithFrozenOverlays`, which then applies them to the
+    //   top and bottom clones — so those clones carry the final height by the time this runs.
+    //
+    // The master's band and these two together cover every row that can be recorded. The
+    // inline-start clone mirrors the master's band, so it adds no rows of its own.
+    [wt.wtOverlays?.topOverlay?.clone, wt.wtOverlays?.bottomOverlay?.clone].forEach((clone) => {
+      if (clone?.wtTable) {
+        this.#measureRows(clone.wtTable, borderBoxSizing);
+      }
+    });
 
     this.#measureColumnHeaders(wt.wtTable);
   }

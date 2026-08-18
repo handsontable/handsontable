@@ -572,7 +572,7 @@ Override these methods to customize editor behavior:
 
 - **`position: 'container' | 'portal'`** - Editor positioning strategy (default: 'container')
 - **`shortcuts?: KeyboardShortcutConfig[]`** - Keyboard shortcuts configuration
-- **`shortcutsGroup?: string`** - Group name for shortcuts
+- **`shortcutsGroup?: string`** - Group name for shortcuts (default: `'customEditor'`)
 - **`config?: any`** - Custom configuration object
 
 #### When should I use [`HotCellEditorComponent`](@/guides/cell-functions/cell-editor/cell-editor.md) and when should I use `HotCellEditorAdvancedComponent`?
@@ -1372,7 +1372,7 @@ editor: editorFactory<{input: HTMLInputElement}>({
 
 **Why is this needed?**
 
-When you have multiple editors or complex shortcut configurations, organizing shortcuts into groups helps manage conflicts and provides better debugging. The `shortcutsGroup` option lets you assign a name to your editor's shortcuts.
+When you have multiple editors or complex shortcut configurations, organizing shortcuts into groups helps manage conflicts and provides better debugging. The `shortcutsGroup` option lets you assign a name to your editor's shortcuts. If you omit it, the shortcuts are registered under the `customEditor` group.
 
 **Example:**
 ```typescript

@@ -25,6 +25,7 @@ export interface SelectionTableProps {
   columnIndexMapper: IndexMapper;
   propToCol(prop: string | number): number;
   isEditorOpened(): boolean;
+  isPluginEnabled(pluginName: string): boolean;
   isDisabledCellSelection(row: number, column: number): boolean;
   visualToRenderableCoords(coords: CellCoords): { row: number | null; col: number | null };
   renderableToVisualCoords(coords: CellCoords): CellCoords;
@@ -57,6 +58,8 @@ export interface SelectionSettings {
   selectionMode?: 'single' | 'range' | 'multiple';
   disableVisualSelection?: boolean | string | string[];
   fillHandle?: unknown;
+  selectionHandles?: boolean;
+  moveCells?: boolean;
   [key: string]: unknown;
 }
 

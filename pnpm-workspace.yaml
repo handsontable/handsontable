@@ -10,8 +10,16 @@ packages:
   - examples
   - docs
   - docs/angular-type-check
+  - tests
+
+# One Playwright version across the monorepo — the catalog version and the CI
+# container tag (mcr.microsoft.com/playwright:vX.Y.Z-noble) bump together, never
+# apart. visual-tests migrates onto the catalog in a separate reviewed change.
+catalog:
+  '@playwright/test': 1.61.1
 
 ignoredBuiltDependencies:
+  - lefthook # its postinstall is redundant — scripts/prepare-dev-env.mjs wires the hooks
   - nice-napi
   - sharp
 

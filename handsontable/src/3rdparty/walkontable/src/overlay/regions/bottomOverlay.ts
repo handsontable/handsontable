@@ -252,8 +252,9 @@ export class BottomOverlay extends Overlay {
     if (typeof rowsRenderCalculator?.startPosition === 'number') {
       this.spreader.style.top = `${rowsRenderCalculator.startPosition}px`;
 
-    } else if (total === 0) {
-      // can happen if there are 0 rows
+    } else if (total === 0 || rowsRenderCalculator === null) {
+      // 0 rows, or nothing rendered yet — a `null` calculator is the drawn-but-never-rendered state
+      // a skipped first draw leaves behind (see `restoreRenderedStateIfSafe` in `table/drawCycle.ts`).
       this.spreader.style.top = '0';
 
     } else {

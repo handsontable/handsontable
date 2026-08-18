@@ -65,8 +65,12 @@
 | `handsontable/restricted-module-imports` | No imports from barrel index files (`plugins/index`, `editors/index`, `renderers/index`, `validators/index`, `cellTypes/index`, `i18n/index`). Import from specific submodule paths. Only exception: `src/registry.ts` |
 | `handsontable/require-async-in-it` | All `it()` callbacks in `*.spec.js` must be `async`. Disabled for `*.unit.js` |
 | `handsontable/require-await` | Specific HOT API calls must be `await`-ed in `*.spec.js` (full list in `handsontable/.eslintrc.js` lines 84-151) |
+| `handsontable/no-fixed-sleep-in-spec` | No fixed `sleep()` delay in `*.spec.js` — wait for a condition instead. `warn` (surfaces the frozen suite's legacy debt without red-walling CI); new E2E belongs in Playwright |
+| `handsontable/no-new-it-flaky` | No new `it.flaky()`/`fit.flaky()` — fix the flake at its source or migrate the spec to Playwright. `warn` for the same reason |
 | `no-restricted-globals` | Source: `window`, `document`, `console`, `Handsontable` banned. Tests: only `fit`, `fdescribe` banned |
 | `compat/compat` | Browser API compatibility check (off in test files) |
+
+The Playwright tier (`tests/`) has its own config (`tests/.eslintrc.cjs`) with the `@typescript-eslint` parser and `no-restricted-syntax` bans for `page.waitForTimeout()`, `sleep()`, and `'networkidle'` — at `error`, since that tier is greenfield with no debt to baseline.
 
 **Test file overrides (relaxed rules in `handsontable/.eslintrc.js`):**
 - `jsdoc/require-jsdoc`: off in `*.unit.js` and `*.spec.js`

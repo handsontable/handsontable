@@ -1,0 +1,34 @@
+name: Docs Angular type-check
+description: >-
+  Build core + the Angular wrapper from the current checkout and type-check the
+  docs Angular examples against them. Reused by the PR Tests pipeline; the
+  standalone docs-angular-typecheck.yml keeps its own copy for the trunk push
+  until the higher pipelines are reworked. Requires checkout first.
+
+inputs:
+  github-token:
+    description: 'Token for the type-check reporter'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/setup-workspace
+
+    - name: Build handsontable
+      shell: bash
+      run: npm run build --prefix handsontable
+
+    - name: Build angular-wrapper
+      shell: bash
+      run: npm run build --prefix wrappers/angular-wrapper
+
+    - name: Run type check
+      # Gate on the build that was just checked out and built (the current
+      # branch), not on the last published handsontable@latest — examples ship
+      # with the code in the same repo state. SKIP_LATEST enforces that.
+      shell: bash
+      run: npm run typecheck --prefix docs/angular-type-check
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        SKIP_LATEST: '1'

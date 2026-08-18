@@ -610,6 +610,49 @@ export const REGISTERED_HOOKS = [
   'afterOnCellCornerMouseDown',
 
   /**
+   * Fired after the user presses a selection-adjustment handle (see [`selectionHandles`](@/api/options.md#selectionhandles)).
+   *
+   * @event Hooks#afterOnSelectionHandleMouseDown
+   * @since 18.1.0
+   * @param {Event} event The `mousedown` event.
+   * @param {'top' | 'bottom' | 'start' | 'end'} edge The pressed handle's edge.
+   */
+  'afterOnSelectionHandleMouseDown',
+
+  /**
+   * Fired after the user presses a selection edge move zone.
+   *
+   * @event Hooks#afterOnSelectionEdgeMouseDown
+   * @since 18.1.0
+   * @param {Event} event The `mousedown` event.
+   * @param {'top' | 'bottom' | 'start' | 'end'} edge The pressed edge.
+   */
+  'afterOnSelectionEdgeMouseDown',
+
+  /**
+   * Fired before a `moveCells` drag relocates a selection. Return `false` to cancel the move.
+   *
+   * @event Hooks#beforeMoveCells
+   * @since 18.1.0
+   * @param {CellRange} sourceRange The range being moved.
+   * @param {CellCoords} targetTopLeft The top-left target cell.
+   * @param {boolean} isCopy `true` when copying (Ctrl held) instead of moving.
+   * @returns {void|boolean}
+   */
+  'beforeMoveCells',
+
+  /**
+   * Fired after a `moveCells` drag has relocated a selection.
+   *
+   * @event Hooks#afterMoveCells
+   * @since 18.1.0
+   * @param {CellRange} sourceRange The original range.
+   * @param {CellRange} targetRange The range the data was moved to.
+   * @param {boolean} isCopy `true` when the operation was a copy.
+   */
+  'afterMoveCells',
+
+  /**
    * Fired after a `dblclick` event is triggered on the cell corner (the drag handle).
    *
    * @event Hooks#afterOnCellCornerDblClick
@@ -2560,6 +2603,18 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} orderChanged Indicates if order of columns was changed by move.
    */
   'afterColumnMove',
+
+  /**
+   * Fired by the {@link CustomBorders} plugin after all custom borders from the configuration have
+   * been applied. With [`customBordersProgressive`](@/api/options.md#custombordersprogressive)
+   * disabled it fires once, synchronously, right after the borders are built. With progressive
+   * application enabled it fires when the last background batch has been applied, signaling that
+   * `getBorders()` and the borders' cell meta are now complete.
+   *
+   * @since 18.1.0
+   * @event Hooks#afterCustomBordersUpdate
+   */
+  'afterCustomBordersUpdate',
 
   /**
    * Fired by the {@link ManualColumnFreeze} plugin, before unfreezing a column.

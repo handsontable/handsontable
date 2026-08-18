@@ -1214,59 +1214,6 @@ describe('Formulas general', () => {
       HyperFormula.unregisterFunction('CUSTOMFP');
     });
 
-    // TODO: uncomment after it's throwing a duplicated name error on HF's side.
-    xit('should throw a warning when trying to register two custom functions under the same name (and register only' +
-      ' the first one)', async() => {
-      spyOn(console, 'warn');
-
-      class CustomFP extends FunctionPlugin {
-        customFP() {
-          return 'customFP output';
-        }
-      }
-
-      CustomFP.implementedFunctions = {
-        CUSTOMFP: {
-          method: 'customFP',
-        }
-      };
-
-      handsontable({
-        data: [['=CUSTOMFP()']],
-        formulas: {
-          engine: HyperFormula,
-          sheetName: 'Sheet1',
-          functions: [
-            {
-              name: 'CUSTOMFP',
-              plugin: CustomFP,
-              translations: {
-                enGB: {
-                  CUSTOMFP: 'CUSTOMFP'
-                }
-              }
-            },
-            {
-              name: 'CUSTOMFP',
-              plugin: CustomFP,
-              translations: {
-                enGB: {
-                  CUSTOMFP: 'CUSTOMFP2'
-                }
-              }
-            }
-          ]
-        },
-      });
-
-      expect(getDataAtCell(0, 0)).toEqual('customFP output');
-      // eslint-disable-next-line no-console
-      expect(console.warn).toHaveBeenCalledTimes(1);
-
-      // cleanup
-      HyperFormula.unregisterFunction('CUSTOMFP');
-    });
-
     it('should register a language applying it to the HF instance', async() => {
       handsontable({
         data: [['TEST'], ['=LITERY.MAŁE(A1)']],

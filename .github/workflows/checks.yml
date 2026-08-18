@@ -1,0 +1,272 @@
+name: Checks
+
+# Tier-0 gatekeepers of the Tests pipeline: the scope router (whose outputs
+# drive every other module's gating) plus the two PR gates that STOP the
+# pipeline when red — test presence and changelog. Called by test.yml; the
+# scope outputs are re-exported so the orchestrator can gate the rest.
+#
+# Manual QA is deliberately NOT here: its red must block the merge, not stop
+# the build/test DAG, so it lives in its own module that nothing depends on.
+on:
+  workflow_call:
+    inputs:
+      test-all:
+        description: 'Run everything (trunk/release) — skip the path filter'
+        type: boolean
+        default: false
+    outputs:
+      run-all: { value: '${{ jobs.scope.outputs.run-all }}' }
+      build-handsontable-umd: { value: '${{ jobs.scope.outputs.build-handsontable-umd }}' }
+      build-handsontable-es-cjs: { value: '${{ jobs.scope.outputs.build-handsontable-es-cjs }}' }
+      test-handsontable-unit: { value: '${{ jobs.scope.outputs.test-handsontable-unit }}' }
+      test-handsontable-types: { value: '${{ jobs.scope.outputs.test-handsontable-types }}' }
+      test-handsontable-walkontable: { value: '${{ jobs.scope.outputs.test-handsontable-walkontable }}' }
+      test-handsontable-e2e: { value: '${{ jobs.scope.outputs.test-handsontable-e2e }}' }
+      test-handsontable-e2e-min: { value: '${{ jobs.scope.outputs.test-handsontable-e2e-min }}' }
+      test-angular-wrapper: { value: '${{ jobs.scope.outputs.test-angular-wrapper }}' }
+      test-react-wrapper: { value: '${{ jobs.scope.outputs.test-react-wrapper }}' }
+      test-vue3: { value: '${{ jobs.scope.outputs.test-vue3 }}' }
+      test-visual: { value: '${{ jobs.scope.outputs.test-visual }}' }
+      test-performance: { value: '${{ jobs.scope.outputs.test-performance }}' }
+      verify-types: { value: '${{ jobs.scope.outputs.verify-types }}' }
+      docs-angular: { value: '${{ jobs.scope.outputs.docs-angular }}' }
+      pkg-preview: { value: '${{ jobs.scope.outputs.pkg-preview }}' }
+      docs: { value: '${{ jobs.scope.outputs.docs }}' }
+      # True when the PR touches anything outside the CI pipeline (.github/**).
+      # Lint + the code-quality scans gate on it, so a pipeline-only PR skips them.
+      outside-ci: { value: '${{ jobs.scope.outputs.outside-ci }}' }
+      # Precomputed here so the Integration wrapper matrix fans out with NO
+      # per-module setup job (matrix context is illegal in a job-level if).
+      wrapper-matrix: { value: '${{ jobs.scope.outputs.wrapper-matrix }}' }
+
+jobs:
+  scope:
+    name: scope
+    runs-on: ubuntu-latest
+    outputs:
+      run-all: ${{ endsWith(github.ref, '/master') || endsWith(github.ref, '/develop') || contains(github.ref, '/release/') || inputs.test-all == true }}
+      build-handsontable-es-cjs: ${{ steps.path-filter.outputs.build-handsontable-es-cjs }}
+      build-handsontable-umd: ${{ steps.path-filter.outputs.build-handsontable-umd }}
+      test-handsontable-unit: ${{ steps.path-filter.outputs.test-handsontable-unit }}
+      test-handsontable-types: ${{ steps.path-filter.outputs.test-handsontable-types }}
+      test-handsontable-walkontable: ${{ steps.path-filter.outputs.test-handsontable-walkontable }}
+      test-handsontable-e2e: ${{ steps.path-filter.outputs.test-handsontable-e2e }}
+      test-handsontable-e2e-min: ${{ steps.path-filter.outputs.test-handsontable-e2e-min }}
+      test-angular-wrapper: ${{ steps.path-filter.outputs.test-angular-wrapper }}
+      test-react-wrapper: ${{ steps.path-filter.outputs.test-react-wrapper }}
+      test-vue3: ${{ steps.path-filter.outputs.test-vue3 }}
+      test-visual: ${{ steps.path-filter.outputs.test-visual }}
+      test-performance: ${{ steps.path-filter.outputs.test-performance }}
+      verify-types: ${{ steps.path-filter.outputs.verify-types }}
+      docs-angular: ${{ steps.path-filter.outputs.docs-angular }}
+      pkg-preview: ${{ steps.path-filter.outputs.pkg-preview }}
+      docs: ${{ steps.path-filter.outputs.docs }}
+      outside-ci: ${{ steps.path-filter.outputs.outside-ci }}
+      wrapper-matrix: ${{ steps.wrappers.outputs.list }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        if: ${{ inputs.test-all != true }}
+      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # https://github.com/dorny/paths-filter/releases/tag/v4.0.1
+        id: path-filter
+        if: ${{ inputs.test-all != true }}
+        with:
+          filters: |
+            config-files: &config-files
+              - './handsontable/.config/**'
+              - './handsontable/package.json'
+              # pnpm repo — the lockfile is pnpm-lock.yaml (the old package-lock.json
+              # entry was dead: dependency bumps never matched the filter).
+              - './pnpm-lock.yaml'
+              # Lives at the repo ROOT (tasks.json loads it via `env-cmd -f ../hot.config.js`).
+              - './hot.config.js'
+              - './handsontable/babel.config.js'
+              # The bundler entry (rspack runs from the handsontable/ cwd).
+              - './handsontable/rspack.config.js'
+              # NOTE: `.github/workflows/**` is deliberately NOT here. A pipeline
+              # (workflow) change must not route the library build/unit/e2e/wrapper/
+              # perf matrix — a PR that only edits a workflow (e.g. adding an unrelated
+              # workflow) previously ran the entire suite. A CI change is validated by
+              # the pipeline running itself, not by re-running library tests.
+              - './visual-tests/playwright.config.ts'
+              - './visual-tests/playwright-cross-browser.config.ts'
+            hot-definition-files: &hot-definition-files
+              - './handsontable/base.d.ts'
+              - './handsontable/handsontable.d.ts'
+            hot-source-and-scripts: &hot-source-and-scripts
+              - './handsontable/src/**'
+              - './handsontable/scripts/**'
+            hot-shared: &hot-shared
+              - *config-files
+              - *hot-source-and-scripts
+            hot-e2e-test-shared: &hot-e2e-test-shared
+              - './handsontable/test/e2e/**'
+              - './handsontable/test/scripts/**'
+            build-handsontable-umd:
+              - *hot-shared
+              - './handsontable/test/e2e/**'
+              - './handsontable/test/scripts/**'
+              - './examples/next/visual-tests/**'
+              # The Playwright tier drives the built dist, so a tests-only PR
+              # must still produce the UMD artifact.
+              - './tests/**'
+            build-handsontable-es-cjs:
+              - *hot-shared
+              - 'wrappers/**'
+              - './examples/next/visual-tests/**'
+            test-handsontable-unit:
+              - *hot-shared
+              - './handsontable/test/unit/**'
+            test-handsontable-types:
+              - *hot-shared
+              - *hot-definition-files
+              - './handsontable/test/types/**'
+            test-handsontable-walkontable:
+              - './handsontable/.config/**'
+              - './handsontable/test/scripts/**'
+              - './handsontable/src/3rdparty/walkontable/**'
+            test-handsontable-e2e:
+              - *hot-shared
+              - *hot-e2e-test-shared
+            test-handsontable-e2e-min:
+              - *hot-shared
+              - *hot-e2e-test-shared
+            test-angular-wrapper:
+              - *hot-shared
+              - 'wrappers/angular-wrapper/**'
+            test-react-wrapper:
+              - *hot-shared
+              - 'wrappers/react-wrapper/**'
+            test-vue3:
+              - *hot-shared
+              - 'wrappers/vue3/**'
+            test-visual:
+              - './examples/next/visual-tests/**'
+              - './visual-tests/**'
+            test-performance:
+              # config-files (deps in package.json, babel/hot.config, bundler config)
+              # can shift bundle perf — run the suite on the PR for those too, not just
+              # src changes. Otherwise a config-driven slowdown skips the PR run and
+              # is then recorded as the new golden baseline on the develop push.
+              # (Workflow changes are intentionally excluded — see the config-files note.)
+              - *config-files
+              - './handsontable/src/**'
+              - './performance-tests/**'
+            verify-types:
+              - './handsontable/**'
+            docs-angular:
+              - './docs/content/**/angular/*.ts'
+              - './docs/angular-type-check/**'
+              # Only what shapes the built package's public types.
+              - './handsontable/src/**'
+              - './handsontable/base.d.ts'
+              - './handsontable/handsontable.d.ts'
+              - './handsontable/package.json'
+              - './handsontable/tsconfig*.json'
+              - './wrappers/angular-wrapper/**'
+              # NOTE: markdown can't be excluded here. dorny/paths-filter runs with
+              # predicate-quantifier: some (OR), so a `!**/*.md` rule is NOT
+              # subtractive — it would fail to exclude .md under the trees above and
+              # would match any non-md file on its own. The markdown exclusion that
+              # matters (the reported bug) is on docs-angular-typecheck.yml's PUSH
+              # paths, where GitHub-native path filters ARE subtractive. On a PR an
+              # AGENTS.md edit sets this flag but is inert unless the docs job also
+              # runs (it needs the `docs` flag), so it never routes a typecheck alone.
+            pkg-preview:
+              - './handsontable/**'
+              - './wrappers/**'
+            docs:
+              - './docs/**'
+              - './handsontable/package.json'
+            # True when the PR changes anything that ESLint/scans can act on —
+            # i.e. NOT confined to the YAML pipeline definitions. Lint + the
+            # code-quality scans (Sonar/CodeQL/FOSSA/audit) gate on this so a
+            # workflow/action-only PR skips them (a YAML pipeline change is
+            # validated by the pipeline running itself + actionlint, not ESLint).
+            # Excludes ONLY the YAML CI dirs (workflows + actions), NOT
+            # `.github/scripts/**` — those are `.mjs` the root ESLint config
+            # targets and the local hooks defer to CI, so a scripts-only PR MUST
+            # still lint.
+            # NOTE: dorny/paths-filter negation is OR-based (predicate-quantifier:
+            # some) — a `!x` rule matches every file NOT under x. So this must be a
+            # single negation-only rule; a second `!y` (or a positive `**`) would
+            # make it match nearly everything.
+            outside-ci:
+              - '!./.github/{workflows,actions}/**'
+
+      # Build the Integration wrapper matrix from the scope flags (run-all → all
+      # three). Emitting it here means the wrapper job fans out with no extra
+      # setup-job stage. Runs even when the path filter is skipped (test-all):
+      # RUN_ALL is then true, so all three wrappers are selected.
+      - id: wrappers
+        name: Compute the wrapper matrix
+        env:
+          RUN_ALL: ${{ endsWith(github.ref, '/master') || endsWith(github.ref, '/develop') || contains(github.ref, '/release/') || inputs.test-all == true }}
+          ANGULAR: ${{ steps.path-filter.outputs.test-angular-wrapper }}
+          REACT: ${{ steps.path-filter.outputs.test-react-wrapper }}
+          VUE3: ${{ steps.path-filter.outputs.test-vue3 }}
+        run: |
+          node -e '
+            const all = process.env.RUN_ALL === "true";
+            const w = [];
+            if (all || process.env.ANGULAR === "true") w.push({ name: "Angular", pkg: "angular-wrapper", artifact: "angular-wrapper-build", test: "test:ci" });
+            if (all || process.env.REACT === "true") w.push({ name: "React", pkg: "react-wrapper", artifact: "react-wrapper-build", test: "test" });
+            if (all || process.env.VUE3 === "true") w.push({ name: "Vue 3", pkg: "vue3", artifact: "vue3-build", test: "test" });
+            require("fs").appendFileSync(process.env.GITHUB_OUTPUT, "list=" + JSON.stringify(w) + "\n");
+          '
+
+  presence:
+    name: test presence
+    runs-on: ubuntu-latest
+    # Pillar 1: source changed ⇒ a matching test changed (warn mode — reports,
+    # does not block yet). PR-only; needs git history, no build.
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          fetch-depth: 0
+      - name: Evaluate test-presence gate (warn)
+        run: set -o pipefail; node .github/scripts/test-presence-gate.mjs | tee -a "$GITHUB_STEP_SUMMARY"
+        env:
+          GATE_MODE: warn
+          GATE_BASE: ${{ github.event.pull_request.base.sha }}
+      - name: Detect weakened specs (warn)
+        run: set -o pipefail; node .github/scripts/test-weakening-gate.mjs | tee -a "$GITHUB_STEP_SUMMARY"
+        env:
+          GATE_BASE: ${{ github.event.pull_request.base.sha }}
+
+  changelog:
+    name: changelog
+    runs-on: ubuntu-latest
+    # PR-only, and path-aware: an entry is required only when shippable source
+    # changed (handsontable/src/** or wrappers/**, tests + markdown excluded) —
+    # docs/test/CI-only PRs pass automatically, and `[skip changelog]` (outside
+    # HTML comments) overrides on a source change. Deliberately NOT re-run on
+    # `edited`: re-run the failed job after adding an entry or the marker (the
+    # script reads the live PR body).
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/setup-workspace
+      - name: Assert that a new changelog was added, or that the check is skipped
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node .github/scripts/check-changelog
+      - name: Check that all changelogs are valid
+        run: bin/changelog consume --date 2050-01-01 --dry-run
+
+  tooling-tests:
+    name: tooling tests
+    runs-on: ubuntu-latest
+    # Runs the enforcement machinery's OWN unit tests (node --test) so a regression
+    # in the presence-gate classifier, diff-coverage parser, weakening detector, eval
+    # scorer, or the hooks is caught in CI — otherwise those tests exist but nothing
+    # ever runs them. PR-only (the machinery it guards is PR/local only); no build,
+    # no deps beyond node.
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+      - name: Run enforcement-machinery unit tests
+        run: npm run test:tooling

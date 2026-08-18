@@ -287,3 +287,31 @@ test('still serves save.json as a static asset for GET/HEAD', async() => {
 
   assert.equal(await headResponse.text(), 'static-asset-passthrough');
 });
+
+test('serves the React and Angular variants of the multi-framework cell-type recipes instead of bouncing them to the index', async() => {
+  const worker = loadWorker();
+
+  for (const slug of ['flatpickr', 'pikaday', 'moment-date', 'moment-time', 'numbro']) {
+    for (const framework of ['react', 'angular']) {
+      const path = `/docs/${framework}-data-grid/recipes/cell-types/${slug}/`;
+      const response = await worker.fetch(request(path), env);
+
+      assert.equal(await response.text(), 'static-asset-passthrough', `${path} must be served, not redirected`);
+    }
+  }
+});
+
+test('still maps cell-type recipes that have a framework-specific counterpart page', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(
+    worker,
+    '/docs/react-data-grid/recipes/cell-types/color-picker/',
+    '/docs/react-data-grid/recipes/cell-types/colorful-picker/',
+  );
+  await assertRedirect(
+    worker,
+    '/docs/angular-data-grid/recipes/cell-types/react-rating/',
+    '/docs/angular-data-grid/recipes/cell-types/rating/',
+  );
+});

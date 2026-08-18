@@ -24,6 +24,8 @@ Route to the lowest correct scope. `AGENTS.md` answers "what must I never get wr
 | Angular wrapper | `wrappers/angular-wrapper/AGENTS.md` |
 | Vue 3 wrapper | `wrappers/vue3/AGENTS.md` |
 | Visual regression tests | `visual-tests/AGENTS.md` |
+| Playwright functional E2E tier (`tests/`) | `tests/AGENTS.md` |
+| Test-generation evals (meaningfulness scorer + fixtures) | `evals/README.md` |
 | Step-by-step task workflows | `.claude/skills/` (e.g., `handsontable-dev`, `handsontable-plugin-dev`, `handsontable-code-review`, `pr-creation`) |
 
 `.ai/` reference locations:
@@ -51,6 +53,7 @@ A pre-built Tree-sitter knowledge graph over the whole monorepo answers cross-fi
 | `@handsontable/angular-wrapper` | `wrappers/angular-wrapper/` | Angular wrapper |
 | `@handsontable/vue3` | `wrappers/vue3/` | Vue 3 wrapper |
 | `handsontable-visual-tests` | `visual-tests/` | Playwright visual regression tests |
+| `handsontable-tests` | `tests/` | Playwright functional E2E suite (theme × bundle matrix) |
 | `handsontable-examples-internal` | `examples/` | Code examples |
 | `handsontable-documentation` | `docs/` | Documentation site (requires Node 22) |
 
@@ -98,7 +101,7 @@ Full rules (what counts, the per-change table, legacy vs deprecated, what is NOT
 
 Every code change produced by an agent **must** satisfy all of the following:
 
-1. **Tests are required.** Every change must include both **unit tests** (Jest, `*.unit.js`) and **E2E tests** (Jasmine/Puppeteer, `*.spec.js`). No change is complete without test coverage for the new or modified behavior.
+1. **Tests are required, and machine-enforced.** A change to `handsontable/src/**` or `wrappers/**` must ship a matching test change (the presence gate checks this on every PR). The *kind* follows the change: **unit** (Jest, `*.unit.js`) for logic, **E2E** for anything a user can see or do — and **new E2E is Playwright** (`tests/e2e/*.spec.ts`); the Jasmine/Puppeteer `*.spec.js` suite is frozen (edit existing specs, but do not add new ones — migrate broken ones to Playwright). A pure refactor needs no new test if declared with a `Refactor-only: <reason>` commit trailer. Full decision rules: `handsontable/.ai/TESTING.md`. The local gates that enforce this **before** a commit/PR (pre-commit + pre-push + the Claude Code hooks) and the exact rules for creating tests, enforcement hooks, and skills are in **`.ai/LOCAL-ENFORCEMENT.md`** (run `npx lefthook install` once).
 2. **Documentation must be updated.** If a change affects the public API, configuration options, hooks, behavior, or user-facing experience, update the corresponding documentation (guides, API reference via JSDoc/Typedoc, migration guide) in the same change. See [Documentation standards](#documentation-standards-all-packages).
 3. **Update AGENTS.md.** If a change introduces new conventions, patterns, constraints, file locations, or gotchas that future agents should know, update the `AGENTS.md` at the correct scope.
 
@@ -159,7 +162,7 @@ These standards apply to **all** documentation across the monorepo — guides, t
 ### PR requirements
 
 - Every PR that changes package source code must include a changelog entry. Use the `changelog-creation` and `pr-creation` skills for the entry format and PR flow.
-- To skip changelog (for non-source-code changes only), write `[skip changelog]` in the PR description.
+- The changelog gate is path-aware: docs-, test-, and CI/tooling-only PRs pass it automatically. To skip it on a genuine source change (`handsontable/src/**` or `wrappers/**`), write `[skip changelog]` in the PR description — outside HTML comments; a commented mention (like the PR template's hint) is inert.
 - PRs are merged using **"Squash and merge"** in the GitHub UI by the PR author after full approval.
 - The PR author addresses reviewer comments. The reviewer confirms resolution by clicking **Resolve conversation**.
 
@@ -195,12 +198,15 @@ Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format. Changel
 ## Monorepo gotchas
 
 - Direct `toLocaleLowerCase`/`toLocaleUpperCase` calls are forbidden in core source — use `localeLowerCase()` from `handsontable/src/helpers/string.ts`. Enforced by `no-restricted-syntax` in `handsontable/.eslintrc.js`.
+- **JavaScript methods newer than `browser-targets.js` are forbidden in core source.** `browser-targets.js` (Chrome >= 110, Firefox >= 110, Safari >= 14.1) feeds the rspack/swc build configs in `handsontable/.config/` through `BROWSERS_LIST`, and swc lowers **syntax only** — it never injects core-js polyfills. So an instance or static method that a targeted engine lacks throws `X is not a function` on a *supported* browser. Banned via `no-restricted-syntax` in `handsontable/.eslintrc.js`: `toSorted`/`toSpliced`/`toReversed` (Firefox 115+, Safari 16.0+), `with` (Firefox 140+, Safari 16.0+), `at`/`findLast`/`findLastIndex`, `Object.hasOwn` (Safari 15.4+), and `structuredClone` (no `core-js-compat` entry; `compat/compat` reports it unsupported in Safari 14.1). Check any new method's floor against `core-js-compat`'s `data.json` and add it to that rule. `eslint-plugin-compat` is already wired to `BROWSERS_LIST` but only resolves globals and static calls (`Object.hasOwn`, `structuredClone`) — it does **not** see prototype methods on non-literal receivers, which is how `toSorted` and `Array#at` shipped in 18.0.0. Test files are exempt (they run on modern Chrome only).
+- **The ES floor is declared in three places, and `browser-targets.js` owns two of them.** `BROWSERS_LIST` is the **compile floor** (which syntax the bundles emit). `ES_TARGET` in the same file is the **API floor** — the ES-year bucket every listed browser fully supports — and it is what `handsontable/tsconfig.json` pins as `lib`, so calling a built-in above the floor is a *type* error, not just a lint error. `handsontable/scripts/swc-transpile.mjs` deliberately does **not** follow either: it hardcodes `jsc.target: 'es2021'` with `useDefineForClassFields: false`, because the npm ESM/CJS artifact must keep class fields lowered for Angular's Zone.js. Both invariants (`tsconfig` `lib` === `ES_TARGET`, and the swc target no newer than `ES_TARGET`) are asserted by `handsontable/test/__tests__/esTarget.unit.js`. The third declaration — the "two latest versions" statement in the supported-browsers guide — is about **which browsers we test on**, not the floor we compile for; the two are not the same number and must not be equalized. Raising the floors is a support drop: major-release boundary, pinned integers, team sign-off.
 - The CSS `:has()` relational pseudo-class is forbidden in `handsontable/src/**/*.{css,scss}` — it makes Chrome re-run host-page-scaled style invalidation on every grid DOM mutation (every scroll re-render). Drive the style from a JS-toggled class instead. Enforced by the custom stylelint rule `handsontable/no-has-selector` (in `handsontable/.config/plugin/stylelint/`); reviewed exceptions on non-scroll state use `// stylelint-disable-next-line handsontable/no-has-selector -- <reason>`.
 - The core build outputs ES/CJS modules to `handsontable/tmp/` for wrappers, UMD/minified bundles to `handsontable/dist/`, and CSS to `handsontable/styles/`. Wrapper packages reference the `tmp/` build via workspace linking.
 - Two Handsontable builds exist: `handsontable.js` (base, external deps) and `handsontable.full.js` (includes HyperFormula). When testing build-time behavior, ensure both variants work.
 - The Angular wrapper tests use `NODE_OPTIONS=--openssl-legacy-provider`; this is wired into the `test` script.
 - `pnpm-workspace.yaml` has `ignoredBuiltDependencies` and `onlyBuiltDependencies` lists. If pnpm warns about ignored build scripts (e.g., `less`), this is expected.
 - Root-level `npm run lint` and `npm run test` use a custom `translate-to-native-npm.mjs` script to fan out across all workspace packages.
+- CI orchestrators are per-stage: `test.yml` = PRs (+ master push + the rc/stable `workflow_call`); `develop.yml` = the develop push (same reusable modules + trunk-only stages); `publish.yml` = **every** `npm publish` (experimental via a `workflow_run: ['Develop']` chain, rc/stable directly). npm trusted publishing (OIDC) allows **one workflow file per package** and it is pinned to `publish.yml` — never move a publish job to another workflow, and never rename `publish.yml` or the `Develop` workflow name without updating the chain. Never add explicit `permissions:` to develop.yml's module-caller jobs: nested job-level requests (e.g. integration.yml's preview `pull-requests: write`) are validated against the caller grant **statically at run startup**, PR CI cannot see it, and one miss fails every develop push.
 - The docs site (`docs/`) uses Node 22 (its own `.nvmrc`) and is not needed for core library development.
 - Walkontable (the rendering engine) lives inside `handsontable/src/3rdparty/walkontable/` and has its **own test runner** — do not mix Walkontable tests with main E2E tests.
 - No Docker, databases, or external services are required.

@@ -107,6 +107,12 @@
   --ht-cell-mobile-handle-border-color: var(--ht-accent-color);
   --ht-cell-mobile-handle-background-color: var(--ht-accent-color);
   --ht-cell-mobile-handle-background-opacity: 40%;
+  --ht-cell-selection-handle-size: var(--ht-sizing-size-2);
+  --ht-cell-selection-handle-length: var(--ht-sizing-size-6);
+  --ht-cell-selection-handle-border-width: var(--ht-sizing-size-0-25);
+  --ht-cell-selection-handle-border-radius: var(--ht-sizing-size-3);
+  --ht-cell-selection-handle-border-color: var(--ht-accent-color);
+  --ht-cell-selection-handle-background-color: var(--ht-background-color);
   --ht-header-font-weight: var(--ht-font-weight);
   --ht-header-foreground-color: var(--ht-foreground-color);
   --ht-header-background-color: var(--ht-background-secondary-color);
@@ -124,7 +130,7 @@
   --ht-header-row-active-foreground-color: var(--ht-background-color);
   --ht-header-row-active-background-color: light-dark(var(--ht-colors-palette-950), var(--ht-colors-primary-200));
   --ht-row-header-odd-background-color: var(--ht-header-row-background-color);
-  --ht-row-header-even-background-color: var(--ht-header-row-background-color);
+  --ht-row-header-even-background-color: var(--ht-background-secondary-color);
   --ht-row-cell-odd-background-color: var(--ht-background-color);
   --ht-row-cell-even-background-color: var(--ht-background-secondary-color);
   --ht-button-border-radius: var(--ht-sizing-size-4);
@@ -345,20 +351,11 @@
 
 [class*=ht-theme-horizon] .htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper::after,
 [class*=ht-theme-horizon] .htContextMenu table tbody tr td.htSubmenu .htItemWrapper::after,
-[class*=ht-theme-horizon] .htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper::after,
-[class*=ht-theme-horizon] .pika-single .pika-next {
+[class*=ht-theme-horizon] .htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper::after {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
   -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6.64648 10.9393L9.93938 7.64644L6.64648 4.35354' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
-  background-color: currentColor;
-}
-
-[class*=ht-theme-horizon] .pika-single .pika-prev {
-  width: var(--ht-icon-size);
-  height: var(--ht-icon-size);
-  -webkit-mask-size: contain;
-  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.49268 11.2929L6.19978 8.00001L9.49268 4.70712' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
   background-color: currentColor;
 }
 

@@ -163,7 +163,6 @@ function runCheck({ label, htDir }) {
       paths: {
         handsontable: [htDir],
         'handsontable/*': [`${htDir}/*`],
-        'hyperformula/typings/*': ['node_modules/hyperformula/typings/*'],
       },
     },
     include: ['./.tmp/**/*.ts', './types/**/*.d.ts'],

@@ -16,6 +16,8 @@ export interface BorderInstanceSettings {
     width?: number;
     color?: string;
     cornerVisible?: boolean | ((...args: unknown[]) => boolean);
+    adjustHandlesVisible?: boolean | ((...args: unknown[]) => boolean);
+    moveEnabled?: boolean | ((...args: unknown[]) => boolean);
     style?: string;
     [key: string]: unknown;
   };
@@ -48,6 +50,36 @@ export interface SelectionHandles {
     topHitArea: CSSStyleDeclaration;
     bottom: CSSStyleDeclaration;
     bottomHitArea: CSSStyleDeclaration;
+    [key: string]: CSSStyleDeclaration;
+  };
+  [key: string]: unknown;
+}
+
+export interface AdjustHandles {
+  top: HTMLDivElement;
+  bottom: HTMLDivElement;
+  start: HTMLDivElement;
+  end: HTMLDivElement;
+  styles: {
+    top: CSSStyleDeclaration;
+    bottom: CSSStyleDeclaration;
+    start: CSSStyleDeclaration;
+    end: CSSStyleDeclaration;
+    [key: string]: CSSStyleDeclaration;
+  };
+  [key: string]: unknown;
+}
+
+export interface MoveZone {
+  top: HTMLDivElement;
+  bottom: HTMLDivElement;
+  start: HTMLDivElement;
+  end: HTMLDivElement;
+  styles: {
+    top: CSSStyleDeclaration;
+    bottom: CSSStyleDeclaration;
+    start: CSSStyleDeclaration;
+    end: CSSStyleDeclaration;
     [key: string]: CSSStyleDeclaration;
   };
   [key: string]: unknown;

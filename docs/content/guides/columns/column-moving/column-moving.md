@@ -29,6 +29,14 @@ To enable column moving, set the [`manualColumnMove`](@/api/options.md#manualcol
 
 A draggable move handle appears above the selected column header. You can click and drag it to any location in the grid.
 
+A column has to be selected before you can drag it. You can start the drag anywhere on the selected column's
+header, including on the sorting label when [column sorting](@/guides/rows/rows-sorting/rows-sorting.md) is
+enabled. Handsontable tells a click from a drag by whether the pointer moves: press and release without moving
+to sort the column, and press and drag to move it.
+
+When column sorting is enabled, only the header label and its sort indicator sort on click. Pressing the header
+around them selects the column without sorting it, so you can select a column and drag it in one gesture.
+
 ::: only-for javascript
 
 ::: example #example1 --js 1 --ts 2
@@ -186,6 +194,8 @@ For more on how physical and visual indexes relate, see [Understanding data and 
 ## Control column moving
 
 Use the [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) hook to decide whether each column move is allowed. Returning `false` cancels the move while keeping the [`manualColumnMove`](@/api/options.md#manualcolumnmove) plugin enabled.
+
+Both [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) and [`afterColumnMove`](@/api/hooks.md#aftercolumnmove) run only when the pointer actually drags a column. A click on a column header does not fire them.
 
 In the following example, select **Allow column moving** before you drag a column to a new position. Clear the checkbox to block column moving again.
 

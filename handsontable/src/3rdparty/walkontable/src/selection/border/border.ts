@@ -1,7 +1,7 @@
 
 import type { WalkontableInstance } from '../../types';
 import type EventManager from '../../../../../eventManager';
-import type { BorderInstanceSettings, CornerDefaultStyle, SelectionHandles } from './types';
+import type { BorderInstanceSettings, CornerDefaultStyle, SelectionHandles, AdjustHandles, MoveZone } from './types';
 import {
   addClass,
   hasClass,
@@ -9,11 +9,13 @@ import {
   getTrimmingContainer,
   isHTMLElement,
 } from '../../../../../helpers/dom/element';
-import { stopImmediatePropagation } from '../../../../../helpers/dom/event';
+import { stopImmediatePropagation, isRightClick } from '../../../../../helpers/dom/event';
 import { isMobileBrowser } from '../../../../../helpers/browser';
 import { getCornerStyle } from './utils';
+import { CUSTOM_SELECTION_TYPE } from '../constants';
 
 const BORDER_STYLE_CLASS_PREFIX = 'ht-border-style-';
+const MOVE_ZONE_THICKNESS = 6;
 const BORDER_STYLE_VERTICAL_SUFFIX = '-vertical';
 const BORDER_STYLE_HORIZONTAL_SUFFIX = '-horizontal';
 
@@ -94,6 +96,20 @@ class Border {
    */
   declare selectionHandles: SelectionHandles;
   /**
+   * Created lazily on the first `appear()` whose visibility predicate resolves truthy, so it stays
+   * `undefined` while the `selectionHandles` option is off.
+   *
+   * @type {AdjustHandles | undefined}
+   */
+  declare adjustHandles: AdjustHandles | undefined;
+  /**
+   * Created lazily on the first `appear()` whose visibility predicate resolves truthy, so it stays
+   * `undefined` while the `moveCells` option is off.
+   *
+   * @type {MoveZone | undefined}
+   */
+  declare moveZone: MoveZone | undefined;
+  /**
    * @type {boolean}
    */
   declare disabled: boolean;
@@ -144,6 +160,11 @@ class Border {
     this.eventManager.addEventListener(documentBody, 'mousedown', () => this.onMouseDown());
     this.eventManager.addEventListener(documentBody, 'mouseup', () => this.onMouseUp());
 
+    // Only the five border divs created by `createBorders` are present at this point, which is
+    // exactly the set that wants the fragment-selection hide-on-enter behavior. The lazily created
+    // `selectionHandles`/`moveCells` elements must NOT get it — `onMouseEnter` restores with an
+    // unconditional `display = 'block'`, which would un-hide a handle the visibility predicate
+    // wants hidden. Their own listeners are attached in their `create*` methods instead.
     if (this.main) {
       for (let c = 0, len = this.main.childNodes.length; c < len; c++) {
         const mainNode = this.main;
@@ -243,6 +264,14 @@ class Border {
     style.top = '0';
     style.left = '0';
 
+    // Custom borders can overlap (e.g. two configured ranges sharing a cell). Each EDGE is stacked by
+    // its own width so overlapping ranges paint deterministically - the thicker (more emphasized) edge
+    // consistently sits on top. Stacking per edge, not per whole border, keeps a single visual line
+    // uniform where it crosses a shared cell (that cell's merged border mixes a thin and a thick side).
+    // The `main` wrapper must NOT carry a z-index, or it would create a stacking context and trap each
+    // edge's z-index inside its own border instead of ordering edges across overlapping borders.
+    const isCustomBorder = settings.selectionType === CUSTOM_SELECTION_TYPE;
+
     const createdDivs: HTMLDivElement[] = [];
 
     for (let i = 0; i < 5; i++) {
@@ -282,6 +311,10 @@ class Border {
       style.height = `${getSettingsProperty('width')}px`;
       style.width = `${getSettingsProperty('width')}px`;
 
+      if (isCustomBorder) {
+        style.zIndex = `${getSettingsProperty('width') ?? 1}`;
+      }
+
       createdDivs.push(div);
       this.main.appendChild(div);
     }
@@ -309,6 +342,10 @@ class Border {
     if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
       this.createMultipleSelectorHandles();
     }
+    // The `selectionHandles` and `moveCells` elements are created lazily, on the first `appear()`
+    // whose visibility predicate resolves truthy. Creating them here would add 8 divs and their
+    // listeners to every border of every highlight in every overlay, for every instance — including
+    // the majority that leave both options off. See `appear()`.
     this.disappear();
 
     const { wtTable } = this.wot;
@@ -376,6 +413,169 @@ class Border {
       handleStyleTarget.background = `color-mix(in srgb, ${cellMobileHandleBackgroundColor} ${cellMobileHandleBackgroundOpacity}%, transparent)`;
       handleStyleTarget.border = `${cellMobileHandleBorderWidth}px solid ${cellMobileHandleBorderColor}`;
     }
+
+    this.main!.appendChild(this.selectionHandles.top);
+    this.main!.appendChild(this.selectionHandles.bottom);
+    this.main!.appendChild(this.selectionHandles.topHitArea);
+    this.main!.appendChild(this.selectionHandles.bottomHitArea);
+  }
+
+  /**
+   * Creates the four edge-adjustment handle elements used by the `selectionHandles` feature.
+   * Visual styling (size, background, border, border-radius, cursor, z-index) is driven entirely
+   * by CSS via the `--ht-cell-selection-handle-*` tokens defined in the theme stylesheets.
+   * JS sets only `display:none` (initial hidden state) and the positioning `top`/`left` values
+   * during `positionAdjustHandles`. Class names (`wtSelectionHandle--<edge>`) carry orientation.
+   *
+   * Called lazily from `appear()` on the first draw whose `adjustHandlesVisible` predicate resolves
+   * truthy, so the elements never exist for instances that leave `selectionHandles` off. Because
+   * `registerListeners` has already run by then, each handle attaches its own `mousedown` listener
+   * here.
+   *
+   * @returns {AdjustHandles} The created handle set, so the caller can use it without a null check.
+   */
+  createAdjustHandles(): AdjustHandles {
+    const { rootDocument } = this.wot;
+
+    const make = (edge: string) => {
+      const el = rootDocument.createElement('div');
+
+      el.className = `wtSelectionHandle wtSelectionHandle--${edge}`;
+      el.style.display = 'none';
+      this.main!.appendChild(el);
+
+      this.eventManager.addEventListener(el, 'mousedown', (event: MouseEvent) => {
+        // A right-press must fall through to the context menu without starting a resize drag.
+        if (isRightClick(event)) {
+          return;
+        }
+
+        stopImmediatePropagation(event);
+        event.preventDefault();
+        this.wot.getSetting('onSelectionHandleMouseDown', event, edge);
+      });
+
+      return el;
+    };
+
+    const top = make('top');
+    const bottom = make('bottom');
+    const start = make('start');
+    const end = make('end');
+
+    this.adjustHandles = {
+      top,
+      bottom,
+      start,
+      end,
+      styles: { top: top.style, bottom: bottom.style, start: start.style, end: end.style },
+    };
+
+    return this.adjustHandles;
+  }
+
+  /**
+   * Creates the four edge move-zone band elements. Each band is a thin overlay div positioned along
+   * one selection edge. Hovering a band shows a `grab` cursor; a `mousedown` on a band calls the
+   * `onSelectionEdgeMouseDown` Walkontable setting so the core can initiate a move drag.
+   *
+   * Bands sit at z-index 100 — below the resize pills (z-index 200) and below the autofill fill
+   * handle (`.wtBorder.corner`, z-index 150), so both keep winning their own pixels in the corner
+   * regions where the bands overlap them. All four bands are created hidden; `positionMoveZone`
+   * + `appear` control their visibility.
+   *
+   * Called lazily from `appear()` on the first draw whose `moveEnabled` predicate resolves truthy,
+   * so the bands never exist for instances that leave `moveCells` off.
+   *
+   * @private
+   */
+  createMoveZone() {
+    const { rootDocument } = this.wot;
+
+    const make = (edge: string) => {
+      const el = rootDocument.createElement('div');
+
+      el.className = 'wtMoveZone';
+      el.style.position = 'absolute';
+      el.style.display = 'none';
+      el.style.zIndex = '100';
+      el.style.pointerEvents = 'auto';
+      el.style.cursor = 'grab';
+      this.main!.appendChild(el);
+
+      this.eventManager.addEventListener(el, 'mousedown', (event: MouseEvent) => {
+        // A right-press must fall through to the context menu without starting a move drag.
+        if (isRightClick(event)) {
+          return;
+        }
+
+        stopImmediatePropagation(event);
+        event.preventDefault();
+        this.wot.getSetting('onSelectionEdgeMouseDown', event, edge);
+      });
+
+      return el;
+    };
+
+    const top = make('top');
+    const bottom = make('bottom');
+    const start = make('start');
+    const end = make('end');
+
+    this.moveZone = {
+      top,
+      bottom,
+      start,
+      end,
+      styles: { top: top.style, bottom: bottom.style, start: start.style, end: end.style },
+    };
+  }
+
+  /**
+   * Positions the four move-zone bands along the selection edges. Each band is `MOVE_ZONE_THICKNESS`
+   * pixels tall (or wide for the vertical bands) and centered on its respective edge line. RTL layout
+   * is handled by using `right` instead of `left` for the inline axis, mirroring `positionAdjustHandles`.
+   *
+   * @private
+   * @param {number} top The selection border top (px, container-relative).
+   * @param {number} inlineStart The selection border inline-start (px, container-relative).
+   * @param {number} width The selection border width (px).
+   * @param {number} height The selection border height (px).
+   */
+  positionMoveZone(top: number, inlineStart: number, width: number, height: number) {
+    const isRtl = this.wot.wtSettings.getSetting('rtlMode');
+    const inlineProp = isRtl ? 'right' : 'left';
+    // Only ever called from `appear()` after the bands have been created.
+    const s = this.moveZone!.styles;
+    const half = Math.floor(MOVE_ZONE_THICKNESS / 2);
+
+    // Top band — full width, centered on the top edge.
+    s.top[inlineProp] = `${inlineStart}px`;
+    s.top.top = `${top - half}px`;
+    s.top.width = `${width}px`;
+    s.top.height = `${MOVE_ZONE_THICKNESS}px`;
+    s.top.display = 'block';
+
+    // Bottom band — full width, centered on the bottom edge.
+    s.bottom[inlineProp] = `${inlineStart}px`;
+    s.bottom.top = `${top + height - half}px`;
+    s.bottom.width = `${width}px`;
+    s.bottom.height = `${MOVE_ZONE_THICKNESS}px`;
+    s.bottom.display = 'block';
+
+    // Start band — full height, centered on the inline-start edge.
+    s.start[inlineProp] = `${inlineStart - half}px`;
+    s.start.top = `${top}px`;
+    s.start.width = `${MOVE_ZONE_THICKNESS}px`;
+    s.start.height = `${height}px`;
+    s.start.display = 'block';
+
+    // End band — full height, centered on the inline-end edge.
+    s.end[inlineProp] = `${inlineStart + width - half}px`;
+    s.end.top = `${top}px`;
+    s.end.width = `${MOVE_ZONE_THICKNESS}px`;
+    s.end.height = `${height}px`;
+    s.end.display = 'block';
   }
 
   /**
@@ -512,6 +712,26 @@ class Border {
   }
 
   /**
+   * Tells whether a selection's bottom or end edge lands immediately before a top or start frozen pane.
+   *
+   * @private
+   * @param {'row'|'column'} axis The freeze axis to test.
+   * @param {number} toIndex The selection's bottom (`row`) or inline-end (`column`) corner index.
+   * @returns {boolean}
+   */
+  isFrozenStartBoundaryOppositeEdge(axis: 'row' | 'column', toIndex: number): boolean {
+    if (axis === 'row') {
+      const fixedRowsTop = this.wot.getSetting('fixedRowsTop') as number;
+
+      return fixedRowsTop > 0 && toIndex === fixedRowsTop - 1;
+    }
+
+    const fixedColumnsStart = this.wot.getSetting('fixedColumnsStart') as number;
+
+    return fixedColumnsStart > 0 && toIndex === fixedColumnsStart - 1;
+  }
+
+  /**
    * Tells whether the selection's boundary corner (the cell flush with a frozen-pane line) has
    * scrolled behind the frozen pane in the master viewport. The frozen overlay can't detect this
    * itself (its rendered range is sticky), so we consult the scroll-aware master and stop drawing the
@@ -550,6 +770,23 @@ class Border {
     const totalRows = this.wot.getSetting('totalRows') as number;
 
     return fixedRowsBottom > 0 && toIndex === totalRows - fixedRowsBottom - 1;
+  }
+
+  /**
+   * Mirror of {@link Border#isFrozenStartBoundaryOppositeEdge} for the bottom freeze line: tells
+   * whether the selection's top edge lands exactly on the `fixedRowsBottom` boundary (the selection
+   * starts at the first bottom-frozen row), so the top handle sits on the freeze line and must be
+   * suppressed there like every other frozen-seam edge.
+   *
+   * @private
+   * @param {number} fromIndex The selection's top corner row index.
+   * @returns {boolean}
+   */
+  isFrozenBottomBoundaryOppositeEdge(fromIndex: number): boolean {
+    const fixedRowsBottom = this.wot.getSetting('fixedRowsBottom') as number;
+    const totalRows = this.wot.getSetting('totalRows') as number;
+
+    return fixedRowsBottom > 0 && fromIndex === totalRows - fixedRowsBottom;
   }
 
   /**
@@ -1129,26 +1366,51 @@ class Border {
     }
 
     const inlinePosProperty = isRtl ? 'right' : 'left';
-    const delta = Math.ceil((this.settings.border?.width ?? 0) / 2);
+
+    // Corner geometry is resolved per edge rather than from a single `settings.border.width` delta,
+    // which misaligns edges whose own width differs from the border-object default - e.g. a cell
+    // shared by two overlapping custom-border ranges of different widths. Two distinct roles:
+    //   - POSITION offset (bottom `top`, end inline-start) uses the edge's OWN half-thickness, so a
+    //     straight run of same-width edges stays level across a shared cell.
+    //   - LENGTH extension (so a corner is filled) uses the PERPENDICULAR edge's half-thickness - the
+    //     edge it meets at that corner - so the horizontal line reaches, but does not overshoot, the
+    //     vertical one. Using its own half-thickness would make a thick edge stick out past a thinner
+    //     perpendicular edge.
+    // For uniform-width borders every per-edge delta equals the old shared delta, so regular
+    // selections are unaffected.
+    // A corner is only filled when the perpendicular edge is actually drawn there. A horizontal edge
+    // extends toward the end corner only if this cell has a visible end edge, and toward the bottom
+    // only if it has a visible bottom edge. Without this, a per-cell custom border whose end/bottom
+    // side is hidden (an interior or split-range edge) would still extend into the empty neighbour and
+    // stick out. For regular selections the side settings are absent, so `!undefined?.hide` is `true`
+    // and the extension behaves exactly as before.
+    const extendToEnd = !this.settings.end?.hide;
+    const extendToBottom = !this.settings.bottom?.hide;
+    const bottomThickness = parseInt(this.bottomStyle!.height, 10);
+    const endThickness = parseInt(this.endStyle!.width, 10);
+    const bottomDelta = Math.ceil(bottomThickness / 2);
+    const endDelta = Math.ceil(endThickness / 2);
+    const horizontalExtension = extendToEnd ? endDelta : 0;
+    const verticalExtension = extendToBottom ? bottomDelta : 0;
 
     this.topStyle!.top = `${top}px`;
     this.topStyle![inlinePosProperty] = `${inlineStartPos}px`;
-    this.topStyle!.width = `${width + delta}px`;
+    this.topStyle!.width = `${width + horizontalExtension}px`;
     this.topStyle!.display = 'block';
 
     this.startStyle!.top = `${top}px`;
     this.startStyle![inlinePosProperty] = `${inlineStartPos}px`;
-    this.startStyle!.height = `${height + delta}px`;
+    this.startStyle!.height = `${height + verticalExtension}px`;
     this.startStyle!.display = 'block';
 
-    this.bottomStyle!.top = `${top + height - parseInt(this.bottomStyle!.height, 10) + delta}px`;
+    this.bottomStyle!.top = `${top + height - bottomThickness + bottomDelta}px`;
     this.bottomStyle![inlinePosProperty] = `${inlineStartPos}px`;
-    this.bottomStyle!.width = `${width + delta}px`;
+    this.bottomStyle!.width = `${width + horizontalExtension}px`;
     this.bottomStyle!.display = 'block';
 
     this.endStyle!.top = `${top}px`;
-    this.endStyle![inlinePosProperty] = `${inlineStartPos + width - parseInt(this.endStyle!.width, 10) + delta}px`;
-    this.endStyle!.height = `${height + delta}px`;
+    this.endStyle![inlinePosProperty] = `${inlineStartPos + width - endThickness + endDelta}px`;
+    this.endStyle!.height = `${height + verticalExtension}px`;
     this.endStyle!.display = 'block';
 
     // A boundary edge owned by the frozen overlay must be hidden on every other overlay that would
@@ -1282,6 +1544,58 @@ class Border {
     if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
       this.updateMultipleSelectionHandlesPosition(toRow, toColumn, top, inlineStartPos, width, height);
     }
+
+    let adjustVisible = this.settings.border?.adjustHandlesVisible;
+
+    adjustVisible = typeof adjustVisible === 'function'
+      ? adjustVisible(this.settings.layerLevel) : adjustVisible;
+
+    if (!isMobileBrowser() && adjustVisible && this.wot.getSetting('isDataViewInstance')) {
+      const adjustHandles = this.adjustHandles ?? this.createAdjustHandles();
+
+      this.positionAdjustHandles(top, inlineStartPos, width, height, corners);
+
+      // Hide handles on an edge that lands on a frozen-pane line. This boundary rule is
+      // intentionally Walkontable-local: Walkontable cannot import core helpers, so the
+      // matching core-side check was removed as dead code — this is the single
+      // authoritative enforcement point.
+      if (this.isFrozenBoundaryEdge('row', corners[0]) || this.isFrozenBottomBoundaryOppositeEdge(corners[0])) {
+        adjustHandles.styles.top.display = 'none';
+      }
+      if (this.isFrozenBoundaryEdge('column', corners[1])) {
+        adjustHandles.styles.start.display = 'none';
+      }
+      if (this.isFrozenStartBoundaryOppositeEdge('row', corners[2]) ||
+          this.isFrozenBottomBoundaryEdge(corners[2])) {
+        adjustHandles.styles.bottom.display = 'none';
+      }
+      if (this.isFrozenStartBoundaryOppositeEdge('column', corners[3])) {
+        adjustHandles.styles.end.display = 'none';
+      }
+    } else if (this.adjustHandles) {
+      this.adjustHandles.styles.top.display = 'none';
+      this.adjustHandles.styles.bottom.display = 'none';
+      this.adjustHandles.styles.start.display = 'none';
+      this.adjustHandles.styles.end.display = 'none';
+    }
+
+    let moveEnabled = this.settings.border?.moveEnabled;
+
+    moveEnabled = typeof moveEnabled === 'function'
+      ? moveEnabled(this.settings.layerLevel) : moveEnabled;
+
+    if (!isMobileBrowser() && moveEnabled && this.wot.getSetting('isDataViewInstance')) {
+      if (!this.moveZone) {
+        this.createMoveZone();
+      }
+
+      this.positionMoveZone(top, inlineStartPos, width, height);
+    } else if (this.moveZone) {
+      this.moveZone.styles.top.display = 'none';
+      this.moveZone.styles.bottom.display = 'none';
+      this.moveZone.styles.start.display = 'none';
+      this.moveZone.styles.end.display = 'none';
+    }
   }
 
   /**
@@ -1381,6 +1695,80 @@ class Border {
   }
 
   /**
+   * Positions the four edge-adjustment handles at the midpoint of each edge, hiding any handle
+   * whose edge is flush with the grid boundary. Called at the end of `appear()` when the
+   * `selectionHandles` feature is enabled for this highlight.
+   *
+   * Handle dimensions are sourced from the `--ht-cell-selection-handle-size` and
+   * `--ht-cell-selection-handle-length` CSS tokens via a cached stylesHandler read
+   * (no layout-forcing DOM access). Top/bottom handles are horizontal pills
+   * (width = length, height = size); start/end handles are vertical pills (width = size, height = length).
+   *
+   * @private
+   * @param {number} top The selection border top (px, container-relative).
+   * @param {number} inlineStart The selection border inline-start (px, container-relative).
+   * @param {number} width The selection border width (px).
+   * @param {number} height The selection border height (px).
+   * @param {number[]} corners The raw `[fromRow, fromColumn, toRow, toColumn]` visual corners.
+   */
+  positionAdjustHandles(
+    top: number, inlineStart: number, width: number, height: number, corners: number[]) {
+    const isRtl = this.wot.wtSettings.getSetting('rtlMode');
+    const inlineProp = isRtl ? 'right' : 'left';
+    const [fromRow, fromColumn, toRow, toColumn] = corners;
+    const lastRow = (this.wot.getSetting('totalRows') as number) - 1;
+    const lastColumn = (this.wot.getSetting('totalColumns') as number) - 1;
+    // Handle dimensions are read from the CSS token cache (not computed style — that would be a
+    // layout-forcing read). Visual sizing lives in the stylesheet; JS reads the resolved token values.
+    const stylesHandler = this.wot.wtSettings.getSetting('stylesHandler');
+    const sizeRaw = stylesHandler.getCSSVariableValue('cell-selection-handle-size');
+    const lengthRaw = stylesHandler.getCSSVariableValue('cell-selection-handle-length');
+    const size = parseInt(sizeRaw !== null && sizeRaw !== undefined ? String(sizeRaw) : '8', 10);
+    const length = parseInt(lengthRaw !== null && lengthRaw !== undefined ? String(lengthRaw) : '24', 10);
+
+    // top/bottom handles are horizontal pills: width = length, height = size.
+    const topW = length;
+    const topH = size;
+    const bottomW = length;
+    const bottomH = size;
+
+    // start/end handles are vertical pills: width = size, height = length.
+    const startW = size;
+    const startH = length;
+    const endW = size;
+    const endH = length;
+    // Only ever called from `appear()` after the handles have been created.
+    const s = this.adjustHandles!.styles;
+
+    s.top.display = 'none';
+    s.bottom.display = 'none';
+    s.start.display = 'none';
+    s.end.display = 'none';
+
+    if (fromRow > 0) {
+      s.top[inlineProp] = `${inlineStart + Math.round(width / 2) - Math.round(topW / 2)}px`;
+      s.top.top = `${top - Math.round(topH / 2)}px`;
+      s.top.display = 'block';
+    }
+    if (toRow < lastRow) {
+      s.bottom[inlineProp] = `${inlineStart + Math.round(width / 2) - Math.round(bottomW / 2)}px`;
+      s.bottom.top = `${top + height - Math.round(bottomH / 2)}px`;
+      s.bottom.display = 'block';
+    }
+
+    if (fromColumn > 0) {
+      s.start[inlineProp] = `${inlineStart - Math.round(startW / 2)}px`;
+      s.start.top = `${top + Math.round(height / 2) - Math.round(startH / 2)}px`;
+      s.start.display = 'block';
+    }
+    if (toColumn < lastColumn) {
+      s.end[inlineProp] = `${inlineStart + width - Math.round(endW / 2)}px`;
+      s.end.top = `${top + Math.round(height / 2) - Math.round(endH / 2)}px`;
+      s.end.display = 'block';
+    }
+  }
+
+  /**
    * Change border style.
    *
    * @private
@@ -1464,6 +1852,20 @@ class Border {
       this.selectionHandles.styles.topHitArea.display = 'none';
       this.selectionHandles.styles.bottom.display = 'none';
       this.selectionHandles.styles.bottomHitArea.display = 'none';
+    }
+
+    if (this.adjustHandles) {
+      this.adjustHandles.styles.top.display = 'none';
+      this.adjustHandles.styles.bottom.display = 'none';
+      this.adjustHandles.styles.start.display = 'none';
+      this.adjustHandles.styles.end.display = 'none';
+    }
+
+    if (this.moveZone) {
+      this.moveZone.styles.top.display = 'none';
+      this.moveZone.styles.bottom.display = 'none';
+      this.moveZone.styles.start.display = 'none';
+      this.moveZone.styles.end.display = 'none';
     }
   }
 

@@ -4,4 +4,4 @@ export {
   ContextMenu,
 } from './contextMenu';
 
-export type { PredefinedMenuItemKey, MenuItemConfig } from './contextMenu';
+export type { PredefinedMenuItemKey, MenuItemConfig, MenuAnchorRectProvider } from './contextMenu';

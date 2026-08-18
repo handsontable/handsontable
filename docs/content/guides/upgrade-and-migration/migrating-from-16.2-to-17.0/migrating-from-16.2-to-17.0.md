@@ -952,12 +952,12 @@ If you use custom cell types that rely on Moment.js for formatting or parsing (e
 
 ## 5. Migrate from built-in DOMPurify to the sanitizer option
 
-Handsontable 17.0 introduces a configurable [`sanitizer`](@/api/options.md#sanitizer) option for HTML content. The built-in use of the [DOMPurify](https://www.npmjs.com/package/dompurify) library is deprecated and will be removed in the next major release. After that, if you do not set a custom sanitizer, any string containing HTML will be stripped before rendering (no rich HTML). To keep sanitized HTML (e.g. with DOMPurify or another library), set the `sanitizer` option to your own sanitizer function.
+Handsontable 17.0 introduces a configurable [`sanitizer`](@/api/options.md#sanitizer) option for HTML content. The built-in use of the [DOMPurify](https://www.npmjs.com/package/dompurify) library is deprecated and will be removed in the next major release. After that, if you do not set a custom sanitizer, any string containing HTML is written to the DOM unchanged and Handsontable logs a warning -- it is not sanitized for you. To keep sanitizing HTML (with DOMPurify or another library), set the `sanitizer` option to your own sanitizer function.
 
 ### What Changed
 
 - **New `sanitizer` option (v17.0)**: A table-level option that accepts a function `(content, source) => string`. It is used whenever HTML is written to the DOM (cell values, headers, context menu labels, dialog markup, clipboard paste).
-- **Default behavior**: In 17.0 the grid still uses `DOMPurify` by default but shows a deprecation warning. In the next major release, DOMPurify is removed; with no custom `sanitizer`, HTML in content will be stripped.
+- **Default behavior**: In 17.0 the grid still uses `DOMPurify` by default but shows a deprecation warning. In the next major release, DOMPurify is removed; with no custom `sanitizer`, HTML in content passes through unchanged and the grid warns once per instance.
 - **Source parameter**: The second argument indicates where the content is used (`'innerHTML'` or `'CopyPaste.paste'`), so you can apply different rules per context.
 
 ### Why This Change
@@ -1087,13 +1087,13 @@ sanitizer: (content, source) =>
 ### What to Expect
 
 - **Console warning in 17.0**: If you keep the default (`DOMPurify`) without setting `sanitizer`, a deprecation warning is shown pointing to the `sanitizer` option.
-- **Next major release**: `DOMPurify` is removed from dependencies. Without a custom `sanitizer`, HTML in cell content, headers, menus, and paste will be stripped before rendering.
+- **Next major release**: `DOMPurify` is removed from dependencies. Without a custom `sanitizer`, HTML in cell content, headers, menus, and paste is written to the DOM unchanged, and the grid logs a warning naming the write surface.
 - **No per-column sanitizer**: The option is table-level only; it does not work when set per column or per cell.
 
 ### Timeline
 
 - **Version 17.0**: `sanitizer` option is available; default remains `DOMPurify` with a deprecation warning.
-- **Next major release**: `DOMPurify` is removed. If no `sanitizer` is set, HTML content is stripped.
+- **Next major release**: `DOMPurify` is removed. If no `sanitizer` is set, HTML content passes through unchanged.
 
 ### Related resources
 
@@ -1152,7 +1152,7 @@ The **Formulas** plugin uses [HyperFormula](https://hyperformula.handsontable.co
 1. Install HyperFormula in your project (e.g. `npm install hyperformula`).
 2. Import HyperFormula and pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'`.
 
-See the [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md) guide for configuration details.
+See the [Formulas installation](@/guides/formulas/installation/installation.md) guide to install and license HyperFormula, and the [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md) guide for configuration details.
 
 ## Summary of breaking changes
 

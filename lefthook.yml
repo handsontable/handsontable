@@ -1,0 +1,18 @@
+# Local git hooks (lefthook) — the enforcement FLOOR for everyone (Claude Code's
+# agent hooks add an earlier, agent-time layer on top). Same checks CI runs, one
+# step earlier. Bypassable with `--no-verify`; CI is the authoritative gate.
+# Rules: .ai/LOCAL-ENFORCEMENT.md.
+#
+# Activate once after install:  npx lefthook install
+pre-commit:
+  commands:
+    # Fast, staged-only: eslint --fix the staged source/specs (determinism +
+    # anti-gaming rules), re-stage fixes, block on lint errors.
+    lint-staged:
+      run: node scripts/lint-staged.mjs
+pre-push:
+  commands:
+    # Full local mirror of the CI gate: presence gate + eslint + test-weakening
+    # detector + the changed Playwright specs.
+    test-gate:
+      run: node scripts/pre-push.mjs

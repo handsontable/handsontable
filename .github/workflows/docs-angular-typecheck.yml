@@ -1,27 +1,42 @@
 name: Docs Angular Type Check
 
+# On PRs this runs as a fragment of the Tests pipeline (workflow_call from
+# test.yml), scope-gated by the router's `docs-angular` filter. The push
+# trigger is now scoped to the trunk — it previously fired on every branch push.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - 'docs/content/**/angular/*.ts'
-      - 'docs/angular-type-check/**'
-      - 'handsontable/**'
-      - 'wrappers/angular-wrapper/**'
   push:
+    branches:
+      - develop
+      - master
+      - 'release/**'
     paths:
       - 'docs/content/**/angular/*.ts'
       - 'docs/angular-type-check/**'
-      - 'handsontable/**'
+      # Only what shapes the built package's public types — a test/config/
+      # tooling-only core change cannot break the docs examples. Keep in sync
+      # with the `docs-angular` filter in test.yml's check-scope router.
+      - 'handsontable/src/**'
+      - 'handsontable/base.d.ts'
+      - 'handsontable/handsontable.d.ts'
+      - 'handsontable/package.json'
+      - 'handsontable/tsconfig*.json'
       - 'wrappers/angular-wrapper/**'
+      # Markdown can never change the emitted public types, but AGENTS.md /
+      # README files live under the src and wrapper trees above and were
+      # triggering a full typecheck (e.g. an edit to
+      # wrappers/angular-wrapper/AGENTS.md). Exclude all markdown.
+      - '!**/*.md'
+  workflow_call:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Static prefix, NOT ${{ github.workflow }} — when called from test.yml the
+  # workflow name resolves to the caller's, colliding with its group.
+  group: docs-angular-typecheck-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   typecheck:
-    name: Type check Angular examples
+    name: typecheck
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

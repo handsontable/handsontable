@@ -1,0 +1,45 @@
+name: E2E from ESM/CJS bundle
+description: >-
+  Build the UMD bundle from the ESM or CJS output and run the e2e suite against
+  it — the bundle-format consumption check. Shared by the Integration ESM and
+  CJS jobs. Requires checkout first; consumes the ES+CJS and UMD build artifacts.
+
+inputs:
+  from:
+    description: "Source bundle to build UMD from: 'esm' or 'cjs'"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/setup-workspace
+      with:
+        puppeteer-chrome: 'true'
+
+    - name: Download the Handsontable build artifact
+      uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+      with:
+        name: handsontable-build-es-cjs
+        path: ./
+    - shell: bash
+      run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
+
+    - name: Download the Handsontable UMD build artifact and only extract CSS and languages files
+      uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+      with:
+        name: handsontable-build-umd
+        path: ./
+    - shell: bash
+      run: tar -zxf dist.tar.gz --overwrite --wildcards --no-anchored '*.css' 'handsontable/dist/languages/*.js' && rm dist.tar.gz
+
+    - name: Build UMD from ${{ inputs.from }}
+      shell: bash
+      run: |
+        cd handsontable
+        npm run build:umd-from-${{ inputs.from }}
+
+    - name: Test
+      shell: bash
+      run: |
+        cd handsontable
+        npm run test:e2e.dump.esm-cjs && npm run test:e2e.dump --theme=main && npm run test:e2e.puppeteer --theme=main

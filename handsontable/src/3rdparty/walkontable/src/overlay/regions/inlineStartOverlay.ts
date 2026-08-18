@@ -240,7 +240,9 @@ export class InlineStartOverlay extends Overlay {
     if (typeof columnsRenderCalculator?.startPosition === 'number') {
       this.spreader.style[styleProperty] = `${columnsRenderCalculator.startPosition}px`;
 
-    } else if (total === 0) {
+    } else if (total === 0 || columnsRenderCalculator === null) {
+      // 0 columns, or nothing rendered yet — a `null` calculator is the drawn-but-never-rendered state
+      // a skipped first draw leaves behind (see `restoreRenderedStateIfSafe` in `table/drawCycle.ts`).
       this.spreader.style[styleProperty] = '0';
 
     } else {
