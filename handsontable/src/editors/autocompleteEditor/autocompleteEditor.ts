@@ -168,6 +168,14 @@ export class AutocompleteEditor extends HandsontableEditor {
     this.htEditor.updateSettings({
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : undefined,
       autoColumnSize: true,
+      // With `trimDropdown: false` the list column is sized from its content by
+      // AutoColumnSize, so short options produced a list narrower than the edited
+      // cell (#13180). Floor the column at the cell width: the option rows stay
+      // full-width click targets, and `getTargetEditorWidth()` (which reads
+      // `getColWidth(0)`) widens the outer container to match automatically.
+      modifyColWidth: trimDropdown ? undefined : (width?: number): number => {
+        return Math.max(width ?? 0, outerWidth(this.TEXTAREA) - 2);
+      },
       renderer: (
         hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
         prop: string | number, value: unknown, cellProperties: CellProperties) => {
