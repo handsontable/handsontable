@@ -289,7 +289,10 @@ function toPlainDecimalString(numericText: string): string {
  * Both the input and `String(parsedNumber)` are normalized to plain decimal notation before
  * comparing, so purely cosmetic differences (leading zeros, a leading `+`, `.5`/`5.`, and
  * scientific notation on either side — `1e2` vs `100`, `0.0000001` vs `1e-7`) are not treated
- * as loss.
+ * as loss. A mantissa trailing zero that a positive exponent shifts onto or left of the
+ * decimal point (`1.0e2` → `100`, `1.10e2` → `110`) survives as an integer digit of the exact
+ * value, so it is not loss either; only zeros that stay fractional after the shift
+ * (`1.10e1` → `11.0`) are dropped by parsing and count as lossy.
  *
  * Intended only for the plain float path. Thousands-grouped inputs (e.g. `7.000`) are resolved
  * by the caller before this runs and must not be passed here.

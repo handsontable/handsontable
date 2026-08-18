@@ -570,6 +570,15 @@ describe('Number helper', () => {
     it('should still detect trailing fractional zeros written in scientific notation', () => {
       // 1.230e2 === 123 exactly, but the trailing zero of the mantissa is dropped on parse.
       expect(isLossyNumericConversion('1.2300e2', 123)).toBe(true);
+      // The mantissa zero of 1.10e1 stays fractional after the shift (11.0) and is dropped.
+      expect(isLossyNumericConversion('1.10e1', 11)).toBe(true);
+    });
+
+    it('should not treat mantissa trailing zeros shifted onto integer positions as loss', () => {
+      // 1.0e2 === 100 and 1.10e2 === 110 exactly: the mantissa zero becomes an integer
+      // digit of the parsed value, so no typed digit disappears — same class as `1e2`.
+      expect(isLossyNumericConversion('1.0e2', 100)).toBe(false);
+      expect(isLossyNumericConversion('1.10e2', 110)).toBe(false);
     });
   });
 });
