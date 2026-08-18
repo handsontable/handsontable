@@ -99,6 +99,27 @@ export const NO_NOTICE_KEY = '[eyJwcm9kdWN0cyI6eyJoYW5kc29udGFibGUiOnsiY2FwYWJpb
 export const CUSTOM_FLAG_KEY = '[eyJwcm9kdWN0cyI6eyJoYW5kc29udGFibGUiOnsiY2FwYWJpbGl0aWVzIjpbImNvcmUiXSwidXNhZ2VfdW50aWwiOiIyMDI5LTEyLTMxIiwibm90aWNlIjoxODAsImdyYWNlIjoxODAsImZsYWdzIjpbImN1c3RvbSJdfX196c74d52c783f41f16150492eeebf09806f6fdae81a1f4617eb755bf5fcfd303afd18df4e957ca4585269188f0c3d3d628560e313c0b0bc99d96a1d0be3fa8b62]';
 
 /**
+ * A trial with the console silenced by request - the badge, popover and bar stay (examples A3 + A7).
+ *
+ * @type {string}
+ */
+export const TRIAL_NO_CONSOLE_WARNS_KEY = '[eyJwcm9kdWN0cyI6eyJoYW5kc29udGFibGUiOnsiY2FwYWJpbGl0aWVzIjpbImNvcmUiXSwidXNhZ2VfdW50aWwiOiIyMDI2LTA5LTI2Iiwibm90aWNlIjo0NSwiZ3JhY2UiOjE1LCJmbGFncyI6WyJ0cmlhbCIsIm5vLWNvbnNvbGUtd2FybnMiXX19fQd46b908f88f5bb066023835791d733bfcfe080b5b455157207d2e47d8afee20ba225b795f67e64b4030f2d30e7d42bff20afbb38380dcc1b65357461f7a24c19]';
+
+/**
+ * A trial with the UI silenced by request - only the console speaks (examples A3 + A8).
+ *
+ * @type {string}
+ */
+export const TRIAL_NO_UI_WARNS_KEY = '[eyJwcm9kdWN0cyI6eyJoYW5kc29udGFibGUiOnsiY2FwYWJpbGl0aWVzIjpbImNvcmUiXSwidXNhZ2VfdW50aWwiOiIyMDI2LTA5LTI2Iiwibm90aWNlIjo0NSwiZ3JhY2UiOjE1LCJmbGFncyI6WyJ0cmlhbCIsIm5vLXVpLXdhcm5zIl19fX0dbeff87ec565b90d59175cd5aa86b93abd4164fc2967f9156e289f5db90f0b8c19ddfb44efd92a165b2d1c568c0097c78c243701acf200487372dc8b45a0f1be]';
+
+/**
+ * A perpetual license with the UI silenced, so a lapsed maintenance date shows no bar (example A5).
+ *
+ * @type {string}
+ */
+export const PERPETUAL_NO_UI_WARNS_KEY = '[eyJwcm9kdWN0cyI6eyJoYW5kc29udGFibGUiOnsiY2FwYWJpbGl0aWVzIjpbImNvcmUiXSwicmVsZWFzZV91bnRpbCI6IjIwMjctMDgtMTIiLCJub3RpY2UiOjAsImdyYWNlIjowLCJmbGFncyI6WyJuby11aS13YXJucyJdfX19f99c791278f85a3af95d7af29340f3a6660d2067e193e3dc879c54a7467087c8e0ec2b849129b7c2835c9d580b225c69f64503d3851ecdcb06dd487550fae047]';
+
+/**
  * The complete A1 artifact - the prose the customer reads, then the block. It reads identically to
  * `SUBSCRIPTION_KEY`, which is the point: the prose is neither parsed nor checksummed.
  *

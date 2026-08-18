@@ -259,7 +259,12 @@ export function mountLicenseBadge(hotInstance: HotInstance, lifecycle: LicenseLi
   });
   popover.addEventListener('mouseleave', () => {
     pointerOverPopover = false;
-    rearmIfIdle();
+    // Deliberately NOT re-arming here. Dismissing the popover hides it under the pointer, and the
+    // browser answers that with a `mouseleave` on the very element that was just dismissed - so
+    // re-arming from this handler would drop `is-dismissed` in the same tick, the hover rule would
+    // show the popover again, and the close button would do nothing while the pointer stayed put.
+    // Re-arming belongs to the pointer ROAM path below, which fires once the pointer actually moves
+    // somewhere else.
   });
   wireCornerHoverDetection(hotInstance, wrapper, rearmIfIdle);
 

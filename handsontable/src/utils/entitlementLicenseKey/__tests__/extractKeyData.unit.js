@@ -118,6 +118,13 @@ describe('entitlementLicenseKey/extractKeyData', () => {
       expect(getProductEntitlement(data, 'hyperformula').release_until).toBe('2025-03-31');
     });
 
+    it('should read a key whose product map is empty, granting nothing (H5)', () => {
+      const data = extractEntitlementKeyData(buildTestKey({ products: {} }));
+
+      expect(data).toEqual({ products: {} });
+      expect(getProductEntitlement(data, 'handsontable')).toBeNull();
+    });
+
     it('should read a key that grants no Handsontable license, leaving the verdict to the caller', () => {
       const data = extractEntitlementKeyData(HF_ONLY_KEY);
 
@@ -168,7 +175,8 @@ describe('entitlementLicenseKey/extractKeyData', () => {
 
     it('should reject a key with no block, an unterminated block, or an empty one', () => {
       expect(extractEntitlementKeyData('This is a Handsontable license key for Test Fixture.')).toBeNull();
-      expect(extractEntitlementKeyData(SUBSCRIPTION_KEY.replace(']', ''))).toBeNull();
+      // The closing bracket dropped, so the block never terminates.
+      expect(extractEntitlementKeyData(SUBSCRIPTION_KEY.slice(0, -1))).toBeNull();
       expect(extractEntitlementKeyData('[]')).toBeNull();
       expect(extractEntitlementKeyData('')).toBeNull();
     });
@@ -176,7 +184,8 @@ describe('entitlementLicenseKey/extractKeyData', () => {
     it('should reject a block whose content is not base64url plus a hex checksum', () => {
       const key = buildTestKey({ products: { handsontable: handsontableEntry() } });
 
-      expect(extractEntitlementKeyData(key.replace('[', '[!'))).toBeNull();
+      // A character outside the base64url alphabet, injected at the head of the block.
+      expect(extractEntitlementKeyData(`[!${key.slice(1)}`)).toBeNull();
       expect(extractEntitlementKeyData(buildTestKey(
         { products: { handsontable: handsontableEntry() } },
         { checksum: 'Z'.repeat(128) },

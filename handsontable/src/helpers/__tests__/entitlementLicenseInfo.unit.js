@@ -6,7 +6,10 @@ import {
   NO_CONSOLE_WARNS_KEY,
   NO_UI_WARNS_KEY,
   TRIAL_KEY,
+  TRIAL_NO_CONSOLE_WARNS_KEY,
+  TRIAL_NO_UI_WARNS_KEY,
   PERPETUAL_KEY,
+  PERPETUAL_NO_UI_WARNS_KEY,
   HF_ONLY_KEY,
 } from '../../utils/entitlementLicenseKey/__tests__/fixtures';
 
@@ -191,23 +194,53 @@ describe('entitlement license notification (via _injectProductInfo)', () => {
       expect(node).toBe(null);
     });
 
-    it('should keep the console quiet but the UI loud with no-console-warns', () => {
-      const { node } = inject(NO_CONSOLE_WARNS_KEY, { now: SUBSCRIPTION_NOTICE });
+    it('should keep the console quiet and the bar loud with no-console-warns', () => {
+      // A soft-stopped trial is the state that speaks on BOTH channels, so it is the one that can
+      // show a flag closing exactly one of them.
+      const { node, bar } = inject(TRIAL_NO_CONSOLE_WARNS_KEY, { now: TRIAL_SOFT_STOP });
 
       expect(console.warn).not.toHaveBeenCalled();
-      // The subscription notice has no bar of its own; the flag is what is proven here, so the
-      // trial soft stop is checked separately below.
+      expect(console.error).not.toHaveBeenCalled();
+      expect(node).not.toBe(null);
+      expect(bar()).toContain('Your Handsontable license key has expired.');
+    });
+
+    it('should keep the bar quiet and the console loud with no-ui-warns', () => {
+      const { node } = inject(TRIAL_NO_UI_WARNS_KEY, { now: TRIAL_SOFT_STOP });
+
+      expect(console.error).toHaveBeenCalledWith(
+        'Your Handsontable trial license key expired on 2026-09-26 (UTC). ' +
+        'To continue using Handsontable, you need to purchase a license.'
+      );
       expect(node).toBe(null);
     });
 
-    it('should keep the UI quiet but the console loud with no-ui-warns', () => {
-      const { node } = inject(NO_UI_WARNS_KEY, { now: SUBSCRIPTION_NOTICE });
+    it('should hide the maintenance bar of a perpetual license with no-ui-warns', () => {
+      const { node } = inject(PERPETUAL_NO_UI_WARNS_KEY, {
+        now: SUBSCRIPTION_RUNNING,
+        releaseDate: BUILD_PAST_MAINTENANCE,
+      });
+
+      expect(console.error).toHaveBeenCalledWith(expect.stringContaining(
+        'The license key for Handsontable expired on 2027-08-12'
+      ));
+      expect(node).toBe(null);
+    });
+
+    it('should silence a subscription notice carrying no-console-warns', () => {
+      inject(NO_CONSOLE_WARNS_KEY, { now: SUBSCRIPTION_NOTICE });
+
+      expect(console.warn).not.toHaveBeenCalled();
+    });
+
+    it('should leave a subscription notice audible when only the UI channel is closed', () => {
+      // A subscription has no UI of its own, so `no-ui-warns` must not touch its console warning.
+      inject(NO_UI_WARNS_KEY, { now: SUBSCRIPTION_NOTICE });
 
       expect(console.warn).toHaveBeenCalledWith(
         'Your Handsontable subscription license expires on 2027-08-12 (UTC). ' +
         'To renew your license, contact sales@handsontable.com.'
       );
-      expect(node).toBe(null);
     });
   });
 
