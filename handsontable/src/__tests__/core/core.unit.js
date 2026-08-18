@@ -102,6 +102,17 @@ describe('Core', () => {
     expect(columnCacheUpdatedCallback.calls.count()).toEqual(1);
   });
 
+  it('should return -1 from the rendered/visible counting methods when the instance is not initialized yet', () => {
+    const core = new Core(container, {
+      data: [['a'], ['b'], ['c']],
+    });
+
+    expect(core.countRenderedRows()).toBe(-1);
+    expect(core.countRenderedCols()).toBe(-1);
+    expect(core.countVisibleRows()).toBe(-1);
+    expect(core.countVisibleCols()).toBe(-1);
+  });
+
   it('should clear the DI container collection after destroy', () => {
     const core = new Core(container, {
       data: [['a'], ['b'], ['c']],

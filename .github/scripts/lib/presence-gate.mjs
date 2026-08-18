@@ -48,7 +48,9 @@ const JASMINE_SPEC = /\.spec\.js$/;
 // home (tests/e2e/walkontable), so it follows the same freeze as the main
 // suite: edit existing specs, but new/flaky ones move to Playwright.
 const JASMINE_TREE = [
-  /^handsontable\/src\/.*\/__tests__\//,
+  // The intermediate directory is optional — specs live both at
+  // `src/__tests__/` and at `src/<any>/.../__tests__/`.
+  /^handsontable\/src\/(.*\/)?__tests__\//,
   /^handsontable\/test\//,
   /^handsontable\/src\/3rdparty\/walkontable\/test\//,
 ];

@@ -56,6 +56,10 @@
 
   .ht-slot-top, .ht-slot-bottom {
     flex: 0 0 auto;
+    // A slot element may enforce its own minimum width (for example the license
+    // notification bar); on grids narrower than that the slot scrolls the excess
+    // instead of letting the element overflow the grid.
+    overflow-x: auto;
   }
 
   .ht-slot-element {

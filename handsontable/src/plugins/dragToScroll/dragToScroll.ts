@@ -93,13 +93,13 @@ export class DragToScroll extends BasePlugin {
    */
   #isOutsideViewport = false;
   /**
-   * Kind of drag currently active: `'cell'` for a regular mouse-drag selection,
-   * `'corner'` for an autofill fill-handle drag, or `null` when no drag is active.
-   * Only `'cell'` drags extend the selection via `#onAfterScroll`.
+   * Kind of drag currently active. Cell drags extend the selection directly. Corner,
+   * move, and handle drags only use the auto-scroll timers because their owning plugins
+   * update their state through the `afterScroll` hook.
    *
-   * @type {('cell' | 'corner' | null)}
+   * @type {('cell'|'corner'|'move'|'handle'|null)}
    */
-  #activeDragKind: 'cell' | 'corner' | null = null;
+  #activeDragKind: 'cell' | 'corner' | 'move' | 'handle' | null = null;
   /**
    * Last observed mouse X coordinate (client space). Cached so that the viewport
    * can recompute the edge cell on each `afterScroll` tick even when the mouse
@@ -154,6 +154,8 @@ export class DragToScroll extends BasePlugin {
       this.#setupListening('cell', event, typedController);
     });
     this.addHook('afterOnCellCornerMouseDown', (event: MouseEvent) => this.#setupListening('corner', event));
+    this.addHook('afterOnSelectionEdgeMouseDown', this.#onSelectionEdgeMouseDown);
+    this.addHook('afterOnSelectionHandleMouseDown', this.#onSelectionHandleMouseDown);
     this.addHook('afterSelection', this.#onAfterSelection);
     this.addHook('afterScroll', this.#onAfterScroll);
 
@@ -295,6 +297,11 @@ export class DragToScroll extends BasePlugin {
     while (frame) {
       this.eventManager.addEventListener(frame.document, 'contextmenu', () => this.unlisten());
       this.eventManager.addEventListener(frame.document, 'mouseup', () => this.unlisten());
+      this.eventManager.addEventListener(frame.document, 'keydown', (event: Event) => {
+        if ('key' in event && event.key === 'Escape') {
+          this.unlisten();
+        }
+      });
       this.eventManager.addEventListener(frame.document, 'mousemove', (event: Event) => {
         this.#onMouseMove(event as MouseEvent);
       });
@@ -315,13 +322,14 @@ export class DragToScroll extends BasePlugin {
   /**
    * On after on cell/cellCorner mouse down listener.
    *
-   * @param {('cell' | 'corner')} kind Which drag started — a regular cell selection drag
-   *   (`'cell'`) or an autofill fill-handle drag (`'corner'`).
+   * @param {('cell'|'corner'|'move'|'handle')} kind The active drag interaction.
    * @param {MouseEvent} event The mouse event object.
    * @param {object} [controller] The controller object from `beforeOnCellMouseDown`.
    */
   #setupListening(
-    kind: 'cell' | 'corner', event: MouseEvent, controller: { row?: boolean; column?: boolean } | null = null
+    kind: 'cell' | 'corner' | 'move' | 'handle',
+    event: MouseEvent,
+    controller: { row?: boolean; column?: boolean } | null = null
   ) {
     if (isRightClick(event)) {
       return;
@@ -366,6 +374,39 @@ export class DragToScroll extends BasePlugin {
 
     this.listen();
   }
+
+  /**
+   * Starts auto-scrolling for a move-zone drag, but only if MoveCells actually began one.
+   *
+   * The `afterOnSelectionEdgeMouseDown` hook fires unconditionally from `TableView`, while MoveCells
+   * may reject the press (no movable range, a drag already running). MoveCells owns the drag and its
+   * listener runs first — plugins initialize in ascending `PLUGIN_PRIORITY` order, and MoveCells is
+   * 25 against this plugin's 100 — so the drag state is already settled by the time this runs.
+   * Without the check, auto-scroll would run with no drag in progress.
+   *
+   * @param {MouseEvent} event The move-zone mouse event.
+   */
+  #onSelectionEdgeMouseDown = (event: MouseEvent): void => {
+    if (this.hot.getPlugin('moveCells')?.isDragActive() !== true) {
+      return;
+    }
+
+    this.#setupListening('move', event);
+  };
+
+  /**
+   * Starts auto-scrolling for a selection-handle drag, but only if SelectionHandles actually began
+   * one. Same ordering guarantee as `#onSelectionEdgeMouseDown` (SelectionHandles is priority 24).
+   *
+   * @param {MouseEvent} event The selection-handle mouse event.
+   */
+  #onSelectionHandleMouseDown = (event: MouseEvent): void => {
+    if (this.hot.getPlugin('selectionHandles')?.isDragActive() !== true) {
+      return;
+    }
+
+    this.#setupListening('handle', event);
+  };
 
   /**
    * Scrolls the viewport horizontally by one column. Stops the horizontal axis

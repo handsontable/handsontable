@@ -9,7 +9,7 @@ Known sharp edges, technical debt, and behaviors that are easy to get wrong.
 ## Silent drops
 
 - Tokens present in `tokens.json` but not listed in `tokensKeys.mjs` are **silently dropped** from per-theme output. There is no warning. If a design change doesn't show up in the generated CSS, this is the first place to check.
-- `processTokenValue` returns `null` when a token isn't found at all, and the null is filtered by `processThemeTokens`. Again, no warning.
+- `processTokenValue` returns `null` when a token isn't found at all, and the null is filtered by `processThemeTokens`. Again, no warning — a key listed in `tokensKeys.mjs` that stops resolving in the export is stripped from the committed themes on the next run, so review the `src/themes/static` diff for unexpected deletions.
 - `mode` references that don't resolve both a light and a dark variant return `null` (see `processReference` case `MODE_KEY`: it requires `result.length === 2`).
 
 ## Hardcoded icon-set branching
@@ -43,7 +43,7 @@ Both behaviors must stay in sync. Currently the list contains only `"font-family
 
 ## Limited test coverage
 
-`__tests__/` covers the typed-module emitter (`buildTsModule`, `tsConstName`) and the iconsMap drift guard, run with `node --test scripts/themes/figma/__tests__/`. **Reference resolution (`utils/themeProcessing.mjs`) is not unit-tested** — there is no automated check that it produces the same output for a given `tokens.json`. The safeguards there are:
+`__tests__/` covers the typed-module emitter (`buildTsModule`, `tsConstName`) and the iconsMap drift guard, run with `node --test scripts/themes/figma/__tests__/*.test.mjs` (the bare directory path fails to resolve on Node 22). **Reference resolution (`utils/themeProcessing.mjs`) is not unit-tested** — there is no automated check that it produces the same output for a given `tokens.json`. The safeguards there are:
 1. Running `npm run generate:themes` and reviewing the `src/themes/static` diff (the CSS output is the semantic anchor — see the migration plan's idempotency check).
 2. The repo's theme registry unit tests (`src/themes/__tests__/`) running against the regenerated modules.
 

@@ -16,14 +16,6 @@ describe('CopyPaste', () => {
   });
 
   describe('copy', () => {
-    xit('should be possible to copy data by keyboard shortcut', async() => {
-      // simulated keyboard shortcuts doesn't run the true events
-    });
-
-    xit('should be possible to copy data by contextMenu option', async() => {
-      // simulated mouse events doesn't run the true browser event
-    });
-
     it('should copy the data by default from the last selection layer', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),

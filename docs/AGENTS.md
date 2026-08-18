@@ -425,6 +425,36 @@ Use the `@` prefix with `.md` extension for all internal links:
 
 Do not use relative paths (`../`) for internal links.
 
+### Template variables in links
+
+Never hardcode a branch name in a GitHub link. Five template variables resolve at
+build time - production builds point at the frozen branch for the docs version,
+every other build points at the development branch. All five are declared and
+substituted in `src/plugins/template-variables.mjs`, the sole registry:
+
+| Variable | Production | Otherwise | Use for |
+|---|---|---|---|
+| `{{$examplesBranch}}` | `prod-examples/<major>` | `master` | `handsontable/examples` starter sources |
+| `{{$currentMinorVersion}}` | `prod-docs/<major>.<minor>` | `develop` | `handsontable/handsontable` sources |
+| `{{$currentVersion}}` | package.json version | `0.0.0-next-<sha>-<date>` | version strings, runner links |
+| `{{$latestChangelogVersion}}` | highest `changelog-N` major | same | links to the newest changelog page |
+| `{{$basePath}}` | `''` | `''` | root-relative asset paths |
+
+Three pipelines substitute them and all three go through that module: the content
+loader (`src/plugins/framework-loader.mjs`), the Vite pre-transform
+(`src/plugins/vuepress-preprocessor.mjs`), and the `_md` route generator in
+`astro.config.mjs` that backs Copy Markdown. Add a variable in one place only.
+The exception is `{{$basePath}}` inside **embedded example source files**, which
+`framework-loader.mjs` substitutes with `/docs` rather than `''`.
+
+A hardcoded `tree/master` link sends a reader on older docs to a starter that no
+longer matches their version (DEV-2214).
+
+Exception: the `server-side-*` recipes keep `tree/master/server-examples/...`.
+`server-examples/` is not in the runner's `frameworks.json`, is not bucketed per
+major, and receives no per-major repair, so a `prod-examples/<major>` copy of it
+would be a frozen unmaintained snapshot.
+
 ---
 
 ## 2.8 Trademark Notices
@@ -508,3 +538,36 @@ The custom loader (`src/plugins/framework-loader.mjs`) renders every source page
 - **A framework runtime (`react`, `vue`, `zone.js`, `@angular/compiler`) must only be imported inside `loadRuntime()`.** A bare `await import(...)` there escapes every try/catch as an unhandled rejection and leaves each example of that framework stuck on its loading shimmer forever. `loadRuntime()` returns `null` on failure, and the group is marked with `markFailed()` - the only place that shows a reader-visible notice (`.hot-example-error`). Per-example failures keep the silent `markLoaded()` degradation, because some examples render nothing by design.
 
 Guards for both rules live in `src/lib/__tests__/example-error-reporting.test.mjs` (run by `npm run docs:test:plugins`).
+
+### The two-layer drop policy
+
+`reportExampleError()` only sees failures the runner **caught**. Anything raised outside our try/catch - Astro's own island hydration, for one - reaches Sentry through `onerror`/`onunhandledrejection` and can only be filtered in the `beforeSend` hook inlined in `astro.config.mjs` (`window.sentryOnLoad`). When triage says "expected noise", ask which layer the event actually travels through before editing a drop list; a rule added to the wrong layer changes nothing in production.
+
+The two layers overlap on failed dynamic imports of content-hashed `_astro/*.js` chunks - stale cached HTML, offline readers, blocking extensions. Three phrase lists must stay in step: `isChunkLoadError()` in `src/lib/example-error-reporting.mjs`, the same check in `src/scripts/docs-assistant-bootstrap.ts`, and `chunkLoadFailures` in the `beforeSend` hook. Each engine words the failure differently (Chrome `Failed to fetch dynamically imported module`, Firefox `error loading dynamically imported module`, Safari `Importing a module script failed`), so a one-engine list silently keeps filing issues from the other two.
+
+Neither layer reaches a frozen version build under `/docs/<major>.<minor>/`. `deploy/build_previous_versions.sh` copies each archived version out of its own Docker image verbatim, so those pages run the `beforeSend` and the bundles that shipped at their release - a rule added on `develop` today never appears there. Check a Sentry issue's `url` tag before writing a filter for it: when the events come from a versioned path, the only mechanism that drops them is a **Sentry project-level inbound filter on the message** (server-side, so frozen HTML is irrelevant), and the group belongs in `ignored`/`archived forever`, never `resolved` - the archived page is live, so a resolve auto-regresses. Example: HANDSONTABLE-DOCS-1FM mixes both, 11 of 18 events on current recipe pages (which the hook does filter) and 1 on `/docs/17.1/`, still calling the `http://localhost:3000/tickets` its bundle was built with.
+
+The same gap exists one branch away: production docs build from `prod-docs/<major>.<minor>`, which cherry-picks from `develop` selectively and does not carry `sentryOnLoad` today. Every rule here is inert in production until that cherry-pick lands - say so when reporting that a filter is done.
+
+Gate any rule that is expected noise only in one place (a recipe page with no backend, a demo without a server) on the page URL, so the same failure stays visible everywhere else.
+
+Regression tests for the hook live in `src/scripts/__tests__/sentry-before-send.test.mjs`; it evaluates the script exactly as inlined, so every drop rule needs both a drops-it and a keeps-the-real-thing case.
+
+---
+
+## 2.14 Patching Starlight's Custom Elements
+
+Starlight's custom elements assign their methods as **class fields** (`private init = (): void => {...}`), not as prototype methods. An own instance property never reaches the prototype, so `customElements.get('starlight-toc').prototype.init` is `undefined` and any prototype patch silently no-ops. A guard written that way looks correct in review, passes locally, and fixes nothing in production - that is exactly how the `:has()` table-of-contents guard stayed dead for two months (Sentry HANDSONTABLE-DOCS-1GA).
+
+To patch such an element, intercept `customElements.define` in an `is:inline` head script and wrap the method on `this` right after `super()`. Two rules:
+
+- **Cover every registered name.** `mobile-starlight-toc` (`components/MobileTableOfContents.astro`) extends the same `StarlightTOC` class but registers separately, so it needs its own wrap.
+- **Subclass with `class extends`,** which keeps statics reachable through the prototype chain and keeps `instanceof` true for the original constructor. The browser reads `observedAttributes` off whatever constructor the registry holds, and it upgrades elements against it.
+
+Wrapping after `super()` works because the base constructor only *schedules* the method through `requestIdleCallback`, and that callback reads `this.init` when it fires.
+
+The install does not need a re-entry flag today. The site does not use `<ClientRouter />`, and Astro's swap logic keys executed scripts by `textContent` (`detectScriptExecuted()` in `astro/dist/transitions/swap-functions.js`), so an unchanged inline head script never runs twice. Add one if either of those stops holding.
+
+The live guard is in `src/components/Head.astro`; its regression test is `src/components/__tests__/head-starlight-toc-has-guard.test.mjs`, which extracts the shipped script, asserts `Head.astro` holds exactly one guard script, and runs the guard against a double that replicates the class-field shape. It runs under `npm run docs:test:plugins`. Any claim that such a patch works needs a browser check of the *instance* property, not just the absence of a local error.
+
+Unrelated to this: `src/plugins/replace-has-selectors.mjs` and `src/plugins/has-fallback-runtime.mjs` rewrite `:has()` in **stylesheets** for performance. They do not touch selector strings passed to `querySelectorAll` inside third-party bundles.

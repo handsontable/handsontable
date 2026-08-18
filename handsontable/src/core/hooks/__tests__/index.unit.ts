@@ -384,6 +384,25 @@ describe('Hooks', () => {
 
       expect(hooks.isRegistered('test3')).toBe(true);
     });
+
+    it('should include afterOnSelectionHandleMouseDown in the registered hooks list', () => {
+      const hooks = new Hooks();
+
+      expect(hooks.isRegistered('afterOnSelectionHandleMouseDown')).toBe(true);
+    });
+
+    it('should include afterOnSelectionEdgeMouseDown in the registered hooks list', () => {
+      const hooks = new Hooks();
+
+      expect(hooks.isRegistered('afterOnSelectionEdgeMouseDown')).toBe(true);
+    });
+
+    it('should register the beforeMoveCells and afterMoveCells hooks', () => {
+      const hooks = new Hooks();
+
+      expect(hooks.isRegistered('beforeMoveCells')).toBe(true);
+      expect(hooks.isRegistered('afterMoveCells')).toBe(true);
+    });
   });
 
   describe('deregister()', () => {

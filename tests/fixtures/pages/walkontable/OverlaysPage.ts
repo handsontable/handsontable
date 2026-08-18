@@ -6,18 +6,20 @@ import { type Page, type Locator, expect } from '@playwright/test';
  * scroll interaction, so specs assert engine behavior without reaching into
  * walkontable DOM class names directly.
  */
-export class WalkontablePage {
+export class OverlaysPage {
   readonly page: Page;
   readonly theme: string;
+  readonly bundle: string;
   readonly grid: Locator;
   readonly master: Locator;
   readonly topOverlay: Locator;
   readonly inlineStartOverlay: Locator;
   readonly corner: Locator;
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.grid = page.getByTestId('grid');
     this.master = this.grid.locator('.ht_master');
     this.topOverlay = this.grid.locator('.ht_clone_top');
@@ -27,11 +29,11 @@ export class WalkontablePage {
 
   /**
    * Navigate and wait for the grid to render (a real DOM condition, no sleep).
-   * The active theme is passed as a query param so the fixture loads the
-   * matching stylesheet.
+   * The active theme and bundle are passed as query params so the fixture
+   * loads the matching stylesheet and Handsontable build.
    */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/walkontable.html?theme=${this.theme}`);
+    await this.page.goto(`/tests/fixtures/demo/walkontable/overlays.html?theme=${this.theme}&bundle=${this.bundle}`);
     await expect(this.master).toBeVisible();
   }
 

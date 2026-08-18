@@ -37,6 +37,131 @@
       );
     }
 
+    // Adjustment handles (desktop drag-to-resize, .wtSelectionHandle).
+    // Visual styling is driven entirely by CSS using the --ht-cell-selection-handle-* tokens.
+    // JS (border.ts createAdjustHandles) sets only display:none / positions via top/left.
+    .wtSelectionHandle {
+      position: absolute;
+      box-sizing: border-box;
+      z-index: 200;
+      background: var(--ht-cell-selection-handle-background-color);
+      border: var(--ht-cell-selection-handle-border-width) solid var(--ht-cell-selection-handle-border-color);
+      border-radius: var(--ht-cell-selection-handle-border-radius);
+      animation: ht-selection-handle-fade-in var(--ht-table-transition) ease-in-out backwards;
+
+      &:hover {
+        // Boost the background toward the accent color on hover.
+        background: color-mix(
+          in srgb,
+          var(--ht-cell-selection-handle-border-color) 30%,
+          var(--ht-cell-selection-handle-background-color)
+        );
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        animation: none;
+      }
+    }
+
+    .wtSelectionHandle--top,
+    .wtSelectionHandle--bottom {
+      width: var(--ht-cell-selection-handle-length);
+      height: var(--ht-cell-selection-handle-size);
+      cursor: ns-resize;
+    }
+
+    .wtSelectionHandle--start,
+    .wtSelectionHandle--end {
+      width: var(--ht-cell-selection-handle-size);
+      height: var(--ht-cell-selection-handle-length);
+      cursor: ew-resize;
+    }
+
+    // While resizing via a handle, hide the other handles so only the dragged one shows.
+    // The root gets ht__resizing-selection--<edge> for the duration of the drag.
+    &.ht__resizing-selection--top .wtSelectionHandle:not(.wtSelectionHandle--top),
+    &.ht__resizing-selection--bottom .wtSelectionHandle:not(.wtSelectionHandle--bottom),
+    &.ht__resizing-selection--start .wtSelectionHandle:not(.wtSelectionHandle--start),
+    &.ht__resizing-selection--end .wtSelectionHandle:not(.wtSelectionHandle--end) {
+      display: none !important;
+    }
+
+    // While resizing, keep the resize cursor across the whole grid (cells set their own cursor, so
+    // `!important` on the subtree is required). Off-grid, the cursor is held via body style in JS.
+    &.ht__resizing-selection--top,
+    &.ht__resizing-selection--bottom {
+      &,
+      * {
+        cursor: ns-resize !important;
+      }
+    }
+
+    &.ht__resizing-selection--start,
+    &.ht__resizing-selection--end {
+      &,
+      * {
+        cursor: ew-resize !important;
+      }
+    }
+
+    // Keep the dragged handle styled as if hovered (boosted background) for the whole drag.
+    &.ht__resizing-selection--top .wtSelectionHandle--top,
+    &.ht__resizing-selection--bottom .wtSelectionHandle--bottom,
+    &.ht__resizing-selection--start .wtSelectionHandle--start,
+    &.ht__resizing-selection--end .wtSelectionHandle--end {
+      background: color-mix(
+        in srgb,
+        var(--ht-cell-selection-handle-border-color) 30%,
+        var(--ht-cell-selection-handle-background-color)
+      );
+    }
+
+    // The `.wtMoveGhost` drop-target preview (moveCells option) has no rule here on purpose: the
+    // MoveCells plugin appends it to `document.body` with `position: fixed` so it is never clipped
+    // by a host layout's overflow. That places it outside this theme scope, so the
+    // `--ht-cell-selection-border-*` tokens do not resolve on it and a rule here would never match.
+    // The plugin therefore reads those two tokens off the root element and inlines the resolved
+    // values — see `#createGhost` in `src/plugins/moveCells/moveCells.ts`.
+
+    // Move zone bands on the selection border (show grab cursor on hover).
+    .wtMoveZone {
+      cursor: grab;
+
+      &:active {
+        cursor: grabbing;
+      }
+    }
+
+    // While a move drag is in progress the source selection border is hidden so the dashed ghost
+    // (rendered on the document body, following the pointer) is the single "moving" area border.
+    // The source area keeps its light-blue cell fill in place to mark where the selection came from.
+    // Applied via the ht__moving class on the root element.
+    &.ht__moving {
+      // Hold the grabbing cursor for the whole grid during the drag. Cells and other elements
+      // set their own cursor, so `!important` on the subtree is required to keep it consistent
+      // while the pointer moves over the data. (Off-grid, the cursor is held via body style in JS.)
+      cursor: grabbing;
+
+      * {
+        cursor: grabbing !important;
+      }
+
+      // Hide the source border lines (all edges + corner). `!important` matches the specificity of
+      // the `background-color: ... !important` rules on `.wtBorder.current`/`.wtBorder.area` in the
+      // Borders section below. The cell area fill is separate (on the cells) and stays visible.
+      .wtBorder.area,
+      .wtBorder.current {
+        display: none !important;
+      }
+
+      // Keep affordances in the document flow while making them invisible. Removing the move zone
+      // with `display: none` during its mousedown can interrupt the active pointer interaction.
+      .wtSelectionHandle,
+      .wtMoveZone {
+        visibility: hidden !important;
+      }
+    }
+
     // Borders
     .wtBorder {
       position: absolute;
@@ -85,7 +210,9 @@
         border-color: var(--ht-cell-autofill-border-color) !important;
         font-size: 0;
         cursor: crosshair;
-        z-index: 10;
+        // Above the moveCells bands (z-index 100, inline) — they span the SE corner, and the fill
+        // handle must keep winning its own pixels there — but below the resize pills (z-index 200).
+        z-index: 150;
 
         &::after {
           content: '';
@@ -103,6 +230,16 @@
           inset-block-end: 0;
         }
       }
+    }
+  }
+
+  @keyframes ht-selection-handle-fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
     }
   }
 }

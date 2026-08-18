@@ -208,6 +208,7 @@ interface HandsontableFactory {
     ManualRowMove: typeof import('./plugins/manualRowMove').ManualRowMove;
     ManualRowResize: typeof import('./plugins/manualRowResize').ManualRowResize;
     MergeCells: typeof import('./plugins/mergeCells').MergeCells;
+    MoveCells: typeof import('./plugins/moveCells').MoveCells;
     MultiColumnSorting: typeof import('./plugins/multiColumnSorting').MultiColumnSorting;
     MultipleSelectionHandles: typeof import('./plugins/multipleSelectionHandles').MultipleSelectionHandles;
     NestedHeaders: typeof import('./plugins/nestedHeaders').NestedHeaders;
@@ -215,6 +216,7 @@ interface HandsontableFactory {
     Notification: typeof import('./plugins/notification').Notification;
     Pagination: typeof import('./plugins/pagination').Pagination;
     Search: typeof import('./plugins/search').Search;
+    SelectionHandles: typeof import('./plugins/selectionHandles').SelectionHandles;
     StretchColumns: typeof import('./plugins/stretchColumns').StretchColumns;
     TouchScroll: typeof import('./plugins/touchScroll').TouchScroll;
     TrimRows: typeof import('./plugins/trimRows').TrimRows;
@@ -427,6 +429,7 @@ declare namespace Handsontable {
     export type ManualRowMove = import('./plugins/manualRowMove').ManualRowMove;
     export type ManualRowResize = import('./plugins/manualRowResize').ManualRowResize;
     export type MergeCells = import('./plugins/mergeCells').MergeCells;
+    export type MoveCells = import('./plugins/moveCells').MoveCells;
     export type MultiColumnSorting = import('./plugins/multiColumnSorting').MultiColumnSorting;
     export type MultipleSelectionHandles = import('./plugins/multipleSelectionHandles').MultipleSelectionHandles;
     export type NestedHeaders = import('./plugins/nestedHeaders').NestedHeaders;
@@ -434,6 +437,7 @@ declare namespace Handsontable {
     export type Notification = import('./plugins/notification').Notification;
     export type Pagination = import('./plugins/pagination').Pagination;
     export type Search = import('./plugins/search').Search;
+    export type SelectionHandles = import('./plugins/selectionHandles').SelectionHandles;
     export type StretchColumns = import('./plugins/stretchColumns').StretchColumns;
     export type TouchScroll = import('./plugins/touchScroll').TouchScroll;
     export type TrimRows = import('./plugins/trimRows').TrimRows;

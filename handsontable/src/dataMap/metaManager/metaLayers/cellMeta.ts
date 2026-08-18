@@ -260,7 +260,14 @@ export default class CellMeta {
    * @param {string} key The property name to remove.
    */
   removeMeta(physicalRow: number, physicalColumn: number, key: string) {
-    const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
+    // Peek instead of `obtain`: removing a key from a cell with no materialized meta is a no-op,
+    // and materializing one object per visited cell here would retain memory the viewport
+    // eviction cannot sweep (bulk callers remove keys across whole regions).
+    const cellMeta = this.metas.getIfExists(physicalRow)?.getIfExists(physicalColumn);
+
+    if (cellMeta === undefined) {
+      return;
+    }
 
     delete cellMeta[key];
     (cellMeta._userDefinedMetaProps as Set<string> | undefined)?.delete(key);

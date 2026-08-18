@@ -229,7 +229,7 @@ The Theme Generator transforms JSON tokens exported from Figma into properly for
 
 For full control over your theme, you can override CSS variables directly. Follow these [steps](@/guides/styling/themes/themes.md#use-a-theme) to apply a theme, then override the variables for your chosen theme.
 
-You can also directly modify the CSS theme files located in `handsontable/dist/styles/themes/`. This gives you immediate access to all CSS variables and allows for quick iterations.
+You can also open the CSS theme files in `handsontable/styles/` to see every CSS variable a theme defines. Copy the variables you need into your own stylesheet - edits made inside `node_modules` are lost on the next install.
 
 Here's an example for `.ht-theme-main`:
 
@@ -270,6 +270,31 @@ Here's an example for `.ht-theme-main`:
 :::
 
 :::
+
+### Target the theme class, not the container
+
+Set your overrides on the theme class. Handsontable renders an inner wrapper that also carries the theme class, and that wrapper redefines every variable the theme owns. A value you set on the container element is inherited by the wrapper and then overwritten there, so it never reaches the cells:
+
+```css
+/* No effect - the inner wrapper redefines these variables. */
+#my-grid {
+  --ht-font-size: 24px;
+  --ht-line-height: 32px;
+}
+```
+
+Raising the specificity of that selector does not help, because the wrapper's own declaration is closer to the cells rather than weaker.
+
+Scope your rule to the theme class instead. Writing it as a descendant of your container keeps the override local to one grid and independent of stylesheet order:
+
+```css
+#my-grid .ht-theme-main {
+  --ht-font-size: 24px;
+  --ht-line-height: 32px;
+}
+```
+
+A bare `.ht-theme-main { ... }` rule works as well, but it matches the wrapper with the same specificity as the theme's own rule. It wins only when your stylesheet comes after the theme stylesheet, which depends on how your bundler orders CSS.
 
 ## Option 4: Use the Theme Builder UI
 
@@ -491,6 +516,19 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-mobile-handle-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellMobileHandleBorderColor` </div>       | Border color of mobile handles       |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-mobile-handle-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellMobileHandleBackgroundColor` </div>   | Background color of mobile handles   |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-mobile-handle-background-opacity` </div><div class="variables-table__item"><span>JS:</span> `cellMobileHandleBackgroundOpacity` </div> | Background opacity of mobile handles |
+
+#### Cell Selection Handle Variables
+
+These variables style the handles shown at each edge midpoint of a selected range when the [`selectionHandles`](@/api/options.md#selectionhandles) option is on. They are separate from the mobile touch handles above.
+
+| Variable | Description                          |
+| -------- | ------------------------------------ |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-handle-size` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionHandleSize` </div>              | Thickness of selection handles       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-handle-length` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionHandleLength` </div>            | Length of selection handles          |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-handle-border-width` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionHandleBorderWidth` </div>      | Border width of selection handles    |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-handle-border-radius` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionHandleBorderRadius` </div>     | Border radius of selection handles   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-handle-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionHandleBorderColor` </div>      | Border color of selection handles    |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-handle-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionHandleBackgroundColor` </div>  | Background color of selection handles |
 
 #### Indicator Variables
 

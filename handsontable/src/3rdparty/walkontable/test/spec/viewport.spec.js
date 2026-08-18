@@ -524,11 +524,12 @@ describe('WalkontableViewport', () => {
         totalColumns: getTotalColumns,
       });
 
-      // draw() is interrupted — rowsRenderCalculator and columnsRenderCalculator stay undefined
+      // draw() is interrupted — rowsRenderCalculator and columnsRenderCalculator keep their
+      // initial `null` (never rendered)
       wt.draw();
 
-      expect(wt.wtViewport.rowsRenderCalculator).toBeUndefined();
-      expect(wt.wtViewport.columnsRenderCalculator).toBeUndefined();
+      expect(wt.wtViewport.rowsRenderCalculator).toBeNull();
+      expect(wt.wtViewport.columnsRenderCalculator).toBeNull();
 
       // Simulate accordion/tab opening: container becomes visible
       spec().$wrapper.css('display', '');

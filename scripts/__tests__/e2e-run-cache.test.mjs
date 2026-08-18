@@ -1,23 +1,37 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { envHash, specKey, filterCached, recordGreen } from '../e2e-run-cache.mjs';
+import { envHash, specKey, filterCached, recordGreen, cacheFile } from '../e2e-run-cache.mjs';
 
 /**
  * Build a minimal fake repo root with a dist bundle, a fixture, and one spec.
  *
+ * @param {'clone'|'worktree'} shape `clone` gives a `.git` DIRECTORY; `worktree`
+ *   gives the linked-worktree layout, where `.git` is a FILE pointing at
+ *   `<main>/.git/worktrees/<name>`.
  * @returns {string} The fake repo root.
  */
-function fakeRoot() {
+function fakeRoot(shape = 'clone') {
   const root = mkdtempSync(path.join(tmpdir(), 'e2e-cache-'));
 
-  mkdirSync(path.join(root, '.git'), { recursive: true });
+  if (shape === 'worktree') {
+    const linked = path.join(mkdtempSync(path.join(tmpdir(), 'e2e-cache-main-')), '.git/worktrees/wt');
+
+    mkdirSync(linked, { recursive: true });
+    writeFileSync(path.join(root, '.git'), `gitdir: ${linked}\n`);
+  } else {
+    mkdirSync(path.join(root, '.git'), { recursive: true });
+  }
   mkdirSync(path.join(root, 'handsontable/dist'), { recursive: true });
   mkdirSync(path.join(root, 'tests/e2e'), { recursive: true });
   mkdirSync(path.join(root, 'tests/fixtures/pages'), { recursive: true });
+  writeFileSync(path.join(root, 'handsontable/dist/handsontable.js'), 'dist-umd-v1');
   writeFileSync(path.join(root, 'handsontable/dist/handsontable.full.min.js'), 'dist-v1');
+  mkdirSync(path.join(root, 'tests/node_modules/hyperformula/dist'), { recursive: true });
+  writeFileSync(path.join(root, 'tests/package.json'), 'pkg-v1');
+  writeFileSync(path.join(root, 'tests/node_modules/hyperformula/dist/hyperformula.full.min.js'), 'hf-v1');
   writeFileSync(path.join(root, 'tests/fixtures/pages/GridPage.ts'), 'pom-v1');
   writeFileSync(path.join(root, 'tests/playwright.config.ts'), 'cfg-v1');
   writeFileSync(path.join(root, 'tests/e2e/a.spec.ts'), 'spec-v1');
@@ -34,6 +48,34 @@ test('a recorded green run is skipped on the next pass (run-once)', () => {
 
   assert.deepEqual(second.toRun, []);
   assert.deepEqual(second.skipped, ['e2e/a.spec.ts']);
+});
+
+// In a linked worktree `<root>/.git` is a file, so the old `path.join(root,
+// '.git', …)` target could never be written (ENOTDIR, swallowed) — the cache was
+// permanently cold for everyone working in a worktree, silently.
+test('run-once works in a linked worktree, where .git is a file', () => {
+  const root = fakeRoot('worktree');
+  const file = cacheFile(root);
+
+  // Not under the `.git` file — the real git directory lives outside the worktree.
+  assert.ok(file && !file.startsWith(root), `${file} is under the .git FILE`);
+
+  assert.deepEqual(filterCached(root, ['e2e/a.spec.ts']).toRun, ['e2e/a.spec.ts']);
+  recordGreen(root, ['e2e/a.spec.ts']);
+  assert.ok(existsSync(file), `${file} was not written`);
+
+  const second = filterCached(root, ['e2e/a.spec.ts']);
+
+  assert.deepEqual(second.toRun, []);
+  assert.deepEqual(second.skipped, ['e2e/a.spec.ts']);
+});
+
+test('editing the spec invalidates the cache in a worktree too', () => {
+  const root = fakeRoot('worktree');
+
+  recordGreen(root, ['e2e/a.spec.ts']);
+  writeFileSync(path.join(root, 'tests/e2e/a.spec.ts'), 'spec-v2');
+  assert.deepEqual(filterCached(root, ['e2e/a.spec.ts']).toRun, ['e2e/a.spec.ts']);
 });
 
 test('editing the spec invalidates the cache', () => {
@@ -53,6 +95,39 @@ test('rebuilding the dist or touching a fixture invalidates the cache', () => {
 
   recordGreen(root, ['e2e/a.spec.ts']);
   writeFileSync(path.join(root, 'tests/fixtures/pages/GridPage.ts'), 'pom-v2');
+  assert.deepEqual(filterCached(root, ['e2e/a.spec.ts']).toRun, ['e2e/a.spec.ts']);
+});
+
+test('rebuilding ONLY the base UMD bundle invalidates the cache (the e2e-main leg loads it)', () => {
+  const root = fakeRoot();
+
+  recordGreen(root, ['e2e/a.spec.ts']);
+  // `build:umd` rewrites handsontable.js and leaves the min files alone — the
+  // hook must re-run the spec against the new bundle, not skip it as green.
+  writeFileSync(path.join(root, 'handsontable/dist/handsontable.js'), 'dist-umd-v2');
+  assert.deepEqual(filterCached(root, ['e2e/a.spec.ts']).toRun, ['e2e/a.spec.ts']);
+});
+
+test('reinstalling a different fixture-served engine invalidates the cache', () => {
+  const root = fakeRoot();
+
+  recordGreen(root, ['e2e/a.spec.ts']);
+  // A different HyperFormula lands in tests/node_modules — the formulas
+  // fixture would serve it, so the recorded green no longer proves anything.
+  writeFileSync(path.join(root, 'tests/node_modules/hyperformula/dist/hyperformula.full.min.js'), 'hf-v2');
+  assert.deepEqual(filterCached(root, ['e2e/a.spec.ts']).toRun, ['e2e/a.spec.ts']);
+
+  recordGreen(root, ['e2e/a.spec.ts']);
+  writeFileSync(path.join(root, 'tests/package.json'), 'pkg-v2');
+  assert.deepEqual(filterCached(root, ['e2e/a.spec.ts']).toRun, ['e2e/a.spec.ts']);
+});
+
+test('a missing base UMD bundle makes the environment incomplete (never skip)', () => {
+  const root = fakeRoot();
+
+  recordGreen(root, ['e2e/a.spec.ts']);
+  rmSync(path.join(root, 'handsontable/dist/handsontable.js'));
+  assert.equal(envHash(root), '');
   assert.deepEqual(filterCached(root, ['e2e/a.spec.ts']).toRun, ['e2e/a.spec.ts']);
 });
 

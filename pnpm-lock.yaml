@@ -186,9 +186,6 @@ importers:
       '@expressive-code/plugin-line-numbers':
         specifier: ^0.44.0
         version: 0.44.0
-      '@handsontable/pikaday':
-        specifier: ^1.0.0
-        version: 1.0.0
       '@liveblocks/client':
         specifier: ^3.22.0
         version: 3.22.0(@types/json-schema@7.0.15)
@@ -246,6 +243,9 @@ importers:
       papaparse:
         specifier: ^5.5.3
         version: 5.5.3
+      pikaday:
+        specifier: ^1.8.2
+        version: 1.8.2
       pinia:
         specifier: ^2.3.1
         version: 2.3.1(typescript@5.8.3)(vue@3.5.35(typescript@5.8.3))
@@ -298,6 +298,9 @@ importers:
       '@types/node':
         specifier: ^20.11.27
         version: 20.19.42
+      '@types/pikaday':
+        specifier: ^1.7.10
+        version: 1.7.10
       '@types/react':
         specifier: ^18.3.31
         version: 18.3.31
@@ -382,9 +385,6 @@ importers:
       '@handsontable/angular-wrapper':
         specifier: link:../../wrappers/angular-wrapper/dist/hot-table
         version: link:../../wrappers/angular-wrapper/dist/hot-table
-      '@handsontable/pikaday':
-        specifier: latest
-        version: 1.0.0
       '@simonwep/pickr':
         specifier: latest
         version: 1.9.1
@@ -394,6 +394,9 @@ importers:
       '@types/papaparse':
         specifier: ^5.5.2
         version: 5.5.2
+      '@types/pikaday':
+        specifier: ^1.7.10
+        version: 1.7.10
       chart.js:
         specifier: latest
         version: 4.5.1
@@ -427,6 +430,9 @@ importers:
       papaparse:
         specifier: latest
         version: 5.5.3
+      pikaday:
+        specifier: ^1.8.2
+        version: 1.8.2
       rxjs:
         specifier: ~7.8.0
         version: 7.8.2
@@ -653,6 +659,9 @@ importers:
       eslint:
         specifier: 8.57.1
         version: 8.57.1
+      hyperformula:
+        specifier: 3.3.0
+        version: 3.3.0
 
   visual-tests:
     devDependencies:
@@ -2895,9 +2904,6 @@ packages:
 
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
-
-  '@handsontable/pikaday@1.0.0':
-    resolution: {integrity: sha512-1VN6N38t5/DcjJ7y7XUYrDx1LuzvvzlrFdBdMG90Qo1xc8+LXHqbWbsTEm5Ec5gXTEbDEO53vUT35R+2COmOyg==}
 
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
@@ -5859,6 +5865,9 @@ packages:
 
   '@types/papaparse@5.5.2':
     resolution: {integrity: sha512-gFnFp/JMzLHCwRf7tQHrNnfhN4eYBVYYI897CGX4MY1tzY9l2aLkVyx2IlKZ/SAqDbB3I1AOZW5gTMGGsqWliA==}
+
+  '@types/pikaday@1.7.10':
+    resolution: {integrity: sha512-5Xbp28ocWHVe24/L2+chHFtB9Ac+Q3q2UdqktUhS6PeYgrqzD0dBIQZUitw+DnqkJns0YrJYoeNWO2iwCu2MRg==}
 
   '@types/prettier@2.7.3':
     resolution: {integrity: sha512-+68kP9yzs4LMp7VNh8gdzMSPZFL44MLGqiHWvttYJe+6qnuVr4Ek9wSBQoveqY/r+LwjCcU29kNVkidwim+kYA==}
@@ -11168,6 +11177,9 @@ packages:
     resolution: {integrity: sha512-uB80kBFb/tfd68bVleG9T5GGsGPjJrLAUpR5PZIrhBnIaRTQRjqdJSsIKkOP6OAIFbj7GOrcudc5pNjZ+geV2g==}
     engines: {node: '>=6'}
 
+  pikaday@1.8.2:
+    resolution: {integrity: sha512-TNtsE+34BIax3WtkB/qqu5uepV1McKYEgvL3kWzU7aqPCpMEN6rBF3AOwu4WCwAealWlBGobXny/9kJb49C1ew==}
+
   pinia@2.3.1:
     resolution: {integrity: sha512-khUlZSwt9xXCaTbbxFYBKDc/bWAGWJjOgvxETwkTN7KRm66EeT1ZdZj6i2ceh9sP2Pzqsbc704r2yngBrxBVug==}
     peerDependencies:
@@ -16161,8 +16173,6 @@ snapshots:
 
   '@floating-ui/utils@0.2.12': {}
 
-  '@handsontable/pikaday@1.0.0': {}
-
   '@humanwhocodes/config-array@0.13.0':
     dependencies:
       '@humanwhocodes/object-schema': 2.0.3
@@ -19275,6 +19285,10 @@ snapshots:
   '@types/papaparse@5.5.2':
     dependencies:
       '@types/node': 25.9.2
+
+  '@types/pikaday@1.7.10':
+    dependencies:
+      moment: 2.30.1
 
   '@types/prettier@2.7.3': {}
 
@@ -26549,6 +26563,8 @@ snapshots:
   picomatch@4.0.4: {}
 
   pify@4.0.1: {}
+
+  pikaday@1.8.2: {}
 
   pinia@2.3.1(typescript@5.8.3)(vue@3.5.35(typescript@5.8.3)):
     dependencies:

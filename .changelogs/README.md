@@ -18,6 +18,48 @@ Documentation-only, test-only, and CI/tooling PRs **pass automatically** — no 
 ...and re-run the failed **Changelog** check from the PR's checks tab (or push any new commit — `git commit --allow-empty` works). The check reads the PR body at run time; editing the description alone does not re-trigger it. The override is logged together with the source files it waves through, so reviewers can judge it.
 
 
+## Entry format
+
+Every `.json` file in this directory holds a single entry with six required fields:
+
+```json
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the cell editor closing unexpectedly on scroll.",
+  "type": "fixed",
+  "issueOrPR": 12345,
+  "breaking": false,
+  "framework": "none"
+}
+```
+
+| Field | Accepted values | Meaning |
+|---|---|---|
+| `issuesOrigin` | `private`, `public` | Whether `issueOrPR` is a public GitHub issue number. See below. |
+| `title` | non-empty string | User-facing description of the change, ending with a period. |
+| `type` | `added`, `changed`, `deprecated`, `removed`, `fixed`, `security` | The `CHANGELOG.md` section the entry lands in. |
+| `issueOrPR` | number | The cited GitHub number. Also the filename. |
+| `breaking` | boolean | Breaking changes are listed first within their section. |
+| `framework` | `none`, `react`, `vue`, `angular` | Prefixes the entry with the framework name; `none` for core. |
+
+### `issuesOrigin`
+
+This field answers one question: **is the number in `issueOrPR` a public GitHub issue?** It says nothing about the pull request, and nothing about the repository being public.
+
+It selects the link path in the generated `CHANGELOG.md`, and `bin/changelog` names the file after `issueOrPR`, so the two fields move together:
+
+| `issuesOrigin` | `issueOrPR` | Filename | Rendered link |
+|---|---|---|---|
+| `private` — the default, and almost always correct | pull request number | `<PR-number>.json` | `https://github.com/handsontable/handsontable/pull/<n>` |
+| `public` — rare | public GitHub **issue** number | `<issue-number>.json` | `https://github.com/handsontable/handsontable/issues/<n>` |
+
+Work tracked in a private ClickUp task is `private` — that covers every change with a `DEV-xxx` ID. Reach for `public` only when the entry cites a real public GitHub issue number.
+
+A wrong value does not break the published output, because GitHub redirects `/issues/<n>` to `/pull/<n>` when the number belongs to a pull request. It does publish the wrong path in the release notes, and it makes the field carry no information.
+
+When you create an entry interactively, `bin/changelog entry` warns if you pick `public` for a number that resolves to a pull request. The warning needs network access and is skipped silently without it, and it cannot see entries you write by hand.
+
+
 ## Changelog helper
 
 This repository includes a script that aids in creating new changelog entries and compiling them into the final `CHANGELOG.md` file.

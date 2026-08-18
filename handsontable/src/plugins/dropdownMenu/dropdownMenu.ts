@@ -5,10 +5,11 @@ import { objectEach } from '../../helpers/object';
 import { CommandExecutor } from '../contextMenu/commandExecutor';
 import { getDocumentOffsetByElement } from '../contextMenu/utils';
 import {
-  eventTargetEl, hasClass, isBottomMostColumnHeader, isHTMLElement, setAttribute
+  addClass, eventTargetEl, hasClass, isBottomMostColumnHeader, isHTMLElement, removeClass, setAttribute
 } from '../../helpers/dom/element';
 import { ItemsFactory } from '../contextMenu/itemsFactory';
 import { Menu } from '../contextMenu/menu';
+import type { MenuAnchorRectProvider } from '../contextMenu/menu';
 import { Hooks } from '../../core/hooks';
 import {
   COLUMN_LEFT,
@@ -28,9 +29,20 @@ Hooks.getSingleton().register('afterDropdownMenuShow');
 Hooks.getSingleton().register('afterDropdownMenuHide');
 Hooks.getSingleton().register('afterDropdownMenuExecute');
 
+// Re-exported because this plugin's public `open()` accepts a `MenuAnchorRectProvider`
+// (defined alongside the shared `Menu` class in `contextMenu/menu`) as its third parameter.
+export type { MenuAnchorRectProvider };
+
 export const PLUGIN_KEY = 'dropdownMenu';
 export const PLUGIN_PRIORITY = 230;
 const BUTTON_CLASS_NAME = 'changeType';
+/**
+ * Marks a header that carries a trailing icon button, so styles that position something against
+ * the header's trailing edge - the ColumnSorting indicator - can keep clear of it. A class rather
+ * than a `:has()` selector: `:has()` on a header re-runs style invalidation on every grid DOM
+ * mutation, which is why it is banned in this package.
+ */
+const HEADER_WITH_BUTTON_CLASS_NAME = 'has-header-button';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 interface DropdownMenuSettings {
@@ -387,6 +399,15 @@ export class DropdownMenu extends BasePlugin {
         const menuTop = isRowspanned
           ? (th.getBoundingClientRect().top + th.clientHeight)
           : buttonRect.bottom;
+        // Anchor to `target`'s own resolved coordinates, not `(headerRow, from.col)`: the
+        // hidden-nested-placeholder fallback above can point `target` at a DIFFERENT
+        // column's button (a preceding, non-hidden header cell) while leaving `from.col`
+        // referencing the originally-selected placeholder column, which has no button —
+        // that mismatch made the provider always return `null` and close the menu on the
+        // first outside scroll instead of following it (#12719).
+        const anchorCoords = th ? this.hot.getCoords(th) : null;
+        const anchorRow = anchorCoords?.row ?? headerRow;
+        const anchorColumn = anchorCoords?.col ?? null;
 
         this.open({
           left: buttonRect.left + offset.left,
@@ -396,6 +417,11 @@ export class DropdownMenu extends BasePlugin {
           right: 0,
           above: 0,
           below: isRowspanned ? -1 : 3,
+        }, anchorColumn === null ? undefined : () => {
+          const headerCell = this.hot.getCell(anchorRow, anchorColumn, true);
+          const button = headerCell?.querySelector(`.${BUTTON_CLASS_NAME}`);
+
+          return button ? button.getBoundingClientRect() : null;
         });
         // Make sure the first item is selected (role=menuitem). Otherwise, screen readers
         // will block the Esc key for the whole menu.
@@ -463,6 +489,8 @@ export class DropdownMenu extends BasePlugin {
    * `Event` instance (e.g., a `MouseEvent`).
    * @param {{ above: number, below: number, left: number, right: number }} offset An object that applies
    * an offset to the menu position.
+   * @param {Function} [anchorRectProvider] Returns the current anchor rectangle for
+   * scroll-follow repositioning, or `null` when the anchor is no longer rendered.
    * @fires Hooks#beforeDropdownMenuShow
    * @fires Hooks#afterDropdownMenuShow
    * @example
@@ -475,7 +503,8 @@ export class DropdownMenu extends BasePlugin {
    */
   open(
     position: Record<string, number> | Event,
-    offset: Record<string, number> = { above: 0, below: 0, left: 0, right: 0 }
+    offset: Record<string, number> = { above: 0, below: 0, left: 0, right: 0 },
+    anchorRectProvider?: MenuAnchorRectProvider,
   ): void {
     if (this.menu?.isOpened()) {
       return;
@@ -491,7 +520,7 @@ export class DropdownMenu extends BasePlugin {
     objectEach(offset, (value, key) => {
       this.menu?.setOffset(key as string, value as number);
     });
-    this.menu?.setPosition(position);
+    this.menu?.setPosition(position, anchorRectProvider);
   }
 
   /**
@@ -576,6 +605,10 @@ export class DropdownMenu extends BasePlugin {
     if (hasClass(target, BUTTON_CLASS_NAME)) {
       const offset = getDocumentOffsetByElement(this.menu?.container ?? this.hot.rootElement, this.hot.rootDocument);
       const buttonRect = this.#getButtonRect(target);
+      const th = target.closest('th');
+      const cellCoords = th ? this.hot.getCoords(th) : null;
+      const visualColumn = cellCoords?.col ?? null;
+      const headerRowIndex = cellCoords?.row ?? -1;
 
       event.stopPropagation();
       this.#isButtonClicked = false;
@@ -588,6 +621,11 @@ export class DropdownMenu extends BasePlugin {
         right: 0,
         above: 0,
         below: 3,
+      }, visualColumn === null ? undefined : () => {
+        const headerCell = this.hot.getCell(headerRowIndex, visualColumn, true);
+        const button = headerCell?.querySelector(`.${BUTTON_CLASS_NAME}`);
+
+        return button ? button.getBoundingClientRect() : null;
       });
     }
   }
@@ -643,12 +681,25 @@ export class DropdownMenu extends BasePlugin {
 
     // Plugin enabled and buttons already exists, return.
     if (this.enabled && existingButton) {
+      // The container's class list is rebuilt on every header render (see `TableView`), while the
+      // button element itself survives - so the marker has to be re-applied here, not only where
+      // the button is created.
+      if (isHTMLElement(existingButton.parentNode)) {
+        addClass(existingButton.parentNode, HEADER_WITH_BUTTON_CLASS_NAME);
+      }
+
       return;
     }
     // Plugin disabled and buttons still exists, so remove them.
     if (!this.enabled) {
       if (existingButton) {
-        existingButton.parentNode?.removeChild(existingButton);
+        const container = existingButton.parentNode;
+
+        container?.removeChild(existingButton);
+
+        if (isHTMLElement(container)) {
+          removeClass(container, HEADER_WITH_BUTTON_CLASS_NAME);
+        }
       }
 
       return;
@@ -687,6 +738,10 @@ export class DropdownMenu extends BasePlugin {
       relativeContainer.insertBefore(button, colHeaderSpan.nextSibling);
     } else {
       relativeContainer.appendChild(button);
+    }
+
+    if (isHTMLElement(relativeContainer)) {
+      addClass(relativeContainer, HEADER_WITH_BUTTON_CLASS_NAME);
     }
   };
 
