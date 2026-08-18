@@ -3,20 +3,26 @@
 // Handsontable Base Row and Col
 
 @mixin output {
-  // Scope cell and header styling to the grid's own tables (`table.htCore`) so it never
-  // leaks into a `<table>` a user renders inside a cell (issue #4363). `:where()` adds zero
-  // specificity, so the resolved cascade stays identical to the former bare `th` / `td`
-  // selectors, while the `>` combinators stop the rules reaching a nested table's cells.
-  $grid-head-row: "table.htCore > thead > tr";
-  $grid-body-row: "table.htCore > tbody > tr";
-  $grid-body: "table.htCore > tbody";
-  $grid-sections: "table.htCore > thead, table.htCore > tbody";
+  // Scope cell and header styling to the grid's own tables so it never leaks into a `<table>`
+  // a user renders inside a cell (issue #4363). `:where()` adds zero specificity, so the
+  // resolved cascade stays identical to the former bare `th` / `td` selectors, while the `>`
+  // combinators stop the rules reaching a nested table's cells.
+  // Grid-owned tables are the rendered `table.htCore` AND every off-DOM measurement (ghost)
+  // table (direct child of an `.htGhostTable` container — core GhostTable, NestedHeaders
+  // ghost). Ghosts must measure with the exact cell styling of a real grid cell, so they
+  // share the scope. The `>` in the variable (and in every chain built on it) keeps a
+  // user-rendered table inside a ghost cell out, exactly like in the rendered grid.
+  $ghost-table: ".htGhostTable > table";
+  $grid-head-row: "table.htCore > thead > tr, #{$ghost-table} > thead > tr";
+  $grid-body-row: "table.htCore > tbody > tr, #{$ghost-table} > tbody > tr";
+  $grid-body: "table.htCore > tbody, #{$ghost-table} > tbody";
+  $grid-sections: "table.htCore > thead, table.htCore > tbody, #{$ghost-table} > thead, #{$ghost-table} > tbody";
   // Anything a user renders inside a body cell. Used with `:not(:where(...))` to keep grid
   // normalize rules off user content without changing their specificity (`:where()` = 0) (#4363).
   // The checkbox renderer's `<input>` is the one element the grid itself renders inside a cell,
   // so it is carved out here — it must keep the `input` normalize (`box-sizing`/`min-height`)
   // or host-page rules like `input { min-height: 40px }` inflate grid checkboxes.
-  $user-cell-content: "table.htCore > tbody > tr > td *:not(.htCheckboxRendererInput)";
+  $user-cell-content: "table.htCore > tbody > tr > td *:not(.htCheckboxRendererInput), #{$ghost-table} > tbody > tr > td *:not(.htCheckboxRendererInput)";
 
   // Root wrapper
   .ht-root-wrapper {
@@ -342,7 +348,7 @@
     }
 
     // Header in Row — grid rows only, never a nested user table (#4363)
-    :where(table.htCore) > tbody {
+    :where(table.htCore, #{$ghost-table}) > tbody {
       > tr {
         &.ht__row_odd,
         &.ht__row_even {
@@ -408,7 +414,7 @@
     }
 
     // Header in Col — grid headers only, never a nested user table (#4363)
-    :where(table.htCore) > thead {
+    :where(table.htCore, #{$ghost-table}) > thead {
       > tr {
         > th {
           padding: 0;
@@ -520,7 +526,7 @@
       }
     }
 
-    :where(table.htCore) > thead > tr:not(:last-child) > th {
+    :where(table.htCore, #{$ghost-table}) > thead > tr:not(:last-child) > th {
       /* Fix for - nested columns with hidden column  */
       overflow: hidden;
     }
@@ -562,8 +568,9 @@
     // Box-sizing normalize — grid chrome only. Scoped so it never forces `content-box` onto a
     // table/div/input a user renders inside a cell, which would fight a host `border-box` (#4363).
     table.htCore,
-    :where(table.htCore) > thead,
-    :where(table.htCore) > tbody,
+    :where(.htGhostTable) > table,
+    :where(table.htCore, #{$ghost-table}) > thead,
+    :where(table.htCore, #{$ghost-table}) > tbody,
     input:not(:where(#{$user-cell-content})),
     textarea:not(:where(#{$user-cell-content})),
     div:not(:where(#{$user-cell-content})) {
@@ -588,7 +595,7 @@
     }
 
     // Grid colgroup only, never a nested user table's <col> (#4363)
-    :where(table.htCore) > colgroup > col {
+    :where(table.htCore, #{$ghost-table}) > colgroup > col {
       width: 64px;
 
       &.rowHeader {
@@ -708,12 +715,12 @@
 
   [dir="rtl"].handsontable {
     // Grid cells only, never a nested user table (#4363)
-    :where(table.htCore > tbody > tr) > td[dir="ltr"] {
+    :where(#{$grid-body-row}) > td[dir="ltr"] {
       border-inline-end-width: 0;
       border-inline-start-width: 1px;
     }
 
-    :where(table.htCore) > tbody > tr > td[dir="ltr"]:last-child {
+    :where(table.htCore, #{$ghost-table}) > tbody > tr > td[dir="ltr"]:last-child {
       border-inline-start-color: var(--ht-border-color);
     }
 

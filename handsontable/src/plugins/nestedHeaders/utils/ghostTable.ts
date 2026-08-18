@@ -269,13 +269,7 @@ class GhostTable {
       rowsHTML += `<tr>${cellsHTML}</tr>`;
     }
 
-    // `htCore` is required: header cell styling is scoped to `table.htCore` (#4363), so a
-    // class-less measuring table would render its `<th>`s without the grid's padding/borders
-    // and produce widths a few pixels too narrow. The inline `table-layout`/`width` neutralize
-    // the class's `table-layout: fixed; width: 0` so content still drives the measured widths —
-    // the same override the core GhostTable applies (see `utils/ghostTable.ts` `createTable`).
-    return '<table class="htCore" style="table-layout: auto; width: auto" data-ghost-table="rendered">' +
-      `<thead>${rowsHTML}</thead></table>`;
+    return `<table data-ghost-table="rendered"><thead>${rowsHTML}</thead></table>`;
   }
 
   /**
