@@ -147,6 +147,14 @@ class TableView {
    */
   #mouseDown: boolean = false;
   /**
+   * Tracks whether the document-level mousedown handler already classified the current click
+   * cycle as an outside click and consulted the `outsideClickDeselects` setting. The mouseup
+   * handler skips its own deselect pass then, so the setting's callback fires once per click.
+   *
+   * @type {boolean}
+   */
+  #outsideClickHandled: boolean = false;
+  /**
    * Main <TABLE> element.
    *
    * @type {HTMLTableElement}
@@ -412,8 +420,10 @@ class TableView {
       }
 
       const wasInsideGridClick = this.#mouseDown;
+      const wasOutsideClickHandled = this.#outsideClickHandled;
 
       this.#mouseDown = false;
+      this.#outsideClickHandled = false;
 
       // Ignore synthetic mouseup events from Android touch interactions.
       if (this.#isSyntheticMouseEvent(event)) {
@@ -440,7 +450,8 @@ class TableView {
         this.hot.unlisten();
       }
 
-      if (activeHTMLElement !== null && isFocusLostToOutside && selection.isSelected()) {
+      if (!wasOutsideClickHandled && activeHTMLElement !== null &&
+          isFocusLostToOutside && selection.isSelected()) {
         const clickTarget = eventPath.length > 0 ? eventPath[0] : event.target;
         const clickTargetElement = isHTMLElement(clickTarget) ? clickTarget : activeHTMLElement;
         const outsideClickDeselects = typeof this.settings.outsideClickDeselects === 'function' ?
@@ -491,6 +502,8 @@ class TableView {
       const eventX = (event as MouseEvent).clientX;
       const eventY = (event as MouseEvent).clientY;
 
+      this.#outsideClickHandled = false;
+
       if (this.#mouseDown || !rootElement || !this.hot.view) {
         return; // it must have been started in a cell
       }
@@ -518,6 +531,8 @@ class TableView {
       }
 
       // function did not return until here, we have an outside click!
+      this.#outsideClickHandled = true;
+
       const outsideClickDeselects = typeof this.settings.outsideClickDeselects === 'function' ?
         this.settings.outsideClickDeselects(originalTarget as HTMLElement) :
         this.settings.outsideClickDeselects;
