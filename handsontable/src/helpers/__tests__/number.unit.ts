@@ -592,6 +592,15 @@ describe('Number helper', () => {
       expect(isLossyNumericConversion('1e-999999999', 0)).toBe(true);
     });
 
+    it('should still normalize very long leading-zero literals (only the exponent is bounded)', () => {
+      // A 1200-digit leading-zero integer needs no expansion at all — it must keep
+      // normalizing to `5` instead of tripping the exponent bound and reading as lossy.
+      expect(isLossyNumericConversion(`${'0'.repeat(1200)}5`, 5)).toBe(false);
+      expect(isLossyNumericConversion(`${'0'.repeat(1200)}5.0`, 5)).toBe(true);
+      // An in-range exponent on a long literal still expands correctly.
+      expect(isLossyNumericConversion(`${'0'.repeat(1200)}5e1`, 50)).toBe(false);
+    });
+
     it('should not treat mantissa trailing zeros shifted onto integer positions as loss', () => {
       // 1.0e2 === 100 and 1.10e2 === 110 exactly: the mantissa zero becomes an integer
       // digit of the parsed value, so no typed digit disappears — same class as `1e2`.

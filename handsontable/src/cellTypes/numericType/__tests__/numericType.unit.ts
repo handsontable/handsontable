@@ -188,6 +188,10 @@ describe('NumericCellType', () => {
       expect(valueSetter('1e-400', 0, 0, on)).toBe(0);
     });
 
+    it('should not preserve a very long leading-zero literal (leading zeros are cosmetic)', () => {
+      expect(valueSetter(`${'0'.repeat(1200)}5`, 0, 0, { preserveNumericLiteral: true })).toBe(5);
+    });
+
     it('should store `-0` as the number `-0`, not as a preserved string', () => {
       // `toBe` uses `Object.is`, so this asserts the negative zero exactly.
       expect(valueSetter('-0', 0, 0, { preserveNumericLiteral: true })).toBe(-0);

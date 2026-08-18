@@ -263,15 +263,19 @@ function toPlainDecimalString(numericText: string): string {
   const integerDigits = match[2];
   const fractionDigits = match[3] ?? '';
   const exponent = Number.parseInt(match[4] ?? '0', 10);
-  let digits = `${integerDigits}${fractionDigits}`;
-  let pointIndex = integerDigits.length + exponent;
 
-  // A double tops out near 1e308, so a decimal point shifted this far can never describe
-  // a finite number. Without this bound, the two expansions below allocate an enormous
-  // string or throw `RangeError: Invalid string length` for inputs like `1e999999999`.
-  if (Math.abs(pointIndex) > 1000) {
+  // A double tops out near 1e308, so an exponent this large can never describe a finite
+  // number. The exponent is also the only unbounded driver of the two expansions below
+  // (the digits themselves only ever shrink or keep the string length): without this bound
+  // they allocate an enormous string or throw `RangeError: Invalid string length` for
+  // inputs like `1e999999999`. Bounding the exponent alone — not the digit count — keeps
+  // long leading-zero literals (`000…0005`) normalizing, so they do not read as lossy.
+  if (Math.abs(exponent) > 1000) {
     return numericText.trim();
   }
+
+  let digits = `${integerDigits}${fractionDigits}`;
+  let pointIndex = integerDigits.length + exponent;
 
   if (pointIndex > digits.length) {
     digits = digits.padEnd(pointIndex, '0');
