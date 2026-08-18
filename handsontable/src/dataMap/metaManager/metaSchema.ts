@@ -4726,6 +4726,49 @@ export default (): Record<string, unknown> => {
     numericFormat: undefined,
 
     /**
+     * Controls whether a [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
+     * cell keeps the exact text you typed when converting it to a JavaScript number would lose
+     * information.
+     *
+     * By default (`false`), a numeric cell always stores the parsed JavaScript number, so a value
+     * like `9.0` is stored as `9` and the editor shows `9` the next time you open it. Numbers whose
+     * magnitude exceeds the safe-integer limit (`9007199254740991`) also lose precision.
+     *
+     * When set to `true`, and only when parsing would be lossy, the cell keeps the original literal
+     * string instead of the number. This preserves trailing decimal zeros (`9.0`, `9.50`) and the
+     * full precision of large numbers in the cell editor, matching spreadsheet software. Values
+     * that convert without loss (for example `9`, `9.5`, `1000`) are still stored as numbers, so
+     * sorting, filtering, and formula calculations are unaffected. A preserved literal also keeps
+     * behaving like a number in those features: column sorting and filter conditions compare it
+     * numerically, and the [`Formulas`](@/api/formulas.md) engine parses the literal as a number,
+     * so functions such as `SUM` still include the cell. The cell renderer still formats
+     * the value according to [`numericFormat`](@/api/options.md#numericformat); only the editor
+     * shows the preserved literal. One exception: the filter menu's "Filter by value" checkbox
+     * list compares values strictly, so a preserved literal (`'9.0'`) and its plain number (`9`)
+     * appear as two separate entries.
+     *
+     * The default is `false` so existing configurations keep their current behavior.
+     *
+     * @memberof Options#
+     * @since 18.1.0
+     * @type {boolean}
+     * @default false
+     * @category Core
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *     type: 'numeric',
+     *     // keep `9.0` and very large numbers as typed in the editor
+     *     preserveNumericLiteral: true,
+     *   }
+     * ],
+     * ```
+     */
+    preserveNumericLiteral: false,
+
+    /**
      * If the `observeDOMVisibility` option is set to `true`,
      * Handsontable rerenders every time it detects that the grid was made visible in the DOM.
      *

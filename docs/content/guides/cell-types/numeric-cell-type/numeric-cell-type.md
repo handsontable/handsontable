@@ -398,6 +398,18 @@ you edit a numeric cell:
   these as `7000` and `7000.25` respectively. For other locales, the thousands separator is added
   automatically after editing, based on your [`numericFormat`](@/api/options.md#numericformat)
   configuration.
+- By default, entering `9.0` stores the number `9`, so the editor shows `9` the next time you open
+  it, and very large numbers lose precision. To keep the exact text you typed, set the
+  [`preserveNumericLiteral`](@/api/options.md#preservenumericliteral) option to `true`. Then, only
+  when converting your entry to a JavaScript number would lose information -- a trailing decimal
+  zero such as `9.0`, or a value whose magnitude exceeds the safe-integer limit
+  (`9007199254740991`) -- Handsontable keeps the literal you typed, so the editor shows it exactly.
+  Values that convert without loss (such as `9.5`) are still stored as numbers, so sorting,
+  filtering, and formulas are unaffected. A preserved literal still behaves like a number in those
+  features: sorting and filter conditions compare it numerically, and the formulas engine parses it
+  as a number, so functions such as `SUM` still include the cell. One exception: the filter menu's
+  "Filter by value" checkbox list compares values strictly, so a preserved literal (`9.0`) and its
+  plain number (`9`) appear as two separate entries. This option is `false` by default.
 
 ## Validate numbers
 
