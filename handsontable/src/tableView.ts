@@ -446,7 +446,7 @@ class TableView {
 
       if (isOutsideInputElement || isFocusLostToOutside ||
           (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
-          !this.#isPathWithinGrid(event.composedPath()) && !isRightClick(event))) {
+          !this.#isPathWithinGrid(eventPath) && !isRightClick(event))) {
         this.hot.unlisten();
       }
 
