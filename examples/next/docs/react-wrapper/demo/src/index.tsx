@@ -38,7 +38,13 @@ const App = () => {
     >
       <HotColumn data={1} />
       <HotColumn data={3} />
-      <HotColumn data={4} type="date" allowInvalid={false} />
+      <HotColumn
+        data={4}
+        type="date"
+        allowInvalid={false}
+        dateFormat={{ day: '2-digit', month: '2-digit', year: 'numeric' }}
+        locale="en-GB"
+      />
       <HotColumn data={6} type="checkbox" className="htCenter" headerClassName="htCenter" />
       <HotColumn data={7} type="numeric" headerClassName="htRight" />
       <HotColumn data={5} />

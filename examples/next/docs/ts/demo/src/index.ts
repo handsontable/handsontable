@@ -25,6 +25,8 @@ if (example) {
         data: 4,
         type: "date",
         allowInvalid: false,
+        dateFormat: { day: "2-digit", month: "2-digit", year: "numeric" },
+        locale: "en-GB",
       },
       {
         data: 6,

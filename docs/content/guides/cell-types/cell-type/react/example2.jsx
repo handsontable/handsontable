@@ -48,7 +48,7 @@ const ExampleComponent = () => {
       ]}
       preventOverflow="horizontal"
       colHeaders={[
-        'value<br>underneath',
+        'value underneath',
         'type:text',
         'type:numeric',
         'type:checkbox',

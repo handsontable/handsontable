@@ -57,7 +57,13 @@ export class AppComponent {
     columns: [
       { data: 1 },
       { data: 3 },
-      { data: 4, type: "date", allowInvalid: false },
+      {
+        data: 4,
+        type: "date",
+        allowInvalid: false,
+        dateFormat: { day: "2-digit", month: "2-digit", year: "numeric" },
+        locale: "en-GB",
+      },
       { data: 6, type: "checkbox", className: "htCenter" },
       { data: 7, type: "numeric" },
       { data: 5 },

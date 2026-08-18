@@ -27,7 +27,8 @@ const hotOptions = {
     {
       data: "sellDate",
       type: "date",
-      dateFormat: "DD/MM/YYYY",
+      dateFormat: { day: "2-digit", month: "2-digit", year: "numeric" },
+      locale: "en-GB",
       allowInvalid: false,
     },
     {
