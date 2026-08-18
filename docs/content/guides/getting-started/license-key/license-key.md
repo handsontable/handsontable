@@ -145,7 +145,7 @@ Or include it in the settings object passed to `:settings`:
 
 If you use Handsontable for purposes not intended toward monetary compensation such as, but not limited to, teaching, academic research, evaluation, testing and experimentation, pass the string  `'non-commercial-and-evaluation'`.
 
-With this key, the grid shows the Handsontable badge in its top-left corner. The badge is the only marker of this license - it has no tooltip, and the grid displays no other message, because the Non-Commercial and Evaluation License permits your usage.
+With this key, the grid displays no notification of any kind, and the console stays silent, because the Non-Commercial and Evaluation License permits your usage.
 
 ::: only-for javascript
 
@@ -287,7 +287,8 @@ Each license behaves differently around its date:
 ### Trial keys
 
 A trial key is time-boxed. During the trial, the grid shows the Handsontable badge in its top-left
-corner, and the console warns how many days remain. Hover over the badge to see the trial status.
+corner. Hover over the badge to see the trial status. Once the key's notice period begins, the
+console starts warning how many days remain - on a standard 45-day trial that is from day one.
 After the expiration date, a message opens next to the badge and below the grid, and the console
 reports an error. When the grace period stored in the key also passes, a blocking screen replaces
 the grid. To purchase a commercial license, contact our [Sales Team](https://handsontable.com/get-a-quote).
@@ -322,8 +323,6 @@ Entitlement keys extend this process. A trial or subscription key carries its ex
 ## Notifications
 
 If your license key is missing, invalid, or expired, Handsontable will display an appropriate notification. The notification is displayed in two places, below the table as HTML text and in the console.
-
-For a missing or invalid key, the grid also shows the Handsontable badge in its top-left corner, with a hover tooltip that explains the problem. For an expired key, the badge tooltip opens on its own with the expiration date, and you can dismiss it.
 
 The messages are as follows:
 

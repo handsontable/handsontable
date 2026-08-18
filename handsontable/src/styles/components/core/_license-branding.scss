@@ -219,13 +219,12 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height=
     }
   }
 
-  // The hard-stop lock screen REUSES the confirm Dialog's own UI (`DialogUI` + the `confirm`
-  // template - see licenseBranding/lockScreen.ts), so it inherits ALL of the dialog's styling and
-  // sizing from `components/plugins/_dialog.scss`: `ht-license-lock` is just the `customClassName`
-  // the dialog carries. It is deliberately NOT the Dialog PLUGIN (a shared surface an app uses for
-  // its own dialogs); this instance is Core-owned and non-dismissable. Only two things differ from
-  // a plain confirm dialog: the lock renders above app dialogs, and it paints the "H." logomark in
-  // its top strip.
+  // The hard-stop lock screen is Core-owned DOM (see licenseBranding/lockScreen.ts) that WEARS the
+  // confirm dialog's class names, so it inherits the dialog's styling and sizing from
+  // `components/plugins/_dialog.scss` without importing the Dialog PLUGIN - which is optional, and
+  // is a shared surface an app uses for its own dialogs. `ht-license-lock` is the lock's own class
+  // on top of that set. Only two things differ from a plain confirm dialog: the lock renders above
+  // app dialogs, and it paints the "H." logomark in its top strip.
   .ht-dialog.ht-license-lock {
     // Above the badge chrome (1050/1051) AND any Dialog-plugin dialog (1060) - an app dialog must
     // never cover the license lock.

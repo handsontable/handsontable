@@ -154,17 +154,20 @@ export class LicenseBrandingPage {
   /**
    * Whether the popover is laid out flush with the grid's inline-start edge —
    * where the cornerless variant re-anchors it, having no corner to point at.
+   * The edge is the ROOT WRAPPER's (`.ht-root-wrapper`, `hot.rootWrapperElement`): the badge lives
+   * in the overlays layer under it, and that box — not the inner table element — is what the
+   * popover aligns to.
    */
   async isPopoverFlushWithGridStart(): Promise<boolean> {
     return this.page.evaluate(() => {
       const popover = document.querySelector('.ht-license-popover');
-      const wrapper = document.querySelector('.ht-wrapper');
+      const rootWrapper = document.querySelector('.ht-root-wrapper');
 
-      if (!popover || !wrapper) {
+      if (!popover || !rootWrapper) {
         return false;
       }
 
-      return Math.abs(popover.getBoundingClientRect().left - wrapper.getBoundingClientRect().left) < 1;
+      return Math.abs(popover.getBoundingClientRect().left - rootWrapper.getBoundingClientRect().left) < 1;
     });
   }
 

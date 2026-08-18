@@ -293,17 +293,16 @@ describe('Layout slots', () => {
       dialog: true,
     });
 
-    // The license badge (the default non-commercial key) also lives in the overlays layer - count
-    // only the dialog's contribution.
-    const countNonLicenseChildren = () => Array.from(hot.rootOverlaysElement.children)
-      .filter(element => !element.classList.contains('ht-license-badge-wrapper')).length;
+    // The overlays layer holds the dialog alone: the license badge is reserved for a trial key, and
+    // the harness default is the non-commercial one, which brands nothing.
+    const countOverlayChildren = () => hot.rootOverlaysElement.children.length;
 
     // The dialog renders in the overlays layer (not a layout slot) and installs its element there.
-    expect(countNonLicenseChildren()).toBe(1);
+    expect(countOverlayChildren()).toBe(1);
 
     await updateSettings({ dialog: false });
 
-    expect(countNonLicenseChildren()).toBe(0);
+    expect(countOverlayChildren()).toBe(0);
   });
 
   it('does not throw when destroying with layout-registered plugins', async() => {

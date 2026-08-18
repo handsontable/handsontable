@@ -36,17 +36,16 @@ function getFocusableElements(hotInstance: HotInstance): HTMLElement[] {
 
 /**
  * Mounts a license bar as the last element of the bottom slot and registers a focus scope so
- * keyboard navigation (Tab/Shift+Tab) includes its links. Shared by the built-in notification
- * (invalid/expired/missing/soft-stop) and the hard-stop fallback bar (shown when the Dialog plugin is
- * not in the bundle).
+ * keyboard navigation (Tab/Shift+Tab) includes its links. Its one caller is the built-in
+ * notification below (a missing, invalid or expired key, and a soft-stopped trial).
  *
  * The bar is intentionally a foreign node, NOT registered with the LayoutManager: registering it would
  * expose it to the user's `layout` setting (reorder/remove) and to `DomSlot.clear()`, but a license
  * notice must always sit last and must not be user-removable. It carries the slot-item class and
  * refreshes the slot-filled state by hand, exactly as the layout module documents foreign nodes do.
  *
- * At most one license bar exists at a time - a key is in exactly one lifecycle state - so both callers
- * can share the single `licenseNotification` scope without conflict.
+ * At most one license bar exists at a time - a key is in exactly one lifecycle state - so the single
+ * `licenseNotification` scope is never contended.
  *
  * @param {HotInstance} hotInstance The root Handsontable instance.
  * @param {HTMLElement} barElement The license bar element to mount into the bottom slot.
