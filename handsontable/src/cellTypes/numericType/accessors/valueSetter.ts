@@ -87,6 +87,14 @@ export function valueSetter(newValue: unknown, _row: number, _column: number, ce
     // with `parseFloat`, which stops at the `x` — that mismatch is a parser artifact, not
     // information loss, so hex input must never be preserved.
     const isHexLiteral = /^[+-]?0x/i.test(newValue.trim());
+    // Literals outside the finite double range (`1e400` → `Infinity`) and non-zero literals that
+    // underflow to zero (`1e-400` → `0`) overflow the number's magnitude rather than losing
+    // trailing zeros or integer precision, so they are stored as the parsed number like any
+    // other input. The underflow check reads only mantissa digits — exponent digits must not
+    // make a genuine zero literal (`0.0e-5`) look non-zero.
+    const mantissaDigits = newValue.trim().replace(/e[+-]?\d+$/i, '');
+    const isMagnitudeOverflow = !Number.isFinite(parsedNumber) ||
+      (parsedNumber === 0 && /[1-9]/.test(mantissaDigits));
 
     // Opt-in: keep the original literal when parsing to a JS number would lose information
     // (trailing fractional zeros like `9.0`, or precision beyond Number.MAX_SAFE_INTEGER). This
@@ -99,6 +107,7 @@ export function valueSetter(newValue: unknown, _row: number, _column: number, ce
       cellMeta.preserveNumericLiteral === true &&
       !isGrouped &&
       !isHexLiteral &&
+      !isMagnitudeOverflow &&
       isNumeric(newValue) &&
       isLossyNumericConversion(newValue, parsedNumber)
     ) {

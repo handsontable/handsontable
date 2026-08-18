@@ -4709,7 +4709,9 @@ export default (): Record<string, unknown> => {
      * numerically, and the [`Formulas`](@/api/formulas.md) engine parses the literal as a number,
      * so functions such as `SUM` still include the cell. The cell renderer still formats
      * the value according to [`numericFormat`](@/api/options.md#numericformat); only the editor
-     * shows the preserved literal.
+     * shows the preserved literal. One exception: the filter menu's "Filter by value" checkbox
+     * list compares values strictly, so a preserved literal (`'9.0'`) and its plain number (`9`)
+     * appear as two separate entries.
      *
      * The default is `false` so existing configurations keep their current behavior.
      *

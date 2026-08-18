@@ -40,12 +40,22 @@ describe('Filters condition (`neq`)', () => {
     expect(condition(data(null), [undefined])).toBe(false);
   });
 
-  it('should compare numeric-typed cells numerically, so a preserved literal matches its number', () => {
-    const data = dateRowFactory({ type: 'numeric' });
+  it('should compare numeric-typed cells numerically when `preserveNumericLiteral` is enabled, ' +
+     'so a preserved literal matches its number', () => {
+    const data = dateRowFactory({ type: 'numeric', preserveNumericLiteral: true });
 
     expect(condition(data('9.0'), [9])).toBe(false);
     expect(condition(data('9.0'), ['9'])).toBe(false);
     expect(condition(data('9.0'), ['9.5'])).toBe(true);
     expect(condition(data('9.0'), [10])).toBe(true);
+  });
+
+  it('should keep the historical string comparison for numeric-typed cells without ' +
+     '`preserveNumericLiteral`', () => {
+    const data = dateRowFactory({ type: 'numeric' });
+
+    expect(condition(data(100), ['1e2'])).toBe(true);
+    expect(condition(data(9), ['9.0'])).toBe(true);
+    expect(condition(data(9), ['9'])).toBe(false);
   });
 });

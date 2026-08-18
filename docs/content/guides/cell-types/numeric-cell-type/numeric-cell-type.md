@@ -407,7 +407,9 @@ you edit a numeric cell:
   Values that convert without loss (such as `9.5`) are still stored as numbers, so sorting,
   filtering, and formulas are unaffected. A preserved literal still behaves like a number in those
   features: sorting and filter conditions compare it numerically, and the formulas engine parses it
-  as a number, so functions such as `SUM` still include the cell. This option is `false` by default.
+  as a number, so functions such as `SUM` still include the cell. One exception: the filter menu's
+  "Filter by value" checkbox list compares values strictly, so a preserved literal (`9.0`) and its
+  plain number (`9`) appear as two separate entries. This option is `false` by default.
 
 ## Validate numbers
 

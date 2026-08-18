@@ -172,6 +172,29 @@ describe('NumericCellType', () => {
       expect(valueSetter('1e-7', 0, 0, on)).toBe(1e-7);
     });
 
+    it('should not throw and not preserve input with an exponent far beyond the double range', () => {
+      const on = { preserveNumericLiteral: true };
+
+      expect(() => valueSetter('1e999999999', 0, 0, on)).not.toThrow();
+      expect(valueSetter('1e999999999', 0, 0, on)).toBe(Infinity);
+      expect(valueSetter('1e-999999999', 0, 0, on)).toBe(0);
+    });
+
+    it('should not preserve literals that overflow or underflow the finite double range', () => {
+      const on = { preserveNumericLiteral: true };
+
+      expect(valueSetter('1e400', 0, 0, on)).toBe(Infinity);
+      expect(valueSetter('-1e400', 0, 0, on)).toBe(-Infinity);
+      expect(valueSetter('1e-400', 0, 0, on)).toBe(0);
+    });
+
+    it('should store `-0` as the number `-0`, not as a preserved string', () => {
+      // `toBe` uses `Object.is`, so this asserts the negative zero exactly.
+      expect(valueSetter('-0', 0, 0, { preserveNumericLiteral: true })).toBe(-0);
+      // A trailing fractional zero on a negative zero is still preserved.
+      expect(valueSetter('-0.0', 0, 0, { preserveNumericLiteral: true })).toBe('-0.0');
+    });
+
     it('should treat hexadecimal input the same with and without the option (never preserved)', () => {
       // `parseFloat('0x1A')` stops at the `x`, so hex has always parsed to `0` here — the
       // option must not change that, and must not keep the raw hex string either.

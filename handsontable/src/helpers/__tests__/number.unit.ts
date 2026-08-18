@@ -574,6 +574,24 @@ describe('Number helper', () => {
       expect(isLossyNumericConversion('1.10e1', 11)).toBe(true);
     });
 
+    it('should not treat a plain `-0` as loss (the parsed number keeps the sign)', () => {
+      expect(isLossyNumericConversion('-0', -0)).toBe(false);
+      expect(isLossyNumericConversion('-0e0', -0)).toBe(false);
+      // The trailing fractional zero is still real information loss.
+      expect(isLossyNumericConversion('-0.0', -0)).toBe(true);
+    });
+
+    it('should not throw on exponents far beyond the finite double range', () => {
+      // Without the `pointIndex` bound these threw `RangeError: Invalid string length`
+      // in `padEnd`/`repeat` while expanding the decimal form.
+      expect(() => isLossyNumericConversion('1e999999999', Infinity)).not.toThrow();
+      expect(() => isLossyNumericConversion('1e-999999999', 0)).not.toThrow();
+      expect(() => isLossyNumericConversion('1e100000000', Infinity)).not.toThrow();
+
+      expect(isLossyNumericConversion('1e999999999', Infinity)).toBe(true);
+      expect(isLossyNumericConversion('1e-999999999', 0)).toBe(true);
+    });
+
     it('should not treat mantissa trailing zeros shifted onto integer positions as loss', () => {
       // 1.0e2 === 100 and 1.10e2 === 110 exactly: the mantissa zero becomes an integer
       // digit of the parsed value, so no typed digit disappears — same class as `1e2`.

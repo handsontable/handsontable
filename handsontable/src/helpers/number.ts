@@ -266,6 +266,13 @@ function toPlainDecimalString(numericText: string): string {
   let digits = `${integerDigits}${fractionDigits}`;
   let pointIndex = integerDigits.length + exponent;
 
+  // A double tops out near 1e308, so a decimal point shifted this far can never describe
+  // a finite number. Without this bound, the two expansions below allocate an enormous
+  // string or throw `RangeError: Invalid string length` for inputs like `1e999999999`.
+  if (Math.abs(pointIndex) > 1000) {
+    return numericText.trim();
+  }
+
   if (pointIndex > digits.length) {
     digits = digits.padEnd(pointIndex, '0');
   }
@@ -289,7 +296,8 @@ function toPlainDecimalString(numericText: string): string {
  * Both the input and `String(parsedNumber)` are normalized to plain decimal notation before
  * comparing, so purely cosmetic differences (leading zeros, a leading `+`, `.5`/`5.`, and
  * scientific notation on either side — `1e2` vs `100`, `0.0000001` vs `1e-7`) are not treated
- * as loss. A mantissa trailing zero that a positive exponent shifts onto or left of the
+ * as loss. A plain `-0` is not loss either — the parsed number `-0` keeps the sign even though
+ * `String(-0)` drops it. A mantissa trailing zero that a positive exponent shifts onto or left of the
  * decimal point (`1.0e2` → `100`, `1.10e2` → `110`) survives as an integer digit of the exact
  * value, so it is not loss either; only zeros that stay fractional after the shift
  * (`1.10e1` → `11.0`) are dropped by parsing and count as lossy.
@@ -302,7 +310,11 @@ function toPlainDecimalString(numericText: string): string {
  * @returns {boolean}
  */
 export function isLossyNumericConversion(rawInput: string, parsedNumber: number): boolean {
-  return toPlainDecimalString(rawInput.replace(',', '.')) !== toPlainDecimalString(String(parsedNumber));
+  // `String(-0)` drops the sign (`"0"`), but the number `-0` stores the sign exactly, so a
+  // plain `-0` input round-trips without loss and must not read as lossy.
+  const parsedNumberText = Object.is(parsedNumber, -0) ? '-0' : String(parsedNumber);
+
+  return toPlainDecimalString(rawInput.replace(',', '.')) !== toPlainDecimalString(parsedNumberText);
 }
 
 /**

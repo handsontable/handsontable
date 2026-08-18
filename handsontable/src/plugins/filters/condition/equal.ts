@@ -13,14 +13,17 @@ type DataRow = {
     locale?: string;
     dateFormat?: Intl.DateTimeFormatOptions;
     instance?: unknown;
+    preserveNumericLiteral?: boolean;
     [key: string]: unknown
   };
 };
 
 /**
- * Numeric-typed cells compare by numeric value (like `gt`/`lt`/`between`), so a preserved
- * literal string such as `9.0` still matches a filter input of `9`. All other cells compare
- * by locale-lowercased string equality.
+ * Numeric-typed cells with [`preserveNumericLiteral`](@/api/options.md#preservenumericliteral)
+ * enabled compare by numeric value (like `gt`/`lt`/`between`), so a preserved literal string
+ * such as `9.0` still matches a filter input of `9`. The numeric branch is gated by the option
+ * so that columns which never opt in keep the historical string comparison (`1e2` does not
+ * match `100`). All other cells compare by locale-lowercased string equality.
  *
  * @param {object} dataRow The object which holds and describes the single cell value.
  * @param {Array} inputValues An array of values to compare with.
@@ -28,7 +31,12 @@ type DataRow = {
  * @returns {boolean}
  */
 export function condition(dataRow: DataRow, [value]: unknown[]) {
-  if (dataRow.meta.type === 'numeric' && isNumeric(dataRow.value) && isNumeric(value)) {
+  if (
+    dataRow.meta.preserveNumericLiteral === true &&
+    dataRow.meta.type === 'numeric' &&
+    isNumeric(dataRow.value) &&
+    isNumeric(value)
+  ) {
     return Number(dataRow.value) === Number(value);
   }
 
