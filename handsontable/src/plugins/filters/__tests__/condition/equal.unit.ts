@@ -40,6 +40,25 @@ describe('Filters condition (`eq`)', () => {
     expect(condition(data(true), ['e'])).toBe(false);
   });
 
+  it('should compare numeric-typed cells numerically, so a preserved literal matches its number', () => {
+    const data = dateRowFactory({ type: 'numeric' });
+
+    expect(condition(data('9.0'), [9])).toBe(true);
+    expect(condition(data('9.0'), ['9'])).toBe(true);
+    expect(condition(data(9), ['9.0'])).toBe(true);
+    expect(condition(data(9.5), ['9.5'])).toBe(true);
+    expect(condition(data('9.0'), ['9.5'])).toBe(false);
+    expect(condition(data('9.0'), [10])).toBe(false);
+  });
+
+  it('should fall back to string comparison for numeric-typed cells holding non-numeric values', () => {
+    const data = dateRowFactory({ type: 'numeric' });
+
+    expect(condition(data(null), [''])).toBe(true);
+    expect(condition(data('abc'), ['abc'])).toBe(true);
+    expect(condition(data('abc'), [9])).toBe(false);
+  });
+
   it('should handle locales properly', () => {
     const data = dateRowFactory({ locale: 'tr-TR' });
 

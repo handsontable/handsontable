@@ -162,5 +162,21 @@ describe('NumericCellType', () => {
       expect(valueSetter('1,000', 0, 0, { ...on, locale: 'en-US' })).toBe(1000);
       expect(valueSetter('7.000', 0, 0, { ...on, locale: 'de-DE' })).toBe(7000);
     });
+
+    it('should not preserve scientific-notation input that parses without loss', () => {
+      const on = { preserveNumericLiteral: true };
+
+      expect(valueSetter('1e2', 0, 0, on)).toBe(100);
+      expect(valueSetter('1.5e3', 0, 0, on)).toBe(1500);
+      expect(valueSetter('0.0000001', 0, 0, on)).toBe(1e-7);
+      expect(valueSetter('1e-7', 0, 0, on)).toBe(1e-7);
+    });
+
+    it('should treat hexadecimal input the same with and without the option (never preserved)', () => {
+      // `parseFloat('0x1A')` stops at the `x`, so hex has always parsed to `0` here — the
+      // option must not change that, and must not keep the raw hex string either.
+      expect(valueSetter('0x1A', 0, 0, { preserveNumericLiteral: true })).toBe(0);
+      expect(valueSetter('0x1A', 0, 0, {})).toBe(0);
+    });
   });
 });

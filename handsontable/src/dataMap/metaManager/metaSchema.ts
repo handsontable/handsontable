@@ -4704,7 +4704,10 @@ export default (): Record<string, unknown> => {
      * string instead of the number. This preserves trailing decimal zeros (`9.0`, `9.50`) and the
      * full precision of large numbers in the cell editor, matching spreadsheet software. Values
      * that convert without loss (for example `9`, `9.5`, `1000`) are still stored as numbers, so
-     * sorting, filtering, and formula calculations are unaffected. The cell renderer still formats
+     * sorting, filtering, and formula calculations are unaffected. A preserved literal also keeps
+     * behaving like a number in those features: column sorting and filter conditions compare it
+     * numerically, and the [`Formulas`](@/api/formulas.md) engine parses the literal as a number,
+     * so functions such as `SUM` still include the cell. The cell renderer still formats
      * the value according to [`numericFormat`](@/api/options.md#numericformat); only the editor
      * shows the preserved literal.
      *

@@ -553,5 +553,23 @@ describe('Number helper', () => {
       expect(isLossyNumericConversion('  9.0  ', 9)).toBe(true);
       expect(isLossyNumericConversion('  9  ', 9)).toBe(false);
     });
+
+    it('should return false when only scientific notation differs on either side (not information loss)', () => {
+      // `String(parsedNumber)` uses scientific notation for these exact values.
+      expect(isLossyNumericConversion('0.0000001', 1e-7)).toBe(false);
+      expect(isLossyNumericConversion('0.000000015', 1.5e-8)).toBe(false);
+      expect(isLossyNumericConversion('-0.0000001', -1e-7)).toBe(false);
+
+      // Scientific notation in the input parses to the same exact value.
+      expect(isLossyNumericConversion('1e2', 100)).toBe(false);
+      expect(isLossyNumericConversion('1.5e3', 1500)).toBe(false);
+      expect(isLossyNumericConversion('1e-7', 1e-7)).toBe(false);
+      expect(isLossyNumericConversion('-1.5E3', -1500)).toBe(false);
+    });
+
+    it('should still detect trailing fractional zeros written in scientific notation', () => {
+      // 1.230e2 === 123 exactly, but the trailing zero of the mantissa is dropped on parse.
+      expect(isLossyNumericConversion('1.2300e2', 123)).toBe(true);
+    });
   });
 });

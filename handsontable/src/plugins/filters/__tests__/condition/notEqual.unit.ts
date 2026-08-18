@@ -39,4 +39,13 @@ describe('Filters condition (`neq`)', () => {
     expect(condition(data(null), [''])).toBe(false);
     expect(condition(data(null), [undefined])).toBe(false);
   });
+
+  it('should compare numeric-typed cells numerically, so a preserved literal matches its number', () => {
+    const data = dateRowFactory({ type: 'numeric' });
+
+    expect(condition(data('9.0'), [9])).toBe(false);
+    expect(condition(data('9.0'), ['9'])).toBe(false);
+    expect(condition(data('9.0'), ['9.5'])).toBe(true);
+    expect(condition(data('9.0'), [10])).toBe(true);
+  });
 });

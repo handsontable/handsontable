@@ -12,16 +12,22 @@ import { expect } from '@playwright/test';
 export class NumericGridPage {
   readonly page: Page;
   readonly theme: string;
+  readonly fixture: string;
   readonly grid: Locator;
   readonly editor: Locator;
   readonly columnHeader: Locator;
+  readonly rows: Locator;
+  readonly dropdownMenu: Locator;
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', fixture = 'numeric') {
     this.page = page;
     this.theme = theme;
+    this.fixture = fixture;
     this.grid = page.getByTestId('grid');
     this.editor = page.locator('.handsontableInput');
     this.columnHeader = page.locator('.ht_clone_top thead th').filter({ hasText: 'Amount' });
+    this.rows = page.locator('.ht_master tbody tr');
+    this.dropdownMenu = page.locator('.htDropdownMenu');
   }
 
   /**
@@ -29,7 +35,7 @@ export class NumericGridPage {
    * passed as a query param so the fixture loads the matching stylesheet.
    */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/numeric.html?theme=${this.theme}`);
+    await this.page.goto(`/tests/fixtures/demo/${this.fixture}.html?theme=${this.theme}`);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
@@ -59,5 +65,31 @@ export class NumericGridPage {
   /** Click the "Amount" column header to toggle column sorting. */
   async sortColumn(): Promise<void> {
     await this.columnHeader.click();
+  }
+
+  /**
+   * Filter the "Amount" column through the dropdown-menu filter UI: open the menu,
+   * pick a by-condition entry by its visible label (for example "Is equal to"),
+   * type the condition value, and apply. Every step waits web-first on the element
+   * it is about to use.
+   */
+  async filterByCondition(conditionLabel: string, value: string): Promise<void> {
+    await this.columnHeader.locator('.changeType').click();
+    await expect(this.dropdownMenu).toBeVisible();
+
+    await this.dropdownMenu.locator('.htUISelect').first().click();
+
+    // Two condition menus exist in the DOM (first and second by-condition selects);
+    // only the one just opened is visible.
+    const conditionsMenu = this.page.locator('.htFiltersConditionsMenu:visible');
+
+    await expect(conditionsMenu).toBeVisible();
+    await conditionsMenu.getByText(conditionLabel, { exact: true }).click();
+
+    const valueInput = this.dropdownMenu.locator('.htFiltersMenuCondition input[type="text"]').first();
+
+    await valueInput.fill(value);
+    await this.dropdownMenu.locator('.htUIButtonOK input').click();
+    await expect(this.dropdownMenu).toBeHidden();
   }
 }

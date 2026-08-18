@@ -83,6 +83,10 @@ export function valueSetter(newValue: unknown, _row: number, _column: number, ce
     }
 
     const isGrouped = isCommaGrouped || isDotGroupedInteger || isDotGroupedFloat;
+    // `isNumeric` also accepts hexadecimal literals (`0x1A`), but `getParsedNumber` reads them
+    // with `parseFloat`, which stops at the `x` — that mismatch is a parser artifact, not
+    // information loss, so hex input must never be preserved.
+    const isHexLiteral = /^[+-]?0x/i.test(newValue.trim());
 
     // Opt-in: keep the original literal when parsing to a JS number would lose information
     // (trailing fractional zeros like `9.0`, or precision beyond Number.MAX_SAFE_INTEGER). This
@@ -94,6 +98,7 @@ export function valueSetter(newValue: unknown, _row: number, _column: number, ce
     if (
       cellMeta.preserveNumericLiteral === true &&
       !isGrouped &&
+      !isHexLiteral &&
       isNumeric(newValue) &&
       isLossyNumericConversion(newValue, parsedNumber)
     ) {

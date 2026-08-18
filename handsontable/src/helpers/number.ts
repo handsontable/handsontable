@@ -243,14 +243,53 @@ export function getParsedNumber(numericData: string, options: { decimalSeparator
 }
 
 /**
+ * Converts a decimal or scientific-notation numeric string to its plain decimal form
+ * (`1e2` → `100`, `1e-7` → `0.0000001`). Leading zeros and a leading `+` are dropped, and the
+ * `.5`/`5.` shorthands gain the missing digit. Trailing fractional zeros are kept — they carry
+ * the information [[isLossyNumericConversion]] detects. A string that does not match the plain
+ * number grammar is returned trimmed but otherwise unchanged.
+ *
+ * @param {string} numericText The numeric string to normalize.
+ * @returns {string}
+ */
+function toPlainDecimalString(numericText: string): string {
+  const match = /^([+-]?)(\d*)(?:\.(\d*))?(?:e([+-]?\d+))?$/i.exec(numericText.trim());
+
+  if (match === null || (match[2] === '' && (match[3] ?? '') === '')) {
+    return numericText.trim();
+  }
+
+  const sign = match[1] === '-' ? '-' : '';
+  const integerDigits = match[2];
+  const fractionDigits = match[3] ?? '';
+  const exponent = Number.parseInt(match[4] ?? '0', 10);
+  let digits = `${integerDigits}${fractionDigits}`;
+  let pointIndex = integerDigits.length + exponent;
+
+  if (pointIndex > digits.length) {
+    digits = digits.padEnd(pointIndex, '0');
+  }
+
+  if (pointIndex < 1) {
+    digits = `${'0'.repeat(1 - pointIndex)}${digits}`;
+    pointIndex = 1;
+  }
+
+  const integerPart = digits.slice(0, pointIndex).replace(/^0+(?=\d)/, '');
+  const fractionPart = digits.slice(pointIndex);
+
+  return `${sign}${integerPart}${fractionPart.length > 0 ? `.${fractionPart}` : ''}`;
+}
+
+/**
  * Whether converting a plain numeric string to its parsed JS number loses information.
  * Two situations count as lossy: trailing fractional zeros (e.g. `9.0` → `9`) and precision
  * beyond `Number.MAX_SAFE_INTEGER` (e.g. `12345678901234567.8` → `12345678901234568`).
  *
- * It compares a canonicalized form of the input (leading zeros and a leading sign normalized,
- * decimal separator unified to `.`, but trailing zeros and all significant digits kept) against
- * `String(parsedNumber)`. Purely cosmetic differences (leading zeros, a leading `+`, `.5`/`5.`)
- * are not treated as loss.
+ * Both the input and `String(parsedNumber)` are normalized to plain decimal notation before
+ * comparing, so purely cosmetic differences (leading zeros, a leading `+`, `.5`/`5.`, and
+ * scientific notation on either side — `1e2` vs `100`, `0.0000001` vs `1e-7`) are not treated
+ * as loss.
  *
  * Intended only for the plain float path. Thousands-grouped inputs (e.g. `7.000`) are resolved
  * by the caller before this runs and must not be passed here.
@@ -260,22 +299,7 @@ export function getParsedNumber(numericData: string, options: { decimalSeparator
  * @returns {boolean}
  */
 export function isLossyNumericConversion(rawInput: string, parsedNumber: number): boolean {
-  const negative = /^\s*-/.test(rawInput);
-  let normalized = rawInput.trim().replace(',', '.').replace(/^[+-]/, '');
-
-  normalized = normalized.replace(/^0+(?=\d)/, '');
-
-  if (normalized.startsWith('.')) {
-    normalized = `0${normalized}`;
-  }
-
-  if (normalized.endsWith('.')) {
-    normalized = normalized.slice(0, -1);
-  }
-
-  const canonical = `${negative ? '-' : ''}${normalized}`;
-
-  return canonical !== String(parsedNumber);
+  return toPlainDecimalString(rawInput.replace(',', '.')) !== toPlainDecimalString(String(parsedNumber));
 }
 
 /**

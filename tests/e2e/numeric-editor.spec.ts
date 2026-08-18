@@ -47,6 +47,18 @@ test.describe('numeric cell editor precision', () => {
     await expect(grid.editor).toHaveValue('9.5');
   });
 
+  test('filters a preserved literal numerically with the "Is equal to" condition', async () => {
+    // Seed data is [100, 2, 42]. Turn the first cell into a preserved literal ("9.0").
+    await grid.editCell(0, 0, '9.0');
+
+    // An equality filter for `9` must match the cell that holds the string "9.0":
+    // the `eq` condition compares numeric-typed cells by value, not by text.
+    await grid.filterByCondition('Is equal to', '9');
+
+    await expect(grid.rows).toHaveCount(1);
+    await grid.expectCell(0, 0, '9');
+  });
+
   test('sorts a preserved literal numerically, not lexicographically', async () => {
     // Seed data is [100, 2, 42]. Turn the first cell into a preserved literal ("9.0").
     await grid.editCell(0, 0, '9.0');
