@@ -3,8 +3,12 @@ name: Docs Examples Sync
 on:
   push:
     branches:
+      # "develop" is the next-version docs bucket (published as "latest"), and
+      # "prod-docs/<major>.<minor>" holds a released version. No other docs
+      # branch feeds the examples runner - the stale "prod-docs/latest" branch
+      # included.
       - develop
-      - 'prod-docs/**'
+      - 'prod-docs/[0-9]+.[0-9]+'
     paths:
       - 'docs/content/guides/**'
       - 'docs/content/recipes/**'
@@ -19,16 +23,26 @@ concurrency:
 jobs:
   dispatch:
     name: Trigger examples snapshot import
-    # The import workflow in handsontable/examples accepts only "develop" or "prod-docs/<major>.<minor>".
-    if: github.ref_name == 'develop' || startsWith(github.ref_name, 'prod-docs/')
     runs-on: ubuntu-latest
     steps:
+      # Push events are already filtered by the branch patterns above, but
+      # workflow_dispatch bypasses that filter, so validate the ref here
+      # instead of dispatching a branch the importer in handsontable/examples
+      # cannot resolve.
+      - name: Validate docs branch
+        env:
+          DOCS_BRANCH: ${{ github.ref_name }}
+        run: |
+          if [[ "$DOCS_BRANCH" != 'develop' && ! "$DOCS_BRANCH" =~ ^prod-docs/[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::\"$DOCS_BRANCH\" is not a docs branch the examples importer accepts (expected \"develop\" or \"prod-docs/<major>.<minor>\")."
+            exit 1
+          fi
+
       # Mint a short-lived, repository-scoped token from the GitHub App.
       # The built-in GITHUB_TOKEN cannot reach another repository, so a
       # cross-repo dispatch requires an App installation token (or a PAT).
       - name: Mint GitHub App token
         id: app-token
-        if: github.ref_name != 'prod-docs/latest'
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # https://github.com/actions/create-github-app-token/releases/tag/v3.2.0
         with:
           app-id: ${{ secrets.EXAMPLES_SYNC_APP_ID }}
@@ -37,7 +51,6 @@ jobs:
           repositories: examples
 
       - name: Send repository_dispatch to handsontable/examples
-        if: github.ref_name != 'prod-docs/latest'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           DOCS_BRANCH: ${{ github.ref_name }}
