@@ -88,11 +88,12 @@ The class also applies `isolation: isolate` to the wrapper. Without it, the grid
 
 Some platforms wrap the DOM APIs in a security sandbox. Salesforce Lightning Web Security (LWS) filters `Event#composedPath()` and limits `document.activeElement` resolution for the sandboxed code. Handsontable falls back to signals that stay reliable in such environments: per-listener event targets and focus tracking within its own DOM tree. Cell editing, selection, keyboard handling, and copy and paste work under LWS without wrapper-side workarounds.
 
+Salesforce Lightning Experience renders Lightning Web Components with its synthetic Shadow DOM polyfill by default. Handsontable works in that default mode. It also works with the native opt-in (`static shadowSupportMode = 'native'`), with one requirement: Salesforce's `loadStyle` injects CSS into the document head, which a native shadow root ignores. Inject both Handsontable stylesheets into the component's shadow tree instead - for example, append the `<link>` elements inside the `lwc:dom="manual"` container and wait for their `load` events before you create the grid.
+
 ## Known limitations
 
 - The `ht-shadow-dom` class is set only when the instance is created. If you move a live grid into or out of a shadow root, destroy the instance and create it again.
 - The cell editor doesn't leave the grid's stacking context. In a tight layout, an editor that overflows the grid's wrapper can paint under the host page content that creates its own stacking context.
-- The synthetic Shadow DOM polyfill (used by some older Salesforce Lightning experiences) is not covered by Handsontable's test suite.
 
 ## Related guides
 
