@@ -29,8 +29,6 @@ describe('UndoRedo -> CreateRow action', () => {
       actionType: 'insert_row',
       index: 1,
       amount: 2,
-      fixedRowsBottom: 0,
-      fixedRowsTop: 0,
     });
 
     afterUndo.calls.reset();
@@ -41,8 +39,6 @@ describe('UndoRedo -> CreateRow action', () => {
       actionType: 'insert_row',
       index: 3,
       amount: 3,
-      fixedRowsBottom: 0,
-      fixedRowsTop: 0,
     });
   });
 });

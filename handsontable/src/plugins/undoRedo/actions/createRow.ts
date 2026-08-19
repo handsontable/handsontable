@@ -17,29 +17,14 @@ export class CreateRowAction extends BaseAction {
    * @param {number} amount The number of created rows.
    */
   amount;
-  /**
-   * @param {number} fixedRowsBottom Number of fixed rows on the bottom, taken from before the insertion.
-   *   Undoing the insertion removes rows, and removing a bottom fixed row decreases that setting.
-   */
-  fixedRowsBottom;
-  /**
-   * @param {number} fixedRowsTop Number of fixed rows on the top, taken from before the insertion.
-   *   Undoing the insertion removes rows, and removing a top fixed row decreases that setting.
-   */
-  fixedRowsTop;
 
   /**
-   * Initializes the create row action with the visual insertion index, the number of rows created, and the
-   * fixed-row counts to restore on undo.
+   * Initializes the create row action with the visual insertion index and the number of rows created.
    */
-  constructor({ index, amount, fixedRowsBottom, fixedRowsTop }: {
-    index: number, amount: number, fixedRowsBottom: number, fixedRowsTop: number
-  }) {
+  constructor({ index, amount }: { index: number, amount: number }) {
     super('insert_row');
     this.index = index;
     this.amount = amount;
-    this.fixedRowsBottom = fixedRowsBottom;
-    this.fixedRowsTop = fixedRowsTop;
   }
 
   /**
@@ -48,13 +33,7 @@ export class CreateRowAction extends BaseAction {
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     hot.addHook('afterCreateRow', (index: number, amount: number, source: string) => {
       (undoRedoPlugin as { done: (...args: unknown[]) => void }).done(
-        () => new CreateRowAction({
-          index,
-          amount,
-          // Inserting rows never changes these, so the values read here are the ones from before the insertion.
-          fixedRowsBottom: hot.getSettings().fixedRowsBottom ?? 0,
-          fixedRowsTop: hot.getSettings().fixedRowsTop ?? 0,
-        }), source
+        () => new CreateRowAction({ index, amount }), source
       );
     });
   }
@@ -65,24 +44,28 @@ export class CreateRowAction extends BaseAction {
    */
   undo(hot: HotInstance, undoneCallback: HookCallback) {
     const rowCount = hot.countRows();
-    const minSpareRows = hot.getSettings().minSpareRows;
+    const settings = hot.getSettings();
+    const minSpareRows = settings.minSpareRows;
 
     if (this.index >= rowCount && this.index - (minSpareRows ?? 0) < rowCount) {
       this.index -= (minSpareRows ?? 0); // work around the situation where the needed row was removed due to an 'undo' of a made change
     }
 
+    // Read before the removal - `alter` decreases these when it removes a fixed row.
+    const fixedRowsBottom = settings.fixedRowsBottom ?? 0;
+    const fixedRowsTop = settings.fixedRowsTop ?? 0;
+
     hot.addHookOnce('afterRemoveRow', undoneCallback);
     hot.alter('remove_row', this.index, this.amount, 'UndoRedo.undo');
 
-    const settings = hot.getSettings();
-
     // Rows inserted into the fixed area belong to that area when the undo removes them, so `alter`
-    // legitimately decreases the counters. Restore the values captured before the insertion so the undo
-    // brings back the whole previous state, including the pinned rows.
-    if (settings.fixedRowsBottom !== this.fixedRowsBottom || settings.fixedRowsTop !== this.fixedRowsTop) {
+    // decreases the counters. The rows are back to the state from before the insertion, so the counters
+    // have to go back as well (DEV-2551). Only a decrease is reverted - a value raised in the meantime
+    // by `updateSettings` stays as the user set it.
+    if ((settings.fixedRowsBottom ?? 0) < fixedRowsBottom || (settings.fixedRowsTop ?? 0) < fixedRowsTop) {
       // Changing by the reference as `updateSettings` doesn't work the best.
-      settings.fixedRowsBottom = this.fixedRowsBottom;
-      settings.fixedRowsTop = this.fixedRowsTop;
+      settings.fixedRowsBottom = fixedRowsBottom;
+      settings.fixedRowsTop = fixedRowsTop;
 
       hot.render();
     }

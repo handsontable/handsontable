@@ -1838,6 +1838,28 @@ describe('UndoRedo', () => {
 
         expect(countRows()).toBe(5);
         expect(getSettings().fixedRowsBottom).toBe(2);
+        expect(getBottomClone().find('tbody tr').length).toBe(2);
+      });
+
+      it('should restore the number of bottom fixed rows changed after the insertion', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 2),
+          colHeaders: true,
+          rowHeaders: true,
+          fixedRowsBottom: 1,
+        });
+
+        await alter('insert_row_below', 4, 1);
+
+        await updateSettings({
+          fixedRowsBottom: 3,
+        });
+
+        getPlugin('undoRedo').undo();
+
+        expect(countRows()).toBe(5);
+        expect(getSettings().fixedRowsBottom).toBe(3);
+        expect(getBottomClone().find('tbody tr').length).toBe(3);
       });
 
       it('should keep the number of top fixed rows after undoing an insertion within them', async() => {
