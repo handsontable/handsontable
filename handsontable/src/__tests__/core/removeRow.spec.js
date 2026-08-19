@@ -597,6 +597,34 @@ describe('Core.alter', () => {
       expect(getSettings().fixedRowsBottom).toEqual(0);
     });
 
+    it('should decrement the number of bottom fixed rows when the rows are removed from the end', async() => {
+      handsontable({
+        startCols: 1,
+        startRows: 6,
+        fixedRowsBottom: 2,
+      });
+
+      // With no index passed the last two rows (4 and 5) are removed - both are bottom fixed rows.
+      await alter('remove_row', undefined, 2);
+
+      expect(countRows()).toEqual(4);
+      expect(getSettings().fixedRowsBottom).toEqual(0);
+    });
+
+    it('should decrement the number of bottom fixed rows only by the fixed rows removed from the end', async() => {
+      handsontable({
+        startCols: 1,
+        startRows: 6,
+        fixedRowsBottom: 1,
+      });
+
+      // With no index passed the last three rows (3, 4 and 5) are removed - only row 5 is a bottom fixed row.
+      await alter('remove_row', undefined, 3);
+
+      expect(countRows()).toEqual(3);
+      expect(getSettings().fixedRowsBottom).toEqual(0);
+    });
+
     it('should decrement the number of bottom fixed rows only by the fixed rows within a straddling range', async() => {
       handsontable({
         startCols: 1,

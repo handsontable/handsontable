@@ -1022,9 +1022,17 @@ export default function Core(
                 // to be compared with the row count from *before* the removal. Rows removed above that
                 // range keep the setting untouched (DEV-2551).
                 const removedRowsCount = totalRowsBefore - totalRows;
+                // With no index passed, `datamap.removeRow` takes the rows from the end, so the removal
+                // starts that many rows before the last one. `calcIndex` points at the last row then, not
+                // at the first removed one.
+                const firstRemovedRowIndex = Number.isInteger(groupIndex)
+                  ? calcIndex
+                  : Math.max(totalRowsBefore - removedRowsCount, 0);
                 const firstFixedRowIndex = totalRowsBefore - fixedRowsBottom;
-                const lastRemovedRowIndex = Math.min(calcIndex + removedRowsCount - 1, totalRowsBefore - 1);
-                const removedFixedRowsCount = lastRemovedRowIndex - Math.max(calcIndex, firstFixedRowIndex) + 1;
+                const lastRemovedRowIndex =
+                  Math.min(firstRemovedRowIndex + removedRowsCount - 1, totalRowsBefore - 1);
+                const removedFixedRowsCount =
+                  lastRemovedRowIndex - Math.max(firstRemovedRowIndex, firstFixedRowIndex) + 1;
 
                 if (removedFixedRowsCount > 0) {
                   tableMeta.fixedRowsBottom -= Math.min(removedFixedRowsCount, fixedRowsBottom);
