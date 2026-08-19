@@ -101,7 +101,7 @@ function createMockHotInstance(overrides = {}) {
     guid: 'ht-test-guid',
     // The realm constructors mirror the real `rootWindow` - the event-target checks consult the
     // grid's own realm (iframe-hosted grids), never the library's globals.
-    rootWindow: { open: jest.fn(), queueMicrotask: fn => queueMicrotask(fn), Element, Node },
+    rootWindow: { open: jest.fn(), location: { href: '' }, queueMicrotask: fn => queueMicrotask(fn), Element, Node },
     ...overrides,
   };
 }
@@ -170,15 +170,15 @@ function mountLock(state, extra = {}, overrides = {}) {
 
 describe('licenseBranding', () => {
   // The two tables that decide what a blocking state shows must not drift: `LOCK_CONTENT` routes the
-  // modal, `BLOCKING_MODAL_STATES` withholds the bottom bar. A state in the first but not the second
+  // modal, `_BLOCKING_MODAL_STATES` withholds the bottom bar. A state in the first but not the second
   // would render a non-dismissable lock with a bar underneath it.
   it('should withhold the bottom bar for exactly the states that render the lock', () => {
     // eslint-disable-next-line global-require
     const { LOCK_CONTENT } = require('../licenseBranding/content');
     // eslint-disable-next-line global-require
-    const { BLOCKING_MODAL_STATES } = require('../../helpers/mixed');
+    const { _BLOCKING_MODAL_STATES: blockingStates } = require('../../helpers/mixed');
 
-    expect(Object.keys(LOCK_CONTENT).sort()).toEqual([...BLOCKING_MODAL_STATES].sort());
+    expect(Object.keys(LOCK_CONTENT).sort()).toEqual([...blockingStates].sort());
   });
 
   beforeEach(() => {
@@ -493,7 +493,9 @@ describe('licenseBranding', () => {
       // a roam over a test-realm node must be ignored - proof the detector consults `rootWindow`
       // (a bare `instanceof Element` would stamp the class here and die in a real iframe).
       const hotInstance = createMockHotInstance({
-        rootWindow: { open: jest.fn(), queueMicrotask: fn => queueMicrotask(fn), Element: class {}, Node },
+        rootWindow: {
+          open: jest.fn(), location: { href: '' }, queueMicrotask: fn => queueMicrotask(fn), Element: class {}, Node,
+        },
       });
 
       initLicenseBranding(hotInstance);
@@ -542,7 +544,11 @@ describe('licenseBranding', () => {
       expect(buttons[0].textContent).toBe('Contact Sales');
 
       buttons[0].click();
-      expect(hotInstance.rootWindow.open).toHaveBeenCalledWith('mailto:sales@handsontable.com', '_blank', 'noopener');
+
+      // The address is handed to the mail client through `location`, NOT `window.open(..., '_blank')`:
+      // a new tab for a `mailto:` is left behind empty on Firefox and Safari.
+      expect(hotInstance.rootWindow.location.href).toBe('mailto:sales@handsontable.com');
+      expect(hotInstance.rootWindow.open).not.toHaveBeenCalled();
     });
 
     it('should defer moving focus into the lock to afterInit (the grid is unrendered during init)', () => {

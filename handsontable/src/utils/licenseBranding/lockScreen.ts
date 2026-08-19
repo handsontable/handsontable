@@ -77,7 +77,12 @@ export function mountLicenseLock(hotInstance: HotInstance, content: LockContent)
   refs.description.textContent = content.description;
   refs.contactButton.textContent = content.action.text;
   refs.contactButton.addEventListener('click', () => {
-    hotInstance.rootWindow.open(content.action.href, '_blank', 'noopener');
+    // `location.href`, not `window.open(..., '_blank')`: the action is a `mailto:` address, and
+    // opening one in a new tab leaves that tab behind, empty, once the mail client takes over on
+    // Firefox and Safari. Assigning the location hands the URL to the mail client with no navigation
+    // and no stray tab - the same thing the plain `<a href="mailto:...">` in the bar and the popover
+    // already do.
+    hotInstance.rootWindow.location.href = content.action.href;
   });
 
   // Built as nodes, never interpolated: the copy is authored here, but keeping it out of `innerHTML`

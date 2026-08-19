@@ -153,7 +153,7 @@ type EntitlementMessageParams = {
  * @param {number|null|undefined} days The whole days left until the last licensed day.
  * @returns {string}
  */
-export function formatExpiryClause(days: number | null | undefined): string {
+export function _formatExpiryClause(days: number | null | undefined): string {
   if (days === 0) {
     return 'expires today';
   }
@@ -193,8 +193,8 @@ type EntitlementConsoleNotification = {
  * constant per sentence means a legal or marketing wording change lands on every surface at once,
  * instead of drifting when only one copy is updated.
  */
-export const LICENSE_EXPIRED_TITLE = 'Your Handsontable license key has expired.';
-export const PURCHASE_LICENSE_TEXT = 'To continue using Handsontable, you need to purchase a license.';
+export const _LICENSE_EXPIRED_TITLE = 'Your Handsontable license key has expired.';
+export const _PURCHASE_LICENSE_TEXT = 'To continue using Handsontable, you need to purchase a license.';
 
 /**
  * The message a lapsed subscription prints, from its first day past the term onwards.
@@ -219,14 +219,14 @@ const entitlementConsoleNotifications: Partial<Record<LicenseStateKey, Entitleme
   trial_notice: {
     severity: 'warn',
     message: ({ daysRemaining }) => toSingleLine`
-      Your Handsontable license key ${formatExpiryClause(daysRemaining)}.\x20
-      ${PURCHASE_LICENSE_TEXT}`,
+      Your Handsontable license key ${_formatExpiryClause(daysRemaining)}.\x20
+      ${_PURCHASE_LICENSE_TEXT}`,
   },
   trial_soft_stop: {
     severity: 'error',
     message: ({ licensedUntil }) => toSingleLine`
       Your Handsontable trial license key expired on ${_utcDay(licensedUntil)}.\x20
-      ${PURCHASE_LICENSE_TEXT}`,
+      ${_PURCHASE_LICENSE_TEXT}`,
   },
   trial_hard_stop: {
     severity: 'error',
@@ -263,13 +263,13 @@ const entitlementConsoleNotifications: Partial<Record<LicenseStateKey, Entitleme
 /**
  * The bottom-bar (DOM) copy for the states that show one: the soft-stopped
  * trial and a build past its maintenance date. Three states render the
- * Core-owned lock screen instead of a bar (see `BLOCKING_MODAL_STATES` below
+ * Core-owned lock screen instead of a bar (see `_BLOCKING_MODAL_STATES` below
  * and `utils/licenseBranding/lockScreen.ts`), and a non-trial license never
  * renders a bar - it is developer-facing only in 18.1.
  */
 const entitlementDomMessages: Partial<Record<LicenseStateKey, (params: EntitlementMessageParams) => string>> = {
   trial_soft_stop: () => toSingleLine`
-    ${LICENSE_EXPIRED_TITLE} ${PURCHASE_LICENSE_TEXT}\x20
+    ${_LICENSE_EXPIRED_TITLE} ${_PURCHASE_LICENSE_TEXT}\x20
     <a href="mailto:sales@handsontable.com">Contact Sales</a>.`,
   release_expired: ({ licensedUntil, hotVersion }) => toSingleLine`
     The license key for Handsontable expired on ${licensedUntil}, and is not valid for the installed\x20
@@ -295,9 +295,13 @@ const entitlementDomMessages: Partial<Record<LicenseStateKey, (params: Entitleme
  * withdrawn, because the modal now carries its sentences and two license surfaces saying the same
  * thing at once would be noise.
  *
- * @type {string[]}
+ * Frozen, and underscore-prefixed like every other license symbol here: `index.ts` copies every
+ * non-underscore export of this module onto the public `Handsontable.helper`, and a live array
+ * there could be emptied from a console to switch the blocking off at runtime.
+ *
+ * @type {readonly string[]}
  */
-export const BLOCKING_MODAL_STATES = ['trial_hard_stop', 'invalid', 'missing'];
+export const _BLOCKING_MODAL_STATES = Object.freeze(['trial_hard_stop', 'invalid', 'missing']);
 
 /**
  * Tells whether a license state speaks through the blocking modal rather than the bottom bar.
@@ -306,7 +310,7 @@ export const BLOCKING_MODAL_STATES = ['trial_hard_stop', 'invalid', 'missing'];
  * @returns {boolean}
  */
 function _rendersBlockingModal(state: string): boolean {
-  return BLOCKING_MODAL_STATES.indexOf(state) !== -1;
+  return _BLOCKING_MODAL_STATES.indexOf(state) !== -1;
 }
 
 export function _injectProductInfo(

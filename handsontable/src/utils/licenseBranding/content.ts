@@ -1,7 +1,7 @@
 import {
-  LICENSE_EXPIRED_TITLE,
-  PURCHASE_LICENSE_TEXT,
-  formatExpiryClause,
+  _LICENSE_EXPIRED_TITLE,
+  _PURCHASE_LICENSE_TEXT,
+  _formatExpiryClause,
 } from '../../helpers/mixed';
 import type { LicenseLifecycleFacet, LicenseStateKey } from '../../helpers/mixed';
 
@@ -51,7 +51,7 @@ export const POPOVER_CONTENT: Partial<Record<LicenseStateKey, PopoverContent>> =
   trial_valid: {
     title: 'Handsontable Trial',
     body: ({ daysRemaining }) =>
-      `Your Handsontable license key ${formatExpiryClause(daysRemaining)}. ${PURCHASE_LICENSE_TEXT}`,
+      `Your Handsontable license key ${_formatExpiryClause(daysRemaining)}. ${_PURCHASE_LICENSE_TEXT}`,
     linkText: 'Contact Sales',
     linkHref: SALES_MAILTO,
     dismissible: false,
@@ -59,14 +59,14 @@ export const POPOVER_CONTENT: Partial<Record<LicenseStateKey, PopoverContent>> =
   trial_notice: {
     title: 'Handsontable Trial',
     body: ({ daysRemaining }) =>
-      `Your Handsontable license key ${formatExpiryClause(daysRemaining)}. ${PURCHASE_LICENSE_TEXT}`,
+      `Your Handsontable license key ${_formatExpiryClause(daysRemaining)}. ${_PURCHASE_LICENSE_TEXT}`,
     linkText: 'Contact Sales',
     linkHref: SALES_MAILTO,
     dismissible: false,
   },
   trial_soft_stop: {
     title: 'Handsontable Trial Expired',
-    body: () => `${LICENSE_EXPIRED_TITLE} ${PURCHASE_LICENSE_TEXT}`,
+    body: () => `${_LICENSE_EXPIRED_TITLE} ${_PURCHASE_LICENSE_TEXT}`,
     linkText: 'Contact Sales',
     linkHref: SALES_MAILTO,
     dismissible: true,
