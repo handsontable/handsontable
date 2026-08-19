@@ -90,11 +90,19 @@ const _norm = (v: unknown) => `${v}`.replace(/\-/g, '');
 const _extractTime = (v: unknown) => _hd(_ss(_norm(v), _hd('12'), _cp('\x46'))) / (_hd(_ss(_norm(v) as string, _cp('\x42'), ~~![][ _m as keyof never[]])) || 9);
 const _ignored = () => typeof location !== 'undefined' && /^([a-z0-9\-]+\.)?\x68\x61\x6E\x64\x73\x6F\x6E\x74\x61\x62\x6C\x65\x2E\x63\x6F\x6D$/i.test(location.host);
 let _notified = false;
-// The entitlement-key console message uses its OWN once-per-page flag, deliberately SEPARATE from
-// the legacy `_notified` above - do NOT merge them. The frozen legacy path sets `_notified` even
-// when it prints nothing (a non-commercial key's console message is empty), so a shared flag would
-// let a silent non-commercial grid initialized first suppress a later entitlement key's warning.
-let _entitlementNotified = false;
+// The entitlement-key console message is deduplicated PER KEY, and deliberately SEPARATE from the
+// legacy `_notified` flag above - do NOT merge them. Two reasons for each half:
+//
+// Separate from `_notified`, because the frozen legacy path sets it even when it prints nothing (a
+// non-commercial key's console message is empty), so a shared flag would let a silent non-commercial
+// grid initialized first suppress a later entitlement key's warning.
+//
+// Keyed by the key string rather than a single boolean, because these messages have severity tiers
+// the legacy path never had: a notice window prints `warn`, every stop prints `error`. With one flag,
+// a page whose first grid holds a trial in its notice period would print that warning and silence the
+// expired license on the second grid entirely - a `warn` masking an `error`. Per key, each distinct
+// license still speaks exactly once, and two grids sharing one key still print once between them.
+const _entitlementNotified = new Set<string>();
 
 const consoleMessages: Record<string, (params: { keyValidityDate?: string; hotVersion?: string }) => string> = {
   invalid: () => toSingleLine`
@@ -313,6 +321,28 @@ function _rendersBlockingModal(state: string): boolean {
   return _BLOCKING_MODAL_STATES.indexOf(state) !== -1;
 }
 
+/**
+ * Strips surrounding whitespace from a license key.
+ *
+ * A key pasted out of an email or a chat window commonly carries a trailing space or newline. The
+ * legacy 25-character alphabet has no whitespace in it, so an untrimmed key fails the checksum and
+ * reads as `invalid` - which, from 18.1 on, BLOCKS the grid. A paying customer must not be locked
+ * out by a stray space.
+ *
+ * Applied at the head of BOTH license entry points (`_injectProductInfo` and `_getLicenseState`),
+ * never inside either one: the classifier's whole contract is that it reaches the same verdict as
+ * the frozen emitter, so trimming for one and not the other would desync them (the emitter would
+ * say `invalid` and withhold the bar while the classifier said `legacy_valid` and withheld the lock,
+ * leaving the key silently unreported). The frozen interior of the emitter is untouched - this
+ * normalizes its input, exactly like the entitlement reader's own `trim()` in `detectFormat.ts`.
+ *
+ * @param {string} [key] The license key from the grid settings.
+ * @returns {string|undefined} The key without surrounding whitespace.
+ */
+function _trimKey(key?: string): string | undefined {
+  return typeof key === 'string' ? key.trim() : key;
+}
+
 export function _injectProductInfo(
   { className, key, element, releaseDate }: {
     className?: string;
@@ -321,6 +351,10 @@ export function _injectProductInfo(
     releaseDate?: string;
   }
 ): HTMLElement | null {
+  // Reassigning the parameter, exactly as the frozen body below does with `_norm`: the legacy branch
+  // needs `key` to stay one mutable binding.
+  key = _trimKey(key);
+
   // An entitlement key is routed to its own path BEFORE any legacy normalization runs. The legacy
   // branch below is left exactly as-is, so every existing key keeps behaving the same. The shape
   // test is two string scans, so a legacy key pays almost nothing for it.
@@ -578,11 +612,15 @@ function _classifyLegacyKey(key?: string, releaseDate?: string): LicenseLifecycl
  * UNRESTRICTED grants on purpose: introducing capability gating must never take a feature away from
  * an existing customer, and an invalid key nags - it does not strip features.
  *
- * @param {string} [key] The license key from the grid settings.
+ * @param {string} [rawKey] The license key from the grid settings, trimmed here before any classification.
  * @param {string} [releaseDate] The build release date ("dd/mm/yyyy").
  * @returns {LicenseStateDescriptor}
  */
-export function _getLicenseState(key?: string, releaseDate?: string): LicenseStateDescriptor {
+export function _getLicenseState(rawKey?: string, releaseDate?: string): LicenseStateDescriptor {
+  // The same trim the emitter applies, and for the same reason: this function must reach the emitter's
+  // verdict, so both have to see the same key.
+  const key = _trimKey(rawKey);
+
   // The `*.handsontable.com` bypass applies to the whole license state, not just the console path.
   // This is the single point that both consumers (the console/DOM notification and the branding UI)
   // read, so honoring the bypass here keeps them consistent - without it, the app-blocking hard-stop
@@ -637,8 +675,8 @@ export function _getLicenseState(key?: string, releaseDate?: string): LicenseSta
 
 /**
  * Emits the console and DOM notifications for an entitlement license key. The console message fires
- * at most once per page (via the entitlement-only `_entitlementNotified` flag, kept separate from
- * the legacy `_notified`) and picks warn/error by state; the DOM bottom bar is shown for the
+ * at most once per page and per key (via the entitlement-only `_entitlementNotified` set, kept
+ * separate from the legacy `_notified`) and picks warn/error by state; the DOM bottom bar is shown for the
  * soft-stopped trial and for a build past its maintenance date. A key carrying `no-console-warns` or
  * `no-ui-warns` keeps that channel shut, and the `*.handsontable.com` bypass silences both, exactly
  * like the legacy path.
@@ -670,7 +708,7 @@ function _injectEntitlementProductInfo(
     hotVersion: process.env.HOT_VERSION,
   };
 
-  if (channels.console && !_entitlementNotified) {
+  if (channels.console && !_entitlementNotified.has(key ?? '')) {
     // An unreadable key reuses the frozen legacy copy - it is the same failure, and the
     // specification leaves the wording of the invalid-key message open.
     const notification = state === 'invalid'
@@ -685,7 +723,7 @@ function _injectEntitlementProductInfo(
       // exemptions end above, so everything else here is linted normally.
       // eslint-disable-next-line no-console, no-restricted-globals
       console[notification.severity](notification.message(params));
-      _entitlementNotified = true;
+      _entitlementNotified.add(key ?? '');
     }
   }
 

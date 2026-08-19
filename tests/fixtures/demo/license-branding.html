@@ -38,6 +38,13 @@
     the state — the spec pins the clock (page.clock) to the instant it wants,
     so one key covers the whole lifecycle.
   -->
+  <!--
+    Stands in for anything a host page has above the grid that the user could
+    be typing into while the grid initializes (a login field, a filter box).
+    The lock must not steal its focus - see the lock focus specs.
+  -->
+  <input id="outside-field" data-testid="outside-field" type="text" />
+
   <div id="grid" data-testid="grid"></div>
 
   <script>
@@ -65,6 +72,11 @@
       // A real legacy key that expired on 23/05/2011: valid once, merely lapsed - it must KEEP its
       // bottom bar while the two faults above take the modal.
       'legacy-expired': 'd0134-95841-770f2-c4f21-3751d',
+      // The same free key the docs tell people to paste, with the trailing newline an email or a
+      // chat window adds to it. It is a LICENSED grid: the whitespace must be trimmed away before
+      // the key is classified, or the checksum fails, the key reads as invalid, and 18.1 locks a
+      // grid that is entitled to run.
+      'non-commercial-padded': 'non-commercial-and-evaluation\n',
       missing: '',
     };
 
@@ -108,6 +120,10 @@
     if (!Object.prototype.hasOwnProperty.call(VARIANTS, variantName)) {
       throw new Error('Unknown ?variant= value: ' + JSON.stringify(variantName));
     }
+
+    // Focused BEFORE the grid is constructed, so a lock that grabs the keyboard at
+    // init would visibly take it from here. The specs assert this keeps focus.
+    document.querySelector('[data-testid="outside-field"]').focus();
 
     // `window.hot` is the handle the page object drives for the API-level steps
     // (updateSettings, destroy, the app's own dialogs, reading the selection).

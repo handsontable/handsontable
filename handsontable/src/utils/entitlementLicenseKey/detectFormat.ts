@@ -3,7 +3,7 @@ import type { LicenseKeyFormat } from './types';
 /**
  * The literal keys that stand for a license rather than encode one.
  *
- * Only formats Handsontable itself honours belong here. `gpl-v3` is deliberately absent: the
+ * Only formats Handsontable itself honors belong here. `gpl-v3` is deliberately absent: the
  * specification lists it among the unchanged legacy keys, but that list covers HyperFormula too and
  * nothing in this library has ever recognized it - the frozen validator rejects it like any other
  * unknown string. Naming it here advertised support that does not exist, and since an unreadable key

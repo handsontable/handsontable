@@ -15,7 +15,7 @@ export const INSTANT = {
 } as const;
 
 type LicenseKeyName = 'trial' | 'subscription' | 'subscription-external' | 'tampered' |
-  'legacy-expired' | 'missing';
+  'legacy-expired' | 'non-commercial-padded' | 'missing';
 type Variant = 'default' | 'no-row-headers' | 'no-headers-frozen' | 'narrow-corner' | 'dialog' |
   'nested' | 'narrow';
 
@@ -41,6 +41,7 @@ export class LicenseBrandingPage {
   readonly popoverClose: Locator;
   readonly bar: Locator;
   readonly lock: Locator;
+  readonly outsideField: Locator;
   readonly lockContactButton: Locator;
   readonly lockSupportButton: Locator;
   readonly lockDocsLink: Locator;
@@ -60,6 +61,9 @@ export class LicenseBrandingPage {
     this.bar = page.locator('.hot-display-license-info');
     this.lock = page.locator('.ht-license-lock');
     // Links, not buttons: a `mailto:` action must be a real anchor (see lockScreen.ts).
+    // A field the host page owns, above the grid, focused before the grid is
+    // constructed: the lock must not take the keyboard away from it.
+    this.outsideField = page.getByTestId('outside-field');
     this.lockContactButton = this.lock.getByRole('link', { name: 'Contact Sales' });
     this.lockSupportButton = this.lock.getByRole('link', { name: 'Contact Support' });
     this.lockDocsLink = this.lock.getByRole('link', { name: 'Read more' });
@@ -145,7 +149,7 @@ export class LicenseBrandingPage {
   }
 
   /**
-   * The element the browser hit-tests at the centre of the badge. The badge is
+   * The element the browser hit-tests at the center of the badge. The badge is
    * click-through, so this must never be the badge itself — the corner header
    * underneath has to keep its native select-all.
    */

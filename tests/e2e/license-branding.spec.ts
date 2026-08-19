@@ -145,7 +145,7 @@ test.describe('entitlement license key branding', () => {
     test('keeps the corner select-all click working underneath the badge', async () => {
       await license.goto(INSTANT.trialSoftStop);
 
-      // The badge is click-through (`pointer-events: none`), so the hit target at its centre is the
+      // The badge is click-through (`pointer-events: none`), so the hit target at its center is the
       // corner header below it.
       expect(await license.isBadgeClickThrough()).toBe(true);
 
@@ -158,16 +158,34 @@ test.describe('entitlement license key branding', () => {
   });
 
   test.describe('a trial past its grace period', () => {
-    test('mounts a blocking, non-closable lock and moves focus into it', async ({ page }) => {
+    test('mounts a blocking, non-closable lock', async () => {
       await license.goto(INSTANT.trialHardStop);
 
       await expect(license.lock).toBeVisible();
       await expect(license.lock).toHaveAttribute('role', 'alertdialog');
       await expect(license.lock).toContainText('Your Handsontable trial license key expired on 2026-09-26.');
-      // The lock owns the keyboard: focus lands on its only action, and Escape does not dismiss it
-      // (there is no Close button and no Escape shortcut — the hard stop is final).
-      await expect(license.lockContactButton).toBeFocused();
+      // There is no Close button and no Escape shortcut — the hard stop is final.
       await expect(license.lock).not.toContainText('Close');
+    });
+
+    test('leaves the keyboard where the user had it', async () => {
+      await license.goto(INSTANT.trialHardStop);
+
+      await expect(license.lock).toBeVisible();
+      // The fixture focuses its own field before constructing the grid. A lock that claimed the
+      // keyboard at init would empty that caret and scroll the page down to itself — with the grid
+      // possibly far below the fold, and possibly not the only grid on the page.
+      await expect(license.outsideField).toBeFocused();
+    });
+
+    test('owns the keyboard once the user reaches it, and Escape does not dismiss it', async ({ page }) => {
+      await license.goto(INSTANT.trialHardStop);
+
+      // The lock covers the whole grid, so this is the click any user trying to use the grid makes.
+      // The focus scope activates on it and focus lands on the lock's only action.
+      await license.lock.click();
+
+      await expect(license.lockContactButton).toBeFocused();
 
       await page.keyboard.press('Escape');
 
@@ -227,9 +245,15 @@ test.describe('entitlement license key branding', () => {
         await expect(license.badge).toHaveCount(0);
 
         // Support, not sales: an unreadable or absent key is an installation fault.
-        await expect(license.lockSupportButton).toBeFocused();
+        await expect(license.lockSupportButton).toBeVisible();
         await expect(license.lockDocsLink).toBeVisible();
         await expect(license.lock).not.toContainText('Close');
+        // Focus is not taken at init; it lands on the action once the user reaches the lock.
+        await expect(license.outsideField).toBeFocused();
+
+        await license.lock.click();
+
+        await expect(license.lockSupportButton).toBeFocused();
 
         await page.keyboard.press('Escape');
 
@@ -239,6 +263,9 @@ test.describe('entitlement license key branding', () => {
 
     test('keeps the documentation link inside the modal focus trap', async ({ page }) => {
       await license.goto(INSTANT.duringTrial, { key: 'missing' });
+
+      // Focus has to be brought in first — the lock never claims it on its own.
+      await license.lock.click();
 
       await expect(license.lockSupportButton).toBeFocused();
 
@@ -261,6 +288,17 @@ test.describe('entitlement license key branding', () => {
       await expect(license.lock).toBeVisible();
       await expect(license.lock).toContainText('non-commercial-and-evaluation');
       expect(await license.lockContentOverflowPx()).toBe(0);
+    });
+
+    test('does not lock a licensed grid whose key arrived with whitespace around it', async () => {
+      await license.goto(INSTANT.duringTrial, { key: 'non-commercial-padded' });
+
+      // A key pasted out of an email or a chat window commonly carries a trailing newline. The
+      // 25-character alphabet has no whitespace in it, so an untrimmed key fails its checksum and
+      // reads as an install fault — which now BLOCKS. A licensed grid must survive the paste.
+      await expect(license.lock).toHaveCount(0);
+      await expect(license.bar).toHaveCount(0);
+      await expect(license.outsideField).toBeFocused();
     });
 
     test('leaves a lapsed legacy key with its bottom bar and no modal', async () => {

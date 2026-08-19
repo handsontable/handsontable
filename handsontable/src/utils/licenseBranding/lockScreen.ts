@@ -155,15 +155,23 @@ export function mountLicenseLock(hotInstance: HotInstance, content: LockContent)
 
   host.appendChild(lock);
 
-  // The lock mounts during `init()`, before the grid's first render, so moving focus into it waits
-  // for `afterInit`.
+  // The lock mounts during `init()`, before the grid's first render, so its width sync waits for
+  // `afterInit`.
+  //
+  // It does NOT take focus here. A grid can initialize while the user is typing somewhere else on the
+  // page (a login form above it, another grid), and grabbing the keyboard at construction would pull
+  // focus out of that field, scroll the page down to the lock, and - because `listen()` un-listens
+  // every other instance - take the keyboard away from a licensed grid too. Two blocked grids would
+  // fight over it. The Dialog plugin guards its own focus grab the same way, on whether the grid was
+  // already listening.
+  //
+  // Nothing is lost by waiting: the focus scope manager activates a scope, and calls `listen()`
+  // itself, on the first focusin or click inside the scope element. So the Tab trap engages the moment
+  // the user actually reaches the lock - by clicking it (it covers the whole grid) or by tabbing in
+  // through a focus catcher - and not one moment earlier.
   hotInstance.addHookOnce('afterInit', () => {
     syncWidth();
+    // The grid underneath is unusable, so it must not look selected. This moves no focus.
     hotInstance.deselectCell();
-    // The lock takes over the whole grid surface, so it claims the keyboard explicitly: the shortcut
-    // pipeline only processes non-global events while the instance is listening, and a freshly
-    // initialized grid is not listening until the user interacts with it.
-    hotInstance.listen();
-    focusScopeManager.activateScope(SCOPE_ID);
   });
 }

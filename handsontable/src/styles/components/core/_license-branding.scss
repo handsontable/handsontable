@@ -3,11 +3,13 @@
 // Handsontable license branding: the corner "H." badge + its popover (shown for a running or
 // soft-stopped trial only) and the Core-owned hard-stop lock screen.
 // ---
-// The badge glyph is ALSO registered as the theme icon `licenseBadge`
-// (`themes/static/variables/icons/main.ts`) for the Figma design pipeline, but the mask is applied
-// here directly so it renders in the base stylesheet without a per-theme icon-CSS regeneration (which
-// needs the gitignored Figma `tokens.json`).
-// Any change here must update the `licenseBadge` icon AND `$license-badge-icon` together.
+// This is the ONLY definition of the glyph, and deliberately not a theme icon. It was briefly
+// registered as `licenseBadge` in the theme icon catalogs; that was wrong twice over - the key is not
+// in `VALID_ICON_KEYS` (so registering a built-in theme logged "Unknown icon key"), and `iconsMap`
+// has no rule for it (so it emitted no CSS at all). Do not re-add it: a theme-overridable entry would
+// let a host application blank out the license mark, and the glyph has to render from the base
+// stylesheet anyway, without the per-theme icon-CSS regeneration that needs the gitignored Figma
+// `tokens.json`.
 $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='14.8626' height='16' viewBox='0 0 14.8626 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0H3.28665V4.35577H7.03576V0H10.306V11.407H7.03576V6.90834H3.28665V11.407H0V0Z' fill='%23000'/%3E%3Cpath d='M11.0991 12.236H14.8633V16.0001H11.0991V12.236Z' fill='%23000'/%3E%3C/svg%3E";
 
 @mixin output {
@@ -53,7 +55,7 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='14.8626' he
     inline-size: min(var(--ht-license-badge-size, 16px), 100%);
     block-size: min(var(--ht-license-badge-size, 16px), 100%);
     // The design system's own tokens (Figma `common/colors/disabled-color`), so the glyph tracks the
-    // theme and the light/dark scheme instead of pinning one grey: #a3a3a3 in main light, #aeaeae in
+    // theme and the light/dark scheme instead of pinning one gray: #a3a3a3 in main light, #aeaeae in
     // horizon light, and so on. The literal is only the no-theme fallback.
     background-color: var(--ht-license-badge-color, var(--ht-disabled-color, #a3a3a3));
     pointer-events: none;
@@ -261,7 +263,7 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='14.8626' he
       border-block-end: 1px solid var(--ht-cell-horizontal-border-color, var(--ht-border-color));
     }
 
-    // The greyed "H." logomark, centered in that strip where a corner header's badge would sit.
+    // The grayed "H." logomark, centered in that strip where a corner header's badge would sit.
     &::after {
       content: "";
       position: absolute;

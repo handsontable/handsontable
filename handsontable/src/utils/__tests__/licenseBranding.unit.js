@@ -181,6 +181,49 @@ describe('licenseBranding', () => {
     expect(Object.keys(LOCK_CONTENT).sort()).toEqual([...blockingStates].sort());
   });
 
+  // Every test above and below stubs `_getLicenseState`, which is exactly what this one must not do.
+  // `_classifyLegacyKey` behind it is a hand-written mirror of the frozen legacy emitter and it alone
+  // decides whether a 25-character key locks the grid, so if that mirror ever drifts toward `invalid`
+  // every paying customer is locked out - and, with the reader stubbed everywhere else, the whole
+  // suite still passes. This drives the REAL reader with a real key and asserts the grid stays free.
+  describe('a valid legacy key, through the real license-state reader', () => {
+    const VALID_LEGACY_KEY = 'd0134-95841-770f2-c4f21-3751d'; // expires 23/05/2011
+    let realGetLicenseState;
+    let previousReleaseDate;
+
+    beforeEach(() => {
+      realGetLicenseState = jest.requireActual('../../helpers/mixed')._getLicenseState;
+      _getLicenseState.mockImplementation(realGetLicenseState);
+      // `initLicenseBranding` reads the build date bare off the environment, so a date inside the
+      // key's window is what makes it a live paid license here rather than an expired one.
+      previousReleaseDate = process.env.HOT_RELEASE_DATE;
+      process.env.HOT_RELEASE_DATE = '22/05/2011';
+    });
+
+    afterEach(() => {
+      process.env.HOT_RELEASE_DATE = previousReleaseDate;
+    });
+
+    it('should classify it as valid rather than invalid', () => {
+      expect(realGetLicenseState(VALID_LEGACY_KEY, '22/05/2011').lifecycle.state).toBe('legacy_valid');
+    });
+
+    it.each([
+      ['a bare key', VALID_LEGACY_KEY],
+      ['a trailing space', `${VALID_LEGACY_KEY} `],
+      ['a trailing newline', `${VALID_LEGACY_KEY}\n`],
+      ['surrounding whitespace', `\n  ${VALID_LEGACY_KEY}  \n`],
+    ])('should render no lock and no badge for %s', (_label, key) => {
+      const hotInstance = createMockHotInstance({ licenseKey: key });
+
+      initLicenseBranding(hotInstance);
+
+      expect(hotInstance.rootOverlaysElement.children).toHaveLength(0);
+      expect(hotInstance.focusScope.registerScope).not.toHaveBeenCalled();
+      expect(hotInstance.rootElement.classList.contains('ht-license-badge-on')).toBe(false);
+    });
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -555,20 +598,26 @@ describe('licenseBranding', () => {
       expect(hotInstance.rootWindow.location.href).toBe('');
     });
 
-    it('should defer moving focus into the lock to afterInit (the grid is unrendered during init)', () => {
+    // The lock must never take the keyboard on its own. A grid can initialize while the user is typing
+    // in a field elsewhere on the page, and grabbing focus at construction would empty that field's
+    // caret, scroll the page down to the lock, and - because `listen()` un-listens every other
+    // instance - pull the keyboard off a licensed grid as well. The focus scope manager activates the
+    // scope on the first focusin or click inside it, so the Tab trap still engages the moment the user
+    // reaches the lock.
+    it('should mount the lock without ever claiming focus or the keyboard', () => {
       setLifecycle('trial_hard_stop', { licensedUntil: '2026-09-26' });
       const hotInstance = createMockHotInstance();
 
       initLicenseBranding(hotInstance);
 
-      // The lock DOM mounts immediately, but activation (deselect + focus move) waits for the grid.
       expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
-      expect(hotInstance.focusScope.activateScope).not.toHaveBeenCalled();
 
       hotInstance.hooks.addHookOnce.afterInit();
 
+      // The grid underneath must not look selected - that is the one thing `afterInit` still does.
       expect(hotInstance.deselectCell).toHaveBeenCalledTimes(1);
-      expect(hotInstance.focusScope.activateScope).toHaveBeenCalledWith('licenseLock');
+      expect(hotInstance.focusScope.activateScope).not.toHaveBeenCalled();
+      expect(hotInstance.listen).not.toHaveBeenCalled();
     });
 
     it('should register a modal focus scope for the lock', () => {
@@ -673,7 +722,9 @@ describe('licenseBranding', () => {
         expect(hotInstance.focusScope.registerScope).toHaveBeenCalledWith(
           'licenseLock', expect.any(HTMLElement), expect.objectContaining({ type: 'modal' })
         );
-        expect(hotInstance.focusScope.activateScope).toHaveBeenCalledWith('licenseLock');
+        // Registered, not activated: the scope manager activates it when the user first reaches the
+        // lock. See "should mount the lock without ever claiming focus or the keyboard" above.
+        expect(hotInstance.focusScope.activateScope).not.toHaveBeenCalled();
       }
     );
   });

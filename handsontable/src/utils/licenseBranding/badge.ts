@@ -220,6 +220,12 @@ export function mountLicenseBadge(hotInstance: HotInstance, lifecycle: LicenseLi
     hotInstance.addHook('afterDestroy', () => observer.disconnect());
   } else {
     // No ResizeObserver (jsdom): fall back to measuring per render.
+    //
+    // Dead in every shipped bundle - `ResizeObserver` predates the whole browser floor in
+    // `browser-targets.js` - so this branch exists as the jsdom test seam and nothing else. That makes
+    // the coverage split deliberate but lopsided: the Jest specs only ever walk THIS path (their
+    // `ResizeObserver` stub never fires), and the observer path above is pinned by the Playwright
+    // specs alone. Read a green Jest run accordingly - it says nothing about the shipped measurement.
     measurePopoverAnchor();
     hotInstance.addHook('afterRender', () => measurePopoverAnchor());
   }
