@@ -85,29 +85,53 @@ export class DropdownHeightPage {
   }
 
   /**
-   * True when the option row sits inside the list's clipping box, so the user can
-   * actually read it. An option outside that box is scrolled or trimmed out of
-   * sight even though the row element itself still reports a bounding box - which
-   * is exactly what a collapsed list looked like.
+   * How much of the option row is genuinely on screen, in CSS pixels.
+   *
+   * The row is intersected with EVERY clipping ancestor, not just the list's own
+   * holder. That holder is a descendant of the grid's root element, which carries
+   * `overflow: clip` whenever a `height` setting is applied, and the holder can hang
+   * past the root's bottom edge - so measuring the row against the holder alone
+   * reports a row as visible after the grid root has already cut it away. Playwright's
+   * `toBeVisible()` has the same blind spot: it only needs a non-empty bounding box.
    */
-  async isOptionInsideVisibleList(label: string, gridTestId = 'grid'): Promise<boolean> {
-    const holderBox = await this.dropdownHolder(gridTestId).boundingBox();
-    const optionBox = await this.optionByText(label, gridTestId).boundingBox();
+  async visibleHeightOfOption(label: string, gridTestId = 'grid'): Promise<number> {
+    return this.optionByText(label, gridTestId).evaluate((element: Element) => {
+      const view = element.ownerDocument.defaultView;
 
-    if (!holderBox || !optionBox) {
-      throw new Error(`dropdown holder or the "${label}" option is not rendered`);
-    }
+      if (!view) {
+        throw new Error('the option is not attached to a rendered document');
+      }
 
-    // 2px tolerance: the themes differ in how the list's border is compensated.
-    return optionBox.y >= holderBox.y - 2 &&
-      (optionBox.y + optionBox.height) <= (holderBox.y + holderBox.height + 2);
+      const rect = element.getBoundingClientRect();
+      let top = rect.top;
+      let bottom = rect.bottom;
+      let ancestor = element.parentElement;
+
+      while (ancestor && ancestor !== element.ownerDocument.body) {
+        if (view.getComputedStyle(ancestor).overflowY !== 'visible') {
+          const box = ancestor.getBoundingClientRect();
+
+          top = Math.max(top, box.top);
+          bottom = Math.min(bottom, box.bottom);
+        }
+
+        ancestor = ancestor.parentElement;
+      }
+
+      return Math.max(0, bottom - top);
+    });
   }
 
   /**
-   * The visible height of the option list, in CSS pixels.
+   * The height the editor gave the option list, in CSS pixels.
+   *
+   * This is the holder's own box, so it does NOT account for the grid root clipping
+   * the list - use `visibleHeightOfOption()` for what the user can actually read.
+   * Kept separate because the two answer different questions: this one pins the size
+   * the editor computed, which is where the zero-height regression originated.
    */
   async listHeight(gridTestId = 'grid'): Promise<number> {
-    return this.dropdownHolder(gridTestId).evaluate(el => el.getBoundingClientRect().height);
+    return this.dropdownHolder(gridTestId).evaluate((el: Element) => el.getBoundingClientRect().height);
   }
 
   /**
@@ -115,7 +139,7 @@ export class DropdownHeightPage {
    * options that do not fit.
    */
   async listCanScroll(gridTestId = 'grid'): Promise<boolean> {
-    return this.dropdownHolder(gridTestId).evaluate(el => el.scrollHeight > el.clientHeight);
+    return this.dropdownHolder(gridTestId).evaluate((el: Element) => el.scrollHeight > el.clientHeight);
   }
 
   /**
@@ -123,6 +147,16 @@ export class DropdownHeightPage {
    */
   async defaultRowHeight(): Promise<number> {
     return this.page.evaluate(() => (window as unknown as { htRowHeight: number }).htRowHeight);
+  }
+
+  /**
+   * The row height the editor sizes its option rows by (`getDefaultRowHeight()`),
+   * published by the fixture. It is 1px under `defaultRowHeight()` — the first-row
+   * border compensation — so the two must not be used interchangeably when asserting
+   * against an exact one-row boundary.
+   */
+  async listRowHeight(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as { htListRowHeight: number }).htListRowHeight);
   }
 
   /**

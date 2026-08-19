@@ -434,12 +434,21 @@ export class AutocompleteEditor extends HandsontableEditor {
         return;
       }
 
-      // Fit whole rows only. `Math.ceil(...) - 1` reproduces the original "keep adding rows until
-      // one crosses the boundary, then step back a row" arithmetic, but always keeps at least one
-      // row visible. Without that floor the height collapses to 0 whenever the free space is not
-      // taller than a single row, which renders the list as an invisible sliver and hides every
-      // choice - the flexbox-squeezed grids reported in #8872. The MultiSelect editor's dropdown
-      // clamps to one entry the same way.
+      // Show whole rows only, and stop one row short of the boundary: `Math.ceil(...) - 1` is the
+      // exact arithmetic of the do/while this replaced ("add rows until one crosses the free
+      // space, then step back a row"), so an exactly-fitting space still leaves its last row out.
+      // That margin is deliberately preserved - the list is trimmed because it overflows the
+      // workspace, and the rendered rows carry a border the raw row height does not.
+      //
+      // `Math.max(..., 1)` is the fix: without it the height collapsed to 0 whenever the free
+      // space was not taller than a single row, rendering the list as an invisible sliver that hid
+      // every choice - the flexbox-squeezed grids reported in #8872. The MultiSelect editor's
+      // dropdown clamps to one entry the same way (`dropdownController.updateDimensions()`).
+      //
+      // A caveat this cannot solve here: the grid's root element gets `overflow: clip` whenever a
+      // `height` is set, so when the free space is narrower than the forced row, that row is
+      // partly clipped by the grid's bottom edge - fully so when the space reaches 0. Making it
+      // readable in those extremes needs the dropdown to escape the clipping root (DEV-1656).
       const rowsThatFit = Math.max(Math.ceil(spaceAvailable / rowHeight) - 1, 1);
       const height = rowsThatFit * rowHeight;
 

@@ -37,13 +37,23 @@
     E2E fixture for #8872 / DEV-1656: autocomplete dropdown height when a flexbox
     parent squeezes the grid.
 
-    `#grid` sits in a flex column whose height is set, after the first render, to
-    1.5 default row heights — the shortest grid that still renders the edited row.
-    Column headers are off so the edited cell starts at y=0: that keeps `spaceAbove`
-    at 0, so the dropdown can never flip upwards and the "space below" branch of
-    `limitDropdownIfNeeded()` is the one under test. The free space below the cell is
-    then half a row — less than one whole option — which used to collapse the list to
-    a 0px height and hide every choice.
+    `#grid` sits in a flex column whose height is set, after the first render, to one
+    rendered row plus one list row. Column headers are off so the edited cell starts at
+    y=0: that keeps `spaceAbove` at 0, so the dropdown can never flip upwards and the
+    "space below" branch of `limitDropdownIfNeeded()` is the one under test. The free
+    space below the cell is then EXACTLY one list row, the boundary where the old
+    arithmetic collapsed the list to a 0px height and hid every choice.
+
+    That exact height is also the only one where the forced row is fully readable. The
+    grid's root element carries `overflow: clip` once a `height` is set, so it cuts off
+    whatever the dropdown renders past the grid's bottom edge. Squeeze the grid below
+    this height and the free space is narrower than the row that gets forced, so the
+    row is partly (at the extreme, entirely) clipped away - a separate limitation
+    tracked in DEV-1656, fixable only by letting the dropdown escape that clipping root.
+
+    Two row heights are published because they differ by the 1px first-row border
+    compensation: `htRowHeight` is what a cell renders as, `htListRowHeight` is what
+    `StylesHandler#getDefaultRowHeight()` reports and what the editor sizes rows by.
 
     `#grid-tall` is the non-flexbox control: a normal 400px grid where the whole list
     fits and must keep rendering all options untouched.
@@ -115,12 +125,15 @@
       height: 400,
     });
 
-    // Squeeze the flex parent down to 1.5 rows, measured from what the active theme
-    // actually rendered. `window.htRowHeight` is what the spec asserts against.
+    // Squeeze the flex parent so the space below the edited cell is exactly one list
+    // row. Both heights are measured from what the active theme actually rendered, never
+    // hardcoded - main, horizon, and classic all differ.
     const firstCell = window.hot.getCell(0, 0);
 
     window.htRowHeight = firstCell.offsetHeight;
-    document.getElementById('flex-wrapper').style.height = `${Math.round(window.htRowHeight * 1.5)}px`;
+    window.htListRowHeight = window.hot.stylesHandler.getDefaultRowHeight();
+    document.getElementById('flex-wrapper').style.height =
+      `${window.htRowHeight + window.htListRowHeight}px`;
     window.hot.refreshDimensions();
 
     window.htOptionCount = COUNTRIES.length;

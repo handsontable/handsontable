@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the autocomplete and dropdown option list collapsing to zero height, showing no options, when the grid was too short to fit one option below the edited cell.",
+  "title": "Fixed the autocomplete and dropdown option list collapsing to zero height, hiding every option, when less than one option of space was left below the edited cell.",
   "type": "fixed",
   "issueOrPR": 13202,
   "breaking": false,
