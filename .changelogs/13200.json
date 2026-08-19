@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the `fixedRowsBottom` option losing its value after undoing a row insertion, which un-pinned the bottom row.",
+  "title": "Fixed the `fixedRowsTop`, `fixedRowsBottom`, and `fixedColumnsStart` options losing their value after undoing a row or column insertion, which un-pinned a frozen row or column.",
   "type": "fixed",
   "issueOrPR": 13200,
   "breaking": false,

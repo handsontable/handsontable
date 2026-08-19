@@ -1,6 +1,7 @@
 import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
 import { BaseAction } from './_base';
+import { FIXED_ROW_COUNTS, removeAndKeepFixedCounts } from './fixedCounts';
 
 /**
  * Action that tracks row creation.
@@ -44,31 +45,17 @@ export class CreateRowAction extends BaseAction {
    */
   undo(hot: HotInstance, undoneCallback: HookCallback) {
     const rowCount = hot.countRows();
-    const settings = hot.getSettings();
-    const minSpareRows = settings.minSpareRows;
+    const minSpareRows = hot.getSettings().minSpareRows;
 
     if (this.index >= rowCount && this.index - (minSpareRows ?? 0) < rowCount) {
       this.index -= (minSpareRows ?? 0); // work around the situation where the needed row was removed due to an 'undo' of a made change
     }
 
-    // Read before the removal - `alter` decreases these when it removes a fixed row.
-    const fixedRowsBottom = settings.fixedRowsBottom ?? 0;
-    const fixedRowsTop = settings.fixedRowsTop ?? 0;
-
     hot.addHookOnce('afterRemoveRow', undoneCallback);
-    hot.alter('remove_row', this.index, this.amount, 'UndoRedo.undo');
 
-    // Rows inserted into the fixed area belong to that area when the undo removes them, so `alter`
-    // decreases the counters. The rows are back to the state from before the insertion, so the counters
-    // have to go back as well (DEV-2551). Only a decrease is reverted - a value raised in the meantime
-    // by `updateSettings` stays as the user set it.
-    if ((settings.fixedRowsBottom ?? 0) < fixedRowsBottom || (settings.fixedRowsTop ?? 0) < fixedRowsTop) {
-      // Changing by the reference as `updateSettings` doesn't work the best.
-      settings.fixedRowsBottom = fixedRowsBottom;
-      settings.fixedRowsTop = fixedRowsTop;
-
-      hot.render();
-    }
+    removeAndKeepFixedCounts(hot, FIXED_ROW_COUNTS, () => {
+      hot.alter('remove_row', this.index, this.amount, 'UndoRedo.undo');
+    });
   }
 
   /**

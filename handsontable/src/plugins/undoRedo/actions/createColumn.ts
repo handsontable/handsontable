@@ -1,6 +1,7 @@
 import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
 import { BaseAction } from './_base';
+import { FIXED_COLUMN_COUNTS, removeAndKeepFixedCounts } from './fixedCounts';
 
 /**
  * Action that tracks column creation.
@@ -44,7 +45,10 @@ export class CreateColumnAction extends BaseAction {
    */
   undo(hot: HotInstance, undoneCallback: HookCallback) {
     hot.addHookOnce('afterRemoveCol', undoneCallback);
-    hot.alter('remove_col', this.index, this.amount, 'UndoRedo.undo');
+
+    removeAndKeepFixedCounts(hot, FIXED_COLUMN_COUNTS, () => {
+      hot.alter('remove_col', this.index, this.amount, 'UndoRedo.undo');
+    });
   }
 
   /**
