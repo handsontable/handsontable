@@ -544,6 +544,85 @@ describe('Core.alter', () => {
       expect(getSettings().fixedRowsTop).toEqual(1);
     });
 
+    it('should decrement the number of bottom fixed rows, if a bottom fixed row is removed', async() => {
+      handsontable({
+        startCols: 1,
+        startRows: 5,
+        fixedRowsBottom: 2,
+      });
+
+      await alter('remove_row', 4, 1);
+
+      expect(getSettings().fixedRowsBottom).toEqual(1);
+
+      await alter('remove_row', 3, 1);
+
+      expect(getSettings().fixedRowsBottom).toEqual(0);
+    });
+
+    it('should not decrement the number of bottom fixed rows, if the removed row is above them', async() => {
+      handsontable({
+        startCols: 1,
+        startRows: 5,
+        fixedRowsBottom: 1,
+      });
+
+      await alter('remove_row', 3, 1);
+
+      expect(getSettings().fixedRowsBottom).toEqual(1);
+    });
+
+    it('should not decrement the number of bottom fixed rows, if a range of rows above them is removed', async() => {
+      handsontable({
+        startCols: 1,
+        startRows: 8,
+        fixedRowsBottom: 2,
+      });
+
+      await alter('remove_row', 1, 3);
+
+      expect(getSettings().fixedRowsBottom).toEqual(2);
+    });
+
+    it('should decrement the number of bottom fixed rows only by the number of removed fixed rows', async() => {
+      handsontable({
+        startCols: 1,
+        startRows: 6,
+        fixedRowsBottom: 2,
+      });
+
+      // Removes rows 3, 4 and 5 - only rows 4 and 5 belong to the bottom fixed rows.
+      await alter('remove_row', 3, 3);
+
+      expect(getSettings().fixedRowsBottom).toEqual(0);
+    });
+
+    it('should decrement the number of bottom fixed rows only by the fixed rows within a straddling range', async() => {
+      handsontable({
+        startCols: 1,
+        startRows: 6,
+        fixedRowsBottom: 3,
+      });
+
+      // Removes rows 2 and 3 - only row 3 belongs to the bottom fixed rows (rows 3, 4 and 5).
+      await alter('remove_row', 2, 2);
+
+      expect(getSettings().fixedRowsBottom).toEqual(2);
+    });
+
+    it('should decrement the number of bottom fixed rows by one when only the topmost fixed row is removed', async() => {
+      handsontable({
+        startCols: 1,
+        startRows: 6,
+        fixedRowsBottom: 3,
+      });
+
+      // Row 3 is the first of the three bottom fixed rows (rows 3, 4 and 5).
+      await alter('remove_row', 3, 1);
+
+      expect(getSettings().fixedRowsBottom).toEqual(2);
+    });
+
     it('should shift the cell meta according to the new row layout', async() => {
       handsontable({
         startCols: 3,
