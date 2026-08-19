@@ -259,35 +259,39 @@ describe('entitlement license notification (via _injectProductInfo)', () => {
   });
 
   describe('a key that is not a Handsontable license', () => {
-    it('should treat a key granting only another product as invalid', () => {
-      const { node, bar } = inject(HF_ONLY_KEY, { now: SUBSCRIPTION_RUNNING });
+    // DEV-2562: an unreadable key still warns in the console, but its BAR is gone - the blocking
+    // modal (`utils/licenseBranding/lockScreen.ts`) carries those sentences now, and two license
+    // surfaces repeating one message would be noise.
+    it('should treat a key granting only another product as invalid, with no bar', () => {
+      const { node } = inject(HF_ONLY_KEY, { now: SUBSCRIPTION_RUNNING });
 
       expect(console.warn).toHaveBeenCalledWith(
         'The license key for Handsontable is invalid. If you need any help, contact us at ' +
         'support@handsontable.com.'
       );
-      expect(node).not.toBe(null);
-      expect(bar()).toContain('The license key for Handsontable is invalid.');
+      expect(node).toBe(null);
     });
 
-    it('should treat a tampered key as invalid', () => {
+    it('should treat a tampered key as invalid, with no bar', () => {
       const { node } = inject(`${SUBSCRIPTION_KEY.slice(0, -3)}00]`, { now: SUBSCRIPTION_RUNNING });
 
       expect(console.warn).toHaveBeenCalledWith(
         'The license key for Handsontable is invalid. If you need any help, contact us at ' +
         'support@handsontable.com.'
       );
-      expect(node).not.toBe(null);
+      expect(node).toBe(null);
     });
   });
 
   describe('the legacy path (regression)', () => {
-    it('should keep reporting a missing key the way it always has', () => {
-      inject(undefined, { now: SUBSCRIPTION_RUNNING });
+    it('should keep reporting a missing key in the console, and no longer in a bar', () => {
+      const { node } = inject(undefined, { now: SUBSCRIPTION_RUNNING });
 
       expect(console.warn).toHaveBeenCalledWith(expect.stringContaining(
         'The license key for Handsontable is missing.'
       ));
+      // The console message is untouched; only the bar gave way to the blocking modal.
+      expect(node).toBe(null);
     });
 
     it('should keep the non-commercial key silent', () => {
@@ -298,12 +302,23 @@ describe('entitlement license notification (via _injectProductInfo)', () => {
       expect(node).toBe(null);
     });
 
-    it('should keep reporting a malformed legacy key as invalid', () => {
-      inject('00000-00000-00000-00000-00000', { now: SUBSCRIPTION_RUNNING });
+    it('should keep reporting a malformed legacy key as invalid, and no longer in a bar', () => {
+      const { node } = inject('00000-00000-00000-00000-00000', { now: SUBSCRIPTION_RUNNING });
 
       expect(console.warn).toHaveBeenCalledWith(expect.stringContaining(
         'The license key for Handsontable is invalid.'
       ));
+      expect(node).toBe(null);
+    });
+
+    it('should still show the bar for a legacy key that expired - it was valid, it just lapsed', () => {
+      // A real legacy key that expired on 23/05/2011, so it is expired against any modern build.
+      const { node, bar } = inject('d0134-95841-770f2-c4f21-3751d', { now: SUBSCRIPTION_RUNNING });
+
+      // Only the two INSTALL faults block. A lapsed key keeps the bar it always had, so an
+      // application that is merely out of maintenance is never taken off the air.
+      expect(node).not.toBe(null);
+      expect(bar()).toContain('expired on');
     });
   });
 });

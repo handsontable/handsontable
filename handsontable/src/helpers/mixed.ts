@@ -262,10 +262,10 @@ const entitlementConsoleNotifications: Partial<Record<LicenseStateKey, Entitleme
 
 /**
  * The bottom-bar (DOM) copy for the states that show one: the soft-stopped
- * trial and a build past its maintenance date. The trial hard stop renders the
- * Core-owned lock screen instead (see `utils/licenseBranding/lockScreen.ts`),
- * and a non-trial license never renders a bar - it is developer-facing only in
- * 18.1.
+ * trial and a build past its maintenance date. Three states render the
+ * Core-owned lock screen instead of a bar (see `BLOCKING_MODAL_STATES` below
+ * and `utils/licenseBranding/lockScreen.ts`), and a non-trial license never
+ * renders a bar - it is developer-facing only in 18.1.
  */
 const entitlementDomMessages: Partial<Record<LicenseStateKey, (params: EntitlementMessageParams) => string>> = {
   trial_soft_stop: () => toSingleLine`
@@ -277,6 +277,30 @@ const entitlementDomMessages: Partial<Record<LicenseStateKey, (params: Entitleme
     key or downgrade to a version released on or before ${licensedUntil}. If you need any help, contact us\x20
     at <a href="mailto:sales@handsontable.com">sales@handsontable.com</a>.`,
 };
+
+/**
+ * The states that render the Core-owned blocking modal (`utils/licenseBranding/lockScreen.ts`)
+ * INSTEAD of a bottom bar: a key that cannot be read, and a key that was never set. Both spellings
+ * are shared by the legacy emitter's own state vocabulary below and by `LicenseStateKey`, so one
+ * list governs both paths.
+ *
+ * The console message is unaffected - it still prints for these states. Only the bottom bar is
+ * withdrawn, because the modal now carries its sentences and two license surfaces saying the same
+ * thing at once would be noise.
+ *
+ * @type {string[]}
+ */
+const BLOCKING_MODAL_STATES = ['invalid', 'missing'];
+
+/**
+ * Tells whether a license state speaks through the blocking modal rather than the bottom bar.
+ *
+ * @param {string} state The license state, in either path's vocabulary.
+ * @returns {boolean}
+ */
+function _rendersBlockingModal(state: string): boolean {
+  return BLOCKING_MODAL_STATES.indexOf(state) !== -1;
+}
 
 export function _injectProductInfo(
   { className, key, element, releaseDate }: {
@@ -361,7 +385,7 @@ export function _injectProductInfo(
     _notified = true;
   }
 
-  if (domMessageState !== 'valid' && element) {
+  if (domMessageState !== 'valid' && !_rendersBlockingModal(domMessageState) && element) {
     const message = domMessages[domMessageState]({
       keyValidityDate,
       hotVersion,
@@ -645,11 +669,11 @@ function _injectEntitlementProductInfo(
     }
   }
 
-  if (!channels.ui || !element) {
+  if (!channels.ui || !element || _rendersBlockingModal(state)) {
     return null;
   }
 
-  const buildDomMessage = state === 'invalid' ? () => domMessages.invalid({}) : entitlementDomMessages[state];
+  const buildDomMessage = entitlementDomMessages[state];
 
   if (!buildDomMessage) {
     return null;

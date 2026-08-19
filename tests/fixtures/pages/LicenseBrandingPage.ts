@@ -14,7 +14,8 @@ export const INSTANT = {
   subscriptionHardStop: '2027-12-01T00:00:00Z',
 } as const;
 
-type LicenseKeyName = 'trial' | 'subscription' | 'subscription-external';
+type LicenseKeyName = 'trial' | 'subscription' | 'subscription-external' | 'tampered' |
+  'legacy-expired' | 'missing';
 type Variant = 'default' | 'no-row-headers' | 'no-headers-frozen' | 'narrow-corner' | 'dialog' | 'nested';
 
 /**
@@ -40,6 +41,8 @@ export class LicenseBrandingPage {
   readonly bar: Locator;
   readonly lock: Locator;
   readonly lockContactButton: Locator;
+  readonly lockSupportButton: Locator;
+  readonly lockDocsLink: Locator;
   readonly corner: Locator;
   readonly cornerHeaderCell: Locator;
 
@@ -56,6 +59,8 @@ export class LicenseBrandingPage {
     this.bar = page.locator('.hot-display-license-info');
     this.lock = page.locator('.ht-license-lock');
     this.lockContactButton = this.lock.getByRole('button', { name: 'Contact Sales' });
+    this.lockSupportButton = this.lock.getByRole('button', { name: 'Contact Support' });
+    this.lockDocsLink = this.lock.getByRole('link', { name: 'Read more' });
     // This grid's OWN corner clone, marked by the class the branding stamps on it. A nested grid
     // (the `handsontable` cell type) renders a corner clone of its own inside the same root, and a
     // structural `.ht_clone_top_inline_start_corner` selector would match that one too.

@@ -8,7 +8,7 @@
 // here directly so it renders in the base stylesheet without a per-theme icon-CSS regeneration (which
 // needs the gitignored Figma `tokens.json`).
 // Any change here must update the `licenseBadge` icon AND `$license-badge-icon` together.
-$license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0H3.46V4.58H7.4V0H10.84V12H7.4V7.27H3.46V12H0V0Z' fill='%23000'/%3E%3Crect x='12.7' y='12.7' width='3.3' height='3.3' fill='%23000'/%3E%3C/svg%3E";
+$license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='14.8626' height='16' viewBox='0 0 14.8626 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0H3.28665V4.35577H7.03576V0H10.306V11.407H7.03576V6.90834H3.28665V11.407H0V0Z' fill='%23000'/%3E%3Cpath d='M11.0991 12.236H14.8633V16.0001H11.0991V12.236Z' fill='%23000'/%3E%3C/svg%3E";
 
 @mixin output {
   .ht-license-badge-wrapper {
@@ -46,10 +46,13 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height=
     // The +3px optical nudge (a 6px start inset halved by the auto margins), clamped so it decays
     // to zero in corners too narrow to absorb it - the glyph must never leave the cell. A raw
     // `translate` would push it back out of narrow corners.
-    inset-inline-start: clamp(0px, calc(100% - var(--ht-license-badge-size, 20px)), 6px);
-    inline-size: min(var(--ht-license-badge-size, 20px), 100%);
-    block-size: min(var(--ht-license-badge-size, 20px), 100%);
-    background-color: var(--ht-license-badge-color, #c7c7c7);
+    inset-inline-start: clamp(0px, calc(100% - var(--ht-license-badge-size, 16px)), 6px);
+    inline-size: min(var(--ht-license-badge-size, 16px), 100%);
+    block-size: min(var(--ht-license-badge-size, 16px), 100%);
+    // The design system's own tokens (Figma `common/colors/disabled-color`), so the glyph tracks the
+    // theme and the light/dark scheme instead of pinning one grey: #a3a3a3 in main light, #aeaeae in
+    // horizon light, and so on. The literal is only the no-theme fallback.
+    background-color: var(--ht-license-badge-color, var(--ht-disabled-color, #a3a3a3));
     pointer-events: none;
     -webkit-mask-image: url($license-badge-icon);
     mask-image: url($license-badge-icon);
@@ -61,12 +64,20 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height=
     mask-position: center;
   }
 
+  // Hover darkens the glyph (Figma `common/colors/read-only-color`). The badge above is
+  // click-through, so the pointer lands on the corner cell itself and its own `:hover` is what
+  // drives this - no JS, and no dependency on the wrapper's `is-corner-hover` class, which lives in
+  // the overlays layer and cannot be selected from here.
+  .ht-license-badge-on .ht-license-badge-corner thead tr:first-child th:first-child:hover::after {
+    background-color: var(--ht-license-badge-hover-color, var(--ht-read-only-color, #68696c));
+  }
+
   // The optical nudge is a physical RIGHTWARD shift in both directions (per design): in RTL,
   // inline-start maps to the right edge, so the clamped inset moves to the opposite logical side
   // to keep the same physical direction.
   [dir="rtl"] .ht-license-badge-on .ht-license-badge-corner thead tr:first-child th:first-child::after {
     inset-inline-start: 0;
-    inset-inline-end: clamp(0px, calc(100% - var(--ht-license-badge-size, 20px)), 6px);
+    inset-inline-end: clamp(0px, calc(100% - var(--ht-license-badge-size, 16px)), 6px);
   }
 
   // The badge button is screen-reader-only: it carries the accessible name, the popover wiring
@@ -224,27 +235,50 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height=
   // `components/plugins/_dialog.scss` without importing the Dialog PLUGIN - which is optional, and
   // is a shared surface an app uses for its own dialogs. `ht-license-lock` is the lock's own class
   // on top of that set. Only two things differ from a plain confirm dialog: the lock renders above
-  // app dialogs, and it paints the "H." logomark in its top strip.
+  // app dialogs, and it wears a header strip carrying the "H." logomark.
   .ht-dialog.ht-license-lock {
     // Above the badge chrome (1050/1051) AND any Dialog-plugin dialog (1060) - an app dialog must
     // never cover the license lock.
     z-index: 1070;
 
-    // The greyed "H." logomark in the lock's top strip (the `.ht-dialog` box is positioned).
+    // The strip along the top edge (per design): an imitation of a column-header row, so the locked
+    // grid still reads as a grid rather than a bare panel. It is DECORATION - the real header is
+    // underneath and unreachable, which is the point of a hard block. Height is the header row's
+    // own formula (line box + the vertical cell padding twice), so it follows the density setting.
     &::before {
       content: "";
       position: absolute;
-      inset-block-start: 14px;
-      inset-inline-start: 16px;
-      inline-size: 20px;
-      block-size: 20px;
-      background-color: var(--ht-license-badge-color, #c7c7c7);
+      inset-block-start: 0;
+      inset-inline: 0;
+      block-size: calc(var(--ht-line-height, 20px) + var(--ht-density-cell-vertical, 4px) * 2);
+      background-color: var(--ht-header-background-color);
+      border-block-end: 1px solid var(--ht-cell-horizontal-border-color, var(--ht-border-color));
+    }
+
+    // The greyed "H." logomark, centered in that strip where a corner header's badge would sit.
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block-start: calc(
+        var(--ht-density-cell-vertical, 4px) +
+        (var(--ht-line-height, 20px) - var(--ht-license-badge-size, 16px)) / 2
+      );
+      inset-inline-start: var(--ht-cell-horizontal-padding, 8px);
+      inline-size: var(--ht-license-badge-size, 16px);
+      block-size: var(--ht-license-badge-size, 16px);
+      background-color: var(--ht-license-badge-color, var(--ht-disabled-color, #a3a3a3));
       -webkit-mask-image: url($license-badge-icon);
       mask-image: url($license-badge-icon);
       -webkit-mask-size: contain;
       mask-size: contain;
       -webkit-mask-repeat: no-repeat;
       mask-repeat: no-repeat;
+    }
+
+    // Keep the copy optically centered in the area BELOW the strip, as the design shows it, instead
+    // of centered in the whole box (which the strip would push off by half its height).
+    .ht-dialog__content-wrapper {
+      padding-block-start: calc(var(--ht-line-height, 20px) + var(--ht-density-cell-vertical, 4px) * 2);
     }
   }
 }

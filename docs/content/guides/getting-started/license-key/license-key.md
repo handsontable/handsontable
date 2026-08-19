@@ -323,19 +323,29 @@ Entitlement keys extend this process. A trial or subscription key carries its ex
 
 ## Notifications
 
-If your license key is missing, invalid, or expired, Handsontable will display an appropriate notification. The notification is displayed in two places, below the table as HTML text and in the console.
+If your license key is missing, invalid, or expired, Handsontable displays a notification. Where it appears depends on the problem.
+
+A **missing or invalid key** blocks the grid. Handsontable covers it with a modal that cannot be closed, and repeats the message in the console. Set a valid key to remove it. The grid is not usable until you do.
+
+An **expired key** does not block anything. Its message appears below the table and in the console, and every feature keeps working.
 
 The messages are as follows:
 
 ### Missing license key
 
+Shown in a blocking modal and in the console:
+
 _The license key for Handsontable is missing. Use your purchased key to activate the product. Alternatively, you can activate Handsontable to use for non-commercial purposes by passing the key: ‘non-commercial-and-evaluation’.  Read more about it in the documentation or contact us at `[email]`._
 
 ### Invalid license key
 
+Shown in a blocking modal and in the console:
+
 _The license key for Handsontable is invalid.  Read more on how to install it properly or contact us at `[email]`._
 
 ### Expired license key
+
+Shown below the table and in the console:
 
 _The license key for Handsontable expired on `[expiration_date]`, and is not valid for the installed version `[handsontable_version]`.  Renew your license key or downgrade to a version released prior to `[expiration_dates]`. If you need any help, contact us at `[email]`._
 

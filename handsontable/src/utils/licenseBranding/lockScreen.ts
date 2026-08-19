@@ -1,5 +1,4 @@
 import { html } from '../../helpers/templateLiteralTag';
-import { SALES_MAILTO } from './content';
 import type { LockContent } from './content';
 import type { HotInstance } from '../../core/types';
 
@@ -15,7 +14,7 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${SCOPE_ID}`;
 const SHORTCUTS_GROUP = SCOPE_ID;
 
 /**
- * Mounts the license lock screen: a blocking, non-dismissable hard-stop overlay covering the grid.
+ * Mounts the license lock screen: a blocking, non-dismissable overlay covering the grid.
  * It looks and sizes itself exactly like a confirm Dialog by wearing the dialog's own CSS class
  * names (the stylesheet is always shipped in full, so the styling is inherited without duplicating
  * it), but it is a self-contained Core-owned element - it never touches the Dialog PLUGIN, which is
@@ -66,7 +65,7 @@ export function mountLicenseLock(hotInstance: HotInstance, content: LockContent)
             <p data-ref="description" id="${descriptionId}" class="${DIALOG_CLASS}__description"></p>
           </div>
           <div class="${DIALOG_CLASS}__buttons">
-            <button data-ref="contactButton" type="button" class="ht-button ht-button--primary">Contact Sales</button>
+            <button data-ref="contactButton" type="button" class="ht-button ht-button--secondary"></button>
           </div>
         </div>
       </div>
@@ -76,9 +75,25 @@ export function mountLicenseLock(hotInstance: HotInstance, content: LockContent)
 
   refs.title.textContent = content.title;
   refs.description.textContent = content.description;
+  refs.contactButton.textContent = content.action.text;
   refs.contactButton.addEventListener('click', () => {
-    hotInstance.rootWindow.open(SALES_MAILTO, '_blank', 'noopener');
+    hotInstance.rootWindow.open(content.action.href, '_blank', 'noopener');
   });
+
+  // Built as nodes, never interpolated: the copy is authored here, but keeping it out of `innerHTML`
+  // means no license sentence can ever become markup. The anchor joins the Tab trap for free -
+  // `getFocusableControls` below collects `a[href]` too.
+  if (content.docsLink) {
+    const link = hotInstance.rootDocument.createElement('a');
+
+    link.href = content.docsLink.href;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.textContent = content.docsLink.text;
+
+    refs.description.appendChild(link);
+    refs.description.appendChild(hotInstance.rootDocument.createTextNode(content.docsLink.trailingText));
+  }
 
   const getFocusableControls = () => Array.from(lock.querySelectorAll<HTMLElement>('a[href], button'));
 
@@ -122,7 +137,10 @@ export function mountLicenseLock(hotInstance: HotInstance, content: LockContent)
       if (focusSource === 'tab_from_below') {
         controls[controls.length - 1]?.focus();
       } else {
-        controls[0]?.focus();
+        // The ACTION, not the first control in document order: where a lock carries a documentation
+        // link, that link sits inside the description and so comes first in the DOM. Tab still
+        // cycles in document order - only the landing point is the button.
+        refs.contactButton.focus();
       }
     },
   });

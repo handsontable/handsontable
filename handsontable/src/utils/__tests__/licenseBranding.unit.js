@@ -147,7 +147,19 @@ function setLifecycle(state, extra = {}, channels = { console: true, ui: true })
  * @returns {object} The mock instance.
  */
 function mountTrialLock(overrides = {}) {
-  setLifecycle('trial_hard_stop', { licensedUntil: '2026-09-26' });
+  return mountLock('trial_hard_stop', { licensedUntil: '2026-09-26' }, overrides);
+}
+
+/**
+ * Mounts the lock of one state and completes its deferred activation.
+ *
+ * @param {string} state The license state.
+ * @param {object} extra Extra lifecycle fields.
+ * @param {object} overrides Mock instance overrides.
+ * @returns {object} The mock instance.
+ */
+function mountLock(state, extra = {}, overrides = {}) {
+  setLifecycle(state, extra);
   const hotInstance = createMockHotInstance(overrides);
 
   initLicenseBranding(hotInstance);
@@ -162,12 +174,12 @@ describe('licenseBranding', () => {
   });
 
   describe('unbranded states', () => {
-    // The corner badge is reserved for a trial; every other non-hard-stop state renders no badge
-    // here (missing/invalid/legacy-expired/non-commercial keep only their notification-path console
-    // message and bottom bar).
+    // The corner badge is reserved for a trial, and the lock for the three blocking states. Every
+    // other state renders nothing here (a legacy-expired or non-commercial key keeps only its
+    // notification-path console message and bottom bar).
     it.each([
       'usage_valid', 'usage_notice', 'usage_soft_stop', 'usage_hard_stop', 'release_valid',
-      'release_expired', 'legacy_valid', 'missing', 'invalid', 'legacy_expired', 'non_commercial',
+      'release_expired', 'legacy_valid', 'legacy_expired', 'non_commercial',
     ])(
       'should render nothing for the "%s" state',
       (state) => {
@@ -568,6 +580,81 @@ describe('licenseBranding', () => {
     });
   });
 
+  describe('a key that cannot be read, and no key at all', () => {
+    // DEV-2562: both are install faults, and both now BLOCK - the specification's S4.5 shape. Their
+    // sentences moved here from the bottom bar, which no longer renders for either state.
+    it.each([
+      ['invalid', 'The license key for Handsontable is invalid.'],
+      ['missing', 'The license key for Handsontable is missing.'],
+    ])('should mount the same non-closable modal for the "%s" state', (state, title) => {
+      const hotInstance = mountLock(state);
+      const lock = hotInstance.rootOverlaysElement.querySelector('.ht-license-lock');
+
+      expect(lock).not.toBe(null);
+      expect(lock.getAttribute('role')).toBe('alertdialog');
+      expect(lock.getAttribute('aria-modal')).toBe('true');
+      expect(lock.querySelector('.ht-dialog__title').textContent).toBe(title);
+      // No corner badge: the badge is the trial's surface, and there is no trial here.
+      expect(hotInstance.rootElement.classList.contains('ht-license-badge-on')).toBe(false);
+      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-badge')).toBe(null);
+    });
+
+    it.each(['invalid', 'missing'])(
+      'should offer support - not sales - as the only action of the "%s" modal, and no way out',
+      (state) => {
+        const hotInstance = mountLock(state);
+        const lock = hotInstance.rootOverlaysElement.querySelector('.ht-license-lock');
+        const buttons = lock.querySelectorAll('button');
+
+        // One button, and it is not a dismissal: an unreadable or absent key is an installation
+        // fault, so it points at support, unlike the trial lock which points at sales.
+        expect(buttons).toHaveLength(1);
+        expect(buttons[0].textContent).toBe('Contact Support');
+        expect(lock.textContent).not.toContain('Close');
+        // ...and no Escape shortcut is registered, exactly as for the trial lock.
+        expect(findShortcut(hotInstance, 'Escape')).toBeUndefined();
+        expect(findShortcut(hotInstance, 'Tab')).not.toBeUndefined();
+      }
+    );
+
+    it.each(['invalid', 'missing'])(
+      'should keep the documentation link of the old bottom bar inside the "%s" modal',
+      (state) => {
+        const hotInstance = mountLock(state);
+        const link = hotInstance.rootOverlaysElement.querySelector('.ht-dialog__description a');
+
+        // Built as a node, so the copy can never become markup - and being a real link, the Tab
+        // trap picks it up along with the button.
+        expect(link).not.toBe(null);
+        expect(link.textContent).toBe('Read more');
+        expect(link.getAttribute('href')).toBe('https://handsontable.com/docs/tutorial-license-key.html');
+        expect(hotInstance.rootOverlaysElement.querySelector('.ht-dialog__description').textContent)
+          .toContain('support@handsontable.com');
+      }
+    );
+
+    it('should tell a developer with no key how to activate the product', () => {
+      const hotInstance = mountLock('missing');
+      const description = hotInstance.rootOverlaysElement
+        .querySelector('.ht-dialog__description').textContent;
+
+      expect(description).toContain('Use your purchased key to activate the product.');
+      expect(description).toContain('passing the key: \'non-commercial-and-evaluation\'');
+    });
+
+    it.each(['invalid', 'missing'])(
+      'should trap focus in the "%s" modal as a modal scope',
+      (state) => {
+        const hotInstance = mountLock(state);
+
+        expect(hotInstance.focusScope.registerScope).toHaveBeenCalledWith(
+          'licenseLock', expect.any(HTMLElement), expect.objectContaining({ type: 'modal' })
+        );
+        expect(hotInstance.focusScope.activateScope).toHaveBeenCalledWith('licenseLock');
+      }
+    );
+  });
+
   describe('a hard-stopped subscription', () => {
     // It renders no front-end surface at all - it is developer-facing (a console error, in the
     // notification path) only. 18.1 never blocks a paying customer.
@@ -587,7 +674,7 @@ describe('licenseBranding', () => {
 
   describe('the no-ui-warns flag', () => {
     // A key issued for external use must show its end users nothing, whatever state it is in.
-    it.each(['trial_notice', 'trial_soft_stop', 'trial_hard_stop'])(
+    it.each(['trial_notice', 'trial_soft_stop', 'trial_hard_stop', 'invalid', 'missing'])(
       'should render nothing for the "%s" state when the UI channel is closed',
       (state) => {
         setLifecycle(state, { licensedUntil: '2026-09-26' }, { console: true, ui: false });

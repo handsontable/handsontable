@@ -207,6 +207,61 @@ test.describe('entitlement license key branding', () => {
     });
   });
 
+  test.describe('a key that cannot be read, and no key at all', () => {
+    // DEV-2562: the two install faults BLOCK from 18.1 on (the specification's S4.5 shape). Their
+    // sentences moved out of the bottom bar and into the modal, so the bar must be gone.
+    const FAULTS = [
+      { key: 'tampered', title: 'The license key for Handsontable is invalid.' },
+      { key: 'missing', title: 'The license key for Handsontable is missing.' },
+    ] as const;
+
+    for (const { key, title } of FAULTS) {
+      test(`blocks the grid with a non-closable modal, and no bar, for a "${key}" key`, async ({ page }) => {
+        await license.goto(INSTANT.duringTrial, { key });
+
+        await expect(license.lock).toBeVisible();
+        await expect(license.lock).toHaveAttribute('role', 'alertdialog');
+        await expect(license.lock).toContainText(title);
+        // The bar is withdrawn: one surface says it, not two. And no badge - that is the trial's.
+        await expect(license.bar).toHaveCount(0);
+        await expect(license.badge).toHaveCount(0);
+
+        // Support, not sales: an unreadable or absent key is an installation fault.
+        await expect(license.lockSupportButton).toBeFocused();
+        await expect(license.lockDocsLink).toBeVisible();
+        await expect(license.lock).not.toContainText('Close');
+
+        await page.keyboard.press('Escape');
+
+        await expect(license.lock).toBeVisible();
+      });
+    }
+
+    test('keeps the documentation link inside the modal focus trap', async ({ page }) => {
+      await license.goto(INSTANT.duringTrial, { key: 'missing' });
+
+      await expect(license.lockSupportButton).toBeFocused();
+
+      // Tab cycles the modal's own controls - the button and the link - and never leaves.
+      await page.keyboard.press('Tab');
+
+      await expect(license.lockDocsLink).toBeFocused();
+
+      await page.keyboard.press('Tab');
+
+      await expect(license.lockSupportButton).toBeFocused();
+    });
+
+    test('leaves a lapsed legacy key with its bottom bar and no modal', async () => {
+      await license.goto(INSTANT.duringTrial, { key: 'legacy-expired' });
+
+      // Only the two install faults block. A key that was valid and merely lapsed keeps the bar it
+      // has always had, so an application out of maintenance is never taken off the air.
+      await expect(license.bar).toContainText('expired on');
+      await expect(license.lock).toHaveCount(0);
+    });
+  });
+
   test.describe('a subscription past its grace period', () => {
     // A hard-stopped subscription is developer-facing only, however the key was issued: a console
     // error and no front-end surface at all. 18.1 never blocks a paying customer.
