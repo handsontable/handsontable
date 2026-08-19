@@ -428,23 +428,27 @@ export class AutocompleteEditor extends HandsontableEditor {
     const dropdownHeight = this.getDropdownHeight();
 
     if (dropdownHeight > spaceAvailable) {
-      let tempHeight = 0;
-      let lastRowHeight = 0;
-      let height = 0;
+      const rowHeight = this.htEditor.stylesHandler.getDefaultRowHeight() ?? 0;
 
-      do {
-        lastRowHeight = this.htEditor.stylesHandler.getDefaultRowHeight() ?? 0;
-        tempHeight += lastRowHeight;
-      } while (tempHeight < spaceAvailable);
+      if (rowHeight === 0) {
+        return;
+      }
 
-      height = tempHeight - lastRowHeight;
+      // Fit whole rows only. `Math.ceil(...) - 1` reproduces the original "keep adding rows until
+      // one crosses the boundary, then step back a row" arithmetic, but always keeps at least one
+      // row visible. Without that floor the height collapses to 0 whenever the free space is not
+      // taller than a single row, which renders the list as an invisible sliver and hides every
+      // choice - the flexbox-squeezed grids reported in #8872. The MultiSelect editor's dropdown
+      // clamps to one entry the same way.
+      const rowsThatFit = Math.max(Math.ceil(spaceAvailable / rowHeight) - 1, 1);
+      const height = rowsThatFit * rowHeight;
 
       if (this.isFlippedVertically) {
         this.htEditor.rootElement.style.top =
           `${parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height}px`;
       }
 
-      this.setDropdownHeight(tempHeight - lastRowHeight);
+      this.setDropdownHeight(height);
     }
   }
 
