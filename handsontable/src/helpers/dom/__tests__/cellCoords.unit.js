@@ -5,8 +5,10 @@ import { getCellCoordsFromMousePosition } from 'handsontable/helpers/dom/cellCoo
  *
  * Merges are described declaratively through `mergedCells`: only the anchor cell reports a
  * `rowspan`/`colspan` in its meta (matching real Handsontable), and every rendered slave of a
- * vertical merge resolves to the SAME cached `<td>` element — so a lookup can detect the merge by
- * element identity even when the anchor sits outside the scanned range.
+ * merge resolves to the SAME cached `<td>` element, positioned at the merge's top-left corner —
+ * so a lookup can detect the merge by element identity even when the anchor sits outside the
+ * scanned range. This holds on both axes: a vertical merge's slave rows and a horizontal merge's
+ * slave columns all share the anchor's element.
  *
  * @param {object} opts
  * @param {boolean} opts.isWindowScrollV  Whether the table scrolls vertically via window.
@@ -26,8 +28,10 @@ import { getCellCoordsFromMousePosition } from 'handsontable/helpers/dom/cellCoo
  * @param {number}   opts.totalCols        Total number of columns (defaults to lastCol + 1).
  * @param {number}   opts.fixedRowsTop     Count of frozen top rows.
  * @param {number}   opts.fixedRowsBottom  Count of frozen bottom rows.
+ * @param {number}   opts.fixedColumnsStart Count of frozen start columns.
  * @param {Array}    opts.mergedCells      Merge anchors as `{ row, col, rowspan?, colspan? }`.
  * @param {number[]} opts.hiddenColumns    Columns that render no cell (`getCell` returns null).
+ * @param {number[]} opts.hiddenRows       Rows that render no cell (`getCell` returns null).
  * @param {number[]} opts.hiddenMetaColumns Columns that render but report `hidden: true` meta
  *                                          (e.g. a horizontal-merge slave).
  * @param {boolean}  opts.isRtl            Whether the table is in RTL layout.
@@ -54,8 +58,10 @@ function buildHot({
   totalCols,
   fixedRowsTop = 0,
   fixedRowsBottom = 0,
+  fixedColumnsStart = 0,
   mergedCells = [],
   hiddenColumns = [],
+  hiddenRows = [],
   hiddenMetaColumns = [],
   rowHeight = 23,
   colWidth = 80,
@@ -79,7 +85,15 @@ function buildHot({
       return tableRect.top + colHeaderHeight + viewportHeight - ((rowCount - row) * rowHeight);
     }
 
-    return tableRect.top + colHeaderHeight + ((row - firstRow) * rowHeight);
+    let hiddenBefore = 0;
+
+    for (let r = firstRow; r < row; r++) {
+      if (hiddenRows.includes(r)) {
+        hiddenBefore += 1;
+      }
+    }
+
+    return tableRect.top + colHeaderHeight + ((row - firstRow - hiddenBefore) * rowHeight);
   };
   // Rendered left for a column, skipping the width of any hidden columns before it.
   const cellLeft = (col) => {
@@ -99,12 +113,13 @@ function buildHot({
   const makeCell = (row, col, merge) => {
     const el = document.createElement('td');
     const anchorRow = merge ? merge.row : row;
+    const anchorCol = merge ? merge.col : col;
     const height = rowHeight * (merge ? merge.rowspan : 1);
     const width = colWidth * (merge ? merge.colspan : 1);
     const top = cellTop(anchorRow);
     const rect = isRtl
-      ? { top, right: cellRight(col), bottom: top + height, left: cellRight(col) - width }
-      : { top, left: cellLeft(col), bottom: top + height, right: cellLeft(col) + width };
+      ? { top, right: cellRight(anchorCol), bottom: top + height, left: cellRight(anchorCol) - width }
+      : { top, left: cellLeft(anchorCol), bottom: top + height, right: cellLeft(anchorCol) + width };
 
     Object.defineProperty(el, 'offsetHeight', { get: () => height });
     Object.defineProperty(el, 'offsetWidth', { get: () => width });
@@ -113,17 +128,17 @@ function buildHot({
     return el;
   };
 
-  // Cache one element per vertical-merge band so its slaves share element identity.
+  // Cache one element per merge band so its slaves share element identity, on either axis.
   const bandCache = new Map();
 
   const getCell = (row, col) => {
-    if (hiddenColumns.includes(col)) {
+    if (hiddenColumns.includes(col) || hiddenRows.includes(row)) {
       return null;
     }
 
     const merge = findMerge(row, col);
 
-    if (merge && merge.rowspan > 1) {
+    if (merge && (merge.rowspan > 1 || merge.colspan > 1)) {
       const key = `${merge.row}:${merge.col}`;
 
       if (!bandCache.has(key)) {
@@ -183,7 +198,7 @@ function buildHot({
       getViewportHeight: () => viewportHeight,
       getColumnHeaderHeight: () => colHeaderHeight,
       getRowHeaderWidth: () => rowHeaderWidth,
-      countNotHiddenFixedColumnsStart: () => 0,
+      countNotHiddenFixedColumnsStart: () => fixedColumnsStart,
       countNotHiddenFixedRowsTop: () => fixedRowsTop,
       countNotHiddenFixedRowsBottom: () => fixedRowsBottom,
     },
@@ -583,6 +598,156 @@ describe('getCellCoordsFromMousePosition', () => {
       expect(coords.row).toBe(12);
       // Guard: without the identity check the merged column 0 would be used and collapse to row 10.
       expect(coords.row).not.toBe(10);
+    });
+  });
+
+  describe('horizontal merge in the reference row (DEV-2124)', () => {
+    // Reproduces DEV-2124, the X-axis analog of DEV-2115: the first visible row (row 0) holds a
+    // horizontal merge spanning columns 0-2 (colspan 3). The column lookup used to always measure
+    // against that first row, so any mouse X inside the merged band collapsed onto the merge
+    // anchor (column 0). When the mouse is over a row OUTSIDE the merge, the column must be the
+    // real column under the pointer.
+    const mergedFirstRowGeometry = {
+      tableRect: { left: 0, top: 0, right: 400, bottom: 300 },
+      viewportWidth: 400,
+      viewportHeight: 300,
+      firstRow: 0,
+      lastRow: 9,
+      firstCol: 0,
+      lastCol: 4,
+      totalRows: 10,
+      totalCols: 5,
+      rowHeight: 30,
+      colWidth: 80,
+      mergedCells: [{ row: 0, col: 0, colspan: 3 }], // A1:C1 - horizontal merge in row 0 only
+    };
+
+    it('resolves the column under the mouse in a non-merged row, ignoring the merge in row 0', () => {
+      const hot = buildHot(mergedFirstRowGeometry);
+      // X at the centre of column 2 (160..240 -> 200), inside row 0's merged band.
+      // Y at the centre of row 2 (60..90 -> 75), well below the merge.
+      const coords = getCellCoordsFromMousePosition(hot, 200, 75);
+
+      expect(coords.col).toBe(2);
+      expect(coords.row).toBe(2);
+      // Guard: measuring against the merged row 0 collapses every X in the band onto the anchor.
+      expect(coords.col).not.toBe(0);
+    });
+
+    it('resolves the middle column of the merged band', () => {
+      const hot = buildHot(mergedFirstRowGeometry);
+      // X at the centre of column 1 (80..160 -> 120), still inside row 0's merged band.
+      const coords = getCellCoordsFromMousePosition(hot, 120, 75);
+
+      expect(coords.col).toBe(1);
+      expect(coords.row).toBe(2);
+    });
+
+    it('resolves a column outside the merged band', () => {
+      const hot = buildHot(mergedFirstRowGeometry);
+      // X at the centre of column 3 (240..320 -> 280), past the end of row 0's merged band.
+      const coords = getCellCoordsFromMousePosition(hot, 280, 75);
+
+      expect(coords.col).toBe(3);
+    });
+  });
+
+  describe('horizontal merge whose anchor sits left of the scanned range (DEV-2124)', () => {
+    // Regression guard for the width over-count: the scrollable range starts at column 1, inside
+    // a horizontal merge anchored at column 0 (colspan 3, columns 0-2). None of the scanned slave
+    // columns (1-2) reports a colspan - only the anchor does, and it is out of range - so
+    // `findColumnAtX` cannot skip the band. Every slave resolves to the same wide element, whose
+    // full band width is then counted once per slave column, pushing every later column left.
+    const anchorLeftOfRangeGeometry = {
+      tableRect: { left: 0, top: 0, right: 320, bottom: 300 },
+      viewportWidth: 320,
+      viewportHeight: 300,
+      firstRow: 0,
+      lastRow: 9,
+      firstCol: 1,
+      lastCol: 4,
+      totalRows: 10,
+      totalCols: 5,
+      rowHeight: 30,
+      colWidth: 80,
+      // columns 0-2; the anchor (column 0) sits left of the scanned range
+      mergedCells: [{ row: 0, col: 0, colspan: 3 }],
+    };
+
+    it('detects the merge by element identity and resolves the true column under the pointer', () => {
+      const hot = buildHot(anchorLeftOfRangeGeometry);
+      // Column 3 is rendered at 160..240 (columns 1 and 2 come first), so X 200 is its centre.
+      // Y at the centre of row 2 (60..90 -> 75), below the merge.
+      const coords = getCellCoordsFromMousePosition(hot, 200, 75);
+
+      expect(coords.col).toBe(3);
+      expect(coords.row).toBe(2);
+      // Guard: re-counting the band width per slave column shifts the result two columns left.
+      expect(coords.col).not.toBe(2);
+    });
+  });
+
+  describe('hidden row between the merged row and a usable one (DEV-2124)', () => {
+    // Regression guard: row 0 is horizontally merged (columns 0-2) and row 1 is hidden, so it
+    // renders no cell. A reference row is only usable if it actually renders cells - accepting
+    // the hidden row 1 leaves `getCell` returning null and drops the lookup back onto the first
+    // visible column.
+    const hiddenRowGeometry = {
+      tableRect: { left: 0, top: 0, right: 400, bottom: 300 },
+      viewportWidth: 400,
+      viewportHeight: 300,
+      firstRow: 0,
+      lastRow: 9,
+      firstCol: 0,
+      lastCol: 4,
+      totalRows: 10,
+      totalCols: 5,
+      rowHeight: 30,
+      colWidth: 80,
+      hiddenRows: [1],
+      mergedCells: [{ row: 0, col: 0, colspan: 3 }], // A1:C1 - horizontal merge in row 0
+    };
+
+    it('skips the hidden row and resolves the column against row 2', () => {
+      const hot = buildHot(hiddenRowGeometry);
+      // Row 1 is hidden, so row 2 renders at 30..60 - X at the centre of column 2 (200),
+      // Y at the centre of the rendered row 2 (45).
+      const coords = getCellCoordsFromMousePosition(hot, 200, 45);
+
+      expect(coords.col).toBe(2);
+      expect(coords.row).toBe(2);
+    });
+  });
+
+  describe('horizontal merge inside the fixed (frozen) start columns (DEV-2124)', () => {
+    // Regression guard: the frozen start columns are resolved in their own branch, which must
+    // pick its reference row over its own column range. A horizontal merge in the first visible
+    // row of the frozen band would otherwise collapse the resolved column onto the merge anchor.
+    const frozenMergeGeometry = {
+      tableRect: { left: 0, top: 0, right: 560, bottom: 300 },
+      viewportWidth: 560,
+      viewportHeight: 300,
+      firstRow: 0,
+      lastRow: 9,
+      firstCol: 0,
+      lastCol: 6,
+      totalRows: 10,
+      totalCols: 7,
+      fixedColumnsStart: 3,
+      rowHeight: 30,
+      colWidth: 80,
+      mergedCells: [{ row: 0, col: 0, colspan: 3 }], // A1:C1 - spans the whole frozen band
+    };
+
+    it('resolves a frozen column inside the merged band using a merge-free reference row', () => {
+      const hot = buildHot(frozenMergeGeometry);
+      // X at the centre of frozen column 1 (80..160 -> 120), inside row 0's merged band.
+      // Y at the centre of row 2 (60..90 -> 75). Must resolve to column 1, not the anchor.
+      const coords = getCellCoordsFromMousePosition(hot, 120, 75);
+
+      expect(coords.col).toBe(1);
+      expect(coords.row).toBe(2);
+      expect(coords.col).not.toBe(0);
     });
   });
 });
