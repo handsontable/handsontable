@@ -18,6 +18,7 @@ const LICENSE_INFO_CLASS = 'hot-display-license-info';
 // The trial fixture runs to 2026-09-26 (notice 45, grace 15); the subscription one to 2027-08-12
 // (notice 60, grace 90).
 const TRIAL_RUNNING = Date.parse('2026-09-16T00:00:00Z'); // 10 days left, inside the notice window
+const TRIAL_LAST_DAY = Date.parse('2026-09-26T23:59:59Z'); // the last licensed day, licensed in full
 const TRIAL_SOFT_STOP = Date.parse('2026-10-01T00:00:00Z'); // past the last licensed day, in grace
 const TRIAL_HARD_STOP = Date.parse('2026-10-12T00:00:00Z'); // past the grace period
 const SUBSCRIPTION_RUNNING = Date.parse('2027-01-01T00:00:00Z'); // 223 days left, outside the notice window
@@ -66,6 +67,19 @@ describe('entitlement license notification (via _injectProductInfo)', () => {
       expect(console.warn).toHaveBeenCalledTimes(1);
       expect(console.warn).toHaveBeenCalledWith(
         'Your Handsontable license key expires in 10 days. ' +
+        'To continue using Handsontable, you need to purchase a license.'
+      );
+      expect(console.error).not.toHaveBeenCalled();
+      expect(node).toBe(null);
+    });
+
+    it('should say the trial expires today on its last licensed day', () => {
+      // The named day is licensed in full, so `daysRemaining` is 0 - and "expires in 0 days" would
+      // tell a customer with a working license that it has already lapsed.
+      const { node } = inject(TRIAL_KEY, { now: TRIAL_LAST_DAY });
+
+      expect(console.warn).toHaveBeenCalledWith(
+        'Your Handsontable license key expires today. ' +
         'To continue using Handsontable, you need to purchase a license.'
       );
       expect(console.error).not.toHaveBeenCalled();

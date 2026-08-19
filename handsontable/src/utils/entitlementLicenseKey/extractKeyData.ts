@@ -63,14 +63,16 @@ function isStringArray(value: unknown): value is string[] {
  * Both the product names and the field names of a product entry come from
  * JSON, so "__proto__" is a name an attacker can put in a key. A plain
  * assignment would go through the `Object.prototype` setter: the value would
- * vanish from `Object.keys` while still resolving through the chain.
+ * vanish from `Object.keys` while still resolving through the chain. Exported
+ * because every payload-keyed write in this module must use it - `grants.ts`
+ * re-keys the same product names.
  *
  * @param {object} target The object to add the property to.
  * @param {string} key The property name.
  * @param {*} value The property value.
  * @returns {void}
  */
-function defineOwn(target: object, key: string, value: unknown): void {
+export function defineOwn(target: object, key: string, value: unknown): void {
   Object.defineProperty(target, key, {
     value, enumerable: true, writable: true, configurable: true,
   });

@@ -1,5 +1,4 @@
 import { toSingleLine } from './templateLiteralTag';
-import { warn, error } from './console';
 import {
   isEntitlementKey,
   extractEntitlementKeyData,
@@ -143,14 +142,23 @@ type EntitlementMessageParams = {
 };
 
 /**
- * Formats a day count with a correctly pluralized unit ("1 day", "2 days"), so
- * the last-day trial message does not read "expires in 1 days".
+ * Builds the "expires ..." clause of a trial message from a day count. Shared with the badge
+ * popover (`utils/licenseBranding/content.ts`), which prints the same sentence.
  *
- * @param {number|null|undefined} days The number of days.
+ * Two counts need their own wording. `1` takes the singular unit, so the message does not read
+ * "expires in 1 days". `0` is the LAST LICENSED DAY - the named day is licensed in full - and it
+ * reads "expires today", because "expires in 0 days" describes a license that has already lapsed.
+ * The specification pins the wording for the general case only; the two edges are ours.
+ *
+ * @param {number|null|undefined} days The whole days left until the last licensed day.
  * @returns {string}
  */
-function _formatDays(days: number | null | undefined): string {
-  return `${days} ${days === 1 ? 'day' : 'days'}`;
+export function formatExpiryClause(days: number | null | undefined): string {
+  if (days === 0) {
+    return 'expires today';
+  }
+
+  return `expires in ${days} ${days === 1 ? 'day' : 'days'}`;
 }
 
 /**
@@ -211,7 +219,7 @@ const entitlementConsoleNotifications: Partial<Record<LicenseStateKey, Entitleme
   trial_notice: {
     severity: 'warn',
     message: ({ daysRemaining }) => toSingleLine`
-      Your Handsontable license key expires in ${_formatDays(daysRemaining)}.\x20
+      Your Handsontable license key ${formatExpiryClause(daysRemaining)}.\x20
       ${PURCHASE_LICENSE_TEXT}`,
   },
   trial_soft_stop: {
@@ -628,7 +636,11 @@ function _injectEntitlementProductInfo(
       : entitlementConsoleNotifications[state];
 
     if (notification) {
-      (notification.severity === 'error' ? error : warn)(notification.message(params));
+      // The global `console`, not the `helpers/console` wrappers: importing them would put this
+      // module - the leaf that `function`, `object`, `string` and `dateTime` all import - at the top
+      // of a cycle (`console` imports `substitute` from `string`, and `string` imports from here).
+      // The frozen legacy path a few lines up prints the same way, under the same eslint-disable.
+      console[notification.severity](notification.message(params));
       _entitlementNotified = true;
     }
   }

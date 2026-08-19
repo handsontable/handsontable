@@ -1,5 +1,5 @@
 import type { EntitlementKeyData, LicenseGrants } from './types';
-import { getProductEntitlement } from './extractKeyData';
+import { getProductEntitlement, defineOwn } from './extractKeyData';
 
 /**
  * The grants shared by every non-entitlement license state: a valid legacy
@@ -31,7 +31,10 @@ export function getLicenseGrants(keyData: EntitlementKeyData): LicenseGrants {
     const entitlement = getProductEntitlement(keyData, productName);
 
     if (entitlement !== null) {
-      products[productName] = { capabilities: entitlement.capabilities.slice() };
+      // Defined, not assigned: the product name comes from the key's JSON, and a plain assignment
+      // of "__proto__" would hit the `Object.prototype` setter - replacing the prototype of
+      // `products` instead of adding the grant, which then reads back as not granted.
+      defineOwn(products, productName, { capabilities: entitlement.capabilities.slice() });
     }
   });
 

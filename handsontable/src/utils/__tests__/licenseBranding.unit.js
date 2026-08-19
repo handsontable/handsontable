@@ -1,11 +1,11 @@
 import { initLicenseBranding } from '../licenseBranding';
 
+// Only the license-state reader is stubbed. The shared copy constants and the expiry-clause
+// builder the branding content imports stay REAL, so the wording asserted below is the wording
+// that ships - a change to it fails here instead of passing and shipping.
 jest.mock('../../helpers/mixed', () => ({
+  ...jest.requireActual('../../helpers/mixed'),
   _getLicenseState: jest.fn(),
-  // The shared license copy the branding content imports (real values - the lock/popover tests
-  // assert this exact wording).
-  LICENSE_EXPIRED_TITLE: 'Your Handsontable license key has expired.',
-  PURCHASE_LICENSE_TEXT: 'To continue using Handsontable, you need to purchase a license.',
 }));
 
 const { _getLicenseState } = require('../../helpers/mixed');
@@ -350,7 +350,7 @@ describe('licenseBranding', () => {
       expect(popover.querySelector('.ht-license-popover__close')).toBe(null);
     });
 
-    it('should pluralize the last day of the trial', () => {
+    it('should pluralize the day before the last licensed day', () => {
       setLifecycle('trial_notice', { daysRemaining: 1 });
       const hotInstance = createMockHotInstance();
 
@@ -358,6 +358,20 @@ describe('licenseBranding', () => {
 
       expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-popover__body').textContent)
         .toContain('expires in 1 day.');
+    });
+
+    it('should say "today" on the last licensed day of the trial', () => {
+      // `daysRemaining` is 0 on the last licensed day, and that day is licensed in full - "expires
+      // in 0 days" would describe a license that has already lapsed.
+      setLifecycle('trial_notice', { daysRemaining: 0 });
+      const hotInstance = createMockHotInstance();
+
+      initLicenseBranding(hotInstance);
+
+      const body = hotInstance.rootOverlaysElement.querySelector('.ht-license-popover__body').textContent;
+
+      expect(body).toContain('Your Handsontable license key expires today.');
+      expect(body).not.toContain('0 days');
     });
   });
 

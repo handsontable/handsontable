@@ -288,8 +288,9 @@ Each license behaves differently around its date:
 
 A trial key is time-boxed. During the trial, the grid shows the Handsontable badge in its top-left
 corner. Hover over the badge to see the trial status. Once the key's notice period begins, the
-console starts warning how many days remain - on a standard 45-day trial that is from day one.
-After the expiration date, a message opens next to the badge and below the grid, and the console
+console starts warning how many days remain - on a standard 45-day trial that is from day one. On
+the last licensed day the warning says the key expires today, because that day is still licensed in
+full. After the expiration date, a message opens next to the badge and below the grid, and the console
 reports an error. When the grace period stored in the key also passes, a blocking screen replaces
 the grid. To purchase a commercial license, contact our [Sales Team](https://handsontable.com/get-a-quote).
 

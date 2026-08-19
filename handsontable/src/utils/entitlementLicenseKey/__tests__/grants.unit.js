@@ -55,6 +55,26 @@ describe('entitlementLicenseKey/grants', () => {
       expect(hasCapability(grants, 'handsontable', 'solver')).toBe(true);
     });
 
+    it('should keep a product named "__proto__" as an own grant, leaving the prototype alone', () => {
+      const entry = {
+        capabilities: ['core'], usage_until: '2027-08-12', notice: 60, grace: 90, flags: [],
+      };
+      const products = { handsontable: entry };
+
+      // Defined, not assigned: a plain `__proto__:` in an object literal sets the prototype instead
+      // of adding the property, so it would never reach the serialized payload at all.
+      Object.defineProperty(products, '__proto__', {
+        value: entry, enumerable: true, writable: true, configurable: true,
+      });
+
+      const grants = getLicenseGrants(extractEntitlementKeyData(buildTestKey({ products })));
+
+      expect(Object.getPrototypeOf(grants.products)).toBe(Object.prototype);
+      expect(Object.prototype.hasOwnProperty.call(grants.products, '__proto__')).toBe(true);
+      expect(hasProductGrant(grants, '__proto__')).toBe(true);
+      expect({}.capabilities).toBeUndefined();
+    });
+
     it('should not answer for a product reached through the prototype chain', () => {
       const grants = getLicenseGrants(extractEntitlementKeyData(SUBSCRIPTION_KEY));
 

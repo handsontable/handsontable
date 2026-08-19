@@ -1,21 +1,11 @@
 import {
   LICENSE_EXPIRED_TITLE,
   PURCHASE_LICENSE_TEXT,
+  formatExpiryClause,
 } from '../../helpers/mixed';
 import type { LicenseLifecycleFacet, LicenseStateKey } from '../../helpers/mixed';
 
 export const SALES_MAILTO = 'mailto:sales@handsontable.com';
-
-/**
- * Formats a day count with a correctly pluralized unit ("1 day", "2 days"), so the last-day trial
- * popover does not read "expires in 1 days".
- *
- * @param {number|null} days The number of days.
- * @returns {string}
- */
-function formatDays(days: number | null): string {
-  return `${days} ${days === 1 ? 'day' : 'days'}`;
-}
 
 /**
  * The copy of one badge popover: its title, body (interpolated from the lifecycle facet), and the
@@ -53,7 +43,7 @@ export const POPOVER_CONTENT: Partial<Record<LicenseStateKey, PopoverContent>> =
   trial_valid: {
     title: 'Handsontable Trial',
     body: ({ daysRemaining }) =>
-      `Your Handsontable license key expires in ${formatDays(daysRemaining)}. ${PURCHASE_LICENSE_TEXT}`,
+      `Your Handsontable license key ${formatExpiryClause(daysRemaining)}. ${PURCHASE_LICENSE_TEXT}`,
     linkText: 'Contact Sales',
     linkHref: SALES_MAILTO,
     dismissible: false,
@@ -61,7 +51,7 @@ export const POPOVER_CONTENT: Partial<Record<LicenseStateKey, PopoverContent>> =
   trial_notice: {
     title: 'Handsontable Trial',
     body: ({ daysRemaining }) =>
-      `Your Handsontable license key expires in ${formatDays(daysRemaining)}. ${PURCHASE_LICENSE_TEXT}`,
+      `Your Handsontable license key ${formatExpiryClause(daysRemaining)}. ${PURCHASE_LICENSE_TEXT}`,
     linkText: 'Contact Sales',
     linkHref: SALES_MAILTO,
     dismissible: false,
