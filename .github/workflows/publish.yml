@@ -131,8 +131,15 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
-          # The tip of the dispatched branch.
-          ref: ${{ github.ref_name }}
+          # The EXACT sha GitHub froze when the dispatch was created — the one
+          # the run page shows the approver — NOT the live branch tip: the
+          # approvers gate sits between dispatch and checkout, and the branch
+          # can be pushed (or force-pushed) while the run waits. If the pinned
+          # sha vanishes after a force-push, checkout fails closed. The
+          # detached HEAD is fine: pre-release.mjs only branch-checks for
+          # release/* version stamping, and release/lts refs never reach this
+          # job.
+          ref: ${{ github.sha }}
 
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         name: Install pnpm
@@ -163,7 +170,7 @@ jobs:
           npm i handsontable@${VERSION}
           \`\`\`
 
-          All wrapper packages were published under the same version. Built from \`${{ github.ref_name }}\` — the npm \`experimental\` dist-tag now points at this build until the next develop publish resets it. Install by the exact version above.
+          All wrapper packages were published under the same version. Built from \`${{ github.ref_name }}\` at the dispatch-pinned commit \`${{ github.sha }}\` — the npm \`experimental\` dist-tag now points at this build until the next develop publish resets it. Install by the exact version above.
           EOF
 
   # ============================================================
