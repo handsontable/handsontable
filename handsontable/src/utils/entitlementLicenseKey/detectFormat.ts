@@ -3,11 +3,16 @@ import type { LicenseKeyFormat } from './types';
 /**
  * The literal keys that stand for a license rather than encode one.
  *
+ * Only formats Handsontable itself honours belong here. `gpl-v3` is deliberately absent: the
+ * specification lists it among the unchanged legacy keys, but that list covers HyperFormula too and
+ * nothing in this library has ever recognized it - the frozen validator rejects it like any other
+ * unknown string. Naming it here advertised support that does not exist, and since an unreadable key
+ * now blocks the grid, a reader who trusted the table would ship a blocked grid.
+ *
  * @type {Record<string, LicenseKeyFormat>}
  */
 const LITERAL_KEYS: Record<string, LicenseKeyFormat> = {
   'non-commercial-and-evaluation': 'non-commercial-and-evaluation',
-  'gpl-v3': 'gpl-v3',
 };
 
 /**

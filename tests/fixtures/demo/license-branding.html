@@ -78,6 +78,10 @@
       'no-headers-frozen': { rowHeaders: false, colHeaders: false, fixedRowsTop: 2, fixedColumnsStart: 2 },
       'narrow-corner': { rowHeaders: true, colHeaders: true, rowHeaderWidth: 16 },
       dialog: { rowHeaders: true, colHeaders: true, dialog: true },
+      // A grid narrower than the modal's longest unbreakable token
+      // ('non-commercial-and-evaluation', 29 chars). `width` comes after the shared default below,
+      // so the variant wins.
+      narrow: { rowHeaders: true, colHeaders: true, width: 150 },
       nested: {
         rowHeaders: true,
         colHeaders: true,

@@ -72,7 +72,10 @@ export function getProductCapabilities(grants: LicenseGrants, productName: strin
     return null;
   }
 
-  return grants.products[productName].capabilities;
+  // A copy: the descriptor is built once per init, so handing out the live array would let a
+  // consumer that sorts or pushes into it rewrite the page's resolved grants. Every other boundary
+  // in this module copies for the same reason.
+  return grants.products[productName].capabilities.slice();
 }
 
 /**

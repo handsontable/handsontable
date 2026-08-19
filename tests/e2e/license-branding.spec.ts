@@ -252,6 +252,17 @@ test.describe('entitlement license key branding', () => {
       await expect(license.lockSupportButton).toBeFocused();
     });
 
+    test('keeps the modal copy inside a grid narrower than its longest token', async () => {
+      // DEV-2192 gave the bottom bar a minimum width and a scrolling slot because its unbreakable
+      // tokens overflowed narrow grids. The same sentences live in the modal now, and the modal is
+      // only as wide as the grid - so the tokens have to break instead of sticking out.
+      await license.goto(INSTANT.duringTrial, { key: 'missing', variant: 'narrow' });
+
+      await expect(license.lock).toBeVisible();
+      await expect(license.lock).toContainText('non-commercial-and-evaluation');
+      expect(await license.lockContentOverflowPx()).toBe(0);
+    });
+
     test('leaves a lapsed legacy key with its bottom bar and no modal', async () => {
       await license.goto(INSTANT.duringTrial, { key: 'legacy-expired' });
 

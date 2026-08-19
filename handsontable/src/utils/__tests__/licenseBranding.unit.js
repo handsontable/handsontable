@@ -169,6 +169,18 @@ function mountLock(state, extra = {}, overrides = {}) {
 }
 
 describe('licenseBranding', () => {
+  // The two tables that decide what a blocking state shows must not drift: `LOCK_CONTENT` routes the
+  // modal, `BLOCKING_MODAL_STATES` withholds the bottom bar. A state in the first but not the second
+  // would render a non-dismissable lock with a bar underneath it.
+  it('should withhold the bottom bar for exactly the states that render the lock', () => {
+    // eslint-disable-next-line global-require
+    const { LOCK_CONTENT } = require('../licenseBranding/content');
+    // eslint-disable-next-line global-require
+    const { BLOCKING_MODAL_STATES } = require('../../helpers/mixed');
+
+    expect(Object.keys(LOCK_CONTENT).sort()).toEqual([...BLOCKING_MODAL_STATES].sort());
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });

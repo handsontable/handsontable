@@ -61,7 +61,9 @@ describe('entitlementLicenseKey/detectFormat', () => {
     expect(detectLicenseKeyFormat('00000-00000-00000-00000-00000')).toBe('legacy');
     expect(detectLicenseKeyFormat('non-commercial-and-evaluation')).toBe('non-commercial-and-evaluation');
     expect(detectLicenseKeyFormat('NON-COMMERCIAL-AND-EVALUATION')).toBe('non-commercial-and-evaluation');
-    expect(detectLicenseKeyFormat('gpl-v3')).toBe('gpl-v3');
+    // `gpl-v3` is NOT a Handsontable format - the specification's legacy list covers HyperFormula
+    // too, and the frozen validator has never recognized it. It reads as an unknown string.
+    expect(detectLicenseKeyFormat('gpl-v3')).toBe('unknown');
     expect(detectLicenseKeyFormat('')).toBe('unknown');
     expect(detectLicenseKeyFormat(undefined)).toBe('unknown');
     expect(detectLicenseKeyFormat(12345)).toBe('unknown');

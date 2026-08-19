@@ -7,7 +7,6 @@ export type LicenseKeyFormat =
   | 'entitlement'
   | 'legacy'
   | 'non-commercial-and-evaluation'
-  | 'gpl-v3'
   | 'unknown';
 
 /**

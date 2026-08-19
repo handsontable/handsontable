@@ -43,6 +43,19 @@ describe('entitlementLicenseKey/grants', () => {
       expect(hasCapability(grants, 'handsontable', 'core')).toBe(false);
     });
 
+    it('should hand out a copy of its capability list, not the live array', () => {
+      const grants = getLicenseGrants(extractEntitlementKeyData(SUBSCRIPTION_KEY));
+      const tokens = getProductCapabilities(grants, 'handsontable');
+
+      tokens.push('core_free');
+      tokens.sort();
+
+      // The descriptor is resolved once per page, so a consumer that sorts or appends to what it
+      // reads must not be able to rewrite the license.
+      expect(getProductCapabilities(grants, 'handsontable')).toEqual(['core']);
+      expect(hasCapability(grants, 'handsontable', 'core_free')).toBe(false);
+    });
+
     it('should carry a capability token it does not know (E6)', () => {
       const grants = getLicenseGrants(extractEntitlementKeyData(buildTestKey({
         products: {

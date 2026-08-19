@@ -16,7 +16,8 @@ export const INSTANT = {
 
 type LicenseKeyName = 'trial' | 'subscription' | 'subscription-external' | 'tampered' |
   'legacy-expired' | 'missing';
-type Variant = 'default' | 'no-row-headers' | 'no-headers-frozen' | 'narrow-corner' | 'dialog' | 'nested';
+type Variant = 'default' | 'no-row-headers' | 'no-headers-frozen' | 'narrow-corner' | 'dialog' |
+  'nested' | 'narrow';
 
 /**
  * Page Object for the license branding fixture.
@@ -199,6 +200,23 @@ export class LicenseBrandingPage {
 
   async isAppDialogVisible(): Promise<boolean> {
     return this.page.evaluate(() => (window as any).hot.getPlugin('dialog').isVisible());
+  }
+
+  /**
+   * How far the lock's own content sticks out past the lock box, in pixels. The sentences moved here
+   * from the bottom bar, which needed a minimum width and a scrolling slot for exactly this reason
+   * (DEV-2192): they hold unbreakable tokens ('non-commercial-and-evaluation', e-mail addresses) and
+   * the lock is only as wide as the grid, so on a narrow grid they used to push straight out of it.
+   */
+  async lockContentOverflowPx(): Promise<number> {
+    return this.lock.evaluate((element) => {
+      const limit = element.getBoundingClientRect().right;
+      const parts = Array.from(element.querySelectorAll<HTMLElement>(
+        '.ht-dialog__title, .ht-dialog__description, .ht-button'
+      ));
+
+      return Math.round(Math.max(0, ...parts.map(part => part.getBoundingClientRect().right - limit)));
+    });
   }
 
   async selectedRanges(): Promise<number[][]> {

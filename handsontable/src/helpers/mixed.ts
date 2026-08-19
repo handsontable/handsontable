@@ -280,9 +280,16 @@ const entitlementDomMessages: Partial<Record<LicenseStateKey, (params: Entitleme
 
 /**
  * The states that render the Core-owned blocking modal (`utils/licenseBranding/lockScreen.ts`)
- * INSTEAD of a bottom bar: a key that cannot be read, and a key that was never set. Both spellings
- * are shared by the legacy emitter's own state vocabulary below and by `LicenseStateKey`, so one
- * list governs both paths.
+ * INSTEAD of a bottom bar: a lapsed trial, a key that cannot be read, and a key that was never set.
+ * The last two spellings are shared by the legacy emitter's own state vocabulary below and by
+ * `LicenseStateKey`, so one list governs both paths.
+ *
+ * MUST list every key of `LOCK_CONTENT` (`utils/licenseBranding/content.ts`), the routing table for
+ * the modal - `licenseBranding.unit.js` asserts the two agree. `trial_hard_stop` shows no bar today
+ * only because `entitlementDomMessages` happens to have no entry for it; naming it here makes the
+ * withdrawal deliberate, so adding hard-stop bar copy later cannot put a bar underneath a
+ * non-dismissable lock. The list is NOT imported from `content.ts`: that module imports the shared
+ * copy constants from here, and the dependency must not become a cycle.
  *
  * The console message is unaffected - it still prints for these states. Only the bottom bar is
  * withdrawn, because the modal now carries its sentences and two license surfaces saying the same
@@ -290,7 +297,7 @@ const entitlementDomMessages: Partial<Record<LicenseStateKey, (params: Entitleme
  *
  * @type {string[]}
  */
-const BLOCKING_MODAL_STATES = ['invalid', 'missing'];
+export const BLOCKING_MODAL_STATES = ['trial_hard_stop', 'invalid', 'missing'];
 
 /**
  * Tells whether a license state speaks through the blocking modal rather than the bottom bar.
@@ -411,6 +418,10 @@ export function _injectProductInfo(
 
   return null;
 }
+/* eslint-enable dot-notation, no-useless-escape, max-len, no-bitwise, computed-property-spacing, jsdoc/require-jsdoc, no-restricted-globals, no-console, prefer-const, no-unused-expressions, no-plusplus, space-infix-ops, comma-spacing, no-nested-ternary */
+// ^ Everything ABOVE this line is the frozen legacy path, which needs those exemptions. Everything
+// BELOW is ordinary new code and is linted normally - most importantly `no-restricted-globals`, so a
+// bare `document` in the entitlement DOM builder is an error rather than a silent regression.
 
 /**
  * Formats an epoch-millisecond timestamp as the bare "YYYY-MM-DD" UTC calendar date every license
@@ -539,9 +550,12 @@ function _classifyLegacyKey(key?: string, releaseDate?: string): LicenseLifecycl
     return _nonEntitlementLifecycle('invalid');
   }
 
-  // `||`, not `??`: a caller resolving the build constant in a broken way passes '' (not
-  // undefined), and the empty string must still fall back to the build-time value.
-  const resolvedReleaseDate = releaseDate || process.env.HOT_RELEASE_DATE || '';
+  // `??`, exactly as the frozen emitter above resolves it - reaching the same verdict it does is
+  // this function's whole contract. With `||`, an explicitly empty `releaseDate` would fall through
+  // to the build-time value here while the emitter keeps the empty string, and the two would
+  // disagree about one key: the emitter reads no date at all (so the key is valid) while this reads
+  // the build date (so the key may be expired).
+  const resolvedReleaseDate = releaseDate ?? process.env.HOT_RELEASE_DATE ?? '';
   const [dd, mm, yyyy] = resolvedReleaseDate.split('/').map(Number);
   const releaseDays = Math.floor(Date.UTC(yyyy, mm - 1, dd) / 8.64e7);
   const keyValidityDays = _extractTime(normalizedKey);
@@ -663,7 +677,9 @@ function _injectEntitlementProductInfo(
       // The global `console`, not the `helpers/console` wrappers: importing them would put this
       // module - the leaf that `function`, `object`, `string` and `dateTime` all import - at the top
       // of a cycle (`console` imports `substitute` from `string`, and `string` imports from here).
-      // The frozen legacy path a few lines up prints the same way, under the same eslint-disable.
+      // The frozen legacy path prints the same way. Disabled per line, not per file - the blanket
+      // exemptions end above, so everything else here is linted normally.
+      // eslint-disable-next-line no-console, no-restricted-globals
       console[notification.severity](notification.message(params));
       _entitlementNotified = true;
     }
@@ -695,6 +711,10 @@ function _injectEntitlementProductInfo(
   return messageNode;
 }
 
+/* eslint-disable dot-notation, no-useless-escape, max-len, no-bitwise, computed-property-spacing, jsdoc/require-jsdoc, prefer-const, no-unused-expressions, no-plusplus, space-infix-ops, comma-spacing, no-nested-ternary */
+// The last of the frozen legacy validation: the obfuscated 25-character key-schema checksum. It
+// carries the same exemptions as the emitter at the top of the file, re-opened here so the ordinary
+// code between the two is linted normally.
 function _checkKeySchema(v: string) {
   let z = ([] as unknown[])[_m as keyof unknown[]] as number;
   let p = z as number;
@@ -709,4 +729,3 @@ function _checkKeySchema(v: string) {
 
   return p === z;
 }
-/* eslint-enable */

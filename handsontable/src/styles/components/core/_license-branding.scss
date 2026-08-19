@@ -104,9 +104,11 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='14.8626' he
 
     position: absolute;
     inset-block-start: 0;
-    inset-inline-start: calc(
-      var(--ht-license-badge-area-width, 50px) + var(--ht-license-popover-tail-size, 12px) - 11px
-    );
+    // The panel's leading edge sits exactly at the corner's trailing edge, measured from the design:
+    // the corner header there is 60px wide and the panel starts at 60px. The tail then hangs to the
+    // left of the panel, overlapping the last few pixels of the corner cell - so the tail size does
+    // NOT enter this offset.
+    inset-inline-start: var(--ht-license-badge-area-width, 50px);
     // Clamped to the grid box: the wrapper clips its children (`overflow: clip` above), so a fixed
     // 320px panel would be CUT OFF on a small grid - including its close button and links. With the
     // end inset + auto sizing, the panel shrinks to the available width instead; its inner content
@@ -135,9 +137,10 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='14.8626' he
 
     @include mixins.box-shadow;
 
-    // The tail (per the design mockups): a right triangle on the leading edge whose flat top runs
-    // collinear with the panel's top edge and whose hypotenuse slopes back into the panel - built
-    // from the border-triangle trick, so it mirrors automatically in RTL.
+    // The tail: a right triangle on the leading edge whose flat top runs collinear with the panel's
+    // top edge and whose hypotenuse slopes back into the panel - built from the border-triangle
+    // trick, so it mirrors automatically in RTL. 5px legs, measured off the design (the wedge there
+    // spans 5px horizontally and 5 rows vertically before meeting the panel edge).
     &::before {
       content: "";
       position: absolute;
@@ -145,9 +148,9 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='14.8626' he
       inset-inline-end: 100%;
       inline-size: 0;
       block-size: 0;
-      border-block-start: var(--ht-license-popover-tail-size, 12px)
+      border-block-start: var(--ht-license-popover-tail-size, 5px)
         solid var(--ht-license-popover-background-color, #16171a);
-      border-inline-start: var(--ht-license-popover-tail-size, 12px) solid transparent;
+      border-inline-start: var(--ht-license-popover-tail-size, 5px) solid transparent;
     }
   }
 
@@ -279,6 +282,29 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='14.8626' he
     // of centered in the whole box (which the strip would push off by half its height).
     .ht-dialog__content-wrapper {
       padding-block-start: calc(var(--ht-line-height, 20px) + var(--ht-density-cell-vertical, 4px) * 2);
+    }
+
+    // The copy holds unbreakable tokens ('non-commercial-and-evaluation', e-mail addresses) and the
+    // lock is only as wide as the grid, so on a narrow grid they push the text past the box - the
+    // same overflow the bottom bar had to solve (DEV-2192).
+    // Two rules are needed, and `overflow-wrap` alone is not enough: the content column is a FLEX
+    // ITEM, whose default `min-width: auto` is its min-content width - the width of the longest
+    // unbreakable token - so it refuses to shrink to the lock and simply sticks out. `min-inline-size:
+    // 0` lets it shrink, and only then does the wrap take effect. `break-word` rather than
+    // `anywhere` because the latter is Safari 15.4, above the declared 14.1 floor.
+    .ht-dialog__content-wrapper-inner,
+    .ht-dialog__content {
+      min-inline-size: 0;
+    }
+
+    .ht-dialog__title,
+    .ht-dialog__description {
+      // `word-break`, not just `overflow-wrap`: only the former shrinks the MIN-CONTENT width, which
+      // is what the flex items above are sized by. `overflow-wrap: break-word` breaks a long token
+      // during layout but still reports it whole as the minimum, so the column would keep sticking
+      // out. (`overflow-wrap: anywhere` would do both, but it is Safari 15.4 - above the floor.)
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
   }
 }
