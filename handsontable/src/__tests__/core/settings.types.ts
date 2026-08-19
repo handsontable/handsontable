@@ -188,6 +188,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   nestedRows: true,
   noWordWrapClassName: 'foo',
   numericFormat: numericIntlFormatOptions,
+  preserveNumericLiteral: true,
   observeDOMVisibility: true,
   outsideClickDeselects: oneOf(true, (target: HTMLElement) => false),
   pagination: oneOf(true, {

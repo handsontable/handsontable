@@ -237,10 +237,10 @@ When working with object-based dropdown data, you can use methods like [`getSour
 
 By default, the dropdown list matches the width of the edited cell, so long options can be truncated. To let the list expand to fit its longest option, set [`trimDropdown`](@/api/options.md#trimdropdown) to `false`.
 
-| Setting          | Description                                               |
-| ---------------- | --------------------------------------------------------- |
-| `true` (default) | Match the dropdown list's width to the edited cell.       |
-| `false`          | Scale the dropdown list's width to its longest option.    |
+| Setting          | Description                                                                      |
+| ---------------- | -------------------------------------------------------------------------------- |
+| `true` (default) | Match the dropdown list's width to the edited cell.                              |
+| `false`          | Expand the list to its content, but keep it at least as wide as the edited cell. |
 
 In the example below, the **Department (default)** column trims the list to the cell, while the **Department (full width)** column expands it. Open a cell in each column to compare.
 
