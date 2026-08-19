@@ -169,6 +169,12 @@ export class FocusGridManager {
    * element behind the host chain, so a focused ancestor host cannot prove the focus left the
    * grid - only an unrelated element can.
    *
+   * The check mirrors the scope-deactivation rule in the focus scope manager (`scopeManager`
+   * unlistens when a focus event lands outside every scope). Sandboxed hosts retarget the
+   * window-level focus events that rule depends on, so the mouseup path re-applies the same
+   * rule from the deepest reachable focused element. On a regular page both mechanisms agree -
+   * this adds no behavior that the scope manager does not already provide there.
+   *
    * @param {HTMLElement | null} element The deepest reachable focused element.
    * @returns {boolean}
    */
