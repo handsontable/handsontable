@@ -16,7 +16,7 @@ export class LicenseBarPage {
   readonly grid: Locator;
   readonly slot: Locator;
   readonly bar: Locator;
-  readonly supportLink: Locator;
+  readonly contactLink: Locator;
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
@@ -25,7 +25,10 @@ export class LicenseBarPage {
     this.grid = page.getByTestId('grid');
     this.slot = page.locator('.ht-slot-bottom');
     this.bar = page.locator('.hot-display-license-info');
-    this.supportLink = this.bar.getByRole('link', { name: 'support@handsontable.com' });
+    // The unbreakable token this spec is about: whichever contact address the bar's state
+    // carries. The fixture's lapsed key names sales@; a missing or invalid key no longer
+    // renders a bar at all (DEV-2562), so support@ is not reachable here any more.
+    this.contactLink = this.bar.getByRole('link', { name: /@handsontable\.com$/ }).first();
   }
 
   /**
@@ -36,7 +39,7 @@ export class LicenseBarPage {
   async goto(gridWidth: number): Promise<void> {
     await this.page.goto(`/tests/fixtures/demo/license-bar.html?theme=${this.theme}&bundle=${this.bundle}&width=${gridWidth}`);
     await expect(this.bar).toBeVisible();
-    await expect(this.supportLink).toBeVisible();
+    await expect(this.contactLink).toBeVisible();
   }
 
   /**

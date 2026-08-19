@@ -63,7 +63,11 @@
       rowHeaders: true,
       width: gridWidth,
       height: 150,
-      // licenseKey intentionally missing — the license notification bar must render.
+      // A real legacy key that expired on 23/05/2011, so it is expired against any modern build.
+      // A LAPSED key is the state that renders the bottom bar: since DEV-2562 a missing or invalid
+      // key renders the blocking modal instead and no bar at all. The bar's copy still carries the
+      // unbreakable e-mail address this spec is about.
+      licenseKey: 'd0134-95841-770f2-c4f21-3751d',
     });
   </script>
 </body>
