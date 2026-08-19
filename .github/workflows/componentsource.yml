@@ -10,15 +10,21 @@ on:
   workflow_run:
     workflows: ['Publish']
     types: [completed]
-    # Everything-but-develop, NOT an allow-list of branch patterns. A `Publish`
-    # run's `head_branch` is a BRANCH for RC pushes (`release/18.0.0`) but the
-    # TAG for release events (`18.0.0`), so the old `branches: ['release/**']`
-    # allow-list never matched a stable release and silently skipped the
-    # deliverable for every official version (DEV-1968). `develop` is excluded
-    # because its chained `experimental` publish is not a customer deliverable.
-    # The job's `if` re-checks everything else.
-    branches-ignore:
-      - develop
+    # DELIBERATELY UNFILTERED. A `Publish` run's `head_branch` is a BRANCH for RC
+    # pushes (`release/18.0.0`) but the TAG for release events (`18.0.0`), and the
+    # old `branches: ['release/**']` allow-list therefore never matched a stable
+    # release — the deliverable was silently skipped for every official version
+    # (DEV-1968). Whether a `branches`/`branches-ignore` filter passes a
+    # tag-valued `head_branch` at all is unspecified (tag filtering for
+    # `workflow_run` is not supported), so ANY filter here risks re-creating that
+    # exact silent miss. Gating lives in the job's `if` instead, where the rules
+    # are explicit and testable. Excluding develop was already redundant:
+    # publish.yml's `push` trigger covers release/** only and `release` is
+    # tag-based, so a develop `head_branch` can only arrive as `workflow_run`
+    # (the chained `experimental` publish) or `workflow_dispatch` — and neither
+    # passes either arm of that `if`. Cost is a handful of instantly-skipped
+    # runs; the benefit is that a release can no longer be missed by a filter
+    # whose behavior on tags is unspecified.
   workflow_dispatch:
     inputs:
       version:
@@ -68,24 +74,43 @@ jobs:
           TRIGGER_EVENT: ${{ github.event.workflow_run.event }}
           TRIGGER_REF: ${{ github.event.workflow_run.head_branch }}
           INPUT_VERSION: ${{ github.event.inputs.version }}
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
 
           SHOULD_BUILD=true
-          # Release line this run belongs to (`18.0.0`), set only when the
-          # version was resolved through the shared `rc` dist-tag.
+          # Release line (`18.0.0`) when this run shipped a candidate rather than
+          # a stable version. Empty on the stable and manual-dispatch paths.
           LINE=''
 
-          npm_has() {
-            npm view "handsontable@$1" version > /dev/null 2>&1
+          # The oracle publish.yml's `rc-check` uses (publish.yml:545-556): a
+          # NON-PRERELEASE GitHub release for the line. It must be this and not
+          # npm — the GitHub release is created before `stable-publish` pushes to
+          # npm, so an npm probe would disagree with `rc-check` inside that
+          # window and upload a stale candidate.
+          stable_release_exists() {
+            local count
+            count=$(gh release list --repo "${GH_REPO}" --json tagName,isPrerelease \
+              --jq "[.[] | select(.tagName == \"$1\" and (.isPrerelease | not))] | length")
+
+            [ "${count:-0}" -gt 0 ]
+          }
+
+          # Highest N among the `<line>-rcN` git tags. publish.yml creates that
+          # tag through the GitHub API *before* publishing (publish.yml:719-723),
+          # so it names the candidate THIS run shipped. npm's `rc` dist-tag
+          # cannot: it is one mutable global pointer, shared by every release
+          # line, and may still read the previous RC while the new one is live.
+          highest_rc_number() {
+            gh api "repos/${GH_REPO}/git/matching-refs/tags/$1-rc" --jq '.[].ref' \
+              | sed -n "s|^refs/tags/$1-rc\([0-9]\{1,\}\)\$|\1|p" \
+              | sort -n | tail -n 1
           }
 
           # Never read `hot.config.js`: on the commit a `Publish` run starts
           # from, it still holds the PREVIOUS version — the bump is committed
           # during that run. Reading it made every RC artifact one RC stale.
-          # The release tag and npm's dist-tags are the only sources that name
-          # what was actually published (`--tag latest` for stable, `--tag rc`
-          # for release candidates).
           if [ -n "${INPUT_VERSION}" ]; then
             VERSION="${INPUT_VERSION}"
             SOURCE="workflow_dispatch input"
@@ -100,50 +125,39 @@ jobs:
               VERSION="${TAG}"
               SOURCE="release tag"
             else
-              # First RC: the tag is `18.0.0-rc`, which does NOT carry the `rcN`
-              # suffix npm actually got.
-              VERSION="$(npm view handsontable dist-tags.rc)"
-              SOURCE="npm dist-tag 'rc' (prerelease tag ${TRIGGER_REF})"
+              # First RC. The tag is `18.0.0-rc`, without the `rcN` npm got.
               LINE="${TAG%%-*}"
             fi
 
           elif [ -n "${TRIGGER_EVENT}" ]; then
-            # A push to a release branch — every RC after the first. Such a run
-            # goes green even when it published NOTHING: publish.yml's
-            # `rc-check` sets `allowed=false` once a stable release exists for
-            # the line, which skips rc-build/rc-test/rc-publish while `rc-check`
-            # itself succeeds. Mirror that guard here, or a later backport push
-            # to a closed release branch would re-upload a stale candidate.
+            # A push to a release branch — every RC after the first.
             LINE="${TRIGGER_REF#release/}"
-
-            if npm_has "${LINE}"; then
-              echo "::notice::Stable ${LINE} is already published, so publish.yml's rc-check blocked the RC publish and this run published nothing — no artifact to build."
-              SHOULD_BUILD=false
-              VERSION=''
-              SOURCE='n/a'
-            else
-              VERSION="$(npm view handsontable dist-tags.rc)"
-              SOURCE="npm dist-tag 'rc'"
-            fi
 
           else
             VERSION="$(npm view handsontable dist-tags.latest)"
             SOURCE="npm dist-tag 'latest'"
           fi
 
-          # `rc` is ONE dist-tag shared by every release line. Whenever the
-          # version came from it, check the candidate belongs to the line that
-          # triggered this run — otherwise a push on one branch would package
-          # another line's candidate.
-          if [ "${SHOULD_BUILD}" = true ] && [ -n "${LINE}" ]; then
-            case "${VERSION}" in
-              "${LINE}-"*)
-                ;;
-              *)
-                echo "::notice::npm dist-tag 'rc' is '${VERSION}', which is not a candidate for the ${LINE} line — no artifact to build."
-                SHOULD_BUILD=false
-                ;;
-            esac
+          if [ -n "${LINE}" ]; then
+            # A release-branch push goes green even when it published NOTHING:
+            # `rc-check` sets `allowed=false` once the line has a stable release,
+            # skipping rc-build/rc-test/rc-publish while `rc-check` itself
+            # succeeds. Without this, a later backport push to a closed release
+            # branch would re-upload a stale candidate.
+            if stable_release_exists "${LINE}"; then
+              echo "::notice::${LINE} already has a stable GitHub release, so publish.yml's rc-check blocked the RC publish and this run published nothing — no artifact to build."
+              SHOULD_BUILD=false
+            else
+              RC_NUMBER="$(highest_rc_number "${LINE}")"
+
+              if [ -z "${RC_NUMBER}" ]; then
+                echo "::error::No ${LINE}-rcN git tag exists, so the candidate this run published cannot be identified"
+                exit 1
+              fi
+
+              VERSION="${LINE}-rc${RC_NUMBER}"
+              SOURCE="highest ${LINE}-rcN git tag"
+            fi
           fi
 
           if [ "${SHOULD_BUILD}" != true ]; then
@@ -151,6 +165,9 @@ jobs:
             exit 0
           fi
 
+          # Reachable on every remaining path. Never downgrade this to a notice:
+          # a green run with no artifact is invisible, and that invisibility is
+          # how DEV-1968 went unnoticed for two releases.
           if [ -z "${VERSION}" ]; then
             echo "::error::Could not resolve a version to package (source: ${SOURCE})"
             exit 1
