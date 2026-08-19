@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `fixedRowsBottom` option losing its value after undoing a row insertion, which un-pinned the bottom row.",
+  "type": "fixed",
+  "issueOrPR": 13200,
+  "breaking": false,
+  "framework": "none"
+}
