@@ -19,10 +19,18 @@
   $grid-sections: "table.htCore > thead, table.htCore > tbody, #{$ghost-table} > thead, #{$ghost-table} > tbody";
   // Anything a user renders inside a body cell. Used with `:not(:where(...))` to keep grid
   // normalize rules off user content without changing their specificity (`:where()` = 0) (#4363).
-  // The checkbox renderer's `<input>` is the one element the grid itself renders inside a cell,
-  // so it is carved out here — it must keep the `input` normalize (`box-sizing`/`min-height`)
-  // or host-page rules like `input { min-height: 40px }` inflate grid checkboxes.
-  $user-cell-content: "table.htCore > tbody > tr > td *:not(.htCheckboxRendererInput), #{$ghost-table} > tbody > tr > td *:not(.htCheckboxRendererInput)";
+  // Two carve-outs keep grid-owned in-cell chrome normalized:
+  //  - the checkbox renderer's `<input>` — the only element the grid renders into a DATA cell —
+  //    must keep the `input` normalize (`box-sizing`/`min-height`) or host-page rules like
+  //    `input { min-height: 40px }` inflate grid checkboxes;
+  //  - `td.htCustomMenuRenderer` — a menu (context/dropdown/filters) is itself a grid, and a
+  //    custom menu item renders its whole UI inside that grid's body cell: the Filters search
+  //    box, the OK/Cancel `<input type="button">`s, and the value-list grid. Excluding the `td`
+  //    keeps its entire subtree in the normalized set — without it the same host rule stretched
+  //    every one of those inputs to its own `min-height`.
+  // A body cell that can hold user content: any `td` that is not a menu's custom-renderer cell.
+  $user-cell: "td:not(.htCustomMenuRenderer)";
+  $user-cell-content: "table.htCore > tbody > tr > #{$user-cell} *:not(.htCheckboxRendererInput), #{$ghost-table} > tbody > tr > #{$user-cell} *:not(.htCheckboxRendererInput)";
 
   // Root wrapper
   .ht-root-wrapper {
@@ -635,7 +643,10 @@
     }
 
     // Grid-chrome links only (license notice, menus). A link a user renders inside a cell keeps
-    // its own color (#4363). All `<a>` in cells are user content — the grid renders none itself.
+    // its own color (#4363). The grid renders no `<a>` into a DATA cell, so every `<a>` matched
+    // there is user content. Filters does render links (`.htUISelectAll a`, `.htUIClearAll a`)
+    // inside the menu grid's cells — those stay grid chrome because `$user-cell` excludes
+    // `td.htCustomMenuRenderer` (`_filters.scss` also colors them explicitly).
     a:not(:where(#{$user-cell-content})) {
       color: var(--ht-link-color);
 

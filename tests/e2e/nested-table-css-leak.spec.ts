@@ -8,22 +8,28 @@ import { test, expect } from '../fixtures/test';
  *
  * The page under test is served inline via `page.route()` (no committed
  * fixture file): a grid where cell (0, 1) hosts a user-rendered `<table>`
- * (tall enough to auto-expand its row) and column 2 is the grid's own
- * checkbox column. The host page carries the kind of global CSS the grid
- * must coexist with (`input { min-height: … }`).
+ * and column 2 is the grid's own checkbox column. Row heights are left
+ * unset, so the nested table auto-expands row 0. The host page carries the
+ * kind of global CSS the grid must coexist with (`input { min-height: … }`).
  *
- * Four guarantees, each a real-browser check:
+ * Five guarantees, each a real-browser check:
  *  1. Grid cell styling (box-sizing, borders) does not reach the nested
  *     table's cells.
  *  2. The grid still styles its own cells.
- *  3. A tall custom-rendered cell keeps the inline-start row-header overlay
- *     pixel-aligned with the grid body — guards the row-height measurement
- *     path: cell CSS is scoped to `table.htCore`, so the `stylesHandler`
- *     box-sizing probe must also be an `htCore` table or `areCellsBorderBox()`
- *     flips and rows mis-measure.
+ *  3. The `stylesHandler` box-sizing probe still reads a real grid cell, and
+ *     an auto-expanded custom-content row keeps the inline-start row-header
+ *     overlay aligned with the grid body — cell CSS is scoped to
+ *     `table.htCore`, so the probe must also be an `htCore` table or
+ *     `areCellsBorderBox()` flips and rows mis-measure. The probe reading is
+ *     asserted directly, because both overlays consume that one flag and can
+ *     therefore stay mutually aligned while both are wrong.
  *  4. The normalize split is exact: the grid's own checkbox `<input>` (the one
- *     element the grid renders inside a cell) keeps the `min-height` normalize
- *     against host CSS, while a user's in-cell `<input>` keeps the host CSS.
+ *     element the grid renders inside a data cell) keeps the `min-height`
+ *     normalize against host CSS, while a user's in-cell `<input>` keeps the
+ *     host CSS.
+ *  5. Chrome the grid renders inside a MENU cell (the Filters UI, in
+ *     `td.htCustomMenuRenderer` of the dropdown menu's own grid) keeps the
+ *     normalize too — see the last describe block.
  */
 
 const FIXTURE_URL = '/nested-table-css-leak-fixture.html';
@@ -73,8 +79,9 @@ function fixtureHtml(theme: string, bundle: string): string {
     input { min-height: 40px; }
     /* A table a user renders inside a cell, with its OWN box model. It never sets
        box-sizing, so a border-box reading on its cells is a leak from the grid. Its
-       explicit border + padding also make the host row auto-expand, which exercises
-       the oversized-row height measurement (the row-header-alignment guard). */
+       explicit border + padding also make it taller than a default row, so the host
+       row auto-expands — that is what exercises the row-height measurement path
+       behind the row-header-alignment guard. */
     .nested-user-table { border-collapse: collapse; }
     .nested-user-table td { border: 2px solid #008000; padding: 6px; }
   </style>
@@ -112,7 +119,8 @@ function fixtureHtml(theme: string, bundle: string): string {
       return td;
     };
 
-    new Handsontable(container, {
+    // Exposed so the spec can read the stylesHandler probe directly.
+    window.__hot = new Handsontable(container, {
       data: [
         ['Alice', null, true],
         ['Bob', 'plain', false],
@@ -125,7 +133,8 @@ function fixtureHtml(theme: string, bundle: string): string {
         { type: 'checkbox' },
       ],
       rowHeaders: true,
-      rowHeights: 90,
+      // No rowHeights setting: row 0 must auto-expand to the nested table's height,
+      // which is what puts the row-height measurement path under test.
       colWidths: [120, 220, 120],
       cells(row, col) {
         if (row === 0 && col === 1) {
@@ -203,12 +212,42 @@ test.describe('nested table in a cell (#4363)', () => {
     expect(await computedStyle(ownCell, 'border-bottom-style')).toBe('solid');
   });
 
+  test('the box-sizing probe reads a real grid cell', async() => {
+    // The firm guard on the `stylesHandler` probe: the master and inline-start overlays
+    // both consume this one flag, so a flipped reading can shift both by the same amount
+    // and still leave them aligned — the alignment test below cannot see that alone.
+    // A class-less probe reads the browser defaults (content-box / 0px).
+    const probe = await page.evaluate(() => {
+      const hot = (window as unknown as { __hot: {
+        stylesHandler: {
+          areCellsBorderBox(): boolean;
+          getStyleForTD(property: string): string;
+        };
+      } }).__hot;
+
+      return {
+        borderBox: hot.stylesHandler.areCellsBorderBox(),
+        borderBottomWidth: hot.stylesHandler.getStyleForTD('border-bottom-width'),
+      };
+    });
+
+    expect(probe.borderBox).toBe(true);
+    expect(probe.borderBottomWidth).not.toBe('0px');
+    // The probe must agree with a rendered cell — it exists to stand in for one.
+    expect(await computedStyle(cell(1, 0), 'border-bottom-width')).toBe(probe.borderBottomWidth);
+  });
+
   test('row headers stay aligned with an auto-expanded custom-content row', async() => {
-    // Row 0 is taller than the default (it holds the nested table), forcing the
-    // oversized-row measurement path. The row-header overlay must track it.
+    // Row 0 auto-expands to the nested table's height, forcing the oversized-row
+    // measurement path. The row-header overlay must track it.
     expect(await rowHeaderBottomGap(0)).toBeLessThanOrEqual(1);
     // Rows below the tall one must not accumulate the drift either.
     expect(await rowHeaderBottomGap(1)).toBeLessThanOrEqual(1);
+    // The tall row really is tall — otherwise the two gaps above pass vacuously.
+    const tallRow = await cell(0, 1).boundingBox();
+    const normalRow = await cell(1, 1).boundingBox();
+
+    expect(tallRow!.height).toBeGreaterThan(normalRow!.height * 2);
   });
 
   test('input normalize splits exactly between grid chrome and user content', async() => {
@@ -228,6 +267,123 @@ test.describe('nested table in a cell (#4363)', () => {
     expect(await computedStyle(page.getByTestId('nested-input'), 'min-height')).toBe('40px');
   });
 });
+
+const MENU_FIXTURE_URL = '/menu-cell-css-leak-fixture.html';
+
+/**
+ * The dropdown menu is itself a Handsontable instance, and the Filters UI is grid
+ * chrome rendered INSIDE one of its body cells (`td.htCustomMenuRenderer`). So the
+ * "user content in a cell" carve-out must not treat a menu cell's subtree as user
+ * content, or the host page's `input { min-height: … }` inflates the filters search
+ * box and the OK/Cancel buttons (#4363).
+ */
+function menuFixtureHtml(theme: string, bundle: string): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e inline fixture — filters UI in a menu cell (#4363)</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <link rel="stylesheet" href="/handsontable/styles/ht-theme-${theme}.min.css">
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+  <!-- The same host-page rule the other fixtures use. The grid's own chrome — including the
+       chrome it renders inside a menu cell — must stay immune to it. Kept in its own removable
+       <style> so the spec can measure the menu with and without it and require both readings
+       to match, which keeps the assertion theme-independent. -->
+  <style id="host-input-rule">
+    input { min-height: 40px; }
+  </style>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+  <script src="/handsontable/dist/${bundleFile(bundle)}"></script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = 'ht-theme-${theme}';
+
+    new Handsontable(container, {
+      data: [
+        ['Alice', 'x'],
+        ['Bob', 'y'],
+        ['Carol', 'z'],
+      ],
+      colHeaders: ['Name', 'Tag'],
+      rowHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>`;
+}
+
+test.describe('filters UI inside a menu cell (#4363)', () => {
+  test('menu-cell chrome keeps the input normalize against host CSS', async({ page, theme, bundle }) => {
+    await page.route(`**${MENU_FIXTURE_URL}`, route => route.fulfill({
+      contentType: 'text/html',
+      body: menuFixtureHtml(theme, bundle),
+    }));
+    await page.goto(MENU_FIXTURE_URL);
+
+    await page.locator('.ht_clone_top thead th button.changeType').first().click();
+
+    const menu = page.locator('.htDropdownMenu');
+
+    await expect(menu).toBeVisible();
+
+    // Every `<input>` the Filters UI renders inside `td.htCustomMenuRenderer` of the menu's own
+    // grid: the search box and the two action-bar buttons (`<input type="button">`).
+    const inputSelectors = [
+      '.htUIMultipleSelectSearch input',
+      '.htUIButtonOK input',
+      '.htUIButtonCancel input',
+    ];
+
+    for (const selector of inputSelectors) {
+      await expect(menu.locator(selector)).toBeVisible();
+      // The leak reads exactly the host declaration. Without the carve-out this was '40px'.
+      expect(await computedStyleOf(menu.locator(selector), 'min-height')).toBe('0px');
+    }
+
+    const withHostRule = await menuInputHeights(page, inputSelectors);
+
+    // Dropping the host rule must change nothing: the grid's normalize already neutralized it.
+    // Comparing the two readings makes the check theme-independent — no hardcoded pixel bound.
+    await page.evaluate(() => document.getElementById('host-input-rule')?.remove());
+
+    const withoutHostRule = await menuInputHeights(page, inputSelectors);
+
+    expect(withHostRule).toEqual(withoutHostRule);
+    // Guard against a vacuous pass (a menu that never rendered would report zero heights).
+    expect(withoutHostRule.every(height => height > 0)).toBe(true);
+  });
+});
+
+/** Bounding-box heights of the given menu inputs, in selector order. */
+async function menuInputHeights(page: Page, selectors: string[]): Promise<number[]> {
+  const heights: number[] = [];
+
+  for (const selector of selectors) {
+    const box = await page.locator('.htDropdownMenu').locator(selector).boundingBox();
+
+    if (!box) {
+      throw new Error(`Missing bounding box for ${selector}`);
+    }
+
+    heights.push(box.height);
+  }
+
+  return heights;
+}
+
+/** Read a computed style property off a locator's element. */
+function computedStyleOf(locator: Locator, property: string): Promise<string> {
+  return locator.evaluate((el, prop) => getComputedStyle(el).getPropertyValue(prop), property);
+}
 
 const GHOST_FIXTURE_URL = '/nested-headers-ghost-fixture.html';
 
