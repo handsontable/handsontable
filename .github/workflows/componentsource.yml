@@ -40,6 +40,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read # list the triggering `Publish` run's artifacts
 
 jobs:
   build-componentsource:
@@ -59,8 +60,9 @@ jobs:
         )
       )
     steps:
-      # Checks out the default branch on purpose — `.nvmrc` is the only repo
-      # file this job reads, and the version now comes from npm (see below).
+      # Checks out the default branch on purpose. `.nvmrc` is the only repo file
+      # this job reads; the version comes from the triggering run (see below),
+      # never from the working tree.
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Use Node.js
@@ -71,103 +73,65 @@ jobs:
       - name: Resolve published version
         id: version
         env:
-          TRIGGER_EVENT: ${{ github.event.workflow_run.event }}
-          TRIGGER_REF: ${{ github.event.workflow_run.head_branch }}
+          TRIGGER_RUN_ID: ${{ github.event.workflow_run.id }}
           INPUT_VERSION: ${{ github.event.inputs.version }}
           GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
 
-          SHOULD_BUILD=true
-          # Release line (`18.0.0`) when this run shipped a candidate rather than
-          # a stable version. Empty on the stable and manual-dispatch paths.
-          LINE=''
-
-          # The oracle publish.yml's `rc-check` uses (publish.yml:545-556): a
-          # NON-PRERELEASE GitHub release for the line. It must be this and not
-          # npm — the GitHub release is created before `stable-publish` pushes to
-          # npm, so an npm probe would disagree with `rc-check` inside that
-          # window and upload a stale candidate.
-          stable_release_exists() {
-            local count
-            count=$(gh release list --repo "${GH_REPO}" --json tagName,isPrerelease \
-              --jq "[.[] | select(.tagName == \"$1\" and (.isPrerelease | not))] | length")
-
-            [ "${count:-0}" -gt 0 ]
-          }
-
-          # Highest N among the `<line>-rcN` git tags. publish.yml creates that
-          # tag through the GitHub API *before* publishing (publish.yml:719-723),
-          # so it names the candidate THIS run shipped. npm's `rc` dist-tag
-          # cannot: it is one mutable global pointer, shared by every release
-          # line, and may still read the previous RC while the new one is live.
-          highest_rc_number() {
-            gh api "repos/${GH_REPO}/git/matching-refs/tags/$1-rc" --jq '.[].ref' \
-              | sed -n "s|^refs/tags/$1-rc\([0-9]\{1,\}\)\$|\1|p" \
-              | sort -n | tail -n 1
-          }
-
-          # Never read `hot.config.js`: on the commit a `Publish` run starts
-          # from, it still holds the PREVIOUS version — the bump is committed
-          # during that run. Reading it made every RC artifact one RC stale.
           if [ -n "${INPUT_VERSION}" ]; then
             VERSION="${INPUT_VERSION}"
             SOURCE="workflow_dispatch input"
 
-          elif [ "${TRIGGER_EVENT}" = 'release' ]; then
-            # For a release event `head_branch` carries the release TAG. Strip an
-            # optional `v` prefix exactly the way publish.yml does (`${TAG#v}`).
-            TAG="${TRIGGER_REF#v}"
+          elif [ -n "${TRIGGER_RUN_ID}" ]; then
+            # Every publish path uploads the very tarballs it publishes as
+            # `npm_packs_<version>` — first RC, later RCs and stable alike
+            # (publish.yml:203, 339, 655, 1430, 1495) — and the publish steps
+            # download that same artifact to run `npm publish`. So its name is a
+            # per-run record of exactly what THIS run shipped. Every other
+            # candidate oracle drifts:
+            #   * `hot.config.js` at the run's commit still holds the PREVIOUS
+            #     version; the bump is committed during the run.
+            #   * npm's `rc` dist-tag is one mutable global pointer, shared by
+            #     every release line, and can lag the publish that just happened.
+            #   * the highest `<line>-rcN` git tag is written in `rc-build`,
+            #     which is BEFORE the `approvers` environment gate on
+            #     `rc-publish`; publish.yml has no concurrency group, so a later
+            #     push can tag rcN+1 while rcN still awaits approval, and
+            #     "highest" would then name another run's candidate.
+            VERSIONS="$(gh api "repos/${GH_REPO}/actions/runs/${TRIGGER_RUN_ID}/artifacts" \
+              --paginate --jq '.artifacts[].name' \
+              | sed -n 's/^npm_packs_//p' | sort -u)"
+            COUNT="$(printf '%s\n' "${VERSIONS}" | grep -c . || true)"
 
-            if [ "${TAG}" = "${TAG%%-*}" ]; then
-              # Stable release, e.g. `18.0.0` — the tag is the published version.
-              VERSION="${TAG}"
-              SOURCE="release tag"
-            else
-              # First RC. The tag is `18.0.0-rc`, without the `rcN` npm got.
-              LINE="${TAG%%-*}"
+            if [ "${COUNT}" -eq 0 ]; then
+              # No packs means the run published nothing. The common case is
+              # `rc-check` setting `allowed=false` once the line has a stable
+              # release, which skips rc-build/rc-test/rc-publish while
+              # `rc-check` itself succeeds — leaving a GREEN run that shipped
+              # nothing. Building from it would upload a stale candidate.
+              echo "::notice::Publish run ${TRIGGER_RUN_ID} uploaded no npm_packs_* artifact, so it published nothing (for example rc-check blocked the RC build) — no artifact to build."
+              echo "should-build=false" >> "$GITHUB_OUTPUT"
+              exit 0
             fi
 
-          elif [ -n "${TRIGGER_EVENT}" ]; then
-            # A push to a release branch — every RC after the first.
-            LINE="${TRIGGER_REF#release/}"
+            if [ "${COUNT}" -gt 1 ]; then
+              echo "::error::Publish run ${TRIGGER_RUN_ID} has npm_packs artifacts for more than one version, so the published version is ambiguous: $(printf '%s' "${VERSIONS}" | tr '\n' ' ')"
+              exit 1
+            fi
+
+            VERSION="${VERSIONS}"
+            SOURCE="npm_packs_* artifact on Publish run ${TRIGGER_RUN_ID}"
 
           else
             VERSION="$(npm view handsontable dist-tags.latest)"
             SOURCE="npm dist-tag 'latest'"
           fi
 
-          if [ -n "${LINE}" ]; then
-            # A release-branch push goes green even when it published NOTHING:
-            # `rc-check` sets `allowed=false` once the line has a stable release,
-            # skipping rc-build/rc-test/rc-publish while `rc-check` itself
-            # succeeds. Without this, a later backport push to a closed release
-            # branch would re-upload a stale candidate.
-            if stable_release_exists "${LINE}"; then
-              echo "::notice::${LINE} already has a stable GitHub release, so publish.yml's rc-check blocked the RC publish and this run published nothing — no artifact to build."
-              SHOULD_BUILD=false
-            else
-              RC_NUMBER="$(highest_rc_number "${LINE}")"
-
-              if [ -z "${RC_NUMBER}" ]; then
-                echo "::error::No ${LINE}-rcN git tag exists, so the candidate this run published cannot be identified"
-                exit 1
-              fi
-
-              VERSION="${LINE}-rc${RC_NUMBER}"
-              SOURCE="highest ${LINE}-rcN git tag"
-            fi
-          fi
-
-          if [ "${SHOULD_BUILD}" != true ]; then
-            echo "should-build=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          # Reachable on every remaining path. Never downgrade this to a notice:
-          # a green run with no artifact is invisible, and that invisibility is
-          # how DEV-1968 went unnoticed for two releases.
+          # Reachable on every path. Never downgrade this to a notice: a green
+          # run with no artifact is invisible, and that invisibility is how
+          # DEV-1968 went unnoticed for two releases.
           if [ -z "${VERSION}" ]; then
             echo "::error::Could not resolve a version to package (source: ${SOURCE})"
             exit 1
