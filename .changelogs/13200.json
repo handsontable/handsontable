@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `fixedRowsTop`, `fixedRowsBottom`, and `fixedColumnsStart` options losing their value after undoing a row or column insertion, which un-pinned a frozen row or column.",
+  "type": "fixed",
+  "issueOrPR": 13200,
+  "breaking": false,
+  "framework": "none"
+}

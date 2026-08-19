@@ -989,6 +989,8 @@ export default function Core(
                 groupIndex = Math.max(groupIndex - offset, 0);
               }
 
+              const totalRowsBefore = instance.countRows();
+
               // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
               // inside the datamap.removeRow breaks the removing functionality.
               const wasRemoved = datamap.removeRow(groupIndex, groupAmount, source);
@@ -1014,8 +1016,27 @@ export default function Core(
 
               const fixedRowsBottom = tableMeta.fixedRowsBottom;
 
-              if (fixedRowsBottom && calcIndex >= totalRows - fixedRowsBottom) {
-                tableMeta.fixedRowsBottom -= Math.min(groupAmount, fixedRowsBottom);
+              if (fixedRowsBottom) {
+                // Count how many of the removed rows belonged to the bottom fixed rows. Those rows occupied
+                // the `[totalRowsBefore - fixedRowsBottom, totalRowsBefore - 1]` range, so the boundary has
+                // to be compared with the row count from *before* the removal. Rows removed above that
+                // range keep the setting untouched (DEV-2551).
+                const removedRowsCount = totalRowsBefore - totalRows;
+                // With no index passed, `datamap.removeRow` takes the rows from the end, so the removal
+                // starts that many rows before the last one. `calcIndex` points at the last row then, not
+                // at the first removed one.
+                const firstRemovedRowIndex = Number.isInteger(groupIndex)
+                  ? calcIndex
+                  : Math.max(totalRowsBefore - removedRowsCount, 0);
+                const firstFixedRowIndex = totalRowsBefore - fixedRowsBottom;
+                const lastRemovedRowIndex =
+                  Math.min(firstRemovedRowIndex + removedRowsCount - 1, totalRowsBefore - 1);
+                const removedFixedRowsCount =
+                  lastRemovedRowIndex - Math.max(firstRemovedRowIndex, firstFixedRowIndex) + 1;
+
+                if (removedFixedRowsCount > 0) {
+                  tableMeta.fixedRowsBottom -= Math.min(removedFixedRowsCount, fixedRowsBottom);
+                }
               }
 
               if (totalRows === 0) {
