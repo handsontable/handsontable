@@ -1,14 +1,35 @@
 name: Component Source
 
+# Builds the "component source" deliverable — a small demo bundle (example page
+# plus the released `handsontable.full.min.js`) that GitHub serves as a ZIP.
+#
+# Chained off `Publish` rather than hooked straight to the `release` event: the
+# artifact embeds the released dist file, so it can only be assembled AFTER
+# `Publish` has pushed that version to npm.
 on:
   workflow_run:
     workflows: ['Publish']
     types: [completed]
-    branches: ['release/**']
+    # Everything-but-develop, NOT an allow-list of branch patterns. A `Publish`
+    # run's `head_branch` is a BRANCH for RC pushes (`release/18.0.0`) but the
+    # TAG for release events (`18.0.0`), so the old `branches: ['release/**']`
+    # allow-list never matched a stable release and silently skipped the
+    # deliverable for every official version (DEV-1968). `develop` is excluded
+    # because its chained `experimental` publish is not a customer deliverable.
+    # The job's `if` re-checks everything else.
+    branches-ignore:
+      - develop
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to package. Defaults to the current `latest` on npm.'
+        required: false
+        type: string
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_branch || github.ref }}
+  # `github.event.inputs` rather than the `inputs` context: this line is
+  # evaluated for `workflow_run` events too, where `inputs` is not populated.
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_branch || github.event.inputs.version || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -18,22 +39,102 @@ jobs:
   build-componentsource:
     name: Build component source artifact
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    # A manual dispatch always runs. An automatic run needs a green `Publish`
+    # run that actually pushed a customer-facing version to npm: a `release`
+    # event (stable release, or the first RC) or a push to a release branch
+    # (every later RC).
+    if: |
+      github.event_name == 'workflow_dispatch' || (
+        github.event.workflow_run.conclusion == 'success' && (
+          github.event.workflow_run.event == 'release' || (
+            github.event.workflow_run.event == 'push' &&
+            startsWith(github.event.workflow_run.head_branch, 'release/')
+          )
+        )
+      )
     steps:
+      # Checks out the default branch on purpose — `.nvmrc` is the only repo
+      # file this job reads, and the version now comes from npm (see below).
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Use Node.js
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version-file: '.nvmrc'
 
-      - name: Read Handsontable version
+      - name: Resolve published version
         id: version
+        env:
+          TRIGGER_EVENT: ${{ github.event.workflow_run.event }}
+          TRIGGER_REF: ${{ github.event.workflow_run.head_branch }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
         run: |
-          VERSION=$(node -e 'console.log(require("./hot.config.js").HOT_VERSION)')
-          echo "value=$VERSION" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+
+          # Never read `hot.config.js`: on the commit a `Publish` run starts
+          # from, it still holds the PREVIOUS version — the bump is committed
+          # during that run. Reading it made every RC artifact one RC stale.
+          # The release tag and npm's dist-tags are the only sources that name
+          # what was actually published (`--tag latest` for stable, `--tag rc`
+          # for release candidates).
+          if [ -n "${INPUT_VERSION}" ]; then
+            VERSION="${INPUT_VERSION}"
+            SOURCE="workflow_dispatch input"
+
+          elif [ "${TRIGGER_EVENT}" = 'release' ]; then
+            # For a release event `head_branch` carries the release TAG. Strip an
+            # optional `v` prefix exactly the way publish.yml does (`${TAG#v}`).
+            TAG="${TRIGGER_REF#v}"
+
+            if [ "${TAG}" = "${TAG%%-*}" ]; then
+              # Stable release, e.g. `18.0.0` — the tag is the published version.
+              VERSION="${TAG}"
+              SOURCE="release tag"
+            else
+              # First RC: the tag is `18.0.0-rc`, which does NOT carry the `rcN`
+              # suffix npm actually got.
+              VERSION="$(npm view handsontable dist-tags.rc)"
+              SOURCE="npm dist-tag 'rc' (prerelease tag ${TRIGGER_REF})"
+            fi
+
+          elif [ -n "${TRIGGER_EVENT}" ]; then
+            # A push to a release branch — every RC after the first.
+            VERSION="$(npm view handsontable dist-tags.rc)"
+            SOURCE="npm dist-tag 'rc'"
+
+          else
+            VERSION="$(npm view handsontable dist-tags.latest)"
+            SOURCE="npm dist-tag 'latest'"
+          fi
+
+          if [ -z "${VERSION}" ]; then
+            echo "::error::Could not resolve a version to package (source: ${SOURCE})"
+            exit 1
+          fi
+
+          echo "Packaging handsontable@${VERSION} (resolved from ${SOURCE})"
+          echo "value=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for the version to be readable on npm
+        env:
+          HOT_VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          set -euo pipefail
+
+          # `Publish` completing does not guarantee the new version is already
+          # readable across the npm registry, and this job starts seconds later.
+          for attempt in $(seq 1 20); do
+            if npm view "handsontable@${HOT_VERSION}" version > /dev/null 2>&1; then
+              echo "handsontable@${HOT_VERSION} is on npm"
+              exit 0
+            fi
+
+            echo "Attempt ${attempt}/20: handsontable@${HOT_VERSION} not on npm yet, retrying in 15s"
+            sleep 15
+          done
+
+          echo "::error::handsontable@${HOT_VERSION} never became readable on npm"
+          exit 1
 
       - name: Assemble demo artifact
         env:
@@ -82,12 +183,47 @@ jobs:
           </html>
           HTML
 
-          curl -fL --retry 3 --retry-delay 2 \
-            "https://cdn.jsdelivr.net/npm/handsontable@${HOT_VERSION}/dist/handsontable.full.min.js" \
-            -o "$EX/handsontable.full.min.js"
+          JS_DEST="$EX/handsontable.full.min.js"
+
+          # The npm registry first: it is the origin jsDelivr itself pulls from,
+          # so it is ready the moment `Publish` finishes. jsDelivr is the
+          # fallback only — the stable publish purges its cache
+          # (publish.yml -> purge-jsdelivr-cache.mjs), which left the CDN cold
+          # exactly when this job ran and returned a 503 on 18.0.0 (DEV-1968).
+          download_from_npm() {
+            local tmp
+            tmp="$(mktemp -d)"
+
+            npm pack "handsontable@${HOT_VERSION}" --pack-destination "$tmp" > /dev/null || return 1
+            tar -xzf "$tmp"/handsontable-*.tgz -C "$tmp" package/dist/handsontable.full.min.js || return 1
+            mv "$tmp/package/dist/handsontable.full.min.js" "$JS_DEST" || return 1
+          }
+
+          download_from_jsdelivr() {
+            curl -fL --retry 10 --retry-all-errors --retry-delay 5 --retry-max-time 300 \
+              "https://cdn.jsdelivr.net/npm/handsontable@${HOT_VERSION}/dist/handsontable.full.min.js" \
+              -o "$JS_DEST"
+          }
+
+          if ! download_from_npm; then
+            echo "::warning::Could not fetch handsontable@${HOT_VERSION} from npm, falling back to jsDelivr"
+            download_from_jsdelivr
+          fi
+
+          # A CDN error page is a few hundred bytes and `curl -f` does not always
+          # catch it. The real file is over 1.5 MB, so guard the floor.
+          SIZE="$(wc -c < "$JS_DEST" | tr -d '[:space:]')"
+
+          if [ "${SIZE}" -lt 500000 ]; then
+            echo "::error::handsontable.full.min.js is only ${SIZE} bytes — the download is not the real dist file"
+            exit 1
+          fi
+
+          echo "Bundled handsontable.full.min.js (${SIZE} bytes)"
 
       - name: Upload component source artifact
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: componentsource-${{ steps.version.outputs.value }}
           path: componentsource-build
+          if-no-files-found: error
