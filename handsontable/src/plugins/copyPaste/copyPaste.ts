@@ -740,24 +740,29 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Resolves the element the clipboard event originated from. The initial element of
-   * `composedPath()` is preferred, but when the event's own `target` points inside the grid,
-   * the target wins. Sandboxed hosts (e.g. Salesforce Lightning Web Security) filter
-   * `composedPath()` down to the shadow host chain while still retargeting `event.target`
-   * correctly for listeners bound within the grid's shadow tree - the retargeted `target` is
-   * the only reference to the real source element in such environments.
+   * Resolves the element the clipboard event originated from. A complete path (one that
+   * crosses shadow boundaries and therefore contains ShadowRoot entries) is trusted as-is -
+   * its initial element is the real source, e.g. a node inside a web component that a custom
+   * renderer put in a cell. A path without ShadowRoot entries either involves no shadow tree
+   * at all (then `target` equals the path's initial element) or was filtered by a sandboxed
+   * host (e.g. Salesforce Lightning Web Security) that collapses `composedPath()` to the
+   * shadow host chain while still retargeting `event.target` correctly for listeners bound
+   * within the grid's shadow tree - in both cases the retargeted `target` is the deepest
+   * reliable reference to the source element.
    *
    * @param {ClipboardEvent | PasteEvent} event The clipboard event to resolve.
    * @returns {unknown} The deepest known event source element.
    */
   #resolveClipboardEventTarget(event: ClipboardEvent | PasteEvent): unknown {
-    const target = 'target' in event ? event.target : null;
+    const eventPath = event.composedPath();
 
-    if (isHTMLElement(target) && isInternalElement(target, this.hot.rootElement)) {
-      return target;
+    if (eventPath.some(entry => isShadowRoot(entry))) {
+      return eventPath[0];
     }
 
-    return event.composedPath()[0];
+    const target = 'target' in event ? event.target : null;
+
+    return target ?? eventPath[0];
   }
 
   /**

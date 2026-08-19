@@ -22,7 +22,7 @@ export default class PasteEvent {
   /**
    * Returns an empty array as a stub for the composed path of this synthetic event.
    */
-  composedPath(): unknown[] {
+  composedPath(): EventTarget[] {
     return [];
   }
 }
