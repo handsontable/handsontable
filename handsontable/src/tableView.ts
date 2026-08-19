@@ -451,7 +451,8 @@ class TableView {
       }
 
       if (!wasOutsideClickHandled && activeHTMLElement !== null &&
-          isFocusLostToOutside && selection.isSelected()) {
+          isFocusLostToOutside && selection.isSelected() &&
+          !this.#isPathWithinGrid(eventPath) && !isRightClick(event)) {
         const clickTarget = eventPath.length > 0 ? eventPath[0] : event.target;
         const clickTargetElement = isHTMLElement(clickTarget) ? clickTarget : activeHTMLElement;
         const outsideClickDeselects = typeof this.settings.outsideClickDeselects === 'function' ?
