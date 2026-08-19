@@ -281,7 +281,7 @@ Keys issued in the 25-character format keep working without any change.
 
 Only the bracketed block is protected by a checksum. You can rewrap the text above it, or paste the
 key through an email client, and the key still works. Keep the block itself on one line, and end the
-key there – the block must be the last thing in the string. Space and newlines around the whole key
+key there - the block must be the last thing in the string. Space and newlines around the whole key
 are trimmed for you, so a key pasted with a trailing newline still works.
 
 Each license behaves differently around its date:
