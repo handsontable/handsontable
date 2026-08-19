@@ -71,6 +71,15 @@ jobs:
         run: |
           set -euo pipefail
 
+          SHOULD_BUILD=true
+          # Release line this run belongs to (`18.0.0`), set only when the
+          # version was resolved through the shared `rc` dist-tag.
+          LINE=''
+
+          npm_has() {
+            npm view "handsontable@$1" version > /dev/null 2>&1
+          }
+
           # Never read `hot.config.js`: on the commit a `Publish` run starts
           # from, it still holds the PREVIOUS version — the bump is committed
           # during that run. Reading it made every RC artifact one RC stale.
@@ -95,16 +104,51 @@ jobs:
               # suffix npm actually got.
               VERSION="$(npm view handsontable dist-tags.rc)"
               SOURCE="npm dist-tag 'rc' (prerelease tag ${TRIGGER_REF})"
+              LINE="${TAG%%-*}"
             fi
 
           elif [ -n "${TRIGGER_EVENT}" ]; then
-            # A push to a release branch — every RC after the first.
-            VERSION="$(npm view handsontable dist-tags.rc)"
-            SOURCE="npm dist-tag 'rc'"
+            # A push to a release branch — every RC after the first. Such a run
+            # goes green even when it published NOTHING: publish.yml's
+            # `rc-check` sets `allowed=false` once a stable release exists for
+            # the line, which skips rc-build/rc-test/rc-publish while `rc-check`
+            # itself succeeds. Mirror that guard here, or a later backport push
+            # to a closed release branch would re-upload a stale candidate.
+            LINE="${TRIGGER_REF#release/}"
+
+            if npm_has "${LINE}"; then
+              echo "::notice::Stable ${LINE} is already published, so publish.yml's rc-check blocked the RC publish and this run published nothing — no artifact to build."
+              SHOULD_BUILD=false
+              VERSION=''
+              SOURCE='n/a'
+            else
+              VERSION="$(npm view handsontable dist-tags.rc)"
+              SOURCE="npm dist-tag 'rc'"
+            fi
 
           else
             VERSION="$(npm view handsontable dist-tags.latest)"
             SOURCE="npm dist-tag 'latest'"
+          fi
+
+          # `rc` is ONE dist-tag shared by every release line. Whenever the
+          # version came from it, check the candidate belongs to the line that
+          # triggered this run — otherwise a push on one branch would package
+          # another line's candidate.
+          if [ "${SHOULD_BUILD}" = true ] && [ -n "${LINE}" ]; then
+            case "${VERSION}" in
+              "${LINE}-"*)
+                ;;
+              *)
+                echo "::notice::npm dist-tag 'rc' is '${VERSION}', which is not a candidate for the ${LINE} line — no artifact to build."
+                SHOULD_BUILD=false
+                ;;
+            esac
+          fi
+
+          if [ "${SHOULD_BUILD}" != true ]; then
+            echo "should-build=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
           if [ -z "${VERSION}" ]; then
@@ -113,9 +157,11 @@ jobs:
           fi
 
           echo "Packaging handsontable@${VERSION} (resolved from ${SOURCE})"
+          echo "should-build=true" >> "$GITHUB_OUTPUT"
           echo "value=${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Wait for the version to be readable on npm
+        if: steps.version.outputs.should-build == 'true'
         env:
           HOT_VERSION: ${{ steps.version.outputs.value }}
         run: |
@@ -137,6 +183,7 @@ jobs:
           exit 1
 
       - name: Assemble demo artifact
+        if: steps.version.outputs.should-build == 'true'
         env:
           HOT_VERSION: ${{ steps.version.outputs.value }}
         run: |
@@ -222,6 +269,7 @@ jobs:
           echo "Bundled handsontable.full.min.js (${SIZE} bytes)"
 
       - name: Upload component source artifact
+        if: steps.version.outputs.should-build == 'true'
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: componentsource-${{ steps.version.outputs.value }}
