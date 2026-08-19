@@ -7,13 +7,13 @@ name: Publish
 # config is repointed, and repointing breaks the OTHER publishes instead.
 on:
   # On-demand experimental publish of the dispatched branch (the feature-branch
-  # lever — see the pre-release job's dispatch arm). The checkbox is a
-  # deliberate-intent gate: a dispatch without it runs nothing (every job in
-  # this file skips).
+  # lever — see the pre-release-dispatch job). Two gates: the checkbox (a
+  # dispatch without it runs nothing — every job in this file skips) and the
+  # `approvers` environment sign-off on the job itself.
   workflow_dispatch:
     inputs:
       publish-experimental:
-        description: 'Build this branch and publish it to npm as `experimental` (UNTESTED — no CI runs first)'
+        description: 'Build this branch and publish it to npm as `experimental` (UNTESTED — pauses for a release approver''s sign-off)'
         type: boolean
         default: false
   push:
@@ -49,34 +49,24 @@ jobs:
   pre-release:
     name: Build and publish a pre-release
     runs-on: ubuntu-latest
-    # Two arms:
-    # (1) Chained: publishes ONLY after a fully green Develop run — stricter
-    #     than the old Tests-triggered version (the Develop run also contains
-    #     the multi-OS build-all, so a broken Windows/macOS build blocks the
-    #     experimental publish — deliberate hardening).
-    # (2) Dispatch: the on-demand feature-branch lever. DEV-2057 removed it
-    #     expecting pkg.pr.new previews to cover feature branches, but those
-    #     are PR-event-only and never reach the npm registry — a branch without
-    #     a PR, or a consumer that must install from npm, had no path. The
-    #     publish-experimental checkbox is required so a casual dispatch can't
-    #     publish an untested build by accident; release/lts branches are
-    #     excluded — their publishes are the guarded scenarios below.
+    # Publishes ONLY after a fully green Develop run — stricter than the old
+    # Tests-triggered version: the Develop run also contains the multi-OS
+    # build-all (and, on src/perf merges, the golden perf job), so a broken
+    # Windows/macOS build blocks the experimental publish (deliberate
+    # hardening). The on-demand feature-branch arm is the separate
+    # pre-release-dispatch job below — keep them separate: this job must stay
+    # environment-free so the develop chain publishes without a human click.
     if: |
-      (github.event_name == 'workflow_run' &&
-        github.event.workflow_run.conclusion == 'success') ||
-      (github.event_name == 'workflow_dispatch' &&
-        inputs.publish-experimental &&
-        !startsWith(github.ref_name, 'release/') &&
-        !startsWith(github.ref_name, 'lts/'))
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success'
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
-          # Chained arm: the EXACT sha the Develop run tested — not the branch
-          # tip, which may have advanced by the time this chained run starts.
-          # The detached HEAD is fine here: pre-release.mjs only branch-checks
-          # for release/* version stamping, which never applies on this path.
-          # Dispatch arm: the tip of the dispatched branch.
-          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.ref_name }}
+          # The EXACT sha the Develop run tested — not the branch tip, which may
+          # have advanced by the time this chained run starts. The detached HEAD
+          # is fine here: pre-release.mjs only branch-checks for release/*
+          # version stamping, which never applies to this develop-only hook.
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         name: Install pnpm
@@ -96,11 +86,10 @@ jobs:
         run: npm run pre-release
 
       # The stamped version (0.0.0-next-<sha>-<date>) is buried in the publish
-      # log — surface it so a dispatcher can copy the exact install line.
+      # log — surface it as a copy-pasteable install line.
       - name: Publication summary
         run: |
           VERSION=$(node -p "require('./handsontable/package.json').version")
-          SOURCE='${{ github.event_name == 'workflow_run' && 'develop (chained after a green Develop run)' || github.ref_name }}'
           cat >> "$GITHUB_STEP_SUMMARY" <<EOF
           ## 📦 Experimental build published
 
@@ -108,7 +97,73 @@ jobs:
           npm i handsontable@${VERSION}
           \`\`\`
 
-          All wrapper packages were published under the same version. Built from \`${SOURCE}\` — the npm \`experimental\` dist-tag now points at this build.
+          All wrapper packages were published under the same version. Built from \`develop\` (chained after a green Develop run) — the npm \`experimental\` dist-tag now points at this build.
+          EOF
+
+  # The on-demand feature-branch lever. DEV-2057 removed it expecting
+  # pkg.pr.new previews to cover feature branches, but those are PR-event-only
+  # and never reach the npm registry — a branch without a PR, or a consumer
+  # that must install from npm, had no path. Restored behind TWO gates:
+  #   1. The publish-experimental checkbox — a casual dispatch runs nothing.
+  #   2. The `approvers` environment — npm trusted publishing is pinned to
+  #      this workflow's FILENAME (plus repo, plus an optional environment),
+  #      never to a ref, so every branch of this file can mint production npm
+  #      OIDC. An approval-free dispatch arm would therefore let any
+  #      write-access dispatch publish untested packages; the environment puts
+  #      the same human gate on it as the rc/stable publishes.
+  # The environment binds only what THIS file's content requests — full,
+  # file-content-independent enforcement needs the environment pinned in the
+  # npm-side trusted-publisher config of each package. That is a publish-
+  # pipeline design decision (it would force EVERY publish job, including the
+  # automated develop chain above, into an environment) — tracked as a
+  # follow-up, deliberately not part of this job.
+  # release/lts branches are excluded — their publishes are the guarded
+  # scenarios below.
+  pre-release-dispatch:
+    name: Build and publish a pre-release (on demand)
+    runs-on: ubuntu-latest
+    environment: approvers
+    if: |
+      github.event_name == 'workflow_dispatch' &&
+      inputs.publish-experimental &&
+      !startsWith(github.ref_name, 'release/') &&
+      !startsWith(github.ref_name, 'lts/')
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          # The tip of the dispatched branch.
+          ref: ${{ github.ref_name }}
+
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+        name: Install pnpm
+
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - run: |
+          pnpm install
+          npm install -g npm@11.6 # Ensure npm 11.5.1 or later for trusted publishing
+
+      - name: Publish pre-release
+        run: npm run pre-release
+
+      # The stamped version (0.0.0-next-<sha>-<date>) is buried in the publish
+      # log — surface it so the dispatcher can copy the exact install line.
+      - name: Publication summary
+        run: |
+          VERSION=$(node -p "require('./handsontable/package.json').version")
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## 📦 Experimental build published
+
+          \`\`\`sh
+          npm i handsontable@${VERSION}
+          \`\`\`
+
+          All wrapper packages were published under the same version. Built from \`${{ github.ref_name }}\` — the npm \`experimental\` dist-tag now points at this build until the next develop publish resets it. Install by the exact version above.
           EOF
 
   # ============================================================
