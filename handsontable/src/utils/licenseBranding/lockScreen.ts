@@ -65,7 +65,7 @@ export function mountLicenseLock(hotInstance: HotInstance, content: LockContent)
             <p data-ref="description" id="${descriptionId}" class="${DIALOG_CLASS}__description"></p>
           </div>
           <div class="${DIALOG_CLASS}__buttons">
-            <button data-ref="contactButton" type="button" class="ht-button ht-button--secondary"></button>
+            <a data-ref="contactButton" class="ht-button ht-button--secondary" rel="noopener"></a>
           </div>
         </div>
       </div>
@@ -75,15 +75,17 @@ export function mountLicenseLock(hotInstance: HotInstance, content: LockContent)
 
   refs.title.textContent = content.title;
   refs.description.textContent = content.description;
+  // A real ANCHOR wearing the button classes, not a button with a click handler. The action is a
+  // `mailto:` address, and neither scripted route is safe for one: `window.open(..., '_blank')`
+  // leaves an empty tab behind on Firefox and Safari once the mail client takes over, and assigning
+  // `location.href` is treated as a real navigation by several browsers when no mail handler is
+  // registered - which would unload the app, or the iframe, from under a lock that cannot be
+  // dismissed. A same-window anchor click is the one path browsers special-case, and it is what the
+  // bottom bar and the badge popover already use for the same addresses.
   refs.contactButton.textContent = content.action.text;
-  refs.contactButton.addEventListener('click', () => {
-    // `location.href`, not `window.open(..., '_blank')`: the action is a `mailto:` address, and
-    // opening one in a new tab leaves that tab behind, empty, once the mail client takes over on
-    // Firefox and Safari. Assigning the location hands the URL to the mail client with no navigation
-    // and no stray tab - the same thing the plain `<a href="mailto:...">` in the bar and the popover
-    // already do.
-    hotInstance.rootWindow.location.href = content.action.href;
-  });
+  // `setAttribute`, because the template's refs are plain `HTMLElement`s - no cast needed for one
+  // attribute.
+  refs.contactButton.setAttribute('href', content.action.href);
 
   // Built as nodes, never interpolated: the copy is authored here, but keeping it out of `innerHTML`
   // means no license sentence can ever become markup. The anchor joins the Tab trap for free -
@@ -100,6 +102,7 @@ export function mountLicenseLock(hotInstance: HotInstance, content: LockContent)
     refs.description.appendChild(hotInstance.rootDocument.createTextNode(content.docsLink.trailingText));
   }
 
+  // Collects the action anchor and the optional documentation link, in document order.
   const getFocusableControls = () => Array.from(lock.querySelectorAll<HTMLElement>('a[href], button'));
 
   // Match the dialog's sizing: the `.ht-dialog` box is `width: 100%` of the root wrapper, so it is

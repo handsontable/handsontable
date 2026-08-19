@@ -59,8 +59,9 @@ export class LicenseBrandingPage {
     this.popoverClose = page.locator('.ht-license-popover__close');
     this.bar = page.locator('.hot-display-license-info');
     this.lock = page.locator('.ht-license-lock');
-    this.lockContactButton = this.lock.getByRole('button', { name: 'Contact Sales' });
-    this.lockSupportButton = this.lock.getByRole('button', { name: 'Contact Support' });
+    // Links, not buttons: a `mailto:` action must be a real anchor (see lockScreen.ts).
+    this.lockContactButton = this.lock.getByRole('link', { name: 'Contact Sales' });
+    this.lockSupportButton = this.lock.getByRole('link', { name: 'Contact Support' });
     this.lockDocsLink = this.lock.getByRole('link', { name: 'Read more' });
     // This grid's OWN corner clone, marked by the class the branding stamps on it. A nested grid
     // (the `handsontable` cell type) renders a corner clone of its own inside the same root, and a

@@ -537,18 +537,22 @@ describe('licenseBranding', () => {
         .toBe('You may no longer use Handsontable under the trial license. To continue using the ' +
           'software, contact sales@handsontable.com to purchase a valid license.');
 
-      const buttons = lock.querySelectorAll('button');
+      const actions = lock.querySelectorAll('.ht-button');
 
-      // Contact Sales only - the trial lock offers no dismiss affordance.
-      expect(buttons).toHaveLength(1);
-      expect(buttons[0].textContent).toBe('Contact Sales');
+      // Contact Sales only - the trial lock offers no dismiss affordance, and no button at all: the
+      // action is an ANCHOR, because neither `window.open` nor a `location` assignment is safe for a
+      // `mailto:` (a stray empty tab, or unloading the app when no mail handler is registered).
+      expect(actions).toHaveLength(1);
+      expect(actions[0].tagName).toBe('A');
+      expect(actions[0].textContent).toBe('Contact Sales');
+      expect(actions[0].getAttribute('href')).toBe('mailto:sales@handsontable.com');
+      expect(lock.querySelectorAll('button')).toHaveLength(0);
 
-      buttons[0].click();
+      actions[0].click();
 
-      // The address is handed to the mail client through `location`, NOT `window.open(..., '_blank')`:
-      // a new tab for a `mailto:` is left behind empty on Firefox and Safari.
-      expect(hotInstance.rootWindow.location.href).toBe('mailto:sales@handsontable.com');
+      // Nothing scripted happens on click - the browser follows the anchor.
       expect(hotInstance.rootWindow.open).not.toHaveBeenCalled();
+      expect(hotInstance.rootWindow.location.href).toBe('');
     });
 
     it('should defer moving focus into the lock to afterInit (the grid is unrendered during init)', () => {
@@ -622,12 +626,13 @@ describe('licenseBranding', () => {
       (state) => {
         const hotInstance = mountLock(state);
         const lock = hotInstance.rootOverlaysElement.querySelector('.ht-license-lock');
-        const buttons = lock.querySelectorAll('button');
+        const actions = lock.querySelectorAll('.ht-button');
 
-        // One button, and it is not a dismissal: an unreadable or absent key is an installation
+        // One action, and it is not a dismissal: an unreadable or absent key is an installation
         // fault, so it points at support, unlike the trial lock which points at sales.
-        expect(buttons).toHaveLength(1);
-        expect(buttons[0].textContent).toBe('Contact Support');
+        expect(actions).toHaveLength(1);
+        expect(actions[0].textContent).toBe('Contact Support');
+        expect(actions[0].getAttribute('href')).toBe('mailto:support@handsontable.com');
         expect(lock.textContent).not.toContain('Close');
         // ...and no Escape shortcut is registered, exactly as for the trial lock.
         expect(findShortcut(hotInstance, 'Escape')).toBeUndefined();

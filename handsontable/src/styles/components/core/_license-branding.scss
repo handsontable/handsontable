@@ -300,6 +300,13 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='14.8626' he
       min-inline-size: 0;
     }
 
+    // The action is an anchor wearing the button classes (see lockScreen.ts for why it is not a
+    // button), so it needs the two things a link does not get for free.
+    a.ht-button {
+      display: inline-block;
+      text-decoration: none;
+    }
+
     .ht-dialog__title,
     .ht-dialog__description {
       // `word-break`, not just `overflow-wrap`: only the former shrinks the MIN-CONTENT width, which
