@@ -28,7 +28,10 @@
     body { font-family: sans-serif; margin: 1rem; }
     /* The reported layout (#8872): a flex parent decides the grid height, so the
        grid ends up far shorter than its `height` setting would suggest. */
-    .flex-column { display: flex; flex-direction: column; }
+    /* A definite starting height, shrunk to the exact one below once the grid has
+       rendered. Left at `auto` the `height: '100%'` grid resolves against a content-sized
+       parent and collapses to 0px, which is not a state worth measuring from. */
+    .flex-column { display: flex; flex-direction: column; height: 200px; }
     .flex-column > .flex-item { flex: 1 1 0%; min-height: 0; }
   </style>
 </head>
@@ -125,18 +128,35 @@
       height: 400,
     });
 
-    // Squeeze the flex parent so the space below the edited cell is exactly one list
-    // row. Both heights are measured from what the active theme actually rendered, never
-    // hardcoded - main, horizon, and classic all differ.
-    const firstCell = window.hot.getCell(0, 0);
-
-    window.htRowHeight = firstCell.offsetHeight;
-    window.htListRowHeight = window.hot.stylesHandler.getDefaultRowHeight();
-    document.getElementById('flex-wrapper').style.height =
-      `${window.htRowHeight + window.htListRowHeight}px`;
-    window.hot.refreshDimensions();
-
     window.htOptionCount = COUNTRIES.length;
+
+    // Squeeze the flex parent so the space below the edited cell is exactly one list row.
+    // Both heights are measured from what the active theme actually rendered, never
+    // hardcoded - main, horizon, and classic all differ.
+    //
+    // The measurement runs on the first render that has cells, not only straight after the
+    // constructor: `getCell(0, 0)` is only guaranteed once the grid has rendered, and a grid
+    // whose root element is not painted takes core's hidden-init path and renders later. A
+    // purely synchronous read would throw on that path instead of measuring anything.
+    let isSqueezed = false;
+
+    function squeezeWrapperOnce() {
+      const firstCell = window.hot.getCell(0, 0);
+
+      if (isSqueezed || !firstCell) {
+        return;
+      }
+
+      isSqueezed = true;
+      window.htRowHeight = firstCell.offsetHeight;
+      window.htListRowHeight = window.hot.stylesHandler.getDefaultRowHeight();
+      document.getElementById('flex-wrapper').style.height =
+        `${window.htRowHeight + window.htListRowHeight}px`;
+      window.hot.refreshDimensions();
+    }
+
+    window.hot.addHook('afterRender', squeezeWrapperOnce);
+    squeezeWrapperOnce();
   </script>
 </body>
 </html>
