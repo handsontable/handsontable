@@ -449,6 +449,12 @@ export class AutocompleteEditor extends HandsontableEditor {
       // `height` is set, so when the free space is narrower than the forced row, that row is
       // partly clipped by the grid's bottom edge - fully so when the space reaches 0. Making it
       // readable in those extremes needs the dropdown to escape the clipping root (DEV-1656).
+      //
+      // No border compensation here, unlike `getTargetDropdownHeight()`'s `getTableHeight() + 1`.
+      // Adding it was measured and changes nothing a user sees: the clipping root, not the list's
+      // own budget, is what bounds the visible row, so the extra pixel only pushes the holder
+      // further past the clip (main 31->32px holder, 28px of option visible either way; classic
+      // 28->29 and 25; horizon 37->38 and 37).
       const rowsThatFit = Math.max(Math.ceil(spaceAvailable / rowHeight) - 1, 1);
       const height = rowsThatFit * rowHeight;
 

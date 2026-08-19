@@ -34,11 +34,18 @@ export class DropdownHeightPage {
   }
 
   /**
-   * Open the autocomplete editor on a cell and wait for the list to show.
+   * Open the autocomplete editor on a cell and wait for the list to be populated.
+   *
+   * Waiting on the list table itself resolves too early: the inner grid is built
+   * synchronously with `startRows: 0`, so `.htCore` is attached and empty while everything
+   * that sizes the list runs later, in the `_registerTimeout` that `open()` schedules for
+   * `queryChoices()`. Measuring in that window reads an unsized ~1px holder. An option row
+   * only exists once `updateChoicesList()` has loaded the choices, and that call sizes the
+   * list in the same synchronous block, so a rendered option is the honest gate.
    */
   async openDropdownAt(row: number, col: number, gridTestId = 'grid'): Promise<void> {
     await this.cell(row, col, gridTestId).dblclick();
-    await expect(this.dropdownList(gridTestId)).toBeAttached();
+    await expect(this.options(gridTestId).first()).toBeAttached();
   }
 
   /**
