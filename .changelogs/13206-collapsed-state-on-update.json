@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where the `NestedRows` plugin lost its collapsed rows after an `updateSettings()` call, which in React happened on every re-render of the component holding the grid.",
+  "type": "fixed",
+  "issueOrPR": 13206,
+  "breaking": false,
+  "framework": "none"
+}

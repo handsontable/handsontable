@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added a public API to the `NestedRows` plugin for collapsing and expanding parent rows: `collapseAll()`, `expandAll()`, `collapseParent()`, `expandParent()`, `toggleParent()`, `getCollapsedParents()`, `isParentCollapsed()`, `isParent()`, `getRowLevel()`, `getRowParent()`, `countChildren()`, `expandToRow()`, and `expandToLevel()`, plus the new `beforeRowCollapse`, `afterRowCollapse`, `beforeRowExpand`, and `afterRowExpand` hooks.",
+  "type": "added",
+  "issueOrPR": 13206,
+  "breaking": false,
+  "framework": "none"
+}

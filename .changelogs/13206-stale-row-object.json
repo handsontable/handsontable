@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where the `NestedRows` plugin threw a `TypeError` when asked for the index, parent, or nesting level of a row object held from before a `loadData()` or `updateData()` call. It now returns `null` for a row it does not recognize.",
+  "type": "fixed",
+  "issueOrPR": 13206,
+  "breaking": false,
+  "framework": "none"
+}
