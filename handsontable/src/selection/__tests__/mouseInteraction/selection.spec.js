@@ -686,6 +686,50 @@ describe('Selection using mouse interaction', () => {
     expect(tickEnd).toEqual(1);
   });
 
+  it('should call `afterSelectionEnd` only once when the user selects columns by dragging over column headers (#7133)', async() => {
+    let tickEnd = 0;
+
+    handsontable({
+      rowHeaders: true,
+      colHeaders: true,
+      startRows: 5,
+      startCols: 5,
+      afterSelectionEnd() {
+        tickEnd += 1;
+      }
+    });
+
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mousedown'); // Header "A"
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(2)').simulate('mouseover'); // Header "B"
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(3)').simulate('mouseover'); // Header "C"
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(3)').simulate('mouseup'); // Header "C"
+
+    expect(getSelected()).toEqual([[-1, 0, 4, 2]]);
+    expect(tickEnd).toEqual(1);
+  });
+
+  it('should call `afterSelectionEnd` only once when the user selects rows by dragging over row headers (#7133)', async() => {
+    let tickEnd = 0;
+
+    handsontable({
+      rowHeaders: true,
+      colHeaders: true,
+      startRows: 5,
+      startCols: 5,
+      afterSelectionEnd() {
+        tickEnd += 1;
+      }
+    });
+
+    spec().$container.find('.ht_clone_inline_start tbody tr:eq(0) th').simulate('mousedown'); // Header "1"
+    spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th').simulate('mouseover'); // Header "2"
+    spec().$container.find('.ht_clone_inline_start tbody tr:eq(2) th').simulate('mouseover'); // Header "3"
+    spec().$container.find('.ht_clone_inline_start tbody tr:eq(2) th').simulate('mouseup'); // Header "3"
+
+    expect(getSelected()).toEqual([[0, -1, 2, 4]]);
+    expect(tickEnd).toEqual(1);
+  });
+
   it('should properly select columns, when the user moves the cursor over column headers across two overlays', async() => {
     handsontable({
       rowHeaders: true,
