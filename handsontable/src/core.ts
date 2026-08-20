@@ -72,6 +72,7 @@ import { createThemeManager } from './themes/engine';
 import { LayoutManager, type LayoutConfig } from './core/layout';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
 import type { ThemeBuilder } from './themes/engine/builder';
+import type { ThemeOverridesInput } from './themes/engine/manager';
 import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
 import type { CellChange, CellProperties } from './settings';
@@ -1614,7 +1615,7 @@ export default function Core(
       !rootContainerThemeClassName &&
       (isObject(theme) || (!theme && !themeName))
     ) {
-      initializeThemeManager(theme as ThemeBuilder | undefined);
+      initializeThemeManager(theme as ThemeBuilder | undefined, readThemeOverrides(tableMeta));
     }
 
     dataSource.setData(tableMeta.data);
@@ -1705,11 +1706,68 @@ export default function Core(
   };
 
   /**
+   * Reads the per-instance color scheme and density overrides from a settings object.
+   *
+   * Only the keys actually present are returned, so a missing key keeps the value already applied
+   * instead of resetting it to the theme default.
+   *
+   * @param {object} settings - The settings object to read the overrides from.
+   * @returns {object} The theme overrides object.
+   */
+  function readThemeOverrides(settings: Record<string, unknown>): ThemeOverridesInput {
+    const overrides: ThemeOverridesInput = {};
+
+    if (hasOwnProperty(settings, 'colorScheme')) {
+      overrides.colorScheme = settings.colorScheme;
+    }
+
+    if (hasOwnProperty(settings, 'density')) {
+      overrides.density = settings.density;
+    }
+
+    return overrides;
+  }
+
+  /**
+   * Applies the `colorScheme` and `density` options to the ThemeManager of this instance.
+   *
+   * The options are per-instance overrides, so the shared theme object stays untouched and other
+   * grids using the same theme keep their own look.
+   *
+   * @param {object} settings - The settings object that may carry the overrides.
+   * @param {boolean} init - `true` when called during initialization. The initial styles are
+   * injected by the ThemeManager constructor, so no re-render is needed in that case.
+   */
+  function applyThemeOverrides(settings: GridSettings, init: boolean) {
+    if (!hasOwnProperty(settings, 'colorScheme') && !hasOwnProperty(settings, 'density')) {
+      return;
+    }
+
+    if (!instance.themeManager) {
+      warn('The `colorScheme` and `density` options require the theme engine, so they have no ' +
+        'effect when the theme is enabled by a CSS class name. Pass a theme config object or a ' +
+        '`ThemeBuilder` instance to the `theme` option, or remove the `ht-theme-*` class from the ' +
+        'container element to use the default theme.');
+
+      return;
+    }
+
+    const hasChanged = instance.themeManager.setOverrides(readThemeOverrides(settings));
+
+    if (hasChanged && !init) {
+      instance.stylesHandler.clearCache();
+      instance.render();
+      instance.runHooks('afterSetTheme', instance.themeManager.getClassName(), false);
+    }
+  }
+
+  /**
    * Initializes the ThemeManager with the given theme configuration.
    *
    * @param {object|boolean} theme - The theme configuration object or `true` to use the default theme.
+   * @param {object} [overrides] - The per-instance color scheme and density overrides.
    */
-  function initializeThemeManager(theme?: ThemeBuilder) {
+  function initializeThemeManager(theme?: ThemeBuilder, overrides?: ThemeOverridesInput) {
     let themeObject;
 
     if (typeof theme === 'undefined') {
@@ -1729,7 +1787,8 @@ export default function Core(
     instance.themeManager = createThemeManager({
 
       hot: instance,
-      themeObject
+      themeObject,
+      overrides
     });
   }
 
@@ -3388,6 +3447,8 @@ export default function Core(
         }
       }
     }
+
+    applyThemeOverrides(settings, init);
 
     // Load data or create data map
     if (instance.runHooks('hasExternalDataSource') === true) {
@@ -6611,7 +6672,7 @@ export default function Core(
     !rootContainerThemeClassName &&
     (isObject(theme) || (!theme && !themeName))
   ) {
-    initializeThemeManager(theme as ThemeBuilder | undefined);
+    initializeThemeManager(theme as ThemeBuilder | undefined, readThemeOverrides(mergedUserSettings));
   }
 
   getPluginsNames().forEach((pluginName) => {

@@ -13,15 +13,23 @@ describe('ThemeManager', () => {
     ...overrides,
   });
 
-  const createMockHot = () => ({
-    rootDocument: document,
-    rootWrapperElement: document.createElement('div'),
-    stylesHandler: {
-      clearCache: jest.fn(),
-    },
-    render: jest.fn(),
-    runHooks: jest.fn(),
-  });
+  let guidCounter = 0;
+
+  const createMockHot = () => {
+    guidCounter += 1;
+
+    return {
+      guid: `ht_mock${guidCounter}`,
+      rootDocument: document,
+      rootWrapperElement: document.createElement('div'),
+      rootPortalElement: document.createElement('div'),
+      stylesHandler: {
+        clearCache: jest.fn(),
+      },
+      render: jest.fn(),
+      runHooks: jest.fn(),
+    };
+  };
 
   describe('createThemeManager', () => {
     it('should create a ThemeManager instance', () => {
@@ -379,6 +387,271 @@ describe('ThemeManager', () => {
         // With the fix, only one listener is active — render called exactly once.
         // Without the fix, render would be called N times (once per accumulated subscription).
         expect(mockHot.render).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('per-instance overrides (colorScheme and density)', () => {
+      it('should apply the colorScheme override to a scoped rule', () => {
+        const mockHot = createMockHot();
+        const themeObject = createTheme(createValidThemeConfig());
+
+        const manager = new ThemeManager({
+          hot: mockHot,
+          themeObject,
+          overrides: { colorScheme: 'dark' },
+        });
+
+        const scopedRule = `.ht-theme-test-theme.${manager.scopeClassName}`;
+
+        expect(manager.themeStyles.textContent)
+          .toContain(`${scopedRule} {\ncolor-scheme: dark;\n}`);
+      });
+
+      it('should resolve the "auto" colorScheme override to "light dark"', () => {
+        const mockHot = createMockHot();
+        const themeObject = createTheme(createValidThemeConfig({ colorScheme: 'light' }));
+
+        const manager = new ThemeManager({
+          hot: mockHot,
+          themeObject,
+          overrides: { colorScheme: 'auto' },
+        });
+
+        expect(manager.themeStyles.textContent)
+          .toContain(`.ht-theme-test-theme.${manager.scopeClassName} {\ncolor-scheme: light dark;\n}`);
+      });
+
+      it('should apply the density override using the sizes of the requested preset', () => {
+        const mockHot = createMockHot();
+        const themeObject = createTheme(createValidThemeConfig());
+
+        const manager = new ThemeManager({
+          hot: mockHot,
+          themeObject,
+          overrides: { density: 'compact' },
+        });
+
+        const scopedBlock = manager.themeStyles.textContent
+          .split(`.ht-theme-test-theme.${manager.scopeClassName} {`)[1];
+
+        // `compact` maps cellVertical to sizing.size_0_5, while `default` maps it to sizing.size_1.
+        expect(scopedBlock).toContain('--ht-density-cell-vertical: var(--ht-sizing-size-0-5);');
+      });
+
+      it('should not apply any scoped rule when no override is set', () => {
+        const mockHot = createMockHot();
+        const themeObject = createTheme(createValidThemeConfig());
+
+        const manager = new ThemeManager({
+          hot: mockHot,
+          themeObject,
+        });
+
+        expect(manager.themeStyles.textContent).not.toContain(manager.scopeClassName);
+      });
+
+      it('should leave the shared theme object untouched so other instances keep their look', () => {
+        const themeObject = createTheme(createValidThemeConfig({
+          colorScheme: 'light',
+          density: 'default',
+        }));
+        const managerA = new ThemeManager({
+          hot: createMockHot(),
+          themeObject,
+          overrides: { colorScheme: 'dark', density: 'compact' },
+        });
+        const managerB = new ThemeManager({
+          hot: createMockHot(),
+          themeObject,
+        });
+
+        // The theme object itself must not have been mutated by instance A.
+        expect(themeObject.getThemeConfig().colorScheme).toBe('light');
+        expect(themeObject.getThemeConfig().density.type).toBe('default');
+
+        // Instance B must not pick up instance A's overrides.
+        expect(managerB.getOverrides()).toEqual({});
+        expect(managerB.themeStyles.textContent).not.toContain('color-scheme: dark');
+
+        // Every rule carrying instance A's override must be gated behind A's scope class. An
+        // unscoped rule would match any element with the theme class, instance B's included.
+        const selectorsDeclaring = (manager, declaration) => manager.themeStyles.textContent
+          .split('}')
+          .filter(block => block.includes(declaration))
+          .map(block => block.split('{')[0]);
+
+        const darkSelectors = selectorsDeclaring(managerA, 'color-scheme: dark');
+        // `compact` maps cellVertical to sizing.size_0_5, `default` maps it to sizing.size_1.
+        const compactSelectors = selectorsDeclaring(
+          managerA, '--ht-density-cell-vertical: var(--ht-sizing-size-0-5);'
+        );
+
+        expect(darkSelectors).toHaveLength(1);
+        expect(compactSelectors).toHaveLength(1);
+        [...darkSelectors, ...compactSelectors].forEach((selector) => {
+          expect(selector).toContain(managerA.scopeClassName);
+        });
+      });
+
+      it('should scope the overrides of two instances to different classes', () => {
+        const themeObject = createTheme(createValidThemeConfig());
+        const managerA = new ThemeManager({
+          hot: createMockHot(),
+          themeObject,
+          overrides: { colorScheme: 'dark' },
+        });
+        const managerB = new ThemeManager({
+          hot: createMockHot(),
+          themeObject,
+          overrides: { colorScheme: 'light' },
+        });
+
+        expect(managerA.scopeClassName).not.toBe(managerB.scopeClassName);
+        expect(managerB.themeStyles.textContent).not.toContain(managerA.scopeClassName);
+      });
+
+      it('should stamp the scope class on both the wrapper and the portal element', () => {
+        const mockHot = createMockHot();
+        const themeObject = createTheme(createValidThemeConfig());
+
+        const manager = new ThemeManager({
+          hot: mockHot,
+          themeObject,
+          overrides: { colorScheme: 'dark' },
+        });
+
+        expect(mockHot.rootWrapperElement.classList.contains(manager.scopeClassName)).toBe(true);
+        expect(mockHot.rootPortalElement.classList.contains(manager.scopeClassName)).toBe(true);
+      });
+
+      it('should remove the scope class from both elements on unmount', () => {
+        const mockHot = createMockHot();
+        const themeObject = createTheme(createValidThemeConfig());
+
+        const manager = new ThemeManager({
+          hot: mockHot,
+          themeObject,
+          overrides: { colorScheme: 'dark' },
+        });
+
+        manager.unmount();
+
+        expect(mockHot.rootWrapperElement.classList.contains(manager.scopeClassName)).toBe(false);
+        expect(mockHot.rootPortalElement.classList.contains(manager.scopeClassName)).toBe(false);
+      });
+
+      it('should report a change and re-inject the styles when setOverrides changes a value', () => {
+        const mockHot = createMockHot();
+        const themeObject = createTheme(createValidThemeConfig());
+
+        const manager = new ThemeManager({
+          hot: mockHot,
+          themeObject,
+        });
+
+        expect(manager.setOverrides({ colorScheme: 'dark' })).toBe(true);
+        expect(manager.themeStyles.textContent)
+          .toContain(`.ht-theme-test-theme.${manager.scopeClassName} {\ncolor-scheme: dark;\n}`);
+      });
+
+      it('should report no change when setOverrides is called with the same value', () => {
+        const mockHot = createMockHot();
+        const themeObject = createTheme(createValidThemeConfig());
+
+        const manager = new ThemeManager({
+          hot: mockHot,
+          themeObject,
+          overrides: { colorScheme: 'dark' },
+        });
+
+        expect(manager.setOverrides({ colorScheme: 'dark' })).toBe(false);
+      });
+
+      it('should keep an override that is absent from the next setOverrides call', () => {
+        const mockHot = createMockHot();
+        const themeObject = createTheme(createValidThemeConfig());
+
+        const manager = new ThemeManager({
+          hot: mockHot,
+          themeObject,
+          overrides: { colorScheme: 'dark', density: 'compact' },
+        });
+
+        manager.setOverrides({ density: 'comfortable' });
+
+        expect(manager.getOverrides()).toEqual({ colorScheme: 'dark', density: 'comfortable' });
+      });
+
+      it('should clear an override that is explicitly set to undefined', () => {
+        const mockHot = createMockHot();
+        const themeObject = createTheme(createValidThemeConfig({ colorScheme: 'light' }));
+
+        const manager = new ThemeManager({
+          hot: mockHot,
+          themeObject,
+          overrides: { colorScheme: 'dark' },
+        });
+
+        expect(manager.setOverrides({ colorScheme: undefined })).toBe(true);
+        expect(manager.getOverrides().colorScheme).toBeUndefined();
+        expect(manager.getColorScheme()).toBe('light');
+        expect(manager.themeStyles.textContent).not.toContain(manager.scopeClassName);
+      });
+
+      it('should report the effective colorScheme and density', () => {
+        const mockHot = createMockHot();
+        const themeObject = createTheme(createValidThemeConfig({
+          colorScheme: 'light',
+          density: 'default',
+        }));
+
+        const manager = new ThemeManager({
+          hot: mockHot,
+          themeObject,
+          overrides: { density: 'comfortable' },
+        });
+
+        expect(manager.getColorScheme()).toBe('light');
+        expect(manager.getDensityType()).toBe('comfortable');
+      });
+
+      it('should throw on an unsupported colorScheme value', () => {
+        const mockHot = createMockHot();
+        const themeObject = createTheme(createValidThemeConfig());
+
+        expect(() => new ThemeManager({
+          hot: mockHot,
+          themeObject,
+          overrides: { colorScheme: 'sepia' },
+        })).toThrow('[ThemeBuilder] Invalid color scheme: "sepia".');
+      });
+
+      it('should throw on an unsupported density value', () => {
+        const mockHot = createMockHot();
+        const themeObject = createTheme(createValidThemeConfig());
+
+        expect(() => new ThemeManager({
+          hot: mockHot,
+          themeObject,
+          overrides: { density: 'roomy' },
+        })).toThrow('[ThemeBuilder] Invalid density: "roomy".');
+      });
+
+      it('should keep the overrides after the theme object is updated', () => {
+        const mockHot = createMockHot();
+        const themeObject = createTheme(createValidThemeConfig());
+
+        const manager = new ThemeManager({
+          hot: mockHot,
+          themeObject,
+          overrides: { colorScheme: 'dark' },
+        });
+
+        manager.update(createTheme(createValidThemeConfig({ name: 'other-theme' })));
+
+        expect(manager.getOverrides().colorScheme).toBe('dark');
+        expect(manager.themeStyles.textContent)
+          .toContain(`.ht-theme-other-theme.${manager.scopeClassName} {\ncolor-scheme: dark;\n}`);
       });
     });
   });

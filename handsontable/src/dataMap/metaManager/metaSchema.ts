@@ -6246,6 +6246,108 @@ export default (): Record<string, unknown> => {
     theme: undefined,
 
     /**
+     * The `colorScheme` option sets the color scheme of the grid without declaring a theme.
+     *
+     * You can set it to one of the following:
+     *
+     * | Setting               | Description                                                     |
+     * | --------------------- | --------------------------------------------------------------- |
+     * | `undefined` (default) | Use the color scheme of the current theme                        |
+     * | `'light'`             | Always render the light color scheme                             |
+     * | `'dark'`              | Always render the dark color scheme                              |
+     * | `'auto'`              | Follow the color scheme of the operating system                  |
+     *
+     * The option is a per-instance override. It applies on top of the current theme, so the theme
+     * itself stays unchanged and other grids that use the same theme keep their own color scheme.
+     * You can change it at runtime with [`updateSettings()`](@/api/core.md#updatesettings).
+     *
+     * The option requires the theme engine, so it has no effect when the theme comes from a CSS
+     * class name (the [`theme`](#theme) option set to a string, or an `ht-theme-*` class on the
+     * container element). In that case, use the theme's dark class name instead.
+     *
+     * Read more:
+     * - [Themes](@/guides/styling/themes/themes.md)
+     * - [`density`](#density)
+     * - [`theme`](#theme)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @memberof Options#
+     * @type {string|undefined}
+     * @default undefined
+     * @category Core
+     * @since 18.1.0
+     *
+     * @example
+     * ```js
+     * // Render the grid in dark mode, without declaring a theme
+     * const hot = new Handsontable(container, {
+     *   colorScheme: 'dark',
+     * });
+     * ```
+     * @example
+     * ```js
+     * // Switch the color scheme at runtime
+     * hot.updateSettings({
+     *   colorScheme: 'auto',
+     * });
+     * ```
+     */
+    colorScheme: undefined,
+
+    /**
+     * The `density` option sets the amount of white space inside the grid without declaring a theme.
+     *
+     * You can set it to one of the following:
+     *
+     * | Setting               | Description                                              |
+     * | --------------------- | -------------------------------------------------------- |
+     * | `undefined` (default) | Use the density of the current theme                     |
+     * | `'default'`           | Standard spacing                                         |
+     * | `'compact'`           | Tighter spacing, fits more rows on the screen            |
+     * | `'comfortable'`       | Looser spacing, easier to read and to tap                |
+     *
+     * The option is a per-instance override. It applies on top of the current theme, so the theme
+     * itself stays unchanged and other grids that use the same theme keep their own density.
+     * You can change it at runtime with [`updateSettings()`](@/api/core.md#updatesettings).
+     *
+     * The option requires the theme engine, so it has no effect when the theme comes from a CSS
+     * class name (the [`theme`](#theme) option set to a string, or an `ht-theme-*` class on the
+     * container element).
+     *
+     * Read more:
+     * - [Themes](@/guides/styling/themes/themes.md)
+     * - [`colorScheme`](#colorScheme)
+     * - [`theme`](#theme)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @memberof Options#
+     * @type {string|undefined}
+     * @default undefined
+     * @category Core
+     * @since 18.1.0
+     *
+     * @example
+     * ```js
+     * // Render the grid with tighter spacing, without declaring a theme
+     * const hot = new Handsontable(container, {
+     *   density: 'compact',
+     * });
+     * ```
+     * @example
+     * ```js
+     * // Change the density at runtime
+     * hot.updateSettings({
+     *   density: 'comfortable',
+     * });
+     * ```
+     */
+    density: undefined,
+
+    /**
      * The `injectCoreCss` option controls whether Handsontable injects its core CSS into the document.
      *
      * You can set the `injectCoreCss` option to one of the following:
