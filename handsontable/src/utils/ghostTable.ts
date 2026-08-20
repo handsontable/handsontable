@@ -343,14 +343,17 @@ class GhostTable {
    */
   appendColumnHeadersRow() {
     const rootDocument = this.hot!.rootDocument;
-    const domFragment = rootDocument.createDocumentFragment();
+    // The headers must sit in a real `<tr>` (`table > thead > tr > th`), mirroring the grid's
+    // DOM — the cell styling is scoped with child combinators (#4363), so a `<th>` appended
+    // straight into `<thead>` would miss it and measure without padding/borders.
+    const headersRow = rootDocument.createElement('tr');
     const columnHeaders: [number, HTMLTableCellElement][] = [];
 
     if (this.hot!.hasRowHeaders()) {
       const th = rootDocument.createElement('th');
 
       columnHeaders.push([-1, th]);
-      domFragment.appendChild(th);
+      headersRow.appendChild(th);
     }
 
     this.samples!.forEach((sample: SampleEntry) => {
@@ -359,12 +362,12 @@ class GhostTable {
         const th = rootDocument.createElement('th');
 
         columnHeaders.push([column, th]);
-        domFragment.appendChild(th);
+        headersRow.appendChild(th);
       });
     });
 
     // Appending DOM elements for headers
-    this.table!.tHead.appendChild(domFragment);
+    this.table!.tHead.appendChild(headersRow);
 
     arrayEach(columnHeaders, (columnHeader: [number, HTMLTableCellElement]) => {
       const [column, th] = columnHeader;

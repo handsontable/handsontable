@@ -272,6 +272,12 @@ export class StylesHandler {
     const tr2 = rootDocument.createElement('tr');
     const td = rootDocument.createElement('td');
 
+    // The probe must carry the grid table's `htCore` class: cell styling (box-sizing,
+    // border-bottom-width) is scoped to `table.htCore > … > td`, so a class-less probe reads the
+    // browser defaults (content-box / 0px) and flips `areCellsBorderBox()`, corrupting row-height
+    // measurement (issue #4363).
+    table.className = 'htCore';
+
     tr2.appendChild(td);
     tbody.appendChild(tr);
     tbody.appendChild(tr2);
