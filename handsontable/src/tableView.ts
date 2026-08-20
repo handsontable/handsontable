@@ -1533,9 +1533,40 @@ class TableView {
    *                            cycle will be skipped.
    */
   beforeRender(force: boolean, skipRender: boolean) {
+    this.#discardSizesMeasuredWithoutStyles();
+
     if (force) {
       this.hot.runHooks('beforeViewRender', this.hot.forceFullRender, skipRender);
     }
+  }
+
+  /**
+   * Discards the row heights measured from theme values that were cached while the grid's root
+   * element resolved no computed styles, on the first draw that finds them resolvable again.
+   *
+   * A grid whose theme variables were cached against unresolved styles has an unknown default row
+   * height, so every rendered row is recorded oversized at a height it never had, and nothing
+   * re-measures those records on its own (DEV-2515 – the theme half of the unrendered-table problem
+   * described in `walkontable/AGENTS.md`).
+   *
+   * The styles handler answers both halves, because it is what cached the values: whether an earlier
+   * pass read them against unresolved styles, and whether they resolve now. Gating on the unknown row
+   * height instead would wipe the caches on every draw of a page that loads no grid stylesheet at
+   * all, where that value never resolves.
+   *
+   * Runs in `beforeRender`, so this draw already measures against the real styles and nothing has to
+   * be undone afterwards.
+   */
+  #discardSizesMeasuredWithoutStyles() {
+    if (!this.hot.stylesHandler.recacheValuesMeasuredWithoutStyles()) {
+      return;
+    }
+
+    // `resetAllOversizedRows` already invalidates the row-height cache, so only the column widths are
+    // left to drop. `invalidateIndexSizesCache()` would invalidate the row heights a second time, and
+    // this is the same pair the engine-side reset performs.
+    this._wt.wtViewport.resetAllOversizedRows();
+    this.invalidateColumnWidthCache();
   }
 
   /**
@@ -1554,7 +1585,7 @@ class TableView {
       // Single-pass header reconcile: the probe has just measured content-driven column-header
       // heights (which the engine no longer measures mid-draw). If a header is taller than the
       // default, re-apply the heights so the overlays match the master. This is a synchronous,
-      // hook-free reconcile - it never calls `hot.render()`, so the render-hook counts are unchanged.
+      // hook-free reconcile – it never calls `hot.render()`, so the render-hook counts are unchanged.
       const defaultRowHeight = this.hot.stylesHandler.getDefaultRowHeight() ?? 0;
 
       if (this.renderSizeProbe.hasColumnHeaderTallerThan(defaultRowHeight)) {
