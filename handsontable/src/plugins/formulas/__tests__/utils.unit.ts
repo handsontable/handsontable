@@ -190,7 +190,6 @@ describe('Formulas utils', () => {
     it('should detect string values of text cells with `preserveTextValues` enabled', () => {
       expect(isPreservedText('0123456', { type: 'text', preserveTextValues: true })).toBe(true);
       expect(isPreservedText('abc', { type: 'text', preserveTextValues: true })).toBe(true);
-      expect(isPreservedText('', { type: 'text', preserveTextValues: true })).toBe(true);
     });
 
     it('should not detect formulas', () => {
@@ -216,6 +215,10 @@ describe('Formulas utils', () => {
       expect(isPreservedText(123456, { type: 'text', preserveTextValues: true })).toBe(false);
       expect(isPreservedText(null, { type: 'text', preserveTextValues: true })).toBe(false);
       expect(isPreservedText(undefined, { type: 'text', preserveTextValues: true })).toBe(false);
+    });
+
+    it('should not detect empty strings (clearing a cell must produce an empty engine cell)', () => {
+      expect(isPreservedText('', { type: 'text', preserveTextValues: true })).toBe(false);
     });
   });
 

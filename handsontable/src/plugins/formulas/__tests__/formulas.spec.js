@@ -2827,6 +2827,79 @@ describe('Formulas general', () => {
     });
   });
 
+  describe('preserveTextValues', () => {
+    it('should pass an edited text-cell value to the engine as a string', async() => {
+      handsontable({
+        data: [
+          ['x'],
+          ['="ID"&"_"&A1'],
+          ['=LEN(A1)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+          preserveTextValues: true,
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await setDataAtCell(0, 0, '0123456');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['0123456'],
+        ['ID_0123456'],
+        [7],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['\'0123456'],
+        ['="ID"&"_"&A1'],
+        ['=LEN(A1)'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['0123456'],
+        ['ID_0123456'],
+        [7],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['0123456'],
+        ['="ID"&"_"&A1'],
+        ['=LEN(A1)'],
+      ]);
+    });
+
+    it('should keep the default (coercing) behavior when the option is not enabled', async() => {
+      handsontable({
+        data: [
+          ['x'],
+          ['="ID"&"_"&A1'],
+          ['=LEN(A1)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await setDataAtCell(0, 0, '0123456');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        [123456],
+        ['ID_123456'],
+        [6],
+      ]);
+    });
+  });
+
   describe('handling numeric values', () => {
     it('should handle numeric calculations properly after passing a value with a comma (#dev-546)', async() => {
       handsontable({

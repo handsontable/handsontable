@@ -7,6 +7,7 @@ import { isDefined, isUndefined } from '../../helpers/mixed';
 import { getRegisteredHotInstances, setupEngine, setupSheet, unregisterEngine, } from './engine/register';
 import {
   coalesceIndexesToSpans,
+  escapeTextValue,
   getDateFromExcelDate,
   getDateInHfFormat,
   getDateInHotFormat,
@@ -14,6 +15,7 @@ import {
   isDate,
   isDateValid,
   isFormula,
+  isPreservedText,
   normalizeValueForFormulaEngine,
   unescapeFormulaExpression,
 } from './utils';
@@ -1005,8 +1007,13 @@ export class Formulas extends BasePlugin {
 
       } else if (isFormula(newValue) === false) {
         // Escaping value from date parsing using "'" sign (HF feature).
-        newValue = `'${newValue}`;
+        newValue = escapeTextValue(newValue);
       }
+    }
+
+    if (isPreservedText(newValue, cellMeta)) {
+      // Escaping the value from the engine's value parsing using the "'" sign (HF feature).
+      newValue = escapeTextValue(newValue);
     }
 
     return this.engine?.setCellContents(address, newValue);
