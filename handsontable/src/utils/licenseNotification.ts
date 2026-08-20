@@ -5,7 +5,8 @@ import type { HotInstance } from '../core/types';
 
 const SCOPE_ID = 'licenseNotification';
 const SHORTCUTS_CONTEXT_NAME = `plugin:${SCOPE_ID}`;
-const LICENSE_INFO_CLASS = 'hot-display-license-info';
+
+export const LICENSE_INFO_CLASS = 'hot-display-license-info';
 
 /**
  * Returns the license notification DOM element when present.
@@ -34,6 +35,62 @@ function getFocusableElements(hotInstance: HotInstance): HTMLElement[] {
 }
 
 /**
+ * Mounts a license bar as the last element of the bottom slot and registers a focus scope so
+ * keyboard navigation (Tab/Shift+Tab) includes its links. Its one caller is the built-in
+ * notification below (a missing, invalid or expired key, and a soft-stopped trial).
+ *
+ * The bar is intentionally a foreign node, NOT registered with the LayoutManager: registering it would
+ * expose it to the user's `layout` setting (reorder/remove) and to `DomSlot.clear()`, but a license
+ * notice must always sit last and must not be user-removable. It carries the slot-item class and
+ * refreshes the slot-filled state by hand, exactly as the layout module documents foreign nodes do.
+ *
+ * At most one license bar exists at a time - a key is in exactly one lifecycle state - so the single
+ * `licenseNotification` scope is never contended.
+ *
+ * @param {HotInstance} hotInstance The root Handsontable instance.
+ * @param {HTMLElement} barElement The license bar element to mount into the bottom slot.
+ * @returns {void}
+ */
+export function mountBottomLicenseBar(hotInstance: HotInstance, barElement: HTMLElement): void {
+  const container = hotInstance.rootSlotBottomElement;
+
+  if (!container) {
+    return;
+  }
+
+  // Append as the last child and carry the shared slot-item class so it gets the same separator
+  // styling as registered slot items. Because it is a foreign (unregistered) node, `DomSlot` always
+  // inserts registered items before it, keeping it last as other contributors (for example pagination)
+  // register or reorder.
+  barElement.classList.add(SLOT_ITEM_CLASS);
+  container.appendChild(barElement);
+
+  // The bar bypasses `DomSlot`, so the wrapper's slot-filled state class (kept in sync by the
+  // `LayoutManager` for registered items) has to be refreshed here explicitly.
+  refreshSlotFilledState(LAYOUT_SLOTS.BOTTOM, container);
+
+  // The scope is intentionally never unregistered: the license bar is created once during init,
+  // cannot be disabled, and lives for the whole instance lifetime. It is cleaned up when
+  // `getFocusScopeManager().destroy()` runs on `hot.destroy()`.
+  hotInstance.getFocusScopeManager()
+    .registerScope(SCOPE_ID, barElement, {
+      shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
+      runOnlyIf: () => getNotificationElement(hotInstance) !== null,
+      onActivate: (focusSource: string) => {
+        const focusableElements = getFocusableElements(hotInstance);
+
+        if (focusableElements.length > 0) {
+          if (focusSource === 'tab_from_above') {
+            focusableElements[0]?.focus();
+          } else if (focusSource === 'tab_from_below') {
+            focusableElements[focusableElements.length - 1]?.focus();
+          }
+        }
+      },
+    });
+}
+
+/**
  * Initializes the built-in license notification: injects the product info message as the last
  * element of the bottom slot when the license is invalid, expired, or missing, and registers
  * a focus scope so keyboard navigation (Tab/Shift+Tab) includes the notification links.
@@ -51,9 +108,13 @@ export function initLicenseNotification(hotInstance: HotInstance): void {
   }
 
   const licenseKey = hotInstance.getSettings().licenseKey;
-  const releaseDate = typeof process !== 'undefined' && process.env?.HOT_RELEASE_DATE
-    ? process.env.HOT_RELEASE_DATE
-    : '';
+  // DO NOT wrap this in a `typeof process` guard (or any `process` existence check). The bundler
+  // replaces the whole `process.env.HOT_RELEASE_DATE` expression with a string literal at build time,
+  // so the bare read never touches a runtime `process` object and cannot crash. A guard is NOT
+  // inlined - it survives as `typeof process !== 'undefined' && "..."`, which is `false` in every
+  // browser bundle, blanks the release date, and silently kills expired-key detection. That was the
+  // 18.0.0 regression this read restores; re-adding the guard reintroduces it.
+  const releaseDate = process.env.HOT_RELEASE_DATE || '';
 
   const notificationElement = _injectProductInfo({
     className: LICENSE_INFO_CLASS,
@@ -66,37 +127,7 @@ export function initLicenseNotification(hotInstance: HotInstance): void {
     return;
   }
 
-  // `_injectProductInfo` appended this element into the bottom slot element and returned it. The
-  // notification is intentionally NOT registered with the LayoutManager: it must always sit last in
-  // the bottom slot and must not be removable or reorderable through the `layout` setting or
-  // `getLayoutManager().unregister`. Re-append it so it is the last child, and carry the shared
-  // slot-item class so it gets the same separator styling as registered slot items. Because it is a
-  // foreign (unregistered) node, `DomSlot` always inserts registered items before it, keeping it last
-  // as other contributors (for example pagination) register or reorder.
-  notificationElement.classList.add(SLOT_ITEM_CLASS);
-  container.appendChild(notificationElement);
-
-  // The notification bypasses `DomSlot`, so the wrapper's slot-filled state class (kept in sync by
-  // the `LayoutManager` for registered items) has to be refreshed here explicitly.
-  refreshSlotFilledState(LAYOUT_SLOTS.BOTTOM, container);
-
-  // The scope is intentionally never unregistered: the license notification is created once during
-  // init, cannot be disabled, and lives for the whole instance lifetime. It is cleaned up when
-  // `getFocusScopeManager().destroy()` runs on `hot.destroy()`.
-  hotInstance.getFocusScopeManager()
-    .registerScope(SCOPE_ID, notificationElement, {
-      shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
-      runOnlyIf: () => getNotificationElement(hotInstance) !== null,
-      onActivate: (focusSource: string) => {
-        const focusableElements = getFocusableElements(hotInstance);
-
-        if (focusableElements.length > 0) {
-          if (focusSource === 'tab_from_above') {
-            focusableElements[0]?.focus();
-          } else if (focusSource === 'tab_from_below') {
-            focusableElements[focusableElements.length - 1]?.focus();
-          }
-        }
-      },
-    });
+  // `_injectProductInfo` already appended this element into the bottom slot and returned it;
+  // `mountBottomLicenseBar` re-appends it as the last child and wires the focus scope.
+  mountBottomLicenseBar(hotInstance, notificationElement);
 }

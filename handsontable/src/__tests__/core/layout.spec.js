@@ -1,3 +1,8 @@
+// A real legacy key that expired on 23/05/2011, so it is expired against any modern build. It is
+// the state that still renders the bottom bar: from 18.1 a MISSING or INVALID key renders the
+// blocking modal instead and no bar at all (DEV-2562).
+const EXPIRED_LICENSE_KEY = 'd0134-95841-770f2-c4f21-3751d';
+
 describe('Layout slots', () => {
   const id = 'testContainer';
 
@@ -213,9 +218,10 @@ describe('Layout slots', () => {
   });
 
   it('appends the license notification as the last element of the bottom slot when present', async() => {
-    // Pass `true` so the test helper does not inject the default evaluation license key,
-    // which leaves the key missing and renders the license notification.
-    const hot = handsontable({ data: createSpreadsheetData(3, 3) }, true);
+    // Pass `true` so the test helper does not inject the default evaluation key, and set a legacy
+    // key that expired on 23/05/2011 - a lapsed key is the state that still renders the bar. A
+    // MISSING key would not: from 18.1 it renders the blocking modal instead (DEV-2562).
+    const hot = handsontable({ data: createSpreadsheetData(3, 3), licenseKey: EXPIRED_LICENSE_KEY }, true);
 
     // The notification is not a layout-slot contributor - it is not in the registry.
     expect(hot.getLayoutManager().getSlot('bottom').has('licenseNotification')).toBe(false);
@@ -232,6 +238,7 @@ describe('Layout slots', () => {
       pagination: true,
       // The license notification is intentionally not orderable; a `layout` entry for it must be ignored.
       layout: { bottom: ['licenseNotification', 'pagination'] },
+      licenseKey: EXPIRED_LICENSE_KEY,
     }, true);
 
     const keys = Array.from(hot.rootSlotBottomElement.children).map((c) => {
@@ -250,7 +257,7 @@ describe('Layout slots', () => {
   });
 
   it('keeps the license notification last when pagination is enabled after init', async() => {
-    const hot = handsontable({ data: createSpreadsheetData(3, 3) }, true);
+    const hot = handsontable({ data: createSpreadsheetData(3, 3), licenseKey: EXPIRED_LICENSE_KEY }, true);
 
     // Pagination is not set at init, so the license notice is the only bottom-slot element.
     expect(hot.rootSlotBottomElement.querySelector('.hot-display-license-info'))
@@ -293,12 +300,16 @@ describe('Layout slots', () => {
       dialog: true,
     });
 
+    // The overlays layer holds the dialog alone: the license badge is reserved for a trial key, and
+    // the harness default is the non-commercial one, which brands nothing.
+    const countOverlayChildren = () => hot.rootOverlaysElement.children.length;
+
     // The dialog renders in the overlays layer (not a layout slot) and installs its element there.
-    expect(hot.rootOverlaysElement.children.length).toBe(1);
+    expect(countOverlayChildren()).toBe(1);
 
     await updateSettings({ dialog: false });
 
-    expect(hot.rootOverlaysElement.children.length).toBe(0);
+    expect(countOverlayChildren()).toBe(0);
   });
 
   it('does not throw when destroying with layout-registered plugins', async() => {
@@ -412,11 +423,11 @@ describe('Layout slots', () => {
   });
 
   it('keeps the wrapper bottom-filled for the license notification even without registered items', async() => {
-    // Pass `true` so the test helper does not inject the default evaluation license key,
-    // which leaves the key missing and renders the license notification.
+    // See the note on EXPIRED_LICENSE_KEY: a lapsed key still renders the bar, a missing one blocks.
     const hot = handsontable({
       data: createSpreadsheetData(3, 3),
       pagination: true,
+      licenseKey: EXPIRED_LICENSE_KEY,
     }, true);
 
     expect(hot.rootWrapperElement.classList.contains('ht-slot-bottom-filled')).toBe(true);

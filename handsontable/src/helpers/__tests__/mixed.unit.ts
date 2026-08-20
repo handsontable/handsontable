@@ -319,14 +319,9 @@ describe('Mixed helper', () => {
 
       _injectProductInfo({ className: LICENSE_INFO_CLASS, key: '', element, releaseDate: '23/05/2010' });
 
-      expect(element.parentNode.querySelector('.hot-display-license-info_inner').innerHTML).toBe([
-        'The license key for Handsontable is missing. Use your purchased key to activate the product. ',
-        'Alternatively, you can activate Handsontable to use for non-commercial purposes ',
-        'by passing the key: \'non-commercial-and-evaluation\'. ',
-        '<a href="https://handsontable.com/docs/tutorial-license-key.html" target="_blank">Read more</a> ',
-        'about it in the documentation or contact us at <a href="mailto:support@handsontable.com">',
-        'support@handsontable.com</a>.',
-      ].join(''));
+      // DEV-2562: no bottom bar for a missing key any more - those sentences moved into the
+      // blocking modal (`utils/licenseBranding/lockScreen.ts`). The console message is untouched.
+      expect(element.parentNode.querySelector('.hot-display-license-info_inner')).toBe(null);
       expect(console.error).not.toHaveBeenCalled();
       expect(console.info).not.toHaveBeenCalled();
       expect(console.log).not.toHaveBeenCalled();
@@ -348,12 +343,8 @@ describe('Mixed helper', () => {
 
       _injectProductInfo({ className: LICENSE_INFO_CLASS, key: 'invalidKey', element, releaseDate: '23/05/2010' });
 
-      expect(element.parentNode.querySelector('.hot-display-license-info_inner').innerHTML).toBe([
-        'The license key for Handsontable is invalid. ',
-        '<a href="https://handsontable.com/docs/tutorial-license-key.html" target="_blank">Read more</a> ',
-        'on how to install it properly or contact us at <a href="mailto:support@handsontable.com">',
-        'support@handsontable.com</a>.',
-      ].join(''));
+      // DEV-2562: the bar gave way to the blocking modal; the console message is untouched.
+      expect(element.parentNode.querySelector('.hot-display-license-info_inner')).toBe(null);
       expect(console.error).not.toHaveBeenCalled();
       expect(console.info).not.toHaveBeenCalled();
       expect(console.log).not.toHaveBeenCalled();
@@ -363,7 +354,7 @@ describe('Mixed helper', () => {
       ].join(''));
     });
 
-    it('should print information about invalidation only once in the console and always in the DOM', () => {
+    it('should print information about invalidation only once in the console, and never in the DOM', () => {
       spyOn(console, 'warn');
       spyOn(console, 'info');
       spyOn(console, 'log');
@@ -373,12 +364,7 @@ describe('Mixed helper', () => {
 
       _injectProductInfo({ className: LICENSE_INFO_CLASS, key: 'invalidKey', element, releaseDate: '23/05/2010' });
 
-      expect(element.parentNode.querySelector('.hot-display-license-info_inner').innerHTML).toBe([
-        'The license key for Handsontable is invalid. ',
-        '<a href="https://handsontable.com/docs/tutorial-license-key.html" target="_blank">Read more</a> ',
-        'on how to install it properly or contact us at <a href="mailto:support@handsontable.com">',
-        'support@handsontable.com</a>.',
-      ].join(''));
+      expect(element.parentNode.querySelector('.hot-display-license-info_inner')).toBe(null);
       expect(console.error).not.toHaveBeenCalled();
       expect(console.info).not.toHaveBeenCalled();
       expect(console.log).not.toHaveBeenCalled();
@@ -397,12 +383,7 @@ describe('Mixed helper', () => {
         releaseDate: '23/05/2010'
       });
 
-      expect(element2.parentNode.querySelector('.hot-display-license-info_inner').innerHTML).toBe([
-        'The license key for Handsontable is invalid. ',
-        '<a href="https://handsontable.com/docs/tutorial-license-key.html" target="_blank">Read more</a> ',
-        'on how to install it properly or contact us at <a href="mailto:support@handsontable.com">',
-        'support@handsontable.com</a>.',
-      ].join(''));
+      expect(element2.parentNode.querySelector('.hot-display-license-info_inner')).toBe(null);
       expect(console.error).not.toHaveBeenCalled();
       expect(console.info).not.toHaveBeenCalled();
       expect(console.log).not.toHaveBeenCalled();

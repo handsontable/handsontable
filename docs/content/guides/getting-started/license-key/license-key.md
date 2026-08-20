@@ -145,6 +145,8 @@ Or include it in the settings object passed to `:settings`:
 
 If you use Handsontable for purposes not intended toward monetary compensation such as, but not limited to, teaching, academic research, evaluation, testing and experimentation, pass the string  `'non-commercial-and-evaluation'`.
 
+With this key, the grid displays no notification of any kind, and the console stays silent, because the Non-Commercial and Evaluation License permits your usage.
+
 ::: only-for javascript
 
 ```js
@@ -217,6 +219,100 @@ export const appConfig: ApplicationConfig = {
 
 :::
 
+## Entitlement license keys
+
+Handsontable also accepts entitlement license keys. An entitlement key is plain-English text that
+states what you licensed, followed by a bracketed block that the grid reads:
+
+```text
+This is a Handsontable license key for Acme Corp, issued on 2026-08-12 for the "Acme Portal"
+project. It includes 1 license:
+
+> 1. Subscription license under Handsontable Subscription License Agreement 2.0 of 2022-05-21, for
+     Handsontable on the Enterprise package, for internal use, valid until 2027-08-12 (UTC). Use
+     after that date is not permitted. To renew, contact sales@handsontable.com.
+
+[eyJwcm9kdWN0cyI6eyJoYW5kc29udGFibGUi...3a4f8361]
+```
+
+Pass the whole key string, exactly as you received it, in the same
+[`licenseKey`](@/api/options.md#licensekey) option:
+
+::: only-for javascript
+
+```js
+const settings = {
+  licenseKey: 'This is a Handsontable license key for Acme Corp, ... [eyJwcm9kdWN0cyI6...3a4f8361]',
+  //... other options
+}
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable licenseKey="This is a Handsontable license key for Acme Corp, ... [eyJwcm9kdWN0cyI6...3a4f8361]" />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+readonly gridSettings: GridSettings = {
+  licenseKey: 'This is a Handsontable license key for Acme Corp, ... [eyJwcm9kdWN0cyI6...3a4f8361]',
+};
+```
+
+:::
+
+::: only-for vue
+
+```html
+<HotTable licenseKey="This is a Handsontable license key for Acme Corp, ... [eyJwcm9kdWN0cyI6...3a4f8361]" />
+```
+
+:::
+
+Keys issued in the 25-character format keep working without any change.
+
+Only the bracketed block is protected by a checksum. You can rewrap the text above it, or paste the
+key through an email client, and the key still works. Keep the block itself on one line, and end the
+key there - the block must be the last thing in the string. Space and newlines around the whole key
+are trimmed for you, so a key pasted with a trailing newline still works.
+
+Each license behaves differently around its date:
+
+### Trial keys
+
+A trial key is time-boxed. During the trial, the grid shows the Handsontable badge in its top-left
+corner. Hover over the badge to see the trial status. Once the key's notice period begins, the
+console starts warning how many days remain - on a standard 45-day trial that is from day one. On
+the last licensed day the warning says the key expires today, because that day is still licensed in
+full. After the expiration date, a message opens next to the badge and below the grid, and the console
+reports an error. When the grace period stored in the key also passes, a blocking screen replaces
+the grid. To purchase a commercial license, contact our [Sales Team](https://handsontable.com/get-a-quote).
+
+### Subscription keys
+
+The console warns you before the expiration date. How early depends on the notice period stored in
+your key. After the expiration date, the console reports an error. The grid itself displays no
+message, and it never stops working. To renew your subscription, contact our
+[Sales Team](https://handsontable.com/get-a-quote).
+
+The expiration date is a full calendar day in UTC. Your license runs to the end of the named day,
+wherever you are.
+
+### Perpetual keys
+
+A perpetual key works like the 25-character commercial keys: its maintenance date is compared
+against the build date of your Handsontable version, never against the current date. You can use the
+versions released on or before that date indefinitely, including offline. On a newer version, the
+console reports an error and the grid shows a notice below the table.
+
 ## Result
 
 Your grid is now licensed. A valid commercial key removes the license notice from the grid header.
@@ -225,19 +321,33 @@ Your grid is now licensed. A valid commercial key removes the license notice fro
 
 We validate the license key to determine whether you are entitled to use the software. To do that, we compare the time between two dates. These dates come from two sources of information. One is the `build date` that is provided in each version of Handsontable. The other is the `creation date` that comes with the license key. This process does not trigger any connection to any server.
 
+Entitlement keys extend this process. A trial or subscription key carries its expiration date inside the key, and Handsontable compares that date against the current date, in UTC. A perpetual key keeps the build-date comparison described above. No key triggers any connection to any server.
+
 ## Notifications
 
-If your license key is missing, invalid, or expired, Handsontable will display an appropriate notification. The notification is displayed in two places, below the table as HTML text and in the console. The messages are as follows:
+If your license key is missing, invalid, or expired, Handsontable displays a notification. Where it appears depends on the problem.
+
+A **missing or invalid key** blocks the grid. Handsontable covers it with a modal that cannot be closed, and repeats the message in the console. Set a valid key to remove it. The grid is not usable until you do.
+
+An **expired key** does not block anything. Its message appears below the table and in the console, and every feature keeps working.
+
+The messages are as follows:
 
 ### Missing license key
+
+Shown in a blocking modal and in the console:
 
 _The license key for Handsontable is missing. Use your purchased key to activate the product. Alternatively, you can activate Handsontable to use for non-commercial purposes by passing the key: ‘non-commercial-and-evaluation’.  Read more about it in the documentation or contact us at `[email]`._
 
 ### Invalid license key
 
+Shown in a blocking modal and in the console:
+
 _The license key for Handsontable is invalid.  Read more on how to install it properly or contact us at `[email]`._
 
 ### Expired license key
+
+Shown below the table and in the console:
 
 _The license key for Handsontable expired on `[expiration_date]`, and is not valid for the installed version `[handsontable_version]`.  Renew your license key or downgrade to a version released prior to `[expiration_dates]`. If you need any help, contact us at `[email]`._
 

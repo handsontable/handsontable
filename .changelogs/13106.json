@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added support for entitlement license keys, and made a missing or invalid license key block the grid with a modal that cannot be closed.",
+  "type": "added",
+  "issueOrPR": 13106,
+  "breaking": false,
+  "framework": "none"
+}

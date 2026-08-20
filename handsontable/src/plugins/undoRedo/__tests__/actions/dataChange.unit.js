@@ -69,6 +69,7 @@ describe('UndoRedo -> DataChange action', () => {
     const data = base.map((row, rowIndex) => [...row, rowIndex % 2 === 0]);
 
     hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
       data,
       columns: [{}, {}, {}, {}, { type: 'checkbox' }],
       undo: true,
@@ -88,6 +89,7 @@ describe('UndoRedo -> DataChange action', () => {
 
   it('should batch layered ctrl/cmd+A-like delete into one setDataAtCell (checkbox shortcut path)', () => {
     hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
       data: [
         ['Nissan', 2016, false],
         ['Volvo', 2019, true],
@@ -125,6 +127,7 @@ describe('UndoRedo -> DataChange action', () => {
 
   it('should not register header coordinates when clearing a ctrl/cmd+A-like selection', () => {
     hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
       data: [
         { car: 'Nissan', year: 2016, available: false },
         { car: 'Volvo', year: 2019, available: true },

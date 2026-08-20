@@ -3,6 +3,7 @@
 // Core
 @use "./core/selection";
 @use "./core/license-notification";
+@use "./core/license-branding";
 
 // Plugins
 @use "./plugins/collapsible-columns";
@@ -52,6 +53,7 @@
 @mixin core-components-styles() {
   @include selection.output();
   @include license-notification.output();
+  @include license-branding.output();
   // Renderers
   @include autocomplete-renderer.output();
   @include checkbox-renderer.output();
