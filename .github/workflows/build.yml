@@ -48,6 +48,10 @@ jobs:
           npm run build:umd.min
           npm run build:languages
           npm run build:languages.min
+          # dist/themes/** comes only from these two tasks. Without them the artifact
+          # is not the full UMD output, and the preview package ships no theme bundles.
+          npm run build:themes-umd
+          npm run build:themes-umd.min
       - run: tar -zcf dist.tar.gz ./handsontable/dist ./handsontable/styles
       - name: Upload the Handsontable UMD build artifact.
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
@@ -76,7 +80,10 @@ jobs:
           npm run build:languages.es
           npm run build:languages
           npm run build:languages.min
-          npm run postbuild
+          # This job composes an intentionally incomplete tree (no UMD dist/, no
+          # theme CSS), so it opts out of the strict packaging checks. It is the
+          # only site allowed to do so — see prepare-package-for-publish.mjs.
+          npm run postbuild:partial
       - run: tar -zcf tmp.tar.gz ./handsontable/tmp
       - name: Upload the Handsontable ES + CJS build artifact.
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0

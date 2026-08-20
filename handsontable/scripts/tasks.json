@@ -8,6 +8,11 @@
       "cmd": "node scripts/prepare-package-for-publish.mjs",
       "deps": []
     },
+    "prepare-package-for-publish.partial": {
+      "cmd": "node scripts/prepare-package-for-publish.mjs --partial",
+      "deps": [],
+      "note": "Composes the package without the strict completeness checks. Only the ES + CJS build job may use it – it runs before the UMD bundles and the theme stylesheets exist."
+    },
 
     "build:styles": {
       "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=styles-development env-cmd -f ../hot.config.js rspack",

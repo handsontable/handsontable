@@ -14,6 +14,34 @@ const {
 } = handsontable;
 
 /**
+ * The script composes the publishable package tree for every channel – the npm release, the
+ * `next`/`experimental` builds and the pkg.pr.new previews - so `handsontable.copy` and
+ * `handsontable.exports` are the single definition of what that tree holds and how it is
+ * addressed. By default the script enforces that definition and fails on an incomplete tree.
+ *
+ * `--partial` downgrades the completeness checks to warnings. Exactly one caller composes an
+ * intentionally incomplete tree (the ES + CJS build job, which runs before the UMD bundles and
+ * the theme stylesheets exist); everything else must build the whole package. Skipping the
+ * checks is what let a preview package ship 18 stylesheets with 2 of them in the exports map.
+ */
+const IS_PARTIAL = process.argv.includes('--partial');
+const COMPLETENESS_ERRORS = [];
+const COPY_DESTINATIONS = [];
+
+/**
+ * Report a file that the package definition promises but the composed tree does not hold.
+ *
+ * @param {string} message The message to be reported.
+ */
+function reportIncompleteness(message) {
+  if (IS_PARTIAL) {
+    displayWarningMessage(message);
+  } else {
+    COMPLETENESS_ERRORS.push(message);
+  }
+}
+
+/**
  * Generate thin .d.mts wrapper files for every .d.ts so the `import` condition
  * in the exports map can reference explicitly-ESM type declarations.
  *
@@ -26,7 +54,7 @@ const {
  * files handle all internal resolution under their own CJS context.
  *
  * This step runs here (not only in downlevel-dts.mjs) because CI may call
- * `npm run postbuild` after partial build steps without running downlevel:types.
+ * `npm run postbuild:partial` after partial build steps without running downlevel:types.
  */
 glob.sync('./**/*.d.ts', { cwd: TARGET_PATH, nodir: true }).forEach((dtsFile) => {
   const mtsPath = path.resolve(TARGET_PATH, dtsFile.replace(/\.d\.ts$/, '.d.mts'));
@@ -68,12 +96,23 @@ FILES_TO_COPY.forEach((fileToCopy) => {
 
     const to = path.resolve(`${TARGET_PATH}${file.replace('../', '')}`);
 
+    COPY_DESTINATIONS.push(to);
+
     if (fse.existsSync(from)) {
       fse.copySync(from, to, { overwrite: true });
     } else {
+      // Not an error on its own: a caller may compose from artifacts that already carry the
+      // entry (the preview job extracts a `tmp/` built elsewhere). What the package holds is
+      // checked below, on the destination side.
       displayWarningMessage(`The copy source file or directory does not exist: ${from}`);
     }
   });
+});
+
+COPY_DESTINATIONS.forEach((destination) => {
+  if (!fse.existsSync(destination)) {
+    reportIncompleteness(`The package does not hold a file the copy list declares: ${destination}`);
+  }
 });
 
 /**
@@ -96,6 +135,10 @@ const groupedExports = EXPORTS_RULES.flatMap((rule) => {
 
   const rules = {};
   const foundFiles = glob.sync(`${rule}`, { cwd: TARGET_PATH, nodir: true });
+
+  if (foundFiles.length === 0) {
+    reportIncompleteness(`The exports rule matches no file in "${TARGET_PATH}": ${rule}`);
+  }
 
   foundFiles.forEach((filePath) => {
     if (!filePath.startsWith('./dist/') && regexpJSFiles.test(filePath)) {
@@ -170,6 +213,17 @@ if (EXPORTS_ERRORS.length > 0) {
   const FILES_LIST = `${EXPORTS_ERRORS.map(msg => `- ${msg}`).join('\n')}`;
 
   displayErrorMessage(`The following exports point to the non-existing files:\n${FILES_LIST}`);
+  process.exit(1);
+}
+
+if (COMPLETENESS_ERRORS.length > 0) {
+  const FILES_LIST = `${COMPLETENESS_ERRORS.map(msg => `- ${msg}`).join('\n')}`;
+
+  displayErrorMessage(
+    `The composed package is incomplete:\n${FILES_LIST}\n\n` +
+    'Build the missing artifacts, or run `npm run postbuild:partial` if this tree is ' +
+    'intentionally incomplete.'
+  );
   process.exit(1);
 }
 
