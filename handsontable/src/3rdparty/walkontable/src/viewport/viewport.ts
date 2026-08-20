@@ -399,6 +399,22 @@ class Viewport {
   }
 
   /**
+   * Drops every oversized-row record, not just the rendered band's, and marks the row-height cache
+   * stale so the next draw measures the rows again.
+   *
+   * `resetOversizedRows` deliberately wipes only the rendered band, because a record outside it is
+   * still the best height known for that row. That assumption breaks when the records were taken
+   * against a table with no layout: `getComputedStyle` returned nothing, so the default row height
+   * was unknown and every row was recorded oversized at a height it never had. Then the whole map
+   * has to go at once, or the rows outside the band keep inflating the scroll range for good.
+   */
+  resetAllOversizedRows() {
+    this.oversizedRows = {};
+    this.frozenOversizedRows.clear();
+    this.invalidateRowHeightCache();
+  }
+
+  /**
    * Hands the frozen-derived row records back to the ordinary oversized-row machinery, keeping their
    * heights but dropping their exemption from `resetOversizedRows`.
    *

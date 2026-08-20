@@ -76,6 +76,35 @@ export class ScrollSync {
   #scrollableElement: HTMLElement | Window;
 
   /**
+   * Whether `#scrollableElement` was resolved while the table generated no boxes, which makes it an
+   * answer taken against nothing.
+   *
+   * Cleared by the first resolution pass that settles it, and also by a pass that gives up because the
+   * answer stopped changing – the two helpers behind it can disagree permanently. Covers the scrolling
+   * element only; the sizes measured in that state are tracked separately, by
+   * `#sizesMeasuredBeforeLayoutSettled`.
+   *
+   * @type {boolean}
+   */
+  #isScrollableElementProvisional = false;
+
+  /**
+   * The scrolling element the last non-settling resolution pass computed, so a pass that computes the
+   * same answer again can stop retrying.
+   *
+   * @type {HTMLElement | Window | null}
+   */
+  #lastProvisionalScrollableElement: HTMLElement | Window | null = null;
+
+  /**
+   * Whether the sizes measured before the layout settled still have to be dropped, which the next
+   * draw does on its way in.
+   *
+   * @type {boolean}
+   */
+  #sizesMeasuredBeforeLayoutSettled = false;
+
+  /**
    * Whether a vertical scroll happened in the current frame.
    *
    * @type {boolean}
@@ -129,7 +158,7 @@ export class ScrollSync {
    */
   constructor(deps: ScrollSyncDeps) {
     this.#deps = deps;
-    this.#scrollableElement = this.#computeScrollableElement();
+    this.#scrollableElement = this.#takeScrollableElement();
     this.#lastScrollX = this.#deps.rootWindow.scrollX;
     this.#lastScrollY = this.#deps.rootWindow.scrollY;
   }
@@ -141,6 +170,16 @@ export class ScrollSync {
    */
   get scrollableElement() {
     return this.#scrollableElement;
+  }
+
+  /**
+   * Whether the scrollable element was resolved against a table that had no layout at that moment,
+   * so the answer is provisional and has to be retaken once the table is rendered.
+   *
+   * @returns {boolean}
+   */
+  get isScrollableElementProvisional() {
+    return this.#isScrollableElementProvisional;
   }
 
   /**
@@ -320,6 +359,88 @@ export class ScrollSync {
   }
 
   /**
+   * Drops the sizes measured before the layout settled, if `resolveProvisionalLayout()` found any.
+   *
+   * Called from `Overlays#beforeDraw`, so the draw that follows re-measures the row heights it just
+   * invalidated and resizes the elements from the results. Doing it the other way round – dropping
+   * the sizes and then asking for a redraw – leaves the row heights dropped for good whenever that
+   * redraw renders no cells.
+   */
+  resetSizesMeasuredBeforeLayoutSettled() {
+    if (!this.#sizesMeasuredBeforeLayoutSettled) {
+      return;
+    }
+
+    this.#sizesMeasuredBeforeLayoutSettled = false;
+
+    const wtViewport = this.#deps.getWtViewport();
+
+    wtViewport.resetAllOversizedRows();
+    wtViewport.invalidateColumnWidthCache();
+  }
+
+  /**
+   * Settles the layout decisions and measurements of a table that was constructed while it had no
+   * layout – most often a light-DOM child of a shadow host whose `<slot>` renders later, or a subtree
+   * assembled before it was appended to the document. Such a table reads every ancestor style as an
+   * empty declaration and measures every size against nothing, so two things are wrong at once:
+   * the scrollable element resolves to the window, and the row heights and column widths describe a
+   * layout the table never had.
+   *
+   * Runs from `afterDraw`, so the overlays have already refreshed their trimming containers and the
+   * holder has its final overflow; in `beforeDraw` both are still stale and the scrollable element
+   * would settle on the window again. While the answer is still the window even though an element
+   * trims the table, the layout has not settled yet and the pass is retried on the next draw – but
+   * only while the answer keeps changing. `getTrimmingContainer` counts `overflow: hidden` and
+   * `getScrollableElement` does not, so the two can disagree permanently, and a table in an iframe
+   * driven from the parent realm does exactly that: `MasterTable#alignOverlaysWithTrimmingContainer`
+   * misses it with a realm-bound `instanceof` and leaves the holder `overflow: visible`. Retrying
+   * such a table forever would rebind every listener on every draw.
+   *
+   * Once it does settle, the sizes measured before it are marked for dropping, which the next draw
+   * does on its way in (`resetSizesMeasuredBeforeLayoutSettled`). Left in place they survive until
+   * something else redraws the grid, which is what made it fill short of its container and look like
+   * it needed a click to finish loading (DEV-2515).
+   */
+  resolveProvisionalLayout() {
+    if (!this.#isScrollableElementProvisional ||
+        !this.#deps.geometryReader.isRendered(this.#deps.wtTable.wtRootElement)) {
+      return;
+    }
+
+    const { rootWindow } = this.#deps;
+    const scrollableElement = this.#computeScrollableElement();
+    const settles = scrollableElement !== rootWindow ||
+      this.#deps.getTopOverlay().trimmingContainer === rootWindow;
+
+    if (!settles) {
+      // The answer is checked before anything is rebound, so a pass that cannot settle costs one
+      // style read. Retry only while the answer keeps changing: a repeated answer is what a
+      // permanent disagreement between the two helpers looks like, and rebinding the listeners on
+      // every draw would drop every in-flight scroll event for the instance's life.
+      this.#isScrollableElementProvisional = scrollableElement !== this.#lastProvisionalScrollableElement;
+      this.#lastProvisionalScrollableElement = scrollableElement;
+
+      return;
+    }
+
+    this.updateMainScrollableElements();
+
+    // The sizes are not dropped here. Dropping them after a draw leaves them dropped: the follow-up
+    // is a redraw request, and a draw that re-renders nothing never re-runs `markOversizedRows`, so
+    // the row heights this pass invalidated would never be taken again. The next draw drops them on
+    // its way in instead, so reset, re-measure and resize run in the order the draw cycle documents.
+    this.#sizesMeasuredBeforeLayoutSettled = true;
+
+    // No redraw is requested from here. The flag stays set until a draw consumes it, and settling
+    // means the root element went from no layout to a layout, which is a size change the grid already
+    // observes and redraws for. Forcing a draw from this frame instead measures a DOM whose column
+    // widths have not settled: it records row heights for rows that leave the band on the next draw,
+    // and those records survive – measured as 6 rendered rows and 56px of dead space where 9 rows
+    // belong.
+  }
+
+  /**
    * Update the main scrollable elements for all the overlays.
    */
   updateMainScrollableElements() {
@@ -332,7 +453,7 @@ export class ScrollSync {
       this.#deps.getBottomOverlay().updateMainScrollableElement();
     }
 
-    this.#scrollableElement = this.#computeScrollableElement();
+    this.#scrollableElement = this.#takeScrollableElement();
 
     this.#deps.registerListeners();
   }
@@ -374,14 +495,35 @@ export class ScrollSync {
   }
 
   /**
+   * Resolves the scrolling element and records whether the answer is provisional.
+   *
+   * A table outside the layout resolves every ancestor style to an empty declaration, which reads as
+   * "no ancestor clips or scrolls" and hands the whole grid to the window. A provisional answer is
+   * retaken on the next draw that finds the table rendered (see `Overlays#afterDraw`).
+   *
+   * @returns {HTMLElement | Window}
+   */
+  #takeScrollableElement(): HTMLElement | Window {
+    const { wtTable, geometryReader } = this.#deps;
+
+    this.#isScrollableElementProvisional = !geometryReader.isRendered(wtTable.wtRootElement);
+
+    return this.#computeScrollableElement();
+  }
+
+  /**
    * Computes the element that scrolls the table: the master holder when the trimming container clips
    * overflow, otherwise the nearest scrollable ancestor of the master TABLE.
+   *
+   * Answers the question and nothing else. Whether the answer is provisional is recorded by the
+   * callers, which is also where a provisional answer is acted on.
    *
    * @returns {HTMLElement | Window}
    */
   #computeScrollableElement(): HTMLElement | Window {
     const { wtTable, geometryReader } = this.#deps;
     const tableParentNode = wtTable.wtRootElement.parentNode;
+
     // Use nodeType === 1 instead of instanceof Element so the check works across realms (iframes).
     // Falls back to getScrollableElement when there is no element parent (null or detached).
     const isOverflowClip = tableParentNode !== null

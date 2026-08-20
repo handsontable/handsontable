@@ -182,6 +182,19 @@ class Overlays {
   }
 
   /**
+   * Whether the scrolling element was resolved while the table generated no boxes, so the answer was
+   * taken against nothing and a later draw still has to settle it.
+   *
+   * Covers that answer only, not the sizes measured in the same state. Goes false once a pass settles
+   * it, or once a pass gives up because the answer stopped changing.
+   *
+   * @returns {boolean}
+   */
+  get isScrollableElementProvisional() {
+    return this.#scrollSync.isScrollableElementProvisional;
+  }
+
+  /**
    * Walkontable instance's reference.
    *
    * @protected
@@ -373,6 +386,14 @@ class Overlays {
    * Runs logic for the overlays before the table is drawn.
    */
   beforeDraw() {
+    // Before anything measures: drops the sizes a previous draw took while the table had no settled
+    // layout, so this draw re-measures them and resizes from the results. Only on a draw that renders
+    // the cells – a fast draw re-renders nothing, so it cannot re-measure the row heights this drops,
+    // and taking the reset there would leave them dropped. It stays pending for the next full draw.
+    if (!this.isScrollDrivenDraw) {
+      this.#scrollSync.resetSizesMeasuredBeforeLayoutSettled();
+    }
+
     this.#scrollSync.setRenderingStateChanged(this.#overlays.reduce((acc, overlay) => {
       return overlay.hasRenderingStateChanged() || acc;
     }, false));
@@ -394,6 +415,12 @@ class Overlays {
         overlay.reset();
       }
     });
+
+    // Runs after the overlays refreshed their trimming containers and the holder got its final
+    // overflow, so a table born outside the layout can settle on the scrollable element and the sizes
+    // it would have had if it had been rendered from the start. It cannot run in `beforeDraw`: both
+    // are still stale there, so the scrollable element would settle on the window again.
+    this.#scrollSync.resolveProvisionalLayout();
   }
 
   /**
@@ -522,7 +549,7 @@ class Overlays {
     const isScrollTriggered = this.isScrollDrivenDraw &&
       (this.verticalScrolling || this.horizontalScrolling);
     // On a pure vertical scroll the bottom overlay (and its inline-start corner) render the same fixed
-    // rows over the same visible columns, so their DOM is unchanged - a full re-render is wasted work and
+    // rows over the same visible columns, so their DOM is unchanged – a full re-render is wasted work and
     // forces an expensive style/layout/paint of the clone subtree on every scroll frame. Reposition them
     // (fast draw) instead. Any horizontal scroll changes the visible columns, and a non-scroll redraw
     // (data, settings, resize) is not scroll-driven, so those paths still trigger a full re-render.
@@ -564,7 +591,7 @@ class Overlays {
    * Re-applies the column-header heights to the master and every header-bearing overlay after the
    * Handsontable-side render-size probe has measured content-driven header heights. The probe runs
    * after the draw completes (once the DOM is final), so the overlays first render at the provided
-   * height and are corrected here to match the master - a synchronous, hook-free reconcile that
+   * height and are corrected here to match the master – a synchronous, hook-free reconcile that
    * replaces the old mid-draw `markOversizedColumnHeaders` measurement. The frozen-overlay sync runs
    * last so a wrapped header inside the frozen region still wins, and the sizes are flushed to the DOM.
    */
