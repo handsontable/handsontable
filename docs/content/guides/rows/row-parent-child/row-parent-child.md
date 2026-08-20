@@ -224,6 +224,52 @@ const plugin = hot.getPlugin('nestedRows');
 | [`expandToRow(row)`](@/api/nestedRows.md#expandtorow) | Expands every ancestor, to reveal a hidden row |
 | [`expandToLevel(level)`](@/api/nestedRows.md#expandtolevel) | Shows rows down to a nesting level, and collapses everything deeper |
 
+The example below calls four of them and prints what each one returns.
+
+::: only-for javascript
+
+::: example #example2 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/rows/row-parent-child/javascript/example2.html)
+@[code](@/content/guides/rows/row-parent-child/javascript/example2.js)
+@[code](@/content/guides/rows/row-parent-child/javascript/example2.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example2 :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-parent-child/react/example2.jsx)
+@[code](@/content/guides/rows/row-parent-child/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-parent-child/angular/example2.ts)
+@[code](@/content/guides/rows/row-parent-child/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/rows/row-parent-child/vue/example2.vue)
+
+:::
+
+:::
+
 ### Which index type to pass
 
 Collapsing a parent *trims* its children, which removes them from the grid. A trimmed row has no
@@ -237,6 +283,60 @@ visual index at all, so the plugin uses two index types:
 
 Convert between the two with [`toVisualRow()`](@/api/core.md#tovisualrow) and
 [`toPhysicalRow()`](@/api/core.md#tophysicalrow).
+
+### Jump to a row inside a collapsed branch
+
+This is where the two index types earn their keep. To reveal a row the user cannot see, you need
+[`expandToRow()`](@/api/nestedRows.md#expandtorow), and you have to address that row by its
+**physical** index — a hidden row has no visual index to pass.
+
+The example starts fully collapsed. Each button looks up a task's physical row, expands whatever
+ancestors are hiding it, then selects it. Notice how the physical row stays the same while the
+visual row changes with whatever else is open.
+
+::: only-for javascript
+
+::: example #example3 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/rows/row-parent-child/javascript/example3.html)
+@[code](@/content/guides/rows/row-parent-child/javascript/example3.js)
+@[code](@/content/guides/rows/row-parent-child/javascript/example3.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example3 :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-parent-child/react/example3.jsx)
+@[code](@/content/guides/rows/row-parent-child/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-parent-child/angular/example3.ts)
+@[code](@/content/guides/rows/row-parent-child/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/rows/row-parent-child/vue/example3.vue)
+
+:::
+
+:::
 
 ### Hooks
 
