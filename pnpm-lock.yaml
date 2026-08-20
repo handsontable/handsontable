@@ -38,6 +38,7 @@ overrides:
   cacache>tar: ^7.5.11
   undici: ^6.24.0
   '@astrojs/mdx': ^6.0.1
+  jspdf: 4.2.1
 
 packageExtensionsChecksum: sha256-HW0fEgNzl97t+n6OP9YhjxMaqHuFQdiKyvrxqn9AYp4=
 
@@ -229,11 +230,11 @@ importers:
         specifier: ^3.2.0
         version: 3.3.0
       jspdf:
-        specifier: ^3.0.4
-        version: 3.0.4
+        specifier: 4.2.1
+        version: 4.2.1
       jspdf-autotable:
         specifier: ^5.0.7
-        version: 5.0.8(jspdf@3.0.4)
+        version: 5.0.8(jspdf@4.2.1)
       moment:
         specifier: ^2.30.1
         version: 2.30.1
@@ -416,7 +417,7 @@ importers:
         specifier: latest
         version: 3.3.0
       jspdf:
-        specifier: latest
+        specifier: 4.2.1
         version: 4.2.1
       jspdf-autotable:
         specifier: latest
@@ -9824,10 +9825,7 @@ packages:
   jspdf-autotable@5.0.8:
     resolution: {integrity: sha512-Hy05N86yBO7CXBrnSLOge7i1ZYpKH2DjQ94iybaP7vBhSInjvRBgDc99ngKzSbSO8Jc98ZCally8I6n0tj2RJQ==}
     peerDependencies:
-      jspdf: ^2 || ^3 || ^4
-
-  jspdf@3.0.4:
-    resolution: {integrity: sha512-dc6oQ8y37rRcHn316s4ngz/nOjayLF/FFxBF4V9zamQKRqXxyiH1zagkCdktdWhtoQId5K20xt1lB90XzkB+hQ==}
+      jspdf: 4.2.1
 
   jspdf@4.2.1:
     resolution: {integrity: sha512-YyAXyvnmjTbR4bHQRLzex3CuINCDlQnBqoSYyjJwTP2x9jDLuKDzy7aKUl0hgx3uhcl7xzg32agn5vlie6HIlQ==}
@@ -24877,24 +24875,9 @@ snapshots:
 
   jsonparse@1.3.1: {}
 
-  jspdf-autotable@5.0.8(jspdf@3.0.4):
-    dependencies:
-      jspdf: 3.0.4
-
   jspdf-autotable@5.0.8(jspdf@4.2.1):
     dependencies:
       jspdf: 4.2.1
-
-  jspdf@3.0.4:
-    dependencies:
-      '@babel/runtime': 7.29.7
-      fast-png: 6.4.0
-      fflate: 0.8.3
-    optionalDependencies:
-      canvg: 3.0.11
-      core-js: 3.49.0
-      dompurify: 3.4.8
-      html2canvas: 1.4.1
 
   jspdf@4.2.1:
     dependencies:
