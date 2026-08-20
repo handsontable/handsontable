@@ -153,3 +153,32 @@ export function normalizeValueForFormulaEngine(value: unknown) {
 
   return value;
 }
+
+/**
+ * Checks if the provided value is a text-cell value that should be preserved — passed to the
+ * engine as a string, protected from being coerced to a number — according to the cell meta
+ * (`type: 'text'` combined with `preserveTextValues: true`). Formulas are never preserved.
+ *
+ * @param {*} value Checked value.
+ * @param {object} cellMeta Cell meta object with the `type` and `preserveTextValues` properties.
+ * @returns {boolean}
+ */
+export function isPreservedText(
+  value: unknown,
+  cellMeta: { type?: string, preserveTextValues?: boolean },
+): value is string {
+  return typeof value === 'string' &&
+    cellMeta.type === 'text' &&
+    cellMeta.preserveTextValues === true &&
+    !isFormula(value);
+}
+
+/**
+ * Escapes the value from the engine's value parsing using the "'" sign (HyperFormula feature).
+ *
+ * @param {string} value Value to escape.
+ * @returns {string}
+ */
+export function escapeTextValue(value: string): string {
+  return `'${value}`;
+}

@@ -10,6 +10,8 @@ import {
   getDateFromExcelDate,
   getTimeFromHfTimeFraction,
   normalizeValueForFormulaEngine,
+  isPreservedText,
+  escapeTextValue,
 } from '../utils';
 
 describe('Formulas utils', () => {
@@ -181,6 +183,47 @@ describe('Formulas utils', () => {
       coalesceIndexesToSpans(indexes);
 
       expect(indexes).toEqual([3, 1, 2]);
+    });
+  });
+
+  describe('isPreservedText', () => {
+    it('should detect string values of text cells with `preserveTextValues` enabled', () => {
+      expect(isPreservedText('0123456', { type: 'text', preserveTextValues: true })).toBe(true);
+      expect(isPreservedText('abc', { type: 'text', preserveTextValues: true })).toBe(true);
+      expect(isPreservedText('', { type: 'text', preserveTextValues: true })).toBe(true);
+    });
+
+    it('should not detect formulas', () => {
+      expect(isPreservedText('=A1', { type: 'text', preserveTextValues: true })).toBe(false);
+      expect(isPreservedText('=SUM(A1:B1)', { type: 'text', preserveTextValues: true })).toBe(false);
+    });
+
+    it('should detect escaped formula expressions (they are strings, not formulas)', () => {
+      expect(isPreservedText('\'=A1', { type: 'text', preserveTextValues: true })).toBe(true);
+    });
+
+    it('should not detect values when the option is disabled or missing', () => {
+      expect(isPreservedText('0123456', { type: 'text', preserveTextValues: false })).toBe(false);
+      expect(isPreservedText('0123456', { type: 'text' })).toBe(false);
+    });
+
+    it('should not detect values of non-text cell types', () => {
+      expect(isPreservedText('0123456', { type: 'numeric', preserveTextValues: true })).toBe(false);
+      expect(isPreservedText('0123456', { type: 'date', preserveTextValues: true })).toBe(false);
+    });
+
+    it('should not detect non-string values', () => {
+      expect(isPreservedText(123456, { type: 'text', preserveTextValues: true })).toBe(false);
+      expect(isPreservedText(null, { type: 'text', preserveTextValues: true })).toBe(false);
+      expect(isPreservedText(undefined, { type: 'text', preserveTextValues: true })).toBe(false);
+    });
+  });
+
+  describe('escapeTextValue', () => {
+    it('should prefix the value with an apostrophe', () => {
+      expect(escapeTextValue('0123456')).toBe('\'0123456');
+      expect(escapeTextValue('abc')).toBe('\'abc');
+      expect(escapeTextValue('\'already')).toBe('\'\'already');
     });
   });
 });
