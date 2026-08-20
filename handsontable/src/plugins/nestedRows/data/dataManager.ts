@@ -270,15 +270,20 @@ class DataManager {
   /**
    * Get the row index for the provided row object.
    *
+   * Returns `null` when the object is not part of the current nested structure - for example when it
+   * comes from a dataset that has since been replaced by `loadData` or `updateData`.
+   *
    * @param {object} rowObj The row object.
-   * @returns {number} Row index.
+   * @returns {number|null} Row index, or `null` when the object is unknown.
    */
   getRowIndex(rowObj: unknown): number | null {
     if (rowObj === null || rowObj === undefined || typeof rowObj !== 'object') {
       return null;
     }
 
-    return this.cache.nodeInfo.get(rowObj)!.row;
+    const nodeInfo = this.cache.nodeInfo.get(rowObj);
+
+    return nodeInfo ? nodeInfo.row : null;
   }
 
   /**
@@ -373,7 +378,9 @@ class DataManager {
       return null;
     }
 
-    return this.cache.nodeInfo.get(rowObject)!.parent;
+    const nodeInfo = this.cache.nodeInfo.get(rowObject);
+
+    return nodeInfo ? nodeInfo.parent : null;
   }
 
   /**
@@ -406,7 +413,9 @@ class DataManager {
       return null;
     }
 
-    return this.cache.nodeInfo.get(rowObject)!.level;
+    const nodeInfo = this.cache.nodeInfo.get(rowObject);
+
+    return nodeInfo ? nodeInfo.level : null;
   }
 
   /**

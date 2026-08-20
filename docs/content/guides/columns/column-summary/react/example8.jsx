@@ -26,35 +26,29 @@ const ExampleComponent = () => {
       columnSummary={function () {
         const endpoints = [];
         const nestedRowsPlugin = this.hot.getPlugin('nestedRows');
-        const getRowIndex = nestedRowsPlugin.dataManager.getRowIndex.bind(nestedRowsPlugin.dataManager);
         const resultColumn = 0;
-        let tempEndpoint = null;
-        let nestedRowsCache = null;
 
-        if (nestedRowsPlugin.isEnabled()) {
-          nestedRowsCache = this.hot.getPlugin('nestedRows').dataManager.cache;
-        } else {
-          return;
+        if (!nestedRowsPlugin.isEnabled()) {
+          return [];
         }
 
-        for (let i = 0; i < nestedRowsCache.levels[0].length; i++) {
-          tempEndpoint = {};
-
-          if (!nestedRowsCache.levels[0][i].__children || nestedRowsCache.levels[0][i].__children.length === 0) {
+        for (let visualRow = 0; visualRow < this.hot.countRows(); visualRow++) {
+          // Only summarize the top-level parents.
+          if (nestedRowsPlugin.getRowLevel(visualRow) !== 0 || !nestedRowsPlugin.isParent(visualRow)) {
             continue;
           }
 
-          tempEndpoint.destinationColumn = resultColumn;
-          tempEndpoint.destinationRow = getRowIndex(nestedRowsCache.levels[0][i]);
-          tempEndpoint.type = 'sum';
-          tempEndpoint.forceNumeric = true;
-          tempEndpoint.ranges = [];
-          tempEndpoint.ranges.push([
-            getRowIndex(nestedRowsCache.levels[0][i].__children[0]),
-            getRowIndex(nestedRowsCache.levels[0][i].__children[nestedRowsCache.levels[0][i].__children.length - 1]),
-          ]);
-          endpoints.push(tempEndpoint);
-          tempEndpoint = null;
+          const parentRow = this.hot.toPhysicalRow(visualRow);
+          const childCount = nestedRowsPlugin.countChildren(visualRow);
+
+          // Children follow their parent in the source data, so they form one range.
+          endpoints.push({
+            destinationColumn: resultColumn,
+            destinationRow: parentRow,
+            type: 'sum',
+            forceNumeric: true,
+            ranges: [[parentRow + 1, parentRow + childCount]],
+          });
         }
 
         return endpoints;

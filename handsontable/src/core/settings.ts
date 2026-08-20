@@ -279,7 +279,7 @@ export interface GridSettings {
   afterCut?: (data: CellValue[][], coords: RangeType[]) => void;
   afterDeselect?: () => void;
   afterDestroy?: () => void;
-  afterDetachChild?: (parent: RowObject, element: RowObject) => void;
+  afterDetachChild?: (parent: RowObject, element: RowObject, finalElementPosition: number | null) => void;
   afterDialogFocus?: (focusSource: 'tab_from_above' | 'tab_from_below' | 'click' | 'show') => void;
   afterDialogHide?: () => void;
   afterDialogShow?: () => void;
@@ -361,6 +361,10 @@ export interface GridSettings {
   afterRender?: (isForced: boolean) => void;
   afterRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number,
     value: CellValue, cellProperties: CellProperties) => void;
+  afterRowCollapse?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
+    collapsePossible: boolean, successfullyCollapsed: boolean) => void;
+  afterRowExpand?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
+    expandPossible: boolean, successfullyExpanded: boolean) => void;
   afterRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean, orderChanged: boolean) => void;
   afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
@@ -527,6 +531,10 @@ export interface GridSettings {
   beforeRender?: (isForced: boolean) => void;
   beforeRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number,
     value: CellValue, cellProperties: CellProperties) => void;
+  beforeRowCollapse?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
+    collapsePossible: boolean) => void | boolean;
+  beforeRowExpand?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
+    expandPossible: boolean) => void | boolean;
   beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean) => void | boolean;
   beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void | false;
