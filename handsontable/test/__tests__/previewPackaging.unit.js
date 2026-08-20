@@ -70,17 +70,34 @@ describe('preview package composition', () => {
       expect(umdJob).toContain('npm run build:themes-umd.min\n');
     });
 
-    it('should keep the ES + CJS job the only caller that skips the packaging checks', () => {
-      // That job composes a tree without the UMD bundles and the theme stylesheets on purpose. Any
-      // other opt-out means an incomplete package can be published without CI saying a word.
+    it('should compose a publishable package only where the whole package exists', () => {
+      // Both directions matter. A job composing a partial tree with the strict script fails on
+      // every run; a job composing the published tree with the partial script publishes whatever
+      // happens to be there. Both are spelled out, so a new call site has to pick one on purpose.
       const workflowsPath = resolve(__dirname, '../../../.github/workflows');
-      const callers = fse.readdirSync(workflowsPath)
-        .filter(fileName => fileName.endsWith('.yml'))
-        .filter(fileName => readRepoFile(`.github/workflows/${fileName}`).includes('postbuild:partial'));
+      const callers = { strict: [], partial: [] };
 
-      expect(callers).toEqual(['build.yml']);
-      expect(extractJob(readRepoFile('.github/workflows/build.yml'), 'es-cjs'))
-        .toContain('npm run postbuild:partial');
+      fse.readdirSync(workflowsPath)
+        .filter(fileName => fileName.endsWith('.yml'))
+        .forEach((fileName) => {
+          const steps = readRepoFile(`.github/workflows/${fileName}`)
+            .split('\n')
+            .filter(line => !/^\s*#/.test(line));
+
+          steps.forEach((line) => {
+            if (/\bpostbuild:partial\b/.test(line)) {
+              callers.partial.push(fileName);
+            } else if (/\bpostbuild\b/.test(line)) {
+              callers.strict.push(fileName);
+            }
+          });
+        });
+
+      // Only the preview publish composes a complete package.
+      expect(callers.strict).toEqual(['integration.yml']);
+      // The ES + CJS build runs before the UMD bundles and the theme stylesheets exist; the
+      // visual runs compose a tree for screenshots that never reaches a registry.
+      expect(callers.partial.sort()).toEqual(['build.yml', 'visual.yml']);
     });
 
     it('should compose the preview package after the artifacts land and before the publish', () => {

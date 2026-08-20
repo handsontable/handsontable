@@ -26,6 +26,7 @@ const {
  */
 const IS_PARTIAL = process.argv.includes('--partial');
 const COMPLETENESS_ERRORS = [];
+const COPY_DESTINATIONS = [];
 
 /**
  * Report a file that the package definition promises but the composed tree does not hold.
@@ -95,16 +96,23 @@ FILES_TO_COPY.forEach((fileToCopy) => {
 
     const to = path.resolve(`${TARGET_PATH}${file.replace('../', '')}`);
 
+    COPY_DESTINATIONS.push(to);
+
     if (fse.existsSync(from)) {
       fse.copySync(from, to, { overwrite: true });
-
-      if (!fse.existsSync(to)) {
-        reportIncompleteness(`The copied file or directory did not land in the package: ${to}`);
-      }
     } else {
-      reportIncompleteness(`The copy source file or directory does not exist: ${from}`);
+      // Not an error on its own: a caller may compose from artifacts that already carry the
+      // entry (the preview job extracts a `tmp/` built elsewhere). What the package holds is
+      // checked below, on the destination side.
+      displayWarningMessage(`The copy source file or directory does not exist: ${from}`);
     }
   });
+});
+
+COPY_DESTINATIONS.forEach((destination) => {
+  if (!fse.existsSync(destination)) {
+    reportIncompleteness(`The package does not hold a file the copy list declares: ${destination}`);
+  }
 });
 
 /**
