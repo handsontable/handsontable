@@ -229,7 +229,7 @@ If you're using Handsontable in a project that supports commercial activities, y
 
 ## 🙌 Contributing
 
-Contributions are welcome, but before you make them, please read the [Contributing Guide](https://github.com/handsontable/handsontable/blob/develop/CONTRIBUTING.md) and accept the [Contributor License Agreement](https://goo.gl/forms/yuutGuN0RjsikVpM2).
+Contributions are welcome, but before you make them, please read the [Contributing Guide](https://github.com/handsontable/handsontable/blob/develop/CONTRIBUTING.md) and accept the [Contributor License Agreement](https://cla.handsontable.com/sign).
 
 <br>
 <br>

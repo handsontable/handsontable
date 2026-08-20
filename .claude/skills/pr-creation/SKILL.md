@@ -57,7 +57,7 @@ The repository has a PR template at `.github/PULL_REQUEST_TEMPLATE.md`. Fill in 
 - **Types of changes** -- Check the box that applies: bug fix, new feature, breaking change, or translation.
 - **Related issue(s)** -- Link GitHub issues with `#xxx`. Include ClickUp task IDs (e.g. `DEV-627`) so they auto-link.
 - **Affected project(s)** -- Check every package your change touches: `handsontable`, `@handsontable/react-wrapper`, `@handsontable/angular-wrapper`, `@handsontable/vue3`.
-- **Checklist** -- Confirm code style, CLA signature, and whether documentation needs updating.
+- **Checklist** -- Confirm code style, CLA signature, and whether documentation needs updating. The CLA is checked automatically by the required `cla/signed` status check; one signature covers Handsontable and HyperFormula. See [`CONTRIBUTING.md`](../../../CONTRIBUTING.md#contributor-license-agreement).
 
 ## 4. Target Branch
 
@@ -134,7 +134,7 @@ The body file template (write this with the Write tool, backticks and all, no es
 ### Checklist:
 
 - [x] I have reviewed the guidelines about [Contributing to Handsontable](https://github.com/handsontable/handsontable/blob/master/CONTRIBUTING.md) and I confirm that my code follows the code style of this project.
-- [x] I have signed the [Contributor License Agreement](https://docs.google.com/forms/d/e/1FAIpQLScpMq4swMelvw3-onxC8Jl29m0fVp5hpf7d1yQVklqVjGjWGA/viewform?c=0&w=1)
+- [x] I have signed the [Contributor License Agreement](https://cla.handsontable.com/sign) — one signature covers both Handsontable and HyperFormula; the `cla/signed` check on this PR confirms it.
 - [ ] My change requires a change to the documentation.
 
 ClickUp task: https://app.clickup.com/t/9015210959/DEV-xxx

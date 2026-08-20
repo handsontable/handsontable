@@ -191,7 +191,7 @@ Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format. Changel
 - Strict XSS prevention in user-facing cell content.
 - Input sanitization on custom formulas and cell scripts.
 - Safe plugin architecture to minimize attack surfaces.
-- CLA must be signed before merging external contributions.
+- CLA must be signed before merging external contributions. This is enforced automatically: a GitHub App sets the required `cla/signed` status check on every PR, so an unsigned PR cannot be merged — never work around a red CLA check. One signature covers both Handsontable and HyperFormula (it is recorded per GitHub account, not per repository). Process and signing page: <https://cla.handsontable.com/>; contributor-facing summary in [`CONTRIBUTING.md`](CONTRIBUTING.md#contributor-license-agreement).
 
 ---
 
