@@ -1,8 +1,8 @@
 {
-  "issuesOrigin": "private",
+  "issuesOrigin": "public",
   "title": "Fixed the \"filter by value\" list dropping the values that the column's own filter condition filtered out, which made them impossible to select again.",
   "type": "fixed",
-  "issueOrPR": 13212,
+  "issueOrPR": 12226,
   "breaking": false,
   "framework": "none"
 }
