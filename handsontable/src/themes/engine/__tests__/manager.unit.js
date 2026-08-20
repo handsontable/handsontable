@@ -674,26 +674,115 @@ describe('ThemeManager', () => {
         expect(manager.getDensityType()).toBe('comfortable');
       });
 
-      it('should throw on an unsupported colorScheme value', () => {
+      it('should warn and ignore an unsupported colorScheme value instead of throwing', () => {
         const mockHot = createMockHot();
-        const themeObject = createTheme(createValidThemeConfig());
+        const themeObject = createTheme(createValidThemeConfig({ colorScheme: 'light' }));
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        let manager;
 
-        expect(() => new ThemeManager({
-          hot: mockHot,
-          themeObject,
-          overrides: { colorScheme: 'sepia' },
-        })).toThrow('[ThemeBuilder] Invalid color scheme: "sepia".');
+        // Throwing here would abort `updateSettings()` half way through and leave the bad value in
+        // the grid meta, which then breaks every later theme change.
+        expect(() => {
+          manager = new ThemeManager({
+            hot: mockHot,
+            themeObject,
+            overrides: { colorScheme: 'sepia' },
+          });
+        }).not.toThrow();
+
+        expect(warnSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Ignoring the `colorScheme` option')
+        );
+        expect(manager.getOverrides().colorScheme).toBeUndefined();
+        expect(manager.getColorScheme()).toBe('light');
+
+        warnSpy.mockRestore();
       });
 
-      it('should throw on an unsupported density value', () => {
+      it('should warn and ignore an unsupported density value instead of throwing', () => {
         const mockHot = createMockHot();
         const themeObject = createTheme(createValidThemeConfig());
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        let manager;
 
-        expect(() => new ThemeManager({
+        expect(() => {
+          manager = new ThemeManager({
+            hot: mockHot,
+            themeObject,
+            overrides: { density: 'roomy' },
+          });
+        }).not.toThrow();
+
+        expect(warnSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Ignoring the `density` option')
+        );
+        expect(manager.getOverrides().density).toBeUndefined();
+
+        warnSpy.mockRestore();
+      });
+
+      it('should keep the applied value when a later update is unsupported', () => {
+        const mockHot = createMockHot();
+        const themeObject = createTheme(createValidThemeConfig());
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const manager = new ThemeManager({
           hot: mockHot,
           themeObject,
-          overrides: { density: 'roomy' },
-        })).toThrow('[ThemeBuilder] Invalid density: "roomy".');
+          overrides: { colorScheme: 'dark' },
+        });
+
+        expect(manager.setOverrides({ colorScheme: 'sepia' })).toBe(false);
+        expect(manager.getOverrides().colorScheme).toBe('dark');
+
+        warnSpy.mockRestore();
+      });
+
+      it.each([[null], [false], ['']])('should treat %p as clearing the override', (emptyValue) => {
+        const mockHot = createMockHot();
+        const themeObject = createTheme(createValidThemeConfig({ colorScheme: 'light' }));
+        const manager = new ThemeManager({
+          hot: mockHot,
+          themeObject,
+          overrides: { colorScheme: 'dark' },
+        });
+
+        expect(manager.setOverrides({ colorScheme: emptyValue })).toBe(true);
+        expect(manager.getOverrides().colorScheme).toBeUndefined();
+        expect(manager.getColorScheme()).toBe('light');
+      });
+
+      it('should warn when the theme has no sizes for the requested density', () => {
+        const mockHot = createMockHot();
+        // `createTheme()` backfills every built-in density preset, so a theme that genuinely lacks
+        // one can only arrive as a custom object exposing `getThemeConfig()`. That is the path core
+        // takes for any `theme` option that already looks like a builder.
+        const themeObject = {
+          getThemeConfig: () => ({
+            name: 'partial-theme',
+            colorScheme: 'light',
+            density: { type: 'default', sizes: { default: { cellVertical: 'sizing.size_1' } } },
+            colors: {},
+            tokens: {},
+            icons: {},
+          }),
+        };
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+        const manager = new ThemeManager({
+          hot: mockHot,
+          themeObject,
+          overrides: { density: 'comfortable' },
+        });
+
+        // Without the warning the option looks applied while nothing changes on screen. No scoped
+        // rule is emitted at all here, since density was the only override requested.
+        expect(warnSpy).toHaveBeenCalledWith(
+          expect.stringContaining('has no "comfortable" density sizes')
+        );
+        expect(manager.themeStyles.textContent).not.toContain(manager.scopeClassName);
+        expect(manager.getDensityType()).toBe('comfortable');
+
+        warnSpy.mockRestore();
       });
 
       it('should keep the overrides after the theme object is updated', () => {

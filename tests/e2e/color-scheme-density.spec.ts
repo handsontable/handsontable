@@ -9,6 +9,10 @@ import { ColorSchemeDensityPage } from '../fixtures/pages/ColorSchemeDensityPage
  * spacing. The checks below read computed styles and rendered box sizes — the
  * result a user actually sees — rather than the CSS text the engine injected.
  */
+// Every grid in the fixture renders the engine-driven `main` theme and the fixture always loads
+// `ht-theme-main.min.css`, so every leg of the matrix exercises the real specificity scenario. The
+// theme axis is therefore redundant here rather than misleading, and the bundle axis is genuine —
+// the engine builds its CSS at runtime.
 test.describe('colorScheme and density options', () => {
   test('applies colorScheme set at construction time', async({ page, theme, bundle }) => {
     const grid = new ColorSchemeDensityPage(page, theme, bundle);
@@ -105,6 +109,47 @@ test.describe('colorScheme and density options', () => {
     expect(await grid.cellHeightOf('b')).toBe(controlHeight);
   });
 
+  test('can change an override that was set at construction time', async({ page, theme, bundle }) => {
+    const grid = new ColorSchemeDensityPage(page, theme, bundle);
+
+    await grid.goto();
+
+    // Grid C is built with `colorScheme: 'dark'` and `density: 'compact'`.
+    expect(await grid.colorSchemeOf('c')).toBe('dark');
+
+    const compactHeight = await grid.cellHeightOf('c');
+
+    await grid.clickToolbar('c-set-light');
+
+    // Core builds a ThemeManager twice during startup. While the first one was left in the DOM its
+    // <style> node sat later in source order at the same specificity, so its construction-time
+    // rules beat everything the live manager wrote afterwards and this change did nothing.
+    await expect.poll(() => grid.colorSchemeOf('c')).toBe('light');
+    expect(await grid.cellHeightOf('c')).toBeGreaterThan(compactHeight);
+  });
+
+  test('leaves one theme style node per grid', async({ page, theme, bundle }) => {
+    const grid = new ColorSchemeDensityPage(page, theme, bundle);
+
+    await grid.goto();
+
+    // Two nodes would mean an orphaned ThemeManager is still holding stale override rules.
+    expect(await grid.themeStyleNodeCountOf('a')).toBe(1);
+    expect(await grid.themeStyleNodeCountOf('c')).toBe(1);
+  });
+
+  test('clears an override that was set at construction time', async({ page, theme, bundle }) => {
+    const grid = new ColorSchemeDensityPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await grid.clickToolbar('c-reset');
+
+    // Falls back to the theme values, which is what the control grid already renders.
+    await expect.poll(() => grid.colorSchemeOf('c')).toBe(await grid.colorSchemeOf('b'));
+    expect(await grid.cellHeightOf('c')).toBe(await grid.cellHeightOf('b'));
+  });
+
   test('keeps the overrides when the theme engine is rebuilt', async({ page, theme, bundle }) => {
     const grid = new ColorSchemeDensityPage(page, theme, bundle);
 
@@ -124,6 +169,35 @@ test.describe('colorScheme and density options', () => {
 
     await expect.poll(() => grid.colorSchemeOf('a')).toBe('dark');
     expect(await grid.cellHeightOf('a')).toBe(darkCompactHeight);
+  });
+
+  test('warns once, and only for a real value, when the theme engine is not active', async({
+    page, theme, bundle,
+  }) => {
+    const grid = new ColorSchemeDensityPage(page, theme, bundle);
+    const warnings = grid.collectWarnings();
+    const engineWarnings = () => warnings.filter(text => text.includes('require the theme engine'));
+
+    await grid.goto();
+
+    // Grid D takes its theme from a CSS class name, so it has no ThemeManager.
+    expect(engineWarnings()).toHaveLength(0);
+
+    // Clearing the options is documented, and a framework wrapper re-sends every prop on each
+    // render. Neither should produce a warning for a grid that never asked for these options.
+    await grid.clickToolbar('d-reset');
+    await grid.clickToolbar('d-reset');
+
+    expect(engineWarnings()).toHaveLength(0);
+
+    // Asking for a real value is worth one notice — and only one.
+    await grid.clickToolbar('d-set-dark');
+    await expect.poll(() => engineWarnings().length).toBe(1);
+
+    await grid.clickToolbar('d-set-dark');
+    await grid.clickToolbar('d-set-dark');
+
+    expect(engineWarnings()).toHaveLength(1);
   });
 
   test('applies the colorScheme to menus rendered in the grid portal', async({ page, theme, bundle }) => {

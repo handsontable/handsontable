@@ -18,12 +18,13 @@
     if (!window.htTheme) {
       throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
     }
-    // Written into <head> so the themed stylesheet is present before first render.
-    // Deliberately the MINIFIED file: its light/dark colors are switched by theme
-    // class name rather than by the color-scheme property, and they out-specify
-    // the ones the engine generates. That makes it the strictest configuration
-    // for the colorScheme override, so it is the one worth covering.
-    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // Always the MINIFIED **main** stylesheet, never `?theme=`. Every grid here runs the
+    // engine-driven `main` theme, so only `.ht-theme-main` selectors can ever match — loading
+    // ht-theme-horizon.min.css would put rules on the page that match nothing and quietly turn
+    // the test into a no-op. Minified is the point: its light/dark colors are switched by theme
+    // class name rather than by the color-scheme property, and they out-specify the ones the
+    // engine generates, which is the strictest case for the colorScheme override.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-main.min.css">');
     // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
     // handsontable.full.min.js, the exact file `test:production` loads).
     window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
@@ -46,13 +47,18 @@
     class and no `theme` option, core registers the default `main` theme through
     the engine — the "works out of the box" path the ticket asks for.
 
-    The MINIFIED themed stylesheet is loaded on purpose. The CSS minifier
+    The MINIFIED `main` stylesheet is loaded on purpose. The CSS minifier
     rewrites `light-dark()` into a pair of `--lightningcss-*` variables switched
     by theme class name, because native `light-dark()` is newer than the browsers
     Handsontable supports. Those declarations out-specify the ones the engine
     generates, so a grid that merely flipped `color-scheme` would keep the light
     colors. The manager therefore emits the resolved light or dark value for
     every light/dark token, and this fixture is what proves it.
+
+    It is always the `main` stylesheet, never the one named by `?theme=`, because
+    every grid here renders the engine-driven `main` theme. The spec pins itself
+    to the `main` theme leg for the same reason, and keeps the bundle axis, which
+    is real — the engine builds its CSS at runtime.
 
     Three grids share the one registered `main` theme object. Grid A takes the
     overrides, grid B is the control proving they do not leak, and grid C sets
@@ -66,6 +72,10 @@
     <button data-testid="reset-overrides" type="button">Reset</button>
     <button data-testid="theme-as-class" type="button">Theme as class name</button>
     <button data-testid="theme-as-object" type="button">Theme as object</button>
+    <button data-testid="c-set-light" type="button">Grid C &rarr; light</button>
+    <button data-testid="c-reset" type="button">Grid C &rarr; reset</button>
+    <button data-testid="d-reset" type="button">Grid D &rarr; reset</button>
+    <button data-testid="d-set-dark" type="button">Grid D &rarr; dark</button>
   </div>
 
   <div class="grid-slot">
@@ -76,6 +86,11 @@
   </div>
   <div class="grid-slot">
     <div id="grid-c" data-testid="grid-c"></div>
+  </div>
+  <!-- Grid D takes its theme from a CSS class name, so core skips the theme engine and both
+       options have nothing to act on. It is here to check the warning behaves. -->
+  <div class="grid-slot">
+    <div id="grid-d" data-testid="grid-d" class="ht-theme-main"></div>
   </div>
 
   <script>
@@ -118,10 +133,14 @@
       density: 'compact',
     });
 
+    // Grid D's container carries the theme class, so the theme engine is skipped for it.
+    const hotD = new Handsontable(document.querySelector('[data-testid="grid-d"]'), baseSettings('d'));
+
     // Exposed so a spec can read grid state directly when a computed style is not enough.
     window.hotA = hotA;
     window.hotB = hotB;
     window.hotC = hotC;
+    window.hotD = hotD;
 
     const onClick = (testId, settings) => {
       document.querySelector(`[data-testid="${testId}"]`)
@@ -144,6 +163,24 @@
     const otherThemeName = ['main', 'horizon', 'classic'].find(name => name !== window.htTheme);
 
     onClick('theme-as-class', { theme: `ht-theme-${otherThemeName}` });
+
+    // Grid C got its overrides at construction time. Changing them afterwards is the case that
+    // an orphaned ThemeManager used to block, so it needs its own controls.
+    const onClickC = (testId, settings) => {
+      document.querySelector(`[data-testid="${testId}"]`)
+        .addEventListener('click', () => hotC.updateSettings(settings));
+    };
+
+    onClickC('c-set-light', { colorScheme: 'light', density: 'default' });
+    onClickC('c-reset', { colorScheme: undefined, density: undefined });
+
+    const onClickD = (testId, settings) => {
+      document.querySelector(`[data-testid="${testId}"]`)
+        .addEventListener('click', () => hotD.updateSettings(settings));
+    };
+
+    onClickD('d-reset', { colorScheme: undefined, density: undefined });
+    onClickD('d-set-dark', { colorScheme: 'dark' });
     document.querySelector('[data-testid="theme-as-object"]')
       .addEventListener('click', () => {
         hotA.updateSettings({ theme: Handsontable.themes.getTheme('main') });

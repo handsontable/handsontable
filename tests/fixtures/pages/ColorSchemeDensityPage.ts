@@ -24,6 +24,22 @@ export class ColorSchemeDensityPage {
   }
 
   /**
+   * Start collecting console warnings. Call before `goto()`; the returned array fills up as the
+   * page logs. Used to check that the "needs the theme engine" notice is neither missing nor noisy.
+   */
+  collectWarnings(): string[] {
+    const warnings: string[] = [];
+
+    this.page.on('console', (message) => {
+      if (message.type() === 'warning') {
+        warnings.push(message.text());
+      }
+    });
+
+    return warnings;
+  }
+
+  /**
    * Navigate to the fixture and wait until all three grids have rendered.
    */
   async goto(): Promise<void> {
@@ -31,7 +47,7 @@ export class ColorSchemeDensityPage {
       `/tests/fixtures/demo/color-scheme-density.html?theme=${this.theme}&bundle=${this.bundle}`
     );
 
-    for (const grid of ['a', 'b', 'c']) {
+    for (const grid of ['a', 'b', 'c', 'd']) {
       await expect(this.cell(grid, 0, 0)).toBeVisible();
     }
   }
@@ -97,6 +113,14 @@ export class ColorSchemeDensityPage {
     }
 
     return box.height;
+  }
+
+  /**
+   * How many theme `<style>` nodes a grid's wrapper holds. Should always be one — a second node
+   * means a ThemeManager was replaced without being torn down, and its stale rules still apply.
+   */
+  async themeStyleNodeCountOf(grid: string): Promise<number> {
+    return this.wrapper(grid).locator('style[data-hot-theme-style]').count();
   }
 
   /** The value of a CSS custom property resolved on a grid's wrapper. */

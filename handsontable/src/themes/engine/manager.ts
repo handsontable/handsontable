@@ -1,5 +1,6 @@
 import { iconsMap } from '../static/variables/helpers/iconsMap';
 import { throwWithCause } from '../../helpers/errors';
+import { warn } from '../../helpers/console';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { flattenCssVariables } from './utils/cssVariables';
 import { validateColorScheme, validateDensityType } from './utils/validation';
@@ -145,25 +146,59 @@ export class ThemeManager {
   }
 
   /**
+   * Resolves one override value coming from the grid settings.
+   *
+   * This is a settings boundary, so it never throws. An empty value clears the override, and an
+   * unsupported one is reported and ignored — throwing here would abort `updateSettings()` half way
+   * through and leave the bad value stored in the grid meta, breaking every later theme change.
+   *
+   * @param {*} value The raw value from the settings.
+   * @param {string} optionName The option name, used in the warning.
+   * @param {Function} validate The validator for the option, which throws on an unsupported value.
+   * @param {*} currentValue The value currently applied, kept when the new one is unsupported.
+   * @returns {*} The resolved value, or `undefined` when the override is cleared.
+   */
+  #resolveOverrideValue<T>(
+    value: unknown,
+    optionName: string,
+    validate: (candidate: string) => T,
+    currentValue: T | undefined
+  ): T | undefined {
+    // Treat every empty value the same as `undefined` — all of them mean "use the theme value".
+    if (value === undefined || value === null || value === false || value === '') {
+      return undefined;
+    }
+
+    try {
+      return validate(String(value));
+    } catch {
+      warn(`[ThemeManager] Ignoring the \`${optionName}\` option: ${JSON.stringify(value)} is not ` +
+        'a supported value.');
+
+      return currentValue;
+    }
+  }
+
+  /**
    * Validates and stores the per-instance overrides.
    *
-   * @param {object} overrides The color scheme and density overrides. An `undefined` value clears
-   * the given override and falls back to the theme configuration.
+   * @param {object} overrides The color scheme and density overrides. An empty value clears the
+   * given override and falls back to the theme configuration.
    * @returns {boolean} `true` when the effective overrides changed.
    */
   #setOverrides(overrides: ThemeOverridesInput): boolean {
     const nextOverrides: ThemeOverrides = { ...this.#overrides };
 
     if (Object.prototype.hasOwnProperty.call(overrides, 'colorScheme')) {
-      nextOverrides.colorScheme = overrides.colorScheme === undefined ?
-        undefined :
-        validateColorScheme(String(overrides.colorScheme));
+      nextOverrides.colorScheme = this.#resolveOverrideValue(
+        overrides.colorScheme, 'colorScheme', validateColorScheme, this.#overrides.colorScheme
+      );
     }
 
     if (Object.prototype.hasOwnProperty.call(overrides, 'density')) {
-      nextOverrides.density = overrides.density === undefined ?
-        undefined :
-        validateDensityType(String(overrides.density));
+      nextOverrides.density = this.#resolveOverrideValue(
+        overrides.density, 'density', validateDensityType, this.#overrides.density
+      );
     }
 
     const hasChanged = nextOverrides.colorScheme !== this.#overrides.colorScheme ||
@@ -228,6 +263,12 @@ export class ThemeManager {
 
     if (densitySizes) {
       cssText += `${selector} {\n${flattenCssVariables(densitySizes, 'density')}}\n`;
+
+    } else if (density) {
+      // A custom theme may not define every preset. Say so instead of leaving the option looking
+      // applied while nothing changes on screen.
+      warn(`[ThemeManager] The "${this.themeConfig?.name}" theme has no "${density}" density sizes, ` +
+        'so the `density` option has no effect. Add the sizes to the theme configuration.');
     }
 
     if (colorScheme) {

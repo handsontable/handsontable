@@ -269,6 +269,9 @@ export default function Core(
   let focusGridManager: FocusGridManager;
   let viewportScroller: ViewportScrollerInstance;
   let firstRun: boolean | [null, string] = true;
+  // Guards the "colorScheme/density need the theme engine" warning so it is logged once per
+  // instance instead of on every `updateSettings()` call that carries the options.
+  let themeOverridesWarningShown = false;
   // Set only when the table is initialized while invisible (see the `init` method). Kept in the closure, not on
   // the instance, because `destroy` nulls every instance property before it could be read there.
   let visibilityObserver: IntersectionObserver | null = null;
@@ -1753,29 +1756,45 @@ export default function Core(
    *
    * @param {object} settings - The settings object that may carry the overrides.
    * @param {boolean} init - `true` when called during initialization. The initial styles are
-   * injected by the ThemeManager constructor, so no re-render is needed in that case.
+   * injected by the ThemeManager constructor, so nothing has to be refreshed in that case.
+   * @returns {boolean} `true` when the overrides changed and `afterSetTheme` still has to run.
    */
-  function applyThemeOverrides(settings: GridSettings, init: boolean) {
-    if (!hasOwnProperty(settings, 'colorScheme') && !hasOwnProperty(settings, 'density')) {
-      return;
+  function applyThemeOverrides(settings: GridSettings, init: boolean): boolean {
+    const overrides = readThemeOverrides(settings);
+
+    if (!hasOwnProperty(overrides, 'colorScheme') && !hasOwnProperty(overrides, 'density')) {
+      return false;
     }
 
     if (!instance.themeManager) {
-      warn('The `colorScheme` and `density` options require the theme engine, so they have no ' +
-        'effect when the theme is enabled by a CSS class name. Pass a theme config object or a ' +
-        '`ThemeBuilder` instance to the `theme` option, or remove the `ht-theme-*` class from the ' +
-        'container element to use the default theme.');
+      // Only complain when a value is actually asked for. Clearing the options is documented, and a
+      // framework wrapper re-sends every prop on each render, so warning on key presence alone
+      // would fill the console for grids that never used these options.
+      const isValueRequested = (overrides.colorScheme ?? overrides.density) !== undefined;
 
-      return;
+      if (isValueRequested && !themeOverridesWarningShown) {
+        themeOverridesWarningShown = true;
+
+        warn('The `colorScheme` and `density` options require the theme engine, so they have no ' +
+          'effect when the theme is enabled by a CSS class name. Pass a theme config object or a ' +
+          '`ThemeBuilder` instance to the `theme` option, or remove the `ht-theme-*` class from ' +
+          'the container element to use the default theme.');
+      }
+
+      return false;
     }
 
-    const hasChanged = instance.themeManager.setOverrides(readThemeOverrides(settings));
+    const hasChanged = instance.themeManager.setOverrides(overrides);
 
-    if (hasChanged && !init) {
-      instance.stylesHandler.clearCache();
-      instance.render();
-      instance.runHooks('afterSetTheme', instance.themeManager.getClassName(), false);
+    if (!hasChanged || init) {
+      return false;
     }
+
+    // Clear the cache here so the render at the end of `updateSettings` measures the new sizes.
+    // Rendering here as well would paint once with stale meta and then immediately paint again.
+    instance.stylesHandler.clearCache();
+
+    return true;
   }
 
   /**
@@ -1786,6 +1805,12 @@ export default function Core(
    */
   function initializeThemeManager(theme?: ThemeBuilder, overrides?: ThemeOverridesInput) {
     let themeObject;
+
+    // Tear the previous manager down first. Without this its `<style>` node stays in the wrapper,
+    // and because a new manager prepends its own node the orphan ends up LATER in source order —
+    // so at the same specificity the orphan's override rules win and the grid can never change or
+    // reset a `colorScheme` or `density` that was set at construction time.
+    instance.themeManager?.destroy();
 
     if (typeof theme === 'undefined') {
       if (hasTheme('main')) {
@@ -3467,7 +3492,7 @@ export default function Core(
       }
     }
 
-    applyThemeOverrides(settings, init);
+    const themeOverridesChanged = applyThemeOverrides(settings, init);
 
     // Load data or create data map
     if (instance.runHooks('hasExternalDataSource') === true) {
@@ -3673,6 +3698,11 @@ export default function Core(
     if (instance.view && !firstRun) {
       instance.render();
       instance.view._wt.wtOverlays.adjustElementsSize();
+    }
+
+    // Fired after the render above, so a listener reading cell sizes sees the new density.
+    if (themeOverridesChanged) {
+      instance.runHooks('afterSetTheme', instance.themeManager!.getClassName(), false);
     }
 
     if (!init && instance.view && (currentHeight === '' || height === '' || height === undefined) &&
