@@ -130,7 +130,7 @@ Use this data grid as you would any other component in your application. [Option
 </script>
 ```
 
-[![Static Badge](https://img.shields.io/badge/View%20live%20demo-1a42e8?style=for-the-badge)](https://handsontable.com/docs/javascript-data-grid/vue3-basic-example/)
+[![Static Badge](https://img.shields.io/badge/View%20live%20demo-1a42e8?style=for-the-badge)](https://demos.handsontable.com/d/3g3uq4y44y/)
 
 </div>
 

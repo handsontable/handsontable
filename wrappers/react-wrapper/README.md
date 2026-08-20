@@ -116,7 +116,7 @@ const ExampleComponent = () => {
 };
 ```
 
-[![Static Badge](https://img.shields.io/badge/View%20live%20demo-1a42e8?style=for-the-badge)](https://handsontable.com/docs/react-data-grid/demo)
+[![Static Badge](https://img.shields.io/badge/View%20live%20demo-1a42e8?style=for-the-badge)](https://demos.handsontable.com/d/5x45f1o3qn/)
 
 </div>
 
