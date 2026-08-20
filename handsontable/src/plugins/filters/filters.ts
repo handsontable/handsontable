@@ -1506,13 +1506,15 @@ export class Filters extends BasePlugin {
 
     // Rows are correlated through the entry's own `row` property - the coordinate stamps on `meta`
     // are shared with every other meta reader and may have been overwritten since.
+    // `DataFilter` is typed against `unknown[]` throughout, so its entries are narrowed here - the
+    // same boundary cast `DataFilter.filter()` and `ConditionUpdateObserver` already make.
     const survivingRows = arrayMap(this._createDataFilter(splitConditionCollection).filter(),
       rowData => (rowData as { row: number }).row);
     const survivingRowsAssertion = createArrayAssertion(survivingRows);
 
     splitConditionCollection.destroy();
 
-    return arrayFilter(allRows, rowData => survivingRowsAssertion((rowData as { row: number }).row));
+    return arrayFilter(allRows, rowData => survivingRowsAssertion(rowData.row));
   }
 
   /**

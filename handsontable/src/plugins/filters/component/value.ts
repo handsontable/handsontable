@@ -4,7 +4,7 @@ import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import { arrayEach, arrayFilter, arrayMap } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import * as C from '../../../i18n/constants';
-import { unifyColumnValues, intersectValues, toEmptyString } from '../utils';
+import { unifyColumnValues, intersectValues } from '../utils';
 import { getSortComparatorForMeta } from '../sortComparators';
 import { BaseComponent } from './_base';
 import { MultipleSelectUI } from '../ui/multipleSelect';
