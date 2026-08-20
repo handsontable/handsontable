@@ -2991,6 +2991,31 @@ describe('Formulas general', () => {
         [7],
       ]);
     });
+
+    it('should pass a text-cell value set via setSourceDataAtCell() to the engine as a string', async() => {
+      handsontable({
+        data: [
+          ['x'],
+          ['=LEN(A1)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+          preserveTextValues: true,
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await setSourceDataAtCell(0, 0, '0123456');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['0123456'],
+        [7],
+      ]);
+    });
   });
 
   describe('handling numeric values', () => {

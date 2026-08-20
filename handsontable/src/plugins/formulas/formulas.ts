@@ -1600,6 +1600,14 @@ export class Formulas extends BasePlugin {
 
       newValue = normalizeValueForFormulaEngine(newValue);
 
+      const cellMeta = this.hot.getCellMetaTransient(visualRow, visualColumn);
+
+      if (isPreservedText(newValue, cellMeta)) {
+        // Escaping the value from the engine's value parsing using the "'" sign
+        // (the engine's string-escape mechanism).
+        newValue = escapeTextValue(newValue);
+      }
+
       changedCells.push({ address });
       dependentCells.push(...this.engine!.setCellContents(address, newValue));
     });
