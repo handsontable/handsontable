@@ -85,7 +85,16 @@ The LTS model is designed to minimize disruption while ensuring applications sta
 
 Backporting involves taking specific fixes from newer versions and retrofitting (cherry-picking) them to LTS releases, ensuring production systems receive critical updates without the disruption of major upgrades. Our backport policy prioritizes stability while addressing essential security and reliability concerns.
 
-The backport process is selective and risk-aware. Not all fixes from newer versions are suitable for backporting—only those that meet strict criteria for importance and stability. This approach ensures LTS releases remain stable and predictable while still receiving necessary updates.
+The backport process is selective and risk-aware. Not all fixes from newer versions are suitable for backporting -- only those that meet strict criteria for importance and stability. This approach ensures LTS releases remain stable and predictable while still receiving necessary updates.
+
+Two things are assessed for every fix: its **severity**, which decides whether it is backported, and its **regression status**, which decides how urgently.
+
+### Severity levels
+
+*   **Critical** -- the grid is unusable or data integrity is at risk: it fails to render, throws on a documented configuration, corrupts or loses data, or a core interaction (scrolling, editing, selection) is permanently broken.
+*   **Major** -- a documented feature does not work as specified, but a workaround exists or the impact is limited to a specific configuration.
+*   **Minor** -- cosmetic or transient issues that do not prevent completing a task, including visual artifacts that resolve on their own.
+*   **Performance** -- the grid works correctly, but slower than a previous release.
 
 ### Backport Decision Matrix
 
@@ -101,8 +110,22 @@ The following matrix defines which types of fixes are backported to each support
 
 *   **Security vulnerabilities** receive immediate attention across all supported versions, including those in Maintenance LTS. These fixes are prioritized and released as quickly as possible to protect production deployments.
 *   **Critical bugs** that significantly impact functionality are backported to Active LTS releases in the next patch version. These fixes undergo thorough testing to ensure they don't introduce new issues.
-*   **Bugs and performance improvements** are backported to Active LTS only when they present low risk and critical importance. The evaluation considers the fix complexity, potential for regression, and number of affected users
-*   **New features** are never backported to LTS releases. This policy maintains the stability promise of LTS versions—users can confidently apply updates knowing they contain only fixes, not functionality changes that might require application modifications.
+*   **Bugs and performance improvements** are backported to Active LTS only when they present low risk and critical importance. The evaluation considers the fix complexity, potential for regression, and number of affected users.
+*   **New features** are never backported to LTS releases. This policy maintains the stability promise of LTS versions -- users can confidently apply updates knowing they contain only fixes, not functionality changes that might require application modifications.
+
+### Regressions
+
+A regression is a defect in behavior that worked before. Regression status does not change which column of the matrix a fix lands in, but it does change how quickly the fix is scheduled. A long-standing defect is not disqualified from a backport by its age -- it is assessed on severity alone.
+
+| Type | Definition | Effect on urgency |
+| ---| ---| --- |
+| Version regression | Worked in an earlier release of the same LTS line, broke in a later one | Normal -- scheduled into the next patch |
+| Environment regression | Worked with a previous browser or dependency version, broke with a new one | Elevated -- you changed nothing, so we treat it as a compatibility guarantee |
+| Long-standing defect | Never worked in this LTS line; fixed only in a later major | None -- assessed on severity alone |
+
+Keeping the Active LTS line working on current browser versions is part of the LTS commitment, so environment regressions are triaged ahead of other work at the same severity.
+
+A browser update that *exposes* a defect already present in the LTS line is not an environment regression. To qualify, the same Handsontable version must be verifiably working on the previous browser version, so a reproduction on both the previous and the new browser version is required before a report is treated as one.
 
 ## Support Commitment
 
