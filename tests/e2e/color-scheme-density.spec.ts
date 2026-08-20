@@ -105,6 +105,27 @@ test.describe('colorScheme and density options', () => {
     expect(await grid.cellHeightOf('b')).toBe(controlHeight);
   });
 
+  test('keeps the overrides when the theme engine is rebuilt', async({ page, theme, bundle }) => {
+    const grid = new ColorSchemeDensityPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await grid.clickToolbar('set-dark');
+    await grid.clickToolbar('set-compact');
+    await expect.poll(() => grid.colorSchemeOf('a')).toBe('dark');
+
+    const darkCompactHeight = await grid.cellHeightOf('a');
+
+    // Switching to a class-named theme tears the theme engine down, and switching back to a
+    // theme object builds a new ThemeManager. The options are still set on the grid, so the
+    // rebuilt manager has to pick them up again instead of starting empty.
+    await grid.clickToolbar('theme-as-class');
+    await grid.clickToolbar('theme-as-object');
+
+    await expect.poll(() => grid.colorSchemeOf('a')).toBe('dark');
+    expect(await grid.cellHeightOf('a')).toBe(darkCompactHeight);
+  });
+
   test('applies the colorScheme to menus rendered in the grid portal', async({ page, theme, bundle }) => {
     const grid = new ColorSchemeDensityPage(page, theme, bundle);
 

@@ -64,6 +64,8 @@
     <button data-testid="set-compact" type="button">Compact</button>
     <button data-testid="set-comfortable" type="button">Comfortable</button>
     <button data-testid="reset-overrides" type="button">Reset</button>
+    <button data-testid="theme-as-class" type="button">Theme as class name</button>
+    <button data-testid="theme-as-object" type="button">Theme as object</button>
   </div>
 
   <div class="grid-slot">
@@ -116,6 +118,11 @@
       density: 'compact',
     });
 
+    // Exposed so a spec can read grid state directly when a computed style is not enough.
+    window.hotA = hotA;
+    window.hotB = hotB;
+    window.hotC = hotC;
+
     const onClick = (testId, settings) => {
       document.querySelector(`[data-testid="${testId}"]`)
         .addEventListener('click', () => hotA.updateSettings(settings));
@@ -126,6 +133,21 @@
     onClick('set-compact', { density: 'compact' });
     onClick('set-comfortable', { density: 'comfortable' });
     onClick('reset-overrides', { colorScheme: undefined, density: undefined });
+
+    // Switching to a class-named theme drops the theme engine, and switching back to a
+    // theme object builds a new ThemeManager. The overrides already stored on the grid
+    // must survive that round trip.
+    //
+    // The name has to DIFFER from the one in use, otherwise core treats the update as a
+    // no-op and never tears the engine down. Its stylesheet is not loaded, so core warns
+    // about the missing styles — that is expected and does not affect what is asserted.
+    const otherThemeName = ['main', 'horizon', 'classic'].find(name => name !== window.htTheme);
+
+    onClick('theme-as-class', { theme: `ht-theme-${otherThemeName}` });
+    document.querySelector('[data-testid="theme-as-object"]')
+      .addEventListener('click', () => {
+        hotA.updateSettings({ theme: Handsontable.themes.getTheme('main') });
+      });
   </script>
 </body>
 </html>

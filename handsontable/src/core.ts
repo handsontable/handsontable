@@ -1615,7 +1615,7 @@ export default function Core(
       !rootContainerThemeClassName &&
       (isObject(theme) || (!theme && !themeName))
     ) {
-      initializeThemeManager(theme as ThemeBuilder | undefined, readThemeOverrides(tableMeta));
+      initializeThemeManager(theme as ThemeBuilder | undefined, readStoredThemeOverrides());
     }
 
     dataSource.setData(tableMeta.data);
@@ -1726,6 +1726,23 @@ export default function Core(
     }
 
     return overrides;
+  }
+
+  /**
+   * Reads the color scheme and density currently configured on this instance.
+   *
+   * Unlike `readThemeOverrides()`, this reads the effective values rather than only the keys that
+   * one payload carries. `updateSettings()` stores grid options on the global meta, which the table
+   * meta inherits through its prototype, so an own-property check would miss them. Use this when
+   * rebuilding a ThemeManager, which has to pick up options set by an earlier call.
+   *
+   * @returns {object} The theme overrides object.
+   */
+  function readStoredThemeOverrides(): ThemeOverridesInput {
+    return {
+      colorScheme: tableMeta.colorScheme,
+      density: tableMeta.density,
+    };
   }
 
   /**
@@ -3429,7 +3446,9 @@ export default function Core(
         isObject(settings.theme)
       ) {
         if (instance.themeManager === null) {
-          initializeThemeManager(settings.theme as ThemeBuilder);
+          // Read the overrides from `tableMeta`, not from this payload. The options may have been
+          // set by an earlier call, and the manager being rebuilt here starts with none of them.
+          initializeThemeManager(settings.theme as ThemeBuilder, readStoredThemeOverrides());
           instance.useTheme(instance.themeManager!.getClassName());
 
         } else {
