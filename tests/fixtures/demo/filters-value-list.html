@@ -14,7 +14,11 @@
     // mislabeled green one (nothing else asserts which file actually loaded).
     const htParams = new URLSearchParams(location.search);
 
-    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    // Null-prototype maps, so an inherited key ('constructor', 'toString', ...) cannot pass as a value.
+    const htThemes = Object.assign(Object.create(null), { main: 'main', horizon: 'horizon', classic: 'classic' });
+    const htBundles = Object.assign(Object.create(null), { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' });
+
+    window.htTheme = htThemes[htParams.get('theme') ?? 'main'];
     if (!window.htTheme) {
       throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
     }
@@ -22,7 +26,7 @@
     document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
     // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
     // handsontable.full.min.js, the exact file `test:production` loads).
-    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    window.htBundle = htBundles[htParams.get('bundle') ?? 'umd'];
     if (!window.htBundle) {
       throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
     }

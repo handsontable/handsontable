@@ -86,6 +86,29 @@ test.describe('Filters — "filter by value" list', () => {
       expect(await grid.columnValues(0)).toEqual(['Charlie']);
     });
 
+  test('another column\'s list follows the filtered column even after it was confirmed once',
+    async({ page, theme, bundle }) => {
+      const grid = new FiltersValueListPage(page, theme, bundle);
+
+      await grid.goto();
+
+      // Confirming a column's menu stores its component state. That stored list must not outlive
+      // the filtering, or the column freezes on the values it happened to hold at that moment.
+      await grid.openMenu('Color');
+      await grid.confirmMenu();
+
+      await grid.openMenu('Name');
+      await grid.applyCondition('Contains', 'li');
+      await grid.confirmMenu();
+
+      await grid.openMenu('Color');
+
+      expect(await grid.listedValues()).toEqual([
+        { checked: true, label: 'Blue' },
+        { checked: true, label: 'Red' },
+      ]);
+    });
+
   test('another column\'s list stays narrowed down by the filtered column', async({ page, theme, bundle }) => {
     const grid = new FiltersValueListPage(page, theme, bundle);
 

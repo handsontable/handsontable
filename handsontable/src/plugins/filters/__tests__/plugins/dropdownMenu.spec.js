@@ -782,8 +782,8 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     const checkedArray = checkboxes.map(element => element.checked);
 
     // The column carries 3 regular conditions plus a `by_value` one, which is more than the menu can
-    // display - the plugin warns and leaves the components showing the last state it could build.
-    // That state lists all of the column's values, unnarrowed by its own conditions (issue #12226).
+    // display - the plugin warns and the value component falls back to rebuilding its list. That
+    // list is not narrowed down by the column's own conditions (issue #12226), so all 3 values show.
     expect(checkedArray).toEqual([true, true, true]);
     expect($(conditionSelectRootElements().first).text()).toEqual('Contains');
     expect($(conditionSelectRootElements().second).text()).toEqual('Does not contain');

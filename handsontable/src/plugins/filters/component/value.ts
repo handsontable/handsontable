@@ -132,28 +132,23 @@ export class ValueComponent extends BaseComponent {
    * @param {object} value The component value.
    */
   setState(value?: {
-    command: { key: string }; args: unknown[]; itemsSnapshot?: Record<string, unknown>[]; locale?: string;
+    command: { key: string }; args: unknown[]; itemsSnapshot: Record<string, unknown>[]; locale: string;
   }) {
-    this.reset();
+    if (value && value.command.key === CONDITION_BY_VALUE) {
+      // The snapshot replaces the list, so only the surrounding UI is reset - rebuilding the list
+      // from the data first would read the whole column just to throw the result away.
+      super.reset();
 
-    if (!value || !value.itemsSnapshot) {
+      const select = this.getMultipleSelectElement();
+
+      select.setItems(value.itemsSnapshot);
+      select.setValue(value.args[0]);
+      select.setLocale(value.locale);
+
       return;
     }
 
-    const select = this.getMultipleSelectElement();
-
-    select.setItems(value.itemsSnapshot);
-
-    if (value.command.key === CONDITION_BY_VALUE) {
-      select.setValue(value.args[0]);
-      select.setLocale(value.locale as string);
-
-    } else {
-      // The column is filtered by conditions only. The snapshot lists every value that survives the
-      // conditions of the preceding columns, so all of them stay checked - `reset()` already set the
-      // locale from the selected column.
-      select.setValue(arrayMap(value.itemsSnapshot, item => item.value));
-    }
+    this.reset();
   }
 
   /**
@@ -209,16 +204,6 @@ export class ValueComponent extends BaseComponent {
       } else {
         state.args = [];
         state.command = getConditionDescriptor(CONDITION_NONE);
-
-        // The column is filtered by conditions only. Snapshot its value list as well, built from the
-        // rows that survive the conditions of the PRECEDING columns. Falling back to the currently
-        // visible data would let the column's own condition hide its own values, leaving them
-        // impossible to re-check (issue #12226). Every value stays checked, so reopening the menu
-        // and confirming it adds no condition.
-        if (conditions.length) {
-          state.itemsSnapshot = this.#buildItemsSnapshot(
-            physicalColumn, filteredRowsFactory(physicalColumn, conditionsStack), null).itemsSnapshot;
-        }
       }
 
       this.state?.setValueAtIndex(physicalColumn, state);
@@ -252,10 +237,10 @@ export class ValueComponent extends BaseComponent {
    *
    * @param {number} physicalColumn The physical column index the items belong to.
    * @param {Array} filteredRows Data-map entries of the rows the list is built from.
-   * @param {Array|null} selectedArgs Values that stay checked, or `null` to check every value.
+   * @param {Array} selectedArgs Values that stay checked.
    * @returns {{itemsSnapshot: Array, selectedValues: Array}} The item list and the checked values.
    */
-  #buildItemsSnapshot(physicalColumn: number, filteredRows: FilteredRow[], selectedArgs: unknown[] | null) {
+  #buildItemsSnapshot(physicalColumn: number, filteredRows: FilteredRow[], selectedArgs: unknown[]) {
     const defaultBlankCellValue = this.hot?.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS) ?? '';
     const rowValues = arrayMap(filteredRows, row => row.value);
     // The map feeds only the `modifyFiltersMultiSelectValue` hook. Building it costs one
@@ -274,7 +259,7 @@ export class ValueComponent extends BaseComponent {
     const selectedValues: unknown[] = [];
     const itemsSnapshot = intersectValues(
       unifiedRowValues,
-      selectedArgs ?? unifiedRowValues,
+      selectedArgs,
       defaultBlankCellValue,
       (item: Record<string, unknown>) => {
         if (item.checked) {
@@ -417,23 +402,20 @@ export class ValueComponent extends BaseComponent {
   }
 
   /**
-   * Get data for currently selected column.
+   * Gets the values the list is built from for the currently selected column. The plugin decides
+   * which rows those are - a filtered column skips its own conditions (issue #12226).
    *
-   * @returns {Array}
+   * @returns {Array} Array of objects with `value` and `meta`, one per row.
    * @private
    */
-  _getColumnVisibleValues(): Array<{ value: string; meta: Record<string, unknown> }> {
-    const selectedColumn = this.hot?.getPlugin('filters').getSelectedColumn() ?? null;
+  _getColumnVisibleValues(): Record<string, unknown>[] {
+    const filtersPlugin = this.hot?.getPlugin('filters');
+    const selectedColumn = filtersPlugin?.getSelectedColumn() ?? null;
 
-    if (selectedColumn === null) {
+    if (!filtersPlugin || selectedColumn === null) {
       return [];
     }
 
-    return arrayMap(this.hot?.getDataAtCol(selectedColumn.visualIndex) ?? [], (v, rowIndex) => {
-      return {
-        value: toEmptyString(v) as string,
-        meta: this.hot?.getCellMetaTransient(rowIndex, selectedColumn.visualIndex) ?? {},
-      };
-    });
+    return filtersPlugin._getValueListDataAtColumn(selectedColumn.visualIndex);
   }
 }
