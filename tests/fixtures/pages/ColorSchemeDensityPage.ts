@@ -40,6 +40,20 @@ export class ColorSchemeDensityPage {
   }
 
   /**
+   * Start collecting uncaught page errors. Call before `goto()`; the returned array fills up as the
+   * page throws.
+   */
+  collectPageErrors(): string[] {
+    const errors: string[] = [];
+
+    this.page.on('pageerror', (error) => {
+      errors.push(error.message);
+    });
+
+    return errors;
+  }
+
+  /**
    * Navigate to the fixture and wait until all three grids have rendered.
    */
   async goto(): Promise<void> {

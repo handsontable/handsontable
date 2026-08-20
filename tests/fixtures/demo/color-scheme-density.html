@@ -56,9 +56,10 @@
     every light/dark token, and this fixture is what proves it.
 
     It is always the `main` stylesheet, never the one named by `?theme=`, because
-    every grid here renders the engine-driven `main` theme. The spec pins itself
-    to the `main` theme leg for the same reason, and keeps the bundle axis, which
-    is real — the engine builds its CSS at runtime.
+    every grid here renders the engine-driven `main` theme. That makes every leg
+    of the matrix exercise the real scenario, so the theme axis is redundant here
+    rather than wrong. The spec does NOT skip the extra legs — ESLint bans
+    `test.skip`. The bundle axis is genuine: the engine builds its CSS at runtime.
 
     Three grids share the one registered `main` theme object. Grid A takes the
     overrides, grid B is the control proving they do not leak, and grid C sets
@@ -76,6 +77,8 @@
     <button data-testid="c-reset" type="button">Grid C &rarr; reset</button>
     <button data-testid="d-reset" type="button">Grid D &rarr; reset</button>
     <button data-testid="d-set-dark" type="button">Grid D &rarr; dark</button>
+    <button data-testid="mutate-shared-theme" type="button">Mutate shared theme</button>
+    <button data-testid="a-switch-theme-in-hook" type="button">Switch theme from a hook</button>
   </div>
 
   <div class="grid-slot">
@@ -158,9 +161,12 @@
     // must survive that round trip.
     //
     // The name has to DIFFER from the one in use, otherwise core treats the update as a
-    // no-op and never tears the engine down. Its stylesheet is not loaded, so core warns
-    // about the missing styles — that is expected and does not affect what is asserted.
-    const otherThemeName = ['main', 'horizon', 'classic'].find(name => name !== window.htTheme);
+    // no-op and never tears the engine down. Every grid here renders the engine-driven
+    // `main` theme regardless of `?theme=`, so the name just has to not be `main` —
+    // deriving it from `?theme=` would resolve to `main` on the horizon and classic legs
+    // and quietly skip the teardown. Its stylesheet is not loaded, so core warns about the
+    // missing styles; that is expected and does not affect what is asserted.
+    const otherThemeName = 'horizon';
 
     onClick('theme-as-class', { theme: `ht-theme-${otherThemeName}` });
 
@@ -181,6 +187,24 @@
 
     onClickD('d-reset', { colorScheme: undefined, density: undefined });
     onClickD('d-set-dark', { colorScheme: 'dark' });
+
+    // Mutating the shared `main` theme fires its subscribers. A ThemeManager that was torn down
+    // without unsubscribing would wake up here and re-inject its stale scoped rules.
+    document.querySelector('[data-testid="mutate-shared-theme"]')
+      .addEventListener('click', () => {
+        Handsontable.themes.getTheme('main').setColorScheme('auto');
+      });
+
+    // An `afterUpdateSettings` listener is allowed to move the grid to a class-name theme, which
+    // tears the engine down before core is finished with the same `updateSettings()` call.
+    document.querySelector('[data-testid="a-switch-theme-in-hook"]')
+      .addEventListener('click', () => {
+        hotA.addHook('afterUpdateSettings', function switchOnce() {
+          hotA.removeHook('afterUpdateSettings', switchOnce);
+          hotA.updateSettings({ theme: `ht-theme-${otherThemeName}` });
+        });
+        hotA.updateSettings({ colorScheme: 'dark' });
+      });
     document.querySelector('[data-testid="theme-as-object"]')
       .addEventListener('click', () => {
         hotA.updateSettings({ theme: Handsontable.themes.getTheme('main') });

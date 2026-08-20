@@ -6265,6 +6265,8 @@ export default (): Record<string, unknown> => {
      * class name (the [`theme`](#theme) option set to a string, or an `ht-theme-*` class on the
      * container element). In that case, use the theme's dark class name instead.
      *
+     * An unsupported value is ignored with a console warning rather than throwing.
+     *
      * Read more:
      * - [Themes](@/guides/styling/themes/themes.md)
      * - [`density`](#density)
@@ -6315,6 +6317,8 @@ export default (): Record<string, unknown> => {
      * The option requires the theme engine, so it has no effect when the theme comes from a CSS
      * class name (the [`theme`](#theme) option set to a string, or an `ht-theme-*` class on the
      * container element).
+     *
+     * An unsupported value is ignored with a console warning rather than throwing.
      *
      * Read more:
      * - [Themes](@/guides/styling/themes/themes.md)

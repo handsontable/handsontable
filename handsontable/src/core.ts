@@ -68,7 +68,7 @@ import {
 } from './utils/a11yAnnouncer';
 import { initLicenseNotification } from './utils/licenseNotification';
 import { getValueSetterValue } from './utils/valueAccessors';
-import { createThemeManager } from './themes/engine';
+import { createThemeManager, isThemeOverrideEmpty } from './themes/engine';
 import { LayoutManager, type LayoutConfig } from './core/layout';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
 import type { ThemeBuilder } from './themes/engine/builder';
@@ -1770,7 +1770,8 @@ export default function Core(
       // Only complain when a value is actually asked for. Clearing the options is documented, and a
       // framework wrapper re-sends every prop on each render, so warning on key presence alone
       // would fill the console for grids that never used these options.
-      const isValueRequested = (overrides.colorScheme ?? overrides.density) !== undefined;
+      const isValueRequested = !isThemeOverrideEmpty(overrides.colorScheme) ||
+        !isThemeOverrideEmpty(overrides.density);
 
       if (isValueRequested && !themeOverridesWarningShown) {
         themeOverridesWarningShown = true;
@@ -3452,14 +3453,18 @@ export default function Core(
 
       // Use `theme` option if it's a string and differs from current theme (takes priority over `themeName`).
       if (themeOptionExists && typeof settings.theme === 'string' && currentThemeName !== settings.theme) {
-        instance.themeManager?.unmount();
-        instance.themeManager = null;
+        // `destroy()`, not `unmount()`. Unmounting removes the style node but leaves the manager
+        // subscribed to the shared theme object, so the next theme change re-injects its scoped
+        // rules and the grid gets stuck on whatever override the dead manager still holds.
+        instance.themeManager?.destroy();
         instance.useTheme(settings.theme);
 
       // Use `themeName` option if `theme` is not provided and the name differs from current theme.
       } else if (themeNameOptionExists && !themeOptionExists && currentThemeName !== settings.themeName) {
-        instance.themeManager?.unmount();
-        instance.themeManager = null;
+        // `destroy()`, not `unmount()`. Unmounting removes the style node but leaves the manager
+        // subscribed to the shared theme object, so the next theme change re-injects its scoped
+        // rules and the grid gets stuck on whatever override the dead manager still holds.
+        instance.themeManager?.destroy();
         tableMeta.theme = settings.themeName;
         tableMeta.themeName = undefined;
         instance.useTheme(settings.themeName!);
@@ -3700,9 +3705,11 @@ export default function Core(
       instance.view._wt.wtOverlays.adjustElementsSize();
     }
 
-    // Fired after the render above, so a listener reading cell sizes sees the new density.
-    if (themeOverridesChanged) {
-      instance.runHooks('afterSetTheme', instance.themeManager!.getClassName(), false);
+    // Fired after the render above, so a listener reading cell sizes sees the new density. The
+    // manager can be gone by now: an `afterUpdateSettings` listener is free to move the grid to a
+    // class-name theme, which tears the engine down.
+    if (themeOverridesChanged && instance.themeManager) {
+      instance.runHooks('afterSetTheme', instance.themeManager.getClassName(), false);
     }
 
     if (!init && instance.view && (currentHeight === '' || height === '' || height === undefined) &&

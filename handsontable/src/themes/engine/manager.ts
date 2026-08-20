@@ -61,6 +61,20 @@ const THEME_STYLE_ATTRIBUTE = 'data-hot-theme-style';
 const THEME_SCOPE_PREFIX = 'ht-scope-';
 
 /**
+ * Checks whether an override value means "use the theme value".
+ *
+ * `undefined` is the documented way to clear an override, and the other empty values are treated
+ * the same so a framework wrapper passing `null` or `''` for an unset prop clears rather than
+ * fails. Exported so the settings layer applies exactly the same rule.
+ *
+ * @param {*} value The raw override value.
+ * @returns {boolean} `true` when the value clears the override.
+ */
+export function isThemeOverrideEmpty(value: unknown): boolean {
+  return value === undefined || value === null || value === false || value === '';
+}
+
+/**
  * Resolves a color scheme to the value accepted by the CSS `color-scheme` property.
  *
  * @param {string} colorScheme The color scheme ('light', 'dark', or 'auto').
@@ -124,6 +138,14 @@ export class ThemeManager {
   #overrides: ThemeOverrides = {};
 
   /**
+   * The `<theme>:<density>` pair the "no density sizes" notice was last logged for, so re-injecting
+   * the styles does not repeat it.
+   *
+   * @type {string|null}
+   */
+  #missingDensityWarningKey: string | null = null;
+
+  /**
    * The theme manager constructor.
    *
    * @param {object} options - The options object.
@@ -164,8 +186,7 @@ export class ThemeManager {
     validate: (candidate: string) => T,
     currentValue: T | undefined
   ): T | undefined {
-    // Treat every empty value the same as `undefined` — all of them mean "use the theme value".
-    if (value === undefined || value === null || value === false || value === '') {
+    if (isThemeOverrideEmpty(value)) {
       return undefined;
     }
 
@@ -266,9 +287,16 @@ export class ThemeManager {
 
     } else if (density) {
       // A custom theme may not define every preset. Say so instead of leaving the option looking
-      // applied while nothing changes on screen.
-      warn(`[ThemeManager] The "${this.themeConfig?.name}" theme has no "${density}" density sizes, ` +
-        'so the `density` option has no effect. Add the sizes to the theme configuration.');
+      // applied while nothing changes on screen. Styles are re-injected on every theme change, so
+      // key the notice by theme and density to keep it to one line per real problem.
+      const warningKey = `${this.themeConfig?.name}:${density}`;
+
+      if (this.#missingDensityWarningKey !== warningKey) {
+        this.#missingDensityWarningKey = warningKey;
+
+        warn(`[ThemeManager] The "${this.themeConfig?.name}" theme has no "${density}" density ` +
+          'sizes, so the `density` option has no effect. Add the sizes to the theme configuration.');
+      }
     }
 
     if (colorScheme) {

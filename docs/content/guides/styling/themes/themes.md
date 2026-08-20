@@ -493,6 +493,8 @@ hot.updateSettings({
 });
 ```
 
+An unsupported value is ignored, and the grid logs a warning naming the option. It does not throw, so one bad value does not break the rest of the update.
+
 To drop an override and go back to the value your theme defines, set the option to `undefined`:
 
 ```js

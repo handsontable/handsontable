@@ -171,6 +171,44 @@ test.describe('colorScheme and density options', () => {
     expect(await grid.cellHeightOf('a')).toBe(darkCompactHeight);
   });
 
+  test('does not let a torn-down theme engine re-inject its rules', async({ page, theme, bundle }) => {
+    const grid = new ColorSchemeDensityPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await grid.clickToolbar('set-dark');
+    await expect.poll(() => grid.colorSchemeOf('a')).toBe('dark');
+
+    // Moving to a class-name theme tears the engine down for grid A.
+    await grid.clickToolbar('theme-as-class');
+    await expect.poll(() => grid.themeStyleNodeCountOf('a')).toBe(0);
+
+    // Mutating the shared theme notifies its subscribers. A manager that was unmounted but never
+    // unsubscribed wakes up here, re-injects its node, and pins the grid to its old override.
+    await grid.clickToolbar('mutate-shared-theme');
+
+    expect(await grid.themeStyleNodeCountOf('a')).toBe(0);
+
+    // Grid B still uses the engine, so it keeps exactly one node.
+    expect(await grid.themeStyleNodeCountOf('b')).toBe(1);
+  });
+
+  test('survives a listener that switches theme during the same update', async({
+    page, theme, bundle,
+  }) => {
+    const grid = new ColorSchemeDensityPage(page, theme, bundle);
+    const pageErrors = grid.collectPageErrors();
+
+    await grid.goto();
+
+    // The listener moves grid A to a class-name theme, so the manager is gone by the time core
+    // reaches the `afterSetTheme` call at the end of `updateSettings()`.
+    await grid.clickToolbar('a-switch-theme-in-hook');
+
+    await expect.poll(() => grid.themeStyleNodeCountOf('a')).toBe(0);
+    expect(pageErrors).toHaveLength(0);
+  });
+
   test('warns once, and only for a real value, when the theme engine is not active', async({
     page, theme, bundle,
   }) => {
