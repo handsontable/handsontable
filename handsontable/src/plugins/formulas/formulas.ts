@@ -1102,6 +1102,41 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Escapes, in place, the source-data-array values that must reach the engine in a protected
+   * form: dates in Handsontable format are rewritten to the engine format, while invalid dates
+   * and preserved text values are escaped with the "'" sign (the engine's string-escape
+   * mechanism).
+   *
+   * @param {Array<Array<*>>} sourceDataArray Source data array to process.
+   */
+  #escapeSourceDataArray(sourceDataArray: unknown[][]) {
+    sourceDataArray.forEach((rowData: unknown[], rowIndex: number) => {
+      rowData.forEach((cellValue: unknown, columnIndex: number) => {
+        // The uncached read keeps this full source-data scan from permanently materializing
+        // one meta object per cell (same no-extension semantics as `skipMetaExtension`).
+        const cellMeta = this.hot._getMetaManager().getCellMetaUncached(
+          this.hot.toPhysicalRow(rowIndex) ?? rowIndex, this.hot.toPhysicalColumn(columnIndex) ?? columnIndex,
+          { visualRow: rowIndex, visualColumn: columnIndex },
+        );
+
+        if (isDate(cellValue, cellMeta.type)) {
+          if (isDateValid(cellValue)) {
+            // Rewriting the date from the Handsontable format to the engine format.
+            sourceDataArray[rowIndex][columnIndex] = getDateInHfFormat(cellValue);
+          } else if (!isFormula(cellValue)) {
+            // Escaping the value from date parsing using the "'" sign (the engine's string-escape mechanism).
+            sourceDataArray[rowIndex][columnIndex] = escapeTextValue(cellValue);
+          }
+        } else if (isPreservedText(cellValue, cellMeta)) {
+          // Escaping the value from the engine's value parsing using the "'" sign (the engine's string-escape
+          // mechanism).
+          sourceDataArray[rowIndex][columnIndex] = escapeTextValue(cellValue);
+        }
+      });
+    });
+  }
+
+  /**
    * The hook allows to translate the formula value to calculated value before it goes to the
    * validator function.
    *
@@ -1280,26 +1315,7 @@ export class Formulas extends BasePlugin {
 
     const sourceDataArray = this.#getProcessedSourceDataArray();
 
-    sourceDataArray.forEach((rowData: unknown[], rowIndex: number) => {
-      rowData.forEach((cellValue: unknown, columnIndex: number) => {
-        // The uncached read keeps this full source-data scan from permanently materializing
-        // one meta object per cell (same no-extension semantics as `skipMetaExtension`).
-        const cellMeta = this.hot._getMetaManager().getCellMetaUncached(
-          this.hot.toPhysicalRow(rowIndex) ?? rowIndex, this.hot.toPhysicalColumn(columnIndex) ?? columnIndex,
-          { visualRow: rowIndex, visualColumn: columnIndex },
-        );
-
-        if (isDate(cellValue, cellMeta.type)) {
-          if (isDateValid(cellValue)) {
-            // Rewriting date in HOT format to HF format.
-            sourceDataArray[rowIndex][columnIndex] = getDateInHfFormat(cellValue);
-          } else if (!cellValue.startsWith('=')) {
-            // Escaping value from date parsing using "'" sign (HF feature).
-            sourceDataArray[rowIndex][columnIndex] = `'${cellValue}`;
-          }
-        }
-      });
-    });
+    this.#escapeSourceDataArray(sourceDataArray);
 
     this.#internalOperationPending = true;
     const dependentCells = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
@@ -1338,6 +1354,8 @@ export class Formulas extends BasePlugin {
 
     if (!this.#hotWasInitializedWithEmptyData) {
       const sourceDataArray = this.#getProcessedSourceDataArray();
+
+      this.#escapeSourceDataArray(sourceDataArray);
 
       if (this.engine!.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
         this.#internalOperationPending = true;

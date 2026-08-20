@@ -4974,6 +4974,10 @@ export default (): Record<string, unknown> => {
      * The option takes effect only for cells of the [`text`](#type) type, and only when the
      * [`Formulas`](@/api/formulas.md) plugin is enabled.
      *
+     * Set the option globally, per column, or per cell (through the [`cell`](#cell) option).
+     * When set through the [`cells`](#cells) function, the option applies to edited values,
+     * but not to values loaded with the initial data or [`loadData()`](@/api/core.md#loaddata).
+     *
      * Read more:
      * - [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
      *

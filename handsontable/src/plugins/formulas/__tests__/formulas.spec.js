@@ -2690,6 +2690,38 @@ describe('Formulas general', () => {
       expect(getCellMeta(1, 0).valid).toBe(true);
     });
 
+    it('should escape an invalid ISO date loaded via loadData()', async() => {
+      handsontable({
+        data: [
+          ['2022-12-11'],
+          ['=A1'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await loadData([
+        ['not-a-date'],
+        ['=A1'],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)).toEqual([
+        ['not-a-date'],
+        ['not-a-date'],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['\'not-a-date'],
+        ['=A1'],
+      ]);
+    });
+
     it('should handle HF configuration property (HF instance should not overwrite `leapYear1900` and `nullDate` properties)', async() => {
       // Create an external HyperFormula instance with ISO date format support
       const hfInstance = HyperFormula.buildEmpty({ dateFormats: ['YYYY-MM-DD'] });
@@ -2896,6 +2928,67 @@ describe('Formulas general', () => {
         [123456],
         ['ID_123456'],
         [6],
+      ]);
+    });
+
+    it('should pass initial text-cell values to the engine as strings', async() => {
+      handsontable({
+        data: [
+          ['0123456'],
+          ['="ID"&"_"&A1'],
+          ['=LEN(A1)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+          preserveTextValues: true,
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['0123456'],
+        ['ID_0123456'],
+        [7],
+      ]);
+
+      expect(getData()).toEqual([
+        ['0123456'],
+        ['ID_0123456'],
+        [7],
+      ]);
+    });
+
+    it('should pass text-cell values loaded via loadData() to the engine as strings', async() => {
+      handsontable({
+        data: [['x'], ['="ID"&"_"&A1'], ['=LEN(A1)']],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+          preserveTextValues: true,
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await loadData([['0123456'], ['="ID"&"_"&A1'], ['=LEN(A1)']]);
+
+      // `loadData()` recreates the engine sheet, so the values are read from the current sheet.
+      expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)).toEqual([
+        ['0123456'],
+        ['ID_0123456'],
+        [7],
+      ]);
+
+      expect(getData()).toEqual([
+        ['0123456'],
+        ['ID_0123456'],
+        [7],
       ]);
     });
   });
