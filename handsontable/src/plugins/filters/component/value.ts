@@ -132,16 +132,27 @@ export class ValueComponent extends BaseComponent {
    * @param {object} value The component value.
    */
   setState(value?: {
-    command: { key: string }; args: unknown[]; itemsSnapshot: Record<string, unknown>[]; locale: string;
+    command: { key: string }; args: unknown[]; itemsSnapshot?: Record<string, unknown>[]; locale?: string;
   }) {
     this.reset();
 
-    if (value && value.command.key === CONDITION_BY_VALUE) {
-      const select = this.getMultipleSelectElement();
+    if (!value || !value.itemsSnapshot) {
+      return;
+    }
 
-      select.setItems(value.itemsSnapshot);
+    const select = this.getMultipleSelectElement();
+
+    select.setItems(value.itemsSnapshot);
+
+    if (value.command.key === CONDITION_BY_VALUE) {
       select.setValue(value.args[0]);
-      select.setLocale(value.locale);
+      select.setLocale(value.locale as string);
+
+    } else {
+      // The column is filtered by conditions only. The snapshot lists every value that survives the
+      // conditions of the preceding columns, so all of them stay checked - `reset()` already set the
+      // locale from the selected column.
+      select.setValue(arrayMap(value.itemsSnapshot, item => item.value));
     }
   }
 
@@ -177,42 +188,16 @@ export class ValueComponent extends BaseComponent {
       const [firstByValueCondition] = arrayFilter(conditions,
         condition => condition.name === CONDITION_BY_VALUE);
       const state: Record<string, unknown> = {};
-      const defaultBlankCellValue = this.hot?.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS) ?? '';
 
       if (firstByValueCondition) {
         const filteredRows = filteredRowsFactory(physicalColumn, conditionsStack);
-        const rowValues = arrayMap(filteredRows, row => row.value);
-        // The map feeds only the `modifyFiltersMultiSelectValue` hook. Building it costs one
-        // meta-pipeline read per filtered row, so skip it when the hook is not registered.
-        // The rows are addressed through the entry's own `row` property - the coordinate stamps
-        // on `row.meta` are shared with other meta readers and may have been overwritten.
-        const rowMetaMap = this.hot?.hasHook('modifyFiltersMultiSelectValue')
-          ? new Map(
-            filteredRows.map((row: FilteredRow) =>
-              [row.value, this.hot?.getCellMetaTransient(row.row, physicalColumn)])
-          )
-          : null;
-        const columnMeta = filteredRows[0]?.meta;
-        const comparator = getSortComparatorForMeta(columnMeta);
-        const unifiedRowValues = unifyColumnValues(rowValues, comparator);
 
         if (conditionArgsChange) {
           firstByValueCondition.args[0] = conditionArgsChange;
         }
 
-        const selectedValues: unknown[] = [];
-        const itemsSnapshot = intersectValues(
-          unifiedRowValues,
-          firstByValueCondition.args[0] as unknown[],
-          defaultBlankCellValue,
-          (item: Record<string, unknown>) => {
-            if (item.checked) {
-              selectedValues.push(item.value);
-            }
-
-            this.#triggerModifyMultipleSelectionValueHook(item, rowMetaMap);
-          }
-        );
+        const { itemsSnapshot, selectedValues } = this.#buildItemsSnapshot(
+          physicalColumn, filteredRows, firstByValueCondition.args[0] as unknown[]);
 
         const column = stateInfo.editedConditionStack.column;
 
@@ -224,6 +209,16 @@ export class ValueComponent extends BaseComponent {
       } else {
         state.args = [];
         state.command = getConditionDescriptor(CONDITION_NONE);
+
+        // The column is filtered by conditions only. Snapshot its value list as well, built from the
+        // rows that survive the conditions of the PRECEDING columns. Falling back to the currently
+        // visible data would let the column's own condition hide its own values, leaving them
+        // impossible to re-check (issue #12226). Every value stays checked, so reopening the menu
+        // and confirming it adds no condition.
+        if (conditions.length) {
+          state.itemsSnapshot = this.#buildItemsSnapshot(
+            physicalColumn, filteredRowsFactory(physicalColumn, conditionsStack), null).itemsSnapshot;
+        }
       }
 
       this.state?.setValueAtIndex(physicalColumn, state);
@@ -250,6 +245,47 @@ export class ValueComponent extends BaseComponent {
         stateInfo.editedConditionStack
       );
     }
+  }
+
+  /**
+   * Builds the item list shown in the "filter by value" box for a single column.
+   *
+   * @param {number} physicalColumn The physical column index the items belong to.
+   * @param {Array} filteredRows Data-map entries of the rows the list is built from.
+   * @param {Array|null} selectedArgs Values that stay checked, or `null` to check every value.
+   * @returns {{itemsSnapshot: Array, selectedValues: Array}} The item list and the checked values.
+   */
+  #buildItemsSnapshot(physicalColumn: number, filteredRows: FilteredRow[], selectedArgs: unknown[] | null) {
+    const defaultBlankCellValue = this.hot?.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS) ?? '';
+    const rowValues = arrayMap(filteredRows, row => row.value);
+    // The map feeds only the `modifyFiltersMultiSelectValue` hook. Building it costs one
+    // meta-pipeline read per filtered row, so skip it when the hook is not registered.
+    // The rows are addressed through the entry's own `row` property - the coordinate stamps
+    // on `row.meta` are shared with other meta readers and may have been overwritten.
+    const rowMetaMap = this.hot?.hasHook('modifyFiltersMultiSelectValue')
+      ? new Map(
+        filteredRows.map((row: FilteredRow) =>
+          [row.value, this.hot?.getCellMetaTransient(row.row, physicalColumn)])
+      )
+      : null;
+    const columnMeta = filteredRows[0]?.meta;
+    const comparator = getSortComparatorForMeta(columnMeta);
+    const unifiedRowValues = unifyColumnValues(rowValues, comparator);
+    const selectedValues: unknown[] = [];
+    const itemsSnapshot = intersectValues(
+      unifiedRowValues,
+      selectedArgs ?? unifiedRowValues,
+      defaultBlankCellValue,
+      (item: Record<string, unknown>) => {
+        if (item.checked) {
+          selectedValues.push(item.value);
+        }
+
+        this.#triggerModifyMultipleSelectionValueHook(item, rowMetaMap);
+      }
+    );
+
+    return { itemsSnapshot, selectedValues };
   }
 
   /**

@@ -781,8 +781,10 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
     const checkedArray = checkboxes.map(element => element.checked);
 
-    // Watch out! Filters build values inside `by_value` (checkbox inputs) component basing on all applied filters
-    expect(checkedArray).toEqual([true, true]);
+    // The column carries 3 regular conditions plus a `by_value` one, which is more than the menu can
+    // display - the plugin warns and leaves the components showing the last state it could build.
+    // That state lists all of the column's values, unnarrowed by its own conditions (issue #12226).
+    expect(checkedArray).toEqual([true, true, true]);
     expect($(conditionSelectRootElements().first).text()).toEqual('Contains');
     expect($(conditionSelectRootElements().second).text()).toEqual('Does not contain');
 
