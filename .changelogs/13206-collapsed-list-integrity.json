@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an issue where expanding an already-expanded parent row, or pressing Enter on a row without children, left the `NestedRows` plugin tracking the wrong set of collapsed rows.",
-  "type": "fixed",
-  "issueOrPR": 13206,
-  "breaking": false,
-  "framework": "none"
-}

@@ -37,15 +37,17 @@ new Handsontable(container, {
       }
 
       const parentRow = this.hot.toPhysicalRow(visualRow);
-      const childCount = nestedRowsPlugin.countChildren(visualRow);
+      const descendantCount = nestedRowsPlugin.countChildren(visualRow, true);
 
-      // Children follow their parent in the source data, so they form one range.
+      // A parent's descendants sit in one block right after it in the source data, so the
+      // whole subtree is a single range. Count them recursively - the direct child count
+      // would stop short whenever a child has children of its own.
       endpoints.push({
         destinationColumn: resultColumn,
         destinationRow: parentRow,
         type: 'sum',
         forceNumeric: true,
-        ranges: [[parentRow + 1, parentRow + childCount]],
+        ranges: [[parentRow + 1, parentRow + descendantCount]],
       });
     }
 

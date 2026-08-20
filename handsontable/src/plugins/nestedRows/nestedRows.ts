@@ -502,7 +502,10 @@ export class NestedRows extends BasePlugin {
     const toCollapse: number[] = [];
     const toExpand: number[] = [];
 
-    this.hot.batchExecution(() => {
+    // `batch` suspends rendering as well as index-map recalculation. This runs two passes, and each
+    // one renders on its own, so without it the grid would render the intermediate state where the
+    // deeper rows are briefly untrimmed.
+    this.hot.batch(() => {
       const data = this.dataManager!.getData() ?? [];
 
       this.#eachParent(data, (parentRow: number, parentLevel: number) => {
@@ -522,7 +525,7 @@ export class NestedRows extends BasePlugin {
       if (toCollapse.length > 0) {
         this.collapsingUI!.toggleCollapsedRows(toCollapse.reverse(), 'collapse');
       }
-    }, true);
+    });
   }
 
   /**
