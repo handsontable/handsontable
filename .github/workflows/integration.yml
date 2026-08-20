@@ -117,16 +117,18 @@ jobs:
         uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
         with:
           name: handsontable-build-umd
-      - name: Merge dist and styles into the preview package
+      # `npm run postbuild` (prepare-package-for-publish) does the merging itself:
+      # it copies the `handsontable.copy` list into tmp/ AND regenerates the exports
+      # map from the merged tree. It must run here, after the UMD dist/ and the theme
+      # CSS land — the map baked into the es-cjs artifact was globbed when only the
+      # base stylesheet existed, so copying the files in by hand shipped stylesheets
+      # that resolved with ERR_PACKAGE_PATH_NOT_EXPORTED (DEV-2578). Wrappers link
+      # against handsontable/tmp, so this precedes the wrapper build.
+      - name: Compose the preview package
         if: env.HOT_PREBUILT == 'true'
         run: |
           tar -zxf dist.tar.gz ./handsontable/dist ./handsontable/styles && rm dist.tar.gz
-          rm -rf handsontable/tmp/dist
-          cp -R handsontable/dist handsontable/tmp/dist
-          # Merge the CSS into tmp/styles instead of replacing the directory —
-          # tmp/styles also holds the generated handsontableStyles.{js,mjs,d.ts}
-          # module that utils/stylesHandler imports at runtime.
-          cp -R handsontable/styles/. handsontable/tmp/styles/
+          cd handsontable && npm run postbuild
       - name: Build wrapper packages (handsontable prebuilt)
         if: env.HOT_PREBUILT == 'true'
         run: npm run all build -- --e examples visual-tests handsontable
