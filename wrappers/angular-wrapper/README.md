@@ -128,7 +128,7 @@ export class HotTableWrapperComponent {
 }
 ```
 
-[![Static Badge](https://img.shields.io/badge/View%20live%20demo-1a42e8?style=for-the-badge)](https://demos.handsontable.com/?example=angular&v=18.0.0)
+[![Static Badge](https://img.shields.io/badge/View%20live%20demo-1a42e8?style=for-the-badge)](https://demos.handsontable.com/?example=angular)
 
 </div>
 
