@@ -18,9 +18,12 @@
     if (!window.htTheme) {
       throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
     }
-    // NOTE: this fixture deliberately loads NO themed stylesheet — see the
-    // comment in <body> for why. The ?theme= param is still validated so a typo
-    // in the project config fails loudly rather than passing silently.
+    // Written into <head> so the themed stylesheet is present before first render.
+    // Deliberately the MINIFIED file: its light/dark colors are switched by theme
+    // class name rather than by the color-scheme property, and they out-specify
+    // the ones the engine generates. That makes it the strictest configuration
+    // for the colorScheme override, so it is the one worth covering.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
     // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
     // handsontable.full.min.js, the exact file `test:production` loads).
     window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
@@ -38,26 +41,18 @@
   <!--
     Fixture for the `colorScheme` and `density` grid options (DEV-1476).
 
-    This is the documented "Theme API" setup: only the base stylesheet is
-    loaded, and no `ht-theme-*` class is put on any container. That matters
-    twice over.
+    No `ht-theme-*` class is put on any container. That class makes core skip
+    the theme engine entirely, and both options are engine features. With no
+    class and no `theme` option, core registers the default `main` theme through
+    the engine — the "works out of the box" path the ticket asks for.
 
-    1. An `ht-theme-*` class on the container makes core skip the theme engine
-       entirely, and both options are engine features. With no class and no
-       `theme` option, core registers the default `main` theme through the
-       engine — the "works out of the box" path the ticket asks for.
-
-    2. No themed stylesheet is loaded. The minified theme CSS drives light and
-       dark through class names (the CSS minifier downlevels `light-dark()` into
-       a pair of `--lightningcss-*` variables, because native `light-dark()` is
-       newer than the browsers Handsontable supports). Those class-driven colors
-       out-specify the engine's, so with a minified theme stylesheet present the
-       colors would not follow `color-scheme` — for `setColorScheme()` just the
-       same. The engine emits native `light-dark()`, which Chromium resolves.
-
-    The `?theme=` param is therefore a no-op here: every leg renders the
-    engine-driven `main` theme. The `?bundle=` axis is real — the engine builds
-    its CSS at runtime, so both bundles are worth covering.
+    The MINIFIED themed stylesheet is loaded on purpose. The CSS minifier
+    rewrites `light-dark()` into a pair of `--lightningcss-*` variables switched
+    by theme class name, because native `light-dark()` is newer than the browsers
+    Handsontable supports. Those declarations out-specify the ones the engine
+    generates, so a grid that merely flipped `color-scheme` would keep the light
+    colors. The manager therefore emits the resolved light or dark value for
+    every light/dark token, and this fixture is what proves it.
 
     Three grids share the one registered `main` theme object. Grid A takes the
     overrides, grid B is the control proving they do not leak, and grid C sets

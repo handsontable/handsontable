@@ -505,7 +505,7 @@ hot.updateSettings({
 
 Both options are features of the Theme API, so they need the theme engine to be active. The engine is active when you leave the [`theme`](@/api/options.md#theme) option out, or when you pass a theme config object or a `ThemeBuilder` instance to it. It is not active when the theme comes from a CSS class name — either the `theme` option set to a string such as `'ht-theme-main'`, or an `ht-theme-*` class on the container element. In that case the grid logs a warning and the options have no effect.
 
-One more limit applies to `colorScheme`. If you load a minified theme stylesheet, such as `ht-theme-main.min.css`, its colors are tied to the theme class name and out-specify the ones the engine generates. The color scheme then does not follow the option. The same limit applies to `setColorScheme()`. Density is not affected. To use `colorScheme`, load only the base stylesheet, as described in [Option 1](#option-1-using-the-theme-api-recommended).
+Apart from that, it doesn't matter which stylesheets you load. Both options work with the base stylesheet alone and with a theme stylesheet on top of it, minified or not.
 
 ::: only-for angular
 

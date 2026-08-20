@@ -404,7 +404,66 @@ describe('ThemeManager', () => {
         const scopedRule = `.ht-theme-test-theme.${manager.scopeClassName}`;
 
         expect(manager.themeStyles.textContent)
-          .toContain(`${scopedRule} {\ncolor-scheme: dark;\n}`);
+          .toContain(`${scopedRule} {\ncolor-scheme: dark;\n`);
+      });
+
+      it('should pin the theme colors to the override scheme instead of relying on light-dark()', () => {
+        const mockHot = createMockHot();
+        const themeObject = createTheme(createValidThemeConfig({ colorScheme: 'light' }));
+
+        const manager = new ThemeManager({
+          hot: mockHot,
+          themeObject,
+          overrides: { colorScheme: 'dark' },
+        });
+
+        const scopedBlock = manager.themeStyles.textContent
+          .split(`.ht-theme-test-theme.${manager.scopeClassName} {`)[1];
+
+        // `backgroundColor` is ['colors.white', 'colors.palette.950'] in the main theme. The scoped
+        // block must carry the DARK branch outright — the minified theme stylesheets do not use
+        // light-dark(), so a bare `color-scheme` flip would leave the light colors in place.
+        expect(scopedBlock).toContain('--ht-background-color: var(--ht-colors-palette-950);');
+        expect(scopedBlock).not.toContain('--ht-background-color: light-dark(');
+      });
+
+      it('should pin the light branch and add a media query for the "auto" scheme', () => {
+        const mockHot = createMockHot();
+        const themeObject = createTheme(createValidThemeConfig({ colorScheme: 'light' }));
+
+        const manager = new ThemeManager({
+          hot: mockHot,
+          themeObject,
+          overrides: { colorScheme: 'auto' },
+        });
+
+        const cssText = manager.themeStyles.textContent;
+        const mediaBlock = cssText.split('@media (prefers-color-scheme: dark) {')[1];
+
+        // 'auto' must follow the operating system without light-dark(), the same way the static
+        // `-dark-auto` class does: light values by default, dark ones behind the media query.
+        expect(cssText).toContain('--ht-background-color: var(--ht-colors-white);');
+        expect(mediaBlock).toBeDefined();
+        expect(mediaBlock).toContain(`.ht-theme-test-theme.${manager.scopeClassName} {`);
+        expect(mediaBlock).toContain('--ht-background-color: var(--ht-colors-palette-950);');
+      });
+
+      it('should not repeat variables that are the same in both schemes', () => {
+        const mockHot = createMockHot();
+        const themeObject = createTheme(createValidThemeConfig());
+
+        const manager = new ThemeManager({
+          hot: mockHot,
+          themeObject,
+          overrides: { colorScheme: 'dark' },
+        });
+
+        const scopedBlock = manager.themeStyles.textContent
+          .split(`.ht-theme-test-theme.${manager.scopeClassName} {`)[1];
+
+        // `fontSize` carries one value for both schemes, so the override block has no reason to
+        // restate it. Only light/dark pairs belong there.
+        expect(scopedBlock).not.toContain('--ht-font-size:');
       });
 
       it('should resolve the "auto" colorScheme override to "light dark"', () => {
@@ -418,7 +477,7 @@ describe('ThemeManager', () => {
         });
 
         expect(manager.themeStyles.textContent)
-          .toContain(`.ht-theme-test-theme.${manager.scopeClassName} {\ncolor-scheme: light dark;\n}`);
+          .toContain(`.ht-theme-test-theme.${manager.scopeClassName} {\ncolor-scheme: light dark;\n`);
       });
 
       it('should apply the density override using the sizes of the requested preset', () => {
@@ -551,7 +610,7 @@ describe('ThemeManager', () => {
 
         expect(manager.setOverrides({ colorScheme: 'dark' })).toBe(true);
         expect(manager.themeStyles.textContent)
-          .toContain(`.ht-theme-test-theme.${manager.scopeClassName} {\ncolor-scheme: dark;\n}`);
+          .toContain(`.ht-theme-test-theme.${manager.scopeClassName} {\ncolor-scheme: dark;\n`);
       });
 
       it('should report no change when setOverrides is called with the same value', () => {
@@ -651,7 +710,7 @@ describe('ThemeManager', () => {
 
         expect(manager.getOverrides().colorScheme).toBe('dark');
         expect(manager.themeStyles.textContent)
-          .toContain(`.ht-theme-other-theme.${manager.scopeClassName} {\ncolor-scheme: dark;\n}`);
+          .toContain(`.ht-theme-other-theme.${manager.scopeClassName} {\ncolor-scheme: dark;\n`);
       });
     });
   });

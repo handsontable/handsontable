@@ -175,6 +175,38 @@ export class ThemeManager {
   }
 
   /**
+   * Builds the CSS variables that pin every light/dark value of the theme to one scheme.
+   *
+   * Setting the `color-scheme` property is not enough on its own. The shipped minified theme
+   * stylesheets do not use the CSS `light-dark()` function — it is newer than the browsers
+   * Handsontable supports, so the minifier rewrites it into a pair of variables switched by theme
+   * class name. Those declarations out-specify the ones the engine generates, so a grid that only
+   * flipped `color-scheme` would keep the light colors. Emitting the resolved values instead works
+   * in every supported browser and with every stylesheet.
+   *
+   * @param {string} scheme The scheme to resolve to ('light' or 'dark').
+   * @returns {string} The CSS variable declarations.
+   */
+  #buildResolvedColorVariables(scheme: 'light' | 'dark'): string {
+    if (!this.themeConfig) {
+      return '';
+    }
+
+    const options = { resolveScheme: scheme, lightDarkOnly: true };
+    let cssText = '';
+
+    if (this.themeConfig.colors) {
+      cssText += flattenCssVariables(this.themeConfig.colors, 'colors', '', options);
+    }
+
+    if (this.themeConfig.tokens) {
+      cssText += flattenCssVariables(this.themeConfig.tokens, '', '', options);
+    }
+
+    return cssText;
+  }
+
+  /**
    * Builds the CSS rules that apply the per-instance overrides.
    *
    * The selector doubles the theme class with the instance scope class, giving specificity (0,2,0).
@@ -199,7 +231,17 @@ export class ThemeManager {
     }
 
     if (colorScheme) {
-      cssText += `${selector} {\ncolor-scheme: ${toCssColorScheme(colorScheme)};\n}\n`;
+      cssText += `${selector} {\ncolor-scheme: ${toCssColorScheme(colorScheme)};\n`;
+
+      // 'auto' follows the operating system, so pin the light values and let a media query swap in
+      // the dark ones. That mirrors what the static `-dark-auto` class does, without `light-dark()`.
+      cssText += this.#buildResolvedColorVariables(colorScheme === 'dark' ? 'dark' : 'light');
+      cssText += '}\n';
+
+      if (colorScheme === 'auto') {
+        cssText += `@media (prefers-color-scheme: dark) {\n${selector} {\n` +
+          `${this.#buildResolvedColorVariables('dark')}}\n}\n`;
+      }
     }
 
     return cssText;
