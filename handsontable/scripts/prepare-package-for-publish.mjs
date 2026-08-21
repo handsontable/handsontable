@@ -117,8 +117,10 @@ FILES_TO_COPY.forEach((fileToCopy) => {
   if (isPatternMode) {
     foundFiles = glob.sync(fileToCopy.pattern);
     // slice a path off the bottom of the paths e.g. for value 1 it
-    // slices path from `./types/base.d.ts` to `./base.d.ts`.
-    pathSlice = fileToCopy.pathSlice;
+    // slices path from `./types/base.d.ts` to `./base.d.ts`. The field is optional, and it is
+    // normalized here rather than read raw: `slice(undefined)` drops nothing while
+    // `slice(0, undefined)` keeps everything, so the two readings of the same entry disagree.
+    pathSlice = fileToCopy.pathSlice ?? 0;
 
     if (foundFiles.length === 0) {
       // No match means no destination is recorded, so the check below cannot see this entry at

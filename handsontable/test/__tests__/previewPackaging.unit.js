@@ -210,6 +210,17 @@ describe('preview package composition', () => {
       expect(inPlace.status).toBe(0);
     });
 
+    it('should accept a copy pattern that declares no pathSlice', () => {
+      // `pathSlice` is optional. Read raw, it slices nothing in the copy step but keeps every
+      // segment in the wildcard guard, which would refuse a complete package as unverifiable.
+      const { status } = runOnFixture(
+        { copy: [{ pattern: 'themes/**/*.css' }], exports: ['./*.js'], fields: ['name'] },
+        { 'index.js': '', 'themes/ht-theme-main.css': '' }
+      );
+
+      expect(status).toBe(0);
+    });
+
     it('should refuse to verify a copy pattern sliced through a wildcard', () => {
       // `pathSlice` counts path segments while the pattern is sliced by pattern segments, so a
       // `**` inside the sliced prefix makes the destination undecidable. That must fail loudly
