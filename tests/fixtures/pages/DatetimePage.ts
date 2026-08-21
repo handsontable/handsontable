@@ -75,9 +75,14 @@ export class DatetimePage {
     return this.page.locator('.ht_clone_top thead th', { hasText: caption });
   }
 
-  /** Click a column header to toggle its sort order. */
+  /**
+   * Click a column header to toggle its sort order. ColumnSorting reacts only
+   * when the mousedown target is the header's `span.colHeader` element itself
+   * (see `wasClickableHeaderClicked`), so click the span — a click elsewhere
+   * inside the `th` is silently ignored.
+   */
   async sortByColumn(caption: string): Promise<void> {
-    await this.columnHeader(caption).click();
+    await this.columnHeader(caption).locator('.colHeader').click();
   }
 
   /** Open the dropdown (filters) menu of a column via its header button. */
