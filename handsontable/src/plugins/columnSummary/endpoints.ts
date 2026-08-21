@@ -123,18 +123,52 @@ class Endpoints {
   }
 
   /**
-   * Returns the number of rows an endpoint may address, that is the number of physical rows capped
-   * by the `maxRows` setting.
+   * Returns the number of physical rows the dataset holds, ignoring trimming.
    *
    * Endpoint destination rows and calculation ranges are physical indexes, so they must never be
    * compared against `countRows()` - that counts only the *visible* rows and shrinks whenever a
-   * plugin trims rows (NestedRows collapsing a group, TrimRows, the Filters plugin). With nothing
-   * trimmed this returns exactly `countRows()`.
+   * plugin trims rows (NestedRows collapsing a group, TrimRows, the Filters plugin).
+   *
+   * @returns {number}
+   */
+  countPhysicalRows(): number {
+    return this.hot.rowIndexMapper.getNumberOfIndexes();
+  }
+
+  /**
+   * Returns the number of rows an endpoint may address, that is the physical row count capped by
+   * `maxRows`. Used for the settings defaults that need a row count rather than a bounds check.
+   *
+   * A non-finite or negative `maxRows` is treated as no cap.
    *
    * @returns {number}
    */
   countAddressableRows(): number {
-    return Math.min(this.hot.rowIndexMapper.getNumberOfIndexes(), this.hot.getSettings().maxRows ?? Infinity);
+    const { maxRows } = this.hot.getSettings();
+    const cap = Number.isFinite(maxRows) && (maxRows as number) >= 0 ? (maxRows as number) : Infinity;
+
+    return Math.min(this.countPhysicalRows(), cap);
+  }
+
+  /**
+   * Checks whether an endpoint points outside the table.
+   *
+   * A *trimmed* destination row is not out of bounds - the row exists, it is only hidden - so it is
+   * deliberately not reported here. A row that is visible but sits past `maxRows` is out of bounds,
+   * because the grid renders no cell for it.
+   *
+   * @param {object} endpoint Contains the endpoint information.
+   * @param {number} [rowOffset=0] Row offset to apply before the check.
+   * @param {number} [colOffset=0] Column offset to apply before the check.
+   * @returns {boolean}
+   */
+  isEndpointOutOfBounds(endpoint: EndpointConfig, rowOffset = 0, colOffset = 0): boolean {
+    const destinationRow = endpoint.destinationRow! + rowOffset;
+    const destinationVisualRow = this.hot.toVisualRow(destinationRow);
+
+    return destinationRow >= this.countPhysicalRows() ||
+      endpoint.destinationColumn! + colOffset >= this.hot.countCols() ||
+      (destinationVisualRow !== null && destinationVisualRow >= this.hot.countRows());
   }
 
   /**
@@ -475,15 +509,7 @@ class Endpoints {
    */
   resetAllEndpoints(endpoints = this.getAllEndpoints(), useOffset = true) {
     const anyEndpointOutOfRange = endpoints.some((endpoint: EndpointConfig) => {
-      const alterRowOffset = endpoint.alterRowOffset || 0;
-      const alterColOffset = endpoint.alterColumnOffset || 0;
-
-      if (endpoint.destinationRow! + alterRowOffset >= this.countAddressableRows() ||
-          endpoint.destinationColumn! + alterColOffset >= this.hot.countCols()) {
-        return true;
-      }
-
-      return false;
+      return this.isEndpointOutOfBounds(endpoint, endpoint.alterRowOffset || 0, endpoint.alterColumnOffset || 0);
     });
 
     if (anyEndpointOutOfRange) {
@@ -650,8 +676,7 @@ class Endpoints {
    * @param {boolean} [render=false] `true` if it needs to render the table afterwards.
    */
   setEndpointValue(endpoint: EndpointConfig, source: string | undefined, render = false) {
-    if (endpoint.destinationRow! >= this.countAddressableRows() ||
-        endpoint.destinationColumn! >= this.hot.countCols()) {
+    if (this.isEndpointOutOfBounds(endpoint)) {
       this.throwOutOfBoundsWarning();
 
       return;
@@ -673,8 +698,10 @@ class Endpoints {
 
     endpoint.result = roundFloat(endpoint.result, endpoint.roundFloat) as string | number;
 
-    // A trimmed destination row has no cell to write to. The result is still calculated and kept on
-    // the endpoint, so it lands in the cell on the next refresh once the row is visible again.
+    // A trimmed destination row has no cell to write to - writing one throws in `DataMap.set`. The
+    // result stays on the endpoint; the cell keeps its previous value until the next recalculation
+    // that runs while the row is visible. Nothing re-runs the endpoints on untrim, so a destination
+    // hidden at the moment of a change shows a stale value until then.
     if (destinationVisualRow !== null) {
       if (render) {
         this.hot.setDataAtCell(

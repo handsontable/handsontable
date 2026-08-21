@@ -1080,6 +1080,50 @@ describe('ColumnSummarySpec', () => {
         expect(getDataAtCell(7, 1)).toEqual(3888);
         expect(getDataAtCell(4, 1)).toEqual('7');
       });
+
+    it('should not throw when the destination row itself is trimmed, and recover once it is visible (#11674)',
+      async() => {
+        handsontable({
+          data: getDataForColumnSummary(),
+          height: 400,
+          width: 400,
+          rowHeaders: true,
+          nestedRows: true,
+          columnSummary() {
+            return [
+              {
+                // physical row 3 - the last child of the first group, so collapsing that group hides it
+                destinationRow: 3,
+                destinationColumn: 1,
+                type: 'sum',
+                forceNumeric: true,
+                ranges: [[8, 9]],
+              },
+            ];
+          },
+        });
+
+        await waitForNextAnimationFrames(2);
+
+        expect(getDataAtCell(3, 1)).toEqual(149);
+
+        getPlugin('nestedRows').collapsingUI.collapseChildren(0);
+
+        await waitForNextAnimationFrames(2);
+
+        // visual row 5 is physical row 8 while the first group is collapsed. Recalculating towards a
+        // hidden destination used to throw in `DataMap.set`.
+        await setDataAtCell(5, 1, 0);
+
+        getPlugin('nestedRows').collapsingUI.expandChildren(0);
+
+        await waitForNextAnimationFrames(2);
+
+        // the next recalculation with the row visible writes the up-to-date result
+        await setDataAtCell(9, 1, 4);
+
+        expect(getDataAtCell(3, 1)).toEqual(4);
+      });
   });
 
   describe('maxRows options set', () => {
