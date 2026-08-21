@@ -146,6 +146,37 @@ describe('Formulas memory leak check', () => {
     expect(hot2.getDataAtCell(0, 2)).toBe(7);
   });
 
+  it('should not overwrite another grid\'s sheet after an engine-wide sheet rename', async() => {
+    const hfInstance = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const hot1 = handsontable({
+      data: [['1', '2', '=A1+B1']],
+      formulas: {
+        engine: hfInstance,
+      },
+    });
+    const hot2 = spec().$container2.handsontable({
+      data: [['3', '4', '=A1+B1']],
+      formulas: {
+        engine: hfInstance,
+      },
+    }).data('handsontable');
+
+    const hot1SheetId = hot1.getPlugin('formulas').sheetId;
+
+    // `sheetRenamed` is engine-wide, so it reaches every attached instance. Renaming the first
+    // grid's sheet must not repoint the second grid at it.
+    hfInstance.renameSheet(hot1SheetId, 'Renamed');
+
+    expect(hot2.getPlugin('formulas').sheetId).not.toBe(hot1SheetId);
+
+    hot2.loadData([['30', '40', '=A1+B1']]);
+
+    // The first grid's sheet must still hold the first grid's data.
+    expect(hfInstance.getSheetSerialized(hot1SheetId)).toEqual([['1', '2', '=A1+B1']]);
+    expect(hot1.getDataAtCell(0, 2)).toBe(3);
+    expect(hot2.getDataAtCell(0, 2)).toBe(70);
+  });
+
   it('should detach listeners from the engine after table destroying (one shared HF instances)', async() => {
     const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
     const hot1 = handsontable({

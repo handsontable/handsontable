@@ -354,7 +354,12 @@ export class Formulas extends BasePlugin {
    * @param {string} newDisplayName The new name of the sheet.
    */
   #onEngineSheetRenamed = (oldDisplayName: string, newDisplayName: string) => {
-    this.#updateSheetNameAndSheetId(newDisplayName);
+    // The event is engine-wide, so it also reaches instances that do not own the renamed sheet.
+    // Repointing those would make them operate on a sheet belonging to another instance.
+    if (oldDisplayName === this.sheetName) {
+      this.#updateSheetNameAndSheetId(newDisplayName);
+    }
+
     this.hot.runHooks('afterSheetRenamed', oldDisplayName, newDisplayName);
   };
 
