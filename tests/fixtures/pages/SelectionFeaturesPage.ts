@@ -724,6 +724,44 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * The fill handle drawn by the frozen-columns overlay — a selection ending inside that pane is
+   * rendered by the clone, not by the master.
+   */
+  frozenColumnsFillHandle(): Locator {
+    return this.page.locator('.ht_clone_inline_start .wtBorder.current.corner:visible');
+  }
+
+  /** The fill handle drawn by the frozen top-rows overlay. */
+  frozenTopFillHandle(): Locator {
+    return this.page.locator('.ht_clone_top .wtBorder.current.corner:visible');
+  }
+
+  /**
+   * How far a frozen overlay's own fill handle sticks out past the edge that clips it, in pixels.
+   * The clipping box is the overlay's `.wtHolder` (`overflow: hidden`), not the clone element, which
+   * is `overflow: visible` and ends a few pixels earlier — measuring the clone reports an overhang
+   * that is not actually cut off.
+   */
+  async frozenFillHandleOverflow(pane: 'columns' | 'rows'): Promise<number> {
+    return this.page.evaluate((targetPane) => {
+      const overlaySelector = targetPane === 'columns' ? '.ht_clone_inline_start' : '.ht_clone_top';
+      const clippingBox = document.querySelector(`${overlaySelector} .wtHolder`);
+      const handle = document.querySelector(`${overlaySelector} .wtBorder.current.corner`);
+
+      if (!clippingBox || !handle) {
+        throw new Error(`No fill handle is rendered by "${overlaySelector}".`);
+      }
+
+      const clippingRect = clippingBox.getBoundingClientRect();
+      const handleRect = handle.getBoundingClientRect();
+
+      return targetPane === 'columns'
+        ? handleRect.right - clippingRect.right
+        : handleRect.bottom - clippingRect.bottom;
+    }, pane);
+  }
+
+  /**
    * The stacking order the selection affordances resolve to. `.ht_master` declares no z-index, so
    * it opens no stacking context and its borders compete directly with the overlay clones — which
    * is why the frozen pane's own z-index belongs in the same reading.

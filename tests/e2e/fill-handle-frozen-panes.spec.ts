@@ -63,6 +63,36 @@ test.describe('fill handle and frozen panes', () => {
     await expect.poll(() => grid.elementAtFillHandleCenter()).toMatch(/^ht_master\/.*corner/);
   });
 
+  test('leaves the frozen-column handle flush with the pane edge instead of lifting it', async () => {
+    // The frozen overlay draws this handle itself and already lands it on its own edge, so it needs
+    // no lift — walkontable's border.spec.js pins that alignment to the pixel.
+    await grid.initGrid({ data: WIDE_DATA, fixedColumnsStart: 2 });
+    await grid.selectCells(5, 1, 5, 1);
+
+    await expect(grid.frozenColumnsFillHandle()).not.toHaveClass(/wtCornerInlineEndEdge/);
+    expect(await grid.frozenFillHandleOverflow('columns')).toBeLessThanOrEqual(1);
+  });
+
+  test('leaves the frozen-top-row handle flush with the pane edge instead of lifting it', async () => {
+    await grid.initGrid({ fixedRowsTop: 2 });
+    await grid.selectCells(1, 1, 1, 1);
+
+    await expect(grid.frozenTopFillHandle()).not.toHaveClass(/wtCornerBlockEndEdge/);
+    expect(await grid.frozenFillHandleOverflow('rows')).toBeLessThanOrEqual(1);
+  });
+
+  test('keeps the resize pills under the frozen panes in the stack', async () => {
+    await grid.initGrid({ data: WIDE_DATA, fixedColumnsStart: 2 });
+    await grid.selectCells(4, 3, 6, 5);
+    await grid.hoverCell(5, 4);
+
+    await expect(grid.visibleHandles()).toHaveCount(4);
+
+    const stack = await grid.selectionStackOrder();
+
+    expect(stack.resizeHandle).toBeLessThan(stack.frozenColumnsPane);
+  });
+
   test('hides the fill handle behind the bottom frozen rows when the cell scrolls under them', async () => {
     await grid.initGrid({ fixedRowsBottom: 2, height: 150 });
     await grid.selectCells(3, 1, 3, 1);

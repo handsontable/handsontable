@@ -23,7 +23,7 @@ test.describe('moveCells edge move bands', () => {
 
     for (let index = 0; index < 4; index++) {
       // The grab cursor is the move affordance; z-index 100 keeps the bands
-      // below the resize pills (z-index 200) where they overlap in corners.
+      // below the resize pills (z-index 115) where they overlap in corners.
       await expect(bands.nth(index)).toHaveCSS('cursor', 'grab');
       await expect(bands.nth(index)).toHaveCSS('z-index', '100');
     }
