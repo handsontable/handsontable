@@ -225,6 +225,17 @@ export class Formulas extends BasePlugin {
   #moveCellsSyncPending = false;
 
   /**
+   * Guard flag set while `#syncFormulasToSourceData` writes engine-rewritten formulas back to
+   * Handsontable.
+   * Prevents the `afterSetSourceDataAtCell` hook from pushing the very same formulas into
+   * HyperFormula again.
+   *
+   * @private
+   * @type {boolean}
+   */
+  #sourceDataSyncPending = false;
+
+  /**
    * The changes that the engine reported while undoing or redoing an action. They are collected in
    * `beforeUndo`/`beforeRedo` and consumed in `afterUndo`/`afterRedo`, where the dependent cells get
    * validated.
@@ -597,11 +608,15 @@ export class Formulas extends BasePlugin {
       this.indexSyncer!.setPerformRedo(false);
       this.#isRedoingMoveCells = false;
       this.#validateUndoRedoDependentCells();
+      // The structural hooks skip blocked sources, so undoing a row/column change reverts the
+      // formulas inside the engine only - the source data has to be caught up separately.
+      this.#syncFormulasToSourceData();
     });
 
     this.addHook('afterRedo', () => {
       this.indexSyncer!.setPerformRedo(false);
       this.#validateUndoRedoDependentCells();
+      this.#syncFormulasToSourceData();
     });
 
     this.addHook('afterRedo', () => {
@@ -1537,6 +1552,11 @@ export class Formulas extends BasePlugin {
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   #onAfterSetSourceDataAtCell = (changes: CellChange[], source: string) => {
+    // Checked before the blocked-source branch so the write-back never reaches undo/redo tracking.
+    if (this.#sourceDataSyncPending) {
+      return;
+    }
+
     if (isBlockedSource(source)) {
       this.#registerUndoRedoWrite(changes, source, false);
 
@@ -1666,6 +1686,114 @@ export class Formulas extends BasePlugin {
   };
 
   /**
+   * Writes the formulas that HyperFormula rewrote during a structural change back into
+   * Handsontable's source data.
+   *
+   * Inserting or removing rows and columns makes HyperFormula shift the references inside every
+   * affected formula (`=SUM(A1:A3)` becomes `=SUM(A1:A4)` after a row is inserted into that
+   * range). Until this sync runs, that rewrite lives only inside the engine and is projected onto
+   * reads by the `modifySourceData` hook, which leaves the array the developer passed to
+   * Handsontable holding the *old* formula. Any consumer that owns the data outside the grid — a
+   * Redux store, a React `data` prop, a snapshot saved to a server — then keeps the stale text and
+   * reverts the formula the moment that array is loaded back in.
+   *
+   * The engine changes reported by `addRows`/`removeRows`/... cannot drive this: they list cells
+   * whose *value* changed, and a reference shift usually leaves the value intact. So the sheet's
+   * formulas are read in bulk and only the cells that actually differ are written.
+   *
+   * The write is fenced with `#sourceDataSyncPending` so `afterSetSourceDataAtCell` does not push
+   * the formulas straight back into the engine. External listeners still receive that hook, which
+   * is what lets an outside store learn the new formula text.
+   *
+   * Row and column *moves* are deliberately excluded: they reorder indexes without touching the
+   * source data, so its own reference frame stays intact and there is nothing to catch up.
+   *
+   * @private
+   */
+  #syncFormulasToSourceData() {
+    if (
+      this.#internalOperationPending ||
+      this.sheetName === null ||
+      !this.engine?.doesSheetExist(this.sheetName)
+    ) {
+      return;
+    }
+
+    const sheetId = this.engine.getSheetId(this.sheetName)!;
+    const dimensions = this.engine.getSheetDimensions(sheetId);
+
+    if (dimensions.width === 0 && dimensions.height === 0) {
+      return;
+    }
+
+    const formulas = this.engine.getSheetFormulas(sheetId) as Array<Array<string | undefined>>;
+    const changes: Array<[number, string | number, unknown]> = [];
+
+    // Compare against what Handsontable stores, not against what it reports - `#onModifySourceData`
+    // would otherwise answer with the engine's formula and hide every diff.
+    this.#internalOperationPending = true;
+
+    try {
+      for (let hfRow = 0; hfRow < formulas.length; hfRow++) {
+        const formulasRow = formulas[hfRow];
+
+        if (!formulasRow) {
+          continue;
+        }
+
+        // Trimmed rows report -1 - they have no visual counterpart to write to.
+        const visualRow = this.rowAxisSyncer!.getVisualIndexFromHfIndex(hfRow);
+
+        if (visualRow === -1) {
+          continue;
+        }
+
+        const physicalRow = this.hot.toPhysicalRow(visualRow);
+
+        if (physicalRow === null) {
+          continue;
+        }
+
+        for (let hfColumn = 0; hfColumn < formulasRow.length; hfColumn++) {
+          const formula = formulasRow[hfColumn];
+
+          if (formula === undefined) {
+            continue;
+          }
+
+          const visualColumn = this.columnAxisSyncer!.getVisualIndexFromHfIndex(hfColumn);
+
+          if (visualColumn === -1) {
+            continue;
+          }
+
+          const prop = this.hot.colToProp(visualColumn);
+
+          // `getSourceDataAtCell` takes a physical row and a visual column, `setSourceDataAtCell`
+          // a physical row and a prop.
+          if (this.hot.getSourceDataAtCell(physicalRow, visualColumn) !== formula) {
+            changes.push([physicalRow, prop as string | number, formula]);
+          }
+        }
+      }
+    } finally {
+      this.#internalOperationPending = false;
+    }
+
+    if (changes.length === 0) {
+      return;
+    }
+
+    this.#sourceDataSyncPending = true;
+
+    try {
+      this.hot.setSourceDataAtCell(changes, undefined, undefined, `${toUpperCaseFirst(PLUGIN_KEY)}.syncSourceData`);
+    } finally {
+      this.#sourceDataSyncPending = false;
+    }
+  }
+
+  /**
    * `afterCreateRow` hook callback.
    *
    * @param {number} visualRow Represents the visual index of first newly created row in the data source array.
@@ -1681,6 +1809,7 @@ export class Formulas extends BasePlugin {
     const changes = this.engine!.addRows(this.sheetId,
       [this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow), amount]);
 
+    this.#syncFormulasToSourceData();
     this.renderDependentSheets(changes);
   };
 
@@ -1700,6 +1829,7 @@ export class Formulas extends BasePlugin {
     const changes = this.engine!.addColumns(this.sheetId,
       [this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn), amount]);
 
+    this.#syncFormulasToSourceData();
     this.renderDependentSheets(changes);
   };
 
@@ -1723,6 +1853,7 @@ export class Formulas extends BasePlugin {
       this.#removeSpansFromEngine(removedSpans, 'removeRows');
     });
 
+    this.#syncFormulasToSourceData();
     this.renderDependentSheets(changes);
   };
 
@@ -1746,6 +1877,7 @@ export class Formulas extends BasePlugin {
       this.#removeSpansFromEngine(removedSpans, 'removeColumns');
     });
 
+    this.#syncFormulasToSourceData();
     this.renderDependentSheets(changes);
   };
 
