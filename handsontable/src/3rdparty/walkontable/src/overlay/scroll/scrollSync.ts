@@ -98,7 +98,8 @@ export class ScrollSync {
 
   /**
    * Whether the sizes measured before the layout settled still have to be dropped, which the next
-   * draw does on its way in.
+   * draw does on its way in. Stays set until a draw has rendered the cell band and re-measured them
+   * (`confirmSizesRemeasured`), so a draw whose `skipRender` hook cancels the render cannot spend it.
    *
    * @type {boolean}
    */
@@ -365,18 +366,31 @@ export class ScrollSync {
    * invalidated and resizes the elements from the results. Doing it the other way round – dropping
    * the sizes and then asking for a redraw – leaves the row heights dropped for good whenever that
    * redraw renders no cells.
+   *
+   * The mark is not spent here, because a draw that got this far can still render nothing: a
+   * `beforeDraw` hook that sets `skipRender` (NestedRows does this, and so can any user hook) cancels
+   * the cell render, and then `markOversizedRows` never runs to take the heights again. It is spent
+   * by `confirmSizesRemeasured()`, from the `afterDraw` of a draw that did render the band. The drop
+   * is idempotent, so repeating it on the next draw costs one invalidation.
    */
   resetSizesMeasuredBeforeLayoutSettled() {
     if (!this.#sizesMeasuredBeforeLayoutSettled) {
       return;
     }
 
-    this.#sizesMeasuredBeforeLayoutSettled = false;
-
     const wtViewport = this.#deps.getWtViewport();
 
     wtViewport.resetAllOversizedRows();
     wtViewport.invalidateColumnWidthCache();
+  }
+
+  /**
+   * Spends the mark left by `resolveProvisionalLayout()`, once a draw has rendered the cell band and
+   * therefore re-measured the sizes that `resetSizesMeasuredBeforeLayoutSettled()` dropped on its way
+   * in. Called from `Overlays#afterDraw`.
+   */
+  confirmSizesRemeasured() {
+    this.#sizesMeasuredBeforeLayoutSettled = false;
   }
 
   /**
@@ -387,9 +401,10 @@ export class ScrollSync {
    * the scrollable element resolves to the window, and the row heights and column widths describe a
    * layout the table never had.
    *
-   * Runs from `afterDraw`, so the overlays have already refreshed their trimming containers and the
-   * holder has its final overflow; in `beforeDraw` both are still stale and the scrollable element
-   * would settle on the window again. While the answer is still the window even though an element
+   * Runs from the `afterDraw` of a full draw, so the overlays have already refreshed their trimming
+   * containers and the holder has its final overflow; in `beforeDraw`, and on a fast draw that never
+   * aligned the overlays at all, both are still stale and the scrollable element would settle on the
+   * window again. While the answer is still the window even though an element
    * trims the table, the layout has not settled yet and the pass is retried on the next draw – but
    * only while the answer keeps changing. `getTrimmingContainer` counts `overflow: hidden` and
    * `getScrollableElement` does not, so the two can disagree permanently, and a table in an iframe
@@ -501,12 +516,18 @@ export class ScrollSync {
    * "no ancestor clips or scrolls" and hands the whole grid to the window. A provisional answer is
    * retaken on the next draw that finds the table rendered (see `Overlays#afterDraw`).
    *
+   * Re-arming the flag starts a fresh series of retries, so the answer an earlier series gave up on
+   * is forgotten with it: `updateMainScrollableElements()` is public and `updateSettings` calls it
+   * whenever `height` moves to or from `''`, so a grid that already gave up while it was outside the
+   * layout would otherwise match its own stale answer on the first retry and give up again at once.
+   *
    * @returns {HTMLElement | Window}
    */
   #takeScrollableElement(): HTMLElement | Window {
     const { wtTable, geometryReader } = this.#deps;
 
     this.#isScrollableElementProvisional = !geometryReader.isRendered(wtTable.wtRootElement);
+    this.#lastProvisionalScrollableElement = null;
 
     return this.#computeScrollableElement();
   }

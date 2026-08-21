@@ -72,6 +72,9 @@ describe('ScrollSync#resolveProvisionalLayout', () => {
       render: () => {
         rendered = true;
       },
+      unrender: () => {
+        rendered = false;
+      },
     };
   };
 
@@ -145,16 +148,49 @@ describe('ScrollSync#resolveProvisionalLayout', () => {
     expect(counters.resetAllOversizedRows).toBe(1);
   });
 
-  it('should drop the sizes once per settled layout', () => {
+  it('should keep dropping the sizes until a draw has rendered the cells', () => {
     const { scrollSync, counters, render } = createScrollSync({ trimmedByElement: false });
 
     render();
     scrollSync.resolveProvisionalLayout();
     scrollSync.resetSizesMeasuredBeforeLayoutSettled();
     scrollSync.resetSizesMeasuredBeforeLayoutSettled();
+
+    expect(counters.resetAllOversizedRows).toBe(2);
+  });
+
+  it('should drop the sizes once per settled layout', () => {
+    const { scrollSync, counters, render } = createScrollSync({ trimmedByElement: false });
+
+    render();
+    scrollSync.resolveProvisionalLayout();
+    scrollSync.resetSizesMeasuredBeforeLayoutSettled();
+    scrollSync.confirmSizesRemeasured();
+    scrollSync.resetSizesMeasuredBeforeLayoutSettled();
     scrollSync.resetSizesMeasuredBeforeLayoutSettled();
 
     expect(counters.resetAllOversizedRows).toBe(1);
+  });
+
+  it('should grant a fresh retry to a layout that is armed again', () => {
+    const { scrollSync, counters, render, unrender } = createScrollSync({ trimmedByElement: true });
+
+    render();
+    scrollSync.resolveProvisionalLayout();
+    scrollSync.resolveProvisionalLayout();
+
+    expect(scrollSync.isScrollableElementProvisional).toBe(false);
+
+    unrender();
+    scrollSync.updateMainScrollableElements();
+
+    expect(scrollSync.isScrollableElementProvisional).toBe(true);
+
+    render();
+    scrollSync.resolveProvisionalLayout();
+
+    expect(scrollSync.isScrollableElementProvisional).toBe(true);
+    expect(counters.registerListeners).toBe(1);
   });
 
   it('should drop nothing on a draw that follows no settled layout', () => {
