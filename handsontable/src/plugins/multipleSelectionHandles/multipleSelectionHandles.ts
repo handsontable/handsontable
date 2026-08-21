@@ -10,6 +10,11 @@ export const PLUGIN_KEY = 'multipleSelectionHandles';
 export const PLUGIN_PRIORITY = 160;
 
 /**
+ * How far the finger must travel, in pixels, before its position is resolved to a cell again.
+ */
+const TOUCH_MOVE_THRESHOLD = 2;
+
+/**
  * @private
  * @plugin MultipleSelectionHandles
  * @class MultipleSelectionHandles
@@ -254,6 +259,18 @@ export class MultipleSelectionHandles extends BasePlugin {
         return;
       }
 
+      // Resolving a position walks the visible cells reading their geometry, and a phone can send
+      // 120 touchmove/s. Skip that while the finger has barely moved - the cell cannot have changed.
+      // The threshold lives here, NOT in `#extendSelection`: `#onAfterScroll` calls it with an
+      // unchanged position on purpose, because there it is the viewport that moved.
+      if (this.#lastTouchPosition !== null &&
+          Math.abs(point.clientX - this.#lastTouchPosition.clientX) < TOUCH_MOVE_THRESHOLD &&
+          Math.abs(point.clientY - this.#lastTouchPosition.clientY) < TOUCH_MOVE_THRESHOLD) {
+        event.preventDefault();
+
+        return;
+      }
+
       this.#lastTouchPosition = point;
 
       this.#extendSelection(point.clientX, point.clientY);
@@ -439,6 +456,19 @@ export class MultipleSelectionHandles extends BasePlugin {
    */
   isDragged(): boolean {
     return this.dragged.length > 0;
+  }
+
+  /**
+   * Checks whether one specific finger is the one holding a handle. Reachable through `getPlugin`
+   * because DragToScroll needs it - `isDragged()` alone would let it arm auto-scroll for any finger
+   * landing anywhere while a drag happens to be running.
+   *
+   * @private
+   * @param {number} identifier The finger's `Touch.identifier`.
+   * @returns {boolean} Whether that finger grabbed a handle.
+   */
+  isDraggedBy(identifier: number): boolean {
+    return this.#dragTouches.has(identifier);
   }
 
   /**

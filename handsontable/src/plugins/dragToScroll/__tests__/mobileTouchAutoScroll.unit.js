@@ -323,6 +323,25 @@ describe('DragToScroll mobile touch auto-scroll', () => {
     expect(handles.dragged).toEqual(['bottom']);
   });
 
+  it('should not arm for a finger that is not the one holding a handle', () => {
+    build();
+
+    const plugin = hot.getPlugin('dragToScroll');
+
+    bottomHandle().dispatchEvent(touchStart(HANDLE_FINGER));
+
+    // Escape ends auto-scroll, but the handle plugin still reports a drag. A later touch by some
+    // other finger must not restart scrolling - `isDragged()` alone would have let it.
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+    expect(plugin.isListening()).toBe(false);
+    expect(hot.getPlugin('multipleSelectionHandles').isDragged()).toBe(true);
+
+    hot.rootElement.dispatchEvent(touchStart(OTHER_FINGER));
+
+    expect(plugin.isListening()).toBe(false);
+  });
+
   it('should forget an in-progress drag when the plugin is disabled', () => {
     build();
 

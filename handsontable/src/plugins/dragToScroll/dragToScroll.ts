@@ -436,10 +436,6 @@ export class DragToScroll extends BasePlugin {
    * @param {Event} event The `touchstart` event.
    */
   #onTouchStart = (event: Event): void => {
-    if (this.hot.getPlugin('multipleSelectionHandles')?.isDragged() !== true) {
-      return;
-    }
-
     // Every later finger lands while the handle drag is still running, so this fires again for each
     // one. Keep following the finger that started the drag - taking the newest instead would leave
     // auto-scroll chasing a resting thumb, and would end the drag when that thumb lifted.
@@ -453,6 +449,13 @@ export class DragToScroll extends BasePlugin {
     // safe moment to stop. Better not to start: `#dragTouchId` stays in step with being touch-armed,
     // which is what `#onTouchEnd` relies on.
     if (touch === null) {
+      return;
+    }
+
+    // Ask about THIS finger, not merely whether some drag is running. A drag can outlive the
+    // auto-scroller - `unlisten()` also runs on Escape and on `contextmenu` - and `isDragged()`
+    // alone would then let the next touch anywhere in the document start scrolling the grid.
+    if (this.hot.getPlugin('multipleSelectionHandles')?.isDraggedBy(touch.identifier) !== true) {
       return;
     }
 
