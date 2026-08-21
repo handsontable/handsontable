@@ -99,5 +99,3 @@ export function getComparisonFunction(language?: string, options: object = {}) {
 
   return comparisonFunction;
 }
-
-// DEV-2592 CI-scope probe: temporary, drop this commit before merge.
