@@ -42,6 +42,9 @@ import { CONDITION_NAME as CONDITION_INTL_DATETIME_BEFORE_OR_EQUAL } from './con
 import { CONDITION_NAME as CONDITION_INTL_DATETIME_AFTER } from './condition/intlDatetime/after';
 import { CONDITION_NAME as CONDITION_INTL_DATETIME_AFTER_OR_EQUAL } from './condition/intlDatetime/afterOrEqual';
 import { CONDITION_NAME as CONDITION_INTL_DATETIME_BETWEEN } from './condition/intlDatetime/between';
+import { CONDITION_NAME as CONDITION_INTL_DATETIME_TOMORROW } from './condition/intlDatetime/tomorrow';
+import { CONDITION_NAME as CONDITION_INTL_DATETIME_TODAY } from './condition/intlDatetime/today';
+import { CONDITION_NAME as CONDITION_INTL_DATETIME_YESTERDAY } from './condition/intlDatetime/yesterday';
 import { CONDITION_NAME as CONDITION_FALSE } from './condition/false';
 
 export { CONDITION_NAME as CONDITION_BY_VALUE } from './condition/byValue';
@@ -85,7 +88,6 @@ export const TYPE_TEXT = 'text';
 export const TYPE_DATE = 'date';
 export const TYPE_INTL_DATE = 'intl-date';
 export const TYPE_INTL_TIME = 'intl-time';
-export const TYPE_DATETIME = 'datetime';
 export const TYPE_INTL_DATETIME = 'intl-datetime';
 /**
  * Default types and order for filter conditions.
@@ -197,10 +199,12 @@ export const TYPES: Record<string, string[]> = {
     CONDITION_INTL_DATETIME_AFTER,
     CONDITION_INTL_DATETIME_AFTER_OR_EQUAL,
     CONDITION_INTL_DATETIME_BETWEEN,
+    SEPARATOR,
+    CONDITION_INTL_DATETIME_TOMORROW,
+    CONDITION_INTL_DATETIME_TODAY,
+    CONDITION_INTL_DATETIME_YESTERDAY,
   ],
 };
-
-TYPES[TYPE_DATETIME] = TYPES[TYPE_INTL_DATETIME];
 
 /**
  * Get options list for conditional filter by data type (e.q: `'text'`, `'numeric'`, `'date'`).

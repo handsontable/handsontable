@@ -2,7 +2,6 @@ import { AutocompleteEditor, EDITOR_TYPE as AUTOCOMPLETE_EDITOR } from './autoco
 import { BaseEditor, EDITOR_TYPE as BASE_EDITOR } from './baseEditor';
 import { CheckboxEditor, EDITOR_TYPE as CHECKBOX_EDITOR } from './checkboxEditor';
 import { DateEditor, EDITOR_TYPE as DATE_EDITOR } from './dateEditor';
-import { DatetimeEditor, EDITOR_TYPE as DATETIME_EDITOR } from './datetimeEditor';
 import { DropdownEditor, EDITOR_TYPE as DROPDOWN_EDITOR } from './dropdownEditor';
 import { HandsontableEditor, EDITOR_TYPE as HANDSONTABLE_EDITOR } from './handsontableEditor';
 import { IntlDateEditor, EDITOR_TYPE as INTL_DATE_EDITOR } from './intlDateEditor';
@@ -25,7 +24,6 @@ export function registerAllEditors() {
   registerEditor(AutocompleteEditor);
   registerEditor(CheckboxEditor);
   registerEditor(DateEditor);
-  registerEditor(DatetimeEditor);
   registerEditor(DropdownEditor);
   registerEditor(HandsontableEditor);
   registerEditor(IntlDateEditor);
@@ -44,7 +42,6 @@ export {
   BaseEditor, BASE_EDITOR,
   CheckboxEditor, CHECKBOX_EDITOR,
   DateEditor, DATE_EDITOR,
-  DatetimeEditor, DATETIME_EDITOR,
   DropdownEditor, DROPDOWN_EDITOR,
   HandsontableEditor, HANDSONTABLE_EDITOR,
   IntlDateEditor, INTL_DATE_EDITOR,
@@ -74,7 +71,7 @@ export { editorFactory } from './factory';
  * All built-in editor type names.
  */
 export type EditorType = typeof AUTOCOMPLETE_EDITOR | typeof BASE_EDITOR | typeof CHECKBOX_EDITOR |
-  typeof DATE_EDITOR | typeof DATETIME_EDITOR | typeof DROPDOWN_EDITOR | typeof HANDSONTABLE_EDITOR |
+  typeof DATE_EDITOR | typeof DROPDOWN_EDITOR | typeof HANDSONTABLE_EDITOR |
   typeof INTL_DATE_EDITOR | typeof INTL_DATETIME_EDITOR | typeof INTL_TIME_EDITOR |
   typeof NUMERIC_EDITOR | typeof PASSWORD_EDITOR | typeof SELECT_EDITOR |
   typeof TEXT_EDITOR | typeof TIME_EDITOR | string;

@@ -23,7 +23,7 @@ The datetime cell type formats an ISO 8601 date-time value using a configurable 
 
 ## Overview
 
-The datetime cell type lets you treat cell values as combined dates and times: format how they are displayed, edit them with a native picker, and validate input. Use the `intl-datetime` or `datetime` cell type with the native [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API and ISO 8601 date-time strings.
+The datetime cell type lets you treat cell values as combined dates and times: format how they are displayed, edit them with a native picker, and validate input. Use the `intl-datetime` cell type with the native [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API and ISO 8601 date-time strings.
 
 ## Date-time cell type demo
 
@@ -69,7 +69,7 @@ In the following demo, the **Deadline** and **Created** columns use the datetime
 
 ## Use the datetime cell type
 
-Set the [`type`](@/api/options.md#type) option to `'intl-datetime'` or `'datetime'` and [`dateTimeFormat`](@/api/options.md#datetimeformat) to an object. The locale is controlled via the [`locale`](@/api/options.md#locale) option.
+Set the [`type`](@/api/options.md#type) option to `'intl-datetime'` and [`dateTimeFormat`](@/api/options.md#datetimeformat) to an object. The locale is controlled via the [`locale`](@/api/options.md#locale) option.
 
 ::: only-for javascript
 
@@ -227,7 +227,7 @@ const hotSettings = ref<GridSettings>({
 
 :::
 
-For `intl-datetime` and `datetime` cells, source data **must** be in **ISO 8601 date-time format** (`YYYY-MM-DDTHH:mm:ss`) for values to work correctly. A date-only value (`YYYY-MM-DD`) is treated as midnight. The `dateTimeFormat` object only affects how values are displayed; sorting and filtering rely on the underlying ISO value.
+For `intl-datetime` cells, source data **must** be in **ISO 8601 date-time format** (`YYYY-MM-DDTHH:mm:ss`) for values to work correctly. A date-only value (`YYYY-MM-DD`) is treated as midnight. The `dateTimeFormat` object only affects how values are displayed; sorting and filtering rely on the underlying ISO value.
 
 ## Format date-time values
 
@@ -235,7 +235,7 @@ To control how values are displayed in [cell renderers](@/guides/cell-functions/
 
 ### Using Intl.DateTimeFormat
 
-The `dateTimeFormat` option accepts properties of [`Intl.DateTimeFormat` options](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat). Use it with `type: 'intl-datetime'` or `type: 'datetime'`.
+The `dateTimeFormat` option accepts properties of [`Intl.DateTimeFormat` options](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat). Use it with `type: 'intl-datetime'`.
 
 **Style shortcuts:**
 
@@ -271,7 +271,7 @@ For a complete reference, see the [`dateTimeFormat` API documentation](@/api/opt
 
 ### Editor behavior
 
-Clicking an `intl-datetime` or `datetime` cell opens the browser's native [`datetime-local`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/datetime-local) picker. The editor shows the value in the `YYYY-MM-DDTHH:mm:ss` form the native input expects; on commit, the value is stored back in that ISO form. The `dateTimeFormat` option only affects the rendered display, not the stored value.
+Clicking an `intl-datetime` cell opens the browser's native [`datetime-local`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/datetime-local) picker. The editor shows the value in the `YYYY-MM-DDTHH:mm:ss` form the native input expects; on commit, the value is stored back in that ISO form. The `dateTimeFormat` option only affects the rendered display, not the stored value.
 
 ## Result
 
@@ -279,7 +279,7 @@ After configuring the datetime cell type, cells display date-time values formatt
 
 ## Keyboard shortcuts
 
-The `intl-datetime` and `datetime` cell editors open the browser's native date-time picker. Keyboard navigation inside the picker comes from the browser, so it varies between browsers and operating systems. Outside the picker, the standard [edition keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#edition-keyboard-shortcuts) apply.
+The `intl-datetime` cell editor opens the browser's native date-time picker. Keyboard navigation inside the picker comes from the browser, so it varies between browsers and operating systems. Outside the picker, the standard [edition keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#edition-keyboard-shortcuts) apply.
 
 ## Related articles
 

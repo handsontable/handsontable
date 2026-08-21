@@ -1851,7 +1851,7 @@ export default (): Record<string, unknown> => {
      * Time-related options (`hour`, `minute`, `second`, `timeStyle`, `hour12`, `hourCycle`,
      * `fractionalSecondDigits`) only affect display and always render midnight (`00:00:00`) for
      * `date`/`intl-date` cells, because their source data is date-only. For editable date *and*
-     * time values, use the [`datetime`/`intl-datetime` cell type](@/guides/cell-types/datetime-cell-type/datetime-cell-type.md).
+     * time values, use the [`intl-datetime` cell type](@/guides/cell-types/datetime-cell-type/datetime-cell-type.md).
      * :::
      *
      * **Style shortcuts:**
@@ -1979,7 +1979,7 @@ export default (): Record<string, unknown> => {
     timeFormat: { hour: '2-digit', minute: '2-digit' },
 
     /**
-     * Configures the date-time format for `datetime` and `intl-datetime` cells using an
+     * Configures the date-time format for `intl-datetime` cells using an
      * [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat)
      * options object. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
      *
@@ -6402,7 +6402,6 @@ export default (): Record<string, unknown> => {
      * | `'text'`                                                          | Renderer: `TextRenderer`<br>Editor: `TextEditor`<br>Validator: -                                                                                                                                       |
      * | [`'time`'](@/guides/cell-types/time-cell-type/time-cell-type.md)                 | Renderer: `TimeRenderer`<br>Editor: `TimeEditor`<br>Validator: `TimeValidator`                                                                                                 |
      * | [`'intl-time'`](@/guides/cell-types/time-cell-type/time-cell-type.md)                 | Renderer: `IntlTimeRenderer`<br>Editor: `IntlTimeEditor`<br>Validator: `IntlTimeValidator`                                                                                                 |
-     * | [`'datetime'`](@/guides/cell-types/datetime-cell-type/datetime-cell-type.md)                 | Renderer: `DatetimeRenderer`<br>Editor: `DatetimeEditor`<br>Validator: `DatetimeValidator`                                                                                                 |
      * | [`'intl-datetime'`](@/guides/cell-types/datetime-cell-type/datetime-cell-type.md)                 | Renderer: `IntlDatetimeRenderer`<br>Editor: `IntlDatetimeEditor`<br>Validator: `IntlDatetimeValidator`                                                                                                 |
      *
      * Read more:

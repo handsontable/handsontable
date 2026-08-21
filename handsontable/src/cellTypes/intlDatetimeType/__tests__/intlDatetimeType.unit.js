@@ -1,5 +1,4 @@
 import { CELL_TYPE, IntlDatetimeCellType } from '../';
-import { CELL_TYPE as DATETIME_CELL_TYPE, DatetimeCellType } from '../../datetimeType';
 import {
   getCellType,
   getRegisteredCellTypeNames,
@@ -68,18 +67,8 @@ describe('IntlDatetimeCellType', () => {
     });
   });
 
-  describe('alias equivalence', () => {
-    it('should resolve intl-datetime editor to the same implementation as the datetime editor', () => {
-      registerCellType(CELL_TYPE, IntlDatetimeCellType);
-      registerCellType(DATETIME_CELL_TYPE, DatetimeCellType);
-
-      // IntlDatetimeEditor extends DatetimeEditor — they share the same prototype chain
-      const intlDatetimeEditorPrototype = Object.getPrototypeOf(getEditor('intl-datetime'));
-
-      expect(intlDatetimeEditorPrototype).toBe(getEditor('datetime'));
-    });
-
-    it('should have the same validator behavior for intl-datetime and datetime cell types', () => {
+  describe('validator behavior', () => {
+    it('should validate ISO date-time values through the registered validator', () => {
       registerCellType(CELL_TYPE, IntlDatetimeCellType);
 
       const intlDatetimeValidatorFn = getValidator('intl-datetime');

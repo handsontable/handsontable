@@ -130,7 +130,10 @@ export function parseIsoDateTimeStringToSerial(value: unknown): number | null {
     return null;
   }
 
-  const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?$/);
+  // Mirrors ISO_DATETIME_REGEX in helpers/dateTime.ts, but captures the year for local parsing.
+  const match = String(value).match(
+    /^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])(?:[T ]([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d)(?:\.\d{1,3})?)?)?$/
+  );
 
   if (!match) {
     return null;

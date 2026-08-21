@@ -678,7 +678,7 @@ class Xlsx extends BaseType {
       };
     }
 
-    if (meta.type === 'datetime' || meta.type === 'intl-datetime') {
+    if (meta.type === 'intl-datetime') {
       const serial = parseIsoDateTimeStringToSerial(cellValue);
 
       if (serial !== null) {

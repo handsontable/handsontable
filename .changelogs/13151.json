@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Added the `datetime` and `intl-datetime` cell types, with a native date-time picker, `Intl.DateTimeFormat` display via the new `dateTimeFormat` option, and column sorting, filtering, and Excel export support.",
+  "title": "Added the `intl-datetime` cell type, with a native date-time picker, `Intl.DateTimeFormat` display via the new `dateTimeFormat` option, and column sorting, filtering, and Excel export support.",
   "type": "added",
   "issueOrPR": 13151,
   "breaking": false,

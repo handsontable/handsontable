@@ -1,14 +1,14 @@
-import { datetimeValidator, sourceDataValidator } from '../datetimeValidator';
+import { intlDatetimeValidator, sourceDataValidator } from '../intlDatetimeValidator';
 
-describe('datetimeValidator', () => {
+describe('intlDatetimeValidator', () => {
   it('accepts valid datetimes and date-only values', (done) => {
     const results = [];
     const push = v => results.push(v);
 
-    datetimeValidator.call({}, '2024-12-25T14:30:00', push);
-    datetimeValidator.call({}, '2024-06-01', push);
-    datetimeValidator.call({}, '2024-03-16 09:00:00', push);
-    datetimeValidator.call({}, 'not-a-date', push);
+    intlDatetimeValidator.call({}, '2024-12-25T14:30:00', push);
+    intlDatetimeValidator.call({}, '2024-06-01', push);
+    intlDatetimeValidator.call({}, '2024-03-16 09:00:00', push);
+    intlDatetimeValidator.call({}, 'not-a-date', push);
 
     setTimeout(() => {
       expect(results).toEqual([true, true, true, false]);
@@ -17,7 +17,7 @@ describe('datetimeValidator', () => {
   });
 
   it('accepts empty when allowEmpty', (done) => {
-    datetimeValidator.call({ allowEmpty: true }, '', (v) => {
+    intlDatetimeValidator.call({ allowEmpty: true }, '', (v) => {
       expect(v).toBe(true);
       done();
     });

@@ -92,6 +92,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   dataSchema: oneOf({}, [[]], (index: number) => oneOf([index], { index })),
   dateFormat: oneOf({ year: 'numeric', month: '2-digit', day: '2-digit' } as Intl.DateTimeFormatOptions),
+  dateTimeFormat: oneOf(
+    { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' } as
+      Intl.DateTimeFormatOptions
+  ),
   defaultDate: 'foo',
   timeFormat: oneOf({ hour: 'numeric', minute: '2-digit' } as Intl.DateTimeFormatOptions),
   tabNavigation: oneOf(false),

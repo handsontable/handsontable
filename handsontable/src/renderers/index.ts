@@ -8,7 +8,6 @@ import { htmlRenderer, RENDERER_TYPE as HTML_RENDERER } from './htmlRenderer';
 import { intlDateRenderer, RENDERER_TYPE as INTL_DATE_RENDERER } from './intlDateRenderer';
 import { intlDatetimeRenderer, RENDERER_TYPE as INTL_DATETIME_RENDERER } from './intlDatetimeRenderer';
 import { intlTimeRenderer, RENDERER_TYPE as INTL_TIME_RENDERER } from './intlTimeRenderer';
-import { datetimeRenderer, RENDERER_TYPE as DATETIME_RENDERER } from './datetimeRenderer';
 import { numericRenderer, RENDERER_TYPE as NUMERIC_RENDERER } from './numericRenderer';
 import { passwordRenderer, RENDERER_TYPE as PASSWORD_RENDERER } from './passwordRenderer';
 import { selectRenderer, RENDERER_TYPE as SELECT_RENDERER } from './selectRenderer';
@@ -30,7 +29,6 @@ export function registerAllRenderers() {
   registerRenderer(intlDateRenderer);
   registerRenderer(intlDatetimeRenderer);
   registerRenderer(intlTimeRenderer);
-  registerRenderer(datetimeRenderer);
   registerRenderer(numericRenderer);
   registerRenderer(passwordRenderer);
   registerRenderer(selectRenderer);
@@ -49,7 +47,6 @@ export {
   intlDateRenderer, INTL_DATE_RENDERER,
   intlDatetimeRenderer, INTL_DATETIME_RENDERER,
   intlTimeRenderer, INTL_TIME_RENDERER,
-  datetimeRenderer, DATETIME_RENDERER,
   numericRenderer, NUMERIC_RENDERER,
   passwordRenderer, PASSWORD_RENDERER,
   selectRenderer, SELECT_RENDERER,
@@ -73,5 +70,4 @@ export { rendererFactory } from './factory';
 export type RendererType = typeof AUTOCOMPLETE_RENDERER | typeof BASE_RENDERER | typeof CHECKBOX_RENDERER |
   typeof DROPDOWN_RENDERER | typeof HANDSONTABLE_RENDERER | typeof HTML_RENDERER | typeof INTL_DATE_RENDERER |
   typeof INTL_DATETIME_RENDERER | typeof INTL_TIME_RENDERER | typeof NUMERIC_RENDERER | typeof PASSWORD_RENDERER |
-  typeof SELECT_RENDERER | typeof TEXT_RENDERER | typeof TIME_RENDERER | typeof DATE_RENDERER |
-  typeof DATETIME_RENDERER | string;
+  typeof SELECT_RENDERER | typeof TEXT_RENDERER | typeof TIME_RENDERER | typeof DATE_RENDERER | string;

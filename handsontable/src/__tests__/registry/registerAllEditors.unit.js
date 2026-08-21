@@ -20,7 +20,6 @@ describe('`registerAllEditors`', () => {
       'autocomplete',
       'checkbox',
       'date',
-      'datetime',
       'dropdown',
       'handsontable',
       'intl-date',

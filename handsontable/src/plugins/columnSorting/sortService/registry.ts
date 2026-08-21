@@ -27,10 +27,6 @@ import {
   COLUMN_DATA_TYPE as INTL_TIME_DATA_TYPE,
 } from '../sortFunction/intlTime';
 import {
-  compareFunctionFactory as datetimeSort,
-  COLUMN_DATA_TYPE as DATETIME_DATA_TYPE,
-} from '../sortFunction/datetime';
-import {
   compareFunctionFactory as intlDatetimeSort,
   COLUMN_DATA_TYPE as INTL_DATETIME_DATA_TYPE,
 } from '../sortFunction/intlDatetime';
@@ -72,7 +68,6 @@ registerCompareFunctionFactory(DEFAULT_DATA_TYPE, defaultSort);
 registerCompareFunctionFactory(NUMERIC_DATA_TYPE, numericSort);
 registerCompareFunctionFactory(TIME_DATA_TYPE, timeSort);
 registerCompareFunctionFactory(INTL_TIME_DATA_TYPE, intlTimeSort);
-registerCompareFunctionFactory(DATETIME_DATA_TYPE, datetimeSort);
 registerCompareFunctionFactory(INTL_DATETIME_DATA_TYPE, intlDatetimeSort);
 
 export {

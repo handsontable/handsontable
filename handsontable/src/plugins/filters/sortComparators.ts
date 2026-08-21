@@ -44,7 +44,7 @@ export function createISODateSortComparator(): (a: unknown, b: unknown) => numbe
 }
 
 /**
- * Returns a comparator for sorting `datetime`/`intl-datetime` cell values chronologically.
+ * Returns a comparator for sorting `intl-datetime` cell values chronologically.
  *
  * @returns {Function}
  */
@@ -102,7 +102,7 @@ export function getSortComparatorForMeta(
     return createISODateSortComparator();
   }
 
-  if (meta.type === 'datetime' || meta.type === 'intl-datetime') {
+  if (meta.type === 'intl-datetime') {
     return createISODateTimeSortComparator();
   }
 

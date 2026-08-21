@@ -88,6 +88,7 @@ interface HandsontableFactory {
     DropdownEditor: typeof import('./editors/dropdownEditor').DropdownEditor;
     HandsontableEditor: typeof import('./editors/handsontableEditor').HandsontableEditor;
     IntlDateEditor: typeof import('./editors/intlDateEditor').IntlDateEditor;
+    IntlDatetimeEditor: typeof import('./editors/intlDatetimeEditor').IntlDatetimeEditor;
     IntlTimeEditor: typeof import('./editors/intlTimeEditor').IntlTimeEditor;
     MultiSelectEditor: typeof import('./editors/multiSelectEditor').MultiSelectEditor;
     NumericEditor: typeof import('./editors/numericEditor').NumericEditor;
@@ -135,6 +136,7 @@ interface HandsontableFactory {
     HandsontableRenderer: typeof import('./renderers/handsontableRenderer').handsontableRenderer;
     HtmlRenderer: typeof import('./renderers/htmlRenderer').htmlRenderer;
     IntlDateRenderer: typeof import('./renderers/intlDateRenderer').intlDateRenderer;
+    IntlDatetimeRenderer: typeof import('./renderers/intlDatetimeRenderer').intlDatetimeRenderer;
     IntlTimeRenderer: typeof import('./renderers/intlTimeRenderer').intlTimeRenderer;
     NumericRenderer: typeof import('./renderers/numericRenderer').numericRenderer;
     PasswordRenderer: typeof import('./renderers/passwordRenderer').passwordRenderer;
@@ -152,6 +154,7 @@ interface HandsontableFactory {
     DateValidator: typeof import('./validators/dateValidator').dateValidator;
     DropdownValidator: typeof import('./validators/dropdownValidator').dropdownValidator;
     IntlDateValidator: typeof import('./validators/intlDateValidator').intlDateValidator;
+    IntlDatetimeValidator: typeof import('./validators/intlDatetimeValidator').intlDatetimeValidator;
     IntlTimeValidator: typeof import('./validators/intlTimeValidator').intlTimeValidator;
     MultiSelectValidator: typeof import('./validators/multiSelectValidator').multiSelectValidator;
     NumericValidator: typeof import('./validators/numericValidator').numericValidator;
@@ -168,6 +171,7 @@ interface HandsontableFactory {
     dropdown: typeof import('./cellTypes/dropdownType').DropdownCellType;
     handsontable: typeof import('./cellTypes/handsontableType').HandsontableCellType;
     intlDate: typeof import('./cellTypes/intlDateType').IntlDateCellType;
+    intlDatetime: typeof import('./cellTypes/intlDatetimeType').IntlDatetimeCellType;
     intlTime: typeof import('./cellTypes/intlTimeType').IntlTimeCellType;
     numeric: typeof import('./cellTypes/numericType').NumericCellType;
     password: typeof import('./cellTypes/passwordType').PasswordCellType;
