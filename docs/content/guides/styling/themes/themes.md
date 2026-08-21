@@ -29,6 +29,7 @@ vue:
   metaTitle: Themes - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
+menuTag: updated
 ---
 Use Handsontable's built-in themes or customize its look using the Theme API or CSS variables.
 
@@ -110,6 +111,8 @@ Each theme comes with three modes:
 When using the Theme API, you can configure the color scheme using `setColorScheme()` with `'light'`, `'dark'`, or `'auto'` values. The `'auto'` option allows programmatic control over light/dark switching based on your application's logic.
 
 When using CSS files, color scheme switching is controlled through CSS class names. Use `ht-theme-{name}` for light mode, `ht-theme-{name}-dark` for dark mode, or `ht-theme-{name}-dark-auto` for automatic switching based on system preferences (e.g., `ht-theme-main`, `ht-theme-main-dark`, `ht-theme-main-dark-auto`).
+
+If you don't want to declare a theme at all, set the [`colorScheme`](@/api/options.md#colorscheme) option instead. See [Set the color scheme or density without a theme](#set-the-color-scheme-or-density-without-a-theme).
 
 
 ## Use a theme
@@ -414,6 +417,98 @@ const hotSettings = ref({
 ```
 
 :::
+
+## Set the color scheme or density without a theme
+
+If the only thing you want to change is the color scheme or the amount of white space, you don't have to import, register, and configure a theme. Set the [`colorScheme`](@/api/options.md#colorscheme) or [`density`](@/api/options.md#density) option directly, and the grid applies it on top of the theme it already uses.
+
+| Option        | Allowed values                            | Default                        |
+| ------------- | ----------------------------------------- | ------------------------------ |
+| `colorScheme` | `'light'`, `'dark'`, `'auto'`             | the color scheme of your theme |
+| `density`     | `'default'`, `'compact'`, `'comfortable'` | the density of your theme      |
+
+Both options are per-instance overrides. The theme itself stays unchanged, so other grids that use the same theme keep their own color scheme and density.
+
+::: only-for javascript
+
+```js
+const container = document.querySelector('#handsontable-example');
+
+const hot = new Handsontable(container, {
+  colorScheme: 'dark',
+  density: 'compact',
+  // other options
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  colorScheme="dark"
+  density="compact"
+/>
+```
+
+:::
+
+::: only-for angular
+
+```html
+<hot-table [settings]="{
+  colorScheme: 'dark',
+  density: 'compact'
+}">
+</hot-table>
+```
+
+:::
+
+::: only-for vue
+
+```ts
+const hotSettings = ref({
+  colorScheme: 'dark',
+  density: 'compact',
+  // ... other options
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
+### Switch the color scheme or density at runtime
+
+Pass either option to [`updateSettings()`](@/api/core.md#updatesettings). This is all you need for a dark mode toggle:
+
+```js
+hot.updateSettings({
+  colorScheme: 'dark',
+});
+```
+
+An unsupported value is ignored, and the grid logs a warning naming the option. It does not throw, so one bad value does not break the rest of the update.
+
+To drop an override and go back to the value your theme defines, set the option to `undefined`:
+
+```js
+hot.updateSettings({
+  colorScheme: undefined,
+  density: undefined,
+});
+```
+
+### When these options apply
+
+Both options are features of the Theme API, so they need the theme engine to be active. The engine is active when you leave the [`theme`](@/api/options.md#theme) option out, or when you pass a theme config object or a `ThemeBuilder` instance to it. It is not active when the theme comes from a CSS class name — either the `theme` option set to a string such as `'ht-theme-main'`, or an `ht-theme-*` class on the container element. In that case the grid logs a warning and the options have no effect.
+
+Apart from that, it doesn't matter which stylesheets you load. Both options work with the base stylesheet alone and with a theme stylesheet on top of it, minified or not.
 
 ::: only-for angular
 

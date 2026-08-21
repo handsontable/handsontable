@@ -227,6 +227,7 @@ export type { RendererType } from './renderers/registry';
 export type { ValidatorType } from './validators/registry';
 export type {
   BaseTheme,
+  DensityType,
   ThemeBuilder,
   ThemeColorScheme,
   ThemeColorsConfig,

@@ -25,6 +25,7 @@ import type {
   DataProviderConfig,
 } from '../plugins/dataProvider';
 import type { RangeType, HotInstance } from './types';
+import type { ThemeColorScheme, DensityType } from '../themes/types';
 
 /**
  * The function shape of the `sourceDataValidator` option. Returns `true` when the value is valid.
@@ -56,6 +57,8 @@ export interface GridSettings {
   readOnlyCellClassName?: string;
   tableClassName?: string | string[];
   themeName?: string;
+  colorScheme?: ThemeColorScheme;
+  density?: DensityType;
 
   // Dimensions
   width?: number | string | (() => number | string);

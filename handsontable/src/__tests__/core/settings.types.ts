@@ -61,6 +61,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   className: oneOf('foo', ['foo']),
   colHeaders: oneOf(true, ['first-class-name', 'second-class-name']),
   collapsibleColumns: true,
+  colorScheme: oneOf('light', 'dark', 'auto'),
+  density: oneOf('default', 'compact', 'comfortable'),
   columnHeaderHeight: oneOf(35, [35, 55]),
   columns: [
     {
