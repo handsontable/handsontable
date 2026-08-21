@@ -1708,6 +1708,32 @@ export class Formulas extends BasePlugin {
   };
 
   /**
+   * Checks whether a stored cell value is the same formula as the one the engine holds, ignoring
+   * how it was spelled.
+   *
+   * HyperFormula hands back a canonical form - `=sum( a1 : a2 )` comes out as `=SUM( A1:A2 )`. A
+   * plain string comparison would read that as a change and rewrite formulas the operation never
+   * touched, including ones with no cell references at all.
+   *
+   * @private
+   * @param {*} stored The value held in the source data.
+   * @param {string} engineFormula The formula reported by the engine.
+   * @returns {boolean}
+   */
+  #isSameFormula(stored: unknown, engineFormula: string) {
+    if (!isFormula(stored)) {
+      return false;
+    }
+
+    try {
+      return this.engine!.normalizeFormula(stored as string) === engineFormula;
+    } catch {
+      // Not something the engine can parse - treat it as different and let the write happen.
+      return false;
+    }
+  }
+
+  /**
    * Writes the formulas that HyperFormula rewrote during a structural change back into
    * Handsontable's source data.
    *
@@ -1783,14 +1809,24 @@ export class Formulas extends BasePlugin {
             continue;
           }
 
-          // A trimmed column has no visual index; its physical index is a valid prop for an
-          // array-based source, which is the only shape that can reach that state here.
           const visualColumn = this.columnAxisSyncer!.getVisualIndexFromHfIndex(hfColumn);
-          const prop = visualColumn === -1 ? hfColumn : this.hot.colToProp(visualColumn);
+
+          // A trimmed column has no visual index. Its physical index doubles as the prop for an
+          // array-based source, but on an object row it would create a numeric key next to the
+          // real ones, so such a cell is left alone.
+          if (visualColumn === -1 && !Array.isArray(this.hot.getSourceDataAtRow(physicalRow))) {
+            continue;
+          }
+
+          const columnOrProp = visualColumn === -1 ? hfColumn : visualColumn;
 
           // `getSourceDataAtCell` takes a physical row and a visual column, `setSourceDataAtCell`
           // a physical row and a prop.
-          if (this.hot.getSourceDataAtCell(physicalRow, visualColumn === -1 ? hfColumn : visualColumn) !== formula) {
+          const stored = this.hot.getSourceDataAtCell(physicalRow, columnOrProp);
+
+          if (stored !== formula && !this.#isSameFormula(stored, formula)) {
+            const prop = visualColumn === -1 ? hfColumn : this.hot.colToProp(visualColumn);
+
             changes.push([physicalRow, prop as string | number, formula]);
           }
         }
@@ -1806,7 +1842,13 @@ export class Formulas extends BasePlugin {
     this.#sourceDataSyncPending = true;
 
     try {
-      this.hot.setSourceDataAtCell(changes, undefined, undefined, `${toUpperCaseFirst(PLUGIN_KEY)}.syncSourceData`);
+      // `setSourceDataAtCell` renders on its way out. Left alone that paints in the middle of
+      // `alter()`, before the selection and the fixed-row counts have caught up with the new size.
+      this.hot.batchRender(() => {
+        this.hot.setSourceDataAtCell(
+          changes, undefined, undefined, `${toUpperCaseFirst(PLUGIN_KEY)}.syncSourceData`
+        );
+      });
     } finally {
       this.#sourceDataSyncPending = false;
     }
@@ -2128,6 +2170,10 @@ export class Formulas extends BasePlugin {
     // Sync HOT's source data with HF's updated state so that getDataAtCell returns
     // correct values for VALUE/EMPTY cells (formula cells are already served via modifyData).
     this.#syncHotDataAfterMoveCells(committed);
+
+    // `#syncHotDataAfterMoveCells` covers the cells that were moved. Formulas elsewhere that
+    // pointed at the moved range were rewritten by the engine too, and need the same catch-up.
+    this.#syncFormulasToSourceData();
 
     // During undo/redo replay the engine step was skipped (dependentCells is null) and the
     // HOT re-render after undo/redo refreshes all dependent cells anyway.

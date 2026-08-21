@@ -1335,6 +1335,32 @@ describe('Formulas general', () => {
       expect(data[3][2]).toBe('=SUM(B2:B5)');
     });
 
+    it('should leave a formula the change did not affect spelled as the developer wrote it', async() => {
+      const data = [
+        [1, '=SUM(A1:A3)'],
+        [2, null],
+        [3, null],
+        [4, '=sum( a1 : a2 )'],
+        [5, '=iF(TruE(),1,2)'],
+      ];
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      // Inserting below everything shifts no reference at all.
+      await alter('insert_row_below', 4, 1);
+
+      // The engine reports a canonical spelling. Treating that as a change would rewrite formulas
+      // the operation never touched - including one with no cell reference in it.
+      expect(data[3][1]).toBe('=sum( a1 : a2 )');
+      expect(data[4][1]).toBe('=iF(TruE(),1,2)');
+      expect(data[0][1]).toBe('=SUM(A1:A3)');
+    });
+
     it('should not touch the passed data array when rows are only moved', async() => {
       const data = getDataWithFormula();
 
