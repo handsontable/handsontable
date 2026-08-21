@@ -172,6 +172,17 @@ describe('ScrollSync#resolveProvisionalLayout', () => {
     expect(counters.resetAllOversizedRows).toBe(1);
   });
 
+  it('should not spend the mark on a draw that rendered the cells without dropping anything', () => {
+    const { scrollSync, counters, render } = createScrollSync({ trimmedByElement: false });
+
+    render();
+    scrollSync.resolveProvisionalLayout();
+    scrollSync.confirmSizesRemeasured();
+    scrollSync.resetSizesMeasuredBeforeLayoutSettled();
+
+    expect(counters.resetAllOversizedRows).toBe(1);
+  });
+
   it('should grant a fresh retry to a layout that is armed again', () => {
     const { scrollSync, counters, render, unrender } = createScrollSync({ trimmedByElement: true });
 

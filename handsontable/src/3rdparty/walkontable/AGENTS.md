@@ -125,7 +125,15 @@ reason a scroll-driven draw must not consume the mark — it stays pending for t
 so does a draw that got as far as the `beforeDraw` hook and had its render cancelled by `skipRender`
 (NestedRows does this; any user hook can). The mark is spent in `Overlays#afterDraw`, and only when
 the draw cycle reports that the band actually rendered (`confirmSizesRemeasured`); the drop itself is
-idempotent, so retaking it on the next draw costs one invalidation. And
+idempotent, so retaking it on the next draw costs one invalidation, and the two gates read the same
+fast/full question at different moments (the reset at draw entry, the render after
+`createCalculators` could downgrade it), so `ScrollSync` also refuses to spend a mark it never
+dropped — an escalated scroll draw satisfies the second gate without ever passing the first.
+
+What the drop covers is the engine's own record: the oversized-row heights and the column-width
+prefix sum. A rebuilt width cache re-asks `modifyColWidth`, so `AutoColumnSize` answers from its own
+map and a width it measured against no layout survives the settle — the narrow-container
+`AutoColumnSize` follow-up, filed separately. And
 no redraw is requested from the settle frame at all: forcing one measures a DOM whose column widths
 have not settled, which records heights for rows that leave the band on the next draw, and those
 records survive (DEV-2515).

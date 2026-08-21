@@ -1578,9 +1578,11 @@ class TableView {
       return;
     }
 
-    // `resetAllOversizedRows` already invalidates the row-height cache, so only the column widths are
+    // `resetAllOversizedRows` already invalidates the row-height cache, so only the width cache is
     // left to drop. `invalidateIndexSizesCache()` would invalidate the row heights a second time, and
-    // this is the same pair the engine-side reset performs.
+    // this is the same pair the engine-side reset performs. Dropping the width cache re-asks
+    // `modifyColWidth`, so a width `AutoColumnSize` measured against no layout comes straight back –
+    // that is the narrow-container follow-up, not this pass.
     this._wt.wtViewport.resetAllOversizedRows();
     this.invalidateColumnWidthCache();
   }
@@ -1607,7 +1609,7 @@ class TableView {
       // Single-pass header reconcile: the probe has just measured content-driven column-header
       // heights (which the engine no longer measures mid-draw). If a header is taller than the
       // default, re-apply the heights so the overlays match the master. This is a synchronous,
-      // hook-free reconcile – it never calls `hot.render()`, so the render-hook counts are unchanged.
+      // hook-free reconcile - it never calls `hot.render()`, so the render-hook counts are unchanged.
       const defaultRowHeight = this.hot.stylesHandler.getDefaultRowHeight() ?? 0;
 
       if (this.renderSizeProbe.hasColumnHeaderTallerThan(defaultRowHeight)) {

@@ -572,7 +572,7 @@ class Overlays {
     const isScrollTriggered = this.isScrollDrivenDraw &&
       (this.verticalScrolling || this.horizontalScrolling);
     // On a pure vertical scroll the bottom overlay (and its inline-start corner) render the same fixed
-    // rows over the same visible columns, so their DOM is unchanged – a full re-render is wasted work and
+    // rows over the same visible columns, so their DOM is unchanged - a full re-render is wasted work and
     // forces an expensive style/layout/paint of the clone subtree on every scroll frame. Reposition them
     // (fast draw) instead. Any horizontal scroll changes the visible columns, and a non-scroll redraw
     // (data, settings, resize) is not scroll-driven, so those paths still trigger a full re-render.
@@ -614,7 +614,7 @@ class Overlays {
    * Re-applies the column-header heights to the master and every header-bearing overlay after the
    * Handsontable-side render-size probe has measured content-driven header heights. The probe runs
    * after the draw completes (once the DOM is final), so the overlays first render at the provided
-   * height and are corrected here to match the master – a synchronous, hook-free reconcile that
+   * height and are corrected here to match the master - a synchronous, hook-free reconcile that
    * replaces the old mid-draw `markOversizedColumnHeaders` measurement. The frozen-overlay sync runs
    * last so a wrapped header inside the frozen region still wins, and the sizes are flushed to the DOM.
    */

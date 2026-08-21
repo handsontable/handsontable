@@ -106,6 +106,17 @@ export class ScrollSync {
   #sizesMeasuredBeforeLayoutSettled = false;
 
   /**
+   * Whether a drop has run and is still waiting for a draw to re-measure what it invalidated. The
+   * mark above is spent only while this is set, so a draw that renders the cells without having
+   * dropped anything cannot spend it – which is what an entry-fast draw that `createCalculators`
+   * escalates to a full render does: it passed the reset gate as a scroll draw and the render gate
+   * as a full one.
+   *
+   * @type {boolean}
+   */
+  #sizesAwaitingRemeasure = false;
+
+  /**
    * Whether a vertical scroll happened in the current frame.
    *
    * @type {boolean}
@@ -367,6 +378,12 @@ export class ScrollSync {
    * the sizes and then asking for a redraw – leaves the row heights dropped for good whenever that
    * redraw renders no cells.
    *
+   * "Sizes" is the engine's own record of them: the oversized-row heights and the column-width
+   * prefix sum. A rebuilt width cache re-asks `wtTable.getColumnWidth`, so it re-enters
+   * `modifyColWidth` and `AutoColumnSize` answers from its own map – a width that plugin measured
+   * while the table had no layout is not dropped by this and outlives the settle. That gap is the
+   * narrow-container `AutoColumnSize` follow-up, filed separately.
+   *
    * The mark is not spent here, because a draw that got this far can still render nothing: a
    * `beforeDraw` hook that sets `skipRender` (NestedRows does this, and so can any user hook) cancels
    * the cell render, and then `markOversizedRows` never runs to take the heights again. It is spent
@@ -378,6 +395,8 @@ export class ScrollSync {
       return;
     }
 
+    this.#sizesAwaitingRemeasure = true;
+
     const wtViewport = this.#deps.getWtViewport();
 
     wtViewport.resetAllOversizedRows();
@@ -388,8 +407,18 @@ export class ScrollSync {
    * Spends the mark left by `resolveProvisionalLayout()`, once a draw has rendered the cell band and
    * therefore re-measured the sizes that `resetSizesMeasuredBeforeLayoutSettled()` dropped on its way
    * in. Called from `Overlays#afterDraw`.
+   *
+   * A draw that rendered the cells without having dropped anything spends nothing: the two gates read
+   * different values of the same fast/full question (the reset gate reads it at draw entry, the render
+   * gate after `createCalculators` could downgrade it), so an escalated scroll draw satisfies the
+   * second without ever passing the first.
    */
   confirmSizesRemeasured() {
+    if (!this.#sizesAwaitingRemeasure) {
+      return;
+    }
+
+    this.#sizesAwaitingRemeasure = false;
     this.#sizesMeasuredBeforeLayoutSettled = false;
   }
 
