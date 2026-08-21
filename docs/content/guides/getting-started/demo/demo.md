@@ -107,3 +107,5 @@ Just select your framework from the demo above.
 
 - [Installation](@/guides/getting-started/installation/installation.md) -- add Handsontable to your own project.
 - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md) -- connect the grid to your data source.
+
+<!-- DEV-2592 CI-scope probe: temporary, drop this commit before merge. -->
