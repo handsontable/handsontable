@@ -76,19 +76,34 @@ glob.sync('./**/*.d.ts', { cwd: TARGET_PATH, nodir: true }).forEach((dtsFile) =>
 
 /**
  * Translate a copy pattern into the pattern its files are addressed by inside the composed tree,
- * by dropping the same leading segments `pathSlice` drops off each matched path.
+ * by dropping the leading segments `pathSlice` drops off each matched path.
+ *
+ * `pathSlice` counts segments of a matched *path*, not of the pattern, so the two only line up
+ * while the sliced-off prefix is literal: one `**` stands for any number of path segments, and a
+ * pattern sliced through it says nothing about where its files land. Such a pattern is returned as
+ * `null` – unverifiable rather than wrongly verified.
  *
  * @param {string} pattern The `handsontable.copy` pattern, e.g. a declaration glob under `types/`.
  * @param {number} pathSlice How many leading path segments the copy step slices off.
- * @returns {string}
+ * @returns {string|null}
  */
 function toTargetPattern(pattern, pathSlice) {
-  const segments = pattern
-    .replace('../', '') // the copy step strips it the same way when it builds the destination
-    .split(/[\\/]/)
-    .filter(segment => segment !== '' && segment !== '.');
+  const segments = pattern.split(/[\\/]/).filter(segment => segment !== '' && segment !== '.');
 
-  return segments.slice(pathSlice).join('/');
+  if (segments.slice(0, pathSlice).some(segment => /[*?[{]/.test(segment))) {
+    return null;
+  }
+
+  const targetSegments = segments.slice(pathSlice);
+
+  // The copy step builds its destination the same way round: it slices the matched path first and
+  // drops a single leading `../` only afterwards, that being the only position where it means
+  // anything.
+  if (targetSegments[0] === '..') {
+    targetSegments.shift();
+  }
+
+  return targetSegments.join('/') || null;
 }
 
 /**
@@ -107,14 +122,20 @@ FILES_TO_COPY.forEach((fileToCopy) => {
 
     if (foundFiles.length === 0) {
       // No match means no destination is recorded, so the check below cannot see this entry at
-      // all. Ask the destination side directly instead: the tree may already carry the files
-      // from an artifact built elsewhere (the preview job extracts a `tmp/` composed in another
-      // job), which is legitimate; holding none of them is an incomplete package.
+      // all. Ask the destination side instead: the tree may already carry the files from an
+      // artifact built elsewhere (the preview job extracts a `tmp/` composed in another job),
+      // which is legitimate; holding nothing addressed the way this entry addresses its files
+      // is an incomplete package. The source is absent by definition here, so this confirms the
+      // addressing, never that the files are the ones the entry meant.
       const targetPattern = toTargetPattern(fileToCopy.pattern, pathSlice);
-      const composedFiles = targetPattern === '' ?
-        [] : glob.sync(targetPattern, { cwd: TARGET_PATH, nodir: true });
 
-      if (composedFiles.length === 0) {
+      if (targetPattern === null) {
+        reportIncompleteness(
+          'The copy pattern matches nothing and cannot be checked against the package, because ' +
+          `its first ${pathSlice} sliced segment(s) are not literal: ${fileToCopy.pattern}`
+        );
+
+      } else if (glob.sync(targetPattern, { cwd: TARGET_PATH, nodir: true }).length === 0) {
         reportIncompleteness(
           `The package holds no file the copy pattern declares: ${fileToCopy.pattern}`
         );

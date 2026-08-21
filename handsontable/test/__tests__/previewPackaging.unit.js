@@ -57,7 +57,8 @@ function runOnFixture(handsontableConfig, tmpFiles, args = [], sourceFiles = {})
     return {
       status: result.status,
       output: `${result.stdout}${result.stderr}`,
-      files: fse.readdirSync(join(cwd, 'tmp'), { recursive: true }).map(file => file.split(sep).join('/')),
+      files: fse.existsSync(join(cwd, 'tmp')) ?
+        fse.readdirSync(join(cwd, 'tmp'), { recursive: true }).map(file => file.split(sep).join('/')) : [],
     };
 
   } finally {
@@ -190,6 +191,37 @@ describe('preview package composition', () => {
       );
 
       expect(status).toBe(0);
+    });
+
+    it('should read an unmet copy pattern in the same order the copy step does', () => {
+      // The copy step slices the matched path first and drops a leading `../` only afterwards, so
+      // `../types/**` with pathSlice 1 lands in `tmp/types/`, not in the root of the package.
+      const unmetPattern = { pattern: '../types/**/*.d.ts', pathSlice: 1 };
+      const rootOnly = runOnFixture(
+        { copy: [unmetPattern], exports: ['./*.js'], fields: ['name'] },
+        { 'index.js': '', 'base.d.ts': 'export {};\n' }
+      );
+      const inPlace = runOnFixture(
+        { copy: [unmetPattern], exports: ['./*.js'], fields: ['name'] },
+        { 'index.js': '', 'types/base.d.ts': 'export {};\n' }
+      );
+
+      expect(rootOnly.status).toBe(1);
+      expect(inPlace.status).toBe(0);
+    });
+
+    it('should refuse to verify a copy pattern sliced through a wildcard', () => {
+      // `pathSlice` counts path segments while the pattern is sliced by pattern segments, so a
+      // `**` inside the sliced prefix makes the destination undecidable. That must fail loudly
+      // rather than be checked against a pattern that means something else.
+      const { status, output } = runOnFixture(
+        { copy: [{ pattern: 'src/**/types/*.d.ts', pathSlice: 2 }], exports: ['./*.js'], fields: ['name'] },
+        { 'index.js': '', 'types/base.d.ts': 'export {};\n' }
+      );
+
+      expect(status).toBe(1);
+      expect(output).toContain('not literal');
+      expect(output).toContain('src/**/types/*.d.ts');
     });
 
     it('should copy a pattern match to its sliced destination', () => {
