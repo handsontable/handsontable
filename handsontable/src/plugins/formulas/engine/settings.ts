@@ -5,10 +5,6 @@ export const DEFAULT_LICENSE_KEY = 'internal-use-in-handsontable';
 export const DEFAULT_SETTINGS = {
   licenseKey: DEFAULT_LICENSE_KEY,
 
-  // HyperFormula's own default is 40000. Handsontable's `maxRows` used to be forwarded here, and it
-  // defaults to `Infinity`, so engines created by Handsontable have always been unbounded. Keep it.
-  maxRows: Infinity,
-
   useArrayArithmetic: true,
   useColumnIndex: false,
   useStats: false,
@@ -35,11 +31,30 @@ export const DEFAULT_SETTINGS = {
 };
 
 /**
- * Gets a set of engine settings to be applied on top of the provided settings, based on user's Handsontable settings.
+ * Size limits that Handsontable applies to one grid, but HyperFormula applies to a whole engine.
+ * They may be set when the engine is created, and never synced afterwards - see GH #10672.
+ */
+const ENGINE_SIZE_SETTINGS = ['maxRows', 'maxColumns'];
+
+/**
+ * Drops the engine-wide size limits from a set of settings.
  *
- * `maxRows` and `maxColumns` are deliberately not forwarded. They are per-instance display limits in
- * Handsontable, but engine-wide in HyperFormula, so with a shared engine the smallest one clamped every
- * sheet and threw `SheetSizeLimitExceededError`. See GH #10672.
+ * @param {object} engineSettings Engine settings.
+ * @returns {object}
+ */
+function dropEngineSizeSettings(engineSettings: Record<string, unknown>) {
+  return Object.keys(engineSettings)
+    .reduce<Record<string, unknown>>((obj, key) => {
+      if (!ENGINE_SIZE_SETTINGS.includes(key)) {
+        obj[key] = engineSettings[key];
+      }
+
+      return obj;
+    }, {});
+}
+
+/**
+ * Gets a set of engine settings to be applied on top of the provided settings, based on user's Handsontable settings.
  *
  * @param {object} hotSettings Handsontable settings object.
  * @returns {object} Object containing the overriding options.
@@ -98,12 +113,21 @@ export function getEngineSettingsWithDefaultsAndOverrides(hotSettings: Record<st
   return {
     ...DEFAULT_SETTINGS,
     ...userSettings,
-    ...overrides
+    ...overrides,
+    // The engine created here belongs to this grid alone, so bounding it by the grid's own limits is
+    // safe. `maxColumns` is not a Handsontable option - the option is `maxCols` - so it always resolves
+    // to `undefined`; kept as-is to leave the created engine's configuration exactly as it was.
+    maxColumns: hotSettings.maxColumns,
+    maxRows: hotSettings.maxRows,
   };
 }
 
 /**
  * Get engine settings from a Handsontable settings object with overrides.
+ *
+ * Meant to be used on *every* `updateSettings`, so it must never carry the engine-wide size limits:
+ * the engine it updates may be shared with other grids, and shrinking it below what their sheets
+ * already hold makes HyperFormula throw `SheetSizeLimitExceededError`. See GH #10672.
  *
  * @param {object} hotSettings Handsontable settings object.
  * @returns {object}
@@ -115,10 +139,10 @@ export function getEngineSettingsWithOverrides(hotSettings: Record<string, unkno
   const userSettings = cleanEngineSettings(engine?.hyperformula ? engine : {});
   const overrides = getEngineSettingsOverrides(hotSettings);
 
-  return {
+  return dropEngineSizeSettings({
     ...userSettings,
     ...overrides
-  };
+  });
 }
 
 /**

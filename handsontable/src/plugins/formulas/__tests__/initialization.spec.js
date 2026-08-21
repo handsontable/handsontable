@@ -986,21 +986,25 @@ describe('Formulas general', () => {
       expect(getPlugin('formulas').engine.getConfig().maxRows).toBe(Infinity);
     });
 
-    it('should keep `maxRows` and `maxColumns` passed in the engine config', async() => {
+    it('should not apply the engine config\'s `maxRows` to a grid that outgrows it', async() => {
       handsontable({
+        data: createSpreadsheetData(100, 2),
         formulas: {
           engine: {
             hyperformula: HyperFormula,
-            maxRows: 123,
-            maxColumns: 45,
+            maxRows: 10,
           }
         }
       });
 
-      const { engine } = getPlugin('formulas');
+      // The grid's own `maxRows` still wins at creation, as it always has, so the 100 rows fit.
+      expect(getPlugin('formulas').engine.getConfig().maxRows).toBe(Infinity);
+      expect(countRows()).toBe(100);
 
-      expect(engine.getConfig().maxRows).toBe(123);
-      expect(engine.getConfig().maxColumns).toBe(45);
+      // ...and the update path must not resurrect the engine config's value either.
+      await updateSettings({ maxRows: Infinity });
+
+      expect(getPlugin('formulas').engine.getConfig().maxRows).toBe(Infinity);
     });
 
     it('should not throw `Sheet size limit exceeded` when a grid with a low `maxRows` shares an engine' +
@@ -1030,7 +1034,8 @@ describe('Formulas general', () => {
       // Before the fix this threw `SheetSizeLimitExceededError`.
       await updateSettings({ maxRows: 2 });
 
-      expect(engine.getConfig().maxRows).not.toBe(2);
+      // 40000 is HyperFormula's own default, untouched by either grid.
+      expect(engine.getConfig().maxRows).toBe(40000);
       expect(engine.getSheetDimensions(engine.getSheetId('Sheet2')).height).toBe(5);
     });
 

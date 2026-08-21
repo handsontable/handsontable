@@ -98,7 +98,7 @@ function hasValueProperty(candidate: unknown): candidate is { value: unknown } {
 }
 
 export const PLUGIN_KEY = 'formulas';
-// `maxRows` and `maxColumns` are no longer forwarded to the engine (GH #10672), but they stay here:
+// `maxRows` and `maxColumns` no longer reach the engine on update (GH #10672), but they stay here:
 // `updatePlugin` also creates or switches the sheet, and dropping them would skip that.
 export const SETTING_KEYS = ['maxRows', 'maxColumns', 'language'];
 export const PLUGIN_PRIORITY = 260;
