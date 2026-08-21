@@ -13,6 +13,7 @@ export interface HyperFormulaEngine {
   getCellType(address: { sheet: number | null; row: number; col: number }): unknown;
   doesCellHaveFormula(address: { sheet: number | null; row: number; col: number }): boolean;
   getCellValue(address: { sheet: number | null; row: number; col: number }): unknown;
+  getCellHyperlink(address: { sheet: number | null; row: number; col: number }): string | undefined;
   getCellSerialized(address: { sheet: number | null; row: number; col: number }): unknown;
   isItPossibleToSetCellContents(address: object): boolean;
   setCellContents(address: { sheet: number | null; row: number; col: number }, value: unknown): unknown[];

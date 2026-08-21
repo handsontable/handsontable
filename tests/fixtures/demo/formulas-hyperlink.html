@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Formulas HYPERLINK e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    HyperFormula-backed grid for the `formulas.hyperlinks` option: a cell whose
+    root expression is HYPERLINK() renders its value inside an anchor, while the
+    cell keeps its own renderer and its cell meta is never touched (PRO-1051).
+    Column B carries a custom renderer, column C a `checkbox` cell type and
+    column D a `password` cell type, so a spec can prove none of them is
+    displaced. Every leg runs exactly ONE engine: the
+    `umd` legs load HyperFormula as an external script (the base bundle ships
+    none — the DEV-2190 wiring); the `full-min` legs use the baked-in engine.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // HyperFormula comes from THIS package's own node_modules (declared in
+    // tests/package.json, pinned to the exact version the handsontable
+    // package locks): CI installs only the filtered handsontable-tests
+    // workspace, so a path into another package's node_modules would 404
+    // there. Loaded ONLY on the base-bundle legs — handsontable.full.min.js
+    // sets window.HyperFormula itself as it loads and would overwrite this
+    // global anyway; gating gives every leg exactly one engine.
+    if (window.htBundle === 'handsontable.js') {
+      document.write('<scr' + 'ipt src="/tests/node_modules/hyperformula/dist/hyperformula.full.min.js"></scr' + 'ipt>');
+    }
+  </script>
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // A renderer that writes its own element into the cell. If the feature ever
+    // goes back to swapping the `renderer` cell meta, this marker disappears.
+    function markerRenderer(instance, td, row, col, prop, value) {
+      td.textContent = '';
+
+      const mark = document.createElement('span');
+
+      mark.className = 'custom-mark';
+      mark.textContent = value === null || value === undefined ? '' : String(value);
+      td.appendChild(mark);
+    }
+
+    window.hot = new Handsontable(container, {
+      data: [
+        // A plain link, label given explicitly.
+        ['=HYPERLINK("https://example.com/one","Example one")', '=HYPERLINK("https://example.com/b1","B one")', true, '=HYPERLINK("https://example.com/pw","secret")'],
+        // The label defaults to the URL when the second argument is omitted.
+        ['=HYPERLINK("https://example.com/two")', 'b2', false, 'plainsecret'],
+        // HYPERLINK is not the root expression, so the engine reports no link.
+        ['=CONCATENATE("see ", HYPERLINK("https://example.com/three","three"))', 'b3', true, 'x'],
+        // Refused by the protocol allowlist.
+        ['=HYPERLINK("javascript:alert(1)","Danger")', 'b4', false, 'x'],
+        // The label must stay text, never markup.
+        ['=HYPERLINK("https://example.com/five","<img src=x onerror=\'window.__xss = true\'>")', 'b5', true, 'x'],
+        // A relative URL resolves against the document, which keeps a real
+        // click navigation local and offline-safe.
+        ['=HYPERLINK("/tests/fixtures/demo/grid.html","Local page")', 'b6', false, 'x'],
+        // Not a formula at all.
+        ['plain', 'b7', true, 'x'],
+      ],
+      formulas: {
+        engine: HyperFormula,
+        sheetName: 'Sheet1',
+        hyperlinks: true,
+      },
+      columns: [
+        {},
+        { renderer: markerRenderer },
+        { type: 'checkbox' },
+        // A cell type whose renderer transforms the value: the masked output has
+        // to survive inside the anchor, which only holds if the type's renderer
+        // still runs (finding #6 of the review of #10314).
+        { type: 'password' },
+      ],
+      width: 600,
+      height: 300,
+      rowHeaders: true,
+      colHeaders: true,
+      // Stamp test ids without displacing the per-column renderers.
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>
