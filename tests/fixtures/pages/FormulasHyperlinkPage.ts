@@ -78,6 +78,16 @@ export class FormulasHyperlinkPage {
   }
 
   /**
+   * Disable the Formulas plugin WITHOUT forcing a redraw, which is what a caller that simply turns
+   * the plugin off does. No render means no `afterRenderer` pass, so nothing rewrites the cells.
+   */
+  async disableFormulasPluginWithoutRender(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as any).hot.getPlugin('formulas').disablePlugin();
+    });
+  }
+
+  /**
    * Replace `window.open` with a recorder. The plugin opens links through it,
    * so this keeps the keyboard assertion deterministic and offline.
    */

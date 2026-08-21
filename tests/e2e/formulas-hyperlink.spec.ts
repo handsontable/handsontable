@@ -152,6 +152,33 @@ test.describe('formulas: HYPERLINK rendering', () => {
     await expect(grid.link(0, 0)).toHaveCount(1);
   });
 
+  test('drops a memoizing renderer\'s anchor when the option is turned off', async({ page, theme, bundle }) => {
+    const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+    await grid.goto();
+    await expect(grid.link(0, 4)).toHaveCount(1);
+
+    // Column E renders through a memoizing renderer, so nothing else would remove the anchor: the
+    // cell would stay clickable after the feature was switched off.
+    await grid.setHyperlinks(false);
+
+    await expect(grid.link(0, 4)).toHaveCount(0);
+    await expect(grid.cell(0, 4)).toHaveText('Steady');
+  });
+
+  test('drops a memoizing renderer\'s anchor when the plugin is disabled', async({ page, theme, bundle }) => {
+    const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+    await grid.goto();
+    await expect(grid.link(0, 4)).toHaveCount(1);
+
+    // Disabling the plugin removes the `afterRenderer` hook, and without a redraw there is no
+    // render pass left to rewrite the cell, so the cleanup has to happen on disable itself.
+    await grid.disableFormulasPluginWithoutRender();
+
+    await expect(grid.link(0, 4)).toHaveCount(0);
+  });
+
   test('follows a link on click and still selects the cell', async({ page, theme, bundle }) => {
     const grid = new FormulasHyperlinkPage(page, theme, bundle);
 

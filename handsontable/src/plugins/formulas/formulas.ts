@@ -655,6 +655,7 @@ export class Formulas extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.#unwrapRenderedHyperlinks();
     this.unregisterShortcuts();
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
 
@@ -913,12 +914,39 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Unwraps every `HYPERLINK` anchor currently in the grid, including the overlay clones.
+   *
+   * Disabling the plugin removes the `afterRenderer` hook, so a renderer that leaves its previous
+   * DOM in place would keep its cells clickable with nothing left to clean them up. The anchors are
+   * matched by the plugin's own class, so no knowledge of the rendering internals is needed.
+   */
+  #unwrapRenderedHyperlinks() {
+    this.hot.rootElement
+      ?.querySelectorAll<HTMLElement>(`a.${HYPERLINK_CLASS_NAME}`)
+      .forEach((link) => {
+        const { parentNode } = link;
+
+        while (link.firstChild) {
+          parentNode?.insertBefore(link.firstChild, link);
+        }
+
+        link.remove();
+      });
+  }
+
+  /**
    * Moves the content of a cell's `HYPERLINK` anchor back into the cell and drops the anchor. Loops
    * so that anchors nested by an older render pass are unwrapped as well.
    *
    * @param {HTMLTableCellElement} TD The rendered cell element.
    */
   #unwrapHyperlink(TD: HTMLTableCellElement) {
+    // A cell rendered as plain text has no element children at all, which is the overwhelmingly
+    // common case and the one that must not pay for a selector query on every render pass.
+    if (TD.firstElementChild === null) {
+      return;
+    }
+
     let link = TD.querySelector(`a.${HYPERLINK_CLASS_NAME}`);
 
     while (link !== null) {
@@ -1597,15 +1625,16 @@ export class Formulas extends BasePlugin {
    * @param {number} column Visual column index.
    */
   #onAfterRenderer = (TD: HTMLTableCellElement, row: number, column: number) => {
-    if (!this.#hyperlinksEnabled || this.#internalOperationPending) {
-      return;
-    }
-
     // Walkontable recycles TD elements, and a renderer is free to leave its previous DOM in place.
     // Unwrapping first, unconditionally, keeps this idempotent by construction: no anchor nests
     // inside another one across render passes, and the `href` is always rebuilt from the current
-    // formula instead of inherited from whatever the previous pass resolved.
+    // formula instead of inherited from whatever the previous pass resolved. It also runs BEFORE the
+    // checks below, so turning the option off drops an anchor that such a renderer would keep.
     this.#unwrapHyperlink(TD);
+
+    if (!this.#hyperlinksEnabled || this.#internalOperationPending) {
+      return;
+    }
 
     const href = this.#getHyperlinkHref(row, column);
 
