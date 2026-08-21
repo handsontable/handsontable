@@ -5,6 +5,7 @@
 export interface HyperFormulaEngine {
   doesSheetExist(sheetName: string): boolean;
   getSheetId(sheetName: string): number;
+  getSheetName(sheetId: number): string | undefined;
   addSheet(sheetName?: string): string;
   setSheetContent(sheetId: number | null, data: unknown[][]): unknown[];
   getSheetSerialized(sheetId: number | null): unknown[][];

@@ -285,7 +285,7 @@ export function registerNamedExpressions(
  *
  * @param {object} engineInstance The engine instance.
  * @param {string} [sheetName] The sheet name to use. When omitted (or `null`), a new sheet is added.
- * @returns {*}
+ * @returns {string}
  */
 export function setupSheet(engineInstance: HyperFormulaEngine, sheetName?: string | null) {
   if (sheetName === undefined || sheetName === null) {

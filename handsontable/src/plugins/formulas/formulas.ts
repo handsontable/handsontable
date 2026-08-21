@@ -661,7 +661,10 @@ export class Formulas extends BasePlugin {
       pluginSettings !== undefined &&
       typeof pluginSettings !== 'boolean' &&
       pluginSettings.sheetName !== undefined &&
-      pluginSettings.sheetName !== this.sheetName
+      // Sheet ids are compared rather than names, because `sheetName` holds the engine's casing
+      // while the setting keeps the one it was written with. An unknown name has no id, which
+      // still differs from the current one and lets `switchSheet` report it.
+      this.engine?.getSheetId(pluginSettings.sheetName) !== this.sheetId
     ) {
       this.switchSheet(pluginSettings.sheetName);
     }
@@ -709,8 +712,13 @@ export class Formulas extends BasePlugin {
    * @param {string} [sheetName] The new sheet name.
    */
   #updateSheetNameAndSheetId(sheetName: string) {
-    this.sheetName = sheetName;
-    this.sheetId = this.engine?.getSheetId(this.sheetName) ?? null;
+    const sheetId = this.engine?.getSheetId(sheetName) ?? null;
+
+    // Store the name the engine itself reports. The engine matches names without regard to case
+    // but keeps the casing it was given, so the name passed here may differ from the engine's own.
+    // Keeping them in step makes every exact-string reader of `sheetName` safe by construction.
+    this.sheetName = (sheetId === null ? null : this.engine?.getSheetName(sheetId)) ?? sheetName;
+    this.sheetId = sheetId;
   }
 
   /**
