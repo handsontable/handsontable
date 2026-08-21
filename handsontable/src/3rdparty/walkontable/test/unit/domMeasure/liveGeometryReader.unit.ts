@@ -152,3 +152,38 @@ describe('LiveGeometryReader', () => {
     });
   });
 });
+
+describe('LiveGeometryReader#isRendered', () => {
+  /**
+   * jsdom performs no layout, so `getClientRects` is stubbed to describe the states the port
+   * distinguishes: a detached element, an element in the document but outside the flat tree (an
+   * unslotted light-DOM child of a shadow host), and a rendered one.
+   *
+   * @param {object} state The element state to report.
+   * @param {boolean} state.isConnected Whether the element is in a document.
+   * @param {number} state.rects How many boxes the element generates.
+   * @returns {HTMLElement} The element to measure.
+   */
+  const elementWith = ({ isConnected, rects }: { isConnected: boolean, rects: number }) => {
+    const el = document.createElement('div');
+
+    Object.defineProperty(el, 'isConnected', { value: isConnected });
+    el.getClientRects = () => ({ length: rects } as unknown as DOMRectList);
+
+    return el;
+  };
+
+  const reader = new LiveGeometryReader();
+
+  it('should report an element that is not in the document as not rendered', () => {
+    expect(reader.isRendered(elementWith({ isConnected: false, rects: 0 }))).toBe(false);
+  });
+
+  it('should report a connected element that generates no boxes as not rendered', () => {
+    expect(reader.isRendered(elementWith({ isConnected: true, rects: 0 }))).toBe(false);
+  });
+
+  it('should report a connected element that generates boxes as rendered', () => {
+    expect(reader.isRendered(elementWith({ isConnected: true, rects: 1 }))).toBe(true);
+  });
+});

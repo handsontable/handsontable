@@ -138,6 +138,14 @@ class TableView {
    */
   renderSizeProbe = new RenderSizeProbe();
   /**
+   * Whether the sizes measured from theme values cached against unresolved styles still have to be
+   * dropped. Set by the first render that finds the styles resolvable again, and kept until a render
+   * has actually reached the cells and re-measured them (see `#discardSizesMeasuredWithoutStyles`).
+   *
+   * @type {boolean}
+   */
+  #sizesMeasuredWithoutStylesPending = false;
+  /**
    * Defines if the text should be selected during mousemove.
    *
    * @type {boolean}
@@ -220,6 +228,8 @@ class TableView {
       const isFullRender = this.hot.forceFullRender;
 
       this.hot.runHooks('beforeRender', isFullRender);
+
+      this.#discardSizesMeasuredWithoutStyles();
 
       this._wt.draw(!isFullRender);
       this.#updateScrollbarClassNames();
@@ -1597,13 +1607,58 @@ class TableView {
   }
 
   /**
+   * Discards the row heights measured from theme values that were cached while the grid's root
+   * element resolved no computed styles, on the first draw that finds them resolvable again.
+   *
+   * A grid whose theme variables were cached against unresolved styles has an unknown default row
+   * height, so every rendered row is recorded oversized at a height it never had, and nothing
+   * re-measures those records on its own (DEV-2515 – the theme half of the unrendered-table problem
+   * described in `walkontable/AGENTS.md`).
+   *
+   * The styles handler answers both halves, because it is what cached the values: whether an earlier
+   * pass read them against unresolved styles, and whether they resolve now. Gating on the unknown row
+   * height instead would wipe the caches on every draw of a page that loads no grid stylesheet at
+   * all, where that value never resolves.
+   *
+   * Runs before `_wt.draw()`, not from the engine's `beforeDraw` setting: that setting fires after
+   * `createCalculators()`, so the rendered row band of that very draw would still be built from the
+   * heights this drops – the grid renders short for one frame and nothing schedules another draw. The
+   * drop stays pending (`#sizesMeasuredWithoutStylesPending`) until a draw has actually rendered the
+   * cells and re-measured them, which is what `afterRender` reports; a `beforeViewRender` listener
+   * that sets `skipRender` cancels the render, and then nothing takes the row heights again.
+   */
+  #discardSizesMeasuredWithoutStyles() {
+    if (this.hot.stylesHandler.recacheValuesMeasuredWithoutStyles()) {
+      this.#sizesMeasuredWithoutStylesPending = true;
+    }
+
+    if (!this.#sizesMeasuredWithoutStylesPending) {
+      return;
+    }
+
+    // `resetAllOversizedRows` already invalidates the row-height cache, so only the width cache is
+    // left to drop. `invalidateIndexSizesCache()` would invalidate the row heights a second time, and
+    // this is the same pair the engine-side reset performs. Dropping the width cache re-asks
+    // `modifyColWidth`, so a width `AutoColumnSize` measured against no layout comes straight back –
+    // that is the narrow-container follow-up, not this pass.
+    this._wt.wtViewport.resetAllOversizedRows();
+    this.invalidateColumnWidthCache();
+  }
+
+  /**
    * `afterRender` callback.
+   *
+   * The engine fires `onDraw` only from a draw that rendered the cell band, which is what spends the
+   * pending theme-measurement drop: the sizes it invalidated have just been taken again against the
+   * resolved styles (see `#discardSizesMeasuredWithoutStyles`).
    *
    * @private
    * @param {boolean} force If `true` rendering was triggered by a change of settings or data or `false` if
    *                        rendering was triggered by scrolling or moving selection.
    */
   afterRender(force: boolean) {
+    this.#sizesMeasuredWithoutStylesPending = false;
+
     if (force) {
       // Measure the rendered grid while the DOM is final, before external `afterViewRender` listeners
       // may mutate it.

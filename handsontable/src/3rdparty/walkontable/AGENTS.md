@@ -80,6 +80,82 @@ Three more things that pass every functional test and only show up in a profile 
 
 When you add a new content-driven measurement, ask which tables actually render the content — measuring the master alone is the trap both of these exist to work around.
 
+## A table built outside the layout cannot read its own styles
+
+A container that generates no boxes — detached from the document, or a light-DOM child of a shadow
+host that no `<slot>` accepts yet — resolves `getComputedStyle()` to an **empty declaration** for
+itself and every ancestor, per the CSSOM specification (Chromium since 151; Firefox and Safari
+always). Every style-driven layout decision taken in that state therefore reads "no ancestor clips
+or scrolls", and the ones that pick a scroll container (`getTrimmingContainer`,
+`getScrollableElement`, `ScrollSync#computeScrollableElement`,
+`Overlay#updateMainScrollableElement`) hand the whole grid to the **window**.
+
+The same is true of every size such a table measures: the row heights and column widths it records
+describe a layout it never had, and a window-scrolled table records them for a different column band
+at a different width.
+
+The trimming container is re-resolved on every `adjustElementsSize`, so it heals by itself. Nothing
+else does. `ScrollSync` marks its state provisional when `geometryReader.isRendered()` was false at
+construction, and `Overlays#afterDraw` calls `resolveProvisionalLayout()` — after the overlays
+refreshed their trimming containers and the holder got its final overflow, which is why it cannot run
+in `beforeDraw` (the scrollable element would settle on the window again and clear the flag). While
+the answer is still the window although an element trims the table, the layout has not settled and
+the pass is retried on the next draw — but only while the resolved element keeps changing. It is
+checked before anything is rebound, so a pass that cannot settle costs one style read. Two rules make
+that necessary: `getTrimmingContainer` counts `overflow: hidden` and `getScrollableElement` does not,
+so the two can disagree for good, and a table in an iframe driven from the parent realm does exactly
+that — `MasterTable#alignOverlaysWithTrimmingContainer` misses it through a realm-bound `instanceof`
+and leaves the holder `overflow: visible`. Retrying such a table forever rebinds every listener on
+every draw, which also drops whichever scroll event is in flight. Re-arming the flag (through the
+public `updateMainScrollableElements`, which `updateSettings` calls whenever `height` moves to or from
+`''`) forgets the answer the previous series gave up on — otherwise the first retry of the new series
+matches its own stale answer and gives up at once, spending the retry the design counts on.
+
+Only a **full** draw resolves it. A fast draw has aligned nothing, so it must not judge a table
+nothing has laid out; no such draw can currently precede the first full one (`refreshAll()` returns
+while `drawn` is false, and a table built outside the layout stays undrawn until it joins it), so the
+gate in `Overlays#afterDraw` guards a state the settle test never has to answer for.
+
+Once it settles, the pass does **not** drop the sizes itself. It marks them, and
+`Overlays#beforeDraw` drops them on the way into the next draw that renders cells
+(`resetSizesMeasuredBeforeLayoutSettled`), so reset, re-measure and resize run in the order this
+cycle documents. Dropping them after a draw and asking for a redraw leaves them dropped: the request
+is a fast draw, and a draw that re-renders nothing never re-runs `markOversizedRows`. For the same
+reason a scroll-driven draw must not consume the mark — it stays pending for the next full draw, and
+so does a draw that got as far as the `beforeDraw` hook and had its render cancelled by `skipRender`
+(NestedRows does this; any user hook can). The mark is spent in `Overlays#afterDraw`, and only when
+the draw cycle reports that the band actually rendered (`confirmSizesRemeasured`); the drop itself is
+idempotent, so retaking it on the next draw costs one invalidation, and the two gates read the same
+fast/full question at different moments (the reset at draw entry, the render after
+`createCalculators` could downgrade it), so `ScrollSync` also refuses to spend a mark it never
+dropped — an escalated scroll draw satisfies the second gate without ever passing the first.
+
+What the drop covers is the engine's own record: the oversized-row heights and the column-width
+prefix sum. A rebuilt width cache re-asks `modifyColWidth`, so `AutoColumnSize` answers from its own
+map and a width it measured against no layout survives the settle — the narrow-container
+`AutoColumnSize` follow-up, filed separately. And
+no redraw is requested from the settle frame at all: forcing one measures a DOM whose column widths
+have not settled, which records heights for rows that leave the band on the next draw, and those
+records survive (DEV-2515).
+
+The theme measurements have their own copy of the problem, on the core side: `StylesHandler` caches
+`getComputedStyle(rootElement)` once, so a grid built outside the flat tree has no theme variables and
+its default row height reads `null` — which makes every rendered row look oversized. The handler
+records whether its own caching pass ran against unresolved styles, and `TableView#render` asks it
+(`recacheValuesMeasuredWithoutStyles`) rather than reading the `null` — **before** `_wt.draw()`, not
+from the engine's `beforeDraw` setting, which fires after `createCalculators()` and would leave that
+draw's row band built from the heights being dropped (the grid renders short for a frame and nothing
+schedules another draw). The drop stays pending until a draw has rendered the cells and re-measured
+them, which `afterRender` reports — the engine fires `onDraw` from no other kind of draw — so a
+`beforeViewRender` listener setting `skipRender` cannot spend it either. Keying off the row
+height instead wipes the caches on **every** draw of any page that loads no grid stylesheet, where
+that value never resolves. Note the two questions are deliberately different: the engine asks about
+geometry (`isRendered`, no boxes), the styles handler asks whether `getComputedStyle` resolves at all
+— `display: none` reads its styles fine. The engine versions are stated once, above.
+
+Never guess a container from an empty style read, and never cache a layout decision taken while
+`isRendered()` is false without a way to retake it.
+
 ## Known Tech Debt
 
 - The DAO layer has been replaced by constructor injection + the `wire.ts` composition root (see the DI section above) — do not reintroduce DAO getters or `wot`-god-object passing.

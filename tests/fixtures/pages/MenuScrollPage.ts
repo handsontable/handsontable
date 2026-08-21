@@ -131,6 +131,46 @@ export class MenuScrollPage {
       }, px);
   }
 
+  /**
+   * Measures the "filter by value" list: how many items it holds, how tall its rendered
+   * rows are, and the scroll range its holder reports.
+   *
+   * The list is a nested Handsontable built while the dropdown is still hidden, and its
+   * row height is derived from the theme variables rather than from the DOM, so the two
+   * can disagree — a list whose cells override `padding` directly ends up with a scroll
+   * range computed from a row height it does not have (DEV-2515).
+   */
+  async readFilterValueListMetrics(): Promise<{
+    itemCount: number, rowHeight: number, derivedRowHeight: number | null, scrollRange: number,
+  }> {
+    return this.page.evaluate(() => {
+      const hot = (window as unknown as {
+        hot: { getPlugin(name: string): {
+          components: Map<string, { getMultipleSelectElement(): { getItemsBox(): {
+            countRows(): number,
+            rootElement: HTMLElement,
+            view: { _wt: { wtSettings: { getSetting(name: string): {
+              getDefaultRowHeight(): number | null,
+            } } } },
+          } } }>,
+        } },
+      }).hot;
+      const list = hot.getPlugin('filters').components.get('filter_by_value')!
+        .getMultipleSelectElement().getItemsBox();
+      const holder = list.rootElement.querySelector('.ht_master .wtHolder') as HTMLElement;
+      // The second row, not the first: a table's first `tr` carries an extra border-top.
+      const rows = list.rootElement.querySelectorAll('.ht_master tbody tr');
+      const sampleRow = rows[1] ?? rows[0];
+
+      return {
+        itemCount: list.countRows(),
+        rowHeight: sampleRow ? Math.round(sampleRow.getBoundingClientRect().height) : 0,
+        derivedRowHeight: list.view._wt.wtSettings.getSetting('stylesHandler').getDefaultRowHeight(),
+        scrollRange: holder.scrollHeight,
+      };
+    });
+  }
+
   /** Scroll the window/page itself (must NOT close the menu). */
   async scrollPageBy(px: number): Promise<void> {
     await this.page.evaluate((delta) => {
