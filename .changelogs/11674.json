@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Fixed the `columnSummary` plugin reporting destination rows as out of bounds, writing results into the wrong row, and shrinking its default calculation range, when another plugin trimmed rows (for example after collapsing a `nestedRows` group).",
+  "title": "Fixed the `columnSummary` plugin reporting destination rows as out of bounds, writing results into the wrong row, throwing when the destination row was hidden, and shrinking its default calculation range, when another plugin trimmed rows (for example after collapsing a `nestedRows` group).",
   "type": "fixed",
   "issueOrPR": 11674,
   "breaking": false,
