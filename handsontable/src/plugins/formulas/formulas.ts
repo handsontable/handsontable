@@ -356,7 +356,10 @@ export class Formulas extends BasePlugin {
   #onEngineSheetRenamed = (oldDisplayName: string, newDisplayName: string) => {
     // The event is engine-wide, so it also reaches instances that do not own the renamed sheet.
     // Repointing those would make them operate on a sheet belonging to another instance.
-    if (oldDisplayName === this.sheetName) {
+    // Sheet ids are compared rather than names: the engine matches names without looking at the
+    // case but keeps the casing it was given, so `sheetName` may differ in case from the event's
+    // display names. The rename is already applied here, so the new name resolves to the same id.
+    if (this.engine?.getSheetId(newDisplayName) === this.sheetId) {
       this.#updateSheetNameAndSheetId(newDisplayName);
     }
 
@@ -1349,6 +1352,18 @@ export class Formulas extends BasePlugin {
         this.renderDependentSheets(dependentCells);
 
         this.#internalOperationPending = false;
+
+      } else {
+        // The sheet is reused, so leaving it untouched would keep the previous data in the engine
+        // while the grid already shows the new one. Empty it instead of serving stale values.
+        this.#internalOperationPending = true;
+
+        this.engine!.setSheetContent(this.sheetId, [[]]);
+
+        this.#internalOperationPending = false;
+
+        warn('The loaded data could not be passed to the formula engine, so the formulas were ' +
+          'cleared. It most likely exceeds the engine\'s `maxRows` or `maxColumns` limit.');
       }
 
     } else if (this.sheetName !== null) {

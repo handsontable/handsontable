@@ -57,7 +57,7 @@ describe('Formulas memory leak check', () => {
     expect(engine.getSheetNames().length).toBe(1);
 
     for (let i = 0; i < 5; i++) {
-      hot.loadData([['1', '2', '=A1+B1']]);
+      await loadData([['1', '2', '=A1+B1']]);
     }
 
     expect(engine.getSheetNames().length).toBe(1);
@@ -77,7 +77,7 @@ describe('Formulas memory leak check', () => {
     expect(engine.getSheetNames().length).toBe(1);
 
     for (let i = 0; i < 5; i++) {
-      hot.updateData([['1', '2', '=A1+B1']]);
+      await updateData([['1', '2', '=A1+B1']]);
     }
 
     expect(engine.getSheetNames().length).toBe(1);
@@ -93,7 +93,7 @@ describe('Formulas memory leak check', () => {
     });
     const { engine } = hot.getPlugin('formulas');
 
-    hot.loadData([['10', '20', '=A1+B1']]);
+    await loadData([['10', '20', '=A1+B1']]);
 
     const allSheetsSerialized = engine.getSheetNames()
       .map(name => engine.getSheetSerialized(engine.getSheetId(name)));
@@ -112,8 +112,8 @@ describe('Formulas memory leak check', () => {
     });
     const { engine } = hot.getPlugin('formulas');
 
-    hot.loadData([['1', '2', '=A1+B1']]);
-    hot.updateData([['1', '2', '=A1+B1']]);
+    await loadData([['1', '2', '=A1+B1']]);
+    await updateData([['1', '2', '=A1+B1']]);
 
     expect(engine.getSheetNames()).toEqual(['MySheet']);
     expect(hot.getPlugin('formulas').sheetName).toBe('MySheet');
@@ -175,6 +175,53 @@ describe('Formulas memory leak check', () => {
     expect(hfInstance.getSheetSerialized(hot1SheetId)).toEqual([['1', '2', '=A1+B1']]);
     expect(hot1.getDataAtCell(0, 2)).toBe(3);
     expect(hot2.getDataAtCell(0, 2)).toBe(70);
+  });
+
+  it('should follow a rename of its own sheet when `sheetName` differs from it only in case', async() => {
+    const hfInstance = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hfInstance.addSheet('Sheet1');
+
+    // The engine matches sheet names without looking at the case, but keeps the casing it was
+    // given. So the plugin can hold `sheet1` while the engine reports the name as `Sheet1`.
+    const hot = handsontable({
+      data: [['1', '2', '=A1+B1']],
+      formulas: {
+        engine: hfInstance,
+        sheetName: 'sheet1',
+      },
+    });
+
+    hfInstance.renameSheet(hfInstance.getSheetId('sheet1'), 'Renamed');
+
+    expect(hot.getPlugin('formulas').sheetName).toBe('Renamed');
+    expect(hfInstance.doesSheetExist(hot.getPlugin('formulas').sheetName)).toBe(true);
+
+    // A sheet name left pointing at nothing makes the formulas stop resolving.
+    await setDataAtCell(0, 0, '10');
+
+    expect(hot.getDataAtCell(0, 2)).toBe(12);
+  });
+
+  it('should not leave the previous data in the engine when the new data cannot be written', async() => {
+    // The engine caps this sheet at 2 rows, so a 3-row load cannot be written to it.
+    const hfInstance = HyperFormula.buildEmpty({
+      licenseKey: 'internal-use-in-handsontable',
+      maxRows: 2,
+    });
+    const hot = handsontable({
+      data: [['1', '2'], ['3', '4']],
+      formulas: {
+        engine: hfInstance,
+      },
+    });
+    const { sheetId } = hot.getPlugin('formulas');
+
+    await loadData([['10', '20'], ['30', '40'], ['50', '60']]);
+
+    expect(hfInstance.isItPossibleToReplaceSheetContent(sheetId, hot.getSourceDataArray())).toBe(false);
+    // The sheet is reused now, so it must not keep serving the data from before the load.
+    expect(hfInstance.getSheetSerialized(sheetId)).not.toEqual([['1', '2'], ['3', '4']]);
   });
 
   it('should detach listeners from the engine after table destroying (one shared HF instances)', async() => {
