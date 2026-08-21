@@ -354,7 +354,15 @@ export class Formulas extends BasePlugin {
    * @param {string} newDisplayName The new name of the sheet.
    */
   #onEngineSheetRenamed = (oldDisplayName: string, newDisplayName: string) => {
-    this.#updateSheetNameAndSheetId(newDisplayName);
+    // The event is engine-wide, so it also reaches instances that do not own the renamed sheet.
+    // Repointing those would make them operate on a sheet belonging to another instance.
+    // Sheet ids are compared rather than names: the engine matches names without looking at the
+    // case but keeps the casing it was given, so `sheetName` may differ in case from the event's
+    // display names. The rename is already applied here, so the new name resolves to the same id.
+    if (this.engine?.getSheetId(newDisplayName) === this.sheetId) {
+      this.#updateSheetNameAndSheetId(newDisplayName);
+    }
+
     this.hot.runHooks('afterSheetRenamed', oldDisplayName, newDisplayName);
   };
 
@@ -653,7 +661,10 @@ export class Formulas extends BasePlugin {
       pluginSettings !== undefined &&
       typeof pluginSettings !== 'boolean' &&
       pluginSettings.sheetName !== undefined &&
-      pluginSettings.sheetName !== this.sheetName
+      // Sheet ids are compared rather than names, because `sheetName` holds the engine's casing
+      // while the setting keeps the one it was written with. An unknown name has no id, which
+      // still differs from the current one and lets `switchSheet` report it.
+      this.engine?.getSheetId(pluginSettings.sheetName) !== this.sheetId
     ) {
       this.switchSheet(pluginSettings.sheetName);
     }
@@ -701,8 +712,13 @@ export class Formulas extends BasePlugin {
    * @param {string} [sheetName] The new sheet name.
    */
   #updateSheetNameAndSheetId(sheetName: string) {
-    this.sheetName = sheetName;
-    this.sheetId = this.engine?.getSheetId(this.sheetName) ?? null;
+    const sheetId = this.engine?.getSheetId(sheetName) ?? null;
+
+    // Store the name the engine itself reports. The engine matches names without regard to case
+    // but keeps the casing it was given, so the name passed here may differ from the engine's own.
+    // Keeping them in step makes every exact-string reader of `sheetName` safe by construction.
+    this.sheetName = (sheetId === null ? null : this.engine?.getSheetName(sheetId)) ?? sheetName;
+    this.sheetId = sheetId;
   }
 
   /**
@@ -1320,7 +1336,10 @@ export class Formulas extends BasePlugin {
 
     const formulasSettings = this.hot.getSettings()[PLUGIN_KEY];
     const settingsSheetName = isFormulasSettingsObject(formulasSettings) ? formulasSettings.sheetName : undefined;
-    const sheetName = setupSheet(this.engine, settingsSheetName!);
+    // Fall back to the sheet this instance already owns. Without it every `loadData`/`updateData`
+    // call adds a sheet and abandons the previous one - with its whole dependency graph - inside
+    // the engine, which the engine then recalculates on every subsequent call.
+    const sheetName = setupSheet(this.engine, settingsSheetName ?? this.sheetName);
 
     this.#updateSheetNameAndSheetId(sheetName);
 
@@ -1341,6 +1360,21 @@ export class Formulas extends BasePlugin {
         this.renderDependentSheets(dependentCells);
 
         this.#internalOperationPending = false;
+
+      } else {
+        // The sheet is reused, so leaving it untouched would keep the previous data in the engine
+        // while the grid already shows the new one. Empty it instead of serving stale values.
+        this.#internalOperationPending = true;
+
+        const dependentCells = this.engine!.setSheetContent(this.sheetId, [[]]);
+
+        // Emptying the sheet changes what the grids reading it compute, so they need a redraw.
+        this.renderDependentSheets(dependentCells);
+
+        this.#internalOperationPending = false;
+
+        warn('The loaded data could not be passed to the formula engine, so the formulas were ' +
+          'cleared. It most likely exceeds the engine\'s `maxRows` or `maxColumns` limit.');
       }
 
     } else if (this.sheetName !== null) {
