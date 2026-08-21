@@ -152,6 +152,7 @@ const buildingAndToolingItems = [
   { path: 'guides/tools-and-building/typescript-types/typescript-types' },
   { path: 'guides/tools-and-building/custom-plugins/custom-plugins' },
   { path: 'guides/tools-and-building/custom-builds/custom-builds' },
+  { path: 'guides/tools-and-building/shadow-dom/shadow-dom' },
   { path: 'guides/tools-and-building/testing/testing' },
 ];
 

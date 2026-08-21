@@ -11,6 +11,7 @@ import {
   makeElementContentEditableAndSelectItsContent,
   isHTMLElement,
   isInternalElement,
+  isShadowRoot,
   SANITIZER_WARN_KEY,
 } from '../../helpers/dom/element';
 import { isSafari } from '../../helpers/browser';
@@ -191,6 +192,14 @@ export class CopyPaste extends BasePlugin {
    */
   #copyMode = 'cells-only';
   /**
+   * Registry of the clipboard events that were already processed. When the grid lives inside
+   * a Shadow DOM tree, the clipboard listeners are bound both to the document and to the
+   * grid's shadow root, so the same event instance can reach the plugin twice.
+   *
+   * @type {WeakSet<object>}
+   */
+  #processedClipboardEvents: WeakSet<object> = new WeakSet();
+  /**
    * Flag that is used to prevent copying when the native shortcut was not pressed.
    *
    * @type {boolean}
@@ -265,9 +274,31 @@ export class CopyPaste extends BasePlugin {
 
     // Events are attached to the document, not the root table element - as it should,
     // for Chrome 133 and lower to copy/paste/cut work properly (#dev-2277).
-    this.eventManager.addEventListener(this.hot.rootDocument, 'copy', (e: ClipboardEvent) => this.onCopy(e));
-    this.eventManager.addEventListener(this.hot.rootDocument, 'cut', (e: ClipboardEvent) => this.onCut(e));
-    this.eventManager.addEventListener(this.hot.rootDocument, 'paste', (e: ClipboardEvent) => this.onPaste(e));
+    const dedupe = (handler: (event: ClipboardEvent) => void) => (event: ClipboardEvent) => {
+      if (this.#processedClipboardEvents.has(event)) {
+        return;
+      }
+      this.#processedClipboardEvents.add(event);
+      handler(event);
+    };
+
+    this.eventManager.addEventListener(this.hot.rootDocument, 'copy', dedupe((e: ClipboardEvent) => this.onCopy(e)));
+    this.eventManager.addEventListener(this.hot.rootDocument, 'cut', dedupe((e: ClipboardEvent) => this.onCut(e)));
+    this.eventManager.addEventListener(this.hot.rootDocument, 'paste', dedupe((e: ClipboardEvent) => this.onPaste(e)));
+
+    const rootNode = this.hot.rootElement.getRootNode();
+
+    // When the grid lives inside a Shadow DOM tree, the same listeners are attached to the
+    // grid's shadow root as well. Sandboxed hosts (e.g. Salesforce Lightning Web Security)
+    // retarget events observed at the document level, which hides the grid internals from
+    // the document listeners above. Listeners bound inside the grid's own shadow tree still
+    // receive the untouched event path. The `#processedClipboardEvents` registry prevents
+    // double handling when both listeners receive the same event.
+    if (isShadowRoot(rootNode)) {
+      this.eventManager.addEventListener(rootNode, 'copy', dedupe((e: ClipboardEvent) => this.onCopy(e)));
+      this.eventManager.addEventListener(rootNode, 'cut', dedupe((e: ClipboardEvent) => this.onCut(e)));
+      this.eventManager.addEventListener(rootNode, 'paste', dedupe((e: ClipboardEvent) => this.onPaste(e)));
+    }
 
     // Without this workaround Safari (tested on Safari@16.5.2) does allow copying/cutting from the browser menu.
     if (isSafari()) {
@@ -709,13 +740,39 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
+   * Resolves the element the clipboard event originated from. A complete path (one that
+   * crosses shadow boundaries and therefore contains ShadowRoot entries) is trusted as-is -
+   * its initial element is the real source, e.g. a node inside a web component that a custom
+   * renderer put in a cell. A path without ShadowRoot entries either involves no shadow tree
+   * at all (then `target` equals the path's initial element) or was filtered by a sandboxed
+   * host (e.g. Salesforce Lightning Web Security) that collapses `composedPath()` to the
+   * shadow host chain while still retargeting `event.target` correctly for listeners bound
+   * within the grid's shadow tree - in both cases the retargeted `target` is the deepest
+   * reliable reference to the source element.
+   *
+   * @param {ClipboardEvent | PasteEvent} event The clipboard event to resolve.
+   * @returns {unknown} The deepest known event source element.
+   */
+  #resolveClipboardEventTarget(event: ClipboardEvent | PasteEvent): unknown {
+    const eventPath = event.composedPath();
+
+    if (eventPath.some(entry => isShadowRoot(entry))) {
+      return eventPath[0];
+    }
+
+    const target = 'target' in event ? event.target : null;
+
+    return target ?? eventPath[0];
+  }
+
+  /**
    * `copy` event callback on textarea element.
    *
    * @param {Event} event ClipboardEvent.
    * @private
    */
   onCopy(event: ClipboardEvent) {
-    const eventTarget = event.composedPath()[0];
+    const eventTarget = this.#resolveClipboardEventTarget(event);
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
     const isHotInput = isHTMLElement(eventTarget) && 'hotInput' in eventTarget.dataset;
 
@@ -759,7 +816,7 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onCut(event: ClipboardEvent) {
-    const eventTarget = event.composedPath()[0];
+    const eventTarget = this.#resolveClipboardEventTarget(event);
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
     const isHotInput = isHTMLElement(eventTarget) && 'hotInput' in eventTarget.dataset;
 
@@ -800,7 +857,7 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onPaste(event: ClipboardEvent | PasteEvent) {
-    const eventTarget = event.composedPath()[0];
+    const eventTarget = this.#resolveClipboardEventTarget(event);
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
     const isHotInput = isHTMLElement(eventTarget) && 'hotInput' in eventTarget.dataset;
 
