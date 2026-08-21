@@ -29,6 +29,32 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 
 `Border` in `src/selection/border/border.ts` has TWO distinct handle systems: `selectionHandles` (mobile touch handles, created by `createMultipleSelectorHandles()`, CSS classes `topSelectionHandle`/`bottomSelectionHandle`) and `adjustHandles` (desktop drag-to-resize handles added in 18.0.0, CSS class `.wtSelectionHandle`, controlled by the `selectionHandles` grid option). Do not conflate them.
 
+## Selection affordances must stay under the overlay clones (z-index < 120)
+
+`.ht_master` is `position: relative` with no z-index, so it opens **no stacking context** and every
+element inside it competes directly with the overlay clone divs (`inline_start` 120, `bottom` 130,
+`bottom_inline_start_corner` 150, `top` 160, `top_inline_start_corner` 180). An affordance drawn
+inside the master at 120 or above therefore paints on top of a frozen pane once its cell scrolls
+under one, and wins hit-testing there — the crosshair and the drag are stolen from the frozen cells.
+
+The window 101–119 is reserved for these: the `moveCells` bands (100, inlined by `createMoveZone`),
+the autofill fill handle (`.wtBorder.corner`, 110) and the desktop resize handles
+(`.wtSelectionHandle`, 115). Do not raise any of them to clear something else — every frozen overlay
+draws its own copy of each affordance, so none of them needs to outrank a clone to appear inside a
+pane. `.ht_clone_master: 100` in the z-index map does **not** apply to the master overlay; that class
+is stamped on the editor container by `src/editors/factory.ts`.
+
+Two related mechanisms that look like counter-examples and are not: the mobile selection handles take
+an inline `zIndex = '9999'` when a selection edge lands on a freeze line (`border.ts`, legacy #9850),
+and the fill handle is *repositioned* rather than re-layered at the `fixedRowsBottom` line
+(`isCornerLiftedAtBlockEnd`). Handles drawn by a frozen overlay itself need no such treatment: they
+already land flush against the `.wtHolder` edge that clips them, which `border.spec.js` pins to the
+pixel on both axes. Note `.wtHolder` is the clipping box (`overflow: hidden`), while the clone element
+is `overflow: visible` and ends a few pixels earlier — measure the holder, not the clone.
+
+The declarations live in `src/styles/base/_z-index-map.scss`, `css/walkontable.scss` (clone values,
+duplicated — keep in sync) and `src/styles/components/core/_selection.scss` (the affordances).
+
 ## Naming gotcha: `moveCells` grid option vs. HyperFormula engine method
 
 The Handsontable `moveCells` grid option (added 18.0.0) enables drag-to-move for selections. HyperFormula exposes an identically named `engine.moveCells()` method that the `Formulas` plugin calls internally to relocate formula references. They are unrelated -- do not confuse the user-facing option with the HyperFormula engine API.
