@@ -1,5 +1,5 @@
 import { resolveFrozenOverlayHeight } from '../../../src/overlay/frozenOverlaySize';
-import { OVERLAY_SCROLLBAR_SIZE } from '../../../src/overlay/constants';
+import { OVERLAY_SCROLLBAR_CLEARANCE } from '../../../src/overlay/constants';
 
 describe('resolveFrozenOverlayHeight', () => {
   const input = (overrides = {}) => ({
@@ -44,7 +44,7 @@ describe('resolveFrozenOverlayHeight', () => {
         hasOverlayScrollbar: true,
       }));
 
-      expect(height).toBe(340 - OVERLAY_SCROLLBAR_SIZE);
+      expect(height).toBe(340 - OVERLAY_SCROLLBAR_CLEARANCE);
     });
 
     it('should ignore the master holder height, which never shrinks for an overlay scrollbar', () => {
@@ -56,7 +56,7 @@ describe('resolveFrozenOverlayHeight', () => {
       }));
 
       expect(getMasterClientHeight).not.toHaveBeenCalled();
-      expect(height).toBe(340 - OVERLAY_SCROLLBAR_SIZE);
+      expect(height).toBe(340 - OVERLAY_SCROLLBAR_CLEARANCE);
     });
 
     it('should reserve nothing on engines that do not paint an overlay scrollbar there', () => {

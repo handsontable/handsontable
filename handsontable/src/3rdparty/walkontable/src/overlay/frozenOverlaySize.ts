@@ -1,4 +1,4 @@
-import { OVERLAY_SCROLLBAR_SIZE } from './constants';
+import { OVERLAY_SCROLLBAR_CLEARANCE } from './constants';
 
 /**
  * The inputs the frozen (inline-start) overlay height is derived from. `getMasterClientHeight` stays a
@@ -38,7 +38,7 @@ export function resolveFrozenOverlayHeight(input: FrozenOverlayHeightInput): num
   }
 
   if (scrollbarWidth === 0 && hasOverlayScrollbar) {
-    return workspaceHeight - OVERLAY_SCROLLBAR_SIZE;
+    return workspaceHeight - OVERLAY_SCROLLBAR_CLEARANCE;
   }
 
   const masterClientHeight = getMasterClientHeight();

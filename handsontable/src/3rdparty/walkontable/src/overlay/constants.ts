@@ -15,11 +15,20 @@ export const CLONE_TYPES = [
 ];
 
 /**
- * Height, in pixels, of the strip reserved for an overlay ("floating") horizontal scrollbar - one the
- * browser paints over the content instead of giving it its own space. Such a scrollbar measures 0, so
- * it cannot be derived from the DOM; this is the thickness Firefox draws (#10370).
+ * Strip, in CSS pixels, kept clear along the bottom edge so an overlay ("floating") horizontal
+ * scrollbar stays visible and grabbable instead of being covered by the frozen-column overlay
+ * (#10370). Such a scrollbar takes no layout space, so it measures 0 and its real thickness cannot be
+ * read from the DOM.
+ *
+ * This is a clearance, not a measured thickness, and it degrades gracefully both ways: where the
+ * scrollbar is thicker its top few pixels stay covered while this strip remains grabbable; where it is
+ * thinner the extra clearance only costs the strip itself.
+ *
+ * 12 is Gecko's own `kDefaultWinOverlayScrollbarSize` (`widget/ScrollbarDrawingWin11.cpp`). Measured
+ * grabbable thickness elsewhere: 16 on macOS, 13 at 1.25x zoom. GTK takes its size from the active
+ * theme, so no single value can be exact everywhere.
  */
-export const OVERLAY_SCROLLBAR_SIZE = 12;
+export const OVERLAY_SCROLLBAR_CLEARANCE = 12;
 
 export const CLONE_CLASS_NAMES = new Map([
   [CLONE_TOP, `ht_clone_${CLONE_TOP}`],
