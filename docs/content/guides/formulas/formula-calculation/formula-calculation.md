@@ -1049,6 +1049,39 @@ For the full list of available language packs, see the
   <iframe src="https://www.youtube.com/embed/JJXUmACTDdk"></iframe>
 </div>
 
+## Preserve text values
+
+By default, the engine parses number-like strings into numbers, following the behavior known
+from spreadsheet software. A cell of the [`text`](@/guides/cell-types/cell-type/cell-type.md)
+type that holds `0123456` reaches formulas as `123456`, so the leading zero is lost.
+
+To keep such values as strings on the engine side, enable the
+[`preserveTextValues`](@/api/options.md#preservetextvalues) option on the `text`-type cells.
+The value then stays a string: `=LEN(A1)` returns `7`, and concatenation keeps the leading zero.
+
+::: only-for javascript
+
+```js
+const hot = new Handsontable(container, {
+  data: [
+    ['0123456'],
+    ['=LEN(A1)'],
+  ],
+  columns: [
+    {
+      type: 'text',
+      preserveTextValues: true,
+    },
+  ],
+  formulas: {
+    engine: HyperFormula,
+  },
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+:::
+
 ## Known limitations
 
 - Using the [`IndexMapper`](@/api/indexMapper.md) API to programmatically [move rows](@/guides/rows/row-moving/row-moving.md) or [columns](@/guides/columns/column-moving/column-moving.md) that contain formulas is not supported. Instead, use the [`ManualRowMove`](@/api/manualRowMove.md) or [`ManualColumnMove`](@/api/manualColumnMove.md) APIs.
