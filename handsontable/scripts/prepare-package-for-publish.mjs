@@ -83,7 +83,10 @@ glob.sync('./**/*.d.ts', { cwd: TARGET_PATH, nodir: true }).forEach((dtsFile) =>
  * @returns {string}
  */
 function toTargetPattern(pattern, pathSlice) {
-  const segments = pattern.split(/[\\/]/).filter(segment => segment !== '' && segment !== '.');
+  const segments = pattern
+    .replace('../', '') // the copy step strips it the same way when it builds the destination
+    .split(/[\\/]/)
+    .filter(segment => segment !== '' && segment !== '.');
 
   return segments.slice(pathSlice).join('/');
 }

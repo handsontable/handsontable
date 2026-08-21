@@ -85,11 +85,10 @@ describe('preview package composition', () => {
       const workflowFiles = fse.readdirSync(join(ciRoot, 'workflows'))
         .filter(fileName => /\.ya?ml$/.test(fileName))
         .map(fileName => `workflows/${fileName}`);
-      const actionFiles = fse.readdirSync(join(ciRoot, 'actions'), { withFileTypes: true })
-        .filter(entry => entry.isDirectory())
-        .flatMap(entry => fse.readdirSync(join(ciRoot, 'actions', entry.name))
-          .filter(fileName => /\.ya?ml$/.test(fileName))
-          .map(fileName => `actions/${entry.name}/${fileName}`));
+      const actionFiles = fse.readdirSync(join(ciRoot, 'actions'), { recursive: true })
+        .map(entry => entry.split(sep).join('/'))
+        .filter(entry => /(^|\/)action\.ya?ml$/.test(entry))
+        .map(entry => `actions/${entry}`);
       const callers = { strict: new Set(), partial: new Set() };
 
       [...workflowFiles, ...actionFiles].forEach((filePath) => {
