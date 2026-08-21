@@ -155,13 +155,12 @@ jobs:
         with:
           name: visual-tests-screenshots
           path: screenshots.tar.gz
+      # Deliberately NOT fork-guarded. @argos-ci/core falls back to tokenless
+      # upload on public GitHub Actions repos, so this genuinely works with an
+      # empty ARGOS_TOKEN: verified on fork PR #13207 (run 32481421878), where
+      # the step passed and the Argos App reported build 5874. Guarding it would
+      # delete visual review for every external contributor.
       - name: Upload the screenshots to Argos CI
-        # ARGOS_TOKEN is a repository secret, absent on a fork PR. The render
-        # matrix and the visual-tests-screenshots artifact still run, so a
-        # reviewer can pull the screenshots by hand. AGENTS.md, "fork pull
-        # requests".
-        if: github.event_name != 'pull_request'
-          || github.event.pull_request.head.repo.full_name == github.repository
         env:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
           ARGOS_BRANCH: ${{ github.head_ref || github.ref_name }}

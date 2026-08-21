@@ -170,7 +170,8 @@
 **Platform:** GitHub Actions (`.github/workflows/`)
 
 **Key workflows:**
-- `test.yml` - PR pipeline orchestrator; calls every reusable module and ends in `CI Gate`
+- `test.yml` - PR and master-push orchestrator, also called by `publish.yml` on the RC/stable
+  path; calls every reusable module and ends in `CI Gate`
 - `CI Gate` (a job in `test.yml`, not a file) - the single status check to require in branch
   protection. It always runs and passes only when every module job reported `success` or `skipped`,
   so individual/matrix check names must stay unpinned
@@ -179,7 +180,8 @@
 - `build.yml` / `build-all.yml` - shared UMD and ES+CJS build artifacts / multi-OS build verification
 - `lint.yml` - core linters
 - `code-quality.yml` - SonarCloud, CodeQL, FOSSA, npm audit
-- `unit.yml` / `types.yml` / `e2e.yml` / `walkontable.yml` - the test tiers
+- `unit.yml` / `types.yml` / `e2e.yml` / `walkontable.yml` / `emitted-types.yml` - the test tiers
+- `manual-qa.yml` - the human merge gate, and a `CI Gate` dependency like every module above
 - `integration.yml` - wrapper tests, ESM/CJS format checks, pkg.pr.new PR package preview
 - `performance.yml` (PR) / `performance-tests.yml` (develop golden baseline) - the CDP perf suite
 - `visual.yml` - visual regression render matrix plus the Argos upload
@@ -187,5 +189,6 @@
 - `docs.yml` / `docs-staging.yml` / `docs-production.yml` - docs gates and deployment (Cloudflare Pages)
 - `docs-visual-tests.yml` - visual regression testing for docs
 
-Fork PRs run on a read-only token with no secrets; see the "fork pull requests" bullet in the root
-`AGENTS.md` before touching any step that comments, pushes, or reads a secret.
+Fork PRs and Dependabot PRs both run on a read-only token with no Actions secrets. Read the two
+fork-guard bullets in the root `AGENTS.md` before touching any step that comments, pushes to a ref,
+or depends on a secret. Some paths degrade gracefully and must not be guarded.

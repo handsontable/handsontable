@@ -80,8 +80,13 @@ jobs:
       - name: Compute report URL
         id: report-url
         if: github.event_name == 'pull_request'
+        # HEAD_REF via env, never inlined as ${{ }}: on a fork PR the branch name
+        # is attacker-controlled text and inlining it into the script is a
+        # command-injection vector (actionlint `expression`).
+        env:
+          HEAD_REF: ${{ github.head_ref }}
         run: |
-          BRANCH_SLUG=$(echo "${{ github.head_ref }}" | sed 's/[^a-zA-Z0-9._-]/-/g')
+          BRANCH_SLUG=$(echo "$HEAD_REF" | sed 's/[^a-zA-Z0-9._-]/-/g')
           PAGES_URL="https://handsontable.github.io/handsontable/performance-reports/${BRANCH_SLUG}/"
           echo "branch_slug=${BRANCH_SLUG}" >> "$GITHUB_OUTPUT"
           echo "pages_url=${PAGES_URL}" >> "$GITHUB_OUTPUT"
@@ -164,6 +169,8 @@ jobs:
 
       - name: Deploy PR report to GitHub Pages
         if: always() && github.event_name == 'pull_request'
+          && github.event.pull_request.head.repo.full_name == github.repository
+          && github.actor != 'dependabot[bot]'
         env:
           BRANCH_SLUG: ${{ steps.report-url.outputs.branch_slug }}
         run: |
@@ -225,6 +232,8 @@ jobs:
 
       - name: Post performance summary to pull request
         if: always() && github.event_name == 'pull_request'
+          && github.event.pull_request.head.repo.full_name == github.repository
+          && github.actor != 'dependabot[bot]'
         uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
         with:
           header: performance-tests

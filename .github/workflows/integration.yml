@@ -153,15 +153,17 @@ jobs:
       # One source of truth for the preview block: the sticky comment (internal
       # PRs) and the job summary (every PR, forks included) both read this file.
       # Quoted heredoc so the fenced block and the backticks stay literal; the
-      # two values are substituted afterwards from env, never interpolated into
-      # the script body.
+      # two values are substituted from env by sed, never interpolated into the
+      # script body.
+      # Deliberately NOT always(): if `Publish preview packages` failed there is
+      # nothing at those pkg.pr.new URLs, and printing install commands for
+      # artifacts that do not exist is worse than printing nothing.
       - name: Build the preview comment body
-        if: always()
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           SHORT_SHA: ${{ steps.vars.outputs.short_sha }}
         run: |
-          cat > preview-comment.tpl <<'EOF'
+          sed "s|{{SHA}}|${SHORT_SHA}|g; s|{{PR}}|${PR_NUMBER}|g" > preview-comment.md <<'EOF'
           ## 📦 PR Preview Packages
 
           Install packages from this PR (commit `{{SHA}}`):
@@ -193,19 +195,20 @@ jobs:
           | Remix | [Open live demo](https://demos.handsontable.com/?example=remix&v={{PR}}) |
           | Nuxt | [Open live demo](https://demos.handsontable.com/?example=nuxt&v={{PR}}) |
           EOF
-          sed "s|{{SHA}}|${SHORT_SHA}|g; s|{{PR}}|${PR_NUMBER}|g" preview-comment.tpl > preview-comment.md
-      # Token-free mirror of the comment below: the only way a fork PR sees the
-      # preview links, since posting a comment needs a write token it never gets.
+      # Token-free mirror of the comment below: the only way a fork or Dependabot
+      # PR sees the preview links, since posting a comment needs a write token
+      # neither of them gets.
       - name: Write the preview links to the job summary
-        if: always()
         run: cat preview-comment.md >> "$GITHUB_STEP_SUMMARY"
       - name: Post PR preview comment
-        # Internal PRs only. A fork PR's GITHUB_TOKEN is read-only, so the API
-        # call 403s and takes CI Gate down with it; the job summary above carries
-        # the same content instead. The job is already pull_request-only (see its
-        # `if:` above), so no event check is needed here. AGENTS.md, "fork pull
+        # Write-token runs only. Fork PRs and Dependabot PRs both get a read-only
+        # GITHUB_TOKEN, so the API call 403s and takes CI Gate down with it; the
+        # job summary above carries the same content instead. The job is already
+        # pull_request-only (see its `if:` above), so the event half of the
+        # canonical guard is redundant here. AGENTS.md, "fork and Dependabot pull
         # requests".
         if: github.event.pull_request.head.repo.full_name == github.repository
+          && github.actor != 'dependabot[bot]'
         uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
         with:
           header: pr-preview
