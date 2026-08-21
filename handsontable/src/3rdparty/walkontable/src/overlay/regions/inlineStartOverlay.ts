@@ -13,7 +13,9 @@ import { getCornerStyle } from '../../selection';
 import {
   CLONE_INLINE_START,
 } from '../constants';
+import { resolveFrozenOverlayHeight } from '../frozenOverlaySize';
 import { throwWithCause } from '../../../../../helpers/errors';
+import { isFirefox } from '../../../../../helpers/browser';
 
 /**
  * @class InlineStartOverlay
@@ -178,20 +180,15 @@ export class InlineStartOverlay extends Overlay {
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     if (this.trimmingContainer !== rootWindow || preventOverflow === 'vertical') {
-      let height = wtViewport.getWorkspaceHeight();
-
-      if (wtViewport.hasHorizontalScroll()) {
-        // Match the master holder's actual inner height instead of subtracting a rounded scrollbar
-        // width. `clientHeight` natively accounts for the horizontal scrollbar at the browser's
-        // sub-pixel accuracy; under fractional browser zoom a rounded `getScrollbarWidth()` diverges
-        // from the real scrollbar size, giving the frozen overlay a different vertical scroll range
-        // than the master. That mismatch clamps the overlay's scrollTop ~1px short at the bottom and
-        // shifts the frozen rows out of alignment (#12632).
-        const masterClientHeight = this.deps.geometryReader.clientHeight(wtTable.holder);
-
-        height = masterClientHeight > 0
-          ? masterClientHeight : height - this.deps.geometryReader.getScrollbarWidth(rootDocument);
-      }
+      // Firefox is the only engine that paints its overlay scrollbar where the frozen overlay would
+      // cover it; elsewhere a zero-width scrollbar needs no strip reserved.
+      let height = resolveFrozenOverlayHeight({
+        workspaceHeight: wtViewport.getWorkspaceHeight(),
+        hasHorizontalScroll: wtViewport.hasHorizontalScroll(),
+        scrollbarWidth: this.deps.geometryReader.getScrollbarWidth(rootDocument),
+        hasOverlayScrollbar: isFirefox(),
+        getMasterClientHeight: () => this.deps.geometryReader.clientHeight(wtTable.holder),
+      });
 
       height = Math.min(height, this.deps.geometryReader.scrollHeight(wtTable.wtRootElement));
       overlayRootStyle.height = `${height}px`;
