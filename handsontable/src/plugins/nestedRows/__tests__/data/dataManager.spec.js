@@ -51,6 +51,51 @@ describe('NestedRows Data Manager', () => {
         expect(plugin.dataManager.getRowIndex(data[0].__children[3])).toEqual(6);
         expect(plugin.dataManager.getRowIndex(data[2].__children[1].__children[0])).toEqual(11);
       });
+
+      it('should return `null` instead of throwing for a row object that is not in the structure', async() => {
+        handsontable({
+          data: getMoreComplexNestedData(),
+          nestedRows: true
+        });
+
+        const plugin = getPlugin('nestedRows');
+
+        expect(() => plugin.dataManager.getRowIndex({ notARow: true })).not.toThrow();
+        expect(plugin.dataManager.getRowIndex({ notARow: true })).toBe(null);
+      });
+
+      it('should return `null` instead of throwing for a row object held from before loadData', async() => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true
+        });
+
+        const plugin = getPlugin('nestedRows');
+        // A reference an application would hold across a dataset swap.
+        const staleRowObject = getSourceData()[0];
+
+        await loadData(getMoreComplexNestedData());
+
+        expect(() => plugin.dataManager.getRowIndex(staleRowObject)).not.toThrow();
+        expect(plugin.dataManager.getRowIndex(staleRowObject)).toBe(null);
+      });
+
+      it('should not throw when reading the parent or the level of a stale row object', async() => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true
+        });
+
+        const plugin = getPlugin('nestedRows');
+        const staleRowObject = getSourceData()[0];
+
+        await loadData(getMoreComplexNestedData());
+
+        expect(() => plugin.dataManager.getRowObjectParent(staleRowObject)).not.toThrow();
+        expect(plugin.dataManager.getRowObjectParent(staleRowObject)).toBe(null);
+        expect(() => plugin.dataManager.getRowObjectLevel(staleRowObject)).not.toThrow();
+        expect(plugin.dataManager.getRowObjectLevel(staleRowObject)).toBe(null);
+      });
     });
 
     describe('getRowIndexWithinParent', () => {

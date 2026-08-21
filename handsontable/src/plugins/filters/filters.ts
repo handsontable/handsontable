@@ -1,6 +1,6 @@
 import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
-import { arrayEach, arrayMap } from '../../helpers/array';
+import { arrayEach, arrayFilter, arrayMap } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { addClass, isBottomMostColumnHeader, isHTMLElement, removeClass } from '../../helpers/dom/element';
@@ -1465,6 +1465,57 @@ export class Filters extends BasePlugin {
       removeClass(TH, 'htFiltersActive');
     }
   };
+
+  /**
+   * Gets the values the "filter by value" list of a column is built from.
+   *
+   * A column that carries conditions of its own reads the rows that survive the conditions of the
+   * columns defined BEFORE it in the filter stack. Its own conditions are deliberately skipped - a
+   * column's filter must not narrow down its own value list, or the values it filters out drop off
+   * the list and become impossible to select again (issue #12226). A column with no conditions of
+   * its own reads the currently visible data, which the other columns' filters already narrowed
+   * down.
+   *
+   * @private
+   * @param {number} column Visual column index.
+   * @returns {Array<{value: *, meta: CellProperties}>} Array of objects with `value` and `meta`, one per row.
+   */
+  _getValueListDataAtColumn(column: number): Record<string, unknown>[] {
+    const physicalColumn = this.hot.toPhysicalColumn(column);
+    const stackPosition = this.conditionCollection?.getColumnStackPosition(physicalColumn) ?? -1;
+
+    // A data provider filters server-side and the list is hidden anyway, so re-running the
+    // conditions locally would filter data that is already filtered.
+    if (stackPosition === -1 || this.#isDataProviderActive) {
+      return arrayMap(this.hot.getDataAtCol(column), (value, rowIndex) => ({
+        value: toEmptyString(value),
+        meta: this.hot.getCellMetaTransient(rowIndex, column),
+      }));
+    }
+
+    const allRows = this.getDataMapAtColumn(physicalColumn);
+    const conditionsBefore = (this.conditionCollection?.exportAllConditions() ?? []).slice(0, stackPosition);
+
+    if (conditionsBefore.length === 0) {
+      return allRows;
+    }
+
+    const splitConditionCollection = new ConditionCollection(this.hot, false);
+
+    splitConditionCollection.importAllConditions(conditionsBefore);
+
+    // Rows are correlated through the entry's own `row` property - the coordinate stamps on `meta`
+    // are shared with every other meta reader and may have been overwritten since.
+    // `DataFilter` is typed against `unknown[]` throughout, so its entries are narrowed here - the
+    // same boundary cast `DataFilter.filter()` and `ConditionUpdateObserver` already make.
+    const survivingRows = arrayMap(this._createDataFilter(splitConditionCollection).filter(),
+      rowData => (rowData as { row: number }).row);
+    const survivingRowsAssertion = createArrayAssertion(survivingRows);
+
+    splitConditionCollection.destroy();
+
+    return arrayFilter(allRows, rowData => survivingRowsAssertion(rowData.row));
+  }
 
   /**
    * Creates DataFilter instance based on condition collection.

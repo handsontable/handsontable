@@ -45,6 +45,21 @@ export interface FixtureHotInstance {
   };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
   getPlugin(name: 'multipleSelectionHandles'): { isDragged(): boolean };
+  getPlugin(name: 'nestedRows'): {
+    collapseAll(): void,
+    expandAll(): void,
+    collapseParent(row: number): boolean,
+    expandParent(row: number): boolean,
+    toggleParent(row: number): boolean,
+    getCollapsedParents(): number[],
+    isParentCollapsed(row: number): boolean,
+    isParent(row: number): boolean,
+    getRowLevel(row: number): number | null,
+    getRowParent(row: number): number | null,
+    countChildren(row: number, recursive?: boolean): number,
+    expandToRow(row: number): boolean,
+    expandToLevel(level: number): void,
+  };
   getPlugin(name: 'selectionHandles'): {
     isDragActive(): boolean,
     enablePlugin(): void,
@@ -70,6 +85,11 @@ export interface FixtureHotInstance {
   addHookOnce(name: string, callback: () => unknown): void;
   getSelectedLast(): number[];
   countRows(): number;
+  toVisualRow(row: number): number | null;
+  toPhysicalRow(row: number): number | null;
+  selectCell(row: number, col: number): boolean;
+  loadData(data: unknown[]): void;
+  updateSettings(settings: Record<string, unknown>): void;
   countCols(): number;
   _createCellCoords(row: number, col: number): unknown;
   _createCellRange(highlight: unknown, from: unknown, to: unknown): unknown;
@@ -104,6 +124,8 @@ declare global {
     initMobileGrid(overrides?: Record<string, unknown>): boolean;
     /** Recorded moveCells hook calls for the current grid instance. */
     moveCellsHookLog: MoveCellsHookRecord[];
+    /** Recorded NestedRows collapse/expand hook calls, in firing order. */
+    hookLog: { name: string, args: unknown[] }[];
     /** Makes the fixture's `beforeMoveCells` listener return `false`. */
     setBeforeMoveCellsVeto(shouldVeto: boolean): boolean;
   }
