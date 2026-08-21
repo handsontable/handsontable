@@ -53,7 +53,8 @@ import {
 } from 'handsontable/helpers/dom/element';
 
 import {
-  getFirstTouchPoint,
+  getFirstChangedTouch,
+  getTouchPointById,
   hasTouchList,
   isImmediatePropagationStopped,
   isLeftClick,
@@ -115,7 +116,8 @@ innerHeight(domElement);
 innerWidth(domElement);
 isChildOf(domElement, 'foo');
 isDetached(domElement);
-getFirstTouchPoint(domEvent);
+getFirstChangedTouch(domEvent);
+getTouchPointById(domEvent, 1);
 hasTouchList(domEvent);
 isImmediatePropagationStopped(domEvent);
 isInput(domElement);

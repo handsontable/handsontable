@@ -8,6 +8,11 @@ import { patchConsoleErrors } from '../../../../test/__mocks__/cssPolyfill';
 const MOBILE_USER_AGENT = 'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 ' +
   '(KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36';
 
+// The finger that grabs a handle, and an unrelated one resting elsewhere. Distinct identifiers are
+// what let these tests tell "a finger lifted" apart from "the dragging finger lifted".
+const HANDLE_FINGER = { id: 1, x: 120, y: 140 };
+const OTHER_FINGER = { id: 2, x: 30, y: 40 };
+
 /**
  * Covers the touch input path of DragToScroll (#11658).
  *
@@ -63,22 +68,36 @@ describe('DragToScroll mobile touch auto-scroll', () => {
   }
 
   /**
-   * Builds a touch event carrying a single touch point.
+   * Builds a touch event, mirroring what a browser reports.
    *
-   * The touch list is attached as a plain property because jsdom does not implement `Touch`.
+   * The lists are attached as plain properties because jsdom implements neither `Touch` nor
+   * `TouchEvent`. Keeping them distinct is the point of these tests: `touches` is every finger still
+   * on the screen and `changedTouches` is only the fingers this event is about.
    *
    * @param {string} type The event type.
-   * @param {number} [clientX] The touch point's viewport X coordinate.
-   * @param {number} [clientY] The touch point's viewport Y coordinate.
+   * @param {object} [lists] The touch lists.
+   * @param {Array} [lists.touches] Fingers still on the screen, as `{id, x, y}`.
+   * @param {Array} [lists.changed] Fingers this event is about, as `{id, x, y}`.
    * @returns {Event} The event.
    */
-  function touchEvent(type, clientX, clientY) {
+  function touchEvent(type, { touches = [], changed = [] } = {}) {
     const event = new Event(type, { bubbles: true, cancelable: true });
-    const touches = clientX === undefined ? [] : [{ clientX, clientY }];
+    const toTouch = ({ id, x = 0, y = 0 }) => ({ identifier: id, clientX: x, clientY: y });
 
-    Object.defineProperty(event, 'touches', { value: touches });
+    Object.defineProperty(event, 'touches', { value: touches.map(toTouch) });
+    Object.defineProperty(event, 'changedTouches', { value: changed.map(toTouch) });
 
     return event;
+  }
+
+  /**
+   * Builds the `touchstart` of a single finger landing.
+   *
+   * @param {object} finger The finger, as `{id, x, y}`.
+   * @returns {Event} The event.
+   */
+  function touchStart(finger) {
+    return touchEvent('touchstart', { touches: [finger], changed: [finger] });
   }
 
   /**
@@ -100,7 +119,7 @@ describe('DragToScroll mobile touch auto-scroll', () => {
   it('should arm auto-scroll when a touch drag starts on a selection handle', () => {
     build();
 
-    bottomHandle().dispatchEvent(touchEvent('touchstart'));
+    bottomHandle().dispatchEvent(touchStart(HANDLE_FINGER));
 
     // The mobile handles run on touch events only, so no `mousedown` hook fires for them. The
     // ordering this depends on comes from DOM bubbling: MultipleSelectionHandles listens on
@@ -113,7 +132,7 @@ describe('DragToScroll mobile touch auto-scroll', () => {
     build();
 
     // The grid body, not a handle hit area.
-    hot.rootElement.dispatchEvent(touchEvent('touchstart'));
+    hot.rootElement.dispatchEvent(touchStart(HANDLE_FINGER));
 
     expect(hot.getPlugin('multipleSelectionHandles').isDragged()).toBe(false);
     expect(hot.getPlugin('dragToScroll').isListening()).toBe(false);
@@ -124,11 +143,14 @@ describe('DragToScroll mobile touch auto-scroll', () => {
 
     const plugin = hot.getPlugin('dragToScroll');
 
-    bottomHandle().dispatchEvent(touchEvent('touchstart'));
+    bottomHandle().dispatchEvent(touchStart(HANDLE_FINGER));
 
     const checkSpy = jest.spyOn(plugin, 'check');
 
-    document.dispatchEvent(touchEvent('touchmove', 300, 900));
+    document.dispatchEvent(touchEvent('touchmove', {
+      touches: [{ id: HANDLE_FINGER.id, x: 300, y: 900 }],
+      changed: [{ id: HANDLE_FINGER.id, x: 300, y: 900 }],
+    }));
 
     expect(checkSpy).toHaveBeenCalledWith(300, 900);
   });
@@ -139,7 +161,10 @@ describe('DragToScroll mobile touch auto-scroll', () => {
     const plugin = hot.getPlugin('dragToScroll');
     const checkSpy = jest.spyOn(plugin, 'check');
 
-    document.dispatchEvent(touchEvent('touchmove', 300, 900));
+    document.dispatchEvent(touchEvent('touchmove', {
+      touches: [{ id: HANDLE_FINGER.id, x: 300, y: 900 }],
+      changed: [{ id: HANDLE_FINGER.id, x: 300, y: 900 }],
+    }));
 
     expect(checkSpy).not.toHaveBeenCalled();
   });
@@ -149,11 +174,11 @@ describe('DragToScroll mobile touch auto-scroll', () => {
 
     const plugin = hot.getPlugin('dragToScroll');
 
-    bottomHandle().dispatchEvent(touchEvent('touchstart'));
+    bottomHandle().dispatchEvent(touchStart(HANDLE_FINGER));
 
     expect(plugin.isListening()).toBe(true);
 
-    document.dispatchEvent(touchEvent('touchend'));
+    document.dispatchEvent(touchEvent('touchend', { changed: [HANDLE_FINGER] }));
 
     expect(plugin.isListening()).toBe(false);
   });
@@ -163,11 +188,11 @@ describe('DragToScroll mobile touch auto-scroll', () => {
 
     const plugin = hot.getPlugin('dragToScroll');
 
-    bottomHandle().dispatchEvent(touchEvent('touchstart'));
+    bottomHandle().dispatchEvent(touchStart(HANDLE_FINGER));
 
     expect(plugin.isListening()).toBe(true);
 
-    document.dispatchEvent(touchEvent('touchcancel'));
+    document.dispatchEvent(touchEvent('touchcancel', { changed: [HANDLE_FINGER] }));
 
     expect(plugin.isListening()).toBe(false);
   });
@@ -177,56 +202,105 @@ describe('DragToScroll mobile touch auto-scroll', () => {
 
     const handles = hot.getPlugin('multipleSelectionHandles');
 
-    bottomHandle().dispatchEvent(touchEvent('touchstart'));
+    bottomHandle().dispatchEvent(touchStart(HANDLE_FINGER));
 
     expect(handles.isDragged()).toBe(true);
 
     // A cancelled gesture never reaches `touchend`. Leaving `dragged` set would let the next
     // unrelated touch arm auto-scroll with no handle press at all.
-    hot.rootElement.dispatchEvent(touchEvent('touchcancel'));
+    hot.rootElement.dispatchEvent(touchEvent('touchcancel', { changed: [HANDLE_FINGER] }));
 
     expect(handles.isDragged()).toBe(false);
 
-    hot.rootElement.dispatchEvent(touchEvent('touchstart'));
+    hot.rootElement.dispatchEvent(touchStart(OTHER_FINGER));
 
     expect(hot.getPlugin('dragToScroll').isListening()).toBe(false);
   });
 
-  it('should keep auto-scrolling while a finger is still down', () => {
+  it('should end the drag when the dragging finger lifts, even with another finger still down', () => {
     build();
 
+    const handles = hot.getPlugin('multipleSelectionHandles');
     const plugin = hot.getPlugin('dragToScroll');
 
-    bottomHandle().dispatchEvent(touchEvent('touchstart'));
+    bottomHandle().dispatchEvent(touchStart(HANDLE_FINGER));
+    hot.rootElement.dispatchEvent(touchEvent('touchstart', {
+      touches: [HANDLE_FINGER, OTHER_FINGER],
+      changed: [OTHER_FINGER],
+    }));
 
-    expect(plugin.isListening()).toBe(true);
+    // The dragging finger lifts first. `touches` still lists the other finger, so a check for "no
+    // fingers left" would miss this and strand the plugin mid-drag for good.
+    const lift = touchEvent('touchend', { touches: [OTHER_FINGER], changed: [HANDLE_FINGER] });
 
-    // `touchend` fires per touch point. A second finger or a palm lifting leaves one touch behind,
-    // and must not stop a drag the first finger is still performing.
-    document.dispatchEvent(touchEvent('touchend', 100, 200));
+    bottomHandle().dispatchEvent(lift);
+    document.dispatchEvent(lift);
 
-    expect(plugin.isListening()).toBe(true);
-
-    document.dispatchEvent(touchEvent('touchend'));
-
+    expect(handles.isDragged()).toBe(false);
     expect(plugin.isListening()).toBe(false);
   });
 
-  it('should keep the handle drag alive while a finger is still down', () => {
+  it('should keep the drag alive when a finger other than the dragging one lifts', () => {
+    build();
+
+    const handles = hot.getPlugin('multipleSelectionHandles');
+    const plugin = hot.getPlugin('dragToScroll');
+
+    bottomHandle().dispatchEvent(touchStart(HANDLE_FINGER));
+    hot.rootElement.dispatchEvent(touchEvent('touchstart', {
+      touches: [HANDLE_FINGER, OTHER_FINGER],
+      changed: [OTHER_FINGER],
+    }));
+
+    // A palm or a second finger lifting must not tear down a drag the first finger is still
+    // performing - nothing re-arms short of a new `touchstart`.
+    const strayLift = touchEvent('touchend', { touches: [HANDLE_FINGER], changed: [OTHER_FINGER] });
+
+    hot.rootElement.dispatchEvent(strayLift);
+    document.dispatchEvent(strayLift);
+
+    expect(handles.isDragged()).toBe(true);
+    expect(plugin.isListening()).toBe(true);
+  });
+
+  it('should keep the drag alive when a finger other than the dragging one is cancelled', () => {
     build();
 
     const handles = hot.getPlugin('multipleSelectionHandles');
 
-    bottomHandle().dispatchEvent(touchEvent('touchstart'));
+    bottomHandle().dispatchEvent(touchStart(HANDLE_FINGER));
+    hot.rootElement.dispatchEvent(touchEvent('touchstart', {
+      touches: [HANDLE_FINGER, OTHER_FINGER],
+      changed: [OTHER_FINGER],
+    }));
+
+    hot.rootElement.dispatchEvent(touchEvent('touchcancel', {
+      touches: [HANDLE_FINGER],
+      changed: [OTHER_FINGER],
+    }));
 
     expect(handles.isDragged()).toBe(true);
+  });
 
-    bottomHandle().dispatchEvent(touchEvent('touchend', 100, 200));
+  it('should follow the finger holding the handle, not the first one placed on the screen', () => {
+    build();
 
-    expect(handles.isDragged()).toBe(true);
+    const plugin = hot.getPlugin('dragToScroll');
 
-    bottomHandle().dispatchEvent(touchEvent('touchend'));
+    // A thumb rests on the grid BEFORE the handle is grabbed, so it owns `touches[0]`.
+    hot.rootElement.dispatchEvent(touchStart(OTHER_FINGER));
+    bottomHandle().dispatchEvent(touchEvent('touchstart', {
+      touches: [OTHER_FINGER, HANDLE_FINGER],
+      changed: [HANDLE_FINGER],
+    }));
 
-    expect(handles.isDragged()).toBe(false);
+    const checkSpy = jest.spyOn(plugin, 'check');
+
+    document.dispatchEvent(touchEvent('touchmove', {
+      touches: [{ id: OTHER_FINGER.id, x: 10, y: 20 }, { id: HANDLE_FINGER.id, x: 300, y: 900 }],
+      changed: [{ id: HANDLE_FINGER.id, x: 300, y: 900 }],
+    }));
+
+    expect(checkSpy).toHaveBeenCalledWith(300, 900);
   });
 });

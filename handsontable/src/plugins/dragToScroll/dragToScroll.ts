@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { getFirstTouchPoint, isRightClick } from '../../helpers/dom/event';
+import { getFirstChangedTouch, getTouchPointById, isRightClick } from '../../helpers/dom/event';
 import { getParentWindow } from '../../helpers/dom/element';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
 import { AutoScroller } from './autoScroller';
@@ -122,6 +122,13 @@ export class DragToScroll extends BasePlugin {
    * @type {object | null}
    */
   #mouseDownController: { row?: boolean; column?: boolean } | null = null;
+  /**
+   * `Touch.identifier` of the finger that started a touch drag, so later touch events can be told
+   * apart from any other finger on the screen.
+   *
+   * @type {number | null}
+   */
+  #dragTouchId: number | null = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -267,6 +274,7 @@ export class DragToScroll extends BasePlugin {
   unlisten() {
     this.listening = false;
     this.#activeDragKind = null;
+    this.#dragTouchId = null;
     this.#lastClientX = null;
     this.#lastClientY = null;
     this.#isOutsideViewport = false;
@@ -311,7 +319,7 @@ export class DragToScroll extends BasePlugin {
       this.eventManager.addEventListener(frame.document, 'touchstart', this.#onTouchStart);
       this.eventManager.addEventListener(frame.document, 'touchmove', this.#onTouchMove);
       this.eventManager.addEventListener(frame.document, 'touchend', this.#onTouchEnd);
-      this.eventManager.addEventListener(frame.document, 'touchcancel', () => this.unlisten());
+      this.eventManager.addEventListener(frame.document, 'touchcancel', this.#onTouchEnd);
 
       frame = getParentWindow(frame) as Window | null;
     }
@@ -432,6 +440,17 @@ export class DragToScroll extends BasePlugin {
       return;
     }
 
+    // Every later finger lands while the handle drag is still running, so this fires again for each
+    // one. Keep following the finger that started the drag - taking the newest instead would leave
+    // auto-scroll chasing a resting thumb, and would end the drag when that thumb lifted.
+    if (this.#dragTouchId !== null) {
+      return;
+    }
+
+    const touch = getFirstChangedTouch(event);
+
+    this.#dragTouchId = touch === null ? null : touch.identifier;
+
     this.#setupListening('handle', event);
   };
 
@@ -441,30 +460,31 @@ export class DragToScroll extends BasePlugin {
    * @param {Event} event The `touchmove` event.
    */
   #onTouchMove = (event: Event): void => {
-    if (!this.isListening()) {
+    if (!this.isListening() || this.#dragTouchId === null) {
       return;
     }
 
-    const touch = getFirstTouchPoint(event);
+    const point = getTouchPointById(event, this.#dragTouchId);
 
-    if (touch === null) {
+    if (point === null) {
       return;
     }
 
-    this.#trackPointer(touch.clientX, touch.clientY);
+    this.#trackPointer(point.clientX, point.clientY);
   };
 
   /**
-   * Stops auto-scrolling once the last finger leaves the screen.
+   * Stops auto-scrolling once the finger that started the drag leaves the screen.
    *
-   * `touchend` fires per touch point, not per gesture, so a second finger or a palm lifting must not
-   * stop a drag the first finger is still performing - there is no re-arm path short of a new
-   * `touchstart`, so auto-scroll would stay dead for the rest of the drag.
+   * `touchend` and `touchcancel` fire once per finger, so "a finger lifted" is not the same question
+   * as "the dragging finger lifted". Answering the first would let a palm or a second finger stop a
+   * drag still in progress - and nothing re-arms short of a new `touchstart`, so auto-scroll would
+   * stay dead for the rest of it.
    *
-   * @param {Event} event The `touchend` event.
+   * @param {Event} event The `touchend` or `touchcancel` event.
    */
   #onTouchEnd = (event: Event): void => {
-    if (getFirstTouchPoint(event) !== null) {
+    if (this.#dragTouchId !== null && getTouchPointById(event, this.#dragTouchId) !== null) {
       return;
     }
 

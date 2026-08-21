@@ -27,9 +27,12 @@ The handle DOM lives in the border, not here — this plugin only reads the hit-
 
 `dragged` holds which handles are being dragged, and `isDragged()` is public because DragToScroll reads it. Keeping it honest matters — a stale `true` lets an unrelated touch arm auto-scroll with no handle press at all.
 
-- **`touchcancel` must reset everything** (`#resetDrag`). A cancelled gesture never reaches `touchend`, and browsers cancel often on a real device.
-- **`touchend` fires per touch point.** Tear the drag down only once the last finger is up (`getFirstTouchPoint(event) === null`), or a second finger lifting kills a drag still in progress.
-- In a real browser the `touchend` target is the element captured at `touchstart`, so a release over a cell still carries the handle's hit-area class. The **legacy Jasmine specs dispatch `touchend` on the destination cell instead**, so `dragged` does not clear there — do not read those specs as a statement about real behavior.
+**Track fingers by `Touch.identifier`, never by position in a list.** `#dragTouches` maps each identifier to the handle that finger grabbed, filled from `getFirstChangedTouch()` on `touchstart`. Everything else keys off it. Two facts make this the only workable approach, and both cost a bug to learn:
+
+- **`touches` is the whole screen, and `touches[0]` is the first finger placed anywhere** — a thumb already resting on the grid, not the one on the handle. Reading it made the selection follow the thumb.
+- **`touchend` and `touchcancel` fire once per finger**, so neither answers "is the gesture over?". Both are handled the same way: `getTouchPointById()` per tracked finger, releasing only the ones that are actually gone. A check for "no fingers left anywhere" strands the plugin permanently when the drag finger lifts while another rests — `isDragged()` stays `true`, so every later touch arms auto-scroll with no handle press. A check for "any finger lifted" kills a live drag when a palm lifts.
+
+The `touchend` **target** is the element captured at `touchstart`, so a release over a cell still carries the handle's hit-area class — it governs `preventDefault()` only, not the drag state. The **legacy Jasmine specs dispatch `touchend` on the destination cell instead**; do not read those specs as a statement about real browser behavior.
 
 `#onAfterScroll` re-extends the selection at the last known finger position after each scroll, because a finger held still past the edge emits no further `touchmove`. It does not run away: the target is resolved against the *current* viewport and then de-duplicated on coordinates, so it reaches a fixed point after one step — measured with `dragToScroll: false`, where nothing suppresses the scroll-into-view, it stops after one row and stays there.
 

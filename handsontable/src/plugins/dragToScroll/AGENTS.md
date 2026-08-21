@@ -15,9 +15,10 @@ Both paths funnel into `#trackPointer(clientX, clientY)`. Add new pointer source
 
 Rules that cost real bugs to learn:
 
-- **End on `touchcancel` as well as `touchend`.** A browser cancels a gesture often on a real phone — a system gesture, an incoming call, the browser claiming the touch for scrolling. `touchend` then never fires.
-- **`touchend` fires per touch point, not per gesture.** A second finger or a palm lifting must not stop a drag the first finger is still performing; there is no re-arm path short of a new `touchstart`, so auto-scroll would stay dead for the rest of the drag. `#onTouchEnd` returns early while `getFirstTouchPoint(event)` is still non-null.
-- **Narrow touch events with `getFirstTouchPoint()` / `hasTouchList()`** from `helpers/dom/event.ts`, never `instanceof TouchEvent`: this plugin listens across frames, each frame has its own constructor, and desktop Safari has no `TouchEvent` at all.
+- **Follow one finger, by `Touch.identifier`.** `#onTouchStart` records the identifier from `getFirstChangedTouch()` and everything after keys off it. The whole-screen `touches` list answers a different question than the one this plugin has: `touches[0]` is the first finger placed *anywhere* (a thumb already resting on the grid, not necessarily the one on the handle), and "no fingers left" is not "my finger left".
+- **End on `touchcancel` as well as `touchend`, and only for the drag's own finger.** Browsers cancel gestures often on a real phone — a system gesture, an incoming call, the browser claiming the touch for scrolling — and `touchend` then never fires. Both events fire **once per finger**, so `#onTouchEnd` (bound to both) returns early while `getTouchPointById(event, this.#dragTouchId)` still finds the finger. Ending on any finger would let a palm kill a live drag, with no re-arm path short of a new `touchstart`; ending only when the screen is empty leaves the plugin listening after the drag finger is gone.
+- **Ignore later `touchstart`s while a drag is running.** Each extra finger fires one, and MultipleSelectionHandles still reports a drag, so re-arming there would hand the drag to the newest finger.
+- **Narrow touch events with the `helpers/dom/event.ts` helpers** (`hasTouchList`, `getFirstChangedTouch`, `getTouchPointById`), never `instanceof TouchEvent`: this plugin listens across frames, each frame has its own constructor, and desktop Safari has no `TouchEvent` at all.
 
 ## Arming: the drag's owner decides, this plugin asks
 

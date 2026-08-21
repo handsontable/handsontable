@@ -1,5 +1,6 @@
 import {
-  getFirstTouchPoint,
+  getFirstChangedTouch,
+  getTouchPointById,
   hasTouchList,
   isLeftClick,
   isRightClick,
@@ -68,32 +69,40 @@ describe('DomEvent helper', () => {
   });
 
   /**
-   * Builds an event carrying the given touch list.
+   * Builds a touch event, mirroring what a browser reports.
    *
-   * The list is attached as a plain property because jsdom does not implement `Touch` - which is
-   * also the case the property-based check exists for.
+   * The lists are attached as plain properties because jsdom implements neither `Touch` nor
+   * `TouchEvent` - which is also the case the property-based check exists for.
    *
-   * @param {Array} touches The touch points to attach.
+   * @param {Array} touches Fingers still on the screen.
+   * @param {Array} changedTouches Fingers this event is about.
    * @returns {Event} The event.
    */
-  function eventWithTouches(touches: { clientX: number; clientY: number }[]): Event {
+  function touchEvent(
+    touches: { identifier: number, clientX: number, clientY: number }[],
+    changedTouches = touches
+  ): Event {
     const event = new Event('touchmove');
 
     Object.defineProperty(event, 'touches', { value: touches });
+    Object.defineProperty(event, 'changedTouches', { value: changedTouches });
 
     return event;
   }
+
+  const fingerA = { identifier: 7, clientX: 120, clientY: 340 };
+  const fingerB = { identifier: 9, clientX: 20, clientY: 30 };
 
   //
   // Handsontable.dom.hasTouchList
   //
   describe('hasTouchList', () => {
-    it('should return true for an event carrying a touch list', () => {
-      expect(hasTouchList(eventWithTouches([{ clientX: 1, clientY: 2 }]))).toBe(true);
+    it('should return true for an event carrying touch lists', () => {
+      expect(hasTouchList(touchEvent([fingerA]))).toBe(true);
     });
 
-    it('should return true for an event carrying an empty touch list', () => {
-      expect(hasTouchList(eventWithTouches([]))).toBe(true);
+    it('should return true for an event carrying empty touch lists', () => {
+      expect(hasTouchList(touchEvent([]))).toBe(true);
     });
 
     it('should return true for a real TouchEvent without consulting its constructor', () => {
@@ -108,29 +117,47 @@ describe('DomEvent helper', () => {
   });
 
   //
-  // Handsontable.dom.getFirstTouchPoint
+  // Handsontable.dom.getFirstChangedTouch
   //
-  describe('getFirstTouchPoint', () => {
-    it('should return the coordinates of the first touch point', () => {
-      expect(getFirstTouchPoint(eventWithTouches([{ clientX: 120, clientY: 340 }])))
+  describe('getFirstChangedTouch', () => {
+    it('should return the finger the event is about', () => {
+      expect(getFirstChangedTouch(touchEvent([fingerA]))).toEqual(fingerA);
+    });
+
+    it('should read changedTouches, not the first finger on the screen', () => {
+      // A thumb was already resting when this finger landed, so `touches[0]` is the wrong finger.
+      expect(getFirstChangedTouch(touchEvent([fingerB, fingerA], [fingerA]))).toEqual(fingerA);
+    });
+
+    it('should return null when the event names no changed finger', () => {
+      expect(getFirstChangedTouch(touchEvent([fingerA], []))).toBe(null);
+    });
+
+    it('should return null for an event that carries no touch lists', () => {
+      expect(getFirstChangedTouch(new MouseEvent('mousemove'))).toBe(null);
+    });
+  });
+
+  //
+  // Handsontable.dom.getTouchPointById
+  //
+  describe('getTouchPointById', () => {
+    it('should return the position of the finger with the given identifier', () => {
+      expect(getTouchPointById(touchEvent([fingerB, fingerA]), 7))
         .toEqual({ clientX: 120, clientY: 340 });
     });
 
-    it('should ignore every touch point after the first one', () => {
-      const event = eventWithTouches([
-        { clientX: 10, clientY: 20 },
-        { clientX: 90, clientY: 80 },
-      ]);
-
-      expect(getFirstTouchPoint(event)).toEqual({ clientX: 10, clientY: 20 });
+    it('should return null once that finger has left the screen', () => {
+      // How a lift is detected: the finger is gone from `touches` while `changedTouches` names it.
+      expect(getTouchPointById(touchEvent([fingerB], [fingerA]), 7)).toBe(null);
     });
 
-    it('should return null for an empty touch list, as carried by touchend', () => {
-      expect(getFirstTouchPoint(eventWithTouches([]))).toBe(null);
+    it('should return null when no finger is left', () => {
+      expect(getTouchPointById(touchEvent([], [fingerA]), 7)).toBe(null);
     });
 
-    it('should return null for an event that carries no touch list', () => {
-      expect(getFirstTouchPoint(new MouseEvent('mousemove', { clientX: 5, clientY: 5 }))).toBe(null);
+    it('should return null for an event that carries no touch lists', () => {
+      expect(getTouchPointById(new MouseEvent('mousemove'), 7)).toBe(null);
     });
   });
 });

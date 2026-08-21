@@ -1,6 +1,6 @@
 import { eventTargetEl, hasClass } from '../../helpers/dom/element';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
-import { getFirstTouchPoint } from '../../helpers/dom/event';
+import { getFirstChangedTouch, getTouchPointById } from '../../helpers/dom/event';
 import { isMobileBrowser } from '../../helpers/browser';
 import { BasePlugin } from '../base';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
@@ -47,6 +47,11 @@ export class MultipleSelectionHandles extends BasePlugin {
    * the finger moves within one cell.
    */
   #lastTargetCoords: { row: number; col: number } | null = null;
+  /**
+   * Which handle each finger currently holding one grabbed, keyed by `Touch.identifier`. Lets a
+   * touch event be matched to the finger it is about, rather than to whatever else is on the screen.
+   */
+  #dragTouches: Map<number, string> = new Map();
 
   /**
    * Check if the plugin is enabled in the handsontable settings.
@@ -105,6 +110,52 @@ export class MultipleSelectionHandles extends BasePlugin {
       }
     };
 
+    /**
+     * @private
+     * @param {Event} event The `touchstart` event.
+     * @param {string} handle Which handle the finger grabbed.
+     */
+    const beginDrag = (event: Event, handle: string) => {
+      const touch = getFirstChangedTouch(event);
+
+      if (touch !== null) {
+        this.#dragTouches.set(touch.identifier, handle);
+      }
+
+      this.dragged.push(handle);
+    };
+
+    /**
+     * Ends the part of the drag owned by every finger that has left the screen, and leaves the rest
+     * of the gesture running. `touchend` and `touchcancel` both fire once per finger, so neither is
+     * a statement about the gesture as a whole.
+     *
+     * @private
+     * @param {Event} event The `touchend` or `touchcancel` event.
+     */
+    const releaseLiftedTouches = (event: Event) => {
+      let released = false;
+
+      for (const [identifier, handle] of [...this.#dragTouches]) {
+        if (getTouchPointById(event, identifier) === null) {
+          this.#dragTouches.delete(identifier);
+          removeFromDragged(handle);
+          released = true;
+        }
+      }
+
+      if (!released) {
+        return;
+      }
+
+      this.#lastTouchPosition = null;
+      this.#lastTargetCoords = null;
+
+      if (this.dragged.length === 0) {
+        this.touchStartRange = undefined;
+      }
+    };
+
     this.eventManager.addEventListener(rootElement, 'touchstart', (event) => {
       let selectedRange;
       const target = eventTargetEl(event)!;
@@ -116,7 +167,7 @@ export class MultipleSelectionHandles extends BasePlugin {
           return false;
         }
 
-        this.dragged.push('top');
+        beginDrag(event, 'top');
 
         this.touchStartRange = {
           width: selectedRange.getWidth(),
@@ -135,7 +186,7 @@ export class MultipleSelectionHandles extends BasePlugin {
           return false;
         }
 
-        this.dragged.push('bottom');
+        beginDrag(event, 'bottom');
 
         this.touchStartRange = {
           width: selectedRange.getWidth(),
@@ -149,64 +200,38 @@ export class MultipleSelectionHandles extends BasePlugin {
       }
     });
 
-    // A cancelled gesture never reaches `touchend`, and the browser cancels often on a real phone -
-    // a system gesture, an incoming call, the browser claiming the touch for scrolling. Without this
-    // the drag state would stay set for good: `isDragged()` would keep reporting a drag, so the next
-    // unrelated touch anywhere would arm auto-scroll, and `#onAfterScroll` would re-extend the
-    // selection on every later scroll from any source.
-    this.eventManager.addEventListener(rootElement, 'touchcancel', () => {
-      this.#resetDrag();
-    });
+    // A cancelled gesture never reaches `touchend`, and browsers cancel often on a real phone - a
+    // system gesture, an incoming call, the browser claiming the touch for scrolling. Both events are
+    // handled the same way, because both answer the same question: which fingers are gone?
+    for (const eventName of ['touchend', 'touchcancel']) {
+      this.eventManager.addEventListener(rootElement, eventName, (event) => {
+        const target = eventTargetEl(event)!;
 
-    this.eventManager.addEventListener(rootElement, 'touchend', (event) => {
-      const target = eventTargetEl(event)!;
+        releaseLiftedTouches(event);
 
-      // `touchend` fires per touch point, not per gesture, so a second finger or a palm lifting must
-      // not tear down a drag the first finger is still performing.
-      if (getFirstTouchPoint(event) !== null) {
-        return;
-      }
+        if (hasClass(target, 'topSelectionHandle-HitArea') ||
+            hasClass(target, 'bottomSelectionHandle-HitArea')) {
+          event.preventDefault();
 
-      // Forget the finger whatever it was released over. The branches below only clear `dragged` for
-      // a release on a handle, so without this a leftover position could let a later, unrelated
-      // scroll re-extend the selection through `#onAfterScroll`.
-      this.#lastTouchPosition = null;
-      this.#lastTargetCoords = null;
-
-      if (hasClass(target, 'topSelectionHandle-HitArea')) {
-        removeFromDragged('top');
-
-        this.touchStartRange = undefined;
-
-        event.preventDefault();
-
-        return false;
-
-      } else if (hasClass(target, 'bottomSelectionHandle-HitArea')) {
-        removeFromDragged('bottom');
-
-        this.touchStartRange = undefined;
-
-        event.preventDefault();
-
-        return false;
-      }
-    });
+          return false;
+        }
+      });
+    }
 
     this.eventManager.addEventListener(rootElement, 'touchmove', (event) => {
       if (this.dragged.length === 0) {
         return;
       }
 
-      const touch = getFirstTouchPoint(event);
+      const point = this.#getDragTouchPoint(event);
 
-      if (touch === null) {
+      if (point === null) {
         return;
       }
 
-      this.#lastTouchPosition = touch;
+      this.#lastTouchPosition = point;
 
-      this.#extendSelection(touch.clientX, touch.clientY);
+      this.#extendSelection(point.clientX, point.clientY);
 
       event.preventDefault();
     });
@@ -392,13 +417,26 @@ export class MultipleSelectionHandles extends BasePlugin {
   }
 
   /**
-   * Clears every trace of a handle drag. Used when the gesture ends without a `touchend`.
+   * Reads where the finger driving the drag currently is.
+   *
+   * Follows the fingers that actually grabbed a handle, by identifier. Reading `touches[0]` instead
+   * would follow whichever finger touched the screen first, so a thumb already resting on the grid
+   * when the handle was grabbed would drive the selection.
+   *
+   * @param {Event} event The `touchmove` event.
+   * @returns {object|null} The finger's position as `{clientX, clientY}`, or `null` when no
+   * handle-holding finger appears in the event.
    */
-  #resetDrag(): void {
-    this.dragged.splice(0, this.dragged.length);
-    this.touchStartRange = undefined;
-    this.#lastTouchPosition = null;
-    this.#lastTargetCoords = null;
+  #getDragTouchPoint(event: Event): { clientX: number; clientY: number } | null {
+    for (const identifier of this.#dragTouches.keys()) {
+      const point = getTouchPointById(event, identifier);
+
+      if (point !== null) {
+        return point;
+      }
+    }
+
+    return null;
   }
 
   /**
