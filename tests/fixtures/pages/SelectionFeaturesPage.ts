@@ -718,6 +718,86 @@ export class SelectionFeaturesPage {
     return this.page.locator('.ht_master .wtMoveZone:visible');
   }
 
+  /** The autofill fill handle of the focus selection, scoped to the master overlay. */
+  fillHandle(): Locator {
+    return this.page.locator('.ht_master .wtBorder.current.corner:visible');
+  }
+
+  /**
+   * The stacking order the selection affordances resolve to. `.ht_master` declares no z-index, so
+   * it opens no stacking context and its borders compete directly with the overlay clones — which
+   * is why the frozen pane's own z-index belongs in the same reading.
+   */
+  async selectionStackOrder(): Promise<{
+    moveZone: number, fillHandle: number, resizeHandle: number, frozenColumnsPane: number,
+  }> {
+    return this.page.evaluate(() => {
+      const zIndexOf = (selector: string) => {
+        const element = document.querySelector(selector);
+
+        if (!element) {
+          throw new Error(`No element matched "${selector}".`);
+        }
+
+        return parseInt(window.getComputedStyle(element).zIndex, 10);
+      };
+
+      return {
+        moveZone: zIndexOf('.ht_master .wtMoveZone'),
+        fillHandle: zIndexOf('.ht_master .wtBorder.current.corner'),
+        resizeHandle: zIndexOf('.ht_master .wtSelectionHandle'),
+        frozenColumnsPane: zIndexOf('.ht_clone_inline_start'),
+      };
+    });
+  }
+
+  /**
+   * Scroll the master viewport until the given cell slides behind a frozen pane, stopping with the
+   * cell's trailing edge at the middle of that pane. The cell stays rendered, so its border (and
+   * fill handle) keep their positions — the frozen pane is simply expected to occlude them.
+   */
+  async scrollCellBehindFrozenPane(row: number, col: number, pane: 'columns' | 'rows'): Promise<void> {
+    await this.page.evaluate(({ targetRow, targetCol, targetPane }) => {
+      const holder = document.querySelector('.ht_master .wtHolder');
+      const cell = document.querySelector(`.ht_master [data-testid="cell-${targetRow}-${targetCol}"]`);
+      const paneElement = document.querySelector(
+        targetPane === 'columns' ? '.ht_clone_inline_start' : '.ht_clone_bottom'
+      );
+
+      if (!holder || !cell || !paneElement) {
+        throw new Error('The master viewport, the target cell or the frozen pane is not rendered.');
+      }
+
+      const cellRect = cell.getBoundingClientRect();
+      const paneRect = paneElement.getBoundingClientRect();
+
+      if (targetPane === 'columns') {
+        holder.scrollLeft += cellRect.right - (paneRect.left + (paneRect.width / 2));
+      } else {
+        holder.scrollTop += cellRect.bottom - (paneRect.top + (paneRect.height / 2));
+      }
+    }, { targetRow: row, targetCol: col, targetPane: pane });
+  }
+
+  /**
+   * The class name of whatever the browser hit-tests at the center of the fill handle. A frozen
+   * pane that occludes the handle owns those pixels, so the topmost element there is one of its
+   * cells rather than the handle itself.
+   */
+  async elementAtFillHandleCenter(): Promise<string> {
+    const handleBox = await this.fillHandle().boundingBox();
+
+    if (!handleBox) {
+      throw new Error('The fill handle is not rendered.');
+    }
+
+    return this.page.evaluate(({ x, y }) => {
+      const element = document.elementFromPoint(x, y);
+
+      return element ? element.className : '';
+    }, { x: handleBox.x + (handleBox.width / 2), y: handleBox.y + (handleBox.height / 2) });
+  }
+
   /**
    * The grid's root wrapper carrying the `ht__moving` drag-state class. The
    * class lands on the wrapper Handsontable creates inside the container, not

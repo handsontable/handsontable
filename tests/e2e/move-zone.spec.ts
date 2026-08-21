@@ -405,7 +405,7 @@ test.describe('moveCells edge move bands', () => {
 
   test('keeps the autofill fill handle clickable above the move bands', async ({ page }) => {
     // The bottom/end bands span the SE corner where the fill handle sits. The handle must win
-    // that overlap (z-index 150 vs the bands' 100) — otherwise pressing it starts a move drag
+    // that overlap (z-index 110 vs the bands' 100) — otherwise pressing it starts a move drag
     // instead of autofill.
     await grid.selectCells(2, 2, 2, 2);
 

@@ -480,7 +480,7 @@ class Border {
    * `onSelectionEdgeMouseDown` Walkontable setting so the core can initiate a move drag.
    *
    * Bands sit at z-index 100 — below the resize pills (z-index 200) and below the autofill fill
-   * handle (`.wtBorder.corner`, z-index 150), so both keep winning their own pixels in the corner
+   * handle (`.wtBorder.corner`, z-index 110), so both keep winning their own pixels in the corner
    * regions where the bands overlap them. All four bands are created hidden; `positionMoveZone`
    * + `appear` control their visibility.
    *
