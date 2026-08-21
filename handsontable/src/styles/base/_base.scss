@@ -736,6 +736,21 @@
     }
   }
 
+  // Firefox paints its overlay ("floating") horizontal scrollbar over the content and reserves no
+  // space for it, so the frozen overlay would otherwise cover the scrollbar and swallow the press
+  // (#10370). JS shortens this overlay's holder by a clearance strip and stamps the class. The root
+  // keeps its full height and an opaque background so the master's scrolled cells cannot show through
+  // the strip, and passes presses in it down to the master's scrollbar. The holder takes pointer
+  // events back, so the frozen cells above the strip stay interactive.
+  .ht_clone_inline_start.htOverlayScrollbarClearance {
+    background-color: var(--ht-background-color);
+    pointer-events: none;
+
+    .wtHolder {
+      pointer-events: auto;
+    }
+  }
+
   .ht_master .wtHolder {
     overflow: auto;
   }

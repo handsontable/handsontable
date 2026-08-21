@@ -30,6 +30,13 @@ export const CLONE_TYPES = [
  */
 export const OVERLAY_SCROLLBAR_CLEARANCE = 12;
 
+/**
+ * Marks the frozen overlay as leaving a scrollbar clearance strip. The styles keyed off it make the
+ * root opaque over the strip - so the master's scrolled cells cannot show through - while letting a
+ * press in the strip reach the master's scrollbar underneath.
+ */
+export const OVERLAY_SCROLLBAR_CLEARANCE_CLASS = 'htOverlayScrollbarClearance';
+
 export const CLONE_CLASS_NAMES = new Map([
   [CLONE_TOP, `ht_clone_${CLONE_TOP}`],
   [CLONE_BOTTOM, `ht_clone_${CLONE_BOTTOM}`],

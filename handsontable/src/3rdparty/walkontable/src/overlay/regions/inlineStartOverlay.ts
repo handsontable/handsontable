@@ -12,6 +12,7 @@ import { Overlay, type OverlayDeps } from './_base';
 import { getCornerStyle } from '../../selection';
 import {
   CLONE_INLINE_START,
+  OVERLAY_SCROLLBAR_CLEARANCE_CLASS,
 } from '../constants';
 import { resolveFrozenOverlayHeight } from '../frozenOverlaySize';
 import { throwWithCause } from '../../../../../helpers/errors';
@@ -22,9 +23,30 @@ import { isFirefox } from '../../../../../helpers/browser';
  */
 export class InlineStartOverlay extends Overlay {
   /**
+   * How much shorter than its root the overlay's holder is kept, so an overlay ("floating") horizontal
+   * scrollbar underneath stays reachable. 0 whenever the scrollbar has real width.
+   */
+  #holderClearance = 0;
+
+  /**
    */
   constructor(deps: OverlayDeps) {
     super(deps, CLONE_INLINE_START);
+  }
+
+  /**
+   * Subtracts the scrollbar clearance from a root-element height, keeping the `px` suffix and the
+   * empty-string ("size me automatically") case intact.
+   *
+   * @param {string} rootHeight The root element's inline height.
+   * @returns {string}
+   */
+  #applyHolderClearance(rootHeight: string): string {
+    if (this.#holderClearance === 0 || rootHeight === '') {
+      return rootHeight;
+    }
+
+    return `${Math.max(0, parseFloat(rootHeight) - this.#holderClearance)}px`;
   }
 
   /**
@@ -181,22 +203,32 @@ export class InlineStartOverlay extends Overlay {
 
     if (this.trimmingContainer !== rootWindow || preventOverflow === 'vertical') {
       // Firefox is the only engine that paints its overlay scrollbar where the frozen overlay would
-      // cover it; elsewhere a zero-width scrollbar needs no strip reserved.
-      let height = resolveFrozenOverlayHeight({
+      // cover it; elsewhere a zero-width scrollbar needs no clearance.
+      const size = resolveFrozenOverlayHeight({
         workspaceHeight: wtViewport.getWorkspaceHeight(),
         hasHorizontalScroll: wtViewport.hasHorizontalScroll(),
         scrollbarWidth: this.deps.geometryReader.getScrollbarWidth(rootDocument),
         hasOverlayScrollbar: isFirefox(),
         getMasterClientHeight: () => this.deps.geometryReader.clientHeight(wtTable.holder),
       });
+      const height = Math.min(size.height,
+        this.deps.geometryReader.scrollHeight(wtTable.wtRootElement));
 
-      height = Math.min(height, this.deps.geometryReader.scrollHeight(wtTable.wtRootElement));
+      this.#holderClearance = size.holderClearance;
       overlayRootStyle.height = `${height}px`;
 
     } else {
+      this.#holderClearance = 0;
       overlayRootStyle.height = '';
     }
-    this.clone.wtTable.holder.style.height = overlayRootStyle.height;
+
+    // The class drives the CSS that keeps the strip opaque yet transparent to pointer events.
+    if (this.#holderClearance > 0) {
+      addClass(overlayRoot, OVERLAY_SCROLLBAR_CLEARANCE_CLASS);
+    } else {
+      removeClass(overlayRoot, OVERLAY_SCROLLBAR_CLEARANCE_CLASS);
+    }
+    this.clone.wtTable.holder.style.height = this.#applyHolderClearance(overlayRootStyle.height);
 
     const tableWidth = this.deps.geometryReader.outerWidth(this.clone.wtTable.TABLE);
 
@@ -219,7 +251,7 @@ export class InlineStartOverlay extends Overlay {
     this.clone.wtTable.hider.style.height = this.hider.style.height;
     const holderParent = holder.parentNode as HTMLElement;
 
-    holder.style.height = holderParent.style.height;
+    holder.style.height = this.#applyHolderClearance(holderParent.style.height);
     // Add selection corner protruding part to the holder total width to make sure that
     // borders' corner won't be cut after horizontal scroll (#6937).
     holder.style.width = `${parseInt(holderParent.style.width, 10) + selectionCornerOffset}px`;
