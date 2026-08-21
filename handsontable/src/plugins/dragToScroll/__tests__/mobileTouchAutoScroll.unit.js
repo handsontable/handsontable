@@ -3,6 +3,7 @@ import { registerPlugin } from '../../registry';
 import { DragToScroll } from '../dragToScroll';
 import { MultipleSelectionHandles } from '../../multipleSelectionHandles';
 import { setBrowserMeta } from '../../../helpers/browser';
+import { patchConsoleErrors } from '../../../../test/__mocks__/cssPolyfill';
 
 const MOBILE_USER_AGENT = 'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 ' +
   '(KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36';
@@ -19,6 +20,11 @@ describe('DragToScroll mobile touch auto-scroll', () => {
   let hot;
 
   beforeAll(() => {
+    // jsdom 16 cannot parse the theme's modern CSS (`light-dark()`), so every grid built here logs a
+    // "Could not parse CSS stylesheet" dump. None of it is about this suite, and ten grids' worth
+    // overflows the output buffer the pre-push hook reads the run through.
+    patchConsoleErrors();
+
     registerPlugin(DragToScroll);
     registerPlugin(MultipleSelectionHandles);
   });
