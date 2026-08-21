@@ -123,6 +123,21 @@ class Endpoints {
   }
 
   /**
+   * Returns the number of rows an endpoint may address, that is the number of physical rows capped
+   * by the `maxRows` setting.
+   *
+   * Endpoint destination rows and calculation ranges are physical indexes, so they must never be
+   * compared against `countRows()` - that counts only the *visible* rows and shrinks whenever a
+   * plugin trims rows (NestedRows collapsing a group, TrimRows, the Filters plugin). With nothing
+   * trimmed this returns exactly `countRows()`.
+   *
+   * @returns {number}
+   */
+  countAddressableRows(): number {
+    return Math.min(this.hot.rowIndexMapper.getNumberOfIndexes(), this.hot.getSettings().maxRows ?? Infinity);
+  }
+
+  /**
    * Get an array with all the endpoints.
    *
    * @returns {Array}
@@ -169,7 +184,7 @@ class Endpoints {
     arrayEach(settingsArray, (val: EndpointConfig) => {
       const newEndpoint: EndpointConfig = {};
 
-      this.assignSetting(val, newEndpoint, 'ranges', [[0, this.hot.countRows() - 1]]);
+      this.assignSetting(val, newEndpoint, 'ranges', [[0, this.countAddressableRows() - 1]]);
       this.assignSetting(val, newEndpoint, 'reversedRowCoords', false);
       this.assignSetting(val, newEndpoint, 'destinationRow', new Error(`
         You must provide a destination row for the Column Summary plugin in order to work properly!
@@ -219,7 +234,7 @@ class Endpoints {
     } else {
       /* eslint-disable no-lonely-if */
       if (name === 'destinationRow' && endpoint.reversedRowCoords) {
-        endpoint[name] = this.hot.countRows() - (settings[name] as number) - 1;
+        endpoint[name] = this.countAddressableRows() - (settings[name] as number) - 1;
 
       } else {
         endpoint[name] = settings[name];
@@ -463,7 +478,7 @@ class Endpoints {
       const alterRowOffset = endpoint.alterRowOffset || 0;
       const alterColOffset = endpoint.alterColumnOffset || 0;
 
-      if (endpoint.destinationRow! + alterRowOffset >= this.hot.countRows() ||
+      if (endpoint.destinationRow! + alterRowOffset >= this.countAddressableRows() ||
           endpoint.destinationColumn! + alterColOffset >= this.hot.countCols()) {
         return true;
       }
@@ -612,9 +627,16 @@ class Endpoints {
   resetEndpointValue(endpoint: EndpointConfig, useOffset = true) {
     const alterRowOffset = endpoint.alterRowOffset || 0;
     const alterColOffset = endpoint.alterColumnOffset || 0;
+    const destinationVisualRow = this.hot.toVisualRow(endpoint.destinationRow! + (useOffset ? alterRowOffset : 0));
+
+    // The destination row is trimmed (for example it sits inside a collapsed NestedRows group), so
+    // there is no cell to clear.
+    if (destinationVisualRow === null) {
+      return;
+    }
 
     this.cellsToSetCache.push([
-      this.hot.toVisualRow(endpoint.destinationRow! + (useOffset ? alterRowOffset : 0)),
+      destinationVisualRow,
       this.hot.toVisualColumn(endpoint.destinationColumn! + (useOffset ? alterColOffset : 0)),
       ''
     ]);
@@ -628,9 +650,8 @@ class Endpoints {
    * @param {boolean} [render=false] `true` if it needs to render the table afterwards.
    */
   setEndpointValue(endpoint: EndpointConfig, source: string | undefined, render = false) {
-    const visualEndpointRowIndex = this.hot.toVisualRow(endpoint.destinationRow!);
-
-    if (endpoint.destinationRow! >= this.hot.countRows() || endpoint.destinationColumn! >= this.hot.countCols()) {
+    if (endpoint.destinationRow! >= this.countAddressableRows() ||
+        endpoint.destinationColumn! >= this.hot.countCols()) {
       this.throwOutOfBoundsWarning();
 
       return;
@@ -652,10 +673,16 @@ class Endpoints {
 
     endpoint.result = roundFloat(endpoint.result, endpoint.roundFloat) as string | number;
 
-    if (render) {
-      this.hot.setDataAtCell(visualEndpointRowIndex, endpoint.destinationColumn!, endpoint.result, 'ColumnSummary.set');
-    } else {
-      this.cellsToSetCache.push([visualEndpointRowIndex, endpoint.destinationColumn, endpoint.result]);
+    // A trimmed destination row has no cell to write to. The result is still calculated and kept on
+    // the endpoint, so it lands in the cell on the next refresh once the row is visible again.
+    if (destinationVisualRow !== null) {
+      if (render) {
+        this.hot.setDataAtCell(
+          destinationVisualRow, endpoint.destinationColumn!, endpoint.result, 'ColumnSummary.set'
+        );
+      } else {
+        this.cellsToSetCache.push([destinationVisualRow, endpoint.destinationColumn, endpoint.result]);
+      }
     }
 
     endpoint.alterRowOffset = undefined;

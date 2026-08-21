@@ -972,6 +972,114 @@ describe('ColumnSummarySpec', () => {
       expect(spec().$container.find('.columnSummaryResult').size()).toEqual(3);
       expect(spec().$container.find('.htDimmed').size()).toEqual(3);
     });
+
+    it('should keep the grand-total endpoint working when a nested group is collapsed (#11674)', async() => {
+      const data = getDataForColumnSummary();
+
+      data.push({ a: 'TOTAL', b: null });
+
+      handsontable({
+        data,
+        height: 400,
+        width: 400,
+        rowHeaders: true,
+        nestedRows: true,
+        columnSummary() {
+          return [
+            {
+              destinationRow: 0,
+              destinationColumn: 1,
+              type: 'sum',
+              forceNumeric: true,
+              ranges: [[1, 3]],
+            },
+            {
+              destinationRow: 4,
+              destinationColumn: 1,
+              type: 'sum',
+              forceNumeric: true,
+              ranges: [[5, 6]],
+            },
+            {
+              destinationRow: 7,
+              destinationColumn: 1,
+              type: 'sum',
+              forceNumeric: true,
+              ranges: [[8, 9]],
+            },
+            {
+              // physical row 10 - the grand-total row at the bottom
+              destinationRow: 10,
+              destinationColumn: 1,
+              type: 'sum',
+              forceNumeric: true,
+              ranges: [[1, 3], [5, 6], [8, 9]],
+            },
+          ];
+        },
+      });
+
+      const warnSpy = spyOn(console, 'warn');
+
+      await waitForNextAnimationFrames(2);
+
+      expect(getDataAtCell(10, 1)).toEqual(4251);
+
+      getPlugin('nestedRows').collapsingUI.collapseChildren(0);
+
+      await waitForNextAnimationFrames(2);
+
+      expect(getDataAtCell(7, 1)).toEqual(4251);
+
+      await setDataAtCell(2, 1, 0);
+
+      expect(warnSpy).not.toHaveBeenCalledWith(warnMessage);
+      // the edited row belongs to the second group, so its subtotal and the grand total drop by 363
+      expect(getDataAtCell(1, 1)).toEqual(3633);
+      expect(getDataAtCell(7, 1)).toEqual(3888);
+    });
+
+    it('should resolve `reversedRowCoords` against the physical row count when a group is collapsed (#11674)',
+      async() => {
+        const data = getDataForColumnSummary();
+
+        data.push({ a: 'TOTAL', b: null });
+
+        handsontable({
+          data,
+          height: 400,
+          width: 400,
+          rowHeaders: true,
+          nestedRows: true,
+          columnSummary() {
+            return [
+              {
+                destinationRow: 0,
+                reversedRowCoords: true,
+                destinationColumn: 1,
+                type: 'sum',
+                forceNumeric: true,
+                ranges: [[1, 3], [5, 6], [8, 9]],
+              },
+            ];
+          },
+        });
+
+        await waitForNextAnimationFrames(2);
+
+        expect(getDataAtCell(10, 1)).toEqual(4251);
+
+        getPlugin('nestedRows').collapsingUI.collapseChildren(0);
+
+        await waitForNextAnimationFrames(2);
+
+        // force a recalculation while the group stays collapsed
+        await setDataAtCell(2, 1, 0);
+
+        // the result stays in the last physical row instead of jumping to the row that is now `countRows() - 1`
+        expect(getDataAtCell(7, 1)).toEqual(3888);
+        expect(getDataAtCell(4, 1)).toEqual('7');
+      });
   });
 
   describe('maxRows options set', () => {
