@@ -8,6 +8,11 @@ import {
 import BottomOverlayTable from '../../table/regions/bottomTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
+  insetCssSize,
+  overlayScrollbarClearance,
+  toggleScrollbarClearance,
+} from '../scrollbarClearance';
+import {
   CLONE_BOTTOM,
 } from '../constants';
 import { throwWithCause } from '../../../../../helpers/errors';
@@ -23,6 +28,19 @@ export class BottomOverlay extends Overlay {
    * @type {number}
    */
   cachedFixedRowsBottom = -1;
+
+  /**
+   * How much narrower than its root the overlay's holder is kept, so an overlay ("floating")
+   * vertical scrollbar underneath stays reachable. 0 whenever the scrollbar has real width.
+   */
+  #holderClearance = 0;
+
+  /**
+   * How much shorter than its root the overlay's holder is kept, so an overlay ("floating") horizontal
+   * scrollbar underneath stays reachable. This overlay spans the bottom edge, so unlike the top one it
+   * covers both scrollbars. 0 whenever the scrollbar has real width.
+   */
+  #bottomClearance = 0;
 
   /**
    */
@@ -200,10 +218,18 @@ export class BottomOverlay extends Overlay {
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wtSettings.getSetting<boolean | string>('preventOverflow');
 
+    // The master's vertical scrollbar sits along the inline-end edge this overlay spans.
+    this.#holderClearance = overlayScrollbarClearance(
+      this.deps.geometryReader.getScrollbarWidth(rootDocument),
+      wtViewport.hasVerticalScroll()
+    );
+
     if (this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal') {
       let width = wtViewport.getWorkspaceWidth();
 
       if (wtViewport.hasVerticalScroll()) {
+        // With an overlay scrollbar this subtracts 0 - the browser reserves it no space - so the
+        // clearance above keeps the holder off the scrollbar instead (#10370).
         width -= this.deps.geometryReader.getScrollbarWidth(rootDocument);
       }
 
@@ -213,7 +239,17 @@ export class BottomOverlay extends Overlay {
     } else {
       overlayRootStyle.width = '';
     }
-    this.clone.wtTable.holder.style.width = overlayRootStyle.width;
+
+    // This overlay also spans the bottom edge, where the horizontal scrollbar is painted.
+    this.#bottomClearance = overlayScrollbarClearance(
+      this.deps.geometryReader.getScrollbarWidth(rootDocument),
+      wtViewport.hasHorizontalScroll()
+    );
+
+    toggleScrollbarClearance(overlayRoot,
+      this.#holderClearance > 0 || this.#bottomClearance > 0);
+    this.clone.wtTable.holder.style.width =
+      insetCssSize(overlayRootStyle.width, this.#holderClearance);
 
     let tableHeight = this.deps.geometryReader.outerHeight(this.clone.wtTable.TABLE);
 
@@ -237,8 +273,8 @@ export class BottomOverlay extends Overlay {
     this.clone.wtTable.hider.style.width = this.hider.style.width;
     const holderParent = holder.parentNode as HTMLElement;
 
-    holder.style.width = holderParent.style.width;
-    holder.style.height = holderParent.style.height;
+    holder.style.width = insetCssSize(holderParent.style.width, this.#holderClearance);
+    holder.style.height = insetCssSize(holderParent.style.height, this.#bottomClearance);
   }
 
   /**

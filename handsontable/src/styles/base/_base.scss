@@ -742,7 +742,10 @@
   // keeps its full height and an opaque background so the master's scrolled cells cannot show through
   // the strip, and passes presses in it down to the master's scrollbar. The holder takes pointer
   // events back, so the frozen cells above the strip stay interactive.
-  .ht_clone_inline_start.htOverlayScrollbarClearance {
+  // Any overlay root can carry the class - the frozen columns and the bottom rows cover the horizontal
+  // scrollbar, the frozen top rows and the bottom rows the vertical one - so this is deliberately not
+  // scoped to a single clone.
+  .htOverlayScrollbarClearance {
     background-color: var(--ht-background-color);
     pointer-events: none;
 

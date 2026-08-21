@@ -5,6 +5,11 @@ import {
 import BottomInlineStartCornerOverlayTable from '../../table/regions/bottomInlineStartCornerTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
+  insetCssSize,
+  overlayScrollbarClearance,
+  toggleScrollbarClearance,
+} from '../scrollbarClearance';
+import {
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from '../constants';
 
@@ -98,6 +103,17 @@ export class BottomInlineStartCornerOverlay extends Overlay {
 
     overlayRoot.style.height = `${tableHeight}px`;
     overlayRoot.style.width = `${tableWidth}px`;
+
+    // This corner is drawn over the bottom edge, on top of both the frozen-column and frozen-bottom-row
+    // overlays, so it would re-cover the strip they leave clear for an overlay scrollbar (#10370). Only
+    // this overlay sizes its own holder, so the clearance is applied straight to it.
+    const bottomClearance = overlayScrollbarClearance(
+      this.deps.geometryReader.getScrollbarWidth(this.deps.rootDocument),
+      this.deps.getWtViewport().hasHorizontalScroll()
+    );
+
+    toggleScrollbarClearance(overlayRoot, bottomClearance > 0);
+    clone.wtTable.holder.style.height = insetCssSize(overlayRoot.style.height, bottomClearance);
 
     return true;
   }
