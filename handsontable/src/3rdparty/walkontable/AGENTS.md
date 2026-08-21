@@ -106,14 +106,26 @@ that necessary: `getTrimmingContainer` counts `overflow: hidden` and `getScrolla
 so the two can disagree for good, and a table in an iframe driven from the parent realm does exactly
 that — `MasterTable#alignOverlaysWithTrimmingContainer` misses it through a realm-bound `instanceof`
 and leaves the holder `overflow: visible`. Retrying such a table forever rebinds every listener on
-every draw, which also drops whichever scroll event is in flight.
+every draw, which also drops whichever scroll event is in flight. Re-arming the flag (through the
+public `updateMainScrollableElements`, which `updateSettings` calls whenever `height` moves to or from
+`''`) forgets the answer the previous series gave up on — otherwise the first retry of the new series
+matches its own stale answer and gives up at once, spending the retry the design counts on.
+
+Only a **full** draw resolves it. A fast draw has aligned nothing, so it must not judge a table
+nothing has laid out; no such draw can currently precede the first full one (`refreshAll()` returns
+while `drawn` is false, and a table built outside the layout stays undrawn until it joins it), so the
+gate in `Overlays#afterDraw` guards a state the settle test never has to answer for.
 
 Once it settles, the pass does **not** drop the sizes itself. It marks them, and
 `Overlays#beforeDraw` drops them on the way into the next draw that renders cells
 (`resetSizesMeasuredBeforeLayoutSettled`), so reset, re-measure and resize run in the order this
 cycle documents. Dropping them after a draw and asking for a redraw leaves them dropped: the request
 is a fast draw, and a draw that re-renders nothing never re-runs `markOversizedRows`. For the same
-reason a scroll-driven draw must not consume the mark — it stays pending for the next full draw. And
+reason a scroll-driven draw must not consume the mark — it stays pending for the next full draw, and
+so does a draw that got as far as the `beforeDraw` hook and had its render cancelled by `skipRender`
+(NestedRows does this; any user hook can). The mark is spent in `Overlays#afterDraw`, and only when
+the draw cycle reports that the band actually rendered (`confirmSizesRemeasured`); the drop itself is
+idempotent, so retaking it on the next draw costs one invalidation. And
 no redraw is requested from the settle frame at all: forcing one measures a DOM whose column widths
 have not settled, which records heights for rows that leave the band on the next draw, and those
 records survive (DEV-2515).
@@ -121,8 +133,13 @@ records survive (DEV-2515).
 The theme measurements have their own copy of the problem, on the core side: `StylesHandler` caches
 `getComputedStyle(rootElement)` once, so a grid built outside the flat tree has no theme variables and
 its default row height reads `null` — which makes every rendered row look oversized. The handler
-records whether its own caching pass ran against unresolved styles, and `TableView`'s `beforeRender`
-asks it (`recacheValuesMeasuredWithoutStyles`) rather than reading the `null`. Keying off the row
+records whether its own caching pass ran against unresolved styles, and `TableView#render` asks it
+(`recacheValuesMeasuredWithoutStyles`) rather than reading the `null` — **before** `_wt.draw()`, not
+from the engine's `beforeDraw` setting, which fires after `createCalculators()` and would leave that
+draw's row band built from the heights being dropped (the grid renders short for a frame and nothing
+schedules another draw). The drop stays pending until a draw has rendered the cells and re-measured
+them, which `afterRender` reports — the engine fires `onDraw` from no other kind of draw — so a
+`beforeViewRender` listener setting `skipRender` cannot spend it either. Keying off the row
 height instead wipes the caches on **every** draw of any page that loads no grid stylesheet, where
 that value never resolves. Note the two questions are deliberately different: the engine asks about
 geometry (`isRendered`, no boxes), the styles handler asks whether `getComputedStyle` resolves at all

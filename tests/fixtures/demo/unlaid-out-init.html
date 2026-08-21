@@ -42,7 +42,7 @@
     once at construction the overlays stayed bound to window scroll for the
     instance's whole life.
 
-    Two ways in, both taken by real applications:
+    Three ways in, all taken by real applications:
 
       detached   the container is built, the grid constructed into it, and only
                  then is it appended to the document. What a framework that
@@ -54,6 +54,12 @@
                  component framework does for a moment. Chromium returns the
                  empty declaration here since 151, aligning with the CSSOM
                  specification and with Firefox and Safari.
+
+      hidden     the container sits in a `display: none` box, as it does in a
+                 hidden tab or a closed modal. Its styles resolve, so its
+                 scrolling element was already right, but it generates no boxes
+                 - the correction engages on the geometry alone and must leave
+                 the grid just as correct on reveal.
 
     Nothing is built at parse time: the spec drives `buildGrid()` and `attach()`
     itself, so the window before the container joins the layout is exact instead

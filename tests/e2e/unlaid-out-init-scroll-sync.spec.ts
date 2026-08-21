@@ -23,8 +23,13 @@ import { UnlaidOutInitPage, type UnlaidOutMode } from '../fixtures/pages/UnlaidO
  * Chromium this suite pins, only the `detached` case can still reproduce the
  * failure. Both are kept: they enter through the same construction path, and the
  * customer's shape must be the one that is named.
+ *
+ * `hidden` is the third shape, and the mildest: a grid built inside a hidden tab
+ * or a closed modal reads its styles fine, so its scrolling element was already
+ * right — but it generates no boxes, so the correction engages anyway and has to
+ * leave the grid exactly as correct on reveal as the other two.
  */
-const MODES: UnlaidOutMode[] = ['detached', 'unslotted'];
+const MODES: UnlaidOutMode[] = ['detached', 'unslotted', 'hidden'];
 
 test.describe('grid built into a container that has no layout yet', () => {
   for (const mode of MODES) {
