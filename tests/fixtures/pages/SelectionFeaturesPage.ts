@@ -752,12 +752,16 @@ export class SelectionFeaturesPage {
   }
 
   /**
-   * Scroll the master viewport until the given cell slides behind a frozen pane, stopping with the
-   * cell's trailing edge at the middle of that pane. The cell stays rendered, so its border (and
-   * fill handle) keep their positions — the frozen pane is simply expected to occlude them.
+   * Scroll the master viewport until the given cell's trailing edge sits just inside a frozen pane,
+   * which is where its fill handle is drawn. Stopping a fixed few pixels past the pane's edge rather
+   * than at its middle keeps the cell inside the rendered range in every theme, whatever its column
+   * widths and row heights are — a cell scrolled clean out of that range drops its handle entirely
+   * and leaves nothing to assert on.
    */
   async scrollCellBehindFrozenPane(row: number, col: number, pane: 'columns' | 'rows'): Promise<void> {
-    await this.page.evaluate(({ targetRow, targetCol, targetPane }) => {
+    const paneInset = 8;
+
+    await this.page.evaluate(({ targetRow, targetCol, targetPane, inset }) => {
       const holder = document.querySelector('.ht_master .wtHolder');
       const cell = document.querySelector(`.ht_master [data-testid="cell-${targetRow}-${targetCol}"]`);
       const paneElement = document.querySelector(
@@ -772,18 +776,18 @@ export class SelectionFeaturesPage {
       const paneRect = paneElement.getBoundingClientRect();
 
       if (targetPane === 'columns') {
-        holder.scrollLeft += cellRect.right - (paneRect.left + (paneRect.width / 2));
+        holder.scrollLeft += cellRect.right - (paneRect.right - inset);
       } else {
-        holder.scrollTop += cellRect.bottom - (paneRect.top + (paneRect.height / 2));
+        holder.scrollTop += cellRect.bottom - (paneRect.top + inset);
       }
-    }, { targetRow: row, targetCol: col, targetPane: pane });
+    }, { targetRow: row, targetCol: col, targetPane: pane, inset: paneInset });
   }
 
   /**
    * What the browser hit-tests at the center of the fill handle, as `<overlay>/<class name>`. A
-   * frozen pane that occludes the handle owns those pixels, so the topmost element there is one of
-   * that pane's cells rather than the handle. The overlay half of the reading matters: a hit on a
-   * master cell would mean the handle simply is not where the test assumed, not that the pane won.
+   * frozen pane that occludes the handle owns those pixels, so the topmost element there belongs to
+   * that pane rather than to the master. Match on the overlay and treat the class name as detail:
+   * which of the pane's elements is topmost at that point depends on the theme's cell metrics.
    */
   async elementAtFillHandleCenter(): Promise<string> {
     const handleBox = await this.fillHandle().boundingBox();

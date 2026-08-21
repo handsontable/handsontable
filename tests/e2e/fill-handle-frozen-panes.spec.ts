@@ -10,6 +10,9 @@ import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
 test.describe('fill handle and frozen panes', () => {
   let grid: SelectionFeaturesPage;
 
+  const WIDE_DATA = Array.from({ length: 10 }, (_, row) =>
+    Array.from({ length: 40 }, (_, col) => `R${row + 1}C${col + 1}`));
+
   test.beforeEach(async ({ page, theme }) => {
     grid = new SelectionFeaturesPage(page, theme);
     await grid.goto();
@@ -36,7 +39,9 @@ test.describe('fill handle and frozen panes', () => {
   });
 
   test('hides the fill handle behind the frozen columns when the cell scrolls under them', async () => {
-    await grid.initGrid({ fixedColumnsStart: 2 });
+    // The fixture's 10 columns leave a theme like horizon barely any horizontal scroll room, and a
+    // scroll that clamps short never pushes the cell under the pane. WIDE_DATA guarantees the room.
+    await grid.initGrid({ data: WIDE_DATA, fixedColumnsStart: 2 });
     await grid.selectCells(5, 3, 5, 3);
 
     await expect(grid.fillHandle()).toBeVisible();
@@ -44,7 +49,7 @@ test.describe('fill handle and frozen panes', () => {
 
     // The frozen pane owns those pixels now — asserting on the overlay too, so a handle that simply
     // moved somewhere else cannot pass this as "occluded".
-    await expect.poll(() => grid.elementAtFillHandleCenter()).toBe('ht_clone_inline_start/');
+    await expect.poll(() => grid.elementAtFillHandleCenter()).toMatch(/^ht_clone_inline_start\//);
   });
 
   test('lifts the fill handle above the bottom freeze seam so it stays whole', async () => {
@@ -55,7 +60,7 @@ test.describe('fill handle and frozen panes', () => {
     await grid.selectCells(7, 1, 7, 1);
 
     await expect(grid.fillHandle()).toHaveClass(/wtCornerBlockEndEdge/);
-    await expect.poll(() => grid.elementAtFillHandleCenter()).toContain('corner');
+    await expect.poll(() => grid.elementAtFillHandleCenter()).toMatch(/^ht_master\/.*corner/);
   });
 
   test('hides the fill handle behind the bottom frozen rows when the cell scrolls under them', async () => {
@@ -65,6 +70,6 @@ test.describe('fill handle and frozen panes', () => {
     await expect(grid.fillHandle()).toBeVisible();
     await grid.scrollCellBehindFrozenPane(3, 1, 'rows');
 
-    await expect.poll(() => grid.elementAtFillHandleCenter()).toBe('ht_clone_bottom/');
+    await expect.poll(() => grid.elementAtFillHandleCenter()).toMatch(/^ht_clone_bottom\//);
   });
 });
