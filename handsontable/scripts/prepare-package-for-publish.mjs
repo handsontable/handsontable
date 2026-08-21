@@ -19,10 +19,12 @@ const {
  * `handsontable.exports` are the single definition of what that tree holds and how it is
  * addressed. By default the script enforces that definition and fails on an incomplete tree.
  *
- * `--partial` downgrades the completeness checks to warnings. Exactly one caller composes an
- * intentionally incomplete tree (the ES + CJS build job, which runs before the UMD bundles and
- * the theme stylesheets exist); everything else must build the whole package. Skipping the
- * checks is what let a preview package ship 18 stylesheets with 2 of them in the exports map.
+ * `--partial` downgrades the completeness checks to warnings. Only a tree that never reaches a
+ * registry may skip them – today the ES + CJS build job (it runs before the UMD bundles and the
+ * theme stylesheets exist) and the visual screenshot runs (they compose from whichever artifacts
+ * a given run has). Anything that publishes composes the whole package. Skipping the checks is
+ * what let a preview package ship 18 stylesheets with 2 of them in the exports map. Both call-site
+ * lists – strict and partial – are pinned by `test/__tests__/previewPackaging.unit.js`.
  */
 const IS_PARTIAL = process.argv.includes('--partial');
 const COMPLETENESS_ERRORS = [];
@@ -73,6 +75,20 @@ glob.sync('./**/*.d.ts', { cwd: TARGET_PATH, nodir: true }).forEach((dtsFile) =>
 });
 
 /**
+ * Translate a copy pattern into the pattern its files are addressed by inside the composed tree,
+ * by dropping the same leading segments `pathSlice` drops off each matched path.
+ *
+ * @param {string} pattern The `handsontable.copy` pattern, e.g. a declaration glob under `types/`.
+ * @param {number} pathSlice How many leading path segments the copy step slices off.
+ * @returns {string}
+ */
+function toTargetPattern(pattern, pathSlice) {
+  const segments = pattern.split(/[\\/]/).filter(segment => segment !== '' && segment !== '.');
+
+  return segments.slice(pathSlice).join('/');
+}
+
+/**
  * Copy necessary files we don't need to process.
  */
 FILES_TO_COPY.forEach((fileToCopy) => {
@@ -85,6 +101,22 @@ FILES_TO_COPY.forEach((fileToCopy) => {
     // slice a path off the bottom of the paths e.g. for value 1 it
     // slices path from `./types/base.d.ts` to `./base.d.ts`.
     pathSlice = fileToCopy.pathSlice;
+
+    if (foundFiles.length === 0) {
+      // No match means no destination is recorded, so the check below cannot see this entry at
+      // all. Ask the destination side directly instead: the tree may already carry the files
+      // from an artifact built elsewhere (the preview job extracts a `tmp/` composed in another
+      // job), which is legitimate; holding none of them is an incomplete package.
+      const targetPattern = toTargetPattern(fileToCopy.pattern, pathSlice);
+      const composedFiles = targetPattern === '' ?
+        [] : glob.sync(targetPattern, { cwd: TARGET_PATH, nodir: true });
+
+      if (composedFiles.length === 0) {
+        reportIncompleteness(
+          `The package holds no file the copy pattern declares: ${fileToCopy.pattern}`
+        );
+      }
+    }
   }
 
   foundFiles.forEach((file) => {
