@@ -310,7 +310,7 @@ export class DragToScroll extends BasePlugin {
       // down, so without these the auto-scroller never receives a position on mobile (#11658).
       this.eventManager.addEventListener(frame.document, 'touchstart', this.#onTouchStart);
       this.eventManager.addEventListener(frame.document, 'touchmove', this.#onTouchMove);
-      this.eventManager.addEventListener(frame.document, 'touchend', () => this.unlisten());
+      this.eventManager.addEventListener(frame.document, 'touchend', this.#onTouchEnd);
       this.eventManager.addEventListener(frame.document, 'touchcancel', () => this.unlisten());
 
       frame = getParentWindow(frame) as Window | null;
@@ -452,6 +452,23 @@ export class DragToScroll extends BasePlugin {
     }
 
     this.#trackPointer(touch.clientX, touch.clientY);
+  };
+
+  /**
+   * Stops auto-scrolling once the last finger leaves the screen.
+   *
+   * `touchend` fires per touch point, not per gesture, so a second finger or a palm lifting must not
+   * stop a drag the first finger is still performing - there is no re-arm path short of a new
+   * `touchstart`, so auto-scroll would stay dead for the rest of the drag.
+   *
+   * @param {Event} event The `touchend` event.
+   */
+  #onTouchEnd = (event: Event): void => {
+    if (getFirstTouchPoint(event) !== null) {
+      return;
+    }
+
+    this.unlisten();
   };
 
   /**

@@ -58,6 +58,16 @@ export class DragToScrollPage {
   }
 
   /**
+   * Rebuilds the grid with the given setting overrides, for a test that needs different settings.
+   *
+   * @param {object} overrides Handsontable settings to merge over the fixture defaults.
+   */
+  async rebuildWith(overrides: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate(o => window.initMobileGrid(o), overrides);
+    await expect(this.cell(0, 0)).toBeVisible();
+  }
+
+  /**
    * A single data cell, by visual row/column, via its stable test id.
    */
   cell(row: number, col: number): Locator {
@@ -95,6 +105,14 @@ export class DragToScrollPage {
   }
 
   /**
+   * How far the holder can scroll down in total. Lets a test express "barely moved" against the
+   * grid's own size instead of a magic pixel count.
+   */
+  async maxScrollTop(): Promise<number> {
+    return this.holder().evaluate(el => el.scrollHeight - el.clientHeight);
+  }
+
+  /**
    * The bottom-right corner of the active selection, as `[row, col]`.
    */
   async selectionEnd(): Promise<[number, number]> {
@@ -126,6 +144,26 @@ export class DragToScrollPage {
     const start = await this.#centreOf(this.bottomHandle());
 
     await this.#dragFrom(start, await this.#centreOf(this.cell(row, col)));
+  }
+
+  /**
+   * Waits until the selection stops changing - two identical reads in a row.
+   *
+   * Use this before asserting that something did NOT happen. A plain `expect` would pass instantly,
+   * before a runaway scroll had a chance to start; waiting for the selection to settle gives any
+   * timer-driven loop time to run first, so the assertion after it means something.
+   */
+  async waitForSelectionToSettle(): Promise<void> {
+    let previous: string | null = null;
+
+    await expect.poll(async () => {
+      const current = (await this.selectionEnd()).join(',');
+      const settled = current === previous;
+
+      previous = current;
+
+      return settled;
+    }, { intervals: [100, 100, 100, 100, 100, 100, 100, 100] }).toBe(true);
   }
 
   /**

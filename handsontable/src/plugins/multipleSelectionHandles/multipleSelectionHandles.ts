@@ -149,12 +149,27 @@ export class MultipleSelectionHandles extends BasePlugin {
       }
     });
 
+    // A cancelled gesture never reaches `touchend`, and the browser cancels often on a real phone -
+    // a system gesture, an incoming call, the browser claiming the touch for scrolling. Without this
+    // the drag state would stay set for good: `isDragged()` would keep reporting a drag, so the next
+    // unrelated touch anywhere would arm auto-scroll, and `#onAfterScroll` would re-extend the
+    // selection on every later scroll from any source.
+    this.eventManager.addEventListener(rootElement, 'touchcancel', () => {
+      this.#resetDrag();
+    });
+
     this.eventManager.addEventListener(rootElement, 'touchend', (event) => {
       const target = eventTargetEl(event)!;
 
-      // Forget the finger unconditionally, whatever it was released over. The branches below only
-      // clear `dragged` for a release on a handle, so without this a leftover position could let a
-      // later, unrelated scroll re-extend the selection through `#onAfterScroll`.
+      // `touchend` fires per touch point, not per gesture, so a second finger or a palm lifting must
+      // not tear down a drag the first finger is still performing.
+      if (getFirstTouchPoint(event) !== null) {
+        return;
+      }
+
+      // Forget the finger whatever it was released over. The branches below only clear `dragged` for
+      // a release on a handle, so without this a leftover position could let a later, unrelated
+      // scroll re-extend the selection through `#onAfterScroll`.
       this.#lastTouchPosition = null;
       this.#lastTargetCoords = null;
 
@@ -377,10 +392,25 @@ export class MultipleSelectionHandles extends BasePlugin {
   }
 
   /**
+   * Clears every trace of a handle drag. Used when the gesture ends without a `touchend`.
+   */
+  #resetDrag(): void {
+    this.dragged.splice(0, this.dragged.length);
+    this.touchStartRange = undefined;
+    this.#lastTouchPosition = null;
+    this.#lastTargetCoords = null;
+  }
+
+  /**
    * Carries the drag on after DragToScroll moves the viewport.
    *
    * A finger held still past the grid edge produces no further `touchmove`, so without this the
    * selection would stop growing at the last cell that was on screen when the finger got there.
+   *
+   * `#extendSelection` can itself scroll its target into view, which fires `afterScroll` again. That
+   * does not run away: the target is resolved against the CURRENT viewport and then de-duplicated on
+   * coordinates, so it reaches a fixed point after one step. Measured with `dragToScroll: false`,
+   * where nothing suppresses the scroll-into-view: it stops after one row and stays there.
    */
   #onAfterScroll = (): void => {
     if (this.dragged.length === 0 || this.#lastTouchPosition === null) {

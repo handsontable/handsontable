@@ -165,4 +165,62 @@ describe('DragToScroll mobile touch auto-scroll', () => {
 
     expect(plugin.isListening()).toBe(false);
   });
+
+  it('should clear the handle drag when the gesture is cancelled instead of ended', () => {
+    build();
+
+    const handles = hot.getPlugin('multipleSelectionHandles');
+
+    bottomHandle().dispatchEvent(touchEvent('touchstart'));
+
+    expect(handles.isDragged()).toBe(true);
+
+    // A cancelled gesture never reaches `touchend`. Leaving `dragged` set would let the next
+    // unrelated touch arm auto-scroll with no handle press at all.
+    hot.rootElement.dispatchEvent(touchEvent('touchcancel'));
+
+    expect(handles.isDragged()).toBe(false);
+
+    hot.rootElement.dispatchEvent(touchEvent('touchstart'));
+
+    expect(hot.getPlugin('dragToScroll').isListening()).toBe(false);
+  });
+
+  it('should keep auto-scrolling while a finger is still down', () => {
+    build();
+
+    const plugin = hot.getPlugin('dragToScroll');
+
+    bottomHandle().dispatchEvent(touchEvent('touchstart'));
+
+    expect(plugin.isListening()).toBe(true);
+
+    // `touchend` fires per touch point. A second finger or a palm lifting leaves one touch behind,
+    // and must not stop a drag the first finger is still performing.
+    document.dispatchEvent(touchEvent('touchend', 100, 200));
+
+    expect(plugin.isListening()).toBe(true);
+
+    document.dispatchEvent(touchEvent('touchend'));
+
+    expect(plugin.isListening()).toBe(false);
+  });
+
+  it('should keep the handle drag alive while a finger is still down', () => {
+    build();
+
+    const handles = hot.getPlugin('multipleSelectionHandles');
+
+    bottomHandle().dispatchEvent(touchEvent('touchstart'));
+
+    expect(handles.isDragged()).toBe(true);
+
+    bottomHandle().dispatchEvent(touchEvent('touchend', 100, 200));
+
+    expect(handles.isDragged()).toBe(true);
+
+    bottomHandle().dispatchEvent(touchEvent('touchend'));
+
+    expect(handles.isDragged()).toBe(false);
+  });
 });

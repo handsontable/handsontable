@@ -54,19 +54,31 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
-    // Exposed as `window.hot` (the shared fixture convention) so the spec can read
-    // the selected range straight from the instance.
-    window.hot = new Handsontable(container, {
-      data: Array.from({ length: 200 }, (_, r) =>
-        Array.from({ length: 30 }, (_, c) => `R${r}C${c}`)),
-      colHeaders: true,
-      rowHeaders: true,
-      width: 320,
-      height: 300,
-      renderer: testIdRenderer,
-      dragToScroll: true,
-      licenseKey: 'non-commercial-and-evaluation',
-    });
+    // Rebuilt per test through window.initMobileGrid(overrides) so a test needing different
+    // settings (dragToScroll: false, for one) gets a fresh instance instead of a mutated one.
+    // Exposed as `window.hot` — the shared fixture convention.
+    window.initMobileGrid = (overrides = {}) => {
+      if (window.hot) {
+        window.hot.destroy();
+      }
+
+      window.hot = new Handsontable(container, {
+        data: Array.from({ length: 200 }, (_, r) =>
+          Array.from({ length: 30 }, (_, c) => `R${r}C${c}`)),
+        colHeaders: true,
+        rowHeaders: true,
+        width: 320,
+        height: 300,
+        renderer: testIdRenderer,
+        dragToScroll: true,
+        licenseKey: 'non-commercial-and-evaluation',
+        ...overrides,
+      });
+
+      return true;
+    };
+
+    window.initMobileGrid();
   </script>
 </body>
 </html>

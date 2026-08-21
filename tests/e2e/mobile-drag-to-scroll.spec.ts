@@ -79,6 +79,26 @@ test.describe('mobile drag to scroll', () => {
     expect(await isListening()).toBe(false);
   });
 
+  test('comes to a stop instead of running away when dragToScroll is off', async () => {
+    await mobileGrid.rebuildWith({ dragToScroll: false });
+    await mobileGrid.tapCell(2, 1);
+
+    await mobileGrid.dragHandlePastEdge('bottom');
+    await mobileGrid.waitForSelectionToSettle();
+
+    const settled = await mobileGrid.scrollOffsets();
+
+    // Extending the selection scrolls its target into view even with auto-scroll off, so the
+    // viewport can move by about a row. What must never happen is that feeding back through
+    // `afterScroll` and marching the grid to the end of the data: the target is resolved against the
+    // current viewport and de-duplicated on coordinates, so it reaches a fixed point. Hold the
+    // finger longer and nothing more may move.
+    await mobileGrid.waitForSelectionToSettle();
+
+    expect(await mobileGrid.scrollOffsets()).toEqual(settled);
+    expect(settled.top).toBeLessThan(await mobileGrid.maxScrollTop() / 10);
+  });
+
   test('does not scroll when the handle is dragged to a cell that is already on screen', async () => {
     await mobileGrid.dragHandleToCell(6, 2);
 
