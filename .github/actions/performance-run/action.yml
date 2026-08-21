@@ -140,7 +140,10 @@ runs:
         git worktree remove "$WORK_DIR" --force
 
     - name: Deploy PR report to GitHub Pages
+      # Internal PRs only: a fork PR's GITHUB_TOKEN is read-only, so this would
+      # 403 and take CI Gate down with it. See AGENTS.md, "fork pull requests".
       if: always() && github.event_name == 'pull_request'
+        && github.event.pull_request.head.repo.full_name == github.repository
       shell: bash
       env:
         BRANCH_SLUG: ${{ steps.report-url.outputs.branch_slug }}
@@ -202,8 +205,19 @@ runs:
           } > performance-tests/output/result.md
         fi
 
-    - name: Post performance summary to pull request
+    # Token-free mirror of the sticky comment: the ONLY way a fork PR sees these
+    # numbers, since the comment below is internal-only. always() so it still
+    # renders when the run step failed, which is when it matters most.
+    - name: Write the performance summary to the job summary
       if: always() && github.event_name == 'pull_request'
+      shell: bash
+      run: cat performance-tests/output/result.md >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Post performance summary to pull request
+      # Internal PRs only: a fork PR's GITHUB_TOKEN is read-only, so this would
+      # 403 and take CI Gate down with it. See AGENTS.md, "fork pull requests".
+      if: always() && github.event_name == 'pull_request'
+        && github.event.pull_request.head.repo.full_name == github.repository
       uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
       with:
         header: performance-tests

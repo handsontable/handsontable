@@ -82,7 +82,12 @@ jobs:
     # API label read for the optional visual suite (a routing flag, not a gate);
     # coupling the preview to it would skip the deploy if that API call flaked.
     needs: [ lint, plugins, angular-types ]
-    if: ${{ !failure() && !cancelled() && inputs.is-pr }}
+    # The Cloudflare deploy needs CLOUDFLARE_API_TOKEN, which a fork PR never
+    # gets. Skip rather than fail; the dependent `visual` job requires this one
+    # to succeed, so it skips on its own. AGENTS.md, "fork pull requests".
+    if: ${{ !failure() && !cancelled() && inputs.is-pr
+      && (github.event_name != 'pull_request'
+          || github.event.pull_request.head.repo.full_name == github.repository) }}
     uses: ./.github/workflows/docs-staging.yml
     secrets: inherit
 

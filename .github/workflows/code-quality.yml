@@ -11,6 +11,12 @@ jobs:
   sonarcloud:
     name: SonarCloud
     runs-on: ubuntu-latest
+    # Secret-dependent: a fork PR gets no repository secrets, so this cannot run
+    # at all there. Skip rather than fail: CI Gate accepts `skipped`, and a red
+    # check the contributor cannot influence blocks every external PR.
+    # See AGENTS.md, "fork pull requests".
+    if: github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
@@ -50,6 +56,12 @@ jobs:
   fossa:
     name: FOSSA
     runs-on: ubuntu-latest
+    # Secret-dependent: a fork PR gets no repository secrets, so this cannot run
+    # at all there. Skip rather than fail: CI Gate accepts `skipped`, and a red
+    # check the contributor cannot influence blocks every external PR.
+    # See AGENTS.md, "fork pull requests".
+    if: github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.full_name == github.repository
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:

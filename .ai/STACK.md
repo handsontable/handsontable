@@ -170,13 +170,22 @@
 **Platform:** GitHub Actions (`.github/workflows/`)
 
 **Key workflows:**
-- `test.yml` - Main test pipeline (unit, E2E, Walkontable, wrapper tests)
-- `build-all.yml` - Full build verification
-- `code-quality.yml` - Linting and code quality checks
-- `linter.yml` - ESLint checks
-- `publish.yml` - Package publishing pipeline to npm
-- `docs-staging.yml` / `docs-production.yml` - Documentation deployment (Cloudflare Pages)
-- `docs-visual-tests.yml` - Visual regression testing for docs
-- `changelog.yml` - Changelog verification
-- `audit.yml` - Security audit
-- `pkg-pr-new.yml` - PR package preview
+- `test.yml` - PR pipeline orchestrator; calls every reusable module and ends in `CI Gate`
+- `CI Gate` (a job in `test.yml`, not a file) - the single status check to require in branch
+  protection. It always runs and passes only when every module job reported `success` or `skipped`,
+  so individual/matrix check names must stay unpinned
+- `develop.yml` - post-merge develop pipeline; same modules plus trunk-only stages, no `CI Gate`
+- `checks.yml` - scope router (which modules run) plus the changelog and test-presence gates
+- `build.yml` / `build-all.yml` - shared UMD and ES+CJS build artifacts / multi-OS build verification
+- `lint.yml` - core linters
+- `code-quality.yml` - SonarCloud, CodeQL, FOSSA, npm audit
+- `unit.yml` / `types.yml` / `e2e.yml` / `walkontable.yml` - the test tiers
+- `integration.yml` - wrapper tests, ESM/CJS format checks, pkg.pr.new PR package preview
+- `performance.yml` (PR) / `performance-tests.yml` (develop golden baseline) - the CDP perf suite
+- `visual.yml` - visual regression render matrix plus the Argos upload
+- `publish.yml` - package publishing pipeline to npm (the only workflow npm trusted publishing trusts)
+- `docs.yml` / `docs-staging.yml` / `docs-production.yml` - docs gates and deployment (Cloudflare Pages)
+- `docs-visual-tests.yml` - visual regression testing for docs
+
+Fork PRs run on a read-only token with no secrets; see the "fork pull requests" bullet in the root
+`AGENTS.md` before touching any step that comments, pushes, or reads a secret.
