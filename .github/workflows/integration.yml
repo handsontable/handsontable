@@ -203,12 +203,13 @@ jobs:
       - name: Post PR preview comment
         # Write-token runs only. Fork PRs and Dependabot PRs both get a read-only
         # GITHUB_TOKEN, so the API call 403s and takes CI Gate down with it; the
-        # job summary above carries the same content instead. The job is already
-        # pull_request-only (see its `if:` above), so the event half of the
-        # canonical guard is redundant here. AGENTS.md, "fork and Dependabot pull
-        # requests".
-        if: github.event.pull_request.head.repo.full_name == github.repository
-          && github.actor != 'dependabot[bot]'
+        # job summary above carries the same content instead. The event half is
+        # redundant here (the job's own `if:` is already pull_request-only) but is
+        # kept so all seven guarded sites share one shape. AGENTS.md, "fork and
+        # Dependabot pull requests".
+        if: github.event_name != 'pull_request'
+          || (github.event.pull_request.head.repo.full_name == github.repository
+              && github.actor != 'dependabot[bot]')
         uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
         with:
           header: pr-preview
