@@ -1721,10 +1721,14 @@ export class Formulas extends BasePlugin {
    *
    * The write is fenced with `#sourceDataSyncPending` so `afterSetSourceDataAtCell` does not push
    * the formulas straight back into the engine. External listeners still receive that hook, which
-   * is what lets an outside store learn the new formula text.
+   * is what lets an outside store learn the new formula text. Note that the *previous* value it
+   * reports is read back through `modifySourceData` and therefore already carries the engine's new
+   * formula, so a listener has to act on the reported new value rather than diff the two.
    *
-   * Row and column *moves* are deliberately excluded: they reorder indexes without touching the
-   * source data, so its own reference frame stays intact and there is nothing to catch up.
+   * Row and column *moves* (and sorting) are deliberately excluded: they reorder the engine's
+   * indexes without touching the source data, so the two stop sharing a reference frame. While that
+   * is the case nothing is written back at all - the read-time projection keeps handling it, exactly
+   * as it did before.
    *
    * @private
    */
@@ -1734,6 +1738,12 @@ export class Formulas extends BasePlugin {
       this.sheetName === null ||
       !this.engine?.doesSheetExist(this.sheetName)
     ) {
+      return;
+    }
+
+    // Once rows or columns have been moved or sorted, the engine and the source data no longer
+    // share a reference frame, and the engine's formulas would be wrong in the source data's terms.
+    if (!this.rowAxisSyncer!.isHfOrderPhysical() || !this.columnAxisSyncer!.isHfOrderPhysical()) {
       return;
     }
 
@@ -1759,18 +1769,9 @@ export class Formulas extends BasePlugin {
           continue;
         }
 
-        // Trimmed rows report -1 - they have no visual counterpart to write to.
-        const visualRow = this.rowAxisSyncer!.getVisualIndexFromHfIndex(hfRow);
-
-        if (visualRow === -1) {
-          continue;
-        }
-
-        const physicalRow = this.hot.toPhysicalRow(visualRow);
-
-        if (physicalRow === null) {
-          continue;
-        }
+        // The order guard above means the engine's index IS the physical index, so trimmed rows
+        // (Filters, `trimRows`) are reached too - they hold formulas that need the same catch-up.
+        const physicalRow = hfRow;
 
         for (let hfColumn = 0; hfColumn < formulasRow.length; hfColumn++) {
           const formula = formulasRow[hfColumn];
@@ -1779,17 +1780,14 @@ export class Formulas extends BasePlugin {
             continue;
           }
 
+          // A trimmed column has no visual index; its physical index is a valid prop for an
+          // array-based source, which is the only shape that can reach that state here.
           const visualColumn = this.columnAxisSyncer!.getVisualIndexFromHfIndex(hfColumn);
-
-          if (visualColumn === -1) {
-            continue;
-          }
-
-          const prop = this.hot.colToProp(visualColumn);
+          const prop = visualColumn === -1 ? hfColumn : this.hot.colToProp(visualColumn);
 
           // `getSourceDataAtCell` takes a physical row and a visual column, `setSourceDataAtCell`
           // a physical row and a prop.
-          if (this.hot.getSourceDataAtCell(physicalRow, visualColumn) !== formula) {
+          if (this.hot.getSourceDataAtCell(physicalRow, visualColumn === -1 ? hfColumn : visualColumn) !== formula) {
             changes.push([physicalRow, prop as string | number, formula]);
           }
         }

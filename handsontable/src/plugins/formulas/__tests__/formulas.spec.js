@@ -1304,6 +1304,37 @@ describe('Formulas general', () => {
       expect(countRows()).toBe(4);
     });
 
+    it('should write the rewritten formula into a row hidden by a filter', async() => {
+      const data = [
+        ['show', 1, '=SUM(B1:B4)'],
+        ['show', 2, null],
+        ['hide', 3, '=SUM(B1:B4)'],
+        ['show', 4, null],
+      ];
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+        filters: true,
+        dropdownMenu: true,
+        colHeaders: true,
+      });
+
+      const filters = getPlugin('filters');
+
+      filters.addCondition(0, 'eq', ['show']);
+      filters.filter();
+
+      await alter('insert_row_above', 0, 1);
+
+      // Both rows moved down by one. The filtered-out row holds a formula too, and the engine
+      // rewrote it just the same - it must not be left behind.
+      expect(data[1][2]).toBe('=SUM(B2:B5)');
+      expect(data[3][2]).toBe('=SUM(B2:B5)');
+    });
+
     it('should not touch the passed data array when rows are only moved', async() => {
       const data = getDataWithFormula();
 
@@ -1322,6 +1353,35 @@ describe('Formulas general', () => {
       // A move reorders the indexes only - the source array keeps its own order and its own
       // reference frame, so nothing has to be written back to it.
       expect(data[0][1]).toBe('=SUM(A1:A3)');
+    });
+
+    it('should not touch the passed data array when a row is inserted into a moved grid', async() => {
+      const data = [
+        [1, '=A1+10'],
+        [2, '=A2+100'],
+        [3, '=A3+1000'],
+      ];
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+        manualRowMove: true,
+        rowHeaders: true,
+      });
+
+      getPlugin('manualRowMove').moveRow(0, 2);
+      await render();
+
+      await alter('insert_row_below', 2, 1);
+
+      // Once rows are moved the engine and the source data no longer share a reference frame, so
+      // the engine's formulas must not be copied into the array the developer owns.
+      expect(data[0][1]).toBe('=A1+10');
+      expect(data[1][1]).toBe(null);
+      expect(data[2][1]).toBe('=A2+100');
+      expect(data[3][1]).toBe('=A3+1000');
     });
 
     it('should not touch the passed data array when an edit is undone in a moved grid', async() => {
