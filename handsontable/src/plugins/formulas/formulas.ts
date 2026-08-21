@@ -115,6 +115,18 @@ Hooks.getSingleton().register('afterFormulasValuesUpdate');
 const isBlockedSource = (source: unknown) =>
   source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto';
 
+// Undo/redo actions that add or remove rows or columns. They are the only ones that make
+// HyperFormula rewrite formula references, so they are the only ones whose source data has to be
+// caught up in `afterUndo`/`afterRedo`. Reordering actions (a row move, for instance) must not
+// trigger the write-back - they leave the source data's own reference frame untouched.
+const STRUCTURAL_ACTION_TYPES = new Set(['insert_row', 'insert_col', 'remove_row', 'remove_col']);
+
+const isStructuralAction = (action: unknown) =>
+  typeof action === 'object' &&
+  action !== null &&
+  'actionType' in action &&
+  STRUCTURAL_ACTION_TYPES.has((action as { actionType: string }).actionType);
+
 // Maximum number of `[startIndex, amount]` spans passed to a single variadic engine
 // `removeRows`/`removeColumns` call. An unbounded argument spread could overflow the call stack.
 const REMOVAL_SPANS_CHUNK_SIZE = 1000;
@@ -600,7 +612,7 @@ export class Formulas extends BasePlugin {
       this.#undoRedoDependentCells = this.#isRedoingMoveCells ? [] : (this.engine!.redo() ?? []);
     });
 
-    this.addHook('afterUndo', () => {
+    this.addHook('afterUndo', (action: unknown) => {
       this.indexSyncer!.setPerformUndo(false);
       // Also clears the redo flags: a redo cancelled by a `beforeRedo` listener never fires
       // `afterRedo`, so without these resets the flags set in `beforeRedo` would leak until the
@@ -608,15 +620,21 @@ export class Formulas extends BasePlugin {
       this.indexSyncer!.setPerformRedo(false);
       this.#isRedoingMoveCells = false;
       this.#validateUndoRedoDependentCells();
+
       // The structural hooks skip blocked sources, so undoing a row/column change reverts the
       // formulas inside the engine only - the source data has to be caught up separately.
-      this.#syncFormulasToSourceData();
+      if (isStructuralAction(action)) {
+        this.#syncFormulasToSourceData();
+      }
     });
 
-    this.addHook('afterRedo', () => {
+    this.addHook('afterRedo', (action: unknown) => {
       this.indexSyncer!.setPerformRedo(false);
       this.#validateUndoRedoDependentCells();
-      this.#syncFormulasToSourceData();
+
+      if (isStructuralAction(action)) {
+        this.#syncFormulasToSourceData();
+      }
     });
 
     this.addHook('afterRedo', () => {

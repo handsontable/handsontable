@@ -1296,6 +1296,12 @@ describe('Formulas general', () => {
       expect(data[0][1]).toBe('=SUM(A1:A3)');
       expect(getSourceDataAtCell(0, 1)).toBe('=SUM(A1:A3)');
       expect(countRows()).toBe(3);
+
+      getPlugin('undoRedo').redo();
+
+      expect(data[0][1]).toBe('=SUM(A1:A4)');
+      expect(getSourceDataAtCell(0, 1)).toBe('=SUM(A1:A4)');
+      expect(countRows()).toBe(4);
     });
 
     it('should not touch the passed data array when rows are only moved', async() => {
@@ -1316,6 +1322,36 @@ describe('Formulas general', () => {
       // A move reorders the indexes only - the source array keeps its own order and its own
       // reference frame, so nothing has to be written back to it.
       expect(data[0][1]).toBe('=SUM(A1:A3)');
+    });
+
+    it('should not touch the passed data array when an edit is undone in a moved grid', async() => {
+      const data = [
+        [1, '=A1+10'],
+        [2, '=A2+100'],
+        [3, '=A3+1000'],
+      ];
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+        manualRowMove: true,
+        rowHeaders: true,
+      });
+
+      getPlugin('manualRowMove').moveRow(0, 2);
+      await render();
+
+      await setDataAtCell(0, 0, 999);
+
+      getPlugin('undoRedo').undo();
+
+      // Undoing a plain cell edit is not a structural change, so it must not persist the moved
+      // reference frame into the array the developer owns.
+      expect(data[0][1]).toBe('=A1+10');
+      expect(data[1][1]).toBe('=A2+100');
+      expect(data[2][1]).toBe('=A3+1000');
     });
 
     it('should report the rewritten formula through the `afterSetSourceDataAtCell` hook', async() => {
