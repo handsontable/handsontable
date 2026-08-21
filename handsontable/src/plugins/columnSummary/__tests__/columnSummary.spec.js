@@ -1126,6 +1126,45 @@ describe('ColumnSummarySpec', () => {
       });
   });
 
+  it('should not count a trimmed summary row as data in another summary (#11674)', async() => {
+    handsontable({
+      data: [[1], [2], [3], [null], [null]],
+      columnSummary: [
+        {
+          destinationRow: 3,
+          destinationColumn: 0,
+          type: 'sum',
+          forceNumeric: true,
+          ranges: [[0, 2]],
+        },
+        {
+          // no `ranges`, so the default range spans every physical row - including row 3, which
+          // holds the subtotal above
+          destinationRow: 4,
+          destinationColumn: 0,
+          type: 'sum',
+          forceNumeric: true,
+        },
+      ],
+      trimRows: true,
+    });
+
+    await waitForNextAnimationFrames(2);
+
+    expect(getDataAtCell(3, 0)).toEqual(6);
+    expect(getDataAtCell(4, 0)).toEqual(6);
+
+    getPlugin('trimRows').trimRow(3);
+
+    await waitForNextAnimationFrames(2);
+
+    // the subtotal row is hidden now, so its `columnSummaryResult` class is unreadable
+    await setDataAtCell(0, 0, 10);
+
+    // 10 + 2 + 3, without the hidden subtotal of 6 added on top
+    expect(getDataAtCell(hot().toVisualRow(4), 0)).toEqual(15);
+  });
+
   describe('maxRows options set', () => {
     it('should apply summary operation only on rows which are < maxRows', async() => {
       const rows = 9;

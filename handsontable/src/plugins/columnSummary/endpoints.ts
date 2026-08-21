@@ -88,6 +88,12 @@ class Endpoints {
    * @default {[]}
    */
   cellsToSetCache: [number, number | undefined, unknown][] = [];
+  /**
+   * Physical `row,column` keys of every endpoint destination, built once per refresh pass.
+   * Used to keep summary results out of other summaries when their row is trimmed and the
+   * `columnSummaryResult` class is unreachable.
+   */
+  #summaryDestinations: Set<string> | null = null;
 
   /**
    * Initializes the endpoints manager with a reference to the ColumnSummary plugin and the summary endpoint configuration.
@@ -182,6 +188,35 @@ class Endpoints {
     }
 
     return this.endpoints;
+  }
+
+  /**
+   * Drops the cached endpoint destinations. Called when a refresh pass starts, because the settings
+   * may be a function that returns different endpoints each time it runs.
+   */
+  invalidateSummaryDestinations() {
+    this.#summaryDestinations = null;
+  }
+
+  /**
+   * Checks whether a physical cell holds the result of an endpoint.
+   *
+   * `getCellValue` normally recognizes a result by its `columnSummaryResult` class, but cell meta is
+   * addressed by visual coordinates, so a trimmed row has no readable class. Without this check a
+   * hidden summary row is summed as if it were plain data and inflates every summary covering it.
+   *
+   * @param {number} physicalRow Physical row index.
+   * @param {number} column Column index.
+   * @returns {boolean}
+   */
+  isSummaryDestination(physicalRow: number, column: number): boolean {
+    if (this.#summaryDestinations === null) {
+      this.#summaryDestinations = new Set(
+        this.getAllEndpoints().map(endpoint => `${endpoint.destinationRow},${endpoint.destinationColumn}`)
+      );
+    }
+
+    return this.#summaryDestinations.has(`${physicalRow},${column}`);
   }
 
   /**
@@ -534,6 +569,7 @@ class Endpoints {
    */
   refreshAllEndpoints() {
     this.cellsToSetCache = [];
+    this.invalidateSummaryDestinations();
 
     arrayEach(this.getAllEndpoints(), (value: EndpointConfig) => {
       this.currentEndpoint = value;
@@ -558,6 +594,7 @@ class Endpoints {
     const needToRefresh: number[] = [];
 
     this.cellsToSetCache = [];
+    this.invalidateSummaryDestinations();
 
     arrayEach(changes, (value: unknown, key: number, changesObj: unknown[]) => {
       const change = value as unknown[];
@@ -591,6 +628,8 @@ class Endpoints {
    * @param {Set<number>|number[]} visualColumns Visual column indexes to match against.
    */
   refreshEndpointsBySourceColumns(visualColumns: Set<number> | number[]) {
+    this.invalidateSummaryDestinations();
+
     const columnsSet = visualColumns instanceof Set ? visualColumns : new Set(visualColumns);
     const matched = this.getAllEndpoints()
       .filter(endpoint => columnsSet.has(endpoint.sourceColumn!));
