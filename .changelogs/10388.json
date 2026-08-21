@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Fixed a problem where a formula updated by inserting or removing a row or column reverted to its previous state after the data was loaded back into the grid.",
+  "title": "Fixed a problem where a formula updated by inserting or removing a row or column reverted to its previous state after the data was loaded back into the grid. The data is left untouched while rows or columns are sorted or moved, because the grid and the formula engine then hold different row orders.",
   "type": "fixed",
   "issueOrPR": 10388,
   "breaking": false,

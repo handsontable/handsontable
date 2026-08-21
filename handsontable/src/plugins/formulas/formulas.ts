@@ -121,11 +121,20 @@ const isBlockedSource = (source: unknown) =>
 // trigger the write-back - they leave the source data's own reference frame untouched.
 const STRUCTURAL_ACTION_TYPES = new Set(['insert_row', 'insert_col', 'remove_row', 'remove_col']);
 
-const isStructuralAction = (action: unknown) =>
-  typeof action === 'object' &&
-  action !== null &&
-  'actionType' in action &&
-  STRUCTURAL_ACTION_TYPES.has((action as { actionType: string }).actionType);
+const getActionType = (action: unknown) => {
+  if (typeof action !== 'object' || action === null || !('actionType' in action)) {
+    return null;
+  }
+
+  return (action as { actionType: string }).actionType;
+};
+
+const isStructuralAction = (action: unknown) => STRUCTURAL_ACTION_TYPES.has(getActionType(action) as string);
+
+// `MoveCellsAction.undo` restores both regions with `restoreRegion` instead of replaying the move, so
+// `afterMoveCells` - where the forward direction syncs - never fires. Undo has to cover it here.
+// Redo does replay the move, so it must NOT be listed, or the sheet would be scanned twice.
+const isUndoneMoveCells = (action: unknown) => getActionType(action) === 'move_cells';
 
 // Maximum number of `[startIndex, amount]` spans passed to a single variadic engine
 // `removeRows`/`removeColumns` call. An unbounded argument spread could overflow the call stack.
@@ -623,7 +632,7 @@ export class Formulas extends BasePlugin {
 
       // The structural hooks skip blocked sources, so undoing a row/column change reverts the
       // formulas inside the engine only - the source data has to be caught up separately.
-      if (isStructuralAction(action)) {
+      if (isStructuralAction(action) || isUndoneMoveCells(action)) {
         this.#syncFormulasToSourceData();
       }
     });
@@ -1842,13 +1851,9 @@ export class Formulas extends BasePlugin {
     this.#sourceDataSyncPending = true;
 
     try {
-      // `setSourceDataAtCell` renders on its way out. Left alone that paints in the middle of
-      // `alter()`, before the selection and the fixed-row counts have caught up with the new size.
-      this.hot.batchRender(() => {
-        this.hot.setSourceDataAtCell(
-          changes, undefined, undefined, `${toUpperCaseFirst(PLUGIN_KEY)}.syncSourceData`
-        );
-      });
+      this.hot.setSourceDataAtCell(
+        changes, undefined, undefined, `${toUpperCaseFirst(PLUGIN_KEY)}.syncSourceData`
+      );
     } finally {
       this.#sourceDataSyncPending = false;
     }

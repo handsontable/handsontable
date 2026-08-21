@@ -69,6 +69,16 @@ export class FormulasMoveCellsPage {
    * (e.g. `{ trimRows: [1] }`) — a fresh Handsontable instance and a fresh HyperFormula
    * sheet, so tests stay isolated.
    */
+  /**
+   * The array the grid was constructed with, as it stands now.
+   *
+   * Handsontable projects HyperFormula's formulas onto its own reads, so `getSourceData()` can look
+   * right while this array holds stale text. Only this tells the two apart.
+   */
+  async rawData(): Promise<unknown[][]> {
+    return this.page.evaluate(() => (window as any).rawData);
+  }
+
   async initGrid(data: CellValue[][], overrides: Record<string, unknown> = {}): Promise<void> {
     await this.page.evaluate(
       ({ gridData, gridOverrides }) => window.initGrid(gridData, gridOverrides),
