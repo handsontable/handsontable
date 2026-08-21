@@ -252,19 +252,28 @@ describe('runSourceDataValidators', () => {
     ['per-cell', false],
   ])('should translate columns when reading and blanking source values (%s path)', (_path, rowIndependent) => {
     const validator = makeValidator(rowIndependent, () => false);
+    const toVisualColumn = jest.fn(physicalColumn => 1 - physicalColumn);
+    const colToProp = jest.fn(visualColumn => (visualColumn === 0 ? 'second' : 'first'));
     const { hot, getAtCell, setAtCell } = createMockHot({
-      rows: 1,
+      rows: 2,
       cols: 2,
       validator,
       allowInvalid: false,
-      toVisualColumn: physicalColumn => 1 - physicalColumn,
-      colToProp: visualColumn => (visualColumn === 0 ? 'second' : 'first'),
+      toVisualColumn,
+      colToProp,
     });
 
     runSourceDataValidators(hot, 'init');
 
-    expect(getAtCell.mock.calls).toEqual([[0, 1], [0, 0]]);
-    expect(setAtCell.mock.calls).toEqual([[0, 'first', null], [0, 'second', null]]);
+    expect(getAtCell.mock.calls).toEqual([[0, 1], [0, 0], [1, 1], [1, 0]]);
+    expect(setAtCell.mock.calls).toEqual([
+      [0, 'first', null],
+      [0, 'second', null],
+      [1, 'first', null],
+      [1, 'second', null],
+    ]);
+    expect(toVisualColumn).toHaveBeenCalledTimes(rowIndependent ? 2 : 3);
+    expect(colToProp).toHaveBeenCalledTimes(2);
   });
 
   it('should not blank invalid values when allowInvalid is true (batched path)', () => {

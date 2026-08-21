@@ -114,6 +114,16 @@ describe('settings', () => {
       expect(getSourceData()).toEqual([{ date: null }]);
     });
 
+    it('should nullify a nested mapped property when allowInvalid is false', async() => {
+      handsontable({
+        data: [{ meta: { date: 'not-a-date' } }],
+        columns: [{ data: 'meta.date', type: 'date', dateFormat: 'YYYY-MM-DD' }],
+        allowInvalid: false,
+      });
+
+      expect(getSourceData()).toEqual([{ meta: { date: null } }]);
+    });
+
     it('should validate the source column after it has been moved', async() => {
       handsontable({
         data: [['2024-01-01', '2024-02-02']],

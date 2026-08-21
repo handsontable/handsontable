@@ -1,5 +1,5 @@
 {
-  "issuesOrigin": "public",
+  "issuesOrigin": "private",
   "title": "Fixed source data validation for object data and moved columns.",
   "type": "fixed",
   "issueOrPR": 13073,

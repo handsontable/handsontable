@@ -172,13 +172,28 @@ function validatePerCell(
 ): void {
   const { rowIndexMapper, columnIndexMapper } = hotInstance;
   const metaManager = hotInstance._getMetaManager();
+  const visualColumns: (number | null)[] = [];
+  const sourceColumns: (string | number | null)[] = [];
+
+  for (let col = 0; col < colSourceCount; col += 1) {
+    const visualColumn = columnIndexMapper.getVisualFromPhysicalIndex(col);
+
+    visualColumns[col] = visualColumn;
+    sourceColumns[col] = visualColumn === null ? null : hotInstance.colToProp(visualColumn);
+  }
 
   for (let row = 0; row < rowSourceCount; row += 1) {
-    for (let col = 0; col < colSourceCount; col += 1) {
-      const visualRow = rowIndexMapper.getVisualFromPhysicalIndex(row);
-      const visualColumn = columnIndexMapper.getVisualFromPhysicalIndex(col);
+    const visualRow = rowIndexMapper.getVisualFromPhysicalIndex(row);
 
-      if (visualRow === null || visualColumn === null) {
+    if (visualRow === null) {
+      continue;
+    }
+
+    for (let col = 0; col < colSourceCount; col += 1) {
+      const visualColumn = visualColumns[col];
+      const sourceColumn = sourceColumns[col];
+
+      if (visualColumn === null || sourceColumn === null) {
         continue;
       }
 
@@ -189,7 +204,6 @@ function validatePerCell(
         continue;
       }
 
-      const sourceColumn = hotInstance.colToProp(visualColumn);
       const value = dataSource.getAtCell(row, visualColumn);
 
       validateSourceCell(cellMeta, value, row, col, sourceColumn, dataSource, invalidByMessageType, source);
