@@ -134,6 +134,14 @@ class TableView {
    */
   renderSizeProbe = new RenderSizeProbe();
   /**
+   * Whether the sizes measured from theme values cached against unresolved styles still have to be
+   * dropped. Set by the first render that finds the styles resolvable again, and kept until a render
+   * has actually reached the cells and re-measured them (see `#discardSizesMeasuredWithoutStyles`).
+   *
+   * @type {boolean}
+   */
+  #sizesMeasuredWithoutStylesPending = false;
+  /**
    * Defines if the text should be selected during mousemove.
    *
    * @type {boolean}
@@ -208,6 +216,8 @@ class TableView {
       const isFullRender = this.hot.forceFullRender;
 
       this.hot.runHooks('beforeRender', isFullRender);
+
+      this.#discardSizesMeasuredWithoutStyles();
 
       this._wt.draw(!isFullRender);
       this.#updateScrollbarClassNames();
@@ -1533,8 +1543,6 @@ class TableView {
    *                            cycle will be skipped.
    */
   beforeRender(force: boolean, skipRender: boolean) {
-    this.#discardSizesMeasuredWithoutStyles();
-
     if (force) {
       this.hot.runHooks('beforeViewRender', this.hot.forceFullRender, skipRender);
     }
@@ -1554,11 +1562,19 @@ class TableView {
    * height instead would wipe the caches on every draw of a page that loads no grid stylesheet at
    * all, where that value never resolves.
    *
-   * Runs in `beforeRender`, so this draw already measures against the real styles and nothing has to
-   * be undone afterwards.
+   * Runs before `_wt.draw()`, not from the engine's `beforeDraw` setting: that setting fires after
+   * `createCalculators()`, so the rendered row band of that very draw would still be built from the
+   * heights this drops – the grid renders short for one frame and nothing schedules another draw. The
+   * drop stays pending (`#sizesMeasuredWithoutStylesPending`) until a draw has actually rendered the
+   * cells and re-measured them, which is what `afterRender` reports; a `beforeViewRender` listener
+   * that sets `skipRender` cancels the render, and then nothing takes the row heights again.
    */
   #discardSizesMeasuredWithoutStyles() {
-    if (!this.hot.stylesHandler.recacheValuesMeasuredWithoutStyles()) {
+    if (this.hot.stylesHandler.recacheValuesMeasuredWithoutStyles()) {
+      this.#sizesMeasuredWithoutStylesPending = true;
+    }
+
+    if (!this.#sizesMeasuredWithoutStylesPending) {
       return;
     }
 
@@ -1572,11 +1588,17 @@ class TableView {
   /**
    * `afterRender` callback.
    *
+   * The engine fires `onDraw` only from a draw that rendered the cell band, which is what spends the
+   * pending theme-measurement drop: the sizes it invalidated have just been taken again against the
+   * resolved styles (see `#discardSizesMeasuredWithoutStyles`).
+   *
    * @private
    * @param {boolean} force If `true` rendering was triggered by a change of settings or data or `false` if
    *                        rendering was triggered by scrolling or moving selection.
    */
   afterRender(force: boolean) {
+    this.#sizesMeasuredWithoutStylesPending = false;
+
     if (force) {
       // Measure the rendered grid while the DOM is final, before external `afterViewRender` listeners
       // may mutate it.
