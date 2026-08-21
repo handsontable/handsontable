@@ -64,18 +64,23 @@ test.describe('mobile drag to scroll', () => {
 
   test('arms the auto-scroller only for a drag that starts on a handle', async ({ page }) => {
     const isListening = () => page.evaluate(() => window.hot.getPlugin('dragToScroll').isListening());
+    const isDragged = () =>
+      page.evaluate(() => window.hot.getPlugin('multipleSelectionHandles').isDragged());
 
-    expect(await isListening()).toBe(false);
+    // Tapping a cell, as `beforeEach` did, grabs no handle - so the mobile drag path is not engaged.
+    // (`isListening()` is not the check here: tapping a cell arms the plugin through Walkontable's
+    // deferred mousedown, which belongs to the mouse path and ends on `mouseup`.)
+    expect(await isDragged()).toBe(false);
 
     await mobileGrid.dragHandlePastEdge('bottom');
 
-    expect(await page.evaluate(() => window.hot.getPlugin('multipleSelectionHandles').isDragged()))
-      .toBe(true);
+    expect(await isDragged()).toBe(true);
     expect(await isListening()).toBe(true);
 
     await mobileGrid.endDrag();
 
     // Lifting the finger must stop the timers; otherwise the grid would keep scrolling on its own.
+    expect(await isDragged()).toBe(false);
     expect(await isListening()).toBe(false);
   });
 

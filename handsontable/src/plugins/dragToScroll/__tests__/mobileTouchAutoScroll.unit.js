@@ -282,6 +282,62 @@ describe('DragToScroll mobile touch auto-scroll', () => {
     expect(handles.isDragged()).toBe(true);
   });
 
+  it('should leave a mouse drag alone when a stray touch ends', () => {
+    build();
+
+    const plugin = hot.getPlugin('dragToScroll');
+
+    // A hybrid device - a touchscreen laptop - can fire touch events while a mouse drag is running.
+    hot.runHooks('beforeOnCellMouseDown', new MouseEvent('mousedown', { button: 0 }), { row: 2, col: 2 });
+
+    expect(plugin.isListening()).toBe(true);
+
+    document.dispatchEvent(touchEvent('touchend', { changed: [OTHER_FINGER] }));
+    document.dispatchEvent(touchEvent('touchcancel', { changed: [OTHER_FINGER] }));
+
+    // The mouse still owns the drag; only `mouseup` may end it.
+    expect(plugin.isListening()).toBe(true);
+  });
+
+  it('should release the handle the lifted finger was holding, not the other one', () => {
+    build();
+
+    const handles = hot.getPlugin('multipleSelectionHandles');
+    const topHandle = () => container.querySelector('.topSelectionHandle-HitArea');
+
+    topHandle().dispatchEvent(touchStart(HANDLE_FINGER));
+    bottomHandle().dispatchEvent(touchEvent('touchstart', {
+      touches: [HANDLE_FINGER, OTHER_FINGER],
+      changed: [OTHER_FINGER],
+    }));
+
+    expect(handles.dragged).toEqual(['top', 'bottom']);
+
+    // The finger on the TOP handle lifts. The bottom one keeps dragging, so 'bottom' must be what
+    // survives - `#extendSelection` reads `dragged[0]` to decide which corner of the range moves.
+    topHandle().dispatchEvent(touchEvent('touchend', {
+      touches: [OTHER_FINGER],
+      changed: [HANDLE_FINGER],
+    }));
+
+    expect(handles.dragged).toEqual(['bottom']);
+  });
+
+  it('should forget an in-progress drag when the plugin is disabled', () => {
+    build();
+
+    const handles = hot.getPlugin('multipleSelectionHandles');
+
+    bottomHandle().dispatchEvent(touchStart(HANDLE_FINGER));
+
+    expect(handles.isDragged()).toBe(true);
+
+    // `updateSettings()` mid-drag takes the listeners away, so no `touchend` can ever clear this.
+    handles.disablePlugin();
+
+    expect(handles.isDragged()).toBe(false);
+  });
+
   it('should follow the finger holding the handle, not the first one placed on the screen', () => {
     build();
 

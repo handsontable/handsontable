@@ -449,7 +449,14 @@ export class DragToScroll extends BasePlugin {
 
     const touch = getFirstChangedTouch(event);
 
-    this.#dragTouchId = touch === null ? null : touch.identifier;
+    // No identifier means no way to tell this finger from any other later on, so there would be no
+    // safe moment to stop. Better not to start: `#dragTouchId` stays in step with being touch-armed,
+    // which is what `#onTouchEnd` relies on.
+    if (touch === null) {
+      return;
+    }
+
+    this.#dragTouchId = touch.identifier;
 
     this.#setupListening('handle', event);
   };
@@ -484,7 +491,14 @@ export class DragToScroll extends BasePlugin {
    * @param {Event} event The `touchend` or `touchcancel` event.
    */
   #onTouchEnd = (event: Event): void => {
-    if (this.#dragTouchId !== null && getTouchPointById(event, this.#dragTouchId) !== null) {
+    // Nothing of ours is running on touch. A mouse drag can be, though - these listeners sit on the
+    // document, and a hybrid device fires touch events during one - and it is not this handler's to
+    // end.
+    if (this.#dragTouchId === null) {
+      return;
+    }
+
+    if (getTouchPointById(event, this.#dragTouchId) !== null) {
       return;
     }
 

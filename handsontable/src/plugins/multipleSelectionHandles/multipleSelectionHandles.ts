@@ -76,6 +76,19 @@ export class MultipleSelectionHandles extends BasePlugin {
   }
 
   /**
+   * Disables the plugin and forgets any drag in progress.
+   *
+   * Without the reset, an `updateSettings()` mid-drag would take the listeners away while `dragged`
+   * still reported a drag - and DragToScroll arms auto-scroll on `isDragged()` alone, so the next
+   * touch anywhere in the document would start scrolling the grid.
+   */
+  disablePlugin() {
+    this.#resetDrag();
+
+    super.disablePlugin();
+  }
+
+  /**
    * Bind the touch events.
    *
    * @private
@@ -103,26 +116,34 @@ export class MultipleSelectionHandles extends BasePlugin {
 
       if (entryPosition === -1) {
         return false;
-      } else if (entryPosition === 0) {
-        this.dragged = this.dragged.slice(0, 1);
-      } else if (entryPosition === 1) {
-        this.dragged = this.dragged.slice(-1);
       }
+
+      // Both former branches sliced the array so that the handle being removed was the one KEPT, so
+      // with two handles held the survivor drove the rest of the drag through `this.dragged[0]` and
+      // moved the wrong corner of the range.
+      this.dragged.splice(entryPosition, 1);
     };
 
     /**
+     * Starts tracking one finger's grip on a handle. Refuses when the finger carries no identifier,
+     * because an untracked finger could never be released - the drag would look stuck for good.
+     *
      * @private
      * @param {Event} event The `touchstart` event.
      * @param {string} handle Which handle the finger grabbed.
+     * @returns {boolean} `true` when the drag started.
      */
     const beginDrag = (event: Event, handle: string) => {
       const touch = getFirstChangedTouch(event);
 
-      if (touch !== null) {
-        this.#dragTouches.set(touch.identifier, handle);
+      if (touch === null) {
+        return false;
       }
 
+      this.#dragTouches.set(touch.identifier, handle);
       this.dragged.push(handle);
+
+      return true;
     };
 
     /**
@@ -167,7 +188,9 @@ export class MultipleSelectionHandles extends BasePlugin {
           return false;
         }
 
-        beginDrag(event, 'top');
+        if (!beginDrag(event, 'top')) {
+          return false;
+        }
 
         this.touchStartRange = {
           width: selectedRange.getWidth(),
@@ -186,7 +209,9 @@ export class MultipleSelectionHandles extends BasePlugin {
           return false;
         }
 
-        beginDrag(event, 'bottom');
+        if (!beginDrag(event, 'bottom')) {
+          return false;
+        }
 
         this.touchStartRange = {
           width: selectedRange.getWidth(),
@@ -414,6 +439,17 @@ export class MultipleSelectionHandles extends BasePlugin {
    */
   isDragged(): boolean {
     return this.dragged.length > 0;
+  }
+
+  /**
+   * Forgets every finger and the range the gesture started from.
+   */
+  #resetDrag(): void {
+    this.dragged.splice(0, this.dragged.length);
+    this.#dragTouches.clear();
+    this.touchStartRange = undefined;
+    this.#lastTouchPosition = null;
+    this.#lastTargetCoords = null;
   }
 
   /**
