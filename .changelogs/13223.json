@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `formulas.hyperlinks` option, which renders cells holding a `HYPERLINK` formula as clickable links.",
+  "type": "added",
+  "issueOrPR": 13223,
+  "breaking": false,
+  "framework": "none"
+}
