@@ -289,4 +289,75 @@ test.describe('NestedRows collapsed state stability', () => {
     expect(await nestedRows.collapsedParents()).toEqual([0]);
     expect(await nestedRows.visibleNames()).toEqual(['Root A', 'Root B', 'B-1', 'B-2']);
   });
+
+  test('restoring the collapsed rows after updateSettings fires no hooks', async({ page, theme }) => {
+    const nestedRows = new NestedRowsPage(page, theme);
+
+    await nestedRows.goto();
+
+    await nestedRows.callPlugin('collapseParent', 0);
+    await nestedRows.resetHookLog();
+
+    await page.evaluate(() => window.hot.updateSettings({ nestedRows: true }));
+
+    // The replay repeats a choice the user already made, so it must stay silent. Reporting a collapse
+    // here would put a collapse event on every React re-render.
+    expect(await nestedRows.hookLog()).toEqual([]);
+    expect(await nestedRows.collapsedParents()).toEqual([0]);
+  });
+
+  test('a blocked expand cancels the whole expandToLevel call', async({ page, theme }) => {
+    const nestedRows = new NestedRowsPage(page, theme);
+
+    await nestedRows.goto({ block: 'rowExpand' });
+
+    // Start from a state the call has to change in both directions: A-2 collapsed, Root A open.
+    await nestedRows.callPlugin('collapseParent', 2);
+
+    const before = await nestedRows.visibleNames();
+
+    // Drop the setup's own hooks, so the assertion only sees what expandToLevel did.
+    await nestedRows.resetHookLog();
+    await nestedRows.callPlugin('expandToLevel', 1);
+
+    // `beforeRowExpand` returns false here, so neither pass may land - not even the collapse.
+    expect(await nestedRows.visibleNames()).toEqual(before);
+    expect(await nestedRows.hookNames()).toEqual(['beforeRowExpand']);
+  });
+
+  test('expandToLevel still collapses when there is nothing left to expand', async({ page, theme }) => {
+    const nestedRows = new NestedRowsPage(page, theme);
+
+    await nestedRows.goto();
+
+    // Everything is already open, so the expand pass reports "nothing done". That must not be read
+    // as a veto, or the collapse pass would be skipped and the method would do nothing at all.
+    await nestedRows.callPlugin('expandToLevel', 1);
+
+    expect(await nestedRows.visibleNames()).toEqual(['Root A', 'A-1', 'A-2', 'A-3', 'Root B', 'B-1', 'B-2']);
+  });
+
+  test('the public methods do nothing once the plugin is disabled', async({ page, theme }) => {
+    const nestedRows = new NestedRowsPage(page, theme);
+
+    await nestedRows.goto();
+    await page.evaluate(() => window.hot.updateSettings({ nestedRows: false }));
+    await nestedRows.resetHookLog();
+
+    const rowsBefore = await nestedRows.countRows();
+
+    // `disablePlugin` unregisters the trimming map, so a write after that is silently dropped. The
+    // methods used to report a state change that never reached the grid.
+    expect(await nestedRows.callPlugin('collapseParent', 0)).toBe(false);
+    expect(await nestedRows.callPlugin('toggleParent', 0)).toBe(false);
+    expect(await nestedRows.callPlugin('expandToRow', 3)).toBe(false);
+    expect(await nestedRows.callPlugin('isParentCollapsed', 0)).toBe(false);
+    expect(await nestedRows.callPlugin('isParent', 0)).toBe(false);
+    expect(await nestedRows.callPlugin('getRowLevel', 0)).toBe(null);
+    expect(await nestedRows.callPlugin('countChildren', 0)).toBe(0);
+    expect(await nestedRows.callPlugin('getCollapsedParents')).toEqual([]);
+
+    expect(await nestedRows.countRows()).toBe(rowsBefore);
+    expect(await nestedRows.hookLog()).toEqual([]);
+  });
 });

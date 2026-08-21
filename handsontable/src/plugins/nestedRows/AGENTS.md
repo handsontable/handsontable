@@ -57,6 +57,9 @@ reach it, and they must all keep reaching it or the UI and the API will drift ap
 3. `collapsingUI.collapseAll()` / `expandAll()`
 4. every public method on `NestedRows`
 
+`toggleCollapsedRows()` is the boolean-returning wrapper; `applyCollapsedRowsChange()` is the same
+logic reporting `{ performed, vetoed }` for callers that need to know *why* nothing happened.
+
 **Validity is the choke point's job, not the wrappers'.** A public method only translates its visual
 index to physical. "Not a parent" and "out of bounds" are reported as `possible: false`, with both
 hooks still firing — that matches `collapsibleColumns`, whose `hooks.spec.js` asserts
@@ -82,6 +85,18 @@ They are written in different places and can drift. Keep this in mind:
 
 ## Landmines
 
+- **The public methods must be gated on `this.enabled`.** `disablePlugin()` unregisters the trimming
+  map but leaves `collapsingUI` and `collapsedRowsMap` populated, and a write to an unregistered
+  `TrimmingMap` is **silently dropped — it does not throw**. Without the gate, `collapseParent()` on a
+  disabled plugin returns `true`, mutates `collapsedRows`, and fires `afterRowCollapse` with
+  `successfullyCollapsed: true` while the grid hides nothing. `#isOperational()` is that gate; every
+  public entry point goes through it. `CollapsibleColumns` checks `this.enabled` for the same reason.
+- **`toggleCollapsedRows()` returns `performed`, which is `false` for two different reasons** — a
+  `before*` hook blocked the action, or there was simply nothing to do. Any caller that runs two
+  passes must tell those apart, or "already in the right state" reads as "blocked". Use
+  `applyCollapsedRowsChange()`, which returns `{ performed, vetoed }`. `expandToLevel()` is the
+  reference case: it bails only on `vetoed`, because its expand pass legitimately reports
+  `performed: false` whenever the shallower parents are already open.
 - **`areChildrenCollapsed()` is vacuously `true` for a row with no children.** It starts from
   `allCollapsed = true` and only the children loop can flip it. Any "is this collapsed?" check must
   first confirm the row is a parent — that is why `isParentCollapsed()` guards with

@@ -414,6 +414,31 @@ class CollapsingUI extends BaseUI {
    * @fires Hooks#afterRowExpand
    */
   toggleCollapsedRows(parents: number[], action: 'collapse' | 'expand', shouldRunHooks = true): boolean {
+    return this.applyCollapsedRowsChange(parents, action, shouldRunHooks).performed;
+  }
+
+  /**
+   * Same as `toggleCollapsedRows`, but it also reports whether a `before*` hook blocked the action.
+   *
+   * A caller that performs two passes needs that apart from `performed`: `performed` is `false` both
+   * when a hook blocked the change and when there was simply nothing to do, and those two cases call
+   * for opposite decisions.
+   *
+   * @param {number[]} parents Physical row indexes of the parents to act on.
+   * @param {string} action Either `'collapse'` or `'expand'`.
+   * @param {boolean} [shouldRunHooks=true] `false` skips both hooks.
+   * @returns {{performed: boolean, vetoed: boolean}} `performed` says the collapsed state changed,
+   * `vetoed` says a `before*` hook returned `false`.
+   * @fires Hooks#beforeRowCollapse
+   * @fires Hooks#afterRowCollapse
+   * @fires Hooks#beforeRowExpand
+   * @fires Hooks#afterRowExpand
+   */
+  applyCollapsedRowsChange(
+    parents: number[],
+    action: 'collapse' | 'expand',
+    shouldRunHooks = true
+  ): { performed: boolean, vetoed: boolean } {
     const actionTranslator = actionDictionary.get(action);
 
     if (!actionTranslator) {
@@ -421,7 +446,7 @@ class CollapsingUI extends BaseUI {
     }
 
     if (!Array.isArray(parents)) {
-      return false;
+      return { performed: false, vetoed: false };
     }
 
     const isCollapse = action === 'collapse';
@@ -440,7 +465,7 @@ class CollapsingUI extends BaseUI {
       );
 
       if (isActionAllowed === false) {
-        return false;
+        return { performed: false, vetoed: true };
       }
     }
 
@@ -468,7 +493,7 @@ class CollapsingUI extends BaseUI {
       );
     }
 
-    return isActionPerformed;
+    return { performed: isActionPerformed, vetoed: false };
   }
 
   /**

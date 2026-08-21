@@ -260,7 +260,11 @@ export class NestedRows extends BasePlugin {
    * @fires Hooks#afterRowCollapse
    */
   collapseAll(): void {
-    this.collapsingUI?.collapseAll();
+    if (!this.#isOperational()) {
+      return;
+    }
+
+    this.collapsingUI!.collapseAll();
   }
 
   /**
@@ -270,11 +274,11 @@ export class NestedRows extends BasePlugin {
    * @fires Hooks#afterRowExpand
    */
   expandAll(): void {
-    if (!this.collapsingUI) {
+    if (!this.#isOperational()) {
       return;
     }
 
-    this.collapsingUI.toggleCollapsedRows(this.collapsingUI.getCollapsedParentsShallowestFirst(), 'expand');
+    this.collapsingUI!.toggleCollapsedRows(this.collapsingUI!.getCollapsedParentsShallowestFirst(), 'expand');
   }
 
   /**
@@ -337,7 +341,11 @@ export class NestedRows extends BasePlugin {
    * @returns {number[]} Physical row indexes, sorted ascending.
    */
   getCollapsedParents(): number[] {
-    return this.collapsingUI?.getCollapsedParents() ?? [];
+    if (!this.#isOperational()) {
+      return [];
+    }
+
+    return this.collapsingUI!.getCollapsedParents();
   }
 
   /**
@@ -454,7 +462,7 @@ export class NestedRows extends BasePlugin {
    * @fires Hooks#afterRowExpand
    */
   expandToRow(row: number): boolean {
-    if (!this.collapsingUI || !Number.isInteger(row) || row < 0) {
+    if (!this.#isOperational() || !Number.isInteger(row) || row < 0) {
       return false;
     }
 
@@ -468,7 +476,7 @@ export class NestedRows extends BasePlugin {
         break;
       }
 
-      if (this.collapsingUI.getCollapsedParents().indexOf(parentRow) > -1) {
+      if (this.collapsingUI!.getCollapsedParents().indexOf(parentRow) > -1) {
         collapsedAncestors.push(parentRow);
       }
 
@@ -480,13 +488,18 @@ export class NestedRows extends BasePlugin {
     }
 
     // Shallowest first, so an ancestor is expanded before its own descendants.
-    return this.collapsingUI.toggleCollapsedRows(collapsedAncestors.reverse(), 'expand');
+    return this.collapsingUI!.toggleCollapsedRows(collapsedAncestors.reverse(), 'expand');
   }
 
   /**
    * Shows rows down to the given nesting level and collapses everything deeper.
    *
    * Level `0` leaves only the top-level rows visible.
+   *
+   * This runs as two steps - an expand and a collapse - so it fires both pairs of hooks. Returning
+   * `false` from {@link Hooks#beforeRowExpand} cancels the whole call and leaves the grid as it was.
+   * Returning `false` from {@link Hooks#beforeRowCollapse} blocks only the collapse step, so the
+   * expand step stays applied.
    *
    * @param {number} level The deepest nesting level that stays expanded.
    * @fires Hooks#beforeRowCollapse
@@ -495,7 +508,7 @@ export class NestedRows extends BasePlugin {
    * @fires Hooks#afterRowExpand
    */
   expandToLevel(level: number): void {
-    if (!this.collapsingUI || !Number.isInteger(level) || level < 0) {
+    if (!this.#isOperational() || !Number.isInteger(level) || level < 0) {
       return;
     }
 
@@ -518,8 +531,13 @@ export class NestedRows extends BasePlugin {
 
       // Expand from the shallowest down, so each parent is reachable when its turn comes, then
       // collapse from the deepest up.
-      if (toExpand.length > 0) {
-        this.collapsingUI!.toggleCollapsedRows(toExpand, 'expand');
+      //
+      // The expand pass is checked for a veto, not for `performed`: `performed` is also `false` when
+      // every shallower parent is already open, which is the common case and must not stop the
+      // collapse pass. A `beforeRowExpand` veto cancels the whole call, so the grid keeps the state it
+      // had. A veto on the collapse pass below leaves the expand applied - see the method's JSDoc.
+      if (toExpand.length > 0 && this.collapsingUI!.applyCollapsedRowsChange(toExpand, 'expand').vetoed) {
+        return;
       }
 
       if (toCollapse.length > 0) {
@@ -552,13 +570,26 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
+   * Tells whether the plugin can act on the grid right now.
+   *
+   * `disablePlugin()` unregisters the `nestedRows` index map but leaves `collapsingUI` and
+   * `collapsedRowsMap` in place, so a write to the map afterwards is silently dropped. Without this
+   * check the public methods would report a state change that never reached the grid.
+   *
+   * @returns {boolean}
+   */
+  #isOperational(): boolean {
+    return this.enabled && !!this.dataManager && !!this.collapsingUI;
+  }
+
+  /**
    * Translates a visual row index into a physical one.
    *
    * @param {number} row Visual row index.
    * @returns {number|null} `null` when the argument is not a valid, existing visual row.
    */
   #toPhysicalRow(row: number): number | null {
-    if (!this.dataManager || !Number.isInteger(row) || row < 0) {
+    if (!this.#isOperational() || !Number.isInteger(row) || row < 0) {
       return null;
     }
 
@@ -578,10 +609,6 @@ export class NestedRows extends BasePlugin {
    * @returns {number|null}
    */
   #toPhysicalParentRow(row: number): number | null {
-    if (!this.collapsingUI) {
-      return null;
-    }
-
     return this.#toPhysicalRow(row);
   }
 

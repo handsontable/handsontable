@@ -651,6 +651,51 @@ describe('NestedRows Collapsing UI', () => {
       expect(plugin.getCollapsedParents()).toEqual([]);
     });
 
+    it('should not fire the collapse hooks when replaying the state after updateSettings', async() => {
+      const beforeRowCollapse = jasmine.createSpy('beforeRowCollapse');
+      const afterRowCollapse = jasmine.createSpy('afterRowCollapse');
+
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        beforeRowCollapse,
+        afterRowCollapse
+      });
+
+      const plugin = getPlugin('nestedRows');
+
+      plugin.collapseParent(0);
+      beforeRowCollapse.calls.reset();
+      afterRowCollapse.calls.reset();
+
+      await updateSettings({ nestedRows: true });
+
+      // The replay repeats a choice the user already made. Reporting it would put a collapse event on
+      // every React re-render, which is how the "Maximum update depth exceeded" loop started.
+      expect(beforeRowCollapse).not.toHaveBeenCalled();
+      expect(afterRowCollapse).not.toHaveBeenCalled();
+      expect(getPlugin('nestedRows').getCollapsedParents()).toEqual([0]);
+    });
+
+    it('should do nothing through the public methods once the plugin is disabled', async() => {
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true
+      });
+
+      const rowsBefore = countRows();
+
+      await updateSettings({ nestedRows: false });
+
+      const plugin = getPlugin('nestedRows');
+
+      // `disablePlugin` unregisters the trimming map, so the write is dropped without an error.
+      expect(plugin.collapseParent(0)).toBe(false);
+      expect(plugin.getCollapsedParents()).toEqual([]);
+      expect(plugin.getRowLevel(0)).toBe(null);
+      expect(countRows()).toBe(rowsBefore);
+    });
+
     it('should keep the collapsed rows collapsed after updateSettings', async() => {
       handsontable({
         data: getSimplerNestedData(),
