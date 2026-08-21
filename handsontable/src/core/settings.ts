@@ -206,6 +206,7 @@ export interface GridSettings {
   // Date / Time
   dateFormat?: Intl.DateTimeFormatOptions;
   timeFormat?: Intl.DateTimeFormatOptions;
+  dateTimeFormat?: Intl.DateTimeFormatOptions;
   defaultDate?: string;
 
   // Password
