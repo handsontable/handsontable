@@ -1366,7 +1366,10 @@ export class Formulas extends BasePlugin {
         // while the grid already shows the new one. Empty it instead of serving stale values.
         this.#internalOperationPending = true;
 
-        this.engine!.setSheetContent(this.sheetId, [[]]);
+        const dependentCells = this.engine!.setSheetContent(this.sheetId, [[]]);
+
+        // Emptying the sheet changes what the grids reading it compute, so they need a redraw.
+        this.renderDependentSheets(dependentCells);
 
         this.#internalOperationPending = false;
 

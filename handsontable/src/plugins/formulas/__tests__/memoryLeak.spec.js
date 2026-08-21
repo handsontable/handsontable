@@ -224,6 +224,38 @@ describe('Formulas memory leak check', () => {
     expect(hfInstance.getSheetSerialized(sheetId)).not.toEqual([['1', '2'], ['3', '4']]);
   });
 
+  it('should redraw the grids that depend on a sheet whose new data could not be written', async() => {
+    const hfInstance = HyperFormula.buildEmpty({
+      licenseKey: 'internal-use-in-handsontable',
+      maxRows: 2,
+    });
+
+    handsontable({
+      data: [['1'], ['2']],
+      formulas: {
+        engine: hfInstance,
+        sheetName: 'SheetA',
+      },
+    });
+
+    const hot2 = spec().$container2.handsontable({
+      data: [['=SheetA!A1']],
+      formulas: {
+        engine: hfInstance,
+        sheetName: 'SheetB',
+      },
+    }).data('handsontable');
+
+    expect(hot2.getCell(0, 0).textContent).toBe('1');
+
+    // Three rows cannot be written to a sheet capped at two, so `SheetA` gets emptied.
+    await loadData([['10'], ['20'], ['30']]);
+
+    // The other grid reads `SheetA`, so it has to be redrawn instead of keeping the old `1`.
+    // A reference to an emptied cell renders blank.
+    expect(hot2.getCell(0, 0).textContent).toBe('');
+  });
+
   it('should detach listeners from the engine after table destroying (one shared HF instances)', async() => {
     const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
     const hot1 = handsontable({
