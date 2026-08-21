@@ -1428,8 +1428,10 @@ describe('Formulas general', () => {
 
       await alter('insert_row_above', 1, 1);
 
+      // The reported previous value must be the one that was really stored, not the engine's new
+      // formula - a store that compares the two has to be able to see the change.
       expect(afterSetSourceDataAtCell).toHaveBeenCalledTimes(1);
-      expect(afterSetSourceDataAtCell.calls.mostRecent().args[0]).toEqual([[0, 1, '=SUM(A1:A4)', '=SUM(A1:A4)']]);
+      expect(afterSetSourceDataAtCell.calls.mostRecent().args[0]).toEqual([[0, 1, '=SUM(A1:A3)', '=SUM(A1:A4)']]);
     });
   });
 

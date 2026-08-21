@@ -1451,6 +1451,10 @@ export class Formulas extends BasePlugin {
     if (
       ioMode !== 'get' ||
       this.#internalOperationPending ||
+      // While the write-back runs, reads must report what is really stored. Core reads the previous
+      // value to build the `afterSetSourceDataAtCell` payload, and projecting the engine's formula
+      // onto it would hand listeners an old value equal to the new one.
+      this.#sourceDataSyncPending ||
       this.sheetName === null ||
       !this.engine?.doesSheetExist(this.sheetName)
     ) {
@@ -1721,9 +1725,8 @@ export class Formulas extends BasePlugin {
    *
    * The write is fenced with `#sourceDataSyncPending` so `afterSetSourceDataAtCell` does not push
    * the formulas straight back into the engine. External listeners still receive that hook, which
-   * is what lets an outside store learn the new formula text. Note that the *previous* value it
-   * reports is read back through `modifySourceData` and therefore already carries the engine's new
-   * formula, so a listener has to act on the reported new value rather than diff the two.
+   * is what lets an outside store learn the new formula text - with a real previous value, because
+   * the same flag switches the read projection off while Core builds that payload.
    *
    * Row and column *moves* (and sorting) are deliberately excluded: they reorder the engine's
    * indexes without touching the source data, so the two stop sharing a reference frame. While that
