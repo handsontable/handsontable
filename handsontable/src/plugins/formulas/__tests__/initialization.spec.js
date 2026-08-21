@@ -986,7 +986,7 @@ describe('Formulas general', () => {
       expect(getPlugin('formulas').engine.getConfig().maxRows).toBe(Infinity);
     });
 
-    it('should not apply the engine config\'s `maxRows` to a grid that outgrows it', async() => {
+    it('should not bound the engine by a `maxRows` set in the engine config', async() => {
       handsontable({
         data: createSpreadsheetData(100, 2),
         formulas: {
@@ -997,14 +997,53 @@ describe('Formulas general', () => {
         }
       });
 
-      // The grid's own `maxRows` still wins at creation, as it always has, so the 100 rows fit.
+      // Dead config before GH #10672 and dead config now - the 100 rows have to fit either way.
       expect(getPlugin('formulas').engine.getConfig().maxRows).toBe(Infinity);
       expect(countRows()).toBe(100);
 
-      // ...and the update path must not resurrect the engine config's value either.
       await updateSettings({ maxRows: Infinity });
 
       expect(getPlugin('formulas').engine.getConfig().maxRows).toBe(Infinity);
+    });
+
+    it('should let a raised `maxRows` add rows again (GH #10672)', async() => {
+      handsontable({
+        data: [['1'], ['2']],
+        maxRows: 2,
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      await updateSettings({ maxRows: 100 });
+      await alter('insert_row_below', 1, 5);
+
+      expect(countRows()).toBe(7);
+    });
+
+    it('should not throw `Sheet size limit exceeded` when the next grid reuses the first grid\'s' +
+      ' engine (GH #10672)', async() => {
+      const hot1 = handsontable({
+        data: [['1'], ['2']],
+        maxRows: 2,
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        }
+      });
+
+      // The sharing style the formulas guide recommends.
+      const hot2 = spec().$container2.handsontable({
+        data: [['a'], ['b'], ['c'], ['d'], ['e']],
+        formulas: {
+          engine: hot1.getPlugin('formulas').engine,
+          sheetName: 'Sheet2'
+        }
+      }).data('handsontable');
+
+      const { engine } = hot2.getPlugin('formulas');
+
+      expect(engine.getSheetDimensions(engine.getSheetId('Sheet2')).height).toBe(5);
     });
 
     it('should not throw `Sheet size limit exceeded` when a grid with a low `maxRows` shares an engine' +

@@ -7,11 +7,9 @@ import {
 
 /**
  * `maxRows` and `maxColumns` are per-instance display limits in Handsontable, but engine-wide in
- * HyperFormula. Syncing them on `updateSettings` clamped every sheet the engine holds, so with a
- * shared engine the smallest limit of any attached grid made HyperFormula throw
- * `SheetSizeLimitExceededError`. See GH #10672.
- *
- * An engine the plugin creates itself is private to one grid, so it is still bounded at creation.
+ * HyperFormula, so passing them on made the smallest limit of any attached grid clamp every sheet the
+ * engine holds and HyperFormula throw `SheetSizeLimitExceededError`. They now never reach the engine,
+ * at creation or on update. See GH #10672.
  */
 describe('Formulas engine settings', () => {
   const engineConfig = { hyperformula: () => {}, maxRows: 123, maxColumns: 45 };
@@ -55,25 +53,33 @@ describe('Formulas engine settings', () => {
     });
   });
 
-  describe('getEngineSettingsWithDefaultsAndOverrides (used only when the plugin creates the engine)', () => {
-    it('should still bound the created engine by the grid\'s `maxRows`', () => {
-      expect(getEngineSettingsWithDefaultsAndOverrides({ maxRows: 2 }).maxRows).toBe(2);
+  describe('getEngineSettingsWithDefaultsAndOverrides (used when the plugin creates the engine)', () => {
+    it('should not bound the created engine by the grid\'s `maxRows`', () => {
+      expect(getEngineSettingsWithDefaultsAndOverrides({ maxRows: 2 }).maxRows).toBe(Infinity);
     });
 
-    it('should leave the created engine unbounded when the grid sets no `maxRows`', () => {
-      expect(getEngineSettingsWithDefaultsAndOverrides({ maxRows: Infinity }).maxRows).toBe(Infinity);
+    it('should leave the created engine unbounded, not capped at HyperFormula\'s 40000', () => {
+      expect(getEngineSettingsWithDefaultsAndOverrides({}).maxRows).toBe(Infinity);
     });
 
-    it('should let the grid\'s limits win over the engine config, as before', () => {
+    it('should not bound the created engine by the engine config either', () => {
       const settings = getEngineSettingsWithDefaultsAndOverrides({
         maxRows: 2,
         formulas: { engine: engineConfig }
       });
 
-      expect(settings.maxRows).toBe(2);
-      // `maxColumns` is not a Handsontable option, so it resolves to `undefined` and HyperFormula
-      // falls back to its own default. Preserved deliberately - see the note in `settings.ts`.
-      expect(settings.maxColumns).toBeUndefined();
+      expect(settings.maxRows).toBe(Infinity);
+      // Left unset so HyperFormula falls back to its own default, exactly as before - `maxColumns` was
+      // read from a Handsontable option that does not exist (the option is `maxCols`).
+      expect('maxColumns' in settings).toBe(false);
+    });
+
+    it('should keep passing through non-size engine settings', () => {
+      const settings = getEngineSettingsWithDefaultsAndOverrides({
+        formulas: { engine: { hyperformula: () => {}, useStats: true } }
+      });
+
+      expect(settings.useStats).toBe(true);
     });
   });
 });
