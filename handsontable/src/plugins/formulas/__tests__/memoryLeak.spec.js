@@ -45,6 +45,107 @@ describe('Formulas memory leak check', () => {
     }
   });
 
+  it('should reuse the already-owned sheet on every `loadData` call (no `sheetName` configured)', async() => {
+    const hot = handsontable({
+      data: [['1', '2', '=A1+B1']],
+      formulas: {
+        engine: HyperFormula,
+      },
+    });
+    const { engine } = hot.getPlugin('formulas');
+
+    expect(engine.getSheetNames().length).toBe(1);
+
+    for (let i = 0; i < 5; i++) {
+      hot.loadData([['1', '2', '=A1+B1']]);
+    }
+
+    expect(engine.getSheetNames().length).toBe(1);
+    expect(engine.getSheetId(hot.getPlugin('formulas').sheetName)).toBe(hot.getPlugin('formulas').sheetId);
+    expect(hot.getDataAtCell(0, 2)).toBe(3);
+  });
+
+  it('should reuse the already-owned sheet on every `updateData` call (no `sheetName` configured)', async() => {
+    const hot = handsontable({
+      data: [['1', '2', '=A1+B1']],
+      formulas: {
+        engine: HyperFormula,
+      },
+    });
+    const { engine } = hot.getPlugin('formulas');
+
+    expect(engine.getSheetNames().length).toBe(1);
+
+    for (let i = 0; i < 5; i++) {
+      hot.updateData([['1', '2', '=A1+B1']]);
+    }
+
+    expect(engine.getSheetNames().length).toBe(1);
+    expect(hot.getDataAtCell(0, 2)).toBe(3);
+  });
+
+  it('should not retain the previous data in the engine after reloading the data', async() => {
+    const hot = handsontable({
+      data: [['1', '2', '=A1+B1']],
+      formulas: {
+        engine: HyperFormula,
+      },
+    });
+    const { engine } = hot.getPlugin('formulas');
+
+    hot.loadData([['10', '20', '=A1+B1']]);
+
+    const allSheetsSerialized = engine.getSheetNames()
+      .map(name => engine.getSheetSerialized(engine.getSheetId(name)));
+
+    // Only the current data may be present anywhere in the engine.
+    expect(allSheetsSerialized).toEqual([[['10', '20', '=A1+B1']]]);
+  });
+
+  it('should keep using the sheet pointed to by the `sheetName` option across data loads', async() => {
+    const hot = handsontable({
+      data: [['1', '2', '=A1+B1']],
+      formulas: {
+        engine: HyperFormula,
+        sheetName: 'MySheet',
+      },
+    });
+    const { engine } = hot.getPlugin('formulas');
+
+    hot.loadData([['1', '2', '=A1+B1']]);
+    hot.updateData([['1', '2', '=A1+B1']]);
+
+    expect(engine.getSheetNames()).toEqual(['MySheet']);
+    expect(hot.getPlugin('formulas').sheetName).toBe('MySheet');
+  });
+
+  it('should give each grid its own sheet when they share a single engine', async() => {
+    const hfInstance = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const hot1 = handsontable({
+      data: [['1', '2', '=A1+B1']],
+      formulas: {
+        engine: hfInstance,
+      },
+    });
+    const hot2 = spec().$container2.handsontable({
+      data: [['3', '4', '=A1+B1']],
+      formulas: {
+        engine: hfInstance,
+      },
+    }).data('handsontable');
+
+    expect(hfInstance.getSheetNames().length).toBe(2);
+
+    hot1.loadData([['1', '2', '=A1+B1']]);
+    hot2.loadData([['3', '4', '=A1+B1']]);
+
+    // Reloading the data must not add sheets, and must not make the two grids share one sheet.
+    expect(hfInstance.getSheetNames().length).toBe(2);
+    expect(hot1.getPlugin('formulas').sheetId).not.toBe(hot2.getPlugin('formulas').sheetId);
+    expect(hot1.getDataAtCell(0, 2)).toBe(3);
+    expect(hot2.getDataAtCell(0, 2)).toBe(7);
+  });
+
   it('should detach listeners from the engine after table destroying (one shared HF instances)', async() => {
     const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
     const hot1 = handsontable({

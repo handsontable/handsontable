@@ -280,15 +280,20 @@ export function registerNamedExpressions(
 }
 
 /**
- * Sets up a new sheet.
+ * Sets up the sheet to work on. An existing sheet is reused; a new one is added only when there is
+ * nothing to reuse.
  *
  * @param {object} engineInstance The engine instance.
- * @param {string} sheetName The new sheet name.
+ * @param {string} [sheetName] The sheet name to use. When omitted (or `null`), a new sheet is added.
  * @returns {*}
  */
-export function setupSheet(engineInstance: HyperFormulaEngine, sheetName: string) {
-  if (isUndefined(sheetName) || !engineInstance.doesSheetExist(sheetName)) {
-    sheetName = engineInstance.addSheet(sheetName);
+export function setupSheet(engineInstance: HyperFormulaEngine, sheetName?: string | null) {
+  if (sheetName === undefined || sheetName === null) {
+    return engineInstance.addSheet();
+  }
+
+  if (!engineInstance.doesSheetExist(sheetName)) {
+    return engineInstance.addSheet(sheetName);
   }
 
   return sheetName;

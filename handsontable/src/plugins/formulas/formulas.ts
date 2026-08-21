@@ -1320,7 +1320,10 @@ export class Formulas extends BasePlugin {
 
     const formulasSettings = this.hot.getSettings()[PLUGIN_KEY];
     const settingsSheetName = isFormulasSettingsObject(formulasSettings) ? formulasSettings.sheetName : undefined;
-    const sheetName = setupSheet(this.engine, settingsSheetName!);
+    // Fall back to the sheet this instance already owns. Without it every `loadData`/`updateData`
+    // call adds a sheet and abandons the previous one - with its whole dependency graph - inside
+    // the engine, which the engine then recalculates on every subsequent call.
+    const sheetName = setupSheet(this.engine, settingsSheetName ?? this.sheetName);
 
     this.#updateSheetNameAndSheetId(sheetName);
 
