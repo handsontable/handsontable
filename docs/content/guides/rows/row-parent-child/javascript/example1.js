@@ -158,6 +158,6 @@ new Handsontable(container, {
     licenseKey: 'non-commercial-and-evaluation',
     // Collapse "Best Metal Performance" on load to demonstrate expand/collapse controls.
     afterInit() {
-        this.getPlugin('nestedRows').collapsingUI.collapseChildren(8);
+        this.getPlugin('nestedRows').collapseParent(8);
     },
 });

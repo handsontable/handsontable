@@ -162,7 +162,7 @@ const ExampleComponent = () => {
       height="auto"
       licenseKey="non-commercial-and-evaluation"
       afterInit={function (this: Handsontable) {
-        this.getPlugin('nestedRows').collapsingUI.collapseChildren(8);
+        this.getPlugin('nestedRows').collapseParent(8);
       }}
     />
   );
