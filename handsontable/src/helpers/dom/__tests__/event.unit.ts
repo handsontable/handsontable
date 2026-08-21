@@ -1,4 +1,10 @@
-import { isLeftClick, isRightClick, isTouchEvent } from 'handsontable/helpers/dom/event';
+import {
+  getFirstTouchPoint,
+  hasTouchList,
+  isLeftClick,
+  isRightClick,
+  isTouchEvent,
+} from 'handsontable/helpers/dom/event';
 
 describe('DomEvent helper', () => {
   //
@@ -58,6 +64,73 @@ describe('DomEvent helper', () => {
       expect(isTouchEvent(new OriginalTouchEvent('touchstart'))).toBe(false);
 
       window.TouchEvent = OriginalTouchEvent;
+    });
+  });
+
+  /**
+   * Builds an event carrying the given touch list.
+   *
+   * The list is attached as a plain property because jsdom does not implement `Touch` - which is
+   * also the case the property-based check exists for.
+   *
+   * @param {Array} touches The touch points to attach.
+   * @returns {Event} The event.
+   */
+  function eventWithTouches(touches: { clientX: number; clientY: number }[]): Event {
+    const event = new Event('touchmove');
+
+    Object.defineProperty(event, 'touches', { value: touches });
+
+    return event;
+  }
+
+  //
+  // Handsontable.dom.hasTouchList
+  //
+  describe('hasTouchList', () => {
+    it('should return true for an event carrying a touch list', () => {
+      expect(hasTouchList(eventWithTouches([{ clientX: 1, clientY: 2 }]))).toBe(true);
+    });
+
+    it('should return true for an event carrying an empty touch list', () => {
+      expect(hasTouchList(eventWithTouches([]))).toBe(true);
+    });
+
+    it('should return true for a real TouchEvent without consulting its constructor', () => {
+      // The point of the property check: `instanceof TouchEvent` is false for an event that came
+      // from another frame, and desktop Safari has no `TouchEvent` to compare against at all.
+      expect(hasTouchList(new TouchEvent('touchstart'))).toBe(true);
+    });
+
+    it('should return false for a mouse event', () => {
+      expect(hasTouchList(new MouseEvent('mousemove'))).toBe(false);
+    });
+  });
+
+  //
+  // Handsontable.dom.getFirstTouchPoint
+  //
+  describe('getFirstTouchPoint', () => {
+    it('should return the coordinates of the first touch point', () => {
+      expect(getFirstTouchPoint(eventWithTouches([{ clientX: 120, clientY: 340 }])))
+        .toEqual({ clientX: 120, clientY: 340 });
+    });
+
+    it('should ignore every touch point after the first one', () => {
+      const event = eventWithTouches([
+        { clientX: 10, clientY: 20 },
+        { clientX: 90, clientY: 80 },
+      ]);
+
+      expect(getFirstTouchPoint(event)).toEqual({ clientX: 10, clientY: 20 });
+    });
+
+    it('should return null for an empty touch list, as carried by touchend', () => {
+      expect(getFirstTouchPoint(eventWithTouches([]))).toBe(null);
+    });
+
+    it('should return null for an event that carries no touch list', () => {
+      expect(getFirstTouchPoint(new MouseEvent('mousemove', { clientX: 5, clientY: 5 }))).toBe(null);
     });
   });
 });

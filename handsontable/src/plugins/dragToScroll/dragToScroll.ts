@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { isRightClick } from '../../helpers/dom/event';
+import { getFirstTouchPoint, isRightClick } from '../../helpers/dom/event';
 import { getParentWindow } from '../../helpers/dom/element';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
 import { AutoScroller } from './autoScroller';
@@ -251,7 +251,7 @@ export class DragToScroll extends BasePlugin {
   }
 
   /**
-   * Enables listening on `mousemove` event.
+   * Enables listening on the `mousemove` and `touchmove` events.
    *
    * @private
    */
@@ -260,7 +260,7 @@ export class DragToScroll extends BasePlugin {
   }
 
   /**
-   * Disables listening on `mousemove` event.
+   * Disables listening on the `mousemove` and `touchmove` events.
    *
    * @private
    */
@@ -306,6 +306,13 @@ export class DragToScroll extends BasePlugin {
         this.#onMouseMove(event as MouseEvent);
       });
 
+      // Touch input needs its own listeners: a browser fires no `mousemove` while a finger is
+      // down, so without these the auto-scroller never receives a position on mobile (#11658).
+      this.eventManager.addEventListener(frame.document, 'touchstart', this.#onTouchStart);
+      this.eventManager.addEventListener(frame.document, 'touchmove', this.#onTouchMove);
+      this.eventManager.addEventListener(frame.document, 'touchend', () => this.unlisten());
+      this.eventManager.addEventListener(frame.document, 'touchcancel', () => this.unlisten());
+
       frame = getParentWindow(frame) as Window | null;
     }
   }
@@ -323,12 +330,13 @@ export class DragToScroll extends BasePlugin {
    * On after on cell/cellCorner mouse down listener.
    *
    * @param {('cell'|'corner'|'move'|'handle')} kind The active drag interaction.
-   * @param {MouseEvent} event The mouse event object.
+   * @param {Event} event The pointer event that started the drag - a `mousedown` on desktop, a
+   * `touchstart` on mobile.
    * @param {object} [controller] The controller object from `beforeOnCellMouseDown`.
    */
   #setupListening(
     kind: 'cell' | 'corner' | 'move' | 'handle',
-    event: MouseEvent,
+    event: Event,
     controller: { row?: boolean; column?: boolean } | null = null
   ) {
     if (isRightClick(event)) {
@@ -406,6 +414,44 @@ export class DragToScroll extends BasePlugin {
     }
 
     this.#setupListening('handle', event);
+  };
+
+  /**
+   * Starts auto-scrolling for a mobile selection-handle drag.
+   *
+   * The mobile handles run entirely on touch events, so no `mousedown` reaches them and the
+   * `afterOnSelectionHandleMouseDown` hook never fires - hence this separate entry point. The
+   * ordering is guaranteed by DOM bubbling rather than by plugin priority: MultipleSelectionHandles
+   * listens on `rootElement`, a descendant of the document this listener sits on, so it has already
+   * recorded the drag by the time this runs.
+   *
+   * @param {Event} event The `touchstart` event.
+   */
+  #onTouchStart = (event: Event): void => {
+    if (this.hot.getPlugin('multipleSelectionHandles')?.isDragged() !== true) {
+      return;
+    }
+
+    this.#setupListening('handle', event);
+  };
+
+  /**
+   * Feeds the moving finger's position to the auto-scroller.
+   *
+   * @param {Event} event The `touchmove` event.
+   */
+  #onTouchMove = (event: Event): void => {
+    if (!this.isListening()) {
+      return;
+    }
+
+    const touch = getFirstTouchPoint(event);
+
+    if (touch === null) {
+      return;
+    }
+
+    this.#trackPointer(touch.clientX, touch.clientY);
   };
 
   /**
@@ -494,10 +540,21 @@ export class DragToScroll extends BasePlugin {
       return;
     }
 
-    this.#lastClientX = event.clientX;
-    this.#lastClientY = event.clientY;
+    this.#trackPointer(event.clientX, event.clientY);
+  }
 
-    this.check(event.clientX, event.clientY);
+  /**
+   * Records the latest pointer position and runs the viewport-boundary check that drives the
+   * auto-scroller. Shared by the mouse and the touch input paths.
+   *
+   * @param {number} clientX The pointer's viewport X coordinate.
+   * @param {number} clientY The pointer's viewport Y coordinate.
+   */
+  #trackPointer(clientX: number, clientY: number) {
+    this.#lastClientX = clientX;
+    this.#lastClientY = clientY;
+
+    this.check(clientX, clientY);
   }
 
   /**

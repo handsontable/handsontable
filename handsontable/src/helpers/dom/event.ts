@@ -61,6 +61,45 @@ export function isTouchEvent(event: Event): boolean {
 }
 
 /**
+ * A DOM event that carries a touch list.
+ */
+interface TouchListEvent extends Event {
+  touches: ArrayLike<{ clientX: number; clientY: number }>;
+}
+
+/**
+ * Narrows a DOM event to one that carries a touch list.
+ *
+ * Detects the list by property rather than with `instanceof TouchEvent`, so it also holds for an
+ * event that crossed an iframe boundary - every frame has its own `TouchEvent` constructor - and on
+ * desktop Safari, which does not expose `TouchEvent` at all. Use `isTouchEvent` when you need the
+ * stricter same-frame check instead.
+ *
+ * @param {Event} event The event object.
+ * @returns {boolean} `true` when the event carries a touch list.
+ */
+export function hasTouchList(event: Event): event is TouchListEvent {
+  return 'touches' in event;
+}
+
+/**
+ * Reads the viewport coordinates of a touch event's first touch point.
+ *
+ * @param {Event} event The event object.
+ * @returns {object|null} The first touch point as `{clientX, clientY}`, or `null` when the event
+ * carries no touch list or the list is empty, as it is on `touchend`.
+ */
+export function getFirstTouchPoint(event: Event): { clientX: number; clientY: number } | null {
+  if (!hasTouchList(event) || event.touches.length === 0) {
+    return null;
+  }
+
+  const { clientX, clientY } = event.touches[0];
+
+  return { clientX, clientY };
+}
+
+/**
  * Calculates the event offset until reaching the element defined by `relativeElement` argument.
  *
  * @param {Event} event The mouse event object.

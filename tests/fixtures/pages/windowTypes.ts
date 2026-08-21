@@ -44,6 +44,7 @@ export interface FixtureHotInstance {
     disablePlugin(): void,
   };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
+  getPlugin(name: 'multipleSelectionHandles'): { isDragged(): boolean };
   getPlugin(name: 'selectionHandles'): {
     isDragActive(): boolean,
     enablePlugin(): void,
