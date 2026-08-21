@@ -5,6 +5,10 @@ export const DEFAULT_LICENSE_KEY = 'internal-use-in-handsontable';
 export const DEFAULT_SETTINGS = {
   licenseKey: DEFAULT_LICENSE_KEY,
 
+  // HyperFormula's own default is 40000. Handsontable's `maxRows` used to be forwarded here, and it
+  // defaults to `Infinity`, so engines created by Handsontable have always been unbounded. Keep it.
+  maxRows: Infinity,
+
   useArrayArithmetic: true,
   useColumnIndex: false,
   useStats: false,
@@ -33,6 +37,10 @@ export const DEFAULT_SETTINGS = {
 /**
  * Gets a set of engine settings to be applied on top of the provided settings, based on user's Handsontable settings.
  *
+ * `maxRows` and `maxColumns` are deliberately not forwarded. They are per-instance display limits in
+ * Handsontable, but engine-wide in HyperFormula, so with a shared engine the smallest one clamped every
+ * sheet and threw `SheetSizeLimitExceededError`. See GH #10672.
+ *
  * @param {object} hotSettings Handsontable settings object.
  * @returns {object} Object containing the overriding options.
  */
@@ -40,8 +48,6 @@ export function getEngineSettingsOverrides(hotSettings: Record<string, unknown>)
   const pluginSetting = hotSettings[PLUGIN_KEY] as Record<string, unknown> | undefined;
 
   return {
-    maxColumns: hotSettings.maxColumns,
-    maxRows: hotSettings.maxRows,
     language: (pluginSetting?.language as Record<string, unknown> | undefined)?.langCode
   };
 }

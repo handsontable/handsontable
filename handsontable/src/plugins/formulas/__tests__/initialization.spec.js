@@ -950,28 +950,88 @@ describe('Formulas general', () => {
       expect(getPlugin('formulas').engine.updateConfig).not.toHaveBeenCalled();
     });
 
-    it('should update HyperFormula\'s settings if the new Handsontable settings would change them', async() => {
+    it('should not forward `maxRows` and `maxColumns` to the engine (GH #10672)', async() => {
       handsontable({
         formulas: {
           engine: HyperFormula
         }
       });
 
-      spyOn(getPlugin('formulas').engine, 'updateConfig').and.callThrough();
+      const { engine } = getPlugin('formulas');
+      const initialMaxRows = engine.getConfig().maxRows;
+      const initialMaxColumns = engine.getConfig().maxColumns;
+
+      spyOn(engine, 'updateConfig').and.callThrough();
 
       await updateSettings({
         maxColumns: 27
       });
 
-      expect(getPlugin('formulas').engine.updateConfig).toHaveBeenCalledTimes(1);
-      expect(getPlugin('formulas').engine.getConfig().maxColumns).toEqual(27);
-
       await updateSettings({
         maxRows: 27
       });
 
-      expect(getPlugin('formulas').engine.updateConfig).toHaveBeenCalledTimes(2);
-      expect(getPlugin('formulas').engine.getConfig().maxRows).toEqual(27);
+      expect(engine.updateConfig).not.toHaveBeenCalled();
+      expect(engine.getConfig().maxRows).toBe(initialMaxRows);
+      expect(engine.getConfig().maxColumns).toBe(initialMaxColumns);
+    });
+
+    it('should leave an engine created from a class unbounded by rows', async() => {
+      handsontable({
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      expect(getPlugin('formulas').engine.getConfig().maxRows).toBe(Infinity);
+    });
+
+    it('should keep `maxRows` and `maxColumns` passed in the engine config', async() => {
+      handsontable({
+        formulas: {
+          engine: {
+            hyperformula: HyperFormula,
+            maxRows: 123,
+            maxColumns: 45,
+          }
+        }
+      });
+
+      const { engine } = getPlugin('formulas');
+
+      expect(engine.getConfig().maxRows).toBe(123);
+      expect(engine.getConfig().maxColumns).toBe(45);
+    });
+
+    it('should not throw `Sheet size limit exceeded` when a grid with a low `maxRows` shares an engine' +
+      ' with a taller one (GH #10672)', async() => {
+      const engine = HyperFormula.buildEmpty({
+        licenseKey: 'internal-use-in-handsontable',
+      });
+
+      handsontable({
+        data: [['1'], ['2']],
+        maxRows: 2,
+        formulas: {
+          engine,
+          sheetName: 'Sheet1'
+        }
+      });
+
+      spec().$container2.handsontable({
+        data: [['a'], ['b'], ['c'], ['d'], ['e']],
+        formulas: {
+          engine,
+          sheetName: 'Sheet2'
+        }
+      }).data('handsontable');
+
+      // The React wrapper re-sends every prop on each render, so `maxRows` is always in the payload.
+      // Before the fix this threw `SheetSizeLimitExceededError`.
+      await updateSettings({ maxRows: 2 });
+
+      expect(engine.getConfig().maxRows).not.toBe(2);
+      expect(engine.getSheetDimensions(engine.getSheetId('Sheet2')).height).toBe(5);
     });
 
     it('should not update `sheetName` if `updateSettings` contains one that doesn\'t exist in the engine', async() => {

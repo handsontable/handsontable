@@ -1666,7 +1666,7 @@ describe('Formulas general', () => {
   });
 
   describe('hyperformula alter operation blocks', () => {
-    it('should block creating too many rows', async() => {
+    it('should cap row creation at `maxRows`, like a grid without the plugin', async() => {
       handsontable({
         data: [],
         formulas: {
@@ -1676,6 +1676,24 @@ describe('Formulas general', () => {
         },
         // TODO: Temporarily overwrite the default value due to https://github.com/handsontable/handsontable/issues/7840
         maxRows: 10000
+      });
+
+      await alter('insert_row_above', 0, 20000);
+
+      // `maxRows` is no longer forwarded to the engine (GH #10672), so the engine stops cancelling the
+      // whole insert and `dataMap.createRow` caps it at `maxRows` — the same as without the plugin.
+      expect(countRows()).toEqual(10000);
+    });
+
+    it('should still block creating more rows than the engine allows', async() => {
+      handsontable({
+        data: [],
+        formulas: {
+          engine: {
+            hyperformula: HyperFormula,
+            maxRows: 10
+          }
+        },
       });
 
       await alter('insert_row_above', 0, 20000);
