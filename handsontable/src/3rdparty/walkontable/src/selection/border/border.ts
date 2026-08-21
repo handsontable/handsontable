@@ -1249,6 +1249,12 @@ class Border {
   /**
    * Show border around one or many cells.
    *
+   * The fill handle is normally centered on the selection's bottom-end corner, so half of it hangs
+   * past that corner. Two rows cannot afford that overhang and lift the handle by half its height
+   * instead (the `wtCornerBlockEndEdge` class pulls its hit area up to match): the grid's last row,
+   * where the overhang would spill out of the trimming container, and the `fixedRowsBottom` seam
+   * row, where the bottom overlay paints above the master and would cut the handle in half.
+   *
    * @param {Array} corners The corner coordinates.
    */
   appear(corners: number[]) {
@@ -1552,11 +1558,15 @@ class Border {
         removeClass(this.corner!, 'wtCornerInlineEndEdge');
       }
 
-      if (toRow === (this.wot.getSetting('totalRows') as number) - 1) {
+      const isBlockEndRow = toRow === (this.wot.getSetting('totalRows') as number) - 1;
+      const isBottomFreezeSeamRow = this.isFrozenBottomBoundaryEdge(toRow);
+
+      if (isBlockEndRow || isBottomFreezeSeamRow) {
         const { top: toTdOffsetTop } = fillHandleAnchor;
         const cornerHalfHeight = parseInt(String(this.cornerDefaultStyle.height), 10) / 2;
         const cornerBottomEdge = toTdOffsetTop + geometryReader.outerHeight(toTDEl) + cornerHalfHeight;
-        const cornerOverlappingContainer = cornerBottomEdge >= geometryReader.innerHeight(trimmingContainer);
+        const cornerOverlappingContainer = isBottomFreezeSeamRow ||
+          cornerBottomEdge >= geometryReader.innerHeight(trimmingContainer);
 
         if (cornerOverlappingContainer) {
           const cornerTopPosition = Math.floor(

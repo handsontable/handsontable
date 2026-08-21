@@ -47,6 +47,17 @@ test.describe('fill handle and frozen panes', () => {
     await expect.poll(() => grid.elementAtFillHandleCenter()).toBe('ht_clone_inline_start/');
   });
 
+  test('lifts the fill handle above the bottom freeze seam so it stays whole', async () => {
+    // 10 rows, fixedRowsBottom: 2 → row 7 is the last scrollable row and its bottom edge is the
+    // seam. A handle centered there would be cut in half by the bottom overlay, so it is lifted by
+    // half its height, exactly like the handle on the grid's own last row.
+    await grid.initGrid({ fixedRowsBottom: 2, height: 150 });
+    await grid.selectCells(7, 1, 7, 1);
+
+    await expect(grid.fillHandle()).toHaveClass(/wtCornerBlockEndEdge/);
+    await expect.poll(() => grid.elementAtFillHandleCenter()).toContain('corner');
+  });
+
   test('hides the fill handle behind the bottom frozen rows when the cell scrolls under them', async () => {
     await grid.initGrid({ fixedRowsBottom: 2, height: 150 });
     await grid.selectCells(3, 1, 3, 1);
