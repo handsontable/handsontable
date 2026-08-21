@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a `Sheet size limit exceeded` error thrown when several grids shared one HyperFormula instance and one of them set `maxRows`.",
+  "type": "fixed",
+  "issueOrPR": 10672,
+  "breaking": false,
+  "framework": "none"
+}
