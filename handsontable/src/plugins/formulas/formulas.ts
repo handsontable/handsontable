@@ -875,8 +875,19 @@ export class Formulas extends BasePlugin {
           }
         },
         stopPropagation: true,
-        runOnlyIf: (): boolean => this.#hyperlinksEnabled &&
-          !!this.hot.getSelectedRangeActive()?.highlight.isCell(),
+        // The shortcut prevents the default action and stops propagation whenever `runOnlyIf`
+        // passes, so it must claim the chord only for a cell that actually resolves to a link.
+        // Testing just `isCell()` would swallow `Alt`+`Enter` grid-wide and break a host
+        // application's own handler for it.
+        runOnlyIf: (): boolean => {
+          const highlight = this.hot.getSelectedRangeActive()?.highlight;
+
+          return this.#hyperlinksEnabled &&
+            !!highlight?.isCell() &&
+            highlight.row !== null &&
+            highlight.col !== null &&
+            this.#getHyperlinkHref(highlight.row, highlight.col) !== null;
+        },
         group: SHORTCUTS_GROUP,
       });
   }
@@ -899,6 +910,25 @@ export class Formulas extends BasePlugin {
     const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
 
     this.#hyperlinksEnabled = isFormulasSettingsObject(pluginSettings) && pluginSettings.hyperlinks === true;
+  }
+
+  /**
+   * Moves the content of a cell's `HYPERLINK` anchor back into the cell and drops the anchor. Loops
+   * so that anchors nested by an older render pass are unwrapped as well.
+   *
+   * @param {HTMLTableCellElement} TD The rendered cell element.
+   */
+  #unwrapHyperlink(TD: HTMLTableCellElement) {
+    let link = TD.querySelector(`a.${HYPERLINK_CLASS_NAME}`);
+
+    while (link !== null) {
+      while (link.firstChild) {
+        TD.insertBefore(link.firstChild, link);
+      }
+
+      link.remove();
+      link = TD.querySelector(`a.${HYPERLINK_CLASS_NAME}`);
+    }
   }
 
   /**
@@ -1571,11 +1601,11 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    // Walkontable recycles TD elements. A renderer that leaves its previous DOM in place would
-    // otherwise collect one nested anchor per render pass.
-    if (TD.childElementCount === 1 && TD.firstElementChild?.classList.contains(HYPERLINK_CLASS_NAME)) {
-      return;
-    }
+    // Walkontable recycles TD elements, and a renderer is free to leave its previous DOM in place.
+    // Unwrapping first, unconditionally, keeps this idempotent by construction: no anchor nests
+    // inside another one across render passes, and the `href` is always rebuilt from the current
+    // formula instead of inherited from whatever the previous pass resolved.
+    this.#unwrapHyperlink(TD);
 
     const href = this.#getHyperlinkHref(row, column);
 

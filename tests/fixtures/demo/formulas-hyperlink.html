@@ -35,8 +35,9 @@
     root expression is HYPERLINK() renders its value inside an anchor, while the
     cell keeps its own renderer and its cell meta is never touched (PRO-1051).
     Column B carries a custom renderer, column C a `checkbox` cell type and
-    column D a `password` cell type, so a spec can prove none of them is
-    displaced. Every leg runs exactly ONE engine: the
+    column D a `password` cell type and column E a memoizing renderer, so a spec
+    can prove none of them is displaced and that a stale `href` cannot survive a
+    render pass. Every leg runs exactly ONE engine: the
     `umd` legs load HyperFormula as an external script (the base bundle ships
     none — the DEV-2190 wiring); the `full-min` legs use the baked-in engine.
   -->
@@ -76,23 +77,37 @@
       td.appendChild(mark);
     }
 
+    // A renderer that leaves the cell's DOM untouched when the rendered value has not changed.
+    // This is the shape that made the old shape-based idempotency guard keep a stale `href`.
+    function memoRenderer(instance, td, row, col, prop, value) {
+      const next = value === null || value === undefined ? '' : String(value);
+      const key = `${row}:${col}:${next}`;
+
+      if (td.dataset.memo === key) {
+        return;
+      }
+
+      td.dataset.memo = key;
+      td.textContent = next;
+    }
+
     window.hot = new Handsontable(container, {
       data: [
         // A plain link, label given explicitly.
-        ['=HYPERLINK("https://example.com/one","Example one")', '=HYPERLINK("https://example.com/b1","B one")', true, '=HYPERLINK("https://example.com/pw","secret")'],
+        ['=HYPERLINK("https://example.com/one","Example one")', '=HYPERLINK("https://example.com/b1","B one")', true, '=HYPERLINK("https://example.com/pw","secret")', '=HYPERLINK(E2,"Steady")'],
         // The label defaults to the URL when the second argument is omitted.
-        ['=HYPERLINK("https://example.com/two")', 'b2', false, 'plainsecret'],
+        ['=HYPERLINK("https://example.com/two")', 'b2', false, 'plainsecret', 'https://example.com/first'],
         // HYPERLINK is not the root expression, so the engine reports no link.
-        ['=CONCATENATE("see ", HYPERLINK("https://example.com/three","three"))', 'b3', true, 'x'],
+        ['=CONCATENATE("see ", HYPERLINK("https://example.com/three","three"))', 'b3', true, 'x', 'x'],
         // Refused by the protocol allowlist.
-        ['=HYPERLINK("javascript:alert(1)","Danger")', 'b4', false, 'x'],
+        ['=HYPERLINK("javascript:alert(1)","Danger")', 'b4', false, 'x', 'x'],
         // The label must stay text, never markup.
-        ['=HYPERLINK("https://example.com/five","<img src=x onerror=\'window.__xss = true\'>")', 'b5', true, 'x'],
+        ['=HYPERLINK("https://example.com/five","<img src=x onerror=\'window.__xss = true\'>")', 'b5', true, 'x', 'x'],
         // A relative URL resolves against the document, which keeps a real
         // click navigation local and offline-safe.
-        ['=HYPERLINK("/tests/fixtures/demo/grid.html","Local page")', 'b6', false, 'x'],
+        ['=HYPERLINK("/tests/fixtures/demo/grid.html","Local page")', 'b6', false, 'x', 'x'],
         // Not a formula at all.
-        ['plain', 'b7', true, 'x'],
+        ['plain', 'b7', true, 'x', 'x'],
       ],
       formulas: {
         engine: HyperFormula,
@@ -107,6 +122,7 @@
         // to survive inside the anchor, which only holds if the type's renderer
         // still runs (finding #6 of the review of #10314).
         { type: 'password' },
+        { renderer: memoRenderer },
       ],
       width: 600,
       height: 300,

@@ -120,6 +120,27 @@ export class FormulasHyperlinkPage {
     });
   }
 
+  /**
+   * Record the `Alt`+`Enter` keydown events that reach the document, and whether their default was
+   * prevented. A shortcut that claims the chord stops propagation, so a swallowed event never
+   * arrives here at all — which is exactly what a host application's own handler would see.
+   */
+  async recordHostAltEnter(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as any).__altEnter = [];
+      document.addEventListener('keydown', (event) => {
+        if (event.altKey && event.key === 'Enter') {
+          (window as any).__altEnter.push(event.defaultPrevented);
+        }
+      });
+    });
+  }
+
+  /** The `Alt`+`Enter` events that reached the document since `recordHostAltEnter()`. */
+  async hostAltEnterEvents(): Promise<boolean[]> {
+    return this.page.evaluate(() => (window as any).__altEnter as boolean[]);
+  }
+
   /** Press the shortcut that opens the link of the selected cell. */
   async pressOpenLinkShortcut(): Promise<void> {
     await this.page.keyboard.press('Alt+Enter');

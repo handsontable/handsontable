@@ -190,6 +190,46 @@ test.describe('formulas: HYPERLINK rendering', () => {
     await expect(grid.openedUrls()).resolves.toEqual(['https://example.com/one']);
   });
 
+  test('leaves Alt+Enter to the host application on a cell with no link', async({ page, theme, bundle }) => {
+    const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.recordHostAltEnter();
+
+    // A cell holding no link must not have the chord taken from it: the event has to reach the
+    // document undefeated, or a host application's own Alt+Enter handler stops firing grid-wide.
+    await grid.selectCell(6, 0);
+    await grid.pressOpenLinkShortcut();
+
+    await expect(grid.hostAltEnterEvents()).resolves.toEqual([false]);
+
+    // On a link cell the plugin claims the chord, so the event is stopped before the document.
+    await grid.selectCell(0, 0);
+    await grid.pressOpenLinkShortcut();
+
+    await expect(grid.hostAltEnterEvents()).resolves.toEqual([false]);
+  });
+
+  test('rebuilds a stale href when only the URL behind the formula changes',
+    async({ page, theme, bundle }) => {
+      const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+      await grid.goto();
+
+      // Column E holds `=HYPERLINK(E2,"Steady")` and renders through a memoizing renderer that
+      // leaves the cell's DOM alone when the value is unchanged. Changing E2 changes the URL while
+      // the label stays "Steady", so nothing about the cell's content signals the change.
+      await expect(grid.link(0, 4)).toHaveText('Steady');
+      await expect(grid.link(0, 4)).toHaveAttribute('href', 'https://example.com/first');
+
+      await grid.setCellValue(1, 4, 'https://example.com/second');
+
+      await expect(grid.link(0, 4)).toHaveText('Steady');
+      await expect(grid.link(0, 4)).toHaveAttribute('href', 'https://example.com/second');
+      // Exactly one anchor: unwrapping before wrapping must not nest or duplicate.
+      await expect(grid.link(0, 4)).toHaveCount(1);
+    });
+
   test('does nothing on Alt+Enter when the selected cell holds no link', async({ page, theme, bundle }) => {
     const grid = new FormulasHyperlinkPage(page, theme, bundle);
 
