@@ -1997,6 +1997,7 @@ export default (): Record<string, unknown> => {
      * - [Date-time cell type](@/guides/cell-types/datetime-cell-type/datetime-cell-type.md)
      * - [`locale`](@/api/options.md#locale)
      *
+     * @since 18.1.0
      * @memberof Options#
      * @type {object}
      * @default { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
