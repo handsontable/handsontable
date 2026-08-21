@@ -3048,6 +3048,127 @@ describe('Formulas general', () => {
         ['0123456', 7],
       ]);
     });
+
+    it('should respect the option set at the grid level (cascading configuration)', async() => {
+      handsontable({
+        data: [
+          ['0123456'],
+          ['=LEN(A1)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        type: 'text',
+        preserveTextValues: true,
+      });
+
+      expect(getPlugin('formulas').engine.getSheetValues(0)).toEqual([
+        ['0123456'],
+        [7],
+      ]);
+    });
+
+    it('should respect the option set per cell via the cells function on the edit path', async() => {
+      handsontable({
+        data: [
+          ['x', 'x'],
+          ['=LEN(A1)', '=LEN(B1)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        cells(row, column) {
+          if (row === 0 && column === 0) {
+            return { type: 'text', preserveTextValues: true };
+          }
+        },
+      });
+
+      await setDataAtCell(0, 0, '0123456');
+      await setDataAtCell(0, 1, '0123456');
+
+      expect(getPlugin('formulas').engine.getSheetValues(0)).toEqual([
+        ['0123456', 123456],
+        [7, 6],
+      ]);
+    });
+
+    it('should restore the preserved value correctly on undo and redo', async() => {
+      handsontable({
+        data: [
+          ['0123456'],
+          ['=LEN(A1)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+          preserveTextValues: true,
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await setDataAtCell(0, 0, '00099');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([['00099'], [5]]);
+
+      getPlugin('undoRedo').undo();
+
+      expect(getDataAtCell(0, 0)).toBe('0123456');
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([['0123456'], [7]]);
+
+      getPlugin('undoRedo').redo();
+
+      expect(getDataAtCell(0, 0)).toBe('00099');
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([['00099'], [5]]);
+    });
+
+    it('should still treat a formula typed into a preserved text cell as a formula', async() => {
+      handsontable({
+        data: [
+          ['0123456'],
+          ['x'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+          preserveTextValues: true,
+        }],
+      });
+
+      await setDataAtCell(1, 0, '=LEN(A1)');
+
+      expect(getDataAtCell(1, 0)).toBe(7);
+    });
+
+    it('should preserve a value that already starts with an apostrophe', async() => {
+      handsontable({
+        data: [
+          ['x'],
+          ['=LEN(A1)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+          preserveTextValues: true,
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await setDataAtCell(0, 0, '\'0123');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['\'0123'],
+        [5],
+      ]);
+    });
   });
 
   describe('handling numeric values', () => {
