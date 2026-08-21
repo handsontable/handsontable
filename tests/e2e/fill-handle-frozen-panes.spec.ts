@@ -42,7 +42,9 @@ test.describe('fill handle and frozen panes', () => {
     await expect(grid.fillHandle()).toBeVisible();
     await grid.scrollCellBehindFrozenPane(5, 3, 'columns');
 
-    await expect.poll(() => grid.elementAtFillHandleCenter()).not.toContain('wtBorder');
+    // The frozen pane owns those pixels now — asserting on the overlay too, so a handle that simply
+    // moved somewhere else cannot pass this as "occluded".
+    await expect.poll(() => grid.elementAtFillHandleCenter()).toBe('ht_clone_inline_start/');
   });
 
   test('hides the fill handle behind the bottom frozen rows when the cell scrolls under them', async () => {
@@ -52,6 +54,6 @@ test.describe('fill handle and frozen panes', () => {
     await expect(grid.fillHandle()).toBeVisible();
     await grid.scrollCellBehindFrozenPane(3, 1, 'rows');
 
-    await expect.poll(() => grid.elementAtFillHandleCenter()).not.toContain('wtBorder');
+    await expect.poll(() => grid.elementAtFillHandleCenter()).toBe('ht_clone_bottom/');
   });
 });

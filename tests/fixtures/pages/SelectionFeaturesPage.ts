@@ -780,9 +780,10 @@ export class SelectionFeaturesPage {
   }
 
   /**
-   * The class name of whatever the browser hit-tests at the center of the fill handle. A frozen
-   * pane that occludes the handle owns those pixels, so the topmost element there is one of its
-   * cells rather than the handle itself.
+   * What the browser hit-tests at the center of the fill handle, as `<overlay>/<class name>`. A
+   * frozen pane that occludes the handle owns those pixels, so the topmost element there is one of
+   * that pane's cells rather than the handle. The overlay half of the reading matters: a hit on a
+   * master cell would mean the handle simply is not where the test assumed, not that the pane won.
    */
   async elementAtFillHandleCenter(): Promise<string> {
     const handleBox = await this.fillHandle().boundingBox();
@@ -794,7 +795,15 @@ export class SelectionFeaturesPage {
     return this.page.evaluate(({ x, y }) => {
       const element = document.elementFromPoint(x, y);
 
-      return element ? element.className : '';
+      if (!element) {
+        return 'none/none';
+      }
+
+      const overlay = element.closest('[class*="ht_clone_"], .ht_master');
+      const overlayName = overlay
+        ? Array.from(overlay.classList).find(name => name.startsWith('ht_')) : 'none';
+
+      return `${overlayName}/${element.className}`;
     }, { x: handleBox.x + (handleBox.width / 2), y: handleBox.y + (handleBox.height / 2) });
   }
 
