@@ -38,7 +38,6 @@ overrides:
   cacache>tar: ^7.5.11
   undici: ^6.24.0
   '@astrojs/mdx': ^6.0.1
-  jspdf: 4.2.1
 
 packageExtensionsChecksum: sha256-HW0fEgNzl97t+n6OP9YhjxMaqHuFQdiKyvrxqn9AYp4=
 
@@ -230,7 +229,7 @@ importers:
         specifier: ^3.2.0
         version: 3.3.0
       jspdf:
-        specifier: 4.2.1
+        specifier: ^4.2.1
         version: 4.2.1
       jspdf-autotable:
         specifier: ^5.0.7
@@ -417,7 +416,7 @@ importers:
         specifier: latest
         version: 3.3.0
       jspdf:
-        specifier: 4.2.1
+        specifier: latest
         version: 4.2.1
       jspdf-autotable:
         specifier: latest
@@ -9825,7 +9824,7 @@ packages:
   jspdf-autotable@5.0.8:
     resolution: {integrity: sha512-Hy05N86yBO7CXBrnSLOge7i1ZYpKH2DjQ94iybaP7vBhSInjvRBgDc99ngKzSbSO8Jc98ZCally8I6n0tj2RJQ==}
     peerDependencies:
-      jspdf: 4.2.1
+      jspdf: ^2 || ^3 || ^4
 
   jspdf@4.2.1:
     resolution: {integrity: sha512-YyAXyvnmjTbR4bHQRLzex3CuINCDlQnBqoSYyjJwTP2x9jDLuKDzy7aKUl0hgx3uhcl7xzg32agn5vlie6HIlQ==}
