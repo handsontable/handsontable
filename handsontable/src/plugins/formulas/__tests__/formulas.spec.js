@@ -3016,6 +3016,38 @@ describe('Formulas general', () => {
         [7],
       ]);
     });
+
+    it('should autofill preserved text values without the escape apostrophe', async() => {
+      handsontable({
+        data: [
+          ['0123456', '=LEN(A1)'],
+          ['', '=LEN(A2)'],
+          ['', '=LEN(A3)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+          preserveTextValues: true,
+        }, {}],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await selectCell(0, 0);
+      autofill(2, 0);
+
+      await waitForNextAnimationFrames(2);
+
+      expect(getDataAtCol(0)).toEqual(['0123456', '0123456', '0123456']);
+      expect(getSourceDataAtCol(0)).toEqual(['0123456', '0123456', '0123456']);
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['0123456', 7],
+        ['0123456', 7],
+        ['0123456', 7],
+      ]);
+    });
   });
 
   describe('handling numeric values', () => {

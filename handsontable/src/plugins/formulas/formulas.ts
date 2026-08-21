@@ -1277,6 +1277,11 @@ export class Formulas extends BasePlugin {
             fillRangeData[populatedRowIndex][populatedColumnIndex] =
               getDateInHotFormat(populatedValue);
           }
+        } else if (isPreservedText(populatedValue, sourceCellMeta)) {
+          if (populatedValue.startsWith('\'')) {
+            // Populating values on the Handsontable side without the escape apostrophe.
+            fillRangeData[populatedRowIndex][populatedColumnIndex] = populatedValue.slice(1);
+          }
         }
       }
     }
