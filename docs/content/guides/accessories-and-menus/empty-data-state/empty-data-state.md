@@ -1,6 +1,6 @@
 ---
 type: how-to
-title: Empty Data State
+title: Empty data state
 metaTitle: Empty Data State - JavaScript Data Grid | Handsontable
 description: Display empty data state overlays and provide user feedback when your data grid has no data to display using the Empty Data State plugin.
 permalink: /empty-data-state

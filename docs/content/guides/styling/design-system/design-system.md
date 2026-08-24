@@ -1,6 +1,6 @@
 ---
 type: explanation
-title: Design System
+title: Design system
 metaTitle: Design System / UI Kit - JavaScript Data Grid | Handsontable
 description: Design, prototype, and customize spreadsheet-like components with the Design System for Figma.
 permalink: /handsontable-design-system

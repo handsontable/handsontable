@@ -22,7 +22,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-## Introducing the New React Wrapper
+## Introducing the new React wrapper
 
 With Handsontable 15.0, a brand-new React wrapper is available designed for functional programming. It focuses on type safety, idiomatic React usage, and developer experience. Named `react-wrapper`, you can find it in our [GitHub monorepo](https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper) or install it directly from [npm](https://www.npmjs.com/package/@handsontable/react-wrapper).
 
