@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Fixed an issue where the grid scrollbars could not be reached under frozen rows, frozen columns, or the column header in Firefox.",
+  "title": "Fixed an issue where the grid scrollbars could not be reached under frozen rows, frozen columns, or the column header when the browser draws floating scrollbars over the content.",
   "type": "fixed",
   "issueOrPR": 10370,
   "breaking": false,
