@@ -317,6 +317,11 @@ class DataManager {
    * A physical row index shifts as soon as any other node gains or loses children. A tree path does
    * not, so it can be used to find the same node again after the data is replaced.
    *
+   * Assumes each row object appears in the tree once. The path is built with `indexOf`, on object
+   * identity, while `getRowIndexByTreePath()` finishes through the `cache.nodeInfo` WeakMap, which
+   * keeps only a node's last occurrence - so the same object placed at two spots makes the two
+   * disagree.
+   *
    * @param {number} row Physical row index.
    * @returns {number[]|null} The path, or `null` when the row is not part of the current structure.
    */
@@ -346,10 +351,12 @@ class DataManager {
   /**
    * Find the physical row index of the node that the provided tree path points at.
    *
-   * @param {number[]} path Chain of child indexes, as returned by {@link DataManager#getRowTreePath}.
+   * @param {number[]|null} path Chain of child indexes, as returned by
+   * {@link DataManager#getRowTreePath} - which returns `null` for a row it does not know, so the
+   * `null` is accepted here rather than filtered at every call site.
    * @returns {number|null} Physical row index, or `null` when the path leads outside the structure.
    */
-  getRowIndexByTreePath(path: number[]): number | null {
+  getRowIndexByTreePath(path: number[] | null): number | null {
     if (!Array.isArray(path) || path.length === 0) {
       return null;
     }

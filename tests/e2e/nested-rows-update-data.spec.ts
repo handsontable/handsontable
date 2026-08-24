@@ -159,6 +159,55 @@ test.describe('NestedRows collapsed parents across a data replacement', () => {
     expect(await nestedRows.visibleNames()).toEqual(['Root A', 'A-1', 'A-2', 'A-3', 'Root B']);
   });
 
+  test('forgets a collapsed parent that updateData() removed from the data', async({ page, theme }) => {
+    const nestedRows = new NestedRowsPage(page, theme);
+
+    await nestedRows.goto();
+
+    await nestedRows.callPlugin('collapseParent', 6); // Root B
+    await nestedRows.callPlugin('collapseParent', 2); // A-2
+
+    // Root B is gone from the new data, so its path leads nowhere and it is simply dropped.
+    await nestedRows.updateData([tree(['A-2-a'], [])[0]]);
+
+    expect(await nestedRows.collapsedParents()).toEqual([2]);
+    expect(await nestedRows.visibleNames()).toEqual(['Root A', 'A-1', 'A-2', 'A-3']);
+  });
+
+  test('leaves the selection inside the grid after the replay trims rows', async({ page, theme }) => {
+    const nestedRows = new NestedRowsPage(page, theme);
+
+    await nestedRows.goto();
+
+    await nestedRows.callPlugin('collapseParent', 2); // A-2, leaves 7 rows
+    await page.evaluate(() => window.hot.selectCell(6, 0));
+
+    // The Core clamps the selection while the grid is still fully expanded, and trimming does not
+    // re-clamp it, so the highlight could end up past the last row.
+    await nestedRows.updateData(tree(['A-2-a'], ['B-1']));
+
+    const highlightedRow = await nestedRows.highlightedRow();
+
+    expect(highlightedRow).not.toBeNull();
+    expect(highlightedRow).toBeLessThan(await nestedRows.countRows());
+    expect(await page.evaluate(row => window.hot.toPhysicalRow(row as number), highlightedRow)).not.toBeNull();
+  });
+
+  test('keeps the collapsed parents when the data is replaced from inside an add-child', async({ page, theme }) => {
+    const nestedRows = new NestedRowsPage(page, theme);
+
+    await nestedRows.goto();
+
+    await nestedRows.callPlugin('collapseParent', 6); // Root B
+    await nestedRows.callPlugin('collapseParent', 2); // A-2
+
+    // A real operation opens the stash, not the spec: `beforeAddChild` stashes, `afterAddChild`
+    // restores, and the data is replaced in between.
+    await nestedRows.replaceDataWhileAddingChild(tree(['A-2-a'], ['B-1']), 6);
+
+    expect(await nestedRows.collapsedParents()).toEqual([2, 5]);
+  });
+
   test('loadData() drops the collapsed parents, as it resets every other row state', async({ page, theme }) => {
     const nestedRows = new NestedRowsPage(page, theme);
 

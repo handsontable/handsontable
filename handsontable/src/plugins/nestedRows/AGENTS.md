@@ -130,7 +130,13 @@ They are written in different places and can drift. Keep this in mind:
   collapsed state (`loadData` resets row states by contract), while `beforeUpdateData` records the
   collapsed parents as **tree paths** (`dataManager.getRowTreePath()`), clears both stores, and
   `afterUpdateData` re-collapses whatever those paths still resolve to
-  (`dataManager.getRowIndexByTreePath()`). Replay shallowest-first and with `shouldRunHooks = false`.
+  (`dataManager.getRowIndexByTreePath()`). Replay with `shouldRunHooks = false` and
+  `forceRender = false` — `replaceData` renders the moment the hook returns, so a render there is a
+  second full one, which Angular pays on every `data` input change. Replay order does **not** matter
+  (collapsing changes trimming, not physical indexes), unlike the expand path. The replay must end
+  with `hot.selection.refresh()`: the Core clamps the selection before `afterUpdateData`, while the
+  grid is still fully expanded, and a trimming change never re-clamps it — `selection.commit()`
+  follows `hiddenIndexesChanged` only (`core.ts`).
   Two things to keep: a tree path is **positional**, so it follows the slot rather than the object —
   reordering or removing siblings moves it, which is the best that is possible when the new dataset
   carries no identity; and the map must only be cleared when a parent really is collapsed, because

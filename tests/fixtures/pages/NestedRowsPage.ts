@@ -106,6 +106,38 @@ export class NestedRowsPage {
     });
   }
 
+  /**
+   * Replaces the data from inside a real `beforeAddChild` window, the way an app that refetches on
+   * every structural change does. The plugin has the stash open for the whole call, so this drives
+   * the data hooks through an operation rather than opening the stash by hand.
+   *
+   * @param data The new source data.
+   * @param parentRow Physical row index of the parent to add a child to.
+   */
+  async replaceDataWhileAddingChild(data: unknown[], parentRow: number): Promise<void> {
+    await this.page.evaluate(({ rows, parent }) => {
+      window.hot.addHook('beforeAddChild', () => {
+        window.hot.updateData(rows as unknown[]);
+      });
+
+      const { dataManager } = window.hot.getPlugin('nestedRows');
+      const parentObject = dataManager.getDataObject(parent as number);
+
+      if (parentObject) {
+        dataManager.addChild(parentObject);
+      }
+    }, { rows: data, parent: parentRow });
+  }
+
+  /** The visual row the selection highlight sits on, or `null` when nothing is selected. */
+  highlightedRow(): Promise<number | null> {
+    return this.page.evaluate(() => {
+      const last = window.hot.getSelectedLast();
+
+      return last ? last[0] : null;
+    });
+  }
+
   /** Every collapse/expand hook call the fixture has recorded, in order. */
   hookLog(): Promise<NestedRowsHookCall[]> {
     return this.page.evaluate(() => window.hookLog);

@@ -965,10 +965,11 @@ export class NestedRows extends BasePlugin {
    * the data is replaced: the collapsed-parents list, the trimming map, and the stash an outer
    * operation left open.
    *
-   * There is nothing to trim when no parent is collapsed, and skipping the map matters there:
-   * clearing it rebuilds the row index cache, and a data load runs on every grid init.
+   * @param {boolean} untrimRows `true` also clears the trimming map. `loadData()` passes `false`,
+   * because `initIndexMappers()` resets every map moments later and doing it twice costs a second
+   * row index cache rebuild.
    */
-  #clearCollapsedState() {
+  #clearCollapsedState(untrimRows: boolean) {
     if (!this.collapsingUI) {
       return;
     }
@@ -977,12 +978,18 @@ export class NestedRows extends BasePlugin {
       this.collapsingUI.lastCollapsedRows = [];
     }
 
+    // Nothing is trimmed when no parent is collapsed, and the early return is load-bearing:
+    // `core.unit.js` asserts exactly one `cacheUpdated` on init with `nestedRows: true`, and a data
+    // load runs on every grid init.
     if (this.collapsingUI.collapsedRows.length === 0) {
       return;
     }
 
     this.collapsingUI.collapsedRows.length = 0;
-    this.collapsedRowsMap?.clear();
+
+    if (untrimRows) {
+      this.collapsedRowsMap?.clear();
+    }
   }
 
   /**
@@ -1002,15 +1009,14 @@ export class NestedRows extends BasePlugin {
    * Translates tree paths back into physical row indexes, keeping only the rows that still exist and
    * still have children.
    *
-   * Sorted shallowest first, so an ancestor is always handled before its own descendants.
+   * Order is left alone. Collapsing changes which rows are trimmed, not their physical indexes, so
+   * an ancestor and its descendant can be collapsed in either order for the same result.
    *
    * @param {number[][]} paths Tree paths.
    * @returns {number[]} Physical row indexes.
    */
   #toCollapsibleRows(paths: number[][]): number[] {
     return paths
-      .slice()
-      .sort((pathA, pathB) => pathA.length - pathB.length)
       .map(path => this.dataManager!.getRowIndexByTreePath(path))
       .filter((row): row is number => row !== null && this.dataManager!.hasChildren(row));
   }
@@ -1027,7 +1033,7 @@ export class NestedRows extends BasePlugin {
       return;
     }
 
-    this.#clearCollapsedState();
+    this.#clearCollapsedState(false);
 
     this.dataManager!.setData(data as RowObject[]);
     this.dataManager!.rewriteCache();
@@ -1057,7 +1063,7 @@ export class NestedRows extends BasePlugin {
     // be re-pointed as well, or `applyStash()` collapses whatever now sits at the old indexes.
     this.#stashedParentPaths = openStash ? this.#toTreePaths(openStash) : null;
 
-    this.#clearCollapsedState();
+    this.#clearCollapsedState(true);
 
     this.dataManager!.setData(data as RowObject[]);
     this.dataManager!.rewriteCache();
@@ -1087,10 +1093,18 @@ export class NestedRows extends BasePlugin {
 
     const parentsToCollapse = this.#toCollapsibleRows(paths);
 
-    if (parentsToCollapse.length > 0) {
-      // Replaying a state the user already chose is not a new action, so the hooks stay silent.
-      this.collapsingUI.toggleCollapsedRows(parentsToCollapse, 'collapse', false);
+    if (parentsToCollapse.length === 0) {
+      return;
     }
+
+    // Replaying a state the user already chose is not a new action, so the hooks stay silent, and
+    // `replaceData` renders as soon as this hook returns - a render here would be the second one.
+    this.collapsingUI.toggleCollapsedRows(parentsToCollapse, 'collapse', false, false);
+
+    // The Core clamped the selection before this hook ran, against a grid that was still fully
+    // expanded. Trimming does not re-clamp it - `selection.commit()` only follows hidden indexes -
+    // so without this the highlight can sit past the last row.
+    this.hot.selection.refresh();
   };
 
   /**

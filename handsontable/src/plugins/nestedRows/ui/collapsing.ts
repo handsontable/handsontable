@@ -407,14 +407,21 @@ class CollapsingUI extends BaseUI {
    * @param {string} action Either `'collapse'` or `'expand'`.
    * @param {boolean} [shouldRunHooks=true] `false` skips both hooks - used when replaying state that the
    * user already chose, such as restoring after an `updateSettings` call.
+   * @param {boolean} [forceRender=true] `false` leaves the render to the caller, for the cases where one
+   * runs right afterwards anyway.
    * @returns {boolean} `true` if the collapsed state actually changed.
    * @fires Hooks#beforeRowCollapse
    * @fires Hooks#afterRowCollapse
    * @fires Hooks#beforeRowExpand
    * @fires Hooks#afterRowExpand
    */
-  toggleCollapsedRows(parents: number[], action: 'collapse' | 'expand', shouldRunHooks = true): boolean {
-    return this.applyCollapsedRowsChange(parents, action, shouldRunHooks).performed;
+  toggleCollapsedRows(
+    parents: number[],
+    action: 'collapse' | 'expand',
+    shouldRunHooks = true,
+    forceRender = true
+  ): boolean {
+    return this.applyCollapsedRowsChange(parents, action, shouldRunHooks, forceRender).performed;
   }
 
   /**
@@ -427,6 +434,7 @@ class CollapsingUI extends BaseUI {
    * @param {number[]} parents Physical row indexes of the parents to act on.
    * @param {string} action Either `'collapse'` or `'expand'`.
    * @param {boolean} [shouldRunHooks=true] `false` skips both hooks.
+   * @param {boolean} [forceRender=true] `false` leaves the render to the caller.
    * @returns {{performed: boolean, vetoed: boolean}} `performed` says the collapsed state changed,
    * `vetoed` says a `before*` hook returned `false`.
    * @fires Hooks#beforeRowCollapse
@@ -437,7 +445,8 @@ class CollapsingUI extends BaseUI {
   applyCollapsedRowsChange(
     parents: number[],
     action: 'collapse' | 'expand',
-    shouldRunHooks = true
+    shouldRunHooks = true,
+    forceRender = true
   ): { performed: boolean, vetoed: boolean } {
     const actionTranslator = actionDictionary.get(action);
 
@@ -479,7 +488,7 @@ class CollapsingUI extends BaseUI {
 
     const isActionPerformed = !this.#isSameCollapsedState(currentCollapsedRows);
 
-    if (isActionPerformed) {
+    if (isActionPerformed && forceRender) {
       this.renderAndAdjust();
     }
 

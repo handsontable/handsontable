@@ -66,6 +66,10 @@ export interface FixtureHotInstance {
         applyStash(): void,
       },
     },
+    dataManager: {
+      getDataObject(row: number): object | null,
+      addChild(parent: object): void,
+    },
   };
   getPlugin(name: 'selectionHandles'): {
     isDragActive(): boolean,
