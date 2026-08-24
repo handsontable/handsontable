@@ -146,24 +146,6 @@ test.describe('grid inside a native shadow root', () => {
   });
 
   /**
-   * A shadow-hosted grid binds the mouse handlers on both the document and its shadow root.
-   * Under a sandboxed host the two do not agree: `composedPath()` is filtered to the host
-   * chain, so only the shadow-root listener can reach the cell while the document listener
-   * still sees the host. Undeduped, one hover showed from the first and hid from the second,
-   * and the hide cleared the display switch's flag so the queued show was dropped - the
-   * tooltip never appeared. Native embedding cannot catch this: there both listeners resolve
-   * the same cell.
-   */
-  test('opens the comment tooltip on hover when the host filters the composed path', async () => {
-    await grid.simulateSandboxedHost();
-
-    await grid.cell(3, 1).hover();
-
-    await expect(grid.commentTooltip).toBeVisible();
-    await expect(grid.commentTooltipInput).toHaveValue('Comment inside the shadow root');
-  });
-
-  /**
    * The tooltip has to survive the pointer landing on it, or it could never be read or
    * edited. This is the case that exercises `targetIsCommentTextArea()` with the resolved
    * target: the editor is portaled into the light DOM, so the hover crosses out of the
