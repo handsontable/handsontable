@@ -195,6 +195,221 @@ The “Insert row above” and “Insert row below” options were modified to w
 
 After completing this guide, your grid displays rows in a parent-child hierarchy with collapse and expand toggle buttons in row headers and context menu options for inserting and detaching child rows.
 
+## Collapse and expand rows from your code
+
+The `NestedRows` plugin lets you collapse and expand parent rows from your own code, and tells you
+when it happens.
+
+### Methods
+
+Get the plugin instance first, from your Handsontable instance:
+
+```js
+const plugin = hot.getPlugin('nestedRows');
+```
+
+| Method | What it does |
+| --- | --- |
+| [`collapseAll()`](@/api/nestedRows.md#collapseall) | Collapses every top-level parent |
+| [`expandAll()`](@/api/nestedRows.md#expandall) | Expands every parent, at every level |
+| [`collapseParent(row)`](@/api/nestedRows.md#collapseparent) | Collapses one parent |
+| [`expandParent(row)`](@/api/nestedRows.md#expandparent) | Expands one parent |
+| [`toggleParent(row)`](@/api/nestedRows.md#toggleparent) | Collapses an expanded parent, or expands a collapsed one |
+| [`getCollapsedParents()`](@/api/nestedRows.md#getcollapsedparents) | Physical indexes of the collapsed parents |
+| [`isParentCollapsed(row)`](@/api/nestedRows.md#isparentcollapsed) | Checks one parent |
+| [`isParent(row)`](@/api/nestedRows.md#isparent) | Checks whether a row has children |
+| [`getRowLevel(row)`](@/api/nestedRows.md#getrowlevel) | How deeply a row is nested. Top-level rows are at level `0` |
+| [`getRowParent(row)`](@/api/nestedRows.md#getrowparent) | The parent of a row |
+| [`countChildren(row)`](@/api/nestedRows.md#countchildren) | How many children a row has |
+| [`expandToRow(row)`](@/api/nestedRows.md#expandtorow) | Expands every ancestor, to reveal a hidden row |
+| [`expandToLevel(level)`](@/api/nestedRows.md#expandtolevel) | Shows rows down to a nesting level, and collapses everything deeper |
+
+The example below calls four of them and prints what each one returns.
+
+::: only-for javascript
+
+::: example #example2 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/rows/row-parent-child/javascript/example2.html)
+@[code](@/content/guides/rows/row-parent-child/javascript/example2.js)
+@[code](@/content/guides/rows/row-parent-child/javascript/example2.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example2 :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-parent-child/react/example2.jsx)
+@[code](@/content/guides/rows/row-parent-child/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-parent-child/angular/example2.ts)
+@[code](@/content/guides/rows/row-parent-child/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/rows/row-parent-child/vue/example2.vue)
+
+:::
+
+:::
+
+### Which index type to pass
+
+Collapsing a parent *trims* its children, which removes them from the grid. A trimmed row has no
+visual index at all, so the plugin uses two index types:
+
+- Methods that act on a row you can see take a **visual** row index. That covers
+  `collapseParent()`, `expandParent()`, `toggleParent()`, `isParentCollapsed()`, `isParent()`,
+  `getRowLevel()`, `getRowParent()`, and `countChildren()`.
+- Methods that address a row the collapse itself hid take or return a **physical** row index. That
+  covers `getCollapsedParents()` and `expandToRow()`.
+
+Convert between the two with [`toVisualRow()`](@/api/core.md#tovisualrow) and
+[`toPhysicalRow()`](@/api/core.md#tophysicalrow).
+
+### Jump to a row inside a collapsed branch
+
+This is where the two index types earn their keep. To reveal a row the user cannot see, you need
+[`expandToRow()`](@/api/nestedRows.md#expandtorow), and you have to address that row by its
+**physical** index — a hidden row has no visual index to pass.
+
+The example starts fully collapsed. Each button looks up a task's physical row, expands whatever
+ancestors are hiding it, then selects it. Notice how the physical row stays the same while the
+visual row changes with whatever else is open.
+
+::: only-for javascript
+
+::: example #example3 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/rows/row-parent-child/javascript/example3.html)
+@[code](@/content/guides/rows/row-parent-child/javascript/example3.js)
+@[code](@/content/guides/rows/row-parent-child/javascript/example3.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example3 :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-parent-child/react/example3.jsx)
+@[code](@/content/guides/rows/row-parent-child/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-parent-child/angular/example3.ts)
+@[code](@/content/guides/rows/row-parent-child/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/rows/row-parent-child/vue/example3.vue)
+
+:::
+
+:::
+
+### Hooks
+
+Four hooks report every collapse and expand, whether it came from the row header button, the
+<kbd>**Enter**</kbd> shortcut, or one of the methods above:
+
+- [`beforeRowCollapse`](@/api/hooks.md#beforerowcollapse) and
+  [`afterRowCollapse`](@/api/hooks.md#afterrowcollapse)
+- [`beforeRowExpand`](@/api/hooks.md#beforerowexpand) and
+  [`afterRowExpand`](@/api/hooks.md#afterrowexpand)
+
+They carry **physical** row indexes. Return `false` from either `before` hook to block the action:
+
+```js
+const configurationOptions = {
+  // Stop the user from collapsing anything.
+  beforeRowCollapse() {
+    return false;
+  },
+};
+```
+
+One case fires no hooks: when [`updateData()`](@/api/core.md#updatedata) collapses the same parents
+again on the new data. That is not a new action, only the state the user already chose, so it stays
+silent. If you mirror the collapsed state somewhere, read it back with
+[`getCollapsedParents()`](@/api/nestedRows.md#getcollapsedparents) after `updateData()` instead of
+counting on a hook.
+
+### Save and restore the collapsed rows
+
+The two data methods treat the collapsed rows differently, and the difference decides whether you
+have to restore anything at all:
+
+- [`updateData()`](@/api/core.md#updatedata) **keeps** the collapsed parents. It matches them by
+  their position in the tree, so they stay collapsed even when the number of children changes. Do
+  not restore them yourself here. A saved list holds physical row indexes, and those move as soon as
+  a parent gains or loses a child, so replaying it collapses the wrong rows.
+- [`loadData()`](@/api/core.md#loaddata) **drops** them, along with every other row state.
+  [`getCollapsedParents()`](@/api/nestedRows.md#getcollapsedparents) returns an empty array
+  afterwards. Restore the state yourself if you want it back.
+
+The example below covers the `loadData()` case. The hooks carry physical indexes, which is what you
+want to store. Collapse the deepest parents first: collapsing a parent hides its children, so a
+nested parent has to be collapsed while it is still visible.
+
+```js
+const plugin = hot.getPlugin('nestedRows');
+let saved = [];
+
+hot.addHook('afterRowCollapse', (currentCollapsedRows, destinationCollapsedRows) => {
+  saved = destinationCollapsedRows;
+});
+
+hot.addHook('afterRowExpand', (currentCollapsedRows, destinationCollapsedRows) => {
+  saved = destinationCollapsedRows;
+});
+
+// Later, after replacing the whole data set:
+hot.loadData(nextDataSet);
+
+hot.batchExecution(() => {
+  [...saved]
+    .sort((a, b) => (plugin.getRowLevel(hot.toVisualRow(b)) ?? 0) - (plugin.getRowLevel(hot.toVisualRow(a)) ?? 0))
+    .forEach((physicalRow) => {
+      const visualRow = hot.toVisualRow(physicalRow);
+
+      if (visualRow !== null) {
+        plugin.collapseParent(visualRow);
+      }
+    });
+}, true);
+```
+
 ## Notes
 
 ### Known limitations
@@ -242,6 +457,28 @@ This header-focused shortcut works only when a row header is focused. Enable [`n
 <div class="boxes-list">
 
 - [getRowHeader()](@/api/core.md#getrowheader)
+- [toPhysicalRow()](@/api/core.md#tophysicalrow)
+- [toVisualRow()](@/api/core.md#tovisualrow)
+
+</div>
+
+**Plugin methods**
+
+<div class="boxes-list">
+
+- [collapseAll()](@/api/nestedRows.md#collapseall)
+- [collapseParent()](@/api/nestedRows.md#collapseparent)
+- [countChildren()](@/api/nestedRows.md#countchildren)
+- [expandAll()](@/api/nestedRows.md#expandall)
+- [expandParent()](@/api/nestedRows.md#expandparent)
+- [expandToLevel()](@/api/nestedRows.md#expandtolevel)
+- [expandToRow()](@/api/nestedRows.md#expandtorow)
+- [getCollapsedParents()](@/api/nestedRows.md#getcollapsedparents)
+- [getRowLevel()](@/api/nestedRows.md#getrowlevel)
+- [getRowParent()](@/api/nestedRows.md#getrowparent)
+- [isParent()](@/api/nestedRows.md#isparent)
+- [isParentCollapsed()](@/api/nestedRows.md#isparentcollapsed)
+- [toggleParent()](@/api/nestedRows.md#toggleparent)
 
 </div>
 
@@ -251,8 +488,12 @@ This header-focused shortcut works only when a row header is focused. Enable [`n
 
 - [afterAddChild](@/api/hooks.md#afteraddchild)
 - [afterDetachChild](@/api/hooks.md#afterdetachchild)
+- [afterRowCollapse](@/api/hooks.md#afterrowcollapse)
+- [afterRowExpand](@/api/hooks.md#afterrowexpand)
 - [beforeAddChild](@/api/hooks.md#beforeaddchild)
 - [beforeDetachChild](@/api/hooks.md#beforedetachchild)
+- [beforeRowCollapse](@/api/hooks.md#beforerowcollapse)
+- [beforeRowExpand](@/api/hooks.md#beforerowexpand)
 
 </div>
 

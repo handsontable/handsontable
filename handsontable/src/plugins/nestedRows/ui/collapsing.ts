@@ -2,6 +2,7 @@ import type { default as CellCoords } from '../../../3rdparty/walkontable/src/ce
 import type { HotInstance } from '../../../core/types';
 import type { NestedRows } from '../nestedRows';
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
+import { throwWithCause } from '../../../helpers/errors';
 import { arrayEach } from '../../../helpers/array';
 import { rangeEach } from '../../../helpers/number';
 import { eventTargetEl, hasClass } from '../../../helpers/dom/element';
@@ -9,6 +10,17 @@ import BaseUI from './_base';
 import HeadersUI from './headers';
 import type DataManager from '../data/dataManager';
 import type { RowObject } from '../data/dataManager';
+
+const actionDictionary = new Map([
+  ['collapse', {
+    beforeHook: 'beforeRowCollapse',
+    afterHook: 'afterRowCollapse',
+  }],
+  ['expand', {
+    beforeHook: 'beforeRowExpand',
+    afterHook: 'afterRowExpand',
+  }],
+]);
 
 /**
  * Class responsible for the UI for collapsing and expanding groups.
@@ -113,9 +125,17 @@ class CollapsingUI extends BaseUI {
       rowIndex = row;
     }
 
-    if (rowObject && this.dataManager.hasChildren(rowObject)) {
-      arrayEach(rowObject.__children as unknown[], (elem) => {
-        rowsToCollapse.push(this.dataManager.getRowIndex(elem) ?? -1);
+    const hasChildren = !!rowObject && this.dataManager.hasChildren(rowObject);
+
+    if (hasChildren) {
+      arrayEach(rowObject!.__children as unknown[], (elem) => {
+        const childIndex = this.dataManager.getRowIndex(elem);
+
+        // Skip children the cache does not know about - `getRowIndex` returns `null` for a row
+        // object that is no longer part of the current nested structure.
+        if (childIndex !== null) {
+          rowsToCollapse.push(childIndex);
+        }
       });
     }
 
@@ -129,8 +149,10 @@ class CollapsingUI extends BaseUI {
       this.renderAndAdjust();
     }
 
-    if (this.collapsedRows.indexOf(rowIndex!) === -1) {
-      this.collapsedRows.push(rowIndex!);
+    // Only a row that actually has children can be collapsed. Without this check pressing Enter on a
+    // leaf row header would record that leaf as a collapsed parent.
+    if (hasChildren && rowIndex !== null && this.collapsedRows.indexOf(rowIndex) === -1) {
+      this.collapsedRows.push(rowIndex);
     }
 
     return rowsToTrim;
@@ -208,10 +230,12 @@ class CollapsingUI extends BaseUI {
       const parentObject = this.dataManager.getDataObject(parentIndex);
 
       arrayEach(parentObject!.__children ?? [], (elem: unknown) => {
-        const elemIndex = this.dataManager.getRowIndex(elem) ?? -1;
+        const elemIndex = this.dataManager.getRowIndex(elem);
 
-        rowsToTrim.push(elemIndex);
-        this.collapseChildRows(elemIndex, rowsToTrim);
+        if (elemIndex !== null) {
+          rowsToTrim.push(elemIndex);
+          this.collapseChildRows(elemIndex, rowsToTrim);
+        }
       });
     }
 
@@ -270,10 +294,12 @@ class CollapsingUI extends BaseUI {
 
       arrayEach(parentObject!.__children ?? [], (elem: RowObject) => {
         if (!this.isAnyParentCollapsed(elem)) {
-          const elemIndex = this.dataManager.getRowIndex(elem) ?? -1;
+          const elemIndex = this.dataManager.getRowIndex(elem);
 
-          rowsToUntrim.push(elemIndex);
-          this.expandChildRows(elemIndex, rowsToUntrim);
+          if (elemIndex !== null) {
+            rowsToUntrim.push(elemIndex);
+            this.expandChildRows(elemIndex, rowsToUntrim);
+          }
         }
       });
     }
@@ -305,13 +331,21 @@ class CollapsingUI extends BaseUI {
       rowIndex = row;
     }
 
-    this.collapsedRows.splice(this.collapsedRows.indexOf(rowIndex!), 1);
+    const collapsedIndex = rowIndex === null ? -1 : this.collapsedRows.indexOf(rowIndex);
+
+    // `indexOf` returns -1 for a row that is not collapsed, and `splice(-1, 1)` would drop the last
+    // tracked parent instead of doing nothing.
+    if (collapsedIndex > -1) {
+      this.collapsedRows.splice(collapsedIndex, 1);
+    }
 
     if (rowObject && this.dataManager.hasChildren(rowObject)) {
       arrayEach(rowObject.__children as unknown[], (elem) => {
-        const childIndex = this.dataManager.getRowIndex(elem) ?? -1;
+        const childIndex = this.dataManager.getRowIndex(elem);
 
-        rowsToExpand.push(childIndex);
+        if (childIndex !== null) {
+          rowsToExpand.push(childIndex);
+        }
       });
     }
 
@@ -352,39 +386,230 @@ class CollapsingUI extends BaseUI {
   }
 
   /**
+   * Returns the physical indexes of the parent rows that are collapsed right now.
+   *
+   * The list is sorted ascending so hook payloads are stable and comparable between calls.
+   *
+   * @returns {number[]} Physical row indexes of collapsed parents.
+   */
+  getCollapsedParents(): number[] {
+    return this.collapsedRows.slice().sort((a, b) => a - b);
+  }
+
+  /**
+   * Collapses or expands the given parent rows and fires the matching pair of hooks.
+   *
+   * This is the single choke point for every collapse and expand in the plugin - the row header
+   * button, the Enter shortcut, and the public plugin methods all run through it, so all of them
+   * produce the same state change and the same hooks.
+   *
+   * @param {number[]} parents Physical row indexes of the parents to act on.
+   * @param {string} action Either `'collapse'` or `'expand'`.
+   * @param {boolean} [shouldRunHooks=true] `false` skips both hooks - used when replaying state that the
+   * user already chose, such as restoring after an `updateSettings` call.
+   * @param {boolean} [forceRender=true] `false` leaves the render to the caller, for the cases where one
+   * runs right afterwards anyway.
+   * @returns {boolean} `true` if the collapsed state actually changed.
+   * @fires Hooks#beforeRowCollapse
+   * @fires Hooks#afterRowCollapse
+   * @fires Hooks#beforeRowExpand
+   * @fires Hooks#afterRowExpand
+   */
+  toggleCollapsedRows(
+    parents: number[],
+    action: 'collapse' | 'expand',
+    shouldRunHooks = true,
+    forceRender = true
+  ): boolean {
+    return this.applyCollapsedRowsChange(parents, action, shouldRunHooks, forceRender).performed;
+  }
+
+  /**
+   * Same as `toggleCollapsedRows`, but it also reports whether a `before*` hook blocked the action.
+   *
+   * A caller that performs two passes needs that apart from `performed`: `performed` is `false` both
+   * when a hook blocked the change and when there was simply nothing to do, and those two cases call
+   * for opposite decisions.
+   *
+   * @param {number[]} parents Physical row indexes of the parents to act on.
+   * @param {string} action Either `'collapse'` or `'expand'`.
+   * @param {boolean} [shouldRunHooks=true] `false` skips both hooks.
+   * @param {boolean} [forceRender=true] `false` leaves the render to the caller.
+   * @returns {{performed: boolean, vetoed: boolean}} `performed` says the collapsed state changed,
+   * `vetoed` says a `before*` hook returned `false`.
+   * @fires Hooks#beforeRowCollapse
+   * @fires Hooks#afterRowCollapse
+   * @fires Hooks#beforeRowExpand
+   * @fires Hooks#afterRowExpand
+   */
+  applyCollapsedRowsChange(
+    parents: number[],
+    action: 'collapse' | 'expand',
+    shouldRunHooks = true,
+    forceRender = true
+  ): { performed: boolean, vetoed: boolean } {
+    const actionTranslator = actionDictionary.get(action);
+
+    if (!actionTranslator) {
+      throwWithCause(`Unsupported action is passed (${action}).`);
+    }
+
+    if (!Array.isArray(parents)) {
+      return { performed: false, vetoed: false };
+    }
+
+    const isCollapse = action === 'collapse';
+    const currentCollapsedRows = this.getCollapsedParents();
+    // The action is possible only when every index points at a row that really has children. An
+    // impossible action still reports through the hooks, matching the CollapsibleColumns plugin.
+    const actionPossible = parents.length > 0 && parents.every(parent => this.#isCollapsibleParent(parent));
+    const destinationCollapsedRows = this.#getDestinationCollapsedRows(currentCollapsedRows, parents, isCollapse);
+
+    if (shouldRunHooks) {
+      const isActionAllowed = this.hot.runHooks(
+        actionTranslator!.beforeHook,
+        currentCollapsedRows,
+        destinationCollapsedRows,
+        actionPossible,
+      );
+
+      if (isActionAllowed === false) {
+        return { performed: false, vetoed: true };
+      }
+    }
+
+    if (actionPossible) {
+      if (isCollapse) {
+        this.collapseMultipleChildren(parents, false, true);
+      } else {
+        this.expandMultipleChildren(parents, false, true);
+      }
+    }
+
+    const isActionPerformed = !this.#isSameCollapsedState(currentCollapsedRows);
+
+    if (isActionPerformed && forceRender) {
+      this.renderAndAdjust();
+    }
+
+    if (shouldRunHooks) {
+      this.hot.runHooks(
+        actionTranslator!.afterHook,
+        currentCollapsedRows,
+        destinationCollapsedRows,
+        actionPossible,
+        isActionPerformed,
+      );
+    }
+
+    return { performed: isActionPerformed, vetoed: false };
+  }
+
+  /**
+   * Builds the collapsed-parents list the grid will hold once the action finishes.
+   *
+   * @param {number[]} currentCollapsedRows Physical indexes of the currently collapsed parents.
+   * @param {number[]} parents Physical indexes of the parents being collapsed or expanded.
+   * @param {boolean} isCollapse `true` for a collapse, `false` for an expand.
+   * @returns {number[]} Physical row indexes, sorted ascending.
+   */
+  #getDestinationCollapsedRows(currentCollapsedRows: number[], parents: number[], isCollapse: boolean): number[] {
+    const collapsible = parents.filter(parent => this.#isCollapsibleParent(parent));
+
+    if (isCollapse) {
+      const destination = currentCollapsedRows.slice();
+
+      collapsible.forEach((parent) => {
+        if (destination.indexOf(parent) === -1) {
+          destination.push(parent);
+        }
+      });
+
+      return destination.sort((a, b) => a - b);
+    }
+
+    return currentCollapsedRows.filter(parent => collapsible.indexOf(parent) === -1);
+  }
+
+  /**
+   * Checks whether the physical row index points at a row that can be collapsed, meaning it exists
+   * and has children.
+   *
+   * @param {number} parent Physical row index.
+   * @returns {boolean}
+   */
+  #isCollapsibleParent(parent: number): boolean {
+    if (!Number.isInteger(parent) || parent < 0) {
+      return false;
+    }
+
+    const rowObject = this.dataManager.getDataObject(parent);
+
+    return !!rowObject && this.dataManager.hasChildren(rowObject);
+  }
+
+  /**
+   * Compares the collapsed-parents list against a snapshot taken before an action ran.
+   *
+   * @param {number[]} snapshot Physical row indexes captured before the action.
+   * @returns {boolean} `true` when nothing changed.
+   */
+  #isSameCollapsedState(snapshot: number[]): boolean {
+    const current = this.getCollapsedParents();
+
+    return current.length === snapshot.length && current.every((row, index) => row === snapshot[index]);
+  }
+
+  /**
    * Collapse all collapsable rows.
    */
   collapseAll() {
-    const data = this.dataManager.getData()!;
-    const parentsToCollapse: RowObject[] = [];
-
-    arrayEach(data, (elem: RowObject) => {
-      if (this.dataManager.hasChildren(elem)) {
-        parentsToCollapse.push(elem);
-      }
-    });
-
-    this.collapseMultipleChildren(parentsToCollapse);
-
-    this.renderAndAdjust();
+    this.toggleCollapsedRows(this.#getTopLevelParents(), 'collapse');
   }
 
   /**
    * Expand all collapsable rows.
+   *
+   * Acts on the top-level parents, which leaves a parent that was collapsed inside another one
+   * collapsed. Use `NestedRows#expandAll` to expand every level.
    */
   expandAll() {
-    const data = this.dataManager.getData()!;
-    const parentsToExpand: RowObject[] = [];
+    this.toggleCollapsedRows(this.#getTopLevelParents(), 'expand');
+  }
+
+  /**
+   * Physical row indexes of every top-level row that has children.
+   *
+   * @returns {number[]}
+   */
+  #getTopLevelParents(): number[] {
+    const data = this.dataManager.getData() ?? [];
+    const parents: number[] = [];
 
     arrayEach(data, (elem: RowObject) => {
       if (this.dataManager.hasChildren(elem)) {
-        parentsToExpand.push(elem);
+        const rowIndex = this.dataManager.getRowIndex(elem);
+
+        if (rowIndex !== null) {
+          parents.push(rowIndex);
+        }
       }
     });
 
-    this.expandMultipleChildren(parentsToExpand);
+    return parents;
+  }
 
-    this.renderAndAdjust();
+  /**
+   * Collapsed parents ordered from the shallowest to the deepest, so an ancestor is always handled
+   * before its own descendants.
+   *
+   * @returns {number[]} Physical row indexes.
+   */
+  getCollapsedParentsShallowestFirst(): number[] {
+    return this.getCollapsedParents()
+      .map(row => ({ row, level: this.dataManager.getRowLevel(row) ?? 0 }))
+      .sort((a, b) => a.level - b.level)
+      .map(({ row }) => row);
   }
 
   /**
@@ -436,9 +661,9 @@ class CollapsingUI extends BaseUI {
 
     if (rowObj && this.dataManager.hasChildren(rowObj)) {
       arrayEach(rowObj.__children as unknown[], (elem) => {
-        const rowIndex = this.dataManager.getRowIndex(elem) ?? -1;
+        const rowIndex = this.dataManager.getRowIndex(elem);
 
-        if (!this.plugin.collapsedRowsMap!.getValueAtIndex(rowIndex)) {
+        if (rowIndex === null || !this.plugin.collapsedRowsMap!.getValueAtIndex(rowIndex)) {
           allCollapsed = false;
 
           return false;
@@ -461,9 +686,9 @@ class CollapsingUI extends BaseUI {
 
     while (parent !== null) {
       parent = this.dataManager.getRowParent(parent);
-      const parentIndex = this.dataManager.getRowIndex(parent) ?? -1;
+      const parentIndex = this.dataManager.getRowIndex(parent);
 
-      if (this.collapsedRows.indexOf(parentIndex) > -1) {
+      if (parentIndex !== null && this.collapsedRows.indexOf(parentIndex) > -1) {
         return true;
       }
     }
@@ -486,11 +711,7 @@ class CollapsingUI extends BaseUI {
     const row = this.translateTrimmedRow((coords as { row: number }).row);
 
     if (hasClass(eventTargetEl(event)!, HeadersUI.CSS_CLASSES.button)) {
-      if (this.areChildrenCollapsed(row)) {
-        this.expandChildren(row);
-      } else {
-        this.collapseChildren(row);
-      }
+      this.toggleCollapsedRows([row], this.areChildrenCollapsed(row) ? 'expand' : 'collapse');
 
       stopImmediatePropagation(event);
     }

@@ -19,6 +19,8 @@ import {
   isHTMLInputElement,
   isHTMLTableCellElement,
   isShadowRoot,
+  getDeepActiveElement,
+  getShadowHostChain,
   outerHeight,
   outerWidth,
   getTrimmingContainer,
@@ -1032,6 +1034,98 @@ describe('DomElement helper', () => {
       expect(isShadowRoot(shadow)).toBe(true);
 
       host.remove();
+    });
+  });
+
+  // Handsontable.helper.getShadowHostChain
+  //
+  describe('getShadowHostChain', () => {
+    it('should return an empty array for an element in the light DOM', () => {
+      const div = document.createElement('div');
+
+      document.body.appendChild(div);
+
+      expect(getShadowHostChain(div)).toEqual([]);
+
+      div.remove();
+    });
+
+    it('should return the host chain from the closest host outward', () => {
+      const outerHost = document.createElement('div');
+
+      document.body.appendChild(outerHost);
+
+      const outerShadow = outerHost.attachShadow({ mode: 'open' });
+      const innerHost = document.createElement('div');
+
+      outerShadow.appendChild(innerHost);
+
+      const innerShadow = innerHost.attachShadow({ mode: 'open' });
+      const leaf = document.createElement('span');
+
+      innerShadow.appendChild(leaf);
+
+      expect(getShadowHostChain(leaf)).toEqual([innerHost, outerHost]);
+
+      outerHost.remove();
+    });
+  });
+
+  // Handsontable.helper.getDeepActiveElement
+  //
+  describe('getDeepActiveElement', () => {
+    it('should return the document active element when no shadow DOM is involved', () => {
+      const input = document.createElement('input');
+
+      document.body.appendChild(input);
+      input.focus();
+
+      expect(getDeepActiveElement(document)).toBe(input);
+
+      input.remove();
+    });
+
+    it('should return `document.body` when nothing is focused', () => {
+      expect(getDeepActiveElement(document)).toBe(document.body);
+    });
+
+    it('should pierce an open shadow root and return the inner focused element', () => {
+      const host = document.createElement('div');
+
+      document.body.appendChild(host);
+
+      const shadow = host.attachShadow({ mode: 'open' });
+      const input = document.createElement('input');
+
+      shadow.appendChild(input);
+      input.focus();
+
+      expect(document.activeElement).toBe(host);
+      expect(getDeepActiveElement(document)).toBe(input);
+
+      host.remove();
+    });
+
+    it('should pierce nested shadow roots', () => {
+      const outerHost = document.createElement('div');
+
+      document.body.appendChild(outerHost);
+
+      const outerShadow = outerHost.attachShadow({ mode: 'open' });
+      const innerHost = document.createElement('div');
+
+      outerShadow.appendChild(innerHost);
+
+      const innerShadow = innerHost.attachShadow({ mode: 'open' });
+      const textarea = document.createElement('textarea');
+
+      innerShadow.appendChild(textarea);
+      textarea.focus();
+
+      expect(document.activeElement).toBe(outerHost);
+      expect(getDeepActiveElement(document)).toBe(textarea);
+
+      outerHost.remove();
     });
   });
 

@@ -1,4 +1,4 @@
-import { addClass, outerWidth, outerHeight } from '../../helpers/dom/element';
+import { addClass, getDeepActiveElement, outerWidth, outerHeight } from '../../helpers/dom/element';
 import { mixin } from '../../helpers/object';
 import localHooks from '../../mixins/localHooks';
 import { EditorResizeObserver } from './editorResizeObserver';
@@ -224,7 +224,7 @@ class CommentEditor {
    * @returns {boolean}
    */
   isFocused() {
-    return this.#rootDocument.activeElement === this.getInputElement();
+    return getDeepActiveElement(this.#rootDocument) === this.getInputElement();
   }
 
   /**

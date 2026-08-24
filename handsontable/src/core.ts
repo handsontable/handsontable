@@ -1,4 +1,4 @@
-import { addClass, empty, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
+import { addClass, empty, isShadowRoot, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, isEmpty } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
@@ -392,6 +392,10 @@ export default function Core(
 
     addClass(this.rootElement, ['ht-wrapper', 'handsontable']);
     addClass(this.rootWrapperElement, 'ht-root-wrapper');
+
+    if (isShadowRoot(this.rootContainer.getRootNode())) {
+      addClass(this.rootWrapperElement, 'ht-shadow-dom');
+    }
     addClass(this.rootSlotTopElement, 'ht-slot-top');
     addClass(this.rootGridElement, 'ht-grid');
     addClass(this.rootGridContentElement, 'ht-grid-content');

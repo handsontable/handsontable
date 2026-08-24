@@ -52,7 +52,11 @@ import {
   setOverlayPosition,
 } from 'handsontable/helpers/dom/element';
 
+import type { TouchListEvent, TouchPoint } from 'handsontable/helpers/dom/event';
 import {
+  getFirstChangedTouch,
+  getTouchPointById,
+  hasTouchList,
   isImmediatePropagationStopped,
   isLeftClick,
   isRightClick,
@@ -113,6 +117,22 @@ innerHeight(domElement);
 innerWidth(domElement);
 isChildOf(domElement, 'foo');
 isDetached(domElement);
+getFirstChangedTouch(domEvent);
+getTouchPointById(domEvent, 1);
+hasTouchList(domEvent);
+// Both helpers are published on `Handsontable.dom`, so a consumer must be able to name what they
+// return rather than only destructure it - and both return the same shape.
+const firstChangedTouch: TouchPoint | null = getFirstChangedTouch(domEvent);
+const touchPointById: TouchPoint | null = getTouchPointById(domEvent, 1);
+const touchIdentifier: number | undefined = firstChangedTouch?.identifier ?? touchPointById?.identifier;
+
+if (hasTouchList(domEvent)) {
+  const touchListEvent: TouchListEvent = domEvent;
+  const stillDown: number = touchListEvent.touches.length + (touchIdentifier ?? 0);
+
+  isTouchEvent(touchListEvent);
+  void stillDown;
+}
 isImmediatePropagationStopped(domEvent);
 isInput(domElement);
 isLeftClick(domEvent);

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a memory leak where each `loadData()` or `updateData()` call added another formula engine sheet, so repeated data loads kept slowing the grid down.",
+  "type": "fixed",
+  "issueOrPR": 13215,
+  "breaking": false,
+  "framework": "none"
+}

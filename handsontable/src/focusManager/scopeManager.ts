@@ -4,7 +4,7 @@ import { throwWithCause } from '../helpers/errors';
 import { createFocusScope } from './scope';
 import { useEventListener } from './eventListener';
 import { FOCUS_SOURCES } from './constants';
-import { eventTargetEl, isVisible } from '../helpers/dom/element';
+import { eventTargetEl, getDeepActiveElement, isVisible } from '../helpers/dom/element';
 
 type FocusScopeType = 'modal' | 'inline';
 type FocusScopeActivationSource = 'unknown' | 'click' | 'tab_from_above' | 'tab_from_below';
@@ -244,7 +244,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
       }
 
       if (scope === activeScope) {
-        if (scope.contains(hotInstance.rootDocument.activeElement as HTMLElement)) {
+        if (scope.contains(getDeepActiveElement(hotInstance.rootDocument) as HTMLElement)) {
           scope.deactivateFocusCatchers();
         } else {
           scope.activateFocusCatchers();

@@ -26,6 +26,10 @@ import {
   compareFunctionFactory as intlTimeSort,
   COLUMN_DATA_TYPE as INTL_TIME_DATA_TYPE,
 } from '../sortFunction/intlTime';
+import {
+  compareFunctionFactory as intlDatetimeSort,
+  COLUMN_DATA_TYPE as INTL_DATETIME_DATA_TYPE,
+} from '../sortFunction/intlDatetime';
 import { staticRegister } from '../../../utils/staticRegister';
 
 const {
@@ -64,6 +68,7 @@ registerCompareFunctionFactory(DEFAULT_DATA_TYPE, defaultSort);
 registerCompareFunctionFactory(NUMERIC_DATA_TYPE, numericSort);
 registerCompareFunctionFactory(TIME_DATA_TYPE, timeSort);
 registerCompareFunctionFactory(INTL_TIME_DATA_TYPE, intlTimeSort);
+registerCompareFunctionFactory(INTL_DATETIME_DATA_TYPE, intlDatetimeSort);
 
 export {
   registerRootComparator,

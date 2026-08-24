@@ -92,6 +92,7 @@ This is the docs-**site** voice — it overrides the monorepo-wide documentation
 ### Formatting conventions
 
 - Hyphens (`-`) or double hyphens (`--`) to separate clauses. No en dashes or em dashes.
+- Sentence case for every heading and for the frontmatter `title:`. Capitalize only the first word, plus proper nouns, product names, API identifiers, and acronyms: `Use a cell renderer`, not `Use a Cell Renderer`. Composes with the Diátaxis title patterns in 2.1.
 - Straight quotes (`"` and `'`) only. No curly/smart quotes.
 - Bold for UI elements: **Save**, **Add column**.
 - Inline code for API names: `columnSorting`, `readOnly`.
@@ -494,6 +495,7 @@ Copy and complete this checklist in your PR description:
 - [ ] No `var` in code examples; uses `const` / `let`
 - [ ] All examples include `licenseKey: 'non-commercial-and-evaluation'`
 - [ ] Heading hierarchy is correct (no skipped levels, e.g., H2 → H4)
+- [ ] Headings and the frontmatter `title:` use sentence case
 - [ ] Active voice and second person ("you") used throughout
 - [ ] No banned words: simply, just, easy, straightforward, note that, please
 - [ ] Tutorials and how-tos have a Prerequisites section

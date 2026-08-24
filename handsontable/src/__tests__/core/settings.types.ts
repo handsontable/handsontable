@@ -95,6 +95,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   dataSchema: oneOf({}, [[]], (index: number) => oneOf([index], { index })),
   dateFormat: oneOf({ year: 'numeric', month: '2-digit', day: '2-digit' } as Intl.DateTimeFormatOptions),
+  dateTimeFormat: oneOf(
+    { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' } as
+      Intl.DateTimeFormatOptions
+  ),
   defaultDate: 'foo',
   timeFormat: oneOf({ hour: 'numeric', minute: '2-digit' } as Intl.DateTimeFormatOptions),
   tabNavigation: oneOf(false),
@@ -507,6 +511,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterRowsMutationError: (operation, error, payload) => {},
   afterRender: (isForced) => {},
   afterRenderer: (TD, row, col, prop, value, cellProperties) => {},
+  afterRowCollapse: (currentCollapsedRows, destinationCollapsedRows, collapsePossible,
+                     successfullyCollapsed) => {},
+  afterRowExpand: (currentCollapsedRows, destinationCollapsedRows, expandPossible,
+                   successfullyExpanded) => {},
   afterRowMove: (movedRows, finalIndex, dropIndex, movePossible,
                  orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
   afterRowResize: (newSize, row, isDoubleClick) => {},
@@ -683,6 +691,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeRemoveRow: (index, amount, physicalRows = [1, 2, 3], source) => {},
   beforeRender: (isForced) => {},
   beforeRenderer: (TD, row, col, prop, value, cellProperties) => {},
+  beforeRowCollapse: (currentCollapsedRows, destinationCollapsedRows, collapsePossible) => {},
+  beforeRowExpand: (currentCollapsedRows, destinationCollapsedRows, expandPossible) => {},
   beforeRowMove: (movedRows, finalIndex, dropIndex, movePossible) => {},
   beforeRowResize: (newSize, row, isDoubleClick) => false,
   beforeRowWrap: (isActionInterrupted, newCoords, isRowFlipped) => {
