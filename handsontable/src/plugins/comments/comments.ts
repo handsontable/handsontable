@@ -7,6 +7,7 @@ import {
   hasVerticalScrollbar,
   hasHorizontalScrollbar,
   isChildOf,
+  isShadowRoot,
   outerHeight,
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
@@ -278,6 +279,14 @@ export class Comments extends BasePlugin {
    * @type {string}
    */
   #commentValueBeforeSave = '';
+  /**
+   * The shadow root the grid renders inside, or `null` when it renders in the light DOM.
+   * Listeners bound on the document sit outside that tree, so the browser retargets the
+   * event to the shadow host and the real cell has to be recovered from the composed path.
+   *
+   * @type {ShadowRoot|null}
+   */
+  #gridShadowRoot: ShadowRoot | null = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -439,10 +448,27 @@ export class Comments extends BasePlugin {
   registerListeners() {
     const { rootDocument } = this.hot;
     const editorElement = this.getEditorInputElement();
+    const rootNode = this.hot.rootElement.getRootNode();
+
+    this.#gridShadowRoot = isShadowRoot(rootNode) ? rootNode : null;
 
     this.eventManager.addEventListener(rootDocument, 'mouseover', this.#onMouseOver);
     this.eventManager.addEventListener(rootDocument, 'mousedown', this.#onMouseDown);
     this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.#onMouseUp());
+
+    // When the grid lives inside a Shadow DOM tree, the same listeners are attached to the
+    // grid's shadow root as well. The document listeners above stay - they are the ones that
+    // see a click or a hover landing outside the shadow host. Sandboxed hosts (e.g. Salesforce
+    // Lightning Web Security) collapse `composedPath()` to the shadow host chain, so the
+    // document listeners cannot recover the real cell there; listeners bound inside the grid's
+    // own shadow tree still receive a correctly retargeted `target`. No dedupe registry is
+    // needed when both fire for one event: all three handlers resolve the same element and are
+    // idempotent, and showing is debounced by the display switch.
+    if (this.#gridShadowRoot) {
+      this.eventManager.addEventListener(this.#gridShadowRoot, 'mouseover', this.#onMouseOver);
+      this.eventManager.addEventListener(this.#gridShadowRoot, 'mousedown', this.#onMouseDown);
+      this.eventManager.addEventListener(this.#gridShadowRoot, 'mouseup', () => this.#onMouseUp());
+    }
 
     if (editorElement) {
       this.eventManager.addEventListener(editorElement, 'focus', () => this.#onEditorFocus());
@@ -478,6 +504,50 @@ export class Comments extends BasePlugin {
   }
 
   /**
+   * Resolves the element the event originated from. A path that crosses a shadow boundary
+   * carries `ShadowRoot` entries and its initial element is the true source - the cell itself,
+   * where `event.target` has been retargeted to the shadow host for a listener bound on the
+   * document. Without such entries there is no shadow tree to pierce, or a sandboxed host
+   * (e.g. Salesforce Lightning Web Security) collapsed the path to the shadow host chain; in
+   * both cases the retargeted `target` is already the deepest reliable reference.
+   *
+   * Grids in the light DOM skip the composed path entirely - `mouseover` fires on every
+   * pointer move, and `composedPath()` allocates an array on each call.
+   *
+   * @param {Event} event DOM event.
+   * @returns {HTMLElement|null} The deepest known source element.
+   */
+  #resolveEventTarget(event: Event): HTMLElement | null {
+    if (this.#gridShadowRoot === null) {
+      return eventTargetEl(event);
+    }
+
+    const eventPath = event.composedPath();
+
+    if (eventPath.some(entry => isShadowRoot(entry))) {
+      return eventPath[0] as HTMLElement;
+    }
+
+    return eventTargetEl(event);
+  }
+
+  /**
+   * Checks whether the element sits in a tree the grid can be rendered into. `isChildOf()`
+   * walks `parentNode` only, so an element inside the grid's shadow tree dead-ends at the
+   * `ShadowRoot` (whose `parentNode` is `null`) and never reaches the document.
+   *
+   * @param {HTMLElement} element The element to check.
+   * @returns {boolean}
+   */
+  #isInRenderedTree(element: HTMLElement): boolean {
+    if (this.#gridShadowRoot?.contains(element)) {
+      return true;
+    }
+
+    return isChildOf(element, this.hot.rootDocument);
+  }
+
+  /**
    * Checks if the event target is a cell containing a comment.
    *
    * @private
@@ -485,7 +555,7 @@ export class Comments extends BasePlugin {
    * @returns {boolean}
    */
   targetIsCellWithComment(event: Event) {
-    const closestCell = closest(eventTargetEl(event)!, ['TD']);
+    const closestCell = closest(this.#resolveEventTarget(event)!, ['TD']);
 
     return !!(closestCell && hasClass(closestCell, 'htCommentCell') &&
       closest(closestCell, [this.hot.rootElement]));
@@ -499,7 +569,7 @@ export class Comments extends BasePlugin {
    * @returns {boolean}
    */
   targetIsCommentTextArea(event: Event) {
-    return this.getEditorInputElement() === event.target;
+    return this.getEditorInputElement() === this.#resolveEventTarget(event);
   }
 
   /**
@@ -860,7 +930,7 @@ export class Comments extends BasePlugin {
     }
 
     if (!this.#preventEditorAutoSwitch && !this.targetIsCommentTextArea(event)) {
-      const eventCell = closest(eventTargetEl(event)!, ['TD']);
+      const eventCell = closest(this.#resolveEventTarget(event)!, ['TD']);
       let coordinates = null;
 
       if (eventCell) {
@@ -891,14 +961,16 @@ export class Comments extends BasePlugin {
   #onMouseOver = (event: Event) => {
     const { rootDocument } = this.hot;
 
-    const target = eventTargetEl(event)!;
+    const target = this.#resolveEventTarget(event)!;
 
     if (this.#preventEditorAutoSwitch || this.#editor?.isFocused() || hasClass(target, 'wtBorder')
         || this.#cellBelowCursor === target || !this.#editor) {
       return;
     }
 
-    this.#cellBelowCursor = rootDocument.elementFromPoint(
+    // `elementFromPoint()` does not pierce shadow boundaries, so on a document it resolves to
+    // the shadow host. The grid's own shadow root resolves the cell actually under the cursor.
+    this.#cellBelowCursor = (this.#gridShadowRoot ?? rootDocument).elementFromPoint(
       (event as MouseEvent).clientX, (event as MouseEvent).clientY);
 
     if (this.targetIsCellWithComment(event)) {
@@ -910,7 +982,7 @@ export class Comments extends BasePlugin {
         this.#displaySwitch?.show(range);
       }
 
-    } else if (isChildOf(target, rootDocument) && !this.targetIsCommentTextArea(event)) {
+    } else if (this.#isInRenderedTree(target) && !this.targetIsCommentTextArea(event)) {
       this.#displaySwitch?.hide();
     }
   };
