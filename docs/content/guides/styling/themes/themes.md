@@ -512,7 +512,7 @@ Apart from that, it doesn't matter which stylesheets you load. Both options work
 
 ::: only-for angular
 
-## Global Theme Management
+## Global theme management
 
 In addition to passing a theme via the settings object for individual Handsontable instances, you can set a global default theme that applies to all instances. This can be accomplished in two ways:
 
