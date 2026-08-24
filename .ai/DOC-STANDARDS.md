@@ -32,6 +32,7 @@ Apply to all documentation text — guides, JSDoc comments, changelog entries, m
 11. **Clause separators.** Use en dashes (–) in non-site text (JSDoc, changelog, migration guides). The docs *site* uses hyphens or double hyphens instead — see `docs/AGENTS.md` 2.2.
 12. **Consistent 3rd-party naming.** Use official capitalization: `Node.js`, `webpack`, `GitLab`, `TypeScript`.
 13. **PR descriptions**: Use plain, concise language. Avoid literary wording — developers need to parse it quickly.
+14. **Sentence case headings.** Capitalize only the first word, plus proper nouns, product names, API identifiers, and acronyms. ("Definition of done (local enforcement)", not "Definition of Done (Local Enforcement)".) Applies to Markdown headings at every level and to the docs frontmatter `title:` field. Terms with fixed capitalization keep it: `Node.js`, `HyperFormula`, `HotTable`, `UndoRedo`, `Content Security Policy (CSP)`. Sentence case composes with the Diátaxis title patterns in `docs/AGENTS.md` 2.1 (verb phrase, "How to …", "Understanding …") rather than replacing them. **Not covered:** `README.md`, which is marketing-facing and uses Title Case with emoji headings by design, and agent instruction files (`AGENTS.md`, `.claude/skills/**`), whose heading style is currently mixed and out of scope for this rule.
 
 ## Migration guide requirements
 
