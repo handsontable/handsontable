@@ -26,9 +26,11 @@ export const CLONE_TYPES = [
  * widget is 7px idle and 11px hovered in both Chrome and Firefox, while the *interactive* reach probed
  * by dragging is 16px. 16 therefore covers every state measured.
  *
- * For reference, Gecko's own Windows 11 default (`kDefaultWinOverlayScrollbarSize`,
- * `widget/ScrollbarDrawingWin11.cpp`) is 12, and GTK takes its size from the active theme - so no
- * single value is exact everywhere, and over-reserving is the safe direction.
+ * One published number, for reference only: Gecko's Windows 11 default
+ * (`kDefaultWinOverlayScrollbarSize`, `widget/ScrollbarDrawingWin11.cpp`) is 12. It is quoted because
+ * it is written down, not because this is a Gecko concern - every engine that floats its scrollbars
+ * needs the same clearance, each with its own thickness, and GTK takes its size from the active theme.
+ * No single value is exact everywhere, so over-reserving is the safe direction.
  */
 export const OVERLAY_SCROLLBAR_CLEARANCE = 16;
 
@@ -66,9 +68,9 @@ export const OVERLAY_SCROLLBAR_FILLER_HOST_CLASS = 'htScrollbarClearanceFillers'
 
 /**
  * One opaque patch covering the strip an overlay vacated, so the master's scrolled cells cannot show
- * through it. Lives inside the master holder, because Gecko paints a scroll container's own scrollbar
- * above its contents - a patch placed above the holder instead would hide the scrollbar thumb
- * (measured: 0 thumb pixels).
+ * through it. Lives inside the master holder, because a browser paints a scroll container's own
+ * scrollbar above that container's contents - measured in Chrome and Firefox alike - so a patch placed
+ * above the holder instead would hide the scrollbar thumb (measured: 0 thumb pixels).
  */
 export const OVERLAY_SCROLLBAR_FILLER_CLASS = 'htScrollbarClearanceFiller';
 

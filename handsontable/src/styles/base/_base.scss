@@ -736,12 +736,14 @@
     }
   }
 
-  // Firefox overlay scrollbars (#10370): the frozen overlays stop short of the strip the scrollbar is
-  // painted over, so a press can reach it. That uncovers the master's cells underneath, scrolled to
-  // different columns and rows than the overlay shows, so JS patches the strip with opaque fillers.
-  // They sit inside the master holder on purpose. Gecko paints a scroll container's scrollbar above
-  // that container's own contents, so a filler in here is drawn under the thumb, while one stacked
-  // above the holder would hide it. The holder is not a containing block for absolute positioning,
+  // Floating ("overlay") scrollbars (#10370): the frozen overlays stop short of the strip the
+  // scrollbar is painted over, so a press can reach it. That uncovers the master's cells underneath,
+  // scrolled to different columns and rows than the overlay shows, so JS patches the strip with opaque
+  // fillers. Not one engine's problem: it happens wherever the scrollbar takes no layout space, which
+  // is Firefox everywhere, Chrome and Safari on macOS set to "Automatically", and Chrome on Windows 11
+  // and GTK. They sit inside the master holder on purpose. A browser paints a scroll container's
+  // scrollbar above that container's own contents, so a filler in here is drawn under the thumb, while
+  // one stacked above the holder would hide it. The holder is not a containing block for absolute positioning,
   // hence the sticky host: it stays pinned to the scrollport as the grid scrolls, and carries no size
   // of its own so it cannot add a phantom scroll step.
   .htScrollbarClearanceFillers {
@@ -754,7 +756,7 @@
     // so without opting out, the browser's scroll anchoring treats it as content appearing above the
     // scroll position, nudges the offset to compensate, and emits a scroll event nobody asked for.
     overflow-anchor: none;
-    // Above the master's cells, below the scrollbar Gecko paints over everything in here.
+    // Above the master's cells, below the scrollbar the browser paints over everything in here.
     z-index: 1;
   }
 
