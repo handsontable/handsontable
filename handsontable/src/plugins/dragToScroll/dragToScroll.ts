@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { isRightClick } from '../../helpers/dom/event';
+import { getFirstChangedTouch, getTouchPointById, isRightClick } from '../../helpers/dom/event';
 import { getParentWindow } from '../../helpers/dom/element';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
 import { AutoScroller } from './autoScroller';
@@ -122,6 +122,13 @@ export class DragToScroll extends BasePlugin {
    * @type {object | null}
    */
   #mouseDownController: { row?: boolean; column?: boolean } | null = null;
+  /**
+   * `Touch.identifier` of the finger that started a touch drag, so later touch events can be told
+   * apart from any other finger on the screen.
+   *
+   * @type {number | null}
+   */
+  #dragTouchId: number | null = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -251,7 +258,7 @@ export class DragToScroll extends BasePlugin {
   }
 
   /**
-   * Enables listening on `mousemove` event.
+   * Enables listening on the `mousemove` and `touchmove` events.
    *
    * @private
    */
@@ -260,13 +267,14 @@ export class DragToScroll extends BasePlugin {
   }
 
   /**
-   * Disables listening on `mousemove` event.
+   * Disables listening on the `mousemove` and `touchmove` events.
    *
    * @private
    */
   unlisten() {
     this.listening = false;
     this.#activeDragKind = null;
+    this.#dragTouchId = null;
     this.#lastClientX = null;
     this.#lastClientY = null;
     this.#isOutsideViewport = false;
@@ -306,6 +314,13 @@ export class DragToScroll extends BasePlugin {
         this.#onMouseMove(event as MouseEvent);
       });
 
+      // Touch input needs its own listeners: a browser fires no `mousemove` while a finger is
+      // down, so without these the auto-scroller never receives a position on mobile (#11658).
+      this.eventManager.addEventListener(frame.document, 'touchstart', this.#onTouchStart);
+      this.eventManager.addEventListener(frame.document, 'touchmove', this.#onTouchMove);
+      this.eventManager.addEventListener(frame.document, 'touchend', this.#onTouchEnd);
+      this.eventManager.addEventListener(frame.document, 'touchcancel', this.#onTouchEnd);
+
       frame = getParentWindow(frame) as Window | null;
     }
   }
@@ -323,12 +338,13 @@ export class DragToScroll extends BasePlugin {
    * On after on cell/cellCorner mouse down listener.
    *
    * @param {('cell'|'corner'|'move'|'handle')} kind The active drag interaction.
-   * @param {MouseEvent} event The mouse event object.
+   * @param {Event} event The pointer event that started the drag - a `mousedown` on desktop, a
+   * `touchstart` on mobile.
    * @param {object} [controller] The controller object from `beforeOnCellMouseDown`.
    */
   #setupListening(
     kind: 'cell' | 'corner' | 'move' | 'handle',
-    event: MouseEvent,
+    event: Event,
     controller: { row?: boolean; column?: boolean } | null = null
   ) {
     if (isRightClick(event)) {
@@ -406,6 +422,90 @@ export class DragToScroll extends BasePlugin {
     }
 
     this.#setupListening('handle', event);
+  };
+
+  /**
+   * Starts auto-scrolling for a mobile selection-handle drag.
+   *
+   * The mobile handles run entirely on touch events, so no `mousedown` reaches them and the
+   * `afterOnSelectionHandleMouseDown` hook never fires - hence this separate entry point. The
+   * ordering is guaranteed by DOM bubbling rather than by plugin priority: MultipleSelectionHandles
+   * listens on `rootElement`, a descendant of the document this listener sits on, so it has already
+   * recorded the drag by the time this runs.
+   *
+   * @param {Event} event The `touchstart` event.
+   */
+  #onTouchStart = (event: Event): void => {
+    // Every later finger lands while the handle drag is still running, so this fires again for each
+    // one. Keep following the finger that started the drag - taking the newest instead would leave
+    // auto-scroll chasing a resting thumb, and would end the drag when that thumb lifted.
+    if (this.#dragTouchId !== null) {
+      return;
+    }
+
+    const touch = getFirstChangedTouch(event);
+
+    // No identifier means no way to tell this finger from any other later on, so there would be no
+    // safe moment to stop. Better not to start: `#dragTouchId` stays in step with being touch-armed,
+    // which is what `#onTouchEnd` relies on.
+    if (touch === null) {
+      return;
+    }
+
+    // Ask about THIS finger, not merely whether some drag is running. A drag can outlive the
+    // auto-scroller - `unlisten()` also runs on Escape and on `contextmenu` - and `isDragged()`
+    // alone would then let the next touch anywhere in the document start scrolling the grid.
+    if (this.hot.getPlugin('multipleSelectionHandles')?.isDraggedBy(touch.identifier) !== true) {
+      return;
+    }
+
+    this.#dragTouchId = touch.identifier;
+
+    this.#setupListening('handle', event);
+  };
+
+  /**
+   * Feeds the moving finger's position to the auto-scroller.
+   *
+   * @param {Event} event The `touchmove` event.
+   */
+  #onTouchMove = (event: Event): void => {
+    if (!this.isListening() || this.#dragTouchId === null) {
+      return;
+    }
+
+    const point = getTouchPointById(event, this.#dragTouchId);
+
+    if (point === null) {
+      return;
+    }
+
+    this.#trackPointer(point.clientX, point.clientY);
+  };
+
+  /**
+   * Stops auto-scrolling once the finger that started the drag leaves the screen.
+   *
+   * `touchend` and `touchcancel` fire once per finger, so "a finger lifted" is not the same question
+   * as "the dragging finger lifted". Answering the first would let a palm or a second finger stop a
+   * drag still in progress - and nothing re-arms short of a new `touchstart`, so auto-scroll would
+   * stay dead for the rest of it.
+   *
+   * @param {Event} event The `touchend` or `touchcancel` event.
+   */
+  #onTouchEnd = (event: Event): void => {
+    // Nothing of ours is running on touch. A mouse drag can be, though - these listeners sit on the
+    // document, and a hybrid device fires touch events during one - and it is not this handler's to
+    // end.
+    if (this.#dragTouchId === null) {
+      return;
+    }
+
+    if (getTouchPointById(event, this.#dragTouchId) !== null) {
+      return;
+    }
+
+    this.unlisten();
   };
 
   /**
@@ -494,10 +594,21 @@ export class DragToScroll extends BasePlugin {
       return;
     }
 
-    this.#lastClientX = event.clientX;
-    this.#lastClientY = event.clientY;
+    this.#trackPointer(event.clientX, event.clientY);
+  }
 
-    this.check(event.clientX, event.clientY);
+  /**
+   * Records the latest pointer position and runs the viewport-boundary check that drives the
+   * auto-scroller. Shared by the mouse and the touch input paths.
+   *
+   * @param {number} clientX The pointer's viewport X coordinate.
+   * @param {number} clientY The pointer's viewport Y coordinate.
+   */
+  #trackPointer(clientX: number, clientY: number) {
+    this.#lastClientX = clientX;
+    this.#lastClientY = clientY;
+
+    this.check(clientX, clientY);
   }
 
   /**

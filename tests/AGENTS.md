@@ -50,6 +50,23 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   under `fixtures/`; rebuilding a bundle or reinstalling the engine re-runs
   affected specs. Do not narrow that hash.
 
+## Touch and mobile specs
+
+- Page objects for mobile specs live in `fixtures/pages/mobile/` (as walkontable's do in
+  `fixtures/pages/walkontable/`). A mobile spec must declare
+  `test.use({ ...devices['iPhone 13'], browserName: 'chromium' })`: Handsontable decides
+  whether to create the mobile selection handles from the **user agent, at grid construction
+  time**, so without the emulation the handles never exist and the spec fails for the wrong
+  reason. Assert the handle is visible before touching it.
+- `page.touchscreen` only **taps** — it has no drag. A touch drag needs CDP
+  (`page.context().newCDPSession(page)` → `Input.dispatchTouchEvent`), which is also why those
+  specs pin `browserName: 'chromium'`. Nothing else here emits trusted `touchmove`.
+- Auto-scroll assertions must check **progress while the pointer rests**, never that one offset
+  is non-zero: extending a selection onto a partially visible row or column scrolls it into view
+  on its own, so `scrollTop > 0` passes with the auto-scroller dead. The scroll timer
+  reschedules itself, so one `touchmove` past the edge starts it — poll for a further increase
+  instead of holding for a fixed time (`waitForTimeout` is banned, see below).
+
 ## Determinism
 
 Ships at `error` in `.eslintrc.cjs`: no `waitForTimeout`, `sleep`,
