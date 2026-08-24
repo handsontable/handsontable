@@ -978,6 +978,9 @@ describe('ColumnSummarySpec', () => {
 
       data.push({ a: 'TOTAL', b: null });
 
+      // installed before the grid so init-time warnings land inside the spied window
+      const warnSpy = spyOnConsoleWarn();
+
       handsontable({
         data,
         height: 400,
@@ -1018,8 +1021,6 @@ describe('ColumnSummarySpec', () => {
           ];
         },
       });
-
-      const warnSpy = spyOn(console, 'warn');
 
       await waitForNextAnimationFrames(2);
 
@@ -1164,6 +1165,37 @@ describe('ColumnSummarySpec', () => {
     // 10 + 2 + 3, without the hidden subtotal of 6 added on top
     expect(getDataAtCell(hot().toVisualRow(4), 0)).toEqual(15);
   });
+
+  it('should build the default `ranges` from the physical row count when rows are already trimmed (#11674)',
+    async() => {
+      handsontable({
+        data: [[1], [2], [3], [4], [null]],
+        trimRows: [1, 2],
+        columnSummary() {
+          return [
+            {
+              // no `ranges`, so the default range is built while rows 1 and 2 are already trimmed
+              destinationRow: 4,
+              destinationColumn: 0,
+              type: 'sum',
+              forceNumeric: true,
+            },
+          ];
+        },
+      });
+
+      await waitForNextAnimationFrames(2);
+
+      const plugin = getPlugin('ColumnSummary');
+
+      // 5 physical rows, so the default range spans them all - not the 3 visible ones
+      expect(plugin.endpoints.getAllEndpoints()[0].ranges).toEqual([[0, 4]]);
+
+      // force a recalculation and check the sum covers the trimmed rows too
+      await setDataAtCell(0, 0, 10);
+
+      expect(getDataAtCell(hot().toVisualRow(4), 0)).toEqual(19);
+    });
 
   describe('maxRows options set', () => {
     it('should apply summary operation only on rows which are < maxRows', async() => {

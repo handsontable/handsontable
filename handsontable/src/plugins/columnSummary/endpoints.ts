@@ -89,11 +89,11 @@ class Endpoints {
    */
   cellsToSetCache: [number, number | undefined, unknown][] = [];
   /**
-   * Physical `row,column` keys of every endpoint destination, built once per refresh pass.
-   * Used to keep summary results out of other summaries when their row is trimmed and the
+   * Destination columns keyed by physical destination row, built once per refresh pass. Used to
+   * keep summary results out of other summaries when their row is trimmed and the
    * `columnSummaryResult` class is unreachable.
    */
-  #summaryDestinations: Set<string> | null = null;
+  #summaryDestinations: Map<number, Set<number>> | null = null;
 
   /**
    * Initializes the endpoints manager with a reference to the ColumnSummary plugin and the summary endpoint configuration.
@@ -145,13 +145,20 @@ class Endpoints {
    * Returns the number of rows an endpoint may address, that is the physical row count capped by
    * `maxRows`. Used for the settings defaults that need a row count rather than a bounds check.
    *
-   * A non-finite or negative `maxRows` is treated as no cap.
+   * `maxRows` is normalized the same way `DataMap#getLength` does it: `0` or less means zero rows,
+   * anything falsy means no cap.
    *
    * @returns {number}
    */
   countAddressableRows(): number {
-    const { maxRows } = this.hot.getSettings();
-    const cap = Number.isFinite(maxRows) && (maxRows as number) >= 0 ? (maxRows as number) : Infinity;
+    const maxRows = this.hot.getSettings().maxRows as number | undefined;
+    let cap;
+
+    if ((maxRows ?? 0) < 0 || maxRows === 0) {
+      cap = 0;
+    } else {
+      cap = maxRows || Infinity;
+    }
 
     return Math.min(this.countPhysicalRows(), cap);
   }
@@ -191,11 +198,26 @@ class Endpoints {
   }
 
   /**
-   * Drops the cached endpoint destinations. Called when a refresh pass starts, because the settings
-   * may be a function that returns different endpoints each time it runs.
+   * Records the destinations of the endpoints a refresh pass is about to calculate.
+   *
+   * The resolved endpoints are passed in rather than read through `getAllEndpoints()`, which would
+   * re-invoke a settings function and could describe a different layout than the pass is working on.
+   *
+   * @param {object[]} endpoints The endpoints the current pass will calculate.
    */
-  invalidateSummaryDestinations() {
-    this.#summaryDestinations = null;
+  cacheSummaryDestinations(endpoints: EndpointConfig[]) {
+    this.#summaryDestinations = new Map();
+
+    arrayEach(endpoints, (endpoint: EndpointConfig) => {
+      let columns = this.#summaryDestinations!.get(endpoint.destinationRow!);
+
+      if (columns === undefined) {
+        columns = new Set();
+        this.#summaryDestinations!.set(endpoint.destinationRow!, columns);
+      }
+
+      columns.add(endpoint.destinationColumn!);
+    });
   }
 
   /**
@@ -211,12 +233,10 @@ class Endpoints {
    */
   isSummaryDestination(physicalRow: number, column: number): boolean {
     if (this.#summaryDestinations === null) {
-      this.#summaryDestinations = new Set(
-        this.getAllEndpoints().map(endpoint => `${endpoint.destinationRow},${endpoint.destinationColumn}`)
-      );
+      this.cacheSummaryDestinations(this.getAllEndpoints());
     }
 
-    return this.#summaryDestinations.has(`${physicalRow},${column}`);
+    return this.#summaryDestinations!.get(physicalRow)?.has(column) === true;
   }
 
   /**
@@ -568,10 +588,12 @@ class Endpoints {
    * Calculate and refresh all defined endpoints.
    */
   refreshAllEndpoints() {
-    this.cellsToSetCache = [];
-    this.invalidateSummaryDestinations();
+    const endpoints = this.getAllEndpoints();
 
-    arrayEach(this.getAllEndpoints(), (value: EndpointConfig) => {
+    this.cellsToSetCache = [];
+    this.cacheSummaryDestinations(endpoints);
+
+    arrayEach(endpoints, (value: EndpointConfig) => {
       this.currentEndpoint = value;
       this.plugin.calculate(value as unknown as Parameters<typeof this.plugin.calculate>[0]);
       this.setEndpointValue(value, 'init');
@@ -591,10 +613,11 @@ class Endpoints {
    * @param {Array} changes Array of changes from the `afterChange` hook.
    */
   refreshChangedEndpoints(changes: unknown[][]) {
+    const endpoints = this.getAllEndpoints();
     const needToRefresh: number[] = [];
 
     this.cellsToSetCache = [];
-    this.invalidateSummaryDestinations();
+    this.cacheSummaryDestinations(endpoints);
 
     arrayEach(changes, (value: unknown, key: number, changesObj: unknown[]) => {
       const change = value as unknown[];
@@ -603,7 +626,7 @@ class Endpoints {
         return;
       }
 
-      arrayEach(this.getAllEndpoints(), (endpoint: EndpointConfig, j: number) => {
+      arrayEach(endpoints, (endpoint: EndpointConfig, j: number) => {
         if (this.hot.propToCol((changesObj[key] as unknown[])[1] as string | number) === endpoint.sourceColumn &&
           needToRefresh.indexOf(j) === -1) {
           needToRefresh.push(j);
@@ -612,7 +635,7 @@ class Endpoints {
     });
 
     arrayEach(needToRefresh, (value: number) => {
-      this.refreshEndpoint(this.getEndpoint(value));
+      this.refreshEndpoint(endpoints[value]);
     });
 
     if (this.cellsToSetCache.length) {
@@ -628,17 +651,18 @@ class Endpoints {
    * @param {Set<number>|number[]} visualColumns Visual column indexes to match against.
    */
   refreshEndpointsBySourceColumns(visualColumns: Set<number> | number[]) {
-    this.invalidateSummaryDestinations();
-
     const columnsSet = visualColumns instanceof Set ? visualColumns : new Set(visualColumns);
-    const matched = this.getAllEndpoints()
-      .filter(endpoint => columnsSet.has(endpoint.sourceColumn!));
+    const endpoints = this.getAllEndpoints();
+    const matched = endpoints.filter(endpoint => columnsSet.has(endpoint.sourceColumn!));
 
     if (matched.length === 0) {
       return;
     }
 
     this.cellsToSetCache = [];
+    // Every endpoint is cached, not just the matched ones - a summary result must stay excluded from
+    // the ranges of the endpoints being refreshed, whatever their own source column is.
+    this.cacheSummaryDestinations(endpoints);
 
     arrayEach(matched, (endpoint) => {
       this.refreshEndpoint(endpoint as EndpointConfig);
