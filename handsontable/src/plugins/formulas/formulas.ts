@@ -2013,7 +2013,13 @@ export class Formulas extends BasePlugin {
    * @returns {boolean}
    */
   #doesEngineHoldPhysicalColumns() {
-    return this.hot.countCols() >= this.hot.countSourceCols() && isArrayOfArrays(this.hot.getSourceData());
+    if (this.hot.countCols() < this.hot.countSourceCols()) {
+      return false;
+    }
+
+    // Only the shape of the data matters, and it is the same for every row, so one row answers it.
+    // `getSourceData()` would rebuild the whole dataset just to run `isArrayOfArrays` over it.
+    return Array.isArray(this.hot.getSourceDataAtRow(0));
   }
 
   /**
@@ -2025,10 +2031,12 @@ export class Formulas extends BasePlugin {
    *
    * @private
    * @param {number} hfColumn The engine's column index.
+   * @param {boolean} engineHoldsPhysicalColumns Result of `#doesEngineHoldPhysicalColumns`, passed in
+   *   because it reads the whole source data and must not be recomputed per cell.
    * @returns {{ visualColumn: number, prop: string | number } | null}
    */
-  #resolveEngineColumn(hfColumn: number) {
-    if (this.#doesEngineHoldPhysicalColumns()) {
+  #resolveEngineColumn(hfColumn: number, engineHoldsPhysicalColumns: boolean) {
+    if (engineHoldsPhysicalColumns) {
       // The engine index is the physical one, which doubles as the prop for array-of-arrays data.
       const visualColumn = this.hot.propToCol(hfColumn);
 
@@ -2121,6 +2129,8 @@ export class Formulas extends BasePlugin {
 
     const formulas = this.engine.getSheetFormulas(sheetId);
     const changes: Array<[number, string | number, unknown]> = [];
+    // Resolved once for the run, and only if a formula cell is actually found - it reads the data.
+    let engineHoldsPhysicalColumns: boolean | null = null;
 
     // Compare against what Handsontable stores, not against what it reports - `#onModifySourceData`
     // would otherwise answer with the engine's formula and hide every diff.
@@ -2145,7 +2155,11 @@ export class Formulas extends BasePlugin {
             continue;
           }
 
-          const column = this.#resolveEngineColumn(hfColumn);
+          if (engineHoldsPhysicalColumns === null) {
+            engineHoldsPhysicalColumns = this.#doesEngineHoldPhysicalColumns();
+          }
+
+          const column = this.#resolveEngineColumn(hfColumn, engineHoldsPhysicalColumns);
 
           if (column === null) {
             continue;
