@@ -286,6 +286,14 @@ export class Comments extends BasePlugin {
    * @type {ShadowRoot|null}
    */
   #gridShadowRoot: ShadowRoot | null = null;
+  /**
+   * Mouse events already handled for a shadow-hosted grid, so that the document listener
+   * does not process one the shadow-root listener has taken. Only ever populated when the
+   * grid renders inside a shadow root.
+   *
+   * @type {WeakSet}
+   */
+  #processedMouseEvents: WeakSet<object> = new WeakSet();
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -451,22 +459,40 @@ export class Comments extends BasePlugin {
 
     this.#gridShadowRoot = isShadowRoot(rootNode) ? rootNode : null;
 
-    this.eventManager.addEventListener(rootDocument, 'mouseover', this.#onMouseOver);
-    this.eventManager.addEventListener(rootDocument, 'mousedown', this.#onMouseDown);
-    this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.#onMouseUp());
+    // Claims an event for the first listener that receives it. A shadow-hosted grid binds the
+    // handlers twice, and the two bindings do NOT see the same element under a sandboxed host
+    // (e.g. Salesforce Lightning Web Security): that host collapses `composedPath()` to the
+    // shadow host chain, so only a listener bound inside the grid's own shadow tree gets the
+    // real cell, while the document listener still sees the host. Left undeduped, one hover
+    // would show from the shadow-root listener and then hide from the document listener -
+    // which also clears the display switch's flag, so the debounced show is dropped and the
+    // tooltip never appears. The shadow-root listener runs first (the event reaches the
+    // ShadowRoot before it crosses to the host), so it wins for anything inside the grid and
+    // the document listener keeps handling only what never entered the shadow tree.
+    const dedupe = (handler: (event: Event) => void) => (event: Event) => {
+      if (this.#gridShadowRoot) {
+        if (this.#processedMouseEvents.has(event)) {
+          return;
+        }
 
-    // When the grid lives inside a Shadow DOM tree, the same listeners are attached to the
-    // grid's shadow root as well. The document listeners above stay - they are the ones that
-    // see a click or a hover landing outside the shadow host. Sandboxed hosts (e.g. Salesforce
-    // Lightning Web Security) collapse `composedPath()` to the shadow host chain, so the
-    // document listeners cannot recover the real cell there; listeners bound inside the grid's
-    // own shadow tree still receive a correctly retargeted `target`. No dedupe registry is
-    // needed when both fire for one event: all three handlers resolve the same element and are
-    // idempotent, and showing is debounced by the display switch.
+        this.#processedMouseEvents.add(event);
+      }
+
+      handler(event);
+    };
+
+    const onMouseOver = dedupe(this.#onMouseOver);
+    const onMouseDown = dedupe(this.#onMouseDown);
+    const onMouseUp = dedupe(() => this.#onMouseUp());
+
+    this.eventManager.addEventListener(rootDocument, 'mouseover', onMouseOver);
+    this.eventManager.addEventListener(rootDocument, 'mousedown', onMouseDown);
+    this.eventManager.addEventListener(rootDocument, 'mouseup', onMouseUp);
+
     if (this.#gridShadowRoot) {
-      this.eventManager.addEventListener(this.#gridShadowRoot, 'mouseover', this.#onMouseOver);
-      this.eventManager.addEventListener(this.#gridShadowRoot, 'mousedown', this.#onMouseDown);
-      this.eventManager.addEventListener(this.#gridShadowRoot, 'mouseup', () => this.#onMouseUp());
+      this.eventManager.addEventListener(this.#gridShadowRoot, 'mouseover', onMouseOver);
+      this.eventManager.addEventListener(this.#gridShadowRoot, 'mousedown', onMouseDown);
+      this.eventManager.addEventListener(this.#gridShadowRoot, 'mouseup', onMouseUp);
     }
 
     if (editorElement) {
