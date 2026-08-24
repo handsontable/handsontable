@@ -185,7 +185,7 @@ For more information on `@handsontable/angular`, see the [15.3 documentation](ht
 
 If you're using Angular 21 or newer, please note that older versions of `@handsontable/angular-wrapper` are incompatible due to recent breaking changes in Angular. To ensure smooth integration, upgrade to `@handsontable/angular-wrapper@16.2` or later.
 
-## Server side rendering (SSR)
+## Server-side rendering (SSR)
 
 Currently, `HotTable` cannot be rendered on the server-side. If your application uses SSR, render it only in the browser using the `@if` control flow block.
 

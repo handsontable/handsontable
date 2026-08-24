@@ -119,7 +119,7 @@ If you don't want to declare a theme at all, set the [`colorScheme`](@/api/optio
 
 There are two ways to apply a theme. The recommended approach is to use the Theme API with a theme object, which provides full access to runtime configuration features like density modes and color schemes.
 
-### Option 1: Using the theme API (recommended)
+### Option 1: Using the Theme API (recommended)
 
 The Theme API allows you to import and register themes programmatically. This approach provides runtime access to theme customization features.
 

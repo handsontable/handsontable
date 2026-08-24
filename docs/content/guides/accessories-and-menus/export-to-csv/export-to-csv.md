@@ -73,7 +73,7 @@ This example exports all rows and columns, including hidden ones, by setting bot
 :::
 :::
 
-### Export as a JavaScript blob object
+### Export as a JavaScript Blob object
 
 Open a console in browser developer tools to see the result for the below example.
 This example keeps hidden indicators in the grid, but exports only visible rows and columns by setting `exportHiddenRows` and `exportHiddenColumns` to `false`.

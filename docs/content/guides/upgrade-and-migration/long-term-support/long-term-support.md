@@ -1,6 +1,6 @@
 ---
 type: explanation
-title: Long term support (LTS)
+title: Long-term support (LTS)
 metaTitle: Long Term Support (LTS) - JavaScript Data Grid | Handsontable
 description: LTS (Long-Term Support) versions are Handsontable releases that are maintained for an extended period. 
 permalink: /long-term-support

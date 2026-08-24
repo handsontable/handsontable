@@ -40,7 +40,7 @@ If you want to use the `main` theme without any modifications, you don't need to
 
 If you were using the legacy styles, migrate to the Classic theme using one of the two options below.
 
-#### Option 1: Using the theme API (recommended)
+#### Option 1: Using the Theme API (recommended)
 
 The Theme API allows you to register and configure themes programmatically with runtime features like density modes and color schemes.
 
@@ -199,7 +199,7 @@ The Classic theme provides the same visual appearance as the legacy style, but w
 - **Better Maintainability**: The theming system is designed for long-term support
 - **Consistency**: Works seamlessly with the new Design System
 
-## 2. Migrate from CSS-based themes to the theme API
+## 2. Migrate from CSS-based themes to the Theme API
 
 If you're currently using CSS-based themes (loading theme CSS files and passing theme name as a string), migrating to the Theme API provides better runtime control and customization options.
 

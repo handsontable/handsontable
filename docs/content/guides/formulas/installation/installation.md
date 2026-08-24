@@ -100,7 +100,7 @@ To run HyperFormula on its own, outside a Handsontable instance (for example, on
 need a dedicated [HyperFormula license key](https://hyperformula.handsontable.com/guide/license-key.html).
 For details, [contact our Sales Team](https://handsontable.com/get-a-quote).
 
-## Enable the formulas plugin
+## Enable the Formulas plugin
 
 Pass the `HyperFormula` class to the `formulas.engine` option. Handsontable builds the engine and
 applies the license key for you.

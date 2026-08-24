@@ -211,7 +211,7 @@ The following example demonstrates using the Theme API to register a theme with 
 
 :::
 
-## Option 2: Figma theme generator
+## Option 2: Figma Theme Generator
 
 The Figma Theme Generator allows designers and developers to work together seamlessly by exporting design tokens directly from Figma into a CSS theme file.
 
@@ -296,7 +296,7 @@ Scope your rule to the theme class instead. Writing it as a descendant of your c
 
 A bare `.ht-theme-main { ... }` rule works as well, but it matches the wrapper with the same specificity as the theme's own rule. It wins only when your stylesheet comes after the theme stylesheet, which depends on how your bundler orders CSS.
 
-## Option 4: Use the theme builder UI
+## Option 4: Use the Theme Builder UI
 
 If you prefer a visual approach to creating themes, use the [Handsontable Theme Builder](https://handsontable.com/theme-builder). This online tool provides an intuitive interface for customizing colors, spacing, and other theme properties without writing code. Once you're satisfied with your design, you can export the generated your theme and integrate it into your project.
 

@@ -1,6 +1,6 @@
 ---
 type: explanation
-title: AI theme builder
+title: AI Theme Builder
 metaTitle: AI Theme Builder - JavaScript Data Grid | Handsontable
 description: An AI-assisted tool that turns a written description into a complete Handsontable theme, generating the CSS variables that drive the grid's appearance.
 permalink: /ai-theme-builder

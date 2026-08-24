@@ -173,7 +173,7 @@ Here are some common scenarios where the loading dialog is useful:
 
 :::
 
-## Loading with pagination plugin
+## Loading with Pagination plugin
 
 The example below demonstrates how to use the Loading plugin with pagination in external container:
 

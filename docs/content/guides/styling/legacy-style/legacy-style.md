@@ -35,7 +35,7 @@ If you're upgrading from a version prior to 17.0.0, you must migrate to the Clas
 
 There are two ways to apply the Classic theme. The recommended approach is to use the Theme API with a theme object.
 
-### Option 1: Using the theme API (recommended)
+### Option 1: Using the Theme API (recommended)
 
 The Theme API allows you to import and register themes programmatically. This approach provides full access to theme customization features like density modes and color schemes.
 
