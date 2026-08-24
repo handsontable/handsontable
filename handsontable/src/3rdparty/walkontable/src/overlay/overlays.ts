@@ -453,7 +453,9 @@ class Overlays {
     this.eventManager.addEventListener(this.#deps.rootWindow as unknown as HTMLElement, 'pointermove', ((
       event: PointerEvent
     ) => {
-      this.#scrollbarVisibility.notifyPointerMoved(event.clientX, event.clientY);
+      this.#scrollbarVisibility.notifyPointerMoved(
+        event.clientX, event.clientY, this.wtSettings.getSetting<boolean>('rtlMode')
+      );
     }) as EventListener, { passive: true });
 
     // A press inside an open band must do nothing: no selection, no deselect, no menu. It has to be
@@ -495,7 +497,7 @@ class Overlays {
    * Whether an overlay scrollbar is currently on screen, and so whether the frozen overlays should be
    * leaving a clearance strip for it (#10370).
    *
-   * @returns {boolean}
+   * @returns {ScrollbarBandsOpen}
    */
   isScrollbarVisible(): ScrollbarBandsOpen {
     // The clip and the band switch on the same flag, so the two can never disagree - either half-

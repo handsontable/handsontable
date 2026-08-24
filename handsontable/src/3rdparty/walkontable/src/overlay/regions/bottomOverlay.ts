@@ -10,6 +10,7 @@ import { Overlay, type OverlayDeps } from './_base';
 import {
   applyOverlayScrollbarClearance,
   overlayScrollbarClearance,
+  overlayWidthBesideScrollbar,
   reservedScrollbarSpace,
 } from '../scrollbarClearance';
 import {
@@ -241,20 +242,11 @@ export class BottomOverlay extends Overlay {
       let width = wtViewport.getWorkspaceWidth();
 
       if (wtViewport.hasVerticalScroll()) {
-        // Match the master holder's actual inner width instead of subtracting a probed scrollbar
-        // width. `getScrollbarWidth()` measures a bare off-DOM element, which answers "does this
-        // engine give scrollbars space" and not "does *this* scroller". Any browser can disagree
-        // between the two - styling a scrollbar is enough to change how it renders - and where it
-        // does, this overlay came out too wide and ran underneath the scrollbar (#10370). Measured on
-        // Firefox 154: probe 0, holder 15.
-        // `clientWidth` is the scroller's own answer, at the browser's sub-pixel accuracy, and it is
-        // the same correction `inlineStartOverlay` already applies on the other axis (#12632).
-        // With a true overlay scrollbar it reserves nothing, so this is a no-op there and the
-        // clearance strip handles that case instead.
-        const masterClientWidth = this.deps.geometryReader.clientWidth(wtTable.holder);
-
-        width = masterClientWidth > 0
-          ? masterClientWidth : width - this.deps.geometryReader.getScrollbarWidth(rootDocument);
+        width = overlayWidthBesideScrollbar(
+          width,
+          this.deps.geometryReader.clientWidth(wtTable.holder),
+          this.deps.geometryReader.getScrollbarWidth(rootDocument)
+        );
       }
 
       width = Math.min(width, this.deps.geometryReader.scrollWidth(wtTable.wtRootElement));

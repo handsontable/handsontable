@@ -199,16 +199,20 @@ export class NativeScrollInput {
    * @param {Event} event The mouse event object.
    */
   #onTableScroll(event: Event) {
-    // Scrolling is what brings an overlay scrollbar on screen, so the clearance strip the frozen
-    // overlays leave for it has to open now and fade with it (#10370).
-    this.#deps.notifyScrolledForScrollbarVisibility();
-
     // There was if statement which controlled flow of this function. It avoided the execution of the next lines
     // on mobile devices. It was changed. Broader description of this case is included within issue #4856.
     const { rootWindow } = this.#deps;
     const masterHorizontal = this.#deps.getInlineStartOverlay().mainTableScrollableElement;
     const masterVertical = this.#deps.getTopOverlay().mainTableScrollableElement;
     const target = event.target;
+
+    // Scrolling is what brings an overlay scrollbar on screen, so the clearance strip the frozen
+    // overlays leave for it has to open now and fade with it (#10370). Deliberately below the
+    // key-press branch: keyboard navigation moves the viewport without the browser drawing a
+    // scrollbar, and notifying from there carved out a strip nothing was painted in.
+    if (!this.#keyPressed) {
+      this.#deps.notifyScrolledForScrollbarVisibility();
+    }
 
     // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
     // by hot.refreshBorder

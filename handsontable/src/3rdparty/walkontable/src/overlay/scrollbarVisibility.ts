@@ -51,7 +51,7 @@ export type ScrollbarVisibilityDeps = ReturnType<typeof createScrollbarVisibilit
  * measured on a real grid:
  *
  * - clip open while the band is part-way through its opacity: only the master's segment of the strip
- *   is tinted while the frozen segments keep their own cells - two colours side by side down the strip
+ *   is tinted while the frozen segments keep their own cells - two colors side by side down the strip
  *   (231,231,233 against 255,255,255), which reads as a different track over each overlay.
  * - clip closed while the band is part-way through its opacity: the strip shows the master's cell where
  *   the frozen content belongs, so a column header looks cut short along its last 16px.
@@ -165,8 +165,10 @@ export class ScrollbarVisibility {
    *
    * @param {number} clientX The pointer's viewport X.
    * @param {number} clientY The pointer's viewport Y.
+   * @param {boolean} rtl Whether the grid runs right-to-left, which puts the vertical scrollbar on the
+   * opposite edge.
    */
-  notifyPointerMoved(clientX: number, clientY: number): void {
+  notifyPointerMoved(clientX: number, clientY: number, rtl: boolean = false): void {
     if (!this.#visible.horizontal && !this.#visible.vertical) {
       return;
     }
@@ -183,8 +185,11 @@ export class ScrollbarVisibility {
       && clientY <= rect.bottom + OVERLAY_SCROLLBAR_PROXIMITY;
     const inReach = withinX && withinY;
     const nearBottom = inReach && clientY >= rect.bottom - OVERLAY_SCROLLBAR_PROXIMITY;
-    const nearInlineEdge = inReach && (clientX >= rect.right - OVERLAY_SCROLLBAR_PROXIMITY
-      || clientX <= rect.left + OVERLAY_SCROLLBAR_PROXIMITY);
+    // One edge only, and which one depends on direction. Testing both meant that in LTR a pointer over
+    // the row headers - nowhere near the vertical scrollbar - pinned the right-hand band open for good.
+    const nearInlineEdge = inReach && (rtl
+      ? clientX <= rect.left + OVERLAY_SCROLLBAR_PROXIMITY
+      : clientX >= rect.right - OVERLAY_SCROLLBAR_PROXIMITY);
 
     this.#setPinned('horizontal', nearBottom);
     this.#setPinned('vertical', nearInlineEdge);

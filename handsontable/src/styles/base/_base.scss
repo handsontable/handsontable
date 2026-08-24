@@ -471,7 +471,7 @@
 
         // `-row-seam-bottom`: tagged by SelectionManager on the first bottom-frozen row header when
         // the last non-frozen row is active. Its top border is the bottom-freeze seam, out of reach
-        // of the `-prev-row` accent rule (separate overlay table), so colour it here.
+        // of the `-prev-row` accent rule (separate overlay table), so color it here.
         &.ht__active_highlight,
         &.ht__active_highlight-row-seam-bottom {
           border-top-color: var(--ht-header-active-border-color);
@@ -486,7 +486,7 @@
 
         // `-row-seam-top`: tagged by SelectionManager on the last top-frozen row header when the first
         // non-frozen row is active. Its bottom border is the top-freeze seam, out of reach of the
-        // `-prev-row` accent rule (separate overlay table), so colour it here.
+        // `-prev-row` accent rule (separate overlay table), so color it here.
         &.ht__active_highlight,
         &.ht__active_highlight-row-seam-top {
           border-bottom-color: var(--ht-header-active-border-color);
@@ -764,8 +764,8 @@
   // than an opaque patch under the frozen cells beside a transparent gap over the master.
   .htScrollbarClearanceFiller {
     position: absolute;
-    // The scrollbar's own track colour, not the grid background. The browser paints its native track
-    // in this colour whenever it decides to draw one (on drag, on hover), so anything else makes the
+    // The scrollbar's own track color, not the grid background. The browser paints its native track
+    // in this color whenever it decides to draw one (on drag, on hover), so anything else makes the
     // band change shade between a wheel scroll and a drag.
     background-color: var(--ht-scrollbar-track-color, var(--ht-background-color));
     // The band DOES take pointer events, on purpose. An overlay scrollbar only hit-tests its thumb,
@@ -780,7 +780,7 @@
     // the frozen content belongs, and a column header looks cut short along its last 16px. Measured on
     // a real grid: an opacity ramp put 13 such frames in every appearance. Holding the clip open for
     // the ramp instead only moves the defect - the fade is then drawn over the master's segment alone,
-    // and the track reads as a different colour over each overlay. Appearing outright is the one state
+    // and the track reads as a different color over each overlay. Appearing outright is the one state
     // that shows neither.
     opacity: 0;
     box-sizing: border-box;

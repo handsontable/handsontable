@@ -38,12 +38,18 @@ const TRACK_OWNER = 'track';
  * Pointer events swallowed for a press inside a scrollbar band, so it neither moves the selection nor
  * opens a menu. Wheel is deliberately absent: scrolling over the band must keep working.
  *
+ * `mouseup` is absent too, and must stay that way. A drag that began on a cell can legitimately end
+ * inside the band - auto-scrolling during a drag-select is the common case - and stopping that release
+ * strands every document-level drag-end handler: the selection never finishes, an autofill never
+ * applies, and drag-to-scroll keeps running. Swallowing the press is enough on its own, because a
+ * gesture that starts here never begins a drag in the first place.
+ *
  * Stopped by coordinate rather than by target. The band element itself is not hit-tested - the browser
  * answers a point inside the band with the scroll container, not with the band - so a listener on the
  * band would never fire (measured).
  */
 export const BAND_SWALLOWED_EVENTS = [
-  'pointerdown', 'mousedown', 'mouseup', 'click', 'dblclick', 'contextmenu',
+  'pointerdown', 'mousedown', 'click', 'dblclick', 'contextmenu',
 ];
 
 /**
@@ -162,22 +168,6 @@ export function reservedScrollbarSpace(
 }
 
 /**
- * Subtracts a clearance from an inline CSS length, keeping the `px` suffix and leaving the empty
- * string ("size me automatically") untouched.
- *
- * @param {string} cssSize The inline size to shrink.
- * @param {number} clearance The strip to subtract, in pixels.
- * @returns {string}
- */
-export function insetCssSize(cssSize: string, clearance: number): string {
-  if (clearance === 0 || cssSize === '') {
-    return cssSize;
-  }
-
-  return `${Math.max(0, parseFloat(cssSize) - clearance)}px`;
-}
-
-/**
  * Marks (or unmarks) an overlay root as leaving a clearance strip.
  *
  * @param {HTMLElement} overlayRoot The overlay's root element.
@@ -192,6 +182,34 @@ export function toggleScrollbarClearance(overlayRoot: HTMLElement, active: boole
 }
 
 /**
+ * The width an overlay may occupy alongside the master's vertical scrollbar.
+ *
+ * The scroller's own `clientWidth` is the authority: it already excludes whatever gutter this
+ * particular holder gives up, at the browser's sub-pixel accuracy. The probed width is only a fallback
+ * for when the holder cannot be measured at all - a detached or hidden grid reports 0. The two
+ * disagree exactly where the defect lives, because the probe describes the engine and not this
+ * element, and trusting it left the overlay running underneath a real scrollbar (#10370).
+ *
+ * @param {number} workspaceWidth The width the overlay would take with no scrollbar in the way.
+ * @param {number} masterClientWidth The master holder's inner width, or 0 when it cannot be measured.
+ * @param {number} probedScrollbarWidth The engine-wide scrollbar width, from `getScrollbarWidth()`.
+ * @returns {number}
+ */
+export function overlayWidthBesideScrollbar(
+  workspaceWidth: number,
+  masterClientWidth: number,
+  probedScrollbarWidth: number
+): number {
+  if (masterClientWidth > 0) {
+    return masterClientWidth;
+  }
+
+  // Clamped: a narrow workspace can otherwise subtract its way past zero, and a negative width is
+  // never a meaningful answer.
+  return Math.max(0, workspaceWidth - probedScrollbarWidth);
+}
+
+/**
  * Builds the `clip-path` that keeps an overlay out of the bands the scrollbars are drawn in.
  *
  * Clipping, rather than resizing, is what makes this free of side effects: every box the viewport
@@ -202,7 +220,7 @@ export function toggleScrollbarClearance(overlayRoot: HTMLElement, active: boole
  * the property only ever changes value and never switches to and from `none`.
  *
  * @param {OverlayScrollbarClearanceStrips} strips The bands to keep clear, in pixels.
- * @param {boolean} open Whether the bands are currently showing.
+ * @param {ScrollbarBandsOpen} open Which bands are currently showing.
  * @returns {string} An `inset()` value, or '' when this overlay never needs clipping.
  */
 export function clearanceClipPath(
@@ -242,7 +260,7 @@ export function clearanceClipPath(
  * @param {number} bands.inlineEnd The vertical scrollbar's band width, in pixels.
  * @param {number} bands.scrollportWidth The scrollport's width, in pixels.
  * @param {number} bands.scrollportHeight The scrollport's height, in pixels.
- * @param {boolean} open Whether the bands are currently showing.
+ * @param {ScrollbarBandsOpen} open Which bands are currently showing.
  */
 export function syncScrollbarTrackBands(
   masterHolder: HTMLElement,
@@ -306,17 +324,6 @@ export function syncScrollbarTrackBands(
   host.classList.add(OVERLAY_SCROLLBAR_FILLER_OPEN_CLASS);
 }
 
-/**
- * Turns the strips an overlay's holder gave up into the rectangles that have to be covered.
- *
- * The overlay root keeps its full box - shrinking it would move the frozen band's own boundary, which
- * the viewport calculations read - so each strip lies *inside* the root, along the edge the holder was
- * inset from: the last `bottom` pixels of its block axis, the last `inlineEnd` of its inline axis.
- *
- * @param {OverlayScrollbarClearanceStrips} strips The strips the holder gave up, in pixels.
- * @param {OverlayScrollbarClearanceBox} box The overlay root's box, in scrollport coordinates.
- * @returns {FillerRect[]}
- */
 /**
  * Returns the master holder's filler host, creating it on first use.
  *

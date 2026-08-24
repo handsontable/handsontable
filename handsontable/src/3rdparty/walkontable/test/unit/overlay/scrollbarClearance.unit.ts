@@ -1,9 +1,9 @@
 import {
   applyOverlayScrollbarClearance,
   clearanceClipPath,
-  insetCssSize,
   isPointInScrollbarBand,
   overlayScrollbarClearance,
+  overlayWidthBesideScrollbar,
   reservedScrollbarSpace,
   syncScrollbarTrackBands,
   toggleScrollbarClearance,
@@ -61,6 +61,34 @@ describe('overlay scrollbar clearance', () => {
     });
   });
 
+  describe('overlayWidthBesideScrollbar', () => {
+    it('should stop at the holder inner width when the probe disagrees with the holder', () => {
+      // The reported case: the engine-wide probe reports no gutter while this scroller reserves 15.
+      // Trusting the probe left the overlay 15px too wide, running under the scrollbar (#10370).
+      expect(overlayWidthBesideScrollbar(700, 685, 0)).toBe(685);
+    });
+
+    it('should stop at the holder inner width when the two agree', () => {
+      // Classic scrollbars: both report 15, so this is the answer the old arithmetic gave too.
+      expect(overlayWidthBesideScrollbar(700, 685, 15)).toBe(685);
+    });
+
+    it('should take the full width when the scrollbar reserves nothing', () => {
+      // A floating scrollbar leaves no gutter to avoid; the clearance strip handles that case.
+      expect(overlayWidthBesideScrollbar(700, 700, 0)).toBe(700);
+    });
+
+    it('should fall back to the probe when the holder cannot be measured', () => {
+      // A detached or hidden grid reports 0, which is not an answer - subtract the probe instead.
+      expect(overlayWidthBesideScrollbar(700, 0, 15)).toBe(685);
+    });
+
+    it('should clamp at zero when the workspace is narrower than the scrollbar', () => {
+      // The arithmetic gives -5 here, and a negative width is never meaningful.
+      expect(overlayWidthBesideScrollbar(10, 0, 15)).toBe(0);
+    });
+  });
+
   describe('overlayScrollbarClearance', () => {
     it('should reserve a band when the scrollbar takes no layout space', () => {
       expect(overlayScrollbarClearance(0, true)).toBe(OVERLAY_SCROLLBAR_CLEARANCE);
@@ -95,28 +123,6 @@ describe('overlay scrollbar clearance', () => {
     it('should treat a fractional measured width as a real scrollbar', () => {
       // Fractional browser zoom can report e.g. 14.4; that is still a space-taking scrollbar.
       expect(overlayScrollbarClearance(14.4, true)).toBe(0);
-    });
-  });
-
-  describe('insetCssSize', () => {
-    it('should subtract the clearance and keep the unit', () => {
-      expect(insetCssSize('340px', 12)).toBe('328px');
-    });
-
-    it('should keep sub-pixel sizes', () => {
-      expect(insetCssSize('324.5px', 12)).toBe('312.5px');
-    });
-
-    it('should return the size untouched when there is no clearance', () => {
-      expect(insetCssSize('340px', 0)).toBe('340px');
-    });
-
-    it('should leave an empty size empty, so automatic sizing is preserved', () => {
-      expect(insetCssSize('', 12)).toBe('');
-    });
-
-    it('should never return a negative size', () => {
-      expect(insetCssSize('8px', 12)).toBe('0px');
     });
   });
 

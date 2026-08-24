@@ -208,21 +208,46 @@ describe('ScrollbarVisibility', () => {
   });
 
   it('should ignore a pointer outside the grid entirely', () => {
-    const { tracker, scrollBy } = build();
+    const { tracker, scrollBy, fadeAll } = build();
 
     scrollBy(60, 0);
     tracker.notifyPointerMoved(5, 5);
+    // The fade has to run, or this asserts the flag the scroll already set and proves nothing about
+    // the pointer at all - it passed with the proximity check deleted.
+    fadeAll();
+
+    expect(tracker.visible.horizontal).toBe(false);
+  });
+
+  it('should count the proximity band as near the edge', () => {
+    const { tracker, scrollBy, fadeAll } = build();
+
+    scrollBy(60, 0);
+    tracker.notifyPointerMoved(300, SCROLLPORT.bottom - OVERLAY_SCROLLBAR_PROXIMITY + 1);
+    fadeAll();
 
     expect(tracker.visible.horizontal).toBe(true);
   });
 
-  it('should count the proximity band as near the edge', () => {
-    const { tracker, scrollBy } = build();
+  it('should pin the vertical band from the inline-end edge, not the opposite one', () => {
+    const { tracker, scrollBy, fadeAll } = build();
 
-    scrollBy(60, 0);
-    tracker.notifyPointerMoved(300, SCROLLPORT.bottom - OVERLAY_SCROLLBAR_PROXIMITY + 1);
+    scrollBy(0, 60);
+    // LTR: the left edge is the row-header side, nowhere near the vertical scrollbar.
+    tracker.notifyPointerMoved(SCROLLPORT.left + 2, 200);
+    fadeAll();
 
-    expect(tracker.visible.horizontal).toBe(true);
+    expect(tracker.visible.vertical).toBe(false);
+  });
+
+  it('should pin the vertical band from the inline-start edge in RTL', () => {
+    const { tracker, scrollBy, fadeAll } = build();
+
+    scrollBy(0, 60);
+    tracker.notifyPointerMoved(SCROLLPORT.left + 2, 200, true);
+    fadeAll();
+
+    expect(tracker.visible.vertical).toBe(true);
   });
 
   it('should notify only when an axis actually flips', () => {
