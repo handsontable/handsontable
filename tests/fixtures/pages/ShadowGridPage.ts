@@ -17,6 +17,9 @@ export class ShadowGridPage {
   readonly outsideInput: Locator;
   readonly shadowSibling: Locator;
   readonly focusMover: Locator;
+  readonly commentTooltip: Locator;
+  readonly commentTooltipInput: Locator;
+  readonly otherShadowContent: Locator;
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
@@ -27,6 +30,12 @@ export class ShadowGridPage {
     this.outsideInput = page.getByTestId('outside-input');
     this.shadowSibling = page.getByTestId('shadow-sibling');
     this.focusMover = page.getByTestId('focus-mover');
+    // The comment editor is portaled into `document.body`, so it sits in the light DOM
+    // even though its grid lives inside the shadow root.
+    this.commentTooltip = page.locator('.htComments');
+    this.commentTooltipInput = page.locator('.htCommentTextArea');
+    // Lives in a second shadow root, unrelated to the grid's own.
+    this.otherShadowContent = page.getByTestId('other-shadow-content');
   }
 
   /**
