@@ -88,6 +88,12 @@ class Endpoints {
    * @default {[]}
    */
   cellsToSetCache: [number, number | undefined, unknown][] = [];
+  /**
+   * Destination columns keyed by physical destination row, built once per refresh pass. Used to
+   * keep summary results out of other summaries when their row is trimmed and the
+   * `columnSummaryResult` class is unreachable.
+   */
+  #summaryDestinations: Map<number, Set<number>> | null = null;
 
   /**
    * Initializes the endpoints manager with a reference to the ColumnSummary plugin and the summary endpoint configuration.
@@ -123,6 +129,62 @@ class Endpoints {
   }
 
   /**
+   * Returns the number of physical rows the dataset holds, ignoring trimming.
+   *
+   * Endpoint destination rows and calculation ranges are physical indexes, so they must never be
+   * compared against `countRows()` - that counts only the *visible* rows and shrinks whenever a
+   * plugin trims rows (NestedRows collapsing a group, TrimRows, the Filters plugin).
+   *
+   * @returns {number}
+   */
+  countPhysicalRows(): number {
+    return this.hot.rowIndexMapper.getNumberOfIndexes();
+  }
+
+  /**
+   * Returns the number of rows an endpoint may address, that is the physical row count capped by
+   * `maxRows`. Used for the settings defaults that need a row count rather than a bounds check.
+   *
+   * `maxRows` is normalized the same way `DataMap#getLength` does it: `0` or less means zero rows,
+   * anything falsy means no cap.
+   *
+   * @returns {number}
+   */
+  countAddressableRows(): number {
+    const maxRows = this.hot.getSettings().maxRows as number | undefined;
+    let cap;
+
+    if ((maxRows ?? 0) < 0 || maxRows === 0) {
+      cap = 0;
+    } else {
+      cap = maxRows || Infinity;
+    }
+
+    return Math.min(this.countPhysicalRows(), cap);
+  }
+
+  /**
+   * Checks whether an endpoint points outside the table.
+   *
+   * A *trimmed* destination row is not out of bounds - the row exists, it is only hidden - so it is
+   * deliberately not reported here. A row that is visible but sits past `maxRows` is out of bounds,
+   * because the grid renders no cell for it.
+   *
+   * @param {object} endpoint Contains the endpoint information.
+   * @param {number} [rowOffset=0] Row offset to apply before the check.
+   * @param {number} [colOffset=0] Column offset to apply before the check.
+   * @returns {boolean}
+   */
+  isEndpointOutOfBounds(endpoint: EndpointConfig, rowOffset = 0, colOffset = 0): boolean {
+    const destinationRow = endpoint.destinationRow! + rowOffset;
+    const destinationVisualRow = this.hot.toVisualRow(destinationRow);
+
+    return destinationRow >= this.countPhysicalRows() ||
+      endpoint.destinationColumn! + colOffset >= this.hot.countCols() ||
+      (destinationVisualRow !== null && destinationVisualRow >= this.hot.countRows());
+  }
+
+  /**
    * Get an array with all the endpoints.
    *
    * @returns {Array}
@@ -133,6 +195,48 @@ class Endpoints {
     }
 
     return this.endpoints;
+  }
+
+  /**
+   * Records the destinations of the endpoints a refresh pass is about to calculate.
+   *
+   * The resolved endpoints are passed in rather than read through `getAllEndpoints()`, which would
+   * re-invoke a settings function and could describe a different layout than the pass is working on.
+   *
+   * @param {object[]} endpoints The endpoints the current pass will calculate.
+   */
+  cacheSummaryDestinations(endpoints: EndpointConfig[]) {
+    this.#summaryDestinations = new Map();
+
+    arrayEach(endpoints, (endpoint: EndpointConfig) => {
+      let columns = this.#summaryDestinations!.get(endpoint.destinationRow!);
+
+      if (columns === undefined) {
+        columns = new Set();
+        this.#summaryDestinations!.set(endpoint.destinationRow!, columns);
+      }
+
+      columns.add(endpoint.destinationColumn!);
+    });
+  }
+
+  /**
+   * Checks whether a physical cell holds the result of an endpoint.
+   *
+   * `getCellValue` normally recognizes a result by its `columnSummaryResult` class, but cell meta is
+   * addressed by visual coordinates, so a trimmed row has no readable class. Without this check a
+   * hidden summary row is summed as if it were plain data and inflates every summary covering it.
+   *
+   * @param {number} physicalRow Physical row index.
+   * @param {number} column Column index.
+   * @returns {boolean}
+   */
+  isSummaryDestination(physicalRow: number, column: number): boolean {
+    if (this.#summaryDestinations === null) {
+      this.cacheSummaryDestinations(this.getAllEndpoints());
+    }
+
+    return this.#summaryDestinations!.get(physicalRow)?.has(column) === true;
   }
 
   /**
@@ -169,7 +273,7 @@ class Endpoints {
     arrayEach(settingsArray, (val: EndpointConfig) => {
       const newEndpoint: EndpointConfig = {};
 
-      this.assignSetting(val, newEndpoint, 'ranges', [[0, this.hot.countRows() - 1]]);
+      this.assignSetting(val, newEndpoint, 'ranges', [[0, this.countAddressableRows() - 1]]);
       this.assignSetting(val, newEndpoint, 'reversedRowCoords', false);
       this.assignSetting(val, newEndpoint, 'destinationRow', new Error(`
         You must provide a destination row for the Column Summary plugin in order to work properly!
@@ -219,7 +323,7 @@ class Endpoints {
     } else {
       /* eslint-disable no-lonely-if */
       if (name === 'destinationRow' && endpoint.reversedRowCoords) {
-        endpoint[name] = this.hot.countRows() - (settings[name] as number) - 1;
+        endpoint[name] = this.countAddressableRows() - (settings[name] as number) - 1;
 
       } else {
         endpoint[name] = settings[name];
@@ -460,15 +564,7 @@ class Endpoints {
    */
   resetAllEndpoints(endpoints = this.getAllEndpoints(), useOffset = true) {
     const anyEndpointOutOfRange = endpoints.some((endpoint: EndpointConfig) => {
-      const alterRowOffset = endpoint.alterRowOffset || 0;
-      const alterColOffset = endpoint.alterColumnOffset || 0;
-
-      if (endpoint.destinationRow! + alterRowOffset >= this.hot.countRows() ||
-          endpoint.destinationColumn! + alterColOffset >= this.hot.countCols()) {
-        return true;
-      }
-
-      return false;
+      return this.isEndpointOutOfBounds(endpoint, endpoint.alterRowOffset || 0, endpoint.alterColumnOffset || 0);
     });
 
     if (anyEndpointOutOfRange) {
@@ -492,9 +588,12 @@ class Endpoints {
    * Calculate and refresh all defined endpoints.
    */
   refreshAllEndpoints() {
-    this.cellsToSetCache = [];
+    const endpoints = this.getAllEndpoints();
 
-    arrayEach(this.getAllEndpoints(), (value: EndpointConfig) => {
+    this.cellsToSetCache = [];
+    this.cacheSummaryDestinations(endpoints);
+
+    arrayEach(endpoints, (value: EndpointConfig) => {
       this.currentEndpoint = value;
       this.plugin.calculate(value as unknown as Parameters<typeof this.plugin.calculate>[0]);
       this.setEndpointValue(value, 'init');
@@ -514,9 +613,11 @@ class Endpoints {
    * @param {Array} changes Array of changes from the `afterChange` hook.
    */
   refreshChangedEndpoints(changes: unknown[][]) {
+    const endpoints = this.getAllEndpoints();
     const needToRefresh: number[] = [];
 
     this.cellsToSetCache = [];
+    this.cacheSummaryDestinations(endpoints);
 
     arrayEach(changes, (value: unknown, key: number, changesObj: unknown[]) => {
       const change = value as unknown[];
@@ -525,7 +626,7 @@ class Endpoints {
         return;
       }
 
-      arrayEach(this.getAllEndpoints(), (endpoint: EndpointConfig, j: number) => {
+      arrayEach(endpoints, (endpoint: EndpointConfig, j: number) => {
         if (this.hot.propToCol((changesObj[key] as unknown[])[1] as string | number) === endpoint.sourceColumn &&
           needToRefresh.indexOf(j) === -1) {
           needToRefresh.push(j);
@@ -534,7 +635,7 @@ class Endpoints {
     });
 
     arrayEach(needToRefresh, (value: number) => {
-      this.refreshEndpoint(this.getEndpoint(value));
+      this.refreshEndpoint(endpoints[value]);
     });
 
     if (this.cellsToSetCache.length) {
@@ -551,14 +652,17 @@ class Endpoints {
    */
   refreshEndpointsBySourceColumns(visualColumns: Set<number> | number[]) {
     const columnsSet = visualColumns instanceof Set ? visualColumns : new Set(visualColumns);
-    const matched = this.getAllEndpoints()
-      .filter(endpoint => columnsSet.has(endpoint.sourceColumn!));
+    const endpoints = this.getAllEndpoints();
+    const matched = endpoints.filter(endpoint => columnsSet.has(endpoint.sourceColumn!));
 
     if (matched.length === 0) {
       return;
     }
 
     this.cellsToSetCache = [];
+    // Every endpoint is cached, not just the matched ones - a summary result must stay excluded from
+    // the ranges of the endpoints being refreshed, whatever their own source column is.
+    this.cacheSummaryDestinations(endpoints);
 
     arrayEach(matched, (endpoint) => {
       this.refreshEndpoint(endpoint as EndpointConfig);
@@ -612,9 +716,16 @@ class Endpoints {
   resetEndpointValue(endpoint: EndpointConfig, useOffset = true) {
     const alterRowOffset = endpoint.alterRowOffset || 0;
     const alterColOffset = endpoint.alterColumnOffset || 0;
+    const destinationVisualRow = this.hot.toVisualRow(endpoint.destinationRow! + (useOffset ? alterRowOffset : 0));
+
+    // The destination row is trimmed (for example it sits inside a collapsed NestedRows group), so
+    // there is no cell to clear.
+    if (destinationVisualRow === null) {
+      return;
+    }
 
     this.cellsToSetCache.push([
-      this.hot.toVisualRow(endpoint.destinationRow! + (useOffset ? alterRowOffset : 0)),
+      destinationVisualRow,
       this.hot.toVisualColumn(endpoint.destinationColumn! + (useOffset ? alterColOffset : 0)),
       ''
     ]);
@@ -628,9 +739,7 @@ class Endpoints {
    * @param {boolean} [render=false] `true` if it needs to render the table afterwards.
    */
   setEndpointValue(endpoint: EndpointConfig, source: string | undefined, render = false) {
-    const visualEndpointRowIndex = this.hot.toVisualRow(endpoint.destinationRow!);
-
-    if (endpoint.destinationRow! >= this.hot.countRows() || endpoint.destinationColumn! >= this.hot.countCols()) {
+    if (this.isEndpointOutOfBounds(endpoint)) {
       this.throwOutOfBoundsWarning();
 
       return;
@@ -652,10 +761,18 @@ class Endpoints {
 
     endpoint.result = roundFloat(endpoint.result, endpoint.roundFloat) as string | number;
 
-    if (render) {
-      this.hot.setDataAtCell(visualEndpointRowIndex, endpoint.destinationColumn!, endpoint.result, 'ColumnSummary.set');
-    } else {
-      this.cellsToSetCache.push([visualEndpointRowIndex, endpoint.destinationColumn, endpoint.result]);
+    // A trimmed destination row has no cell to write to - writing one throws in `DataMap.set`. The
+    // result stays on the endpoint; the cell keeps its previous value until the next recalculation
+    // that runs while the row is visible. Nothing re-runs the endpoints on untrim, so a destination
+    // hidden at the moment of a change shows a stale value until then.
+    if (destinationVisualRow !== null) {
+      if (render) {
+        this.hot.setDataAtCell(
+          destinationVisualRow, endpoint.destinationColumn!, endpoint.result, 'ColumnSummary.set'
+        );
+      } else {
+        this.cellsToSetCache.push([destinationVisualRow, endpoint.destinationColumn, endpoint.result]);
+      }
     }
 
     endpoint.alterRowOffset = undefined;

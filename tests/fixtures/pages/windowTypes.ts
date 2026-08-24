@@ -44,6 +44,7 @@ export interface FixtureHotInstance {
     disablePlugin(): void,
   };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
+  getPlugin(name: 'multipleSelectionHandles'): { isDragged(): boolean };
   getPlugin(name: 'nestedRows'): {
     collapseAll(): void,
     expandAll(): void,
@@ -119,6 +120,8 @@ declare global {
     initGrid(data: CellValue[][], overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the selection-features fixture grid with the given setting overrides. */
     initSelectionGrid(overrides?: Record<string, unknown>): boolean;
+    /** Rebuilds the mobile drag-to-scroll fixture grid with the given setting overrides. */
+    initMobileGrid(overrides?: Record<string, unknown>): boolean;
     /** Recorded moveCells hook calls for the current grid instance. */
     moveCellsHookLog: MoveCellsHookRecord[];
     /** Recorded NestedRows collapse/expand hook calls, in firing order. */
