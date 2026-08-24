@@ -110,6 +110,37 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
   }, []);
   const getPortalContainerCacheSize = useCallback(() => portalContainerCache.current.size, []);
 
+  // Stable id per table element the grid draws into. Handsontable renders the
+  // same cell once per table it appears in — the master table plus an overlay
+  // table for every fixed row/column edge — and each draw gets its own TD.
+  const tableIds = useRef<WeakMap<Element, number>>(new WeakMap());
+  const nextTableId = useRef(0);
+
+  /**
+   * Identify the table a rendered cell belongs to, so the master table and the
+   * overlay tables get separate portal containers for the same cell.
+   *
+   * @param {HTMLTableCellElement} TD The cell being rendered.
+   * @returns {Number} The id of the table the cell belongs to.
+   */
+  const getTableId = useCallback((TD: HTMLTableCellElement): number => {
+    // Overlay tables are built once and never hand their cells to another
+    // table, so the TABLE element is a stable identity for the draw.
+    const table: Element = TD.closest('table') ?? TD;
+    const cachedId = tableIds.current.get(table);
+
+    if (cachedId !== undefined) {
+      return cachedId;
+    }
+
+    const id = nextTableId.current;
+
+    nextTableId.current += 1;
+    tableIds.current.set(table, id);
+
+    return id;
+  }, []);
+
   const getRendererWrapper = useCallback((Renderer: ComponentType<HotRendererProps>): typeof Handsontable.renderers.BaseRenderer => {
     return function __internalRenderer(instance, TD, row, col, prop, value, cellProperties) {
       const key = `${row}-${col}`;
@@ -117,10 +148,16 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
       // Handsontable.Core type is missing guid
       const instanceGuid = (instance as unknown as { guid: string }).guid;
 
-      const portalContainerKey = `${instanceGuid}-${key}`;
-      const portalKey = `${key}-${instanceGuid}`;
-
       if (TD && !TD.getAttribute('ghost-table')) {
+        // The table has to be part of the key. A cell that sits in a fixed
+        // column is drawn both in the master table and in the inline-start
+        // overlay; keyed by coordinates alone, both draws share one container,
+        // which then moves into whichever table rendered last and leaves the
+        // other cell empty. The two tables then size their rows from different
+        // content and stop lining up (see issue #9063).
+        const tableId = getTableId(TD);
+        const portalContainerKey = `${instanceGuid}-${tableId}-${key}`;
+        const portalKey = `${key}-${tableId}-${instanceGuid}`;
         const cachedPortalContainer = portalContainerCache.current.get(portalContainerKey);
         // When the cached portal container is still attached to the same
         // TD as the previous render, the DOM is already correct and must
@@ -158,7 +195,7 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
       renderedCellCache.current.set(key, TD);
       return TD;
     };
-  }, []);
+  }, [getTableId]);
 
   const renderersPortalManager = useRef<RenderersPortalManagerRef>(() => undefined);
 
