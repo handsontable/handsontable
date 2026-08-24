@@ -67,6 +67,7 @@ const GUARDED_SITES = [
   ['.github/actions/performance-run/action.yml', 'name: Compute report URL'],
   ['.github/workflows/performance-tests.yml', 'name: Deploy PR report to GitHub Pages'],
   ['.github/workflows/performance-tests.yml', 'name: Post performance summary to pull request'],
+  ['.github/workflows/performance-tests.yml', 'name: Compute report URL'],
   ['.github/workflows/integration.yml', 'name: Post PR preview comment'],
   ['.github/workflows/code-quality.yml', '  sonarcloud:'],
   ['.github/workflows/code-quality.yml', '  fossa:'],

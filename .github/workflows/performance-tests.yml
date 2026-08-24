@@ -79,7 +79,20 @@ jobs:
 
       - name: Compute report URL
         id: report-url
+        # Reachable on a pull_request despite the header note: develop.yml also
+        # triggers on `pull_request` with `paths: ['.github/workflows/develop.yml']`
+        # (self-validation), and its `performance` job gates on the
+        # `test-performance` scope flag only. A PR that edits develop.yml AND a
+        # test-performance path (config-files, handsontable/src/**,
+        # performance-tests/**) therefore reaches this workflow with
+        # github.event_name == 'pull_request' -- from a fork, on a read-only token.
+        # Same guard as the gh-pages deploy below: PAGES_URL flows into result.md
+        # and report-builder.mjs only emits the "Full interactive report" link when
+        # it is set, so without this a fork PR advertises a URL that 404s because
+        # the deploy that would publish it is skipped.
         if: github.event_name == 'pull_request'
+          && github.event.pull_request.head.repo.full_name == github.repository
+          && github.actor != 'dependabot[bot]'
         # HEAD_REF via env, never inlined as ${{ }}: on a fork PR the branch name
         # is attacker-controlled text and inlining it into the script is a
         # command-injection vector (actionlint `expression`).
