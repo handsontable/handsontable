@@ -468,11 +468,10 @@ export class Comments extends BasePlugin {
     const isShadowHosted = this.#gridShadowRoot !== null;
 
     // Claims an event for the first listener that receives it. A shadow-hosted grid binds the
-    // handlers twice, and the two bindings do NOT see the same element under a sandboxed host
-    // (e.g. Salesforce Lightning Web Security): that host collapses `composedPath()` to the
-    // shadow host chain, so only a listener bound inside the grid's own shadow tree gets the
-    // real cell, while the document listener still sees the host. Left undeduped, one hover
-    // would show from the shadow-root listener and then hide from the document listener -
+    // handlers twice, and the two bindings never see the same element: a listener inside the
+    // tree gets the real cell, while the document listener gets the retargeted shadow host.
+    // That is intrinsic to retargeting, not specific to a sandboxed host. Left undeduped, one
+    // hover would show from the shadow-root listener and then hide from the document listener -
     // which also clears the display switch's flag, so the debounced show is dropped and the
     // tooltip never appears. The shadow-root listener runs first (the event reaches the
     // ShadowRoot before it crosses to the host), so it wins for anything inside the grid and
