@@ -7,6 +7,7 @@ import { GridPage } from '../fixtures/pages/GridPage';
  * simulated keyboard and mouse events can never drive the browser's native
  * clipboard, so the legacy env could not test this at all (DEV-2183).
  */
+// Granting both permissions up front keeps Chromium from prompting, which would stall the reads.
 test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 
 test.describe('clipboard', () => {

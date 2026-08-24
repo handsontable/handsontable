@@ -8,6 +8,7 @@ const data = [
     ['2021', 30, 15, 12, 13]
 ];
 
+// The container id matches the `#example` element in index.html that the visual run screenshots.
 const container = document.getElementById('example');
 
 const hot = new Handsontable(container, {

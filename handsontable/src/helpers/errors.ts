@@ -9,6 +9,9 @@
  * declared in `../../../browser-targets.js`. Engines below it ignore the second argument silently,
  * which would leave `error.cause` undefined and break detection with no visible failure.
  *
+ * Code that catches the error and rethrows it must keep the `cause` object, otherwise the
+ * detection check above stops matching.
+ *
  * @param message The error message to display.
  * @throws {Error} Always throws an Error with `cause: { handsontable: true }`.
  */

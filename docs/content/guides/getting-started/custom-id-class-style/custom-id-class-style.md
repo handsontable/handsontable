@@ -32,6 +32,8 @@ The Handsontable container is a regular DOM element, so you can give it a custom
 - `id` is not a configuration option. Handsontable does not read an `id` from the settings object passed to the constructor. The container's `id` comes from the DOM element itself, or from a prop or attribute that the framework wrapper forwards to the container.
 - Handsontable assigns a random `id` when the container has none. If the container element has no `id`, or an `id` that starts with `ht_`, Handsontable overwrites it with a generated value in the form `ht_<random>`. To keep a custom `id`, use one that does not start with `ht_`.
 
+The generated `id` changes on every page load, so do not rely on it in your selectors.
+
 ::: only-for javascript
 
 ## Set the id, class, and style

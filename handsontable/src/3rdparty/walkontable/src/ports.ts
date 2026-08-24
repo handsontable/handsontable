@@ -39,6 +39,9 @@ export interface SettingsPort {
 /**
  * The DOM-event-binding surface the engine uses to attach and tear down the listeners that back its
  * hooks. Matches the methods the engine actually calls on its `EventManager`.
+ *
+ * Adding a method here means the shared `EventManager` must already provide it. The assertion at the
+ * bottom of this file fails at compile time otherwise.
  */
 export interface HooksPort {
   addEventListener<E extends Event = Event>(

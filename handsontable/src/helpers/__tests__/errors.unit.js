@@ -3,6 +3,8 @@ import { throwWithCause } from '../errors';
 describe('Errors helper', () => {
   describe('throwWithCause', () => {
     it('should throw an error with a Handsontable-specific cause', () => {
+      // Both paths are asserted on purpose: the custom matcher covers the thrown-callback form,
+      // and the explicit catch covers reading `cause` off the caught error.
       expect(() => {
         throwWithCause('test');
       }).toThrowWithCause('test', { handsontable: true });
