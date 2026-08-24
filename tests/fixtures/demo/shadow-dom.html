@@ -87,6 +87,10 @@
       colHeaders: true,
       rowHeaders: true,
       contextMenu: true,
+      // The comment on B4 backs the hover-tooltip cases (issue #8624). B4 and A4 are
+      // untouched by the other tests, so the comment cannot disturb them.
+      comments: true,
+      cell: [{ row: 3, col: 1, comment: { value: 'Comment inside the shadow root' } }],
       renderer: testIdRenderer,
       licenseKey: 'non-commercial-and-evaluation',
     });
