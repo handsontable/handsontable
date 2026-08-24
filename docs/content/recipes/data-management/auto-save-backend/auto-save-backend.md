@@ -1,5 +1,4 @@
 ---
-id: j9r2m7x4
 title: Auto-save changes to a backend
 metaTitle: Auto-save changes to a backend - JavaScript Data Grid | Handsontable
 description: Learn how to auto-save Handsontable edits with a debounced afterChange hook, dirty row tracking, and save status feedback.
@@ -13,31 +12,33 @@ tags:
   - data persistence
   - backend sync
 react:
-  id: p6t8v3n1
   metaTitle: Auto-save changes to a backend - React Data Grid | Handsontable
 angular:
-  id: b5c2q9k7
   metaTitle: Auto-save changes to a backend - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Auto-save changes to a backend - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will build an auto-save flow that sends grid edits to a backend after a debounce delay. You will learn how to use `afterChange`, dirty row tracking, and save status feedback to give users real-time confirmation of their changes.
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
 @[code](@/content/recipes/data-management/auto-save-backend/javascript/example1.js)
 @[code](@/content/recipes/data-management/auto-save-backend/javascript/example1.ts)
+@[code](@/content/recipes/data-management/auto-save-backend/javascript/example1.css)
 :::
 
 :::
 
 ::: only-for react
 
-::: example #example1 :react-advanced --js 1 --ts 2
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
 
+@[code](@/content/recipes/data-management/auto-save-backend/react/example1.css)
 @[code](@/content/recipes/data-management/auto-save-backend/react/example1.jsx)
 @[code](@/content/recipes/data-management/auto-save-backend/react/example1.tsx)
 :::
@@ -46,10 +47,11 @@ In this tutorial, you will build an auto-save flow that sends grid edits to a ba
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2
+::: example #example1 :angular --ts 1 --html 2 --css 3
 
 @[code](@/content/recipes/data-management/auto-save-backend/angular/example1.ts)
 @[code](@/content/recipes/data-management/auto-save-backend/angular/example1.html)
+@[code](@/content/recipes/data-management/auto-save-backend/angular/example1.css)
 
 :::
 
@@ -260,7 +262,7 @@ if (container instanceof HTMLElement) {
       { data: 'id', type: 'numeric', readOnly: true, width: 70 },
       { data: 'product', type: 'text', width: 180 },
       { data: 'stock', type: 'numeric', width: 90 },
-      { data: 'price', type: 'numeric', numericFormat: { pattern: '$0,0.00' }, width: 110 },
+      { data: 'price', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }, width: 110 },
       { data: 'status', type: 'text', width: 120 },
     ],
     stretchH: 'all',
@@ -350,3 +352,4 @@ if (container instanceof HTMLElement) {
 - Replace the mock save with a real `fetch` call to your API endpoint.
 - Add [undo/redo with a custom UI](@/recipes/data-management/undo-redo-custom-ui/undo-redo-custom-ui.md) to let users revert changes before they are auto-saved.
 - Explore [server-side data with NestJS](@/recipes/data-management/server-side-nestjs/server-side-nestjs.md) for a full server-driven CRUD approach with the `dataProvider` plugin.
+- Explore [server-side data with Symfony](@/recipes/data-management/server-side-symfony/server-side-symfony.md) for a full server-driven CRUD approach with a PHP/Symfony backend.

@@ -1,70 +1,16 @@
 /* file: app.component.ts */
-import { Component } from '@angular/core';
+import { Component, ViewEncapsulation } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
-import { registerRenderer } from 'handsontable/renderers';
-import { textRenderer } from 'handsontable/renderers/textRenderer';
 
-const firstRowRenderer = (
-  instance: Handsontable,
-  td: HTMLTableCellElement,
-  row: number,
-  col: number,
-  prop: string | number,
-  value: Handsontable.CellValue,
-  cellProperties: Handsontable.CellProperties
-) => {
-  textRenderer(
-    instance,
-    td,
-    row,
-    col,
-    prop,
-    value,
-    cellProperties
-  );
-  td.style.fontWeight = 'bold';
-  td.style.color = 'green';
-  td.style.background = '#CEC';
-};
-
-const negativeValueRenderer = (
-  instance: Handsontable,
-  td: HTMLTableCellElement,
-  row: number,
-  col: number,
-  prop: string | number,
-  value: Handsontable.CellValue,
-  cellProperties: Handsontable.CellProperties
-) => {
-  textRenderer(
-    instance,
-    td,
-    row,
-    col,
-    prop,
-    value,
-    cellProperties
-  );
-
-  // if the row contains a negative number
-  if (parseInt(value, 10) < 0) {
-    td.style.color = '#FF5A12';
-  }
-
-  if (!value || value === '') {
-    td.style.background = 'rgb(238, 238, 238, 0.4)';
-  } else {
-    if (instance.getDataAtCell(0, col) === 'Nissan') {
-      td.style.fontStyle = 'italic';
-    }
-
-    td.style.background = '';
-  }
-};
-
-//  maps function to a lookup string
-registerRenderer('negativeValueRenderer', negativeValueRenderer);
+const data = [
+  ['Acme Corp', 4.2, 5.1, -1.3, 6.8],
+  ['Vertex Industries', 12.5, 11.9, 13.2, 14],
+  ['Harbor Analytics', -2.4, 0.8, 2.1, 3.5],
+  ['Summit Logistics', 8.7, -3.2, 4.4, 5.9],
+  ['Pioneer Foods', 1.1, 1.4, 0.9, -0.5],
+  ['Meridian Retail', 6, 7.3, 8.1, 9.4],
+];
 
 @Component({
   selector: 'example1-conditional-formatting',
@@ -73,49 +19,62 @@ registerRenderer('negativeValueRenderer', negativeValueRenderer);
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
+  styles: `example1-conditional-formatting .handsontable td.company-name {
+    font-weight: 600;
+}
+example1-conditional-formatting .handsontable td.loss {
+    color: #d81e2c;
+    background: var(--ht-cell-error-background-color, rgba(216, 30, 44, 0.14));
+    background: color-mix(in srgb, #d81e2c 16%, var(--ht-background-color, #ffffff));
+}
+example1-conditional-formatting .handsontable td.loss::before {
+    content: "▼ ";
+}
+example1-conditional-formatting .handsontable td.strong-quarter {
+    color: #157a3d;
+    font-weight: 600;
+}
+html[data-theme="dark"] example1-conditional-formatting .handsontable td.loss {
+    color: #ff5c70;
+    background: color-mix(in srgb, #ff5c70 22%, var(--ht-background-color, #000000));
+}
+html[data-theme="dark"] example1-conditional-formatting .handsontable td.strong-quarter {
+    color: #22c55e;
+}
+`,
+  encapsulation: ViewEncapsulation.None,
 })
 export class AppComponent {
 
-  readonly data = [
-    ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
-    ['2017', -5, '', 12, 13],
-    ['2018', '', -11, 14, 13],
-    ['2019', '', 15, -12, 'readOnly'],
-  ];
+  readonly data = data;
 
   readonly gridSettings: GridSettings = {
-    autoWrapRow: true,
-    autoWrapCol: true,
+    colHeaders: ['Company', 'Q1', 'Q2', 'Q3', 'Q4'],
     height: 'auto',
-    afterSelection: function (this: Handsontable, _row, _col, row2, col2) {
-      const meta = this.getCellMeta(row2, col2);
-
-      if (meta.readOnly) {
-        this.updateSettings({
-          fillHandle: false,
-        });
-      } else {
-        this.updateSettings({
-          fillHandle: true,
-        });
-      }
-    },
-    cells: function (row, col) {
+    columns: [
+      { className: 'company-name' },
+      { type: 'numeric' },
+      { type: 'numeric' },
+      { type: 'numeric' },
+      { type: 'numeric' },
+    ],
+    cells(row: number, col: number) {
       const cellProperties: Handsontable.CellMeta = {};
-      const data = this.instance.getData();
 
-      if (row === 0 || (data[row] && data[row][col] === 'readOnly')) {
-        cellProperties.readOnly = true; // make cell read-only if it is first row or the text reads 'readOnly'
-      }
+      if (col > 0) {
+        cellProperties.className = '';
 
-      if (row === 0) {
-        cellProperties.renderer = firstRowRenderer;
-      } else {
-        cellProperties.renderer = 'negativeValueRenderer';
+        const value = data[row]?.[col];
+
+        if (typeof value === 'number' && value < 0) {
+          cellProperties.className = 'loss';
+        } else if (typeof value === 'number' && value > 10) {
+          cellProperties.className = 'strong-quarter';
+        }
       }
 
       return cellProperties;
-    }
+    },
   };
 }
 /* end-file */

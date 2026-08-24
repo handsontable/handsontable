@@ -3,6 +3,7 @@ import Handsontable from 'handsontable';
 const hot = new Handsontable(document.createElement('div'), {
   stretchH: 'all',
 });
+
 new Handsontable(document.createElement('div'), {
   stretchH: 'last',
 });

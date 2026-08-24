@@ -103,4 +103,38 @@ describe('`afterFilter` hook', () => {
       'highlight: 2,2 from: 2,2 to: 5,5',
     ]);
   });
+
+  it('should be triggered with physical column indexes after moving columns', async() => {
+    const afterFilter = jasmine.createSpy('afterFilter');
+
+    handsontable({
+      data: [
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+      ],
+      colHeaders: true,
+      dropdownMenu: true,
+      manualColumnMove: true,
+      filters: true,
+      width: 500,
+      height: 300,
+      afterFilter,
+    });
+
+    const plugin = getPlugin('filters');
+    const manualColumnMove = getPlugin('manualColumnMove');
+
+    manualColumnMove.moveColumn(0, 2);
+    await render();
+    plugin.addCondition(2, 'begins_with', ['a']);
+    plugin.filter();
+
+    expect(afterFilter).toHaveBeenCalledWith([
+      {
+        column: 0,
+        operation: 'conjunction',
+        conditions: [{ name: 'begins_with', args: ['a'] }]
+      }
+    ]);
+  });
 });

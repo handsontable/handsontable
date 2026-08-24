@@ -1,6 +1,5 @@
 ---
 type: tutorial
-id: xm9k2p7q
 title: Server-side data
 metaTitle: Server-side data - JavaScript Data Grid | Handsontable
 description: Load paged data with Handsontable DataProvider—fetchRows, CRUD callbacks, migration from client-side arrays, pagination, sorting, filters, REST and GraphQL examples, and a JavaScript monorepo project with two Node servers.
@@ -12,14 +11,13 @@ tags:
   - pagination
   - REST
 react:
-  id: ym8j3n4r
   metaTitle: Server-side data - React Data Grid | Handsontable
 angular:
-  id: zn7h5m6s
   metaTitle: Server-side data - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Server-side data - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
-menuTag: new
 ---
 Use the [`dataProvider`](@/api/options.md#dataprovider) option so Handsontable loads row data from your backend instead of keeping the full dataset in the browser. The grid stays aligned with paging, column sorting, and (optionally) column filters that run on the server. The same configuration wires **create**, **update**, and **remove** to your API. When the `dataProvider` object is **complete** (all required keys valid), Handsontable ignores a static [`data`](@/api/options.md#data) array and loads rows only through `fetchRows`. If you still pass a `data` array with a complete provider, Handsontable logs a console warning that `data` is ignored.
 
@@ -58,6 +56,16 @@ The example below splits **in-memory server logic** (catalog, simulated latency,
 
 @[code](@/content/guides/getting-started/server-side-data/angular/example1.ts)
 @[code](@/content/guides/getting-started/server-side-data/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/getting-started/server-side-data/vue/example1.vue)
 
 :::
 

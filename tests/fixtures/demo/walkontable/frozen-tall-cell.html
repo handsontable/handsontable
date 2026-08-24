@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Walkontable (tall cell in a frozen column) e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    One cell in a FROZEN column is taller than a row. There are enough columns
+    that the master's rendered band starts past the frozen ones, so the master
+    never renders that cell — only the inline-start overlay does. The row height
+    must still match between the two tables (DEV-2193).
+
+    The tall content is a fixed-height block, not wrapping text, so the row
+    height does not depend on the runner's font metrics.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const params = new URLSearchParams(location.search);
+    // `?tallRow=0&fixedRowsTop=2` puts the tall frozen cell in a FROZEN TOP row, which only the
+    // top-inline-start corner overlay renders once the grid is scrolled down.
+    const TALL_ROW = Number(params.get('tallRow') ?? 2);
+    const TALL_COLUMN = 1;
+    const TALL_CONTENT_HEIGHT = 60;
+    const FIXED_ROWS_TOP = Number(params.get('fixedRowsTop') ?? 0);
+    // Frozen BOTTOM rows are rendered by the bottom clone, which measures its own rows inside
+    // `wtOverlays.refresh()` — i.e. after the frozen records have been cleared for this draw.
+    const FIXED_ROWS_BOTTOM = Number(params.get('fixedRowsBottom') ?? 0);
+    // A second tall cell, in a SCROLLABLE column, that the master measures by itself. Switching it on
+    // makes the master invalidate the row-height cache mid-draw, which is what used to drop the
+    // frozen row's record from the rebuilt prefix sum.
+    const SCROLLABLE_TALL_ROW = Number(params.get('scrollableTallRow') ?? 4);
+    const SCROLLABLE_TALL_COLUMN = 5;
+    // Raise it above TALL_CONTENT_HEIGHT to make the SCROLLABLE side the taller of the two when
+    // both land on the same row.
+    const SCROLLABLE_TALL_HEIGHT = Number(params.get('scrollableTallHeight') ?? 40);
+
+    // MergeCells' `modifyRowHeightByOverlayName` hook inflates the anchor row's height PER OVERLAY,
+    // to the sum of the merged block — but only when there are no row headers.
+    const MERGE_IN_FROZEN = params.get('mergeInFrozen') === '1';
+    const MERGE_ROW = Number(params.get('mergeRow') ?? TALL_ROW);
+    const ROW_HEADERS = params.get('rowHeaders') !== '0';
+    // An EXPLICIT row height. MergeCells' height hook sums `getRowHeight` across the block, which is
+    // undefined unless the heights are set, so the inflation only happens with this on.
+    const ROW_HEIGHTS = params.get('rowHeights') ? Number(params.get('rowHeights')) : undefined;
+
+    let isTall = true;
+    let isScrollableTall = false;
+
+    // Enough rows that the grid can scroll far enough for any given row to become the FIRST one the
+    // master renders — the position that carries the extra 1px top border.
+    const ROWS = Number(params.get('rows') ?? 20);
+
+    const data = Array.from({ length: ROWS }, (_, r) =>
+      Array.from({ length: 100 }, (_, c) => `R${r + 1}C${c + 1}`));
+
+    const renderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+
+      // Stamp the row id on the TR from whichever cell renders first. Every table
+      // (master and each overlay clone) renders a different column range, so a
+      // per-cell id could not identify the same row across them.
+      if (td.parentElement) {
+        td.parentElement.setAttribute('data-testid', `row-${row}`);
+      }
+
+      if (isTall && row === TALL_ROW && col === TALL_COLUMN) {
+        td.innerHTML = `<div data-testid="tall-block" style="height: ${TALL_CONTENT_HEIGHT}px"></div>`;
+      }
+
+      if (isScrollableTall && row === SCROLLABLE_TALL_ROW && col === SCROLLABLE_TALL_COLUMN) {
+        td.innerHTML =
+          `<div data-testid="scrollable-tall-block" style="height: ${SCROLLABLE_TALL_HEIGHT}px"></div>`;
+      }
+    };
+
+    const hot = window.hot = new Handsontable(container, {
+      data,
+      width: 600,
+      height: 300,
+      colWidths: 100,
+      ...(ROW_HEIGHTS ? { rowHeights: ROW_HEIGHTS } : {}),
+      fixedColumnsStart: 3,
+      fixedRowsTop: FIXED_ROWS_TOP,
+      fixedRowsBottom: FIXED_ROWS_BOTTOM,
+      rowHeaders: ROW_HEADERS,
+      colHeaders: true,
+      ...(MERGE_IN_FROZEN ? {
+        // Anchored at column 0 — the inline-start clone's FIRST rendered column, which is what
+        // MergeCells' per-overlay height hook keys on.
+        mergeCells: [{ row: MERGE_ROW, col: 0, rowspan: 3, colspan: 1 }],
+      } : {}),
+      renderer,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // Drives the "content shrank back" case from the spec.
+    window.setTallCell = (value) => {
+      isTall = value;
+      hot.render();
+    };
+
+    // Drives the "master invalidates the row-height cache in the same draw" case.
+    window.setTallScrollableCell = (value) => {
+      isScrollableTall = value;
+      hot.render();
+    };
+
+    // The row-height prefix sum as the cache currently answers it, next to the same sum rebuilt from
+    // scratch. They must agree. A gap means the cache was built at a moment when `oversizedRows` did
+    // not hold every height — which is invisible in the rendered rows and shows up only as a
+    // scrollbar of the wrong length.
+    window.rowHeightSum = () => {
+      const { wtViewport } = hot.view._wt;
+      const total = hot.countRows();
+      const cached = wtViewport.sumRowHeights(0, total);
+
+      wtViewport.invalidateRowHeightCache();
+
+      return { cached, live: wtViewport.sumRowHeights(0, total) };
+    };
+
+    // Counts row-height cache invalidations over `renders` full draws.
+    //
+    // A steady-state redraw must cost none. This is the only way to see a whole class of bug in
+    // this area: the rows stay aligned and every visible assertion passes while the grid re-runs a
+    // prefix-sum rebuild on every single draw, forever. Nothing but a counter catches it.
+    window.countRowCacheInvalidations = (renders) => {
+      const { wtViewport } = hot.view._wt;
+      const original = wtViewport.invalidateRowHeightCache.bind(wtViewport);
+      let count = 0;
+
+      wtViewport.invalidateRowHeightCache = (...args) => {
+        count += 1;
+
+        return original(...args);
+      };
+
+      for (let i = 0; i < renders; i++) {
+        hot.render();
+      }
+
+      wtViewport.invalidateRowHeightCache = original;
+
+      return count;
+    };
+  </script>
+</body>
+</html>

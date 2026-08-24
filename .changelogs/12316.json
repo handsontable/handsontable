@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed multiselect overflow indicator not responding to chip padding token changes",
-  "type": "fixed",
-  "issueOrPR": 12316,
-  "breaking": false,
-  "framework": "none"
-}

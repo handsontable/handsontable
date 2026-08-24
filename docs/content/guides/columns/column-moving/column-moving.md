@@ -1,18 +1,23 @@
 ---
-id: aq1vywt4
+type: how-to
 title: Column moving
 metaTitle: Column moving - JavaScript Data Grid | Handsontable
 description: Change the order of columns, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
 permalink: /column-moving
 canonicalUrl: /column-moving
+tags:
+  - moving
+  - manual column move
+  - ManualColumnMove
 react:
-  id: zhlikwwh
   metaTitle: Column moving - React Data Grid | Handsontable
 angular:
-  id: fsfvsoi3
   metaTitle: Column moving - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Column moving - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
+menuTag: updated
 ---
 Change the order of columns, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
 
@@ -23,6 +28,14 @@ Change the order of columns, either manually (dragging them to another location)
 To enable column moving, set the [`manualColumnMove`](@/api/options.md#manualcolumnmove) configuration option to `true`.
 
 A draggable move handle appears above the selected column header. You can click and drag it to any location in the grid.
+
+A column has to be selected before you can drag it. You can start the drag anywhere on the selected column's
+header, including on the sorting label when [column sorting](@/guides/rows/rows-sorting/rows-sorting.md) is
+enabled. Handsontable tells a click from a drag by whether the pointer moves: press and release without moving
+to sort the column, and press and drag to move it.
+
+When column sorting is enabled, only the header label and its sort indicator sort on click. Pressing the header
+around them selects the column without sorting it, so you can select a column and drag it in one gesture.
 
 ::: only-for javascript
 
@@ -52,6 +65,16 @@ A draggable move handle appears above the selected column header. You can click 
 
 @[code](@/content/guides/columns/column-moving/angular/example1.ts)
 @[code](@/content/guides/columns/column-moving/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/columns/column-moving/vue/example1.vue)
 
 :::
 
@@ -94,6 +117,16 @@ When you move columns, the default column headers (A, B, C) stay in place.
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/columns/column-moving/vue/example2.vue)
+
+:::
+
+:::
+
 But, if you configure the [`colHeaders`](@/api/options.md#colheaders) option with your own column labels (e.g., One, Two, Three), your headers move along with the columns.
 
 ::: only-for javascript
@@ -129,6 +162,16 @@ But, if you configure the [`colHeaders`](@/api/options.md#colheaders) option wit
 
 :::
 
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/columns/column-moving/vue/example3.vue)
+
+:::
+
+:::
+
 ## Set a pre-defined column order
 
 Instead of setting [`manualColumnMove`](@/api/options.md#manualcolumnmove) to `true`, you can pass an **array of physical column indexes** to define the initial visual order of columns on render.
@@ -145,6 +188,64 @@ This renders the columns in the following order:
 - Visual position 2 → physical column `2`
 
 The array must contain all physical column indexes (its length must equal the total number of columns). After the initial render, users can still drag columns to change the order further.
+
+For more on how physical and visual indexes relate, see [Understanding data and indexes](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md).
+
+## Control column moving
+
+Use the [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) hook to decide whether each column move is allowed. Returning `false` cancels the move while keeping the [`manualColumnMove`](@/api/options.md#manualcolumnmove) plugin enabled.
+
+Both [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) and [`afterColumnMove`](@/api/hooks.md#aftercolumnmove) run only when the pointer actually drags a column. A click on a column header does not fire them.
+
+In the following example, select **Allow column moving** before you drag a column to a new position. Clear the checkbox to block column moving again.
+
+:::: only-for javascript
+
+::: example #example4 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/columns/column-moving/javascript/example4.html)
+@[code](@/content/guides/columns/column-moving/javascript/example4.js)
+@[code](@/content/guides/columns/column-moving/javascript/example4.ts)
+
+:::
+
+::::
+
+:::: only-for react
+
+::: example #example4 :react --jsx 1 --tsx 2
+
+@[code](@/content/guides/columns/column-moving/react/example4.jsx)
+@[code](@/content/guides/columns/column-moving/react/example4.tsx)
+
+:::
+
+::::
+
+:::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-moving/angular/example4.ts)
+@[code](@/content/guides/columns/column-moving/angular/example4.html)
+
+:::
+
+::::
+
+:::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/columns/column-moving/vue/example4.vue)
+
+:::
+
+::::
+
+## Result
+
+After completing this guide, you can reorder columns by dragging them with the mouse or by calling `dragColumns()` and `moveColumns()` programmatically. You can also set a pre-defined column order at initialization or use `beforeColumnMove` to block individual moves.
 
 ## Drag and move actions of the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin
 

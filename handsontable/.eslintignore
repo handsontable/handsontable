@@ -7,3 +7,5 @@ src/3rdparty/walkontable/dist/*
 test/lib/*
 test/dist/*
 tmp/*
+# Verbatim TS stencil copied into generated theme output; not lintable source.
+scripts/themes/figma/templates/*

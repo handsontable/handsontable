@@ -1,0 +1,442 @@
+import type { HotInstance } from '../../core/types';
+import type { CellProperties } from '../../settings';
+import {
+  hasOwnProperty,
+  isObject,
+} from '../../helpers/object';
+import { isDefined } from '../../helpers/mixed';
+import { arrayEach } from '../../helpers/array';
+
+/**
+ * Cell meta shape for cells that carry custom borders - types the `borders` option on top of the base
+ * cell properties, so reads through `getCellMeta` are not widened to `any`.
+ */
+export interface BordersCellProperties extends CellProperties {
+  borders?: unknown;
+}
+
+/**
+ * Describes style properties for a single border side or corner.
+ */
+export interface BorderSettings {
+  width?: number;
+  color?: string;
+  cornerVisible?: boolean | ((...args: unknown[]) => boolean);
+  hide?: boolean;
+  className?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Internal shape of a stored border object, used by the plugin's bookkeeping.
+ */
+export interface BorderObject {
+  id: string;
+  row: number;
+  col: number;
+  top?: BorderSettings;
+  bottom?: BorderSettings;
+  start?: BorderSettings;
+  end?: BorderSettings;
+  border?: Record<string, unknown>;
+  range?: { from: { row: number; col: number }; to: { row: number; col: number } };
+  [key: string]: unknown;
+}
+
+/**
+ * Minimal interface the contextMenuItem functions need from the CustomBorders plugin instance.
+ */
+export interface CustomBordersPlugin {
+  hot: HotInstance;
+  prepareBorder(selected: Record<string, unknown>[], place: string, remove: boolean | undefined): void;
+}
+
+/**
+ * Describes a single user-provided custom border configuration entry.
+ */
+export interface CustomBorderConfig {
+  row?: number;
+  col?: number;
+  top?: BorderSettings;
+  bottom?: BorderSettings;
+  start?: BorderSettings;
+  end?: BorderSettings;
+  left?: BorderSettings;
+  right?: BorderSettings;
+  border?: Record<string, unknown>;
+  range?: { from: { row: number; col: number }; to: { row: number; col: number } };
+  [key: string]: unknown;
+}
+
+/**
+ * Create separated id for borders for each cell.
+ *
+ * @param {number} row Visual row index.
+ * @param {number} col Visual column index.
+ * @returns {string}
+ */
+export function createId(row: number, col: number) {
+  return `border_row${row}col${col}`;
+}
+
+/**
+ * Computes the new position of a coordinate index after `amount` rows/columns are inserted
+ * at `insertionIndex`. An index at or after the insertion point moves down/right by `amount`;
+ * an index before it stays put.
+ *
+ * @param {number} index The visual index to shift.
+ * @param {number} insertionIndex The visual index at which the insertion starts.
+ * @param {number} amount The number of inserted rows/columns.
+ * @returns {number}
+ */
+export function getShiftedIndexAfterInsert(index: number, insertionIndex: number, amount: number): number {
+  return index >= insertionIndex ? index + amount : index;
+}
+
+/**
+ * Computes the new position of a coordinate index after `amount` rows/columns are removed
+ * starting at `removalIndex`. An index below the removed range moves up/left by `amount`;
+ * an index inside the removed range returns `-1` (the border no longer has a cell); an index
+ * above the removed range stays put.
+ *
+ * @param {number} index The visual index to shift.
+ * @param {number} removalIndex The visual index at which the removal starts.
+ * @param {number} amount The number of removed rows/columns.
+ * @returns {number}
+ */
+export function getShiftedIndexAfterRemove(index: number, removalIndex: number, amount: number): number {
+  if (index >= removalIndex + amount) {
+    return index - amount;
+  }
+
+  if (index >= removalIndex) {
+    return -1;
+  }
+
+  return index;
+}
+
+/**
+ * Builds the disjoint, ascending list of visual-index ranges the viewport working set must cover
+ * on one axis: the frozen-start area, the master rendered range (clipped so the ranges stay
+ * disjoint), and the frozen-end area. Frozen rows and columns are rendered by the overlay clones
+ * even when the master rendered range excludes them, so the working set must always include them.
+ *
+ * @param {number} firstIndex First visual index of the master rendered range.
+ * @param {number} lastIndex Last visual index of the master rendered range.
+ * @param {number} fixedStartCount Number of frozen indexes at the start of the axis.
+ * @param {number} fixedEndCount Number of frozen indexes at the end of the axis.
+ * @param {number} totalCount Total number of indexes on the axis.
+ * @returns {Array} Array of `[from, to]` tuples, disjoint and ascending.
+ */
+export function getViewportUnionRanges(
+  firstIndex: number,
+  lastIndex: number,
+  fixedStartCount: number,
+  fixedEndCount: number,
+  totalCount: number,
+): Array<[number, number]> {
+  const ranges: Array<[number, number]> = [];
+  const fixedEndStart = totalCount - fixedEndCount;
+  const pushRange = (from: number, to: number) => {
+    if (from <= to) {
+      ranges.push([from, to]);
+    }
+  };
+
+  pushRange(0, Math.min(fixedStartCount, totalCount) - 1);
+  pushRange(Math.max(firstIndex, fixedStartCount), Math.min(lastIndex, fixedEndStart - 1));
+  pushRange(Math.max(fixedEndStart, fixedStartCount), totalCount - 1);
+
+  return ranges;
+}
+
+/**
+ * Checks whether a visual index lies inside the viewport working window on one axis: the
+ * frozen-start area, the frozen-end area, or the master rendered range.
+ *
+ * @param {number} index The visual index to test.
+ * @param {number} firstIndex First visual index of the master rendered range.
+ * @param {number} lastIndex Last visual index of the master rendered range.
+ * @param {number} fixedStartCount Number of frozen indexes at the start of the axis.
+ * @param {number} fixedEndCount Number of frozen indexes at the end of the axis.
+ * @param {number} totalCount Total number of indexes on the axis.
+ * @returns {boolean}
+ */
+export function isIndexInViewportUnion(
+  index: number,
+  firstIndex: number,
+  lastIndex: number,
+  fixedStartCount: number,
+  fixedEndCount: number,
+  totalCount: number,
+): boolean {
+  if (index < 0 || index >= totalCount) {
+    return false;
+  }
+
+  return index < fixedStartCount
+    || index >= totalCount - fixedEndCount
+    || (index >= firstIndex && index <= lastIndex);
+}
+
+/**
+ * Resolves the style of a single border side declared inside a range configuration. An explicit
+ * per-side style object takes precedence and is used unchanged. An enabled but unstyled side
+ * (an empty object `{}`, an empty string, or `true`) inherits the range-level `border` object's
+ * style (width, color, and line style) so it renders with the configured look instead of the
+ * default 1px black. When no range-level `border` is provided the raw side value is kept, which
+ * preserves the previous behavior.
+ *
+ * @param {object} [rawSide] The side value from the range configuration.
+ * @param {object} [rangeBorder] The range-level `border` object shared by all sides.
+ * @returns {object}
+ */
+export function resolveRangeBorderSide(
+  rawSide: BorderSettings | undefined,
+  rangeBorder: Record<string, unknown> | undefined
+): BorderSettings | undefined {
+  if (rawSide && isObject(rawSide) && Object.keys(rawSide).length > 0) {
+    return rawSide;
+  }
+
+  if (rangeBorder && isObject(rangeBorder)) {
+    const resolved: BorderSettings = { ...rangeBorder };
+
+    // `cornerVisible` describes the selection corner, not an individual side, so it is dropped.
+    delete resolved.cornerVisible;
+
+    return resolved;
+  }
+
+  return rawSide;
+}
+
+/**
+ * Create default single border for each position (top/right/bottom/left).
+ *
+ * @returns {object} `{{width: number, color: string}}`.
+ */
+export function createDefaultCustomBorder(): BorderSettings {
+  return {
+    width: 1,
+    color: '#000',
+  };
+}
+
+/**
+ * Create default object for empty border.
+ *
+ * @returns {object} `{{hide: boolean}}`.
+ */
+export function createSingleEmptyBorder(): BorderSettings {
+  return { hide: true };
+}
+
+/**
+ * Create default Handsontable border object.
+ *
+ * @returns {object} `{{width: number, color: string, cornerVisible: boolean}}`.
+ */
+export function createDefaultHtBorder() {
+  return {
+    width: 1,
+    color: '#000',
+    cornerVisible: false,
+  };
+}
+
+/**
+ * Normalizes the border object to be compatible with the Border API from the Walkontable.
+ * The function translates the "left"/"right" properties to "start"/"end" prop names.
+ *
+ * @param {object} border The configuration object of the border.
+ * @returns {object}
+ */
+export function normalizeBorder<T extends Record<string, unknown>>(border: T): T {
+  const b = border as Record<string, unknown>;
+
+  if (isDefined(b.start) || isDefined(b.left)) {
+    b.start = b.start ?? b.left;
+  }
+  if (isDefined(b.end) || isDefined(b.right)) {
+    b.end = b.end ?? b.right;
+  }
+
+  delete b.left;
+  delete b.right;
+
+  return border;
+}
+
+/**
+ * Denormalizes the border object to be backward compatible with the previous version of the CustomBorders
+ * plugin API. The function extends the border configuration object for the backward compatible "left"/"right"
+ * properties.
+ *
+ * @param {object} border The configuration object of the border.
+ * @returns {object}
+ */
+export function denormalizeBorder<T extends Record<string, unknown>>(border: T): T {
+  const b = border as Record<string, unknown>;
+
+  if (isDefined(b.start)) {
+    b.left = b.start;
+  }
+  if (isDefined(b.end)) {
+    b.right = b.end;
+  }
+
+  return border;
+}
+
+/**
+ * Prepare empty border for each cell with all custom borders hidden.
+ *
+ * @param {number} row Visual row index.
+ * @param {number} col Visual column index.
+ * @returns {BorderObject} Returns border configuration containing visual indexes.
+ */
+export function createEmptyBorders(row: number, col: number): BorderObject {
+  return {
+    id: createId(row, col),
+    border: createDefaultHtBorder(),
+    row,
+    col,
+    top: createSingleEmptyBorder(),
+    bottom: createSingleEmptyBorder(),
+    start: createSingleEmptyBorder(),
+    end: createSingleEmptyBorder(),
+  };
+}
+
+/**
+ * Resolves a single border side value from the custom border config and assigns it to the default border object.
+ *
+ * @param {object} defaultBorder The default border object to update.
+ * @param {object} customBorder The border object with custom settings.
+ * @param {string} side The border side key ('top', 'bottom', 'start', or 'end').
+ */
+function applyBorderSide(
+  defaultBorder: BorderObject,
+  customBorder: CustomBorderConfig,
+  side: 'top' | 'bottom' | 'start' | 'end'
+): void {
+  if (!hasOwnProperty(customBorder, side) || !isDefined(customBorder[side])) {
+    return;
+  }
+
+  if (customBorder[side]) {
+    if (!isObject(customBorder[side])) {
+      customBorder[side] = createDefaultCustomBorder();
+    }
+
+    defaultBorder[side] = customBorder[side];
+  } else {
+    customBorder[side] = createSingleEmptyBorder();
+    defaultBorder[side] = customBorder[side];
+  }
+}
+
+/**
+ * @param {object} defaultBorder The default border object.
+ * @param {object} customBorder The border object with custom settings.
+ * @returns {object}
+ */
+export function extendDefaultBorder(defaultBorder: BorderObject, customBorder: CustomBorderConfig): BorderObject {
+  if (hasOwnProperty(customBorder, 'border') && customBorder.border) {
+    defaultBorder.border = customBorder.border;
+  }
+
+  applyBorderSide(defaultBorder, customBorder, 'top');
+  applyBorderSide(defaultBorder, customBorder, 'bottom');
+  applyBorderSide(defaultBorder, customBorder, 'start');
+  applyBorderSide(defaultBorder, customBorder, 'end');
+
+  return defaultBorder;
+}
+
+/**
+ * Check if selection has border.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @param {string} [direction] If set ('left' or 'top') then only the specified border side will be checked.
+ * @returns {boolean}
+ */
+export function checkSelectionBorders(hot: HotInstance, direction?: string) {
+  let atLeastOneHasBorder = false;
+
+  arrayEach(hot.getSelectedRange() ?? [], (range) => {
+    (range as { forAll: (cb: (r: number, c: number) => void | boolean) => void }).forAll((r: number, c: number) => {
+      if (r < 0 || c < 0) {
+        return;
+      }
+
+      const metaBorders = hot.getCellMeta<BordersCellProperties>(r, c).borders;
+
+      if (metaBorders) {
+        if (direction) {
+          const mb = metaBorders as Record<string, Record<string, unknown>>;
+
+          if (!hasOwnProperty(mb[direction], 'hide') || mb[direction].hide === false) {
+            atLeastOneHasBorder = true;
+
+            return false; // breaks forAll
+          }
+        } else {
+          atLeastOneHasBorder = true;
+
+          return false; // breaks forAll
+        }
+      }
+    });
+  });
+
+  return atLeastOneHasBorder;
+}
+
+/**
+ * Mark label in contextMenu as selected.
+ *
+ * @param {string} label The label text.
+ * @returns {string}
+ */
+export function markSelected(label: string) {
+  return `<span class="selected">${String.fromCharCode(10003)}</span>${label}`; // workaround for https://github.com/handsontable/handsontable/issues/1946
+}
+
+/**
+ * Checks if in the borders config there are defined "left" or "right" border properties.
+ *
+ * @param {object[]} borders The custom border plugin's options.
+ * @returns {boolean}
+ */
+export function hasLeftRightTypeOptions(borders: CustomBorderConfig[]) {
+  return borders.some((border: CustomBorderConfig) => isDefined(border.left) || isDefined(border.right));
+}
+
+/**
+ * Checks if in the borders config there are defined "start" or "end" border properties.
+ *
+ * @param {object[]} borders The custom border plugin's options.
+ * @returns {boolean}
+ */
+export function hasStartEndTypeOptions(borders: CustomBorderConfig[]) {
+  return borders.some((border: CustomBorderConfig) => isDefined(border.start) || isDefined(border.end));
+}
+
+const physicalToInlinePropNames = new Map([
+  ['left', 'start'],
+  ['right', 'end'],
+]);
+
+/**
+ * Translates the physical horizontal direction to logical ones. If not known property name is
+ * passed it will be returned without modification.
+ *
+ * @param {string} propName The physical direction property name ("left" or "right").
+ * @returns {string}
+ */
+export function toInlinePropName(propName: string) {
+  return physicalToInlinePropNames.get(propName) ?? propName;
+}

@@ -21,7 +21,9 @@ async function collectScenarioResults() {
   const entries = await readdir(OUTPUT_DIR, { withFileTypes: true });
 
   for (const entry of entries) {
-    if (!entry.isDirectory()) { continue; }
+    if (!entry.isDirectory()) {
+      continue;
+    }
 
     const scenarioDir = join(OUTPUT_DIR, entry.name);
     const allFiles = await readdir(scenarioDir);
@@ -30,7 +32,9 @@ async function collectScenarioResults() {
       .sort()
       .map(f => join(scenarioDir, f));
 
-    if (traceFiles.length === 0) { continue; }
+    if (traceFiles.length === 0) {
+      continue;
+    }
 
     process.stdout.write(`  Parsing ${entry.name} (${traceFiles.length} iterations)...`);
 
@@ -80,7 +84,9 @@ function collectIterationValues(parsedResults) {
 
   for (const r of parsedResults) {
     if (r.categories) {
-      for (const k of Object.keys(r.categories)) { catKeys.add(k); }
+      for (const k of Object.keys(r.categories)) {
+        catKeys.add(k);
+      }
     }
   }
 

@@ -68,10 +68,18 @@ describe('ContextMenu', () => {
         await waitForNextAnimationFrames(2);
 
         const cell = hot.getCell(2, 2);
+        // Use direct simulation instead of the `contextMenu()` helper: that helper wraps in
+        // `waitOnScroll`, which patches the iframe HoT's scroll functions and later calls
+        // `hot().view.render()`. In this nested-iframe setup the render dispatches synthetic
+        // keyboard events cross-realm that confuse the recorder's listener cleanup logic.
+        const cellOffset = $(cell).offset();
 
-        setCurrentHotInstance(hot);
-
-        await contextMenu(cell, hot);
+        $(cell).simulate('mousedown', { button: 2 });
+        $(cell).simulate('contextmenu', {
+          clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(hot.rootWindow),
+          clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(hot.rootWindow),
+        });
+        await waitForNextAnimationFrames(2);
 
         const contextMenuElem = $(docOutside.body).find('.htContextMenu');
         const contextMenuOffset = contextMenuElem.offset();

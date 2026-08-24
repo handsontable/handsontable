@@ -1,5 +1,4 @@
 ---
-id: 2a7d9f1c
 title: Load data from a GraphQL API
 metaTitle: Load Data from a GraphQL API - JavaScript Data Grid | Handsontable
 description: Learn how to fetch data from a GraphQL API and load it into Handsontable with loading and error states.
@@ -13,14 +12,14 @@ tags:
   - loading state
   - error handling
 react:
-  id: 8c3e5b7a
   metaTitle: Load Data from a GraphQL API - React Data Grid | Handsontable
 angular:
-  id: f1d4a6c9
   metaTitle: Load Data from a GraphQL API - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Load Data from a GraphQL API - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
-type: tutorial
+type: how-to
 ---
 
 This tutorial shows two GraphQL approaches for Handsontable. The first approach loads data on the client with `fetch`, `loadData()`, and `updateData()`. The second approach uses the server-side DataProvider architecture for paging, sorting, filtering, and CRUD callbacks.

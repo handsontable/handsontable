@@ -1,5 +1,4 @@
 ---
-id: b3e7f2a1
 title: Real-time cell updates via WebSocket
 metaTitle: Real-time WebSocket Updates - JavaScript Data Grid | Handsontable
 description: Learn how to connect Handsontable to a WebSocket and update individual cells in real time using setDataAtCell, without re-rendering the entire grid.
@@ -13,14 +12,14 @@ tags:
   - tutorial
   - recipes
 react:
-  id: c4f8a2e7
   metaTitle: Real-time WebSocket Updates - React Data Grid | Handsontable
 angular:
-  id: d9b1e5f3
   metaTitle: Real-time WebSocket Updates - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Real-time WebSocket Updates - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Real-time & Integrations
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will connect Handsontable to a WebSocket and update individual cells in real time. You will learn how to use `setDataAtCell` to apply streaming updates without re-rendering the entire grid.
@@ -104,9 +103,9 @@ const hot = new Handsontable(document.querySelector('#example1'), {
   columns: [
     { data: 'symbol', readOnly: true },
     { data: 'company', readOnly: true, width: 180 },
-    { data: 'price', type: 'numeric', numericFormat: { pattern: '0,0.00' } },
-    { data: 'change', type: 'numeric', numericFormat: { pattern: '0,0.00' } },
-    { data: 'volume', type: 'numeric', numericFormat: { pattern: '0,0' } },
+    { data: 'price', type: 'numeric', numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
+    { data: 'change', type: 'numeric', numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
+    { data: 'volume', type: 'numeric', numericFormat: { useGrouping: true, maximumFractionDigits: 0 } },
     { data: 'marketCap', readOnly: true },
   ],
   rowHeaders: true,

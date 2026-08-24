@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a nested header bug where a wide column group's label jumped while scrolling horizontally.",
+  "type": "fixed",
+  "issueOrPR": 12783,
+  "breaking": false,
+  "framework": "none"
+}

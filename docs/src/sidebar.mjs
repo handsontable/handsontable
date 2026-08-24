@@ -26,6 +26,7 @@ const FRAMEWORK_PREFIXES = {
   javascript: 'javascript-data-grid',
   react: 'react-data-grid',
   angular: 'angular-data-grid',
+  vue: 'vue-data-grid',
 };
 
 // ---------------------------------------------------------------------------
@@ -320,7 +321,7 @@ function buildChangelogSidebar(framework, prefix) {
 
     const slug = item.path.split('/').pop();
 
-    if (slug.startsWith('changelog')) {
+    if (slug.startsWith('changelog') || slug === 'changes-between-versions') {
       changelog.push(item);
     } else if (POLICY_SLUGS.includes(slug)) {
       policy.push(item);
@@ -371,8 +372,9 @@ export function buildSidebar(framework = 'javascript', prefix = 'javascript-data
 /**
  * Builds sidebar configs for all supported frameworks, including recipes.
  *
- * @returns {{ javascript: Array, react: Array, angular: Array,
- *             javascriptRecipes: Array, reactRecipes: Array, angularRecipes: Array }}
+ * @returns {{ javascript: Array, react: Array, angular: Array, vue: Array,
+ *             javascriptRecipes: Array, reactRecipes: Array, angularRecipes: Array, vueRecipes: Array,
+ *             javascriptChangelog: Array, reactChangelog: Array, angularChangelog: Array, vueChangelog: Array }}
  */
 export function buildAllSidebars() {
   const result = {};
@@ -381,6 +383,45 @@ export function buildAllSidebars() {
     result[framework] = buildSidebar(framework, prefix);
     result[`${framework}Recipes`] = buildRecipesSidebar(framework, prefix);
     result[`${framework}Changelog`] = buildChangelogSidebar(framework, prefix);
+  }
+
+  return result;
+}
+
+/**
+ * Recursively extracts all `link` values from a Starlight sidebar items array.
+ *
+ * @param {Array} items
+ * @param {Set<string>} acc
+ */
+function flattenLinks(items, acc = new Set()) {
+  for (const item of items) {
+    if (item.link) acc.add(item.link);
+    if (item.items) flattenLinks(item.items, acc);
+  }
+
+  return acc;
+}
+
+/**
+ * Returns a map of framework key → Set of valid URL paths (without the /docs
+ * base prefix) for all sidebar sections: guides, API, recipes, and changelog.
+ *
+ * Use this to decide whether a cross-framework link should navigate to the
+ * equivalent page or fall back to the framework's root page.
+ *
+ * @returns {{ javascript: Set<string>, react: Set<string>, angular: Set<string>, vue: Set<string> }}
+ */
+export function buildAllValidUrls() {
+  const result = {};
+
+  for (const [framework, prefix] of Object.entries(FRAMEWORK_PREFIXES)) {
+    const acc = new Set();
+
+    flattenLinks(buildSidebar(framework, prefix), acc);
+    flattenLinks(buildRecipesSidebar(framework, prefix), acc);
+    flattenLinks(buildChangelogSidebar(framework, prefix), acc);
+    result[framework] = acc;
   }
 
   return result;

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved initial render time and memory usage for large datasets with uniform row heights and column widths.",
+  "type": "changed",
+  "issueOrPR": 12884,
+  "breaking": false,
+  "framework": "none"
+}

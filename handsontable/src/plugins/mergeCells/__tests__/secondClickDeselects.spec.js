@@ -10,7 +10,7 @@ describe('MergeCells selection using mouse interaction (cell deselect)', () => {
     }
   });
 
-  it('should be possible to deselect single merged cell (deselecting from top to bottom)', async() => {
+  it('should keep the re-clicked merged cell as the active focus when ctrl+clicking (first cell)', async() => {
     handsontable({
       data: createSpreadsheetData(9, 4),
       colHeaders: true,
@@ -33,68 +33,30 @@ describe('MergeCells selection using mouse interaction (cell deselect)', () => {
     await keyDown('control/meta');
     await simulateClick(getCell(1, 1));
 
+    // Ctrl+clicking an already-selected cell adds it as a new active layer.
     expect(getSelectedRange()).toEqualCellRange([
+      'highlight: 1,1 from: 1,1 to: 2,2',
       'highlight: 3,1 from: 3,1 to: 4,2',
       'highlight: 5,1 from: 5,1 to: 6,2',
       'highlight: 7,1 from: 7,1 to: 8,2',
+      'highlight: 1,1 from: 1,1 to: 2,2',
     ]);
     expect(`
       |   ║   : - : - :   |
       |===:===:===:===:===|
       |   ║   :   :   :   |
-      |   ║   :       :   |
-      |   ║   :       :   |
-      | - ║   : 0     :   |
+      | - ║   : B     :   |
       | - ║   :       :   |
       | - ║   : 1     :   |
       | - ║   :       :   |
-      | - ║   : A     :   |
+      | - ║   : 2     :   |
       | - ║   :       :   |
-      `).toBeMatchToSelectionPattern();
-
-    await keyDown('control/meta');
-    await simulateClick(getCell(3, 1));
-
-    expect(getSelectedRange()).toEqualCellRange([
-      'highlight: 5,1 from: 5,1 to: 6,2',
-      'highlight: 7,1 from: 7,1 to: 8,2',
-    ]);
-    expect(`
-      |   ║   : - : - :   |
-      |===:===:===:===:===|
-      |   ║   :   :   :   |
-      |   ║   :       :   |
-      |   ║   :       :   |
-      |   ║   :       :   |
-      |   ║   :       :   |
-      | - ║   : 0     :   |
-      | - ║   :       :   |
-      | - ║   : A     :   |
-      | - ║   :       :   |
-      `).toBeMatchToSelectionPattern();
-
-    await keyDown('control/meta');
-    await simulateClick(getCell(5, 1));
-
-    expect(getSelectedRange()).toEqualCellRange([
-      'highlight: 7,1 from: 7,1 to: 8,2',
-    ]);
-    expect(`
-      |   ║   : - : - :   |
-      |===:===:===:===:===|
-      |   ║   :   :   :   |
-      |   ║   :       :   |
-      |   ║   :       :   |
-      |   ║   :       :   |
-      |   ║   :       :   |
-      |   ║   :       :   |
-      |   ║   :       :   |
-      | - ║   : #     :   |
+      | - ║   : 3     :   |
       | - ║   :       :   |
       `).toBeMatchToSelectionPattern();
   });
 
-  it('should be possible to deselect single merged cell (deselecting from bottom to top)', async() => {
+  it('should keep the re-clicked merged cell as the active focus when ctrl+clicking (last cell)', async() => {
     handsontable({
       data: createSpreadsheetData(9, 4),
       colHeaders: true,
@@ -121,8 +83,9 @@ describe('MergeCells selection using mouse interaction (cell deselect)', () => {
       'highlight: 1,1 from: 1,1 to: 2,2',
       'highlight: 3,1 from: 3,1 to: 4,2',
       'highlight: 5,1 from: 5,1 to: 6,2',
+      'highlight: 7,1 from: 7,1 to: 8,2',
+      'highlight: 7,1 from: 7,1 to: 8,2',
     ]);
-
     expect(`
       |   ║   : - : - :   |
       |===:===:===:===:===|
@@ -131,55 +94,14 @@ describe('MergeCells selection using mouse interaction (cell deselect)', () => {
       | - ║   :       :   |
       | - ║   : 1     :   |
       | - ║   :       :   |
-      | - ║   : A     :   |
+      | - ║   : 2     :   |
       | - ║   :       :   |
-      |   ║   :       :   |
-      |   ║   :       :   |
-      `).toBeMatchToSelectionPattern();
-
-    await keyDown('control/meta');
-    await simulateClick(getCell(5, 1));
-
-    expect(getSelectedRange()).toEqualCellRange([
-      'highlight: 1,1 from: 1,1 to: 2,2',
-      'highlight: 3,1 from: 3,1 to: 4,2',
-    ]);
-    expect(`
-      |   ║   : - : - :   |
-      |===:===:===:===:===|
-      |   ║   :   :   :   |
-      | - ║   : 0     :   |
+      | - ║   : B     :   |
       | - ║   :       :   |
-      | - ║   : A     :   |
-      | - ║   :       :   |
-      |   ║   :       :   |
-      |   ║   :       :   |
-      |   ║   :       :   |
-      |   ║   :       :   |
-      `).toBeMatchToSelectionPattern();
-
-    await keyDown('control/meta');
-    await simulateClick(getCell(3, 1));
-
-    expect(getSelectedRange()).toEqualCellRange([
-      'highlight: 1,1 from: 1,1 to: 2,2',
-    ]);
-    expect(`
-      |   ║   : - : - :   |
-      |===:===:===:===:===|
-      |   ║   :   :   :   |
-      | - ║   : #     :   |
-      | - ║   :       :   |
-      |   ║   :       :   |
-      |   ║   :       :   |
-      |   ║   :       :   |
-      |   ║   :       :   |
-      |   ║   :       :   |
-      |   ║   :       :   |
       `).toBeMatchToSelectionPattern();
   });
 
-  it('should be possible to deselect single merged cell that is partially hidden (cut off by hidden columns)', async() => {
+  it('should keep the re-clicked merged cell as the active focus when ctrl+clicking a partially hidden range (cut off by hidden columns)', async() => {
     handsontable({
       data: createSpreadsheetData(7, 5),
       colHeaders: true,
@@ -207,9 +129,12 @@ describe('MergeCells selection using mouse interaction (cell deselect)', () => {
     await keyDown('control/meta');
     await simulateClick(getCell(5, 3));
 
+    // Ctrl+clicking an already-selected range adds a duplicate layer at the clicked point.
     expect(getSelectedRange()).toEqualCellRange([
       'highlight: 1,2 from: 1,1 to: 2,3',
       'highlight: 3,2 from: 3,1 to: 4,3',
+      'highlight: 5,2 from: 5,1 to: 6,3',
+      'highlight: 5,2 from: 5,1 to: 6,3',
     ]);
     expect(`
       |   ║ - : - :   |
@@ -217,31 +142,14 @@ describe('MergeCells selection using mouse interaction (cell deselect)', () => {
       |   ║   :   :   |
       | - ║ 0     :   |
       | - ║       :   |
-      | - ║ A     :   |
+      | - ║ 1     :   |
       | - ║       :   |
-      |   ║       :   |
-      |   ║       :   |
-      `).toBeMatchToSelectionPattern();
-
-    await simulateClick(getCell(3, 3));
-
-    expect(getSelectedRange()).toEqualCellRange([
-      'highlight: 1,2 from: 1,1 to: 2,3',
-    ]);
-    expect(`
-      |   ║ - : - :   |
-      |===:===:===:===|
-      |   ║   :   :   |
-      | - ║ #     :   |
+      | - ║ B     :   |
       | - ║       :   |
-      |   ║       :   |
-      |   ║       :   |
-      |   ║       :   |
-      |   ║       :   |
       `).toBeMatchToSelectionPattern();
   });
 
-  it('should be possible to deselect single merged cell that is partially hidden (cut off by hidden rows)', async() => {
+  it('should keep the re-clicked merged cell as the active focus when ctrl+clicking a partially hidden range (cut off by hidden rows)', async() => {
     handsontable({
       data: createSpreadsheetData(5, 7),
       colHeaders: true,
@@ -271,24 +179,13 @@ describe('MergeCells selection using mouse interaction (cell deselect)', () => {
     expect(getSelectedRange()).toEqualCellRange([
       'highlight: 2,1 from: 1,1 to: 3,2',
       'highlight: 2,3 from: 1,3 to: 3,4',
+      'highlight: 2,5 from: 1,5 to: 3,6',
+      'highlight: 2,5 from: 1,5 to: 3,6',
     ]);
     expect(`
-      |   ║   : - : - : - : - :   :   |
+      |   ║   : - : - : - : - : - : - |
       |===:===:===:===:===:===:===:===|
-      | - ║   : 0     : A     :       |
-      | - ║   :                       |
-      |   ║   :   :   :   :   :   :   |
-      `).toBeMatchToSelectionPattern();
-
-    await simulateClick(getCell(3, 3));
-
-    expect(getSelectedRange()).toEqualCellRange([
-      'highlight: 2,1 from: 1,1 to: 3,2',
-    ]);
-    expect(`
-      |   ║   : - : - :   :   :   :   |
-      |===:===:===:===:===:===:===:===|
-      | - ║   : #     :       :       |
+      | - ║   : 0     : 1     : B     |
       | - ║   :                       |
       |   ║   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();

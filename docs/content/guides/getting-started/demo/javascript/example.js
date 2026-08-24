@@ -134,6 +134,7 @@ const example = document.getElementById('example');
 new Handsontable(example, {
   data,
   height: 450,
+  width: '100%',
   colWidths: [180, 220, 140, 120, 120, 120, 140],
   colHeaders: ['Company Name', 'Name', 'Sell date', 'In stock', 'Quantity', 'Order ID', 'Country'],
   contextMenu: [

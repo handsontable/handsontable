@@ -119,13 +119,13 @@ Example:
 
 ### Type safety
 
-- Use `RowObject` from `handsontable/common` instead of `any[]` for row data arrays.
+- Use `RowObject` from `handsontable` instead of `any[]` for row data arrays.
 - Use typed `querySelector`: `document.querySelector<HTMLInputElement>('#my-input')`.
 - Use non-null assertion on `hotInstance` where the instance is guaranteed to exist: `this.hotTable.hotInstance!.updateSettings(...)`.
 - Use `hotInstance!.updateSettings()` to change settings at runtime -- never destroy and recreate the Handsontable instance.
 
 ```typescript
-import { RowObject } from 'handsontable/common';
+import { RowObject } from 'handsontable';
 
 export class AppComponent {
   hotData: RowObject[] = [];

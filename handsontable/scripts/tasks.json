@@ -8,6 +8,11 @@
       "cmd": "node scripts/prepare-package-for-publish.mjs",
       "deps": []
     },
+    "prepare-package-for-publish.partial": {
+      "cmd": "node scripts/prepare-package-for-publish.mjs --partial",
+      "deps": [],
+      "note": "Composes the package without the strict completeness checks. Only the ES + CJS build job may use it – it runs before the UMD bundles and the theme stylesheets exist."
+    },
 
     "build:styles": {
       "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=styles-development env-cmd -f ../hot.config.js rspack",
@@ -51,12 +56,25 @@
       "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-umd-production env-cmd -f ../hot.config.js rspack",
       "deps": []
     },
+    "generate:themes-static": {
+      "cmd": "node scripts/themes/figma/index.mjs",
+      "deps": [],
+      "note": "Codegen: regenerates src/themes/static/** from scripts/themes/figma/tokens.json (gitignored Figma export). Run on demand when design tokens change; commit the result. NOT part of the default build graph."
+    },
+    "build:types": {
+      "cmd": "tsc -p tsconfig.build-types.json",
+      "deps": []
+    },
+    "downlevel:types": {
+      "cmd": "node scripts/downlevel-dts.mjs",
+      "deps": ["build:types"]
+    },
     "build:umd": {
-      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js rspack ./src/index.js",
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js rspack ./src/index.ts",
       "deps": ["build:styles", "build:themes-css"]
     },
     "build:umd.min": {
-      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=production env-cmd -f ../hot.config.js rspack ./src/index.js",
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=production env-cmd -f ../hot.config.js rspack ./src/index.ts",
       "deps": ["build:styles.min", "build:themes-css.min"]
     },
     "build:es": {
@@ -65,7 +83,7 @@
       "note": "needs build:styles.min to finalize handsontableStyles.js"
     },
     "build:walkontable": {
-      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=walkontable env-cmd -f ../hot.config.js rspack ./src/3rdparty/walkontable/css/walkontable.scss ./src/3rdparty/walkontable/src/index.js",
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=walkontable env-cmd -f ../hot.config.js rspack ./src/3rdparty/walkontable/css/walkontable.scss ./src/3rdparty/walkontable/src/index.ts",
       "deps": [],
       "passthrough": true,
       "passthroughFilter": ["--watch"]
@@ -80,25 +98,13 @@
     },
 
     "lint:eslint": {
-      "cmd": "eslint --cache src/ test/ .config/plugin scripts/",
+      "cmd": "eslint --cache --ext .js,.ts,.mjs src/ test/ .config/plugin scripts/",
       "deps": [],
       "mode": "inherit"
     },
     "lint:eslint.fix": {
-      "cmd": "eslint --fix src/ test/ .config/plugin scripts/",
+      "cmd": "eslint --fix --ext .js,.ts,.mjs src/ test/ .config/plugin scripts/",
       "deps": [],
-      "mode": "inherit"
-    },
-    "lint:types": {
-      "cmd": "eslint \"./**/*.d.ts\" --config \"./.eslintrc.js\"",
-      "deps": [],
-      "cwd": "types",
-      "mode": "inherit"
-    },
-    "lint:types.fix": {
-      "cmd": "eslint --fix \"./**/*.d.ts\" --config \"./.eslintrc.js\"",
-      "deps": [],
-      "cwd": "types",
       "mode": "inherit"
     },
     "lint:stylelint": {
@@ -111,18 +117,23 @@
       "deps": [],
       "mode": "inherit"
     },
+    "typecheck": {
+      "cmd": "tsc --noEmit",
+      "deps": [],
+      "mode": "inherit"
+    },
 
     "test:unit.jest": {
       "cmd": "cross-env-shell BABEL_ENV=commonjs env-cmd -f ../hot.config.js jest",
       "deps": [],
       "mode": "interactive",
       "passthrough": true,
-      "passthroughFilter": ["--testPathPattern", "--watch", "--coverage"],
+      "passthroughFilter": ["--testPathPattern", "--watch", "--coverage", "--collectCoverageFrom", "--coveragePathIgnorePatterns"],
       "note": "interactive gives Jest a real TTY so colors/progress work; passthroughFilter limits forwarded flags to Jest-understood args — blocks --random, --verbose, etc."
     },
     "test:types": {
-      "cmd": "tsc -p ./test/types -t es2015",
-      "deps": [],
+      "cmd": "tsc -p ./test/types",
+      "deps": ["downlevel:types"],
       "mode": "inherit"
     },
     "test:e2e.dump": {
@@ -182,7 +193,7 @@
     },
 
     "watch:rspack": {
-      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=watch env-cmd -f ../hot.config.js rspack --watch ./src/index.js",
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=watch env-cmd -f ../hot.config.js rspack --watch ./src/index.ts",
       "deps": [],
       "mode": "inherit"
     },
@@ -209,16 +220,18 @@
         "build:themes-umd.min",
         "build:umd",
         "build:umd.min",
-        "build:es"
+        "build:es",
+        "build:types",
+        "downlevel:types"
       ]
     },
     "lint": {
       "before": ["build:styles"],
-      "tasks": ["lint:eslint", "lint:types", "lint:stylelint"]
+      "tasks": ["lint:eslint", "lint:stylelint", "typecheck"]
     },
     "lint:fix": {
       "before": ["build:styles"],
-      "tasks": ["lint:eslint.fix", "lint:types.fix", "lint:stylelint.fix"]
+      "tasks": ["lint:eslint.fix", "lint:stylelint.fix"]
     },
     "test:unit": {
       "before": ["build:styles"],

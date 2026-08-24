@@ -23,7 +23,6 @@ afterAll(() => {
   $('.jasmine_html-reporter').show();
 });
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * The function allows you to run the test suites based on different parameters (object configuration, datasets etc).
  *
@@ -53,7 +52,6 @@ export function using(name, parameters, func) {
     });
   });
 }
-/* eslint-enable jsdoc/require-description-complete-sentence */
 
 /**
  * @param {number} [delay=100] The delay in ms after which the Promise is resolved.
@@ -375,6 +373,12 @@ export function createStylesHandler() {
         'cell-autofill-size': 6,
         'cell-autofill-border-width': 1,
         'cell-autofill-border-color': '#FFF',
+        'cell-selection-handle-size': 8,
+        'cell-selection-handle-length': 24,
+        'cell-selection-handle-border-width': 1,
+        'cell-selection-handle-border-radius': 12,
+        'cell-selection-handle-border-color': '#1A73E8',
+        'cell-selection-handle-background-color': '#1A73E8',
       };
 
       return cssVariables[variableName];

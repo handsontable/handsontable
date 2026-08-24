@@ -27,7 +27,7 @@ export class AppComponent {
     columns: [
       {
         type: 'autocomplete',
-        source: (_query, process) => {
+        source: (_query: string, process: (items: string[]) => void) => {
           fetch('https://handsontable.com/docs/scripts/json/autocomplete.json')
               .then((response) => response.json())
               .then((response) => process(response.data));

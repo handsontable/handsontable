@@ -1,69 +1,190 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
-import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import type { DataProviderQueryParameters, DataProviderFetchOptions, RowsCreatePayload, RowUpdatePayload } from 'handsontable/plugins/dataProvider';
-import type { SourceRowData } from 'handsontable/common';
+import {
+  Component,
+  ViewChild,
+  ViewEncapsulation,
+  CUSTOM_ELEMENTS_SCHEMA,
+} from '@angular/core';
+import { HotTableModule, HotTableComponent } from '@handsontable/angular-wrapper';
+import type {
+  DataProviderQueryParameters,
+  RowsCreatePayload,
+  RowUpdatePayload,
+  RowMutationPayload,
+  RowMutationRemovePayload,
+} from 'handsontable/plugins/dataProvider';
 
-function buildUrl(base: string, params: DataProviderQueryParameters): string {
-  const query = new URLSearchParams({
-    page: String(params.page),
-    pageSize: String(params.pageSize),
+// Serializes fetchRows query parameters into a URL query string that Laravel
+// reads via request()->input().
+//
+// Handsontable sends:
+//   sort:    { prop: 'name', order: 'asc' }  or  null
+//   filters: [{ prop: 'price', conditions: [{ name: 'gt', args: [100] }] }]  or  null
+//
+// Laravel reads:
+//   sort[prop], sort[order]
+//   filters[0][prop], filters[0][condition], filters[0][value], filters[0][value2]
+function buildUrl(base: string, { page, pageSize, sort, filters }: DataProviderQueryParameters): string {
+  const params = new URLSearchParams({
+    page: String(page),
+    pageSize: String(pageSize),
   });
 
-  if (params.sort) {
-    query.set('sort[prop]', params.sort.prop);
-    query.set('sort[order]', params.sort.order);
+  if (sort) {
+    params.set('sort[prop]', sort.prop);
+    params.set('sort[order]', sort.order);
   }
 
-  if (params.filters?.length) {
-    params.filters.forEach(({ prop, conditions }, i) => {
-      const cond = conditions[0];
-
-      query.set(`filters[${i}][prop]`, prop);
-
-      if (cond?.name) {
-        query.set(`filters[${i}][condition]`, cond.name);
-      }
-
-      if (cond?.args[0] != null) {
-        query.set(`filters[${i}][value]`, String(cond.args[0]));
-      }
-
-      if (cond?.args[1] != null) {
-        query.set(`filters[${i}][value2]`, String(cond.args[1]));
-      }
+  if (filters?.length) {
+    let idx = 0;
+    filters.forEach(({ prop, conditions }) => {
+      (conditions || []).forEach(({ name, args }) => {
+        if (!name) return;
+        params.set(`filters[${idx}][prop]`, prop);
+        params.set(`filters[${idx}][condition]`, name);
+        const a = args ?? [];
+        if (a[0] != null) params.set(`filters[${idx}][value]`, String(a[0]));
+        if (a[1] != null) params.set(`filters[${idx}][value2]`, String(a[1]));
+        idx++;
+      });
     });
   }
 
-  return `${base}?${query}`;
+  return `${base}?${params}`;
 }
 
+// For Blade-rendered pages, inject via <meta name="csrf-token" content="{{ csrf_token() }}">.
+// For this standalone SPA the API routes are stateless so the header is a no-op,
+// but it's kept here so the code mirrors the recipe exactly.
 function csrfToken(): string {
-  return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+  return (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
 }
 
 @Component({
-  standalone: true,
-  imports: [HotTableModule],
   selector: 'example1-server-side-laravel',
-  template: `
-    <div>
-      <hot-table [settings]="gridSettings"></hot-table>
-    </div>
-  `,
+  standalone: true,
+  encapsulation: ViewEncapsulation.None,
+  imports: [HotTableModule],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  template: `<hot-table [settings]="settings"></hot-table>`,
 })
 export class AppComponent {
-  @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
+  @ViewChild(HotTableComponent) hotRef!: HotTableComponent;
 
-  readonly gridSettings: GridSettings = {
+  private removeConfirmed = false;
+
+  settings = {
     dataProvider: {
+      // rowId must match the primary key returned by the Laravel model.
       rowId: 'id',
-      fetchRows: (params: DataProviderQueryParameters, options: DataProviderFetchOptions) =>
-        this.fetchRows(params, options.signal),
-      onRowsCreate: (payload: RowsCreatePayload) => this.onRowsCreate(payload),
-      onRowsUpdate: (rows: RowUpdatePayload[]) => this.onRowsUpdate(rows),
-      onRowsRemove: (rowIds: unknown[]) => this.onRowsRemove(rowIds),
+
+      // Called on every page change, sort, and filter.
+      fetchRows: async (queryParameters: DataProviderQueryParameters, { signal }: { signal: AbortSignal }) => {
+        const url = buildUrl('/api/products', queryParameters);
+        const res = await fetch(url, { signal });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const json = await res.json();
+        return { rows: json.data, totalRows: json.total };
+      },
+
+      // Fires when the user inserts rows via the context menu.
+      // payload: { position: 'above'|'below', referenceRowId, rowsAmount }
+      onRowsCreate: async (payload: RowsCreatePayload) => {
+        const res = await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+        const row = data[0];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (this.hotRef.hotInstance!.getPlugin('notification') as any).showMessage({
+          variant: 'success',
+          title: 'Row added',
+          message: `Created: ${row.sku} (id: ${row.id})`,
+          duration: 3000,
+        });
+        return data;
+      },
+
+      // Fires after a cell edit, paste, or autofill batch.
+      // rows: [{ id, changes: { price: 149.99 }, rowData: {...} }, ...]
+      onRowsUpdate: async (rows: RowUpdatePayload[]) => {
+        const res = await fetch('/api/products', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+          body: JSON.stringify(rows),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      },
+
+      // Fires after the user confirms deletion.
+      // rowIds: [4, 7, 12]
+      onRowsRemove: async (rowIds: unknown[]) => {
+        const res = await fetch('/api/products', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+          body: JSON.stringify(rowIds),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (this.hotRef.hotInstance!.getPlugin('notification') as any).showMessage({
+          variant: 'success',
+          title: 'Rows deleted',
+          message: `Deleted ${rowIds.length} row${rowIds.length !== 1 ? 's' : ''}`,
+          duration: 3000,
+        });
+      },
     },
+
+    // beforeRowsMutation is sync (checks for a strict `=== false` return), so
+    // we can't await an async prompt inline. Instead: cancel the original
+    // attempt, show a notification with Delete/Cancel actions, and on Delete
+    // re-issue the remove via the DataProvider API. The flag lets the second
+    // pass through without re-prompting.
+    beforeRowsMutation: (operation: 'create' | 'update' | 'remove', payload: RowMutationPayload): false | void => {
+      if (operation === 'remove' && !this.removeConfirmed) {
+        const { rowsRemove } = payload as RowMutationRemovePayload;
+        const hot = this.hotRef.hotInstance!;
+        const count = rowsRemove.length;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const notification = (hot.getPlugin('notification') as any);
+        const id = notification.showMessage({
+          variant: 'warning',
+          title: 'Delete rows',
+          message: `Delete ${count} row${count !== 1 ? 's' : ''}? This cannot be undone.`,
+          duration: 0,
+          actions: [
+            {
+              label: 'Delete',
+              type: 'primary',
+              callback: () => {
+                notification.hide(id);
+                this.removeConfirmed = true;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (hot.getPlugin('dataProvider') as any)
+                  .removeRows(rowsRemove)
+                  .finally(() => {
+                    this.removeConfirmed = false;
+                  });
+              },
+            },
+            {
+              label: 'Cancel',
+              type: 'secondary',
+              callback: () => notification.hide(id),
+            },
+          ],
+        });
+        return false;
+      }
+    },
+
     pagination: { pageSize: 10 },
     columnSorting: true,
     filters: true,
@@ -71,6 +192,9 @@ export class AppComponent {
     contextMenu: true,
     emptyDataState: true,
     notification: true,
+
+    width: '100%',
+    height: 'auto',
     rowHeaders: true,
     colHeaders: ['Name', 'SKU', 'Category', 'Price', 'Stock'],
     columns: [
@@ -81,47 +205,11 @@ export class AppComponent {
         type: 'dropdown',
         source: ['Electronics', 'Accessories', 'Storage', 'Networking', 'Peripherals'],
       },
-      { data: 'price', type: 'numeric', numericFormat: { pattern: '$0,0.00' } },
+      { data: 'price', type: 'numeric', numericFormat: { style: 'currency' as const, currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 } },
       { data: 'stock', type: 'numeric' },
     ],
+    licenseKey: 'non-commercial-and-evaluation',
   };
-
-  async fetchRows(params: DataProviderQueryParameters, signal: AbortSignal): Promise<{ rows: SourceRowData[]; totalRows: number }> {
-    const url = buildUrl('/api/products', params);
-    const res = await fetch(url, { signal });
-
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
-
-    const json = await res.json();
-
-    return { rows: json.data, totalRows: json.total };
-  }
-
-  async onRowsCreate(payload: RowsCreatePayload): Promise<void> {
-    await fetch('/api/products', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
-      body: JSON.stringify(payload),
-    });
-  }
-
-  async onRowsUpdate(rows: RowUpdatePayload[]): Promise<void> {
-    await fetch('/api/products', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
-      body: JSON.stringify(rows),
-    });
-  }
-
-  async onRowsRemove(rowIds: unknown[]): Promise<void> {
-    await fetch('/api/products', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
-      body: JSON.stringify(rowIds),
-    });
-  }
 }
 /* end-file */
 

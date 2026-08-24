@@ -77,7 +77,7 @@ export function makeEditorClass(
           let result;
 
           if (!AbstractMethods.includes(propName)) {
-            result = baseMethod.call(this, ...args); // call super
+            result = (baseMethod as (...a: any[]) => unknown).call(this, ...args); // call super
           }
 
           if (
@@ -250,7 +250,7 @@ export function useHotEditor<T>(
     () => ({
       ...overriddenHooks,
       onOpen() {
-        setEditorValue(hotCustomEditorInstanceRef.current?.getValue());
+        setEditorValue(hotCustomEditorInstanceRef.current?.getValue() as T | undefined);
         overriddenHooks?.onOpen?.();
         setRerenderTrigger((t) => t + 1);
       },
@@ -274,10 +274,12 @@ export function useHotEditor<T>(
         hotCustomEditorInstanceRef.current?.finishEditing();
       },
       get row() {
-        return hotCustomEditorInstanceRef.current?.row;
+        const row = hotCustomEditorInstanceRef.current?.row;
+        return row ?? undefined;
       },
       get col() {
-        return hotCustomEditorInstanceRef.current?.col;
+        const col = hotCustomEditorInstanceRef.current?.col;
+        return col ?? undefined;
       },
     }),
     [rerenderTrigger, hotCustomEditorInstanceRef, deferredValue]

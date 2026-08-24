@@ -1,7 +1,7 @@
 import Handsontable from 'handsontable';
 
 const element = document.createElement('div');
-const hot = new Handsontable(element, {});
+const hot = Handsontable(element, {});
 const focusScopeManager = hot.getFocusScopeManager();
 
 const activeScopeId: string | null = focusScopeManager.getActiveScopeId();

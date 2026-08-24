@@ -1,5 +1,4 @@
 ---
-id: a3f7c819
 title: Custom context menu actions
 metaTitle: Custom context menu actions - JavaScript Data Grid | Handsontable
 description: Learn how to add custom items to Handsontable's right-click context menu, including duplicate row, flag row, and copy row as JSON actions.
@@ -11,14 +10,14 @@ tags:
   - context menu
   - custom actions
 react:
-  id: b8d2f419
   metaTitle: Custom context menu actions - React Data Grid | Handsontable
 angular:
-  id: c5e3a907
   metaTitle: Custom context menu actions - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Custom context menu actions - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Context Menu
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will add custom items to the Handsontable right-click context menu. You will learn how to define custom actions alongside built-in menu items and how to control which built-in items appear.

@@ -3,6 +3,7 @@ import Handsontable from 'handsontable';
 const hot = new Handsontable(document.createElement('div'), {
   trimRows: true,
 });
+
 new Handsontable(document.createElement('div'), {
   trimRows: [1, 2, 3],
 });

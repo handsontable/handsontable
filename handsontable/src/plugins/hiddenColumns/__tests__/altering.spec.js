@@ -13,6 +13,46 @@ describe('HiddenColumns', () => {
   });
 
   describe('alter actions', () => {
+    it('should move the selection off a hidden column to the nearest visible one after removing a column', async() => {
+      handsontable({
+        data: createSpreadsheetData(1, 6),
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [2], // hide column C
+        },
+      });
+
+      await selectCell(0, 3); // D - the visible column right after the hidden C
+      await alter('remove_col', 3, 1); // remove D; the shift would land the selection on hidden C (visual col 2)
+
+      // The selection must not rest on the hidden column - it snaps to the nearest visible one.
+      const { col } = getSelectedRange()[0].highlight;
+
+      expect(columnIndexMapper().isHidden(col)).toBe(false);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: 0,3 to: 0,3']);
+    });
+
+    it('should keep a hidden column within the bounds of a multi-column selection after removing a column', async() => {
+      handsontable({
+        data: createSpreadsheetData(1, 8),
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [3], // hide column D
+        },
+      });
+
+      await selectCell(0, 4, 0, 6); // range over columns E..G (the hidden D sits just before it)
+      await alter('remove_col', 4, 1); // shifts the range left so a corner moves next to the hidden D
+
+      // A wide range legitimately keeps hidden columns inside its bounds (copy/fill include them);
+      // the shift must not snap the corners out, so the hidden column D stays within [from, to].
+      const range = getSelectedRange()[0];
+
+      expect(columnIndexMapper().isHidden(3)).toBe(true);
+      expect(range.from.col).toBeLessThanOrEqual(3);
+      expect(range.to.col).toBeGreaterThanOrEqual(3);
+    });
+
     it('should update hidden column indexes after columns removal (removing not hidden columns)', async() => {
       handsontable({
         data: createSpreadsheetData(1, 10),

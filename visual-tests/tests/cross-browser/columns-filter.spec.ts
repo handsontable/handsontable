@@ -18,7 +18,7 @@ test('Test filtering', async({ tablePage }) => {
   expect(await rowsCount()).toBe(6);
 
   await openHeaderDropdownMenu('Sell date');
-  await filterByCondition(FilterConditions.IsBetween, '01/01/2020', '30/06/2020');
+  await filterByCondition(FilterConditions.IsBetween, '2020-01-01', '2020-06-30');
 
   expect(await rowsCount()).toBe(3);
 

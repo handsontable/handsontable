@@ -4,7 +4,6 @@ import { normalize, pretty } from './htmlNormalize';
 beforeEach(function() {
   const currentSpec = this;
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Extend the matcher factories with the `matchersUtil` argument extended with a configuration provided in the
    * spec as:
@@ -33,7 +32,6 @@ beforeEach(function() {
 
     return matchers;
   }
-  /* eslint-enable jsdoc/require-description-complete-sentence */
 
   const matchers = {
     toBeInArray() {
@@ -109,7 +107,6 @@ beforeEach(function() {
         }
       };
     },
-    /* eslint-disable jsdoc/require-description-complete-sentence */
     /**
      * The matcher checks if the provided selection pattern matches to the rendered cells by checking if
      * the appropriate CSS class name was added.
@@ -161,7 +158,6 @@ beforeEach(function() {
      *
      * @returns {object}
      */
-    /* eslint-enable jsdoc/require-description-complete-sentence */
     toBeMatchToSelectionPattern() {
       return {
         compare(actualPattern) {

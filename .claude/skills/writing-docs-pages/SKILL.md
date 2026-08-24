@@ -1,5 +1,6 @@
 ---
 name: writing-docs-pages
+path: docs/**
 description: Use when creating or editing documentation pages in docs/content/guides/ - covers YAML frontmatter, page structure, framework-specific example embedding, writing style, and sidebar registration
 ---
 
@@ -9,11 +10,10 @@ This skill covers how to create and edit guide pages in `docs/content/guides/`.
 
 ## 1. Frontmatter (required)
 
-Every `.md` file starts with YAML frontmatter. Generate unique 8-character alphanumeric IDs for new pages (never change existing IDs). Each framework variant needs its own ID.
+Every `.md` file starts with YAML frontmatter.
 
 ```yaml
 ---
-id: abc12345              # 8 random alphanumeric chars (never change existing)
 title: Feature Name
 metaTitle: Feature Name - JavaScript Data Grid | Handsontable
 description: Short SEO description under 160 characters.
@@ -23,12 +23,14 @@ tags:
   - keyword1
   - keyword2
 react:
-  id: def67890            # Different ID for React variant
   metaTitle: Feature Name - React Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features    # Must match a sidebar category exactly
+menuTag: new | updated     # Optional; sidebar badge
 ---
 ```
+
+Set `menuTag: new` when you create a new page and `menuTag: updated` when you make a substantive content change to an existing page. Omit it for trivial fixes (typos, snippet/link corrections) and for changelog and migration-guide pages; leave any existing tag in place.
 
 ## 2. Page Structure
 
@@ -81,16 +83,30 @@ Embed runnable code examples using this pattern. The `--js 1 --ts 2` flags set t
 :::
 
 :::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/category/feature/vue/example1.vue)
+
+:::
+
+:::
 ```
 
-For Vue examples, use `:vue3` with `--html 1 --js 2`. For Angular, use `:angular` with `--ts 1 --html 2`.
+**Vue 3:** Embed a single TypeScript SFC (`vue/example1.vue` with `<script setup lang="ts">`). Use the `:vue3` preset (or `:vue3-languages`, `:vue3-vuex` when the feature needs extra dependencies). Do not use `--html` / `--js` tabs for new Vue examples. See skill `creating-docs-examples` for the full Vue SFC pattern.
+
+**Angular:** Use `:angular` with `--ts 1 --html 2`.
 
 ## 5. Writing Style
+
+Full site voice and the words-to-avoid list are in `docs/AGENTS.md` §2.2 (the docs-site override of the monorepo standards in `.ai/DOC-STANDARDS.md`). Key points for pages:
 
 - Active voice, American English, short sentences.
 - Address the reader as "you", never "we". Use the Oxford comma.
 - No evaluative adjectives ("easy", "simple", "obvious").
-- Use en dashes (-) to separate clauses, not hyphens.
+- Use hyphens (`-`) or double hyphens (`--`) to separate clauses, not en dashes — this is the docs-site convention (unlike JSDoc/changelog, which use en dashes).
 - Bold for UI elements: **Add comment**. Inline code for API names: `comments`.
 - Internal links: `[text](@/path/to/file.md#anchor)` syntax.
 - End every sentence with a full stop, including in lists.
@@ -111,13 +127,15 @@ Use `onlyFor: ['react']` or `onlyFor: ['angular']` if the page is framework-spec
 
 ## 8. Code Example Generation
 
-Always edit the TypeScript example file first (it is the primary source). Then generate the JavaScript variant from the `docs/` directory:
+For **JavaScript** and **React** examples, edit the TypeScript source first (`.ts` or `.tsx`). Then generate the JavaScript variant from the `docs/` directory:
 
 ```bash
 cd docs && npm run docs:code-examples:generate-js -- <path-to-ts-file>
 ```
 
 Use a path relative to `docs/` (for example `content/recipes/foo/javascript/example1.ts`).
+
+For **Vue** examples, write TypeScript directly in the `.vue` file (`<script setup lang="ts">`). There is no separate JS file to generate.
 
 ## Reference
 

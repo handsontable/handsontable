@@ -4,7 +4,8 @@
       "type": "http",
       "url": "https://mcp.clickup.com/mcp",
       "headers": {
-        "Authorization": "Bearer ${CLICKUP_API_TOKEN}"
+        "Authorization": "Bearer ${CLICKUP_API_TOKEN}",
+        "x-workspace-id": "9015210959"
       }
     },
     "github": {
@@ -26,7 +27,7 @@
       "command": "pipx",
       "args": [
         "run",
-        "code-review-graph==2.3.2",
+        "code-review-graph==2.3.6",
         "serve"
       ],
       "type": "stdio"

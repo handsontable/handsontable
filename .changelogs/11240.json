@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Re-exported `CellMeta`, `CellProperties`, `ColumnSettings`, `GridSettings` and other public types as named top-level imports from `handsontable` and `handsontable/base`.",
-  "type": "added",
-  "issueOrPR": 11240,
-  "breaking": false,
-  "framework": "none"
-}

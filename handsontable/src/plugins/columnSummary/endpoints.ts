@@ -1,0 +1,792 @@
+import type { HotInstance } from '../../core/types';
+import { arrayEach } from '../../helpers/array';
+import { warn } from '../../helpers/console';
+import { roundFloat } from './utils';
+import type { ColumnSummary } from './columnSummary';
+
+/**
+ * `HotInstance` augmented with the internal `_setCellMetaDeclarative` method. The method exists on the
+ * Core runtime object but is intentionally NOT part of the public `HotInstance` type, so it is not
+ * exposed to third-party code (it is an implementation detail of how built-in plugins apply
+ * configuration-derived cell meta that must survive the viewport meta eviction but reset on
+ * `updateSettings`, without firing the public `setCellMeta` hooks). ColumnSummary is an internal
+ * consumer and reaches it through this local type.
+ */
+type HotInstanceInternal = HotInstance & {
+  _setCellMetaDeclarative(row: number, column: number, key: string, value: unknown): void;
+};
+
+export interface EndpointConfig {
+  ranges?: number[][];
+  reversedRowCoords?: boolean;
+  destinationRow?: number;
+  destinationColumn?: number;
+  sourceColumn?: number;
+  type?: string;
+  forceNumeric?: boolean;
+  suppressDataTypeErrors?: boolean;
+  customFunction?: ((endpoint: Record<string, unknown>) => number | string) | null;
+  readOnly?: boolean;
+  roundFloat?: number | boolean;
+  result?: number | string;
+  alterRowOffset?: number;
+  alterColumnOffset?: number;
+  [key: string]: unknown;
+}
+
+/**
+ * Class used to make all endpoint-related operations.
+ *
+ * @private
+ * @class Endpoints
+ */
+class Endpoints {
+  /**
+   * The main plugin instance.
+   */
+  declare plugin: ColumnSummary;
+  /**
+   * Handsontable instance. Typed as `HotInstanceInternal` so this internal consumer can call the
+   * non-public `_setCellMetaDeclarative` method (see the type's note).
+   *
+   * @type {object}
+   */
+  declare hot: HotInstanceInternal;
+  /**
+   * Array of declared plugin endpoints (calculation destination points).
+   *
+   * @type {Array}
+   * @default {Array} Empty array.
+   */
+  endpoints: EndpointConfig[] = [];
+  /**
+   * The plugin settings, taken from Handsontable configuration.
+   *
+   * @type {object|Function}
+   * @default null
+   */
+  declare settings: EndpointConfig[] | ((...args: unknown[]) => EndpointConfig[]);
+  /**
+   * Settings type. Can be either 'array' or 'function'.
+   *
+   * @type {string}
+   * @default {'array'}
+   */
+  settingsType = 'array';
+  /**
+   * The current endpoint (calculation destination point) in question.
+   *
+   * @type {object}
+   * @default null
+   */
+  currentEndpoint: EndpointConfig | null = null;
+  /**
+   * Array containing a list of changes to be applied.
+   *
+   * @private
+   * @type {Array}
+   * @default {[]}
+   */
+  cellsToSetCache: [number, number | undefined, unknown][] = [];
+  /**
+   * Destination columns keyed by physical destination row, built once per refresh pass. Used to
+   * keep summary results out of other summaries when their row is trimmed and the
+   * `columnSummaryResult` class is unreachable.
+   */
+  #summaryDestinations: Map<number, Set<number>> | null = null;
+
+  /**
+   * Initializes the endpoints manager with a reference to the ColumnSummary plugin and the summary endpoint configuration.
+   */
+  constructor(plugin: ColumnSummary, settings: EndpointConfig[] | ((...args: unknown[]) => EndpointConfig[])) {
+    this.plugin = plugin;
+    // `_setCellMetaDeclarative` is defined on the Core runtime object but kept off the public
+    // `HotInstance` type; this internal plugin reaches it through the `HotInstanceInternal` view.
+    this.hot = this.plugin.hot as HotInstanceInternal;
+    this.settings = settings;
+  }
+
+  /**
+   * Initialize the endpoints provided in the settings.
+   */
+  initEndpoints() {
+    this.endpoints = this.parseSettings() as EndpointConfig[];
+    this.refreshAllEndpoints();
+  }
+
+  /**
+   * Get a single endpoint object.
+   *
+   * @param {number} index Index of the endpoint.
+   * @returns {object}
+   */
+  getEndpoint(index: number): EndpointConfig {
+    if (this.settingsType === 'function') {
+      return this.fillMissingEndpointData(this.settings as (...args: unknown[]) => EndpointConfig[])[index];
+    }
+
+    return this.endpoints[index];
+  }
+
+  /**
+   * Returns the number of physical rows the dataset holds, ignoring trimming.
+   *
+   * Endpoint destination rows and calculation ranges are physical indexes, so they must never be
+   * compared against `countRows()` - that counts only the *visible* rows and shrinks whenever a
+   * plugin trims rows (NestedRows collapsing a group, TrimRows, the Filters plugin).
+   *
+   * @returns {number}
+   */
+  countPhysicalRows(): number {
+    return this.hot.rowIndexMapper.getNumberOfIndexes();
+  }
+
+  /**
+   * Returns the number of rows an endpoint may address, that is the physical row count capped by
+   * `maxRows`. Used for the settings defaults that need a row count rather than a bounds check.
+   *
+   * `maxRows` is normalized the same way `DataMap#getLength` does it: `0` or less means zero rows,
+   * anything falsy means no cap.
+   *
+   * @returns {number}
+   */
+  countAddressableRows(): number {
+    const maxRows = this.hot.getSettings().maxRows as number | undefined;
+    let cap;
+
+    if ((maxRows ?? 0) < 0 || maxRows === 0) {
+      cap = 0;
+    } else {
+      cap = maxRows || Infinity;
+    }
+
+    return Math.min(this.countPhysicalRows(), cap);
+  }
+
+  /**
+   * Checks whether an endpoint points outside the table.
+   *
+   * A *trimmed* destination row is not out of bounds - the row exists, it is only hidden - so it is
+   * deliberately not reported here. A row that is visible but sits past `maxRows` is out of bounds,
+   * because the grid renders no cell for it.
+   *
+   * @param {object} endpoint Contains the endpoint information.
+   * @param {number} [rowOffset=0] Row offset to apply before the check.
+   * @param {number} [colOffset=0] Column offset to apply before the check.
+   * @returns {boolean}
+   */
+  isEndpointOutOfBounds(endpoint: EndpointConfig, rowOffset = 0, colOffset = 0): boolean {
+    const destinationRow = endpoint.destinationRow! + rowOffset;
+    const destinationVisualRow = this.hot.toVisualRow(destinationRow);
+
+    return destinationRow >= this.countPhysicalRows() ||
+      endpoint.destinationColumn! + colOffset >= this.hot.countCols() ||
+      (destinationVisualRow !== null && destinationVisualRow >= this.hot.countRows());
+  }
+
+  /**
+   * Get an array with all the endpoints.
+   *
+   * @returns {Array}
+   */
+  getAllEndpoints(): EndpointConfig[] {
+    if (this.settingsType === 'function') {
+      return this.fillMissingEndpointData(this.settings as (...args: unknown[]) => EndpointConfig[]);
+    }
+
+    return this.endpoints;
+  }
+
+  /**
+   * Records the destinations of the endpoints a refresh pass is about to calculate.
+   *
+   * The resolved endpoints are passed in rather than read through `getAllEndpoints()`, which would
+   * re-invoke a settings function and could describe a different layout than the pass is working on.
+   *
+   * @param {object[]} endpoints The endpoints the current pass will calculate.
+   */
+  cacheSummaryDestinations(endpoints: EndpointConfig[]) {
+    this.#summaryDestinations = new Map();
+
+    arrayEach(endpoints, (endpoint: EndpointConfig) => {
+      let columns = this.#summaryDestinations!.get(endpoint.destinationRow!);
+
+      if (columns === undefined) {
+        columns = new Set();
+        this.#summaryDestinations!.set(endpoint.destinationRow!, columns);
+      }
+
+      columns.add(endpoint.destinationColumn!);
+    });
+  }
+
+  /**
+   * Checks whether a physical cell holds the result of an endpoint.
+   *
+   * `getCellValue` normally recognizes a result by its `columnSummaryResult` class, but cell meta is
+   * addressed by visual coordinates, so a trimmed row has no readable class. Without this check a
+   * hidden summary row is summed as if it were plain data and inflates every summary covering it.
+   *
+   * @param {number} physicalRow Physical row index.
+   * @param {number} column Column index.
+   * @returns {boolean}
+   */
+  isSummaryDestination(physicalRow: number, column: number): boolean {
+    if (this.#summaryDestinations === null) {
+      this.cacheSummaryDestinations(this.getAllEndpoints());
+    }
+
+    return this.#summaryDestinations!.get(physicalRow)?.has(column) === true;
+  }
+
+  /**
+   * Used to fill the blanks in the endpoint data provided by a settings function.
+   *
+   * @private
+   * @param {Function} func Function provided in the HOT settings.
+   * @returns {Array} An array of endpoints.
+   */
+  fillMissingEndpointData(func: (...args: unknown[]) => EndpointConfig[]): EndpointConfig[] {
+    return this.parseSettings(func.call(this)) as EndpointConfig[];
+  }
+
+  /**
+   * Parse plugin's settings.
+   *
+   * @param {Array} settings The settings array.
+   * @returns {object[]}
+   */
+  parseSettings(settings?: EndpointConfig[]): EndpointConfig[] | undefined {
+    const endpointsArray: EndpointConfig[] = [];
+    let settingsArray = settings;
+
+    if (!settingsArray && typeof this.settings === 'function') {
+      this.settingsType = 'function';
+
+      return;
+    }
+
+    if (!settingsArray) {
+      settingsArray = this.settings as EndpointConfig[];
+    }
+
+    arrayEach(settingsArray, (val: EndpointConfig) => {
+      const newEndpoint: EndpointConfig = {};
+
+      this.assignSetting(val, newEndpoint, 'ranges', [[0, this.countAddressableRows() - 1]]);
+      this.assignSetting(val, newEndpoint, 'reversedRowCoords', false);
+      this.assignSetting(val, newEndpoint, 'destinationRow', new Error(`
+        You must provide a destination row for the Column Summary plugin in order to work properly!
+      `));
+      this.assignSetting(val, newEndpoint, 'destinationColumn', new Error(`
+        You must provide a destination column for the Column Summary plugin in order to work properly!
+      `));
+      this.assignSetting(val, newEndpoint, 'sourceColumn', val.destinationColumn);
+      this.assignSetting(val, newEndpoint, 'type', 'sum');
+      this.assignSetting(val, newEndpoint, 'forceNumeric', false);
+      this.assignSetting(val, newEndpoint, 'suppressDataTypeErrors', true);
+      this.assignSetting(val, newEndpoint, 'customFunction', null);
+      this.assignSetting(val, newEndpoint, 'readOnly', true);
+      this.assignSetting(val, newEndpoint, 'roundFloat', false);
+
+      endpointsArray.push(newEndpoint);
+    });
+
+    return endpointsArray;
+  }
+
+  /**
+   * Setter for the internal setting objects.
+   *
+   * @param {object} settings Object with the settings.
+   * @param {object} endpoint Contains information about the endpoint for the the calculation.
+   * @param {string} name Settings name.
+   * @param {object} defaultValue Default value for the settings.
+   */
+  assignSetting(settings: EndpointConfig, endpoint: EndpointConfig, name: string, defaultValue: unknown) {
+    if (name === 'ranges' && settings[name] === undefined) {
+      endpoint[name] = defaultValue as number[][];
+
+      return;
+    } else if (name === 'ranges' && (settings[name] as number[][]).length === 0) {
+      return;
+    }
+
+    if (settings[name] === undefined) {
+      if (defaultValue instanceof Error) {
+        throw defaultValue;
+
+      }
+
+      endpoint[name] = defaultValue;
+
+    } else {
+      /* eslint-disable no-lonely-if */
+      if (name === 'destinationRow' && endpoint.reversedRowCoords) {
+        endpoint[name] = this.countAddressableRows() - (settings[name] as number) - 1;
+
+      } else {
+        endpoint[name] = settings[name];
+      }
+    }
+  }
+
+  /**
+   * Resets the endpoint setup before the structure alteration (like inserting or removing rows/columns). Used for settings provided as a function.
+   *
+   * @private
+   * @param {string} action Type of the action performed.
+   * @param {number} index Row/column index.
+   * @param {number} number Number of rows/columns added/removed.
+   */
+  resetSetupBeforeStructureAlteration(action: string, index: number, number: number) {
+    if (this.settingsType !== 'function') {
+      return;
+    }
+
+    const type = action.indexOf('row') > -1 ? 'row' : 'col';
+    const endpoints = this.getAllEndpoints();
+
+    arrayEach(endpoints, (val: EndpointConfig) => {
+      if (type === 'row' && val.destinationRow! >= index) {
+        if (action === 'insert_row') {
+          val.alterRowOffset = number;
+        } else if (action === 'remove_row') {
+          val.alterRowOffset = (-1) * number;
+        }
+      }
+
+      if (type === 'col' && val.destinationColumn! >= index) {
+        if (action === 'insert_col') {
+          val.alterColumnOffset = number;
+        } else if (action === 'remove_col') {
+          val.alterColumnOffset = (-1) * number;
+        }
+      }
+    });
+
+    this.resetAllEndpoints(endpoints, false);
+  }
+
+  /**
+   * AfterCreateRow/afterCreateRow/afterRemoveRow/afterRemoveCol hook callback. Reset and reenables the summary functionality
+   * after changing the table structure.
+   *
+   * @private
+   * @param {string} action Type of the action performed.
+   * @param {number} index Row/column index.
+   * @param {number} number Number of rows/columns added/removed.
+   * @param {Array} [logicRows] Array of the logical indexes.
+   * @param {string} [source] Source of change.
+   * @param {boolean} [forceRefresh] `true` of the endpoints should refresh after completing the function.
+   */
+  resetSetupAfterStructureAlteration(
+    action: string, index: number, number: number,
+    logicRows: number[] | null | undefined, source: string, forceRefresh = true
+  ) {
+    // Automatic row/column creation (`minSpareRows`/`minSpareCols`) should not trigger the endpoint recalculation.
+    if (source === 'auto') {
+      return;
+    }
+
+    if (this.settingsType === 'function') {
+      // We need to run it on a next avaiable hook, because the TrimRows' `afterCreateRow` hook triggers after this one,
+      // and it needs to be run to properly calculate the endpoint value.
+      const beforeViewRenderCallback = () => {
+        this.hot.removeHook('beforeViewRender', beforeViewRenderCallback);
+
+        return this.refreshAllEndpoints();
+      };
+
+      this.hot.addHookOnce('beforeViewRender', beforeViewRenderCallback);
+
+      return;
+    }
+
+    const type = action.indexOf('row') > -1 ? 'row' : 'col';
+    const multiplier = action.indexOf('remove') > -1 ? -1 : 1;
+    const endpoints = this.getAllEndpoints();
+    const rowMoving = action.indexOf('move_row') === 0;
+    const placeOfAlteration = index;
+
+    arrayEach(endpoints, (val: EndpointConfig) => {
+      if (type === 'row' && val.destinationRow! >= placeOfAlteration) {
+        val.alterRowOffset = multiplier * number;
+      }
+
+      if (type === 'col' && val.destinationColumn! >= placeOfAlteration) {
+        val.alterColumnOffset = multiplier * number;
+      }
+    });
+
+    this.resetAllEndpoints(endpoints, !rowMoving);
+
+    if (rowMoving) {
+      arrayEach(endpoints, (endpoint: EndpointConfig) => {
+        this.extendEndpointRanges(endpoint, placeOfAlteration, logicRows?.[0] ?? 0, logicRows?.length ?? 0);
+        this.recreatePhysicalRanges(endpoint);
+        this.clearOffsetInformation(endpoint);
+      });
+
+    } else {
+      arrayEach(endpoints, (endpoint: EndpointConfig) => {
+        this.shiftEndpointCoordinates(endpoint, placeOfAlteration);
+      });
+    }
+
+    if (forceRefresh) {
+      this.refreshAllEndpoints();
+    }
+  }
+
+  /**
+   * Clear the offset information from the endpoint object.
+   *
+   * @private
+   * @param {object} endpoint And endpoint object.
+   */
+  clearOffsetInformation(endpoint: EndpointConfig) {
+    endpoint.alterRowOffset = undefined;
+    endpoint.alterColumnOffset = undefined;
+  }
+
+  /**
+   * Extend the row ranges for the provided endpoint.
+   *
+   * @private
+   * @param {object} endpoint The endpoint object.
+   * @param {number} placeOfAlteration Index of the row where the alteration takes place.
+   * @param {number} previousPosition Previous endpoint result position.
+   * @param {number} offset Offset generated by the alteration.
+   */
+  extendEndpointRanges(endpoint: EndpointConfig, placeOfAlteration: number, previousPosition: number, offset: number) {
+    arrayEach(endpoint.ranges!, (range: number[]) => {
+      // is a range, not a single row
+      if (range[1]) {
+
+        if (placeOfAlteration >= range[0] && placeOfAlteration <= range[1]) {
+          if (previousPosition > range[1]) {
+            range[1] += offset;
+          } else if (previousPosition < range[0]) {
+            range[0] -= offset;
+          }
+        } else if (previousPosition >= range[0] && previousPosition <= range[1]) {
+          range[1] -= offset;
+
+          if (placeOfAlteration <= range[0]) {
+            range[0] += 1;
+            range[1] += 1;
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * Recreate the physical ranges for the provided endpoint. Used (for example) when a row gets moved and extends an existing range.
+   *
+   * @private
+   * @param {object} endpoint An endpoint object.
+   */
+  recreatePhysicalRanges(endpoint: EndpointConfig) {
+    const ranges = endpoint.ranges!;
+    const newRanges: number[][] = [];
+    const allIndexes: number[][] = [];
+
+    arrayEach(ranges, (range: number[]) => {
+      const newRange: number[] = [];
+
+      if (range[1]) {
+        for (let i = range[0]; i <= range[1]; i++) {
+          newRange.push(this.hot.toPhysicalRow(i));
+        }
+      } else {
+        newRange.push(this.hot.toPhysicalRow(range[0]));
+      }
+
+      allIndexes.push(newRange);
+    });
+
+    arrayEach(allIndexes, (range: number[]) => {
+      let newRange: number[] = [];
+
+      arrayEach(range, (coord: number, index: number) => {
+        if (index === 0) {
+          newRange.push(coord);
+
+        } else if (range[index] !== range[index - 1] + 1) {
+          newRange.push(range[index - 1]);
+          newRanges.push(newRange);
+          newRange = [];
+          newRange.push(coord);
+        }
+
+        if (index === range.length - 1) {
+          newRange.push(coord);
+          newRanges.push(newRange);
+        }
+      });
+    });
+
+    endpoint.ranges = newRanges;
+  }
+
+  /**
+   * Shifts the endpoint coordinates by the defined offset.
+   *
+   * @private
+   * @param {object} endpoint Endpoint object.
+   * @param {number} offsetStartIndex Index of the performed change (if the change is located after the endpoint, nothing about the endpoint has to be changed.
+   */
+  shiftEndpointCoordinates(endpoint: EndpointConfig, offsetStartIndex: number) {
+    if (endpoint.alterRowOffset && endpoint.alterRowOffset !== 0) {
+      endpoint.destinationRow! += endpoint.alterRowOffset || 0;
+
+      arrayEach(endpoint.ranges!, (element: number[]) => {
+        arrayEach(element, (subElement: number, j: number) => {
+          if (subElement >= offsetStartIndex) {
+            element[j] += endpoint.alterRowOffset || 0;
+          }
+        });
+      });
+
+    } else if (endpoint.alterColumnOffset && endpoint.alterColumnOffset !== 0) {
+      endpoint.destinationColumn! += endpoint.alterColumnOffset || 0;
+      endpoint.sourceColumn! += endpoint.alterColumnOffset || 0;
+    }
+  }
+
+  /**
+   * Resets (removes) the endpoints from the table.
+   *
+   * @param {Array} [endpoints] Array containing the endpoints.
+   * @param {boolean} [useOffset=true] Use the cell offset value.
+   */
+  resetAllEndpoints(endpoints = this.getAllEndpoints(), useOffset = true) {
+    const anyEndpointOutOfRange = endpoints.some((endpoint: EndpointConfig) => {
+      return this.isEndpointOutOfBounds(endpoint, endpoint.alterRowOffset || 0, endpoint.alterColumnOffset || 0);
+    });
+
+    if (anyEndpointOutOfRange) {
+      return;
+    }
+
+    this.cellsToSetCache = [];
+
+    arrayEach(endpoints, (endpoint: EndpointConfig) => {
+      this.resetEndpointValue(endpoint, useOffset);
+    });
+
+    if (this.cellsToSetCache.length) {
+      this.hot.setDataAtCell(this.cellsToSetCache as unknown[][], null, undefined, 'ColumnSummary.reset');
+    }
+
+    this.cellsToSetCache = [];
+  }
+
+  /**
+   * Calculate and refresh all defined endpoints.
+   */
+  refreshAllEndpoints() {
+    const endpoints = this.getAllEndpoints();
+
+    this.cellsToSetCache = [];
+    this.cacheSummaryDestinations(endpoints);
+
+    arrayEach(endpoints, (value: EndpointConfig) => {
+      this.currentEndpoint = value;
+      this.plugin.calculate(value as unknown as Parameters<typeof this.plugin.calculate>[0]);
+      this.setEndpointValue(value, 'init');
+    });
+    this.currentEndpoint = null;
+
+    if (this.cellsToSetCache.length) {
+      this.hot.setDataAtCell(this.cellsToSetCache as unknown[][], null, undefined, 'ColumnSummary.reset');
+    }
+
+    this.cellsToSetCache = [];
+  }
+
+  /**
+   * Calculate and refresh endpoints only in the changed columns.
+   *
+   * @param {Array} changes Array of changes from the `afterChange` hook.
+   */
+  refreshChangedEndpoints(changes: unknown[][]) {
+    const endpoints = this.getAllEndpoints();
+    const needToRefresh: number[] = [];
+
+    this.cellsToSetCache = [];
+    this.cacheSummaryDestinations(endpoints);
+
+    arrayEach(changes, (value: unknown, key: number, changesObj: unknown[]) => {
+      const change = value as unknown[];
+
+      if (`${change[2] || ''}` === `${change[3]}`) {
+        return;
+      }
+
+      arrayEach(endpoints, (endpoint: EndpointConfig, j: number) => {
+        if (this.hot.propToCol((changesObj[key] as unknown[])[1] as string | number) === endpoint.sourceColumn &&
+          needToRefresh.indexOf(j) === -1) {
+          needToRefresh.push(j);
+        }
+      });
+    });
+
+    arrayEach(needToRefresh, (value: number) => {
+      this.refreshEndpoint(endpoints[value]);
+    });
+
+    if (this.cellsToSetCache.length) {
+      this.hot.setDataAtCell(this.cellsToSetCache as unknown[][], null, undefined, 'ColumnSummary.reset');
+    }
+
+    this.cellsToSetCache = [];
+  }
+
+  /**
+   * Calculate and refresh endpoints whose `sourceColumn` (visual) matches any of the provided columns.
+   *
+   * @param {Set<number>|number[]} visualColumns Visual column indexes to match against.
+   */
+  refreshEndpointsBySourceColumns(visualColumns: Set<number> | number[]) {
+    const columnsSet = visualColumns instanceof Set ? visualColumns : new Set(visualColumns);
+    const endpoints = this.getAllEndpoints();
+    const matched = endpoints.filter(endpoint => columnsSet.has(endpoint.sourceColumn!));
+
+    if (matched.length === 0) {
+      return;
+    }
+
+    this.cellsToSetCache = [];
+    // Every endpoint is cached, not just the matched ones - a summary result must stay excluded from
+    // the ranges of the endpoints being refreshed, whatever their own source column is.
+    this.cacheSummaryDestinations(endpoints);
+
+    arrayEach(matched, (endpoint) => {
+      this.refreshEndpoint(endpoint as EndpointConfig);
+    });
+
+    if (this.cellsToSetCache.length) {
+      this.hot.setDataAtCell(this.cellsToSetCache as unknown[][], null, undefined, 'ColumnSummary.reset');
+    }
+
+    this.cellsToSetCache = [];
+  }
+
+  /**
+   * Refreshes the cell meta information for the all endpoints after the `updateSettings` method call which in some
+   * cases (call with `columns` option) can reset the cell metas to the initial state.
+   */
+  refreshCellMetas() {
+    // Declarative writes: kept on the cell meta (so they survive the viewport meta eviction) but not
+    // recorded as user-defined, so an `updateSettings` cache reset clears them and they are re-applied
+    // for the current endpoints. `_setCellMetaDeclarative` does not fire `beforeSetCellMeta`/
+    // `afterSetCellMeta` and cannot be vetoed - matching the previous direct-write behavior.
+    this.endpoints.forEach((endpoint: EndpointConfig) => {
+      const destinationVisualRow = this.hot.toVisualRow(endpoint.destinationRow!);
+      const destinationColumn = endpoint.destinationColumn!;
+
+      if (destinationVisualRow !== null) {
+        this.hot._setCellMetaDeclarative(destinationVisualRow, destinationColumn, 'readOnly', endpoint.readOnly);
+        this.hot._setCellMetaDeclarative(destinationVisualRow, destinationColumn, 'className', 'columnSummaryResult');
+      }
+    });
+  }
+
+  /**
+   * Calculate and refresh a single endpoint.
+   *
+   * @param {object} endpoint Contains the endpoint information.
+   */
+  refreshEndpoint(endpoint: EndpointConfig) {
+    this.currentEndpoint = endpoint;
+    this.plugin.calculate(endpoint as unknown as Parameters<typeof this.plugin.calculate>[0]);
+    this.setEndpointValue(endpoint, undefined);
+    this.currentEndpoint = null;
+  }
+
+  /**
+   * Reset the endpoint value.
+   *
+   * @param {object} endpoint Contains the endpoint information.
+   * @param {boolean} [useOffset=true] Use the cell offset value.
+   */
+  resetEndpointValue(endpoint: EndpointConfig, useOffset = true) {
+    const alterRowOffset = endpoint.alterRowOffset || 0;
+    const alterColOffset = endpoint.alterColumnOffset || 0;
+    const destinationVisualRow = this.hot.toVisualRow(endpoint.destinationRow! + (useOffset ? alterRowOffset : 0));
+
+    // The destination row is trimmed (for example it sits inside a collapsed NestedRows group), so
+    // there is no cell to clear.
+    if (destinationVisualRow === null) {
+      return;
+    }
+
+    this.cellsToSetCache.push([
+      destinationVisualRow,
+      this.hot.toVisualColumn(endpoint.destinationColumn! + (useOffset ? alterColOffset : 0)),
+      ''
+    ]);
+  }
+
+  /**
+   * Set the endpoint value.
+   *
+   * @param {object} endpoint Contains the endpoint information.
+   * @param {string} [source] Source of the call information.
+   * @param {boolean} [render=false] `true` if it needs to render the table afterwards.
+   */
+  setEndpointValue(endpoint: EndpointConfig, source: string | undefined, render = false) {
+    if (this.isEndpointOutOfBounds(endpoint)) {
+      this.throwOutOfBoundsWarning();
+
+      return;
+    }
+
+    const destinationVisualRow = this.hot.toVisualRow(endpoint.destinationRow!);
+
+    if (destinationVisualRow !== null) {
+      const destinationColumn = endpoint.destinationColumn!;
+      const cellMeta = this.hot.getCellMetaTransient(destinationVisualRow, destinationColumn);
+
+      if (source === 'init' || cellMeta.readOnly !== endpoint.readOnly) {
+        // Declarative writes (see `refreshCellMetas`) so the styling survives viewport meta eviction
+        // without firing the public `setCellMeta` hooks or being vetoable.
+        this.hot._setCellMetaDeclarative(destinationVisualRow, destinationColumn, 'readOnly', endpoint.readOnly);
+        this.hot._setCellMetaDeclarative(destinationVisualRow, destinationColumn, 'className', 'columnSummaryResult');
+      }
+    }
+
+    endpoint.result = roundFloat(endpoint.result, endpoint.roundFloat) as string | number;
+
+    // A trimmed destination row has no cell to write to - writing one throws in `DataMap.set`. The
+    // result stays on the endpoint; the cell keeps its previous value until the next recalculation
+    // that runs while the row is visible. Nothing re-runs the endpoints on untrim, so a destination
+    // hidden at the moment of a change shows a stale value until then.
+    if (destinationVisualRow !== null) {
+      if (render) {
+        this.hot.setDataAtCell(
+          destinationVisualRow, endpoint.destinationColumn!, endpoint.result, 'ColumnSummary.set'
+        );
+      } else {
+        this.cellsToSetCache.push([destinationVisualRow, endpoint.destinationColumn, endpoint.result]);
+      }
+    }
+
+    endpoint.alterRowOffset = undefined;
+    endpoint.alterColumnOffset = undefined;
+  }
+
+  /**
+   * Throw an error for the calculation range being out of boundaries.
+   *
+   * @private
+   */
+  throwOutOfBoundsWarning() {
+    warn('One of the Column Summary plugins\' destination points you provided is beyond the table boundaries!');
+  }
+}
+
+export default Endpoints;

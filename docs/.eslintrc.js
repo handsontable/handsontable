@@ -21,10 +21,13 @@ module.exports = {
     '**/recipes/**/*.jsx',
     '**/recipes/**/*.tsx',
     '**/*.astro',
+    '**/*.d.ts',
     '**/scripts/**/*.ts',
     '**/components/DocsAssistant/**/*.ts',
+    '**/components/VersionComparison/**/*.ts',
     '**/content/config.ts',
     '**/content.config.ts',
+    '**/src/config/docsearch.ts',
   ],
   rules: {
     'no-restricted-globals': 'off',

@@ -13,6 +13,19 @@ class CustomEditorComponent extends HotCellEditorAdvancedComponent<number> {
   onFocus(): void {}
 }
 
+@Component({
+  selector: 'hot-shortcuts-group-editor',
+  template: '<input />',
+  standalone: true,
+})
+class ShortcutsGroupEditorComponent extends HotCellEditorAdvancedComponent<number> {
+  shortcutsGroup = 'myEditor';
+  shortcuts = [{
+    keys: [['ArrowLeft']],
+    callback: (): void => {},
+  }];
+}
+
 describe('FactoryEditorAdapter', () => {
   let instance: Handsontable.Core;
   let customEditor: ComponentFixture<CustomEditorComponent>;
@@ -54,6 +67,32 @@ describe('FactoryEditorAdapter', () => {
     expect(adapter).toBeDefined();
   });
 
+  it('should register shortcuts in the group defined by the component', () => {
+    const shortcutEditor = TestBed.createComponent(ShortcutsGroupEditorComponent);
+    const environmentInjector = TestBed.inject(EnvironmentInjector);
+    const EditorClass = FactoryEditorAdapter(shortcutEditor.componentRef);
+    const container = document.createElement('div');
+    const shortcutInstance = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      columns: [{ editor: EditorClass }],
+      data: [[1]],
+    });
+
+    document.body.appendChild(container);
+    (shortcutInstance as any)._angularEnvironmentInjector = environmentInjector;
+    shortcutInstance.selectCell(0, 0);
+    shortcutInstance.getActiveEditor().beginEditing();
+
+    const editorContext = shortcutInstance.getShortcutManager().getContext('editor');
+    const shortcuts = editorContext.getShortcuts(['arrowleft']);
+
+    expect(shortcuts.some(shortcut => shortcut.group === 'myEditor')).toBe(true);
+
+    shortcutInstance.destroy();
+    shortcutEditor.destroy();
+    container.remove();
+  });
+
   describe('init', () => {
     it('should initialize editor with component references', () => {
       expect(adapter._componentRef).toBeDefined();
@@ -78,6 +117,27 @@ describe('FactoryEditorAdapter', () => {
     it('should register afterDestroy hook callback', () => {
       expect(adapter._afterDestroyCallback).toBeDefined();
       expect(typeof adapter._afterDestroyCallback).toBe('function');
+    });
+
+    it('should not throw when _angularEnvironmentInjector is not set on the HOT instance', () => {
+      const container = document.createElement('div');
+      document.body.appendChild(container);
+      const EditorClass = FactoryEditorAdapter(customEditor.componentRef);
+      const testInstance = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        columns: [{ editor: EditorClass }],
+        data: [[1]],
+      });
+
+      testInstance.selectCell(0, 0);
+      expect(() => testInstance.getActiveEditor().beginEditing()).not.toThrow();
+
+      const editorWithoutInjector = testInstance.getActiveEditor() as any;
+      expect(editorWithoutInjector._editorPlaceHolderRef).toBeUndefined();
+      expect(editorWithoutInjector.input).toBeInstanceOf(HTMLElement);
+
+      testInstance.destroy();
+      container.remove();
     });
   });
 
@@ -106,6 +166,16 @@ describe('FactoryEditorAdapter', () => {
       instance.runHooks('afterDestroy');
 
       expect(destroySpy).toHaveBeenCalled();
+    });
+
+    it('should unsubscribe finishEdit and cancelEdit subscriptions when afterDestroy hook fires', () => {
+      const finishSpy = jest.spyOn(adapter._finishEditSubscription, 'unsubscribe');
+      const cancelSpy = jest.spyOn(adapter._cancelEditSubscription, 'unsubscribe');
+
+      instance.runHooks('afterDestroy');
+
+      expect(finishSpy).toHaveBeenCalled();
+      expect(cancelSpy).toHaveBeenCalled();
     });
   });
 
@@ -210,6 +280,24 @@ describe('FactoryEditorAdapter', () => {
     });
   });
 
+  describe('finishEdit / cancelEdit event subscriptions', () => {
+    it('should call finishEditing when custom editor emits finishEdit', () => {
+      const finishEditingSpy = jest.spyOn(adapter, 'finishEditing').mockImplementation(() => {});
+
+      customEditor.componentInstance.finishEdit.emit();
+
+      expect(finishEditingSpy).toHaveBeenCalled();
+    });
+
+    it('should call cancelChanges when custom editor emits cancelEdit', () => {
+      const cancelChangesSpy = jest.spyOn(adapter, 'cancelChanges').mockImplementation(() => {});
+
+      customEditor.componentInstance.cancelEdit.emit();
+
+      expect(cancelChangesSpy).toHaveBeenCalled();
+    });
+  });
+
   describe('getValue', () => {
     it('should call custom editor getValue', () => {
       const getValueSpy = jest.spyOn(customEditor.componentInstance, 'getValue');
@@ -242,6 +330,34 @@ describe('FactoryEditorAdapter', () => {
       adapter.setValue(42);
 
       expect(detectChangesSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('defensive early returns', () => {
+    it('should not throw in applyPropsToEditor when _editorPlaceHolderRef is null', () => {
+      adapter._editorPlaceHolderRef = null;
+
+      expect(() => instance.runHooks('afterRowResize')).not.toThrow();
+    });
+
+    it('should not throw in applyPropsToEditor when _componentRef is null', () => {
+      adapter._componentRef = null;
+
+      expect(() => instance.runHooks('afterColumnResize')).not.toThrow();
+    });
+
+    it('should not throw in resetEditorState when _editorPlaceHolderRef is undefined', () => {
+      adapter._editorPlaceHolderRef = undefined;
+
+      expect(() => adapter.finishEditing()).not.toThrow();
+    });
+
+    it('should handle cleanupSubscriptions when subscriptions are null', () => {
+      adapter._finishEditSubscription = undefined;
+      adapter._cancelEditSubscription = undefined;
+
+      instance.selectCell(0, 0);
+      expect(() => adapter.beginEditing()).not.toThrow();
     });
   });
 });

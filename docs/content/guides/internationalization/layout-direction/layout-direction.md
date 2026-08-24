@@ -1,5 +1,5 @@
 ---
-id: gcdt3pns
+type: how-to
 title: Layout direction
 metaTitle: Layout direction - JavaScript Data Grid | Handsontable
 description: Set the layout direction for right-to-left languages. Automatically inherit your HTML file's "dir" property, or set the layout direction manually.
@@ -17,11 +17,11 @@ tags:
   - L10n
   - i18n
 react:
-  id: g4mu790t
   metaTitle: Layout direction - React Data Grid | Handsontable
 angular:
-  id: orgwjmih
   metaTitle: Layout direction - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Layout direction - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Internationalization
 ---
@@ -83,6 +83,16 @@ To try out Handsontable's RTL support, check out the demo below:
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3-languages
+
+@[code](@/content/guides/internationalization/layout-direction/vue/example1.vue)
+
+:::
+
+:::
+
 ### Elements affected by layout direction
 
 Setting a different layout direction affects the behavior of the following areas of Handsontable:
@@ -98,7 +108,7 @@ Setting a different layout direction affects the behavior of the following areas
 | Position of the [fill handle](@/api/options.md#fillHandle)                                                         | The fill handle displays in the bottom-right corner of the selection border.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | The fill handle displays in the bottom-left corner of the selection border.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | Position of the [selection](@/guides/cell-features/selection/selection.md) handles, on mobile devices                        | On mobile devices, the selection handles display in the top-left and bottom-right corners of the selection border.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | On mobile devices, the selection handles display in the top-right and bottom-left corners of the selection border.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | [Custom borders](@/guides/cell-features/formatting-cells/formatting-cells.md#custom-cell-borders)                                   | In the [`customBorders`](@/api/options.md#customborders) option:<br><br>- The left-hand border is treated as the starting border.<br>- The right-hand border is treated as the ending border.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | In the [`customBorders`](@/api/options.md#customborders) option:<br><br>- The right-hand border is treated as the starting border.<br>- The left-hand border is treated as the ending border.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) and [column menus](@/guides/columns/column-menu/column-menu.md) | Menus' layout direction is left-to-right.<br><br>Submenus expand to the right.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Menus' layout direction is right-to-left.<br><br>Submenus expand to the left.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) and [column menus](@/guides/accessories-and-menus/column-menu/column-menu.md) | Menus' layout direction is left-to-right.<br><br>Submenus expand to the right.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Menus' layout direction is right-to-left.<br><br>Submenus expand to the left.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | [Keyboard navigation](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md)                                        | <kbd>**Tab**</kbd> moves one cell to the right.<br><br><kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> moves one cell to the left.<br><br><kbd>**Home**</kbd> moves to the leftmost non-frozen cell of the current row.<br><br><kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**Home**</kbd> moves to the top-left non-frozen cell of the grid.<br><br><kbd>**Shift**</kbd>+<kbd>**Home**</kbd> extends the selection to the leftmost non-frozen cell of the current row.<br><br><kbd>**End**</kbd> moves to the rightmost non-frozen cell of the current row.<br><br><kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**End**</kbd> moves to the bottom-right non-frozen cell of the grid.<br><br><kbd>**Shift**</kbd>+<kbd>**End**</kbd> extends the selection to the rightmost non-frozen cell of the current row.<br><br><kbd>**Delete**</kbd> deletes one character to the right of the cursor.<br><br><kbd>**Backspace**</kbd> deletes one character to the left of the cursor. | <kbd>**Tab**</kbd> moves one cell to the left.<br><br><kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> moves one cell to the right.<br><br><kbd>**Home**</kbd> moves to the rightmost non-frozen cell of the current row.<br><br><kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**Home**</kbd> moves to the top-right non-frozen cell of the grid.<br><br><kbd>**Shift**</kbd>+<kbd>**Home**</kbd> extends the selection to the rightmost non-frozen cell of the current row.<br><br><kbd>**End**</kbd> moves to the leftmost non-frozen cell of the current row.<br><br><kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**End**</kbd> moves to the bottom-left non-frozen cell of the grid.<br><br><kbd>**Shift**</kbd>+<kbd>**End**</kbd> extends the selection to the leftmost non-frozen cell of the current row.<br><br><kbd>**Delete**</kbd> deletes one character to the left of the cursor.<br><br><kbd>**Backspace**</kbd> deletes one character to the right of the cursor. |
 
 The list above is not exhaustive. Setting a different layout direction might affect other areas of Handsontable as well.
@@ -153,6 +163,16 @@ In the example below, the RTL layout direction is inherited from a `dir` attribu
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/internationalization/layout-direction/vue/example2.vue)
+
+:::
+
+:::
+
 ### Set the layout direction to RTL
 
 You can render Handsontable from the right to the left, regardless of your HTML document's `dir` attribute.
@@ -188,6 +208,16 @@ and set it to `'rtl'`:
 
 @[code](@/content/guides/internationalization/layout-direction/angular/example3.ts)
 @[code](@/content/guides/internationalization/layout-direction/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/internationalization/layout-direction/vue/example3.vue)
 
 :::
 
@@ -233,6 +263,16 @@ and set it to `'ltr'`:
 
 :::
 
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/internationalization/layout-direction/vue/example4.vue)
+
+:::
+
+:::
+
 ## Set the horizontal text alignment
 
 You can apply different horizontal [text alignment](@/guides/cell-features/text-alignment/text-alignment.md) settings, overwriting the horizontal text alignment resulting from your grid's layout direction.
@@ -267,6 +307,16 @@ In the example below, some columns are explicitly aligned to the left, center, o
 
 @[code](@/content/guides/internationalization/layout-direction/angular/example5.ts)
 @[code](@/content/guides/internationalization/layout-direction/angular/example5.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/internationalization/layout-direction/vue/example5.vue)
 
 :::
 

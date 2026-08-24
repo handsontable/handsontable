@@ -61,7 +61,7 @@ const CSS_IMPORT_RE =
 const LOCAL_IMPORT_RE = /(?<keyword>(?:import|export)\s+(?:[\s\S]*?\s+from\s+)??)(?<quote>['"])(?<path>\.\.?\/[^'"]*?)(?<ext>\.(?:js|mjs))?\k<quote>/g;
 
 /**
- * Collect all .js source files, excluding test/dist directories.
+ * Collect all .js/.ts source files, excluding test/dist directories.
  *
  * @param {string} dir Directory to scan.
  * @returns {string[]} Array of absolute file paths.
@@ -79,7 +79,7 @@ function collectFiles(dir) {
 
     if (entry.isDirectory()) {
       results.push(...collectFiles(fullPath));
-    } else if (entry.isFile() && entry.name.endsWith('.js')) {
+    } else if (entry.isFile() && /\.(js|ts|tsx)$/.test(entry.name) && !entry.name.endsWith('.d.ts')) {
       results.push(fullPath);
     }
   });
@@ -106,7 +106,7 @@ function addImportExtensions(code, filePath, ext) {
 
     let newPath;
 
-    if (existsSync(`${absPath}.js`)) {
+    if (existsSync(`${absPath}.js`) || existsSync(`${absPath}.ts`) || existsSync(`${absPath}.tsx`)) {
       newPath = `${importPath}.${ext}`;
     } else if (existsSync(absPath) && lstatSync(absPath).isDirectory()) {
       newPath = `${importPath}/index.${ext}`;
@@ -172,12 +172,8 @@ const start = performance.now();
 const files = collectFiles(srcDir);
 const isESM = format === 'esm';
 
-const swcOptions = {
+const baseSwcOptions = {
   jsc: {
-    parser: {
-      syntax: 'ecmascript',
-      jsx: true,
-    },
     // Target ES2021 (before private class fields in ES2022) so both public and private
     // class fields get transpiled to constructor assignments. This is required because
     // Angular's Zone.js patches constructors and breaks native field initialization order.
@@ -195,7 +191,17 @@ let count = 0;
 
 files.forEach((filePath) => {
   const relPath = relative(srcDir, filePath);
-  const outPath = resolve(outDir, relPath.replace(/\.js$/, outExt));
+  const outPath = resolve(outDir, relPath.replace(/\.(js|ts|tsx)$/, outExt));
+  const isTypeScript = filePath.endsWith('.ts') || filePath.endsWith('.tsx');
+  const swcOptions = {
+    ...baseSwcOptions,
+    jsc: {
+      ...baseSwcOptions.jsc,
+      parser: isTypeScript
+        ? { syntax: 'typescript', tsx: filePath.endsWith('.tsx'), decorators: true }
+        : { syntax: 'ecmascript', jsx: true },
+    },
+  };
 
   const result = transformFileSync(filePath, swcOptions);
   let { code } = result;

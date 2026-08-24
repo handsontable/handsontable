@@ -352,4 +352,55 @@ describe('Core_keepEmptyRows', () => {
 
     expect(countCols()).toEqual(2);
   });
+
+  it('should refill rows removed with alter when keepEmptyRows is omitted', async() => {
+    handsontable({
+      data: [
+        ['SKU-4821', 'Harbor Goods'],
+        ['SKU-0093', 'Alpine Supply Co.'],
+        ['SKU-1180', 'Summit Traders'],
+      ],
+      minRows: 4,
+    });
+
+    expect(countRows()).toEqual(4);
+
+    await alter('remove_row', 1, 1);
+
+    expect(countRows()).toEqual(4);
+  });
+
+  it('should not refill rows removed with alter when keepEmptyRows is true', async() => {
+    handsontable({
+      data: [
+        ['SKU-4821', 'Harbor Goods'],
+        ['SKU-0093', 'Alpine Supply Co.'],
+        ['SKU-1180', 'Summit Traders'],
+      ],
+      minRows: 4,
+    });
+
+    expect(countRows()).toEqual(4);
+
+    await alter('remove_row', 1, 1, 'inventory-cleanup', true);
+
+    expect(countRows()).toEqual(3);
+  });
+
+  it('should not refill spare rows removed with alter when keepEmptyRows is true', async() => {
+    handsontable({
+      data: [
+        ['SKU-4821', 'Harbor Goods'],
+        ['SKU-0093', 'Alpine Supply Co.'],
+        ['SKU-1180', 'Summit Traders'],
+      ],
+      minSpareRows: 1,
+    });
+
+    expect(countRows()).toEqual(4);
+
+    await alter('remove_row', 3, 1, 'inventory-cleanup', true);
+
+    expect(countRows()).toEqual(3);
+  });
 });

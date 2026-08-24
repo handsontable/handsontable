@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the Vue 3 wrapper not updating the grid when `HotColumn` components were added, removed, or reordered dynamically.",
+  "type": "fixed",
+  "issueOrPR": 12800,
+  "breaking": false,
+  "framework": "vue"
+}

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed Ctrl+A selecting the entire grid instead of the comment text when the comment textarea was focused.",
-  "type": "fixed",
-  "issueOrPR": 12193,
-  "breaking": false,
-  "framework": "none"
-}

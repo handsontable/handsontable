@@ -1,9 +1,41 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import { DetailedSettings, MenuItemConfig } from 'handsontable/plugins/contextMenu';
+import { ContextMenu, DetailedSettings } from 'handsontable/plugins/contextMenu';
 
 // Register all Handsontable's modules.
 registerAllModules();
+
+const ALLOWED_TAGS = ['B', 'I', 'EM', 'STRONG', 'BR', 'TABLE', 'THEAD', 'TBODY', 'TR', 'TD', 'TH'];
+const ALLOWED_ATTRIBUTES = ['colspan', 'rowspan'];
+const DROPPED_TAGS = ['SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE'];
+
+// Handsontable has no built-in sanitizer since v18.0, and `sanitizer` is grid-level:
+// it also filters pasted HTML, so the table tags have to survive -- otherwise pasting
+// a range degrades to plain text. In production, use a vetted library such as DOMPurify.
+// See https://handsontable.com/docs/security/
+const sanitizeMenuLabel = (html: string): string => {
+  const template = document.createElement('template');
+
+  template.innerHTML = html;
+
+  template.content.querySelectorAll('*').forEach((element) => {
+    if (DROPPED_TAGS.includes(element.tagName)) {
+      // Unwrapping these would promote their source text into the output
+      element.remove();
+    } else if (ALLOWED_TAGS.includes(element.tagName)) {
+      Array.from(element.attributes).forEach((attribute) => {
+        if (!ALLOWED_ATTRIBUTES.includes(attribute.name)) {
+          element.removeAttribute(attribute.name);
+        }
+      });
+    } else {
+      // Unwrap a disallowed element, keeping its text content
+      element.replaceWith(...Array.from(element.childNodes));
+    }
+  });
+
+  return template.innerHTML;
+};
 
 const contextMenuSettings: DetailedSettings = {
   callback(key, selection, clickEvent) {
@@ -18,10 +50,9 @@ const contextMenuSettings: DetailedSettings = {
         return this.getSelectedLast()?.[0] === 0; // `this` === hot
       },
     },
-    // A separator line can also be added like this:
-    // 'sp1': { name: '---------' }
-    // and the key has to be unique
-    sp1: '---------' as MenuItemConfig,
+    // Use the dedicated separator constant to insert a separator line
+    // (the key has to be unique)
+    sp1: ContextMenu.SEPARATOR,
     row_below: {
       name: 'Click to add row below', // Set custom text for predefined option
     },
@@ -97,6 +128,8 @@ new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   height: 'auto',
   contextMenu: contextMenuSettings,
+  // Required for the HTML in the `about` item's label to be rendered safely
+  sanitizer: sanitizeMenuLabel,
   autoWrapRow: true,
   autoWrapCol: true,
 });

@@ -181,7 +181,7 @@ describe('IntlTimeEditor', () => {
     expect(getDataAtCell(0, 0)).toEqual('12:00');
   });
 
-  it('should render an editable editor\'s element without messing with "dir" attribute', async() => {
+  it('should render an editable editor\'s element with "dir" attribute set as "ltr"', async() => {
     handsontable({
       data: createSpreadsheetData(2, 5),
       editor: 'intl-time',
@@ -191,7 +191,7 @@ describe('IntlTimeEditor', () => {
 
     const editableElement = getActiveEditor().TEXTAREA;
 
-    expect(editableElement.getAttribute('dir')).toBeNull();
+    expect(editableElement.getAttribute('dir')).toBe('ltr');
   });
 
   it('should display the correct time in the time picker', async() => {
@@ -222,7 +222,7 @@ describe('IntlTimeEditor', () => {
     const editorValue = hot().getActiveEditor().TEXTAREA.value;
 
     expect(editorValue).toEqual('');
-    expect(warnSpy).toHaveBeenCalledWith('IntlTimeEditor: value must be in 24-hour time format ' +
+    expect(warnSpy).toHaveBeenCalledWith('TimeEditor: value must be in 24-hour time format ' +
       '("HH:mm", "HH:mm:ss" or "HH:mm:ss.SSS")' +
       ' required by the native time input. Received:', '12:010');
   });

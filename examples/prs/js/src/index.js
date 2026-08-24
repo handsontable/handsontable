@@ -29,8 +29,7 @@ new Handsontable(container, {
     "Operational Status",
   ],
   rowHeaders: true,
-  height: 340,
-  width: 800,
+  height: 450,
   autoWrapRow: true,
   autoWrapCol: true,
   dropdownMenu: true,
@@ -132,7 +131,9 @@ new Handsontable(container, {
     {
       data: "restockDate",
       type: "date",
-      dateFormat: "YYYY-MM-DD",
+      // `en-CA` renders the ISO-style YYYY-MM-DD order
+      dateFormat: { year: "numeric", month: "2-digit", day: "2-digit" },
+      locale: "en-CA",
       headerClassName: "htRight",
       className: "htRight",
       width: 150,

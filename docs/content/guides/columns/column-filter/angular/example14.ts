@@ -1,0 +1,161 @@
+/* file: app.component.ts */
+import { Component } from '@angular/core';
+import Handsontable from 'handsontable';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
+
+@Component({
+  standalone: true,
+  imports: [HotTableModule],
+  selector: 'app-example14',
+  template: `
+    <p>{{ rowCountInfo }}</p>
+
+    <hot-table
+      [settings]="hotSettings!" [data]="hotData">
+    </hot-table>
+  `,
+})
+export class AppComponent {
+  rowCountInfo = '';
+
+  readonly hotData = [
+    {
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: '2023-10-11',
+      sellTime: '01:23',
+      inStock: false,
+    },
+    {
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.9,
+      sellDate: '2023-05-03',
+      sellTime: '11:27',
+      inStock: false,
+    },
+    {
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.1,
+      sellDate: '2023-03-27',
+      sellTime: '03:17',
+      inStock: true,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: '2023-08-28',
+      sellTime: '08:01',
+      inStock: true,
+    },
+    {
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: '2023-10-02',
+      sellTime: '01:23',
+      inStock: true,
+    },
+  ];
+
+  readonly hotSettings: GridSettings;
+
+  constructor() {
+    // deferred so the update doesn't trigger NG0100 when `afterInit` fires
+    // during the same change-detection cycle that first rendered the template
+    const updateRowCountInfo = (hotInstance: Handsontable) => {
+      setTimeout(() => {
+        // `getData()` returns only the rows that pass the current filters
+        // `getSourceData()` always returns every row, filtered or not
+        this.rowCountInfo = `Showing ${hotInstance.getData().length} of ${hotInstance.getSourceData().length} rows.`;
+      }, 0);
+    };
+
+    this.hotSettings = {
+      columns: [
+        {
+          title: 'Brand',
+          type: 'text',
+          data: 'brand',
+        },
+        {
+          title: 'Model',
+          type: 'text',
+          data: 'model',
+        },
+        {
+          title: 'Price',
+          type: 'numeric',
+          data: 'price',
+          locale: 'en-US',
+          numericFormat: {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+          },
+        },
+        {
+          title: 'Date',
+          type: 'intl-date',
+          data: 'sellDate',
+          locale: 'en-US',
+          dateFormat: { month: 'short', day: 'numeric', year: 'numeric' },
+          className: 'htRight',
+        },
+        {
+          title: 'Time',
+          type: 'intl-time',
+          data: 'sellTime',
+          locale: 'en-US',
+          timeFormat: { hour: '2-digit', minute: '2-digit', hour12: true },
+          className: 'htRight',
+        },
+        {
+          title: 'In stock',
+          type: 'checkbox',
+          data: 'inStock',
+          className: 'htCenter',
+        },
+      ],
+      // enable filtering
+      filters: true,
+      // enable the column menu
+      dropdownMenu: true,
+      // `afterInit()` and `afterFilter()` are Handsontable hooks
+      afterInit(this: Handsontable) {
+        updateRowCountInfo(this);
+      },
+      afterFilter(this: Handsontable) {
+        updateRowCountInfo(this);
+      },
+      height: 'auto',
+      autoWrapRow: true,
+      autoWrapCol: true,
+    };
+  }
+}
+/* end-file */
+
+
+
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    {
+      provide: HOT_GLOBAL_CONFIG,
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
+  ],
+};
+/* end-file */

@@ -58,7 +58,7 @@ function model(opts: ModelOptions): Partial<Person> {
 }
 
 function property(attr: keyof Person | string) {
-  return (row: Handsontable.RowObject, value?: Handsontable.CellValue) => (row as Person).attr(attr, value);
+  return (row: Handsontable.RowObject | Handsontable.CellValue[], value?: Handsontable.CellValue) => (row as unknown as Person).attr(attr, value);
 }
 
 const data: Partial<Person>[] = [
@@ -77,7 +77,6 @@ const ExampleComponent: FC = () => (
     width="auto"
     colHeaders={['ID', 'Name', 'Address']}
     columns={[{ data: property('id') }, { data: property('name') }, { data: property('address') }]}
-    minSpareRows={1}
     autoWrapRow={true}
     autoWrapCol={true}
     licenseKey="non-commercial-and-evaluation"

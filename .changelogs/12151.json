@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Prevent after scroll hooks from firing when axis position is unchanged",
-  "type": "fixed",
-  "issueOrPR": 12151,
-  "breaking": false,
-  "framework": "none"
-}

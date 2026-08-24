@@ -15,39 +15,7 @@ module.exports.create = function create(envArgs) {
     c.devtool = 'cheap-module-source-map';
     c.output.filename = PACKAGE_FILENAME + '.js';
     // Exclude all external dependencies from 'base' bundle (handsontable.js)
-    c.externals = {
-      numbro: {
-        root: 'numbro',
-        commonjs2: 'numbro',
-        commonjs: 'numbro',
-        amd: 'numbro',
-      },
-      moment: {
-        root: 'moment',
-        commonjs2: 'moment',
-        commonjs: 'moment',
-        amd: 'moment',
-      },
-      '@handsontable/pikaday': {
-        root: 'Pikaday',
-        commonjs2: '@handsontable/pikaday',
-        commonjs: '@handsontable/pikaday',
-        amd: '@handsontable/pikaday',
-      },
-      dompurify: {
-        root: 'DOMPurify',
-        commonjs2: 'dompurify',
-        commonjs: 'dompurify',
-        amd: 'dompurify',
-      },
-    };
-    c.module.rules.unshift({
-      test: [
-         // Disable loading css files from pikaday module
-        /pikaday\/css/,
-      ],
-      loader: path.resolve(__dirname, 'loader/empty-loader.js'),
-    });
+    c.externals = {};
   });
 
   return config;

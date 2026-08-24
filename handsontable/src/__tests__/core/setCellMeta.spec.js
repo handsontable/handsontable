@@ -207,4 +207,114 @@ describe('Core.setCellMeta', () => {
     expect(getCellMeta(0, 0).renderer).toBe(mockRenderer);
     expect(getCellMeta(0, 0).editor).toBe(mockEditor);
   });
+
+  describe('preserving imperative cell meta across updateSettings (#4446)', () => {
+    it('should preserve a `setCellMeta` value after `updateSettings` with the `columns` option', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await setCellMeta(0, 0, 'readOnly', true);
+
+      expect(getCellMeta(0, 0).readOnly).toBe(true);
+
+      await updateSettings({
+        columns: [{}, {}, {}, {}, {}],
+      });
+
+      expect(getCellMeta(0, 0).readOnly).toBe(true);
+    });
+
+    it('should preserve a `setCellMeta` value after `updateSettings` with the `cells` option', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await setCellMeta(0, 0, 'readOnly', true);
+
+      await updateSettings({
+        cells() {
+          return {};
+        },
+      });
+
+      expect(getCellMeta(0, 0).readOnly).toBe(true);
+    });
+
+    it('should preserve a `setCellMeta` value after `updateSettings` with the `cell` option for other cells', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await setCellMeta(0, 0, 'readOnly', true);
+
+      await updateSettings({
+        cell: [
+          { row: 1, col: 1, className: 'htRight' },
+        ],
+      });
+
+      expect(getCellMeta(0, 0).readOnly).toBe(true);
+      expect(getCellMeta(1, 1).className).toBe('htRight');
+    });
+
+    it('should let the declarative `cell` option win over a preserved imperative value on a direct conflict', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await setCellMeta(0, 0, 'className', 'from-set-cell-meta');
+
+      await updateSettings({
+        cell: [
+          { row: 0, col: 0, className: 'from-cell-option' },
+        ],
+      });
+
+      expect(getCellMeta(0, 0).className).toBe('from-cell-option');
+    });
+
+    it('should preserve a `setCellMeta` value across multiple consecutive `updateSettings` calls', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await setCellMeta(0, 0, 'readOnly', true);
+
+      await updateSettings({ columns: [{}, {}, {}, {}, {}] });
+      await updateSettings({ columns: [{}, {}, {}, {}, {}] });
+
+      expect(getCellMeta(0, 0).readOnly).toBe(true);
+    });
+
+    it('should preserve a `setCellMeta` value at its shifted position after inserting a row and then calling `updateSettings`', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await setCellMeta(2, 0, 'readOnly', true);
+      await alter('insert_row_above', 0, 1);
+
+      expect(getCellMeta(3, 0).readOnly).toBe(true);
+
+      await updateSettings({ columns: [{}, {}, {}, {}, {}] });
+
+      expect(getCellMeta(3, 0).readOnly).toBe(true);
+    });
+
+    it('should still fire the `afterCellMetaReset` hook on `updateSettings`', async() => {
+      const afterCellMetaReset = jasmine.createSpy('afterCellMetaReset');
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        afterCellMetaReset,
+      });
+
+      afterCellMetaReset.calls.reset();
+
+      await updateSettings({ columns: [{}, {}, {}, {}, {}] });
+
+      expect(afterCellMetaReset).toHaveBeenCalled();
+    });
+  });
 });

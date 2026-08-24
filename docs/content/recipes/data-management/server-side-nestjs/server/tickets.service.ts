@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { FetchTicketsDto } from './fetch-tickets.dto';
-import { Ticket, ticketsStore } from './ticket.entity';
+import { TicketEntity, TicketPriority, TicketStatus } from './ticket.entity';
 
 export interface CreateTicketDto {
   subject: string;
@@ -15,124 +17,115 @@ export interface UpdateTicketDto extends Partial<CreateTicketDto> {
 }
 
 /**
- * Monotonically incrementing counter for ID generation.
+ * TicketsService encapsulates all data-access logic via TypeORM.
  *
- * Using a counter instead of Date.now() avoids duplicate IDs when
- * onRowsCreate sends a batch of rows and the controller maps them
- * synchronously -- all calls happen within the same millisecond.
- */
-let nextId = ticketsStore.length + 1;
-
-/**
- * TicketsService encapsulates all data-access logic.
- *
- * This example uses an in-memory array (ticketsStore). To switch to TypeORM +
- * SQLite, inject the Repository<TicketEntity> and replace array operations
- * with repository methods (findAndCount, save, delete, etc.).
+ * The Repository<TicketEntity> is injected by NestJS when AppModule
+ * imports TypeOrmModule.forFeature([TicketEntity]).
  */
 @Injectable()
 export class TicketsService {
+  constructor(
+    @InjectRepository(TicketEntity)
+    private readonly repo: Repository<TicketEntity>,
+  ) {}
+
   /**
    * Returns a paginated, sorted, and filtered slice of tickets.
    *
-   * This is the method called by GET /tickets. It mirrors the shape expected
-   * by Handsontable's dataProvider.fetchRows -- an object with rows and
-   * totalRows so the grid can render the correct page count.
+   * Uses QueryBuilder so filters and sorts translate directly to SQL rather
+   * than loading all rows into memory.
    */
-  findAll(dto: FetchTicketsDto): { rows: Ticket[]; totalRows: number } {
-    let tickets = [...ticketsStore];
+  async findAll(dto: FetchTicketsDto): Promise<{ rows: TicketEntity[]; totalRows: number }> {
+    const qb = this.repo.createQueryBuilder('ticket');
 
     // -- Filtering --
-    // Handsontable sends one condition object per active column filter.
-    // Map each condition to an array.filter() predicate.
+    // Each FetchTicketsDto filter carries a single condition object.
+    // The frontend flattens multi-condition column filters before sending, so
+    // one entry here maps to one WHERE clause in the query.
     if (dto.filters && dto.filters.length > 0) {
-      for (const filter of dto.filters) {
-        tickets = tickets.filter((ticket) => {
-          const cellValue = String(ticket[filter.prop as keyof Ticket] ?? '').toLowerCase();
+      for (const [i, filter] of dto.filters.entries()) {
+        const param = `val${i}`;
+        const col = `ticket.${filter.prop}`;
+        const val = filter.value[0];
 
-          switch (filter.condition) {
-            case 'eq':
-              return cellValue === String(filter.value[0]).toLowerCase();
-            case 'neq':
-              return cellValue !== String(filter.value[0]).toLowerCase();
-            case 'contains':
-              return cellValue.includes(String(filter.value[0]).toLowerCase());
-            case 'not_contains':
-              return !cellValue.includes(String(filter.value[0]).toLowerCase());
-            case 'begins_with':
-              return cellValue.startsWith(String(filter.value[0]).toLowerCase());
-            case 'ends_with':
-              return cellValue.endsWith(String(filter.value[0]).toLowerCase());
-            case 'empty':
-              return cellValue === '';
-            case 'not_empty':
-              return cellValue !== '';
-            default:
-              return true;
-          }
-        });
+        // Escape LIKE metacharacters so user input is treated literally.
+        const esc = (s: string) => s.replace(/!/g, '!!').replace(/%/g, '!%').replace(/_/g, '!_');
+        const like = `LIKE LOWER(:${param}) ESCAPE '!'`;
+        const notLike = `NOT LIKE LOWER(:${param}) ESCAPE '!'`;
+
+        switch (filter.condition) {
+          case 'eq':
+            if (val !== undefined) qb.andWhere(`LOWER(${col}::text) = LOWER(:${param})`, { [param]: val });
+            break;
+          case 'neq':
+            if (val !== undefined) qb.andWhere(`LOWER(${col}::text) != LOWER(:${param})`, { [param]: val });
+            break;
+          case 'contains':
+            if (val !== undefined) qb.andWhere(`LOWER(${col}::text) ${like}`, { [param]: `%${esc(val)}%` });
+            break;
+          case 'not_contains':
+            if (val !== undefined) qb.andWhere(`LOWER(${col}::text) ${notLike}`, { [param]: `%${esc(val)}%` });
+            break;
+          case 'begins_with':
+            if (val !== undefined) qb.andWhere(`LOWER(${col}::text) ${like}`, { [param]: `${esc(val)}%` });
+            break;
+          case 'ends_with':
+            if (val !== undefined) qb.andWhere(`LOWER(${col}::text) ${like}`, { [param]: `%${esc(val)}` });
+            break;
+          case 'empty':
+            qb.andWhere(`(${col} IS NULL OR ${col}::text = '')`);
+            break;
+          case 'not_empty':
+            qb.andWhere(`(${col} IS NOT NULL AND ${col}::text != '')`);
+            break;
+        }
       }
     }
 
     // -- Sorting --
     // Handsontable sends { column: 'status', order: 'asc' } for the active sort.
     if (dto.sort) {
-      const { column, order } = dto.sort;
-
-      tickets.sort((a, b) => {
-        const aVal = String(a[column as keyof Ticket] ?? '');
-        const bVal = String(b[column as keyof Ticket] ?? '');
-        const cmp = aVal.localeCompare(bVal);
-
-        return order === 'asc' ? cmp : -cmp;
-      });
+      qb.orderBy(`ticket.${dto.sort.column}`, dto.sort.order.toUpperCase() as 'ASC' | 'DESC');
+    } else {
+      qb.orderBy('ticket.createdAt', 'ASC');
     }
 
     // -- Pagination --
-    const totalRows = tickets.length;
-    const start = (dto.page - 1) * dto.pageSize;
-    const rows = tickets.slice(start, start + dto.pageSize);
+    const [rows, totalRows] = await qb
+      .skip((dto.page - 1) * dto.pageSize)
+      .take(dto.pageSize)
+      .getManyAndCount();
 
     return { rows, totalRows };
   }
 
-  create(dto: CreateTicketDto): Ticket {
-    const ticket: Ticket = {
-      id: String(nextId++),
+  async create(dto: CreateTicketDto): Promise<TicketEntity> {
+    const ticket = this.repo.create({
       subject: dto.subject,
-      status: dto.status as Ticket['status'],
-      priority: dto.priority as Ticket['priority'],
+      status: dto.status as TicketStatus,
+      priority: dto.priority as TicketPriority,
       assignee: dto.assignee,
       createdAt: dto.createdAt ?? new Date().toISOString().slice(0, 10),
-    };
+    });
 
-    ticketsStore.push(ticket);
-
-    return ticket;
+    return this.repo.save(ticket);
   }
 
-  updateMany(updates: UpdateTicketDto[]): Ticket[] {
-    const updated: Ticket[] = [];
+  async updateMany(updates: UpdateTicketDto[]): Promise<TicketEntity[]> {
+    const updated: TicketEntity[] = [];
 
-    for (const update of updates) {
-      const idx = ticketsStore.findIndex((t) => t.id === update.id);
-
-      if (idx !== -1) {
-        ticketsStore[idx] = { ...ticketsStore[idx], ...update };
-        updated.push(ticketsStore[idx]);
-      }
+    for (const { id, ...rest } of updates) {
+      await this.repo.update(id, rest as Partial<TicketEntity>);
+      const ticket = await this.repo.findOneBy({ id });
+      if (ticket) updated.push(ticket);
     }
 
     return updated;
   }
 
-  removeMany(ids: string[]): void {
-    for (const id of ids) {
-      const idx = ticketsStore.findIndex((t) => t.id === id);
-
-      if (idx !== -1) {
-        ticketsStore.splice(idx, 1);
-      }
+  async removeMany(ids: string[]): Promise<void> {
+    if (ids.length > 0) {
+      await this.repo.delete(ids);
     }
   }
 }

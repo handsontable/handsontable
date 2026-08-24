@@ -923,6 +923,43 @@ describe('Core.scrollViewportTo', () => {
     )[0]).toEqual(hot.getCell(29, 29));
   });
 
+  describe('with `preventOverflow` and a constrained dimension (#8233)', () => {
+    it('should scroll vertically when `height` is set together with `preventOverflow: "horizontal"`', async() => {
+      handsontable({
+        data: createSpreadsheetData(200, 10),
+        width: 300,
+        height: 300,
+        preventOverflow: 'horizontal',
+      });
+
+      const result = await scrollViewportTo({
+        row: 150,
+        col: 0,
+      });
+
+      expect(result).toBe(true);
+      expect(topOverlay().getScrollPosition()).toBeGreaterThan(0);
+    });
+
+    it('should scroll horizontally when `width` is set together with `preventOverflow: "vertical"`', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 200),
+        width: 300,
+        height: 300,
+        colWidths: 60,
+        preventOverflow: 'vertical',
+      });
+
+      const result = await scrollViewportTo({
+        row: 0,
+        col: 150,
+      });
+
+      expect(result).toBe(true);
+      expect(inlineStartOverlay().getScrollPosition()).toBeGreaterThan(0);
+    });
+  });
+
   describe('using backward-compatible arguments', () => {
     it('should scroll the viewport using default snapping (top, start)', async() => {
       handsontable({
@@ -964,6 +1001,66 @@ describe('Core.scrollViewportTo', () => {
       await scrollViewportTo(40, 45, true, true);
 
       expect(tableView().scrollViewport).toHaveBeenCalledWith(cellCoords(40, 45), 'end', 'bottom');
+    });
+  });
+
+  describe('large datasets (scroll offsets come from the row-height prefix-sum cache)', () => {
+    it('should scroll exactly to a distant row with default row heights', async() => {
+      handsontable({
+        data: createSpreadsheetData(50000, 5),
+        width: 300,
+        height: 300,
+      });
+
+      await scrollViewportTo({ row: 40000, col: 0, verticalSnap: 'top' });
+
+      expect(getFirstFullyVisibleRow()).toBe(40000);
+
+      await scrollViewportTo({ row: 12345, col: 0, verticalSnap: 'top' });
+
+      expect(getFirstFullyVisibleRow()).toBe(12345);
+    });
+
+    it('should scroll exactly to a distant row with varied row heights', async() => {
+      handsontable({
+        data: createSpreadsheetData(50000, 5),
+        rowHeights: row => 20 + ((row % 7) * 4),
+        width: 300,
+        height: 300,
+      });
+
+      await scrollViewportTo({ row: 40000, col: 0, verticalSnap: 'top' });
+
+      // For some target rows the first-rendered-row 1px border compensation leaves the target
+      // 1px shy of fully visible after a top snap (same on every release), so the exactness of
+      // the scroll offset is pinned through the partially-visible index.
+      expect(getFirstPartiallyVisibleRow()).toBe(40000);
+
+      await scrollViewportTo({ row: 33333, col: 0, verticalSnap: 'top' });
+
+      expect(getFirstPartiallyVisibleRow()).toBe(33333);
+      expect(getFirstFullyVisibleRow()).toBe(33333);
+    });
+
+    it('should keep a distant selected cell fully visible when navigating past the viewport edge', async() => {
+      handsontable({
+        data: createSpreadsheetData(50000, 5),
+        rowHeights: row => 20 + ((row % 7) * 4),
+        width: 300,
+        height: 300,
+      });
+
+      await selectCell(40000, 1);
+
+      expect(getLastFullyVisibleRow()).toBe(40000);
+
+      await selectCell(40001, 1);
+
+      expect(getLastFullyVisibleRow()).toBe(40001);
+
+      await selectCell(40002, 1);
+
+      expect(getLastFullyVisibleRow()).toBe(40002);
     });
   });
 });

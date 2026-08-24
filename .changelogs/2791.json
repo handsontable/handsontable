@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed one-pixel horizontal alignment for the left pagination caret",
-  "type": "fixed",
-  "issueOrPR": 2791,
-  "breaking": false,
-  "framework": "none"
-}

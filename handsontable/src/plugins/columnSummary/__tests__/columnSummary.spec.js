@@ -972,7 +972,230 @@ describe('ColumnSummarySpec', () => {
       expect(spec().$container.find('.columnSummaryResult').size()).toEqual(3);
       expect(spec().$container.find('.htDimmed').size()).toEqual(3);
     });
+
+    it('should keep the grand-total endpoint working when a nested group is collapsed (#11674)', async() => {
+      const data = getDataForColumnSummary();
+
+      data.push({ a: 'TOTAL', b: null });
+
+      // installed before the grid so init-time warnings land inside the spied window
+      const warnSpy = spyOnConsoleWarn();
+
+      handsontable({
+        data,
+        height: 400,
+        width: 400,
+        rowHeaders: true,
+        nestedRows: true,
+        columnSummary() {
+          return [
+            {
+              destinationRow: 0,
+              destinationColumn: 1,
+              type: 'sum',
+              forceNumeric: true,
+              ranges: [[1, 3]],
+            },
+            {
+              destinationRow: 4,
+              destinationColumn: 1,
+              type: 'sum',
+              forceNumeric: true,
+              ranges: [[5, 6]],
+            },
+            {
+              destinationRow: 7,
+              destinationColumn: 1,
+              type: 'sum',
+              forceNumeric: true,
+              ranges: [[8, 9]],
+            },
+            {
+              // physical row 10 - the grand-total row at the bottom
+              destinationRow: 10,
+              destinationColumn: 1,
+              type: 'sum',
+              forceNumeric: true,
+              ranges: [[1, 3], [5, 6], [8, 9]],
+            },
+          ];
+        },
+      });
+
+      await waitForNextAnimationFrames(2);
+
+      expect(getDataAtCell(10, 1)).toEqual(4251);
+
+      getPlugin('nestedRows').collapsingUI.collapseChildren(0);
+
+      await waitForNextAnimationFrames(2);
+
+      expect(getDataAtCell(7, 1)).toEqual(4251);
+
+      await setDataAtCell(2, 1, 0);
+
+      expect(warnSpy).not.toHaveBeenCalledWith(warnMessage);
+      // the edited row belongs to the second group, so its subtotal and the grand total drop by 363
+      expect(getDataAtCell(1, 1)).toEqual(3633);
+      expect(getDataAtCell(7, 1)).toEqual(3888);
+    });
+
+    it('should resolve `reversedRowCoords` against the physical row count when a group is collapsed (#11674)',
+      async() => {
+        const data = getDataForColumnSummary();
+
+        data.push({ a: 'TOTAL', b: null });
+
+        handsontable({
+          data,
+          height: 400,
+          width: 400,
+          rowHeaders: true,
+          nestedRows: true,
+          columnSummary() {
+            return [
+              {
+                destinationRow: 0,
+                reversedRowCoords: true,
+                destinationColumn: 1,
+                type: 'sum',
+                forceNumeric: true,
+                ranges: [[1, 3], [5, 6], [8, 9]],
+              },
+            ];
+          },
+        });
+
+        await waitForNextAnimationFrames(2);
+
+        expect(getDataAtCell(10, 1)).toEqual(4251);
+
+        getPlugin('nestedRows').collapsingUI.collapseChildren(0);
+
+        await waitForNextAnimationFrames(2);
+
+        // force a recalculation while the group stays collapsed
+        await setDataAtCell(2, 1, 0);
+
+        // the result stays in the last physical row instead of jumping to the row that is now `countRows() - 1`
+        expect(getDataAtCell(7, 1)).toEqual(3888);
+        expect(getDataAtCell(4, 1)).toEqual('7');
+      });
+
+    it('should not throw when the destination row itself is trimmed, and recover once it is visible (#11674)',
+      async() => {
+        handsontable({
+          data: getDataForColumnSummary(),
+          height: 400,
+          width: 400,
+          rowHeaders: true,
+          nestedRows: true,
+          columnSummary() {
+            return [
+              {
+                // physical row 3 - the last child of the first group, so collapsing that group hides it
+                destinationRow: 3,
+                destinationColumn: 1,
+                type: 'sum',
+                forceNumeric: true,
+                ranges: [[8, 9]],
+              },
+            ];
+          },
+        });
+
+        await waitForNextAnimationFrames(2);
+
+        expect(getDataAtCell(3, 1)).toEqual(149);
+
+        getPlugin('nestedRows').collapsingUI.collapseChildren(0);
+
+        await waitForNextAnimationFrames(2);
+
+        // visual row 5 is physical row 8 while the first group is collapsed. Recalculating towards a
+        // hidden destination used to throw in `DataMap.set`.
+        await setDataAtCell(5, 1, 0);
+
+        getPlugin('nestedRows').collapsingUI.expandChildren(0);
+
+        await waitForNextAnimationFrames(2);
+
+        // the next recalculation with the row visible writes the up-to-date result
+        await setDataAtCell(9, 1, 4);
+
+        expect(getDataAtCell(3, 1)).toEqual(4);
+      });
   });
+
+  it('should not count a trimmed summary row as data in another summary (#11674)', async() => {
+    handsontable({
+      data: [[1], [2], [3], [null], [null]],
+      columnSummary: [
+        {
+          destinationRow: 3,
+          destinationColumn: 0,
+          type: 'sum',
+          forceNumeric: true,
+          ranges: [[0, 2]],
+        },
+        {
+          // no `ranges`, so the default range spans every physical row - including row 3, which
+          // holds the subtotal above
+          destinationRow: 4,
+          destinationColumn: 0,
+          type: 'sum',
+          forceNumeric: true,
+        },
+      ],
+      trimRows: true,
+    });
+
+    await waitForNextAnimationFrames(2);
+
+    expect(getDataAtCell(3, 0)).toEqual(6);
+    expect(getDataAtCell(4, 0)).toEqual(6);
+
+    getPlugin('trimRows').trimRow(3);
+
+    await waitForNextAnimationFrames(2);
+
+    // the subtotal row is hidden now, so its `columnSummaryResult` class is unreadable
+    await setDataAtCell(0, 0, 10);
+
+    // 10 + 2 + 3, without the hidden subtotal of 6 added on top
+    expect(getDataAtCell(hot().toVisualRow(4), 0)).toEqual(15);
+  });
+
+  it('should build the default `ranges` from the physical row count when rows are already trimmed (#11674)',
+    async() => {
+      handsontable({
+        data: [[1], [2], [3], [4], [null]],
+        trimRows: [1, 2],
+        columnSummary() {
+          return [
+            {
+              // no `ranges`, so the default range is built while rows 1 and 2 are already trimmed
+              destinationRow: 4,
+              destinationColumn: 0,
+              type: 'sum',
+              forceNumeric: true,
+            },
+          ];
+        },
+      });
+
+      await waitForNextAnimationFrames(2);
+
+      const plugin = getPlugin('ColumnSummary');
+
+      // 5 physical rows, so the default range spans them all - not the 3 visible ones
+      expect(plugin.endpoints.getAllEndpoints()[0].ranges).toEqual([[0, 4]]);
+
+      // force a recalculation and check the sum covers the trimmed rows too
+      await setDataAtCell(0, 0, 10);
+
+      expect(getDataAtCell(hot().toVisualRow(4), 0)).toEqual(19);
+    });
 
   describe('maxRows options set', () => {
     it('should apply summary operation only on rows which are < maxRows', async() => {
@@ -1400,6 +1623,76 @@ describe('ColumnSummarySpec', () => {
       await setDataAtCell(0, 0, 10);
 
       expect(getDataAtCell(2, 2)).toBe(19);
+    });
+  });
+
+  describe('result cell meta (declarative styling)', () => {
+    it('should apply the result styling without firing the `beforeSetCellMeta`/`afterSetCellMeta` hooks', async() => {
+      const beforeSetCellMeta = jasmine.createSpy('beforeSetCellMeta');
+      const afterSetCellMeta = jasmine.createSpy('afterSetCellMeta');
+
+      handsontable({
+        data: [[1], [2], [3], [null]],
+        columns: [{ type: 'numeric' }],
+        columnSummary: [{
+          destinationRow: 3,
+          destinationColumn: 0,
+          type: 'sum',
+          forceNumeric: true,
+        }],
+        beforeSetCellMeta,
+        afterSetCellMeta,
+      });
+
+      // The result styling is plugin-internal render state - it is written declaratively and must not
+      // surface through the public cell-meta hooks.
+      expect(getCellMeta(3, 0).className).toBe('columnSummaryResult');
+      expect(getCellMeta(3, 0).readOnly).toBe(true);
+      expect(beforeSetCellMeta).not.toHaveBeenCalled();
+      expect(afterSetCellMeta).not.toHaveBeenCalled();
+    });
+
+    it('should apply the result styling even when `beforeSetCellMeta` vetoes every cell-meta write', async() => {
+      handsontable({
+        data: [[1], [2], [3], [null]],
+        columns: [{ type: 'numeric' }],
+        columnSummary: [{
+          destinationRow: 3,
+          destinationColumn: 0,
+          type: 'sum',
+          forceNumeric: true,
+        }],
+        beforeSetCellMeta: () => false,
+      });
+
+      // A `beforeSetCellMeta` veto blocks user-facing `setCellMeta` calls, but it must not block the
+      // plugin's own declarative result styling.
+      expect(getCellMeta(3, 0).className).toBe('columnSummaryResult');
+      expect(getCellMeta(3, 0).readOnly).toBe(true);
+    });
+
+    it('should re-apply the result styling after `updateSettings` without firing the cell-meta hooks', async() => {
+      const afterSetCellMeta = jasmine.createSpy('afterSetCellMeta');
+
+      handsontable({
+        data: [[1], [2], [3], [null]],
+        columns: [{ type: 'numeric' }],
+        columnSummary: [{
+          destinationRow: 3,
+          destinationColumn: 0,
+          type: 'sum',
+          forceNumeric: true,
+        }],
+        afterSetCellMeta,
+      });
+
+      await updateSettings({ columns: [{ type: 'numeric' }] });
+
+      // The result styling is reapplied after the `updateSettings` cache reset (the numeric cell type
+      // merges its own classes alongside it), and still without firing the public cell-meta hooks.
+      expect(getCellMeta(3, 0).className).toContain('columnSummaryResult');
+      expect(getCellMeta(3, 0).readOnly).toBe(true);
+      expect(afterSetCellMeta).not.toHaveBeenCalled();
     });
   });
 });

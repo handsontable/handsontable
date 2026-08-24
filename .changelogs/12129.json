@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Added `rowspan` support to the NestedHeaders plugin, allowing column headers to span multiple header rows.",
-  "type": "added",
-  "issueOrPR": 191,
-  "breaking": false,
-  "framework": "none"
-}

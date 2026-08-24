@@ -75,4 +75,72 @@ describe('keyboard navigation', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 1,0']);
     });
   });
+
+  describe('"ArrowUp"', () => {
+    it('should select the previous option when the editor is opened in full edit mode', async() => {
+      handsontable({
+        data: [['Kia'], ['Nissan'], ['Toyota']],
+        columns: [{
+          type: 'select',
+          selectOptions: ['Kia', 'Nissan', 'Toyota', 'Honda', 'Mazda'],
+        }],
+      });
+
+      await selectCell(1, 0);
+      await keyDownUp('enter');
+      await keyDownUp('arrowup');
+
+      expect(getActiveEditor().select.value).toBe('Kia');
+    });
+
+    it('should not change the option when the first option is already selected', async() => {
+      handsontable({
+        data: [['Kia'], ['Nissan'], ['Toyota']],
+        columns: [{
+          type: 'select',
+          selectOptions: ['Kia', 'Nissan', 'Toyota', 'Honda', 'Mazda'],
+        }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp('arrowup');
+
+      expect(getActiveEditor().select.value).toBe('Kia');
+    });
+  });
+
+  describe('"ArrowDown"', () => {
+    it('should select the next option when the editor is opened in full edit mode', async() => {
+      handsontable({
+        data: [['Kia'], ['Nissan'], ['Toyota']],
+        columns: [{
+          type: 'select',
+          selectOptions: ['Kia', 'Nissan', 'Toyota', 'Honda', 'Mazda'],
+        }],
+      });
+
+      await selectCell(1, 0);
+      await keyDownUp('enter');
+      await keyDownUp('arrowdown');
+
+      expect(getActiveEditor().select.value).toBe('Toyota');
+    });
+
+    it('should not change the option when the last option is already selected', async() => {
+      handsontable({
+        data: [['Kia'], ['Nissan'], ['Mazda']],
+        columns: [{
+          type: 'select',
+          selectOptions: ['Kia', 'Nissan', 'Toyota', 'Honda', 'Mazda'],
+        }],
+      });
+
+      await selectCell(2, 0);
+      await keyDownUp('enter');
+      await keyDownUp('arrowdown');
+
+      expect(getActiveEditor().select.value).toBe('Mazda');
+    });
+  });
 });

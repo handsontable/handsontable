@@ -2,17 +2,6 @@
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 
-const colorData = [
-  ['yellow'],
-  ['red'],
-  ['orange'],
-  ['green'],
-  ['blue'],
-  ['gray'],
-  ['black'],
-  ['white'],
-];
-
 const manufacturerData = [
   { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
   { name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC' },
@@ -56,24 +45,20 @@ export class AppComponent {
 
             // Get the manufacturer name of the clicked row and ignore header
             // coordinates (negative values)
-            return this.getSourceDataAtRow(Math.max(selection[0], 0)).name;
+            const row = this.getSourceDataAtRow(Math.max(selection?.[0] ?? 0, 0)) as { name: string };
+
+            return row.name;
           },
         },
       },
       { type: 'numeric' },
       {
-        type: 'handsontable',
-        handsontable: {
-          colHeaders: false,
-          data: colorData,
-        },
+        type: 'dropdown',
+        source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'],
       },
       {
-        type: 'handsontable',
-        handsontable: {
-          colHeaders: false,
-          data: colorData,
-        },
+        type: 'dropdown',
+        source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'],
       },
     ]
   };

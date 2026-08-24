@@ -130,7 +130,7 @@
 }
 
 .minesweeper-grid .handsontable.ht-wrapper {
-  --ht-wrapper-border-radius: 0;
+  --ht-border-radius: 0;
   margin-top: 0;
   border: none !important;
 }
@@ -228,6 +228,24 @@
   border: 1px solid var(--sl-color-gray-5) !important;
   text-decoration: line-through;
   text-decoration-color: #c0392b;
+}
+
+/* Correctly flagged mine (game over - deactivated) */
+.minesweeper-grid td.ms-flagged-correct {
+  position: relative;
+}
+
+.minesweeper-grid td.ms-flagged-correct::after {
+  content: '✕';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #c0392b;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: none;
 }
 
 /* Number colors (classic Minesweeper palette) */

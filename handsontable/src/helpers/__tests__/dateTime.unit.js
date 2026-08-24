@@ -6,6 +6,9 @@ import {
   TIME_REGEX,
   parseToLocalTime,
   isValidTime,
+  ISO_DATETIME_REGEX,
+  parseToLocalDateTime,
+  isValidISODateTime,
 } from 'handsontable/helpers/dateTime';
 
 describe('Date helper', () => {
@@ -124,11 +127,40 @@ describe('Date helper', () => {
       expect(isValidISODate('2020-04-31')).toBe(false);
     });
 
+    it('should return false for the 31st in every 30-day month', () => {
+      expect(isValidISODate('2020-04-31')).toBe(false);
+      expect(isValidISODate('2020-06-31')).toBe(false);
+      expect(isValidISODate('2020-09-31')).toBe(false);
+      expect(isValidISODate('2020-11-31')).toBe(false);
+    });
+
+    it('should apply Gregorian leap-year rules to February 29', () => {
+      // Divisible by 4 (not by 100) - leap.
+      expect(isValidISODate('2024-02-29')).toBe(true);
+      // Not divisible by 4 - common.
+      expect(isValidISODate('2023-02-29')).toBe(false);
+      // Divisible by 100 but not 400 - common.
+      expect(isValidISODate('1900-02-29')).toBe(false);
+      expect(isValidISODate('2100-02-29')).toBe(false);
+      // Divisible by 400 - leap.
+      expect(isValidISODate('2000-02-29')).toBe(true);
+      expect(isValidISODate('2400-02-29')).toBe(true);
+    });
+
     it('should return true for valid ISO date string', () => {
       expect(isValidISODate('2020-01-01')).toBe(true);
       expect(isValidISODate('2020-12-31')).toBe(true);
       expect(isValidISODate('2016-02-29')).toBe(true);
       expect(isValidISODate('2000-01-15')).toBe(true);
+    });
+
+    it('should accept the last valid day of 30-day months and the year boundaries', () => {
+      expect(isValidISODate('2020-04-30')).toBe(true);
+      expect(isValidISODate('2020-06-30')).toBe(true);
+      expect(isValidISODate('2020-09-30')).toBe(true);
+      expect(isValidISODate('2020-11-30')).toBe(true);
+      expect(isValidISODate('0001-01-01')).toBe(true);
+      expect(isValidISODate('9999-12-31')).toBe(true);
     });
 
     it('should return false for ISO-like string with extra characters', () => {
@@ -257,6 +289,63 @@ describe('Date helper', () => {
       expect(isValidTime('12:30')).toBe(true);
       expect(isValidTime('12:30:00')).toBe(true);
       expect(isValidTime('14:30:45.123')).toBe(true);
+    });
+  });
+});
+
+describe('dateTime datetime helpers', () => {
+  describe('ISO_DATETIME_REGEX', () => {
+    it('accepts date-only, T-separated, and space-separated values', () => {
+      expect(ISO_DATETIME_REGEX.test('2024-03-15')).toBe(true);
+      expect(ISO_DATETIME_REGEX.test('2024-03-17T23:59:59')).toBe(true);
+      expect(ISO_DATETIME_REGEX.test('2024-03-16 09:00:00')).toBe(true);
+      expect(ISO_DATETIME_REGEX.test('2024-03-16T09:00')).toBe(true);
+      expect(ISO_DATETIME_REGEX.test('2024-03-16T09:00:00.500')).toBe(true);
+    });
+
+    it('rejects malformed values', () => {
+      expect(ISO_DATETIME_REGEX.test('2024-13-01')).toBe(false);
+      expect(ISO_DATETIME_REGEX.test('2024-03-15T24:00')).toBe(false);
+      expect(ISO_DATETIME_REGEX.test('not-a-date')).toBe(false);
+    });
+  });
+
+  describe('parseToLocalDateTime', () => {
+    it('parses a full datetime to a local Date', () => {
+      const d = parseToLocalDateTime('2024-12-25T14:30:00');
+
+      expect(d).toBeInstanceOf(Date);
+      expect(d.getFullYear()).toBe(2024);
+      expect(d.getMonth()).toBe(11);
+      expect(d.getDate()).toBe(25);
+      expect(d.getHours()).toBe(14);
+      expect(d.getMinutes()).toBe(30);
+    });
+
+    it('parses date-only as local midnight', () => {
+      const d = parseToLocalDateTime('2024-06-01');
+
+      expect(d.getHours()).toBe(0);
+      expect(d.getMinutes()).toBe(0);
+    });
+
+    it('returns null for empty and invalid input', () => {
+      expect(parseToLocalDateTime('')).toBe(null);
+      expect(parseToLocalDateTime(null)).toBe(null);
+      expect(parseToLocalDateTime('nope')).toBe(null);
+    });
+  });
+
+  describe('isValidISODateTime', () => {
+    it('is true for valid datetimes and enforces calendar bounds', () => {
+      expect(isValidISODateTime('2024-03-15')).toBe(true);
+      expect(isValidISODateTime('2024-02-29T10:00:00')).toBe(true);
+      expect(isValidISODateTime('2023-02-29T10:00:00')).toBe(false);
+      expect(isValidISODateTime('2024-04-31')).toBe(false);
+    });
+
+    it('is false for non-strings', () => {
+      expect(isValidISODateTime(20240315)).toBe(false);
     });
   });
 });

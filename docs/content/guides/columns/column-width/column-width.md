@@ -1,5 +1,5 @@
 ---
-id: bpcuomaq
+type: how-to
 title: Column widths
 metaTitle: Column widths - JavaScript Data Grid | Handsontable
 description: Configure column widths, using an array or a function. Let your users manually change column widths using Handsontable's interface.
@@ -15,13 +15,14 @@ tags:
   - column dimensions
   - manual resize
 react:
-  id: gr6w8qsy
   metaTitle: Column widths - React Data Grid | Handsontable
 angular:
-  id: eourt93b
   metaTitle: Column widths - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Column widths - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
+menuTag: updated
 ---
 Configure column widths, using an array or a function. Let your users manually change column widths using Handsontable's interface.
 
@@ -70,6 +71,16 @@ In this example we set the same width of `100px` for all columns across the enti
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/columns/column-width/vue/example1.vue)
+
+:::
+
+:::
+
 ## Set the column width in an array
 
 In this example, the width is only set for the first four columns. Each additional column would automatically adjust to the content.
@@ -103,6 +114,16 @@ In this example, the width is only set for the first four columns. Each addition
 
 @[code](@/content/guides/columns/column-width/angular/example2.ts)
 @[code](@/content/guides/columns/column-width/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/columns/column-width/vue/example2.vue)
 
 :::
 
@@ -145,11 +166,88 @@ In this example, the size of all columns is set using a function by taking a col
 
 :::
 
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/columns/column-width/vue/example3.vue)
+
+:::
+
+:::
+
+## Set a dynamic maximum column width
+
+Use the [`modifyColWidth`](@/api/hooks.md#modifycolwidth) hook to cap how wide a column can grow based on its content. The hook receives the width that Handsontable already calculated for the column. Return a smaller number to limit it. This pattern is [middleware](@/guides/getting-started/events-and-hooks/events-and-hooks.md#middleware): you modify a value on its way through the width pipeline instead of setting a fixed size up front.
+
+Unlike [`colWidths`](@/api/options.md#colwidths), a cap in `modifyColWidth` does not force every cell onto one width. Short values keep a narrow column on a single line. When content would exceed your threshold, the column shrinks to your cap and the text wraps.
+
+Leave `colWidths` unset for columns you want to auto-size (or set the entry to `undefined` in an array). The [`AutoColumnSize`](@/api/autoColumnSize.md) plugin must stay enabled so Handsontable can measure content first. Setting `colWidths` as a single number disables auto-sizing for all columns.
+
+You can also enforce a minimum width by returning `Math.max(width, minWidth)` from the same hook.
+
+::: tip
+
+- Auto-sized columns never go below 50px.
+- [`stretchH`](@/api/options.md#stretchh) runs after your hook and can widen columns beyond your cap.
+- When [`manualColumnResize`](@/api/options.md#manualcolumnresize) is enabled, a width the user set by dragging overrides the hook for that column.
+
+:::
+
+::: only-for javascript
+
+::: example #example7 --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-width/javascript/example7.js)
+@[code](@/content/guides/columns/column-width/javascript/example7.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example7 :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-width/react/example7.jsx)
+@[code](@/content/guides/columns/column-width/react/example7.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example7 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-width/angular/example7.ts)
+@[code](@/content/guides/columns/column-width/angular/example7.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example7 :vue3
+
+@[code](@/content/guides/columns/column-width/vue/example7.vue)
+
+:::
+
+:::
+
 ## Adjust the column width manually
 
 Set the option [`manualColumnResize`](@/api/options.md#manualcolumnresize) to `true` to allow users to manually resize the column width by dragging the handle between the adjacent column headers. If you double-click on that handle, the width will be instantly adjusted to the size of the longest value in the column. Don't forget to enable column headers by setting [`colHeaders`](@/api/options.md#colheaders) to `true`.
 
 You can adjust the size of one or multiple columns simultaneously, even if the selected columns are not placed next to each other.
+
+::: tip
+
+When you set a column width programmatically with [`ManualColumnResize#setManualSize()`](@/api/manualColumnResize.md#setmanualsize), call `hot.render()` after the method call to repaint the grid. Values below `20px` are stored as `20px`.
+
+:::
 
 ::: only-for javascript
 
@@ -179,6 +277,16 @@ You can adjust the size of one or multiple columns simultaneously, even if the s
 
 @[code](@/content/guides/columns/column-width/angular/example4.ts)
 @[code](@/content/guides/columns/column-width/angular/example4.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/columns/column-width/vue/example4.vue)
 
 :::
 
@@ -231,6 +339,16 @@ This example fits all columns to the container's width equally by setting the op
 
 :::
 
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/columns/column-width/vue/example5.vue)
+
+:::
+
+:::
+
 ### Stretch only the last column
 
 In this example, the first three columns are set to be 80px wide, and the last column automatically fills the remaining space. This is achieved by setting the option [`stretchH: 'last'`](@/api/options.md#stretchh).
@@ -269,6 +387,23 @@ In this example, the first three columns are set to be 80px wide, and the last c
 
 :::
 
+::: only-for vue
+
+::: example #example6 :vue3
+
+@[code](@/content/guides/columns/column-width/vue/example6.vue)
+
+:::
+
+:::
+
+### Column stretching and manual resizing
+
+Column stretching interacts with [`manualColumnResize`](@/api/options.md#manualcolumnresize) in two ways:
+
+- When `stretchH` is `'all'` or `'last'` together with `manualColumnResize: true`, you can still drag to resize a column. Stretching then recalculates, and the other columns adjust so the grid keeps filling the container. If your manual widths add up to more than the container width, stretching stops and the columns keep the sizes you set.
+- When you pass `manualColumnResize` an array of pre-defined widths (for example, `manualColumnResize: [80, 100, 120]`), the columns with explicit widths are excluded from stretching. Only the remaining columns are stretched to fill the container.
+
 ## A note about the performance
 
 As mentioned above, the default width of the column is based on the widest value in any cell within the column. You may be wondering how it's possible for data sets containing hundreds of thousands of records.
@@ -276,6 +411,12 @@ As mentioned above, the default width of the column is based on the widest value
 This feature is made possible thanks to the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin, which is enabled by default. Internally it divides the data set into smaller sets and renders only some of them to measure their size. The size is then applied to the entire column based on the width of the widest found value.
 
 To increase the performance, you can turn off this feature by defining the fixed size for the specified column or all columns.
+
+::: tip
+
+If you call [`scrollViewportTo()`](@/api/core.md#scrollviewportto) and your columns have non-standard widths (for example, set by a custom renderer or CSS), make sure `AutoColumnSize` is enabled. Without it, the method may scroll to an incorrect position.
+
+:::
 
 ## Size of the container
 
@@ -299,6 +440,7 @@ Setting the dimensions of the container that holds Handsontable is described in 
 <div class="boxes-list">
 
 - [getColWidth()](@/api/core.md#getcolwidth)
+- [scrollViewportTo()](@/api/core.md#scrollviewportto)
 
 </div>
 

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed incorrect JSDoc type annotations for the `modifyAutofillRange` hook's `entireArea` and `startArea` parameters, and added the missing `@returns` annotation.",
-  "type": "fixed",
-  "issueOrPR": 11862,
-  "breaking": false,
-  "framework": "none"
-}

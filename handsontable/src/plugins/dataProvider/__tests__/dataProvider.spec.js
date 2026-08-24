@@ -357,4 +357,161 @@ describe('DataProvider', () => {
     expect(plugin.getRowId(0)).toBe('x-1');
     expect(getDataAtCell(0, 1)).toBe('First');
   });
+
+  describe('internal refetch failures', () => {
+    let unhandledRejections = [];
+    let onUnhandledRejection = null;
+
+    beforeEach(() => {
+      unhandledRejections = [];
+      onUnhandledRejection = (event) => {
+        unhandledRejections.push(event.reason);
+        event.preventDefault();
+      };
+
+      window.addEventListener('unhandledrejection', onUnhandledRejection);
+    });
+
+    afterEach(() => {
+      window.removeEventListener('unhandledrejection', onUnhandledRejection);
+      onUnhandledRejection = null;
+    });
+
+    /**
+     * Replaces `fetchRows` with a rejecting one on the already-initialized instance.
+     *
+     * @param {Error} err Error the new `fetchRows` rejects with.
+     * @returns {void}
+     */
+    function makeFetchRowsReject(err) {
+      spec().$container.handsontable('getInstance').getSettings().dataProvider.fetchRows = () => Promise.reject(err);
+    }
+
+    it('should not leave an unhandled rejection when the initial fetch fails', async() => {
+      spyOn(console, 'error');
+
+      handsontable({
+        data: [],
+        columns: [{ data: 'id' }, { data: 'name' }],
+        dataProvider: createDataProviderConfig({
+          fetchRows: () => Promise.reject(new Error('network down')),
+        }),
+      });
+
+      await sleep(100);
+
+      expect(unhandledRejections).toEqual([]);
+      // eslint-disable-next-line no-console
+      expect(console.error).toHaveBeenCalledWith('Data fetch failed:', jasmine.any(Error));
+    });
+
+    it('should not leave an unhandled rejection when the refetch after updateSettings fails', async() => {
+      spyOn(console, 'error');
+
+      handsontable({
+        data: [],
+        columns: [{ data: 'id' }, { data: 'name' }],
+        dataProvider: createDataProviderConfig({
+          fetchRows: () => Promise.resolve({ rows: [], totalRows: 0 }),
+        }),
+      });
+
+      await sleep(50);
+
+      await updateSettings({
+        dataProvider: createDataProviderConfig({
+          fetchRows: () => Promise.reject(new Error('network down')),
+        }),
+      });
+
+      await sleep(100);
+
+      expect(unhandledRejections).toEqual([]);
+    });
+
+    it('should not leave an unhandled rejection when the refetch after sorting fails', async() => {
+      spyOn(console, 'error');
+
+      handsontable({
+        data: [],
+        colHeaders: true,
+        columnSorting: true,
+        columns: [{ data: 'id' }, { data: 'name' }],
+        dataProvider: createDataProviderConfig({
+          fetchRows: () => Promise.resolve({ rows: [{ id: 1, name: 'Alice' }], totalRows: 1 }),
+        }),
+      });
+
+      await sleep(50);
+
+      makeFetchRowsReject(new Error('network down'));
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      await sleep(100);
+
+      expect(unhandledRejections).toEqual([]);
+    });
+
+    it('should not leave an unhandled rejection when the refetch after filtering fails', async() => {
+      spyOn(console, 'error');
+
+      handsontable({
+        data: [],
+        colHeaders: true,
+        filters: true,
+        dropdownMenu: true,
+        columns: [{ data: 'id' }, { data: 'name' }],
+        dataProvider: createDataProviderConfig({
+          fetchRows: () => Promise.resolve({ rows: [{ id: 1, name: 'Alice' }], totalRows: 1 }),
+        }),
+      });
+
+      await sleep(50);
+
+      makeFetchRowsReject(new Error('network down'));
+
+      const filters = getPlugin('filters');
+
+      filters.addCondition(1, 'contains', ['Al']);
+      filters.filter();
+
+      await sleep(100);
+
+      expect(unhandledRejections).toEqual([]);
+    });
+
+    it('should not leave an unhandled rejection when the Refetch notification action fails', async() => {
+      spyOn(console, 'error');
+
+      handsontable({
+        data: [],
+        columns: [{ data: 'id' }, { data: 'name' }],
+        notification: true,
+        dataProvider: createDataProviderConfig({
+          fetchRows: () => Promise.resolve({ rows: [], totalRows: 0 }),
+        }),
+      });
+
+      await sleep(50);
+
+      const notificationPlugin = getPlugin('notification');
+
+      spyOn(notificationPlugin, 'showMessage').and.callThrough();
+
+      makeFetchRowsReject(new Error('network down'));
+
+      try {
+        await getPlugin('dataProvider').fetchData();
+      } catch (e) {
+        // `fetchData()` is public API and keeps rethrowing for its direct callers.
+      }
+
+      notificationPlugin.showMessage.calls.mostRecent().args[0].actions[0].callback();
+
+      await sleep(100);
+
+      expect(unhandledRejections).toEqual([]);
+    });
+  });
 });

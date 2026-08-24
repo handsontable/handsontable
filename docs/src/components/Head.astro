@@ -14,9 +14,67 @@ import Default from '@astrojs/starlight/components/Head.astro';
 <link rel="icon" media="(prefers-color-scheme: light)" href="/docs/img/favicon.png" />
 <link rel="icon" media="(prefers-color-scheme: dark)" href="/docs/img/favicon-dark.png" />
 
+{/* Prevent browser auto-translate (Edge, Chrome, Google Translate) from
+    mutating text nodes in the DOM. When translation wraps text in <font>
+    elements, Preact's virtual-DOM reconciliation can no longer find its
+    reference nodes, causing NotFoundError: Failed to execute 'insertBefore'.
+    Technical documentation with code samples should not be machine-translated
+    anyway — API names, configuration keys, and code snippets must stay as-is. */}
+<meta name="google" content="notranslate" />
+<script is:inline>document.documentElement.setAttribute('translate','no');</script>
+
 <script is:inline>
   // Remove Starlight's default favicon in favor of light/dark media-query versions above.
   document.querySelector('link[rel="shortcut icon"]')?.remove();
+</script>
+
+<script is:inline>
+  // Patch Starlight's table-of-contents elements to silently handle browsers without :has()
+  // support (Chrome < 105, e.g. Chrome Mobile 75 on Android 6.0; Safari < 15.4). Their init
+  // passes :has() to querySelectorAll, which throws a DOMException named "SyntaxError" there
+  // and surfaces as an uncaught page error (Sentry HANDSONTABLE-DOCS-1GA). Catching it
+  // degrades gracefully: the TOC renders but doesn't highlight the active section on scroll.
+  //
+  // Starlight assigns init as an own instance field inside the constructor, so a patch on
+  // StarlightTOC.prototype.init never applies - the instance field shadows it. Wrap init per
+  // instance instead, by subclassing the constructor as it is registered. This inline script
+  // runs during head parsing, before the deferred module that defines the elements.
+  (function () {
+    var guardedTags = ['starlight-toc', 'mobile-starlight-toc'];
+    var originalDefine = customElements.define;
+
+    customElements.define = function (name, constructor, options) {
+      if (guardedTags.indexOf(name) === -1 || typeof constructor !== 'function') {
+        return originalDefine.call(customElements, name, constructor, options);
+      }
+
+      var GuardedElement = class extends constructor {
+        constructor() {
+          super();
+
+          var originalInit = this.init;
+
+          if (typeof originalInit !== 'function') {
+            return;
+          }
+
+          this.init = function () {
+            try {
+              return originalInit.apply(this, arguments);
+            } catch (error) {
+              if (error instanceof DOMException && error.name === 'SyntaxError') {
+                return undefined;
+              }
+
+              throw error;
+            }
+          };
+        }
+      };
+
+      return originalDefine.call(customElements, name, GuardedElement, options);
+    };
+  })();
 </script>
 
 <script>
@@ -32,6 +90,10 @@ import Default from '@astrojs/starlight/components/Head.astro';
 
 <script>
   import '../scripts/docs-assistant-bootstrap';
+</script>
+
+<script>
+  import '../scripts/version-comparison-bootstrap';
 </script>
 
 <script>
@@ -54,7 +116,12 @@ import Default from '@astrojs/starlight/components/Head.astro';
   // The preprocessor emits them as standalone elements (wrapped in <p> by Astro),
   // so we scan each heading for consecutive action-element paragraphs and
   // move them into a flex container for side-by-side layout.
-  document.querySelectorAll<HTMLElement>('.sl-markdown-content :is(h2, h3, h4)').forEach((heading) => {
+  // Use an expanded selector list instead of `:is(h2, h3, h4)`. The `:is()` pseudo-class
+  // throws a SyntaxError DOMException inside querySelectorAll on browsers that don't support
+  // it (e.g. older Chrome/Edge and some headless crawlers), which crashes the rest of this
+  // script. The expanded form is behavior-identical and parses in every browser.
+  const headingSelector = '.sl-markdown-content h2, .sl-markdown-content h3, .sl-markdown-content h4';
+  document.querySelectorAll<HTMLElement>(headingSelector).forEach((heading) => {
     const actions: HTMLElement[] = [];
     const parasToRemove: HTMLElement[] = [];
 

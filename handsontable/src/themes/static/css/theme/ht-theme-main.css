@@ -69,9 +69,7 @@
   --ht-gap-size: var(--ht-density-gap);
   --ht-icon-size: var(--ht-sizing-size-4);
   --ht-table-transition: 0.15s;
-  --ht-wrapper-border-width: 0px;
-  --ht-wrapper-border-radius: var(--ht-sizing-size-1);
-  --ht-wrapper-border-color: var(--ht-border-color);
+  --ht-border-radius: var(--ht-sizing-size-1);
   --ht-bar-foreground-color: var(--ht-foreground-color);
   --ht-bar-background-color: var(--ht-background-secondary-color);
   --ht-bar-horizontal-padding: var(--ht-density-bars-horizontal);
@@ -109,6 +107,12 @@
   --ht-cell-mobile-handle-border-color: var(--ht-accent-color);
   --ht-cell-mobile-handle-background-color: var(--ht-accent-color);
   --ht-cell-mobile-handle-background-opacity: 40%;
+  --ht-cell-selection-handle-size: var(--ht-sizing-size-2);
+  --ht-cell-selection-handle-length: var(--ht-sizing-size-4);
+  --ht-cell-selection-handle-border-width: var(--ht-sizing-size-0-25);
+  --ht-cell-selection-handle-border-radius: var(--ht-sizing-size-3);
+  --ht-cell-selection-handle-border-color: var(--ht-accent-color);
+  --ht-cell-selection-handle-background-color: var(--ht-background-color);
   --ht-header-font-weight: var(--ht-font-weight);
   --ht-header-foreground-color: var(--ht-foreground-color);
   --ht-header-background-color: var(--ht-background-secondary-color);
@@ -347,20 +351,11 @@
 
 [class*=ht-theme-main] .htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper::after,
 [class*=ht-theme-main] .htContextMenu table tbody tr td.htSubmenu .htItemWrapper::after,
-[class*=ht-theme-main] .htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper::after,
-[class*=ht-theme-main] .pika-single .pika-next {
+[class*=ht-theme-main] .htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper::after {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
   -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6.64648 10.9393L9.93938 7.64644L6.64648 4.35354' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
-  background-color: currentColor;
-}
-
-[class*=ht-theme-main] .pika-single .pika-prev {
-  width: var(--ht-icon-size);
-  height: var(--ht-icon-size);
-  -webkit-mask-size: contain;
-  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.49268 11.2929L6.19978 8.00001L9.49268 4.70712' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
   background-color: currentColor;
 }
 

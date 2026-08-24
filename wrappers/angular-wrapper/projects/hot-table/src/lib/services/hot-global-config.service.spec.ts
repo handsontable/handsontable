@@ -3,6 +3,7 @@ import {
   HotGlobalConfigService,
   HotGlobalConfig,
   NON_COMMERCIAL_LICENSE,
+  PredefinedTheme,
   ThemeName, HOT_GLOBAL_CONFIG,
 } from './hot-global-config.service';
 import { take } from 'rxjs/operators';
@@ -82,20 +83,23 @@ describe('HotGlobalConfigService', () => {
 
     // Listen to config$ and take three emissions:
     // one for the initial default config and two for the updated config.
-    service.config$.pipe(take(3)).subscribe((config) => {
-      if (emitCounter === 0) {
-        expect(config.license).toEqual(undefined);
-      } else if (emitCounter === 1) {
-        expect(config.license).toEqual('updated-license--1');
-      } else  if (emitCounter === 2) {
-        expect(config.license).toEqual('updated-license--2');
-      } else {
-        throw new Error('Unexpected 4th call');
-      }
-      emitCounter++;
-
-      expect(config.license).toEqual('updated-license--2');
-      done();
+    service.config$.pipe(take(3)).subscribe({
+      next: (config) => {
+        if (emitCounter === 0) {
+          expect(config.license).toEqual(undefined);
+        } else if (emitCounter === 1) {
+          expect(config.license).toEqual('updated-license--1');
+        } else if (emitCounter === 2) {
+          expect(config.license).toEqual('updated-license--2');
+        } else {
+          throw new Error('Unexpected 4th call');
+        }
+        emitCounter++;
+      },
+      complete: () => {
+        expect(emitCounter).toBe(3);
+        done();
+      },
     });
 
     // invoke update method after observable is set to receive an events
@@ -152,5 +156,21 @@ describe('HotGlobalConfigService', () => {
     expect(config.themeName).toEqual('ht-theme-main');
     expect(config.language).toEqual('en-US');
     expect(config.layoutDirection).toEqual('ltr');
+  });
+});
+
+describe('PredefinedTheme enum', () => {
+  it('should expose all expected theme name constants', () => {
+    expect(PredefinedTheme.Main).toBe('ht-theme-main');
+    expect(PredefinedTheme.MainDark).toBe('ht-theme-main-dark');
+    expect(PredefinedTheme.MainDarkAuto).toBe('ht-theme-main-dark-auto');
+    expect(PredefinedTheme.Horizon).toBe('ht-theme-horizon');
+    expect(PredefinedTheme.HorizonDark).toBe('ht-theme-horizon-dark');
+    expect(PredefinedTheme.HorizonDarkAuto).toBe('ht-theme-horizon-dark-auto');
+  });
+
+  it('should be usable as themeName in HotGlobalConfig', () => {
+    TestBed.inject(HotGlobalConfigService).setConfig({ themeName: PredefinedTheme.Horizon });
+    expect(TestBed.inject(HotGlobalConfigService).getConfig().themeName).toBe('ht-theme-horizon');
   });
 });

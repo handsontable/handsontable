@@ -1,25 +1,21 @@
-import { HotTable } from '@handsontable/react-wrapper';
+import { useRef } from 'react';
+import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  return (
-    <HotTable
-      autoWrapRow={true}
-      autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation"
-      data={[[0, 1, 2], ['3c', '4b', 5], [], []]}
-      colHeaders={true}
-      rowHeaders={true}
-      columnSummary={[
+  const hotRef = useRef<HotTableRef>(null);
+
+  const throwErrors = () => {
+    hotRef.current?.hotInstance?.updateSettings({
+      columnSummary: [
         {
           type: 'sum',
           destinationRow: 0,
           destinationColumn: 0,
           reversedRowCoords: true,
-          // enable throwing data type errors for this column summary
           suppressDataTypeErrors: false,
         },
         {
@@ -27,12 +23,46 @@ const ExampleComponent = () => {
           destinationRow: 0,
           destinationColumn: 1,
           reversedRowCoords: true,
-          // enable throwing data type errors for this column summary
           suppressDataTypeErrors: false,
         },
-      ]}
-      height="auto"
-    />
+      ],
+    });
+  };
+
+  return (
+    <>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button className="button button--primary" onClick={throwErrors}>
+            Throw data type errors
+          </button>
+        </div>
+      </div>
+      <HotTable
+        ref={hotRef}
+        autoWrapRow={true}
+        autoWrapCol={true}
+        licenseKey="non-commercial-and-evaluation"
+        data={[[0, 1, 2], ['3c', '4b', 5], [], []]}
+        colHeaders={true}
+        rowHeaders={true}
+        columnSummary={[
+          {
+            type: 'sum',
+            destinationRow: 0,
+            destinationColumn: 0,
+            reversedRowCoords: true,
+          },
+          {
+            type: 'sum',
+            destinationRow: 0,
+            destinationColumn: 1,
+            reversedRowCoords: true,
+          },
+        ]}
+        height="auto"
+      />
+    </>
   );
 };
 

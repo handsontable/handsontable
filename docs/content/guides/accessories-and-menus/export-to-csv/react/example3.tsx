@@ -15,8 +15,8 @@ const ExampleComponent = () => {
       bom: false,
       columnDelimiter: ',',
       colHeaders: false,
-      exportHiddenColumns: true,
-      exportHiddenRows: true,
+      exportHiddenColumns: false,
+      exportHiddenRows: false,
       rowDelimiter: '\r\n',
       rowHeaders: true,
     });
@@ -36,13 +36,13 @@ const ExampleComponent = () => {
       <HotTable
         ref={hotRef}
         data={[
-          ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1'],
-          ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2'],
-          ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3'],
-          ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4'],
-          ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5'],
-          ['A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6'],
-          ['A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7'],
+          ['Spring Launch', 'Email', 'North America', '1240', '4.2%', '$12000', 'Q1 2025'],
+          ['Partner Webinar', 'Paid Search', 'EMEA', '860', '6.1%', '$9400', 'Q1 2025'],
+          ['Summer Upsell', 'Social', 'APAC', '1520', '3.7%', '$13800', 'Q2 2025'],
+          ['Product Video', 'Email', 'North America', '980', '5.4%', '$8600', 'Q2 2025'],
+          ['Back-to-School', 'Display', 'LATAM', '1110', '4.8%', '$10100', 'Q3 2025'],
+          ['Holiday Teaser', 'Affiliate', 'EMEA', '1340', '5.9%', '$12700', 'Q4 2025'],
+          ['Loyalty Drive', 'SMS', 'APAC', '790', '7.3%', '$6200', 'Q4 2025'],
         ]}
         colHeaders={true}
         rowHeaders={true}

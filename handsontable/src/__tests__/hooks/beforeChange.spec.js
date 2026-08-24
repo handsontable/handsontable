@@ -41,7 +41,8 @@ describe('Hook', () => {
         data: [[1, 2]],
         type: 'numeric',
         numericFormat: {
-          pattern: '0,0.00000'
+          minimumFractionDigits: 5,
+          maximumFractionDigits: 5,
         },
         beforeChange(changes) {
           dataChanges = structuredClone(changes);
@@ -103,9 +104,6 @@ describe('Hook', () => {
         columns: [
           {
             type: 'date',
-            dateFormat: 'MM/DD/YYYY',
-            correctFormat: true,
-            defaultDate: '01/01/1900',
           },
           {
             // 2nd cell is simple text, no special options here
@@ -188,6 +186,59 @@ describe('Hook', () => {
 
         expect(called).toBe(true);
       });
+    });
+
+    it('should pass the column accessor function as prop with function-based data accessor', async() => {
+      const props = [];
+
+      function model(opts) {
+        const priv = { id: undefined, name: undefined };
+
+        for (const key in opts) {
+          if (Object.prototype.hasOwnProperty.call(opts, key)) {
+            priv[key] = opts[key];
+          }
+        }
+
+        return {
+          attr(attr, val) {
+            if (typeof val === 'undefined') {
+              return priv[attr];
+            }
+
+            priv[attr] = val;
+
+            return this;
+          }
+        };
+      }
+
+      function property(attr) {
+        return (row, value) => row.attr(attr, value);
+      }
+
+      handsontable({
+        data: [
+          model({ id: 1, name: 'Ted' }),
+          model({ id: 2, name: 'Frank' }),
+        ],
+        dataSchema: model,
+        columns: [
+          { data: property('id'), type: 'numeric' },
+          { data: property('name') },
+        ],
+        beforeChange(changes) {
+          changes.forEach((change) => {
+            props.push(change[1]);
+          });
+        }
+      });
+
+      await setDataAtCell(0, 1, 'Updated');
+
+      expect(props.length).toBe(1);
+      expect(typeof props[0]).toBe('function');
+      expect(propToCol(props[0])).toBe(1);
     });
   });
 });

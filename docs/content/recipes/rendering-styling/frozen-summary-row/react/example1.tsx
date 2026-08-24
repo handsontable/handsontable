@@ -60,7 +60,7 @@ function formatSummary(prop: keyof Row): string {
   const sum = numbers.reduce((acc, n) => acc + n, 0);
   const avg = sum / numbers.length;
 
-  return `Sum: ${sum.toFixed(2)} · Avg: ${avg.toFixed(2)} · Count: ${numbers.length}`;
+  return `Sum: ${sum.toFixed(2)}\nAvg: ${avg.toFixed(2)}\nCount: ${numbers.length}`;
 }
 
 function refreshSummary(hot: Handsontable): void {
@@ -85,9 +85,9 @@ const ExampleComponent = () => {
       width="100%"
       columns={[
         { data: 'item', type: 'text', readOnly: false },
-        { data: 'units', type: 'numeric', numericFormat: { pattern: '0' } },
-        { data: 'price', type: 'numeric', numericFormat: { pattern: '0.00' } },
-        { data: 'tax', type: 'numeric', numericFormat: { pattern: '0.00' } },
+        { data: 'units', type: 'numeric', numericFormat: { maximumFractionDigits: 0 } },
+        { data: 'price', type: 'numeric', numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
+        { data: 'tax', type: 'numeric', numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
       ]}
       cells={function (
         this: Handsontable.CellProperties,
@@ -106,6 +106,7 @@ const ExampleComponent = () => {
 
         if (prop !== 'item') {
           meta.type = 'text';
+          meta.validator = undefined;
           meta.className = 'htSummaryRow htRight';
         }
 

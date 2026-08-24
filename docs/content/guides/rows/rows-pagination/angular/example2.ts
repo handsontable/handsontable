@@ -14,7 +14,7 @@ import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
   styles: `
     :host ::ng-deep {
       .ht-root-wrapper {
-        border: 1px dashed var(--sl-color-accent);
+        border: 1px dashed var(--sl-color-accent, #1A42E8);
         border-radius: 4px;
         height: 300px;
         min-height: 120px;

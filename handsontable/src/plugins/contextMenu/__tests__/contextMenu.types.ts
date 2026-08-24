@@ -1,4 +1,6 @@
 import Handsontable from 'handsontable';
+import { ContextMenu } from 'handsontable/plugins/contextMenu';
+import type { MenuItemConfig } from 'handsontable/plugins/contextMenu';
 
 const hot = new Handsontable(document.createElement('div'), {
   contextMenu: true,
@@ -22,13 +24,13 @@ new Handsontable(document.createElement('div'), {
 
 new Handsontable(document.createElement('div'), {
   contextMenu: {
-    callback(key, selection, clickEvent) {},
+    callback(key: string, selection: unknown, clickEvent: MouseEvent) {},
   },
 });
 
 new Handsontable(document.createElement('div'), {
   contextMenu: {
-    callback(key, selection, clickEvent) {},
+    callback(key: string, selection: unknown, clickEvent: MouseEvent) {},
     items: {
       sep1: '---------',
       row_above: 'row_above',
@@ -39,21 +41,24 @@ new Handsontable(document.createElement('div'), {
         },
         key: 'name',
         hidden() {
-          return !!this.getSelectedLast();
+          return !!(this as any).getSelectedLast();
         },
         disabled() {
-          return !!this.getSelectedLast();
+          return !!(this as any).getSelectedLast();
         },
         disableSelection: true,
         isCommand: false,
-        callback(key, selection, clickEvent) {
-          const isSelected = !!this.getSelectedLast();
+        callback(key: string, selection: unknown, clickEvent: MouseEvent) {
+          const isSelected = !!(this as any).getSelectedLast();
 
           key.toUpperCase();
-          selection[0].start.row;
+          (selection as any)[0].start.row;
           clickEvent.preventDefault();
         },
-        renderer(hot, wrapper, row, col, prop, itemValue) {
+        renderer(
+          hot: ReturnType<typeof Handsontable>, wrapper: HTMLElement, row: number, col: number,
+          prop: string | number, itemValue: unknown
+        ) {
           this.key;
           hot.getSelected();
 
@@ -73,7 +78,7 @@ new Handsontable(document.createElement('div'), {
 
 new Handsontable(document.createElement('div'), {
   contextMenu: {
-    callback(key, selection, clickEvent) {},
+    callback(key: string, selection: unknown, clickEvent: MouseEvent) {},
     items: {
       sep1: '---------',
       row_above: 'row_above',
@@ -84,6 +89,17 @@ new Handsontable(document.createElement('div'), {
         hidden: false,
         disabled: false,
       }
+    }
+  }
+});
+
+const separator: MenuItemConfig = ContextMenu.SEPARATOR;
+
+new Handsontable(document.createElement('div'), {
+  contextMenu: {
+    items: {
+      sep1: ContextMenu.SEPARATOR,
+      row_above: 'row_above',
     }
   }
 });

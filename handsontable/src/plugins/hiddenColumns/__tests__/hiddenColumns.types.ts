@@ -3,6 +3,7 @@ import Handsontable from 'handsontable';
 const hot = new Handsontable(document.createElement('div'), {
   hiddenColumns: true,
 });
+
 new Handsontable(document.createElement('div'), {
   hiddenColumns: {
     columns: [1, 2],

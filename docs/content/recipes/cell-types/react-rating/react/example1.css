@@ -1,3 +1,25 @@
+.star-rating {
+  display: inline-flex;
+  gap: 1px;
+}
+
+.star-rating .star {
+  font-size: 18px;
+  color: #d3d3d3;
+  line-height: 1;
+  cursor: default;
+  user-select: none;
+  transition: color 0.1s;
+}
+
+.rating-editor .star-rating .star {
+  cursor: pointer;
+}
+
+.star-rating .star.filled {
+  color: #ffb400;
+}
+
 .rating-cell {
   display: flex;
   align-items: center;

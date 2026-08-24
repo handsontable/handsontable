@@ -23,7 +23,6 @@ const hot = new Handsontable(container, {
   readOnly: false,
   columns: (index) => {
     return {
-      type: index > 0 ? 'numeric' : 'text',
       readOnly: index === 2 || index === 8,
     };
   },

@@ -1,7 +1,6 @@
 import { useEffect, MouseEvent, KeyboardEvent, useRef, useState } from 'react';
 import Handsontable from 'handsontable/base';
 import { HexColorPicker } from 'react-colorful';
-import StarRatingComponent from 'react-star-rating-component';
 import { Provider, connect, useDispatch } from 'react-redux';
 import { createStore, combineReducers } from 'redux';
 import { HotTable, HotColumn, useHotEditor } from '@handsontable/react-wrapper';
@@ -9,6 +8,29 @@ import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
 registerAllModules();
+
+interface StarRatingProps {
+  name: string;
+  value?: number;
+  starCount?: number;
+  starColor?: string;
+  emptyStarColor?: string;
+}
+
+function StarRating({ name, value = 0, starCount = 5, starColor = '#ffb400', emptyStarColor = '#d3d3d3' }: StarRatingProps) {
+  return (
+    <div style={{ display: 'inline-flex', gap: '1px' }}>
+      {Array.from({ length: starCount }, (_, i) => (
+        <span
+          key={`${name}-${i + 1}`}
+          style={{ fontSize: '18px', color: i + 1 <= value ? starColor : emptyStarColor, lineHeight: 1 }}
+        >
+          ★
+        </span>
+      ))}
+    </div>
+  );
+}
 
 type RendererProps = {
   TD?: HTMLTableCellElement;
@@ -206,13 +228,12 @@ const UnconnectedStarRatingRenderer = ({
   inactiveColors?: string;
 }) => {
   return (
-    <StarRatingComponent
+    <StarRating
       name={`${row}-${col}`}
       value={value}
       starCount={5}
       starColor={activeColors?.[row || 0]}
       emptyStarColor={inactiveColors?.[row || 0]}
-      editing={true}
     />
   );
 };

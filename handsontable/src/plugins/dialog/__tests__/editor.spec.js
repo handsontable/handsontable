@@ -48,7 +48,7 @@ describe('Dialog Plugin - Editor Interactions', () => {
         data: [['2023-01-01', 'B1'], ['2023-01-02', 'B2']],
         dialog: true,
         columns: [
-          { type: 'date', dateFormat: 'YYYY-MM-DD' },
+          { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
           { type: 'text' }
         ],
       });
@@ -112,7 +112,7 @@ describe('Dialog Plugin - Editor Interactions', () => {
         dialog: true,
         columns: [
           { type: 'autocomplete', source: ['Option 1', 'Option 2', 'Option 3'] },
-          { type: 'date', dateFormat: 'YYYY-MM-DD' },
+          { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
           {
             type: 'handsontable',
             handsontable: {

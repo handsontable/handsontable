@@ -1,0 +1,25 @@
+{
+  "version": "16.1",
+  "highlighted": [
+    {
+      "prNumber": 11612,
+      "tagline": "Pagination",
+      "whyItMatters": "Built-in row pagination with configurable page size and navigation controls. Use it to handle large datasets without infinite scroll or external paging UI."
+    },
+    {
+      "prNumber": 11792,
+      "tagline": "Loading plugin",
+      "whyItMatters": "A dedicated plugin renders a loading state over the grid while data is being fetched or processed, replacing custom overlays."
+    },
+    {
+      "prNumber": 11790,
+      "tagline": "Classic theme",
+      "whyItMatters": "A new built-in theme that matches the legacy Handsontable look. Opt in when you want the modern theming system without changing the visual style users are familiar with."
+    },
+    {
+      "prNumber": 11773,
+      "tagline": "Key/value source for dropdowns",
+      "whyItMatters": "Autocomplete and Dropdown editors now accept object-based key/value sources, plus new valueGetter and valueSetter options for full control over how stored values map to displayed labels."
+    }
+  ]
+}

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed Prevent crash when Handsontable is initialized inside a hidden container, rowsRenderCalculator and columnsRenderCalculator on Viewport are never assigned and remain undefined.",
-  "type": "fixed",
-  "issueOrPR": 12533,
-  "breaking": false,
-  "framework": "none"
-}

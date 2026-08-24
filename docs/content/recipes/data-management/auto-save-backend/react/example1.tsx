@@ -21,13 +21,6 @@ const statusLabels: Record<SaveStatus, string> = {
   error: 'Error',
 };
 
-const statusColors: Record<SaveStatus, string> = {
-  idle: '#616161',
-  saving: '#1a42e8',
-  saved: '#117a1f',
-  error: '#c62828',
-};
-
 const saveRowsToBackend = (rows: unknown[]): Promise<void> => {
   return new Promise<void>((resolve) => setTimeout(resolve, 450)).then(() => {
     // Replace this with fetch('/api/products', { method: 'PATCH', body: ... }) in production.
@@ -117,17 +110,13 @@ const ExampleComponent = () => {
   };
 
   return (
-    <>
-      <div
-        style={{
-          marginBottom: '8px',
-          fontFamily: 'Arial, sans-serif',
-          fontSize: '13px',
-          fontWeight: '600',
-          color: statusColors[saveStatus],
-        }}
-      >
-        {statusLabels[saveStatus]}
+    <div>
+      <div className="example-controls-container">
+        <div className="controls">
+          <span className="auto-save-backend-status" data-state={saveStatus}>
+            {statusLabels[saveStatus]}
+          </span>
+        </div>
       </div>
       <HotTable
         ref={hotRef}
@@ -137,7 +126,7 @@ const ExampleComponent = () => {
           { data: 'id', type: 'numeric', readOnly: true, width: 70 },
           { data: 'product', type: 'text', width: 180 },
           { data: 'stock', type: 'numeric', width: 90 },
-          { data: 'price', type: 'numeric', numericFormat: { pattern: '$0,0.00' }, width: 110 },
+          { data: 'price', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }, width: 110 },
           { data: 'status', type: 'text', width: 120 },
         ]}
         stretchH="all"
@@ -145,7 +134,7 @@ const ExampleComponent = () => {
         afterChange={handleAfterChange}
         licenseKey="non-commercial-and-evaluation"
       />
-    </>
+    </div>
   );
 };
 

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Patched critical and high dependency vulnerabilities across the monorepo and aligned Angular wrapper tooling for compatibility.",
-  "type": "security",
-  "issueOrPR": 12237,
-  "breaking": false,
-  "framework": "none"
-}

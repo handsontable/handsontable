@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed custom editor object values with a different schema being silently discarded by populateFromArray.",
-  "type": "fixed",
-  "issueOrPR": 12562,
-  "breaking": false,
-  "framework": "none"
-}

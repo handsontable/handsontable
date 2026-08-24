@@ -39,6 +39,12 @@ new Handsontable(document.createElement('div'), {
     ],
   },
 });
+new Handsontable(document.createElement('div'), {
+  formulas: {
+    engine: Hyperformula,
+    hyperlinks: true,
+  },
+});
 const hot = new Handsontable(document.createElement('div'), {});
 const formulas = hot.getPlugin('formulas');
 

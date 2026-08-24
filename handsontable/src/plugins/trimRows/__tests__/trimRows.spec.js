@@ -180,7 +180,7 @@ describe('TrimRows', () => {
     handsontable({
       data: createSpreadsheetData(1000, 5),
       // leave first row and last 3 rows
-      trimRows: Array(...Array(996)).map((v, i) => i + 1),
+      trimRows: [...Array(996)].map((v, i) => i + 1),
       width: 500,
       height: 300
     });

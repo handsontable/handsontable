@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed `multiselect` cell type displaying a neighbouring column's value after moving the column with `manualColumnMove`.",
+  "type": "fixed",
+  "issueOrPR": 12827,
+  "breaking": false,
+  "framework": "none"
+}

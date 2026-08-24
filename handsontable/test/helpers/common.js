@@ -17,9 +17,19 @@ beforeEach(function() {
   }
 });
 
-afterEach(() => {
+afterEach(async() => {
   if (!DEBUG) {
     specContext.spec = null;
+  }
+
+  // Restore the default device pixel ratio if a spec changed it via `setDeviceScaleFactor`
+  // (exposed only by the Puppeteer e2e harness), so a fractional DPR cannot leak into the next
+  // spec and break viewport-dependent tests. The `devicePixelRatio !== 1` guard keeps this a
+  // no-op (a single property read) for the vast majority of specs that never touch the DPR.
+  if (!process.env.JEST_WORKER_ID
+      && typeof window.setDeviceScaleFactor === 'function'
+      && window.devicePixelRatio !== 1) {
+    await window.setDeviceScaleFactor(1);
   }
 });
 
@@ -333,6 +343,7 @@ export const getActiveEditor = handsontableMethodFactory('getActiveEditor');
 export const getCell = handsontableMethodFactory('getCell');
 export const getCellEditor = handsontableMethodFactory('getCellEditor');
 export const getCellMeta = handsontableMethodFactory('getCellMeta');
+export const getCellMetaTransient = handsontableMethodFactory('getCellMetaTransient');
 export const getCellMetaAtRow = handsontableMethodFactory('getCellMetaAtRow');
 export const getCellRenderer = handsontableMethodFactory('getCellRenderer');
 export const getCellsMeta = handsontableMethodFactory('getCellsMeta');
@@ -1473,6 +1484,8 @@ export function swapDisplayedColumns(container, from, to) {
   $from.simulate('mouseup');
 }
 
+let touchIdentifier = 0;
+
 /**
  * Creates touch event and dispatch it for handled element.
  *
@@ -1483,8 +1496,15 @@ export function swapDisplayedColumns(container, from, to) {
  * @returns {Event} Returns the Event instance used to trigger the event.
  */
 function sendTouchEvent(x, y, element, eventType) {
+  // A real finger keeps one identifier for its whole gesture, and code that follows a drag matches
+  // on it. `Date.now()` handed out a fresh identifier per event, so a touchstart and the touchmove
+  // after it looked like two different fingers whenever the calls landed in different milliseconds.
+  if (eventType === 'touchstart') {
+    touchIdentifier += 1;
+  }
+
   const touchObj = new Touch({
-    identifier: Date.now(),
+    identifier: touchIdentifier,
     target: element,
     clientX: x,
     clientY: y,

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed nested column headers ignoring `stopImmediatePropagation()` called in the `beforeOnCellMouseOver` hook, so a header drag-selection can now be blocked the same way as for regular column headers.",
+  "type": "fixed",
+  "issueOrPR": 12794,
+  "breaking": false,
+  "framework": "none"
+}

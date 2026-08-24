@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed nested headers not following the data when moving columns; labels now travel with their columns, a group split across non-adjacent columns renders as separate banners, and a collapsed group either follows the move or expands when the move would split it.",
+  "type": "fixed",
+  "issueOrPR": 12793,
+  "breaking": false,
+  "framework": "none"
+}

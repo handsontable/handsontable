@@ -1,10 +1,17 @@
 /* file: app.component.ts */
-import { Component } from '@angular/core';
-import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+import { Component, ViewChild } from '@angular/core';
+import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'app-example8',
   template: `
+    <div class="example-controls-container">
+      <div class="controls">
+        <button class="button button--primary" (click)="throwErrors()">
+          Throw data type errors
+        </button>
+      </div>
+    </div>
     <hot-table
       [settings]="hotSettings!" [data]="hotData">
     </hot-table>
@@ -13,6 +20,7 @@ import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
   imports: [HotTableModule],
 })
 export class AppComponent {
+  @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
   readonly hotData = [[0, 1, 2], ['3c', '4b', 5], [], []];
 
@@ -25,22 +33,39 @@ export class AppComponent {
         destinationRow: 0,
         destinationColumn: 0,
         reversedRowCoords: true,
-        // enable throwing data type errors for this column summary
-        suppressDataTypeErrors: false,
       },
       {
         type: 'sum',
         destinationRow: 0,
         destinationColumn: 1,
         reversedRowCoords: true,
-        // enable throwing data type errors for this column summary
-        suppressDataTypeErrors: false,
       },
     ],
     autoWrapRow: true,
     autoWrapCol: true,
     height: 'auto',
   };
+
+  throwErrors(): void {
+    this.hotTable?.hotInstance?.updateSettings({
+      columnSummary: [
+        {
+          type: 'sum',
+          destinationRow: 0,
+          destinationColumn: 0,
+          reversedRowCoords: true,
+          suppressDataTypeErrors: false,
+        },
+        {
+          type: 'sum',
+          destinationRow: 0,
+          destinationColumn: 1,
+          reversedRowCoords: true,
+          suppressDataTypeErrors: false,
+        },
+      ],
+    });
+  }
 }
 /* end-file */
 

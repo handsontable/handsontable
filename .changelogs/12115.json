@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed comment editor positioning for merged cells",
-  "type": "fixed",
-  "issueOrPR": 12115,
-  "breaking": false,
-  "framework": "none"
-}

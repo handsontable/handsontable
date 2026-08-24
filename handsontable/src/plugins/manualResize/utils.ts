@@ -1,0 +1,75 @@
+/**
+ * Calculate the scale ratio applied to the element in the horizontal/vertical axis.
+ *
+ * @param {HTMLElement} element The element to measure.
+ * @param {'horizontal'|'vertical'} [axis='horizontal'] The axis to inspect.
+ * @returns {number}
+ */
+export function getElementScaleFactor(element: HTMLElement, axis: 'horizontal' | 'vertical' = 'horizontal'): number {
+  const boundingRect = element.getBoundingClientRect();
+  const transformedSize = axis === 'vertical' ? boundingRect.height : boundingRect.width;
+  const unscaledSize = axis === 'vertical' ? element.offsetHeight : element.offsetWidth;
+
+  if (
+    !Number.isFinite(transformedSize) ||
+    !Number.isFinite(unscaledSize) ||
+    transformedSize <= 0 ||
+    unscaledSize <= 0
+  ) {
+    return 1;
+  }
+
+  // Table headers and border-collapse can make `getBoundingClientRect()` one CSS pixel wider/taller
+  // than `offsetWidth`/`offsetHeight` with no CSS transform. Treat that as unscaled so resize deltas
+  // are not short by one layout pixel after `normalizeVisualDelta`.
+  if (transformedSize >= unscaledSize && transformedSize - unscaledSize <= 1) {
+    return 1;
+  }
+
+  const scaleFactor = transformedSize / unscaledSize;
+
+  return Number.isFinite(scaleFactor) && scaleFactor > 0 ? scaleFactor : 1;
+}
+
+/**
+ * Converts visual pointer delta into unscaled delta.
+ *
+ * @param {number} visualDelta Pointer delta in visual coordinates.
+ * @param {number} scaleFactor Element scale factor.
+ * @returns {number}
+ */
+export function normalizeVisualDelta(visualDelta: number, scaleFactor: number): number {
+  if (!Number.isFinite(scaleFactor) || scaleFactor <= 0) {
+    return visualDelta;
+  }
+
+  return Math.round(visualDelta / scaleFactor);
+}
+
+/**
+ * Checks if the resize handle positioning should be skipped.
+ *
+ * @param {{ parentNode: ParentNode | null }} header The header element to position the handle against.
+ * @param {number} resizeClickCount The resize handle click count.
+ * @returns {boolean}
+ */
+export function shouldSkipResizeHandlePositioning(
+  header: { parentNode: ParentNode | null },
+  resizeClickCount: number,
+): boolean {
+  return !header.parentNode || resizeClickCount > 1;
+}
+
+/**
+ * Checks if resize handle position should be refreshed after auto-size.
+ *
+ * @param {{ parentNode: ParentNode | null } | null} header The header element.
+ * @param {number} resizeClickCount The resize handle click count.
+ * @returns {boolean}
+ */
+export function shouldRefreshHandleAfterAutoResize(
+  header: { parentNode: ParentNode | null } | null,
+  resizeClickCount: number,
+): boolean {
+  return !!header?.parentNode && resizeClickCount >= 2;
+}

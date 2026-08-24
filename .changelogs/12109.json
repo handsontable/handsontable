@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed `getCellMetaAtRow()` to always return cell metadata in physical column order.",
-  "type": "fixed",
-  "issueOrPR": 12109,
-  "breaking": false,
-  "framework": "none"
-}

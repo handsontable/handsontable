@@ -1,36 +1,36 @@
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-1::after {
+#exampleCustomSortIcons3 .custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-1::after {
   content: '①';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-2::after {
+#exampleCustomSortIcons3 .custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-2::after {
   content: '②';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-3::after {
+#exampleCustomSortIcons3 .custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-3::after {
   content: '③';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-4::after {
+#exampleCustomSortIcons3 .custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-4::after {
   content: '④';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-5::after {
+#exampleCustomSortIcons3 .custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-5::after {
   content: '⑤';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-6::after {
+#exampleCustomSortIcons3 .custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-6::after {
   content: '⑥';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-7::after {
+#exampleCustomSortIcons3 .custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-7::after {
   content: '⑦';
 }
 
-.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting::after {
+#exampleCustomSortIcons3 .custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting::after {
   width: 10px;
   font-size: 10px;
 }
 
-.custom-sort-icon-example-3 .handsontable .columnSorting.sortAction:before {
+#exampleCustomSortIcons3 .custom-sort-icon-example-3 .handsontable .columnSorting.sortAction::before {
   right: 5px;
 }

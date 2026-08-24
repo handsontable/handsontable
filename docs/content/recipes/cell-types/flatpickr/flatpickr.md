@@ -1,6 +1,5 @@
 ---
-type: tutorial
-id: c757a3b3
+type: how-to
 title: Flatpickr
 metaTitle: Flatpickr Cell Type - JavaScript Data Grid | Handsontable
 description: Learn how to create a custom Handsontable cell type using Flatpickr for a date picker with cross-browser consistency and per-column configuration directly inside your data grid.
@@ -11,11 +10,11 @@ tags:
   - tutorial
   - recipes
 react:
-  id: 580a2104
   metaTitle: Flatpickr Cell Type - React Data Grid | Handsontable
 angular:
-  id: 8748f2d9
   metaTitle: Flatpickr Cell Type - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Flatpickr Cell Type - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Cell Types
 ---
@@ -637,5 +636,5 @@ You integrated the Flatpickr date picker as a Handsontable cell editor. You used
 ## Next steps
 
 - [Pikaday](@/recipes/cell-types/pikaday/pikaday.md) - An alternative date picker using Pikaday and Moment.js, with portal positioning.
-- [Moment.js date](@/recipes/cell-types/moment-date/moment-date.md) - A date cell type using Moment.js and Pikaday.
+- [Moment.js date](@/recipes/cell-types/moment-date/moment-date.md) - A date cell type that layers Moment.js formatting over the built-in date cell type.
 - [Date picker (Angular)](@/angular/recipes/cell-types/guide-datepicker-angular/guide-datepicker.md) - A date editor built with Angular components and the native HTML5 date input.

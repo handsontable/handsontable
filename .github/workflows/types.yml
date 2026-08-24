@@ -1,0 +1,19 @@
+name: Types
+
+# The fast, build-free TypeScript type test (tier 1 — gates the build). The
+# emitted-.d.ts verification lives in its own module (Emitted Types) because it
+# needs the build artifact and must not make this fast check wait on the build.
+on:
+  workflow_call:
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/setup-workspace
+      - name: Test
+        run: |
+          cd handsontable
+          npm run test:types

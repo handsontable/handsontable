@@ -1,5 +1,10 @@
 module.exports = {
+  plugins: ['stylelint-plugin-handsontable'],
   rules: {
+    // Ban the `:has()` relational pseudo-class: it makes Chrome re-run document-scaled style
+    // invalidation on every matching DOM mutation (every grid scroll re-render). Drive the style
+    // from a JS-toggled class instead. See `.config/plugin/stylelint/rules/no-has-selector.js`.
+    'handsontable/no-has-selector': true,
     'selector-class-pattern': null,
     'color-hex-length': null,
     'value-keyword-case': null,

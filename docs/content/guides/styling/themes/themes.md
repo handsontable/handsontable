@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: jn1po47i
 title: Themes
 metaTitle: Themes - JavaScript Data Grid | Handsontable
 description: Apply themes using the Theme API or CSS files. Built-in themes include main, horizon, and classic with automatic light and dark modes.
@@ -23,13 +22,14 @@ tags:
   - visual tokens
   - design system
 react:
-  id: jn2po47i
   metaTitle: Themes - React Data Grid | Handsontable
 angular:
-  id: 1sco6djp
   metaTitle: Themes - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Themes - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
+menuTag: updated
 ---
 Use Handsontable's built-in themes or customize its look using the Theme API or CSS variables.
 
@@ -81,9 +81,21 @@ If you want to use the `main` theme without any modifications, you don't need to
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2
+::: example #example1 :angular --css 1 --ts 2 --html 3
+@[code](@/content/guides/styling/themes/angular/exampleTheme.css)
 @[code](@/content/guides/styling/themes/angular/example1.ts)
 @[code](@/content/guides/styling/themes/angular/example1.html)
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleTheme .disable-auto-theme :vue3 --css 1
+
+@[code](@/content/guides/styling/themes/vue/exampleTheme.css)
+@[code collapse={14-116,221-233}](@/content/guides/styling/themes/vue/exampleTheme.vue)
+
 :::
 
 :::
@@ -99,6 +111,8 @@ Each theme comes with three modes:
 When using the Theme API, you can configure the color scheme using `setColorScheme()` with `'light'`, `'dark'`, or `'auto'` values. The `'auto'` option allows programmatic control over light/dark switching based on your application's logic.
 
 When using CSS files, color scheme switching is controlled through CSS class names. Use `ht-theme-{name}` for light mode, `ht-theme-{name}-dark` for dark mode, or `ht-theme-{name}-dark-auto` for automatic switching based on system preferences (e.g., `ht-theme-main`, `ht-theme-main-dark`, `ht-theme-main-dark-auto`).
+
+If you don't want to declare a theme at all, set the [`colorScheme`](@/api/options.md#colorscheme) option instead. See [Set the color scheme or density without a theme](#set-the-color-scheme-or-density-without-a-theme).
 
 
 ## Use a theme
@@ -158,6 +172,29 @@ export class AppComponent {
     // ... other options
   };
 }
+```
+
+:::
+
+::: only-for vue
+
+```ts
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import { registerAllModules } from 'handsontable/registry';
+import { mainTheme } from 'handsontable/themes';
+
+registerAllModules();
+
+const hotSettings = ref({
+  theme: mainTheme,
+  // ... other options
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
 ```
 
 :::
@@ -263,6 +300,30 @@ export class AppComponent {
 
 :::
 
+::: only-for vue
+
+```ts
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+const theme = registerTheme(mainTheme)
+  .setColorScheme('auto')
+  .setDensityType('comfortable');
+
+const hotSettings = ref({
+  theme: theme,
+  // ... other options
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 ### Option 2: Using CSS files
 
 Alternatively, you can load theme CSS files and pass the theme name as a string to the `theme` option.
@@ -341,9 +402,117 @@ const hot = new Handsontable(container, {
 
 :::
 
+::: only-for vue
+
+```ts
+const hotSettings = ref({
+  theme: 'ht-theme-main',
+  // ... other options
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
+## Set the color scheme or density without a theme
+
+If the only thing you want to change is the color scheme or the amount of white space, you don't have to import, register, and configure a theme. Set the [`colorScheme`](@/api/options.md#colorscheme) or [`density`](@/api/options.md#density) option directly, and the grid applies it on top of the theme it already uses.
+
+| Option        | Allowed values                            | Default                        |
+| ------------- | ----------------------------------------- | ------------------------------ |
+| `colorScheme` | `'light'`, `'dark'`, `'auto'`             | the color scheme of your theme |
+| `density`     | `'default'`, `'compact'`, `'comfortable'` | the density of your theme      |
+
+Both options are per-instance overrides. The theme itself stays unchanged, so other grids that use the same theme keep their own color scheme and density.
+
+::: only-for javascript
+
+```js
+const container = document.querySelector('#handsontable-example');
+
+const hot = new Handsontable(container, {
+  colorScheme: 'dark',
+  density: 'compact',
+  // other options
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  colorScheme="dark"
+  density="compact"
+/>
+```
+
+:::
+
 ::: only-for angular
 
-## Global Theme Management
+```html
+<hot-table [settings]="{
+  colorScheme: 'dark',
+  density: 'compact'
+}">
+</hot-table>
+```
+
+:::
+
+::: only-for vue
+
+```ts
+const hotSettings = ref({
+  colorScheme: 'dark',
+  density: 'compact',
+  // ... other options
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
+### Switch the color scheme or density at runtime
+
+Pass either option to [`updateSettings()`](@/api/core.md#updatesettings). This is all you need for a dark mode toggle:
+
+```js
+hot.updateSettings({
+  colorScheme: 'dark',
+});
+```
+
+An unsupported value is ignored, and the grid logs a warning naming the option. It does not throw, so one bad value does not break the rest of the update.
+
+To drop an override and go back to the value your theme defines, set the option to `undefined`:
+
+```js
+hot.updateSettings({
+  colorScheme: undefined,
+  density: undefined,
+});
+```
+
+### When these options apply
+
+Both options are features of the Theme API, so they need the theme engine to be active. The engine is active when you leave the [`theme`](@/api/options.md#theme) option out, or when you pass a theme config object or a `ThemeBuilder` instance to it. It is not active when the theme comes from a CSS class name — either the `theme` option set to a string such as `'ht-theme-main'`, or an `ht-theme-*` class on the container element. In that case the grid logs a warning and the options have no effect.
+
+Apart from that, it doesn't matter which stylesheets you load. Both options work with the base stylesheet alone and with a theme stylesheet on top of it, minified or not.
+
+::: only-for angular
+
+## Global theme management
 
 In addition to passing a theme via the settings object for individual Handsontable instances, you can set a global default theme that applies to all instances. This can be accomplished in two ways:
 
@@ -430,7 +599,7 @@ The sizing scale provides consistent spacing values:
 myTheme.params({
   tokens: {
     iconSize: 'sizing.size_5',             // References e.g. 20px
-    wrapperBorderRadius: 'sizing.size_2',  // References e.g. 8px
+    borderRadius: 'sizing.size_2',  // References e.g. 8px
   },
 });
 ```
@@ -527,6 +696,10 @@ In some cases, global styles enforced by the browser or operating system can imp
 - **High contrast mode in Windows**: To style the component when Windows' high contrast mode is active, use the `forced-colors` media query. This allows you to detect and adapt to forced color settings. [Read more](https://blogs.windows.com/msedgedev/2020/09/17/styling-for-windows-high-contrast-with-new-standards-for-forced-colors/)
 - **Auto dark theme in Google Chrome**: Chrome automatically applies a dark theme in some scenarios. To detect and manage this behavior, refer to the official [Chrome guide](https://developer.chrome.com/blog/auto-dark-theme)
 
+## Result
+
+Your grid now renders with the theme you configured. You can switch color schemes and density modes at runtime using the Theme API.
+
 ## Related blog articles
 
 <div class="boxes-list gray">
@@ -549,7 +722,3 @@ Didn't find what you need? Try this:
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
 
 </div>
-
-## Result
-
-Your grid now renders with the theme you configured. You can switch color schemes and density modes at runtime using the Theme API.

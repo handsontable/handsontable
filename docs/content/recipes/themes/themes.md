@@ -6,15 +6,14 @@ canonicalUrl: /recipes/themes
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-type: tutorial
-id: a8f2d91c
+type: how-to
 description: Practical recipes for integrating Handsontable with design systems and UI libraries.
 react:
-  id: b3e4c82d
   metaTitle: Theme Recipes - React Data Grid | Handsontable
 angular:
-  id: c5f6d93e
   metaTitle: Theme Recipes - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Theme Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]
 

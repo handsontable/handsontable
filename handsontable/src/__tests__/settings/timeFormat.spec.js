@@ -18,7 +18,7 @@ describe('settings', () => {
         data: createSpreadsheetData(5, 5),
       });
 
-      expect(getCellMeta(0, 0).timeFormat).toBe('h:mm:ss a');
+      expect(getCellMeta(0, 0).timeFormat).toEqual({ hour: '2-digit', minute: '2-digit' });
     });
   });
 });

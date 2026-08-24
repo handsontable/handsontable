@@ -69,9 +69,7 @@
   --ht-gap-size: var(--ht-density-gap);
   --ht-icon-size: var(--ht-sizing-size-4);
   --ht-table-transition: 0.2s;
-  --ht-wrapper-border-width: 0px;
-  --ht-wrapper-border-radius: var(--ht-sizing-size-3);
-  --ht-wrapper-border-color: var(--ht-border-color);
+  --ht-border-radius: var(--ht-sizing-size-3);
   --ht-bar-foreground-color: var(--ht-foreground-color);
   --ht-bar-background-color: var(--ht-background-secondary-color);
   --ht-bar-horizontal-padding: var(--ht-density-bars-horizontal);
@@ -109,6 +107,12 @@
   --ht-cell-mobile-handle-border-color: var(--ht-accent-color);
   --ht-cell-mobile-handle-background-color: var(--ht-accent-color);
   --ht-cell-mobile-handle-background-opacity: 40%;
+  --ht-cell-selection-handle-size: var(--ht-sizing-size-2);
+  --ht-cell-selection-handle-length: var(--ht-sizing-size-6);
+  --ht-cell-selection-handle-border-width: var(--ht-sizing-size-0-25);
+  --ht-cell-selection-handle-border-radius: var(--ht-sizing-size-3);
+  --ht-cell-selection-handle-border-color: var(--ht-accent-color);
+  --ht-cell-selection-handle-background-color: var(--ht-background-color);
   --ht-header-font-weight: var(--ht-font-weight);
   --ht-header-foreground-color: var(--ht-foreground-color);
   --ht-header-background-color: var(--ht-background-secondary-color);

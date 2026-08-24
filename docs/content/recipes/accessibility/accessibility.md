@@ -7,14 +7,13 @@ canonicalUrl: /recipes/accessibility
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-type: tutorial
-id: t1a3b5c7
+type: how-to
 react:
-  id: u2b4c6d8
   metaTitle: Accessibility and UX Recipes - React Data Grid | Handsontable
 angular:
-  id: v3c5d7e9
   metaTitle: Accessibility and UX Recipes - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Accessibility and UX Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]
 

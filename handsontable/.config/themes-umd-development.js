@@ -49,7 +49,7 @@ function createHandsontableExternals() {
  * 2. Registers the theme before export using Handsontable.themes.registerTheme
  */
 const ruleForThemeRegistration = {
-  test: /theme\/[\w-]+\.js$/,
+  test: /theme\/[\w-]+\.ts$/,
   loader: 'string-replace-loader',
   options: {
     multiple: [
@@ -116,7 +116,7 @@ function buildNamespaceLines(namespacePath, variableName) {
  */
 function createRuleForVariablesRegistration(variableName, namespacePath) {
   return {
-    test: /static\/variables\/.*\.js$/,
+    test: /static\/variables\/.*\.ts$/,
     loader: 'string-replace-loader',
     options: {
       multiple: [
@@ -128,8 +128,9 @@ function createRuleForVariablesRegistration(variableName, namespacePath) {
           flags: ''
         },
         {
-          // Transform default export to namespace registration (no export, just side effect)
-          search: /export default (\{[\s\S]*\});/,
+          // Transform typed const + default export to namespace registration (no export, just side effect)
+          // Matches: const varName: Type = { ... };\n\nexport default varName;
+          search: /const \w+(?::\s*\w+)?\s*=\s*(\{[\s\S]*\});\s*\n+export default \w+;/,
           replace: (match, objectBody) => {
             const lines = [
               `const ${variableName} = ${objectBody};`,
@@ -194,15 +195,15 @@ function getThemeEntryFiles() {
   }
 
   const entries = {};
-  const JS_EXTENSION = /\.js$/;
+  const TS_EXTENSION = /\.ts$/;
 
   for (const fileName of fs.readdirSync(themesDir)) {
-    // Skip index.js - only process individual theme files
-    if (!JS_EXTENSION.test(fileName) || fileName === 'index.js') {
+    // Skip index.ts - only process individual theme files
+    if (!TS_EXTENSION.test(fileName) || fileName === 'index.ts') {
       continue;
     }
 
-    const baseName = fileName.replace(JS_EXTENSION, '');
+    const baseName = fileName.replace(TS_EXTENSION, '');
     const filePath = path.resolve(themesDir, fileName);
     const fileContent = fs.readFileSync(filePath, 'utf8');
     const exportName = extractNamedExport(fileContent, `${baseName}Theme`);
@@ -236,8 +237,8 @@ function getVariablesEntryFiles() {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
       const { name } = entry;
 
-      if (entry.isFile() && name.endsWith('.js')) {
-        const baseName = name.replace('.js', '');
+      if (entry.isFile() && name.endsWith('.ts')) {
+        const baseName = name.replace('.ts', '');
 
         entries[`${prefix}/${baseName}`] = {
           entryPath: path.resolve(dir, name),
@@ -317,6 +318,9 @@ function createConfig({
       umdNamedDefine: true,
       library: createLibraryConfig(isThemeFile, exportName, libraryName),
     },
+    resolve: {
+      extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+    },
     module: {
       rules: [
         {
@@ -330,6 +334,23 @@ function createConfig({
             jsc: {
               parser: {
                 syntax: 'ecmascript',
+              },
+            },
+          },
+        },
+        {
+          test: /\.(ts|tsx)$/,
+          loader: 'builtin:swc-loader',
+          exclude: /node_modules/,
+          options: {
+            env: {
+              targets: BROWSERS_LIST.join(', '),
+            },
+            jsc: {
+              parser: {
+                syntax: 'typescript',
+                tsx: true,
+                decorators: true,
               },
             },
           },

@@ -1,6 +1,5 @@
 ---
 type: tutorial
-id: jnwpo47i
 title: Demo
 metaTitle: Demo - JavaScript Data Grid | Handsontable
 description: Play around with a demo of Handsontable, in your favorite framework.
@@ -10,13 +9,13 @@ tags:
   - demo
   - hello world
 react:
-  id: ccqbm8hn
   metaTitle: Demo - React Data Grid | Handsontable
   description: Play around with a demo of Handsontable in React.
 angular:
-  id: i2n378hh
   metaTitle: Demo - Angular Data Grid | Handsontable
   description: Play around with a demo of Handsontable in Angular.
+vue:
+  metaTitle: Demo - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---
@@ -35,6 +34,7 @@ Explore Handsontable core features in this interactive demo. Click cells, sort c
 @[code](@/content/guides/getting-started/demo/react/example2.html)
 @[code](@/content/guides/getting-started/demo/react/example2.css)
 @[code](@/content/guides/getting-started/demo/react/example2.jsx)
+@[code](@/content/guides/getting-started/demo/react/example2.tsx)
 :::
 :::
 
@@ -49,15 +49,25 @@ Explore Handsontable core features in this interactive demo. Click cells, sort c
 
 :::
 
+::: only-for vue
+
+::: example-without-tabs #example3 :vue
+
+@[code](@/content/guides/getting-started/demo/vue/example3.vue)
+
+:::
+
+:::
+
 ## Find the code on GitHub
 
 <div class="boxes-list gray">
 
-- [JavaScript demo app](https://github.com/handsontable/handsontable/tree/prod-docs/{{$currentVersion}}/examples/next/docs/js/demo/)
-- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/prod-docs/{{$currentVersion}}/examples/next/docs/ts/demo/)
-- [Angular demo app](https://github.com/handsontable/handsontable/tree/prod-docs/{{$currentVersion}}/examples/next/docs/angular-wrapper/demo/)
-- [React demo app](https://github.com/handsontable/handsontable/tree/prod-docs/{{$currentVersion}}/examples/next/docs/react-wrapper/demo/)
-- [Vue demo app](https://github.com/handsontable/handsontable/tree/prod-docs/{{$currentVersion}}/examples/next/docs/vue3/demo/)
+- [JavaScript demo app](https://github.com/handsontable/handsontable/tree/{{$currentMinorVersion}}/examples/next/docs/js/demo/)
+- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/{{$currentMinorVersion}}/examples/next/docs/ts/demo/)
+- [Angular demo app](https://github.com/handsontable/handsontable/tree/{{$currentMinorVersion}}/examples/next/docs/angular-wrapper/demo/)
+- [React demo app](https://github.com/handsontable/handsontable/tree/{{$currentMinorVersion}}/examples/next/docs/react-wrapper/demo/)
+- [Vue demo app](https://github.com/handsontable/handsontable/tree/{{$currentMinorVersion}}/examples/next/docs/vue3/demo/)
 
 </div>
 
@@ -70,7 +80,7 @@ Explore the demo and discover Handsontable's most popular features:
 - [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
 - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
 - [Column groups](@/guides/columns/column-groups/column-groups.md)
-- [Column menu](@/guides/columns/column-menu/column-menu.md)
+- [Column menu](@/guides/accessories-and-menus/column-menu/column-menu.md)
 - [Column filter](@/guides/columns/column-filter/column-filter.md)
 - [Column hiding](@/guides/columns/column-hiding/column-hiding.md)
 - [Rows sorting](@/guides/rows/rows-sorting/rows-sorting.md)

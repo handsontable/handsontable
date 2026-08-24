@@ -1,14 +1,32 @@
 name: Publish
 
+# EVERY `npm publish` (experimental / rc / stable) lives in THIS file: npm
+# trusted publishing (OIDC) allows exactly ONE workflow file per package, and
+# the packages' trusted-publisher configs are pinned here. Never move a publish
+# job to another workflow — it would break OIDC for that publish until npm's
+# config is repointed, and repointing breaks the OTHER publishes instead.
 on:
+  # On-demand experimental publish of the dispatched branch (the feature-branch
+  # lever — see the pre-release-dispatch job). Two gates: the checkbox (a
+  # dispatch without it runs nothing — every job in this file skips) and the
+  # `approvers` environment sign-off on the job itself.
   workflow_dispatch:
+    inputs:
+      publish-experimental:
+        description: 'Build this branch and publish it to npm as `experimental` (UNTESTED — pauses for a release approver''s sign-off)'
+        type: boolean
+        default: false
   push:
     branches:
       - 'release/**' # Must match RELEASE_BRANCH_PREFIX
   release:
     types: [created]
+  # Chained final stage of the develop pipeline: fires when a `Develop` run
+  # (develop.yml) completes on develop; the pre-release job below publishes the
+  # `experimental` tag after a fully green run. The branches filter keeps
+  # develop.yml's PR-validation and foreign-branch dispatch runs out.
   workflow_run:
-    workflows: ['Tests']
+    workflows: ['Develop']
     types: [completed]
     branches: [develop]
 
@@ -25,32 +43,32 @@ permissions:
 
 jobs:
   # ============================================================
-  # Scenario A — Pre-release (workflow_dispatch from non-release branch or automatically ran on develop after testing)
+  # Scenario A — Experimental pre-release (chained after a green Develop run,
+  # or dispatched on demand from a feature branch)
   # ============================================================
   pre-release:
     name: Build and publish a pre-release
     runs-on: ubuntu-latest
+    # Publishes ONLY after a fully green Develop run — stricter than the old
+    # Tests-triggered version: the Develop run also contains the multi-OS
+    # build-all (and, on src/perf merges, the golden perf job), so a broken
+    # Windows/macOS build blocks the experimental publish (deliberate
+    # hardening). The on-demand feature-branch arm is the separate
+    # pre-release-dispatch job below — keep them separate: this job must stay
+    # environment-free so the develop chain publishes without a human click.
     if: |
-      (github.event_name == 'workflow_dispatch' &&
-        !startsWith(github.ref_name, 'release/') &&
-        !startsWith(github.ref_name, 'lts/')) ||
-      (github.event_name == 'workflow_run' &&
-        github.event.workflow_run.conclusion == 'success')
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success'
     steps:
-      - name: Determine branch
-        id: branch
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_run" ]; then
-            echo "ref=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_OUTPUT
-          else
-            echo "ref=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-          fi
-
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
-          ref: ${{ steps.branch.outputs.ref }}
+          # The EXACT sha the Develop run tested — not the branch tip, which may
+          # have advanced by the time this chained run starts. The detached HEAD
+          # is fine here: pre-release.mjs only branch-checks for release/*
+          # version stamping, which never applies to this develop-only hook.
+          ref: ${{ github.event.workflow_run.head_sha }}
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         name: Install pnpm
 
       - name: Use Node.js
@@ -66,6 +84,94 @@ jobs:
 
       - name: Publish pre-release
         run: npm run pre-release
+
+      # The stamped version (0.0.0-next-<sha>-<date>) is buried in the publish
+      # log — surface it as a copy-pasteable install line.
+      - name: Publication summary
+        run: |
+          VERSION=$(node -p "require('./handsontable/package.json').version")
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## 📦 Experimental build published
+
+          \`\`\`sh
+          npm i handsontable@${VERSION}
+          \`\`\`
+
+          All wrapper packages were published under the same version. Built from \`develop\` (chained after a green Develop run) — the npm \`experimental\` dist-tag now points at this build.
+          EOF
+
+  # The on-demand feature-branch lever. DEV-2057 removed it expecting
+  # pkg.pr.new previews to cover feature branches, but those are PR-event-only
+  # and never reach the npm registry — a branch without a PR, or a consumer
+  # that must install from npm, had no path. Restored behind TWO gates:
+  #   1. The publish-experimental checkbox — a casual dispatch runs nothing.
+  #   2. The `approvers` environment — npm trusted publishing is pinned to
+  #      this workflow's FILENAME (plus repo, plus an optional environment),
+  #      never to a ref, so every branch of this file can mint production npm
+  #      OIDC. An approval-free dispatch arm would therefore let any
+  #      write-access dispatch publish untested packages; the environment puts
+  #      the same human gate on it as the rc/stable publishes.
+  # The environment binds only what THIS file's content requests — full,
+  # file-content-independent enforcement needs the environment pinned in the
+  # npm-side trusted-publisher config of each package. That is a publish-
+  # pipeline design decision (it would force EVERY publish job, including the
+  # automated develop chain above, into an environment) — tracked as a
+  # follow-up, deliberately not part of this job.
+  # release/lts branches are excluded — their publishes are the guarded
+  # scenarios below.
+  pre-release-dispatch:
+    name: Build and publish a pre-release (on demand)
+    runs-on: ubuntu-latest
+    environment: approvers
+    if: |
+      github.event_name == 'workflow_dispatch' &&
+      inputs.publish-experimental &&
+      !startsWith(github.ref_name, 'release/') &&
+      !startsWith(github.ref_name, 'lts/')
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          # The EXACT sha GitHub froze when the dispatch was created — the one
+          # the run page shows the approver — NOT the live branch tip: the
+          # approvers gate sits between dispatch and checkout, and the branch
+          # can be pushed (or force-pushed) while the run waits. If the pinned
+          # sha vanishes after a force-push, checkout fails closed. The
+          # detached HEAD is fine: pre-release.mjs only branch-checks for
+          # release/* version stamping, and release/lts refs never reach this
+          # job.
+          ref: ${{ github.sha }}
+
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+        name: Install pnpm
+
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - run: |
+          pnpm install
+          npm install -g npm@11.6 # Ensure npm 11.5.1 or later for trusted publishing
+
+      - name: Publish pre-release
+        run: npm run pre-release
+
+      # The stamped version (0.0.0-next-<sha>-<date>) is buried in the publish
+      # log — surface it so the dispatcher can copy the exact install line.
+      - name: Publication summary
+        run: |
+          VERSION=$(node -p "require('./handsontable/package.json').version")
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## 📦 Experimental build published
+
+          \`\`\`sh
+          npm i handsontable@${VERSION}
+          \`\`\`
+
+          All wrapper packages were published under the same version. Built from \`${{ github.ref_name }}\` at the dispatch-pinned commit \`${{ github.sha }}\` — the npm \`experimental\` dist-tag now points at this build until the next develop publish resets it. Install by the exact version above.
+          EOF
 
   # ============================================================
   # Scenario B — First RC (release event with prerelease flag)
@@ -97,7 +203,7 @@ jobs:
           ref: develop
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         name: Install pnpm
 
       - name: Use Node.js
@@ -218,6 +324,9 @@ jobs:
           CHANGELOG_CONTENT: ${{ steps.changelog.outputs.content }}
         run: node .github/scripts/update-docs-changelog.mjs '${{ steps.version.outputs.rc-version }}'
 
+      - name: Generate version highlights scaffold
+        run: node docs/scripts/generate-version-highlights.mjs '${{ steps.version.outputs.rc-version }}'
+
       - name: Commit and push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -282,6 +391,22 @@ jobs:
   first-rc-test:
     name: Run tests (first RC)
     needs: [first-rc-build]
+    # Ceiling for the called Tests graph. GitHub validates EVERY job-level
+    # permissions request in the nested reusable-workflow graph against this set
+    # STATICALLY at run init — `if:` conditions on runtime-skipped PR-only jobs do
+    # NOT exempt them (actions/runner#4151; verified empirically on this repo).
+    # The write scopes below are requested by PR-only jobs (preview comment,
+    # docs check, CodeQL upload, perf report) that never RUN on this path — they
+    # only have to VALIDATE. Deliberately no id-token: nothing in the test graph
+    # publishes, so this also stops the test jobs inheriting OIDC from the
+    # workflow default.
+    permissions:
+      contents: write
+      actions: read
+      pull-requests: write
+      checks: write
+      security-events: write
+      packages: read
     uses: ./.github/workflows/test.yml
     with:
       test-all: true
@@ -298,7 +423,7 @@ jobs:
         with:
           ref: ${{ needs.first-rc-build.outputs.release-branch }}
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         name: Install pnpm
 
       - name: Use Node.js
@@ -338,7 +463,7 @@ jobs:
         with:
           ref: ${{ needs.first-rc-build.outputs.release-branch }}
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         name: Install pnpm
 
       - name: Use Node.js
@@ -429,7 +554,7 @@ jobs:
           fi
           if [ "$NUGET_RESULT" = "success" ]; then NUGET_STATUS=":white_check_mark: :nuget: *NuGet*"; else NUGET_STATUS=":x: :nuget: *NuGet*"; fi
           BASE_VERSION_DASHES=$(echo "$RC_VERSION" | sed 's/-rc[0-9]*//' | tr '.' '-')
-          DOCS_URL="https://rc-handsontable-${BASE_VERSION_DASHES}.netlify.app/docs/javascript-data-grid/"
+          DOCS_URL="https://rc-${BASE_VERSION_DASHES}.handsontable-docs-staging.pages.dev/docs/javascript-data-grid/"
           CHANGELOG_URL="${REPO_URL}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
 
           jq -n \
@@ -551,7 +676,7 @@ jobs:
           ref: ${{ github.ref_name }}
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         name: Install pnpm
 
       - name: Use Node.js
@@ -675,6 +800,9 @@ jobs:
           CHANGELOG_CONTENT: ${{ steps.changelog.outputs.content }}
         run: node .github/scripts/update-docs-changelog.mjs '${{ steps.rc-version.outputs.rc-version }}'
 
+      - name: Generate version highlights scaffold
+        run: node docs/scripts/generate-version-highlights.mjs '${{ steps.rc-version.outputs.rc-version }}'
+
       - name: Commit and push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -737,6 +865,15 @@ jobs:
   rc-test:
     name: Run tests (RC)
     needs: [rc-build]
+    # Same ceiling as first-rc-test — see the comment there (static nested
+    # permission validation; no id-token for the test graph).
+    permissions:
+      contents: write
+      actions: read
+      pull-requests: write
+      checks: write
+      security-events: write
+      packages: read
     uses: ./.github/workflows/test.yml
     with:
       test-all: true
@@ -753,7 +890,7 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         name: Install pnpm
 
       - name: Use Node.js
@@ -793,7 +930,7 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         name: Install pnpm
 
       - name: Use Node.js
@@ -893,7 +1030,7 @@ jobs:
           RC_NUMBER=$(echo "$RC_VERSION" | sed -n 's/.*-rc\([0-9]*\)/\1/p')
           PREV_TAG="${BASE_VERSION}-rc$((RC_NUMBER - 1))"
           BASE_VERSION_DASHES=$(echo "$BASE_VERSION" | tr '.' '-')
-          DOCS_URL="https://rc-handsontable-${BASE_VERSION_DASHES}.netlify.app/docs/javascript-data-grid/"
+          DOCS_URL="https://rc-${BASE_VERSION_DASHES}.handsontable-docs-staging.pages.dev/docs/javascript-data-grid/"
           RELEASE_BRANCH="${{ github.ref_name }}"
           CHANGELOG_URL="${REPO_URL}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
 
@@ -1032,7 +1169,7 @@ jobs:
           ref: ${{ steps.version.outputs.release-branch }}
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         name: Install pnpm
 
       - name: Use Node.js
@@ -1088,16 +1225,21 @@ jobs:
         run: |
           VERSION='${{ steps.version.outputs.version }}'
           TODAY=$(date +%Y-%m-%d)
+          STABLE_PATTERN="^## \[${VERSION}\] - [0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}$"
           PATTERN="^## \[${VERSION}-rc[0-9]\+\] - [0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}$"
 
-          MATCHES=$(grep -c "$PATTERN" CHANGELOG.md || true)
-          if [ "$MATCHES" -ne 1 ]; then
-            echo "::error::Expected exactly 1 matching line in CHANGELOG.md for version ${VERSION}-rcX, found ${MATCHES}"
-            exit 1
-          fi
+          if grep -q "$STABLE_PATTERN" CHANGELOG.md; then
+            echo "::notice::CHANGELOG.md already updated for ${VERSION} — skipping."
+          else
+            MATCHES=$(grep -c "$PATTERN" CHANGELOG.md || true)
+            if [ "$MATCHES" -ne 1 ]; then
+              echo "::error::Expected exactly 1 matching line in CHANGELOG.md for version ${VERSION}-rcX, found ${MATCHES}"
+              exit 1
+            fi
 
-          sed -i "s/${PATTERN}/## [${VERSION}] - ${TODAY}/" CHANGELOG.md
-          echo "Updated CHANGELOG.md: ## [${VERSION}] - ${TODAY}"
+            sed -i "s/${PATTERN}/## [${VERSION}] - ${TODAY}/" CHANGELOG.md
+            echo "Updated CHANGELOG.md: ## [${VERSION}] - ${TODAY}"
+          fi
 
       - name: Update docs changelog
         run: node .github/scripts/update-docs-changelog.mjs '${{ steps.version.outputs.version }}'
@@ -1142,17 +1284,18 @@ jobs:
     steps:
       - name: Generate release bot token
         id: release-token
-        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # https://github.com/actions/create-github-app-token/releases/tag/v1
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # https://github.com/actions/create-github-app-token/releases/tag/v3.2.0
         with:
-          app-id: ${{ secrets.RELEASE_APP_ID }}
+          client-id: ${{ secrets.RELEASE_APP_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
           ref: ${{ needs.stable-prepare.outputs.release-branch }}
           fetch-depth: 0
+          persist-credentials: false
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         name: Install pnpm
 
       - name: Use Node.js
@@ -1355,7 +1498,7 @@ jobs:
           ref: ${{ needs.stable-merge.outputs.release-branch }}
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         name: Install pnpm
 
       - name: Use Node.js
@@ -1433,7 +1576,7 @@ jobs:
         with:
           ref: ${{ needs.stable-build.outputs.release-branch }}
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         name: Install pnpm
 
       - name: Use Node.js
@@ -1490,7 +1633,7 @@ jobs:
           ref: ${{ needs.stable-build.outputs.release-branch }}
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         name: Install pnpm
 
       - name: Use Node.js

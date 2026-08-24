@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 7a5vawwl
 title: Custom builds
 metaTitle: Custom builds - JavaScript Data Grid | Handsontable
 description: Handsontable's building process transforms the source files located in the code repository into dedicated packages.
@@ -11,11 +10,11 @@ tags:
   - bundling
   - contributing
 react:
-  id: pcflnieu
   metaTitle: Custom builds - React Data Grid | Handsontable
 angular:
-  id: 098p9wiw
   metaTitle: Custom builds - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Custom builds - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
 ---
@@ -34,7 +33,7 @@ The Handsontable repository is a monorepo that contains the following projects:
 | `handsontable`          | `/handsontable`           | Main Handsontable project                                                                            |
 | `@handsontable/react-wrapper`  | `/wrappers/react-wrapper` | [React wrapper](@/react/guides/getting-started/introduction/introduction.md) |
 | `@handsontable/angular-wrapper` | `/wrappers/angular-wrapper`       | [Angular (v16+) wrapper](@/angular/guides/getting-started/introduction/introduction.md)              |
-| `@handsontable/vue3`    | `/wrappers/vue3`          | [Vue wrapper](@/javascript/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)      |
+| `@handsontable/vue3`    | `/wrappers/vue3`          | [Vue wrapper](@/vue/guides/getting-started/installation/installation.md)      |
 
 Handsontable releases all projects together, under the same version number.
 But each project has its own [building](#build-processes) and [testing](@/guides/tools-and-building/testing/testing.md) processes.
@@ -85,11 +84,10 @@ Each Handsontable [project](#monorepo) has its own building processes defined in
 
 To run your first build:
 
-1. Install [Node.js](https://nodejs.org/).
-2. Install [pnpm](https://pnpm.io/) (the repository package manager). <br>The version should correspond to the one defined in the `packageManager` field of the root's `package.json`.
-3. Clone the [Handsontable repository](https://github.com/handsontable/handsontable).
-4. From the root directory, run `pnpm install`.<br>pnpm installs all required dependencies, including for the `docs` and `examples` workspaces.
-5. From the root directory, run `pnpm run build`.<br>The script builds all Handsontable packages.
+1. Make sure you meet the [build requirements](#build-requirements).
+2. Clone the [Handsontable repository](https://github.com/handsontable/handsontable).
+3. From the root directory, run `pnpm install`.<br>pnpm installs all required dependencies, including for the `docs` and `examples` workspaces.
+4. From the root directory, run `pnpm run build`.<br>The script builds all Handsontable packages.
 
 ## Build the packages
 
@@ -247,8 +245,6 @@ From the `/wrappers/angular-wrapper` directory, You can also run individual Angu
 
 :::
 
-::: only-for javascript
-
 ### Build the Vue package
 
 To build the Vue package:
@@ -293,7 +289,9 @@ From the `/wrappers/vue3` directory, you can also run individual Vue `build` tas
 
 :::
 
-:::
+## Result
+
+You now have a local build of Handsontable. The output files in `handsontable/dist/` and `handsontable/tmp/` reflect your source changes.
 
 ## Related guides
 
@@ -308,7 +306,3 @@ From the `/wrappers/vue3` directory, you can also run individual Vue `build` tas
 - [Testing](@/guides/tools-and-building/testing/testing.md)
 
 </div>
-
-## Result
-
-You now have a local build of Handsontable. The output files in `handsontable/dist/` and `handsontable/tmp/` reflect your source changes.

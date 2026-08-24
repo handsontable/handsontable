@@ -1,5 +1,4 @@
 ---
-id: a3f82c19
 title: Custom keyboard shortcuts
 metaTitle: Custom keyboard shortcuts - JavaScript Data Grid | Handsontable
 description: Register custom keyboard shortcuts in Handsontable using the ShortcutManager API. Add Ctrl+D to duplicate rows and Ctrl+Enter to submit grid data.
@@ -12,14 +11,14 @@ tags:
   - recipes
   - tutorial
 react:
-  id: b2e91d30
   metaTitle: Custom keyboard shortcuts - React Data Grid | Handsontable
 angular:
-  id: c4f03e47
   metaTitle: Custom keyboard shortcuts - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Custom keyboard shortcuts - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Accessibility & UX
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will register custom keyboard shortcuts in Handsontable using the ShortcutManager API. You will learn how to add shortcuts like Ctrl+D to duplicate rows and Ctrl+Enter to submit grid data without conflicting with existing browser or grid shortcuts.

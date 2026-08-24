@@ -8,14 +8,14 @@ const ExampleComponent = () => {
   return (
     <HotTable
       data={[
-        ['A1', 'B1', 'C1', 'D1', 'E1'],
-        ['A2', 'B2', 'C2', 'D2', 'E2'],
-        ['A3', 'B3', 'C3', 'D3', 'E3'],
-        ['A4', 'B4', 'C4', 'D4', 'E4'],
-        ['A5', 'B5', 'C5', 'D5', 'E5'],
+        ['SKU-4821', 'Laptop Pro 15', 'Electronics', 149900, 42],
+        ['SKU-0093', 'Wireless Mouse', 'Peripherals', 2999, 218],
+        ['SKU-7712', 'USB-C Hub 7-port', 'Peripherals', 5499, 0],
+        ['SKU-3305', 'Mech. Keyboard', 'Peripherals', 8999, 67],
+        ['SKU-9140', '4K Monitor 27"', 'Electronics', 34999, 15],
       ]}
       rowHeaders={true}
-      colHeaders={true}
+      colHeaders={['SKU', 'Product', 'Category', 'Price ($)', 'Stock']}
       stretchH="all"
       className="custom-table"
       cell={[

@@ -1,0 +1,130 @@
+import type { HotInstance } from '../../../core/types';
+import { addClass, isHTMLElement } from '../../../helpers/dom/element';
+import { arrayEach } from '../../../helpers/array';
+import * as C from '../../../i18n/constants';
+import { BaseComponent } from './_base';
+import { InputUI } from '../ui/input';
+
+/**
+ * @private
+ * @class ActionBarComponent
+ */
+export class ActionBarComponent extends BaseComponent {
+  /**
+   * The name of the component.
+   *
+   * @type {string}
+   */
+  name = '';
+
+  /**
+   * Returns the identifier string for the OK action button.
+   */
+  static get BUTTON_OK() {
+    return 'ok';
+  }
+  /**
+   * Returns the identifier string for the Cancel action button.
+   */
+  static get BUTTON_CANCEL() {
+    return 'cancel';
+  }
+
+  /**
+   * Initializes the action bar component with OK and Cancel buttons.
+   */
+  constructor(hotInstance: HotInstance, options: { id: string; name: string }) {
+    super(hotInstance, {
+      id: options.id,
+      stateless: true,
+    });
+
+    this.name = options.name;
+
+    this.elements.push(
+      new InputUI(hotInstance, {
+        type: 'button',
+        value: C.FILTERS_BUTTONS_OK,
+        className: 'htUIButton htUIButtonOK',
+        identifier: ActionBarComponent.BUTTON_OK
+      })
+    );
+    this.elements.push(
+      new InputUI(hotInstance, {
+        type: 'button',
+        value: C.FILTERS_BUTTONS_CANCEL,
+        className: 'htUIButton htUIButtonCancel',
+        identifier: ActionBarComponent.BUTTON_CANCEL
+      })
+    );
+    this.registerHooks();
+  }
+
+  /**
+   * Register all necessary hooks.
+   *
+   * @private
+   */
+  registerHooks() {
+    arrayEach(this.elements, (element) => {
+      (element as InputUI).addLocalHook('click', (event: Event, button: InputUI) => this.#onButtonClick(event, button));
+    });
+  }
+
+  /**
+   * Get menu object descriptor.
+   *
+   * @returns {object}
+   */
+  getMenuItemDescriptor() {
+    return {
+      key: this.id,
+      name: this.name,
+      isCommand: false,
+      disableSelection: true,
+      hidden: () => this.isHidden(),
+      renderer: (hot: HotInstance, wrapper: HTMLElement) => {
+        if (isHTMLElement(wrapper.parentNode)) {
+          addClass(wrapper.parentNode, 'htFiltersMenuActionBar');
+        }
+        arrayEach(this.elements, (ui) => {
+          const el = (ui as InputUI).element;
+
+          if (el) {
+            wrapper.appendChild(el);
+          }
+        });
+
+        return wrapper;
+      }
+    };
+  }
+
+  /**
+   * Fire accept event.
+   */
+  accept() {
+    this.runLocalHooks('accept');
+  }
+
+  /**
+   * Fire cancel event.
+   */
+  cancel() {
+    this.runLocalHooks('cancel');
+  }
+
+  /**
+   * On button click listener.
+   *
+   * @param {Event} event DOM event.
+   * @param {InputUI} button InputUI object.
+   */
+  #onButtonClick(event: Event, button: InputUI) {
+    if (button.options.identifier === ActionBarComponent.BUTTON_OK) {
+      this.accept();
+    } else {
+      this.cancel();
+    }
+  }
+}

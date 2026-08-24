@@ -44,6 +44,7 @@ new Handsontable(document.createElement('div'), {
 const plugin = hot.getPlugin('notification');
 
 const id: string = plugin.showMessage({ message: 'Hello' });
+
 plugin.showMessage({
   variant: 'success',
   title: 'Done',

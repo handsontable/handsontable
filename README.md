@@ -14,7 +14,7 @@
     <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue3" target="_blank">Vue</a>. With its spreadsheet-like editing features, it’s perfect for building data-rich internal apps. It allows users to enter, edit, validate, and process data from various sources. Common use cases include resource planning software (ERP), inventory management systems, digital platforms, and data modeling applications.
   </p>
 
-<a href="https://handsontable.com">Website</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs">Documentation</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/themes">Themes</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/api">API</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://github.com/handsontable/handsontable/discussions">Community</a>
+<a href="https://handsontable.com">Website</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs">Documentation</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/themes">Themes</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/api">API</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://forum.handsontable.com/">Community</a>
 
   <br>
 
@@ -117,7 +117,7 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
 
   ```
 
-[![Static Badge](https://img.shields.io/badge/Live%20demo%20on%20StackBlitz-1a42e8?style=for-the-badge)](https://stackblitz.com/edit/handsontable-readme-example?file=src%2Fmain.js)
+[![Static Badge](https://img.shields.io/badge/View%20live%20demo-1a42e8?style=for-the-badge)](https://demos.handsontable.com/?example=javascript)
 
 ### CDN-based setup
 
@@ -235,11 +235,11 @@ At first glance, it might seem that a data table, spreadsheet, and data grid are
 **We're here to help!**
 
 If you're using Handsontable with a free, non-commercial license, you can:
-- Join the conversation on [GitHub Discussions](https://github.com/handsontable/handsontable/discussions) to share ideas, suggest features, or discuss changes.
-- Report any bugs you find on our [GitHub Issue Board](https://github.com/handsontable/handsontable/issues).
-- Connect with other developers and find answers on our [Developer Forum](https://forum.handsontable.com).
+- Get quick help from our [**Ask AI** assistant](https://handsontable.com/docs/javascript-data-grid/ai-docs-assistant/) available in the documentation.
+- Report any bugs you find on our [**GitHub Issue Board**](https://github.com/handsontable/handsontable/issues).
+- Connect with other developers and find answers on our [**Developer Forum**](https://forum.handsontable.com/).
 
-If you have a commercial license, feel free to contact us directly at [support@handsontable.com](mailto:support@handsontable.com) or use our [contact form](https://handsontable.com/contact?category=technical_support).
+If you have a commercial license, feel free to contact us directly at [**support@handsontable.com**](mailto:support@handsontable.com) or use our [**contact form**](https://handsontable.com/contact?category=technical_support).
 
 <br>
 
@@ -266,7 +266,7 @@ If you're using Handsontable in a project that supports commercial activities, y
 
 ## 🙌 Contributing
 
-Contributions are welcome, but before you make them, please read the [Contributing Guide](https://github.com/handsontable/handsontable/blob/develop/CONTRIBUTING.md) and accept the [Contributor License Agreement](https://goo.gl/forms/yuutGuN0RjsikVpM2).
+Contributions are welcome, but before you make them, please read the [Contributing Guide](https://github.com/handsontable/handsontable/blob/develop/CONTRIBUTING.md) and accept the [Contributor License Agreement](https://cla.handsontable.com/sign).
 
 <br>
 <br>
@@ -275,4 +275,4 @@ Created and maintained by the [Handsontable Team](https://handsontable.com/team)
 
 ---
 
-© 2012 - 2025 Handsoncode
+© 2012 - 2026 Handsoncode

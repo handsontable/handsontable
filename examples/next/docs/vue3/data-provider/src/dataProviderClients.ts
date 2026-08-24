@@ -1,4 +1,4 @@
-import type { SourceRowData } from 'handsontable/common';
+import type { SourceRowData } from 'handsontable';
 import type {
   DataProviderFetchOptions,
   DataProviderQueryParameters,

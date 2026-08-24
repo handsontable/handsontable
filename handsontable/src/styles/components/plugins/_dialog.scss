@@ -18,7 +18,7 @@
     z-index: 1060;
     opacity: 0;
     overflow-y: auto;
-    border-radius: var(--ht-wrapper-border-radius);
+    border-radius: var(--ht-border-radius);
     border: 1px solid var(--ht-border-color);
     box-sizing: border-box !important;
 
@@ -32,6 +32,7 @@
       outline: none;
     }
 
+    // stylelint-disable-next-line handsontable/no-has-selector -- focus state on the dialog; the dialog does not re-render on scroll, so the :has() invalidation cost is not on any hot path.
     &:has(.htFocusCatcher:focus) {
       border: 1px solid var(--ht-accent-color);
       outline: none;
@@ -66,7 +67,7 @@
       width: 100%;
       min-height: 100%;
       padding: calc(var(--ht-gap-size) * 4);
-      border-radius: var(--ht-wrapper-border-radius);
+      border-radius: var(--ht-border-radius);
     }
 
     &__content {
@@ -96,7 +97,7 @@
             justify-content: center;
             max-width: 480px;
             padding: calc(var(--ht-gap-size) * 2);
-            border-radius: var(--ht-wrapper-border-radius);
+            border-radius: var(--ht-border-radius);
 
             &--background {
               @include mixins.box-shadow;
@@ -119,6 +120,7 @@
           justify-content: center;
           gap: var(--ht-gap-size);
 
+          // stylelint-disable-next-line handsontable/no-has-selector -- static dialog structure (buttons present or not); evaluated once when the dialog opens, never during a scroll re-render.
           &:has(.ht-dialog__buttons) {
             gap: calc(var(--ht-gap-size) * 2);
           }

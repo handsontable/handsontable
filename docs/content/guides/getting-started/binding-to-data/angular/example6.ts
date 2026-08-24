@@ -33,7 +33,6 @@ export class AppComponent {
       { data: 'name.last' },
       { data: 'address' },
     ],
-    minSpareRows: 1,
     autoWrapRow: true,
     autoWrapCol: true
   };

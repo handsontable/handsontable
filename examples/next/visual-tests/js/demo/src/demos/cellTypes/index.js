@@ -108,7 +108,7 @@ export function init() {
       {
         data: 'cost',
         type: 'numeric',
-        numericFormat: { pattern: '$0,0.00' },
+        numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2 },
         headerClassName: 'htRight',
         className: 'htRight',
         width: 150,
@@ -142,7 +142,7 @@ export function init() {
       {
         data: 'itemQuality',
         type: 'numeric',
-        numericFormat: { pattern: '0%' },
+        numericFormat: { style: 'percent' },
         headerClassName: 'htRight',
         className: 'htRight',
         width: 100,
@@ -164,7 +164,7 @@ export function init() {
       {
         data: 'valueStock',
         type: 'numeric',
-        numericFormat: { pattern: '$0,0.00' },
+        numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2 },
         headerClassName: 'htRight',
         className: 'htRight',
         width: 150,
@@ -186,7 +186,7 @@ export function init() {
       {
         data: 'restockDate',
         type: 'date',
-        dateFormat: 'YYYY-MM-DD',
+        dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' },
         headerClassName: 'htRight',
         className: 'htRight',
         width: 150,

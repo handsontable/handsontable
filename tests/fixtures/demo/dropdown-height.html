@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — dropdown height</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    /* The reported layout (#8872): a flex parent decides the grid height, so the
+       grid ends up far shorter than its `height` setting would suggest. */
+    /* A definite starting height, shrunk to the exact one below once the grid has
+       rendered. Left at `auto` the `height: '100%'` grid resolves against a content-sized
+       parent and collapses to 0px, which is not a state worth measuring from. */
+    .flex-column { display: flex; flex-direction: column; height: 200px; }
+    .flex-column > .flex-item { flex: 1 1 0%; min-height: 0; }
+  </style>
+</head>
+<body>
+  <!--
+    E2E fixture for #8872 / DEV-1656: autocomplete dropdown height when a flexbox
+    parent squeezes the grid.
+
+    `#grid` sits in a flex column whose height is set, after the first render, to one
+    rendered row plus one list row. Column headers are off so the edited cell starts at
+    y=0: that keeps `spaceAbove` at 0, so the dropdown can never flip upwards and the
+    "space below" branch of `limitDropdownIfNeeded()` is the one under test. The free
+    space below the cell is then EXACTLY one list row, the boundary where the old
+    arithmetic collapsed the list to a 0px height and hid every choice.
+
+    That exact height is also the only one where the forced row is fully readable. The
+    grid's root element carries `overflow: clip` once a `height` is set, so it cuts off
+    whatever the dropdown renders past the grid's bottom edge. Squeeze the grid below
+    this height and the free space is narrower than the row that gets forced, so the
+    row is partly (at the extreme, entirely) clipped away - a separate limitation
+    tracked in DEV-1656, fixable only by letting the dropdown escape that clipping root.
+
+    Two row heights are published because they differ by the 1px first-row border
+    compensation: `htRowHeight` is what a cell renders as, `htListRowHeight` is what
+    `StylesHandler#getDefaultRowHeight()` reports and what the editor sizes rows by.
+
+    `#grid-tall` is the non-flexbox control: a normal 400px grid where the whole list
+    fits and must keep rendering all options untouched.
+
+    The Country cells start empty so opening the editor does not filter the list down
+    to the cell's own value — the test is about the list's height, not its filtering.
+
+    The wrapper height is derived from the rendered row height instead of being
+    hardcoded, because each theme (main/horizon/classic) has its own row height.
+    TDs are stamped with data-testid in afterRender because the autocomplete cell
+    type owns its renderer (the arrow), so a custom renderer would break it.
+  -->
+  <div class="flex-column" id="flex-wrapper">
+    <div class="flex-item" id="grid" data-testid="grid"></div>
+  </div>
+
+  <div style="margin-top: 1rem">
+    <div id="grid-tall" data-testid="grid-tall"></div>
+  </div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const COUNTRIES = ['Germany', 'Italy', 'France', 'Finland', 'Spain'];
+
+    function stampTestIds() {
+      this.getData().forEach((rowData, row) => {
+        rowData.forEach((cellValue, col) => {
+          const td = this.getCell(row, col);
+
+          if (td) {
+            td.setAttribute('data-testid', `cell-${row}-${col}`);
+          }
+        });
+      });
+    }
+
+    const settings = {
+      data: [
+        ['Nokia', ''],
+        ['Bosch', ''],
+        ['Ferrero', ''],
+      ],
+      colWidths: [140, 140],
+      columns: [
+        {},
+        { type: 'autocomplete', source: COUNTRIES, strict: true },
+      ],
+      afterRender: stampTestIds,
+      licenseKey: 'non-commercial-and-evaluation',
+    };
+
+    const squeezed = document.querySelector('[data-testid="grid"]');
+    const tall = document.querySelector('[data-testid="grid-tall"]');
+
+    squeezed.className = `flex-item ht-theme-${window.htTheme}`;
+    tall.className = `ht-theme-${window.htTheme}`;
+
+    window.hot = new Handsontable(squeezed, {
+      ...settings,
+      colHeaders: false,
+      height: '100%',
+    });
+
+    window.hotTall = new Handsontable(tall, {
+      ...settings,
+      colHeaders: ['Company Name', 'Country'],
+      height: 400,
+    });
+
+    window.htOptionCount = COUNTRIES.length;
+
+    // Squeeze the flex parent so the space below the edited cell is exactly one list row.
+    // Both heights are measured from what the active theme actually rendered, never
+    // hardcoded - main, horizon, and classic all differ.
+    //
+    // The measurement runs on the first render that has cells, not only straight after the
+    // constructor: `getCell(0, 0)` is only guaranteed once the grid has rendered, and a grid
+    // whose root element is not painted takes core's hidden-init path and renders later. A
+    // purely synchronous read would throw on that path instead of measuring anything.
+    let isSqueezed = false;
+
+    function squeezeWrapperOnce() {
+      const firstCell = window.hot.getCell(0, 0);
+
+      if (isSqueezed || !firstCell) {
+        return;
+      }
+
+      isSqueezed = true;
+      window.htRowHeight = firstCell.offsetHeight;
+      window.htListRowHeight = window.hot.stylesHandler.getDefaultRowHeight();
+      document.getElementById('flex-wrapper').style.height =
+        `${window.htRowHeight + window.htListRowHeight}px`;
+      window.hot.refreshDimensions();
+    }
+
+    window.hot.addHook('afterRender', squeezeWrapperOnce);
+    squeezeWrapperOnce();
+  </script>
+</body>
+</html>

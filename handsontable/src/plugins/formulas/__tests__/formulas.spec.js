@@ -535,18 +535,18 @@ describe('Formulas general', () => {
       },
       columns: [{
         type: 'date',
-        dateFormat: 'DD/MM/YYYY'
+        dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
       }, {
         type: 'date',
-        dateFormat: 'DD/MM/YYYY'
+        dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
       }],
       width: 500,
       height: 300
     });
   });
 
-  it('should return a correctly formatted date while using `getDataAtCell` inside `cells` method with custom dateFormat', async() => {
-    const data = [['02/28/1900', '03/01/1900', '=DATEDIF(A1, B1, "D")']];
+  it('should return a correctly formatted date while using `getDataAtCell` inside `cells` method with ISO date format', async() => {
+    const data = [['1900-02-28', '1900-03-01', '=DATEDIF(A1, B1, "D")']];
 
     handsontable({
       data,
@@ -559,8 +559,8 @@ describe('Formulas general', () => {
         }
       },
       columns: [
-        { type: 'date', dateFormat: 'MM/DD/YYYY' },
-        { type: 'date', dateFormat: 'MM/DD/YYYY' },
+        { type: 'date' },
+        { type: 'date' },
         { type: 'numeric' }
       ]
     });
@@ -754,9 +754,64 @@ describe('Formulas general', () => {
       spyOn(engine, 'removeRows').and.callThrough();
       await alter('remove_row', 9, 3);
 
-      expect(engine.removeRows.calls.argsFor(0)).toEqual([0, [11, 1]]);
-      expect(engine.removeRows.calls.argsFor(1)).toEqual([0, [10, 1]]);
-      expect(engine.removeRows.calls.argsFor(2)).toEqual([0, [9, 1]]);
+      expect(engine.removeRows.calls.count()).toBe(1);
+      expect(engine.removeRows.calls.argsFor(0)).toEqual([0, [9, 3]]);
+    });
+
+    it('should remove rows with non-contiguous engine indexes (trimmed rows in between) within a single engine call', async() => {
+      handsontable({
+        data: [
+          [1, null],
+          [2, null],
+          [3, null],
+          [4, null],
+          [5, null],
+          [6, '=SUM(A1:A6)'],
+        ],
+        trimRows: [2],
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      const engine = getPlugin('formulas').engine;
+
+      spyOn(engine, 'removeRows').and.callThrough();
+
+      // Visual rows 0-3 map to physical (and engine) rows 0, 1, 3, 4 — the trimmed
+      // physical row 2 splits them into two spans.
+      await alter('remove_row', 0, 4);
+
+      expect(engine.removeRows.calls.count()).toBe(1);
+      expect(engine.removeRows.calls.argsFor(0)).toEqual([0, [0, 2], [3, 2]]);
+      expect(countRows()).toBe(1);
+      expect(getDataAtRow(0)).toEqual([6, 9]);
+    });
+
+    it('should restore values with a single undo after a coalesced multi-row removal', async() => {
+      handsontable({
+        data: [
+          [1, '=SUM(A1:A5)'],
+          [2, null],
+          [3, null],
+          [4, null],
+          [5, null],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      await alter('remove_row', 1, 3);
+
+      expect(countRows()).toBe(2);
+      expect(getDataAtCell(0, 1)).toBe(6);
+
+      getPlugin('undoRedo').undo();
+
+      expect(countRows()).toBe(5);
+      expect(getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
+      expect(getDataAtCell(0, 1)).toBe(15);
     });
 
     it('should not throw an error after removing all rows', async() => {
@@ -942,9 +997,8 @@ describe('Formulas general', () => {
       spyOn(engine, 'removeColumns').and.callThrough();
       await alter('remove_col', 9, 3);
 
-      expect(engine.removeColumns.calls.argsFor(0)).toEqual([0, [11, 1]]);
-      expect(engine.removeColumns.calls.argsFor(1)).toEqual([0, [10, 1]]);
-      expect(engine.removeColumns.calls.argsFor(2)).toEqual([0, [9, 1]]);
+      expect(engine.removeColumns.calls.count()).toBe(1);
+      expect(engine.removeColumns.calls.argsFor(0)).toEqual([0, [9, 3]]);
     });
 
     it('should recalculate table and replace coordinates in formula expressions into #REF! ' +
@@ -1612,7 +1666,7 @@ describe('Formulas general', () => {
   });
 
   describe('hyperformula alter operation blocks', () => {
-    it('should block creating too many rows', async() => {
+    it('should cap row creation at `maxRows`, like a grid without the plugin', async() => {
       handsontable({
         data: [],
         formulas: {
@@ -1626,7 +1680,9 @@ describe('Formulas general', () => {
 
       await alter('insert_row_above', 0, 20000);
 
-      expect(countRows()).toEqual(0);
+      // The engine no longer carries the grid's `maxRows` (GH #10672), so it stops cancelling the whole
+      // insert and `dataMap.createRow` caps it at `maxRows` - the same as a grid without the plugin.
+      expect(countRows()).toEqual(10000);
     });
 
     it('should block creating too many columns', async() => {
@@ -1849,7 +1905,7 @@ describe('Formulas general', () => {
           { type: 'text' },
           { type: 'text' },
           { type: 'text' },
-          { type: 'date', dateFormat: 'M/D/YYYY' },
+          { type: 'date', dateFormat: { year: 'numeric', month: 'numeric', day: 'numeric' } },
           { type: 'numeric' }
         ],
         colHeaders: true,
@@ -1881,7 +1937,7 @@ describe('Formulas general', () => {
           { type: 'text' },
           { type: 'text' },
           { type: 'text' },
-          { type: 'date', dateFormat: 'M/D/YYYY' },
+          { type: 'date', dateFormat: { year: 'numeric', month: 'numeric', day: 'numeric' } },
           { type: 'numeric' }
         ],
         colHeaders: true,
@@ -2349,7 +2405,7 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'DD/MM/YYYY'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         }],
       });
 
@@ -2377,7 +2433,7 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'DD/MM/YYYY'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         }],
       });
 
@@ -2396,7 +2452,7 @@ describe('Formulas general', () => {
     it('should handle date functions properly', async() => {
       handsontable({
         data: [
-          ['=DATE(2022, 8, 1)', '=DATEVALUE("01/03/2020")'],
+          ['=DATE(2022, 8, 1)', '=DATEVALUE("2020-03-01")'],
           ['=EDATE(A1, 1)', '=DAYS(A1, A2)'],
           ['=A2', '=DATEDIF(TODAY(), NOW(), "D")'],
         ],
@@ -2405,20 +2461,19 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'MM/DD/YYYY'
         }, {
           type: 'numeric'
         }],
       });
 
       expect(getData()).toEqual([
-        ['08/01/2022', 43891], // A Datestring handled using HF's `dateFormats` option.
-        ['09/01/2022', -31],
-        ['09/01/2022', 0],
+        ['2022-08-01', 43891], // DATEVALUE("2020-03-01") = 43891 (March 1, 2020 serial)
+        ['2022-09-01', -31],
+        ['2022-09-01', 0],
       ]);
 
       expect(getSourceData()).toEqual([
-        ['=DATE(2022, 8, 1)', '=DATEVALUE("01/03/2020")'],
+        ['=DATE(2022, 8, 1)', '=DATEVALUE("2020-03-01")'],
         ['=EDATE(A1, 1)', '=DAYS(A1, A2)'],
         ['=A2', '=DATEDIF(TODAY(), NOW(), "D")'],
       ]);
@@ -2435,7 +2490,7 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'MM/DD/YYYY'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         }],
       });
 
@@ -2480,7 +2535,7 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'DD-MM-YYYY'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         }],
       });
 
@@ -2514,10 +2569,10 @@ describe('Formulas general', () => {
       expect(getCellMeta(1, 0).valid).toBe(false);
     });
 
-    it('should handle correct on start dates properly (mismatching date formatting)', async() => {
+    it('should handle valid ISO dates on start (HF parses them as serials)', async() => {
       handsontable({
         data: [
-          ['12/11/2022'],
+          ['2022-12-11'],
           ['=A1']
         ],
         formulas: {
@@ -2525,7 +2580,6 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'MM/DD/YYYY'
         }],
       });
 
@@ -2537,17 +2591,17 @@ describe('Formulas general', () => {
       ]);
 
       expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
-        ['11/12/2022'],
+        ['2022-12-11'],
         ['=A1'],
       ]);
 
       expect(getData()).toEqual([
-        ['12/11/2022'],
-        ['12/11/2022'],
+        ['2022-12-11'],
+        ['2022-12-11'],
       ]);
 
       expect(getSourceData()).toEqual([
-        ['12/11/2022'],
+        ['2022-12-11'],
         ['=A1'],
       ]);
 
@@ -2559,10 +2613,10 @@ describe('Formulas general', () => {
       expect(getCellMeta(1, 0).valid).toBe(true);
     });
 
-    it('should handle dates after change properly (mismatching date formatting)', async() => {
+    it('should handle date changes: invalid ISO is escaped, valid ISO is parsed as serial', async() => {
       handsontable({
         data: [
-          ['12/11/2022'],
+          ['2022-12-11'],
           ['=A1']
         ],
         formulas: {
@@ -2570,33 +2624,32 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'MM/DD/YYYY'
         }],
       });
 
       const formulasPlugin = getPlugin('formulas');
 
-      await setDataAtCell(0, 0, '13/12/2022');
+      await setDataAtCell(0, 0, 'not-a-date');
 
       await waitForNextAnimationFrames(2);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
-        ['13/12/2022'], // Not converted - improper date (we treat it as a string)
-        ['13/12/2022'],
+        ['not-a-date'], // Not ISO — escaped as string
+        ['not-a-date'],
       ]);
 
       expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
-        ['\'13/12/2022'],
+        ['\'not-a-date'],
         ['=A1'],
       ]);
 
       expect(getData()).toEqual([
-        ['13/12/2022'],
-        ['13/12/2022'],
+        ['not-a-date'],
+        ['not-a-date'],
       ]);
 
       expect(getSourceData()).toEqual([
-        ['13/12/2022'],
+        ['not-a-date'],
         ['=A1'],
       ]);
 
@@ -2607,7 +2660,7 @@ describe('Formulas general', () => {
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
 
-      await setDataAtCell(0, 0, '12/11/2022');
+      await setDataAtCell(0, 0, '2022-12-11');
 
       await waitForNextAnimationFrames(2);
 
@@ -2617,124 +2670,17 @@ describe('Formulas general', () => {
       ]);
 
       expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
-        ['11/12/2022'],
+        ['2022-12-11'],
         ['=A1'],
       ]);
 
       expect(getData()).toEqual([
-        ['12/11/2022'],
-        ['12/11/2022'],
+        ['2022-12-11'],
+        ['2022-12-11'],
       ]);
 
       expect(getSourceData()).toEqual([
-        ['12/11/2022'],
-        ['=A1'],
-      ]);
-
-      await validateCells();
-
-      await waitForNextAnimationFrames(2);
-
-      expect(getCellMeta(0, 0).valid).toBe(true);
-      expect(getCellMeta(1, 0).valid).toBe(true);
-    });
-
-    it('should handle dates properly (matching date formatting)', async() => {
-      handsontable({
-        data: [
-          ['12/11/2022'],
-          ['=A1']
-        ],
-        formulas: {
-          engine: HyperFormula,
-        },
-        columns: [{
-          type: 'date',
-          dateFormat: 'DD/MM/YYYY'
-        }],
-      });
-
-      const formulasPlugin = getPlugin('formulas');
-
-      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
-        [44877], // 12 Nov 2022
-        [44877], // 12 Nov 2022
-      ]);
-
-      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
-        ['12/11/2022'],
-        ['=A1'],
-      ]);
-
-      expect(getData()).toEqual([
-        ['12/11/2022'],
-        ['12/11/2022'],
-      ]);
-
-      expect(getSourceData()).toEqual([
-        ['12/11/2022'],
-        ['=A1'],
-      ]);
-
-      await validateCells();
-
-      await waitForNextAnimationFrames(2);
-
-      expect(getCellMeta(0, 0).valid).toBe(true);
-      expect(getCellMeta(1, 0).valid).toBe(true);
-
-      await setDataAtCell(0, 0, '12/13/2022');
-
-      await waitForNextAnimationFrames(2);
-
-      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
-        ['12/13/2022'], // Not converted - improper date (we treat it as a string)
-        ['12/13/2022'],
-      ]);
-
-      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
-        ['\'12/13/2022'],
-        ['=A1'],
-      ]);
-
-      expect(getData()).toEqual([
-        ['12/13/2022'],
-        ['12/13/2022'],
-      ]);
-
-      expect(getSourceData()).toEqual([
-        ['12/13/2022'],
-        ['=A1'],
-      ]);
-
-      await validateCells();
-
-      await waitForNextAnimationFrames(2);
-
-      expect(getCellMeta(0, 0).valid).toBe(false);
-      expect(getCellMeta(1, 0).valid).toBe(false);
-
-      await setDataAtCell(0, 0, '13/11/2022');
-
-      await waitForNextAnimationFrames(2);
-
-      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
-        [44878], // 13 Nov 2022
-        [44878], // 13 Nov 2022
-      ]);
-
-      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
-        ['13/11/2022'],
-        ['=A1'],
-      ]);
-
-      expect(getData()).toEqual([
-        ['13/11/2022'],
-        ['13/11/2022'],
-      ]);
-
-      expect(getSourceData()).toEqual([
-        ['13/11/2022'],
+        ['2022-12-11'],
         ['=A1'],
       ]);
 
@@ -2747,12 +2693,12 @@ describe('Formulas general', () => {
     });
 
     it('should handle HF configuration property (HF instance should not overwrite `leapYear1900` and `nullDate` properties)', async() => {
-      // Create an external HyperFormula instance
-      const hfInstance = HyperFormula.buildEmpty({});
+      // Create an external HyperFormula instance with ISO date format support
+      const hfInstance = HyperFormula.buildEmpty({ dateFormats: ['YYYY-MM-DD'] });
 
       handsontable({
         data: [
-          ['01/03/1900'],
+          ['1900-03-01'],
           ['=A1']
         ],
         formulas: {
@@ -2761,7 +2707,6 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'DD/MM/YYYY'
         }],
       });
 
@@ -2773,17 +2718,17 @@ describe('Formulas general', () => {
       ]);
 
       expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
-        ['01/03/1900'],
+        ['1900-03-01'],
         ['=A1'],
       ]);
 
       expect(getData()).toEqual([
-        ['01/03/1900'],
-        ['01/03/1900'],
+        ['1900-03-01'],
+        ['1900-03-01'],
       ]);
 
       expect(getSourceData()).toEqual([
-        ['01/03/1900'],
+        ['1900-03-01'],
         ['=A1'],
       ]);
     });
@@ -2793,7 +2738,7 @@ describe('Formulas general', () => {
 
       handsontable({
         data: [
-          ['01/03/1900'],
+          ['1900-03-01'],
           ['=A1']
         ],
         formulas: {
@@ -2801,7 +2746,6 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'DD/MM/YYYY'
         }],
       });
 
@@ -2809,13 +2753,13 @@ describe('Formulas general', () => {
     });
 
     it('should not show warn for not overwritten HF\'s configuration options such as `leapYear1900` and `nullDate`', async() => {
-      // Create an external HyperFormula instance
-      const hfInstance = HyperFormula.buildEmpty({});
+      // Create an external HyperFormula instance with ISO date format support
+      const hfInstance = HyperFormula.buildEmpty({ dateFormats: ['YYYY-MM-DD'] });
       const warnSpy = spyOnConsoleWarn();
 
       handsontable({
         data: [
-          ['01/03/1900'],
+          ['1900-03-01'],
           ['=A1']
         ],
         formulas: {
@@ -2824,7 +2768,6 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'DD/MM/YYYY'
         }],
       });
 
@@ -2832,15 +2775,16 @@ describe('Formulas general', () => {
     });
 
     it('should show warn for overwritten HF\'s configuration option such as `leapYear1900`', async() => {
-      // Create an external HyperFormula instance
+      // Create an external HyperFormula instance with ISO date format support
       const hfInstance = HyperFormula.buildEmpty({
+        dateFormats: ['YYYY-MM-DD'],
         leapYear1900: true,
       });
       const warnSpy = spyOnConsoleWarn();
 
       handsontable({
         data: [
-          ['01/03/1900'],
+          ['1900-03-01'],
           ['=A1']
         ],
         formulas: {
@@ -2849,7 +2793,6 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'DD/MM/YYYY'
         }],
       });
 
@@ -2857,8 +2800,9 @@ describe('Formulas general', () => {
     });
 
     it('should show warn for overwritten HF\'s configuration option such as `nullDate`', async() => {
-      // Create an external HyperFormula instance
+      // Create an external HyperFormula instance with ISO date format support
       const hfInstance = HyperFormula.buildEmpty({
+        dateFormats: ['YYYY-MM-DD'],
         nullDate: {
           year: 1970,
           month: 0,
@@ -2869,7 +2813,7 @@ describe('Formulas general', () => {
 
       handsontable({
         data: [
-          ['01/03/1900'],
+          ['1900-03-01'],
           ['=A1']
         ],
         formulas: {
@@ -2878,7 +2822,6 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'DD/MM/YYYY'
         }],
       });
 
@@ -2898,19 +2841,24 @@ describe('Formulas general', () => {
         columns: [{
           type: 'numeric',
           numericFormat: {
-            pattern: '0,0.00000'
+            minimumFractionDigits: 5,
+            maximumFractionDigits: 5,
           }
         },
         {
           type: 'numeric',
           numericFormat: {
-            pattern: '0,0.00000'
+            minimumFractionDigits: 5,
+            maximumFractionDigits: 5,
           }
         },
         {
           type: 'numeric',
           numericFormat: {
-            pattern: '0,0.00 $',
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
           }
         }],
       });
@@ -2939,7 +2887,7 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'MM/DD/YYYY'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         }],
       });
 
@@ -2984,7 +2932,7 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'DD-MM-YYYY'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         }],
       });
 
@@ -3018,10 +2966,10 @@ describe('Formulas general', () => {
       expect(getCellMeta(1, 0).valid).toBe(false);
     });
 
-    it('should handle correct on start dates properly (mismatching date formatting)', async() => {
+    it('should handle valid ISO dates on start (HF parses them as serials)', async() => {
       handsontable({
         data: [
-          ['12/11/2022'],
+          ['2022-12-11'],
           ['=A1']
         ],
         formulas: {
@@ -3029,7 +2977,6 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'MM/DD/YYYY'
         }],
       });
 
@@ -3041,17 +2988,17 @@ describe('Formulas general', () => {
       ]);
 
       expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
-        ['11/12/2022'],
+        ['2022-12-11'],
         ['=A1'],
       ]);
 
       expect(getData()).toEqual([
-        ['12/11/2022'],
-        ['12/11/2022'],
+        ['2022-12-11'],
+        ['2022-12-11'],
       ]);
 
       expect(getSourceData()).toEqual([
-        ['12/11/2022'],
+        ['2022-12-11'],
         ['=A1'],
       ]);
 
@@ -3063,10 +3010,10 @@ describe('Formulas general', () => {
       expect(getCellMeta(1, 0).valid).toBe(true);
     });
 
-    it('should handle dates after change properly (mismatching date formatting)', async() => {
+    it('should handle date changes: invalid ISO is escaped, valid ISO is parsed as serial', async() => {
       handsontable({
         data: [
-          ['12/11/2022'],
+          ['2022-12-11'],
           ['=A1']
         ],
         formulas: {
@@ -3074,33 +3021,32 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'MM/DD/YYYY'
         }],
       });
 
       const formulasPlugin = getPlugin('formulas');
 
-      await setDataAtCell(0, 0, '13/12/2022');
+      await setDataAtCell(0, 0, 'not-a-date');
 
       await waitForNextAnimationFrames(2);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
-        ['13/12/2022'], // Not converted - improper date (we treat it as a string)
-        ['13/12/2022'],
+        ['not-a-date'], // Not ISO — escaped as string
+        ['not-a-date'],
       ]);
 
       expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
-        ['\'13/12/2022'],
+        ['\'not-a-date'],
         ['=A1'],
       ]);
 
       expect(getData()).toEqual([
-        ['13/12/2022'],
-        ['13/12/2022'],
+        ['not-a-date'],
+        ['not-a-date'],
       ]);
 
       expect(getSourceData()).toEqual([
-        ['13/12/2022'],
+        ['not-a-date'],
         ['=A1'],
       ]);
 
@@ -3111,7 +3057,7 @@ describe('Formulas general', () => {
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
 
-      await setDataAtCell(0, 0, '12/11/2022');
+      await setDataAtCell(0, 0, '2022-12-11');
 
       await waitForNextAnimationFrames(2);
 
@@ -3121,124 +3067,17 @@ describe('Formulas general', () => {
       ]);
 
       expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
-        ['11/12/2022'],
+        ['2022-12-11'],
         ['=A1'],
       ]);
 
       expect(getData()).toEqual([
-        ['12/11/2022'],
-        ['12/11/2022'],
+        ['2022-12-11'],
+        ['2022-12-11'],
       ]);
 
       expect(getSourceData()).toEqual([
-        ['12/11/2022'],
-        ['=A1'],
-      ]);
-
-      await validateCells();
-
-      await waitForNextAnimationFrames(2);
-
-      expect(getCellMeta(0, 0).valid).toBe(true);
-      expect(getCellMeta(1, 0).valid).toBe(true);
-    });
-
-    it('should handle dates properly (matching date formatting)', async() => {
-      handsontable({
-        data: [
-          ['12/11/2022'],
-          ['=A1']
-        ],
-        formulas: {
-          engine: HyperFormula,
-        },
-        columns: [{
-          type: 'date',
-          dateFormat: 'DD/MM/YYYY'
-        }],
-      });
-
-      const formulasPlugin = getPlugin('formulas');
-
-      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
-        [44877], // 12 Nov 2022
-        [44877], // 12 Nov 2022
-      ]);
-
-      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
-        ['12/11/2022'],
-        ['=A1'],
-      ]);
-
-      expect(getData()).toEqual([
-        ['12/11/2022'],
-        ['12/11/2022'],
-      ]);
-
-      expect(getSourceData()).toEqual([
-        ['12/11/2022'],
-        ['=A1'],
-      ]);
-
-      await validateCells();
-
-      await waitForNextAnimationFrames(2);
-
-      expect(getCellMeta(0, 0).valid).toBe(true);
-      expect(getCellMeta(1, 0).valid).toBe(true);
-
-      await setDataAtCell(0, 0, '12/13/2022');
-
-      await waitForNextAnimationFrames(2);
-
-      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
-        ['12/13/2022'], // Not converted - improper date (we treat it as a string)
-        ['12/13/2022'],
-      ]);
-
-      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
-        ['\'12/13/2022'],
-        ['=A1'],
-      ]);
-
-      expect(getData()).toEqual([
-        ['12/13/2022'],
-        ['12/13/2022'],
-      ]);
-
-      expect(getSourceData()).toEqual([
-        ['12/13/2022'],
-        ['=A1'],
-      ]);
-
-      await validateCells();
-
-      await waitForNextAnimationFrames(2);
-
-      expect(getCellMeta(0, 0).valid).toBe(false);
-      expect(getCellMeta(1, 0).valid).toBe(false);
-
-      await setDataAtCell(0, 0, '13/11/2022');
-
-      await waitForNextAnimationFrames(2);
-
-      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
-        [44878], // 13 Nov 2022
-        [44878], // 13 Nov 2022
-      ]);
-
-      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
-        ['13/11/2022'],
-        ['=A1'],
-      ]);
-
-      expect(getData()).toEqual([
-        ['13/11/2022'],
-        ['13/11/2022'],
-      ]);
-
-      expect(getSourceData()).toEqual([
-        ['13/11/2022'],
+        ['2022-12-11'],
         ['=A1'],
       ]);
 
@@ -3251,12 +3090,12 @@ describe('Formulas general', () => {
     });
 
     it('should handle HF configuration property (HF instance should not overwrite `leapYear1900` and `nullDate` properties)', async() => {
-      // Create an external HyperFormula instance
-      const hfInstance = HyperFormula.buildEmpty({});
+      // Create an external HyperFormula instance with ISO date format support
+      const hfInstance = HyperFormula.buildEmpty({ dateFormats: ['YYYY-MM-DD'] });
 
       handsontable({
         data: [
-          ['01/03/1900'],
+          ['1900-03-01'],
           ['=A1']
         ],
         formulas: {
@@ -3265,7 +3104,6 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'DD/MM/YYYY'
         }],
       });
 
@@ -3277,17 +3115,17 @@ describe('Formulas general', () => {
       ]);
 
       expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
-        ['01/03/1900'],
+        ['1900-03-01'],
         ['=A1'],
       ]);
 
       expect(getData()).toEqual([
-        ['01/03/1900'],
-        ['01/03/1900'],
+        ['1900-03-01'],
+        ['1900-03-01'],
       ]);
 
       expect(getSourceData()).toEqual([
-        ['01/03/1900'],
+        ['1900-03-01'],
         ['=A1'],
       ]);
     });
@@ -3297,7 +3135,7 @@ describe('Formulas general', () => {
 
       handsontable({
         data: [
-          ['01/03/1900'],
+          ['1900-03-01'],
           ['=A1']
         ],
         formulas: {
@@ -3305,7 +3143,6 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'DD/MM/YYYY'
         }],
       });
 
@@ -3313,13 +3150,13 @@ describe('Formulas general', () => {
     });
 
     it('should not show warn for not overwritten HF\'s configuration options such as `leapYear1900` and `nullDate`', async() => {
-      // Create an external HyperFormula instance
-      const hfInstance = HyperFormula.buildEmpty({});
+      // Create an external HyperFormula instance with ISO date format support
+      const hfInstance = HyperFormula.buildEmpty({ dateFormats: ['YYYY-MM-DD'] });
       const warnSpy = spyOnConsoleWarn();
 
       handsontable({
         data: [
-          ['01/03/1900'],
+          ['1900-03-01'],
           ['=A1']
         ],
         formulas: {
@@ -3328,7 +3165,6 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'DD/MM/YYYY'
         }],
       });
 
@@ -3336,15 +3172,16 @@ describe('Formulas general', () => {
     });
 
     it('should show warn for overwritten HF\'s configuration option such as `leapYear1900`', async() => {
-      // Create an external HyperFormula instance
+      // Create an external HyperFormula instance with ISO date format support
       const hfInstance = HyperFormula.buildEmpty({
+        dateFormats: ['YYYY-MM-DD'],
         leapYear1900: true,
       });
       const warnSpy = spyOnConsoleWarn();
 
       handsontable({
         data: [
-          ['01/03/1900'],
+          ['1900-03-01'],
           ['=A1']
         ],
         formulas: {
@@ -3353,7 +3190,6 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'DD/MM/YYYY'
         }],
       });
 
@@ -3361,8 +3197,9 @@ describe('Formulas general', () => {
     });
 
     it('should show warn for overwritten HF\'s configuration option such as `nullDate`', async() => {
-      // Create an external HyperFormula instance
+      // Create an external HyperFormula instance with ISO date format support
       const hfInstance = HyperFormula.buildEmpty({
+        dateFormats: ['YYYY-MM-DD'],
         nullDate: {
           year: 1970,
           month: 0,
@@ -3373,7 +3210,7 @@ describe('Formulas general', () => {
 
       handsontable({
         data: [
-          ['01/03/1900'],
+          ['1900-03-01'],
           ['=A1']
         ],
         formulas: {
@@ -3382,7 +3219,6 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'DD/MM/YYYY'
         }],
       });
 

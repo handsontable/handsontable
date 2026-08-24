@@ -29,7 +29,7 @@ export class AppComponent {
     filters: true,
     contextMenu: true,
     emptyDataState: {
-      message: (source) => {
+      message: (source: string) => {
         switch (source) {
           case 'filters':
             return {

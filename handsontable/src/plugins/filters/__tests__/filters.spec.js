@@ -184,8 +184,7 @@ describe('Filters', () => {
     const warnSpy = spyOnConsoleWarn();
 
     handsontable({
-      data: getDataForFilters(),
-      columns: getColumnsForFilters(),
+      data: createSpreadsheetData(10, 5),
       dropdownMenu: true,
       filters: true,
       width: 500,
@@ -219,8 +218,7 @@ describe('Filters', () => {
     const warnSpy = spyOnConsoleWarn();
 
     handsontable({
-      data: getDataForFilters(),
-      columns: getColumnsForFilters(),
+      data: createSpreadsheetData(10, 5),
       dropdownMenu: true,
       filters: true,
       width: 500,
@@ -245,8 +243,7 @@ describe('Filters', () => {
     const warnSpy = spyOnConsoleWarn();
 
     handsontable({
-      data: getDataForFilters(),
-      columns: getColumnsForFilters(),
+      data: createSpreadsheetData(10, 5),
       filters: true,
       width: 500,
       height: 300
@@ -486,7 +483,7 @@ describe('Filters', () => {
       expect(getData()[1][0]).toBe(24);
       expect(getData()[1][1]).toBe('Greta Patterson');
       expect(getData()[1][2]).toBe('Bartonsville');
-      expect(getData()[1][3]).toBe(moment().add(-2, 'days').format(FILTERS_DATE_FORMAT));
+      expect(getData()[1][3]).toBe(addDays(-2));
       expect(getData()[1][4]).toBe('green');
       expect(getData()[1][5]).toBe(2437.58);
       expect(getData()[1][6]).toBe(false);
@@ -920,6 +917,193 @@ describe('Filters', () => {
       expect(hotInstance.toVisualColumn).toHaveBeenCalledWith(physicalColumn);
       // Verify that getDataAtCol was called with the visual index
       expect(hotInstance.getDataAtCol).toHaveBeenCalledWith(visualColumn);
+    });
+  });
+
+  describe('Editing a cell in an earlier filtered column (issue #8874)', () => {
+    it('should keep dependent column by_value selection in cached state after editing earlier filtered column',
+      async() => {
+        handsontable({
+          data: [
+            { id: 1, country: 'Germany', company: 'BMW' },
+            { id: 2, country: 'Germany', company: 'Mercedes' },
+            { id: 3, country: 'Italy', company: 'Fiat' },
+            { id: 4, country: 'France', company: 'Renault' },
+          ],
+          columns: [
+            { data: 'id', type: 'numeric' },
+            { data: 'country' },
+            { data: 'company' },
+          ],
+          colHeaders: ['ID', 'Country', 'Company'],
+          dropdownMenu: true,
+          filters: true,
+        });
+
+        const filters = getPlugin('filters');
+
+        filters.addCondition(1, 'by_value', [['Germany', 'France']]);
+        filters.filter();
+        filters.addCondition(2, 'by_value', [['Mercedes', 'Renault']]);
+        filters.filter();
+
+        await setDataAtCell(0, 1, 'France');
+
+        const valueComponentState = filters.components.get('filter_by_value').state.getValueAtIndex(2);
+
+        expect(valueComponentState.args[0]).toEqual(['Mercedes', 'Renault']);
+      });
+  });
+
+  describe('Batched value component updates (`afterChange`)', () => {
+    it('should update the value component state once per column for a multi-cell change batch', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+      });
+
+      const filters = getPlugin('filters');
+
+      filters.addCondition(1, 'by_value', [['B1', 'B2', 'B3', 'B4']]);
+      filters.filter();
+
+      const updateSpy = spyOn(filters, 'updateValueComponentCondition').and.callThrough();
+
+      await setDataAtCell([[0, 1, 'X1'], [1, 1, 'X2'], [2, 1, 'X3']]);
+
+      expect(updateSpy).toHaveBeenCalledTimes(1);
+      expect(updateSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('should update the value component state for every distinct filtered column in one change batch', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+      });
+
+      const filters = getPlugin('filters');
+
+      filters.addCondition(1, 'by_value', [['B1', 'B2', 'B3', 'B4']]);
+      filters.filter();
+      filters.addCondition(2, 'by_value', [['C1', 'C2', 'C3', 'C4']]);
+      filters.filter();
+
+      const updateSpy = spyOn(filters, 'updateValueComponentCondition').and.callThrough();
+
+      await setDataAtCell([[0, 1, 'X1'], [0, 2, 'Y1'], [1, 1, 'X2'], [1, 2, 'Y2']]);
+
+      expect(updateSpy).toHaveBeenCalledTimes(2);
+      expect(updateSpy.calls.allArgs()).toEqual([[1], [2]]);
+    });
+  });
+
+  describe('Grouped condition imports (`importConditions`)', () => {
+    it('should trigger one state update per column instead of one per imported condition', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+      });
+
+      const filters = getPlugin('filters');
+      const updateSpy = jasmine.createSpy('update');
+
+      filters.conditionUpdateObserver.addLocalHook('update', updateSpy);
+
+      filters.importConditions([
+        {
+          column: 1,
+          operation: 'conjunction',
+          conditions: [
+            { name: 'contains', args: ['B'] },
+            { name: 'not_empty', args: [] },
+          ],
+        },
+        {
+          column: 2,
+          operation: 'conjunction',
+          conditions: [{ name: 'contains', args: ['C'] }],
+        },
+      ]);
+
+      expect(updateSpy).toHaveBeenCalledTimes(2);
+      expect(updateSpy.calls.argsFor(0)[0].editedConditionStack.column).toBe(1);
+      expect(updateSpy.calls.argsFor(0)[0].editedConditionStack.conditions.length).toBe(2);
+      expect(updateSpy.calls.argsFor(1)[0].editedConditionStack.column).toBe(2);
+      expect(updateSpy.calls.argsFor(1)[0].editedConditionStack.conditions.length).toBe(1);
+    });
+
+    it('should reset the component state of a column dropped by the import and keep dependent ' +
+       'by_value state correct', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+      });
+
+      const filters = getPlugin('filters');
+
+      // pre-existing conditions: the import below drops column 1 and replaces column 2
+      filters.addCondition(1, 'by_value', [['B1', 'B2']]);
+      filters.filter();
+      filters.addCondition(2, 'contains', ['C']);
+      filters.filter();
+
+      filters.importConditions([
+        {
+          column: 2,
+          operation: 'conjunction',
+          conditions: [{ name: 'by_value', args: [['C1', 'C2', 'C3']] }],
+        },
+        {
+          column: 3,
+          operation: 'conjunction',
+          conditions: [{ name: 'contains', args: ['D'] }],
+        },
+      ]);
+      filters.filter();
+
+      // the dropped column's filter no longer applies and its component state is reset to "none"
+      expect(getDataAtCol(1)).toEqual(['B1', 'B2', 'B3']);
+
+      const valueComponentState = filters.components.get('filter_by_value').state;
+
+      expect(valueComponentState.getValueAtIndex(1).command.key).toBe('none');
+      // the imported by_value state reflects the imported condition, not the pre-import one
+      expect(valueComponentState.getValueAtIndex(2).args[0]).toEqual(['C1', 'C2', 'C3']);
+    });
+
+    it('should filter the data correctly after importing conditions', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+      });
+
+      const filters = getPlugin('filters');
+
+      filters.importConditions([
+        {
+          column: 1,
+          operation: 'conjunction',
+          conditions: [{ name: 'by_value', args: [['B1', 'B3', 'B5']] }],
+        },
+        {
+          column: 2,
+          operation: 'conjunction',
+          conditions: [{ name: 'contains', args: ['C'] }],
+        },
+      ]);
+      filters.filter();
+
+      expect(getDataAtCol(1)).toEqual(['B1', 'B3', 'B5']);
     });
   });
 });

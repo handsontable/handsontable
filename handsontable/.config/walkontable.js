@@ -20,6 +20,9 @@ module.exports.create = function create() {
       libraryTarget: 'var',
       path: path.resolve(wotPath, 'dist'),
     },
+    resolve: {
+      extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+    },
     module: {
       rules: [
         {
@@ -35,6 +38,25 @@ module.exports.create = function create() {
             jsc: {
               parser: {
                 syntax: 'ecmascript',
+              },
+            },
+          },
+        },
+        {
+          test: /\.(ts|tsx)$/,
+          loader: 'builtin:swc-loader',
+          exclude: [
+            /node_modules/,
+          ],
+          options: {
+            env: {
+              targets: BROWSERS_LIST.join(', '),
+            },
+            jsc: {
+              parser: {
+                syntax: 'typescript',
+                tsx: true,
+                decorators: true,
               },
             },
           },

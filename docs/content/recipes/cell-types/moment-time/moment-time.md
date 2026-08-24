@@ -1,6 +1,5 @@
 ---
-type: tutorial
-id: 1f21530e
+type: how-to
 title: Moment.js-based time
 metaTitle: Moment.js Cell Type - JavaScript Data Grid | Handsontable
 description: Learn how to create a Handsontable custom time cell type using the Moment.js library
@@ -13,11 +12,11 @@ tags:
   - moment.js
   - time
 react:
-  id: 1d23a45b
   metaTitle: Moment.js time Cell Type - React Data Grid | Handsontable
 angular:
-  id: 3c87f9e1
   metaTitle: Moment.js time Cell Type - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Moment.js time Cell Type - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Cell Types
 ---
@@ -26,7 +25,7 @@ This tutorial shows you how to create a custom time cell type using Moment.js fo
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2 --deps moment @handsontable/pikaday
+::: example #example1 :hot-recipe --js 1 --ts 2 --deps moment
 
 @[code](@/content/recipes/cell-types/moment-time/javascript/example1.js)
 @[code](@/content/recipes/cell-types/moment-time/javascript/example1.ts)
@@ -227,9 +226,11 @@ const hotOptions: Handsontable.GridSettings = {
       type: 'numeric',
       width: 120,
       className: 'htRight',
+      locale: 'en-US',
       numericFormat: {
-        pattern: '$0,0.00',
-        culture: 'en-US',
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
       },
     },
   ],
@@ -259,6 +260,6 @@ You created a custom Moment.js-based time cell type in Handsontable. You used Mo
 
 ## Next steps
 
-- [Moment.js date](@/recipes/cell-types/moment-date/moment-date.md) - The same Moment.js pattern applied to date values, with a Pikaday calendar picker.
+- [Moment.js date](@/recipes/cell-types/moment-date/moment-date.md) - The same Moment.js pattern applied to date values, on top of the built-in date cell type.
 - [Numbro](@/recipes/cell-types/numbro/numbro.md) - A custom numeric cell type using the Numbro formatting library.
 - [Flatpickr](@/recipes/cell-types/flatpickr/flatpickr.md) - A date picker using Flatpickr with dark theme support.

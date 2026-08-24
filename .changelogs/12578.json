@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed a memory leak where IntersectionObserver instances were not properly disconnected when `document.body` had zero height.",
-  "type": "fixed",
-  "issueOrPR": 12578,
-  "breaking": false,
-  "framework": "none"
-}

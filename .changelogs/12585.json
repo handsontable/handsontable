@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed a crash when calling `setSourceDataAtCell()` inside the `afterLoadData()` hook during initialization.",
-  "type": "fixed",
-  "issueOrPR": 12585,
-  "breaking": false,
-  "framework": "none"
-}

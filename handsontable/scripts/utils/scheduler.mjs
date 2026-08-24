@@ -92,7 +92,9 @@ export async function runScheduled(tasks, runTask, isTTY = process.stdout.isTTY)
     taskNames.forEach((name) => {
       const t = pathTime(name);
 
-      if (t > maxTime) { maxTime = t; maxTask = name; }
+      if (t > maxTime) {
+        maxTime = t; maxTask = name;
+      }
     });
 
     const critPath = [];

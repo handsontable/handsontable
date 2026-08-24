@@ -140,8 +140,8 @@ dialog.showAlert({
   title: 'Alert',
   description: 'This is an alert'
 });
-dialog.showAlert('Alert', (event) => {
-  const myEvent: MouseEvent = event;
+dialog.showAlert('Alert', (...args: unknown[]) => {
+  const myEvent = args[0] as MouseEvent;
 });
 
 dialog.showConfirm();
@@ -153,15 +153,15 @@ dialog.showConfirm({
 dialog.showConfirm({
   title: 'Confirm',
 });
-dialog.showConfirm('Confirm', (event) => {
-  const myEvent: MouseEvent = event;
+dialog.showConfirm('Confirm', (...args: unknown[]) => {
+  const myEvent = args[0] as MouseEvent;
 });
 dialog.showConfirm(
   'Confirm',
-  (event) => {
-    const myEvent: MouseEvent = event;
+  (...args: unknown[]) => {
+    const myEvent = args[0] as MouseEvent;
   },
-  (event) => {
-    const myEvent: MouseEvent = event;
+  (...args: unknown[]) => {
+    const myEvent = args[0] as MouseEvent;
   }
 );

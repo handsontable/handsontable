@@ -1,5 +1,5 @@
 ---
-id: j1zswn3i
+type: how-to
 title: Row headers
 metaTitle: Row headers - JavaScript Data Grid | Handsontable
 description: Use default row headers (1, 2, 3), or set them to custom values provided by an array or a function.
@@ -10,13 +10,14 @@ tags:
   - bind rows with headers
   - row id
 react:
-  id: prlcpqk8
   metaTitle: Row headers - React Data Grid | Handsontable
 angular:
-  id: jtqk0t2p
   metaTitle: Row headers - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Row headers - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
+menuTag: updated
 ---
 Use default row headers (1, 2, 3), or set them to custom values provided by an array or a function.
 
@@ -27,6 +28,111 @@ Use default row headers (1, 2, 3), or set them to custom values provided by an a
 Row headers are gray-colored columns that are used to label each row. By default, these headers are filled with numbers displayed in ascending order.
 
 To turn the headers on, set the option [`rowHeaders`](@/api/options.md#rowheaders) to `true`.
+
+## Row headers as an array
+
+An array of labels can be used to set the [`rowHeaders`](@/api/options.md#rowheaders) as shown in the example below:
+
+::: only-for javascript
+
+::: example #example2 --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-header/javascript/example2.js)
+@[code](@/content/guides/rows/row-header/javascript/example2.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example2 :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-header/react/example2.jsx)
+@[code](@/content/guides/rows/row-header/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-header/angular/example2.ts)
+@[code](@/content/guides/rows/row-header/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/rows/row-header/vue/example2.vue)
+
+:::
+
+:::
+
+## Row headers as a function
+
+The [`rowHeaders`](@/api/options.md#rowheaders) can also be populated using a function as shown in the example below:
+
+::: only-for javascript
+
+::: example #example3 --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-header/javascript/example3.js)
+@[code](@/content/guides/rows/row-header/javascript/example3.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example3 :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-header/react/example3.jsx)
+@[code](@/content/guides/rows/row-header/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-header/angular/example3.ts)
+@[code](@/content/guides/rows/row-header/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/rows/row-header/vue/example3.vue)
+
+:::
+
+:::
+
+## Row header width
+
+When you use custom row labels, their content can exceed the default header width. To control the header size, set [`rowHeaderWidth`](@/api/options.md#rowheaderwidth).
+
+You can set this option to one of the following:
+
+- A number - set the same width for every row header.
+- An array - set different widths for individual row header levels.
+
+The [Row headers as an array](#row-headers-as-an-array) example uses custom labels together with `rowHeaderWidth: 80`.
 
 ## Bind rows with headers
 
@@ -80,6 +186,16 @@ Possible values:
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/rows/row-header/vue/example1.vue)
+
+:::
+
+:::
+
 ## Tree grid
 
 A tree grid enables you to represent the nested data structures within the data grid. To learn more about this feature, see the [Row parent-child](@/guides/rows/row-parent-child/row-parent-child.md) page.
@@ -102,6 +218,7 @@ A tree grid enables you to represent the nested data structures within the data 
 - [currentHeaderClassName](@/api/options.md#currentheaderclassname)
 - [bindRowsWithHeaders](@/api/options.md#bindrowswithheaders)
 - [rowHeaders](@/api/options.md#rowheaders)
+- [rowHeaderWidth](@/api/options.md#rowheaderwidth)
 
 </div>
 

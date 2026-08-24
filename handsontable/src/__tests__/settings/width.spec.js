@@ -212,5 +212,325 @@ describe('settings', () => {
         expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0])).toEqual(50);
       });
     });
+
+    describe('when height is not provided', () => {
+      it('should respect width when height is not provided', async() => {
+        const hot = handsontable({
+          data: createSpreadsheetData(100, 30),
+          rowHeaders: true,
+          colHeaders: true,
+          width: 200,
+        });
+
+        expect($(hot.rootElement).width()).toBeAroundValue(200, 1);
+
+        const holder = hot.rootElement.querySelector('.wtHolder');
+
+        expect(holder).toBeDefined();
+        // Width should constrain the grid. When height is omitted, the table should still clip
+        // horizontally so it does not visually overflow its container (the reported regression).
+        expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('clip');
+        expect(holder.getBoundingClientRect().width).toBeAroundValue(200, 1);
+      });
+
+      it('should treat `height: undefined` the same as omitting height', async() => {
+        const hot = handsontable({
+          data: createSpreadsheetData(100, 30),
+          rowHeaders: true,
+          colHeaders: true,
+          width: 200,
+          height: undefined,
+        });
+
+        expect($(hot.rootElement).width()).toBeAroundValue(200, 1);
+
+        const holder = hot.rootElement.querySelector('.wtHolder');
+
+        expect(holder).toBeDefined();
+        expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('clip');
+        expect(holder.getBoundingClientRect().width).toBeAroundValue(200, 1);
+      });
+
+      it('should not apply overflow clipping when `width` is `auto` and `height` is not provided', async() => {
+        const hot = handsontable({
+          data: createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          width: 'auto',
+        });
+
+        const holder = hot.rootElement.querySelector('.wtHolder');
+
+        expect(holder).toBeDefined();
+        // `width: 'auto'` fills the container naturally — no horizontal overflow to clip.
+        expect(window.getComputedStyle(hot.rootElement).overflowX).not.toBe('clip');
+        // The table must be visible (non-zero dimensions).
+        expect(hot.rootElement.getBoundingClientRect().height).toBeGreaterThan(0);
+      });
+
+      it('should clip horizontally when `height` is reset with `null` alongside `width`', async() => {
+        const hot = handsontable({
+          data: createSpreadsheetData(100, 30),
+          rowHeaders: true,
+          colHeaders: true,
+          width: 200,
+          height: 300,
+        });
+
+        await updateSettings({
+          width: 200,
+          height: null,
+        });
+
+        expect($(hot.rootElement).width()).toBeAroundValue(200, 1);
+        expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('clip');
+
+        const holder = hot.rootElement.querySelector('.wtHolder');
+
+        expect(holder).toBeDefined();
+        expect(holder.getBoundingClientRect().width).toBeAroundValue(200, 1);
+      });
+
+      it('should clip horizontally when `beforeHeightChange` coerces height to `null`', async() => {
+        const hot = handsontable({
+          data: createSpreadsheetData(100, 30),
+          rowHeaders: true,
+          colHeaders: true,
+          width: 200,
+          height: 300,
+        });
+
+        await updateSettings({
+          width: 200,
+          height: 400,
+          beforeHeightChange() {
+            return null;
+          },
+        });
+
+        expect($(hot.rootElement).width()).toBeAroundValue(200, 1);
+        expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('clip');
+      });
+
+      it('should not leave a stale overflowX:clip after partial width update on a height-set table followed by height removal and width auto', async() => {
+        // Regression guard: partial `updateSettings({ width })` when height is already set must
+        // not add an explicit `overflow-x: clip` that outlives the height. If it does, the clip
+        // persists even after height is removed and width becomes `auto`.
+        const hot = handsontable({
+          data: createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          width: 200,
+          height: 300,
+        });
+
+        await updateSettings({ width: 400 }); // partial: only width, height stays in HOT settings
+        await updateSettings({ height: null }); // remove height
+        await updateSettings({ width: 'auto' }); // auto width → no constrained boundary
+
+        expect(window.getComputedStyle(hot.rootElement).overflowX).not.toBe('clip');
+      });
+
+      it('should clip when `height` is reset via partial `updateSettings` without changing `width`', async() => {
+        const hot = handsontable({
+          data: createSpreadsheetData(100, 30),
+          rowHeaders: true,
+          colHeaders: true,
+          width: 200,
+          height: 300,
+        });
+
+        await updateSettings({ height: null });
+
+        expect($(hot.rootElement).width()).toBeAroundValue(200, 1);
+        expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('clip');
+      });
+
+      it('should clear clip when `width` changes to `auto` on a table without height', async() => {
+        const hot = handsontable({
+          data: createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          width: 200,
+        });
+
+        expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('clip');
+
+        await updateSettings({ width: 'auto' });
+
+        expect(window.getComputedStyle(hot.rootElement).overflowX).not.toBe('clip');
+      });
+
+      it('should keep overflowX:clip through a width-only → height-added → height-removed cycle', async() => {
+        const hot = handsontable({
+          data: createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          width: 200,
+        });
+
+        // State C: width set, no height → clip must be active
+        expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('clip');
+
+        // State A: add height → height block sets `overflow: clip` shorthand; our code must
+        // not break that shorthand by unconditionally clearing overflow-x
+        await updateSettings({ height: 300 });
+        expect(hot.rootElement.style.overflow).toBe('clip');
+
+        // State C again: remove height → overflowX:clip must be restored
+        await updateSettings({ height: null });
+        expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('clip');
+      });
+
+      it('should preserve a user-defined `overflow` restored from the initial style instead of clipping the X axis', async() => {
+        // When the root element carried an inline `overflow` (no `height`) at init, resetting
+        // `height` with `null` restores that initial style. The width clip must not stomp the X
+        // axis: `overflow: hidden` creates a block formatting context and allows programmatic
+        // scroll, while `clip` does neither.
+        const hot = handsontable({
+          data: createSpreadsheetData(100, 30),
+          rowHeaders: true,
+          colHeaders: true,
+          width: 200,
+          height: 300,
+        });
+
+        // Simulate a root element whose initial inline style defined `overflow` but no `height`
+        // (the state the `height: null` restore branch reads from).
+        hot.rootElement.setAttribute('data-initialstyle', 'overflow: hidden;');
+
+        await updateSettings({
+          width: 200,
+          height: null,
+        });
+
+        expect($(hot.rootElement).width()).toBeAroundValue(200, 1);
+        // The restored `overflow: hidden` declaration must stay intact, not be rewritten to
+        // `clip hidden` by the width-clip block.
+        expect(hot.rootElement.style.overflow).toBe('hidden');
+        expect(hot.rootElement.style.overflowX).toBe('hidden');
+      });
+
+      it('should not vertically collapse the grid when `width` is set and `height` is omitted', async() => {
+        // Regression guard: the width-clip block sets `overflow-x: clip` on the root. The trimming
+        // container lookup must not treat that horizontal-only clip as a vertical trimming
+        // container, or the master holder is pinned to `0px` and the fully rendered rows are
+        // clipped to an invisible grid (the table's content height is > 0 but nothing shows).
+        const hot = handsontable({
+          data: createSpreadsheetData(8, 6),
+          rowHeaders: true,
+          colHeaders: true,
+          width: '100%',
+        });
+
+        const holder = hot.rootElement.querySelector('.ht_master .wtHolder');
+        const table = hot.rootElement.querySelector('.ht_master .htCore');
+
+        // The holder must size to its content, not collapse to zero.
+        expect(holder.getBoundingClientRect().height).toBeGreaterThan(0);
+        expect(holder.getBoundingClientRect().height)
+          .toBeAroundValue(table.getBoundingClientRect().height, 2);
+      });
+
+      it('should stay window-scrollable when `width` is set and `height` is omitted', async() => {
+        // The horizontal-only `overflow-x: clip` must leave the vertical axis scrolling with the
+        // window. If the clipped root is picked as the trimming container, the overlays drop out of
+        // window-scroll mode: frozen rows stop pinning and vertical virtualization stops (every row
+        // renders into the DOM).
+        const hot = handsontable({
+          data: createSpreadsheetData(200, 6),
+          rowHeaders: true,
+          colHeaders: true,
+          fixedRowsTop: 2,
+          width: '100%',
+        });
+
+        expect(hot.view.isVerticallyScrollableByWindow()).toBe(true);
+        // Window-scroll viewport virtualizes: only a slice of the 200 rows is rendered.
+        expect(hot.rootElement.querySelectorAll('.ht_master .htCore tbody tr').length)
+          .toBeLessThan(200);
+      });
+
+      it('should render vertically when `width` is narrower than the columns and `height` is omitted', async() => {
+        // A width-constrained grid whose columns are wider than the width renders at content height
+        // and scrolls vertically with the window (previously the whole grid collapsed to `0px`).
+        // Known limitation: the columns past the constrained width are clipped by the root's
+        // `overflow-x: clip` and are not reachable via a horizontal scrollbar — reaching them needs
+        // per-axis trimming (window vertical + element horizontal), tracked in a follow-up task.
+        const hot = handsontable({
+          data: createSpreadsheetData(8, 10),
+          rowHeaders: true,
+          colHeaders: true,
+          colWidths: 150,
+          width: 300,
+        });
+
+        const holder = hot.rootElement.querySelector('.ht_master .wtHolder');
+
+        expect($(hot.rootElement).width()).toBeAroundValue(300, 1);
+        expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('clip');
+        // Not collapsed: the grid is visible and sizes vertically to its content.
+        expect(holder.getBoundingClientRect().height).toBeGreaterThan(0);
+        expect(hot.view.isVerticallyScrollableByWindow()).toBe(true);
+      });
+
+      it('should not clip horizontally when `width` is a percentage and `height` is omitted', async() => {
+        // A percentage width fills its container. Only a definite pixel width is clipped; a relative
+        // width lets content wider than the container scroll with the window (the page gains a
+        // horizontal scrollbar), so every column stays reachable instead of being clipped away.
+        const hot = handsontable({
+          data: createSpreadsheetData(8, 20),
+          rowHeaders: true,
+          colHeaders: true,
+          colWidths: 150,
+          width: '100%',
+        });
+
+        expect(window.getComputedStyle(hot.rootElement).overflowX).not.toBe('clip');
+        expect(hot.view.isHorizontallyScrollableByWindow()).toBe(true);
+      });
+
+      it('should not clip when `width` is a `calc()` that mixes in a percentage and `height` is omitted', async() => {
+        // A `calc()` referencing a percentage is container-driven even though it ends in `px`, so it
+        // must be treated as relative (no clip) rather than as a definite pixel width.
+        const hot = handsontable({
+          data: createSpreadsheetData(8, 10),
+          rowHeaders: true,
+          colHeaders: true,
+          colWidths: 150,
+          width: 'calc(100% - 20px)',
+        });
+
+        expect(window.getComputedStyle(hot.rootElement).overflowX).not.toBe('clip');
+      });
+
+      it('should not clip when `width` is a viewport unit (`vw`) and `height` is omitted', async() => {
+        // Viewport units resolve against the viewport, not a fixed box, so they are relative — the
+        // unit is preceded by digits (`100vw`), which must still be detected as relative (no clip).
+        const hot = handsontable({
+          data: createSpreadsheetData(8, 10),
+          rowHeaders: true,
+          colHeaders: true,
+          colWidths: 150,
+          width: '100vw',
+        });
+
+        expect(window.getComputedStyle(hot.rootElement).overflowX).not.toBe('clip');
+      });
+
+      it('should clip when `width` is a definite non-pixel length (`em`) and `height` is omitted', async() => {
+        // Absolute lengths other than `px` (em, rem, etc.) still establish a fixed box, so the table
+        // must not visually overflow it — clip applies.
+        const hot = handsontable({
+          data: createSpreadsheetData(8, 10),
+          rowHeaders: true,
+          colHeaders: true,
+          colWidths: 150,
+          width: '20em',
+        });
+
+        expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('clip');
+      });
+    });
   });
 });

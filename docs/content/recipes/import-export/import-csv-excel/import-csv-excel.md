@@ -1,5 +1,4 @@
 ---
-id: h7j2k9m4
 title: Import from CSV or Excel
 metaTitle: Import CSV or Excel - JavaScript Data Grid | Handsontable
 description: Load CSV or XLSX files into Handsontable with PapaParse and SheetJS, preview headers, and handle errors in the browser.
@@ -12,14 +11,14 @@ tags:
   - excel
   - xlsx
 react:
-  id: n5p8q3r6
   metaTitle: Import CSV or Excel - React Data Grid | Handsontable
 angular:
-  id: s9t2u7v0
   metaTitle: Import CSV or Excel - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Import CSV or Excel - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Import and Export
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will let users drop or pick a CSV or Excel (`.xlsx`) file, parse it in the browser, and preview column headers before loading rows into Handsontable. You will learn how to use PapaParse and SheetJS to handle both formats, and how to update `colHeaders` and `columns` from the detected header row.

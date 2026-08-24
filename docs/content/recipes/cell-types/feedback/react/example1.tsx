@@ -1,7 +1,6 @@
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { CellProperties } from 'handsontable/settings';
-import { BaseEditor } from 'handsontable/editors/baseEditor';
 import { editorFactory } from 'handsontable/editors';
 import { registerCellType } from 'handsontable/cellTypes';
 import './example1.css';
@@ -82,7 +81,7 @@ const feedbackCellDefinition: Pick<CellProperties, 'renderer' | 'validator' | 'e
   }),
 };
 
-registerCellType('feedback', feedbackCellDefinition as BaseEditor);
+registerCellType('feedback', feedbackCellDefinition);
 
 const ExampleComponent = () => {
   return (

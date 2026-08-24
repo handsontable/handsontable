@@ -225,6 +225,109 @@ describe('hiddenColumns', () => {
       expect(getSelectedRangeLast().to.col).toBe(2);
     });
 
+    it('should clear the `skipColumnOnPaste` meta after a hidden column is shown again, when ' +
+      '"copyPasteEnabled" property is set to false', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        hiddenColumns: {
+          copyPasteEnabled: false,
+        },
+      });
+
+      const plugin = getPlugin('hiddenColumns');
+
+      plugin.hideColumns([2]);
+      await render();
+
+      // Reading the meta while the column is hidden caches `skipColumnOnPaste: true` on the cell.
+      expect(getCellMeta(0, 2).skipColumnOnPaste).toBe(true);
+
+      plugin.showColumns([2]);
+      await render();
+
+      expect(getCellMeta(0, 2).skipColumnOnPaste).toBe(false);
+    });
+
+    it('should not overwrite the user-defined `skipColumnOnPaste: true` on a non-hidden column, when ' +
+      '"copyPasteEnabled" property is set to false', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 5),
+        hiddenColumns: {
+          copyPasteEnabled: false,
+          columns: [2],
+        },
+        columns: [
+          {},
+          {},
+          {},
+          { skipColumnOnPaste: true },
+          {},
+        ],
+      });
+
+      expect(getCellMeta(0, 3).skipColumnOnPaste).toBe(true);
+      expect(getCellMeta(0, 0).skipColumnOnPaste).toBe(false);
+      expect(getCellMeta(0, 2).skipColumnOnPaste).toBe(true);
+
+      getPlugin('hiddenColumns').showColumns([2]);
+      await render();
+
+      expect(getCellMeta(0, 3).skipColumnOnPaste).toBe(true);
+      expect(getCellMeta(0, 2).skipColumnOnPaste).toBe(false);
+    });
+
+    it('should preserve the user-defined `skipColumnOnPaste: true` on a column that is hidden and ' +
+      'then shown again, when "copyPasteEnabled" property is set to false', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 5),
+        hiddenColumns: {
+          copyPasteEnabled: false,
+          columns: [3],
+        },
+        columns: [
+          {},
+          {},
+          {},
+          { skipColumnOnPaste: true },
+          {},
+        ],
+      });
+
+      // Force the meta to be cached while the column is hidden.
+      expect(getCellMeta(0, 3).skipColumnOnPaste).toBe(true);
+
+      getPlugin('hiddenColumns').showColumns([3]);
+      await render();
+
+      // The user-defined `skipColumnOnPaste: true` must survive after the column is shown again.
+      expect(getCellMeta(0, 3).skipColumnOnPaste).toBe(true);
+    });
+
+    it('should paste data into a column that was hidden and then shown again, when ' +
+      '"copyPasteEnabled" property is set to false', async() => {
+      handsontable({
+        data: createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          copyPasteEnabled: false,
+        },
+      });
+
+      const plugin = getPlugin('hiddenColumns');
+
+      plugin.hideColumns([2]);
+      await render();
+      // Force the skip flag to be cached on the hidden column.
+      getCellMeta(0, 2);
+      plugin.showColumns([2]);
+      await render();
+
+      await selectCell(0, 0);
+      getPlugin('CopyPaste').paste('v\tw\tx\ty\tz');
+
+      expect(getDataAtCell(0, 2)).toBe('x');
+      expect(getData()[0]).toEqual(['v', 'w', 'x', 'y', 'z']);
+    });
+
     it('should keep the same number of columns if all columns are hidden', async() => {
       handsontable({
         data: createSpreadsheetData(1, 2),

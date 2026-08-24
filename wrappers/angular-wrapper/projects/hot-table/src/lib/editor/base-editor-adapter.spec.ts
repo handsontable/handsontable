@@ -2,7 +2,7 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import Handsontable from 'handsontable';
 import { Component, EnvironmentInjector } from '@angular/core';
 import { BaseEditorAdapter } from './base-editor-adapter';
-import { CellProperties } from 'handsontable/settings';
+type CellProperties = Handsontable.CellProperties;
 import { HotCellEditorComponent } from './hot-cell-editor.component';
 
 @Component({
@@ -62,6 +62,10 @@ describe('BaseEditorAdapter', () => {
   });
 
   describe('hot table hooks', () => {
+    it('should not throw when afterDestroy hook fires before prepare() is called', () => {
+      expect(() => instance.runHooks('afterDestroy')).not.toThrow();
+    });
+
     it('should call setInput on custom editor when afterRowResize hook is triggered', () => {
       const setInputSpy = jest.spyOn(customEditor.componentRef, 'setInput');
       adapter.prepare(0, 0, 'prop', document.createElement('td'), 1, <CellProperties>{});
@@ -80,6 +84,51 @@ describe('BaseEditorAdapter', () => {
       instance.runHooks('afterColumnResize');
 
       expect(setInputSpy).toHaveBeenCalledTimes(5);
+    });
+
+    it('should destroy editor placeholder on afterDestroy hook', () => {
+      adapter.prepare(0, 0, 'prop', document.createElement('td'), 1, <CellProperties>{});
+      const placeholder = (adapter as any)._editorPlaceHolderRef;
+      const destroySpy = jest.spyOn(placeholder, 'destroy');
+
+      instance.runHooks('afterDestroy');
+
+      expect(destroySpy).toHaveBeenCalled();
+    });
+
+    it('should unsubscribe finish/cancel edit subscriptions on afterDestroy hook (no subscription leak)', () => {
+      adapter.prepare(0, 0, 'prop', document.createElement('td'), 1, <CellProperties>{});
+      const finishSub = (adapter as any)._finishEditSubscription;
+      const cancelSub = (adapter as any)._cancelEditSubscription;
+      const finishUnsubSpy = jest.spyOn(finishSub, 'unsubscribe');
+      const cancelUnsubSpy = jest.spyOn(cancelSub, 'unsubscribe');
+
+      instance.runHooks('afterDestroy');
+
+      expect(finishUnsubSpy).toHaveBeenCalled();
+      expect(cancelUnsubSpy).toHaveBeenCalled();
+      expect((adapter as any)._finishEditSubscription).toBeUndefined();
+      expect((adapter as any)._cancelEditSubscription).toBeUndefined();
+    });
+  });
+
+  describe('guards when refs are not initialized (called before prepare)', () => {
+    it('should not throw when focus() is called before prepare()', () => {
+      expect(() => adapter.focus()).not.toThrow();
+    });
+
+    it('should not throw when open() is called before prepare()', () => {
+      expect(() => adapter.open()).not.toThrow();
+    });
+
+    it('should not throw when setValue() is called before prepare()', () => {
+      expect(() => adapter.setValue(1)).not.toThrow();
+    });
+
+    it('should not throw when close() runs while opened but refs are not initialized', () => {
+      jest.spyOn(adapter, 'isOpened').mockReturnValue(true);
+
+      expect(() => adapter.close()).not.toThrow();
     });
   });
 
@@ -154,6 +203,15 @@ describe('BaseEditorAdapter', () => {
 
       expect(getValueSpy).toHaveBeenCalled();
     });
+
+    it('should not throw and return undefined when called before prepare() sets the component ref', () => {
+      let value: any;
+
+      expect(() => {
+        value = adapter.getValue();
+      }).not.toThrow();
+      expect(value).toBeUndefined();
+    });
   });
 
   describe('open', () => {
@@ -209,6 +267,26 @@ describe('BaseEditorAdapter', () => {
 
       expect(setValueSpy).toHaveBeenCalledWith(2);
       expect(detectChangesSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('finishEdit / cancelEdit event subscriptions', () => {
+    it('should call finishEditing when custom editor emits finishEdit', () => {
+      adapter.prepare(0, 0, 'prop', document.createElement('td'), 1, <CellProperties>{});
+      const finishEditingSpy = jest.spyOn(adapter, 'finishEditing').mockImplementation(() => {});
+
+      customEditor.componentInstance.finishEdit.emit();
+
+      expect(finishEditingSpy).toHaveBeenCalled();
+    });
+
+    it('should call cancelChanges when custom editor emits cancelEdit', () => {
+      adapter.prepare(0, 0, 'prop', document.createElement('td'), 1, <CellProperties>{});
+      const cancelChangesSpy = jest.spyOn(adapter, 'cancelChanges').mockImplementation(() => {});
+
+      customEditor.componentInstance.cancelEdit.emit();
+
+      expect(cancelChangesSpy).toHaveBeenCalled();
     });
   });
 });

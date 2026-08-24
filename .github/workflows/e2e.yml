@@ -1,0 +1,108 @@
+name: E2E
+
+# End-to-end tests, build-dependent (consume the UMD artifact). Two matrices,
+# 1:1 with each other: the frozen Puppeteer suite and the new Playwright suite,
+# both over theme × bundle (UMD / UMD.min). Per-leg gating keeps the exact old
+# scope behaviour (UMD legs on the e2e scope, UMD.min on the e2e-min scope).
+# The UMD.min legs load handsontable.full.min.js — the exact file Puppeteer's
+# test:production runs. The bundles Puppeteer does not test either
+# (handsontable.full.js and handsontable.min.js) are deliberately not covered
+# here — they belong to the nightly on develop (DEV-2058).
+# Playwright runs one job per leg (not one job per theme with both projects):
+# per-leg failure isolation in the checks list and 1:1 symmetry with the
+# Puppeteer matrix outweigh the duplicated container setup while the suite is
+# small — revisit as migration grows it.
+on:
+  workflow_call:
+    inputs:
+      run-all:
+        type: boolean
+        default: false
+      run-e2e:
+        description: 'UMD (non-min) Puppeteer legs'
+        type: boolean
+        default: false
+      run-e2e-min:
+        description: 'UMD.min Puppeteer legs'
+        type: boolean
+        default: false
+      run-playwright:
+        description: 'Playwright legs (build-umd scope — includes tests/**)'
+        type: boolean
+        default: false
+
+jobs:
+  puppeteer:
+    name: "${{ matrix.bundle.label }} (theme: ${{ matrix.theme }})"
+    runs-on: ubuntu-latest
+    # matrix context is unavailable in a job-level if (evaluated before matrix
+    # expansion). The e2e and e2e-min scope filters are identical, so a single
+    # job-level gate is exactly equivalent to the old per-bundle gating.
+    if: ${{ inputs.run-all || inputs.run-e2e || inputs.run-e2e-min }}
+    strategy:
+      fail-fast: false
+      matrix:
+        theme: [main, horizon, classic]
+        bundle:
+          - { label: 'UMD', dump: 'test:e2e.dump' }
+          - { label: 'UMD.min', dump: 'test:production.dump' }
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/setup-workspace
+        with:
+          puppeteer-chrome: 'true'
+      # No fallback build: this download relies on the invariant that the e2e /
+      # e2e-min scope filters are a SUBSET of the build-umd filter (both include
+      # hot-shared + test/e2e + test/scripts), so the UMD artifact always exists
+      # whenever this job runs. Keep that subset relationship if editing the
+      # filters in checks.yml.
+      - name: Download the Handsontable build artifact
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          name: handsontable-build-umd
+          path: ./
+      - run: tar -zxf dist.tar.gz ./handsontable/dist ./handsontable/styles && rm dist.tar.gz
+      - name: Test
+        run: |
+          cd handsontable
+          npm run ${{ matrix.bundle.dump }} --theme=${{ matrix.theme }} && npm run test:e2e.puppeteer --theme=${{ matrix.theme }}
+
+  # Runs inside the pinned Playwright container so the engine + browsers match
+  # local and baseline generation. One leg per theme × bundle — the same matrix
+  # shape as the Puppeteer job above (the project name selects both: the theme
+  # stylesheet and the dist bundle the fixture loads).
+  playwright:
+    name: "Playwright ${{ matrix.bundle.label }} (theme: ${{ matrix.theme }})"
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.61.1-noble
+    if: inputs.run-all || inputs.run-playwright
+    strategy:
+      fail-fast: false
+      matrix:
+        theme: [main, horizon, classic]
+        bundle:
+          - { label: 'UMD', suffix: '' }
+          - { label: 'UMD.min', suffix: '-min' }
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - name: Download the Handsontable UMD build artifact
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          name: handsontable-build-umd
+      - run: tar -zxf dist.tar.gz ./handsontable/dist ./handsontable/styles && rm dist.tar.gz
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # https://github.com/pnpm/action-setup/releases/tag/v6.0.8
+        name: Install pnpm
+      - name: Install the Playwright test package
+        run: pnpm install --filter handsontable-tests
+      - name: Run Playwright E2E
+        run: cd tests && npx playwright test --project=e2e-${{ matrix.theme }}${{ matrix.bundle.suffix }}
+      - name: Upload the Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: playwright-report-${{ matrix.theme }}${{ matrix.bundle.suffix }}
+          path: |
+            tests/playwright-report
+            tests/test-results
+          retention-days: 3

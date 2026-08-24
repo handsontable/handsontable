@@ -1,18 +1,19 @@
 ---
-id: qiasr3y1
+type: how-to
 title: Column headers
 metaTitle: Column headers - JavaScript Data Grid | Handsontable
 description: Use default column headers (A, B, C), or set them to custom values provided by an array or a function.
 permalink: /column-header
 canonicalUrl: /column-header
 react:
-  id: 5e0tnexi
   metaTitle: Column headers - React Data Grid | Handsontable
 angular:
-  id: owl7h4t1
   metaTitle: Column headers - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Column headers - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
+menuTag: updated
 ---
 Use default column headers (A, B, C), or set them to custom values provided by an array or a function.
 
@@ -45,6 +46,16 @@ Setting the [`colHeaders`](@/api/options.md#colheaders) option to `true` enables
 
 @[code](@/content/guides/columns/column-header/react/example1.jsx)
 @[code](@/content/guides/columns/column-header/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/columns/column-header/vue/example1.vue)
 
 :::
 
@@ -86,6 +97,16 @@ An array of labels can be used to set the [`colHeaders`](@/api/options.md#colhea
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/columns/column-header/vue/example2.vue)
+
+:::
+
+:::
+
 ::: only-for angular
 
 ::: example #example2 :angular --ts 1 --html 2
@@ -122,12 +143,69 @@ The [`colHeaders`](@/api/options.md#colheaders) can also be populated using a fu
 
 :::
 
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/columns/column-header/vue/example3.vue)
+
+:::
+
+:::
+
 ::: only-for angular
 
 ::: example #example3 :angular --ts 1 --html 2
 
 @[code](@/content/guides/columns/column-header/angular/example3.ts)
 @[code](@/content/guides/columns/column-header/angular/example3.html)
+
+:::
+
+:::
+
+## Header labels in the columns option
+
+When you configure columns individually with the [`columns`](@/api/options.md#columns) option, set a column's header label with that column's [`title`](@/api/options.md#title) option. If both are set, a column's `title` takes precedence over the matching [`colHeaders`](@/api/options.md#colheaders) entry.
+
+::: only-for javascript
+
+::: example #example6 --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-header/javascript/example6.js)
+@[code](@/content/guides/columns/column-header/javascript/example6.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example6 :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-header/react/example6.jsx)
+@[code](@/content/guides/columns/column-header/react/example6.tsx)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example6 :vue3
+
+@[code](@/content/guides/columns/column-header/vue/example6.vue)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example6 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-header/angular/example6.ts)
+@[code](@/content/guides/columns/column-header/angular/example6.html)
 
 :::
 
@@ -156,6 +234,16 @@ You can also set the alignment for a specific column by using the [`columns`](@/
 
 @[code](@/content/guides/columns/column-header/react/example4.jsx)
 @[code](@/content/guides/columns/column-header/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/columns/column-header/vue/example4.vue)
 
 :::
 
@@ -198,6 +286,16 @@ If you want to style the header labels, you can pass any number of class names, 
 
 :::
 
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/columns/column-header/vue/example5.vue)
+
+:::
+
+:::
+
 ::: only-for angular
 
 ::: example #example5 :angular --ts 1 --html 2
@@ -205,6 +303,54 @@ If you want to style the header labels, you can pass any number of class names, 
 @[code](@/content/guides/columns/column-header/angular/example5.ts)
 @[code](@/content/guides/columns/column-header/angular/example5.html)
 
+:::
+
+:::
+
+## Column header height
+
+When column labels are longer, header text can wrap and require more vertical space. To control the header size, set [`columnHeaderHeight`](@/api/options.md#columnheaderheight).
+
+You can set this option to one of the following:
+
+- A number - set the same height for every column header.
+- An array - set different heights for individual column header levels.
+
+The example below uses longer labels together with `columnHeaderHeight: 50`.
+
+::: only-for javascript
+
+::: example #example7 --js 1 --ts 2
+@[code](@/content/guides/columns/column-header/javascript/example7.js)
+@[code](@/content/guides/columns/column-header/javascript/example7.ts)
+:::
+
+:::
+
+::: only-for react
+
+::: example #example7 :react --js 1 --ts 2
+@[code](@/content/guides/columns/column-header/react/example7.jsx)
+@[code](@/content/guides/columns/column-header/react/example7.tsx)
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example7 :vue3
+
+@[code](@/content/guides/columns/column-header/vue/example7.vue)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example7 :angular --ts 1 --html 2
+@[code](@/content/guides/columns/column-header/angular/example7.ts)
+@[code](@/content/guides/columns/column-header/angular/example7.html)
 :::
 
 :::

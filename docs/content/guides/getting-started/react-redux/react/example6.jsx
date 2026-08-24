@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { HexColorPicker } from 'react-colorful';
-import StarRatingComponent from 'react-star-rating-component';
 import { Provider, connect, useDispatch } from 'react-redux';
 import { createStore, combineReducers } from 'redux';
 import { HotTable, HotColumn, useHotEditor } from '@handsontable/react-wrapper';
@@ -8,6 +7,21 @@ import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
 registerAllModules();
+
+function StarRating({ name, value = 0, starCount = 5, starColor = '#ffb400', emptyStarColor = '#d3d3d3' }) {
+  return (
+    <div style={{ display: 'inline-flex', gap: '1px' }}>
+      {Array.from({ length: starCount }, (_, i) => (
+        <span
+          key={`${name}-${i + 1}`}
+          style={{ fontSize: '18px', color: i + 1 <= value ? starColor : emptyStarColor, lineHeight: 1 }}
+        >
+          ★
+        </span>
+      ))}
+    </div>
+  );
+}
 
 const UnconnectedColorPickerEditor = () => {
   const dispatch = useDispatch();
@@ -167,13 +181,12 @@ const reduxStore = createStore(actionReducers);
 // a custom renderer component
 const UnconnectedStarRatingRenderer = ({ row, col, value, activeColors, inactiveColors }) => {
   return (
-    <StarRatingComponent
+    <StarRating
       name={`${row}-${col}`}
       value={value}
       starCount={5}
       starColor={activeColors?.[row || 0]}
       emptyStarColor={inactiveColors?.[row || 0]}
-      editing={true}
     />
   );
 };

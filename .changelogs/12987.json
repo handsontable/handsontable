@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved vertical scrolling performance by skipping the column header re-render when the column layout is unchanged.",
+  "type": "changed",
+  "issueOrPR": 12987,
+  "breaking": false,
+  "framework": "none"
+}

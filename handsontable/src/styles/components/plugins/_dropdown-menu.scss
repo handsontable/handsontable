@@ -238,6 +238,7 @@
           display: none;
         }
 
+        // stylelint-disable-next-line handsontable/no-has-selector -- selected state inside the open dropdown menu; the menu does not re-render on grid scroll, so the :has() invalidation cost is not on any hot path.
         &:has(.htItemWrapper .selected) {
           background-color: color-mix(in srgb, var(--ht-menu-item-active-color) var(--ht-menu-item-active-color-opacity, 100%), transparent);
         }
@@ -295,6 +296,13 @@
       overflow-y: scroll !important;
       background: transparent;
       border-radius: 0 !important;
+
+      // The "Filter by value" list is deliberately chrome-less - the `.htFiltersMenuValue`
+      // menu item draws the separator line below it. Without this override, the embedded
+      // grid's holder also gets the base inset frame ring (it has its own scrollbar), and
+      // the ring's bottom line doubles with that separator. `!important` because the base
+      // frame-ring selector carries more classes than this menu-scoped one.
+      box-shadow: none !important;
 
       .htCore {
         box-shadow: none;

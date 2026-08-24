@@ -648,4 +648,41 @@ describe('SelectEditor', () => {
 
     expect(editableElement.getAttribute('dir')).toBeNull();
   });
+
+  describe('sanitizer', () => {
+    it('should warn once when an option contains HTML and no sanitizer is configured', async() => {
+      handsontable({
+        columns: [{ editor: 'select', selectOptions: ['<b>Bold</b>', '<i>Italic</i>'] }],
+      });
+
+      const warnSpy = spyOnConsoleWarn();
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      expect(warnSpy).toHaveBeenCalledWith(jasmine.stringMatching(/without a sanitizer/));
+
+      // Re-opening the editor on the same instance must not emit a second warning.
+      warnSpy.calls.reset();
+      await keyDownUp('escape');
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should NOT warn when a sanitizer is configured', async() => {
+      handsontable({
+        sanitizer: content => content,
+        columns: [{ editor: 'select', selectOptions: ['<b>Bold</b>'] }],
+      });
+
+      const warnSpy = spyOnConsoleWarn();
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+  });
 });

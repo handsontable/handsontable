@@ -1,0 +1,41 @@
+name: Manual QA
+
+# The tracked human exception — an INDEPENDENT merge gate (nothing depends on
+# it, so its red blocks the merge via branch protection, never the build/test
+# DAG). The PR template carries a tickbox; ticking "needs a manual QA pass"
+# turns this RED until a non-author comments `/manual-qa passed` (then re-run —
+# it reads the LIVE body + comments, not the frozen payload). Unticked → green.
+on:
+  workflow_call:
+
+jobs:
+  verify:
+    name: verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate the manual-QA tickbox and sign-off
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner, repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+            const ticked = /^\s*-\s*\[[xX]\]\s+This change needs a manual QA pass/m.test(pr.body || '');
+            if (!ticked) { core.notice('Manual QA not requested.'); return; }
+
+            // Sign-off = a `/manual-qa passed` comment from someone who is NOT
+            // the PR author — comment authorship is API-verified identity,
+            // unlike labels or checkbox edits.
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner, repo: context.repo.repo,
+              issue_number: pr.number, per_page: 100,
+            });
+            const signOff = comments.reverse().find(c =>
+              /^\/manual-qa passed\b/m.test(c.body || '') && c.user.login !== pr.user.login);
+            if (signOff) {
+              core.notice(`Manual QA signed off by @${signOff.user.login}.`);
+              return;
+            }
+            core.setFailed('Manual QA requested (tickbox in the PR description) but not signed off yet. '
+              + 'A reviewer who is not the author must comment "/manual-qa passed", then re-run this job.');

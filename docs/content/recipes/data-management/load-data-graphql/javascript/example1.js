@@ -32,27 +32,24 @@ if (!container) {
   throw new Error('Missing #example1 element.');
 }
 
-const statusBar = document.createElement('div');
-const statusLabel = document.createElement('p');
+const controlsContainer = document.createElement('div');
+const controls = document.createElement('div');
+const statusOutput = document.createElement('output');
 const retryButton = document.createElement('button');
 const gridContainer = document.createElement('div');
 
-statusBar.style.display = 'flex';
-statusBar.style.gap = '12px';
-statusBar.style.alignItems = 'center';
-statusBar.style.marginBottom = '8px';
-
-statusLabel.style.margin = '0';
-statusLabel.style.fontFamily = 'Arial, sans-serif';
-statusLabel.style.fontSize = '14px';
+controlsContainer.className = 'example-controls-container';
+controls.className = 'controls';
+statusOutput.id = 'example1-status';
 
 retryButton.type = 'button';
 retryButton.textContent = 'Retry';
 retryButton.hidden = true;
 
-container.appendChild(statusBar);
-statusBar.appendChild(statusLabel);
-statusBar.appendChild(retryButton);
+controls.appendChild(retryButton);
+controlsContainer.appendChild(controls);
+controlsContainer.appendChild(statusOutput);
+container.appendChild(controlsContainer);
 container.appendChild(gridContainer);
 
 const hot = new Handsontable(gridContainer, {
@@ -75,8 +72,8 @@ const hot = new Handsontable(gridContainer, {
 });
 
 function setUiState({ loading = false, hasError = false, message = '' } = {}) {
-  statusLabel.textContent = message;
-  statusLabel.style.color = hasError ? '#c62828' : '#202124';
+  statusOutput.textContent = message;
+  statusOutput.classList.toggle('is-error', hasError);
   retryButton.hidden = !hasError;
   retryButton.disabled = loading;
 }

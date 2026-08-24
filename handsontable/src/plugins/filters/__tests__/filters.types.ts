@@ -1,17 +1,22 @@
 import Handsontable from 'handsontable';
-import { ColumnConditions } from 'handsontable/plugins/filters';
 
-const hot = new Handsontable(document.createElement('div'), {
+interface ColumnConditions {
+  column: number;
+  operation: string;
+  conditions: { name: string; args: unknown[] }[];
+}
+
+const hot = Handsontable(document.createElement('div'), {
   filters: true,
 });
 
-new Handsontable(document.createElement('div'), {
+Handsontable(document.createElement('div'), {
   filters: {
     searchMode: 'show',
   }
 });
 
-new Handsontable(document.createElement('div'), {
+Handsontable(document.createElement('div'), {
   filters: {
     searchMode: 'apply',
   }

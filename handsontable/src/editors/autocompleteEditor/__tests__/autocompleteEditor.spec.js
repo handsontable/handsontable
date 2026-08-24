@@ -881,42 +881,6 @@ describe('AutocompleteEditor', () => {
         .toBeGreaterThan(editor.find('.handsontableInput').width());
     });
 
-    // TODO: This test never properly tests the case of refreshing editor after re-render the table. Previously this
-    // test passes because sleep timeout was small enough to read the valid width before the editor element was resized.
-    // Related issue #5103
-    xit('autocomplete textarea should have cell dimensions (after render)', async() => {
-      const data = [
-        ['a', 'b'],
-        ['c', 'd']
-      ];
-
-      handsontable({
-        data,
-        minRows: 4,
-        minCols: 4,
-        minSpareRows: 4,
-        minSpareCols: 4,
-        cells() {
-          return {
-            type: Handsontable.AutocompleteCell
-          };
-        }
-      });
-
-      await selectCell(1, 1);
-      await keyDownUp('enter');
-      await waitForNextAnimationFrames(1);
-
-      data[1][1] = 'dddddddddddddddddddd';
-      await render();
-
-      await waitForNextAnimationFrames(1);
-
-      const $td = spec().$container.find('.htCore tbody tr:eq(1) td:eq(1)');
-
-      expect(autocompleteEditor().width()).toEqual($td.width());
-    });
-
     it('should invoke beginEditing only once after doubleclicking on a cell (#1011)', async() => {
       handsontable({
         columns: [
@@ -1378,11 +1342,45 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('enter');
       await waitForNextAnimationFrames(2);
 
-      const sortedChoices = choices.toSorted();
+      const sortedChoices = [...choices].sort();
 
       for (let i = 0; i < choices.length; i++) {
         expect(editor.find(`tbody td:eq(${i})`).text()).toEqual(sortedChoices[i]);
       }
+    });
+
+    it('should not reorder the array passed to `updateChoicesList`, when the `sortByRelevance` option is set to `false`', async() => {
+      handsontable({
+        editor: 'autocomplete',
+        source: choices,
+        sortByRelevance: false,
+        height: 1000
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await waitForNextAnimationFrames(2);
+
+      // `updateChoicesList` is public API, so it has to sort a copy and leave the caller's array
+      // alone. The internal path happens to hand it a freshly mapped array, so only a direct call
+      // exposes an in-place sort. `Array#toSorted` gave this for free but is above the
+      // browser-targets.js baseline (Firefox 115+, Safari 16+).
+      const callerOwnedChoices = ['orange', 'apple', 'banana'];
+
+      getActiveEditor().updateChoicesList(callerOwnedChoices);
+
+      await waitForNextAnimationFrames(2);
+
+      expect(callerOwnedChoices).toEqual(['orange', 'apple', 'banana']);
+
+      // ...and the dropdown still shows them sorted.
+      const renderedChoices = $('.autocompleteEditor').find('tbody td')
+        .map(function() {
+          return $(this).text();
+        })
+        .get();
+
+      expect(renderedChoices).toEqual(['apple', 'banana', 'orange']);
     });
   });
 
@@ -4156,5 +4154,29 @@ describe('AutocompleteEditor', () => {
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });
+  });
+
+  it('should filter choices case-insensitively under an invalid column locale', async() => {
+    handsontable({
+      columns: [{
+        editor: 'autocomplete',
+        source: ['Apple', 'Apricot', 'Banana'],
+        locale: 'en_US', // invalid tag — current code throws while filtering
+        filter: true,
+      }],
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter'); // open the editor
+
+    const editor = getActiveEditor();
+
+    editor.TEXTAREA.value = 'ap';
+    await keyDownUp('p', {}, editor.TEXTAREA); // trigger the query/filter pass
+    await waitForNextAnimationFrames(2); // allow the async filter render
+
+    // 'ap' matches 'Apple' and 'Apricot' case-insensitively. If filtering threw on the
+    // invalid locale, the inner list would not populate with exactly these two rows.
+    expect(editor.htEditor.countRows()).toBe(2);
   });
 });

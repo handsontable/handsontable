@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 3cqz2dy9
 title: Migrating from 8.4 to 9.0
 metaTitle: Migrate from 8.4 to 9.0 - JavaScript Data Grid | Handsontable
 description: Migrate from Handsontable 8.4 to Handsontable 9.0, released on June 1, 2021.
@@ -8,11 +7,11 @@ permalink: /migration-from-8.4-to-9.0
 canonicalUrl: /migration-from-8.4-to-9.0
 pageClass: migration-guide
 react:
-  id: yns5r79k
   metaTitle: Migrate from 8.4 to 9.0 - React Data Grid | Handsontable
 angular:
-  id: tulale8x
   metaTitle: Migrate from 8.4 to 9.0 - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Migrate from 8.4 to 9.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
@@ -150,7 +149,7 @@ Handsontable 9.0.0 removes the following previously deprecated plugins:
 - Header Tooltips
 - Observe Changes
 
-### Header Tooltips
+### Header tooltips
 
 To implement functionality similar to that of the Header Tooltips plugin, you can utilize the [`afterGetColHeader`](@/api/hooks.md#aftergetcolheader) and [`afterGetRowHeader`](@/api/hooks.md#aftergetrowheader) hooks to add a `title` attribute to the headers.
 See the snippet below for example implementation.
@@ -206,7 +205,7 @@ const onAfterGetHeader = function(index, TH) {
 
 :::
 
-### Observe Changes
+### Observe changes
 
 The plugin fired the [`afterChangesObserved`](@/api/hooks.md#afterchangesobserved) hook. Be sure to stop listening to it after updating to version `>=9.0.0`.
 

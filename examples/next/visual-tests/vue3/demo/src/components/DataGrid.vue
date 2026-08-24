@@ -60,7 +60,9 @@ export default {
           {
             data: 4,
             type: "date",
-            allowInvalid: false
+            allowInvalid: false,
+            dateFormat: { dateStyle: "short" },
+            locale: "en-US"
           },
           {
             data: 6,

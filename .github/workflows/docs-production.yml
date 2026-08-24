@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         name: Install pnpm
 
       - name: Use Node.js
@@ -48,24 +48,24 @@ jobs:
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${GITHUB_ACTOR} --password-stdin https://docker.pkg.github.com
 
+      - name: Install monorepo dependencies and build packages
+        working-directory: .
+        run: |
+          pnpm install --frozen-lockfile
+          npm run all build -- --e examples visual-tests
+
       - name: Update module size measurements
         working-directory: .
         run: |
-          pnpm install --frozen-lockfile --ignore-scripts
-          npm run build --prefix handsontable
           npm run measure:module-sizes --prefix handsontable
-
-      - name: Install workspace dependencies (lifecycle scripts for docs)
-        working-directory: .
-        run: pnpm install --frozen-lockfile
 
       - name: Docker build
         run: |
           npm run docs:docker:build:production
 
-      - name: Test examples
+      - name: Test plugins
         run: |
-          npm run docs:test:example-checker
+          npm run docs:test:plugins
 
       - name: Docker tags
         run: |
@@ -80,26 +80,104 @@ jobs:
         run: |
           docker push $GHA_DOCKER_TAG":v${{steps.get-docs-version.outputs.result}}-${{ github.sha }}"
 
-      - name: Build and deploy the production to Netlify (from Docker images)
+      # Assemble the multi-version docs site (current + previous versions from
+      # the GHCR Docker images) into docs/deploy/docs, which is deployed to
+      # Cloudflare Pages below.
+      #
+      # GITHUB_TOKEN is required: build_current_version.sh runs
+      # getListOrPreviousVersions.mjs, which authenticates its GitHub GraphQL
+      # query with it. The GraphQL API rejects unauthenticated requests
+      # outright, so without this the script's retries all fail and the
+      # deploy aborts (fail-closed) on every run.
+      - name: Assemble production docs (all versions)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cd netlify
+          cd deploy
           mkdir -p docs/docs
           ./build_current_version.sh
 
-      - name: Publish production to Netlify
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # https://github.com/nick-fields/retry/releases/tag/v3.0.2
-        with:
-          timeout_seconds: 1600
-          max_attempts: 3
-          retry_on: error
-          command: |
-            cd docs
-            cd netlify
-            npm install netlify-cli -g
-            netlify deploy --prod --build --context production
+      # Cloudflare ignores _redirects when _worker.js is present, so the worker
+      # carries ALL redirect logic. The worker MUST always be written to the
+      # publish dir: if it is missing, Pages silently falls back to _redirects
+      # and every worker-only redirect (version roots like /docs/14.1, /docs/next,
+      # framework routing, hyperformula) breaks site-wide.
+      #
+      # The worker's __LATEST_DOCS_VERSION__ placeholder (rule 1b) is substituted
+      # with the latest released MAJOR.MINOR version, read from
+      # deploy/LATEST_DOCS_VERSION - written by build_current_version.sh from
+      # the same getListOrPreviousVersions.mjs (GraphQL) source that decides
+      # the content layout (latest version's docs at the unversioned /docs
+      # root; older versions under /docs/<version>/).
+      #
+      # This must be the LATEST version, not the version being deployed
+      # (steps.get-docs-version, i.e. the prod-docs/<MAJOR.MINOR> branch name):
+      # those differ whenever a hotfix is pushed to an older prod-docs branch.
+      # Injecting the branch name there would make rule 1b redirect that
+      # older version's URLs to the unversioned root (301, browser-cached) -
+      # serving the wrong version's content - and make /docs/<latest> 404,
+      # since no /docs/<latest>/ directory exists in the publish dir.
+      #
+      # An earlier version of this step fetched the version from the GitHub
+      # API directly; a transient API failure ("Premature close") aborted the
+      # step under `bash -e` before the worker was copied, so the deploy
+      # shipped without a worker and took down all docs redirects (DEV-1969).
+      # Reading the file written by the build step has no network dependency
+      # of its own, and version substitution is still best-effort - it can
+      # never block the worker copy.
+      #
+      # No continue-on-error: the tripwire below is a hard failure condition
+      # (worker never written), and Cloudflare Pages is the sole production
+      # host now that Netlify is removed - masking that failure here would let
+      # the next step publish without a worker anyway, silently reproducing
+      # the DEV-1969 outage.
+      - name: Add Cloudflare worker to production deploy
+        run: |
+          cd deploy
+          LATEST_VERSION="$(cat LATEST_DOCS_VERSION 2>/dev/null || true)"
+          if printf '%s' "${LATEST_VERSION:-}" | grep -Eq '^[0-9]+\.[0-9]+$'; then
+            echo "Injecting LATEST_VERSION=$LATEST_VERSION into Cloudflare worker."
+            sed "s/__LATEST_DOCS_VERSION__/${LATEST_VERSION}/g" ../cloudflare/_worker.js > docs/_worker.js
+          else
+            echo "WARNING: no valid LATEST_DOCS_VERSION from the build - deploying worker verbatim; rule 1b no-ops." >&2
+            cp ../cloudflare/_worker.js docs/_worker.js
+          fi
+          # Tripwire: the worker must exist in the publish dir, otherwise Pages
+          # falls back to _redirects and all worker redirects break.
+          test -f docs/_worker.js
+
+      - name: Ensure Cloudflare Pages production project exists
+        continue-on-error: true
+        run: node cloudflare/ensureProject.mjs
         env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_PROD_SITE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_PROJECT_NAME: handsontable-docs
+          # "production" is a stable Cloudflare Pages branch label, NOT a git
+          # branch (the real prod git branch is e.g. prod-docs/18.0). The deploy
+          # below passes the same label to --branch, so the deployment is served
+          # at the apex handsontable-docs.pages.dev. Using the per-version git
+          # branch here would move the apex on every release.
+          CF_PAGES_APEX_BRANCH: production
+
+      # Cloudflare Pages is the sole production host, so a failed deploy must
+      # fail the workflow (no continue-on-error here) - masking it would
+      # silently leave production stale. Single attempt, no retry wrapper:
+      # retrying was a habit from the flaky Netlify publish; Cloudflare Pages
+      # deploys have not shown that flakiness. On a transient failure, re-run
+      # the workflow from the Actions UI.
+      - name: Deploy production to Cloudflare Pages
+        # Install wrangler in /tmp to avoid npm failures inside the pnpm workspace
+        working-directory: /tmp
+        run: |
+          npm install wrangler
+          ./node_modules/.bin/wrangler pages deploy \
+            "$GITHUB_WORKSPACE/docs/deploy/docs" \
+            --project-name handsontable-docs \
+            --branch production
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Algolia crawler start
         env:

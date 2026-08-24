@@ -62,7 +62,9 @@ export function runStep(cmd, opts = {}) {
     // --- spinner ---
 
     const startSpinner = () => {
-      if (!isTTY || opts.interactive) { return; }
+      if (!isTTY || opts.interactive) {
+        return;
+      }
       delayTimer = setTimeout(() => {
         indicatorActive = true;
         spinTimer = setInterval(() => {
@@ -102,7 +104,9 @@ export function runStep(cmd, opts = {}) {
     // match, which would otherwise be the original 'Path', ignoring our injection.
     const baseEnv = { ...process.env };
 
-    if (process.platform === 'win32') { delete baseEnv.Path; }
+    if (process.platform === 'win32') {
+      delete baseEnv.Path;
+    }
 
     const child = spawn(cmd, [], {
       cwd: opts.cwd ?? process.cwd(),
@@ -179,10 +183,26 @@ export function runStep(cmd, opts = {}) {
  * On non-TTY each event is printed as a plain line (no ANSI cursor movement).
  */
 export class ParallelSpinner {
+  /**
+   * Tracks active spinner entries by name, storing the current animation frame index and start timestamp.
+   */
   #active = new Map(); // name → {frame, startMs}
+
+  /**
+   * Holds the interval handle returned by setInterval, or null when the spinner is not running.
+   */
   #timer = null;
+
+  /**
+   * Counts the number of spinner lines currently written to stdout so they can be erased on the next render.
+   */
   #lineCount = 0;
 
+  /**
+   * Registers a new task by name, prints a start indicator on non-TTY, or starts the animation interval on TTY.
+   *
+   * @param {string} name The unique name of the task to start.
+   */
   start(name) {
     this.#active.set(name, { frame: 0, startMs: performance.now() });
 
@@ -200,6 +220,13 @@ export class ParallelSpinner {
     this.#render();
   }
 
+  /**
+   * Marks a task as finished, prints the result line with a pass/fail indicator and elapsed time, then stops the spinner if no tasks remain.
+   *
+   * @param {string} name The unique name of the task that finished.
+   * @param {boolean} ok Whether the task succeeded.
+   * @param {number} elapsed The time in milliseconds the task took to complete.
+   */
   finish(name, ok, elapsed) {
     const mark = ok ? '\x1b[32m✓\x1b[0m' : '\x1b[31m✗\x1b[0m';
 
@@ -216,9 +243,14 @@ export class ParallelSpinner {
     process.stdout.write(`  ${mark} ${name} (${elapsed}ms)\n`);
     this.#render();
 
-    if (this.#active.size === 0) { this.stop(); }
+    if (this.#active.size === 0) {
+      this.stop();
+    }
   }
 
+  /**
+   * Clears the animation interval and erases any spinner lines still visible on screen.
+   */
   stop() {
     if (this.#timer) {
       clearInterval(this.#timer);
@@ -228,15 +260,25 @@ export class ParallelSpinner {
     this.#clear();
   }
 
+  /**
+   * Erases all spinner lines written since the last render by moving the cursor up and clearing each line.
+   */
   #clear() {
-    if (!isTTY || this.#lineCount === 0) { return; }
+    if (!isTTY || this.#lineCount === 0) {
+      return;
+    }
     // Move up and erase each spinner line.
     process.stdout.write(('\x1b[1A\x1b[K').repeat(this.#lineCount));
     this.#lineCount = 0;
   }
 
+  /**
+   * Clears previous spinner output and redraws a spinning indicator line for each active task.
+   */
   #render() {
-    if (!isTTY || this.#active.size === 0) { return; }
+    if (!isTTY || this.#active.size === 0) {
+      return;
+    }
     this.#clear();
 
     for (const [name, state] of this.#active) {

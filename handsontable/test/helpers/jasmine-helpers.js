@@ -1,4 +1,3 @@
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * The function allows to run the test suites based on different parameters (object configuration, datasets etc).
  *

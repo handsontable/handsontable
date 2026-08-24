@@ -1,6 +1,6 @@
 ---
 name: pr-creation
-description: Use this skill whenever you are about to create, update, or edit a pull request in the Handsontable monorepo. **This skill must be loaded BEFORE running `gh pr create` or pushing a feature branch to GitHub**, not just when the user says the word "PR". Trigger it on any of these phrases, even indirect ones: "create a PR / pull request", "open a PR", "submit a PR", "push the branch", "push changes", "commit and push", "fix the issue" (when a branch has been created from a task), "ship it", "ready to review", "update the PR", "edit PR body", "fix PR description", "update PR description", or any mention of a PR URL. Also trigger when finishing work on a `feature/*`, `docs/*`, or `fix/*` branch, or when a ClickUp/DEV task has been implemented and needs to be submitted. Covers branch naming conventions, pre-flight checks (lint and tests), the PR-first / changelog-second workflow, authentication fallback (`gh auth setup-git` when SSH is unavailable), and filling the GitHub PR template with context, test plan, affected projects, and ClickUp task link.
+description: Use whenever you are about to create, push, open, update, or edit a pull request in the Handsontable monorepo — load this BEFORE running `gh pr create` or pushing a feature/docs/fix branch, not only when the user says "PR". Triggers: create/open/submit a PR, push the branch, commit and push, ship it, ready to review, update or fix a PR description, any PR URL, finishing work on a `feature/*`/`docs/*`/`fix/*` branch, or a completed ClickUp/DEV task ready to submit. Covers branch naming, pre-flight lint/tests, the PR-first then changelog flow, `gh auth` fallback, and filling the GitHub PR template.
 ---
 
 ## 1. Branch Naming
@@ -57,7 +57,7 @@ The repository has a PR template at `.github/PULL_REQUEST_TEMPLATE.md`. Fill in 
 - **Types of changes** -- Check the box that applies: bug fix, new feature, breaking change, or translation.
 - **Related issue(s)** -- Link GitHub issues with `#xxx`. Include ClickUp task IDs (e.g. `DEV-627`) so they auto-link.
 - **Affected project(s)** -- Check every package your change touches: `handsontable`, `@handsontable/react-wrapper`, `@handsontable/angular-wrapper`, `@handsontable/vue3`.
-- **Checklist** -- Confirm code style, CLA signature, and whether documentation needs updating.
+- **Checklist** -- Confirm code style, CLA signature, and whether documentation needs updating. The CLA is checked automatically by the required `cla/signed` status check; one signature covers Handsontable and HyperFormula. See [`CONTRIBUTING.md`](../../../CONTRIBUTING.md#contributor-license-agreement).
 
 ## 4. Target Branch
 
@@ -84,12 +84,27 @@ gh auth setup-git
 git push -u origin <branch-name>
 ```
 
-**Fill the full PR template in `--body`.** Do not submit a bare "Summary / Test plan" body — the repo's template at `.github/PULL_REQUEST_TEMPLATE.md` has **Context**, **How has this been tested?**, **Types of changes**, **Related issue(s)**, **Affected project(s)**, and **Checklist** sections, and every section must be filled in. Always include the ClickUp task URL on its own line so ClickUp auto-links the PR.
+**Always write the PR body to a temp file and use `--body-file`.** Never use `--body "$(cat <<'EOF'...EOF)"` — backticks inside a heredoc passed through shell command substitution are stored as literal `\`` characters in GitHub, breaking all inline code formatting in the PR description.
+
+**Use a unique, task-scoped temp filename — not a fixed `/tmp/pr-body.md`.** The Write tool refuses to overwrite a file it has not read in the current session, so a stale `/tmp/pr-body.md` left over from an earlier session makes the write fail with "Error writing file." Name the file after the branch's task/issue ID so it is both unique per PR and easy to trace: `/tmp/pr-body-DEV-1860.md`, `/tmp/pr-body-issue-11832.md`. If that path somehow already exists, append a short unique suffix (e.g. `/tmp/pr-body-DEV-1860-2.md`).
+
+The correct workflow:
+
+1. Write the body to `/tmp/pr-body-<task-id>.md` using the Write tool (no shell escaping needed).
+2. Pass it with `--body-file /tmp/pr-body-<task-id>.md`.
 
 ```bash
+# Step 1: write body to file first (use the Write tool, not shell echo/cat)
+#         e.g. /tmp/pr-body-DEV-1860.md
+# Step 2: create the PR
 gh pr create --draft --base develop \
   --title "DEV-xxx: Short description" \
-  --body "$(cat <<'EOF'
+  --body-file /tmp/pr-body-DEV-xxx.md
+```
+
+The body file template (write this with the Write tool, backticks and all, no escaping):
+
+```markdown
 ### Context
 
 <why this change is needed; link the task and explain the problem>
@@ -119,12 +134,10 @@ gh pr create --draft --base develop \
 ### Checklist:
 
 - [x] I have reviewed the guidelines about [Contributing to Handsontable](https://github.com/handsontable/handsontable/blob/master/CONTRIBUTING.md) and I confirm that my code follows the code style of this project.
-- [x] I have signed the [Contributor License Agreement](https://docs.google.com/forms/d/e/1FAIpQLScpMq4swMelvw3-onxC8Jl29m0fVp5hpf7d1yQVklqVjGjWGA/viewform?c=0&w=1)
+- [x] I have signed the [Contributor License Agreement](https://cla.handsontable.com/sign) — one signature covers both Handsontable and HyperFormula; the `cla/signed` check on this PR confirms it.
 - [ ] My change requires a change to the documentation.
 
 ClickUp task: https://app.clickup.com/t/9015210959/DEV-xxx
-EOF
-)"
 ```
 
 - **Commit messages:** Descriptive, max 80 characters. Include task ID (e.g. `DEV-627: Fix filter column index`).
@@ -134,7 +147,7 @@ EOF
 
 ## 5a. Updating an Existing PR's Body
 
-When asked to update, fix, or re-fill a PR description, use `gh pr edit <number> --body "$(cat <<'EOF' ... EOF)"`. Keep the full template structure — do not replace it with a shorter summary. The heredoc approach preserves newlines and checkboxes reliably.
+When asked to update, fix, or re-fill a PR description, use the same temp-file approach with a unique, task-scoped filename: write the body to `/tmp/pr-body-<task-id>.md` (e.g. `/tmp/pr-body-DEV-1860.md`) with the Write tool, then `gh pr edit <number> --body-file /tmp/pr-body-<task-id>.md`. A fixed `/tmp/pr-body.md` fails when a stale copy from an earlier session exists, because the Write tool will not overwrite a file it has not read this session. Keep the full template structure — do not replace it with a shorter summary. Never use `--body "$(cat <<'EOF'...EOF)"` — backticks are not shell-escaped in the Write tool output and will be stored as literal `\`` on GitHub.
 
 ## 6. Changelog Entry (after PR is created)
 

@@ -1,11 +1,12 @@
 import Handsontable from 'handsontable';
-import { PikadayOptions } from '@handsontable/pikaday';
+import type { HotInstance } from 'handsontable';
+import { DateEditor } from 'handsontable/editors';
 
 const element = document.createElement('div');
-const hot = new Handsontable(element, {});
-const editor = new Handsontable.editors.DateEditor(hot);
+const hot = Handsontable(element, {}) as unknown as HotInstance;
+const editor = new DateEditor(hot);
 
-editor.showDatepicker();
-editor.hideDatepicker();
-
-const options: PikadayOptions = editor.getDatePickerConfig();
+// Note: showDatepicker, hideDatepicker, getDatePickerConfig were Pikaday-specific and removed in 18.0.
+editor.open();
+editor.close();
+editor.focus();

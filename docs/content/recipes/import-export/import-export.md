@@ -6,15 +6,14 @@ canonicalUrl: /recipes/import-export
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-type: tutorial
-id: c4e8a91f
+type: how-to
 description: Practical recipes for moving data in and out of Handsontable.
 react:
-  id: d5f9b02a
   metaTitle: Import and Export Recipes - React Data Grid | Handsontable
 angular:
-  id: e6f0c13b
   metaTitle: Import and Export Recipes - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Import and Export Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]
 

@@ -1,5 +1,4 @@
 ---
-id: f2q8n4k1
 title: Row validation with error summary
 metaTitle: Row Validation Error Summary Recipe - JavaScript Data Grid | Handsontable
 description: Validate every row on a Submit action, list failures outside the grid, highlight cells with htInvalid, and clear state when the user fixes a cell.
@@ -11,23 +10,22 @@ tags:
   - recipes
   - validation
 react:
-  id: g5r1m7p3
   metaTitle: Row Validation Error Summary Recipe - React Data Grid | Handsontable
 angular:
-  id: h8s4n9q6
   metaTitle: Row Validation Error Summary Recipe - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Row Validation Error Summary Recipe - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Editing and Validation
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will validate every row when the user clicks Submit and list all failures in an error summary outside the grid. You will learn how to highlight invalid cells with `htInvalid` and clear the error state automatically when the user corrects a cell.
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --html 1 --js 2 --ts 3 --css 4
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
 
-@[code](@/content/recipes/editing-validation/row-validation-error-summary/javascript/example1.html)
 @[code](@/content/recipes/editing-validation/row-validation-error-summary/javascript/example1.js)
 @[code](@/content/recipes/editing-validation/row-validation-error-summary/javascript/example1.ts)
 @[code](@/content/recipes/editing-validation/row-validation-error-summary/javascript/example1.css)

@@ -14,6 +14,7 @@ import {HyperFormula} from 'hyperformula';
         <input [formControl]="namedExpressionsControl" type="text" />&nbsp;
         <button (click)="applyNamedExpression()">Calculate the price</button>
       </div>
+      <output [class.is-error]="errorMessage">{{ errorMessage }}</output>
     </div>
 
     <hot-table
@@ -26,6 +27,8 @@ export class AppComponent {
   @ViewChild(HotTableComponent, {static: false}) hotTable!: HotTableComponent;
 
   namedExpressionsControl = new FormControl('=10 * Sheet1!$A$2');
+
+  errorMessage = '';
 
   readonly hotData = [
     ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
@@ -54,7 +57,16 @@ export class AppComponent {
   applyNamedExpression() {
     const formulasPlugin = this.hotTable.hotInstance!.getPlugin('formulas');
 
-    formulasPlugin.engine?.changeNamedExpression('ADDITIONAL_COST', this.namedExpressionsControl.value);
+    try {
+      (formulasPlugin.engine as any)?.changeNamedExpression('ADDITIONAL_COST', this.namedExpressionsControl.value);
+    } catch (error) {
+      // HyperFormula rejects some expressions, for example relative references such as `Sheet1!A2`.
+      this.errorMessage = error instanceof Error ? error.message : String(error);
+
+      return;
+    }
+
+    this.errorMessage = '';
     this.hotTable.hotInstance!.render();
   }
 }

@@ -4,7 +4,7 @@
   gap: 0.5rem;
   margin: 0 -1rem 0 !important;
   padding: 0 1rem 0.75rem;
-  border-bottom: 1px solid var(--sl-color-gray-5);
+  border-bottom: 1px solid var(--sl-color-gray-5, #e0e0e0);
 }
 
 .checkbox-container > div {
@@ -21,36 +21,36 @@
   margin-left: 0.5rem;
   position: relative;
   top: 2px;
-  color: var(--sl-color-text);
+  color: var(--sl-color-text, #333333);
 }
 
 .external-link:hover {
-  color: var(--sl-color-accent);
+  color: var(--sl-color-accent, #1A42E8);
 }
 
 .placeholder-input {
   max-width: 20rem;
   padding: 0.4rem 0.625rem;
-  font-size: var(--sl-text-sm);
+  font-size: var(--sl-text-sm, 0.875rem);
   line-height: 1.25rem;
-  color: var(--sl-color-text);
+  color: var(--sl-color-text, #333333);
   background: none;
-  border: 1px solid var(--sl-color-gray-5);
+  border: 1px solid var(--sl-color-gray-5, #e0e0e0);
   border-radius: 0;
   outline: none;
 }
 
 .placeholder-input::placeholder {
-  color: var(--sl-color-gray-3);
+  color: var(--sl-color-gray-3, #777777);
 }
 
 .placeholder-input:focus {
-  border-color: var(--sl-color-accent);
+  border-color: var(--sl-color-accent, #1A42E8);
 }
 
 .option-label {
-  color: var(--sl-color-text);
-  font-size: var(--sl-text-sm);
+  color: var(--sl-color-text, #333333);
+  font-size: var(--sl-text-sm, 0.875rem);
 }
 
 /*
@@ -72,4 +72,5 @@
   gap: 1rem;
   display: flex;
   flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
 }

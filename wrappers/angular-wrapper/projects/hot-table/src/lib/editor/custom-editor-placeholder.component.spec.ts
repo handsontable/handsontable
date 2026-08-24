@@ -93,4 +93,22 @@ describe('CustomEditorPlaceholderComponent', () => {
 
     expect(detachSpy).toHaveBeenCalled();
   });
+
+  it('should have default placeholderCustomClass of "handsontableInputHolder ht_clone_master"', () => {
+    expect(component.placeholderCustomClass).toBe('handsontableInputHolder ht_clone_master');
+  });
+
+  it('should apply the default class to the host div', () => {
+    const div = fixture.nativeElement.querySelector('div');
+    expect(div.className).toContain('handsontableInputHolder');
+    expect(div.className).toContain('ht_clone_master');
+  });
+
+  it('should reflect a custom placeholderCustomClass when changed', () => {
+    fixture.componentRef.setInput('placeholderCustomClass', 'my-custom-class');
+    fixture.detectChanges();
+
+    const div = fixture.nativeElement.querySelector('div');
+    expect(div.className).toBe('my-custom-class');
+  });
 });

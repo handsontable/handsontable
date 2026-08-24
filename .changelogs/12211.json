@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed nested headers crash when sorting with disabled current highlight.",
-  "type": "fixed",
-  "issueOrPR": 12211,
-  "breaking": false,
-  "framework": "none"
-}

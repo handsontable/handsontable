@@ -1,8 +1,10 @@
-import { GridSettings } from 'handsontable/settings';
+import Handsontable from 'handsontable/base';
 import {
   prepareSettings,
   propFactory
 } from '../src/helpers';
+
+type GridSettings = Handsontable.GridSettings;
 
 describe('propFactory', () => {
   it('should generate an object containing all the available Handsontable properties and plugin hooks', () => {
@@ -16,6 +18,15 @@ describe('propFactory', () => {
     expect(typeof props.afterGetCellMeta).toBe('object');
     expect(typeof props.beforeInit).toBe('object');
     expect(typeof props.randomProp).toBe('undefined');
+  });
+
+  it('should expose the NestedRows collapse and expand hooks as props', () => {
+    const props = propFactory('HotTable');
+
+    expect(typeof props.beforeRowCollapse).toBe('object');
+    expect(typeof props.afterRowCollapse).toBe('object');
+    expect(typeof props.beforeRowExpand).toBe('object');
+    expect(typeof props.afterRowExpand).toBe('object');
   });
 });
 

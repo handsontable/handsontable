@@ -1,5 +1,5 @@
 ---
-id: 39o3uw0q
+type: how-to
 title: Custom plugins
 metaTitle: Custom plugins - JavaScript Data Grid | Handsontable
 description: Extend Handsontable's functionality by writing your custom plugin. Use the BasePlugin for a quick start.
@@ -10,13 +10,14 @@ tags:
   - skeleton
   - extend
 react:
-  id: y66k6b2h
   metaTitle: Custom plugins - React Data Grid | Handsontable
 angular:
-  id: ompl9j5i
   metaTitle: Custom plugins - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Custom plugins - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
+menuTag: updated
 ---
 Extend Handsontable's functionality by writing your custom plugin. Use the BasePlugin for a quick start.
 
@@ -25,6 +26,8 @@ Extend Handsontable's functionality by writing your custom plugin. Use the BaseP
 ## Overview
 
 Plugins are a great way of extending Handsontable's capabilities. In fact, most Handsontable features are provided by plugins.
+
+Reach for a custom plugin when you need to share state across multiple hooks. A plugin also fits when you need an enable, disable, or update lifecycle, or a reusable, registrable unit for other developers to use. If you only need to react to a single action, add a hook instead - see [Events and hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md).
 
 ::: only-for react
 
@@ -35,6 +38,12 @@ You can create a custom plugin in JavaScript, and then reference it from within 
 ::: only-for angular
 
 You can create a custom plugin in JavaScript, and then reference it from within your Angular app.
+
+:::
+
+::: only-for vue
+
+You can create a custom plugin in JavaScript, and then reference it from within your Vue app.
 
 :::
 
@@ -346,6 +355,33 @@ settings = {
 
 :::
 
+::: only-for vue
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import type { GridSettings } from 'handsontable/settings';
+
+const settings = ref<GridSettings>({
+  // Pass `true` to enable the plugin with default options.
+  customPlugin: true,
+  // You can also enable the plugin by passing an object with options.
+  customPlugin: {
+    msg: 'user-defined message',
+  },
+  // You can also initialize the plugin without enabling it at the beginning.
+  customPlugin: false,
+});
+</script>
+
+<template>
+  <HotTable :settings="settings" />
+</template>
+```
+
+:::
+
 ### 5. Get a reference to the plugin's instance
 
 To use the plugin's API, call the [`getPlugin`](@/api/core.md#getplugin) method to get a reference to the plugin's instance.
@@ -415,6 +451,38 @@ export class ExampleComponent implements AfterViewInit {
     this.hotTable?.hotInstance?.getPlugin(CustomPlugin.PLUGIN_KEY);
   }
 }
+```
+
+:::
+
+::: only-for vue
+
+::: tip
+
+To use the Handsontable API, create a reference to the `HotTable` component, and read its `hotInstance` property.
+
+For more information, see the [Instance methods](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
+
+:::
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import { CustomPlugin } from './customPlugin';
+
+const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
+
+function usePlugin() {
+  const pluginInstance = hotRef.value?.hotInstance?.getPlugin(CustomPlugin.PLUGIN_KEY);
+
+  pluginInstance?.externalMethodExample();
+}
+</script>
+
+<template>
+  <HotTable ref="hotRef" :settings="settings" />
+</template>
 ```
 
 :::

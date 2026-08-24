@@ -24,8 +24,13 @@ async function run(cmd, opts = {}) {
   console.log(`> ${cmd}`);
   const { stdout, stderr } = await execAsync(cmd, { ...opts, maxBuffer: 50 * 1024 * 1024 });
 
-  if (stdout) { console.log(stdout); }
-  if (stderr) { console.error(stderr); }
+  if (stdout) {
+    console.log(stdout);
+  }
+
+  if (stderr) {
+    console.error(stderr);
+  }
 }
 
 // 1. Install workspace dependencies (provides cross-env-shell, webpack, etc.)
@@ -39,10 +44,17 @@ await run('pnpm install', {
 console.log('\n=== Installing performance-tests dependencies ===\n');
 await run('npm install', { cwd: ROOT });
 
-// 3. Build Handsontable UMD + languages
-console.log('\n=== Building Handsontable UMD ===\n');
-await run('npm run build:umd', { cwd: HOT_DIR });
-await run('npm run build:languages', { cwd: HOT_DIR });
+// 3. Build Handsontable UMD + languages — unless the caller already provides a
+// built dist (HOT_PREBUILT=1: the PR pipeline downloads the shared UMD build
+// artifact, so rebuilding here would duplicate work and could even measure a
+// differently-produced bundle than the one the test jobs used).
+if (process.env.HOT_PREBUILT) {
+  console.log('\n=== Using prebuilt Handsontable dist (HOT_PREBUILT=1) ===\n');
+} else {
+  console.log('\n=== Building Handsontable UMD ===\n');
+  await run('npm run build:umd', { cwd: HOT_DIR });
+  await run('npm run build:languages', { cwd: HOT_DIR });
+}
 
 // 4. Copy dist + styles into fixtures/
 console.log('\n=== Copying build artifacts to fixtures/ ===\n');

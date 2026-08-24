@@ -1,19 +1,19 @@
 ---
 type: how-to
-id: ohjf69hj
 title: Cell renderer
 metaTitle: Cell renderer - JavaScript Data Grid | Handsontable
 description: Create a custom cell renderer function, to have full control over how a cell looks.
 permalink: /cell-renderer
 canonicalUrl: /cell-renderer
 react:
-  id: 2ej30mcg
   metaTitle: Cell renderer - React Data Grid | Handsontable
 angular:
-  id: 36rymylj
   metaTitle: Cell renderer - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Cell renderer - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
+menuTag: updated
 ---
 
 A cell renderer is a function that controls how cell content is displayed in the DOM. Override a built-in renderer or write your own to customize the visual output.
@@ -69,6 +69,14 @@ settings = {
 
 :::
 
+::: only-for vue
+
+```html
+<HotTable :settings="{ columns: [{ renderer: 'numeric' }] }" />
+```
+
+:::
+
 ::: only-for react
 
 ## Declare a custom renderer as a component
@@ -92,7 +100,7 @@ Be sure to turn those options off in your Handsontable configuration, as keeping
 
 :::
 
-## Use the renderer component within React's Context
+## Use the renderer component within React's context
 
 In this example, React's `Context` passes information available in the main app component to the renderer. In this case, we're using just the renderer, but the same principle works with [editors](@/guides/cell-functions/cell-editor/cell-editor.md) as well.
 
@@ -152,7 +160,7 @@ You can create and use a custom cell renderer component that utilizes the `rende
 
 :::
 
-## Declare a custom renderer as an Angular Template
+## Declare a custom renderer as an Angular template
 
 The Angular wrapper supports using an Angular `TemplateRef` as a renderer. This is particularly useful if you want to leverage the power of Angular templates directly, without creating a full component.
 
@@ -178,6 +186,38 @@ The following example implements `@handsontable/angular-wrapper` with a custom r
 
 :::
 
+::: only-for vue
+
+## Declare a custom renderer as a component
+
+Handsontable's Vue wrapper lets you create custom cell renderers using Vue components.
+
+To use a Vue component as a renderer, define the component with `defineComponent`, then write a renderer function that mounts it into the cell `td` element with Vue's `render` and `h` helpers. Mounting with `render(h(Component, props), td)` reuses the same component instance across re-renders -- Vue patches the existing tree instead of remounting it. To pass static props alongside the cell data, merge them into the second argument of `h()`.
+
+::: tip
+
+Handsontable's [`autoRowSize`](@/api/options.md#autorowsize) and [`autoColumnSize`](@/api/options.md#autocolumnsize) options require calculating the widths/heights of some of the cells before rendering them into the table. For this reason, it's not currently possible to use them alongside component-based renderers, as they're created after the table's initialization.
+
+Be sure to turn those options off in your Handsontable configuration, as keeping them enabled may cause unexpected results. Please note that [`autoColumnSize`](@/api/options.md#autocolumnsize) is enabled by default.
+
+:::
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-functions/cell-renderer/vue/example1.vue)
+
+:::
+
+If your component needs access to a Vue application context -- for example, global components, plugins, or `provide` / `inject` -- use `createApp(Component, props).mount(td)` instead of `render()`. Store a reference to the mounted app on the `td` element and call `app.unmount()` at the start of each render call to avoid leaking app instances:
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-functions/cell-renderer/vue/example2.vue)
+
+:::
+
+:::
+
 ::: only-for react angular
 
 ::: tip
@@ -190,7 +230,7 @@ All the sections below describe how to utilize the features available for the Ha
 
 ## Register custom cell renderer
 
-To register your own alias use `registerRenderer()` function from the `@handsontable/renderers` package. It takes two arguments:
+To register your own alias use `registerRenderer()` function from the `handsontable/renderers` module. It takes two arguments:
 
 - `rendererName` - a string representing a renderer function
 - `renderer` - a renderer function that will be represented by `rendererName`
@@ -198,7 +238,7 @@ To register your own alias use `registerRenderer()` function from the `@handsont
 If you'd like to register `asteriskDecoratorRenderer` under alias `asterisk` you have to call:
 
 ```js
-import { registerRenderer } from "@handsontable/renderers";
+import { registerRenderer } from "handsontable/renderers";
 
 registerRenderer("asterisk", asteriskDecoratorRenderer);
 ```
@@ -216,7 +256,7 @@ When using `registerRenderer()`, remember to call it at startup (e.g. in `main.t
 Choose aliases wisely. If you register your renderer under name that is already registered, the target function will be overwritten:
 
 ```js
-import { registerRenderer } from "@handsontable/renderers";
+import { registerRenderer } from "handsontable/renderers";
 
 registerRenderer("text", asteriskDecoratorRenderer);
 ```
@@ -226,7 +266,7 @@ Now `"text"` alias points to `asteriskDecoratorRenderer` function, not the built
 So, unless you intentionally want to overwrite an existing alias, try to choose a unique name. A good practice is prefixing your aliases with some custom name (for example your GitHub username) to minimize the possibility of name collisions. This is especially important if you want to publish your renderer, because you never know aliases has been registered by the user who uses your renderer.
 
 ```js
-import { registerRenderer } from "@handsontable/renderers";
+import { registerRenderer } from "handsontable/renderers";
 
 registerRenderer("asterisk", asteriskDecoratorRenderer);
 ```
@@ -234,7 +274,7 @@ registerRenderer("asterisk", asteriskDecoratorRenderer);
 Someone might already registered such alias
 
 ```js
-import { registerRenderer } from "@handsontable/renderers";
+import { registerRenderer } from "handsontable/renderers";
 
 registerRenderer("my.asterisk", asteriskDecoratorRenderer);
 ```
@@ -248,7 +288,7 @@ The final touch is to use registered aliases. That way users can easily refer to
 To sum up, a well prepared renderer function should look like this:
 
 ```js
-import { registerRenderer } from "@handsontable/renderers";
+import { registerRenderer } from "handsontable/renderers";
 
 function customRenderer(
   hotInstance,
@@ -313,15 +353,47 @@ settings = {
 
 :::
 
-## Render custom HTML in cells
+::: only-for vue
 
-This example shows how to use custom cell renderers to display HTML content in a cell. This is a very powerful feature. Just remember to escape any HTML code that could be used for XSS attacks. In the below configuration:
+```html
+<HotTable :settings="{ columns: [{ renderer: 'my.custom' }] }" />
+```
 
-::: warning Deprecated
-**DOMPurify will be removed in the next version.** After that, any string containing HTML will be stripped before rendering. To keep sanitized HTML (e.g. with DOMPurify), set the [`sanitizer`](@/api/options.md#sanitizer) option to your own sanitizer function.
 :::
 
-- **Title** column uses built-in HTML renderer that allows any HTML. This is unsafe if your code comes from untrusted source. Take notice that a Handsontable user can use it to enter `<script>` or other potentially malicious tags using the cell editor!
+When your custom renderer should preserve the default text output, call the built-in `textRenderer()` first. See [Extend a built-in renderer](#extend-a-built-in-renderer).
+
+## Extend a built-in renderer
+
+When you build on top of a built-in renderer, Handsontable does not call that base renderer for you. You call it inside your custom renderer before your extra logic.
+
+Use `textRenderer` as the base when you want plain-text output and then apply styling or additional DOM changes.
+
+Use `htmlRenderer` as the base when your output is trusted HTML and you intentionally render with `innerHTML`.
+
+Skip a base renderer when your renderer fully controls cell output from scratch, for example the image-based `coverRenderer` in [Render custom HTML in cells](#render-custom-html-in-cells).
+
+Both of the following call styles are valid:
+
+```js
+// Legacy style, common in classic JavaScript examples.
+textRenderer.apply(this, arguments);
+
+// Direct invocation style, common in ESM and TypeScript examples.
+textRenderer(instance, td, row, column, prop, value, cellProperties);
+```
+
+## Render custom HTML in cells
+
+This example shows how to use custom cell renderers to display HTML content in a cell. This is a very powerful feature. Just remember to escape any HTML code that could be used for XSS attacks.
+
+::: warning Security
+Handsontable does not include a built-in HTML sanitizer. When rendering untrusted user HTML, you must supply your own sanitizer via the [`sanitizer`](@/api/options.md#sanitizer) option. Without it, rendering untrusted HTML creates XSS vulnerabilities. See [Security](@/guides/security/security/security.md) for details.
+:::
+
+In the below configuration:
+
+- **Title** column uses built-in HTML renderer that allows any HTML. This is unsafe if your data comes from an untrusted source. A Handsontable user can enter `<script>` or other potentially malicious tags using the cell editor.
 - **Description** column also uses HTML renderer (same as above)
 - **Comments** column uses a custom renderer (`safeHtmlRenderer`). This should be safe for user input, because only certain tags are allowed
 - **Cover** column accepts image URL as a string and converts it to a `<img>` in the renderer
@@ -353,12 +425,51 @@ This example shows how to use custom cell renderers to display HTML content in a
 :::
 :::
 
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/cell-functions/cell-renderer/vue/example4.vue)
+
+:::
+
+:::
+
+## Render hyperlinks in cells
+
+A common use of a custom renderer is to turn a cell value into a clickable hyperlink. The renderer reads the cell value, builds an anchor (`<a>`) element, and appends it to the cell's DOM node.
+
+```js
+function hyperlinkRenderer(instance, td, row, column, prop, value, cellProperties) {
+  Handsontable.dom.empty(td);
+
+  const link = document.createElement('a');
+
+  link.href = value;
+  link.textContent = value;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+
+  td.appendChild(link);
+
+  return td;
+}
+```
+
+Assign the renderer to a column through the [`renderer`](@/api/options.md#renderer) option, or register it by alias with `registerRenderer()` as shown in [Register custom cell renderer](#register-custom-cell-renderer).
+
+::: warning Security
+When the link comes from untrusted input, validate the URL before rendering it. An unchecked `href` lets an attacker inject a `javascript:` link or other XSS vector. See [Security](@/guides/security/security/security.md) for details.
+:::
+
 ## Render custom HTML in header
 
 You can also put HTML into row and column headers. If you need to attach events to DOM elements like the checkbox below, just remember to identify the element by class name, not by id. This is because row and column headers are duplicated in the DOM tree and id attribute must be unique.
 
-::: warning Deprecated
-**DOMPurify will be removed in the next version.** After that, any string containing HTML will be stripped before rendering. To keep sanitized HTML (e.g. with DOMPurify), set the [`sanitizer`](@/api/options.md#sanitizer) option to your own sanitizer function.
+If your goal is to extend a built-in renderer before adding custom logic, see [Extend a built-in renderer](#extend-a-built-in-renderer).
+
+::: warning Security
+Handsontable does not include a built-in HTML sanitizer. When header content comes from untrusted sources, supply a [`sanitizer`](@/api/options.md#sanitizer) function to prevent XSS.
 :::
 
 ::: only-for javascript
@@ -389,6 +500,16 @@ You can also put HTML into row and column headers. If you need to attach events 
 :::
 :::
 
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/cell-functions/cell-renderer/vue/example5.vue)
+
+:::
+
+:::
+
 ## Add event listeners in cell renderer function
 
 If you are writing an advanced cell renderer, and you want to add some custom behavior after a certain user action (i.e. after user hover a mouse pointer over a cell) you might be tempted to add an event listener directly to table cell node passed as an argument to the `renderer` function. Unfortunately, this will almost always cause you trouble and you will end up with either performance issues or having the listeners attached to the wrong cell.
@@ -407,6 +528,10 @@ If you did't find a suitable _Handsontable event_ put the cell content into a wr
 Cell renderers are called separately for every displayed cell, during every table render. Table can be rendered multiple times during its lifetime (after table scroll, after table sorting, after cell edit etc.), therefore you should keep your `renderer` functions as simple and fast as possible or you might experience a performance drop, especially when dealing with large sets of data.
 
 If you only need to format the displayed value (e.g., add units, format dates, or apply text transformations), consider using the [`valueFormatter`](@/api/options.md#valueformatter) option instead of a custom renderer. The `valueFormatter` is called before the renderer and focuses solely on value transformation, making it more performant for simple formatting tasks. Use a renderer when you need to modify the DOM structure, add custom HTML elements, or handle complex visual layouts.
+
+## Result
+
+You now have a custom cell renderer that controls how cell content appears in the DOM. You can use a built-in renderer by alias, register and reuse your own with `registerRenderer()`, or write inline renderer functions for full control over the cell's HTML structure.
 
 ## Related API
 
@@ -540,6 +665,21 @@ settings = {
 
 :::
 
+::: only-for vue
+
+```html
+<HotTable :settings="{
+  columns: [{
+    data: 'price',
+    valueFormatter(value) {
+      return value ? `$${value.toFixed(2)}` : '';
+    }
+  }]
+}" />
+```
+
+:::
+
 #### Key differences
 
 | Aspect | `valueFormatter` | `renderer` |
@@ -610,7 +750,72 @@ settings = {
 
 :::
 
+::: only-for vue
+
+```html
+<HotTable :settings="{
+  columns: [{
+    data: 'amount',
+    valueFormatter(value) {
+      return `$${value.toFixed(2)}`;
+    },
+    renderer(hotInstance, td, row, col, prop, value, cellProperties) {
+      td.innerHTML = `<div class='amount-cell'><span class='currency'>${value}</span></div>`;
+    }
+  }]
+}" />
+```
+
+:::
+
 In this example, `valueFormatter` adds the currency symbol and formatting, while `renderer` wraps it in a custom DOM structure with additional styling.
+
+#### Format symbols outside the `Intl` standard
+
+The `numeric` renderer's `numericFormat` option formats numbers through `Intl.NumberFormat`, which only recognizes ISO 4217 currency codes and a fixed list of ECMA-402 sanctioned units. Symbols outside that list, such as the Bitcoin symbol (₿) or per mille (‰), aren't available through `numericFormat`. Attach them with `valueFormatter` instead:
+
+::: only-for javascript
+
+::: example #example6 --js 1 --ts 2
+
+@[code](@/content/guides/cell-functions/cell-renderer/javascript/example6.js)
+@[code](@/content/guides/cell-functions/cell-renderer/javascript/example6.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example6 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-functions/cell-renderer/react/example6.jsx)
+@[code](@/content/guides/cell-functions/cell-renderer/react/example6.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example7 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example7.ts)
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example7.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example6 :vue3
+
+@[code](@/content/guides/cell-functions/cell-renderer/vue/example6.vue)
+
+:::
+
+:::
 
 ### Configuration options and API
 
@@ -622,8 +827,7 @@ In this example, `valueFormatter` adds the currency symbol and formatting, while
 
 - [Custom renderer in React](@/react/guides/cell-functions/cell-renderer/cell-renderer.md)
 - [Custom renderer in Angular](@/angular/guides/cell-functions/cell-renderer/cell-renderer.md)
-- [Custom renderer in Vue](@/guides/integrate-with-vue3/vue3-custom-renderer-example/vue3-custom-renderer-example.md)
-- [Custom renderer in Vue 3](@/guides/integrate-with-vue3/vue3-custom-renderer-example/vue3-custom-renderer-example.md)
+- [Custom renderer in Vue 3](@/vue/guides/cell-functions/cell-renderer/cell-renderer.md)
 
 </div>
 
@@ -673,7 +877,3 @@ In this example, `valueFormatter` adds the currency symbol and formatting, while
 - [beforeRenderer](@/api/hooks.md#beforerenderer)
 
 </div>
-
-## Result
-
-You now have a custom cell renderer that controls how cell content appears in the DOM. You can use a built-in renderer by alias, register and reuse your own with `registerRenderer()`, or write inline renderer functions for full control over the cell's HTML structure.

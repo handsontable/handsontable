@@ -27,11 +27,13 @@ describe('`registerAllRenderers`', () => {
       'handsontable',
       'html',
       'intl-date',
+      'intl-datetime',
       'intl-time',
       'numeric',
       'password',
       'select',
       'time',
+      'date',
     ]);
     expect(getRegisteredValidatorNames()).toEqual([]);
   });

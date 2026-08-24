@@ -51,6 +51,51 @@ describe('NestedRows Data Manager', () => {
         expect(plugin.dataManager.getRowIndex(data[0].__children[3])).toEqual(6);
         expect(plugin.dataManager.getRowIndex(data[2].__children[1].__children[0])).toEqual(11);
       });
+
+      it('should return `null` instead of throwing for a row object that is not in the structure', async() => {
+        handsontable({
+          data: getMoreComplexNestedData(),
+          nestedRows: true
+        });
+
+        const plugin = getPlugin('nestedRows');
+
+        expect(() => plugin.dataManager.getRowIndex({ notARow: true })).not.toThrow();
+        expect(plugin.dataManager.getRowIndex({ notARow: true })).toBe(null);
+      });
+
+      it('should return `null` instead of throwing for a row object held from before loadData', async() => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true
+        });
+
+        const plugin = getPlugin('nestedRows');
+        // A reference an application would hold across a dataset swap.
+        const staleRowObject = getSourceData()[0];
+
+        await loadData(getMoreComplexNestedData());
+
+        expect(() => plugin.dataManager.getRowIndex(staleRowObject)).not.toThrow();
+        expect(plugin.dataManager.getRowIndex(staleRowObject)).toBe(null);
+      });
+
+      it('should not throw when reading the parent or the level of a stale row object', async() => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true
+        });
+
+        const plugin = getPlugin('nestedRows');
+        const staleRowObject = getSourceData()[0];
+
+        await loadData(getMoreComplexNestedData());
+
+        expect(() => plugin.dataManager.getRowObjectParent(staleRowObject)).not.toThrow();
+        expect(plugin.dataManager.getRowObjectParent(staleRowObject)).toBe(null);
+        expect(() => plugin.dataManager.getRowObjectLevel(staleRowObject)).not.toThrow();
+        expect(plugin.dataManager.getRowObjectLevel(staleRowObject)).toBe(null);
+      });
     });
 
     describe('getRowIndexWithinParent', () => {
@@ -638,6 +683,57 @@ describe('NestedRows Data Manager', () => {
         dataManager.addChildAtIndex(dataInstance[0], 3, { a: 'test' });
 
         expect(dataManager.getData()[0].__children[3].a).toEqual('test');
+      });
+
+      it('should preserve grandparent\'s other branches when inserting into a deeply-nested ' +
+        'parent (#9670)', async() => {
+        const dataInstance = [
+          {
+            a: 'Group 1',
+            __children: [
+              {
+                a: 'Group 2',
+                __children: [
+                  { a: 'Line 1' }
+                ]
+              },
+              {
+                a: 'Group 3',
+                __children: [
+                  { a: 'Line 2' }
+                ]
+              }
+            ]
+          }
+        ];
+
+        handsontable({
+          data: dataInstance,
+          nestedRows: true,
+        });
+
+        const dataManager = getPlugin('nestedRows').dataManager;
+        const group1 = dataInstance[0];
+        const group2 = group1.__children[0];
+        const group3 = group1.__children[1];
+
+        dataManager.addChildAtIndex(group2, 0, null);
+
+        // Group 1 must retain Group 2 and Group 3 as direct children.
+        expect(group1.__children.length).toEqual(2);
+        expect(group1.__children[0]).toBe(group2);
+        expect(group1.__children[1]).toBe(group3);
+
+        // Group 2 receives the new placeholder before Line 1.
+        expect(group2.__children.length).toEqual(2);
+        expect(group2.__children[1].a).toEqual('Line 1');
+
+        // Group 3 and Line 2 must still be reachable through Group 1.
+        expect(group3.__children.length).toEqual(1);
+        expect(group3.__children[0].a).toEqual('Line 2');
+
+        // Row count must match: Group 1, Group 2, mock, Line 1, Group 3, Line 2.
+        expect(countRows()).toEqual(6);
       });
     });
 

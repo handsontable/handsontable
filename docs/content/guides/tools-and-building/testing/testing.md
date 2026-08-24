@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 6fv7kuj6
 title: Testing
 metaTitle: Testing - JavaScript Data Grid | Handsontable
 description: Run one or multiple tests, using Handsontable's ready-made commands for Jasmine and Puppeteer.
@@ -14,11 +13,11 @@ tags:
   - puppeteer
   - spec
 react:
-  id: y3wp74jh
   metaTitle: Testing - React Data Grid | Handsontable
 angular:
-  id: zggveqea
   metaTitle: Testing - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Testing - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
 ---
@@ -85,6 +84,10 @@ To avoid unintended changes to Handsontable's UI, we use automated visual regres
 
 Learn more on our [GitHub](https://github.com/handsontable/handsontable/blob/develop/visual-tests/README.md).
 
+## Result
+
+Your tests ran and reported pass or fail results. A green test suite confirms your change does not introduce regressions.
+
 ## Related guides
 
 <div class="boxes-list">
@@ -98,7 +101,3 @@ Learn more on our [GitHub](https://github.com/handsontable/handsontable/blob/dev
 :::
 
 </div>
-
-## Result
-
-Your tests ran and reported pass or fail results. A green test suite confirms your change does not introduce regressions.

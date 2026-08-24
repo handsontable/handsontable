@@ -1,17 +1,16 @@
 ---
-type: tutorial
-id: c2670b72
-title: Custom Cells
+type: explanation
+title: Custom cells
 metaTitle: Simplified Custom Cell Definitions - JavaScript Data Grid | Handsontable
 description: Validate data added or changed by the user, with predefined or custom rules. Validation helps you make sure that the data matches the expected format.
 permalink: /custom-cells
 canonicalUrl: /custom-cells
 react:
-  id: 6b3e971b
   metaTitle: Custom Cell Definitions - React Data Grid | Handsontable
 angular:
-  id: 29d3662c
   metaTitle: Custom Cell Definitions - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Custom Cell Definitions - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
 ---
@@ -22,7 +21,7 @@ category: Cell functions
 
 This document introduces a  [convention-over-configuration](https://en.wikipedia.org/wiki/Convention_over_configuration), declarative approach to creating custom cell types in Handsontable. Rather than relying on imperative code and complex class hierarchies, you start with a working cell definition—just a few lines of code—which you then adjust to your own needs. While the previous, class-based approach isn't inherently bad and remains valuable for advanced customizations, it can be unnecessarily complex for simple editors or quick prototypes. With this factory-based method, you get a much simpler and faster way to build custom cells, while still retaining full access to Handsontable features.
 
-## Why This Approach?
+## Why this approach?
 
 The traditional OOP approach to creating custom cells has several challenges:
 
@@ -50,7 +49,7 @@ For React applications, Handsontable provides `EditorComponent`, a high-level Re
 - Render prop pattern for flexible UI composition
 - Type-safe editor state management
 
-### Basic Usage
+### Basic usage
 
 `EditorComponent` uses a [**render prop pattern**](https://legacy.reactjs.org/docs/render-props.html) where you pass a function as `children` that receives editor state and methods:
 
@@ -88,7 +87,7 @@ const App = () => {
 };
 ```
 
-### Component Props
+### Component props
 
 `EditorComponent` accepts the following props:
 
@@ -124,7 +123,7 @@ const App = () => {
 </EditorComponent>
 ```
 
-### Children Function Props
+### Children function props
 
 The render prop function receives the following props:
 
@@ -136,7 +135,7 @@ The render prop function receives the following props:
 - **`col: number | undefined`** - Current column index
 - **`mainElementRef: React.RefObject<HTMLDivElement>`** - Reference to the editor container element
 
-### Lifecycle Hooks
+### Lifecycle hooks
 
 1. **`onPrepare(row, column, prop, TD, originalValue, cellProperties)`** - Called before the editor opens
    - Use for per-cell setup, reading custom properties, or positioning
@@ -151,9 +150,9 @@ The render prop function receives the following props:
 4. **`onFocus()`** - Called when the editor receives focus
    - Use for custom focus management
 
-### Common Patterns
+### Common patterns
 
-#### Pattern 1: Simple Input Editor
+#### Pattern 1: Simple input editor
 
 ```tsx
 const TextEditor = () => {
@@ -173,7 +172,7 @@ const TextEditor = () => {
 };
 ```
 
-#### Pattern 2: Dropdown Select Editor
+#### Pattern 2: Dropdown select editor
 
 ```tsx
 const SelectEditor = () => {
@@ -207,7 +206,7 @@ const SelectEditor = () => {
 };
 ```
 
-#### Pattern 3: Custom UI with Buttons
+#### Pattern 3: Custom UI with buttons
 
 ```tsx
 const ButtonEditor = () => {
@@ -231,7 +230,7 @@ const ButtonEditor = () => {
 };
 ```
 
-#### Pattern 4: Keyboard Shortcuts
+#### Pattern 4: Keyboard shortcuts
 
 ```tsx
 const ShortcutEditor = () => {
@@ -269,7 +268,7 @@ const ShortcutEditor = () => {
 };
 ```
 
-#### Pattern 5: Third-Party Library Integration
+#### Pattern 5: Third-party library integration
 
 ```tsx
 import { useEffect, useRef } from 'react';
@@ -321,7 +320,7 @@ You can also use the `editorFactory` approach (described below) in React applica
 
 Both approaches work seamlessly with React and provide the same level of functionality.
 
-### TypeScript Support
+### TypeScript support
 
 `EditorComponent` is fully typed. You can specify the value type:
 
@@ -349,7 +348,7 @@ const NumberEditor = () => {
 };
 ```
 
-### Best Practices
+### Best practices
 
 1. **Use `onPrepare` for per-cell configuration** - Access `cellProperties` to read custom options
 2. **Handle keyboard events properly** - Use shortcuts or handle `onKeyDown` events
@@ -357,7 +356,7 @@ const NumberEditor = () => {
 4. **Use `mainElementRef` for third-party libraries** - Attach libraries to the container element
 5. **Keep render prop function simple** - Extract complex logic into separate components or hooks
 
-### Comparison: `EditorComponent` vs `useHotEditor` Hook
+### Comparison: `EditorComponent` vs `useHotEditor` hook
 
 Handsontable also provides a lower-level `useHotEditor` hook if you need more control:
 
@@ -381,7 +380,7 @@ This information is applicable in React when using the non-component editor appr
 
 For Angular applications, Handsontable provides `HotCellEditorAdvancedComponent` and `HotCellRendererAdvancedComponent`, high-level Angular components that simplify creating custom editors and renderers. These components handle lifecycle management, provide type-safe properties, and integrate seamlessly with Angular's dependency injection and change detection.
 
-### What are the Advanced Components?
+### What are the advanced components?
 
 Angular provides two base classes for creating custom cells:
 
@@ -396,13 +395,13 @@ Both components provide:
 - Integration with Angular's change detection
 - Support for custom configuration via `rendererProps` or `config`
 
-## Custom Renderers
+## Custom renderers
 
 ### `HotCellRendererAdvancedComponent`
 
 A base class for creating custom cell renderers in Angular. Extend this class to create your own renderer components. 
 
-#### Basic Structure
+#### Basic structure
 
 ```typescript
 import { Component } from "@angular/core";
@@ -418,7 +417,7 @@ export class MyCustomRenderer extends HotCellRendererAdvancedComponent<string> {
 }
 ```
 
-#### Input Properties
+#### Input properties
 
 The base class provides the following @Input properties automatically:
 
@@ -430,7 +429,7 @@ The base class provides the following @Input properties automatically:
 - **`prop: string`** - Property name
 - **`cellProperties: Handsontable.CellProperties & { rendererProps?: TProps }`** - Cell configuration with optional renderer-specific properties
 
-#### The `getProps()` Method
+#### The `getProps()` method
 
 Use `getProps()` to retrieve renderer-specific properties passed via `rendererProps`:
 
@@ -456,7 +455,7 @@ export class ColoredRenderer extends HotCellRendererAdvancedComponent<string, { 
 }
 ```
 
-#### Example: Star Rating Renderer
+#### Example: Star rating renderer
 
 ```typescript
 import { Component, ChangeDetectionStrategy } from "@angular/core";
@@ -499,13 +498,13 @@ In short:
 - Use `HotCellRendererComponent` for renderers based on the traditional `baseRenderer`.
 - Use `HotCellRendererAdvancedComponent` when you want to align with the newer `rendererFactory` pattern for potential performance benefits and a more modern API approach.
 
-## Custom Editors
+## Custom editors
 
 ### `HotCellEditorAdvancedComponent`
 
 A base class for creating custom cell editors in Angular. Extend this class to create your own editor components with full control over the editing experience.
 
-#### Basic Structure
+#### Basic structure
 
 ```typescript
 import { Component } from "@angular/core";
@@ -521,7 +520,7 @@ export class MyCustomEditor extends HotCellEditorAdvancedComponent<string> {
 }
 ```
 
-#### Input Properties
+#### Input properties
 
 The base class provides the following @Input properties:
 
@@ -531,12 +530,12 @@ The base class provides the following @Input properties:
 - **`originalValue: T`** - Original value of the cell before editing
 - **`cellProperties: CellProperties`** - Cell configuration
 
-#### Output Events
+#### Output events
 
 - **`finishEdit: EventEmitter<void>`** - Emit to save changes and close the editor
 - **`cancelEdit: EventEmitter<void>`** - Emit to cancel changes and revert to original value
 
-#### Lifecycle Methods
+#### Lifecycle methods
 
 Override these methods to customize editor behavior:
 
@@ -564,16 +563,16 @@ Override these methods to customize editor behavior:
    - Called before the editor opens
    - Use for per-cell setup or reading custom properties
 
-#### Value Methods
+#### Value methods
 
 - **`getValue(): T`** - Returns the current editor value (override if needed)
 - **`setValue(value: T): void`** - Sets the editor value (override if needed)
 
-#### Configuration Properties
+#### Configuration properties
 
 - **`position: 'container' | 'portal'`** - Editor positioning strategy (default: 'container')
 - **`shortcuts?: KeyboardShortcutConfig[]`** - Keyboard shortcuts configuration
-- **`shortcutsGroup?: string`** - Group name for shortcuts
+- **`shortcutsGroup?: string`** - Group name for shortcuts (default: `'customEditor'`)
 - **`config?: any`** - Custom configuration object
 
 #### When should I use [`HotCellEditorComponent`](@/guides/cell-functions/cell-editor/cell-editor.md) and when should I use `HotCellEditorAdvancedComponent`?
@@ -592,9 +591,9 @@ In short:
 - Use `HotCellEditorComponent` for simple, standard editors.
 - Use `HotCellEditorAdvancedComponent` when you need advanced control over the editor's behavior, positioning, and keyboard shortcuts.
 
-### Common Patterns
+### Common patterns
 
-#### Pattern 1: Simple Input Editor
+#### Pattern 1: Simple input editor
 
 A basic text input editor:
 
@@ -620,7 +619,7 @@ import { FormsModule } from "@angular/forms";
 export class TextEditor extends HotCellEditorAdvancedComponent<string> {}
 ```
 
-#### Pattern 2: Dropdown Select Editor
+#### Pattern 2: Dropdown select editor
 
 A dropdown editor with predefined options:
 
@@ -660,7 +659,7 @@ export class SelectEditor extends HotCellEditorAdvancedComponent<string> {
 }
 ```
 
-#### Pattern 3: Custom UI with Buttons
+#### Pattern 3: Custom UI with buttons
 
 An editor with custom button controls:
 
@@ -693,7 +692,7 @@ export class ButtonEditor extends HotCellEditorAdvancedComponent<string> {
 }
 ```
 
-#### Pattern 4: Keyboard Shortcuts
+#### Pattern 4: Keyboard shortcuts
 
 An editor with comprehensive keyboard navigation:
 
@@ -761,7 +760,7 @@ export class StarEditor extends HotCellEditorAdvancedComponent<number> {
 }
 ```
 
-#### Pattern 5: Third-Party Library Integration (Angular Material)
+#### Pattern 5: Third-party library integration (Angular Material)
 
 Integrating external libraries like Angular Material:
 
@@ -816,7 +815,7 @@ columns: [
 ];
 ```
 
-### TypeScript Support
+### TypeScript support
 
 Both `HotCellEditorAdvancedComponent` and `HotCellRendererAdvancedComponent` are fully typed with generics:
 
@@ -846,7 +845,7 @@ export class ProductEditor extends HotCellEditorAdvancedComponent<Product> {
 }
 ```
 
-### Best Practices
+### Best practices
 
 1. **Use ChangeDetectorRef for manual updates** - Inject and call `detectChanges()` after programmatic value changes
 2. **Use standalone components when possible** - Better tree-shaking and module isolation
@@ -856,7 +855,7 @@ export class ProductEditor extends HotCellEditorAdvancedComponent<Product> {
 6. **Override lifecycle methods as needed** - `beforeOpen`, `afterOpen`, `afterClose`, `onFocus`
 7. **Type your components with generics** - Specify value type for type safety: `HotCellEditorAdvancedComponent<YourType>`
 
-### Column Configuration
+### Column configuration
 
 Use your custom components in column settings:
 
@@ -887,6 +886,54 @@ gridSettings: GridSettings = {
 
 All the sections below describe how to utilize the features available for the Handsontable factory based editors.
 This information is also applicable in Angular when you need lower-level control or want to share code between vanilla JavaScript and Angular implementations.
+
+:::
+
+:::
+
+::: only-for vue
+
+## Vue
+
+The Vue 3 wrapper does not provide a component-based editor API equivalent to React's `EditorComponent` or Angular's `HotCellEditorAdvancedComponent`. Instead, you use Handsontable's standard renderer functions and editor classes directly — the same primitives that work in vanilla JavaScript — but you can also mount Vue components into cells using Vue's `render` function.
+
+### Custom renderers
+
+A **renderer function** receives the cell's `td` element and fills it with whatever markup you need. You pass it directly to the `renderer` option on a column.
+
+#### Function renderer
+
+The simplest approach: write a plain function, manipulate the `td` element, and return it.
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-functions/custom-cells/vue/example1.vue)
+
+:::
+
+#### Vue component renderer
+
+For richer cell content, use Vue's `h` and `render` helpers to mount a Vue component into the `td` element on every render call.
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-functions/custom-cells/vue/example2.vue)
+
+:::
+
+### Custom editors
+
+Create a custom editor by extending one of Handsontable's built-in editor classes (for example, `TextEditor`) and overriding the methods you need to change. Pass the class to the `editor` option on a column.
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/cell-functions/custom-cells/vue/example3.vue)
+
+:::
+
+::: tip
+
+The sections below describe the framework-agnostic `rendererFactory` and `editorFactory` helpers. You can use both helpers in Vue 3 projects — pass the result to the `renderer` or `editor` column option the same way you would pass a renderer function or editor class.
 
 :::
 
@@ -944,9 +991,9 @@ The `editorFactory` helper is the **recommended approach** for creating custom e
 - Less boilerplate code
 - Type-safe custom properties
 
-## Basic Usage
+## Basic usage
 
-### Cell Definition Structure
+### Cell definition structure
 
 A complete cell definition includes three components:
 
@@ -1006,7 +1053,7 @@ editorFactory<CustomProperties, CustomMethods = {}>({
 })
 ```
 
-## Lifecycle Methods
+## Lifecycle methods
 
 Each method runs at a specific point in the editor lifecycle:
 
@@ -1069,7 +1116,7 @@ Each method runs at a specific point in the editor lifecycle:
     - Useful for organizing shortcuts in complex editors
 
 
-## Custom Properties with TypeScript
+## Custom properties with TypeScript
 
 Define custom properties for your editor using generics:
 
@@ -1093,9 +1140,9 @@ const editor = editorFactory<MyEditorProps>({
 });
 ```
 
-## Common Patterns
+## Common patterns
 
-### Pattern 1: Simple Input Wrapper
+### Pattern 1: Simple input wrapper
 
 For wrapping HTML5 inputs:
 
@@ -1119,7 +1166,7 @@ editor: editorFactory<{input: HTMLInputElement}>({
 })
 ```
 
-### Pattern 2: Third-Party Library Integration
+### Pattern 2: Third-party library integration
 
 For integrating libraries like date pickers, color pickers, etc.:
 
@@ -1141,7 +1188,7 @@ editor: editorFactory<{input: HTMLInputElement, picker: PickerInstance}>({
 })
 ```
 
-### Pattern 3: Preventing Click-Outside Closing
+### Pattern 3: Preventing click-outside closing
 
 By default, Handsontable will attempt to close a custom editor whenever the user clicks outside the cell or editor container ("click-outside-to-close" behavior). If your editor contains elements like dropdowns, popups, or overlays rendered outside the container, you'll need to prevent this automatic closing when interacting with those UI elements.
 
@@ -1172,7 +1219,7 @@ const MyEditor = editorFactory({
 });
 ```
 
-### Pattern 4: Per-Cell Configuration
+### Pattern 4: Per-cell configuration
 
 **Why is this needed?**
 
@@ -1190,7 +1237,7 @@ beforeOpen(editor, { originalValue, cellProperties }) {
 }
 ```
 
-### Pattern 5: Keyboard Shortcuts
+### Pattern 5: Keyboard shortcuts
 
 **Why is this needed?**
 
@@ -1224,7 +1271,7 @@ editor: editorFactory<{input: HTMLInputElement}>({
 })
 ```
 
-### Pattern 6: Overriding Editor Default Behavior
+### Pattern 6: Overriding editor default behavior
 
 **Why is this needed?**
 
@@ -1278,7 +1325,7 @@ editor: editorFactory<{input: HTMLDivElement, value: string, config: string[]}>(
 - Adding custom behavior to Escape key
 - Overriding navigation keys for custom UI elements
 
-### Pattern 7: Using Direct Value and Config Properties
+### Pattern 7: Using direct value and config properties
 
 **Why is this needed?**
 
@@ -1305,7 +1352,7 @@ editor: editorFactory<{
 })
 ```
 
-### Pattern 8: Custom Positioning Strategy
+### Pattern 8: Custom positioning strategy
 
 **Why is this needed?**
 
@@ -1321,11 +1368,11 @@ editor: editorFactory<{input: HTMLInputElement}>({
 })
 ```
 
-### Pattern 9: Organizing Keyboard Shortcuts
+### Pattern 9: Organizing keyboard shortcuts
 
 **Why is this needed?**
 
-When you have multiple editors or complex shortcut configurations, organizing shortcuts into groups helps manage conflicts and provides better debugging. The `shortcutsGroup` option lets you assign a name to your editor's shortcuts.
+When you have multiple editors or complex shortcut configurations, organizing shortcuts into groups helps manage conflicts and provides better debugging. The `shortcutsGroup` option lets you assign a name to your editor's shortcuts. If you omit it, the shortcuts are registered under the `customEditor` group.
 
 **Example:**
 ```typescript
@@ -1394,7 +1441,7 @@ new Handsontable(container, {
 });
 ```
 
-## Best Practices with `editorFactory`
+## Best practices with `editorFactory`
 
 ### 1. Performance
 
@@ -1441,7 +1488,7 @@ We provide complete working examples for common use cases. All examples use the 
 4. **[Pikaday Date Picker](@/recipes/cell-types/pikaday/pikaday.md)** - Integrate Pikaday date picker using `factoryEditor`
 5. **[Star Rating](@/recipes/cell-types/rating/rating.md)** - Interactive star rating using `factoryEditor`
 
-## Migration from Traditional Approach
+## Migration from traditional approach
 
 If you have existing custom editors, migrating to this approach is optional. The `editorFactory` method is simply a helper built on top of the existing Editor classes. Your previous custom editors remain fully backward compatible, so you can continue using them as-is or migrate at your convenience.
 
@@ -1489,19 +1536,19 @@ const editor = editorFactory<{input: HTMLInputElement}>({
 
 ## Troubleshooting with `editorFactory`
 
-### Editor Not Showing
+### Editor not showing
 
 - Container positioning is handled automatically
 - Check that `init()` creates `editor.input` element
 - Verify `afterOpen()` runs if you need to trigger UI elements
 
-### Value Not Saving
+### Value not saving
 
 - Verify `getValue()` returns the correct value
 - Check validator is calling `callback(true)`
 - Ensure `setValue()` properly updates the editor
 
-### Click Outside Closes Immediately
+### Click outside closes immediately
 
 - Use `Event Listener` to stop propagation
 - See Pattern 3 above

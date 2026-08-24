@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed framework wrappers crashing when init-only settings (renderAllRows, renderAllColumns, layoutDirection, ariaTags) changed after initialization.",
-  "type": "fixed",
-  "issueOrPR": 12242,
-  "breaking": false,
-  "framework": "none"
-}

@@ -307,4 +307,58 @@ describe('Events', () => {
       await triggerTouchEvent('touchend', cell);
     });
   });
+
+  describe('disableVisualSelection with checkbox', () => {
+    it('should not "preventDefault" touchend on checkbox INPUT when disableVisualSelection is "current"', async() => {
+      handsontable({
+        data: [[true], [false]],
+        width: 400,
+        height: 400,
+        columns: [{ type: 'checkbox', disableVisualSelection: 'current' }],
+      });
+
+      const checkboxInput = hot.getCell(0, 0).querySelector('input[type="checkbox"]');
+
+      await triggerTouchEvent('touchstart', checkboxInput);
+
+      const event = await triggerTouchEvent('touchend', checkboxInput);
+
+      expect(event.defaultPrevented).toBeFalse();
+    });
+
+    it('should not "preventDefault" touchend on checkbox INPUT when disableVisualSelection is true', async() => {
+      handsontable({
+        data: [[true], [false]],
+        width: 400,
+        height: 400,
+        columns: [{ type: 'checkbox', disableVisualSelection: true }],
+      });
+
+      const checkboxInput = hot.getCell(0, 0).querySelector('input[type="checkbox"]');
+
+      await triggerTouchEvent('touchstart', checkboxInput);
+
+      const event = await triggerTouchEvent('touchend', checkboxInput);
+
+      expect(event.defaultPrevented).toBeFalse();
+    });
+
+    it('should still "preventDefault" touchend on link element in unselected cell when disableVisualSelection is set', async() => {
+      handsontable({
+        data: [['<a href="#test">link</a>']],
+        width: 400,
+        height: 400,
+        renderer: 'html',
+        columns: [{ disableVisualSelection: 'current' }],
+      });
+
+      const linkElement = hot.getCell(0, 0).querySelector('a');
+
+      await triggerTouchEvent('touchstart', linkElement);
+
+      const event = await triggerTouchEvent('touchend', linkElement);
+
+      expect(event.defaultPrevented).toBeTrue();
+    });
+  });
 });

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved initialization time for large date-typed datasets by validating ISO dates arithmetically instead of constructing a `Date` object for every cell.",
+  "type": "changed",
+  "issueOrPR": 12881,
+  "breaking": false,
+  "framework": "none"
+}

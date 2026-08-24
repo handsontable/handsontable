@@ -21,29 +21,28 @@ type UserRow = {
   standalone: true,
   imports: [HotTableModule],
   template: `
-    <p style="margin: 0 0 8px; font-family: Arial, sans-serif; font-size: 14px;"
-       [style.color]="statusColor">
-      {{ statusMessage }}
-    </p>
+    <div class="example-controls-container">
+      <output [class.is-error]="statusIsError">{{ statusMessage }}</output>
+    </div>
     <hot-table [settings]="hotSettings"></hot-table>
   `,
 })
 export class AppComponent {
   private readonly ngZone = inject(NgZone);
 
+  statusIsError = false;
   statusMessage = 'Loading...';
-  statusColor = 'var(--ht-foreground-color, #202124)';
 
   private cachedRows: UserRow[] | null = null;
 
   readonly hotSettings: GridSettings;
 
   /** Defers binding updates so sync data-provider hooks do not trigger NG0100 in dev mode. */
-  private setFetchStatus(message: string, color = 'var(--ht-foreground-color, #202124)'): void {
+  private setFetchStatus(message: string, isError = false): void {
     setTimeout(() => {
       this.ngZone.run(() => {
         this.statusMessage = message;
-        this.statusColor = color;
+        this.statusIsError = isError;
       });
     }, 0);
   }
@@ -98,17 +97,14 @@ export class AppComponent {
       autoWrapRow: true,
       beforeDataProviderFetch: (params: DataProviderBeforeFetchParameters) => {
         if (!params.skipLoading) {
-          this.setFetchStatus('Loading...');
+          this.setFetchStatus('Loading...', false);
         }
       },
       afterDataProviderFetch: () => {
-        this.setFetchStatus('Loaded from REST API via dataProvider.');
+        this.setFetchStatus('Loaded from REST API via dataProvider.', false);
       },
       afterDataProviderFetchError: (error: Error) => {
-        this.setFetchStatus(
-          `Error: ${error.message}`,
-          'var(--ht-cell-error-foreground-color, #c62828)'
-        );
+        this.setFetchStatus(`Error: ${error.message}`, true);
       },
     };
   }

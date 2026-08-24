@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed autofill over hidden columns when Formulas is enabled and hiddenColumns.copyPasteEnabled is false",
-  "type": "fixed",
-  "issueOrPR": 12203,
-  "breaking": false,
-  "framework": "none"
-}

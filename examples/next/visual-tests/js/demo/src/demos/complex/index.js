@@ -115,22 +115,9 @@ export function init() {
       {
         data: 'lastLoginDate',
         type: 'date',
-        dateFormat: 'YYYY-MM-DD',
-        correctFormat: true,
-        defaultDate: '01-01-1900',
-        // datePicker additional options
-        // (see https://github.com/dbushell/Pikaday#configuration)
-        datePickerConfig: {
-          // First day of the week (0: Sunday, 1: Monday, etc)
-          firstDay: 1,
-          showWeekNumber: true,
-          disableDayFn(date) {
-            // Disable Sunday and Saturday
-            return date.getDay() === 0 || date.getDay() === 6;
-          },
-        },
+        dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' },
       },
-      { data: 'lastLoginTime', type: 'time' },
+      { data: 'lastLoginTime', type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit' } },
       {},
     ],
     colHeaders: true,

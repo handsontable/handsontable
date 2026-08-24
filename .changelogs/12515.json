@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed manual column and row resize handle position after scrolling when `preventOverflow` is set.",
-  "type": "fixed",
-  "issueOrPR": 12515,
-  "breaking": false,
-  "framework": "none"
-}

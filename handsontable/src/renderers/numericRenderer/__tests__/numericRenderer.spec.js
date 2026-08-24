@@ -17,7 +17,7 @@ describe('NumericRenderer', () => {
       cells() {
         return {
           renderer: 'numeric',
-          numericFormat: { pattern: '$0,0.00' }
+          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
         };
       },
     });
@@ -109,8 +109,8 @@ describe('NumericRenderer', () => {
     expect(getCell(0, 0).className).toEqual('someClass someClass2 htRight htNumeric');
   });
 
-  it('should print deprecation message if numericFormat.pattern is used', async() => {
-    const warnSpy = spyOnConsoleDeprecatedWarn();
+  it('should print warn message if unsupported numericFormat.pattern is used', async() => {
+    const warnSpy = spyOnConsoleWarn();
 
     handsontable({
       data: [[123]],
@@ -119,17 +119,13 @@ describe('NumericRenderer', () => {
     });
 
     expect(warnSpy).toHaveBeenCalledWith(
-      'Deprecated: The `numericFormat.pattern` and `numericFormat.culture` options are deprecated ' +
-      'and will be removed in the next major release. Pass `Intl.NumberFormat` options ' +
-      'directly to `numericFormat` and use the `locale` cell property instead of `culture`.\n\n' +
-      'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
-      '`numericFormat` documentation: https://handsontable.com/docs/api/options/#numericformat\n' +
-      '`locale` documentation: https://handsontable.com/docs/api/options/#locale'
+      'The numericFormat.pattern and numericFormat.culture options are not supported. ' +
+      'Use Intl.NumberFormat options instead (numericFormat: { style, currency, ... }).'
     );
   });
 
-  it('should print deprecation message if numericFormat.culture is used', async() => {
-    const warnSpy = spyOnConsoleDeprecatedWarn();
+  it('should print warn message if unsupported numericFormat.culture is used', async() => {
+    const warnSpy = spyOnConsoleWarn();
 
     handsontable({
       data: [[123]],
@@ -138,17 +134,13 @@ describe('NumericRenderer', () => {
     });
 
     expect(warnSpy).toHaveBeenCalledWith(
-      'Deprecated: The `numericFormat.pattern` and `numericFormat.culture` options are deprecated ' +
-      'and will be removed in the next major release. Pass `Intl.NumberFormat` options ' +
-      'directly to `numericFormat` and use the `locale` cell property instead of `culture`.\n\n' +
-      'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
-      '`numericFormat` documentation: https://handsontable.com/docs/api/options/#numericformat\n' +
-      '`locale` documentation: https://handsontable.com/docs/api/options/#locale'
+      'The numericFormat.pattern and numericFormat.culture options are not supported. ' +
+      'Use Intl.NumberFormat options instead (numericFormat: { style, currency, ... }).'
     );
   });
 
-  it('should not print deprecation message if Intl.NumberFormat object format is used', async() => {
-    const warnSpy = spyOnConsoleDeprecatedWarn();
+  it('should not print warn message if supported Intl.NumberFormat object format is used', async() => {
+    const warnSpy = spyOnConsoleWarn();
 
     handsontable({
       data: [[123]],
@@ -165,7 +157,18 @@ describe('NumericRenderer', () => {
   it('should internally call base renderer once', async() => {
     const originalBaseRenderer = Handsontable.renderers.BaseRenderer;
 
-    spyOn(Handsontable.renderers, 'BaseRenderer');
+    const renderedCellCalls = [];
+
+    spyOn(Handsontable.renderers, 'BaseRenderer').and.callFake((...args) => {
+      const TD = args[1];
+
+      // The GhostTable that AutoColumnSize measures in renders its own cells, flagged with the
+      // `ghost-table` attribute, and those go through the same renderer contract. They are a
+      // separate render pass, not a second call on the rendered cell this spec is about.
+      if (!TD.hasAttribute('ghost-table')) {
+        renderedCellCalls.push(TD);
+      }
+    });
 
     Handsontable.renderers.registerRenderer('base', Handsontable.renderers.BaseRenderer);
     handsontable({
@@ -173,7 +176,7 @@ describe('NumericRenderer', () => {
       renderer: 'numeric',
     });
 
-    expect(Handsontable.renderers.BaseRenderer).toHaveBeenCalledTimes(1);
+    expect(renderedCellCalls.length).toBe(1);
 
     Handsontable.renderers.registerRenderer('base', originalBaseRenderer);
   });

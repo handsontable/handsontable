@@ -1,5 +1,4 @@
 ---
-id: f7a3c82e
 title: Export to PDF
 metaTitle: Export Handsontable to PDF - JavaScript Data Grid | Handsontable
 description: Export grid data to a downloadable PDF with jsPDF and jspdf-autotable, including headers and multi-page tables.
@@ -10,14 +9,14 @@ tags:
   - tutorial
   - recipes
 react:
-  id: a8b4d93f
   metaTitle: Export Handsontable to PDF - React Data Grid | Handsontable
 angular:
-  id: b9c5e04a
   metaTitle: Export Handsontable to PDF - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Export Handsontable to PDF - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Import and Export
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will export grid data to a downloadable PDF using jsPDF and jspdf-autotable. You will learn how to read the current grid state with `getData()` and `getColHeader()`, build a multi-page PDF table with headers, and trigger a browser download.
@@ -312,8 +311,8 @@ Style the button with CSS:
 If you load Handsontable from a CDN, add jsPDF and the AutoTable plugin after Handsontable:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/jspdf@3.0.4/dist/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@5.0.7/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@5.0.8/dist/jspdf.plugin.autotable.min.js"></script>
 ```
 
 Then use the global `jspdf.jsPDF` constructor and call `autoTable(doc, options)` the same way as in the example (the plugin registers `autoTable` on the UMD build).

@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: o4qhm1bg
 title: Accessibility
 metaTitle: Accessibility - JavaScript Data Grid | Handsontable
 description: Learn about Handsontable's accessibility features.
@@ -19,11 +18,11 @@ tags:
   - compliance
   - vpat
 react:
-  id: x82phf34
   metaTitle: Accessibility - React Data Grid | Handsontable
 angular:
-  id: 99l3uae8
   metaTitle: Accessibility - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Accessibility - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessibility
 ---
@@ -79,8 +78,10 @@ Handsontable doesn't require a mouse to navigate across the grid's elements. Thi
 
 Our experience with hundreds of implementations shows that Handsontable tends to be used either as a **spreadsheet application** or a **data grid component**. While at first the difference seems subtle, it significantly impacts user expectations regarding navigation.
 
-In a typical spreadsheet application (think of Microsoft Excel or Google Sheets), you can't move the focus onto headers. This makes it difficult to sort or filter data without knowing complex [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md). Additionally, opening a [column menu](@/guides/columns/column-menu/column-menu.md) is not trivial.
-Handsontable offers flexibility in this regard, allowing users to switch between data grid and spreadsheet "modes". To do that switch, you can use a combination of two options: [`navigableHeaders`](@/api/options.md#navigableheaders) to enable or disable moving focus onto headers, and [`tabNavigation`](@/api/options.md#tabnavigation) to decide if the <kbd>**Tab**</kbd> key can be used to navigate across cells and headers.
+In a typical spreadsheet application (think of Microsoft Excel or Google Sheets), you can't move the focus onto headers. This makes it difficult to sort or filter data without knowing complex [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md). Additionally, opening a [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md) is not trivial.
+Handsontable offers flexibility in this regard, letting you switch between data grid and spreadsheet "modes". To do that switch, you can use a combination of two options: [`navigableHeaders`](@/api/options.md#navigableheaders) to enable or disable moving focus onto headers, and [`tabNavigation`](@/api/options.md#tabnavigation) to decide if the <kbd>**Tab**</kbd> key can be used to navigate across cells and headers.
+
+To control arrow-key wrapping at grid boundaries, use [`autoWrapRow`](@/api/options.md#autowraprow) and [`autoWrapCol`](@/api/options.md#autowrapcol). `autoWrapRow` wraps focus to the adjacent row when you move right or left past a row edge. `autoWrapCol` wraps focus to the adjacent column when you move up or down past a column edge.
 
 The following table provides more details about these two scenarios:
  
@@ -108,6 +109,8 @@ Handsontable provides a wide range of [keyboard shortcuts](@/guides/navigation/k
 
 *To use this shortcut, disable the default macOS behavior for the <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd> key combination, under **System Settings** > **Keyboard** > **Keyboard Shortcuts** > **Input Sources**.
 
+For filter-menu-specific navigation details, including <kbd>**Tab**</kbd> traversal and hover behavior, see [Column filter](@/guides/columns/column-filter/column-filter.md#navigate-the-filter-menu).
+
 ## Support for screen readers
 
 Although semantic HTML doesn't need any additional attributes to be properly interpreted by assistive technologies, some of Handsontable's complex features are not fully covered by the HTML specification. That's why Handsontable provides support for screen readers with ARIA attributes (Accessible Rich Internet Applications) applied to its HTML markup.
@@ -122,7 +125,7 @@ Each new version of Handsontable is thoroughly tested for accessibility with the
 
 Check out the interactive demo below to see how various Handsontable settings impact its accessibility level and affect the user experience.
 
-::: only-for javascript vue
+::: only-for javascript
 
 ::: example #example1 --html 1 --css 2 --js 3 --ts 4
 
@@ -153,6 +156,17 @@ Check out the interactive demo below to see how various Handsontable settings im
 
 @[code collapse={22-482}](@/content/guides/accessibility/accessibility/angular/example1.ts)
 @[code](@/content/guides/accessibility/accessibility/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3 --css 1
+
+@[code](@/content/guides/accessibility/accessibility/vue/example2.css)
+@[code](@/content/guides/accessibility/accessibility/vue/example2.vue)
 
 :::
 
@@ -219,6 +233,23 @@ const configurationOptions: GridSettings = {
 
 :::
 
+::: only-for vue
+
+```ts
+const hotSettings = ref({
+  // disable column virtualization
+  renderAllColumns: true,
+  // disable row virtualization
+  renderAllRows: true,
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 ## High-contrast theme
 
 The recommended [minimum contrast ratio](https://www.w3.org/WAI/WCAG21/quickref/#contrast-minimum) for text against images or backgrounds is 4.5:1. To achieve this level of contrast with Handsontable's default theme, you can:
@@ -259,6 +290,10 @@ We make sure our data grid remains accessible by taking the following measures:
 - When you select a cell that's part of a frozen row, frozen column, or both, NVDA and JAWS might incorrectly announce that cell's column header name.
 - Dynamic ARIA attributes are sometimes omitted by screen readers.
 - The `aria-rowcount` attribute is intentionally set to `-1`, as most screen readers either ignore or misinterpret it. This configuration ensures accuracy with screen readers such as VoiceOver. We plan to revise this approach once screen readers consistently handle the `aria-rowcount` attribute correctly.
+
+## Result
+
+Your grid now supports keyboard navigation, screen reader announcements, and ARIA attributes for all major interactive elements.
 
 ## API reference
 
@@ -302,7 +337,3 @@ Didn't find what you need? Try this:
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
 
 </div>
-
-## Result
-
-Your grid now supports keyboard navigation, screen reader announcements, and ARIA attributes for all major interactive elements.

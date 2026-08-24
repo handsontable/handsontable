@@ -53,7 +53,7 @@ const DataGrid = () => {
     >
       <HotColumn data={1} />
       <HotColumn data={3} />
-      <HotColumn data={4} type="date" allowInvalid={false} />
+      <HotColumn data={4} type="date" allowInvalid={false} dateFormat={{ dateStyle: "short" }} locale="en-US" />
       <HotColumn data={6} type="checkbox" className="htCenter" headerClassName="htCenter" />
       <HotColumn data={7} type="numeric" headerClassName="htRight" />
       <HotColumn data={8} editor={false} className="htMiddle" renderer={ProgressBarRenderer} readOnly={true} />

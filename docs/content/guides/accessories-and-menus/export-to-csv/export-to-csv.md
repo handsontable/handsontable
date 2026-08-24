@@ -1,5 +1,5 @@
 ---
-id: 51aacis1
+type: how-to
 title: Export to CSV
 metaTitle: Export to CSV - JavaScript Data Grid | Handsontable
 description: Export your grid's raw data to the CSV format, as a downloadable file, a blob, or a string. Customize your export using Handsontable's configuration options.
@@ -9,11 +9,11 @@ tags:
   - export to file
   - save file
 react:
-  id: sfxo3g54
   metaTitle: Export to CSV - React Data Grid | Handsontable
 angular:
-  id: hwhzgoir
   metaTitle: Export to CSV - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Export to CSV - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
 menuTag: updated
@@ -22,11 +22,20 @@ Export your grid's raw data to the CSV format, as a downloadable file, a blob, o
 
 [[toc]]
 
+## Prerequisites
+
+- You configured Handsontable in your project.
+- You registered the `ExportFile` plugin (the examples use `registerAllModules()`).
+
 ## Examples
 
 Mind that CSV exports contain only raw data, and don't include formulas, styling, or formatting information.
 
+Examples 1-3 use hidden rows and hidden columns with indicators turned on. The indicators show where hidden data exists in the grid, and each example explains whether the export includes or skips that hidden data.
+
 ### Export to file
+
+This example exports all rows and columns, including hidden ones, by setting both `exportHiddenRows` and `exportHiddenColumns` to `true`.
 
 ::: only-for javascript
 ::: example #example1 --html 1 --js 2 --ts 3
@@ -56,9 +65,18 @@ Mind that CSV exports contain only raw data, and don't include formulas, styling
 :::
 :::
 
+::: only-for vue
+::: example #example1 :vue3
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/vue/example1.vue)
+
+:::
+:::
+
 ### Export as a JavaScript Blob object
 
 Open a console in browser developer tools to see the result for the below example.
+This example keeps hidden indicators in the grid, but exports only visible rows and columns by setting `exportHiddenRows` and `exportHiddenColumns` to `false`.
 
 ::: only-for javascript
 ::: example #example2 --html 1 --js 2 --ts 3
@@ -88,9 +106,18 @@ Open a console in browser developer tools to see the result for the below exampl
 :::
 :::
 
+::: only-for vue
+::: example #example2 :vue3
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/vue/example2.vue)
+
+:::
+:::
+
 ### Export as a string
 
 Open a console in browser developer tools to see the result for the below example.
+Like the Blob example, this export uses only visible data and skips hidden rows and columns.
 
 ::: only-for javascript
 ::: example #example3 --html 1 --js 2 --ts 3
@@ -120,7 +147,15 @@ Open a console in browser developer tools to see the result for the below exampl
 :::
 :::
 
-### Prevent CSV Injection attack
+::: only-for vue
+::: example #example3 :vue3
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/vue/example3.vue)
+
+:::
+:::
+
+### Prevent CSV injection attack
 
 "CSV Injection, also known as Formula Injection, occurs when websites embed untrusted input inside CSV files. When a spreadsheet program such as Microsoft Excel or LibreOffice Calc is used to open a CSV, any cells starting with = will be interpreted by the software as a formula." (from [OWASP website](https://owasp.org/www-community/attacks/CSV_Injection))
 
@@ -155,6 +190,18 @@ To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolea
 :::
 :::
 
+::: only-for vue
+::: example #example4 :vue3
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/vue/example4.vue)
+
+:::
+:::
+
+## Result
+
+After completing this guide, you can export grid data as a downloadable CSV file, a JavaScript Blob, or a string. You can customize delimiters, ranges, headers, and value sanitization through the export configuration.
+
 ## Available methods
 
 ::: only-for react
@@ -168,6 +215,18 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 :::
 
 :::
+
+:::: only-for vue
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance methods](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
+
+:::
+
+::::
 
 The plugin exposes the following methods to export data.
 

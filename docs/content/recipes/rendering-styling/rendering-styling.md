@@ -6,15 +6,14 @@ canonicalUrl: /recipes/rendering-styling
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-type: tutorial
-id: a8f3c91d
+type: how-to
 description: Practical recipes for row layout, summaries, custom renderers, and visual styling in Handsontable.
 react:
-  id: b2e4d80a
   metaTitle: Rendering and styling recipes - React Data Grid | Handsontable
 angular:
-  id: c7f1a92e
   metaTitle: Rendering and styling recipes - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Rendering and styling recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]
 

@@ -1,5 +1,4 @@
 ---
-id: ceb1a2d8
 title: Conditional row coloring
 metaTitle: Conditional row coloring - JavaScript Data Grid | Handsontable
 description: Color entire rows from a status column using the cells callback, className, and scoped CSS that updates after edits.
@@ -11,14 +10,14 @@ tags:
   - recipes
   - styling
 react:
-  id: f7c3e91a
   metaTitle: Conditional row coloring - React Data Grid | Handsontable
 angular:
-  id: b2d804e6
   metaTitle: Conditional row coloring - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Conditional row coloring - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Rendering and styling
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will color entire rows based on a status column value. You will learn how to use the `cells` callback and `className` to apply conditional CSS classes that update automatically after every edit.

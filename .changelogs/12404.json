@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Added dedicated `paginationButton*` theme tokens so pagination navigation button colors can be customized independently for default, hover, focus, and disabled states via the theme builder.",
-  "type": "added",
-  "issueOrPR": 12404,
-  "breaking": false,
-  "framework": "none"
-}

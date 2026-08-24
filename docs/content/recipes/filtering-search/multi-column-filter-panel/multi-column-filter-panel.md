@@ -1,5 +1,4 @@
 ---
-id: a8d14c7b
 title: Multi-column filter panel
 metaTitle: Multi-column Filter Panel - JavaScript Data Grid | Handsontable
 description: Build an external filter panel with a category dropdown and a price range that controls Handsontable filtering through the Filters plugin API.
@@ -13,14 +12,14 @@ tags:
   - search
   - filters plugin
 react:
-  id: c3e8f291
   metaTitle: Multi-column Filter Panel - React Data Grid | Handsontable
 angular:
-  id: f6b25d0a
   metaTitle: Multi-column Filter Panel - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Multi-column Filter Panel - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Filtering and Search
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will build an external filter panel with a category dropdown and a price range slider that controls Handsontable filtering. You will learn how to apply multiple conditions at once through the `Filters` plugin API and clear them all with a single button.
@@ -86,7 +85,7 @@ const hot = new Handsontable(container, {
   columns: [
     { data: 'name' },
     { data: 'category' },
-    { data: 'price', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
+    { data: 'price', type: 'numeric', locale: 'en-US', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 } },
     { data: 'stock', type: 'numeric' },
   ],
   filters: true,

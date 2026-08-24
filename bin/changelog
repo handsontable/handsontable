@@ -10,7 +10,6 @@ const chalk = require('chalk');
 const inquirer = require('inquirer');
 const lodash = require('lodash');
 const glob = util.promisify(require('glob'));
-const moment = require('moment');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 
@@ -45,6 +44,53 @@ const stringifyChangelogEntryObject = ({ issuesOrigin, title, issueOrPR, framewo
     `[#${issueOrPR}](https://github.com/handsontable/handsontable/${linkType}/${issueOrPR})`;
 
   return `${breakingFragment}${frameworkFragment}${title} ${issueLinkFragment}`;
+};
+
+/**
+ * Warns when an entry claims `issuesOrigin: 'public'` but the cited number
+ * belongs to a pull request, not an issue. That combination renders an
+ * `/issues/<n>` link for a pull request; GitHub redirects it, so the output
+ * still resolves, but the published path is wrong and the field stops
+ * carrying any information.
+ *
+ * Best-effort only. Every failure - offline, air-gapped, rate-limited,
+ * unexpected response - is swallowed, because a changelog entry must never
+ * depend on network access. It also only covers entries created through this
+ * command; a hand-written `.changelogs/*.json` file never reaches it.
+ *
+ * @param {object} entry A valid changelog entry object.
+ * @param {string} entry.issuesOrigin The entry's issue origin (`private` or `public`).
+ * @param {number} entry.issueOrPR The cited GitHub issue or pull request number.
+ * @returns {Promise<void>}
+ */
+const warnWhenPublicNumberIsPullRequest = async({ issuesOrigin, issueOrPR }) => {
+  if (issuesOrigin !== 'public') {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/handsontable/handsontable/issues/${issueOrPR}`,
+      { signal: AbortSignal.timeout(3000) }
+    );
+
+    if (!response.ok) {
+      return;
+    }
+
+    const { pull_request: pullRequest } = await response.json();
+
+    if (!pullRequest) {
+      return;
+    }
+
+    console.log(chalk.yellow(`\
+Warning: #${issueOrPR} is a pull request, but this entry sets \`issuesOrigin\` to
+"public", which links it as an issue. Unless you meant to cite a public GitHub
+issue number, use "private" - it links the pull request instead.`));
+  } catch {
+    // Intentionally silent - see the note about network access above.
+  }
 };
 
 const askToProceedOrExit = async(message = 'Proceed?') => {
@@ -190,6 +236,8 @@ ${chalk.yellow.italic(`### ${uppercaseFirstLetter(changelogEntry.type)}
 - ${stringifyChangelogEntryObject(changelogEntry)}`)}
 `);
 
+  await warnWhenPublicNumberIsPullRequest(changelogEntry);
+
   await askToProceedOrExit();
 
   if (await fileExists(destination)) {
@@ -208,7 +256,7 @@ const consumeCommand = async(args) => {
   const { dryRun } = args;
 
   const formattedDefault = args.date === undefined
-    ? moment(hotConfig.HOT_RELEASE_DATE, 'DD/MM/YYYY').format('YYYY-MM-DD')
+    ? hotConfig.HOT_RELEASE_DATE.split('/').reverse().join('-')
     : args.date;
 
   const { date } = isTTY ? await inquirer.prompt([

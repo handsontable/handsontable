@@ -33,20 +33,17 @@ const colHeaders = ['Campaign', 'Channel', 'Impressions', 'Clicks', 'Conversions
   imports: [HotTableModule],
   selector: 'example1-freeze-columns',
   template: `
-    <div class="freeze-controls">
-      <div class="freeze-controls__freeze-btns">
+    <div class="example-controls-container">
+      <div class="controls">
         @for (header of colHeaders; track header; let i = $index) {
-          <button
-            type="button"
-            (click)="freezeUpTo(i + 1)"
-          >
+          <button type="button" (click)="freezeUpTo(i + 1)">
             Freeze up to "{{ header }}"
           </button>
         }
       </div>
-      <div class="freeze-controls__footer">
+      <div class="controls">
         <button type="button" (click)="unfreezeAll()">Unfreeze all</button>
-        <span class="freeze-controls__status">{{ statusText }}</span>
+        <span class="freeze-status">{{ statusText }}</span>
       </div>
     </div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
@@ -71,12 +68,12 @@ export class AppComponent {
     columns: [
       { data: 'campaign', type: 'text' },
       { data: 'channel', type: 'text' },
-      { data: 'impressions', type: 'numeric', numericFormat: { pattern: '0,0' } },
-      { data: 'clicks', type: 'numeric', numericFormat: { pattern: '0,0' } },
-      { data: 'conversions', type: 'numeric', numericFormat: { pattern: '0,0' } },
-      { data: 'cpc', type: 'numeric', numericFormat: { pattern: '0.00' } },
-      { data: 'revenue', type: 'numeric', numericFormat: { pattern: '$0,0' } },
-      { data: 'roi', type: 'numeric', numericFormat: { pattern: '0.00' } },
+      { data: 'impressions', type: 'numeric', numericFormat: { useGrouping: true, maximumFractionDigits: 0 } },
+      { data: 'clicks', type: 'numeric', numericFormat: { useGrouping: true, maximumFractionDigits: 0 } },
+      { data: 'conversions', type: 'numeric', numericFormat: { useGrouping: true, maximumFractionDigits: 0 } },
+      { data: 'cpc', type: 'numeric', numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
+      { data: 'revenue', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', maximumFractionDigits: 0 } },
+      { data: 'roi', type: 'numeric', numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
     ],
     fixedColumnsStart: 0,
     manualColumnMove: true,

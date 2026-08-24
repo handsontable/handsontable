@@ -29,56 +29,37 @@ export class AppComponent {
     nestedRows: true,
     rowHeaders: true,
     colHeaders: ['sum', 'min', 'max', 'count', 'average'],
-    // @ts-ignore
     columnSummary() {
       const endpoints = [];
-      const nestedRowsPlugin = this.hot.getPlugin('nestedRows');
-      // @ts-ignore
-      const getRowIndex = nestedRowsPlugin.dataManager.getRowIndex.bind(
-        // @ts-ignore
-        nestedRowsPlugin.dataManager
-      );
-
+      const nestedRowsPlugin = (this as any).hot.getPlugin('nestedRows');
       const resultColumn = 0;
-      let nestedRowsCache = null;
 
-      if (nestedRowsPlugin.isEnabled()) {
-        // @ts-ignore
-        nestedRowsCache = nestedRowsPlugin.dataManager.cache;
-      } else {
+      if (!nestedRowsPlugin.isEnabled()) {
         return [];
       }
 
-      if (!nestedRowsCache) {
-        return [];
-      }
-
-      for (let i = 0; i < nestedRowsCache.levels[0].length; i++) {
+      for (let visualRow = 0; visualRow < (this as any).hot.countRows(); visualRow++) {
+        // Only summarize the top-level parents.
         if (
-          !nestedRowsCache.levels[0][i].__children ||
-          nestedRowsCache.levels[0][i].__children.length === 0
+          nestedRowsPlugin.getRowLevel(visualRow) !== 0 ||
+          !nestedRowsPlugin.isParent(visualRow)
         ) {
           continue;
         }
 
-        const tempEndpoint = {
+        const parentRow = (this as any).hot.toPhysicalRow(visualRow);
+        const descendantCount = nestedRowsPlugin.countChildren(visualRow, true);
+
+        // A parent's descendants sit in one block right after it in the source data, so the
+        // whole subtree is a single range. Count them recursively - the direct child count
+        // would stop short whenever a child has children of its own.
+        endpoints.push({
           destinationColumn: resultColumn,
-          destinationRow: getRowIndex(nestedRowsCache.levels[0][i]),
+          destinationRow: parentRow,
           type: 'sum',
           forceNumeric: true,
-          ranges: [],
-        };
-
-        // @ts-ignore
-        tempEndpoint.ranges.push([
-          getRowIndex(nestedRowsCache.levels[0][i].__children[0]),
-          getRowIndex(
-            nestedRowsCache.levels[0][i].__children[
-            nestedRowsCache.levels[0][i].__children.length - 1
-              ]
-          ),
-        ] as any);
-        endpoints.push(tempEndpoint);
+          ranges: [[parentRow + 1, parentRow + descendantCount]],
+        });
       }
 
       return endpoints;

@@ -1007,37 +1007,4 @@ describe('NumericRenderer numericFormat options', () => {
     });
   });
 
-  describe('numbro.js format', () => {
-    it('should render formatted number', async() => {
-      handsontable({
-        cells() {
-          return {
-            renderer: 'numeric',
-            numericFormat: { pattern: '$0,0.00' }
-          };
-        },
-      });
-
-      await setDataAtCell(2, 2, '1000.234');
-      await waitForNextAnimationFrames(2);
-
-      expect(getCell(2, 2).innerText).toEqual('$1,000.23');
-    });
-
-    it('should render signed number', async() => {
-      handsontable({
-        cells() {
-          return {
-            renderer: 'numeric',
-            numericFormat: { pattern: '$0,0.00' }
-          };
-        },
-      });
-
-      await setDataAtCell(2, 2, '-1000.234');
-      await waitForNextAnimationFrames(2);
-
-      expect(getCell(2, 2).innerText).toEqual('-$1,000.23');
-    });
-  });
 });

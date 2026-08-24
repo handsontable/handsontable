@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed React component renderers being unmounted and visibly cleared on every grid render after a cell edit.",
-  "type": "fixed",
-  "issueOrPR": 12494,
-  "breaking": false,
-  "framework": "react"
-}

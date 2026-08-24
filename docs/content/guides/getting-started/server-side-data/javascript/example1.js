@@ -454,7 +454,7 @@ const hot = new Handsontable(container, {
     {
       data: 'unitPrice',
       type: 'numeric',
-      numericFormat: { pattern: '$0,0.00' },
+      numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 },
     },
     { data: 'inStock', type: 'numeric' },
   ],

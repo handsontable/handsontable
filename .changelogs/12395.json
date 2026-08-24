@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed TypeScript type for the `dateFormat` option to accept `Intl.DateTimeFormatOptions` objects required by the `intl-date` cell type.",
-  "type": "fixed",
-  "issueOrPR": 12395,
-  "breaking": false,
-  "framework": "none"
-}

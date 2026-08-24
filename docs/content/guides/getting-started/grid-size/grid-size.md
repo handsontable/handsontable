@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: svu0391b
 title: Grid size
 metaTitle: Grid size - JavaScript Data Grid | Handsontable
 description: Set the width and height of the grid, using either absolute values or values relative to the parent container.
@@ -12,13 +11,14 @@ tags:
   - height
   - dimensions
 react:
-  id: cifepxzs
   metaTitle: Grid size - React Data Grid | Handsontable
 angular:
-  id: w6lvb55f
   metaTitle: Grid size - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Grid size - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 ---
 Set the width and height of the grid, using either absolute values or values relative to the parent container.
 
@@ -131,11 +131,147 @@ gridSettings: GridSettings = {
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  width: '100px',
+  height: '100px',
+});
+```
+
+or
+
+```js
+const hotSettings = ref({
+  width: '75%',
+  height: '75%',
+});
+```
+
+or
+
+```js
+const hotSettings = ref({
+  width: 100,
+  height: 100,
+});
+```
+
+:::
+
+You can also pass a function to `width` and `height`. Use this when you calculate dimensions from your current layout. The function can return a number (pixels) or a CSS size string.
+
+:::: only-for javascript
+
+```js
+{
+  width() {
+    return `${window.innerWidth - 64}px`;
+  },
+  height() {
+    return 400;
+  },
+}
+```
+
+::::
+
+:::: only-for react
+
+```jsx
+const getGridWidth = () => `${window.innerWidth - 64}px`;
+const getGridHeight = () => 400;
+
+<HotTable width={getGridWidth} height={getGridHeight} />
+```
+
+::::
+
+:::: only-for angular
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  width: () => `${window.innerWidth - 64}px`,
+  height: () => 400,
+};
+```
+
+```html
+<hot-table [settings]="gridSettings" />
+```
+
+::::
+
+:::: only-for vue
+
+```js
+const hotSettings = ref({
+  width: () => `${window.innerWidth - 64}px`,
+  height: () => 400,
+});
+```
+
+::::
+
 These dimensions will be set as inline styles in a container element, and `overflow: hidden` will be added automatically.
 
 If container is a block element, then its parent has to have defined `height`. By default block element is `0px` height, so `100%` from `0px` is still `0px`.
 
 Changes called in [`updateSettings()`](@/api/core.md#updatesettings) will re-render the grid with the new properties.
+
+### Compare size units
+
+Use the dropdown in the demo below to switch the grid's `width` and `height` between `px`, `%`, `em`, `rem`, `vh`, and `vw`, and see how the same grid responds to each unit.
+
+::: only-for javascript
+
+::: example #example2 --html 1 --css 2 --js 3 --ts 4
+
+@[code](@/content/guides/getting-started/grid-size/javascript/example2.html)
+@[code](@/content/guides/getting-started/grid-size/javascript/example2.css)
+@[code](@/content/guides/getting-started/grid-size/javascript/example2.js)
+@[code](@/content/guides/getting-started/grid-size/javascript/example2.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example2 :react --css 1 --js 2 --ts 3
+
+@[code](@/content/guides/getting-started/grid-size/react/example2.css)
+@[code](@/content/guides/getting-started/grid-size/react/example2.jsx)
+@[code](@/content/guides/getting-started/grid-size/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --css 1 --ts 2 --html 3
+
+@[code](@/content/guides/getting-started/grid-size/angular/example2.css)
+@[code](@/content/guides/getting-started/grid-size/angular/example2.ts)
+@[code](@/content/guides/getting-started/grid-size/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/getting-started/grid-size/vue/example2.vue)
+
+:::
+
+:::
 
 ### Use `'auto'` sizing
 
@@ -197,6 +333,25 @@ gridSettings: GridSettings = {
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  height: 'auto',
+});
+```
+
+You can combine it with `width: 'auto'` to let the grid follow its parent container's width:
+
+```js
+const hotSettings = ref({
+  height: 'auto',
+  width: 'auto',
+});
+```
+
+:::
+
 `height: 'auto'` is different from leaving `height` unset:
 
 | Setting            | Inline styles on root                                       | Scroll parent                                                                  | Row virtualization          |
@@ -213,14 +368,14 @@ With `height: 'auto'`, every row is laid out in the DOM at once. Avoid this valu
 
 ### Troubleshooting with 100% height
 
-When the `height` option is set to 100%, there are three ways to define the container’s height. Assuming you're creating an Handsontable instance that has `100% height` and container is element with id `#example`. 
+When the `height` option is set to 100%, there are three ways to define the container’s height. Assuming you're creating an Handsontable instance that has `100% height` and container is element with id `#example`.
 
 ```js
 const container = document.querySelector('#example');
 
 const hot = new Handsontable(container, {
   height: '100%',
-  // ...rest of config 
+  // ...rest of config
 }
 ```
 
@@ -326,6 +481,16 @@ gridSettings: GridSettings = {
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  beforeRefreshDimensions() { return false; },
+});
+```
+
+:::
+
 ## Manual resizing
 
 The Handsontable instance exposes the [`refreshDimensions()`](@/api/core.md#refreshdimensions) method, which helps you to resize grid elements properly.
@@ -350,6 +515,18 @@ To use the Handsontable API, you'll need access to the Handsontable instance. Yo
 to the `HotTableComponent`, and reading its `hotInstance` property.
 
 For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+:::
+
+:::
+
+::: only-for vue
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. Use a template ref on the `HotTable` component and read its `hotInstance` property.
+
+For more information, see the [Referencing the Handsontable instance in Vue 3](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
+
 :::
 
 :::
@@ -396,6 +573,40 @@ You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforer
 
 :::
 
+::: only-for vue
+
+::: example #example :vue --js 1
+
+@[code](@/content/guides/getting-started/grid-size/vue/example.vue)
+
+:::
+
+:::
+
+## Known limitations
+
+Handsontable relies on the browser's native scrollbars. Browsers cap how tall (or wide) a scrollable area can be, measured in CSS pixels. The taller the scroll area grows past that cap, the more rendering glitches appear - rows become misaligned, the autofill handle turns blurry, and eventually cell borders disappear.
+
+The point where these glitches start depends on the browser, the operating system, and the device. The following approximate values were measured on macOS, and mark where problems begin rather than a hard cutoff:
+
+| Browser | Glitches start around |
+| ------- | --------------------- |
+| Chrome  | ~8,000,000 px         |
+| Firefox | ~3,500,000 px         |
+| Safari  | ~16,000,000 px        |
+
+These values are approximate, were measured on specific browser versions, and can change as browsers update.
+
+To estimate the maximum number of rows, divide the browser's pixel limit by your row height. With the default row height of 23 px, Chrome stays reliable up to about 350,000 rows (8,000,000 / 23). To estimate the maximum number of columns, divide the pixel limit by your column width. With a column width of 50 px, that's about 160,000 columns (8,000,000 / 50).
+
+Taller rows or wider columns lower these limits proportionally. For example, with a row height of 100 px, Chrome's limit drops to about 80,000 rows (8,000,000 / 100).
+
+If your dataset can grow past these limits, load it in smaller chunks, for example with server-side or lazy data loading.
+
+## Result
+
+Your grid now renders at the dimensions you specified, responding to container size or fixed pixel values as configured.
+
 ## Related articles
 
 **Related guides**
@@ -437,7 +648,3 @@ You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforer
 - [beforeRefreshDimensions](@/api/hooks.md#beforerefreshdimensions)
 
 </div>
-
-## Result
-
-Your grid now renders at the dimensions you specified, responding to container size or fixed pixel values as configured.

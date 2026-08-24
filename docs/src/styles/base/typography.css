@@ -42,7 +42,7 @@
   letter-spacing: -0.005em;
 }
 
-kbd:not(.handsontable kbd, .example-controls-container kbd, .hot-example-preview kbd) {
+kbd:not(.handsontable kbd, .example-controls-container kbd, .hot-example-preview kbd, .DocSearch-Container kbd) {
   display: inline-block;
   margin:  0.25rem 0.375rem;
   padding: 0.075rem 0.375rem;
@@ -61,11 +61,11 @@ kbd:not(.handsontable kbd, .example-controls-container kbd, .hot-example-preview
   -webkit-box-decoration-break: clone;
 }
 
-kbd:first-child:not(.handsontable kbd, .example-controls-container kbd, .hot-example-preview kbd) {
+kbd:first-child:not(.handsontable kbd, .example-controls-container kbd, .hot-example-preview kbd, .DocSearch-Container kbd) {
   margin-left: 0;
 }
 
-kbd:not(.handsontable kbd, .example-controls-container kbd, .hot-example-preview kbd) kbd {
+kbd:not(.handsontable kbd, .example-controls-container kbd, .hot-example-preview kbd, .DocSearch-Container kbd) kbd {
   padding: 0;
   background: none;
   border: none;

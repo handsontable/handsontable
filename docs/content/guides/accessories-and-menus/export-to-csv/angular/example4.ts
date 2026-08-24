@@ -26,9 +26,11 @@ export class AppComponent {
   @ViewChild(HotTableComponent, {static: false}) hotTable!: HotTableComponent;
 
   readonly hotData = [
-    ['https://handsontable.com', '=WEBSERVICE(A1)'],
-    ['https://github.com', '=WEBSERVICE(A2)'],
-    ['http://example.com/malicious-script.exe', '=WEBSERVICE(A3)'],
+    ['https://api.acme-inventory.com/live-stock', '=WEBSERVICE("https://api.acme-inventory.com/live-stock")'],
+    ['https://status.vertex-logistics.com/feed', '=WEBSERVICE("https://status.vertex-logistics.com/feed")'],
+    ['http://malicious.example/payload.exe', '=CMD("| calc.exe")'],
+    ['https://news.example.com/q2-briefing', '=HYPERLINK("http://malicious.example","Open report")'],
+    ['https://cdn.example.com/daily.csv', '+SUM(1,1)'],
   ];
 
   readonly hotSettings: GridSettings = {
@@ -85,7 +87,7 @@ export class AppComponent {
       filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
       mimeType: 'text/csv',
       rowDelimiter: '\r\n',
-      sanitizeValues: /WEBSERVICE/,
+      sanitizeValues: /WEBSERVICE|CMD|HYPERLINK|^\+/,
     });
   }
 
@@ -102,8 +104,8 @@ export class AppComponent {
       filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
       mimeType: 'text/csv',
       rowDelimiter: '\r\n',
-      sanitizeValues: (value) => {
-        return /WEBSERVICE/.test(value) ? 'REMOVED SUSPICIOUS CELL CONTENT' : value;
+      sanitizeValues: (value: string) => {
+        return /WEBSERVICE|CMD|HYPERLINK|^\+/.test(value) ? 'REMOVED SUSPICIOUS CELL CONTENT' : value;
       },
     });
   }

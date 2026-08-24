@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed `allowEmpty: false` being ignored in the autocomplete cell type when `strict` mode is disabled.",
-  "type": "fixed",
-  "issueOrPR": 12555,
-  "breaking": false,
-  "framework": "none"
-}

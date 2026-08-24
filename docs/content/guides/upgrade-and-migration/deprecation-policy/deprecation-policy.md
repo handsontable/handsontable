@@ -1,17 +1,16 @@
 ---
 type: explanation
-id: 4f25a767
 title: Deprecation policy
 metaTitle: Deprecation policy - JavaScript Data Grid | Handsontable
 description: Handsontable ensures that if API is marked deprecated, we commit to a grace period (at least 3 months) during which the deprecated feature still works.
 permalink: /deprecation-policy
 canonicalUrl: /deprecation-policy
 react:
-  id: 16cb9e4b
   metaTitle: Deprecation policy - React Data Grid | Handsontable
 angular:
-  id: d5ac977b
   metaTitle: Deprecation policy - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Deprecation policy - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
@@ -45,18 +44,27 @@ For significant deprecations (especially those affecting many users), we will pr
 
 For more details about our versioning policy please visit [Versioning policy](@/guides/upgrade-and-migration/versioning-policy/versioning-policy.md)
 
-## List of deprecations
+## Removed in version 18.0
 
-Below is a list of current deprecations that are planned to be removed in the next major version.
+The following dependencies were deprecated in version 17.0 and removed in version 18.0.
 
-| Deprecation | Description | Migration guide |
-| ----------- | ----------- | --------------- |
-| **numbro.js** | Handles numeric data. Copy to the project, or replace with [Intl.NumberFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat). Needed for Excel compat. | [Migrate from 16.2 to 17.0 → Numbro](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#_3-migrate-from-numbro-format-to-intl-numberformat) |
-| **Pikaday** | Displays a date picker. Switch to native date input. Has its own task. | [Pikaday recipe](@/recipes/cell-types/pikaday/pikaday.md) |
-| **moment.js** | Parses, validates and displays dates. Needed for Excel compat. | [Migrate from 16.2 to 17.0 → Date/Time](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#_4-migrate-from-moment-js-format-to-intl-datetimeformat) |
-| **DOMPurify** | An XSS sanitizer for HTML. Use the `sanitizer` option to keep a sanitizer, or convert content to plain text. | [Migrate from 16.2 to 17.0 → DOMPurify](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#_5-migrate-from-built-in-dompurify-to-the-sanitizer-option) |
-| **core-js** | Polyfills for ECMAScript 5, ECMAScript 6, promises, symbols, collections. | [Migrate from 16.2 to 17.0 → core-js](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#_6-core-js-dependency-removed) |
-| **Built-in HyperFormula** | The Formulas plugin engine. Will be removed from package.json in 18.0. Import HyperFormula yourself and pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'`. | [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md) |
+| Removed | Description | Migration guide |
+| ------- | ----------- | --------------- |
+| **numbro.js** | Handled numeric data formatting. Replace with [Intl.NumberFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat). | [Migrate from 17.1 to 18.0 → Numeric formatting](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#2-migrate-numeric-format-from-numbro-js-pattern-and-culture-to-intlnumberformat) |
+| **Pikaday** | Displayed a date picker. The `intl-date` cell type now uses the native browser date picker. | [Migrate from 17.1 to 18.0 → Date/Time](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#3-migrate-date-and-time-cells-to-iso-8601-format) |
+| **moment.js** | Parsed, validated, and displayed dates. The `intl-date` and `intl-time` cell types use the native `Intl.DateTimeFormat` API. | [Migrate from 17.1 to 18.0 → Date/Time](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#3-migrate-date-and-time-cells-to-iso-8601-format) |
+| **DOMPurify** | An XSS sanitizer for HTML. Use the `sanitizer` option to provide your own sanitizer function. | [Migrate from 17.1 to 18.0 → HTML sanitization](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#4-replace-built-in-dompurify-with-a-custom-sanitizer) |
+
+## List of current deprecations
+
+The following methods were deprecated in version 18.0 and are scheduled for removal in a future major release. They are no-ops kept for backward compatibility, as the `PersistentState` plugin has been removed.
+
+| Deprecated | Plugin | Migration guide |
+| ---------- | ------ | --------------- |
+| `saveManualColumnWidths()` | `ManualColumnResize` | [Migrate from 17.1 to 18.0 → Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
+| `loadManualColumnWidths()` | `ManualColumnResize` | [Migrate from 17.1 to 18.0 → Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
+| `saveManualRowHeights()` | `ManualRowResize` | [Migrate from 17.1 to 18.0 → Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
+| `loadManualRowHeights()` | `ManualRowResize` | [Migrate from 17.1 to 18.0 → Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
 
 
 

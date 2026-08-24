@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('category');                 // Dropdown value (filterable via =)
             $table->decimal('price', 10, 2);           // Numeric — supports gt/lt/between
             $table->unsignedInteger('stock');           // Numeric — supports gt/lt/between
+            $table->unsignedInteger('sort_order')->default(0); // Preserves insertion order when no sort is applied
             $table->timestamps();
         });
     }

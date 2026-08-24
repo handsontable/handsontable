@@ -1,5 +1,4 @@
 ---
-id: a3f7b2c9
 title: Sync rows to a Chart.js chart
 metaTitle: Sync selected rows to a Chart.js chart - JavaScript Data Grid | Handsontable
 description: Learn how to sync selected rows from a Handsontable grid to a Chart.js bar chart in real time using the afterSelectionEnd hook.
@@ -12,14 +11,14 @@ tags:
   - selection
   - real-time
 react:
-  id: b5e8d1f4
   metaTitle: Sync selected rows to a Chart.js chart - React Data Grid | Handsontable
 angular:
-  id: c6f9e2a5
   metaTitle: Sync selected rows to a Chart.js chart - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Sync selected rows to a Chart.js chart - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Real-time and Integrations
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will sync selected rows from a Handsontable grid to a Chart.js bar chart in real time. You will learn how to use `afterSelectionEnd` and `afterDeselect` hooks to read the current selection and update the chart without destroying and recreating it.
@@ -203,10 +202,10 @@ const hot = new Handsontable(container, {
   colHeaders: ['Campaign', 'Q1 Budget ($)', 'Q1 Revenue ($)', 'Q2 Budget ($)', 'Q2 Revenue ($)'],
   columns: [
     { data: 'campaign', type: 'text', width: 200 },
-    { data: 'q1Budget', type: 'numeric', numericFormat: { pattern: '$0,0' }, width: 120 },
-    { data: 'q1Revenue', type: 'numeric', numericFormat: { pattern: '$0,0' }, width: 120 },
-    { data: 'q2Budget', type: 'numeric', numericFormat: { pattern: '$0,0' }, width: 120 },
-    { data: 'q2Revenue', type: 'numeric', numericFormat: { pattern: '$0,0' }, width: 120 },
+    { data: 'q1Budget', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }, width: 120 },
+    { data: 'q1Revenue', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }, width: 120 },
+    { data: 'q2Budget', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }, width: 120 },
+    { data: 'q2Revenue', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }, width: 120 },
   ],
   rowHeaders: true,
   selectionMode: 'range',

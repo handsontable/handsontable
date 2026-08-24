@@ -1,5 +1,4 @@
 ---
-id: p7f3k9d2
 title: Handsontable with Fluent UI
 metaTitle: Handsontable with Fluent UI - React Data Grid | Handsontable
 description: Integrate Handsontable into a React app with Fluent UI so your grid follows Fluent colors, typography, and spacing.
@@ -15,30 +14,30 @@ tags:
   - themes
   - Theme API
 react:
-  id: v4m8q1t6
   metaTitle: Handsontable with Fluent UI - React Data Grid | Handsontable
 searchCategory: Recipes
 category: Themes
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will integrate Handsontable into a React app with Fluent UI so your grid follows Fluent colors, typography, and spacing. You will learn how to map Fluent UI tokens to Handsontable theme parameters through the Theme API.
 
-<iframe src="https://stackblitz.com/edit/vitejs-vite-3jyuy1rk?embed=1&file=src%2FApp.jsx&view=preview"
-     style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
-     title="Handsontable with Fluent UI recipe"
-     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
-     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
-   ></iframe>
+<iframe src="https://demos.handsontable.com/embed/3w4w5x6f54"
+  style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
+  title="Handsontable with Fluent UI"
+  allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+  sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+></iframe>
 
-[**Open in stackblitz**](https://stackblitz.com/edit/vitejs-vite-3jyuy1rk?file=src%2FApp.jsx&file=src%2FApp.jsx)
+[**Open in sandbox**](https://demos.handsontable.com/?example=fluent-ui&v={{$currentVersion}})
+[**View source on GitHub**](https://github.com/handsontable/examples/tree/{{$examplesBranch}}/examples/fluent-ui)
 
 ## Overview
 
 This recipe shows how to integrate Handsontable into a React app that uses [Fluent UI](https://react.fluentui.dev/) by registering a custom theme with Theme API colors and tokens. The grid follows your Fluent design language.
 
-**Difficulty:** Beginner  
-**Time:** ~15 minutes  
+**Difficulty:** Beginner
+**Time:** ~15 minutes
 **Stack:** React, Fluent UI, Handsontable, `@handsontable/react-wrapper`
 
 ## What You'll Get
@@ -150,7 +149,7 @@ export const fluentDataGridTheme = registerTheme('fluent-data-grid', {
     barVerticalPadding: '8px',
     menuItemHorizontalPadding: '12px',
     menuItemVerticalPadding: '8px',
-    wrapperBorderRadius: '8px',
+    borderRadius: '8px',
     cellSelectionBorderColor: '#0f6cbd',
     cellSelectionBackgroundColor: '#deecf9',
   },

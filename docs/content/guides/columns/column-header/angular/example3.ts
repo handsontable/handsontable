@@ -21,7 +21,7 @@ export class AppComponent {
   ];
 
   readonly hotSettings: GridSettings = {
-    colHeaders(index) {
+    colHeaders(index: number) {
       return `Col ${index + 1}`;
     },
     rowHeaders: true,

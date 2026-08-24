@@ -1,19 +1,19 @@
 ---
 type: how-to
-id: a7a5mkrw
 title: Password cell type
 metaTitle: Password cell type - JavaScript Data Grid | Handsontable
 description: Use the password cell type to mask confidential values by rendering entered characters as symbols.
 permalink: /password-cell-type
 canonicalUrl: /password-cell-type
 react:
-  id: gydne13d
   metaTitle: Password cell type - React Data Grid | Handsontable
 angular:
-  id: 2x5025ww
   metaTitle: Password cell type - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Password cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Use the password cell type to mask confidential values by rendering entered characters as symbols.
 
@@ -58,6 +58,16 @@ The password cell type behaves like a text cell, the only difference being that 
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-types/password-cell-type/vue/example1.vue)
+
+:::
+
+:::
+
 ## Fixed hash length
 
 By default, every hash has a length equal to the length of its corresponding value. Use option `hashLength` to set a fixed hash length.
@@ -95,6 +105,16 @@ By default, every hash has a length equal to the length of its corresponding val
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-types/password-cell-type/vue/example2.vue)
+
+:::
+
+:::
+
 ## Custom hash symbol
 
 By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to set a custom hash symbol. You can use any character, entity, or even HTML. Note that you can't change the symbol used by the input field due to browser limitations.
@@ -127,6 +147,16 @@ By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to
 
 @[code](@/content/guides/cell-types/password-cell-type/angular/example3.ts)
 @[code](@/content/guides/cell-types/password-cell-type/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/cell-types/password-cell-type/vue/example3.vue)
 
 :::
 
@@ -171,9 +201,23 @@ When `hashRevealDelay` is set, the editor switches from a native `<input type="p
 
 :::
 
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/cell-types/password-cell-type/vue/example4.vue)
+
+:::
+
+:::
+
 ## Result
 
 After configuring the password cell type, cells display asterisks instead of the actual value. The editor uses an `<input type="password">` field (or `<input type="text">` when `hashRevealDelay` is set). The actual data is stored in plain text in the data source and is not encrypted by Handsontable.
+
+## Keyboard shortcuts
+
+The password cell editor is a text editor, so it uses the standard [edition keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#edition-keyboard-shortcuts). It has no password-specific key bindings.
 
 ## Related articles
 

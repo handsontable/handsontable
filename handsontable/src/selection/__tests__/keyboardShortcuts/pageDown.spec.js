@@ -197,6 +197,44 @@ describe('Selection navigation', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -3,3 from: -3,3 to: -3,3']);
     });
 
+    it('should scroll the master viewport to the bottom when Page Down moves the selection into a bottom fixed row', async() => {
+      const fixedRowsBottom = 2;
+      const totalRows = 50;
+
+      handsontable({
+        width: 300,
+        height: containerHeightForRows(10),
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: totalRows,
+        startCols: 5,
+        fixedRowsBottom,
+      });
+
+      await waitForNextAnimationFrames(1);
+
+      // Use the actual page size so the math works across all themes
+      const pageSize = hot().countVisibleRows();
+      // After 2 x Page Down: startRow → totalRows-fixedRowsBottom-1 → (clamped to last frozen row)
+      const startRow = totalRows - fixedRowsBottom - 1 - pageSize - 1;
+
+      await selectCell(startRow, 2);
+      await waitForNextAnimationFrames(2);
+
+      // First Page Down: moves by pageSize (still non-frozen), viewport scrolls down
+      await keyDownUp('pagedown');
+      await waitForNextAnimationFrames(2);
+
+      // Second Page Down: moves beyond totalRows, clamped to last row (in bottom frozen overlay)
+      await keyDownUp('pagedown');
+      await waitForNextAnimationFrames(2);
+
+      // Selection must be inside the frozen area
+      expect(getSelectedRange()[0].highlight.row).toBeGreaterThanOrEqual(totalRows - fixedRowsBottom);
+      // Master viewport must be scrolled to the bottom so frozen rows are aligned
+      expect(tableView().getLastFullyVisibleRow()).toBe(totalRows - fixedRowsBottom - 1);
+    });
+
     it('should move the cell selection down for oversized row', async() => {
       handsontable({
         width: 180,

@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 2vbt7ev0
 title: Clipboard
 metaTitle: Clipboard - JavaScript Data Grid | Handsontable
 description: Copy data from selected cells to the clipboard, using the "Ctrl/Cmd + C" shortcut or the context menu. Control the clipboard with Handsontable's API.
@@ -11,11 +10,11 @@ tags:
   - cut
   - paste
 react:
-  id: mlctr1ri
   metaTitle: Clipboard - React Data Grid | Handsontable
 angular:
-  id: q473yaal
   metaTitle: Clipboard - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Clipboard - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---
@@ -29,7 +28,7 @@ Handsontable supports copy, cut, and paste via the browser clipboard API and key
 
 You can copy or cut data from Handsontable to the system clipboard, either manually (using the context menu or the <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**C**</kbd>/<kbd>**X**</kbd> shortcuts) or programmatically (using Handsontable's API methods).
 
-## Copy & Cut
+## Copy & cut
 
 Copy & Cut actions allow exporting data from Handsontable to the system clipboard. The [`CopyPaste`](@/api/copyPaste.md) plugin copies and cuts data as a `text/plain` and a `text/html` MIME-type.
 
@@ -83,6 +82,14 @@ You can use them in the same way as the rest of the predefined items in the [con
 :::
 :::
 
+::: only-for vue
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-features/clipboard/vue/example1.vue)
+
+:::
+:::
+
 ### Trigger copy & cut programmatically
 
 ::: only-for react
@@ -101,6 +108,14 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+
+:::
+:::
+
+::: only-for vue
+::: tip
+
+To use the Handsontable API, add a template `ref` on `<HotTable>` and read `hotTableRef.value?.hotInstance`.
 
 :::
 :::
@@ -142,6 +157,14 @@ The [`CopyPaste`](@/api/copyPaste.md) plugin listens to the browser's `copy` and
 
 @[code](@/content/guides/cell-features/clipboard/angular/example3.ts)
 @[code](@/content/guides/cell-features/clipboard/angular/example3.html)
+
+:::
+:::
+
+::: only-for vue
+::: example #example3 :vue3
+
+@[code](@/content/guides/cell-features/clipboard/vue/example3.vue)
 
 :::
 :::
@@ -204,6 +227,14 @@ Right-click on a cell to try it out:
 :::
 :::
 
+::: only-for vue
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-features/clipboard/vue/example2.vue)
+
+:::
+:::
+
 To add the context menu items, configure the [`CopyPaste`](@/api/copyPaste.md) plugin with these options:
 
 - [`copyColumnHeaders`](@/api/options.md#copypaste-additional-options)
@@ -240,6 +271,14 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+
+:::
+:::
+
+::: only-for vue
+::: tip
+
+To use the Handsontable API, add a template `ref` on `<HotTable>` and read `hotTableRef.value?.hotInstance`.
 
 :::
 :::
@@ -300,12 +339,98 @@ The [`CopyPaste`](@/api/copyPaste.md) plugin exposes the following hooks to mani
 
 Examples of how to use them are provided in their descriptions.
 
+### Copy cell appearance on paste
+
+The [`CopyPaste`](@/api/copyPaste.md) plugin copies cell values by default. To copy cell appearance, save each copied or cut cell's `className` metadata in [`afterCopy`](@/api/hooks.md#aftercopy) and [`afterCut`](@/api/hooks.md#aftercut), and then apply it to the pasted range in [`afterPaste`](@/api/hooks.md#afterpaste).
+
+Copy or cut a styled range from the grid, and paste it into another range to copy the cell values and appearance.
+
+::: only-for javascript
+::: example #example4 --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/clipboard/javascript/example4.js)
+@[code](@/content/guides/cell-features/clipboard/javascript/example4.ts)
+
+:::
+:::
+
+::: only-for react
+::: example #example4 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/clipboard/react/example4.jsx)
+@[code](@/content/guides/cell-features/clipboard/react/example4.tsx)
+
+:::
+:::
+
+::: only-for angular
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/clipboard/angular/example4.ts)
+@[code](@/content/guides/cell-features/clipboard/angular/example4.html)
+
+:::
+:::
+
+::: only-for vue
+::: example #example4 :vue3
+
+@[code](@/content/guides/cell-features/clipboard/vue/example4.vue)
+
+:::
+:::
+
+### Copy comments on paste
+
+To copy cell comments, enable the [`Comments`](@/api/comments.md) plugin. Then use [`getCommentAtCell()`](@/api/comments.md#getcommentatcell) in [`afterCopy`](@/api/hooks.md#aftercopy) and [`afterCut`](@/api/hooks.md#aftercut), and [`setCommentAtCell()`](@/api/comments.md#setcommentatcell) in [`afterPaste`](@/api/hooks.md#afterpaste).
+
+Copy or cut a commented range from the grid, and paste it into another range to copy the cell values and comments.
+
+::: only-for javascript
+::: example #example5 --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/clipboard/javascript/example5.js)
+@[code](@/content/guides/cell-features/clipboard/javascript/example5.ts)
+
+:::
+:::
+
+::: only-for react
+::: example #example5 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/clipboard/react/example5.jsx)
+@[code](@/content/guides/cell-features/clipboard/react/example5.tsx)
+
+:::
+:::
+
+::: only-for angular
+::: example #example5 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/clipboard/angular/example5.ts)
+@[code](@/content/guides/cell-features/clipboard/angular/example5.html)
+
+:::
+:::
+
+::: only-for vue
+::: example #example5 :vue3
+
+@[code](@/content/guides/cell-features/clipboard/vue/example5.vue)
+
+:::
+:::
+
 ## Known limitations
 
-1. The [`CopyPaste`](@/api/copyPaste.md) plugin doesn't copy, cut or paste cells' appearance.
+1. The [`CopyPaste`](@/api/copyPaste.md) plugin doesn't copy, cut or paste cells' appearance by default. To copy a cell's `className` metadata, see [Copy cell appearance on paste](#copy-cell-appearance-on-paste).
 2. The data copied from Handsontable will always remain as plain text. For example, if you copy a checked checkbox, the input will be kept as the value of `'true'`.
 3. `document.execCommand` can be called only during an immediate-execute event, such as a `MouseEvent` or a `KeyboardEvent`.
 4. Clipboard operations don’t work in Chrome 133+ with Handsontable 14.6.0, 14.6.1, or 15.0.0. Update to 14.6.2 or 15.0.1+. See the [incident announcement](https://handsontable.com/blog/incident-report-handsontable-14.6-15.0-clipboard-disruption-in-chrome-133) for details.
+
+## Result
+
+Users can copy, cut, and paste cell data using keyboard shortcuts or the context menu. Programmatic copy and cut operations work by calling `document.execCommand()` after selecting the target cells.
 
 ## Related keyboard shortcuts
 
@@ -368,7 +493,3 @@ Examples of how to use them are provided in their descriptions.
 - [CopyPaste](@/api/copyPaste.md)
 
 </div>
-
-## Result
-
-Users can copy, cut, and paste cell data using keyboard shortcuts or the context menu. Programmatic copy and cut operations work by calling `document.execCommand()` after selecting the target cells.

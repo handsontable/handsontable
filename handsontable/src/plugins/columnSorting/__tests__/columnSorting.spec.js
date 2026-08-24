@@ -129,7 +129,7 @@ describe('ColumnSorting', () => {
       columns: [
         {},
         {},
-        { type: 'date', dateFormat: 'MM/DD/YYYY' },
+        { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
         { type: 'numeric' },
         {}
       ],
@@ -164,7 +164,7 @@ describe('ColumnSorting', () => {
       columns: [
         {},
         {},
-        { type: 'date', dateFormat: 'MM/DD/YYYY' },
+        { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
         { type: 'numeric' },
         {}
       ],
@@ -227,33 +227,51 @@ describe('ColumnSorting', () => {
       expect(computedStyle.getPropertyValue('-webkit-mask-image')).toMatch(/url/);
 
       // _column-sorting.scss sets `top: 50%; right: 2px;` (LTR) or `left: 2px;` (RTL) on
-      // `.columnSorting::before`. Assert the exact hardcoded horizontal offset and that the
-      // vertical anchor resolves to the span's vertical midpoint.
-      const spanRect = sortedColumn.getBoundingClientRect();
+      // `.columnSorting::before`. The label is sized to its text, so the indicator is positioned
+      // against the header's `.relative` container - that is what keeps it pinned to the header
+      // edge instead of travelling with the label. Assert the hardcoded horizontal offset against
+      // that container, and that the indicator ends up centred in the header cell.
+      const container = sortedColumn.closest('.relative');
+      const containerRect = container.getBoundingClientRect();
+      const headerRect = sortedColumn.closest('th').getBoundingClientRect();
       const topPx = parseFloat(computedStyle.getPropertyValue('top'));
       const iconSize = parseFloat(
         window.getComputedStyle(sortedColumn).getPropertyValue('--ht-icon-size')
       ) || 16;
 
-      // `top: 50%` resolves relative to the ::before's containing block (the sortedColumn span);
-      // allow a 1px tolerance for sub-pixel rounding.
-      expect(Math.abs(topPx - (spanRect.height / 2))).toBeLessThanOrEqual(1);
+      // `top: 50%` resolves relative to the ::before's containing block; allow a 1px tolerance
+      // for sub-pixel rounding.
+      expect(Math.abs(topPx - (containerRect.height / 2))).toBeLessThanOrEqual(1);
+
+      // What the user actually sees: the indicator sits on the header's vertical midline.
+      // `translateY(-50%)` puts its centre at the containing block's top plus `top`.
+      const indicatorCentreY = containerRect.top + topPx;
+
+      expect(Math.abs(indicatorCentreY - ((headerRect.top + headerRect.bottom) / 2)))
+        .toBeLessThanOrEqual(1);
+
+      // The indicator carries inline margins that hold it clear of the cell padding, so they are
+      // part of what the free edge resolves to.
+      const inlineMargins = (parseFloat(computedStyle.getPropertyValue('margin-left')) || 0) +
+        (parseFloat(computedStyle.getPropertyValue('margin-right')) || 0);
+      const freeEdge = containerRect.width - iconSize - inlineMargins - 2 - 1;
 
       if (htmlDir === 'rtl' || layoutDirection === 'rtl') {
-        // In RTL mode the indicator is anchored to the left of the span at exactly 2px.
+        // In RTL mode the indicator is anchored to the left of the container at exactly 2px.
         expect(parseFloat(computedStyle.getPropertyValue('left'))).toBe(2);
         // The opposite edge is declared `auto`; browsers resolve it to a positive value that
-        // equals (span width - left anchor - icon width) within a small rounding tolerance.
+        // equals (container width - left anchor - icon width - margins) within a rounding
+        // tolerance.
         const rightPx = parseFloat(computedStyle.getPropertyValue('right'));
 
-        expect(rightPx).toBeGreaterThanOrEqual(spanRect.width - iconSize - 2 - 1);
+        expect(rightPx).toBeGreaterThanOrEqual(freeEdge);
 
       } else {
-        // In LTR mode the indicator is anchored to the right of the span at exactly 2px.
+        // In LTR mode the indicator is anchored to the right of the container at exactly 2px.
         expect(parseFloat(computedStyle.getPropertyValue('right'))).toBe(2);
         const leftPx = parseFloat(computedStyle.getPropertyValue('left'));
 
-        expect(leftPx).toBeGreaterThanOrEqual(spanRect.width - iconSize - 2 - 1);
+        expect(leftPx).toBeGreaterThanOrEqual(freeEdge);
       }
     });
   });
@@ -319,7 +337,7 @@ describe('ColumnSorting', () => {
         {},
         {
           type: 'date',
-          dateFormat: 'mm/dd/yy'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         },
         {
           type: 'numeric'
@@ -800,13 +818,13 @@ describe('ColumnSorting', () => {
       handsontable({
         data: [
           ['Citroen1', 'C4 Coupe', null],
-          ['Mercedes1', 'A 160', '12/01/2008'],
-          ['Mercedes2', 'A 160', '01/14/2006'],
+          ['Mercedes1', 'A 160', '2008-12-01'],
+          ['Mercedes2', 'A 160', '2006-01-14'],
           ['Citroen2', 'C4 Coupe', undefined],
-          ['Audi1', 'A4 Avant', '11/19/2011'],
-          ['Opel1', 'Astra', '02/02/2004'],
+          ['Audi1', 'A4 Avant', '2011-11-19'],
+          ['Opel1', 'Astra', '2004-02-02'],
           ['Citroen3', 'C4 Coupe', null],
-          ['BMW1', '320i Coupe', '07/24/2011'],
+          ['BMW1', '320i Coupe', '2011-07-24'],
           ['Citroen4', 'C4 Coupe', ''],
           ['Citroen5', 'C4 Coupe', ''],
         ],
@@ -815,7 +833,7 @@ describe('ColumnSorting', () => {
           {},
           {
             type: 'date',
-            dateFormat: 'MM/DD/YYYY'
+            dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
           }
         ],
         columnSorting: {
@@ -851,13 +869,13 @@ describe('ColumnSorting', () => {
       handsontable({
         data: [
           ['Citroen1', 'C4 Coupe', null],
-          ['Mercedes1', 'A 160', '12/01/2008'],
-          ['Mercedes2', 'A 160', '01/14/2006'],
+          ['Mercedes1', 'A 160', '2008-12-01'],
+          ['Mercedes2', 'A 160', '2006-01-14'],
           ['Citroen2', 'C4 Coupe', undefined],
-          ['Audi1', 'A4 Avant', '11/19/2011'],
-          ['Opel1', 'Astra', '02/02/2004'],
+          ['Audi1', 'A4 Avant', '2011-11-19'],
+          ['Opel1', 'Astra', '2004-02-02'],
           ['Citroen3', 'C4 Coupe', null],
-          ['BMW1', '320i Coupe', '07/24/2011'],
+          ['BMW1', '320i Coupe', '2011-07-24'],
           ['Citroen4', 'C4 Coupe', ''],
           ['Citroen5', 'C4 Coupe', ''],
         ],
@@ -866,7 +884,7 @@ describe('ColumnSorting', () => {
           {},
           {
             type: 'date',
-            dateFormat: 'MM/DD/YYYY'
+            dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
           }
         ],
         columnSorting: {
@@ -898,67 +916,10 @@ describe('ColumnSorting', () => {
     describe('sorting date-typed files', () => {
       using('data set', [
         {
-          values: ['01/02/2032', '11/02/2023', '01/05/2023', '01/02/1975'],
-          dateFormat: 'DD/MM/YYYY'
+          values: ['2032-02-01', '2023-02-11', '2023-05-01', '1975-02-01'],
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         },
-        {
-          values: ['01/02/32', '11/02/23', '01/05/23', '01/02/75'],
-          dateFormat: 'DD/MM/YY'
-        },
-        {
-          values: ['1/2/32', '11/2/23', '1/5/23', '1/2/75'],
-          dateFormat: 'D/M/YY'
-        },
-        {
-          values: ['01/02/32', '11/02/23', '01/05/23', '01/02/75'],
-          dateFormat: 'D/M/YY'
-        },
-        {
-          values: ['01-02-2032', '11-02-2023', '01-05-2023', '01-02-1975'],
-          dateFormat: 'DD-MM-YYYY'
-        },
-        {
-          values: ['1-2-32', '11-2-23', '1-5-23', '1-2-75'],
-          dateFormat: 'D-M-YY'
-        },
-        {
-          values: ['2032 February 1st', '2023 February 11th', '2023 May 1st', '1975 February 1st'],
-          dateFormat: 'YYYY MMMM Do'
-        },
-        {
-          values: [
-            'The 1st of February \'32', 'The 11th of February \'23', 'The 1st of May \'23', 'The 1st of' +
-            ' February \'75'],
-          dateFormat: '[The] Do [of] MMMM \'YY'
-        },
-
-        // Improper date format configuration:
-        {
-          values: ['01/02/32', '11/02/23', '01/05/23', '01/02/75'],
-          dateFormat: 'DD/MM/YYYY'
-        },
-        {
-          values: ['1/2/32', '11/2/23', '1/5/23', '1/2/75'],
-          dateFormat: 'DD/MM/YY'
-        },
-        {
-          values: ['01/02/32', '11/02/23', '01/05/23', '01/02/75'],
-          dateFormat: 'D/M/YY'
-        },
-        {
-          values: ['1-2-32', '11-2-23', '1-5-23', '1-2-75'],
-          dateFormat: 'DD-MM-YYYY'
-        },
-        {
-          values: ['32 February 1st', '23 February 11th', '23 May 1st', '75 February 1st'],
-          dateFormat: 'YYYY MMMM Do'
-        },
-        {
-          values: ['1/2/2032', '11/2/2023', '1/5/2023', '1/2/1975'],
-          dateFormat: 'D.M.YYYY'
-        }
       ], ({ values, dateFormat }) => {
-        // TODO: not sure if all of them work by design
         it('it should be sorted properly', async() => {
           const data = values.map((value, ind) => [value, ind]);
 
@@ -984,11 +945,11 @@ describe('ColumnSorting', () => {
       using('data set', [
         {
           values: ['1.2.2032', '11.2.2023', '1.5.2023', '1.2.1975'],
-          dateFormat: 'D.M.YY'
+          dateFormat: { year: 'numeric', month: 'numeric', day: 'numeric' }
         },
         {
           values: ['1-2-2032', '11-2-2023', '1-5-2023', '1-2-1975'],
-          dateFormat: 'DD/MM/YY'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         },
 
       ], ({ values, dateFormat }) => {
@@ -1060,29 +1021,25 @@ describe('ColumnSorting', () => {
 
     describe('sorting time-typed files', () => {
       using('data set', [
-        { values: ['23:15', '20:44', '21:00', '14:12'], timeFormat: 'HH:mm' },
-        { values: ['11:15 PM', '08:44 PM', '09:00 PM', '02:12 PM'], timeFormat: 'hh:mm A' },
-        { values: ['11:15 pm', '08:44 pm', '09:00 pm', '02:12 pm'], timeFormat: 'hh:mm a' },
-        { values: ['08:44 pm', '11:15 am', '02:12 pm', '09:00 am'], timeFormat: 'hh:mm a' }, // mix pm/am
-        { values: ['23:15:22:33', '20:44:11:11', '21:00:11:11', '14:12:11:11'], timeFormat: 'HH:mm:mm:ss' },
-        { values: ['23:15:3:4', '20:44:1:1', '21:00:1:1', '14:12:1:1'], timeFormat: 'H:m:m:s' },
         {
-          values: ['23:15:22:33 +02:00', '20:44:22:33 +02:00', '21:00:22:33 +02:00', '14:12:22:33 +02:00'],
-          timeFormat: 'HH:mm:mm:ss Z'
+          values: ['23:15', '20:44', '21:00', '14:12'],
+          timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false }
         },
         {
-          values: ['23:15:22:33 +0200', '20:44:22:33 +0200', '21:00:22:33 +0200', '14:12:22:33 +0200'],
-          timeFormat: 'HH:mm:mm:ss ZZ'
+          values: ['23:15:22', '20:44:11', '21:00:11', '14:12:11'],
+          timeFormat: { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
         },
-
-        // Improper format:
-        { values: ['23:15:22:33', '20:44:11:11', '21:00:11:11', '14:12:11:11'], timeFormat: 'H:m:m:s' },
         {
-          values: ['23:15:22:33 +02:00', '20:44:22:33 +02:00', '21:00:22:33 +02:00', '14:12:22:33 +02:00'],
-          timeFormat: 'HH:mm:mm:ss ZZ'
+          values: ['23:15:22.100', '20:44:11.200', '21:00:11.300', '14:12:11.400'],
+          timeFormat: {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            fractionalSecondDigits: 3,
+            hour12: false
+          }
         },
       ], ({ values, timeFormat }) => {
-        // TODO: not sure if all of them work by design
         it('it should be sorted properly', async() => {
           const data = values.map((value, ind) => [value, ind]);
 
@@ -1139,7 +1096,7 @@ describe('ColumnSorting', () => {
           handsontable({
             data,
             columns: [
-              { type: 'intl-time', timeFormat },
+              { type: 'time', timeFormat },
               { type: 'numeric' },
             ],
             columnSorting: true
@@ -1159,20 +1116,20 @@ describe('ColumnSorting', () => {
     it('should sort date columns along with empty and null values', async() => {
       handsontable({
         data: [
-          ['Mercedes', 'A 160', '01/14/2006', 6999.9999],
-          ['Citroen', 'C4 Coupe', '12/01/2008', 8330],
+          ['Mercedes', 'A 160', '2006-01-14', 6999.9999],
+          ['Citroen', 'C4 Coupe', '2008-12-01', 8330],
           ['Citroen', 'C4 Coupe null', null, 8330],
           ['Citroen', 'C4 Coupe empty', '', 8330],
-          ['Audi', 'A4 Avant', '11/19/2011', 33900],
-          ['Opel', 'Astra', '02/02/2004', 7000],
-          ['BMW', '320i Coupe', '07/24/2011', 30500]
+          ['Audi', 'A4 Avant', '2011-11-19', 33900],
+          ['Opel', 'Astra', '2004-02-02', 7000],
+          ['BMW', '320i Coupe', '2011-07-24', 30500]
         ],
         columns: [
           {},
           {},
           {
             type: 'date',
-            dateFormat: 'MM/DD/YYYY'
+            dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
           },
           {
             type: 'numeric'
@@ -1184,53 +1141,19 @@ describe('ColumnSorting', () => {
 
       getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' }); // ASC
 
-      expect(getDataAtRow(0)).toEqual(['Opel', 'Astra', '02/02/2004', 7000]);
-      expect(getDataAtRow(1)).toEqual(['Mercedes', 'A 160', '01/14/2006', 6999.9999]);
-      expect(getDataAtRow(2)).toEqual(['Citroen', 'C4 Coupe', '12/01/2008', 8330]);
-      expect(getDataAtRow(3)).toEqual(['BMW', '320i Coupe', '07/24/2011', 30500]);
-      expect(getDataAtRow(4)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
+      expect(getDataAtRow(0)).toEqual(['Opel', 'Astra', '2004-02-02', 7000]);
+      expect(getDataAtRow(1)).toEqual(['Mercedes', 'A 160', '2006-01-14', 6999.9999]);
+      expect(getDataAtRow(2)).toEqual(['Citroen', 'C4 Coupe', '2008-12-01', 8330]);
+      expect(getDataAtRow(3)).toEqual(['BMW', '320i Coupe', '2011-07-24', 30500]);
+      expect(getDataAtRow(4)).toEqual(['Audi', 'A4 Avant', '2011-11-19', 33900]);
 
       getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' }); // DESC
 
-      expect(getDataAtRow(0)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
-      expect(getDataAtRow(1)).toEqual(['BMW', '320i Coupe', '07/24/2011', 30500]);
-      expect(getDataAtRow(2)).toEqual(['Citroen', 'C4 Coupe', '12/01/2008', 8330]);
-      expect(getDataAtRow(3)).toEqual(['Mercedes', 'A 160', '01/14/2006', 6999.9999]);
-      expect(getDataAtRow(4)).toEqual(['Opel', 'Astra', '02/02/2004', 7000]);
-    });
-  });
-
-  describe('data type: time', () => {
-    it('should properly rewrite time into correct format after sort', async() => {
-      handsontable({
-        data: [
-          ['0:00:01 am'],
-          ['5:30:14 pm'],
-          ['8:00:00 pm'],
-          ['11:15:05 am'],
-          ['4:07:48 am']
-        ],
-        columns: [
-          {
-            type: 'time',
-            dateFormat: 'h:mm:ss a',
-            correctFormat: true
-          }
-        ],
-        colHeaders: true,
-        columnSorting: {
-          initialConfig: {
-            column: 0,
-            sortOrder: 'desc'
-          }
-        }
-      });
-
-      await waitForNextAnimationFrames(2);
-      await setDataAtCell(0, 0, '19:55', 'edit');
-      await waitForNextAnimationFrames(2);
-
-      expect(getDataAtCell(0, 0)).toEqual('7:55:00 pm');
+      expect(getDataAtRow(0)).toEqual(['Audi', 'A4 Avant', '2011-11-19', 33900]);
+      expect(getDataAtRow(1)).toEqual(['BMW', '320i Coupe', '2011-07-24', 30500]);
+      expect(getDataAtRow(2)).toEqual(['Citroen', 'C4 Coupe', '2008-12-01', 8330]);
+      expect(getDataAtRow(3)).toEqual(['Mercedes', 'A 160', '2006-01-14', 6999.9999]);
+      expect(getDataAtRow(4)).toEqual(['Opel', 'Astra', '2004-02-02', 7000]);
     });
   });
 
@@ -1732,7 +1655,7 @@ describe('ColumnSorting', () => {
         {},
         {
           type: 'date',
-          dateFormat: 'mm/dd/yy'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         },
         {
           type: 'numeric'
@@ -2966,7 +2889,7 @@ describe('ColumnSorting', () => {
         columns: [
           { columnSorting: { headerAction: false } },
           {},
-          { type: 'date', dateFormat: 'MM/DD/YYYY' },
+          { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
           { type: 'numeric' },
           {}
         ],
@@ -3008,7 +2931,7 @@ describe('ColumnSorting', () => {
         columns: [
           { columnSorting: { headerAction: false } },
           {},
-          { type: 'date', dateFormat: 'MM/DD/YYYY' },
+          { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
           { type: 'numeric' },
           {}
         ],
@@ -3039,7 +2962,7 @@ describe('ColumnSorting', () => {
         columns: [
           {},
           {},
-          { type: 'date', dateFormat: 'MM/DD/YYYY' },
+          { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
           { type: 'numeric' },
           {}
         ],
@@ -3115,6 +3038,103 @@ describe('ColumnSorting', () => {
       newHeaderWidth = spec().$container.find('th').eq(0).width();
 
       expect(headerWidthAtStart).toBeLessThan(newHeaderWidth);
+    });
+
+    it('should not let the dropdown menu button cover the sort indicator', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 3),
+        colHeaders: ['Sell date', 'B', 'C'],
+        colWidths: 150,
+        dropdownMenu: true,
+        columnSorting: { initialConfig: { column: 0, sortOrder: 'asc' } },
+      });
+
+      const label = spec().$container.find('th span.colHeader')[0];
+      const container = label.closest('.relative');
+      const containerRect = container.getBoundingClientRect();
+      const indicatorStyle = window.getComputedStyle(label, ':before');
+      const iconSize = parseFloat(
+        window.getComputedStyle(label).getPropertyValue('--ht-icon-size')
+      ) || 16;
+
+      // The indicator is an absolutely positioned pseudo, so its box has to be derived. `.relative`
+      // carries no border, so its client rect edges are the padding box the pseudo resolves against.
+      const marginRight = parseFloat(indicatorStyle.getPropertyValue('margin-right')) || 0;
+      const indicatorRight = containerRect.right -
+        parseFloat(indicatorStyle.getPropertyValue('right')) - marginRight;
+      const indicatorLeft = indicatorRight - iconSize;
+
+      // The button paints above the indicator (`z-index: 1`), so any overlap hides it completely.
+      const button = container.querySelector('.changeType');
+      const buttonRect = button.getBoundingClientRect();
+      const overlap = Math.min(buttonRect.right, indicatorRight) - Math.max(buttonRect.left, indicatorLeft);
+
+      expect(button).not.toBe(null);
+      expect(overlap).toBeLessThanOrEqual(0);
+    });
+
+    it('should keep the header text aligned by `headerClassName` when the plugin is enabled', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 3),
+        colHeaders: ['Left', 'Middle', 'Right'],
+        colWidths: 160,
+        columns: [
+          { headerClassName: 'htLeft' },
+          {},
+          { headerClassName: 'htRight' },
+        ],
+        columnSorting: { initialConfig: { column: 2, sortOrder: 'asc' } },
+      });
+
+      // The painted text, not the label box - the label is sized to its text, so only the text
+      // says where the alignment landed.
+      const textBox = (column) => {
+        const span = spec().$container.find('th span.colHeader')[column];
+        const range = document.createRange();
+
+        range.selectNodeContents(span);
+
+        const text = range.getBoundingClientRect();
+        const th = span.closest('th').getBoundingClientRect();
+
+        return { fromLeft: text.left - th.left, fromRight: th.right - text.right };
+      };
+
+      // `htLeft` hugs the left edge, `htRight` the right one. Without the alignment rules the
+      // label's auto margins centre every header and both gaps come out equal.
+      const left = textBox(0);
+      const right = textBox(2);
+
+      expect(left.fromLeft).toBeLessThan(left.fromRight);
+      expect(right.fromRight).toBeLessThan(right.fromLeft);
+
+      // And the middle column, which asked for nothing, stays centred.
+      const middle = textBox(1);
+
+      expect(Math.abs(middle.fromLeft - middle.fromRight)).toBeLessThanOrEqual(2);
+    });
+
+    it('should not measure the sort indicator offsets into the auto column width when the dropdown menu is enabled', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 2),
+        colHeaders: ['Revenue per employee division', 'B'],
+        autoColumnSize: true,
+        columnSorting: { initialConfig: { column: 0, sortOrder: 'asc' } },
+      });
+
+      spec().$container[0].style.width = 'auto';
+      await render();
+
+      const widthWithoutMenu = spec().$container.find('th').eq(0).width();
+
+      await updateSettings({ dropdownMenu: true });
+
+      const widthWithMenu = spec().$container.find('th').eq(0).width();
+
+      // The menu button takes its own room in the header, but the indicator's reserve is held out
+      // of the ghost table measurement, so it must not land there a second time. The button costs
+      // 4px (classic), 6px (main) or 8px (horizon); counting the reserve twice adds ~18px on top.
+      expect(widthWithMenu - widthWithoutMenu).toBeLessThan(12);
     });
 
     it('should work properly also when `rowHeaders` option is set to `true`', async() => {
@@ -3454,6 +3474,83 @@ describe('ColumnSorting', () => {
       const cssTop = parseInt(wtSpreader.css('top'), 10);
 
       expect(cssTop).toBeGreaterThan(0);
+    });
+  });
+
+  describe('fixed rows interaction', () => {
+    it('should not include `fixedRowsBottom` rows in the sortable range', async() => {
+      handsontable({
+        data: [
+          ['Apple', 10],
+          ['Banana', 20],
+          ['Cherry', 30],
+          ['Date', 40],
+          ['Total', 999], // footer row, must stay last regardless of sort
+        ],
+        colHeaders: ['A', 'B'],
+        fixedRowsBottom: 1,
+        columnSorting: true,
+      });
+
+      // sort col B descending - 999 would normally float to the top
+      getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+
+      // footer must remain at the last visual row
+      expect(getDataAtCell(4, 0)).toBe('Total');
+      expect(getDataAtCell(4, 1)).toBe(999);
+
+      // data rows above are sorted descending
+      expect(getDataAtCol(1).slice(0, 4)).toEqual([40, 30, 20, 10]);
+    });
+
+    it('should not include `fixedRowsTop` rows in the sortable range', async() => {
+      handsontable({
+        data: [
+          ['Header', 999], // header row, must stay first regardless of sort
+          ['Apple', 10],
+          ['Banana', 20],
+          ['Cherry', 30],
+          ['Date', 40],
+        ],
+        colHeaders: ['A', 'B'],
+        fixedRowsTop: 1,
+        columnSorting: true,
+      });
+
+      getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
+
+      // header must remain at the first visual row
+      expect(getDataAtCell(0, 0)).toBe('Header');
+      expect(getDataAtCell(0, 1)).toBe(999);
+
+      // data rows below are sorted ascending
+      expect(getDataAtCol(1).slice(1)).toEqual([10, 20, 30, 40]);
+    });
+
+    it('should respect `fixedRowsTop`, `fixedRowsBottom`, and `minSpareRows` together', async() => {
+      handsontable({
+        data: [
+          ['Header', 999],
+          ['Banana', 20],
+          ['Apple', 10],
+          ['Date', 40],
+          ['Cherry', 30],
+          ['Total', 111],
+          [null, null], // spare row
+        ],
+        colHeaders: ['A', 'B'],
+        fixedRowsTop: 1,
+        fixedRowsBottom: 1,
+        minSpareRows: 1,
+        columnSorting: true,
+      });
+
+      getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
+
+      expect(getDataAtCell(0, 0)).toBe('Header');
+      expect(getDataAtCol(1).slice(1, 5)).toEqual([10, 20, 30, 40]);
+      expect(getDataAtCell(5, 0)).toBe('Total');
+      expect(getDataAtCell(6, 0)).toBeNull();
     });
   });
 });

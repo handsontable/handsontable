@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed HyperFormula errors when MultiSelect cells store array values.",
-  "type": "fixed",
-  "issueOrPR": 12135,
-  "breaking": false,
-  "framework": "none"
-}

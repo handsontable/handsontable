@@ -44,35 +44,30 @@ if (!container) {
   throw new Error('Missing #example2 element.');
 }
 
-const statusBar = document.createElement('div');
-const statusLabel = document.createElement('p');
+const controlsContainer = document.createElement('div');
+const controls = document.createElement('div');
+const statusOutput = document.createElement('output');
 const refreshButton = document.createElement('button');
 const retryButton = document.createElement('button');
 const gridContainer = document.createElement('div');
 
-statusBar.style.display = 'flex';
-statusBar.style.gap = '12px';
-statusBar.style.alignItems = 'center';
-statusBar.style.marginBottom = '8px';
-
-statusLabel.style.margin = '0';
-statusLabel.style.fontFamily = 'Arial, sans-serif';
-statusLabel.style.fontSize = '14px';
+controlsContainer.className = 'example-controls-container';
+controls.className = 'controls';
+statusOutput.id = 'example2-status';
 
 refreshButton.type = 'button';
 refreshButton.textContent = 'Refresh';
 refreshButton.hidden = true;
-refreshButton.style.marginBottom = '0';
 
 retryButton.type = 'button';
 retryButton.textContent = 'Retry';
 retryButton.hidden = true;
-retryButton.style.marginBottom = '0';
 
-container.appendChild(statusBar);
-statusBar.appendChild(statusLabel);
-statusBar.appendChild(refreshButton);
-statusBar.appendChild(retryButton);
+controls.appendChild(refreshButton);
+controls.appendChild(retryButton);
+controlsContainer.appendChild(controls);
+controlsContainer.appendChild(statusOutput);
+container.appendChild(controlsContainer);
 container.appendChild(gridContainer);
 
 // Step 1: Initialize the grid with columnSorting enabled and an empty dataset.
@@ -107,9 +102,9 @@ function setUiState({
   hasError?: boolean;
   message?: string;
 }) {
-  statusLabel.textContent = message;
-  statusLabel.style.color = hasError ? '#c62828' : '#202124';
-  // Show "Retry" only when there is an error.
+  statusOutput.textContent = message;
+  statusOutput.classList.toggle('is-error', hasError);
+    // Show "Retry" only when there is an error.
   retryButton.hidden = !hasError;
   // Show "Refresh" only when the grid has data and no error is active.
   refreshButton.hidden = hasError || loading;

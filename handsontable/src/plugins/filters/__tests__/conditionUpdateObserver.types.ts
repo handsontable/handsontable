@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable';
 
-const hot = new Handsontable(document.createElement('div'), {
+const hot = Handsontable(document.createElement('div'), {
   filters: true,
 });
 

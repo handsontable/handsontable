@@ -1,5 +1,4 @@
 ---
-id: b4c9e21f
 title: External search box
 metaTitle: External search box recipe - JavaScript Data Grid | Handsontable
 description: Learn how to add an external search input that highlights matching cells in Handsontable as you type.
@@ -12,14 +11,14 @@ tags:
   - search
   - filtering
 react:
-  id: a8e3d17c
   metaTitle: External search box recipe - React Data Grid | Handsontable
 angular:
-  id: d2f7b43a
   metaTitle: External search box recipe - Angular Data Grid | Handsontable
+vue:
+  metaTitle: External search box recipe - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Filtering and Search
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will add a search input outside Handsontable that highlights matching cells as you type. You will learn how to use the `Search` plugin's `query()` method and `hot.render()` to apply real-time cell highlights from an external control.

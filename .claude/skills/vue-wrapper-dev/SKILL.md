@@ -1,5 +1,6 @@
 ---
 name: vue-wrapper-dev
+path: wrappers/vue3/**
 description: Use when developing or modifying the @handsontable/vue3 wrapper package - Vue 3 SFC components, deep watchers, and provide/inject patterns for settings propagation
 ---
 

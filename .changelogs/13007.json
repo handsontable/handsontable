@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed missing TypeScript autocomplete and type checking for `<HotTable>` and `<HotColumn>` props.",
+  "type": "fixed",
+  "issueOrPR": 13007,
+  "breaking": false,
+  "framework": "react"
+}

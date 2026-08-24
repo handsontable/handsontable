@@ -1,5 +1,5 @@
 ---
-id: 3xxlonuv
+type: how-to
 title: Column filter
 metaTitle: Column filter - JavaScript Data Grid | Handsontable
 description: Filter your data by values or by a set of conditions.
@@ -19,13 +19,14 @@ tags:
   - advanced filter
   - dropdown
 react:
-  id: vz7ct2bv
   metaTitle: Column filter - React Data Grid | Handsontable
 angular:
-  id: woyi876m
   metaTitle: Column filter - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Column filter - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
+menuTag: updated
 ---
 Filter data by values or by a set of conditions, using Handsontable's intuitive user interface or
 flexible API.
@@ -87,6 +88,16 @@ this behavior, set
 
 :::
 
+::: only-for vue
+
+::: example #exampleFilterBasicDemo :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleFilterBasicDemo.vue)
+
+:::
+
+:::
+
 ## Enable filtering
 
 To enable the filtering interface for all columns, you need to do two things:
@@ -140,6 +151,23 @@ const configurationOptions = {
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = {
+  // enable filtering
+  filters: true,
+  // enable the column menu
+  dropdownMenu: true,
+};
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 <span style="display: none;"></span>
 
 By default, the column menu presents the filtering interface along with other default items such as
@@ -181,6 +209,16 @@ the configuration.
 
 :::
 
+::: only-for vue
+
+::: example #exampleShowFilterItemsOnly :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleShowFilterItemsOnly.vue)
+
+:::
+
+:::
+
 ### Enable filtering for individual columns
 
 You have control over which columns are filterable and for which columns the column menu is enabled.
@@ -217,6 +255,16 @@ useful items in the menu such as **Clear column**.
 
 @[code](@/content/guides/columns/column-filter/angular/example3.ts)
 @[code](@/content/guides/columns/column-filter/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleEnableFilterInColumns :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleEnableFilterInColumns.vue)
 
 :::
 
@@ -275,6 +323,25 @@ const configurationOptions = {
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = {
+  // enable filtering
+  filters: {
+    searchMode: 'apply'
+  },
+  // enable the column menu
+  dropdownMenu: true,
+};
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 ::: only-for javascript
 
 ::: example #exampleSearchMode --html 1 --js 2 --ts 3
@@ -304,6 +371,16 @@ const configurationOptions = {
 
 @[code](@/content/guides/columns/column-filter/angular/example12.ts)
 @[code](@/content/guides/columns/column-filter/angular/example12.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleSearchMode :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleSearchMode.vue)
 
 :::
 
@@ -350,6 +427,16 @@ each data type.
 
 :::
 
+::: only-for vue
+
+::: example #exampleFilterDifferentTypes :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleFilterDifferentTypes.vue)
+
+:::
+
+:::
+
 
 The following table contains all available filter operators for each built-in data type.
 
@@ -361,6 +448,16 @@ The following table contains all available filter operators for each built-in da
 | date                                                             | Default operators plus:<br><br>Before (exclusive -- boundary date excluded)<br>Before or equal to (boundary date included)<br>After (exclusive -- boundary date excluded)<br>After or equal to (boundary date included)<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
 | intl-date                                                        | Default operators plus:<br><br>Before (exclusive -- boundary date excluded)<br>Before or equal to (boundary date included)<br>After (exclusive -- boundary date excluded)<br>After or equal to (boundary date included)<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
 | intl-time                                                        | Default operators plus:<br><br>Begins with<br>Ends with<br>Contains<br>Does not contain<br>Before (exclusive -- boundary time excluded)<br>Before or equal to (boundary time included)<br>After (exclusive -- boundary time excluded)<br>After or equal to (boundary time included)<br>Is between                      |
+
+The **None** operator clears the column's filter. Its programmatic equivalent is
+[`filters.removeConditions(column)`](@/api/filters.md#removeconditions). For more on clearing
+filters with the API, see [Clear a column filter](#clear-a-column-filter).
+
+For the **Before**, **After**, **Before or equal to**, **After or equal to**, and **Is between**
+operators on `date`, `intl-date`, and `intl-time` columns, the filter menu shows a native date or
+time input. Pick the value from the browser's picker or type it in your locale's format. When you
+set the condition through the API instead, pass the value as an ISO 8601 string
+(`YYYY-MM-DD` for dates, `HH:mm` for times).
 
 ## Filter data on initialization
 
@@ -413,6 +510,20 @@ with a pre-applied filter to display only items priced less than $200.
 
 :::
 
+::: only-for vue
+
+To do this, use the API provided by the [`Filters`](@/api/filters.md) plugin. For instance, the demo
+below demonstrates how you can start with a pre-applied filter to display only items priced less
+than $200.
+
+::: example #exampleFilterOnInitialization :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleFilterOnInitialization.vue)
+
+:::
+
+:::
+
 
 ## External quick filter
 
@@ -451,6 +562,16 @@ accomplish this, use methods [`filters.addCondition()`](@/api/filters.md#addcond
 
 @[code](@/content/guides/columns/column-filter/angular/example6.ts)
 @[code](@/content/guides/columns/column-filter/angular/example6.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleQuickFilter :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleQuickFilter.vue)
 
 :::
 
@@ -498,6 +619,16 @@ down icon.
 
 :::
 
+::: only-for vue
+
+::: example #exampleCustomFilterButton :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleCustomFilterButton.vue)
+
+:::
+
+:::
+
 The column menu button is always visible, but if you want it to appear only when the mouse cursor is
 over the header, apply additional styling to `th .relative:hover .changeType`.
 
@@ -532,6 +663,16 @@ over the header, apply additional styling to `th .relative:hover .changeType`.
 
 @[code](@/content/guides/columns/column-filter/angular/example8.ts)
 @[code](@/content/guides/columns/column-filter/angular/example8.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleCustomFilterButton2 :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleCustomFilterButton2.vue)
 
 :::
 
@@ -590,6 +731,21 @@ filtering doesn't affect them.
 
 :::
 
+::: only-for vue
+
+::: example #exampleExcludeRowsFromFiltering :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleExcludeRowsFromFiltering.vue)
+
+:::
+
+:::
+
+If you use [`bindRowsWithHeaders`](@/guides/rows/row-header/row-header.md#bind-rows-with-headers) to
+keep row headers tied to a row's position in the source data, filtering doesn't affect that binding.
+Filtering removes non-matching rows from view instead of renumbering the rows that remain, so bound
+row headers keep pointing to the same row after you filter or clear a filter.
+
 ## Server-side filtering
 
 You can decide to use Handsontable as an intuitive filtering interface, but perform the actual
@@ -635,6 +791,16 @@ filters is logged to the console.
 
 @[code](@/content/guides/columns/column-filter/angular/example10.ts)
 @[code](@/content/guides/columns/column-filter/angular/example10.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleServerSideFilter :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleServerSideFilter.vue)
 
 :::
 
@@ -703,6 +869,26 @@ this.hotTable.hotInstance!.updateSettings({
 });
 
 this.hotTable.hotInstance!.updateSettings({
+  // disable filtering
+  filters: false,
+});
+```
+
+:::
+
+::: only-for vue
+
+```js
+const hotTableRef = useTemplateRef<InstanceType<typeof HotTable>>('hotTableRef');
+
+hotTableRef.value.hotInstance.updateSettings({
+  // enable filtering
+  filters: true,
+  // enable the column menu
+  dropdownMenu: true,
+});
+
+hotTableRef.value.hotInstance.updateSettings({
   // disable filtering
   filters: false,
 });
@@ -810,6 +996,40 @@ this.hotTable.hotInstance!.updateSettings({
 
 :::
 
+::: only-for vue
+
+```js
+const hotTableRef = useTemplateRef<InstanceType<typeof HotTable>>('hotTableRef');
+
+hotTableRef.value.hotInstance.updateSettings({
+  // enable filtering for all columns
+  filters: true,
+  // enable the column menu for all columns
+  // but display only the 'Filter by value' list and the 'OK' and
+  // 'Cancel' buttons
+  dropdownMenu: {
+    items: {
+      filter_by_value: {
+        // hide the 'Filter by value' list from all columns but the
+        // first one
+        hidden() {
+          return this.getSelectedRangeLast().to.col > 0;
+        },
+      },
+      filter_action_bar: {
+        // hide the 'OK' and 'Cancel' buttons from all columns but the
+        // first one
+        hidden() {
+          return this.getSelectedRangeLast().to.col > 0;
+        },
+      },
+    },
+  },
+});
+```
+
+:::
+
 
 ### Filter data programmatically
 
@@ -853,6 +1073,235 @@ Mind that before you apply new filter conditions, you need to clear the previous
 
 :::
 
+::: only-for vue
+
+::: example #exampleFilterThroughAPI1 :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleFilterThroughAPI1.vue)
+
+:::
+
+:::
+
+### Combine multiple filter conditions
+
+A column can hold more than one condition. The fourth argument of
+[`filters.addCondition()`](@/api/filters.md#addcondition) sets the logical operation that joins the
+conditions for that column:
+
+- `'conjunction'` -- AND logic. Every condition must match. This is the default, so you can omit the
+  argument.
+- `'disjunction'` -- OR logic. At least one condition must match.
+
+Apply the same operation to all conditions in a column. Don't mix `'conjunction'` and
+`'disjunction'` for a single column.
+
+The following snippet keeps the rows where the price (column index `2`) is less than `200` **or**
+greater than `400`.
+
+::: only-for javascript
+
+```js
+const filters = handsontableInstance.getPlugin('filters');
+
+// clear the column's existing conditions first
+filters.clearConditions(2);
+
+// match rows where the price is less than 200 OR greater than 400
+filters.addCondition(2, 'lt', [200], 'disjunction');
+filters.addCondition(2, 'gt', [400], 'disjunction');
+filters.filter();
+```
+
+:::
+
+::: only-for react
+
+```jsx
+const filters = hotTableComponentRef.current.hotInstance.getPlugin('filters');
+
+// clear the column's existing conditions first
+filters.clearConditions(2);
+
+// match rows where the price is less than 200 OR greater than 400
+filters.addCondition(2, 'lt', [200], 'disjunction');
+filters.addCondition(2, 'gt', [400], 'disjunction');
+filters.filter();
+```
+
+:::
+
+::: only-for angular
+
+```ts
+const filters = this.hotTable.hotInstance!.getPlugin('filters');
+
+// clear the column's existing conditions first
+filters.clearConditions(2);
+
+// match rows where the price is less than 200 OR greater than 400
+filters.addCondition(2, 'lt', [200], 'disjunction');
+filters.addCondition(2, 'gt', [400], 'disjunction');
+filters.filter();
+```
+
+:::
+
+::: only-for vue
+
+```js
+const filters = hotTableRef.value.hotInstance.getPlugin('filters');
+
+// clear the column's existing conditions first
+filters.clearConditions(2);
+
+// match rows where the price is less than 200 OR greater than 400
+filters.addCondition(2, 'lt', [200], 'disjunction');
+filters.addCondition(2, 'gt', [400], 'disjunction');
+filters.filter();
+```
+
+:::
+
+The dropdown menu shows at most two conditions plus one **Filter by value** condition per column.
+If you add more conditions than that, they still filter the data but don't appear in the menu. See
+[Known limitations](#known-limitations).
+
+### Clear a column filter
+
+To clear the conditions for a single column, call
+[`filters.removeConditions(column)`](@/api/filters.md#removeconditions). This is the programmatic
+equivalent of selecting the **None** operator in the column menu.
+
+```js
+const filters = handsontableInstance.getPlugin('filters');
+
+// clear the filter for the column at index 2
+filters.removeConditions(2);
+filters.filter();
+```
+
+To clear the conditions for every column at once, call
+[`filters.clearConditions()`](@/api/filters.md#clearconditions) without an argument.
+
+Adding the `'none'` condition with [`addCondition()`](@/api/filters.md#addcondition) has no
+filtering effect, because `'none'` matches every row:
+
+```js
+// matches all rows -- the column stays unfiltered
+filters.addCondition(2, 'none', []);
+filters.filter();
+```
+
+### Save and restore filter settings
+
+To persist a user's filter selections (for example, across page reloads or between sessions), export
+the current conditions with [`filters.exportConditions()`](@/api/filters.md#exportconditions), and
+store the result. To reapply them later, pass the stored array to
+[`filters.importConditions()`](@/api/filters.md#importconditions), then call
+[`filters.filter()`](@/api/filters.md#filter) to apply the change.
+
+Unlike [`addCondition()`](@/api/filters.md#addcondition), which takes a visual column index, the
+`column` property in each exported condition is a physical column index.
+
+::: only-for javascript
+
+::: example #exampleSaveRestoreFilters --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/columns/column-filter/javascript/exampleSaveRestoreFilters.html)
+@[code](@/content/guides/columns/column-filter/javascript/exampleSaveRestoreFilters.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleSaveRestoreFilters.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleSaveRestoreFilters :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-filter/react/exampleSaveRestoreFilters.jsx)
+@[code](@/content/guides/columns/column-filter/react/exampleSaveRestoreFilters.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example13 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example13.ts)
+@[code](@/content/guides/columns/column-filter/angular/example13.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleSaveRestoreFilters :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleSaveRestoreFilters.vue)
+
+:::
+
+:::
+
+### Get filtered data
+
+After filtering, [`getData()`](@/api/core.md#getdata) returns only the rows that pass the current
+filters, because filtering removes non-matching rows from the grid's data map instead of merely
+hiding them. To read every row regardless of the active filters, use
+[`getSourceData()`](@/api/core.md#getsourcedata).
+
+The following demo uses the [`afterFilter()`](@/api/hooks.md#afterfilter) hook to compare the two
+methods every time the filters change.
+
+::: only-for javascript
+
+::: example #exampleGetFilteredData --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/columns/column-filter/javascript/exampleGetFilteredData.html)
+@[code](@/content/guides/columns/column-filter/javascript/exampleGetFilteredData.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleGetFilteredData.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleGetFilteredData :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-filter/react/exampleGetFilteredData.jsx)
+@[code](@/content/guides/columns/column-filter/react/exampleGetFilteredData.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example14 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example14.ts)
+@[code](@/content/guides/columns/column-filter/angular/example14.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleGetFilteredData :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleGetFilteredData.vue)
+
+:::
+
+:::
+
 ## Import the filtering module
 
 You can reduce the size of your bundle by importing and registering only the
@@ -887,6 +1336,17 @@ At the moment, filtering comes with the following limitations:
   "filter by value" condition. If you add more conditions programmatically via
   [`addCondition()`](@/api/filters.md), the extra conditions are applied to the data but are not
   visible or editable in the dropdown menu.
+
+## Navigate the filter menu
+
+Use keyboard and pointer interactions together to control the filtering UI:
+
+- Press <kbd>**Tab**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> to move between filtering components, such as the search input, **Select all**, **Clear all**, condition controls, and action bar controls.
+- When the search input is focused, press <kbd>**Arrow up**</kbd> and <kbd>**Arrow down**</kbd> to move through the **Filter by value** list.
+- When **Select all** or **Clear all** is focused, press <kbd>**Enter**</kbd> or <kbd>**Space**</kbd> to run the action.
+- If you hover a non-filter menu item (for example, **Clear column**), the filter-components focus order resets. The next <kbd>**Tab**</kbd> focuses the first filter component.
+
+For a reference list of filter-related shortcuts, see [Keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#column-filter-keyboard-shortcuts).
 
 ## Related keyboard shortcuts
 

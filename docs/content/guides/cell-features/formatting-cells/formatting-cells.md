@@ -1,36 +1,44 @@
 ---
 type: how-to
-id: epmvqw9m
 title: Formatting cells
 metaTitle: Formatting cells - JavaScript Data Grid | Handsontable
 description: Change the appearance of cells, using custom CSS classes, inline styles, or custom cell borders.
 permalink: /formatting-cells
 canonicalUrl: /formatting-cells
 react:
-  id: qywqgovy
   metaTitle: Formatting cells - React Data Grid | Handsontable
 angular:
-  id: 0eswjne7
   metaTitle: Formatting cells - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Formatting cells - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
+menuTag: updated
 ---
 Change the appearance of cells, using custom CSS classes, inline styles, or custom cell borders.
 
 [[toc]]
 
-Format cells using CSS classes, inline styles, or the renderer API. Choose the approach that fits your use case.
-
 ## Overview
 
-Handsontable uses the HTML `table` structure so customization is based either on referencing to the already existing elements, such as `TR`/`TD`, or by applying
-your own CSS classes to HTML elements.
+Handsontable renders an HTML `table`, so you can style existing `tr` and `td` elements or attach your own classes.
 
-You can format a cell either using a `CSS` class or with a style applied directly to the DOM element.
+Choose an approach based on your goal:
+
+- Use [`className`](@/api/options.md#classname) when you want reusable static styles.
+- Use [`renderer`](@/api/options.md#renderer) when you need to apply inline styles to specific cells at render time.
+- Use [`customBorders`](@/api/options.md#customborders) when you need custom border widths, colors, or styles for selected ranges.
+
+## Prerequisites
+
+- A Handsontable instance with data loaded.
+- A stylesheet, if you format cells through custom CSS classes.
 
 ## Apply custom CSS class styles
 
-In this example, we add a custom class `custom-cell` to the cell in the top left corner and add a `custom-table` CSS class that highlights the table headers.
+In this example, you add a custom class `custom-cell` to the cell in the top-left corner and a `custom-table` CSS class that highlights the table headers.
+
+To add a CSS class to a cell, column, or row, use the [`className`](@/api/options.md#classname) option. Set it in the grid configuration, in a `columns` entry, or per cell through the [`cells`](@/api/options.md#cells) callback. The class you provide is added to the cell's `<td>` element, where your CSS rules can target it.
 
 ::: only-for javascript
 
@@ -67,9 +75,35 @@ In this example, we add a custom class `custom-cell` to the cell in the top left
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-features/formatting-cells/vue/example1.vue)
+
+:::
+
+:::
+
+### Give your rule enough specificity
+
+A theme styles cells through rules such as `.ht-theme-main .htCore td`, which is more specific than a single class selector. A rule like `.custom-cell { font-size: 24px; }` therefore loses to the theme, and the cell keeps the theme's font size.
+
+To win, include the theme class and the element in your selector:
+
+```css
+.ht-theme-main .htCore td.custom-cell {
+  font-size: 24px;
+}
+```
+
+Adding `!important` to your original rule works too, but the selector above keeps the cascade readable.
+
+[`autoRowSize`](@/api/options.md#autorowsize) and [`autoColumnSize`](@/api/options.md#autocolumnsize) measure each cell with its class applied, so a class that changes a cell's font size, padding, or borders is reflected in the calculated row heights and column widths.
+
 ## Apply inline styles
 
-You can apply inline styles directly to the DOM element using its `style` property. You can use the [`renderer`](@/api/options.md#renderer) option to do that.
+Apply inline styles directly to a cell's DOM element through the `style` property. Use the [`renderer`](@/api/options.md#renderer) option to run this logic on each render.
 
 ::: only-for javascript
 
@@ -104,13 +138,21 @@ You can apply inline styles directly to the DOM element using its `style` proper
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-features/formatting-cells/vue/example2.vue)
+
+:::
+
+:::
+
 ## Custom cell borders
 
-To enable the custom borders feature, set the [`customBorders`](@/api/options.md#customborders) option. This can either be set as `true` or initialized as an
-array with a pre-defined setup. For the list of available settings and methods, visit the [API reference](@/api/customBorders.md).
+To enable custom borders, set [`customBorders`](@/api/options.md#customborders). You can set it to `true` or pass an array with predefined border configuration. For all settings and methods, see the [API reference](@/api/customBorders.md).
 
-In the names of the API properties, the words `start` and `end` refer to the starting and ending edges of the
-[layout direction](@/guides/internationalization/layout-direction/layout-direction.md).
+In API property names, `start` and `end` refer to the starting and ending edges of the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md).
 
 You can customize the border style using the `style` property in the border configuration. The available options are:
 
@@ -120,8 +162,7 @@ You can customize the border style using the `style` property in the border conf
 
 The `style` property can be set for any border edge (`top`, `bottom`, `start`, `end`). When not specified, it defaults to `'solid'`.
 
-The example below demonstrates different border styles applied to various cell ranges:
-
+The following example shows different border styles on selected cell ranges.
 
 ::: only-for javascript
 
@@ -134,8 +175,6 @@ The example below demonstrates different border styles applied to various cell r
 
 :::
 
-<!-- TODO: workaround for the template parsing problem for angular docs  -->
-
 ::: only-for react
 
 ::: example #example3 :react --js 1 --ts 2
@@ -147,8 +186,6 @@ The example below demonstrates different border styles applied to various cell r
 
 :::
 
-<!-- TODO: workaround for the template parsing problem for angular docs  -->
-
 ::: only-for angular
 
 ::: example #example3 :angular --ts 1 --html 2
@@ -159,6 +196,53 @@ The example below demonstrates different border styles applied to various cell r
 :::
 
 :::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/cell-features/formatting-cells/vue/example3.vue)
+
+:::
+
+:::
+
+### Apply borders progressively for large configurations
+
+Building a very large [`customBorders`](@/api/options.md#customborders) configuration before the first render can delay the initial paint. To render the grid first and apply the borders in background batches, set [`customBordersProgressive`](@/api/options.md#custombordersprogressive) to `true`:
+
+```js
+const hot = new Handsontable(container, {
+  data,
+  customBorders: largeBorderConfig,
+  customBordersProgressive: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+Pass an object to control how many border entries are applied per batch:
+
+```js
+customBordersProgressive: { chunkSize: 5000 },
+```
+
+With progressive application enabled, the borders fill in after the grid becomes interactive, so [`getBorders()`](@/api/customBorders.md#getborders) and the cells' border metadata are complete only once the [`afterCustomBordersUpdate`](@/api/hooks.md#aftercustombordersupdate) hook fires:
+
+```js
+const hot = new Handsontable(container, {
+  data,
+  customBorders: largeBorderConfig,
+  customBordersProgressive: true,
+  licenseKey: 'non-commercial-and-evaluation',
+  afterCustomBordersUpdate() {
+    // every custom border is now applied
+  },
+});
+```
+
+## Result
+
+The grid renders your configured classes, inline styles, and border definitions. Formatting stays consistent after each render.
 
 ## Related articles
 
@@ -181,6 +265,7 @@ The example below demonstrates different border styles applied to various cell r
 - [currentHeaderClassName](@/api/options.md#currentheaderclassname)
 - [currentRowClassName](@/api/options.md#currentrowclassname)
 - [customBorders](@/api/options.md#customborders)
+- [customBordersProgressive](@/api/options.md#custombordersprogressive)
 - [invalidCellClassName](@/api/options.md#invalidcellclassname)
 - [noWordWrapClassName](@/api/options.md#nowordwrapclassname)
 - [placeholder](@/api/options.md#placeholder)
@@ -197,7 +282,3 @@ The example below demonstrates different border styles applied to various cell r
 - [CustomBorders](@/api/customBorders.md)
 
 </div>
-
-## Result
-
-Cells display the configured CSS classes, inline styles, or custom borders. The appearance updates each time the grid renders, keeping styles in sync with your configuration.

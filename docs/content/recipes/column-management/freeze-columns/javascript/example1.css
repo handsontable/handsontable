@@ -1,8 +1,5 @@
-.freeze-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 8px;
+.example-controls-container .controls + .controls {
+  margin-top: 0.5rem;
 }
 
 .freeze-controls__freeze-btns {
@@ -18,10 +15,10 @@
 }
 
 .freeze-controls button {
-  border: 1px solid var(--sl-color-gray-5);
-  background: var(--sl-color-bg-nav);
-  color: var(--sl-color-text);
-  font-size: var(--sl-text-sm);
+  border: 1px solid var(--sl-color-gray-5, #e0e0e0);
+  background: var(--sl-color-bg-nav, #ffffff);
+  color: var(--sl-color-text, #333333);
+  font-size: var(--sl-text-sm, 0.875rem);
   line-height: 1.2;
   padding: 0.4rem 0.75rem;
   border-radius: 0;
@@ -30,17 +27,17 @@
 }
 
 .freeze-controls button:hover {
-  color: var(--sl-color-white);
-  background: var(--sl-color-gray-6);
+  color: var(--sl-color-white, #333333);
+  background: var(--sl-color-gray-6, #eeeeee);
 }
 
 .freeze-controls button:focus-visible {
-  outline: 1px solid var(--sl-color-accent);
+  outline: 1px solid var(--sl-color-accent, #1A42E8);
   outline-offset: 1px;
 }
 
 .freeze-controls__status {
-  font-size: var(--sl-text-sm);
+  font-size: var(--sl-text-sm, 0.875rem);
   font-style: italic;
-  color: var(--sl-color-gray-2);
+  color: var(--sl-color-gray-2, #555555);
 }

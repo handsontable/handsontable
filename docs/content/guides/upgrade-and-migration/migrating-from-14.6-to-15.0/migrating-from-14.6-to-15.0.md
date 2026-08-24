@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: migrating-14.6-to-15.0
 title: Migrating from 14.6 to 15.0
 metaTitle: Migrating from 14.6 to 15.0 - JavaScript Data Grid | Handsontable
 description: Migrate from Handsontable 14.6 to Handsontable 15.0, released on December 16th, 2024.
@@ -8,11 +7,11 @@ permalink: /migration-from-14.6-to-15.0
 canonicalUrl: /migration-from-14.6-to-15.0
 pageClass: migration-guide
 react:
-  id: migrating-14.6-to-15.0-react
   metaTitle: Migrate from 14.6 to 15.0 - React Data Grid | Handsontable
 angular:
-  id: 7kr2r20j-14.6-to-15.0-react
   metaTitle: Migrate from 14.6 to 15.0 - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Migrate from 14.6 to 15.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
@@ -23,7 +22,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-## Introducing the New React Wrapper
+## Introducing the new React wrapper
 
 With Handsontable 15.0, a brand-new React wrapper is available designed for functional programming. It focuses on type safety, idiomatic React usage, and developer experience. Named `react-wrapper`, you can find it in our [GitHub monorepo](https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper) or install it directly from [npm](https://www.npmjs.com/package/@handsontable/react-wrapper).
 

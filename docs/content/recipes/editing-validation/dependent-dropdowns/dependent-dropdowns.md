@@ -1,5 +1,4 @@
 ---
-id: b4n8q1z5
 title: Dependent dropdowns
 metaTitle: Dependent Dropdowns Recipe - JavaScript Data Grid | Handsontable
 description: Drive a child column dropdown from a parent column using a dependency map, afterChange, setCellMeta, and render.
@@ -12,14 +11,14 @@ tags:
   - dropdown
   - validation
 react:
-  id: c6m2r9s3
   metaTitle: Dependent Dropdowns Recipe - React Data Grid | Handsontable
 angular:
-  id: d8k4t7u1
   metaTitle: Dependent Dropdowns Recipe - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Dependent Dropdowns Recipe - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Editing and Validation
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will drive a child column dropdown from a parent column using a dependency map. You will learn how to use `afterChange`, `setCellMeta`, and `render` to update dropdown source options dynamically when the user selects a value in the parent column.

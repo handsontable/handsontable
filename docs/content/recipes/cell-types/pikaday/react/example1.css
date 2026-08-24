@@ -23,3 +23,200 @@
   border: none !important;
   outline: none !important;
 }
+
+/* Pikaday's own stylesheet ships hardcoded light-mode colors. These rules re-point every
+   visual property at Handsontable's theme variables, so the calendar follows the active
+   theme -- including dark mode.
+
+   Every selector is scoped to the element carrying the theme class. That element is the
+   body-level `.ht-portal` the editor is attached to by `position: 'portal'`, so the
+   `--ht-*` variables and the theme's `color-scheme` resolve on the calendar's own
+   ancestor. Scoping this way also keeps each rule one class more specific than the
+   matching rule in `pikaday.css`, which wins on source order otherwise.
+
+   Handsontable shipped equivalent rules until 18.0, when the built-in Pikaday date editor
+   was replaced by a native date input. The recipe now owns them. */
+[class*='ht-theme-'] .pika-single {
+  position: relative;
+  display: block;
+  z-index: 9999;
+  padding: 10px;
+  font-family: var(--ht-font-family), -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  font-size: var(--ht-font-size);
+  line-height: var(--ht-line-height);
+  font-weight: var(--ht-font-weight);
+  color: var(--ht-foreground-color);
+  background: var(--ht-background-color, #ffffff);
+  border: var(--ht-menu-border-width, 1px) solid var(--ht-menu-border-color, #e5e5e9);
+  border-radius: var(--ht-menu-border-radius);
+  box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0)
+    var(--ht-menu-shadow-blur, 8px)
+    color-mix(
+      in srgb,
+      var(--ht-menu-shadow-color, rgba(0, 0, 0)) var(--ht-menu-shadow-opacity, 100%),
+      transparent
+    );
+}
+
+[class*='ht-theme-'] .pika-single.is-hidden {
+  display: none;
+}
+
+[class*='ht-theme-'] .pika-single .pika-row {
+  background-color: transparent;
+}
+
+[class*='ht-theme-'] .pika-single .pika-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+[class*='ht-theme-'] .pika-single .pika-label {
+  position: relative;
+  order: 2;
+  padding: 5px;
+  color: var(--ht-accent-color);
+  background-color: transparent;
+}
+
+[class*='ht-theme-'] .pika-single .pika-label .pika-select {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Replace Pikaday's baked-in PNG arrows with the theme's chevron. `currentColor` on the
+   mask keeps them in step with the accent color in both light and dark mode. */
+[class*='ht-theme-'] .pika-single .pika-prev,
+[class*='ht-theme-'] .pika-single .pika-next {
+  width: var(--ht-icon-size, 20px);
+  height: var(--ht-icon-size, 20px);
+  padding: 0;
+  white-space: nowrap;
+  text-indent: -9999px;
+  cursor: pointer;
+  opacity: 1;
+  color: var(--ht-accent-color);
+  border: none;
+  background-image: none;
+  background-color: currentColor;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+[class*='ht-theme-'] .pika-single .pika-prev.is-disabled,
+[class*='ht-theme-'] .pika-single .pika-next.is-disabled {
+  opacity: 0.2;
+  cursor: default;
+}
+
+[class*='ht-theme-'] .pika-single .pika-next {
+  order: 3;
+  margin-left: auto;
+  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6.64648 10.9393L9.93938 7.64644L6.64648 4.35354' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+  mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6.64648 10.9393L9.93938 7.64644L6.64648 4.35354' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+}
+
+[class*='ht-theme-'] .pika-single .pika-prev {
+  order: 1;
+  margin-right: auto;
+  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.49268 11.2929L6.19978 8.00001L9.49268 4.70712' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+  mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.49268 11.2929L6.19978 8.00001L9.49268 4.70712' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+}
+
+.pika-single .pika-table,
+[class*='ht-theme-'] .pika-single .pika-table {
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+[class*='ht-theme-'] .pika-single .pika-table thead {
+  height: 50px;
+}
+
+[class*='ht-theme-'] .pika-single .pika-table th {
+  padding: 1px;
+  vertical-align: middle;
+  color: var(--ht-foreground-color);
+}
+
+[class*='ht-theme-'] .pika-single .pika-table th abbr {
+  text-decoration: none;
+  font-weight: normal;
+  border: none;
+  cursor: initial;
+}
+
+[class*='ht-theme-'] .pika-single .pika-table td {
+  padding: 1px;
+  vertical-align: middle;
+}
+
+.pika-single .pika-table .pika-button,
+[class*='ht-theme-'] .pika-single .pika-table .pika-button {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--ht-foreground-color);
+  border: none;
+  border-radius: var(--ht-button-border-radius);
+  box-shadow: none;
+  cursor: pointer;
+  font-size: inherit;
+  text-align: center !important;
+}
+
+[class*='ht-theme-'] .pika-single .pika-table .pika-button:hover,
+[class*='ht-theme-'] .pika-single .pika-table td.is-today .pika-button {
+  color: var(--ht-foreground-color);
+  background: color-mix(
+    in srgb,
+    var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 12%),
+    transparent
+  );
+}
+
+[class*='ht-theme-'] .pika-single .pika-table td.is-selected .pika-button,
+[class*='ht-theme-'] .pika-single .pika-table td.is-selected .pika-button:hover {
+  background: var(--ht-accent-color, #1a42e8);
+  color: var(--ht-primary-button-foreground-color, #ffffff);
+  box-shadow: none;
+}
+
+[class*='ht-theme-'] .pika-single .pika-table td.is-disabled .pika-button {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+[class*='ht-theme-'] .pika-single .pika-table td.is-outside-current-month .pika-button {
+  opacity: 0.5;
+}
+
+[class*='ht-theme-'] .pika-single .pika-table td.pika-week {
+  width: calc(100% / 8);
+  text-align: center;
+  color: var(--ht-foreground-color);
+}
+
+/* Right-to-left: Pikaday adds `.is-rtl` to the calendar root. */
+[class*='ht-theme-'] .pika-single.is-rtl .pika-next {
+  transform: rotate(180deg);
+  margin-left: 0;
+  margin-right: auto;
+}
+
+[class*='ht-theme-'] .pika-single.is-rtl .pika-prev {
+  transform: rotate(180deg);
+  margin-left: auto;
+  margin-right: 0;
+}

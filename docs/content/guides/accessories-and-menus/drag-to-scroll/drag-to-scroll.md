@@ -1,9 +1,8 @@
 ---
 type: reference
-id: k3mw9bpx
 title: Drag to scroll
 metaTitle: Drag to scroll - JavaScript Data Grid | Handsontable
-description: Scroll the grid automatically by dragging a cell selection or fill handle outside the visible viewport.
+description: Scroll the grid automatically by dragging selections or their interaction handles outside the visible viewport.
 permalink: /drag-to-scroll
 canonicalUrl: /drag-to-scroll
 tags:
@@ -13,28 +12,30 @@ tags:
   - selection scroll
   - fill handle scroll
 react:
-  id: j8nt5qra
   metaTitle: Drag to scroll - React Data Grid | Handsontable
 angular:
-  id: h2vz7cfs
   metaTitle: Drag to scroll - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Drag to scroll - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
 menuTag: new
 ---
 
-Drag any cell selection or fill handle outside the visible viewport to scroll the grid automatically while extending the selection.
+Drag a selection or one of its interaction handles outside the visible viewport to scroll the grid automatically.
 
 [[toc]]
 
 ## Overview
 
-The [`DragToScroll`](@/api/dragToScroll.md) plugin watches for mouse drags that move outside the grid's visible area. When the cursor crosses a viewport edge, the plugin scrolls the grid in that direction and extends the active selection to follow -- exactly as spreadsheet applications behave.
+The [`DragToScroll`](@/api/dragToScroll.md) plugin watches for mouse drags that move outside the grid's visible area. When the cursor crosses a viewport edge, the plugin scrolls the grid and keeps the active drag synchronized with newly visible cells.
 
-The plugin is enabled by default. It activates during two types of drags:
+The plugin is enabled by default. It activates during four types of drags:
 
 - **Cell selection drag** -- click a cell, hold, and drag beyond the edge to extend the selection.
 - **Fill handle drag** -- drag the fill handle (the small square in the bottom-right corner of a selection) beyond the edge to autofill into additional rows or columns.
+- **Selection handle drag** -- drag a selection edge handle beyond the edge to extend the selected range.
+- **Move selection drag** -- drag a movable selection beyond the edge to reach rows or columns outside the viewport.
 
 Scroll speed follows a logarithmic curve: it starts slow when the cursor is just past the edge, then accelerates as the cursor moves farther away. This gives you precise control for small selections and fast navigation for large ones.
 
@@ -76,6 +77,16 @@ To see drag-to-scroll in action, click any cell in the grid below, hold the mous
 
 @[code](@/content/guides/accessories-and-menus/drag-to-scroll/angular/example1.ts)
 @[code](@/content/guides/accessories-and-menus/drag-to-scroll/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/accessories-and-menus/drag-to-scroll/vue/example1.vue)
 
 :::
 
@@ -137,6 +148,16 @@ Use the sliders below to adjust all three parameters. The grid reloads with the 
 
 @[code](@/content/guides/accessories-and-menus/drag-to-scroll/angular/example2.ts)
 @[code](@/content/guides/accessories-and-menus/drag-to-scroll/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/accessories-and-menus/drag-to-scroll/vue/example2.vue)
 
 :::
 

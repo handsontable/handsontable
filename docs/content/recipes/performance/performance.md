@@ -7,14 +7,13 @@ canonicalUrl: /recipes/performance
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-type: tutorial
-id: e7c3b1a9
+type: how-to
 react:
-  id: f8d4c2ba
   metaTitle: Performance Recipes - React Data Grid | Handsontable
 angular:
-  id: a9e5d3cb
   metaTitle: Performance Recipes - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Performance Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]
 

@@ -73,8 +73,7 @@ describe('manualColumnMove', () => {
       spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mousedown');
       spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mouseup');
 
-      expect(spec().$container.children().children().first().children().hasClass('after-selection--columns'))
-        .toBeGreaterThan(0);
+      expect(spec().$container.find('.ht-wrapper').hasClass('after-selection--columns')).toBe(true);
     });
 
     it('should change the default column order with updateSettings', async() => {
@@ -771,10 +770,12 @@ describe('manualColumnMove', () => {
 
             $firstHeader.simulate('mousedown');
             $firstHeader.simulate('mouseup');
-            $firstHeader.simulate('mousedown');
+            $firstHeader.simulate('mousedown', { clientX: $firstHeader.offset().left });
 
             $firstHeader.simulate('mouseover');
-            $firstHeader.simulate('mousemove');
+            // The pointer has to travel to count as a drag, but stay in the left half of the same
+            // header so the column is dropped where it started.
+            $firstHeader.simulate('mousemove', { clientX: $firstHeader.offset().left + 10 });
             $firstHeader.simulate('mouseup');
 
             expect(finalIndex1).toEqual(0);
@@ -903,10 +904,12 @@ describe('manualColumnMove', () => {
 
             $secondHeader.simulate('mousedown');
             $secondHeader.simulate('mouseup');
-            $secondHeader.simulate('mousedown');
+            $secondHeader.simulate('mousedown', { clientX: $secondHeader.offset().left });
 
             $secondHeader.simulate('mouseover');
-            $secondHeader.simulate('mousemove');
+            // The pointer has to travel to count as a drag, but stay in the left half of the same
+            // header so the column is dropped where it started.
+            $secondHeader.simulate('mousemove', { clientX: $secondHeader.offset().left + 10 });
             $secondHeader.simulate('mouseup');
 
             expect(finalIndex1).toEqual(1);

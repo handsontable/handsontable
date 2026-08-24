@@ -86,6 +86,29 @@ describe('multiSelectRenderer', () => {
         expect(chipsContainer.find('.ht-multi-select-chip').eq(3).text()).toEqual('green');
       });
 
+      it('should render chips when using the "multiSelect" cell type alias', async() => {
+        handsontable({
+          data: [
+            [choices],
+          ],
+          columns: [
+            {
+              type: 'multiSelect',
+              source: choices,
+              width: 500,
+            },
+          ],
+        });
+
+        const sourceDataAtCell = getSourceDataAtCell(0, 0);
+
+        expect(sourceDataAtCell).toEqual(choices);
+
+        const chipsContainer = $('table.htCore tr:eq(0) td:eq(0) .ht-multi-select-chips-container');
+
+        expect(chipsContainer.find('.ht-multi-select-chip').length).toEqual(4);
+      });
+
       it('should display only as many chips as fit in the column width and add an overflow indicator', async() => {
         const longChoicesLongOptions = longChoices.map(choice =>
           (
@@ -199,6 +222,51 @@ describe('multiSelectRenderer', () => {
       });
     });
 
+    describe('moving columns', () => {
+      it('should render chips reflecting the underlying cell data after a column move (#12812)', async() => {
+        handsontable({
+          data: [
+            ['Airport A', choices.slice(0, 2)],
+            ['Airport B', choices.slice(2, 4)],
+          ],
+          columns: [
+            {},
+            {
+              type: 'multiselect',
+              source: choices,
+              width: 500,
+            },
+          ],
+          manualColumnMove: true,
+        });
+
+        getPlugin('manualColumnMove').moveColumn(1, 0);
+        await render();
+
+        // The multiselect column is now at visual index 0 and must keep its own data.
+        const expectedPerRow = [choices.slice(0, 2), choices.slice(2, 4)];
+
+        for (let visualRow = 0; visualRow < expectedPerRow.length; visualRow++) {
+          const expected = expectedPerRow[visualRow];
+          const chipsContainer =
+            $(`table.htCore tr:eq(${visualRow}) td:eq(0) .ht-multi-select-chips-container`);
+          const renderedChips = chipsContainer.find('.ht-multi-select-chip');
+
+          expect(renderedChips.length).toEqual(expected.length);
+
+          for (let i = 0; i < expected.length; i++) {
+            const expectedText = expected[i].value || expected[i];
+
+            expect(renderedChips.eq(i).text()).toEqual(expectedText);
+          }
+        }
+
+        // The text column moved to visual index 1 and renders plain text, not chips.
+        expect($('table.htCore tr:eq(0) td:eq(1)').text()).toEqual('Airport A');
+        expect($('table.htCore tr:eq(0) td:eq(1) .ht-multi-select-chips-container').length).toEqual(0);
+      });
+    });
+
     describe('removing a chip', () => {
       it('should remove the chip from the cell data when clicking the remove button', async() => {
         const choicesLongOptions = choices.map(choice => (choice.value ?
@@ -250,7 +318,7 @@ describe('multiSelectRenderer', () => {
 
         const removeButton = visibleChips.eq(0).find('.ht-multi-select-chip-remove');
 
-        removeButton.click();
+        await simulateClick(removeButton);
 
         chipsContainer = $('table.htCore tr:eq(0) td:eq(0) .ht-multi-select-chips-container');
         renderedChips = chipsContainer.find('.ht-multi-select-chip');
@@ -304,7 +372,7 @@ describe('multiSelectRenderer', () => {
         const removeButton = renderedChips.eq(0).find('.ht-multi-select-chip-remove');
         const removedChipText = renderedChips.eq(0).text();
 
-        removeButton.click();
+        await simulateClick(removeButton);
 
         const sourceDataAfter = getSourceDataAtCell(physicalRow, 0);
         const expectedSourceData = sourceDataBefore.filter(
@@ -352,7 +420,7 @@ describe('multiSelectRenderer', () => {
         const removeButton = renderedChips.eq(0).find('.ht-multi-select-chip-remove');
         const removedChipText = renderedChips.eq(0).text();
 
-        removeButton.click();
+        await simulateClick(removeButton);
 
         const expectedSourceData = choices.filter(
           choice => (choice.value || choice) !== removedChipText
@@ -367,6 +435,58 @@ describe('multiSelectRenderer', () => {
         expect(renderedChipsAfter.eq(0).text()).toEqual(choices[1].value || choices[1]);
         expect(renderedChipsAfter.eq(1).text()).toEqual(choices[2].value || choices[2]);
         expect(renderedChipsAfter.eq(2).text()).toEqual(choices[3].value || choices[3]);
+      });
+
+      it('should fire `beforeChange` and `afterChange` (and skip `afterSetSourceDataAtCell`) ' +
+        'when removing a chip via the remove button, matching the editor deselect path (#12966)', async() => {
+        const beforeChangeSpy = jasmine.createSpy('beforeChange');
+        const afterChangeSpy = jasmine.createSpy('afterChange');
+        const afterSetSourceDataAtCellSpy = jasmine.createSpy('afterSetSourceDataAtCell');
+
+        handsontable({
+          data: [
+            { color: choices },
+          ],
+          columns: [
+            {
+              data: 'color',
+              type: 'multiselect',
+              source: choices,
+              width: 500,
+            },
+          ],
+          beforeChange: beforeChangeSpy,
+          afterChange: afterChangeSpy,
+          afterSetSourceDataAtCell: afterSetSourceDataAtCellSpy,
+        });
+
+        const chipsContainer = $('table.htCore tr:eq(0) td:eq(0) .ht-multi-select-chips-container');
+        const renderedChips = chipsContainer.find('.ht-multi-select-chip');
+        const removeButton = renderedChips.eq(0).find('.ht-multi-select-chip-remove');
+        const removedChipText = renderedChips.eq(0).text();
+
+        beforeChangeSpy.calls.reset();
+        afterChangeSpy.calls.reset();
+        afterSetSourceDataAtCellSpy.calls.reset();
+
+        await simulateClick(removeButton);
+
+        const expectedSourceData = choices.filter(
+          choice => (choice.value || choice) !== removedChipText
+        );
+
+        expect(beforeChangeSpy).toHaveBeenCalledTimes(1);
+        expect(afterChangeSpy).toHaveBeenCalledTimes(1);
+        expect(afterSetSourceDataAtCellSpy).not.toHaveBeenCalled();
+
+        const [changes, source] = afterChangeSpy.calls.mostRecent().args;
+
+        expect(source).toBe('multiselect-renderer');
+        expect(changes.length).toBe(1);
+        expect(changes[0][0]).toBe(0);
+        expect(changes[0][1]).toBe('color');
+        expect(changes[0][3]).toEqual(expectedSourceData);
+        expect(getSourceDataAtCell(0, 0)).toEqual(expectedSourceData);
       });
     });
   });

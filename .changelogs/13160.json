@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed custom editor shortcut groups in the Angular wrapper.",
+  "type": "fixed",
+  "issueOrPR": 13160,
+  "breaking": false,
+  "framework": "angular"
+}

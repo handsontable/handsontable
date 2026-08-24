@@ -36,6 +36,15 @@ const config: PlaywrightTestConfig = {
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'http://localhost:8082',
 
+    /**
+     * Pin the browser locale and timezone so date/time rendering is deterministic.
+     * Date cells format values with `Intl.DateTimeFormat` and the native `<input type="date">`
+     * editor renders in the browser locale; without pinning, the resolved locale/timezone varies
+     * between CI runners and the same snapshot flaps between formats (e.g. MM/DD/YYYY vs DD/MM/YYYY).
+     */
+    locale: 'en-US',
+    timezoneId: 'UTC',
+
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',

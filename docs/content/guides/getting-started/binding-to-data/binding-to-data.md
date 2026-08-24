@@ -1,6 +1,5 @@
 ---
 type: tutorial
-id: 66g0jo36
 title: Binding to data
 metaTitle: Binding to data - JavaScript Data Grid | Handsontable
 description: Use Handsontable's configuration options or API methods to fill your data grid with various data structures, including an array of arrays or an array of objects.
@@ -11,13 +10,14 @@ tags:
   - data connect
   - data sources
 react:
-  id: umdq9b9j
   metaTitle: Binding to data - React Data Grid | Handsontable
 angular:
-  id: xnqn2zg9
   metaTitle: Binding to data - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Binding to data - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 ---
 Fill your data grid with various data structures, including an array of arrays or an array of objects.
 
@@ -66,6 +66,16 @@ Array of arrays is a good choice for the more grid-like scenarios where you need
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue --js 1
+
+@[code](@/content/guides/getting-started/binding-to-data/vue/example1.vue)
+
+:::
+
+:::
+
 ### Array of arrays with a selective display of columns
 
 The following example shows how you would use the array of arrays with a selective display of columns. This scenario uses the same data source as in the previous example, this time omitting the `Tesla` column from the grid.
@@ -98,6 +108,16 @@ The following example shows how you would use the array of arrays with a selecti
 
 @[code](@/content/guides/getting-started/binding-to-data/angular/example2.ts)
 @[code](@/content/guides/getting-started/binding-to-data/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue --js 1
+
+@[code](@/content/guides/getting-started/binding-to-data/vue/example2.vue)
 
 :::
 
@@ -140,6 +160,20 @@ An array of objects can be used as a data source as follows:
 
 :::
 
+::: only-for vue
+
+::: example #example3 :vue --js 1
+
+@[code](@/content/guides/getting-started/binding-to-data/vue/example3.vue)
+
+:::
+
+:::
+
+If your data arrives as a JSON string (for example, from an API response), parse it with `JSON.parse()` into an array of objects before passing it to Handsontable -- the resulting structure matches the array of objects shown above.
+
+To combine an array-of-objects data source with a custom cell renderer, a checkbox cell type, and currency-formatted numeric columns, see the [built-in cell types example](@/guides/cell-types/cell-type/cell-type.md#built-in-cell-types-example) and [format numbers](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md#format-numbers) sections.
+
 ### Array of objects with column as a function
 
 You can set the [`columns`](@/api/options.md#columns) configuration option to a function. This is good practice when you want to bind data more dynamically.
@@ -177,6 +211,16 @@ You can set the [`columns`](@/api/options.md#columns) configuration option to a 
 
 :::
 
+::: only-for vue
+
+::: example #example4 .custom-class :vue --js 1
+
+@[code](@/content/guides/getting-started/binding-to-data/vue/example4.vue)
+
+:::
+
+:::
+
 ### Array of objects with column mapping
 
 In a scenario where you have nested objects, you can use them as the data source by mapping the columns using the [`columns`](@/api/options.md#columns) option.
@@ -209,6 +253,16 @@ In a scenario where you have nested objects, you can use them as the data source
 
 @[code](@/content/guides/getting-started/binding-to-data/angular/example5.ts)
 @[code](@/content/guides/getting-started/binding-to-data/angular/example5.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example5 :vue --js 1
+
+@[code](@/content/guides/getting-started/binding-to-data/vue/example5.vue)
 
 :::
 
@@ -253,6 +307,16 @@ In a scenario where you start with an empty data source, you will need to provid
 
 :::
 
+::: only-for vue
+
+::: example #example6 :vue --js 1
+
+@[code](@/content/guides/getting-started/binding-to-data/vue/example6.vue)
+
+:::
+
+:::
+
 ### Function data source and schema
 
 If your [`dataSchema`](@/api/options.md#dataschema) is a constructor of an object that doesn't directly expose its members, you can specify functions for the [`data`](@/api/options.md#data) member of each [`columns`](@/api/options.md#columns) item.
@@ -292,6 +356,42 @@ The example below shows how to use such objects:
 
 :::
 
+::: only-for vue
+
+::: example #example7 :vue --js 1
+
+@[code](@/content/guides/getting-started/binding-to-data/vue/example7.vue)
+
+:::
+
+:::
+
+### Identify changed columns in hooks
+
+When you use a [function data source](#function-data-source-and-schema), each column's [`data`](@/api/options.md#data) option is a getter/setter function. In [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange), the second element of each change tuple is `prop`. With function-based columns, `prop` is that accessor function -- not a property name or a column index.
+
+To find which column changed, call [`propToCol()`](@/api/core.md#proptocol) on the `prop` value:
+
+```javascript
+afterChange(changes, source) {
+  if (source === 'loadData' || !changes) {
+    return;
+  }
+
+  changes.forEach(([row, prop, oldValue, newValue]) => {
+    const column = this.propToCol(prop);
+
+    // column is the visual column index
+  });
+}
+```
+
+You can also compare `prop` to the accessor function you defined in `columns`, if you keep a reference to it.
+
+Unlike [`beforeValidate`](@/api/hooks.md#beforevalidate) and [`afterValidate`](@/api/hooks.md#aftervalidate), change hooks pass the accessor function as `prop`. The grid needs that reference to write values back to your data model.
+
+For more on change hooks, see [Events and hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md).
+
 ### No data
 
 By default, if you don't provide any data, Handsontable renders as an empty 5x5 grid.
@@ -329,6 +429,16 @@ By default, if you don't provide any data, Handsontable renders as an empty 5x5 
 
 :::
 
+::: only-for vue
+
+::: example #example9 :vue --js 1
+
+@[code](@/content/guides/getting-started/binding-to-data/vue/example9.vue)
+
+:::
+
+:::
+
 To change the number of rows or columns rendered by default, use the [`startRows`](@/api/options.md#startrows) and [`startCols`](@/api/options.md#startcols) options.
 
 ## Data-manipulating API methods
@@ -337,6 +447,9 @@ To change the number of rows or columns rendered by default, use the [`startRows
 
 Handsontable binds to your data source by reference, not by values. We don't copy the input dataset, and we rely on
 JavaScript to handle the objects. Any data entered into the grid will alter the original data source.
+
+This applies to cell value edits. Structural changes such as moving, sorting, or filtering rows do not reorder the
+source array - Handsontable stores that order as index metadata instead. For details, see [Row moving](@/guides/rows/row-moving/row-moving.md#data-model-behavior).
 
 ::: tip
 
@@ -378,6 +491,16 @@ the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 
 @[code](@/content/guides/getting-started/binding-to-data/angular/example10.ts)
 @[code](@/content/guides/getting-started/binding-to-data/angular/example10.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example10 :vue --js 1
+
+@[code](@/content/guides/getting-started/binding-to-data/vue/example10.vue)
 
 :::
 
@@ -428,6 +551,28 @@ gridSettings: GridSettings = {};
 
 :::
 
+::: only-for vue
+
+You will probably want to initialize the table with some data (if you don't, the table will render an empty 5x5 grid for you). The easiest way to do it is by passing your data array inside the `hotSettings` ref bound to `HotTable`:
+
+```vue
+<script setup>
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+
+const hotSettings = ref({
+  data: newDataset,
+  // ... other config options
+});
+</script>
+
+<template>
+  <HotTable :settings="hotSettings" />
+</template>
+```
+
+:::
+
 ### The data-loading API methods
 
 ::: only-for react
@@ -450,6 +595,16 @@ To use the Handsontable API, you'll need access to the Handsontable instance. Yo
 to the `HotTableComponent`, and reading its `hotInstance` property.
 
 For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+:::
+
+:::
+
+::: only-for vue
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by adding a template `ref` to the `HotTable` component and reading its `hotInstance` property.
+
 :::
 
 :::
@@ -505,6 +660,8 @@ You can also use the built-in mechanism of the Angular wrapper to update data. W
 
 To modify just a subset of data passed to Handsontable, these are the methods you might want to check out:
 
+Every accepted change -- even a single cell -- makes Handsontable re-render all visible cells. When you call several of these methods one after another, wrap them in [`batch()`](@/guides/optimization/batch-operations/batch-operations.md) so the grid renders only once.
+
 <ol class="sl-steps">
 <li>
 
@@ -556,7 +713,7 @@ hot.setDataAtRowProp(changes);
 
 **[`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell)**
 
-As the displayed data coordinates can differ from the way it's stored internally, sometimes you might need to target the cells more directly - that's when [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell) comes in handy. The `row` and `columns`/`prop` arguments represent the *physical* indexes.
+As the displayed data coordinates can differ from the way it's stored internally, sometimes you might need to target the cells more directly - that's when [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell) comes in handy. The `row` and `columns`/`prop` arguments represent the *physical* indexes. To learn how physical and visual indexes relate, see [Understanding data and indexes](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md).
 
 ```js
 // Replaces the cell contents at the (0, 2) coordinates (0 being the
@@ -586,7 +743,7 @@ hot.setSourceDataAtCell(changes);
 
 Replaces a chunk of the dataset by provided the start (and optionally end) coordinates and a two-dimensional data array of new values.
 
-<aside class="starlight-aside starlight-aside--tip"><p class="starlight-aside__content">The <code>populateFromArray()</code> method can't change <a href="/docs/javascript-data-grid/disabled-cells/">read-only</a> cells.</p></aside>
+<aside class="starlight-aside starlight-aside--tip"><p class="starlight-aside__content">The <code>populateFromArray()</code> method can't change <a href="/docs/javascript-data-grid/read-only-cells/">read-only</a> cells.</p></aside>
 
 ```js
 const newValues = [
@@ -638,6 +795,16 @@ When working with a copy of data for Handsontable, it is best practice is to clo
 
 @[code](@/content/guides/getting-started/binding-to-data/angular/example11.ts)
 @[code](@/content/guides/getting-started/binding-to-data/angular/example11.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example11 :vue --js 1
+
+@[code](@/content/guides/getting-started/binding-to-data/vue/example11.vue)
 
 :::
 

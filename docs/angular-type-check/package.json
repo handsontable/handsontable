@@ -2,7 +2,8 @@
   "name": "docs-angular-type-check",
   "private": true,
   "scripts": {
-    "typecheck": "node check.mjs"
+    "typecheck": "node check.mjs",
+    "report": "node check.mjs --report"
   },
   "devDependencies": {
     "@angular/common": "^19.2.20",
@@ -14,10 +15,10 @@
     "@angular/platform-browser-dynamic": "^19.2.20",
     "@angular/router": "^19.2.20",
     "@handsontable/angular-wrapper": "link:../../wrappers/angular-wrapper/dist/hot-table",
-    "@handsontable/pikaday": "latest",
     "@simonwep/pickr": "latest",
     "@types/node": "^25.6.0",
     "@types/papaparse": "^5.5.2",
+    "@types/pikaday": "^1.7.10",
     "chart.js": "latest",
     "exceljs": "latest",
     "date-fns": "latest",
@@ -29,6 +30,7 @@
     "moment": "latest",
     "numbro": "latest",
     "papaparse": "latest",
+    "pikaday": "^1.8.2",
     "rxjs": "~7.8.0",
     "typescript": "~5.8.3",
     "xlsx": "latest",

@@ -92,6 +92,11 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         }
 
         const row = selectedRange.from.row;
+
+        if (row === null) {
+          return;
+        }
+
         const rowData = hot.getSourceDataAtRow(row) as Record<string, unknown>;
 
         hot.alter('insert_row_below', row);

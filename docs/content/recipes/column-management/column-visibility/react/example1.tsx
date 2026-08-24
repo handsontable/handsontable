@@ -38,17 +38,18 @@ const allColumns: (ColumnSettings & { title: string })[] = [
     data: 'salary',
     title: 'Salary',
     type: 'numeric',
-    numericFormat: { pattern: '$0,0', culture: 'en-US' },
+    locale: 'en-US',
+    numericFormat: { style: 'currency', currency: 'USD', maximumFractionDigits: 0 },
     width: 110,
   },
-  { data: 'startDate', title: 'Start Date', type: 'date', dateFormat: 'YYYY-MM-DD', width: 110 },
-  { data: 'location', title: 'Location', type: 'text', width: 110 },
+  { data: 'startDate', title: 'Start Date', type: 'intl-date', locale: 'en-CA', dateFormat: { dateStyle: 'short' }, width: 120 },
+  { data: 'location', title: 'Location', type: 'text', width: 120 },
   {
     data: 'status',
     title: 'Status',
     type: 'dropdown',
     source: ['Active', 'On Leave', 'Inactive'],
-    width: 100,
+    width: 120,
   },
 ];
 
@@ -88,24 +89,21 @@ const ExampleComponent = () => {
   );
 
   return (
-    <div>
-      <div id="column-toggles" style={{ marginBottom: '10px' }}>
-        {allColumns.map((col, index) => (
-          <label
-            key={col.data as string}
-            style={{ marginRight: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-          >
-            <input
-              type="checkbox"
-              checked={visibleIndices.has(index)}
-              // When only one column remains visible, disable its checkbox so the user
-              // cannot produce an empty grid.
-              disabled={visibleIndices.size === 1 && visibleIndices.has(index)}
-              onChange={() => handleToggle(index)}
-            />
-            {col.title}
-          </label>
-        ))}
+    <>
+      <div className="example-controls-container">
+        <div className="controls">
+          {allColumns.map((col, index) => (
+            <label key={col.data as string}>
+              <input
+                type="checkbox"
+                checked={visibleIndices.has(index)}
+                disabled={visibleIndices.size === 1 && visibleIndices.has(index)}
+                onChange={() => handleToggle(index)}
+              />
+              {col.title}
+            </label>
+          ))}
+        </div>
       </div>
       <HotTable
         data={data}
@@ -117,7 +115,7 @@ const ExampleComponent = () => {
         autoWrapRow={true}
         licenseKey="non-commercial-and-evaluation"
       />
-    </div>
+    </>
   );
 };
 

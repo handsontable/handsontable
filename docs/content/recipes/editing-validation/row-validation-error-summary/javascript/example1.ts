@@ -36,10 +36,6 @@ const validationRules: Record<number, ValidationRule> = {
   },
 };
 
-const container = document.querySelector("#example1")!;
-const summaryList = document.querySelector("#validation-summary")! as HTMLUListElement;
-const submitBtn = document.querySelector("#submit-orders")! as HTMLButtonElement;
-
 interface ValidationIssue {
   row: number;
   col: number;
@@ -52,6 +48,43 @@ let lastIssues: ValidationIssue[] = [];
 function cellKey(row: number, col: number): string {
   return `${row}:${col}`;
 }
+
+const container = document.querySelector("#example1")!;
+
+const toolbar = document.createElement("div");
+
+toolbar.className = "example-controls-container";
+
+const controlsRow = document.createElement("div");
+
+controlsRow.className = "controls";
+
+const submitBtn = document.createElement("button");
+
+submitBtn.type = "button";
+submitBtn.textContent = "Submit orders";
+
+controlsRow.appendChild(submitBtn);
+toolbar.appendChild(controlsRow);
+container.before(toolbar);
+
+const summaryEl = document.createElement("div");
+
+summaryEl.className = "example-controls-container validation-summary";
+summaryEl.setAttribute("aria-live", "polite");
+
+const summaryTitle = document.createElement("p");
+
+summaryTitle.className = "validation-summary__title";
+summaryTitle.textContent = "Validation issues";
+
+const summaryList = document.createElement("ul");
+
+summaryList.className = "validation-summary__list";
+
+summaryEl.appendChild(summaryTitle);
+summaryEl.appendChild(summaryList);
+container.after(summaryEl);
 
 function renderSummary(issues: ValidationIssue[]): void {
   summaryList.innerHTML = issues
@@ -92,7 +125,7 @@ const hot = new Handsontable(container, {
   columns: [
     { data: "item", type: "text", width: 180 },
     { data: "qty", type: "numeric", width: 100 },
-    { data: "price", type: "numeric", numericFormat: { pattern: "0.00" }, width: 110 },
+    { data: "price", type: "numeric", numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 }, width: 110 },
   ],
   rowHeaders: true,
   height: "auto",

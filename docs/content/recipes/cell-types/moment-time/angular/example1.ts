@@ -1,13 +1,13 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
 import moment from 'moment';
 import { getRenderer } from 'handsontable/renderers';
 import { getEditor } from 'handsontable/editors';
 import { registerCellType } from 'handsontable/cellTypes';
 
 const cellTimeTypeDefinition = {
+  CELL_TYPE: 'moment-time',
   renderer: getRenderer('text'),
   validator(this: any, value: any, callback: (valid: boolean) => void): void {
     const timeFormat = this.timeFormat ?? 'h:mm:ss a';
@@ -143,9 +143,11 @@ export class AppComponent {
         type: 'numeric',
         width: 120,
         className: 'htRight',
+        locale: 'en-US',
         numericFormat: {
-          pattern: '$0,0.00',
-          culture: 'en-US',
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 2,
         },
       },
     ],

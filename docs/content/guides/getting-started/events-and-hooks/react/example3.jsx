@@ -68,7 +68,7 @@ const ExampleComponent = () => {
         </div>
       </div>
 
-      <HotTable id="hot" {...settings} />
+      <HotTable className="example-3-max-width" id="hot" {...settings} />
     </div>
   );
 };

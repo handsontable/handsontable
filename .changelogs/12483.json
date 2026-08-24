@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed an infinite loop when pasting a value that cannot be auto-corrected into a date cell with `correctFormat: true` and `allowInvalid: false`.",
-  "type": "fixed",
-  "issueOrPR": 12483,
-  "breaking": false,
-  "framework": "none"
-}

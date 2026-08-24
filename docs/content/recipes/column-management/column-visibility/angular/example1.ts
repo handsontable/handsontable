@@ -7,8 +7,9 @@ type ColumnConfig = {
   title: string;
   type: string;
   width: number;
-  numericFormat?: { pattern: string; culture: string };
-  dateFormat?: string;
+  locale?: string;
+  numericFormat?: Intl.NumberFormatOptions;
+  dateFormat?: Intl.DateTimeFormatOptions;
   source?: string[];
 };
 
@@ -20,17 +21,18 @@ const allColumns: ColumnConfig[] = [
     data: 'salary',
     title: 'Salary',
     type: 'numeric',
-    numericFormat: { pattern: '$0,0', culture: 'en-US' },
+    locale: 'en-US',
+    numericFormat: { style: 'currency', currency: 'USD', maximumFractionDigits: 0 },
     width: 110,
   },
-  { data: 'startDate', title: 'Start Date', type: 'date', dateFormat: 'YYYY-MM-DD', width: 110 },
-  { data: 'location', title: 'Location', type: 'text', width: 110 },
+  { data: 'startDate', title: 'Start Date', type: 'intl-date', locale: 'en-CA', dateFormat: { dateStyle: 'short' }, width: 120 },
+  { data: 'location', title: 'Location', type: 'text', width: 120 },
   {
     data: 'status',
     title: 'Status',
     type: 'dropdown',
     source: ['Active', 'On Leave', 'Inactive'],
-    width: 100,
+    width: 120,
   },
 ];
 
@@ -50,18 +52,20 @@ const data = [
   imports: [HotTableModule],
   selector: 'example1-column-visibility',
   template: `
-    <div style="margin-bottom: 10px;">
-      @for (col of allColumns; track col.data; let i = $index) {
-        <label style="margin-right: 12px; display: inline-flex; align-items: center; gap: 4px;">
-          <input
-            type="checkbox"
-            [checked]="visibleIndices.has(i)"
-            [disabled]="visibleIndices.size === 1 && visibleIndices.has(i)"
-            (change)="toggleColumn(i, $event)"
-          />
-          {{ col.title }}
-        </label>
-      }
+    <div class="example-controls-container">
+      <div class="controls">
+        @for (col of allColumns; track col.data; let i = $index) {
+          <label>
+            <input
+              type="checkbox"
+              [checked]="visibleIndices.has(i)"
+              [disabled]="visibleIndices.size === 1 && visibleIndices.has(i)"
+              (change)="toggleColumn(i, $event)"
+            />
+            {{ col.title }}
+          </label>
+        }
+      </div>
     </div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   `,

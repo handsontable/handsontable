@@ -1,9 +1,12 @@
 ---
 name: walkontable-testing
+path: handsontable/src/3rdparty/walkontable/**
 description: Use when writing tests for the Walkontable rendering engine - has its own separate test pipeline, runner, and configuration distinct from main Handsontable E2E tests
 ---
 
 # Testing the Walkontable Rendering Engine
+
+> **Paradigm note:** Walkontable follows the **same freeze** as the main suite. It now has a **Playwright home** at `tests/e2e/walkontable/` (which drives overlay / frozen-pane / scroll-sync behavior through a real grid — see `tests/fixtures/pages/WalkontablePage.ts`). So: **maintenance edits to existing `*.spec.js` here are allowed; new or flaky walkontable tests move to Playwright** (the presence gate blocks a new walkontable `*.spec.js`). In CI the legacy Jasmine/Puppeteer walkontable job and the Playwright e2e job run **in parallel**; walkontable migrates by attrition, worst/flakiest first. The guide below is for *maintaining* the frozen Jasmine specs.
 
 ## Separate Test Pipeline
 
@@ -36,3 +39,4 @@ Tests are organized by subsystem: `overlay/`, `scroll/`, `selection/`, `renderer
 - Skipping frozen row/column scenarios -- this misses the overlay edge cases where most regressions occur.
 - Testing only small datasets -- Walkontable bugs often surface at scale.
 - Modifying Walkontable test bootstrap/Rspack config without verifying that both `spec/` and `unit/` sub-pipelines still pass.
+- Turning on the uniform-size flags (`rowHeightsUniform`/`columnWidthsUniform`) in a bare Walkontable spec and then asserting scrollbar-dependent row/column counts: the bare harness overflows content without rendering a real scrollbar, while the single-pass layout snapshot predicts one — so predicted and measured diverge there. Assert the snapshot booleans directly, or use a fixture that renders a real scrollbar; don't compare snapshot-predicted scrollbars/counts against the bare DOM.

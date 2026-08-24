@@ -11,7 +11,7 @@ export const helpers = {
 
   selectors: {
     anyTable: '#root .handsontable',
-    mainTable: '#root .ht-root-wrapper > .ht-grid > .handsontable',
+    mainTable: '#root .ht-root-wrapper > .ht-grid > .ht-grid-content > .handsontable',
     themesMainTable: '#root',
     mainTableBody: '.ht_master.handsontable table tbody',
     cloneTopTable: '.ht_clone_top.handsontable table thead',
@@ -98,7 +98,7 @@ export const helpers = {
   },
 
   findCellEditor() {
-    return 'textarea.handsontableInput';
+    return '.handsontableInput';
   },
 
   testTitle(filename: string) {

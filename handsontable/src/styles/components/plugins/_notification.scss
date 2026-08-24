@@ -68,7 +68,7 @@
       // No-theme fallback: visible border. Bundled themes set --ht-notification-border-color (classic uses
       // border tone; horizon/main match background for a borderless card look).
       border: 1px solid var(--ht-notification-border-color, var(--ht-border-color));
-      border-radius: var(--ht-wrapper-border-radius, 4px);
+      border-radius: var(--ht-border-radius, 4px);
       font-size: var(--ht-font-size);
       line-height: var(--ht-line-height);
       letter-spacing: var(--ht-letter-spacing);
@@ -174,7 +174,7 @@
       background: transparent;
       color: var(--ht-icon-button-icon-color, inherit);
       cursor: pointer;
-      border-radius: var(--ht-icon-button-border-radius, var(--ht-wrapper-border-radius, 4px));
+      border-radius: var(--ht-icon-button-border-radius, var(--ht-border-radius, 4px));
       flex-shrink: 0;
       overflow: visible;
 

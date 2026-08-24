@@ -42,7 +42,6 @@ export class AppComponent {
           return {};
       }
     },
-    minSpareRows: 1,
     autoWrapRow: true,
     autoWrapCol: true
   };

@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: deqvum60
 title: Comments
 metaTitle: Comments - JavaScript Data Grid | Handsontable
 description: Add a comment (a note) to a cell, using the context menu, just like in Excel. Edit and delete comments. Make comments read-only.
@@ -9,13 +8,14 @@ canonicalUrl: /comments
 tags:
   - notes
 react:
-  id: lxw2632u
   metaTitle: Comments - React Data Grid | Handsontable
 angular:
-  id: o4jcn137
   metaTitle: Comments - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Comments - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
+menuTag: updated
 ---
 Add a comment (a note) to a cell, using the context menu, just like in Excel. Edit and delete comments. Make comments read-only.
 
@@ -32,8 +32,8 @@ Set the [`comments`](@/api/options.md#comments) configuration option to `true` t
 ```js
 const hot = new Handsontable(container, {
   data: [
-    ['A1', 'B1', 'C1'],
-    ['A2', 'B2', 'C2'],
+    ['Update API docs', 'Ana García', 'In progress'],
+    ['Deploy hotfix', 'James Okafor', 'Blocked'],
   ],
   comments: true,
   autoWrapRow: true,
@@ -48,8 +48,8 @@ const hot = new Handsontable(container, {
 ```jsx
 <HotTable
   data={[
-    ['A1', 'B1', 'C1'],
-    ['A2', 'B2', 'C2'],
+    ['Update API docs', 'Ana García', 'In progress'],
+    ['Deploy hotfix', 'James Okafor', 'Blocked'],
   ]}
   comments={true}
 />
@@ -61,8 +61,8 @@ const hot = new Handsontable(container, {
 
 ```ts
 data = [
-  ["A1", "B1", "C1"],
-  ["A2", "B2", "C2"],
+  ["Update API docs", "Ana García", "In progress"],
+  ["Deploy hotfix", "James Okafor", "Blocked"],
 ];
 settings = {
   comments: true,
@@ -71,6 +71,23 @@ settings = {
 
 ```html
 <hot-table [data]="data" [settings]="settings" />
+```
+
+:::
+
+::: only-for vue
+
+```js
+const hotSettings = {
+  data: [
+    ['Update API docs', 'Ana García', 'In progress'],
+    ['Deploy hotfix', 'James Okafor', 'Blocked'],
+  ],
+  comments: true,
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+};
 ```
 
 :::
@@ -117,6 +134,18 @@ settings = {
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = {
+  cell: [
+    { row: 1, col: 1, comment: { value: 'Hello world!' } },
+  ],
+};
+```
+
+:::
+
 In this example, the comment "Hello world!" is added to the cell at `(1,1)`.
 
 ## Basic example
@@ -149,6 +178,16 @@ In this example, the comment "Hello world!" is added to the cell at `(1,1)`.
 
 @[code](@/content/guides/cell-features/comments/angular/example1.ts)
 @[code](@/content/guides/cell-features/comments/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-features/comments/vue/example1.vue)
 
 :::
 
@@ -191,6 +230,16 @@ By default, all comments are editable. To change this, set the [`readOnly`](@/ap
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-features/comments/vue/example2.vue)
+
+:::
+
+:::
+
 ## Set a comment box's size
 
 To set the width and height of a comment box, use the [`style`](@/api/options.md#comments) parameter.
@@ -223,6 +272,16 @@ To set the width and height of a comment box, use the [`style`](@/api/options.md
 
 @[code](@/content/guides/cell-features/comments/angular/example3.ts)
 @[code](@/content/guides/cell-features/comments/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/cell-features/comments/vue/example3.vue)
 
 :::
 
@@ -265,6 +324,115 @@ To display comments after a pre-configured time delay, use the [`displayDelay`](
 
 :::
 
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/cell-features/comments/vue/example4.vue)
+
+:::
+
+:::
+
+## Flag invalid cells with a comment
+
+Combine comments with validation to explain data-entry errors. This example adds a comment to a cell when it fails validation and removes the comment once the value is valid. The [`afterValidate`](@/api/hooks.md#aftervalidate) hook drives the change, and [`setCommentAtCell()`](@/api/comments.md#setcommentatcell) writes the message. The grid validates on load, so the **Mechanical keyboard** row starts with an invalid stock value and shows its comment right away. Edit any **Stock** cell and enter a negative number or text to flag it, or enter a valid whole number to clear the flag.
+
+::: only-for javascript
+
+::: example #example5 --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/comments/javascript/example5.js)
+@[code](@/content/guides/cell-features/comments/javascript/example5.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example5 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/comments/react/example5.jsx)
+@[code](@/content/guides/cell-features/comments/react/example5.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example5 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/comments/angular/example5.ts)
+@[code](@/content/guides/cell-features/comments/angular/example5.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/cell-features/comments/vue/example5.vue)
+
+:::
+
+:::
+
+## Read all comments programmatically
+
+To collect every comment in the grid, loop through the rows and read each cell's metadata with [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow). Each returned cell-meta object stores its comment under the `comment` key. Click **List all comments** to print all comments below the grid.
+
+::: only-for javascript
+
+::: example #example6 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/cell-features/comments/javascript/example6.html)
+@[code](@/content/guides/cell-features/comments/javascript/example6.js)
+@[code](@/content/guides/cell-features/comments/javascript/example6.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example6 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/comments/react/example6.jsx)
+@[code](@/content/guides/cell-features/comments/react/example6.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example6 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/comments/angular/example6.ts)
+@[code](@/content/guides/cell-features/comments/angular/example6.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example6 :vue3
+
+@[code](@/content/guides/cell-features/comments/vue/example6.vue)
+
+:::
+
+:::
+
+## Result
+
+Cells with comments display a small indicator in the corner. Users can view, edit, or delete comments through the context menu, and pre-configured comments appear when the table loads.
+
 ## Related keyboard shortcuts
 
 | Windows                                                 | macOS                                                      | Action                                  |  Excel  | Sheets  |
@@ -284,6 +452,21 @@ To display comments after a pre-configured time delay, use the [`displayDelay`](
 
 </div>
 
-## Result
+**Hooks**
 
-Cells with comments display a small indicator in the corner. Users can view, edit, or delete comments through the context menu, and pre-configured comments appear when the table loads.
+<div class="boxes-list">
+
+- [afterRemoveCellMeta](@/api/hooks.md#afterremovecellmeta)
+- [afterSetCellMeta](@/api/hooks.md#aftersetcellmeta)
+- [beforeRemoveCellMeta](@/api/hooks.md#beforeremovecellmeta)
+- [beforeSetCellMeta](@/api/hooks.md#beforesetcellmeta)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [Comments](@/api/comments.md)
+
+</div>

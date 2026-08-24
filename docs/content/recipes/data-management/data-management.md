@@ -7,14 +7,13 @@ canonicalUrl: /recipes/data-management
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-type: tutorial
-id: c4b7e2f1
+type: how-to
 react:
-  id: 9d2f6a4b
   metaTitle: Data Management Recipes - React Data Grid | Handsontable
 angular:
-  id: 6e1c8b3d
   metaTitle: Data Management Recipes - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Data Management Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]
 
@@ -32,9 +31,12 @@ Current recipes:
 - [Sync two grids](@/recipes/data-management/sync-two-grids/sync-two-grids.md)
 - [Auto-save changes to a backend](@/recipes/data-management/auto-save-backend/auto-save-backend.md)
 - [Undo / redo with a custom UI](@/recipes/data-management/undo-redo-custom-ui/undo-redo-custom-ui.md)
+- [Server-side data with ASP.NET Core](@/recipes/data-management/server-side-aspnet/server-side-aspnet.md)
 - [Server-side data with Django](@/recipes/data-management/server-side-django/server-side-django.md)
+- [Server-side data with Express.js](@/recipes/data-management/server-side-expressjs/server-side-expressjs.md)
 - [Server-side data with Laravel](@/recipes/data-management/server-side-laravel/server-side-laravel.md)
 - [Server-side data with NestJS](@/recipes/data-management/server-side-nestjs/server-side-nestjs.md)
 - [Server-side data with Ruby on Rails](@/recipes/data-management/server-side-rails/server-side-rails.md)
 - [Server-side data with Spring Boot](@/recipes/data-management/server-side-spring/server-side-spring.md)
+- [Server-side data with Symfony](@/recipes/data-management/server-side-symfony/server-side-symfony.md)
 </div>

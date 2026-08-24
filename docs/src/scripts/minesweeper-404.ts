@@ -171,6 +171,14 @@ function reveal(state: GameState, row: number, col: number) {
 
   if (unrevealedSafe === 0) {
     state.won = true;
+
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (state.mines[r][c] && !state.flagged[r][c]) {
+          state.flagged[r][c] = true;
+        }
+      }
+    }
   }
 }
 
@@ -227,6 +235,8 @@ function minesweeperRenderer(
 
     if (row === state.hitRow && col === state.hitCol) {
       td.classList.add('ms-hit');
+    } else if (state.gameOver && state.flagged[row][col]) {
+      td.classList.add('ms-flagged-correct');
     }
   } else {
     td.classList.add('ms-revealed');

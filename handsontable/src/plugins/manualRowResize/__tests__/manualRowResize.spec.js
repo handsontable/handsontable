@@ -464,6 +464,64 @@ describe('manualRowResize', () => {
       3);
   });
 
+  it('should reposition the resize handle after double click auto-size', async() => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      rowHeaders: true,
+      manualRowResize: true,
+    });
+
+    await resizeRow(0, 120);
+
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const resizerPosition = $resizer.position();
+
+    await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
+    await waitForNextAnimationFrames(63);
+
+    const $rowHeader = getInlineStartClone().find('tbody tr:eq(0) th:eq(0)');
+    const handleTop = $resizer.offset().top;
+    const headerBottom = $rowHeader.offset().top + $rowHeader.height();
+
+    expect(rowHeight(spec().$container, 0)).toBeLessThan(120);
+    expect(Math.abs(headerBottom - 5 - handleTop)).toBeLessThanOrEqual(1);
+  });
+
+  it('should keep the resize handle and guide position after the drag timer fires', async() => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      rowHeaders: true,
+      manualRowResize: true,
+    });
+
+    const $rowHeader = getInlineStartClone().find('tbody tr:eq(1) th:eq(0)');
+
+    $rowHeader.simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const handleTop = $resizer[0].getBoundingClientRect().top;
+
+    $resizer.simulate('mousedown', { clientY: handleTop });
+    const guide = spec().$container.find('.manualRowResizerGuide')[0];
+
+    $resizer.simulate('mousemove', { clientY: handleTop + 40 });
+
+    const handleBoxAfterMove = $resizer[0].getBoundingClientRect();
+    const guideBoxAfterMove = guide.getBoundingClientRect();
+    const distanceBetweenHandleAndGuide = guideBoxAfterMove.top - handleBoxAfterMove.top;
+
+    await waitForNextAnimationFrames(63);
+
+    const handleBoxAfterTimeout = $resizer[0].getBoundingClientRect();
+    const guideBoxAfterTimeout = guide.getBoundingClientRect();
+
+    $resizer.simulate('mouseup');
+
+    expect(handleBoxAfterTimeout.top).toBeCloseTo(handleBoxAfterMove.top, 0);
+    expect(guideBoxAfterTimeout.top).toBeCloseTo(guideBoxAfterMove.top, 0);
+    expect(guideBoxAfterTimeout.top - handleBoxAfterTimeout.top).toBeCloseTo(distanceBetweenHandleAndGuide, 0);
+  });
+
   it('should autosize row after double click (when initial height is defined by the `rowHeights` option)', async() => {
     handsontable({
       data: createSpreadsheetData(3, 3),

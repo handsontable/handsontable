@@ -1,8 +1,10 @@
 import Handsontable from 'handsontable';
+import type { HotInstance } from 'handsontable';
+import { DropdownEditor } from 'handsontable/editors';
 
 const element = document.createElement('div');
-const hot = new Handsontable(element, {});
-const editor = new Handsontable.editors.DropdownEditor(hot);
+const hot = Handsontable(element, {}) as unknown as HotInstance;
+const editor = new DropdownEditor(hot);
 
 // abstract ones
 editor.open();
@@ -10,7 +12,7 @@ editor.close();
 editor.beginEditing();
 editor.createElements();
 editor.finishEditing();
-const value: string = editor.getValue();
+const value: unknown = editor.getValue();
 
 // editor specific ones
 editor.queryChoices('test');

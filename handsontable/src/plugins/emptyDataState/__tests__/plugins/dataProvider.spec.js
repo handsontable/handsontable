@@ -333,4 +333,38 @@ describe('EmptyDataState with DataProvider plugin', () => {
       .toBe('All rows hidden by filters');
     expect(messageSpy).toHaveBeenCalledWith('filters');
   });
+
+  it('should not scroll the page when fetchRows loads data for the first time', async() => {
+    // Push the grid below the browser viewport so scrollIntoView would actually scroll
+    const spacer = document.createElement('div');
+
+    spacer.style.height = '2000px';
+    document.body.insertBefore(spacer, spec().$container[0]);
+    window.scrollTo(0, 0);
+
+    let resolveFetch;
+    const fetchRows = () => new Promise((resolve) => {
+      resolveFetch = resolve;
+    });
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'name' }],
+      height: 300,
+      emptyDataState: true,
+      dataProvider: createDataProviderConfig({ fetchRows }),
+    });
+
+    await sleep(0);
+
+    const scrollBefore = window.scrollY;
+
+    resolveFetch({ rows: [{ id: 1, name: 'Alice' }], totalRows: 1 });
+
+    await sleep(50);
+
+    expect(window.scrollY).toBe(scrollBefore);
+
+    spacer.remove();
+  });
 });

@@ -1,12 +1,23 @@
-import Handsontable from 'handsontable';
+import type { HotInstance } from 'handsontable';
+import { TextEditor } from 'handsontable/editors';
 
-class TextEditor extends Handsontable.editors.TextEditor {
+interface CellProperties {
+  row: number;
+  col: number;
+  instance: HotInstance;
+  visualRow: number;
+  visualCol: number;
+  prop: string | number;
+  [key: string]: unknown;
+}
+
+class CustomTextEditor extends TextEditor {
   init() {
     super.init();
   }
 
   prepare(row: number, col: number, prop: string | number, td: HTMLTableCellElement,
-      originalValue: any, cellProperties: Handsontable.CellProperties) {
+          originalValue: unknown, cellProperties: CellProperties) {
     super.prepare(row, col, prop, td, originalValue, cellProperties);
   }
 
@@ -22,11 +33,11 @@ class TextEditor extends Handsontable.editors.TextEditor {
     super.getValue();
   }
 
-  setValue(value: any) {
+  setValue(value?: unknown) {
     super.setValue(value);
   }
 
-  beginEditing(newInitialValue?: any) {
+  beginEditing(newInitialValue?: unknown) {
     super.beginEditing(newInitialValue);
   }
 

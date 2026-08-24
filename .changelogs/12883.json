@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an error thrown when removing a frozen column while using the legacy fixedColumnsLeft option.",
+  "type": "fixed",
+  "issueOrPR": 12883,
+  "breaking": false,
+  "framework": "none"
+}

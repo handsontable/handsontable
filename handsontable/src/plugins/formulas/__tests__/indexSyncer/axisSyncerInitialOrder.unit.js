@@ -5,6 +5,7 @@ function createMockIndexMapper(indexesSequence, notTrimmedIndexes = indexesSeque
     getIndexesSequence: () => indexesSequence,
     getNotTrimmedIndexes: () => notTrimmedIndexes,
     getNumberOfIndexes: () => indexesSequence.length,
+    addLocalHook: () => {},
   };
 }
 

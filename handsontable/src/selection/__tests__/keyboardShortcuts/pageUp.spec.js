@@ -248,6 +248,113 @@ describe('Selection navigation', () => {
       expect(tableView().getFirstFullyVisibleRow()).toBe(0);
     });
 
+    it('should scroll the master viewport to the top when Page Up moves the selection into a top fixed row', async() => {
+      const fixedRowsTop = 2;
+      const totalRows = 50;
+
+      handsontable({
+        width: 300,
+        height: containerHeightForRows(10),
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: totalRows,
+        startCols: 5,
+        fixedRowsTop,
+      });
+
+      await waitForNextAnimationFrames(1);
+
+      // Use the actual page size so the math works across all themes
+      const pageSize = hot().countVisibleRows();
+      // After 2 x Page Up: startRow → fixedRowsTop+1 → 0 (in frozen area)
+      const startRow = pageSize + fixedRowsTop + 1;
+
+      await selectCell(startRow, 2);
+      await waitForNextAnimationFrames(2);
+
+      // First Page Up: moves to fixedRowsTop+1 (still non-frozen), viewport scrolls up
+      await keyDownUp('pageup');
+      await waitForNextAnimationFrames(2);
+
+      // Second Page Up: moves to row 0 which is in the top frozen overlay
+      await keyDownUp('pageup');
+      await waitForNextAnimationFrames(2);
+
+      // Selection must be inside the frozen area
+      expect(getSelectedRange()[0].highlight.row).toBeLessThan(fixedRowsTop);
+      // Master viewport must be scrolled back to top so frozen rows are aligned
+      expect(tableView().getFirstFullyVisibleRow()).toBe(fixedRowsTop);
+    });
+
+    it('should scroll the master viewport to the top when Page Up moves the selection to a column header with top fixed rows', async() => {
+      const fixedRowsTop = 2;
+
+      handsontable({
+        width: 300,
+        height: containerHeightForRows(10),
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 50,
+        startCols: 5,
+        fixedRowsTop,
+        navigableHeaders: true,
+        afterGetColumnHeaderRenderers(headerRenderers) {
+          headerRenderers.push(columnHeader.bind(this));
+        },
+      });
+
+      await waitForNextAnimationFrames(1);
+
+      // countColHeaders() = 2 (default + 1 extra); rowsStep = -(pageSize + 2).
+      // From startRow = pageSize + fixedRowsTop the jump overshoots past row 0, so the
+      // command clamps to the topmost column header (-2) in a single Page Up.
+      const pageSize = hot().countVisibleRows();
+      const startRow = pageSize + fixedRowsTop;
+
+      await selectCell(startRow, 2);
+      await waitForNextAnimationFrames(2);
+
+      await keyDownUp('pageup');
+      await waitForNextAnimationFrames(2);
+
+      // Selection should be at the topmost column header (row < 0)
+      expect(getSelectedRange()[0].highlight.row).toBeLessThan(0);
+      // Master viewport must be scrolled to top even with fixedRowsTop set
+      expect(tableView().getFirstFullyVisibleRow()).toBe(fixedRowsTop);
+    });
+
+    it('should scroll the master viewport to the top when Page Up moves the selection into a top fixed row with both top and bottom fixed rows', async() => {
+      const fixedRowsTop = 2;
+      const fixedRowsBottom = 2;
+
+      handsontable({
+        width: 300,
+        height: containerHeightForRows(10),
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 50,
+        startCols: 5,
+        fixedRowsTop,
+        fixedRowsBottom,
+      });
+
+      await waitForNextAnimationFrames(1);
+
+      const pageSize = hot().countVisibleRows();
+      const startRow = pageSize + fixedRowsTop + 1;
+
+      await selectCell(startRow, 2);
+      await waitForNextAnimationFrames(2);
+
+      await keyDownUp('pageup');
+      await waitForNextAnimationFrames(2);
+      await keyDownUp('pageup');
+      await waitForNextAnimationFrames(2);
+
+      expect(getSelectedRange()[0].highlight.row).toBeLessThan(fixedRowsTop);
+      expect(tableView().getFirstFullyVisibleRow()).toBe(fixedRowsTop);
+    });
+
     it('should move the cell selection up for oversized row', async() => {
       handsontable({
         width: 180,

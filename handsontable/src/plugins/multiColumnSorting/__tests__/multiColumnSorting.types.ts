@@ -3,13 +3,14 @@ import Handsontable from 'handsontable';
 const hot = new Handsontable(document.createElement('div'), {
   multiColumnSorting: true,
 });
+
 new Handsontable(document.createElement('div'), {
   multiColumnSorting: {
     sortEmptyCells: true,
     indicator: true,
     headerAction: true,
-    compareFunctionFactory(sortOrder, columnMeta) {
-      return (a: any, b: any) => columnMeta.type === 'text' && sortOrder === 'asc' ? -1 : 1;
+    compareFunctionFactory(sortOrder: string, columnMeta: Record<string, unknown>) {
+      return (a: any, b: any) => (columnMeta.type === 'text' && sortOrder === 'asc' ? -1 : 1);
     },
     initialConfig: {
       column: 1,
@@ -52,7 +53,6 @@ if (Array.isArray(sortConfigs)) {
   sortConfigs[0].sortOrder;
 }
 
-plugin.setSortConfig({ column: 0, sortOrder: 'asc' });
 plugin.setSortConfig([{ column: 0, sortOrder: 'asc' }]);
 plugin.setSortConfig([]);
 

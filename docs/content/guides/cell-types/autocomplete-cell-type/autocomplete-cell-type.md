@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: cjib1mhw
 title: Autocomplete cell type
 metaTitle: Autocomplete cell type - JavaScript Data Grid | Handsontable
 description: Collect user input with a list of choices, by using the autocomplete cell type.
@@ -12,13 +11,14 @@ tags:
   - autocomplete
   - key value
 react:
-  id: vnnvp396
   metaTitle: Autocomplete cell type - React Data Grid | Handsontable
 angular:
-  id: md3vhixm
   metaTitle: Autocomplete cell type - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Autocomplete cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Collect user input with a list of choices, by using the autocomplete cell type.
 
@@ -31,7 +31,7 @@ You can edit the autocomplete-typed cells in three different ways:
 
 - Flexible mode
 - Strict mode
-- Strict mode using Ajax
+- Strict mode with asynchronous data
 
 In all three modes, the `source` option can be provided in two formats:
 
@@ -41,6 +41,10 @@ In all three modes, the `source` option can be provided in two formats:
 ## Autocomplete flexible mode
 
 This example uses the `autocomplete` feature in the default flexible mode. In this mode, the user can choose one of the suggested options while typing or enter a custom value that is not included in the suggestions.
+
+The [`visibleRows`](@/api/options.md#visiblerows) option sets how many suggestions the dropdown shows without scrolling. The default is 10 rows. The **Chassis color** column sets `visibleRows: 4`, so the dropdown shows only four suggestions at a time and scrolls to reveal the rest.
+
+The [`trimDropdown`](@/api/options.md#trimdropdown) option controls the dropdown's width. By default (`trimDropdown: true`), the dropdown matches the width of the edited cell, which can truncate long suggestions. The **Bumper color** column sets `trimDropdown: false`, so the dropdown expands to fit its widest suggestion. It can grow wider than the cell, but never narrower.
 
 ::: only-for javascript
 
@@ -75,9 +79,19 @@ This example uses the `autocomplete` feature in the default flexible mode. In th
 
 :::
 
+::: only-for vue
+
+::: example #example1 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example1.vue)
+
+:::
+
+:::
+
 ## Autocomplete strict mode
 
-This is the same example as above, the difference being that `autocomplete` now runs in strict mode. In this mode, the autocomplete cells will only accept values that are defined in the source array. The mouse and keyboard bindings are identical to the `Handsontable` cell type but with the differences below:
+This is the same example as above, the difference being that `autocomplete` now runs in strict mode. In this mode, the autocomplete cells will only accept values that are defined in the source array. The mouse and keyboard bindings are identical to the [`handsontable` cell type](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) but with the differences below:
 
 - If there is at least one option visible, there always is a selection in HOT-in-HOT
 - When the first row is selected, pressing <kbd>**Arrow Up**</kbd> does not deselect HOT-in-HOT. Instead, it behaves as the <kbd>**Enter**</kbd> key but moves the selection in the main HOT upwards
@@ -120,9 +134,21 @@ In strict mode, the [`allowInvalid`](@/api/options.md#allowinvalid) option deter
 
 :::
 
-## Autocomplete strict mode (Ajax)
+::: only-for vue
 
-Autocomplete can also be used with Ajax data sources. In the example below, suggestions for the "Car" column are loaded from the server. To load data from a remote *asynchronous* source, assign a function to the 'source' property. The function should perform the server-side request and call the callback function when the result is available.
+::: example #example2 .docs-height-large :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example2.vue)
+
+:::
+
+:::
+
+<span id="autocomplete-strict-mode-ajax"></span>
+
+## Autocomplete strict mode with asynchronous data
+
+Autocomplete can also use asynchronous data sources. In the example below, suggestions for the "Car" column are loaded from the server with the Fetch API. To load data from a remote source, assign a function to the `source` option. The function receives the query string and the `process` callback. Call `process()` with the result array when the request completes.
 
 ::: only-for javascript
 
@@ -152,6 +178,16 @@ Autocomplete can also be used with Ajax data sources. In the example below, sugg
 
 @[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example3.ts)
 @[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example3.vue)
 
 :::
 
@@ -192,6 +228,16 @@ You can provide the `source` option as an array of values that will be used as t
 :::
 :::
 
+::: only-for vue
+
+::: example #example4 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example4.vue)
+
+:::
+
+:::
+
 ### Array of objects
 
 You can provide the `source` option as an array of objects with `key` and `value` properties. The `value` property will be used as the autocomplete suggestion, while the entire object will be used as the value of the cell.
@@ -223,6 +269,15 @@ You can provide the `source` option as an array of objects with `key` and `value
 :::
 :::
 
+::: only-for vue
+
+::: example #example5 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example5.vue)
+
+:::
+
+:::
 
 #### API methods
 
@@ -275,6 +330,16 @@ The left column uses the default behavior (`filter: true`) — options are narro
 
 :::
 
+::: only-for vue
+
+::: example #example6 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example6.vue)
+
+:::
+
+:::
+
 ## The `filteringCaseSensitive` option
 
 By default, the autocomplete search is case-insensitive — typing `"bl"` matches both `"Black"` and `"blue"`. Set `filteringCaseSensitive: true` to require an exact case match when filtering suggestions.
@@ -314,9 +379,127 @@ The left column uses the default case-insensitive behavior. The right column has
 
 :::
 
+::: only-for vue
+
+::: example #example7 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example7.vue)
+
+:::
+
+:::
+
+## The `sortByRelevance` option
+
+By default, the autocomplete dropdown shows suggestions in the order you provide them in the `source` array. Set `sortByRelevance: false` to sort suggestions alphabetically instead.
+
+The left column uses the default behavior (`sortByRelevance: true`) — suggestions keep the order from `source`. The right column has `sortByRelevance: false` — suggestions sort alphabetically.
+
+::: only-for javascript
+
+::: example #example8 .docs-height-small --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example8.js)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example8.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example8 .docs-height-small :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example8.jsx)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example8.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example8 .docs-height-small :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example8.ts)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example8.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example8 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example8.vue)
+
+:::
+
+:::
+
+## The `allowHtml` option
+
+By default, the autocomplete dropdown and cell renderer display `source` values as plain text, so any HTML tags they contain show up literally. Set `allowHtml: true` to render `source` values as HTML instead, for example to show colored status labels.
+
+::: warning Security
+
+Handsontable doesn't sanitize HTML rendered through `allowHtml`. Only enable it for static, trusted `source` data. Rendering `source` values that come from user input creates XSS vulnerabilities. See [Security](@/guides/security/security/security.md) for details.
+
+:::
+
+The left column uses the default behavior (`allowHtml: false`) — HTML tags in `source` show up as plain text. The right column has `allowHtml: true` — the same `source` values render as colored labels.
+
+::: only-for javascript
+
+::: example #example9 .docs-height-small --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example9.js)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example9.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example9 .docs-height-small :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example9.jsx)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example9.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example9 .docs-height-small :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example9.ts)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example9.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example9 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example9.vue)
+
+:::
+
+:::
+
 ## Result
 
 After configuring the autocomplete cell type, cells display a text input that shows matching suggestions as the user types. In strict mode, only values from the source list are accepted. In flexible mode, users can also enter custom values not in the list.
+
+## Keyboard shortcuts
+
+The autocomplete cell editor shares its keyboard shortcuts with the [`handsontable` editor](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#handsontable-editor-keyboard-shortcuts). In strict mode, a few of these shortcuts behave differently -- see [Autocomplete strict mode](#autocomplete-strict-mode).
 
 ## Related articles
 
@@ -335,6 +518,7 @@ After configuring the autocomplete cell type, cells display a text input that sh
 <div class="boxes-list">
 
 - [allowHtml](@/api/options.md#allowhtml)
+- [allowInvalid](@/api/options.md#allowinvalid)
 - [filter](@/api/options.md#filter)
 - [filteringCaseSensitive](@/api/options.md#filteringcasesensitive)
 - [sortByRelevance](@/api/options.md#sortbyrelevance)

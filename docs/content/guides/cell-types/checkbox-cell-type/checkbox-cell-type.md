@@ -1,19 +1,19 @@
 ---
 type: how-to
-id: p8sggqin
 title: Checkbox cell type
 metaTitle: Checkbox cell type - JavaScript Data Grid | Handsontable
 description: Create interactive elements that can be checked or unchecked, by using the checkbox cell type.
 permalink: /checkbox-cell-type
 canonicalUrl: /checkbox-cell-type
 react:
-  id: tfr1gisf
   metaTitle: Checkbox cell type - React Data Grid | Handsontable
 angular:
-  id: 4cn9mp6z
   metaTitle: Checkbox cell type - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Checkbox cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Create interactive elements that can be checked or unchecked, by using the checkbox cell type.
 
@@ -68,6 +68,16 @@ This is the default usage scenario where column data has a `true` or `false` val
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-types/checkbox-cell-type/vue/example1.vue)
+
+:::
+
+:::
+
 ## Checkbox template
 
 If you want to use values other than `true` and `false`, you have to provide this information using [`checkedTemplate`](@/api/options.md#checkedtemplate) and [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate). Handsontable will then update your data using the appropriate template.
@@ -105,6 +115,30 @@ If you want to use values other than `true` and `false`, you have to provide thi
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-types/checkbox-cell-type/vue/example2.vue)
+
+:::
+
+:::
+
+## Cells with no value
+
+When a checkbox cell's value is empty (`null`, `undefined`, or an empty string) and matches neither [`checkedTemplate`](@/api/options.md#checkedtemplate) nor [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate), Handsontable renders an unchecked checkbox and adds a `noValue` CSS class to it.
+
+By default, the `noValue` class reduces the checkbox's opacity, so cells with no value look faded and stay visually distinct from cells set to the unchecked value.
+
+To change how these cells look, target the `noValue` class in your CSS:
+
+```css
+.handsontable .htCheckboxRendererInput.noValue {
+  opacity: 1;
+}
+```
+
 ## Checkbox labels
 
 To add a label to the checkbox, use the [`label`](@/api/options.md#label) option. You can declare where the label will be injected with this option - either before or after the checkbox element. You can also declare from which data source the label text will be updated.
@@ -137,6 +171,16 @@ To add a label to the checkbox, use the [`label`](@/api/options.md#label) option
 
 @[code](@/content/guides/cell-types/checkbox-cell-type/angular/example3.ts)
 @[code](@/content/guides/cell-types/checkbox-cell-type/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/cell-types/checkbox-cell-type/vue/example3.vue)
 
 :::
 
@@ -179,6 +223,16 @@ The `value` property of the `label` option can also be a function. The function 
 
 :::
 
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/cell-types/checkbox-cell-type/vue/example4.vue)
+
+:::
+
+:::
+
 ## Result
 
 After configuring the checkbox cell type, cells display an interactive checkbox. Clicking the checkbox or pressing <kbd>**Space**</kbd> or <kbd>**Enter**</kbd> toggles its state. The underlying data source stores the boolean value (or your custom `checkedTemplate`/`uncheckedTemplate` values).
@@ -191,6 +245,8 @@ After configuring the checkbox cell type, cells display an interactive checkbox.
 | <kbd>**Enter**</kbd>     | <kbd>**Enter**</kbd>     | Check or uncheck the checkbox | &cross; | &check; |
 | <kbd>**Delete**</kbd>    | <kbd>**Delete**</kbd>    | Uncheck the checkbox          | &cross; | &check; |
 | <kbd>**Backspace**</kbd> | <kbd>**Backspace**</kbd> | Uncheck the checkbox          | &cross; | &check; |
+
+For the full list of default keyboard shortcuts, see [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#checkbox-editor-keyboard-shortcuts).
 
 ## Related articles
 

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed cell selection re-triggering on every scroll gesture on mobile devices.",
-  "type": "fixed",
-  "issueOrPR": 12450,
-  "breaking": false,
-  "framework": "none"
-}

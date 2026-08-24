@@ -6,7 +6,6 @@ import {
   GridSettings,
   HotTableModule
 } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
 import { format, isDate, isValid, parseISO } from 'date-fns';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.css';

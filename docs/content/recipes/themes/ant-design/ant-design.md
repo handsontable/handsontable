@@ -1,5 +1,4 @@
 ---
-id: f2a9c4d1
 title: Handsontable with Ant Design
 metaTitle: Handsontable with Ant Design - React Data Grid | Handsontable
 description: Integrate Handsontable into a React app that uses Ant Design, and align the grid with your design system tokens through the Theme API.
@@ -15,34 +14,33 @@ tags:
   - themes
   - Theme API
 react:
-  id: a8d3e6f2
   metaTitle: Handsontable with Ant Design - React Data Grid | Handsontable
 angular:
-  id: c4b7e1a9
   metaTitle: Handsontable with Ant Design - Angular Data Grid | Handsontable
+vue:
 searchCategory: Recipes
 category: Themes
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will integrate Handsontable into a React app that uses Ant Design and align the grid with your design system tokens through the Theme API. You will learn how to map Ant Design tokens to Handsontable theme parameters so the grid matches your existing styles.
 
-<iframe src="https://codesandbox.io/p/devbox/github/handsontable/examples/tree/master/examples/ant-design?view=preview"
+<iframe src="https://demos.handsontable.com/embed/62392g4k2u"
   style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
-  title="Handsontable with Ant Design recipe"
+  title="Handsontable with AntDesign"
   allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
   sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
 ></iframe>
 
-[**Open in CodeSandbox**](https://codesandbox.io/p/devbox/github/handsontable/examples/tree/master/examples/ant-design)
-[**View source on GitHub**](https://github.com/handsontable/examples/tree/master/examples/ant-design)
+[**Open in sandbox**](https://demos.handsontable.com/?example=ant-design&v={{$currentVersion}})
+[**View source on GitHub**](https://github.com/handsontable/examples/tree/{{$examplesBranch}}/examples/ant-design)
 
 ## Overview
 
-This recipe uses the official [handsontable/examples Ant Design demo](https://github.com/handsontable/examples/tree/master/examples/ant-design) as the live reference implementation. It shows how to integrate Handsontable into a React app that uses [Ant Design](https://ant.design/) by registering a custom theme and mapping Handsontable theme colors and tokens to Ant Design table-like styles.
+This recipe uses the official [handsontable/examples Ant Design demo](https://github.com/handsontable/examples/tree/{{$examplesBranch}}/examples/ant-design) as the live reference implementation. It shows how to integrate Handsontable into a React app that uses [Ant Design](https://ant.design/) by registering a custom theme and mapping Handsontable theme colors and tokens to Ant Design table-like styles.
 
-**Difficulty:** Beginner  
-**Time:** ~15 minutes  
+**Difficulty:** Beginner
+**Time:** ~15 minutes
 **Stack:** React, Ant Design, Handsontable, `@handsontable/react-wrapper`
 
 ## What You'll Get
@@ -115,8 +113,7 @@ const antTableTheme = (() => {
     .params({
       colors: colorsAnt,
       tokens: {
-        wrapperBorderColor: ['colors.palette.200', 'colors.palette.700'],
-        wrapperBorderRadius: '8px',
+        borderRadius: '8px',
         headerBackgroundColor: ['colors.palette.100', 'colors.palette.800'],
         headerFontWeight: '600',
         cellHorizontalBorderColor: ['colors.palette.200', 'colors.palette.700'],

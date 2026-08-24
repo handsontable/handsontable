@@ -44,7 +44,9 @@ export async function stopTracing(cdp) {
             ? Buffer.from(data, 'base64').toString('utf-8')
             : data;
 
-          if (eof) { break; }
+          if (eof) {
+            break;
+          }
         }
 
         await cdp.send('IO.close', { handle: stream ?? '' });

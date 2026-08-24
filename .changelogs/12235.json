@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Improve rendering performance for fast scrollbar movements",
-  "type": "changed",
-  "issueOrPR": 12235,
-  "breaking": false,
-  "framework": "none"
-}

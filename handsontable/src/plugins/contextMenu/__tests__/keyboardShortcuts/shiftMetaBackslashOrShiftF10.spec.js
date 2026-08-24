@@ -76,13 +76,16 @@ describe('ContextMenu keyboard shortcut', () => {
       await keyDownUp(keyboardShortcut);
 
       expect(plugin.open).toHaveBeenCalledTimes(1);
+      // #12719: the keyboard-triggered menu now follows its anchor cell on scroll, so `open()`
+      // receives a third argument - an anchor rect provider - in addition to the position and
+      // offset objects asserted below.
       expect(plugin.open).toHaveBeenCalledWith({
         left: cellRect.left,
         top: cellRect.top + cellRect.height - 1,
       }, {
         left: cellRect.width,
         above: -cellRect.height,
-      });
+      }, jasmine.any(Function));
     });
 
     it('should internally call `open()` method with correct cell coordinates - active second selection layer', async() => {
@@ -106,13 +109,16 @@ describe('ContextMenu keyboard shortcut', () => {
       await keyDownUp(keyboardShortcut);
 
       expect(plugin.open).toHaveBeenCalledTimes(1);
+      // #12719: the keyboard-triggered menu now follows its anchor cell on scroll, so `open()`
+      // receives a third argument - an anchor rect provider - in addition to the position and
+      // offset objects asserted below.
       expect(plugin.open).toHaveBeenCalledWith({
         left: cellRect.left,
         top: cellRect.top + cellRect.height - 1,
       }, {
         left: cellRect.width,
         above: -cellRect.height,
-      });
+      }, jasmine.any(Function));
     });
 
     it('should internally call `open()` method with correct row header coordinates', async() => {
@@ -132,13 +138,16 @@ describe('ContextMenu keyboard shortcut', () => {
       await keyDownUp(keyboardShortcut);
 
       expect(plugin.open).toHaveBeenCalledTimes(1);
+      // #12719: the keyboard-triggered menu now follows its anchor cell on scroll, so `open()`
+      // receives a third argument - an anchor rect provider - in addition to the position and
+      // offset objects asserted below.
       expect(plugin.open).toHaveBeenCalledWith({
         left: cellRect.left,
         top: cellRect.top + cellRect.height - 1,
       }, {
         left: cellRect.width,
         above: -cellRect.height,
-      });
+      }, jasmine.any(Function));
     });
 
     it('should internally call `open()` method with correct column header coordinates', async() => {
@@ -158,13 +167,16 @@ describe('ContextMenu keyboard shortcut', () => {
       await keyDownUp(keyboardShortcut);
 
       expect(plugin.open).toHaveBeenCalledTimes(1);
+      // #12719: the keyboard-triggered menu now follows its anchor cell on scroll, so `open()`
+      // receives a third argument - an anchor rect provider - in addition to the position and
+      // offset objects asserted below.
       expect(plugin.open).toHaveBeenCalledWith({
         left: cellRect.left,
         top: cellRect.top + cellRect.height - 1,
       }, {
         left: cellRect.width,
         above: -cellRect.height,
-      });
+      }, jasmine.any(Function));
     });
 
     it('should internally call `open()` method with correct corner coordinates', async() => {
@@ -184,13 +196,16 @@ describe('ContextMenu keyboard shortcut', () => {
       await keyDownUp(keyboardShortcut);
 
       expect(plugin.open).toHaveBeenCalledTimes(1);
+      // #12719: the keyboard-triggered menu now follows its anchor cell on scroll, so `open()`
+      // receives a third argument - an anchor rect provider - in addition to the position and
+      // offset objects asserted below.
       expect(plugin.open).toHaveBeenCalledWith({
         left: cellRect.left,
         top: cellRect.top + cellRect.height - 1,
       }, {
         left: cellRect.width,
         above: -cellRect.height,
-      });
+      }, jasmine.any(Function));
     });
 
     it('should open the menu and select the first item by default', async() => {
@@ -231,13 +246,16 @@ describe('ContextMenu keyboard shortcut', () => {
       const cellRect = getCell(400, 40).getBoundingClientRect();
 
       expect(plugin.open).toHaveBeenCalledTimes(1);
+      // #12719: the keyboard-triggered menu now follows its anchor cell on scroll, so `open()`
+      // receives a third argument - an anchor rect provider - in addition to the position and
+      // offset objects asserted below.
       expect(plugin.open).toHaveBeenCalledWith({
         left: cellRect.left,
         top: cellRect.top + cellRect.height - 1,
       }, {
         left: cellRect.width,
         above: -cellRect.height,
-      });
+      }, jasmine.any(Function));
       // The scroll position depends on cell 400,40 being scrolled into view in a 300x300 container.
       // Read the actual scroll positions from the overlays to verify they scrolled to the cell.
       expect(inlineStartOverlay().getScrollPosition()).toBeGreaterThan(0);

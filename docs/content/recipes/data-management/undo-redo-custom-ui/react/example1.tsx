@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import './example1.css';
 
 registerAllModules();
 
@@ -43,14 +42,16 @@ const ExampleComponent = () => {
   };
 
   return (
-    <>
-      <div className="undo-redo-controls">
-        <button type="button" onClick={handleUndo} disabled={undoDisabled}>
-          Undo
-        </button>
-        <button type="button" onClick={handleRedo} disabled={redoDisabled}>
-          Redo
-        </button>
+    <div>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button type="button" onClick={handleUndo} disabled={undoDisabled}>
+            Undo
+          </button>
+          <button type="button" onClick={handleRedo} disabled={redoDisabled}>
+            Redo
+          </button>
+        </div>
       </div>
       <HotTable
         ref={hotRef}
@@ -77,7 +78,7 @@ const ExampleComponent = () => {
         afterRedo={updateButtonsState}
         licenseKey="non-commercial-and-evaluation"
       />
-    </>
+    </div>
   );
 };
 

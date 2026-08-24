@@ -1,6 +1,16 @@
-import { ApplicationRef, Component, CUSTOM_ELEMENTS_SCHEMA, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import {
+  ApplicationRef, Component, createComponent, CUSTOM_ELEMENTS_SCHEMA,
+  EmbeddedViewRef, EnvironmentInjector, TemplateRef, ViewChild, ViewContainerRef
+} from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { DynamicComponentService } from './hot-dynamic-renderer-component.service';
+import {
+  DynamicComponentService,
+  INVALID_RENDERER_WARNING,
+  INVALID_ADVANCED_RENDERER_WARNING,
+  isTemplateRef,
+  isHotCellRendererComponent,
+  isAdvancedHotCellRendererComponent,
+} from './hot-dynamic-renderer-component.service';
 import Handsontable from 'handsontable';
 import { HotCellRendererComponent } from './hot-cell-renderer.component';
 import { rendererFactory } from 'handsontable/renderers';
@@ -87,6 +97,57 @@ describe('DynamicComponentService - createRendererFromComponent', () => {
     });
   });
 
+  describe('when re-rendering the same TD with a component', () => {
+    it('should destroy the previous ComponentRef and not duplicate content', () => {
+      const rendererFn = service.createRendererFromComponent(DummyRendererComponent, {}, false);
+      const td = createDummyTD();
+      const cellProperties: Handsontable.CellProperties = {} as any;
+
+      rendererFn(dummyHTInstance, td, 0, 0, 'prop', 'first', cellProperties);
+      appRef.tick();
+      expect(td.innerHTML).toContain('Component Renderer: first');
+
+      const detachSpy = jest.spyOn(appRef, 'detachView');
+
+      rendererFn(dummyHTInstance, td, 0, 0, 'prop', 'second', cellProperties);
+      appRef.tick();
+
+      expect(detachSpy).toHaveBeenCalledTimes(1);
+      expect(td.innerHTML).toContain('Component Renderer: second');
+      expect(td.innerHTML).not.toContain('Component Renderer: first');
+    });
+  });
+
+  describe('when re-rendering a connected TD with the same component type', () => {
+    it('should recycle the existing ComponentRef instead of recreating it', () => {
+      const rendererFn = service.createRendererFromComponent(DummyRendererComponent, {}, false);
+      const td = createDummyTD();
+      // Connected TD so isViewConnected() is true and the recycling path is taken (mirrors a live grid).
+      document.body.appendChild(td);
+      const cellProperties: Handsontable.CellProperties = {} as any;
+
+      try {
+        rendererFn(dummyHTInstance, td, 0, 0, 'prop', 'first', cellProperties);
+        appRef.tick();
+        expect(td.innerHTML).toContain('Component Renderer: first');
+
+        const detachSpy = jest.spyOn(appRef, 'detachView');
+        const attachSpy = jest.spyOn(appRef, 'attachView');
+
+        rendererFn(dummyHTInstance, td, 0, 0, 'prop', 'second', cellProperties);
+        appRef.tick();
+
+        // No teardown/instantiation churn: the component is reused, only its input is refreshed.
+        expect(detachSpy).not.toHaveBeenCalled();
+        expect(attachSpy).not.toHaveBeenCalled();
+        expect(td.innerHTML).toContain('Component Renderer: second');
+        expect(td.innerHTML).not.toContain('Component Renderer: first');
+      } finally {
+        td.remove();
+      }
+    });
+  });
+
   describe('when using a TemplateRef as renderer', () => {
     it('should create a renderer function that attaches an embedded view to the TD element', () => {
       const rendererFn = service.createRendererFromComponent(templateHost.dummyTemplate, {}, false);
@@ -104,6 +165,68 @@ describe('DynamicComponentService - createRendererFromComponent', () => {
 
       expect(td.innerHTML).toContain('Template Renderer: Template Test');
       expect(td.innerHTML).toContain('(Row: 3, Col: 4)');
+    });
+  });
+
+  describe('when re-rendering the same TD with a TemplateRef', () => {
+    it('should destroy the previous embedded view and not duplicate content', () => {
+      const rendererFn = service.createRendererFromComponent(templateHost.dummyTemplate, {}, false);
+      const td = createDummyTD();
+      const cellProperties: Handsontable.CellProperties = {} as any;
+
+      rendererFn(dummyHTInstance, td, 0, 0, 'prop', 'first', cellProperties);
+      appRef.tick();
+      expect(td.textContent).toContain('Template Renderer: first');
+
+      rendererFn(dummyHTInstance, td, 0, 0, 'prop', 'second', cellProperties);
+      appRef.tick();
+
+      expect(td.textContent).toContain('Template Renderer: second');
+      expect(td.textContent).not.toContain('Template Renderer: first');
+    });
+  });
+
+  describe('when passing an invalid renderer', () => {
+    it('should log a warning when component is neither TemplateRef nor HotCellRendererComponent', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const rendererFn = service.createRendererFromComponent({} as any, {}, false);
+      rendererFn(dummyHTInstance, createDummyTD(), 0, 0, 'prop', 'value', {} as any);
+
+      expect(warnSpy).toHaveBeenCalledWith(INVALID_RENDERER_WARNING);
+      warnSpy.mockRestore();
+    });
+  });
+
+  describe('when register=true', () => {
+    it('should call Handsontable.renderers.registerRenderer with a valid HotCellRendererComponent', () => {
+      if (!(Handsontable.renderers as any).registerRenderer) {
+        (Handsontable.renderers as any).registerRenderer = jest.fn();
+      }
+      const registerSpy = jest.spyOn(Handsontable.renderers as any, 'registerRenderer').mockImplementation(() => {});
+
+      const rendererFn = service.createRendererFromComponent(DummyRendererComponent, {}, true);
+      rendererFn(dummyHTInstance, createDummyTD(), 0, 0, 'prop', 'value', {} as any);
+
+      expect(registerSpy).toHaveBeenCalled();
+      registerSpy.mockRestore();
+    });
+
+    it('should call registerRenderer only once even when the renderer function is called multiple times', () => {
+      if (!(Handsontable.renderers as any).registerRenderer) {
+        (Handsontable.renderers as any).registerRenderer = jest.fn();
+      }
+      const registerSpy = jest.spyOn(Handsontable.renderers as any, 'registerRenderer').mockImplementation(() => {});
+      const td = createDummyTD();
+      const cellProperties: Handsontable.CellProperties = {} as any;
+
+      const rendererFn = service.createRendererFromComponent(DummyRendererComponent, {}, true);
+      rendererFn(dummyHTInstance, td, 0, 0, 'prop', 'first', cellProperties);
+      rendererFn(dummyHTInstance, td, 0, 0, 'prop', 'second', cellProperties);
+      rendererFn(dummyHTInstance, td, 0, 0, 'prop', 'third', cellProperties);
+
+      expect(registerSpy).toHaveBeenCalledTimes(1);
+      registerSpy.mockRestore();
     });
   });
 });
@@ -145,6 +268,418 @@ describe('DynamicComponentService - createRendererWithFactory', () => {
 
       // eslint-disable-next-line max-len
       expect(td.innerHTML).toContain('<hot-dummy-renderer-advanced><div>Component Renderer: Component Test</div></hot-dummy-renderer-advanced>');
+    });
+  });
+
+  describe('when re-rendering the same TD', () => {
+    it('should destroy the previous ComponentRef and not duplicate content', () => {
+      const rendererFn = service.createRendererWithFactory(DummyRendererAdvancedComponent, {}, false);
+      const td = createDummyTD();
+      const cellProperties: Handsontable.CellProperties = {} as any;
+
+      rendererFn(dummyHTInstance, td, 0, 0, 'prop', 'first', cellProperties);
+      appRef.tick();
+      expect(td.innerHTML).toContain('Component Renderer: first');
+
+      const detachSpy = jest.spyOn(appRef, 'detachView');
+
+      rendererFn(dummyHTInstance, td, 0, 0, 'prop', 'second', cellProperties);
+      appRef.tick();
+
+      expect(detachSpy).toHaveBeenCalledTimes(1);
+      expect(td.innerHTML).toContain('Component Renderer: second');
+      expect(td.innerHTML).not.toContain('Component Renderer: first');
+    });
+  });
+
+  describe('when passing an invalid advanced renderer', () => {
+    it('should log a warning when component does not extend HotCellRendererAdvancedComponent', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const rendererFn = service.createRendererWithFactory({} as any, {}, false);
+      rendererFn(dummyHTInstance, createDummyTD(), 0, 0, 'prop', 'value', {} as any);
+
+      expect(warnSpy).toHaveBeenCalledWith(INVALID_ADVANCED_RENDERER_WARNING);
+      warnSpy.mockRestore();
+    });
+  });
+
+  describe('when register=true', () => {
+    it('should call registerRenderer with a valid HotCellRendererAdvancedComponent', () => {
+      expect(() => {
+        const rendererFn = service.createRendererWithFactory(DummyRendererAdvancedComponent, {}, true);
+        rendererFn(dummyHTInstance, createDummyTD(), 0, 0, 'prop', 'value', {} as any);
+      }).not.toThrow();
+    });
+  });
+
+  describe('when applying the base renderer', () => {
+    it('should run baseRenderer on the cell (factory path is consistent with createRendererFromComponent)', () => {
+      const rendererFn = service.createRendererWithFactory(DummyRendererAdvancedComponent, {}, false);
+      const cellProperties: Handsontable.CellProperties = {} as any;
+
+      rendererFn(dummyHTInstance, createDummyTD(), 0, 0, 'prop', 'value', cellProperties);
+
+      // baseRenderer flags the cell meta; its presence proves baseRenderer ran in the factory path.
+      expect((cellProperties as any)._isBaseRendererCalled).toBe(true);
+    });
+
+    it('should apply cellProperties.className to the TD via baseRenderer', () => {
+      const rendererFn = service.createRendererWithFactory(DummyRendererAdvancedComponent, {}, false);
+      const td = createDummyTD();
+
+      rendererFn(dummyHTInstance, td, 0, 0, 'prop', 'value', { className: 'my-base-class' } as any);
+
+      expect(td.classList.contains('my-base-class')).toBe(true);
+    });
+  });
+});
+
+describe('DynamicComponentService - sweepDetachedViews (virtual scroll cleanup)', () => {
+  let service: DynamicComponentService;
+  let appRef: ApplicationRef;
+  let fixtureTemplate: ComponentFixture<DummyTemplateHostComponent>;
+  let templateHost: DummyTemplateHostComponent;
+  const attachedTds: HTMLTableCellElement[] = [];
+
+  // Minimal HOT instance stub exposing a real addHook so the service can wire its sweep hook,
+  // plus a trigger that fires the captured afterViewRender callbacks on demand.
+  function createHookableInstance(): { instance: Handsontable.Core; fireAfterViewRender: () => void } {
+    const hooks: Record<string, Array<() => void>> = {};
+    const instance = {
+      addHook(name: string, callback: () => void): void {
+        (hooks[name] = hooks[name] ?? []).push(callback);
+      },
+    } as unknown as Handsontable.Core;
+
+    return {
+      instance,
+      fireAfterViewRender: () => (hooks['afterViewRender'] ?? []).forEach((cb) => cb()),
+    };
+  }
+
+  // Create a TD that is actually connected to the document, so node.isConnected reflects reality.
+  function createConnectedTD(): HTMLTableCellElement {
+    const td = createDummyTD();
+    document.body.appendChild(td);
+    attachedTds.push(td);
+    return td;
+  }
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [DummyRendererComponent, DummyTemplateHostComponent],
+      providers: [DynamicComponentService],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    }).compileComponents();
+
+    appRef = TestBed.inject(ApplicationRef);
+    service = TestBed.inject(DynamicComponentService);
+    fixtureTemplate = TestBed.createComponent(DummyTemplateHostComponent);
+    templateHost = fixtureTemplate.componentInstance;
+    fixtureTemplate.detectChanges();
+  });
+
+  afterEach(() => {
+    attachedTds.splice(0).forEach((td) => td.remove());
+  });
+
+  it('should destroy a component whose TD left the DOM, on afterViewRender', () => {
+    const { instance, fireAfterViewRender } = createHookableInstance();
+    const td = createConnectedTD();
+
+    const rendererFn = service.createRendererFromComponent(DummyRendererComponent, {}, false);
+    rendererFn(instance, td, 0, 0, 'prop', 'value', {} as any);
+    appRef.tick();
+
+    const detachSpy = jest.spyOn(appRef, 'detachView');
+
+    // Simulate the row leaving Handsontable's virtual viewport.
+    td.remove();
+    fireAfterViewRender();
+
+    expect(detachSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should NOT destroy a component whose TD is still connected', () => {
+    const { instance, fireAfterViewRender } = createHookableInstance();
+    const td = createConnectedTD();
+
+    const rendererFn = service.createRendererFromComponent(DummyRendererComponent, {}, false);
+    rendererFn(instance, td, 0, 0, 'prop', 'value', {} as any);
+    appRef.tick();
+
+    const detachSpy = jest.spyOn(appRef, 'detachView');
+
+    fireAfterViewRender();
+
+    expect(detachSpy).not.toHaveBeenCalled();
+  });
+
+  it('should destroy an embedded view (TemplateRef) whose TD left the DOM', () => {
+    const { instance, fireAfterViewRender } = createHookableInstance();
+    const td = createConnectedTD();
+
+    let createdView: EmbeddedViewRef<any> | undefined;
+    const originalCreate = templateHost.dummyTemplate.createEmbeddedView.bind(templateHost.dummyTemplate);
+    jest.spyOn(templateHost.dummyTemplate, 'createEmbeddedView').mockImplementation((ctx: any) => {
+      createdView = originalCreate(ctx);
+      jest.spyOn(createdView, 'destroy');
+      return createdView;
+    });
+
+    const rendererFn = service.createRendererFromComponent(templateHost.dummyTemplate, {}, false);
+    rendererFn(instance, td, 0, 0, 'prop', 'value', {} as any);
+    appRef.tick();
+
+    td.remove();
+    fireAfterViewRender();
+
+    expect(createdView?.destroy).toHaveBeenCalled();
+  });
+
+  it('should only sweep the refs of the instance whose afterViewRender fired', () => {
+    const tableA = createHookableInstance();
+    const tableB = createHookableInstance();
+    const tdA = createConnectedTD();
+    const tdB = createConnectedTD();
+
+    const rendererFn = service.createRendererFromComponent(DummyRendererComponent, {}, false);
+    rendererFn(tableA.instance, tdA, 0, 0, 'prop', 'a', {} as any);
+    rendererFn(tableB.instance, tdB, 0, 0, 'prop', 'b', {} as any);
+    appRef.tick();
+
+    const detachSpy = jest.spyOn(appRef, 'detachView');
+
+    // Both cells leave the DOM, but only table A re-renders. Table B's ref must survive.
+    tdA.remove();
+    tdB.remove();
+    tableA.fireAfterViewRender();
+
+    expect(detachSpy).toHaveBeenCalledTimes(1);
+
+    // Table B's ref is destroyed only once its own render cycle sweeps it.
+    tableB.fireAfterViewRender();
+    expect(detachSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('should re-render a TD recycled after its ref was swept, without re-destroying the stale ref', () => {
+    const { instance, fireAfterViewRender } = createHookableInstance();
+    const td = createConnectedTD();
+
+    const rendererFn = service.createRendererFromComponent(DummyRendererComponent, {}, false);
+    rendererFn(instance, td, 0, 0, 'prop', 'first', {} as any);
+    appRef.tick();
+
+    // Row leaves the viewport: the sweep destroys the ref but leaves the stale entry in _tdComponentRefs.
+    td.remove();
+    fireAfterViewRender();
+
+    // Handsontable recycles the same TD for a new row. Re-rendering must not touch the stale (already
+    // destroyed) ref — only attach the fresh component.
+    document.body.appendChild(td);
+    const detachSpy = jest.spyOn(appRef, 'detachView');
+
+    expect(() => {
+      rendererFn(instance, td, 1, 0, 'prop', 'second', {} as any);
+      appRef.tick();
+    }).not.toThrow();
+
+    // The guard skips detaching the stale ref; the path only creates/attaches the new component.
+    expect(detachSpy).not.toHaveBeenCalled();
+    expect(td.innerHTML).toContain('Component Renderer: second');
+    expect(td.innerHTML).not.toContain('Component Renderer: first');
+  });
+
+  it('should register the afterViewRender sweep hook only once per instance', () => {
+    const { instance } = createHookableInstance();
+    const addHookSpy = jest.spyOn(instance, 'addHook');
+
+    const rendererFn = service.createRendererFromComponent(DummyRendererComponent, {}, false);
+    rendererFn(instance, createConnectedTD(), 0, 0, 'prop', 'a', {} as any);
+    rendererFn(instance, createConnectedTD(), 0, 1, 'prop', 'b', {} as any);
+    rendererFn(instance, createConnectedTD(), 1, 0, 'prop', 'c', {} as any);
+
+    expect(addHookSpy).toHaveBeenCalledTimes(1);
+    expect(addHookSpy).toHaveBeenCalledWith('afterViewRender', expect.any(Function));
+  });
+});
+
+describe('DynamicComponentService - destroyComponent', () => {
+  let service: DynamicComponentService;
+  let appRef: ApplicationRef;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [DummyRendererComponent],
+      providers: [DynamicComponentService],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    }).compileComponents();
+
+    appRef = TestBed.inject(ApplicationRef);
+    service = TestBed.inject(DynamicComponentService);
+  });
+
+  it('should detach the view and destroy the component', () => {
+    const compRef = createComponent(DummyRendererComponent, {
+      environmentInjector: TestBed.inject(EnvironmentInjector),
+    });
+    appRef.attachView(compRef.hostView);
+
+    const detachSpy = jest.spyOn(appRef, 'detachView');
+    const destroySpy = jest.spyOn(compRef, 'destroy');
+
+    service.destroyComponent(compRef);
+
+    expect(detachSpy).toHaveBeenCalledWith(compRef.hostView);
+    expect(destroySpy).toHaveBeenCalled();
+  });
+
+  it('should be idempotent when called twice on the same ref', () => {
+    const compRef = createComponent(DummyRendererComponent, {
+      environmentInjector: TestBed.inject(EnvironmentInjector),
+    });
+    appRef.attachView(compRef.hostView);
+
+    service.destroyComponent(compRef);
+
+    const detachSpy = jest.spyOn(appRef, 'detachView');
+    const destroySpy = jest.spyOn(compRef, 'destroy');
+
+    // A recycled TD can still map to this already-destroyed ref in _tdComponentRefs, so the next
+    // render path may reach destroyComponent again. The destroyed guard must skip the redundant work.
+    expect(() => service.destroyComponent(compRef)).not.toThrow();
+    expect(detachSpy).not.toHaveBeenCalled();
+    expect(destroySpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('DynamicComponentService - cleanupContainer', () => {
+  let service: DynamicComponentService;
+  let appRef: ApplicationRef;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [DummyRendererComponent],
+      providers: [DynamicComponentService],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    }).compileComponents();
+
+    appRef = TestBed.inject(ApplicationRef);
+    service = TestBed.inject(DynamicComponentService);
+  });
+
+  function buildContainer(...tds: HTMLTableCellElement[]): HTMLElement {
+    const container = document.createElement('div');
+    const table = document.createElement('table');
+    const tbody = document.createElement('tbody');
+    const tr = document.createElement('tr');
+    tds.forEach((td) => tr.appendChild(td));
+    tbody.appendChild(tr);
+    table.appendChild(tbody);
+    container.appendChild(table);
+    return container;
+  }
+
+  it('should detach and destroy all renderer components within the container', () => {
+    const td1 = createDummyTD();
+    const td2 = createDummyTD();
+    const container = buildContainer(td1, td2);
+    const cellProperties: Handsontable.CellProperties = {} as any;
+
+    const rendererFn = service.createRendererFromComponent(DummyRendererComponent, {}, false);
+    rendererFn(dummyHTInstance, td1, 0, 0, 'prop', 'v1', cellProperties);
+    rendererFn(dummyHTInstance, td2, 0, 1, 'prop', 'v2', cellProperties);
+    appRef.tick();
+
+    const detachSpy = jest.spyOn(appRef, 'detachView');
+
+    service.cleanupContainer(container);
+
+    expect(detachSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('should be a no-op when no renderer components are attached in the container', () => {
+    const container = buildContainer(createDummyTD());
+
+    expect(() => service.cleanupContainer(container)).not.toThrow();
+  });
+
+  it('should not destroy components on subsequent calls after cleanup', () => {
+    const td = createDummyTD();
+    const container = buildContainer(td);
+    const cellProperties: Handsontable.CellProperties = {} as any;
+
+    const rendererFn = service.createRendererFromComponent(DummyRendererComponent, {}, false);
+    rendererFn(dummyHTInstance, td, 0, 0, 'prop', 'val', cellProperties);
+    appRef.tick();
+
+    service.cleanupContainer(container); // First cleanup — destroys component
+
+    const detachSpy = jest.spyOn(appRef, 'detachView');
+    service.cleanupContainer(container); // Second cleanup — should be a no-op
+
+    expect(detachSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('exported type guards', () => {
+  describe('isTemplateRef', () => {
+    it('should return true for an object with createEmbeddedView method', () => {
+      const fakeTemplateRef = { createEmbeddedView: () => {} };
+      expect(isTemplateRef(fakeTemplateRef)).toBe(true);
+    });
+
+    it('should return false for a plain object without createEmbeddedView', () => {
+      expect(isTemplateRef({})).toBe(false);
+    });
+
+    it('should return false for null', () => {
+      expect(isTemplateRef(null)).toBe(false);
+    });
+
+    it('should return false for undefined', () => {
+      expect(isTemplateRef(undefined)).toBe(false);
+    });
+
+    it('should return false for a component class', () => {
+      expect(isTemplateRef(DummyRendererComponent)).toBe(false);
+    });
+  });
+
+  describe('isHotCellRendererComponent', () => {
+    it('should return true for a class that extends HotCellRendererComponent', () => {
+      expect(isHotCellRendererComponent(DummyRendererComponent)).toBe(true);
+    });
+
+    it('should return false for a class that extends HotCellRendererAdvancedComponent', () => {
+      expect(isHotCellRendererComponent(DummyRendererAdvancedComponent)).toBe(false);
+    });
+
+    it('should return false for a plain object', () => {
+      expect(isHotCellRendererComponent({})).toBe(false);
+    });
+
+    it('should return false for null', () => {
+      expect(isHotCellRendererComponent(null)).toBe(false);
+    });
+  });
+
+  describe('isAdvancedHotCellRendererComponent', () => {
+    it('should return true for a class that extends HotCellRendererAdvancedComponent', () => {
+      expect(isAdvancedHotCellRendererComponent(DummyRendererAdvancedComponent)).toBe(true);
+    });
+
+    it('should return false for a class that extends HotCellRendererComponent', () => {
+      expect(isAdvancedHotCellRendererComponent(DummyRendererComponent)).toBe(false);
+    });
+
+    it('should return false for a plain object', () => {
+      expect(isAdvancedHotCellRendererComponent({})).toBe(false);
+    });
+
+    it('should return false for null', () => {
+      expect(isAdvancedHotCellRendererComponent(null)).toBe(false);
     });
   });
 });

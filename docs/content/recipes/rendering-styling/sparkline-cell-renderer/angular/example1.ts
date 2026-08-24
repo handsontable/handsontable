@@ -68,7 +68,7 @@ const sparklineRenderer: BaseRenderer = (
 };
 
 registerRenderer('sparklineBar', sparklineRenderer);
-registerCellType('sparklineBar', { renderer: sparklineRenderer });
+registerCellType('sparklineBar', { CELL_TYPE: 'sparklineBar', renderer: sparklineRenderer });
 
 @Component({
   standalone: true,

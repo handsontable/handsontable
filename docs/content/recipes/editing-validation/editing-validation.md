@@ -6,15 +6,14 @@ canonicalUrl: /recipes/editing-validation
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-type: tutorial
-id: k3m9p2x7
+type: how-to
 description: Recipes for dependent editors, validation patterns, submit-time checks, and dynamic cell configuration in Handsontable.
 react:
-  id: n5r8w1t4
   metaTitle: Editing and Validation Recipes - React Data Grid | Handsontable
 angular:
-  id: j7v2y6h9
   metaTitle: Editing and Validation Recipes - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Editing and Validation Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]
 

@@ -17,8 +17,8 @@ describe('ScopeManager', () => {
       data: createSpreadsheetData(10, 10),
     });
 
-    const catcherTop = hot.rootGridElement.firstChild;
-    const catcherBottom = hot.rootGridElement.lastChild;
+    const catcherTop = hot.rootGridContentElement.firstChild;
+    const catcherBottom = hot.rootGridContentElement.lastChild;
 
     expect(catcherTop.className).toBe('htFocusCatcher');
     expect(catcherTop.dataset.htFocusSource).toBe('tab_from_above');

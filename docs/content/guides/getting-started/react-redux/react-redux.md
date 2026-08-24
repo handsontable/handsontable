@@ -1,6 +1,5 @@
 ---
 type: tutorial
-id: kbk0pm8t
 title: Integration with Redux
 metaTitle: Integration with Redux - JavaScript Data Grid | Handsontable
 description: Maintain the data and configuration options of your grid by using the Redux state container.
@@ -46,11 +45,11 @@ The following example implements the `@handsontable/react-wrapper` component wit
 
 This example shows:
 - A [custom editor](@/guides/cell-functions/cell-editor/cell-editor.md#component-based-editors) component (built with an external dependency, `HexColorPicker`). This component acts both as an editor and as a renderer.
-- A [custom renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md#declare-a-custom-renderer-as-a-component) component, built with an external dependency (`StarRatingComponent`).
+- A [custom renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md#declare-a-custom-renderer-as-a-component) component, built with a local `StarRating` component.
 
 The editor component changes the behavior of the renderer component, by passing information through Redux (and the `connect()` method of `react-redux`).
 
-::: example #example6 :react-advanced --js 1 --ts 2 --deps redux@4 react-redux@7.2.4 react-colorful@5.5.1 react-star-rating-component@1.4.1
+::: example #example6 :react-advanced --js 1 --ts 2 --deps redux@4 react-redux@7.2.4 react-colorful@5.5.1
 
 @[code](@/content/guides/getting-started/react-redux/react/example6.jsx)
 @[code](@/content/guides/getting-started/react-redux/react/example6.tsx)

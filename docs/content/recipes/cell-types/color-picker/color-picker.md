@@ -1,6 +1,5 @@
 ---
-type: tutorial
-id: 2d2b22ef
+type: how-to
 title: Color picker
 metaTitle: Color Picker Cell Type - JavaScript Data Grid | Handsontable
 description: Learn how to create a Handsontable custom color picker cell using the Pickr library, with a button to open the picker, live preview, hex validation, and nano theme.
@@ -11,11 +10,11 @@ tags:
   - tutorial
   - recipes
 react:
-  id: 050bc847
   metaTitle: Color Picker Cell Type - React Data Grid | Handsontable
 angular:
-  id: a471c83c
   metaTitle: Color Picker Cell Type - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Color Picker Cell Type - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Cell Types
 ---
@@ -26,8 +25,8 @@ This tutorial shows you how to integrate the Pickr color picker library as a cus
 
 ::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps @simonwep/pickr
 
-@[code collapse={11-196}](@/recipes/cell-types/color-picker/javascript/example1.js)
-@[code collapse={11-198}](@/recipes/cell-types/color-picker/javascript/example1.ts)
+@[code collapse={11-196}](@/content/recipes/cell-types/color-picker/javascript/example1.js)
+@[code collapse={11-198}](@/content/recipes/cell-types/color-picker/javascript/example1.ts)
 @[code](@/content/recipes/cell-types/color-picker/javascript/example1.css)
 
 :::

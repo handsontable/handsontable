@@ -1,5 +1,5 @@
 ---
-id: k4mb003v
+type: how-to
 title: Column groups
 metaTitle: Column groups - JavaScript Data Grid | Handsontable
 description: Group your columns, using multiple levels of nested column headers, to better reflect the structure of your data.
@@ -12,11 +12,11 @@ tags:
   - colspan
   - rowspan
 react:
-  id: 2ei1omu0
   metaTitle: Column groups - React Data Grid | Handsontable
 angular:
-  id: 2k8cam98
   metaTitle: Column groups - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Column groups - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 menuTag: updated
@@ -33,6 +33,22 @@ To create a header that spans multiple columns, its corresponding configuration 
 properties. The `label` property defines the header's label, while the `colspan` property defines the number of columns that the header should cover.
 
 To create a header that spans multiple header rows, add a `rowspan` property to that object. See [Rowspan](#rowspan) below.
+
+### Header configuration object
+
+Each `nestedHeaders` entry is either a string label or an object with these properties:
+
+| Property          | Type     | Description |
+| ----------------- | -------- | ----------- |
+| `label`           | `string` | The header's text. |
+| `colspan`         | `number` | Columns the header spans (an integer greater than `1`); groups the columns it covers. |
+| `rowspan`         | `number` | Header rows the header spans (an integer greater than `1`). See [Rowspan](#rowspan). |
+| `headerClassName` | `string` | One or more space-separated CSS class names added to the header element (for example, `'htRight'`). |
+| `visibleWhen`     | `string` | For a header in a collapsible group, which collapse state keeps it visible: `'collapsed'`, `'expanded'`, or `'always'`. See [Choose which columns stay visible when collapsed](#choose-which-columns-stay-visible-when-collapsed). |
+| `columnDropMode`  | `string` | What the group does when a foreign column is moved into its span: `'adopt'` (default) or `'split'`. See [Keep a group cohesive or let it split](#keep-a-group-cohesive-or-let-it-split). |
+| `collapsible`     | `boolean` | Whether the group can be collapsed and expanded. You enable it through the [`collapsibleColumns`](@/api/options.md#collapsiblecolumns) option, not in the `nestedHeaders` object. See [Collapsible headers](#collapsible-headers). |
+
+For defaults and full details, see the [`nestedHeaders` API reference](@/api/options.md#nestedheaders).
 
 ### Configuration
 
@@ -58,6 +74,19 @@ nestedHeaders={[
   ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
   ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
 ]}
+```
+
+:::
+
+::: only-for vue
+
+```js
+nestedHeaders: [
+  ['A', { label: 'B', colspan: 8 }, 'C'],
+  ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+  ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
+  ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W'],
+],
 ```
 
 :::
@@ -92,6 +121,16 @@ nestedHeaders={[
 
 @[code](@/content/guides/columns/column-groups/angular/example1.ts)
 @[code](@/content/guides/columns/column-groups/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/columns/column-groups/vue/example1.vue)
 
 :::
 
@@ -134,6 +173,17 @@ nestedHeaders: [
   [{ label: 'A', rowspan: 2 }, { label: 'B', colspan: 2 }],
   ['', 'C', 'D'],
 ];
+```
+
+:::
+
+::: only-for vue
+
+```js
+nestedHeaders: [
+  [{ label: 'A', rowspan: 2 }, { label: 'B', colspan: 2 }],
+  ['', 'C', 'D'],
+],
 ```
 
 :::
@@ -187,6 +237,17 @@ collapsibleColumns: [
 
 :::
 
+::: only-for vue
+
+```js
+collapsibleColumns: [
+  { row: -4, col: 1, collapsible: true }, // Add the button to the 4th-level header of the 1st column - counting from the first table row upwards.
+  { row: -3, col: 5, collapsible: true }, // Add the button to the 3rd-level header of the 5th column - counting from the first table row upwards.
+],
+```
+
+:::
+
 ### Example
 
 ::: only-for javascript
@@ -222,6 +283,189 @@ collapsibleColumns: [
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/columns/column-groups/vue/example2.vue)
+
+:::
+
+:::
+
+### Choose which columns stay visible when collapsed
+
+By default, collapsing a group leaves its first column visible. To choose which columns stay visible in each state, add the `visibleWhen` property to a header in the `nestedHeaders` configuration. It accepts three values:
+
+- `'collapsed'` - the column is visible only while its group is collapsed (hidden while expanded).
+- `'expanded'` - the column is visible only while its group is expanded (hidden while collapsed).
+- `'always'` - the column is visible in both states.
+
+Once a group uses `visibleWhen` on any of its headers, the headers you leave unmarked default to `'expanded'` - they are hidden when the group collapses. So you only mark the column(s) you want to keep: tag one with `'always'` (stays in both states) or `'collapsed'` (a summary column that appears only on collapse). At least one column of a group always stays visible, so its collapse button is never lost.
+
+In the example below, collapse the **Q1 2025** group: the per-month columns (marked `'expanded'`) hide and the **Total** column (`'collapsed'`) appears. Expanding the group reverses it.
+
+::: only-for javascript
+
+::: example #example3 --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-groups/javascript/example3.js)
+@[code](@/content/guides/columns/column-groups/javascript/example3.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example3 :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-groups/react/example3.jsx)
+@[code](@/content/guides/columns/column-groups/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-groups/angular/example3.ts)
+@[code](@/content/guides/columns/column-groups/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/columns/column-groups/vue/example3.vue)
+
+:::
+
+:::
+
+A group whose headers use no `visibleWhen` markers keeps the default behavior - collapsing leaves its first column visible. The `visibleWhen` property applies only to headers within a [`collapsible`](@/api/options.md#collapsiblecolumns) group.
+
+## Moving grouped columns
+
+When you enable the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin, nested column headers follow their columns. Moving a column moves both its data and its header label, so the labels always describe the columns beneath them.
+
+When a move separates the columns of a group, that group renders as more than one header. Each header covers a contiguous run of the group's columns and repeats the group's label. No move is blocked.
+
+Moving an entire group relocates the group and its label as a single unit. The group can land between other groups.
+
+When a group is both [collapsible](#collapsible-headers) and collapsed:
+
+- A move that keeps the group's columns together keeps the group collapsed and moves it to its new position.
+- A move that would separate the group's columns expands the group first, so none of its columns stay hidden without a way to expand them.
+
+### Keep a group cohesive or let it split
+
+By default, a group is _cohesive_. When you move a column into the group's span, the group adopts that column as a member and stays a single header that grows to cover it.
+
+Set `columnDropMode: 'split'` on the group's header object to change this. A group in split mode does not adopt a _foreign_ column - one that belongs to a different group - moved into its span. It keeps its identity and renders as several same-label banners around that column.
+
+`columnDropMode` controls only whether a group absorbs columns from outside it. A group always reclaims its own columns: moving one of a group's columns out and then back into the group's span merges it into a single banner again, regardless of its `columnDropMode`.
+
+Moving a column _out of_ a group separates a group in either mode the same way: the group renders as more than one header, each repeating its label.
+
+::: only-for javascript
+
+```js
+nestedHeaders: [
+  // "Q1 2025" is cohesive (the default); "Q2 2025" splits when a column moves into it.
+  [{ label: 'Q1 2025 (adopt mode)', colspan: 3 }, { label: 'Q2 2025 (split mode)', colspan: 3, columnDropMode: 'split' }],
+  ['January', 'February', 'March', 'April', 'May', 'June'],
+];
+```
+
+:::
+
+::: only-for react
+
+```jsx
+nestedHeaders={[
+  // "Q1 2025" is cohesive (the default); "Q2 2025" splits when a column moves into it.
+  [{ label: 'Q1 2025 (adopt mode)', colspan: 3 }, { label: 'Q2 2025 (split mode)', colspan: 3, columnDropMode: 'split' }],
+  ['January', 'February', 'March', 'April', 'May', 'June']
+]}
+```
+
+:::
+
+::: only-for angular
+
+```ts
+nestedHeaders: [
+  // "Q1 2025" is cohesive (the default); "Q2 2025" splits when a column moves into it.
+  [{ label: 'Q1 2025 (adopt mode)', colspan: 3 }, { label: 'Q2 2025 (split mode)', colspan: 3, columnDropMode: 'split' }],
+  ['January', 'February', 'March', 'April', 'May', 'June'],
+];
+```
+
+:::
+
+::: only-for vue
+
+```js
+nestedHeaders: [
+  // "Q1 2025" is cohesive (the default); "Q2 2025" splits when a column moves into it.
+  [{ label: 'Q1 2025 (adopt mode)', colspan: 3 }, { label: 'Q2 2025 (split mode)', colspan: 3, columnDropMode: 'split' }],
+  ['January', 'February', 'March', 'April', 'May', 'June'],
+],
+```
+
+:::
+
+In the example below, both quarters group three months. **Q1 2025** uses adopt mode (the default) and **Q2 2025** uses split mode. Drag a month from **Q2 2025** into the middle of **Q1 2025**: the **Q1 2025** group adopts it and spans four columns. Drag a month from **Q1 2025** into the middle of **Q2 2025**: the **Q2 2025** group splits into two **Q2 2025** banners around the inserted column. Drag a **Q2 2025** month out and then back into **Q2 2025**: it rejoins the single banner, because it belongs to that group.
+
+::: only-for javascript
+
+::: example #example4 --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-groups/javascript/example4.js)
+@[code](@/content/guides/columns/column-groups/javascript/example4.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example4 :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-groups/react/example4.jsx)
+@[code](@/content/guides/columns/column-groups/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-groups/angular/example4.ts)
+@[code](@/content/guides/columns/column-groups/angular/example4.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/columns/column-groups/vue/example4.vue)
+
+:::
+
+:::
+
 ## Known limitations
 
 - A column header can span up to 1000 columns, as the [HTML table specification](https://html.spec.whatwg.org/multipage/tables.html#dom-tdth-colspan) sets the
@@ -230,6 +474,8 @@ collapsibleColumns: [
 - If `rowspan` is larger than the number of header rows below the cell, Handsontable clamps it to the remaining header levels.
 
 ## Related keyboard shortcuts
+
+This header-focused shortcut works only when a collapsible column group header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
 
 | Windows                                     | macOS                                        | Action                                                  |  Excel  | Sheets  |
 | ------------------------------------------- | -------------------------------------------- | ------------------------------------------------------- | :-----: | :-----: |
@@ -243,6 +489,7 @@ collapsibleColumns: [
 
 - [collapsibleColumns](@/api/options.md#collapsiblecolumns)
 - [nestedHeaders](@/api/options.md#nestedheaders)
+- [manualColumnMove](@/api/options.md#manualcolumnmove)
 
 </div>
 

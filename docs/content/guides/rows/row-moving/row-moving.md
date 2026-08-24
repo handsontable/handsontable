@@ -1,19 +1,19 @@
 ---
 type: how-to
-id: d2in9k81
 title: Row moving
 metaTitle: Row moving - JavaScript Data Grid | Handsontable
 description: Change the order of rows, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
 permalink: /row-moving
 canonicalUrl: /row-moving
 react:
-  id: g5mksyu1
   metaTitle: Row moving - React Data Grid | Handsontable
 angular:
-  id: ntz1a9ns
   metaTitle: Row moving - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Row moving - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
+menuTag: updated
 ---
 Change the order of rows, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
 
@@ -58,6 +58,16 @@ A draggable move handle appears above the selected row header. You can click and
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/rows/row-moving/vue/example1.vue)
+
+:::
+
+:::
+
 ## Set a pre-defined row order
 
 Instead of setting [`manualRowMove`](@/api/options.md#manualrowmove) to `true`, you can pass an **array of physical row indexes** to define the initial visual order of rows on render.
@@ -74,6 +84,37 @@ This renders the rows in the following order:
 - Visual position 2 → physical row `1`
 
 The array must contain all physical row indexes (its length must equal the total number of rows). After the initial render, users can still drag rows to change the order further.
+
+## Data model behavior
+
+Moving rows does not reorder your source data array. Handsontable stores the new order as index metadata through its [`IndexMapper`](@/api/indexMapper.md), and leaves the original `sourceData` array untouched. This affects how you read and save the data:
+
+- [`getData()`](@/api/core.md#getdata) returns rows in their current visual order, so it reflects any moves. Call it inside the [`afterRowMove`](@/api/hooks.md#afterrowmove) hook to get an order-accurate snapshot to persist.
+- [`getSourceData()`](@/api/core.md#getsourcedata) returns rows in their original physical order, ignoring any moves.
+
+To save the new order after a move, listen to the [`afterRowMove`](@/api/hooks.md#afterrowmove) hook:
+
+```js
+afterRowMove(movedRows, finalIndex, dropIndex, movePossible, orderChanged) {
+  if (orderChanged) {
+    const reorderedData = this.getData();
+
+    // persist reorderedData to your backend or local state
+  }
+}
+```
+
+::: only-for react
+
+In React, binding the [`data`](@/api/options.md#data) prop to a state variable does not keep that state in sync with row moves. The move updates Handsontable's internal index order, but your bound state still holds the original order. To align your state with the displayed order, update it explicitly from the [`afterRowMove`](@/api/hooks.md#afterrowmove) hook using [`getData()`](@/api/core.md#getdata).
+
+:::
+
+For more on how physical and visual indexes relate, see [Understanding data and indexes](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md).
+
+## Result
+
+After completing this guide, you can reorder rows by dragging them with the mouse or by calling `dragRows()` and `moveRows()` programmatically. You can also set a pre-defined row order at initialization.
 
 ## API reference
 
@@ -101,6 +142,8 @@ The [`moveRows`](@/api/manualRowMove.md#moverows) method has a `finalIndex` para
 </span>
 
 The [`moveRows`](@/api/manualRowMove.md#moverows) function cannot perform some actions, e.g., more than one element can't be moved to the last position. In this scenario, the move will be cancelled. The Plugin's [`isMovePossible`](@/api/manualRowMove.md#ismovepossible) API method and the `movePossible` parameters `beforeRowMove` and `afterRowMove` hooks help in determine such situations.
+
+The [`moveRows`](@/api/manualRowMove.md#moverows) method is also inactive when the [`NestedRows`](@/api/nestedRows.md) plugin is enabled - see [Row parent-child known limitations](@/guides/rows/row-parent-child/row-parent-child.md#known-limitations).
 
 ### Related API reference
 
@@ -136,7 +179,3 @@ The [`moveRows`](@/api/manualRowMove.md#moverows) function cannot perform some a
 - [ManualRowMove](@/api/manualRowMove.md)
 
 </div>
-
-## Result
-
-After completing this guide, you can reorder rows by dragging them with the mouse or by calling `dragRows()` and `moveRows()` programmatically. You can also set a pre-defined row order at initialization.

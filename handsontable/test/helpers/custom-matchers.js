@@ -1,4 +1,3 @@
-/* eslint-disable jsdoc/require-description-complete-sentence */
 import { generateASCIITable } from './asciiTable';
 import { normalize, pretty } from './htmlNormalize';
 // http://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes

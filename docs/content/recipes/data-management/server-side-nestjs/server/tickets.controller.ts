@@ -17,7 +17,7 @@ import { CreateTicketDto, TicketsService, UpdateTicketDto } from './tickets.serv
  * Endpoint summary:
  *
  *   GET    /tickets  -- paginated + sorted + filtered list
- *   POST   /tickets  -- create one ticket (onRowsCreate payload shape)
+ *   POST   /tickets  -- create one or more tickets (onRowsCreate payload shape)
  *   PATCH  /tickets  -- batch update   (onRowsUpdate payload shape)
  *   DELETE /tickets  -- batch delete   (array of row IDs)
  */
@@ -27,45 +27,49 @@ export class TicketsController {
 
   /**
    * GET /tickets?page=1&pageSize=10&sort[column]=status&sort[order]=asc
-   *                &filters[0][prop]=status&filters[0][condition]=eq&filters[0][value][]=open
+   *                &filters[0][prop]=status&filters[0][condition]=eq&filters[0][value][0]=open
    *
    * @Query() binds the parsed query string to FetchTicketsDto.
    * NestJS ValidationPipe (configured in main.ts) transforms string values to
    * their declared types (number, nested object) before the handler runs.
    */
   @Get()
-  findAll(@Query() query: FetchTicketsDto) {
+  async findAll(@Query() query: FetchTicketsDto) {
     return this.ticketsService.findAll(query);
   }
 
   /**
    * POST /tickets
    *
-   * Handsontable's onRowsCreate callback receives an array of new row objects.
-   * Each object contains the column data keyed by the `data` property names
-   * configured in Handsontable's columns option.
+   * Handsontable's onRowsCreate callback receives { rowsAmount } and the
+   * frontend constructs default row objects for each new row. Each object
+   * contains the column data keyed by the `data` property names configured
+   * in Handsontable's columns option.
    *
-   * Example body: [{ subject: 'New bug', status: 'open', priority: 'medium', ... }]
+   * Example body: [{ subject: '', status: 'open', priority: 'medium', ... }]
+   *
+   * The server persists the rows and returns them with database-generated
+   * UUIDs so the grid can update its row map.
    */
   @Post()
   @HttpCode(201)
-  create(@Body() body: CreateTicketDto | CreateTicketDto[]) {
+  async create(@Body() body: CreateTicketDto | CreateTicketDto[]) {
     const rows = Array.isArray(body) ? body : [body];
 
-    return rows.map((dto) => this.ticketsService.create(dto));
+    return Promise.all(rows.map((dto) => this.ticketsService.create(dto)));
   }
 
   /**
    * PATCH /tickets
    *
    * Handsontable's onRowsUpdate callback receives an array of changed row
-   * objects. Each object includes the row ID (rowId field) plus only the
-   * changed properties.
+   * objects. The frontend flattens each { id, changes } into { id, ...changes }
+   * before sending.
    *
-   * Example body: [{ id: '3', status: 'resolved' }]
+   * Example body: [{ id: 'uuid-3', status: 'resolved' }]
    */
   @Patch()
-  updateMany(@Body() body: UpdateTicketDto[]) {
+  async updateMany(@Body() body: UpdateTicketDto[]) {
     return this.ticketsService.updateMany(body);
   }
 
@@ -74,11 +78,11 @@ export class TicketsController {
    *
    * Handsontable's onRowsRemove callback receives an array of row ID strings.
    *
-   * Example body: ['3', '7']
+   * Example body: ['uuid-3', 'uuid-7']
    */
   @Delete()
   @HttpCode(204)
-  removeMany(@Body() ids: string[]) {
-    this.ticketsService.removeMany(ids);
+  async removeMany(@Body() ids: string[]) {
+    await this.ticketsService.removeMany(ids);
   }
 }

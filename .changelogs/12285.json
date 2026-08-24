@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed autocomplete editor with strict mode and allowInvalid discarding typed value on click-away instead of saving it.",
-  "type": "fixed",
-  "issueOrPR": 12285,
-  "breaking": false,
-  "framework": "none"
-}

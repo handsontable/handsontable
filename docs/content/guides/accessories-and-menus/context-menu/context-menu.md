@@ -1,6 +1,5 @@
 ---
 type: reference
-id: 3hrrxxln
 title: Context menu
 metaTitle: Context menu - JavaScript Data Grid | Handsontable
 description: Quickly access contextual actions such as removing rows, inserting columns or copying data, by opening the context menu.
@@ -12,11 +11,11 @@ tags:
   - pop-up menu
   - right-click menu
 react:
-  id: r2x6mh6h
   metaTitle: Context menu - React Data Grid | Handsontable
 angular:
-  id: 3xspgb3u
   metaTitle: Context menu - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Context menu - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
 menuTag: updated
@@ -68,6 +67,16 @@ To see the context menu, right-click on a cell. On touch devices, long-press a c
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/accessories-and-menus/context-menu/vue/example1.vue)
+
+:::
+
+:::
+
 
 ## Context menu with selected options
 
@@ -112,6 +121,10 @@ You can define the items in the menu by passing the [`contextMenu`](@/api/option
 | [`filter_action_bar`](@/api/contextMenu.md)              | Apply the configured filter. Requires: [`Filters`](@/api/filters.md)                                                                                                 |
 | [`export_file`](@/api/contextMenu.md)                    | Open the Export submenu with "To CSV" and "To Excel" items. Requires: [`ExportFile`](@/api/exportFile.md). The Excel item is hidden when no XLSX engine is configured. |
 
+The `filter_by_condition`, `filter_by_condition2`, `filter_operators`, `filter_by_value`, and
+`filter_action_bar` items build the filtering interface and take effect only in the dropdown (column)
+menu, not in the context menu. See [Filter menu items](@/guides/accessories-and-menus/column-menu/column-menu.md#filter-menu-items).
+
 To see the context menu, right-click on a cell. On touch devices, long-press a cell to open the context menu.
 
 ::: only-for javascript
@@ -147,6 +160,16 @@ To see the context menu, right-click on a cell. On touch devices, long-press a c
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/accessories-and-menus/context-menu/vue/example2.vue)
+
+:::
+
+:::
+
 ::: only-for react
 
 ## Context menu with custom options
@@ -164,17 +187,35 @@ To see the context menu, right-click on a cell. On touch devices, long-press a c
 
 :::
 
+::: only-for vue
+
+## Context menu with custom options
+
+In addition to built-in options, you can equip your context menu with custom options.
+
+To see the context menu, right-click on a cell. On touch devices, long-press a cell to open the context menu.
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/accessories-and-menus/context-menu/vue/example4.vue)
+
+:::
+
+:::
+
 ## Context menu with a fully custom configuration
 
 To fully customize the context menu, set `contextMenu` to an object with an `items` property. Each key in `items` identifies one menu entry. The value can be:
 
 - A predefined item key string such as `'row_above'` — includes the built-in item unchanged.
-- The string `'---------'` — inserts a horizontal separator line.
+- `ContextMenu.SEPARATOR` (imported from `handsontable/plugins/contextMenu`) — inserts a horizontal separator line.
 - A configuration object — defines a custom item or overrides a predefined one.
 
 This means you can freely mix built-in items with custom ones in the same menu:
 
 ```js
+import { ContextMenu } from 'handsontable/plugins/contextMenu';
+
 contextMenu: {
   // Optional: a shared callback fired on every item click.
   callback(key, selection, clickEvent) {
@@ -182,7 +223,7 @@ contextMenu: {
   },
   items: {
     row_above: {},                   // predefined item, unchanged
-    sp1: '---------',               // separator
+    sp1: ContextMenu.SEPARATOR,      // separator
     row_below: {
       name: 'Click to add row below', // override a predefined item's label
     },
@@ -203,7 +244,7 @@ Each configuration object in `items` can have these properties:
 | Option | Description |
 | ------ | ----------- |
 | `key` | The unique identifier for the item. For top-level items, this is the key of the `items` object (for example `'row_above'` or `'myOption'`). For submenu items, it must follow the `parent_key:child_key` format (for example `'colors:red'`). |
-| `name` | The label shown in the menu. Can be a `string` or a function returning a string. Supports HTML. When a function, `this` refers to the Handsontable instance. |
+| `name` | The label shown in the menu. Can be a `string` or a function returning a string. Supports HTML -- see the note below. When a function, `this` refers to the Handsontable instance. |
 | `disabled` | Whether the item is grayed out and non-clickable. Can be a `boolean` or a function returning a boolean. When a function, `this` refers to the Handsontable instance. |
 | `hidden` | Whether the item is hidden from the menu entirely. Can be a `boolean` or a function returning a boolean. When a function, `this` refers to the Handsontable instance. |
 | `callback` | A function called when the item is clicked. Receives `key`, `selection`, and `clickEvent` as arguments. |
@@ -211,6 +252,12 @@ Each configuration object in `items` can have these properties:
 | `renderer` | A custom function for rendering the item's HTML. Must return an `HTMLElement`. |
 | `disableSelection` | When `true`, hovering over the item does not highlight it. |
 | `isCommand` | When `false`, clicking the item does not execute a command or close the menu. |
+
+::: warning HTML labels need a sanitizer
+An HTML `name` is written to the DOM as-is. Starting with v18.0, Handsontable ships no built-in sanitizer, so set the [`sanitizer`](@/api/options.md#sanitizer) option whenever a label contains HTML -- otherwise Handsontable logs a warning and any markup in the label executes. `sanitizer` works at the grid level only. See [Security](@/guides/security/security/security.md).
+
+A `renderer` is not affected: it returns an `HTMLElement` that Handsontable appends directly, so nothing passes through the sanitizer.
+:::
 
 The following example shows how to:
 
@@ -257,6 +304,16 @@ To see the context menu, right-click on a cell. On touch devices, long-press a c
 
 :::
 
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/accessories-and-menus/context-menu/vue/example3.vue)
+
+:::
+
+:::
+
 ## Related keyboard shortcuts and gestures
 
 | Windows                                                                                               | macOS                                                                                                | Action                                                        |  Excel  | Sheets  |
@@ -277,12 +334,12 @@ To see the context menu, right-click on a cell. On touch devices, long-press a c
 
 - [Adding comments via the context menu](@/guides/cell-features/comments/comments.md#add-comments-via-the-context-menu)
 - [Clipboard: Context menu](@/guides/cell-features/clipboard/clipboard.md#context-menu)
+- [Text alignment: Align cells using the context menu](@/guides/cell-features/text-alignment/text-alignment.md#align-cells-using-the-context-menu)
 - [Icon pack](@/guides/accessories-and-menus/icon-pack/icon-pack.md)
 ::: only-for javascript
 - [Custom context menu in React](@/react/guides/accessories-and-menus/context-menu/context-menu.md)
 - [Custom context menu in Angular](@/angular/guides/accessories-and-menus/context-menu/context-menu.md)
-- [Custom context menu in Vue](@/guides/integrate-with-vue3/vue3-custom-context-menu-example/vue3-custom-context-menu-example.md)
-- [Custom context menu in Vue 3](@/guides/integrate-with-vue3/vue3-custom-context-menu-example/vue3-custom-context-menu-example.md)
+- [Custom context menu in Vue 3](@/vue/guides/accessories-and-menus/context-menu/context-menu.md)
 :::
 
 </div>

@@ -107,7 +107,8 @@ export function init() {
         data: 4,
         type: "date",
         allowInvalid: false,
-        dateFormat: getDirectionFromURL() === "rtl" ? "M/D/YYYY" : "DD/MM/YYYY",
+        dateFormat: { dateStyle: 'short' },
+        locale: getDirectionFromURL() === "rtl" ? arAR.languageCode : "en-US",
       },
       {
         data: 6,

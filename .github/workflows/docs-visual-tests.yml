@@ -9,14 +9,29 @@ on:
       test_env:
         type: choice
         description: Test enviroment
-        default: 'http://localhost:8080/docs'
+        default: 'http://localhost:4321/docs'
         options:
           - https://dev.handsontable.com/docs
           - https://handsontable.com/docs
-          - http://localhost:8080/docs
+          - http://localhost:4321/docs
+  # Fragment mode (Tests pipeline): targets the PR's Cloudflare preview and is
+  # label-gated — it runs ONLY when the PR carries the `run-docs-visual` label
+  # (checked LIVE via the API, so adding the label and pressing "Re-run all
+  # jobs" on the Tests run triggers it inside the pipeline).
+  workflow_call:
+    inputs:
+      test-url:
+        description: 'Base docs URL to test (e.g. the PR preview)'
+        type: string
+        required: true
+      require-label:
+        description: 'Only run when the PR carries the run-docs-visual label'
+        type: boolean
+        default: false
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Static prefix — see docs-staging.yml.
+  group: docs-visual-${{ github.ref }}
   cancel-in-progress: true
 
 defaults:
@@ -24,17 +39,49 @@ defaults:
     working-directory: ./docs/
 
 jobs:
-  run-tests:
-    name: Visual tests for ${{ github.event.inputs.test_env }}
+  # Live label gate for the fragment mode: reads the PR's CURRENT labels via
+  # the API (the event payload is frozen at trigger time, so a label added
+  # later is visible to a re-run — that is what makes this manually
+  # triggerable from inside the pipeline).
+  gate:
+    name: "[CHECK] Docs visual label"
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      - name: Evaluate the gate
+        id: check
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
+        with:
+          script: |
+            if (!${{ inputs.require-label || false }}) {
+              core.setOutput('run', 'true');
+              return;
+            }
+            const prNumber = context.payload.pull_request?.number;
+            if (!prNumber) { core.setOutput('run', 'false'); return; }
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber,
+            });
+            const run = pr.labels.some(l => l.name === 'run-docs-visual');
+            core.setOutput('run', String(run));
+            if (!run) {
+              core.notice('docs-visual skipped — add the "run-docs-visual" label to the PR and press "Re-run all jobs" to run it inside this pipeline.');
+            }
+
+  run-tests:
+    name: "[TEST] Docs Visual"
+    needs: [ gate ]
+    if: needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
     env:
       PASS_COOKIE: ${{ secrets.PASS_COOKIE }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         name: Install pnpm
 
       - name: Set up Node
@@ -42,7 +89,7 @@ jobs:
         with:
           cache: 'pnpm'
           cache-dependency-path: pnpm-lock.yaml
-          node-version: "20"
+          node-version: "22"
           check-latest: true
 
       - name: Install monorepo dependencies (including docs)
@@ -53,27 +100,29 @@ jobs:
         run: pnpm exec playwright install --with-deps
 
       - name: Install the monorepo dependencies and build the packages
-        if: ${{inputs.test_env == 'http://localhost:8080/docs'}}
+        if: ${{ (inputs.test_env || inputs.test-url) == 'http://localhost:4321/docs' }}
         working-directory: .
         run: npm run all build -- --e examples visual-tests
 
       - name: Generate API refs
-        if: ${{inputs.test_env == 'http://localhost:8080/docs'}}
+        if: ${{ (inputs.test_env || inputs.test-url) == 'http://localhost:4321/docs' }}
         run: |
           npm run docs:api
 
       - name: Build documentation
-        if: ${{inputs.test_env == 'http://localhost:8080/docs'}}
+        if: ${{ (inputs.test_env || inputs.test-url) == 'http://localhost:4321/docs' }}
         run: |
-          npm run docs:build
+          npm run build
 
-      - name: Set up cache
+      - name: Restore snapshot cache
         id: cache
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
         with:
-          key: plawyright-cache/${{github.repository}}/${{github.ref}}
-          restore-keys: plawyright-cache/${{github.repository}}/refs/heads/develop
-          path: '**/test-artifacts/**'
+          key: plawyright-cache/${{github.repository}}/${{github.ref}}-${{ github.run_id }}
+          restore-keys: |
+            plawyright-cache/${{github.repository}}/${{github.ref}}
+            plawyright-cache/${{github.repository}}/refs/heads/develop
+          path: docs/tests/test-artifacts
 
       - name: Check if cache was restored
         id: check-cache
@@ -85,18 +134,28 @@ jobs:
           fi
 
       - name: Initialize snapshots
-        if: ${{env.cache-restored != 'true' || github.event.inputs.update-snapshots == 'true'}}
-        run: BASE_URL=${{ github.event.inputs.test_env }} npx playwright test --update-snapshots
+        if: ${{env.cache-restored != 'true' || inputs.update-snapshots == true}}
+        run: BASE_URL=${{ inputs.test_env || inputs.test-url }} npx playwright test --update-snapshots
 
       - name: Test
-        if: ${{env.cache-restored == 'true' && github.event.inputs.update-snapshots != 'true'}}
-        run: BASE_URL=${{ github.event.inputs.test_env }} npx playwright test
+        if: ${{env.cache-restored == 'true' && inputs.update-snapshots != true}}
+        run: BASE_URL=${{ inputs.test_env || inputs.test-url }} npx playwright test
+
+      - name: Save snapshot cache
+        if: ${{!cancelled() && (env.cache-restored != 'true' || inputs.update-snapshots == true)}}
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
+        with:
+          key: plawyright-cache/${{github.repository}}/${{github.ref}}-${{ github.run_id }}
+          path: docs/tests/test-artifacts
 
       - name: Upload test report
         if: always()
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
-          name: playwright-report
+          # Not "playwright-report" — that name is taken by the e2e failure
+          # artifact when running inside the Tests pipeline (names are
+          # immutable per run).
+          name: docs-visual-report
           path: ./docs/tests/test-artifacts/results
           retention-days: 30
           overwrite: true

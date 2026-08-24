@@ -1,6 +1,5 @@
 ---
 type: reference
-id: 97k6p9p7
 title: Locale
 metaTitle: Locale - JavaScript Data Grid | Handsontable
 description: Configure Handsontable's locale settings, to properly handle locale-related data and actions such as filtering, searching, or sorting.
@@ -12,11 +11,11 @@ tags:
   - L10n
   - i18n
 react:
-  id: 1ueuuazs
   metaTitle: Locale - React Data Grid | Handsontable
 angular:
-  id: arpg1wyq
   metaTitle: Locale - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Locale - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Internationalization
 ---
@@ -80,6 +79,21 @@ settings = {
 
 ```html
 <hot-table [settings]="settings" />
+```
+
+:::
+
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  // set the entire grid's locale to Polish
+  locale: 'pl-PL',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
 ```
 
 :::
@@ -156,6 +170,33 @@ settings = {
 
 ```html
 <hot-table [settings]="settings" />
+```
+
+:::
+
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  columns: [
+    {
+      // set the first column's locale to Polish
+      locale: 'pl-PL',
+    },
+    {
+      // set the second column's locale to German
+      locale: 'de-DE',
+    },
+    {
+      // set the third column's locale to Japanese
+      locale: 'ja-JP',
+    },
+  ],
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
 ```
 
 :::

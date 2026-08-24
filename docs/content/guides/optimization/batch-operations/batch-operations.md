@@ -1,5 +1,5 @@
 ---
-id: kgegbmgz
+type: how-to
 title: Batch operations
 metaTitle: Batch operations - JavaScript Data Grid | Handsontable
 description: Batch CRUD operations, to avoid unnecessary rendering cycles and boost your grid's performance.
@@ -10,11 +10,11 @@ tags:
   - batching
   - performance
 react:
-  id: 3xqdvk3u
   metaTitle: Batch operations - React Data Grid | Handsontable
 angular:
-  id: tnvv2pjr
   metaTitle: Batch operations - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Batch operations - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
 ---
@@ -76,6 +76,18 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+
+:::
+
+:::
+
+::: only-for vue
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. Use a template ref on the `HotTable` component and read its `hotInstance` property.
+
+For more information, see the [Referencing the Handsontable instance in Vue 3](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
 
 :::
 
@@ -246,6 +258,16 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/optimization/batch-operations/vue/example1.vue)
+
+:::
+
+:::
+
 ## Related articles
 
 **Related guides**
@@ -253,6 +275,8 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 <div class="boxes-list">
 
 - [Performance](@/guides/optimization/performance/performance.md)
+- [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
+- [Saving data](@/guides/getting-started/saving-data/saving-data.md)
 
 </div>
 

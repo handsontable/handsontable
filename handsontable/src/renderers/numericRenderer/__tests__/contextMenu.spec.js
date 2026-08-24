@@ -20,7 +20,7 @@ describe('NumericRenderer with ContextMenu', () => {
       cells() {
         return {
           type: 'numeric',
-          numericFormat: { pattern: '$0,0.00' }
+          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
         };
       },
       height: 100

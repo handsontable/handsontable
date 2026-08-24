@@ -17,10 +17,10 @@ function getEntryJsFiles() {
   const filesInLanguagesDirectory = fs.readdirSync(SOURCE_LANGUAGES_DIRECTORY);
 
   filesInLanguagesDirectory.forEach((fileName) => {
-    const jsExtensionRegExp = /\.js$/;
+    const extensionRegExp = /\.(js|ts)$/;
 
-    if (jsExtensionRegExp.test(fileName)) {
-      let fileNameWithoutExtension = fileName.replace(jsExtensionRegExp, '');
+    if (extensionRegExp.test(fileName)) {
+      let fileNameWithoutExtension = fileName.replace(extensionRegExp, '');
 
       if (fileNameWithoutExtension === 'index') {
         fileNameWithoutExtension = 'all';
@@ -34,7 +34,7 @@ function getEntryJsFiles() {
 }
 
 const ruleForSnippetsInjection = {
-  test: /\.js$/,
+  test: /\.(js|ts)$/,
   loader: 'string-replace-loader',
   options: {
     multiple: [
@@ -85,23 +85,13 @@ module.exports.create = function create() {
         amd: PACKAGE_FILENAME,
       },
     },
+    resolve: {
+      extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+    },
     module: {
       rules: [
-        {
-          test: /\.js$/,
-          exclude: /node_modules/,
-          loader: 'builtin:swc-loader',
-          options: {
-            env: {
-              targets: BROWSERS_LIST.join(', '),
-            },
-            jsc: {
-              parser: {
-                syntax: 'ecmascript',
-              },
-            },
-          },
-        },
+        { test: /\.js$/, exclude: /node_modules/, loader: 'builtin:swc-loader', options: { jsc: { parser: { syntax: 'ecmascript' } } } },
+        { test: /\.ts$/, exclude: /node_modules/, loader: 'builtin:swc-loader', options: { jsc: { parser: { syntax: 'typescript' } } } },
         ruleForSnippetsInjection
       ]
     },

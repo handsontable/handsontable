@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed incorrect JSDoc type annotations for the `modifyAutofillRange` hook parameters. The parameters `entireArea` and `startArea` are now correctly documented as `number[]` (a flat 4-element array) instead of the generic `Array` type, and the `@returns` type annotation has been added.",
-  "type": "fixed",
-  "issueOrPR": 11862,
-  "breaking": false,
-  "framework": "none"
-}

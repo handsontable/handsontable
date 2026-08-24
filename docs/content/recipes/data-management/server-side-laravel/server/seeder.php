@@ -68,8 +68,8 @@ class ProductSeeder extends Seeder
             ['name' => 'Smart Card Reader',          'sku' => 'SCR-052', 'category' => 'Peripherals',  'price' => 19.99,   'stock' => 210],
         ];
 
-        foreach ($products as $data) {
-            Product::create($data);
+        foreach ($products as $i => $data) {
+            Product::create(array_merge($data, ['sort_order' => $i + 1]));
         }
     }
 }

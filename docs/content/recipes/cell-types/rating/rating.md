@@ -1,6 +1,5 @@
 ---
-type: tutorial
-id: b5f02fb2
+type: how-to
 title: Star Rating
 metaTitle:  Star Rating Cell Type - JavaScript Data Grid | Handsontable"
 description: Learn how to create a custom Handsontable cell type using SVG stars for intuitive 1-5 star ratings directly in your data grid.
@@ -11,11 +10,11 @@ tags:
   - tutorial
   - recipes
 react:
-  id: dd56fc85
   metaTitle: Star Rating Cell Type - React Data Grid | Handsontable"
 angular:
-  id: e51f625c
   metaTitle: Star Rating Cell Type - Angular Data Grid | Handsontable"
+vue:
+  metaTitle: Star Rating Cell Type - Vue Data Grid | Handsontable"
 searchCategory: Recipes
 category: Cell Types
 ---
@@ -605,6 +604,6 @@ You built an SVG star rating cell using `editorFactory` and `rendererFactory`. Y
 
 ## Next steps
 
-- [Star Rating (React)](@/react/recipes/cell-types/react-rating/react-rating.md) - The same concept using React's `EditorComponent` and `react-star-rating-component`.
+- [Star Rating (React)](@/react/recipes/cell-types/react-rating/react-rating.md) - The same concept using React's `EditorComponent` and a local star rating component.
 - [Star Rating Editor (Angular)](@/angular/recipes/cell-types/guide-rating-angular/guide-rating.md) - The Angular version using `HotCellEditorAdvancedComponent`.
 - [Feedback](@/recipes/cell-types/feedback/feedback.md) - Another no-library custom editor using `editorFactory` and CSS tokens.

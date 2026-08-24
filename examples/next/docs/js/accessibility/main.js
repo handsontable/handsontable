@@ -1,5 +1,4 @@
 import Handsontable from "handsontable";
-import "@handsontable/pikaday/css/pikaday.css";
 
 // Import sample data and helper functions
 import { data, countries } from "./data";
@@ -27,7 +26,8 @@ const hotOptions = {
     {
       data: "sellDate",
       type: "date",
-      dateFormat: "DD/MM/YYYY",
+      dateFormat: { day: "2-digit", month: "2-digit", year: "numeric" },
+      locale: "en-GB",
       allowInvalid: false,
     },
     {

@@ -1,5 +1,6 @@
 ---
 name: performance-testing
+path: performance-tests/**
 description: Use when adding, modifying, or debugging Handsontable performance test scenarios in performance-tests/ - covers the CDP trace-based measurement system, scenario structure (fixture + config + spec), trace-parser integration, hook timing for filtering/sorting, golden snapshot workflow on GitHub Pages, and the CI comparison pipeline. Trigger whenever work touches performance-tests/ files, when asked to benchmark a Handsontable feature, or when adding a new performance scenario.
 ---
 
