@@ -55,8 +55,17 @@ runs:
 
     - name: Compute report URL
       id: report-url
+      # Same guard as the gh-pages deploy below: PAGES_URL flows into result.md,
+      # and report-builder.mjs only emits the "Full interactive report" link when
+      # it is set. Without this, a fork PR's job summary would advertise a URL
+      # that 404s, because the deploy that would publish it is skipped.
       if: github.event_name == 'pull_request'
+        && github.event.pull_request.head.repo.full_name == github.repository
+        && github.actor != 'dependabot[bot]'
       shell: bash
+      # HEAD_REF via env, never inlined as ${{ }}: on a fork PR the branch name
+      # is attacker-controlled text and inlining it into the script is a
+      # command-injection vector (actionlint `expression`).
       env:
         HEAD_REF: ${{ github.head_ref }}
       run: |
@@ -142,7 +151,12 @@ runs:
         git worktree remove "$WORK_DIR" --force
 
     - name: Deploy PR report to GitHub Pages
+      # Write-token runs only. Fork PRs AND Dependabot PRs both get a read-only
+      # GITHUB_TOKEN, so this would 403 and take CI Gate down with it.
+      # See AGENTS.md, "fork and Dependabot pull requests".
       if: always() && github.event_name == 'pull_request'
+        && github.event.pull_request.head.repo.full_name == github.repository
+        && github.actor != 'dependabot[bot]'
       shell: bash
       env:
         BRANCH_SLUG: ${{ steps.report-url.outputs.branch_slug }}
@@ -204,8 +218,21 @@ runs:
           } > performance-tests/output/result.md
         fi
 
-    - name: Post performance summary to pull request
+    # Token-free mirror of the sticky comment: the ONLY way a fork PR sees these
+    # numbers, since the comment below is internal-only. always() so it still
+    # renders when the run step failed, which is when it matters most.
+    - name: Write the performance summary to the job summary
       if: always() && github.event_name == 'pull_request'
+      shell: bash
+      run: cat performance-tests/output/result.md >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Post performance summary to pull request
+      # Write-token runs only. Fork PRs AND Dependabot PRs both get a read-only
+      # GITHUB_TOKEN, so this would 403 and take CI Gate down with it.
+      # See AGENTS.md, "fork and Dependabot pull requests".
+      if: always() && github.event_name == 'pull_request'
+        && github.event.pull_request.head.repo.full_name == github.repository
+        && github.actor != 'dependabot[bot]'
       uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
       with:
         header: performance-tests

@@ -150,38 +150,67 @@ jobs:
         run: echo "short_sha=${PR_HEAD_SHA::7}" >> $GITHUB_OUTPUT
         env:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      # One source of truth for the preview block: the sticky comment (internal
+      # PRs) and the job summary (every PR, forks included) both read this file.
+      # Quoted heredoc so the fenced block and the backticks stay literal; the
+      # two values are substituted from env by sed, never interpolated into the
+      # script body.
+      # Deliberately NOT always(): if `Publish preview packages` failed there is
+      # nothing at those pkg.pr.new URLs, and printing install commands for
+      # artifacts that do not exist is worse than printing nothing.
+      - name: Build the preview comment body
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          SHORT_SHA: ${{ steps.vars.outputs.short_sha }}
+        run: |
+          sed "s|{{SHA}}|${SHORT_SHA}|g; s|{{PR}}|${PR_NUMBER}|g" > preview-comment.md <<'EOF'
+          ## 📦 PR Preview Packages
+
+          Install packages from this PR (commit `{{SHA}}`):
+
+          ```sh
+          npm i https://pkg.pr.new/handsontable@{{PR}}
+          npm i https://pkg.pr.new/@handsontable/react-wrapper@{{PR}}
+          npm i https://pkg.pr.new/@handsontable/vue3@{{PR}}
+          npm i https://pkg.pr.new/@handsontable/angular-wrapper@{{PR}}
+          ```
+
+          ## 📚 Examples
+
+          | Framework | Link |
+          |-----------|------|
+          | Angular | [Open live demo](https://demos.handsontable.com/?example=angular&v={{PR}}) |
+          | Vanilla JS | [Open live demo](https://demos.handsontable.com/?example=javascript&v={{PR}}) |
+          | React TS | [Open live demo](https://demos.handsontable.com/?example=react&v={{PR}}) |
+          | React JS | [Open live demo](https://demos.handsontable.com/?example=react-js&v={{PR}}) |
+          | TypeScript | [Open live demo](https://demos.handsontable.com/?example=typescript&v={{PR}}) |
+          | Vue 3 | [Open live demo](https://demos.handsontable.com/?example=vue&v={{PR}}) |
+
+          **SSR Examples:**
+
+          | Framework | Link |
+          |-----------|------|
+          | Next.js | [Open live demo](https://demos.handsontable.com/?example=next.js&v={{PR}}) |
+          | Astro | [Open live demo](https://demos.handsontable.com/?example=astro&v={{PR}}) |
+          | Remix | [Open live demo](https://demos.handsontable.com/?example=remix&v={{PR}}) |
+          | Nuxt | [Open live demo](https://demos.handsontable.com/?example=nuxt&v={{PR}}) |
+          EOF
+      # Token-free mirror of the comment below: the only way a fork or Dependabot
+      # PR sees the preview links, since posting a comment needs a write token
+      # neither of them gets.
+      - name: Write the preview links to the job summary
+        run: cat preview-comment.md >> "$GITHUB_STEP_SUMMARY"
       - name: Post PR preview comment
+        # Write-token runs only. Fork PRs and Dependabot PRs both get a read-only
+        # GITHUB_TOKEN, so the API call 403s and takes CI Gate down with it; the
+        # job summary above carries the same content instead. The event half is
+        # redundant here (the job's own `if:` is already pull_request-only) but is
+        # kept so all seven guarded sites share one shape. AGENTS.md, "fork and
+        # Dependabot pull requests".
+        if: github.event_name != 'pull_request'
+          || (github.event.pull_request.head.repo.full_name == github.repository
+              && github.actor != 'dependabot[bot]')
         uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
         with:
           header: pr-preview
-          message: |
-            ## 📦 PR Preview Packages
-
-            Install packages from this PR (commit `${{ steps.vars.outputs.short_sha }}`):
-
-            ```sh
-            npm i https://pkg.pr.new/handsontable@${{ github.event.pull_request.number }}
-            npm i https://pkg.pr.new/@handsontable/react-wrapper@${{ github.event.pull_request.number }}
-            npm i https://pkg.pr.new/@handsontable/vue3@${{ github.event.pull_request.number }}
-            npm i https://pkg.pr.new/@handsontable/angular-wrapper@${{ github.event.pull_request.number }}
-            ```
-
-            ## 📚 Examples
-
-            | Framework | Link |
-            |-----------|------|
-            | Angular | [Open live demo](https://demos.handsontable.com/?example=angular&v=${{ github.event.pull_request.number }}) |
-            | Vanilla JS | [Open live demo](https://demos.handsontable.com/?example=javascript&v=${{ github.event.pull_request.number }}) |
-            | React TS | [Open live demo](https://demos.handsontable.com/?example=react&v=${{ github.event.pull_request.number }}) |
-            | React JS | [Open live demo](https://demos.handsontable.com/?example=react-js&v=${{ github.event.pull_request.number }}) |
-            | TypeScript | [Open live demo](https://demos.handsontable.com/?example=typescript&v=${{ github.event.pull_request.number }}) |
-            | Vue 3 | [Open live demo](https://demos.handsontable.com/?example=vue&v=${{ github.event.pull_request.number }}) |
-
-            **SSR Examples:**
-
-            | Framework | Link |
-            |-----------|------|
-            | Next.js | [Open live demo](https://demos.handsontable.com/?example=next.js&v=${{ github.event.pull_request.number }}) |
-            | Astro | [Open live demo](https://demos.handsontable.com/?example=astro&v=${{ github.event.pull_request.number }}) |
-            | Remix | [Open live demo](https://demos.handsontable.com/?example=remix&v=${{ github.event.pull_request.number }}) |
-            | Nuxt | [Open live demo](https://demos.handsontable.com/?example=nuxt&v=${{ github.event.pull_request.number }}) |
+          path: preview-comment.md
