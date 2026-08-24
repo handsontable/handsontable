@@ -235,6 +235,21 @@ describe('preview package composition', () => {
       expect(output).toContain('src/**/types/*.d.ts');
     });
 
+    it('should refuse a sliced prefix that is a single-segment wildcard too', () => {
+      // Deliberately broader than the `**` case above: `*` never matches a separator, so the
+      // segment count does line up here and the destination would be decidable. The guard still
+      // refuses it, because a wildcard prefix is not a known prefix. Pinned so the breadth reads
+      // as the choice it is rather than as an oversight to tidy up.
+      const { status, output } = runOnFixture(
+        { copy: [{ pattern: 'src/*/types/*.d.ts', pathSlice: 2 }], exports: ['./*.js'], fields: ['name'] },
+        { 'index.js': '', 'types/base.d.ts': 'export {};\n' }
+      );
+
+      expect(status).toBe(1);
+      expect(output).toContain('not literal');
+      expect(output).toContain('src/*/types/*.d.ts');
+    });
+
     it('should copy a pattern match to its sliced destination', () => {
       const { status, files } = runOnFixture(
         { copy: [{ pattern: 'types/**/*.d.ts', pathSlice: 1 }], exports: ['./*.js'], fields: ['name'] },

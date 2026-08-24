@@ -79,9 +79,15 @@ glob.sync('./**/*.d.ts', { cwd: TARGET_PATH, nodir: true }).forEach((dtsFile) =>
  * by dropping the leading segments `pathSlice` drops off each matched path.
  *
  * `pathSlice` counts segments of a matched *path*, not of the pattern, so the two only line up
- * while the sliced-off prefix is literal: one `**` stands for any number of path segments, and a
- * pattern sliced through it says nothing about where its files land. Such a pattern is returned as
- * `null` – unverifiable rather than wrongly verified.
+ * while the sliced-off prefix is literal. Two constructs break the count outright: one `**` stands
+ * for any number of path segments, so a pattern sliced through it says nothing about where its
+ * files land; and a brace expands before the pattern is read segment by segment, so it may hold a
+ * separator that the split above shreds – `{types/a,b}` is not the two segments that split
+ * reports. The guard is deliberately broader than those two – it refuses any wildcard in the
+ * sliced prefix, `*`, `?` and a character class included, though none of them matches a separator
+ * and all of them do keep the count aligned. A wildcard prefix is not a known prefix, and this
+ * check exists to refuse what it cannot decide rather than to decide as much as it could. Such a
+ * pattern is returned as `null` – unverifiable rather than wrongly verified.
  *
  * @param {string} pattern The `handsontable.copy` pattern, e.g. a declaration glob under `types/`.
  * @param {number} pathSlice How many leading path segments the copy step slices off.
