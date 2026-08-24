@@ -1,6 +1,6 @@
 ---
 type: explanation
-title: AI docs assistant
+title: AI Docs Assistant
 metaTitle: AI Docs Assistant - JavaScript Data Grid | Handsontable
 description: The Ask AI assistant in the docs header that answers questions about Handsontable APIs, configuration options, hooks, and integration patterns.
 permalink: /ai-docs-assistant
