@@ -73,7 +73,7 @@ This example exports all rows and columns, including hidden ones, by setting bot
 :::
 :::
 
-### Export as a JavaScript Blob object
+### Export as a JavaScript blob object
 
 Open a console in browser developer tools to see the result for the below example.
 This example keeps hidden indicators in the grid, but exports only visible rows and columns by setting `exportHiddenRows` and `exportHiddenColumns` to `false`.
@@ -155,7 +155,7 @@ Like the Blob example, this export uses only visible data and skips hidden rows 
 :::
 :::
 
-### Prevent CSV Injection attack
+### Prevent CSV injection attack
 
 "CSV Injection, also known as Formula Injection, occurs when websites embed untrusted input inside CSV files. When a spreadsheet program such as Microsoft Excel or LibreOffice Calc is used to open a CSV, any cells starting with = will be interpreted by the software as a formula." (from [OWASP website](https://owasp.org/www-community/attacks/CSV_Injection))
 

@@ -87,7 +87,7 @@ Handsontable's built-in features make it a perfect fit for applications across d
 - Reporting platforms
 - Data management systems
 
-## Join our Community 🙌
+## Join our community 🙌
 
 You are welcome to join our GitHub community. Discuss new releases, propose features, and report bugs on:
 

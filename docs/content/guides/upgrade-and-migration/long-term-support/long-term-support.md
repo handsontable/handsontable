@@ -1,6 +1,6 @@
 ---
 type: explanation
-title: Long Term Support (LTS)
+title: Long term support (LTS)
 metaTitle: Long Term Support (LTS) - JavaScript Data Grid | Handsontable
 description: LTS (Long-Term Support) versions are Handsontable releases that are maintained for an extended period. 
 permalink: /long-term-support
@@ -18,13 +18,13 @@ LTS (Long-Term Support) versions are Handsontable release lines that are maintai
 
 [[toc]]
 
-## Release Types
+## Release types
 
 Handsontable has two types of release lines: **Current** and **Long-Term Support (LTS)**. The project adopts an even-numbered LTS pattern to provide predictable, stable releases for enterprise and production environments.
 
 Both **Current** and **LTS** releases are production-ready. **Current** releases should be used in production by those who value new features and all bug fixes over stability. **LTS** releases should be used in production by those who value stability over new features and minor bug fixes. The LTS schedule is designed to provide a reliable platform for applications that need extended maintenance windows and predictable upgrade cycles.
 
-## Release Schedule
+## Release schedule
 
 Major releases occur once every 6 months. Even-numbered releases (`16.0.0`, `18.0.0`, `20.0.0`, `22.0.0`) become **Long-Term Support releases**, while odd-numbered releases (`17.0.0`, `19.0.0`, `21.0.0`) are **Current-only releases**.
 
@@ -48,7 +48,7 @@ Dates below are offered as general guidance and are subject to change.
 
 </span>
 
-## Support Phases
+## Support phases
 
 Every major release progresses through distinct support phases:
 
@@ -59,13 +59,13 @@ Every major release progresses through distinct support phases:
 
 Current-only (odd-numbered) releases skip the LTS phases entirely, moving directly from Current to End-of-Life after 6 months. These releases allow the community to preview and test upcoming features before they stabilize in the next LTS release.
 
-## Choosing a Release
+## Choosing a release
 
 *   For **mission-critical production deployments**, use the latest Active LTS version. These releases offer the best balance of stability, performance, and security with guaranteed long-term support. Enterprise environments with strict change management requirements particularly benefit from the predictable maintenance windows and extended support lifecycle.
 *   For **agile production deployments**, either Current or Active LTS versions work well. The Current release provides access to the latest features and improvements, at the cost of frequent updates and changes that occasionally require your team to adapt your configuration.
 *   For **new projects** starting development, consider the release timeline. If your production deployment is months away, starting with the Current release allows you to familiarize yourself with upcoming features that will stabilize in the next LTS.
 
-### Version Lifecycle
+### Version lifecycle
 
 Each LTS release receives approximately **30 months of total support**:
 *   6 months as Current release
@@ -74,14 +74,14 @@ Each LTS release receives approximately **30 months of total support**:
 
 This extended support window ensures at least 12 months of overlap between consecutive LTS versions, providing ample time for testing and migration. Organizations can plan upgrades on a predictable 2-year cycle, moving from one LTS to the next.
 
-## Migration Strategy
+## Migration strategy
 
 The LTS model is designed to minimize disruption while ensuring applications stay secure and supported. When planning migrations:
 *   **From LTS to LTS** - Recommended path for production systems (e.g., v16 → v18 → v20). Each jump represents approximately one year of development, with breaking changes clearly documented in migration guides.
 *   **From Current to LTS** - If using an odd-numbered Current release, plan migration to the next even-numbered LTS release before the 6-month Current phase ends.
 *   **Security patches** during the Maintenance phase are designed to be drop-in replacements with minimal risk. However, thorough testing in staging environments remains essential before production deployment.
 
-## Backport Policy
+## Backport policy
 
 Backporting involves taking specific fixes from newer versions and retrofitting (cherry-picking) them to LTS releases, ensuring production systems receive critical updates without the disruption of major upgrades. Our backport policy prioritizes stability while addressing essential security and reliability concerns.
 
@@ -96,7 +96,7 @@ Two things are assessed for every fix: its **severity**, which decides whether i
 *   **Minor** -- cosmetic or transient issues that do not prevent completing a task, including visual artifacts that resolve on their own.
 *   **Performance** -- the grid works correctly, but slower than a previous release.
 
-### Backport Decision Matrix
+### Backport decision matrix
 
 The following matrix defines which types of fixes are backported to each support phase:
 
@@ -127,7 +127,7 @@ Keeping the Active LTS line working on current browser versions is part of the L
 
 A browser update that *exposes* a defect already present in the LTS line is not an environment regression. To qualify, the same Handsontable version must be verifiably working on the previous browser version, so a reproduction on both the previous and the new browser version is required before a report is treated as one.
 
-## Support Commitment
+## Support commitment
 
 Starting with version `16.0.0`, this LTS policy provides enterprise customers with the predictability and stability required for mission-critical applications. Version `16.x`, already in widespread production use, retroactively becomes our first Active LTS release, ensuring existing deployments receive continued support under this new model.
 

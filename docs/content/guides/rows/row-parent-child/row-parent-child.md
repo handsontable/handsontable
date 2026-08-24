@@ -182,7 +182,7 @@ Each _parent_ row header contains a `+`/`-` button. It is used to collapse or ex
 The child row headers have a bigger indentation, to enable the user to clearly recognize the child and parent elements. In the example above, the
 `Best Metal Performance` category loads collapsed so you can see the expand/collapse controls right away.
 
-### Context Menu
+### Context menu
 
 The context menu has been extended with a few Nested Rows related options, such as:
 
