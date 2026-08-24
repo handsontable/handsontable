@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed the full bundle failing to load on pages with an AMD loader present (RequireJS, SharePoint).",
-  "type": "fixed",
-  "issueOrPR": 13187,
-  "breaking": false,
-  "framework": "none"
-}

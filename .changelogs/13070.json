@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed removing rows throwing a \"Maximum call stack size exceeded\" error on grids with roughly 125,000 rows or more.",
-  "type": "fixed",
-  "issueOrPR": 13070,
-  "breaking": false,
-  "framework": "none"
-}

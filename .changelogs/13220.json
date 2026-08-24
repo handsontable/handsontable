@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed the autofill fill handle being cut in half at the bottom freeze line.",
-  "type": "fixed",
-  "issueOrPR": 13220,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Improved sizing plugins performance: AutoColumnSize measures only the changed cells on edits instead of rescanning whole columns, its background width sweep is budgeted and runs on browser idle time, AutoRowSize reuses the cached header height on selection-driven renders, and a multi-column resize triggers one height recalculation instead of one per column.",
-  "type": "changed",
-  "issueOrPR": 13097,
-  "breaking": false,
-  "framework": "none"
-}
