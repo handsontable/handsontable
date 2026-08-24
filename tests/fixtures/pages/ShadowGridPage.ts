@@ -92,4 +92,13 @@ export class ShadowGridPage {
   async outsideClickTargets(): Promise<string[]> {
     return this.page.evaluate(() => (window as any).__hotProbe.outsideClickTargets());
   }
+
+  /**
+   * Filter `composedPath()` on mouse events down to the shadow host chain, the way Salesforce
+   * Lightning Web Security presents them to sandboxed code (fixture probe). Call before the
+   * interaction under test.
+   */
+  async simulateSandboxedHost(): Promise<void> {
+    await this.page.evaluate(() => (window as any).__hotProbe.simulateSandboxedHost());
+  }
 }

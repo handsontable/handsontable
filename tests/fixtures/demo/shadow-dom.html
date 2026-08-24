@@ -134,6 +134,29 @@
         window.__outsideClickTargets = targets;
       },
       outsideClickTargets: () => window.__outsideClickTargets,
+      /**
+       * Makes mouse events look the way a sandboxed host (Salesforce Lightning Web Security)
+       * presents them: `composedPath()` is filtered down to the shadow host chain, so nothing
+       * from inside a shadow tree and no ShadowRoot entry survives. `event.target` is left
+       * alone - the browser already retargets it per listener, which is the whole point: a
+       * listener on the document sees the host while one inside the shadow tree sees the cell.
+       * That split is what the document/shadow-root dedupe has to survive.
+       */
+      simulateSandboxedHost: () => {
+        const nativeComposedPath = Event.prototype.composedPath;
+
+        Event.prototype.composedPath = function() {
+          const path = nativeComposedPath.call(this);
+
+          if (!(this instanceof MouseEvent)) {
+            return path;
+          }
+
+          const firstShadowRoot = path.findIndex(entry => entry instanceof ShadowRoot);
+
+          return firstShadowRoot === -1 ? path : path.slice(firstShadowRoot + 1);
+        };
+      },
     };
   </script>
 </body>
