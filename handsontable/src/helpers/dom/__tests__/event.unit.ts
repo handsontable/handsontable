@@ -71,8 +71,9 @@ describe('DomEvent helper', () => {
   /**
    * Builds a touch event, mirroring what a browser reports.
    *
-   * The lists are attached as plain properties because jsdom implements neither `Touch` nor
-   * `TouchEvent` - which is also the case the property-based check exists for.
+   * jsdom provides the `TouchEvent` constructor but no `Touch`, so its init cannot populate
+   * `touches`/`changedTouches`. The lists are attached as plain properties instead - which is also
+   * the shape the property-based check exists for.
    *
    * @param {Array} touches Fingers still on the screen.
    * @param {Array} changedTouches Fingers this event is about.
@@ -144,7 +145,14 @@ describe('DomEvent helper', () => {
   describe('getTouchPointById', () => {
     it('should return the position of the finger with the given identifier', () => {
       expect(getTouchPointById(touchEvent([fingerB, fingerA]), 7))
-        .toEqual({ clientX: 120, clientY: 340 });
+        .toEqual({ identifier: 7, clientX: 120, clientY: 340 });
+    });
+
+    it('should return the same shape as getFirstChangedTouch', () => {
+      const event = touchEvent([fingerB, fingerA], [fingerA]);
+
+      expect(Object.keys(getTouchPointById(event, 7)!).sort())
+        .toEqual(Object.keys(getFirstChangedTouch(event)!).sort());
     });
 
     it('should return null once that finger has left the screen', () => {

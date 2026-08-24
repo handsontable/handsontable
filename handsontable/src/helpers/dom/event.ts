@@ -63,7 +63,7 @@ export function isTouchEvent(event: Event): boolean {
 /**
  * One finger, as a touch event reports it.
  */
-interface TouchPoint {
+export interface TouchPoint {
   identifier: number;
   clientX: number;
   clientY: number;
@@ -76,7 +76,7 @@ interface TouchPoint {
  * is only the fingers this particular event is about - the ones that landed, moved, lifted or were
  * cancelled.
  */
-interface TouchListEvent extends Event {
+export interface TouchListEvent extends Event {
   touches: ArrayLike<TouchPoint>;
   changedTouches: ArrayLike<TouchPoint>;
 }
@@ -128,13 +128,10 @@ export function getFirstChangedTouch(event: Event): TouchPoint | null {
  *
  * @param {Event} event The event object.
  * @param {number} identifier The `Touch.identifier` to look for.
- * @returns {object|null} The finger's position as `{clientX, clientY}`, or `null` when it is no
- * longer touching the screen.
+ * @returns {object|null} The finger as `{identifier, clientX, clientY}`, matching
+ * `getFirstChangedTouch()`, or `null` when it is no longer touching the screen.
  */
-export function getTouchPointById(
-  event: Event,
-  identifier: number
-): { clientX: number; clientY: number } | null {
+export function getTouchPointById(event: Event, identifier: number): TouchPoint | null {
   if (!hasTouchList(event)) {
     return null;
   }
@@ -143,7 +140,7 @@ export function getTouchPointById(
     const touch = event.touches[i];
 
     if (touch.identifier === identifier) {
-      return { clientX: touch.clientX, clientY: touch.clientY };
+      return { identifier: touch.identifier, clientX: touch.clientX, clientY: touch.clientY };
     }
   }
 

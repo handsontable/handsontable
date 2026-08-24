@@ -545,7 +545,9 @@ export class MultipleSelectionHandles extends BasePlugin {
 
     const targetCoords = getCellCoordsFromMousePosition(this.hot, clientX, clientY);
 
-    // A position over the row header resolves to column -1; treat it as the first column.
+    // `getCellCoordsFromMousePosition` clamps into the body, so a position over a header already
+    // resolves to a real cell - there is no -1 to normalize. The floor only guards the helper's
+    // empty-grid fallback, where `countCols() - 1` / `countRows() - 1` would be -1.
     const targetRow = Math.max(targetCoords.row ?? 0, 0);
     const targetCol = Math.max(targetCoords.col ?? 0, 0);
 
