@@ -59,6 +59,18 @@ export interface FixtureHotInstance {
     countChildren(row: number, recursive?: boolean): number,
     expandToRow(row: number): boolean,
     expandToLevel(level: number): void,
+    // Private, but a spec needs it: there is no public API for the stash window that add child,
+    // detach child, remove row and row move open around themselves.
+    collapsingUI: {
+      collapsedRowsStash: {
+        stash(): void,
+        applyStash(): void,
+      },
+    },
+    dataManager: {
+      getDataObject(row: number): object | null,
+      addChild(parent: object): void,
+    },
   };
   getPlugin(name: 'selectionHandles'): {
     isDragActive(): boolean,
@@ -89,6 +101,7 @@ export interface FixtureHotInstance {
   toPhysicalRow(row: number): number | null;
   selectCell(row: number, col: number): boolean;
   loadData(data: unknown[]): void;
+  updateData(data: unknown[]): void;
   updateSettings(settings: Record<string, unknown>): void;
   countCols(): number;
   _createCellCoords(row: number, col: number): unknown;

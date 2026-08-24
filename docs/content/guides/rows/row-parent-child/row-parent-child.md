@@ -359,10 +359,27 @@ const configurationOptions = {
 };
 ```
 
+One case fires no hooks: when [`updateData()`](@/api/core.md#updatedata) collapses the same parents
+again on the new data. That is not a new action, only the state the user already chose, so it stays
+silent. If you mirror the collapsed state somewhere, read it back with
+[`getCollapsedParents()`](@/api/nestedRows.md#getcollapsedparents) after `updateData()` instead of
+counting on a hook.
+
 ### Save and restore the collapsed rows
 
-The hooks carry physical indexes, which is what you want to store. To restore the state after
-replacing the data, collapse the deepest parents first: collapsing a parent hides its children, so a
+The two data methods treat the collapsed rows differently, and the difference decides whether you
+have to restore anything at all:
+
+- [`updateData()`](@/api/core.md#updatedata) **keeps** the collapsed parents. It matches them by
+  their position in the tree, so they stay collapsed even when the number of children changes. Do
+  not restore them yourself here. A saved list holds physical row indexes, and those move as soon as
+  a parent gains or loses a child, so replaying it collapses the wrong rows.
+- [`loadData()`](@/api/core.md#loaddata) **drops** them, along with every other row state.
+  [`getCollapsedParents()`](@/api/nestedRows.md#getcollapsedparents) returns an empty array
+  afterwards. Restore the state yourself if you want it back.
+
+The example below covers the `loadData()` case. The hooks carry physical indexes, which is what you
+want to store. Collapse the deepest parents first: collapsing a parent hides its children, so a
 nested parent has to be collapsed while it is still visible.
 
 ```js

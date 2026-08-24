@@ -77,6 +77,67 @@ export class NestedRowsPage {
     return this.page.evaluate(() => window.hot.getPlugin('nestedRows').getCollapsedParents());
   }
 
+  /** Replace the data with `updateData()`, which is documented to keep the rows' states. */
+  async updateData(data: unknown[]): Promise<void> {
+    await this.page.evaluate(rows => window.hot.updateData(rows), data);
+  }
+
+  /** Replace the data with `loadData()`, which is documented to reset the rows' states. */
+  async loadData(data: unknown[]): Promise<void> {
+    await this.page.evaluate(rows => window.hot.loadData(rows), data);
+  }
+
+  /**
+   * Opens the collapse stash, the way add child, detach child, remove row and row move all do:
+   * the grid is expanded and the collapsed parents are parked until `applyCollapsedStash()`.
+   *
+   * No public API opens that window, so the spec drives the plugin internals directly.
+   */
+  async stashCollapsedState(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.getPlugin('nestedRows').collapsingUI.collapsedRowsStash.stash();
+    });
+  }
+
+  /** Closes the stash window, restoring the parked parents. */
+  async applyCollapsedStash(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.getPlugin('nestedRows').collapsingUI.collapsedRowsStash.applyStash();
+    });
+  }
+
+  /**
+   * Replaces the data from inside a real `beforeAddChild` window, the way an app that refetches on
+   * every structural change does. The plugin has the stash open for the whole call, so this drives
+   * the data hooks through an operation rather than opening the stash by hand.
+   *
+   * @param data The new source data.
+   * @param parentRow Physical row index of the parent to add a child to.
+   */
+  async replaceDataWhileAddingChild(data: unknown[], parentRow: number): Promise<void> {
+    await this.page.evaluate(({ rows, parent }) => {
+      window.hot.addHook('beforeAddChild', () => {
+        window.hot.updateData(rows as unknown[]);
+      });
+
+      const { dataManager } = window.hot.getPlugin('nestedRows');
+      const parentObject = dataManager.getDataObject(parent as number);
+
+      if (parentObject) {
+        dataManager.addChild(parentObject);
+      }
+    }, { rows: data, parent: parentRow });
+  }
+
+  /** The visual row the selection highlight sits on, or `null` when nothing is selected. */
+  highlightedRow(): Promise<number | null> {
+    return this.page.evaluate(() => {
+      const last = window.hot.getSelectedLast();
+
+      return last ? last[0] : null;
+    });
+  }
+
   /** Every collapse/expand hook call the fixture has recorded, in order. */
   hookLog(): Promise<NestedRowsHookCall[]> {
     return this.page.evaluate(() => window.hookLog);

@@ -104,6 +104,22 @@ export class NestedRows extends BasePlugin {
   #isFirstRender = true;
 
   /**
+   * Tree paths of the parents that were collapsed when `updateData()` started, kept only until the
+   * new structure is cached and they can be collapsed again.
+   *
+   * @type {number[][]}
+   */
+  #collapsedParentPaths: number[][] = [];
+
+  /**
+   * Tree paths held by a stash that an outer operation left open when `updateData()` started.
+   * `null` means there was no open stash.
+   *
+   * @type {number[][]|null}
+   */
+  #stashedParentPaths: number[][] | null = null;
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link NestedRows#enablePlugin} method is called.
    *
@@ -151,7 +167,8 @@ export class NestedRows extends BasePlugin {
     this.addHook('afterCreateRow', this.#onAfterCreateRow);
     this.addHook('beforeRowMove', this.#onBeforeRowMove);
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
-    this.addHook('beforeUpdateData', this.#onBeforeLoadData);
+    this.addHook('beforeUpdateData', this.#onBeforeUpdateData);
+    this.addHook('afterUpdateData', this.#onAfterUpdateData);
 
     this.registerShortcuts();
     super.enablePlugin();
@@ -923,22 +940,171 @@ export class NestedRows extends BasePlugin {
   };
 
   /**
+   * Checks the incoming data and turns the plugin off when it cannot work with it.
+   *
+   * @param {Array} data The source data.
+   * @returns {boolean} `true` when the plugin accepts the data.
+   */
+  #acceptsData(data: unknown[]): boolean {
+    if (isValidDataSource(data)) {
+      return true;
+    }
+
+    error(WRONG_DATA_TYPE_ERROR);
+
+    this.hot.getSettings()[PLUGIN_KEY] = false;
+    this.disablePlugin();
+
+    return false;
+  }
+
+  /**
+   * Forgets which parents are collapsed, and untrims the rows that collapse had hidden.
+   *
+   * All three stores are keyed by physical row index, and none of those indexes means anything once
+   * the data is replaced: the collapsed-parents list, the trimming map, and the stash an outer
+   * operation left open.
+   *
+   * @param {boolean} untrimRows `true` also clears the trimming map. `loadData()` passes `false`,
+   * because `initIndexMappers()` resets every map moments later and doing it twice costs a second
+   * row index cache rebuild.
+   */
+  #clearCollapsedState(untrimRows: boolean) {
+    if (!this.collapsingUI) {
+      return;
+    }
+
+    if (this.collapsingUI.lastCollapsedRows) {
+      this.collapsingUI.lastCollapsedRows = [];
+    }
+
+    // Nothing is trimmed when no parent is collapsed, and the early return is load-bearing:
+    // `core.unit.js` asserts exactly one `cacheUpdated` on init with `nestedRows: true`, and a data
+    // load runs on every grid init.
+    if (this.collapsingUI.collapsedRows.length === 0) {
+      return;
+    }
+
+    this.collapsingUI.collapsedRows.length = 0;
+
+    if (untrimRows) {
+      this.collapsedRowsMap?.clear();
+    }
+  }
+
+  /**
+   * Translates physical row indexes into tree paths, dropping the rows the current cache does not
+   * know about.
+   *
+   * @param {number[]} rows Physical row indexes.
+   * @returns {number[][]}
+   */
+  #toTreePaths(rows: number[]): number[][] {
+    return rows
+      .map(row => this.dataManager!.getRowTreePath(row))
+      .filter((path): path is number[] => path !== null);
+  }
+
+  /**
+   * Translates tree paths back into physical row indexes, keeping only the rows that still exist and
+   * still have children.
+   *
+   * Order is left alone. Collapsing changes which rows are trimmed, not their physical indexes, so
+   * an ancestor and its descendant can be collapsed in either order for the same result.
+   *
+   * @param {number[][]} paths Tree paths.
+   * @returns {number[]} Physical row indexes.
+   */
+  #toCollapsibleRows(paths: number[][]): number[] {
+    return paths
+      .map(path => this.dataManager!.getRowIndexByTreePath(path))
+      .filter((row): row is number => row !== null && this.dataManager!.hasChildren(row));
+  }
+
+  /**
    * `beforeLoadData` hook callback.
+   *
+   * `loadData()` resets the rows' states, so the collapsed parents are dropped along with them.
    *
    * @param {Array} data The source data.
    */
   #onBeforeLoadData = (data: unknown[]) => {
-    if (!isValidDataSource(data)) {
-      error(WRONG_DATA_TYPE_ERROR);
-
-      this.hot.getSettings()[PLUGIN_KEY] = false;
-      this.disablePlugin();
-
+    if (!this.#acceptsData(data)) {
       return;
     }
 
+    this.#clearCollapsedState(false);
+
     this.dataManager!.setData(data as RowObject[]);
     this.dataManager!.rewriteCache();
+  };
+
+  /**
+   * `beforeUpdateData` hook callback.
+   *
+   * `updateData()` keeps the rows' states, so the collapsed parents have to survive the swap. They
+   * cannot be carried over as physical row indexes: those shift as soon as any parent gains or
+   * loses a child, and the stale indexes then hide the wrong rows - parent rows included. The
+   * parents are remembered as tree paths instead, and collapsed again in `afterUpdateData`, once
+   * the index maps have been resized to the new data.
+   *
+   * @param {Array} data The source data.
+   */
+  #onBeforeUpdateData = (data: unknown[]) => {
+    if (!this.#acceptsData(data)) {
+      return;
+    }
+
+    const openStash = this.collapsingUI?.lastCollapsedRows;
+
+    this.#collapsedParentPaths = this.#toTreePaths(this.collapsingUI?.getCollapsedParents() ?? []);
+    // An outer operation - add child, detach child, remove row, row move - may hold the collapsed
+    // state in an open stash instead, having expanded the grid for the duration. That copy has to
+    // be re-pointed as well, or `applyStash()` collapses whatever now sits at the old indexes.
+    this.#stashedParentPaths = openStash ? this.#toTreePaths(openStash) : null;
+
+    this.#clearCollapsedState(true);
+
+    this.dataManager!.setData(data as RowObject[]);
+    this.dataManager!.rewriteCache();
+  };
+
+  /**
+   * `afterUpdateData` hook callback.
+   *
+   * Collapses the parents that were collapsed before the update and are still parents in the new
+   * data, and re-points an open stash at the same rows. A parent that the new data dropped, or that
+   * no longer has children, is simply forgotten.
+   */
+  #onAfterUpdateData = () => {
+    const paths = this.#collapsedParentPaths;
+    const stashedPaths = this.#stashedParentPaths;
+
+    this.#collapsedParentPaths = [];
+    this.#stashedParentPaths = null;
+
+    if (!this.collapsingUI || !this.dataManager) {
+      return;
+    }
+
+    if (stashedPaths !== null) {
+      this.collapsingUI.lastCollapsedRows = this.#toCollapsibleRows(stashedPaths);
+    }
+
+    const parentsToCollapse = this.#toCollapsibleRows(paths);
+
+    if (parentsToCollapse.length === 0) {
+      return;
+    }
+
+    // Replaying a state the user already chose is not a new action, so the hooks stay silent, and
+    // `replaceData` renders as soon as this hook returns - a render here would be the second one.
+    this.collapsingUI.toggleCollapsedRows(parentsToCollapse, 'collapse', false, false);
+
+    // The Core clamped the selection before this hook ran, against a grid that was still fully
+    // expanded. Trimming does not re-clamp it - `selection.commit()` only follows hidden indexes -
+    // so without this the highlight can sit past the last row.
+    this.hot.selection.refresh();
   };
 
   /**
