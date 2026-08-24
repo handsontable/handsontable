@@ -333,6 +333,58 @@ describe('overlay scrollbar clearance', () => {
       expect(host.classList.contains(OVERLAY_SCROLLBAR_FILLER_OPEN_CLASS)).toBe(true);
     });
 
+    it('should leave a nested grid\'s own host alone', () => {
+      // A grid rendered inside a cell puts its whole DOM, holder included, inside the outer grid's
+      // master holder. A subtree search from the outer holder finds the INNER host first, so the outer
+      // grid deleted the inner grid's bands as its own, or adopted its host and sized outer-scrollport
+      // fillers into a small nested grid.
+      const outer = buildHolder();
+      const innerHolder = document.createElement('div');
+      const innerHost = document.createElement('div');
+
+      innerHost.className = OVERLAY_SCROLLBAR_FILLER_HOST_CLASS;
+      innerHolder.appendChild(innerHost);
+      outer.appendChild(innerHolder);
+
+      syncScrollbarTrackBands(outer, {
+        bottom: 16, inlineEnd: 0, scrollportWidth: 700, scrollportHeight: 340,
+      }, { bottom: true, inlineEnd: false });
+
+      // The outer grid builds its own host as a direct child, and the nested one is untouched.
+      const outerHost = [...outer.children].find(c => c.classList.contains(OVERLAY_SCROLLBAR_FILLER_HOST_CLASS));
+
+      expect(outerHost).toBeDefined();
+      expect(outerHost).not.toBe(innerHost);
+      expect(innerHost.children).toHaveLength(0);
+      // Still where it was: the test holder is detached, so `isConnected` cannot answer this.
+      expect(innerHost.parentNode).toBe(innerHolder);
+    });
+
+    it('should not delete a nested grid\'s host when the outer grid has none', () => {
+      // The resting state: with no bands of its own, the outer grid used to find the inner host and
+      // remove it outright.
+      const outer = buildHolder();
+      const innerHolder = document.createElement('div');
+      const innerHost = document.createElement('div');
+      const innerBand = document.createElement('div');
+
+      innerHost.className = OVERLAY_SCROLLBAR_FILLER_HOST_CLASS;
+      innerBand.className = OVERLAY_SCROLLBAR_FILLER_CLASS;
+      innerBand.setAttribute('data-ht-clearance-owner', 'track');
+      innerHost.appendChild(innerBand);
+      innerHolder.appendChild(innerHost);
+      outer.appendChild(innerHolder);
+
+      // Classic scrollbars on the outer grid: nothing wanted, so it clears its own bands.
+      syncScrollbarTrackBands(outer, {
+        bottom: 0, inlineEnd: 0, scrollportWidth: 700, scrollportHeight: 340,
+      }, { bottom: false, inlineEnd: false });
+
+      // Still where it was: the test holder is detached, so `isConnected` cannot answer this.
+      expect(innerHost.parentNode).toBe(innerHolder);
+      expect(innerHost.children).toHaveLength(1);
+    });
+
     it('should drop a closing band in the same frame rather than fading it out', () => {
       const holder = buildHolder();
       const sizes = { bottom: 16, inlineEnd: 0, scrollportWidth: 700, scrollportHeight: 340 };

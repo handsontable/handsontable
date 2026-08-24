@@ -367,16 +367,45 @@ export function syncScrollbarTrackBands(
 }
 
 /**
+ * Finds a holder's own filler host, looking at its direct children only.
+ *
+ * A subtree search reaches into nested grids. A grid rendered inside a cell - a `HotTable` in a custom
+ * renderer - puts its whole DOM, holder included, inside the outer grid's master holder, so
+ * `querySelector` from the outer holder finds the INNER grid's host first. The outer grid would then
+ * delete the inner grid's bands as if they were its own, or adopt its host and size outer-scrollport
+ * fillers into a small nested grid.
+ *
+ * The host is always inserted as a direct child of the holder it belongs to, so this cannot miss its
+ * own and cannot reach anyone else's.
+ *
+ * @param {HTMLElement} masterHolder The master overlay's holder.
+ * @returns {HTMLElement | null}
+ */
+function findFillerHost(masterHolder: HTMLElement): HTMLElement | null {
+  const { children } = masterHolder;
+
+  for (let i = 0; i < children.length; i += 1) {
+    const child = children[i] as HTMLElement;
+
+    if (child.classList?.contains(OVERLAY_SCROLLBAR_FILLER_HOST_CLASS)) {
+      return child;
+    }
+  }
+
+  return null;
+}
+
+/**
  * Returns the master holder's filler host, creating it on first use.
  *
  * @param {HTMLElement} masterHolder The master overlay's holder.
  * @returns {HTMLElement}
  */
 function ensureFillerHost(masterHolder: HTMLElement): HTMLElement {
-  const existing = masterHolder.querySelector(`.${OVERLAY_SCROLLBAR_FILLER_HOST_CLASS}`);
+  const existing = findFillerHost(masterHolder);
 
   if (existing) {
-    return existing as HTMLElement;
+    return existing;
   }
 
   const host = masterHolder.ownerDocument.createElement('div');
@@ -433,7 +462,7 @@ function renderFillers(host: HTMLElement, key: string, rects: FillerRect[]): voi
  * @param {string} owner The owner key whose bands should go.
  */
 function removeFillers(masterHolder: HTMLElement, owner: string): void {
-  const host = masterHolder.querySelector(`.${OVERLAY_SCROLLBAR_FILLER_HOST_CLASS}`);
+  const host = findFillerHost(masterHolder);
 
   if (!host) {
     return;
