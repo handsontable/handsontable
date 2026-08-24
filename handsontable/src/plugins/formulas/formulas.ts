@@ -136,9 +136,19 @@ const isStructuralAction = (action: unknown) => STRUCTURAL_ACTION_TYPES.has(getA
 // Redo does replay the move, so it must NOT be listed, or the sheet would be scanned twice.
 const isUndoneMoveCells = (action: unknown) => getActionType(action) === 'move_cells';
 
+// Only these can leave a formula pointing at cells that no longer exist.
+const REFERENCE_BREAKING_ACTION_TYPES = new Set(['remove_row', 'remove_col', 'move_cells']);
+
+const canBreakReferences = (action: unknown) =>
+  REFERENCE_BREAKING_ACTION_TYPES.has(getActionType(action) as string);
+
 // Maximum number of `[startIndex, amount]` spans passed to a single variadic engine
 // `removeRows`/`removeColumns` call. An unbounded argument spread could overflow the call stack.
 const REMOVAL_SPANS_CHUNK_SIZE = 1000;
+
+// A formula whose reference the engine could not keep. Only operations that remove or relocate
+// cells may put one into the source data - see `#syncFormulasToSourceData`.
+const REF_ERROR_PATTERN = /#REF!/;
 
 /**
  * This plugin allows you to perform Excel-like calculations in your business applications. It does it by an
@@ -633,7 +643,7 @@ export class Formulas extends BasePlugin {
       // The structural hooks skip blocked sources, so undoing a row/column change reverts the
       // formulas inside the engine only - the source data has to be caught up separately.
       if (isStructuralAction(action) || isUndoneMoveCells(action)) {
-        this.#syncFormulasToSourceData();
+        this.#syncFormulasToSourceData(canBreakReferences(action));
       }
     });
 
@@ -642,7 +652,7 @@ export class Formulas extends BasePlugin {
       this.#validateUndoRedoDependentCells();
 
       if (isStructuralAction(action)) {
-        this.#syncFormulasToSourceData();
+        this.#syncFormulasToSourceData(canBreakReferences(action));
       }
     });
 
@@ -1717,6 +1727,49 @@ export class Formulas extends BasePlugin {
   };
 
   /**
+   * Checks whether the engine's column indexes are Handsontable's *physical* ones.
+   *
+   * `#getProcessedSourceDataArray` feeds the engine rows projected to the visible columns only when
+   * an array-of-arrays source actually skips physical indexes; array-of-objects rows arrive already
+   * projected. In every other case the engine receives the raw physical row, so a `columns` list
+   * that merely *reorders* the same number of columns leaves the engine on physical indexes while
+   * the grid reads them through `colToProp`.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  #doesEngineHoldPhysicalColumns() {
+    return this.hot.countCols() >= this.hot.countSourceCols() && isArrayOfArrays(this.hot.getSourceData());
+  }
+
+  /**
+   * Resolves an engine column index to the visual column to read from and the prop to write to.
+   *
+   * The two differ: `getSourceDataAtCell` resolves its column argument as a visual index, while
+   * `setSourceDataAtCell` takes a prop. Returns `null` when the cell has no visual counterpart and
+   * must be left alone.
+   *
+   * @private
+   * @param {number} hfColumn The engine's column index.
+   * @returns {{ visualColumn: number, prop: string | number } | null}
+   */
+  #resolveEngineColumn(hfColumn: number) {
+    if (this.#doesEngineHoldPhysicalColumns()) {
+      // The engine index is the physical one, which doubles as the prop for array-of-arrays data.
+      const visualColumn = this.hot.propToCol(hfColumn);
+
+      return isNumeric(visualColumn) && (visualColumn as number) >= 0
+        ? { visualColumn: visualColumn as number, prop: hfColumn }
+        : null;
+    }
+
+    const visualColumn = this.columnAxisSyncer!.getVisualIndexFromHfIndex(hfColumn);
+
+    // A trimmed column has no visual index, and without one there is no prop to write to either.
+    return visualColumn === -1 ? null : { visualColumn, prop: this.hot.colToProp(visualColumn) as string | number };
+  }
+
+  /**
    * Checks whether a stored cell value is the same formula as the one the engine holds, ignoring
    * how it was spelled.
    *
@@ -1770,7 +1823,7 @@ export class Formulas extends BasePlugin {
    *
    * @private
    */
-  #syncFormulasToSourceData() {
+  #syncFormulasToSourceData(allowBrokenReferences = false) {
     if (
       this.#internalOperationPending ||
       this.sheetName === null ||
@@ -1818,23 +1871,28 @@ export class Formulas extends BasePlugin {
             continue;
           }
 
-          const visualColumn = this.columnAxisSyncer!.getVisualIndexFromHfIndex(hfColumn);
+          const column = this.#resolveEngineColumn(hfColumn);
 
-          // A trimmed column has no visual index, and the read and the write below disagree about
-          // which column space an index is in without one - `getSourceDataAtCell` resolves it as a
-          // visual column, `setSourceDataAtCell` as a prop. Rather than guess, leave the cell alone:
-          // no core plugin trims columns, so this only reaches a userland trimming map.
-          if (visualColumn === -1) {
+          if (column === null) {
             continue;
           }
 
           // `getSourceDataAtCell` takes a physical row and a visual column, `setSourceDataAtCell`
           // a physical row and a prop.
-          const stored = this.hot.getSourceDataAtCell(physicalRow, visualColumn);
+          const stored = this.hot.getSourceDataAtCell(physicalRow, column.visualColumn);
 
-          if (stored !== formula && !this.#isSameFormula(stored, formula)) {
-            changes.push([physicalRow, this.hot.colToProp(visualColumn) as string | number, formula]);
+          if (stored === formula || this.#isSameFormula(stored, formula)) {
+            continue;
           }
+
+          // An engine formula can hold `#REF!` for reasons this change did not cause. Persisting it
+          // would overwrite a still-good formula in the developer's array with an unrecoverable one,
+          // so it is only written for the operations that can legitimately break a reference.
+          if (!allowBrokenReferences && REF_ERROR_PATTERN.test(formula) && !REF_ERROR_PATTERN.test(String(stored))) {
+            continue;
+          }
+
+          changes.push([physicalRow, column.prop, formula]);
         }
       }
     } finally {
@@ -1916,7 +1974,7 @@ export class Formulas extends BasePlugin {
       this.#removeSpansFromEngine(removedSpans, 'removeRows');
     });
 
-    this.#syncFormulasToSourceData();
+    this.#syncFormulasToSourceData(true);
     this.renderDependentSheets(changes);
   };
 
@@ -1940,7 +1998,7 @@ export class Formulas extends BasePlugin {
       this.#removeSpansFromEngine(removedSpans, 'removeColumns');
     });
 
-    this.#syncFormulasToSourceData();
+    this.#syncFormulasToSourceData(true);
     this.renderDependentSheets(changes);
   };
 
@@ -2175,7 +2233,7 @@ export class Formulas extends BasePlugin {
 
     // `#syncHotDataAfterMoveCells` covers the cells that were moved. Formulas elsewhere that
     // pointed at the moved range were rewritten by the engine too, and need the same catch-up.
-    this.#syncFormulasToSourceData();
+    this.#syncFormulasToSourceData(true);
 
     // During undo/redo replay the engine step was skipped (dependentCells is null) and the
     // HOT re-render after undo/redo refreshes all dependent cells anyway.

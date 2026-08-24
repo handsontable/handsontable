@@ -1361,6 +1361,58 @@ describe('Formulas general', () => {
       expect(data[0][1]).toBe('=SUM(A1:A3)');
     });
 
+    it('should write into the right column when `columns` reorders the source columns', async() => {
+      const data = [
+        [1, '=SUM(A1:A3)'],
+        [2, null],
+        [3, null],
+      ];
+
+      handsontable({
+        data,
+        // Same column count, so the data fed to the engine is not projected - the engine holds
+        // physical indexes while the grid reads them through `colToProp`.
+        columns: [{ data: 1 }, { data: 0 }],
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      await alter('insert_row_above', 1, 1);
+
+      expect(data[0][1]).toBe('=SUM(A1:A4)');
+      // The number must survive - writing the formula here would destroy it for good.
+      expect(data[0][0]).toBe(1);
+    });
+
+    it('should not persist a broken reference the change could not have caused', async() => {
+      const data = [
+        [1, '=SUM(A1:A3)'],
+        [2, null],
+        [3, null],
+      ];
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+        manualRowMove: true,
+        columnSorting: true,
+        rowHeaders: true,
+      });
+
+      getPlugin('manualRowMove').moveRow(0, 2);
+      await render();
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      // The engine is left holding `=SUM(#REF!)` here for reasons this change did not cause.
+      await alter('insert_row_above', 1, 1);
+
+      // An insert cannot break a reference, so the good formula must stay.
+      expect(data[0][1]).toBe('=SUM(A1:A3)');
+    });
+
     it('should not touch the passed data array when rows are only moved', async() => {
       const data = getDataWithFormula();
 
