@@ -87,6 +87,25 @@ export class NestedRowsPage {
     await this.page.evaluate(rows => window.hot.loadData(rows), data);
   }
 
+  /**
+   * Opens the collapse stash, the way add child, detach child, remove row and row move all do:
+   * the grid is expanded and the collapsed parents are parked until `applyCollapsedStash()`.
+   *
+   * No public API opens that window, so the spec drives the plugin internals directly.
+   */
+  async stashCollapsedState(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.getPlugin('nestedRows').collapsingUI.collapsedRowsStash.stash();
+    });
+  }
+
+  /** Closes the stash window, restoring the parked parents. */
+  async applyCollapsedStash(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.getPlugin('nestedRows').collapsingUI.collapsedRowsStash.applyStash();
+    });
+  }
+
   /** Every collapse/expand hook call the fixture has recorded, in order. */
   hookLog(): Promise<NestedRowsHookCall[]> {
     return this.page.evaluate(() => window.hookLog);

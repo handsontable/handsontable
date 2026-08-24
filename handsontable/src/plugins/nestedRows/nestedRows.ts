@@ -112,6 +112,14 @@ export class NestedRows extends BasePlugin {
   #collapsedParentPaths: number[][] = [];
 
   /**
+   * Tree paths held by a stash that an outer operation left open when `updateData()` started.
+   * `null` means there was no open stash.
+   *
+   * @type {number[][]|null}
+   */
+  #stashedParentPaths: number[][] | null = null;
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link NestedRows#enablePlugin} method is called.
    *
@@ -953,19 +961,58 @@ export class NestedRows extends BasePlugin {
   /**
    * Forgets which parents are collapsed, and untrims the rows that collapse had hidden.
    *
-   * Both stores are keyed by physical row index, and neither of those indexes means anything once
-   * the data is replaced.
+   * All three stores are keyed by physical row index, and none of those indexes means anything once
+   * the data is replaced: the collapsed-parents list, the trimming map, and the stash an outer
+   * operation left open.
    *
-   * There is nothing to do when no parent is collapsed, and skipping the map matters there:
+   * There is nothing to trim when no parent is collapsed, and skipping the map matters there:
    * clearing it rebuilds the row index cache, and a data load runs on every grid init.
    */
   #clearCollapsedState() {
-    if (!this.collapsingUI || this.collapsingUI.collapsedRows.length === 0) {
+    if (!this.collapsingUI) {
+      return;
+    }
+
+    if (this.collapsingUI.lastCollapsedRows) {
+      this.collapsingUI.lastCollapsedRows = [];
+    }
+
+    if (this.collapsingUI.collapsedRows.length === 0) {
       return;
     }
 
     this.collapsingUI.collapsedRows.length = 0;
     this.collapsedRowsMap?.clear();
+  }
+
+  /**
+   * Translates physical row indexes into tree paths, dropping the rows the current cache does not
+   * know about.
+   *
+   * @param {number[]} rows Physical row indexes.
+   * @returns {number[][]}
+   */
+  #toTreePaths(rows: number[]): number[][] {
+    return rows
+      .map(row => this.dataManager!.getRowTreePath(row))
+      .filter((path): path is number[] => path !== null);
+  }
+
+  /**
+   * Translates tree paths back into physical row indexes, keeping only the rows that still exist and
+   * still have children.
+   *
+   * Sorted shallowest first, so an ancestor is always handled before its own descendants.
+   *
+   * @param {number[][]} paths Tree paths.
+   * @returns {number[]} Physical row indexes.
+   */
+  #toCollapsibleRows(paths: number[][]): number[] {
+    return paths
+      .slice()
+      .sort((pathA, pathB) => pathA.length - pathB.length)
+      .map(path => this.dataManager!.getRowIndexByTreePath(path))
+      .filter((row): row is number => row !== null && this.dataManager!.hasChildren(row));
   }
 
   /**
@@ -1002,9 +1049,13 @@ export class NestedRows extends BasePlugin {
       return;
     }
 
-    this.#collapsedParentPaths = (this.collapsingUI?.getCollapsedParents() ?? [])
-      .map(parentRow => this.dataManager!.getRowTreePath(parentRow))
-      .filter((path): path is number[] => path !== null);
+    const openStash = this.collapsingUI?.lastCollapsedRows;
+
+    this.#collapsedParentPaths = this.#toTreePaths(this.collapsingUI?.getCollapsedParents() ?? []);
+    // An outer operation - add child, detach child, remove row, row move - may hold the collapsed
+    // state in an open stash instead, having expanded the grid for the duration. That copy has to
+    // be re-pointed as well, or `applyStash()` collapses whatever now sits at the old indexes.
+    this.#stashedParentPaths = openStash ? this.#toTreePaths(openStash) : null;
 
     this.#clearCollapsedState();
 
@@ -1016,23 +1067,25 @@ export class NestedRows extends BasePlugin {
    * `afterUpdateData` hook callback.
    *
    * Collapses the parents that were collapsed before the update and are still parents in the new
-   * data. A parent that the new data dropped, or that no longer has children, is simply forgotten.
+   * data, and re-points an open stash at the same rows. A parent that the new data dropped, or that
+   * no longer has children, is simply forgotten.
    */
   #onAfterUpdateData = () => {
     const paths = this.#collapsedParentPaths;
+    const stashedPaths = this.#stashedParentPaths;
 
     this.#collapsedParentPaths = [];
+    this.#stashedParentPaths = null;
 
-    if (paths.length === 0 || !this.collapsingUI || !this.dataManager) {
+    if (!this.collapsingUI || !this.dataManager) {
       return;
     }
 
-    const parentsToCollapse = paths
-      // Shallowest first, so an ancestor is always collapsed before its own descendants.
-      .slice()
-      .sort((pathA, pathB) => pathA.length - pathB.length)
-      .map(path => this.dataManager!.getRowIndexByTreePath(path))
-      .filter((row): row is number => row !== null && this.dataManager!.hasChildren(row));
+    if (stashedPaths !== null) {
+      this.collapsingUI.lastCollapsedRows = this.#toCollapsibleRows(stashedPaths);
+    }
+
+    const parentsToCollapse = this.#toCollapsibleRows(paths);
 
     if (parentsToCollapse.length > 0) {
       // Replaying a state the user already chose is not a new action, so the hooks stay silent.

@@ -121,8 +121,9 @@ They are written in different places and can drift. Keep this in mind:
   and `BasePlugin#onUpdateSettings` always fires. Anything you keep outside the settings object is
   lost there unless it is explicitly preserved. This regressed once before — see `CHANGELOG.md` for
   "using `updateSettings()` caused the state of nested rows to reset".
-- **Neither collapse store survives a data replacement, because both are keyed by physical row
-  index.** `loadData()` resets the index maps for you (`initIndexMappers()`), but `updateData()` only
+- **No collapse store survives a data replacement, because all of them are keyed by physical row
+  index** — `collapsedRows`, `collapsedRowsMap`, and `lastCollapsedRows` (the stash, see below).
+  `loadData()` resets the index maps for you (`initIndexMappers()`), but `updateData()` only
   resizes them (`rowIndexMapper.fitToLength()`), so stale trimmed indexes stay behind and land on
   whatever row now sits there — including parent rows, which then vanish while their children stay on
   screen (#10239). The plugin therefore splits the two data hooks: `beforeLoadData` drops the
@@ -134,7 +135,11 @@ They are written in different places and can drift. Keep this in mind:
   reordering or removing siblings moves it, which is the best that is possible when the new dataset
   carries no identity; and the map must only be cleared when a parent really is collapsed, because
   clearing it rebuilds the row index cache and a data load runs on every grid init
-  (`core.unit.js` asserts exactly one cache reset).
+  (`core.unit.js` asserts exactly one cache reset). The stash needs the same treatment for a
+  different reason: during a stash window `collapsedRows` is already **empty** (the stash expanded
+  the grid), so the main capture sees nothing and only `lastCollapsedRows` still holds the user's
+  state — an app that replaces the data from inside an add-child, detach-child, remove-row or
+  row-move hook would otherwise get `applyStash()` replayed onto the old row numbers.
 - **`collapsedRowsStash.stash()` temporarily expands everything.** Any operation wrapped in
   stash/applyStash briefly un-trims all rows. It is used around add child, detach child, row move,
   and filtering.

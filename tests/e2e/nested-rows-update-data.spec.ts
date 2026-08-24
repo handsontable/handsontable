@@ -137,6 +137,28 @@ test.describe('NestedRows collapsed parents across a data replacement', () => {
     expect(await nestedRows.collapsedParents()).toEqual([5]);
   });
 
+  test('re-points a stash that another operation left open', async({ page, theme }) => {
+    const nestedRows = new NestedRowsPage(page, theme);
+
+    await nestedRows.goto();
+
+    await nestedRows.callPlugin('collapseParent', 6); // Root B
+    await nestedRows.callPlugin('collapseParent', 2); // A-2
+
+    // Add child, detach child, remove row and row move each expand the grid and park the collapsed
+    // parents in a stash until they finish. An app that replaces the data from inside one of those
+    // windows must not get the stash restored onto the old row numbers.
+    await nestedRows.stashCollapsedState();
+    expect(await nestedRows.visibleNames()).toEqual(ALL_ROWS);
+
+    await nestedRows.updateData(tree(['A-2-a'], ['B-1']));
+
+    await nestedRows.applyCollapsedStash();
+
+    expect(await nestedRows.collapsedParents()).toEqual([2, 5]);
+    expect(await nestedRows.visibleNames()).toEqual(['Root A', 'A-1', 'A-2', 'A-3', 'Root B']);
+  });
+
   test('loadData() drops the collapsed parents, as it resets every other row state', async({ page, theme }) => {
     const nestedRows = new NestedRowsPage(page, theme);
 
