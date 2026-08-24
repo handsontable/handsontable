@@ -23,6 +23,19 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } #outside-area { margin-top: .8rem; } </style>
+  <!--
+    The grid's stylesheets are linked inside the shadow root below, because document styles
+    do not cross the boundary. They are ALSO linked here, in the light DOM, because the
+    comment editor and the context menu are portaled into `document.body` and so live outside
+    the shadow tree. Without these, `.htComments { position: absolute }` never applies and the
+    tooltip renders in normal page flow - visible, so the show/hide assertions still hold, but
+    positioned nowhere near its cell and impossible to move the pointer onto.
+  -->
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-'
+      + window.htTheme + '.min.css">');
+  </script>
 </head>
 <body>
   <!--
@@ -141,9 +154,20 @@
        * alone - the browser already retargets it per listener, which is the whole point: a
        * listener on the document sees the host while one inside the shadow tree sees the cell.
        * That split is what the document/shadow-root dedupe has to survive.
+       *
+       * Reaches wider than the comment tooltip: the core reads `composedPath()` for
+       * outside-click detection too, and a filtered path makes an in-grid click look like an
+       * outside click. Keep this to hover-only flows, or call `restoreNativeComposedPath()`
+       * before clicking.
        */
       simulateSandboxedHost: () => {
+        if (window.__nativeComposedPath) {
+          return;
+        }
+
         const nativeComposedPath = Event.prototype.composedPath;
+
+        window.__nativeComposedPath = nativeComposedPath;
 
         Event.prototype.composedPath = function() {
           const path = nativeComposedPath.call(this);
@@ -156,6 +180,17 @@
 
           return firstShadowRoot === -1 ? path : path.slice(firstShadowRoot + 1);
         };
+      },
+      /**
+       * Puts the native `composedPath()` back, so a later click is classified normally.
+       */
+      restoreNativeComposedPath: () => {
+        if (!window.__nativeComposedPath) {
+          return;
+        }
+
+        Event.prototype.composedPath = window.__nativeComposedPath;
+        window.__nativeComposedPath = null;
       },
     };
   </script>

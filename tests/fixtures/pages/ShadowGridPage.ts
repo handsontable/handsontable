@@ -101,4 +101,12 @@ export class ShadowGridPage {
   async simulateSandboxedHost(): Promise<void> {
     await this.page.evaluate(() => (window as any).__hotProbe.simulateSandboxedHost());
   }
+
+  /**
+   * Undo `simulateSandboxedHost()`. The patch also reaches the core's outside-click
+   * detection, so restore it before clicking anything (fixture probe).
+   */
+  async restoreNativeComposedPath(): Promise<void> {
+    await this.page.evaluate(() => (window as any).__hotProbe.restoreNativeComposedPath());
+  }
 }
