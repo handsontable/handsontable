@@ -80,8 +80,10 @@ jobs:
       - name: Compute report URL
         id: report-url
         if: github.event_name == 'pull_request'
+        env:
+          HEAD_REF: ${{ github.head_ref }}
         run: |
-          BRANCH_SLUG=$(echo "${{ github.head_ref }}" | sed 's/[^a-zA-Z0-9._-]/-/g')
+          BRANCH_SLUG=$(echo "$HEAD_REF" | sed 's/[^a-zA-Z0-9._-]/-/g')
           PAGES_URL="https://handsontable.github.io/handsontable/performance-reports/${BRANCH_SLUG}/"
           echo "branch_slug=${BRANCH_SLUG}" >> "$GITHUB_OUTPUT"
           echo "pages_url=${PAGES_URL}" >> "$GITHUB_OUTPUT"
