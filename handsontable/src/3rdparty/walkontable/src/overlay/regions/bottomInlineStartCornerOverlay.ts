@@ -4,7 +4,11 @@ import {
 } from '../../../../../helpers/dom/element';
 import BottomInlineStartCornerOverlayTable from '../../table/regions/bottomInlineStartCornerTable';
 import { Overlay, type OverlayDeps } from './_base';
-import { overlayScrollbarClearance, reservedScrollbarSpace } from '../scrollbarClearance';
+import {
+  canGrabScrollbar,
+  overlayScrollbarClearance,
+  reservedScrollbarSpace,
+} from '../scrollbarClearance';
 import {
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from '../constants';
@@ -104,7 +108,9 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     const wtViewport = this.deps.getWtViewport();
     const bottomClearance = overlayScrollbarClearance(
       this.deps.geometryReader.getScrollbarWidth(this.deps.rootDocument),
-      wtViewport.hasHorizontalScroll() && wtViewport.hasVerticalScroll(),
+      // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
+      wtViewport.hasHorizontalScroll() && wtViewport.hasVerticalScroll()
+        && canGrabScrollbar(this.deps.rootWindow),
       reservedScrollbarSpace(
         this.deps.geometryReader, this.deps.getWtTable().holder, 'horizontal'
       )

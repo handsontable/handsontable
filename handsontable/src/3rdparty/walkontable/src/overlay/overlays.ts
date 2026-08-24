@@ -19,6 +19,7 @@ import { ResizeMonitor, createResizeMonitorDeps } from './resizeMonitor';
 import { ScrollbarVisibility, createScrollbarVisibilityDeps } from './scrollbarVisibility';
 import {
   BAND_SWALLOWED_EVENTS,
+  canGrabScrollbar,
   isPointInScrollbarBand,
   overlayScrollbarClearance,
   reservedScrollbarSpace,
@@ -722,7 +723,10 @@ class Overlays {
     const holder = this.wtTable.holder;
     // Only when the holder is the scroller. With page-level scrolling the scrollbar belongs to the
     // window, nowhere near this holder, so a band in here would carve a strip out of nothing.
-    const holderScrolls = this.scrollableElement === holder;
+    // Also off on a touch-only device: nothing there can grab a thumb, and the band would swallow the
+    // press that becomes a tap - see `canGrabScrollbar`.
+    const holderScrolls = this.scrollableElement === holder
+      && canGrabScrollbar(this.#deps.rootWindow);
     const scrollbarWidth = geometryReader.getScrollbarWidth(rootDocument);
     const bottom = holderScrolls
       ? overlayScrollbarClearance(

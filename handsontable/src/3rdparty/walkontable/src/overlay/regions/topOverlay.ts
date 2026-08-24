@@ -12,6 +12,7 @@ import TopOverlayTable from '../../table/regions/topTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
   applyOverlayScrollbarClearance,
+  canGrabScrollbar,
   overlayScrollbarClearance,
   overlayWidthBesideScrollbar,
   reservedScrollbarSpace,
@@ -207,10 +208,12 @@ export class TopOverlay extends Overlay {
     // The master's vertical scrollbar sits along the inline-end edge this overlay spans. Only worth a
     // strip when this overlay is sized against the scrollport - see `inlineStartOverlay`.
     const rootSized = this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal';
+    // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
+    const clearanceApplies = rootSized && canGrabScrollbar(rootWindow);
 
     this.#holderClearance = overlayScrollbarClearance(
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
-      rootSized && wtViewport.hasVerticalScroll(),
+      clearanceApplies && wtViewport.hasVerticalScroll(),
       reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'vertical')
     );
 

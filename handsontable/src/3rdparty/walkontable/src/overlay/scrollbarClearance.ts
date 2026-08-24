@@ -103,6 +103,48 @@ interface FillerRect {
 }
 
 /**
+ * Cached media queries, one per window. `matchMedia` allocates a new list object per call, and this is
+ * asked on every draw; a `MediaQueryList` keeps its `matches` current on its own, so caching it costs
+ * nothing in freshness - a mouse plugged into a tablet flips the answer without any listener here.
+ */
+const finePointerQueries: WeakMap<Window, MediaQueryList> = new WeakMap();
+
+/**
+ * Whether any pointing device on this machine could actually grab a scrollbar thumb.
+ *
+ * The clearance exists so a *pointer* can reach a scrollbar a frozen overlay would otherwise cover.
+ * On a touch-only device there is nothing to reach: the scroll indicator is decorative, it is not
+ * hit-testable, and scrolling is done by dragging the content. Reserving a strip there is all cost and
+ * no benefit - and worse than neutral, because the band swallows the press that becomes a tap, so
+ * "scroll, then tap a cell near the edge" stops working (#10370).
+ *
+ * `getScrollbarWidth()` cannot tell the two apart: a phone reports 0 for the same reason a floating
+ * scrollbar does, so every condition downstream passes.
+ *
+ * `any-pointer: fine` is the question itself rather than a proxy for it - is *any* available pointer
+ * precise enough to hit a thumb - so it keeps the clearance on a touchscreen laptop, which has a mouse
+ * and needs it, and on a tablet with a trackpad attached, both of which a user-agent test gets wrong.
+ * Where the query cannot be asked at all the answer is yes, leaving behavior unchanged.
+ *
+ * @param {Window} rootWindow The window the grid lives in.
+ * @returns {boolean}
+ */
+export function canGrabScrollbar(rootWindow: Window): boolean {
+  if (!rootWindow || typeof rootWindow.matchMedia !== 'function') {
+    return true;
+  }
+
+  let query = finePointerQueries.get(rootWindow);
+
+  if (!query) {
+    query = rootWindow.matchMedia('(any-pointer: fine)');
+    finePointerQueries.set(rootWindow, query);
+  }
+
+  return query.matches;
+}
+
+/**
  * An overlay ("floating") scrollbar is painted over the content and reserves no space for it, so the
  * browser never shrinks the master holder and `getScrollbarWidth()` reports 0. A frozen overlay sized
  * to the full holder then covers the scrollbar, hiding it and swallowing the press (#10370).

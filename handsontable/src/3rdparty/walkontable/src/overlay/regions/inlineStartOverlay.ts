@@ -15,6 +15,7 @@ import {
 } from '../constants';
 import {
   applyOverlayScrollbarClearance,
+  canGrabScrollbar,
   overlayScrollbarClearance,
   reservedScrollbarSpace,
 } from '../scrollbarClearance';
@@ -196,10 +197,12 @@ export class InlineStartOverlay extends Overlay {
     // strip when this overlay is sized against the scrollport - otherwise the page scrolls, the
     // scrollbar is not under this overlay, and clipping would expose the master for nothing.
     const rootSized = this.trimmingContainer !== rootWindow || preventOverflow === 'vertical';
+    // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
+    const clearanceApplies = rootSized && canGrabScrollbar(rootWindow);
 
     this.#holderClearance = overlayScrollbarClearance(
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
-      rootSized && wtViewport.hasHorizontalScroll(),
+      clearanceApplies && wtViewport.hasHorizontalScroll(),
       reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'horizontal')
     );
 

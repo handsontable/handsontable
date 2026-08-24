@@ -9,6 +9,7 @@ import BottomOverlayTable from '../../table/regions/bottomTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
   applyOverlayScrollbarClearance,
+  canGrabScrollbar,
   overlayScrollbarClearance,
   overlayWidthBesideScrollbar,
   reservedScrollbarSpace,
@@ -229,7 +230,8 @@ export class BottomOverlay extends Overlay {
     const rootSized = this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal';
     const anchoredToWindow = this.trimmingContainer === rootWindow
       && (!preventOverflow || preventOverflow !== 'vertical');
-    const clearanceApplies = rootSized && !anchoredToWindow;
+    // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
+    const clearanceApplies = rootSized && !anchoredToWindow && canGrabScrollbar(rootWindow);
 
     // The master's vertical scrollbar sits along the inline-end edge this overlay spans.
     this.#holderClearance = overlayScrollbarClearance(

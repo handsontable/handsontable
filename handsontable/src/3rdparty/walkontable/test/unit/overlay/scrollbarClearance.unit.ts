@@ -1,5 +1,6 @@
 import {
   applyOverlayScrollbarClearance,
+  canGrabScrollbar,
   clearanceClipPath,
   isPointInScrollbarBand,
   overlayScrollbarClearance,
@@ -58,6 +59,53 @@ describe('overlay scrollbar clearance', () => {
     it('should report nothing when there is no holder yet', () => {
       expect(reservedScrollbarSpace(reader({ ow: 700, cw: 685, oh: 340, ch: 340 }), null as never, 'vertical'))
         .toBe(0);
+    });
+  });
+
+  describe('canGrabScrollbar', () => {
+    const windowWith = (matches: boolean, seen: string[] = []) => ({
+      matchMedia: (query: string) => {
+        seen.push(query);
+
+        return { matches } as MediaQueryList;
+      },
+    } as unknown as Window);
+
+    it('should report yes when a fine pointer is available', () => {
+      expect(canGrabScrollbar(windowWith(true))).toBe(true);
+    });
+
+    it('should report no on a touch-only device', () => {
+      // A phone reports a 0 scrollbar width for the same reason a floating scrollbar does, so this is
+      // the only thing that tells them apart. Reserving a strip there swallows the tap (#10370).
+      expect(canGrabScrollbar(windowWith(false))).toBe(false);
+    });
+
+    it('should ask about any pointer, not just the primary one', () => {
+      // A touchscreen laptop's primary pointer is coarse, but its mouse can still grab a thumb.
+      const seen: string[] = [];
+
+      canGrabScrollbar(windowWith(true, seen));
+
+      expect(seen[0]).toBe('(any-pointer: fine)');
+    });
+
+    it('should assume yes where the query cannot be asked, leaving behavior unchanged', () => {
+      expect(canGrabScrollbar({} as Window)).toBe(true);
+      expect(canGrabScrollbar(null as unknown as Window)).toBe(true);
+    });
+
+    it('should ask the window only once and keep reading the live result', () => {
+      // The list keeps `matches` current by itself, so caching it cannot go stale - and this runs on
+      // every draw.
+      const seen: string[] = [];
+      const rootWindow = windowWith(true, seen);
+
+      canGrabScrollbar(rootWindow);
+      canGrabScrollbar(rootWindow);
+      canGrabScrollbar(rootWindow);
+
+      expect(seen).toHaveLength(1);
     });
   });
 
