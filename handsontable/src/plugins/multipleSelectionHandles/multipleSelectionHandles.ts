@@ -83,9 +83,9 @@ export class MultipleSelectionHandles extends BasePlugin {
   /**
    * Disables the plugin and forgets any drag in progress.
    *
-   * Without the reset, an `updateSettings()` mid-drag would take the listeners away while `dragged`
-   * still reported a drag - and DragToScroll arms auto-scroll on `isDragged()` alone, so the next
-   * touch anywhere in the document would start scrolling the grid.
+   * Without the reset, an `updateSettings()` mid-drag would take the listeners away while
+   * `#dragTouches` still reported a drag - and because browsers recycle `Touch.identifier`, a later
+   * unrelated finger handed a stale id would pass `isDraggedBy()` and start scrolling the grid.
    */
   disablePlugin() {
     this.#resetDrag();

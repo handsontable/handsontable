@@ -30,9 +30,11 @@ Rules that cost real bugs to learn:
 | autofill corner | `afterOnCellCornerMouseDown` | — |
 | move-cells edge band | `afterOnSelectionEdgeMouseDown` | `getPlugin('moveCells').isDragActive()` |
 | desktop selection handle | `afterOnSelectionHandleMouseDown` | `getPlugin('selectionHandles').isDragActive()` |
-| **mobile selection handle** | its own document `touchstart` | `getPlugin('multipleSelectionHandles').isDragged()` |
+| **mobile selection handle** | its own document `touchstart` | `getPlugin('multipleSelectionHandles').isDraggedBy(touch.identifier)` |
 
 The guards exist because those hooks fire unconditionally from `TableView`, while the owning plugin may reject the press. Without the check, auto-scroll would run with no drag in progress.
+
+**The mobile guard asks about one finger, not about the gesture.** `isDragged()` only says that *some* handle is held, and it stays `true` for the whole drag - so it also arms auto-scroll for any later finger landing anywhere in the document, with no handle press of its own. `isDraggedBy(touch.identifier)` asks whether *this* finger is the one on the handle, which is the question the guard actually needs.
 
 **The ordering the guards depend on comes from two different mechanisms — do not mix them up.**
 

@@ -11,7 +11,7 @@ It is `@private` and has no setting: `isEnabled()` returns `isMobileBrowser()`, 
 - The desktop `selectionHandles` resize handles and the `moveCells` edge bands are **not rendered**, and `afterOnSelectionHandleMouseDown` / `afterOnSelectionEdgeMouseDown` **never fire**. A plugin waiting on those hooks is never armed on a phone.
 - A plain finger drag across cells is **native scrolling by design** — `walkontable/src/event.ts` defers the synthesized mousedown to `touchend` so a drag scrolls instead of selecting.
 
-Both together mean: if a feature should work while dragging on mobile, it has to hook into *this* plugin. DragToScroll does exactly that, by asking `isDragged()` from its own document-level `touchstart` listener (see `../dragToScroll/AGENTS.md`).
+Both together mean: if a feature should work while dragging on mobile, it has to hook into *this* plugin. DragToScroll does exactly that, by asking `isDraggedBy(touch.identifier)` from its own document-level `touchstart` listener (see `../dragToScroll/AGENTS.md`).
 
 The handle DOM lives in the border, not here — this plugin only reads the hit-area classes `topSelectionHandle-HitArea` and `bottomSelectionHandle-HitArea` off the event target.
 
@@ -25,12 +25,12 @@ The handle DOM lives in the border, not here — this plugin only reads the hit-
 
 ## Gesture lifecycle
 
-`dragged` holds which handles are being dragged, and `isDragged()` is public because DragToScroll reads it. Keeping it honest matters — a stale `true` lets an unrelated touch arm auto-scroll with no handle press at all.
+`dragged` holds which handles are being dragged. `isDragged()` answers "is any handle held"; `isDraggedBy(identifier)` answers "is *this* finger the one holding a handle", and that is the one DragToScroll reads — the plain boolean stays `true` for the whole gesture, so it would arm auto-scroll for every later finger too. Keeping `#dragTouches` honest matters either way: a stale entry lets an unrelated touch arm auto-scroll with no handle press, and browsers recycle `Touch.identifier` (Chrome on Android reuses `0`), so a leftover id can be handed to a genuinely new finger.
 
 **Track fingers by `Touch.identifier`, never by position in a list.** `#dragTouches` maps each identifier to the handle that finger grabbed, filled from `getFirstChangedTouch()` on `touchstart`. Everything else keys off it. Two facts make this the only workable approach, and both cost a bug to learn:
 
 - **`touches` is the whole screen, and `touches[0]` is the first finger placed anywhere** — a thumb already resting on the grid, not the one on the handle. Reading it made the selection follow the thumb.
-- **`touchend` and `touchcancel` fire once per finger**, so neither answers "is the gesture over?". Both are handled the same way: `getTouchPointById()` per tracked finger, releasing only the ones that are actually gone. A check for "no fingers left anywhere" strands the plugin permanently when the drag finger lifts while another rests — `isDragged()` stays `true`, so every later touch arms auto-scroll with no handle press. A check for "any finger lifted" kills a live drag when a palm lifts.
+- **`touchend` and `touchcancel` fire once per finger**, so neither answers "is the gesture over?". Both are handled the same way: `getTouchPointById()` per tracked finger, releasing only the ones that are actually gone. A check for "no fingers left anywhere" strands the plugin permanently when the drag finger lifts while another rests — the entry stays in `#dragTouches`, and because browsers recycle `Touch.identifier`, a later unrelated finger handed the same id is then taken for the handle holder. A check for "any finger lifted" kills a live drag when a palm lifts.
 
 The `touchend` **target** is the element captured at `touchstart`, so a release over a cell still carries the handle's hit-area class — it governs `preventDefault()` only, not the drag state. The **legacy Jasmine specs dispatch `touchend` on the destination cell instead**; do not read those specs as a statement about real browser behavior.
 
