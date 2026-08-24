@@ -1,6 +1,6 @@
 import { BasePlugin } from '../base';
 import { staticRegister } from '../../utils/staticRegister';
-import { error, warn } from '../../helpers/console';
+import { error, warn, warnOnce } from '../../helpers/console';
 import { isNumeric } from '../../helpers/number';
 import { isObject } from '../../helpers/object';
 import { isDefined, isUndefined } from '../../helpers/mixed';
@@ -17,6 +17,7 @@ import {
   normalizeValueForFormulaEngine,
   unescapeFormulaExpression,
 } from './utils';
+import { resolveHyperlinkUrl } from './hyperlinkUrl';
 import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
@@ -75,6 +76,7 @@ interface MoveCellsRect {
 interface FormulasPluginSettings {
   sheetName?: string;
   engine: unknown;
+  hyperlinks?: boolean;
 }
 
 /**
@@ -121,6 +123,17 @@ const isBlockedSource = (source: unknown) =>
 // `removeRows`/`removeColumns` call. An unbounded argument spread could overflow the call stack.
 const REMOVAL_SPANS_CHUNK_SIZE = 1000;
 
+// Group under which the plugin's grid shortcuts are registered, so `disablePlugin` can drop them all.
+const SHORTCUTS_GROUP = PLUGIN_KEY;
+
+// Class name of the anchor that wraps the content of a `HYPERLINK` cell. It is also the marker that
+// keeps the wrapping idempotent when a renderer leaves the previous DOM in place.
+const HYPERLINK_CLASS_NAME = 'ht-hyperlink';
+
+// `warnOnce` key for a `HYPERLINK` URL refused by the protocol allowlist. Warning per cell would
+// flood the console on every render pass.
+const HYPERLINK_WARN_KEY = 'formulas-hyperlink-refused';
+
 /**
  * This plugin allows you to perform Excel-like calculations in your business applications. It does it by an
  * integration with our other product, [HyperFormula](https://github.com/handsontable/hyperformula/), which is a
@@ -163,6 +176,12 @@ export class Formulas extends BasePlugin {
    * @type {boolean}
    */
   #internalOperationPending = false;
+
+  /**
+   * Whether `HYPERLINK` cells are rendered as links. Mirrors the `hyperlinks` plugin setting, cached
+   * because it is read once per rendered cell.
+   */
+  #hyperlinksEnabled = false;
 
   /**
    * Flag needed to mark if Handsontable was initialized with no data.
@@ -624,7 +643,12 @@ export class Formulas extends BasePlugin {
     this.addHook('beforeMoveCells', this.#onBeforeMoveCells);
     this.addHook('afterMoveCells', this.#onAfterMoveCells);
 
+    this.addHook('afterRenderer', this.#onAfterRenderer);
+
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine!.on(eventName, listener));
+
+    this.#refreshHyperlinksSetting();
+    this.registerShortcuts();
 
     super.enablePlugin();
   }
@@ -633,6 +657,8 @@ export class Formulas extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.#unwrapRenderedHyperlinks();
+    this.unregisterShortcuts();
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
 
     if (this.engine) {
@@ -688,6 +714,8 @@ export class Formulas extends BasePlugin {
         }
       }
     }
+
+    this.#refreshHyperlinksSetting();
 
     super.updatePlugin(newSettings);
   }
@@ -823,6 +851,172 @@ export class Formulas extends BasePlugin {
       row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(row),
       col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(column),
     });
+  }
+
+  /**
+   * Registers the shortcut that opens the link of the selected `HYPERLINK` cell. The anchor is kept
+   * out of the tab order, so this is the only keyboard path to the link.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      ?.addShortcut({
+        keys: [['Alt', 'Enter']],
+        callback: () => {
+          const highlight = this.hot.getSelectedRangeActive()?.highlight;
+
+          if (!highlight || highlight.row === null || highlight.col === null) {
+            return;
+          }
+
+          const href = this.#getHyperlinkHref(highlight.row, highlight.col);
+
+          if (href !== null) {
+            this.hot.rootWindow.open(href, '_blank', 'noopener,noreferrer');
+          }
+        },
+        stopPropagation: true,
+        // The shortcut prevents the default action and stops propagation whenever `runOnlyIf`
+        // passes, so it must claim the chord only for a cell that actually resolves to a link.
+        // Testing just `isCell()` would swallow `Alt`+`Enter` grid-wide and break a host
+        // application's own handler for it.
+        runOnlyIf: (): boolean => {
+          const highlight = this.hot.getSelectedRangeActive()?.highlight;
+
+          return this.#hyperlinksEnabled &&
+            !!highlight?.isCell() &&
+            highlight.row !== null &&
+            highlight.col !== null &&
+            this.#getHyperlinkHref(highlight.row, highlight.col) !== null;
+        },
+        group: SHORTCUTS_GROUP,
+      });
+  }
+
+  /**
+   * Removes the shortcuts registered by the plugin.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
+  }
+
+  /**
+   * Reads the `hyperlinks` plugin setting into the cached flag.
+   */
+  #refreshHyperlinksSetting() {
+    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
+    const wasEnabled = this.#hyperlinksEnabled;
+
+    this.#hyperlinksEnabled = isFormulasSettingsObject(pluginSettings) && pluginSettings.hyperlinks === true;
+
+    // Turning the option off is the moment to clean up, not every subsequent draw: a renderer that
+    // leaves its previous DOM in place would keep an anchor that no later render pass rewrites.
+    // Doing it here keeps the per-cell path free for the default, disabled case.
+    if (wasEnabled && !this.#hyperlinksEnabled) {
+      this.#unwrapRenderedHyperlinks();
+    }
+  }
+
+  /**
+   * Unwraps every `HYPERLINK` anchor currently in the grid, including the overlay clones.
+   *
+   * Disabling the plugin removes the `afterRenderer` hook, so a renderer that leaves its previous
+   * DOM in place would keep its cells clickable with nothing left to clean them up. The anchors are
+   * matched by the plugin's own class, so no knowledge of the rendering internals is needed.
+   */
+  #unwrapRenderedHyperlinks() {
+    this.hot.rootElement
+      ?.querySelectorAll<HTMLElement>(`a.${HYPERLINK_CLASS_NAME}`)
+      .forEach(link => this.#unwrapLink(link));
+  }
+
+  /**
+   * Moves an anchor's content up into the anchor's own parent and drops the anchor.
+   *
+   * The insertion goes through `link.parentNode` rather than the cell: a renderer that leaves the
+   * previous DOM in place can wrap an existing anchor, leaving it as `TD > div > a` instead of a
+   * direct child. Inserting relative to the cell would then throw `NotFoundError` and, because this
+   * runs inside `afterRenderer`, take the whole draw down with it.
+   *
+   * @param {Element} link The anchor to unwrap.
+   */
+  #unwrapLink(link: Element) {
+    const { parentNode } = link;
+
+    while (link.firstChild) {
+      parentNode?.insertBefore(link.firstChild, link);
+    }
+
+    link.remove();
+  }
+
+  /**
+   * Moves the content of a cell's `HYPERLINK` anchor back into the cell and drops the anchor. Loops
+   * so that anchors nested by an older render pass are unwrapped as well.
+   *
+   * @param {HTMLTableCellElement} TD The rendered cell element.
+   */
+  #unwrapHyperlink(TD: HTMLTableCellElement) {
+    // A cell rendered as plain text has no element children at all, which is the overwhelmingly
+    // common case and the one that must not pay for a selector query on every render pass.
+    if (TD.firstElementChild === null) {
+      return;
+    }
+
+    let link = TD.querySelector(`a.${HYPERLINK_CLASS_NAME}`);
+
+    while (link !== null) {
+      this.#unwrapLink(link);
+      link = TD.querySelector(`a.${HYPERLINK_CLASS_NAME}`);
+    }
+  }
+
+  /**
+   * Returns the URL that a cell should link to, or `null` when the cell must not become a link.
+   *
+   * The engine reports a hyperlink only for a cell whose root expression is `HYPERLINK()`, so a
+   * nested call such as `=CONCATENATE("see ", HYPERLINK(...))` resolves to `null` here.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {string|null} The resolved absolute URL, or `null`.
+   */
+  #getHyperlinkHref(row: number, column: number): string | null {
+    if (
+      this.sheetName === null ||
+      !this.engine?.doesSheetExist(this.sheetName) ||
+      !this.rowAxisSyncer ||
+      !this.columnAxisSyncer ||
+      !this.isFormulaCellType(row, column)
+    ) {
+      return null;
+    }
+
+    const url = this.engine.getCellHyperlink({
+      sheet: this.sheetId,
+      row: this.rowAxisSyncer.getHfIndexFromVisualIndex(row),
+      col: this.columnAxisSyncer.getHfIndexFromVisualIndex(column),
+    });
+
+    if (url === undefined) {
+      return null;
+    }
+
+    const href = resolveHyperlinkUrl(url, this.hot.rootDocument.baseURI);
+
+    if (href === null) {
+      warnOnce(this, HYPERLINK_WARN_KEY,
+        `A "HYPERLINK" formula points at a URL that Handsontable refuses to link to ("${url}"). ` +
+        'Only the "http", "https", "mailto" and "tel" schemes can be linked.');
+    }
+
+    return href;
   }
 
   /**
@@ -1437,6 +1631,50 @@ export class Formulas extends BasePlugin {
 
     // If `cellValue` is an object it is expected to be an error
     valueHolder.value = hasValueProperty(cellValue) ? cellValue.value : cellValue;
+  };
+
+  /**
+   * `afterRenderer` hook callback. Wraps the already rendered content of a `HYPERLINK` cell in an
+   * anchor. The cell keeps its own renderer and its cell meta is left untouched, so disabling the
+   * plugin or clearing the formula needs no cleanup.
+   *
+   * @param {HTMLTableCellElement} TD The rendered cell element.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   */
+  #onAfterRenderer = (TD: HTMLTableCellElement, row: number, column: number) => {
+    if (!this.#hyperlinksEnabled || this.#internalOperationPending) {
+      return;
+    }
+
+    // Walkontable recycles TD elements, and a renderer is free to leave its previous DOM in place.
+    // Unwrapping first keeps this idempotent by construction: no anchor nests inside another one
+    // across render passes, and the `href` is always rebuilt from the current formula instead of
+    // inherited from whatever the previous pass resolved. Cleanup for the option being turned off
+    // happens once, in `#refreshHyperlinksSetting`, so this path never runs for a disabled grid.
+    this.#unwrapHyperlink(TD);
+
+    const href = this.#getHyperlinkHref(row, column);
+
+    if (href === null) {
+      return;
+    }
+
+    const link = this.hot.rootDocument.createElement('a');
+
+    link.className = HYPERLINK_CLASS_NAME;
+    link.href = href;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    // Cell content stays out of the grid's tab order; `Alt`+`Enter` is the keyboard path instead.
+    link.tabIndex = -1;
+
+    // The nodes are moved, never re-serialized, so a label containing markup stays text.
+    while (TD.firstChild) {
+      link.appendChild(TD.firstChild);
+    }
+
+    TD.appendChild(link);
   };
 
   /**

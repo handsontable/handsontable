@@ -3081,6 +3081,16 @@ export default (): Record<string, unknown> => {
      * | `sheetId`   | A number                                                                                                                                                                                                               |
      * | `sheetName` | A string                                                                                                                                                                                                               |
      * | `language`  | A [HyperFormula language pack](https://handsontable.github.io/hyperformula/guide/localizing-functions.html), imported from `hyperformula/es/i18n/languages`                                                          |
+     * | `hyperlinks` | `true` \|<br>`false` (default)                                                                                                                                                                                        |
+     *
+     * Set `hyperlinks` to `true` to render a cell whose formula is `HYPERLINK()` as a link. The cell
+     * keeps its own renderer, and the link label is the value the formula returns. Only a cell whose
+     * root expression is `HYPERLINK()` becomes a link, so a nested call such as
+     * `=CONCATENATE("see ", HYPERLINK("https://example.com"))` renders as plain text.
+     *
+     * A link is created only for the `http`, `https`, `mailto` and `tel` schemes. Any other scheme,
+     * `javascript:` included, renders the label as plain text instead. Press
+     * <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd> to open the link of the selected cell.
      *
      * Read more:
      * - [Plugins: `Formulas`](@/api/formulas.md)
@@ -3104,6 +3114,12 @@ export default (): Record<string, unknown> => {
      *   engine: HyperFormula,
      *   sheetId: 1,
      *   sheetName: 'Sheet 1'
+     * }
+     *
+     * // or, render `HYPERLINK()` formulas as links
+     * formulas: {
+     *   engine: HyperFormula,
+     *   hyperlinks: true
      * }
      *
      * // or, add a HyperFormula instance
