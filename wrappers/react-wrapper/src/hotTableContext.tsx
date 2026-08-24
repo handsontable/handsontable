@@ -124,10 +124,13 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
    * @returns {Number} The id of the table the cell belongs to.
    */
   const getTableId = useCallback((TD: HTMLTableCellElement): number => {
-    // Overlay tables are built once and never hand their cells to another
-    // table, so the TABLE element is a stable identity for the draw.
-    const table: Element = TD.closest('table') ?? TD;
-    const cachedId = tableIds.current.get(table);
+    // TD -> TR -> TBODY. The section belongs to exactly one table, and the
+    // overlay tables are built once and never hand their cells to another
+    // table, so it is a stable identity for the draw. Two property hops rather
+    // than a selector walk, because this runs for every component-rendered
+    // cell on every render.
+    const tableSection: Element = TD.parentElement?.parentElement ?? TD;
+    const cachedId = tableIds.current.get(tableSection);
 
     if (cachedId !== undefined) {
       return cachedId;
@@ -136,7 +139,7 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
     const id = nextTableId.current;
 
     nextTableId.current += 1;
-    tableIds.current.set(table, id);
+    tableIds.current.set(tableSection, id);
 
     return id;
   }, []);

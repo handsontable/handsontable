@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Fixed a bug where a component-based renderer used in a frozen column rendered its content into only one of the two tables the grid draws that column in, so the cell looked empty in the other one and the frozen columns stopped lining up with the rest of the rows.",
+  "title": "Fixed a bug where a component-based renderer in a frozen row or column left the cell empty in one of the two tables the grid draws it in, which made the frozen area stop lining up with the rest of the rows.",
   "type": "fixed",
   "issueOrPR": 9063,
   "breaking": false,

@@ -67,6 +67,33 @@ describe('Component-based renderers in fixed columns', () => {
     expect(masterCell.firstElementChild).not.toBe(overlayCell.firstElementChild);
   });
 
+  it('should render the component into both the master table and the top overlay', async () => {
+    mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(5, 4)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                fixedRowsTop={1}
+                autoRowSize={false}
+                autoColumnSize={false}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }}
+                renderer={(props) => <Cell {...props} />}
+      />
+    ), false);
+
+    await sleep(100);
+
+    // A frozen row splits the same cell across two tables just like a frozen
+    // column does, so it needs its own container too.
+    expect(firstColumnCell('.ht_master', 0).textContent).toBe(`${CELL_TEXT}:0-0`);
+    expect(firstColumnCell('.ht_clone_top', 0).textContent).toBe(`${CELL_TEXT}:0-0`);
+  });
+
   it('should keep both copies of a fixed cell after a re-render', async () => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
