@@ -174,7 +174,7 @@ export class InlineStartOverlay extends Overlay {
 
     } else if (this.clone) {
       // Stopped rendering: drop the clearance, or its filler stays behind over live cells.
-      applyOverlayScrollbarClearance(this.clone.wtTable.holder.parentNode as HTMLElement, {});
+      this.clearScrollbarClearance();
     }
   }
 

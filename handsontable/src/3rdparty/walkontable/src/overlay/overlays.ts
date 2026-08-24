@@ -728,13 +728,19 @@ class Overlays {
     const holderScrolls = this.scrollableElement === holder
       && canGrabScrollbar(this.#deps.rootWindow);
     const scrollbarWidth = geometryReader.getScrollbarWidth(rootDocument);
-    const bottom = holderScrolls
+    // Only where an overlay is actually clipped out of the strip. The band exists to fill in for the
+    // frozen content that stops short of the scrollbar; along an edge no overlay reaches, there is
+    // nothing to fill in for, and drawing one paints a grey strip over live cells and swallows the
+    // presses there - which is what a grid with no frozen rows or columns used to get.
+    const covers = (edge: 'bottom' | 'inlineEnd') =>
+      this.#overlays.some(overlay => overlay.coversScrollbarEdge?.(edge));
+    const bottom = holderScrolls && covers('bottom')
       ? overlayScrollbarClearance(
         scrollbarWidth,
         wtViewport.hasHorizontalScroll(),
         reservedScrollbarSpace(geometryReader, holder, 'horizontal')
       ) : 0;
-    const inlineEnd = holderScrolls
+    const inlineEnd = holderScrolls && covers('inlineEnd')
       ? overlayScrollbarClearance(
         scrollbarWidth,
         wtViewport.hasVerticalScroll(),

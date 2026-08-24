@@ -274,6 +274,42 @@ export abstract class Overlay {
   }
 
   /**
+   * Whether this overlay is currently keeping a strip clear along one of the scrollbar edges.
+   *
+   * The track band is drawn only where the answer is yes for at least one overlay. A band with nothing
+   * clipped behind it is a grey strip painted over live cells, and it swallows presses there - which is
+   * what a grid with no frozen rows or columns used to get on every scroll (#10370).
+   *
+   * @param {'bottom' | 'inlineEnd'} edge The scrollbar edge to ask about.
+   * @returns {boolean}
+   */
+  coversScrollbarEdge(edge: 'bottom' | 'inlineEnd'): boolean {
+    // `clone` exists for every overlay type whether or not it is being rendered, so it cannot answer
+    // this on its own: a grid with nothing frozen still owns a bottom-corner clone, and asking only
+    // whether the object exists drew a band for an overlay that paints nothing.
+    if (!this.clone || !this.needFullRender || !this.#clearanceStrips) {
+      return false;
+    }
+
+    return (this.#clearanceStrips[edge] ?? 0) > 0;
+  }
+
+  /**
+   * Drops the clearance this overlay was keeping, for when it stops rendering altogether.
+   *
+   * The record has to go with it. Leaving it behind meant the next scrollbar flip re-applied a stale
+   * strip to a stopped overlay, and made it look as though the edge were still covered.
+   */
+  clearScrollbarClearance() {
+    if (!this.clone) {
+      return;
+    }
+
+    this.#clearanceStrips = null;
+    applyOverlayScrollbarClearance(this.clone.wtTable.holder.parentNode as HTMLElement, {});
+  }
+
+  /**
    * Re-applies the recorded bands after the scrollbar appears or fades. Paint only - nothing is
    * measured or resized, which is what keeps a fade off the layout path.
    *

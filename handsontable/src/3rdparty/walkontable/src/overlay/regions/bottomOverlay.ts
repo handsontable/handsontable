@@ -206,7 +206,7 @@ export class BottomOverlay extends Overlay {
     } else if (this.clone) {
       // Stopped rendering - `fixedRowsBottom` set back to 0, say. Nothing below sizes this overlay any
       // more, so drop its clearance here or the filler stays behind as an opaque strip over live cells.
-      applyOverlayScrollbarClearance(this.clone.wtTable.holder.parentNode as HTMLElement, {});
+      this.clearScrollbarClearance();
     }
   }
 
