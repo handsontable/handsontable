@@ -14,9 +14,9 @@ import {
   CLONE_INLINE_START,
 } from '../constants';
 import {
-  insetCssSize,
+  applyOverlayScrollbarClearance,
   overlayScrollbarClearance,
-  toggleScrollbarClearance,
+  reservedScrollbarSpace,
 } from '../scrollbarClearance';
 import { throwWithCause } from '../../../../../helpers/errors';
 
@@ -170,6 +170,10 @@ export class InlineStartOverlay extends Overlay {
     if (this.needFullRender) {
       this.adjustRootElementSize();
       this.adjustRootChildrenSize();
+
+    } else if (this.clone) {
+      // Stopped rendering: drop the clearance, or its filler stays behind over live cells.
+      applyOverlayScrollbarClearance(this.clone.wtTable.holder.parentNode as HTMLElement, {});
     }
   }
 
@@ -188,13 +192,18 @@ export class InlineStartOverlay extends Overlay {
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
-    // The master's horizontal scrollbar sits along the bottom edge this overlay covers.
+    // The master's horizontal scrollbar sits along the bottom edge this overlay covers. Only worth a
+    // strip when this overlay is sized against the scrollport - otherwise the page scrolls, the
+    // scrollbar is not under this overlay, and clipping would expose the master for nothing.
+    const rootSized = this.trimmingContainer !== rootWindow || preventOverflow === 'vertical';
+
     this.#holderClearance = overlayScrollbarClearance(
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
-      wtViewport.hasHorizontalScroll()
+      rootSized && wtViewport.hasHorizontalScroll(),
+      reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'horizontal')
     );
 
-    if (this.trimmingContainer !== rootWindow || preventOverflow === 'vertical') {
+    if (rootSized) {
       let height = wtViewport.getWorkspaceHeight();
 
       if (wtViewport.hasHorizontalScroll()) {
@@ -204,7 +213,7 @@ export class InlineStartOverlay extends Overlay {
         // from the real scrollbar size, giving the frozen overlay a different vertical scroll range
         // than the master. That mismatch clamps the overlay's scrollTop ~1px short at the bottom and
         // shifts the frozen rows out of alignment (#12632). With an overlay scrollbar there is no
-        // gutter to match, so this returns the full height and the clearance above does the work.
+        // gutter to match, so this returns the full height and the clearance below shortens the root.
         const masterClientHeight = this.deps.geometryReader.clientHeight(wtTable.holder);
 
         height = masterClientHeight > 0
@@ -218,13 +227,16 @@ export class InlineStartOverlay extends Overlay {
       overlayRootStyle.height = '';
     }
 
-    toggleScrollbarClearance(overlayRoot, this.#holderClearance > 0);
-    this.clone.wtTable.holder.style.height =
-      insetCssSize(overlayRootStyle.height, this.#holderClearance);
+    this.clone.wtTable.holder.style.height = overlayRootStyle.height;
 
     const tableWidth = this.deps.geometryReader.outerWidth(this.clone.wtTable.TABLE);
 
     overlayRootStyle.width = `${tableWidth}px`;
+
+    this.publishScrollbarClearance({
+      bottom: this.#holderClearance,
+      rtl: this.isRtl(),
+    }, this.wot.wtOverlays.isScrollbarVisible());
   }
 
   /**
@@ -243,7 +255,7 @@ export class InlineStartOverlay extends Overlay {
     this.clone.wtTable.hider.style.height = this.hider.style.height;
     const holderParent = holder.parentNode as HTMLElement;
 
-    holder.style.height = insetCssSize(holderParent.style.height, this.#holderClearance);
+    holder.style.height = holderParent.style.height;
     // Add selection corner protruding part to the holder total width to make sure that
     // borders' corner won't be cut after horizontal scroll (#6937).
     holder.style.width = `${parseInt(holderParent.style.width, 10) + selectionCornerOffset}px`;

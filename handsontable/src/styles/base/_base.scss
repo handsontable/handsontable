@@ -736,23 +736,61 @@
     }
   }
 
-  // Firefox paints its overlay ("floating") horizontal scrollbar over the content and reserves no
-  // space for it, so the frozen overlay would otherwise cover the scrollbar and swallow the press
-  // (#10370). JS shortens this overlay's holder by a clearance strip and stamps the class. The root
-  // keeps its full height and an opaque background so the master's scrolled cells cannot show through
-  // the strip, and passes presses in it down to the master's scrollbar. The holder takes pointer
-  // events back, so the frozen cells above the strip stay interactive.
-  // Any overlay root can carry the class - the frozen columns and the bottom rows cover the horizontal
-  // scrollbar, the frozen top rows and the bottom rows the vertical one - so this is deliberately not
-  // scoped to a single clone.
-  .htOverlayScrollbarClearance {
-    background-color: var(--ht-background-color);
-    pointer-events: none;
-
-    .wtHolder {
-      pointer-events: auto;
-    }
+  // Firefox overlay scrollbars (#10370): the frozen overlays stop short of the strip the scrollbar is
+  // painted over, so a press can reach it. That uncovers the master's cells underneath, scrolled to
+  // different columns and rows than the overlay shows, so JS patches the strip with opaque fillers.
+  // They sit inside the master holder on purpose. Gecko paints a scroll container's scrollbar above
+  // that container's own contents, so a filler in here is drawn under the thumb, while one stacked
+  // above the holder would hide it. The holder is not a containing block for absolute positioning,
+  // hence the sticky host: it stays pinned to the scrollport as the grid scrolls, and carries no size
+  // of its own so it cannot add a phantom scroll step.
+  .htScrollbarClearanceFillers {
+    position: sticky;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    block-size: 0;
+    inline-size: 0;
+    // This box comes and goes as the scrollbar appears and fades, and it is the holder's first child -
+    // so without opting out, the browser's scroll anchoring treats it as content appearing above the
+    // scroll position, nudges the offset to compensate, and emits a scroll event nobody asked for.
+    overflow-anchor: none;
+    // Above the master's cells, below the scrollbar Gecko paints over everything in here.
+    z-index: 1;
   }
+
+  // One band per scrollbar, spanning the whole scrollport so the strip reads as a single track rather
+  // than an opaque patch under the frozen cells beside a transparent gap over the master.
+  .htScrollbarClearanceFiller {
+    position: absolute;
+    // The scrollbar's own track colour, not the grid background. The browser paints its native track
+    // in this colour whenever it decides to draw one (on drag, on hover), so anything else makes the
+    // band change shade between a wheel scroll and a drag.
+    background-color: var(--ht-scrollbar-track-color, var(--ht-background-color));
+    // The band DOES take pointer events, on purpose. An overlay scrollbar only hit-tests its thumb,
+    // never the empty track, so a press on the bare band would otherwise fall through to the master
+    // cell hidden behind it and move the selection to a cell the user cannot even see. The scrollbar
+    // still wins where it is drawn - a scroll container's scrollbar is hit-tested above its own
+    // contents - so the thumb stays grabbable and only the dead track is swallowed.
+    pointer-events: auto;
+    // Deliberately NOT animated. The band is drawn under the frozen overlays, and those overlays are
+    // clipped out of the strip so the scrollbar underneath stays visible and grabbable - so any moment
+    // when the band is less than fully opaque is a moment when the strip shows the master's cell where
+    // the frozen content belongs, and a column header looks cut short along its last 16px. Measured on
+    // a real grid: an opacity ramp put 13 such frames in every appearance. Holding the clip open for
+    // the ramp instead only moves the defect - the fade is then drawn over the master's segment alone,
+    // and the track reads as a different colour over each overlay. Appearing outright is the one state
+    // that shows neither.
+    opacity: 0;
+    box-sizing: border-box;
+  }
+
+  .htScrollbarClearanceFillersOpen .htScrollbarClearanceFiller {
+    opacity: 1;
+  }
+
+  // The overlay root keeps its full box and is clipped by JS instead (`clip-path`), so no measured size
+  // changes. A clipped region is not painted and not hit-tested either, which is what lets the thumb
+  // show through and the press reach it - no `pointer-events` juggling needed.
 
   .ht_master .wtHolder {
     overflow: auto;

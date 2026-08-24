@@ -15,27 +15,69 @@ export const CLONE_TYPES = [
 ];
 
 /**
- * Strip, in CSS pixels, kept clear along the bottom edge so an overlay ("floating") horizontal
- * scrollbar stays visible and grabbable instead of being covered by the frozen-column overlay
- * (#10370). Such a scrollbar takes no layout space, so it measures 0 and its real thickness cannot be
- * read from the DOM.
+ * Band, in CSS pixels, kept clear along an edge so an overlay ("floating") scrollbar stays visible and
+ * grabbable instead of being covered by a frozen overlay (#10370). Such a scrollbar takes no layout
+ * space, so it measures 0 and its real thickness cannot be read from the DOM - this has to be a
+ * constant, and it is sized for the widest state the scrollbar can reach.
  *
- * This is a clearance, not a measured thickness, and it degrades gracefully both ways: where the
- * scrollbar is thicker its top few pixels stay covered while this strip remains grabbable; where it is
- * thinner the extra clearance only costs the strip itself.
+ * It is deliberately generous, because the two directions are not symmetrical: too small and the
+ * scrollbar is partly covered again, which is the whole defect; too large only costs a slightly taller
+ * band. Measured on macOS with the pointer on the scrollbar, which is its widest state: the painted
+ * widget is 7px idle and 11px hovered in both Chrome and Firefox, while the *interactive* reach probed
+ * by dragging is 16px. 16 therefore covers every state measured.
  *
- * 12 is Gecko's own `kDefaultWinOverlayScrollbarSize` (`widget/ScrollbarDrawingWin11.cpp`). Measured
- * grabbable thickness elsewhere: 16 on macOS, 13 at 1.25x zoom. GTK takes its size from the active
- * theme, so no single value can be exact everywhere.
+ * For reference, Gecko's own Windows 11 default (`kDefaultWinOverlayScrollbarSize`,
+ * `widget/ScrollbarDrawingWin11.cpp`) is 12, and GTK takes its size from the active theme - so no
+ * single value is exact everywhere, and over-reserving is the safe direction.
  */
-export const OVERLAY_SCROLLBAR_CLEARANCE = 12;
+export const OVERLAY_SCROLLBAR_CLEARANCE = 16;
 
 /**
- * Marks the frozen overlay as leaving a scrollbar clearance strip. The styles keyed off it make the
- * root opaque over the strip - so the master's scrolled cells cannot show through - while letting a
- * press in the strip reach the master's scrollbar underneath.
+ * How close, in CSS pixels, the pointer has to come to the scrollport's edge before the clearance strip
+ * opens. Roughly the reach at which a browser brings its own overlay scrollbar back on screen, plus
+ * enough margin that the strip is already open by the time the pointer arrives at the thumb.
+ */
+export const OVERLAY_SCROLLBAR_PROXIMITY = 26;
+
+/**
+ * How long a band stays open, in milliseconds, after the last scroll - with the pointer away from the
+ * scrollbar, which is the only case this timer governs (a pointer near the scrollbar pins the band open
+ * for as long as it stays there, the same as the browser keeps the thumb up).
+ *
+ * Sized to *outlast* the thumb it belongs to, with room to spare. Measured in the grid with the pointer
+ * parked away, the thumb was gone somewhere between ~650ms and ~960ms across runs - the spread is the
+ * measurement's own latency, so the number here covers the whole range rather than the middle of it.
+ * Undershooting is the visible defect: the track is pulled out from under a scrollbar still on screen.
+ * Overshooting is not, because the fade-out below means the tail is a fade rather than a stale block.
+ */
+export const OVERLAY_SCROLLBAR_FADE_DELAY = 1000;
+
+/**
+ * Marks an overlay root as leaving a scrollbar clearance strip (#10370).
  */
 export const OVERLAY_SCROLLBAR_CLEARANCE_CLASS = 'htOverlayScrollbarClearance';
+
+/**
+ * Sticky, zero-size box holding the clearance fillers. It must be the master holder's **first** child:
+ * a sticky box only shifts toward its own edge, so one placed after the table cannot be pulled back up
+ * into the scrollport and would trail below it (measured).
+ */
+export const OVERLAY_SCROLLBAR_FILLER_HOST_CLASS = 'htScrollbarClearanceFillers';
+
+/**
+ * One opaque patch covering the strip an overlay vacated, so the master's scrolled cells cannot show
+ * through it. Lives inside the master holder, because Gecko paints a scroll container's own scrollbar
+ * above its contents - a patch placed above the holder instead would hide the scrollbar thumb
+ * (measured: 0 thumb pixels).
+ */
+export const OVERLAY_SCROLLBAR_FILLER_CLASS = 'htScrollbarClearanceFiller';
+
+/**
+ * Stamped on the band host while the scrollbar is on screen, so the bands fade in and out with it
+ * instead of blinking. Kept separate from the sizing so the transition is already in place before the
+ * first open.
+ */
+export const OVERLAY_SCROLLBAR_FILLER_OPEN_CLASS = 'htScrollbarClearanceFillersOpen';
 
 export const CLONE_CLASS_NAMES = new Map([
   [CLONE_TOP, `ht_clone_${CLONE_TOP}`],

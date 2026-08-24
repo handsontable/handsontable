@@ -11,9 +11,9 @@ import { isMobileBrowser } from '../../../../../helpers/browser';
 import TopOverlayTable from '../../table/regions/topTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
-  insetCssSize,
+  applyOverlayScrollbarClearance,
   overlayScrollbarClearance,
-  toggleScrollbarClearance,
+  reservedScrollbarSpace,
 } from '../scrollbarClearance';
 import { getCornerStyle } from '../../selection';
 import type { Selection } from '../../selection';
@@ -181,6 +181,10 @@ export class TopOverlay extends Overlay {
     if (this.needFullRender) {
       this.adjustRootElementSize();
       this.adjustRootChildrenSize();
+
+    } else if (this.clone) {
+      // Stopped rendering: drop the clearance, or its filler stays behind over live cells.
+      applyOverlayScrollbarClearance(this.clone.wtTable.holder.parentNode as HTMLElement, {});
     }
   }
 
@@ -199,18 +203,22 @@ export class TopOverlay extends Overlay {
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow: boolean | string = this.wtSettings.getSetting('preventOverflow');
 
-    // The master's vertical scrollbar sits along the inline-end edge this overlay spans.
+    // The master's vertical scrollbar sits along the inline-end edge this overlay spans. Only worth a
+    // strip when this overlay is sized against the scrollport - see `inlineStartOverlay`.
+    const rootSized = this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal';
+
     this.#holderClearance = overlayScrollbarClearance(
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
-      wtViewport.hasVerticalScroll()
+      rootSized && wtViewport.hasVerticalScroll(),
+      reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'vertical')
     );
 
-    if (this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal') {
+    if (rootSized) {
       let width = wtViewport.getWorkspaceWidth();
 
       if (wtViewport.hasVerticalScroll()) {
         // With an overlay scrollbar this subtracts 0 - the browser reserves it no space - so the
-        // clearance above keeps the holder off the scrollbar instead (#10370).
+        // clearance below shortens the root instead (#10370).
         width -= this.deps.geometryReader.getScrollbarWidth(rootDocument);
       }
 
@@ -221,9 +229,7 @@ export class TopOverlay extends Overlay {
       overlayRootStyle.width = '';
     }
 
-    toggleScrollbarClearance(overlayRoot, this.#holderClearance > 0);
-    this.clone.wtTable.holder.style.width =
-      insetCssSize(overlayRootStyle.width, this.#holderClearance);
+    this.clone.wtTable.holder.style.width = overlayRootStyle.width;
 
     let tableHeight = this.deps.geometryReader.outerHeight(this.clone.wtTable.TABLE);
 
@@ -232,6 +238,11 @@ export class TopOverlay extends Overlay {
     }
 
     overlayRootStyle.height = `${tableHeight}px`;
+
+    this.publishScrollbarClearance({
+      inlineEnd: this.#holderClearance,
+      rtl: this.isRtl(),
+    }, this.wot.wtOverlays.isScrollbarVisible());
   }
 
   /**
@@ -292,7 +303,7 @@ export class TopOverlay extends Overlay {
     this.clone.wtTable.hider.style.width = this.hider.style.width;
     const holderParent = holder.parentNode as HTMLElement;
 
-    holder.style.width = insetCssSize(holderParent.style.width, this.#holderClearance);
+    holder.style.width = holderParent.style.width;
     // Add selection corner protruding part to the holder total height to make sure that
     // borders' corner won't be cut after vertical scroll (#6937).
     holder.style.height = `${parseInt(holderParent.style.height, 10) + selectionCornerOffset}px`;

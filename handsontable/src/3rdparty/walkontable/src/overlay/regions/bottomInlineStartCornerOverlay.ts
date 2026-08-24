@@ -4,11 +4,7 @@ import {
 } from '../../../../../helpers/dom/element';
 import BottomInlineStartCornerOverlayTable from '../../table/regions/bottomInlineStartCornerTable';
 import { Overlay, type OverlayDeps } from './_base';
-import {
-  insetCssSize,
-  overlayScrollbarClearance,
-  toggleScrollbarClearance,
-} from '../scrollbarClearance';
+import { overlayScrollbarClearance, reservedScrollbarSpace } from '../scrollbarClearance';
 import {
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from '../constants';
@@ -101,19 +97,27 @@ export class BottomInlineStartCornerOverlay extends Overlay {
       tableHeight = 0;
     }
 
-    overlayRoot.style.height = `${tableHeight}px`;
-    overlayRoot.style.width = `${tableWidth}px`;
-
     // This corner is drawn over the bottom edge, on top of both the frozen-column and frozen-bottom-row
-    // overlays, so it would re-cover the strip they leave clear for an overlay scrollbar (#10370). Only
-    // this overlay sizes its own holder, so the clearance is applied straight to it.
+    // overlays, so it would re-cover the strip they leave clear for an overlay scrollbar (#10370).
+    // Gated on both axes for the same reason as the frozen bottom rows: without a vertical scroll this
+    // corner is lifted clear of the horizontal scrollbar anyway.
+    const wtViewport = this.deps.getWtViewport();
     const bottomClearance = overlayScrollbarClearance(
       this.deps.geometryReader.getScrollbarWidth(this.deps.rootDocument),
-      this.deps.getWtViewport().hasHorizontalScroll()
+      wtViewport.hasHorizontalScroll() && wtViewport.hasVerticalScroll(),
+      reservedScrollbarSpace(
+        this.deps.geometryReader, this.deps.getWtTable().holder, 'horizontal'
+      )
     );
 
-    toggleScrollbarClearance(overlayRoot, bottomClearance > 0);
-    clone.wtTable.holder.style.height = insetCssSize(overlayRoot.style.height, bottomClearance);
+    overlayRoot.style.height = `${tableHeight}px`;
+    overlayRoot.style.width = `${tableWidth}px`;
+    clone.wtTable.holder.style.height = overlayRoot.style.height;
+
+    this.publishScrollbarClearance(
+      { bottom: bottomClearance, rtl: this.isRtl() },
+      this.wot.wtOverlays.isScrollbarVisible()
+    );
 
     return true;
   }

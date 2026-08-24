@@ -8,9 +8,9 @@ import {
 import BottomOverlayTable from '../../table/regions/bottomTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
-  insetCssSize,
+  applyOverlayScrollbarClearance,
   overlayScrollbarClearance,
-  toggleScrollbarClearance,
+  reservedScrollbarSpace,
 } from '../scrollbarClearance';
 import {
   CLONE_BOTTOM,
@@ -200,6 +200,11 @@ export class BottomOverlay extends Overlay {
     if (this.needFullRender) {
       this.adjustRootElementSize();
       this.adjustRootChildrenSize();
+
+    } else if (this.clone) {
+      // Stopped rendering - `fixedRowsBottom` set back to 0, say. Nothing below sizes this overlay any
+      // more, so drop its clearance here or the filler stays behind as an opaque strip over live cells.
+      applyOverlayScrollbarClearance(this.clone.wtTable.holder.parentNode as HTMLElement, {});
     }
   }
 
@@ -218,18 +223,26 @@ export class BottomOverlay extends Overlay {
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wtSettings.getSetting<boolean | string>('preventOverflow');
 
+    // Both strips need this overlay to be laid out against the scrollport; when the window anchors it
+    // instead, `repositionOverlay` never runs and clipping would expose the master for nothing.
+    const rootSized = this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal';
+    const anchoredToWindow = this.trimmingContainer === rootWindow
+      && (!preventOverflow || preventOverflow !== 'vertical');
+    const clearanceApplies = rootSized && !anchoredToWindow;
+
     // The master's vertical scrollbar sits along the inline-end edge this overlay spans.
     this.#holderClearance = overlayScrollbarClearance(
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
-      wtViewport.hasVerticalScroll()
+      clearanceApplies && wtViewport.hasVerticalScroll(),
+      reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'vertical')
     );
 
-    if (this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal') {
+    if (rootSized) {
       let width = wtViewport.getWorkspaceWidth();
 
       if (wtViewport.hasVerticalScroll()) {
         // With an overlay scrollbar this subtracts 0 - the browser reserves it no space - so the
-        // clearance above keeps the holder off the scrollbar instead (#10370).
+        // clearance below shortens the root instead (#10370).
         width -= this.deps.geometryReader.getScrollbarWidth(rootDocument);
       }
 
@@ -240,16 +253,16 @@ export class BottomOverlay extends Overlay {
       overlayRootStyle.width = '';
     }
 
-    // This overlay also spans the bottom edge, where the horizontal scrollbar is painted.
+    // This overlay also spans the bottom edge, where the horizontal scrollbar is painted - but only
+    // while it actually sits on that edge. Without a vertical scroll `repositionOverlay` lifts it to
+    // where the rows end, clear of the scrollbar, so no strip is needed then.
     this.#bottomClearance = overlayScrollbarClearance(
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
-      wtViewport.hasHorizontalScroll()
+      clearanceApplies && wtViewport.hasHorizontalScroll() && wtViewport.hasVerticalScroll(),
+      reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'horizontal')
     );
 
-    toggleScrollbarClearance(overlayRoot,
-      this.#holderClearance > 0 || this.#bottomClearance > 0);
-    this.clone.wtTable.holder.style.width =
-      insetCssSize(overlayRootStyle.width, this.#holderClearance);
+    this.clone.wtTable.holder.style.width = overlayRootStyle.width;
 
     let tableHeight = this.deps.geometryReader.outerHeight(this.clone.wtTable.TABLE);
 
@@ -258,6 +271,12 @@ export class BottomOverlay extends Overlay {
     }
 
     overlayRootStyle.height = `${tableHeight}px`;
+
+    this.publishScrollbarClearance({
+      bottom: this.#bottomClearance,
+      inlineEnd: this.#holderClearance,
+      rtl: this.isRtl(),
+    }, this.wot.wtOverlays.isScrollbarVisible());
   }
 
   /**
@@ -273,8 +292,8 @@ export class BottomOverlay extends Overlay {
     this.clone.wtTable.hider.style.width = this.hider.style.width;
     const holderParent = holder.parentNode as HTMLElement;
 
-    holder.style.width = insetCssSize(holderParent.style.width, this.#holderClearance);
-    holder.style.height = insetCssSize(holderParent.style.height, this.#bottomClearance);
+    holder.style.width = holderParent.style.width;
+    holder.style.height = holderParent.style.height;
   }
 
   /**

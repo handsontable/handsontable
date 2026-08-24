@@ -16,6 +16,15 @@ import {
 import { createOverlayDeps } from './regions/_base';
 import { StickyScrollStrategy, createStickyScrollStrategyDeps } from './strategies/stickyScrollStrategy';
 import { ResizeMonitor, createResizeMonitorDeps } from './resizeMonitor';
+import { ScrollbarVisibility, createScrollbarVisibilityDeps } from './scrollbarVisibility';
+import {
+  BAND_SWALLOWED_EVENTS,
+  isPointInScrollbarBand,
+  overlayScrollbarClearance,
+  reservedScrollbarSpace,
+  syncScrollbarTrackBands,
+  type ScrollbarBandsOpen,
+} from './scrollbarClearance';
 import { SpreaderSize, createSpreaderSizeDeps } from './spreaderSize';
 import { ScrollSync, createScrollSyncDeps } from './scroll/scrollSync';
 import { NativeScrollInput, createNativeScrollInputDeps } from './scroll/nativeScrollInput';
@@ -46,6 +55,7 @@ export function createOverlaysDeps(ctx: EngineContext) {
     // owning Overlays instance (for `refreshAll`/`applyToDOM`/`scrollableElement`/`eventManager`).
     makeStickyScrollDeps: (overlays: Overlays) => createStickyScrollStrategyDeps(ctx, overlays),
     makeResizeMonitorDeps: () => createResizeMonitorDeps(ctx),
+    makeScrollbarVisibilityDeps: () => createScrollbarVisibilityDeps(ctx),
     makeSpreaderSizeDeps: (overlays: Overlays) => createSpreaderSizeDeps(ctx, overlays),
     makeScrollSyncDeps: (overlays: Overlays, stickyScroll: StickyScrollStrategy) =>
       createScrollSyncDeps(ctx, overlays, stickyScroll),
@@ -271,6 +281,17 @@ class Overlays {
   #resizeMonitor!: ResizeMonitor;
 
   /**
+   * Tracks whether an overlay scrollbar is on screen, so the clearance strip the frozen overlays leave
+   * for it opens with it and closes again when it fades (#10370).
+   */
+  #scrollbarVisibility!: ScrollbarVisibility;
+
+  /**
+   * The band sizes currently drawn, so a press landing in one can be swallowed (#10370).
+   */
+  #bandSizes = { bottom: 0, inlineEnd: 0 };
+
+  /**
    * @param {OverlaysDeps} deps The Overlays module dependencies.
    */
   constructor(deps: OverlaysDeps) {
@@ -291,6 +312,12 @@ class Overlays {
     // drives sticky activation on scroll; it owns the scrollable element and the scroll state.
     this.#stickyScroll = new StickyScrollStrategy(this.#deps.makeStickyScrollDeps(this));
     this.#resizeMonitor = new ResizeMonitor(this.#deps.makeResizeMonitorDeps());
+    // Re-applies the clearance when the scrollbar comes or goes. Only clip-path and a filler's
+    // visibility change, so this costs paint, never layout.
+    this.#scrollbarVisibility = new ScrollbarVisibility(
+      this.#deps.makeScrollbarVisibilityDeps(),
+      () => this.#refreshScrollbarClearance()
+    );
     this.#spreaderSize = new SpreaderSize(this.#deps.makeSpreaderSizeDeps(this));
     this.#scrollSync = new ScrollSync(this.#deps.makeScrollSyncDeps(this, this.#stickyScroll));
     this.#nativeScrollInput = new NativeScrollInput(
@@ -419,6 +446,72 @@ class Overlays {
    */
   registerListeners() {
     this.#nativeScrollInput.registerListeners();
+
+    // An overlay scrollbar comes on screen when the pointer nears it, so the strip it needs has to be
+    // driven by pointer position. Passive, and the handler reads no DOM - the scrollport rect it
+    // compares against is cached and only re-read on scroll or resize.
+    this.eventManager.addEventListener(this.#deps.rootWindow as unknown as HTMLElement, 'pointermove', ((
+      event: PointerEvent
+    ) => {
+      this.#scrollbarVisibility.notifyPointerMoved(event.clientX, event.clientY);
+    }) as EventListener, { passive: true });
+
+    // A press inside an open band must do nothing: no selection, no deselect, no menu. It has to be
+    // caught by coordinate on the way down - the band element is not hit-tested (the browser answers a
+    // point in there with the scroll container), so nothing on the band itself would ever fire.
+    BAND_SWALLOWED_EVENTS.forEach((eventName) => {
+      this.eventManager.addEventListener(
+        this.wtTable.holder,
+        eventName,
+        ((event: MouseEvent) => this.#swallowBandPress(event)) as EventListener,
+        { capture: true }
+      );
+    });
+  }
+
+  /**
+   * Stops a pointer event that landed inside an open scrollbar band (#10370).
+   *
+   * @param {MouseEvent} event The pointer event on its way down to the grid.
+   */
+  #swallowBandPress(event: MouseEvent) {
+    const { bottom, inlineEnd } = this.#bandSizes;
+
+    if (bottom === 0 && inlineEnd === 0) {
+      return;
+    }
+
+    const rect = this.#deps.geometryReader.getBoundingClientRect(this.wtTable.holder);
+
+    const rtl = this.wtSettings.getSetting<boolean>('rtlMode');
+
+    if (isPointInScrollbarBand(rect, bottom, inlineEnd, rtl, event.clientX, event.clientY)) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+  }
+
+  /**
+   * Whether an overlay scrollbar is currently on screen, and so whether the frozen overlays should be
+   * leaving a clearance strip for it (#10370).
+   *
+   * @returns {boolean}
+   */
+  isScrollbarVisible(): ScrollbarBandsOpen {
+    // The clip and the band switch on the same flag, so the two can never disagree - either half-
+    // switched state is visible (a seam down the strip, or a column header cut short). See
+    // `ScrollbarVisibility`.
+    const visible = this.#scrollbarVisibility.visible;
+
+    return { bottom: visible.horizontal, inlineEnd: visible.vertical };
+  }
+
+  /**
+   * Reports a scroll to the scrollbar-visibility tracker: scrolling is what puts an overlay scrollbar
+   * on screen, alongside the pointer nearing it.
+   */
+  notifyScrolledForScrollbarVisibility(): void {
+    this.#scrollbarVisibility.notifyScrolled();
   }
 
   /**
@@ -488,6 +581,7 @@ class Overlays {
   destroy() {
     this.#postponedAdjustElementsSize.cancel();
     this.#resizeMonitor.destroy();
+    this.#scrollbarVisibility.destroy();
     this.#stickyScroll.destroy();
     this.eventManager.destroy();
     // todo, probably all below `destroy` calls has no sense. To analyze
@@ -590,6 +684,82 @@ class Overlays {
    */
   adjustElementsSize() {
     this.#spreaderSize.adjustElementsSize();
+    this.#syncScrollbarTrackBands();
+  }
+
+  /**
+   * Re-applies the clearance after the scrollbar appears or fades, and nothing else (#10370).
+   *
+   * Opening and closing the band is a paint change - a `clip-path` and an opacity - so it must not drag
+   * a full `adjustElementsSize` behind it: that walks every column, resizes three overlays, and (being
+   * an extra pass no other input triggers) changes what the render-offset specs count.
+   */
+  #refreshScrollbarClearance() {
+    const visible = this.#scrollbarVisibility.visible;
+    const open = { bottom: visible.horizontal, inlineEnd: visible.vertical };
+
+    // The bands have to come and go on this signal, not wait for the next draw - a scroll may not
+    // trigger one, and the scrollbar is already on screen by then.
+    this.#syncScrollbarTrackBands();
+
+    this.#overlays.forEach((overlay) => {
+      overlay.refreshScrollbarClearance?.(open);
+    });
+  }
+
+  /**
+   * Draws the band each overlay scrollbar is painted in, across the whole scrollport (#10370).
+   *
+   * Owned here rather than per overlay: the band has to span the master too, or the frozen part reads as
+   * an opaque patch next to a transparent gap. Skipped entirely unless the grid is in the
+   * overlay-scrollbar regime, so a classic-scrollbar grid pays nothing - not even the two reads.
+   */
+  #syncScrollbarTrackBands() {
+    const { geometryReader, rootDocument } = this.#deps;
+    const wtViewport = this.wot.wtViewport;
+    const holder = this.wtTable.holder;
+    // Only when the holder is the scroller. With page-level scrolling the scrollbar belongs to the
+    // window, nowhere near this holder, so a band in here would carve a strip out of nothing.
+    const holderScrolls = this.scrollableElement === holder;
+    const scrollbarWidth = geometryReader.getScrollbarWidth(rootDocument);
+    const bottom = holderScrolls
+      ? overlayScrollbarClearance(
+        scrollbarWidth,
+        wtViewport.hasHorizontalScroll(),
+        reservedScrollbarSpace(geometryReader, holder, 'horizontal')
+      ) : 0;
+    const inlineEnd = holderScrolls
+      ? overlayScrollbarClearance(
+        scrollbarWidth,
+        wtViewport.hasVerticalScroll(),
+        reservedScrollbarSpace(geometryReader, holder, 'vertical')
+      ) : 0;
+
+    const visible = this.#scrollbarVisibility.visible;
+    const open = { bottom: visible.horizontal, inlineEnd: visible.vertical };
+
+    // Only an open band can swallow a press; a closed edge is ordinary grid again.
+    this.#bandSizes = {
+      bottom: open.bottom ? bottom : 0,
+      inlineEnd: open.inlineEnd ? inlineEnd : 0,
+    };
+
+    if (bottom === 0 && inlineEnd === 0) {
+      syncScrollbarTrackBands(
+        holder,
+        { bottom: 0, inlineEnd: 0, scrollportWidth: 0, scrollportHeight: 0 },
+        { bottom: false, inlineEnd: false }
+      );
+
+      return;
+    }
+
+    syncScrollbarTrackBands(holder, {
+      bottom,
+      inlineEnd,
+      scrollportWidth: geometryReader.clientWidth(holder),
+      scrollportHeight: geometryReader.clientHeight(holder),
+    }, open);
   }
 
   /**

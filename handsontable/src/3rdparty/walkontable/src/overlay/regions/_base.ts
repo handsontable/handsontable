@@ -15,6 +15,11 @@ import {
   CLONE_INLINE_START,
 } from '../constants';
 import Clone from '../../core/clone';
+import {
+  applyOverlayScrollbarClearance,
+  type OverlayScrollbarClearanceStrips,
+  type ScrollbarBandsOpen,
+} from '../scrollbarClearance';
 import { A11Y_PRESENTATION } from '../../../../../helpers/a11y';
 import { throwWithCause } from '../../../../../helpers/errors';
 
@@ -187,6 +192,12 @@ export abstract class Overlay {
   declare clone: WalkontableInstance | null;
 
   /**
+   * The bands this overlay last asked to keep clear, so they can be re-applied when the scrollbar
+   * appears or fades without recomputing anything (#10370).
+   */
+  #clearanceStrips: OverlayScrollbarClearanceStrips | null = null;
+
+  /**
    * @param {OverlayDeps} deps The overlay module dependencies.
    * @param {CLONE_TYPES_ENUM} type The overlay type name (clone name).
    */
@@ -243,6 +254,39 @@ export abstract class Overlay {
    */
   hasRenderingStateChanged() {
     return this.needFullRender !== this.shouldBeRendered();
+  }
+
+  /**
+   * Records the bands this overlay keeps clear for an overlay scrollbar, and applies them (#10370).
+   *
+   * @param {OverlayScrollbarClearanceStrips} strips The bands to keep clear, in pixels.
+   * @param {ScrollbarBandsOpen} open Which bands are currently showing.
+   */
+  publishScrollbarClearance(strips: OverlayScrollbarClearanceStrips, open: ScrollbarBandsOpen) {
+    if (!this.clone) {
+      return;
+    }
+
+    this.#clearanceStrips = strips;
+    applyOverlayScrollbarClearance(
+      this.clone.wtTable.holder.parentNode as HTMLElement, strips, open
+    );
+  }
+
+  /**
+   * Re-applies the recorded bands after the scrollbar appears or fades. Paint only - nothing is
+   * measured or resized, which is what keeps a fade off the layout path.
+   *
+   * @param {ScrollbarBandsOpen} open Which bands are currently showing.
+   */
+  refreshScrollbarClearance(open: ScrollbarBandsOpen) {
+    if (!this.clone || !this.#clearanceStrips) {
+      return;
+    }
+
+    applyOverlayScrollbarClearance(
+      this.clone.wtTable.holder.parentNode as HTMLElement, this.#clearanceStrips, open
+    );
   }
 
   /**

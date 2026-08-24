@@ -51,6 +51,7 @@ export function createNativeScrollInputDeps(
     geometryReader: ctx.geometryReader,
     wtTable: ctx.getWtTable(),
     eventManager: overlays.eventManager,
+    notifyScrolledForScrollbarVisibility: () => overlays.notifyScrolledForScrollbarVisibility(),
     getTopOverlay: () => overlays.topOverlay,
     getInlineStartOverlay: () => overlays.inlineStartOverlay,
     getCloneableOverlays: () => [
@@ -198,6 +199,10 @@ export class NativeScrollInput {
    * @param {Event} event The mouse event object.
    */
   #onTableScroll(event: Event) {
+    // Scrolling is what brings an overlay scrollbar on screen, so the clearance strip the frozen
+    // overlays leave for it has to open now and fade with it (#10370).
+    this.#deps.notifyScrolledForScrollbarVisibility();
+
     // There was if statement which controlled flow of this function. It avoided the execution of the next lines
     // on mobile devices. It was changed. Broader description of this case is included within issue #4856.
     const { rootWindow } = this.#deps;
