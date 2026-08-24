@@ -8,6 +8,8 @@ export interface HyperFormulaEngine {
   addSheet(sheetName?: string): string;
   setSheetContent(sheetId: number | null, data: unknown[][]): unknown[];
   getSheetSerialized(sheetId: number | null): unknown[][];
+  getSheetFormulas(sheetId: number | null): (string | undefined)[][];
+  normalizeFormula(formula: string): string;
   getSheetDimensions(sheetId: number): { width: number; height: number };
   getCellType(address: { sheet: number | null; row: number; col: number }): unknown;
   doesCellHaveFormula(address: { sheet: number | null; row: number; col: number }): boolean;

@@ -1792,7 +1792,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const formulas = this.engine.getSheetFormulas(sheetId) as Array<Array<string | undefined>>;
+    const formulas = this.engine.getSheetFormulas(sheetId);
     const changes: Array<[number, string | number, unknown]> = [];
 
     // Compare against what Handsontable stores, not against what it reports - `#onModifySourceData`
@@ -1820,23 +1820,20 @@ export class Formulas extends BasePlugin {
 
           const visualColumn = this.columnAxisSyncer!.getVisualIndexFromHfIndex(hfColumn);
 
-          // A trimmed column has no visual index. Its physical index doubles as the prop for an
-          // array-based source, but on an object row it would create a numeric key next to the
-          // real ones, so such a cell is left alone.
-          if (visualColumn === -1 && !Array.isArray(this.hot.getSourceDataAtRow(physicalRow))) {
+          // A trimmed column has no visual index, and the read and the write below disagree about
+          // which column space an index is in without one - `getSourceDataAtCell` resolves it as a
+          // visual column, `setSourceDataAtCell` as a prop. Rather than guess, leave the cell alone:
+          // no core plugin trims columns, so this only reaches a userland trimming map.
+          if (visualColumn === -1) {
             continue;
           }
 
-          const columnOrProp = visualColumn === -1 ? hfColumn : visualColumn;
-
           // `getSourceDataAtCell` takes a physical row and a visual column, `setSourceDataAtCell`
           // a physical row and a prop.
-          const stored = this.hot.getSourceDataAtCell(physicalRow, columnOrProp);
+          const stored = this.hot.getSourceDataAtCell(physicalRow, visualColumn);
 
           if (stored !== formula && !this.#isSameFormula(stored, formula)) {
-            const prop = visualColumn === -1 ? hfColumn : this.hot.colToProp(visualColumn);
-
-            changes.push([physicalRow, prop as string | number, formula]);
+            changes.push([physicalRow, this.hot.colToProp(visualColumn) as string | number, formula]);
           }
         }
       }
