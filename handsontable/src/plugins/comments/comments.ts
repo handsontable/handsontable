@@ -6,7 +6,6 @@ import {
   hasClass,
   hasVerticalScrollbar,
   hasHorizontalScrollbar,
-  isChildOf,
   isShadowRoot,
   outerHeight,
 } from '../../helpers/dom/element';
@@ -532,19 +531,23 @@ export class Comments extends BasePlugin {
   }
 
   /**
-   * Checks whether the element sits in a tree the grid can be rendered into. `isChildOf()`
-   * walks `parentNode` only, so an element inside the grid's shadow tree dead-ends at the
-   * `ShadowRoot` (whose `parentNode` is `null`) and never reaches the document.
+   * Checks whether the element is attached to the document the grid renders into. A
+   * `parentNode` walk cannot answer this: it dead-ends at the first `ShadowRoot` (whose
+   * `parentNode` is `null`), which makes every element inside a shadow tree look detached.
+   * The composed root node crosses shadow boundaries by following host elements, so it
+   * resolves to the document for the grid's own shadow tree, for any other component's
+   * shadow tree on the page, and for the light DOM alike - while a genuinely detached
+   * element still resolves to its own orphaned root.
+   *
+   * Testing only the grid's own shadow root here would leave the tooltip open when the
+   * pointer crosses straight from a commented cell into a *different* shadow tree, which
+   * is an ordinary move on a page built from web components.
    *
    * @param {HTMLElement} element The element to check.
    * @returns {boolean}
    */
   #isInRenderedTree(element: HTMLElement): boolean {
-    if (this.#gridShadowRoot?.contains(element)) {
-      return true;
-    }
-
-    return isChildOf(element, this.hot.rootDocument);
+    return element.getRootNode({ composed: true }) === this.hot.rootDocument;
   }
 
   /**
@@ -552,10 +555,11 @@ export class Comments extends BasePlugin {
    *
    * @private
    * @param {Event} event DOM event.
+   * @param {HTMLElement} [target] The already-resolved event target, to avoid resolving it twice.
    * @returns {boolean}
    */
-  targetIsCellWithComment(event: Event) {
-    const closestCell = closest(this.#resolveEventTarget(event)!, ['TD']);
+  targetIsCellWithComment(event: Event, target = this.#resolveEventTarget(event)) {
+    const closestCell = closest(target!, ['TD']);
 
     return !!(closestCell && hasClass(closestCell, 'htCommentCell') &&
       closest(closestCell, [this.hot.rootElement]));
@@ -566,10 +570,11 @@ export class Comments extends BasePlugin {
    *
    * @private
    * @param {Event} event DOM event.
+   * @param {HTMLElement} [target] The already-resolved event target, to avoid resolving it twice.
    * @returns {boolean}
    */
-  targetIsCommentTextArea(event: Event) {
-    return this.getEditorInputElement() === this.#resolveEventTarget(event);
+  targetIsCommentTextArea(event: Event, target = this.#resolveEventTarget(event)) {
+    return this.getEditorInputElement() === target;
   }
 
   /**
@@ -929,8 +934,10 @@ export class Comments extends BasePlugin {
       return;
     }
 
-    if (!this.#preventEditorAutoSwitch && !this.targetIsCommentTextArea(event)) {
-      const eventCell = closest(this.#resolveEventTarget(event)!, ['TD']);
+    const target = this.#resolveEventTarget(event);
+
+    if (!this.#preventEditorAutoSwitch && !this.targetIsCommentTextArea(event, target)) {
+      const eventCell = closest(target!, ['TD']);
       let coordinates = null;
 
       if (eventCell) {
@@ -973,7 +980,7 @@ export class Comments extends BasePlugin {
     this.#cellBelowCursor = (this.#gridShadowRoot ?? rootDocument).elementFromPoint(
       (event as MouseEvent).clientX, (event as MouseEvent).clientY);
 
-    if (this.targetIsCellWithComment(event)) {
+    if (this.targetIsCellWithComment(event, target)) {
       const coords = this.hot.getCoords(target);
 
       if (coords) {
@@ -982,7 +989,7 @@ export class Comments extends BasePlugin {
         this.#displaySwitch?.show(range);
       }
 
-    } else if (this.#isInRenderedTree(target) && !this.targetIsCommentTextArea(event)) {
+    } else if (this.#isInRenderedTree(target) && !this.targetIsCommentTextArea(event, target)) {
       this.#displaySwitch?.hide();
     }
   };
