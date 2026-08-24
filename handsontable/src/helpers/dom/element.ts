@@ -1351,7 +1351,7 @@ export function isOutsideInput(element: HTMLElement): boolean {
  * @param {HTMLElement} element - DOM element.
  */
 export function selectElementIfAllowed(element: HTMLElement): void {
-  const activeElement = element.ownerDocument.activeElement;
+  const activeElement = getDeepActiveElement(element.ownerDocument);
 
   if (isHTMLElement(activeElement) && !isOutsideInput(activeElement) &&
       (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)) {
@@ -1511,11 +1511,61 @@ export function isHTMLInputElement(element: HTMLElement): element is HTMLInputEl
 /**
  * Check if the node is a ShadowRoot (a document fragment attached to a host element).
  *
- * @param {Node} node Node to check.
+ * @param {Node|EventTarget} node Node to check.
  * @returns {boolean} `true` if the node is a ShadowRoot.
  */
-export function isShadowRoot(node: Node): node is ShadowRoot {
-  return node.nodeType === Node.DOCUMENT_FRAGMENT_NODE && 'host' in node;
+export function isShadowRoot(node: Node | EventTarget): node is ShadowRoot {
+  if (typeof node !== 'object' || node === null) {
+    return false;
+  }
+
+  return 'nodeType' in node && node.nodeType === Node.DOCUMENT_FRAGMENT_NODE && 'host' in node;
+}
+
+/**
+ * Gets the chain of shadow host elements the node is rendered within, ordered from the
+ * closest host outward to the host attached to the document.
+ *
+ * @param {Node} node The node to read the host chain from.
+ * @returns {HTMLElement[]} The shadow host elements; empty when the node is not in a Shadow DOM tree.
+ */
+export function getShadowHostChain(node: Node): HTMLElement[] {
+  const hosts: HTMLElement[] = [];
+  let rootNode = node.getRootNode();
+
+  while (isShadowRoot(rootNode)) {
+    const { host } = rootNode;
+
+    if (!isHTMLElement(host)) {
+      break;
+    }
+
+    hosts.push(host);
+    rootNode = host.getRootNode();
+  }
+
+  return hosts;
+}
+
+/**
+ * Gets the deepest active (focused) element in the document. When the focus is inside
+ * a Shadow DOM tree, `document.activeElement` points at the shadow host instead of the
+ * focused element. This helper descends through the open shadow roots and returns
+ * the element that actually holds the focus.
+ *
+ * @param {Document} rootDocument The document to read the active element from.
+ * @returns {Element|null} The deepest focused element. The browser reports `document.body`
+ * when no other element holds the focus; `null` appears only in edge cases such as
+ * a document with no body.
+ */
+export function getDeepActiveElement(rootDocument: Document): Element | null {
+  let element = rootDocument.activeElement;
+
+  while (element?.shadowRoot?.activeElement) {
+    element = element.shadowRoot.activeElement;
+  }
+
+  return element;
 }
 
 /**

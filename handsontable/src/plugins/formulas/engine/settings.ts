@@ -5,6 +5,10 @@ export const DEFAULT_LICENSE_KEY = 'internal-use-in-handsontable';
 export const DEFAULT_SETTINGS = {
   licenseKey: DEFAULT_LICENSE_KEY,
 
+  // HyperFormula's own default is 40000. Handsontable used to pass its `maxRows` here, and that
+  // defaults to `Infinity`, so an engine the plugin builds has never been bounded. Keep it that way.
+  maxRows: Infinity,
+
   useArrayArithmetic: true,
   useColumnIndex: false,
   useStats: false,
@@ -31,6 +35,33 @@ export const DEFAULT_SETTINGS = {
 };
 
 /**
+ * Size limits that Handsontable applies to a single grid, but HyperFormula applies to a whole engine.
+ *
+ * They are never passed to the engine. Any engine can end up shared - the guide recommends reusing
+ * one grid's engine in the next grid - and bounding a shared engine by one grid's display limit makes
+ * HyperFormula throw `SheetSizeLimitExceededError` over another grid's taller sheet. Handsontable
+ * enforces `maxRows`/`maxCols` on its own data anyway. See GH #10672.
+ */
+const ENGINE_SIZE_SETTINGS = ['maxRows', 'maxColumns'];
+
+/**
+ * Drops the engine-wide size limits from a set of settings.
+ *
+ * @param {object} engineSettings Engine settings.
+ * @returns {object}
+ */
+function dropEngineSizeSettings(engineSettings: Record<string, unknown>) {
+  return Object.keys(engineSettings)
+    .reduce<Record<string, unknown>>((obj, key) => {
+      if (!ENGINE_SIZE_SETTINGS.includes(key)) {
+        obj[key] = engineSettings[key];
+      }
+
+      return obj;
+    }, {});
+}
+
+/**
  * Gets a set of engine settings to be applied on top of the provided settings, based on user's Handsontable settings.
  *
  * @param {object} hotSettings Handsontable settings object.
@@ -40,8 +71,6 @@ export function getEngineSettingsOverrides(hotSettings: Record<string, unknown>)
   const pluginSetting = hotSettings[PLUGIN_KEY] as Record<string, unknown> | undefined;
 
   return {
-    maxColumns: hotSettings.maxColumns,
-    maxRows: hotSettings.maxRows,
     language: (pluginSetting?.language as Record<string, unknown> | undefined)?.langCode
   };
 }
@@ -83,9 +112,9 @@ export function getEngineSettingsWithDefaultsAndOverrides(hotSettings: Record<st
   const pluginSettings = hotSettings[PLUGIN_KEY] as Record<string, unknown> | undefined;
 
   const engine = pluginSettings?.engine as Record<string, unknown> | undefined;
-  const userSettings = cleanEngineSettings(
+  const userSettings = dropEngineSizeSettings(cleanEngineSettings(
     engine?.hyperformula ? engine : {}
-  );
+  ));
 
   const overrides = getEngineSettingsOverrides(hotSettings);
 
@@ -106,7 +135,7 @@ export function getEngineSettingsWithOverrides(hotSettings: Record<string, unkno
   const pluginSettings = hotSettings[PLUGIN_KEY] as Record<string, unknown> | undefined;
 
   const engine = pluginSettings?.engine as Record<string, unknown> | undefined;
-  const userSettings = cleanEngineSettings(engine?.hyperformula ? engine : {});
+  const userSettings = dropEngineSizeSettings(cleanEngineSettings(engine?.hyperformula ? engine : {}));
   const overrides = getEngineSettingsOverrides(hotSettings);
 
   return {

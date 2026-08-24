@@ -41,6 +41,14 @@
     flex-direction: column;
     height: 100%;
 
+    // The `ht-shadow-dom` class is stamped by the core when the grid renders inside a Shadow DOM
+    // tree. The isolated stacking context keeps the internal z-indexes (overlay clones, editors)
+    // from competing with the host page UI, which typically layers its own chrome above the
+    // embedded component (e.g. Salesforce Lightning navigation over a scrolled grid).
+    &.ht-shadow-dom {
+      isolation: isolate;
+    }
+
     // The `ht-slot-*-filled` classes are kept in sync by the `LayoutManager` (they mean "the slot
     // has at least one `.ht-slot-element` child"). Selecting on `:has()` here instead makes every
     // grid DOM mutation trigger a style invalidation scaled to the whole host page.

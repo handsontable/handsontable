@@ -5,6 +5,7 @@ import EventManager from '../../eventManager';
 import { isEdge, isIOS } from '../../helpers/browser';
 import {
   addClass,
+  getDeepActiveElement,
   isInternalElement,
   setCaretPosition,
   hasClass,
@@ -136,7 +137,7 @@ export class TextEditor extends BaseEditor {
     this._opened = false;
     this.autoResize.unObserve();
 
-    if (isInternalElement(this.hot.rootDocument.activeElement as HTMLElement, this.hot.rootElement)) {
+    if (isInternalElement(getDeepActiveElement(this.hot.rootDocument) as HTMLElement, this.hot.rootElement)) {
       this.hot.listen(); // don't refocus the table if user focused some cell outside of HT on purpose
     }
 

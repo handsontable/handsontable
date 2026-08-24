@@ -43,7 +43,10 @@
     .wtSelectionHandle {
       position: absolute;
       box-sizing: border-box;
-      z-index: 200;
+      // Above the fill handle (110) and the moveCells bands (100), below the overlay clones
+      // (inline_start 120) — `.ht_master` opens no stacking context, so a pill above the clones
+      // paints over a frozen pane the selection has scrolled under and takes the click there.
+      z-index: 115;
       background: var(--ht-cell-selection-handle-background-color);
       border: var(--ht-cell-selection-handle-border-width) solid var(--ht-cell-selection-handle-border-color);
       border-radius: var(--ht-cell-selection-handle-border-radius);
@@ -211,8 +214,13 @@
         font-size: 0;
         cursor: crosshair;
         // Above the moveCells bands (z-index 100, inline) — they span the SE corner, and the fill
-        // handle must keep winning its own pixels there — but below the resize pills (z-index 200).
-        z-index: 150;
+        // handle must keep winning its own pixels there — but below the resize pills (z-index 115).
+        // The ceiling is tighter than 200 though: `.ht_master` sets no z-index, so it opens no
+        // stacking context and every border inside it competes directly with the overlay clones
+        // (inline_start 120, bottom 130 — see base/_z-index-map.scss). Anything at 120 or above
+        // paints the handle over a frozen pane the selection has scrolled under, and lets it win
+        // hit-testing there too.
+        z-index: 110;
 
         &::after {
           content: '';

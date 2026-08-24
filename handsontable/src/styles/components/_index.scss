@@ -13,6 +13,7 @@
 @use "./plugins/hidden-rows";
 @use "./plugins/dropdown-menu";
 @use "./plugins/filters";
+@use "./plugins/formulas";
 @use "./plugins/comments";
 @use "./plugins/custom-borders";
 @use "./plugins/column-sorting";
@@ -80,6 +81,7 @@
   @include hidden-rows.output();
   @include dropdown-menu.output();
   @include filters.output();
+  @include formulas.output();
   @include comments.output();
   @include custom-borders.output();
   @include column-sorting.output();

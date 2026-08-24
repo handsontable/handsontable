@@ -26,41 +26,31 @@ new Handsontable(container, {
   columnSummary() {
     const endpoints: DetailedSettings[] = [];
     const nestedRowsPlugin: NestedRows = this.hot.getPlugin('nestedRows');
-    const getRowIndex = nestedRowsPlugin.dataManager!.getRowIndex.bind(nestedRowsPlugin.dataManager);
-
     const resultColumn = 0;
 
-    let nestedRowsCache: any = null;
-
-    if (nestedRowsPlugin.isEnabled()) {
-      nestedRowsCache = nestedRowsPlugin.dataManager!.cache;
-    } else {
+    if (!nestedRowsPlugin.isEnabled()) {
       return [];
     }
 
-    if (!nestedRowsCache) {
-      return [];
-    }
-
-    for (let i = 0; i < nestedRowsCache.levels[0].length; i++) {
-      if (!nestedRowsCache.levels[0][i].__children || nestedRowsCache.levels[0][i].__children.length === 0) {
+    for (let visualRow = 0; visualRow < this.hot.countRows(); visualRow++) {
+      // Only summarize the top-level parents.
+      if (nestedRowsPlugin.getRowLevel(visualRow) !== 0 || !nestedRowsPlugin.isParent(visualRow)) {
         continue;
       }
 
-      const tempEndpoint: DetailedSettings = {
+      const parentRow = this.hot.toPhysicalRow(visualRow);
+      const descendantCount = nestedRowsPlugin.countChildren(visualRow, true);
+
+      // A parent's descendants sit in one block right after it in the source data, so the
+      // whole subtree is a single range. Count them recursively - the direct child count
+      // would stop short whenever a child has children of its own.
+      endpoints.push({
         destinationColumn: resultColumn,
-        destinationRow: getRowIndex(nestedRowsCache.levels[0][i]),
+        destinationRow: parentRow,
         type: 'sum',
         forceNumeric: true,
-        ranges: [],
-      };
-
-      tempEndpoint.ranges!.push([
-        getRowIndex(nestedRowsCache.levels[0][i].__children[0]),
-        getRowIndex(nestedRowsCache.levels[0][i].__children[nestedRowsCache.levels[0][i].__children.length - 1]),
-      ]);
-
-      endpoints.push(tempEndpoint);
+        ranges: [[parentRow + 1, parentRow + descendantCount]],
+      });
     }
 
     return endpoints;

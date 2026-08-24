@@ -403,6 +403,15 @@ describe('Hooks', () => {
       expect(hooks.isRegistered('beforeMoveCells')).toBe(true);
       expect(hooks.isRegistered('afterMoveCells')).toBe(true);
     });
+
+    it('should register the NestedRows collapse and expand hooks', () => {
+      const hooks = new Hooks();
+
+      expect(hooks.isRegistered('beforeRowCollapse')).toBe(true);
+      expect(hooks.isRegistered('afterRowCollapse')).toBe(true);
+      expect(hooks.isRegistered('beforeRowExpand')).toBe(true);
+      expect(hooks.isRegistered('afterRowExpand')).toBe(true);
+    });
   });
 
   describe('deregister()', () => {

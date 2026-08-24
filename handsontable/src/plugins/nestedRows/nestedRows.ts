@@ -174,6 +174,12 @@ export class NestedRows extends BasePlugin {
    *  - [`nestedRows`](@/api/options.md#nestedrows)
    */
   updatePlugin() {
+    // `disablePlugin` unregisters the trimming map and `enablePlugin` builds a brand new CollapsingUI,
+    // so the collapsed state has to be copied out before the teardown and replayed afterwards.
+    // Without this every `updateSettings` call that carries the `nestedRows` key expands the grid -
+    // which, in React, is every parent re-render.
+    const collapsedParents = this.collapsingUI?.getCollapsedParents() ?? [];
+
     this.disablePlugin();
 
     // We store a state of the data manager.
@@ -183,6 +189,12 @@ export class NestedRows extends BasePlugin {
 
     // After enabling plugin previously stored data is restored.
     this.dataManager!.updateWithData(currentSourceData!);
+
+    if (collapsedParents.length > 0) {
+      // Replaying a state the user already chose is not a new action, so the hooks stay silent. Firing
+      // them here would report a collapse on every settings update.
+      this.collapsingUI!.toggleCollapsedRows(collapsedParents, 'collapse', false);
+    }
 
     super.updatePlugin();
   }
@@ -207,11 +219,10 @@ export class NestedRows extends BasePlugin {
           const { highlight } = activeRange;
           const row = this.collapsingUI!.translateTrimmedRow(highlight.row ?? 0);
 
-          if (this.collapsingUI!.areChildrenCollapsed(row)) {
-            this.collapsingUI!.expandChildren(row);
-          } else {
-            this.collapsingUI!.collapseChildren(row);
-          }
+          this.collapsingUI!.toggleCollapsedRows(
+            [row],
+            this.collapsingUI!.areChildrenCollapsed(row) ? 'expand' : 'collapse'
+          );
 
           // prevent default Enter behavior (move to the next row within a selection range)
           return false;
@@ -238,6 +249,384 @@ export class NestedRows extends BasePlugin {
     this.hot.getShortcutManager()
       .getContext('grid')
       ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
+  }
+
+  /**
+   * Collapses every top-level parent row, which hides all of their descendants.
+   *
+   * A parent that was already collapsed inside another one stays collapsed.
+   *
+   * @fires Hooks#beforeRowCollapse
+   * @fires Hooks#afterRowCollapse
+   */
+  collapseAll(): void {
+    if (!this.#isOperational()) {
+      return;
+    }
+
+    this.collapsingUI!.collapseAll();
+  }
+
+  /**
+   * Expands every collapsed parent row at every nesting level, so no row stays hidden.
+   *
+   * @fires Hooks#beforeRowExpand
+   * @fires Hooks#afterRowExpand
+   */
+  expandAll(): void {
+    if (!this.#isOperational()) {
+      return;
+    }
+
+    this.collapsingUI!.toggleCollapsedRows(this.collapsingUI!.getCollapsedParentsShallowestFirst(), 'expand');
+  }
+
+  /**
+   * Collapses a parent row, which hides its children.
+   *
+   * @param {number} row Visual row index of the parent.
+   * @returns {boolean} `true` if the collapsed state changed. `false` when the row is not a parent,
+   * when it is already collapsed, or when the {@link Hooks#beforeRowCollapse} hook blocked the action.
+   * @fires Hooks#beforeRowCollapse
+   * @fires Hooks#afterRowCollapse
+   */
+  collapseParent(row: number): boolean {
+    return this.#toggleParentAt(row, 'collapse');
+  }
+
+  /**
+   * Expands a parent row, which shows its children again.
+   *
+   * @param {number} row Visual row index of the parent.
+   * @returns {boolean} `true` if the collapsed state changed. `false` when the row is not a parent,
+   * when it is already expanded, or when the {@link Hooks#beforeRowExpand} hook blocked the action.
+   * @fires Hooks#beforeRowExpand
+   * @fires Hooks#afterRowExpand
+   */
+  expandParent(row: number): boolean {
+    return this.#toggleParentAt(row, 'expand');
+  }
+
+  /**
+   * Collapses an expanded parent row, or expands a collapsed one. This is the same action as clicking
+   * the button in the row header or pressing Enter on it.
+   *
+   * @param {number} row Visual row index of the parent.
+   * @returns {boolean} `true` if the collapsed state changed.
+   * @fires Hooks#beforeRowCollapse
+   * @fires Hooks#afterRowCollapse
+   * @fires Hooks#beforeRowExpand
+   * @fires Hooks#afterRowExpand
+   */
+  toggleParent(row: number): boolean {
+    const physicalRow = this.#toPhysicalParentRow(row);
+
+    if (physicalRow === null) {
+      return false;
+    }
+
+    const isCollapsed = this.dataManager!.isParent(physicalRow) &&
+      this.collapsingUI!.areChildrenCollapsed(physicalRow);
+
+    return this.collapsingUI!.toggleCollapsedRows([physicalRow], isCollapsed ? 'expand' : 'collapse');
+  }
+
+  /**
+   * Returns the physical row indexes of every parent row that is collapsed.
+   *
+   * The indexes are physical, not visual, because a parent collapsed inside another collapsed parent
+   * is trimmed and therefore has no visual index at all. Physical indexes are also what you want to
+   * store when saving the state. Convert one with {@link Core#toVisualRow}.
+   *
+   * @returns {number[]} Physical row indexes, sorted ascending.
+   */
+  getCollapsedParents(): number[] {
+    if (!this.#isOperational()) {
+      return [];
+    }
+
+    return this.collapsingUI!.getCollapsedParents();
+  }
+
+  /**
+   * Checks whether a parent row is collapsed.
+   *
+   * @param {number} row Visual row index of the parent.
+   * @returns {boolean} `true` if the row is a parent and its children are hidden.
+   */
+  isParentCollapsed(row: number): boolean {
+    const physicalRow = this.#toPhysicalParentRow(row);
+
+    // A row without children is never collapsed. The check matters because
+    // `areChildrenCollapsed` answers "are all children collapsed", which is vacuously `true`
+    // for a row that has none.
+    if (physicalRow === null || !this.dataManager!.isParent(physicalRow)) {
+      return false;
+    }
+
+    return this.collapsingUI!.areChildrenCollapsed(physicalRow);
+  }
+
+  /**
+   * Checks whether a row has children.
+   *
+   * @param {number} row Visual row index.
+   * @returns {boolean}
+   */
+  isParent(row: number): boolean {
+    const physicalRow = this.#toPhysicalRow(row);
+
+    if (physicalRow === null) {
+      return false;
+    }
+
+    return this.dataManager!.isParent(physicalRow);
+  }
+
+  /**
+   * Returns how deeply a row is nested. Top-level rows are at level `0`.
+   *
+   * @param {number} row Visual row index.
+   * @returns {number|null} The nesting level, or `null` when the row does not exist.
+   */
+  getRowLevel(row: number): number | null {
+    const physicalRow = this.#toPhysicalRow(row);
+
+    if (physicalRow === null) {
+      return null;
+    }
+
+    return this.dataManager!.getRowLevel(physicalRow);
+  }
+
+  /**
+   * Returns the parent of a row.
+   *
+   * A visible row always has visible ancestors, so the returned index is visual like the argument.
+   *
+   * @param {number} row Visual row index.
+   * @returns {number|null} Visual row index of the parent, or `null` for a top-level row.
+   */
+  getRowParent(row: number): number | null {
+    const physicalRow = this.#toPhysicalRow(row);
+
+    if (physicalRow === null) {
+      return null;
+    }
+
+    const parentObject = this.dataManager!.getRowParent(physicalRow);
+    const parentPhysicalRow = this.dataManager!.getRowIndex(parentObject);
+
+    if (parentPhysicalRow === null) {
+      return null;
+    }
+
+    const parentVisualRow = this.hot.toVisualRow(parentPhysicalRow);
+
+    return parentVisualRow === null ? null : parentVisualRow;
+  }
+
+  /**
+   * Counts the children of a row.
+   *
+   * @param {number} row Visual row index.
+   * @param {boolean} [recursive=false] `true` counts every descendant, `false` counts only the direct
+   * children.
+   * @returns {number}
+   */
+  countChildren(row: number, recursive = false): number {
+    const physicalRow = this.#toPhysicalRow(row);
+
+    if (physicalRow === null) {
+      return 0;
+    }
+
+    if (recursive) {
+      return this.dataManager!.countChildren(physicalRow);
+    }
+
+    const rowObject = this.dataManager!.getDataObject(physicalRow);
+
+    return (rowObject?.__children ?? []).length;
+  }
+
+  /**
+   * Expands every ancestor of a row, so that a row hidden inside collapsed parents becomes visible.
+   *
+   * Takes a physical row index, because the row you want to reveal is hidden and therefore has no
+   * visual index.
+   *
+   * @param {number} row Physical row index of the row to reveal.
+   * @returns {boolean} `true` if anything was expanded.
+   * @fires Hooks#beforeRowExpand
+   * @fires Hooks#afterRowExpand
+   */
+  expandToRow(row: number): boolean {
+    if (!this.#isOperational() || !Number.isInteger(row) || row < 0) {
+      return false;
+    }
+
+    const collapsedAncestors: number[] = [];
+    let parentObject = this.dataManager!.getRowParent(row);
+
+    while (parentObject !== null) {
+      const parentRow = this.dataManager!.getRowIndex(parentObject);
+
+      if (parentRow === null) {
+        break;
+      }
+
+      if (this.collapsingUI!.getCollapsedParents().indexOf(parentRow) > -1) {
+        collapsedAncestors.push(parentRow);
+      }
+
+      parentObject = this.dataManager!.getRowParent(parentObject);
+    }
+
+    if (collapsedAncestors.length === 0) {
+      return false;
+    }
+
+    // Shallowest first, so an ancestor is expanded before its own descendants.
+    return this.collapsingUI!.toggleCollapsedRows(collapsedAncestors.reverse(), 'expand');
+  }
+
+  /**
+   * Shows rows down to the given nesting level and collapses everything deeper.
+   *
+   * Level `0` leaves only the top-level rows visible.
+   *
+   * This runs as two steps - an expand and a collapse - so it fires both pairs of hooks. Returning
+   * `false` from {@link Hooks#beforeRowExpand} cancels the whole call and leaves the grid as it was.
+   * Returning `false` from {@link Hooks#beforeRowCollapse} blocks only the collapse step, so the
+   * expand step stays applied.
+   *
+   * @param {number} level The deepest nesting level that stays expanded.
+   * @fires Hooks#beforeRowCollapse
+   * @fires Hooks#afterRowCollapse
+   * @fires Hooks#beforeRowExpand
+   * @fires Hooks#afterRowExpand
+   */
+  expandToLevel(level: number): void {
+    if (!this.#isOperational() || !Number.isInteger(level) || level < 0) {
+      return;
+    }
+
+    const toCollapse: number[] = [];
+    const toExpand: number[] = [];
+
+    // `batch` suspends rendering as well as index-map recalculation. This runs two passes, and each
+    // one renders on its own, so without it the grid would render the intermediate state where the
+    // deeper rows are briefly untrimmed.
+    this.hot.batch(() => {
+      const data = this.dataManager!.getData() ?? [];
+
+      this.#eachParent(data, (parentRow: number, parentLevel: number) => {
+        if (parentLevel >= level) {
+          toCollapse.push(parentRow);
+        } else {
+          toExpand.push(parentRow);
+        }
+      });
+
+      // Expand from the shallowest down, so each parent is reachable when its turn comes, then
+      // collapse from the deepest up.
+      //
+      // The expand pass is checked for a veto, not for `performed`: `performed` is also `false` when
+      // every shallower parent is already open, which is the common case and must not stop the
+      // collapse pass. A `beforeRowExpand` veto cancels the whole call, so the grid keeps the state it
+      // had. A veto on the collapse pass below leaves the expand applied - see the method's JSDoc.
+      if (toExpand.length > 0 && this.collapsingUI!.applyCollapsedRowsChange(toExpand, 'expand').vetoed) {
+        return;
+      }
+
+      if (toCollapse.length > 0) {
+        this.collapsingUI!.toggleCollapsedRows(toCollapse.reverse(), 'collapse');
+      }
+    });
+  }
+
+  /**
+   * Walks the nested structure depth-first and calls back for every row that has children.
+   *
+   * @param {Array} nodes Row objects to walk.
+   * @param {Function} callback Receives the physical row index and the nesting level.
+   * @param {number} [level=0] The nesting level of `nodes`.
+   */
+  #eachParent(nodes: RowObject[], callback: (row: number, level: number) => void, level = 0): void {
+    nodes.forEach((node: RowObject) => {
+      if (!this.dataManager!.hasChildren(node)) {
+        return;
+      }
+
+      const physicalRow = this.dataManager!.getRowIndex(node);
+
+      if (physicalRow !== null) {
+        callback(physicalRow, level);
+      }
+
+      this.#eachParent((node.__children ?? []) as RowObject[], callback, level + 1);
+    });
+  }
+
+  /**
+   * Tells whether the plugin can act on the grid right now.
+   *
+   * `disablePlugin()` unregisters the `nestedRows` index map but leaves `collapsingUI` and
+   * `collapsedRowsMap` in place, so a write to the map afterwards is silently dropped. Without this
+   * check the public methods would report a state change that never reached the grid.
+   *
+   * @returns {boolean}
+   */
+  #isOperational(): boolean {
+    return this.enabled && !!this.dataManager && !!this.collapsingUI;
+  }
+
+  /**
+   * Translates a visual row index into a physical one.
+   *
+   * @param {number} row Visual row index.
+   * @returns {number|null} `null` when the argument is not a valid, existing visual row.
+   */
+  #toPhysicalRow(row: number): number | null {
+    if (!this.#isOperational() || !Number.isInteger(row) || row < 0) {
+      return null;
+    }
+
+    const physicalRow = this.hot.toPhysicalRow(row);
+
+    return physicalRow === null || physicalRow === undefined ? null : physicalRow;
+  }
+
+  /**
+   * Translates a visual row index into a physical one, for the methods that act on a parent row.
+   *
+   * Returns `null` when the plugin is not ready, so the caller can bail out before reaching the
+   * CollapsingUI. Whether the row is really a parent is decided by the CollapsingUI, which reports it
+   * through the hooks.
+   *
+   * @param {number} row Visual row index.
+   * @returns {number|null}
+   */
+  #toPhysicalParentRow(row: number): number | null {
+    return this.#toPhysicalRow(row);
+  }
+
+  /**
+   * Collapses or expands a single parent, addressed by its visual row index.
+   *
+   * @param {number} row Visual row index of the parent.
+   * @param {string} action Either `'collapse'` or `'expand'`.
+   * @returns {boolean} `true` if the collapsed state changed.
+   */
+  #toggleParentAt(row: number, action: 'collapse' | 'expand'): boolean {
+    const physicalRow = this.#toPhysicalParentRow(row);
+
+    if (physicalRow === null) {
+      return false;
+    }
+
+    return this.collapsingUI!.toggleCollapsedRows([physicalRow], action);
   }
 
   /**

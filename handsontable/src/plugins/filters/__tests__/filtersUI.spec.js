@@ -383,8 +383,10 @@ describe('Filters UI', () => {
       expect(inputs[2].value).toBe('5');
       expect(conditionSelectRootElements().first.textContent).toBe('Contains');
       expect(conditionSelectRootElements().second.textContent).toBe('Contains');
-      expect(byValueMultipleSelect().getItems().length).toBe(1);
-      expect(byValueMultipleSelect().getValue().length).toBe(1);
+      // The column is filtered by its own conditions only. Its "filter by value" list is not narrowed
+      // down by them, so all 7 source values are listed and stay checked (issue #12226).
+      expect(byValueMultipleSelect().getItems().length).toBe(7);
+      expect(byValueMultipleSelect().getValue().length).toBe(7);
     }
     {
       await dropdownMenu(2);
@@ -1314,10 +1316,10 @@ describe('Filters UI', () => {
       await dropdownMenu(1);
       await sleep(208);
 
-      const $multipleSelectElements = $(byValueMultipleSelect().element
-        .querySelectorAll('.htUIMultipleSelectHot td input'));
+      // The list holds every value of the column, not just the ones the condition kept (issue #12226),
+      // so the item to uncheck is picked by its label.
+      await uncheckByValueItem('Mathis Boone');
 
-      $multipleSelectElements.eq(0).simulate('click');
       // disjunction
       $(conditionRadioInput(1).element).find('input[type="radio"]').simulate('click');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
@@ -1359,10 +1361,10 @@ describe('Filters UI', () => {
       await dropdownMenu(1);
       await sleep(208);
 
-      const $multipleSelectElements = $(byValueMultipleSelect().element
-        .querySelectorAll('.htUIMultipleSelectHot td input'));
+      // The list holds every value of the column, not just the ones the conditions kept (issue #12226),
+      // so the item to uncheck is picked by its label.
+      await uncheckByValueItem('Mathis Boone');
 
-      $multipleSelectElements.eq(0).simulate('click');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       await sleep(16);
@@ -1523,10 +1525,10 @@ describe('Filters UI', () => {
       await dropdownMenu(1);
       await sleep(208);
 
-      const $multipleSelectElements = $(byValueMultipleSelect().element
-        .querySelectorAll('.htUIMultipleSelectHot td input'));
+      // The list holds every value of the column, not just the ones the condition kept (issue #12226),
+      // so the item to uncheck is picked by its label.
+      await uncheckByValueItem('Mathis Boone');
 
-      $multipleSelectElements.eq(0).simulate('click');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       await dropdownMenu(1);

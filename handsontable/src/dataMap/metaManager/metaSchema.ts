@@ -1881,6 +1881,11 @@ export default (): Record<string, unknown> => {
      * Source data must be in ISO 8601 date format (`YYYY-MM-DD`). Otherwise operations such
      * as sorting and filtering can be unstable or unpredictable. The `dateFormat` object affects only how dates are
      * displayed; the underlying value should remain ISO.
+     *
+     * Time-related options (`hour`, `minute`, `second`, `timeStyle`, `hour12`, `hourCycle`,
+     * `fractionalSecondDigits`) only affect display and always render midnight (`00:00:00`) for
+     * `date`/`intl-date` cells, because their source data is date-only. For editable date *and*
+     * time values, use the [`intl-datetime` cell type](@/guides/cell-types/datetime-cell-type/datetime-cell-type.md).
      * :::
      *
      * **Style shortcuts:**
@@ -2006,6 +2011,55 @@ export default (): Record<string, unknown> => {
      * ```
      */
     timeFormat: { hour: '2-digit', minute: '2-digit' },
+
+    /**
+     * Configures the date-time format for `intl-datetime` cells using an
+     * [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat)
+     * options object. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
+     *
+     * ::: tip Source data format
+     * Source data must be in ISO 8601 date-time format (`YYYY-MM-DDTHH:mm:ss`; a date-only
+     * `YYYY-MM-DD` value is treated as midnight). Otherwise operations such as sorting and filtering
+     * can be unstable or unpredictable. The `dateTimeFormat` object affects only how values are
+     * displayed; the underlying value should remain ISO.
+     * :::
+     *
+     * For the full list of supported properties, see
+     * [MDN: Intl.DateTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat).
+     *
+     * Read more:
+     * - [Date-time cell type](@/guides/cell-types/datetime-cell-type/datetime-cell-type.md)
+     * - [`locale`](@/api/options.md#locale)
+     *
+     * @since 18.1.0
+     * @memberof Options#
+     * @type {object}
+     * @default { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
+     * @category Core
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *     type: 'intl-datetime',
+     *     locale: 'en-US',
+     *     dateTimeFormat: {
+     *       dateStyle: 'medium',
+     *       timeStyle: 'short'
+     *     }
+     *   }
+     * ]
+     * ```
+     */
+    dateTimeFormat: {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    },
 
     /**
      * The `defaultDate` option configures the date pre-selected in the date picker editor
@@ -3027,6 +3081,16 @@ export default (): Record<string, unknown> => {
      * | `sheetId`   | A number                                                                                                                                                                                                               |
      * | `sheetName` | A string                                                                                                                                                                                                               |
      * | `language`  | A [HyperFormula language pack](https://handsontable.github.io/hyperformula/guide/localizing-functions.html), imported from `hyperformula/es/i18n/languages`                                                          |
+     * | `hyperlinks` | `true` \|<br>`false` (default)                                                                                                                                                                                        |
+     *
+     * Set `hyperlinks` to `true` to render a cell whose formula is `HYPERLINK()` as a link. The cell
+     * keeps its own renderer, and the link label is the value the formula returns. Only a cell whose
+     * root expression is `HYPERLINK()` becomes a link, so a nested call such as
+     * `=CONCATENATE("see ", HYPERLINK("https://example.com"))` renders as plain text.
+     *
+     * A link is created only for the `http`, `https`, `mailto` and `tel` schemes. Any other scheme,
+     * `javascript:` included, renders the label as plain text instead. Press
+     * <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd> to open the link of the selected cell.
      *
      * Read more:
      * - [Plugins: `Formulas`](@/api/formulas.md)
@@ -3050,6 +3114,12 @@ export default (): Record<string, unknown> => {
      *   engine: HyperFormula,
      *   sheetId: 1,
      *   sheetName: 'Sheet 1'
+     * }
+     *
+     * // or, render `HYPERLINK()` formulas as links
+     * formulas: {
+     *   engine: HyperFormula,
+     *   hyperlinks: true
      * }
      *
      * // or, add a HyperFormula instance
@@ -6596,6 +6666,7 @@ export default (): Record<string, unknown> => {
      * | `'text'`                                                          | Renderer: `TextRenderer`<br>Editor: `TextEditor`<br>Validator: -                                                                                                                                       |
      * | [`'time`'](@/guides/cell-types/time-cell-type/time-cell-type.md)                 | Renderer: `TimeRenderer`<br>Editor: `TimeEditor`<br>Validator: `TimeValidator`                                                                                                 |
      * | [`'intl-time'`](@/guides/cell-types/time-cell-type/time-cell-type.md)                 | Renderer: `IntlTimeRenderer`<br>Editor: `IntlTimeEditor`<br>Validator: `IntlTimeValidator`                                                                                                 |
+     * | [`'intl-datetime'`](@/guides/cell-types/datetime-cell-type/datetime-cell-type.md)                 | Renderer: `IntlDatetimeRenderer`<br>Editor: `IntlDatetimeEditor`<br>Validator: `IntlDatetimeValidator`                                                                                                 |
      *
      * Read more:
      * - [Cell type](@/guides/cell-types/cell-type/cell-type.md)

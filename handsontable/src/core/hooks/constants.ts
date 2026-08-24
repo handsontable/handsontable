@@ -2638,6 +2638,62 @@ export const REGISTERED_HOOKS = [
   'afterColumnUnfreeze',
 
   /**
+   * Fired by the {@link NestedRows} plugin before parent rows are collapsed. This hook is fired when the
+   * {@link Options#nestedRows} option is enabled.
+   *
+   * Returning `false` in the callback will prevent the collapsing action from completing.
+   *
+   * @event Hooks#beforeRowCollapse
+   * @since 18.1.0
+   * @param {Array} currentCollapsedRows A list of the physical indexes of the currently collapsed parent rows.
+   * @param {Array} destinationCollapsedRows A list of the physical indexes of the parent rows that will be collapsed.
+   * @param {boolean} collapsePossible `true`, if every provided index points at a row that has children, `false` otherwise.
+   * @returns {undefined|boolean} If the callback returns `false`, the collapsing action will not be completed.
+   */
+  'beforeRowCollapse',
+
+  /**
+   * Fired by the {@link NestedRows} plugin after parent rows are collapsed. This hook is fired when the
+   * {@link Options#nestedRows} option is enabled.
+   *
+   * @event Hooks#afterRowCollapse
+   * @since 18.1.0
+   * @param {Array} currentCollapsedRows A list of the physical indexes of the parent rows that were collapsed before the action.
+   * @param {Array} destinationCollapsedRows A list of the physical indexes of the parent rows collapsed after the action.
+   * @param {boolean} collapsePossible `true`, if every provided index points at a row that has children, `false` otherwise.
+   * @param {boolean} successfullyCollapsed `true`, if the action changed the collapsed state, `false` otherwise.
+   */
+  'afterRowCollapse',
+
+  /**
+   * Fired by the {@link NestedRows} plugin before parent rows are expanded. This hook is fired when the
+   * {@link Options#nestedRows} option is enabled.
+   *
+   * Returning `false` in the callback will prevent the expanding action from completing.
+   *
+   * @event Hooks#beforeRowExpand
+   * @since 18.1.0
+   * @param {Array} currentCollapsedRows A list of the physical indexes of the currently collapsed parent rows.
+   * @param {Array} destinationCollapsedRows A list of the physical indexes of the parent rows that will stay collapsed.
+   * @param {boolean} expandPossible `true`, if every provided index points at a row that has children, `false` otherwise.
+   * @returns {undefined|boolean} If the callback returns `false`, the expanding action will not be completed.
+   */
+  'beforeRowExpand',
+
+  /**
+   * Fired by the {@link NestedRows} plugin after parent rows are expanded. This hook is fired when the
+   * {@link Options#nestedRows} option is enabled.
+   *
+   * @event Hooks#afterRowExpand
+   * @since 18.1.0
+   * @param {Array} currentCollapsedRows A list of the physical indexes of the parent rows that were collapsed before the action.
+   * @param {Array} destinationCollapsedRows A list of the physical indexes of the parent rows collapsed after the action.
+   * @param {boolean} expandPossible `true`, if every provided index points at a row that has children, `false` otherwise.
+   * @param {boolean} successfullyExpanded `true`, if the action changed the collapsed state, `false` otherwise.
+   */
+  'afterRowExpand',
+
+  /**
    * Fired by {@link ManualRowMove} plugin before changing the order of the visual indexes. This hook is fired when
    * {@link Options#manualRowMove} option is enabled.
    *

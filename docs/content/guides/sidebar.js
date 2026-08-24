@@ -102,6 +102,7 @@ const cellTypesItems = [
   { path: 'guides/cell-types/numeric-cell-type/numeric-cell-type' },
   { path: 'guides/cell-types/date-cell-type/date-cell-type' },
   { path: 'guides/cell-types/time-cell-type/time-cell-type' },
+  { path: 'guides/cell-types/datetime-cell-type/datetime-cell-type' },
   { path: 'guides/cell-types/checkbox-cell-type/checkbox-cell-type' },
   { path: 'guides/cell-types/select-cell-type/select-cell-type' },
   { path: 'guides/cell-types/dropdown-cell-type/dropdown-cell-type' },
@@ -152,6 +153,7 @@ const buildingAndToolingItems = [
   { path: 'guides/tools-and-building/typescript-types/typescript-types' },
   { path: 'guides/tools-and-building/custom-plugins/custom-plugins' },
   { path: 'guides/tools-and-building/custom-builds/custom-builds' },
+  { path: 'guides/tools-and-building/shadow-dom/shadow-dom' },
   { path: 'guides/tools-and-building/testing/testing' },
 ];
 
