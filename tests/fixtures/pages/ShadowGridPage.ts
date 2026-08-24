@@ -19,6 +19,7 @@ export class ShadowGridPage {
   readonly focusMover: Locator;
   readonly commentTooltip: Locator;
   readonly commentTooltipInput: Locator;
+  readonly otherShadowContent: Locator;
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
@@ -33,6 +34,8 @@ export class ShadowGridPage {
     // even though its grid lives inside the shadow root.
     this.commentTooltip = page.locator('.htComments');
     this.commentTooltipInput = page.locator('.htCommentTextArea');
+    // Lives in a second shadow root, unrelated to the grid's own.
+    this.otherShadowContent = page.getByTestId('other-shadow-content');
   }
 
   /**

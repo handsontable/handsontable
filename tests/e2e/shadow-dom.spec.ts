@@ -129,6 +129,22 @@ test.describe('grid inside a native shadow root', () => {
     await expect(grid.commentTooltip).toBeHidden();
   });
 
+  /**
+   * Containment cannot be decided from the grid's own shadow root alone. Moving the pointer
+   * straight from a commented cell into a different component's shadow tree never touches the
+   * light DOM, and a `parentNode` walk dead-ends in that other tree too - so a check that only
+   * knows the grid's root leaves the tooltip open. On a page built from web components this is
+   * an ordinary pointer move.
+   */
+  test('hides the comment tooltip when the pointer moves into a different shadow tree', async () => {
+    await grid.cell(3, 1).hover();
+    await expect(grid.commentTooltip).toBeVisible();
+
+    await grid.otherShadowContent.hover();
+
+    await expect(grid.commentTooltip).toBeHidden();
+  });
+
   test('deselects when a light-DOM element outside the shadow host is clicked', async () => {
     await grid.cell(0, 0).click();
     await expect.poll(() => grid.selected()).toEqual([[0, 0, 0, 0]]);

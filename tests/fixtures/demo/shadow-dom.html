@@ -40,6 +40,13 @@
     <input data-testid="outside-input" type="text">
     <button data-testid="focus-mover" type="button">Move focus to the input</button>
   </div>
+  <!--
+    A SECOND, unrelated shadow root, standing in for any other web component on the host
+    page. Moving the pointer from the grid into this tree never touches the light DOM, so
+    it is the case that catches a containment check which only knows the grid's own shadow
+    root - see the comment-tooltip tests.
+  -->
+  <div id="other-shadow-host" data-testid="other-shadow-host"></div>
 
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The
@@ -70,6 +77,15 @@
     shadowSibling.textContent = 'Non-focusable sibling inside the same shadow root';
     shadowSibling.addEventListener('mousedown', (event) => event.preventDefault());
     shadowRoot.appendChild(shadowSibling);
+
+    const otherShadowRoot = document.querySelector('[data-testid="other-shadow-host"]')
+      .attachShadow({ mode: 'open' });
+    const otherShadowContent = document.createElement('div');
+
+    otherShadowContent.setAttribute('data-testid', 'other-shadow-content');
+    otherShadowContent.style.cssText = 'padding: 16px; margin-top: 8px; background: #dde;';
+    otherShadowContent.textContent = 'Content inside a different shadow root';
+    otherShadowRoot.appendChild(otherShadowContent);
 
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
