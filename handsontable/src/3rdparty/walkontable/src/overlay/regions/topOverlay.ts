@@ -217,9 +217,19 @@ export class TopOverlay extends Overlay {
       let width = wtViewport.getWorkspaceWidth();
 
       if (wtViewport.hasVerticalScroll()) {
-        // With an overlay scrollbar this subtracts 0 - the browser reserves it no space - so the
-        // clearance below shortens the root instead (#10370).
-        width -= this.deps.geometryReader.getScrollbarWidth(rootDocument);
+        // Match the master holder's actual inner width instead of subtracting a probed scrollbar
+        // width. `getScrollbarWidth()` measures a bare off-DOM element, which answers "does this
+        // engine give scrollbars space" and not "does *this* scroller" - Firefox 154 reports 0 from
+        // the probe while the holder really reserves 15, which left this overlay 15px too wide and
+        // running underneath the scrollbar, with the column header apparently ignoring it (#10370).
+        // `clientWidth` is the scroller's own answer, at the browser's sub-pixel accuracy, and it is
+        // the same correction `inlineStartOverlay` already applies on the other axis (#12632).
+        // With a true overlay scrollbar it reserves nothing, so this is a no-op there and the
+        // clearance strip handles that case instead.
+        const masterClientWidth = this.deps.geometryReader.clientWidth(wtTable.holder);
+
+        width = masterClientWidth > 0
+          ? masterClientWidth : width - this.deps.geometryReader.getScrollbarWidth(rootDocument);
       }
 
       width = Math.min(width, this.deps.geometryReader.scrollWidth(wtTable.wtRootElement));
