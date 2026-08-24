@@ -179,6 +179,28 @@ test.describe('formulas: HYPERLINK rendering', () => {
     await expect(grid.link(0, 4)).toHaveCount(0);
   });
 
+  test('survives a renderer that wraps the anchor it produced', async({ page, theme, bundle }) => {
+    const pageErrors: string[] = [];
+
+    page.on('pageerror', error => pageErrors.push(error.message));
+
+    const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    // Column F's renderer boxes whatever the cell already holds, so from the second draw on the
+    // anchor is `TD > div.wrap-box > a` rather than a direct child. Unwrapping relative to the cell
+    // would throw NotFoundError inside `afterRenderer` and take the whole draw down.
+    await grid.render(2);
+
+    await expect(grid.link(0, 5)).toHaveCount(1);
+    await expect(grid.link(0, 5)).toHaveAttribute('href', 'https://example.com/boxed');
+    await expect(grid.cell(0, 5)).toHaveText('Boxed');
+    // A draw killed mid-flight leaves later cells unrendered, so check one that comes after it.
+    await expect(grid.cell(6, 0)).toHaveText('plain');
+    expect(pageErrors).toEqual([]);
+  });
+
   test('follows a link on click and still selects the cell', async({ page, theme, bundle }) => {
     const grid = new FormulasHyperlinkPage(page, theme, bundle);
 

@@ -107,6 +107,15 @@ export class FormulasHyperlinkPage {
     return this.page.evaluate(() => (window as any).__opened as string[]);
   }
 
+  /** Force N extra draws, so TD reuse and re-decoration are actually exercised. */
+  async render(times = 1): Promise<void> {
+    await this.page.evaluate((count) => {
+      for (let i = 0; i < count; i++) {
+        (window as any).hot.render();
+      }
+    }, times);
+  }
+
   /** Click a cell so it becomes the selected one, without hitting its anchor. */
   async selectCell(row: number, col: number): Promise<void> {
     const box = await this.cell(row, col).boundingBox();

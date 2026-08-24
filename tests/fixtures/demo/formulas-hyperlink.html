@@ -91,23 +91,46 @@
       td.textContent = next;
     }
 
+    // A renderer that wraps whatever the cell already holds in a box, without clearing it. On the
+    // second pass that box swallows the anchor, so the anchor is no longer a direct child of the TD
+    // — the shape that makes an unwrap relative to the cell throw NotFoundError.
+    function wrappingRenderer(instance, td, row, col, prop, value) {
+      if (td.firstElementChild === null) {
+        td.textContent = value === null || value === undefined ? '' : String(value);
+      }
+
+      if (td.firstElementChild && td.firstElementChild.className === 'wrap-box') {
+        return;
+      }
+
+      const box = document.createElement('div');
+
+      box.className = 'wrap-box';
+
+      while (td.firstChild) {
+        box.appendChild(td.firstChild);
+      }
+
+      td.appendChild(box);
+    }
+
     window.hot = new Handsontable(container, {
       data: [
         // A plain link, label given explicitly.
-        ['=HYPERLINK("https://example.com/one","Example one")', '=HYPERLINK("https://example.com/b1","B one")', true, '=HYPERLINK("https://example.com/pw","secret")', '=HYPERLINK(E2,"Steady")'],
+        ['=HYPERLINK("https://example.com/one","Example one")', '=HYPERLINK("https://example.com/b1","B one")', true, '=HYPERLINK("https://example.com/pw","secret")', '=HYPERLINK(E2,"Steady")', '=HYPERLINK("https://example.com/boxed","Boxed")'],
         // The label defaults to the URL when the second argument is omitted.
-        ['=HYPERLINK("https://example.com/two")', 'b2', false, 'plainsecret', 'https://example.com/first'],
+        ['=HYPERLINK("https://example.com/two")', 'b2', false, 'plainsecret', 'https://example.com/first', 'f2'],
         // HYPERLINK is not the root expression, so the engine reports no link.
-        ['=CONCATENATE("see ", HYPERLINK("https://example.com/three","three"))', 'b3', true, 'x', 'x'],
+        ['=CONCATENATE("see ", HYPERLINK("https://example.com/three","three"))', 'b3', true, 'x', 'x', 'x'],
         // Refused by the protocol allowlist.
-        ['=HYPERLINK("javascript:alert(1)","Danger")', 'b4', false, 'x', 'x'],
+        ['=HYPERLINK("javascript:alert(1)","Danger")', 'b4', false, 'x', 'x', 'x'],
         // The label must stay text, never markup.
-        ['=HYPERLINK("https://example.com/five","<img src=x onerror=\'window.__xss = true\'>")', 'b5', true, 'x', 'x'],
+        ['=HYPERLINK("https://example.com/five","<img src=x onerror=\'window.__xss = true\'>")', 'b5', true, 'x', 'x', 'x'],
         // A relative URL resolves against the document, which keeps a real
         // click navigation local and offline-safe.
-        ['=HYPERLINK("/tests/fixtures/demo/grid.html","Local page")', 'b6', false, 'x', 'x'],
+        ['=HYPERLINK("/tests/fixtures/demo/grid.html","Local page")', 'b6', false, 'x', 'x', 'x'],
         // Not a formula at all.
-        ['plain', 'b7', true, 'x', 'x'],
+        ['plain', 'b7', true, 'x', 'x', 'x'],
       ],
       formulas: {
         engine: HyperFormula,
@@ -123,6 +146,7 @@
         // still runs (finding #6 of the review of #10314).
         { type: 'password' },
         { renderer: memoRenderer },
+        { renderer: wrappingRenderer },
       ],
       width: 600,
       height: 300,

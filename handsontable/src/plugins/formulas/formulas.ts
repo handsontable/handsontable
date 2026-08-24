@@ -909,8 +909,16 @@ export class Formulas extends BasePlugin {
    */
   #refreshHyperlinksSetting() {
     const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
+    const wasEnabled = this.#hyperlinksEnabled;
 
     this.#hyperlinksEnabled = isFormulasSettingsObject(pluginSettings) && pluginSettings.hyperlinks === true;
+
+    // Turning the option off is the moment to clean up, not every subsequent draw: a renderer that
+    // leaves its previous DOM in place would keep an anchor that no later render pass rewrites.
+    // Doing it here keeps the per-cell path free for the default, disabled case.
+    if (wasEnabled && !this.#hyperlinksEnabled) {
+      this.#unwrapRenderedHyperlinks();
+    }
   }
 
   /**
@@ -923,15 +931,27 @@ export class Formulas extends BasePlugin {
   #unwrapRenderedHyperlinks() {
     this.hot.rootElement
       ?.querySelectorAll<HTMLElement>(`a.${HYPERLINK_CLASS_NAME}`)
-      .forEach((link) => {
-        const { parentNode } = link;
+      .forEach(link => this.#unwrapLink(link));
+  }
 
-        while (link.firstChild) {
-          parentNode?.insertBefore(link.firstChild, link);
-        }
+  /**
+   * Moves an anchor's content up into the anchor's own parent and drops the anchor.
+   *
+   * The insertion goes through `link.parentNode` rather than the cell: a renderer that leaves the
+   * previous DOM in place can wrap an existing anchor, leaving it as `TD > div > a` instead of a
+   * direct child. Inserting relative to the cell would then throw `NotFoundError` and, because this
+   * runs inside `afterRenderer`, take the whole draw down with it.
+   *
+   * @param {Element} link The anchor to unwrap.
+   */
+  #unwrapLink(link: Element) {
+    const { parentNode } = link;
 
-        link.remove();
-      });
+    while (link.firstChild) {
+      parentNode?.insertBefore(link.firstChild, link);
+    }
+
+    link.remove();
   }
 
   /**
@@ -950,11 +970,7 @@ export class Formulas extends BasePlugin {
     let link = TD.querySelector(`a.${HYPERLINK_CLASS_NAME}`);
 
     while (link !== null) {
-      while (link.firstChild) {
-        TD.insertBefore(link.firstChild, link);
-      }
-
-      link.remove();
+      this.#unwrapLink(link);
       link = TD.querySelector(`a.${HYPERLINK_CLASS_NAME}`);
     }
   }
@@ -1625,16 +1641,16 @@ export class Formulas extends BasePlugin {
    * @param {number} column Visual column index.
    */
   #onAfterRenderer = (TD: HTMLTableCellElement, row: number, column: number) => {
-    // Walkontable recycles TD elements, and a renderer is free to leave its previous DOM in place.
-    // Unwrapping first, unconditionally, keeps this idempotent by construction: no anchor nests
-    // inside another one across render passes, and the `href` is always rebuilt from the current
-    // formula instead of inherited from whatever the previous pass resolved. It also runs BEFORE the
-    // checks below, so turning the option off drops an anchor that such a renderer would keep.
-    this.#unwrapHyperlink(TD);
-
     if (!this.#hyperlinksEnabled || this.#internalOperationPending) {
       return;
     }
+
+    // Walkontable recycles TD elements, and a renderer is free to leave its previous DOM in place.
+    // Unwrapping first keeps this idempotent by construction: no anchor nests inside another one
+    // across render passes, and the `href` is always rebuilt from the current formula instead of
+    // inherited from whatever the previous pass resolved. Cleanup for the option being turned off
+    // happens once, in `#refreshHyperlinksSetting`, so this path never runs for a disabled grid.
+    this.#unwrapHyperlink(TD);
 
     const href = this.#getHyperlinkHref(row, column);
 
