@@ -88,6 +88,7 @@ export interface FixtureHotInstance {
   toPhysicalRow(row: number): number | null;
   selectCell(row: number, col: number): boolean;
   loadData(data: unknown[]): void;
+  updateData(data: unknown[]): void;
   updateSettings(settings: Record<string, unknown>): void;
   countCols(): number;
   _createCellCoords(row: number, col: number): unknown;

@@ -121,6 +121,20 @@ They are written in different places and can drift. Keep this in mind:
   and `BasePlugin#onUpdateSettings` always fires. Anything you keep outside the settings object is
   lost there unless it is explicitly preserved. This regressed once before — see `CHANGELOG.md` for
   "using `updateSettings()` caused the state of nested rows to reset".
+- **Neither collapse store survives a data replacement, because both are keyed by physical row
+  index.** `loadData()` resets the index maps for you (`initIndexMappers()`), but `updateData()` only
+  resizes them (`rowIndexMapper.fitToLength()`), so stale trimmed indexes stay behind and land on
+  whatever row now sits there — including parent rows, which then vanish while their children stay on
+  screen (#10239). The plugin therefore splits the two data hooks: `beforeLoadData` drops the
+  collapsed state (`loadData` resets row states by contract), while `beforeUpdateData` records the
+  collapsed parents as **tree paths** (`dataManager.getRowTreePath()`), clears both stores, and
+  `afterUpdateData` re-collapses whatever those paths still resolve to
+  (`dataManager.getRowIndexByTreePath()`). Replay shallowest-first and with `shouldRunHooks = false`.
+  Two things to keep: a tree path is **positional**, so it follows the slot rather than the object —
+  reordering or removing siblings moves it, which is the best that is possible when the new dataset
+  carries no identity; and the map must only be cleared when a parent really is collapsed, because
+  clearing it rebuilds the row index cache and a data load runs on every grid init
+  (`core.unit.js` asserts exactly one cache reset).
 - **`collapsedRowsStash.stash()` temporarily expands everything.** Any operation wrapped in
   stash/applyStash briefly un-trims all rows. It is used around add child, detach child, row move,
   and filtering.
@@ -159,7 +173,9 @@ They are written in different places and can drift. Keep this in mind:
 | `__tests__/keyboardShortcuts.spec.js` | <kbd>Enter</kbd> on a row header |
 | `__tests__/integration/manualRowMove.spec.js` | The richest file — moves into and around collapsed parents |
 | `__tests__/nestedRows.types.ts` | Type coverage for the public surface |
+| `__tests__/data/dataManager.unit.js` | The tree-path helpers, including the round trip across a data swap |
 | `tests/e2e/nested-rows-api.spec.ts` | Playwright: hooks, cancelling, and post-`loadData` safety |
+| `tests/e2e/nested-rows-update-data.spec.ts` | Playwright: collapsed parents across `updateData` / `loadData` |
 
 Physical layouts of the shared fixtures, which the specs depend on:
 

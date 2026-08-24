@@ -77,6 +77,16 @@ export class NestedRowsPage {
     return this.page.evaluate(() => window.hot.getPlugin('nestedRows').getCollapsedParents());
   }
 
+  /** Replace the data with `updateData()`, which is documented to keep the rows' states. */
+  async updateData(data: unknown[]): Promise<void> {
+    await this.page.evaluate(rows => window.hot.updateData(rows), data);
+  }
+
+  /** Replace the data with `loadData()`, which is documented to reset the rows' states. */
+  async loadData(data: unknown[]): Promise<void> {
+    await this.page.evaluate(rows => window.hot.loadData(rows), data);
+  }
+
   /** Every collapse/expand hook call the fixture has recorded, in order. */
   hookLog(): Promise<NestedRowsHookCall[]> {
     return this.page.evaluate(() => window.hookLog);

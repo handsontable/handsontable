@@ -311,6 +311,66 @@ class DataManager {
   }
 
   /**
+   * Get the position of a row within the nested structure, expressed as the chain of child indexes
+   * that leads from the top level down to that row.
+   *
+   * A physical row index shifts as soon as any other node gains or loses children. A tree path does
+   * not, so it can be used to find the same node again after the data is replaced.
+   *
+   * @param {number} row Physical row index.
+   * @returns {number[]|null} The path, or `null` when the row is not part of the current structure.
+   */
+  getRowTreePath(row: number): number[] | null {
+    let rowObject: RowObject | null | undefined = this.getDataObject(row);
+
+    if (!rowObject) {
+      return null;
+    }
+
+    const path: number[] = [];
+
+    while (rowObject) {
+      const indexWithinParent = this.getRowIndexWithinParent(rowObject);
+
+      if (indexWithinParent === -1) {
+        return null;
+      }
+
+      path.unshift(indexWithinParent);
+      rowObject = this.getRowObjectParent(rowObject);
+    }
+
+    return path;
+  }
+
+  /**
+   * Find the physical row index of the node that the provided tree path points at.
+   *
+   * @param {number[]} path Chain of child indexes, as returned by {@link DataManager#getRowTreePath}.
+   * @returns {number|null} Physical row index, or `null` when the path leads outside the structure.
+   */
+  getRowIndexByTreePath(path: number[]): number | null {
+    if (!Array.isArray(path) || path.length === 0) {
+      return null;
+    }
+
+    let siblings: RowObject[] | null | undefined = this.data;
+    let node: RowObject | null = null;
+
+    for (let i = 0; i < path.length; i++) {
+      node = siblings?.[path[i]] ?? null;
+
+      if (node === null) {
+        return null;
+      }
+
+      siblings = node.__children;
+    }
+
+    return this.getRowIndex(node);
+  }
+
+  /**
    * Count all rows (including all parents and children).
    *
    * @returns {number}

@@ -104,6 +104,14 @@ export class NestedRows extends BasePlugin {
   #isFirstRender = true;
 
   /**
+   * Tree paths of the parents that were collapsed when `updateData()` started, kept only until the
+   * new structure is cached and they can be collapsed again.
+   *
+   * @type {number[][]}
+   */
+  #collapsedParentPaths: number[][] = [];
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link NestedRows#enablePlugin} method is called.
    *
@@ -151,7 +159,8 @@ export class NestedRows extends BasePlugin {
     this.addHook('afterCreateRow', this.#onAfterCreateRow);
     this.addHook('beforeRowMove', this.#onBeforeRowMove);
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
-    this.addHook('beforeUpdateData', this.#onBeforeLoadData);
+    this.addHook('beforeUpdateData', this.#onBeforeUpdateData);
+    this.addHook('afterUpdateData', this.#onAfterUpdateData);
 
     this.registerShortcuts();
     super.enablePlugin();
@@ -923,22 +932,112 @@ export class NestedRows extends BasePlugin {
   };
 
   /**
+   * Checks the incoming data and turns the plugin off when it cannot work with it.
+   *
+   * @param {Array} data The source data.
+   * @returns {boolean} `true` when the plugin accepts the data.
+   */
+  #acceptsData(data: unknown[]): boolean {
+    if (isValidDataSource(data)) {
+      return true;
+    }
+
+    error(WRONG_DATA_TYPE_ERROR);
+
+    this.hot.getSettings()[PLUGIN_KEY] = false;
+    this.disablePlugin();
+
+    return false;
+  }
+
+  /**
+   * Forgets which parents are collapsed, and untrims the rows that collapse had hidden.
+   *
+   * Both stores are keyed by physical row index, and neither of those indexes means anything once
+   * the data is replaced.
+   *
+   * There is nothing to do when no parent is collapsed, and skipping the map matters there:
+   * clearing it rebuilds the row index cache, and a data load runs on every grid init.
+   */
+  #clearCollapsedState() {
+    if (!this.collapsingUI || this.collapsingUI.collapsedRows.length === 0) {
+      return;
+    }
+
+    this.collapsingUI.collapsedRows.length = 0;
+    this.collapsedRowsMap?.clear();
+  }
+
+  /**
    * `beforeLoadData` hook callback.
+   *
+   * `loadData()` resets the rows' states, so the collapsed parents are dropped along with them.
    *
    * @param {Array} data The source data.
    */
   #onBeforeLoadData = (data: unknown[]) => {
-    if (!isValidDataSource(data)) {
-      error(WRONG_DATA_TYPE_ERROR);
-
-      this.hot.getSettings()[PLUGIN_KEY] = false;
-      this.disablePlugin();
-
+    if (!this.#acceptsData(data)) {
       return;
     }
 
+    this.#clearCollapsedState();
+
     this.dataManager!.setData(data as RowObject[]);
     this.dataManager!.rewriteCache();
+  };
+
+  /**
+   * `beforeUpdateData` hook callback.
+   *
+   * `updateData()` keeps the rows' states, so the collapsed parents have to survive the swap. They
+   * cannot be carried over as physical row indexes: those shift as soon as any parent gains or
+   * loses a child, and the stale indexes then hide the wrong rows - parent rows included. The
+   * parents are remembered as tree paths instead, and collapsed again in `afterUpdateData`, once
+   * the index maps have been resized to the new data.
+   *
+   * @param {Array} data The source data.
+   */
+  #onBeforeUpdateData = (data: unknown[]) => {
+    if (!this.#acceptsData(data)) {
+      return;
+    }
+
+    this.#collapsedParentPaths = (this.collapsingUI?.getCollapsedParents() ?? [])
+      .map(parentRow => this.dataManager!.getRowTreePath(parentRow))
+      .filter((path): path is number[] => path !== null);
+
+    this.#clearCollapsedState();
+
+    this.dataManager!.setData(data as RowObject[]);
+    this.dataManager!.rewriteCache();
+  };
+
+  /**
+   * `afterUpdateData` hook callback.
+   *
+   * Collapses the parents that were collapsed before the update and are still parents in the new
+   * data. A parent that the new data dropped, or that no longer has children, is simply forgotten.
+   */
+  #onAfterUpdateData = () => {
+    const paths = this.#collapsedParentPaths;
+
+    this.#collapsedParentPaths = [];
+
+    if (paths.length === 0 || !this.collapsingUI || !this.dataManager) {
+      return;
+    }
+
+    const parentsToCollapse = paths
+      // Shallowest first, so an ancestor is always collapsed before its own descendants.
+      .slice()
+      .sort((pathA, pathB) => pathA.length - pathB.length)
+      .map(path => this.dataManager!.getRowIndexByTreePath(path))
+      .filter((row): row is number => row !== null && this.dataManager!.hasChildren(row));
+
+    if (parentsToCollapse.length > 0) {
+      // Replaying a state the user already chose is not a new action, so the hooks stay silent.
+      this.collapsingUI.toggleCollapsedRows(parentsToCollapse, 'collapse', false);
+    }
   };
 
   /**
