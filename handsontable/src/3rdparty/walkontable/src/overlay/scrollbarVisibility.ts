@@ -60,8 +60,8 @@ export type ScrollbarVisibilityDeps = ReturnType<typeof createScrollbarVisibilit
  * opaque, and the clip must be either closed for all of it (the second defect) or open for it (the
  * first). So the track fades in and is then dropped outright - the one combination that shows neither.
  *
- * Deliberately cheap: the scrollport's rect is read once per scroll or resize and never per pointer
- * move, the offsets it compares are scroll positions (which force no layout), and a change only ever
+ * Deliberately cheap: the scrollport's rect is read once per scroll, page scroll or resize and never
+ * per pointer move, the offsets it compares are scroll positions (which force no layout), and a change only ever
  * toggles a `clip-path` and an opacity - paint, never layout.
  *
  * @class ScrollbarVisibility
@@ -93,6 +93,13 @@ export class ScrollbarVisibility {
    * Which axes the pointer is currently holding open by sitting beside their scrollbar.
    */
   #pinned = { horizontal: false, vertical: false };
+
+  /**
+   * The pointer's last known position, so proximity can be re-checked when a band opens rather than
+   * only when the pointer moves. A wheel-stop with the cursor already resting in the strip fires no
+   * further move, and the browser keeps the hovered thumb up regardless.
+   */
+  #lastPointer: { x: number; y: number; rtl: boolean } | null = null;
 
   /**
    * The scroll offsets at the previous scroll notification, so the moved axis can be told apart.
@@ -153,7 +160,9 @@ export class ScrollbarVisibility {
   }
 
   /**
-   * Reports that the scrollport's geometry may have changed, so the cached rect is re-read on next use.
+   * Reports that the scrollport may have moved or changed size, so the cached rect is re-read on next
+   * use. Called when the overlay elements are sized, and on a page scroll - the rect is in viewport
+   * coordinates, so scrolling the page moves the grid without any of its own offsets changing.
    */
   notifyResized(): void {
     this.#invalidateRect();
@@ -169,30 +178,65 @@ export class ScrollbarVisibility {
    * opposite edge.
    */
   notifyPointerMoved(clientX: number, clientY: number, rtl: boolean = false): void {
+    // Recorded before the early return: the pointer may come to rest beside the scrollbar long before
+    // anything opens a band, and that resting position is what decides the pin when one does.
+    this.#lastPointer = { x: clientX, y: clientY, rtl };
+
     if (!this.#visible.horizontal && !this.#visible.vertical) {
       return;
     }
 
-    const rect = this.#getScrollportRect();
+    const near = this.#proximity();
 
-    if (!rect) {
+    if (!near) {
       return;
     }
 
-    const withinX = clientX >= rect.left - OVERLAY_SCROLLBAR_PROXIMITY
-      && clientX <= rect.right + OVERLAY_SCROLLBAR_PROXIMITY;
-    const withinY = clientY >= rect.top - OVERLAY_SCROLLBAR_PROXIMITY
-      && clientY <= rect.bottom + OVERLAY_SCROLLBAR_PROXIMITY;
-    const inReach = withinX && withinY;
-    const nearBottom = inReach && clientY >= rect.bottom - OVERLAY_SCROLLBAR_PROXIMITY;
-    // One edge only, and which one depends on direction. Testing both meant that in LTR a pointer over
-    // the row headers - nowhere near the vertical scrollbar - pinned the right-hand band open for good.
-    const nearInlineEdge = inReach && (rtl
-      ? clientX <= rect.left + OVERLAY_SCROLLBAR_PROXIMITY
-      : clientX >= rect.right - OVERLAY_SCROLLBAR_PROXIMITY);
+    this.#setPinned('horizontal', near.bottom);
+    this.#setPinned('vertical', near.inlineEnd);
+  }
 
-    this.#setPinned('horizontal', nearBottom);
-    this.#setPinned('vertical', nearInlineEdge);
+  /**
+   * Reports that the pointer left the window, so nothing is holding a band open any more.
+   *
+   * Without this a pin could never be released: releasing it needs a move that says "no longer near",
+   * and once the pointer is gone no more moves arrive - so the strip stayed painted indefinitely.
+   */
+  notifyPointerLeft(): void {
+    this.#lastPointer = null;
+
+    (['horizontal', 'vertical'] as const).forEach((axis) => {
+      this.#setPinned(axis, false);
+    });
+  }
+
+  /**
+   * Which scrollbars the pointer is currently resting beside, from its last known position.
+   *
+   * @returns {{ bottom: boolean; inlineEnd: boolean } | null} Null when there is no pointer to judge.
+   */
+  #proximity(): { bottom: boolean; inlineEnd: boolean } | null {
+    const pointer = this.#lastPointer;
+    const rect = pointer ? this.#getScrollportRect() : null;
+
+    if (!pointer || !rect) {
+      return null;
+    }
+
+    const withinX = pointer.x >= rect.left - OVERLAY_SCROLLBAR_PROXIMITY
+      && pointer.x <= rect.right + OVERLAY_SCROLLBAR_PROXIMITY;
+    const withinY = pointer.y >= rect.top - OVERLAY_SCROLLBAR_PROXIMITY
+      && pointer.y <= rect.bottom + OVERLAY_SCROLLBAR_PROXIMITY;
+    const inReach = withinX && withinY;
+
+    return {
+      bottom: inReach && pointer.y >= rect.bottom - OVERLAY_SCROLLBAR_PROXIMITY,
+      // One edge only, and which one depends on direction. Testing both meant that in LTR a pointer
+      // over the row headers - nowhere near the vertical scrollbar - pinned the right-hand band open.
+      inlineEnd: inReach && (pointer.rtl
+        ? pointer.x <= rect.left + OVERLAY_SCROLLBAR_PROXIMITY
+        : pointer.x >= rect.right - OVERLAY_SCROLLBAR_PROXIMITY),
+    };
   }
 
   /**
@@ -226,6 +270,15 @@ export class ScrollbarVisibility {
    * @param {'horizontal' | 'vertical'} axis The axis to open.
    */
   #show(axis: 'horizontal' | 'vertical'): void {
+    // Judged from where the pointer already is, not from a move that may never come. Stopping a wheel
+    // scroll with the cursor resting in the strip fires no pointermove, so waiting for one closed the
+    // band a second later underneath a thumb the browser was still drawing.
+    const near = this.#proximity();
+
+    if (near) {
+      this.#pinned[axis] = axis === 'horizontal' ? near.bottom : near.inlineEnd;
+    }
+
     if (!this.#pinned[axis]) {
       this.#scheduleFade(axis);
     }

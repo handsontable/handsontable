@@ -476,6 +476,12 @@ function removeFillers(masterHolder: HTMLElement, owner: string): void {
 }
 
 /**
+ * The last `clip-path` written to each overlay root, so a redundant write can be skipped without
+ * reading the element back - see `applyOverlayScrollbarClearance`.
+ */
+const lastClipPaths: WeakMap<HTMLElement, string> = new WeakMap();
+
+/**
  * Keeps an overlay clone out of the bands the scrollbars are drawn in (#10370).
  *
  * Only the clone's own clipping happens here. The band's background is drawn once for the whole grid by
@@ -501,9 +507,17 @@ export function applyOverlayScrollbarClearance(
   // Clip rather than resize: no measured box changes, so nothing the viewport reads moves. Written
   // only when it actually differs - this runs on every draw and on every scrollbar fade, and a
   // redundant style write is still a style write.
+  //
+  // Compared against what was last written rather than against the element, because the browser does
+  // not hand back what it was given: `inset(0px 0px 12px 0px)` reads as `inset(0px 0px 12px)` and
+  // `inset(0px 0px 0px 0px)` as `inset(0px)` (measured, and Chromium and Firefox agree). Since one of
+  // left/right is always 0, that shorthand collapse fires in the resting state and for every overlay
+  // that publishes only a bottom strip - so reading the element back made the guard always false and
+  // rewrote the property on every draw.
   const clipPath = clearanceClipPath(strips, open);
 
-  if (overlayRoot.style.clipPath !== clipPath) {
+  if (lastClipPaths.get(overlayRoot) !== clipPath) {
+    lastClipPaths.set(overlayRoot, clipPath);
     overlayRoot.style.clipPath = clipPath;
   }
 }

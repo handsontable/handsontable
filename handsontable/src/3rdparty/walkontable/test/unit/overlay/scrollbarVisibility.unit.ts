@@ -176,6 +176,42 @@ describe('ScrollbarVisibility', () => {
     expect(tracker.visible).toEqual({ horizontal: false, vertical: true });
   });
 
+  it('should pin from where the pointer already is when a band opens', () => {
+    const { tracker, scrollBy, fadeAll } = build();
+
+    // The pointer comes to rest in the strip BEFORE anything is showing - a wheel-stop with the cursor
+    // already there. No further move arrives, but the browser keeps the hovered thumb up, so the band
+    // must not close under it.
+    tracker.notifyPointerMoved(300, SCROLLPORT.bottom - 2);
+    scrollBy(60, 0);
+    fadeAll();
+
+    expect(tracker.visible.horizontal).toBe(true);
+  });
+
+  it('should release every pin when the pointer leaves the window', () => {
+    const { tracker, scrollBy, fadeAll } = build();
+
+    scrollBy(60, 60);
+    tracker.notifyPointerMoved(300, SCROLLPORT.bottom - 2);
+    // Releasing a pin needs a move saying "no longer near", and once the pointer is gone none arrive.
+    tracker.notifyPointerLeft();
+    fadeAll();
+
+    expect(tracker.visible).toEqual({ horizontal: false, vertical: false });
+  });
+
+  it('should stop pinning from a position the pointer has left behind', () => {
+    const { tracker, scrollBy, fadeAll } = build();
+
+    tracker.notifyPointerMoved(300, SCROLLPORT.bottom - 2);
+    tracker.notifyPointerLeft();
+    scrollBy(60, 0);
+    fadeAll();
+
+    expect(tracker.visible.horizontal).toBe(false);
+  });
+
   it('should hand a pinned band back to the fade once the pointer leaves', () => {
     const { tracker, scrollBy, fadeAll } = build();
 

@@ -459,6 +459,27 @@ class Overlays {
       );
     }) as EventListener, { passive: true });
 
+    // Nothing can hold a band open once the pointer is gone. Releasing a pin needs a move that says
+    // "no longer near", and once the pointer leaves the window no more moves arrive - so without this
+    // the strip stayed painted for as long as the page was open.
+    this.eventManager.addEventListener(
+      this.#deps.rootDocument.documentElement,
+      'pointerleave',
+      (() => this.#scrollbarVisibility.notifyPointerLeft()) as EventListener,
+      { passive: true }
+    );
+
+    // The cached scrollport rect is in viewport coordinates, so scrolling the PAGE moves the grid
+    // without any of the grid's own scroll offsets changing. Left alone, a pointer beside the real
+    // scrollbar then read as "not near" and the band closed under a drawn thumb, or one sitting
+    // mid-grid fell inside the stale edge zone and pinned it open. Only drops the cache; no reads.
+    this.eventManager.addEventListener(
+      this.#deps.rootWindow as unknown as HTMLElement,
+      'scroll',
+      (() => this.#scrollbarVisibility.notifyResized()) as EventListener,
+      { passive: true, capture: true }
+    );
+
     // A press inside an open band must do nothing: no selection, no deselect, no menu. It has to be
     // caught by coordinate on the way down - the band element is not hit-tested (the browser answers a
     // point in there with the scroll container), so nothing on the band itself would ever fire.
@@ -687,6 +708,9 @@ class Overlays {
    */
   adjustElementsSize() {
     this.#spreaderSize.adjustElementsSize();
+    // The scrollport may have just moved or changed size, so the rect the pointer is compared against
+    // has to be re-read on next use. Dropping a field, no measurement.
+    this.#scrollbarVisibility.notifyResized();
     this.#syncScrollbarTrackBands();
   }
 
