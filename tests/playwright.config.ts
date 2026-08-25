@@ -10,7 +10,33 @@ import type { TestOptions } from './fixtures/test';
 // already export for unrelated reasons, and this config would otherwise retarget
 // itself for anyone who happens to have it set. The port is passed explicitly to
 // the server below, so the two always agree whatever the ambient environment says.
-const PORT = Number(process.env.HOT_TEST_PORT) || 8123;
+// Throwing beats defaulting here: `HOT_TEST_PORT=8124x` and an empty value both
+// coerce to a falsy number, so a silent fallback would put the run back on the
+// shared port — the exact collision the variable was set to escape — while the
+// developer believes it moved.
+const PORT = resolvePort();
+
+/**
+ * Resolves the server port from `HOT_TEST_PORT`, defaulting to 8123.
+ *
+ * @returns {number} A valid TCP port. 0 is allowed: it asks for any free port,
+ *   which is the safest choice when several checkouts run at once.
+ */
+function resolvePort(): number {
+  const raw = process.env.HOT_TEST_PORT;
+
+  if (raw === undefined || raw === '') {
+    return 8123;
+  }
+
+  const port = Number(raw);
+
+  if (!Number.isInteger(port) || port < 0 || port > 65535) {
+    throw new Error(`HOT_TEST_PORT must be an integer between 0 and 65535, received "${raw}".`);
+  }
+
+  return port;
+}
 
 /**
  * One Playwright config for the whole package. Functional E2E lives in `e2e/`,

@@ -1,12 +1,15 @@
 /**
  * Bootstraps a linked git worktree so it behaves like the main checkout.
  *
- * A `git worktree` only materialises TRACKED files. Everything an agent relies
- * on that is gitignored or lives outside the repo is therefore absent at birth:
- * the per-package `node_modules` trees, the permission allowlist in
- * `.claude/settings.local.json`, the code-review-graph, and — the costly one —
- * the Claude project memory, which is keyed by the cwd path and so resolves to
- * a different, empty directory in every worktree.
+ * A `git worktree` only materialises TRACKED files, so anything gitignored is
+ * absent at birth: the per-package `node_modules` trees, the code-review graph,
+ * and — the costly one — the Claude project memory, which lives outside the repo
+ * and is keyed by the checkout path, so every worktree resolves to a different,
+ * empty directory.
+ *
+ * `.worktreeinclude` at the repository root covers the file-copy half of this
+ * for worktrees Claude Code creates. It cannot install dependencies, and it
+ * cannot reach `~/.claude/projects`, which is why this script exists.
  *
  * Run once per worktree:
  *   node scripts/claude/setup-worktree.mjs
@@ -24,54 +27,98 @@
  *
  * Safe to re-run: every step is idempotent.
  */
-import { access, copyFile, lstat, mkdir, readlink, rm, symlink, writeFile } from 'node:fs/promises';
+import { access, lstat, mkdir, readlink, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { homedir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { gitDir, repoRoot } from '../../.github/scripts/lib/repo-root.mjs';
 
-const ROOT = repoRoot();
 const checkOnly = process.argv.includes('--check');
 const dryRun = process.argv.includes('--dry-run');
 const skipInstall = process.argv.includes('--skip-install');
 
-// Written last, so its presence means every earlier step succeeded. Kept in the
-// worktree's own git directory: per-checkout state that is never committed and
-// disappears with the worktree itself.
-const MARKER = 'claude-worktree-ready';
+// Bumped whenever a step is added, so a worktree bootstrapped by an older
+// version stops reporting ready and gets the new step. The marker records this
+// number; `--check` compares it.
+const MARKER_VERSION = 1;
 
-// Resolved once. `gitDir()` reads the `.git` pointer file, and two calls could
-// in principle disagree.
-const GIT_DIR = gitDir(ROOT);
+// Probed individually because a partial install satisfies one and not the other.
+// The Playwright static server already preflights the HyperFormula artifact and
+// warns when it is missing, because its absence turns the formulas fixtures into
+// bare 404s in the middle of a run rather than a clean failure.
+const REQUIRED_DEPS = {
+  'handsontable/node_modules': path.join('handsontable', 'node_modules'),
+  'tests/node_modules/hyperformula': path.join('tests', 'node_modules', 'hyperformula'),
+};
+
+// Per-checkout state that is never committed and disappears with the worktree.
+const MARKER = 'claude-worktree-ready';
 
 const log = msg => console.log(`[setup-worktree] ${msg}`);
 
 const exists = p => access(p).then(() => true, () => false);
 
 /**
- * Whether a path exists as a directory entry, INCLUDING a symlink whose target
- * is gone. `access()` follows links and so reports a dangling one as absent,
- * which would make a repair step believe there is nothing to replace.
+ * The checkout this run is about.
  *
- * @param {string} p The path to test.
- * @returns {Promise<boolean>} True when the entry itself exists.
+ * `repoRoot()` resolves from this file's own location, which is correct when the
+ * script is run directly. It is NOT correct for the SessionStart hook: Claude
+ * Code documents that `${CLAUDE_PROJECT_DIR}` stays at the directory the session
+ * started in and does not follow the session into a worktree, while the `cwd`
+ * field of the hook's stdin payload does follow it. So the hook runs the MAIN
+ * checkout's copy of this script, and without reading that payload every worktree
+ * would look like the main checkout and the readiness warning would never fire —
+ * silent in exactly the case it exists for.
+ *
+ * @returns {string} The checkout root to operate on.
  */
-const entryExists = p => lstat(p).then(() => true, () => false);
+function resolveRoot() {
+  if (!checkOnly) {
+    return repoRoot();
+  }
+
+  let payload = {};
+
+  try {
+    // Read fd 0 directly — cross-platform (a `cat` spawn ENOENTs on Windows).
+    payload = JSON.parse(readFileSync(0, 'utf8'));
+  } catch { /* no stdin, or not JSON — fall through to this file's own root */ }
+
+  return checkoutRootFor(payload?.cwd) ?? repoRoot();
+}
 
 /**
- * The main checkout that owns this worktree, or null when run in the main
- * checkout itself.
+ * Walks up from a directory to the checkout that contains it.
  *
- * In a linked worktree `<root>/.git` is a FILE pointing at
- * `<main>/.git/worktrees/<name>`, so the main checkout is that path's
- * great-grandparent.
- *
- * @returns {string|null} The main checkout path, or null outside a worktree.
+ * @param {string|undefined} from The starting directory.
+ * @returns {string|null} The checkout root, or null when there is none.
  */
-function mainCheckout() {
-  return isWorktreeGitDir(GIT_DIR) ? worktreeRootFromGitDir(GIT_DIR) : null;
+function checkoutRootFor(from) {
+  if (!from || typeof from !== 'string') {
+    return null;
+  }
+
+  let dir = path.resolve(from);
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    if (gitDir(dir)) {
+      return dir;
+    }
+
+    const parent = path.dirname(dir);
+
+    if (parent === dir) {
+      return null;
+    }
+    dir = parent;
+  }
 }
+
+const ROOT = resolveRoot();
+const GIT_DIR = gitDir(ROOT);
 
 /**
  * Whether a git directory belongs to a LINKED worktree rather than a normal
@@ -99,15 +146,19 @@ function worktreeRootFromGitDir(dir) {
 /**
  * Candidate directory names Claude Code may use for a checkout's project state.
  *
- * Claude derives the name from the absolute path, but the exact character class
- * it replaces is its own private convention. Observed here: separators AND dots
- * become dashes, so `.claude` turns into `--claude`. Whether it also rewrites
- * other characters (an underscore in a worktree name, a Windows drive colon) is
- * NOT established, and guessing wrong would put the memory link in a directory
- * nothing reads — a failure with no symptom.
+ * Claude Code builds the name by replacing every character that is not a letter
+ * or a digit with a dash. Verified against a recorded session: the checkout
+ * `…/.claude/worktrees/feature+DEV-1656_Autocomplete-dropdown-flex-layout` is
+ * stored as `…--claude-worktrees-feature-DEV-1656-Autocomplete-dropdown-flex-layout`
+ * — the `.`, the `+` and the `_` all became dashes.
  *
- * So do not guess: return both readings, most-specific first, and let the caller
- * pick whichever actually exists on disk.
+ * That underscore matters here: this repository names branches
+ * `feature/DEV-xxxx_Name`, so most worktree directories contain one. Preferring
+ * a spelling that keeps it would put the memory link in a directory Claude Code
+ * never reads, and nothing would report a problem.
+ *
+ * The second candidate is the narrower historical reading, kept only so an
+ * already-linked older worktree is still recognised rather than relinked.
  *
  * @param {string} checkout The checkout path.
  * @returns {string[]} Candidate absolute paths, preferred first.
@@ -116,14 +167,14 @@ function projectStateCandidates(checkout) {
   const base = path.join(homedir(), '.claude', 'projects');
 
   return [
-    path.join(base, checkout.replace(/[/\\.]/g, '-')),
     path.join(base, checkout.replace(/[^a-zA-Z0-9]/g, '-')),
+    path.join(base, checkout.replace(/[/\\.]/g, '-')),
   ];
 }
 
 /**
  * The project state directory for a checkout: the first candidate that exists,
- * falling back to the preferred spelling when none does.
+ * falling back to the verified spelling when none does.
  *
  * @param {string} checkout The checkout path.
  * @returns {Promise<string>} The project state directory.
@@ -132,7 +183,7 @@ async function projectStateDir(checkout) {
   const candidates = projectStateCandidates(checkout);
 
   for (const candidate of candidates) {
-    if (await entryExists(candidate)) {
+    if (await lstat(candidate).then(() => true, () => false)) {
       return candidate;
     }
   }
@@ -140,10 +191,10 @@ async function projectStateDir(checkout) {
   return candidates[0];
 }
 
-const MAIN = mainCheckout();
+const MAIN = isWorktreeGitDir(GIT_DIR) ? worktreeRootFromGitDir(GIT_DIR) : null;
 
-// Only act when run as a script. The pure helpers below are exported so the
-// tooling tests can exercise them without the module bootstrapping anything.
+// Only act when run as a script. The pure helpers are exported so the tooling
+// tests can exercise them without the module bootstrapping anything.
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (!MAIN) {
     // --check runs from the SessionStart hook in EVERY session. Stay silent in
@@ -155,50 +206,58 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   } else if (checkOnly) {
     await reportReadiness();
   } else {
-    await bootstrap();
+    try {
+      await bootstrap();
+    } catch (error) {
+      // A throw after a multi-minute install would otherwise surface as a raw
+      // unhandled rejection with no marker, so the only visible remedy is to run
+      // the whole install again.
+      log(`Bootstrap failed after the install: ${error.message}`);
+      log('  Dependencies may already be in place — re-run this script; it is idempotent.');
+      process.exitCode = 1;
+    }
   }
 }
 
-export { isWorktreeGitDir, projectStateCandidates, worktreeRootFromGitDir };
+export {
+  checkoutRootFor,
+  isWorktreeGitDir,
+  projectStateCandidates,
+  worktreeRootFromGitDir,
+};
 
 /**
  * Read-only readiness probe for the SessionStart hook.
  *
  * Reports ONLY problems this script can actually repair. A gap whose source is
- * missing in the main checkout is not actionable, and naming it would tell the
- * agent to run a bootstrap that provably cannot fix it — every session, forever.
+ * missing is not actionable, and naming it would tell the agent to run a
+ * bootstrap that provably cannot fix it — every session, forever.
  *
  * @returns {Promise<void>} Resolves once the verdict is printed.
  */
 async function reportReadiness() {
   const problems = [];
-  const nodeModules = path.join(ROOT, 'node_modules');
 
-  if (!(await exists(path.join(GIT_DIR, MARKER)))) {
-    problems.push('never bootstrapped');
-  }
+  problems.push(...await staleMarkerProblems());
 
   // A symlinked root node_modules resolves root binaries, so lint passes and the
   // worktree looks healthy, but every package-local `.bin` is missing and
   // `npm --prefix <pkg> run <task>` dies with exit 127 partway through a build.
-  const link = await lstat(nodeModules).catch(() => null);
+  const link = await lstat(path.join(ROOT, 'node_modules')).catch(() => null);
 
   if (link?.isSymbolicLink()) {
     problems.push('node_modules is a symlink to the main checkout (breaks package scripts)');
   }
-  if (!(await exists(path.join(ROOT, 'handsontable', 'node_modules')))) {
-    problems.push('handsontable/node_modules missing');
-  }
-  if (
-    !(await exists(path.join(ROOT, '.claude', 'settings.local.json'))) &&
-    await exists(path.join(MAIN, '.claude', 'settings.local.json'))
-  ) {
-    problems.push('.claude/settings.local.json missing (expect permission prompts)');
+
+  for (const [label, probe] of Object.entries(REQUIRED_DEPS)) {
+    if (!(await exists(path.join(ROOT, probe)))) {
+      problems.push(`${label} missing`);
+    }
   }
 
   const mainMemory = path.join(await projectStateDir(MAIN), 'memory');
 
-  if (!(await exists(path.join(await projectStateDir(ROOT), 'memory'))) && await exists(mainMemory)) {
+  if (await exists(mainMemory) && !(await memoryLinkIsCorrect(mainMemory))) {
     problems.push('Claude project memory not linked (accumulated project facts will not load)');
   }
 
@@ -215,13 +274,54 @@ async function reportReadiness() {
 }
 
 /**
+ * Problems relating to the readiness marker itself.
+ *
+ * @returns {Promise<string[]>} Problem descriptions, empty when current.
+ */
+async function staleMarkerProblems() {
+  const raw = await readFile(path.join(GIT_DIR, MARKER), 'utf8').catch(() => null);
+
+  if (raw === null) {
+    return ['never bootstrapped'];
+  }
+
+  const version = Number(raw.split(/\s+/)[0]);
+
+  // A marker written before versioning, or by an older version, means steps
+  // added since then never ran here. Presence alone is not readiness.
+  return Number.isInteger(version) && version >= MARKER_VERSION
+    ? []
+    : ['bootstrapped by an older version of this script'];
+}
+
+/**
+ * Whether the worktree's memory link exists AND points at the main checkout's
+ * memory. A link left over from a moved or renamed checkout still resolves, so
+ * "it resolves" is not the same as "it is correct" — and reading another
+ * project's memory has no symptom at all.
+ *
+ * @param {string} mainMemory The main checkout's memory directory.
+ * @returns {Promise<boolean>} True when the link is present and correct.
+ */
+async function memoryLinkIsCorrect(mainMemory) {
+  const link = path.join(await projectStateDir(ROOT), 'memory');
+  const target = await readlink(link).catch(() => null);
+
+  if (target === null) {
+    // Not a symlink: a real directory here is the user's own, so leave it be.
+    return exists(link);
+  }
+
+  return path.resolve(path.dirname(link), target) === path.resolve(mainMemory);
+}
+
+/**
  * Performs the bootstrap.
  *
  * @returns {Promise<void>} Resolves once every step has run.
  */
 async function bootstrap() {
   await installDependencies();
-  await copyLocalSettings();
   await linkProjectMemory();
   await reportGraph();
   await writeMarker();
@@ -249,6 +349,8 @@ async function installDependencies() {
     log(`Removing node_modules symlink -> ${await readlink(nodeModules)}`);
     log('  A symlinked node_modules leaves every package-local .bin missing.');
 
+    // Must happen before the install: pnpm would otherwise write THROUGH the
+    // link into the main checkout's tree.
     if (!dryRun) {
       await rm(nodeModules, { force: true });
     }
@@ -262,62 +364,42 @@ async function installDependencies() {
 
   log('Installing dependencies (pnpm install --frozen-lockfile)…');
 
+  // Strip GIT_DIR/GIT_WORK_TREE: this child gets an explicit cwd, and the root
+  // `prepare` script runs `lefthook install`, which writes git state. With either
+  // variable inherited from a hook environment, that write targets the wrong
+  // git directory (.ai/LOCAL-ENFORCEMENT.md).
+  const { GIT_DIR: _gitDir, GIT_WORK_TREE: _gitWorkTree, ...env } = process.env;
+
   const install = spawnSync('pnpm', ['install', '--frozen-lockfile'], {
     cwd: ROOT,
+    env,
     stdio: 'inherit',
     shell: process.platform === 'win32',
   });
 
   if (install.status !== 0) {
-    log('Install failed — fix it before using this worktree.');
+    log('Install failed.');
+
+    if (link?.isSymbolicLink()) {
+      log('  The node_modules symlink was removed first, so this worktree now has NO dependencies.');
+      log('  Recover with: pnpm install --frozen-lockfile');
+    }
+
     process.exitCode = 1;
   }
 }
 
 /**
- * Step 2 — the permission allowlist.
+ * Step 2 — project memory.
  *
- * `.claude/settings.local.json` is gitignored, so it never reaches a worktree.
- * Copied rather than symlinked: a worktree may legitimately need to add a rule
- * without editing the main checkout's file.
+ * The highest-value step, and the one nothing else can do: `.worktreeinclude`
+ * copies files inside the repository, and this target lives outside it.
  *
- * @returns {Promise<void>} Resolves once the file is in place.
- */
-async function copyLocalSettings() {
-  const relative = path.join('.claude', 'settings.local.json');
-  const source = path.join(MAIN, relative);
-  const target = path.join(ROOT, relative);
-
-  if (await exists(target)) {
-    log('.claude/settings.local.json already present — left untouched.');
-
-    return;
-  }
-  if (!(await exists(source))) {
-    log('No .claude/settings.local.json in the main checkout — nothing to copy.');
-
-    return;
-  }
-
-  if (dryRun) {
-    log('Would copy .claude/settings.local.json from the main checkout.');
-
-    return;
-  }
-
-  await mkdir(path.dirname(target), { recursive: true });
-  await copyFile(source, target);
-  log('Copied .claude/settings.local.json from the main checkout.');
-}
-
-/**
- * Step 3 — project memory.
- *
- * The highest-value step. Claude keys its project directory by cwd, so a
- * worktree session starts with an empty memory and none of the accumulated
- * project facts. Symlinking the memory directory back to the main checkout's
- * makes one shared memory serve every worktree, which is what the content
- * assumes — the facts are about the repository, not about a checkout of it.
+ * Claude Code keys its project directory by the checkout path, so a worktree
+ * session starts with an empty memory and none of the accumulated project facts.
+ * Symlinking it back to the main checkout's makes one shared memory serve every
+ * worktree, which is what the content assumes — the facts are about the
+ * repository, not about a checkout of it.
  *
  * @returns {Promise<void>} Resolves once the link is in place.
  */
@@ -340,16 +422,16 @@ async function linkProjectMemory() {
     return;
   }
   if (entry?.isSymbolicLink()) {
-    // A link whose target moved reads as "absent" to --check and as "present" to
-    // a naive lstat guard, so the warning would repeat forever while every
-    // re-run reported success. Repair it instead.
-    if (await exists(worktreeMemory)) {
+    if (await memoryLinkIsCorrect(mainMemory)) {
       log('Project memory already linked — left untouched.');
 
       return;
     }
 
-    log(`Replacing a dangling project memory link -> ${await readlink(worktreeMemory)}`);
+    // Covers both a dangling link and one aimed somewhere else: the first reads
+    // as "absent" to a follow-the-link check, the second reads as "present" and
+    // silently serves another project's memory.
+    log(`Replacing an incorrect project memory link -> ${await readlink(worktreeMemory)}`);
 
     if (!dryRun) {
       await rm(worktreeMemory, { force: true });
@@ -376,11 +458,11 @@ async function linkProjectMemory() {
 }
 
 /**
- * Step 4 — the code-review graph.
+ * Step 3 — the code-review graph.
  *
  * `.code-review-graph/` is gitignored and branch-stamped. A stale graph is
  * worse than none: it answers cross-file queries with the wrong branch's
- * structure. Report, and let the agent decide when to spend the rebuild.
+ * structure. Deliberately NOT copied by `.worktreeinclude` for that reason.
  *
  * @returns {Promise<void>} Resolves once the state is reported.
  */
@@ -393,7 +475,7 @@ async function reportGraph() {
 }
 
 /**
- * Step 5 — the marker.
+ * Step 4 — the marker.
  *
  * Gated on the dependencies actually being present, not on an install having
  * been attempted, so `--skip-install` can never leave a marker that claims a
@@ -411,12 +493,15 @@ async function writeMarker() {
 
     return;
   }
-  if (!(await exists(path.join(ROOT, 'handsontable', 'node_modules')))) {
-    log('handsontable/node_modules is still missing — not marking this worktree ready.');
 
-    return;
+  for (const [label, probe] of Object.entries(REQUIRED_DEPS)) {
+    if (!(await exists(path.join(ROOT, probe)))) {
+      log(`${label} is still missing — not marking this worktree ready.`);
+
+      return;
+    }
   }
 
-  await writeFile(path.join(GIT_DIR, MARKER), `${new Date().toISOString()}\n`, 'utf8');
+  await writeFile(path.join(GIT_DIR, MARKER), `${MARKER_VERSION} ${new Date().toISOString()}\n`, 'utf8');
   log('Worktree ready.');
 }

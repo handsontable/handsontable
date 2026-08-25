@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { homedir } from 'node:os';
 import path from 'node:path';
 import {
+  checkoutRootFor,
   isWorktreeGitDir,
   projectStateCandidates,
   worktreeRootFromGitDir,
@@ -40,17 +41,45 @@ test('projectStateCandidates replaces dots as well as separators', () => {
   assert.ok(preferred.includes('--claude'), 'expected the dot to become a dash');
 });
 
-test('projectStateCandidates offers a fallback for characters we have not observed', () => {
-  // Whether Claude Code also rewrites an underscore (legal in a worktree name)
-  // or a Windows drive colon is NOT established. Both readings are returned so
-  // the caller can pick whichever exists, instead of guessing and silently
-  // linking into a directory nothing reads.
+test('projectStateCandidates prefers the reading that replaces underscores', () => {
+  // Verified against a recorded session: the checkout
+  // `…/worktrees/feature+DEV-1656_Autocomplete-dropdown-flex-layout` is stored
+  // as `…-feature-DEV-1656-Autocomplete-dropdown-flex-layout`. Claude Code
+  // replaces every non-alphanumeric character, underscores included.
+  //
+  // This repository names branches `feature/DEV-xxxx_Name`, so most worktree
+  // directories contain an underscore. Preferring a spelling that keeps it would
+  // put the memory link where Claude Code never reads, with no symptom at all.
   const candidates = projectStateCandidates(`${MAIN}/.claude/worktrees/fix_DEV-2562`);
 
   assert.equal(candidates.length, 2);
-  assert.ok(candidates[0].endsWith('fix_DEV-2562'), 'preferred reading keeps the underscore');
-  assert.ok(candidates[1].endsWith('fix-DEV-2562'), 'fallback reading replaces it');
+  assert.ok(candidates[0].endsWith('fix-DEV-2562'), 'preferred reading replaces the underscore');
+  assert.ok(candidates[1].endsWith('fix_DEV-2562'), 'narrower historical reading keeps it');
   assert.notEqual(candidates[0], candidates[1]);
+});
+
+test('projectStateCandidates reproduces the recorded slug exactly', () => {
+  // The full observed pair, kept verbatim so a future change to the encoding
+  // cannot pass by agreeing with itself.
+  const checkout = '/Users/budnix/Documents/Projects/handsontable-develop'
+    + '/.claude/worktrees/feature+DEV-1656_Autocomplete-dropdown-flex-layout';
+  const [preferred] = projectStateCandidates(checkout);
+
+  assert.equal(
+    path.basename(preferred),
+    '-Users-budnix-Documents-Projects-handsontable-develop'
+    + '--claude-worktrees-feature-DEV-1656-Autocomplete-dropdown-flex-layout'
+  );
+});
+
+test('checkoutRootFor rejects a missing or non-string cwd', () => {
+  // The SessionStart hook payload is the only signal that follows the session
+  // into a worktree, but it is external input: a malformed one must fall back,
+  // never throw and take the session's start with it.
+  assert.equal(checkoutRootFor(undefined), null);
+  assert.equal(checkoutRootFor(''), null);
+  assert.equal(checkoutRootFor(42), null);
+  assert.equal(checkoutRootFor({}), null);
 });
 
 test('projectStateCandidates collapses no path to a bare projects directory', () => {
