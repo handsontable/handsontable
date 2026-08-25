@@ -1,10 +1,8 @@
 import type { HotInstance } from '../../../core/types';
-import type { GridSettings } from '../../../core/settings';
 import type StateManager from '../stateManager';
 import type TreeNode from '../../../utils/dataStructures/tree';
 import type { HeaderSettings } from '../stateManager/headersTree';
-
-type SanitizerFn = (value: unknown, context: string) => string;
+import { sanitizeHTML } from '../../../utils/sanitizer';
 
 /**
  * The class generates the nested headers structure in the DOM and reads the column width for
@@ -218,15 +216,13 @@ class GhostTable {
    * @param {HTMLElement} container The element where the DOM nodes are injected.
    */
   #buildGhostTable(container: HTMLElement) {
-    type GridSettingsWithSanitizer = GridSettings & { sanitizer?: (value: unknown, context: string) => string };
-    const settings = this.hot.getSettings() as GridSettingsWithSanitizer;
+    const settings = this.hot.getSettings();
     const isDropdownEnabled = !!settings.dropdownMenu;
     const isCollapsibleEnabled = !!settings.collapsibleColumns;
     const maxColumnsCount = this.hot.countCols();
-    const sanitizer = settings.sanitizer;
 
     container.innerHTML = this.#buildRenderedTableHTML(
-      maxColumnsCount, isDropdownEnabled, isCollapsibleEnabled, sanitizer
+      maxColumnsCount, isDropdownEnabled, isCollapsibleEnabled
     );
   }
 
@@ -236,12 +232,10 @@ class GhostTable {
    * @param {number} maxColumnsCount Total column count.
    * @param {boolean} isDropdownEnabled Whether dropdown menu is enabled.
    * @param {boolean} isCollapsibleEnabled Whether collapsible columns are enabled.
-   * @param {Function|undefined} sanitizer The sanitizer function.
    * @returns {string} HTML string for the rendered table.
    */
   #buildRenderedTableHTML(
-    maxColumnsCount: number, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean,
-    sanitizer: SanitizerFn | undefined
+    maxColumnsCount: number, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean
   ) {
     let rowsHTML = '';
 
@@ -261,7 +255,7 @@ class GhostTable {
             : '';
 
           cellsHTML += `<th data-column="${col}" colspan="${headerSettings.colspan}"${rowspanAttr}>${
-            this.#buildHeaderLabelHTML(headerSettings, isDropdownEnabled, isCollapsibleEnabled, sanitizer)
+            this.#buildHeaderLabelHTML(headerSettings, isDropdownEnabled, isCollapsibleEnabled)
           }</th>`;
         }
       }
@@ -278,16 +272,15 @@ class GhostTable {
    * @param {object} headerSettings Header settings (label, colspan, etc).
    * @param {boolean} isDropdownEnabled Whether dropdown menu is enabled.
    * @param {boolean} isCollapsibleEnabled Whether collapsible columns are enabled.
-   * @param {Function|undefined} sanitizer The sanitizer function.
    * @returns {string} HTML string for the header label.
    */
   #buildHeaderLabelHTML(
-    headerSettings: HeaderSettings, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean,
-    sanitizer: SanitizerFn | undefined
+    headerSettings: HeaderSettings, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean
   ) {
-    const label = typeof sanitizer === 'function'
-      ? sanitizer(headerSettings.label, 'innerHTML')
-      : headerSettings.label;
+    // The same label the main table writes through `updateCellHeader()`, so it must be sanitized
+    // under the same `'header'` context - a context-aware sanitizer would otherwise apply one rule
+    // set to the rendered header and another to the copy measured here.
+    const label = sanitizeHTML(this.hot, headerSettings.label, 'header');
     const dropdownHtml = isDropdownEnabled ? '<button class="changeType"></button>' : '';
     const hasCollapsibleControl = isCollapsibleEnabled &&
       (headerSettings.origColspan > 1 || headerSettings.colspan > 1);
