@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a bug where enabling the `hiddenRows` or `hiddenColumns` plugin alongside a cell `className` given as an array stopped the grid from rendering, or merged the array entries into a single invalid CSS class.",
+  "type": "fixed",
+  "issueOrPR": 7427,
+  "breaking": false,
+  "framework": "none"
+}
