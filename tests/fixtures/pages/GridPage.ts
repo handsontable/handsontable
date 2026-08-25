@@ -97,7 +97,10 @@ export class GridPage {
       .click();
   }
 
-  /** Put plain text on the real clipboard (requires clipboard-write permission). */
+  /**
+   * Put plain text on the real clipboard (requires clipboard-write permission). The Async
+   * Clipboard API rejects while the document is unfocused, so interact with the page first.
+   */
   async writeClipboardText(text: string): Promise<void> {
     await this.page.evaluate(value => navigator.clipboard.writeText(value), text);
   }

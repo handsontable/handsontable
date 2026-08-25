@@ -60,8 +60,8 @@ test.describe('clipboard', () => {
   test.describe('ragged clipboard', () => {
     test('pastes every column of ragged plain text', async ({ page }) => {
       // Row 1 holds one cell, row 2 holds three. "z" and "w" sat past the first row's width.
-      await grid.writeClipboardText('x\ny\tz\tw');
       await grid.selectCell(0, 0);
+      await grid.writeClipboardText('x\ny\tz\tw');
       await page.keyboard.press('ControlOrMeta+v');
 
       await grid.expectCell(1, 0, 'y');
@@ -77,11 +77,11 @@ test.describe('clipboard', () => {
     test('pastes every column of a ragged HTML table', async ({ page }) => {
       // The plain-text flavor is deliberately a single cell: if it were the one consumed,
       // "z" and "w" would never appear, so these assertions pin the HTML path.
+      await grid.selectCell(0, 0);
       await grid.writeClipboardHtml(
         '<table><tr><td>x</td></tr><tr><td>y</td><td>z</td><td>w</td></tr></table>',
         'PLAIN-FLAVOR-ONLY'
       );
-      await grid.selectCell(0, 0);
       await page.keyboard.press('ControlOrMeta+v');
 
       await grid.expectCell(1, 0, 'y');
@@ -93,8 +93,8 @@ test.describe('clipboard', () => {
 
     test('keeps pasting a clipboard whose first row is the widest', async ({ page }) => {
       // The reverse shape was never broken — this guards it against the fix.
-      await grid.writeClipboardText('x\ty\tz\nw');
       await grid.selectCell(0, 0);
+      await grid.writeClipboardText('x\ty\tz\nw');
       await page.keyboard.press('ControlOrMeta+v');
 
       await grid.expectCell(0, 0, 'x');

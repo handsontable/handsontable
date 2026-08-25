@@ -234,6 +234,33 @@ describe('htmlToGridSettings', () => {
     ]);
   });
 
+  it('should count the slots a rowspan reserves in the rows below it', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>A1</td><td>B1</td></tr>',
+      '<tr><td rowspan="2">A2</td></tr>',
+      // The rowspan above holds column 0, so this row needs four slots, not three.
+      '<tr><td>B3</td><td>C3</td><td>D3</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data[2]).toEqual([null, 'B3', 'C3', 'D3']);
+  });
+
+  it('should not subtract a row header from rows that do not have one', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><th>H1</th><td>A1</td></tr>',
+      // No `th` here, so all three cells are data and none of them may be trimmed away.
+      '<tr><td>A2</td><td>B2</td><td>C2</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data[1]).toEqual(['A2', 'B2', 'C2']);
+  });
+
   it('should parse data from HTML table with nested Excel shape cells', () => {
     const htmlToParse = [
       '<table><tbody>',

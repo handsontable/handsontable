@@ -683,7 +683,9 @@ export class CopyPaste extends BasePlugin {
           cellValue = parsedCellValue;
         }
 
-        newRow.push(cellValue);
+        // A row shorter than the widest one has no value here. Write the empty-cell value rather
+        // than `undefined`, which would delete the property outright in an object data source.
+        newRow.push(cellValue === undefined ? null : cellValue);
       }
 
       newRows.push(newRow);

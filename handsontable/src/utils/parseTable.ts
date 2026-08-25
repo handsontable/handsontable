@@ -261,6 +261,44 @@ export function replaceTdCellsWithTextContent(html: string): string {
 }
 
 /**
+ * Measures how many data columns a pasted table needs.
+ *
+ * A cell takes `colSpan` slots in its own row and reserves the same slots in every row its
+ * `rowSpan` reaches; a row-header cell takes none. Measuring one row instead under-sizes a
+ * ragged table, and the cells that no longer fit are then dropped without warning.
+ *
+ * @param {HTMLTableElement} table The table to measure.
+ * @param {boolean} hasRowHeaders Whether the table's leading `<th>` cells are row headers.
+ * @returns {number} The number of data columns.
+ */
+function countTableColumns(table: HTMLTableElement, hasRowHeaders: boolean): number {
+  const rows = table.rows;
+  const reserved: number[] = [];
+  let maxCols = 0;
+
+  for (let row = 0; row < rows.length; row += 1) {
+    const cells = rows[row].cells;
+    let cols = reserved[row] || 0;
+
+    for (let cell = 0; cell < cells.length; cell += 1) {
+      const { colSpan, rowSpan, nodeName } = cells[cell];
+
+      if (!(hasRowHeaders && cell === 0 && nodeName === 'TH')) {
+        cols += colSpan;
+
+        for (let spanned = row + 1; spanned < row + rowSpan; spanned += 1) {
+          reserved[spanned] = (reserved[spanned] || 0) + colSpan;
+        }
+      }
+    }
+
+    maxCols = Math.max(maxCols, cols);
+  }
+
+  return maxCols;
+}
+
+/**
  * Converts HTMLTable or string into Handsontable configuration object.
  *
  * @param {Element|string} element Node element which should contain `<table>...</table>`.
@@ -292,14 +330,7 @@ export function htmlToGridSettings(element: HTMLTableElement | string, rootDocum
   const el: HTMLTableElement = checkElement as HTMLTableElement;
   const generator = tempElem.querySelector('meta[name$="enerator"]') as HTMLMetaElement | null;
   const hasRowHeaders = el.querySelector('tbody th') !== null;
-  // The widest row decides the grid width. Measuring only the first `<tr>` truncates a ragged
-  // table (a first row narrower than the rest), silently dropping the surplus cells.
-  const countCols = Array.from(el.rows).reduce((maxCols: number, row: HTMLTableRowElement) => {
-    const cols = Array.from(row.cells)
-      .reduce((sum: number, cell: HTMLTableCellElement) => sum + cell.colSpan, 0);
-
-    return Math.max(maxCols, cols);
-  }, 0) - (hasRowHeaders ? 1 : 0);
+  const countCols = countTableColumns(el, hasRowHeaders);
   const fixedRowsBottom: HTMLTableRowElement[] = el.tFoot && Array.from(el.tFoot.rows) || [];
   const fixedRowsTop: HTMLTableRowElement[] = [];
   let hasColHeaders = false;
