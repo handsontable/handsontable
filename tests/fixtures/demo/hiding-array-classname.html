@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hiding plugins + array className e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    .grid { margin-bottom: 1.5rem; }
+  </style>
+</head>
+<body>
+  <!--
+    GitHub #7427 / DEV-2604. `className` is publicly typed `string | string[]`, but the hiding
+    plugins used to treat it as a string only. Each grid below hands them an ARRAY:
+
+      - "nothing hidden" grids caught the loud defect — `className.split(' ')` threw on an array
+        inside afterGetCellMeta, so the grid rendered nothing at all. Merely enabling the plugin
+        was enough; no row or column had to be hidden.
+      - "one hidden" grids catch the silent defect — `className += ' afterHiddenRow'` coerced the
+        array through Array#toString, so the two classes collapsed into one bogus `test,test2`
+        token and the user's CSS stopped matching.
+  -->
+  <div id="rows-none" class="grid" data-testid="rows-none"></div>
+  <div id="rows-hidden" class="grid" data-testid="rows-hidden"></div>
+  <div id="cols-none" class="grid" data-testid="cols-none"></div>
+  <div id="cols-hidden" class="grid" data-testid="cols-hidden"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    // The array form under test. Two entries, so a toString() coercion is visible as the single
+    // bogus `test,test2` token rather than hiding behind a one-element array.
+    const ARRAY_CLASS_NAME = ['test', 'test2'];
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    const baseSettings = {
+      colHeaders: true,
+      rowHeaders: true,
+      renderer: testIdRenderer,
+      licenseKey: 'non-commercial-and-evaluation',
+    };
+
+    /**
+     * Build one grid. A constructor that throws must not take the whole page down with it —
+     * otherwise the later grids never render and every test fails for the same reason, hiding
+     * which scenario actually broke. The thrown message is stamped on the container so a failure
+     * reads as the real error instead of a bare "element not visible".
+     */
+    function build(testId, settings) {
+      const container = document.querySelector(`[data-testid="${testId}"]`);
+
+      container.className = `grid ht-theme-${window.htTheme}`;
+
+      try {
+        return new Handsontable(container, Object.assign({}, baseSettings, settings));
+      } catch (error) {
+        container.setAttribute('data-init-error', String(error && error.message));
+
+        return null;
+      }
+    }
+
+    window.hots = {
+      // The issue's own fiddle: the plugin is on, but NOTHING is hidden.
+      'rows-none': build('rows-none', {
+        data: [['A1', 'B1'], ['A2', 'B2']],
+        cell: [{ row: 0, col: 0, className: ARRAY_CLASS_NAME }],
+        hiddenRows: { rows: [] },
+      }),
+      // Row 0 hidden, so row 1 is the "after a hidden row" cell that gets the marker class.
+      'rows-hidden': build('rows-hidden', {
+        data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
+        cell: [{ row: 1, col: 0, className: ARRAY_CLASS_NAME }],
+        hiddenRows: { rows: [0] },
+      }),
+      'cols-none': build('cols-none', {
+        data: [['A1', 'B1'], ['A2', 'B2']],
+        cell: [{ row: 0, col: 0, className: ARRAY_CLASS_NAME }],
+        hiddenColumns: { columns: [] },
+      }),
+      // Column 0 hidden, so column 1 is the "after a hidden column" cell.
+      'cols-hidden': build('cols-hidden', {
+        data: [['A1', 'B1', 'C1'], ['A2', 'B2', 'C2']],
+        cell: [{ row: 0, col: 1, className: ARRAY_CLASS_NAME }],
+        hiddenColumns: { columns: [0] },
+      }),
+    };
+  </script>
+</body>
+</html>

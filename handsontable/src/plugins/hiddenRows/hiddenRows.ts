@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { addClass } from '../../helpers/dom/element';
+import { addClass, normalizeClassNames } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
@@ -470,24 +470,25 @@ export class HiddenRows extends BasePlugin {
       }
     }
 
+    // `className` is publicly typed as `string | string[]`, so normalize before touching it.
     if (this.isHidden(row - 1)) {
-      cellProperties.className = cellProperties.className || '';
+      const classArr = normalizeClassNames(cellProperties.className as string | string[]);
 
-      if ((cellProperties.className as string).indexOf('afterHiddenRow') === -1) {
-        cellProperties.className += ' afterHiddenRow';
+      if (classArr.indexOf('afterHiddenRow') === -1) {
+        classArr.push('afterHiddenRow');
       }
+
+      cellProperties.className = classArr.join(' ');
+
     } else if (cellProperties.className) {
-      const classArr = (cellProperties.className as string).split(' ');
+      const classArr = normalizeClassNames(cellProperties.className as string | string[]);
+      const containAfterHiddenRow = classArr.indexOf('afterHiddenRow');
 
-      if (classArr.length > 0) {
-        const containAfterHiddenRow = classArr.indexOf('afterHiddenRow');
-
-        if (containAfterHiddenRow > -1) {
-          classArr.splice(containAfterHiddenRow, 1);
-        }
-
-        cellProperties.className = classArr.join(' ');
+      if (containAfterHiddenRow > -1) {
+        classArr.splice(containAfterHiddenRow, 1);
       }
+
+      cellProperties.className = classArr.join(' ');
     }
   };
 

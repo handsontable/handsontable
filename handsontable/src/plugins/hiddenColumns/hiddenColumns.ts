@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { addClass } from '../../helpers/dom/element';
+import { addClass, normalizeClassNames } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
@@ -481,24 +481,25 @@ export class HiddenColumns extends BasePlugin {
       }
     }
 
+    // `className` is publicly typed as `string | string[]`, so normalize before touching it.
     if (this.isHidden(column - 1)) {
-      cellProperties.className = cellProperties.className || '';
+      const classArr = normalizeClassNames(cellProperties.className as string | string[]);
 
-      if ((cellProperties.className as string).indexOf('afterHiddenColumn') === -1) {
-        cellProperties.className += ' afterHiddenColumn';
+      if (classArr.indexOf('afterHiddenColumn') === -1) {
+        classArr.push('afterHiddenColumn');
       }
+
+      cellProperties.className = classArr.join(' ');
+
     } else if (cellProperties.className) {
-      const classArr = (cellProperties.className as string).split(' ');
+      const classArr = normalizeClassNames(cellProperties.className as string | string[]);
+      const containAfterHiddenColumn = classArr.indexOf('afterHiddenColumn');
 
-      if (classArr.length > 0) {
-        const containAfterHiddenColumn = classArr.indexOf('afterHiddenColumn');
-
-        if (containAfterHiddenColumn > -1) {
-          classArr.splice(containAfterHiddenColumn, 1);
-        }
-
-        cellProperties.className = classArr.join(' ');
+      if (containAfterHiddenColumn > -1) {
+        classArr.splice(containAfterHiddenColumn, 1);
       }
+
+      cellProperties.className = classArr.join(' ');
     }
   };
 
