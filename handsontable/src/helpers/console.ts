@@ -44,7 +44,7 @@ const warnedScopes = new WeakMap<object, Set<string>>();
 /**
  * Logs a warning to the console only once per `scope` and `key` pair.
  *
- * Pass a stable per-instance object (for example, `hot.rootGridElement`) as the
+ * Pass a stable per-instance object (for example, `hot.rootElement`) as the
  * `scope` so each Handsontable instance warns at most once for a given `key`.
  * Reuse the same `key` across unrelated modules to collapse their warnings into
  * a single message per instance.

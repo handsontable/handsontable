@@ -22,6 +22,7 @@ import {
   A11Y_TABINDEX,
   A11Y_CHECKED,
 } from '../../../helpers/a11y';
+import { getSanitizer } from '../../../utils/sanitizer';
 
 /**
  * Creates the menu renderer function.
@@ -97,10 +98,9 @@ export function createMenuItemRenderer(mainTableHot: HotInstance) {
       );
 
     } else {
-      const sanitizer = (mainTableHot.getSettings() as { sanitizer?: (html: string) => string }).sanitizer;
       const itemStr = String(itemValue);
 
-      fastInnerHTML(wrapper, itemStr, sanitizer, 'contextMenu', mainTableHot.rootElement);
+      fastInnerHTML(wrapper, itemStr, getSanitizer(mainTableHot), 'contextMenu', mainTableHot.rootElement);
     }
 
     if (isItemDisabled(item, mainTableHot)) {

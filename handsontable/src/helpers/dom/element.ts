@@ -549,6 +549,24 @@ export const HTML_CHARACTERS = /(<([^>]*)>|&([^;]*);)/;
 export const SANITIZER_WARN_KEY = 'sanitizer';
 
 /**
+ * Builds the missing-sanitizer warning. Every surface that writes raw HTML uses this, whether it
+ * goes through `fastInnerHTML` or sanitizes a string first (`utils/sanitizer.ts`), so the wording
+ * cannot drift between them.
+ *
+ * It lives here rather than beside its second caller because `utils/sanitizer.ts` already imports
+ * from this module, and the reverse direction would be a cycle. That makes it public through
+ * `Handsontable.dom`, like `HTML_CHARACTERS` and `SANITIZER_WARN_KEY` above it - accepted
+ * deliberately: it is a pure string builder, and it is useful to anyone writing their own sink.
+ *
+ * @param {string} context The write surface that is about to receive raw HTML.
+ * @returns {string} The warning message.
+ */
+export function missingSanitizerMessage(context: string): string {
+  return `HTML content is being written to the DOM ("${context}") without a sanitizer. ` +
+    'Configure the "sanitizer" option to prevent XSS vulnerabilities.';
+}
+
+/**
  * Default scope used when a caller writes raw HTML without supplying a per-instance
  * scope. Keeps the warning to once per process for such callers.
  */
@@ -564,8 +582,8 @@ const defaultSanitizerWarnScope = {};
  * warn once that no sanitizer is configured.
  * @param {string} [context] The sanitization context passed as the second argument to a custom sanitizer function, and
  * used in the missing-sanitizer warning to identify the write surface.
- * @param {object} [scope] Object the "warn once" state is bound to (for example, `hot.rootGridElement`), so the warning
- * is shown at most once per Handsontable instance.
+ * @param {object} [scope] Object the "warn once" state is bound to (`hot.rootElement` at every call site
+ * inside the grid), so the warning is shown at most once per Handsontable instance.
  */
 export function fastInnerHTML(
   element: HTMLElement, content: string,
@@ -576,15 +594,17 @@ export function fastInnerHTML(
     let sanitized: string;
 
     if (typeof sanitizer === 'function') {
-      sanitized = sanitizer(content, context);
+      // `?? ''` rather than `?? content`: a sanitizer that returns nothing for input it strips
+      // entirely must not have the raw input written back, which would undo the sanitizing. The
+      // declared return type is `string`, but JavaScript callers are not held to it, and without
+      // this guard the literal word "undefined" reaches the DOM.
+      sanitized = sanitizer(content, context) ?? '';
     } else {
       // `false` means the caller renders raw HTML deliberately (for example, the `html` cell type).
       // Any other non-function value (the default `true`) is an implicit raw write, so nudge once
       // toward configuring a sanitizer to prevent XSS.
       if (sanitizer !== false) {
-        warnOnce(scope, SANITIZER_WARN_KEY,
-          `HTML content is being written to the DOM ("${context}") without a sanitizer. ` +
-          'Configure the "sanitizer" option to prevent XSS vulnerabilities.');
+        warnOnce(scope, SANITIZER_WARN_KEY, missingSanitizerMessage(context));
       }
 
       sanitized = content;

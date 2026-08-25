@@ -50,6 +50,10 @@ Each `nestedHeaders` entry is either a string label or an object with these prop
 
 For defaults and full details, see the [`nestedHeaders` API reference](@/api/options.md#nestedheaders).
 
+::: warning
+A `label` is written to the DOM as HTML, so a label built from user input or an external system can inject markup. Handsontable does not sanitize it by default. Set the [`sanitizer`](@/api/options.md#sanitizer) option, which receives nested header labels under the `'header'` source. See [Content sanitizing](@/guides/security/security/security.md#content-sanitizing).
+:::
+
 ### Configuration
 
 ::: only-for javascript

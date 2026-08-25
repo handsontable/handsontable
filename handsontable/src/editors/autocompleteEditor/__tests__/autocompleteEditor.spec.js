@@ -3025,6 +3025,50 @@ describe('AutocompleteEditor', () => {
 
       delete window.__xssTestInjection;
     });
+
+    it('should not emit the missing-sanitizer warning for the dropdown items', async() => {
+      const warnSpy = spyOnConsoleWarn();
+
+      handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ['<b>foo</b>', '<i>bar</i>'],
+            allowHtml: true,
+          }
+        ]
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await waitForNextAnimationFrames(2);
+
+      // `allowHtml` is an explicit opt-in to raw HTML, so the dropdown declares that intent to
+      // `fastInnerHTML` instead of tripping the nudge meant for implicit raw writes. This mirrors
+      // what the `html` cell type asserts in `htmlRenderer.spec.js`.
+      expect(warnSpy).not.toHaveBeenCalledWith(jasmine.stringMatching(/without a sanitizer/));
+    });
+
+    it('should render plain-text items unchanged', async() => {
+      handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ['plain one', 'plain two'],
+            allowHtml: true,
+          }
+        ]
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await waitForNextAnimationFrames(2);
+
+      const innerHot = getActiveEditor().htEditor;
+
+      expect(innerHot.getCell(0, 0).textContent).toBe('plain one');
+      expect(innerHot.getCell(1, 0).textContent).toBe('plain two');
+    });
   });
 
   describe('disallow html mode', () => {

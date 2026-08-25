@@ -22,6 +22,7 @@ import {
 } from '../../helpers/a11y';
 import { TEMPLATES } from './templates';
 import { DIALOG_CLASS_NAME } from './constants';
+import type { SanitizerFn } from '../../utils/sanitizer';
 
 /**
  * Represents the compiled template object returned by template factory functions.
@@ -94,19 +95,26 @@ export class DialogUI {
    */
   #templateButtonCallbacks: EventListener[] = [];
   /**
-   * Optional sanitizer for dialog content (from settings).
+   * Sanitizer for dialog content, resolved from the grid settings.
    */
-  #sanitizer?: (html: string) => string | undefined;
+  #sanitizer: boolean | SanitizerFn;
 
   /**
-   * Initializes the dialog UI with an overlay container, RTL layout flag, and an optional HTML sanitizer, then installs the DOM structure.
+   * Object the missing-sanitizer "warn once" state is bound to. The grid root element, so this
+   * plugin shares one warning per instance with every other HTML write surface.
    */
-  constructor({ overlayContainer, isRtl, sanitizer }: {
-    overlayContainer: HTMLElement; isRtl: boolean; sanitizer?: (html: string) => string | undefined;
+  #warnScope: HTMLElement;
+
+  /**
+   * Initializes the dialog UI with an overlay container, RTL layout flag, and an HTML sanitizer, then installs the DOM structure.
+   */
+  constructor({ overlayContainer, isRtl, sanitizer, warnScope }: {
+    overlayContainer: HTMLElement; isRtl: boolean; sanitizer: boolean | SanitizerFn; warnScope: HTMLElement;
   }) {
     this.#overlayContainer = overlayContainer;
     this.#isRtl = isRtl;
     this.#sanitizer = sanitizer;
+    this.#warnScope = warnScope;
 
     this.install();
   }
@@ -284,9 +292,7 @@ export class DialogUI {
 
       // Render new dialog content
       if (typeof content === 'string') {
-        fastInnerHTML(contentElement, content,
-          this.#sanitizer ? (html: string, ctx: string) => this.#sanitizer!(html) ?? html : undefined,
-          'dialog', this.#overlayContainer);
+        fastInnerHTML(contentElement, content, this.#sanitizer, 'dialog', this.#warnScope);
 
       } else if (isHTMLElement(content) || content instanceof DocumentFragment) {
         contentElement.appendChild(content);
