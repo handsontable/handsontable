@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the minimum supported browsers to the Baseline 2024 set: Chrome and Edge 130, Firefox 132, and Safari 18.2.",
+  "type": "changed",
+  "issueOrPR": 13232,
+  "breaking": true,
+  "framework": "none"
+}
