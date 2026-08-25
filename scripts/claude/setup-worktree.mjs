@@ -1,7 +1,7 @@
 /**
  * Bootstraps a linked git worktree so it behaves like the main checkout.
  *
- * A `git worktree` only materialises TRACKED files, so anything gitignored is
+ * A `git worktree` only materializes TRACKED files, so anything gitignored is
  * absent at birth: the per-package `node_modules` trees, the code-review graph,
  * and — the costly one — the Claude project memory, which lives outside the repo
  * and is keyed by the checkout path, so every worktree resolves to a different,
@@ -27,13 +27,13 @@
  *
  * Safe to re-run: every step is idempotent.
  */
-import { access, lstat, mkdir, readlink, readFile, rm, symlink, writeFile } from 'node:fs/promises';
-import { readFileSync } from 'node:fs';
+import { access, copyFile, lstat, mkdir, readlink, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { homedir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { gitDir, repoRoot } from '../../.github/scripts/lib/repo-root.mjs';
+import { readHookPayload } from './session.mjs';
 
 const checkOnly = process.argv.includes('--check');
 const dryRun = process.argv.includes('--dry-run');
@@ -79,14 +79,9 @@ function resolveRoot() {
     return repoRoot();
   }
 
-  let payload = {};
-
-  try {
-    // Read fd 0 directly — cross-platform (a `cat` spawn ENOENTs on Windows).
-    payload = JSON.parse(readFileSync(0, 'utf8'));
-  } catch { /* no stdin, or not JSON — fall through to this file's own root */ }
-
-  return checkoutRootFor(payload?.cwd) ?? repoRoot();
+  // Shared with the other hook scripts, and TTY-guarded: reading stdin to EOF
+  // would otherwise hang `--check` when a developer runs it by hand.
+  return checkoutRootFor(readHookPayload()?.cwd) ?? repoRoot();
 }
 
 /**
@@ -158,7 +153,7 @@ function worktreeRootFromGitDir(dir) {
  * never reads, and nothing would report a problem.
  *
  * The second candidate is the narrower historical reading, kept only so an
- * already-linked older worktree is still recognised rather than relinked.
+ * already-linked older worktree is still recognized rather than relinked.
  *
  * @param {string} checkout The checkout path.
  * @returns {string[]} Candidate absolute paths, preferred first.
@@ -173,8 +168,10 @@ function projectStateCandidates(checkout) {
 }
 
 /**
- * The project state directory for a checkout: the first candidate that exists,
- * falling back to the verified spelling when none does.
+ * The project state directory to READ: the first candidate that exists, so an
+ * older worktree linked under the narrower spelling is still recognized.
+ *
+ * Never use this to decide where to WRITE — see `projectStateWriteDir`.
  *
  * @param {string} checkout The checkout path.
  * @returns {Promise<string>} The project state directory.
@@ -189,6 +186,23 @@ async function projectStateDir(checkout) {
   }
 
   return candidates[0];
+}
+
+/**
+ * The project state directory to WRITE to: always the verified spelling.
+ *
+ * Recognition and creation want different answers. If only the legacy spelling
+ * exists — an older worktree where no session ever ran, so Claude Code never
+ * created the correct directory — then writing to "the first that exists" would
+ * put the memory link where Claude Code never looks, report "already linked",
+ * and leave `--check` satisfied forever. That is exactly the invisible failure
+ * this script exists to remove.
+ *
+ * @param {string} checkout The checkout path.
+ * @returns {string} The project state directory to create in.
+ */
+function projectStateWriteDir(checkout) {
+  return projectStateCandidates(checkout)[0];
 }
 
 const MAIN = isWorktreeGitDir(GIT_DIR) ? worktreeRootFromGitDir(GIT_DIR) : null;
@@ -222,7 +236,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 export {
   checkoutRootFor,
   isWorktreeGitDir,
+  parseWorktreeInclude,
   projectStateCandidates,
+  projectStateWriteDir,
   worktreeRootFromGitDir,
 };
 
@@ -300,11 +316,16 @@ async function staleMarkerProblems() {
  * "it resolves" is not the same as "it is correct" — and reading another
  * project's memory has no symptom at all.
  *
+ * Checks the directory Claude Code actually reads, not the first spelling that
+ * happens to exist: a link sitting only under the narrower legacy spelling loads
+ * no memory at all, so reporting it as correct would hide the very problem this
+ * probe is for.
+ *
  * @param {string} mainMemory The main checkout's memory directory.
  * @returns {Promise<boolean>} True when the link is present and correct.
  */
 async function memoryLinkIsCorrect(mainMemory) {
-  const link = path.join(await projectStateDir(ROOT), 'memory');
+  const link = path.join(projectStateWriteDir(ROOT), 'memory');
   const target = await readlink(link).catch(() => null);
 
   if (target === null) {
@@ -322,9 +343,72 @@ async function memoryLinkIsCorrect(mainMemory) {
  */
 async function bootstrap() {
   await installDependencies();
+  await copyIncludedFiles();
   await linkProjectMemory();
   await reportGraph();
   await writeMarker();
+}
+
+/**
+ * Copies the plain paths listed in `.worktreeinclude` from the main checkout.
+ *
+ * Claude Code applies that file itself, but only to worktrees IT creates. A
+ * worktree made with `git worktree add` by hand gets nothing, so without this the
+ * listed files would be missing and no check would mention them.
+ *
+ * Only literal paths are handled. Glob patterns are Claude Code's job, and
+ * reimplementing gitignore matching here would be a second, drifting source of
+ * truth — so a pattern is skipped and named rather than half-supported.
+ *
+ * @returns {Promise<void>} Resolves once the files are in place.
+ */
+async function copyIncludedFiles() {
+  const manifest = await readFile(path.join(ROOT, '.worktreeinclude'), 'utf8').catch(() => null);
+
+  if (manifest === null) {
+    return;
+  }
+
+  for (const entry of parseWorktreeInclude(manifest)) {
+    if (/[*?[\]!]/.test(entry)) {
+      log(`Skipping the pattern "${entry}" — only Claude Code expands those.`);
+      continue;
+    }
+
+    const target = path.join(ROOT, entry);
+
+    if (await exists(target)) {
+      continue;
+    }
+
+    const source = path.join(MAIN, entry);
+
+    if (!(await exists(source))) {
+      continue;
+    }
+
+    if (dryRun) {
+      log(`Would copy ${entry} from the main checkout.`);
+      continue;
+    }
+
+    await mkdir(path.dirname(target), { recursive: true });
+    await copyFile(source, target);
+    log(`Copied ${entry} from the main checkout.`);
+  }
+}
+
+/**
+ * The meaningful lines of a `.worktreeinclude` file.
+ *
+ * @param {string} manifest The file contents.
+ * @returns {string[]} Entries, with comments and blank lines removed.
+ */
+function parseWorktreeInclude(manifest) {
+  return manifest
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line !== '' && !line.startsWith('#'));
 }
 
 /**
@@ -378,7 +462,10 @@ async function installDependencies() {
   });
 
   if (install.status !== 0) {
-    log('Install failed.');
+    // status is null when the binary could not be spawned at all (no pnpm on
+    // PATH); the reason is on `error`, and dropping it leaves a bare "failed"
+    // right after the node_modules symlink may have been removed.
+    log(`Install failed${install.error ? `: ${install.error.message}` : '.'}`);
 
     if (link?.isSymbolicLink()) {
       log('  The node_modules symlink was removed first, so this worktree now has NO dependencies.');
@@ -412,7 +499,10 @@ async function linkProjectMemory() {
     return;
   }
 
-  const worktreeState = await projectStateDir(ROOT);
+  // The write target is always the verified spelling, never "the first that
+  // exists" — linking under a legacy directory Claude Code does not read would
+  // satisfy every later check while doing nothing.
+  const worktreeState = projectStateWriteDir(ROOT);
   const worktreeMemory = path.join(worktreeState, 'memory');
   const entry = await lstat(worktreeMemory).catch(() => null);
 

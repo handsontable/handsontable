@@ -45,7 +45,7 @@
           },
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/claude/setup-worktree.mjs\" --check 2>/dev/null || true",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/claude/setup-worktree.mjs\" --check || true",
             "timeout": 20
           }
         ]

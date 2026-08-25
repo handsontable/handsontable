@@ -25,7 +25,11 @@ gitignored. It does not run for a worktree made with `git worktree add` by hand,
 when a `WorktreeCreate` hook replaces the mechanism.
 
 It cannot install dependencies, and it cannot reach anything outside the repository
-— which is where the costliest gap lives. So it does not replace:
+— which is where the costliest gap lives. It also does not run for a hand-made
+worktree, so the bootstrap copies the plain paths it lists as a fallback. Glob
+patterns stay Claude Code's job.
+
+So it does not replace:
 
 ```bash
 node scripts/claude/setup-worktree.mjs
@@ -39,10 +43,10 @@ SessionStart hook uses it to warn you.
 
 | Missing | Why | What breaks |
 |---|---|---|
-| Per-package `node_modules` | Not tracked, and the root one is created as a symlink. | `npm --prefix handsontable run test:unit` exits 127 with `env-cmd: command not found`. Every package script fails the same way. |
+| Per-package `node_modules` | Not tracked. The root one may be created as a symlink to the main checkout, or be absent entirely. | `npm --prefix handsontable run test:unit` exits 127 with `env-cmd: command not found`. Every package script fails the same way. |
 | Claude project memory | Lives in `~/.claude/projects/<slug>/`, keyed by the **checkout path**. A worktree has a different path, so it gets a different, empty directory. | Every accumulated project fact is unavailable. The agent loses the conventions it learned, so it falls back to generic behavior and reaches for repo skills less often. |
 | The local enforcement hooks | They resolve paths against the checkout the hook script lives in, and `${CLAUDE_PROJECT_DIR}` does not follow a session into a worktree. | The PostToolUse spec autolint and the Stop new-Jasmine-spec block **fail open**: they do not error, they simply never match, and the Stop verdict is always "ok". |
-| `docs/.env`, `docs/tests/.env` | Gitignored. | Docs work and the docs test suite fail there. Covered by `.worktreeinclude`. |
+| `docs/.env`, `docs/tests/.env` | Gitignored. | Docs work and the docs test suite fail there. `.worktreeinclude` covers worktrees Claude Code creates; the bootstrap copies them for a hand-made one. |
 | `.code-review-graph/` | Gitignored, and stamped with the branch it was built on. | Cross-file queries either fail or answer from another branch's structure. Deliberately not copied — a stale graph is worse than none. |
 | `handsontable/tmp`, `dist`, `styles` | Build outputs. | Wrappers cannot resolve the core until you build it. Deliberately not copied — a stale bundle is the "wrong build" trap again. |
 | `dev*.html` demo pages | Gitignored. | Manual test pages from the `handsontable-demo-page` skill do not carry over. |
@@ -156,6 +160,13 @@ A worktree marked `locked` is deliberately protected. Ask before removing one.
 
 Removing a worktree does not remove its `~/.claude/projects/<slug>/` directory.
 Those accumulate, one per worktree ever created.
+
+**Worktrees hold copies of your secrets.** The files `.worktreeinclude` carries are
+env files — `docs/.env` holds `DB_USER`, `DB_PASS`, and `GH_TOKEN`, and
+`docs/tests/.env` holds `PASS_COOKIE` and `VITE_SUPABASE_ANON_KEY`. Every worktree
+gets its own copy, and a worktree you never `git worktree remove` keeps it
+indefinitely. Nothing reaches a commit — `.claude/worktrees/` is gitignored — but
+the copies are real files on disk, so remove worktrees you have finished with.
 
 ## Rules
 

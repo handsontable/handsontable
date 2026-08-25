@@ -5,7 +5,9 @@ import path from 'node:path';
 import {
   checkoutRootFor,
   isWorktreeGitDir,
+  parseWorktreeInclude,
   projectStateCandidates,
+  projectStateWriteDir,
   worktreeRootFromGitDir,
 } from '../setup-worktree.mjs';
 
@@ -70,6 +72,29 @@ test('projectStateCandidates reproduces the recorded slug exactly', () => {
     '-Users-budnix-Documents-Projects-handsontable-develop'
     + '--claude-worktrees-feature-DEV-1656-Autocomplete-dropdown-flex-layout'
   );
+});
+
+test('projectStateWriteDir always returns the verified spelling', () => {
+  // Recognition may accept a legacy directory that happens to exist, but writing
+  // there would put the memory link where Claude Code never looks — and then say
+  // "already linked" forever. The write target must not depend on what is on disk.
+  const checkout = `${MAIN}/.claude/worktrees/fix_DEV-2562`;
+
+  assert.equal(projectStateWriteDir(checkout), projectStateCandidates(checkout)[0]);
+  assert.ok(projectStateWriteDir(checkout).endsWith('fix-DEV-2562'));
+});
+
+test('parseWorktreeInclude drops comments and blank lines', () => {
+  const entries = parseWorktreeInclude([
+    '# a comment',
+    '',
+    'docs/.env',
+    '   docs/tests/.env   ',
+    '   ',
+    '#trailing note',
+  ].join('\n'));
+
+  assert.deepEqual(entries, ['docs/.env', 'docs/tests/.env']);
 });
 
 test('checkoutRootFor rejects a missing or non-string cwd', () => {

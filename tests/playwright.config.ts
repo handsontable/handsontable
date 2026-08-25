@@ -19,8 +19,15 @@ const PORT = resolvePort();
 /**
  * Resolves the server port from `HOT_TEST_PORT`, defaulting to 8123.
  *
- * @returns {number} A valid TCP port. 0 is allowed: it asks for any free port,
- *   which is the safest choice when several checkouts run at once.
+ * Port 0 is rejected rather than treated as "any free port". Nothing below this
+ * function supports it: `support/static-server.mjs` reads `Number(PORT) || 8123`,
+ * and `Number('0')` is falsy, so the server would bind 8123 and land straight back
+ * on the shared port; `baseURL` would render `http://localhost:0`; and Playwright
+ * only waits for the server when `port` is truthy, so it would not be waited for
+ * at all. A real dynamic port needs the server to report the port it bound, which
+ * is listed under "Known gaps" in `.ai/WORKTREES.md`.
+ *
+ * @returns {number} A valid TCP port between 1 and 65535.
  */
 function resolvePort(): number {
   const raw = process.env.HOT_TEST_PORT;
@@ -31,8 +38,8 @@ function resolvePort(): number {
 
   const port = Number(raw);
 
-  if (!Number.isInteger(port) || port < 0 || port > 65535) {
-    throw new Error(`HOT_TEST_PORT must be an integer between 0 and 65535, received "${raw}".`);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error(`HOT_TEST_PORT must be an integer between 1 and 65535, received "${raw}".`);
   }
 
   return port;
