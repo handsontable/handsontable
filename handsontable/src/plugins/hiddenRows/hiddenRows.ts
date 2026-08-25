@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { addClass, _normalizeClassNames } from '../../helpers/dom/element';
+import { addClass, normalizeClassNames } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
@@ -475,7 +475,7 @@ export class HiddenRows extends BasePlugin {
     // `search` plugin already store. Only write when the value actually changes - this hook runs
     // on every cell meta read.
     if (this.isHidden(row - 1)) {
-      const classArr = _normalizeClassNames(cellProperties.className as string | string[]);
+      const classArr = normalizeClassNames(cellProperties.className as string | string[]);
 
       if (classArr.indexOf('afterHiddenRow') === -1) {
         classArr.push('afterHiddenRow');
@@ -488,7 +488,7 @@ export class HiddenRows extends BasePlugin {
       }
 
     } else if (cellProperties.className) {
-      const classArr = _normalizeClassNames(cellProperties.className as string | string[]);
+      const classArr = normalizeClassNames(cellProperties.className as string | string[]);
       const containAfterHiddenRow = classArr.indexOf('afterHiddenRow');
 
       if (containAfterHiddenRow > -1) {
