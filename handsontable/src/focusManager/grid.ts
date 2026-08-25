@@ -179,13 +179,21 @@ export class FocusGridManager {
    * @returns {boolean}
    */
   isForeignFocusTarget(element: HTMLElement | null): boolean {
-    const { rootElement, rootPortalElement, rootDocument } = this.#hot;
+    const { rootElement, rootWrapperElement, rootPortalElement, rootDocument } = this.#hot;
+    // Grid-owned UI hosted in the root wrapper's layout slots or overlay layer (e.g. a
+    // plugin's formula bar) lives outside `rootElement`, so `isInternalElement` cannot
+    // recognize it. Elements inside `rootElement` are deliberately excluded here: a
+    // nested grid's focus must keep counting as foreign for this instance, exactly as
+    // `isInternalElement` decides.
+    const isWrapperHostedUi = !!rootWrapperElement &&
+      rootWrapperElement.contains(element) && !rootElement.contains(element);
 
     if (
       element === null ||
       element === rootDocument.body ||
       element === rootDocument.documentElement ||
       isInternalElement(element, rootElement) ||
+      isWrapperHostedUi ||
       (rootPortalElement && rootPortalElement.contains(element))
     ) {
       return false;
