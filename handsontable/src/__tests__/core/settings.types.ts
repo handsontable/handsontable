@@ -223,7 +223,17 @@ const allSettings: Required<Handsontable.GridSettings> = {
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
   rowHeaderWidth: oneOf(25, [25, 30, 55]),
   rowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
-  sanitizer: (content: string, source: 'innerHTML' | 'CopyPaste.paste') => content,
+  // Every one of these must keep compiling: the option is public and narrowing it would be a
+  // breaking change. The narrow-annotation and three-parameter cases are the ones that break if the
+  // option is ever redeclared as a function-typed property instead of a method (see `SanitizerContext`).
+  sanitizer: oneOf(
+    (content: string) => content,
+    (content: string, source: string) => content,
+    (content: string, source: Handsontable.SanitizerContext) => content,
+    (content: string, source: 'header' | 'CopyPaste.paste') => content,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    (content: string, source: string, extra: string) => content,
+  ),
   search: true,
   selectionMode: oneOf('single', 'range', 'multiple'),
   selectionHandles: true,

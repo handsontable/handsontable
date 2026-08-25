@@ -70,6 +70,8 @@ These types describe the settings object you pass to `new Handsontable()` or `up
 | `CellProperties` | Merged cell-level settings after cascading from global → column → cell. Read-only at render time. |
 | `CellMeta` | Mutable per-cell metadata stored in `hot.getCellMeta()`. Extends `CellProperties`. |
 | `Events` | All hook callback signatures, keyed by hook name. Use to type individual hook functions. |
+| `SanitizerContext` | The write surface passed as the second argument to the [`sanitizer`](@/api/options.md#sanitizer) option. |
+| `SanitizerFn` | The shape of a configured `sanitizer`, for declaring one outside the settings object. |
 
 ```typescript
 import type { GridSettings, ColumnSettings } from 'handsontable';

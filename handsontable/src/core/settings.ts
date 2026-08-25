@@ -39,6 +39,28 @@ export type SourceDataValidatorFn = {
 };
 
 /**
+ * The write surface passed as the second argument to the `sanitizer` option, so a sanitizer can
+ * apply different rules per surface (for example, stricter for pasted content).
+ *
+ * The listed values are the ones the grid emits. The `(string & {})` member keeps arbitrary strings
+ * assignable while the literals still drive editor completion, so a sanitizer shared with another
+ * library, or one branching on a surface added in a later release, keeps compiling. Note that
+ * `Handsontable.dom.fastInnerHTML()` called without a context of its own passes `'innerHTML'`,
+ * which no part of the grid emits.
+ */
+export type SanitizerContext =
+  | 'header'
+  | 'password'
+  | 'contextMenu'
+  | 'selectEditor'
+  | 'dialog'
+  | 'notification'
+  | 'CopyPaste.paste'
+  | 'CopyPaste.paste.sourceData'
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  | (string & {});
+
+/**
  * Grid settings interface representing all possible Handsontable configuration options.
  * Derived from the metaSchema factory in dataMap/metaManager/metaSchema.ts.
  */
@@ -242,7 +264,12 @@ export interface GridSettings {
   preventWheel?: boolean;
 
   // Security
-  sanitizer?: (html: string, ...args: any[]) => string; // eslint-disable-line @typescript-eslint/no-explicit-any
+  // Declared with method syntax, not as a function-typed property: method parameters are checked
+  // bivariantly, so a sanitizer that annotates `context` more narrowly than `SanitizerContext`
+  // (for example `'header' | 'CopyPaste.paste'`) keeps compiling. The property form would reject it
+  // under `strictFunctionTypes`. The rest parameter absorbs declarations that take a third argument.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sanitizer?(html: string, context: SanitizerContext, ...args: any[]): string;
 
   // State
   initialState?: Record<string, unknown>;
@@ -633,6 +660,11 @@ type HookKey = {
  * Map of all Handsontable hook names to their typed callback signatures.
  * Use with addHook/addHookOnce/removeHook for IDE autocomplete and compile-time safety.
  */
+/**
+ * The shape of a configured `sanitizer`, derived from the option so the two cannot drift apart.
+ */
+export type SanitizerFn = NonNullable<GridSettings['sanitizer']>;
+
 export type Events = Required<Pick<GridSettings, HookKey>>;
 
 /**
