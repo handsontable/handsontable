@@ -318,11 +318,11 @@ function filterEmptyClassNames(classNames: string[]) {
  */
 export function normalizeClassNames(className: string | string[] | null | undefined): string[] {
   if (Array.isArray(className)) {
-    return className.filter(c => typeof c === 'string' && c.length > 0);
+    return filterEmptyClassNames(className);
   }
 
   if (typeof className === 'string') {
-    return className.split(' ').filter(c => c.length > 0);
+    return filterEmptyClassNames(className.split(' '));
   }
 
   return [];

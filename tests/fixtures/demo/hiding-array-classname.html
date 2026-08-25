@@ -47,6 +47,10 @@
   <div id="rows-hidden" class="grid" data-testid="rows-hidden"></div>
   <div id="cols-none" class="grid" data-testid="cols-none"></div>
   <div id="cols-hidden" class="grid" data-testid="cols-hidden"></div>
+  <div id="grid-level" class="grid" data-testid="grid-level"></div>
+  <div id="both-plugins" class="grid" data-testid="both-plugins"></div>
+  <div id="substring" class="grid" data-testid="substring"></div>
+  <div id="string-path" class="grid" data-testid="string-path"></div>
 
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The
@@ -57,6 +61,12 @@
     // The array form under test. Two entries, so a toString() coercion is visible as the single
     // bogus `test,test2` token rather than hiding behind a one-element array.
     const ARRAY_CLASS_NAME = ['test', 'test2'];
+
+    // Kept as its own instance, and exposed, so a test can assert the plugin did not push its
+    // marker into the array the user handed it.
+    const GRID_LEVEL_CLASS_NAME = ['test', 'test2'];
+
+    window.gridLevelClassName = GRID_LEVEL_CLASS_NAME;
 
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
@@ -113,6 +123,40 @@
         data: [['A1', 'B1', 'C1'], ['A2', 'B2', 'C2']],
         cell: [{ row: 0, col: 1, className: ARRAY_CLASS_NAME }],
         hiddenColumns: { columns: [0] },
+      }),
+      // Grid-level `className`: ONE array instance is shared by every cell through the cell meta
+      // prototype chain. If the plugin pushed its marker into the array it was handed rather than
+      // into a copy, the marker would accumulate on that shared instance and leak to every cell.
+      // `window.gridLevelClassName` below is the very array passed in, so a test can check it was
+      // left alone.
+      'grid-level': build('grid-level', {
+        data: [['A1'], ['A2'], ['A3']],
+        className: GRID_LEVEL_CLASS_NAME,
+        hiddenRows: { rows: [0] },
+      }),
+      // Both plugins on one grid: cell (1, 1) sits after a hidden row AND a hidden column, so each
+      // hook must strip only its own marker.
+      'both-plugins': build('both-plugins', {
+        data: [['A1', 'B1', 'C1'], ['A2', 'B2', 'C2'], ['A3', 'B3', 'C3']],
+        cell: [{ row: 1, col: 1, className: ARRAY_CLASS_NAME }],
+        hiddenRows: { rows: [0] },
+        hiddenColumns: { columns: [0] },
+      }),
+      // A user class that CONTAINS the marker name as a substring. The old add branch used
+      // `indexOf` on the whole string, so it concluded the marker was already there and never
+      // added it - the cell below a hidden row silently lost `afterHiddenRow`.
+      substring: build('substring', {
+        data: [['A1'], ['A2'], ['A3']],
+        cell: [{ row: 1, col: 0, className: 'afterHiddenRowHighlight' }],
+        hiddenRows: { rows: [0] },
+      }),
+      // The plain string path, unchanged by this fix. Set at GRID level, so it also shows the
+      // write-on-change guard: row 1 needs the marker and must be written, row 2 needs nothing and
+      // must keep inheriting the grid-level value instead of getting its own copy.
+      'string-path': build('string-path', {
+        data: [['A1'], ['A2'], ['A3']],
+        className: 'test test2',
+        hiddenRows: { rows: [0] },
       }),
     };
   </script>

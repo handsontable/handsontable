@@ -17,6 +17,20 @@ export class HidingArrayClassNamePage {
   static readonly COLS_NONE = 'cols-none';
   /** `hiddenColumns` with column 0 hidden, so column 1 carries the `afterHiddenColumn` marker. */
   static readonly COLS_HIDDEN = 'cols-hidden';
+  /** Grid-level array `className` — one array instance shared by every cell. */
+  static readonly GRID_LEVEL = 'grid-level';
+  /** Both hiding plugins on one grid. */
+  static readonly BOTH_PLUGINS = 'both-plugins';
+  /** A user class that contains the marker name as a substring. */
+  static readonly SUBSTRING = 'substring';
+  /** The plain string path, for regression cover. */
+  static readonly STRING_PATH = 'string-path';
+
+  /** Every grid the fixture builds. */
+  static readonly ALL_GRIDS = [
+    'rows-none', 'rows-hidden', 'cols-none', 'cols-hidden',
+    'grid-level', 'both-plugins', 'substring', 'string-path',
+  ];
 
   /** The two classes the fixture passes as an array. */
   static readonly USER_CLASSES = ['test', 'test2'];
@@ -37,12 +51,7 @@ export class HidingArrayClassNamePage {
       `/tests/fixtures/demo/hiding-array-classname.html?theme=${this.theme}&bundle=${this.bundle}`
     );
 
-    const gridIds = [
-      HidingArrayClassNamePage.ROWS_NONE,
-      HidingArrayClassNamePage.ROWS_HIDDEN,
-      HidingArrayClassNamePage.COLS_NONE,
-      HidingArrayClassNamePage.COLS_HIDDEN,
-    ];
+    const gridIds = HidingArrayClassNamePage.ALL_GRIDS;
 
     // Report a constructor that threw as the error it threw, not as a visibility timeout. The
     // fixture stamps `data-init-error` synchronously while the page script runs, so by the time
@@ -106,6 +115,37 @@ export class HidingArrayClassNamePage {
       },
       [gridId, row, column] as [string, number, number]
     );
+  }
+
+  /**
+   * Whether the plugin left an OWN `className` on the cell meta, rather than letting the
+   * column-level or grid-level value keep cascading through the prototype chain.
+   *
+   * This is what the write-on-change guard protects. Without it the hook materializes an own
+   * property on every cell it merely reads, which shadows the cascade — and nothing else in the
+   * suite can see that happen, because the rendered classes come out the same either way.
+   */
+  async hasOwnClassName(gridId: string, row: number, column: number): Promise<boolean> {
+    return this.page.evaluate(
+      ([id, r, c]) => {
+        const hot = (window as unknown as {
+          hots: Record<string, { getCellMeta: (row: number, col: number) => object }>;
+        }).hots[id as string];
+
+        return Object.prototype.hasOwnProperty.call(hot.getCellMeta(r as number, c as number), 'className');
+      },
+      [gridId, row, column] as [string, number, number]
+    );
+  }
+
+  /**
+   * The grid-level `className` array the fixture passed in, read back after rendering.
+   *
+   * A grid-level array is ONE instance shared by every cell through the meta prototype chain, so a
+   * plugin that pushed into the value it was handed would leak its marker into all of them.
+   */
+  async gridLevelSourceArray(): Promise<string[]> {
+    return this.page.evaluate(() => (window as unknown as { gridLevelClassName: string[] }).gridLevelClassName);
   }
 
   /** Show the rows again, so the plugin has to take its marker class back off. */

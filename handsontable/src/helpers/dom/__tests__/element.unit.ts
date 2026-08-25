@@ -404,10 +404,23 @@ describe('DomElement helper', () => {
       expect(normalizeClassNames('  test1   test2 ')).toEqual(['test1', 'test2']);
     });
 
-    it('should drop empty and non-string entries from an array', () => {
+    it('should drop falsy entries from an array', () => {
       expect(normalizeClassNames(['test1', '', 'test2'])).toEqual(['test1', 'test2']);
       expect(normalizeClassNames([null, undefined, 0, false, 'test1'] as unknown as string[]))
         .toEqual(['test1']);
+    });
+
+    it('should keep the same entries `addClass` would keep', () => {
+      // Both go through `filterEmptyClassNames`, so the meta path and the DOM path agree on what
+      // counts as a class. When they disagreed, an out-of-contract entry rendered without a hiding
+      // plugin and vanished with one.
+      const element = document.createElement('div');
+
+      addClass(element, ['test1', 123, '', 'test2'] as unknown as string[]);
+
+      // Compared as class names: `classList` stringifies what it stores, the helper does not.
+      expect(normalizeClassNames(['test1', 123, '', 'test2'] as unknown as string[]).map(String))
+        .toEqual(Array.from(element.classList));
     });
 
     it('should return an empty array for nullish and empty values', () => {
@@ -415,12 +428,6 @@ describe('DomElement helper', () => {
       expect(normalizeClassNames(null)).toEqual([]);
       expect(normalizeClassNames('')).toEqual([]);
       expect(normalizeClassNames([])).toEqual([]);
-    });
-
-    it('should not merge array entries into one comma-joined token (#7427)', () => {
-      // The hiding plugins used to coerce the array with `+=`, producing the single class
-      // `test,test2`. Normalizing must never reintroduce that.
-      expect(normalizeClassNames(['test', 'test2'])).not.toContain('test,test2');
     });
 
     it('should produce a value that survives a join/normalize round trip', () => {

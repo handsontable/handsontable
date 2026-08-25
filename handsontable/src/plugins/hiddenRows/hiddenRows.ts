@@ -7,6 +7,7 @@ import { Hooks } from '../../core/hooks';
 import hideRowItem from './contextMenuItem/hideRow';
 import showRowItem from './contextMenuItem/showRow';
 import type { HidingMap } from '../../translations';
+import type { CellProperties } from '../../settings';
 
 Hooks.getSingleton().register('beforeHideRows');
 Hooks.getSingleton().register('afterHideRows');
@@ -451,13 +452,13 @@ export class HiddenRows extends BasePlugin {
    * @param {number} column Visual column index.
    * @param {object} cellProperties Object containing the cell properties.
    */
-  #onAfterGetCellMeta = (row: number, column: number, cellProperties: Record<string, unknown>) => {
+  #onAfterGetCellMeta = (row: number, column: number, cellProperties: CellProperties) => {
     if (this.getSetting('copyPasteEnabled') === false) {
       // Cell property handled by the `Autofill` and the `CopyPaste` plugins. The plugin only sets
       // and marks cells whose `skipRowOnPaste` it actually flips to `true`. Cells that already
       // had `true` from user configuration (`cells`, or `cell`) are left untouched, so that
       // unhiding the row does not erase the user-defined value.
-      const cellPropsWithMarker = cellProperties as Record<string | symbol, unknown>;
+      const cellPropsWithMarker = cellProperties as unknown as Record<string | symbol, unknown>;
 
       if (this.isHidden(row)) {
         if (cellProperties.skipRowOnPaste !== true) {
@@ -475,7 +476,7 @@ export class HiddenRows extends BasePlugin {
     // `search` plugin already store. Only write when the value actually changes - this hook runs
     // on every cell meta read.
     if (this.isHidden(row - 1)) {
-      const classArr = normalizeClassNames(cellProperties.className as string | string[]);
+      const classArr = normalizeClassNames(cellProperties.className);
 
       if (classArr.indexOf('afterHiddenRow') === -1) {
         classArr.push('afterHiddenRow');
@@ -488,7 +489,7 @@ export class HiddenRows extends BasePlugin {
       }
 
     } else if (cellProperties.className) {
-      const classArr = normalizeClassNames(cellProperties.className as string | string[]);
+      const classArr = normalizeClassNames(cellProperties.className);
       const containAfterHiddenRow = classArr.indexOf('afterHiddenRow');
 
       if (containAfterHiddenRow > -1) {
