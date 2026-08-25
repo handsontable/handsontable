@@ -603,7 +603,7 @@ export interface GridSettings {
   modifyGetCoordsElement?: (row: number, column: number) => void | [number, number];
   modifyRowData?: (row: number) => void;
   modifyRowHeader?: (row: number) => void;
-  modifyRowHeaderWidth?: (rowHeaderWidth: number) => void | number;
+  modifyRowHeaderWidth?: (rowHeaderWidth: number | number[]) => void | number | number[];
   modifyRowHeight?: (height: number, row: number, source?: string) => void | number;
   modifyRowHeightByOverlayName?: (height: number, row: number, overlayType: string) => void | number;
   modifySinglePassLayout?: (singlePassLayout: boolean) => void | boolean;

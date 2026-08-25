@@ -2,10 +2,14 @@ import { BasePlugin } from '../base';
 import GhostTable from '../../utils/ghostTable';
 import SamplesGenerator from '../../utils/samplesGenerator';
 import { DEFAULT_COLUMN_WIDTH } from '../../3rdparty/walkontable/src';
-import { warn } from '../../helpers/console';
 
 export const PLUGIN_KEY = 'autoRowHeaderSize';
 export const PLUGIN_PRIORITY = 45;
+
+/**
+ * A function that fills one row header cell, as collected from the `afterGetRowHeaderRenderers` hook.
+ */
+type RowHeaderRenderer = (renderableRow: number, TH: HTMLTableCellElement) => void;
 
 /**
  * Settings accepted by the plugin.
@@ -45,10 +49,13 @@ type AutoRowHeaderSizeDefaults = {
  * any [`rowHeaderWidth`](@/api/options.md#rowheaderwidth) already set is ignored while the plugin
  * is enabled - there is no second option to keep in step.
  *
+ * A grid can render more than one row header, by pushing a renderer through the
+ * {@link Hooks#afterGetRowHeaderRenderers} hook. Every one of them is measured on its own, so each
+ * gets exactly the width its own labels need.
+ *
  * The plugin is off by default. It reads every row header once to find the longest label, so the
  * cost of that first pass grows with the row count, and switching it on for everyone would change
- * the width of every grid that uses custom row labels. It measures a single row header, so a grid
- * rendering more than one row header level keeps its default widths and is told why in the console.
+ * the width of every grid that uses custom row labels.
  *
  * @example
  * ```js
@@ -100,11 +107,12 @@ export class AutoRowHeaderSize extends BasePlugin {
   }
 
   /**
-   * Instance of {@link GhostTable} used to measure the row headers off-screen.
+   * Instance of {@link GhostTable} used to measure the row headers off-screen. Private: how the
+   * measuring is done is not part of what this plugin offers.
    *
    * @type {GhostTable}
    */
-  ghostTable = new GhostTable(this.hot);
+  #ghostTable = new GhostTable(this.hot);
   /**
    * Instance of {@link SamplesGenerator} used to reduce the row headers down to the few labels
    * worth rendering. It buckets them by label length and keeps a handful per bucket, so the DOM
@@ -112,28 +120,27 @@ export class AutoRowHeaderSize extends BasePlugin {
    *
    * @type {SamplesGenerator}
    */
-  samplesGenerator = new SamplesGenerator((row: number) => ({
-    value: this.hot.getRowHeader(row),
-  }));
+  #samplesGenerator = new SamplesGenerator((row: number) => {
+    // A row with no renderable index is hidden, so no header of it is drawn and none is measured.
+    if (this.hot.rowIndexMapper.getRenderableFromVisualIndex(row) === null) {
+      return false;
+    }
+
+    return { value: this.hot.getRowHeader(row) };
+  });
   /**
-   * The last measured width, or `null` when a measurement is due.
+   * The last measured width of each row header level, or `null` when a measurement is due.
    *
-   * @type {number|null}
+   * @type {number[]|null}
    */
-  #cachedWidth: number | null = null;
+  #cachedWidths: number[] | null = null;
   /**
-   * The row count the cached width was measured against. A different count means the set of labels
-   * may have changed, so the cache no longer holds.
+   * The row count the cached widths were measured against. A different count means the set of
+   * labels may have changed, so the cache no longer holds.
    *
    * @type {number}
    */
   #cachedRowCount = -1;
-  /**
-   * Whether the grid has already been told that the plugin does nothing here.
-   *
-   * @type {boolean}
-   */
-  #warnedAboutHeaderLevels = false;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings.
@@ -154,12 +161,12 @@ export class AutoRowHeaderSize extends BasePlugin {
       return;
     }
 
-    this.samplesGenerator.setAllowDuplicates(this.getSetting<boolean>('allowSampleDuplicates'));
+    this.#samplesGenerator.setAllowDuplicates(this.getSetting<boolean>('allowSampleDuplicates'));
 
     const samplingRatio = this.getSetting<number | null>('samplingRatio');
 
     if (samplingRatio && !isNaN(samplingRatio)) {
-      this.samplesGenerator.setSampleCount(parseInt(String(samplingRatio), 10));
+      this.#samplesGenerator.setSampleCount(parseInt(String(samplingRatio), 10));
     }
 
     this.addHook('modifyRowHeaderWidth', this.#onModifyRowHeaderWidth);
@@ -178,7 +185,6 @@ export class AutoRowHeaderSize extends BasePlugin {
    */
   updatePlugin(): void {
     this.clearCache();
-    this.resetWarnings();
     this.disablePlugin();
     this.enablePlugin();
 
@@ -195,130 +201,196 @@ export class AutoRowHeaderSize extends BasePlugin {
   }
 
   /**
-   * Returns the width the row header column needs in order to show its longest label in full.
+   * Returns the width one row header level needs in order to show its longest label in full.
    *
    * The value is cached, so calling this repeatedly costs nothing until the data or the settings
    * change.
    *
+   * @param {number} [headerLevel=0] Which row header to report on, counting from the grid's edge:
+   *                                 `0` is the first one. The negative column index a row header
+   *                                 sits at is accepted too, so `-1` is that same first header and
+   *                                 `-2` the one after it.
    * @returns {number} The measured width in pixels, or `0` when there is nothing to measure.
    */
-  getRowHeaderWidth(): number {
-    if (this.#cachedWidth === null || this.#cachedRowCount !== this.hot.countRows()) {
-      this.#cachedWidth = this.#measure();
-      this.#cachedRowCount = this.hot.countRows();
-    }
+  getRowHeaderWidth(headerLevel: number = 0): number {
+    const widths = this.#getMeasuredWidths();
+    // Row headers live at columns -1, -2, ... so a negative argument is read as one of those.
+    const level = headerLevel < 0 ? -headerLevel - 1 : headerLevel;
 
-    return this.#cachedWidth;
+    return widths[level] ?? 0;
   }
 
   /**
-   * Throws the measured width away, so the next read measures again.
+   * Returns the width every row header level needs, in order, starting with the one at the grid's edge.
+   *
+   * @returns {number[]} The measured widths in pixels.
+   */
+  getRowHeaderWidths(): number[] {
+    return this.#getMeasuredWidths().slice();
+  }
+
+  /**
+   * Throws the measured widths away, so the next read measures again.
    */
   clearCache(): void {
-    this.#cachedWidth = null;
+    this.#cachedWidths = null;
     this.#cachedRowCount = -1;
-  }
-
-  /**
-   * Allows the header-level warning to be shown again, after the grid is reconfigured.
-   */
-  resetWarnings(): void {
-    this.#warnedAboutHeaderLevels = false;
   }
 
   /**
    * Destroys the plugin instance.
    */
   destroy(): void {
-    this.ghostTable.clean();
+    this.#ghostTable.clean();
 
     super.destroy();
   }
 
   /**
-   * Renders the sampled row headers off-screen and returns the width of the widest one.
+   * Returns the measured width of every row header level, measuring first if the cache is stale.
    *
-   * @returns {number} The measured width in pixels.
+   * @returns {number[]}
    */
-  #measure(): number {
-    const scannedRows = this.hot.countRows();
+  #getMeasuredWidths(): number[] {
+    if (this.#cachedWidths === null || this.#cachedRowCount !== this.hot.countRows()) {
+      this.#cachedWidths = this.#measureAllLevels();
+      this.#cachedRowCount = this.hot.countRows();
+    }
 
-    if (scannedRows < 1) {
-      return 0;
+    return this.#cachedWidths;
+  }
+
+  /**
+   * Collects the renderers that fill the row headers, one per level.
+   *
+   * Built the same way `TableView` builds them for the draw: the grid's own renderer first, then
+   * whatever the `afterGetRowHeaderRenderers` hook appends. Collecting them here is what lets every
+   * level be measured with the markup it actually renders, rather than assuming the first level's.
+   *
+   * @returns {Function[]}
+   */
+  #collectRenderers(): RowHeaderRenderer[] {
+    const renderers: RowHeaderRenderer[] = [];
+
+    if (this.hot.hasRowHeaders()) {
+      renderers.push((renderableRow: number, TH: HTMLTableCellElement) => {
+        const visualRow = renderableRow >= 0
+          ? this.hot.rowIndexMapper.getVisualFromRenderableIndex(renderableRow)
+          : renderableRow;
+
+        this.hot.view.appendRowHeader(visualRow!, TH);
+      });
+    }
+
+    this.hot.runHooks('afterGetRowHeaderRenderers', renderers);
+
+    return renderers;
+  }
+
+  /**
+   * Measures every row header level off-screen.
+   *
+   * @returns {number[]} One width per level, in order from the grid's edge.
+   */
+  #measureAllLevels(): number[] {
+    const samples = this.#generateSamples();
+    const renderers = this.#collectRenderers();
+
+    if (samples === null || renderers.length === 0) {
+      return [];
+    }
+
+    return renderers.map((renderer, headerLevel) => this.#measureLevel(samples, renderer, headerLevel));
+  }
+
+  /**
+   * Reduces the row headers down to the few labels worth rendering.
+   *
+   * @returns {Map|null} The samples, or `null` when there is nothing to measure.
+   */
+  #generateSamples(): Map<string | number, never> | null {
+    const totalRows = this.hot.countRows();
+
+    if (totalRows < 1) {
+      return null;
     }
 
     // The row header sits at column -1, so the samples are generated for that column across the
     // rows. Only the label lengths matter here - the label itself is re-rendered by the grid's own
     // row header renderers when the ghost table measures it.
-    const samplesByColumn = this.samplesGenerator
-      .generateColumnSamples(-1, { from: 0, to: scannedRows - 1 });
+    const samplesByColumn = this.#samplesGenerator
+      .generateColumnSamples(-1, { from: 0, to: totalRows - 1 });
     // `generateColumnSamples` keys its result by column index; the per-label-length samples are the
     // value inside. AutoColumnSize unwraps the same way before handing them to the ghost table.
     const samples = samplesByColumn.get(-1) as Map<string | number, never> | undefined;
 
-    if (!samples || samples.size === 0) {
-      return 0;
-    }
+    return samples && samples.size > 0 ? samples : null;
+  }
 
+  /**
+   * Renders one row header level off-screen and returns the width of its widest cell.
+   *
+   * @param {Map} samples The sampled rows to render.
+   * @param {Function} renderer The renderer that fills a header cell of this level.
+   * @param {number} headerLevel The level being measured, counting from the grid's edge.
+   * @returns {number} The measured width in pixels.
+   */
+  #measureLevel(samples: Map<string | number, never>, renderer: RowHeaderRenderer, headerLevel: number): number {
     let width = 0;
 
     try {
       // The ghost table takes the map over, and its `clean()` clears whatever it was handed - so it
       // gets a copy, never the generator's own map.
-      this.ghostTable.addRowHeadersColumn(new Map(samples));
-      this.ghostTable.getWidths((_column: number, measuredWidth: number) => {
+      this.#ghostTable.addRowHeadersColumn(new Map(samples), headerLevel, (visualRow, TH) => {
+        // The renderers are called by the draw with renderable indexes, so they get one here too.
+        const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(visualRow);
+
+        renderer(renderableRow ?? visualRow, TH);
+      });
+      this.#ghostTable.getWidths((_column: number, measuredWidth: number) => {
         width = Math.max(width, measuredWidth);
       });
     } finally {
       // A throwing row header renderer must not leave the measurement table attached to the DOM.
-      this.ghostTable.clean();
+      this.#ghostTable.clean();
     }
 
     return width;
   }
 
   /**
-   * Answers with the measured width.
+   * Answers with the measured width of every row header level.
    *
    * The hook runs on every draw, so everything it does beyond reading the cache has to stay out of
    * this path.
    *
+   * A single level is answered with a plain number, and several with one width per level. Both
+   * shapes are understood by the two places that consume this: `ColumnUtils` indexes an array per
+   * level, and `Viewport` adds the entries up to get the width of the whole row header block.
+   *
    * The width the grid resolved on its own is deliberately discarded: the plugin is the one that
    * was asked to decide this width, so a `rowHeaderWidth` left over in the settings does not fight
-   * it. The default column width is still the floor, so a grid of short labels keeps the header it
-   * has today rather than collapsing around a one-character label - the same floor
+   * it. The default column width is still the floor of every level, so a grid of short labels keeps
+   * the header it has today rather than collapsing around a one-character label - the same floor
    * {@link AutoColumnSize#getColumnWidth} keeps for a data column.
    *
-   * @param {number} rowHeaderWidth The width Walkontable resolved on its own.
-   * @returns {number} The width to use.
+   * @param {number|number[]} rowHeaderWidth The width Walkontable resolved on its own.
+   * @returns {number|number[]} The width to use.
    */
-  #onModifyRowHeaderWidth = (rowHeaderWidth: number) => {
-    if (this.hot.countRowHeaders() > 1) {
-      this.#warnAboutHeaderLevels();
+  #onModifyRowHeaderWidth = (rowHeaderWidth: number | number[]) => {
+    const widths = this.#getMeasuredWidths();
 
+    if (widths.length === 0) {
       return rowHeaderWidth;
     }
 
-    return Math.max(this.getRowHeaderWidth(), DEFAULT_COLUMN_WIDTH);
+    const flooredWidths = widths.map(width => Math.max(width, DEFAULT_COLUMN_WIDTH));
+
+    return flooredWidths.length === 1 ? flooredWidths[0] : flooredWidths;
   };
 
   /**
-   * Says once why the plugin is doing nothing, so the grid does not just silently keep its old width.
-   */
-  #warnAboutHeaderLevels() {
-    if (this.#warnedAboutHeaderLevels) {
-      return;
-    }
-
-    this.#warnedAboutHeaderLevels = true;
-
-    warn('The `autoRowHeaderSize` plugin measures a single row header, and this grid renders more ' +
-      'than one. The row headers keep their default width. Give each level its own width instead, ' +
-      'for example `rowHeaderWidth: [80, 40]`.');
-  }
-
-  /**
-   * Drops the cached width after a change that can alter the row header labels.
+   * Drops the cached widths after a change that can alter the row header labels.
    */
   #onInvalidate = () => {
     this.clearCache();

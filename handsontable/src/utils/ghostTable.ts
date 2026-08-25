@@ -174,8 +174,14 @@ class GhostTable {
    *                      {@link SamplesGenerator} keys them. Only the row indexes are read - the
    *                      label itself is rendered by the grid's own row header renderers.
    * @param {number} [headerLevel=0] The row header level, counting from the grid's edge.
+   * @param {Function} [renderer] The renderer that fills one header cell of that level. Defaults to
+   *                              the grid's own first-level row header renderer.
    */
-  addRowHeadersColumn(samples: Map<string | number, SampleEntry>, headerLevel = 0) {
+  addRowHeadersColumn(
+    samples: Map<string | number, SampleEntry>,
+    headerLevel = 0,
+    renderer?: (visualRow: number, TH: HTMLTableCellElement) => void
+  ) {
     if (this.rows.length) {
       throwWithCause('Doesn\'t support multi-dimensional table');
     }
@@ -194,7 +200,7 @@ class GhostTable {
     // after the `push` above - the horizontal branch is what overrides the `width: 0` and
     // `table-layout: fixed` that the copied `htCore` class would otherwise impose (#4363).
     this.table = this.createTable(this.hot!.table.className);
-    this.table.tBody.appendChild(this.createRowHeadersCol());
+    this.table.tBody.appendChild(this.createRowHeadersCol(renderer));
     this.container!.container.appendChild(this.table.fragment);
 
     columnObject.table = this.table.table;
@@ -450,11 +456,18 @@ class GhostTable {
    * The row header counterpart of {@link GhostTable#createCol}, and shaped like it: one `<tr>` per
    * sampled row, so the column sizes itself to the widest of them.
    *
+   * @param {Function} [renderer] The renderer that fills one header cell. Defaults to the grid's
+   *                              own first-level row header renderer.
    * @returns {DocumentFragment} Returns created table row elements.
    */
-  createRowHeadersCol() {
+  createRowHeadersCol(renderer?: (visualRow: number, TH: HTMLTableCellElement) => void) {
     const rootDocument = this.hot!.rootDocument;
     const fragment = rootDocument.createDocumentFragment();
+    // Using a source renderer so the measured header carries whatever the renderers and the
+    // `afterGetRowHeader` hook put there - the width has to cover the real markup, not just the label.
+    const fillHeader = renderer ?? ((visualRow: number, th: HTMLTableCellElement) => {
+      this.hot!.view.appendRowHeader(visualRow, th);
+    });
 
     this.samples!.forEach((sample: SampleEntry) => {
       arrayEach(sample.strings, (string: SampleString) => {
@@ -464,9 +477,7 @@ class GhostTable {
         // Indicate that this element is created and supported by GhostTable. It can be useful to
         // exclude rendering performance costly logic or exclude logic which doesn't work within a hidden table.
         th.setAttribute('ghost-table', '1');
-        // Using the source method so the measured header carries whatever the renderers and the
-        // `afterGetRowHeader` hook put there - the width has to cover the real markup, not just the label.
-        this.hot!.view.appendRowHeader(string.row!, th);
+        fillHeader(string.row!, th);
         tr.appendChild(th);
         fragment.appendChild(tr);
       });

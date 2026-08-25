@@ -14,6 +14,28 @@
 import type { default as Viewport } from './viewport';
 
 /**
+ * Reduces a row-header width answer to the single number the viewport needs.
+ *
+ * The `modifyRowHeaderWidth` hook may answer per row header level - `AutoRowHeaderSize` does, so
+ * that every level can be measured on its own - while the viewport wants the width of the whole
+ * row header block. A non-array answer is passed through unchanged.
+ *
+ * Returns `null` when the answer carries nothing usable (`0`, `NaN`, `undefined`), so the caller
+ * keeps the width it already worked out - the behavior the previous `|| this.rowHeaderWidth`
+ * fallback had.
+ *
+ * @param {number|Array} width The value the hook returned.
+ * @returns {number|null}
+ */
+function toTotalRowHeaderWidth(width: number | Array<number | null> | undefined): number | null {
+  const total = Array.isArray(width)
+    ? width.reduce<number>((sum, levelWidth) => sum + (levelWidth ?? 0), 0)
+    : width;
+
+  return total || null;
+}
+
+/**
  * Legacy (pre-single-pass) vertical-scroll check: measures the rendered DOM. Used when the
  * `singlePassLayout` escape hatch is off (e.g. under `mergeCells`) so the answer matches the
  * multi-pass measure-then-render behavior exactly. Kept as a free function so it does not route
@@ -372,8 +394,10 @@ export const workspaceSize: WorkspaceSize = {
       }
     }
 
-    this.rowHeaderWidth = this.wtSettings
-      .getSetting<number>('onModifyRowHeaderWidth', this.rowHeaderWidth) || this.rowHeaderWidth;
+    const modifiedWidth = this.wtSettings
+      .getSetting<number | Array<number | null>>('onModifyRowHeaderWidth', this.rowHeaderWidth);
+
+    this.rowHeaderWidth = toTotalRowHeaderWidth(modifiedWidth) ?? this.rowHeaderWidth;
 
     return this.rowHeaderWidth;
   },

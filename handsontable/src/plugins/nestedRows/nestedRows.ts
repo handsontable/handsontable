@@ -784,11 +784,21 @@ export class NestedRows extends BasePlugin {
   /**
    * `modifyRowHeaderWidth` hook callback.
    *
-   * @param {number} rowHeaderWidth The initial row header width(s).
-   * @returns {number}
+   * The indentation this plugin draws needs a floor under the row header width. Another handler may
+   * already have answered per row header level - `AutoRowHeaderSize` does - so an array is widened
+   * entry by entry rather than being fed to `Math.max`, which would turn it into `NaN`.
+   *
+   * @param {number|number[]} rowHeaderWidth The initial row header width(s).
+   * @returns {number|number[]}
    */
-  #onModifyRowHeaderWidth = (rowHeaderWidth: number) => {
-    return Math.max(this.headersUI!.rowHeaderWidthCache ?? 0, rowHeaderWidth);
+  #onModifyRowHeaderWidth = (rowHeaderWidth: number | number[]) => {
+    const minimumWidth = this.headersUI!.rowHeaderWidthCache ?? 0;
+
+    if (Array.isArray(rowHeaderWidth)) {
+      return rowHeaderWidth.map(levelWidth => Math.max(minimumWidth, levelWidth));
+    }
+
+    return Math.max(minimumWidth, rowHeaderWidth);
   };
 
   /**

@@ -5556,10 +5556,9 @@ export default (): Record<string, unknown> => {
      * It reads every row header once to find the longest label, so that first pass costs more on
      * large data sets; the result is cached, so later draws cost nothing.
      *
-     * The plugin measures a single row header. A grid that renders more than one row header level -
-     * an extra level added through the [`afterGetRowHeaderRenderers`](@/api/hooks.md#afterGetRowHeaderRenderers)
-     * hook, for instance - keeps its default widths, and a console warning explains why. Give each
-     * level its own width with [`rowHeaderWidth`](#rowHeaderWidth) instead, as in `[80, 40]`.
+     * A grid can render more than one row header, by pushing a renderer through the
+     * [`afterGetRowHeaderRenderers`](@/api/hooks.md#afterGetRowHeaderRenderers) hook. Every one of
+     * them is measured on its own, so each gets exactly the width its own labels need.
      *
      * Two rows carrying the same label are measured once, since the same text renders to the same
      * width. Set `allowSampleDuplicates` to `true` when that is not true of your grid - a row header

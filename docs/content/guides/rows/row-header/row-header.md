@@ -201,13 +201,43 @@ row header width of every grid that uses custom labels. This mirrors
 The plugin never makes a header narrower than the default width, so a grid of short labels looks the
 same as it does without the plugin.
 
+#### Tuning the measurement
+
+Instead of `true`, you can pass an object to change how the measurement runs. Both properties are
+optional, and the defaults suit most grids:
+
+| Property                | Possible values   | Description                                                                                      |
+| ----------------------- | ----------------- | ------------------------------------------------------------------------------------------------ |
+| `samplingRatio`         | A number          | How many labels of the same length get rendered and measured. Default: `3`.                      |
+| `allowSampleDuplicates` | `true` \| `false` | Whether two rows carrying the same label are both measured. Default: `false`.                    |
+
+```js
+autoRowHeaderSize: {
+  samplingRatio: 5,
+  allowSampleDuplicates: true,
+},
+```
+
+**`samplingRatio`** exists because reading a label is cheap but laying one out is not. The plugin
+groups the labels by how many characters they have and renders only a few from each group. Raising
+the number measures more of them, which is slightly slower but harder to fool: in a proportional
+font `WWW` is wider than `iii`, so measuring more same-length labels makes it less likely that the
+widest one is missed. Lower it to do less work.
+
+**`allowSampleDuplicates`** decides what happens when two rows carry the same label. By default the
+label is measured once, because the same text normally renders to the same width. Set it to `true`
+when that is not true of your grid — a row header that is indented per row, as
+[`nestedRows`](@/api/options.md#nestedrows) does, draws the same label at a different width
+depending on how deep the row sits, so measuring only the first one would come out too narrow.
+
+Setting `autoRowHeaderSize` to `false`, or leaving it out, keeps the fixed-width headers.
+
 ::: tip
 
-The plugin measures a single row header. If your grid renders more than one row header level - an
-extra level added through the [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
-hook, for example - the headers keep their default widths, and a console message explains why. Give
-each level its own width with [`rowHeaderWidth`](@/api/options.md#rowheaderwidth) instead, as in
-`rowHeaderWidth: [80, 40]`.
+A grid can render more than one row header, by pushing a renderer through the
+[`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers) hook. Each one is
+measured separately, so every row header gets exactly the width its own labels need - a narrow
+numbering column stays narrow next to a wide label column.
 
 :::
 

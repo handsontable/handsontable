@@ -245,59 +245,120 @@ describe('AutoRowHeaderSize', () => {
   });
   describe('multiple row header levels', () => {
     /**
-     * Adds a second row header level, the way the documentation and the existing specs do it.
+     * Adds a second row header level, the way the documentation and the existing specs do it. Its
+     * labels are deliberately much shorter than the first level's.
      *
      * @param {Array} renderers The row header renderers collected so far.
      * @returns {Array}
      */
     function addSecondLevel(renderers: Array<(index: number, TH: HTMLElement) => void>) {
       renderers.push((index: number, TH: HTMLElement) => {
-        TH.textContent = `L2-${index}`;
+        TH.textContent = `${index}`;
       });
 
       return renderers;
     }
 
-    it('should leave the width alone when the grid renders more than one row header', () => {
+    it('should measure every row header level, not just the first', () => {
+      const { hot } = buildGrid({
+        autoRowHeaderSize: true,
+        afterGetRowHeaderRenderers: addSecondLevel,
+      });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+
+      expect(hot.countRowHeaders()).toBe(2);
+      expect(plugin.getRowHeaderWidths().length).toBe(2);
+
+      hot.destroy();
+    });
+
+    it('should answer the hook with one width per level, so each level is sized on its own', () => {
       const { hot } = buildGrid({
         autoRowHeaderSize: true,
         afterGetRowHeaderRenderers: addSecondLevel,
       });
 
-      // Returning the incoming width untouched is what keeps the levels consistent. Answering with
-      // a single measured number would set EVERY level to it, so the rendered header would be
-      // `levels x width` while the viewport still expected one width - the columns then draw in the
-      // wrong place.
-      expect(hot.countRowHeaders()).toBe(2);
+      // An array is what lets ColumnUtils give each level its own width. A single number would be
+      // applied to EVERY level, making the rendered header wider than the layout expects.
+      const answer = hot.runHooks('modifyRowHeaderWidth', 50);
+
+      expect(Array.isArray(answer)).toBe(true);
+      expect(answer.length).toBe(2);
+
+      hot.destroy();
+    });
+
+    it('should answer with a plain number when there is only one level', () => {
+      const { hot } = buildGrid({ autoRowHeaderSize: true });
+
       expect(hot.runHooks('modifyRowHeaderWidth', 50)).toBe(50);
 
       hot.destroy();
     });
 
-    it('should never measure anything when there is more than one row header', () => {
-      const { hot, labelSpy } = buildGrid({
+    it('should keep every level at or above the default column width', () => {
+      const { hot } = buildGrid({
         autoRowHeaderSize: true,
         afterGetRowHeaderRenderers: addSecondLevel,
       });
 
-      hot.getPlugin('autoRowHeaderSize').clearCache();
-      labelSpy.mockClear();
-      hot.runHooks('modifyRowHeaderWidth', 50);
+      const answer = hot.runHooks('modifyRowHeaderWidth', 50) as number[];
 
-      expect(labelSpy).not.toHaveBeenCalled();
+      answer.forEach((levelWidth) => {
+        expect(levelWidth).toBeGreaterThanOrEqual(50);
+      });
 
       hot.destroy();
     });
 
-    it('should still size a single row header, to prove the guard is not too broad', () => {
-      const { hot } = buildGrid({ autoRowHeaderSize: true });
+    it('should read a level by its negative column index too, since row headers sit at -1 and down', () => {
+      const { hot } = buildGrid({
+        autoRowHeaderSize: true,
+        afterGetRowHeaderRenderers: addSecondLevel,
+      });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
 
-      expect(hot.countRowHeaders()).toBe(1);
-      expect(hot.runHooks('modifyRowHeaderWidth', 50)).toBe(50);
+      expect(plugin.getRowHeaderWidth(-1)).toBe(plugin.getRowHeaderWidth(0));
+      expect(plugin.getRowHeaderWidth(-2)).toBe(plugin.getRowHeaderWidth(1));
+
+      hot.destroy();
+    });
+
+    it('should report 0 for a level the grid does not render', () => {
+      const { hot } = buildGrid({ autoRowHeaderSize: true });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+
+      expect(plugin.getRowHeaderWidth(5)).toBe(0);
+
+      hot.destroy();
+    });
+
+    it('should render each level with its own renderer, not the first level\'s markup', () => {
+      const rendered: string[] = [];
+      const { hot } = buildGrid({
+        autoRowHeaderSize: true,
+        afterGetRowHeaderRenderers: (renderers: Array<(index: number, TH: HTMLElement) => void>) => {
+          renderers.push((index: number, TH: HTMLElement) => {
+            rendered.push(`L2-${index}`);
+            TH.textContent = `L2-${index}`;
+          });
+
+          return renderers;
+        },
+      });
+
+      hot.getPlugin('autoRowHeaderSize').clearCache();
+      rendered.length = 0;
+      hot.getPlugin('autoRowHeaderSize').getRowHeaderWidths();
+
+      // The second level's own renderer has to run during the measurement, or its width would be
+      // guessed from the first level's labels.
+      expect(rendered.length).toBeGreaterThan(0);
 
       hot.destroy();
     });
   });
+
   describe('index translation', () => {
     it('should read labels through the same translation the renderer uses', () => {
       // `modifyRowHeader` is how bindRowsWithHeaders makes a label follow its row. The plugin has

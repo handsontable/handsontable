@@ -800,7 +800,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   modifyRowData: (row) => {},
   modifyRowHeader: (row) => {},
-  modifyRowHeaderWidth: (rowHeaderWidth) => {},
+  modifyRowHeaderWidth: rowHeaderWidth => oneOf(80, [80, 40]),
   modifyRowHeight: (height, row, source) => {
     const _height: number = height;
     const _row: number = row;
