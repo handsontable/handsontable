@@ -242,7 +242,9 @@ export interface GridSettings {
   preventWheel?: boolean;
 
   // Security
-  sanitizer?: (html: string, ...args: any[]) => string; // eslint-disable-line @typescript-eslint/no-explicit-any
+  // Returning a `TrustedHTML` is supported for pages enforcing Trusted Types; see `SanitizerFn`.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sanitizer?: (html: string, ...args: any[]) => string | { toString(): string };
 
   // State
   initialState?: Record<string, unknown>;

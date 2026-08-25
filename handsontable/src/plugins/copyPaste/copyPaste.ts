@@ -24,7 +24,7 @@ import {
   CopyableRangesFactory,
   normalizeRanges,
 } from './copyableRanges';
-import { _dataToHTML, htmlToGridSettings } from '../../utils/parseTable';
+import { _dataToHTML, htmlToGridSettings, replaceTdCellsWithTextContent } from '../../utils/parseTable';
 
 /**
  * Internet Explorer-specific window extension with legacy clipboard API.
@@ -937,20 +937,34 @@ export class CopyPaste extends BasePlugin {
       // sanitizer. Sharing one context would force that choice on everyone and would also run the
       // sanitizer twice over the same cells on an internal paste, since both clipboard types carry
       // a full table.
+      //
+      // The payload is normalized BEFORE it is sanitized, and the sanitizer's value then goes to
+      // the parser untouched. `replaceTdCellsWithTextContent()` is a string rewrite, and a
+      // `TrustedHTML` that passed through it would collapse back to a plain string, which a page
+      // enforcing Trusted Types rejects at the parser. Sanitizing last also means the sanitizer
+      // sees exactly the markup the parser will read, rather than a string rewritten behind it.
       const sourceDataHTML = sanitizeHTML(
-        this.hot, clipboardData.getData(SOURCE_DATA_HTML_MIME_TYPE) ?? '', 'CopyPaste.paste.sourceData'
+        this.hot,
+        replaceTdCellsWithTextContent(clipboardData.getData(SOURCE_DATA_HTML_MIME_TYPE) ?? ''),
+        'CopyPaste.paste.sourceData'
       );
 
       if (sourceDataHTML) {
-        const parsedSourceConfig = htmlToGridSettings(sourceDataHTML, this.hot.rootDocument);
+        const parsedSourceConfig = htmlToGridSettings(
+          sourceDataHTML, this.hot.rootDocument, { normalize: false }
+        );
 
         pastedSourceData = parsedSourceConfig?.data;
       }
 
-      const textHTML = sanitizeHTML(this.hot, clipboardData.getData('text/html') ?? '', 'CopyPaste.paste');
+      const textHTML = sanitizeHTML(
+        this.hot, replaceTdCellsWithTextContent(clipboardData.getData('text/html') ?? ''), 'CopyPaste.paste'
+      );
 
-      if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
-        const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument);
+      // `String()` builds a throwaway copy for the test only. `textHTML` itself is passed on as it
+      // was returned, so a `TrustedHTML` keeps its trust.
+      if (textHTML && /(<table)|(<TABLE)/g.test(String(textHTML))) {
+        const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument, { normalize: false });
 
         pastedData = parsedConfig?.data;
       } else {

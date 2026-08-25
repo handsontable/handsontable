@@ -339,7 +339,10 @@ export class DynamicComponentService {
       this._instanceEmbeddedViews.get(instance)?.delete(prevView);
     }
 
-    td.innerHTML = '';
+    // Not `innerHTML = ''`: that reads as "assign nothing", but `innerHTML` is a Trusted
+    // Types sink whatever the value, so under `require-trusted-types-for 'script'` an empty
+    // string throws exactly like markup would.
+    td.replaceChildren();
   }
 
   /**

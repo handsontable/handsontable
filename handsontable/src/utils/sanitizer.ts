@@ -3,10 +3,25 @@ import { HTML_CHARACTERS, SANITIZER_WARN_KEY, missingSanitizerMessage } from '..
 import { warnOnce } from '../helpers/console';
 
 /**
+ * A value a Trusted Types sink accepts in place of a plain string.
+ *
+ * Structural on purpose. `TrustedHTML` is not in the DOM lib of the TypeScript version this
+ * package compiles against, and declaring it as a global here would collide with
+ * `@types/trusted-types` in any project that installs it, or with a future DOM lib. Matching the
+ * shape instead means a real `TrustedHTML` satisfies it without anyone declaring anything.
+ */
+export type TrustedHTMLLike = { toString(): string };
+
+/**
  * Signature of the `sanitizer` grid option. The second argument names the write surface,
  * so a sanitizer can apply different rules per context (for example, stricter for paste).
+ *
+ * Returning a `TrustedHTML` is supported: under `require-trusted-types-for 'script'` a sink
+ * rejects plain strings, so a page enforcing Trusted Types has to hand back the output of its own
+ * policy. Handsontable passes that value to the sink untouched - it is never concatenated,
+ * re-tested, or otherwise turned back into a string, any of which would strip the trust.
  */
-export type SanitizerFn = (html: string, context: string) => string;
+export type SanitizerFn = (html: string, context: string) => string | TrustedHTMLLike;
 
 /**
  * Reads the grid-level `sanitizer` option in the form `fastInnerHTML` expects.
@@ -42,9 +57,11 @@ export function getSanitizer(hot: HotInstance): boolean | SanitizerFn {
  * @param {object} hot The Handsontable instance.
  * @param {string} html The HTML string to sanitize.
  * @param {string} context The write surface, passed to the sanitizer and named in the warning.
- * @returns {string} The sanitized string, or the input unchanged when no sanitizer is configured.
+ * @returns {string} The sanitized value, or the input unchanged when no sanitizer is configured.
  */
-export function sanitizeHTML(hot: HotInstance, html: string, context: string): string {
+export function sanitizeHTML(
+  hot: HotInstance, html: string, context: string
+): string | TrustedHTMLLike {
   // An absent clipboard flavour reads as `''`. There is nothing to sanitize and nothing to warn
   // about, and calling the sanitizer would add a spurious entry to an auditing one on every paste.
   if (!html) {

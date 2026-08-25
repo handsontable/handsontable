@@ -1,40 +1,72 @@
-import { html } from '../../helpers/templateLiteralTag';
-import { addClass, removeClass, removeAttribute, getScrollbarWidth, setAttribute } from '../../helpers/dom/element';
+import { buildTemplate, type TemplateSpec } from '../../helpers/dom/template';
+import {
+  addClass, removeClass, removeAttribute, getScrollbarWidth, setAttribute, empty
+} from '../../helpers/dom/element';
 import { A11Y_TABINDEX, A11Y_BUSY } from '../../helpers/a11y';
-import { stripTags } from '../../helpers/string';
+import { htmlToPlainText } from '../../helpers/string';
 import type { default as ViewInstance } from '../../tableView';
 
 const EMPTY_DATA_STATE_CLASS_NAME = 'ht-empty-data-state';
 const MIN_HEIGHT = 150;
 
-const TEMPLATE = `<div data-ref="emptyDataStateElement" class="${EMPTY_DATA_STATE_CLASS_NAME} handsontable">
-  <div class="${EMPTY_DATA_STATE_CLASS_NAME}__content-wrapper">
-    <div data-ref="emptyDataStateInner" class="${EMPTY_DATA_STATE_CLASS_NAME}__content-wrapper-inner"></div>
-  </div>
-</div>`;
+const TEMPLATE: TemplateSpec = {
+  tag: 'div',
+  ref: 'emptyDataStateElement',
+  className: `${EMPTY_DATA_STATE_CLASS_NAME} handsontable`,
+  children: [{
+    tag: 'div',
+    className: `${EMPTY_DATA_STATE_CLASS_NAME}__content-wrapper`,
+    children: [{
+      tag: 'div',
+      ref: 'emptyDataStateInner',
+      className: `${EMPTY_DATA_STATE_CLASS_NAME}__content-wrapper-inner`,
+    }],
+  }],
+};
+
+/**
+ * Button types the `buttons` option documents. A value outside this set is not rendered as a
+ * class name: it used to be interpolated straight into `class="ht-button ht-button--..."`,
+ * where a quote in the value escaped the attribute. Building the DOM removes the escape
+ * route, and validating here keeps a stray value from producing a junk class as well.
+ */
+const BUTTON_TYPES = ['primary', 'secondary'];
 
 const templateContent = ({ title, description, buttons }: {
   title?: string, description?: string, buttons?: Array<{ type: string, text: string, callback?: Function }>
-}, isLoading = false) => {
-  const spinnerBlock = isLoading ?
-    `<div class="${EMPTY_DATA_STATE_CLASS_NAME}__spinner" aria-hidden="true"></div>` :
-    '';
+}, isLoading = false): TemplateSpec[] => {
+  const hasButtons = !!buttons?.length && buttons.length > 0;
 
-  return `
-  ${spinnerBlock}
-  <div class="${EMPTY_DATA_STATE_CLASS_NAME}__content">
-    ${title ? `<h2 class="${EMPTY_DATA_STATE_CLASS_NAME}__title">${stripTags(title)}</h2>` : ''}
-    ${description ? `<p class="${EMPTY_DATA_STATE_CLASS_NAME}__description">${stripTags(description)}</p>` : ''}
-  </div>
-  <div
-    data-ref="emptyDataStateButtons"
-    class="${EMPTY_DATA_STATE_CLASS_NAME}__buttons${buttons?.length && buttons.length > 0 ?
-  ` ${EMPTY_DATA_STATE_CLASS_NAME}__buttons--has-buttons`
-  : ''}"
-  >${!isLoading && buttons?.length && buttons.length > 0 ?
-    buttons.map(button =>
-      `<button class="ht-button ht-button--${button.type}">${stripTags(button.text)}</button>`).join('')
-    : ''}</div>`;
+  return [
+    isLoading && {
+      tag: 'div',
+      className: `${EMPTY_DATA_STATE_CLASS_NAME}__spinner`,
+      attrs: { 'aria-hidden': 'true' },
+    },
+    {
+      tag: 'div',
+      className: `${EMPTY_DATA_STATE_CLASS_NAME}__content`,
+      children: [
+        title ? {
+          tag: 'h2', className: `${EMPTY_DATA_STATE_CLASS_NAME}__title`, text: htmlToPlainText(title),
+        } : null,
+        description ? {
+          tag: 'p', className: `${EMPTY_DATA_STATE_CLASS_NAME}__description`, text: htmlToPlainText(description),
+        } : null,
+      ],
+    },
+    {
+      tag: 'div',
+      ref: 'emptyDataStateButtons',
+      className: `${EMPTY_DATA_STATE_CLASS_NAME}__buttons${
+        hasButtons ? ` ${EMPTY_DATA_STATE_CLASS_NAME}__buttons--has-buttons` : ''}`,
+      children: !isLoading && hasButtons ? buttons!.map(button => ({
+        tag: 'button',
+        className: `ht-button ht-button--${BUTTON_TYPES.includes(button.type) ? button.type : 'secondary'}`,
+        text: htmlToPlainText(button.text),
+      })) : [],
+    },
+  ].filter(Boolean) as TemplateSpec[];
 };
 
 /**
@@ -173,7 +205,7 @@ export class EmptyDataStateUI {
       return;
     }
 
-    const elements = html`${TEMPLATE}`;
+    const elements = buildTemplate(TEMPLATE, this.#rootDocument);
 
     this.#refs = elements.refs;
 
@@ -268,7 +300,9 @@ export class EmptyDataStateUI {
       };
     }
 
-    const template = html`${templateContent(content, isLoading)}`;
+    const template = buildTemplate(
+      templateContent(content, isLoading), this.#rootDocument
+    );
 
     if (isLoading) {
       addClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--loading`);
@@ -282,7 +316,7 @@ export class EmptyDataStateUI {
 
     this.#refs = { ...this.#refs, ...template.refs };
 
-    emptyDataStateInner.innerHTML = '';
+    empty(emptyDataStateInner);
     emptyDataStateInner.appendChild(template.fragment);
 
     if (!isLoading && content.buttons?.length && content.buttons.length > 0) {

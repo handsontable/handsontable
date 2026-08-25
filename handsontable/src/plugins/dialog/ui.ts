@@ -1,4 +1,5 @@
-import { html, toSingleLine } from '../../helpers/templateLiteralTag';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
+import { buildTemplate, type TemplateSpec } from '../../helpers/dom/template';
 import { throwWithCause } from '../../helpers/errors';
 import { mixin } from '../../helpers/object';
 import localHooks from '../../mixins/localHooks';
@@ -10,6 +11,7 @@ import {
   isHTMLElement,
   setAttribute,
   removeAttribute,
+  empty,
 } from '../../helpers/dom/element';
 import {
   A11Y_DIALOG,
@@ -30,7 +32,7 @@ import type { SanitizerFn } from '../../utils/sanitizer';
 export interface DialogTemplateResult {
   TEMPLATE_NAME: string;
   dialogA11YOptions(): Record<string, string | undefined>;
-  compile(): { fragment: DocumentFragment; refs: Record<string, HTMLElement> };
+  compile(rootDocument: Document): { fragment: DocumentFragment; refs: Record<string, HTMLElement> };
   focusableElements(): HTMLElement[];
 }
 
@@ -44,11 +46,19 @@ interface DialogA11ySettings {
   ariaDescribedby?: string;
 }
 
-const CONTAINER_TEMPLATE = `
-<div data-ref="dialogElement" class="${DIALOG_CLASS_NAME}">
-  <div data-ref="dialogWrapperElement" class="${DIALOG_CLASS_NAME}__content-wrapper">
-</div>
-`;
+// The string this replaced opened two `div`s and closed one, leaving the parser's error
+// recovery to decide the nesting. The wrapper is a child of the dialog element, stated here
+// rather than inferred.
+const CONTAINER_TEMPLATE: TemplateSpec = {
+  tag: 'div',
+  ref: 'dialogElement',
+  className: DIALOG_CLASS_NAME,
+  children: [{
+    tag: 'div',
+    ref: 'dialogWrapperElement',
+    className: `${DIALOG_CLASS_NAME}__content-wrapper`,
+  }],
+};
 
 /**
  * DialogUI is a UI component that renders and manages dialog elements.
@@ -156,7 +166,7 @@ export class DialogUI {
       return;
     }
 
-    const elements = html`${CONTAINER_TEMPLATE}`;
+    const elements = buildTemplate(CONTAINER_TEMPLATE, this.#overlayContainer.ownerDocument);
 
     this.#refs = elements.refs;
 
@@ -211,11 +221,11 @@ export class DialogUI {
   updateDialog({
     isVisible, content, customClassName, background, contentBackground, animation, a11y
   }: Record<string, unknown>) {
-    const elements = this.#template.compile();
+    const elements = this.#template.compile(this.#overlayContainer.ownerDocument);
     const { dialogElement, dialogWrapperElement } = this.#refs!;
     const typedA11y = a11y as DialogA11ySettings;
 
-    dialogWrapperElement.innerHTML = '';
+    empty(dialogWrapperElement);
     dialogWrapperElement.appendChild(elements.fragment);
 
     Object.assign(this.#refs!, elements.refs);
@@ -288,7 +298,7 @@ export class DialogUI {
 
     if (this.#template.TEMPLATE_NAME === 'base') {
       // Clear existing dialog content
-      contentElement.innerHTML = '';
+      empty(contentElement);
 
       // Render new dialog content
       if (typeof content === 'string') {

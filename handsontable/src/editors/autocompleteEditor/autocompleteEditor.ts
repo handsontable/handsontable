@@ -13,6 +13,7 @@ import {
   outerWidth,
   setAttribute,
   setCaretPosition,
+  empty,
 } from '../../helpers/dom/element';
 import { isDefined, stringify } from '../../helpers/mixed';
 import { stripTags, localeLowerCase } from '../../helpers/string';
@@ -211,7 +212,7 @@ export class AutocompleteEditor extends HandsontableEditor {
             const match = cellValue.slice(indexOfMatch, indexOfMatch + query.length);
             const { rootDocument } = hotInstance;
 
-            TD.innerHTML = '';
+            empty(TD);
             TD.appendChild(rootDocument.createTextNode(cellValue.slice(0, indexOfMatch)));
 
             const strong = rootDocument.createElement('strong');

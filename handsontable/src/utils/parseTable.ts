@@ -103,6 +103,121 @@ export function instanceToHTML(instance: HotInstance): string {
 }
 
 /**
+ * Converts a Handsontable instance into an `HTMLTableElement`, built as DOM nodes.
+ *
+ * The element used to be produced by feeding `instanceToHTML()` to `insertAdjacentHTML`, which is
+ * a Trusted Types sink: `toTableElement()` threw under `require-trusted-types-for 'script'`.
+ * Building the nodes touches no sink.
+ *
+ * The result is node-for-node what parsing `instanceToHTML()` produced, which
+ * `toTableElement.unit.js` pins by comparing the two. That is why the cell text is written the way
+ * it is: `instanceToHTML` escapes `<`/`>` and then encodes spaces as `&nbsp;` and tabs as `&#9;`,
+ * so the parsed text carried non-breaking spaces and real tabs. Newlines became `<br>` elements
+ * each followed by a newline. The encoder writes "\r\n" after the tag, but the HTML parser
+ * normalizes CRLF to LF in text, so the DOM the string form produced carried a bare "\n" - which is
+ * what this builds. `toTableElement.unit.js` caught the difference.
+ *
+ * @param {object} instance The Handsontable instance.
+ * @param {Document} rootDocument The document to build the nodes in.
+ * @returns {HTMLTableElement} The table element.
+ */
+export function instanceToTableElement(instance: HotInstance, rootDocument: Document): HTMLTableElement {
+  const hasColumnHeaders = instance.hasColHeaders();
+  const hasRowHeaders = instance.hasRowHeaders();
+  const coords = [
+    hasColumnHeaders ? -1 : 0,
+    hasRowHeaders ? -1 : 0,
+    instance.countRows() - 1,
+    instance.countCols() - 1,
+  ];
+  const data = instance.getData(...coords);
+  const countRows = data.length;
+  const countCols = countRows > 0 ? data[0].length : 0;
+  const rowModifier = hasRowHeaders ? 1 : 0;
+  const columnModifier = hasColumnHeaders ? 1 : 0;
+  const table = rootDocument.createElement('table');
+  const thead = rootDocument.createElement('thead');
+  const tbody = rootDocument.createElement('tbody');
+
+  /**
+   * Writes a cell value as text and `<br>` nodes, mirroring the encoder's output.
+   *
+   * @param {HTMLElement} cell The cell to fill.
+   * @param {*} cellData The raw cell value.
+   */
+  const appendCellValue = (cell: HTMLElement, cellData: unknown) => {
+    const encode = (text: string) => text.replaceAll('\x20', '\xA0').replaceAll('\t', '\t');
+
+    String(cellData).split(/\r\n|\n/).forEach((line, index) => {
+      if (index > 0) {
+        cell.appendChild(rootDocument.createElement('br'));
+        cell.appendChild(rootDocument.createTextNode(`\n${encode(line)}`));
+
+        return;
+      }
+
+      cell.appendChild(rootDocument.createTextNode(encode(line)));
+    });
+  };
+
+  for (let row = 0; row < countRows; row += 1) {
+    const isColumnHeadersRow = hasColumnHeaders && row === 0;
+    const tr = rootDocument.createElement('tr');
+
+    for (let column = 0; column < countCols; column += 1) {
+      const isRowHeadersColumn = !isColumnHeadersRow && hasRowHeaders && column === 0;
+
+      if (isColumnHeadersRow) {
+        const th = rootDocument.createElement('th');
+
+        th.textContent = String(instance.getColHeader(column - rowModifier));
+        tr.appendChild(th);
+
+      } else if (isRowHeadersColumn) {
+        const th = rootDocument.createElement('th');
+
+        th.textContent = String(instance.getRowHeader(row - columnModifier));
+        tr.appendChild(th);
+
+      } else {
+        const cellData = data[row][column];
+        const { hidden, rowspan, colspan } = instance.getCellMetaTransient(row - columnModifier, column - rowModifier);
+
+        if (!hidden) {
+          const td = rootDocument.createElement('td');
+
+          if (rowspan) {
+            td.setAttribute('rowspan', String(rowspan));
+          }
+          if (colspan) {
+            td.setAttribute('colspan', String(colspan));
+          }
+          if (!isEmpty(cellData)) {
+            appendCellValue(td, cellData);
+          }
+
+          tr.appendChild(td);
+        }
+      }
+    }
+
+    if (isColumnHeadersRow) {
+      thead.appendChild(tr);
+    } else {
+      tbody.appendChild(tr);
+    }
+  }
+
+  if (hasColumnHeaders) {
+    table.appendChild(thead);
+  }
+
+  table.appendChild(tbody);
+
+  return table;
+}
+
+/**
  * Converts 2D array into HTMLTableElement.
  *
  * @param {Array} input Input array which will be converted to HTMLTable.
@@ -263,23 +378,41 @@ export function replaceTdCellsWithTextContent(html: string): string {
 /**
  * Converts HTMLTable or string into Handsontable configuration object.
  *
- * @param {Element|string} element Node element which should contain `<table>...</table>`.
+ * @param {Element|string} element Node element which should contain `<table>...</table>`. May also
+ * be a `TrustedHTML`, which is what a page enforcing Trusted Types gets back from its sanitizer;
+ * it is handed to the parser untouched.
  * @param {Document} [rootDocument] The document window owner.
+ * @param {object} [options] Parsing options.
+ * @param {boolean} [options.normalize=true] Whether to run `replaceTdCellsWithTextContent()` on the
+ * markup first. Callers that already normalized pass `false` - the clipboard path does, because it
+ * must normalize before sanitizing so the sanitizer's value reaches the parser unmodified.
  * @returns {object} Return configuration object. Contains keys as DefaultSettings.
  */
-// eslint-disable-next-line no-restricted-globals
-export function htmlToGridSettings(element: HTMLTableElement | string, rootDocument: Document = document) {
+export function htmlToGridSettings(
+  element: HTMLTableElement | string | { toString(): string },
+  // eslint-disable-next-line no-restricted-globals
+  rootDocument: Document = document,
+  options: { normalize?: boolean } = {}
+) {
   const settingsObj: Record<string, unknown> = {};
 
-  let checkElement: HTMLTableElement | string | null = element;
+  let checkElement: HTMLTableElement | string | { toString(): string } | null = element;
   // Root the sibling-node lookups below (currently only the generator `<meta>`) at the parsed
   // markup. Stays `null` when a live element is passed in, which is what the previous
   // implementation effectively did - the scratch element it searched was empty in that case.
   let parsedRoot: Document | null = null;
 
-  if (typeof checkElement === 'string') {
-    // Use replaceTdCellsWithTextContent so nested <td> (e.g. Excel shape cells) are matched correctly
-    const normalizedHTML = replaceTdCellsWithTextContent(checkElement);
+  // Anything that is not a live node is markup to parse. Tested by the absence of `nodeType`
+  // rather than `typeof === 'string'`, because a `TrustedHTML` is an object: the string test sent
+  // it down the element branch instead, where it matched no table and the paste silently produced
+  // nothing.
+  if (checkElement !== null && checkElement !== undefined &&
+      (typeof checkElement === 'string' || !(checkElement as Node).nodeType)) {
+    // Use replaceTdCellsWithTextContent so nested <td> (e.g. Excel shape cells) are matched
+    // correctly. Skipped when the caller normalized already - see `options.normalize`.
+    const normalizedHTML = options.normalize === false
+      ? checkElement as string
+      : replaceTdCellsWithTextContent(checkElement as string);
 
     // `DOMParser` builds a document with no browsing context, so reading the pasted markup cannot
     // run any of it: no image fetch, no `onerror`, no script. Writing the same string into a

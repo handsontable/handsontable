@@ -5,8 +5,7 @@ import {
   stripTags,
   isJSON,
   toHyphen,
-  localeLowerCase,
-} from 'handsontable/helpers/string';
+  localeLowerCase, decodeHtmlEntities, htmlToPlainText } from 'handsontable/helpers/string';
 
 describe('String helper', () => {
   //
@@ -185,6 +184,46 @@ describe('String helper', () => {
       expect(localeLowerCase('I', '')).toBe('i');
       expect(localeLowerCase('I', 'en_US')).toBe('i');
       expect(localeLowerCase('ABC', 'not a locale!!')).toBe('abc');
+    });
+  });
+
+  describe('decodeHtmlEntities', () => {
+    it('should decode the named references that appear in prose', () => {
+      expect(decodeHtmlEntities('&lt;&gt;&amp;&quot;&apos;')).toBe('<>&"\'');
+      expect(decodeHtmlEntities('a&nbsp;b')).toBe('a\xA0b');
+    });
+
+    it('should decode decimal and hexadecimal numeric references', () => {
+      expect(decodeHtmlEntities('&#39;&#60;&#62;')).toBe('\'<>');
+      expect(decodeHtmlEntities('&#x27;&#X3C;')).toBe('\'<');
+    });
+
+    it('should decode in a single pass so a decoded ampersand cannot start another reference', () => {
+      // The HTML parser produces `&lt;` here, not `<`. Decoding twice would differ from what the
+      // surfaces rendered before they stopped going through `innerHTML`.
+      expect(decodeHtmlEntities('&amp;lt;')).toBe('&lt;');
+    });
+
+    it('should leave anything outside the supported set as written', () => {
+      expect(decodeHtmlEntities('&hearts;&notareference;')).toBe('&hearts;&notareference;');
+      expect(decodeHtmlEntities('5 & 6 &#; &#x;')).toBe('5 & 6 &#; &#x;');
+    });
+
+    it('should leave an out-of-range code point as written', () => {
+      expect(decodeHtmlEntities('&#1114112;')).toBe('&#1114112;');
+    });
+  });
+
+  describe('htmlToPlainText', () => {
+    it('should strip tags and then decode what is left', () => {
+      // Reproduces what these surfaces produced when the string was assigned to `innerHTML` and
+      // read back as `textContent`.
+      expect(htmlToPlainText('Title with <strong>HTML</strong> & special chars: &lt;&gt;&amp;'))
+        .toBe('Title with HTML & special chars: <>&');
+    });
+
+    it('should not let a decoded reference reintroduce a tag', () => {
+      expect(htmlToPlainText('&lt;script&gt;alert(1)&lt;/script&gt;')).toBe('<script>alert(1)</script>');
     });
   });
 });

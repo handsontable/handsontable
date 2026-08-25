@@ -504,9 +504,19 @@ export function removeTextNodes(element: Node): void {
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/11 - no siginificant improvement with Chrome remove() method.
  *
- * @param {HTMLElement} element An element to clear.
+ * Always clear an element through this helper, never with `innerHTML = ''`. That
+ * assignment reads as "assign nothing", but `innerHTML` is a Trusted Types sink
+ * whatever the value, so under `require-trusted-types-for 'script'` an empty string
+ * throws exactly like markup would. Removing the children touches no sink and
+ * behaves identically on browsers that do not implement Trusted Types.
+ *
+ * Typed as `Element` rather than `HTMLElement` because that is all the function needs -
+ * it reads `lastChild` and calls `removeChild`, both of which come from `Node`. The
+ * narrower type forced a cast on callers holding a plain `Element`.
+ *
+ * @param {Element} element An element to clear.
  */
-export function empty(element: HTMLElement): void {
+export function empty(element: Element): void {
   let child;
 
   /* eslint-disable no-cond-assign */
@@ -563,11 +573,11 @@ const defaultSanitizerWarnScope = {};
  */
 export function fastInnerHTML(
   element: HTMLElement, content: string,
-  sanitizer: boolean | ((html: string, context: string) => string) = true,
+  sanitizer: boolean | ((html: string, context: string) => string | { toString(): string }) = true,
   context = 'innerHTML',
   scope: object = defaultSanitizerWarnScope): void {
   if (HTML_CHARACTERS.test(content)) {
-    let sanitized: string;
+    let sanitized: string | { toString(): string };
 
     if (typeof sanitizer === 'function') {
       // `?? ''` rather than `?? content`: a sanitizer that returns nothing for input it strips
@@ -586,7 +596,11 @@ export function fastInnerHTML(
       sanitized = content;
     }
 
-    element.innerHTML = sanitized;
+    // The sanitizer's value reaches the sink exactly as returned. A page enforcing Trusted Types
+    // hands back a `TrustedHTML`, which the sink accepts and a plain string is rejected in place
+    // of - so this must never coerce, concatenate, or re-test the value. The cast is only for the
+    // DOM lib's `string` typing; `TrustedHTML` is absent from it at this TypeScript version.
+    element.innerHTML = sanitized as string;
   } else {
     fastInnerText(element, content);
   }

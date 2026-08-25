@@ -7330,7 +7330,9 @@ export default (): Record<string, unknown> => {
      * The function receives the raw HTML string and a second argument (source) naming the write surface
      * (`'header'`, `'password'`, `'contextMenu'`, `'selectEditor'`, `'dialog'`, `'notification'`,
      * `'CopyPaste.paste'`, `'CopyPaste.paste.sourceData'`), so you can apply different rules per source.
-     * It must return a string that is safe to assign to `innerHTML`.
+     * It must return a string that is safe to assign to `innerHTML`, or a `TrustedHTML` when the page
+     * enforces [Trusted Types](@/guides/security/security/security.md#trusted-types-and-csp). Handsontable
+     * passes the returned value to the DOM unchanged, so a `TrustedHTML` keeps its trust.
      *
      * `'CopyPaste.paste.sourceData'` carries Handsontable's own clipboard payload, the one that lets an
      * object-valued cell survive a copy between grids. It is parsed into an inert document, so returning it
@@ -7377,9 +7379,11 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // Trusted Types: wrap sanitization in a policy so the sink accepts the result.
-     * // Add the policy name to the CSP trusted-types directive (e.g. trusted-types default handsontable).
-     * const policy = window.trustedTypes?.createPolicy('handsontable', {
+     * // Trusted Types: wrap sanitization in a policy so the sink accepts the result. Handsontable
+     * // needs no policy of its own - it builds its own markup as DOM nodes - so the directive only
+     * // has to name yours (e.g. trusted-types my-app-sanitizer). Name it after your application:
+     * // `createPolicy` throws when the same name is created twice.
+     * const policy = window.trustedTypes?.createPolicy('my-app-sanitizer', {
      *   createHTML: (input) => myLibrary.sanitize(input),
      * });
      *

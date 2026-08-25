@@ -1,4 +1,6 @@
-import { instanceToHTML, _dataToHTML, htmlToGridSettings } from '../parseTable';
+import {
+  instanceToHTML, instanceToTableElement, _dataToHTML, htmlToGridSettings
+} from '../parseTable';
 import Handsontable from '../../index';
 import { registerCellType, TextCellType } from '../../cellTypes';
 
@@ -465,5 +467,60 @@ describe('htmlToGridSettings', () => {
         ['1 2 3 4 5\r\nbr\r\n6 7 8 9 0']
       ]);
     });
+  });
+});
+
+describe('instanceToTableElement', () => {
+  /**
+   * Parses the string form the DOM form replaced, so the two can be compared node for node.
+   *
+   * @param {string} html The markup produced by `instanceToHTML`.
+   * @returns {HTMLElement} The parsed table.
+   */
+  function parseTableHTML(html: string): HTMLElement {
+    const wrapper = document.createElement('div');
+
+    wrapper.innerHTML = html;
+
+    return wrapper.firstElementChild as HTMLElement;
+  }
+
+  it.each([
+    ['plain values', [['A1', 'B1'], ['A2', 'B2']]],
+    ['empty cells', [['A1', null], ['', 'B2']]],
+    ['angle brackets', [['<script>alert(1)</script>', 'a > b']]],
+    ['spaces and tabs', [['a  b', 'c\td']]],
+    ['newlines', [['line1\nline2', 'a\r\nb\r\nc']]],
+    ['a trailing newline', [['ends with\n', '\nstarts with']]],
+  ])('should build the same table the parsed HTML form produced - %s', (_label, data) => {
+    const hot = new Handsontable(document.createElement('div'), {
+      data,
+      colHeaders: true,
+      rowHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const built = instanceToTableElement(hot, document);
+    const parsed = parseTableHTML(instanceToHTML(hot));
+
+    // `outerHTML` compares structure, attributes, and text in one assertion, and reports the
+    // difference readably when the two diverge.
+    expect(built.outerHTML).toBe(parsed.outerHTML);
+
+    hot.destroy();
+  });
+
+  it('should build a table without a thead when column headers are off', () => {
+    const hot = new Handsontable(document.createElement('div'), {
+      data: [['A1']],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const built = instanceToTableElement(hot, document);
+
+    expect(built.tHead).toBe(null);
+    expect(built.outerHTML).toBe(parseTableHTML(instanceToHTML(hot)).outerHTML);
+
+    hot.destroy();
   });
 });

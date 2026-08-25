@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable Trusted Types e2e fixture</title>
+  <!--
+    DEV-2617. The page enforces Trusted Types with the STRICTEST configuration a
+    real application can have:
+
+      * `require-trusted-types-for 'script'` turns every HTML/script sink into a
+        typed sink, so a plain string assigned to `innerHTML` throws.
+      * The `trusted-types` allowlist names ONLY this fixture's own two policies:
+        `e2e-bootstrap` (see below) and `e2e-sanitizer`, which stands in for the policy an
+        application enforcing Trusted Types would wrap its own sanitizer in.
+        It deliberately does NOT contain `default` — a default policy launders
+        every unclaimed string and would make this test pass against a library
+        that writes raw HTML everywhere. It equally does
+        not name any Handsontable policy, because the whole point of the fixture
+        is that Handsontable needs none: it must work here by not producing HTML
+        strings at all, not by being granted an exemption.
+
+    Setting the header via <meta> rather than a real response header keeps the
+    fixture self-contained; the static server serves plain files and templates
+    nothing.
+  -->
+  <meta http-equiv="Content-Security-Policy"
+        content="require-trusted-types-for 'script'; trusted-types e2e-bootstrap e2e-sanitizer">
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Record every CSP violation the page produces, before anything else runs, so a
+    // violation raised while the bundle evaluates is captured too. The spec asserts
+    // this list is empty; the `sample` is what names the offending sink, so failures
+    // are readable without a debugger.
+    window.htViolations = [];
+    document.addEventListener('securitypolicyviolation', (event) => {
+      window.htViolations.push({
+        directive: event.violatedDirective,
+        sample: event.sample,
+      });
+    });
+
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document. An ABSENT param
+    // keeps the default (main / plain UMD) so the fixture stays browsable by
+    // hand; an unknown value THROWS instead of falling back, so a typo in the
+    // project config is one red leg rather than a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+
+    // The other fixtures reach the themed stylesheet and the bundle through
+    // `document.write()`. Under enforcement that throws (it is a TrustedHTML
+    // sink), and so do `script.src = url` and `script.setAttribute('src', url)`
+    // (both TrustedScriptURL sinks). A stylesheet `link.href` is not a script
+    // sink and needs nothing.
+    const themeLink = document.createElement('link');
+
+    themeLink.rel = 'stylesheet';
+    themeLink.href = '/handsontable/styles/ht-theme-' + window.htTheme + '.min.css';
+    document.head.appendChild(themeLink);
+
+    // This fixture's own policy, used ONLY to load the bundle under test, because
+    // the bundle path is chosen at runtime from the query param and a parser-inserted
+    // <script src> cannot be. It does not weaken the assertion: a NAMED policy is
+    // reachable only through the reference held here, Handsontable never sees it, and
+    // the CSP grants nothing else. It also mirrors reality — an application running
+    // under enforcement legitimately has policies for bootstrapping its own code. What
+    // the spec proves is that Handsontable requires no policy of its own.
+    const bootstrapPolicy = window.trustedTypes.createPolicy('e2e-bootstrap', {
+      createScriptURL: url => url,
+    });
+    const bundleScript = document.createElement('script');
+
+    bundleScript.src = bootstrapPolicy.createScriptURL('/handsontable/dist/' + window.htBundle);
+    // Synchronous ordering: the inline module below runs on load, not before.
+    bundleScript.addEventListener('load', () => {
+      window.htBundleReady = true;
+      document.dispatchEvent(new CustomEvent('ht-bundle-ready'));
+    });
+    document.head.appendChild(bundleScript);
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+  <button type="button" data-testid="open-dialog">Open dialog</button>
+  <button type="button" data-testid="paste-html">Paste HTML</button>
+  <!--
+    Surfaces whose success or failure the spec reads. `data-testid="status"` carries
+    the construction outcome so a throw inside the constructor is reported as a
+    readable message instead of an empty page and a timeout.
+  -->
+  <pre data-testid="status"></pre>
+
+  <script>
+    document.addEventListener('ht-bundle-ready', () => {
+      const container = document.querySelector('[data-testid="grid"]');
+      const status = document.querySelector('[data-testid="status"]');
+      const params = new URLSearchParams(location.search);
+
+      container.className = `ht-theme-${window.htTheme}`;
+
+      // `?sanitizer=trusted` configures a sanitizer that returns a TrustedHTML, which is what a
+      // page under enforcement must do. Its value has to reach the clipboard parser intact:
+      // anything that rewrites it on the way collapses the trust and the parser rejects it.
+      const sanitizerPolicy = window.trustedTypes.createPolicy('e2e-sanitizer', {
+        createHTML: markup => markup,
+      });
+
+      // `?license=expired` exercises the license branding bar (`helpers/mixed.ts`),
+      // which writes its message through a sink of its own. A LAPSED key renders the
+      // bottom bar; a missing or invalid one renders the blocking modal instead.
+      const licenseKey = params.get('license') === 'expired'
+        ? 'd0134-95841-770f2-c4f21-3751d'
+        : 'non-commercial-and-evaluation';
+
+      try {
+        window.hot = new Handsontable(container, {
+          data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
+          // `nestedHeaders` is what builds the hidden ghost table, the sink that
+          // fails first today.
+          nestedHeaders: [
+            [{ label: 'Group', colspan: 2 }],
+            ['A', 'B'],
+          ],
+          rowHeaders: true,
+          width: 400,
+          height: 200,
+          licenseKey,
+          sanitizer: params.get('sanitizer') === 'trusted'
+            ? markup => sanitizerPolicy.createHTML(markup)
+            : undefined,
+        });
+
+        status.textContent = 'CONSTRUCTED';
+      } catch (error) {
+        status.textContent = `CONSTRUCT-THREW: ${error.message}`;
+
+        return;
+      }
+
+      document.querySelector('[data-testid="paste-html"]').addEventListener('click', () => {
+        try {
+          const clipboardData = new DataTransfer();
+
+          clipboardData.setData('text/html', '<table><tbody><tr><td>P1</td><td>P2</td></tr></tbody></table>');
+          window.hot.selectCell(0, 0);
+          window.hot.getPlugin('copyPaste').onPaste(
+            new ClipboardEvent('paste', { clipboardData, bubbles: true, cancelable: true })
+          );
+          status.textContent = `PASTED: ${window.hot.getDataAtCell(0, 0)},${window.hot.getDataAtCell(0, 1)}`;
+        } catch (error) {
+          status.textContent = `PASTE-THREW: ${error.message}`;
+        }
+      });
+
+      document.querySelector('[data-testid="open-dialog"]').addEventListener('click', () => {
+        try {
+          window.hot.updateSettings({ dialog: true });
+          window.hot.getPlugin('dialog').show({ content: 'Dialog content' });
+          status.textContent = 'DIALOG-OPENED';
+        } catch (error) {
+          status.textContent = `DIALOG-THREW: ${error.message}`;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -95,6 +95,67 @@ export function substitute(template: string, variables: Record<string, unknown> 
 }
 
 /**
+ * The named character references a message string may carry, plus numeric ones handled below.
+ */
+const NAMED_ENTITIES: Record<string, string> = {
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  apos: '\'',
+  nbsp: '\xA0',
+};
+
+/**
+ * Decodes HTML character references in a string.
+ *
+ * UI copy that carries tags used to be stripped with `stripTags()` and then assigned to
+ * `innerHTML`, so the HTML parser decoded any character references on the way in: a title written
+ * as `&lt;` displayed as `<`. Those surfaces now build DOM and write through `textContent`, which
+ * decodes nothing, so this reproduces that step and keeps what those messages render unchanged.
+ *
+ * Covers the named references that appear in prose plus decimal and hexadecimal numeric ones. The
+ * full HTML entity table is roughly two thousand names, and reproducing it would mean shipping the
+ * table; a reference outside this set is left as written.
+ *
+ * @param {string} string String to decode.
+ * @returns {string}
+ */
+export function decodeHtmlEntities(string: string): string {
+  // One pass, so a decoded `&` cannot start a second reference - `&amp;lt;` decodes to `&lt;`,
+  // which is what the parser produced, not to `<`.
+  return String(string).replace(/&(#[0-9]+|#[xX][0-9a-fA-F]+|[a-zA-Z]+);/g, (match, reference: string) => {
+    if (reference[0] === '#') {
+      const codePoint = reference[1] === 'x' || reference[1] === 'X'
+        ? parseInt(reference.slice(2), 16)
+        : parseInt(reference.slice(1), 10);
+
+      if (!Number.isFinite(codePoint) || codePoint < 0 || codePoint > 0x10FFFF) {
+        return match;
+      }
+
+      return String.fromCodePoint(codePoint);
+    }
+
+    return NAMED_ENTITIES[reference] ?? match;
+  });
+}
+
+/**
+ * Strips HTML tags from a string and decodes any character references left behind.
+ *
+ * This is what a surface needs when it renders authored copy as text: it reproduces what assigning
+ * the string to `innerHTML` and reading `textContent` back used to produce, without going near a
+ * sink. Use it wherever `stripTags()` output is written through `textContent`.
+ *
+ * @param {string} string String to convert.
+ * @returns {string}
+ */
+export function htmlToPlainText(string: string): string {
+  return decodeHtmlEntities(stripTags(string));
+}
+
+/**
  * Strip any HTML tag from the string.
  *
  * @param {string} string String to cut HTML from.

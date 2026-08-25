@@ -1,4 +1,4 @@
-import { eventTargetEl } from '../../../helpers/dom/element';
+import { eventTargetEl, empty } from '../../../helpers/dom/element';
 import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
 import { getCheckboxElement, includesValue } from '../utils/utils';
@@ -409,7 +409,7 @@ export class DropdownController {
       this.#unregisterEvents(itemElement as HTMLLIElement)
     );
     this.#cache.checkboxChangeListeners.clear();
-    this.#dropdownListElement.innerHTML = '';
+    empty(this.#dropdownListElement);
   }
 
   /**
