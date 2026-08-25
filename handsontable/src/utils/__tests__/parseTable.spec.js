@@ -64,7 +64,7 @@ describe('parseTable', () => {
         '<img src onerror="__parseTableProbe()">';
       const result = Handsontable.helper.htmlToGridSettings(html);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(window.__parseTableProbe).not.toHaveBeenCalled();
       // The table is still read normally - the payload is neutralized, not the parsing.

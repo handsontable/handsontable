@@ -255,11 +255,14 @@ export default (): Record<string, unknown> => {
      * | `true`            | The [`source`](#source) data is treated as HTML     |
      *
      * __Warning:__ Setting the `allowHtml` option to `true` can cause serious XSS vulnerabilities.
+     * The [`sanitizer`](#sanitizer) option does not apply to this content: `allowHtml` exists to render
+     * the markup you supply, so sanitize the [`source`](#source) items yourself before passing them in.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
      * - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
      * - [`source`](#source)
+     * - [`sanitizer`](#sanitizer)
      *
      * @memberof Options#
      * @type {boolean}
@@ -4614,8 +4617,16 @@ export default (): Record<string, unknown> => {
      * column is replaced by the `label` from `nestedHeaders`. The `nestedHeaders` label takes precedence.
      * :::
      *
+     * ::: warning
+     * A `label` is written to the DOM as HTML, so a label built from user input or an external system can
+     * inject markup. Handsontable does not sanitize it by default. Set the [`sanitizer`](#sanitizer) option,
+     * which receives nested header labels under the `'header'` source. The `sanitizer` option is grid-level,
+     * so it cannot be narrowed to one header or one column.
+     * :::
+     *
      * Read more:
      * - [Plugins: `NestedHeaders`](@/api/nestedHeaders.md)
+     * - [Security: Content sanitizing](@/guides/security/security/security.md#content-sanitizing)
      * - [Column groups: Nested headers](@/guides/columns/column-groups/column-groups.md#nested-headers)
      * - [Column groups: Choose which columns stay visible when collapsed](@/guides/columns/column-groups/column-groups.md#choose-which-columns-stay-visible-when-collapsed)
      *
@@ -7294,17 +7305,31 @@ export default (): Record<string, unknown> => {
 
     /**
      * The `sanitizer` option configures the function used to sanitize HTML before it is written to the DOM.
-     * Whenever Handsontable sets HTML (e.g. cell content, headers, context menu labels, dialog content,
-     * paste from clipboard), it can pass the string through this function first. Sanitization is important
-     * when content comes from users or external sources to prevent XSS (e.g. script injection, event handlers).
+     * Sanitization is important when content comes from users or external sources to prevent XSS
+     * (e.g. script injection, event handlers).
      *
      * By default (when no sanitizer is set), HTML is applied as-is (pass-through). You are responsible for
      * XSS protection. Set a sanitizer when you need to allow rich content while stripping or neutralizing
      * dangerous markup.
      *
-     * The function receives the raw HTML string and an optional second argument (source) indicating where
-     * the content is used (e.g. `'innerHTML'`, `'CopyPaste.paste'`), so you can apply different rules per source.
-     * It must return a string that is safe to assign to `innerHTML`.
+     * The sanitizer covers the HTML that Handsontable writes on your behalf:
+     *
+     * - cell content rendered by the built-in renderers, including [`password`](@/api/options.md#type)
+     * - column and row headers, including [`nestedHeaders`](#nestedheaders) labels
+     * - [context menu](#contextmenu) and [dropdown menu](#dropdownmenu) item labels
+     * - [`select`](@/api/options.md#selectoptions) editor options
+     * - [dialog](#dialog) and [notification](#notification) content
+     * - HTML pasted from the clipboard
+     *
+     * Two surfaces are deliberately excluded, because both exist to render raw markup you supply:
+     * the [`html`](@/guides/cell-types/cell-type/cell-type.md) cell type, and
+     * [`allowHtml`](#allowhtml) sources in `autocomplete` and `dropdown` cells. Sanitize that content
+     * yourself before passing it to the grid.
+     *
+     * The function receives the raw HTML string and a second argument (source) naming the write surface
+     * (for example `'header'`, `'password'`, `'contextMenu'`, `'selectEditor'`, `'dialog'`,
+     * `'notification'`, `'CopyPaste.paste'`), so you can apply different rules per source. It must return
+     * a string that is safe to assign to `innerHTML`.
      *
      * This option is only respected when set in the table settings. It does not work when defined per column
      * or per cell (e.g. in `columns` or cell meta).
