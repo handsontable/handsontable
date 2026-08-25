@@ -3,6 +3,5 @@ export type {
   CoreModule,
   FormulaBuilderPluginSettings,
   OverlayLike,
-  OverlayName,
   VisualHfIndexMapping,
 } from './types';

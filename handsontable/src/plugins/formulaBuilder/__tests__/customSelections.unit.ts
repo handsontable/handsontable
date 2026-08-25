@@ -127,14 +127,16 @@ describe('HandsontableAdapter custom-selection highlights', () => {
 
     const [filled, borderOnly] = customSelectionsOf(hot);
 
-    expect(filled.settings.className).toMatch(/^ht-formula-ref-fill-\d+$/);
-    expect(borderOnly.settings.className).toMatch(/^ht-formula-ref-line-\d+$/);
+    expect(filled.settings.className).toMatch(/^ht-formula-ref-fill-ht_teststub-\d+$/);
+    expect(borderOnly.settings.className).toMatch(/^ht-formula-ref-line-ht_teststub-\d+$/);
 
-    const rules = document.head.querySelector('[data-hot-formula-ref-fills]')?.textContent ?? '';
+    const styleEl = document.head.querySelector('[data-hot-formula-ref-fills]');
+    const rules = styleEl instanceof HTMLStyleElement && styleEl.sheet ?
+      [...styleEl.sheet.cssRules].map(rule => rule.cssText).join('') : '';
 
     // The fill class paints the tint as a background image (layered over row
     // striping); both classes mask the border strips into dashes.
-    expect(rules).toContain(`td.${filled.settings.className as string}{background-image:`);
+    expect(rules).toContain(`td.${filled.settings.className as string} {background-image:`);
     expect(rules).toContain(`.wtBorder.${filled.settings.className as string}`);
     expect(rules).toContain(`.wtBorder.${borderOnly.settings.className as string}`);
     expect(rules).not.toContain(`td.${borderOnly.settings.className as string}`);
@@ -164,7 +166,7 @@ describe('HandsontableAdapter custom-selection highlights', () => {
 
     const [first] = customSelectionsOf(hot);
 
-    adapter.setHighlights([{ range: range(1, 1, 1, 1), color: 'red' }]);
+    adapter.setHighlights([{ range: range(1, 1, 1, 1), color: 'blue' }]);
 
     expect(first.destroy).toHaveBeenCalled();
     expect(customSelectionsOf(hot)).toHaveLength(1);
@@ -239,6 +241,168 @@ describe('HandsontableAdapter custom-selection highlights', () => {
 
     expect(customSelectionsOf(hot)).toHaveLength(0);
     expect(document.head.querySelector('[data-hot-formula-ref-fills]')).toBeNull();
+  });
+
+  it('scopes generated class names per grid instance', () => {
+    const hotA = makeHotStub();
+    const hotB = makeHotStub({ guid: 'ht_other' } as Parameters<typeof makeHotStub>[0]);
+    const hostA = document.createElement('div');
+    const hostB = document.createElement('div');
+
+    document.body.append(hostA, hostB);
+
+    const adapterA = new HandsontableAdapter(makeAdapterOptions(hotA, hostA), makePluginStub());
+    const adapterB = new HandsontableAdapter(makeAdapterOptions(hotB, hostB), makePluginStub());
+
+    adapterA.setHighlights([{ range: range(0, 0, 0, 0), color: 'red', fill: true }]);
+    adapterB.setHighlights([{ range: range(0, 0, 0, 0), color: 'blue', fill: true }]);
+
+    const classA = customSelectionsOf(hotA)[0].settings.className;
+    const classB = customSelectionsOf(hotB)[0].settings.className;
+
+    expect(classA).not.toBe(classB);
+
+    adapterA.destroy();
+    adapterB.destroy();
+  });
+
+  it('keeps the ephemeral selection after re-registered persistent ones', () => {
+    const { adapter, hot } = makeAdapter();
+
+    adapter.highlightRange(range(2, 2, 3, 3), 'blue');
+    adapter.setHighlights([{ range: range(0, 0, 0, 0), color: 'red' }]);
+
+    const selections = customSelectionsOf(hot);
+
+    expect(selections).toHaveLength(2);
+    expect((selections[selections.length - 1].settings.border as { color: string }).color)
+      .toBe('blue');
+
+    adapter.destroy();
+  });
+
+  it('updates ranges in place when only coordinates changed', () => {
+    const { adapter, hot } = makeAdapter();
+
+    adapter.setHighlights([{ range: range(0, 0, 0, 0), color: 'red' }]);
+
+    const [first] = customSelectionsOf(hot);
+
+    adapter.setHighlights([{ range: range(0, 0, 2, 2), color: 'red' }]);
+
+    const selections = customSelectionsOf(hot);
+
+    expect(selections).toHaveLength(1);
+    expect(selections[0]).toBe(first);
+    expect(first.destroy).not.toHaveBeenCalled();
+    expect((first.visualCellRange as { to: { row: number } }).to.row).toBe(2);
+
+    adapter.destroy();
+  });
+
+  it('skips spec derivation entirely for an unchanged highlight set', () => {
+    const createRange = jest.fn(
+      (highlight: { row: number; col: number }) => ({ highlight, from: highlight, to: highlight }),
+    );
+    const hot = makeHotStub({
+      _createCellRange: createRange as unknown as Parameters<typeof makeHotStub>[0]['_createCellRange'],
+    } as Parameters<typeof makeHotStub>[0]);
+    const overlayHost = document.createElement('div');
+
+    document.body.appendChild(overlayHost);
+
+    const adapter = new HandsontableAdapter(
+      makeAdapterOptions(hot, overlayHost),
+      makePluginStub(),
+    );
+
+    adapter.setHighlights([{ range: range(0, 0, 1, 1), color: 'red' }]);
+    createRange.mockClear();
+    adapter.setHighlights([{ range: range(0, 0, 1, 1), color: 'red' }]);
+
+    expect(createRange).not.toHaveBeenCalled();
+
+    adapter.destroy();
+  });
+
+  it('re-derives highlights when a structural hook fires after an index change', () => {
+    const hooks: Record<string, ((...args: unknown[]) => void)[]> = {};
+    let colShift = 0;
+    const hot = makeHotStub({
+      addHook: (name: string, callback: (...args: unknown[]) => void) => {
+        (hooks[name] ??= []).push(callback);
+      },
+      removeHook: () => undefined,
+    } as Parameters<typeof makeHotStub>[0]);
+    const overlayHost = document.createElement('div');
+
+    document.body.appendChild(overlayHost);
+
+    const adapter = new HandsontableAdapter(
+      makeAdapterOptions(hot, overlayHost, { hfToVisualCol: hfCol => hfCol + colShift }),
+      makePluginStub(),
+    );
+
+    adapter.setHighlights([{ range: range(0, 0, 0, 0), color: 'red' }]);
+
+    colShift = 3;
+    hooks.afterColumnMove?.forEach(listener => listener());
+
+    const selections = customSelectionsOf(hot);
+
+    expect(selections).toHaveLength(1);
+    expect((selections[0].visualCellRange as { from: { col: number } }).from.col).toBe(3);
+
+    adapter.destroy();
+  });
+
+  it('drops highlights carrying a color able to break out of the stylesheet', () => {
+    const { adapter, hot } = makeAdapter();
+
+    adapter.setHighlights([
+      { range: range(0, 0, 0, 0), color: 'red)}td{background:url(//evil)}', fill: true },
+    ]);
+
+    expect(customSelectionsOf(hot)).toHaveLength(0);
+
+    const styleEl = document.head.querySelector('[data-hot-formula-ref-fills]');
+    const rules = styleEl instanceof HTMLStyleElement && styleEl.sheet ?
+      [...styleEl.sheet.cssRules].map(rule => rule.cssText).join('') : '';
+
+    expect(rules).not.toContain('evil');
+
+    adapter.destroy();
+  });
+
+  it('re-probes the border width until the theme variable resolves', () => {
+    let cssValue = '';
+    const hot = makeHotStub({
+      rootWindow: {
+        ...window,
+        getComputedStyle: () => ({ getPropertyValue: () => cssValue }),
+      } as unknown as Window & typeof globalThis,
+    } as Parameters<typeof makeHotStub>[0]);
+    const overlayHost = document.createElement('div');
+
+    document.body.appendChild(overlayHost);
+
+    const adapter = new HandsontableAdapter(
+      makeAdapterOptions(hot, overlayHost),
+      makePluginStub(),
+    );
+
+    adapter.setHighlights([{ range: range(0, 0, 0, 0), color: 'red' }]);
+
+    expect((customSelectionsOf(hot)[0].settings.border as { width: number }).width).toBe(2);
+
+    cssValue = '3px';
+    // A different color forces a full re-registration (the in-place fast path
+    // reuses the existing border config).
+    adapter.setHighlights([{ range: range(1, 1, 1, 1), color: 'blue' }]);
+
+    expect((customSelectionsOf(hot)[0].settings.border as { width: number }).width).toBe(3);
+
+    adapter.destroy();
   });
 
   it('drops highlights whose ranges cannot be mapped to visual space', () => {

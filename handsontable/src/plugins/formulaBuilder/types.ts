@@ -7,27 +7,6 @@ import type { LayoutDirection, PopupsOptions } from '@hfe/core';
 export type CoreModule = typeof import('@hfe/core');
 
 /**
- * Names of the Walkontable overlays probed for frozen-pane highlight stacking.
- */
-export type OverlayName =
-  | 'top'
-  | 'bottom'
-  | 'inline_start'
-  | 'top_inline_start_corner'
-  | 'bottom_inline_start_corner';
-
-/**
- * All overlay names, in probing order.
- */
-export const OVERLAY_NAMES: readonly OverlayName[] = [
-  'top',
-  'bottom',
-  'inline_start',
-  'top_inline_start_corner',
-  'bottom_inline_start_corner',
-];
-
-/**
  * Structural shape of a Walkontable overlay as consumed by the adapter.
  */
 export interface OverlayLike {

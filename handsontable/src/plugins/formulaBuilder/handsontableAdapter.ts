@@ -16,6 +16,7 @@ import type {
   Unsubscribe,
 } from '@hfe/core';
 import type { PickEmitter } from '@hfe/core';
+import { warn } from '../../helpers/console';
 import type { HotInstance } from '../../core/types';
 import type { default as VisualSelection } from '../../selection/highlight/visualSelection';
 import type { CoreModule, OverlayLike, VisualHfIndexMapping } from './types';
@@ -41,6 +42,31 @@ const REF_CLASS_PREFIX = 'ht-formula-ref';
  * repeat produces the dash pattern on both horizontal and vertical strips.
  */
 const BORDER_DASH_MASK = 'repeating-linear-gradient(45deg, #000 0 2px, transparent 2px 4px)';
+
+/**
+ * Character allowlist for highlight color strings before they reach the generated
+ * stylesheet. Blocks every character able to break out of a CSS declaration
+ * (braces, semicolons, quotes, angle brackets) while keeping the color syntaxes
+ * the palette uses expressible: `var(--x)`, `hsl(210 80% 55% / 0.9)`, hex,
+ * `color-mix(in srgb, ...)`.
+ */
+const SAFE_COLOR_PATTERN = /^[\w#%(),./*+\s-]+$/;
+
+/**
+ * Grid hooks that signal a structural index change (order or visibility) able to
+ * remap the visual coordinates a registered highlight was derived with.
+ */
+const STRUCTURAL_HOOKS = [
+  'afterColumnSort',
+  'afterRowMove',
+  'afterColumnMove',
+  'afterHideRows',
+  'afterUnhideRows',
+  'afterHideColumns',
+  'afterUnhideColumns',
+  'afterTrimRow',
+  'afterUntrimRow',
+] as const;
 
 /**
  * The visual (grid-space) cell range type produced by the Handsontable coordinate factory.
@@ -78,6 +104,24 @@ interface VisualRun {
    * Last visual index of the run.
    */
   end: number;
+}
+
+/**
+ * One whole-axis highlight span in HyperFormula space with its resolved tint.
+ */
+interface TintSpan {
+  /**
+   * First HyperFormula index of the span.
+   */
+  start: number;
+  /**
+   * Last HyperFormula index of the span.
+   */
+  end: number;
+  /**
+   * The resolved translucent tint color.
+   */
+  backgroundColor: string;
 }
 
 /**
@@ -258,6 +302,10 @@ export class HandsontableAdapter implements IGridAdapter {
    */
   readonly #persistentSelections: VisualSelection[] = [];
   /**
+   * The custom-selection specs the ephemeral highlight currently renders as.
+   */
+  #ephemeralSpecs: SelectionSpec[] = [];
+  /**
    * The grid custom-selection instances owned by the ephemeral (drag preview) highlight.
    */
   readonly #ephemeralSelections: VisualSelection[] = [];
@@ -306,6 +354,15 @@ export class HandsontableAdapter implements IGridAdapter {
    */
   readonly #pruneHeaderElsHook: () => void;
   /**
+   * Re-derives the registered highlights when a structural index change (sort,
+   * move, hide/show, trim) remaps the visual coordinates they were derived with.
+   */
+  readonly #onStructuralChange = (): void => {
+    if (this.#persistentItems.length > 0) {
+      this.#applyPersistentItems();
+    }
+  };
+  /**
    * Guards double destruction.
    */
   #destroyed = false;
@@ -337,6 +394,10 @@ export class HandsontableAdapter implements IGridAdapter {
     this.#hot.addHook('afterGetColHeader', this.#colHeaderHook);
     this.#hot.addHook('afterGetRowHeader', this.#rowHeaderHook);
     this.#hot.addHook('afterViewRender', this.#pruneHeaderElsHook);
+
+    for (const hookName of STRUCTURAL_HOOKS) {
+      this.#hot.addHook(hookName, this.#onStructuralChange);
+    }
   }
 
   /**
@@ -405,20 +466,15 @@ export class HandsontableAdapter implements IGridAdapter {
    * @param {RangeHighlight[]} items The highlights to render.
    */
   setHighlights(items: RangeHighlight[]): void {
-    const specs = this.#selectionSpecs(items, false);
+    const unchanged = this.#sameItems(this.#persistentItems, items);
 
     this.#persistentItems = items;
 
-    if (this.#sameSpecs(this.#persistentSpecs, specs)) {
-      this.#renderHeaderTints();
-
+    if (unchanged) {
       return;
     }
 
-    this.#persistentSpecs = specs;
-    this.#replaceSelections(this.#persistentSelections, specs);
-    this.#renderHeaderTints();
-    this.#redraw();
+    this.#applyPersistentItems();
   }
 
   /**
@@ -428,10 +484,10 @@ export class HandsontableAdapter implements IGridAdapter {
    * @param {string} color The highlight color.
    */
   highlightRange(range: CellRange, color: string): void {
-    this.#replaceSelections(
-      this.#ephemeralSelections,
-      this.#selectionSpecs([{ range, color, fill: true }], true),
-    );
+    const specs = this.#selectionSpecs([{ range, color, fill: true }], true);
+
+    this.#replaceSelections(this.#ephemeralSelections, specs, this.#ephemeralSpecs);
+    this.#ephemeralSpecs = specs;
     this.#redraw();
   }
 
@@ -444,6 +500,7 @@ export class HandsontableAdapter implements IGridAdapter {
     }
 
     this.#replaceSelections(this.#ephemeralSelections, []);
+    this.#ephemeralSpecs = [];
     this.#redraw();
   }
 
@@ -453,6 +510,7 @@ export class HandsontableAdapter implements IGridAdapter {
   clearHighlights(): void {
     this.#persistentItems = [];
     this.#persistentSpecs = [];
+    this.#ephemeralSpecs = [];
     this.#replaceSelections(this.#persistentSelections, []);
     this.#replaceSelections(this.#ephemeralSelections, []);
     this.#renderHeaderTints();
@@ -896,11 +954,12 @@ export class HandsontableAdapter implements IGridAdapter {
     this.#hot.removeHook('afterGetColHeader', this.#colHeaderHook);
     this.#hot.removeHook('afterGetRowHeader', this.#rowHeaderHook);
     this.#hot.removeHook('afterViewRender', this.#pruneHeaderElsHook);
-    this.#persistentItems = [];
-    this.#persistentSpecs = [];
-    this.#replaceSelections(this.#persistentSelections, []);
-    this.#replaceSelections(this.#ephemeralSelections, []);
-    this.#renderHeaderTints();
+
+    for (const hookName of STRUCTURAL_HOOKS) {
+      this.#hot.removeHook(hookName, this.#onStructuralChange);
+    }
+
+    this.clearHighlights();
     this.setOverlayClassName(null);
     this.#fillStyleEl?.remove();
     this.#fillStyleEl = null;
@@ -952,6 +1011,58 @@ export class HandsontableAdapter implements IGridAdapter {
   }
 
   /**
+   * Derives specs from the stored persistent highlights and syncs the grid's
+   * custom selections and header tints to them, redrawing only when the derived
+   * specs actually changed. Shared by {@link setHighlights} and the structural
+   * change listener (sort/move/hide can remap visual coordinates while the
+   * source highlights stay the same).
+   */
+  #applyPersistentItems(): void {
+    const specs = this.#selectionSpecs(this.#persistentItems, false);
+
+    if (this.#sameSpecs(this.#persistentSpecs, specs)) {
+      this.#renderHeaderTints();
+
+      return;
+    }
+
+    const previousSpecs = this.#persistentSpecs;
+
+    this.#persistentSpecs = specs;
+    this.#replaceSelections(this.#persistentSelections, specs, previousSpecs);
+    this.#moveEphemeralToTail();
+    this.#renderHeaderTints();
+    this.#redraw();
+  }
+
+  /**
+   * Whether two highlight sets are identical in HyperFormula space. Checked
+   * before any spec derivation, so an unchanged set (the common case for
+   * keystrokes and caret moves inside one token) costs no index translation.
+   *
+   * @param {RangeHighlight[]} previous The currently stored highlights.
+   * @param {RangeHighlight[]} next The incoming highlights.
+   * @returns {boolean}
+   */
+  #sameItems(previous: RangeHighlight[], next: RangeHighlight[]): boolean {
+    if (previous.length !== next.length) {
+      return false;
+    }
+
+    return previous.every((prev, index) => {
+      const item = next[index];
+
+      return prev.color === item.color &&
+        (prev.fill ?? false) === (item.fill ?? false) &&
+        (prev.whole ?? null) === (item.whole ?? null) &&
+        prev.range.start.row === item.range.start.row &&
+        prev.range.start.col === item.range.start.col &&
+        prev.range.end.row === item.range.end.row &&
+        prev.range.end.col === item.range.end.col;
+    });
+  }
+
+  /**
    * Whether two custom-selection spec sets describe the same visual result.
    *
    * @param {SelectionSpec[]} previous The currently rendered specs.
@@ -968,11 +1079,31 @@ export class HandsontableAdapter implements IGridAdapter {
 
       return prev.color === spec.color &&
         prev.fill === spec.fill &&
-        prev.range.from.row === spec.range.from.row &&
-        prev.range.from.col === spec.range.from.col &&
-        prev.range.to.row === spec.range.to.row &&
-        prev.range.to.col === spec.range.to.col;
+        prev.range.isEqual(spec.range);
     });
+  }
+
+  /**
+   * Moves the ephemeral (drag preview) selections to the tail of the grid's
+   * custom-selection collection so the preview keeps painting above freshly
+   * re-registered persistent highlights (border DOM is created in collection
+   * order; the previous highlight layer always drew the ephemeral on top).
+   */
+  #moveEphemeralToTail(): void {
+    if (this.#ephemeralSelections.length === 0) {
+      return;
+    }
+
+    const { customSelections } = this.#hot.selection.highlight;
+    const ephemeralSet = new Set(this.#ephemeralSelections);
+    const others = customSelections.filter(selection => !ephemeralSet.has(selection));
+
+    if (others.length === customSelections.length) {
+      return;
+    }
+
+    customSelections.length = 0;
+    customSelections.push(...others, ...this.#ephemeralSelections);
   }
 
   /**
@@ -990,6 +1121,11 @@ export class HandsontableAdapter implements IGridAdapter {
     const specs: SelectionSpec[] = [];
 
     for (const item of items) {
+      if (!this.#isSafeColor(item.color)) {
+        warn(`FormulaBuilder: ignored a highlight with the unsupported color "${item.color}".`);
+        continue; // eslint-disable-line no-continue
+      }
+
       const rowRuns = this.#visualRuns(item.range.start.row, item.range.end.row, hfToVisualRow);
       const colRuns = this.#visualRuns(item.range.start.col, item.range.end.col, hfToVisualCol);
 
@@ -1011,16 +1147,41 @@ export class HandsontableAdapter implements IGridAdapter {
   }
 
   /**
-   * Replaces one owned custom-selection group with freshly created selections: the
-   * previous instances are destroyed and removed from the grid's custom-selection
-   * collection (foreign custom selections, e.g. the CustomBorders plugin's, are left
-   * untouched), and one new selection is registered per spec.
+   * Syncs one owned custom-selection group to the given specs. When only ranges
+   * changed (same count, same per-position color and fill - the common case while
+   * typing extends one reference), the existing selections are updated in place,
+   * avoiding border DOM teardown on the master table and every overlay clone.
+   * Otherwise the previous instances are destroyed and removed from the grid's
+   * custom-selection collection (foreign custom selections, e.g. the CustomBorders
+   * plugin's, are left untouched) and one new selection is registered per spec.
    *
    * @param {VisualSelection[]} owned The owned selection group, mutated in place.
    * @param {SelectionSpec[]} specs The selections to create.
+   * @param {SelectionSpec[]} [previousSpecs] The specs the group currently renders,
+   * enabling the in-place fast path.
    */
-  #replaceSelections(owned: VisualSelection[], specs: SelectionSpec[]): void {
+  #replaceSelections(
+    owned: VisualSelection[],
+    specs: SelectionSpec[],
+    previousSpecs: SelectionSpec[] = [],
+  ): void {
     if (owned.length === 0 && specs.length === 0) {
+      return;
+    }
+
+    if (
+      owned.length === specs.length &&
+      previousSpecs.length === specs.length &&
+      specs.every((spec, index) =>
+        spec.color === previousSpecs[index].color && spec.fill === previousSpecs[index].fill)
+    ) {
+      specs.forEach((spec, index) => {
+        if (!spec.range.isEqual(previousSpecs[index].range)) {
+          owned[index].visualCellRange = spec.range;
+          owned[index].commit();
+        }
+      });
+
       return;
     }
 
@@ -1081,7 +1242,10 @@ export class HandsontableAdapter implements IGridAdapter {
     }
 
     const index = this.#refClassByKey.size + 1;
-    const className = `${REF_CLASS_PREFIX}-${fill ? 'fill' : 'line'}-${index}`;
+    // The grid GUID scopes the class name per instance: the rules are document
+    // level, so two grids minting the same counter value must not share a class
+    // bound to different colors.
+    const className = `${REF_CLASS_PREFIX}-${fill ? 'fill' : 'line'}-${this.#hot.guid}-${index}`;
 
     if (this.#fillStyleEl === null) {
       this.#fillStyleEl = this.#hot.rootDocument.createElement('style');
@@ -1089,20 +1253,53 @@ export class HandsontableAdapter implements IGridAdapter {
       this.#hot.rootDocument.head.appendChild(this.#fillStyleEl);
     }
 
-    let rules =
+    const sheet = this.#fillStyleEl.sheet;
+
+    sheet?.insertRule(
       `.handsontable .wtBorder.${className}{` +
-      `-webkit-mask-image:${BORDER_DASH_MASK};mask-image:${BORDER_DASH_MASK};}`;
+      `-webkit-mask-image:${BORDER_DASH_MASK};mask-image:${BORDER_DASH_MASK};}`,
+      sheet.cssRules.length,
+    );
 
     if (fill) {
       const tint = this.#core.fillColor(color);
 
-      rules += `.handsontable td.${className}{background-image:linear-gradient(${tint},${tint});}`;
+      sheet?.insertRule(
+        `.handsontable td.${className}{background-image:linear-gradient(${tint},${tint});}`,
+        sheet.cssRules.length,
+      );
     }
 
-    this.#fillStyleEl.textContent += rules;
     this.#refClassByKey.set(key, className);
 
     return className;
+  }
+
+  /**
+   * Whether a highlight color string is safe to interpolate into the generated
+   * stylesheet. A strict `var()` reference is always accepted; anything else must
+   * pass the character allowlist (no way to break out of a declaration) and, where
+   * the environment implements it, `CSS.supports('color', ...)`.
+   *
+   * @param {string} color The color string to validate.
+   * @returns {boolean}
+   */
+  #isSafeColor(color: string): boolean {
+    if (/^var\(--[\w-]+\)$/.test(color)) {
+      return true;
+    }
+
+    if (!SAFE_COLOR_PATTERN.test(color)) {
+      return false;
+    }
+
+    const cssApi = this.#hot.rootWindow.CSS;
+
+    if (typeof cssApi?.supports === 'function') {
+      return cssApi.supports('color', color);
+    }
+
+    return true;
   }
 
   /**
@@ -1113,17 +1310,25 @@ export class HandsontableAdapter implements IGridAdapter {
    * @returns {number}
    */
   #resolveBorderWidth(): number {
-    if (this.#borderWidth === null) {
-      const rawWidth = this.#hot.rootWindow
-        .getComputedStyle(this.#overlayHost)
-        .getPropertyValue('--hfe-reference-border-width');
-      const parsedWidth = Number.parseFloat(rawWidth);
-
-      this.#borderWidth = Number.isFinite(parsedWidth) && parsedWidth > 0 ?
-        parsedWidth : DEFAULT_BORDER_WIDTH;
+    if (this.#borderWidth !== null) {
+      return this.#borderWidth;
     }
 
-    return this.#borderWidth;
+    const rawWidth = this.#hot.rootWindow
+      .getComputedStyle(this.#overlayHost)
+      .getPropertyValue('--hfe-reference-border-width');
+    const parsedWidth = Number.parseFloat(rawWidth);
+
+    if (Number.isFinite(parsedWidth) && parsedWidth > 0) {
+      this.#borderWidth = parsedWidth;
+
+      return parsedWidth;
+    }
+
+    // Not cached: an unresolved variable usually means the theme stylesheet has
+    // not loaded yet, so the next highlight re-probes instead of locking in the
+    // fallback for the adapter's lifetime.
+    return DEFAULT_BORDER_WIDTH;
   }
 
   /**
@@ -1139,43 +1344,67 @@ export class HandsontableAdapter implements IGridAdapter {
 
     this.#styledHeaderEls.clear();
 
+    const columnSpans: TintSpan[] = [];
+    const rowSpans: TintSpan[] = [];
+
     for (const item of this.#persistentItems) {
       if (item.whole === 'column') {
-        this.#tintHeaderRun(item.range.start.col, item.range.end.col, item.color, 'column');
+        columnSpans.push({
+          start: item.range.start.col,
+          end: item.range.end.col,
+          backgroundColor: this.#core.fillColor(item.color),
+        });
       } else if (item.whole === 'row') {
-        this.#tintHeaderRun(item.range.start.row, item.range.end.row, item.color, 'row');
+        rowSpans.push({
+          start: item.range.start.row,
+          end: item.range.end.row,
+          backgroundColor: this.#core.fillColor(item.color),
+        });
       }
     }
+
+    this.#tintTrackedHeaders(this.#colHeaderEls, columnSpans,
+      visualIndex => this.#mapping.visualToHfCol(visualIndex));
+    this.#tintTrackedHeaders(this.#rowHeaderEls, rowSpans,
+      visualIndex => this.#mapping.visualToHfRow(visualIndex));
   }
 
   /**
-   * Tints the tracked header elements of one whole-axis highlight, translating each
-   * HyperFormula index of the span to its visual counterpart.
+   * Tints the tracked (rendered) header elements of one axis against the given
+   * whole-axis highlight spans. Iterates the tracked headers - bounded by the
+   * viewport - rather than the HyperFormula spans, which a whole-column reference
+   * makes as large as the sheet. The last matching span wins, mirroring the
+   * source highlight order.
    *
-   * @param {number} startHf The first HyperFormula index of the span.
-   * @param {number} endHf The last HyperFormula index of the span.
-   * @param {string} color The highlight color the tint derives from.
-   * @param {'row' | 'column'} axis The header axis to tint.
+   * @param {Map<number, HTMLElement>} headerEls Tracked header elements keyed by visual index.
+   * @param {TintSpan[]} spans The whole-axis highlight spans in HyperFormula space.
+   * @param {Function} visualToHf Visual-to-HyperFormula index translation for the axis.
    */
-  #tintHeaderRun(startHf: number, endHf: number, color: string, axis: 'row' | 'column'): void {
-    if (endHf - startHf > MAX_HF_INDEX_SCAN) {
+  #tintTrackedHeaders(
+    headerEls: Map<number, HTMLElement>,
+    spans: TintSpan[],
+    visualToHf: (visualIndex: number) => number,
+  ): void {
+    if (spans.length === 0) {
       return;
     }
 
-    const backgroundColor = this.#core.fillColor(color);
+    for (const [visualIndex, headerEl] of headerEls) {
+      const hfIndex = visualToHf(visualIndex);
 
-    for (let hfIndex = startHf; hfIndex <= endHf; hfIndex++) {
-      const visualIndex = axis === 'column' ?
-        this.#mapping.hfToVisualCol(hfIndex) : this.#mapping.hfToVisualRow(hfIndex);
-
-      if (visualIndex < 0) {
+      if (hfIndex < 0) {
         continue; // eslint-disable-line no-continue
       }
 
-      const headerEl = axis === 'column' ?
-        this.#colHeaderEls.get(visualIndex) : this.#rowHeaderEls.get(visualIndex);
+      let backgroundColor: string | null = null;
 
-      if (headerEl) {
+      for (const span of spans) {
+        if (hfIndex >= span.start && hfIndex <= span.end) {
+          backgroundColor = span.backgroundColor;
+        }
+      }
+
+      if (backgroundColor !== null) {
         headerEl.style.backgroundColor = backgroundColor;
         this.#styledHeaderEls.add(headerEl);
       }

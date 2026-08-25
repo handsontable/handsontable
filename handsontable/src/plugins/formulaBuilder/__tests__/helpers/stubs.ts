@@ -13,9 +13,6 @@ export interface IndexMapperStub {
 }
 
 /**
- * Members of the Handsontable surface the adapter and controller touch in unit tests.
- */
-/**
  * Minimal fake of a grid custom-selection instance, mirroring what the adapter
  * reads back from `selection.highlight.customSelections`.
  */
@@ -32,6 +29,10 @@ export interface CustomSelectionStub {
    * Destroy spy.
    */
   destroy: () => void;
+  /**
+   * Commit spy (called after in-place `visualCellRange` updates).
+   */
+  commit: () => void;
 }
 
 /**
@@ -50,7 +51,105 @@ export interface HighlightStub {
   addCustomSelection: (config: Record<string, unknown>) => void;
 }
 
-export interface HotStubShape {
+/**
+ * Plain visual coordinates used by the stubbed coordinate factory.
+ */
+export interface CoordsStub {
+  /**
+   * Visual row index.
+   */
+  row: number;
+  /**
+   * Visual column index.
+   */
+  col: number;
+}
+
+/**
+ * Plain cell-range fake produced by the stubbed `_createCellRange`. `isEqual` is
+ * defined non-enumerably so `toEqual({ highlight, from, to })` assertions keep
+ * passing.
+ */
+export interface RangeStub {
+  /**
+   * The highlight coordinates.
+   */
+  highlight: CoordsStub;
+  /**
+   * The start coordinates.
+   */
+  from: CoordsStub;
+  /**
+   * The end coordinates.
+   */
+  to: CoordsStub;
+  /**
+   * Coordinate equality, mirroring the walkontable `CellRange.isEqual` contract.
+   */
+  isEqual: (other: RangeStub) => boolean;
+}
+
+/**
+ * The grid selection/rendering API fragment the adapter consumes, shared by every
+ * test-local Handsontable stub.
+ */
+export interface GridSelectionApiStub {
+  guid: string;
+  view: {
+    getOverlayByName: (overlayName: string) => {
+      holder: HTMLElement | Window;
+      clone: { wtTable: { wtRootElement: HTMLElement } } | null;
+    } | null;
+    render: jest.Mock;
+  };
+  selection: { highlight: HighlightStub };
+  _createCellCoords: (row: number, col: number) => CoordsStub;
+  _createCellRange: (highlight: CoordsStub, from?: CoordsStub, to?: CoordsStub) => RangeStub;
+}
+
+/**
+ * Builds a cell-range fake with a non-enumerable `isEqual`.
+ *
+ * @param {CoordsStub} highlight The highlight coordinates.
+ * @param {CoordsStub} [from] The start coordinates (defaults to the highlight).
+ * @param {CoordsStub} [to] The end coordinates (defaults to the highlight).
+ * @returns {RangeStub}
+ */
+export function makeRangeStub(highlight: CoordsStub, from?: CoordsStub, to?: CoordsStub): RangeStub {
+  const range = { highlight, from: from ?? highlight, to: to ?? highlight } as RangeStub;
+
+  Object.defineProperty(range, 'isEqual', {
+    enumerable: false,
+    value: (other: RangeStub) =>
+      range.from.row === other.from.row && range.from.col === other.from.col &&
+      range.to.row === other.to.row && range.to.col === other.to.col,
+  });
+
+  return range;
+}
+
+/**
+ * Builds the grid selection/rendering API fragment (`guid`, `view`, `selection`,
+ * coordinate factory) every test-local Handsontable stub needs since the adapter
+ * renders highlights through custom selections.
+ *
+ * @param {string} [guid] The grid instance id used to scope generated class names.
+ * @returns {GridSelectionApiStub}
+ */
+export function makeGridSelectionApiStub(guid = 'ht_teststub'): GridSelectionApiStub {
+  return {
+    guid,
+    view: { getOverlayByName: () => null, render: jest.fn() },
+    selection: { highlight: makeHighlightStub() },
+    _createCellCoords: (row: number, col: number) => ({ row, col }),
+    _createCellRange: makeRangeStub,
+  };
+}
+
+/**
+ * Members of the Handsontable surface the adapter and controller touch in unit tests.
+ */
+export interface HotStubShape extends GridSelectionApiStub {
   getCell: (row: number, col: number, topmost?: boolean) => HTMLElement | null;
   getCoords: (td: HTMLElement) => { row: number | null; col: number | null } | null;
   getSettings: () => Record<string, unknown>;
@@ -83,24 +182,6 @@ export interface HotStubShape {
   rootWindow: Window & typeof globalThis;
   rootElement: HTMLElement;
   getCurrentThemeName: () => string | null;
-  view: {
-    getOverlayByName: (overlayName: string) => {
-      holder: HTMLElement | Window;
-      clone: { wtTable: { wtRootElement: HTMLElement } } | null;
-    } | null;
-    render: () => void;
-  };
-  selection: { highlight: HighlightStub };
-  _createCellCoords: (row: number, col: number) => { row: number; col: number };
-  _createCellRange: (
-    highlight: { row: number; col: number },
-    from?: { row: number; col: number },
-    to?: { row: number; col: number },
-  ) => {
-    highlight: { row: number; col: number };
-    from: { row: number; col: number };
-    to: { row: number; col: number };
-  };
 }
 
 /**
@@ -119,6 +200,7 @@ export function makeHighlightStub(): HighlightStub {
         settings: { ...(border as Record<string, unknown>), ...restOptions },
         visualCellRange,
         destroy: jest.fn(),
+        commit: jest.fn(),
       });
     },
   };
@@ -161,14 +243,7 @@ export function makeHotStub(overrides: Partial<HotStubShape> = {}): HotInstance 
     rootWindow: window as Window & typeof globalThis,
     rootElement: document.body,
     getCurrentThemeName: () => null,
-    view: { getOverlayByName: () => null, render: () => undefined },
-    selection: { highlight: makeHighlightStub() },
-    _createCellCoords: (row: number, col: number) => ({ row, col }),
-    _createCellRange: (
-      highlight: { row: number; col: number },
-      from?: { row: number; col: number },
-      to?: { row: number; col: number },
-    ) => ({ highlight, from: from ?? highlight, to: to ?? highlight }),
+    ...makeGridSelectionApiStub(),
     ...overrides,
   };
 

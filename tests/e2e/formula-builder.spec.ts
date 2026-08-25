@@ -52,7 +52,7 @@ test.describe('formulaBuilder plugin', () => {
 
     // The caret touches the ref token, so the referenced cell gets the generated
     // fill class and its selection border renders through Walkontable.
-    await expect(grid.cell(0, 0)).toHaveClass(/ht-formula-ref-fill-\d+/);
+    await expect(grid.cell(0, 0)).toHaveClass(/ht-formula-ref-fill-/);
     await expect(
       grid.page.locator('.ht_master [class*="wtBorder"][class*="ht-formula-ref-fill-"]').first(),
     ).toBeAttached();

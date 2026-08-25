@@ -3,7 +3,7 @@ import { HyperFormula } from 'hyperformula';
 import type { HotInstance } from '../../../core/types';
 import { registerAsRootInstance } from '../../../utils/rootInstance';
 import { FormulaBuilder } from '../formulaBuilder';
-import { makeHighlightStub } from './helpers/stubs';
+import { makeGridSelectionApiStub } from './helpers/stubs';
 
 /**
  * Builds an identity visual/HyperFormula axis syncer for the Formulas plugin fake.
@@ -58,14 +58,7 @@ function makeSlotHotStub(formulaBuilderSetting: unknown) {
     setDataAtCell: jest.fn(),
     getCurrentThemeName: () => null,
     isRtl: () => false,
-    view: { getOverlayByName: () => null, render: jest.fn() },
-    selection: { highlight: makeHighlightStub() },
-    _createCellCoords: (row: number, col: number) => ({ row, col }),
-    _createCellRange: (
-      highlight: { row: number; col: number },
-      from?: { row: number; col: number },
-      to?: { row: number; col: number },
-    ) => ({ highlight, from: from ?? highlight, to: to ?? highlight }),
+    ...makeGridSelectionApiStub(),
   };
 
   registerAsRootInstance(hot);

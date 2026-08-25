@@ -149,7 +149,7 @@ The grid below has the formula bar enabled and every column mapped to the formul
 
 :::
 
-While the plugin is enabled, it hosts its reference highlights in the grid root element and forces `position: relative` and `overflow: hidden` inline styles on it. Both styles are restored on disable. Give the grid container an explicit height.
+Reference highlights render through the grid's own selection system. They follow frozen panes, scrolling, and hidden or reordered rows and columns. The plugin does not change the grid root element's inline styles.
 
 ## Formula bar
 

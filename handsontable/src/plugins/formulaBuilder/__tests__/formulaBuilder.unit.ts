@@ -4,8 +4,8 @@ import { getEditor } from '../../../editors/registry';
 import { registerAsRootInstance } from '../../../utils/rootInstance';
 import { FormulaBuilder } from '../formulaBuilder';
 import type { CoreModule } from '../types';
-import { makeHighlightStub } from './helpers/stubs';
-import type { HighlightStub } from './helpers/stubs';
+import { makeGridSelectionApiStub } from './helpers/stubs';
+import type { GridSelectionApiStub } from './helpers/stubs';
 
 // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
 const core = require('@hfe/core') as CoreModule;
@@ -56,18 +56,11 @@ interface HotStubShape {
   getCellMetaTransient: (row: number, col: number) => Record<string, unknown>;
   selectCell: jest.Mock;
   selectCells: jest.Mock;
-  view: { getOverlayByName: (overlayName: string) => unknown; render: jest.Mock };
-  selection: { highlight: HighlightStub };
-  _createCellCoords: (row: number, col: number) => { row: number; col: number };
-  _createCellRange: (
-    highlight: { row: number; col: number },
-    from?: { row: number; col: number },
-    to?: { row: number; col: number },
-  ) => {
-    highlight: { row: number; col: number };
-    from: { row: number; col: number };
-    to: { row: number; col: number };
-  };
+  view: GridSelectionApiStub['view'];
+  selection: GridSelectionApiStub['selection'];
+  guid: GridSelectionApiStub['guid'];
+  _createCellCoords: GridSelectionApiStub['_createCellCoords'];
+  _createCellRange: GridSelectionApiStub['_createCellRange'];
   getLayoutManager: () => LayoutManagerStub;
   getCurrentThemeName: () => string | null;
   isRtl: () => boolean;
@@ -132,14 +125,7 @@ function makeFullHotStub(pluginSettings: Record<string, unknown> = {}) {
     getCellMetaTransient: () => ({}),
     selectCell: jest.fn(),
     selectCells: jest.fn(),
-    view: { getOverlayByName: () => null, render: jest.fn() },
-    selection: { highlight: makeHighlightStub() },
-    _createCellCoords: (row: number, col: number) => ({ row, col }),
-    _createCellRange: (
-      highlight: { row: number; col: number },
-      from?: { row: number; col: number },
-      to?: { row: number; col: number },
-    ) => ({ highlight, from: from ?? highlight, to: to ?? highlight }),
+    ...makeGridSelectionApiStub(),
     getLayoutManager: () => layoutManager,
     getCurrentThemeName: () => null,
     isRtl: () => false,
