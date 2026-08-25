@@ -125,14 +125,91 @@ The [`rowHeaders`](@/api/options.md#rowheaders) can also be populated using a fu
 
 ## Row header width
 
-When you use custom row labels, their content can exceed the default header width. To control the header size, set [`rowHeaderWidth`](@/api/options.md#rowheaderwidth).
+Row headers have a fixed width. When you use custom row labels, a label longer than that width is
+clipped, and the header does not grow to fit it the way a column does.
 
-You can set this option to one of the following:
+You have two ways to deal with this: set the width yourself, or let Handsontable measure it.
+
+### Set the width yourself
+
+To control the header size, set [`rowHeaderWidth`](@/api/options.md#rowheaderwidth) to one of the following:
 
 - A number - set the same width for every row header.
 - An array - set different widths for individual row header levels.
 
 The [Row headers as an array](#row-headers-as-an-array) example uses custom labels together with `rowHeaderWidth: 80`.
+
+### Size the header to its content
+
+To size the row header column to its longest label, enable the
+[`AutoRowHeaderSize`](@/api/autoRowHeaderSize.md) plugin by setting
+[`autoRowHeaderSize`](@/api/options.md#autorowheadersize) to `true`. That is all you need: the plugin
+takes the header's width over, so any `rowHeaderWidth` you already set is ignored while it is enabled.
+
+In the example below, the row labels are too long for the default header width. Turning the plugin on
+is enough to make every label fit.
+
+::: only-for javascript
+
+::: example #example4 --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-header/javascript/example4.js)
+@[code](@/content/guides/rows/row-header/javascript/example4.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example4 :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-header/react/example4.jsx)
+@[code](@/content/guides/rows/row-header/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-header/angular/example4.ts)
+@[code](@/content/guides/rows/row-header/angular/example4.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/rows/row-header/vue/example4.vue)
+
+:::
+
+:::
+
+The plugin is off by default, for two reasons. It reads every row header once to find the longest
+label, so that first pass costs more as the number of rows grows. And turning it on would change the
+row header width of every grid that uses custom labels. This mirrors
+[`AutoRowSize`](@/api/autoRowSize.md), which is also opt-in, while
+[`AutoColumnSize`](@/api/autoColumnSize.md) - bounded by the number of columns - is on by default.
+
+The plugin never makes a header narrower than the default width, so a grid of short labels looks the
+same as it does without the plugin.
+
+::: tip
+
+The plugin measures a single row header. If your grid renders more than one row header level - an
+extra level added through the [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
+hook, for example - the headers keep their default widths, and a console message explains why. Give
+each level its own width with [`rowHeaderWidth`](@/api/options.md#rowheaderwidth) instead, as in
+`rowHeaderWidth: [80, 40]`.
+
+:::
 
 ## Bind rows with headers
 
@@ -215,6 +292,7 @@ A tree grid enables you to represent the nested data structures within the data 
 <div class="boxes-list">
 
 - [activeHeaderClassName](@/api/options.md#activeheaderclassname)
+- [autoRowHeaderSize](@/api/options.md#autorowheadersize)
 - [currentHeaderClassName](@/api/options.md#currentheaderclassname)
 - [bindRowsWithHeaders](@/api/options.md#bindrowswithheaders)
 - [rowHeaders](@/api/options.md#rowheaders)
@@ -247,6 +325,7 @@ A tree grid enables you to represent the nested data structures within the data 
 
 <div class="boxes-list">
 
+- [AutoRowHeaderSize](@/api/autoRowHeaderSize.md)
 - [BindRowsWithHeaders](@/api/bindRowsWithHeaders.md)
 
 </div>
