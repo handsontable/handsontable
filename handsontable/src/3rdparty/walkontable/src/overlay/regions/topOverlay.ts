@@ -11,10 +11,9 @@ import { isMobileBrowser } from '../../../../../helpers/browser';
 import TopOverlayTable from '../../table/regions/topTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
-  applyOverlayScrollbarClearance,
   axisScrollbarClearance,
   canGrabScrollbar,
-  overlayWidthBesideScrollbar,
+  overlayExtentBesideScrollbar,
 } from '../scrollbarClearance';
 import { getCornerStyle } from '../../selection';
 import type { Selection } from '../../selection';
@@ -222,7 +221,7 @@ export class TopOverlay extends Overlay {
       let width = wtViewport.getWorkspaceWidth();
 
       if (wtViewport.hasVerticalScroll()) {
-        width = overlayWidthBesideScrollbar(
+        width = overlayExtentBesideScrollbar(
           width,
           this.deps.geometryReader.clientWidth(wtTable.holder),
           this.deps.geometryReader.getScrollbarWidth(rootDocument)

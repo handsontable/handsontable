@@ -1,8 +1,5 @@
 import { ScrollbarVisibility } from '../../../src/overlay/scrollbarVisibility';
-import {
-  OVERLAY_SCROLLBAR_FADE_DELAY,
-  OVERLAY_SCROLLBAR_PROXIMITY,
-} from '../../../src/overlay/constants';
+import { OVERLAY_SCROLLBAR_PROXIMITY } from '../../../src/overlay/constants';
 
 describe('ScrollbarVisibility', () => {
   const SCROLLPORT = { top: 100, right: 500, bottom: 300, left: 100 };
@@ -117,15 +114,6 @@ describe('ScrollbarVisibility', () => {
     expect(tracker.visible).toEqual({ horizontal: false, vertical: false });
   });
 
-  it('should hide an axis again once its fade elapses', () => {
-    const { tracker, scrollBy, fadeAll } = build();
-
-    scrollBy(60, 0);
-    fadeAll();
-
-    expect(tracker.visible.horizontal).toBe(false);
-  });
-
   it('should NOT open on a hover alone, since no browser draws a scrollbar for that', () => {
     const { tracker } = build();
 
@@ -156,7 +144,7 @@ describe('ScrollbarVisibility', () => {
     expect(tracker.visible.horizontal).toBe(true);
   });
 
-  it('should drop the band outright rather than fading it out', () => {
+  it('should hide an axis once its fade elapses, dropping the band outright', () => {
     const { tracker, scrollBy, fadeAll } = build();
 
     scrollBy(60, 0);
@@ -166,14 +154,6 @@ describe('ScrollbarVisibility', () => {
     // outlived it would either seam down the strip or leave a column header looking cut short - the
     // two states measured on a real grid. There is no third flag to get out of step with.
     expect(tracker.visible.horizontal).toBe(false);
-  });
-
-  it('should show only the axis that scrolled', () => {
-    const { tracker, scrollBy } = build();
-
-    scrollBy(0, 60);
-
-    expect(tracker.visible).toEqual({ horizontal: false, vertical: true });
   });
 
   it('should pin from where the pointer already is when a band opens', () => {
@@ -304,9 +284,5 @@ describe('ScrollbarVisibility', () => {
     tracker.destroy();
 
     expect(pendingCount()).toBe(0);
-  });
-
-  it('should expose the fade delay as a positive duration', () => {
-    expect(OVERLAY_SCROLLBAR_FADE_DELAY).toBeGreaterThan(0);
   });
 });

@@ -1,11 +1,9 @@
 import type { GeometryReader } from '../domMeasure/geometryReader';
-import { addClass, removeClass } from '../../../../helpers/dom/element';
+import { hasClass } from '../../../../helpers/dom/element';
 import {
   OVERLAY_SCROLLBAR_CLEARANCE,
-  OVERLAY_SCROLLBAR_CLEARANCE_CLASS,
   OVERLAY_SCROLLBAR_FILLER_CLASS,
   OVERLAY_SCROLLBAR_FILLER_HOST_CLASS,
-  OVERLAY_SCROLLBAR_FILLER_OPEN_CLASS,
 } from './constants';
 
 /**
@@ -28,11 +26,6 @@ export interface ScrollbarBandsOpen {
   bottom: boolean;
   inlineEnd: boolean;
 }
-
-/**
- * Identifies the bands drawn for the grid as a whole, as opposed to anything scoped to one overlay.
- */
-const TRACK_OWNER = 'track';
 
 /**
  * Pointer events swallowed for a press inside a scrollbar band, so it neither moves the selection nor
@@ -145,43 +138,15 @@ export function canGrabScrollbar(rootWindow: Window): boolean {
 }
 
 /**
- * An overlay ("floating") scrollbar is painted over the content and reserves no space for it, so the
- * browser never shrinks the master holder and `getScrollbarWidth()` reports 0. A frozen overlay sized
- * to the full holder then covers the scrollbar, hiding it and swallowing the press (#10370).
- *
- * This is deliberately not keyed to an engine or a platform. A browser paints its scrollbar above its
- * own scroll container's contents, but the overlay clones are *siblings* of the master, not its
- * contents, so they cover it in every engine that gives the scrollbar no layout space: Firefox
- * everywhere, Chrome and Safari on macOS while "Show scroll bars" is "Automatically", Chrome on
- * Windows 11 and on GTK. A measured 0 is the whole condition, and it is also what turns the clearance
- * off again the moment the user switches back to classic space-taking scrollbars.
- *
- * `scrollbarWidth` comes from a synthetic probe element, which answers "does this engine give scrollbars
- * layout space" but not "does *this* scroller". Those can disagree - a page that styles its scrollbars
- * (Handsontable sets `scrollbar-color`) can get a different rendering on the styled element than on a
- * bare probe - and when they do, the probe reports 0 while the holder has a real scrollbar in a real
- * gutter, so the strip is drawn beside it and the grid shows two scrollbars. `reservedSpace` is the
- * holder's own gutter, and it settles the question for the element that actually matters.
- *
- * @param {number} scrollbarWidth The measured scrollbar width, from `getScrollbarWidth()`.
- * @param {boolean} axisScrolls Whether the axis this overlay would cover actually scrolls.
- * @param {number} reservedSpace The space the master holder itself reserves on that axis, in pixels.
- * @returns {number} The strip to keep clear, in pixels, or 0 when none is needed.
- */
-export function overlayScrollbarClearance(
-  scrollbarWidth: number,
-  axisScrolls: boolean,
-  reservedSpace: number = 0
-): number {
-  if (!axisScrolls || scrollbarWidth !== 0 || reservedSpace > 0) {
-    return 0;
-  }
-
-  return OVERLAY_SCROLLBAR_CLEARANCE;
-}
-
-/**
  * The clearance one axis needs, reading the holder's gutter only when it could change the answer.
+ *
+ * An overlay ("floating") scrollbar is painted over the content and reserves no space for it, so the
+ * browser never shrinks the master holder and the measured width is 0. A frozen overlay sized to the
+ * full holder then covers it, hiding the scrollbar and swallowing the press (#10370). That is not keyed
+ * to an engine: the clones are *siblings* of the master, not its contents, so they cover it wherever
+ * the scrollbar takes no layout space - Firefox everywhere, Chrome and Safari on macOS while "Show
+ * scroll bars" is "Automatically", Chrome on Windows 11 and on GTK. A measured 0 is the whole
+ * condition, and it is what switches the clearance off again on a classic-scrollbar system.
  *
  * `reservedScrollbarSpace` forces a layout read per call, and there are five call sites across the
  * coordinator and the region files, on the draw path. Passing it as an argument evaluated it every
@@ -203,16 +168,51 @@ export function axisScrollbarClearance(
   axisScrolls: boolean,
   axis: 'vertical' | 'horizontal'
 ): number {
-  // Both cheap: a boolean, and a value `getScrollbarWidth` caches after its first call.
+  // Both cheap: a boolean, and a value `getScrollbarWidth` caches after its first call. A nonzero
+  // width means a space-taking scrollbar, which the browser has already reserved room for.
   if (!axisScrolls || scrollbarWidth !== 0) {
     return 0;
   }
 
-  return overlayScrollbarClearance(
-    scrollbarWidth,
-    axisScrolls,
-    reservedScrollbarSpace(geometryReader, holder, axis)
-  );
+  // Only now the DOM. The probe above describes the ENGINE; this describes THIS scroller, and where
+  // the two disagree the strip would land beside a scrollbar that already has a gutter - two
+  // scrollbars in one grid (#10370).
+  if (reservedScrollbarSpace(geometryReader, holder, axis) > 0) {
+    return 0;
+  }
+
+  return OVERLAY_SCROLLBAR_CLEARANCE;
+}
+
+/**
+ * The extent an overlay may occupy alongside the master's scrollbar, on either axis.
+ *
+ * The scroller's own inner size is the authority: it already excludes whatever gutter this particular
+ * holder gives up, at the browser's sub-pixel accuracy. The probed width is only a fallback for when
+ * the holder cannot be measured at all - a detached or hidden grid reports 0. The two disagree exactly
+ * where the defect lives, because the probe describes the engine and not this element, and trusting it
+ * left the overlay running underneath a real scrollbar (#10370).
+ *
+ * Axis-neutral on purpose: this is the same rule `inlineStartOverlay` applies to heights for #12632,
+ * and keeping two copies meant a fix to one silently missed the other.
+ *
+ * @param {number} workspaceExtent The size the overlay would take with no scrollbar in the way.
+ * @param {number} masterClientExtent The master holder's inner size on this axis, or 0 when unmeasurable.
+ * @param {number} probedScrollbarWidth The engine-wide scrollbar width, from `getScrollbarWidth()`.
+ * @returns {number}
+ */
+export function overlayExtentBesideScrollbar(
+  workspaceExtent: number,
+  masterClientExtent: number,
+  probedScrollbarWidth: number
+): number {
+  if (masterClientExtent > 0) {
+    return masterClientExtent;
+  }
+
+  // Clamped: a narrow workspace can otherwise subtract its way past zero, and a negative extent is
+  // never a meaningful answer.
+  return Math.max(0, workspaceExtent - probedScrollbarWidth);
 }
 
 /**
@@ -242,48 +242,6 @@ export function reservedScrollbarSpace(
     : geometryReader.offsetHeight(holder) - geometryReader.clientHeight(holder);
 
   return Math.max(0, gutter);
-}
-
-/**
- * Marks (or unmarks) an overlay root as leaving a clearance strip.
- *
- * @param {HTMLElement} overlayRoot The overlay's root element.
- * @param {boolean} active Whether a clearance strip is being left.
- */
-export function toggleScrollbarClearance(overlayRoot: HTMLElement, active: boolean): void {
-  if (active) {
-    addClass(overlayRoot, OVERLAY_SCROLLBAR_CLEARANCE_CLASS);
-  } else {
-    removeClass(overlayRoot, OVERLAY_SCROLLBAR_CLEARANCE_CLASS);
-  }
-}
-
-/**
- * The width an overlay may occupy alongside the master's vertical scrollbar.
- *
- * The scroller's own `clientWidth` is the authority: it already excludes whatever gutter this
- * particular holder gives up, at the browser's sub-pixel accuracy. The probed width is only a fallback
- * for when the holder cannot be measured at all - a detached or hidden grid reports 0. The two
- * disagree exactly where the defect lives, because the probe describes the engine and not this
- * element, and trusting it left the overlay running underneath a real scrollbar (#10370).
- *
- * @param {number} workspaceWidth The width the overlay would take with no scrollbar in the way.
- * @param {number} masterClientWidth The master holder's inner width, or 0 when it cannot be measured.
- * @param {number} probedScrollbarWidth The engine-wide scrollbar width, from `getScrollbarWidth()`.
- * @returns {number}
- */
-export function overlayWidthBesideScrollbar(
-  workspaceWidth: number,
-  masterClientWidth: number,
-  probedScrollbarWidth: number
-): number {
-  if (masterClientWidth > 0) {
-    return masterClientWidth;
-  }
-
-  // Clamped: a narrow workspace can otherwise subtract its way past zero, and a negative width is
-  // never a meaningful answer.
-  return Math.max(0, workspaceWidth - probedScrollbarWidth);
 }
 
 /**
@@ -345,11 +303,6 @@ export function syncScrollbarTrackBands(
   open: ScrollbarBandsOpen
 ): void {
   const { scrollportWidth, scrollportHeight } = bands;
-  // Whether this grid is in the overlay-scrollbar regime at all, judged before the open state is
-  // applied - otherwise a pair of closed bands looks identical to "no bands needed", and the fade-out
-  // below is never reached.
-  const inRegime = (bands.bottom > 0 && scrollportWidth > 0)
-    || (bands.inlineEnd > 0 && scrollportHeight > 0);
   // Only the axis being scrolled gets a track, so the other edge stays ordinary grid.
   const bottom = open.bottom ? bands.bottom : 0;
   const inlineEnd = open.inlineEnd ? bands.inlineEnd : 0;
@@ -376,29 +329,21 @@ export function syncScrollbarTrackBands(
     });
   }
 
-  if (!inRegime) {
-    // Classic scrollbars, or neither axis scrolls: nothing here needs a band at all.
-    removeFillers(masterHolder, TRACK_OWNER);
-
-    return;
-  }
-
   if (!wanted.length) {
-    // In the regime, but every band is closed. Dropped outright rather than faded: the clone's clip
-    // reopens on the same signal, and a band still fading behind an unclipped clone is only drawn over
-    // the master's segment of the strip - or, if the clip were held back to cover the fade, the strip
-    // would show the master's cell where the frozen content belongs and a column header would look cut
-    // short. Removing it in the same frame is the only state that shows neither.
-    removeFillers(masterHolder, TRACK_OWNER);
+    // Nothing to draw: either this is not the overlay-scrollbar regime at all (classic scrollbars, or
+    // neither axis scrolls), or it is and every band is closed.
+    //
+    // A closed band is dropped outright rather than faded, because the clone's clip reopens on the same
+    // signal: a band still fading behind an unclipped clone is drawn only over the master's segment of
+    // the strip, and holding the clip closed to cover the fade instead shows the master's cell where
+    // the frozen content belongs, so a column header looks cut short. Going in the same frame is the
+    // only state that shows neither.
+    removeFillers(masterHolder);
 
     return;
   }
 
-  const host = ensureFillerHost(masterHolder);
-
-  renderFillers(host, TRACK_OWNER, wanted);
-
-  host.classList.add(OVERLAY_SCROLLBAR_FILLER_OPEN_CLASS);
+  renderFillers(ensureFillerHost(masterHolder), wanted);
 }
 
 /**
@@ -422,7 +367,7 @@ function findFillerHost(masterHolder: HTMLElement): HTMLElement | null {
   for (let i = 0; i < children.length; i += 1) {
     const child = children[i] as HTMLElement;
 
-    if (child.classList?.contains(OVERLAY_SCROLLBAR_FILLER_HOST_CLASS)) {
+    if (hasClass(child, OVERLAY_SCROLLBAR_FILLER_HOST_CLASS)) {
       return child;
     }
   }
@@ -460,10 +405,8 @@ function ensureFillerHost(masterHolder: HTMLElement): HTMLElement {
  * @param {string} key Identifies the publishing overlay.
  * @param {FillerRect[]} rects The rectangles to cover.
  */
-function renderFillers(host: HTMLElement, key: string, rects: FillerRect[]): void {
-  const own = host.querySelectorAll(`[data-ht-clearance-owner="${key}"]`);
-
-  own.forEach((node) => {
+function renderFillers(host: HTMLElement, rects: FillerRect[]): void {
+  host.querySelectorAll(`.${OVERLAY_SCROLLBAR_FILLER_CLASS}`).forEach((node) => {
     if (!rects.some(rect => node.getAttribute('data-ht-clearance-edge') === rect.edge)) {
       node.remove();
     }
@@ -471,13 +414,11 @@ function renderFillers(host: HTMLElement, key: string, rects: FillerRect[]): voi
 
   rects.forEach((rect) => {
     let filler = host
-      .querySelector(`[data-ht-clearance-owner="${key}"][data-ht-clearance-edge="${rect.edge}"]`) as
-      HTMLElement | null;
+      .querySelector(`[data-ht-clearance-edge="${rect.edge}"]`) as HTMLElement | null;
 
     if (!filler) {
       filler = host.ownerDocument.createElement('div');
       filler.className = OVERLAY_SCROLLBAR_FILLER_CLASS;
-      filler.setAttribute('data-ht-clearance-owner', key);
       filler.setAttribute('data-ht-clearance-edge', rect.edge);
       host.appendChild(filler);
     }
@@ -491,23 +432,12 @@ function renderFillers(host: HTMLElement, key: string, rects: FillerRect[]): voi
 }
 
 /**
- * Removes one owner's bands, and the host once it holds nothing.
+ * Removes this holder's own band host, if it has one.
  *
  * @param {HTMLElement} masterHolder The master overlay's holder.
- * @param {string} owner The owner key whose bands should go.
  */
-function removeFillers(masterHolder: HTMLElement, owner: string): void {
-  const host = findFillerHost(masterHolder);
-
-  if (!host) {
-    return;
-  }
-
-  host.querySelectorAll(`[data-ht-clearance-owner="${owner}"]`).forEach(node => node.remove());
-
-  if (!host.children.length) {
-    host.remove();
-  }
+function removeFillers(masterHolder: HTMLElement): void {
+  findFillerHost(masterHolder)?.remove();
 }
 
 /**
@@ -534,10 +464,6 @@ export function applyOverlayScrollbarClearance(
 ): void {
   const bottom = strips.bottom ?? 0;
   const inlineEnd = strips.inlineEnd ?? 0;
-
-  // The class marks the regime, not the open state - it carries the transition, which has to be in
-  // place before the shape changes or the first open would jump.
-  toggleScrollbarClearance(overlayRoot, bottom > 0 || inlineEnd > 0);
 
   // Clip rather than resize: no measured box changes, so nothing the viewport reads moves. Written
   // only when it actually differs - this runs on every draw and on every scrollbar fade, and a

@@ -4,18 +4,14 @@ import {
   canGrabScrollbar,
   clearanceClipPath,
   isPointInScrollbarBand,
-  overlayScrollbarClearance,
-  overlayWidthBesideScrollbar,
+  overlayExtentBesideScrollbar,
   reservedScrollbarSpace,
   syncScrollbarTrackBands,
-  toggleScrollbarClearance,
 } from '../../../src/overlay/scrollbarClearance';
 import {
   OVERLAY_SCROLLBAR_CLEARANCE,
-  OVERLAY_SCROLLBAR_CLEARANCE_CLASS,
   OVERLAY_SCROLLBAR_FILLER_CLASS,
   OVERLAY_SCROLLBAR_FILLER_HOST_CLASS,
-  OVERLAY_SCROLLBAR_FILLER_OPEN_CLASS,
 } from '../../../src/overlay/constants';
 
 describe('overlay scrollbar clearance', () => {
@@ -184,68 +180,31 @@ describe('overlay scrollbar clearance', () => {
     });
   });
 
-  describe('overlayWidthBesideScrollbar', () => {
+  describe('overlayExtentBesideScrollbar', () => {
     it('should stop at the holder inner width when the probe disagrees with the holder', () => {
       // The reported case: the engine-wide probe reports no gutter while this scroller reserves 15.
       // Trusting the probe left the overlay 15px too wide, running under the scrollbar (#10370).
-      expect(overlayWidthBesideScrollbar(700, 685, 0)).toBe(685);
+      expect(overlayExtentBesideScrollbar(700, 685, 0)).toBe(685);
     });
 
     it('should stop at the holder inner width when the two agree', () => {
       // Classic scrollbars: both report 15, so this is the answer the old arithmetic gave too.
-      expect(overlayWidthBesideScrollbar(700, 685, 15)).toBe(685);
+      expect(overlayExtentBesideScrollbar(700, 685, 15)).toBe(685);
     });
 
     it('should take the full width when the scrollbar reserves nothing', () => {
       // A floating scrollbar leaves no gutter to avoid; the clearance strip handles that case.
-      expect(overlayWidthBesideScrollbar(700, 700, 0)).toBe(700);
+      expect(overlayExtentBesideScrollbar(700, 700, 0)).toBe(700);
     });
 
     it('should fall back to the probe when the holder cannot be measured', () => {
       // A detached or hidden grid reports 0, which is not an answer - subtract the probe instead.
-      expect(overlayWidthBesideScrollbar(700, 0, 15)).toBe(685);
+      expect(overlayExtentBesideScrollbar(700, 0, 15)).toBe(685);
     });
 
     it('should clamp at zero when the workspace is narrower than the scrollbar', () => {
       // The arithmetic gives -5 here, and a negative width is never meaningful.
-      expect(overlayWidthBesideScrollbar(10, 0, 15)).toBe(0);
-    });
-  });
-
-  describe('overlayScrollbarClearance', () => {
-    it('should reserve a band when the scrollbar takes no layout space', () => {
-      expect(overlayScrollbarClearance(0, true)).toBe(OVERLAY_SCROLLBAR_CLEARANCE);
-    });
-
-    it('should reserve nothing when the axis does not scroll', () => {
-      expect(overlayScrollbarClearance(0, false)).toBe(0);
-    });
-
-    it('should reserve nothing when the scrollbar has real width', () => {
-      // A real gutter means the browser already shrank the holder; the classic path handles it.
-      expect(overlayScrollbarClearance(15, true)).toBe(0);
-    });
-
-    it('should reserve nothing when the holder itself reserves space, whatever the probe says', () => {
-      // The reported Firefox case: the synthetic probe the gate measures says the engine gives
-      // scrollbars no space, but THIS scroller has a real gutter with a real scrollbar in it. Drawing
-      // a strip beside that is a second scrollbar, which is what the user sees.
-      expect(overlayScrollbarClearance(0, true, 15)).toBe(0);
-    });
-
-    it('should still reserve a band when neither the probe nor the holder gives space', () => {
-      expect(overlayScrollbarClearance(0, true, 0)).toBe(OVERLAY_SCROLLBAR_CLEARANCE);
-    });
-
-    it('should not depend on the engine, since every engine stacks the clones above the master', () => {
-      // Firefox everywhere, Chrome/Safari on macOS set to "Automatically", Chrome on Windows 11 and
-      // GTK all report 0 and all paint the scrollbar under the clones (#10370).
-      expect(overlayScrollbarClearance(0, true)).toBe(OVERLAY_SCROLLBAR_CLEARANCE);
-    });
-
-    it('should treat a fractional measured width as a real scrollbar', () => {
-      // Fractional browser zoom can report e.g. 14.4; that is still a space-taking scrollbar.
-      expect(overlayScrollbarClearance(14.4, true)).toBe(0);
+      expect(overlayExtentBesideScrollbar(10, 0, 15)).toBe(0);
     });
   });
 
@@ -288,18 +247,6 @@ describe('overlay scrollbar clearance', () => {
 
       return overlayRoot;
     };
-
-    it('should stamp the class for the regime, not for the open state', () => {
-      const overlayRoot = buildOverlay();
-
-      // Closed, but still in the overlay-scrollbar regime: the class has to be on already or the
-      // transition would not be in place for the first open.
-      applyOverlayScrollbarClearance(overlayRoot, { bottom: 12 }, { bottom: false, inlineEnd: false });
-      expect(overlayRoot.classList.contains(OVERLAY_SCROLLBAR_CLEARANCE_CLASS)).toBe(true);
-
-      applyOverlayScrollbarClearance(overlayRoot, {});
-      expect(overlayRoot.classList.contains(OVERLAY_SCROLLBAR_CLEARANCE_CLASS)).toBe(false);
-    });
 
     it('should clip the band open when the scrollbar is showing', () => {
       const overlayRoot = buildOverlay();
@@ -395,17 +342,20 @@ describe('overlay scrollbar clearance', () => {
       expect(holder.firstChild).toBe(host);
     });
 
-    it('should mark the host open while the scrollbar is showing', () => {
+    it('should render the band opaque, with no separate open marker', () => {
       const holder = buildHolder();
 
       syncScrollbarTrackBands(holder, {
         bottom: 16, inlineEnd: 0, scrollportWidth: 700, scrollportHeight: 340,
       }, { bottom: true, inlineEnd: true });
 
+      // There is no open/closed marker: a closed band is removed outright rather than faded, so a
+      // filler that exists is always one that should be fully visible. The host carries its own class
+      // and nothing else.
       const host = holder.querySelector(`.${OVERLAY_SCROLLBAR_FILLER_HOST_CLASS}`) as HTMLElement;
 
-      // The class is what the fade keys off, so it has to be on for an open band.
-      expect(host.classList.contains(OVERLAY_SCROLLBAR_FILLER_OPEN_CLASS)).toBe(true);
+      expect(bands(holder)).toHaveLength(1);
+      expect(host.className).toBe(OVERLAY_SCROLLBAR_FILLER_HOST_CLASS);
     });
 
     it('should leave a nested grid\'s own host alone', () => {
@@ -592,18 +542,6 @@ describe('overlay scrollbar clearance', () => {
     it('should catch nothing at all when no band is drawn', () => {
       expect(inBand(400, 430, 0, 0)).toBe(false);
       expect(inBand(790, 200, 0, 0)).toBe(false);
-    });
-  });
-
-  describe('toggleScrollbarClearance', () => {
-    it('should add and remove the class that drives the clearance styles', () => {
-      const el = document.createElement('div');
-
-      toggleScrollbarClearance(el, true);
-      expect(el.classList.contains(OVERLAY_SCROLLBAR_CLEARANCE_CLASS)).toBe(true);
-
-      toggleScrollbarClearance(el, false);
-      expect(el.classList.contains(OVERLAY_SCROLLBAR_CLEARANCE_CLASS)).toBe(false);
     });
   });
 });

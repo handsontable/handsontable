@@ -55,11 +55,6 @@ export const OVERLAY_SCROLLBAR_PROXIMITY = 26;
 export const OVERLAY_SCROLLBAR_FADE_DELAY = 1000;
 
 /**
- * Marks an overlay root as leaving a scrollbar clearance strip (#10370).
- */
-export const OVERLAY_SCROLLBAR_CLEARANCE_CLASS = 'htOverlayScrollbarClearance';
-
-/**
  * Sticky, zero-size box holding the clearance fillers. It must be the master holder's **first** child:
  * a sticky box only shifts toward its own edge, so one placed after the table cannot be pulled back up
  * into the scrollport and would trail below it (measured).
@@ -73,14 +68,6 @@ export const OVERLAY_SCROLLBAR_FILLER_HOST_CLASS = 'htScrollbarClearanceFillers'
  * above the holder instead would hide the scrollbar thumb (measured: 0 thumb pixels).
  */
 export const OVERLAY_SCROLLBAR_FILLER_CLASS = 'htScrollbarClearanceFiller';
-
-/**
- * Stamped on the band host while the scrollbar is on screen. Kept separate from the sizing, so the
- * bands can be positioned before anything is shown. Deliberately not a transition - see the stylesheet:
- * the band is drawn under the clones, so any partial opacity is a visible defect at one end or the
- * other.
- */
-export const OVERLAY_SCROLLBAR_FILLER_OPEN_CLASS = 'htScrollbarClearanceFillersOpen';
 
 export const CLONE_CLASS_NAMES = new Map([
   [CLONE_TOP, `ht_clone_${CLONE_TOP}`],

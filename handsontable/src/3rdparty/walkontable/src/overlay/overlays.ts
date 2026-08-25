@@ -728,8 +728,7 @@ class Overlays {
    * an extra pass no other input triggers) changes what the render-offset specs count.
    */
   #refreshScrollbarClearance() {
-    const visible = this.#scrollbarVisibility.visible;
-    const open = { bottom: visible.horizontal, inlineEnd: visible.vertical };
+    const open = this.isScrollbarVisible();
 
     // The bands have to come and go on this signal, not wait for the next draw - a scroll may not
     // trigger one, and the scrollbar is already on screen by then.
@@ -773,8 +772,7 @@ class Overlays {
         geometryReader, holder, scrollbarWidth, wtViewport.hasVerticalScroll(), 'vertical'
       ) : 0;
 
-    const visible = this.#scrollbarVisibility.visible;
-    const open = { bottom: visible.horizontal, inlineEnd: visible.vertical };
+    const open = this.isScrollbarVisible();
 
     // Only an open band can swallow a press; a closed edge is ordinary grid again.
     this.#bandSizes = {

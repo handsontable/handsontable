@@ -8,10 +8,9 @@ import {
 import BottomOverlayTable from '../../table/regions/bottomTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
-  applyOverlayScrollbarClearance,
   axisScrollbarClearance,
   canGrabScrollbar,
-  overlayWidthBesideScrollbar,
+  overlayExtentBesideScrollbar,
 } from '../scrollbarClearance';
 import {
   CLONE_BOTTOM,
@@ -245,7 +244,7 @@ export class BottomOverlay extends Overlay {
       let width = wtViewport.getWorkspaceWidth();
 
       if (wtViewport.hasVerticalScroll()) {
-        width = overlayWidthBesideScrollbar(
+        width = overlayExtentBesideScrollbar(
           width,
           this.deps.geometryReader.clientWidth(wtTable.holder),
           this.deps.geometryReader.getScrollbarWidth(rootDocument)

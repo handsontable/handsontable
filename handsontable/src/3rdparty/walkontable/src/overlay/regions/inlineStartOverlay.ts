@@ -14,8 +14,8 @@ import {
   CLONE_INLINE_START,
 } from '../constants';
 import {
-  applyOverlayScrollbarClearance,
   canGrabScrollbar,
+  overlayExtentBesideScrollbar,
   axisScrollbarClearance,
 } from '../scrollbarClearance';
 import { throwWithCause } from '../../../../../helpers/errors';
@@ -211,17 +211,15 @@ export class InlineStartOverlay extends Overlay {
       let height = wtViewport.getWorkspaceHeight();
 
       if (wtViewport.hasHorizontalScroll()) {
-        // Match the master holder's actual inner height instead of subtracting a rounded scrollbar
-        // width. `clientHeight` natively accounts for the horizontal scrollbar at the browser's
-        // sub-pixel accuracy; under fractional browser zoom a rounded `getScrollbarWidth()` diverges
-        // from the real scrollbar size, giving the frozen overlay a different vertical scroll range
-        // than the master. That mismatch clamps the overlay's scrollTop ~1px short at the bottom and
-        // shifts the frozen rows out of alignment (#12632). With an overlay scrollbar there is no
-        // gutter to match, so this returns the full height and the clearance below shortens the root.
-        const masterClientHeight = this.deps.geometryReader.clientHeight(wtTable.holder);
-
-        height = masterClientHeight > 0
-          ? masterClientHeight : height - this.deps.geometryReader.getScrollbarWidth(rootDocument);
+        // The same rule the top and bottom overlays apply to widths - `clientHeight` accounts for the
+        // horizontal scrollbar at the browser's sub-pixel accuracy, where a rounded
+        // `getScrollbarWidth()` diverges under fractional zoom and gave the frozen overlay a different
+        // vertical scroll range than the master, clamping its scrollTop ~1px short (#12632).
+        height = overlayExtentBesideScrollbar(
+          height,
+          this.deps.geometryReader.clientHeight(wtTable.holder),
+          this.deps.geometryReader.getScrollbarWidth(rootDocument)
+        );
       }
 
       height = Math.min(height, this.deps.geometryReader.scrollHeight(wtTable.wtRootElement));
