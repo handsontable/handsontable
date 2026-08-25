@@ -292,6 +292,13 @@ class Overlays {
   #bandSizes = { bottom: 0, inlineEnd: 0 };
 
   /**
+   * Whether the press being handled started as a touch, so the compatibility `mousedown`/`click`/
+   * `contextmenu` that follow the same tap can be recognised and let through - only `pointerdown`
+   * carries a `pointerType`.
+   */
+  #pressIsTouch = false;
+
+  /**
    * @param {OverlaysDeps} deps The Overlays module dependencies.
    */
   constructor(deps: OverlaysDeps) {
@@ -499,6 +506,22 @@ class Overlays {
    */
   #swallowBandPress(event: MouseEvent) {
     const { bottom, inlineEnd } = this.#bandSizes;
+
+    // `pointerdown` is the only one of the swallowed events carrying a `pointerType`, and the
+    // `mousedown`/`click`/`contextmenu` that follow a tap are compatibility events with no way to tell
+    // where they came from - hence the flag rather than a per-event test.
+    if (event.type === 'pointerdown') {
+      this.#pressIsTouch = (event as PointerEvent).pointerType === 'touch';
+    }
+
+    // A tap is how you scroll on a touchscreen, not how you grab a thumb. `canGrabScrollbar` answers
+    // "does this machine have a mouse *somewhere*", which is the right question for drawing the band
+    // and the wrong one for swallowing a press: on a hybrid device (touchscreen laptop, tablet with a
+    // trackpad) it is true, so without this the band ate finger taps in the bottom strip - the exact
+    // "scroll, then tap a cell near the edge" failure the touch-only exclusion was written to prevent.
+    if (this.#pressIsTouch) {
+      return;
+    }
 
     if (bottom === 0 && inlineEnd === 0) {
       return;
@@ -735,7 +758,7 @@ class Overlays {
     this.#syncScrollbarTrackBands();
 
     this.#overlays.forEach((overlay) => {
-      overlay.refreshScrollbarClearance?.(open);
+      overlay.refreshScrollbarClearance(open);
     });
   }
 
@@ -762,7 +785,7 @@ class Overlays {
     // nothing to fill in for, and drawing one paints a grey strip over live cells and swallows the
     // presses there - which is what a grid with no frozen rows or columns used to get.
     const covers = (edge: 'bottom' | 'inlineEnd') =>
-      this.#overlays.some(overlay => overlay.coversScrollbarEdge?.(edge));
+      this.#overlays.some(overlay => overlay.coversScrollbarEdge(edge));
     const bottom = holderScrolls && covers('bottom')
       ? axisScrollbarClearance(
         geometryReader, holder, scrollbarWidth, wtViewport.hasHorizontalScroll(), 'horizontal'

@@ -223,10 +223,15 @@ export class ScrollbarVisibility {
       return null;
     }
 
-    const withinX = pointer.x >= rect.left - OVERLAY_SCROLLBAR_PROXIMITY
-      && pointer.x <= rect.right + OVERLAY_SCROLLBAR_PROXIMITY;
-    const withinY = pointer.y >= rect.top - OVERLAY_SCROLLBAR_PROXIMITY
-      && pointer.y <= rect.bottom + OVERLAY_SCROLLBAR_PROXIMITY;
+    // Inside the scrollport, with no outward tolerance. A pin has no timer behind it - it is released
+    // by a move that says "no longer near", or by the pointer leaving the WINDOW - so anything counted
+    // as near while the pointer rests outside the grid holds the band open indefinitely. With the
+    // tolerance applied outwards, a cursor parked just below the grid did exactly that: the browser's
+    // own thumb faded after about a second and the band stayed painted over the bottom row, swallowing
+    // presses there with no scrollbar on screen to explain why. No browser keeps a thumb up for a
+    // pointer that is not over the element, so neither should this.
+    const withinX = pointer.x >= rect.left && pointer.x <= rect.right;
+    const withinY = pointer.y >= rect.top && pointer.y <= rect.bottom;
     const inReach = withinX && withinY;
 
     return {

@@ -295,6 +295,33 @@ describe('ScrollbarVisibility', () => {
     expect(pendingCount()).toBe(0);
   });
 
+  it('should not be held open by a pointer resting outside the grid', () => {
+    const { tracker, scrollBy, fadeAll } = build();
+
+    scrollBy(60, 0);
+
+    // Just past the bottom edge - close enough to be within the proximity distance, but not over the
+    // grid at all. A pin has no timer behind it, so counting this as near would hold the band open for
+    // as long as the cursor sat there: the browser's own thumb fades after about a second and the
+    // strip stays painted over the bottom row, eating presses with no scrollbar on screen.
+    tracker.notifyPointerMoved(300, SCROLLPORT.bottom + Math.round(OVERLAY_SCROLLBAR_PROXIMITY / 2));
+    fadeAll();
+
+    expect(tracker.visible.horizontal).toBe(false);
+  });
+
+  it('should still be held open by a pointer just inside the bottom edge', () => {
+    const { tracker, scrollBy, fadeAll } = build();
+
+    scrollBy(60, 0);
+
+    // The other side of the same boundary, so the case above cannot pass by switching pinning off.
+    tracker.notifyPointerMoved(300, SCROLLPORT.bottom - 2);
+    fadeAll();
+
+    expect(tracker.visible.horizontal).toBe(true);
+  });
+
   it('should disarm a running fade when a later scroll finds the pointer beside the scrollbar', () => {
     const { tracker, scrollBy, movePageBy, fadeAll, pendingCount } = build();
 
