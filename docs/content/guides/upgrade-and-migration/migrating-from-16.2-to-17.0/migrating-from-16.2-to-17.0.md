@@ -1073,16 +1073,18 @@ sanitizer: (content, source) => {
 
 #### Option 3: Trusted Types (CSP)
 
-If you enforce Trusted Types, wrap your sanitizer in a policy and return its `createHTML` result. Add the policy name to your CSP `trusted-types` directive (e.g. `trusted-types default handsontable`):
+If you enforce Trusted Types, wrap your sanitizer in a policy and return its `createHTML` result. Add that policy's name to your CSP `trusted-types` directive. Name it after your application, not after Handsontable: `createPolicy` throws when the same name is created twice.
 
 ```js
-const policy = window.trustedTypes?.createPolicy('handsontable', {
+const policy = window.trustedTypes?.createPolicy('my-app-sanitizer', {
   createHTML: (input) => DOMPurify.sanitize(input),
 });
 
 sanitizer: (content, source) =>
   policy ? policy.createHTML(content) : DOMPurify.sanitize(content),
 ```
+
+Handsontable itself needs no policy and no entry in the directive. It builds its own markup as DOM nodes rather than as HTML strings, so a grid runs under `require-trusted-types-for 'script'` without one. Trusted Types enforces that a sanitizer exists; it does not sanitize. See [Trusted Types and CSP](@/guides/security/security/security.md#trusted-types-and-csp).
 
 ### What to expect
 

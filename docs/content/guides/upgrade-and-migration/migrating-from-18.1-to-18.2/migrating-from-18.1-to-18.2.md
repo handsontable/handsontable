@@ -104,3 +104,38 @@ sanitizer: (content, source) => {
 This is safe. The payload is parsed into an inert document that cannot load resources or run scripts, so passing it through does not expose you to injection from a crafted clipboard. It has its own source precisely so you can make this choice without weakening how you treat real pasted HTML.
 
 Leaving it sanitized is also fine if none of your columns parse pasted values, and it means your sanitizer sees every clipboard payload, which matters if it does more than filter markup.
+
+## 3. Trusted Types now works, and needs no policy from Handsontable
+
+A grid did not construct under a Content Security Policy containing `require-trusted-types-for 'script'`. Handsontable built parts of its own interface as HTML strings, and assigning one to `innerHTML` is what that policy blocks. The recipe the 17.0 migration guide gave you could not work, because those writes never passed through your `sanitizer`.
+
+Handsontable now builds its own markup as DOM nodes. A grid runs under enforcement with no policy of its own, so there is nothing to add to your `trusted-types` directive on Handsontable's behalf.
+
+Your own data still needs a policy, because Handsontable writes it for you. Return a `TrustedHTML` from your [`sanitizer`](@/api/options.md#sanitizer) and Handsontable passes it to the DOM unchanged:
+
+```js
+const policy = window.trustedTypes?.createPolicy('my-app-sanitizer', {
+  createHTML: (input) => DOMPurify.sanitize(input),
+});
+
+new Handsontable(container, {
+  sanitizer: (content, source) =>
+    policy ? policy.createHTML(content) : DOMPurify.sanitize(content),
+});
+```
+
+If you followed the earlier guidance and named your policy `handsontable`, the name still works and nothing forces you to change it. Prefer a name of your own for new code: `createPolicy` throws when the same name is created twice, so a name that reads as a library's invites a collision.
+
+See [Trusted Types and CSP](@/guides/security/security/security.md#trusted-types-and-csp) for what the API does and does not protect you from.
+
+### One ordering change for custom sanitizers
+
+Pasted HTML now reaches your sanitizer after Handsontable normalizes it, rather than before. The normalization flattens the contents of each `<td>` to text, which is what lets a paste from Excel arrive with its cell structure intact.
+
+This is what makes a `TrustedHTML` usable on the paste path: the normalization rewrites the string, and rewriting a `TrustedHTML` turns it back into an ordinary string that the parser then rejects. Running it first means the value you return is the last thing produced before the parser reads it.
+
+The practical difference is that your sanitizer now sees the markup the parser will actually read, instead of a version Handsontable rewrote afterwards. A sanitizer that filters markup is unaffected. Check this only if yours inspects the structure of pasted HTML, for example by counting elements or matching on nested tags.
+
+::: tip
+Trusted Types reached [Baseline](https://developer.mozilla.org/en-US/docs/Glossary/Baseline/Compatibility) in February 2026, later than the oldest browsers Handsontable supports. A policy is inert on Firefox before 148 and Safari before 26, where returning a string works exactly as before.
+:::

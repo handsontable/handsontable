@@ -108,7 +108,31 @@ new Handsontable(container, {
 });
 ```
 
-**Trusted Types and CSP:** If you enforce Trusted Types (e.g. `require-trusted-types-for 'script'`), use a [Trusted Type policy](https://developer.mozilla.org/en-US/docs/Web/API/Trusted_Types_API) in your sanitizer and return its `createHTML` result. Add the policy name to your Content-Security-Policy `trusted-types` directive (e.g. `trusted-types default handsontable`); otherwise policy creation will be blocked.
+### Trusted Types and CSP
+
+The [Trusted Types API](https://developer.mozilla.org/en-US/docs/Web/API/Trusted_Types_API) enforces that values reaching a DOM sink came from a policy you wrote. It is not a sanitizer, and it does not replace one. It can require that a sanitizer exists; it cannot be one. A policy such as `createHTML: (input) => input` satisfies the browser and provides no protection at all. What sanitizes is the function you call inside the policy.
+
+Handsontable runs under `require-trusted-types-for 'script'` without any policy of its own. It builds its own markup as DOM nodes rather than as HTML strings, so there is nothing for the browser to reject. You do not need to add a Handsontable policy name to your `trusted-types` directive.
+
+Your own data is the part that still needs a policy, because Handsontable writes it on your behalf. Wrap your sanitizer in one and return its `createHTML` result:
+
+```js
+const policy = window.trustedTypes?.createPolicy('my-app-sanitizer', {
+  createHTML: (input) => DOMPurify.sanitize(input),
+});
+
+new Handsontable(container, {
+  sanitizer: (content, source) =>
+    policy ? policy.createHTML(content) : DOMPurify.sanitize(content),
+  // ... other options
+});
+```
+
+Add that policy's name to your Content-Security-Policy `trusted-types` directive, or policy creation is blocked. Name it after your application rather than after Handsontable: `createPolicy` throws if the same name is created twice, and a shared name collides with any other code that picks it.
+
+Handsontable passes the value your sanitizer returns to the DOM unchanged. It is never concatenated with other markup or converted back to a string, either of which would strip the trust and cause the browser to reject it.
+
+Trusted Types is not available everywhere Handsontable runs. It reached [Baseline](https://developer.mozilla.org/en-US/docs/Glossary/Baseline/Compatibility) in February 2026, later than the oldest browsers Handsontable supports, so a policy is inert on Firefox before 148 and Safari before 26. Returning a string from your sanitizer there works exactly as it always has.
 
 Regardless of the client-side strategy, complement it with server-side validation for end-to-end data integrity.
 
