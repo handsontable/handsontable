@@ -129,7 +129,9 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     // edge where the frozen columns stop and the frozen rows carry on.
     //
     // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
-    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, this.deps.rootWindow);
+    // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`.
+    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, this.deps.rootWindow)
+      && this.holdsFrozenContent();
     const bottomClearance = this.needFullRender ? axisScrollbarClearance(
       this.deps.geometryReader,
       this.deps.getWtTable().holder,

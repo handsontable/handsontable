@@ -219,7 +219,16 @@ export class TopOverlay extends Overlay {
     // strip when this overlay is sized against the scrollport - see `inlineStartOverlay`.
     const rootSized = this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal';
     // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
-    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
+    // Clip and band together, or not at all. Every rendered clone has to be clipped or it covers the
+    // scrollbar - but clipping one uncovers the master underneath, scrolled elsewhere, so a clip with
+    // no band behind it shows the wrong cells in the strip. Gating only the band is what put a data
+    // cell where the column header belongs on a grid with headers and nothing frozen.
+    //
+    // Hence the whole clearance is gated on frozen content. A headers-only grid keeps the behavior it
+    // had before this branch - the header clone covers the top of a floating scrollbar - which is
+    // outside what #10370 reported, and is the "track showing where it is not needed" case.
+    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow)
+      && this.holdsFrozenContent();
 
     this.#holderClearance = axisScrollbarClearance(
       this.deps.geometryReader,

@@ -208,7 +208,9 @@ export class InlineStartOverlay extends Overlay {
     // scrollbar is not under this overlay, and clipping would expose the master for nothing.
     const rootSized = this.trimmingContainer !== rootWindow || preventOverflow === 'vertical';
     // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
-    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
+    // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`.
+    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow)
+      && this.holdsFrozenContent();
 
     this.#holderClearance = axisScrollbarClearance(
       this.deps.geometryReader,

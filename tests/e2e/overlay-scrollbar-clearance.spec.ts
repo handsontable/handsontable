@@ -170,7 +170,8 @@ test.describe('overlay scrollbar clearance', () => {
     await expect(page.locator('#headers-only-grid .ht_clone_top')).toBeVisible();
 
     const snapshot = await page.evaluate(() => new Promise<{
-      gutterX: number, gutterY: number, bands: number, hitBottom: string, hitRight: string,
+      gutterX: number, gutterY: number, bands: number, clipped: string[],
+      hitBottom: string, hitRight: string, hitHeaderStrip: string,
     }>((resolve) => {
       const root = document.querySelector('#headers-only-grid')!;
       const holder = root.querySelector('.ht_master .wtHolder') as HTMLElement;
@@ -180,13 +181,20 @@ test.describe('overlay scrollbar clearance', () => {
           const r = holder.getBoundingClientRect();
           const name = (el: Element | null) =>
             (el ? (el.className || el.tagName) : 'none').toString();
+          const topClone = root.querySelector('.ht_clone_top') as HTMLElement;
 
           resolve({
             gutterX: holder.offsetWidth - holder.clientWidth,
             gutterY: holder.offsetHeight - holder.clientHeight,
             bands: root.querySelectorAll('.htScrollbarClearanceFiller').length,
+            clipped: [...root.querySelectorAll('[class*="ht_clone_"]')]
+              .map(el => `${(el.className.match(/ht_clone_\w+/) || ['?'])[0]}=${getComputedStyle(el).clipPath}`)
+              .filter(entry => !entry.endsWith('none')),
             hitBottom: name(document.elementFromPoint(r.left + (r.width / 2), r.bottom - 8)),
             hitRight: name(document.elementFromPoint(r.right - 8, r.top + (r.height / 2))),
+            // Inside the column header, in the strip a clip would have taken away.
+            hitHeaderStrip: name(document.elementFromPoint(
+              r.right - 8, topClone.getBoundingClientRect().bottom - 4)),
           });
         }));
       }, { once: true });
@@ -203,8 +211,14 @@ test.describe('overlay scrollbar clearance', () => {
 
     expect(snapshot.bands).toBe(0);
 
-    // And the strips are ordinary grid again, not a filler over the cells.
+    // And nothing is clipped either. The two have to switch off together: a clip with no band behind
+    // it uncovers the master, which after this scroll is a different row and column - a data cell
+    // sitting where the column header belongs, for as long as the strip is open.
+    expect(snapshot.clipped).toEqual([]);
+
+    // The strips are ordinary grid again - no filler over the cells, and the header still its own.
     expect(snapshot.hitBottom).not.toContain('htScrollbarClearanceFiller');
     expect(snapshot.hitRight).not.toContain('htScrollbarClearanceFiller');
+    expect(snapshot.hitHeaderStrip).not.toContain('htScrollbarClearanceFiller');
   });
 });
