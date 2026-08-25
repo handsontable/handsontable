@@ -1,9 +1,9 @@
 <div align="center">
   <br><br>
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-logo-white.svg?raw=true"/>
-    <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-logo-black.svg?raw=true"/>
-    <img width="360" alt="Logo of Handsontable data grid" src="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-logo-black.svg?raw=true"/>
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-black.svg"/>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-white.svg"/>
+    <img width="360" alt="Logo of Handsontable data grid" src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-black.svg"/>
   </picture>
   <br><br>
   <h3>Handsontable is a <a href="https://handsontable.com/docs" target="_blank">JavaScript Data Grid</a> with a spreadsheet-like look and feel.</h3>
@@ -30,9 +30,9 @@
   <br>
 
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-preview-dark-theme.png?raw=true"/>
-    <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-preview-light-theme.png?raw=true"/>
-    <img width="780" alt="JavaScript data grid preview" src="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-preview-light-theme.png?raw=true"/>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-preview-dark-theme.png"/>
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-preview-light-theme.png"/>
+    <img width="780" alt="JavaScript data grid preview" src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-preview-light-theme.png"/>
   </picture>
 </div>
 
@@ -184,7 +184,7 @@ Each theme supports:
 - Dark mode
 
 <picture>
-  <img width="780" alt="JavaScript data grid preview" src="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-themes.png?raw=true"/>
+  <img width="780" alt="JavaScript data grid preview" src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-themes.png"/>
 </picture>
 
 ## 🏗️ Custom Themes
