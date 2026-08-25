@@ -11,10 +11,20 @@
  * 2024')` and then pinned. Re-resolve that query if you need to move the floor to another Baseline
  * year; do not put the query itself in this file.
  *
+ * iOS is listed separately from Safari on purpose. browserslist treats `ios_saf` as its own target,
+ * so an entry for `Safari` alone leaves lightningcss and `eslint-plugin-compat` with no iOS bound at
+ * all. The two versions move together — iOS 18.2 is the same WebKit as Safari 18.2 — so they are
+ * pinned to the same number. The `and_chr` and `and_ff` entries that `browserslist('baseline 2024')`
+ * also returns are deliberately absent: browserslist carries a single (latest) version for each, so
+ * any floor written for them resolves to whatever is current and cannot be pinned. They track their
+ * desktop counterparts, which are pinned here.
+ *
  * The floor has to clear the CSS the themes actually ship. `light-dark()` is the tallest feature we
- * use (Chrome 123, Firefox 120, Safari 17.5) and CSS nesting is next (Chrome 120, Firefox 117,
- * Safari 17.2). `handsontable/test/__tests__/esTarget.unit.js` asserts that every floor here stays
- * at or above those, so the theme stylesheets cannot outrun the browsers we compile for.
+ * use (Chrome 123, Firefox 120, Safari/iOS 17.5) and CSS nesting is next (Chrome 120, Firefox 117,
+ * Safari/iOS 17.2). `handsontable/test/__tests__/esTarget.unit.js` asserts that every floor here
+ * stays at or above those, so the theme stylesheets cannot outrun the browsers we compile for. A
+ * floor below either one makes lightningcss lower the feature away, which is how the runtime theme
+ * string lost its nested icon rules in 18.0.0.
  *
  * NOTE: this is not the same number as the "two latest versions" statement in the supported-browsers
  * guide. That statement is about which browsers we *test* on, and it is a lower bound on freshness —
@@ -26,6 +36,7 @@ exports.BROWSERS_LIST = [
   'Edge >= 130',
   'Firefox >= 132',
   'Safari >= 18.2',
+  'iOS >= 18.2',
 ];
 
 /**

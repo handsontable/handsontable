@@ -338,9 +338,9 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     if (!sortByRelevanceSetting) {
       // Sort a copy: `updateChoicesList` is public API, so the caller's array (typically the
-      // `source` setting) must keep its original order. The spread also keeps array-like callers
-      // working, which `Array#toSorted` would not — the floor now allows it, but switching would
-      // narrow what this public method accepts.
+      // `source` setting) must keep its original order. The spread also keeps iterable callers (a
+      // Set, a NodeList) working, which `Array#toSorted` would not — the floor now allows it, but
+      // switching would narrow what this public method accepts.
       choices = [...choices].sort((a, b) => stringify(a).localeCompare(stringify(b)));
     }
 
