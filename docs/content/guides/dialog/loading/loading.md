@@ -20,6 +20,7 @@ vue:
   metaTitle: Loading - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Dialog
+menuTag: updated
 ---
 Display loading indicators and progress feedback in your data grid application using the Loading plugin.
 
