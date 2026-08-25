@@ -1,6 +1,7 @@
 import { AutoColumnSize } from './autoColumnSize';
 import { Autofill } from './autofill';
 import { AutoRowSize } from './autoRowSize';
+import { AutoRowHeaderWidth } from './autoRowHeaderWidth';
 export { BasePlugin } from './base';
 import { BindRowsWithHeaders } from './bindRowsWithHeaders';
 import { CollapsibleColumns } from './collapsibleColumns';
@@ -54,6 +55,7 @@ declare module './registry' {
     autoColumnSize: typeof AutoColumnSize;
     autofill: typeof Autofill;
     autoRowSize: typeof AutoRowSize;
+    autoRowHeaderWidth: typeof AutoRowHeaderWidth;
     bindRowsWithHeaders: typeof BindRowsWithHeaders;
     collapsibleColumns: typeof CollapsibleColumns;
     columnSorting: typeof ColumnSorting;
@@ -102,6 +104,7 @@ export function registerAllPlugins() {
   registerPlugin(AutoColumnSize);
   registerPlugin(Autofill);
   registerPlugin(AutoRowSize);
+  registerPlugin(AutoRowHeaderWidth);
   registerPlugin(BindRowsWithHeaders);
   registerPlugin(CollapsibleColumns);
   registerPlugin(ColumnSorting);
@@ -146,6 +149,7 @@ export {
   AutoColumnSize,
   Autofill,
   AutoRowSize,
+  AutoRowHeaderWidth,
   BindRowsWithHeaders,
   CollapsibleColumns,
   ColumnSorting,

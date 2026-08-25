@@ -24,6 +24,7 @@ describe('`registerAllPlugins`', () => {
       'MoveCells',
       'ManualRowResize',
       'AutoRowSize',
+      'AutoRowHeaderWidth',
       'ColumnSorting',
       'Comments',
       'ContextMenu',

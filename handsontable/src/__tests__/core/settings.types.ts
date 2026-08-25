@@ -36,6 +36,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   ariaTags: true,
   autoColumnSize: true,
   autoRowSize: true,
+  autoRowHeaderWidth: oneOf(
+    true,
+    { scanLimit: 1000, samplingRatio: 3, allowSampleDuplicates: true },
+    { scanLimit: '50%' }
+  ),
   autoWrapCol: true,
   autoWrapRow: true,
   bindRowsWithHeaders: true,
@@ -221,7 +226,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
      prop: number | string, value: any, cellProperties: Handsontable.CellProperties) => TD
   ),
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
-  rowHeaderWidth: oneOf(25, [25, 30, 55]),
+  rowHeaderWidth: oneOf(25, [25, 30, 55], 'auto'),
   rowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
   sanitizer: (content: string, source: 'innerHTML' | 'CopyPaste.paste') => content,
   search: true,

@@ -196,10 +196,16 @@ export class AutoRowSize extends BasePlugin {
 
   /**
    * Returns the default settings applied when the plugin is enabled without explicit configuration.
+   *
+   * There is deliberately no `useHeaders` entry here, even though {@link AutoColumnSize} declares one.
+   * That setting decides whether a header is rendered next to the samples being measured, and this
+   * plugin never asks that question: a row's height is measured with its row header always attached
+   * (see `GhostTable#createRow`, which keys off `hasRowHeaders()`), and the column header's own
+   * height is measured separately by `addColumnHeadersRow`. Declaring the setting anyway would offer
+   * a switch that changes nothing.
    */
-  static get DEFAULT_SETTINGS(): { useHeaders: boolean; samplingRatio: number | null; allowSampleDuplicates: boolean } {
+  static get DEFAULT_SETTINGS(): { samplingRatio: number | null; allowSampleDuplicates: boolean } {
     return {
-      useHeaders: true,
       samplingRatio: null,
       allowSampleDuplicates: false,
     };

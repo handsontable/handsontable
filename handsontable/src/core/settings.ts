@@ -65,7 +65,7 @@ export interface GridSettings {
   height?: number | string | (() => number | string);
   colWidths?: number | number[] | string | ((column: number) => number | string) | Array<number | string>;
   rowHeights?: number | number[] | string | ((row: number) => number | string) | Array<number | string>;
-  rowHeaderWidth?: number | number[];
+  rowHeaderWidth?: number | number[] | 'auto';
   columnHeaderHeight?: number | number[];
   minRowHeights?: number | string | number[] | ((index: number) => number);
   maxRows?: number;
@@ -170,6 +170,7 @@ export interface GridSettings {
   // Plugins
   autoColumnSize?: boolean | object;
   autoRowSize?: boolean | object;
+  autoRowHeaderWidth?: boolean | object;
   bindRowsWithHeaders?: boolean | string;
   collapsibleColumns?: boolean | { row: number; col: number; collapsible?: boolean; [key: string]: unknown }[];
   columnSummary?: object[] | (() => object[]);
