@@ -5,6 +5,7 @@ import { pivot } from '../../helpers/array';
 import { isKeyValueObject, isObject } from '../../helpers/object';
 import {
   addClass,
+  fastInnerHTML,
   getCaretPosition,
   getFractionalScalingCompensation,
   getScrollbarWidth,
@@ -187,7 +188,21 @@ export class AutocompleteEditor extends HandsontableEditor {
         const cellValue = stringify(value);
 
         if (allowHtml) {
-          TD.innerHTML = cellValue;
+          // `allowHtml` is an explicit opt-in to raw HTML, disabled by default and warned about in
+          // its own documentation. PR #7368 turned sanitizing off for it and for the `html` cell
+          // type deliberately, and `autocompleteRenderer` still writes the cell that way, so the
+          // dropdown keeps matching it: `false` means raw, and silent about it.
+          //
+          // Going through `fastInnerHTML` rather than assigning `innerHTML` directly is what makes
+          // that a stated policy instead of an unguarded sink, and leaves one place to revisit if
+          // a configured `sanitizer` is ever made to cover this content.
+          //
+          // The scope argument is inert while the sanitizer is `false` - nothing reads an option
+          // and nothing warns. It is `this.hot.rootElement`, not the `hotInstance` argument,
+          // because this renderer runs inside `htEditor`, a separate Handsontable instance with
+          // its own settings. That matters the moment the `false` above is revisited: reading the
+          // option off the argument would silently consult the wrong grid.
+          fastInnerHTML(TD, cellValue, false, 'html', this.hot.rootElement);
         } else if (cellValue && query && query.length > 0) {
           const indexOfMatch = filteringCaseSensitive === true ?
             cellValue.indexOf(query) : localeLowerCase(cellValue, locale).indexOf(localeLowerCase(query, locale));

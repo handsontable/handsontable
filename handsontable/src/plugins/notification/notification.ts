@@ -5,6 +5,7 @@ import { randomString } from '../../helpers/string';
 import { resolveButtonType, type ButtonType } from '../../helpers/uiButton';
 import * as C from '../../i18n/constants';
 import { NotificationUI } from './ui';
+import { getSanitizer } from '../../utils/sanitizer';
 import { FOCUS_SOURCES } from '../../focusManager/constants';
 import { GRID_SCOPE } from '../../shortcuts/contexts/constants';
 import {
@@ -218,7 +219,8 @@ export class Notification extends BasePlugin {
     if (!this.#ui) {
       this.#ui = new NotificationUI({
         overlayElement: this.hot.rootOverlaysElement,
-        sanitizer: this.hot.getSettings().sanitizer,
+        sanitizer: getSanitizer(this.hot),
+        warnScope: this.hot.rootElement,
         isRtl: this.hot.isRtl(),
       });
     }
@@ -466,7 +468,7 @@ export class Notification extends BasePlugin {
       this.#ui.setRtl(this.hot.isRtl());
     }
 
-    this.#ui.setSanitizer(this.hot.getSettings().sanitizer);
+    this.#ui.setSanitizer(getSanitizer(this.hot));
   };
 
   /**

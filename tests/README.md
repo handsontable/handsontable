@@ -38,6 +38,14 @@ npm run test:e2e        # the e2e-main leg (plain UMD, main theme) — the same 
 npm run lint            # determinism + parse checks on the specs
 ```
 
+The suite serves on port `8123` and reuses a server that is already listening, so
+running it from two checkouts at once makes the second one test the **first one's
+build**, with no warning. Set `HOT_TEST_PORT` to give this checkout its own server:
+
+```bash
+HOT_TEST_PORT=8124 npm test
+```
+
 The functional suite is six projects — theme (`main`/`horizon`/`classic`) ×
 bundle (`umd` = `dist/handsontable.js`, `full-min` =
 `dist/handsontable.full.min.js`), 1:1 with the Puppeteer matrix. The local
