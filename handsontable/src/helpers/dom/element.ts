@@ -313,6 +313,11 @@ function filterEmptyClassNames(classNames: string[]) {
  * Normalizes a `className` value to a flat array of non-empty class names.
  * Accepts a space-separated string, an array of strings, or a nullish value.
  *
+ * Filtering is truthiness-based and shared with `addClass` through `filterEmptyClassNames`, so the
+ * cell meta path and the DOM path always agree on what counts as a class. A truthy non-string
+ * therefore survives, which makes the declared `string[]` slightly optimistic for out-of-contract
+ * input - that is deliberate. Do not "fix" the type by adding a second, stricter filter here.
+ *
  * @param {string|string[]|null|undefined} className The `className` value to normalize.
  * @returns {string[]}
  */
