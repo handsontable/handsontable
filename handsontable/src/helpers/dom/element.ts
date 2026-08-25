@@ -525,6 +525,19 @@ export const HTML_CHARACTERS = /(<([^>]*)>|&([^;]*);)/;
 export const SANITIZER_WARN_KEY = 'sanitizer';
 
 /**
+ * Builds the missing-sanitizer warning. Every surface that writes raw HTML uses this, whether it
+ * goes through `fastInnerHTML` or sanitizes a string first (`utils/sanitizer.ts`), so the wording
+ * cannot drift between them.
+ *
+ * @param {string} context The write surface that is about to receive raw HTML.
+ * @returns {string} The warning message.
+ */
+export function missingSanitizerMessage(context: string): string {
+  return `HTML content is being written to the DOM ("${context}") without a sanitizer. ` +
+    'Configure the "sanitizer" option to prevent XSS vulnerabilities.';
+}
+
+/**
  * Default scope used when a caller writes raw HTML without supplying a per-instance
  * scope. Keeps the warning to once per process for such callers.
  */
@@ -558,9 +571,7 @@ export function fastInnerHTML(
       // Any other non-function value (the default `true`) is an implicit raw write, so nudge once
       // toward configuring a sanitizer to prevent XSS.
       if (sanitizer !== false) {
-        warnOnce(scope, SANITIZER_WARN_KEY,
-          `HTML content is being written to the DOM ("${context}") without a sanitizer. ` +
-          'Configure the "sanitizer" option to prevent XSS vulnerabilities.');
+        warnOnce(scope, SANITIZER_WARN_KEY, missingSanitizerMessage(context));
       }
 
       sanitized = content;

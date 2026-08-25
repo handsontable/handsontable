@@ -1,5 +1,5 @@
 import type { HotInstance } from '../core/types';
-import { HTML_CHARACTERS, SANITIZER_WARN_KEY } from '../helpers/dom/element';
+import { HTML_CHARACTERS, SANITIZER_WARN_KEY, missingSanitizerMessage } from '../helpers/dom/element';
 import { warnOnce } from '../helpers/console';
 
 /**
@@ -7,18 +7,6 @@ import { warnOnce } from '../helpers/console';
  * so a sanitizer can apply different rules per context (for example, stricter for paste).
  */
 export type SanitizerFn = (html: string, context: string) => string;
-
-/**
- * Message shared by every missing-sanitizer warning, so the wording stays identical
- * no matter which surface raised it.
- *
- * @param {string} context The write surface that is about to receive raw HTML.
- * @returns {string} The warning message.
- */
-function missingSanitizerMessage(context: string): string {
-  return `HTML content is being written to the DOM ("${context}") without a sanitizer. ` +
-    'Configure the "sanitizer" option to prevent XSS vulnerabilities.';
-}
 
 /**
  * Reads the grid-level `sanitizer` option in the form `fastInnerHTML` expects.

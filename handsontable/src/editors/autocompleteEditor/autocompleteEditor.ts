@@ -197,10 +197,11 @@ export class AutocompleteEditor extends HandsontableEditor {
           // that a stated policy instead of an unguarded sink, and leaves one place to revisit if
           // a configured `sanitizer` is ever made to cover this content.
           //
-          // `this.hot` is the grid that owns the edited cell. Do not switch to the `hotInstance`
-          // argument: this renderer runs inside `htEditor`, a separate Handsontable instance with
-          // its own settings, so reading the option from there would silently consult the wrong
-          // grid.
+          // The scope argument is inert while the sanitizer is `false` - nothing reads an option
+          // and nothing warns. It is `this.hot.rootElement`, not the `hotInstance` argument,
+          // because this renderer runs inside `htEditor`, a separate Handsontable instance with
+          // its own settings. That matters the moment the `false` above is revisited: reading the
+          // option off the argument would silently consult the wrong grid.
           fastInnerHTML(TD, cellValue, false, 'html', this.hot.rootElement);
         } else if (cellValue && query && query.length > 0) {
           const indexOfMatch = filteringCaseSensitive === true ?

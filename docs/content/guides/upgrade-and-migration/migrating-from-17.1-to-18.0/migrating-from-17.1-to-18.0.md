@@ -279,7 +279,7 @@ Handsontable 18.0 removes the built-in DOMPurify dependency. HTML passed to the 
 - HTML pasted from the clipboard
 - Dialog and notification content
 - Select editor dropdown option values
-- `password` cells whose value passes through a custom `valueFormatter`
+- `password` cells whose displayed value carries markup, through a custom `valueFormatter` or a `hashSymbol`
 
 ### Who is affected
 

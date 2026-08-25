@@ -7314,7 +7314,7 @@ export default (): Record<string, unknown> => {
      *
      * The sanitizer covers the HTML that Handsontable writes on your behalf:
      *
-     * - cell content rendered by the built-in renderers, including [`password`](@/api/options.md#type)
+     * - cells rendered by the [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type
      * - column and row headers, including [`nestedHeaders`](#nestedheaders) labels
      * - [context menu](#contextmenu) and [dropdown menu](#dropdownmenu) item labels
      * - [`select`](@/api/options.md#selectoptions) editor options
