@@ -2167,7 +2167,7 @@ export default (): Record<string, unknown> => {
      * | `template.description`   | The description of the template                                                                                                 | The description of the template         |
      * | `template.buttons`       | Array of objects with the buttons configuration (default: `[]`)                                                                 | The buttons of the template             |
      * | `template.buttons.text`  | The text of the button                                                                                                          | The text of the button                  |
-     * | `template.buttons.type`  | The type of the button (`'primary'` \| `'secondary'`; any other value falls back to `'secondary'`)                              | The type of the button                  |
+     * | `template.buttons.type`  | The type of the button (`'primary'` \| `'secondary'`)                                                                           | The type of the button                  |
      * | `template.buttons.callback` | The callback function to trigger when the button is clicked                                                                  | The callback function to trigger when the button is clicked |
      * | `content`                | A string, HTMLElement or DocumentFragment (default: `''`)                                                                       | The content of the dialog               |
      * | `customClassName`        | A string (default: `''`)                                                                                                        | The custom class name of the dialog     |
@@ -2539,7 +2539,7 @@ export default (): Record<string, unknown> => {
      * | Property   | Possible values          | Description                                                  |
      * | ---------- | ------------------------ | ------------------------------------------------------------ |
      * | `text`     | `string`                 | Text to display in the button.                        |
-     * | `type`     | 'primary' \| 'secondary' | Type of the button. Any other value falls back to `'secondary'`. |
+     * | `type`     | 'primary' \| 'secondary' | Type of the button.                                   |
      * | `callback` | `function`               | Callback function to call when the button is clicked. |
      *
      * Read more:

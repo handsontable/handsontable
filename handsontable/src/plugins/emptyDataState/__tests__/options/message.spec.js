@@ -365,7 +365,7 @@ describe('EmptyDataState - message option', () => {
           title: 'No data',
           buttons: [{
             text: 'Add data',
-            type: 'secondary" onmouseover="window.pwned = true',
+            type: 'secondary"><img src="x">',
             callback: () => {},
           }],
         }),
@@ -381,7 +381,7 @@ describe('EmptyDataState - message option', () => {
     expect(containerElement.querySelector('.ht-empty-data-state__title').textContent)
       .toBe('No data available');
     expect(containerElement.querySelectorAll('.ht-button').length).toBe(0);
-    expect(window.pwned).toBeUndefined();
+    expect(containerElement.querySelectorAll('img').length).toBe(0);
   });
 
   it('should handle partial object message (only title)', async() => {

@@ -2,6 +2,7 @@ import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
 import { randomString } from '../../helpers/string';
+import { resolveButtonType } from '../../helpers/uiButton';
 import * as C from '../../i18n/constants';
 import { NotificationUI } from './ui';
 import { FOCUS_SOURCES } from '../../focusManager/constants';
@@ -493,7 +494,7 @@ export class Notification extends BasePlugin {
         throwWithCause('Each notification action needs `label` (string) and `callback` (function).');
       }
 
-      const type: 'primary' | 'secondary' = a.type === 'primary' ? 'primary' : 'secondary';
+      const type = resolveButtonType(a.type);
 
       return { label: a.label as string, type, callback: a.callback as () => void };
     }) : [];
