@@ -1,41 +1,62 @@
 import type Handsontable from 'handsontable';
-import type { GridSettings, SanitizerContext, SanitizerFn, RemoveIndexSignature } from 'handsontable';
+import type { GridSettings, SanitizerContext, RemoveIndexSignature } from 'handsontable';
 
 /**
- * `sanitizer` is a public option, so widening its second argument from `any` to `SanitizerContext`
- * must not reject any declaration that compiled before. The cases below are the ones that can
- * regress; `settings.types.ts` covers the option in the context of a full settings object.
+ * `SanitizerContext` is published as a type users opt into, and the `sanitizer` option's own
+ * signature is left exactly as it shipped. These assertions pin that decision from both sides: the
+ * option still accepts and still calls the way it always did, and the exported type delivers the
+ * completion it exists for.
  */
 
+declare const hot: Handsontable;
+declare function takesString(value: string): void;
+
+/**
+ * The point of the exported type. Annotating the parameter narrows it to the surfaces the grid
+ * emits, so an editor completes them and a typo in a comparison is a type error.
+ */
+const optIn: GridSettings = {
+  sanitizer: (content: string, source: SanitizerContext) =>
+    (source === 'CopyPaste.paste' ? content.trim() : content),
+};
+
+/**
+ * Every declaration that compiled before this change must still compile. The option is public and
+ * shipped in 17.0.0, so narrowing it in any direction is a build break on upgrade.
+ */
 const oneParameter: GridSettings = {
   sanitizer: content => content,
 };
 
-const untypedContext: GridSettings = {
-  sanitizer: (content, source) => (source === 'CopyPaste.paste' ? content : content),
+const inferredContext: GridSettings = {
+  sanitizer: (content, source) => (source === 'header' ? content.trim() : content),
+};
+
+/**
+ * The second parameter is inferred as `any`, so a body that uses it as a definite string keeps
+ * working. Declaring `context: SanitizerContext` on the option would keep this compiling, but
+ * declaring it `context?: SanitizerContext` would not - the parameter would carry `| undefined`.
+ */
+const contextUsedAsString: GridSettings = {
+  sanitizer: (content, source) => {
+    takesString(source);
+
+    return content;
+  },
 };
 
 const widelyTypedContext: GridSettings = {
   sanitizer: (content: string, source: string) => content,
 };
 
-const namedContext: GridSettings = {
-  sanitizer: (content: string, source: SanitizerContext) => content,
-};
-
-/**
- * The narrow annotation is the case the option's method syntax exists for. Declared as a
- * function-typed property instead, `strictFunctionTypes` checks the parameter contravariantly and
- * rejects this with TS2322.
- */
 const narrowlyTypedContext: GridSettings = {
   sanitizer: (content: string, source: 'header' | 'CopyPaste.paste') => content,
 };
 
 /**
- * `...args: any[]` on the option is what keeps a declaration with a third parameter compiling.
- * Only two arguments are ever passed, so the parameter is dead, but removing the rest parameter
- * would break the build of anyone who declared one.
+ * Only two arguments are ever passed, so a third parameter is dead - but `...args: any[]` is what
+ * keeps it compiling. TypeScript accepts a callback with fewer parameters than declared and rejects
+ * one with more.
  */
 const thirdParameter: GridSettings = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -43,40 +64,60 @@ const thirdParameter: GridSettings = {
 };
 
 /**
- * A context the grid does not emit stays assignable, so a sanitizer shared with another library, or
- * one branching on a surface added in a later release, keeps compiling. `'innerHTML'` is the
- * concrete case: `Handsontable.dom.fastInnerHTML()` passes it when called without a context.
+ * Reading the option back out and calling it. This is the axis that a named second parameter
+ * regresses: declaring one raises the minimum call arity from one to two, and the single-argument
+ * call below stops compiling with TS2555. Nothing else in this file catches that, because
+ * assignability and callability are separate checks.
  */
-const unknownContext: SanitizerContext = 'innerHTML';
-const arbitraryContext: SanitizerContext = 'some.surface.added.later';
+const calledWithOneArgument = hot.getSettings().sanitizer?.('<b>x</b>');
+const calledWithTwoArguments = hot.getSettings().sanitizer?.('<b>x</b>', 'header');
 
 /**
  * The wrappers do not consume `GridSettings` directly. React builds `HotTableProps` from
  * `Omit<RemoveIndexSignature<GridSettings>, ...>` and Angular builds its `GridSettings` from
- * `Omit<Handsontable.GridSettings, ...>`. Homomorphic mapped types can re-emit a method as a
- * property, which would restore contravariance and bring the narrow-annotation break back for
- * wrapper users while this suite stayed green. Assert the chain here, where it is compiled.
+ * `Omit<Handsontable.GridSettings, ...>`, so assert the option survives that chain too.
  */
 type WrapperProps = Omit<RemoveIndexSignature<GridSettings>, 'renderer' | 'editor'> & {
   [key: string]: any;
 };
 
 const throughWrapperMappedTypes: WrapperProps = {
-  sanitizer: (content: string, source: 'header' | 'CopyPaste.paste') => content,
+  sanitizer: (content: string, source: SanitizerContext) => content,
 };
 
 /**
- * `SanitizerFn` is derived from the option rather than declared a second time, so a sanitizer
- * written against the exported type is assignable to the option and vice versa.
- *
- * The indexed access carries the option's declaration-site bivariance, so the narrow annotation is
- * accepted here exactly as it is inline. A standalone alias written out by hand would not be: the
- * `strictFunctionTypes` exemption belongs to a member declared with method syntax, which is why
- * this type is extracted rather than restated.
+ * A context no grid surface emits stays assignable, so a sanitizer shared with another library, or
+ * one branching on a surface added in a later release, keeps compiling. `'innerHTML'` is the
+ * concrete case: `Handsontable.dom.fastInnerHTML()` passes it when a caller supplies no context.
  */
-const standalone: SanitizerFn = (content, source) => content;
-const narrowStandalone: SanitizerFn = (content: string, source: 'header') => content;
-const fromStandalone: GridSettings = { sanitizer: standalone };
+const unknownContext: SanitizerContext = 'innerHTML';
+const arbitraryContext: SanitizerContext = 'some.surface.added.later';
+
+/**
+ * The two assignments above cannot pin the union's contents: `(string & {})` accepts every string,
+ * so they would pass against an empty union or a misspelled literal just as well. Completion on the
+ * eight literals is the whole point of the type, so pin them by exhaustiveness instead.
+ *
+ * `KnownContext` drops the `(string & {})` member by discarding the constituent that every string is
+ * assignable to, leaving the literals. (`Exclude<SanitizerContext, string & {}>` cannot do this - it
+ * erases the whole union, because each literal is itself assignable to `string & {}`.) The `Record`
+ * then fails both ways: a literal added to the union without a case here is TS2741, and a literal
+ * dropped from or misspelled in the union is TS2353 on the orphaned key.
+ *
+ * Update this map when the grid starts emitting a new context, and update the `sanitizer` JSDoc in
+ * `metaSchema.ts` plus the surface table in the security guide in the same change.
+ */
+type KnownContext<T> = T extends string ? (string extends T ? never : T) : never;
+
+const everyKnownContext: Record<KnownContext<SanitizerContext>, true> = {
+  header: true,
+  password: true,
+  contextMenu: true,
+  selectEditor: true,
+  dialog: true,
+  notification: true,
+  'CopyPaste.paste': true,
+  'CopyPaste.paste.sourceData': true,
+};
 
 const namespaced: Handsontable.SanitizerContext = 'password';
-const namespacedFn: Handsontable.SanitizerFn = (content, source) => content;

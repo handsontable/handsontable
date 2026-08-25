@@ -42,11 +42,23 @@ export type SourceDataValidatorFn = {
  * The write surface passed as the second argument to the `sanitizer` option, so a sanitizer can
  * apply different rules per surface (for example, stricter for pasted content).
  *
+ * Annotate the parameter with it to get completion on the values you branch on:
+ *
+ * ```ts
+ * import type { SanitizerContext } from 'handsontable';
+ *
+ * const settings = {
+ *   sanitizer: (content: string, source: SanitizerContext) =>
+ *     source === 'CopyPaste.paste' ? strict(content) : loose(content),
+ * };
+ * ```
+ *
  * The listed values are the ones the grid emits. The `(string & {})` member keeps arbitrary strings
  * assignable while the literals still drive editor completion, so a sanitizer shared with another
- * library, or one branching on a surface added in a later release, keeps compiling. Note that
- * `Handsontable.dom.fastInnerHTML()` called without a context of its own passes `'innerHTML'`,
- * which no part of the grid emits.
+ * library, or one branching on a surface added in a later release, keeps compiling. `'innerHTML'` is
+ * absent for that reason rather than by oversight: no grid write surface emits it, but
+ * `Handsontable.dom.fastInnerHTML()` is public and passes it when a caller supplies no context of
+ * its own, so it has to stay assignable.
  */
 export type SanitizerContext =
   | 'header'
@@ -264,12 +276,15 @@ export interface GridSettings {
   preventWheel?: boolean;
 
   // Security
-  // Declared with method syntax, not as a function-typed property: method parameters are checked
-  // bivariantly, so a sanitizer that annotates `context` more narrowly than `SanitizerContext`
-  // (for example `'header' | 'CopyPaste.paste'`) keeps compiling. The property form would reject it
-  // under `strictFunctionTypes`. The rest parameter absorbs declarations that take a third argument.
+  // Deliberately left as `...args: any[]` rather than naming `context: SanitizerContext` here.
+  // Declaring the second parameter would raise the option's minimum *call* arity from one to two,
+  // so `hot.getSettings().sanitizer?.(html)` would stop compiling (TS2555) for anyone who reuses the
+  // configured sanitizer. Declaring it optional instead types it `SanitizerContext | undefined`,
+  // which breaks any body that uses the parameter as a definite string. Both are build breaks on
+  // upgrade, so the contract is published as the exported `SanitizerContext` type that a user opts
+  // into on their own parameter - see its docs above.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  sanitizer?(html: string, context: SanitizerContext, ...args: any[]): string;
+  sanitizer?: (html: string, ...args: any[]) => string;
 
   // State
   initialState?: Record<string, unknown>;
@@ -662,6 +677,10 @@ type HookKey = {
  */
 /**
  * The shape of a configured `sanitizer`, derived from the option so the two cannot drift apart.
+ *
+ * Internal. It is not re-exported from the package entry points: with the option's second parameter
+ * absorbed by `...args: any[]`, annotating with this type conveys no context, so `SanitizerContext`
+ * is what users are given instead.
  */
 export type SanitizerFn = NonNullable<GridSettings['sanitizer']>;
 

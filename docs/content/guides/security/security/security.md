@@ -69,7 +69,18 @@ Use the [`sanitizer`](@/api/options.md#sanitizer) option to provide a sanitizer 
 
 A configured sanitizer runs on the HTML that Handsontable writes on your behalf. The second argument names the write surface, so you can apply different rules to each one.
 
-In TypeScript, these values are the [`SanitizerContext`](@/guides/tools-and-building/typescript-types/typescript-types.md) type, so an editor completes them as you write the branch. Any other string stays accepted, which keeps a sanitizer shared with another library compiling.
+In TypeScript, annotate the second parameter with [`SanitizerContext`](@/guides/tools-and-building/typescript-types/typescript-types.md) to get completion on these values:
+
+```ts
+import type { SanitizerContext } from 'handsontable';
+
+const settings = {
+  sanitizer: (content: string, source: SanitizerContext) =>
+    source === 'CopyPaste.paste' ? strict(content) : loose(content),
+};
+```
+
+Any other string stays accepted, so a sanitizer shared with another library still compiles.
 
 | Surface | `source` argument |
 | --- | --- |

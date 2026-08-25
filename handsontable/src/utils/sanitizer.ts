@@ -3,6 +3,11 @@ import type { SanitizerContext, SanitizerFn } from '../core/settings';
 import { HTML_CHARACTERS, SANITIZER_WARN_KEY, missingSanitizerMessage } from '../helpers/dom/element';
 import { warnOnce } from '../helpers/console';
 
+/**
+ * Re-exported for the plugins that hold a resolved sanitizer (`dialog`, `notification`). This module
+ * is not a package entry point, so `SanitizerFn` stays internal; `SanitizerContext` is the type
+ * users are given, from `handsontable` itself.
+ */
 export type { SanitizerContext, SanitizerFn } from '../core/settings';
 
 /**

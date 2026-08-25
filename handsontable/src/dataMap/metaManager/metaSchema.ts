@@ -7332,6 +7332,10 @@ export default (): Record<string, unknown> => {
      * `'CopyPaste.paste'`, `'CopyPaste.paste.sourceData'`), so you can apply different rules per source.
      * It must return a string that is safe to assign to `innerHTML`.
      *
+     * In TypeScript, annotate that parameter with the exported `SanitizerContext` type
+     * (see [TypeScript types](@/guides/tools-and-building/typescript-types/typescript-types.md))
+     * to get editor completion on the values above.
+     *
      * `'CopyPaste.paste.sourceData'` carries Handsontable's own clipboard payload, the one that lets an
      * object-valued cell survive a copy between grids. It is parsed into an inert document, so returning it
      * unchanged does not expose you to a crafted clipboard, and doing so is what keeps
@@ -7346,7 +7350,7 @@ export default (): Record<string, unknown> => {
      *
      * @since 17.0.0
      * @memberof Options#
-     * @type {function(string, SanitizerContext): string}
+     * @type {function(string, string): string}
      * @default undefined
      * @category Core
      *
