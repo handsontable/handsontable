@@ -266,4 +266,59 @@ describe('AutoRowHeaderWidth', () => {
       hot.destroy();
     });
   });
+  describe('multiple row header levels', () => {
+    /**
+     * Adds a second row header level, the way the documentation and the existing specs do it.
+     *
+     * @param {Array} renderers The row header renderers collected so far.
+     * @returns {Array}
+     */
+    function addSecondLevel(renderers: Array<(index: number, TH: HTMLElement) => void>) {
+      renderers.push((index: number, TH: HTMLElement) => {
+        TH.textContent = `L2-${index}`;
+      });
+
+      return renderers;
+    }
+
+    it('should leave the width alone when the grid renders more than one row header', () => {
+      const { hot } = buildGrid({
+        rowHeaderWidth: 'auto',
+        afterGetRowHeaderRenderers: addSecondLevel,
+      });
+
+      // Returning the incoming width untouched is what keeps the levels consistent. Answering with
+      // a single measured number would set EVERY level to it, so the rendered header would be
+      // `levels x width` while the viewport still expected one width - the columns then draw in the
+      // wrong place.
+      expect(hot.countRowHeaders()).toBe(2);
+      expect(hot.runHooks('modifyRowHeaderWidth', 50)).toBe(50);
+
+      hot.destroy();
+    });
+
+    it('should never measure anything when there is more than one row header', () => {
+      const { hot, labelSpy } = buildGrid({
+        rowHeaderWidth: 'auto',
+        afterGetRowHeaderRenderers: addSecondLevel,
+      });
+
+      hot.getPlugin('autoRowHeaderWidth').clearCache();
+      labelSpy.mockClear();
+      hot.runHooks('modifyRowHeaderWidth', 50);
+
+      expect(labelSpy).not.toHaveBeenCalled();
+
+      hot.destroy();
+    });
+
+    it('should still size a single row header, to prove the guard is not too broad', () => {
+      const { hot } = buildGrid({ rowHeaderWidth: 'auto' });
+
+      expect(hot.countRowHeaders()).toBe(1);
+      expect(hot.runHooks('modifyRowHeaderWidth', 50)).toBe(50);
+
+      hot.destroy();
+    });
+  });
 });

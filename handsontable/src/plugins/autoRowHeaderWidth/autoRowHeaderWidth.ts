@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import GhostTable from '../../utils/ghostTable';
 import SamplesGenerator from '../../utils/samplesGenerator';
+import { warn } from '../../helpers/console';
 import { isPercentValue } from '../../helpers/string';
 import { valueAccordingPercent } from '../../helpers/number';
 
@@ -53,7 +54,9 @@ type AutoRowHeaderWidthDefaults = {
  * column header makes its column grow while a long row header is simply clipped.
  *
  * The plugin is off unless you ask for it, by setting the
- * [`rowHeaderWidth`](@/api/options.md#rowheaderwidth) option to `'auto'`. It is deliberately not on
+ * [`rowHeaderWidth`](@/api/options.md#rowheaderwidth) option to `'auto'`. It measures a single row
+ * header, so a grid rendering more than one row header level keeps its default widths and is told
+ * why in the console. It is deliberately not on
  * by default: it reads every row header to find the longest label, so its cost grows with the row
  * count, and switching it on for everyone would change the width of every grid that uses custom row
  * labels.
@@ -140,6 +143,12 @@ export class AutoRowHeaderWidth extends BasePlugin {
    * @type {number}
    */
   #cachedRowCount = -1;
+  /**
+   * Whether the grid has already been told that `'auto'` does nothing here.
+   *
+   * @type {boolean}
+   */
+  #warnedAboutHeaderLevels = false;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings.
@@ -182,6 +191,7 @@ export class AutoRowHeaderWidth extends BasePlugin {
    */
   updatePlugin(): void {
     this.clearCache();
+    this.resetWarnings();
     this.disablePlugin();
     this.enablePlugin();
 
@@ -220,6 +230,13 @@ export class AutoRowHeaderWidth extends BasePlugin {
   clearCache(): void {
     this.#cachedWidth = null;
     this.#cachedRowCount = -1;
+  }
+
+  /**
+   * Allows the header-level warning to be shown again, after the grid is reconfigured.
+   */
+  resetWarnings(): void {
+    this.#warnedAboutHeaderLevels = false;
   }
 
   /**
@@ -324,10 +341,31 @@ export class AutoRowHeaderWidth extends BasePlugin {
    * @returns {number} The width to use.
    */
   #onModifyRowHeaderWidth = (rowHeaderWidth: number) => {
+    if (this.hot.countRowHeaders() > 1) {
+      this.#warnAboutHeaderLevels();
+
+      return rowHeaderWidth;
+    }
+
     const resolvedWidth = typeof rowHeaderWidth === 'number' ? rowHeaderWidth : 0;
 
     return Math.max(this.getRowHeaderWidth(), resolvedWidth);
   };
+
+  /**
+   * Says once why `'auto'` is doing nothing, so the grid does not just silently keep its old width.
+   */
+  #warnAboutHeaderLevels() {
+    if (this.#warnedAboutHeaderLevels) {
+      return;
+    }
+
+    this.#warnedAboutHeaderLevels = true;
+
+    warn('The `rowHeaderWidth: \'auto\'` setting measures a single row header, and this grid ' +
+      'renders more than one. The row headers keep their default width. Give each level its own ' +
+      'width instead, for example `rowHeaderWidth: [80, 40]`.');
+  }
 
   /**
    * Drops the cached width after a change that can alter the row header labels.

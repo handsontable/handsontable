@@ -5515,8 +5515,13 @@ export default (): Record<string, unknown> => {
      * data sets. Use the [`autoRowHeaderWidth`](#autoRowHeaderWidth) option's `scanLimit` to bound
      * that scan.
      *
-     * `'auto'` measures the first row header level only, so it is not accepted inside the array
-     * form. It never makes a header narrower than it would be otherwise.
+     * `'auto'` measures a single row header. A grid that renders more than one row header level -
+     * an extra level added through the [`afterGetRowHeaderRenderers`](@/api/hooks.md#afterGetRowHeaderRenderers)
+     * hook, for instance - keeps its default widths, and a console warning explains why. Give each
+     * level its own width instead, as in `rowHeaderWidth: [80, 40]`. For the same reason `'auto'`
+     * is not accepted inside the array form.
+     *
+     * `'auto'` never makes a header narrower than it would be otherwise.
      *
      * By default two rows carrying the same label are measured once, since the same text renders to
      * the same width. Set `allowSampleDuplicates` to `true` when that is not true of your grid - a
