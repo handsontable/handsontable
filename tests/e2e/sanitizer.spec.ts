@@ -13,11 +13,10 @@ test.describe('sanitizer', () => {
 
     await grid.goto();
 
-    await expect(grid.nestedHeader()).toHaveText('label');
-    // The fixture's sanitizer strips event handlers rather than whole tags, so the
-    // element survives and the handler does not - which is what a rich-content
-    // sanitizer is for, and a stronger assertion than the tag simply being gone.
-    await expect(grid.nestedHeader().locator('img')).not.toHaveAttribute('onerror');
+    // The fixture escapes the markup delimiters, so the payload renders as text and
+    // no element is built from it.
+    await expect(grid.nestedHeader()).toContainText('label');
+    await expect(grid.nestedHeader().locator('img')).toHaveCount(0);
     expect(await grid.sanitizerContexts()).toContain('header');
     // The ghost table measures the same label. Sanitizing it under a second source
     // would give a context-aware sanitizer two different rule sets for one value.

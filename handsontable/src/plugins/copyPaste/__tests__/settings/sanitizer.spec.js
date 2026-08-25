@@ -37,9 +37,15 @@ describe('CopyPaste', () => {
     });
 
     it('should be called for the private source-data clipboard type', async() => {
+      // Escapes the markup delimiters rather than stripping an attribute pattern. Removing a
+      // multi-character sequence can reintroduce it (CodeQL `js/incomplete-multi-character-sanitization`),
+      // and a test sanitizer that is itself unsound proves nothing about the code under test.
       const sanitizer = jasmine.createSpy('sanitizer')
         .and
-        .callFake(content => content.replace(/\s+onerror\s*=\s*("[^"]*"|'[^']*'|[^\s>]*)/gi, ''));
+        .callFake(content => content
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;'));
 
       handsontable({
         copyPaste: true,

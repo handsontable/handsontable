@@ -82,7 +82,13 @@
       sanitizer: (content, source) => {
         window.__sanitizerCalls.push([content, source]);
 
-        return content.replace(/\s+onerror\s*=\s*("[^"]*"|'[^']*'|[^\s>]*)/gi, '');
+        // Escapes the markup delimiters rather than stripping an attribute pattern. Removing a
+        // multi-character sequence can reintroduce it, so a hand-rolled attribute stripper is an
+        // unsound sanitizer to prove anything with.
+        return content
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
       },
       licenseKey: 'non-commercial-and-evaluation',
     });
