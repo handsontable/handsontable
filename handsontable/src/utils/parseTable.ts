@@ -292,9 +292,14 @@ export function htmlToGridSettings(element: HTMLTableElement | string, rootDocum
   const el: HTMLTableElement = checkElement as HTMLTableElement;
   const generator = tempElem.querySelector('meta[name$="enerator"]') as HTMLMetaElement | null;
   const hasRowHeaders = el.querySelector('tbody th') !== null;
-  const trElement = el.querySelector('tr') as HTMLTableRowElement | null;
-  const countCols = !trElement ? 0 : (Array.from(trElement.cells)
-    .reduce((cols: number, cell: HTMLTableCellElement) => cols + cell.colSpan, 0)) - (hasRowHeaders ? 1 : 0);
+  // The widest row decides the grid width. Measuring only the first `<tr>` truncates a ragged
+  // table (a first row narrower than the rest), silently dropping the surplus cells.
+  const countCols = Array.from(el.rows).reduce((maxCols: number, row: HTMLTableRowElement) => {
+    const cols = Array.from(row.cells)
+      .reduce((sum: number, cell: HTMLTableCellElement) => sum + cell.colSpan, 0);
+
+    return Math.max(maxCols, cols);
+  }, 0) - (hasRowHeaders ? 1 : 0);
   const fixedRowsBottom: HTMLTableRowElement[] = el.tFoot && Array.from(el.tFoot.rows) || [];
   const fixedRowsTop: HTMLTableRowElement[] = [];
   let hasColHeaders = false;

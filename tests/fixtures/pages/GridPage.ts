@@ -97,6 +97,27 @@ export class GridPage {
       .click();
   }
 
+  /** Put plain text on the real clipboard (requires clipboard-write permission). */
+  async writeClipboardText(text: string): Promise<void> {
+    await this.page.evaluate(value => navigator.clipboard.writeText(value), text);
+  }
+
+  /**
+   * Put both clipboard flavors on the real clipboard, the way a spreadsheet app does.
+   * Handsontable prefers `text/html` whenever it holds a table, so passing a different
+   * `text` makes it unambiguous which flavor a paste actually consumed.
+   */
+  async writeClipboardHtml(html: string, text: string): Promise<void> {
+    await this.page.evaluate(async ({ htmlValue, textValue }) => {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'text/html': new Blob([htmlValue], { type: 'text/html' }),
+          'text/plain': new Blob([textValue], { type: 'text/plain' }),
+        }),
+      ]);
+    }, { htmlValue: html, textValue: text });
+  }
+
   /** Read the page clipboard (requires clipboard-read permission). */
   async clipboardText(): Promise<string> {
     return this.page.evaluate(() => navigator.clipboard.readText());

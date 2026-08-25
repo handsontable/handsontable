@@ -612,7 +612,10 @@ export class CopyPaste extends BasePlugin {
 
     const selection = this.hot.getSelectedRangeActive();
     const populatedRowsLength = plainData.length;
-    const populatedColumnsLength = plainData[0].length;
+    // A ragged clipboard (rows of unequal length) must not be narrowed to the first row's width -
+    // cells past that width would never be written. The widest row wins, as in spreadsheet apps.
+    const populatedColumnsLength = plainData
+      .reduce((maxLength: number, row: unknown[]) => Math.max(maxLength, row.length), 0);
     const newRows = [];
 
     if (!selection) {

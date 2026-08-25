@@ -173,6 +173,67 @@ describe('htmlToGridSettings', () => {
     expect(config.data.toString()).toBe('A3,B3,C3,A4,B4,C4,A5,B5,C5,A6,B6,C6');
   });
 
+  it('should parse every column of a ragged HTML table whose first row is the narrowest', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>schedule</td></tr>',
+      '<tr><td></td><td>Football</td><td>Score</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    // The grid is as wide as the widest row, and the short first row is padded out.
+    expect(config.data).toEqual([
+      ['schedule', undefined, undefined],
+      ['', 'Football', 'Score'],
+    ]);
+  });
+
+  it('should parse every column of a ragged HTML table whose widest row is neither first nor last', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>A1</td></tr>',
+      '<tr><td>A2</td><td>B2</td><td>C2</td><td>D2</td></tr>',
+      '<tr><td>A3</td><td>B3</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data).toEqual([
+      ['A1', undefined, undefined, undefined],
+      ['A2', 'B2', 'C2', 'D2'],
+      ['A3', 'B3', undefined, undefined],
+    ]);
+  });
+
+  it('should count a colspan in a later row when sizing a ragged HTML table', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>A1</td></tr>',
+      '<tr><td colspan="2">A2</td><td>C2</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data[1]).toHaveLength(3);
+    expect(config.data[1][2]).toBe('C2');
+  });
+
+  it('should keep the first row\'s width when it is already the widest', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>A1</td><td>B1</td><td>C1</td></tr>',
+      '<tr><td>A2</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data).toEqual([
+      ['A1', 'B1', 'C1'],
+      ['A2', undefined, undefined],
+    ]);
+  });
+
   it('should parse data from HTML table with nested Excel shape cells', () => {
     const htmlToParse = [
       '<table><tbody>',
