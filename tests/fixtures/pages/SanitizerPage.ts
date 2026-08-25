@@ -51,6 +51,12 @@ export class SanitizerPage {
       .__sanitizerCalls.map(([, source]) => source));
   }
 
+  /** The content argument of every sanitizer call so far, in order. */
+  async sanitizerContents(): Promise<string[]> {
+    return this.page.evaluate(() => (window as unknown as { __sanitizerCalls: [string, string][] })
+      .__sanitizerCalls.map(([content]) => content));
+  }
+
   /**
    * Dispatch a real `paste` event carrying a real `DataTransfer`, so the grid
    * reads it through the browser's clipboard API rather than a test double.

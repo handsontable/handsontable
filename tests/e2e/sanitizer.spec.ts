@@ -53,6 +53,10 @@ test.describe('sanitizer', () => {
     // documentation says so. Covering it later is a behavior change, not a bug fix,
     // so this asserts the exclusion rather than assuming nobody will touch it.
     await expect(page.getByTestId('html-cell-marker')).toBeVisible();
-    expect(await grid.sanitizerContexts()).not.toContain('html');
+    // Match on the cell's own content, not on a context name: several surfaces share
+    // context strings, so a name-based check would survive the regression it guards.
+    const sanitized = await grid.sanitizerContents();
+
+    expect(sanitized.some(content => content.includes('html-cell-marker'))).toBe(false);
   });
 });
