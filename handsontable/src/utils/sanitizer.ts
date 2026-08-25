@@ -30,8 +30,11 @@ export function getSanitizer(hot: HotInstance): boolean | SanitizerFn {
  * into an element through `fastInnerHTML` — the clipboard paste path and the nested-header
  * ghost table.
  *
- * Plain text short-circuits on the same `HTML_CHARACTERS` test `fastInnerHTML` uses, so a grid
- * whose labels or clipboard payloads carry no markup never triggers the warning.
+ * A configured sanitizer sees every payload, markup or not, which is what the clipboard path has
+ * always done. Only the missing-sanitizer warning is gated on markup. A caller that must match
+ * `fastInnerHTML` exactly, where plain text never reaches the sanitizer at all, has to apply that
+ * test itself before calling this. The nested-header ghost table does, so the label it measures is
+ * treated the same way as the header that renders it.
  *
  * The warning is bound to `hot.rootElement`, the scope every other surface uses, so all of them
  * collapse into a single message per Handsontable instance.
@@ -42,6 +45,12 @@ export function getSanitizer(hot: HotInstance): boolean | SanitizerFn {
  * @returns {string} The sanitized string, or the input unchanged when no sanitizer is configured.
  */
 export function sanitizeHTML(hot: HotInstance, html: string, context: string): string {
+  // An absent clipboard flavour reads as `''`. There is nothing to sanitize and nothing to warn
+  // about, and calling the sanitizer would add a spurious entry to an auditing one on every paste.
+  if (!html) {
+    return html;
+  }
+
   const { sanitizer } = hot.getSettings();
 
   // A configured sanitizer sees every payload, markup or not. Both callers behaved that way before

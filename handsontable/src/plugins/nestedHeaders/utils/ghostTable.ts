@@ -2,6 +2,7 @@ import type { HotInstance } from '../../../core/types';
 import type StateManager from '../stateManager';
 import type TreeNode from '../../../utils/dataStructures/tree';
 import type { HeaderSettings } from '../stateManager/headersTree';
+import { HTML_CHARACTERS } from '../../../helpers/dom/element';
 import { sanitizeHTML } from '../../../utils/sanitizer';
 
 /**
@@ -277,12 +278,21 @@ class GhostTable {
   #buildHeaderLabelHTML(
     headerSettings: HeaderSettings, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean
   ) {
-    // The same label the main table writes through `updateCellHeader()`, so it must be sanitized
-    // under the same `'header'` context - a context-aware sanitizer would otherwise apply one rule
-    // set to the rendered header and another to the copy measured here.
-    // `String()` mirrors `tableView.updateCellHeader()`. `label` is typed `string`, but it comes
-    // from user configuration, so `nestedHeaders: [[2024]]` puts a number there.
-    const label = sanitizeHTML(this.hot, String(headerSettings.label), 'header');
+    // This measures the very label the main table writes through `updateCellHeader()`, so it has to
+    // reach the sanitizer exactly as that path does, or the two disagree and the column is measured
+    // against a string the user never sees.
+    //
+    // That means mirroring both of `fastInnerHTML`'s decisions: the `'header'` context (a
+    // context-aware sanitizer would otherwise apply one rule set to the rendered header and another
+    // to this copy), and the `HTML_CHARACTERS` gate, since `fastInnerHTML` routes plain text to
+    // `fastInnerText` without consulting the sanitizer at all. Skipping that gate here would let a
+    // sanitizer that rewrites plain text - a length cap, whitespace normalization - shorten the
+    // measured label while the rendered one keeps its full width.
+    //
+    // `String()` mirrors `updateCellHeader()` too: `label` is typed `string`, but it comes from user
+    // configuration, so `nestedHeaders: [[2024]]` puts a number there.
+    const rawLabel = String(headerSettings.label);
+    const label = HTML_CHARACTERS.test(rawLabel) ? sanitizeHTML(this.hot, rawLabel, 'header') : rawLabel;
     const dropdownHtml = isDropdownEnabled ? '<button class="changeType"></button>' : '';
     const hasCollapsibleControl = isCollapsibleEnabled &&
       (headerSettings.origColspan > 1 || headerSettings.colspan > 1);

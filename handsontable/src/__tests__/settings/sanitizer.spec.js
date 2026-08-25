@@ -67,6 +67,27 @@ describe('Core.sanitizer', () => {
     expect(sanitizer.calls.allArgs().map(([, context]) => context)).not.toContain('innerHTML');
   });
 
+  it('should treat a plain nested header label the same way the rendered header does', async() => {
+    const sanitizer = jasmine.createSpy('sanitizer').and.callFake(content => content.slice(0, 4));
+
+    handsontable({
+      data: createSpreadsheetData(1, 2),
+      colHeaders: true,
+      nestedHeaders: [
+        [{ label: 'a plain label', colspan: 2 }],
+        ['A', 'B'],
+      ],
+      sanitizer,
+    });
+
+    // `fastInnerHTML` writes plain text through `fastInnerText` and never consults the sanitizer, so
+    // the ghost table that measures the same label must not either. A sanitizer that rewrites plain
+    // text - this one truncates - would otherwise size the column to a string the user never sees.
+    expect(sanitizer.calls.allArgs().map(([content]) => content)).not.toContain('a plain label');
+    expect(getRenderedValue(-2, 0)).toBe('<div class="relative" role="presentation">' +
+      '<span class="colHeader" role="presentation">a plain label</span></div>');
+  });
+
   it('should warn once when both nested headers and column headers contain HTML', async() => {
     const warnSpy = spyOnConsoleWarn();
 
