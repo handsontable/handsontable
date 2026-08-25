@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a bug where inserting a row through the `nestedRows` context menu left cell meta behind: comments, cell classes, and any other stored meta stayed on their old rows instead of moving down with the data. Affected `Insert row above`, `Insert row below`, and `Insert child row`.",
+  "type": "fixed",
+  "issueOrPR": 7727,
+  "breaking": false,
+  "framework": "none"
+}
