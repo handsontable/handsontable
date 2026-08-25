@@ -309,6 +309,30 @@ function filterEmptyClassNames(classNames: string[]) {
   return classNames.filter((x: string) => !!x);
 }
 
+/**
+ * Normalizes a `className` value to a flat array of non-empty class names.
+ * Accepts a space-separated string, an array of strings, or a nullish value.
+ *
+ * Filtering is truthiness-based and shared with `addClass` through `filterEmptyClassNames`, so the
+ * cell meta path and the DOM path always agree on what counts as a class. A truthy non-string
+ * therefore survives, which makes the declared `string[]` slightly optimistic for out-of-contract
+ * input - that is deliberate. Do not "fix" the type by adding a second, stricter filter here.
+ *
+ * @param {string|string[]|null|undefined} className The `className` value to normalize.
+ * @returns {string[]}
+ */
+export function normalizeClassNames(className: string | string[] | null | undefined): string[] {
+  if (Array.isArray(className)) {
+    return filterEmptyClassNames(className);
+  }
+
+  if (typeof className === 'string') {
+    return filterEmptyClassNames(className.split(' '));
+  }
+
+  return [];
+}
+
 function filterRegexes(list: (string | RegExp)[], returnBoth: true): { regexFree: string[]; regexes: RegExp[] };
 function filterRegexes(list: (string | RegExp)[], returnBoth?: false): string[];
 /**

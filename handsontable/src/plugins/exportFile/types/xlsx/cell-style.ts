@@ -1,4 +1,5 @@
 import { isDefined } from '../../../../helpers/mixed';
+import { normalizeClassNames } from '../../../../helpers/dom/element';
 
 export interface CssStyle {
   fontBold: boolean;
@@ -32,25 +33,6 @@ export interface CellMeta {
 // Values match the Handsontable design-system tokens for dimmed/disabled cell state.
 const READ_ONLY_BG_ARGB = 'FFF0F0F0';
 const READ_ONLY_TEXT_ARGB = 'FF808080';
-
-/**
- * Normalises a cell `className` meta value to a flat array of non-empty class strings.
- * Accepts a space-separated string, an array of strings, or a nullish value.
- *
- * @param {string|string[]|null|undefined} className The cell's `className` meta value.
- * @returns {string[]}
- */
-function normalizeClassNames(className: string | string[] | null | undefined): string[] {
-  if (Array.isArray(className)) {
-    return className.filter(c => typeof c === 'string' && c.length > 0);
-  }
-
-  if (typeof className === 'string') {
-    return className.split(' ').filter(c => c.length > 0);
-  }
-
-  return [];
-}
 
 // Per-export cache for detectExplicitBackgroundColor results.
 // Keyed by document (WeakMap — avoids leaking document references) then by the

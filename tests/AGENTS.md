@@ -67,6 +67,16 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   reschedules itself, so one `touchmove` past the edge starts it — poll for a further increase
   instead of holding for a fixed time (`waitForTimeout` is banned, see below).
 
+## The server port
+
+The webServer binds `8123` and has `reuseExistingServer` on outside CI, so a second
+checkout — a worktree beside the main clone — silently attaches to the **first
+one's server and build** and reports results describing the wrong code. Set
+`HOT_TEST_PORT` to a free port to run two at once; the config passes it to
+`support/static-server.mjs`, so the two never disagree. Before believing a strange
+result, check who owns the port with `lsof -i :8123`. Background in
+`.ai/WORKTREES.md`.
+
 ## Determinism
 
 Ships at `error` in `.eslintrc.cjs`: no `waitForTimeout`, `sleep`,
