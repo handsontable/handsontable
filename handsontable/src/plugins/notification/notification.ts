@@ -2,7 +2,7 @@ import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
 import { randomString } from '../../helpers/string';
-import { resolveButtonType } from '../../helpers/uiButton';
+import { resolveButtonType, type ButtonType } from '../../helpers/uiButton';
 import * as C from '../../i18n/constants';
 import { NotificationUI } from './ui';
 import { FOCUS_SOURCES } from '../../focusManager/constants';
@@ -19,7 +19,7 @@ export type { NotificationPosition, NotificationVariant } from './constants';
 
 export interface NotificationAction {
   label: string;
-  type?: 'primary' | 'secondary';
+  type?: ButtonType;
   callback: () => void;
 }
 

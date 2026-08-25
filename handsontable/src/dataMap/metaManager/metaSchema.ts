@@ -3918,6 +3918,9 @@ export default (): Record<string, unknown> => {
      * | `title`       | A string          | Custom loading title to display (default: `'Loading...'`) |
      * | `description` | A string          | Custom loading description to display (default: `''`)     |
      *
+     * `title` and `description` render as text. Markup passed in them shows up literally rather
+     * than being interpreted, so use `icon` for the one slot that takes markup.
+     *
      * Read more:
      * - [Plugins: `Loading`](@/api/loading.md)
      *

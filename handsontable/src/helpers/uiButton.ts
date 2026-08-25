@@ -13,7 +13,7 @@ const BUTTON_TYPES: readonly ButtonType[] = ['primary', 'secondary'];
 /**
  * The button type used when the configured one is not recognized.
  */
-export const DEFAULT_BUTTON_TYPE: ButtonType = 'secondary';
+const DEFAULT_BUTTON_TYPE: ButtonType = 'secondary';
 
 /**
  * Checks whether the passed value is one of the supported button types.

@@ -19,7 +19,10 @@ import { resolveButtonType } from '../../../helpers/uiButton';
  */
 export function confirmTemplate({ id = '', title = '', description = '', buttons = [] }: {
   id?: string, title?: string, description?: string,
-  buttons?: Array<{ type: string, text: string, callback?: Function }>
+  // `type` is `unknown`, not `ButtonType`: the value arrives from a plugin setting, and the whole
+  // point of `resolveButtonType()` below is that this function does not trust it. Declaring the
+  // narrow type here would let a caller assume the check had already happened.
+  buttons?: Array<{ type: unknown, text: string, callback?: Function }>
 }) {
   /**
    * Returns the HTML string for the template.

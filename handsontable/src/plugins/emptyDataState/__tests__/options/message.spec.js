@@ -357,6 +357,11 @@ describe('EmptyDataState - message option', () => {
       .toBe('There’s nothing to display yet.');
   });
 
+  // This one is a characterization test, not a regression test: it passes on the pre-fix code too,
+  // because `getSetting` re-runs the validator on the function's return value and the whole message
+  // is dropped before any button is rendered. It is here to pin that guard, since the reachability
+  // analysis behind the render-site fix depends on it. The render site itself is covered by
+  // `emptyDataState/__tests__/ui.unit.js`.
   it('should ignore a message whose button `type` is not supported (function message)', async() => {
     handsontable({
       data: [],
