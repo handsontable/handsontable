@@ -2,7 +2,7 @@ import { A11Y_HIDDEN } from '../a11y';
 import { isSafariBefore261, isMobileBrowser, isIpadOS, isWindowsOS } from '../browser';
 import { throwWithCause } from '../../helpers/errors';
 import { warnOnce } from '../../helpers/console';
-import type { SanitizerContext, SanitizerFn } from '../../core/settings';
+import type { SanitizerContext } from '../../core/settings';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -588,7 +588,7 @@ const defaultSanitizerWarnScope = {};
  */
 export function fastInnerHTML(
   element: HTMLElement, content: string,
-  sanitizer: boolean | SanitizerFn = true,
+  sanitizer: boolean | ((html: string, context: SanitizerContext) => string) = true,
   context: SanitizerContext = 'innerHTML',
   scope: object = defaultSanitizerWarnScope): void {
   if (HTML_CHARACTERS.test(content)) {

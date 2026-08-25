@@ -22,9 +22,14 @@ const optIn: GridSettings = {
 };
 
 /**
- * Every declaration that compiled before this change must still compile. The option is public and
- * shipped in 17.0.0, so narrowing it in any direction is a build break on upgrade.
+ * Every declaration that compiled before this change must still compile. The baseline is **18.0.0**,
+ * which is where `...args: any[]` arrived with the TypeScript conversion. 17.0.0 shipped
+ * `(content: string, source: 'innerHTML' | 'CopyPaste.paste') => string` - two required, narrowly
+ * typed parameters - so neither break this file guards against existed against that release.
  */
+// These two cannot be tripped by any change to the second parameter, which `...args: any[]` leaves
+// unchecked. They guard the first parameter and the return type instead - live concerns while
+// DEV-2617 is considering `TrustedHTML` on this option.
 const oneParameter: GridSettings = {
   sanitizer: content => content,
 };
@@ -60,7 +65,6 @@ const narrowlyTypedContext: GridSettings = {
  * one with more.
  */
 const thirdParameter: GridSettings = {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   sanitizer: (content: string, source: string, extra: string) => content,
 };
 
@@ -71,6 +75,8 @@ const thirdParameter: GridSettings = {
  * assignability and callability are separate checks.
  */
 const calledWithOneArgument = hot.getSettings().sanitizer?.('<b>x</b>');
+// Not redundant with the line above: this one fails with TS2554 if the rest parameter is ever
+// dropped, which the single-argument call cannot detect.
 const calledWithTwoArguments = hot.getSettings().sanitizer?.('<b>x</b>', 'header');
 
 /**
@@ -93,6 +99,8 @@ const throughWrapperMappedTypes: WrapperProps = {
  * A context no grid surface emits stays assignable, so a sanitizer shared with another library, or
  * one branching on a surface added in a later release, keeps compiling. `'innerHTML'` is the
  * concrete case: `Handsontable.dom.fastInnerHTML()` passes it when a caller supplies no context.
+ *
+ * These two are what pin the `(string & {})` member: drop it and both fail with TS2322.
  */
 const unknownContext: SanitizerContext = 'innerHTML';
 const arbitraryContext: SanitizerContext = 'some.surface.added.later';
@@ -105,13 +113,18 @@ const arbitraryContext: SanitizerContext = 'some.surface.added.later';
  * `KnownContext` drops the `(string & {})` member by discarding the constituent that every string is
  * assignable to, leaving the literals. (`Exclude<SanitizerContext, string & {}>` cannot do this - it
  * erases the whole union, because each literal is itself assignable to `string & {}`.) The `Record`
- * then fails both ways: a literal added to the union without a case here is TS2741, and a literal
- * dropped from or misspelled in the union is TS2353 on the orphaned key.
+ * then fails three ways: a literal added to the union without a case here is TS2741, one dropped
+ * from the union is TS2353, and one misspelled in the union is TS2561 on the orphaned key.
  *
  * Update this map when the grid starts emitting a new context, and update the `sanitizer` JSDoc in
  * `metaSchema.ts` plus the surface table in the security guide in the same change.
  */
 type KnownContext<T> = T extends string ? (string extends T ? never : T) : never;
+
+// The `Record` below cannot catch the union collapsing to plain `string`: `KnownContext` would
+// yield `never`, `Record<never, true>` is `{}`, and the eight-key object still assigns. This line
+// fails in that case, because no literal is assignable to `never`.
+const pinnedLiteral: KnownContext<SanitizerContext> = 'header';
 
 const everyKnownContext: Record<KnownContext<SanitizerContext>, true> = {
   header: true,

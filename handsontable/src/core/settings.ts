@@ -53,7 +53,10 @@ export type SourceDataValidatorFn = {
  * };
  * ```
  *
- * The listed values are the ones the grid emits. The `(string & {})` member keeps arbitrary strings
+ * The listed values are the ones that reach a configured sanitizer. `fastInnerHTML` is also called
+ * with `'html'` (the `html` cell type and `allowHtml` sources) and with `'innerHTML'` (its own
+ * default), but both pass `sanitizer: false` or no sanitizer at all, so neither reaches user code.
+ * The `(string & {})` member keeps arbitrary strings
  * assignable while the literals still drive editor completion, so a sanitizer shared with another
  * library, or one branching on a surface added in a later release, keeps compiling. `'innerHTML'` is
  * absent for that reason rather than by oversight: no grid write surface emits it, but
@@ -69,7 +72,6 @@ export type SanitizerContext =
   | 'notification'
   | 'CopyPaste.paste'
   | 'CopyPaste.paste.sourceData'
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   | (string & {});
 
 /**
@@ -672,18 +674,23 @@ type HookKey = {
 }[keyof RemoveIndexSignature<GridSettings>];
 
 /**
+ * The shape of a configured `sanitizer`, derived from the option so the two cannot drift apart.
+ *
+ * `RemoveIndexSignature` is what makes that guarantee real. `GridSettings` carries a
+ * `[key: string]: any`, so a plain `GridSettings['sanitizer']` lookup would keep resolving - to
+ * `any` - if the option were ever renamed, silently un-typing every internal consumer. Stripping the
+ * index signature first turns the same rename into a compile error here.
+ *
+ * Not re-exported from the package entry points: with the option's second parameter absorbed by
+ * `...args: any[]`, annotating with this type conveys no context, so `SanitizerContext` is what
+ * users are given instead.
+ */
+export type SanitizerFn = NonNullable<RemoveIndexSignature<GridSettings>['sanitizer']>;
+
+/**
  * Map of all Handsontable hook names to their typed callback signatures.
  * Use with addHook/addHookOnce/removeHook for IDE autocomplete and compile-time safety.
  */
-/**
- * The shape of a configured `sanitizer`, derived from the option so the two cannot drift apart.
- *
- * Internal. It is not re-exported from the package entry points: with the option's second parameter
- * absorbed by `...args: any[]`, annotating with this type conveys no context, so `SanitizerContext`
- * is what users are given instead.
- */
-export type SanitizerFn = NonNullable<GridSettings['sanitizer']>;
-
 export type Events = Required<Pick<GridSettings, HookKey>>;
 
 /**

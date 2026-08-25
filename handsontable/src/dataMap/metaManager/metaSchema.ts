@@ -7350,7 +7350,7 @@ export default (): Record<string, unknown> => {
      *
      * @since 17.0.0
      * @memberof Options#
-     * @type {function(string, string): string}
+     * @type {function(string, SanitizerContext): string}
      * @default undefined
      * @category Core
      *

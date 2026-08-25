@@ -69,19 +69,6 @@ Use the [`sanitizer`](@/api/options.md#sanitizer) option to provide a sanitizer 
 
 A configured sanitizer runs on the HTML that Handsontable writes on your behalf. The second argument names the write surface, so you can apply different rules to each one.
 
-In TypeScript, annotate the second parameter with [`SanitizerContext`](@/guides/tools-and-building/typescript-types/typescript-types.md) to get completion on these values:
-
-```ts
-import type { SanitizerContext } from 'handsontable';
-
-const settings = {
-  sanitizer: (content: string, source: SanitizerContext) =>
-    source === 'CopyPaste.paste' ? strict(content) : loose(content),
-};
-```
-
-Any other string stays accepted, so a sanitizer shared with another library still compiles.
-
 | Surface | `source` argument |
 | --- | --- |
 | Column and row headers, including [`nestedHeaders`](@/api/options.md#nestedheaders) labels | `'header'` |
@@ -92,6 +79,19 @@ Any other string stays accepted, so a sanitizer shared with another library stil
 | [Notification](@/api/notification.md) messages | `'notification'` |
 | HTML pasted from the clipboard | `'CopyPaste.paste'` |
 | Handsontable's own clipboard payload, pasted between grids | `'CopyPaste.paste.sourceData'` |
+
+In TypeScript, annotate the second parameter with [`SanitizerContext`](@/guides/tools-and-building/typescript-types/typescript-types.md) to get completion on the values above:
+
+```ts
+import type { SanitizerContext } from 'handsontable';
+
+const settings = {
+  sanitizer: (content: string, source: SanitizerContext) =>
+    source === 'CopyPaste.paste' ? strict(content) : loose(content),
+};
+```
+
+The type accepts any other string too, so a sanitizer shared with another library still compiles. The trade is that it cannot reject a wrong one: `source === 'contextmenu'` compiles into a branch that never runs. Check spelling against the table above when a rule depends on it.
 
 ### What the sanitizer does not cover
 
