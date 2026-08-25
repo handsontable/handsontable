@@ -290,7 +290,7 @@ which clips the longer labels.
 
 Each renderer is called with the row's renderable index - the index Handsontable renders by. It is
 the same as the [visual index](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md)
-until rows are hidden or trimmed. If your grid hides rows, translate the index with
+until rows are hidden. If your grid hides rows, translate the index with
 [`getVisualFromRenderableIndex()`](@/api/indexMapper.md#getvisualfromrenderableindex) before you look
 a label up by it.
 
