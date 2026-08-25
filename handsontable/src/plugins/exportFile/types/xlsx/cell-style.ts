@@ -1,5 +1,5 @@
 import { isDefined } from '../../../../helpers/mixed';
-import { normalizeClassNames } from '../../../../helpers/dom/element';
+import { _normalizeClassNames } from '../../../../helpers/dom/element';
 
 export interface CssStyle {
   fontBold: boolean;
@@ -283,7 +283,7 @@ export function getCssStyleFromElement(
       return null;
     }
 
-    const metaClasses = normalizeClassNames(className);
+    const metaClasses = _normalizeClassNames(className);
 
     if (!metaClasses.some(c => !ALIGNMENT_CLASS_NAMES.has(c))) {
       return null;
@@ -300,7 +300,7 @@ export function getCssStyleFromElement(
 
   const style = view.getComputedStyle(element);
 
-  const metaClasses = normalizeClassNames(className);
+  const metaClasses = _normalizeClassNames(className);
   const hasCustomClass = metaClasses.some(c => !ALIGNMENT_CLASS_NAMES.has(c));
 
   return {
@@ -378,7 +378,7 @@ export function getAlignmentFromMeta(meta: CellMeta | undefined): object | null 
     return null;
   }
 
-  const classes = normalizeClassNames(meta.className);
+  const classes = _normalizeClassNames(meta.className);
   const alignment: Record<string, string> = {};
 
   if (classes.includes('htLeft')) {

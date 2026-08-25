@@ -37,12 +37,25 @@ export class HidingArrayClassNamePage {
       `/tests/fixtures/demo/hiding-array-classname.html?theme=${this.theme}&bundle=${this.bundle}`
     );
 
-    for (const gridId of [
+    const gridIds = [
       HidingArrayClassNamePage.ROWS_NONE,
       HidingArrayClassNamePage.ROWS_HIDDEN,
       HidingArrayClassNamePage.COLS_NONE,
       HidingArrayClassNamePage.COLS_HIDDEN,
-    ]) {
+    ];
+
+    // Report a constructor that threw as the error it threw, not as a visibility timeout. The
+    // fixture stamps `data-init-error` synchronously while the page script runs, so by the time
+    // `goto()` resolves it is either set or never will be — read it before waiting on anything.
+    for (const gridId of gridIds) {
+      const initError = await this.initError(gridId);
+
+      if (initError !== null) {
+        throw new Error(`Grid "${gridId}" failed to build: ${initError}`);
+      }
+    }
+
+    for (const gridId of gridIds) {
       await expect(this.grid(gridId).locator('.ht_master')).toBeVisible();
     }
   }

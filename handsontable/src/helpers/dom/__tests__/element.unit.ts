@@ -1,6 +1,6 @@
 import {
   addClass,
-  normalizeClassNames,
+  _normalizeClassNames,
   closest,
   closestDown,
   getParent,
@@ -385,50 +385,51 @@ describe('DomElement helper', () => {
   });
 
   /**
-   * Handsontable.helper.normalizeClassNames
+   * _normalizeClassNames (internal - underscore-prefixed, so it is not re-exported
+   * on the public `Handsontable.dom` namespace).
    */
-  describe('normalizeClassNames', () => {
+  describe('_normalizeClassNames', () => {
     it('should split a space-separated string into tokens', () => {
-      expect(normalizeClassNames('test1 test2 test3')).toEqual(['test1', 'test2', 'test3']);
+      expect(_normalizeClassNames('test1 test2 test3')).toEqual(['test1', 'test2', 'test3']);
     });
 
     it('should return a single-token string as a one-element array', () => {
-      expect(normalizeClassNames('test1')).toEqual(['test1']);
+      expect(_normalizeClassNames('test1')).toEqual(['test1']);
     });
 
     it('should pass an array of class names through', () => {
-      expect(normalizeClassNames(['test1', 'test2'])).toEqual(['test1', 'test2']);
+      expect(_normalizeClassNames(['test1', 'test2'])).toEqual(['test1', 'test2']);
     });
 
     it('should drop empty tokens produced by extra whitespace', () => {
-      expect(normalizeClassNames('  test1   test2 ')).toEqual(['test1', 'test2']);
+      expect(_normalizeClassNames('  test1   test2 ')).toEqual(['test1', 'test2']);
     });
 
     it('should drop empty and non-string entries from an array', () => {
-      expect(normalizeClassNames(['test1', '', 'test2'])).toEqual(['test1', 'test2']);
-      expect(normalizeClassNames([null, undefined, 0, false, 'test1'] as unknown as string[]))
+      expect(_normalizeClassNames(['test1', '', 'test2'])).toEqual(['test1', 'test2']);
+      expect(_normalizeClassNames([null, undefined, 0, false, 'test1'] as unknown as string[]))
         .toEqual(['test1']);
     });
 
     it('should return an empty array for nullish and empty values', () => {
-      expect(normalizeClassNames(undefined)).toEqual([]);
-      expect(normalizeClassNames(null)).toEqual([]);
-      expect(normalizeClassNames('')).toEqual([]);
-      expect(normalizeClassNames([])).toEqual([]);
+      expect(_normalizeClassNames(undefined)).toEqual([]);
+      expect(_normalizeClassNames(null)).toEqual([]);
+      expect(_normalizeClassNames('')).toEqual([]);
+      expect(_normalizeClassNames([])).toEqual([]);
     });
 
     it('should not merge array entries into one comma-joined token (#7427)', () => {
       // The hiding plugins used to coerce the array with `+=`, producing the single class
       // `test,test2`. Normalizing must never reintroduce that.
-      expect(normalizeClassNames(['test', 'test2'])).not.toContain('test,test2');
+      expect(_normalizeClassNames(['test', 'test2'])).not.toContain('test,test2');
     });
 
     it('should produce a value that survives a join/normalize round trip', () => {
       // The hiding plugins normalize, edit, then write back `join(' ')`. Feeding that result back
       // in must be stable, otherwise repeated renders would keep rewriting the cell meta.
-      const once = normalizeClassNames(['test', 'test2']);
+      const once = _normalizeClassNames(['test', 'test2']);
 
-      expect(normalizeClassNames(once.join(' '))).toEqual(once);
+      expect(_normalizeClassNames(once.join(' '))).toEqual(once);
     });
   });
 

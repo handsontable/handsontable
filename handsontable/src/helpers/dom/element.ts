@@ -313,10 +313,12 @@ function filterEmptyClassNames(classNames: string[]) {
  * Normalizes a `className` value to a flat array of non-empty class names.
  * Accepts a space-separated string, an array of strings, or a nullish value.
  *
+ * Underscore-prefixed so `index.ts` keeps it off the public `Handsontable.dom` namespace.
+ *
  * @param {string|string[]|null|undefined} className The `className` value to normalize.
  * @returns {string[]}
  */
-export function normalizeClassNames(className: string | string[] | null | undefined): string[] {
+export function _normalizeClassNames(className: string | string[] | null | undefined): string[] {
   if (Array.isArray(className)) {
     return className.filter(c => typeof c === 'string' && c.length > 0);
   }

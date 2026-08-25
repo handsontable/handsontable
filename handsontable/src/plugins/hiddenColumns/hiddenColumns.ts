@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { addClass, normalizeClassNames } from '../../helpers/dom/element';
+import { addClass, _normalizeClassNames } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
@@ -482,24 +482,35 @@ export class HiddenColumns extends BasePlugin {
     }
 
     // `className` is publicly typed as `string | string[]`, so normalize before touching it.
+    // The normalized form is written back as a string, matching what `numericRenderer` and the
+    // `search` plugin already store. Only write when the value actually changes - this hook runs
+    // on every cell meta read.
     if (this.isHidden(column - 1)) {
-      const classArr = normalizeClassNames(cellProperties.className as string | string[]);
+      const classArr = _normalizeClassNames(cellProperties.className as string | string[]);
 
       if (classArr.indexOf('afterHiddenColumn') === -1) {
         classArr.push('afterHiddenColumn');
       }
 
-      cellProperties.className = classArr.join(' ');
+      const className = classArr.join(' ');
+
+      if (cellProperties.className !== className) {
+        cellProperties.className = className;
+      }
 
     } else if (cellProperties.className) {
-      const classArr = normalizeClassNames(cellProperties.className as string | string[]);
+      const classArr = _normalizeClassNames(cellProperties.className as string | string[]);
       const containAfterHiddenColumn = classArr.indexOf('afterHiddenColumn');
 
       if (containAfterHiddenColumn > -1) {
         classArr.splice(containAfterHiddenColumn, 1);
       }
 
-      cellProperties.className = classArr.join(' ');
+      const className = classArr.join(' ');
+
+      if (cellProperties.className !== className) {
+        cellProperties.className = className;
+      }
     }
   };
 
