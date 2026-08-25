@@ -756,8 +756,15 @@
     // so without opting out, the browser's scroll anchoring treats it as content appearing above the
     // scroll position, nudges the offset to compensate, and emits a scroll event nobody asked for.
     overflow-anchor: none;
-    // Above the master's cells, below the scrollbar the browser paints over everything in here.
-    z-index: 1;
+    // Above the master's cells AND above the selection decorations drawn over them. `.wtHider` and
+    // `.wtSpreader` are positioned but carry no z-index, so they open no stacking context and the
+    // selection's own layers compete directly with this one: border lines 1-6, the moveCells bands
+    // 100, the autofill corner 150, the resize pills 200. At z-index 1 those all won, and a border
+    // painted across the track while the cell it belongs to sat hidden underneath it.
+    // Safe to raise: the cell editor is NOT in this holder - it lives in `.ht-wrapper` alongside it -
+    // so nothing here can cover an open editor. And the scrollbar is not a DOM node; the browser paints
+    // it above the scroller's contents whatever they declare, so the thumb stays visible and grabbable.
+    z-index: 300;
   }
 
   // One band per scrollbar, spanning the whole scrollport so the strip reads as a single track rather
