@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed pasted HTML being able to run scripts, and applied the `sanitizer` option to the surfaces that previously skipped it.",
+  "type": "security",
+  "issueOrPR": 13236,
+  "breaking": false,
+  "framework": "none"
+}
