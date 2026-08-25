@@ -133,7 +133,14 @@ describe('Hook', () => {
 
       await sleep(6000);
 
-      expect(afterRefreshDimensions).toHaveBeenCalledTimes(300);
+      const callsWhenGuardTripped = afterRefreshDimensions.calls.count();
+
+      // The guard warns and disconnects on the 300th successive callback, but every
+      // ResizeObserver invocation already queued at that moment still runs its
+      // `requestAnimationFrame` and is counted, so the exact total depends on how the browser
+      // batched them (a loaded CI runner reaches ~355). What the guard promises is that the cycle
+      // stops, which is what the second sample below checks.
+      expect(callsWhenGuardTripped).toBeGreaterThanOrEqual(300);
       // eslint-disable-next-line no-console
       expect(console.warn).toHaveBeenCalledWith(
         'The ResizeObserver callback was fired too many times in direct succession.' +
@@ -141,6 +148,10 @@ describe('Hook', () => {
         'with the `dvh` units) to a Handsontable container\'s parent. ' +
         '\nThe observer will be disconnected.'
       );
+
+      await sleep(500);
+
+      expect(afterRefreshDimensions.calls.count()).toBe(callsWhenGuardTripped);
 
       destroy();
       $parentContainer.remove();
