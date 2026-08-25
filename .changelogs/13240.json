@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Typed the `sanitizer` option's second argument, so editors complete the write surface you branch on.",
+  "type": "changed",
+  "issueOrPR": 13240,
+  "breaking": false,
+  "framework": "none"
+}
