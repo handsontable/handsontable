@@ -929,9 +929,16 @@ export class CopyPaste extends BasePlugin {
       const clipboardData = event.clipboardData!;
       // `SOURCE_DATA_HTML_MIME_TYPE` is written by Handsontable's own copy handler, but the
       // clipboard is not a trusted channel: any page can set the same type from its own `copy`
-      // handler. Sanitize it exactly like the `text/html` branch below, under the same context.
+      // handler, so it is sanitized like the `text/html` branch below.
+      //
+      // It gets its own context. The sink it feeds is inert (`htmlToGridSettings()` parses through
+      // `DOMParser`), so a sanitizer may pass this payload through without reopening an injection
+      // hole, and passing it through is what keeps object-based source data surviving a strict
+      // sanitizer. Sharing one context would force that choice on everyone and would also run the
+      // sanitizer twice over the same cells on an internal paste, since both clipboard types carry
+      // a full table.
       const sourceDataHTML = sanitizeHTML(
-        this.hot, clipboardData.getData(SOURCE_DATA_HTML_MIME_TYPE) ?? '', 'CopyPaste.paste'
+        this.hot, clipboardData.getData(SOURCE_DATA_HTML_MIME_TYPE) ?? '', 'CopyPaste.paste.sourceData'
       );
 
       if (sourceDataHTML) {

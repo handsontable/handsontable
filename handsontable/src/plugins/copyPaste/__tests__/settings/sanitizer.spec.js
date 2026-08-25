@@ -71,7 +71,7 @@ describe('CopyPaste', () => {
 
       await waitForNextAnimationFrames(2);
 
-      expect(sanitizer).toHaveBeenCalledWith(payload, 'CopyPaste.paste');
+      expect(sanitizer).toHaveBeenCalledWith(payload, 'CopyPaste.paste.sourceData');
       expect(window.__testFunction).not.toHaveBeenCalled();
     });
 
@@ -172,6 +172,42 @@ describe('CopyPaste', () => {
       // The object is gone; only the displayed value survives.
       expect(getSourceDataAtCell(0, 'value')).toBe('B1');
     });
+
+    it('should keep the object-based source data when the sanitizer passes its own context through',
+      async() => {
+        handsontable({
+          data: [{ id: 1, value: 'A1' }, { id: 2, value: 'A2' }],
+          columns: [{ data: 'value', parsePastedValue: true }],
+          copyPaste: true,
+          // The source-data payload feeds an inert parse, so letting it through does not reopen an
+          // injection hole. This is the escape hatch from the degradation asserted above.
+          sanitizer: (content, source) => (source === 'CopyPaste.paste.sourceData' ? content : content
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')),
+        });
+
+        const clipboardEvent = getClipboardEvent();
+        const plugin = getPlugin('CopyPaste');
+
+        clipboardEvent.clipboardData.setData('text/plain', 'B1');
+        clipboardEvent.clipboardData.setData('text/html', [
+          '<meta name="generator" content="Handsontable"/>',
+          '<table><tbody><tr><td>B1</td></tr></tbody></table>',
+        ].join(''));
+        clipboardEvent.clipboardData.setData('application/ht-source-data-json-html', [
+          '<meta name="generator" content="Handsontable"/>',
+          '<table><tbody><tr><td>{"id":9,"value":"B1"}</td></tr></tbody></table>',
+        ].join(''));
+
+        await selectCell(0, 0);
+
+        plugin.onPaste(clipboardEvent);
+
+        await waitForNextAnimationFrames(2);
+
+        expect(getSourceDataAtCell(0, 'value')).toEqual({ id: 9, value: 'B1' });
+      });
 
     it('should not blank the cell below the target when a single Excel cell is pasted and the' +
       ' sanitizer strips the HTML to plain text', async() => {

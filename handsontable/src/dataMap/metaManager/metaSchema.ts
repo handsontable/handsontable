@@ -7319,7 +7319,8 @@ export default (): Record<string, unknown> => {
      * - [context menu](#contextmenu) and [dropdown menu](#dropdownmenu) item labels
      * - [`select`](@/api/options.md#selectoptions) editor options
      * - [dialog](#dialog) and [notification](#notification) content
-     * - HTML pasted from the clipboard
+     * - HTML pasted from the clipboard, and Handsontable's own clipboard payload carrying the source
+     *   data behind copied cells
      *
      * Two surfaces are deliberately excluded, because both exist to render raw markup you supply:
      * the [`html`](@/guides/cell-types/cell-type/cell-type.md) cell type, and
@@ -7327,9 +7328,15 @@ export default (): Record<string, unknown> => {
      * yourself before passing it to the grid.
      *
      * The function receives the raw HTML string and a second argument (source) naming the write surface
-     * (for example `'header'`, `'password'`, `'contextMenu'`, `'selectEditor'`, `'dialog'`,
-     * `'notification'`, `'CopyPaste.paste'`), so you can apply different rules per source. It must return
-     * a string that is safe to assign to `innerHTML`.
+     * (`'header'`, `'password'`, `'contextMenu'`, `'selectEditor'`, `'dialog'`, `'notification'`,
+     * `'CopyPaste.paste'`, `'CopyPaste.paste.sourceData'`), so you can apply different rules per source.
+     * It must return a string that is safe to assign to `innerHTML`.
+     *
+     * `'CopyPaste.paste.sourceData'` carries Handsontable's own clipboard payload, the one that lets an
+     * object-valued cell survive a copy between grids. It is parsed into an inert document, so returning it
+     * unchanged does not expose you to a crafted clipboard, and doing so is what keeps
+     * [`parsePastedValue`](#parsepastedvalue) working under a sanitizer that escapes HTML rather than
+     * stripping it.
      *
      * This option is only respected when set in the table settings. It does not work when defined per column
      * or per cell (e.g. in `columns` or cell meta).

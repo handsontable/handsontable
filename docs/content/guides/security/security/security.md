@@ -78,6 +78,7 @@ A configured sanitizer runs on the HTML that Handsontable writes on your behalf.
 | [Dialog](@/api/dialog.md) content passed as an HTML string | `'dialog'` |
 | [Notification](@/api/notification.md) messages | `'notification'` |
 | HTML pasted from the clipboard | `'CopyPaste.paste'` |
+| Handsontable's own clipboard payload, pasted between grids | `'CopyPaste.paste.sourceData'` |
 
 ### What the sanitizer does not cover
 
@@ -88,7 +89,9 @@ Two surfaces exist to render markup you supply, so the sanitizer is deliberately
 
 Sanitize that content yourself before passing it to the grid. If it comes from users or an external system, treat it exactly as you would any other untrusted HTML.
 
-Two more places take a narrower path than the sanitizer. A `confirm` dialog's `title`, `description`, and button labels always have their tags stripped, so a permissive sanitizer cannot let markup through there. And a sanitizer that escapes HTML rather than stripping it turns the clipboard payload carrying object-based source data into text, so a paste between grids using [`parsePastedValue`](@/api/options.md#parsepastedvalue) writes the displayed value instead of the original object.
+One more place takes a narrower path than the sanitizer: a `confirm` dialog's `title`, `description`, and button labels always have their tags stripped, so a permissive sanitizer cannot let markup through there.
+
+The `'CopyPaste.paste.sourceData'` source is worth a note of its own. It carries Handsontable's own clipboard payload, the one that lets an object-valued cell survive a copy between grids. A sanitizer that escapes HTML rather than stripping it turns that payload into text, and a paste using [`parsePastedValue`](@/api/options.md#parsepastedvalue) then writes the displayed value instead of the original object. You can return that one source unchanged to keep object-based paste working: it is parsed into an inert document that cannot load resources or run scripts, so passing it through does not expose you to a crafted clipboard.
 
 ::: tip
 Header labels are the surface most often overlooked, because they usually come from configuration rather than from data. When a label is built from an API response or from user input, it needs the same treatment as cell content.
