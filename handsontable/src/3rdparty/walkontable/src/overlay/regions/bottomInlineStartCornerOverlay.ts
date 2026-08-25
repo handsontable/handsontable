@@ -105,7 +105,12 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     // Gated on both axes for the same reason as the frozen bottom rows: without a vertical scroll this
     // corner is lifted clear of the horizontal scrollbar anyway.
     const wtViewport = this.deps.getWtViewport();
-    const bottomClearance = axisScrollbarClearance(
+    // Only while this corner is actually painting. Its `clone` exists either way, and unlike its
+    // siblings it still has to be repositioned when it is not rendering (four positioning specs pin
+    // that), so the guard belongs on the clearance rather than on the whole method. Without it the
+    // corner recomputed a live strip on a dead overlay every draw, and went on reporting the bottom
+    // edge as covered - which is what decides whether a band is drawn at all.
+    const bottomClearance = this.needFullRender ? axisScrollbarClearance(
       this.deps.geometryReader,
       this.deps.getWtTable().holder,
       this.deps.geometryReader.getScrollbarWidth(this.deps.rootDocument),
@@ -113,7 +118,7 @@ export class BottomInlineStartCornerOverlay extends Overlay {
       wtViewport.hasHorizontalScroll() && wtViewport.hasVerticalScroll()
         && canGrabScrollbar(this.deps.rootWindow),
       'horizontal'
-    );
+    ) : 0;
 
     overlayRoot.style.height = `${tableHeight}px`;
     overlayRoot.style.width = `${tableWidth}px`;

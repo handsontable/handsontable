@@ -50,7 +50,7 @@ export const OVERLAY_SCROLLBAR_PROXIMITY = 26;
  * parked away, the thumb was gone somewhere between ~650ms and ~960ms across runs - the spread is the
  * measurement's own latency, so the number here covers the whole range rather than the middle of it.
  * Undershooting is the visible defect: the track is pulled out from under a scrollbar still on screen.
- * Overshooting is not, because the fade-out below means the tail is a fade rather than a stale block.
+ * Overshooting only leaves the track up a little longer than the thumb, which reads as ordinary.
  */
 export const OVERLAY_SCROLLBAR_FADE_DELAY = 1000;
 
@@ -75,9 +75,10 @@ export const OVERLAY_SCROLLBAR_FILLER_HOST_CLASS = 'htScrollbarClearanceFillers'
 export const OVERLAY_SCROLLBAR_FILLER_CLASS = 'htScrollbarClearanceFiller';
 
 /**
- * Stamped on the band host while the scrollbar is on screen, so the bands fade in and out with it
- * instead of blinking. Kept separate from the sizing so the transition is already in place before the
- * first open.
+ * Stamped on the band host while the scrollbar is on screen. Kept separate from the sizing, so the
+ * bands can be positioned before anything is shown. Deliberately not a transition - see the stylesheet:
+ * the band is drawn under the clones, so any partial opacity is a visible defect at one end or the
+ * other.
  */
 export const OVERLAY_SCROLLBAR_FILLER_OPEN_CLASS = 'htScrollbarClearanceFillersOpen';
 
