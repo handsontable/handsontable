@@ -570,7 +570,11 @@ export function fastInnerHTML(
     let sanitized: string;
 
     if (typeof sanitizer === 'function') {
-      sanitized = sanitizer(content, context);
+      // `?? ''` rather than `?? content`: a sanitizer that returns nothing for input it strips
+      // entirely must not have the raw input written back, which would undo the sanitizing. The
+      // declared return type is `string`, but JavaScript callers are not held to it, and without
+      // this guard the literal word "undefined" reaches the DOM.
+      sanitized = sanitizer(content, context) ?? '';
     } else {
       // `false` means the caller renders raw HTML deliberately (for example, the `html` cell type).
       // Any other non-function value (the default `true`) is an implicit raw write, so nudge once

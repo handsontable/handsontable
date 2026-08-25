@@ -42,17 +42,20 @@ export function getSanitizer(hot: HotInstance): boolean | SanitizerFn {
  * @returns {string} The sanitized string, or the input unchanged when no sanitizer is configured.
  */
 export function sanitizeHTML(hot: HotInstance, html: string, context: string): string {
-  if (!HTML_CHARACTERS.test(html)) {
-    return html;
-  }
-
   const { sanitizer } = hot.getSettings();
 
+  // A configured sanitizer sees every payload, markup or not. Both callers behaved that way before
+  // this helper existed, and a sanitizer is not always an XSS filter - it may cap length, normalize
+  // whitespace, or record an audit entry, none of which it can do for input it never receives.
   if (typeof sanitizer === 'function') {
-    return sanitizer(html, context);
+    return sanitizer(html, context) ?? '';
   }
 
-  warnOnce(hot.rootElement, SANITIZER_WARN_KEY, missingSanitizerMessage(context));
+  // The warning is the only part gated on markup: plain text cannot inject anything, so warning
+  // about it would be noise on every grid that writes an ordinary label.
+  if (HTML_CHARACTERS.test(html)) {
+    warnOnce(hot.rootElement, SANITIZER_WARN_KEY, missingSanitizerMessage(context));
+  }
 
   return html;
 }

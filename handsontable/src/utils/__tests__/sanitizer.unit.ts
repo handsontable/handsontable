@@ -33,11 +33,21 @@ describe('sanitizer', () => {
   });
 
   describe('.sanitizeHTML', () => {
-    it('should return plain text unchanged without calling the sanitizer', () => {
-      const sanitizer = jasmine.createSpy('sanitizer');
+    it('should pass plain text to a configured sanitizer as well', () => {
+      // A sanitizer is not always an XSS filter. Both call sites passed every payload through
+      // before this helper existed, so skipping plain text would silently narrow the contract.
+      const sanitizer = jasmine.createSpy('sanitizer').and.returnValue('clean');
 
-      expect(sanitizeHTML(createHot({ sanitizer }), 'plain text', 'header')).toBe('plain text');
-      expect(sanitizer).not.toHaveBeenCalled();
+      expect(sanitizeHTML(createHot({ sanitizer }), 'plain text', 'header')).toBe('clean');
+      expect(sanitizer).toHaveBeenCalledWith('plain text', 'header');
+    });
+
+    it('should return an empty string when the sanitizer returns nothing', () => {
+      // Returning the raw input instead would undo the sanitizing; writing `undefined` would put
+      // the literal word into the DOM.
+      const sanitizer = () => undefined;
+
+      expect(sanitizeHTML(createHot({ sanitizer }), '<b>x</b>', 'header')).toBe('');
     });
 
     it('should not warn for plain text when no sanitizer is configured', () => {
