@@ -126,8 +126,15 @@ export class AutoRowHeaderSize extends BasePlugin {
       return false;
     }
 
-    return { value: this.hot.getRowHeader(row) };
+    return { value: this.#readLabel(row) };
   });
+  /**
+   * Reads the label of the level currently being sampled. Swapped per level by `#measureAllLevels`,
+   * because each row header draws its own text and has to be bucketed by its own lengths.
+   *
+   * @type {Function}
+   */
+  #readLabel: (visualRow: number) => unknown = visualRow => this.hot.getRowHeader(visualRow);
   /**
    * The last measured width of each row header level, or `null` when a measurement is due.
    *
@@ -135,12 +142,16 @@ export class AutoRowHeaderSize extends BasePlugin {
    */
   #cachedWidths: number[] | null = null;
   /**
-   * The row count the cached widths were measured against. A different count means the set of
-   * labels may have changed, so the cache no longer holds.
+   * The row counts the cached widths were measured against, as `visible,rendered`.
    *
-   * @type {number}
+   * Both halves are needed. The visible count catches rows being added, removed or trimmed. The
+   * rendered count catches rows being hidden and shown again, which leaves the visible count
+   * untouched - so without it a label that was hidden during the first measurement would stay
+   * unmeasured after it reappears, and its header would keep clipping.
+   *
+   * @type {string}
    */
-  #cachedRowCount = -1;
+  #cachedRowCounts = '';
 
   /**
    * Checks if the plugin is enabled in the handsontable settings.
@@ -234,7 +245,7 @@ export class AutoRowHeaderSize extends BasePlugin {
    */
   clearCache(): void {
     this.#cachedWidths = null;
-    this.#cachedRowCount = -1;
+    this.#cachedRowCounts = '';
   }
 
   /**
@@ -252,12 +263,21 @@ export class AutoRowHeaderSize extends BasePlugin {
    * @returns {number[]}
    */
   #getMeasuredWidths(): number[] {
-    if (this.#cachedWidths === null || this.#cachedRowCount !== this.hot.countRows()) {
+    if (this.#cachedWidths === null || this.#cachedRowCounts !== this.#getRowCountsKey()) {
       this.#cachedWidths = this.#measureAllLevels();
-      this.#cachedRowCount = this.hot.countRows();
+      this.#cachedRowCounts = this.#getRowCountsKey();
     }
 
     return this.#cachedWidths;
+  }
+
+  /**
+   * Returns the row counts the cache is keyed on.
+   *
+   * @returns {string}
+   */
+  #getRowCountsKey(): string {
+    return `${this.hot.countRows()},${this.hot.rowIndexMapper.getRenderableIndexesLength()}`;
   }
 
   /**
@@ -293,14 +313,47 @@ export class AutoRowHeaderSize extends BasePlugin {
    * @returns {number[]} One width per level, in order from the grid's edge.
    */
   #measureAllLevels(): number[] {
-    const samples = this.#generateSamples();
     const renderers = this.#collectRenderers();
 
-    if (samples === null || renderers.length === 0) {
-      return [];
-    }
+    return renderers.map((renderer, headerLevel) => {
+      // Each level is bucketed by the labels IT draws. Sampling every level by the first one's
+      // labels would skip the row carrying a later level's longest label, leaving that level narrow.
+      this.#readLabel = headerLevel === 0
+        ? visualRow => this.hot.getRowHeader(visualRow)
+        : visualRow => this.#readRenderedLabel(renderer, visualRow);
 
-    return renderers.map((renderer, headerLevel) => this.#measureLevel(samples, renderer, headerLevel));
+      const samples = this.#generateSamples();
+
+      return samples === null ? 0 : this.#measureLevel(samples, renderer, headerLevel);
+    });
+  }
+
+  /**
+   * Reads the text one renderer draws for one row, without laying anything out.
+   *
+   * The cell is never inserted into the document, so this costs a renderer call and no reflow - the
+   * same trade the first level gets for free from `getRowHeader`.
+   *
+   * @param {Function} renderer The renderer that fills a header cell of this level.
+   * @param {number} visualRow The row to read.
+   * @returns {string}
+   */
+  #readRenderedLabel(renderer: RowHeaderRenderer, visualRow: number): string {
+    const th = this.hot.rootDocument.createElement('th');
+
+    renderer(this.#toRenderableRow(visualRow), th);
+
+    return th.textContent ?? '';
+  }
+
+  /**
+   * Translates a visual row into the renderable index the row header renderers are called with.
+   *
+   * @param {number} visualRow The row to translate.
+   * @returns {number}
+   */
+  #toRenderableRow(visualRow: number): number {
+    return this.hot.rowIndexMapper.getRenderableFromVisualIndex(visualRow) ?? visualRow;
   }
 
   /**
@@ -343,9 +396,7 @@ export class AutoRowHeaderSize extends BasePlugin {
       // gets a copy, never the generator's own map.
       this.#ghostTable.addRowHeadersColumn(new Map(samples), headerLevel, (visualRow, TH) => {
         // The renderers are called by the draw with renderable indexes, so they get one here too.
-        const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(visualRow);
-
-        renderer(renderableRow ?? visualRow, TH);
+        renderer(this.#toRenderableRow(visualRow), TH);
       });
       this.#ghostTable.getWidths((_column: number, measuredWidth: number) => {
         width = Math.max(width, measuredWidth);

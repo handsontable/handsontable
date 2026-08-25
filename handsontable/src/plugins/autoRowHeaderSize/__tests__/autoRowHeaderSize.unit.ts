@@ -419,4 +419,109 @@ describe('AutoRowHeaderSize', () => {
       hot.destroy();
     });
   });
+  describe('per-level sampling', () => {
+    /**
+     * Builds a grid whose FIRST row header is the default numbering, and whose SECOND one carries a
+     * much longer label on a row the first one's sampling would never pick.
+     *
+     * @returns {object} The instance, plus the rows the ghost table really measured for level two.
+     */
+    function buildUnevenLevels() {
+      const measuredRows: number[] = [];
+      const hot = new Handsontable(document.createElement('div'), {
+        data: Array.from({ length: 100 }, (_, i) => [i]),
+        // Level one reads "1".."100", so bucketing by label length picks only rows near 0, 9 and 99.
+        rowHeaders: true,
+        autoRowHeaderSize: true,
+        licenseKey: 'non-commercial-and-evaluation',
+        afterGetRowHeaderRenderers: (renderers: Array<(row: number, TH: HTMLElement) => void>) => {
+          renderers.push((renderableRow: number, TH: HTMLElement) => {
+            // Only the ghost table stamps this attribute, so this counts real measurements and not
+            // the cheap label read that chooses the samples.
+            if (TH.getAttribute('ghost-table') === '1') {
+              measuredRows.push(renderableRow);
+            }
+
+            TH.textContent = renderableRow === 50
+              ? 'A considerably longer second level label'
+              : `L${renderableRow}`;
+          });
+
+          return renderers;
+        },
+      });
+
+      return { hot, measuredRows };
+    }
+
+    it('should measure the row carrying a level\'s own longest label', () => {
+      const { hot, measuredRows } = buildUnevenLevels();
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+
+      plugin.clearCache();
+      measuredRows.length = 0;
+      plugin.getRowHeaderWidths();
+
+      // Sampling by the FIRST header's labels never picks row 50, so the second header would be
+      // measured without its widest label and would come out too narrow.
+      expect(measuredRows).toContain(50);
+
+      hot.destroy();
+    });
+  });
+  describe('hidden rows', () => {
+    /**
+     * Builds a grid where only one row carries a long label, and registers a hiding map so that row
+     * can be hidden and shown without changing the visual row count.
+     *
+     * @returns {object}
+     */
+    function buildWithHidableLongLabel() {
+      const labels = Array.from({ length: 20 }, (_, i) => (i === 5 ? 'A very long row label here' : `R${i}`));
+      const hot = new Handsontable(document.createElement('div'), {
+        data: Array.from({ length: 20 }, (_, i) => [i]),
+        rowHeaders: labels,
+        autoRowHeaderSize: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      const hidingMap = hot.rowIndexMapper.createAndRegisterIndexMap('test-hide', 'hiding', false);
+
+      return { hot, hidingMap };
+    }
+
+    it('should measure again after a row is shown, even though the row count did not change', () => {
+      const { hot, hidingMap } = buildWithHidableLongLabel();
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+
+      hidingMap.setValueAtIndex(5, true);
+      hot.render();
+      plugin.clearCache();
+
+      const readsWhileHidden: number[] = [];
+      const original = hot.getRowHeader;
+
+      // Hiding does not change countRows(), so the cache key alone would never notice the change.
+      hot.getRowHeader = ((row: number) => {
+        readsWhileHidden.push(row);
+
+        return original.call(hot, row);
+      }) as typeof hot.getRowHeader;
+
+      plugin.getRowHeaderWidths();
+
+      expect(readsWhileHidden).not.toContain(5);
+
+      hidingMap.setValueAtIndex(5, false);
+      hot.render();
+
+      readsWhileHidden.length = 0;
+      plugin.getRowHeaderWidths();
+
+      // The long label is visible again, so it has to be measured again.
+      expect(readsWhileHidden).toContain(5);
+
+      hot.getRowHeader = original;
+      hot.destroy();
+    });
+  });
 });
