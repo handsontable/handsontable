@@ -181,6 +181,41 @@ export function overlayScrollbarClearance(
 }
 
 /**
+ * The clearance one axis needs, reading the holder's gutter only when it could change the answer.
+ *
+ * `reservedScrollbarSpace` forces a layout read per call, and there are five call sites across the
+ * coordinator and the region files, on the draw path. Passing it as an argument evaluated it every
+ * time, including on classic-scrollbar systems where the cheap `scrollbarWidth` test already settles
+ * the question - so the reads happened precisely where the answer was known in advance. Ordering the
+ * checks by cost keeps a classic-scrollbar grid paying nothing but a cached lookup.
+ *
+ * @param {GeometryReader} geometryReader The geometry reader.
+ * @param {HTMLElement} holder The master overlay's holder.
+ * @param {number} scrollbarWidth The measured scrollbar width, from `getScrollbarWidth()` (cached).
+ * @param {boolean} axisScrolls Whether the axis this overlay would cover actually scrolls.
+ * @param {'vertical' | 'horizontal'} axis Which scrollbar's gutter settles it.
+ * @returns {number} The strip to keep clear, in pixels, or 0 when none is needed.
+ */
+export function axisScrollbarClearance(
+  geometryReader: GeometryReader,
+  holder: HTMLElement,
+  scrollbarWidth: number,
+  axisScrolls: boolean,
+  axis: 'vertical' | 'horizontal'
+): number {
+  // Both cheap: a boolean, and a value `getScrollbarWidth` caches after its first call.
+  if (!axisScrolls || scrollbarWidth !== 0) {
+    return 0;
+  }
+
+  return overlayScrollbarClearance(
+    scrollbarWidth,
+    axisScrolls,
+    reservedScrollbarSpace(geometryReader, holder, axis)
+  );
+}
+
+/**
  * The space a scroller actually gives up to its own scrollbar on one axis, in pixels.
  *
  * Zero means the scrollbar is painted over the content and the clearance is needed; anything above zero

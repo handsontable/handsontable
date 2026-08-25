@@ -9,10 +9,9 @@ import BottomOverlayTable from '../../table/regions/bottomTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
   applyOverlayScrollbarClearance,
+  axisScrollbarClearance,
   canGrabScrollbar,
-  overlayScrollbarClearance,
   overlayWidthBesideScrollbar,
-  reservedScrollbarSpace,
 } from '../scrollbarClearance';
 import {
   CLONE_BOTTOM,
@@ -234,10 +233,12 @@ export class BottomOverlay extends Overlay {
     const clearanceApplies = rootSized && !anchoredToWindow && canGrabScrollbar(rootWindow);
 
     // The master's vertical scrollbar sits along the inline-end edge this overlay spans.
-    this.#holderClearance = overlayScrollbarClearance(
+    this.#holderClearance = axisScrollbarClearance(
+      this.deps.geometryReader,
+      wtTable.holder,
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
       clearanceApplies && wtViewport.hasVerticalScroll(),
-      reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'vertical')
+      'vertical'
     );
 
     if (rootSized) {
@@ -261,10 +262,12 @@ export class BottomOverlay extends Overlay {
     // This overlay also spans the bottom edge, where the horizontal scrollbar is painted - but only
     // while it actually sits on that edge. Without a vertical scroll `repositionOverlay` lifts it to
     // where the rows end, clear of the scrollbar, so no strip is needed then.
-    this.#bottomClearance = overlayScrollbarClearance(
+    this.#bottomClearance = axisScrollbarClearance(
+      this.deps.geometryReader,
+      wtTable.holder,
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
       clearanceApplies && wtViewport.hasHorizontalScroll() && wtViewport.hasVerticalScroll(),
-      reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'horizontal')
+      'horizontal'
     );
 
     this.clone.wtTable.holder.style.width = overlayRootStyle.width;

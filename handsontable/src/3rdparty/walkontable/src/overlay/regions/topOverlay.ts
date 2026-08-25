@@ -12,10 +12,9 @@ import TopOverlayTable from '../../table/regions/topTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
   applyOverlayScrollbarClearance,
+  axisScrollbarClearance,
   canGrabScrollbar,
-  overlayScrollbarClearance,
   overlayWidthBesideScrollbar,
-  reservedScrollbarSpace,
 } from '../scrollbarClearance';
 import { getCornerStyle } from '../../selection';
 import type { Selection } from '../../selection';
@@ -211,10 +210,12 @@ export class TopOverlay extends Overlay {
     // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
     const clearanceApplies = rootSized && canGrabScrollbar(rootWindow);
 
-    this.#holderClearance = overlayScrollbarClearance(
+    this.#holderClearance = axisScrollbarClearance(
+      this.deps.geometryReader,
+      wtTable.holder,
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
       clearanceApplies && wtViewport.hasVerticalScroll(),
-      reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'vertical')
+      'vertical'
     );
 
     if (rootSized) {

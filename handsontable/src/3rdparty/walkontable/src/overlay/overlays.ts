@@ -21,8 +21,7 @@ import {
   BAND_SWALLOWED_EVENTS,
   canGrabScrollbar,
   isPointInScrollbarBand,
-  overlayScrollbarClearance,
-  reservedScrollbarSpace,
+  axisScrollbarClearance,
   syncScrollbarTrackBands,
   type ScrollbarBandsOpen,
 } from './scrollbarClearance';
@@ -535,6 +534,13 @@ class Overlays {
    * on screen, alongside the pointer nearing it.
    */
   notifyScrolledForScrollbarVisibility(): void {
+    // Nothing downstream can produce a band on a classic-scrollbar system, so a scroll there should not
+    // flip state, schedule a timer per axis and run two no-op refresh passes. `getScrollbarWidth`
+    // caches after its first call, so this costs a lookup on a path that fires on every scroll.
+    if (this.#deps.geometryReader.getScrollbarWidth(this.#deps.rootDocument) !== 0) {
+      return;
+    }
+
     this.#scrollbarVisibility.notifyScrolled();
   }
 
@@ -759,16 +765,12 @@ class Overlays {
     const covers = (edge: 'bottom' | 'inlineEnd') =>
       this.#overlays.some(overlay => overlay.coversScrollbarEdge?.(edge));
     const bottom = holderScrolls && covers('bottom')
-      ? overlayScrollbarClearance(
-        scrollbarWidth,
-        wtViewport.hasHorizontalScroll(),
-        reservedScrollbarSpace(geometryReader, holder, 'horizontal')
+      ? axisScrollbarClearance(
+        geometryReader, holder, scrollbarWidth, wtViewport.hasHorizontalScroll(), 'horizontal'
       ) : 0;
     const inlineEnd = holderScrolls && covers('inlineEnd')
-      ? overlayScrollbarClearance(
-        scrollbarWidth,
-        wtViewport.hasVerticalScroll(),
-        reservedScrollbarSpace(geometryReader, holder, 'vertical')
+      ? axisScrollbarClearance(
+        geometryReader, holder, scrollbarWidth, wtViewport.hasVerticalScroll(), 'vertical'
       ) : 0;
 
     const visible = this.#scrollbarVisibility.visible;

@@ -1,5 +1,6 @@
 import {
   applyOverlayScrollbarClearance,
+  axisScrollbarClearance,
   canGrabScrollbar,
   clearanceClipPath,
   isPointInScrollbarBand,
@@ -59,6 +60,80 @@ describe('overlay scrollbar clearance', () => {
     it('should report nothing when there is no holder yet', () => {
       expect(reservedScrollbarSpace(reader({ ow: 700, cw: 685, oh: 340, ch: 340 }), null as never, 'vertical'))
         .toBe(0);
+    });
+  });
+
+  describe('axisScrollbarClearance', () => {
+    // Counts the layout-forcing reads, which is the whole point of the wrapper.
+    const countingReader = (box = { ow: 700, cw: 700, oh: 340, ch: 340 }) => {
+      const reads = { count: 0 };
+
+      return {
+        reads,
+        reader: {
+          offsetWidth: () => {
+            reads.count += 1;
+
+            return box.ow;
+          },
+          clientWidth: () => {
+            reads.count += 1;
+
+            return box.cw;
+          },
+          offsetHeight: () => {
+            reads.count += 1;
+
+            return box.oh;
+          },
+          clientHeight: () => {
+            reads.count += 1;
+
+            return box.ch;
+          },
+        } as never,
+      };
+    };
+    const holder = {} as HTMLElement;
+
+    it('should not touch the DOM when the axis does not scroll', () => {
+      const { reader, reads } = countingReader();
+
+      expect(axisScrollbarClearance(reader, holder, 0, false, 'vertical')).toBe(0);
+      expect(reads.count).toBe(0);
+    });
+
+    it('should not touch the DOM on a classic-scrollbar system', () => {
+      // The common case on Windows and Linux, and on macOS set to "Always". The cheap check settles
+      // it, so the gutter reads must not run - they were costing a forced layout per draw per overlay.
+      const { reader, reads } = countingReader();
+
+      expect(axisScrollbarClearance(reader, holder, 15, true, 'vertical')).toBe(0);
+      expect(reads.count).toBe(0);
+    });
+
+    it('should read the gutter only when the cheap checks cannot settle it', () => {
+      const { reader, reads } = countingReader();
+
+      expect(axisScrollbarClearance(reader, holder, 0, true, 'vertical'))
+        .toBe(OVERLAY_SCROLLBAR_CLEARANCE);
+      // One pair of reads for the one axis asked about.
+      expect(reads.count).toBe(2);
+    });
+
+    it('should still defer to the holder when it reserves space despite a 0 probe', () => {
+      const { reader } = countingReader({ ow: 700, cw: 685, oh: 340, ch: 340 });
+
+      expect(axisScrollbarClearance(reader, holder, 0, true, 'vertical')).toBe(0);
+    });
+
+    it('should read the matching axis, so a horizontal gutter cannot settle the vertical one', () => {
+      // Only the height differs here: a horizontal scrollbar. The vertical axis must ignore it.
+      const { reader } = countingReader({ ow: 700, cw: 700, oh: 340, ch: 325 });
+
+      expect(axisScrollbarClearance(reader, holder, 0, true, 'vertical'))
+        .toBe(OVERLAY_SCROLLBAR_CLEARANCE);
+      expect(axisScrollbarClearance(reader, holder, 0, true, 'horizontal')).toBe(0);
     });
   });
 

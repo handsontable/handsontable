@@ -6,8 +6,7 @@ import BottomInlineStartCornerOverlayTable from '../../table/regions/bottomInlin
 import { Overlay, type OverlayDeps } from './_base';
 import {
   canGrabScrollbar,
-  overlayScrollbarClearance,
-  reservedScrollbarSpace,
+  axisScrollbarClearance,
 } from '../scrollbarClearance';
 import {
   CLONE_BOTTOM_INLINE_START_CORNER,
@@ -106,14 +105,14 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     // Gated on both axes for the same reason as the frozen bottom rows: without a vertical scroll this
     // corner is lifted clear of the horizontal scrollbar anyway.
     const wtViewport = this.deps.getWtViewport();
-    const bottomClearance = overlayScrollbarClearance(
+    const bottomClearance = axisScrollbarClearance(
+      this.deps.geometryReader,
+      this.deps.getWtTable().holder,
       this.deps.geometryReader.getScrollbarWidth(this.deps.rootDocument),
       // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
       wtViewport.hasHorizontalScroll() && wtViewport.hasVerticalScroll()
         && canGrabScrollbar(this.deps.rootWindow),
-      reservedScrollbarSpace(
-        this.deps.geometryReader, this.deps.getWtTable().holder, 'horizontal'
-      )
+      'horizontal'
     );
 
     overlayRoot.style.height = `${tableHeight}px`;

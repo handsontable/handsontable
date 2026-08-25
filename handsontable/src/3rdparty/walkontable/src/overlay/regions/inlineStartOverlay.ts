@@ -16,8 +16,7 @@ import {
 import {
   applyOverlayScrollbarClearance,
   canGrabScrollbar,
-  overlayScrollbarClearance,
-  reservedScrollbarSpace,
+  axisScrollbarClearance,
 } from '../scrollbarClearance';
 import { throwWithCause } from '../../../../../helpers/errors';
 
@@ -200,10 +199,12 @@ export class InlineStartOverlay extends Overlay {
     // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
     const clearanceApplies = rootSized && canGrabScrollbar(rootWindow);
 
-    this.#holderClearance = overlayScrollbarClearance(
+    this.#holderClearance = axisScrollbarClearance(
+      this.deps.geometryReader,
+      wtTable.holder,
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
       clearanceApplies && wtViewport.hasHorizontalScroll(),
-      reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'horizontal')
+      'horizontal'
     );
 
     if (rootSized) {
