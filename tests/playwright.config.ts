@@ -1,6 +1,17 @@
 import { defineConfig, devices } from '@playwright/test';
 import type { TestOptions } from './fixtures/test';
 
+// `reuseExistingServer` attaches to whatever already listens on this port. Two
+// checkouts (a worktree and the main clone) on the default port therefore share
+// ONE server, and the second one silently tests the first one's build. Set
+// `HOT_TEST_PORT` to run them side by side.
+//
+// Namespaced on purpose. `PORT` is a conventional name that shells and tools
+// already export for unrelated reasons, and this config would otherwise retarget
+// itself for anyone who happens to have it set. The port is passed explicitly to
+// the server below, so the two always agree whatever the ambient environment says.
+const PORT = Number(process.env.HOT_TEST_PORT) || 8123;
+
 /**
  * One Playwright config for the whole package. Functional E2E lives in `e2e/`,
  * visual regression in `visual/` (populated during the visual milestone). The
@@ -49,7 +60,7 @@ export default defineConfig<TestOptions>({
   // sharded runs, which this suite does not use.
   reporter: process.env.CI ? [['html', { open: 'never' }], ['github']] : 'html',
   use: {
-    baseURL: 'http://localhost:8123',
+    baseURL: `http://localhost:${PORT}`,
     trace: 'on-first-retry',
     video: 'on-first-retry',
   },
@@ -57,7 +68,10 @@ export default defineConfig<TestOptions>({
   // dist and styles. cwd defaults to this config's directory (`tests/`).
   webServer: {
     command: 'node support/static-server.mjs',
-    port: 8123,
+    port: PORT,
+    // static-server.mjs reads PORT. Passing it explicitly keeps the server and
+    // the config on the same port even when the surrounding shell exports its own.
+    env: { PORT: String(PORT) },
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
   },
