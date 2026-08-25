@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `dialog` plugin interpolating an unvalidated `template.id` into the dialog's `id` attribute, and made an unrecognized button `type` fall back to `secondary` at render time in the `dialog`, `emptyDataState`, and `notification` plugins.",
+  "type": "security",
+  "issueOrPR": 13242,
+  "breaking": false,
+  "framework": "none"
+}
