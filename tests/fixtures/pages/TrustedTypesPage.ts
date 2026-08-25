@@ -76,13 +76,18 @@ export class TrustedTypesPage {
   /**
    * Assert the page raised no CSP violation at all.
    *
-   * Failure output names the sinks rather than a bare count, because "1 violation"
-   * is not actionable and the sample is the only part that identifies the writer.
+   * Failure output names the sinks rather than a bare count, because "1 violation" is not
+   * actionable and the `sample` is the only part that identifies the writer.
+   *
+   * Read once rather than polled: a negative assertion passes on the first read, so polling
+   * would add no settling time and would only make the check look stronger than it is. The
+   * caller supplies the sync point — `goto()` waits for the construction outcome, and the
+   * interaction tests await their status assertion first.
    */
   async expectNoViolations(): Promise<void> {
-    await expect
-      .poll(async () => (await this.violations()).map(v => `${v.directive} | ${v.sample}`))
-      .toEqual([]);
+    const violations = await this.violations();
+
+    expect(violations.map(v => `${v.directive} | ${v.sample}`)).toEqual([]);
   }
 
   /** A single data cell, addressed the way the master overlay renders it. */

@@ -596,6 +596,16 @@ export function fastInnerHTML(
       sanitized = content;
     }
 
+    if (sanitized === '') {
+      // A sanitizer that stripped the payload entirely leaves nothing to write. Clearing the
+      // element is not the same as assigning `''` to `innerHTML`: that is a Trusted Types sink
+      // whatever the value, so under `require-trusted-types-for 'script'` the empty string throws
+      // and a stripped cell takes the grid down instead of rendering blank.
+      empty(element);
+
+      return;
+    }
+
     // The sanitizer's value reaches the sink exactly as returned. A page enforcing Trusted Types
     // hands back a `TrustedHTML`, which the sink accepts and a plain string is rejected in place
     // of - so this must never coerce, concatenate, or re-test the value. The cast is only for the

@@ -13,14 +13,9 @@ import { TrustedTypesPage } from '../fixtures/pages/TrustedTypesPage';
  * policy. Handsontable therefore has to work here by not producing HTML strings,
  * which is the direction chosen for this task: support the API, do not implement it.
  *
- * These tests fail on the current code. Each one turns green as its class of sink is
- * eliminated, so they double as the plan's progress check:
- *
- *   * the ghost table, dialogs, and the license bar are sinks that build markup as a
- *     string (`nestedHeaders/utils/ghostTable.ts`, `helpers/templateLiteralTag.ts`,
- *     `helpers/mixed.ts`);
- *   * `innerHTML = ''` is a sink too, so clearing an element throws as readily as
- *     writing to one.
+ * Each test covers a surface that used to build its markup as a string: the nested-header
+ * ghost table, the dialog templates, and the license branding bar. Clearing an element
+ * counted too, because `innerHTML = ''` is a sink whatever the value.
  */
 test.describe('Trusted Types enforcement', () => {
   let grid: TrustedTypesPage;
@@ -44,10 +39,9 @@ test.describe('Trusted Types enforcement', () => {
   test('raises no CSP violation while constructing', async () => {
     await grid.goto();
 
-    // Distinct from the assertion above on purpose. A grid can construct while still
-    // tripping the policy — a violation that a `try`/`catch` swallowed, or one raised
-    // by an asynchronous render after the constructor returned — and that is exactly
-    // the "it works on my machine" state this task exists to end.
+    // Distinct from the assertion above on purpose: a grid can construct while still tripping
+    // the policy, if something swallowed the violation in a `try`/`catch`. The grid has finished
+    // its first render by the time `goto()` returns, which is the point this reads.
     await grid.expectNoViolations();
   });
 

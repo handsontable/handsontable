@@ -1,5 +1,8 @@
 import type { HotInstance } from '../core/types';
 import { isEmpty } from './../helpers/mixed';
+import { decodeHtmlEntities } from '../helpers/string';
+import { fastInnerHTML } from '../helpers/dom/element';
+import { getSanitizer } from './sanitizer';
 
 const ESCAPED_HTML_CHARS: Record<string, string> = {
   '&nbsp;': '\x20',
@@ -140,13 +143,31 @@ export function instanceToTableElement(instance: HotInstance, rootDocument: Docu
   const tbody = rootDocument.createElement('tbody');
 
   /**
+   * Writes a header value, preserving any markup it carries.
+   *
+   * @param {HTMLElement} cell The header cell to fill.
+   * @param {*} headerValue The header value.
+   */
+  const appendHeader = (cell: HTMLElement, headerValue: unknown) => {
+    fastInnerHTML(cell, String(headerValue), getSanitizer(instance), 'header', instance.rootElement);
+  };
+
+  /**
    * Writes a cell value as text and `<br>` nodes, mirroring the encoder's output.
    *
    * @param {HTMLElement} cell The cell to fill.
    * @param {*} cellData The raw cell value.
    */
   const appendCellValue = (cell: HTMLElement, cellData: unknown) => {
-    const encode = (text: string) => text.replaceAll('\x20', '\xA0').replaceAll('\t', '\t');
+    // Reproduces, in order, what the string form did and what parsing it then undid. Spaces were
+    // encoded as `&nbsp;` BEFORE parsing, so a space already written as `&#32;` stayed an ordinary
+    // space - which is why the substitution runs before decoding, not after. A lone carriage return
+    // was left alone by the encoder and normalized to a newline by the parser; that too happens
+    // before decoding, because the parser normalizes newlines before it resolves references.
+    // Tabs need no substitution: the encoder wrote `&#9;` and the parser turned it straight back.
+    const encode = (text: string) => decodeHtmlEntities(
+      text.replaceAll('\x20', '\xA0').replaceAll('\r', '\n')
+    );
 
     String(cellData).split(/\r\n|\n/).forEach((line, index) => {
       if (index > 0) {
@@ -170,13 +191,18 @@ export function instanceToTableElement(instance: HotInstance, rootDocument: Docu
       if (isColumnHeadersRow) {
         const th = rootDocument.createElement('th');
 
-        th.textContent = String(instance.getColHeader(column - rowModifier));
+        // Headers may legitimately carry markup - `colHeaders: ['<b>ID</b>']` is a documented
+        // pattern - and the string form interpolated them raw, so the parsed table contained real
+        // elements. Writing `textContent` here would render the tags as literal text instead.
+        // `fastInnerHTML` keeps that markup and routes it through the configured sanitizer under
+        // the `'header'` context, the same way the grid renders the header itself.
+        appendHeader(th, instance.getColHeader(column - rowModifier));
         tr.appendChild(th);
 
       } else if (isRowHeadersColumn) {
         const th = rootDocument.createElement('th');
 
-        th.textContent = String(instance.getRowHeader(row - columnModifier));
+        appendHeader(th, instance.getRowHeader(row - columnModifier));
         tr.appendChild(th);
 
       } else {
@@ -410,9 +436,12 @@ export function htmlToGridSettings(
       (typeof checkElement === 'string' || !(checkElement as Node).nodeType)) {
     // Use replaceTdCellsWithTextContent so nested <td> (e.g. Excel shape cells) are matched
     // correctly. Skipped when the caller normalized already - see `options.normalize`.
-    const normalizedHTML = options.normalize === false
+    // Only a string can be normalized. `replaceTdCellsWithTextContent()` walks `html.length`, and a
+    // `TrustedHTML` has none, so it would silently return an empty string and the parse would find
+    // no table at all.
+    const normalizedHTML = options.normalize === false || typeof checkElement !== 'string'
       ? checkElement as string
-      : replaceTdCellsWithTextContent(checkElement as string);
+      : replaceTdCellsWithTextContent(checkElement);
 
     // `DOMParser` builds a document with no browsing context, so reading the pasted markup cannot
     // run any of it: no image fetch, no `onerror`, no script. Writing the same string into a

@@ -4,7 +4,7 @@ import { htmlToPlainText } from '../../../helpers/string';
 import { buildTemplate, type TemplateSpec } from '../../../helpers/dom/template';
 
 /**
- * The `confirmTemplate` function returns a HTML string with the confirm template.
+ * The `confirmTemplate` function returns the confirm dialog template.
  *
  * @param {object} vars The variables to use for the template.
  * @param {string} vars.id The ID of the confirm.
@@ -14,7 +14,7 @@ import { buildTemplate, type TemplateSpec } from '../../../helpers/dom/template'
  *   - `text`: The text of the button.
  *   - `type`: The type of the button ('primary' | 'secondary').
  *   - `callback`: The callback to trigger when the button is clicked.
- * @returns {string} HTML string with the confirm template.
+ * @returns {object} The template.
  */
 export function confirmTemplate({ id = '', title = '', description = '', buttons = [] }: {
   id?: string, title?: string, description?: string,

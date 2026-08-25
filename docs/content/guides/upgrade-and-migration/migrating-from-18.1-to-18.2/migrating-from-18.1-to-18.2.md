@@ -109,6 +109,21 @@ Leaving it sanitized is also fine if none of your columns parse pasted values, a
 
 Pasted HTML now reaches your `sanitizer` after Handsontable normalizes it, rather than before. The normalization flattens the contents of each `<td>` to text, which is what lets a paste carrying nested cells arrive with its structure intact.
 
-Your sanitizer now sees the markup the parser will actually read, instead of a version Handsontable rewrote afterwards. A sanitizer that filters markup is unaffected, and the pasted result is unchanged. Check this only if yours inspects the structure of pasted HTML, for example by counting elements or matching on nested tags.
+Your sanitizer now sees the markup the parser will actually read, instead of a version Handsontable rewrote afterwards. A sanitizer that only removes markup, such as DOMPurify, is unaffected and the pasted result is unchanged.
+
+Two kinds of sanitizer can notice the difference:
+
+- One that **inspects** the structure of pasted HTML, for example by counting elements or matching on nested tags. It now sees the flattened form.
+- One that **adds** markup inside a cell, for example by wrapping values or turning URLs into links. That markup used to be flattened away after the sanitizer ran, and now survives into the pasted value, so the cell receives the markup rather than the text. If yours does this, restrict it to the pasted-HTML sources or move the transformation elsewhere:
+
+```js
+sanitizer: (content, source) => {
+  if (source.startsWith('CopyPaste.paste')) {
+    return DOMPurify.sanitize(content);
+  }
+
+  return linkify(DOMPurify.sanitize(content));
+},
+```
 
 The reordering is what makes a [Trusted Types](@/guides/security/security/security.md#trusted-types-and-csp) policy usable on the paste path: normalizing rewrites the string, and rewriting a `TrustedHTML` turns it back into an ordinary string that the parser then rejects. Running it first means the value you return is the last thing produced before the parser reads it.

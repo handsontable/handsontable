@@ -104,6 +104,37 @@ const NAMED_ENTITIES: Record<string, string> = {
   quot: '"',
   apos: '\'',
   nbsp: '\xA0',
+  // Punctuation and symbols that turn up in authored UI copy. Without these, a title written as
+  // `Loading&hellip;` displayed the reference itself once these surfaces stopped being parsed.
+  ndash: '\u2013',
+  mdash: '\u2014',
+  hellip: '\u2026',
+  lsquo: '\u2018',
+  rsquo: '\u2019',
+  ldquo: '\u201C',
+  rdquo: '\u201D',
+  laquo: '\xAB',
+  raquo: '\xBB',
+  bull: '\u2022',
+  middot: '\xB7',
+  dagger: '\u2020',
+  copy: '\xA9',
+  reg: '\xAE',
+  trade: '\u2122',
+  deg: '\xB0',
+  plusmn: '\xB1',
+  times: '\xD7',
+  divide: '\xF7',
+  euro: '\u20AC',
+  pound: '\xA3',
+  yen: '\xA5',
+  cent: '\xA2',
+  sect: '\xA7',
+  para: '\xB6',
+  shy: '\xAD',
+  ensp: '\u2002',
+  emsp: '\u2003',
+  thinsp: '\u2009',
 };
 
 /**
@@ -114,9 +145,10 @@ const NAMED_ENTITIES: Record<string, string> = {
  * as `&lt;` displayed as `<`. Those surfaces now build DOM and write through `textContent`, which
  * decodes nothing, so this reproduces that step and keeps what those messages render unchanged.
  *
- * Covers the named references that appear in prose plus decimal and hexadecimal numeric ones. The
- * full HTML entity table is roughly two thousand names, and reproducing it would mean shipping the
- * table; a reference outside this set is left as written.
+ * Covers the named references that appear in authored copy plus decimal and hexadecimal numeric
+ * ones. The full HTML entity table is roughly two thousand names, and reproducing it would mean
+ * shipping the table; a reference outside this set is left as written. Numeric references have no
+ * such limit, so `&#8212;` resolves whether or not `&mdash;` is listed.
  *
  * @param {string} string String to decode.
  * @returns {string}
