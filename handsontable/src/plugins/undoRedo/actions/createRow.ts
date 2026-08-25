@@ -1,6 +1,7 @@
 import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
 import { BaseAction } from './_base';
+import { FIXED_ROW_COUNTS, removeAndKeepFixedCounts } from './fixedCounts';
 
 /**
  * Action that tracks row creation.
@@ -51,7 +52,10 @@ export class CreateRowAction extends BaseAction {
     }
 
     hot.addHookOnce('afterRemoveRow', undoneCallback);
-    hot.alter('remove_row', this.index, this.amount, 'UndoRedo.undo');
+
+    removeAndKeepFixedCounts(hot, FIXED_ROW_COUNTS, () => {
+      hot.alter('remove_row', this.index, this.amount, 'UndoRedo.undo');
+    });
   }
 
   /**

@@ -2,7 +2,7 @@ import { isObject } from '../../helpers/object';
 import { isRightClick } from '../../helpers/dom/event';
 import { eventTargetEl, isBottomMostColumnHeader } from '../../helpers/dom/element';
 import { isEmpty } from '../../helpers/mixed';
-import { parseToLocalDate, parseToLocalTime } from '../../helpers/dateTime';
+import { parseToLocalDate, parseToLocalTime, parseToLocalDateTime } from '../../helpers/dateTime';
 import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from './sortService';
 import { warn } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
@@ -222,6 +222,20 @@ export function createIntlTimeCompareFunction(
   columnPluginSettings: Record<string, unknown>
 ): (value: unknown, nextValue: unknown) => number {
   return createParsingCompareFunction(parseToLocalTime, sortOrder, columnPluginSettings);
+}
+
+/**
+ * Creates a date-time sorting compare function.
+ *
+ * @param {string} sortOrder Sort order (`asc` for ascending, `desc` for descending).
+ * @param {object} columnPluginSettings Plugin settings for the column.
+ * @returns {Function} The compare function.
+ */
+export function createDateTimeCompareFunction(
+  sortOrder: string,
+  columnPluginSettings: Record<string, unknown>
+): (value: unknown, nextValue: unknown) => number {
+  return createParsingCompareFunction(parseToLocalDateTime, sortOrder, columnPluginSettings);
 }
 
 /**

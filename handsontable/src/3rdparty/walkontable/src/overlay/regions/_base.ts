@@ -595,6 +595,15 @@ export abstract class Overlay {
    * Destroy overlay instance.
    */
   destroy() {
+    // Every clone owns its own `Event` instance, and only the master's is reached by
+    // `CoreAbstract#destroy()`. Destroying it here clears the timers the clone armed - the 200 ms
+    // momentum-scroll timer (registered on touch devices), plus the double-click and long-press
+    // ones. Left pending, the momentum timer fires after `Core#destroy()` and calls
+    // `runHooks('afterMomentumScroll')` on a destroyed instance, which throws (issue #13120).
+    if (this.clone instanceof Clone) {
+      this.clone.wtEvent.destroy();
+    }
+
     this.clone?.eventManager.destroy(); // todo check if it is good place for that operation
   }
 }

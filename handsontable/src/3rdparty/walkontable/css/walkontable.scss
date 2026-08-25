@@ -190,6 +190,12 @@ innerBorderBottom - Property controlled by bottom overlay
   cursor: crosshair;
 }
 
+/*
+ * Overlay clone layers. Declared twice — here and in `src/styles/base/_z-index-map.scss`, which also
+ * documents the 101–119 window reserved for selection affordances drawn inside an overlay. Keep the
+ * two lists in sync, and keep every affordance below 120: `.ht_master` opens no stacking context, so
+ * anything at or above that value paints over a frozen pane its cell has scrolled under.
+ */
 .ht_clone_master {
   z-index: 100;
 }

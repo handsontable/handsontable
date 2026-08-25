@@ -1008,7 +1008,7 @@ describe('NumericEditor', () => {
   });
 
   describe('Cell corner is showed properly when changing focused cells #3877', () => {
-    const isFocusedCellDisplayingCornerTest = async function(settings) {
+    const focusedCellCornerDisplay = async function(settings) {
       const moveFromRow = settings.moveFromRow;
       const moveFromCol = settings.moveFromCol;
       const moveToRow = settings.moveToRow;
@@ -1020,7 +1020,7 @@ describe('NumericEditor', () => {
       await selectCell(moveToRow, moveToCol);
       await waitForNextAnimationFrames(2);
 
-      expect($corner.css('display')).toEqual('block');
+      return $corner.css('display');
     };
 
     it('Moving from numeric editor to text editor', async() => {
@@ -1041,13 +1041,13 @@ describe('NumericEditor', () => {
         ]
       });
 
-      await isFocusedCellDisplayingCornerTest({
+      expect(await focusedCellCornerDisplay({
         moveFromRow: 0,
         moveFromCol: 3,
         moveToRow: 0,
         moveToCol: 0,
         $container: spec().$container,
-      });
+      })).toEqual('block');
     });
 
     it('Moving from text editor to numeric editor', async() => {
@@ -1068,13 +1068,13 @@ describe('NumericEditor', () => {
         ]
       });
 
-      await isFocusedCellDisplayingCornerTest({
+      expect(await focusedCellCornerDisplay({
         moveFromRow: 0,
         moveFromCol: 1,
         moveToRow: 0,
         moveToCol: 3,
         $container: spec().$container,
-      });
+      })).toEqual('block');
     });
   });
 

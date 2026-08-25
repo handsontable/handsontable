@@ -1,6 +1,6 @@
 ---
 type: how-to
-title: Legacy Style
+title: Legacy style
 metaTitle: Legacy Style - JavaScript Data Grid | Handsontable
 description: The legacy stylesheet was removed in Handsontable 17.0.0. Learn how to migrate to the Classic theme using the Theme API or CSS imports.
 permalink: /legacy-style

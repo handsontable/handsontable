@@ -131,3 +131,29 @@ export function getFilterDropdownMenuOKButton() {
 export function getFilterDropdownMenuCancelButton() {
   return dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonCancel input');
 }
+
+/**
+ * Unchecks the item with the given label on the "filter by value" list. The list is rendered by a
+ * nested Handsontable instance, so it is virtualized - the search box narrows it down first to make
+ * sure the wanted row is rendered. Searching in the default `show` mode only hides rows, it does not
+ * touch the items' checked state.
+ *
+ * @param {string} label The label of the item to uncheck.
+ */
+export async function uncheckByValueItem(label) {
+  const searchInput = dropdownMenuRootElement().querySelector('.htUIMultipleSelectSearch input');
+
+  searchInput.focus();
+  searchInput.value = label;
+  // The list reloads synchronously, so no wait is needed here.
+  searchInput.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+
+  const row = Array.from(byValueBoxRootElement().querySelectorAll('tr'))
+    .find(tr => tr.textContent.trim() === label);
+
+  if (!row) {
+    throw new Error(`The "${label}" item is not present on the "filter by value" list.`);
+  }
+
+  await simulateClick(row.querySelector('[type=checkbox]'));
+}

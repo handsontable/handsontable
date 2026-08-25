@@ -1,4 +1,4 @@
-import { addClass, empty, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
+import { addClass, empty, isShadowRoot, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, isEmpty } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
@@ -67,11 +67,13 @@ import {
   uninstall as uninstallAccessibilityAnnouncer,
 } from './utils/a11yAnnouncer';
 import { initLicenseNotification } from './utils/licenseNotification';
+import { initLicenseBranding } from './utils/licenseBranding';
 import { getValueSetterValue } from './utils/valueAccessors';
-import { createThemeManager } from './themes/engine';
+import { createThemeManager, isThemeOverrideEmpty } from './themes/engine';
 import { LayoutManager, type LayoutConfig } from './core/layout';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
 import type { ThemeBuilder } from './themes/engine/builder';
+import type { ThemeOverridesInput } from './themes/engine/manager';
 import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
 import type { CellChange, CellProperties } from './settings';
@@ -268,6 +270,12 @@ export default function Core(
   let focusGridManager: FocusGridManager;
   let viewportScroller: ViewportScrollerInstance;
   let firstRun: boolean | [null, string] = true;
+  // Guards the "colorScheme/density need the theme engine" warning so it is logged once per
+  // instance instead of on every `updateSettings()` call that carries the options.
+  let themeOverridesWarningShown = false;
+  // Set only when the table is initialized while invisible (see the `init` method). Kept in the closure, not on
+  // the instance, because `destroy` nulls every instance property before it could be read there.
+  let visibilityObserver: IntersectionObserver | null = null;
 
   const mergedUserSettings: GridSettings = {
     ...userSettings.initialState,
@@ -384,6 +392,10 @@ export default function Core(
 
     addClass(this.rootElement, ['ht-wrapper', 'handsontable']);
     addClass(this.rootWrapperElement, 'ht-root-wrapper');
+
+    if (isShadowRoot(this.rootContainer.getRootNode())) {
+      addClass(this.rootWrapperElement, 'ht-shadow-dom');
+    }
     addClass(this.rootSlotTopElement, 'ht-slot-top');
     addClass(this.rootGridElement, 'ht-grid');
     addClass(this.rootGridContentElement, 'ht-grid-content');
@@ -681,6 +693,7 @@ export default function Core(
 
       return editor ? (editor.isOpened() as boolean) : false;
     },
+    isPluginEnabled: (pluginName: string) => instance.getPlugin(pluginName)?.enabled === true,
     countRenderableColumns: () => instance.view.countRenderableColumns() as number,
     countRenderableRows: () => instance.view.countRenderableRows() as number,
     countRowHeaders: () => instance.countRowHeaders() as number,
@@ -985,6 +998,8 @@ export default function Core(
                 groupIndex = Math.max(groupIndex - offset, 0);
               }
 
+              const totalRowsBefore = instance.countRows();
+
               // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
               // inside the datamap.removeRow breaks the removing functionality.
               const wasRemoved = datamap.removeRow(groupIndex, groupAmount, source);
@@ -1010,8 +1025,27 @@ export default function Core(
 
               const fixedRowsBottom = tableMeta.fixedRowsBottom;
 
-              if (fixedRowsBottom && calcIndex >= totalRows - fixedRowsBottom) {
-                tableMeta.fixedRowsBottom -= Math.min(groupAmount, fixedRowsBottom);
+              if (fixedRowsBottom) {
+                // Count how many of the removed rows belonged to the bottom fixed rows. Those rows occupied
+                // the `[totalRowsBefore - fixedRowsBottom, totalRowsBefore - 1]` range, so the boundary has
+                // to be compared with the row count from *before* the removal. Rows removed above that
+                // range keep the setting untouched (DEV-2551).
+                const removedRowsCount = totalRowsBefore - totalRows;
+                // With no index passed, `datamap.removeRow` takes the rows from the end, so the removal
+                // starts that many rows before the last one. `calcIndex` points at the last row then, not
+                // at the first removed one.
+                const firstRemovedRowIndex = Number.isInteger(groupIndex)
+                  ? calcIndex
+                  : Math.max(totalRowsBefore - removedRowsCount, 0);
+                const firstFixedRowIndex = totalRowsBefore - fixedRowsBottom;
+                const lastRemovedRowIndex =
+                  Math.min(firstRemovedRowIndex + removedRowsCount - 1, totalRowsBefore - 1);
+                const removedFixedRowsCount =
+                  lastRemovedRowIndex - Math.max(firstRemovedRowIndex, firstFixedRowIndex) + 1;
+
+                if (removedFixedRowsCount > 0) {
+                  tableMeta.fixedRowsBottom -= Math.min(removedFixedRowsCount, fixedRowsBottom);
+                }
               }
 
               if (totalRows === 0) {
@@ -1589,7 +1623,7 @@ export default function Core(
       !rootContainerThemeClassName &&
       (isObject(theme) || (!theme && !themeName))
     ) {
-      initializeThemeManager(theme as ThemeBuilder | undefined);
+      initializeThemeManager(theme as ThemeBuilder | undefined, readStoredThemeOverrides());
     }
 
     dataSource.setData(tableMeta.data);
@@ -1612,6 +1646,7 @@ export default function Core(
     if (isRootInstance(this)) {
       installAccessibilityAnnouncer(instance.rootPortalElement);
       initLicenseNotification(instance);
+      initLicenseBranding(instance);
 
       // Keep the edge slots (top, bottom) as wide as the table so their content
       // (toolbars, pagination, license notification) aligns with the grid.
@@ -1656,7 +1691,13 @@ export default function Core(
 
     // Run the logic only if it's the table's initialization and the root element is not visible.
     if (!!firstRun && instance.rootElement.offsetParent === null) {
-      observeVisibilityChangeOnce(instance.rootElement, () => {
+      visibilityObserver = observeVisibilityChangeOnce(instance.rootElement, () => {
+        // A delivery carries the state from the moment its snapshot was taken, so it can arrive after the
+        // instance is gone even though `destroy` disconnects the observer.
+        if (!instance || instance.isDestroyed || !instance.view) {
+          return;
+        }
+
         // Update the spreader size cache before rendering.
         instance.view._wt.wtOverlays.updateLastSpreaderSize();
         instance.view.adjustElementsSize();
@@ -1674,12 +1715,109 @@ export default function Core(
   };
 
   /**
+   * Reads the per-instance color scheme and density overrides from a settings object.
+   *
+   * Only the keys actually present are returned, so a missing key keeps the value already applied
+   * instead of resetting it to the theme default.
+   *
+   * @param {object} settings - The settings object to read the overrides from.
+   * @returns {object} The theme overrides object.
+   */
+  function readThemeOverrides(settings: Record<string, unknown>): ThemeOverridesInput {
+    const overrides: ThemeOverridesInput = {};
+
+    if (hasOwnProperty(settings, 'colorScheme')) {
+      overrides.colorScheme = settings.colorScheme;
+    }
+
+    if (hasOwnProperty(settings, 'density')) {
+      overrides.density = settings.density;
+    }
+
+    return overrides;
+  }
+
+  /**
+   * Reads the color scheme and density currently configured on this instance.
+   *
+   * Unlike `readThemeOverrides()`, this reads the effective values rather than only the keys that
+   * one payload carries. `updateSettings()` stores grid options on the global meta, which the table
+   * meta inherits through its prototype, so an own-property check would miss them. Use this when
+   * rebuilding a ThemeManager, which has to pick up options set by an earlier call.
+   *
+   * @returns {object} The theme overrides object.
+   */
+  function readStoredThemeOverrides(): ThemeOverridesInput {
+    return {
+      colorScheme: tableMeta.colorScheme,
+      density: tableMeta.density,
+    };
+  }
+
+  /**
+   * Applies the `colorScheme` and `density` options to the ThemeManager of this instance.
+   *
+   * The options are per-instance overrides, so the shared theme object stays untouched and other
+   * grids using the same theme keep their own look.
+   *
+   * @param {object} settings - The settings object that may carry the overrides.
+   * @param {boolean} init - `true` when called during initialization. The initial styles are
+   * injected by the ThemeManager constructor, so nothing has to be refreshed in that case.
+   * @returns {boolean} `true` when the overrides changed and `afterSetTheme` still has to run.
+   */
+  function applyThemeOverrides(settings: GridSettings, init: boolean): boolean {
+    const overrides = readThemeOverrides(settings);
+
+    if (!hasOwnProperty(overrides, 'colorScheme') && !hasOwnProperty(overrides, 'density')) {
+      return false;
+    }
+
+    if (!instance.themeManager) {
+      // Only complain when a value is actually asked for. Clearing the options is documented, and a
+      // framework wrapper re-sends every prop on each render, so warning on key presence alone
+      // would fill the console for grids that never used these options.
+      const isValueRequested = !isThemeOverrideEmpty(overrides.colorScheme) ||
+        !isThemeOverrideEmpty(overrides.density);
+
+      if (isValueRequested && !themeOverridesWarningShown) {
+        themeOverridesWarningShown = true;
+
+        warn('The `colorScheme` and `density` options require the theme engine, so they have no ' +
+          'effect when the theme is enabled by a CSS class name. Pass a theme config object or a ' +
+          '`ThemeBuilder` instance to the `theme` option, or remove the `ht-theme-*` class from ' +
+          'the container element to use the default theme.');
+      }
+
+      return false;
+    }
+
+    const hasChanged = instance.themeManager.setOverrides(overrides);
+
+    if (!hasChanged || init) {
+      return false;
+    }
+
+    // Clear the cache here so the render at the end of `updateSettings` measures the new sizes.
+    // Rendering here as well would paint once with stale meta and then immediately paint again.
+    instance.stylesHandler.clearCache();
+
+    return true;
+  }
+
+  /**
    * Initializes the ThemeManager with the given theme configuration.
    *
    * @param {object|boolean} theme - The theme configuration object or `true` to use the default theme.
+   * @param {object} [overrides] - The per-instance color scheme and density overrides.
    */
-  function initializeThemeManager(theme?: ThemeBuilder) {
+  function initializeThemeManager(theme?: ThemeBuilder, overrides?: ThemeOverridesInput) {
     let themeObject;
+
+    // Tear the previous manager down first. Without this its `<style>` node stays in the wrapper,
+    // and because a new manager prepends its own node the orphan ends up LATER in source order —
+    // so at the same specificity the orphan's override rules win and the grid can never change or
+    // reset a `colorScheme` or `density` that was set at construction time.
+    instance.themeManager?.destroy();
 
     if (typeof theme === 'undefined') {
       if (hasTheme('main')) {
@@ -1698,7 +1836,8 @@ export default function Core(
     instance.themeManager = createThemeManager({
 
       hot: instance,
-      themeObject
+      themeObject,
+      overrides
     });
   }
 
@@ -3320,14 +3459,18 @@ export default function Core(
 
       // Use `theme` option if it's a string and differs from current theme (takes priority over `themeName`).
       if (themeOptionExists && typeof settings.theme === 'string' && currentThemeName !== settings.theme) {
-        instance.themeManager?.unmount();
-        instance.themeManager = null;
+        // `destroy()`, not `unmount()`. Unmounting removes the style node but leaves the manager
+        // subscribed to the shared theme object, so the next theme change re-injects its scoped
+        // rules and the grid gets stuck on whatever override the dead manager still holds.
+        instance.themeManager?.destroy();
         instance.useTheme(settings.theme);
 
       // Use `themeName` option if `theme` is not provided and the name differs from current theme.
       } else if (themeNameOptionExists && !themeOptionExists && currentThemeName !== settings.themeName) {
-        instance.themeManager?.unmount();
-        instance.themeManager = null;
+        // `destroy()`, not `unmount()`. Unmounting removes the style node but leaves the manager
+        // subscribed to the shared theme object, so the next theme change re-injects its scoped
+        // rules and the grid gets stuck on whatever override the dead manager still holds.
+        instance.themeManager?.destroy();
         tableMeta.theme = settings.themeName;
         tableMeta.themeName = undefined;
         instance.useTheme(settings.themeName!);
@@ -3339,7 +3482,9 @@ export default function Core(
         isObject(settings.theme)
       ) {
         if (instance.themeManager === null) {
-          initializeThemeManager(settings.theme as ThemeBuilder);
+          // Read the overrides from `tableMeta`, not from this payload. The options may have been
+          // set by an earlier call, and the manager being rebuilt here starts with none of them.
+          initializeThemeManager(settings.theme as ThemeBuilder, readStoredThemeOverrides());
           instance.useTheme(instance.themeManager!.getClassName());
 
         } else {
@@ -3357,6 +3502,8 @@ export default function Core(
         }
       }
     }
+
+    const themeOverridesChanged = applyThemeOverrides(settings, init);
 
     // Load data or create data map
     if (instance.runHooks('hasExternalDataSource') === true) {
@@ -3562,6 +3709,13 @@ export default function Core(
     if (instance.view && !firstRun) {
       instance.render();
       instance.view._wt.wtOverlays.adjustElementsSize();
+    }
+
+    // Fired after the render above, so a listener reading cell sizes sees the new density. The
+    // manager can be gone by now: an `afterUpdateSettings` listener is free to move the grid to a
+    // class-name theme, which tears the engine down.
+    if (themeOverridesChanged && instance.themeManager) {
+      instance.runHooks('afterSetTheme', instance.themeManager.getClassName(), false);
     }
 
     if (!init && instance.view && (currentHeight === '' || height === '' || height === undefined) &&
@@ -5823,6 +5977,11 @@ export default function Core(
     instance._clearTimeouts();
     instance._clearMicrotasks();
 
+    // Drop the hidden-init visibility observer before the teardown below nulls the instance. Otherwise a
+    // delivery queued while the table was becoming visible runs its callback on a destroyed instance.
+    visibilityObserver?.disconnect();
+    visibilityObserver = null;
+
     if (instance.view) { // in case HT is destroyed before initialization has finished
       instance.view.destroy();
     }
@@ -6575,7 +6734,7 @@ export default function Core(
     !rootContainerThemeClassName &&
     (isObject(theme) || (!theme && !themeName))
   ) {
-    initializeThemeManager(theme as ThemeBuilder | undefined);
+    initializeThemeManager(theme as ThemeBuilder | undefined, readThemeOverrides(mergedUserSettings));
   }
 
   getPluginsNames().forEach((pluginName) => {

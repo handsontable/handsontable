@@ -88,6 +88,7 @@ interface HandsontableFactory {
     DropdownEditor: typeof import('./editors/dropdownEditor').DropdownEditor;
     HandsontableEditor: typeof import('./editors/handsontableEditor').HandsontableEditor;
     IntlDateEditor: typeof import('./editors/intlDateEditor').IntlDateEditor;
+    IntlDatetimeEditor: typeof import('./editors/intlDatetimeEditor').IntlDatetimeEditor;
     IntlTimeEditor: typeof import('./editors/intlTimeEditor').IntlTimeEditor;
     MultiSelectEditor: typeof import('./editors/multiSelectEditor').MultiSelectEditor;
     NumericEditor: typeof import('./editors/numericEditor').NumericEditor;
@@ -135,6 +136,7 @@ interface HandsontableFactory {
     HandsontableRenderer: typeof import('./renderers/handsontableRenderer').handsontableRenderer;
     HtmlRenderer: typeof import('./renderers/htmlRenderer').htmlRenderer;
     IntlDateRenderer: typeof import('./renderers/intlDateRenderer').intlDateRenderer;
+    IntlDatetimeRenderer: typeof import('./renderers/intlDatetimeRenderer').intlDatetimeRenderer;
     IntlTimeRenderer: typeof import('./renderers/intlTimeRenderer').intlTimeRenderer;
     NumericRenderer: typeof import('./renderers/numericRenderer').numericRenderer;
     PasswordRenderer: typeof import('./renderers/passwordRenderer').passwordRenderer;
@@ -152,6 +154,7 @@ interface HandsontableFactory {
     DateValidator: typeof import('./validators/dateValidator').dateValidator;
     DropdownValidator: typeof import('./validators/dropdownValidator').dropdownValidator;
     IntlDateValidator: typeof import('./validators/intlDateValidator').intlDateValidator;
+    IntlDatetimeValidator: typeof import('./validators/intlDatetimeValidator').intlDatetimeValidator;
     IntlTimeValidator: typeof import('./validators/intlTimeValidator').intlTimeValidator;
     MultiSelectValidator: typeof import('./validators/multiSelectValidator').multiSelectValidator;
     NumericValidator: typeof import('./validators/numericValidator').numericValidator;
@@ -168,6 +171,7 @@ interface HandsontableFactory {
     dropdown: typeof import('./cellTypes/dropdownType').DropdownCellType;
     handsontable: typeof import('./cellTypes/handsontableType').HandsontableCellType;
     intlDate: typeof import('./cellTypes/intlDateType').IntlDateCellType;
+    intlDatetime: typeof import('./cellTypes/intlDatetimeType').IntlDatetimeCellType;
     intlTime: typeof import('./cellTypes/intlTimeType').IntlTimeCellType;
     numeric: typeof import('./cellTypes/numericType').NumericCellType;
     password: typeof import('./cellTypes/passwordType').PasswordCellType;
@@ -209,6 +213,7 @@ interface HandsontableFactory {
     ManualRowMove: typeof import('./plugins/manualRowMove').ManualRowMove;
     ManualRowResize: typeof import('./plugins/manualRowResize').ManualRowResize;
     MergeCells: typeof import('./plugins/mergeCells').MergeCells;
+    MoveCells: typeof import('./plugins/moveCells').MoveCells;
     MultiColumnSorting: typeof import('./plugins/multiColumnSorting').MultiColumnSorting;
     MultipleSelectionHandles: typeof import('./plugins/multipleSelectionHandles').MultipleSelectionHandles;
     NestedHeaders: typeof import('./plugins/nestedHeaders').NestedHeaders;
@@ -216,6 +221,7 @@ interface HandsontableFactory {
     Notification: typeof import('./plugins/notification').Notification;
     Pagination: typeof import('./plugins/pagination').Pagination;
     Search: typeof import('./plugins/search').Search;
+    SelectionHandles: typeof import('./plugins/selectionHandles').SelectionHandles;
     StretchColumns: typeof import('./plugins/stretchColumns').StretchColumns;
     TouchScroll: typeof import('./plugins/touchScroll').TouchScroll;
     TrimRows: typeof import('./plugins/trimRows').TrimRows;
@@ -429,6 +435,7 @@ declare namespace Handsontable {
     export type ManualRowMove = import('./plugins/manualRowMove').ManualRowMove;
     export type ManualRowResize = import('./plugins/manualRowResize').ManualRowResize;
     export type MergeCells = import('./plugins/mergeCells').MergeCells;
+    export type MoveCells = import('./plugins/moveCells').MoveCells;
     export type MultiColumnSorting = import('./plugins/multiColumnSorting').MultiColumnSorting;
     export type MultipleSelectionHandles = import('./plugins/multipleSelectionHandles').MultipleSelectionHandles;
     export type NestedHeaders = import('./plugins/nestedHeaders').NestedHeaders;
@@ -436,6 +443,7 @@ declare namespace Handsontable {
     export type Notification = import('./plugins/notification').Notification;
     export type Pagination = import('./plugins/pagination').Pagination;
     export type Search = import('./plugins/search').Search;
+    export type SelectionHandles = import('./plugins/selectionHandles').SelectionHandles;
     export type StretchColumns = import('./plugins/stretchColumns').StretchColumns;
     export type TouchScroll = import('./plugins/touchScroll').TouchScroll;
     export type TrimRows = import('./plugins/trimRows').TrimRows;
@@ -466,6 +474,7 @@ export type { RendererType } from './renderers/registry';
 export type { ValidatorType } from './validators/registry';
 export type {
   BaseTheme,
+  DensityType,
   ThemeBuilder,
   ThemeColorScheme,
   ThemeColorsConfig,

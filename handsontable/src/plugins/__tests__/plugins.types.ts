@@ -25,11 +25,13 @@ import {
   ManualRowMove,
   ManualRowResize,
   MergeCells,
+  MoveCells,
   MultiColumnSorting,
   MultipleSelectionHandles,
   NestedHeaders,
   NestedRows,
   Search,
+  SelectionHandles,
   TouchScroll,
   TrimRows,
   Dialog,
@@ -68,11 +70,13 @@ registerPlugin(ManualColumnResize);
 registerPlugin(ManualRowMove);
 registerPlugin(ManualRowResize);
 registerPlugin(MergeCells);
+registerPlugin(MoveCells);
 registerPlugin(MultiColumnSorting);
 registerPlugin(MultipleSelectionHandles);
 registerPlugin(NestedHeaders);
 registerPlugin(NestedRows);
 registerPlugin(Search);
+registerPlugin(SelectionHandles);
 registerPlugin(TouchScroll);
 registerPlugin(TrimRows);
 registerPlugin(Dialog);
@@ -107,11 +111,13 @@ const manualColumnResize: typeof ManualColumnResize | undefined = getPlugin('man
 const manualRowMove: typeof ManualRowMove | undefined = getPlugin('manualRowMove');
 const manualRowResize: typeof ManualRowResize | undefined = getPlugin('manualRowResize');
 const mergeCells: typeof MergeCells | undefined = getPlugin('mergeCells');
+const moveCells: typeof MoveCells | undefined = getPlugin('moveCells');
 const multiColumnSorting: typeof MultiColumnSorting | undefined = getPlugin('multiColumnSorting');
 const multipleSelectionHandles: typeof MultipleSelectionHandles | undefined = getPlugin('multipleSelectionHandles');
 const nestedHeaders: typeof NestedHeaders | undefined = getPlugin('nestedHeaders');
 const nestedRows: typeof NestedRows | undefined = getPlugin('nestedRows');
 const search: typeof Search | undefined = getPlugin('search');
+const selectionHandles: typeof SelectionHandles | undefined = getPlugin('selectionHandles');
 const touchScroll: typeof TouchScroll | undefined = getPlugin('touchScroll');
 const trimRows: typeof TrimRows | undefined = getPlugin('trimRows');
 const dialog: typeof Dialog | undefined = getPlugin('dialog');

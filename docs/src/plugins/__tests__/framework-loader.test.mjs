@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { frameworkLoader } from '../framework-loader.mjs';
 import { setRenderedHtmlDirForTests, readRenderedHtml } from '../rendered-html-store.mjs';
 import { LATEST_CHANGELOG_MAJOR } from '../changelog-parser.mjs';
-import { CURRENT_DOCS_VERSION } from '../docs-version.mjs';
+import { CURRENT_DOCS_VERSION, CURRENT_EXAMPLES_BRANCH } from '../docs-version.mjs';
 
 // The loader writes each entry's rendered HTML to a file and stores only a
 // marker in the data store (see rendered-html-store.mjs) — keep test writes
@@ -612,6 +612,46 @@ test('{{$latestChangelogVersion}} placeholder resolves to the latest changelog p
     // Regression guard: if the placeholder were substituted after (or never),
     // the literal "{{" would leak into the link or the fallback path.
     assert.ok(!html.includes('{{'), 'no unresolved {{$latestChangelogVersion}} placeholder should remain');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('{{$examplesBranch}} placeholder resolves to the matching handsontable/examples branch', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-examples-branch-'));
+  const contentDir = join(root, 'content');
+  const recipeDir = join(contentDir, 'recipes', 'themes', 'mui-theme');
+
+  mkdirSync(recipeDir, { recursive: true });
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+  writeFileSync(
+    join(recipeDir, 'mui-theme.md'),
+    [
+      '---',
+      'title: MUI theme',
+      'permalink: /mui-theme',
+      '---',
+      '',
+      '[**View source on GitHub**](https://github.com/handsontable/examples/tree/{{$examplesBranch}}/examples/mui)',
+      '',
+    ].join('\n')
+  );
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const html = renderedHtmlOf(store, 'javascript-data-grid/mui-theme');
+
+    assert.ok(
+      html.includes(`https://github.com/handsontable/examples/tree/${CURRENT_EXAMPLES_BRANCH}/examples/mui`),
+      `expected the starter link to point at ${CURRENT_EXAMPLES_BRANCH}`
+    );
+
+    // DEV-2214: a hardcoded tree/master link sends a reader on older docs to a
+    // starter that no longer matches their version.
+    assert.ok(!html.includes('{{'), 'no unresolved {{$examplesBranch}} placeholder should remain');
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

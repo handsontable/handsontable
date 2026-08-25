@@ -25,6 +25,7 @@ import type {
   DataProviderConfig,
 } from '../plugins/dataProvider';
 import type { RangeType, HotInstance } from './types';
+import type { ThemeColorScheme, DensityType } from '../themes/types';
 
 /**
  * The function shape of the `sourceDataValidator` option. Returns `true` when the value is valid.
@@ -56,6 +57,8 @@ export interface GridSettings {
   readOnlyCellClassName?: string;
   tableClassName?: string | string[];
   themeName?: string;
+  colorScheme?: ThemeColorScheme;
+  density?: DensityType;
 
   // Dimensions
   width?: number | string | (() => number | string);
@@ -143,6 +146,8 @@ export interface GridSettings {
   navigableHeaders?: boolean;
   outsideClickDeselects?: boolean | ((target: HTMLElement, coords?: WalkontableCellCoords) => boolean);
   selectionMode?: 'single' | 'range' | 'multiple';
+  selectionHandles?: boolean;
+  moveCells?: boolean;
   tabNavigation?: boolean;
   autoWrapCol?: boolean;
   autoWrapRow?: boolean;
@@ -171,6 +176,7 @@ export interface GridSettings {
   comments?: boolean | object | object[];
   contextMenu?: boolean | object | string[];
   customBorders?: boolean | object[];
+  customBordersProgressive?: boolean | { chunkSize?: number };
   dialog?: boolean | object;
   dataProvider?: DataProviderConfig;
   dragToScroll?: boolean | { interval?: { min?: number; max?: number }; rampDistance?: number };
@@ -178,7 +184,7 @@ export interface GridSettings {
   emptyDataState?: boolean | object;
   filters?: boolean | object;
   formulaBuilder?: boolean | { builder: unknown; showFormulaBar?: boolean; [key: string]: unknown };
-  formulas?: boolean | { engine: unknown; sheetName?: string; [key: string]: unknown };
+  formulas?: boolean | { engine: unknown; sheetName?: string; hyperlinks?: boolean; [key: string]: unknown };
   hiddenColumns?: boolean | object;
   hiddenRows?: boolean | object;
   loading?: boolean | object;
@@ -201,6 +207,7 @@ export interface GridSettings {
   // Date / Time
   dateFormat?: Intl.DateTimeFormatOptions;
   timeFormat?: Intl.DateTimeFormatOptions;
+  dateTimeFormat?: Intl.DateTimeFormatOptions;
   defaultDate?: string;
 
   // Password
@@ -215,6 +222,7 @@ export interface GridSettings {
   locale?: string;
   language?: string;
   numericFormat?: object;
+  preserveNumericLiteral?: boolean;
   selectOptions?: string[] | number[] | object[] | Record<string, string>
     | ((visualRow: number, visualColumn: number, prop: string | number) => string[] | Record<string, string>);
   strict?: boolean;
@@ -257,6 +265,7 @@ export interface GridSettings {
     movePossible: boolean, orderChanged: boolean) => void;
   afterColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void;
   afterColumnSequenceChange?: (source: ChangeSource) => void;
+  afterCustomBordersUpdate?: () => void;
   afterColumnSequenceCacheUpdate?: (indexesChangesState: {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean; hiddenIndexesChanged: boolean;
   }) => void;
@@ -275,7 +284,7 @@ export interface GridSettings {
   afterCut?: (data: CellValue[][], coords: RangeType[]) => void;
   afterDeselect?: () => void;
   afterDestroy?: () => void;
-  afterDetachChild?: (parent: RowObject, element: RowObject) => void;
+  afterDetachChild?: (parent: RowObject, element: RowObject, finalElementPosition: number | null) => void;
   afterDialogFocus?: (focusSource: 'tab_from_above' | 'tab_from_below' | 'click' | 'show') => void;
   afterDialogHide?: () => void;
   afterDialogShow?: () => void;
@@ -311,6 +320,12 @@ export interface GridSettings {
   afterModifyTransformFocus?: (coords: WalkontableCellCoords, rowTransformDir: number, colTransformDir: number) => void;
   afterModifyTransformStart?: (coords: WalkontableCellCoords, rowTransformDir: number, colTransformDir: number) => void;
   afterMomentumScroll?: () => void;
+  /**
+   * Fired after a `moveCells` drag has relocated a selection.
+   *
+   * @since 18.1.0
+   */
+  afterMoveCells?: (sourceRange: WalkontableCellRange, targetRange: WalkontableCellRange, isCopy: boolean) => void;
   afterNamedExpressionAdded?: (namedExpressionName: string, changes: unknown[]) => void;
   afterNamedExpressionRemoved?: (namedExpressionName: string, changes: unknown[]) => void;
   afterNotificationHide?: (id: string) => void;
@@ -327,6 +342,8 @@ export interface GridSettings {
   afterOnCellContextMenu?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellCornerDblClick?: (event: MouseEvent) => void;
   afterOnCellCornerMouseDown?: (event: MouseEvent) => void;
+  afterOnSelectionHandleMouseDown?: (event: MouseEvent, edge: 'top' | 'bottom' | 'start' | 'end') => void;
+  afterOnSelectionEdgeMouseDown?: (event: MouseEvent, edge: 'top' | 'bottom' | 'start' | 'end') => void;
   afterOnCellMouseDown?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseOut?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseOver?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
@@ -349,6 +366,10 @@ export interface GridSettings {
   afterRender?: (isForced: boolean) => void;
   afterRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number,
     value: CellValue, cellProperties: CellProperties) => void;
+  afterRowCollapse?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
+    collapsePossible: boolean, successfullyCollapsed: boolean) => void;
+  afterRowExpand?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
+    expandPossible: boolean, successfullyExpanded: boolean) => void;
   afterRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean, orderChanged: boolean) => void;
   afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
@@ -471,6 +492,16 @@ export interface GridSettings {
   beforeLoadingHide?: () => boolean | void;
   beforeLoadingShow?: () => boolean | void;
   beforeMergeCells?: (cellRange: WalkontableCellRange, auto: boolean) => void;
+  /**
+   * Fired before a `moveCells` drag relocates a selection. Return `false` to cancel the move.
+   *
+   * @since 18.1.0
+   */
+  beforeMoveCells?: (
+    sourceRange: WalkontableCellRange,
+    targetTopLeft: WalkontableCellCoords,
+    isCopy: boolean
+  ) => void | boolean;
   beforeNotificationHide?: (id: string) => boolean | void;
   beforeNotificationShow?: (options: {
     id: string;
@@ -499,12 +530,16 @@ export interface GridSettings {
   beforeRefreshDimensions?: (previousDimensions: { width: number; height: number },
     currentDimensions: { width: number; height: number }, actionPossible: boolean) => boolean | void;
   beforeRemoveCellClassNames?: () => string[] | void;
-  beforeRemoveCellMeta?: (row: number, column: number, key: string, value: unknown) => void;
+  beforeRemoveCellMeta?: (row: number, column: number, key: string, value: unknown) => boolean | void;
   beforeRemoveCol?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
   beforeRemoveRow?: (index: number, amount: number, physicalRows: number[], source?: ChangeSource) => void;
   beforeRender?: (isForced: boolean) => void;
   beforeRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number,
     value: CellValue, cellProperties: CellProperties) => void;
+  beforeRowCollapse?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
+    collapsePossible: boolean) => void | boolean;
+  beforeRowExpand?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
+    expandPossible: boolean) => void | boolean;
   beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean) => void | boolean;
   beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void | false;

@@ -1654,6 +1654,40 @@ export default (): Record<string, unknown> => {
 
     /**
      * @description
+     * The `customBordersProgressive` option controls how a large [`customBorders`](#customborders)
+     * configuration is applied at initialization.
+     *
+     * By default (`false`), all custom borders are built synchronously before the first render, which
+     * can block the initial paint when the configuration contains a very large number of borders.
+     *
+     * Set it to `true` to apply the borders in background batches after the grid has rendered: the
+     * grid becomes interactive immediately and the borders fill in progressively. Pass an object to
+     * tune the batch size, for example `{ chunkSize: 5000 }`.
+     *
+     * When enabled, [`getBorders()`](@/api/customBorders.md#getborders) and the borders' cell meta
+     * are populated incrementally, so they may be incomplete until the
+     * [`afterCustomBordersUpdate`](@/api/hooks.md#aftercustombordersupdate) hook fires.
+     *
+     * @since 18.1.0
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default false
+     * @category CustomBorders
+     *
+     * @example
+     * ```js
+     * // apply a large custom-borders config in background batches
+     * customBorders: [ / * ...many borders... * / ],
+     * customBordersProgressive: true,
+     *
+     * // tune the batch size
+     * customBordersProgressive: { chunkSize: 5000 },
+     * ```
+     */
+    customBordersProgressive: false,
+
+    /**
+     * @description
      * The `data` option sets the initial [data](@/guides/getting-started/binding-to-data/binding-to-data.md) of your Handsontable instance.
      *
      * Handsontable's data is bound to your source data by reference (i.e. when you edit Handsontable's data, your source data alters as well).
@@ -1847,6 +1881,11 @@ export default (): Record<string, unknown> => {
      * Source data must be in ISO 8601 date format (`YYYY-MM-DD`). Otherwise operations such
      * as sorting and filtering can be unstable or unpredictable. The `dateFormat` object affects only how dates are
      * displayed; the underlying value should remain ISO.
+     *
+     * Time-related options (`hour`, `minute`, `second`, `timeStyle`, `hour12`, `hourCycle`,
+     * `fractionalSecondDigits`) only affect display and always render midnight (`00:00:00`) for
+     * `date`/`intl-date` cells, because their source data is date-only. For editable date *and*
+     * time values, use the [`intl-datetime` cell type](@/guides/cell-types/datetime-cell-type/datetime-cell-type.md).
      * :::
      *
      * **Style shortcuts:**
@@ -1972,6 +2011,55 @@ export default (): Record<string, unknown> => {
      * ```
      */
     timeFormat: { hour: '2-digit', minute: '2-digit' },
+
+    /**
+     * Configures the date-time format for `intl-datetime` cells using an
+     * [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat)
+     * options object. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
+     *
+     * ::: tip Source data format
+     * Source data must be in ISO 8601 date-time format (`YYYY-MM-DDTHH:mm:ss`; a date-only
+     * `YYYY-MM-DD` value is treated as midnight). Otherwise operations such as sorting and filtering
+     * can be unstable or unpredictable. The `dateTimeFormat` object affects only how values are
+     * displayed; the underlying value should remain ISO.
+     * :::
+     *
+     * For the full list of supported properties, see
+     * [MDN: Intl.DateTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat).
+     *
+     * Read more:
+     * - [Date-time cell type](@/guides/cell-types/datetime-cell-type/datetime-cell-type.md)
+     * - [`locale`](@/api/options.md#locale)
+     *
+     * @since 18.1.0
+     * @memberof Options#
+     * @type {object}
+     * @default { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
+     * @category Core
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *     type: 'intl-datetime',
+     *     locale: 'en-US',
+     *     dateTimeFormat: {
+     *       dateStyle: 'medium',
+     *       timeStyle: 'short'
+     *     }
+     *   }
+     * ]
+     * ```
+     */
+    dateTimeFormat: {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    },
 
     /**
      * The `defaultDate` option configures the date pre-selected in the date picker editor
@@ -3033,6 +3121,16 @@ export default (): Record<string, unknown> => {
      * | `sheetId`   | A number                                                                                                                                                                                                               |
      * | `sheetName` | A string                                                                                                                                                                                                               |
      * | `language`  | A [HyperFormula language pack](https://handsontable.github.io/hyperformula/guide/localizing-functions.html), imported from `hyperformula/es/i18n/languages`                                                          |
+     * | `hyperlinks` | `true` \|<br>`false` (default)                                                                                                                                                                                        |
+     *
+     * Set `hyperlinks` to `true` to render a cell whose formula is `HYPERLINK()` as a link. The cell
+     * keeps its own renderer, and the link label is the value the formula returns. Only a cell whose
+     * root expression is `HYPERLINK()` becomes a link, so a nested call such as
+     * `=CONCATENATE("see ", HYPERLINK("https://example.com"))` renders as plain text.
+     *
+     * A link is created only for the `http`, `https`, `mailto` and `tel` schemes. Any other scheme,
+     * `javascript:` included, renders the label as plain text instead. Press
+     * <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd> to open the link of the selected cell.
      *
      * Read more:
      * - [Plugins: `Formulas`](@/api/formulas.md)
@@ -3056,6 +3154,12 @@ export default (): Record<string, unknown> => {
      *   engine: HyperFormula,
      *   sheetId: 1,
      *   sheetName: 'Sheet 1'
+     * }
+     *
+     * // or, render `HYPERLINK()` formulas as links
+     * formulas: {
+     *   engine: HyperFormula,
+     *   hyperlinks: true
      * }
      *
      * // or, add a HyperFormula instance
@@ -3766,6 +3870,7 @@ export default (): Record<string, unknown> => {
      * | Setting                                                                                                 | Description                                                                                       |
      * | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
      * | A string with your [commercial license key](@/guides/getting-started/license-key/license-key.md#commercial-license) | For [commercial use](@/guides/technical-specification/software-license/software-license.md#commercial-use)         |
+     * | A string with your [entitlement license key](@/guides/getting-started/license-key/license-key.md#entitlement-license-keys) (plain-English text ending with a `[...]` block) | For trial, subscription, or perpetual use |
      * | `'non-commercial-and-evaluation'`                                                                       | For [non-commercial use](@/guides/technical-specification/software-license/software-license.md#non-commercial-use) |
      *
      * Read more:
@@ -3781,8 +3886,12 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // for commercial use
+     * // for commercial use (legacy 25-character format)
      * licenseKey: 'xxxxx-xxxxx-xxxxx-xxxxx-xxxxx', // your commercial license key
+     *
+     * // for an entitlement license key (trial, subscription, or perpetual),
+     * // pass the whole key string exactly as you received it
+     * licenseKey: 'This is a Handsontable license key for Acme Corp, ... [eyJwcm9kdWN0cyI6...3a4f8361]',
      *
      * // for non-commercial use
      * licenseKey: 'non-commercial-and-evaluation',
@@ -4732,6 +4841,49 @@ export default (): Record<string, unknown> => {
     numericFormat: undefined,
 
     /**
+     * Controls whether a [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
+     * cell keeps the exact text you typed when converting it to a JavaScript number would lose
+     * information.
+     *
+     * By default (`false`), a numeric cell always stores the parsed JavaScript number, so a value
+     * like `9.0` is stored as `9` and the editor shows `9` the next time you open it. Numbers whose
+     * magnitude exceeds the safe-integer limit (`9007199254740991`) also lose precision.
+     *
+     * When set to `true`, and only when parsing would be lossy, the cell keeps the original literal
+     * string instead of the number. This preserves trailing decimal zeros (`9.0`, `9.50`) and the
+     * full precision of large numbers in the cell editor, matching spreadsheet software. Values
+     * that convert without loss (for example `9`, `9.5`, `1000`) are still stored as numbers, so
+     * sorting, filtering, and formula calculations are unaffected. A preserved literal also keeps
+     * behaving like a number in those features: column sorting and filter conditions compare it
+     * numerically, and the [`Formulas`](@/api/formulas.md) engine parses the literal as a number,
+     * so functions such as `SUM` still include the cell. The cell renderer still formats
+     * the value according to [`numericFormat`](@/api/options.md#numericformat); only the editor
+     * shows the preserved literal. One exception: the filter menu's "Filter by value" checkbox
+     * list compares values strictly, so a preserved literal (`'9.0'`) and its plain number (`9`)
+     * appear as two separate entries.
+     *
+     * The default is `false` so existing configurations keep their current behavior.
+     *
+     * @memberof Options#
+     * @since 18.1.0
+     * @type {boolean}
+     * @default false
+     * @category Core
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *     type: 'numeric',
+     *     // keep `9.0` and very large numbers as typed in the editor
+     *     preserveNumericLiteral: true,
+     *   }
+     * ],
+     * ```
+     */
+    preserveNumericLiteral: false,
+
+    /**
      * If the `observeDOMVisibility` option is set to `true`,
      * Handsontable rerenders every time it detects that the grid was made visible in the DOM.
      *
@@ -5596,6 +5748,65 @@ export default (): Record<string, unknown> => {
     selectionMode: 'multiple',
 
     /**
+     * The `selectionHandles` option enables draggable handles on the edges of a
+     * [selection](@/guides/cell-features/selection/selection.md). When enabled, hovering over a
+     * selected range shows a pill-shaped handle at the midpoint of each edge; dragging a handle
+     * resizes that edge of the selection. This adjusts the selected area only – it does not move,
+     * fill, or change any cell data.
+     *
+     * Handles are shown on desktop only and are hidden on any edge that is flush with the grid
+     * boundary -- or that lands on a frozen-pane line ([`fixedRowsTop`](#fixedrowstop),
+     * [`fixedRowsBottom`](#fixedrowsbottom), [`fixedColumnsStart`](#fixedcolumnsstart)). The option
+     * has no effect when [`selectionMode`](#selectionmode) is `'single'`.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     *
+     * @since 18.1.0
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // enable draggable selection-edge handles
+     * selectionHandles: true,
+     * ```
+     */
+    selectionHandles: false,
+
+    /**
+     * The `moveCells` option lets you move a [selection](@/guides/cell-features/selection/selection.md) by
+     * dragging its edge. When enabled, hovering the border of a selected cell range shows a grab cursor;
+     * dragging the border moves the block's data (values, the [`className`](#classname) cell meta, and – with the
+     * [`formulas`](@/api/options.md#formulas) plugin – adjusted formula references) to the new location.
+     * Other cell meta (for example [`numericFormat`](#numericformat) or [`readOnly`](#readonly)) stays at the
+     * source cells.
+     * Hold <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> during the drag to copy instead of move.
+     *
+     * The move applies to a single contiguous cell range only. It has no effect on full-row, full-column,
+     * select-all, or multiple selections, the range may span at most 100,000 cells, and the source and
+     * target must stay within the grid. Neither the target nor
+     * the source may overlap read-only cells, because a move has to clear the source — a copy leaves the
+     * source in place, so a read-only source cell blocks a move but not a copy.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     *
+     * @since 18.1.0
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // enable drag-to-move for selections
+     * moveCells: true,
+     * ```
+     */
+    moveCells: false,
+
+    /**
      * The `selectOptions` option configures options that the end user can choose from in [`select`](@/guides/cell-types/select-cell-type/select-cell-type.md) cells.
      *
      * You can set the `selectOptions` option to one of the following:
@@ -6150,6 +6361,112 @@ export default (): Record<string, unknown> => {
     theme: undefined,
 
     /**
+     * The `colorScheme` option sets the color scheme of the grid without declaring a theme.
+     *
+     * You can set it to one of the following:
+     *
+     * | Setting               | Description                                                     |
+     * | --------------------- | --------------------------------------------------------------- |
+     * | `undefined` (default) | Use the color scheme of the current theme                        |
+     * | `'light'`             | Always render the light color scheme                             |
+     * | `'dark'`              | Always render the dark color scheme                              |
+     * | `'auto'`              | Follow the color scheme of the operating system                  |
+     *
+     * The option is a per-instance override. It applies on top of the current theme, so the theme
+     * itself stays unchanged and other grids that use the same theme keep their own color scheme.
+     * You can change it at runtime with [`updateSettings()`](@/api/core.md#updatesettings).
+     *
+     * The option requires the theme engine, so it has no effect when the theme comes from a CSS
+     * class name (the [`theme`](#theme) option set to a string, or an `ht-theme-*` class on the
+     * container element). In that case, use the theme's dark class name instead.
+     *
+     * An unsupported value is ignored with a console warning rather than throwing.
+     *
+     * Read more:
+     * - [Themes](@/guides/styling/themes/themes.md)
+     * - [`density`](#density)
+     * - [`theme`](#theme)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @memberof Options#
+     * @type {string|undefined}
+     * @default undefined
+     * @category Core
+     * @since 18.1.0
+     *
+     * @example
+     * ```js
+     * // Render the grid in dark mode, without declaring a theme
+     * const hot = new Handsontable(container, {
+     *   colorScheme: 'dark',
+     * });
+     * ```
+     * @example
+     * ```js
+     * // Switch the color scheme at runtime
+     * hot.updateSettings({
+     *   colorScheme: 'auto',
+     * });
+     * ```
+     */
+    colorScheme: undefined,
+
+    /**
+     * The `density` option sets the amount of white space inside the grid without declaring a theme.
+     *
+     * You can set it to one of the following:
+     *
+     * | Setting               | Description                                              |
+     * | --------------------- | -------------------------------------------------------- |
+     * | `undefined` (default) | Use the density of the current theme                     |
+     * | `'default'`           | Standard spacing                                         |
+     * | `'compact'`           | Tighter spacing, fits more rows on the screen            |
+     * | `'comfortable'`       | Looser spacing, easier to read and to tap                |
+     *
+     * The option is a per-instance override. It applies on top of the current theme, so the theme
+     * itself stays unchanged and other grids that use the same theme keep their own density.
+     * You can change it at runtime with [`updateSettings()`](@/api/core.md#updatesettings).
+     *
+     * The option requires the theme engine, so it has no effect when the theme comes from a CSS
+     * class name (the [`theme`](#theme) option set to a string, or an `ht-theme-*` class on the
+     * container element).
+     *
+     * An unsupported value is ignored with a console warning rather than throwing.
+     *
+     * Read more:
+     * - [Themes](@/guides/styling/themes/themes.md)
+     * - [`colorScheme`](#colorScheme)
+     * - [`theme`](#theme)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @memberof Options#
+     * @type {string|undefined}
+     * @default undefined
+     * @category Core
+     * @since 18.1.0
+     *
+     * @example
+     * ```js
+     * // Render the grid with tighter spacing, without declaring a theme
+     * const hot = new Handsontable(container, {
+     *   density: 'compact',
+     * });
+     * ```
+     * @example
+     * ```js
+     * // Change the density at runtime
+     * hot.updateSettings({
+     *   density: 'comfortable',
+     * });
+     * ```
+     */
+    density: undefined,
+
+    /**
      * The `injectCoreCss` option controls whether Handsontable injects its core CSS into the document.
      *
      * You can set the `injectCoreCss` option to one of the following:
@@ -6262,14 +6579,14 @@ export default (): Record<string, unknown> => {
      *
      * When set to `true` (default), the list is trimmed to match the width of the edited cell,
      * which can truncate long option labels. When set to `false`, the list expands to fit its
-     * longest option, which may make the list wider than the cell.
+     * longest option – it can grow wider than the cell, but never narrower.
      *
      * You can set the `trimDropdown` option to one of the following:
      *
      * | Setting          | Description                                                                     |
      * | ---------------- | ------------------------------------------------------------------------------- |
      * | `true` (default) | Make the dropdown/autocomplete list's width the same as the edited cell's width |
-     * | `false`          | Scale the dropdown/autocomplete list's width to the list's content              |
+     * | `false`          | Expand the list to its content, but keep it at least as wide as the edited cell |
      *
      * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
      * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
@@ -6389,6 +6706,7 @@ export default (): Record<string, unknown> => {
      * | `'text'`                                                          | Renderer: `TextRenderer`<br>Editor: `TextEditor`<br>Validator: -                                                                                                                                       |
      * | [`'time`'](@/guides/cell-types/time-cell-type/time-cell-type.md)                 | Renderer: `TimeRenderer`<br>Editor: `TimeEditor`<br>Validator: `TimeValidator`                                                                                                 |
      * | [`'intl-time'`](@/guides/cell-types/time-cell-type/time-cell-type.md)                 | Renderer: `IntlTimeRenderer`<br>Editor: `IntlTimeEditor`<br>Validator: `IntlTimeValidator`                                                                                                 |
+     * | [`'intl-datetime'`](@/guides/cell-types/datetime-cell-type/datetime-cell-type.md)                 | Renderer: `IntlDatetimeRenderer`<br>Editor: `IntlDatetimeEditor`<br>Validator: `IntlDatetimeValidator`                                                                                                 |
      *
      * Read more:
      * - [Cell type](@/guides/cell-types/cell-type/cell-type.md)

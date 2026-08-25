@@ -169,7 +169,7 @@ const hotSettings = ref<GridSettings>({
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   afterInit() {
-    this.getPlugin('nestedRows').collapsingUI.collapseChildren(8);
+    this.getPlugin('nestedRows').collapseParent(8);
   },
 });
 </script>

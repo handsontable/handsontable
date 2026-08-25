@@ -90,6 +90,19 @@ export class LiveGeometryReader implements GeometryReader {
   }
 
   /**
+   * A box test, deliberately not a style test: `display: none` and `content-visibility: hidden`
+   * generate no boxes yet read their styles correctly, and this asks whether the geometry can be
+   * measured. Whether the styles resolve is `StylesHandler`'s question. See the unrendered-table
+   * section of `walkontable/AGENTS.md`.
+   *
+   * @param {HTMLElement} element The element to check.
+   * @returns {boolean}
+   */
+  isRendered(element: HTMLElement): boolean {
+    return element.isConnected && element.getClientRects().length > 0;
+  }
+
+  /**
    * @param {HTMLElement} element The element to measure.
    * @returns {number}
    */

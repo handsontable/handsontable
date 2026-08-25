@@ -417,6 +417,93 @@ describe('WalkontableBorder', () => {
     expect(spec().$wrapper[0].clientWidth === spec().$wrapper[0].scrollWidth).toBe(true);
   });
 
+  it('should move the fill handle / corner border to the left when the last column is selected and the table has fixed start columns', async() => {
+    spec().$wrapper.css({
+      overflow: 'hidden',
+      width: '200px',
+    });
+
+    const selections = createSelectionController({
+      border: {
+        width: 2,
+        color: 'green',
+        cornerVisible() {
+          return true;
+        }
+      }
+    });
+    const wt = walkontable({
+      data: getData,
+      totalRows: 5,
+      totalColumns: 4,
+      fixedColumnsStart: 2,
+      selections,
+      onCellMouseDown(event, coords) {
+        selections.getFocus()
+          .clear()
+          .add(coords);
+        wt.draw();
+      }
+    });
+
+    wt.draw();
+
+    const focusBorder = wt.selectionManager.getBorderInstance(selections.getFocus());
+    const $corner = $(focusBorder.corner);
+
+    // The master renders only the columns outside the fixed pane, so address the last cell by
+    // coordinates instead of by its position in the rendered row.
+    $(wt.wtTable.getCell(new Walkontable.CellCoords(3, 3))).simulate('mousedown');
+
+    // The fixed columns shift the master table sideways, and that shift is part of the handle's
+    // distance to the container edge. Miss it and the handle keeps hanging past the last column,
+    // which grows a horizontal scrollbar on the master table alone (#13143).
+    expect($corner[0].getBoundingClientRect().right)
+      .toBeLessThanOrEqual(spec().$table[0].getBoundingClientRect().right);
+  });
+
+  it('should move the fill handle / corner border to the top when the last row is selected and the table has fixed top rows', async() => {
+    spec().$wrapper.css({
+      overflow: 'hidden',
+      width: '200px',
+      height: '116px',
+    });
+
+    const selections = createSelectionController({
+      border: {
+        width: 2,
+        color: 'green',
+        cornerVisible() {
+          return true;
+        }
+      }
+    });
+    const wt = walkontable({
+      data: getData,
+      totalRows: 5,
+      totalColumns: 2,
+      fixedRowsTop: 2,
+      selections,
+      onCellMouseDown(event, coords) {
+        selections.getFocus()
+          .clear()
+          .add(coords);
+        wt.draw();
+      }
+    });
+
+    wt.draw();
+
+    const focusBorder = wt.selectionManager.getBorderInstance(selections.getFocus());
+    const $corner = $(focusBorder.corner);
+
+    $(wt.wtTable.getCell(new Walkontable.CellCoords(4, 1))).simulate('mousedown');
+
+    // The vertical mirror of the case above: the fixed rows shift the master table down.
+    expect($corner[0].getBoundingClientRect().bottom)
+      .toBeLessThanOrEqual(spec().$table[0].getBoundingClientRect().bottom);
+  });
+
   it('should move the fill handle / corner border to the top, if in the position it would overlap the container (e.g.: far-bottom)', async() => {
     spec().$wrapper.css({
       height: '',

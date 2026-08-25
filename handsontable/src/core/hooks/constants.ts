@@ -610,6 +610,49 @@ export const REGISTERED_HOOKS = [
   'afterOnCellCornerMouseDown',
 
   /**
+   * Fired after the user presses a selection-adjustment handle (see [`selectionHandles`](@/api/options.md#selectionhandles)).
+   *
+   * @event Hooks#afterOnSelectionHandleMouseDown
+   * @since 18.1.0
+   * @param {Event} event The `mousedown` event.
+   * @param {'top' | 'bottom' | 'start' | 'end'} edge The pressed handle's edge.
+   */
+  'afterOnSelectionHandleMouseDown',
+
+  /**
+   * Fired after the user presses a selection edge move zone.
+   *
+   * @event Hooks#afterOnSelectionEdgeMouseDown
+   * @since 18.1.0
+   * @param {Event} event The `mousedown` event.
+   * @param {'top' | 'bottom' | 'start' | 'end'} edge The pressed edge.
+   */
+  'afterOnSelectionEdgeMouseDown',
+
+  /**
+   * Fired before a `moveCells` drag relocates a selection. Return `false` to cancel the move.
+   *
+   * @event Hooks#beforeMoveCells
+   * @since 18.1.0
+   * @param {CellRange} sourceRange The range being moved.
+   * @param {CellCoords} targetTopLeft The top-left target cell.
+   * @param {boolean} isCopy `true` when copying (Ctrl held) instead of moving.
+   * @returns {void|boolean}
+   */
+  'beforeMoveCells',
+
+  /**
+   * Fired after a `moveCells` drag has relocated a selection.
+   *
+   * @event Hooks#afterMoveCells
+   * @since 18.1.0
+   * @param {CellRange} sourceRange The original range.
+   * @param {CellRange} targetRange The range the data was moved to.
+   * @param {boolean} isCopy `true` when the operation was a copy.
+   */
+  'afterMoveCells',
+
+  /**
    * Fired after a `dblclick` event is triggered on the cell corner (the drag handle).
    *
    * @event Hooks#afterOnCellCornerDblClick
@@ -2562,6 +2605,18 @@ export const REGISTERED_HOOKS = [
   'afterColumnMove',
 
   /**
+   * Fired by the {@link CustomBorders} plugin after all custom borders from the configuration have
+   * been applied. With [`customBordersProgressive`](@/api/options.md#custombordersprogressive)
+   * disabled it fires once, synchronously, right after the borders are built. With progressive
+   * application enabled it fires when the last background batch has been applied, signaling that
+   * `getBorders()` and the borders' cell meta are now complete.
+   *
+   * @since 18.1.0
+   * @event Hooks#afterCustomBordersUpdate
+   */
+  'afterCustomBordersUpdate',
+
+  /**
    * Fired by the {@link ManualColumnFreeze} plugin, before unfreezing a column.
    *
    * @event Hooks#beforeColumnUnfreeze
@@ -2581,6 +2636,62 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} unfreezePerformed If `true`: the column got successfully unfrozen. If `false`: the column didn't get unfrozen.
    */
   'afterColumnUnfreeze',
+
+  /**
+   * Fired by the {@link NestedRows} plugin before parent rows are collapsed. This hook is fired when the
+   * {@link Options#nestedRows} option is enabled.
+   *
+   * Returning `false` in the callback will prevent the collapsing action from completing.
+   *
+   * @event Hooks#beforeRowCollapse
+   * @since 18.1.0
+   * @param {Array} currentCollapsedRows A list of the physical indexes of the currently collapsed parent rows.
+   * @param {Array} destinationCollapsedRows A list of the physical indexes of the parent rows that will be collapsed.
+   * @param {boolean} collapsePossible `true`, if every provided index points at a row that has children, `false` otherwise.
+   * @returns {undefined|boolean} If the callback returns `false`, the collapsing action will not be completed.
+   */
+  'beforeRowCollapse',
+
+  /**
+   * Fired by the {@link NestedRows} plugin after parent rows are collapsed. This hook is fired when the
+   * {@link Options#nestedRows} option is enabled.
+   *
+   * @event Hooks#afterRowCollapse
+   * @since 18.1.0
+   * @param {Array} currentCollapsedRows A list of the physical indexes of the parent rows that were collapsed before the action.
+   * @param {Array} destinationCollapsedRows A list of the physical indexes of the parent rows collapsed after the action.
+   * @param {boolean} collapsePossible `true`, if every provided index points at a row that has children, `false` otherwise.
+   * @param {boolean} successfullyCollapsed `true`, if the action changed the collapsed state, `false` otherwise.
+   */
+  'afterRowCollapse',
+
+  /**
+   * Fired by the {@link NestedRows} plugin before parent rows are expanded. This hook is fired when the
+   * {@link Options#nestedRows} option is enabled.
+   *
+   * Returning `false` in the callback will prevent the expanding action from completing.
+   *
+   * @event Hooks#beforeRowExpand
+   * @since 18.1.0
+   * @param {Array} currentCollapsedRows A list of the physical indexes of the currently collapsed parent rows.
+   * @param {Array} destinationCollapsedRows A list of the physical indexes of the parent rows that will stay collapsed.
+   * @param {boolean} expandPossible `true`, if every provided index points at a row that has children, `false` otherwise.
+   * @returns {undefined|boolean} If the callback returns `false`, the expanding action will not be completed.
+   */
+  'beforeRowExpand',
+
+  /**
+   * Fired by the {@link NestedRows} plugin after parent rows are expanded. This hook is fired when the
+   * {@link Options#nestedRows} option is enabled.
+   *
+   * @event Hooks#afterRowExpand
+   * @since 18.1.0
+   * @param {Array} currentCollapsedRows A list of the physical indexes of the parent rows that were collapsed before the action.
+   * @param {Array} destinationCollapsedRows A list of the physical indexes of the parent rows collapsed after the action.
+   * @param {boolean} expandPossible `true`, if every provided index points at a row that has children, `false` otherwise.
+   * @param {boolean} successfullyExpanded `true`, if the action changed the collapsed state, `false` otherwise.
+   */
+  'afterRowExpand',
 
   /**
    * Fired by {@link ManualRowMove} plugin before changing the order of the visual indexes. This hook is fired when

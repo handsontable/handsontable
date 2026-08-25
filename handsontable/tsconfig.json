@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2020",
     "module": "esnext",
-    "lib": ["esnext", "dom", "dom.iterable"],
+    "lib": ["es2021", "dom", "dom.iterable"],
     "allowJs": false,
     "checkJs": false,
     "noEmit": true,

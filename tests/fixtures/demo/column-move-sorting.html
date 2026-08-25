@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - column move with sorting</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Active theme from the ?theme= query param set by the Playwright project.
+    // Mapped through a fixed allowlist to a LITERAL (default main), so a crafted
+    // ?theme= can never be reflected into the document — no XSS. Exposed as
+    // window.htTheme so the grid init below reuses the sanitized value.
+    window.htTheme = ({ horizon: 'horizon', classic: 'classic' })[new URLSearchParams(location.search).get('theme')] || 'main';
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    Fixture for the ColumnSorting / ManualColumnMove overlap (DEV-1782).
+
+    Both plugins compete for a press on the column header: ManualColumnMove refuses any
+    press whose target carries `sortAction`, which ColumnSorting puts on the header label.
+    The grid therefore needs a strip of bare header left over for a drag to start on.
+
+    Column widths come from ?colWidths= so a spec can also drive the narrow-column case,
+    where the label legitimately fills the whole header and sorting wins instead.
+
+    Data is seeded in descending order so an ascending sort visibly reorders the rows,
+    and cells carry data-testid="cell-<row>-<col>" so a move is asserted on what the
+    user actually sees rather than on plugin internals.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script src="/handsontable/dist/handsontable.full.min.js"></script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const colWidths = Number(new URLSearchParams(location.search).get('colWidths')) || 120;
+    // ?move=off drops ManualColumnMove, so a spec can cover the sorting-only grid - the one where
+    // nothing can consume a drag, and a header press therefore has to sort however far it travels.
+    const withMove = new URLSearchParams(location.search).get('move') !== 'off';
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    // Exposed so a spec can call `updateSettings` - one test re-enables sorting to change the
+    // order the two plugins' `mouseup` listeners run in.
+    window.hot = new Handsontable(container, {
+      data: [
+        ['A5', 'B5', 'C5', 'D5', 'E5', 'F5'],
+        ['A4', 'B4', 'C4', 'D4', 'E4', 'F4'],
+        ['A3', 'B3', 'C3', 'D3', 'E3', 'F3'],
+        ['A2', 'B2', 'C2', 'D2', 'E2', 'F2'],
+        ['A1', 'B1', 'C1', 'D1', 'E1', 'F1'],
+      ],
+      colWidths,
+      colHeaders: true,
+      rowHeaders: true,
+      columnSorting: true,
+      manualColumnMove: withMove,
+      renderer: testIdRenderer,
+      // Column A is validated so a spec can sort while its editor is open. Selecting the column
+      // closes the editor and validates in a microtask, which finishes before the browser sends
+      // mouse up - the case a synchronous down/up simulation cannot reproduce.
+      columns: [{ validator: (value, callback) => callback(true) }, {}, {}, {}, {}, {}],
+      // Counts sorts so a spec can assert that a gesture did NOT sort. Header classes cannot show
+      // that: a stray sort lands on whatever column now sits at the dragged column's old index,
+      // which leaves the same number of ascending headers behind.
+      afterColumnSort() {
+        window.sortCount = (window.sortCount || 0) + 1;
+      },
+      afterGetColHeader(col, TH) {
+        if (col >= 0) {
+          TH.setAttribute('data-testid', `col-header-${col}`);
+        }
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

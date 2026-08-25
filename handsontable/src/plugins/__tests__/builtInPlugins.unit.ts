@@ -6,6 +6,8 @@ describe('built-in plugins', () => {
     expect(getPluginsNames()).toEqual([
       'AutoColumnSize',
       'Autofill',
+      'SelectionHandles',
+      'MoveCells',
       'ManualRowResize',
       'AutoRowSize',
       'ColumnSorting',

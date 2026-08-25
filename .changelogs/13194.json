@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed grid interactions inside Shadow DOM and sandboxed hosts such as Salesforce Lightning Web Components: the cell editor no longer closes when clicked, copy and paste work, focus is released when it leaves the grid, outside clicks clear the selection, and the grid's internal z-index values no longer paint above the host page UI.",
+  "type": "fixed",
+  "issueOrPR": 13194,
+  "breaking": false,
+  "framework": "none"
+}

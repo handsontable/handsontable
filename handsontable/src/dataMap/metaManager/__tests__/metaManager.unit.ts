@@ -197,6 +197,26 @@ describe('MetaManager', () => {
       expect(metaManager.removeCellMeta(34, 22, 'bar')).toBeUndefined();
       expect(metaManager.cellMeta.removeMeta).toHaveBeenCalledWith(34, 22, 'bar');
     });
+
+    it('should not materialize cell meta when removing a key from an untouched cell', () => {
+      // Bulk callers (e.g. the MoveCells plugin) remove keys across whole regions; obtaining a
+      // meta object just to delete a key from it retained O(visited cells) memory the viewport
+      // eviction cannot sweep.
+      const metaManager = new MetaManager();
+
+      metaManager.removeCellMeta(5, 5, 'className');
+
+      expect(metaManager.getCellsMeta()).toEqual([]);
+    });
+
+    it('should still remove a stored key', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.setCellMeta(5, 5, 'className', 'marked');
+      metaManager.removeCellMeta(5, 5, 'className');
+
+      expect(metaManager.getCellMeta(5, 5, { visualRow: 5, visualColumn: 5 }).className).toBeUndefined();
+    });
   });
 
   describe('getCellsMeta()', () => {

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a spurious scrollbar appearing when a cell in the last column or row was selected in a grid with frozen columns or rows — the fill handle now stays inside the viewport instead of overflowing it.",
+  "type": "fixed",
+  "issueOrPR": 13143,
+  "breaking": false,
+  "framework": "none"
+}

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — grid built into a container that has no layout yet</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    .box { width: 600px; height: 260px; }
+    .grid-root { width: 100%; height: 100%; overflow: hidden; }
+  </style>
+</head>
+<body>
+  <!--
+    E2E fixture for DEV-2515: a grid constructed into a container that is not in
+    the layout yet, so its own and its ancestors' `getComputedStyle()` reads
+    return an empty declaration. Walking that chain for an overflow container
+    finds nothing and resolves to the window, and because the decision was taken
+    once at construction the overlays stayed bound to window scroll for the
+    instance's whole life.
+
+    Three ways in, all taken by real applications:
+
+      detached   the container is built, the grid constructed into it, and only
+                 then is it appended to the document. What a framework that
+                 assembles a subtree before mounting it does.
+
+      unslotted  the container is a light-DOM child of a shadow host whose
+                 `<slot>` renders later, so it is outside the flat tree. The
+                 customer's case (a Stencil component), and what every async
+                 component framework does for a moment. Chromium returns the
+                 empty declaration here since 151, aligning with the CSSOM
+                 specification and with Firefox and Safari.
+
+      hidden     the container sits in a `display: none` box, as it does in a
+                 hidden tab or a closed modal. Its styles resolve, so its
+                 scrolling element was already right, but it generates no boxes
+                 - the correction engages on the geometry alone and must leave
+                 the grid just as correct on reveal.
+
+    Nothing is built at parse time: the spec drives `buildGrid()` and `attach()`
+    itself, so the window before the container joins the layout is exact instead
+    of racing a timer.
+  -->
+  <div data-testid="status">idle</div>
+  <late-slot-host data-testid="host"></late-slot-host>
+  <div data-testid="detached-host"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const PANE_MARKUP = `
+      <style>
+        :host { display: block; width: 600px; height: 260px; }
+        .pane { width: 100%; height: 100%; overflow: hidden; }
+      </style>
+      <div class="pane"><slot></slot></div>
+    `;
+
+    /**
+     * Attaches its shadow root synchronously on connect, but renders the `<slot>`
+     * only when the spec asks for it.
+     */
+    class LateSlotHost extends HTMLElement {
+      connectedCallback() {
+        if (!this.shadowRoot) {
+          this.attachShadow({ mode: 'open' });
+        }
+      }
+
+      renderSlot() {
+        this.shadowRoot.innerHTML = PANE_MARKUP;
+      }
+    }
+
+    customElements.define('late-slot-host', LateSlotHost);
+
+    const shadowHost = document.querySelector('[data-testid="host"]');
+    const detachedHost = document.querySelector('[data-testid="detached-host"]');
+    const status = document.querySelector('[data-testid="status"]');
+    const columns = ['id', 'campaign', 'region', 'owner', 'status', 'amount', 'currency', 'placement',
+      'start', 'end', 'impressions', 'clicks', 'rate', 'author', 'notes'];
+
+    // Set to `true` only when the container really had no layout boxes at
+    // construction time — the spec asserts it so a fixture regression cannot
+    // silently degrade the scenario into "build a grid in a sized div" and pass.
+    window.htWithoutLayoutAtInit = false;
+
+    let pendingAttach = null;
+
+    // Set by the spec before `buildGrid()` to add frozen rows, whose height records are kept apart
+    // from the ordinary ones and are wiped by the same correction pass.
+    window.htFrozenRows = false;
+
+
+    /**
+     * Builds the grid into a container that has no layout yet. `mode` selects how
+     * it is kept out of the layout, and the matching `attach()` puts it back in.
+     */
+    window.buildGrid = (mode) => {
+      const container = document.createElement('div');
+      let box = null;
+
+      container.className = `grid-root ht-theme-${window.htTheme}`;
+      container.setAttribute('data-testid', 'grid');
+
+      if (mode === 'unslotted') {
+        // The host has its shadow root but no `<slot>`, so the child it accepts
+        // is outside the flat tree and generates no boxes.
+        shadowHost.append(container);
+        pendingAttach = () => shadowHost.renderSlot();
+
+      } else if (mode === 'detached') {
+        box = document.createElement('div');
+        box.className = 'box';
+        box.append(container);
+        pendingAttach = () => detachedHost.append(box);
+
+      } else if (mode === 'hidden') {
+        box = document.createElement('div');
+        box.className = 'box';
+        box.style.display = 'none';
+        box.append(container);
+        detachedHost.append(box);
+        pendingAttach = () => {
+          box.style.display = '';
+        };
+
+      } else if (mode === 'laid-out') {
+        // The control: the same 600x260 box as `detached`, already in the layout before the grid is
+        // built, so nothing about it is provisional and no correction pass may engage. The box matters
+        // - a container left to fill the page width shows every column, so the holder has too little
+        // horizontal overflow for the spec's scroll to reach, and how much depends on the platform's
+        // font metrics.
+        box = document.createElement('div');
+        box.className = 'box';
+        box.append(container);
+        detachedHost.append(box);
+        pendingAttach = () => {};
+
+      } else {
+        throw new Error('Unknown build mode: ' + JSON.stringify(mode));
+      }
+
+      window.htWithoutLayoutAtInit = container.getClientRects().length === 0;
+
+      // No `width`/`height` setting: both are inherited from the container, which
+      // is what makes the holder the scrollable element once it has a size.
+      window.hot = new Handsontable(container, {
+        data: Array.from({ length: 200 }, (unused, row) => columns.reduce((rowData, column, columnIndex) => {
+          rowData[column] = column === 'id' ? row + 1 : `${column}-${row + 1}-${columnIndex}`;
+
+          return rowData;
+        }, {})),
+        colHeaders: columns,
+        columns: columns.map(column => ({ data: column })),
+        fixedColumnsStart: 2,
+        ...(window.htFrozenRows ? { fixedRowsTop: 2, fixedRowsBottom: 2 } : {}),
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    };
+
+    /**
+     * Puts the grid's container into the layout the way its build mode requires.
+     */
+    window.attach = () => {
+      pendingAttach();
+      status.textContent = 'attached';
+    };
+
+    window.scrollGrid = (top, left) => {
+      const holder = window.hot.view._wt.wtTable.holder;
+
+      holder.scrollTop = top;
+      holder.scrollLeft = left;
+    };
+
+    /**
+     * Reports whether the overlays still hold a provisional answer for their scrolling element, which
+     * is what the correction pass clears when the layout settles.
+     */
+    window.readProvisionalLayout = () => window.hot.view._wt.wtOverlays.isScrollableElementProvisional;
+
+    /**
+     * Forces `count` full renders and reports the state after each, so a spec can tell a pass that
+     * settled from one that keeps re-running on every draw.
+     */
+    window.drawAndReadState = (count) => {
+      const states = [];
+
+      for (let draw = 0; draw < count; draw += 1) {
+        window.hot.render();
+        states.push({
+          provisional: window.readProvisionalLayout(),
+          holderScrollRange: window.hot.view._wt.wtTable.holder.scrollHeight,
+          renderedRows: window.hot.rootElement.querySelectorAll('.ht_master tbody tr').length,
+        });
+      }
+
+      return states;
+    };
+
+    /**
+     * Reports how far the frozen-column and column-header overlays sit from the
+     * cells they must stay aligned with, plus the size of the rendered row band.
+     */
+    window.readOverlayAlignment = () => {
+      const root = window.hot.rootElement;
+      const holder = window.hot.view._wt.wtTable.holder;
+      const masterRow = root.querySelector('.ht_master tbody tr');
+      const frozenRow = root.querySelector('.ht_clone_inline_start tbody tr');
+      const masterCell = root.querySelector('.ht_master tbody tr td:nth-child(5)');
+      const header = root.querySelector('.ht_clone_top thead th:nth-child(5)');
+
+      const rows = Array.from(root.querySelectorAll('.ht_master tbody tr'));
+      const lastRow = rows[rows.length - 1];
+      const rootBox = root.getBoundingClientRect();
+
+      return {
+        // Positive when the last painted row stops short of the container's bottom edge, which is
+        // the dead space that made the grid look like it still had rows to load.
+        deadSpaceBelowLastRow: lastRow
+          ? Math.round(rootBox.bottom - lastRow.getBoundingClientRect().bottom)
+          : Number.NaN,
+        holderScrollRange: holder.scrollHeight,
+        rowCount: window.hot.countRows(),
+        defaultRowHeight: window.hot.view._wt.wtSettings.getSetting('stylesHandler').getDefaultRowHeight(),
+        holderScrollTop: holder.scrollTop,
+        holderScrollLeft: holder.scrollLeft,
+        frozenColumnsOffset: masterRow && frozenRow
+          ? Math.abs(frozenRow.getBoundingClientRect().top - masterRow.getBoundingClientRect().top)
+          : Number.NaN,
+        columnHeadersOffset: masterCell && header
+          ? Math.abs(header.getBoundingClientRect().left - masterCell.getBoundingClientRect().left)
+          : Number.NaN,
+        renderedRows: root.querySelectorAll('.ht_master tbody tr').length,
+        scrollsWithWindow: window.hot.view.isVerticallyScrollableByWindow(),
+      };
+    };
+  </script>
+</body>
+</html>

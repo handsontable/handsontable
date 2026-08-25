@@ -20,6 +20,8 @@ describe('`registerAllPlugins`', () => {
     expect(getPluginsNames()).toEqual([
       'AutoColumnSize',
       'Autofill',
+      'SelectionHandles',
+      'MoveCells',
       'ManualRowResize',
       'AutoRowSize',
       'ColumnSorting',

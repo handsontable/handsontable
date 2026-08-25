@@ -72,6 +72,15 @@ export interface GeometryReader {
   offsetParent(element: HTMLElement): HTMLElement | null;
 
   /**
+   * Checks whether the element takes part in the layout, so that its own and its ancestors' styles
+   * describe where it is rendered.
+   *
+   * @param {HTMLElement} element The element to check.
+   * @returns {boolean}
+   */
+  isRendered(element: HTMLElement): boolean;
+
+  /**
    * Reads `element.scrollWidth`.
    *
    * @param {HTMLElement} element The element to measure.

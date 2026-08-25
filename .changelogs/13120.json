@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed an error thrown on touch devices when the grid was destroyed while a momentum scroll was still coasting.",
+  "type": "fixed",
+  "issueOrPR": 13120,
+  "breaking": false,
+  "framework": "none"
+}

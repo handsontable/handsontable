@@ -390,6 +390,16 @@ describe('StretchColumns', () => {
 
     const hot = spec();
     const savedView = hot.view;
+    const onError = jasmine.createSpy('onError');
+    // Chromium fires a benign "ResizeObserver loop completed with undelivered
+    // notifications" error event under forced resizes — not a thrown exception.
+    const errorListener = (event) => {
+      if (!/ResizeObserver loop/.test(event.message ?? '')) {
+        onError(event);
+      }
+    };
+
+    window.addEventListener('error', errorListener);
 
     // Simulate the race condition where hot.view is undefined when the rAF callback fires
     // (e.g. during initialization or after destruction)
@@ -404,5 +414,8 @@ describe('StretchColumns', () => {
     // Restore for proper cleanup
     hot.view = savedView;
     document.body.style.overflowY = '';
+    window.removeEventListener('error', errorListener);
+
+    expect(onError).not.toHaveBeenCalled();
   });
 });

@@ -18,12 +18,12 @@ The <a href="https://handsontable.com/theme-builder" target="_blank" rel="noopen
 
 To go deeper on the underlying theme system, see the [Themes](@/guides/styling/themes/themes.md) and [Theme customization](@/guides/styling/theme-customization/theme-customization.md) guides.
 
-## AI Theme Generation
+## AI theme generation
 Click the AI tab on the right to generate themes from a prompt. Describe the look you want -- for example, "minimal light theme with rounded headers" or "dark theme with high-contrast borders" -- and the builder generates the theme configuration file.
 
 You can ask for follow up changes, or switch over to the manual editor to make any final adjustments before exporting.
 
-## Multi-Framework Support
+## Multi-framework support
 The Theme Builder generates working configurations for vanilla JavaScript, React, and Angular. So it's easy to use the generated theme in your own framework.
 
 Click the **Generate code** button, then choose your framework, and copy the theme.

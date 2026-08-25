@@ -270,15 +270,20 @@ class DataManager {
   /**
    * Get the row index for the provided row object.
    *
+   * Returns `null` when the object is not part of the current nested structure - for example when it
+   * comes from a dataset that has since been replaced by `loadData` or `updateData`.
+   *
    * @param {object} rowObj The row object.
-   * @returns {number} Row index.
+   * @returns {number|null} Row index, or `null` when the object is unknown.
    */
   getRowIndex(rowObj: unknown): number | null {
     if (rowObj === null || rowObj === undefined || typeof rowObj !== 'object') {
       return null;
     }
 
-    return this.cache.nodeInfo.get(rowObj)!.row;
+    const nodeInfo = this.cache.nodeInfo.get(rowObj);
+
+    return nodeInfo ? nodeInfo.row : null;
   }
 
   /**
@@ -303,6 +308,73 @@ class DataManager {
     }
 
     return parent.__children!.indexOf(rowObj as RowObject);
+  }
+
+  /**
+   * Get the position of a row within the nested structure, expressed as the chain of child indexes
+   * that leads from the top level down to that row.
+   *
+   * A physical row index shifts as soon as any other node gains or loses children. A tree path does
+   * not, so it can be used to find the same node again after the data is replaced.
+   *
+   * Assumes each row object appears in the tree once. The path is built with `indexOf`, on object
+   * identity, while `getRowIndexByTreePath()` finishes through the `cache.nodeInfo` WeakMap, which
+   * keeps only a node's last occurrence - so the same object placed at two spots makes the two
+   * disagree.
+   *
+   * @param {number} row Physical row index.
+   * @returns {number[]|null} The path, or `null` when the row is not part of the current structure.
+   */
+  getRowTreePath(row: number): number[] | null {
+    let rowObject: RowObject | null | undefined = this.getDataObject(row);
+
+    if (!rowObject) {
+      return null;
+    }
+
+    const path: number[] = [];
+
+    while (rowObject) {
+      const indexWithinParent = this.getRowIndexWithinParent(rowObject);
+
+      if (indexWithinParent === -1) {
+        return null;
+      }
+
+      path.unshift(indexWithinParent);
+      rowObject = this.getRowObjectParent(rowObject);
+    }
+
+    return path;
+  }
+
+  /**
+   * Find the physical row index of the node that the provided tree path points at.
+   *
+   * @param {number[]|null} path Chain of child indexes, as returned by
+   * {@link DataManager#getRowTreePath} - which returns `null` for a row it does not know, so the
+   * `null` is accepted here rather than filtered at every call site.
+   * @returns {number|null} Physical row index, or `null` when the path leads outside the structure.
+   */
+  getRowIndexByTreePath(path: number[] | null): number | null {
+    if (!Array.isArray(path) || path.length === 0) {
+      return null;
+    }
+
+    let siblings: RowObject[] | null | undefined = this.data;
+    let node: RowObject | null = null;
+
+    for (let i = 0; i < path.length; i++) {
+      node = siblings?.[path[i]] ?? null;
+
+      if (node === null) {
+        return null;
+      }
+
+      siblings = node.__children;
+    }
+
+    return this.getRowIndex(node);
   }
 
   /**
@@ -373,7 +445,9 @@ class DataManager {
       return null;
     }
 
-    return this.cache.nodeInfo.get(rowObject)!.parent;
+    const nodeInfo = this.cache.nodeInfo.get(rowObject);
+
+    return nodeInfo ? nodeInfo.parent : null;
   }
 
   /**
@@ -406,7 +480,9 @@ class DataManager {
       return null;
     }
 
-    return this.cache.nodeInfo.get(rowObject)!.level;
+    const nodeInfo = this.cache.nodeInfo.get(rowObject);
+
+    return nodeInfo ? nodeInfo.level : null;
   }
 
   /**

@@ -102,6 +102,33 @@ class Viewport {
    */
   declare oversizedRows: Record<number, number | undefined>;
   /**
+   * The `oversizedRows` keys whose height was discovered in a FROZEN column — content the master
+   * table does not render, so `markOversizedRows` on the master can never re-detect it.
+   *
+   * `resetOversizedRows` skips these keys: wiping them would drop the record before the row-height
+   * cache and the viewport calculators are built, and the master could not put it back. They are
+   * cleared instead by `resetFrozenOversizedRows`, in the seam between the master's render and the
+   * frozen overlays' — late enough that the master rendered at the right height, early enough that
+   * the frozen clone renders at its natural height and stays re-measurable.
+   *
+   * @type {Set<number>}
+   */
+  declare frozenOversizedRows: Set<number>;
+  /**
+   * The row-height cache's `buildSeq` as it stood when this draw cleared the frozen-derived
+   * records.
+   *
+   * Between that clear and the frozen sync putting the records back, `oversizedRows` is missing
+   * every frozen-derived height — so a cache built in that window is short by all of them. It is
+   * not self-correcting: the records come back unchanged, so nothing invalidates, and the hider
+   * keeps a scrollbar that cannot reach the end of the grid while every rendered row still looks
+   * right. The bottom clone reaches exactly this window, since it renders (and measures) inside
+   * `wtOverlays.refresh()`. Comparing the counter afterwards is how the sync notices.
+   *
+   * @type {number}
+   */
+  declare frozenClearRowCacheBuildSeq: number;
+  /**
    * @type {Record<string, unknown>}
    */
   declare hasOversizedColumnHeadersMarked: Record<string, unknown>;
@@ -145,6 +172,17 @@ class Viewport {
    * @type {ColumnsCalculationType | null}
    */
   declare columnsRenderCalculator: ColumnsCalculationType | null;
+  /**
+   * Monotonic counter of cell-band renders, bumped by every `renderCellBand` call (see
+   * `table/drawCycle.ts`). Overlay clones share the master's Viewport instance, so a render by ANY
+   * table of this Walkontable — the master or any clone, nested inside a hook or not — advances it.
+   * The master's `skipRender` rollback compares it against the value read right before the
+   * `beforeDraw` hook fired to answer "did the hook render a DOM cell band?" — see
+   * `restoreRenderedStateIfSafe`.
+   *
+   * @type {number}
+   */
+  renderCycleSeq: number = 0;
   /**
    * @type {RowsCalculationType | null}
    */
@@ -195,11 +233,17 @@ class Viewport {
     this.wtSettings = wtSettings;
     this.wtTable = wtTable;
     this.oversizedRows = {};
+    this.frozenOversizedRows = new Set();
+    this.frozenClearRowCacheBuildSeq = 0;
     this.hasOversizedColumnHeadersMarked = {};
     this.clientHeight = 0;
     this.rowHeaderWidth = NaN;
     this.rowsVisibleCalculator = null;
     this.columnsVisibleCalculator = null;
+    // Before the first render these must be `null` (the declared type), not `undefined` — the
+    // `skipRender` rollback captures/restores them and the overlays' `applyToDOM` null-checks them.
+    this.rowsRenderCalculator = null;
+    this.columnsRenderCalculator = null;
     type CalcTypeFactory = () => CalculationTypeLike;
 
     this.rowsCalculatorTypes = new Map<string, CalcTypeFactory>([
@@ -352,6 +396,35 @@ class Viewport {
   invalidateRowHeightCache() {
     this.rowHeightCache.invalidate();
     this.invalidateLayout();
+  }
+
+  /**
+   * Drops every oversized-row record, not just the rendered band's, and marks the row-height cache
+   * stale so the next draw measures the rows again.
+   *
+   * `resetOversizedRows` deliberately wipes only the rendered band, because a record outside it is
+   * still the best height known for that row. That assumption breaks when the records were taken
+   * against a table with no layout: `getComputedStyle` returned nothing, so the default row height
+   * was unknown and every row was recorded oversized at a height it never had. Then the whole map
+   * has to go at once, or the rows outside the band keep inflating the scroll range for good.
+   */
+  resetAllOversizedRows() {
+    this.oversizedRows = {};
+    this.frozenOversizedRows.clear();
+    this.invalidateRowHeightCache();
+  }
+
+  /**
+   * Hands the frozen-derived row records back to the ordinary oversized-row machinery, keeping their
+   * heights but dropping their exemption from `resetOversizedRows`.
+   *
+   * Called on any draw that does NOT run the frozen-column row sync — the master's rendered band
+   * starts at column 0, so it renders every frozen column and can measure those rows itself. Without
+   * this the records would keep their exemption while nothing re-measured them, so they could only
+   * ever grow.
+   */
+  releaseFrozenOversizedRows() {
+    this.frozenOversizedRows.clear();
   }
 
   /**

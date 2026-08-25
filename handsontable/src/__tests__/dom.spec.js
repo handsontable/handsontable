@@ -145,17 +145,6 @@ describe('Handsontable.Dom', () => {
 
       $table.remove();
     });
-
-    xit('should return correct outerHeight for table (with caption)', async() => {
-      const $table = $('<table style="border-width: 0;"><caption style="padding: 0; margin:0">' +
-                       '<div style="height: 30px">caption</div></caption><tbody>' +
-                       '<tr><td style="border: 1px solid black">' +
-                       '<div style="height: 30px">test</div></td></tr></tbody></table>').appendTo('body');
-
-      expect(Handsontable.dom.outerHeight($table[0])).toBe(68); // this is according to current stylesheet
-
-      $table.remove();
-    });
   });
 
   describe('outerWidth', () => {
@@ -187,21 +176,6 @@ describe('Handsontable.Dom', () => {
 
       expect(Handsontable.dom.outerWidth(element[0])).toBe(11);
     });
-  });
-
-  xit('should return correct offset for table cell (table with caption)', async() => {
-    const $table = $('<table style="border-width: 0;"><caption style="padding: 0; margin:0">' +
-                     '<div style="height: 30px">caption</div></caption><tbody>' +
-                     '<tr><td style="border: 1px solid black">' +
-                     '<div style="height: 30px">test</div></td></tr></tbody></table>').appendTo('body');
-
-    const tableOffset = Handsontable.dom.offset($table[0]);
-    const tdOffset = Handsontable.dom.offset($table.find('td')[0]);
-
-    expect(parseInt(tdOffset.left - tableOffset.left, 10)).toBeAroundValue(2); // this is according to current stylesheet
-    expect(parseInt(tdOffset.top - tableOffset.top, 10)).toBeAroundValue(32); // this is according to current stylesheet
-
-    $table.remove();
   });
 
   it('should return font size', async() => {

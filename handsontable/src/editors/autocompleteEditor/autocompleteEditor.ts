@@ -168,6 +168,14 @@ export class AutocompleteEditor extends HandsontableEditor {
     this.htEditor.updateSettings({
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : undefined,
       autoColumnSize: true,
+      // With `trimDropdown: false` the list column is sized from its content by
+      // AutoColumnSize, so short options produced a list narrower than the edited
+      // cell (#13180). Floor the column at the cell width: the option rows stay
+      // full-width click targets, and `getTargetEditorWidth()` (which reads
+      // `getColWidth(0)`) widens the outer container to match automatically.
+      modifyColWidth: trimDropdown ? undefined : (width?: number): number => {
+        return Math.max(width ?? 0, outerWidth(this.TEXTAREA) - 2);
+      },
       renderer: (
         hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
         prop: string | number, value: unknown, cellProperties: CellProperties) => {
@@ -329,7 +337,11 @@ export class AutocompleteEditor extends HandsontableEditor {
     let choices = choicesList;
 
     if (!sortByRelevanceSetting) {
-      choices = choices.toSorted((a, b) => stringify(a).localeCompare(stringify(b)));
+      // Sort a copy, never the passed-in array: `updateChoicesList` is public API and the caller's
+      // array (typically the `source` setting) must keep its original order. `Array#toSorted` would
+      // do this in one call but is outside the `browser-targets.js` baseline (Firefox 115+,
+      // Safari 16+), and swc lowers syntax only — it adds no instance-method polyfills.
+      choices = [...choices].sort((a, b) => stringify(a).localeCompare(stringify(b)));
     }
 
     const filteredChoiceIndexes: number[] = [];
@@ -416,23 +428,42 @@ export class AutocompleteEditor extends HandsontableEditor {
     const dropdownHeight = this.getDropdownHeight();
 
     if (dropdownHeight > spaceAvailable) {
-      let tempHeight = 0;
-      let lastRowHeight = 0;
-      let height = 0;
+      const rowHeight = this.htEditor.stylesHandler.getDefaultRowHeight() ?? 0;
 
-      do {
-        lastRowHeight = this.htEditor.stylesHandler.getDefaultRowHeight() ?? 0;
-        tempHeight += lastRowHeight;
-      } while (tempHeight < spaceAvailable);
+      if (rowHeight === 0) {
+        return;
+      }
 
-      height = tempHeight - lastRowHeight;
+      // Show whole rows only, and stop one row short of the boundary: `Math.ceil(...) - 1` is the
+      // exact arithmetic of the do/while this replaced ("add rows until one crosses the free
+      // space, then step back a row"), so an exactly-fitting space still leaves its last row out.
+      // That margin is deliberately preserved - the list is trimmed because it overflows the
+      // workspace, and the rendered rows carry a border the raw row height does not.
+      //
+      // `Math.max(..., 1)` is the fix: without it the height collapsed to 0 whenever the free
+      // space was not taller than a single row, rendering the list as an invisible sliver that hid
+      // every choice - the flexbox-squeezed grids reported in #8872. The MultiSelect editor's
+      // dropdown clamps to one entry the same way (`dropdownController.updateDimensions()`).
+      //
+      // A caveat this cannot solve here: the grid's root element gets `overflow: clip` whenever a
+      // `height` is set, so when the free space is narrower than the forced row, that row is
+      // partly clipped by the grid's bottom edge - fully so when the space reaches 0. Making it
+      // readable in those extremes needs the dropdown to escape the clipping root (DEV-1656).
+      //
+      // No border compensation here, unlike `getTargetDropdownHeight()`'s `getTableHeight() + 1`.
+      // Adding it was measured and changes nothing a user sees: the clipping root, not the list's
+      // own budget, is what bounds the visible row, so the extra pixel only pushes the holder
+      // further past the clip (main 31->32px holder, 28px of option visible either way; classic
+      // 28->29 and 25; horizon 37->38 and 37).
+      const rowsThatFit = Math.max(Math.ceil(spaceAvailable / rowHeight) - 1, 1);
+      const height = rowsThatFit * rowHeight;
 
       if (this.isFlippedVertically) {
         this.htEditor.rootElement.style.top =
           `${parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height}px`;
       }
 
-      this.setDropdownHeight(tempHeight - lastRowHeight);
+      this.setDropdownHeight(height);
     }
   }
 

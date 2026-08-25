@@ -22,8 +22,7 @@
   "dependencies": {
     "express": "^4.21.2",
     "graphql": "^16.9.0",
-    "handsontable": "latest",
-    "@handsontable/pikaday": "^1.0.0"
+    "handsontable": "latest"
   },
   "devDependencies": {
     "http-server": "^14.1.1",

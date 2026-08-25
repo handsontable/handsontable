@@ -80,6 +80,139 @@ export function createId(row: number, col: number) {
 }
 
 /**
+ * Computes the new position of a coordinate index after `amount` rows/columns are inserted
+ * at `insertionIndex`. An index at or after the insertion point moves down/right by `amount`;
+ * an index before it stays put.
+ *
+ * @param {number} index The visual index to shift.
+ * @param {number} insertionIndex The visual index at which the insertion starts.
+ * @param {number} amount The number of inserted rows/columns.
+ * @returns {number}
+ */
+export function getShiftedIndexAfterInsert(index: number, insertionIndex: number, amount: number): number {
+  return index >= insertionIndex ? index + amount : index;
+}
+
+/**
+ * Computes the new position of a coordinate index after `amount` rows/columns are removed
+ * starting at `removalIndex`. An index below the removed range moves up/left by `amount`;
+ * an index inside the removed range returns `-1` (the border no longer has a cell); an index
+ * above the removed range stays put.
+ *
+ * @param {number} index The visual index to shift.
+ * @param {number} removalIndex The visual index at which the removal starts.
+ * @param {number} amount The number of removed rows/columns.
+ * @returns {number}
+ */
+export function getShiftedIndexAfterRemove(index: number, removalIndex: number, amount: number): number {
+  if (index >= removalIndex + amount) {
+    return index - amount;
+  }
+
+  if (index >= removalIndex) {
+    return -1;
+  }
+
+  return index;
+}
+
+/**
+ * Builds the disjoint, ascending list of visual-index ranges the viewport working set must cover
+ * on one axis: the frozen-start area, the master rendered range (clipped so the ranges stay
+ * disjoint), and the frozen-end area. Frozen rows and columns are rendered by the overlay clones
+ * even when the master rendered range excludes them, so the working set must always include them.
+ *
+ * @param {number} firstIndex First visual index of the master rendered range.
+ * @param {number} lastIndex Last visual index of the master rendered range.
+ * @param {number} fixedStartCount Number of frozen indexes at the start of the axis.
+ * @param {number} fixedEndCount Number of frozen indexes at the end of the axis.
+ * @param {number} totalCount Total number of indexes on the axis.
+ * @returns {Array} Array of `[from, to]` tuples, disjoint and ascending.
+ */
+export function getViewportUnionRanges(
+  firstIndex: number,
+  lastIndex: number,
+  fixedStartCount: number,
+  fixedEndCount: number,
+  totalCount: number,
+): Array<[number, number]> {
+  const ranges: Array<[number, number]> = [];
+  const fixedEndStart = totalCount - fixedEndCount;
+  const pushRange = (from: number, to: number) => {
+    if (from <= to) {
+      ranges.push([from, to]);
+    }
+  };
+
+  pushRange(0, Math.min(fixedStartCount, totalCount) - 1);
+  pushRange(Math.max(firstIndex, fixedStartCount), Math.min(lastIndex, fixedEndStart - 1));
+  pushRange(Math.max(fixedEndStart, fixedStartCount), totalCount - 1);
+
+  return ranges;
+}
+
+/**
+ * Checks whether a visual index lies inside the viewport working window on one axis: the
+ * frozen-start area, the frozen-end area, or the master rendered range.
+ *
+ * @param {number} index The visual index to test.
+ * @param {number} firstIndex First visual index of the master rendered range.
+ * @param {number} lastIndex Last visual index of the master rendered range.
+ * @param {number} fixedStartCount Number of frozen indexes at the start of the axis.
+ * @param {number} fixedEndCount Number of frozen indexes at the end of the axis.
+ * @param {number} totalCount Total number of indexes on the axis.
+ * @returns {boolean}
+ */
+export function isIndexInViewportUnion(
+  index: number,
+  firstIndex: number,
+  lastIndex: number,
+  fixedStartCount: number,
+  fixedEndCount: number,
+  totalCount: number,
+): boolean {
+  if (index < 0 || index >= totalCount) {
+    return false;
+  }
+
+  return index < fixedStartCount
+    || index >= totalCount - fixedEndCount
+    || (index >= firstIndex && index <= lastIndex);
+}
+
+/**
+ * Resolves the style of a single border side declared inside a range configuration. An explicit
+ * per-side style object takes precedence and is used unchanged. An enabled but unstyled side
+ * (an empty object `{}`, an empty string, or `true`) inherits the range-level `border` object's
+ * style (width, color, and line style) so it renders with the configured look instead of the
+ * default 1px black. When no range-level `border` is provided the raw side value is kept, which
+ * preserves the previous behavior.
+ *
+ * @param {object} [rawSide] The side value from the range configuration.
+ * @param {object} [rangeBorder] The range-level `border` object shared by all sides.
+ * @returns {object}
+ */
+export function resolveRangeBorderSide(
+  rawSide: BorderSettings | undefined,
+  rangeBorder: Record<string, unknown> | undefined
+): BorderSettings | undefined {
+  if (rawSide && isObject(rawSide) && Object.keys(rawSide).length > 0) {
+    return rawSide;
+  }
+
+  if (rangeBorder && isObject(rangeBorder)) {
+    const resolved: BorderSettings = { ...rangeBorder };
+
+    // `cornerVisible` describes the selection corner, not an individual side, so it is dropped.
+    delete resolved.cornerVisible;
+
+    return resolved;
+  }
+
+  return rawSide;
+}
+
+/**
  * Create default single border for each position (top/right/bottom/left).
  *
  * @returns {object} `{{width: number, color: string}}`.
