@@ -43,4 +43,23 @@ test.describe('formulaBuilder plugin', () => {
     await expect(grid.editorInput).toHaveValue('9');
     await grid.page.keyboard.press('Escape');
   });
+
+  test('typing a reference highlights the referenced cell through a native custom selection', async () => {
+    await grid.openEditor(3, 0);
+    await grid.editorInput.click();
+    await grid.editorInput.press('ControlOrMeta+a');
+    await grid.editorInput.fill('=A1');
+
+    // The caret touches the ref token, so the referenced cell gets the generated
+    // fill class and its selection border renders through Walkontable.
+    await expect(grid.cell(0, 0)).toHaveClass(/ht-formula-ref-fill-\d+/);
+    await expect(
+      grid.page.locator('.ht_master [class*="wtBorder"][class*="ht-formula-ref-fill-"]').first(),
+    ).toBeAttached();
+
+    await grid.page.keyboard.press('Escape');
+
+    // Cancelling the edit clears the highlight again.
+    await expect(grid.cell(0, 0)).not.toHaveClass(/ht-formula-ref-fill-/);
+  });
 });

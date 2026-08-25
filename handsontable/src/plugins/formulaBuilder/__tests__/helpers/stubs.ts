@@ -15,6 +15,41 @@ export interface IndexMapperStub {
 /**
  * Members of the Handsontable surface the adapter and controller touch in unit tests.
  */
+/**
+ * Minimal fake of a grid custom-selection instance, mirroring what the adapter
+ * reads back from `selection.highlight.customSelections`.
+ */
+export interface CustomSelectionStub {
+  /**
+   * The settings the selection was created with (border props spread to the top level).
+   */
+  settings: Record<string, unknown>;
+  /**
+   * The visual cell range the selection was created with.
+   */
+  visualCellRange: unknown;
+  /**
+   * Destroy spy.
+   */
+  destroy: () => void;
+}
+
+/**
+ * Minimal fake of the grid highlight controller consumed by the adapter.
+ */
+export interface HighlightStub {
+  /**
+   * The custom selections registered so far.
+   */
+  customSelections: CustomSelectionStub[];
+  /**
+   * Creates a custom-selection stub from the config and appends it to the collection.
+   *
+   * @param {Record<string, unknown>} config The selection configuration.
+   */
+  addCustomSelection: (config: Record<string, unknown>) => void;
+}
+
 export interface HotStubShape {
   getCell: (row: number, col: number, topmost?: boolean) => HTMLElement | null;
   getCoords: (td: HTMLElement) => { row: number | null; col: number | null } | null;
@@ -53,7 +88,42 @@ export interface HotStubShape {
       holder: HTMLElement | Window;
       clone: { wtTable: { wtRootElement: HTMLElement } } | null;
     } | null;
+    render: () => void;
   };
+  selection: { highlight: HighlightStub };
+  _createCellCoords: (row: number, col: number) => { row: number; col: number };
+  _createCellRange: (
+    highlight: { row: number; col: number },
+    from?: { row: number; col: number },
+    to?: { row: number; col: number },
+  ) => {
+    highlight: { row: number; col: number };
+    from: { row: number; col: number };
+    to: { row: number; col: number };
+  };
+}
+
+/**
+ * Builds a highlight-controller stub whose `addCustomSelection` records lightweight
+ * custom-selection fakes.
+ *
+ * @returns {HighlightStub}
+ */
+export function makeHighlightStub(): HighlightStub {
+  const highlight: HighlightStub = {
+    customSelections: [],
+    addCustomSelection: (config: Record<string, unknown>) => {
+      const { border, visualCellRange, ...restOptions } = config;
+
+      highlight.customSelections.push({
+        settings: { ...(border as Record<string, unknown>), ...restOptions },
+        visualCellRange,
+        destroy: jest.fn(),
+      });
+    },
+  };
+
+  return highlight;
 }
 
 /**
@@ -91,7 +161,14 @@ export function makeHotStub(overrides: Partial<HotStubShape> = {}): HotInstance 
     rootWindow: window as Window & typeof globalThis,
     rootElement: document.body,
     getCurrentThemeName: () => null,
-    view: { getOverlayByName: () => null },
+    view: { getOverlayByName: () => null, render: () => undefined },
+    selection: { highlight: makeHighlightStub() },
+    _createCellCoords: (row: number, col: number) => ({ row, col }),
+    _createCellRange: (
+      highlight: { row: number; col: number },
+      from?: { row: number; col: number },
+      to?: { row: number; col: number },
+    ) => ({ highlight, from: from ?? highlight, to: to ?? highlight }),
     ...overrides,
   };
 

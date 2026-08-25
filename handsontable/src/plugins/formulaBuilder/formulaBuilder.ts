@@ -122,10 +122,10 @@ interface IndexMapperLike {
  * The plugin requires the {@link Formulas} plugin to be enabled with a configured engine,
  * and the `@hfe/core` module to be passed in via the `builder` setting.
  *
- * While enabled, the plugin hosts its reference highlights in the grid root element and
- * forces `position: relative` and `overflow: hidden` inline styles on it (both restored
- * on disable). The `overflow` style makes the grid treat its container as size-defined,
- * so give the container an explicit height.
+ * Reference highlights render through the grid's own selection machinery (custom
+ * selections), so they follow frozen panes, scrolling, and hidden or reordered rows
+ * and columns natively, and the plugin leaves the grid root element's inline styles
+ * untouched.
  *
  * @example
  * ::: only-for javascript

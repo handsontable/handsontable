@@ -15,7 +15,9 @@ function makeHot(): {
   } {
   const hooks: Record<string, ((...args: unknown[]) => void)[]> = {};
   const renderMock = jest.fn();
+  const viewRenderMock = jest.fn();
   const hot = makeHotStub({
+    view: { getOverlayByName: () => null, render: viewRenderMock },
     getCell: jest.fn(() => document.createElement('td')),
     addHook: (name, callback) => {
       const listeners = hooks[name] ?? [];
@@ -63,8 +65,9 @@ function wholeRowHighlight(row: number, color = 'blue'): RangeHighlight {
 }
 
 describe('HandsontableAdapter header highlights', () => {
-  it('does not trigger a host render on setHighlights or clearHighlights', () => {
+  it('redraws through the fast view render, never a full host render', () => {
     const { hot, renderMock } = makeHot();
+    const viewRenderMock = hot.view.render as jest.Mock;
     const overlayHost = document.createElement('div');
 
     document.body.appendChild(overlayHost);
@@ -75,6 +78,26 @@ describe('HandsontableAdapter header highlights', () => {
     adapter.clearHighlights();
 
     expect(renderMock).not.toHaveBeenCalled();
+    expect(viewRenderMock).toHaveBeenCalled();
+
+    adapter.destroy();
+    overlayHost.remove();
+  });
+
+  it('skips the redraw when the highlight set is unchanged', () => {
+    const { hot } = makeHot();
+    const viewRenderMock = hot.view.render as jest.Mock;
+    const overlayHost = document.createElement('div');
+
+    document.body.appendChild(overlayHost);
+
+    const adapter = new HandsontableAdapter(makeAdapterOptions(hot, overlayHost), makePluginStub());
+
+    adapter.setHighlights([wholeColHighlight(0)]);
+    viewRenderMock.mockClear();
+    adapter.setHighlights([wholeColHighlight(0)]);
+
+    expect(viewRenderMock).not.toHaveBeenCalled();
 
     adapter.destroy();
     overlayHost.remove();
@@ -174,7 +197,7 @@ describe('HandsontableAdapter header highlights', () => {
     overlayHost.remove();
   });
 
-  it('setOverlayClassName applies the class to highlight layer groups', () => {
+  it('setOverlayClassName toggles the theming class on the overlay host', () => {
     const { hot } = makeHot();
     const overlayHost = document.createElement('div');
 
@@ -183,18 +206,35 @@ describe('HandsontableAdapter header highlights', () => {
     const adapter = new HandsontableAdapter(makeAdapterOptions(hot, overlayHost), makePluginStub());
 
     adapter.setOverlayClassName('my-theme');
-    adapter.setHighlights([
-      {
-        range: { start: { sheet: '', row: 0, col: 0 }, end: { sheet: '', row: 0, col: 0 } },
-        color: 'red',
-      },
-    ]);
 
-    const group = overlayHost.querySelector('.hfe-highlight');
+    expect(overlayHost.classList.contains('my-theme')).toBe(true);
 
-    expect(group?.classList.contains('my-theme')).toBe(true);
+    adapter.setOverlayClassName('other-theme');
+
+    expect(overlayHost.classList.contains('my-theme')).toBe(false);
+    expect(overlayHost.classList.contains('other-theme')).toBe(true);
+
+    adapter.setOverlayClassName(null);
+
+    expect(overlayHost.classList.contains('other-theme')).toBe(false);
 
     adapter.destroy();
+    overlayHost.remove();
+  });
+
+  it('destroy removes the applied theming class from the overlay host', () => {
+    const { hot } = makeHot();
+    const overlayHost = document.createElement('div');
+
+    document.body.appendChild(overlayHost);
+
+    const adapter = new HandsontableAdapter(makeAdapterOptions(hot, overlayHost), makePluginStub());
+
+    adapter.setOverlayClassName('my-theme');
+    adapter.destroy();
+
+    expect(overlayHost.classList.contains('my-theme')).toBe(false);
+
     overlayHost.remove();
   });
 

@@ -4,6 +4,8 @@ import { getEditor } from '../../../editors/registry';
 import { registerAsRootInstance } from '../../../utils/rootInstance';
 import { FormulaBuilder } from '../formulaBuilder';
 import type { CoreModule } from '../types';
+import { makeHighlightStub } from './helpers/stubs';
+import type { HighlightStub } from './helpers/stubs';
 
 // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
 const core = require('@hfe/core') as CoreModule;
@@ -54,7 +56,18 @@ interface HotStubShape {
   getCellMetaTransient: (row: number, col: number) => Record<string, unknown>;
   selectCell: jest.Mock;
   selectCells: jest.Mock;
-  view: { getOverlayByName: (overlayName: string) => unknown };
+  view: { getOverlayByName: (overlayName: string) => unknown; render: jest.Mock };
+  selection: { highlight: HighlightStub };
+  _createCellCoords: (row: number, col: number) => { row: number; col: number };
+  _createCellRange: (
+    highlight: { row: number; col: number },
+    from?: { row: number; col: number },
+    to?: { row: number; col: number },
+  ) => {
+    highlight: { row: number; col: number };
+    from: { row: number; col: number };
+    to: { row: number; col: number };
+  };
   getLayoutManager: () => LayoutManagerStub;
   getCurrentThemeName: () => string | null;
   isRtl: () => boolean;
@@ -119,7 +132,14 @@ function makeFullHotStub(pluginSettings: Record<string, unknown> = {}) {
     getCellMetaTransient: () => ({}),
     selectCell: jest.fn(),
     selectCells: jest.fn(),
-    view: { getOverlayByName: () => null },
+    view: { getOverlayByName: () => null, render: jest.fn() },
+    selection: { highlight: makeHighlightStub() },
+    _createCellCoords: (row: number, col: number) => ({ row, col }),
+    _createCellRange: (
+      highlight: { row: number; col: number },
+      from?: { row: number; col: number },
+      to?: { row: number; col: number },
+    ) => ({ highlight, from: from ?? highlight, to: to ?? highlight }),
     getLayoutManager: () => layoutManager,
     getCurrentThemeName: () => null,
     isRtl: () => false,
@@ -340,7 +360,7 @@ function makeHotStubWithHolder() {
   const holder = document.createElement('div');
   const refreshDimensions = jest.fn();
 
-  stub.hot.view = { getOverlayByName: () => ({ holder, clone: null }) };
+  stub.hot.view = { getOverlayByName: () => ({ holder, clone: null }), render: jest.fn() };
   stub.hot.getActiveEditor = () => ({ refreshDimensions });
 
   return { stub, holder, refreshDimensions };
@@ -566,7 +586,8 @@ describe('FormulaBuilder eager adapter', () => {
     const hooksAfterEnable = stub.hot.addHook.mock.calls.map(call => call[0]);
 
     expect(hooksAfterEnable).toContain('afterViewRender');
-    expect(hooksAfterEnable).toContain('afterRefreshDimensions');
+    expect(hooksAfterEnable).toContain('afterGetColHeader');
+    expect(hooksAfterEnable).toContain('afterGetRowHeader');
 
     expect(plugin.adapter).toBeDefined();
 

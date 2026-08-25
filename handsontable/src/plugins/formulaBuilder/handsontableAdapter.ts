@@ -4,7 +4,6 @@ import type {
   CellPickListener,
   CellRange,
   Direction,
-  GridGeometry,
   GridSelection,
   GridSize,
   HeaderPick,
@@ -14,14 +13,58 @@ import type {
   RangeHighlight,
   RangePick,
   RangePickListener,
-  RangeRect,
   Unsubscribe,
 } from '@hfe/core';
-import type { HighlightLayer, PickEmitter } from '@hfe/core';
+import type { PickEmitter } from '@hfe/core';
 import type { HotInstance } from '../../core/types';
-import type { CoreModule, OverlayLike, OverlayName, VisualHfIndexMapping } from './types';
+import type { default as VisualSelection } from '../../selection/highlight/visualSelection';
+import type { CoreModule, OverlayLike, VisualHfIndexMapping } from './types';
 
 const MAX_HF_INDEX_SCAN = 2000;
+
+/**
+ * The fallback border width (px) of a reference highlight, used when the
+ * `--hfe-reference-border-width` theme variable does not resolve to a positive number.
+ */
+const DEFAULT_BORDER_WIDTH = 2;
+
+/**
+ * The class-name prefix of the generated per-color reference highlight classes.
+ * The `-fill-N` variant also paints the translucent cell background; the
+ * `-line-N` variant styles the selection border only.
+ */
+const REF_CLASS_PREFIX = 'ht-formula-ref';
+
+/**
+ * Mask that renders the selection border strips as dashed lines, matching the
+ * dashed look of the previous absolute-rect highlight layer. The 45-degree
+ * repeat produces the dash pattern on both horizontal and vertical strips.
+ */
+const BORDER_DASH_MASK = 'repeating-linear-gradient(45deg, #000 0 2px, transparent 2px 4px)';
+
+/**
+ * The visual (grid-space) cell range type produced by the Handsontable coordinate factory.
+ */
+type HotCellRange = ReturnType<HotInstance['_createCellRange']>;
+
+/**
+ * A single custom-selection request derived from a highlight: one visually contiguous
+ * range with its border color and fill flag.
+ */
+interface SelectionSpec {
+  /**
+   * The visually contiguous range to select.
+   */
+  range: HotCellRange;
+  /**
+   * The border (and fill derivation) color.
+   */
+  color: string;
+  /**
+   * Whether the range cells get a translucent background fill.
+   */
+  fill: boolean;
+}
 
 /**
  * A contiguous run of visual indexes.
@@ -202,21 +245,43 @@ export class HandsontableAdapter implements IGridAdapter {
    */
   readonly #emitter: PickEmitter;
   /**
-   * Highlight overlay renderer.
+   * The persistent reference highlights last passed to {@link setHighlights},
+   * kept for header tinting and change detection.
    */
-  readonly #layer: HighlightLayer;
+  #persistentItems: RangeHighlight[] = [];
   /**
-   * Restores the overlay host `position` style changed at construction.
+   * The custom-selection specs the persistent highlights currently render as.
    */
-  readonly #restorePosition: () => void;
+  #persistentSpecs: SelectionSpec[] = [];
   /**
-   * The overlay host `overflow` style value captured at construction.
+   * The grid custom-selection instances owned by the persistent highlights.
    */
-  readonly #prevOverflow: string;
+  readonly #persistentSelections: VisualSelection[] = [];
   /**
-   * Cache of per-overlay z-index probes.
+   * The grid custom-selection instances owned by the ephemeral (drag preview) highlight.
    */
-  readonly #overlayZIndexCache = new Map<OverlayName, number>();
+  readonly #ephemeralSelections: VisualSelection[] = [];
+  /**
+   * Header elements currently tinted by whole-row/whole-column highlights.
+   */
+  readonly #styledHeaderEls = new Set<HTMLElement>();
+  /**
+   * Generated highlight class names keyed by `<fill|line>|<color>`.
+   */
+  readonly #refClassByKey = new Map<string, string>();
+  /**
+   * The adapter-owned style element holding the generated per-color fill rules.
+   */
+  #fillStyleEl: HTMLStyleElement | null = null;
+  /**
+   * The consumer theming class applied through {@link setOverlayClassName}.
+   */
+  #overlayClassName: string | null = null;
+  /**
+   * The resolved reference-highlight border width, probed lazily from the
+   * `--hfe-reference-border-width` theme variable.
+   */
+  #borderWidth: number | null = null;
   /**
    * Column header elements tracked via the `afterGetColHeader` hook.
    */
@@ -258,10 +323,6 @@ export class HandsontableAdapter implements IGridAdapter {
     this.#getSheetDimensions = options.getSheetDimensions ?? null;
     this.#plugin = plugin;
     this.#emitter = new this.#core.PickEmitter();
-    this.#restorePosition = this.#core.ensureRelativePosition(this.#overlayHost);
-    this.#prevOverflow = this.#overlayHost.style.overflow;
-    this.#overlayHost.style.overflow = 'hidden';
-    this.#layer = new this.#core.HighlightLayer(this.#geometry());
 
     this.#colHeaderHook = (col, th) => {
       this.#colHeaderEls.set(col, th);
@@ -271,7 +332,7 @@ export class HandsontableAdapter implements IGridAdapter {
     };
     this.#pruneHeaderElsHook = () => {
       this.#pruneDetachedHeaderEls();
-      this.#layer.rerenderHeaders();
+      this.#renderHeaderTints();
     };
     this.#hot.addHook('afterGetColHeader', this.#colHeaderHook);
     this.#hot.addHook('afterGetRowHeader', this.#rowHeaderHook);
@@ -336,14 +397,28 @@ export class HandsontableAdapter implements IGridAdapter {
   }
 
   /**
-   * Replaces the persistent reference highlights. Deliberately does NOT trigger a
-   * host render: the highlight layer paints its own overlay elements and header
-   * tint directly, and this runs on every keystroke and caret move while editing.
+   * Replaces the persistent reference highlights, rendered as the grid's own custom
+   * selections. This runs on every keystroke and caret move while editing, so an
+   * unchanged highlight set is detected and skipped without touching the grid, and a
+   * changed one triggers only a fast (reposition-only) view render.
    *
    * @param {RangeHighlight[]} items The highlights to render.
    */
   setHighlights(items: RangeHighlight[]): void {
-    this.#layer.setHighlights(items);
+    const specs = this.#selectionSpecs(items, false);
+
+    this.#persistentItems = items;
+
+    if (this.#sameSpecs(this.#persistentSpecs, specs)) {
+      this.#renderHeaderTints();
+
+      return;
+    }
+
+    this.#persistentSpecs = specs;
+    this.#replaceSelections(this.#persistentSelections, specs);
+    this.#renderHeaderTints();
+    this.#redraw();
   }
 
   /**
@@ -353,30 +428,58 @@ export class HandsontableAdapter implements IGridAdapter {
    * @param {string} color The highlight color.
    */
   highlightRange(range: CellRange, color: string): void {
-    this.#layer.setEphemeral(range, color);
+    this.#replaceSelections(
+      this.#ephemeralSelections,
+      this.#selectionSpecs([{ range, color, fill: true }], true),
+    );
+    this.#redraw();
   }
 
   /**
    * Clears the ephemeral (drag preview) highlight.
    */
   clearEphemeralHighlight(): void {
-    this.#layer.setEphemeral(null);
+    if (this.#ephemeralSelections.length === 0) {
+      return;
+    }
+
+    this.#replaceSelections(this.#ephemeralSelections, []);
+    this.#redraw();
   }
 
   /**
    * Clears every highlight.
    */
   clearHighlights(): void {
-    this.#layer.clear();
+    this.#persistentItems = [];
+    this.#persistentSpecs = [];
+    this.#replaceSelections(this.#persistentSelections, []);
+    this.#replaceSelections(this.#ephemeralSelections, []);
+    this.#renderHeaderTints();
+    this.#redraw();
   }
 
   /**
-   * Sets an extra class name on the highlight overlay container.
+   * Applies the consumer's theming class to the grid root element so CSS variables
+   * scoped under it (e.g. reference palette overrides) cascade to the highlighted
+   * cells and their selection borders.
    *
    * @param {string | null} className The class name, or `null` to remove it.
    */
   setOverlayClassName(className: string | null): void {
-    this.#layer.setClassName(className);
+    if (this.#overlayClassName === className) {
+      return;
+    }
+
+    if (this.#overlayClassName !== null) {
+      this.#overlayHost.classList.remove(this.#overlayClassName);
+    }
+
+    if (className !== null) {
+      this.#overlayHost.classList.add(className);
+    }
+
+    this.#overlayClassName = className;
   }
 
   /**
@@ -454,7 +557,7 @@ export class HandsontableAdapter implements IGridAdapter {
    * Clears the drag preview when reference selection mode ends.
    */
   exitRefSelectionMode(): void {
-    this.#layer.setEphemeral(null);
+    this.clearEphemeralHighlight();
   }
 
   /**
@@ -782,7 +885,7 @@ export class HandsontableAdapter implements IGridAdapter {
   }
 
   /**
-   * Releases hooks, overlays, and restored host styles.
+   * Releases hooks, owned custom selections, header tints, and generated styles.
    */
   destroy(): void {
     if (this.#destroyed) {
@@ -793,10 +896,16 @@ export class HandsontableAdapter implements IGridAdapter {
     this.#hot.removeHook('afterGetColHeader', this.#colHeaderHook);
     this.#hot.removeHook('afterGetRowHeader', this.#rowHeaderHook);
     this.#hot.removeHook('afterViewRender', this.#pruneHeaderElsHook);
-    this.#layer.destroy();
+    this.#persistentItems = [];
+    this.#persistentSpecs = [];
+    this.#replaceSelections(this.#persistentSelections, []);
+    this.#replaceSelections(this.#ephemeralSelections, []);
+    this.#renderHeaderTints();
+    this.setOverlayClassName(null);
+    this.#fillStyleEl?.remove();
+    this.#fillStyleEl = null;
+    this.#refClassByKey.clear();
     this.#emitter.clear();
-    this.#restorePosition();
-    this.#overlayHost.style.overflow = this.#prevOverflow;
   }
 
   /**
@@ -831,74 +940,246 @@ export class HandsontableAdapter implements IGridAdapter {
   }
 
   /**
-   * Builds the geometry contract consumed by the highlight layer.
-   *
-   * @returns {GridGeometry}
+   * Re-renders the grid so the custom-selection changes reach the DOM. A fast
+   * (reposition-only) draw is enough: the Walkontable selection manager re-scans
+   * every selection on each draw, fast or full, on the master table and every
+   * overlay clone. During grid initialization the view does not exist yet (the
+   * `@hfe/core` builder resets highlights while the plugin enables), and the
+   * initial draw renders the registered selections anyway.
    */
-  #geometry(): GridGeometry {
-    return {
-      getOverlayHost: () => this.#overlayHost,
-      getRangeRects: range => this.#rangeRects(range),
-      getViewportClip: () => this.#viewportClip(),
-      onViewportChange: callback => this.#subscribeViewport(callback),
-      getColHeaderEl: col => this.#colHeaderEls.get(col) ?? null,
-      getRowHeaderEl: row => this.#rowHeaderEls.get(row) ?? null,
-    };
+  #redraw(): void {
+    this.#hot.view?.render();
   }
 
   /**
-   * Subscribes a callback to every hook that signals a viewport change.
+   * Whether two custom-selection spec sets describe the same visual result.
    *
-   * @param {Function} callback The viewport change listener.
-   * @returns {Function} Unsubscribe function.
+   * @param {SelectionSpec[]} previous The currently rendered specs.
+   * @param {SelectionSpec[]} next The freshly derived specs.
+   * @returns {boolean}
    */
-  #subscribeViewport(callback: () => void): Unsubscribe {
-    const hookNames = [
-      'afterViewRender',
-      'afterScrollVertically',
-      'afterScrollHorizontally',
-      'afterRefreshDimensions',
-    ] as const;
-    const handler = (): void => callback();
-
-    for (const name of hookNames) {
-      this.#hot.addHook(name, handler);
+  #sameSpecs(previous: SelectionSpec[], next: SelectionSpec[]): boolean {
+    if (previous.length !== next.length) {
+      return false;
     }
 
-    return () => {
-      for (const name of hookNames) {
-        this.#hot.removeHook(name, handler);
-      }
-    };
+    return previous.every((prev, index) => {
+      const spec = next[index];
+
+      return prev.color === spec.color &&
+        prev.fill === spec.fill &&
+        prev.range.from.row === spec.range.from.row &&
+        prev.range.from.col === spec.range.from.col &&
+        prev.range.to.row === spec.range.to.row &&
+        prev.range.to.col === spec.range.to.col;
+    });
   }
 
   /**
-   * Computes the highlight rectangles for a range given in HyperFormula coordinates,
-   * splitting it into contiguous visual runs per axis (sorting/moving/hiding can
-   * fragment a source range in visual space).
+   * Derives the custom-selection specs for a highlight set, splitting each range
+   * given in HyperFormula coordinates into visually contiguous runs per axis
+   * (sorting/moving/hiding can fragment a source range in visual space).
    *
-   * @param {CellRange} range The range in HyperFormula coordinates.
-   * @returns {RangeRect[]}
+   * @param {RangeHighlight[]} items The highlights in HyperFormula coordinates.
+   * @param {boolean} fillDefault The fill flag applied when an item does not set one.
+   * @returns {SelectionSpec[]}
    */
-  #rangeRects(range: CellRange): RangeRect[] {
+  #selectionSpecs(items: RangeHighlight[], fillDefault: boolean): SelectionSpec[] {
     const hfToVisualRow = (row: number): number => this.#mapping.hfToVisualRow(row);
     const hfToVisualCol = (col: number): number => this.#mapping.hfToVisualCol(col);
-    const rowRuns = this.#visualRuns(range.start.row, range.end.row, hfToVisualRow);
-    const colRuns = this.#visualRuns(range.start.col, range.end.col, hfToVisualCol);
-    const rects: RangeRect[] = [];
+    const specs: SelectionSpec[] = [];
 
-    for (const rowRun of rowRuns) {
-      for (const colRun of colRuns) {
-        rects.push(
-          ...this.#visualRangeRects({
-            start: { ...range.start, row: rowRun.start, col: colRun.start },
-            end: { ...range.end, row: rowRun.end, col: colRun.end },
-          }),
-        );
+    for (const item of items) {
+      const rowRuns = this.#visualRuns(item.range.start.row, item.range.end.row, hfToVisualRow);
+      const colRuns = this.#visualRuns(item.range.start.col, item.range.end.col, hfToVisualCol);
+
+      for (const rowRun of rowRuns) {
+        for (const colRun of colRuns) {
+          const from = this.#hot._createCellCoords(rowRun.start, colRun.start);
+          const to = this.#hot._createCellCoords(rowRun.end, colRun.end);
+
+          specs.push({
+            range: this.#hot._createCellRange(from, from, to),
+            color: item.color,
+            fill: item.fill ?? fillDefault,
+          });
+        }
       }
     }
 
-    return rects;
+    return specs;
+  }
+
+  /**
+   * Replaces one owned custom-selection group with freshly created selections: the
+   * previous instances are destroyed and removed from the grid's custom-selection
+   * collection (foreign custom selections, e.g. the CustomBorders plugin's, are left
+   * untouched), and one new selection is registered per spec.
+   *
+   * @param {VisualSelection[]} owned The owned selection group, mutated in place.
+   * @param {SelectionSpec[]} specs The selections to create.
+   */
+  #replaceSelections(owned: VisualSelection[], specs: SelectionSpec[]): void {
+    if (owned.length === 0 && specs.length === 0) {
+      return;
+    }
+
+    const { highlight } = this.#hot.selection;
+    const { customSelections } = highlight;
+    const ownedSet = new Set(owned);
+
+    for (let index = customSelections.length - 1; index >= 0; index--) {
+      if (ownedSet.has(customSelections[index])) {
+        customSelections[index].destroy();
+        customSelections.splice(index, 1);
+      }
+    }
+
+    owned.length = 0;
+
+    for (const spec of specs) {
+      highlight.addCustomSelection({
+        // The custom-selection factory spreads the `border` param's own keys into
+        // the selection settings, while the Border renderer reads its config from
+        // `settings.border` - so the actual border config sits one level deeper
+        // (the CustomBorders plugin's border model carries the same nested key).
+        border: {
+          border: {
+            width: this.#resolveBorderWidth(),
+            color: spec.color,
+            cornerVisible: false,
+          },
+        },
+        className: this.#refClassFor(spec.color, spec.fill),
+        visualCellRange: spec.range,
+      });
+      owned.push(customSelections[customSelections.length - 1]);
+    }
+  }
+
+  /**
+   * Returns (creating on first sight of a color/fill pair) the generated class
+   * name that styles one reference highlight. The class lands on both the
+   * highlighted cells and the selection's border strips: the border rule masks
+   * the strips into dashes, and the fill variant additionally layers the
+   * translucent tint over the cell background (as a background image, so row
+   * striping stays visible underneath, like the previous overlay rects). The
+   * rules live in one adapter-owned style element, so arbitrary palette colors
+   * (CSS variables included) stay expressible while the grid applies plain
+   * class names.
+   *
+   * @param {string} color The highlight border color.
+   * @param {boolean} fill Whether the cells also get the translucent tint.
+   * @returns {string}
+   */
+  #refClassFor(color: string, fill: boolean): string {
+    const key = `${fill ? 'fill' : 'line'}|${color}`;
+    const existing = this.#refClassByKey.get(key);
+
+    if (existing !== undefined) {
+      return existing;
+    }
+
+    const index = this.#refClassByKey.size + 1;
+    const className = `${REF_CLASS_PREFIX}-${fill ? 'fill' : 'line'}-${index}`;
+
+    if (this.#fillStyleEl === null) {
+      this.#fillStyleEl = this.#hot.rootDocument.createElement('style');
+      this.#fillStyleEl.setAttribute('data-hot-formula-ref-fills', '');
+      this.#hot.rootDocument.head.appendChild(this.#fillStyleEl);
+    }
+
+    let rules =
+      `.handsontable .wtBorder.${className}{` +
+      `-webkit-mask-image:${BORDER_DASH_MASK};mask-image:${BORDER_DASH_MASK};}`;
+
+    if (fill) {
+      const tint = this.#core.fillColor(color);
+
+      rules += `.handsontable td.${className}{background-image:linear-gradient(${tint},${tint});}`;
+    }
+
+    this.#fillStyleEl.textContent += rules;
+    this.#refClassByKey.set(key, className);
+
+    return className;
+  }
+
+  /**
+   * Resolves (and caches) the reference-highlight border width from the
+   * `--hfe-reference-border-width` theme variable, falling back to
+   * {@link DEFAULT_BORDER_WIDTH} when it does not resolve to a positive number.
+   *
+   * @returns {number}
+   */
+  #resolveBorderWidth(): number {
+    if (this.#borderWidth === null) {
+      const rawWidth = this.#hot.rootWindow
+        .getComputedStyle(this.#overlayHost)
+        .getPropertyValue('--hfe-reference-border-width');
+      const parsedWidth = Number.parseFloat(rawWidth);
+
+      this.#borderWidth = Number.isFinite(parsedWidth) && parsedWidth > 0 ?
+        parsedWidth : DEFAULT_BORDER_WIDTH;
+    }
+
+    return this.#borderWidth;
+  }
+
+  /**
+   * Repaints the header tint of whole-row/whole-column persistent highlights on the
+   * tracked header elements, clearing the previously tinted ones first. Runs after
+   * every view render (headers are recreated per render pass) and after every
+   * persistent highlight change.
+   */
+  #renderHeaderTints(): void {
+    for (const headerEl of this.#styledHeaderEls) {
+      headerEl.style.backgroundColor = '';
+    }
+
+    this.#styledHeaderEls.clear();
+
+    for (const item of this.#persistentItems) {
+      if (item.whole === 'column') {
+        this.#tintHeaderRun(item.range.start.col, item.range.end.col, item.color, 'column');
+      } else if (item.whole === 'row') {
+        this.#tintHeaderRun(item.range.start.row, item.range.end.row, item.color, 'row');
+      }
+    }
+  }
+
+  /**
+   * Tints the tracked header elements of one whole-axis highlight, translating each
+   * HyperFormula index of the span to its visual counterpart.
+   *
+   * @param {number} startHf The first HyperFormula index of the span.
+   * @param {number} endHf The last HyperFormula index of the span.
+   * @param {string} color The highlight color the tint derives from.
+   * @param {'row' | 'column'} axis The header axis to tint.
+   */
+  #tintHeaderRun(startHf: number, endHf: number, color: string, axis: 'row' | 'column'): void {
+    if (endHf - startHf > MAX_HF_INDEX_SCAN) {
+      return;
+    }
+
+    const backgroundColor = this.#core.fillColor(color);
+
+    for (let hfIndex = startHf; hfIndex <= endHf; hfIndex++) {
+      const visualIndex = axis === 'column' ?
+        this.#mapping.hfToVisualCol(hfIndex) : this.#mapping.hfToVisualRow(hfIndex);
+
+      if (visualIndex < 0) {
+        continue; // eslint-disable-line no-continue
+      }
+
+      const headerEl = axis === 'column' ?
+        this.#colHeaderEls.get(visualIndex) : this.#rowHeaderEls.get(visualIndex);
+
+      if (headerEl) {
+        headerEl.style.backgroundColor = backgroundColor;
+        this.#styledHeaderEls.add(headerEl);
+      }
+    }
   }
 
   /**
@@ -951,179 +1232,6 @@ export class HandsontableAdapter implements IGridAdapter {
     }
 
     return runs;
-  }
-
-  /**
-   * Computes the rectangles for a visually contiguous range, split by frozen panes.
-   *
-   * @param {CellRange} range The range in visual coordinates.
-   * @returns {RangeRect[]}
-   */
-  #visualRangeRects(range: CellRange): RangeRect[] {
-    const settings = this.#hot.getSettings();
-    const frozenRows = settings.fixedRowsTop ?? 0;
-    const frozenCols = settings.fixedColumnsStart ?? 0;
-    const frozenRowsBottom = settings.fixedRowsBottom ?? 0;
-    const totalRows = this.#hot.countRows();
-    const bottomStart = totalRows - frozenRowsBottom;
-    const rects: RangeRect[] = [];
-
-    for (const piece of this.#core.splitRangeByFrozen(
-      range,
-      frozenRows,
-      frozenCols,
-      frozenRowsBottom,
-      totalRows,
-    )) {
-      const frozenTop = piece.start.row < frozenRows;
-      const frozenBottom = frozenRowsBottom > 0 && piece.start.row >= bottomStart;
-      const frozenCol = piece.start.col < frozenCols;
-      const rect = this.#pieceRect(piece, frozenTop, frozenBottom, frozenCol);
-
-      if (rect) {
-        rects.push(rect);
-      }
-    }
-
-    return rects;
-  }
-
-  /**
-   * Probes (and caches) the stacking z-index to paint highlights above an overlay.
-   *
-   * @param {string} overlayName The overlay to probe.
-   * @returns {number | undefined}
-   */
-  #overlayZIndex(overlayName: OverlayName): number | undefined {
-    const cached = this.#overlayZIndexCache.get(overlayName);
-
-    if (cached !== undefined) {
-      return cached;
-    }
-
-    const overlay = this.#hot.view.getOverlayByName(overlayName) as OverlayLike | null;
-    const overlayRoot = overlay?.clone?.wtTable.wtRootElement;
-
-    if (!overlayRoot) {
-      return undefined;
-    }
-
-    const zIndex = Number.parseInt(this.#hot.rootWindow.getComputedStyle(overlayRoot).zIndex, 10);
-
-    if (Number.isNaN(zIndex)) {
-      return undefined;
-    }
-
-    this.#overlayZIndexCache.set(overlayName, zIndex + 1);
-
-    return zIndex + 1;
-  }
-
-  /**
-   * Picks the z-index for a frozen-pane range piece, or `undefined` for the master pane.
-   *
-   * @param {boolean} frozenTop Whether the piece lies in the top frozen rows.
-   * @param {boolean} frozenBottom Whether the piece lies in the bottom frozen rows.
-   * @param {boolean} frozenCol Whether the piece lies in the start frozen columns.
-   * @returns {number | undefined}
-   */
-  #pieceZIndex(
-    frozenTop: boolean,
-    frozenBottom: boolean,
-    frozenCol: boolean,
-  ): number | undefined {
-    if (frozenBottom) {
-      return this.#overlayZIndex(frozenCol ? 'bottom_inline_start_corner' : 'bottom');
-    }
-
-    if (frozenTop) {
-      return this.#overlayZIndex(frozenCol ? 'top_inline_start_corner' : 'top');
-    }
-
-    if (frozenCol) {
-      return this.#overlayZIndex('inline_start');
-    }
-
-    return undefined;
-  }
-
-  /**
-   * Computes the overlay-host-relative rectangle for one frozen-split range piece,
-   * clamped to the rendered viewport for non-frozen axes.
-   *
-   * @param {CellRange} piece The range piece in visual coordinates.
-   * @param {boolean} frozenTop Whether the piece lies in the top frozen rows.
-   * @param {boolean} frozenBottom Whether the piece lies in the bottom frozen rows.
-   * @param {boolean} frozenCol Whether the piece lies in the start frozen columns.
-   * @returns {RangeRect | null}
-   */
-  #pieceRect(
-    piece: CellRange,
-    frozenTop: boolean,
-    frozenBottom: boolean,
-    frozenCol: boolean,
-  ): RangeRect | null {
-    let startRow = piece.start.row;
-    let endRow = piece.end.row;
-    let startCol = piece.start.col;
-    let endCol = piece.end.col;
-
-    if (!frozenTop && !frozenBottom) {
-      startRow = Math.max(startRow, this.#hot.getFirstRenderedVisibleRow());
-      endRow = Math.min(endRow, this.#hot.getLastRenderedVisibleRow());
-
-      if (startRow > endRow) {
-        return null;
-      }
-    }
-
-    if (!frozenCol) {
-      startCol = Math.max(startCol, this.#hot.getFirstRenderedVisibleColumn());
-      endCol = Math.min(endCol, this.#hot.getLastRenderedVisibleColumn());
-
-      if (startCol > endCol) {
-        return null;
-      }
-    }
-
-    const rect = this.#core.unionRectRelativeTo(
-      this.#overlayHost,
-      this.#hot.getCell(startRow, startCol, true),
-      this.#hot.getCell(endRow, endCol, true),
-    );
-
-    if (rect) {
-      const zIndex = this.#pieceZIndex(frozenTop, frozenBottom, frozenCol);
-
-      if (zIndex !== undefined) {
-        rect.zIndex = zIndex;
-      }
-    }
-
-    return rect;
-  }
-
-  /**
-   * Computes the visible-viewport clip rectangle relative to the overlay host.
-   *
-   * @returns {RangeRect | null}
-   */
-  #viewportClip(): RangeRect | null {
-    const holder = this.getScrollHolder();
-
-    if (!holder) {
-      return null;
-    }
-
-    const hostRect = this.#overlayHost.getBoundingClientRect();
-    const holderRect = holder.getBoundingClientRect();
-
-    return {
-      left: holderRect.left - hostRect.left,
-      top: holderRect.top - hostRect.top,
-      width: holder.clientWidth,
-      height: holder.clientHeight,
-    };
   }
 
   /**
