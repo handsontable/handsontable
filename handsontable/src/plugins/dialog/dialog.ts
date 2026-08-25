@@ -3,7 +3,7 @@ import { throwWithCause } from '../../helpers/errors';
 import { DialogUI } from './ui';
 import { isObject, isPlainObject } from '../../helpers/object';
 import { isHTMLElement } from '../../helpers/dom/element';
-import { BUTTON_TYPES } from '../../helpers/uiButton';
+import { isButtonType } from '../../helpers/uiButton';
 import * as C from '../../i18n/constants';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 
@@ -210,7 +210,7 @@ export class Dialog extends BasePlugin {
           Array.isArray(value?.buttons) && value.buttons.every((item: unknown) =>
             isPlainObject(item) &&
           typeof item.text === 'string' &&
-          BUTTON_TYPES.includes(String(item.type)) &&
+          isButtonType(item.type) &&
           (typeof item.callback === 'undefined' || typeof item.callback === 'function')
           )),
       content: (value: unknown) => typeof value === 'string' ||
@@ -459,11 +459,11 @@ export class Dialog extends BasePlugin {
     if (templateValue) {
       const template = templateValue as { type: string; [key: string]: unknown };
 
-      // `id` is assigned AFTER the spread on purpose: the template interpolates it into the `id`
-      // attribute of its title and description elements, and `dialogA11YOptions()` derives
-      // `aria-labelledby`/`aria-describedby` from the same value. A caller-supplied `template.id`
-      // would both break out of that attribute and desync the ARIA references, so the grid's own
-      // GUID always wins.
+      // `id` is assigned AFTER the spread on purpose. The template interpolates it into the `id`
+      // attribute of its title and description elements, so a caller-supplied `template.id`
+      // carrying a quote used to break out of that attribute. A benign custom value was no good
+      // either: two grids configured with the same one emitted duplicate element ids into a single
+      // document. The grid's own GUID always wins, and it cannot collide.
       this.#ui!.useTemplate(template.type, {
         ...template,
         id: this.hot.guid,

@@ -24,10 +24,16 @@ describe('loadingContent', () => {
       title: 'Loading<img src="x">',
       description: 'Please wait<img src="x">',
     });
+    const title = fragment.querySelector('.ht-loading__title');
+    const description = fragment.querySelector('.ht-loading__description');
 
-    expect(fragment.querySelector('.ht-loading__title').textContent).toBe('Loading');
-    expect(fragment.querySelector('.ht-loading__description').textContent).toBe('Please wait');
+    // the element assertions are the load-bearing ones: an unstripped payload parses into a child
+    // element that carries no text of its own, so `textContent` alone reads the same either way
+    expect(title.children.length).toBe(0);
+    expect(description.children.length).toBe(0);
     expect(fragment.querySelectorAll('img').length).toBe(0);
+    expect(title.textContent).toBe('Loading');
+    expect(description.textContent).toBe('Please wait');
   });
 
   it('should render the icon as markup, so the spinner SVG keeps working', () => {

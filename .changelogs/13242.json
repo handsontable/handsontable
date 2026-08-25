@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the `dialog` plugin interpolating an unvalidated `template.id` into the dialog's `id` attribute, and the `loading` plugin rendering its `title` and `description` options as HTML. The button `type` option of the `dialog`, `emptyDataState`, and `notification` plugins is now resolved where the markup is built, so an unrecognized value renders as `secondary`.",
+  "title": "Fixed the `dialog` plugin interpolating an unvalidated `template.id` into the dialog's `id` attribute, and the `loading` plugin rendering its `title` and `description` options as HTML. The button `type` option of the `dialog`, `emptyDataState`, and `notification` plugins is now resolved where the markup is built.",
   "type": "security",
   "issueOrPR": 13242,
   "breaking": false,

@@ -357,7 +357,7 @@ describe('EmptyDataState - message option', () => {
       .toBe('There’s nothing to display yet.');
   });
 
-  it('should not render a button type that is not supported (function message)', async() => {
+  it('should ignore a message whose button `type` is not supported (function message)', async() => {
     handsontable({
       data: [],
       emptyDataState: {

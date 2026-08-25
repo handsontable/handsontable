@@ -41,6 +41,9 @@ describe('confirmTemplate', () => {
       const button = fragment.querySelector('button');
 
       expect(Array.from(button.classList)).toEqual(['ht-button', 'ht-button--secondary']);
+      // the exact attribute set is the point: an escaped payload shows up here as an extra
+      // attribute. If a legitimate change adds one (`type="button"`, for example), update the
+      // expected list rather than loosening the assertion.
       expect(button.getAttributeNames()).toEqual(['class']);
       expect(fragment.querySelectorAll('img').length).toBe(0);
       expect(fragment.querySelectorAll('button').length).toBe(1);
