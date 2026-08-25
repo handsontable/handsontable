@@ -37,9 +37,16 @@ export interface ScrollbarBandsOpen {
  * applies, and drag-to-scroll keeps running. Swallowing the press is enough on its own, because a
  * gesture that starts here never begins a drag in the first place.
  *
- * Stopped by coordinate rather than by target. The band element itself is not hit-tested - the browser
- * answers a point inside the band with the scroll container, not with the band - so a listener on the
- * band would never fire (measured).
+ * Stopped by coordinate rather than by target, because the band is not the only thing drawn in that
+ * strip. It sits inside the master holder and therefore *under* the frozen clones, so a press over the
+ * part of the strip a clone still spans targets the clone; only the segment over the master targets the
+ * band. One coordinate test covers the whole strip, where a target test would have to be repeated on
+ * every clone.
+ *
+ * (An earlier version of this note claimed the band is never hit-tested and that a listener on it could
+ * not fire. That is wrong - measured: `elementFromPoint` in the middle of the band returns the filler,
+ * and a press there reaches the holder with `target` set to it. The band does take pointer events, and
+ * `styles/base/_base.scss` says so and depends on it.)
  */
 export const BAND_SWALLOWED_EVENTS = [
   'pointerdown', 'mousedown', 'click', 'dblclick', 'contextmenu',
@@ -135,6 +142,30 @@ export function canGrabScrollbar(rootWindow: Window): boolean {
   }
 
   return query.matches;
+}
+
+/**
+ * Whether this overlay's grid owns the scrollbars a clearance strip would be kept clear for.
+ *
+ * Two conditions, and both are about the grid rather than the axis: the holder has to be the scrollport
+ * (under window trimming the scrollbars belong to the window, nowhere near these overlays), and some
+ * pointer has to be able to reach a thumb (see `canGrabScrollbar`).
+ *
+ * One function because all four overlays have to answer it the same way. They did not: the frozen
+ * bottom rows required the holder to be the scrollport, the frozen top rows and columns accepted any
+ * `preventOverflow` grid, and the bottom corner asked neither. Where those disagreed the band was left
+ * half-covered - the corner clipped out of a strip the frozen rows beside it still painted into, which
+ * reads as a notch along the bottom edge (#10370).
+ *
+ * @param {HTMLElement | Window} trimmingContainer The overlay's trimming container.
+ * @param {Window} rootWindow The window the grid lives in.
+ * @returns {boolean}
+ */
+export function holderOwnsScrollbars(
+  trimmingContainer: HTMLElement | Window,
+  rootWindow: Window
+): boolean {
+  return trimmingContainer !== rootWindow && canGrabScrollbar(rootWindow);
 }
 
 /**

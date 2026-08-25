@@ -12,7 +12,7 @@ import TopOverlayTable from '../../table/regions/topTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
   axisScrollbarClearance,
-  canGrabScrollbar,
+  holderOwnsScrollbars,
   overlayExtentBesideScrollbar,
 } from '../scrollbarClearance';
 import { getCornerStyle } from '../../selection';
@@ -207,7 +207,7 @@ export class TopOverlay extends Overlay {
     // strip when this overlay is sized against the scrollport - see `inlineStartOverlay`.
     const rootSized = this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal';
     // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
-    const clearanceApplies = rootSized && canGrabScrollbar(rootWindow);
+    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
 
     this.#holderClearance = axisScrollbarClearance(
       this.deps.geometryReader,

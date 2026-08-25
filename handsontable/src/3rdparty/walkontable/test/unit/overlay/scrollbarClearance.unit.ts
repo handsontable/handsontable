@@ -3,6 +3,7 @@ import {
   axisScrollbarClearance,
   canGrabScrollbar,
   clearanceClipPath,
+  holderOwnsScrollbars,
   isPointInScrollbarBand,
   overlayExtentBesideScrollbar,
   reservedScrollbarSpace,
@@ -177,6 +178,45 @@ describe('overlay scrollbar clearance', () => {
       canGrabScrollbar(rootWindow);
 
       expect(seen).toHaveLength(1);
+    });
+  });
+
+  describe('holderOwnsScrollbars', () => {
+    const windowWith = (finePointer: boolean) => ({
+      matchMedia: () => ({ matches: finePointer } as MediaQueryList),
+    } as unknown as Window);
+
+    it('should hold when an element trims the grid, so the holder is the scrollport', () => {
+      const rootWindow = windowWith(true);
+
+      expect(holderOwnsScrollbars(document.createElement('div'), rootWindow)).toBe(true);
+    });
+
+    it('should not hold when the window trims the grid', () => {
+      // The scrollbars then belong to the window, nowhere near these overlays, so a strip kept clear
+      // along the holder's edge would be reserved for a scrollbar that is not drawn there.
+      const rootWindow = windowWith(true);
+
+      expect(holderOwnsScrollbars(rootWindow, rootWindow)).toBe(false);
+    });
+
+    it('should not hold on a touch-only device even when an element trims the grid', () => {
+      expect(holderOwnsScrollbars(document.createElement('div'), windowWith(false))).toBe(false);
+    });
+
+    it('should give every overlay the same answer for the same grid', () => {
+      // The point of the helper. The four overlays used to hand-roll this: the frozen bottom rows
+      // required the holder to be the scrollport, the frozen top rows and columns accepted any
+      // `preventOverflow` grid, and the bottom corner asked neither - so under window trimming the
+      // corner was clipped out of a strip the frozen rows beside it still painted into.
+      const rootWindow = windowWith(true);
+      const trimmedByElement = document.createElement('div');
+
+      const answersFor = (trimming: HTMLElement | Window) =>
+        [trimming, trimming, trimming, trimming].map(t => holderOwnsScrollbars(t, rootWindow));
+
+      expect(new Set(answersFor(trimmedByElement)).size).toBe(1);
+      expect(new Set(answersFor(rootWindow)).size).toBe(1);
     });
   });
 

@@ -507,19 +507,30 @@ class Overlays {
   #swallowBandPress(event: MouseEvent) {
     const { bottom, inlineEnd } = this.#bandSizes;
 
-    // `pointerdown` is the only one of the swallowed events carrying a `pointerType`, and the
-    // `mousedown`/`click`/`contextmenu` that follow a tap are compatibility events with no way to tell
-    // where they came from - hence the flag rather than a per-event test.
-    if (event.type === 'pointerdown') {
-      this.#pressIsTouch = (event as PointerEvent).pointerType === 'touch';
-    }
-
     // A tap is how you scroll on a touchscreen, not how you grab a thumb. `canGrabScrollbar` answers
     // "does this machine have a mouse *somewhere*", which is the right question for drawing the band
     // and the wrong one for swallowing a press: on a hybrid device (touchscreen laptop, tablet with a
     // trackpad) it is true, so without this the band ate finger taps in the bottom strip - the exact
     // "scroll, then tap a cell near the edge" failure the touch-only exclusion was written to prevent.
-    if (this.#pressIsTouch) {
+    //
+    // Only `pointerdown` carries a `pointerType`; the `mousedown`/`click` that follow a tap are
+    // compatibility events that look identical to real mouse ones. So the answer is carried across the
+    // gesture - and cleared again at its end, since a flag left standing would suppress the swallow for
+    // the NEXT press, letting a mouse click through to the cell hidden under the band.
+    const isGestureStart = event.type === 'pointerdown';
+    const isGestureEnd = event.type === 'click' || event.type === 'contextmenu';
+
+    if (isGestureStart) {
+      this.#pressIsTouch = (event as PointerEvent).pointerType === 'touch';
+    }
+
+    const fromTouch = this.#pressIsTouch;
+
+    if (isGestureEnd) {
+      this.#pressIsTouch = false;
+    }
+
+    if (fromTouch) {
       return;
     }
 

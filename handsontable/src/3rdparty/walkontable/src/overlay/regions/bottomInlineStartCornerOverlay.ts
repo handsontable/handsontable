@@ -5,7 +5,7 @@ import {
 import BottomInlineStartCornerOverlayTable from '../../table/regions/bottomInlineStartCornerTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
-  canGrabScrollbar,
+  holderOwnsScrollbars,
   axisScrollbarClearance,
   reservedScrollbarSpace,
 } from '../scrollbarClearance';
@@ -111,13 +111,19 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     // that), so the guard belongs on the clearance rather than on the whole method. Without it the
     // corner recomputed a live strip on a dead overlay every draw, and went on reporting the bottom
     // edge as covered - which is what decides whether a band is drawn at all.
+    // The same gate the frozen bottom rows use, and it has to be the same one: this corner is drawn
+    // over that overlay, so if the two disagree the band is left half-covered. Under window trimming
+    // the scrollbar belongs to the window, `BottomOverlay` publishes 0, and a corner that published 16
+    // anyway was clipped out of a strip its neighbour still painted into - a notch along the bottom
+    // edge where the frozen columns stop and the frozen rows carry on.
+    //
+    // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
+    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, this.deps.rootWindow);
     const bottomClearance = this.needFullRender ? axisScrollbarClearance(
       this.deps.geometryReader,
       this.deps.getWtTable().holder,
       this.deps.geometryReader.getScrollbarWidth(this.deps.rootDocument),
-      // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
-      wtViewport.hasHorizontalScroll() && wtViewport.hasVerticalScroll()
-        && canGrabScrollbar(this.deps.rootWindow),
+      clearanceApplies && wtViewport.hasHorizontalScroll() && wtViewport.hasVerticalScroll(),
       'horizontal'
     ) : 0;
 

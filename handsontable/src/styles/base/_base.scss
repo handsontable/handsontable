@@ -781,20 +781,13 @@
     // still wins where it is drawn - a scroll container's scrollbar is hit-tested above its own
     // contents - so the thumb stays grabbable and only the dead track is swallowed.
     pointer-events: auto;
-    // Deliberately NOT animated, and so deliberately fully opaque from the first frame. The band is
-    // drawn under the frozen overlays, and those overlays are clipped out of the strip so the scrollbar
-    // underneath stays visible and grabbable - so any moment when the band is less than fully opaque is
-    // a moment when the strip shows the master's cell where the frozen content belongs, and a column
-    // header looks cut short along its last 16px. Measured on a real grid: an opacity ramp put 13 such
-    // frames in every appearance. Holding the clip open for the ramp instead only moves the defect -
-    // the fade is then drawn over the master's segment alone, and the track reads as a different color
-    // over each overlay. Appearing outright is the one state that shows neither.
     box-sizing: border-box;
+    // No opacity and no transition, on purpose: the band is drawn UNDER the frozen overlays, which are
+    // clipped out of the strip, so any frame where it is not fully opaque shows the master's cell where
+    // the frozen content belongs. Measured: an opacity ramp put 13 such frames in every appearance.
+    // Do not add a fade here - see `ScrollbarVisibility` for why holding the clip open instead only
+    // moves the defect.
   }
-
-  // The overlay root keeps its full box and is clipped by JS instead (`clip-path`), so no measured size
-  // changes. A clipped region is not painted and not hit-tested either, which is what lets the thumb
-  // show through and the press reach it - no `pointer-events` juggling needed.
 
   .ht_master .wtHolder {
     overflow: auto;

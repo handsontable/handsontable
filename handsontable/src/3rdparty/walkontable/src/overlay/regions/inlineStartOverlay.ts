@@ -14,7 +14,7 @@ import {
   CLONE_INLINE_START,
 } from '../constants';
 import {
-  canGrabScrollbar,
+  holderOwnsScrollbars,
   overlayExtentBesideScrollbar,
   axisScrollbarClearance,
 } from '../scrollbarClearance';
@@ -197,7 +197,7 @@ export class InlineStartOverlay extends Overlay {
     // scrollbar is not under this overlay, and clipping would expose the master for nothing.
     const rootSized = this.trimmingContainer !== rootWindow || preventOverflow === 'vertical';
     // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
-    const clearanceApplies = rootSized && canGrabScrollbar(rootWindow);
+    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
 
     this.#holderClearance = axisScrollbarClearance(
       this.deps.geometryReader,
