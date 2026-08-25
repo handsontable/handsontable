@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where clicking focusable plugin UI placed in the grid's layout slots (for example, pagination controls) closed the open cell editor and deselected the grid.",
+  "type": "fixed",
+  "issueOrPR": 13243,
+  "breaking": false,
+  "framework": "none"
+}
