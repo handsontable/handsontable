@@ -579,6 +579,9 @@ class DataManager {
 
     this.hot.rowIndexMapper.insertIndexes(newRowIndex, 1);
 
+    // Shift the cell meta like `DataMap#createRow` does, or it stays on the rows that moved down (#7727).
+    this.hot.spliceCellsMeta(newRowIndex, 0, []);
+
     this.hot.runHooks('afterCreateRow', newRowIndex, 1);
     this.hot.runHooks('afterAddChild', parent, childElement);
   }
@@ -622,6 +625,11 @@ class DataManager {
       this.hot.rowIndexMapper.insertIndexes(finalChildIndex, 1);
 
       this.plugin.enableCoreAPIModifiers();
+
+      // Shift the cell meta like `DataMap#createRow` does, or it stays on the rows that moved
+      // down (#7727). Keep it after `enableCoreAPIModifiers()` - `spliceCellsMeta` renders, and
+      // a render with the modifiers off reads the raw, un-flattened source.
+      this.hot.spliceCellsMeta(finalChildIndex, 0, []);
 
       this.hot.runHooks('afterCreateRow', finalChildIndex, 1);
 
