@@ -575,15 +575,33 @@ class DataManager {
 
     this.rewriteCache();
 
-    const newRowIndex = this.getRowIndex(childElement) ?? 0;
+    const newPhysicalIndex = this.getRowIndex(childElement);
+    const newRowIndex = newPhysicalIndex ?? 0;
 
     this.hot.rowIndexMapper.insertIndexes(newRowIndex, 1);
 
-    // Shift the cell meta like `DataMap#createRow` does, or it stays on the rows that moved down (#7727).
-    this.hot.spliceCellsMeta(newRowIndex, 0, []);
+    this.shiftCellsMeta(newPhysicalIndex);
 
     this.hot.runHooks('afterCreateRow', newRowIndex, 1);
     this.hot.runHooks('afterAddChild', parent, childElement);
+  }
+
+  /**
+   * Inserts one empty cell meta row, so meta stored below the new row moves down with its data.
+   *
+   * The methods that build a row by hand have to do this themselves - only `DataMap#createRow`
+   * does it on the regular insert path, and it is never reached from here (#7727). `MetaManager`
+   * takes a physical index, which is what `getRowIndex()` returns, and it does not render.
+   *
+   * @param {number|null} physicalRow Physical index of the new row. `null` skips the shift, so an
+   * unknown row object cannot move every meta row from index 0 down.
+   */
+  shiftCellsMeta(physicalRow: number | null) {
+    if (physicalRow === null) {
+      return;
+    }
+
+    this.hot._getMetaManager().createRow(physicalRow, 1);
   }
 
   /**
@@ -626,10 +644,9 @@ class DataManager {
 
       this.plugin.enableCoreAPIModifiers();
 
-      // Shift the cell meta like `DataMap#createRow` does, or it stays on the rows that moved
-      // down (#7727). Keep it after `enableCoreAPIModifiers()` - `spliceCellsMeta` renders, and
-      // a render with the modifiers off reads the raw, un-flattened source.
-      this.hot.spliceCellsMeta(finalChildIndex, 0, []);
+      // Read the real index instead of reusing `finalChildIndex`: that one assumes every preceding
+      // sibling is a leaf, so a sibling with descendants would splice the meta above the new row.
+      this.shiftCellsMeta(this.getRowIndex(childElement));
 
       this.hot.runHooks('afterCreateRow', finalChildIndex, 1);
 
