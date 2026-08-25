@@ -274,11 +274,35 @@ export abstract class Overlay {
   }
 
   /**
+   * Whether this overlay holds frozen content - rows or columns the master has scrolled away from.
+   *
+   * Overridden by the overlays that can; the default is no, which is the safe answer.
+   *
+   * @returns {boolean}
+   */
+  holdsFrozenContent(): boolean {
+    return false;
+  }
+
+  /**
    * Whether this overlay is currently keeping a strip clear along one of the scrollbar edges.
    *
    * The track band is drawn only where the answer is yes for at least one overlay. A band with nothing
    * clipped behind it is a grey strip painted over live cells, and it swallows presses there - which is
    * what a grid with no frozen rows or columns used to get on every scroll (#10370).
+   *
+   * Clipping and banding are NOT the same question, and conflating them is what produced that strip.
+   * Every rendered clone has to be clipped, headers included, or it covers the scrollbar and eats the
+   * press. Only a clone holding FROZEN content needs a band behind the clip: clipping it uncovers the
+   * master at a position the master has scrolled elsewhere, so the strip would show the wrong cells.
+   * Clip a header clone and the master's own header is revealed underneath - the same content, in the
+   * same place, because the two scroll together - so there is nothing to fill in for.
+   *
+   * `shouldRenderTopOverlay` is `fixedRowsTop > 0 || columnHeaders().length > 0`, so `colHeaders: true`
+   * alone rendered the top overlay, published a strip, and had the band drawn at the full height of the
+   * scrollport; `rowHeaders: true` did the same along the bottom. Measured on a grid with headers and
+   * nothing frozen: a 16px band over live cells down the whole right edge and across the whole bottom,
+   * swallowing every press in them.
    *
    * @param {'bottom' | 'inlineEnd'} edge The scrollbar edge to ask about.
    * @returns {boolean}
@@ -288,6 +312,10 @@ export abstract class Overlay {
     // this on its own: a grid with nothing frozen still owns a bottom-corner clone, and asking only
     // whether the object exists drew a band for an overlay that paints nothing.
     if (!this.clone || !this.needFullRender || !this.#clearanceStrips) {
+      return false;
+    }
+
+    if (!this.holdsFrozenContent()) {
       return false;
     }
 

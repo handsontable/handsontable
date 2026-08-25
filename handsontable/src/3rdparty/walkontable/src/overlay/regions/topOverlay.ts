@@ -13,6 +13,7 @@ import { Overlay, type OverlayDeps } from './_base';
 import {
   axisScrollbarClearance,
   holderOwnsScrollbars,
+  reservedScrollbarSpace,
   overlayExtentBesideScrollbar,
 } from '../scrollbarClearance';
 import { getCornerStyle } from '../../selection';
@@ -57,6 +58,17 @@ export class TopOverlay extends Overlay {
    */
   createTable(deps: TableDeps) {
     return new TopOverlayTable(deps);
+  }
+
+  /**
+   * Frozen top rows only. `colHeaders` alone also renders this overlay, but clipping a header uncovers
+   * the master's own header underneath - the same content, in the same place - so there is nothing for
+   * a band to fill in. See `Overlay#coversScrollbarEdge`.
+   *
+   * @returns {boolean}
+   */
+  holdsFrozenContent(): boolean {
+    return this.wtSettings.getSetting<number>('fixedRowsTop') > 0;
   }
 
   /**
@@ -224,7 +236,8 @@ export class TopOverlay extends Overlay {
         width = overlayExtentBesideScrollbar(
           width,
           this.deps.geometryReader.clientWidth(wtTable.holder),
-          this.deps.geometryReader.getScrollbarWidth(rootDocument)
+          this.deps.geometryReader.getScrollbarWidth(rootDocument),
+          reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'vertical')
         );
       }
 

@@ -15,6 +15,7 @@ import {
 } from '../constants';
 import {
   holderOwnsScrollbars,
+  reservedScrollbarSpace,
   overlayExtentBesideScrollbar,
   axisScrollbarClearance,
 } from '../scrollbarClearance';
@@ -45,6 +46,16 @@ export class InlineStartOverlay extends Overlay {
    */
   createTable(deps: TableDeps) {
     return new InlineStartOverlayTable(deps);
+  }
+
+  /**
+   * Frozen columns only. `rowHeaders` alone also renders this overlay, and clipping a row header
+   * uncovers the master's own - see `Overlay#coversScrollbarEdge`.
+   *
+   * @returns {boolean}
+   */
+  holdsFrozenContent(): boolean {
+    return this.wtSettings.getSetting<number>('fixedColumnsStart') > 0;
   }
 
   /**
@@ -218,7 +229,8 @@ export class InlineStartOverlay extends Overlay {
         height = overlayExtentBesideScrollbar(
           height,
           this.deps.geometryReader.clientHeight(wtTable.holder),
-          this.deps.geometryReader.getScrollbarWidth(rootDocument)
+          this.deps.geometryReader.getScrollbarWidth(rootDocument),
+          reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'horizontal')
         );
       }
 

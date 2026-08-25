@@ -48,6 +48,17 @@ export class BottomInlineStartCornerOverlay extends Overlay {
   }
 
   /**
+   * This corner is drawn over both frozen regions, so it needs a band only when both exist - see
+   * `Overlay#coversScrollbarEdge`.
+   *
+   * @returns {boolean}
+   */
+  holdsFrozenContent(): boolean {
+    return this.wtSettings.getSetting<number>('fixedColumnsStart') > 0
+      && this.wtSettings.getSetting<number>('fixedRowsBottom') > 0;
+  }
+
+  /**
    * Checks if overlay should be fully rendered.
    *
    * @returns {boolean}

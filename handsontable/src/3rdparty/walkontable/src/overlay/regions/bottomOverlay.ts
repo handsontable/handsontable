@@ -62,6 +62,15 @@ export class BottomOverlay extends Overlay {
   }
 
   /**
+   * Frozen bottom rows only - see `Overlay#coversScrollbarEdge`.
+   *
+   * @returns {boolean}
+   */
+  holdsFrozenContent(): boolean {
+    return this.wtSettings.getSetting<number>('fixedRowsBottom') > 0;
+  }
+
+  /**
    * Checks if overlay should be fully rendered.
    *
    * @returns {boolean}
@@ -249,7 +258,8 @@ export class BottomOverlay extends Overlay {
         width = overlayExtentBesideScrollbar(
           width,
           this.deps.geometryReader.clientWidth(wtTable.holder),
-          this.deps.geometryReader.getScrollbarWidth(rootDocument)
+          this.deps.geometryReader.getScrollbarWidth(rootDocument),
+          reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'vertical')
         );
       }
 

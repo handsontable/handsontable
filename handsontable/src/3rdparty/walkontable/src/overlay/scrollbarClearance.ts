@@ -227,17 +227,28 @@ export function axisScrollbarClearance(
  * Axis-neutral on purpose: this is the same rule `inlineStartOverlay` applies to heights for #12632,
  * and keeping two copies meant a fix to one silently missed the other.
  *
+ * Only where this holder is the element the scrollbar belongs to, though, and `holderGutter` is what
+ * says so. A grid with no size of its own inside an `overflow: auto` container is laid out to the FULL
+ * inner width of that container, so its holder reserves nothing and its `clientWidth` is the whole
+ * workspace - the container owns the scrollbar. Returning the holder's inner size there widened the
+ * frozen overlays by the scrollbar's width on a classic-scrollbar system, a regime this fix has no
+ * business touching. Where the probe reads 0 the holder is the only thing that can answer, so it still
+ * wins; where the holder reserves a real gutter it is measuring its own scrollbar and is the better
+ * answer. Everywhere else, fall back to the arithmetic that shipped before.
+ *
  * @param {number} workspaceExtent The size the overlay would take with no scrollbar in the way.
  * @param {number} masterClientExtent The master holder's inner size on this axis, or 0 when unmeasurable.
  * @param {number} probedScrollbarWidth The engine-wide scrollbar width, from `getScrollbarWidth()`.
+ * @param {number} holderGutter The space this holder gives up to its own scrollbar on this axis.
  * @returns {number}
  */
 export function overlayExtentBesideScrollbar(
   workspaceExtent: number,
   masterClientExtent: number,
-  probedScrollbarWidth: number
+  probedScrollbarWidth: number,
+  holderGutter: number = 0
 ): number {
-  if (masterClientExtent > 0) {
+  if (masterClientExtent > 0 && (probedScrollbarWidth === 0 || holderGutter > 0)) {
     return masterClientExtent;
   }
 

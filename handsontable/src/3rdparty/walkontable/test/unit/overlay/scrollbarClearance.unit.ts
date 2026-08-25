@@ -237,6 +237,20 @@ describe('overlay scrollbar clearance', () => {
       expect(overlayExtentBesideScrollbar(700, 700, 0)).toBe(700);
     });
 
+    it('should not trust the holder when something else owns the scrollbar', () => {
+      // A grid with no size of its own inside an `overflow: auto` container is laid out to that
+      // container's full inner width, so its holder reserves nothing and its `clientWidth` IS the whole
+      // workspace - the container owns the scrollbar, not the holder. Returning the holder's inner size
+      // there made the frozen overlays a scrollbar wider, on classic scrollbars, which is a regime this
+      // fix has no business touching.
+      expect(overlayExtentBesideScrollbar(700, 700, 15, 0)).toBe(685);
+    });
+
+    it('should trust the holder once it reserves a gutter of its own', () => {
+      // Now the holder is measuring its own scrollbar, and at the browser's sub-pixel accuracy.
+      expect(overlayExtentBesideScrollbar(700, 685, 15, 15)).toBe(685);
+    });
+
     it('should fall back to the probe when the holder cannot be measured', () => {
       // A detached or hidden grid reports 0, which is not an answer - subtract the probe instead.
       expect(overlayExtentBesideScrollbar(700, 0, 15)).toBe(685);

@@ -133,4 +133,78 @@ test.describe('overlay scrollbar clearance', () => {
 
     await expect(bands).toHaveCount(0);
   });
+
+  test('draws nothing for a grid whose only overlays are its headers', async ({ page }) => {
+    // Headers render overlays too - `shouldRenderTopOverlay` is `fixedRowsTop > 0 ||
+    // columnHeaders().length > 0` - so `colHeaders: true` alone put a top overlay on the inline-end
+    // edge and `rowHeaders: true` put an inline-start overlay on the bottom one. Both published a
+    // strip, and the band was then drawn across the FULL scrollport: measured on this configuration, a
+    // 16px grey strip down the whole right edge and across the whole bottom, over live cells, with
+    // every press in them swallowed. This is the commonest grid there is.
+    //
+    // Clipping a header clone is still right - it would otherwise cover the scrollbar - but a band
+    // behind that clip is not: what the clip uncovers is the master's own header, the same content in
+    // the same place. Only frozen content needs filling in.
+    await page.evaluate(() => {
+      const host = document.createElement('div');
+
+      host.id = 'headers-only-grid';
+      host.className = document.querySelector('[data-testid="grid"]')!.className;
+      document.body.appendChild(host);
+
+      const data = Array.from({ length: 60 }, (_, r) =>
+        Array.from({ length: 25 }, (_, c) => `R${r + 1}C${c + 1}`));
+
+      new (window as unknown as { Handsontable: new (...a: unknown[]) => unknown }).Handsontable(host, {
+        data,
+        colWidths: 90,
+        width: 500,
+        height: 260,
+        rowHeaders: true,
+        colHeaders: true,
+        // Nothing frozen, on purpose.
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    });
+
+    await expect(page.locator('#headers-only-grid .ht_clone_top')).toBeVisible();
+
+    const snapshot = await page.evaluate(() => new Promise<{
+      gutterX: number, gutterY: number, bands: number, hitBottom: string, hitRight: string,
+    }>((resolve) => {
+      const root = document.querySelector('#headers-only-grid')!;
+      const holder = root.querySelector('.ht_master .wtHolder') as HTMLElement;
+
+      holder.addEventListener('scroll', () => {
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          const r = holder.getBoundingClientRect();
+          const name = (el: Element | null) =>
+            (el ? (el.className || el.tagName) : 'none').toString();
+
+          resolve({
+            gutterX: holder.offsetWidth - holder.clientWidth,
+            gutterY: holder.offsetHeight - holder.clientHeight,
+            bands: root.querySelectorAll('.htScrollbarClearanceFiller').length,
+            hitBottom: name(document.elementFromPoint(r.left + (r.width / 2), r.bottom - 8)),
+            hitRight: name(document.elementFromPoint(r.right - 8, r.top + (r.height / 2))),
+          });
+        }));
+      }, { once: true });
+
+      holder.scrollLeft += 160;
+      holder.scrollTop += 120;
+    }));
+
+    // Non-vacuity: on a classic-scrollbar runner no band is ever drawn for any grid, so the assertions
+    // below would hold on a build that still had the defect.
+    if (snapshot.gutterX > 0 || snapshot.gutterY > 0) {
+      return;
+    }
+
+    expect(snapshot.bands).toBe(0);
+
+    // And the strips are ordinary grid again, not a filler over the cells.
+    expect(snapshot.hitBottom).not.toContain('htScrollbarClearanceFiller');
+    expect(snapshot.hitRight).not.toContain('htScrollbarClearanceFiller');
+  });
 });

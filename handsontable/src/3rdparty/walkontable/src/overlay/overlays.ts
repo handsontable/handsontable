@@ -513,24 +513,19 @@ class Overlays {
     // trackpad) it is true, so without this the band ate finger taps in the bottom strip - the exact
     // "scroll, then tap a cell near the edge" failure the touch-only exclusion was written to prevent.
     //
-    // Only `pointerdown` carries a `pointerType`; the `mousedown`/`click` that follow a tap are
-    // compatibility events that look identical to real mouse ones. So the answer is carried across the
-    // gesture - and cleared again at its end, since a flag left standing would suppress the swallow for
-    // the NEXT press, letting a mouse click through to the cell hidden under the band.
-    const isGestureStart = event.type === 'pointerdown';
-    const isGestureEnd = event.type === 'click' || event.type === 'contextmenu';
-
-    if (isGestureStart) {
+    // Only `pointerdown` carries a `pointerType`; the `mousedown`/`click`/`dblclick` that follow a tap
+    // are compatibility events indistinguishable from real mouse ones. So the answer is recorded at the
+    // press that starts the gesture and read by the rest of it.
+    //
+    // Every press re-records it, which is what keeps it from going stale: a mouse press sets it back to
+    // false before anything downstream reads it. Clearing it on `click` instead - to bound the same
+    // staleness - broke the double-tap, because `dblclick` arrives AFTER the `click` that would have
+    // cleared it and is the event that opens the editor: the tap selected the cell and nothing opened.
+    if (event.type === 'pointerdown') {
       this.#pressIsTouch = (event as PointerEvent).pointerType === 'touch';
     }
 
-    const fromTouch = this.#pressIsTouch;
-
-    if (isGestureEnd) {
-      this.#pressIsTouch = false;
-    }
-
-    if (fromTouch) {
+    if (this.#pressIsTouch) {
       return;
     }
 
