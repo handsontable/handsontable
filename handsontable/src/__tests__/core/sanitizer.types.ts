@@ -101,6 +101,10 @@ const throughWrapperMappedTypes: WrapperProps = {
  * concrete case: `Handsontable.dom.fastInnerHTML()` passes it when a caller supplies no context.
  *
  * These two are what pin the `(string & {})` member: drop it and both fail with TS2322.
+ *
+ * Mutation-testing that particular member needs a detour: dropping it breaks `build:types` first, on
+ * `element.ts`'s `'innerHTML'` default and `autocompleteEditor.ts`'s `'html'`, so `test:types` never
+ * runs and the two lines below look silent. Fix the production compile first, then read this file.
  */
 const unknownContext: SanitizerContext = 'innerHTML';
 const arbitraryContext: SanitizerContext = 'some.surface.added.later';

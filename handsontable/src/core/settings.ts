@@ -53,15 +53,19 @@ export type SourceDataValidatorFn = {
  * };
  * ```
  *
- * The listed values are the ones that reach a configured sanitizer. `fastInnerHTML` is also called
- * with `'html'` (the `html` cell type and `allowHtml` sources) and with `'innerHTML'` (its own
- * default), but both pass `sanitizer: false` or no sanitizer at all, so neither reaches user code.
- * The `(string & {})` member keeps arbitrary strings
- * assignable while the literals still drive editor completion, so a sanitizer shared with another
- * library, or one branching on a surface added in a later release, keeps compiling. `'innerHTML'` is
- * absent for that reason rather than by oversight: no grid write surface emits it, but
- * `Handsontable.dom.fastInnerHTML()` is public and passes it when a caller supplies no context of
- * its own, so it has to stay assignable.
+ * The listed values are the ones a grid write surface passes to a configured sanitizer. Two more
+ * strings reach `fastInnerHTML` and are deliberately not listed:
+ *
+ * - `'html'`, from the `allowHtml` autocomplete and dropdown path only. It always travels with
+ *   `sanitizer: false`, so no sanitizer ever sees it. (The `html` cell type passes no context at all
+ *   and so falls through to the default below.)
+ * - `'innerHTML'`, the `context` parameter's own default. No grid surface reaches a sanitizer under
+ *   it, but `Handsontable.dom.fastInnerHTML()` is public, so a caller passing their own sanitizer
+ *   and no context of their own does receive it.
+ *
+ * The `(string & {})` member is what keeps that last case compiling, along with a sanitizer shared
+ * with another library or one branching on a surface added in a later release. The trade is that the
+ * type cannot reject a wrong value: a misspelled comparison comes out as a branch that never runs.
  */
 export type SanitizerContext =
   | 'header'
