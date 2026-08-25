@@ -232,14 +232,67 @@ depending on how deep the row sits, so measuring only the first one would come o
 
 Setting `autoRowHeaderSize` to `false`, or leaving it out, keeps the fixed-width headers.
 
-::: tip
+### Add more row header columns
 
-A grid can render more than one row header, by pushing a renderer through the
-[`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers) hook. Each one is
-measured separately, so every row header gets exactly the width its own labels need - a narrow
-numbering column stays narrow next to a wide label column.
+A grid can render more than one row header. The
+[`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers) hook hands you the array of
+renderers that draw them, one renderer per column. Push your own renderer onto that array, and it
+draws one more row header column to the right of the previous one.
+
+The example below pushes two renderers next to the default numbering, so the grid gets three row
+header columns. Each column holds labels of a different length, and `autoRowHeaderSize` measures
+every column on its own: the numbering column stays narrow, while each label column gets the width
+its own text needs. Turn the plugin off and all three columns fall back to the same fixed width,
+which clips the longer labels.
+
+::: only-for javascript
+
+::: example #example5 --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-header/javascript/example5.js)
+@[code](@/content/guides/rows/row-header/javascript/example5.ts)
 
 :::
+
+:::
+
+::: only-for react
+
+::: example #example5 :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-header/react/example5.jsx)
+@[code](@/content/guides/rows/row-header/react/example5.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example5 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-header/angular/example5.ts)
+@[code](@/content/guides/rows/row-header/angular/example5.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/rows/row-header/vue/example5.vue)
+
+:::
+
+:::
+
+Each renderer is called with the row's renderable index - the index Handsontable renders by. It is
+the same as the [visual index](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md)
+until rows are hidden or trimmed. If your grid hides rows, translate the index with
+[`getVisualFromRenderableIndex()`](@/api/indexMapper.md#getvisualfromrenderableindex) before you look
+a label up by it.
 
 ## Bind rows with headers
 
