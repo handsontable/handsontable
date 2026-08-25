@@ -477,4 +477,32 @@ describe('Dialog - template option', () => {
     expect(getDialogTitleElement().id).toBe(`${hot().guid}-dialog-confirm-title`);
     expect(getDialogDescriptionElement().id).toBe(`${hot().guid}-dialog-confirm-description`);
   });
+
+  it('should not be possible to override the element `id` through the template', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      dialog: {
+        template: {
+          type: 'confirm',
+          title: 'My title',
+          description: 'My description',
+          id: '"><img src="x" onerror="window.pwned = true">',
+        },
+      },
+    });
+
+    const dialogPlugin = getPlugin('dialog');
+
+    dialogPlugin.show();
+
+    const dialogElement = getDialogContainerElement();
+
+    expect(getDialogTitleElement().id).toBe(`${hot().guid}-dialog-confirm-title`);
+    expect(getDialogDescriptionElement().id).toBe(`${hot().guid}-dialog-confirm-description`);
+    expect(getDialogTitleElement().getAttributeNames()).toEqual(['id', 'class']);
+    expect(dialogElement.querySelectorAll('img').length).toBe(0);
+    expect(dialogElement.getAttribute('aria-labelledby')).toBe(`${hot().guid}-dialog-confirm-title`);
+    expect(dialogElement.getAttribute('aria-describedby')).toBe(`${hot().guid}-dialog-confirm-description`);
+    expect(window.pwned).toBeUndefined();
+  });
 });

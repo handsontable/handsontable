@@ -2,6 +2,7 @@ import { html } from '../../helpers/templateLiteralTag';
 import { addClass, removeClass, removeAttribute, getScrollbarWidth, setAttribute } from '../../helpers/dom/element';
 import { A11Y_TABINDEX, A11Y_BUSY } from '../../helpers/a11y';
 import { stripTags } from '../../helpers/string';
+import { resolveButtonType } from '../../helpers/uiButton';
 import type { default as ViewInstance } from '../../tableView';
 
 const EMPTY_DATA_STATE_CLASS_NAME = 'ht-empty-data-state';
@@ -33,7 +34,8 @@ const templateContent = ({ title, description, buttons }: {
   : ''}"
   >${!isLoading && buttons?.length && buttons.length > 0 ?
     buttons.map(button =>
-      `<button class="ht-button ht-button--${button.type}">${stripTags(button.text)}</button>`).join('')
+      `<button class="ht-button ht-button--${resolveButtonType(button.type)}">${stripTags(button.text)}</button>`)
+      .join('')
     : ''}</div>`;
 };
 

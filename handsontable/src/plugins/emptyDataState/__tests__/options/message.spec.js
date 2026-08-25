@@ -357,6 +357,33 @@ describe('EmptyDataState - message option', () => {
       .toBe('There’s nothing to display yet.');
   });
 
+  it('should not render a button type that is not supported (function message)', async() => {
+    handsontable({
+      data: [],
+      emptyDataState: {
+        message: () => ({
+          title: 'No data',
+          buttons: [{
+            text: 'Add data',
+            type: 'secondary" onmouseover="window.pwned = true',
+            callback: () => {},
+          }],
+        }),
+      },
+    });
+
+    const emptyDataStatePlugin = getPlugin('emptyDataState');
+    const containerElement = getEmptyDataStateContainerElement();
+
+    expect(emptyDataStatePlugin.isVisible()).toBe(true);
+    // the returned object does not match the documented shape, so the plugin falls back to the
+    // default message instead of rendering the button
+    expect(containerElement.querySelector('.ht-empty-data-state__title').textContent)
+      .toBe('No data available');
+    expect(containerElement.querySelectorAll('.ht-button').length).toBe(0);
+    expect(window.pwned).toBeUndefined();
+  });
+
   it('should handle partial object message (only title)', async() => {
     handsontable({
       data: [],

@@ -2,6 +2,7 @@ import { DIALOG_CLASS_NAME } from '../constants';
 import { throwWithCause } from '../../../helpers/errors';
 import { stripTags } from '../../../helpers/string';
 import { html } from '../../../helpers/templateLiteralTag';
+import { resolveButtonType } from '../../../helpers/uiButton';
 
 /**
  * The `confirmTemplate` function returns a HTML string with the confirm template.
@@ -39,7 +40,7 @@ export function confirmTemplate({ id = '', title = '', description = '', buttons
         ${buttons.length > 0 ? `
           <div data-ref="buttonsContainer" class="${DIALOG_CLASS_NAME}__buttons">
             ${buttons.map(button => `
-              <button class="ht-button ht-button--${button.type}">${stripTags(button.text)}</button>
+              <button class="ht-button ht-button--${resolveButtonType(button.type)}">${stripTags(button.text)}</button>
             `).join('')}
           </div>
         ` : ''}

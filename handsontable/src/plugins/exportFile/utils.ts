@@ -1,5 +1,6 @@
 import { html } from '../../helpers/templateLiteralTag';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
+import { stripTags } from '../../helpers/string';
 
 /**
  * Builds the dialog overlay DOM fragment for the export progress indicator.
@@ -21,7 +22,7 @@ export function buildExportDialogContent(title: string): DocumentFragment {
         </svg>
       </i>
       <div class="${LOADING_CLASS_NAME}__text">
-        <h2 class="${LOADING_CLASS_NAME}__title">${title}</h2>
+        <h2 class="${LOADING_CLASS_NAME}__title">${stripTags(title)}</h2>
       </div>
     </div>
   `;
