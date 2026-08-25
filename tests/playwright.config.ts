@@ -1,6 +1,50 @@
 import { defineConfig, devices } from '@playwright/test';
 import type { TestOptions } from './fixtures/test';
 
+// `reuseExistingServer` attaches to whatever already listens on this port. Two
+// checkouts (a worktree and the main clone) on the default port therefore share
+// ONE server, and the second one silently tests the first one's build. Set
+// `HOT_TEST_PORT` to run them side by side.
+//
+// Namespaced on purpose. `PORT` is a conventional name that shells and tools
+// already export for unrelated reasons, and this config would otherwise retarget
+// itself for anyone who happens to have it set. The port is passed explicitly to
+// the server below, so the two always agree whatever the ambient environment says.
+// Throwing beats defaulting here: `HOT_TEST_PORT=8124x` and an empty value both
+// coerce to a falsy number, so a silent fallback would put the run back on the
+// shared port — the exact collision the variable was set to escape — while the
+// developer believes it moved.
+const PORT = resolvePort();
+
+/**
+ * Resolves the server port from `HOT_TEST_PORT`, defaulting to 8123.
+ *
+ * Port 0 is rejected rather than treated as "any free port". Nothing below this
+ * function supports it: `support/static-server.mjs` reads `Number(PORT) || 8123`,
+ * and `Number('0')` is falsy, so the server would bind 8123 and land straight back
+ * on the shared port; `baseURL` would render `http://localhost:0`; and Playwright
+ * only waits for the server when `port` is truthy, so it would not be waited for
+ * at all. A real dynamic port needs the server to report the port it bound, which
+ * is listed under "Known gaps" in `.ai/WORKTREES.md`.
+ *
+ * @returns {number} A valid TCP port between 1 and 65535.
+ */
+function resolvePort(): number {
+  const raw = process.env.HOT_TEST_PORT;
+
+  if (raw === undefined || raw === '') {
+    return 8123;
+  }
+
+  const port = Number(raw);
+
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error(`HOT_TEST_PORT must be an integer between 1 and 65535, received "${raw}".`);
+  }
+
+  return port;
+}
+
 /**
  * One Playwright config for the whole package. Functional E2E lives in `e2e/`,
  * visual regression in `visual/` (populated during the visual milestone). The
@@ -49,7 +93,7 @@ export default defineConfig<TestOptions>({
   // sharded runs, which this suite does not use.
   reporter: process.env.CI ? [['html', { open: 'never' }], ['github']] : 'html',
   use: {
-    baseURL: 'http://localhost:8123',
+    baseURL: `http://localhost:${PORT}`,
     trace: 'on-first-retry',
     video: 'on-first-retry',
   },
@@ -57,7 +101,10 @@ export default defineConfig<TestOptions>({
   // dist and styles. cwd defaults to this config's directory (`tests/`).
   webServer: {
     command: 'node support/static-server.mjs',
-    port: 8123,
+    port: PORT,
+    // static-server.mjs reads PORT. Passing it explicitly keeps the server and
+    // the config on the same port even when the surrounding shell exports its own.
+    env: { PORT: String(PORT) },
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
   },
