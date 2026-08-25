@@ -273,6 +273,17 @@ export function clearanceClipPath(
   // edge would carve out a band with nothing drawn in it.
   const openBottom = open.bottom ? bottom : 0;
   const openInlineEnd = open.inlineEnd ? inlineEnd : 0;
+
+  // No band open: no clip at all, rather than a zero-sided `inset(0px)`. The two are equivalent only
+  // for the overlays that already carry `overflow: hidden` - and the two CORNER clones do not (see the
+  // rule list in `styles/base/_base.scss`), so on a corner the zero-sided form is a live clip to the
+  // border box that nothing else imposes. Anything a corner cell paints past its own edge - the
+  // autofill handle's overhang, the header highlight's `-1px` inset - is cut off by it, on every draw
+  // of a floating-scrollbar grid, whether or not a scrollbar is showing.
+  if (openBottom <= 0 && openInlineEnd <= 0) {
+    return '';
+  }
+
   const right = strips.rtl ? 0 : openInlineEnd;
   const left = strips.rtl ? openInlineEnd : 0;
 
@@ -399,10 +410,9 @@ function ensureFillerHost(masterHolder: HTMLElement): HTMLElement {
 }
 
 /**
- * Draws the fillers for one overlay, replacing whatever that overlay published before.
+ * Draws the grid's scrollbar bands, one per edge, replacing whatever was drawn before.
  *
  * @param {HTMLElement} host The filler host inside the master holder.
- * @param {string} key Identifies the publishing overlay.
  * @param {FillerRect[]} rects The rectangles to cover.
  */
 function renderFillers(host: HTMLElement, rects: FillerRect[]): void {
@@ -462,19 +472,15 @@ export function applyOverlayScrollbarClearance(
   strips: OverlayScrollbarClearanceStrips,
   open: ScrollbarBandsOpen = { bottom: true, inlineEnd: true }
 ): void {
-  const bottom = strips.bottom ?? 0;
-  const inlineEnd = strips.inlineEnd ?? 0;
-
   // Clip rather than resize: no measured box changes, so nothing the viewport reads moves. Written
   // only when it actually differs - this runs on every draw and on every scrollbar fade, and a
   // redundant style write is still a style write.
   //
   // Compared against what was last written rather than against the element, because the browser does
-  // not hand back what it was given: `inset(0px 0px 12px 0px)` reads as `inset(0px 0px 12px)` and
-  // `inset(0px 0px 0px 0px)` as `inset(0px)` (measured, and Chromium and Firefox agree). Since one of
-  // left/right is always 0, that shorthand collapse fires in the resting state and for every overlay
-  // that publishes only a bottom strip - so reading the element back made the guard always false and
-  // rewrote the property on every draw.
+  // not hand back what it was given: `inset(0px 0px 12px 0px)` reads as `inset(0px 0px 12px)`
+  // (measured, and Chromium and Firefox agree). Since one of left/right is always 0, that shorthand
+  // collapse fires for every overlay that publishes only a bottom strip - so reading the element back
+  // made the guard always false and rewrote the property on every draw.
   const clipPath = clearanceClipPath(strips, open);
 
   if (lastClipPaths.get(overlayRoot) !== clipPath) {

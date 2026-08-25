@@ -17,6 +17,8 @@ describe('ScrollbarVisibility', () => {
     let nextId = 1;
     let changes = 0;
     const holder = { scrollLeft: 0, scrollTop: 0, parentNode: {} };
+    // A per-build copy, so a test that moves the grid cannot leak coordinates into the next one.
+    const scrollport = { ...SCROLLPORT };
 
     const tracker = new ScrollbarVisibility({
       rootWindow: {
@@ -33,7 +35,7 @@ describe('ScrollbarVisibility', () => {
         },
       } as unknown as Window,
       geometryReader: {
-        getBoundingClientRect: () => SCROLLPORT,
+        getBoundingClientRect: () => scrollport,
       } as never,
       getWtTable: () => ({ holder }) as never,
     }, () => {
@@ -63,6 +65,13 @@ describe('ScrollbarVisibility', () => {
       fadeAll: () => run(Number.MAX_SAFE_INTEGER),
       pendingCount: () => pending.size,
       changeCount: () => changes,
+      // The PAGE scrolling: the grid moves under a pointer that never moved, so the cached scrollport
+      // is stale and proximity has to be judged again. No pointer event accompanies this.
+      movePageBy: (dy: number) => {
+        scrollport.top -= dy;
+        scrollport.bottom -= dy;
+        tracker.notifyResized();
+      },
     };
   }
 
@@ -284,5 +293,30 @@ describe('ScrollbarVisibility', () => {
     tracker.destroy();
 
     expect(pendingCount()).toBe(0);
+  });
+
+  it('should disarm a running fade when a later scroll finds the pointer beside the scrollbar', () => {
+    const { tracker, scrollBy, movePageBy, fadeAll, pendingCount } = build();
+
+    // Mid-grid, well clear of the bottom edge.
+    tracker.notifyPointerMoved(300, SCROLLPORT.bottom - (OVERLAY_SCROLLBAR_PROXIMITY * 2));
+
+    // Opens the band and arms its fade, because the pointer is not near.
+    scrollBy(60, 0);
+    expect(pendingCount()).toBe(1);
+
+    // The PAGE scrolls: the grid slides up under a pointer that never moved, so the same pointer is
+    // now inside the bottom edge zone. No pointermove fires, so `#setPinned` - which is the only other
+    // place a fade is cancelled - is never reached.
+    movePageBy(OVERLAY_SCROLLBAR_PROXIMITY * 2);
+
+    // Scrolling again re-judges proximity and pins the axis. The fade armed by the first scroll has to
+    // be disarmed here; left running it closes the band a second later under a thumb the browser is
+    // still drawing, which is the exact failure the pin exists to prevent.
+    scrollBy(60, 0);
+    expect(pendingCount()).toBe(0);
+
+    fadeAll();
+    expect(tracker.visible.horizontal).toBe(true);
   });
 });

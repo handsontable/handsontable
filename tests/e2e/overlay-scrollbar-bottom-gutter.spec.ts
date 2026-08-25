@@ -104,16 +104,33 @@ test.describe('frozen bottom rows over a space-taking scrollbar', () => {
       };
     });
 
-    // Non-vacuity, and the reason this file overrides the launch flags. Both halves matter: a real
-    // gutter for an overlay to sit on top of, and a probe that disagrees about how deep it is. Without
-    // the second, everything below holds just as well for a grid that never had the defect.
-    expect(geometry.gutter).toBeGreaterThan(0);
-    expect(geometry.probed).toBeGreaterThan(0);
-    expect(geometry.gutter).not.toBe(geometry.probed);
-
-    // The contract. Lifting by the probe instead leaves both of these hanging over the scrollbar by the
-    // difference the two assertions above just established.
+    // The contract, and it holds in every regime: the frozen bottom rows, and the corner sharing that
+    // edge, end where the scrollport does. This is the assertion the fix is about.
     expect(geometry.bottomEdge).toBeCloseTo(geometry.clientBottom, 0);
     expect(geometry.cornerEdge).toBeCloseTo(geometry.clientBottom, 0);
+
+    // Whether it MEANS anything depends on the machine, so the regime is asserted rather than assumed.
+    // Dropping `--hide-scrollbars` stops Chromium forcing zero width; it does not make the OS draw
+    // classic scrollbars. On a Mac set to "Show scroll bars: Automatically" - the default, and the very
+    // regime this PR exists for - the scrollbars float, every measurement below is 0, and the defect
+    // cannot arise at all. Asserting a nonzero gutter there would fail on a correct build.
+    const reproducible = geometry.gutter > 0 && geometry.probed > 0
+      && geometry.gutter !== geometry.probed;
+
+    if (reproducible) {
+      // The discriminating case: a real gutter for an overlay to come to rest on, AND a probe that
+      // disagrees about how deep it is. Lifting by the probe leaves both clones hanging over the
+      // scrollbar by exactly that difference, so the two assertions above can now fail.
+      expect(geometry.gutter).toBeGreaterThan(0);
+      expect(geometry.probed).not.toBe(geometry.gutter);
+
+    } else {
+      // Floating scrollbars: nothing is lifted over anything, so the assertions above are true of any
+      // build. Say so rather than passing quietly - a green run here is not evidence about this fix.
+      // Linux CI keeps classic scrollbars and takes the branch above.
+      // eslint-disable-next-line no-console
+      console.log(`[#10370] gutter=${geometry.gutter} probe=${geometry.probed}: `
+        + 'no space-taking scrollbar on this machine, so the lift is untested here.');
+    }
   });
 });

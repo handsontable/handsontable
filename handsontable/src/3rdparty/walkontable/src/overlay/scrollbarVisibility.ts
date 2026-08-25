@@ -279,7 +279,14 @@ export class ScrollbarVisibility {
       this.#pinned[axis] = axis === 'horizontal' ? near.bottom : near.inlineEnd;
     }
 
-    if (!this.#pinned[axis]) {
+    if (this.#pinned[axis]) {
+      // Disarm whatever an earlier show armed. This path assigns `#pinned` directly rather than going
+      // through `#setPinned`, so nothing else cancels a fade that is already counting down - and a
+      // scroll can pin an axis that was opened while the pointer was elsewhere (the pointer never
+      // moved; the grid moved under it). Left armed, that timer closes the band a second later under
+      // a thumb the browser is still drawing.
+      this.#clearFade(axis);
+    } else {
       this.#scheduleFade(axis);
     }
 

@@ -231,10 +231,16 @@ export class BottomOverlay extends Overlay {
     // Both strips need this overlay to be laid out against the scrollport; when the window anchors it
     // instead, `repositionOverlay` never runs and clipping would expose the master for nothing.
     const rootSized = this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal';
-    const anchoredToWindow = this.trimmingContainer === rootWindow
-      && (!preventOverflow || preventOverflow !== 'vertical');
+    // Only where the grid's own holder is the scrollport, so the scrollbar a strip would be kept clear
+    // for is one this holder actually owns. Under window trimming it belongs to the window, nowhere
+    // near these overlays.
+    //
+    // Spelled out directly rather than as `rootSized && !anchoredToWindow`, which is what this was:
+    // that pair only ever differed from the plain test in the window-trimmed `preventOverflow:
+    // 'horizontal'` case, where the second flag cancelled the first - three flags to express one.
+    //
     // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
-    const clearanceApplies = rootSized && !anchoredToWindow && canGrabScrollbar(rootWindow);
+    const clearanceApplies = this.trimmingContainer !== rootWindow && canGrabScrollbar(rootWindow);
 
     // The master's vertical scrollbar sits along the inline-end edge this overlay spans.
     this.#holderClearance = axisScrollbarClearance(

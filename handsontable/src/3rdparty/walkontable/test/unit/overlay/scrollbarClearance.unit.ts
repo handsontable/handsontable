@@ -226,10 +226,22 @@ describe('overlay scrollbar clearance', () => {
       expect(clearanceClipPath({ bottom: 12, inlineEnd: 12 })).toBe('inset(0px 12px 12px 0px)');
     });
 
-    it('should keep the shape with zeroed sides while closed', () => {
-      // The property then only ever changes value, never switches to and from `none`.
+    it('should emit no shape at all while every band is closed', () => {
+      // Not a zero-sided `inset(0px 0px 0px 0px)`, which is what this used to return so that the
+      // property only ever changed value instead of switching to and from `none`. That is free on the
+      // overlays carrying `overflow: hidden`, and not free on the two CORNER clones, which do not (see
+      // the rule list in `styles/base/_base.scss`): there the zero-sided form is a live clip to the
+      // border box, cutting off whatever a corner cell paints past its own edge, permanently, on any
+      // floating-scrollbar grid scrolling both axes. A closed band must cost nothing.
       expect(clearanceClipPath({ bottom: 12, inlineEnd: 12 }, { bottom: false, inlineEnd: false }))
-        .toBe('inset(0px 0px 0px 0px)');
+        .toBe('');
+    });
+
+    it('should still clip the open axis when only the other one is closed', () => {
+      expect(clearanceClipPath({ bottom: 12, inlineEnd: 12 }, { bottom: true, inlineEnd: false }))
+        .toBe('inset(0px 0px 12px 0px)');
+      expect(clearanceClipPath({ bottom: 12, inlineEnd: 12 }, { bottom: false, inlineEnd: true }))
+        .toBe('inset(0px 12px 0px 0px)');
     });
 
     it('should emit no shape at all when this overlay never needs clipping', () => {
@@ -256,12 +268,26 @@ describe('overlay scrollbar clearance', () => {
       expect(overlayRoot.style.clipPath).toBe('inset(0px 0px 12px 0px)');
     });
 
-    it('should zero the clip while the scrollbar is hidden, leaving no gap', () => {
+    it('should drop the clip while the scrollbar is hidden, leaving no gap', () => {
       const overlayRoot = buildOverlay();
 
       applyOverlayScrollbarClearance(overlayRoot, { bottom: 12 }, { bottom: false, inlineEnd: false });
 
-      expect(overlayRoot.style.clipPath).toBe('inset(0px 0px 0px 0px)');
+      // Nothing at all rather than a zero-sided inset - see the `clearanceClipPath` case above for why
+      // the two are not equivalent on the corner clones.
+      expect(overlayRoot.style.clipPath).toBe('');
+    });
+
+    it('should restore the clip when the band opens again', () => {
+      const overlayRoot = buildOverlay();
+
+      // The open/closed/open cycle is what a fade does, and the write is guarded against redundancy -
+      // so a stale guard entry would leave the clip dropped with the band showing.
+      applyOverlayScrollbarClearance(overlayRoot, { bottom: 12 }, { bottom: true, inlineEnd: false });
+      applyOverlayScrollbarClearance(overlayRoot, { bottom: 12 }, { bottom: false, inlineEnd: false });
+      applyOverlayScrollbarClearance(overlayRoot, { bottom: 12 }, { bottom: true, inlineEnd: false });
+
+      expect(overlayRoot.style.clipPath).toBe('inset(0px 0px 12px 0px)');
     });
 
     it('should drop the clip entirely outside the overlay-scrollbar regime', () => {

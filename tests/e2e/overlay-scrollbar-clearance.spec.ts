@@ -61,61 +61,52 @@ test.describe('overlay scrollbar clearance', () => {
   });
 
   test('matches the browser\'s scrollbar model, and never draws a second scrollbar', async ({ page }) => {
-    const host = page.locator('#clearance-grid');
-
     // Scroll on both axes, which is what puts a floating scrollbar on screen, and wait for the grid to
     // have PROCESSED it. Asserting straight after the assignment would be a race that always passes:
     // the band is opened from the scroll event, which is dispatched asynchronously, so a "nothing was
     // drawn" assertion would resolve before anything could have been. Verified by mutation - with the
     // regime checks removed this spec stayed green until this wait was added.
-    await page.evaluate(() => new Promise<void>((resolve) => {
-      const holder = document.querySelector('#clearance-grid .ht_master .wtHolder')!;
+    // The scroll, the settle and every measurement happen in ONE page call, because the band closes on
+    // its own a second after the scroll. Reading it back over separate round-trips - scroll, then ask
+    // the regime, then match a locator, then read the clips - leaves the fade racing the test, and a
+    // runner that stalls for a second turns a correct build red. Snapshotting inside the page removes
+    // the wall clock from the assertions entirely.
+    const snapshot = await page.evaluate(() => new Promise<{
+      gutterX: number, gutterY: number, bands: number, clips: string[],
+    }>((resolve) => {
+      const holder = document.querySelector('#clearance-grid .ht_master .wtHolder') as HTMLElement;
 
       holder.addEventListener('scroll', () => {
         // Two frames after the event: the band is created while handling it, and this leaves the
         // browser a paint to do it in.
-        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve({
+          // The gutter this scroller actually gives up. Nonzero means a space-taking scrollbar.
+          gutterX: holder.offsetWidth - holder.clientWidth,
+          gutterY: holder.offsetHeight - holder.clientHeight,
+          bands: document.querySelectorAll('#clearance-grid .htScrollbarClearanceFiller').length,
+          clips: [...document.querySelectorAll('#clearance-grid [class*="ht_clone_"]')]
+            .map(el => getComputedStyle(el).clipPath),
+        })));
       }, { once: true });
 
       holder.scrollLeft += 160;
       holder.scrollTop += 120;
     }));
 
-    const regime = await page.evaluate(() => {
-      const holder = document.querySelector('#clearance-grid .ht_master .wtHolder') as HTMLElement;
-
-      return {
-        // The gutter this scroller actually gives up. Nonzero means a space-taking scrollbar.
-        gutterX: holder.offsetWidth - holder.clientWidth,
-        gutterY: holder.offsetHeight - holder.clientHeight,
-      };
-    });
-
-    const takesSpace = regime.gutterX > 0 || regime.gutterY > 0;
-
-    const bands = host.locator('.htScrollbarClearanceFiller');
+    const takesSpace = snapshot.gutterX > 0 || snapshot.gutterY > 0;
+    const clipped = snapshot.clips.filter(clip => /inset\(/.test(clip) && clip !== 'inset(0px)');
 
     if (takesSpace) {
       // Classic scrollbars: the browser already reserved the space, so a strip on top would sit beside
       // a real scrollbar and read as a second one. Nothing may be drawn, and nothing clipped.
-      await expect(bands).toHaveCount(0);
-
-      const clips = await page.evaluate(() => [...document.querySelectorAll('#clearance-grid [class*="ht_clone_"]')]
-        .map(el => getComputedStyle(el).clipPath)
-        .filter(clip => clip !== 'none' && clip !== 'inset(0px)'));
-
-      expect(clips).toEqual([]);
+      expect(snapshot.bands).toBe(0);
+      expect(clipped).toEqual([]);
 
     } else {
       // Floating scrollbars: a band is drawn for the axis just scrolled, and the overlay covering that
       // edge is clipped out of it so the press can reach the scrollbar underneath.
-      await expect(bands.first()).toBeAttached();
-
-      const clipped = await page.evaluate(() => [...document.querySelectorAll('#clearance-grid [class*="ht_clone_"]')]
-        .map(el => getComputedStyle(el).clipPath)
-        .some(clip => /inset\(/.test(clip) && clip !== 'inset(0px)'));
-
-      expect(clipped).toBe(true);
+      expect(snapshot.bands).toBeGreaterThan(0);
+      expect(clipped.length).toBeGreaterThan(0);
     }
   });
 
