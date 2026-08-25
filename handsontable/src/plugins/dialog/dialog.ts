@@ -3,6 +3,7 @@ import { throwWithCause } from '../../helpers/errors';
 import { DialogUI } from './ui';
 import { isObject, isPlainObject } from '../../helpers/object';
 import { isHTMLElement } from '../../helpers/dom/element';
+import { getSanitizer } from '../../utils/sanitizer';
 import * as C from '../../i18n/constants';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 
@@ -273,7 +274,8 @@ export class Dialog extends BasePlugin {
     if (!this.#ui) {
       this.#ui = new DialogUI({
         overlayContainer: this.hot.rootOverlaysElement,
-        sanitizer: this.hot.getSettings().sanitizer as ((html: string) => string | undefined) | undefined,
+        sanitizer: getSanitizer(this.hot),
+        warnScope: this.hot.rootElement,
         isRtl: this.hot.isRtl(),
       });
     }
