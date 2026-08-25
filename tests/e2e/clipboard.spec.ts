@@ -101,7 +101,9 @@ test.describe('clipboard', () => {
       await grid.expectCell(0, 1, 'y');
       await grid.expectCell(0, 2, 'z');
       await grid.expectCell(1, 0, 'w');
-      await grid.expectCell(1, 1, '');
+      // What the padded cells actually hold is asserted in copyPaste.unit.ts - a rendered cell
+      // looks the same whether it holds `null` or `undefined`.
+      await grid.expectCell(2, 1, 'B3');
     });
   });
 });

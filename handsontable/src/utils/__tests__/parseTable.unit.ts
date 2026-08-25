@@ -234,6 +234,33 @@ describe('htmlToGridSettings', () => {
     ]);
   });
 
+  it('should not let a full-width colspan row widen the whole table', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>A1</td><td>B1</td><td>C1</td></tr>',
+      // A footer row spanning the table is normal in email and Word exports. It needs one slot,
+      // not twenty, or every pasted row gains seventeen blank columns.
+      '<tr><td colspan="20">footer</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data[0]).toHaveLength(3);
+  });
+
+  it('should give a th outside the first column no data slot', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      // The fill loop sends every non-`td` to the row headers, so a `th` here takes no column.
+      '<tr><td>a</td><th>grp</th><td>b</td></tr>',
+      '<tr><td>1</td><td>2</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data).toEqual([['a', 'b'], ['1', '2']]);
+  });
+
   it('should count the slots a rowspan reserves in the rows below it', () => {
     const htmlToParse = [
       '<table><tbody>',
