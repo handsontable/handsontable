@@ -12,14 +12,18 @@ const ES_YEARS = [
 ];
 
 /**
- * The CSS features the theme stylesheets ship, and the first version of every targeted browser that
- * supports each one. lightningcss lowers anything above the floor: `light-dark()` becomes a pair of
- * class-switched variables, and nested rules are either flattened or dropped. Both have already
- * shipped as bugs, so the floor is asserted against them here rather than left to a comment.
+ * The CSS features the stylesheets ship, and the first version of every targeted browser that
+ * supports each one. lightningcss lowers anything above the floor, and every lowering here has
+ * already shipped as a bug: `light-dark()` becomes a pair of class-switched variables that
+ * out-specify the theme engine, nested rules are flattened or dropped, and logical properties
+ * (`border-inline-*`, `border-end-end-radius`) become physical pairs gated on `:lang(ar)`,
+ * `:lang(he)` and the rest, which a grid set to `dir="rtl"` without a matching `lang` never
+ * matches. The floor is asserted against them here rather than left to a comment.
  */
 const CSS_FEATURE_FLOORS = {
   'light-dark()': { Chrome: 123, Edge: 123, Firefox: 120, Safari: 17.5, iOS: 17.5 },
   'CSS nesting': { Chrome: 120, Edge: 120, Firefox: 117, Safari: 17.2, iOS: 17.2 },
+  'CSS logical properties': { Chrome: 89, Edge: 89, Firefox: 66, Safari: 15, iOS: 15 },
 };
 
 const readRepoFile = relativePath => readFileSync(resolve(__dirname, '../../', relativePath), 'utf8');
