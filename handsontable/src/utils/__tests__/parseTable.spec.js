@@ -53,6 +53,33 @@ describe('parseTable', () => {
       ]);
     });
 
+    it('should not run markup carried alongside the table, even with no sanitizer', async() => {
+      // The markup used to be written into a detached element of the live document. Detached is
+      // not inert: the image still loaded and its handler still ran. Parsing into a document with
+      // no browsing context closes the sink itself, so this holds whatever the caller sanitizes.
+      window.__parseTableProbe = () => {};
+      spyOn(window, '__parseTableProbe');
+
+      const html = '<table><tbody><tr><td>A1</td></tr></tbody></table>' +
+        '<img src onerror="__parseTableProbe()">';
+      const result = Handsontable.helper.htmlToGridSettings(html);
+
+      await sleep(100);
+
+      expect(window.__parseTableProbe).not.toHaveBeenCalled();
+      // The table is still read normally - the payload is neutralized, not the parsing.
+      expect(result.data).toEqual([['A1']]);
+    });
+
+    it('should read the generator meta tag from the parsed markup', async() => {
+      const html = '<meta name="generator" content="Microsoft Excel 15"/>' +
+        '<table><tbody><tr><td>A1<br>A2</td></tr></tbody></table>';
+      const result = Handsontable.helper.htmlToGridSettings(html);
+
+      // The Excel generator switches `<br>` handling to a line break rather than a space.
+      expect(result.data).toEqual([['A1\r\nA2']]);
+    });
+
     it('should parse HTML table with column headers', async() => {
       const html = '<table><thead><tr><th>Col A</th><th>Col B</th></tr></thead>' +
         '<tbody><tr><td>A1</td><td>B1</td></tr></tbody></table>';
