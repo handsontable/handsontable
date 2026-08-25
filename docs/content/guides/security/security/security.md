@@ -75,7 +75,7 @@ A configured sanitizer runs on the HTML that Handsontable writes on your behalf.
 | Cells rendered by the [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type | `'password'` |
 | [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) and dropdown menu item labels | `'contextMenu'` |
 | [`select`](@/guides/cell-types/select-cell-type/select-cell-type.md) editor options | `'selectEditor'` |
-| [Dialog](@/api/dialog.md) content | `'dialog'` |
+| [Dialog](@/api/dialog.md) content passed as an HTML string | `'dialog'` |
 | [Notification](@/api/notification.md) messages | `'notification'` |
 | HTML pasted from the clipboard | `'CopyPaste.paste'` |
 
@@ -87,6 +87,8 @@ Two surfaces exist to render markup you supply, so the sanitizer is deliberately
 - [`allowHtml`](@/api/options.md#allowhtml) sources in `autocomplete` and `dropdown` cells
 
 Sanitize that content yourself before passing it to the grid. If it comes from users or an external system, treat it exactly as you would any other untrusted HTML.
+
+Two more places take a narrower path than the sanitizer. A `confirm` dialog's `title`, `description`, and button labels always have their tags stripped, so a permissive sanitizer cannot let markup through there. And a sanitizer that escapes HTML rather than stripping it turns the clipboard payload carrying object-based source data into text, so a paste between grids using [`parsePastedValue`](@/api/options.md#parsepastedvalue) writes the displayed value instead of the original object.
 
 ::: tip
 Header labels are the surface most often overlooked, because they usually come from configuration rather than from data. When a label is built from an API response or from user input, it needs the same treatment as cell content.

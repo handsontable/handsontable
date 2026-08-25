@@ -280,7 +280,9 @@ class GhostTable {
     // The same label the main table writes through `updateCellHeader()`, so it must be sanitized
     // under the same `'header'` context - a context-aware sanitizer would otherwise apply one rule
     // set to the rendered header and another to the copy measured here.
-    const label = sanitizeHTML(this.hot, headerSettings.label, 'header');
+    // `String()` mirrors `tableView.updateCellHeader()`. `label` is typed `string`, but it comes
+    // from user configuration, so `nestedHeaders: [[2024]]` puts a number there.
+    const label = sanitizeHTML(this.hot, String(headerSettings.label), 'header');
     const dropdownHtml = isDropdownEnabled ? '<button class="changeType"></button>' : '';
     const hasCollapsibleControl = isCollapsibleEnabled &&
       (headerSettings.origColspan > 1 || headerSettings.colspan > 1);

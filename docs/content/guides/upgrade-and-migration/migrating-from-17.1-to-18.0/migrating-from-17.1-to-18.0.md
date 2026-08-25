@@ -288,6 +288,7 @@ You are affected if any of the following apply:
 - You pass user-supplied or third-party HTML in `colHeaders`, `rowHeaders`, `nestedHeaders` labels, context-menu labels, or select editor `selectOptions`.
 - You relied on Handsontable to strip `<script>` tags or event handlers from HTML passed to those surfaces.
 - You use the `sanitizer` option or test sanitization behavior.
+- You use the `sanitizer` option together with [`parsePastedValue`](@/api/options.md#parsepastedvalue). Handsontable now sanitizes the private clipboard type that carries object-based source data between grids. A sanitizer that strips unsafe markup (such as DOMPurify) leaves that payload intact, but one that escapes HTML instead turns it into text, and the pasted cell then receives the displayed value rather than the original object.
 
 ### How to migrate
 

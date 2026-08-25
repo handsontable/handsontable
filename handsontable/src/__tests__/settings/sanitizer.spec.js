@@ -80,8 +80,10 @@ describe('Core.sanitizer', () => {
     });
 
     expect(warnSpy).toHaveBeenCalledWith(jasmine.stringMatching(/without a sanitizer/));
-    // The rendered headers and the ghost table that measures them are separate write surfaces.
-    // They must share one "warn once" scope, or a single grid reports the same problem twice.
+    // The rendered headers and the ghost table that measures them are separate write surfaces, and
+    // the ghost table only started warning in this change. They must share one "warn once" scope,
+    // or a single grid now reports the same problem twice. This guards the new code rather than
+    // proving a pre-existing double warning: before, the ghost table warned not at all.
     expect(warnSpy.calls.count()).toBe(1);
   });
 

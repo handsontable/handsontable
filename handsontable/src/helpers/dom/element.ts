@@ -529,6 +529,11 @@ export const SANITIZER_WARN_KEY = 'sanitizer';
  * goes through `fastInnerHTML` or sanitizes a string first (`utils/sanitizer.ts`), so the wording
  * cannot drift between them.
  *
+ * It lives here rather than beside its second caller because `utils/sanitizer.ts` already imports
+ * from this module, and the reverse direction would be a cycle. That makes it public through
+ * `Handsontable.dom`, like `HTML_CHARACTERS` and `SANITIZER_WARN_KEY` above it - accepted
+ * deliberately: it is a pure string builder, and it is useful to anyone writing their own sink.
+ *
  * @param {string} context The write surface that is about to receive raw HTML.
  * @returns {string} The warning message.
  */
@@ -553,8 +558,8 @@ const defaultSanitizerWarnScope = {};
  * warn once that no sanitizer is configured.
  * @param {string} [context] The sanitization context passed as the second argument to a custom sanitizer function, and
  * used in the missing-sanitizer warning to identify the write surface.
- * @param {object} [scope] Object the "warn once" state is bound to (for example, `hot.rootGridElement`), so the warning
- * is shown at most once per Handsontable instance.
+ * @param {object} [scope] Object the "warn once" state is bound to (`hot.rootElement` at every call site
+ * inside the grid), so the warning is shown at most once per Handsontable instance.
  */
 export function fastInnerHTML(
   element: HTMLElement, content: string,

@@ -104,7 +104,11 @@ describe('CopyPaste', () => {
     it('should still restore object-based source data pasted between Handsontable instances', async() => {
       handsontable({
         data: [{ id: 1, value: 'A1' }, { id: 2, value: 'A2' }],
-        columns: [{ data: 'value' }],
+        // `parsePastedValue` is what makes the source-data payload do anything at all. It defaults
+        // to `false`, and only the `autocomplete`, `dropdown` and `multiSelect` cell types turn it
+        // on, so without it the restore branch in `populateValues()` never runs and this test would
+        // pass no matter what the sanitizer did to the payload.
+        columns: [{ data: 'value', parsePastedValue: true }],
         copyPaste: true,
         sanitizer: content => content,
       });
@@ -127,6 +131,45 @@ describe('CopyPaste', () => {
 
       await waitForNextAnimationFrames(2);
 
+      expect(getSourceDataAtCell(0, 'value')).toEqual({ id: 9, value: 'B1' });
+    });
+
+    it('should degrade to the displayed value when the sanitizer escapes the source-data markup', async() => {
+      handsontable({
+        data: [{ id: 1, value: 'A1' }, { id: 2, value: 'A2' }],
+        columns: [{ data: 'value', parsePastedValue: true }],
+        copyPaste: true,
+        // An escaping sanitizer turns the payload's `<table>` into text, so `htmlToGridSettings()`
+        // finds no table and the object-keyed source data cannot be restored. That is the price of
+        // sanitizing this branch, which previously reached the parser raw. Pinned here so the
+        // degradation is a known, documented outcome rather than a silent surprise. A stripping
+        // sanitizer such as DOMPurify keeps the table and is unaffected.
+        sanitizer: content => content
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;'),
+      });
+
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      clipboardEvent.clipboardData.setData('text/plain', 'B1');
+      clipboardEvent.clipboardData.setData('text/html', [
+        '<meta name="generator" content="Handsontable"/>',
+        '<table><tbody><tr><td>B1</td></tr></tbody></table>',
+      ].join(''));
+      clipboardEvent.clipboardData.setData('application/ht-source-data-json-html', [
+        '<meta name="generator" content="Handsontable"/>',
+        '<table><tbody><tr><td>{"id":9,"value":"B1"}</td></tr></tbody></table>',
+      ].join(''));
+
+      await selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      await waitForNextAnimationFrames(2);
+
+      // The object is gone; only the displayed value survives.
       expect(getSourceDataAtCell(0, 'value')).toBe('B1');
     });
 

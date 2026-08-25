@@ -78,6 +78,7 @@
 - Files: `handsontable/src/utils/parseTable.ts`, `handsontable/src/plugins/copyPaste/copyPaste.ts`
 - Current mitigation: the string path parses with `DOMParser.parseFromString()`, which has no browsing context, so nothing loads or runs while the markup is read. Both clipboard branches (`text/html` and the private `application/ht-source-data-json-html`) are sanitized under `'CopyPaste.paste'`.
 - Recommendations: never `importNode` the parsed nodes back into the live document, which would make them live again. Keep every downstream read on that document read-only.
+- Still open in the same class: `Core#toTableElement()` (`handsontable/src/core.ts:6448`) writes `instanceToHTML()` output into a live-document element with `insertAdjacentHTML`, and `instanceToHTML` escapes cell data but not headers (`utils/parseTable.ts:55`), so a `colHeaders` entry containing markup executes there. No internal caller (it is public API only), and the same label executes when rendered into a real `<th>` anyway, so it is not a trust escalation. A `DOMParser` swap does not fix it either: the function must return a node the caller can insert, and adopting it into the live document reactivates the payload. The real fix is escaping headers in `instanceToHTML`.
 
 **innerHTML Usage in Template Literal Tag:**
 - Risk: The `templateLiteralTag.ts` helper uses `template.innerHTML` to parse tagged template literals. If user-supplied data flows into the template, it could introduce XSS.
