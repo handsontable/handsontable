@@ -1,7 +1,7 @@
 export {
   PLUGIN_KEY,
   PLUGIN_PRIORITY,
-  AutoRowHeaderWidth,
-} from './autoRowHeaderWidth';
+  AutoRowHeaderSize,
+} from './autoRowHeaderSize';
 
-export type { AutoRowHeaderWidthSettings } from './autoRowHeaderWidth';
+export type { AutoRowHeaderSizeSettings } from './autoRowHeaderSize';

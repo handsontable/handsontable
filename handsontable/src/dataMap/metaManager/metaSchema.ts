@@ -5500,39 +5500,21 @@ export default (): Record<string, unknown> => {
      *
      * You can set the `rowHeaderWidth` option to one of the following:
      *
-     * | Setting  | Description                                                  |
-     * | -------- | ------------------------------------------------------------ |
-     * | A number | Set the same width for every row header                      |
-     * | An array | Set different widths for individual row headers              |
-     * | `'auto'` | Size the row header to its longest label                     |
+     * | Setting  | Description                                     |
+     * | -------- | ----------------------------------------------- |
+     * | A number | Set the same width for every row header         |
+     * | An array | Set different widths for individual row headers |
      *
      * Row headers have a fixed width. A label longer than that width is clipped, and unlike column
-     * headers, the header does not grow to fit it. Set `rowHeaderWidth` to `'auto'` to enable the
-     * [`AutoRowHeaderWidth`](@/api/autoRowHeaderWidth.md) plugin, which measures the labels and
-     * sizes the header column to the widest one.
-     *
-     * `'auto'` reads every row header once to find the longest label, so it costs more on large
-     * data sets. Use the [`autoRowHeaderWidth`](#autoRowHeaderWidth) option's `scanLimit` to bound
-     * that scan.
-     *
-     * `'auto'` measures a single row header. A grid that renders more than one row header level -
-     * an extra level added through the [`afterGetRowHeaderRenderers`](@/api/hooks.md#afterGetRowHeaderRenderers)
-     * hook, for instance - keeps its default widths, and a console warning explains why. Give each
-     * level its own width instead, as in `rowHeaderWidth: [80, 40]`. For the same reason `'auto'`
-     * is not accepted inside the array form.
-     *
-     * `'auto'` never makes a header narrower than it would be otherwise.
-     *
-     * By default two rows carrying the same label are measured once, since the same text renders to
-     * the same width. Set `allowSampleDuplicates` to `true` when that is not true of your grid - a
-     * row header that is indented per row, as [`nestedRows`](#nestedRows) does, renders the same
-     * label at a different width depending on its depth.
+     * headers, the header does not grow to fit it. To size the header to its content instead, turn
+     * on the [`autoRowHeaderSize`](#autoRowHeaderSize) plugin - it takes the width over, and this
+     * option is then ignored.
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
-     * @type {number|number[]|string}
+     * @type {number|number[]}
      * @default undefined
      * @category Core
      *
@@ -5543,30 +5525,46 @@ export default (): Record<string, unknown> => {
      *
      * // set different widths for individual row headers
      * rowHeaderWidth: [25, 30, 55],
-     *
-     * // size the row header column to its longest label
-     * rowHeaderWidth: 'auto',
      * ```
      */
     rowHeaderWidth: undefined,
 
     /**
-     * The `autoRowHeaderWidth` option configures the [`AutoRowHeaderWidth`](@/api/autoRowHeaderWidth.md) plugin.
+     * The `autoRowHeaderSize` option configures the [`AutoRowHeaderSize`](@/api/autoRowHeaderSize.md) plugin.
      *
-     * The plugin sizes the row header column to its widest label. It is off by default. To turn it
-     * on, set the [`rowHeaderWidth`](#rowHeaderWidth) option to `'auto'` - this option only tunes
-     * how the measurement runs, or switches it back off:
+     * The plugin sizes the row header column to its widest label, the way
+     * [`AutoColumnSize`](@/api/autoColumnSize.md) sizes a data column to its widest cell. Turning it
+     * on is all you need: it takes the row header's width over, so any
+     * [`rowHeaderWidth`](#rowHeaderWidth) already set is ignored while the plugin is enabled.
      *
-     * | Setting   | Description                                                              |
-     * | --------- | ------------------------------------------------------------------------ |
-     * | `false`   | Disable the plugin, even when `rowHeaderWidth` is set to `'auto'`        |
-     * | An object | Modify the plugin options                                                |
+     * You can set the `autoRowHeaderSize` option to one of the following:
      *
-     * | Property        | Possible values                 | Description                                                                            |
-     * | --------------- | ------------------------------- | ---------------------------------------------------------------------------------------- |
-     * | `scanLimit`             | A number \| A percentage string | How many rows are read while looking for the longest label<br>(default: every row)                          |
-     * | `samplingRatio`         | A number                        | The number of samples of the same label length used in the measurement<br>(default: `3`)                    |
-     * | `allowSampleDuplicates` | `true` \| `false`               | When two rows carry the same label:<br>`true`: measure both<br>`false`: measure it once<br>(default: `false`) |
+     * | Setting   | Description                                                                  |
+     * | --------- | ---------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`AutoRowHeaderSize`](@/api/autoRowHeaderSize.md) plugin          |
+     * | `true`    | Enable the plugin with the default configuration                             |
+     * | An object | Enable the plugin and modify its options                                     |
+     *
+     * If you set the `autoRowHeaderSize` option to an object, you can set the following options:
+     *
+     * | Property                | Possible values   | Description                                                                                                   |
+     * | ----------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------- |
+     * | `samplingRatio`         | A number          | The number of samples of the same label length used in the measurement<br>(default: `3`)                      |
+     * | `allowSampleDuplicates` | `true` \| `false` | When two rows carry the same label:<br>`true`: measure both<br>`false`: measure it once<br>(default: `false`) |
+     *
+     * By default, the `autoRowHeaderSize` option is set to `undefined`, which disables the plugin.
+     * It reads every row header once to find the longest label, so that first pass costs more on
+     * large data sets; the result is cached, so later draws cost nothing.
+     *
+     * The plugin measures a single row header. A grid that renders more than one row header level -
+     * an extra level added through the [`afterGetRowHeaderRenderers`](@/api/hooks.md#afterGetRowHeaderRenderers)
+     * hook, for instance - keeps its default widths, and a console warning explains why. Give each
+     * level its own width with [`rowHeaderWidth`](#rowHeaderWidth) instead, as in `[80, 40]`.
+     *
+     * Two rows carrying the same label are measured once, since the same text renders to the same
+     * width. Set `allowSampleDuplicates` to `true` when that is not true of your grid - a row header
+     * that is indented per row, as [`nestedRows`](#nestedRows) does, renders the same label at a
+     * different width depending on its depth.
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -5574,20 +5572,21 @@ export default (): Record<string, unknown> => {
      * @memberof Options#
      * @type {object|boolean}
      * @default undefined
-     * @category AutoRowHeaderWidth
+     * @category AutoRowHeaderSize
      *
      * @example
      * ```js
-     * rowHeaderWidth: 'auto',
-     * autoRowHeaderWidth: {
-     *   // only read the first 1000 rows when looking for the longest label
-     *   scanLimit: 1000,
+     * // size the row header column to its longest label
+     * autoRowHeaderSize: true,
+     *
+     * // the same, with the measurement tuned
+     * autoRowHeaderSize: {
      *   // measure repeated labels too, for headers that render differently per row
      *   allowSampleDuplicates: true,
      * },
      * ```
      */
-    autoRowHeaderWidth: undefined,
+    autoRowHeaderSize: undefined,
 
     /**
      * The `rowHeights` option sets rows' heights, in pixels.

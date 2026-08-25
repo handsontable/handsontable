@@ -1,22 +1,16 @@
 import { BasePlugin } from '../base';
 import GhostTable from '../../utils/ghostTable';
 import SamplesGenerator from '../../utils/samplesGenerator';
+import { DEFAULT_COLUMN_WIDTH } from '../../3rdparty/walkontable/src';
 import { warn } from '../../helpers/console';
-import { isPercentValue } from '../../helpers/string';
-import { valueAccordingPercent } from '../../helpers/number';
 
-export const PLUGIN_KEY = 'autoRowHeaderWidth';
+export const PLUGIN_KEY = 'autoRowHeaderSize';
 export const PLUGIN_PRIORITY = 45;
-
-/**
- * The `rowHeaderWidth` value that turns the measurement on.
- */
-export const AUTO_KEYWORD = 'auto';
 
 /**
  * Settings accepted by the plugin.
  */
-export interface AutoRowHeaderWidthSettings {
+export interface AutoRowHeaderSizeSettings {
   /**
    * The number of samples of the same label length used in the measurement.
    */
@@ -25,41 +19,36 @@ export interface AutoRowHeaderWidthSettings {
    * Whether two rows carrying the same label are both measured.
    */
   allowSampleDuplicates?: boolean;
-  /**
-   * How many rows are read while looking for the longest label. A number, or a percentage of the
-   * row count as a string.
-   */
-  scanLimit?: number | string;
 }
 
 /**
  * The plugin's settings with every default resolved.
  */
-type AutoRowHeaderWidthDefaults = {
+type AutoRowHeaderSizeDefaults = {
   samplingRatio: number | null;
   allowSampleDuplicates: boolean;
-  scanLimit: number | string | null;
 };
 
 /**
- * @plugin AutoRowHeaderWidth
- * @class AutoRowHeaderWidth
+ * @plugin AutoRowHeaderSize
+ * @class AutoRowHeaderSize
  *
  * @description
- * The `AutoRowHeaderWidth` plugin sizes the row header column to its widest label.
+ * The `AutoRowHeaderSize` plugin sizes the row header column to its widest label.
  *
  * It completes a set. {@link AutoColumnSize} sizes a data column to its widest cell, and
  * {@link AutoRowSize} sizes a row to its tallest cell *and* the column header to its tallest
  * label. The row header's width was the one dimension nothing measured - which is why a long
  * column header makes its column grow while a long row header is simply clipped.
  *
- * The plugin is off unless you ask for it, by setting the
- * [`rowHeaderWidth`](@/api/options.md#rowheaderwidth) option to `'auto'`. It measures a single row
- * header, so a grid rendering more than one row header level keeps its default widths and is told
- * why in the console. It is deliberately not on
- * by default: it reads every row header to find the longest label, so its cost grows with the row
- * count, and switching it on for everyone would change the width of every grid that uses custom row
- * labels.
+ * Turning the plugin on is the only thing you have to do. It takes over the row header's width, so
+ * any [`rowHeaderWidth`](@/api/options.md#rowheaderwidth) already set is ignored while the plugin
+ * is enabled - there is no second option to keep in step.
+ *
+ * The plugin is off by default. It reads every row header once to find the longest label, so the
+ * cost of that first pass grows with the row count, and switching it on for everyone would change
+ * the width of every grid that uses custom row labels. It measures a single row header, so a grid
+ * rendering more than one row header level keeps its default widths and is told why in the console.
  *
  * @example
  * ```js
@@ -67,11 +56,11 @@ type AutoRowHeaderWidthDefaults = {
  *   data: getData(),
  *   rowHeaders: ['Revenue', 'Cost of goods sold', 'Gross profit'],
  *   // size the row header column to the longest label
- *   rowHeaderWidth: 'auto',
+ *   autoRowHeaderSize: true,
  * });
  * ```
  */
-export class AutoRowHeaderWidth extends BasePlugin {
+export class AutoRowHeaderSize extends BasePlugin {
   /**
    * The plugin's setting key.
    *
@@ -92,9 +81,6 @@ export class AutoRowHeaderWidth extends BasePlugin {
 
   /**
    * Returns `true` so the plugin updates on every `updateSettings` call, regardless of config object contents.
-   *
-   * It has to be `true` rather than a key list: what switches this plugin on is the `rowHeaderWidth`
-   * option, not its own key, so a change it must react to can arrive under a name it does not own.
    */
   static get SETTING_KEYS(): string[] | boolean {
     return true;
@@ -106,11 +92,10 @@ export class AutoRowHeaderWidth extends BasePlugin {
    * `null` means "leave it to the sampler", matching how the sibling auto-size plugins express the
    * same idea. Only settings this plugin actually reads are declared here.
    */
-  static get DEFAULT_SETTINGS(): AutoRowHeaderWidthDefaults {
+  static get DEFAULT_SETTINGS(): AutoRowHeaderSizeDefaults {
     return {
       samplingRatio: null,
       allowSampleDuplicates: false,
-      scanLimit: null,
     };
   }
 
@@ -144,7 +129,7 @@ export class AutoRowHeaderWidth extends BasePlugin {
    */
   #cachedRowCount = -1;
   /**
-   * Whether the grid has already been told that `'auto'` does nothing here.
+   * Whether the grid has already been told that the plugin does nothing here.
    *
    * @type {boolean}
    */
@@ -156,7 +141,9 @@ export class AutoRowHeaderWidth extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    return this.hot.getSettings()[PLUGIN_KEY] !== false && this.#hasAutoKeyword();
+    const settings = this.hot.getSettings()[PLUGIN_KEY];
+
+    return settings === true || (typeof settings === 'object' && settings !== null);
   }
 
   /**
@@ -249,57 +236,20 @@ export class AutoRowHeaderWidth extends BasePlugin {
   }
 
   /**
-   * Checks whether the user asked for the measurement through the `rowHeaderWidth` option.
-   *
-   * Only the plain `'auto'` value counts. The array form of `rowHeaderWidth` addresses one row
-   * header level per entry, and both places that run the `modifyRowHeaderWidth` hook feed it a
-   * different shape - `Viewport#getRowHeaderWidth` passes the levels already summed into a single
-   * number, while `ColumnUtils#calculateWidths` passes the array itself. A per-level measurement
-   * would have to answer both with the shape each expects, and measuring a level above the first
-   * needs its renderer, which no public API hands out. Until that is settled, an array keeps its
-   * current meaning and every entry stays a number.
-   *
-   * @returns {boolean}
-   */
-  #hasAutoKeyword(): boolean {
-    return this.hot.getSettings().rowHeaderWidth === AUTO_KEYWORD;
-  }
-
-  /**
-   * Returns how many rows are read while looking for the longest label.
-   *
-   * @param {number} totalRows The number of rows in the grid.
-   * @returns {number}
-   */
-  #getScannedRowCount(totalRows: number): number {
-    const scanLimit = this.getSetting<number | string | null>('scanLimit');
-
-    if (scanLimit === undefined || scanLimit === null) {
-      return totalRows;
-    }
-
-    const limit = isPercentValue(String(scanLimit))
-      ? valueAccordingPercent(totalRows, String(scanLimit))
-      : parseInt(String(scanLimit), 10);
-
-    return Number.isNaN(limit) ? totalRows : Math.min(totalRows, limit);
-  }
-
-  /**
    * Renders the sampled row headers off-screen and returns the width of the widest one.
    *
    * @returns {number} The measured width in pixels.
    */
   #measure(): number {
-    const scannedRows = this.#getScannedRowCount(this.hot.countRows());
+    const scannedRows = this.hot.countRows();
 
     if (scannedRows < 1) {
       return 0;
     }
 
     // The row header sits at column -1, so the samples are generated for that column across the
-    // scanned rows. Only the label lengths matter here - the label itself is re-rendered by the
-    // grid's own row header renderers when the ghost table measures it.
+    // rows. Only the label lengths matter here - the label itself is re-rendered by the grid's own
+    // row header renderers when the ghost table measures it.
     const samplesByColumn = this.samplesGenerator
       .generateColumnSamples(-1, { from: 0, to: scannedRows - 1 });
     // `generateColumnSamples` keys its result by column index; the per-label-length samples are the
@@ -328,14 +278,16 @@ export class AutoRowHeaderWidth extends BasePlugin {
   }
 
   /**
-   * Replaces the `'auto'` keyword with the measured width.
+   * Answers with the measured width.
    *
    * The hook runs on every draw, so everything it does beyond reading the cache has to stay out of
    * this path.
    *
-   * The width Walkontable resolved on its own acts as the lower bound, so `'auto'` only ever widens
-   * the header. That keeps the default width a floor: a grid whose labels are all short keeps the
-   * header it has today instead of collapsing around a one-character label.
+   * The width the grid resolved on its own is deliberately discarded: the plugin is the one that
+   * was asked to decide this width, so a `rowHeaderWidth` left over in the settings does not fight
+   * it. The default column width is still the floor, so a grid of short labels keeps the header it
+   * has today rather than collapsing around a one-character label - the same floor
+   * {@link AutoColumnSize#getColumnWidth} keeps for a data column.
    *
    * @param {number} rowHeaderWidth The width Walkontable resolved on its own.
    * @returns {number} The width to use.
@@ -347,13 +299,11 @@ export class AutoRowHeaderWidth extends BasePlugin {
       return rowHeaderWidth;
     }
 
-    const resolvedWidth = typeof rowHeaderWidth === 'number' ? rowHeaderWidth : 0;
-
-    return Math.max(this.getRowHeaderWidth(), resolvedWidth);
+    return Math.max(this.getRowHeaderWidth(), DEFAULT_COLUMN_WIDTH);
   };
 
   /**
-   * Says once why `'auto'` is doing nothing, so the grid does not just silently keep its old width.
+   * Says once why the plugin is doing nothing, so the grid does not just silently keep its old width.
    */
   #warnAboutHeaderLevels() {
     if (this.#warnedAboutHeaderLevels) {
@@ -362,9 +312,9 @@ export class AutoRowHeaderWidth extends BasePlugin {
 
     this.#warnedAboutHeaderLevels = true;
 
-    warn('The `rowHeaderWidth: \'auto\'` setting measures a single row header, and this grid ' +
-      'renders more than one. The row headers keep their default width. Give each level its own ' +
-      'width instead, for example `rowHeaderWidth: [80, 40]`.');
+    warn('The `autoRowHeaderSize` plugin measures a single row header, and this grid renders more ' +
+      'than one. The row headers keep their default width. Give each level its own width instead, ' +
+      'for example `rowHeaderWidth: [80, 40]`.');
   }
 
   /**

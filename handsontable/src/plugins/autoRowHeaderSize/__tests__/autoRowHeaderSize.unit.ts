@@ -1,7 +1,7 @@
 import Handsontable from 'handsontable/base';
-import { registerPlugin, AutoRowHeaderWidth } from 'handsontable/plugins';
+import { registerPlugin, AutoRowHeaderSize } from 'handsontable/plugins';
 
-registerPlugin(AutoRowHeaderWidth);
+registerPlugin(AutoRowHeaderSize);
 
 /**
  * Builds a grid whose row header labels are produced by a spy, so the test can count how many
@@ -22,120 +22,95 @@ function buildGrid(settings: Record<string, unknown> = {}) {
   return { hot, labelSpy };
 }
 
-describe('AutoRowHeaderWidth', () => {
+describe('AutoRowHeaderSize', () => {
   describe('enabling', () => {
-    it('should stay disabled when `rowHeaderWidth` is not set', () => {
+    it('should stay disabled by default', () => {
       const { hot } = buildGrid();
 
-      expect(hot.getPlugin('autoRowHeaderWidth').isEnabled()).toBe(false);
+      expect(hot.getPlugin('autoRowHeaderSize').isEnabled()).toBe(false);
 
       hot.destroy();
     });
 
-    it('should stay disabled for a numeric `rowHeaderWidth`', () => {
+    it('should enable itself when the option is `true`', () => {
+      const { hot } = buildGrid({ autoRowHeaderSize: true });
+
+      expect(hot.getPlugin('autoRowHeaderSize').isEnabled()).toBe(true);
+
+      hot.destroy();
+    });
+
+    it('should enable itself when the option is a settings object', () => {
+      const { hot } = buildGrid({ autoRowHeaderSize: { samplingRatio: 5 } });
+
+      expect(hot.getPlugin('autoRowHeaderSize').isEnabled()).toBe(true);
+
+      hot.destroy();
+    });
+
+    it('should stay disabled when the option is `false`', () => {
+      const { hot } = buildGrid({ autoRowHeaderSize: false });
+
+      expect(hot.getPlugin('autoRowHeaderSize').isEnabled()).toBe(false);
+
+      hot.destroy();
+    });
+
+    it('should not be switched on by `rowHeaderWidth` alone', () => {
       const { hot } = buildGrid({ rowHeaderWidth: 120 });
 
-      expect(hot.getPlugin('autoRowHeaderWidth').isEnabled()).toBe(false);
+      expect(hot.getPlugin('autoRowHeaderSize').isEnabled()).toBe(false);
+
+      hot.destroy();
+    });
+  });
+
+  describe('taking the width over', () => {
+    it('should ignore a `rowHeaderWidth` that is already set', () => {
+      // The whole point of the single switch: turning the plugin on is enough, and a width left
+      // over in the settings does not fight it.
+      const { hot } = buildGrid({ autoRowHeaderSize: true, rowHeaderWidth: 400 });
+
+      expect(hot.runHooks('modifyRowHeaderWidth', 400)).not.toBe(400);
 
       hot.destroy();
     });
 
-    it('should enable itself when `rowHeaderWidth` is "auto"', () => {
-      const { hot } = buildGrid({ rowHeaderWidth: 'auto' });
+    it('should never return less than the default column width', () => {
+      // jsdom reports no layout, so the measurement is 0. The floor keeps a grid of short labels
+      // looking like it does today instead of collapsing - the same floor AutoColumnSize keeps.
+      const { hot } = buildGrid({ autoRowHeaderSize: true });
 
-      expect(hot.getPlugin('autoRowHeaderWidth').isEnabled()).toBe(true);
-
-      hot.destroy();
-    });
-
-    it('should stay disabled when the plugin setting turns it off, despite the "auto" keyword', () => {
-      const { hot } = buildGrid({ rowHeaderWidth: 'auto', autoRowHeaderWidth: false });
-
-      expect(hot.getPlugin('autoRowHeaderWidth').isEnabled()).toBe(false);
-
-      hot.destroy();
-    });
-
-    it('should ignore "auto" inside the array form, which addresses one header level per entry', () => {
-      const { hot } = buildGrid({ rowHeaderWidth: ['auto'] });
-
-      expect(hot.getPlugin('autoRowHeaderWidth').isEnabled()).toBe(false);
+      expect(hot.runHooks('modifyRowHeaderWidth', 0)).toBe(50);
 
       hot.destroy();
     });
   });
 
   describe('scanning for the longest label', () => {
-    /**
-     * The row indexes the plugin looked at. Assertions are made on these rather than on a call
-     * count, because the ghost table re-reads the labels of the rows it renders, so the same row
-     * is legitimately read more than once.
-     *
-     * @param {object} labelSpy The row header label spy.
-     * @returns {number[]}
-     */
-    function readRows(labelSpy: { mock: { calls: number[][] } }) {
-      return labelSpy.mock.calls.map(([index]) => index);
-    }
-
-    /**
-     * Forces one measurement and reports which rows it read.
-     *
-     * @param {object} settings Settings merged over the defaults.
-     * @returns {object}
-     */
-    function measureAndCollect(settings: Record<string, unknown>) {
-      const { hot, labelSpy } = buildGrid({ rowHeaderWidth: 'auto', ...settings });
-      const plugin = hot.getPlugin('autoRowHeaderWidth');
+    it('should read every row header, so a long label anywhere is found', () => {
+      const { hot, labelSpy } = buildGrid({ autoRowHeaderSize: true });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
 
       plugin.clearCache();
       labelSpy.mockClear();
       plugin.getRowHeaderWidth();
 
-      const rows = readRows(labelSpy as never);
+      // Reading a label is cheap; only the few longest ones are laid out. A partial scan would
+      // silently miss a long label further down and leave the header too narrow.
+      const readRows = labelSpy.mock.calls.map(([index]) => index);
+
+      expect(Math.max(...readRows)).toBe(99);
+      expect(new Set(readRows).size).toBe(100);
 
       hot.destroy();
-
-      return { rows, highest: Math.max(...rows) };
-    }
-
-    it('should read every row header when no limit is set', () => {
-      const { highest } = measureAndCollect({});
-
-      expect(highest).toBe(99);
-    });
-
-    it('should stop reading at a numeric `scanLimit`', () => {
-      const { rows, highest } = measureAndCollect({ autoRowHeaderWidth: { scanLimit: 10 } });
-
-      expect(highest).toBe(9);
-      expect(rows.some(row => row >= 10)).toBe(false);
-    });
-
-    it('should accept `scanLimit` as a percentage of the row count', () => {
-      const { highest } = measureAndCollect({ autoRowHeaderWidth: { scanLimit: '25%' } });
-
-      expect(highest).toBe(24);
-    });
-
-    it('should fall back to a full scan when `scanLimit` is not a usable number', () => {
-      const { highest } = measureAndCollect({ autoRowHeaderWidth: { scanLimit: 'nonsense' } });
-
-      expect(highest).toBe(99);
-    });
-
-    it('should never read past the last row when `scanLimit` overshoots it', () => {
-      const { rows, highest } = measureAndCollect({ autoRowHeaderWidth: { scanLimit: 5000 } });
-
-      expect(highest).toBe(99);
-      expect(rows.some(row => row > 99)).toBe(false);
     });
   });
 
   describe('caching', () => {
     it('should read the row headers once, then answer from the cache', () => {
-      const { hot, labelSpy } = buildGrid({ rowHeaderWidth: 'auto' });
-      const plugin = hot.getPlugin('autoRowHeaderWidth');
+      const { hot, labelSpy } = buildGrid({ autoRowHeaderSize: true });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
 
       plugin.clearCache();
       plugin.getRowHeaderWidth();
@@ -151,8 +126,8 @@ describe('AutoRowHeaderWidth', () => {
     });
 
     it('should measure again once the row count changes', () => {
-      const { hot, labelSpy } = buildGrid({ rowHeaderWidth: 'auto' });
-      const plugin = hot.getPlugin('autoRowHeaderWidth');
+      const { hot, labelSpy } = buildGrid({ autoRowHeaderSize: true });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
 
       plugin.getRowHeaderWidth();
       labelSpy.mockClear();
@@ -167,24 +142,26 @@ describe('AutoRowHeaderWidth', () => {
   });
 
   describe('the resolved width', () => {
-    it('should never return a width below the one the grid resolved on its own', () => {
-      const { hot } = buildGrid({ rowHeaderWidth: 'auto' });
+    it('should not depend on the width handed to the hook', () => {
+      // The plugin decides this width, so whatever the grid resolved on its own is discarded. Both
+      // calls must answer the same thing.
+      const { hot } = buildGrid({ autoRowHeaderSize: true });
 
-      // jsdom reports no layout, so the measurement is 0 - the incoming width has to win, or a
-      // headless environment would collapse the row header to nothing.
-      expect(hot.runHooks('modifyRowHeaderWidth', 50)).toBe(50);
+      expect(hot.runHooks('modifyRowHeaderWidth', 400))
+        .toBe(hot.runHooks('modifyRowHeaderWidth', 20));
 
       hot.destroy();
     });
 
     it('should tolerate a non-numeric width without producing NaN', () => {
-      const { hot } = buildGrid({ rowHeaderWidth: 'auto' });
+      const { hot } = buildGrid({ autoRowHeaderSize: true });
 
-      expect(hot.runHooks('modifyRowHeaderWidth', undefined)).toBe(0);
+      expect(hot.runHooks('modifyRowHeaderWidth', undefined)).toBe(50);
 
       hot.destroy();
     });
   });
+
   describe('duplicate labels', () => {
     /**
      * A grid whose rows all carry the same label, so duplicate handling is the only thing that
@@ -198,7 +175,7 @@ describe('AutoRowHeaderWidth', () => {
       const hot = new Handsontable(document.createElement('div'), {
         data: Array.from({ length: 20 }, (_, i) => [i]),
         rowHeaders: labelSpy,
-        rowHeaderWidth: 'auto',
+        autoRowHeaderSize: true,
         licenseKey: 'non-commercial-and-evaluation',
         ...settings,
       });
@@ -221,7 +198,7 @@ describe('AutoRowHeaderWidth', () => {
 
     it('should measure a repeated label once by default', () => {
       const { hot, labelSpy } = buildRepeatedLabelGrid();
-      const plugin = hot.getPlugin('autoRowHeaderWidth');
+      const plugin = hot.getPlugin('autoRowHeaderSize');
 
       plugin.clearCache();
       labelSpy.mockClear();
@@ -234,9 +211,9 @@ describe('AutoRowHeaderWidth', () => {
 
     it('should measure every copy of a repeated label when duplicates are allowed', () => {
       const { hot, labelSpy } = buildRepeatedLabelGrid({
-        autoRowHeaderWidth: { allowSampleDuplicates: true },
+        autoRowHeaderSize: { allowSampleDuplicates: true },
       });
-      const plugin = hot.getPlugin('autoRowHeaderWidth');
+      const plugin = hot.getPlugin('autoRowHeaderSize');
 
       plugin.clearCache();
       labelSpy.mockClear();
@@ -253,9 +230,9 @@ describe('AutoRowHeaderWidth', () => {
 
     it('should respect samplingRatio when duplicates are allowed', () => {
       const { hot, labelSpy } = buildRepeatedLabelGrid({
-        autoRowHeaderWidth: { allowSampleDuplicates: true, samplingRatio: 5 },
+        autoRowHeaderSize: { allowSampleDuplicates: true, samplingRatio: 5 },
       });
-      const plugin = hot.getPlugin('autoRowHeaderWidth');
+      const plugin = hot.getPlugin('autoRowHeaderSize');
 
       plugin.clearCache();
       labelSpy.mockClear();
@@ -283,7 +260,7 @@ describe('AutoRowHeaderWidth', () => {
 
     it('should leave the width alone when the grid renders more than one row header', () => {
       const { hot } = buildGrid({
-        rowHeaderWidth: 'auto',
+        autoRowHeaderSize: true,
         afterGetRowHeaderRenderers: addSecondLevel,
       });
 
@@ -299,11 +276,11 @@ describe('AutoRowHeaderWidth', () => {
 
     it('should never measure anything when there is more than one row header', () => {
       const { hot, labelSpy } = buildGrid({
-        rowHeaderWidth: 'auto',
+        autoRowHeaderSize: true,
         afterGetRowHeaderRenderers: addSecondLevel,
       });
 
-      hot.getPlugin('autoRowHeaderWidth').clearCache();
+      hot.getPlugin('autoRowHeaderSize').clearCache();
       labelSpy.mockClear();
       hot.runHooks('modifyRowHeaderWidth', 50);
 
@@ -313,10 +290,70 @@ describe('AutoRowHeaderWidth', () => {
     });
 
     it('should still size a single row header, to prove the guard is not too broad', () => {
-      const { hot } = buildGrid({ rowHeaderWidth: 'auto' });
+      const { hot } = buildGrid({ autoRowHeaderSize: true });
 
       expect(hot.countRowHeaders()).toBe(1);
       expect(hot.runHooks('modifyRowHeaderWidth', 50)).toBe(50);
+
+      hot.destroy();
+    });
+  });
+  describe('index translation', () => {
+    it('should read labels through the same translation the renderer uses', () => {
+      // `modifyRowHeader` is how bindRowsWithHeaders makes a label follow its row. The plugin has
+      // to read through it, exactly as TableView#appendRowHeader does, or it would sample labels
+      // from one index space and render them from another.
+      // The offset is deliberate: a remap that merely reverses the order would leave the set of
+      // indexes unchanged, so the assertion would pass even if the translation were skipped.
+      const { hot, labelSpy } = buildGrid({
+        autoRowHeaderSize: true,
+        modifyRowHeader: (row: number) => row + 1000,
+      });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+
+      plugin.clearCache();
+      labelSpy.mockClear();
+      plugin.getRowHeaderWidth();
+
+      const readIndexes = labelSpy.mock.calls.map(([index]) => index);
+
+      // Visual row 0 must reach the label factory as 1000, not as 0.
+      expect(Math.min(...readIndexes)).toBe(1000);
+      expect(Math.max(...readIndexes)).toBe(1099);
+
+      hot.destroy();
+    });
+
+    it('should not change the measured width when rows are only reordered', () => {
+      // Reordering does not change the set of labels, so the width must hold still. A width that
+      // moved on every sort would be the flickering-header defect all over again (#3850).
+      const { hot } = buildGrid({ autoRowHeaderSize: true });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+      const before = plugin.getRowHeaderWidth();
+
+      hot.rowIndexMapper.moveIndexes([0], 5);
+      plugin.clearCache();
+
+      expect(plugin.getRowHeaderWidth()).toBe(before);
+
+      hot.destroy();
+    });
+
+    it('should stop at the visible row count, so trimmed rows are never sampled', () => {
+      const { hot, labelSpy } = buildGrid({ autoRowHeaderSize: true });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+
+      const trimMap = hot.rowIndexMapper.createAndRegisterIndexMap('test-trim', 'trimming', false);
+
+      trimMap.setValueAtIndex(99, true);
+      hot.render();
+
+      plugin.clearCache();
+      labelSpy.mockClear();
+      plugin.getRowHeaderWidth();
+
+      expect(hot.countRows()).toBe(99);
+      expect(Math.max(...labelSpy.mock.calls.map(([index]) => index))).toBe(98);
 
       hot.destroy();
     });
