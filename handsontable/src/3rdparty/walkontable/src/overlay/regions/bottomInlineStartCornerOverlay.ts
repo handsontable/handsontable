@@ -7,6 +7,7 @@ import { Overlay, type OverlayDeps } from './_base';
 import {
   canGrabScrollbar,
   axisScrollbarClearance,
+  reservedScrollbarSpace,
 } from '../scrollbarClearance';
 import {
   CLONE_BOTTOM_INLINE_START_CORNER,
@@ -204,7 +205,6 @@ export class BottomInlineStartCornerOverlay extends Overlay {
 
     const wtTable = this.deps.getWtTable();
     const wtViewport = this.deps.getWtViewport();
-    const { rootDocument } = this.deps;
     const cloneRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     let bottomOffset = 0;
 
@@ -213,7 +213,8 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     }
 
     if (wtViewport.hasVerticalScroll() && wtViewport.hasHorizontalScroll()) {
-      bottomOffset += this.deps.geometryReader.getScrollbarWidth(rootDocument);
+      // The master holder's real gutter, for the reason spelled out in `BottomOverlay#repositionOverlay`.
+      bottomOffset += reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'horizontal');
     }
 
     cloneRoot.style.bottom = `${bottomOffset}px`;

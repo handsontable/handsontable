@@ -11,6 +11,7 @@ import {
   axisScrollbarClearance,
   canGrabScrollbar,
   overlayExtentBesideScrollbar,
+  reservedScrollbarSpace,
 } from '../scrollbarClearance';
 import {
   CLONE_BOTTOM,
@@ -124,7 +125,6 @@ export class BottomOverlay extends Overlay {
 
     const wtTable = this.deps.getWtTable();
     const wtViewport = this.deps.getWtViewport();
-    const { rootDocument } = this.deps;
     const cloneRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     let bottomOffset = 0;
 
@@ -133,7 +133,12 @@ export class BottomOverlay extends Overlay {
     }
 
     if (wtViewport.hasVerticalScroll() && wtViewport.hasHorizontalScroll()) {
-      bottomOffset += this.deps.geometryReader.getScrollbarWidth(rootDocument);
+      // The gutter this holder really gives up. `getScrollbarWidth()` describes the ENGINE, not this
+      // element, and the two diverge on a styled scroller: Firefox 154 honors `::-webkit-scrollbar`,
+      // which `.wtHolder` sets and the probe element does not, so the probe reads 0 against a real
+      // scrollbar and the frozen rows come to rest on top of it (#10370). The magnitude is the answer
+      // here, so there is no cheap probe test to skip the read on, as `axisScrollbarClearance` has.
+      bottomOffset += reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'horizontal');
     }
 
     cloneRoot.style.bottom = `${bottomOffset}px`;
