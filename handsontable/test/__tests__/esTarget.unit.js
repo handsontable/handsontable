@@ -16,9 +16,10 @@ const ES_YEARS = [
  * supports each one. lightningcss lowers anything above the floor, and every lowering here has
  * already shipped as a bug: `light-dark()` becomes a pair of class-switched variables that
  * out-specify the theme engine, nested rules are flattened or dropped, and logical properties
- * (`border-inline-*`, `border-end-end-radius`) become physical pairs gated on `:lang(ar)`,
- * `:lang(he)` and the rest, which a grid set to `dir="rtl"` without a matching `lang` never
- * matches. The floor is asserted against them here rather than left to a comment.
+ * become physical pairs gated on `:lang(ar)`, `:lang(he)` and the rest, which a grid set to
+ * `dir="rtl"` without a matching `lang` never matches. Below Safari 15 that lowering hit the four
+ * `border-*-radius` properties, so an RTL grid rounded the wrong cells. The floor is asserted
+ * against all three here rather than left to a comment.
  */
 const CSS_FEATURE_FLOORS = {
   'light-dark()': { Chrome: 123, Edge: 123, Firefox: 120, Safari: 17.5, iOS: 17.5 },
