@@ -308,8 +308,9 @@ function countTableColumns(table: HTMLTableElement): number {
 
         cols += slots;
 
+        // The rows below still lose the cell's whole width, even where this row could spare it.
         for (let spanned = row + 1; spanned < spannedEnd; spanned += 1) {
-          reserved[spanned] = (reserved[spanned] || 0) + slots;
+          reserved[spanned] = (reserved[spanned] || 0) + colSpan;
         }
       }
     }
@@ -455,10 +456,14 @@ export function htmlToGridSettings(element: HTMLTableElement | string, rootDocum
       const col: number = dataArr[row].findIndex((value: string | null | undefined) => value === undefined);
 
       if (nodeName === 'TD') {
-        if (rowspan > 1 || colspan > 1) {
+        // A span may reach past the last column - a footer row spanning a table wider than the
+        // data, say. Keep it inside the grid, or it stretches this row and leaves the rows uneven.
+        const fittedColspan = Math.min(colspan, countCols - col);
+
+        if (rowspan > 1 || fittedColspan > 1) {
           for (let rstart = row; rstart < row + rowspan; rstart++) {
             if (rstart < countRows) {
-              for (let cstart = col; cstart < col + colspan; cstart++) {
+              for (let cstart = col; cstart < col + fittedColspan; cstart++) {
                 dataArr[rstart][cstart] = null;
               }
             }
@@ -468,7 +473,7 @@ export function htmlToGridSettings(element: HTMLTableElement | string, rootDocum
           const ignoreMerge = styleAttr && styleAttr.includes('mso-ignore:colspan');
 
           if (!ignoreMerge) {
-            mergeCells.push({ col, row, rowspan, colspan });
+            mergeCells.push({ col, row, rowspan, colspan: fittedColspan });
           }
         }
 

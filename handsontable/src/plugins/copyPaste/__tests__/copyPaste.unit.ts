@@ -81,6 +81,29 @@ describe('CopyPaste ragged clipboard', () => {
     hot.destroy();
   });
 
+  it('should hand the hook the same width the grid writes when a cell spans past the table', () => {
+    const hot = new Handsontable(document.createElement('div'), {
+      data: [['A', 'B', 'C', 'D'], ['E', 'F', 'G', 'H']],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    let seen: number[] = [];
+
+    hot.addHook('beforePaste', (data: unknown[][]) => {
+      seen = data.map((row: unknown[]) => row.length);
+    });
+
+    hot.selectCell(0, 0);
+    hot.getPlugin('copyPaste').paste('', '<table><tbody><tr><td>A1</td><td>B1</td><td>C1</td></tr>' +
+      '<tr><td colspan="20">footer</td></tr></tbody></table>');
+
+    // The footer spans far past the table. Reporting 20 columns while writing 3 would send an
+    // integrator syncing from the hook seventeen columns the grid never touched.
+    expect(seen).toEqual([3, 3]);
+    expect(hot.getDataAtRow(1)).toEqual(['footer', null, null, 'H']);
+
+    hot.destroy();
+  });
+
   it('should repeat a ragged clipboard across a wider selection on the widest row', () => {
     const hot = new Handsontable(document.createElement('div'), {
       data: [['A1', 'B1', 'C1', 'D1', 'E1', 'F1'], ['A2', 'B2', 'C2', 'D2', 'E2', 'F2']],

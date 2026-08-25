@@ -318,6 +318,9 @@ application pastes them. Those cells hold `null`, the same value that clearing a
 When the pasted content repeats to fill a larger selection, it repeats on that same width. Pasting
 two rows of three cells into a selection six columns wide writes the three cells twice per row.
 
+A merged cell that reaches past the last column is trimmed to the columns that are there. A footer
+row spanning a table wider than the pasted data lands in one row, without adding empty columns.
+
 The [`beforePaste`](@/api/hooks.md#beforepaste) and [`afterPaste`](@/api/hooks.md#afterpaste) hooks
 receive the content already squared off to the widest row, so what they report matches what the grid
 writes. To paste only the cells that were present, drop the empty ones in `beforePaste`.

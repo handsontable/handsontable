@@ -248,6 +248,32 @@ describe('htmlToGridSettings', () => {
     expect(config.data[0]).toHaveLength(3);
   });
 
+  it('should keep every cell when the first row spans both ways', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      // The cell holds two columns of the row below it as well, so that row needs four slots.
+      '<tr><td rowspan="2" colspan="2">A</td></tr>',
+      '<tr><td>B</td><td>C</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data[1]).toEqual([null, null, 'B', 'C']);
+  });
+
+  it('should keep rows rectangular when a span reaches past the last column', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>a</td></tr>',
+      '<tr><td>b</td><td colspan="3">wide</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    // The span is trimmed to what the grid holds, so it cannot stretch its own row.
+    expect(config.data.map((row: unknown[]) => row.length)).toEqual([2, 2]);
+  });
+
   it('should give a th outside the first column no data slot', () => {
     const htmlToParse = [
       '<table><tbody>',
