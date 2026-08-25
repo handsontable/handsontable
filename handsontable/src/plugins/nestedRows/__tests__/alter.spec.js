@@ -175,7 +175,32 @@ describe('NestedRows', () => {
       expect(getCellMeta(3, 2).comment).toBeUndefined();
     });
 
-    it('nestedRows ON, `alter("insert_row_below")` API', async() => {
+    it('nestedRows ON, context menu "Insert row above"', async() => {
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        comments: true,
+        contextMenu: true,
+        rowHeaders: true,
+      });
+
+      await setCellMeta(3, 2, 'className', 'marked-cell');
+      await setCellMeta(3, 2, 'comment', { value: 'marked-comment' });
+
+      const markedValueBefore = getDataAtCell(3, 2);
+
+      await insertRowViaContextMenu(3, 2);
+
+      expect(getDataAtCell(4, 2)).toBe(markedValueBefore);
+      expect(getCellMeta(4, 2).className).toBe('marked-cell');
+      expect(getCellMeta(4, 2).comment).toEqual({ value: 'marked-comment' });
+      expect(getCellMeta(3, 2).className).toBeUndefined();
+      expect(getCellMeta(3, 2).comment).toBeUndefined();
+    });
+
+    // Control: this path goes through `DataMap#createRow`, which always shifted the meta. It guards
+    // against the fix breaking the API path, not against the bug itself.
+    it('control: nestedRows ON, `alter("insert_row_below")` API', async() => {
       handsontable({
         data: getSimplerNestedData(),
         nestedRows: true,
