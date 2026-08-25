@@ -44,6 +44,15 @@ test.describe('formulaBuilder plugin', () => {
     await grid.page.keyboard.press('Escape');
   });
 
+  test('editing through the formula bar commits to the selected cell', async () => {
+    await grid.selectCell(3, 0);
+    await grid.openBarEditor();
+    await grid.editorInput.press('ControlOrMeta+a');
+    await grid.editorInput.fill('=6*7');
+    await grid.page.keyboard.press('Enter');
+    await grid.expectCell(3, 0, '42');
+  });
+
   test('typing a reference highlights the referenced cell through a native custom selection', async () => {
     await grid.openEditor(3, 0);
     await grid.editorInput.click();

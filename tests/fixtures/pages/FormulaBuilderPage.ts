@@ -53,4 +53,18 @@ export class FormulaBuilderPage {
     await this.cell(row, col).dblclick();
     await expect(this.editorInput).toBeVisible();
   }
+
+  /** The formula bar's idle (click-to-edit) formula area. */
+  get barFormulaArea(): Locator {
+    return this.page.locator('.hfe-formula-bar__idle').first();
+  }
+
+  /**
+   * Start a bar-hosted edit of the selected cell by clicking the bar's formula
+   * area, and wait for the shared editor to take focus.
+   */
+  async openBarEditor(): Promise<void> {
+    await this.barFormulaArea.click();
+    await expect(this.editorInput).toBeFocused();
+  }
 }
