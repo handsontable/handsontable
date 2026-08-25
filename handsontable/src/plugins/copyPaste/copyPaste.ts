@@ -4,7 +4,6 @@ import { stringify, parse } from '../../3rdparty/SheetClip';
 import { arrayEach } from '../../helpers/array';
 import { isJSON } from '../../helpers/string';
 import { isObject, deepClone } from '../../helpers/object';
-import { warnOnce } from '../../helpers/console';
 import {
   removeContentEditableFromElementAndDeselect,
   runWithSelectedContendEditableElement,
@@ -12,8 +11,8 @@ import {
   isHTMLElement,
   isInternalElement,
   isShadowRoot,
-  SANITIZER_WARN_KEY,
 } from '../../helpers/dom/element';
+import { sanitizeHTML } from '../../utils/sanitizer';
 import { isSafari } from '../../helpers/browser';
 import copyItem from './contextMenuItem/copy';
 import copyColumnHeadersOnlyItem from './contextMenuItem/copyColumnHeadersOnly';
@@ -928,7 +927,12 @@ export class CopyPaste extends BasePlugin {
 
     if (event && typeof event.clipboardData !== 'undefined') {
       const clipboardData = event.clipboardData!;
-      const sourceDataHTML = clipboardData.getData(SOURCE_DATA_HTML_MIME_TYPE);
+      // `SOURCE_DATA_HTML_MIME_TYPE` is written by Handsontable's own copy handler, but the
+      // clipboard is not a trusted channel: any page can set the same type from its own `copy`
+      // handler. Sanitize it exactly like the `text/html` branch below, under the same context.
+      const sourceDataHTML = sanitizeHTML(
+        this.hot, clipboardData.getData(SOURCE_DATA_HTML_MIME_TYPE) ?? '', 'CopyPaste.paste'
+      );
 
       if (sourceDataHTML) {
         const parsedSourceConfig = htmlToGridSettings(sourceDataHTML, this.hot.rootDocument);
@@ -936,18 +940,7 @@ export class CopyPaste extends BasePlugin {
         pastedSourceData = parsedSourceConfig?.data;
       }
 
-      const rawTextHTML = clipboardData.getData('text/html') ?? '';
-      const customSanitizer = this.hot.getSettings().sanitizer;
-
-      if (rawTextHTML && typeof customSanitizer !== 'function') {
-        warnOnce(this.hot.rootElement, SANITIZER_WARN_KEY,
-          'HTML content is being pasted to the DOM without a sanitizer. ' +
-          'Configure the "sanitizer" option to prevent XSS vulnerabilities.');
-      }
-
-      const textHTML: string = typeof customSanitizer === 'function'
-        ? customSanitizer(rawTextHTML, 'CopyPaste.paste')
-        : rawTextHTML;
+      const textHTML = sanitizeHTML(this.hot, clipboardData.getData('text/html') ?? '', 'CopyPaste.paste');
 
       if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
         const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument);

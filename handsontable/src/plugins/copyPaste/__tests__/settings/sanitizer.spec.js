@@ -36,6 +36,94 @@ describe('CopyPaste', () => {
       expect(sanitizer).toHaveBeenCalledWith('<div>test</div>', 'CopyPaste.paste');
     });
 
+    it('should be called for the private source-data clipboard type', async() => {
+      const sanitizer = jasmine.createSpy('sanitizer')
+        .and
+        .callFake(content => content.replace(/\s+onerror\s*=\s*("[^"]*"|'[^']*'|[^\s>]*)/gi, ''));
+
+      handsontable({
+        copyPaste: true,
+        sanitizer,
+      });
+
+      window.__testFunction = () => {};
+      spyOn(window, '__testFunction');
+
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+      // Handsontable writes this type from its own copy handler, but the clipboard is not a
+      // trusted channel - any page can set the same type from its own. This branch reached
+      // `htmlToGridSettings()` unsanitized while `text/html` did not.
+      const payload = '<table><tbody><tr><td>A1</td></tr></tbody></table>' +
+        '<img src onerror="__testFunction()">';
+
+      clipboardEvent.clipboardData.setData('application/ht-source-data-json-html', payload);
+
+      await selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      await waitForNextAnimationFrames(2);
+
+      expect(sanitizer).toHaveBeenCalledWith(payload, 'CopyPaste.paste');
+      expect(window.__testFunction).not.toHaveBeenCalled();
+    });
+
+    it('should warn once when only the private source-data type carries HTML and no sanitizer is set',
+      async() => {
+        const warnSpy = spyOnConsoleWarn();
+
+        handsontable({
+          copyPaste: true,
+        });
+
+        const clipboardEvent = getClipboardEvent();
+        const plugin = getPlugin('CopyPaste');
+
+        clipboardEvent.clipboardData.setData(
+          'application/ht-source-data-json-html',
+          '<table><tbody><tr><td>A1</td></tr></tbody></table>'
+        );
+
+        await selectCell(0, 0);
+
+        plugin.onPaste(clipboardEvent);
+
+        await waitForNextAnimationFrames(2);
+
+        expect(warnSpy).toHaveBeenCalledWith(jasmine.stringMatching(/without a sanitizer/));
+        expect(warnSpy.calls.count()).toBe(1);
+      });
+
+    it('should still restore object-based source data pasted between Handsontable instances', async() => {
+      handsontable({
+        data: [{ id: 1, value: 'A1' }, { id: 2, value: 'A2' }],
+        columns: [{ data: 'value' }],
+        copyPaste: true,
+        sanitizer: content => content,
+      });
+
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      clipboardEvent.clipboardData.setData('text/html', [
+        '<meta name="generator" content="Handsontable"/>',
+        '<table><tbody><tr><td>B1</td></tr></tbody></table>',
+      ].join(''));
+      clipboardEvent.clipboardData.setData('application/ht-source-data-json-html', [
+        '<meta name="generator" content="Handsontable"/>',
+        '<table><tbody><tr><td>{"id":9,"value":"B1"}</td></tr></tbody></table>',
+      ].join(''));
+
+      await selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      await waitForNextAnimationFrames(2);
+
+      expect(getSourceDataAtCell(0, 'value')).toBe('B1');
+    });
+
     it('should not blank the cell below the target when a single Excel cell is pasted and the' +
       ' sanitizer strips the HTML to plain text', async() => {
       const sanitizer = (content) => {
