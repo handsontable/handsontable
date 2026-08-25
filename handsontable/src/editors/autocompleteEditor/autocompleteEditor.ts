@@ -337,10 +337,10 @@ export class AutocompleteEditor extends HandsontableEditor {
     let choices = choicesList;
 
     if (!sortByRelevanceSetting) {
-      // Sort a copy, never the passed-in array: `updateChoicesList` is public API and the caller's
-      // array (typically the `source` setting) must keep its original order. `Array#toSorted` would
-      // do this in one call but is outside the `browser-targets.js` baseline (Firefox 115+,
-      // Safari 16+), and swc lowers syntax only — it adds no instance-method polyfills.
+      // Sort a copy: `updateChoicesList` is public API, so the caller's array (typically the
+      // `source` setting) must keep its original order. The spread also keeps array-like callers
+      // working, which `Array#toSorted` would not — the floor now allows it, but switching would
+      // narrow what this public method accepts.
       choices = [...choices].sort((a, b) => stringify(a).localeCompare(stringify(b)));
     }
 
