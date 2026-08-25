@@ -12,8 +12,9 @@ declare const hot: Handsontable;
 declare function takesString(value: string): void;
 
 /**
- * The point of the exported type. Annotating the parameter narrows it to the surfaces the grid
- * emits, so an editor completes them and a typo in a comparison is a type error.
+ * The point of the exported type. Annotating the parameter names the surfaces the grid emits, so an
+ * editor completes them as you write the branch. It cannot reject a misspelled comparison: the
+ * `(string & {})` member accepts every string, which is the deliberate trade documented below.
  */
 const optIn: GridSettings = {
   sanitizer: (content: string, source: SanitizerContext) =>
@@ -82,7 +83,10 @@ type WrapperProps = Omit<RemoveIndexSignature<GridSettings>, 'renderer' | 'edito
 };
 
 const throughWrapperMappedTypes: WrapperProps = {
-  sanitizer: (content: string, source: SanitizerContext) => content,
+  // Annotated narrowly on purpose. `SanitizerContext` accepts every string, so annotating with it
+  // here would pass no matter how the option is declared and guard nothing. Only a narrower type
+  // than the option declares detects a variance change through the chain.
+  sanitizer: (content: string, source: 'header' | 'CopyPaste.paste') => content,
 };
 
 /**
