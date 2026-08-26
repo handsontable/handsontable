@@ -99,16 +99,175 @@ afterRowMove(movedRows, finalIndex, dropIndex, movePossible, orderChanged) {
   if (orderChanged) {
     const reorderedData = this.getData();
 
-    // persist reorderedData to your backend or local state
+    // persist reorderedData to your backend
   }
+}
+```
+
+### Don't feed the snapshot back into the grid
+
+Sending the reordered snapshot back to the grid as its new data applies the move a second time. [`updateData()`](@/api/core.md#updatedata) keeps the current row order on purpose, so Handsontable re-applies the order map it already holds on top of your already-reordered array. One drag then moves the row twice.
+
+Treat the snapshot as output only. Send it to your backend, and leave the grid's own data alone.
+
+::: only-for javascript
+
+To replace the data and reset the order together, call [`loadData()`](@/api/core.md#loaddata) instead. It clears the row order map along with the data. It also clears the undo history.
+
+:::
+
+:::: only-for react angular vue
+
+### Choose who owns the row order
+
+The array you bind to [`data`](@/api/options.md#data) does not change when a user moves a row. The order lives in Handsontable's index map, not in your array. There are two ways to handle that, and you have to stay inside one of them:
+
+- **Handsontable owns the order.** You bind the data once, and read the order out when you need it.
+- **Your app owns the order.** You cancel each move, and reorder your own array instead.
+
+Writing [`getData()`](@/api/core.md#getdata) back into the bound `data` mixes the two models. The grid still holds the order map for a move it has already made, so it applies that order on top of your already-reordered array. Your data and the grid end up out of sync, and the row can jump a second time.
+
+#### Let Handsontable own the order
+
+This is the default. Bind `data` once and leave it alone. Read the current order with [`getData()`](@/api/core.md#getdata) whenever you need to persist it.
+
+To start the grid with a non-default order, pass the array through [`initialState`](@/api/options.md#initialstate) rather than [`manualRowMove`](@/api/options.md#manualrowmove). Handsontable reads [`initialState`](@/api/options.md#initialstate) only when it creates the grid, so a re-render can't apply the order a second time:
+
+```js
+initialState: {
+  manualRowMove: [2, 0, 1],
+},
+```
+
+The array both enables row moving and sets the starting order, so don't also pass [`manualRowMove`](@/api/options.md#manualrowmove) at the top level. A regular setting takes precedence over the same key in [`initialState`](@/api/options.md#initialstate), so `manualRowMove: true` alongside the code above would discard the order.
+
+A `manualRowMove` array passed as a regular option can be re-applied on a later update, which reorders the rows again on top of the order they are already in. How often that happens depends on the framework, so don't rely on it not happening.
+
+::: only-for react
+
+For more on this, see [Non-idempotent options](@/guides/getting-started/configuration-options/configuration-options.md#non-idempotent-options).
+
+:::
+
+#### Let your app own the order
+
+Return `false` from [`beforeRowMove`](@/api/hooks.md#beforerowmove) to cancel Handsontable's move, then apply the same move to your own array. Handsontable keeps its rows in physical order, so your array is the only place the order is stored.
+
+In this model you also own the order's history. Reverting a move is your code's job, not the grid's.
+
+This helper applies a move to a plain array. `movedRows` holds visual row indexes, and `finalIndex` is the index that the first moved row lands on:
+
+```js
+function reorderRows(rows, movedRows, finalIndex) {
+  const result = rows.slice();
+  const moved = movedRows.map(index => rows[index]);
+
+  // remove from the highest index down, so the lower indexes stay valid
+  movedRows
+    .slice()
+    .sort((a, b) => b - a)
+    .forEach(index => result.splice(index, 1));
+
+  result.splice(finalIndex, 0, ...moved);
+
+  return result;
 }
 ```
 
 ::: only-for react
 
-In React, binding the [`data`](@/api/options.md#data) prop to a state variable does not keep that state in sync with row moves. The move updates Handsontable's internal index order, but your bound state still holds the original order. To align your state with the displayed order, update it explicitly from the [`afterRowMove`](@/api/hooks.md#afterrowmove) hook using [`getData()`](@/api/core.md#getdata).
+Keep the rows in state, and write the new order back from the hook:
+
+```jsx
+const ExampleComponent = () => {
+  const [rows, setRows] = useState(initialRows);
+
+  return (
+    <HotTable
+      data={rows}
+      manualRowMove={true}
+      beforeRowMove={(movedRows, finalIndex, dropIndex, movePossible) => {
+        if (!movePossible) {
+          return;
+        }
+
+        setRows(prevRows => reorderRows(prevRows, movedRows, finalIndex));
+
+        // cancel the grid's own move -- the state update above already applied it
+        return false;
+      }}
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+```
 
 :::
+
+::: only-for angular
+
+Keep the rows in a component property, and bind it through the `[data]` input:
+
+```ts
+@Component({
+  selector: 'app-example',
+  template: `<hot-table [settings]="hotSettings" [data]="rows"></hot-table>`,
+  standalone: true,
+  imports: [HotTableModule],
+})
+export class AppComponent {
+  rows = initialRows;
+
+  readonly hotSettings: GridSettings = {
+    manualRowMove: true,
+    beforeRowMove: (movedRows, finalIndex, dropIndex, movePossible) => {
+      if (!movePossible) {
+        return;
+      }
+
+      this.rows = reorderRows(this.rows, movedRows, finalIndex);
+
+      // cancel the grid's own move -- the assignment above already applied it
+      return false;
+    },
+  };
+}
+```
+
+:::
+
+::: only-for vue
+
+The Vue wrapper reads the bound array by reference, so change that array in place. Assigning a new array to `rows` leaves the grid rendering the old one:
+
+```vue
+<script setup>
+const rows = reactive(initialRows);
+
+const hotSettings = {
+  manualRowMove: true,
+  beforeRowMove(movedRows, finalIndex, dropIndex, movePossible) {
+    if (!movePossible) {
+      return;
+    }
+
+    // replace the contents in place, so the grid sees the new order
+    rows.splice(0, rows.length, ...reorderRows(rows, movedRows, finalIndex));
+
+    // cancel the grid's own move -- the line above already applied it
+    return false;
+  },
+};
+</script>
+
+<template>
+  <HotTable :data="rows" :settings="hotSettings" />
+</template>
+```
+
+:::
+
+::::
 
 For more on how physical and visual indexes relate, see [Understanding data and indexes](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md).
 
