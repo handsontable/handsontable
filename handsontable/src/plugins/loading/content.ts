@@ -1,4 +1,11 @@
-import { LOADING_CLASS_NAME, PLUGIN_KEY, DEFAULT_ICON } from './loading';
+// `LOADING_CLASS_NAME` comes straight from `helpers/constants`, NOT re-exported through
+// `./loading`. This module and `./loading` import each other, and `DEFAULT_ICON_SPEC` below reads
+// the class name at MODULE scope - a cyclic binding read that early lands in the temporal dead zone
+// and throws `Cannot access '_constants' before initialization` when the ESM build is loaded by a
+// wrapper. `PLUGIN_KEY` and `DEFAULT_ICON` stay cyclic because they are only read inside the
+// function body, by which time both modules have finished initializing.
+import { LOADING_CLASS_NAME } from '../../helpers/constants';
+import { PLUGIN_KEY, DEFAULT_ICON } from './loading';
 import { buildTemplate, SVG_NS, type TemplateSpec } from '../../helpers/dom/template';
 import { fastInnerHTML } from '../../helpers/dom/element';
 import type { SanitizerFn } from '../../core/settings';
