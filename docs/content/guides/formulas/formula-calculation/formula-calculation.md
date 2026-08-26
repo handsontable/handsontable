@@ -1056,7 +1056,7 @@ from spreadsheet software. A cell of the [`text`](@/guides/cell-types/cell-type/
 type that holds `0123456` reaches formulas as `123456`, so the leading zero is lost.
 
 To keep such values as strings on the engine side, enable the
-[`preserveTextValues`](@/api/options.md#preservetextvalues) option on the `text`-type cells.
+[`preserveTextValue`](@/api/options.md#preservetextvalue) option on the `text`-type cells.
 The value then stays a string: `=LEN(A1)` returns `7`, and concatenation keeps the leading zero.
 
 ::: only-for javascript
@@ -1070,7 +1070,7 @@ const hot = new Handsontable(container, {
   columns: [
     {
       type: 'text',
-      preserveTextValues: true,
+      preserveTextValue: true,
     },
   ],
   formulas: {

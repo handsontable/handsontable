@@ -2859,7 +2859,7 @@ describe('Formulas general', () => {
     });
   });
 
-  describe('preserveTextValues', () => {
+  describe('preserveTextValue', () => {
     it('should pass an edited text-cell value to the engine as a string', async() => {
       handsontable({
         data: [
@@ -2872,7 +2872,7 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'text',
-          preserveTextValues: true,
+          preserveTextValue: true,
         }],
       });
 
@@ -2943,7 +2943,7 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'text',
-          preserveTextValues: true,
+          preserveTextValue: true,
         }],
       });
 
@@ -2970,7 +2970,7 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'text',
-          preserveTextValues: true,
+          preserveTextValue: true,
         }],
       });
 
@@ -3003,7 +3003,7 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'text',
-          preserveTextValues: true,
+          preserveTextValue: true,
         }],
       });
 
@@ -3029,7 +3029,7 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'text',
-          preserveTextValues: true,
+          preserveTextValue: true,
         }, {}],
       });
 
@@ -3059,7 +3059,7 @@ describe('Formulas general', () => {
           engine: HyperFormula,
         },
         type: 'text',
-        preserveTextValues: true,
+        preserveTextValue: true,
       });
 
       expect(getPlugin('formulas').engine.getSheetValues(0)).toEqual([
@@ -3079,7 +3079,7 @@ describe('Formulas general', () => {
         },
         cells(row, column) {
           if (row === 0 && column === 0) {
-            return { type: 'text', preserveTextValues: true };
+            return { type: 'text', preserveTextValue: true };
           }
         },
       });
@@ -3104,7 +3104,7 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'text',
-          preserveTextValues: true,
+          preserveTextValue: true,
         }],
       });
 
@@ -3136,7 +3136,7 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'text',
-          preserveTextValues: true,
+          preserveTextValue: true,
         }],
       });
 
@@ -3156,7 +3156,7 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'text',
-          preserveTextValues: true,
+          preserveTextValue: true,
         }],
       });
 

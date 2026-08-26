@@ -181,7 +181,7 @@ export interface GridSettings {
   emptyDataState?: boolean | object;
   filters?: boolean | object;
   formulas?: boolean | { engine: unknown; sheetName?: string; [key: string]: unknown };
-  preserveTextValues?: boolean;
+  preserveTextValue?: boolean;
   hiddenColumns?: boolean | object;
   hiddenRows?: boolean | object;
   loading?: boolean | object;

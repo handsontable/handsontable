@@ -4955,16 +4955,16 @@ export default (): Record<string, unknown> => {
     placeholderCellClassName: 'htPlaceholder',
 
     /**
-     * The `preserveTextValues` option configures whether the [`Formulas`](@/api/formulas.md)
+     * The `preserveTextValue` option configures whether the [`Formulas`](@/api/formulas.md)
      * plugin passes values of [`text`](@/guides/cell-types/cell-type/cell-type.md)-type cells
      * to the calculation engine as strings. This protects them from number coercion.
      *
      * By default, the engine parses number-like strings into numbers. A `text` cell that
      * holds `0123456` reaches formulas as `123456` – the leading zero is lost. With
-     * `preserveTextValues` enabled, the value stays a string: `=LEN(A1)` returns `7`, and
+     * `preserveTextValue` enabled, the value stays a string: `=LEN(A1)` returns `7`, and
      * concatenation keeps the leading zero.
      *
-     * You can set the `preserveTextValues` option to one of the following:
+     * You can set the `preserveTextValue` option to one of the following:
      *
      * | Setting           | Description                                                 |
      * | ----------------- | ----------------------------------------------------------- |
@@ -4992,12 +4992,12 @@ export default (): Record<string, unknown> => {
      *   {
      *     type: 'text',
      *     // keep leading zeros of number-like strings in formula results
-     *     preserveTextValues: true,
+     *     preserveTextValue: true,
      *   },
      * ],
      * ```
      */
-    preserveTextValues: false,
+    preserveTextValue: false,
 
     /**
      * The `preventOverflow` option configures preventing Handsontable

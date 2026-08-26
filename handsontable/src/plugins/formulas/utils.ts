@@ -157,21 +157,21 @@ export function normalizeValueForFormulaEngine(value: unknown) {
 /**
  * Checks if the provided value is a text-cell value that should be preserved — passed to the
  * engine as a string, protected from being coerced to a number — according to the cell meta
- * (`type: 'text'` combined with `preserveTextValues: true`). Formulas are never preserved. Empty
+ * (`type: 'text'` combined with `preserveTextValue: true`). Formulas are never preserved. Empty
  * strings are never preserved either, so clearing a cell keeps producing an empty cell in the engine.
  *
  * @param {*} value Checked value.
- * @param {object} cellMeta Cell meta object with the `type` and `preserveTextValues` properties.
+ * @param {object} cellMeta Cell meta object with the `type` and `preserveTextValue` properties.
  * @returns {boolean}
  */
 export function isPreservedText(
   value: unknown,
-  cellMeta: { type?: string, preserveTextValues?: boolean },
+  cellMeta: { type?: string, preserveTextValue?: boolean },
 ): value is string {
   return typeof value === 'string' &&
     value !== '' &&
     cellMeta.type === 'text' &&
-    cellMeta.preserveTextValues === true &&
+    cellMeta.preserveTextValue === true &&
     !isFormula(value);
 }
 
