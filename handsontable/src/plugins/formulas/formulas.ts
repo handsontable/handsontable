@@ -1523,8 +1523,8 @@ export class Formulas extends BasePlugin {
     }
 
     const metaManager = this.hot._getMetaManager();
-    // An engine index outside the dataset has no physical counterpart - the engine extends its own
-    // sheet dimensions to calculate values - so it falls back to being read as a physical index.
+    // An engine index outside the dataset has no physical counterpart – the engine extends its own
+    // sheet dimensions to calculate values – so it falls back to being read as a physical index.
     const toPhysical = (syncer: AxisSyncer | null, hfIndex: number) => {
       const physicalIndex = syncer?.getPhysicalIndexFromHfIndex(hfIndex) ?? -1;
 
@@ -2996,8 +2996,12 @@ export class Formulas extends BasePlugin {
   /**
    * `beforeDetachChild` hook callback.
    * Opens the guarded span in which `#syncFormulasToSourceData` must not run – see
-   * `#nestedRowsDetachPending`. The Nested Rows data manager always reaches `afterDetachChild` once
-   * this hook has fired, so the span always closes.
+   * `#nestedRowsDetachPending`. `#onAfterDetachChild`'s `try`/`finally` guarantees the span closes
+   * whenever that listener runs, even if its own body throws. It does NOT guarantee the listener
+   * runs at all: `afterDetachChild` also has an earlier listener, registered by the Nested Rows
+   * plugin itself (`#onAfterDetachChild` in `nestedRows.ts`), and a throw there aborts the hook
+   * emitter before this plugin's listener is reached, leaving the flag set for the rest of the
+   * session.
    */
   #onBeforeDetachChild = () => {
     this.#nestedRowsDetachPending = true;
@@ -3013,27 +3017,27 @@ export class Formulas extends BasePlugin {
    */
   #onAfterDetachChild = (parent: Record<string, unknown>, element: Record<string, unknown>,
                          finalElementRowIndex: number) => {
-    this.#internalOperationPending = true;
-
-    const children = element.__children;
-    const childrenCount = Array.isArray(children) ? children.length : 0;
-    const rowsData = this.#getProcessedSourceDataArray(
-      finalElementRowIndex,
-      0,
-      finalElementRowIndex + childrenCount,
-      this.hot.countSourceCols()
-    );
-
-    this.#internalOperationPending = false;
-
-    // `rowsData` is a partial array starting at the detached element's row, so the escaping needs
-    // that row as its offset. The reported row index is a physical one – the Nested Rows data
-    // manager derives it from the flattened source data (`dataManager.getRowIndex()`), not from the
-    // visual order. That distinction matters, because collapsing rows in that plugin installs a
-    // trimming map, under which the visual and physical row spaces genuinely differ.
-    this.#escapeSourceDataArray(rowsData, finalElementRowIndex, 0);
-
     try {
+      this.#internalOperationPending = true;
+
+      const children = element.__children;
+      const childrenCount = Array.isArray(children) ? children.length : 0;
+      const rowsData = this.#getProcessedSourceDataArray(
+        finalElementRowIndex,
+        0,
+        finalElementRowIndex + childrenCount,
+        this.hot.countSourceCols()
+      );
+
+      this.#internalOperationPending = false;
+
+      // `rowsData` is a partial array starting at the detached element's row, so the escaping needs
+      // that row as its offset. The reported row index is a physical one – the Nested Rows data
+      // manager derives it from the flattened source data (`dataManager.getRowIndex()`), not from the
+      // visual order. That distinction matters, because collapsing rows in that plugin installs a
+      // trimming map, under which the visual and physical row spaces genuinely differ.
+      this.#escapeSourceDataArray(rowsData, finalElementRowIndex, 0);
+
       rowsData.forEach((row: unknown[], relativeRowIndex: number) => {
         row.forEach((value: unknown, colIndex: number) => {
           this.engine?.setCellContents({
