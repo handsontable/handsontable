@@ -12,7 +12,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [18.1.0-rc3] - 2026-08-26
 
 ### Added
-- Added the `modifySinglePassLayout` hook. The grid now renders in a single pass by predicting whether scrollbars will appear before rendering; return `false` from the hook to force the previous measure-then-render path. [#12951](https://github.com/handsontable/handsontable/pull/12951)
+- Added the `modifySinglePassLayout` hook, which forces the previous measure-then-render layout path for a table. [#12951](https://github.com/handsontable/handsontable/pull/12951)
 - Added the `selectionHandles` option, which shows draggable handles at each edge midpoint of a selected range for resizing the selection, and the `moveCells` option for moving a cell selection to a new location by dragging its border. [#13076](https://github.com/handsontable/handsontable/pull/13076)
 - Added Persian language RTL direction support. [#13101](https://github.com/handsontable/handsontable/issues/13101)
 - Added support for entitlement license keys, and made a missing or invalid license key block the grid with a modal that cannot be closed. [#13106](https://github.com/handsontable/handsontable/pull/13106)
@@ -31,6 +31,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Improved vertical scrolling performance for grids with pinned bottom rows (`fixedRowsBottom`). [#12894](https://github.com/handsontable/handsontable/issues/12894)
 - Improved the performance of sorting, filtering, hiding, and inserting/removing rows/columns on large datasets by removing redundant per-operation work in the index translation layer. [#12898](https://github.com/handsontable/handsontable/pull/12898)
 - Improved the performance of the internal hooks (events) dispatch: each hook's callbacks are now stored in a linked list, and removing a hook frees it immediately instead of accumulating skipped entries that were iterated over on every run. [#12925](https://github.com/handsontable/handsontable/pull/12925)
+- The grid now renders in a single pass, predicting whether scrollbars will appear instead of rendering, measuring, and re-rendering. The `mergeCells` plugin keeps the previous path, and the `modifySinglePassLayout` hook opts out of it. [#12951](https://github.com/handsontable/handsontable/pull/12951)
 - Improved vertical scrolling performance by skipping the column header re-render when the column layout is unchanged. [#12987](https://github.com/handsontable/handsontable/pull/12987)
 - Improved vertical scrolling performance by re-rendering only the rows entering the viewport and reusing the rows that stay. [#12995](https://github.com/handsontable/handsontable/pull/12995)
 - Improved scrolling performance for grids embedded in complex pages by keeping the rendered cells in place during scroll instead of re-inserting them. [#13020](https://github.com/handsontable/handsontable/pull/13020)
