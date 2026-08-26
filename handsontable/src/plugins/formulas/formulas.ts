@@ -1345,14 +1345,27 @@ export class Formulas extends BasePlugin {
   /**
    * Tells whether the source data is a plain array-of-arrays dataset. The shape is read from the
    * first source row, because `getSourceData()` shallow-clones the whole dataset on every call.
-   * Both the column projection in `#getProcessedSourceDataArray` and the coordinate translation in
-   * `#escapeSourceDataArray` derive their column space from this single check, so the two cannot
-   * classify the same dataset differently.
+   *
+   * This is the only implementation of that check. Together with `#areSourceColumnsSkipped()` it
+   * answers both column-space questions the plugin asks – whether `#getProcessedSourceDataArray`
+   * has to project a row down to the visible columns, and, through
+   * `#doesEngineHoldPhysicalColumns()`, which column space the resulting array is in. Never inline
+   * either check, or hardening one copy would make those two answers disagree.
    *
    * @returns {boolean}
    */
   #isSourceDataArrayOfArrays(): boolean {
     return Array.isArray(this.hot.getSourceDataAtRow(0));
+  }
+
+  /**
+   * Tells whether the visible columns are a strict subset of the source columns – a `columns` list
+   * that skips physical indexes rather than merely reordering them.
+   *
+   * @returns {boolean}
+   */
+  #areSourceColumnsSkipped(): boolean {
+    return this.hot.countCols() < this.hot.countSourceCols();
   }
 
   /**
@@ -1385,9 +1398,7 @@ export class Formulas extends BasePlugin {
     }
 
     const visibleColumnCount = this.hot.countCols();
-    const physicalColumnCount = this.hot.countSourceCols();
-    const isAoAWithSkippedColumns = visibleColumnCount < physicalColumnCount
-      && this.#isSourceDataArrayOfArrays();
+    const isAoAWithSkippedColumns = this.#areSourceColumnsSkipped() && this.#isSourceDataArrayOfArrays();
 
     if (!isAoAWithSkippedColumns) {
       return dataArray.map((rowObject, rowIndex) => {
@@ -1567,7 +1578,8 @@ export class Formulas extends BasePlugin {
    * form. The array rows always come in physical order (`getSourceDataArray` iterates the
    * underlying dataset). The column order depends on the data shape: plain array-of-arrays data
    * keeps the physical order, while array-of-objects data and the skipped-columns projection are
-   * built in visual order.
+   * built in visual order. That distinction is read from `#doesEngineHoldPhysicalColumns()`, the one
+   * place that answers it – see its note.
    *
    * The scan is skipped entirely when `#needsEngineBoundEscaping()` reports that no configuration
    * layer can mark a cell for escaping.
@@ -1581,8 +1593,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const columnsInVisualOrder = this.hot.countCols() < this.hot.countSourceCols() ||
-      !this.#isSourceDataArrayOfArrays();
+    const columnsInVisualOrder = !this.#doesEngineHoldPhysicalColumns();
     const metaManager = this.hot._getMetaManager();
 
     sourceDataArray.forEach((rowData: unknown[], arrayRowIndex: number) => {
@@ -2285,17 +2296,18 @@ export class Formulas extends BasePlugin {
    * that merely *reorders* the same number of columns leaves the engine on physical indexes while
    * the grid reads them through `colToProp`.
    *
+   * This is the single source of truth for that question. `#syncFormulasToSourceData` asks it
+   * directly, and `#escapeSourceDataArray` asks for its negation – the column space of the array fed
+   * to the engine is visual exactly when the engine is not on physical columns. Neither may
+   * re-derive the answer from `#areSourceColumnsSkipped()` and `#isSourceDataArrayOfArrays()` on its
+   * own, or hardening either of those checks would make the escape scan and the formula write-back
+   * classify the same dataset differently.
+   *
    * @private
    * @returns {boolean}
    */
-  #doesEngineHoldPhysicalColumns() {
-    if (this.hot.countCols() < this.hot.countSourceCols()) {
-      return false;
-    }
-
-    // Only the shape of the data matters, and it is the same for every row, so one row answers it.
-    // `getSourceData()` would rebuild the whole dataset just to run `isArrayOfArrays` over it.
-    return Array.isArray(this.hot.getSourceDataAtRow(0));
+  #doesEngineHoldPhysicalColumns(): boolean {
+    return !this.#areSourceColumnsSkipped() && this.#isSourceDataArrayOfArrays();
   }
 
   /**
