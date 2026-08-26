@@ -1407,9 +1407,15 @@ export class Formulas extends BasePlugin {
       for (let populatedColumnIndex = 0; populatedColumnIndex < fillRangeData[populatedRowIndex].length;
         populatedColumnIndex += 1) {
         const populatedValue = fillRangeData[populatedRowIndex][populatedColumnIndex];
+        // HyperFormula indexes: `isFormulaCellType()` below translates these itself.
         const sourceRow = sourceStartRow + (populatedRowIndex % populationRowLength);
         const sourceColumn = sourceStartColumn + (populatedColumnIndex % populationColumnLength);
-        const sourceCellMeta = this.hot.getCellMeta(sourceRow, sourceColumn);
+        // `getCellMeta()` takes visual coordinates, unlike `sourceRow`/`sourceColumn` above –
+        // with hidden or moved rows/columns, the raw HF indexes point at a different cell.
+        const sourceCellMeta = this.hot.getCellMeta(
+          this.rowAxisSyncer!.getVisualIndexFromHfIndex(sourceRow),
+          this.columnAxisSyncer!.getVisualIndexFromHfIndex(sourceColumn),
+        );
 
         if (isDate(populatedValue, sourceCellMeta.type)) {
           if (populatedValue.startsWith('\'')) {
@@ -1421,11 +1427,9 @@ export class Formulas extends BasePlugin {
             fillRangeData[populatedRowIndex][populatedColumnIndex] =
               getDateInHotFormat(populatedValue);
           }
-        } else if (isPreservedText(populatedValue, sourceCellMeta)) {
-          if (populatedValue.startsWith('\'')) {
-            // Populating values on the Handsontable side without the escape apostrophe.
-            fillRangeData[populatedRowIndex][populatedColumnIndex] = populatedValue.slice(1);
-          }
+        } else if (isPreservedText(populatedValue, sourceCellMeta) && populatedValue.startsWith('\'')) {
+          // Populating values on the Handsontable side without the escape apostrophe.
+          fillRangeData[populatedRowIndex][populatedColumnIndex] = populatedValue.slice(1);
         }
       }
     }
