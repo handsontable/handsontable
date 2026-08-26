@@ -100,6 +100,45 @@ describe('CopyPaste clipboard parse fallback', () => {
     hot.destroy();
   });
 
+  it('should still sanitize a table-less payload, and still fall back to plain text', () => {
+    const hot = new Handsontable(document.createElement('div'), {
+      data: [['A1', 'B1'], ['A2', 'B2']],
+      licenseKey: 'non-commercial-and-evaluation',
+      sanitizer: jest.fn(content => content) as never,
+    });
+    const sanitizer = hot.getSettings().sanitizer as unknown as jest.Mock;
+
+    hot.selectCell(0, 0);
+    hot.getPlugin('copyPaste').paste('x\ty', '<div><td>orphan</td></div>');
+
+    // Skipping the normalize for a table-less payload must not skip the sanitizer with it: an
+    // auditing or length-capping sanitizer has always seen every clipboard payload, markup or not.
+    expect(sanitizer).toHaveBeenCalledWith('<div><td>orphan</td></div>', 'CopyPaste.paste');
+    expect(hot.getDataAtRow(0)).toEqual(['x', 'y']);
+
+    hot.destroy();
+  });
+
+  it('should let a sanitizer that strips the table fall back to plain text', () => {
+    const hot = new Handsontable(document.createElement('div'), {
+      data: [['A1', 'B1'], ['A2', 'B2']],
+      licenseKey: 'non-commercial-and-evaluation',
+      sanitizer: (content: string) => content.replace(/<\/?table[^>]*>/gi, ''),
+    });
+
+    hot.selectCell(0, 0);
+    hot.getPlugin('copyPaste').paste(
+      'x\ty', '<table><tbody><tr><td>P1</td><td>P2</td></tr></tbody></table>'
+    );
+
+    // The branch reads the SANITIZED value, so the table is gone by the time it is tested. Moving
+    // the test above the sanitize pair would send this payload to the parser, find no table, and
+    // paste nothing at all.
+    expect(hot.getDataAtRow(0)).toEqual(['x', 'y']);
+
+    hot.destroy();
+  });
+
   it('should warn once, naming Trusted Types as the reason', () => {
     const hot = pasteInto('x\ty', '<table><tbody><tr><td>x</td><td>y</td></tr></tbody></table>');
 
