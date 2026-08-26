@@ -10,6 +10,7 @@ describe('built-in plugins', () => {
       'MoveCells',
       'ManualRowResize',
       'AutoRowSize',
+      'AutoRowHeaderSize',
       'ColumnSorting',
       'Comments',
       'ContextMenu',
