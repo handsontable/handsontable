@@ -1043,12 +1043,6 @@ hot.updateSettings({
 For the full list of available language packs, see the
 [HyperFormula localizing functions guide](https://hyperformula.handsontable.com/guide/localizing-functions.html).
 
-## View the explainer video
-
-<div class="docs-video-embed">
-  <iframe src="https://www.youtube.com/embed/JJXUmACTDdk"></iframe>
-</div>
-
 ## Preserve text values
 
 By default, the engine parses number-like strings into numbers, following the behavior known
@@ -1082,11 +1076,102 @@ const hot = new Handsontable(container, {
 
 :::
 
+::: only-for react
+
+```jsx
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={[
+        ['0123456'],
+        ['=LEN(A1)'],
+      ]}
+      columns={[
+        {
+          type: 'text',
+          preserveTextValue: true,
+        },
+      ]}
+      formulas={{
+        engine: HyperFormula,
+      }}
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+import {HyperFormula} from 'hyperformula';
+
+const configurationOptions: GridSettings = {
+  data: [
+    ['0123456'],
+    ['=LEN(A1)'],
+  ],
+  columns: [
+    {
+      type: 'text',
+      preserveTextValue: true,
+    },
+  ],
+  formulas: {
+    engine: HyperFormula,
+  },
+  licenseKey: 'non-commercial-and-evaluation',
+};
+```
+
+```html
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  data: [
+    ['0123456'],
+    ['=LEN(A1)'],
+  ],
+  columns: [
+    {
+      type: 'text',
+      preserveTextValue: true,
+    },
+  ],
+  formulas: {
+    engine: HyperFormula,
+  },
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
+## View the explainer video
+
+<div class="docs-video-embed">
+  <iframe src="https://www.youtube.com/embed/JJXUmACTDdk"></iframe>
+</div>
+
 ## Known limitations
 
 - Using the [`IndexMapper`](@/api/indexMapper.md) API to programmatically [move rows](@/guides/rows/row-moving/row-moving.md) or [columns](@/guides/columns/column-moving/column-moving.md) that contain formulas is not supported. Instead, use the [`ManualRowMove`](@/api/manualRowMove.md) or [`ManualColumnMove`](@/api/manualColumnMove.md) APIs.
 - Formulas don't support [`getSourceData()`](@/api/core.md#getsourcedata), as this method operates on source data (using [physical indexes](@/api/indexMapper.md)), whereas formulas operate on visual data (using visual indexes).
 - Formulas don't support nested data, i.e., when Handsontable's [`data`](@/api/options.md#data) is set to an [array of nested objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects).
+- [`preserveTextValue`](@/api/options.md#preservetextvalue) works only with the built-in [`text`](@/guides/cell-types/cell-type/cell-type.md) cell type. Custom cell types are not supported, even when they reuse the text editor or renderer.
 
 ### HyperFormula version support
 
