@@ -2706,19 +2706,26 @@ describe('Formulas general', () => {
 
       const formulasPlugin = getPlugin('formulas');
 
+      // '123' is not a valid ISO date, so the date-typed column still escapes it before writing to
+      // the engine – unlike 'not-a-date', HyperFormula WOULD otherwise coerce this value to the
+      // number 123, so it is a value the escape can actually be proven against.
+      //
+      // The dependent formula reads `ISTEXT(A1)` rather than plain `=A1`: any numeric-looking
+      // *computed* value in a `date`-typed cell is reformatted as an Excel-style serial date by the
+      // `modifyData` hook's unrelated date-display branch (`cellMeta.type === 'date' && isNumeric()`),
+      // which would mask the escaping outcome behind that reformatting either way. `ISTEXT()` returns
+      // a boolean, so it is read back untouched and discriminates cleanly through the public API:
+      // `true` only if A1 reached the engine as a string (i.e. the escape ran).
       await loadData([
-        ['not-a-date'],
-        ['=A1'],
+        ['123'],
+        ['=ISTEXT(A1)'],
       ]);
 
-      expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)).toEqual([
-        ['not-a-date'],
-        ['not-a-date'],
-      ]);
+      expect(getDataAtCell(1, 0)).toBe(true);
 
       expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
-        ['\'not-a-date'],
-        ['=A1'],
+        ['\'123'],
+        ['=ISTEXT(A1)'],
       ]);
     });
 
@@ -2992,6 +2999,22 @@ describe('Formulas general', () => {
       ]);
     });
 
+    it('should keep coercing number-like text values on loadData when preserveTextValue is not enabled', async() => {
+      handsontable({
+        data: [['x'], ['=LEN(A1)']],
+        columns: [{ type: 'text' }],
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      await loadData([['0123456'], ['=LEN(A1)']]);
+
+      // Default behavior (the option is off) – the engine coerces the value to the number 123456,
+      // dropping the leading zero, so its length is 6 rather than the preserved 7.
+      expect(getDataAtCell(1, 0)).toBe(6);
+    });
+
     it('should pass a text-cell value set via setSourceDataAtCell() to the engine as a string', async() => {
       handsontable({
         data: [
@@ -3015,6 +3038,11 @@ describe('Formulas general', () => {
         ['0123456'],
         [7],
       ]);
+
+      // The engine assertions above only prove the escape apostrophe reached HyperFormula – they
+      // would still pass if it also leaked back into Handsontable's own data. Pin the public API too.
+      expect(getSourceDataAtCell(0, 0)).toBe('0123456');
+      expect(getDataAtCell(0, 0)).toBe('0123456');
     });
 
     it('should autofill preserved text values without the escape apostrophe', async() => {
@@ -3262,6 +3290,25 @@ describe('Formulas general', () => {
         ['0123456', 123456],
         [7, 6],
       ]);
+    });
+
+    it('should respect the option set through the cell option', async() => {
+      handsontable({
+        data: [
+          ['0123456'],
+          ['=LEN(A1)'],
+        ],
+        columns: [{ type: 'text' }],
+        cell: [{ row: 0, col: 0, preserveTextValue: true }],
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      // The `cell` option is documented alongside `columns`/`cells()` as a way to set
+      // `preserveTextValue` – proved here through the public API, isolated from any other
+      // interaction (sorting, moves, nested rows) that the other `cell`-option cases layer on top.
+      expect(getDataAtCell(1, 0)).toBe(7);
     });
 
     it('should respect the option set per cell via the cells function on both the load and edit paths', async() => {
