@@ -150,6 +150,17 @@ const NAMED_ENTITIES: Record<string, string> = {
  * shipping the table; a reference outside this set is left as written. Numeric references have no
  * such limit, so `&#8212;` resolves whether or not `&mdash;` is listed.
  *
+ * Two limits of that table are worth knowing, because the parser this imitates has neither:
+ *
+ * - The lookup is **case-sensitive**. HTML5 also defines a handful of names in upper case, so
+ *   `&AMP;`, `&COPY;` and `&REG;` are valid references the parser decoded and this leaves as
+ *   written. Use the lower-case spelling in authored copy.
+ * - A name outside `NAMED_ENTITIES` stays literal. `a &hearts; b` used to render `a ♥ b` and now
+ *   renders as written.
+ *
+ * Reachable as `Handsontable.helper.decodeHtmlEntities()`, because `src/index.ts` spreads the
+ * string helpers into the public barrel, so both limits above are part of the published contract.
+ *
  * @param {string} string String to decode.
  * @returns {string}
  */
@@ -164,6 +175,14 @@ export function decodeHtmlEntities(string: string): string {
 
       if (!Number.isFinite(codePoint) || codePoint < 0 || codePoint > 0x10FFFF) {
         return match;
+      }
+
+      // The parser replaces NUL and lone surrogates with U+FFFD rather than passing them through,
+      // and `Number.isFinite` cannot catch either, because `parseInt` succeeds on both. Passing a
+      // lone surrogate on would put invalid UTF-16 into cell data, which a later JSON or CSV write
+      // then has to deal with.
+      if (codePoint === 0 || (codePoint >= 0xD800 && codePoint <= 0xDFFF)) {
+        return '\uFFFD';
       }
 
       return String.fromCodePoint(codePoint);

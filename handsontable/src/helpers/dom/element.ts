@@ -529,11 +529,17 @@ export function removeTextNodes(element: Node): void {
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/11 - no siginificant improvement with Chrome remove() method.
  *
- * Always clear an element through this helper, never with `innerHTML = ''`. That
- * assignment reads as "assign nothing", but `innerHTML` is a Trusted Types sink
- * whatever the value, so under `require-trusted-types-for 'script'` an empty string
- * throws exactly like markup would. Removing the children touches no sink and
- * behaves identically on browsers that do not implement Trusted Types.
+ * Prefer this over `innerHTML = ''` for the UI containers the grid clears - dialogs, the
+ * pagination bar, a cell. That assignment reads as "assign nothing", but `innerHTML` is a Trusted
+ * Types sink whatever the value, so under `require-trusted-types-for 'script'` an empty string
+ * throws exactly like markup would. Removing the children touches no sink and behaves identically
+ * on browsers that do not implement Trusted Types.
+ *
+ * Scoped to small child counts on purpose. Measured in Chromium, this is a couple of microseconds
+ * faster up to about three children and around 1.4x slower attached (2.5x detached) at ten
+ * thousand, with the crossover near thirty. Every call site in the grid is well under that; a
+ * wholesale grid-body clear is the shape that loses, and wants `replaceChildren()` instead - which
+ * is not a sink either.
  *
  * Typed as `Element` rather than `HTMLElement` because that is all the function needs -
  * it reads `lastChild` and calls `removeChild`, both of which come from `Node`. The

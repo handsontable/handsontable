@@ -106,19 +106,43 @@ export function instanceToHTML(instance: HotInstance): string {
 }
 
 /**
+ * Reproduces, for one line of cell text, what `instanceToHTML()` encoded and what parsing it then
+ * undid.
+ *
+ * In order: spaces were encoded as `&nbsp;` BEFORE parsing, so a space already written as `&#32;`
+ * stayed an ordinary space - which is why the substitution runs before decoding, not after. A lone
+ * carriage return was left alone by the encoder and normalized to a newline by the parser; that too
+ * happens before decoding, because the parser normalizes newlines before it resolves references.
+ * Tabs need no substitution: the encoder wrote `&#9;` and the parser turned it straight back.
+ *
+ * At module scope because it captures nothing, and `instanceToTableElement()` calls it once per
+ * non-empty cell - on a large grid that is one throwaway closure per cell for a pure function.
+ *
+ * @param {string} text One line of cell text.
+ * @returns {string} The text as the parsed string form carried it.
+ */
+function encodeCellLine(text: string): string {
+  return decodeHtmlEntities(text.replaceAll('\x20', '\xA0').replaceAll('\r', '\n'));
+}
+
+/**
  * Converts a Handsontable instance into an `HTMLTableElement`, built as DOM nodes.
  *
  * The element used to be produced by feeding `instanceToHTML()` to `insertAdjacentHTML`, which is
  * a Trusted Types sink: `toTableElement()` threw under `require-trusted-types-for 'script'`.
  * Building the nodes touches no sink.
  *
- * The result is node-for-node what parsing `instanceToHTML()` produced, which
- * `toTableElement.unit.js` pins by comparing the two. That is why the cell text is written the way
- * it is: `instanceToHTML` escapes `<`/`>` and then encodes spaces as `&nbsp;` and tabs as `&#9;`,
- * so the parsed text carried non-breaking spaces and real tabs. Newlines became `<br>` elements
- * each followed by a newline. The encoder writes "\r\n" after the tag, but the HTML parser
- * normalizes CRLF to LF in text, so the DOM the string form produced carried a bare "\n" - which is
- * what this builds. `toTableElement.unit.js` caught the difference.
+ * The result matches parsing `instanceToHTML()` node for node, which
+ * `src/utils/__tests__/parseTable.unit.ts` pins by comparing the two. That is why the cell text is
+ * written the way it is: `instanceToHTML` escapes `<`/`>` and then encodes spaces as `&nbsp;` and
+ * tabs as `&#9;`, so the parsed text carried non-breaking spaces and real tabs. Newlines became
+ * `<br>` elements each followed by a newline. The encoder writes "\r\n" after the tag, but the HTML
+ * parser normalizes CRLF to LF in text, so the DOM the string form produced carried a bare "\n" -
+ * which is what this builds. That test caught the difference.
+ *
+ * The match has one documented limit, on cell text only: `decodeHtmlEntities()` knows a fixed set
+ * of named references where the parser knows the whole HTML5 table, so a cell holding
+ * `a &hearts; b` used to come back decoded and now stays literal. Numeric references are unaffected.
  *
  * @param {object} instance The Handsontable instance.
  * @param {Document} rootDocument The document to build the nodes in.
@@ -159,25 +183,15 @@ export function instanceToTableElement(instance: HotInstance, rootDocument: Docu
    * @param {*} cellData The raw cell value.
    */
   const appendCellValue = (cell: HTMLElement, cellData: unknown) => {
-    // Reproduces, in order, what the string form did and what parsing it then undid. Spaces were
-    // encoded as `&nbsp;` BEFORE parsing, so a space already written as `&#32;` stayed an ordinary
-    // space - which is why the substitution runs before decoding, not after. A lone carriage return
-    // was left alone by the encoder and normalized to a newline by the parser; that too happens
-    // before decoding, because the parser normalizes newlines before it resolves references.
-    // Tabs need no substitution: the encoder wrote `&#9;` and the parser turned it straight back.
-    const encode = (text: string) => decodeHtmlEntities(
-      text.replaceAll('\x20', '\xA0').replaceAll('\r', '\n')
-    );
-
     String(cellData).split(/\r\n|\n/).forEach((line, index) => {
       if (index > 0) {
         cell.appendChild(rootDocument.createElement('br'));
-        cell.appendChild(rootDocument.createTextNode(`\n${encode(line)}`));
+        cell.appendChild(rootDocument.createTextNode(`\n${encodeCellLine(line)}`));
 
         return;
       }
 
-      cell.appendChild(rootDocument.createTextNode(encode(line)));
+      cell.appendChild(rootDocument.createTextNode(encodeCellLine(line)));
     });
   };
 

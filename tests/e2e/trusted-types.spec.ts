@@ -65,6 +65,31 @@ test.describe('Trusted Types enforcement', () => {
     await grid.expectNoViolations();
   });
 
+  test('pastes the plain-text flavour when no sanitizer is configured', async () => {
+    await grid.goto();
+    await grid.pasteButton.click();
+
+    // With no `sanitizer` the HTML flavour reaches the parser as a plain string, which the sink
+    // refuses. That must cost the richer flavour, not the paste: before the fallback the throw
+    // escaped `onPaste` and nothing landed at all, on every paste, including grid-to-grid.
+    await expect(grid.status).toHaveText('PASTED: T1,T2');
+  });
+
+  test('reports the refused clipboard parse rather than hiding it', async () => {
+    await grid.goto();
+    await grid.pasteButton.click();
+    await expect(grid.status).toHaveText('PASTED: T1,T2');
+
+    // The one place this suite expects a violation. Attempting the parse IS the report, and the
+    // page is entitled to see it: the fix is that the grid survives the refusal, not that the
+    // refusal goes unrecorded. Configure a sanitizer returning a `TrustedHTML` and it disappears,
+    // which the test above this one holds.
+    const violations = await grid.violations();
+
+    expect(violations.length).toBeGreaterThan(0);
+    expect(violations.every(v => v.directive === 'require-trusted-types-for')).toBe(true);
+  });
+
   test('renders the license branding bar', async () => {
     await grid.goto({ expiredLicense: true });
 

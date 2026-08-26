@@ -13,6 +13,7 @@ import {
   isShadowRoot,
 } from '../../helpers/dom/element';
 import { sanitizeHTML } from '../../utils/sanitizer';
+import { warnOnce } from '../../helpers/console';
 import { isSafari } from '../../helpers/browser';
 import copyItem from './contextMenuItem/copy';
 import copyColumnHeadersOnlyItem from './contextMenuItem/copyColumnHeadersOnly';
@@ -69,6 +70,42 @@ function padRowsToWidest(data: unknown[][]) {
       }
     }
   });
+}
+
+/**
+ * `warnOnce` key for a clipboard payload the HTML parser refused.
+ *
+ * Distinct from `SANITIZER_WARN_KEY` on purpose. The case that needs this message most - a
+ * `sanitizer` that is configured but returns a plain string under `require-trusted-types-for
+ * 'script'` - is exactly the case where the missing-sanitizer warning does not fire, so sharing a
+ * key would let one suppress the other.
+ */
+const CLIPBOARD_PARSE_WARN_KEY = 'copyPaste.clipboardParse';
+
+/**
+ * Reads the `text/plain` clipboard flavour.
+ *
+ * Shared by the no-table branch and by the fallback taken when the HTML parse throws, so the two
+ * cannot drift on the trailing-newline rule below.
+ *
+ * The `typeof` test is not redundant: `ClipboardData.getData()` is declared `string | undefined`,
+ * and `onPaste` treats `undefined` as "no paste" while an empty string would parse into a single
+ * blank cell and clear the target.
+ *
+ * Typed to the one method it uses, so it accepts both a real `DataTransfer` and the `PasteEvent`
+ * stand-in the public `paste()` method builds.
+ *
+ * @param {object} clipboardData The event's clipboard.
+ * @returns {unknown} The plain-text payload, with a single trailing newline removed.
+ */
+function readPlainText(clipboardData: { getData(type: string): string | undefined }): unknown {
+  const text = clipboardData.getData('text/plain');
+
+  // Excel terminates every row (including the last) with a CRLF. For a single-cell copy that
+  // produces a trailing newline, which `SheetClip.parse` would read as a row separator and emit
+  // an extra empty row, blanking the cell below the paste target. Treat a single trailing
+  // newline as a terminator, not a separator.
+  return typeof text === 'string' ? text.replace(/(\r\n|\r|\n)$/, '') : text;
 }
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -977,11 +1014,20 @@ export class CopyPaste extends BasePlugin {
       );
 
       if (sourceDataHTML) {
-        const parsedSourceConfig = htmlToGridSettings(
-          sourceDataHTML, this.hot.rootDocument, { normalize: false }
-        );
+        // Every HTML parse entry point is a Trusted Types sink, so `parseFromString` throws under
+        // `require-trusted-types-for 'script'` unless the value came from a policy - which it did
+        // not when no `sanitizer` is configured, or when one is configured and returns a plain
+        // string. Losing the source-data flavour costs object-key fidelity on an internal paste;
+        // letting the throw escape would kill the paste outright.
+        try {
+          const parsedSourceConfig = htmlToGridSettings(
+            sourceDataHTML, this.hot.rootDocument, { normalize: false }
+          );
 
-        pastedSourceData = parsedSourceConfig?.data;
+          pastedSourceData = parsedSourceConfig?.data;
+        } catch (error) {
+          this.#warnClipboardParseRefused(error);
+        }
       }
 
       const textHTML = sanitizeHTML(
@@ -991,19 +1037,21 @@ export class CopyPaste extends BasePlugin {
       // `String()` builds a throwaway copy for the test only. `textHTML` itself is passed on as it
       // was returned, so a `TrustedHTML` keeps its trust.
       if (textHTML && /(<table)|(<TABLE)/g.test(String(textHTML))) {
-        const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument, { normalize: false });
+        // Same sink as the source-data parse above. Falling back to `text/plain` is what the
+        // no-table branch below already does, so a page enforcing Trusted Types with no policy of
+        // its own still pastes - it pastes the plain-text flavour, losing only the cell types and
+        // styling the HTML flavour carried.
+        try {
+          const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument, { normalize: false });
 
-        pastedData = parsedConfig?.data;
-      } else {
-        pastedData = clipboardData.getData('text/plain');
+          pastedData = parsedConfig?.data;
+        } catch (error) {
+          this.#warnClipboardParseRefused(error);
 
-        // Excel terminates every row (including the last) with a CRLF. For a single-cell copy that
-        // produces a trailing newline, which `SheetClip.parse` would read as a row separator and emit
-        // an extra empty row, blanking the cell below the paste target. Treat a single trailing
-        // newline as a terminator, not a separator.
-        if (typeof pastedData === 'string') {
-          pastedData = pastedData.replace(/(\r\n|\r|\n)$/, '');
+          pastedData = readPlainText(clipboardData);
         }
+      } else {
+        pastedData = readPlainText(clipboardData);
       }
 
     } else if (typeof ClipboardEvent === 'undefined' &&
@@ -1012,6 +1060,24 @@ export class CopyPaste extends BasePlugin {
     }
 
     return { pastedData, pastedSourceData };
+  }
+
+  /**
+   * Warns once that a clipboard payload could not be parsed, and why that is usually Trusted Types.
+   *
+   * @param {unknown} error The error the parser threw.
+   */
+  #warnClipboardParseRefused(error: unknown) {
+    warnOnce(
+      this.hot.rootElement,
+      CLIPBOARD_PARSE_WARN_KEY,
+      'Handsontable could not parse the HTML flavour of the clipboard, and pasted the plain-text ' +
+      'flavour instead. Under a Content Security Policy that enforces Trusted Types ' +
+      '(`require-trusted-types-for \'script\'`), the parser only accepts a `TrustedHTML`, so the ' +
+      '`sanitizer` option has to return the output of your own policy. See ' +
+      'https://handsontable.com/docs/javascript-data-grid/security/',
+      error
+    );
   }
 
   /**

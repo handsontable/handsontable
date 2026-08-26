@@ -71,9 +71,13 @@ export class DialogUI {
   /**
    * The overlay container where the dialog UI will be installed.
    *
-   * @type {HTMLElement}
+   * Nullable, and the type says so: `core.ts` creates `rootOverlaysElement` only for a root
+   * instance, so a nested grid (the `handsontable` cell type) passes `null` here. Nothing is
+   * appended in that case and the dialog never shows, which is the long-standing behavior.
+   *
+   * @type {HTMLElement|null}
    */
-  #overlayContainer: HTMLElement;
+  #overlayContainer: HTMLElement | null;
   /**
    * The references to the UI elements.
    *
@@ -119,7 +123,8 @@ export class DialogUI {
    * Initializes the dialog UI with an overlay container, RTL layout flag, and an HTML sanitizer, then installs the DOM structure.
    */
   constructor({ overlayContainer, isRtl, sanitizer, warnScope }: {
-    overlayContainer: HTMLElement; isRtl: boolean; sanitizer: boolean | SanitizerFn; warnScope: HTMLElement;
+    overlayContainer: HTMLElement | null; isRtl: boolean; sanitizer: boolean | SanitizerFn;
+    warnScope: HTMLElement;
   }) {
     this.#overlayContainer = overlayContainer;
     this.#isRtl = isRtl;
@@ -159,6 +164,22 @@ export class DialogUI {
   }
 
   /**
+   * The document the dialog nodes are built in.
+   *
+   * `rootOverlaysElement` only exists on a root instance - `core.ts` leaves it `null` for a nested
+   * grid, which is what the `handsontable` cell type creates. `install()` then appends nothing (see
+   * the guard below) and the dialog never shows there, which is the behavior before the templates
+   * became DOM: the string form read the global `document` and the same guard skipped the append.
+   * Falling back to the warn scope's document keeps that, because `#warnScope` is the grid's root
+   * element and is always present.
+   *
+   * @returns {Document} The owning document.
+   */
+  get #ownerDocument(): Document {
+    return this.#overlayContainer?.ownerDocument ?? this.#warnScope.ownerDocument;
+  }
+
+  /**
    * Creates the dialog UI elements and sets up the structure.
    */
   install() {
@@ -166,7 +187,7 @@ export class DialogUI {
       return;
     }
 
-    const elements = buildTemplate(CONTAINER_TEMPLATE, this.#overlayContainer.ownerDocument);
+    const elements = buildTemplate(CONTAINER_TEMPLATE, this.#ownerDocument);
 
     this.#refs = elements.refs;
 
@@ -221,7 +242,7 @@ export class DialogUI {
   updateDialog({
     isVisible, content, customClassName, background, contentBackground, animation, a11y
   }: Record<string, unknown>) {
-    const elements = this.#template.compile(this.#overlayContainer.ownerDocument);
+    const elements = this.#template.compile(this.#ownerDocument);
     const { dialogElement, dialogWrapperElement } = this.#refs!;
     const typedA11y = a11y as DialogA11ySettings;
 

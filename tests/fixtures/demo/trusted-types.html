@@ -152,7 +152,12 @@
         try {
           const clipboardData = new DataTransfer();
 
+          // Both flavours, as any real copy carries, and with DIFFERENT values so the spec can
+          // tell which one landed. Under enforcement the HTML flavour only reaches the parser as a
+          // `TrustedHTML`, so a page with no `sanitizer` must fall back to the plain-text one
+          // rather than lose the paste.
           clipboardData.setData('text/html', '<table><tbody><tr><td>P1</td><td>P2</td></tr></tbody></table>');
+          clipboardData.setData('text/plain', 'T1\tT2');
           window.hot.selectCell(0, 0);
           window.hot.getPlugin('copyPaste').onPaste(
             new ClipboardEvent('paste', { clipboardData, bubbles: true, cancelable: true })
