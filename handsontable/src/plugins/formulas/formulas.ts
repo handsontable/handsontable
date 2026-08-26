@@ -1312,7 +1312,24 @@ export class Formulas extends BasePlugin {
    * @returns {Array} The source data array to be passed to the formula engine.
    */
   #getProcessedSourceDataArray(row?: number, column?: number, row2?: number, column2?: number) {
-    const dataArray = this.hot.getSourceDataArray(row, column, row2, column2);
+    // Every caller feeds the result to the engine, so this read has to report what Handsontable
+    // actually stores – not what it reports. Left unguarded, `#onModifySourceData` answers every
+    // formula cell with the formula the engine already holds, so a `loadData()`/`updateData()` call
+    // that changes a formula's text reads the engine's PREVIOUS formula back and writes it straight
+    // into the engine again, silently discarding the newly loaded one. The previous value is saved
+    // and restored rather than cleared, so callers that already hold the flag keep it.
+    const wasInternalOperationPending = this.#internalOperationPending;
+
+    this.#internalOperationPending = true;
+
+    let dataArray;
+
+    try {
+      dataArray = this.hot.getSourceDataArray(row, column, row2, column2);
+    } finally {
+      this.#internalOperationPending = wasInternalOperationPending;
+    }
+
     const visibleColumnCount = this.hot.countCols();
     const physicalColumnCount = this.hot.countSourceCols();
     const isAoAWithSkippedColumns = visibleColumnCount < physicalColumnCount
