@@ -145,7 +145,7 @@ const foreignHotInstances = new Map();
  * Configuration options removed from the public API, with the version that removed them.
  * Configuring one prints a one-time warning; the value is ignored.
  *
- * @type {ReadonlyArray<[string, string]>}
+ * @type {Array<Array<string>>}
  */
 const REMOVED_OPTIONS: ReadonlyArray<[string, string]> = [
   ['persistentState', '18.0.0'],
