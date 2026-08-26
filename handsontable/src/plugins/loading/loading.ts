@@ -40,8 +40,11 @@ export { LOADING_CLASS_NAME };
  *
  * The plugin provides several configuration options to customize the loading behavior and appearance:
  * - `icon`: Loading icon to display HTML (as string) in svg format (default: `<svg ... />`).
- * - `title`: Loading title to display (default: 'Loading...').
- * - `description`: Loading description to display (default: '').
+ * - `title`: Loading title to display, rendered as text (default: 'Loading...').
+ * - `description`: Loading description to display, rendered as text (default: '').
+ *
+ * `icon` is the only option written to the DOM as markup. `title` and `description` are escaped, so
+ * markup passed in them shows up literally instead of being interpreted.
  *
  * @example
  *

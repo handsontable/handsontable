@@ -3668,8 +3668,6 @@ export default function Core(
     // scrollbar and every column stays reachable. Clipping those would silently hide the off-width
     // columns with no scrollbar. A definite width (`px`, `em`, `rem`, and other absolute lengths)
     // establishes a fixed box the table must not visually overflow, so it is clipped.
-    // Browser compatibility: `overflow-x: clip` requires Safari 16+. On Safari 14.1–15.x it silently
-    // falls back to `visible` (graceful degradation — pre-existing behavior, not a new regression).
     if (typeof settings.height !== 'undefined' || typeof settings.width !== 'undefined') {
       const effectiveHeight = instance.rootElement.style.height;
       const effectiveWidth = instance.rootElement.style.width;

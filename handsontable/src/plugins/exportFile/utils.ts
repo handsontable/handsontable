@@ -6,7 +6,13 @@ import { LOADING_CLASS_NAME } from '../../helpers/constants';
  *
  * The title text is resolved at call-time so it reflects the active locale.
  *
- * @param {string} title Translated title string (e.g. "Exporting…").
+ * The title is rendered as text rather than trusted. Its only current caller passes a translated
+ * phrase, which no end user controls, but a customer-registered language dictionary does reach it,
+ * and this function is the kind that acquires callers. Writing it through `textContent` (not
+ * stripping it) keeps a phrase containing `<` intact.
+ *
+ * @param {string} title Translated title string (e.g. "Exporting…"). Rendered as text; markup in it
+ *   shows up literally.
  * @param {Document} rootDocument The document to build the nodes in.
  * @returns {DocumentFragment}
  */

@@ -4,6 +4,7 @@ import {
 } from '../../helpers/dom/element';
 import { A11Y_TABINDEX, A11Y_BUSY } from '../../helpers/a11y';
 import { htmlToPlainText } from '../../helpers/string';
+import { resolveButtonType } from '../../helpers/uiButton';
 import type { default as ViewInstance } from '../../tableView';
 
 const EMPTY_DATA_STATE_CLASS_NAME = 'ht-empty-data-state';
@@ -25,17 +26,21 @@ const TEMPLATE: TemplateSpec = {
 };
 
 /**
- * Button types the `buttons` option documents. A value outside this set is not rendered as a
- * class name: it used to be interpolated straight into `class="ht-button ht-button--..."`,
- * where a quote in the value escaped the attribute. Building the DOM removes the escape
- * route, and validating here keeps a stray value from producing a junk class as well.
+ * A button of the `message` option, as it arrives from the settings.
+ *
+ * `type` is `unknown` rather than `ButtonType`, because the value comes from a plugin setting and
+ * `resolveButtonType()` is what decides whether it is one of the supported types. Declaring the
+ * narrow type here would claim a check that has not happened yet.
  */
-const BUTTON_TYPES = ['primary', 'secondary'];
+type MessageButton = { type: unknown, text: string, callback?: Function };
 
-const templateContent = ({ title, description, buttons }: {
-  title?: string, description?: string, buttons?: Array<{ type: string, text: string, callback?: Function }>
-}, isLoading = false): TemplateSpec[] => {
-  const hasButtons = !!buttons?.length && buttons.length > 0;
+/**
+ * The resolved `message` content.
+ */
+type MessageContent = { title?: string, description?: string, buttons?: MessageButton[] };
+
+const templateContent = ({ title, description, buttons }: MessageContent, isLoading = false): TemplateSpec[] => {
+  const hasButtons = !!buttons?.length;
 
   return [
     isLoading && {
@@ -62,7 +67,7 @@ const templateContent = ({ title, description, buttons }: {
         hasButtons ? ` ${EMPTY_DATA_STATE_CLASS_NAME}__buttons--has-buttons` : ''}`,
       children: !isLoading && hasButtons ? buttons!.map(button => ({
         tag: 'button',
-        className: `ht-button ht-button--${BUTTON_TYPES.includes(button.type) ? button.type : 'secondary'}`,
+        className: `ht-button ht-button--${resolveButtonType(button.type)}`,
         text: htmlToPlainText(button.text),
       })) : [],
     },
@@ -284,9 +289,7 @@ export class EmptyDataStateUI {
   updateContent(message: string | Record<string, unknown>, isLoading = false) {
     const { emptyDataStateElement, emptyDataStateInner } = this.#refs!;
 
-    let content: {
-      title?: string, description?: string, buttons?: Array<{ type: string, text: string, callback?: Function }>
-    };
+    let content: MessageContent;
 
     if (typeof message === 'string') {
       content = {
@@ -296,7 +299,7 @@ export class EmptyDataStateUI {
       content = {
         title: message?.title as string | undefined,
         description: message?.description as string | undefined,
-        buttons: message?.buttons as Array<{ type: string, text: string, callback?: Function }> | undefined,
+        buttons: message?.buttons as MessageButton[] | undefined,
       };
     }
 

@@ -223,7 +223,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
   rowHeaderWidth: oneOf(25, [25, 30, 55]),
   rowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
-  sanitizer: (content: string, source: 'innerHTML' | 'CopyPaste.paste') => content,
+  // The option's own signature is unchanged; `SanitizerContext` is the opt-in annotation. Full
+  // coverage, including the call-arity axis, lives in `sanitizer.types.ts`.
+  sanitizer: oneOf(
+    (content: string) => content,
+    (content: string, source: string) => content,
+    (content: string, source: Handsontable.SanitizerContext) => content,
+    (content: string, source: 'innerHTML' | 'CopyPaste.paste') => content,
+  ),
   search: true,
   selectionMode: oneOf('single', 'range', 'multiple'),
   selectionHandles: true,

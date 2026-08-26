@@ -175,6 +175,147 @@ describe('htmlToGridSettings', () => {
     expect(config.data.toString()).toBe('A3,B3,C3,A4,B4,C4,A5,B5,C5,A6,B6,C6');
   });
 
+  it('should parse every column of a ragged HTML table whose first row is the narrowest', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>schedule</td></tr>',
+      '<tr><td></td><td>Football</td><td>Score</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    // The grid is as wide as the widest row, and the short first row is padded out.
+    expect(config.data).toEqual([
+      ['schedule', undefined, undefined],
+      ['', 'Football', 'Score'],
+    ]);
+  });
+
+  it('should parse every column of a ragged HTML table whose widest row is neither first nor last', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>A1</td></tr>',
+      '<tr><td>A2</td><td>B2</td><td>C2</td><td>D2</td></tr>',
+      '<tr><td>A3</td><td>B3</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data).toEqual([
+      ['A1', undefined, undefined, undefined],
+      ['A2', 'B2', 'C2', 'D2'],
+      ['A3', 'B3', undefined, undefined],
+    ]);
+  });
+
+  it('should count a colspan in a later row when sizing a ragged HTML table', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>A1</td></tr>',
+      '<tr><td colspan="2">A2</td><td>C2</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data[1]).toHaveLength(3);
+    expect(config.data[1][2]).toBe('C2');
+  });
+
+  it('should keep the first row\'s width when it is already the widest', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>A1</td><td>B1</td><td>C1</td></tr>',
+      '<tr><td>A2</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data).toEqual([
+      ['A1', 'B1', 'C1'],
+      ['A2', undefined, undefined],
+    ]);
+  });
+
+  it('should not let a full-width colspan row widen the whole table', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>A1</td><td>B1</td><td>C1</td></tr>',
+      // A footer row spanning the table is normal in email and Word exports. It needs one slot,
+      // not twenty, or every pasted row gains seventeen blank columns.
+      '<tr><td colspan="20">footer</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data[0]).toHaveLength(3);
+  });
+
+  it('should keep every cell when the first row spans both ways', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      // The cell holds two columns of the row below it as well, so that row needs four slots.
+      '<tr><td rowspan="2" colspan="2">A</td></tr>',
+      '<tr><td>B</td><td>C</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data[1]).toEqual([null, null, 'B', 'C']);
+  });
+
+  it('should keep rows rectangular when a span reaches past the last column', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>a</td></tr>',
+      '<tr><td>b</td><td colspan="3">wide</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    // The span is trimmed to what the grid holds, so it cannot stretch its own row.
+    expect(config.data.map((row: unknown[]) => row.length)).toEqual([2, 2]);
+  });
+
+  it('should give a th outside the first column no data slot', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      // The fill loop sends every non-`td` to the row headers, so a `th` here takes no column.
+      '<tr><td>a</td><th>grp</th><td>b</td></tr>',
+      '<tr><td>1</td><td>2</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data).toEqual([['a', 'b'], ['1', '2']]);
+  });
+
+  it('should count the slots a rowspan reserves in the rows below it', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>A1</td><td>B1</td></tr>',
+      '<tr><td rowspan="2">A2</td></tr>',
+      // The rowspan above holds column 0, so this row needs four slots, not three.
+      '<tr><td>B3</td><td>C3</td><td>D3</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data[2]).toEqual([null, 'B3', 'C3', 'D3']);
+  });
+
+  it('should not subtract a row header from rows that do not have one', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><th>H1</th><td>A1</td></tr>',
+      // No `th` here, so all three cells are data and none of them may be trimmed away.
+      '<tr><td>A2</td><td>B2</td><td>C2</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data[1]).toEqual(['A2', 'B2', 'C2']);
+  });
+
   it('should parse data from HTML table with nested Excel shape cells', () => {
     const htmlToParse = [
       '<table><tbody>',

@@ -2,6 +2,7 @@ import { A11Y_HIDDEN } from '../a11y';
 import { isSafariBefore261, isMobileBrowser, isIpadOS, isWindowsOS } from '../browser';
 import { throwWithCause } from '../../helpers/errors';
 import { warnOnce } from '../../helpers/console';
+import type { SanitizerContext, TrustedHTMLLike } from '../../core/settings';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -587,21 +588,21 @@ const defaultSanitizerWarnScope = {};
  *
  * @param {HTMLElement} element An element to write into.
  * @param {string} content The text to write.
- * @param {boolean|function(string, string): string} [sanitizer] When a function, use it as the sanitizer; when `false`,
+ * @param {boolean|function(string, SanitizerContext): (string|object)} [sanitizer] When a function, use it as the sanitizer; when `false`,
  * write the content as raw HTML on purpose (no warning); when `true` (the default), write the content as raw HTML and
  * warn once that no sanitizer is configured.
- * @param {string} [context] The sanitization context passed as the second argument to a custom sanitizer function, and
+ * @param {SanitizerContext} [context] The sanitization context passed as the second argument to a custom sanitizer function, and
  * used in the missing-sanitizer warning to identify the write surface.
  * @param {object} [scope] Object the "warn once" state is bound to (`hot.rootElement` at every call site
  * inside the grid), so the warning is shown at most once per Handsontable instance.
  */
 export function fastInnerHTML(
   element: HTMLElement, content: string,
-  sanitizer: boolean | ((html: string, context: string) => string | { toString(): string }) = true,
-  context = 'innerHTML',
+  sanitizer: boolean | ((html: string, context: SanitizerContext) => string | TrustedHTMLLike) = true,
+  context: SanitizerContext = 'innerHTML',
   scope: object = defaultSanitizerWarnScope): void {
   if (HTML_CHARACTERS.test(content)) {
-    let sanitized: string | { toString(): string };
+    let sanitized: string | TrustedHTMLLike;
 
     if (typeof sanitizer === 'function') {
       // `?? ''` rather than `?? content`: a sanitizer that returns nothing for input it strips

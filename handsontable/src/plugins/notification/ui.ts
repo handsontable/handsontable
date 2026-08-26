@@ -1,5 +1,6 @@
 import { fastInnerHTML } from '../../helpers/dom/element';
 import { stripTags } from '../../helpers/string';
+import { resolveButtonType } from '../../helpers/uiButton';
 import type { SanitizerFn } from '../../utils/sanitizer';
 import { NOTIFICATION_CLASS_NAME, NOTIFICATION_POSITIONS } from './constants';
 import type { NotificationNormalizedOptions, NotificationAction } from './notification';
@@ -199,7 +200,7 @@ export class NotificationUI {
         const btn = doc.createElement('button');
 
         btn.type = 'button';
-        btn.className = `ht-button ht-button--${action.type === 'primary' ? 'primary' : 'secondary'}`;
+        btn.className = `ht-button ht-button--${resolveButtonType(action.type)}`;
         btn.textContent = stripTags(action.label);
         btn.dataset.htNotificationAction = String(index);
         actionsRow.appendChild(btn);

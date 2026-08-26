@@ -477,4 +477,34 @@ describe('Dialog - template option', () => {
     expect(getDialogTitleElement().id).toBe(`${hot().guid}-dialog-confirm-title`);
     expect(getDialogDescriptionElement().id).toBe(`${hot().guid}-dialog-confirm-description`);
   });
+
+  it('should not be possible to override the element `id` through the template', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      dialog: {
+        template: {
+          type: 'confirm',
+          title: 'My title',
+          description: 'My description',
+          id: '"><img src="x">',
+        },
+      },
+    });
+
+    const dialogPlugin = getPlugin('dialog');
+
+    dialogPlugin.show();
+
+    const dialogElement = getDialogContainerElement();
+
+    expect(getDialogTitleElement().id).toBe(`${hot().guid}-dialog-confirm-title`);
+    expect(getDialogDescriptionElement().id).toBe(`${hot().guid}-dialog-confirm-description`);
+    // sorted, because the attribute order follows the order `buildTemplate` writes them in
+    // (`class` before `attrs`) and carries no meaning. The set is what matters: an escaped payload
+    // would show up here as an extra attribute.
+    expect(getDialogTitleElement().getAttributeNames().sort()).toEqual(['class', 'id']);
+    expect(dialogElement.querySelectorAll('img').length).toBe(0);
+    expect(dialogElement.getAttribute('aria-labelledby')).toBe(`${hot().guid}-dialog-confirm-title`);
+    expect(dialogElement.getAttribute('aria-describedby')).toBe(`${hot().guid}-dialog-confirm-description`);
+  });
 });

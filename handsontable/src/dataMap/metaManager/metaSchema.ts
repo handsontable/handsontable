@@ -2170,7 +2170,7 @@ export default (): Record<string, unknown> => {
      * | `template.description`   | The description of the template                                                                                                 | The description of the template         |
      * | `template.buttons`       | Array of objects with the buttons configuration (default: `[]`)                                                                 | The buttons of the template             |
      * | `template.buttons.text`  | The text of the button                                                                                                          | The text of the button                  |
-     * | `template.buttons.type`  | The type of the button ('primary' | 'secondary')                                                                                | The type of the button                  |
+     * | `template.buttons.type`  | The type of the button (`'primary'` \| `'secondary'`)                                                                           | The type of the button                  |
      * | `template.buttons.callback` | The callback function to trigger when the button is clicked                                                                  | The callback function to trigger when the button is clicked |
      * | `content`                | A string, HTMLElement or DocumentFragment (default: `''`)                                                                       | The content of the dialog               |
      * | `customClassName`        | A string (default: `''`)                                                                                                        | The custom class name of the dialog     |
@@ -2179,7 +2179,7 @@ export default (): Record<string, unknown> => {
      * | `animation`              | Boolean (default: `true`)                                                                                                       | Whether to show the animation           |
      * | `closable`               | Boolean (default: `false`)                                                                                                      | Whether to make the dialog closable     |
      * | `a11y`                   | Object with accessibility options (default: `{ role: 'dialog', ariaLabel: 'Dialog', ariaLabelledby: '', ariaDescribedby: '' }`) | Accessibility options for the dialog    |
-     * | `a11y.role`              | The role of the dialog ('dialog' | 'alertdialog')                                                                               | The role of the dialog                  |
+     * | `a11y.role`              | The role of the dialog (`'dialog'` \| `'alertdialog'`)                                                                          | The role of the dialog                  |
      * | `a11y.ariaLabel`         | The label of the dialog                                                                                                         | The label of the dialog                 |
      * | `a11y.ariaLabelledby`    | The ID of the element that labels the dialog                                                                                    | The ID of the element that labels the dialog |
      * | `a11y.ariaDescribedby`   | The ID of the element that describes the dialog                                                                                 | The ID of the element that describes the dialog |
@@ -3920,6 +3920,9 @@ export default (): Record<string, unknown> => {
      * | `icon`        | A string          | Custom loading icon to display (default: `<svg />`)       |
      * | `title`       | A string          | Custom loading title to display (default: `'Loading...'`) |
      * | `description` | A string          | Custom loading description to display (default: `''`)     |
+     *
+     * `title` and `description` render as text. Markup passed in them shows up literally rather
+     * than being interpreted, so use `icon` for the one slot that takes markup.
      *
      * Read more:
      * - [Plugins: `Loading`](@/api/loading.md)
@@ -7334,6 +7337,10 @@ export default (): Record<string, unknown> => {
      * enforces [Trusted Types](@/guides/security/security/security.md#trusted-types-and-csp). Handsontable
      * passes the returned value to the DOM unchanged, so a `TrustedHTML` keeps its trust.
      *
+     * In TypeScript, annotate that parameter with the exported `SanitizerContext` type
+     * (see [TypeScript types](@/guides/tools-and-building/typescript-types/typescript-types.md))
+     * to get editor completion on the values above.
+     *
      * `'CopyPaste.paste.sourceData'` carries Handsontable's own clipboard payload, the one that lets an
      * object-valued cell survive a copy between grids. It is parsed into an inert document, so returning it
      * unchanged does not expose you to a crafted clipboard, and doing so is what keeps
@@ -7348,7 +7355,7 @@ export default (): Record<string, unknown> => {
      *
      * @since 17.0.0
      * @memberof Options#
-     * @type {function(string, string): string}
+     * @type {function(string, SanitizerContext): string}
      * @default undefined
      * @category Core
      *

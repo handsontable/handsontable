@@ -1363,8 +1363,7 @@ describe('AutocompleteEditor', () => {
 
       // `updateChoicesList` is public API, so it has to sort a copy and leave the caller's array
       // alone. The internal path happens to hand it a freshly mapped array, so only a direct call
-      // exposes an in-place sort. `Array#toSorted` gave this for free but is above the
-      // browser-targets.js baseline (Firefox 115+, Safari 16+).
+      // would expose an in-place sort.
       const callerOwnedChoices = ['orange', 'apple', 'banana'];
 
       getActiveEditor().updateChoicesList(callerOwnedChoices);

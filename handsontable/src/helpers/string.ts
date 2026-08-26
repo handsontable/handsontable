@@ -220,6 +220,28 @@ export function stripTags(string: string): string {
   return result;
 }
 
+const HTML_ESCAPE_CHARS: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  '\'': '&#39;',
+};
+
+/**
+ * Escapes the characters that carry meaning in HTML, so the string renders as the text it is.
+ *
+ * Prefer this over {@link stripTags} for a value interpolated into a markup string: `stripTags`
+ * drops everything between a `<` and the next `>`, so a title such as `'Loaded 5 < 10 rows'` loses
+ * half of itself, while escaping blocks the markup and keeps the text whole.
+ *
+ * @param {string} string String to escape.
+ * @returns {string}
+ */
+export function escapeHtml(string: string): string {
+  return String(string).replace(/[&<>"']/g, char => HTML_ESCAPE_CHARS[char]);
+}
+
 /**
  * Returns the string unchanged.
  *

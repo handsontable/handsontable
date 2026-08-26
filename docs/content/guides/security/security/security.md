@@ -13,7 +13,6 @@ vue:
   metaTitle: Security - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Security
-menuTag: updated
 ---
 Learn about the security measures we take to make sure you can safely implement Handsontable in your client-side application.
 
@@ -79,6 +78,19 @@ A configured sanitizer runs on the HTML that Handsontable writes on your behalf.
 | [Notification](@/api/notification.md) messages | `'notification'` |
 | HTML pasted from the clipboard | `'CopyPaste.paste'` |
 | Handsontable's own clipboard payload, pasted between grids | `'CopyPaste.paste.sourceData'` |
+
+In TypeScript, annotate the second parameter with [`SanitizerContext`](@/guides/tools-and-building/typescript-types/typescript-types.md) to get completion on the values above:
+
+```ts
+import type { SanitizerContext } from 'handsontable';
+
+const settings = {
+  sanitizer: (content: string, source: SanitizerContext) =>
+    source === 'CopyPaste.paste' ? strict(content) : loose(content),
+};
+```
+
+The type accepts any other string too, so a sanitizer shared with another library still compiles. The trade is that it cannot reject a wrong one: `source === 'contextmenu'` compiles into a branch that never runs. Check spelling against the table above when a rule depends on it.
 
 ### What the sanitizer does not cover
 

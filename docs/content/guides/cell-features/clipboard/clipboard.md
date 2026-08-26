@@ -306,6 +306,25 @@ copyPastePlugin.copy('column-headers-only');
 
 The `Paste` action allows the importing of data from external sources, using the user's system clipboard. The [`CopyPaste`](@/api/copyPaste.md) plugin firstly looks for `text/html` in the system clipboard, followed by `text/plain`.
 
+### Rows of unequal length
+
+Clipboard content does not always hold the same number of cells in every row. A row copied from a
+text editor, or a table exported by another application, can be shorter than the one below it.
+
+Handsontable pastes such content as wide as its **widest** row. A shorter row covers the same
+columns as the widest one, and the cells it has no value for are emptied, the way a spreadsheet
+application pastes them. Those cells hold `null`, the same value that clearing a cell writes.
+
+When the pasted content repeats to fill a larger selection, it repeats on that same width. Pasting
+two rows of three cells into a selection six columns wide writes the three cells twice per row.
+
+A merged cell that reaches past the last column is trimmed to the columns that are there. A footer
+row spanning a table wider than the pasted data lands in one row, without adding empty columns.
+
+The [`beforePaste`](@/api/hooks.md#beforepaste) and [`afterPaste`](@/api/hooks.md#afterpaste) hooks
+receive the content already squared off to the widest row, so what they report matches what the grid
+writes. To paste only the cells that were present, drop the empty ones in `beforePaste`.
+
 ### Extending paste behavior
 
 The [`parsePastedValue`](@/api/options.md#parsepastedvalue) option controls how pasted content is written to cells when the user pastes from the clipboard into Handsontable (e.g. from another Handsontable instance or between cells in the same table). It does not affect how other applications read or process the clipboard.

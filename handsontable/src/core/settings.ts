@@ -39,6 +39,61 @@ export type SourceDataValidatorFn = {
 };
 
 /**
+ * The write surface passed as the second argument to the `sanitizer` option, so a sanitizer can
+ * apply different rules per surface (for example, stricter for pasted content).
+ *
+ * Annotate the parameter with it to get completion on the values you branch on:
+ *
+ * ```ts
+ * import type { SanitizerContext } from 'handsontable';
+ *
+ * const settings = {
+ *   sanitizer: (content: string, source: SanitizerContext) =>
+ *     source === 'CopyPaste.paste' ? strict(content) : loose(content),
+ * };
+ * ```
+ *
+ * The listed values are the ones a grid write surface passes to a configured sanitizer. Two more
+ * strings reach `fastInnerHTML` and are deliberately not listed:
+ *
+ * - `'html'`, from the `allowHtml` autocomplete and dropdown path only. It always travels with
+ *   `sanitizer: false`, so no sanitizer ever sees it. (The `html` cell type passes no context at all
+ *   and so falls through to the default below.)
+ * - `'innerHTML'`, the `context` parameter's own default. No grid surface reaches a sanitizer under
+ *   it, but `Handsontable.dom.fastInnerHTML()` is public, so a caller passing their own sanitizer
+ *   and no context of their own does receive it.
+ *
+ * The `(string & {})` member is what keeps that last case compiling, along with a sanitizer shared
+ * with another library or one branching on a surface added in a later release. The trade is that the
+ * type cannot reject a wrong value: a misspelled comparison comes out as a branch that never runs.
+ */
+export type SanitizerContext =
+  | 'header'
+  | 'password'
+  | 'contextMenu'
+  | 'selectEditor'
+  | 'dialog'
+  | 'notification'
+  | 'CopyPaste.paste'
+  | 'CopyPaste.paste.sourceData'
+  | (string & {});
+
+/**
+ * A value a Trusted Types sink accepts in place of a plain string.
+ *
+ * Structural on purpose. `TrustedHTML` is not in the DOM lib of the TypeScript version this
+ * package compiles against, and declaring it as a global here would collide with
+ * `@types/trusted-types` in any project that installs it, or with a future DOM lib. Matching the
+ * shape instead means a real `TrustedHTML` satisfies it without anyone declaring anything.
+ *
+ * A `sanitizer` may return one: under `require-trusted-types-for 'script'` a sink rejects plain
+ * strings, so a page enforcing Trusted Types has to hand back the output of its own policy.
+ * Handsontable passes that value to the sink untouched - it is never concatenated, re-tested, or
+ * otherwise turned back into a string, any of which would strip the trust.
+ */
+export type TrustedHTMLLike = { toString(): string };
+
+/**
  * Grid settings interface representing all possible Handsontable configuration options.
  * Derived from the metaSchema factory in dataMap/metaManager/metaSchema.ts.
  */
@@ -242,9 +297,17 @@ export interface GridSettings {
   preventWheel?: boolean;
 
   // Security
-  // Returning a `TrustedHTML` is supported for pages enforcing Trusted Types; see `SanitizerFn`.
+  // Deliberately left as `...args: any[]` rather than naming `context: SanitizerContext` here.
+  // Declaring the second parameter would raise the option's minimum *call* arity from one to two,
+  // so `hot.getSettings().sanitizer?.(html)` would stop compiling (TS2555) for anyone who reuses the
+  // configured sanitizer. Declaring it optional instead types it `SanitizerContext | undefined`,
+  // which breaks any body that uses the parameter as a definite string. Both are build breaks on
+  // upgrade, so the contract is published as the exported `SanitizerContext` type that a user opts
+  // into on their own parameter - see its docs above.
+  //
+  // Returning a `TrustedHTML` is supported for pages enforcing Trusted Types; see `TrustedHTMLLike`.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  sanitizer?: (html: string, ...args: any[]) => string | { toString(): string };
+  sanitizer?: (html: string, ...args: any[]) => string | TrustedHTMLLike;
 
   // State
   initialState?: Record<string, unknown>;
@@ -630,6 +693,20 @@ type HookKey = {
   [K in keyof RemoveIndexSignature<GridSettings>]-?:
     NonNullable<GridSettings[K]> extends (...args: never[]) => unknown ? K : never;
 }[keyof RemoveIndexSignature<GridSettings>];
+
+/**
+ * The shape of a configured `sanitizer`, derived from the option so the two cannot drift apart.
+ *
+ * `RemoveIndexSignature` is what makes that guarantee real. `GridSettings` carries a
+ * `[key: string]: any`, so a plain `GridSettings['sanitizer']` lookup would keep resolving - to
+ * `any` - if the option were ever renamed, silently un-typing every internal consumer. Stripping the
+ * index signature first turns the same rename into a compile error here.
+ *
+ * Not re-exported from the package entry points: with the option's second parameter absorbed by
+ * `...args: any[]`, annotating with this type conveys no context, so `SanitizerContext` is what
+ * users are given instead.
+ */
+export type SanitizerFn = NonNullable<RemoveIndexSignature<GridSettings>['sanitizer']>;
 
 /**
  * Map of all Handsontable hook names to their typed callback signatures.

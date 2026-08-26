@@ -51,6 +51,26 @@ const META_HEAD = [
   '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
 ].join('');
 
+/**
+ * Squares off a ragged clipboard in place, filling the gaps with the empty-cell value.
+ *
+ * The grid pastes as wide as the widest row, so the rows that are shorter cover cells too. Doing
+ * this before the `beforePaste` hook keeps the hooks and the grid describing the same paste.
+ *
+ * @param {Array} data The parsed clipboard data.
+ */
+function padRowsToWidest(data: unknown[][]) {
+  const width = data.reduce((widest: number, row: unknown[]) => Math.max(widest, row.length), 0);
+
+  data.forEach((row: unknown[]) => {
+    for (let column = 0; column < width; column += 1) {
+      if (row[column] === undefined) {
+        row[column] = null;
+      }
+    }
+  });
+}
+
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
@@ -611,7 +631,10 @@ export class CopyPaste extends BasePlugin {
 
     const selection = this.hot.getSelectedRangeActive();
     const populatedRowsLength = plainData.length;
-    const populatedColumnsLength = plainData[0].length;
+    // A ragged clipboard (rows of unequal length) must not be narrowed to the first row's width -
+    // cells past that width would never be written. The widest row wins, as in spreadsheet apps.
+    const populatedColumnsLength = plainData
+      .reduce((maxLength: number, row: unknown[]) => Math.max(maxLength, row.length), 0);
     const newRows = [];
 
     if (!selection) {
@@ -679,7 +702,9 @@ export class CopyPaste extends BasePlugin {
           cellValue = parsedCellValue;
         }
 
-        newRow.push(cellValue);
+        // A row shorter than the widest one has no value here. Write the empty-cell value rather
+        // than `undefined`, which would delete the property outright in an object data source.
+        newRow.push(cellValue === undefined ? null : cellValue);
       }
 
       newRows.push(newRow);
@@ -888,6 +913,8 @@ export class CopyPaste extends BasePlugin {
     if (pastedData === void 0 || Array.isArray(pastedData) && pastedData.length === 0) {
       return;
     }
+
+    padRowsToWidest(pastedData as unknown[][]);
 
     // Store a copy of the original pasted data before user can modify it in beforePaste hook.
     // This is needed to detect if user modified values and respect their modifications over source data.

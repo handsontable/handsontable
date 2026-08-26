@@ -2,6 +2,7 @@ import { DIALOG_CLASS_NAME } from '../constants';
 import { throwWithCause } from '../../../helpers/errors';
 import { htmlToPlainText } from '../../../helpers/string';
 import { buildTemplate, type TemplateSpec } from '../../../helpers/dom/template';
+import { resolveButtonType } from '../../../helpers/uiButton';
 
 /**
  * The `confirmTemplate` function returns the confirm dialog template.
@@ -18,16 +19,11 @@ import { buildTemplate, type TemplateSpec } from '../../../helpers/dom/template'
  */
 export function confirmTemplate({ id = '', title = '', description = '', buttons = [] }: {
   id?: string, title?: string, description?: string,
-  buttons?: Array<{ type: string, text: string, callback?: Function }>
+  // `type` is `unknown`, not `ButtonType`: the value arrives from a plugin setting, and the whole
+  // point of `resolveButtonType()` below is that this function does not trust it. Declaring the
+  // narrow type here would let a caller assume the check had already happened.
+  buttons?: Array<{ type: unknown, text: string, callback?: Function }>
 }) {
-  /**
-   * Button types the `buttons` option documents. A value outside this set is not rendered as a
-   * class name: it used to be interpolated straight into `class="ht-button ht-button--..."`,
-   * where a quote in the value escaped the attribute. Building the DOM removes the escape
-   * route, and validating here keeps a stray value from producing a junk class as well.
-   */
-  const BUTTON_TYPES = ['primary', 'secondary'];
-
   /**
    * Returns the template spec.
    *
@@ -64,7 +60,7 @@ export function confirmTemplate({ id = '', title = '', description = '', buttons
           className: `${DIALOG_CLASS_NAME}__buttons`,
           children: buttons.map(button => ({
             tag: 'button',
-            className: `ht-button ht-button--${BUTTON_TYPES.includes(button.type) ? button.type : 'secondary'}`,
+            className: `ht-button ht-button--${resolveButtonType(button.type)}`,
             text: htmlToPlainText(button.text),
           })),
         },
