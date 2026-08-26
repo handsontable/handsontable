@@ -1,5 +1,6 @@
 import { BasePlugin } from '../base';
 import { loadingContent } from './content';
+import { getSanitizer } from '../../utils/sanitizer';
 import * as C from '../../i18n/constants';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
 
@@ -12,7 +13,11 @@ interface DialogPlugin {
   show(): void;
   hide(): void;
   update(options: {
-    content: string;
+    // `HTMLElement` since `loadingContent()` builds nodes rather than a string. The dialog UI has
+    // always accepted both (`dialog/ui.ts` branches on the type); only this local structural type
+    // was narrower than the thing it describes. An element rather than a fragment because the
+    // dialog re-reads this setting on every render, and a fragment is empty after one append.
+    content: string | HTMLElement;
     customClassName: string;
     background: string;
     a11y: {
@@ -23,6 +28,16 @@ interface DialogPlugin {
   }): void;
   focus(): void;
 }
+
+/**
+ * The built-in spinner, as markup.
+ *
+ * Hoisted out of `DEFAULT_SETTINGS` so `content.ts` can tell the default from a caller-supplied
+ * icon and build the default as DOM nodes instead of parsing it. The string itself is unchanged and
+ * still the option's documented default value, because `icon` is public API.
+ */
+// eslint-disable-next-line max-len
+export const DEFAULT_ICON = `<svg class="${LOADING_CLASS_NAME}__icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16"><path stroke="currentColor" stroke-width="2" d="M15 8a7 7 0 1 1-3.5-6.062"></path></svg>`;
 
 export const PLUGIN_KEY = 'loading';
 export const PLUGIN_PRIORITY = 350;
@@ -142,8 +157,7 @@ export class Loading extends BasePlugin {
    */
   static get DEFAULT_SETTINGS() {
     return {
-      // eslint-disable-next-line max-len
-      icon: `<svg class="${LOADING_CLASS_NAME}__icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16"><path stroke="currentColor" stroke-width="2" d="M15 8a7 7 0 1 1-3.5-6.062"></path></svg>`,
+      icon: DEFAULT_ICON,
       title: undefined as string | undefined,
       description: '',
     };
@@ -300,7 +314,9 @@ export class Loading extends BasePlugin {
       icon,
       title,
       description,
-    });
+      sanitizer: getSanitizer(this.hot),
+      warnScope: this.hot.rootElement,
+    }, this.hot.rootDocument);
 
     this.#dialogPlugin.update({
       content,

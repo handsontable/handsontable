@@ -188,7 +188,11 @@ export function decodeHtmlEntities(string: string): string {
       return String.fromCodePoint(codePoint);
     }
 
-    return NAMED_ENTITIES[reference] ?? match;
+    // `Object.hasOwn`, not a bare lookup: `NAMED_ENTITIES` is an object literal, so a bare read
+    // walks the prototype chain and `&constructor;` resolves to `Object`, stringified into the
+    // output. The same went for `&toString;`, `&valueOf;`, `&hasOwnProperty;`, `&isPrototypeOf;`
+    // and `&propertyIsEnumerable;`. The parser leaves all of those literal, and so must this.
+    return Object.hasOwn(NAMED_ENTITIES, reference) ? NAMED_ENTITIES[reference] : match;
   });
 }
 

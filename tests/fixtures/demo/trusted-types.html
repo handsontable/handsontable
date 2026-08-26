@@ -95,6 +95,8 @@
   <button type="button" data-testid="open-dialog">Open dialog</button>
   <button type="button" data-testid="paste-html">Paste HTML</button>
   <button type="button" data-testid="export-file">Export file</button>
+  <button type="button" data-testid="show-loading">Show loading</button>
+  <button type="button" data-testid="open-context-menu">Open context menu</button>
   <!--
     Surfaces whose success or failure the spec reads. `data-testid="status"` carries
     the construction outcome so a throw inside the constructor is reported as a
@@ -103,7 +105,11 @@
   <pre data-testid="status"></pre>
 
   <script>
-    document.addEventListener('ht-bundle-ready', () => {
+    // Both paths, because the bundle script is appended dynamically and so loads async while the
+    // parser-inserted stylesheet in <head> blocks this script. With a warm cache and slow CSS the
+    // event can fire BEFORE this listener exists, and every test then times out on an empty status
+    // element. `window.htBundleReady` is set for exactly this case.
+    const init = () => {
       const container = document.querySelector('[data-testid="grid"]');
       const status = document.querySelector('[data-testid="status"]');
       const params = new URLSearchParams(location.search);
@@ -192,6 +198,49 @@
         }
       });
 
+      document.querySelector('[data-testid="show-loading"]').addEventListener('click', async() => {
+        try {
+          // `loading: true` at construct does NOT build the overlay - it is only built on
+          // `show()`/`update()`, which is why a repro that merely constructs the grid looks clean.
+          window.hot.updateSettings({ loading: true });
+          window.hot.getPlugin('loading').show();
+
+          // the dialog paints on a frame, so give it one before reading
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+          const overlay = document.querySelector('.ht-loading__content');
+
+          status.textContent = overlay
+            ? `LOADING: ${overlay.querySelectorAll('.ht-loading__icon-svg').length} spinner`
+            : 'LOADING-MISSING';
+        } catch (error) {
+          status.textContent = `LOADING-THREW: ${error.message}`;
+        }
+      });
+
+      document.querySelector('[data-testid="open-context-menu"]').addEventListener('click', async() => {
+        try {
+          // A read-only selection makes the `readOnly` item render its checkmark through
+          // `markLabelAsSelected`, which is the surface that still builds markup as a string.
+          window.hot.updateSettings({
+            contextMenu: ['make_read_only'],
+            cells: () => ({ readOnly: true }),
+          });
+          window.hot.selectCell(0, 0);
+          window.hot.getPlugin('contextMenu').open({ top: 10, left: 10 });
+
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+          const item = document.querySelector('.htContextMenu .htItemWrapper');
+
+          status.textContent = item
+            ? `MENU: ${item.querySelectorAll('span.selected').length} checkmark`
+            : 'MENU-MISSING';
+        } catch (error) {
+          status.textContent = `MENU-THREW: ${error.message}`;
+        }
+      });
+
       document.querySelector('[data-testid="export-file"]').addEventListener('click', async() => {
         try {
           // The export progress dialog only renders for a BINARY formatter with the dialog plugin
@@ -234,7 +283,13 @@
           status.textContent = `DIALOG-THREW: ${error.message}`;
         }
       });
-    });
+    };
+
+    if (window.htBundleReady) {
+      init();
+    } else {
+      document.addEventListener('ht-bundle-ready', init);
+    }
   </script>
 </body>
 </html>

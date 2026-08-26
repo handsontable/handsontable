@@ -1080,17 +1080,23 @@ export class CopyPaste extends BasePlugin {
   /**
    * Warns once that a clipboard payload could not be parsed, and why that is usually Trusted Types.
    *
+   * Deliberately says nothing about which flavour landed. Both parse sites share this message and
+   * one `warnOnce` key, and their consequences differ: a refused `text/html` payload falls back to
+   * `text/plain`, while a refused source-data payload costs only object-key fidelity and leaves the
+   * paste itself intact. Naming one outcome would print a false statement whenever the other site
+   * warned first, and splitting the key would print two messages for a single paste.
+   *
    * @param {unknown} error The error the parser threw.
    */
   #warnClipboardParseRefused(error: unknown) {
     warnOnce(
       this.hot.rootElement,
       CLIPBOARD_PARSE_WARN_KEY,
-      'Handsontable could not parse the HTML flavour of the clipboard, and pasted the plain-text ' +
-      'flavour instead. Under a Content Security Policy that enforces Trusted Types ' +
-      '(`require-trusted-types-for \'script\'`), the parser only accepts a `TrustedHTML`, so the ' +
-      '`sanitizer` option has to return the output of your own policy. See ' +
-      'https://handsontable.com/docs/javascript-data-grid/security/',
+      'Handsontable could not parse an HTML flavour of the clipboard, and pasted what it could ' +
+      'read instead, so some formatting or source-data fidelity was lost. Under a Content ' +
+      'Security Policy that enforces Trusted Types (`require-trusted-types-for \'script\'`), the ' +
+      'parser only accepts a `TrustedHTML`, so the `sanitizer` option has to return the output of ' +
+      'your own policy. See https://handsontable.com/docs/javascript-data-grid/security/',
       error
     );
   }

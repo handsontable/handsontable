@@ -145,6 +145,17 @@ test.describe('Trusted Types enforcement', () => {
     await grid.expectNoViolations();
   });
 
+  test('renders the loading overlay', async () => {
+    await grid.goto();
+    await grid.loadingButton.click();
+
+    // `loadingContent` returned an HTML string that the dialog plugin wrote through
+    // `fastInnerHTML`, so this threw. The overlay is only built on `show()`, not at construct,
+    // which is why a repro that merely constructs a grid with `loading: true` looked clean.
+    await expect(grid.status).toHaveText('LOADING: 1 spinner');
+    await grid.expectNoViolations();
+  });
+
   test.describe('the surviving sink: header content', () => {
     // Cell data is not in scope here and cannot be: `textRenderer` writes through `fastInnerText`,
     // so it never reaches a sink whatever it contains. Headers go through `fastInnerHTML`, and
@@ -173,6 +184,28 @@ test.describe('Trusted Types enforcement', () => {
         expect(await grid.statusText()).toContain('CONSTRUCT-THREW');
         await expect(grid.cell(0, 0)).toHaveCount(0);
       });
+
+    test('throws when the context menu marks an item as selected', async () => {
+      await grid.goto();
+      await grid.contextMenuButton.click();
+
+      // `markLabelAsSelected` (`contextMenu/utils.ts`) prefixes the label with
+      // `<span class="selected">` and the item renderer writes the result through
+      // `fastInnerHTML`. Unlike a header this is not the user's data - it is the grid's own
+      // markup - so it is a genuine gap in the no-policy claim rather than a documented boundary.
+      // Tracked separately; converting it means changing how a menu item carries its selected
+      // state, which the `name` option's string contract does not currently allow.
+      expect(await grid.statusText()).toContain('MENU-THREW');
+      expect(await grid.statusText()).toContain('TrustedHTML');
+    });
+
+    test('renders the context menu through a sanitizer that returns a TrustedHTML', async () => {
+      await grid.goto({ trustedSanitizer: true });
+      await grid.contextMenuButton.click();
+
+      await expect(grid.status).toHaveText('MENU: 1 checkmark');
+      await grid.expectNoViolations();
+    });
 
     test('renders both header shapes through a sanitizer that returns a TrustedHTML', async () => {
       await grid.goto({ colHeader: 'markup', trustedSanitizer: true });

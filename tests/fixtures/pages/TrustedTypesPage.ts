@@ -28,6 +28,8 @@ export class TrustedTypesPage {
   readonly openDialogButton: Locator;
   readonly pasteButton: Locator;
   readonly exportButton: Locator;
+  readonly loadingButton: Locator;
+  readonly contextMenuButton: Locator;
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
@@ -38,6 +40,8 @@ export class TrustedTypesPage {
     this.openDialogButton = page.getByTestId('open-dialog');
     this.pasteButton = page.getByTestId('paste-html');
     this.exportButton = page.getByTestId('export-file');
+    this.loadingButton = page.getByTestId('show-loading');
+    this.contextMenuButton = page.getByTestId('open-context-menu');
   }
 
   /**

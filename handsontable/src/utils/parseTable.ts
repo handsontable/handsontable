@@ -1,7 +1,7 @@
 import type { HotInstance } from '../core/types';
 import { isEmpty } from './../helpers/mixed';
 import { decodeHtmlEntities } from '../helpers/string';
-import { fastInnerHTML } from '../helpers/dom/element';
+import { fastInnerHTML, HTML_CHARACTERS } from '../helpers/dom/element';
 import { getSanitizer, sanitizeHTML } from './sanitizer';
 
 const ESCAPED_HTML_CHARS: Record<string, string> = {
@@ -37,12 +37,21 @@ function isHTMLTable(element: HTMLElement): boolean {
  * The warning is suppressed: both callers are read-only APIs, so the message's "HTML content is
  * being written to the DOM" would name a surface the user never looked at.
  *
+ * The markup test is applied here rather than left to `sanitizeHTML()`, which documents that a
+ * caller needing to match `fastInnerHTML` has to do it itself. Without it, a sanitizer that
+ * rewrites plain text - a length cap, whitespace cleanup, an audit log - would see every header
+ * from `toHTML()` and none from `toTableElement()`, which is the same divergence one level down.
+ *
  * @param {object} instance The Handsontable instance.
  * @param {*} headerValue The header value.
  * @returns {string} The sanitized header, as a string.
  */
 function sanitizeHeader(instance: HotInstance, headerValue: unknown): string {
-  return String(sanitizeHTML(instance, String(headerValue), 'header', false));
+  const header = String(headerValue);
+
+  return HTML_CHARACTERS.test(header)
+    ? String(sanitizeHTML(instance, header, 'header', false))
+    : header;
 }
 
 /**
@@ -508,8 +517,9 @@ function countTableColumns(table: HTMLTableElement): number {
  * @param {Document} [rootDocument] The document window owner.
  * @param {object} [options] Parsing options.
  * @param {boolean} [options.normalize=true] Whether to run `replaceTdCellsWithTextContent()` on the
- * markup first. Callers that already normalized pass `false` - the clipboard path does, because it
- * must normalize before sanitizing so the sanitizer's value reaches the parser unmodified.
+ * markup first. Pass `false` for a payload that must not be rewritten - the clipboard path passes
+ * `typeof value === 'string'`, so a sanitizer's string output is still flattened here while a
+ * `TrustedHTML` is left alone, because a string rewrite would strip the trust the parser needs.
  * @returns {object} Return configuration object. Contains keys as DefaultSettings.
  */
 export function htmlToGridSettings(
