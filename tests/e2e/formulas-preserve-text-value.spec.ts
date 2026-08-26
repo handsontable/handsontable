@@ -44,6 +44,20 @@ test.describe('Formulas: preserveTextValue rendered output', () => {
 
     await grid.expectCell(0, 0, '0999');
     await grid.expectCell(1, 0, '4');
+
+    // A value that already carries the user's OWN leading apostrophe – the case that
+    // distinguishes a user's literal apostrophe from the plugin's internal escape marker.
+    // The Jasmine case `should preserve a value that already starts with an apostrophe`
+    // (formulas.spec.js:3409) pins the equivalent engine-level expectation for `'0123` –
+    // stored doubled ("''0123"), read back through HyperFormula's own (unrelated) native
+    // escape convention as the user's original `'0123`, LEN 5. This edit never touches
+    // `unescapeEngineBoundValue` either (same #onModifyData VALUE-cell path as the `0999`
+    // case above), so the rendered text is exactly what HOT's own dataMap holds – the
+    // user's apostrophe rendered verbatim, matching the Jasmine pattern's round-trip fidelity.
+    await grid.editCell(0, 0, '\'0777');
+
+    await grid.expectCell(0, 0, '\'0777');
+    await grid.expectCell(1, 0, '5');
   });
 
   test('renders a preserved text value with no leading apostrophe after a moveCells relocation', async () => {
