@@ -9,6 +9,7 @@ import {
   info,
   error,
   deprecatedWarn,
+  deprecatedWarnOnce,
   logAggregatedItems,
 } from 'handsontable/helpers/console';
 
@@ -61,6 +62,32 @@ describe('Console', () => {
 
       deprecatedWarn('Test');
       expect(console.warn).toHaveBeenCalledWith('Deprecated: Test');
+    });
+  });
+
+  describe('deprecatedWarnOnce', () => {
+    it('should warn only once per key and prefix the message', () => {
+      console.warn = jasmine.createSpy('warn');
+
+      deprecatedWarnOnce('test-key-a', 'Feature A is deprecated.');
+      deprecatedWarnOnce('test-key-a', 'Feature A is deprecated.');
+      deprecatedWarnOnce('test-key-b', 'Feature B is deprecated.');
+
+      expect(console.warn).toHaveBeenCalledTimes(2);
+      expect(console.warn).toHaveBeenCalledWith('Deprecated: Feature A is deprecated.');
+      expect(console.warn).toHaveBeenCalledWith('Deprecated: Feature B is deprecated.');
+    });
+
+    it('should not throw when `console` is not exposed', () => {
+      const cachedConsole = console;
+
+      console = undefined;
+
+      expect(() => {
+        deprecatedWarnOnce('test-key-c', 'x');
+      }).not.toThrow();
+
+      console = cachedConsole;
     });
   });
 

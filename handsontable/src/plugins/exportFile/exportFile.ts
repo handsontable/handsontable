@@ -29,7 +29,10 @@ export interface SheetOptions {
    */
   colHeaders?: boolean;
   /**
-   * @deprecated Use `colHeaders` instead.
+   * Include column headers.
+   *
+   * @deprecated Since 17.0.0, renamed to `colHeaders`. Still accepted as an alias; it will be
+   * removed in 19.0.0. Use `colHeaders` instead.
    */
   columnHeaders?: boolean;
   /**
@@ -169,7 +172,10 @@ export interface ExportOptions {
    */
   colHeaders?: boolean;
   /**
-   * @deprecated Use `colHeaders` instead.
+   * Include column headers.
+   *
+   * @deprecated Since 17.0.0, renamed to `colHeaders`. Still accepted as an alias; it will be
+   * removed in 19.0.0. Use `colHeaders` instead.
    */
   columnHeaders?: boolean;
   /**
@@ -229,7 +235,8 @@ export interface ExportFileSettings {
 }
 
 /**
- * @deprecated Use {@link ExportFileSettings} instead.
+ * @deprecated Since 18.0.0, renamed to `ExportFileSettings`. This alias will be removed in 19.0.0.
+ * Use {@link ExportFileSettings} instead.
  */
 export type Settings = ExportFileSettings;
 export const PLUGIN_PRIORITY = 240;

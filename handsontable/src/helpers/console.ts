@@ -81,6 +81,30 @@ export function deprecatedWarn(message: string) {
 }
 
 /**
+ * Keys of deprecation warnings that were already printed. Module-level on purpose:
+ * a deprecated API is reported once per page, regardless of how many grid instances
+ * call it, which is what the deprecation policy promises.
+ */
+const printedDeprecations = new Set<string>();
+
+/**
+ * Logs a deprecation warning to the console only once per `key` if the `console`
+ * object is exposed. Use it for every deprecated public API so the warning does
+ * not flood the console on repeated calls.
+ *
+ * @param {string} key A stable identifier of the deprecated API (for example, the method name).
+ * @param {string} message The message to log.
+ */
+export function deprecatedWarnOnce(key: string, message: string): void {
+  if (printedDeprecations.has(key)) {
+    return;
+  }
+
+  printedDeprecations.add(key);
+  deprecatedWarn(message);
+}
+
+/**
  * Logs info to the console if the `console` object is exposed.
  *
  * @param {...*} args Values which will be logged.

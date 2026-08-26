@@ -3,6 +3,7 @@ import type {
   ExportFileSettings,
   SheetOptions,
   ConditionalFormattingDescriptor,
+  Settings as ExportFileLegacySettings,
 } from 'handsontable/plugins/exportFile';
 
 // Plugin configuration in GridSettings.
@@ -162,3 +163,8 @@ async function testExportAsBlobAsync(): Promise<void> {
   const blob: Blob = await exportPlugin.exportAsBlobAsync('xlsx');
   const _size: number = blob.size;
 }
+
+// Deprecated alias must stay assignable until 19.0.0.
+const legacySettings: ExportFileLegacySettings = { engines: { xlsx: {} } } as ExportFileSettings;
+
+void legacySettings;

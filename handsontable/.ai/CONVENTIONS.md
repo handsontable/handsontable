@@ -141,15 +141,16 @@ export function throwWithCause(message) {
 - `log(...args)` -- General logging
 - `warn(...args)` -- Warning messages
 - `deprecatedWarn(message)` -- Deprecated feature warnings (prefixed with "Deprecated: ")
+- `deprecatedWarnOnce(key, message)` -- Preferred for deprecated public APIs: prints `Deprecated: <message>` once per `key` per page. Use `deprecatedWarn` only when repeated output is intended.
 - `info(...args)` -- Informational messages
 - `error(...args)` -- Error messages
 
 **Usage Pattern:**
 ```javascript
-import { warn, deprecatedWarn } from './helpers/console';
+import { warn, deprecatedWarnOnce } from './helpers/console';
 
 warn('Both `rowHeights` and `minRowHeights` are defined. The `minRowHeights` will be ignored.');
-deprecatedWarn('The `getTotalRows()` method is deprecated. Use `countRows()` instead.');
+deprecatedWarnOnce('Core.getTotalRows', 'The `getTotalRows()` method is deprecated. Use `countRows()` instead.');
 ```
 
 **Why not `console` directly:**

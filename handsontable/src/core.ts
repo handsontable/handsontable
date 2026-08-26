@@ -60,7 +60,7 @@ import type { ShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcuts/contexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
-import { warn } from './helpers/console';
+import { warn, deprecatedWarnOnce } from './helpers/console';
 import { throwWithCause } from './helpers/errors';
 import {
   install as installAccessibilityAnnouncer,
@@ -142,12 +142,16 @@ function normalizeIndexesGroup(indexes: number[][]): number[][] {
 const foreignHotInstances = new Map();
 
 /**
- * A set of deprecated feature names.
+ * Configuration options removed from the public API, with the version that removed them.
+ * Configuring one prints a one-time warning; the value is ignored.
  *
- * @type {Set<string>}
+ * @type {ReadonlyArray<[string, string]>}
  */
-
-const deprecationWarns = new Set();
+const REMOVED_OPTIONS: ReadonlyArray<[string, string]> = [
+  ['persistentState', '18.0.0'],
+  ['correctFormat', '18.0.0'],
+  ['datePickerConfig', '18.0.0'],
+];
 
 /**
  * Internal Core properties not exposed in HotInstance but accessed by constructor-assigned
@@ -3377,6 +3381,14 @@ export default function Core(
     if (isDefined(settings.ganttChart)) {
       throwWithCause('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
+
+    REMOVED_OPTIONS.forEach(([option, version]) => {
+      if (isDefined((settings as Record<string, unknown>)[option])) {
+        deprecatedWarnOnce(`Core.removedOption.${option}`,
+          `The "${option}" setting was removed in Handsontable ${version} and is ignored. ` +
+          'See https://handsontable.com/docs/migration-from-17.1-to-18.0/ for the migration path.');
+      }
+    });
 
     // The `columns` option (or the state its function form reads) may change in this call - drop
     // getColHeader's index translation cache so it rebuilds against the updated settings.

@@ -51,6 +51,22 @@ describe('String helper', () => {
   // Handsontable.helper.sanitize
   //
   describe('sanitize', () => {
+    // Runs first: the warning is printed once per page, before any other call in this suite.
+    it('should warn once about the deprecation', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      sanitize('<b>a</b>');
+      sanitize('plain');
+
+      const deprecationCalls = warnSpy.mock.calls
+        .filter(([message]) => String(message).includes('`sanitize()`'));
+
+      expect(deprecationCalls.length).toBe(1);
+      expect(deprecationCalls[0][0]).toMatch(/^Deprecated: .*`sanitizer`/);
+
+      warnSpy.mockRestore();
+    });
+
     it('should return the string unchanged (pass-through — DOMPurify removed)', () => {
       expect(sanitize('')).toBe('');
       expect(sanitize('<i aria-label="bar">foo</i>')).toBe('<i aria-label="bar">foo</i>');

@@ -58,6 +58,22 @@ describe('ExportFile#_createBlob', () => {
 });
 
 describe('DataProvider#setOptions', () => {
+  it('should print a one-time deprecation warning when `columnHeaders` is used', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const dataProvider = new DataProvider({});
+
+    dataProvider.setOptions({ columnHeaders: true });
+    dataProvider.setOptions({ columnHeaders: false });
+
+    const deprecationCalls = warnSpy.mock.calls
+      .filter(([message]) => String(message).includes('`columnHeaders`'));
+
+    expect(deprecationCalls.length).toBe(1);
+    expect(deprecationCalls[0][0]).toMatch(/^Deprecated: .*`columnHeaders`.*`colHeaders`/);
+
+    warnSpy.mockRestore();
+  });
+
   it('should support the deprecated `columnHeaders` alias', () => {
     const dataProvider = new DataProvider({});
 

@@ -4,6 +4,7 @@ import type {
   DataProviderConfig,
   DataProviderFetchOptions,
   DataProviderFetchResult,
+  DataProviderOptions,
   DataProviderQueryParameters,
   RowMutationPayload,
   RowMutationUpdatePayload,
@@ -95,3 +96,8 @@ if (dataProviderPlugin) {
 
 void minimalConfig;
 void hot;
+
+// Deprecated alias must stay assignable until 19.0.0.
+const legacyOptions: DataProviderOptions = { signal: new AbortController().signal } as DataProviderFetchOptions;
+
+void legacyOptions;

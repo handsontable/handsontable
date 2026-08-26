@@ -1,4 +1,5 @@
 import { stringify } from './mixed';
+import { deprecatedWarnOnce } from './console';
 
 /**
  * Convert string to upper case first letter.
@@ -152,12 +153,17 @@ export function escapeHtml(string: string): string {
 /**
  * Returns the string unchanged.
  *
- * @deprecated Default sanitization is now a pass-through. Use the sanitizer
- * configuration option to supply a custom sanitizer function.
+ * @deprecated Since 18.0.0. Handsontable no longer bundles an HTML sanitizer; this helper is a
+ * pass-through and will be removed in 19.0.0. Supply your own sanitizer through the
+ * `sanitizer` configuration option instead.
  * @param {string} string String to return.
  * @returns {string}
  */
 export function sanitize(string: string): string {
+  deprecatedWarnOnce('helper.sanitize',
+    '`sanitize()` is deprecated and will be removed in Handsontable 19.0.0. ' +
+    'It returns its input unchanged. Use the `sanitizer` option to supply your own sanitizer.');
+
   return string;
 }
 
