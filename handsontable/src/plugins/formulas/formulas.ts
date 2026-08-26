@@ -1711,7 +1711,9 @@ export class Formulas extends BasePlugin {
   /**
    * `onAfterSetSourceDataAtCell` hook callback.
    *
-   * @param {Array[]} changes An array of changes in format [[row, column, oldValue, value], ...].
+   * Unlike `afterSetDataAtCell`, this hook reports **physical** row indexes.
+   *
+   * @param {Array[]} changes An array of changes in format [[physicalRow, prop, oldValue, value], ...].
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
@@ -1730,13 +1732,20 @@ export class Formulas extends BasePlugin {
     const dependentCells: unknown[] = [];
     const changedCells: unknown[] = [];
 
-    changes.forEach(([visualRow, prop, , newValue]) => {
+    changes.forEach(([physicalRow, prop, , newValue]) => {
       if (typeof prop !== 'string' && typeof prop !== 'number') {
         return;
       }
+
+      // This hook reports physical rows, so the index has to be translated before it feeds the
+      // engine address or a cell meta read. The fallback keeps rows that have no visual equivalent
+      // (trimmed ones, which the engine is fed with as well) pointing at their own index.
+      const visualRow = this.hot.toVisualRow(physicalRow) ?? physicalRow;
+      // `propToCol` already returns a visual column index - it resolves the prop, or a physical
+      // column index for array-based data, through `toVisualColumn`.
       const visualColumn = this.hot.propToCol(prop);
 
-      if (!isNumeric(visualColumn)) {
+      if (!isNumeric(visualRow) || !isNumeric(visualColumn)) {
         return;
       }
 

@@ -3290,6 +3290,32 @@ describe('Formulas general', () => {
       ]);
     });
 
+    it('should respect preserveTextValue when setting source data on a sorted grid', async() => {
+      handsontable({
+        data: [['0123456'], ['9876543']],
+        columns: [{ type: 'text' }],
+        cell: [{ row: 0, col: 0, preserveTextValue: true }],
+        columnSorting: true,
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      // `setSourceDataAtCell` takes a physical row index, and the `afterSetSourceDataAtCell` hook
+      // reports it unchanged. Physical row 0 is the preserved cell and, after the descending sort,
+      // it is visual row 1 - which is engine row 1, because the engine sheet follows the visual order.
+      await setSourceDataAtCell(0, 0, '0555');
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['9876543'],
+        ['\'0555'],
+      ]);
+    });
+
     it('should escape preserved values correctly for array-of-objects data with moved columns', async() => {
       handsontable({
         data: [{ id: '0123456', name: 'a' }, { id: '7654321', name: 'b' }],
