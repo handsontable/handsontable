@@ -119,9 +119,40 @@ Hooks.getSingleton().register('afterFormulasValuesUpdate');
 const isBlockedSource = (source: unknown) =>
   source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto';
 
+// Undo/redo actions that add or remove rows or columns. They are the only ones that make
+// HyperFormula rewrite formula references, so they are the only ones whose source data has to be
+// caught up in `afterUndo`/`afterRedo`. Reordering actions (a row move, for instance) must not
+// trigger the write-back - they leave the source data's own reference frame untouched.
+const STRUCTURAL_ACTION_TYPES = new Set(['insert_row', 'insert_col', 'remove_row', 'remove_col']);
+
+const getActionType = (action: unknown) => {
+  if (typeof action !== 'object' || action === null || !('actionType' in action)) {
+    return null;
+  }
+
+  return (action as { actionType: string }).actionType;
+};
+
+const isStructuralAction = (action: unknown) => STRUCTURAL_ACTION_TYPES.has(getActionType(action) as string);
+
+// `MoveCellsAction.undo` restores both regions with `restoreRegion` instead of replaying the move, so
+// `afterMoveCells` - where the forward direction syncs - never fires. Undo has to cover it here.
+// Redo does replay the move, so it must NOT be listed, or the sheet would be scanned twice.
+const isUndoneMoveCells = (action: unknown) => getActionType(action) === 'move_cells';
+
+// Only these can leave a formula pointing at cells that no longer exist.
+const REFERENCE_BREAKING_ACTION_TYPES = new Set(['remove_row', 'remove_col', 'move_cells']);
+
+const canBreakReferences = (action: unknown) =>
+  REFERENCE_BREAKING_ACTION_TYPES.has(getActionType(action) as string);
+
 // Maximum number of `[startIndex, amount]` spans passed to a single variadic engine
 // `removeRows`/`removeColumns` call. An unbounded argument spread could overflow the call stack.
 const REMOVAL_SPANS_CHUNK_SIZE = 1000;
+
+// A formula whose reference the engine could not keep. Only operations that remove or relocate
+// cells may put one into the source data - see `#syncFormulasToSourceData`.
+const REF_ERROR_PATTERN = /#REF!/;
 
 // Group under which the plugin's grid shortcuts are registered, so `disablePlugin` can drop them all.
 const SHORTCUTS_GROUP = PLUGIN_KEY;
@@ -244,6 +275,17 @@ export class Formulas extends BasePlugin {
    * @type {boolean}
    */
   #moveCellsSyncPending = false;
+
+  /**
+   * Guard flag set while `#syncFormulasToSourceData` writes engine-rewritten formulas back to
+   * Handsontable.
+   * Prevents the `afterSetSourceDataAtCell` hook from pushing the very same formulas into
+   * HyperFormula again.
+   *
+   * @private
+   * @type {boolean}
+   */
+  #sourceDataSyncPending = false;
 
   /**
    * The changes that the engine reported while undoing or redoing an action. They are collected in
@@ -618,7 +660,7 @@ export class Formulas extends BasePlugin {
       this.#undoRedoDependentCells = this.#isRedoingMoveCells ? [] : (this.engine!.redo() ?? []);
     });
 
-    this.addHook('afterUndo', () => {
+    this.addHook('afterUndo', (action: unknown) => {
       this.indexSyncer!.setPerformUndo(false);
       // Also clears the redo flags: a redo cancelled by a `beforeRedo` listener never fires
       // `afterRedo`, so without these resets the flags set in `beforeRedo` would leak until the
@@ -626,11 +668,21 @@ export class Formulas extends BasePlugin {
       this.indexSyncer!.setPerformRedo(false);
       this.#isRedoingMoveCells = false;
       this.#validateUndoRedoDependentCells();
+
+      // The structural hooks skip blocked sources, so undoing a row/column change reverts the
+      // formulas inside the engine only - the source data has to be caught up separately.
+      if (isStructuralAction(action) || isUndoneMoveCells(action)) {
+        this.#syncFormulasToSourceData(canBreakReferences(action));
+      }
     });
 
-    this.addHook('afterRedo', () => {
+    this.addHook('afterRedo', (action: unknown) => {
       this.indexSyncer!.setPerformRedo(false);
       this.#validateUndoRedoDependentCells();
+
+      if (isStructuralAction(action)) {
+        this.#syncFormulasToSourceData(canBreakReferences(action));
+      }
     });
 
     this.addHook('afterRedo', () => {
@@ -1692,6 +1744,10 @@ export class Formulas extends BasePlugin {
     if (
       ioMode !== 'get' ||
       this.#internalOperationPending ||
+      // While the write-back runs, reads must report what is really stored. Core reads the previous
+      // value to build the `afterSetSourceDataAtCell` payload, and projecting the engine's formula
+      // onto it would hand listeners an old value equal to the new one.
+      this.#sourceDataSyncPending ||
       this.sheetName === null ||
       !this.engine?.doesSheetExist(this.sheetName)
     ) {
@@ -1811,6 +1867,11 @@ export class Formulas extends BasePlugin {
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   #onAfterSetSourceDataAtCell = (changes: CellChange[], source: string) => {
+    // Checked before the blocked-source branch so the write-back never reaches undo/redo tracking.
+    if (this.#sourceDataSyncPending) {
+      return;
+    }
+
     if (isBlockedSource(source)) {
       this.#registerUndoRedoWrite(changes, source, false);
 
@@ -1940,6 +2001,208 @@ export class Formulas extends BasePlugin {
   };
 
   /**
+   * Checks whether the engine's column indexes are Handsontable's *physical* ones.
+   *
+   * `#getProcessedSourceDataArray` feeds the engine rows projected to the visible columns only when
+   * an array-of-arrays source actually skips physical indexes; array-of-objects rows arrive already
+   * projected. In every other case the engine receives the raw physical row, so a `columns` list
+   * that merely *reorders* the same number of columns leaves the engine on physical indexes while
+   * the grid reads them through `colToProp`.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  #doesEngineHoldPhysicalColumns() {
+    if (this.hot.countCols() < this.hot.countSourceCols()) {
+      return false;
+    }
+
+    // Only the shape of the data matters, and it is the same for every row, so one row answers it.
+    // `getSourceData()` would rebuild the whole dataset just to run `isArrayOfArrays` over it.
+    return Array.isArray(this.hot.getSourceDataAtRow(0));
+  }
+
+  /**
+   * Resolves an engine column index to the visual column to read from and the prop to write to.
+   *
+   * The two differ: `getSourceDataAtCell` resolves its column argument as a visual index, while
+   * `setSourceDataAtCell` takes a prop. Returns `null` when the cell has no visual counterpart and
+   * must be left alone.
+   *
+   * @private
+   * @param {number} hfColumn The engine's column index.
+   * @param {boolean} engineHoldsPhysicalColumns Result of `#doesEngineHoldPhysicalColumns`, passed in
+   *   because it reads the whole source data and must not be recomputed per cell.
+   * @returns {{ visualColumn: number, prop: string | number } | null}
+   */
+  #resolveEngineColumn(hfColumn: number, engineHoldsPhysicalColumns: boolean) {
+    if (engineHoldsPhysicalColumns) {
+      // The engine index is the physical one, which doubles as the prop for array-of-arrays data.
+      const visualColumn = this.hot.propToCol(hfColumn);
+
+      return isNumeric(visualColumn) && (visualColumn as number) >= 0
+        ? { visualColumn: visualColumn as number, prop: hfColumn }
+        : null;
+    }
+
+    const visualColumn = this.columnAxisSyncer!.getVisualIndexFromHfIndex(hfColumn);
+
+    // A trimmed column has no visual index, and without one there is no prop to write to either.
+    return visualColumn === -1 ? null : { visualColumn, prop: this.hot.colToProp(visualColumn) as string | number };
+  }
+
+  /**
+   * Checks whether a stored cell value is the same formula as the one the engine holds, ignoring
+   * how it was spelled.
+   *
+   * HyperFormula hands back a canonical form - `=sum( a1 : a2 )` comes out as `=SUM( A1:A2 )`. A
+   * plain string comparison would read that as a change and rewrite formulas the operation never
+   * touched, including ones with no cell references at all.
+   *
+   * @private
+   * @param {*} stored The value held in the source data.
+   * @param {string} engineFormula The formula reported by the engine.
+   * @returns {boolean}
+   */
+  #isSameFormula(stored: unknown, engineFormula: string) {
+    if (!isFormula(stored)) {
+      return false;
+    }
+
+    try {
+      return this.engine!.normalizeFormula(stored as string) === engineFormula;
+    } catch {
+      // Not something the engine can parse - treat it as different and let the write happen.
+      return false;
+    }
+  }
+
+  /**
+   * Writes the formulas that HyperFormula rewrote during a structural change back into
+   * Handsontable's source data.
+   *
+   * Inserting or removing rows and columns makes HyperFormula shift the references inside every
+   * affected formula (`=SUM(A1:A3)` becomes `=SUM(A1:A4)` after a row is inserted into that
+   * range). Until this sync runs, that rewrite lives only inside the engine and is projected onto
+   * reads by the `modifySourceData` hook, which leaves the array the developer passed to
+   * Handsontable holding the *old* formula. Any consumer that owns the data outside the grid — a
+   * Redux store, a React `data` prop, a snapshot saved to a server — then keeps the stale text and
+   * reverts the formula the moment that array is loaded back in.
+   *
+   * The engine changes reported by `addRows`/`removeRows`/... cannot drive this: they list cells
+   * whose *value* changed, and a reference shift usually leaves the value intact. So the sheet's
+   * formulas are read in bulk and only the cells that actually differ are written.
+   *
+   * The write is fenced with `#sourceDataSyncPending` so `afterSetSourceDataAtCell` does not push
+   * the formulas straight back into the engine. External listeners still receive that hook, which
+   * is what lets an outside store learn the new formula text - with a real previous value, because
+   * the same flag switches the read projection off while Core builds that payload.
+   *
+   * Row and column *moves* (and sorting) are deliberately excluded: they reorder the engine's
+   * indexes without touching the source data, so the two stop sharing a reference frame. While that
+   * is the case nothing is written back at all - the read-time projection keeps handling it, exactly
+   * as it did before.
+   *
+   * @private
+   */
+  #syncFormulasToSourceData(allowBrokenReferences = false) {
+    if (
+      this.#internalOperationPending ||
+      this.sheetName === null ||
+      !this.engine?.doesSheetExist(this.sheetName)
+    ) {
+      return;
+    }
+
+    // Once rows or columns have been moved or sorted, the engine and the source data no longer
+    // share a reference frame, and the engine's formulas would be wrong in the source data's terms.
+    if (!this.rowAxisSyncer!.isHfOrderPhysical() || !this.columnAxisSyncer!.isHfOrderPhysical()) {
+      return;
+    }
+
+    const sheetId = this.engine.getSheetId(this.sheetName)!;
+    const dimensions = this.engine.getSheetDimensions(sheetId);
+
+    if (dimensions.width === 0 && dimensions.height === 0) {
+      return;
+    }
+
+    const formulas = this.engine.getSheetFormulas(sheetId);
+    const changes: Array<[number, string | number, unknown]> = [];
+    // Resolved once for the run, and only if a formula cell is actually found - it reads the data.
+    let engineHoldsPhysicalColumns: boolean | null = null;
+
+    // Compare against what Handsontable stores, not against what it reports - `#onModifySourceData`
+    // would otherwise answer with the engine's formula and hide every diff.
+    this.#internalOperationPending = true;
+
+    try {
+      for (let hfRow = 0; hfRow < formulas.length; hfRow++) {
+        const formulasRow = formulas[hfRow];
+
+        if (!formulasRow) {
+          continue;
+        }
+
+        // The order guard above means the engine's index IS the physical index, so trimmed rows
+        // (Filters, `trimRows`) are reached too - they hold formulas that need the same catch-up.
+        const physicalRow = hfRow;
+
+        for (let hfColumn = 0; hfColumn < formulasRow.length; hfColumn++) {
+          const formula = formulasRow[hfColumn];
+
+          if (formula === undefined) {
+            continue;
+          }
+
+          if (engineHoldsPhysicalColumns === null) {
+            engineHoldsPhysicalColumns = this.#doesEngineHoldPhysicalColumns();
+          }
+
+          const column = this.#resolveEngineColumn(hfColumn, engineHoldsPhysicalColumns);
+
+          if (column === null) {
+            continue;
+          }
+
+          // `getSourceDataAtCell` takes a physical row and a visual column, `setSourceDataAtCell`
+          // a physical row and a prop.
+          const stored = this.hot.getSourceDataAtCell(physicalRow, column.visualColumn);
+
+          if (stored === formula || this.#isSameFormula(stored, formula)) {
+            continue;
+          }
+
+          // An engine formula can hold `#REF!` for reasons this change did not cause. Persisting it
+          // would overwrite a still-good formula in the developer's array with an unrecoverable one,
+          // so it is only written for the operations that can legitimately break a reference.
+          if (!allowBrokenReferences && REF_ERROR_PATTERN.test(formula) && !REF_ERROR_PATTERN.test(String(stored))) {
+            continue;
+          }
+
+          changes.push([physicalRow, column.prop, formula]);
+        }
+      }
+    } finally {
+      this.#internalOperationPending = false;
+    }
+
+    if (changes.length === 0) {
+      return;
+    }
+
+    this.#sourceDataSyncPending = true;
+
+    try {
+      this.hot.setSourceDataAtCell(
+        changes, undefined, undefined, `${toUpperCaseFirst(PLUGIN_KEY)}.syncSourceData`
+      );
+    } finally {
+      this.#sourceDataSyncPending = false;
+    }
+  }
+
+  /**
    * `afterCreateRow` hook callback.
    *
    * @param {number} visualRow Represents the visual index of first newly created row in the data source array.
@@ -1955,6 +2218,7 @@ export class Formulas extends BasePlugin {
     const changes = this.engine!.addRows(this.sheetId,
       [this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow), amount]);
 
+    this.#syncFormulasToSourceData();
     this.renderDependentSheets(changes);
   };
 
@@ -1974,6 +2238,7 @@ export class Formulas extends BasePlugin {
     const changes = this.engine!.addColumns(this.sheetId,
       [this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn), amount]);
 
+    this.#syncFormulasToSourceData();
     this.renderDependentSheets(changes);
   };
 
@@ -1997,6 +2262,7 @@ export class Formulas extends BasePlugin {
       this.#removeSpansFromEngine(removedSpans, 'removeRows');
     });
 
+    this.#syncFormulasToSourceData(true);
     this.renderDependentSheets(changes);
   };
 
@@ -2020,6 +2286,7 @@ export class Formulas extends BasePlugin {
       this.#removeSpansFromEngine(removedSpans, 'removeColumns');
     });
 
+    this.#syncFormulasToSourceData(true);
     this.renderDependentSheets(changes);
   };
 
@@ -2251,6 +2518,10 @@ export class Formulas extends BasePlugin {
     // Sync HOT's source data with HF's updated state so that getDataAtCell returns
     // correct values for VALUE/EMPTY cells (formula cells are already served via modifyData).
     this.#syncHotDataAfterMoveCells(committed);
+
+    // `#syncHotDataAfterMoveCells` covers the cells that were moved. Formulas elsewhere that
+    // pointed at the moved range were rewritten by the engine too, and need the same catch-up.
+    this.#syncFormulasToSourceData(true);
 
     // During undo/redo replay the engine step was skipped (dependentCells is null) and the
     // HOT re-render after undo/redo refreshes all dependent cells anyway.

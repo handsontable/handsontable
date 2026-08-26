@@ -176,6 +176,28 @@ class AxisSyncer {
   }
 
   /**
+   * Checks whether HyperFormula's index order still matches Handsontable's physical order.
+   *
+   * A move or a sort reorders the engine's rows/columns (`syncMoves` calls `engine.moveRows`), while
+   * the source data keeps its own physical order. From that point the formulas the engine holds are
+   * written in a different reference frame than the ones stored in the source data, and the two must
+   * not be copied across.
+   *
+   * @returns {boolean}
+   */
+  isHfOrderPhysical() {
+    const physicalIndexOfHf = this.#indexMapper.getIndexesSequence();
+
+    for (let hfIndex = 0; hfIndex < physicalIndexOfHf.length; hfIndex += 1) {
+      if (physicalIndexOfHf[hfIndex] !== hfIndex) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * Gets corresponding HyperFormula index for particular visual index. It's respecting the idea that HF's engine
    * is fed also with trimmed indexes (business requirements for formula result calculation also for trimmed elements).
    *
