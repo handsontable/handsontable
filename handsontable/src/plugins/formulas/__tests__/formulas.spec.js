@@ -3049,6 +3049,113 @@ describe('Formulas general', () => {
       ]);
     });
 
+    it('should read the autofill source cell meta through visual indexes when a trimmed row precedes it', async() => {
+      handsontable({
+        data: [
+          ['trimmed'],
+          [''],
+          [''],
+          [''],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        // Only physical row 1 – the autofill source (visual row 0, since physical row 0 is
+        // trimmed) – is marked as preserved. `cells()` is called with physical coordinates.
+        cells(row, column) {
+          if (row === 1 && column === 0) {
+            return { type: 'text', preserveTextValue: true };
+          }
+
+          return { type: 'text' };
+        },
+        trimRows: [0],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await setDataAtCell(0, 0, '0123456');
+
+      // Physical row 0 is trimmed but still occupies a HyperFormula index (the engine is fed
+      // trimmed rows too), so the source cell's HF index (1) and its visual index (0) diverge –
+      // reading `getCellMeta()` with the raw HF index (1) lands on visual row 1 instead of the
+      // actual (visual row 0) source cell, and visual row 1 is not marked as preserved.
+      await selectCell(0, 0);
+      autofill(2, 0);
+
+      await waitForNextAnimationFrames(2);
+
+      // `getDataAtCol`/`getSourceDataAtCol` range over the raw physical row count, so they would
+      // include the trimmed row – read cell-by-cell through the visual (`getDataAtCell`) and
+      // physical (`getSourceDataAtCell`) coordinates instead.
+      expect(getDataAtCell(0, 0)).toBe('0123456');
+      expect(getDataAtCell(1, 0)).toBe('0123456');
+      expect(getDataAtCell(2, 0)).toBe('0123456');
+
+      expect(getSourceDataAtCell(1, 0)).toBe('0123456');
+      expect(getSourceDataAtCell(2, 0)).toBe('0123456');
+      expect(getSourceDataAtCell(3, 0)).toBe('0123456');
+
+      // Only physical row 1 (the source) carries `preserveTextValue`, so the engine keeps only
+      // that cell escaped – the filled cells are not preserved cells in their own right and are
+      // synced to the engine as plain text.
+      const filledHfCells = [1, 2, 3].map(row => formulasPlugin.engine.getCellSerialized({
+        sheet: formulasPlugin.sheetId, row, col: 0,
+      }));
+
+      expect(filledHfCells).toEqual(['\'0123456', '0123456', '0123456']);
+    });
+
+    it('should autofill an escaped formula expression from a preserveTextValue source without changing its escaping', async() => {
+      handsontable({
+        data: [
+          ['x', '=LEN(A1)'],
+          ['', '=LEN(A2)'],
+          ['', '=LEN(A3)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+          preserveTextValue: true,
+        }, {}],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      // `'=SUM(A1)` is the documented way to store a formula expression as plain text (a leading
+      // apostrophe escapes it from HyperFormula's formula parsing).
+      await setDataAtCell(0, 0, '\'=SUM(A1)');
+
+      const sourceDisplayedValue = getDataAtCell(0, 0);
+
+      await selectCell(0, 0);
+      autofill(2, 0);
+
+      await waitForNextAnimationFrames(2);
+
+      // The escaped formula expression is excluded from the `preserveTextValue` stripping branch
+      // (`isPreservedText` returns `false` for it), so autofill must reach every filled cell with
+      // neither an apostrophe gained (it would then read as the literal text `'=SUM(A1)`) nor one
+      // lost (it would then be parsed by the engine as a real formula). `getDataAtCol` reads the
+      // displayed value (engine-computed, apostrophe stripped); `getSourceDataAtCol` reads the raw
+      // stored value (still escaped, as written).
+      expect(getDataAtCol(0)).toEqual([sourceDisplayedValue, sourceDisplayedValue, sourceDisplayedValue]);
+      expect(getSourceDataAtCol(0)).toEqual(['\'=SUM(A1)', '\'=SUM(A1)', '\'=SUM(A1)']);
+
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['\'=SUM(A1)', '=LEN(A1)'],
+        ['\'=SUM(A1)', '=LEN(A2)'],
+        ['\'=SUM(A1)', '=LEN(A3)'],
+      ]);
+      expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)).toEqual([
+        ['=SUM(A1)', 8],
+        ['=SUM(A1)', 8],
+        ['=SUM(A1)', 8],
+      ]);
+    });
+
     it('should respect the option set at the grid level (cascading configuration)', async() => {
       handsontable({
         data: [
