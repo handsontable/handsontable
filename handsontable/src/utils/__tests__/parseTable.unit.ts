@@ -2,6 +2,7 @@ import {
   instanceToHTML, instanceToTableElement, _dataToHTML, htmlToGridSettings
 } from '../parseTable';
 import Handsontable from '../../index';
+import { stripTags } from '../../helpers/string';
 import { registerCellType, TextCellType } from '../../cellTypes';
 
 registerCellType(TextCellType);
@@ -719,8 +720,10 @@ describe('header sanitizing parity between toHTML and toTableElement', () => {
   }
 
   it('should put the header through the sanitizer in both representations', () => {
-    const strip = (html: string) => html.replace(/<[^>]*>/g, '');
-    const hot = gridWithMarkupHeader(strip);
+    // `stripTags` rather than a hand-rolled `replace(/<[^>]*>/g, '')`: a single-pass regex is
+    // incomplete sanitization, since `<<script>script>` re-forms a tag after one pass. The helper
+    // loops until the string stops changing, which is also what a real sanitizer does.
+    const hot = gridWithMarkupHeader(stripTags);
     const fromString = instanceToHTML(hot as never);
     const fromDom = instanceToTableElement(hot as never, document);
 
