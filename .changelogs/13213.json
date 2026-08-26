@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed the `Formulas` plugin skipping `date` escaping on `loadData()` and `updateData()`: non-ISO date-like values in `date`-type columns (for example `'123'`, `'12:30'`, or `'TRUE'`) now reach the calculation engine as text instead of a number, a time fraction, or a boolean; strictly ISO `YYYY-MM-DD` values are unaffected. Also fixed the `cells()` function being skipped during that same load, so a `type` or option set only through `cells()` now applies to `loadData()` and `updateData()` too, and the `beforeGetCellMeta`/`afterGetCellMeta` hooks now run during that scan as well.",
-  "type": "fixed",
-  "issueOrPR": 13213,
-  "breaking": false,
-  "framework": "none"
-}

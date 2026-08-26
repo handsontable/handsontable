@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Added the `preserveTextValue` cell meta option that makes the `Formulas` plugin pass values of `text`-type cells to the calculation engine as strings, preserving leading zeros of number-like values.",
+  "title": "Added the `preserveTextValue` cell meta option that makes the `Formulas` plugin pass values of `text`-type cells to the calculation engine as strings, preserving leading zeros of number-like values. Wiring it in also aligned `loadData()` and `updateData()` with the initial data load: non-ISO date-like values in `date`-type columns (for example `'123'`, `'12:30'`, or `'TRUE'`) now reach the engine as text instead of a number, a time fraction, or a boolean, and a `type` or option set only through the `cells()` function now applies on those paths too.",
   "type": "added",
   "issueOrPR": 8794,
   "breaking": false,
