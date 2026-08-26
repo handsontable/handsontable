@@ -404,39 +404,45 @@ const accessor = columnIndex => function(row, value) {
   }
 };
 
-const hot = new Handsontable(container, {
+const settings = {
   data: rows,
   columns: source.map((column, columnIndex) => ({ data: accessor(columnIndex) })),
   dataSchema: () => ({ index: -1 }),
-  licenseKey: 'non-commercial-and-evaluation',
-});
+};
 ```
+
+Pass `settings` to Handsontable the way your framework does -- as the second argument to the constructor, or as the component's settings.
 
 The grid now renders one row per position across the columns. Columns of unequal length leave empty cells at the bottom of the shorter ones. An edit writes straight into `source`, so no copy can fall behind.
 
 That is the whole setup for reading and writing existing cells. Adding and removing rows needs two more hooks.
 
-A row the grid creates has no slot in your column arrays yet. Until you make one, that row renders empty and discards whatever the end user types into it, without an error. So if anything can create a row -- the context menu, [`minSpareRows`](@/api/options.md#minsparerows), or [`alter()`](@/api/core.md#alter) -- keep the column arrays in step through [`afterCreateRow`](@/api/hooks.md#aftercreaterow) and [`afterRemoveRow`](@/api/hooks.md#afterremoverow).
+A row the grid creates has no slot in your column arrays yet. Its row object still holds the [`dataSchema`](@/api/options.md#dataschema) marker `-1`, so the accessor writes a value typed into that row to `source[columnIndex][-1]` -- a property on the array object, not one of its elements. The grid displays the value, because the accessor reads the same slot back, but the value never joins your data, and every row the grid creates shares that one slot. So if anything can create a row -- the context menu, [`minSpareRows`](@/api/options.md#minsparerows), or [`alter()`](@/api/core.md#alter) -- keep the column arrays in step through [`afterCreateRow`](@/api/hooks.md#aftercreaterow) and [`afterRemoveRow`](@/api/hooks.md#afterremoverow).
 
 Both hooks report a **visual** row index, while the column arrays are physical, so translate before you splice. For an insert, the new row object still carries the [`dataSchema`](@/api/options.md#dataschema) marker, and its position in `rows` is the physical index. For a removal, use the hook's `physicalRows` argument and splice the highest index first:
 
 ```javascript
-afterCreateRow(index, amount) {
-  const at = rows.findIndex(row => row.index === -1);
+const settings = {
+  // ... the options above
+  afterCreateRow(index, amount) {
+    const at = rows.findIndex(row => row.index === -1);
 
-  source.forEach(column => {
-    column.splice(at === -1 ? index : at, 0, ...new Array(amount).fill(null));
-  });
-  restamp(rows);
-  hot.render();
-},
-afterRemoveRow(index, amount, physicalRows) {
-  [...physicalRows].sort((a, b) => b - a).forEach(row => {
-    source.forEach(column => column.splice(row, 1));
-  });
-  restamp(rows);
-  hot.render();
-},
+    source.forEach(column => {
+      column.splice(at === -1 ? index : at, 0, ...new Array(amount).fill(null));
+    });
+    restamp(rows);
+    // Call `this.render()`, not a variable holding the instance: with `minSpareRows` this hook
+    // runs while Handsontable is still starting up, before that variable holds anything.
+    this.render();
+  },
+  afterRemoveRow(index, amount, physicalRows) {
+    [...physicalRows].sort((a, b) => b - a).forEach(row => {
+      source.forEach(column => column.splice(row, 1));
+    });
+    restamp(rows);
+    this.render();
+  },
+};
 ```
 
 Three more things to know about this setup:

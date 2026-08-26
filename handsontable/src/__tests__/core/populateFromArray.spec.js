@@ -394,6 +394,24 @@ describe('Core_populateFromArray', () => {
       expect(getDataAtCol(2)).toEqual([null, 'y3', 'C1', 'C2']);
     });
 
+    it('should not throw when every input row is empty', async() => {
+      handsontable({
+        data: [
+          ['A1', 'B1'],
+          ['A2', 'B2'],
+        ],
+      });
+
+      // `[[], []]` has rows, so the `input.length === 0` guard does not catch it. Without an early
+      // return the column lookup divides by zero, reads `NaN` and throws on `.concat`.
+      await populateFromArray(0, 0, [[], []], 1, 1, 'test', 'shift_down');
+
+      expect(getData()).toEqual([
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+      ]);
+    });
+
     it('should fill the gap left by a short row with an empty cell', async() => {
       handsontable({
         data: [

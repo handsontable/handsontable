@@ -572,5 +572,20 @@ describe('Array helper', () => {
     it('should preserve a `null` that was in the input', () => {
       expect(pivot([[null, 'b'], ['c', null]])).toStrictEqual([[null, 'c'], ['b', null]]);
     });
+
+    it('should replace an explicit `undefined` with the empty-cell value', () => {
+      // This also holds for a full-width row, so the output of a rectangular input changes when it
+      // carries an explicit `undefined`. Keeping every returned row dense is the point.
+      expect(pivot([[1, undefined], [3, 4]])).toStrictEqual([[1, 3], [null, 4]]);
+    });
+
+    it('should skip a row that is not an array', () => {
+      expect(pivot([['a', 'b'], null as unknown as unknown[], ['c', 'd']]))
+        .toStrictEqual([['a', null, 'c'], ['b', null, 'd']]);
+    });
+
+    it('should return an empty array when every row is empty', () => {
+      expect(pivot([[], []])).toStrictEqual([]);
+    });
   });
 });

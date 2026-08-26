@@ -28,13 +28,16 @@ export function extendArray(arr: unknown[], extension: unknown[]): void {
 /**
  * Transposes a two-dimensional array, turning its rows into columns.
  *
- * Rows of unequal length are supported: the widest row decides how many columns come out, and
- * a shorter row contributes the empty-cell value (`null`) for the positions it does not reach.
+ * The rows may differ in length. The widest row decides how many columns come out, and a shorter
+ * row yields the empty-cell value (`null`) for the positions it does not reach.
+ *
+ * The output holds `null` wherever the input held `undefined`, including in a full-width row, so
+ * that every returned row is dense.
  *
  * @param {Array} arr An array to pivot.
  * @returns {Array}
  */
-export function pivot(arr: unknown[][]): unknown[] {
+export function pivot(arr: unknown[][]): unknown[][] {
   const pivotedArr: unknown[][] = [];
 
   if (!arr || arr.length === 0) {
