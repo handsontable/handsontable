@@ -22,7 +22,7 @@ test(config.name, async({ page }) => {
     warmupRuns: config.warmupRuns,
     iterations: config.iterations,
     outputDir,
-    actionFn: async(isMeasured) => {
+    actionFn: async() => {
       const sortOrder = sortAscending ? 'asc' : 'desc';
 
       // Alternate sort direction across iterations
@@ -35,13 +35,15 @@ test(config.name, async({ page }) => {
 
       sortAscending = !sortAscending;
 
-      // Capture hook timing only during measured iterations
-      if (isMeasured) {
-        const timing = await getHookTiming(page, 'beforeColumnSort', 'afterColumnSort');
+    },
+    // Read back after the window closes -- this is a CDP round trip, and inside the
+    // window it would be billed to the action on measured iterations only, making them
+    // a different shape from the warmups.
+    afterActionFn: async() => {
+      const timing = await getHookTiming(page, 'beforeColumnSort', 'afterColumnSort');
 
-        if (timing.deltaMs != null) {
-          hookDeltas.push(timing.deltaMs);
-        }
+      if (timing.deltaMs != null) {
+        hookDeltas.push(timing.deltaMs);
       }
     },
     resetFn: async() => {

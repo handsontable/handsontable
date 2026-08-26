@@ -50,6 +50,23 @@ async function collectScenarioResults() {
 
     console.log(' done');
 
+    // Every number this suite publishes assumes the window came from the marks the
+    // runner writes around the action. Without them the parser silently falls back to
+    // the DevTools auto-zoom, which lands on the CDP interrupt rather than the grid
+    // work -- the exact defect the marks exist to avoid. windowSource lives in _debug,
+    // which is stripped before the snapshot is saved, so say it out loud here or it is
+    // invisible everywhere.
+    const fellBack = parsedResults
+      .map((result, index) => (result._debug?.windowSource === 'marks' ? null : index + 1))
+      .filter(iteration => iteration !== null);
+
+    if (fellBack.length > 0) {
+      console.warn(
+        `  WARN: ${entry.name} iteration(s) ${fellBack.join(', ')} carried no measurement marks; ` +
+        'these fell back to the auto-zoomed window and are not comparable to marked runs.'
+      );
+    }
+
     // Collect per-iteration values for CV% calculation
     const iterationValues = collectIterationValues(parsedResults);
 

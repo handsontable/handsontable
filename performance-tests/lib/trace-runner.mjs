@@ -94,22 +94,34 @@ const SETTLE_TIMEOUT_MS = 1000;
  *
  * Two animation frames, because the paint for frame N happens after frame N's
  * callbacks: once frame N+1's callback runs, frame N has been committed. The
- * idle callback then catches trailing work (deferred layout, async paint), and
- * is bounded so a busy main thread cannot hang the run.
+ * idle callback then catches trailing work (deferred layout, async paint).
+ *
+ * The whole wait races a timer, not just the idle callback: requestAnimationFrame
+ * does not fire at all in a throttled or occluded page, so without the race a
+ * stalled renderer would hang until Playwright's per-test timeout instead of the
+ * bound named here.
  *
  * @param {import('@playwright/test').Page} page
  * @param {number} [timeoutMs=SETTLE_TIMEOUT_MS] -- upper bound for the idle wait
  */
 export async function settleFrames(page, timeoutMs = SETTLE_TIMEOUT_MS) {
   await page.evaluate(timeout => new Promise((resolve) => {
+    const done = () => resolve(null);
+    // Hard ceiling on the whole wait, including the animation frames.
+    const bail = setTimeout(done, timeout);
+    const finish = () => {
+      clearTimeout(bail);
+      done();
+    };
+
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         const idle = /** @type {any} */ (window).requestIdleCallback;
 
         if (typeof idle === 'function') {
-          idle(() => resolve(null), { timeout });
+          idle(finish, { timeout });
         } else {
-          setTimeout(() => resolve(null), 0);
+          setTimeout(finish, 0);
         }
       });
     });
@@ -122,6 +134,8 @@ export async function settleFrames(page, timeoutMs = SETTLE_TIMEOUT_MS) {
  * @param {(isMeasured: boolean) => Promise<void>} options.actionFn -- the traced action; receives true during measured iterations, false during warmup
  * @param {() => Promise<void>} [options.setupFn] -- pre-trace setup (run once before warmup)
  * @param {() => Promise<void>} [options.resetFn] -- reset state between iterations
+ * @param {(isMeasured: boolean) => Promise<void>} [options.afterActionFn] -- runs after the measured
+ *   window closes; put readbacks here so their CDP round trip is not billed to the action
  * @param {() => Promise<void>} [options.settleFn] -- overrides the default post-action settle
  * @param {boolean} [options.skipSettle=false] -- opt out of settling before the trace stops
  * @param {number} [options.warmupRuns=1]
@@ -133,6 +147,7 @@ export async function runTracedScenario({
   actionFn,
   setupFn,
   resetFn,
+  afterActionFn,
   settleFn,
   skipSettle = false,
   warmupRuns = 1,
@@ -140,6 +155,15 @@ export async function runTracedScenario({
   outputDir,
 }) {
   await mkdir(outputDir, { recursive: true });
+
+  // A reset renders synchronously but paints a frame later, and specs typically wait
+  // only for the render (cell-editing waits on countRenderedRows). Left unsettled, that
+  // paint lands inside the next iteration's window and is billed to the next action.
+  const settleAfterReset = async() => {
+    if (!skipSettle) {
+      await (settleFn ? settleFn() : settleFrames(page));
+    }
+  };
 
   // Run setup once (e.g., scrollViewportTo for scroll-up)
   if (setupFn) {
@@ -161,6 +185,7 @@ export async function runTracedScenario({
 
     if (resetFn) {
       await resetFn();
+      await settleAfterReset();
     }
   }
 
@@ -186,6 +211,11 @@ export async function runTracedScenario({
 
     await mark(page, MEASURE_END_MARK);
 
+    // Outside the window: a readback here is harness overhead, not measured work.
+    if (afterActionFn) {
+      await afterActionFn(true);
+    }
+
     clearInterval(heartbeat);
 
     process.stdout.write(' stopping');
@@ -198,6 +228,7 @@ export async function runTracedScenario({
 
     if (resetFn && i < iterations) {
       await resetFn();
+      await settleAfterReset();
     }
   }
 }
