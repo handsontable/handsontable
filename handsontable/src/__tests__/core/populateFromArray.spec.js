@@ -355,6 +355,64 @@ describe('Core_populateFromArray', () => {
         [9, 0, null, null], [9, 1, null, null], [9, 2, null, null], [9, 3, null, null], [9, 4, null, null], [9, 5, null, null],
       ], 'populateFromArray');
     });
+
+    it('should keep every cell of a ragged input when a later row is wider than the first one', async() => {
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2'],
+          ['A3', 'B3', 'C3'],
+        ],
+      });
+
+      // The first row holds one value, the second holds three. The width of the whole input has
+      // to come from the widest row, or 'y2' and 'y3' are dropped without a word.
+      await populateFromArray(0, 0, [['x'], ['y1', 'y2', 'y3']], null, null, null, 'shift_down');
+
+      expect(getData()).toEqual([
+        ['x', null, null],
+        ['y1', 'y2', 'y3'],
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+        ['A3', 'B3', 'C3'],
+      ]);
+    });
+
+    it('should push the pushed-down rows all the way down, not only under the first input column', async() => {
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2'],
+        ],
+      });
+
+      await populateFromArray(0, 0, [['x'], ['y1', 'y2', 'y3']], null, null, null, 'shift_down');
+
+      // Columns B and C must move down with column A. Reading the input width from the first row
+      // left them untouched at the top and padded them with `null` at the bottom instead.
+      expect(getDataAtCol(1)).toEqual([null, 'y2', 'B1', 'B2']);
+      expect(getDataAtCol(2)).toEqual([null, 'y3', 'C1', 'C2']);
+    });
+
+    it('should fill the gap left by a short row with an empty cell', async() => {
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2'],
+        ],
+      });
+
+      // Here the FIRST row is the widest, so the width was already right. What changes is that the
+      // positions the short row does not reach hold `null` rather than `undefined`.
+      await populateFromArray(0, 0, [['a1', 'a2', 'a3'], ['b1']], null, null, null, 'shift_down');
+
+      expect(getData()).toEqual([
+        ['a1', 'a2', 'a3'],
+        ['b1', null, null],
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+      ]);
+    });
   });
 
   describe('should shift values right', () => {

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed `populateFromArray()` with the `shift_down` method silently dropping cells when the input rows had unequal lengths.",
+  "type": "fixed",
+  "issueOrPR": 10268,
+  "breaking": false,
+  "framework": "none"
+}

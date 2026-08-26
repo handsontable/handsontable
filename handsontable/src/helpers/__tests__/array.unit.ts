@@ -10,6 +10,7 @@ import {
   arraySum,
   arrayUnique,
   insertValuesInPlace,
+  pivot,
   removeIndexesInPlace,
   stringToArray,
   getDifferenceOfArrays,
@@ -532,6 +533,44 @@ describe('Array helper', () => {
       it('should return array of strings.', () => {
         expect(stringToArray('class-1,class-2,class-3', ',')).toStrictEqual(['class-1', 'class-2', 'class-3']);
       });
+    });
+  });
+
+  //
+  // Handsontable.helper.pivot
+  //
+  describe('pivot', () => {
+    it('should turn the rows of a rectangular array into columns', () => {
+      expect(pivot([[1, 2, 3], [4, 5, 6]])).toStrictEqual([[1, 4], [2, 5], [3, 6]]);
+    });
+
+    it('should keep the values of a row that is wider than the first one', () => {
+      expect(pivot([['a', 'b'], ['c', 'd', 'e']])).toStrictEqual([['a', 'c'], ['b', 'd'], [null, 'e']]);
+    });
+
+    it('should take the width from the widest row, wherever it sits', () => {
+      expect(pivot([['a'], ['b', 'c'], ['d', 'e', 'f'], ['g']])).toStrictEqual([
+        ['a', 'b', 'd', 'g'],
+        [null, 'c', 'e', null],
+        [null, null, 'f', null],
+      ]);
+    });
+
+    it('should fill the positions a shorter row does not reach with `null`', () => {
+      expect(pivot([['a', 'b', 'c'], ['d']])).toStrictEqual([['a', 'd'], ['b', null], ['c', null]]);
+    });
+
+    it('should not lose the rows that follow an empty first row', () => {
+      expect(pivot([[], ['a', 'b']])).toStrictEqual([[null, 'a'], [null, 'b']]);
+    });
+
+    it('should return an empty array for an empty input', () => {
+      expect(pivot([])).toStrictEqual([]);
+      expect(pivot([[]])).toStrictEqual([]);
+    });
+
+    it('should preserve a `null` that was in the input', () => {
+      expect(pivot([[null, 'b'], ['c', null]])).toStrictEqual([[null, 'c'], ['b', null]]);
     });
   });
 });
