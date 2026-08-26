@@ -795,7 +795,13 @@ export class NestedRows extends BasePlugin {
     const minimumWidth = this.headersUI!.rowHeaderWidthCache ?? 0;
 
     if (Array.isArray(rowHeaderWidth)) {
-      return rowHeaderWidth.map(levelWidth => Math.max(minimumWidth, levelWidth));
+      // Only the first level. The cached minimum is the room THIS plugin's own header needs for its
+      // indentation and its collapse button; the levels after it come from
+      // `afterGetRowHeaderRenderers` and draw neither, so raising them to a deep tree's minimum
+      // would inflate a narrow numbering column for nothing.
+      return rowHeaderWidth.map((levelWidth, headerLevel) => (
+        headerLevel === 0 ? Math.max(minimumWidth, levelWidth) : levelWidth
+      ));
     }
 
     return Math.max(minimumWidth, rowHeaderWidth);

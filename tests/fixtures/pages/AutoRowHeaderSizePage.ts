@@ -20,6 +20,7 @@ export class AutoRowHeaderSizePage {
   readonly inlineStartOverlay: Locator;
   readonly lateGrid: Locator;
   readonly editGrid: Locator;
+  readonly toggleGrid: Locator;
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
@@ -29,6 +30,27 @@ export class AutoRowHeaderSizePage {
     this.inlineStartOverlay = this.grid.locator('.ht_clone_inline_start');
     this.lateGrid = page.getByTestId('late-grid');
     this.editGrid = page.getByTestId('edit-grid');
+    this.toggleGrid = page.getByTestId('toggle-grid');
+  }
+
+  /**
+   * The rendered width of every row header cell of one row, in CSS pixels.
+   *
+   * @param {Locator} grid The grid to read.
+   * @returns {Promise<number[]>}
+   */
+  async rowHeaderWidths(grid: Locator): Promise<number[]> {
+    return grid.locator('.ht_master tbody tr').first().locator('th')
+      .evaluateAll(cells => cells.map(cell => cell.getBoundingClientRect().width));
+  }
+
+  /**
+   * Makes the toggle grid's hook start drawing a second row header level, then re-renders it.
+   */
+  async addExtraLevel(): Promise<void> {
+    await this.page.evaluate(
+      () => (window as unknown as { addExtraLevel: () => void }).addExtraLevel()
+    );
   }
 
   /**

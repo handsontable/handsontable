@@ -1023,4 +1023,30 @@ describe('AutoRowHeaderSize', () => {
       hot.destroy();
     });
   });
+  describe('answering the width hook', () => {
+    it('should answer before the handlers that raise the width, even after updateSettings', () => {
+      const { hot } = buildGrid({ autoRowHeaderSize: true });
+      let seen: unknown = null;
+
+      // Registered with the default order, so it runs after this plugin's pinned handler and sees
+      // whatever the plugin answered - not the width the grid came in with.
+      hot.addHook('modifyRowHeaderWidth', (width: unknown) => {
+        seen = width;
+
+        return width;
+      });
+
+      // `SETTING_KEYS` is `true`, so ANY settings change re-registers the plugin's hooks. Without
+      // the pinned order that re-registration moves the handler to the tail, where it discards the
+      // answer of everything ahead of it - `NestedRows` raises the width for its indented tree, and
+      // that room would be silently dropped.
+      hot.updateSettings({ colHeaders: true });
+      hot.runHooks('modifyRowHeaderWidth', 999);
+
+      expect(seen).not.toBe(999);
+
+      hot.destroy();
+    });
+
+  });
 });

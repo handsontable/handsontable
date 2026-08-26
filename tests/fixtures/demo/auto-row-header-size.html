@@ -55,6 +55,14 @@
   <h2>Label built from cell data</h2>
   <div id="edit-grid" data-testid="edit-grid"></div>
 
+  <!--
+    A row header level that comes and goes with outside state, with no settings change - only a
+    re-render. The measurement has to notice, or the plugin answers with one width while the draw
+    renders two levels, and `ColumnUtils` writes that single width to both of them.
+  -->
+  <h2>A level that appears on re-render</h2>
+  <div id="toggle-grid" data-testid="toggle-grid"></div>
+
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The
     // closing tag is split so the HTML parser does not end THIS script block.
@@ -134,6 +142,33 @@
       licenseKey: 'non-commercial-and-evaluation',
     });
     window.editLongValue = 'ID-2-with-a-considerably-longer-value';
+
+    // --- a level that appears on a plain re-render ---
+    let extraLevel = false;
+    const toggleContainer = document.querySelector('[data-testid="toggle-grid"]');
+
+    toggleContainer.className = `ht-theme-${window.htTheme}`;
+
+    window.toggleHot = new Handsontable(toggleContainer, {
+      data: Array.from({ length: 10 }, (_, i) => [i]),
+      colHeaders: ['A'],
+      rowHeaders: i => `R${i}`,
+      afterGetRowHeaderRenderers(renderers) {
+        if (extraLevel) {
+          renderers.push((row, TH) => {
+            TH.textContent = `A considerably longer second level ${row}`;
+          });
+        }
+      },
+      autoRowHeaderSize: true,
+      height: 'auto',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    window.addExtraLevel = () => {
+      extraLevel = true;
+      window.toggleHot.render();
+    };
   </script>
 </body>
 </html>

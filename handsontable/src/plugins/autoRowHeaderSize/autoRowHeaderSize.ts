@@ -231,13 +231,15 @@ export class AutoRowHeaderSize extends BasePlugin {
    */
   #flooredWidths: number[] | null = null;
   /**
-   * The row counts the reported widths belong to, as `visible,rendered`.
+   * What the reported widths belong to, as `visible,rendered,levels`.
    *
-   * Both halves are needed. The visible count catches rows being added, removed or trimmed. The
+   * All three are needed. The visible count catches rows being added, removed or trimmed. The
    * rendered count catches rows being hidden and shown again, which leaves the visible count
    * untouched - so without it a label that was hidden during the first measurement would stay
-   * unmeasured after it reappears, and its header would keep clipping. A change to either half
-   * mid-sweep restarts the sweep, so hiding a row while one is running heals itself.
+   * unmeasured after it reappears, and its header would keep clipping. The level count catches a
+   * renderer being added or dropped by the hook: measuring fewer levels than the draw renders makes
+   * this answer a plain number, which `ColumnUtils` then writes to every level. A change to any of
+   * them mid-sweep restarts the sweep, so hiding a row while one is running heals itself.
    *
    * @type {string}
    */
@@ -338,7 +340,12 @@ export class AutoRowHeaderSize extends BasePlugin {
       this.#samplesGenerator.setSampleCount(parseInt(String(samplingRatio), 10));
     }
 
-    this.addHook('modifyRowHeaderWidth', this.#onModifyRowHeaderWidth);
+    // Pinned ahead of the default order, the way {@link AutoColumnSize} pins `modifyColWidth`. This
+    // handler answers with its own measurement and drops the incoming width, so it has to run
+    // BEFORE the handlers that raise that width - `NestedRows` applies the room its indented tree
+    // needs. Without the pin the position depends on plugin init order, and re-registering on
+    // `updateSettings` moves this handler to the tail, silently discarding the tree's minimum.
+    this.addHook('modifyRowHeaderWidth', this.#onModifyRowHeaderWidth, -10);
     this.addHook('afterLoadData', this.#onInvalidate);
     this.addHook('afterUpdateData', this.#onInvalidate);
     this.addHook('afterCreateRow', this.#onInvalidate);
@@ -495,7 +502,13 @@ export class AutoRowHeaderSize extends BasePlugin {
    * @returns {string}
    */
   #getRowCountsKey(): string {
-    return `${this.hot.countRows()},${this.hot.rowIndexMapper.getRenderableIndexesLength()}`;
+    return [
+      this.hot.countRows(),
+      this.hot.rowIndexMapper.getRenderableIndexesLength(),
+      // Counted, not collected: this runs on every draw, and running the hook here to count the
+      // renderers would put the hook's own work on that path.
+      this.hot.countRowHeaders(),
+    ].join(',');
   }
 
   /**
@@ -848,14 +861,31 @@ export class AutoRowHeaderSize extends BasePlugin {
       return rowHeaderWidth;
     }
 
-    return flooredWidths.length === 1 ? flooredWidths[0] : flooredWidths;
+    // A copy: this is a public hook, and a handler that widens its argument in place would
+    // otherwise be writing into the cache, where the change would survive every later draw.
+    return flooredWidths.length === 1 ? flooredWidths[0] : flooredWidths.slice();
   };
 
   /**
-   * Drops the measured widths after a change that can alter the row header labels.
+   * Measures again after a change that can alter the row header labels.
+   *
+   * The widths already on screen are kept as the floor while the fresh sweep runs, and only its
+   * final commit may report a narrower one. Throwing them away here instead would snap every header
+   * back to what the first `syncLimit` rows measure and then grow it again as the chunks land -
+   * exactly the jumping about that both the JSDoc and the guide promise cannot happen.
+   */
+  #invalidate(): void {
+    this.#cancelSweep();
+    this.#cancelPendingRows();
+
+    this.#cachedRowCounts = '';
+  }
+
+  /**
+   * Measures again after a change that can alter the row header labels.
    */
   #onInvalidate = () => {
-    this.clearCache();
+    this.#invalidate();
   };
 
   /**
@@ -879,7 +909,7 @@ export class AutoRowHeaderSize extends BasePlugin {
     // A sweep in progress has already read some of these rows, and it holds their old labels. It is
     // cheaper to start it over than to work out which of them it still has to revisit.
     if (this.#inProgress) {
-      this.clearCache();
+      this.#invalidate();
 
       return;
     }
@@ -895,7 +925,7 @@ export class AutoRowHeaderSize extends BasePlugin {
     // would send a paste that is merely wide, a few rows across many columns, down the expensive
     // path for no reason.
     if (rows.size > AutoRowHeaderSize.SYNC_CALCULATION_LIMIT) {
-      this.clearCache();
+      this.#invalidate();
 
       return;
     }
@@ -977,7 +1007,7 @@ export class AutoRowHeaderSize extends BasePlugin {
     const { renderers, gridRenderer } = this.#collectRenderers();
 
     if (renderers.length !== this.#cachedWidths!.length) {
-      this.clearCache();
+      this.#invalidate();
 
       return false;
     }

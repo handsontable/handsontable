@@ -69,4 +69,20 @@ test.describe('AutoRowHeaderSize geometry', () => {
     await expect.poll(() => grid.firstRowHeaderWidth(grid.editGrid))
       .toBeGreaterThan(before + 20);
   });
+  test('measures a level the hook starts drawing on a plain re-render', async () => {
+    expect(await grid.rowHeaderWidths(grid.toggleGrid)).toHaveLength(1);
+
+    await grid.addExtraLevel();
+
+    // The plugin caches one width per level, and nothing about a re-render changes the row counts
+    // it keys that cache on. If the level count is not part of the key, it keeps answering with a
+    // single width - and `ColumnUtils` writes a single width to EVERY level, so the grid renders
+    // two levels at the first one's size while the viewport still believes there is one.
+    await expect.poll(() => grid.rowHeaderWidths(grid.toggleGrid)).toHaveLength(2);
+
+    const [numbering, label] = await grid.rowHeaderWidths(grid.toggleGrid);
+
+    // The second level draws a much longer label, so it has to come out wider than the numbering.
+    expect(label).toBeGreaterThan(numbering + 20);
+  });
 });

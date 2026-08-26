@@ -231,13 +231,13 @@ widest one is missed. Lower it to do less work.
 
 **`allowSampleDuplicates`** decides what happens when two rows carry the same label. By default the
 label is measured once, because the same text normally renders to the same width. Set it to `true`
-when that is not true of your grid — a row header that is indented per row, as
+when that is not true of your grid - a row header that is indented per row, as
 [`nestedRows`](@/api/options.md#nestedrows) does, draws the same label at a different width
 depending on how deep the row sits, so measuring only the first one would come out too narrow.
 
 Raise `samplingRatio` along with it. Labels are grouped by length and only `samplingRatio` of each
 group get measured, so at the default of `3` a fourth row carrying the same label is still left out
-— which on a deep tree can be the widest one of them.
+- which on a deep tree can be the widest one of them.
 
 **`syncLimit`** decides how much of the work happens before the grid first appears. Finding the
 longest label means reading every row header once, which on a large grid takes long enough to be

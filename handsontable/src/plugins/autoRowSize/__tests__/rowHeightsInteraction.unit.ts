@@ -60,10 +60,10 @@ describe('AutoRowSize default settings', () => {
     // AutoColumnSize does read `useHeaders` - it decides whether a column header is rendered beside
     // the samples it measures. AutoRowSize has no such choice to offer, so declaring the key would
     // hand the user a switch that changes nothing.
-    expect(Object.keys(AutoRowSize.DEFAULT_SETTINGS).sort()).toEqual([
-      'allowSampleDuplicates',
-      'samplingRatio',
-    ]);
+    // Asserted as an absence, not as the whole key set: `syncLimit` is documented as an
+    // `autoRowSize` option, so pinning the exact shape here would stand in the way of ever
+    // declaring it.
+    expect(AutoRowSize.DEFAULT_SETTINGS).not.toHaveProperty('useHeaders');
   });
 
   it('should still declare the settings it does read', () => {
