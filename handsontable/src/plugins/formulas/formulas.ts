@@ -1045,6 +1045,19 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Tells whether the source data is a plain array-of-arrays dataset. The shape is read from the
+   * first source row, because `getSourceData()` shallow-clones the whole dataset on every call.
+   * Both the column projection in `#getProcessedSourceDataArray` and the coordinate translation in
+   * `#escapeSourceDataArray` derive their column space from this single check, so the two cannot
+   * classify the same dataset differently.
+   *
+   * @returns {boolean}
+   */
+  #isSourceDataArrayOfArrays(): boolean {
+    return Array.isArray(this.hot.getSourceDataAtRow(0));
+  }
+
+  /**
    * Get the source data array to be passed to the formula engine.
    * If the value is an object, utilize the valueGetter for that cell, otherwise return the value as is.
    *
@@ -1059,7 +1072,7 @@ export class Formulas extends BasePlugin {
     const visibleColumnCount = this.hot.countCols();
     const physicalColumnCount = this.hot.countSourceCols();
     const isAoAWithSkippedColumns = visibleColumnCount < physicalColumnCount
-      && isArrayOfArrays(this.hot.getSourceData());
+      && this.#isSourceDataArrayOfArrays();
 
     if (!isAoAWithSkippedColumns) {
       return dataArray.map((rowObject, rowIndex) => {
@@ -1146,8 +1159,8 @@ export class Formulas extends BasePlugin {
    * @param {number} [columnOffset=0] Index of the array's first column, in the array's own column space.
    */
   #escapeSourceDataArray(sourceDataArray: unknown[][], rowOffset = 0, columnOffset = 0) {
-    const columnsInVisualOrder = !isArrayOfArrays(this.hot.getSourceData()) ||
-      this.hot.countCols() < this.hot.countSourceCols();
+    const columnsInVisualOrder = this.hot.countCols() < this.hot.countSourceCols() ||
+      !this.#isSourceDataArrayOfArrays();
     const metaManager = this.hot._getMetaManager();
 
     sourceDataArray.forEach((rowData: unknown[], arrayRowIndex: number) => {
