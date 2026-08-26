@@ -20,6 +20,7 @@ vue:
   metaTitle: Loading - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Dialog
+menuTag: updated
 ---
 Display loading indicators and progress feedback in your data grid application using the Loading plugin.
 
@@ -81,6 +82,9 @@ To enable the Loading plugin, set the [`loading`](@/api/options.md#loading) opti
 ## Custom configuration
 
 The loading dialog supports customization of the icon, title, and description.
+
+The `title` and `description` options render as text, so markup passed in them shows up literally.
+Use `icon` for the one option that takes markup, such as a custom SVG spinner.
 
 ::: only-for javascript
 
