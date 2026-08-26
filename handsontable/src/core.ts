@@ -145,12 +145,14 @@ const foreignHotInstances = new Map();
  * Configuration options removed from the public API, with the version that removed them.
  * Configuring one prints a one-time warning; the value is ignored.
  *
+ * `datePickerConfig` is deliberately absent: `DateEditor#prepare` already warns about it, and
+ * it also sees the column- and cell-level forms that this top-level check cannot.
+ *
  * @type {Array<Array<string>>}
  */
 const REMOVED_OPTIONS: ReadonlyArray<[string, string]> = [
   ['persistentState', '18.0.0'],
   ['correctFormat', '18.0.0'],
-  ['datePickerConfig', '18.0.0'],
 ];
 
 /**

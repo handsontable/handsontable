@@ -56,5 +56,25 @@ describe('Core#updateSettings', () => {
       core.destroy();
       warnSpy.mockRestore();
     });
+
+    it('should leave the `datePickerConfig` warning to the date editor', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const core = new Core(container, {
+        data: [['a']],
+        licenseKey: 'non-commercial-and-evaluation',
+        datePickerConfig: { firstDay: 1 },
+      });
+
+      core.init();
+
+      const calls = warnSpy.mock.calls.filter(([message]) => String(message).includes('"datePickerConfig"'));
+
+      // `DateEditor#prepare` owns this warning (it also covers the column- and cell-level forms),
+      // so `updateSettings` must not print a second one for the same option.
+      expect(calls.length).toBe(0);
+
+      core.destroy();
+      warnSpy.mockRestore();
+    });
   });
 });
