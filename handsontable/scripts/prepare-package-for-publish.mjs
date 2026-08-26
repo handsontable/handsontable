@@ -86,18 +86,26 @@ glob.sync('./**/*.d.ts', { cwd: TARGET_PATH, nodir: true }).forEach((dtsFile) =>
  * reports. The guard is deliberately broader than those two – it refuses any wildcard in the
  * sliced prefix, `*`, `?` and a character class included, though none of them matches a separator
  * and all of them do keep the count aligned. A wildcard prefix is not a known prefix, and this
- * check exists to refuse what it cannot decide rather than to decide as much as it could. Such a
- * pattern is returned as `null` – unverifiable rather than wrongly verified.
+ * check exists to refuse what it cannot decide rather than to decide as much as it could.
+ *
+ * A pattern can also slice away to nothing, with a fully literal prefix – `types` at `pathSlice`
+ * 1 leaves no segment, and the copy step drops such a match into the root of the tree unnamed, so
+ * there is no pattern its files are addressed by either.
+ *
+ * Both cases are refusals – unverifiable rather than wrongly verified – and they are told apart,
+ * because a caller reporting the wildcard reason for a literal prefix would send a reader looking
+ * for a wildcard that is not there.
  *
  * @param {string} pattern The `handsontable.copy` pattern, e.g. a declaration glob under `types/`.
  * @param {number} pathSlice How many leading path segments the copy step slices off.
- * @returns {string|null}
+ * @returns {{pattern: string}|{refusal: string}} Either the translated pattern, or the reason it
+ * cannot be translated, phrased to follow a `because`.
  */
 function toTargetPattern(pattern, pathSlice) {
   const segments = pattern.split(/[\\/]/).filter(segment => segment !== '' && segment !== '.');
 
   if (segments.slice(0, pathSlice).some(segment => /[*?[{]/.test(segment))) {
-    return null;
+    return { refusal: `its first ${pathSlice} sliced segment(s) are not literal` };
   }
 
   const targetSegments = segments.slice(pathSlice);
@@ -109,7 +117,11 @@ function toTargetPattern(pattern, pathSlice) {
     targetSegments.shift();
   }
 
-  return targetSegments.join('/') || null;
+  if (targetSegments.length === 0) {
+    return { refusal: `slicing its first ${pathSlice} segment(s) leaves nothing to address the files by` };
+  }
+
+  return { pattern: targetSegments.join('/') };
 }
 
 /**
@@ -135,15 +147,15 @@ FILES_TO_COPY.forEach((fileToCopy) => {
       // which is legitimate; holding nothing addressed the way this entry addresses its files
       // is an incomplete package. The source is absent by definition here, so this confirms the
       // addressing, never that the files are the ones the entry meant.
-      const targetPattern = toTargetPattern(fileToCopy.pattern, pathSlice);
+      const target = toTargetPattern(fileToCopy.pattern, pathSlice);
 
-      if (targetPattern === null) {
+      if (target.refusal) {
         reportIncompleteness(
           'The copy pattern matches nothing and cannot be checked against the package, because ' +
-          `its first ${pathSlice} sliced segment(s) are not literal: ${fileToCopy.pattern}`
+          `${target.refusal}: ${fileToCopy.pattern}`
         );
 
-      } else if (glob.sync(targetPattern, { cwd: TARGET_PATH, nodir: true }).length === 0) {
+      } else if (glob.sync(target.pattern, { cwd: TARGET_PATH, nodir: true }).length === 0) {
         reportIncompleteness(
           `The package holds no file the copy pattern declares: ${fileToCopy.pattern}`
         );

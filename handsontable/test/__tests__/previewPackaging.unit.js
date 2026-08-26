@@ -210,6 +210,25 @@ describe('preview package composition', () => {
       expect(inPlace.status).toBe(0);
     });
 
+    it('should drop a leading `..` from a pattern nothing is sliced off', () => {
+      // Sibling of the order test above with one variable changed: at pathSlice 1 the slice is
+      // what consumes the `..`, so the documented drop itself runs only at pathSlice 0. The
+      // destination is the same either way – the copy step joins the unsliced path onto `tmp/`
+      // after dropping one `../` – so `tmp/types/` satisfies the entry and the root does not.
+      const unmetPattern = { pattern: '../types/**/*.d.ts', pathSlice: 0 };
+      const rootOnly = runOnFixture(
+        { copy: [unmetPattern], exports: ['./*.js'], fields: ['name'] },
+        { 'index.js': '', 'base.d.ts': 'export {};\n' }
+      );
+      const inPlace = runOnFixture(
+        { copy: [unmetPattern], exports: ['./*.js'], fields: ['name'] },
+        { 'index.js': '', 'types/base.d.ts': 'export {};\n' }
+      );
+
+      expect(rootOnly.status).toBe(1);
+      expect(inPlace.status).toBe(0);
+    });
+
     it('should accept a copy pattern that declares no pathSlice', () => {
       // `pathSlice` is optional. Read raw, it slices nothing in the copy step but keeps every
       // segment in the wildcard guard, which would refuse a complete package as unverifiable.
@@ -248,6 +267,22 @@ describe('preview package composition', () => {
       expect(status).toBe(1);
       expect(output).toContain('not literal');
       expect(output).toContain('src/*/types/*.d.ts');
+    });
+
+    it('should refuse a copy pattern that slices away entirely', () => {
+      // The prefix here is fully literal, so the wildcard branch does not apply, yet nothing is
+      // left to address the files by: the copy step drops such a match into the root of `tmp/`
+      // unnamed. Refusing is right, but reporting a non-literal prefix would send a reader
+      // looking for a wildcard that is not in the pattern.
+      const { status, output } = runOnFixture(
+        { copy: [{ pattern: 'types', pathSlice: 1 }], exports: ['./*.js'], fields: ['name'] },
+        { 'index.js': '', 'types/base.d.ts': 'export {};\n' }
+      );
+
+      expect(status).toBe(1);
+      expect(output).toContain('leaves nothing to address the files by');
+      expect(output).not.toContain('not literal');
+      expect(output).toContain('postbuild:partial');
     });
 
     it('should copy a pattern match to its sliced destination', () => {
