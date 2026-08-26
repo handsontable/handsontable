@@ -1,6 +1,36 @@
 import { html } from '../../helpers/templateLiteralTag';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
 import { escapeHtml } from '../../helpers/string';
+import { deprecatedWarnOnce } from '../../helpers/console';
+
+/**
+ * Resolves the deprecated `columnHeaders` export option to its current name, `colHeaders`.
+ *
+ * Call this at every entry point that accepts caller-supplied export options. The promotion has to
+ * happen before the options are merged with the defaults, because `BaseType.DEFAULT_OPTIONS`
+ * carries `colHeaders`, and a merged object therefore always has the new key already.
+ *
+ * The warning prints once per page, so calling this on several code paths for one export is safe.
+ *
+ * @param {object} options Caller-supplied export options.
+ * @returns {object} The same object when `columnHeaders` is absent, otherwise a copy with
+ *   `colHeaders` filled in. An explicit `colHeaders` always wins.
+ */
+export function normalizeExportOptions<T extends Record<string, unknown>>(options: T): T {
+  if (!options || !('columnHeaders' in options)) {
+    return options;
+  }
+
+  deprecatedWarnOnce('ExportFile.columnHeaders',
+    'The `columnHeaders` export option is deprecated and will be removed in Handsontable 19.0.0. ' +
+    'Use `colHeaders` instead.');
+
+  if ('colHeaders' in options) {
+    return options;
+  }
+
+  return { ...options, colHeaders: options.columnHeaders };
+}
 
 /**
  * Builds the dialog overlay DOM fragment for the export progress indicator.

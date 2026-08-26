@@ -1,5 +1,5 @@
 import type { HotInstance } from '../../core/types';
-import { deprecatedWarnOnce } from '../../helpers/console';
+import { normalizeExportOptions } from './utils';
 import type { SummaryEndpoint } from '../columnSummary/columnSummary';
 
 interface MergeCellDescriptor {
@@ -61,19 +61,7 @@ class DataProvider {
    * @param {object} options Object with specified options.
    */
   setOptions(options: Record<string, unknown>) {
-    if (options && 'columnHeaders' in options) {
-      deprecatedWarnOnce('ExportFile.columnHeaders',
-        'The `columnHeaders` export option is deprecated and will be removed in Handsontable 19.0.0. ' +
-        'Use `colHeaders` instead.');
-
-      if (!('colHeaders' in options)) {
-        this.options = { ...options, colHeaders: options.columnHeaders };
-
-        return;
-      }
-    }
-
-    this.options = options;
+    this.options = normalizeExportOptions(options);
   }
 
   /**
