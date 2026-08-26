@@ -461,7 +461,11 @@ export class Formulas extends BasePlugin {
 
     // Useful for disabling -> enabling the plugin using `updateSettings` or the API.
     if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName)) {
-      const newSheetName = this.addSheet(this.sheetName, this.#getProcessedSourceDataArray());
+      const sourceDataArray = this.#getProcessedSourceDataArray();
+
+      this.#escapeSourceDataArray(sourceDataArray);
+
+      const newSheetName = this.addSheet(this.sheetName, sourceDataArray);
 
       if (typeof newSheetName === 'string') {
         this.#updateSheetNameAndSheetId(newSheetName);
@@ -670,7 +674,11 @@ export class Formulas extends BasePlugin {
         this.switchSheet(sheetName);
 
       } else {
-        const newSheetName = this.addSheet(sheetName ?? undefined, this.#getProcessedSourceDataArray());
+        const sourceDataArray = this.#getProcessedSourceDataArray();
+
+        this.#escapeSourceDataArray(sourceDataArray);
+
+        const newSheetName = this.addSheet(sheetName ?? undefined, sourceDataArray);
 
         if (typeof newSheetName === 'string') {
           this.#updateSheetNameAndSheetId(newSheetName);
@@ -2313,6 +2321,12 @@ export class Formulas extends BasePlugin {
     );
 
     this.#internalOperationPending = false;
+
+    // `rowsData` is a partial array starting at the detached element's row, so the escaping needs
+    // that row as its offset. The Nested Rows plugin is incompatible with the row-reordering
+    // plugins, so the row index is a physical one here – which is what both the array and the
+    // escaping's row offset are expressed in.
+    this.#escapeSourceDataArray(rowsData, finalElementRowIndex, 0);
 
     rowsData.forEach((row: unknown[], relativeRowIndex: number) => {
       row.forEach((value: unknown, colIndex: number) => {

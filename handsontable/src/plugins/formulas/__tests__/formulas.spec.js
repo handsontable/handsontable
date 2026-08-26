@@ -3485,6 +3485,66 @@ describe('Formulas general', () => {
       expect(firstRow.filter(value => value === '\'0123456').length).toBe(1);
       expect(firstRow.filter(value => value === 'a').length).toBe(1);
     });
+
+    it('should keep preserved text values escaped after disabling and enabling the plugin', async() => {
+      handsontable({
+        data: [['0123456'], ['=LEN(A1)']],
+        columns: [{ type: 'text', preserveTextValue: true }],
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      expect(getDataAtCell(1, 0)).toBe(7);
+
+      await updateSettings({ formulas: false });
+      await updateSettings({ formulas: { engine: HyperFormula } });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['\'0123456'],
+        ['=LEN(A1)'],
+      ]);
+      expect(getDataAtCell(1, 0)).toBe(7);
+    });
+
+    it('should keep preserved text values escaped after detaching a row with the Nested Rows plugin', async() => {
+      handsontable({
+        data: [
+          {
+            col1: 'parent1',
+            __children: [
+              { col1: '0123456' },
+              { col1: 'child2' },
+            ],
+          },
+          { col1: 'parent2' },
+        ],
+        columns: [{ data: 'col1', type: 'text', preserveTextValue: true }],
+        nestedRows: true,
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      // Detaching the row that holds the preserved value – the detach path rewrites the detached
+      // element and its children into the engine.
+      getPlugin('nestedRows').dataManager.detachFromParent(
+        getPlugin('nestedRows').dataManager.getDataObject(1)
+      );
+
+      // The detached row is moved below its former parent's block, so it becomes the last engine
+      // row – and its preserved value has to stay escaped there.
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['\'parent1'],
+        ['\'child2'],
+        ['\'parent2'],
+        ['\'0123456'],
+      ]);
+    });
   });
 
   describe('handling numeric values', () => {
