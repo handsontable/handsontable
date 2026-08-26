@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Deprecated the `columnHeaders` option of the `exportFile` plugin (use `colHeaders`), the `Handsontable.helper.sanitize()` helper, and the `Settings` and `DataProviderOptions` type aliases. Deprecated APIs now print a one-time console warning that names 19.0.0 as the removal version.",
+  "type": "deprecated",
+  "issueOrPR": 13249,
+  "breaking": false,
+  "framework": "none"
+}
