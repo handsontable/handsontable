@@ -354,7 +354,7 @@ Handsontable 18.0 simplifies the table border theme variables. The `--ht-wrapper
 You are affected if any of the following apply:
 
 - Your CSS overrides `--ht-wrapper-border-radius`, `--ht-wrapper-border-width`, or `--ht-wrapper-border-color`.
-- You pass `wrapperBorderRadius`, `wrapperBorderWidth`, or `wrapperBorderColor` tokens to `createTheme()` or `params()`.
+- You pass `wrapperBorderRadius`, `wrapperBorderWidth`, or `wrapperBorderColor` tokens to `registerTheme()` or `params()`.
 
 ### How to migrate
 
@@ -388,7 +388,7 @@ For the JS theme API, rename `wrapperBorderRadius` to `borderRadius` and remove 
 **Before:**
 
 ```javascript
-createTheme('my-theme', {
+registerTheme('my-theme', {
   tokens: {
     wrapperBorderRadius: '8px',
     wrapperBorderWidth: '1px',
@@ -400,7 +400,7 @@ createTheme('my-theme', {
 **After:**
 
 ```javascript
-createTheme('my-theme', {
+registerTheme('my-theme', {
   tokens: {
     borderRadius: '8px'
   }
