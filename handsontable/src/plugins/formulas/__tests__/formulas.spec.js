@@ -4154,6 +4154,45 @@ describe('Formulas general', () => {
       ]);
     });
 
+    it('should not leak the escape apostrophe into the grid when reloading the engine sheet with ' +
+      'trimmed rows', async() => {
+      handsontable({
+        data: [
+          ['a'],
+          ['0123456'],
+          ['c'],
+        ],
+        columns: [{ type: 'text' }],
+        // The `cell` array is addressed with VISUAL coordinates, so visual row 0 is physical row 1 –
+        // the preserved text cell is the one holding `0123456`.
+        cell: [{ row: 0, col: 0, preserveTextValue: true }],
+        // The engine is fed trimmed rows too, so its row index counts physical row 0 while the
+        // visual row index does not. Reading the sheet back therefore has to translate the engine's
+        // row index, not assume it is a visual one.
+        trimRows: [0],
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      const plugin = getPlugin('formulas');
+
+      expect(plugin.engine.getSheetSerialized(plugin.sheetId)).toEqual([
+        ['a'],
+        ['\'0123456'],
+        ['c'],
+      ]);
+
+      plugin.switchSheet(plugin.sheetName);
+
+      expect(getSourceData()).toEqual([
+        ['a'],
+        ['0123456'],
+        ['c'],
+      ]);
+      expect(getDataAtCell(0, 0)).toBe('0123456');
+    });
+
     it('should not leak the escape apostrophe into the grid after moving a preserved text cell', async() => {
       handsontable({
         data: [

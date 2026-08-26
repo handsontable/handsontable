@@ -875,14 +875,17 @@ export class Formulas extends BasePlugin {
    * were written with, so it is unescaped before the load – otherwise the apostrophe becomes part of
    * the grid's data.
    *
-   * Accepted limitation: the meta read runs BEFORE `loadData`, so it resolves the incoming sheet's
-   * array indexes through the OUTGOING sheet's index maps. Every physically-keyed meta layer can
-   * therefore be matched against the wrong cell whenever the grid's column map is not the identity –
-   * that is the `columns` setting (column meta is keyed by PHYSICAL column, so `manualColumnMove`
-   * alone is enough to shift it) and the `cell` array. Only the global settings layer is
-   * layout-independent and always matches. Unescaping after the load is not an option – the
-   * apostrophe would already be in the grid's data by then, past every reader that could tell it
-   * apart from a user's own leading apostrophe.
+   * The unescaping has to run BEFORE `loadData`, because afterwards the apostrophe is already part
+   * of the grid's data, past every reader that could tell it apart from a user's own leading
+   * apostrophe. It therefore resolves the cell meta through the index maps of the sheet being
+   * switched AWAY from – which is exactly right whenever the sheet being read is the one this grid
+   * is already synced to (the reload that `#onAfterCellMetaReset` performs), because then the
+   * engine's index order IS this grid's index order.
+   *
+   * Accepted limitation, and only for a switch to a genuinely DIFFERENT sheet: that sheet's layout
+   * has no relation to this grid's index maps, so a physically-keyed meta layer – the `cell` array,
+   * or a column-level one under a non-identity column map – can be matched against the wrong cell.
+   * Only the global settings layer is layout-independent and always matches.
    *
    * @param {string} sheetName Sheet name used in the shared HyperFormula instance.
    */
@@ -895,18 +898,7 @@ export class Formulas extends BasePlugin {
 
     this.#updateSheetNameAndSheetId(sheetName);
 
-    const rawSerialized = this.engine.getSheetSerialized(this.sheetId);
-    // `loadData` resets the index maps, so the array indexes below equal the post-load visual
-    // coordinates of the cells they carry. The scan is skipped entirely – just like the escape scan
-    // in `#escapeSourceDataArray` – when no configuration layer can mark a cell for escaping, so a
-    // sheet switch in the default configuration pays no per-cell meta read.
-    const serialized = this.#needsEngineBoundEscaping()
-      ? rawSerialized.map((rowData: unknown[], rowIndex: number) => (
-        rowData.map((value: unknown, columnIndex: number) => (
-          this.#unescapeEngineBoundValueAt(value, rowIndex, columnIndex)
-        ))
-      ))
-      : rawSerialized;
+    const serialized = this.#unescapeEngineSheetArray(this.engine.getSheetSerialized(this.sheetId));
 
     if (serialized.length > 0) {
       this.hot.loadData(serialized, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
@@ -1506,6 +1498,60 @@ export class Formulas extends BasePlugin {
     }
 
     return unescapeEngineBoundValue(value, this.hot.getCellMetaTransient(visualRow, visualColumn));
+  }
+
+  /**
+   * Reverses the engine-bound escaping on a whole sheet read out of the engine.
+   *
+   * The array is indexed the way the ENGINE is on both axes – by position in the index sequence –
+   * which is not the visual coordinate. HyperFormula is fed trimmed rows as well, so a `trimRows` or
+   * Filters map alone makes the engine's row index and the visual row index disagree. The escaping
+   * was applied per PHYSICAL cell (`#escapeSourceDataArray`), so its inverse has to resolve the same
+   * physical cell, and the engine index translates to it through the axis syncers.
+   *
+   * The whole scan is skipped – just like the escape scan – when `#needsEngineBoundEscaping()`
+   * reports that no configuration layer can mark a cell for escaping, so a sheet switch in the
+   * default configuration pays no per-cell meta read. Within the scan, values the unescaping can
+   * never change skip the meta read for the same reason.
+   *
+   * @param {Array<Array<*>>} sheetArray Sheet content read out of the engine, in engine index order.
+   * @returns {Array<Array<*>>} The unescaped content, or `sheetArray` itself when nothing can apply.
+   */
+  #unescapeEngineSheetArray(sheetArray: unknown[][]): unknown[][] {
+    if (!this.#needsEngineBoundEscaping()) {
+      return sheetArray;
+    }
+
+    const metaManager = this.hot._getMetaManager();
+    // An engine index outside the dataset has no physical counterpart - the engine extends its own
+    // sheet dimensions to calculate values - so it falls back to being read as a physical index.
+    const toPhysical = (syncer: AxisSyncer | null, hfIndex: number) => {
+      const physicalIndex = syncer?.getPhysicalIndexFromHfIndex(hfIndex) ?? -1;
+
+      return physicalIndex === -1 ? hfIndex : physicalIndex;
+    };
+
+    return sheetArray.map((rowData: unknown[], hfRow: number) => {
+      const physicalRow = toPhysical(this.rowAxisSyncer, hfRow);
+      const visualRow = this.hot.toVisualRow(physicalRow) ?? physicalRow;
+
+      return rowData.map((value: unknown, hfColumn: number) => {
+        if (!isEngineEscapedValue(value)) {
+          return value;
+        }
+
+        const physicalColumn = toPhysical(this.columnAxisSyncer, hfColumn);
+        const visualColumn = this.hot.toVisualColumn(physicalColumn) ?? physicalColumn;
+        // The transient read applies the `cells` function and the meta hooks without permanently
+        // materializing one meta object per scanned cell.
+        const cellMeta = metaManager.getCellMetaTransient(
+          physicalRow, physicalColumn,
+          { visualRow, visualColumn },
+        );
+
+        return unescapeEngineBoundValue(value, cellMeta);
+      });
+    });
   }
 
   /**
