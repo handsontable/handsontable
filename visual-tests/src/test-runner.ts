@@ -185,4 +185,4 @@ const test = baseTest.extend<TestParams>({
 });
 
 // Export the custom fixture
-export { expect, test };
+export { expect, test, waitForScrollbarClearanceToSettle };
