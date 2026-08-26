@@ -1069,10 +1069,10 @@ export class Formulas extends BasePlugin {
    * Get the source data array to be passed to the formula engine.
    * If the value is an object, utilize the valueGetter for that cell, otherwise return the value as is.
    *
-   * @param {number} [row] The starting visual row index.
-   * @param {number} [column] The starting visual column index.
-   * @param {number} [row2] The ending visual row index.
-   * @param {number} [column2] The ending visual column index.
+   * @param {number} [row] The starting physical row index.
+   * @param {number} [column] The starting physical column index (or visual, for array-of-objects data).
+   * @param {number} [row2] The ending physical row index.
+   * @param {number} [column2] The ending physical column index (or visual, for array-of-objects data).
    * @returns {Array} The source data array to be passed to the formula engine.
    */
   #getProcessedSourceDataArray(row?: number, column?: number, row2?: number, column2?: number) {
@@ -2323,9 +2323,10 @@ export class Formulas extends BasePlugin {
     this.#internalOperationPending = false;
 
     // `rowsData` is a partial array starting at the detached element's row, so the escaping needs
-    // that row as its offset. The Nested Rows plugin is incompatible with the row-reordering
-    // plugins, so the row index is a physical one here – which is what both the array and the
-    // escaping's row offset are expressed in.
+    // that row as its offset. The reported row index is a physical one – the Nested Rows data
+    // manager derives it from the flattened source data (`dataManager.getRowIndex()`), not from the
+    // visual order. That distinction matters, because collapsing rows in that plugin installs a
+    // trimming map, under which the visual and physical row spaces genuinely differ.
     this.#escapeSourceDataArray(rowsData, finalElementRowIndex, 0);
 
     rowsData.forEach((row: unknown[], relativeRowIndex: number) => {

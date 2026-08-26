@@ -3521,7 +3521,11 @@ describe('Formulas general', () => {
           },
           { col1: 'parent2' },
         ],
-        columns: [{ data: 'col1', type: 'text', preserveTextValue: true }],
+        columns: [{ data: 'col1', type: 'text' }],
+        // Only one physical row is marked as a preserved text cell, so the escaping on the detach
+        // path has to read the meta of the exact row it writes – a wrong row offset lands on one of
+        // the unmarked rows and loses the escape.
+        cell: [{ row: 3, col: 0, preserveTextValue: true }],
         nestedRows: true,
         formulas: {
           engine: HyperFormula,
@@ -3530,17 +3534,27 @@ describe('Formulas general', () => {
 
       const formulasPlugin = getPlugin('formulas');
 
-      // Detaching the row that holds the preserved value – the detach path rewrites the detached
-      // element and its children into the engine.
+      // Before the detach the marked physical row 3 holds `parent2`, while the child value sits in
+      // an ordinary text cell – so it reaches the engine unescaped, and the engine reads it as the
+      // number 123456.
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['parent1'],
+        ['0123456'],
+        ['child2'],
+        ['\'parent2'],
+      ]);
+      expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)[1]).toEqual([123456]);
+
+      // Detaching the child moves it below its former parent's block, so it becomes physical row 3
+      // – the preserved text cell. The `cell` markings stay with their physical coordinates, they do
+      // not follow the moved row.
       getPlugin('nestedRows').dataManager.detachFromParent(
         getPlugin('nestedRows').dataManager.getDataObject(1)
       );
 
-      // The detached row is moved below its former parent's block, so it becomes the last engine
-      // row – and its preserved value has to stay escaped there.
       expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
-        ['\'parent1'],
-        ['\'child2'],
+        ['parent1'],
+        ['child2'],
         ['\'parent2'],
         ['\'0123456'],
       ]);
