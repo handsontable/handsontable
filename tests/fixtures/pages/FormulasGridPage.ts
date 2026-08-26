@@ -42,36 +42,103 @@ export class FormulasGridPage {
     return this.page.getByTestId(`cell-${row}-${col}`);
   }
 
-  /** Select a rectangular range with a real mouse drag (down → move → up). */
+  /**
+   * Select a rectangular range with a real mouse drag (down → move → up).
+   *
+   * Both drag points are clamped into the holder's VISIBLE area: a cell's
+   * bounding box ignores overflow clipping, so on tall-row themes the target
+   * cell's center can lie past the holder's bottom edge — and a real mouse
+   * parked there means "extend the selection past the edge": drag-to-scroll
+   * kicks in and the selection overshoots the intended range by a row (this
+   * is exactly how the horizon legs selected 1,2→3,4 instead of 1,2→2,4).
+   * The achieved range is asserted afterwards so an overshoot fails loudly
+   * here, not as a confusing corner/fill mismatch later.
+   */
   async selectRange(fromRow: number, fromCol: number, toRow: number, toCol: number): Promise<void> {
     const from = await this.cell(fromRow, fromCol).boundingBox();
     const to = await this.cell(toRow, toCol).boundingBox();
+    const holder = await this.grid.locator('.ht_master .wtHolder').boundingBox();
 
-    if (!from || !to) {
-      throw new Error('range endpoints are not rendered');
+    if (!from || !to || !holder) {
+      throw new Error('range endpoints or the holder are not rendered');
     }
 
-    await this.page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    const clampX = (x: number) => Math.min(Math.max(x, holder.x + 2), holder.x + holder.width - 2);
+    const clampY = (y: number) => Math.min(Math.max(y, holder.y + 2), holder.y + holder.height - 2);
+
+    await this.page.mouse.move(clampX(from.x + from.width / 2), clampY(from.y + from.height / 2));
     await this.page.mouse.down();
-    await this.page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 5 });
+    await this.page.mouse.move(clampX(to.x + to.width / 2), clampY(to.y + to.height / 2), { steps: 5 });
     await this.page.mouse.up();
     await expect(this.areaCorner).toBeVisible();
+
+    const achieved = await this.page.evaluate(() => {
+      const range = (window as any).hot.getSelectedRangeLast();
+
+      return {
+        fromRow: Math.min(range.from.row, range.to.row),
+        fromCol: Math.min(range.from.col, range.to.col),
+        toRow: Math.max(range.from.row, range.to.row),
+        toCol: Math.max(range.from.col, range.to.col),
+      };
+    });
+
+    expect(achieved, 'the mouse drag selected a different range than intended').toEqual({
+      fromRow, fromCol, toRow, toCol,
+    });
   }
 
   /**
    * Drag the range fill handle down to a target cell that starts BELOW the
    * grid's inner viewport: grab the handle, hold the pointer past the grid's
-   * bottom edge while pumping mousemove events (the grid auto-scrolls only in
-   * response to moves) until the target row scrolls into view, then finish
-   * the gesture precisely on the target cell. Bounded, condition-driven — no
-   * fixed sleeps.
+   * bottom edge until the grid's auto-scroll brings the target row into view,
+   * then finish the gesture precisely on the target cell. Bounded by time and
+   * condition-driven — no fixed sleeps.
    */
   async dragAreaFillHandleToCell(row: number, col: number): Promise<void> {
-    const handle = await this.areaCorner.boundingBox();
     const gridBox = await this.grid.boundingBox();
+    const holderBox = await this.grid.locator('.ht_master .wtHolder').boundingBox();
 
-    if (!handle || !gridBox) {
-      throw new Error('the area fill handle or the grid is not rendered');
+    if (!gridBox || !holderBox) {
+      throw new Error('the grid or the holder is not rendered');
+    }
+
+    // On tall-row themes a freshly selected range can end past the fold, which
+    // leaves its fill handle overflow-clipped below the holder. The corner's
+    // box ignores clipping (toBeVisible() passes for a fully clipped element),
+    // so grabbing it blind would silently press the page body and never arm
+    // the grid's drag-to-scroll. Mirror what a user does: wheel-scroll the
+    // holder until the corner actually sits inside its visible area.
+    await this.page.mouse.move(holderBox.x + holderBox.width / 2, holderBox.y + holderBox.height / 2);
+    await expect
+      .poll(async() => {
+        const corner = await this.areaCorner.boundingBox();
+
+        if (!corner) {
+          return false;
+        }
+        if (corner.y + corner.height > holderBox.y + holderBox.height + 1) {
+          await this.page.mouse.wheel(0, 40);
+
+          return false;
+        }
+        if (corner.y < holderBox.y - 1) {
+          await this.page.mouse.wheel(0, -40);
+
+          return false;
+        }
+
+        return true;
+      }, {
+        message: 'the area fill handle never scrolled into the holder view',
+        timeout: 5000,
+      })
+      .toBe(true);
+
+    const handle = await this.areaCorner.boundingBox();
+
+    if (!handle) {
+      throw new Error('the area fill handle is not rendered');
     }
 
     const startX = handle.x + handle.width / 2;
@@ -81,19 +148,31 @@ export class FormulasGridPage {
     await this.page.mouse.down();
     await this.page.mouse.move(startX, belowGridY, { steps: 8 });
 
-    // Pump 1px jitter moves until auto-scroll brings the target row into the
-    // holder's VISIBLE area (Playwright's isVisible() counts overflow-clipped
-    // cells as visible, so intersect bounding boxes instead).
-    for (let i = 0; i < 200 && !(await this.cellInHolderView(row, col)); i++) {
-      await this.page.mouse.move(startX, belowGridY + (i % 2));
-    }
+    // Auto-scroll is TIMER-driven (DragToScroll's ScrollTimer advances one row
+    // per self-rescheduled tick; at 20px past the edge the tick interval is
+    // near its 500ms maximum), so the wait must be bounded by TIME, never by
+    // an iteration count: a fixed number of pumped moves is a hidden wall-clock
+    // budget that shrinks with every Playwright/CDP speedup and starves the
+    // tallest theme (horizon needs the most ticks) of scroll time. Each probe
+    // still jitters the pointer 1px so the plugin keeps seeing mousemove
+    // events, and checks the holder's VISIBLE area (Playwright's isVisible()
+    // counts overflow-clipped cells as visible, so intersect bounding boxes
+    // instead). An exhausted wait must fail HERE with its real cause — not
+    // later, as a confusing data mismatch after the gesture lands on a
+    // clipped coordinate.
+    let jitter = 0;
 
-    // boundingBox() reports overflow-clipped cells too, so an exhausted pump
-    // must fail HERE with its real cause — not later, as a confusing data
-    // mismatch after the gesture lands on a clipped coordinate.
-    if (!(await this.cellInHolderView(row, col))) {
-      throw new Error(`auto-scroll never brought cell ${row},${col} into the holder view`);
-    }
+    await expect
+      .poll(async() => {
+        jitter = 1 - jitter;
+        await this.page.mouse.move(startX, belowGridY + jitter);
+
+        return this.cellInHolderView(row, col);
+      }, {
+        message: `auto-scroll never brought cell ${row},${col} into the holder view`,
+        timeout: 15000,
+      })
+      .toBe(true);
 
     const target = await this.cell(row, col).boundingBox();
 
