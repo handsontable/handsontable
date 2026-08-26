@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [18.1.0-rc2] - 2026-08-25
+## [18.1.0-rc3] - 2026-08-26
 
 ### Added
 - Added the `singlePassLayout` option, which renders the grid in a single pass by predicting whether scrollbars will appear before rendering. [#12951](https://github.com/handsontable/handsontable/pull/12951)
