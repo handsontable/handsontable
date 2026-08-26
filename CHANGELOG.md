@@ -12,7 +12,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [18.1.0-rc3] - 2026-08-26
 
 ### Added
-- Added the `singlePassLayout` option, which renders the grid in a single pass by predicting whether scrollbars will appear before rendering. [#12951](https://github.com/handsontable/handsontable/pull/12951)
+- Added the `modifySinglePassLayout` hook, which forces the previous measure-then-render layout path for a table. [#12951](https://github.com/handsontable/handsontable/pull/12951)
 - Added the `selectionHandles` option, which shows draggable handles at each edge midpoint of a selected range for resizing the selection, and the `moveCells` option for moving a cell selection to a new location by dragging its border. [#13076](https://github.com/handsontable/handsontable/pull/13076)
 - Added Persian language RTL direction support. [#13101](https://github.com/handsontable/handsontable/issues/13101)
 - Added support for entitlement license keys, and made a missing or invalid license key block the grid with a modal that cannot be closed. [#13106](https://github.com/handsontable/handsontable/pull/13106)
@@ -23,7 +23,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Added the `formulas.hyperlinks` option, which renders cells holding a `HYPERLINK` formula as clickable links. [#13223](https://github.com/handsontable/handsontable/pull/13223)
 
 ### Changed
-- Reduced memory usage and improved initialization time for large datasets by no longer materializing cell metadata for every cell during source data validation. [#12847](https://github.com/handsontable/handsontable/pull/12847)
 - Reduced memory usage when scrolling large datasets by releasing cell metadata for rows scrolled out of the viewport. [#12854](https://github.com/handsontable/handsontable/pull/12854)
 - Improved the performance of sorting, filtering, and row/column hiding on large datasets by speeding up internal index translation. [#12880](https://github.com/handsontable/handsontable/pull/12880)
 - Improved initialization time for large date-typed datasets by validating ISO dates arithmetically instead of constructing a `Date` object for every cell. [#12881](https://github.com/handsontable/handsontable/pull/12881)
@@ -32,6 +31,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Improved vertical scrolling performance for grids with pinned bottom rows (`fixedRowsBottom`). [#12894](https://github.com/handsontable/handsontable/issues/12894)
 - Improved the performance of sorting, filtering, hiding, and inserting/removing rows/columns on large datasets by removing redundant per-operation work in the index translation layer. [#12898](https://github.com/handsontable/handsontable/pull/12898)
 - Improved the performance of the internal hooks (events) dispatch: each hook's callbacks are now stored in a linked list, and removing a hook frees it immediately instead of accumulating skipped entries that were iterated over on every run. [#12925](https://github.com/handsontable/handsontable/pull/12925)
+- The grid now renders in a single pass, predicting whether scrollbars will appear instead of rendering, measuring, and re-rendering. The `mergeCells` plugin keeps the previous path, and the `modifySinglePassLayout` hook opts out of it. [#12951](https://github.com/handsontable/handsontable/pull/12951)
 - Improved vertical scrolling performance by skipping the column header re-render when the column layout is unchanged. [#12987](https://github.com/handsontable/handsontable/pull/12987)
 - Improved vertical scrolling performance by re-rendering only the rows entering the viewport and reusing the rows that stay. [#12995](https://github.com/handsontable/handsontable/pull/12995)
 - Improved scrolling performance for grids embedded in complex pages by keeping the rendered cells in place during scroll instead of re-inserting them. [#13020](https://github.com/handsontable/handsontable/pull/13020)
@@ -51,7 +51,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Improved sizing plugins performance: AutoColumnSize measures only the changed cells on edits instead of rescanning whole columns, its background width sweep is budgeted and runs on browser idle time, AutoRowSize reuses the cached header height on selection-driven renders, and a multi-column resize triggers one height recalculation instead of one per column. [#13097](https://github.com/handsontable/handsontable/issues/13097)
 
 ### Removed
-- **Breaking change**: Removed the deprecated `PersistentState` plugin, its `persistentState` option, and the `persistentStateSave`, `persistentStateLoad`, and `persistentStateReset` hooks. Deprecated `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, and `loadManualRowHeights()` — these now no-op and will be removed in the next major release. [#12727](https://github.com/handsontable/handsontable/pull/12727)
 - Removed leftover Pikaday styles from the themes. [#13156](https://github.com/handsontable/handsontable/pull/13156)
 
 ### Fixed
@@ -65,14 +64,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed merged cells breaking after filtering, `trimRows`/`nestedRows` collapse, or sorting — merges now stay whole and follow the visible rows. [#12792](https://github.com/handsontable/handsontable/issues/12792)
 - Fixed nested headers not following the data when moving columns; labels now travel with their columns, a group split across non-adjacent columns renders as separate banners, and a collapsed group either follows the move or expands when the move would split it. [#12793](https://github.com/handsontable/handsontable/issues/12793)
 - Fixed nested column headers ignoring `stopImmediatePropagation()` called in the `beforeOnCellMouseOver` hook, so a header drag-selection can now be blocked the same way as for regular column headers. [#12794](https://github.com/handsontable/handsontable/issues/12794)
-- Fixed clears stale cell meta after a merge is removed (unmerge) [#12798](https://github.com/handsontable/handsontable/issues/12798)
+- Fixed stale cell metadata left behind after unmerging cells, which made `toHTML()` output extra cells. [#12798](https://github.com/handsontable/handsontable/issues/12798)
 - Fixed undo not restoring merged cells after removing a column that overlapped a merge. [#12801](https://github.com/handsontable/handsontable/issues/12801)
 - Fixed missing selection border edges and active header highlight accents along frozen-pane boundaries (`fixedRowsTop` / `fixedRowsBottom` / `fixedColumnsStart`). [#12802](https://github.com/handsontable/handsontable/issues/12802)
 - Fixed context menu inserting two rows instead of one when tapping "Insert row above" or "Insert row below" on iPad (Safari). [#12804](https://github.com/handsontable/handsontable/issues/12804)
-- Fixed cell meta set with `setCellMeta` (for example, `readOnly`) being reset by `updateSettings`. [#12811](https://github.com/handsontable/handsontable/issues/12811)
 - Fixed `multiselect` cell type displaying a neighbouring column's value after moving the column with `manualColumnMove`. [#12827](https://github.com/handsontable/handsontable/issues/12827)
 - Fixed a bug where Ctrl/Cmd+clicking an already-selected cell in a multi-cell selection caused the active highlight to jump to a different cell [#12841](https://github.com/handsontable/handsontable/pull/12841)
-- Reduced memory usage during scrolling and fixed potential out-of-memory errors on very large datasets. [#12844](https://github.com/handsontable/handsontable/pull/12844)
 - Reduced memory usage when filtering large datasets: the Filters plugin no longer permanently retains a cell meta object for every source row of each filtered column. [#12878](https://github.com/handsontable/handsontable/pull/12878)
 - Fixed an error thrown when removing a frozen column while using the legacy fixedColumnsLeft option. [#12883](https://github.com/handsontable/handsontable/pull/12883)
 - Fixed the `multiselect` cell type so its option filtering folds case in a locale-aware way, consistent with the `autocomplete` editor, for Turkish, Azeri, and Lithuanian locales. [#12902](https://github.com/handsontable/handsontable/issues/12902)
@@ -151,7 +148,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Removed
 - **Breaking change**: Removed the numbro, moment.js, DOMPurify, and @handsontable/pikaday dependencies. [#12689](https://github.com/handsontable/handsontable/issues/12689)
-- **Breaking change**: Removed the deprecated `PersistentState` plugin, its `persistentState` option, and the `persistentStateSave`, `persistentStateLoad`, and `persistentStateReset` hooks. Deprecated `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, and `loadManualRowHeights()` — these now no-op and will be removed in the next major release. [#0](https://github.com/handsontable/handsontable/pull/0)
+- **Breaking change**: Removed the deprecated `PersistentState` plugin, its `persistentState` option, and the `persistentStateSave`, `persistentStateLoad`, and `persistentStateReset` hooks. Deprecated `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, and `loadManualRowHeights()` — these now no-op and will be removed in the next major release. [#12727](https://github.com/handsontable/handsontable/pull/12727)
 - **Breaking change**: Removed the deprecated Core-level undo/redo methods (`hot.undo()`, `hot.redo()`, `hot.clearUndo()`, `hot.isUndoAvailable()`, `hot.isRedoAvailable()`, `hot.undoRedo`). Use `hot.getPlugin('undoRedo')` instead. [#12728](https://github.com/handsontable/handsontable/issues/12728)
 
 ### Fixed
