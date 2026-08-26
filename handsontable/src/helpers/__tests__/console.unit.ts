@@ -11,9 +11,14 @@ import {
   deprecatedWarn,
   deprecatedWarnOnce,
   logAggregatedItems,
+  _resetDeprecationWarnings,
 } from 'handsontable/helpers/console';
 
 describe('Console', () => {
+  beforeEach(() => {
+    _resetDeprecationWarnings();
+  });
+
   describe('log', () => {
     it('should call function `console.log` with all arguments', () => {
       console.log = jasmine.createSpy('log');
@@ -88,6 +93,37 @@ describe('Console', () => {
       }).not.toThrow();
 
       console = cachedConsole;
+    });
+
+    it('should not consume the key when `console` is not exposed', () => {
+      const cachedConsole = console;
+
+      console = undefined;
+
+      deprecatedWarnOnce('test-key-d', 'Feature D is deprecated.');
+
+      console = cachedConsole;
+      console.warn = jasmine.createSpy('warn');
+
+      deprecatedWarnOnce('test-key-d', 'Feature D is deprecated.');
+
+      expect(console.warn).toHaveBeenCalledTimes(1);
+      expect(console.warn).toHaveBeenCalledWith('Deprecated: Feature D is deprecated.');
+    });
+
+    it('should warn again for the same key after the record is reset', () => {
+      console.warn = jasmine.createSpy('warn');
+
+      deprecatedWarnOnce('test-key-e', 'Feature E is deprecated.');
+      deprecatedWarnOnce('test-key-e', 'Feature E is deprecated.');
+
+      expect(console.warn).toHaveBeenCalledTimes(1);
+
+      _resetDeprecationWarnings();
+
+      deprecatedWarnOnce('test-key-e', 'Feature E is deprecated.');
+
+      expect(console.warn).toHaveBeenCalledTimes(2);
     });
   });
 

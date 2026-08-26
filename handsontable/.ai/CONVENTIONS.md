@@ -142,6 +142,7 @@ export function throwWithCause(message) {
 - `warn(...args)` -- Warning messages
 - `deprecatedWarn(message)` -- Deprecated feature warnings (prefixed with "Deprecated: ")
 - `deprecatedWarnOnce(key, message)` -- Preferred for deprecated public APIs: prints `Deprecated: <message>` once per `key` per page. Use `deprecatedWarn` only when repeated output is intended.
+- `_resetDeprecationWarnings()` -- Test-only. The once-per-key record is module-global, so call this in `beforeEach` of any spec asserting on a deprecation warning; otherwise the assertion passes whenever an earlier spec printed that warning.
 - `info(...args)` -- Informational messages
 - `error(...args)` -- Error messages
 

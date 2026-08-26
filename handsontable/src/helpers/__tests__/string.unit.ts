@@ -8,8 +8,15 @@ import {
   toHyphen,
   localeLowerCase,
 } from 'handsontable/helpers/string';
+import { _resetDeprecationWarnings } from 'handsontable/helpers/console';
 
 describe('String helper', () => {
+  beforeEach(() => {
+    // `deprecatedWarnOnce` records printed warnings module-globally, so without this the
+    // `sanitize` deprecation assertion below would depend on the order the specs run in.
+    _resetDeprecationWarnings();
+  });
+
   //
   // Handsontable.helper.equalsIgnoreCase
   //

@@ -100,8 +100,26 @@ export function deprecatedWarnOnce(key: string, message: string): void {
     return;
   }
 
+  // Record the key only when the message can actually be printed. Otherwise the first call made
+  // while `console` is missing would burn the key for the whole page and silence every later one.
+  if (!isDefined(console)) {
+    return;
+  }
+
   printedDeprecations.add(key);
   deprecatedWarn(message);
+}
+
+/**
+ * Clears the record of already-printed deprecation warnings.
+ *
+ * Test-only. `printedDeprecations` is module-global and never reset in production, so without this
+ * every spec that asserts on a deprecation warning would depend on the order the specs run in.
+ *
+ * @private
+ */
+export function _resetDeprecationWarnings(): void {
+  printedDeprecations.clear();
 }
 
 /**
