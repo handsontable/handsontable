@@ -76,7 +76,12 @@ export async function stopTracing(cdp) {
  * @param {string} markName
  */
 async function mark(page, markName) {
-  await page.evaluate(name => performance.mark(name), markName);
+  // Block body on purpose: a concise arrow returns the PerformanceMark, which Playwright
+  // then serializes and ships back across CDP -- a round trip inside the window, and a
+  // dependency on the serializer accepting that object at all.
+  await page.evaluate((name) => {
+    performance.mark(name);
+  }, markName);
 }
 
 /**
@@ -102,16 +107,19 @@ const SETTLE_TIMEOUT_MS = 1000;
  * bound named here.
  *
  * @param {import('@playwright/test').Page} page
- * @param {number} [timeoutMs=SETTLE_TIMEOUT_MS] -- upper bound for the idle wait
+ * @param {number} [timeoutMs=SETTLE_TIMEOUT_MS] -- upper bound for the whole wait, frames included
+ * @returns {Promise<boolean>} true when the settle completed, false when the bound expired first
  */
 export async function settleFrames(page, timeoutMs = SETTLE_TIMEOUT_MS) {
-  await page.evaluate(timeout => new Promise((resolve) => {
-    const done = () => resolve(null);
-    // Hard ceiling on the whole wait, including the animation frames.
-    const bail = setTimeout(done, timeout);
+  return page.evaluate(timeout => new Promise((resolve) => {
+    // The ceiling races the animation frames, so a frame that needs more main-thread
+    // work than the bound can lose it. That would close the window before Paint and
+    // Commit and hand back painting: 0 with the marks still in place -- indistinguishable
+    // from a cheap operation. Report it instead of resolving silently.
+    const bail = setTimeout(() => resolve(false), timeout);
     const finish = () => {
       clearTimeout(bail);
-      done();
+      resolve(true);
     };
 
     requestAnimationFrame(() => {
@@ -134,10 +142,13 @@ export async function settleFrames(page, timeoutMs = SETTLE_TIMEOUT_MS) {
  * @param {(isMeasured: boolean) => Promise<void>} options.actionFn -- the traced action; receives true during measured iterations, false during warmup
  * @param {() => Promise<void>} [options.setupFn] -- pre-trace setup (run once before warmup)
  * @param {() => Promise<void>} [options.resetFn] -- reset state between iterations
- * @param {(isMeasured: boolean) => Promise<void>} [options.afterActionFn] -- runs after the measured
- *   window closes; put readbacks here so their CDP round trip is not billed to the action
+ * @param {() => Promise<void>} [options.afterActionFn] -- runs after the measured window closes,
+ *   on measured iterations only; put readbacks here so their CDP round trip is not billed to
+ *   the action
  * @param {() => Promise<void>} [options.settleFn] -- overrides the default post-action settle
- * @param {boolean} [options.skipSettle=false] -- opt out of settling before the trace stops
+ * @param {boolean} [options.skipSettle=false] -- opt out of the in-window settle only; the settles
+ *   after setupFn and resetFn always run, since their frames would otherwise leak into the
+ *   next measured window
  * @param {number} [options.warmupRuns=1]
  * @param {number} [options.iterations=3]
  * @param {string} options.outputDir -- where to write trace JSON files
@@ -156,19 +167,30 @@ export async function runTracedScenario({
 }) {
   await mkdir(outputDir, { recursive: true });
 
-  // A reset renders synchronously but paints a frame later, and specs typically wait
-  // only for the render (cell-editing waits on countRenderedRows). Left unsettled, that
-  // paint lands inside the next iteration's window and is billed to the next action.
-  const settleAfterReset = async() => {
-    if (!skipSettle) {
-      await (settleFn ? settleFn() : settleFrames(page));
+  const settle = async(label) => {
+    const settled = settleFn ? await settleFn() : await settleFrames(page);
+
+    // settleFn is free to return nothing; only an explicit false means the bound expired.
+    if (settled === false) {
+      console.warn(`\n  WARN: settle after ${label} hit its ${SETTLE_TIMEOUT_MS} ms bound; ` +
+        'the frame may not have reached the compositor, so rendering and painting for this ' +
+        'iteration may be understated.');
     }
   };
+
+  // Preparation settles unconditionally, and skipSettle does not reach it. A reset renders
+  // synchronously but paints a frame later, and specs wait only for the render -- cell-editing
+  // waits on countRenderedRows(), scrollToRow's waitForFunction reports trimming rather than
+  // scroll position. That paint would otherwise land in the next iteration's window and be
+  // billed to the next action. Opting out of measuring a frame is a scenario's call; opting
+  // into a contaminated window is not.
+  const settleAfterPrepare = label => settle(label);
 
   // Run setup once (e.g., scrollViewportTo for scroll-up)
   if (setupFn) {
     process.stdout.write('  Setup...');
     await setupFn();
+    await settleAfterPrepare('setup');
     console.log(' done');
   }
 
@@ -178,14 +200,14 @@ export async function runTracedScenario({
     await actionFn(false);
 
     if (!skipSettle) {
-      await (settleFn ? settleFn() : settleFrames(page));
+      await settle('warmup action');
     }
 
     console.log(' done');
 
     if (resetFn) {
       await resetFn();
-      await settleAfterReset();
+      await settleAfterPrepare('reset');
     }
   }
 
@@ -206,14 +228,14 @@ export async function runTracedScenario({
 
     // Inside the window on purpose: the frame this waits for is the work being measured.
     if (!skipSettle) {
-      await (settleFn ? settleFn() : settleFrames(page));
+      await settle(`iteration ${i}`);
     }
 
     await mark(page, MEASURE_END_MARK);
 
     // Outside the window: a readback here is harness overhead, not measured work.
     if (afterActionFn) {
-      await afterActionFn(true);
+      await afterActionFn();
     }
 
     clearInterval(heartbeat);
@@ -228,7 +250,7 @@ export async function runTracedScenario({
 
     if (resetFn && i < iterations) {
       await resetFn();
-      await settleAfterReset();
+      await settleAfterPrepare('reset');
     }
   }
 }

@@ -132,8 +132,10 @@ Two rules follow for anyone writing or changing a scenario:
   reads a value back is billed to the action. Use `afterActionFn`, which runs after the end
   mark, for readbacks such as hook timings.
 - **Let the reset settle.** A reset renders synchronously but paints a frame later. The
-  runner settles after `resetFn` for this reason; a `resetFn` that returns before its work is
-  queued will still leak into the next iteration.
+  runner settles after `setupFn` and `resetFn` for this reason, and `skipSettle` does not
+  reach those -- it gates only the in-window settle. Note that `scrollToRow` and
+  `scrollToColumn` wait on trimming, not scroll position, so they return before the scroll
+  has rendered; the settle is what makes those resets deterministic.
 
 A category measured as exactly `0`, or a CV of `141.42%` (the CV of `{x, 0, 0}` at three
 iterations), means the window is wrong -- not that the operation was cheap.
