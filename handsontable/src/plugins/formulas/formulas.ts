@@ -1407,22 +1407,25 @@ export class Formulas extends BasePlugin {
       for (let populatedColumnIndex = 0; populatedColumnIndex < fillRangeData[populatedRowIndex].length;
         populatedColumnIndex += 1) {
         const populatedValue = fillRangeData[populatedRowIndex][populatedColumnIndex];
-        // HyperFormula indexes: `isFormulaCellType()` below translates these itself.
+        // HyperFormula indexes – trimmed rows/columns (`trimRows`, Filters) still occupy an HF
+        // index but no visual one, so these can diverge from the visual coordinates below. Plain
+        // moves do not diverge them: a move resyncs HF's own row/column order to match visual order.
         const sourceRow = sourceStartRow + (populatedRowIndex % populationRowLength);
         const sourceColumn = sourceStartColumn + (populatedColumnIndex % populationColumnLength);
-        // `getCellMeta()` takes visual coordinates, unlike `sourceRow`/`sourceColumn` above –
-        // with hidden or moved rows/columns, the raw HF indexes point at a different cell.
-        const sourceCellMeta = this.hot.getCellMeta(
-          this.rowAxisSyncer!.getVisualIndexFromHfIndex(sourceRow),
-          this.columnAxisSyncer!.getVisualIndexFromHfIndex(sourceColumn),
-        );
+        // `getCellMeta()` and `isFormulaCellType()` both take visual coordinates – translate once
+        // and reuse for both, rather than feeding either the raw HF pair above. `-1` (no visual
+        // counterpart, i.e. a trimmed source) cannot happen here: the source is always the current
+        // selection, and a trimmed cell can never be selected.
+        const visualSourceRow = this.rowAxisSyncer!.getVisualIndexFromHfIndex(sourceRow);
+        const visualSourceColumn = this.columnAxisSyncer!.getVisualIndexFromHfIndex(sourceColumn);
+        const sourceCellMeta = this.hot.getCellMeta(visualSourceRow, visualSourceColumn);
 
         if (isDate(populatedValue, sourceCellMeta.type)) {
           if (populatedValue.startsWith('\'')) {
             // Populating values on HOT side without apostrophe.
             fillRangeData[populatedRowIndex][populatedColumnIndex] = populatedValue.slice(1);
 
-          } else if (this.isFormulaCellType(sourceRow, sourceColumn, this.sheetId) === false) {
+          } else if (this.isFormulaCellType(visualSourceRow, visualSourceColumn, this.sheetId) === false) {
             // Populating date in proper format, coming from the source cell.
             fillRangeData[populatedRowIndex][populatedColumnIndex] =
               getDateInHotFormat(populatedValue);

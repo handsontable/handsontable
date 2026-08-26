@@ -3128,7 +3128,8 @@ describe('Formulas general', () => {
       // apostrophe escapes it from HyperFormula's formula parsing).
       await setDataAtCell(0, 0, '\'=SUM(A1)');
 
-      const sourceDisplayedValue = getDataAtCell(0, 0);
+      // The source cell's own displayed value is the engine-computed one, apostrophe stripped.
+      expect(getDataAtCell(0, 0)).toBe('=SUM(A1)');
 
       await selectCell(0, 0);
       autofill(2, 0);
@@ -3139,9 +3140,10 @@ describe('Formulas general', () => {
       // (`isPreservedText` returns `false` for it), so autofill must reach every filled cell with
       // neither an apostrophe gained (it would then read as the literal text `'=SUM(A1)`) nor one
       // lost (it would then be parsed by the engine as a real formula). `getDataAtCol` reads the
-      // displayed value (engine-computed, apostrophe stripped); `getSourceDataAtCol` reads the raw
-      // stored value (still escaped, as written).
-      expect(getDataAtCol(0)).toEqual([sourceDisplayedValue, sourceDisplayedValue, sourceDisplayedValue]);
+      // displayed value (engine-computed, apostrophe stripped, matching the source cell's own
+      // displayed value above); `getSourceDataAtCol` reads the raw stored value (still escaped,
+      // as written).
+      expect(getDataAtCol(0)).toEqual(['=SUM(A1)', '=SUM(A1)', '=SUM(A1)']);
       expect(getSourceDataAtCol(0)).toEqual(['\'=SUM(A1)', '\'=SUM(A1)', '\'=SUM(A1)']);
 
       expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
@@ -3154,6 +3156,44 @@ describe('Formulas general', () => {
         ['=SUM(A1)', 8],
         ['=SUM(A1)', 8],
       ]);
+    });
+
+    it('should read isFormulaCellType() through visual indexes for a date-typed autofill source with a trimmed row preceding it', async() => {
+      handsontable({
+        data: [
+          ['trimmed'],
+          ['2020-01-01'],
+          [''],
+          [''],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        // Only physical row 1 (visual row 0, since physical row 0 is trimmed) is date-typed.
+        cells(row, column) {
+          if (row === 1 && column === 0) {
+            return { type: 'date' };
+          }
+
+          return {};
+        },
+        trimRows: [0],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      spyOn(formulasPlugin, 'isFormulaCellType').and.callThrough();
+
+      // The `isDate` branch's `isFormulaCellType()` guard is fed the same HyperFormula indexes
+      // as the `preserveTextValue` meta read above it, and takes visual coordinates just the
+      // same - it must receive the translated (0, 0), never the raw HF pair (1, 0).
+      await selectCell(0, 0);
+      autofill(2, 0);
+
+      await waitForNextAnimationFrames(2);
+
+      expect(formulasPlugin.isFormulaCellType).toHaveBeenCalledWith(0, 0, formulasPlugin.sheetId);
+      expect(formulasPlugin.isFormulaCellType).not.toHaveBeenCalledWith(1, 0, formulasPlugin.sheetId);
     });
 
     it('should respect the option set at the grid level (cascading configuration)', async() => {
