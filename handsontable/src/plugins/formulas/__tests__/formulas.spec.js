@@ -3090,6 +3090,33 @@ describe('Formulas general', () => {
       ]);
     });
 
+    it('should respect the option set through a cells function declared on a column', async() => {
+      handsontable({
+        data: [
+          ['0123456', '0123456'],
+          ['=LEN(A1)', '=LEN(B1)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [
+          {
+            cells() {
+              return { type: 'text', preserveTextValue: true };
+            },
+          },
+          {},
+        ],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)).toEqual([
+        ['0123456', 123456],
+        [7, 6],
+      ]);
+    });
+
     it('should respect the option set per cell via the cells function on both the load and edit paths', async() => {
       handsontable({
         data: [

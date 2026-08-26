@@ -1154,10 +1154,18 @@ export class Formulas extends BasePlugin {
    * translate indexes and read meta for every cell only to change nothing.
    *
    * The layers checked here are exactly the ones a cell meta can be composed from: the global
-   * settings layer, the `columns` array (a `columns` function is opaque, so it always counts), the
-   * `cell` array, the `cells` function (also opaque, so it always counts), the already stored cell
-   * metas (which is where `setCellMeta` and the applied `cell` array land), and the
-   * `beforeGetCellMeta` hook.
+   * settings layer, the `columns` setting, the `cell` array, the already stored cell metas (which is
+   * where `setCellMeta` and the applied `cell` array land), and the `beforeGetCellMeta` hook.
+   *
+   * Two things are opaque and therefore always count as "can mark a cell": a `columns` **function**
+   * (its per-column result only exists at meta-build time) and a `cells` **function**. The latter is
+   * part of the per-layer predicate, not a table-layer-only check, because `#runMetaExtension`
+   * (`dataMap/metaManager/mods/dynamicCellMeta.ts`) reads `cellMeta.cells` off the cell meta object
+   * and so resolves it through the prototype chain - a `cells` function declared on a `columns`
+   * entry (`columns: [{ cells: () => ({ type: 'date' }) }]`) is honored just like a global one.
+   *
+   * The `columns` setting is probed by index rather than through `Array.isArray`, because
+   * `core.ts` reads it as `columnSetting[j]`, which accepts an array-LIKE object too.
    *
    * Accepted residual: `afterGetCellMeta` is deliberately NOT part of the gate, because
    * `mergeCells`, `hiddenRows`, and `hiddenColumns` register it unconditionally – including it
@@ -1170,17 +1178,42 @@ export class Formulas extends BasePlugin {
    */
   #needsEngineBoundEscaping(): boolean {
     const layerDeclaresEscaping = (layer: unknown): boolean => {
-      const meta = layer as { type?: unknown, preserveTextValue?: unknown } | null | undefined;
+      const meta = layer as {
+        type?: unknown, preserveTextValue?: unknown, cells?: unknown
+      } | null | undefined;
 
-      return !!meta && (meta.type === 'date' || meta.preserveTextValue === true);
+      return !!meta && (
+        meta.type === 'date' ||
+        meta.preserveTextValue === true ||
+        typeof meta.cells === 'function'
+      );
     };
     const tableMeta = this.hot.getSettings();
+    const columnsSetting = tableMeta.columns as
+      { length?: number, [index: number]: unknown } | ((column: number) => unknown) | undefined;
+    const columnsDeclareEscaping = (): boolean => {
+      if (typeof columnsSetting === 'function') {
+        return true;
+      }
+
+      if (typeof columnsSetting !== 'object' || columnsSetting === null) {
+        return false;
+      }
+
+      const columnCount = Math.max(this.hot.countCols(), columnsSetting.length ?? 0);
+
+      for (let column = 0; column < columnCount; column++) {
+        if (layerDeclaresEscaping(columnsSetting[column])) {
+          return true;
+        }
+      }
+
+      return false;
+    };
 
     if (
       layerDeclaresEscaping(tableMeta) ||
-      typeof tableMeta.cells === 'function' ||
-      typeof tableMeta.columns === 'function' ||
-      (Array.isArray(tableMeta.columns) && tableMeta.columns.some(layerDeclaresEscaping)) ||
+      columnsDeclareEscaping() ||
       (Array.isArray(tableMeta.cell) && tableMeta.cell.some(layerDeclaresEscaping)) ||
       this.hot.hasHook('beforeGetCellMeta')
     ) {
@@ -1472,7 +1505,10 @@ export class Formulas extends BasePlugin {
       const sourceDataArray = this.#getProcessedSourceDataArray();
 
       // The guard only range-checks the sheet against the array dimensions, so escaping can run
-      // after it – and then it is skipped altogether when the content is not replaced.
+      // after it – and then it is skipped altogether when the content is not replaced. Observable
+      // side effect of that ordering: on the rejected branch the user's `cells` function and the
+      // `beforeGetCellMeta`/`afterGetCellMeta` listeners are no longer invoked once per cell, where
+      // the pre-guard scan used to invoke them before discarding the result.
       if (this.engine!.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
         this.#escapeSourceDataArray(sourceDataArray);
 
