@@ -775,12 +775,18 @@
     // in this color whenever it decides to draw one (on drag, on hover), so anything else makes the
     // band change shade between a wheel scroll and a drag.
     background-color: var(--ht-scrollbar-track-color, var(--ht-background-color));
-    // The band DOES take pointer events, on purpose. An overlay scrollbar only hit-tests its thumb,
-    // never the empty track, so a press on the bare band would otherwise fall through to the master
-    // cell hidden behind it and move the selection to a cell the user cannot even see. The scrollbar
-    // still wins where it is drawn - a scroll container's scrollbar is hit-tested above its own
-    // contents - so the thumb stays grabbable and only the dead track is swallowed.
-    pointer-events: auto;
+    // The band paints over the strip but does not answer for it. Taking the hit made the band the
+    // event target for everything underneath, including the selection's own controls: the autofill
+    // corner of a range that ends near the grid's edge sits inside the strip, and with the band
+    // answering, the press reached the filler instead of the handle, so no fill drag ever started.
+    // Measured on the `main` theme, where that handle lands 14px above the bottom edge and the band
+    // spans the last 16px.
+    // A press on the bare track still must not move the selection to a cell hidden behind the band.
+    // That is handled where it belongs, by coordinate, in `Overlays#swallowBandPress` - which also
+    // knows to let the selection's controls through. The scrollbar itself is unaffected either way: it
+    // is not a DOM node, and a scroll container's scrollbar is hit-tested above its own contents, so
+    // the thumb stays grabbable.
+    pointer-events: none;
     box-sizing: border-box;
     // No opacity and no transition, on purpose: the band is drawn UNDER the frozen overlays, which are
     // clipped out of the strip, so any frame where it is not fully opaque shows the master's cell where

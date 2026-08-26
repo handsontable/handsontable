@@ -48,17 +48,6 @@ export class BottomInlineStartCornerOverlay extends Overlay {
   }
 
   /**
-   * This corner is drawn over both frozen regions, so it needs a band only when both exist - see
-   * `Overlay#coversScrollbarEdge`.
-   *
-   * @returns {boolean}
-   */
-  holdsFrozenContent(): boolean {
-    return this.wtSettings.getSetting<number>('fixedColumnsStart') > 0
-      && this.wtSettings.getSetting<number>('fixedRowsBottom') > 0;
-  }
-
-  /**
    * Checks if overlay should be fully rendered.
    *
    * @returns {boolean}
@@ -130,8 +119,7 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     //
     // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
     // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`.
-    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, this.deps.rootWindow)
-      && this.holdsFrozenContent();
+    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, this.deps.rootWindow);
     const bottomClearance = this.needFullRender ? axisScrollbarClearance(
       this.deps.geometryReader,
       this.deps.getWtTable().holder,

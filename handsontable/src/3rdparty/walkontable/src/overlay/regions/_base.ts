@@ -274,26 +274,14 @@ export abstract class Overlay {
   }
 
   /**
-   * Whether this overlay holds frozen content - rows or columns the master has scrolled away from.
-   *
-   * Overridden by the overlays that can; the default is no, which is the safe answer.
-   *
-   * @returns {boolean}
-   */
-  holdsFrozenContent(): boolean {
-    return false;
-  }
-
-  /**
    * Whether this overlay is currently keeping a strip clear along one of the scrollbar edges.
    *
    * The track band is drawn only where the answer is yes for at least one overlay. A band with nothing
-   * clipped behind it is a grey strip painted over live cells, and it swallows presses there - which is
-   * what a grid with no frozen rows or columns used to get on every scroll (#10370).
+   * clipped behind it is a grey strip painted over live cells, and it swallows presses there.
    *
-   * The strips are the single source of truth here, and they are already gated on frozen content where
-   * they are published - so this asks nothing about `holdsFrozenContent` itself. Two gates for one
-   * decision is how this feature drifted: a band was suppressed while the clip that needed it stayed.
+   * The strips are the single source of truth here, and an overlay publishes one only while its clone
+   * is rendered - so this asks nothing else. Two gates for one decision is how this feature drifted: a
+   * band was suppressed while the clip that needed it stayed.
    *
    * @param {'bottom' | 'inlineEnd'} edge The scrollbar edge to ask about.
    * @returns {boolean}

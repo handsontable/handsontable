@@ -134,17 +134,16 @@ test.describe('overlay scrollbar clearance', () => {
     await expect(bands).toHaveCount(0);
   });
 
-  test('draws nothing for a grid whose only overlays are its headers', async ({ page }) => {
+  test('draws the track for a grid whose only overlays are its headers', async ({ page }) => {
     // Headers render overlays too - `shouldRenderTopOverlay` is `fixedRowsTop > 0 ||
-    // columnHeaders().length > 0` - so `colHeaders: true` alone put a top overlay on the inline-end
-    // edge and `rowHeaders: true` put an inline-start overlay on the bottom one. Both published a
-    // strip, and the band was then drawn across the FULL scrollport: measured on this configuration, a
-    // 16px grey strip down the whole right edge and across the whole bottom, over live cells, with
-    // every press in them swallowed. This is the commonest grid there is.
+    // columnHeaders().length > 0` - so `colHeaders: true` alone puts a top overlay on the inline-end
+    // edge, and `rowHeaders: true` puts an inline-start overlay on the bottom one. Each covers the
+    // scrollbar it touches, so each needs the strip.
     //
-    // Clipping a header clone is still right - it would otherwise cover the scrollbar - but a band
-    // behind that clip is not: what the clip uncovers is the master's own header, the same content in
-    // the same place. Only frozen content needs filling in.
+    // Being rendered is the whole question. An earlier revision asked instead whether the overlay
+    // carried frozen rows or columns of its own, which switched the clearance off here - and, far
+    // worse, off on the vertical axis of any grid with frozen columns and no frozen rows, where the
+    // column header is the only overlay on that edge. See the test below.
     await page.evaluate(() => {
       const host = document.createElement('div');
 
@@ -171,7 +170,7 @@ test.describe('overlay scrollbar clearance', () => {
 
     const snapshot = await page.evaluate(() => new Promise<{
       gutterX: number, gutterY: number, bands: number, clipped: string[],
-      hitBottom: string, hitRight: string, hitHeaderStrip: string,
+      bandCoversRight: boolean, bandCoversHeaderStrip: boolean,
     }>((resolve) => {
       const root = document.querySelector('#headers-only-grid')!;
       const holder = root.querySelector('.ht_master .wtHolder') as HTMLElement;
@@ -179,9 +178,13 @@ test.describe('overlay scrollbar clearance', () => {
       holder.addEventListener('scroll', () => {
         requestAnimationFrame(() => requestAnimationFrame(() => {
           const r = holder.getBoundingClientRect();
-          const name = (el: Element | null) =>
-            (el ? (el.className || el.tagName) : 'none').toString();
           const topClone = root.querySelector('.ht_clone_top') as HTMLElement;
+          const covers = (x: number, y: number) =>
+            [...root.querySelectorAll('.htScrollbarClearanceFiller')].some((el) => {
+              const br = el.getBoundingClientRect();
+
+              return x >= br.left && x <= br.right && y >= br.top && y <= br.bottom;
+            });
 
           resolve({
             gutterX: holder.offsetWidth - holder.clientWidth,
@@ -190,11 +193,9 @@ test.describe('overlay scrollbar clearance', () => {
             clipped: [...root.querySelectorAll('[class*="ht_clone_"]')]
               .map(el => `${(el.className.match(/ht_clone_\w+/) || ['?'])[0]}=${getComputedStyle(el).clipPath}`)
               .filter(entry => !entry.endsWith('none')),
-            hitBottom: name(document.elementFromPoint(r.left + (r.width / 2), r.bottom - 8)),
-            hitRight: name(document.elementFromPoint(r.right - 8, r.top + (r.height / 2))),
-            // Inside the column header, in the strip a clip would have taken away.
-            hitHeaderStrip: name(document.elementFromPoint(
-              r.right - 8, topClone.getBoundingClientRect().bottom - 4)),
+            bandCoversRight: covers(r.right - 8, r.top + (r.height / 2)),
+            // Inside the column header, in the strip the clip takes away.
+            bandCoversHeaderStrip: covers(r.right - 8, topClone.getBoundingClientRect().bottom - 4),
           });
         }));
       }, { once: true });
@@ -203,22 +204,166 @@ test.describe('overlay scrollbar clearance', () => {
       holder.scrollTop += 120;
     }));
 
-    // Non-vacuity: on a classic-scrollbar runner no band is ever drawn for any grid, so the assertions
-    // below would hold on a build that still had the defect.
+    // Non-vacuity: on a classic-scrollbar runner nothing is ever drawn for any grid, so the assertions
+    // below would hold on a build that never cleared anything at all.
     if (snapshot.gutterX > 0 || snapshot.gutterY > 0) {
       return;
     }
 
-    expect(snapshot.bands).toBe(0);
+    expect(snapshot.bands).toBeGreaterThan(0);
+    expect(snapshot.clipped.join(',')).toContain('ht_clone_top');
 
-    // And nothing is clipped either. The two have to switch off together: a clip with no band behind
-    // it uncovers the master, which after this scroll is a different row and column - a data cell
-    // sitting where the column header belongs, for as long as the strip is open.
-    expect(snapshot.clipped).toEqual([]);
+    // The band and the clip have to arrive together. What a clip uncovers is the master, which after
+    // this scroll is a different row and column - so a bare clip would put a data cell where the column
+    // header belongs. The band has to span the strip the clip opened, along its whole length.
+    //
+    // Measured by geometry, not by `elementFromPoint`: the band deliberately does not hit-test, so that
+    // painting it over the selection's controls does not disarm them - see `Overlays#swallowBandPress`.
+    expect(snapshot.bandCoversHeaderStrip).toBe(true);
+    expect(snapshot.bandCoversRight).toBe(true);
+  });
 
-    // The strips are ordinary grid again - no filler over the cells, and the header still its own.
-    expect(snapshot.hitBottom).not.toContain('htScrollbarClearanceFiller');
-    expect(snapshot.hitRight).not.toContain('htScrollbarClearanceFiller');
-    expect(snapshot.hitHeaderStrip).not.toContain('htScrollbarClearanceFiller');
+  test('gives the strip to the scrollbar while the track is up, and back afterwards', async ({ page }) => {
+    // The deliberate cost of the track, and the decision behind it: while it is on screen the strip
+    // belongs to the scrollbar, so a press there does not move the selection - even over ordinary
+    // cells the band happens to cover. That matches what the platform does; a macOS overlay scrollbar
+    // takes the presses in its own strip too.
+    //
+    // Both halves are asserted, because only the pair says "the track owns this" rather than "presses
+    // here are broken": the same click is swallowed while the track is up and lands normally once it
+    // has gone. The second half is also what stops this test passing on a build that simply never
+    // draws a track.
+    const selection = () => page.evaluate(() =>
+      JSON.stringify((window as unknown as { clearanceHot: { getSelectedLast(): number[] } })
+        .clearanceHot.getSelectedLast() ?? null));
+
+    await page.evaluate(() => (window as unknown as {
+      clearanceHot: { selectCell(r: number, c: number): void }
+    }).clearanceHot.selectCell(4, 4));
+
+    const before = await selection();
+
+    // Scroll, which is what puts the track up, and read the point to press while it is still there.
+    const point = await page.evaluate(() => new Promise<{ x: number, y: number, bands: number }>((resolve) => {
+      const holder = document.querySelector('#clearance-grid .ht_master .wtHolder') as HTMLElement;
+
+      holder.addEventListener('scroll', () => {
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          const r = holder.getBoundingClientRect();
+
+          resolve({
+            // Well inside the bottom strip, and away from the frozen columns on the left.
+            x: r.left + (r.width * 0.75),
+            y: r.bottom - 6,
+            bands: document.querySelectorAll('#clearance-grid .htScrollbarClearanceFiller').length,
+          });
+        }));
+      }, { once: true });
+
+      holder.scrollTop += 120;
+      holder.scrollLeft += 160;
+    }));
+
+    // Nothing is drawn on a classic-scrollbar runner, so there is no strip to argue about.
+    if (point.bands === 0) {
+      return;
+    }
+
+    await page.mouse.click(point.x, point.y);
+
+    expect(await selection()).toBe(before);
+
+    // Now let the track go, and press the very same point again. The pointer has to leave the strip
+    // first: a pointer resting beside the scrollbar holds the track open on purpose, so waiting for
+    // the fade without moving away waits forever.
+    await page.mouse.move(point.x, point.y - 120);
+
+    await page.waitForFunction(
+      () => document.querySelectorAll('#clearance-grid .htScrollbarClearanceFiller').length === 0,
+      undefined, { timeout: 5000 });
+
+    await page.mouse.click(point.x, point.y);
+
+    expect(await selection()).not.toBe(before);
+  });
+
+  test('clears the vertical scrollbar with frozen columns and no frozen rows', async ({ page }) => {
+    // The reported case, and the one that survives the other tests in this file. `fixedColumnsStart`
+    // covers the horizontal scrollbar and is obviously in scope; the vertical scrollbar on the same
+    // grid is covered by the column header alone, because `fixedRowsTop` is 0. A per-overlay frozen
+    // content check therefore cleared the bottom edge and left the inline-end edge covered: the
+    // horizontal thumb was grabbable, the vertical one was not, on the commonest frozen layout there
+    // is.
+    //
+    // The first test in this file cannot catch that - its grid has frozen content on both axes, so it
+    // passes whichever question the gate asks.
+    await page.evaluate(() => {
+      const host = document.createElement('div');
+
+      host.id = 'frozen-cols-grid';
+      host.className = document.querySelector('[data-testid="grid"]')!.className;
+      document.body.appendChild(host);
+
+      const data = Array.from({ length: 60 }, (_, r) =>
+        Array.from({ length: 25 }, (_, c) => `R${r + 1}C${c + 1}`));
+
+      new (window as unknown as { Handsontable: new (...a: unknown[]) => unknown }).Handsontable(host, {
+        data,
+        colWidths: 90,
+        width: 500,
+        height: 260,
+        rowHeaders: true,
+        colHeaders: true,
+        fixedColumnsStart: 3,
+        // No frozen rows: the column header is the only overlay on the vertical scrollbar.
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    });
+
+    await expect(page.locator('#frozen-cols-grid .ht_clone_inline_start')).toBeVisible();
+
+    // Scroll the vertical axis only, which is the axis that was broken.
+    const snapshot = await page.evaluate(() => new Promise<{
+      gutterX: number, gutterY: number, edges: string[], clipped: string[], bandCoversTopOfBar: boolean,
+    }>((resolve) => {
+      const root = document.querySelector('#frozen-cols-grid')!;
+      const holder = root.querySelector('.ht_master .wtHolder') as HTMLElement;
+
+      holder.addEventListener('scroll', () => {
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          const r = holder.getBoundingClientRect();
+          const topClone = root.querySelector('.ht_clone_top') as HTMLElement;
+
+          resolve({
+            gutterX: holder.offsetWidth - holder.clientWidth,
+            gutterY: holder.offsetHeight - holder.clientHeight,
+            edges: [...root.querySelectorAll('.htScrollbarClearanceFiller')]
+              .map(el => el.getAttribute('data-ht-clearance-edge') || '?'),
+            clipped: [...root.querySelectorAll('[class*="ht_clone_"]')]
+              .filter(el => getComputedStyle(el).clipPath !== 'none')
+              .map(el => (el.className.match(/ht_clone_\w+/) || ['?'])[0]),
+            // The top of the vertical scrollbar, just inside the header - where the thumb sits when the
+            // grid is near the top, and where the header used to cover the scrollbar.
+            bandCoversTopOfBar: [...root.querySelectorAll('.htScrollbarClearanceFiller')].some((el) => {
+              const br = el.getBoundingClientRect();
+              const x = r.right - 8;
+              const y = topClone.getBoundingClientRect().bottom - 6;
+
+              return x >= br.left && x <= br.right && y >= br.top && y <= br.bottom;
+            }),
+          });
+        }));
+      }, { once: true });
+
+      holder.scrollTop += 150;
+    }));
+
+    if (snapshot.gutterX > 0 || snapshot.gutterY > 0) {
+      return;
+    }
+
+    expect(snapshot.edges).toContain('inline-end');
+    expect(snapshot.clipped).toContain('ht_clone_top');
+    expect(snapshot.bandCoversTopOfBar).toBe(true);
   });
 });

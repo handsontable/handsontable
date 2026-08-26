@@ -61,17 +61,6 @@ export class TopOverlay extends Overlay {
   }
 
   /**
-   * Frozen top rows only. `colHeaders` alone also renders this overlay, but clipping a header uncovers
-   * the master's own header underneath - the same content, in the same place - so there is nothing for
-   * a band to fill in. See `Overlay#coversScrollbarEdge`.
-   *
-   * @returns {boolean}
-   */
-  holdsFrozenContent(): boolean {
-    return this.wtSettings.getSetting<number>('fixedRowsTop') > 0;
-  }
-
-  /**
    * Checks if overlay should be fully rendered.
    *
    * @returns {boolean}
@@ -221,14 +210,15 @@ export class TopOverlay extends Overlay {
     // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
     // Clip and band together, or not at all. Every rendered clone has to be clipped or it covers the
     // scrollbar - but clipping one uncovers the master underneath, scrolled elsewhere, so a clip with
-    // no band behind it shows the wrong cells in the strip. Gating only the band is what put a data
-    // cell where the column header belongs on a grid with headers and nothing frozen.
+    // no band behind it shows the wrong cells in the strip.
     //
-    // Hence the whole clearance is gated on frozen content. A headers-only grid keeps the behavior it
-    // had before this branch - the header clone covers the top of a floating scrollbar - which is
-    // outside what #10370 reported, and is the "track showing where it is not needed" case.
-    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow)
-      && this.holdsFrozenContent();
+    // Being rendered is the whole question. An overlay drawn on this edge covers the scrollbar there
+    // whether it carries frozen rows or only a column header, so a header-only grid needs the strip
+    // for exactly the reason a frozen one does. Asking instead whether this overlay held frozen rows
+    // left the vertical scrollbar covered on any grid with frozen columns but no frozen rows - the
+    // commonest arrangement there is. The strips below are published only while the clone is
+    // rendered, so nothing further has to be asked here.
+    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
 
     this.#holderClearance = axisScrollbarClearance(
       this.deps.geometryReader,

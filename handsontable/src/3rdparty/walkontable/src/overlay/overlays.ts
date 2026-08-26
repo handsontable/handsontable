@@ -486,9 +486,10 @@ class Overlays {
       { passive: true, capture: true }
     );
 
-    // A press inside an open band must do nothing: no selection, no deselect, no menu. It has to be
-    // caught by coordinate on the way down - the band element is not hit-tested (the browser answers a
-    // point in there with the scroll container), so nothing on the band itself would ever fire.
+    // A press inside an open band must do nothing: no selection, no deselect, no menu. It is caught by
+    // coordinate on the way down rather than by target, because the band does not hit-test - the point
+    // is answered by whatever the band is painted over, which is a different element in every part of
+    // the strip.
     BAND_SWALLOWED_EVENTS.forEach((eventName) => {
       this.eventManager.addEventListener(
         this.wtTable.holder,
@@ -530,6 +531,17 @@ class Overlays {
     }
 
     if (bottom === 0 && inlineEnd === 0) {
+      return;
+    }
+
+    // The selection's own controls are drawn in this strip too - the autofill corner most of all, on
+    // any selection that reaches the grid's edge. The band is painted over them so the track reads as
+    // one clean line, but painting over a control must not disarm it: swallowing here left the fill
+    // handle dead for as long as the track showed. A press that really landed on one is the user
+    // reaching for that control, not for the scrollbar, so it goes through.
+    const target = event.target as HTMLElement | null;
+
+    if (target && typeof target.closest === 'function' && target.closest('.wtBorder')) {
       return;
     }
 

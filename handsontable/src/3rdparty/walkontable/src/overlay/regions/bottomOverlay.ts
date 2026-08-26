@@ -62,15 +62,6 @@ export class BottomOverlay extends Overlay {
   }
 
   /**
-   * Frozen bottom rows only - see `Overlay#coversScrollbarEdge`.
-   *
-   * @returns {boolean}
-   */
-  holdsFrozenContent(): boolean {
-    return this.wtSettings.getSetting<number>('fixedRowsBottom') > 0;
-  }
-
-  /**
    * Checks if overlay should be fully rendered.
    *
    * @returns {boolean}
@@ -241,8 +232,7 @@ export class BottomOverlay extends Overlay {
     // instead, `repositionOverlay` never runs and clipping would expose the master for nothing.
     const rootSized = this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal';
     // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`.
-    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow)
-      && this.holdsFrozenContent();
+    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
 
     // The master's vertical scrollbar sits along the inline-end edge this overlay spans.
     this.#holderClearance = axisScrollbarClearance(

@@ -49,16 +49,6 @@ export class InlineStartOverlay extends Overlay {
   }
 
   /**
-   * Frozen columns only. `rowHeaders` alone also renders this overlay, and clipping a row header
-   * uncovers the master's own - see `Overlay#coversScrollbarEdge`.
-   *
-   * @returns {boolean}
-   */
-  holdsFrozenContent(): boolean {
-    return this.wtSettings.getSetting<number>('fixedColumnsStart') > 0;
-  }
-
-  /**
    * Checks if overlay should be fully rendered.
    *
    * @returns {boolean}
@@ -209,8 +199,7 @@ export class InlineStartOverlay extends Overlay {
     const rootSized = this.trimmingContainer !== rootWindow || preventOverflow === 'vertical';
     // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
     // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`.
-    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow)
-      && this.holdsFrozenContent();
+    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
 
     this.#holderClearance = axisScrollbarClearance(
       this.deps.geometryReader,
