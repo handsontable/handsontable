@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a cancelled row or column move still adding an entry to the undo stack. Blocking a move by returning `false` from `beforeRowMove` or `beforeColumnMove` no longer leaves an action that makes the next undo do nothing. Moves that were impossible, or that left the order unchanged, are no longer recorded either.",
+  "type": "fixed",
+  "issueOrPR": 13257,
+  "breaking": false,
+  "framework": "none"
+}
