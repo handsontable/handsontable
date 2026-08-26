@@ -49,6 +49,10 @@ export interface FixtureHotInstance {
   getPlugin(name: 'manualColumnMove'): {
     moveColumns(columns: number[], finalIndex: number): boolean,
   };
+  getPlugin(name: 'manualColumnFreeze'): {
+    freezeColumn(column: number): void,
+    unfreezeColumn(column: number): void,
+  };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
   getPlugin(name: 'multipleSelectionHandles'): { isDragged(): boolean };
   getPlugin(name: 'nestedRows'): {

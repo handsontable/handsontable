@@ -223,6 +223,14 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * Freeze a column through the ManualColumnFreeze plugin API. Also arms that plugin's own
+   * `beforeColumnMove` veto, which only applies after its first use.
+   */
+  async freezeColumn(column: number): Promise<void> {
+    await this.page.evaluate(c => window.hot.getPlugin('manualColumnFreeze').freezeColumn(c), column);
+  }
+
+  /**
    * The current visual-to-physical row order held by the index mapper.
    */
   async rowOrder(): Promise<number[]> {

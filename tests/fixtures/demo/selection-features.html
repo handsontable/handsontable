@@ -56,7 +56,12 @@
         window.hot.destroy();
       }
 
+      // Reset the hook log and every veto flag with the grid, so a test that re-inits after
+      // arming a veto does not carry it into the new instance.
       window.moveCellsHookLog = [];
+      window.vetoBeforeMoveCells = false;
+      window.vetoBeforeRowMove = false;
+      window.vetoBeforeColumnMove = false;
 
       window.hot = new Handsontable(container, Object.assign({
         beforeMoveCells: (source, target, isCopy) => {
