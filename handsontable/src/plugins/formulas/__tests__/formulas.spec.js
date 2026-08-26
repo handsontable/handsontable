@@ -3214,7 +3214,7 @@ describe('Formulas general', () => {
 
       // The `isDate` branch's `isFormulaCellType()` guard is fed the same HyperFormula indexes
       // as the `preserveTextValue` meta read above it, and takes visual coordinates just the
-      // same - it must receive the translated (0, 0), never the raw HF pair (1, 0).
+      // same – it must receive the translated (0, 0), never the raw HF pair (1, 0).
       await selectCell(0, 0);
       autofill(2, 0);
 
@@ -3499,7 +3499,7 @@ describe('Formulas general', () => {
 
       // `setSourceDataAtCell` takes a physical row index, and the `afterSetSourceDataAtCell` hook
       // reports it unchanged. Physical row 0 is the preserved cell and, after the descending sort,
-      // it is visual row 1 - which is engine row 1, because the engine sheet follows the visual order.
+      // it is visual row 1 – which is engine row 1, because the engine sheet follows the visual order.
       await setSourceDataAtCell(0, 0, '0555');
 
       const formulasPlugin = getPlugin('formulas');

@@ -4971,17 +4971,20 @@ export default (): Record<string, unknown> => {
      * | `false` (default) | The engine parses values of `text` cells (number coercion)  |
      * | `true`            | Values of `text` cells reach the engine as strings          |
      *
-     * The option takes effect only for cells of the [`text`](#type) type, and only when the
-     * [`Formulas`](@/api/formulas.md) plugin is enabled.
+     * The option takes effect only for cells of the [`text`](#type) type – the default cell
+     * type, so setting `preserveTextValue` at the grid level affects every cell that doesn't
+     * declare another type – and only when the [`Formulas`](@/api/formulas.md) plugin is
+     * enabled. Custom cell types aren't supported, even when they reuse the text editor or
+     * renderer.
      *
-     * Set the option globally, per column, or per cell (through the [`cell`](#cell) option).
-     * When set through the [`cells`](#cells) function, the option applies to edited values,
-     * but not to values loaded with the initial data or [`loadData()`](@/api/core.md#loaddata).
+     * Set the option globally, per column, or per cell (through the [`cell`](#cell) option or
+     * the [`cells`](#cells) function).
      *
      * Read more:
      * - [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
      *
      * @memberof Options#
+     * @since 18.1.0
      * @type {boolean}
      * @default false
      * @category Formulas

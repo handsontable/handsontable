@@ -1217,7 +1217,7 @@ export class Formulas extends BasePlugin {
    * (its per-column result only exists at meta-build time) and a `cells` **function**. The latter is
    * part of the per-layer predicate, not a table-layer-only check, because `#runMetaExtension`
    * (`dataMap/metaManager/mods/dynamicCellMeta.ts`) reads `cellMeta.cells` off the cell meta object
-   * and so resolves it through the prototype chain - a `cells` function declared on a `columns`
+   * and so resolves it through the prototype chain – a `cells` function declared on a `columns`
    * entry (`columns: [{ cells: () => ({ type: 'date' }) }]`) is honored just like a global one.
    *
    * The `columns` setting is probed by index rather than through `Array.isArray`, because
@@ -1804,11 +1804,11 @@ export class Formulas extends BasePlugin {
       // engine address or a cell meta read. The fallback keeps rows that have no visual equivalent
       // (trimmed ones, which the engine is fed with as well) pointing at their own index.
       const visualRow = this.hot.toVisualRow(physicalRow) ?? physicalRow;
-      // `propToCol` already returns a visual column index - it resolves the prop, or a physical
+      // `propToCol` already returns a visual column index – it resolves the prop, or a physical
       // column index for array-based data, through `toVisualColumn`.
       const visualColumn = this.hot.propToCol(prop);
 
-      if (!isNumeric(visualRow) || !isNumeric(visualColumn)) {
+      if (!isNumeric(visualColumn)) {
         return;
       }
 
