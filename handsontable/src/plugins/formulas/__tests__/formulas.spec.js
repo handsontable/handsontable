@@ -2706,6 +2706,117 @@ describe('Formulas general', () => {
     expect(getDataAtCell(1, 4)).toEqual(3);
   });
 
+  it('should replace an existing formula\'s text when the `loadData` method is called', async() => {
+    handsontable({
+      data: [
+        [1],
+        ['=A1+1'],
+      ],
+      formulas: {
+        engine: HyperFormula,
+      }
+    });
+
+    const formulasPlugin = getPlugin('formulas');
+
+    // The sheet is reused across `loadData` calls, so at this point the engine still holds the
+    // PREVIOUS formula. The data fed to the engine has to come from what the grid stores, not from
+    // the `modifySourceData` projection – that projection answers a formula cell with the engine's
+    // own formula, which would write the stale `=A1+1` straight back and drop the loaded one.
+    await loadData([
+      [1],
+      ['=A1+100'],
+    ]);
+
+    expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+      [1],
+      ['=A1+100'],
+    ]);
+
+    expect(getDataAtCell(1, 0)).toBe(101);
+  });
+
+  it('should replace an existing formula\'s text when the `updateData` method is called', async() => {
+    handsontable({
+      data: [
+        [1],
+        ['=A1+1'],
+      ],
+      formulas: {
+        engine: HyperFormula,
+      }
+    });
+
+    const formulasPlugin = getPlugin('formulas');
+
+    await updateData([
+      [1],
+      ['=A1+100'],
+    ]);
+
+    expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+      [1],
+      ['=A1+100'],
+    ]);
+
+    expect(getDataAtCell(1, 0)).toBe(101);
+  });
+
+  it('should replace an existing formula with a literal value when the `loadData` method is called', async() => {
+    handsontable({
+      data: [
+        [1],
+        ['=A1+1'],
+      ],
+      formulas: {
+        engine: HyperFormula,
+      }
+    });
+
+    const formulasPlugin = getPlugin('formulas');
+
+    // The same defect as in the two cases above, with the loaded value no longer being a formula.
+    // The `modifySourceData` projection answers a formula cell with the formula the engine holds, so
+    // reading the newly loaded data through it resurrects `=A1+1` into what is now a value cell.
+    await loadData([
+      [1],
+      [5],
+    ]);
+
+    expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+      [1],
+      [5],
+    ]);
+
+    expect(getDataAtCell(1, 0)).toBe(5);
+  });
+
+  it('should replace an existing formula with a literal value when the `updateData` method is called', async() => {
+    handsontable({
+      data: [
+        [1],
+        ['=A1+1'],
+      ],
+      formulas: {
+        engine: HyperFormula,
+      }
+    });
+
+    const formulasPlugin = getPlugin('formulas');
+
+    await updateData([
+      [1],
+      [5],
+    ]);
+
+    expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+      [1],
+      [5],
+    ]);
+
+    expect(getDataAtCell(1, 0)).toBe(5);
+  });
+
   it('should display calculated formula after changing value using `beforeChange` hook #6932', async() => {
     handsontable({
       data: [
