@@ -1511,6 +1511,43 @@ describe('Formulas general', () => {
       expect(afterSetSourceDataAtCell).toHaveBeenCalledTimes(1);
       expect(afterSetSourceDataAtCell.calls.mostRecent().args[0]).toEqual([[0, 1, '=SUM(A1:A3)', '=SUM(A1:A4)']]);
     });
+
+    it('should not write the engine\'s rewritten formula into the data array when the Nested Rows ' +
+      'plugin detaches a row', async() => {
+      const data = [
+        {
+          col1: 1,
+          __children: [
+            { col1: 2 },
+            { col1: '=A1+A2' },
+          ],
+        },
+        { col1: 9 },
+      ];
+
+      handsontable({
+        data,
+        columns: [{ data: 'col1', type: 'text' }],
+        nestedRows: true,
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      getPlugin('nestedRows').dataManager.detachFromParent(
+        getPlugin('nestedRows').dataManager.getDataObject(1)
+      );
+
+      // A detach is a MOVE that the Nested Rows plugin performs on the source data itself, expressed
+      // as a row removal followed by a row creation. The engine therefore reports the reference to
+      // the detached row as broken while that row still exists, and the removal leg allows broken
+      // references through. Persisting that intermediate state would replace a good formula in the
+      // developer's array with an unrecoverable `#REF!`.
+      expect(data[0].__children[0].col1).toBe('=A1+A2');
+      expect(data[0].col1).toBe(1);
+      expect(data[1].col1).toBe(9);
+      expect(data[2].col1).toBe(2);
+    });
   });
 
   describe('Autofill', () => {

@@ -292,6 +292,18 @@ export class Formulas extends BasePlugin {
   #sourceDataSyncPending = false;
 
   /**
+   * Guard flag set for the whole span of a Nested Rows detach – from `beforeDetachChild` until
+   * `#onAfterDetachChild` has finished rewriting the moved rows in the engine.
+   * Keeps `#syncFormulasToSourceData` out of that span: the detach MOVES rows inside the source data
+   * and expresses the move as a row removal followed by a row creation, so between the two legs the
+   * engine holds references the source data's own reference frame never had.
+   *
+   * @private
+   * @type {boolean}
+   */
+  #nestedRowsDetachPending = false;
+
+  /**
    * The changes that the engine reported while undoing or redoing an action. They are collected in
    * `beforeUndo`/`beforeRedo` and consumed in `afterUndo`/`afterRedo`, where the dependent cells get
    * validated.
@@ -697,6 +709,7 @@ export class Formulas extends BasePlugin {
       this.#isRedoingMoveCells = false;
     });
 
+    this.addHook('beforeDetachChild', this.#onBeforeDetachChild);
     this.addHook('afterDetachChild', this.#onAfterDetachChild);
     this.addHook('beforeAutofill', this.#onBeforeAutofill);
 
@@ -2391,11 +2404,20 @@ export class Formulas extends BasePlugin {
    * is the case nothing is written back at all - the read-time projection keeps handling it, exactly
    * as it did before.
    *
+   * A Nested Rows detach is excluded for the same reason, and needs its own flag to be recognized:
+   * that plugin moves the rows inside the source data itself and reports the move as a row removal
+   * followed by a row creation, so the axis order stays physical throughout and the exclusion above
+   * cannot see it. Between the two legs the engine holds a reference to the detached row as broken,
+   * and the removal leg is one of the operations allowed to persist a broken reference – so without
+   * the flag the developer's array ends up with a `#REF!` in place of a formula whose target still
+   * exists, one row further down.
+   *
    * @private
    */
   #syncFormulasToSourceData(allowBrokenReferences = false) {
     if (
       this.#internalOperationPending ||
+      this.#nestedRowsDetachPending ||
       this.sheetName === null ||
       !this.engine?.doesSheetExist(this.sheetName)
     ) {
@@ -2926,6 +2948,16 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * `beforeDetachChild` hook callback.
+   * Opens the guarded span in which `#syncFormulasToSourceData` must not run – see
+   * `#nestedRowsDetachPending`. The Nested Rows data manager always reaches `afterDetachChild` once
+   * this hook has fired, so the span always closes.
+   */
+  #onBeforeDetachChild = () => {
+    this.#nestedRowsDetachPending = true;
+  };
+
+  /**
    * `afterDetachChild` hook callback.
    * Used to sync the data of the rows detached in the Nested Rows plugin with the engine's dataset.
    *
@@ -2955,15 +2987,19 @@ export class Formulas extends BasePlugin {
     // trimming map, under which the visual and physical row spaces genuinely differ.
     this.#escapeSourceDataArray(rowsData, finalElementRowIndex, 0);
 
-    rowsData.forEach((row: unknown[], relativeRowIndex: number) => {
-      row.forEach((value: unknown, colIndex: number) => {
-        this.engine?.setCellContents({
-          col: colIndex,
-          row: finalElementRowIndex + relativeRowIndex,
-          sheet: this.sheetId
-        }, [[value]]);
+    try {
+      rowsData.forEach((row: unknown[], relativeRowIndex: number) => {
+        row.forEach((value: unknown, colIndex: number) => {
+          this.engine?.setCellContents({
+            col: colIndex,
+            row: finalElementRowIndex + relativeRowIndex,
+            sheet: this.sheetId
+          }, [[value]]);
+        });
       });
-    });
+    } finally {
+      this.#nestedRowsDetachPending = false;
+    }
   };
 
 }
