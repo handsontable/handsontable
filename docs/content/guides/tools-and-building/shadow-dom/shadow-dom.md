@@ -94,7 +94,7 @@ Salesforce Lightning Experience renders Lightning Web Components with its synthe
 
 ## Known limitations
 
-- Handsontable checks the container's root node only when the instance is created. The check controls the `ht-shadow-dom` class and the shadow-root clipboard listeners that copy and paste rely on in sandboxed hosts. If you move a live grid into or out of a shadow root, destroy the instance and create it again.
+- Handsontable checks the container's root node only when the instance is created. That check controls three things: the `ht-shadow-dom` class, the shadow-root clipboard listeners that copy and paste rely on in sandboxed hosts, and the shadow-root mouse listeners the comment tooltip uses to react to hovering. If you move a live grid into or out of a shadow root, destroy the instance and create it again.
 - The cell editor doesn't leave the grid's stacking context. In a tight layout, an editor that overflows the grid's wrapper can paint under the host page content that creates its own stacking context.
 
 ## Related guides

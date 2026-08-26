@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the `nestedRows` plugin hiding parent rows and showing orphaned child rows when `updateData()` was called with a different number of children while some parents were collapsed.",
+  "type": "fixed",
+  "issueOrPR": 10239,
+  "breaking": false,
+  "framework": "none"
+}

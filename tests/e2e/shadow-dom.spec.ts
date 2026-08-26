@@ -102,6 +102,88 @@ test.describe('grid inside a native shadow root', () => {
     expect(await grid.outsideClickTargets()).toEqual(['focus-mover']);
   });
 
+  /**
+   * Issue #8624. The Comments plugin listens on the document, which sits outside the
+   * shadow tree, so `event.target` arrives retargeted to the shadow host and the hover
+   * never resolved to the cell. `showAtCell()` was unaffected, which is why the tooltip
+   * could be opened programmatically while hovering did nothing.
+   */
+  test('opens the comment tooltip when a commented cell is hovered', async () => {
+    await grid.cell(3, 1).hover();
+
+    await expect(grid.commentTooltip).toBeVisible();
+    await expect(grid.commentTooltipInput).toHaveValue('Comment inside the shadow root');
+  });
+
+  /**
+   * The counterpart to the case above: hiding is driven by a separate branch that tests
+   * containment with a `parentNode` walk, which dead-ends at the `ShadowRoot`. Resolving
+   * the hover target without also fixing that branch turns "never shows" into "never hides".
+   */
+  test('hides the comment tooltip when the pointer moves to a cell without a comment', async () => {
+    await grid.cell(3, 1).hover();
+    await expect(grid.commentTooltip).toBeVisible();
+
+    await grid.cell(3, 0).hover();
+
+    await expect(grid.commentTooltip).toBeHidden();
+  });
+
+  /**
+   * Containment cannot be decided from the grid's own shadow root alone. Moving the pointer
+   * straight from a commented cell into a different component's shadow tree never touches the
+   * light DOM, and a `parentNode` walk dead-ends in that other tree too - so a check that only
+   * knows the grid's root leaves the tooltip open. On a page built from web components this is
+   * an ordinary pointer move.
+   */
+  test('hides the comment tooltip when the pointer moves into a different shadow tree', async () => {
+    await grid.cell(3, 1).hover();
+    await expect(grid.commentTooltip).toBeVisible();
+
+    await grid.otherShadowContent.hover();
+
+    await expect(grid.commentTooltip).toBeHidden();
+  });
+
+  /**
+   * The tooltip has to survive the pointer landing on it, or it could never be read or
+   * edited. This is the case that exercises `targetIsCommentTextArea()` with the resolved
+   * target: the editor is portaled into the light DOM, so the hover crosses out of the
+   * shadow tree and back to a document-level listener.
+   */
+  test('keeps the comment tooltip open when the pointer moves onto it', async ({ page }) => {
+    // Hiding runs on a timer, so a bare assertion right after the hover would pass before a
+    // wrongly queued hide could fire. Driving the clock makes the "it stays open" claim real.
+    await page.clock.install();
+
+    await grid.cell(3, 1).hover();
+    await page.clock.runFor(1000);
+    await expect(grid.commentTooltip).toBeVisible();
+
+    await grid.commentTooltipInput.hover();
+    await page.clock.runFor(1000);
+
+    await expect(grid.commentTooltip).toBeVisible();
+  });
+
+  /**
+   * Before the fix a shadow-hosted grid resolved the host here, found no cell above it, and
+   * so hid the tooltip on every mousedown - including one on the very cell the comment
+   * belongs to.
+   */
+  test('keeps the comment tooltip open when its own cell is clicked', async ({ page }) => {
+    await page.clock.install();
+
+    await grid.cell(3, 1).hover();
+    await page.clock.runFor(1000);
+    await expect(grid.commentTooltip).toBeVisible();
+
+    await grid.cell(3, 1).click();
+    await page.clock.runFor(1000);
+
+    await expect(grid.commentTooltip).toBeVisible();
+  });
+
   test('deselects when a light-DOM element outside the shadow host is clicked', async () => {
     await grid.cell(0, 0).click();
     await expect.poll(() => grid.selected()).toEqual([[0, 0, 0, 0]]);

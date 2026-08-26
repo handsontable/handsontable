@@ -1,12 +1,19 @@
 import { html } from '../../helpers/templateLiteralTag';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
+import { escapeHtml } from '../../helpers/string';
 
 /**
  * Builds the dialog overlay DOM fragment for the export progress indicator.
  *
  * The title text is resolved at call-time so it reflects the active locale.
  *
- * @param {string} title Translated title string (e.g. "Exporting…").
+ * The title is escaped rather than trusted. Its only current caller passes a translated phrase,
+ * which no end user controls, but a customer-registered language dictionary does reach it, and this
+ * function is the kind that acquires callers. Escaping (not stripping) keeps a phrase containing
+ * `<` intact.
+ *
+ * @param {string} title Translated title string (e.g. "Exporting…"). Rendered as text; markup in it
+ *   shows up literally.
  * @returns {DocumentFragment}
  */
 export function buildExportDialogContent(title: string): DocumentFragment {
@@ -21,7 +28,7 @@ export function buildExportDialogContent(title: string): DocumentFragment {
         </svg>
       </i>
       <div class="${LOADING_CLASS_NAME}__text">
-        <h2 class="${LOADING_CLASS_NAME}__title">${title}</h2>
+        <h2 class="${LOADING_CLASS_NAME}__title">${escapeHtml(title)}</h2>
       </div>
     </div>
   `;

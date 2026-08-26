@@ -179,6 +179,42 @@ describe('passwordRenderer', () => {
     expect(getCell(0, 0).getAttribute('dir')).toBeNull();
   });
 
+  describe('sanitizer', () => {
+    it('should pass the rendered value through a configured sanitizer', async() => {
+      const sanitizer = jasmine.createSpy('sanitizer')
+        .and
+        .callFake(content => content.replace(/<danger\/>/g, ''));
+
+      handsontable({
+        data: [['secret']],
+        sanitizer,
+        columns: [{
+          type: 'password',
+          // The renderer's own `valueFormatter` masks the value, so a developer-supplied one is
+          // the only way markup reaches the sink. That is exactly the case a sanitizer must cover.
+          valueFormatter: () => '<danger/>***',
+        }],
+      });
+
+      expect(sanitizer).toHaveBeenCalledWith('<danger/>***', 'password');
+      expect(getRenderedValue(0, 0)).toBe('***');
+    });
+
+    it('should name the password renderer in the missing-sanitizer warning', async() => {
+      const warnSpy = spyOnConsoleWarn();
+
+      handsontable({
+        data: [['secret']],
+        columns: [{
+          type: 'password',
+          valueFormatter: () => '<b>***</b>',
+        }],
+      });
+
+      expect(warnSpy).toHaveBeenCalledWith(jasmine.stringMatching(/\("password"\) without a sanitizer/));
+    });
+  });
+
   it('should internally call base renderer once', async() => {
     const originalBaseRenderer = Handsontable.renderers.BaseRenderer;
 

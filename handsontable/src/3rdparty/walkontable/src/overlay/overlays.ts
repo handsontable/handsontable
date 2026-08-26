@@ -192,6 +192,19 @@ class Overlays {
   }
 
   /**
+   * Whether the scrolling element was resolved while the table generated no boxes, so the answer was
+   * taken against nothing and a later draw still has to settle it.
+   *
+   * Covers that answer only, not the sizes measured in the same state. Goes false once a pass settles
+   * it, or once a pass gives up because the answer stopped changing.
+   *
+   * @returns {boolean}
+   */
+  get isScrollableElementProvisional() {
+    return this.#scrollSync.isScrollableElementProvisional;
+  }
+
+  /**
    * Walkontable instance's reference.
    *
    * @protected
@@ -407,6 +420,16 @@ class Overlays {
    * Runs logic for the overlays before the table is drawn.
    */
   beforeDraw() {
+    // Before anything measures: drops the sizes a previous draw took while the table had no settled
+    // layout, so this draw re-measures them and resizes from the results. Not on a fast draw – it
+    // re-renders nothing, so it cannot re-measure the row heights this drops, and taking the reset
+    // there would leave them dropped. The mark stays pending until `afterDraw` sees a draw that
+    // actually rendered the band (a `skipRender` hook cancels one that got this far), so the drop is
+    // simply retaken on the next draw that can re-measure.
+    if (!this.isScrollDrivenDraw) {
+      this.#scrollSync.resetSizesMeasuredBeforeLayoutSettled();
+    }
+
     this.#scrollSync.setRenderingStateChanged(this.#overlays.reduce((acc, overlay) => {
       return overlay.hasRenderingStateChanged() || acc;
     }, false));
@@ -416,8 +439,21 @@ class Overlays {
 
   /**
    * Runs logic for the overlays after the table is drawn.
+   *
+   * A fast draw never runs `alignOverlaysWithTrimmingContainer`, so the holder still carries the
+   * `overflow: visible` it was born with and the trimming container is whatever the last full draw
+   * left – a layout resolution taken from it would read a table that nothing has aligned yet. No such
+   * draw can currently precede the first full one (`refreshAll()` returns while `drawn` is false, and
+   * a table built outside the layout stays undrawn until it joins it), so the gate protects the
+   * settle test in `ScrollSync#resolveProvisionalLayout` from a state it never has to judge.
+   *
+   * @param {boolean} cellsRendered Whether this draw rendered the cell band. `false` for a fast
+   *                                (scroll) draw and for a draw whose `beforeDraw` hook set
+   *                                `skipRender`. Only a draw that rendered the band re-measured the
+   *                                sizes the reset on the way in dropped, so only it may spend the
+   *                                mark – otherwise the drop is retaken on the next draw.
    */
-  afterDraw() {
+  afterDraw(cellsRendered: boolean) {
     this.syncScrollWithMaster();
     this.#overlays.forEach((overlay) => {
       const hasRenderingStateChanged = overlay.hasRenderingStateChanged();
@@ -428,6 +464,20 @@ class Overlays {
         overlay.reset();
       }
     });
+
+    if (cellsRendered) {
+      this.#scrollSync.confirmSizesRemeasured();
+    }
+
+    // Runs after the overlays refreshed their trimming containers and the holder got its final
+    // overflow, so a table born outside the layout can settle on the scrollable element and the sizes
+    // it would have had if it had been rendered from the start. It cannot run in `beforeDraw`: both
+    // are still stale there, so the scrollable element would settle on the window again. A fast draw
+    // is stale in the same way – it never aligns the overlays – so it must not resolve anything
+    // either; the flag survives to the next full draw.
+    if (!this.isScrollDrivenDraw) {
+      this.#scrollSync.resolveProvisionalLayout();
+    }
   }
 
   /**

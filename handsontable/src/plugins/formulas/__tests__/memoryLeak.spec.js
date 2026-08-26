@@ -45,6 +45,217 @@ describe('Formulas memory leak check', () => {
     }
   });
 
+  it('should reuse the already-owned sheet on every `loadData` call (no `sheetName` configured)', async() => {
+    const hot = handsontable({
+      data: [['1', '2', '=A1+B1']],
+      formulas: {
+        engine: HyperFormula,
+      },
+    });
+    const { engine } = hot.getPlugin('formulas');
+
+    expect(engine.getSheetNames().length).toBe(1);
+
+    for (let i = 0; i < 5; i++) {
+      await loadData([['1', '2', '=A1+B1']]);
+    }
+
+    expect(engine.getSheetNames().length).toBe(1);
+    expect(engine.getSheetId(hot.getPlugin('formulas').sheetName)).toBe(hot.getPlugin('formulas').sheetId);
+    expect(hot.getDataAtCell(0, 2)).toBe(3);
+  });
+
+  it('should reuse the already-owned sheet on every `updateData` call (no `sheetName` configured)', async() => {
+    const hot = handsontable({
+      data: [['1', '2', '=A1+B1']],
+      formulas: {
+        engine: HyperFormula,
+      },
+    });
+    const { engine } = hot.getPlugin('formulas');
+
+    expect(engine.getSheetNames().length).toBe(1);
+
+    for (let i = 0; i < 5; i++) {
+      await updateData([['1', '2', '=A1+B1']]);
+    }
+
+    expect(engine.getSheetNames().length).toBe(1);
+    expect(hot.getDataAtCell(0, 2)).toBe(3);
+  });
+
+  it('should not retain the previous data in the engine after reloading the data', async() => {
+    const hot = handsontable({
+      data: [['1', '2', '=A1+B1']],
+      formulas: {
+        engine: HyperFormula,
+      },
+    });
+    const { engine } = hot.getPlugin('formulas');
+
+    await loadData([['10', '20', '=A1+B1']]);
+
+    const allSheetsSerialized = engine.getSheetNames()
+      .map(name => engine.getSheetSerialized(engine.getSheetId(name)));
+
+    // Only the current data may be present anywhere in the engine.
+    expect(allSheetsSerialized).toEqual([[['10', '20', '=A1+B1']]]);
+  });
+
+  it('should keep using the sheet pointed to by the `sheetName` option across data loads', async() => {
+    const hot = handsontable({
+      data: [['1', '2', '=A1+B1']],
+      formulas: {
+        engine: HyperFormula,
+        sheetName: 'MySheet',
+      },
+    });
+    const { engine } = hot.getPlugin('formulas');
+
+    await loadData([['1', '2', '=A1+B1']]);
+    await updateData([['1', '2', '=A1+B1']]);
+
+    expect(engine.getSheetNames()).toEqual(['MySheet']);
+    expect(hot.getPlugin('formulas').sheetName).toBe('MySheet');
+  });
+
+  it('should give each grid its own sheet when they share a single engine', async() => {
+    const hfInstance = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const hot1 = handsontable({
+      data: [['1', '2', '=A1+B1']],
+      formulas: {
+        engine: hfInstance,
+      },
+    });
+    const hot2 = spec().$container2.handsontable({
+      data: [['3', '4', '=A1+B1']],
+      formulas: {
+        engine: hfInstance,
+      },
+    }).data('handsontable');
+
+    expect(hfInstance.getSheetNames().length).toBe(2);
+
+    hot1.loadData([['1', '2', '=A1+B1']]);
+    hot2.loadData([['3', '4', '=A1+B1']]);
+
+    // Reloading the data must not add sheets, and must not make the two grids share one sheet.
+    expect(hfInstance.getSheetNames().length).toBe(2);
+    expect(hot1.getPlugin('formulas').sheetId).not.toBe(hot2.getPlugin('formulas').sheetId);
+    expect(hot1.getDataAtCell(0, 2)).toBe(3);
+    expect(hot2.getDataAtCell(0, 2)).toBe(7);
+  });
+
+  it('should not overwrite another grid\'s sheet after an engine-wide sheet rename', async() => {
+    const hfInstance = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const hot1 = handsontable({
+      data: [['1', '2', '=A1+B1']],
+      formulas: {
+        engine: hfInstance,
+      },
+    });
+    const hot2 = spec().$container2.handsontable({
+      data: [['3', '4', '=A1+B1']],
+      formulas: {
+        engine: hfInstance,
+      },
+    }).data('handsontable');
+
+    const hot1SheetId = hot1.getPlugin('formulas').sheetId;
+
+    // `sheetRenamed` is engine-wide, so it reaches every attached instance. Renaming the first
+    // grid's sheet must not repoint the second grid at it.
+    hfInstance.renameSheet(hot1SheetId, 'Renamed');
+
+    expect(hot2.getPlugin('formulas').sheetId).not.toBe(hot1SheetId);
+
+    hot2.loadData([['30', '40', '=A1+B1']]);
+
+    // The first grid's sheet must still hold the first grid's data.
+    expect(hfInstance.getSheetSerialized(hot1SheetId)).toEqual([['1', '2', '=A1+B1']]);
+    expect(hot1.getDataAtCell(0, 2)).toBe(3);
+    expect(hot2.getDataAtCell(0, 2)).toBe(70);
+  });
+
+  it('should follow a rename of its own sheet when `sheetName` differs from it only in case', async() => {
+    const hfInstance = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hfInstance.addSheet('Sheet1');
+
+    // The engine matches sheet names without looking at the case, but keeps the casing it was
+    // given. So the plugin can hold `sheet1` while the engine reports the name as `Sheet1`.
+    const hot = handsontable({
+      data: [['1', '2', '=A1+B1']],
+      formulas: {
+        engine: hfInstance,
+        sheetName: 'sheet1',
+      },
+    });
+
+    hfInstance.renameSheet(hfInstance.getSheetId('sheet1'), 'Renamed');
+
+    expect(hot.getPlugin('formulas').sheetName).toBe('Renamed');
+    expect(hfInstance.doesSheetExist(hot.getPlugin('formulas').sheetName)).toBe(true);
+
+    // A sheet name left pointing at nothing makes the formulas stop resolving.
+    await setDataAtCell(0, 0, '10');
+
+    expect(hot.getDataAtCell(0, 2)).toBe(12);
+  });
+
+  it('should not leave the previous data in the engine when the new data cannot be written', async() => {
+    // The engine caps this sheet at 2 rows, so a 3-row load cannot be written to it.
+    const hfInstance = HyperFormula.buildEmpty({
+      licenseKey: 'internal-use-in-handsontable',
+      maxRows: 2,
+    });
+    const hot = handsontable({
+      data: [['1', '2'], ['3', '4']],
+      formulas: {
+        engine: hfInstance,
+      },
+    });
+    const { sheetId } = hot.getPlugin('formulas');
+
+    await loadData([['10', '20'], ['30', '40'], ['50', '60']]);
+
+    expect(hfInstance.isItPossibleToReplaceSheetContent(sheetId, hot.getSourceDataArray())).toBe(false);
+    // The sheet is reused now, so it must not keep serving the data from before the load.
+    expect(hfInstance.getSheetSerialized(sheetId)).not.toEqual([['1', '2'], ['3', '4']]);
+  });
+
+  it('should redraw the grids that depend on a sheet whose new data could not be written', async() => {
+    const hfInstance = HyperFormula.buildEmpty({
+      licenseKey: 'internal-use-in-handsontable',
+      maxRows: 2,
+    });
+
+    handsontable({
+      data: [['1'], ['2']],
+      formulas: {
+        engine: hfInstance,
+        sheetName: 'SheetA',
+      },
+    });
+
+    const hot2 = spec().$container2.handsontable({
+      data: [['=SheetA!A1']],
+      formulas: {
+        engine: hfInstance,
+        sheetName: 'SheetB',
+      },
+    }).data('handsontable');
+
+    expect(hot2.getCell(0, 0).textContent).toBe('1');
+
+    // Three rows cannot be written to a sheet capped at two, so `SheetA` gets emptied.
+    await loadData([['10'], ['20'], ['30']]);
+
+    // The other grid reads `SheetA`, so it has to be redrawn instead of keeping the old `1`.
+    // A reference to an emptied cell renders blank.
+    expect(hot2.getCell(0, 0).textContent).toBe('');
+  });
+
   it('should detach listeners from the engine after table destroying (one shared HF instances)', async() => {
     const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
     const hot1 = handsontable({

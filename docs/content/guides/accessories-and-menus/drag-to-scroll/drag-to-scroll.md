@@ -19,7 +19,7 @@ vue:
   metaTitle: Drag to scroll - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
-menuTag: new
+menuTag: updated
 ---
 
 Drag a selection or one of its interaction handles outside the visible viewport to scroll the grid automatically.

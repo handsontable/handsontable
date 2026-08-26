@@ -255,11 +255,14 @@ export default (): Record<string, unknown> => {
      * | `true`            | The [`source`](#source) data is treated as HTML     |
      *
      * __Warning:__ Setting the `allowHtml` option to `true` can cause serious XSS vulnerabilities.
+     * The [`sanitizer`](#sanitizer) option does not apply to this content: `allowHtml` exists to render
+     * the markup you supply, so sanitize the [`source`](#source) items yourself before passing them in.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
      * - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
      * - [`source`](#source)
+     * - [`sanitizer`](#sanitizer)
      *
      * @memberof Options#
      * @type {boolean}
@@ -2167,7 +2170,7 @@ export default (): Record<string, unknown> => {
      * | `template.description`   | The description of the template                                                                                                 | The description of the template         |
      * | `template.buttons`       | Array of objects with the buttons configuration (default: `[]`)                                                                 | The buttons of the template             |
      * | `template.buttons.text`  | The text of the button                                                                                                          | The text of the button                  |
-     * | `template.buttons.type`  | The type of the button ('primary' | 'secondary')                                                                                | The type of the button                  |
+     * | `template.buttons.type`  | The type of the button (`'primary'` \| `'secondary'`)                                                                           | The type of the button                  |
      * | `template.buttons.callback` | The callback function to trigger when the button is clicked                                                                  | The callback function to trigger when the button is clicked |
      * | `content`                | A string, HTMLElement or DocumentFragment (default: `''`)                                                                       | The content of the dialog               |
      * | `customClassName`        | A string (default: `''`)                                                                                                        | The custom class name of the dialog     |
@@ -2176,7 +2179,7 @@ export default (): Record<string, unknown> => {
      * | `animation`              | Boolean (default: `true`)                                                                                                       | Whether to show the animation           |
      * | `closable`               | Boolean (default: `false`)                                                                                                      | Whether to make the dialog closable     |
      * | `a11y`                   | Object with accessibility options (default: `{ role: 'dialog', ariaLabel: 'Dialog', ariaLabelledby: '', ariaDescribedby: '' }`) | Accessibility options for the dialog    |
-     * | `a11y.role`              | The role of the dialog ('dialog' | 'alertdialog')                                                                               | The role of the dialog                  |
+     * | `a11y.role`              | The role of the dialog (`'dialog'` \| `'alertdialog'`)                                                                          | The role of the dialog                  |
      * | `a11y.ariaLabel`         | The label of the dialog                                                                                                         | The label of the dialog                 |
      * | `a11y.ariaLabelledby`    | The ID of the element that labels the dialog                                                                                    | The ID of the element that labels the dialog |
      * | `a11y.ariaDescribedby`   | The ID of the element that describes the dialog                                                                                 | The ID of the element that describes the dialog |
@@ -3081,6 +3084,16 @@ export default (): Record<string, unknown> => {
      * | `sheetId`   | A number                                                                                                                                                                                                               |
      * | `sheetName` | A string                                                                                                                                                                                                               |
      * | `language`  | A [HyperFormula language pack](https://handsontable.github.io/hyperformula/guide/localizing-functions.html), imported from `hyperformula/es/i18n/languages`                                                          |
+     * | `hyperlinks` | `true` \|<br>`false` (default)                                                                                                                                                                                        |
+     *
+     * Set `hyperlinks` to `true` to render a cell whose formula is `HYPERLINK()` as a link. The cell
+     * keeps its own renderer, and the link label is the value the formula returns. Only a cell whose
+     * root expression is `HYPERLINK()` becomes a link, so a nested call such as
+     * `=CONCATENATE("see ", HYPERLINK("https://example.com"))` renders as plain text.
+     *
+     * A link is created only for the `http`, `https`, `mailto` and `tel` schemes. Any other scheme,
+     * `javascript:` included, renders the label as plain text instead. Press
+     * <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd> to open the link of the selected cell.
      *
      * Read more:
      * - [Plugins: `Formulas`](@/api/formulas.md)
@@ -3104,6 +3117,12 @@ export default (): Record<string, unknown> => {
      *   engine: HyperFormula,
      *   sheetId: 1,
      *   sheetName: 'Sheet 1'
+     * }
+     *
+     * // or, render `HYPERLINK()` formulas as links
+     * formulas: {
+     *   engine: HyperFormula,
+     *   hyperlinks: true
      * }
      *
      * // or, add a HyperFormula instance
@@ -3902,6 +3921,9 @@ export default (): Record<string, unknown> => {
      * | `title`       | A string          | Custom loading title to display (default: `'Loading...'`) |
      * | `description` | A string          | Custom loading description to display (default: `''`)     |
      *
+     * `title` and `description` render as text. Markup passed in them shows up literally rather
+     * than being interpreted, so use `icon` for the one slot that takes markup.
+     *
      * Read more:
      * - [Plugins: `Loading`](@/api/loading.md)
      *
@@ -4598,8 +4620,16 @@ export default (): Record<string, unknown> => {
      * column is replaced by the `label` from `nestedHeaders`. The `nestedHeaders` label takes precedence.
      * :::
      *
+     * ::: warning
+     * A `label` is written to the DOM as HTML, so a label built from user input or an external system can
+     * inject markup. Handsontable does not sanitize it by default. Set the [`sanitizer`](#sanitizer) option,
+     * which receives nested header labels under the `'header'` source. The `sanitizer` option is grid-level,
+     * so it cannot be narrowed to one header or one column.
+     * :::
+     *
      * Read more:
      * - [Plugins: `NestedHeaders`](@/api/nestedHeaders.md)
+     * - [Security: Content sanitizing](@/guides/security/security/security.md#content-sanitizing)
      * - [Column groups: Nested headers](@/guides/columns/column-groups/column-groups.md#nested-headers)
      * - [Column groups: Choose which columns stay visible when collapsed](@/guides/columns/column-groups/column-groups.md#choose-which-columns-stay-visible-when-collapsed)
      *
@@ -7278,17 +7308,38 @@ export default (): Record<string, unknown> => {
 
     /**
      * The `sanitizer` option configures the function used to sanitize HTML before it is written to the DOM.
-     * Whenever Handsontable sets HTML (e.g. cell content, headers, context menu labels, dialog content,
-     * paste from clipboard), it can pass the string through this function first. Sanitization is important
-     * when content comes from users or external sources to prevent XSS (e.g. script injection, event handlers).
+     * Sanitization is important when content comes from users or external sources to prevent XSS
+     * (e.g. script injection, event handlers).
      *
      * By default (when no sanitizer is set), HTML is applied as-is (pass-through). You are responsible for
      * XSS protection. Set a sanitizer when you need to allow rich content while stripping or neutralizing
      * dangerous markup.
      *
-     * The function receives the raw HTML string and an optional second argument (source) indicating where
-     * the content is used (e.g. `'innerHTML'`, `'CopyPaste.paste'`), so you can apply different rules per source.
+     * The sanitizer covers the HTML that Handsontable writes on your behalf:
+     *
+     * - cells rendered by the [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type
+     * - column and row headers, including [`nestedHeaders`](#nestedheaders) labels
+     * - [context menu](#contextmenu) and [dropdown menu](#dropdownmenu) item labels
+     * - [`select`](@/api/options.md#selectoptions) editor options
+     * - [dialog](#dialog) and [notification](#notification) content
+     * - HTML pasted from the clipboard, and Handsontable's own clipboard payload carrying the source
+     *   data behind copied cells
+     *
+     * Two surfaces are deliberately excluded, because both exist to render raw markup you supply:
+     * the [`html`](@/guides/cell-types/cell-type/cell-type.md) cell type, and
+     * [`allowHtml`](#allowhtml) sources in `autocomplete` and `dropdown` cells. Sanitize that content
+     * yourself before passing it to the grid.
+     *
+     * The function receives the raw HTML string and a second argument (source) naming the write surface
+     * (`'header'`, `'password'`, `'contextMenu'`, `'selectEditor'`, `'dialog'`, `'notification'`,
+     * `'CopyPaste.paste'`, `'CopyPaste.paste.sourceData'`), so you can apply different rules per source.
      * It must return a string that is safe to assign to `innerHTML`.
+     *
+     * `'CopyPaste.paste.sourceData'` carries Handsontable's own clipboard payload, the one that lets an
+     * object-valued cell survive a copy between grids. It is parsed into an inert document, so returning it
+     * unchanged does not expose you to a crafted clipboard, and doing so is what keeps
+     * [`parsePastedValue`](#parsepastedvalue) working under a sanitizer that escapes HTML rather than
+     * stripping it.
      *
      * This option is only respected when set in the table settings. It does not work when defined per column
      * or per cell (e.g. in `columns` or cell meta).

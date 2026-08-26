@@ -261,6 +261,67 @@ export function replaceTdCellsWithTextContent(html: string): string {
 }
 
 /**
+ * Finds the index of a row's last `td`. Every other cell goes to the row headers and takes no
+ * column, so the cells after this index do not affect the row's width.
+ *
+ * @param {HTMLCollection} cells The row's cells.
+ * @returns {number} The index of the last `td`, or -1 when the row has none.
+ */
+function lastDataCellIndex(cells: HTMLCollectionOf<HTMLTableCellElement>): number {
+  for (let cell = cells.length - 1; cell >= 0; cell -= 1) {
+    if (cells[cell].nodeName === 'TD') {
+      return cell;
+    }
+  }
+
+  return -1;
+}
+
+/**
+ * Measures how many data columns a pasted table needs.
+ *
+ * A cell takes `colSpan` slots in its own row and reserves the same slots in the rows its
+ * `rowSpan` reaches, so that the cells of a ragged table all keep a place. Measuring one row
+ * instead under-sizes the table, and the cells that no longer fit are dropped without warning.
+ *
+ * @param {HTMLTableElement} table The table to measure.
+ * @returns {number} The number of data columns.
+ */
+function countTableColumns(table: HTMLTableElement): number {
+  const rows = table.rows;
+  const reserved: number[] = [];
+  let maxCols = 0;
+
+  for (let row = 0; row < rows.length; row += 1) {
+    const cells = rows[row].cells;
+    const lastCell = lastDataCellIndex(cells);
+    let cols = reserved[row] || 0;
+
+    for (let cell = 0; cell <= lastCell; cell += 1) {
+      const { colSpan, rowSpan, nodeName } = cells[cell];
+
+      if (nodeName === 'TD') {
+        // The last cell needs only the one slot it lands in. Counting the rest of its span would
+        // let a single full-width cell - a footer row, say - widen the whole table.
+        const slots = cell === lastCell ? 1 : colSpan;
+        const spannedEnd = Math.min(row + rowSpan, rows.length);
+
+        cols += slots;
+
+        // The rows below still lose the cell's whole width, even where this row could spare it.
+        for (let spanned = row + 1; spanned < spannedEnd; spanned += 1) {
+          reserved[spanned] = (reserved[spanned] || 0) + colSpan;
+        }
+      }
+    }
+
+    maxCols = Math.max(maxCols, cols);
+  }
+
+  return maxCols;
+}
+
+/**
  * Converts HTMLTable or string into Handsontable configuration object.
  *
  * @param {Element|string} element Node element which should contain `<table>...</table>`.
@@ -270,19 +331,28 @@ export function replaceTdCellsWithTextContent(html: string): string {
 // eslint-disable-next-line no-restricted-globals
 export function htmlToGridSettings(element: HTMLTableElement | string, rootDocument: Document = document) {
   const settingsObj: Record<string, unknown> = {};
-  const fragment = rootDocument.createDocumentFragment();
-  const tempElem = rootDocument.createElement('div');
-
-  fragment.appendChild(tempElem);
 
   let checkElement: HTMLTableElement | string | null = element;
+  // Root the sibling-node lookups below (currently only the generator `<meta>`) at the parsed
+  // markup. Stays `null` when a live element is passed in, which is what the previous
+  // implementation effectively did - the scratch element it searched was empty in that case.
+  let parsedRoot: Document | null = null;
 
   if (typeof checkElement === 'string') {
     // Use replaceTdCellsWithTextContent so nested <td> (e.g. Excel shape cells) are matched correctly
     const normalizedHTML = replaceTdCellsWithTextContent(checkElement);
 
-    tempElem.insertAdjacentHTML('afterbegin', normalizedHTML);
-    checkElement = tempElem.querySelector<HTMLTableElement>('table');
+    // `DOMParser` builds a document with no browsing context, so reading the pasted markup cannot
+    // run any of it: no image fetch, no `onerror`, no script. Writing the same string into a
+    // detached element of `rootDocument` does run it - the element is detached, but the document
+    // owning it is not inert, which is how an `<img src=x onerror>` in a paste payload executed.
+    // The parsed nodes are only ever read from here. Importing them into `rootDocument` would
+    // make them live again, so never do that.
+    // eslint-disable-next-line no-restricted-globals
+    const Parser = rootDocument.defaultView?.DOMParser ?? DOMParser;
+
+    parsedRoot = new Parser().parseFromString(normalizedHTML, 'text/html');
+    checkElement = parsedRoot.querySelector<HTMLTableElement>('table');
   }
 
   if (!checkElement || !isHTMLTable(checkElement as HTMLElement)) {
@@ -290,11 +360,9 @@ export function htmlToGridSettings(element: HTMLTableElement | string, rootDocum
   }
 
   const el: HTMLTableElement = checkElement as HTMLTableElement;
-  const generator = tempElem.querySelector('meta[name$="enerator"]') as HTMLMetaElement | null;
+  const generator = parsedRoot?.querySelector<HTMLMetaElement>('meta[name$="enerator"]') ?? null;
   const hasRowHeaders = el.querySelector('tbody th') !== null;
-  const trElement = el.querySelector('tr') as HTMLTableRowElement | null;
-  const countCols = !trElement ? 0 : (Array.from(trElement.cells)
-    .reduce((cols: number, cell: HTMLTableCellElement) => cols + cell.colSpan, 0)) - (hasRowHeaders ? 1 : 0);
+  const countCols = countTableColumns(el);
   const fixedRowsBottom: HTMLTableRowElement[] = el.tFoot && Array.from(el.tFoot.rows) || [];
   const fixedRowsTop: HTMLTableRowElement[] = [];
   let hasColHeaders = false;
@@ -397,10 +465,14 @@ export function htmlToGridSettings(element: HTMLTableElement | string, rootDocum
       const col: number = dataArr[row].findIndex((value: string | null | undefined) => value === undefined);
 
       if (nodeName === 'TD') {
-        if (rowspan > 1 || colspan > 1) {
+        // A span may reach past the last column - a footer row spanning a table wider than the
+        // data, say. Keep it inside the grid, or it stretches this row and leaves the rows uneven.
+        const fittedColspan = Math.min(colspan, countCols - col);
+
+        if (rowspan > 1 || fittedColspan > 1) {
           for (let rstart = row; rstart < row + rowspan; rstart++) {
             if (rstart < countRows) {
-              for (let cstart = col; cstart < col + colspan; cstart++) {
+              for (let cstart = col; cstart < col + fittedColspan; cstart++) {
                 dataArr[rstart][cstart] = null;
               }
             }
@@ -410,7 +482,7 @@ export function htmlToGridSettings(element: HTMLTableElement | string, rootDocum
           const ignoreMerge = styleAttr && styleAttr.includes('mso-ignore:colspan');
 
           if (!ignoreMerge) {
-            mergeCells.push({ col, row, rowspan, colspan });
+            mergeCells.push({ col, row, rowspan, colspan: fittedColspan });
           }
         }
 

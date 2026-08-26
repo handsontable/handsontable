@@ -22,6 +22,18 @@ No-icons variants: `ht-theme-main-no-icons`, `ht-theme-classic-no-icons`, `ht-th
 
 Theme customization is done entirely through CSS variables. These variables are the **public API** for theming. Renaming or removing a CSS custom property is a **breaking change** and requires a legacy compatibility path (keep the old variable working).
 
+## Cell padding must come from the variables, not from the cell
+
+`StylesHandler#getDefaultRowHeight()` computes
+`--ht-line-height + 2 * --ht-cell-vertical-padding + border-bottom-width`, and Walkontable sizes a
+table's scroll range from the summed row heights. Writing `padding` onto a `td` leaves the variable at
+the theme's value, so the engine computes a row height the cells do not have and the scroll range comes
+out wrong. Override `--ht-cell-vertical-padding` / `--ht-cell-horizontal-padding` and derive the `td`
+padding from them.
+
+A nested grid built inside a hidden container masks this: its styles cache is empty, the derived row
+height reads `null`, and the engine measures the DOM instead.
+
 ## Strict CSS/JS Separation
 
 Never mix CSS into JavaScript files. CSS and JS are always in separate files. This is enforced by convention and code review.

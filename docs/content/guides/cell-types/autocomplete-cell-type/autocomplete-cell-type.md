@@ -444,7 +444,7 @@ By default, the autocomplete dropdown and cell renderer display `source` values 
 
 ::: warning Security
 
-Handsontable doesn't sanitize HTML rendered through `allowHtml`. Only enable it for static, trusted `source` data. Rendering `source` values that come from user input creates XSS vulnerabilities. See [Security](@/guides/security/security/security.md) for details.
+Handsontable doesn't sanitize HTML rendered through `allowHtml`, and the [`sanitizer`](@/api/options.md#sanitizer) option does not reach it either. Only enable it for static, trusted `source` data. Rendering `source` values that come from user input creates XSS vulnerabilities. See [What the sanitizer does not cover](@/guides/security/security/security.md#what-the-sanitizer-does-not-cover) for details.
 
 :::
 

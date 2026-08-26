@@ -295,7 +295,7 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
     renderActiveSelections(table, ctx.runFastDraw);
   }
 
-  wtOverlays.afterDraw();
+  wtOverlays.afterDraw(!ctx.runFastDraw && ctx.performRedraw);
 
   table.deps.setDrawn(true);
 }

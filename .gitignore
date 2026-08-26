@@ -16,7 +16,11 @@ npm-debug.log
 
 .nx/
 .parcel-cache/
+# Both spellings on purpose. The trailing slash matches directories only, so in a
+# worktree whose node_modules is a SYMLINK git would report it as untracked and
+# `git add -A` would commit a link holding an absolute machine-local path.
 node_modules/
+node_modules
 docs/tests/test-artifacts/
 docs/tests/.env
 docs/.env

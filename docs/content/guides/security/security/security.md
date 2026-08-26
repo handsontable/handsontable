@@ -13,7 +13,6 @@ vue:
   metaTitle: Security - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Security
-menuTag: updated
 ---
 Learn about the security measures we take to make sure you can safely implement Handsontable in your client-side application.
 
@@ -57,13 +56,45 @@ We use dependencies in the form of third-party software, and we take a responsib
 
 ## Content sanitizing
 
-Starting with **v18.0**, Handsontable does not include a built-in HTML sanitizer. HTML content written to the DOM -- cell values, headers, context-menu labels, dialog markup, and clipboard paste payloads -- passes through unchanged by default.
+Starting with **v18.0**, Handsontable does not include a built-in HTML sanitizer. HTML content written to the DOM passes through unchanged by default.
 
 ::: warning XSS risk
 If you render untrusted user HTML, you must supply your own sanitizer. Without one, malicious HTML in cell content can execute scripts in your users' browsers.
 :::
 
 Use the [`sanitizer`](@/api/options.md#sanitizer) option to provide a sanitizer function. It receives the raw HTML string and returns a string (or, with Trusted Types, a `TrustedHTML`) safe to assign to the DOM. You can apply context-aware rules (for example, stricter for paste, more permissive for trusted renderers) or use any sanitization library.
+
+### What the sanitizer covers
+
+A configured sanitizer runs on the HTML that Handsontable writes on your behalf. The second argument names the write surface, so you can apply different rules to each one.
+
+| Surface | `source` argument |
+| --- | --- |
+| Column and row headers, including [`nestedHeaders`](@/api/options.md#nestedheaders) labels | `'header'` |
+| Cells rendered by the [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type | `'password'` |
+| [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) and dropdown menu item labels | `'contextMenu'` |
+| [`select`](@/guides/cell-types/select-cell-type/select-cell-type.md) editor options | `'selectEditor'` |
+| [Dialog](@/api/dialog.md) content passed as an HTML string | `'dialog'` |
+| [Notification](@/api/notification.md) messages | `'notification'` |
+| HTML pasted from the clipboard | `'CopyPaste.paste'` |
+| Handsontable's own clipboard payload, pasted between grids | `'CopyPaste.paste.sourceData'` |
+
+### What the sanitizer does not cover
+
+Two surfaces exist to render markup you supply, so the sanitizer is deliberately not applied to them:
+
+- the [`html`](@/guides/cell-types/cell-type/cell-type.md) cell type
+- [`allowHtml`](@/api/options.md#allowhtml) sources in `autocomplete` and `dropdown` cells
+
+Sanitize that content yourself before passing it to the grid. If it comes from users or an external system, treat it exactly as you would any other untrusted HTML.
+
+One more place takes a narrower path than the sanitizer: a `confirm` dialog's `title`, `description`, and button labels always have their tags stripped, so a permissive sanitizer cannot let markup through there.
+
+The `'CopyPaste.paste.sourceData'` source is worth a note of its own. It carries Handsontable's own clipboard payload, the one that lets an object-valued cell survive a copy between grids. A sanitizer that escapes HTML rather than stripping it turns that payload into text, and the paste then writes the displayed value instead of the original object. This reaches you through [`parsePastedValue`](@/api/options.md#parsepastedvalue), which you may not have set yourself: the `autocomplete`, `dropdown`, and `multiSelect` cell types turn it on for you. You can return that one source unchanged to keep object-based paste working: it is parsed into an inert document that cannot load resources or run scripts, so passing it through does not expose you to a crafted clipboard.
+
+::: tip
+Header labels are the surface most often overlooked, because they usually come from configuration rather than from data. When a label is built from an API response or from user input, it needs the same treatment as cell content.
+:::
 
 **Example using DOMPurify:**
 

@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { addClass } from '../../helpers/dom/element';
+import { addClass, normalizeClassNames } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
@@ -7,6 +7,7 @@ import { Hooks } from '../../core/hooks';
 import hideRowItem from './contextMenuItem/hideRow';
 import showRowItem from './contextMenuItem/showRow';
 import type { HidingMap } from '../../translations';
+import type { CellProperties } from '../../settings';
 
 Hooks.getSingleton().register('beforeHideRows');
 Hooks.getSingleton().register('afterHideRows');
@@ -451,13 +452,13 @@ export class HiddenRows extends BasePlugin {
    * @param {number} column Visual column index.
    * @param {object} cellProperties Object containing the cell properties.
    */
-  #onAfterGetCellMeta = (row: number, column: number, cellProperties: Record<string, unknown>) => {
+  #onAfterGetCellMeta = (row: number, column: number, cellProperties: CellProperties) => {
     if (this.getSetting('copyPasteEnabled') === false) {
       // Cell property handled by the `Autofill` and the `CopyPaste` plugins. The plugin only sets
       // and marks cells whose `skipRowOnPaste` it actually flips to `true`. Cells that already
       // had `true` from user configuration (`cells`, or `cell`) are left untouched, so that
       // unhiding the row does not erase the user-defined value.
-      const cellPropsWithMarker = cellProperties as Record<string | symbol, unknown>;
+      const cellPropsWithMarker = cellProperties as unknown as Record<string | symbol, unknown>;
 
       if (this.isHidden(row)) {
         if (cellProperties.skipRowOnPaste !== true) {
@@ -470,23 +471,35 @@ export class HiddenRows extends BasePlugin {
       }
     }
 
+    // `className` is publicly typed as `string | string[]`, so normalize before touching it.
+    // The normalized form is written back as a string, matching what `numericRenderer` and the
+    // `search` plugin already store. Only write when the value actually changes - this hook runs
+    // on every cell meta read.
     if (this.isHidden(row - 1)) {
-      cellProperties.className = cellProperties.className || '';
+      const classArr = normalizeClassNames(cellProperties.className);
 
-      if ((cellProperties.className as string).indexOf('afterHiddenRow') === -1) {
-        cellProperties.className += ' afterHiddenRow';
+      if (classArr.indexOf('afterHiddenRow') === -1) {
+        classArr.push('afterHiddenRow');
       }
+
+      const className = classArr.join(' ');
+
+      if (cellProperties.className !== className) {
+        cellProperties.className = className;
+      }
+
     } else if (cellProperties.className) {
-      const classArr = (cellProperties.className as string).split(' ');
+      const classArr = normalizeClassNames(cellProperties.className);
+      const containAfterHiddenRow = classArr.indexOf('afterHiddenRow');
 
-      if (classArr.length > 0) {
-        const containAfterHiddenRow = classArr.indexOf('afterHiddenRow');
+      if (containAfterHiddenRow > -1) {
+        classArr.splice(containAfterHiddenRow, 1);
+      }
 
-        if (containAfterHiddenRow > -1) {
-          classArr.splice(containAfterHiddenRow, 1);
-        }
+      const className = classArr.join(' ');
 
-        cellProperties.className = classArr.join(' ');
+      if (cellProperties.className !== className) {
+        cellProperties.className = className;
       }
     }
   };

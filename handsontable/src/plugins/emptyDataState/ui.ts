@@ -2,6 +2,7 @@ import { html } from '../../helpers/templateLiteralTag';
 import { addClass, removeClass, removeAttribute, getScrollbarWidth, setAttribute } from '../../helpers/dom/element';
 import { A11Y_TABINDEX, A11Y_BUSY } from '../../helpers/a11y';
 import { stripTags } from '../../helpers/string';
+import { resolveButtonType } from '../../helpers/uiButton';
 import type { default as ViewInstance } from '../../tableView';
 
 const EMPTY_DATA_STATE_CLASS_NAME = 'ht-empty-data-state';
@@ -13,9 +14,21 @@ const TEMPLATE = `<div data-ref="emptyDataStateElement" class="${EMPTY_DATA_STAT
   </div>
 </div>`;
 
-const templateContent = ({ title, description, buttons }: {
-  title?: string, description?: string, buttons?: Array<{ type: string, text: string, callback?: Function }>
-}, isLoading = false) => {
+/**
+ * A button of the `message` option, as it arrives from the settings.
+ *
+ * `type` is `unknown` rather than `ButtonType`, because the value comes from a plugin setting and
+ * `resolveButtonType()` is what decides whether it is one of the supported types. Declaring the
+ * narrow type here would claim a check that has not happened yet.
+ */
+type MessageButton = { type: unknown, text: string, callback?: Function };
+
+/**
+ * The resolved `message` content.
+ */
+type MessageContent = { title?: string, description?: string, buttons?: MessageButton[] };
+
+const templateContent = ({ title, description, buttons }: MessageContent, isLoading = false) => {
   const spinnerBlock = isLoading ?
     `<div class="${EMPTY_DATA_STATE_CLASS_NAME}__spinner" aria-hidden="true"></div>` :
     '';
@@ -33,7 +46,8 @@ const templateContent = ({ title, description, buttons }: {
   : ''}"
   >${!isLoading && buttons?.length && buttons.length > 0 ?
     buttons.map(button =>
-      `<button class="ht-button ht-button--${button.type}">${stripTags(button.text)}</button>`).join('')
+      `<button class="ht-button ht-button--${resolveButtonType(button.type)}">${stripTags(button.text)}</button>`)
+      .join('')
     : ''}</div>`;
 };
 
@@ -252,9 +266,7 @@ export class EmptyDataStateUI {
   updateContent(message: string | Record<string, unknown>, isLoading = false) {
     const { emptyDataStateElement, emptyDataStateInner } = this.#refs!;
 
-    let content: {
-      title?: string, description?: string, buttons?: Array<{ type: string, text: string, callback?: Function }>
-    };
+    let content: MessageContent;
 
     if (typeof message === 'string') {
       content = {
@@ -264,7 +276,7 @@ export class EmptyDataStateUI {
       content = {
         title: message?.title as string | undefined,
         description: message?.description as string | undefined,
-        buttons: message?.buttons as Array<{ type: string, text: string, callback?: Function }> | undefined,
+        buttons: message?.buttons as MessageButton[] | undefined,
       };
     }
 

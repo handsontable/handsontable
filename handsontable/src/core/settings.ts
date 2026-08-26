@@ -183,7 +183,7 @@ export interface GridSettings {
   dropdownMenu?: boolean | object | string[];
   emptyDataState?: boolean | object;
   filters?: boolean | object;
-  formulas?: boolean | { engine: unknown; sheetName?: string; [key: string]: unknown };
+  formulas?: boolean | { engine: unknown; sheetName?: string; hyperlinks?: boolean; [key: string]: unknown };
   hiddenColumns?: boolean | object;
   hiddenRows?: boolean | object;
   loading?: boolean | object;

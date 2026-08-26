@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a bug where dragging a selection handle to the edge of the grid on a mobile device did not scroll the viewport, so the selection stopped growing at the last visible cell.",
+  "type": "fixed",
+  "issueOrPR": 11658,
+  "breaking": false,
+  "framework": "none"
+}

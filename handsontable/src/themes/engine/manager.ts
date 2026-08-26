@@ -233,12 +233,13 @@ export class ThemeManager {
   /**
    * Builds the CSS variables that pin every light/dark value of the theme to one scheme.
    *
-   * Setting the `color-scheme` property is not enough on its own. The shipped minified theme
-   * stylesheets do not use the CSS `light-dark()` function — it is newer than the browsers
-   * Handsontable supports, so the minifier rewrites it into a pair of variables switched by theme
-   * class name. Those declarations out-specify the ones the engine generates, so a grid that only
-   * flipped `color-scheme` would keep the light colors. Emitting the resolved values instead works
-   * in every supported browser and with every stylesheet.
+   * Setting the `color-scheme` property is not enough on its own. A stylesheet built below the
+   * `light-dark()` floor has that function rewritten by the minifier into a pair of variables
+   * switched by theme class name, and those declarations out-specify the ones the engine generates
+   * — a grid that only flipped `color-scheme` would keep the light colors. The stylesheets shipped
+   * from this repo clear that floor (see `../../../browser-targets.js`) and use `light-dark()` as
+   * written, but stylesheets from 18.0.0 and earlier do not, and neither does one a consumer builds
+   * against their own lower targets. Emitting the resolved values works with all of them.
    *
    * @param {string} scheme The scheme to resolve to ('light' or 'dark').
    * @returns {string} The CSS variable declarations.

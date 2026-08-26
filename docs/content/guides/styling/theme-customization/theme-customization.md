@@ -1,6 +1,6 @@
 ---
 type: how-to
-title: Theme Customization
+title: Theme customization
 metaTitle: Theme Customization - JavaScript Data Grid | Handsontable
 description: Customize Handsontable's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
 permalink: /theme-customization
@@ -300,7 +300,7 @@ A bare `.ht-theme-main { ... }` rule works as well, but it matches the wrapper w
 
 If you prefer a visual approach to creating themes, use the [Handsontable Theme Builder](https://handsontable.com/theme-builder). This online tool provides an intuitive interface for customizing colors, spacing, and other theme properties without writing code. Once you're satisfied with your design, you can export the generated your theme and integrate it into your project.
 
-## Variables Reference
+## Variables reference
 
 Handsontable provides a comprehensive set of JS and CSS variables that let you customize the appearance of every component.
 
@@ -325,7 +325,7 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 
 <div class="variables-table">
 
-### Sizing Variables
+### Sizing variables
 
 | Variable | Description             |
 | -------- | ----------------------- |
@@ -344,7 +344,7 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-sizing-size-9` </div><div class="variables-table__item"><span>JS:</span> `size_9` </div>    | 9x unit size (36px)     |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-sizing-size-10` </div><div class="variables-table__item"><span>JS:</span> `size_10` </div>   | 10x unit size (40px)    |
 
-### Density Variables
+### Density variables
 
 | Variable | Description                       |
 | -------- | --------------------------------- |
@@ -364,7 +364,7 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-density-menu-item-vertical` </div><div class="variables-table__item"><span>JS:</span> `menuItemVertical` </div>   | Vertical padding for menu items   |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-density-menu-item-horizontal` </div><div class="variables-table__item"><span>JS:</span> `menuItemHorizontal` </div> | Horizontal padding for menu items |
 
-### Color Palette Variables
+### Color palette variables
 
 | Variable | Description                 |
 | -------- | --------------------------- |
@@ -389,9 +389,9 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-colors-palette-900` </div><div class="variables-table__item"><span>JS:</span> `palette.900` </div> | Near black                  |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-colors-palette-950` </div><div class="variables-table__item"><span>JS:</span> `palette.950` </div> | Darkest gray                |
 
-### Tokens Variables
+### Tokens variables
 
-#### Typography Variables
+#### Typography variables
 
 | Variable | Description                          |
 | -------- | ------------------------------------ |
@@ -403,7 +403,7 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-font-weight` </div><div class="variables-table__item"><span>JS:</span> `fontWeight` </div>      | Font weight for text elements        |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-letter-spacing` </div><div class="variables-table__item"><span>JS:</span> `letterSpacing` </div>   | Letter spacing for text elements     |
 
-#### Layout & Spacing Variables
+#### Layout & spacing variables
 
 | Variable | Description                                     |
 | -------- | ----------------------------------------------- |
@@ -412,7 +412,7 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-table-transition` </div><div class="variables-table__item"><span>JS:</span> `tableTransition` </div> | Transition duration for table animations        |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-border-radius` </div><div class="variables-table__item"><span>JS:</span> `borderRadius` </div>     | Border radius of the table                      |
 
-#### Color System Variables
+#### Color system variables
 
 | Variable | Description                                                |
 | -------- | ---------------------------------------------------------- |
@@ -426,7 +426,7 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-read-only-color` </div><div class="variables-table__item"><span>JS:</span> `readOnlyColor` </div>            | Color for read-only text                                   |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-disabled-color` </div><div class="variables-table__item"><span>JS:</span> `disabledColor` </div>             | Color for disabled elements                                |
 
-#### Shadow Variables
+#### Shadow variables
 
 | Variable | Description                  |
 | -------- | ---------------------------- |
@@ -436,7 +436,7 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-shadow-blur` </div><div class="variables-table__item"><span>JS:</span> `shadowBlur` </div>    | Blur radius of shadows       |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-shadow-opacity` </div><div class="variables-table__item"><span>JS:</span> `shadowOpacity` </div> | Opacity of shadows           |
 
-#### Bar Variables
+#### Bar variables
 
 | Variable | Description                            |
 | -------- | -------------------------------------- |
@@ -445,14 +445,14 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-bar-horizontal-padding` </div><div class="variables-table__item"><span>JS:</span> `barHorizontalPadding` </div> | Horizontal padding inside bar elements |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-bar-vertical-padding` </div><div class="variables-table__item"><span>JS:</span> `barVerticalPadding` </div>   | Vertical padding inside bar elements   |
 
-#### Cell Border Variables
+#### Cell border variables
 
 | Variable | Description                      |
 | -------- | -------------------------------- |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-horizontal-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellHorizontalBorderColor` </div> | Color of horizontal cell borders |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-vertical-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellVerticalBorderColor` </div>   | Color of vertical cell borders   |
 
-#### Row Styling Variables
+#### Row styling variables
 
 | Variable | Description                           |
 | -------- | ------------------------------------- |
@@ -461,14 +461,14 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-row-cell-odd-background-color` </div><div class="variables-table__item"><span>JS:</span> `rowCellOddBackgroundColor` </div>    | Background color for odd row cells    |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-row-cell-even-background-color` </div><div class="variables-table__item"><span>JS:</span> `rowCellEvenBackgroundColor` </div>   | Background color for even row cells   |
 
-#### Cell Padding Variables
+#### Cell padding variables
 
 | Variable | Description                     |
 | -------- | ------------------------------- |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-horizontal-padding` </div><div class="variables-table__item"><span>JS:</span> `cellHorizontalPadding` </div> | Horizontal padding inside cells |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-vertical-padding` </div><div class="variables-table__item"><span>JS:</span> `cellVerticalPadding` </div>   | Vertical padding inside cells   |
 
-#### Cell Editor Variables
+#### Cell editor variables
 
 | Variable | Description                         |
 | -------- | ----------------------------------- |
@@ -479,7 +479,7 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-editor-shadow-blur-radius` </div><div class="variables-table__item"><span>JS:</span> `cellEditorShadowBlurRadius` </div> | Shadow blur radius for cell editors |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-editor-shadow-color` </div><div class="variables-table__item"><span>JS:</span> `cellEditorShadowColor` </div>      | Shadow color for cell editors       |
 
-#### Cell State Variables
+#### Cell state variables
 
 | Variable | Description                                     |
 | -------- | ----------------------------------------------- |
@@ -487,14 +487,14 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-error-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellErrorBackgroundColor` </div>    | Background color for error states in cells      |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-read-only-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellReadOnlyBackgroundColor` </div> | Background color for read-only cells            |
 
-#### Cell Selection Variables
+#### Cell selection variables
 
 | Variable | Description                         |
 | -------- | ----------------------------------- |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionBorderColor` </div>     | Border color for selected cells     |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionBackgroundColor` </div> | Background color for selected cells |
 
-#### Cell Autofill Variables
+#### Cell autofill variables
 
 | Variable | Description                             |
 | -------- | --------------------------------------- |
@@ -506,7 +506,7 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-autofill-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellAutofillBackgroundColor` </div> | Background color of autofill elements   |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-autofill-fill-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellAutofillFillBorderColor` </div> | Border color of autofill fill indicator |
 
-#### Cell Mobile Handle Variables
+#### Cell mobile handle variables
 
 | Variable | Description                          |
 | -------- | ------------------------------------ |
@@ -517,7 +517,7 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-mobile-handle-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellMobileHandleBackgroundColor` </div>   | Background color of mobile handles   |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-mobile-handle-background-opacity` </div><div class="variables-table__item"><span>JS:</span> `cellMobileHandleBackgroundOpacity` </div> | Background opacity of mobile handles |
 
-#### Cell Selection Handle Variables
+#### Cell selection handle variables
 
 These variables style the handles shown at each edge midpoint of a selected range when the [`selectionHandles`](@/api/options.md#selectionhandles) option is on. They are separate from the mobile touch handles above.
 
@@ -530,7 +530,7 @@ These variables style the handles shown at each edge midpoint of a selected rang
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-handle-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionHandleBorderColor` </div>      | Border color of selection handles    |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-handle-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionHandleBackgroundColor` </div>  | Background color of selection handles |
 
-#### Indicator Variables
+#### Indicator variables
 
 | Variable | Description                          |
 | -------- | ------------------------------------ |
@@ -540,7 +540,7 @@ These variables style the handles shown at each edge midpoint of a selected rang
 | <div class="variables-table__item"><span>CSS:</span> `--ht-move-indicator-color` </div><div class="variables-table__item"><span>JS:</span> `moveIndicatorColor` </div>   | Color of move indicators             |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-hidden-indicator-color` </div><div class="variables-table__item"><span>JS:</span> `hiddenIndicatorColor` </div> | Color of hidden element indicators   |
 
-#### Scrollbar Variables
+#### Scrollbar variables
 
 | Variable | Description                          |
 | -------- | ------------------------------------ |
@@ -548,7 +548,7 @@ These variables style the handles shown at each edge midpoint of a selected rang
 | <div class="variables-table__item"><span>CSS:</span> `--ht-scrollbar-track-color` </div><div class="variables-table__item"><span>JS:</span> `scrollbarTrackColor` </div>   | Background color of scrollbar tracks |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-scrollbar-thumb-color` </div><div class="variables-table__item"><span>JS:</span> `scrollbarThumbColor` </div>   | Color of scrollbar thumbs            |
 
-#### Header Variables
+#### Header variables
 
 | Variable | Description                              |
 | -------- | ---------------------------------------- |
@@ -563,7 +563,7 @@ These variables style the handles shown at each edge midpoint of a selected rang
 | <div class="variables-table__item"><span>CSS:</span> `--ht-header-active-background-color` </div><div class="variables-table__item"><span>JS:</span> `headerActiveBackgroundColor` </div>      | Background color for active headers      |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-header-filter-background-color` </div><div class="variables-table__item"><span>JS:</span> `headerFilterBackgroundColor` </div>      | Background color for header filters      |
 
-#### Header Row Variables
+#### Header row variables
 
 | Variable | Description                                  |
 | -------- | -------------------------------------------- |
@@ -574,7 +574,7 @@ These variables style the handles shown at each edge midpoint of a selected rang
 | <div class="variables-table__item"><span>CSS:</span> `--ht-header-row-active-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `headerRowActiveForegroundColor` </div>      | Text color for active header rows            |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-header-row-active-background-color` </div><div class="variables-table__item"><span>JS:</span> `headerRowActiveBackgroundColor` </div>      | Background color for active header rows      |
 
-#### Checkbox Variables
+#### Checkbox variables
 
 | Variable | Description                                           |
 | -------- | ----------------------------------------------------- |
@@ -609,7 +609,7 @@ These variables style the handles shown at each edge midpoint of a selected rang
 | <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-indeterminate-disabled-background-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxIndeterminateDisabledBackgroundColor` </div> | Background color of disabled indeterminate checkboxes |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-checkbox-indeterminate-disabled-icon-color` </div><div class="variables-table__item"><span>JS:</span> `checkboxIndeterminateDisabledIconColor` </div>       | Icon color of disabled indeterminate checkboxes       |
 
-#### Radio Button Variables
+#### Radio button variables
 
 | Variable | Description                                        |
 | -------- | -------------------------------------------------- |
@@ -634,7 +634,7 @@ These variables style the handles shown at each edge midpoint of a selected rang
 | <div class="variables-table__item"><span>CSS:</span> `--ht-radio-checked-disabled-background-color` </div><div class="variables-table__item"><span>JS:</span> `radioCheckedDisabledBackgroundColor` </div> | Background color of disabled checked radio buttons |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-radio-checked-disabled-icon-color` </div><div class="variables-table__item"><span>JS:</span> `radioCheckedDisabledIconColor` </div>       | Icon color of disabled checked radio buttons       |
 
-#### Icon Button Variables
+#### Icon button variables
 
 | Variable | Description                                     |
 | -------- | ----------------------------------------------- |
@@ -655,7 +655,7 @@ These variables style the handles shown at each edge midpoint of a selected rang
 | <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-active-hover-icon-color` </div><div class="variables-table__item"><span>JS:</span> `iconButtonActiveHoverIconColor` </div>       | Icon color of hovered active icon buttons       |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-hit-area-size` </div><div class="variables-table__item"><span>JS:</span> `iconButtonHitAreaSize` </div>               | Hit area size of icon buttons |
 
-#### Collapse Button Variables
+#### Collapse button variables
 
 | Variable | Description                                          |
 | -------- | ---------------------------------------------------- |
@@ -677,7 +677,7 @@ These variables style the handles shown at each edge midpoint of a selected rang
 | <div class="variables-table__item"><span>CSS:</span> `--ht-collapse-button-close-hover-icon-color` </div><div class="variables-table__item"><span>JS:</span> `collapseButtonCloseHoverIconColor` </div>       | Icon color of hovered closed collapse buttons        |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-collapse-button-close-hover-icon-active-color` </div><div class="variables-table__item"><span>JS:</span> `collapseButtonCloseHoverIconActiveColor` </div> | Active icon color of hovered closed collapse buttons |
 
-#### Button Variables
+#### Button variables
 
 | Variable | Description                   |
 | -------- | ----------------------------- |
@@ -685,7 +685,7 @@ These variables style the handles shown at each edge midpoint of a selected rang
 | <div class="variables-table__item"><span>CSS:</span> `--ht-button-horizontal-padding` </div><div class="variables-table__item"><span>JS:</span> `buttonHorizontalPadding` </div> | Horizontal padding of buttons |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-button-vertical-padding` </div><div class="variables-table__item"><span>JS:</span> `buttonVerticalPadding` </div>   | Vertical padding of buttons   |
 
-#### Primary Button Variables
+#### Primary button variables
 
 | Variable | Description                                  |
 | -------- | -------------------------------------------- |
@@ -702,7 +702,7 @@ These variables style the handles shown at each edge midpoint of a selected rang
 | <div class="variables-table__item"><span>CSS:</span> `--ht-primary-button-focus-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `primaryButtonFocusForegroundColor` </div>    | Text color of focused primary buttons        |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-primary-button-focus-background-color` </div><div class="variables-table__item"><span>JS:</span> `primaryButtonFocusBackgroundColor` </div>    | Background color of focused primary buttons  |
 
-#### Secondary Button Variables
+#### Secondary button variables
 
 | Variable | Description                                    |
 | -------- | ---------------------------------------------- |
@@ -719,7 +719,7 @@ These variables style the handles shown at each edge midpoint of a selected rang
 | <div class="variables-table__item"><span>CSS:</span> `--ht-secondary-button-focus-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `secondaryButtonFocusForegroundColor` </div>    | Text color of focused secondary buttons        |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-secondary-button-focus-background-color` </div><div class="variables-table__item"><span>JS:</span> `secondaryButtonFocusBackgroundColor` </div>    | Background color of focused secondary buttons  |
 
-#### Chip Variables
+#### Chip variables
 
 | Variable | Description                         |
 | -------- | ----------------------------------- |
@@ -729,7 +729,7 @@ These variables style the handles shown at each edge midpoint of a selected rang
 | <div class="variables-table__item"><span>CSS:</span> `--ht-chip-horizontal-padding` </div><div class="variables-table__item"><span>JS:</span> `chipHorizontalPadding` </div> | Horizontal padding of chip elements |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-chip-gap` </div><div class="variables-table__item"><span>JS:</span> `chipGap` </div>               | Gap between chip elements           |
 
-#### Comments Variables
+#### Comments variables
 
 | Variable | Description                                   |
 | -------- | --------------------------------------------- |
@@ -746,7 +746,7 @@ These variables style the handles shown at each edge midpoint of a selected rang
 | <div class="variables-table__item"><span>CSS:</span> `--ht-comments-indicator-size` </div><div class="variables-table__item"><span>JS:</span> `commentsIndicatorSize` </div>                | Size of comment indicators                    |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-comments-indicator-color` </div><div class="variables-table__item"><span>JS:</span> `commentsIndicatorColor` </div>               | Color of comment indicators                   |
 
-#### License Variables
+#### License variables
 
 | Variable | Description                            |
 | -------- | -------------------------------------- |
@@ -755,14 +755,14 @@ These variables style the handles shown at each edge midpoint of a selected rang
 | <div class="variables-table__item"><span>CSS:</span> `--ht-license-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `licenseForegroundColor` </div>   | Text color of license elements         |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-license-background-color` </div><div class="variables-table__item"><span>JS:</span> `licenseBackgroundColor` </div>   | Background color of license elements   |
 
-#### Link Variables
+#### Link variables
 
 | Variable | Description            |
 | -------- | ---------------------- |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-link-color` </div><div class="variables-table__item"><span>JS:</span> `linkColor` </div>      | Color of links         |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-link-hover-color` </div><div class="variables-table__item"><span>JS:</span> `linkHoverColor` </div> | Color of hovered links |
 
-#### Input Variables
+#### Input variables
 
 | Variable | Description                                 |
 | -------- | ------------------------------------------- |
@@ -783,7 +783,7 @@ These variables style the handles shown at each edge midpoint of a selected rang
 | <div class="variables-table__item"><span>CSS:</span> `--ht-input-focus-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `inputFocusForegroundColor` </div>    | Text color of focused input elements        |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-input-focus-background-color` </div><div class="variables-table__item"><span>JS:</span> `inputFocusBackgroundColor` </div>    | Background color of focused input elements  |
 
-#### Menu Variables
+#### Menu variables
 
 | Variable | Description                             |
 | -------- | --------------------------------------- |
@@ -804,7 +804,7 @@ These variables style the handles shown at each edge midpoint of a selected rang
 | <div class="variables-table__item"><span>CSS:</span> `--ht-menu-item-active-color` </div><div class="variables-table__item"><span>JS:</span> `menuItemActiveColor` </div>        | Background color of active menu items   |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-menu-item-active-color-opacity` </div><div class="variables-table__item"><span>JS:</span> `menuItemActiveColorOpacity` </div> | Opacity of active menu item background  |
 
-#### Dialog Variables
+#### Dialog variables
 
 | Variable | Description                                         |
 | -------- | --------------------------------------------------- |
@@ -816,7 +816,7 @@ These variables style the handles shown at each edge midpoint of a selected rang
 | <div class="variables-table__item"><span>CSS:</span> `--ht-dialog-content-border-radius` </div><div class="variables-table__item"><span>JS:</span> `dialogContentBorderRadius` </div>              | Border radius of dialog content                     |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-dialog-content-background-color` </div><div class="variables-table__item"><span>JS:</span> `dialogContentBackgroundColor` </div>           | Background color of dialog content                  |
 
-#### Notification Variables
+#### Notification variables
 
 These variables style the [Notification](@/guides/dialog/notification/notification.md) plugin toasts. Shared layout tokens (for example `borderRadius`, `tableTransition`, `gapSize`) and icon-button tokens still apply to the close control and spacing.
 
@@ -829,7 +829,7 @@ These variables style the [Notification](@/guides/dialog/notification/notificati
 | <div class="variables-table__item"><span>CSS:</span> `--ht-notification-warning-accent` </div><div class="variables-table__item"><span>JS:</span> `notificationWarningAccent` </div>       | Accent bar color for warning toasts                 |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-notification-error-accent` </div><div class="variables-table__item"><span>JS:</span> `notificationErrorAccent` </div>         | Accent bar color for error toasts                   |
 
-#### Pagination Variables
+#### Pagination variables
 
 | Variable | Description                          |
 | -------- | ------------------------------------ |
