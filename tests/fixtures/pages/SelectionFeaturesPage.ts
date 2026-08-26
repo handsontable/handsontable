@@ -151,6 +151,16 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * Write a cell value through the grid, producing one undoable data change.
+   */
+  async setCellValue(row: number, col: number, value: CellValue): Promise<void> {
+    await this.page.evaluate(
+      ({ r, c, v }) => window.hot.setDataAtCell(r, c, v),
+      { r: row, c: col, v: value }
+    );
+  }
+
+  /**
    * Read a raw source value without applying valueGetter.
    */
   async sourceCellValue(row: number, col: number): Promise<CellValue> {
@@ -176,6 +186,54 @@ export class SelectionFeaturesPage {
    */
   async setBeforeMoveCellsVeto(shouldVeto: boolean): Promise<void> {
     await this.page.evaluate(veto => window.setBeforeMoveCellsVeto(veto), shouldVeto);
+  }
+
+  /**
+   * Make the fixture's `beforeRowMove` listener veto the next row move.
+   */
+  async setBeforeRowMoveVeto(shouldVeto: boolean): Promise<void> {
+    await this.page.evaluate(veto => window.setBeforeRowMoveVeto(veto), shouldVeto);
+  }
+
+  /**
+   * Make the fixture's `beforeColumnMove` listener veto the next column move.
+   */
+  async setBeforeColumnMoveVeto(shouldVeto: boolean): Promise<void> {
+    await this.page.evaluate(veto => window.setBeforeColumnMoveVeto(veto), shouldVeto);
+  }
+
+  /**
+   * Move rows through the ManualRowMove plugin API.
+   */
+  async moveRows(rows: number[], finalIndex: number): Promise<void> {
+    await this.page.evaluate(
+      ({ r, i }) => window.hot.getPlugin('manualRowMove').moveRows(r, i),
+      { r: rows, i: finalIndex }
+    );
+  }
+
+  /**
+   * Move columns through the ManualColumnMove plugin API.
+   */
+  async moveColumns(columns: number[], finalIndex: number): Promise<void> {
+    await this.page.evaluate(
+      ({ c, i }) => window.hot.getPlugin('manualColumnMove').moveColumns(c, i),
+      { c: columns, i: finalIndex }
+    );
+  }
+
+  /**
+   * The current visual-to-physical row order held by the index mapper.
+   */
+  async rowOrder(): Promise<number[]> {
+    return this.page.evaluate(() => window.hot.rowIndexMapper.getIndexesSequence());
+  }
+
+  /**
+   * The current visual-to-physical column order held by the index mapper.
+   */
+  async columnOrder(): Promise<number[]> {
+    return this.page.evaluate(() => window.hot.columnIndexMapper.getIndexesSequence());
   }
 
   /**
