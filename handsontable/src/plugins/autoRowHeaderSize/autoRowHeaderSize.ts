@@ -180,13 +180,6 @@ export class AutoRowHeaderSize extends BasePlugin {
   }
 
   /**
-   * `true` while rows are still being read in the browser's idle time.
-   *
-   * @type {boolean}
-   */
-  inProgress = false;
-
-  /**
    * Instance of {@link GhostTable} used to measure the row headers off-screen. Private: how the
    * measuring is done is not part of what this plugin offers.
    *
@@ -240,6 +233,12 @@ export class AutoRowHeaderSize extends BasePlugin {
    * @type {string}
    */
   #cachedRowCounts = '';
+  /**
+   * `true` while rows are still being read in the browser's idle time.
+   *
+   * @type {boolean}
+   */
+  #inProgress = false;
   /**
    * The label buckets the sweep in progress has filled so far, one map per level.
    *
@@ -386,8 +385,7 @@ export class AutoRowHeaderSize extends BasePlugin {
    * Returns the width one row header level needs in order to show its longest label in full.
    *
    * On a grid larger than `syncLimit` this can still be growing - the rows past that limit are read
-   * in the browser's idle time. {@link AutoRowHeaderSize#inProgress} says whether that is still
-   * happening.
+   * in the browser's idle time, so a level can report a wider figure a moment later.
    *
    * @param {number} [headerLevel=0] Which row header to report on, counting from the grid's edge:
    *                                 `0` is the first one. The negative column index a row header
@@ -497,7 +495,7 @@ export class AutoRowHeaderSize extends BasePlugin {
       // A grid smaller than the sync limit is done here. No draw is asked for: this runs inside one.
       this.#releaseSweep();
     } else {
-      this.inProgress = true;
+      this.#inProgress = true;
       this.#scheduleChunk();
     }
   }
@@ -508,7 +506,7 @@ export class AutoRowHeaderSize extends BasePlugin {
   #releaseSweep(): void {
     this.#sweepSamples = null;
     this.#sweepRenderers = [];
-    this.inProgress = false;
+    this.#inProgress = false;
   }
 
   /**
@@ -523,7 +521,7 @@ export class AutoRowHeaderSize extends BasePlugin {
     this.#sweepSamples = null;
     this.#sweepRenderers = [];
     this.#sweepCursor = 0;
-    this.inProgress = false;
+    this.#inProgress = false;
   }
 
   /**
@@ -828,7 +826,7 @@ export class AutoRowHeaderSize extends BasePlugin {
 
     // A sweep in progress has already read some of these rows, and it holds their old labels. It is
     // cheaper to start it over than to work out which of them it still has to revisit.
-    if (this.inProgress) {
+    if (this.#inProgress) {
       this.clearCache();
 
       return;

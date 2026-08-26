@@ -547,20 +547,20 @@ describe('AutoRowHeaderSize', () => {
     }
 
     /**
-     * Waits for the idle sweep to run to completion.
+     * Runs animation frames until `isDone` holds, or gives up.
      *
      * `requestIdleTask` falls back to an animation frame when `requestIdleCallback` is missing,
-     * which is the case in this environment - so the frames are what has to be awaited.
+     * which is the case in this environment - so the frames are what has to be awaited. The
+     * condition is always something the sweep DID, never a field on the plugin: how far it has got
+     * is its own business.
      *
-     * @param {object} plugin The plugin instance.
+     * @param {Function} isDone Whether there is nothing left to wait for.
+     * @param {number} [maxFrames=100] How many frames to give it.
      */
-    async function drainSweep(plugin: { inProgress: boolean }) {
-      let guard = 0;
-
-      while (plugin.inProgress && guard < 100) {
+    async function drainFrames(isDone: () => boolean, maxFrames = 100) {
+      for (let frame = 0; frame < maxFrames && !isDone(); frame++) {
         // eslint-disable-next-line no-await-in-loop
         await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
-        guard += 1;
       }
     }
 
@@ -576,7 +576,8 @@ describe('AutoRowHeaderSize', () => {
 
       // A grid this size must not be swept in one go: that is the freeze this limit exists to stop.
       expect(Math.max(...readRows)).toBe(100);
-      expect(plugin.inProgress).toBe(true);
+      // Row 1200 carries the longest label, so a one-pass scan would have read it already.
+      expect(readRows).not.toContain(1200);
 
       hot.destroy();
     });
@@ -589,20 +590,19 @@ describe('AutoRowHeaderSize', () => {
       labelSpy.mockClear();
       plugin.getRowHeaderWidth();
 
-      await drainSweep(plugin);
+      const readRows = () => new Set(labelSpy.mock.calls.map(([index]) => index));
 
-      const readRows = new Set(labelSpy.mock.calls.map(([index]) => index));
+      await drainFrames(() => readRows().size >= 1500);
 
       // The long label sits at row 1200, well past the sync limit. If the sweep stopped early the
       // header would stay too narrow forever.
-      expect(readRows.has(1200)).toBe(true);
-      expect(readRows.size).toBe(1500);
-      expect(plugin.inProgress).toBe(false);
+      expect(readRows().has(1200)).toBe(true);
+      expect(readRows().size).toBe(1500);
 
       hot.destroy();
     });
 
-    it('should read everything up front when the grid is smaller than the sync limit', () => {
+    it('should read everything up front when the grid is smaller than the sync limit', async() => {
       const { hot, labelSpy } = buildGrid({ autoRowHeaderSize: true });
       const plugin = hot.getPlugin('autoRowHeaderSize');
 
@@ -612,7 +612,14 @@ describe('AutoRowHeaderSize', () => {
 
       // 100 rows against a 500-row default limit: nothing is left for the idle sweep.
       expect(new Set(labelSpy.mock.calls.map(([index]) => index)).size).toBe(100);
-      expect(plugin.inProgress).toBe(false);
+
+      const readsUpFront = labelSpy.mock.calls.length;
+
+      await drainFrames(() => false, 5);
+
+      // Nothing was queued, so waiting changes nothing. A flag would say the same, but this holds
+      // even if the sweep were left scheduled with no rows to read.
+      expect(labelSpy.mock.calls.length).toBe(readsUpFront);
 
       hot.destroy();
     });
@@ -640,7 +647,9 @@ describe('AutoRowHeaderSize', () => {
       const plugin = hot.getPlugin('autoRowHeaderSize');
 
       plugin.getRowHeaderWidth();
-      expect(plugin.inProgress).toBe(true);
+
+      // Still work outstanding: the longest label is past the sync limit and has not been read.
+      expect(labelSpy.mock.calls.map(([index]) => index)).not.toContain(1200);
 
       hot.destroy();
       labelSpy.mockClear();
