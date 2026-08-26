@@ -790,7 +790,7 @@ Measurements were made with esbuild using minification, against **Handsontable 1
 | Module | Minified | Gzip |
 | ------ | -------- | ---- |
 | `AutoColumnSize` | +20.6 kB | +5.7 kB |
-| `AutoRowHeaderSize` | +18.0 kB | +4.9 kB |
+| `AutoRowHeaderSize` | +24.4 kB | +6.7 kB |
 | `AutoRowSize` | +20.9 kB | +5.7 kB |
 | `Autofill` | +19.5 kB | +5.7 kB |
 | `BindRowsWithHeaders` | +8.5 kB | +2.5 kB |

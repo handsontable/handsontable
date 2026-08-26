@@ -5562,9 +5562,11 @@ export default (): Record<string, unknown> => {
      * cached, so later draws cost nothing.
      *
      * Editing a cell does not re-read the whole grid. Only the rows that changed are read, because
-     * a row header label can be built from cell values. That can make a header wider, but never
-     * narrower - a header shrinks again on the next full pass, which any change to the number of
-     * rows starts.
+     * a row header label can be built from cell values, and that reading waits for an idle moment
+     * too. It can make a header wider, but never narrower: a header shrinks again on the next full
+     * pass, which is started by loading or replacing the data, adding or removing a row, sorting,
+     * hiding or showing a row, switching the theme, or a recalculation by the
+     * [`Formulas`](@/api/formulas.md) plugin.
      *
      * A grid can render more than one row header, by pushing a renderer through the
      * [`afterGetRowHeaderRenderers`](@/api/hooks.md#afterGetRowHeaderRenderers) hook. Every one of

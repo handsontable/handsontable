@@ -206,8 +206,8 @@ cell and has no padding of its own.
 
 #### Tuning the measurement
 
-Instead of `true`, you can pass an object to change how the measurement runs. Both properties are
-optional, and the defaults suit most grids:
+Instead of `true`, you can pass an object to change how the measurement runs. All three properties
+are optional, and the defaults suit most grids:
 
 | Property                | Possible values              | Description                                                                                      |
 | ----------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------ |
@@ -242,17 +242,21 @@ group get measured, so at the default of `3` a fourth row carrying the same labe
 **`syncLimit`** decides how much of the work happens before the grid first appears. Finding the
 longest label means reading every row header once, which on a large grid takes long enough to be
 felt. So the first `syncLimit` rows are read straight away, and the rest are read in the browser's
-idle time, a thousand at a time. A header can therefore widen a moment after the grid appears. While
-that is running a header only ever widens, so its width never jumps back and forth. Raise the limit
-to have more of it settled before the first paint, or pass a percent string such as `'40%'` to scale
-it with the number of rows.
+idle time, in short bursts of a few milliseconds each - however many rows fit, which depends on how
+many row header columns the grid draws. A header can therefore widen a moment after the grid
+appears. While that is running a header only ever widens, so its width never jumps back and forth.
+Raise the limit to have more of it settled before the first paint, or pass a percent string such as
+`'40%'` to scale it with the number of rows.
 
 Editing a cell does not start that work again. Only the rows that changed are read, because a row
 header label can be built from cell values - a data column used as the label, for instance. That
 reading also waits for an idle moment, so a header widened by an edit grows a moment after the edit
-rather than during it. It can make a header wider, but never narrower: working out that a header should shrink means finding the
-new longest label, so it is left to the next full pass, which any change to the number of rows
-starts.
+rather than during it.
+
+An edit can make a header wider, but never narrower. Working out that a header should shrink means
+finding the new longest label, which no shortcut avoids, so it waits for the next full pass. Loading
+or replacing the data starts one, as does adding or removing a row, sorting, hiding or showing a row,
+switching the theme, and a recalculation by the [`Formulas`](@/api/formulas.md) plugin.
 
 Setting `autoRowHeaderSize` to `false`, or leaving it out, keeps the fixed-width headers.
 
