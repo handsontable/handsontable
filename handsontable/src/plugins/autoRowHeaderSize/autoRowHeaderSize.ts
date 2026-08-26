@@ -222,6 +222,15 @@ export class AutoRowHeaderSize extends BasePlugin {
    */
   #cachedWidths: number[] | null = null;
   /**
+   * The same widths with the default column width applied as a floor - what the hook hands back.
+   *
+   * Kept alongside rather than computed per call: the hook runs for the master table and every
+   * overlay clone on every draw, and the answer only moves when the measurement does.
+   *
+   * @type {number[]|null}
+   */
+  #flooredWidths: number[] | null = null;
+  /**
    * The row counts the reported widths belong to, as `visible,rendered`.
    *
    * Both halves are needed. The visible count catches rows being added, removed or trimmed. The
@@ -251,6 +260,12 @@ export class AutoRowHeaderSize extends BasePlugin {
    * @type {Function[]}
    */
   #sweepRenderers: RowHeaderRenderer[] = [];
+  /**
+   * Which of the sweep's renderers is the grid's own, if any - held by reference, not by position.
+   *
+   * @type {Function|null}
+   */
+  #sweepGridRenderer: RowHeaderRenderer | null = null;
   /**
    * The next row the sweep in progress will read.
    *
@@ -329,7 +344,14 @@ export class AutoRowHeaderSize extends BasePlugin {
     this.addHook('afterCreateRow', this.#onInvalidate);
     this.addHook('afterRemoveRow', this.#onInvalidate);
     this.addHook('afterColumnSort', this.#onInvalidate);
+    // A theme carries its own font and cell padding, so every measured width is wrong under a new
+    // one. `useTheme()` does not go through `updateSettings`, so nothing else would notice.
+    this.addHook('afterSetTheme', this.#onInvalidate);
+    // Recalculated formulas can feed a label without any cell write being reported, and the payload
+    // describes engine addresses rather than rows - so the whole thing is measured again.
+    this.addHook('afterFormulasValuesUpdate', this.#onInvalidate);
     this.addHook('afterSetDataAtCell', this.#onCellsChange);
+    this.addHook('afterSetSourceDataAtCell', this.#onSourceCellsChange);
 
     super.enablePlugin();
   }
@@ -364,12 +386,12 @@ export class AutoRowHeaderSize extends BasePlugin {
    * @returns {number}
    */
   getSyncCalculationLimit(): number {
-    const lastRow = this.hot.countRows() - 1;
+    const totalRows = this.hot.countRows();
     const setting = this.getSetting<number | string>('syncLimit');
     let limit: number = AutoRowHeaderSize.SYNC_CALCULATION_LIMIT;
 
     if (typeof setting === 'string' && isPercentValue(setting)) {
-      limit = valueAccordingPercent(lastRow, setting);
+      limit = valueAccordingPercent(totalRows, setting);
     } else {
       const numericLimit = Number(setting);
 
@@ -378,7 +400,10 @@ export class AutoRowHeaderSize extends BasePlugin {
       }
     }
 
-    return Math.min(limit, lastRow);
+    // A count of rows, so `syncLimit: 0` really means none are read before the first paint. It used
+    // to be treated as the index of the last row to read, which read one row too many at every
+    // value - including one row at zero.
+    return Math.max(0, Math.min(limit, totalRows));
   }
 
   /**
@@ -417,7 +442,7 @@ export class AutoRowHeaderSize extends BasePlugin {
     this.#cancelSweep();
     this.#cancelPendingRows();
 
-    this.#cachedWidths = null;
+    this.#setWidths(null);
     this.#cachedRowCounts = '';
   }
 
@@ -453,6 +478,18 @@ export class AutoRowHeaderSize extends BasePlugin {
   }
 
   /**
+   * Records the measured widths, and the floored copy the hook answers with.
+   *
+   * @param {number[]|null} widths The measured width of every level, or `null` to forget them.
+   */
+  #setWidths(widths: number[] | null): void {
+    this.#cachedWidths = widths;
+    this.#flooredWidths = widths === null
+      ? null
+      : widths.map(width => Math.max(width, DEFAULT_COLUMN_WIDTH));
+  }
+
+  /**
    * Returns the row counts the reported widths are keyed on.
    *
    * @returns {string}
@@ -474,18 +511,21 @@ export class AutoRowHeaderSize extends BasePlugin {
     const totalRows = this.hot.countRows();
 
     if (totalRows < 1) {
-      this.#cachedWidths = [];
+      this.#setWidths([]);
 
       return;
     }
 
-    this.#sweepRenderers = this.#collectRenderers();
+    const collected = this.#collectRenderers();
+
+    this.#sweepRenderers = collected.renderers;
+    this.#sweepGridRenderer = collected.gridRenderer;
     this.#sweepSamples = this.#sweepRenderers.map(() => new Map() as LabelSamples);
     this.#sweepMeasuredFrom = this.#sweepRenderers.map(() => -1);
     this.#sweepWidths = this.#sweepRenderers.map(() => 0);
     this.#sweepCursor = 0;
 
-    this.#readRows(Math.min(this.getSyncCalculationLimit(), totalRows - 1));
+    this.#readRows(Math.min(this.getSyncCalculationLimit(), totalRows) - 1);
 
     const finished = this.#sweepCursor >= totalRows;
 
@@ -506,6 +546,7 @@ export class AutoRowHeaderSize extends BasePlugin {
   #releaseSweep(): void {
     this.#sweepSamples = null;
     this.#sweepRenderers = [];
+    this.#sweepGridRenderer = null;
     this.#inProgress = false;
   }
 
@@ -520,6 +561,7 @@ export class AutoRowHeaderSize extends BasePlugin {
 
     this.#sweepSamples = null;
     this.#sweepRenderers = [];
+    this.#sweepGridRenderer = null;
     this.#sweepCursor = 0;
     this.#inProgress = false;
   }
@@ -579,7 +621,9 @@ export class AutoRowHeaderSize extends BasePlugin {
     const range = { from: this.#sweepCursor, to: lastRow };
 
     this.#sweepRenderers.forEach((renderer, headerLevel) => {
-      this.#collectSamples(this.#sweepSamples![headerLevel], renderer, headerLevel, range);
+      this.#collectSamples(
+        this.#sweepSamples![headerLevel], renderer, range, renderer === this.#sweepGridRenderer
+      );
     });
 
     this.#sweepCursor = lastRow + 1;
@@ -590,18 +634,20 @@ export class AutoRowHeaderSize extends BasePlugin {
    *
    * @param {Map} samples The buckets to add to.
    * @param {Function} renderer The renderer that fills a header cell of this level.
-   * @param {number} headerLevel The level being read, counting from the grid's edge.
    * @param {object|Array} range The rows to read - a `from`/`to` range, or a list of row indexes.
+   * @param {boolean} isGridRenderer Whether that renderer is the grid's own.
    */
   #collectSamples(
     samples: LabelSamples,
     renderer: RowHeaderRenderer,
-    headerLevel: number,
-    range: { from: number, to: number } | number[]
+    range: { from: number, to: number } | number[],
+    isGridRenderer: boolean
   ): void {
-    // Each level is bucketed by the labels IT draws. Sampling every level by the first one's
-    // labels would skip the row carrying a later level's longest label, leaving that level narrow.
-    this.#readLabel = headerLevel === 0
+    // Each level is bucketed by the labels IT draws. Sampling every level by another's labels would
+    // skip the row carrying this one's longest label, leaving the level narrow. The grid's own
+    // renderer is recognised by reference: it is the only one whose text `getRowHeader` can be
+    // trusted for, and it is not necessarily the first in the array.
+    this.#readLabel = isGridRenderer
       ? visualRow => this.hot.getRowHeader(visualRow)
       : visualRow => this.#readRenderedLabel(renderer, visualRow);
 
@@ -649,7 +695,7 @@ export class AutoRowHeaderSize extends BasePlugin {
       ? measured
       : measured.map((width, headerLevel) => Math.max(width, previous[headerLevel]));
 
-    this.#cachedWidths = next;
+    this.#setWidths(next);
 
     return previous === null
       || previous.length !== next.length
@@ -681,22 +727,28 @@ export class AutoRowHeaderSize extends BasePlugin {
    *
    * @returns {Function[]}
    */
-  #collectRenderers(): RowHeaderRenderer[] {
+  #collectRenderers(): { renderers: RowHeaderRenderer[], gridRenderer: RowHeaderRenderer | null } {
     const renderers: RowHeaderRenderer[] = [];
+    let gridRenderer: RowHeaderRenderer | null = null;
 
     if (this.hot.hasRowHeaders()) {
-      renderers.push((renderableRow: number, TH: HTMLTableCellElement) => {
+      gridRenderer = (renderableRow: number, TH: HTMLTableCellElement) => {
         const visualRow = renderableRow >= 0
           ? this.hot.rowIndexMapper.getVisualFromRenderableIndex(renderableRow)
           : renderableRow;
 
         this.hot.view.appendRowHeader(visualRow!, TH);
-      });
+      };
+
+      renderers.push(gridRenderer);
     }
 
     this.hot.runHooks('afterGetRowHeaderRenderers', renderers);
 
-    return renderers;
+    // The renderer is handed back by identity, not by position. A listener is free to unshift or
+    // replace, so "level 0 is the grid's own" is not something to assume - reading a custom
+    // renderer's level through `getRowHeader` would bucket it by the wrong text entirely.
+    return { renderers, gridRenderer };
   }
 
   /**
@@ -788,13 +840,13 @@ export class AutoRowHeaderSize extends BasePlugin {
    * @returns {number|number[]} The width to use.
    */
   #onModifyRowHeaderWidth = (rowHeaderWidth: number | number[]) => {
-    const widths = this.#getMeasuredWidths();
+    this.#getMeasuredWidths();
 
-    if (widths.length === 0) {
+    const flooredWidths = this.#flooredWidths;
+
+    if (flooredWidths === null || flooredWidths.length === 0) {
       return rowHeaderWidth;
     }
-
-    const flooredWidths = widths.map(width => Math.max(width, DEFAULT_COLUMN_WIDTH));
 
     return flooredWidths.length === 1 ? flooredWidths[0] : flooredWidths;
   };
@@ -854,6 +906,25 @@ export class AutoRowHeaderSize extends BasePlugin {
   };
 
   /**
+   * Widens the row headers after a write straight to the source data.
+   *
+   * The same job as {@link AutoRowHeaderSize#onCellsChange}, with one difference that matters: this
+   * hook reports PHYSICAL rows while `afterSetDataAtCell` reports visual ones. Feeding a physical
+   * row to the label readers would measure a different row as soon as anything is sorted or moved.
+   *
+   * @param {Array} changes The `[row, prop, oldValue, newValue]` entries that were applied.
+   */
+  #onSourceCellsChange = (changes: unknown[][] | null) => {
+    if (!Array.isArray(changes)) {
+      return;
+    }
+
+    this.#onCellsChange(changes.map(([physicalRow, ...rest]) => (
+      [this.hot.toVisualRow(physicalRow as number), ...rest]
+    )));
+  };
+
+  /**
    * Queues the measurement of the rows whose labels have changed.
    *
    * The measuring deliberately does NOT happen in the hook. The hook runs inside the edit, with a
@@ -903,7 +974,7 @@ export class AutoRowHeaderSize extends BasePlugin {
    * @returns {boolean} Whether any level grew.
    */
   #widenFor(rows: number[]): boolean {
-    const renderers = this.#collectRenderers();
+    const { renderers, gridRenderer } = this.#collectRenderers();
 
     if (renderers.length !== this.#cachedWidths!.length) {
       this.clearCache();
@@ -911,12 +982,13 @@ export class AutoRowHeaderSize extends BasePlugin {
       return false;
     }
 
+    const widths = [...this.#cachedWidths!];
     let widened = false;
 
     renderers.forEach((renderer, headerLevel) => {
       const samples = new Map() as LabelSamples;
 
-      this.#collectSamples(samples, renderer, headerLevel, rows);
+      this.#collectSamples(samples, renderer, rows, renderer === gridRenderer);
 
       if (samples.size === 0) {
         return;
@@ -924,11 +996,15 @@ export class AutoRowHeaderSize extends BasePlugin {
 
       const width = this.#measureLevel(samples, renderer, headerLevel);
 
-      if (width > this.#cachedWidths![headerLevel]) {
-        this.#cachedWidths![headerLevel] = width;
+      if (width > widths[headerLevel]) {
+        widths[headerLevel] = width;
         widened = true;
       }
     });
+
+    if (widened) {
+      this.#setWidths(widths);
+    }
 
     return widened;
   }

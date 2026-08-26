@@ -185,7 +185,12 @@ class GhostTable {
     if (this.rows.length) {
       throwWithCause('Doesn\'t support multi-dimensional table');
     }
-    if (!this.hot!.hasRowHeaders() || samples.size === 0) {
+    // `hasRowHeaders()` answers whether the SETTING is on, which is not the same question. A
+    // renderer pushed through `afterGetRowHeaderRenderers` draws a row header column with the
+    // setting off, and measuring one used to leave `container` null here and then dereference it in
+    // `getWidths()` - killing the draw the measurement was called from. So the setting only decides
+    // whether the DEFAULT renderer has anything to draw; a caller that brings its own is trusted.
+    if (samples.size === 0 || (!renderer && !this.hot!.hasRowHeaders())) {
       return;
     }
     if (!this.columns.length) {

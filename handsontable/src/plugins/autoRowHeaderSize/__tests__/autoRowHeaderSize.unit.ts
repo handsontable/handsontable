@@ -22,7 +22,75 @@ function buildGrid(settings: Record<string, unknown> = {}) {
   return { hot, labelSpy };
 }
 
+/**
+ * Takes over `requestAnimationFrame` so the work the plugin schedules runs when a test says so.
+ *
+ * `requestIdleTask` falls back to an animation frame in this environment, and jsdom's is a timer.
+ * Waiting on real frames made these tests pass alone and fail beside another suite, so the frames
+ * are faked: `drain()` runs what is queued, plus anything queued while running.
+ *
+ * @returns {object} The queue controls.
+ */
+function takeOverFrames() {
+  const callbacks = new Map<number, FrameRequestCallback>();
+  const originalRequest = window.requestAnimationFrame;
+  const originalCancel = window.cancelAnimationFrame;
+  let nextId = 1;
+
+  window.requestAnimationFrame = ((callback: FrameRequestCallback) => {
+    const id = nextId;
+
+    nextId += 1;
+    callbacks.set(id, callback);
+
+    return id;
+  }) as typeof window.requestAnimationFrame;
+
+  window.cancelAnimationFrame = ((id: number) => {
+    callbacks.delete(id);
+  }) as typeof window.cancelAnimationFrame;
+
+  return {
+    /**
+     * Runs every queued callback, repeating while they queue more.
+     *
+     * @param {number} [maxRounds=500] A backstop, in case something reschedules forever.
+     */
+    drain(maxRounds = 500) {
+      for (let round = 0; round < maxRounds && callbacks.size > 0; round++) {
+        const pending = [...callbacks.values()];
+
+        callbacks.clear();
+        pending.forEach(callback => callback(0));
+      }
+    },
+    /**
+     * @returns {number} How many callbacks are waiting.
+     */
+    pending() {
+      return callbacks.size;
+    },
+    /**
+     * Puts the real frames back.
+     */
+    restore() {
+      window.requestAnimationFrame = originalRequest;
+      window.cancelAnimationFrame = originalCancel;
+    },
+  };
+}
+
 describe('AutoRowHeaderSize', () => {
+  let frames: ReturnType<typeof takeOverFrames>;
+
+  beforeEach(() => {
+    frames = takeOverFrames();
+  });
+
+  afterEach(() => {
+    frames.restore();
+  });
+
   describe('enabling', () => {
     it('should stay disabled by default', () => {
       const { hot } = buildGrid();
@@ -547,21 +615,12 @@ describe('AutoRowHeaderSize', () => {
     }
 
     /**
-     * Runs animation frames until `isDone` holds, or gives up.
+     * Runs the idle work the sweep has queued, to completion.
      *
-     * `requestIdleTask` falls back to an animation frame when `requestIdleCallback` is missing,
-     * which is the case in this environment - so the frames are what has to be awaited. The
-     * condition is always something the sweep DID, never a field on the plugin: how far it has got
-     * is its own business.
-     *
-     * @param {Function} isDone Whether there is nothing left to wait for.
-     * @param {number} [maxFrames=100] How many frames to give it.
+     * @param {Function} [isDone] Ignored; kept so the call sites read as intent.
      */
-    async function drainFrames(isDone: () => boolean, maxFrames = 100) {
-      for (let frame = 0; frame < maxFrames && !isDone(); frame++) {
-        // eslint-disable-next-line no-await-in-loop
-        await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
-      }
+    function drainFrames(isDone?: () => boolean) {
+      frames.drain();
     }
 
     it('should read only up to the sync limit before the first width is reported', () => {
@@ -575,7 +634,9 @@ describe('AutoRowHeaderSize', () => {
       const readRows = labelSpy.mock.calls.map(([index]) => index);
 
       // A grid this size must not be swept in one go: that is the freeze this limit exists to stop.
-      expect(Math.max(...readRows)).toBe(100);
+      // `syncLimit` counts rows, so a limit of 100 reads rows 0 to 99 and stops.
+      expect(Math.max(...readRows)).toBe(99);
+      expect(new Set(readRows).size).toBe(100);
       // Row 1200 carries the longest label, so a one-pass scan would have read it already.
       expect(readRows).not.toContain(1200);
 
@@ -592,7 +653,7 @@ describe('AutoRowHeaderSize', () => {
 
       const readRows = () => new Set(labelSpy.mock.calls.map(([index]) => index));
 
-      await drainFrames(() => readRows().size >= 1500);
+      drainFrames();
 
       // The long label sits at row 1200, well past the sync limit. If the sweep stopped early the
       // header would stay too narrow forever.
@@ -615,7 +676,7 @@ describe('AutoRowHeaderSize', () => {
 
       const readsUpFront = labelSpy.mock.calls.length;
 
-      await drainFrames(() => false, 5);
+      drainFrames();
 
       // Nothing was queued, so waiting changes nothing. A flag would say the same, but this holds
       // even if the sweep were left scheduled with no rows to read.
@@ -627,8 +688,9 @@ describe('AutoRowHeaderSize', () => {
     it('should accept a percent sync limit, like AutoColumnSize does', () => {
       const { hot } = buildBigGrid({ autoRowHeaderSize: { syncLimit: '10%' } });
 
-      // 10% of the 1499 rows the limit is measured against.
-      expect(hot.getPlugin('autoRowHeaderSize').getSyncCalculationLimit()).toBe(149);
+      // 10% of the grid's 1500 rows. The limit is a count of rows to read, not the index of the
+      // last one, so it resolves against the row count rather than the last row.
+      expect(hot.getPlugin('autoRowHeaderSize').getSyncCalculationLimit()).toBe(150);
 
       hot.destroy();
     });
@@ -654,12 +716,9 @@ describe('AutoRowHeaderSize', () => {
       hot.destroy();
       labelSpy.mockClear();
 
-      // A chunk queued before the grid went away must not run against the dead instance. Waiting a
-      // few frames is what would let it, if it were still scheduled.
-      for (let frame = 0; frame < 3; frame++) {
-        // eslint-disable-next-line no-await-in-loop
-        await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
-      }
+      // A chunk queued before the grid went away must not run against the dead instance. Draining
+      // the queue is what would let it, if it were still scheduled.
+      frames.drain();
 
       expect(labelSpy).not.toHaveBeenCalled();
     });
@@ -696,15 +755,9 @@ describe('AutoRowHeaderSize', () => {
   describe('editing cells', () => {
     /**
      * Runs the queued measurement of changed rows.
-     *
-     * `requestIdleTask` falls back to an animation frame when `requestIdleCallback` is missing,
-     * which is the case in this environment - so the frames are what has to be awaited.
      */
-    async function flushPending() {
-      for (let frame = 0; frame < 5; frame++) {
-        // eslint-disable-next-line no-await-in-loop
-        await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
-      }
+    function flushPending() {
+      frames.drain();
     }
 
     it('should not measure inside the edit itself', () => {
@@ -732,7 +785,7 @@ describe('AutoRowHeaderSize', () => {
       labelSpy.mockClear();
 
       hot.setDataAtCell(5, 0, 'edited');
-      await flushPending();
+      flushPending();
 
       const readRows = new Set(labelSpy.mock.calls.map(([index]) => index));
 
@@ -754,7 +807,7 @@ describe('AutoRowHeaderSize', () => {
       // The same row twice, plus two others - what a paste looks like.
       hot.runHooks('afterSetDataAtCell', [[3, 0, 'a', 'b'], [3, 0, 'b', 'c'], [4, 0, 'a', 'b']]);
       hot.runHooks('afterSetDataAtCell', [[7, 0, 'a', 'b']]);
-      await flushPending();
+      flushPending();
 
       const readRows = [...new Set(labelSpy.mock.calls.map(([index]) => index))].sort((a, b) => a - b);
 
@@ -787,7 +840,7 @@ describe('AutoRowHeaderSize', () => {
       }) as typeof hot.getRowHeader;
 
       hot.setDataAtCell(1, 0, 'ID-2-with-a-considerably-longer-value');
-      await flushPending();
+      flushPending();
 
       // The changed row has to be looked at, or a data-derived header would keep clipping. That the
       // header really grows on screen is asserted in tests/e2e/auto-row-header-size.spec.ts - jsdom
@@ -813,7 +866,7 @@ describe('AutoRowHeaderSize', () => {
       // sweep also lets the headers shrink again.
       hot.runHooks('afterSetDataAtCell', Array.from({ length: 600 }, (_, i) => [i, 0, 'a', 'b']));
       plugin.getRowHeaderWidth();
-      await flushPending();
+      flushPending();
 
       // Row 1100 was not in the batch, so reading it can only mean the whole grid was swept.
       expect(labelSpy.mock.calls.map(([index]) => index)).toContain(1100);
@@ -834,11 +887,138 @@ describe('AutoRowHeaderSize', () => {
       const wide = Array.from({ length: 600 }, (_, i) => [i % 3, i, 'a', 'b']);
 
       hot.runHooks('afterSetDataAtCell', wide);
-      await flushPending();
+      flushPending();
 
       const readRows = [...new Set(labelSpy.mock.calls.map(([index]) => index))].sort((a, b) => a - b);
 
       expect(readRows).toEqual([0, 1, 2]);
+
+      hot.destroy();
+    });
+  });
+  describe('shapes the grid can be in', () => {
+    /**
+     * Runs whatever the plugin has queued.
+     */
+    function flushFrames() {
+      frames.drain();
+    }
+
+    it('should survive a row header drawn only by a pushed renderer', () => {
+      // `rowHeaders` off, but the hook pushes one - which the hook's own documentation describes,
+      // and which the grid renders. The ghost table used to refuse to build its container for this
+      // shape and then read it anyway, throwing inside the draw and killing the whole grid.
+      const hot = new Handsontable(document.createElement('div'), {
+        data: [['a'], ['b'], ['c']],
+        rowHeaders: false,
+        autoRowHeaderSize: true,
+        afterGetRowHeaderRenderers: (renderers: Array<(row: number, TH: HTMLElement) => void>) => {
+          renderers.push((row: number, TH: HTMLElement) => {
+            TH.textContent = `Label ${row}`;
+          });
+
+          return renderers;
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      // The read is what asks for the measurement. In a browser the first draw does it and the
+      // grid dies on screen; jsdom never draws that far, so the test has to ask.
+      expect(() => hot.getRowHeaderWidths?.()).not.toThrow();
+      expect(() => hot.getPlugin('autoRowHeaderSize').getRowHeaderWidths()).not.toThrow();
+
+      hot.destroy();
+    });
+
+    it('should read a level by its own renderer even when it is not the last one', () => {
+      const callsPerCell = new Map<HTMLElement, number>();
+      const unshifted = jest.fn((row: number, TH: HTMLElement) => {
+        // The label read borrows ONE cell for the whole pass, while the ghost table and the real
+        // draw each build their own. So a cell handed over more than once means this level was
+        // sampled through its renderer rather than through `getRowHeader`.
+        callsPerCell.set(TH, (callsPerCell.get(TH) ?? 0) + 1);
+
+        TH.textContent = `Ahead of the numbering ${row}`;
+      });
+      const { hot } = buildGrid({
+        autoRowHeaderSize: true,
+        afterGetRowHeaderRenderers: (renderers: Array<(row: number, TH: HTMLElement) => void>) => {
+          // A listener is free to put its renderer FIRST. "Level 0 is the grid's own" is then wrong,
+          // and this level would be bucketed by the row numbers it does not draw.
+          renderers.unshift(unshifted);
+
+          return renderers;
+        },
+      });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+
+      plugin.clearCache();
+      unshifted.mockClear();
+      plugin.getRowHeaderWidths();
+
+      // Deciding by position instead of by identity sends this level down the `getRowHeader` path,
+      // which buckets it by the row numbers it does not draw - so it is never sampled at all.
+      expect(Math.max(...callsPerCell.values())).toBeGreaterThan(1);
+
+      hot.destroy();
+    });
+
+    it('should read nothing up front when the sync limit is zero', () => {
+      const { hot, labelSpy } = buildGrid({ autoRowHeaderSize: { syncLimit: 0 } });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+
+      plugin.clearCache();
+      labelSpy.mockClear();
+      plugin.getRowHeaderWidth();
+
+      // The option counts rows read before the first paint, so zero has to mean zero.
+      expect(labelSpy).not.toHaveBeenCalled();
+
+      hot.destroy();
+    });
+
+    it('should measure again after the theme changes', () => {
+      const { hot, labelSpy } = buildGrid({ autoRowHeaderSize: true });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+
+      plugin.getRowHeaderWidth();
+      labelSpy.mockClear();
+
+      // A theme brings its own font and padding, so every width measured under the old one is
+      // wrong. `useTheme()` does not go through `updateSettings`, so nothing else invalidates.
+      hot.runHooks('afterSetTheme', 'ht-theme-horizon', false);
+      plugin.getRowHeaderWidth();
+
+      expect(labelSpy).toHaveBeenCalled();
+
+      hot.destroy();
+    });
+
+    it('should follow a write to the source data, translating the physical row', async() => {
+      const labelSpy = jest.fn((index: number) => `Row ${index + 1}`);
+      const hot = new Handsontable(document.createElement('div'), {
+        data: [['c'], ['a'], ['b']],
+        rowHeaders: labelSpy,
+        autoRowHeaderSize: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+
+      // Reversed straight through the index mapper - the same physical-to-visual split sorting or a
+      // row move produces, without pulling another plugin into this suite.
+      hot.rowIndexMapper.setIndexesSequence([2, 1, 0]);
+      plugin.getRowHeaderWidth();
+      labelSpy.mockClear();
+
+      // This hook reports PHYSICAL rows while `afterSetDataAtCell` reports visual ones, so an
+      // untranslated index would measure whichever row happens to sit at that position instead.
+      const visualRow = hot.toVisualRow(0);
+
+      hot.setSourceDataAtCell(0, 0, 'c-edited');
+      flushFrames();
+
+      expect(labelSpy.mock.calls.map(([index]) => index)).toContain(visualRow);
+      expect(visualRow).not.toBe(0);
 
       hot.destroy();
     });

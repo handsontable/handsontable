@@ -5579,7 +5579,9 @@ export default (): Record<string, unknown> => {
      * Two rows carrying the same label are measured once, since the same text renders to the same
      * width. Set `allowSampleDuplicates` to `true` when that is not true of your grid - a row header
      * that is indented per row, as [`nestedRows`](#nestedRows) does, renders the same label at a
-     * different width depending on its depth.
+     * different width depending on its depth. Raise `samplingRatio` along with it: labels are
+     * grouped by length and only `samplingRatio` of each group are measured, so with the default of
+     * `3` a fourth copy of the same label is still left out, however deep it sits.
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
