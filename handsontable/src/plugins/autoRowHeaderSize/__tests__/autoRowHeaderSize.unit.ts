@@ -798,19 +798,47 @@ describe('AutoRowHeaderSize', () => {
       hot.destroy();
     });
 
-    it('should fall back to a full sweep when a change batch is larger than the sync limit', () => {
+    it('should fall back to a full sweep when more rows change than the sync limit', async() => {
+      const { hot, labelSpy } = buildGrid({
+        data: Array.from({ length: 1200 }, (_, i) => [i]),
+        // measured in one go, so the fallback is not just the "sweep already running" branch
+        autoRowHeaderSize: { syncLimit: 2000 },
+      });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+
+      plugin.getRowHeaderWidth();
+      labelSpy.mockClear();
+
+      // 600 rows against a 500-row limit: reading them one by one costs more than sweeping, and a
+      // sweep also lets the headers shrink again.
+      hot.runHooks('afterSetDataAtCell', Array.from({ length: 600 }, (_, i) => [i, 0, 'a', 'b']));
+      plugin.getRowHeaderWidth();
+      await flushPending();
+
+      // Row 1100 was not in the batch, so reading it can only mean the whole grid was swept.
+      expect(labelSpy.mock.calls.map(([index]) => index)).toContain(1100);
+
+      hot.destroy();
+    });
+
+    it('should measure only the changed rows when a wide paste hits few of them', async() => {
       const { hot, labelSpy } = buildGrid({ autoRowHeaderSize: true });
       const plugin = hot.getPlugin('autoRowHeaderSize');
 
       plugin.getRowHeaderWidth();
       labelSpy.mockClear();
 
-      // 600 entries against a 500-row limit: reading them one by one costs more than sweeping, and
-      // a sweep also lets the headers shrink again.
-      hot.runHooks('afterSetDataAtCell', Array.from({ length: 600 }, (_, i) => [i % 100, 0, 'a', 'b']));
-      plugin.getRowHeaderWidth();
+      // 600 changes, but only three rows - a paste three rows tall and two hundred columns wide.
+      // Counting the changes rather than the rows sent this down the full-sweep path, which threw
+      // away a cache that only three rows could have affected.
+      const wide = Array.from({ length: 600 }, (_, i) => [i % 3, i, 'a', 'b']);
 
-      expect(labelSpy).toHaveBeenCalled();
+      hot.runHooks('afterSetDataAtCell', wide);
+      await flushPending();
+
+      const readRows = [...new Set(labelSpy.mock.calls.map(([index]) => index))].sort((a, b) => a - b);
+
+      expect(readRows).toEqual([0, 1, 2]);
 
       hot.destroy();
     });

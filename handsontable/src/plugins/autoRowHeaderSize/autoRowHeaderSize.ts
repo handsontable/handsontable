@@ -832,18 +832,23 @@ export class AutoRowHeaderSize extends BasePlugin {
       return;
     }
 
-    // Past a certain size, reading the changed rows one by one costs more than sweeping the grid
-    // again - and a sweep also lets the headers shrink.
-    if (changes.length > AutoRowHeaderSize.SYNC_CALCULATION_LIMIT) {
+    // A paste hits the same row once per column, so the rows are collected as a set - and onto
+    // whatever is already waiting, since one task measures the lot.
+    const rows = this.#pendingRows ?? new Set<number>();
+
+    changes.forEach(change => rows.add(change[0] as number));
+
+    // Past a certain number of ROWS - not changes - reading them one by one costs more than
+    // sweeping the grid again, and a sweep also lets the headers shrink. Counting changes instead
+    // would send a paste that is merely wide, a few rows across many columns, down the expensive
+    // path for no reason.
+    if (rows.size > AutoRowHeaderSize.SYNC_CALCULATION_LIMIT) {
       this.clearCache();
 
       return;
     }
 
-    this.#pendingRows ??= new Set();
-
-    // A paste hits the same row once per column, so the rows are collected as a set.
-    changes.forEach(change => this.#pendingRows!.add(change[0] as number));
+    this.#pendingRows = rows;
 
     this.#schedulePendingRows();
   };
