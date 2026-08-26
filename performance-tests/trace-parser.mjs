@@ -482,6 +482,42 @@ function computeTraceBounds(events) {
   };
 }
 
+// Explicit measurement window, emitted by lib/trace-runner.mjs around the scenario action.
+export const MEASURE_START_MARK = 'hot-perf-measure-start';
+export const MEASURE_END_MARK = 'hot-perf-measure-end';
+
+/**
+ * Read the measurement window the runner marked around the scenario action.
+ *
+ * Preferred over calculateWindow because the auto-zoom picks the busiest region
+ * of the trace, and on scenarios driven through page.evaluate that region is the
+ * ~420ms V8.InvokeApiInterruptCallbacks blob CDP produces to enter the isolate.
+ * The window then closes ~60ms before the Paint, Layout and Commit events the
+ * action caused, so rendering and painting are scored as zero while the harness
+ * overhead is scored as System.
+ *
+ * @param {Array<object>} events -- raw trace events
+ * @returns {{min: number, max: number, range: number}|null} bounds in us, or null when unmarked
+ */
+export function measurementWindowFromMarks(events) {
+  let min = null;
+  let max = null;
+
+  for (const event of events) {
+    if (event.name === MEASURE_START_MARK && (min === null || event.ts < min)) {
+      min = event.ts;
+    } else if (event.name === MEASURE_END_MARK && (max === null || event.ts > max)) {
+      max = event.ts;
+    }
+  }
+
+  if (min === null || max === null || max <= min) {
+    return null;
+  }
+
+  return { min, max, range: max - min };
+}
+
 // calculateWindow from devtools-frontend/front_end/models/trace/extras/MainThreadActivity.ts
 // Finds the "interesting" region of the trace by detecting low utilization at edges
 // Uses ALL main thread entries (not just visible) - matches DevTools behavior
@@ -849,8 +885,10 @@ export function parseTrace(traceJson) {
     e.tid === mainThread.tid
   );
 
-  // Calculate the auto-zoomed window using DevTools's MainThreadActivity.calculateWindow
-  const windowUs = calculateWindow(traceBoundsUs, allMainThreadEntries);
+  // Prefer the window the runner marked around the action. Fall back to DevTools's
+  // MainThreadActivity.calculateWindow for traces recorded without the marks.
+  const markedWindowUs = measurementWindowFromMarks(events);
+  const windowUs = markedWindowUs ?? calculateWindow(traceBoundsUs, allMainThreadEntries);
   const windowMinMs = windowUs.min / 1000;
   const windowMaxMs = windowUs.max / 1000;
   const windowRangeMs = windowUs.range / 1000;
@@ -903,6 +941,7 @@ export function parseTrace(traceJson) {
       windowMinMs,
       windowMaxMs,
       windowRangeMs,
+      windowSource: markedWindowUs ? 'marks' : 'auto-zoom',
       profileCallMs,
       updateCountersSampleCount: updateCounters?.sampleCount ?? 0,
     }

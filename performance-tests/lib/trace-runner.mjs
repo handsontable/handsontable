@@ -3,6 +3,7 @@
 
 import { writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { MEASURE_START_MARK, MEASURE_END_MARK } from '../trace-parser.mjs';
 
 /**
  * @param {import('@playwright/test').Page} page
@@ -17,6 +18,8 @@ export async function startTracing(page) {
       'v8.execute',
       'disabled-by-default-devtools.timeline',
       'disabled-by-default-v8.cpu_profiler',
+      // Carries performance.mark, which is how the measurement window is bounded.
+      'blink.user_timing',
     ].join(','),
     transferMode: 'ReturnAsStream',
   });
@@ -60,6 +63,20 @@ export async function stopTracing(cdp) {
   });
 
   return traceJson;
+}
+
+/**
+ * Mark a point in the trace, bounding the region the parser will measure.
+ *
+ * Without an explicit window the parser auto-zooms onto the busiest part of the
+ * trace, which for a page.evaluate-driven action is the V8 interrupt CDP uses to
+ * enter the isolate, not the grid work. See measurementWindowFromMarks().
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {string} markName
+ */
+async function mark(page, markName) {
+  await page.evaluate(name => performance.mark(name), markName);
 }
 
 /**
@@ -156,12 +173,18 @@ export async function runTracedScenario({
     // Heartbeat: print dots during actionFn to keep GH Actions log alive
     const heartbeat = setInterval(() => process.stdout.write('.'), 5000);
 
+    // The mark is taken after CDP has already entered the isolate once, so the
+    // interrupt that carries it stays outside the window it opens.
+    await mark(page, MEASURE_START_MARK);
+
     await actionFn(true);
 
-    // Inside the trace on purpose: the frame this waits for is the work being measured.
+    // Inside the window on purpose: the frame this waits for is the work being measured.
     if (!skipSettle) {
       await (settleFn ? settleFn() : settleFrames(page));
     }
+
+    await mark(page, MEASURE_END_MARK);
 
     clearInterval(heartbeat);
 
