@@ -554,9 +554,9 @@ export class Formulas extends BasePlugin {
       this.columnAxisSyncer!.calculateAndSyncMoves(unfreezePerformed, unfreezePerformed);
     });
 
-    // TODO: Actions related to overwriting dates from HOT format to HF default format are done as callback to this
-    // hook, because some hooks, such as `afterLoadData` doesn't have information about composed cell properties.
-    // Another hooks are triggered to late for setting HF's engine data needed for some actions.
+    // Date and preserved-text escaping runs both here (for `updateSettings`-driven
+    // initialization, where `afterLoadData` returns early) and in `afterLoadData` /
+    // `afterUpdateData`, where the transient meta read provides composed cell properties.
     this.addHook('afterCellMetaReset', this.#onAfterCellMetaReset);
 
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
@@ -1148,17 +1148,69 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Tells whether any configuration layer can mark a cell as a `date`-typed cell or as a preserved
+   * text cell. Only those two markings make the escape scan change a value, so when no layer can
+   * carry them the whole full-dataset scan is skipped – in the default configuration it would
+   * translate indexes and read meta for every cell only to change nothing.
+   *
+   * The layers checked here are exactly the ones a cell meta can be composed from: the global
+   * settings layer, the `columns` array (a `columns` function is opaque, so it always counts), the
+   * `cell` array, the `cells` function (also opaque, so it always counts), the already stored cell
+   * metas (which is where `setCellMeta` and the applied `cell` array land), and the
+   * `beforeGetCellMeta` hook.
+   *
+   * Accepted residual: `afterGetCellMeta` is deliberately NOT part of the gate, because
+   * `mergeCells`, `hiddenRows`, and `hiddenColumns` register it unconditionally – including it
+   * would make the gate always true for any grid using merged cells or hidden rows/columns. As a
+   * consequence, an `afterGetCellMeta` listener that injects `type: 'date'` or
+   * `preserveTextValue` into a grid whose settings declare neither is not honored on the bulk load
+   * path. Setting a cell type from a meta hook is not a documented pattern.
+   *
+   * @returns {boolean}
+   */
+  #needsEngineBoundEscaping(): boolean {
+    const layerDeclaresEscaping = (layer: unknown): boolean => {
+      const meta = layer as { type?: unknown, preserveTextValue?: unknown } | null | undefined;
+
+      return !!meta && (meta.type === 'date' || meta.preserveTextValue === true);
+    };
+    const tableMeta = this.hot.getSettings();
+
+    if (
+      layerDeclaresEscaping(tableMeta) ||
+      typeof tableMeta.cells === 'function' ||
+      typeof tableMeta.columns === 'function' ||
+      (Array.isArray(tableMeta.columns) && tableMeta.columns.some(layerDeclaresEscaping)) ||
+      (Array.isArray(tableMeta.cell) && tableMeta.cell.some(layerDeclaresEscaping)) ||
+      this.hot.hasHook('beforeGetCellMeta')
+    ) {
+      return true;
+    }
+
+    // Checked last: unlike the settings layers above, this one allocates an array of every cell
+    // meta materialized so far.
+    return this.hot._getMetaManager().getCellsMeta().some(layerDeclaresEscaping);
+  }
+
+  /**
    * Escapes, in place, the source-data-array values that must reach the engine in a protected
    * form. The array rows always come in physical order (`getSourceDataArray` iterates the
    * underlying dataset). The column order depends on the data shape: plain array-of-arrays data
    * keeps the physical order, while array-of-objects data and the skipped-columns projection are
    * built in visual order.
    *
+   * The scan is skipped entirely when `#needsEngineBoundEscaping()` reports that no configuration
+   * layer can mark a cell for escaping.
+   *
    * @param {Array<Array<*>>} sourceDataArray Source data array to process.
    * @param {number} [rowOffset=0] Physical row index of the array's first row (non-zero for partial arrays).
    * @param {number} [columnOffset=0] Index of the array's first column, in the array's own column space.
    */
   #escapeSourceDataArray(sourceDataArray: unknown[][], rowOffset = 0, columnOffset = 0) {
+    if (!this.#needsEngineBoundEscaping()) {
+      return;
+    }
+
     const columnsInVisualOrder = this.hot.countCols() < this.hot.countSourceCols() ||
       !this.#isSourceDataArrayOfArrays();
     const metaManager = this.hot._getMetaManager();
@@ -1419,9 +1471,11 @@ export class Formulas extends BasePlugin {
     if (!this.#hotWasInitializedWithEmptyData) {
       const sourceDataArray = this.#getProcessedSourceDataArray();
 
-      this.#escapeSourceDataArray(sourceDataArray);
-
+      // The guard only range-checks the sheet against the array dimensions, so escaping can run
+      // after it – and then it is skipped altogether when the content is not replaced.
       if (this.engine!.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
+        this.#escapeSourceDataArray(sourceDataArray);
+
         this.#internalOperationPending = true;
 
         const dependentCells = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
