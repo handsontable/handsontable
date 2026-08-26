@@ -86,8 +86,13 @@ test.describe('Trusted Types enforcement', () => {
     // which the test above this one holds.
     const violations = await grid.violations();
 
-    expect(violations.length).toBeGreaterThan(0);
-    expect(violations.every(v => v.directive === 'require-trusted-types-for')).toBe(true);
+    // Matched on the sample, not just the count: the sample names the sink and the payload, so this
+    // cannot be satisfied by some other violation raised while the page was constructing - which
+    // the test above proves there are none of anyway.
+    expect(violations).toEqual([{
+      directive: 'require-trusted-types-for',
+      sample: expect.stringContaining('DOMParser parseFromString|<table>'),
+    }]);
   });
 
   test('renders the license branding bar', async () => {

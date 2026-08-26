@@ -79,6 +79,27 @@ describe('CopyPaste clipboard parse fallback', () => {
       .length;
   }
 
+  it('should leave the target cell alone when there is no plain-text flavour to fall back to', () => {
+    const hot = new Handsontable(document.createElement('div'), {
+      data: [['A1', 'B1'], ['A2', 'B2']],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const event = new PasteEvent();
+
+    event.clipboardData.setData('text/html', '<table><tbody><tr><td>x</td></tr></tbody></table>');
+
+    hot.selectCell(0, 0);
+    refuseEveryParse();
+    hot.getPlugin('copyPaste').onPaste(event);
+
+    // `SheetClip.parse('')` is `[['']]`, whose length is 1, so the guard in `onPaste` would let it
+    // through and clear the cell. Doing nothing is the better outcome for a payload that was valid
+    // markup the parser refused.
+    expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1']);
+
+    hot.destroy();
+  });
+
   it('should warn once, naming Trusted Types as the reason', () => {
     const hot = pasteInto('x\ty', '<table><tbody><tr><td>x</td><td>y</td></tr></tbody></table>');
 

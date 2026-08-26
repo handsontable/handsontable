@@ -1048,7 +1048,15 @@ export class CopyPaste extends BasePlugin {
         } catch (error) {
           this.#warnClipboardParseRefused(error);
 
-          pastedData = readPlainText(clipboardData);
+          const plainText = readPlainText(clipboardData);
+
+          // Only when there is something to fall back TO. An empty `text/plain` flavour parses
+          // into `[['']]`, which the guard in `onPaste` does not stop, so assigning it would blank
+          // the target cell - a worse outcome than the no-op that `undefined` produces, and this
+          // payload was valid markup the parser simply would not accept.
+          if (plainText) {
+            pastedData = plainText;
+          }
         }
       } else {
         pastedData = readPlainText(clipboardData);
