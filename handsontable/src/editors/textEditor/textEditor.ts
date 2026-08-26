@@ -87,6 +87,12 @@ export class TextEditor extends BaseEditor {
    * @type {string}
    */
   declare layerClass: string;
+  /**
+   * Coordinates of the last cell this editor tried to finish after it was hidden, as `row,col`.
+   * Guards against re-attempting the same cell when a failed validation restores the editing
+   * state on a cell that is still hidden.
+   */
+  #hiddenCellFinishAttempt: string | null = null;
 
   /**
    * @param {Core} hotInstance The Handsontable instance.
@@ -124,6 +130,7 @@ export class TextEditor extends BaseEditor {
    */
   open(): void {
     this._opened = true;
+    this.#hiddenCellFinishAttempt = null;
     this.refreshDimensions(); // need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
     this.showEditableElement();
     this.hot.getShortcutManager().setActiveContextName('editor');
@@ -371,6 +378,70 @@ export class TextEditor extends BaseEditor {
   }
 
   /**
+   * Ends editing when a re-render HIDES the edited cell while the editor is still open.
+   *
+   * A hiding index map (Pagination turning the page, `hiddenRows`, `hiddenColumns`) drops the cell
+   * from the DOM while its visual index stays valid. The editor used to stay open, pinned to its
+   * original pixel position over whatever row moved into that spot, still bound to its original
+   * coordinates, and committed only on a later click - to a row the user could no longer see.
+   *
+   * Test on `isHidden()`, NOT on whether `getEditedCell()` still resolves. That method returns
+   * `null` for a cell merely scrolled out of the rendered window too, and closing the editor there
+   * would silently commit an in-progress edit on every scroll away, which is long-standing
+   * behavior in the other direction: `refreshDimensions()` hides the editor on scroll but leaves
+   * `state` at `EDITING` so the edit survives until the user comes back.
+   *
+   * A TRIMMING map (Filters, `trimRows`) is deliberately out of scope. It collapses the visual
+   * index space instead of preserving it, so the edited coordinates silently rebind to a different
+   * row that is still rendered, `isHidden()` is false, and the value lands on the wrong record.
+   * That defect predates this method and is not fixed here.
+   *
+   * The edit is committed rather than discarded, to match what a click on the pagination bar
+   * already does (it is an outside click, so it deselects, which finishes editing).
+   *
+   * @private
+   */
+  #finishEditingWhenCellHidden(): void {
+    if (this.state !== EDITOR_STATE.EDITING || this.row === null || this.col === null) {
+      return;
+    }
+
+    // `isHidden()` takes a PHYSICAL index while `this.row`/`this.col` are visual, so convert.
+    // The two coincide only while no sorting, move, or trimming map is active. Under
+    // `columnSorting` the raw visual index reads another row's hidden flag, which both tears down
+    // an edit on a fully visible cell and misses the hidden cell this method exists for. Same
+    // conversion as `editorManager.isCellEditable()`.
+    const isHidden = this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(this.row)) ||
+      this.hot.columnIndexMapper.isHidden(this.hot.toPhysicalColumn(this.col));
+
+    if (!isHidden) {
+      return;
+    }
+
+    // A failed validation with `allowInvalid: false` puts the editor back into `EDITING` on the
+    // same still-hidden cell, which would satisfy this guard again on the next render. Attempt any
+    // one coordinate pair once; `open()` clears the latch when the editor is reused elsewhere.
+    const attemptKey = `${this.row},${this.col}`;
+
+    if (this.#hiddenCellFinishAttempt === attemptKey) {
+      return;
+    }
+
+    this.#hiddenCellFinishAttempt = attemptKey;
+
+    // `finishEditing()` writes through `setDataAtCell`, which renders. Defer so the write never
+    // re-enters the render that is still unwinding. `_registerTimeout` is cleared on `destroy()`,
+    // but the instance can still be torn down between scheduling and delivery.
+    this.hot._registerTimeout(() => {
+      if (!this.hot || this.hot.isDestroyed || this.state !== EDITOR_STATE.EDITING) {
+        return;
+      }
+
+      this.finishEditing(false);
+    }, 0);
+  }
+
+  /**
    * Binds events and hooks.
    *
    * @private
@@ -383,6 +454,7 @@ export class TextEditor extends BaseEditor {
 
     this.addHook('afterScrollHorizontally', () => this.refreshDimensions());
     this.addHook('afterScrollVertically', () => this.refreshDimensions());
+    this.addHook('afterViewRender', () => this.#finishEditingWhenCellHidden());
 
     this.addHook('afterColumnResize', () => {
       this.refreshDimensions();
