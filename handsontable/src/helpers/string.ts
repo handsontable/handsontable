@@ -1,6 +1,10 @@
 import { stringify } from './mixed';
 import { deprecatedWarnOnce } from './console';
 
+// Re-exported to keep `substitute` reachable from its documented `helpers/string` path. The
+// implementation lives in a leaf module so that `helpers/console` can use it without a cycle.
+export { substitute } from './templateString';
+
 /**
  * Convert string to upper case first letter.
  *
@@ -75,24 +79,6 @@ export function isJSON(string: string) {
  */
 export function isPercentValue(value: string): boolean {
   return /^(?:\d\d?%|100%)$/.test(value);
-}
-
-/**
- * Substitute strings placed between square brackets into value defined in `variables` object. String names defined in
- * square brackets must be the same as property name of `variables` object.
- *
- * @param {string} template Template string.
- * @param {object} variables Object which contains all available values which can be injected into template.
- * @returns {string}
- */
-export function substitute(template: string, variables: Record<string, unknown> = {}): string {
-  return (`${template}`).replace(/(?:\\)?\[([^[\]]+)]/g, (match, name) => {
-    if (match.charAt(0) === '\\') {
-      return match.substr(1, match.length - 1);
-    }
-
-    return variables[name] === undefined ? '' : String(variables[name]);
-  });
 }
 
 /**

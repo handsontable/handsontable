@@ -1,4 +1,4 @@
-import { substitute } from './string';
+import { substitute } from './templateString';
 /* eslint-disable no-console */
 /* eslint-disable no-restricted-globals */
 
