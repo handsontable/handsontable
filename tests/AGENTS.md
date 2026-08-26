@@ -67,6 +67,21 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   reschedules itself, so one `touchmove` past the edge starts it — poll for a further increase
   instead of holding for a fixed time (`waitForTimeout` is banned, see below).
 
+## Real-mouse gestures
+
+- `boundingBox()` ignores overflow clipping, and `toBeVisible()` passes for a fully clipped
+  element. Never aim a real-mouse press or drag at coordinates derived from a cell or handle box
+  without clamping them into the holder's VISIBLE area: a point past the fold silently presses
+  the page body (a grab that arms nothing), and mid-drag it means "extend the selection past the
+  edge" — drag-to-scroll fires and the selection overshoots the intended range. This class of
+  spec ships green by luck and breaks on a 1px browser row-metric shift (the Playwright 1.62
+  bump broke exactly one theme this way). Pattern: `FormulasGridPage.selectRange`.
+- After a drag-select, assert the achieved range (`getSelectedRangeLast()` via `page.evaluate`);
+  before grabbing the fill handle, wheel-scroll it into the holder's visible area like a user
+  would, and bound waits on the timer-driven auto-scroll by TIME (`expect.poll`), never by a
+  fixed number of pumped mousemoves — an iteration count is a hidden wall-clock budget that
+  shrinks with every Playwright/CDP speedup.
+
 ## The server port
 
 The webServer binds `8123` and has `reuseExistingServer` on outside CI, so a second
