@@ -524,4 +524,231 @@ describe('AutoRowHeaderSize', () => {
       hot.destroy();
     });
   });
+  describe('splitting the work up', () => {
+    /**
+     * Builds a grid bigger than the sync limit under test, with one long label near the end so a
+     * partial scan is detectable.
+     *
+     * @param {object} settings Settings merged over the defaults.
+     * @returns {object} The instance and the label spy.
+     */
+    function buildBigGrid(settings: Record<string, unknown> = {}) {
+      const labelSpy = jest.fn((index: number) => (
+        index === 1200 ? 'A considerably longer row label' : `Row ${index + 1}`
+      ));
+      const hot = new Handsontable(document.createElement('div'), {
+        data: Array.from({ length: 1500 }, (_, i) => [i]),
+        rowHeaders: labelSpy,
+        licenseKey: 'non-commercial-and-evaluation',
+        ...settings,
+      });
+
+      return { hot, labelSpy };
+    }
+
+    /**
+     * Waits for the idle sweep to run to completion.
+     *
+     * `requestIdleTask` falls back to an animation frame when `requestIdleCallback` is missing,
+     * which is the case in this environment - so the frames are what has to be awaited.
+     *
+     * @param {object} plugin The plugin instance.
+     */
+    async function drainSweep(plugin: { inProgress: boolean }) {
+      let guard = 0;
+
+      while (plugin.inProgress && guard < 100) {
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
+        guard += 1;
+      }
+    }
+
+    it('should read only up to the sync limit before the first width is reported', () => {
+      const { hot, labelSpy } = buildBigGrid({ autoRowHeaderSize: { syncLimit: 100 } });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+
+      plugin.clearCache();
+      labelSpy.mockClear();
+      plugin.getRowHeaderWidth();
+
+      const readRows = labelSpy.mock.calls.map(([index]) => index);
+
+      // A grid this size must not be swept in one go: that is the freeze this limit exists to stop.
+      expect(Math.max(...readRows)).toBe(100);
+      expect(plugin.inProgress).toBe(true);
+
+      hot.destroy();
+    });
+
+    it('should keep reading the rest of the rows in the background', async() => {
+      const { hot, labelSpy } = buildBigGrid({ autoRowHeaderSize: { syncLimit: 100 } });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+
+      plugin.clearCache();
+      labelSpy.mockClear();
+      plugin.getRowHeaderWidth();
+
+      await drainSweep(plugin);
+
+      const readRows = new Set(labelSpy.mock.calls.map(([index]) => index));
+
+      // The long label sits at row 1200, well past the sync limit. If the sweep stopped early the
+      // header would stay too narrow forever.
+      expect(readRows.has(1200)).toBe(true);
+      expect(readRows.size).toBe(1500);
+      expect(plugin.inProgress).toBe(false);
+
+      hot.destroy();
+    });
+
+    it('should read everything up front when the grid is smaller than the sync limit', () => {
+      const { hot, labelSpy } = buildGrid({ autoRowHeaderSize: true });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+
+      plugin.clearCache();
+      labelSpy.mockClear();
+      plugin.getRowHeaderWidth();
+
+      // 100 rows against a 500-row default limit: nothing is left for the idle sweep.
+      expect(new Set(labelSpy.mock.calls.map(([index]) => index)).size).toBe(100);
+      expect(plugin.inProgress).toBe(false);
+
+      hot.destroy();
+    });
+
+    it('should accept a percent sync limit, like AutoColumnSize does', () => {
+      const { hot } = buildBigGrid({ autoRowHeaderSize: { syncLimit: '10%' } });
+
+      // 10% of the 1499 rows the limit is measured against.
+      expect(hot.getPlugin('autoRowHeaderSize').getSyncCalculationLimit()).toBe(149);
+
+      hot.destroy();
+    });
+
+    it('should keep the default sync limit when the settings object does not mention it', () => {
+      const { hot } = buildBigGrid({ autoRowHeaderSize: { samplingRatio: 5 } });
+
+      // A missing `syncLimit` must not read as zero, or an object config would lose its first paint.
+      expect(hot.getPlugin('autoRowHeaderSize').getSyncCalculationLimit()).toBe(500);
+
+      hot.destroy();
+    });
+
+    it('should stop the sweep when the plugin is destroyed mid-way', async() => {
+      const { hot, labelSpy } = buildBigGrid({ autoRowHeaderSize: { syncLimit: 100 } });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+
+      plugin.getRowHeaderWidth();
+      expect(plugin.inProgress).toBe(true);
+
+      hot.destroy();
+      labelSpy.mockClear();
+
+      // A chunk queued before the grid went away must not run against the dead instance. Waiting a
+      // few frames is what would let it, if it were still scheduled.
+      for (let frame = 0; frame < 3; frame++) {
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
+      }
+
+      expect(labelSpy).not.toHaveBeenCalled();
+    });
+
+    it('should reuse one cell to read the labels of a level added through the hook', () => {
+      const createSpy = jest.spyOn(document, 'createElement');
+      const { hot } = buildGrid({
+        autoRowHeaderSize: true,
+        afterGetRowHeaderRenderers: (renderers: Array<(row: number, TH: HTMLElement) => void>) => {
+          renderers.push((row: number, TH: HTMLElement) => {
+            TH.textContent = `Second level ${row}`;
+          });
+
+          return renderers;
+        },
+      });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+
+      plugin.clearCache();
+      createSpy.mockClear();
+      plugin.getRowHeaderWidths();
+
+      const cellsCreated = createSpy.mock.calls.filter(([tag]) => tag === 'th').length;
+
+      // Reading a level added through the hook used to build a cell per row, which was the single
+      // biggest cost of the scan. Only the sampled cells should be built now.
+      expect(cellsCreated).toBeLessThan(20);
+
+      createSpy.mockRestore();
+      hot.destroy();
+    });
+  });
+
+  describe('editing cells', () => {
+    it('should read only the rows that changed, not the whole grid', () => {
+      const { hot, labelSpy } = buildGrid({ autoRowHeaderSize: true });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+
+      plugin.getRowHeaderWidth();
+      labelSpy.mockClear();
+
+      hot.setDataAtCell(5, 0, 'edited');
+
+      const readRows = new Set(labelSpy.mock.calls.map(([index]) => index));
+
+      // A cell edit used to throw the whole cache away, so every row header was read again. On a
+      // large grid that turned each edit into a freeze.
+      expect(readRows.size).toBeLessThan(50);
+
+      hot.destroy();
+    });
+
+    it('should widen a header whose label is built from the cell that changed', () => {
+      const data = [['ID-1'], ['ID-2'], ['ID-3']];
+      const hot = new Handsontable(document.createElement('div'), {
+        data,
+        // The label comes from the data, so editing the cell does change the header.
+        rowHeaders: (visualRow: number) => (data[visualRow] ? data[visualRow][0] : ''),
+        autoRowHeaderSize: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+      const readRows: number[] = [];
+
+      plugin.getRowHeaderWidth();
+
+      const originalGetRowHeader = hot.getRowHeader;
+
+      hot.getRowHeader = ((row: number) => {
+        readRows.push(row);
+
+        return originalGetRowHeader.call(hot, row);
+      }) as typeof hot.getRowHeader;
+
+      hot.setDataAtCell(1, 0, 'ID-2-with-a-considerably-longer-value');
+
+      // The changed row has to be looked at, or a data-derived header would keep clipping.
+      expect(readRows).toContain(1);
+
+      hot.getRowHeader = originalGetRowHeader;
+      hot.destroy();
+    });
+
+    it('should fall back to a full sweep when a change batch is larger than the sync limit', () => {
+      const { hot, labelSpy } = buildGrid({ autoRowHeaderSize: true });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+
+      plugin.getRowHeaderWidth();
+      labelSpy.mockClear();
+
+      // 600 entries against a 500-row limit: reading them one by one costs more than sweeping, and
+      // a sweep also lets the headers shrink again.
+      hot.runHooks('afterSetDataAtCell', Array.from({ length: 600 }, (_, i) => [i % 100, 0, 'a', 'b']));
+      plugin.getRowHeaderWidth();
+
+      expect(labelSpy).toHaveBeenCalled();
+
+      hot.destroy();
+    });
+  });
 });

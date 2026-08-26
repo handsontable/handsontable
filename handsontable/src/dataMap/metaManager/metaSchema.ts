@@ -5551,14 +5551,30 @@ export default (): Record<string, unknown> => {
      * | ----------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------- |
      * | `samplingRatio`         | A number          | The number of samples of the same label length used in the measurement<br>(default: `3`)                      |
      * | `allowSampleDuplicates` | `true` \| `false` | When two rows carry the same label:<br>`true`: measure both<br>`false`: measure it once<br>(default: `false`) |
+     * | `syncLimit`             | A number \| a percent string | How many rows are read before the first paint; the rest are read in idle time<br>(default: `500`) |
      *
      * By default, the `autoRowHeaderSize` option is set to `undefined`, which disables the plugin.
-     * It reads every row header once to find the longest label, so that first pass costs more on
-     * large data sets; the result is cached, so later draws cost nothing.
+     *
+     * Finding the longest label means reading every row header once. On a large grid that work is
+     * split: the first `syncLimit` rows are read before the first paint, and the rest are read in
+     * the browser's idle time, so a header can widen a moment after the grid appears. While that is
+     * running a header only ever widens, so its width never jumps back and forth. The result is
+     * cached, so later draws cost nothing.
+     *
+     * Editing a cell does not re-read the whole grid. Only the rows that changed are read, because
+     * a row header label can be built from cell values. That can make a header wider, but never
+     * narrower - a header shrinks again on the next full pass, which any change to the number of
+     * rows starts.
      *
      * A grid can render more than one row header, by pushing a renderer through the
      * [`afterGetRowHeaderRenderers`](@/api/hooks.md#afterGetRowHeaderRenderers) hook. Every one of
      * them is measured on its own, so each gets exactly the width its own labels need.
+     *
+     * The measured width leaves a little room around the longest label, so the text never sits flush
+     * against the cell border. The grid's own row header renderer wraps its label in a padded
+     * element, but a renderer pushed through
+     * [`afterGetRowHeaderRenderers`](@/api/hooks.md#afterGetRowHeaderRenderers) writes straight into
+     * the cell and has none of its own.
      *
      * Two rows carrying the same label are measured once, since the same text renders to the same
      * width. Set `allowSampleDuplicates` to `true` when that is not true of your grid - a row header

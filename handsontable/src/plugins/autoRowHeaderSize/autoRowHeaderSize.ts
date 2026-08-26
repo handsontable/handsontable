@@ -2,6 +2,9 @@ import { BasePlugin } from '../base';
 import GhostTable from '../../utils/ghostTable';
 import SamplesGenerator from '../../utils/samplesGenerator';
 import { DEFAULT_COLUMN_WIDTH } from '../../3rdparty/walkontable/src';
+import { cancelIdleTask, requestIdleTask } from '../../helpers/feature';
+import { isPercentValue } from '../../helpers/string';
+import { valueAccordingPercent } from '../../helpers/number';
 
 export const PLUGIN_KEY = 'autoRowHeaderSize';
 export const PLUGIN_PRIORITY = 45;
@@ -10,6 +13,13 @@ export const PLUGIN_PRIORITY = 45;
  * A function that fills one row header cell, as collected from the `afterGetRowHeaderRenderers` hook.
  */
 type RowHeaderRenderer = (renderableRow: number, TH: HTMLTableCellElement) => void;
+
+/**
+ * The per-label-length buckets a sweep accumulates. The bucket shape belongs to
+ * {@link SamplesGenerator} and is not exported, so it is kept opaque here - this plugin only ever
+ * hands the buckets straight back to the sampler or on to the ghost table.
+ */
+type LabelSamples = Map<string | number, never>;
 
 /**
  * Settings accepted by the plugin.
@@ -23,6 +33,10 @@ export interface AutoRowHeaderSizeSettings {
    * Whether two rows carrying the same label are both measured.
    */
   allowSampleDuplicates?: boolean;
+  /**
+   * How many rows are read before the first paint. The rest are read in the browser's idle time.
+   */
+  syncLimit?: number | string;
 }
 
 /**
@@ -31,6 +45,7 @@ export interface AutoRowHeaderSizeSettings {
 type AutoRowHeaderSizeDefaults = {
   samplingRatio: number | null;
   allowSampleDuplicates: boolean;
+  syncLimit: number | string;
 };
 
 /**
@@ -53,9 +68,14 @@ type AutoRowHeaderSizeDefaults = {
  * {@link Hooks#afterGetRowHeaderRenderers} hook. Every one of them is measured on its own, so each
  * gets exactly the width its own labels need.
  *
- * The plugin is off by default. It reads every row header once to find the longest label, so the
- * cost of that first pass grows with the row count, and switching it on for everyone would change
- * the width of every grid that uses custom row labels.
+ * Finding the longest label means reading every row header once, so on a large grid the work is
+ * split the same way {@link AutoRowSize} splits its own: the first
+ * [`syncLimit`](@/api/options.md#autorowheadersize) rows are read before the first paint, and the
+ * rest are swept in the browser's idle time. A header can therefore widen a moment after the grid
+ * appears. It only ever widens while the sweep runs, so the width never jumps back and forth.
+ *
+ * The plugin is off by default, because switching it on for everyone would change the width of
+ * every grid that uses custom row labels.
  *
  * @example
  * ```js
@@ -94,6 +114,58 @@ export class AutoRowHeaderSize extends BasePlugin {
   }
 
   /**
+   * Returns the number of rows read before the first paint, when `syncLimit` says nothing else.
+   *
+   * Every existing unit test runs on fewer rows than this, so they measure synchronously and never
+   * have to drive the idle sweep.
+   *
+   * @returns {number}
+   */
+  static get SYNC_CALCULATION_LIMIT() {
+    return 500;
+  }
+
+  /**
+   * Returns the number of rows read between two checks of the chunk's time budget.
+   *
+   * @returns {number}
+   */
+  static get CALCULATION_STEP() {
+    return 1000;
+  }
+
+  /**
+   * Returns how long one idle chunk may spend reading labels, in milliseconds.
+   *
+   * A row count alone would be either wasteful or unsafe: reading a label costs well under a
+   * microsecond for the first header level and several times that for each level added through the
+   * hook, so the same number of rows is a rounding error in one grid and a dropped frame in
+   * another. Going by time keeps a chunk inside a frame either way, which matters because
+   * `requestIdleCallback` is missing on some supported browsers - there the chunk runs in an
+   * animation frame instead.
+   *
+   * @returns {number}
+   */
+  static get CALCULATION_BUDGET() {
+    return 8;
+  }
+
+  /**
+   * Returns the breathing space added to every measured level, in pixels.
+   *
+   * The ghost table measures the cell exactly as it renders, which is a problem when a row header
+   * renderer writes its text straight into the `th`: the grid's own renderer wraps the label in a
+   * padded element, but a renderer pushed through the hook has no padding at all, so an exact
+   * measurement leaves the longest label flush against the cell border. Rather than require every
+   * renderer to style itself, the width carries a small allowance.
+   *
+   * @returns {number}
+   */
+  static get MEASUREMENT_PADDING() {
+    return 8;
+  }
+
+  /**
    * Returns the default settings applied when the plugin is enabled without explicit configuration.
    *
    * `null` means "leave it to the sampler", matching how the sibling auto-size plugins express the
@@ -103,8 +175,16 @@ export class AutoRowHeaderSize extends BasePlugin {
     return {
       samplingRatio: null,
       allowSampleDuplicates: false,
+      syncLimit: AutoRowHeaderSize.SYNC_CALCULATION_LIMIT,
     };
   }
+
+  /**
+   * `true` while rows are still being read in the browser's idle time.
+   *
+   * @type {boolean}
+   */
+  inProgress = false;
 
   /**
    * Instance of {@link GhostTable} used to measure the row headers off-screen. Private: how the
@@ -129,29 +209,81 @@ export class AutoRowHeaderSize extends BasePlugin {
     return { value: this.#readLabel(row) };
   });
   /**
-   * Reads the label of the level currently being sampled. Swapped per level by `#measureAllLevels`,
+   * Reads the label of the level currently being sampled. Swapped per level while sweeping,
    * because each row header draws its own text and has to be bucketed by its own lengths.
    *
    * @type {Function}
    */
   #readLabel: (visualRow: number) => unknown = visualRow => this.hot.getRowHeader(visualRow);
   /**
-   * The last measured width of each row header level, or `null` when a measurement is due.
+   * The one cell the label reads borrow. Reusing it keeps a sweep from creating an element per row.
+   *
+   * @type {HTMLTableCellElement|null}
+   */
+  #labelProbe: HTMLTableCellElement | null = null;
+  /**
+   * The width of each row header level as currently reported to the grid, or `null` before the
+   * first measurement.
    *
    * @type {number[]|null}
    */
   #cachedWidths: number[] | null = null;
   /**
-   * The row counts the cached widths were measured against, as `visible,rendered`.
+   * The row counts the reported widths belong to, as `visible,rendered`.
    *
    * Both halves are needed. The visible count catches rows being added, removed or trimmed. The
    * rendered count catches rows being hidden and shown again, which leaves the visible count
    * untouched - so without it a label that was hidden during the first measurement would stay
-   * unmeasured after it reappears, and its header would keep clipping.
+   * unmeasured after it reappears, and its header would keep clipping. A change to either half
+   * mid-sweep restarts the sweep, so hiding a row while one is running heals itself.
    *
    * @type {string}
    */
   #cachedRowCounts = '';
+  /**
+   * The label buckets the sweep in progress has filled so far, one map per level.
+   *
+   * @type {Map[]|null}
+   */
+  #sweepSamples: LabelSamples[] | null = null;
+  /**
+   * The renderers the sweep in progress is reading through, captured when it started.
+   *
+   * @type {Function[]}
+   */
+  #sweepRenderers: RowHeaderRenderer[] = [];
+  /**
+   * The next row the sweep in progress will read.
+   *
+   * @type {number}
+   */
+  #sweepCursor = 0;
+  /**
+   * How many labels each level had bucketed when it was last measured. A level whose buckets have
+   * not taken anything new cannot have changed width, so it does not have to be measured again.
+   *
+   * @type {number[]}
+   */
+  #sweepMeasuredFrom: number[] = [];
+  /**
+   * What the sweep last measured for each level, kept so an unchanged level can be reported again
+   * without touching the DOM.
+   *
+   * @type {number[]}
+   */
+  #sweepWidths: number[] = [];
+  /**
+   * The scheduled idle chunk, or `null` when nothing is scheduled.
+   *
+   * @type {number|null}
+   */
+  #idleTaskId: number | null = null;
+  /**
+   * Guards the measurement against being re-entered by a draw it triggers itself.
+   *
+   * @type {boolean}
+   */
+  #measuring = false;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings.
@@ -185,8 +317,8 @@ export class AutoRowHeaderSize extends BasePlugin {
     this.addHook('afterUpdateData', this.#onInvalidate);
     this.addHook('afterCreateRow', this.#onInvalidate);
     this.addHook('afterRemoveRow', this.#onInvalidate);
-    this.addHook('afterSetDataAtCell', this.#onInvalidate);
     this.addHook('afterColumnSort', this.#onInvalidate);
+    this.addHook('afterSetDataAtCell', this.#onCellsChange);
 
     super.enablePlugin();
   }
@@ -212,10 +344,38 @@ export class AutoRowHeaderSize extends BasePlugin {
   }
 
   /**
+   * Returns how many rows are read before the first paint.
+   *
+   * A plain number is taken as it is, and a percent string is resolved against the row count, the
+   * way {@link AutoColumnSize} resolves its own. Anything else keeps the default, so an object
+   * config that only sets `samplingRatio` still gets a measured first paint.
+   *
+   * @returns {number}
+   */
+  getSyncCalculationLimit(): number {
+    const lastRow = this.hot.countRows() - 1;
+    const setting = this.getSetting<number | string>('syncLimit');
+    let limit: number = AutoRowHeaderSize.SYNC_CALCULATION_LIMIT;
+
+    if (typeof setting === 'string' && isPercentValue(setting)) {
+      limit = valueAccordingPercent(lastRow, setting);
+    } else {
+      const numericLimit = Number(setting);
+
+      if (Number.isFinite(numericLimit)) {
+        limit = Math.trunc(numericLimit);
+      }
+    }
+
+    return Math.min(limit, lastRow);
+  }
+
+  /**
    * Returns the width one row header level needs in order to show its longest label in full.
    *
-   * The value is cached, so calling this repeatedly costs nothing until the data or the settings
-   * change.
+   * On a grid larger than `syncLimit` this can still be growing - the rows past that limit are read
+   * in the browser's idle time. {@link AutoRowHeaderSize#inProgress} says whether that is still
+   * happening.
    *
    * @param {number} [headerLevel=0] Which row header to report on, counting from the grid's edge:
    *                                 `0` is the first one. The negative column index a row header
@@ -244,6 +404,8 @@ export class AutoRowHeaderSize extends BasePlugin {
    * Throws the measured widths away, so the next read measures again.
    */
   clearCache(): void {
+    this.#cancelSweep();
+
     this.#cachedWidths = null;
     this.#cachedRowCounts = '';
   }
@@ -252,32 +414,243 @@ export class AutoRowHeaderSize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy(): void {
+    this.#cancelSweep();
     this.#ghostTable.clean();
+    this.#labelProbe = null;
 
     super.destroy();
   }
 
   /**
-   * Returns the measured width of every row header level, measuring first if the cache is stale.
+   * Returns the width of every row header level, starting a measurement when one is due.
    *
    * @returns {number[]}
    */
   #getMeasuredWidths(): number[] {
-    if (this.#cachedWidths === null || this.#cachedRowCounts !== this.#getRowCountsKey()) {
-      this.#cachedWidths = this.#measureAllLevels();
-      this.#cachedRowCounts = this.#getRowCountsKey();
+    // A row header renderer that draws through the grid could bring the draw back around to this
+    // hook. Answering with what is already known keeps that from recursing.
+    if (this.#measuring) {
+      return this.#cachedWidths ?? [];
     }
 
-    return this.#cachedWidths;
+    if (this.#cachedWidths === null || this.#cachedRowCounts !== this.#getRowCountsKey()) {
+      this.#startSweep();
+    }
+
+    return this.#cachedWidths ?? [];
   }
 
   /**
-   * Returns the row counts the cache is keyed on.
+   * Returns the row counts the reported widths are keyed on.
    *
    * @returns {string}
    */
   #getRowCountsKey(): string {
     return `${this.hot.countRows()},${this.hot.rowIndexMapper.getRenderableIndexesLength()}`;
+  }
+
+  /**
+   * Starts reading the row headers again from the top.
+   *
+   * The rows up to `syncLimit` are read straight away, so the first paint has a width to use. The
+   * rest are left to {@link AutoRowHeaderSize#CALCULATION_STEP}-sized chunks in idle time.
+   */
+  #startSweep(): void {
+    this.#cancelSweep();
+    this.#cachedRowCounts = this.#getRowCountsKey();
+
+    const totalRows = this.hot.countRows();
+
+    if (totalRows < 1) {
+      this.#cachedWidths = [];
+
+      return;
+    }
+
+    this.#sweepRenderers = this.#collectRenderers();
+    this.#sweepSamples = this.#sweepRenderers.map(() => new Map() as LabelSamples);
+    this.#sweepMeasuredFrom = this.#sweepRenderers.map(() => -1);
+    this.#sweepWidths = this.#sweepRenderers.map(() => 0);
+    this.#sweepCursor = 0;
+
+    this.#readRows(Math.min(this.getSyncCalculationLimit(), totalRows - 1));
+
+    const finished = this.#sweepCursor >= totalRows;
+
+    this.#commitWidths(finished);
+
+    if (finished) {
+      // A grid smaller than the sync limit is done here. No draw is asked for: this runs inside one.
+      this.#releaseSweep();
+    } else {
+      this.inProgress = true;
+      this.#scheduleChunk();
+    }
+  }
+
+  /**
+   * Lets go of what a finished sweep was carrying.
+   */
+  #releaseSweep(): void {
+    this.#sweepSamples = null;
+    this.#sweepRenderers = [];
+    this.inProgress = false;
+  }
+
+  /**
+   * Stops the sweep in progress and forgets what it had collected.
+   */
+  #cancelSweep(): void {
+    if (this.#idleTaskId !== null) {
+      cancelIdleTask(this.#idleTaskId);
+      this.#idleTaskId = null;
+    }
+
+    this.#sweepSamples = null;
+    this.#sweepRenderers = [];
+    this.#sweepCursor = 0;
+    this.inProgress = false;
+  }
+
+  /**
+   * Queues the next chunk of rows.
+   */
+  #scheduleChunk(): void {
+    this.#idleTaskId = requestIdleTask(() => {
+      this.#idleTaskId = null;
+
+      // The instance can be gone by the time an idle task runs.
+      if (!this.hot || !this.enabled || this.#sweepSamples === null) {
+        this.#cancelSweep();
+
+        return;
+      }
+
+      const totalRows = this.hot.countRows();
+      const budgetEnd = performance.now() + AutoRowHeaderSize.CALCULATION_BUDGET;
+
+      // Reading is cheap enough that a fixed row count would leave most of the frame unused, and
+      // on a grid with several header levels it would overrun it. The budget settles both.
+      do {
+        this.#readRows(Math.min(this.#sweepCursor + AutoRowHeaderSize.CALCULATION_STEP - 1, totalRows - 1));
+      } while (this.#sweepCursor < totalRows && performance.now() < budgetEnd);
+
+      const finished = this.#sweepCursor >= totalRows;
+
+      this.#commitWidths(finished);
+
+      if (finished) {
+        this.#releaseSweep();
+        // Nothing else asks for a draw once the last chunk lands, so the final width - the only one
+        // allowed to be narrower than what is on screen - needs one.
+        this.hot.view?.adjustElementsSize();
+      } else {
+        this.#scheduleChunk();
+      }
+    });
+  }
+
+  /**
+   * Reads the labels of every level for the rows from the sweep's cursor up to `lastRow`.
+   *
+   * @param {number} lastRow The last row to read, inclusive.
+   */
+  #readRows(lastRow: number): void {
+    if (this.#sweepSamples === null || lastRow < this.#sweepCursor) {
+      return;
+    }
+
+    const range = { from: this.#sweepCursor, to: lastRow };
+
+    this.#sweepRenderers.forEach((renderer, headerLevel) => {
+      this.#collectSamples(this.#sweepSamples![headerLevel], renderer, headerLevel, range);
+    });
+
+    this.#sweepCursor = lastRow + 1;
+  }
+
+  /**
+   * Buckets the labels one level draws for the given rows, adding to what is already bucketed.
+   *
+   * @param {Map} samples The buckets to add to.
+   * @param {Function} renderer The renderer that fills a header cell of this level.
+   * @param {number} headerLevel The level being read, counting from the grid's edge.
+   * @param {object|Array} range The rows to read - a `from`/`to` range, or a list of row indexes.
+   */
+  #collectSamples(
+    samples: LabelSamples,
+    renderer: RowHeaderRenderer,
+    headerLevel: number,
+    range: { from: number, to: number } | number[]
+  ): void {
+    // Each level is bucketed by the labels IT draws. Sampling every level by the first one's
+    // labels would skip the row carrying a later level's longest label, leaving that level narrow.
+    this.#readLabel = headerLevel === 0
+      ? visualRow => this.hot.getRowHeader(visualRow)
+      : visualRow => this.#readRenderedLabel(renderer, visualRow);
+
+    // The row header sits at column -1, so the samples are generated for that column across the
+    // rows. Passing the buckets back in is what lets a sweep run in slices: the per-bucket limits
+    // and the duplicate detection keep working across all of them.
+    this.#samplesGenerator.generateSample('col', range, -1, samples as never);
+  }
+
+  /**
+   * Measures whatever the sweep has bucketed so far and reports it.
+   *
+   * While the sweep runs a level can only widen. Reading more rows can only turn up a longer label,
+   * so widening converges on the answer without the width jumping back and forth. The final call
+   * is the one allowed to report a narrower width, because by then every row has been read - which
+   * is what lets a header shrink again after its longest label is deleted.
+   *
+   * @param {boolean} isFinal Whether every row has now been read.
+   */
+  #commitWidths(isFinal: boolean): void {
+    if (this.#sweepSamples === null) {
+      return;
+    }
+
+    const measured = this.#sweepSamples.map((samples, headerLevel) => {
+      const bucketed = this.#countBucketed(samples);
+
+      // Laying the samples out is the expensive half. A chunk that turned up no label the sampler
+      // wanted to keep cannot have changed this level, so the last measurement still stands.
+      if (bucketed !== this.#sweepMeasuredFrom[headerLevel]) {
+        this.#sweepMeasuredFrom[headerLevel] = bucketed;
+        this.#sweepWidths[headerLevel] = bucketed === 0
+          ? 0
+          : this.#measureLevel(samples, this.#sweepRenderers[headerLevel], headerLevel);
+      }
+
+      return this.#sweepWidths[headerLevel];
+    });
+    const previous = this.#cachedWidths;
+
+    // A renderer added or removed since the last sweep changes how many levels there are, so there
+    // is no level to compare against - the fresh measurement stands on its own.
+    if (isFinal || previous === null || previous.length !== measured.length) {
+      this.#cachedWidths = measured;
+
+      return;
+    }
+
+    this.#cachedWidths = measured.map((width, headerLevel) => Math.max(width, previous[headerLevel]));
+  }
+
+  /**
+   * Counts the labels a level has kept, across all of its length buckets.
+   *
+   * @param {Map} samples The buckets to count.
+   * @returns {number}
+   */
+  #countBucketed(samples: LabelSamples): number {
+    let total = 0;
+
+    samples.forEach((bucket: { strings: unknown[] }) => {
+      total += bucket.strings.length;
+    });
+
+    return total;
   }
 
   /**
@@ -308,38 +681,25 @@ export class AutoRowHeaderSize extends BasePlugin {
   }
 
   /**
-   * Measures every row header level off-screen.
-   *
-   * @returns {number[]} One width per level, in order from the grid's edge.
-   */
-  #measureAllLevels(): number[] {
-    const renderers = this.#collectRenderers();
-
-    return renderers.map((renderer, headerLevel) => {
-      // Each level is bucketed by the labels IT draws. Sampling every level by the first one's
-      // labels would skip the row carrying a later level's longest label, leaving that level narrow.
-      this.#readLabel = headerLevel === 0
-        ? visualRow => this.hot.getRowHeader(visualRow)
-        : visualRow => this.#readRenderedLabel(renderer, visualRow);
-
-      const samples = this.#generateSamples();
-
-      return samples === null ? 0 : this.#measureLevel(samples, renderer, headerLevel);
-    });
-  }
-
-  /**
    * Reads the text one renderer draws for one row, without laying anything out.
    *
    * The cell is never inserted into the document, so this costs a renderer call and no reflow - the
-   * same trade the first level gets for free from `getRowHeader`.
+   * same trade the first level gets for free from `getRowHeader`. One cell is reused for the whole
+   * sweep: creating one per row was the single biggest cost of reading a level added through the
+   * hook. It is emptied first, so a renderer that appends children does not pile them up.
    *
    * @param {Function} renderer The renderer that fills a header cell of this level.
    * @param {number} visualRow The row to read.
    * @returns {string}
    */
   #readRenderedLabel(renderer: RowHeaderRenderer, visualRow: number): string {
-    const th = this.hot.rootDocument.createElement('th');
+    if (this.#labelProbe === null) {
+      this.#labelProbe = this.hot.rootDocument.createElement('th');
+    }
+
+    const th = this.#labelProbe;
+
+    th.textContent = '';
 
     renderer(this.#toRenderableRow(visualRow), th);
 
@@ -357,30 +717,6 @@ export class AutoRowHeaderSize extends BasePlugin {
   }
 
   /**
-   * Reduces the row headers down to the few labels worth rendering.
-   *
-   * @returns {Map|null} The samples, or `null` when there is nothing to measure.
-   */
-  #generateSamples(): Map<string | number, never> | null {
-    const totalRows = this.hot.countRows();
-
-    if (totalRows < 1) {
-      return null;
-    }
-
-    // The row header sits at column -1, so the samples are generated for that column across the
-    // rows. Only the label lengths matter here - the label itself is re-rendered by the grid's own
-    // row header renderers when the ghost table measures it.
-    const samplesByColumn = this.#samplesGenerator
-      .generateColumnSamples(-1, { from: 0, to: totalRows - 1 });
-    // `generateColumnSamples` keys its result by column index; the per-label-length samples are the
-    // value inside. AutoColumnSize unwraps the same way before handing them to the ghost table.
-    const samples = samplesByColumn.get(-1) as Map<string | number, never> | undefined;
-
-    return samples && samples.size > 0 ? samples : null;
-  }
-
-  /**
    * Renders one row header level off-screen and returns the width of its widest cell.
    *
    * @param {Map} samples The sampled rows to render.
@@ -388,8 +724,10 @@ export class AutoRowHeaderSize extends BasePlugin {
    * @param {number} headerLevel The level being measured, counting from the grid's edge.
    * @returns {number} The measured width in pixels.
    */
-  #measureLevel(samples: Map<string | number, never>, renderer: RowHeaderRenderer, headerLevel: number): number {
+  #measureLevel(samples: LabelSamples, renderer: RowHeaderRenderer, headerLevel: number): number {
     let width = 0;
+
+    this.#measuring = true;
 
     try {
       // The ghost table takes the map over, and its `clean()` clears whatever it was handed - so it
@@ -404,9 +742,11 @@ export class AutoRowHeaderSize extends BasePlugin {
     } finally {
       // A throwing row header renderer must not leave the measurement table attached to the DOM.
       this.#ghostTable.clean();
+      this.#measuring = false;
     }
 
-    return width;
+    // Nothing measured stays nothing, so an unrendered level is not padded into existence.
+    return width === 0 ? 0 : width + AutoRowHeaderSize.MEASUREMENT_PADDING;
   }
 
   /**
@@ -441,9 +781,78 @@ export class AutoRowHeaderSize extends BasePlugin {
   };
 
   /**
-   * Drops the cached widths after a change that can alter the row header labels.
+   * Drops the measured widths after a change that can alter the row header labels.
    */
   #onInvalidate = () => {
     this.clearCache();
+  };
+
+  /**
+   * Widens the row headers, if the cells that just changed carry longer labels than before.
+   *
+   * A row header label usually has nothing to do with the cell values, but it can be built from
+   * them - a data column used as the label, for instance - so a change still has to be looked at.
+   * Only the rows named in the change are read, which is what keeps the cost of an edit away from
+   * the size of the grid.
+   *
+   * The width can only grow here. Working out that it should *shrink* means finding the new longest
+   * label, which no shortcut avoids, so that is left to the next full sweep.
+   *
+   * @param {Array} changes The `[row, prop, oldValue, newValue]` entries that were applied.
+   */
+  #onCellsChange = (changes: unknown[][] | null) => {
+    if (!Array.isArray(changes) || changes.length === 0 || this.#cachedWidths === null) {
+      return;
+    }
+
+    // A sweep in progress has already read some of these rows, and it holds their old labels. It is
+    // cheaper to start it over than to work out which of them it still has to revisit.
+    if (this.inProgress) {
+      this.clearCache();
+
+      return;
+    }
+
+    const rows = Array.from(new Set(changes.map(change => change[0] as number)));
+
+    // Past a certain size, reading the changed rows one by one costs more than sweeping the grid
+    // again - and a sweep also lets the headers shrink.
+    if (rows.length > AutoRowHeaderSize.SYNC_CALCULATION_LIMIT) {
+      this.clearCache();
+
+      return;
+    }
+
+    const renderers = this.#collectRenderers();
+
+    if (renderers.length !== this.#cachedWidths.length) {
+      this.clearCache();
+
+      return;
+    }
+
+    let widened = false;
+
+    renderers.forEach((renderer, headerLevel) => {
+      const samples = new Map() as LabelSamples;
+
+      this.#collectSamples(samples, renderer, headerLevel, rows);
+
+      if (samples.size === 0) {
+        return;
+      }
+
+      const width = this.#measureLevel(samples, renderer, headerLevel);
+
+      if (width > this.#cachedWidths![headerLevel]) {
+        this.#cachedWidths![headerLevel] = width;
+        widened = true;
+      }
+    });
+
+    // An edit that changes nothing about the header widths must not cost a draw.
+    if (widened) {
+      this.hot.view?.adjustElementsSize();
+    }
   };
 }

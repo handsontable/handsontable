@@ -192,29 +192,34 @@ is enough to make every label fit.
 
 :::
 
-The plugin is off by default, for two reasons. It reads every row header once to find the longest
-label, so that first pass costs more as the number of rows grows. And turning it on would change the
-row header width of every grid that uses custom labels. This mirrors
-[`AutoRowSize`](@/api/autoRowSize.md), which is also opt-in, while
-[`AutoColumnSize`](@/api/autoColumnSize.md) - bounded by the number of columns - is on by default.
+The plugin is off by default, because turning it on would change the row header width of every grid
+that uses custom labels. This mirrors [`AutoRowSize`](@/api/autoRowSize.md), which is also opt-in,
+while [`AutoColumnSize`](@/api/autoColumnSize.md) - bounded by the number of columns - is on by
+default.
 
 The plugin never makes a header narrower than the default width, so a grid of short labels looks the
-same as it does without the plugin.
+same as it does without the plugin. It also leaves a little room around the longest label, so the
+text never sits flush against the cell border. That matters most for a row header you draw
+yourself: the grid's own renderer wraps its label in a padded element, but a renderer pushed through
+[`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers) writes straight into the
+cell and has no padding of its own.
 
 #### Tuning the measurement
 
 Instead of `true`, you can pass an object to change how the measurement runs. Both properties are
 optional, and the defaults suit most grids:
 
-| Property                | Possible values   | Description                                                                                      |
-| ----------------------- | ----------------- | ------------------------------------------------------------------------------------------------ |
-| `samplingRatio`         | A number          | How many labels of the same length get rendered and measured. Default: `3`.                      |
-| `allowSampleDuplicates` | `true` \| `false` | Whether two rows carrying the same label are both measured. Default: `false`.                    |
+| Property                | Possible values              | Description                                                                                      |
+| ----------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------ |
+| `samplingRatio`         | A number                     | How many labels of the same length get rendered and measured. Default: `3`.                      |
+| `allowSampleDuplicates` | `true` \| `false`            | Whether two rows carrying the same label are both measured. Default: `false`.                    |
+| `syncLimit`             | A number \| a percent string | How many rows are read before the first paint. Default: `500`.                                   |
 
 ```js
 autoRowHeaderSize: {
   samplingRatio: 5,
   allowSampleDuplicates: true,
+  syncLimit: 1000,
 },
 ```
 
@@ -229,6 +234,20 @@ label is measured once, because the same text normally renders to the same width
 when that is not true of your grid — a row header that is indented per row, as
 [`nestedRows`](@/api/options.md#nestedrows) does, draws the same label at a different width
 depending on how deep the row sits, so measuring only the first one would come out too narrow.
+
+**`syncLimit`** decides how much of the work happens before the grid first appears. Finding the
+longest label means reading every row header once, which on a large grid takes long enough to be
+felt. So the first `syncLimit` rows are read straight away, and the rest are read in the browser's
+idle time, a thousand at a time. A header can therefore widen a moment after the grid appears. While
+that is running a header only ever widens, so its width never jumps back and forth. Raise the limit
+to have more of it settled before the first paint, or pass a percent string such as `'40%'` to scale
+it with the number of rows.
+
+Editing a cell does not start that work again. Only the rows that changed are read, because a row
+header label can be built from cell values - a data column used as the label, for instance. That can
+make a header wider, but never narrower: working out that a header should shrink means finding the
+new longest label, so it is left to the next full pass, which any change to the number of rows
+starts.
 
 Setting `autoRowHeaderSize` to `false`, or leaving it out, keeps the fixed-width headers.
 

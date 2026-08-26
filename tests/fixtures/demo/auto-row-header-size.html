@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AutoRowHeaderSize e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    AutoRowHeaderSize sizes each row header column to its own widest label. Two things about it can
+    only be checked in a real browser, because jsdom reports every width as zero: that the longest
+    label is not clipped, and that it is not flush against the cell border either.
+
+    The second one is the interesting case. The grid's own row header renderer wraps its label in a
+    padded element, but a renderer pushed through `afterGetRowHeaderRenderers` writes straight into
+    the `th` and has no padding at all - so an exact measurement leaves the text touching the
+    border. The plugin carries a small allowance for that.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // Row 1 carries the longest label of both custom levels, so it is the row where a too-narrow
+    // measurement shows up as clipping.
+    const GROUPS = ['Top line', 'Direct costs', 'Margin', 'Overhead'];
+    const LINE_ITEMS = ['Revenue', 'Cost of goods sold', 'Gross profit', 'Net income'];
+
+    /**
+     * Draws one level's label straight into the `th`, with no padding of its own - the shape that
+     * used to leave the text against the border.
+     *
+     * @param {string[]} labels The labels this level draws.
+     * @param {string} testId The test id stamped on the cell.
+     * @returns {Function} A row header renderer.
+     */
+    function bareRenderer(labels, testId) {
+      return function(row, th) {
+        th.textContent = labels[row] ?? '';
+        th.setAttribute('data-testid', testId);
+      };
+    }
+
+    const hot = new Handsontable(container, {
+      data: [[42000], [18300], [23700], [11200]],
+      colHeaders: ['Q1'],
+      rowHeaders: true,
+      afterGetRowHeaderRenderers(renderers) {
+        renderers.push(bareRenderer(GROUPS, 'group-header'));
+        renderers.push(bareRenderer(LINE_ITEMS, 'line-item-header'));
+      },
+      autoRowHeaderSize: true,
+      height: 'auto',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    window.hot = hot;
+  </script>
+</body>
+</html>
