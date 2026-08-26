@@ -146,6 +146,12 @@ if (toRun.length > 0) {
   if (pw.status !== 0 && isSpawnInfraFailure(pw)) {
     // No verdict, so nothing to block on — but the unit checks below are
     // independent and must still run. Do NOT exit here.
+    //
+    // Audience caveat: Claude Code forwards a hook's stderr to the agent only on
+    // exit 2. This leg does not exit, so the note reaches the agent only if a
+    // later leg blocks in the same run (stderr accumulates) — otherwise it lands
+    // in the debug log. Best-effort by design: nothing may depend on the agent
+    // reading it. The same holds for the unit-loop note below.
     process.stderr.write(
       `Note: the Playwright run for ${toRun.join(', ')} could not complete (${
         pw.error?.code || pw.signal}). Not treated as a test failure — verify it yourself.\n`,
@@ -184,7 +190,8 @@ for (const file of unitFiles) {
 
     if (isSpawnInfraFailure(jest)) {
       // This one file produced no verdict; the others are independent runs, so
-      // keep checking them rather than abandoning the loop.
+      // keep checking them rather than abandoning the loop. As above, this note
+      // only reaches the agent if a later leg exits 2 — do not rely on it.
       process.stderr.write(
         `Note: the unit run for ${file} could not complete (${
           jest.error?.code || jest.signal}). Not treated as a test failure — verify it yourself.\n`,

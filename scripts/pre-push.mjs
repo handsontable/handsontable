@@ -113,6 +113,17 @@ export const TEST_RUN_MAX_BUFFER = 64 * 1024 * 1024;
 const MAX_LINE_LENGTH = 200;
 
 /**
+ * SGR (color) escape sequences, stripped before anything is matched. A test run
+ * inherits the hook's environment, so a leaked `FORCE_COLOR` would wrap every
+ * failure marker in escape codes and silently defeat the anchor and summary
+ * patterns — the excerpt would stay bounded but stop pointing at the diagnosis.
+ *
+ * @type {RegExp}
+ */
+// eslint-disable-next-line no-control-regex -- ESC is exactly what this matches.
+const ANSI_SGR = /\u001b\[[0-9;]*m/g;
+
+/**
  * Output size past which the pre-push gate condenses a run rather than printing
  * it whole. A terminal tolerates far more than a condensed excerpt, but not the
  * tens of megabytes `TEST_RUN_MAX_BUFFER` allows a run to produce.
@@ -163,7 +174,8 @@ export function condenseTestOutput(output, { maxLines = 120, maxChars = 8000 } =
   const isNoise = line => /^\s+at\s/.test(line)
     || /Could not parse CSS stylesheet/.test(line)
     || /url\(["']?data:/.test(line);
-  const lines = (output || '').replace(/\r\n/g, '\n').split('\n')
+  const raw = (output || '').replace(ANSI_SGR, '').replace(/\r\n/g, '\n').replace(/\n+$/, '').split('\n');
+  const lines = raw
     .filter(line => !isNoise(line))
     .map(line => (line.length > MAX_LINE_LENGTH ? `${line.slice(0, MAX_LINE_LENGTH)} …` : line));
 
@@ -186,16 +198,33 @@ export function condenseTestOutput(output, { maxLines = 120, maxChars = 8000 } =
     .filter((line, index, all) => line.trim() !== '' || (all[index - 1] || '').trim() !== '');
 
   const summary = rendered.filter(isSummary);
-  // Jest marks failures with FAIL/●/✕; Playwright's list reporter uses ✘ and
-  // numbers each failure (`1) spec.ts:3:1 › …`). Both run through this helper.
-  // The numbered form also requires Playwright's `›`, so an ordinary numbered
-  // line in someone's output cannot anchor the excerpt by accident.
-  const firstFailure = rendered.findIndex(line => /^\s*(FAIL\b|●|✕|✘)/.test(line)
-    || /^\s*\d+\)\s.*›/.test(line));
+  // `FAIL` is a fallback anchor, never a first-choice one. Jest prints a suite's
+  // buffered console output between the `FAIL` header and the failure details, so
+  // anchoring on the first marker of any kind returns the console flood and cuts
+  // the block the diagnosis lives in — exactly the case this helper exists for.
+  // Anchor on the earliest marker that names a failing test instead, and fall
+  // back to the bare suite header only when the run printed no such marker at all
+  // (a suite killed before it could report one).
+  //
+  // Two `●` headers are not failures and must not anchor: `● Console` opens the
+  // console dump itself, and `● Validation Warning:` / `● Deprecation Warning:`
+  // are config notices Jest prints before any test runs. `● Test suite failed to
+  // run` IS a failure and is deliberately still matched.
+  //
+  // Playwright's numbered form requires its `›`, so an ordinary numbered line in
+  // someone's output cannot anchor the excerpt by accident.
+  const isNonFailureBullet = line => /^\s*●\s*(Console\b|(Validation|Deprecation)\s+Warning:)/.test(line);
+  const namesAFailure = line => (/^\s*(●|✕|✘)/.test(line) && !isNonFailureBullet(line))
+    || /^\s*\d+\)\s.*›/.test(line);
+  const namedFailure = rendered.findIndex(namesAFailure);
+  const firstFailure = namedFailure === -1 ? rendered.findIndex(line => /^\s*FAIL\b/.test(line)) : namedFailure;
   const anchored = (firstFailure === -1 ? rendered : rendered.slice(firstFailure)).filter(l => !isSummary(l));
   const lineBudget = Math.max(1, maxLines - summary.length);
   const kept = firstFailure === -1 ? anchored.slice(-lineBudget) : anchored.slice(0, lineBudget);
-  const dropped = (rendered.length - kept.length - summary.length) + (lines.length - collapsed.length);
+  // Count against the RAW line total, not the post-`isNoise` one: noise-filtered
+  // lines are gone from `lines` before this point, so measuring from there
+  // under-reports the flood by exactly the part that caused it.
+  const dropped = raw.length - kept.length - summary.length;
   const charBudget = Math.max(0, maxChars - summary.join('\n').length);
   let excerpt = kept.join('\n').trimEnd();
   const cutByChars = excerpt.length > charBudget;

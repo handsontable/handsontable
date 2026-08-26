@@ -26,6 +26,15 @@ Same rules, escalating authority: **agent-time → pre-commit → pre-push → C
 **Changed unit tests** run too — fast (Jest maps to `src`, no build), in both the
 Stop hook and pre-push. A Jest *infra* failure (couldn't start) warns instead of
 blocking (CI is authoritative), the same way the presence gate skips a config gap.
+**A run that was killed is the same case.** A child aborted by Node on buffer
+overflow (`ENOBUFS`) or by a signal produced no verdict — `spawnSync` returns
+`status: null` with a truncated buffer, which is indistinguishable from a real
+failure unless the caller inspects `error`/`signal`. `isSpawnInfraFailure()`
+(`scripts/pre-push.mjs`) classifies it, and it warns instead of blocking. Every
+hook-spawned test run also passes `TEST_RUN_MAX_BUFFER` (64 MB) so the run reaches
+its summary rather than dying on Node's 1 MB default. The trade-off is deliberate:
+a genuinely failing run whose output overflows stops blocking locally, and CI
+catches it.
 **Coverage is a CI floor, not a hook** (it needs a full instrumented run, too slow
 for a hook): the `[CHECK] Coverage floor` job measures the percent of *added*
 executable lines the unit tests cover (`.github/scripts/diff-coverage-gate.mjs`,
@@ -83,6 +92,8 @@ presence gate or the test requirement. Do not use it to dodge writing tests.
 - **Pure + tested.** Put the decision logic in a **pure function** in a lib and **unit-test it** (`scripts/__tests__/`, `.github/scripts/__tests__/`, run with `node --test`). **A hook change ships a test change** — this rule applies to the enforcement machinery too.
 - **Must not false-block.** Skip config/parse gaps (ESLint exit 2), record only **repo-relative, in-repo** paths (never scratchpad/out-of-repo), tolerate a missing base ref. A hook that fires on a false positive gets disabled — that is worse than no hook.
 - **Must stay fast.** No build in the pre-push or agent hooks; run only the **changed scope**. Heavy/full-suite work is CI's job.
+- **Bound what you feed the agent.** An agent hook's failure message is a conversation message, so its cost is re-paid on every later request in the session — never paste a raw run or lint report into it. Pass it through `condenseTestOutput()` (`scripts/pre-push.mjs`): noise stripped, repeats collapsed, the excerpt anchored at the failing test so the diagnosis survives, capped at 120 lines / 8 KB. The caps are structural, not filter-dependent — filter-proof input still condenses. A hook writing to a **terminal** (pre-push) keeps printing in full up to `TERMINAL_OUTPUT_LIMIT`.
+- **Know who reads your stderr.** Claude Code forwards a hook's stderr to the agent only on **exit 2**. A non-blocking leg's note lands in the debug log unless a later leg in the same run blocks, so treat those notes as best-effort and never make the flow depend on the agent reading one.
 - **Floor for everyone.** The git hooks must work without Claude Code; the agent hooks are additive, never the only line of defense.
 
 ## 3. Creating or updating skills — exact rules

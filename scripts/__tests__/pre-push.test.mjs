@@ -229,3 +229,100 @@ test('collapses repeated identical lines into a count', () => {
   assert.ok(condensed.includes('jsdom warning    (×50)'));
   assert.ok(condensed.includes('done'));
 });
+
+test('keeps the diagnosis when console noise sits between the FAIL header and the failure block', () => {
+  // The scenario this helper was built for, in Jest's real output order: the
+  // suite header, then the buffered console dump, then the failure details. The
+  // stylesheet ThemeManager emits is many distinct `--ht-*` lines, so it neither
+  // reads as noise nor collapses as a repeat — anchoring on the header hands back
+  // the flood and cuts the `●` block, which tells the agent "failing" with no why.
+  const cssDump = Array.from({ length: 50 }, () => [
+    '  console.error',
+    ...Array.from({ length: 40 }, (_, v) => `      --ht-token-${v}: ${v * 7}px;`),
+  ].join('\n')).join('\n');
+  const condensed = condenseTestOutput([
+    'FAIL handsontable/src/plugins/sheetsBar/__tests__/sheetsBar.unit.js',
+    '  ● Console',
+    cssDump,
+    '  ✕ renames a sheet on double-click (12 ms)',
+    '  ● SheetsBar › renames a sheet on double-click',
+    '    expect(received).toBe(expected)',
+    '    Expected: "Sheet2"',
+    '    Received: "Sheet1"',
+    'Tests:       1 failed, 49 passed, 50 total',
+  ].join('\n'));
+
+  assert.ok(condensed.includes('✕ renames a sheet on double-click'), 'the failing test name must survive');
+  assert.ok(condensed.includes('Expected: "Sheet2"'), 'the expected value must survive');
+  assert.ok(condensed.includes('Received: "Sheet1"'), 'the received value must survive');
+  assert.ok(!condensed.includes('--ht-token-'), 'the console flood must not fill the excerpt');
+  assert.ok(condensed.includes('Tests:       1 failed'), 'the summary must survive');
+});
+
+test('anchors on the FAIL header only when no marker names a failing test', () => {
+  // A suite killed before it reported a single test still has a usable anchor.
+  const condensed = condenseTestOutput([
+    ...Array.from({ length: 200 }, (_, i) => `  ✓ passing case ${i}`),
+    'FAIL handsontable/src/plugins/sheetsBar/__tests__/sheetsBar.unit.js',
+    '  Killed: 9',
+  ].join('\n'), { maxLines: 5 });
+
+  assert.ok(condensed.includes('FAIL handsontable'), 'the header must anchor the excerpt');
+  assert.ok(condensed.includes('Killed: 9'), 'what followed it must survive');
+  assert.ok(!condensed.includes('passing case 0'), 'the passing prologue must be dropped');
+});
+
+test('a Jest config notice never wins the anchor over the real failure', () => {
+  const condensed = condenseTestOutput([
+    '● Validation Warning:',
+    '  Unknown option "foo" with value "bar" was found.',
+    ...Array.from({ length: 200 }, (_, i) => `  ✓ passing case ${i}`),
+    '  ● SheetsBar › renames a sheet',
+    '    expect(received).toBe(expected)',
+  ].join('\n'), { maxLines: 6 });
+
+  assert.ok(condensed.includes('● SheetsBar › renames a sheet'), 'the real failure must anchor the excerpt');
+  assert.ok(!condensed.includes('Unknown option'), 'the config notice must not anchor it');
+});
+
+test('a "test suite failed to run" bullet still anchors the excerpt', () => {
+  const condensed = condenseTestOutput([
+    ...Array.from({ length: 200 }, (_, i) => `  ✓ passing case ${i}`),
+    '  ● Test suite failed to run',
+    '    Cannot find module \'./missing\' from \'sheetsBar.unit.js\'',
+  ].join('\n'), { maxLines: 4 });
+
+  assert.ok(condensed.includes('● Test suite failed to run'), 'an infra bullet is a failure marker too');
+  assert.ok(condensed.includes('Cannot find module'), 'its cause must survive');
+});
+
+test('strips SGR escapes so color in the run output cannot defeat the anchor', () => {
+  // The run inherits the hook environment; a leaked FORCE_COLOR would otherwise
+  // wrap every marker in escape codes and silently break every pattern here.
+  const esc = String.fromCharCode(27);
+  const red = text => `${esc}[31m${text}${esc}[39m`;
+  const condensed = condenseTestOutput([
+    ...Array.from({ length: 200 }, (_, i) => `  ${esc}[32m✓${esc}[39m passing case ${i}`),
+    `  ${red('✕')} renames a sheet (12 ms)`,
+    `  ${red('●')} SheetsBar › renames a sheet`,
+    '    expect(received).toBe(expected)',
+    `${red('Tests:')}       1 failed, 200 passed, 201 total`,
+  ].join('\n'), { maxLines: 6 });
+
+  assert.ok(!condensed.includes(esc), 'escape codes must not reach the excerpt');
+  assert.ok(condensed.includes('✕ renames a sheet'), 'the failure must still anchor the excerpt');
+  assert.ok(condensed.includes('Tests:       1 failed'), 'the summary must still be recognized');
+});
+
+test('counts every dropped line, including the noise filtered before collapsing', () => {
+  // Measuring from the post-`isNoise` list under-reports the flood by exactly the
+  // part that caused it, so the header contradicted the output it described.
+  const condensed = condenseTestOutput([
+    '  ✕ a failing test',
+    ...Array.from({ length: 100 }, (_, i) => `    at frame${i} (/repo/a.js:${i}:1)`),
+    'Tests:       1 failed, 0 passed, 1 total',
+  ].join('\n'));
+  const dropped = Number(/(\d+) noise\/duplicate lines dropped/.exec(condensed)?.[1]);
+
+  assert.equal(dropped, 100, 'the 100 stack frames must be counted as dropped');
+});
