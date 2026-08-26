@@ -14,6 +14,7 @@ import {
   getTimeFromHfTimeFraction,
   isDate,
   isDateValid,
+  isEngineEscapedValue,
   isFormula,
   isPreservedText,
   normalizeValueForFormulaEngine,
@@ -761,11 +762,16 @@ export class Formulas extends BasePlugin {
    *
    * The engine's serialized content keeps the escape apostrophe that dates and preserved text values
    * were written with, so it is unescaped before the load – otherwise the apostrophe becomes part of
-   * the grid's data. The meta read runs BEFORE `loadData`, so it resolves against the OUTGOING
-   * sheet's layout. Column-level and global meta are layout-independent and match either way; per-cell
-   * meta declared through the `cell` array is not, so combining it with `switchSheet` may not be
-   * matched correctly. Unescaping after the load is not an option – the apostrophe would already be in
-   * the grid's data by then.
+   * the grid's data.
+   *
+   * Accepted limitation: the meta read runs BEFORE `loadData`, so it resolves the incoming sheet's
+   * array indexes through the OUTGOING sheet's index maps. Every physically-keyed meta layer can
+   * therefore be matched against the wrong cell whenever the grid's column map is not the identity –
+   * that is the `columns` setting (column meta is keyed by PHYSICAL column, so `manualColumnMove`
+   * alone is enough to shift it) and the `cell` array. Only the global settings layer is
+   * layout-independent and always matches. Unescaping after the load is not an option – the
+   * apostrophe would already be in the grid's data by then, past every reader that could tell it
+   * apart from a user's own leading apostrophe.
    *
    * @param {string} sheetName Sheet name used in the shared HyperFormula instance.
    */
@@ -786,7 +792,7 @@ export class Formulas extends BasePlugin {
     const serialized = this.#needsEngineBoundEscaping()
       ? rawSerialized.map((rowData: unknown[], rowIndex: number) => (
         rowData.map((value: unknown, columnIndex: number) => (
-          unescapeEngineBoundValue(value, this.hot.getCellMetaTransient(rowIndex, columnIndex))
+          this.#unescapeEngineBoundValueAt(value, rowIndex, columnIndex)
         ))
       ))
       : rawSerialized;
@@ -1173,6 +1179,28 @@ export class Formulas extends BasePlugin {
     }
 
     return value;
+  }
+
+  /**
+   * Unescapes a single value read back out of the engine, reading the cell meta the unescaping needs
+   * from the given VISUAL coordinates.
+   *
+   * Values the unescaping can never change – non-strings, and strings without the leading escape
+   * apostrophe – skip the meta read altogether, the same way `#escapeSourceDataArray` skips it on the
+   * write side. That read is the expensive part of a per-cell scan, because it runs the user-provided
+   * `cells` function.
+   *
+   * @param {*} value Value read from the engine.
+   * @param {number} visualRow Visual row index of the value's cell.
+   * @param {number} visualColumn Visual column index of the value's cell.
+   * @returns {*} The unescaped value, or the original value when no unescaping applies.
+   */
+  #unescapeEngineBoundValueAt(value: unknown, visualRow: number, visualColumn: number): unknown {
+    if (!isEngineEscapedValue(value)) {
+      return value;
+    }
+
+    return unescapeEngineBoundValue(value, this.hot.getCellMetaTransient(visualRow, visualColumn));
   }
 
   /**
@@ -2264,7 +2292,7 @@ export class Formulas extends BasePlugin {
         // were written with, so it is unescaped before it goes back into the grid.
         row.push(serialized === null || serialized === undefined
           ? null
-          : unescapeEngineBoundValue(serialized, this.hot.getCellMetaTransient(tgtFromRow + r, tgtFromCol + c)));
+          : this.#unescapeEngineBoundValueAt(serialized, tgtFromRow + r, tgtFromCol + c));
       }
 
       targetData.push(row);

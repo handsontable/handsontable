@@ -3623,11 +3623,14 @@ describe('Formulas general', () => {
       });
 
       const formulasPlugin = getPlugin('formulas');
-      const serializedRow = rowIndex => [0, 1].map(col => formulasPlugin.engine.getCellSerialized({
-        sheet: formulasPlugin.sheetId, row: rowIndex, col,
-      }));
 
-      expect(serializedRow(0)).toEqual(['\'0123456', '\'13/45/2021']);
+      // `getSheetSerialized` trims trailing empties, so the all-empty second row is absent here and
+      // comes back as `[]` after the move. The shape is deterministic, and asserting on the whole
+      // sheet is what pins down where the content is NOT – a move that also duplicated it into
+      // another row would slip past a per-cell read.
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['\'0123456', '\'13/45/2021'],
+      ]);
 
       await selectCells([[0, 0, 0, 1]]);
 
@@ -3644,9 +3647,11 @@ describe('Formulas general', () => {
       expect(getSourceDataAtCell(1, 1)).toBe('13/45/2021');
 
       // The moved cells stay escaped in the engine, so the preserved text value keeps its leading
-      // zero there as well.
-      expect(serializedRow(0)).toEqual([null, null]);
-      expect(serializedRow(1)).toEqual(['\'0123456', '\'13/45/2021']);
+      // zero there as well – and the emptied source row holds nothing at all.
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        [],
+        ['\'0123456', '\'13/45/2021'],
+      ]);
     });
   });
 

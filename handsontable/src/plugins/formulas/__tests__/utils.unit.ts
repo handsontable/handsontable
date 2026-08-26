@@ -12,6 +12,7 @@ import {
   normalizeValueForFormulaEngine,
   isPreservedText,
   escapeTextValue,
+  isEngineEscapedValue,
   unescapeEngineBoundValue,
 } from '../utils';
 
@@ -232,6 +233,26 @@ describe('Formulas utils', () => {
       expect(escapeTextValue('0123456')).toBe('\'0123456');
       expect(escapeTextValue('abc')).toBe('\'abc');
       expect(escapeTextValue('\'already')).toBe('\'\'already');
+    });
+  });
+
+  describe('isEngineEscapedValue', () => {
+    it('should detect strings carrying the engine\'s escape apostrophe', () => {
+      expect(isEngineEscapedValue('\'0123456')).toBe(true);
+      expect(isEngineEscapedValue('\'=SUM(A1)')).toBe(true);
+      expect(isEngineEscapedValue('\'\'O\'Brien')).toBe(true);
+      expect(isEngineEscapedValue('\'')).toBe(true);
+    });
+
+    it('should reject values the unescaping can never change', () => {
+      expect(isEngineEscapedValue('0123456')).toBe(false);
+      expect(isEngineEscapedValue('=SUM(A1)')).toBe(false);
+      expect(isEngineEscapedValue('O\'Brien')).toBe(false);
+      expect(isEngineEscapedValue('')).toBe(false);
+      expect(isEngineEscapedValue(123456)).toBe(false);
+      expect(isEngineEscapedValue(null)).toBe(false);
+      expect(isEngineEscapedValue(undefined)).toBe(false);
+      expect(isEngineEscapedValue({ value: '\'0123456' })).toBe(false);
     });
   });
 

@@ -189,6 +189,19 @@ export function escapeTextValue(value: string): string {
 }
 
 /**
+ * Tells whether a value read out of the engine carries the engine's string-escape apostrophe at all.
+ * {@link unescapeEngineBoundValue} returns everything else unchanged, so this is the cheap pre-check
+ * that lets a caller skip the cell meta read the unescaping would otherwise need – that read runs the
+ * user-provided `cells` function, which is the expensive part of a per-cell scan.
+ *
+ * @param {*} value Value read from the engine.
+ * @returns {boolean}
+ */
+export function isEngineEscapedValue(value: unknown): value is string {
+  return typeof value === 'string' && value.startsWith('\'');
+}
+
+/**
  * Reverses {@link escapeTextValue} on values read back out of the engine. The engine's serialized
  * getters (`getCellSerialized`, `getSheetSerialized`, `getFillRangeData`) return the stored content
  * verbatim – the leading "'" included – so a value that goes straight back into the grid has to be
@@ -209,7 +222,7 @@ export function unescapeEngineBoundValue(
   value: unknown,
   cellMeta: { type?: string, preserveTextValue?: boolean },
 ): unknown {
-  if (typeof value !== 'string' || !value.startsWith('\'')) {
+  if (!isEngineEscapedValue(value)) {
     return value;
   }
 
