@@ -1102,36 +1102,82 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Escapes a single engine-bound value according to the cell meta: dates in Handsontable
+   * format are rewritten to the engine format, while invalid dates and preserved text values
+   * are escaped with the "'" sign (the engine's string-escape mechanism).
+   *
+   * @param {*} value Value to process.
+   * @param {object} cellMeta The cell meta object of the value's cell.
+   * @returns {*} The escaped value, or the original value when no escaping applies.
+   */
+  #escapeEngineBoundValue(value: unknown, cellMeta: { type?: string; preserveTextValue?: boolean }): unknown {
+    if (isDate(value, cellMeta.type)) {
+      if (isDateValid(value)) {
+        // Rewriting the date from the Handsontable format to the engine format.
+        return getDateInHfFormat(value);
+      }
+
+      if (!isFormula(value)) {
+        // Escaping the value from date parsing using the "'" sign (the engine's string-escape mechanism).
+        return escapeTextValue(value);
+      }
+
+      return value;
+    }
+
+    if (isPreservedText(value, cellMeta)) {
+      // Escaping the value from the engine's value parsing using the "'" sign (the engine's
+      // string-escape mechanism).
+      return escapeTextValue(value);
+    }
+
+    return value;
+  }
+
+  /**
    * Escapes, in place, the source-data-array values that must reach the engine in a protected
-   * form: dates in Handsontable format are rewritten to the engine format, while invalid dates
-   * and preserved text values are escaped with the "'" sign (the engine's string-escape
-   * mechanism).
+   * form. The array rows always come in physical order (`getSourceDataArray` iterates the
+   * underlying dataset). The column order depends on the data shape: plain array-of-arrays data
+   * keeps the physical order, while array-of-objects data and the skipped-columns projection are
+   * built in visual order.
    *
    * @param {Array<Array<*>>} sourceDataArray Source data array to process.
+   * @param {number} [rowOffset=0] Physical row index of the array's first row (non-zero for partial arrays).
+   * @param {number} [columnOffset=0] Index of the array's first column, in the array's own column space.
    */
-  #escapeSourceDataArray(sourceDataArray: unknown[][]) {
-    sourceDataArray.forEach((rowData: unknown[], rowIndex: number) => {
-      rowData.forEach((cellValue: unknown, columnIndex: number) => {
-        // The uncached read keeps this full source-data scan from permanently materializing
-        // one meta object per cell (same no-extension semantics as `skipMetaExtension`).
-        const cellMeta = this.hot._getMetaManager().getCellMetaUncached(
-          this.hot.toPhysicalRow(rowIndex) ?? rowIndex, this.hot.toPhysicalColumn(columnIndex) ?? columnIndex,
-          { visualRow: rowIndex, visualColumn: columnIndex },
+  #escapeSourceDataArray(sourceDataArray: unknown[][], rowOffset = 0, columnOffset = 0) {
+    const columnsInVisualOrder = !isArrayOfArrays(this.hot.getSourceData()) ||
+      this.hot.countCols() < this.hot.countSourceCols();
+    const metaManager = this.hot._getMetaManager();
+
+    sourceDataArray.forEach((rowData: unknown[], arrayRowIndex: number) => {
+      const physicalRow = rowOffset + arrayRowIndex;
+      const visualRow = this.hot.toVisualRow(physicalRow) ?? physicalRow;
+
+      rowData.forEach((cellValue: unknown, arrayColumnIndex: number) => {
+        // Values that the escaping can never change – non-strings, and formulas, which the engine
+        // parses on its own – skip the meta read altogether. That read is the expensive part of
+        // this full-dataset scan, and it runs the user-provided `cells` function.
+        if (typeof cellValue !== 'string' || isFormula(cellValue)) {
+          return;
+        }
+
+        const columnIndex = columnOffset + arrayColumnIndex;
+        const visualColumn = columnsInVisualOrder
+          ? columnIndex
+          : (this.hot.toVisualColumn(columnIndex) ?? columnIndex);
+        const physicalColumn = columnsInVisualOrder
+          ? (this.hot.toPhysicalColumn(columnIndex) ?? columnIndex)
+          : columnIndex;
+
+        // The transient read applies the `cells` function and the meta hooks without permanently
+        // materializing one meta object per scanned cell.
+        const cellMeta = metaManager.getCellMetaTransient(
+          physicalRow, physicalColumn,
+          { visualRow, visualColumn },
         );
 
-        if (isDate(cellValue, cellMeta.type)) {
-          if (isDateValid(cellValue)) {
-            // Rewriting the date from the Handsontable format to the engine format.
-            sourceDataArray[rowIndex][columnIndex] = getDateInHfFormat(cellValue);
-          } else if (!isFormula(cellValue)) {
-            // Escaping the value from date parsing using the "'" sign (the engine's string-escape mechanism).
-            sourceDataArray[rowIndex][columnIndex] = escapeTextValue(cellValue);
-          }
-        } else if (isPreservedText(cellValue, cellMeta)) {
-          // Escaping the value from the engine's value parsing using the "'" sign (the engine's string-escape
-          // mechanism).
-          sourceDataArray[rowIndex][columnIndex] = escapeTextValue(cellValue);
-        }
+        sourceDataArray[arrayRowIndex][arrayColumnIndex] = this.#escapeEngineBoundValue(cellValue, cellMeta);
       });
     });
   }

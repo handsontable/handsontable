@@ -3068,10 +3068,10 @@ describe('Formulas general', () => {
       ]);
     });
 
-    it('should respect the option set per cell via the cells function on the edit path', async() => {
+    it('should respect the option set per cell via the cells function on both the load and edit paths', async() => {
       handsontable({
         data: [
-          ['x', 'x'],
+          ['0123456', '0123456'],
           ['=LEN(A1)', '=LEN(B1)'],
         ],
         formulas: {
@@ -3084,10 +3084,28 @@ describe('Formulas general', () => {
         },
       });
 
+      const formulasPlugin = getPlugin('formulas');
+
+      // The initial load path applies the `cells` function, so only the first column is preserved.
+      expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)).toEqual([
+        ['0123456', 123456],
+        [7, 6],
+      ]);
+
+      await loadData([
+        ['0999', '0999'],
+        ['=LEN(A1)', '=LEN(B1)'],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)).toEqual([
+        ['0999', 999],
+        [4, 3],
+      ]);
+
       await setDataAtCell(0, 0, '0123456');
       await setDataAtCell(0, 1, '0123456');
 
-      expect(getPlugin('formulas').engine.getSheetValues(0)).toEqual([
+      expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)).toEqual([
         ['0123456', 123456],
         [7, 6],
       ]);
@@ -3195,6 +3213,55 @@ describe('Formulas general', () => {
       ]);
 
       expect(getDataAtCell(1, 0)).toBe(8); // the 8-character string "=SUM(A1)"
+    });
+
+    it('should escape preserved values correctly after sorting and updateData (physical row order)', async() => {
+      handsontable({
+        data: [['0123456'], ['9876543']],
+        columns: [{ type: 'text' }],
+        cell: [{ row: 0, col: 0, preserveTextValue: true }],
+        columnSorting: true,
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      await updateData([['0123456'], ['9876543']]);
+
+      const formulasPlugin = getPlugin('formulas');
+
+      // The `cell` option marks physical row 0, and the engine sheet is kept in visual order, so
+      // after the descending sort the preserved value is the only escaped one and it sits in the
+      // engine's second row.
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['9876543'],
+        ['\'0123456'],
+      ]);
+    });
+
+    it('should escape preserved values correctly for array-of-objects data with moved columns', async() => {
+      handsontable({
+        data: [{ id: '0123456', name: 'a' }, { id: '7654321', name: 'b' }],
+        columns: [
+          { data: 'name', type: 'text' },
+          { data: 'id', type: 'text', preserveTextValue: true },
+        ],
+        manualColumnMove: true,
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+      const firstRow = [0, 1].map(col => formulasPlugin.engine.getCellSerialized({
+        sheet: formulasPlugin.sheetId, row: 0, col,
+      }));
+
+      // Exactly one column of the row is escaped, and it is the one holding the preserved value.
+      expect(firstRow.filter(value => value === '\'0123456').length).toBe(1);
+      expect(firstRow.filter(value => value === 'a').length).toBe(1);
     });
   });
 
