@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed `toHTML()` to put column and row headers through the configured `sanitizer`, so it and `toTableElement()` describe the same grid.",
+  "type": "changed",
+  "issueOrPR": 13244,
+  "breaking": false,
+  "framework": "none"
+}

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the order of the paste pipeline: a configured `sanitizer` now receives the clipboard payload as the clipboard carried it, and Handsontable flattens the result afterwards. A sanitizer that returns a `TrustedHTML` has its value passed to the parser unchanged, and is not flattened.",
+  "type": "changed",
+  "issueOrPR": 13244,
+  "breaking": false,
+  "framework": "none"
+}

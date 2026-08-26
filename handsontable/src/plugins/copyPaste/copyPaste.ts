@@ -25,7 +25,7 @@ import {
   CopyableRangesFactory,
   normalizeRanges,
 } from './copyableRanges';
-import { _dataToHTML, htmlToGridSettings, replaceTdCellsWithTextContent } from '../../utils/parseTable';
+import { _dataToHTML, htmlToGridSettings } from '../../utils/parseTable';
 
 /**
  * Internet Explorer-specific window extension with legacy clipboard API.
@@ -81,15 +81,6 @@ function padRowsToWidest(data: unknown[][]) {
  * key would let one suppress the other.
  */
 const CLIPBOARD_PARSE_WARN_KEY = 'copyPaste.clipboardParse';
-
-/**
- * Whether a clipboard payload carries a table at all, used only to decide whether normalizing it is
- * worth doing.
- *
- * Deliberately broader and case-insensitive where the branch test below is not, and deliberately
- * NOT global: a `g` flag on a shared literal carries `lastIndex` between calls.
- */
-const HAS_TABLE_TAG = /<table\b/i;
 
 /**
  * Reads the `text/plain` clipboard flavour.
@@ -1011,14 +1002,21 @@ export class CopyPaste extends BasePlugin {
       // sanitizer twice over the same cells on an internal paste, since both clipboard types carry
       // a full table.
       //
-      // The payload is normalized BEFORE it is sanitized, and the sanitizer's value then goes to
-      // the parser untouched. `replaceTdCellsWithTextContent()` is a string rewrite, and a
-      // `TrustedHTML` that passed through it would collapse back to a plain string, which a page
-      // enforcing Trusted Types rejects at the parser. Sanitizing last also means the sanitizer
-      // sees exactly the markup the parser will read, rather than a string rewritten behind it.
+      // Normalizing runs INSIDE the parse, on the sanitizer's output, and only when that output is
+      // a string - which is what `options.normalize` below selects. Two constraints meet here.
+      // `replaceTdCellsWithTextContent()` is a string rewrite, so a `TrustedHTML` cannot pass
+      // through it without collapsing back to a plain string the parser then rejects; and running
+      // it before the sanitizer instead would hand cell values to the grid exactly as the sanitizer
+      // left them, so a lenient sanitizer's markup would reach the `html` cell type. Normalizing
+      // after keeps that flattening for every sanitizer that returns a string, and skips it only
+      // for the `TrustedHTML` case where it is impossible.
+      //
+      // It cannot run on both sides: `replaceTdCellsWithTextContent()` is not idempotent (a cell
+      // built from `<p>a</p><p>&nbsp;</p>` keeps a trailing newline after one pass and loses it
+      // after two), so a second pass would silently rewrite cell values.
       const sourceDataHTML = sanitizeHTML(
         this.hot,
-        replaceTdCellsWithTextContent(clipboardData.getData(SOURCE_DATA_HTML_MIME_TYPE) ?? ''),
+        clipboardData.getData(SOURCE_DATA_HTML_MIME_TYPE) ?? '',
         'CopyPaste.paste.sourceData'
       );
 
@@ -1030,7 +1028,7 @@ export class CopyPaste extends BasePlugin {
         // letting the throw escape would kill the paste outright.
         try {
           const parsedSourceConfig = htmlToGridSettings(
-            sourceDataHTML, this.hot.rootDocument, { normalize: false }
+            sourceDataHTML, this.hot.rootDocument, { normalize: typeof sourceDataHTML === 'string' }
           );
 
           pastedSourceData = parsedSourceConfig?.data;
@@ -1039,22 +1037,7 @@ export class CopyPaste extends BasePlugin {
         }
       }
 
-      const rawTextHTML = clipboardData.getData('text/html') ?? '';
-
-      // Normalizing is skipped for a payload that carries no table, because the `<table>` test
-      // below would throw the result away. Measured on a 100KB `<td>`-heavy fragment with no
-      // `<table>` in it, `replaceTdCellsWithTextContent()` costs 1.8ms for nothing. (A payload with
-      // no `<td>` either costs 0.05ms, so the case worth skipping is narrower than it looks.)
-      //
-      // Safe because a sanitizer removes markup, it does not invent a table. The branch decision
-      // still reads the SANITIZED value, which is what keeps a sanitizer that strips the table
-      // falling through to `text/plain` - testing the raw payload instead would produce no paste
-      // at all there. The sanitizer still sees every payload, table or not.
-      const textHTML = sanitizeHTML(
-        this.hot,
-        HAS_TABLE_TAG.test(rawTextHTML) ? replaceTdCellsWithTextContent(rawTextHTML) : rawTextHTML,
-        'CopyPaste.paste'
-      );
+      const textHTML = sanitizeHTML(this.hot, clipboardData.getData('text/html') ?? '', 'CopyPaste.paste');
 
       // `String()` builds a throwaway copy for the test only. `textHTML` itself is passed on as it
       // was returned, so a `TrustedHTML` keeps its trust.
@@ -1064,7 +1047,9 @@ export class CopyPaste extends BasePlugin {
         // its own still pastes - it pastes the plain-text flavour, losing only the cell types and
         // styling the HTML flavour carried.
         try {
-          const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument, { normalize: false });
+          const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument, {
+            normalize: typeof textHTML === 'string',
+          });
 
           pastedData = parsedConfig?.data;
         } catch (error) {

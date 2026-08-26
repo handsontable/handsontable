@@ -2,7 +2,7 @@ import type { HotInstance } from '../core/types';
 import { isEmpty } from './../helpers/mixed';
 import { decodeHtmlEntities } from '../helpers/string';
 import { fastInnerHTML } from '../helpers/dom/element';
-import { getSanitizer } from './sanitizer';
+import { getSanitizer, sanitizeHTML } from './sanitizer';
 
 const ESCAPED_HTML_CHARS: Record<string, string> = {
   '&nbsp;': '\x20',
@@ -20,6 +20,29 @@ const regEscapedChars = new RegExp(Object.keys(ESCAPED_HTML_CHARS).map(key => `(
  */
 function isHTMLTable(element: HTMLElement): boolean {
   return (element && element.nodeName || '') === 'TABLE';
+}
+
+/**
+ * Puts a header value through the configured sanitizer, for the two surfaces that render headers as
+ * markup.
+ *
+ * `instanceToTableElement()` writes headers through `fastInnerHTML`, which sanitizes. `toHTML()`
+ * interpolated them raw, so with `colHeaders: ['<b>ID</b>']` and a stripping sanitizer the two
+ * public methods described the same grid differently. They agree here instead.
+ *
+ * A `TrustedHTML` return is stringified by the interpolation, which collapses the trust - correct
+ * for this function, whose contract is to return a string, and the reason the DOM builder cannot
+ * share this path. Do not "fix" it into passing the value through.
+ *
+ * The warning is suppressed: both callers are read-only APIs, so the message's "HTML content is
+ * being written to the DOM" would name a surface the user never looked at.
+ *
+ * @param {object} instance The Handsontable instance.
+ * @param {*} headerValue The header value.
+ * @returns {string} The sanitized header, as a string.
+ */
+function sanitizeHeader(instance: HotInstance, headerValue: unknown): string {
+  return String(sanitizeHTML(instance, String(headerValue), 'header', false));
 }
 
 /**
@@ -55,10 +78,10 @@ export function instanceToHTML(instance: HotInstance): string {
       let cell = '';
 
       if (isColumnHeadersRow) {
-        cell = `<th>${instance.getColHeader(column - rowModifier)}</th>`;
+        cell = `<th>${sanitizeHeader(instance, instance.getColHeader(column - rowModifier))}</th>`;
 
       } else if (isRowHeadersColumn) {
-        cell = `<th>${instance.getRowHeader(row - columnModifier)}</th>`;
+        cell = `<th>${sanitizeHeader(instance, instance.getRowHeader(row - columnModifier))}</th>`;
 
       } else {
         const cellData = data[row][column];
@@ -173,7 +196,7 @@ export function instanceToTableElement(instance: HotInstance, rootDocument: Docu
    * @param {*} headerValue The header value.
    */
   const appendHeader = (cell: HTMLElement, headerValue: unknown) => {
-    fastInnerHTML(cell, String(headerValue), getSanitizer(instance), 'header', instance.rootElement);
+    fastInnerHTML(cell, String(headerValue), getSanitizer(instance, false), 'header', instance.rootElement);
   };
 
   /**

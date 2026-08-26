@@ -100,7 +100,7 @@ describe('CopyPaste clipboard parse fallback', () => {
     hot.destroy();
   });
 
-  it('should still sanitize a table-less payload, and still fall back to plain text', () => {
+  it('should hand the sanitizer the raw payload, not a rewritten one', () => {
     const hot = new Handsontable(document.createElement('div'), {
       data: [['A1', 'B1'], ['A2', 'B2']],
       licenseKey: 'non-commercial-and-evaluation',
@@ -109,12 +109,56 @@ describe('CopyPaste clipboard parse fallback', () => {
     const sanitizer = hot.getSettings().sanitizer as unknown as jest.Mock;
 
     hot.selectCell(0, 0);
-    hot.getPlugin('copyPaste').paste('x\ty', '<div><td>orphan</td></div>');
+    hot.getPlugin('copyPaste').paste(
+      'x\ty', '<table><tbody><tr><td><b>P1</b></td><td>P2</td></tr></tbody></table>'
+    );
 
-    // Skipping the normalize for a table-less payload must not skip the sanitizer with it: an
-    // auditing or length-capping sanitizer has always seen every clipboard payload, markup or not.
-    expect(sanitizer).toHaveBeenCalledWith('<div><td>orphan</td></div>', 'CopyPaste.paste');
-    expect(hot.getDataAtRow(0)).toEqual(['x', 'y']);
+    // Normalizing now runs inside the parse, on the sanitizer's output, so the sanitizer sees the
+    // payload as the clipboard carried it - `<b>` included - rather than one already flattened
+    // behind it.
+    expect(sanitizer).toHaveBeenCalledWith(
+      '<table><tbody><tr><td><b>P1</b></td><td>P2</td></tr></tbody></table>', 'CopyPaste.paste'
+    );
+
+    hot.destroy();
+  });
+
+  it('should flatten markup a lenient sanitizer let through', () => {
+    const hot = new Handsontable(document.createElement('div'), {
+      data: [['A1', 'B1'], ['A2', 'B2']],
+      licenseKey: 'non-commercial-and-evaluation',
+      // a sanitizer that permits `<b>`, which the `html` cell type would then execute
+      sanitizer: (content: string) => content,
+    });
+
+    hot.selectCell(0, 0);
+    hot.getPlugin('copyPaste').paste(
+      'x\ty', '<table><tbody><tr><td><b>P1</b></td><td>P2</td></tr></tbody></table>'
+    );
+
+    // Cell values stay tag-free apart from `<br>`, which is the guarantee normalizing gave before
+    // it moved. Running it before the sanitizer instead would put `<b>P1</b>` into cell data.
+    expect(hot.getDataAtRow(0)).toEqual(['P1', 'P2']);
+
+    hot.destroy();
+  });
+
+  it('should not flatten when the sanitizer returns a non-string, which cannot be rewritten', () => {
+    const hot = new Handsontable(document.createElement('div'), {
+      data: [['A1', 'B1'], ['A2', 'B2']],
+      licenseKey: 'non-commercial-and-evaluation',
+      // stands in for a `TrustedHTML`: an object the parser accepts and a string rewrite destroys
+      sanitizer: ((content: string) => ({ toString: () => content })) as never,
+    });
+
+    hot.selectCell(0, 0);
+    hot.getPlugin('copyPaste').paste(
+      'x\ty', '<table><tbody><tr><td>P1</td><td>P2</td></tr></tbody></table>'
+    );
+
+    // `replaceTdCellsWithTextContent()` walks `html.length`, which an object does not have, so
+    // normalizing is skipped rather than silently returning an empty string and losing the paste.
+    expect(hot.getDataAtRow(0)).toEqual(['P1', 'P2']);
 
     hot.destroy();
   });
@@ -131,9 +175,8 @@ describe('CopyPaste clipboard parse fallback', () => {
       'x\ty', '<table><tbody><tr><td>P1</td><td>P2</td></tr></tbody></table>'
     );
 
-    // The branch reads the SANITIZED value, so the table is gone by the time it is tested. Moving
-    // the test above the sanitize pair would send this payload to the parser, find no table, and
-    // paste nothing at all.
+    // The branch reads the SANITIZED value, so the table is gone by the time it is tested. Testing
+    // the raw payload instead would send this to the parser, find no table, and paste nothing.
     expect(hot.getDataAtRow(0)).toEqual(['x', 'y']);
 
     hot.destroy();

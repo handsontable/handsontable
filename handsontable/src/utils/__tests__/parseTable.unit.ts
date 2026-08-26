@@ -701,3 +701,62 @@ describe('instanceToTableElement', () => {
     hot.destroy();
   });
 });
+
+describe('header sanitizing parity between toHTML and toTableElement', () => {
+  /**
+   * Builds a grid with a header carrying markup.
+   *
+   * @param {Function} [sanitizer] The `sanitizer` option, when the test configures one.
+   * @returns {object} The Handsontable instance.
+   */
+  function gridWithMarkupHeader(sanitizer?: (html: string) => string) {
+    return new Handsontable(document.createElement('div'), {
+      data: [['A1', 'B1']],
+      colHeaders: ['<b>ID</b>', 'Name'],
+      licenseKey: 'non-commercial-and-evaluation',
+      ...(sanitizer ? { sanitizer } : {}),
+    });
+  }
+
+  it('should put the header through the sanitizer in both representations', () => {
+    const strip = (html: string) => html.replace(/<[^>]*>/g, '');
+    const hot = gridWithMarkupHeader(strip);
+    const fromString = instanceToHTML(hot as never);
+    const fromDom = instanceToTableElement(hot as never, document);
+
+    // These two describe the same grid. `toHTML()` used to interpolate the header raw, so a
+    // stripping sanitizer left the `<b>` in one and removed it from the other.
+    expect(fromString).toContain('<th>ID</th>');
+    expect(fromString).not.toContain('<b>');
+    expect(fromDom.querySelectorAll('th')[0].innerHTML).toBe('ID');
+
+    hot.destroy();
+  });
+
+  it('should keep header markup in both representations when no sanitizer is configured', () => {
+    const hot = gridWithMarkupHeader();
+    const fromString = instanceToHTML(hot as never);
+    const fromDom = instanceToTableElement(hot as never, document);
+
+    expect(fromString).toContain('<th><b>ID</b></th>');
+    expect(fromDom.querySelectorAll('th')[0].innerHTML).toBe('<b>ID</b>');
+
+    hot.destroy();
+  });
+
+  it('should not warn about a missing sanitizer from either read-only API', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const hot = gridWithMarkupHeader();
+
+    warnSpy.mockClear();
+    instanceToHTML(hot as never);
+    instanceToTableElement(hot as never, document);
+
+    // Both are read-only: neither writes to the page, so "HTML content is being written to the
+    // DOM" would name a surface the caller never looked at. The written markup is unchanged.
+    expect(warnSpy.mock.calls.filter(c => String(c[0]).includes('without a sanitizer'))).toEqual([]);
+
+    warnSpy.mockRestore();
+    hot.destroy();
+  });
+});

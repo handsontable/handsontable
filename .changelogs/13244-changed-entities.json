@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed how character references are resolved in dialog titles, empty-state copy, and cell text read through `toTableElement()`. A named reference outside the supported set, and any name spelled in upper case, now renders as written instead of being decoded.",
+  "type": "changed",
+  "issueOrPR": 13244,
+  "breaking": false,
+  "framework": "none"
+}

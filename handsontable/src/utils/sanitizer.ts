@@ -26,10 +26,17 @@ export type { SanitizerFn, TrustedHTMLLike } from '../core/settings';
  * they render raw HTML by design (see PR #7368) and pass `false` instead.
  *
  * @param {object} hot The Handsontable instance.
- * @returns {boolean|Function} The configured sanitizer, or `true` when none is set.
+ * @param {boolean} [warnWhenMissing] Whether an absent sanitizer should produce the one-time
+ *   warning. Pass `false` from a read-only API: `true` and `false` both write raw HTML, and the
+ *   only difference is the message. See below.
+ * @returns {boolean|Function} The configured sanitizer, or `true`/`false` when none is set.
  */
-export function getSanitizer(hot: HotInstance): boolean | SanitizerFn {
-  return hot.getSettings().sanitizer ?? true;
+export function getSanitizer(hot: HotInstance, warnWhenMissing = true): boolean | SanitizerFn {
+  // `?? false` rather than `?? true` is the whole mechanism: `fastInnerHTML` treats `false` as a
+  // deliberate raw write and stays silent, where `true` warns. The written HTML is identical, so a
+  // read-only surface changes nothing about what it produces - it just stops telling the user that
+  // "HTML content is being written to the DOM", which is not what `toHTML()` is doing.
+  return hot.getSettings().sanitizer ?? warnWhenMissing;
 }
 
 /**
@@ -49,11 +56,14 @@ export function getSanitizer(hot: HotInstance): boolean | SanitizerFn {
  * @param {object} hot The Handsontable instance.
  * @param {string} html The HTML string to sanitize.
  * @param {SanitizerContext} context The write surface, passed to the sanitizer and named in the warning.
+ * @param {boolean} [warnWhenMissing] Whether an absent sanitizer should produce the one-time
+ *   warning. Pass `false` from a read-only API, which is not writing to the DOM at all - see
+ *   `getSanitizer()` for the same switch on the `fastInnerHTML` path.
  * @returns {string|object} The sanitized value - a `TrustedHTML` when the sanitizer returned one -
  *   or the input unchanged when no sanitizer is configured.
  */
 export function sanitizeHTML(
-  hot: HotInstance, html: string, context: SanitizerContext
+  hot: HotInstance, html: string, context: SanitizerContext, warnWhenMissing = true
 ): string | TrustedHTMLLike {
   // An absent clipboard flavour reads as `''`. There is nothing to sanitize and nothing to warn
   // about, and calling the sanitizer would add a spurious entry to an auditing one on every paste.
@@ -72,7 +82,7 @@ export function sanitizeHTML(
 
   // The warning is the only part gated on markup: plain text cannot inject anything, so warning
   // about it would be noise on every grid that writes an ordinary label.
-  if (HTML_CHARACTERS.test(html)) {
+  if (warnWhenMissing && HTML_CHARACTERS.test(html)) {
     warnOnce(hot.rootElement, SANITIZER_WARN_KEY, missingSanitizerMessage(context));
   }
 

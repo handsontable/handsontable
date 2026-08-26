@@ -124,7 +124,11 @@ new Handsontable(container, {
 
 The [Trusted Types API](https://developer.mozilla.org/en-US/docs/Web/API/Trusted_Types_API) enforces that values reaching a DOM sink came from a policy you wrote. It is not a sanitizer, and it does not replace one. It can require that a sanitizer exists; it cannot be one. A policy such as `createHTML: (input) => input` satisfies the browser and provides no protection at all. What sanitizes is the function you call inside the policy.
 
-Handsontable runs under `require-trusted-types-for 'script'` without any policy of its own. It builds its own markup as DOM nodes rather than as HTML strings, so there is nothing for the browser to reject. You do not need to add a Handsontable policy name to your `trusted-types` directive.
+Handsontable builds its own interface as DOM nodes rather than as HTML strings, so it needs no Trusted Types policy of its own and no entry in your `trusted-types` directive.
+
+That covers the grid's own markup. It does not cover your data, and one case is worth knowing before you enable enforcement: Handsontable writes cell and header content as HTML whenever that content contains a `<`, or an `&` followed later by a `;`. So a header reading `Smith & Sons, Ltd.; est. 1920` takes the HTML path even though it carries no markup. Under `require-trusted-types-for 'script'` the browser rejects a plain string there, so content of that shape needs a `sanitizer` that returns a `TrustedHTML`, as below. Without one, the write is refused and the grid does not render that cell.
+
+Pasting has the same requirement and degrades rather than failing: the clipboard parser is a sink, so without a policy-backed sanitizer Handsontable falls back to the plain-text flavor of the clipboard and logs one warning.
 
 Your own data is the part that still needs a policy, because Handsontable writes it on your behalf. Wrap your sanitizer in one and return its `createHTML` result:
 
