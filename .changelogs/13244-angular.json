@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed the wrapper clearing a cell through `innerHTML`, which a Content Security Policy that enforces Trusted Types blocks on every cell re-render.",
-  "type": "fixed",
-  "issueOrPR": 13244,
-  "breaking": false,
-  "framework": "angular"
-}
