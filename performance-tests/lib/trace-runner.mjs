@@ -63,11 +63,50 @@ export async function stopTracing(cdp) {
 }
 
 /**
+ * Upper bound on how long the post-action settle may wait, in milliseconds.
+ */
+const SETTLE_TIMEOUT_MS = 1000;
+
+/**
+ * Wait for the work an action queued to reach the compositor.
+ *
+ * Without this the trace is stopped on the same turn the action returns, so the
+ * rendering and painting that follow the last JS turn fall outside the trace
+ * window and are recorded as zero. A category measured as exactly 0 is not a
+ * cheap operation -- it is a capture that ended too early.
+ *
+ * Two animation frames, because the paint for frame N happens after frame N's
+ * callbacks: once frame N+1's callback runs, frame N has been committed. The
+ * idle callback then catches trailing work (deferred layout, async paint), and
+ * is bounded so a busy main thread cannot hang the run.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {number} [timeoutMs=SETTLE_TIMEOUT_MS] -- upper bound for the idle wait
+ */
+export async function settleFrames(page, timeoutMs = SETTLE_TIMEOUT_MS) {
+  await page.evaluate(timeout => new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const idle = /** @type {any} */ (window).requestIdleCallback;
+
+        if (typeof idle === 'function') {
+          idle(() => resolve(null), { timeout });
+        } else {
+          setTimeout(() => resolve(null), 0);
+        }
+      });
+    });
+  }), timeoutMs);
+}
+
+/**
  * @param {object} options
  * @param {import('@playwright/test').Page} options.page
  * @param {(isMeasured: boolean) => Promise<void>} options.actionFn -- the traced action; receives true during measured iterations, false during warmup
  * @param {() => Promise<void>} [options.setupFn] -- pre-trace setup (run once before warmup)
  * @param {() => Promise<void>} [options.resetFn] -- reset state between iterations
+ * @param {() => Promise<void>} [options.settleFn] -- overrides the default post-action settle
+ * @param {boolean} [options.skipSettle=false] -- opt out of settling before the trace stops
  * @param {number} [options.warmupRuns=1]
  * @param {number} [options.iterations=3]
  * @param {string} options.outputDir -- where to write trace JSON files
@@ -77,6 +116,8 @@ export async function runTracedScenario({
   actionFn,
   setupFn,
   resetFn,
+  settleFn,
+  skipSettle = false,
   warmupRuns = 1,
   iterations = 3,
   outputDir,
@@ -94,6 +135,11 @@ export async function runTracedScenario({
   for (let w = 0; w < warmupRuns; w++) {
     process.stdout.write(`  Warmup ${w + 1}/${warmupRuns}...`);
     await actionFn(false);
+
+    if (!skipSettle) {
+      await (settleFn ? settleFn() : settleFrames(page));
+    }
+
     console.log(' done');
 
     if (resetFn) {
@@ -111,6 +157,12 @@ export async function runTracedScenario({
     const heartbeat = setInterval(() => process.stdout.write('.'), 5000);
 
     await actionFn(true);
+
+    // Inside the trace on purpose: the frame this waits for is the work being measured.
+    if (!skipSettle) {
+      await (settleFn ? settleFn() : settleFrames(page));
+    }
+
     clearInterval(heartbeat);
 
     process.stdout.write(' stopping');
