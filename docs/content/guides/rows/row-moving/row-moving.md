@@ -155,6 +155,11 @@ Return `false` from [`beforeRowMove`](@/api/hooks.md#beforerowmove) to cancel Ha
 
 In this model you also own the order's history. Reverting a move is your code's job, not the grid's.
 
+Two limits come with it:
+
+- The hook reports visual row indexes, and the helper below uses them as positions in your array. Those match only while nothing else reorders or hides rows. Add [`columnSorting`](@/api/options.md#columnsorting), [`filters`](@/api/options.md#filters), or trimmed rows, and a visual index no longer points at the same row in your array, so you have to translate the indexes yourself. `finalIndex` is a visual index too.
+- Cell metadata is keyed by the physical row. Reordering your own array moves the values but not the metadata, so per-row settings such as [`readOnly`](@/api/options.md#readonly), a cell `className`, or a comment stay on the position they were set on and end up on a different row.
+
 This helper applies a move to a plain array. `movedRows` holds visual row indexes, and `finalIndex` is the index that the first moved row lands on:
 
 ```js
@@ -206,7 +211,9 @@ const ExampleComponent = () => {
 
 ::: only-for angular
 
-Keep the rows in a component property, and bind it through the `[data]` input:
+Keep the rows in a component property, and bind it through the `[data]` input.
+
+The grid is created outside Angular's zone, so the hook also runs outside it. Assigning to a bound property there does not start change detection on its own, and the `[data]` input never sees the new array. Re-enter the zone to write the property, and defer it with `setTimeout` so a synchronous write inside the hook can't trigger `NG0100`:
 
 ```ts
 @Component({
@@ -216,6 +223,8 @@ Keep the rows in a component property, and bind it through the `[data]` input:
   imports: [HotTableModule],
 })
 export class AppComponent {
+  private readonly ngZone = inject(NgZone);
+
   rows = initialRows;
 
   readonly hotSettings: GridSettings = {
@@ -225,9 +234,13 @@ export class AppComponent {
         return;
       }
 
-      this.rows = reorderRows(this.rows, movedRows, finalIndex);
+      setTimeout(() => {
+        this.ngZone.run(() => {
+          this.rows = reorderRows(this.rows, movedRows, finalIndex);
+        });
+      }, 0);
 
-      // cancel the grid's own move -- the assignment above already applied it
+      // cancel the grid's own move -- the assignment above applies it instead
       return false;
     },
   };
