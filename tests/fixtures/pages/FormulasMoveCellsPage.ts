@@ -82,6 +82,16 @@ export class FormulasMoveCellsPage {
     return this.page.getByTestId(`cell-${row}-${col}`);
   }
 
+  /** Open a cell's editor, type a value, and commit it with Enter. */
+  async editCell(row: number, col: number, value: string): Promise<void> {
+    await this.cell(row, col).dblclick();
+    const editor = this.page.locator('.handsontableInput');
+
+    await expect(editor).toBeVisible();
+    await editor.fill(value);
+    await editor.press('Enter');
+  }
+
   /**
    * Whether the Formulas plugin's index syncer still believes an undo/redo is in progress.
    * Must be `false` between operations — a leaked flag makes the plugin treat subsequent

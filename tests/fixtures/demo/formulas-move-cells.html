@@ -32,9 +32,13 @@
 
     container.className = `ht-theme-${window.htTheme}`;
 
-    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
-      Handsontable.renderers.TextRenderer.apply(this, arguments);
-      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    // Stamps every rendered cell with data-testid="cell-<row>-<col>", regardless of which
+    // renderer produced it. A `columns[].type` (e.g. 'text') carries its own default
+    // renderer that wins over a top-level `renderer:` setting, so the stamp is applied
+    // through the afterRenderer hook instead of a custom renderer – that fires after
+    // ANY renderer finishes, so it stays correct across `type`-driven column overrides.
+    const stampTestId = function(TD, row, column) {
+      TD.setAttribute('data-testid', `cell-${row}-${column}`);
     };
 
     // (Re)creates the grid with the given dataset merged with the given setting
@@ -50,7 +54,7 @@
         data,
         colHeaders: true,
         rowHeaders: true,
-        renderer: testIdRenderer,
+        afterRenderer: stampTestId,
         formulas: {
           engine: HyperFormula,
         },
