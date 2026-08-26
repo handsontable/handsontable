@@ -12,6 +12,7 @@ import {
   normalizeValueForFormulaEngine,
   isPreservedText,
   escapeTextValue,
+  unescapeEngineBoundValue,
 } from '../utils';
 
 describe('Formulas utils', () => {
@@ -231,6 +232,53 @@ describe('Formulas utils', () => {
       expect(escapeTextValue('0123456')).toBe('\'0123456');
       expect(escapeTextValue('abc')).toBe('\'abc');
       expect(escapeTextValue('\'already')).toBe('\'\'already');
+    });
+  });
+
+  describe('unescapeEngineBoundValue', () => {
+    it('should strip the apostrophe from a preserved text value', () => {
+      expect(unescapeEngineBoundValue('\'0123456', { type: 'text', preserveTextValue: true })).toBe('0123456');
+      expect(unescapeEngineBoundValue('\'abc', { type: 'text', preserveTextValue: true })).toBe('abc');
+    });
+
+    it('should strip the apostrophe from an escaped invalid date', () => {
+      expect(unescapeEngineBoundValue('\'13/45/2021', { type: 'date' })).toBe('13/45/2021');
+      expect(unescapeEngineBoundValue('\'not a date', { type: 'date' })).toBe('not a date');
+    });
+
+    it('should keep escaped formula expressions untouched', () => {
+      expect(unescapeEngineBoundValue('\'=SUM(A1)', { type: 'text', preserveTextValue: true })).toBe('\'=SUM(A1)');
+      expect(unescapeEngineBoundValue('\'=A1', { type: 'text', preserveTextValue: true })).toBe('\'=A1');
+    });
+
+    it('should keep values of non-preserved cells untouched', () => {
+      expect(unescapeEngineBoundValue('\'0123456', { type: 'text' })).toBe('\'0123456');
+      expect(unescapeEngineBoundValue('\'0123456', { type: 'text', preserveTextValue: false })).toBe('\'0123456');
+      expect(unescapeEngineBoundValue('\'0123456', { type: 'numeric', preserveTextValue: true })).toBe('\'0123456');
+    });
+
+    it('should strip exactly one apostrophe, so a value that legitimately starts with one survives', () => {
+      // The engine round-trips the escape verbatim: writing `''O'Brien` reads back as `''O'Brien`
+      // from the serialized getters, so exactly one apostrophe belongs to the escape.
+      expect(unescapeEngineBoundValue('\'\'O\'Brien', { type: 'text', preserveTextValue: true }))
+        .toBe('\'O\'Brien');
+      expect(unescapeEngineBoundValue('\'\'13/45/2021', { type: 'date' })).toBe('\'13/45/2021');
+    });
+
+    it('should keep unescaped and non-string values untouched', () => {
+      const objectValue = { key: 'A', value: 'Alpha' };
+
+      expect(unescapeEngineBoundValue('0123456', { type: 'text', preserveTextValue: true })).toBe('0123456');
+      expect(unescapeEngineBoundValue('=SUM(A1)', { type: 'text', preserveTextValue: true })).toBe('=SUM(A1)');
+      expect(unescapeEngineBoundValue(123456, { type: 'text', preserveTextValue: true })).toBe(123456);
+      expect(unescapeEngineBoundValue(null, { type: 'text', preserveTextValue: true })).toBeNull();
+      expect(unescapeEngineBoundValue(undefined, { type: 'date' })).toBeUndefined();
+      expect(unescapeEngineBoundValue(objectValue, { type: 'text', preserveTextValue: true })).toBe(objectValue);
+    });
+
+    it('should keep an apostrophe-only value untouched (it cannot be a preserved text escape)', () => {
+      // Stripping would leave an empty string, which `isPreservedText` never reports as preserved.
+      expect(unescapeEngineBoundValue('\'', { type: 'text', preserveTextValue: true })).toBe('\'');
     });
   });
 });

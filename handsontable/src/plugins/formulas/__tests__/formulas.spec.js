@@ -3559,6 +3559,95 @@ describe('Formulas general', () => {
         ['\'0123456'],
       ]);
     });
+
+    it('should not leak the escape apostrophe into the grid when switching sheets', async() => {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+      engine.addSheet('one');
+      engine.addSheet('two');
+      engine.setSheetContent(engine.getSheetId('two'), [['other', 'values']]);
+
+      handsontable({
+        data: [['0123456', '13/45/2021']],
+        // Column-level meta – layout-independent, so the pre-`loadData` meta read in `switchSheet`
+        // resolves it the same way whichever sheet is currently loaded.
+        columns: [
+          { type: 'text', preserveTextValue: true },
+          { type: 'date' },
+        ],
+        formulas: {
+          engine,
+          sheetName: 'one',
+        },
+      });
+
+      const plugin = getPlugin('formulas');
+
+      // Both values are escaped in the engine: the preserved text value keeps its leading zero,
+      // and the invalid date is protected from the engine's date parsing.
+      expect(engine.getSheetSerialized(engine.getSheetId('one'))).toEqual([
+        ['\'0123456', '\'13/45/2021'],
+      ]);
+
+      plugin.switchSheet('two');
+      plugin.switchSheet('one');
+
+      // `getSheetSerialized` keeps the escape apostrophe, so the value written back by `loadData`
+      // has to be unescaped – otherwise a round trip through another sheet turns `0123456` into
+      // `'0123456`.
+      expect(getDataAtCell(0, 0)).toBe('0123456');
+      expect(getSourceDataAtCell(0, 0)).toBe('0123456');
+      expect(getDataAtCell(0, 1)).toBe('13/45/2021');
+      expect(getSourceDataAtCell(0, 1)).toBe('13/45/2021');
+
+      // The engine's own content is untouched by the read – it still holds the escaped values.
+      expect(engine.getSheetSerialized(engine.getSheetId('one'))).toEqual([
+        ['\'0123456', '\'13/45/2021'],
+      ]);
+    });
+
+    it('should not leak the escape apostrophe into the grid after moving a preserved text cell', async() => {
+      handsontable({
+        data: [
+          ['0123456', '13/45/2021'],
+          [null, null],
+        ],
+        columns: [
+          { type: 'text', preserveTextValue: true },
+          { type: 'date' },
+        ],
+        moveCells: true,
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+      const serializedRow = rowIndex => [0, 1].map(col => formulasPlugin.engine.getCellSerialized({
+        sheet: formulasPlugin.sheetId, row: rowIndex, col,
+      }));
+
+      expect(serializedRow(0)).toEqual(['\'0123456', '\'13/45/2021']);
+
+      await selectCells([[0, 0, 0, 1]]);
+
+      getPlugin('moveCells').moveCellRange(getSelectedRangeLast(), cellCoords(1, 0));
+
+      await waitForNextAnimationFrames(2);
+
+      // `#syncHotDataAfterMoveCells` snapshots the moved cells with `getCellSerialized`, which keeps
+      // the escape apostrophe, and writes them back with `populateFromArray` – so the snapshot has
+      // to be unescaped before it reaches the grid.
+      expect(getDataAtCell(1, 0)).toBe('0123456');
+      expect(getSourceDataAtCell(1, 0)).toBe('0123456');
+      expect(getDataAtCell(1, 1)).toBe('13/45/2021');
+      expect(getSourceDataAtCell(1, 1)).toBe('13/45/2021');
+
+      // The moved cells stay escaped in the engine, so the preserved text value keeps its leading
+      // zero there as well.
+      expect(serializedRow(0)).toEqual([null, null]);
+      expect(serializedRow(1)).toEqual(['\'0123456', '\'13/45/2021']);
+    });
   });
 
   describe('handling numeric values', () => {

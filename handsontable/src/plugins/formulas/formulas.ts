@@ -17,6 +17,7 @@ import {
   isFormula,
   isPreservedText,
   normalizeValueForFormulaEngine,
+  unescapeEngineBoundValue,
   unescapeFormulaExpression,
 } from './utils';
 import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './engine/settings';
@@ -758,6 +759,14 @@ export class Formulas extends BasePlugin {
    * Switch the sheet used as data in the Handsontable instance (it loads the data from the shared HyperFormula
    * instance).
    *
+   * The engine's serialized content keeps the escape apostrophe that dates and preserved text values
+   * were written with, so it is unescaped before the load – otherwise the apostrophe becomes part of
+   * the grid's data. The meta read runs BEFORE `loadData`, so it resolves against the OUTGOING
+   * sheet's layout. Column-level and global meta are layout-independent and match either way; per-cell
+   * meta declared through the `cell` array is not, so combining it with `switchSheet` may not be
+   * matched correctly. Unescaping after the load is not an option – the apostrophe would already be in
+   * the grid's data by then.
+   *
    * @param {string} sheetName Sheet name used in the shared HyperFormula instance.
    */
   switchSheet(sheetName: string): void {
@@ -769,7 +778,18 @@ export class Formulas extends BasePlugin {
 
     this.#updateSheetNameAndSheetId(sheetName);
 
-    const serialized = this.engine.getSheetSerialized(this.sheetId);
+    const rawSerialized = this.engine.getSheetSerialized(this.sheetId);
+    // `loadData` resets the index maps, so the array indexes below equal the post-load visual
+    // coordinates of the cells they carry. The scan is skipped entirely – just like the escape scan
+    // in `#escapeSourceDataArray` – when no configuration layer can mark a cell for escaping, so a
+    // sheet switch in the default configuration pays no per-cell meta read.
+    const serialized = this.#needsEngineBoundEscaping()
+      ? rawSerialized.map((rowData: unknown[], rowIndex: number) => (
+        rowData.map((value: unknown, columnIndex: number) => (
+          unescapeEngineBoundValue(value, this.hot.getCellMetaTransient(rowIndex, columnIndex))
+        ))
+      ))
+      : rawSerialized;
 
     if (serialized.length > 0) {
       this.hot.loadData(serialized, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
@@ -2240,7 +2260,11 @@ export class Formulas extends BasePlugin {
           col: hfCol,
         });
 
-        row.push(serialized ?? null);
+        // The serialized content keeps the escape apostrophe that dates and preserved text values
+        // were written with, so it is unescaped before it goes back into the grid.
+        row.push(serialized === null || serialized === undefined
+          ? null
+          : unescapeEngineBoundValue(serialized, this.hot.getCellMetaTransient(tgtFromRow + r, tgtFromCol + c)));
       }
 
       targetData.push(row);

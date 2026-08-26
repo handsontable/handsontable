@@ -187,3 +187,37 @@ export function isPreservedText(
 export function escapeTextValue(value: string): string {
   return `'${value}`;
 }
+
+/**
+ * Reverses {@link escapeTextValue} on values read back out of the engine. The engine's serialized
+ * getters (`getCellSerialized`, `getSheetSerialized`, `getFillRangeData`) return the stored content
+ * verbatim – the leading "'" included – so a value that goes straight back into the grid has to be
+ * unescaped first, or the apostrophe becomes part of the grid's data.
+ *
+ * Exactly one apostrophe is removed, because the engine round-trips the escape one-for-one: a
+ * preserved text value that legitimately starts with an apostrophe is stored doubled and reads back
+ * doubled. The strip is then confirmed against the cell meta – it applies only where the escape
+ * could have been added in the first place, that is to a `date`-typed cell or to a preserved text
+ * cell. Escaped formula expressions ("'=…") keep their apostrophe: it is the user's own escape,
+ * carrying different semantics, and `isPreservedText` excludes them for that reason.
+ *
+ * @param {*} value Value read from the engine.
+ * @param {object} cellMeta Cell meta object with the `type` and `preserveTextValue` properties.
+ * @returns {*} The unescaped value, or the original value when no unescaping applies.
+ */
+export function unescapeEngineBoundValue(
+  value: unknown,
+  cellMeta: { type?: string, preserveTextValue?: boolean },
+): unknown {
+  if (typeof value !== 'string' || !value.startsWith('\'')) {
+    return value;
+  }
+
+  const unescaped = value.slice(1);
+
+  if (isDate(unescaped, cellMeta.type) || isPreservedText(unescaped, cellMeta)) {
+    return unescaped;
+  }
+
+  return value;
+}
