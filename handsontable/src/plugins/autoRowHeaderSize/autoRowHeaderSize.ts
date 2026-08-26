@@ -284,6 +284,18 @@ export class AutoRowHeaderSize extends BasePlugin {
    * @type {boolean}
    */
   #measuring = false;
+  /**
+   * Rows whose labels have changed and still have to be measured, or `null` when there are none.
+   *
+   * @type {Set|null}
+   */
+  #pendingRows: Set<number> | null = null;
+  /**
+   * The scheduled task that measures the pending rows, or `null` when nothing is scheduled.
+   *
+   * @type {number|null}
+   */
+  #pendingTaskId: number | null = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings.
@@ -405,6 +417,7 @@ export class AutoRowHeaderSize extends BasePlugin {
    */
   clearCache(): void {
     this.#cancelSweep();
+    this.#cancelPendingRows();
 
     this.#cachedWidths = null;
     this.#cachedRowCounts = '';
@@ -415,6 +428,7 @@ export class AutoRowHeaderSize extends BasePlugin {
    */
   destroy(): void {
     this.#cancelSweep();
+    this.#cancelPendingRows();
     this.#ghostTable.clean();
     this.#labelProbe = null;
 
@@ -536,16 +550,20 @@ export class AutoRowHeaderSize extends BasePlugin {
       } while (this.#sweepCursor < totalRows && performance.now() < budgetEnd);
 
       const finished = this.#sweepCursor >= totalRows;
-
-      this.#commitWidths(finished);
+      const changed = this.#commitWidths(finished);
 
       if (finished) {
         this.#releaseSweep();
-        // Nothing else asks for a draw once the last chunk lands, so the final width - the only one
-        // allowed to be narrower than what is on screen - needs one.
-        this.hot.view?.adjustElementsSize();
       } else {
         this.#scheduleChunk();
+      }
+
+      // Nothing else is going to draw: the chunk runs on its own, between draws. And a draw is what
+      // it takes - the per-level widths are written to the `col` elements by `calculateWidths()`
+      // during one, so resizing the overlays would not move them. Without this the label that made
+      // the header wider stays clipped until some unrelated render happens to come along.
+      if (changed) {
+        this.hot.render();
       }
     });
   }
@@ -604,10 +622,11 @@ export class AutoRowHeaderSize extends BasePlugin {
    * is what lets a header shrink again after its longest label is deleted.
    *
    * @param {boolean} isFinal Whether every row has now been read.
+   * @returns {boolean} Whether the reported widths moved.
    */
-  #commitWidths(isFinal: boolean): void {
+  #commitWidths(isFinal: boolean): boolean {
     if (this.#sweepSamples === null) {
-      return;
+      return false;
     }
 
     const measured = this.#sweepSamples.map((samples, headerLevel) => {
@@ -628,13 +647,15 @@ export class AutoRowHeaderSize extends BasePlugin {
 
     // A renderer added or removed since the last sweep changes how many levels there are, so there
     // is no level to compare against - the fresh measurement stands on its own.
-    if (isFinal || previous === null || previous.length !== measured.length) {
-      this.#cachedWidths = measured;
+    const next = isFinal || previous === null || previous.length !== measured.length
+      ? measured
+      : measured.map((width, headerLevel) => Math.max(width, previous[headerLevel]));
 
-      return;
-    }
+    this.#cachedWidths = next;
 
-    this.#cachedWidths = measured.map((width, headerLevel) => Math.max(width, previous[headerLevel]));
+    return previous === null
+      || previous.length !== next.length
+      || next.some((width, headerLevel) => width !== previous[headerLevel]);
   }
 
   /**
@@ -813,22 +834,78 @@ export class AutoRowHeaderSize extends BasePlugin {
       return;
     }
 
-    const rows = Array.from(new Set(changes.map(change => change[0] as number)));
-
     // Past a certain size, reading the changed rows one by one costs more than sweeping the grid
     // again - and a sweep also lets the headers shrink.
-    if (rows.length > AutoRowHeaderSize.SYNC_CALCULATION_LIMIT) {
+    if (changes.length > AutoRowHeaderSize.SYNC_CALCULATION_LIMIT) {
       this.clearCache();
 
       return;
     }
 
+    this.#pendingRows ??= new Set();
+
+    // A paste hits the same row once per column, so the rows are collected as a set.
+    changes.forEach(change => this.#pendingRows!.add(change[0] as number));
+
+    this.#schedulePendingRows();
+  };
+
+  /**
+   * Queues the measurement of the rows whose labels have changed.
+   *
+   * The measuring deliberately does NOT happen in the hook. The hook runs inside the edit, with a
+   * draw either under way or about to be, and a ghost table measured at that moment comes back too
+   * small - so a header that should have grown silently stayed as it was. One task drains whatever
+   * has collected by the time it runs, so a burst of edits costs one measurement.
+   */
+  #schedulePendingRows(): void {
+    if (this.#pendingTaskId !== null) {
+      return;
+    }
+
+    this.#pendingTaskId = requestIdleTask(() => {
+      this.#pendingTaskId = null;
+
+      const rows = this.#pendingRows === null ? [] : Array.from(this.#pendingRows);
+
+      this.#pendingRows = null;
+
+      // The instance can be gone, or the cache dropped, by the time this runs.
+      if (!this.hot || !this.enabled || this.#cachedWidths === null || rows.length === 0) {
+        return;
+      }
+
+      if (this.#widenFor(rows)) {
+        this.hot.render();
+      }
+    });
+  }
+
+  /**
+   * Drops a queued measurement of changed rows.
+   */
+  #cancelPendingRows(): void {
+    if (this.#pendingTaskId !== null) {
+      cancelIdleTask(this.#pendingTaskId);
+      this.#pendingTaskId = null;
+    }
+
+    this.#pendingRows = null;
+  }
+
+  /**
+   * Grows any level whose label on one of the given rows is now wider than the level itself.
+   *
+   * @param {number[]} rows The rows to read.
+   * @returns {boolean} Whether any level grew.
+   */
+  #widenFor(rows: number[]): boolean {
     const renderers = this.#collectRenderers();
 
-    if (renderers.length !== this.#cachedWidths.length) {
+    if (renderers.length !== this.#cachedWidths!.length) {
       this.clearCache();
 
-      return;
+      return false;
     }
 
     let widened = false;
@@ -850,9 +927,6 @@ export class AutoRowHeaderSize extends BasePlugin {
       }
     });
 
-    // An edit that changes nothing about the header widths must not cost a draw.
-    if (widened) {
-      this.hot.view?.adjustElementsSize();
-    }
-  };
+    return widened;
+  }
 }

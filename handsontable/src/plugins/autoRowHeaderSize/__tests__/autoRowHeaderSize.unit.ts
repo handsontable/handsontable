@@ -685,7 +685,20 @@ describe('AutoRowHeaderSize', () => {
   });
 
   describe('editing cells', () => {
-    it('should read only the rows that changed, not the whole grid', () => {
+    /**
+     * Runs the queued measurement of changed rows.
+     *
+     * `requestIdleTask` falls back to an animation frame when `requestIdleCallback` is missing,
+     * which is the case in this environment - so the frames are what has to be awaited.
+     */
+    async function flushPending() {
+      for (let frame = 0; frame < 5; frame++) {
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
+      }
+    }
+
+    it('should not measure inside the edit itself', () => {
       const { hot, labelSpy } = buildGrid({ autoRowHeaderSize: true });
       const plugin = hot.getPlugin('autoRowHeaderSize');
 
@@ -694,16 +707,55 @@ describe('AutoRowHeaderSize', () => {
 
       hot.setDataAtCell(5, 0, 'edited');
 
+      // Measuring in the hook is the trap: a draw is either under way or about to be, and a ghost
+      // table measured at that moment comes back too small - so a header that should have grown
+      // silently stayed as it was. The reads have to wait for the queued task.
+      expect(labelSpy.mock.calls.map(([index]) => index)).not.toContain(5);
+
+      hot.destroy();
+    });
+
+    it('should read only the rows that changed, not the whole grid', async() => {
+      const { hot, labelSpy } = buildGrid({ autoRowHeaderSize: true });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+
+      plugin.getRowHeaderWidth();
+      labelSpy.mockClear();
+
+      hot.setDataAtCell(5, 0, 'edited');
+      await flushPending();
+
       const readRows = new Set(labelSpy.mock.calls.map(([index]) => index));
 
       // A cell edit used to throw the whole cache away, so every row header was read again. On a
       // large grid that turned each edit into a freeze.
+      expect(readRows.has(5)).toBe(true);
       expect(readRows.size).toBeLessThan(50);
 
       hot.destroy();
     });
 
-    it('should widen a header whose label is built from the cell that changed', () => {
+    it('should collect a burst of edits into one measurement', async() => {
+      const { hot, labelSpy } = buildGrid({ autoRowHeaderSize: true });
+      const plugin = hot.getPlugin('autoRowHeaderSize');
+
+      plugin.getRowHeaderWidth();
+      labelSpy.mockClear();
+
+      // The same row twice, plus two others - what a paste looks like.
+      hot.runHooks('afterSetDataAtCell', [[3, 0, 'a', 'b'], [3, 0, 'b', 'c'], [4, 0, 'a', 'b']]);
+      hot.runHooks('afterSetDataAtCell', [[7, 0, 'a', 'b']]);
+      await flushPending();
+
+      const readRows = [...new Set(labelSpy.mock.calls.map(([index]) => index))].sort((a, b) => a - b);
+
+      // Every changed row is measured once, and only the changed ones.
+      expect(readRows).toEqual([3, 4, 7]);
+
+      hot.destroy();
+    });
+
+    it('should measure the row whose label is built from the cell that changed', async() => {
       const data = [['ID-1'], ['ID-2'], ['ID-3']];
       const hot = new Handsontable(document.createElement('div'), {
         data,
@@ -713,10 +765,10 @@ describe('AutoRowHeaderSize', () => {
         licenseKey: 'non-commercial-and-evaluation',
       });
       const plugin = hot.getPlugin('autoRowHeaderSize');
-      const readRows: number[] = [];
 
       plugin.getRowHeaderWidth();
 
+      const readRows: number[] = [];
       const originalGetRowHeader = hot.getRowHeader;
 
       hot.getRowHeader = ((row: number) => {
@@ -726,8 +778,11 @@ describe('AutoRowHeaderSize', () => {
       }) as typeof hot.getRowHeader;
 
       hot.setDataAtCell(1, 0, 'ID-2-with-a-considerably-longer-value');
+      await flushPending();
 
-      // The changed row has to be looked at, or a data-derived header would keep clipping.
+      // The changed row has to be looked at, or a data-derived header would keep clipping. That the
+      // header really grows on screen is asserted in tests/e2e/auto-row-header-size.spec.ts - jsdom
+      // reports every width as zero, so it cannot see it here.
       expect(readRows).toContain(1);
 
       hot.getRowHeader = originalGetRowHeader;

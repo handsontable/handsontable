@@ -39,6 +39,22 @@
   -->
   <div id="grid" data-testid="grid"></div>
 
+  <!--
+    Two more grids, for the two ways an async width used to never reach the screen.
+
+    "late" holds its longest label far past `syncLimit`, so the width is settled by the idle sweep
+    rather than before the first paint. The sweep has to ask for a draw itself: the per-level widths
+    are written to the `col` elements during one, so resizing the overlays would not move them.
+
+    "edit" builds its labels from a data column, so editing a cell changes a label. That measurement
+    is deferred out of the edit, because a ghost table measured inside it comes back too small.
+  -->
+  <h2>Longest label past the sync limit</h2>
+  <div id="late-grid" data-testid="late-grid"></div>
+
+  <h2>Label built from cell data</h2>
+  <div id="edit-grid" data-testid="edit-grid"></div>
+
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The
     // closing tag is split so the HTML parser does not end THIS script block.
@@ -83,6 +99,41 @@
     });
 
     window.hot = hot;
+
+    // --- the longest label sits far past syncLimit, so only the idle sweep finds it ---
+    const LATE_ROWS = 3000;
+    const LATE_ROW = 2500;
+    const LATE_LABEL = 'A considerably longer row label here';
+
+    const lateContainer = document.querySelector('[data-testid="late-grid"]');
+
+    lateContainer.className = `ht-theme-${window.htTheme}`;
+
+    window.lateHot = new Handsontable(lateContainer, {
+      data: Array.from({ length: LATE_ROWS }, (_, i) => [i]),
+      colHeaders: ['A'],
+      rowHeaders: i => (i === LATE_ROW ? LATE_LABEL : `R${i}`),
+      // one row before the first paint; every other label is found by the sweep
+      autoRowHeaderSize: { syncLimit: 1 },
+      height: 120,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // --- labels come from the data, so an edit changes one ---
+    const editData = [['ID-1'], ['ID-2'], ['ID-3']];
+    const editContainer = document.querySelector('[data-testid="edit-grid"]');
+
+    editContainer.className = `ht-theme-${window.htTheme}`;
+
+    window.editHot = new Handsontable(editContainer, {
+      data: editData,
+      colHeaders: ['A'],
+      rowHeaders: i => (editData[i] ? editData[i][0] : ''),
+      autoRowHeaderSize: true,
+      height: 'auto',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    window.editLongValue = 'ID-2-with-a-considerably-longer-value';
   </script>
 </body>
 </html>

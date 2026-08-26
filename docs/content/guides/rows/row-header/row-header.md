@@ -244,8 +244,9 @@ to have more of it settled before the first paint, or pass a percent string such
 it with the number of rows.
 
 Editing a cell does not start that work again. Only the rows that changed are read, because a row
-header label can be built from cell values - a data column used as the label, for instance. That can
-make a header wider, but never narrower: working out that a header should shrink means finding the
+header label can be built from cell values - a data column used as the label, for instance. That
+reading also waits for an idle moment, so a header widened by an edit grows a moment after the edit
+rather than during it. It can make a header wider, but never narrower: working out that a header should shrink means finding the
 new longest label, so it is left to the next full pass, which any change to the number of rows
 starts.
 

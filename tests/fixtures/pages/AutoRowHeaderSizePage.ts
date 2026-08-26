@@ -18,6 +18,8 @@ export class AutoRowHeaderSizePage {
   readonly bundle: string;
   readonly grid: Locator;
   readonly inlineStartOverlay: Locator;
+  readonly lateGrid: Locator;
+  readonly editGrid: Locator;
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
@@ -25,6 +27,37 @@ export class AutoRowHeaderSizePage {
     this.bundle = bundle;
     this.grid = page.getByTestId('grid');
     this.inlineStartOverlay = this.grid.locator('.ht_clone_inline_start');
+    this.lateGrid = page.getByTestId('late-grid');
+    this.editGrid = page.getByTestId('edit-grid');
+  }
+
+  /**
+   * The rendered width of the first row header cell of one of the extra grids, in CSS pixels.
+   *
+   * Read from the master table, which is what the reader actually sees - the point of both async
+   * cases is that a width the plugin has worked out has to reach the DOM.
+   *
+   * @param {Locator} grid The grid to read.
+   * @returns {Promise<number>}
+   */
+  async firstRowHeaderWidth(grid: Locator): Promise<number> {
+    return grid.locator('.ht_master tbody tr th').first()
+      .evaluate(th => th.getBoundingClientRect().width);
+  }
+
+  /**
+   * Writes a value into the "label built from cell data" grid.
+   *
+   * @param {number} row The row to write to.
+   * @param {string} value The value to write.
+   */
+  async editLabelSource(row: number, value: string): Promise<void> {
+    await this.page.evaluate(
+      ([r, v]) => (window as unknown as {
+        editHot: { setDataAtCell: (row: number, col: number, value: string) => void }
+      }).editHot.setDataAtCell(r as number, 0, v as string),
+      [row, value]
+    );
   }
 
   /** Navigate and wait for the row headers to have rendered - a real DOM condition, never a sleep. */

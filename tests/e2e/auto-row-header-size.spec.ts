@@ -44,4 +44,29 @@ test.describe('AutoRowHeaderSize geometry', () => {
     // out wider. Sizing every level by the first one's labels made these equal.
     expect(lineItem).toBeGreaterThan(group + 10);
   });
+
+  test('applies a width the idle sweep finds after the first paint', async () => {
+    // `syncLimit: 1` means only row 0 is read up front, so the 36-character label at row 2500 can
+    // only be found by the sweep - and the sweep has to ask for a draw itself, because the
+    // per-level widths are written to the `col` elements during one. Without that the header keeps
+    // its first-paint width, which for a grid nobody touches means forever.
+    //
+    // Asserted as an absolute floor rather than against a first-paint sample: the sweep can finish
+    // before the test gets to read that sample, which made the comparison race. A header holding
+    // only "R<n>" sits near the 50px default in every theme; one holding the long label is several
+    // times that, so the two states are far apart.
+    await expect.poll(() => grid.firstRowHeaderWidth(grid.lateGrid)).toBeGreaterThan(150);
+  });
+
+  test('widens a data-derived header after the cell behind it is edited', async () => {
+    const before = await grid.firstRowHeaderWidth(grid.editGrid);
+
+    await grid.editLabelSource(1, 'ID-2-with-a-considerably-longer-value');
+
+    // The measurement is deferred out of the edit, so this is not instant. It also must actually
+    // happen: measured inside the edit, the ghost table came back too small and the header never
+    // grew at all.
+    await expect.poll(() => grid.firstRowHeaderWidth(grid.editGrid))
+      .toBeGreaterThan(before + 20);
+  });
 });
