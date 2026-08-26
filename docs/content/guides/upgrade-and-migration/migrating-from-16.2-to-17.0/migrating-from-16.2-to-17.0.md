@@ -30,13 +30,13 @@ Starting from **version 17.0.0**, Handsontable 17.0 completely removes the legac
 If you want to use the `main` theme without any modifications, you don't need to configure anything. Handsontable will automatically use the `main` theme with default settings. However, if you want to retain the legacy look and feel, migrate to the **Classic** theme as described below.
 :::
 
-### What Changed
+### What changed
 
 - The legacy CSS file (`dist/handsontable.full.min.css`) is no longer available
 - You must now use the new theming system with either the Theme API or CSS-based themes
 - The Classic theme (`ht-theme-classic`) provides the same visual appearance as the legacy styles
 
-### How to Migrate
+### How to migrate
 
 If you were using the legacy styles, migrate to the Classic theme using one of the two options below.
 
@@ -190,7 +190,7 @@ const hot = new Handsontable(container, {
 </li>
 </ol>
 
-### Why Migrate to Classic?
+### Why migrate to Classic?
 
 The Classic theme provides the same visual appearance as the legacy style, but with significant improvements:
 
@@ -203,7 +203,7 @@ The Classic theme provides the same visual appearance as the legacy style, but w
 
 If you're currently using CSS-based themes (loading theme CSS files and passing theme name as a string), migrating to the Theme API provides better runtime control and customization options.
 
-### What Changed
+### What changed
 
 The Theme API provides a programmatic way to configure themes with runtime features that CSS-based themes don't support:
 
@@ -211,7 +211,7 @@ The Theme API provides a programmatic way to configure themes with runtime featu
 - **Density types**: Switch between compact, default, and comfortable density modes
 - **Dynamic customization**: Modify theme parameters at runtime using the `params()` method
 
-### How to Migrate
+### How to migrate
 
 #### Before: CSS-based theme
 
@@ -372,7 +372,7 @@ The following themes are available through the Theme API:
 
 ::: only-for angular
 
-### Global Theme Management in Angular
+### Global theme management in Angular
 
 In Angular, you can set a global default theme using the `HOT_GLOBAL_CONFIG` injection token:
 
@@ -405,22 +405,22 @@ HotGlobalConfigService.setConfig({ theme: theme });
 
 :::
 
-## 3. Migrate from Numbro Format to Intl.NumberFormat
+## 3. Migrate from numbro format to Intl.NumberFormat
 
 Handsontable 17.0 introduces native support for the [`Intl.NumberFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat) API for numeric formatting. The numbro.js-based formatting (`pattern` and `culture` options) will be removed in next major release.
 
-### What Changed
+### What changed
 
 - **Native Intl Support**: The `numericFormat` option now accepts all properties of `Intl.NumberFormatOptions`
 - **Locale Separation**: Locale is now controlled via the `locale` cell property instead of `numericFormat.culture`
 - **Standard API**: Uses the browser's native internationalization API, which is more performant and widely supported
 - **Removed Dependency**: In the next major release, the numbro.js library will be removed from Handsontable
 
-### Why This Change
+### Why this change
 
 The numbro.js library added unnecessary bundle size and maintenance overhead. The native `Intl.NumberFormat` API provides the same functionality with better performance, broader browser support, and no external dependencies. This change aligns Handsontable with web standards and reduces the overall package size.
 
-### How to Migrate
+### How to migrate
 
 <ol class="sl-steps">
 <li>
@@ -609,7 +609,7 @@ If you need numbro.js-specific formatting features that aren't available in `Int
 </li>
 </ol>
 
-### What to Expect
+### What to expect
 
 - **Console Warning**: You'll see a deprecation warning if you're still using `pattern` or `culture` options
 - **Same Functionality**: Most common formatting patterns can be replicated using `Intl.NumberFormat` options
@@ -625,11 +625,11 @@ If you need numbro.js-specific formatting features that aren't available in `Int
 
 - [Numeric cell type](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
 
-## 4. Migrate from Moment.js Format to Intl.DateTimeFormat
+## 4. Migrate from Moment.js format to Intl.DateTimeFormat
 
 Handsontable 17.0 introduces native support for the [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API for date and time formatting. The Moment.js-style string formats (`dateFormat` and `timeFormat` as strings) used by the legacy `date` and `time` cell types will be removed in the next major release.
 
-### What Changed
+### What changed
 
 - **Native Intl Support**: The `dateFormat` and `timeFormat` options now accept all properties of `Intl.DateTimeFormat` options when using `intl-date` and `intl-time` cell types
 - **Locale Separation**: Locale is controlled via the `locale` cell property instead of being implied by the format string
@@ -637,11 +637,11 @@ Handsontable 17.0 introduces native support for the [`Intl.DateTimeFormat`](http
 - **Source Data**: For `intl-date`, store values in ISO 8601 date format (`YYYY-MM-DD`). For `intl-time`, store values in 24-hour format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`)
 - **Deprecated options**: The `correctFormat` option (auto-correction of entered date/time format for legacy `date`/`time` cells) and the `datePickerConfig` option (Pikaday-based date picker for the legacy `date` cell type) are deprecated and will be removed in the next major release
 
-### Why This Change
+### Why this change
 
 Moment.js is in maintenance mode and the legacy `date`/`time` cell types depend on it for string-format parsing. The native `Intl.DateTimeFormat` API provides locale-aware formatting without external dependencies, with better performance and alignment with web standards. This change reduces bundle size and keeps date/time behavior consistent with the rest of the platform.
 
-### How to Migrate
+### How to migrate
 
 <ol class="sl-steps">
 <li>
@@ -934,7 +934,7 @@ If you use custom cell types that rely on Moment.js for formatting or parsing (e
 </li>
 </ol>
 
-### What to Expect
+### What to expect
 
 - **Console Warning**: You'll see a deprecation warning if you still use string `dateFormat` or `timeFormat` with the `date` or `time` cell types, or if you use the `correctFormat` or `datePickerConfig` options
 - **Data Format**: Ensure date values are in `YYYY-MM-DD` and time values in 24-hour form; `intl-date`/`intl-time` only change display, not storage
@@ -954,17 +954,17 @@ If you use custom cell types that rely on Moment.js for formatting or parsing (e
 
 Handsontable 17.0 introduces a configurable [`sanitizer`](@/api/options.md#sanitizer) option for HTML content. The built-in use of the [DOMPurify](https://www.npmjs.com/package/dompurify) library is deprecated and will be removed in the next major release. After that, if you do not set a custom sanitizer, any string containing HTML is written to the DOM unchanged and Handsontable logs a warning -- it is not sanitized for you. To keep sanitizing HTML (with DOMPurify or another library), set the `sanitizer` option to your own sanitizer function.
 
-### What Changed
+### What changed
 
 - **New `sanitizer` option (v17.0)**: A table-level option that accepts a function `(content, source) => string`. It is used whenever HTML is written to the DOM (cell values, headers, context menu labels, dialog markup, clipboard paste).
 - **Default behavior**: In 17.0 the grid still uses `DOMPurify` by default but shows a deprecation warning. In the next major release, DOMPurify is removed; with no custom `sanitizer`, HTML in content passes through unchanged and the grid warns once per instance.
 - **Source parameter**: The second argument indicates where the content is used (`'innerHTML'` or `'CopyPaste.paste'`), so you can apply different rules per context.
 
-### Why This Change
+### Why this change
 
 Making sanitization configurable gives you control over allowlists, library choice, and integration with Trusted Types and CSP. It also allows removing `DOMPurify` from the bundle for applications that use a different sanitization strategy or none.
 
-### How to Migrate
+### How to migrate
 
 #### Option 1: Keep using DOMPurify (recommended if you need rich HTML)
 
@@ -1084,7 +1084,7 @@ sanitizer: (content, source) =>
   policy ? policy.createHTML(content) : DOMPurify.sanitize(content),
 ```
 
-### What to Expect
+### What to expect
 
 - **Console warning in 17.0**: If you keep the default (`DOMPurify`) without setting `sanitizer`, a deprecation warning is shown pointing to the `sanitizer` option.
 - **Next major release**: `DOMPurify` is removed from dependencies. Without a custom `sanitizer`, HTML in cell content, headers, menus, and paste is written to the DOM unchanged, and the grid logs a warning naming the write surface.
@@ -1104,17 +1104,17 @@ sanitizer: (content, source) =>
 
 Starting in **version 17.0**, Handsontable no longer depends on or bundles [core-js](https://github.com/zloirock/core-js). The library relied on it in the past for polyfills (e.g. ECMAScript 5/6 features, Promises, Symbols, collections). Handsontable removes that dependency to reduce bundle size and to avoid forcing a specific polyfill set on applications that target modern environments only.
 
-### What Changed
+### What changed
 
 - **No core-js in the package**: The `core-js` package is no longer a dependency of Handsontable
 - **No bundled polyfills**: The built bundles no longer include core-js modules
 - **Modern runtimes**: Handsontable 17.0 targets environments that already provide the required APIs (see [browser support](@/guides/technical-specification/supported-browsers/supported-browsers.md))
 
-### Why This Change
+### Why this change
 
 `core-js` added significant size to the bundle and was unnecessary for applications that only support modern browsers and Node versions. Dropping it lets the library stay smaller and lets each application choose its own polyfill strategy (or none) based on its own target environment.
 
-### How to Migrate
+### How to migrate
 
 If your application or build previously relied on Handsontable (or its build tooling) to pull in `core-js`, and you still need to support older environments that lack certain APIs:
 
@@ -1123,7 +1123,7 @@ If your application or build previously relied on Handsontable (or its build too
 
 If you only target modern browsers and runtimes, no action is needed.
 
-### What to Expect
+### What to expect
 
 - **Smaller Handsontable bundle**: The library no longer ships polyfill code
 - **No automatic polyfills**: You must add and maintain polyfills yourself if you support older environments
@@ -1142,12 +1142,12 @@ If you only target modern browsers and runtimes, no action is needed.
 
 The **Formulas** plugin uses [HyperFormula](https://hyperformula.handsontable.com/) as its calculation engine. Currently, HyperFormula is bundled with Handsontable. In **version 18.0**, it will be removed from `package.json`.
 
-### What to Expect
+### What to expect
 
 - **Version 17.x**: Built-in HyperFormula remains available, no change required yet.
 - **Version 18.0**: HyperFormula is removed from Handsontable dependencies. You must add it as your own dependency and configure the Formulas plugin to use your instance.
 
-### How to Prepare
+### How to prepare
 
 1. Install HyperFormula in your project (e.g. `npm install hyperformula`).
 2. Import HyperFormula and pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'`.

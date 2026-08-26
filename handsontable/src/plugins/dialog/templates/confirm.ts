@@ -2,6 +2,7 @@ import { DIALOG_CLASS_NAME } from '../constants';
 import { throwWithCause } from '../../../helpers/errors';
 import { stripTags } from '../../../helpers/string';
 import { html } from '../../../helpers/templateLiteralTag';
+import { resolveButtonType } from '../../../helpers/uiButton';
 
 /**
  * The `confirmTemplate` function returns a HTML string with the confirm template.
@@ -18,7 +19,10 @@ import { html } from '../../../helpers/templateLiteralTag';
  */
 export function confirmTemplate({ id = '', title = '', description = '', buttons = [] }: {
   id?: string, title?: string, description?: string,
-  buttons?: Array<{ type: string, text: string, callback?: Function }>
+  // `type` is `unknown`, not `ButtonType`: the value arrives from a plugin setting, and the whole
+  // point of `resolveButtonType()` below is that this function does not trust it. Declaring the
+  // narrow type here would let a caller assume the check had already happened.
+  buttons?: Array<{ type: unknown, text: string, callback?: Function }>
 }) {
   /**
    * Returns the HTML string for the template.
@@ -39,7 +43,7 @@ export function confirmTemplate({ id = '', title = '', description = '', buttons
         ${buttons.length > 0 ? `
           <div data-ref="buttonsContainer" class="${DIALOG_CLASS_NAME}__buttons">
             ${buttons.map(button => `
-              <button class="ht-button ht-button--${button.type}">${stripTags(button.text)}</button>
+              <button class="ht-button ht-button--${resolveButtonType(button.type)}">${stripTags(button.text)}</button>
             `).join('')}
           </div>
         ` : ''}

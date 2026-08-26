@@ -1267,7 +1267,7 @@ In the example below, some cells are read-only, and some cells are editable:
 
 ::: only-for react
 
-## Non-Idempotent Options
+## Non-idempotent options
 
 A non-idempotent option is one that produces different results when applied multiple times. In the context of Handsontable and `<HotTable/>` component, options like `manualColumnMove=[1, 0]` will swap columns every time they're applied - first application swaps columns, second application swaps them back, third swaps again, and so on.
 

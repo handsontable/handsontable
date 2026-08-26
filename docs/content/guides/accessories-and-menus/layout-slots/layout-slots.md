@@ -11,7 +11,6 @@ tags:
   - pagination
 searchCategory: Guides
 category: Accessories and menus
-menuTag: new
 ---
 
 Place custom UI in the slots that Handsontable renders around the grid, and control the order of the elements within each slot.

@@ -30,6 +30,7 @@ Monorepo-wide orientation, not core internals.
 | [`BREAKING-CHANGES.md`](BREAKING-CHANGES.md) | Full breaking-changes policy: the per-change table (CSS classes, APIs, hooks, options, defaults), legacy vs deprecated, and what is NOT considered breaking. |
 | [`TESTING.md`](TESTING.md) | Overview of every test pipeline with its run command and a pointer to the deep reference. |
 | [`MCP.md`](MCP.md) | code-review-graph and context tooling (monorepo-wide). |
+| [`WORKTREES.md`](WORKTREES.md) | Working in a linked git worktree: what a fresh worktree is missing, the bootstrap command, and the port and `node_modules` traps. |
 
 ### Core scope — `handsontable/.ai/`
 

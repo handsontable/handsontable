@@ -1162,6 +1162,357 @@ describe('Formulas general', () => {
     });
   });
 
+  describe('persisting engine-rewritten formulas in the source data (#10388)', () => {
+    // A structural change makes HyperFormula rewrite every reference that points at the moved
+    // range. Until that rewrite reaches the array the developer handed to Handsontable, an outside
+    // owner of that array (a Redux store, a React `data` prop) keeps the old formula and reverts it
+    // the moment the array is loaded back in.
+    const getDataWithFormula = () => [
+      [10, '=SUM(A1:A3)'],
+      [20, null],
+      [30, null],
+    ];
+
+    it('should write the rewritten formula into the passed data array after inserting a row', async() => {
+      const data = getDataWithFormula();
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      await alter('insert_row_above', 1, 1);
+
+      expect(data[0][1]).toBe('=SUM(A1:A4)');
+    });
+
+    it('should write the rewritten formula into the passed data array after removing a row', async() => {
+      const data = getDataWithFormula();
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      await alter('remove_row', 1, 1);
+
+      expect(data[0][1]).toBe('=SUM(A1:A2)');
+    });
+
+    it('should write the rewritten formula into the passed data array after inserting a column', async() => {
+      const data = getDataWithFormula();
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      await alter('insert_col_start', 0, 1);
+
+      expect(data[0][2]).toBe('=SUM(B1:B3)');
+    });
+
+    it('should write the rewritten formula into the passed data array after removing a column', async() => {
+      const data = [
+        [10, 5, '=SUM(B1:B3)'],
+        [20, 5, null],
+        [30, 5, null],
+      ];
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      await alter('remove_col', 0, 1);
+
+      expect(data[0][1]).toBe('=SUM(A1:A3)');
+    });
+
+    it('should keep the rewritten formula when the passed data array is loaded back in', async() => {
+      const data = getDataWithFormula();
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      await alter('insert_row_above', 1, 1);
+
+      // Replays what a Redux-driven re-render does: push the store's array back into the grid.
+      await updateSettings({ data });
+
+      expect(getSourceDataAtCell(0, 1)).toBe('=SUM(A1:A4)');
+      expect(getDataAtCell(0, 1)).toBe(60);
+    });
+
+    it('should write the rewritten formula into an object data source under its own property', async() => {
+      const data = [
+        { year: 10, total: '=SUM(A1:A3)' },
+        { year: 20, total: null },
+        { year: 30, total: null },
+      ];
+
+      handsontable({
+        data,
+        columns: [{ data: 'year' }, { data: 'total' }],
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      await alter('insert_row_above', 1, 1);
+
+      expect(data[0].total).toBe('=SUM(A1:A4)');
+      expect(Object.keys(data[0])).toEqual(['year', 'total']);
+    });
+
+    it('should restore the formula in the passed data array with a single undo', async() => {
+      const data = getDataWithFormula();
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      await alter('insert_row_above', 1, 1);
+
+      expect(data[0][1]).toBe('=SUM(A1:A4)');
+
+      getPlugin('undoRedo').undo();
+
+      expect(data[0][1]).toBe('=SUM(A1:A3)');
+      expect(getSourceDataAtCell(0, 1)).toBe('=SUM(A1:A3)');
+      expect(countRows()).toBe(3);
+
+      getPlugin('undoRedo').redo();
+
+      expect(data[0][1]).toBe('=SUM(A1:A4)');
+      expect(getSourceDataAtCell(0, 1)).toBe('=SUM(A1:A4)');
+      expect(countRows()).toBe(4);
+    });
+
+    it('should write the rewritten formula into a row hidden by a filter', async() => {
+      const data = [
+        ['show', 1, '=SUM(B1:B4)'],
+        ['show', 2, null],
+        ['hide', 3, '=SUM(B1:B4)'],
+        ['show', 4, null],
+      ];
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+        filters: true,
+        dropdownMenu: true,
+        colHeaders: true,
+      });
+
+      const filters = getPlugin('filters');
+
+      filters.addCondition(0, 'eq', ['show']);
+      filters.filter();
+
+      await alter('insert_row_above', 0, 1);
+
+      // Both rows moved down by one. The filtered-out row holds a formula too, and the engine
+      // rewrote it just the same - it must not be left behind.
+      expect(data[1][2]).toBe('=SUM(B2:B5)');
+      expect(data[3][2]).toBe('=SUM(B2:B5)');
+    });
+
+    it('should leave a formula the change did not affect spelled as the developer wrote it', async() => {
+      const data = [
+        [1, '=SUM(A1:A3)'],
+        [2, null],
+        [3, null],
+        [4, '=sum( a1 : a2 )'],
+        [5, '=iF(TruE(),1,2)'],
+      ];
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      // Inserting below everything shifts no reference at all.
+      await alter('insert_row_below', 4, 1);
+
+      // The engine reports a canonical spelling. Treating that as a change would rewrite formulas
+      // the operation never touched - including one with no cell reference in it.
+      expect(data[3][1]).toBe('=sum( a1 : a2 )');
+      expect(data[4][1]).toBe('=iF(TruE(),1,2)');
+      expect(data[0][1]).toBe('=SUM(A1:A3)');
+    });
+
+    it('should write into the right column when `columns` reorders the source columns', async() => {
+      const data = [
+        [1, '=SUM(A1:A3)'],
+        [2, null],
+        [3, null],
+      ];
+
+      handsontable({
+        data,
+        // Same column count, so the data fed to the engine is not projected - the engine holds
+        // physical indexes while the grid reads them through `colToProp`.
+        columns: [{ data: 1 }, { data: 0 }],
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      await alter('insert_row_above', 1, 1);
+
+      expect(data[0][1]).toBe('=SUM(A1:A4)');
+      // The number must survive - writing the formula here would destroy it for good.
+      expect(data[0][0]).toBe(1);
+    });
+
+    it('should not persist a broken reference the change could not have caused', async() => {
+      const data = [
+        [1, '=SUM(A1:A3)'],
+        [2, null],
+        [3, null],
+      ];
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+        manualRowMove: true,
+        columnSorting: true,
+        rowHeaders: true,
+      });
+
+      getPlugin('manualRowMove').moveRow(0, 2);
+      await render();
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      // The engine is left holding `=SUM(#REF!)` here for reasons this change did not cause.
+      await alter('insert_row_above', 1, 1);
+
+      // An insert cannot break a reference, so the good formula must stay.
+      expect(data[0][1]).toBe('=SUM(A1:A3)');
+    });
+
+    it('should not touch the passed data array when rows are only moved', async() => {
+      const data = getDataWithFormula();
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+        manualRowMove: true,
+        rowHeaders: true,
+      });
+
+      getPlugin('manualRowMove').moveRow(0, 2);
+      await render();
+
+      // A move reorders the indexes only - the source array keeps its own order and its own
+      // reference frame, so nothing has to be written back to it.
+      expect(data[0][1]).toBe('=SUM(A1:A3)');
+    });
+
+    it('should not touch the passed data array when a row is inserted into a moved grid', async() => {
+      const data = [
+        [1, '=A1+10'],
+        [2, '=A2+100'],
+        [3, '=A3+1000'],
+      ];
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+        manualRowMove: true,
+        rowHeaders: true,
+      });
+
+      getPlugin('manualRowMove').moveRow(0, 2);
+      await render();
+
+      await alter('insert_row_below', 2, 1);
+
+      // Once rows are moved the engine and the source data no longer share a reference frame, so
+      // the engine's formulas must not be copied into the array the developer owns.
+      expect(data[0][1]).toBe('=A1+10');
+      expect(data[1][1]).toBe(null);
+      expect(data[2][1]).toBe('=A2+100');
+      expect(data[3][1]).toBe('=A3+1000');
+    });
+
+    it('should not touch the passed data array when an edit is undone in a moved grid', async() => {
+      const data = [
+        [1, '=A1+10'],
+        [2, '=A2+100'],
+        [3, '=A3+1000'],
+      ];
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+        manualRowMove: true,
+        rowHeaders: true,
+      });
+
+      getPlugin('manualRowMove').moveRow(0, 2);
+      await render();
+
+      await setDataAtCell(0, 0, 999);
+
+      getPlugin('undoRedo').undo();
+
+      // Undoing a plain cell edit is not a structural change, so it must not persist the moved
+      // reference frame into the array the developer owns.
+      expect(data[0][1]).toBe('=A1+10');
+      expect(data[1][1]).toBe('=A2+100');
+      expect(data[2][1]).toBe('=A3+1000');
+    });
+
+    it('should report the rewritten formula through the `afterSetSourceDataAtCell` hook', async() => {
+      const data = getDataWithFormula();
+      const afterSetSourceDataAtCell = jasmine.createSpy('afterSetSourceDataAtCell');
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+        afterSetSourceDataAtCell,
+      });
+
+      await alter('insert_row_above', 1, 1);
+
+      // The reported previous value must be the one that was really stored, not the engine's new
+      // formula - a store that compares the two has to be able to see the change.
+      expect(afterSetSourceDataAtCell).toHaveBeenCalledTimes(1);
+      expect(afterSetSourceDataAtCell.calls.mostRecent().args[0]).toEqual([[0, 1, '=SUM(A1:A3)', '=SUM(A1:A4)']]);
+    });
+  });
+
   describe('Autofill', () => {
     it('should not override result of simple autofill (populating one cell) #8050', async() => {
       handsontable({
@@ -1666,7 +2017,7 @@ describe('Formulas general', () => {
   });
 
   describe('hyperformula alter operation blocks', () => {
-    it('should block creating too many rows', async() => {
+    it('should cap row creation at `maxRows`, like a grid without the plugin', async() => {
       handsontable({
         data: [],
         formulas: {
@@ -1680,7 +2031,9 @@ describe('Formulas general', () => {
 
       await alter('insert_row_above', 0, 20000);
 
-      expect(countRows()).toEqual(0);
+      // The engine no longer carries the grid's `maxRows` (GH #10672), so it stops cancelling the whole
+      // insert and `dataMap.createRow` caps it at `maxRows` - the same as a grid without the plugin.
+      expect(countRows()).toEqual(10000);
     });
 
     it('should block creating too many columns', async() => {

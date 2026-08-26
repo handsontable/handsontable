@@ -65,6 +65,16 @@ export class FormulasMoveCellsPage {
   }
 
   /**
+   * The array the grid was constructed with, as it stands now.
+   *
+   * Handsontable projects HyperFormula's formulas onto its own reads, so `getSourceData()` can look
+   * right while this array holds stale text. Only this tells the two apart.
+   */
+  async rawData(): Promise<unknown[][]> {
+    return this.page.evaluate(() => (window as any).rawData);
+  }
+
+  /**
    * Rebuild the grid with this test's dataset merged with optional setting overrides
    * (e.g. `{ trimRows: [1] }`) — a fresh Handsontable instance and a fresh HyperFormula
    * sheet, so tests stay isolated.

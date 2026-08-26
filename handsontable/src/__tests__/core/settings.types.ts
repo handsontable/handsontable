@@ -61,6 +61,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   className: oneOf('foo', ['foo']),
   colHeaders: oneOf(true, ['first-class-name', 'second-class-name']),
   collapsibleColumns: true,
+  colorScheme: oneOf('light', 'dark', 'auto'),
+  density: oneOf('default', 'compact', 'comfortable'),
   columnHeaderHeight: oneOf(35, [35, 55]),
   columns: [
     {
@@ -93,6 +95,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   dataSchema: oneOf({}, [[]], (index: number) => oneOf([index], { index })),
   dateFormat: oneOf({ year: 'numeric', month: '2-digit', day: '2-digit' } as Intl.DateTimeFormatOptions),
+  dateTimeFormat: oneOf(
+    { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' } as
+      Intl.DateTimeFormatOptions
+  ),
   defaultDate: 'foo',
   timeFormat: oneOf({ hour: 'numeric', minute: '2-digit' } as Intl.DateTimeFormatOptions),
   tabNavigation: oneOf(false),
@@ -218,7 +224,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
   rowHeaderWidth: oneOf(25, [25, 30, 55]),
   rowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
-  sanitizer: (content: string, source: 'innerHTML' | 'CopyPaste.paste') => content,
+  // The option's own signature is unchanged; `SanitizerContext` is the opt-in annotation. Full
+  // coverage, including the call-arity axis, lives in `sanitizer.types.ts`.
+  sanitizer: oneOf(
+    (content: string) => content,
+    (content: string, source: string) => content,
+    (content: string, source: Handsontable.SanitizerContext) => content,
+    (content: string, source: 'innerHTML' | 'CopyPaste.paste') => content,
+  ),
   search: true,
   selectionMode: oneOf('single', 'range', 'multiple'),
   selectionHandles: true,
@@ -506,6 +519,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterRowsMutationError: (operation, error, payload) => {},
   afterRender: (isForced) => {},
   afterRenderer: (TD, row, col, prop, value, cellProperties) => {},
+  afterRowCollapse: (currentCollapsedRows, destinationCollapsedRows, collapsePossible,
+                     successfullyCollapsed) => {},
+  afterRowExpand: (currentCollapsedRows, destinationCollapsedRows, expandPossible,
+                   successfullyExpanded) => {},
   afterRowMove: (movedRows, finalIndex, dropIndex, movePossible,
                  orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
   afterRowResize: (newSize, row, isDoubleClick) => {},
@@ -682,6 +699,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeRemoveRow: (index, amount, physicalRows = [1, 2, 3], source) => {},
   beforeRender: (isForced) => {},
   beforeRenderer: (TD, row, col, prop, value, cellProperties) => {},
+  beforeRowCollapse: (currentCollapsedRows, destinationCollapsedRows, collapsePossible) => {},
+  beforeRowExpand: (currentCollapsedRows, destinationCollapsedRows, expandPossible) => {},
   beforeRowMove: (movedRows, finalIndex, dropIndex, movePossible) => {},
   beforeRowResize: (newSize, row, isDoubleClick) => false,
   beforeRowWrap: (isActionInterrupted, newCoords, isRowFlipped) => {

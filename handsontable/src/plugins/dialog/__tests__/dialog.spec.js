@@ -182,5 +182,23 @@ describe('Dialog', () => {
 
       expect(warnSpy).not.toHaveBeenCalled();
     });
+
+    it('should call the sanitizer with the `dialog` context', async() => {
+      const sanitizer = jasmine.createSpy('sanitizer')
+        .and
+        .callFake(content => content.replace(/</g, '&lt;').replace(/>/g, '&gt;'));
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        sanitizer,
+        dialog: true,
+      });
+
+      getPlugin('dialog').show({ content: '<b>Bold dialog</b>' });
+
+      // The dialog used to wrap the sanitizer in `(html, ctx) => sanitizer(html)`, dropping the
+      // context, so a context-aware sanitizer could not tell dialog content from anything else.
+      expect(sanitizer).toHaveBeenCalledWith('<b>Bold dialog</b>', 'dialog');
+    });
   });
 });

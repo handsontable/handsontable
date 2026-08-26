@@ -651,6 +651,52 @@ The plugin inherits all calculation capabilities from HyperFormula. The complete
 in the
 [HyperFormula built-in functions docs](https://handsontable.github.io/hyperformula/guide/built-in-functions.html).
 
+## Render `HYPERLINK` formulas as links
+
+By default, a cell that holds a `HYPERLINK` formula displays the link label as plain text. To render
+it as a clickable link, set the `hyperlinks` property of the [`formulas`](@/api/options.md#formulas)
+option to `true`:
+
+```js
+formulas: {
+  engine: HyperFormula,
+  hyperlinks: true,
+},
+```
+
+With `hyperlinks` enabled, `=HYPERLINK("https://handsontable.com", "Handsontable")` renders
+`Handsontable` as a link that points to `https://handsontable.com`. When you omit the second
+argument, the URL becomes the label.
+
+The cell keeps its own renderer. Handsontable wraps whatever the renderer produced in a link element,
+so a custom renderer, a [cell type](@/guides/cell-types/cell-type/cell-type.md), and the cell's
+configuration all keep working.
+
+Only a cell whose root expression is `HYPERLINK` becomes a link. A nested call such as
+`=CONCATENATE("see ", HYPERLINK("https://handsontable.com"))` evaluates to text, so the cell renders
+as text.
+
+### Allowed URL schemes
+
+Handsontable creates a link only for the `http`, `https`, `mailto`, and `tel` schemes. Any other
+scheme, including `javascript:`, renders the label as plain text and logs a warning. This applies to
+the URL that the formula produces, so a URL that comes from cell data is checked the same way.
+
+### Keyboard access
+
+A link inside a cell stays out of the tab order, so tabbing still moves between cells. To open the
+link of the selected cell, press <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>. Links open in a new browser
+tab.
+
+### Styling
+
+Each link element gets the `ht-hyperlink` class, and takes its color from the `--ht-link-color` and
+`--ht-link-hover-color` [theme variables](@/guides/styling/themes/themes.md).
+
+To render links in cells that hold plain URLs rather than formulas, write a
+[custom renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md#render-hyperlinks-in-cells)
+instead.
+
 ## [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook
 
 This hook fires whenever the calculation engine recomputes cell values - including cells that

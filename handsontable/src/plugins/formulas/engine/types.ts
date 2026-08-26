@@ -5,13 +5,17 @@
 export interface HyperFormulaEngine {
   doesSheetExist(sheetName: string): boolean;
   getSheetId(sheetName: string): number;
+  getSheetName(sheetId: number): string | undefined;
   addSheet(sheetName?: string): string;
   setSheetContent(sheetId: number | null, data: unknown[][]): unknown[];
   getSheetSerialized(sheetId: number | null): unknown[][];
+  getSheetFormulas(sheetId: number | null): (string | undefined)[][];
+  normalizeFormula(formula: string): string;
   getSheetDimensions(sheetId: number): { width: number; height: number };
   getCellType(address: { sheet: number | null; row: number; col: number }): unknown;
   doesCellHaveFormula(address: { sheet: number | null; row: number; col: number }): boolean;
   getCellValue(address: { sheet: number | null; row: number; col: number }): unknown;
+  getCellHyperlink(address: { sheet: number | null; row: number; col: number }): string | undefined;
   getCellSerialized(address: { sheet: number | null; row: number; col: number }): unknown;
   isItPossibleToSetCellContents(address: object): boolean;
   setCellContents(address: { sheet: number | null; row: number; col: number }, value: unknown): unknown[];

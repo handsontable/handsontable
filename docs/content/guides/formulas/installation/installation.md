@@ -18,7 +18,6 @@ vue:
   metaTitle: Install HyperFormula - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Formulas
-menuTag: new
 ---
 
 The [`Formulas`](@/api/formulas.md) plugin runs on [HyperFormula](https://hyperformula.handsontable.com/),

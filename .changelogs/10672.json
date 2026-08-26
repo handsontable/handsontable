@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a `Sheet size limit exceeded` error thrown when grids sharing one HyperFormula instance used different `maxRows` values. The grid's `maxRows` and `maxCols` no longer limit the engine, so an oversized insert is now capped at the limit instead of being rejected.",
+  "type": "fixed",
+  "issueOrPR": 10672,
+  "breaking": false,
+  "framework": "none"
+}

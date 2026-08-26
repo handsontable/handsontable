@@ -4,6 +4,7 @@ import type { EngineContext } from './wire';
 import {
   closestDown,
   eventTargetEl,
+  getDeepActiveElement,
   hasClass,
   isChildOf,
   getParent,
@@ -289,7 +290,7 @@ class Event {
    * @param {MouseEvent} event The mouse event object.
    */
   onMouseDown(event: MouseEvent | TouchEvent) {
-    const activeElement = this.#deps.rootDocument.activeElement;
+    const activeElement = getDeepActiveElement(this.#deps.rootDocument);
     const targetEl = eventTargetEl(event)!;
     const getParentNode = (level: number) => getParent(targetEl, level);
     const realTarget = eventTargetEl(event);

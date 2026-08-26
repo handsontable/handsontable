@@ -50,6 +50,33 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   under `fixtures/`; rebuilding a bundle or reinstalling the engine re-runs
   affected specs. Do not narrow that hash.
 
+## Touch and mobile specs
+
+- Page objects for mobile specs live in `fixtures/pages/mobile/` (as walkontable's do in
+  `fixtures/pages/walkontable/`). A mobile spec must declare
+  `test.use({ ...devices['iPhone 13'], browserName: 'chromium' })`: Handsontable decides
+  whether to create the mobile selection handles from the **user agent, at grid construction
+  time**, so without the emulation the handles never exist and the spec fails for the wrong
+  reason. Assert the handle is visible before touching it.
+- `page.touchscreen` only **taps** — it has no drag. A touch drag needs CDP
+  (`page.context().newCDPSession(page)` → `Input.dispatchTouchEvent`), which is also why those
+  specs pin `browserName: 'chromium'`. Nothing else here emits trusted `touchmove`.
+- Auto-scroll assertions must check **progress while the pointer rests**, never that one offset
+  is non-zero: extending a selection onto a partially visible row or column scrolls it into view
+  on its own, so `scrollTop > 0` passes with the auto-scroller dead. The scroll timer
+  reschedules itself, so one `touchmove` past the edge starts it — poll for a further increase
+  instead of holding for a fixed time (`waitForTimeout` is banned, see below).
+
+## The server port
+
+The webServer binds `8123` and has `reuseExistingServer` on outside CI, so a second
+checkout — a worktree beside the main clone — silently attaches to the **first
+one's server and build** and reports results describing the wrong code. Set
+`HOT_TEST_PORT` to a free port to run two at once; the config passes it to
+`support/static-server.mjs`, so the two never disagree. Before believing a strange
+result, check who owns the port with `lsof -i :8123`. Background in
+`.ai/WORKTREES.md`.
+
 ## Determinism
 
 Ships at `error` in `.eslintrc.cjs`: no `waitForTimeout`, `sleep`,

@@ -72,6 +72,12 @@
       --ht-cell-horizontal-padding: calc(
               var(--ht-menu-item-horizontal-padding, 2px) +
               var(--ht-gap-size, 2px) * 2);
+      // The list's rows are shorter than the grid's. It has to be declared through the variable and
+      // not written straight onto the cells: `StylesHandler#getDefaultRowHeight()` derives the row
+      // height from the line height and this padding, and Walkontable sizes the list's scroll range
+      // from that sum. A literal padding here leaves the variable at the theme's value, so the list
+      // gets a scroll range computed from a row height it does not have (DEV-2515).
+      --ht-cell-vertical-padding: 4px;
 
       overflow: initial !important;
       width: calc(
@@ -105,7 +111,7 @@
 
         td {
           height: auto !important;
-          padding: 4px var(--ht-cell-horizontal-padding);
+          padding: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);
         }
       }
     }

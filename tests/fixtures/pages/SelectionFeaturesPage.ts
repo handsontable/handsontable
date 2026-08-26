@@ -718,6 +718,137 @@ export class SelectionFeaturesPage {
     return this.page.locator('.ht_master .wtMoveZone:visible');
   }
 
+  /** The autofill fill handle of the focus selection, scoped to the master overlay. */
+  fillHandle(): Locator {
+    return this.page.locator('.ht_master .wtBorder.current.corner:visible');
+  }
+
+  /**
+   * The fill handle drawn by the frozen-columns overlay — a selection ending inside that pane is
+   * rendered by the clone, not by the master.
+   */
+  frozenColumnsFillHandle(): Locator {
+    return this.page.locator('.ht_clone_inline_start .wtBorder.current.corner:visible');
+  }
+
+  /** The fill handle drawn by the frozen top-rows overlay. */
+  frozenTopFillHandle(): Locator {
+    return this.page.locator('.ht_clone_top .wtBorder.current.corner:visible');
+  }
+
+  /**
+   * How far a frozen overlay's own fill handle sticks out past the edge that clips it, in pixels.
+   * The clipping box is the overlay's `.wtHolder` (`overflow: hidden`), not the clone element, which
+   * is `overflow: visible` and ends a few pixels earlier — measuring the clone reports an overhang
+   * that is not actually cut off.
+   */
+  async frozenFillHandleOverflow(pane: 'columns' | 'rows'): Promise<number> {
+    return this.page.evaluate((targetPane) => {
+      const overlaySelector = targetPane === 'columns' ? '.ht_clone_inline_start' : '.ht_clone_top';
+      const clippingBox = document.querySelector(`${overlaySelector} .wtHolder`);
+      const handle = document.querySelector(`${overlaySelector} .wtBorder.current.corner`);
+
+      if (!clippingBox || !handle) {
+        throw new Error(`No fill handle is rendered by "${overlaySelector}".`);
+      }
+
+      const clippingRect = clippingBox.getBoundingClientRect();
+      const handleRect = handle.getBoundingClientRect();
+
+      return targetPane === 'columns'
+        ? handleRect.right - clippingRect.right
+        : handleRect.bottom - clippingRect.bottom;
+    }, pane);
+  }
+
+  /**
+   * The stacking order the selection affordances resolve to. `.ht_master` declares no z-index, so
+   * it opens no stacking context and its borders compete directly with the overlay clones — which
+   * is why the frozen pane's own z-index belongs in the same reading.
+   */
+  async selectionStackOrder(): Promise<{
+    moveZone: number, fillHandle: number, resizeHandle: number, frozenColumnsPane: number,
+  }> {
+    return this.page.evaluate(() => {
+      const zIndexOf = (selector: string) => {
+        const element = document.querySelector(selector);
+
+        if (!element) {
+          throw new Error(`No element matched "${selector}".`);
+        }
+
+        return parseInt(window.getComputedStyle(element).zIndex, 10);
+      };
+
+      return {
+        moveZone: zIndexOf('.ht_master .wtMoveZone'),
+        fillHandle: zIndexOf('.ht_master .wtBorder.current.corner'),
+        resizeHandle: zIndexOf('.ht_master .wtSelectionHandle'),
+        frozenColumnsPane: zIndexOf('.ht_clone_inline_start'),
+      };
+    });
+  }
+
+  /**
+   * Scroll the master viewport until the given cell's trailing edge sits just inside a frozen pane,
+   * which is where its fill handle is drawn. Stopping a fixed few pixels past the pane's edge rather
+   * than at its middle keeps the cell inside the rendered range in every theme, whatever its column
+   * widths and row heights are — a cell scrolled clean out of that range drops its handle entirely
+   * and leaves nothing to assert on.
+   */
+  async scrollCellBehindFrozenPane(row: number, col: number, pane: 'columns' | 'rows'): Promise<void> {
+    const paneInset = 8;
+
+    await this.page.evaluate(({ targetRow, targetCol, targetPane, inset }) => {
+      const holder = document.querySelector('.ht_master .wtHolder');
+      const cell = document.querySelector(`.ht_master [data-testid="cell-${targetRow}-${targetCol}"]`);
+      const paneElement = document.querySelector(
+        targetPane === 'columns' ? '.ht_clone_inline_start' : '.ht_clone_bottom'
+      );
+
+      if (!holder || !cell || !paneElement) {
+        throw new Error('The master viewport, the target cell or the frozen pane is not rendered.');
+      }
+
+      const cellRect = cell.getBoundingClientRect();
+      const paneRect = paneElement.getBoundingClientRect();
+
+      if (targetPane === 'columns') {
+        holder.scrollLeft += cellRect.right - (paneRect.right - inset);
+      } else {
+        holder.scrollTop += cellRect.bottom - (paneRect.top + inset);
+      }
+    }, { targetRow: row, targetCol: col, targetPane: pane, inset: paneInset });
+  }
+
+  /**
+   * What the browser hit-tests at the center of the fill handle, as `<overlay>/<class name>`. A
+   * frozen pane that occludes the handle owns those pixels, so the topmost element there belongs to
+   * that pane rather than to the master. Match on the overlay and treat the class name as detail:
+   * which of the pane's elements is topmost at that point depends on the theme's cell metrics.
+   */
+  async elementAtFillHandleCenter(): Promise<string> {
+    const handleBox = await this.fillHandle().boundingBox();
+
+    if (!handleBox) {
+      throw new Error('The fill handle is not rendered.');
+    }
+
+    return this.page.evaluate(({ x, y }) => {
+      const element = document.elementFromPoint(x, y);
+
+      if (!element) {
+        return 'none/none';
+      }
+
+      const overlay = element.closest('[class*="ht_clone_"], .ht_master');
+      const overlayName = overlay
+        ? Array.from(overlay.classList).find(name => name.startsWith('ht_')) : 'none';
+
+      return `${overlayName}/${element.className}`;
+    }, { x: handleBox.x + (handleBox.width / 2), y: handleBox.y + (handleBox.height / 2) });
+  }
+
   /**
    * The grid's root wrapper carrying the `ht__moving` drag-state class. The
    * class lands on the wrapper Handsontable creates inside the container, not

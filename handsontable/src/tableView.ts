@@ -15,8 +15,12 @@ import {
   getScrollbarWidth,
   hasClass,
   isChildOf,
+  getDeepActiveElement,
+  getShadowHostChain,
+  isHTMLElement,
   isInput,
   isOutsideInput,
+  isShadowRoot,
   isVisible,
   setAttribute,
   getParentWindow,
@@ -28,6 +32,7 @@ import { isImmediatePropagationStopped, isRightClick, isLeftClick, isMiddleClick
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
+import { getSanitizer } from './utils/sanitizer';
 import { resolveWithInstance } from './utils/staticRegister';
 import {
   A11Y_COLCOUNT,
@@ -134,6 +139,14 @@ class TableView {
    */
   renderSizeProbe = new RenderSizeProbe();
   /**
+   * Whether the sizes measured from theme values cached against unresolved styles still have to be
+   * dropped. Set by the first render that finds the styles resolvable again, and kept until a render
+   * has actually reached the cells and re-measured them (see `#discardSizesMeasuredWithoutStyles`).
+   *
+   * @type {boolean}
+   */
+  #sizesMeasuredWithoutStylesPending = false;
+  /**
    * Defines if the text should be selected during mousemove.
    *
    * @type {boolean}
@@ -143,6 +156,14 @@ class TableView {
    * @type {boolean}
    */
   #mouseDown: boolean = false;
+  /**
+   * Tracks whether the document-level mousedown handler already classified the current click
+   * cycle as an outside click and consulted the `outsideClickDeselects` setting. The mouseup
+   * handler skips its own deselect pass then, so the setting's callback fires once per click.
+   *
+   * @type {boolean}
+   */
+  #outsideClickHandled: boolean = false;
   /**
    * Main <TABLE> element.
    *
@@ -208,6 +229,8 @@ class TableView {
       const isFullRender = this.hot.forceFullRender;
 
       this.hot.runHooks('beforeRender', isFullRender);
+
+      this.#discardSizesMeasuredWithoutStyles();
 
       this._wt.draw(!isFullRender);
       this.#updateScrollbarClassNames();
@@ -408,22 +431,49 @@ class TableView {
         selection.finish();
       }
 
+      const wasInsideGridClick = this.#mouseDown;
+      const wasOutsideClickHandled = this.#outsideClickHandled;
+
       this.#mouseDown = false;
+      this.#outsideClickHandled = false;
 
       // Ignore synthetic mouseup events from Android touch interactions.
       if (this.#isSyntheticMouseEvent(event)) {
         return;
       }
 
-      const isOutsideInputElement = isOutsideInput(rootDocument.activeElement as HTMLElement);
+      const activeElement = getDeepActiveElement(rootDocument);
+      const activeHTMLElement = isHTMLElement(activeElement) ? activeElement : null;
+      const isOutsideInputElement = activeHTMLElement !== null && isOutsideInput(activeHTMLElement);
 
-      if (isInput(rootDocument.activeElement as HTMLElement) && !isOutsideInputElement) {
+      if (activeHTMLElement !== null && isInput(activeHTMLElement) && !isOutsideInputElement) {
         return;
       }
 
-      if (isOutsideInputElement || (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
-          !(rootWrapperElement ?? rootElement).contains(event.target as Node) && !isRightClick(event))) {
+      const eventPath = event.composedPath();
+      const isPathThroughGridUi = eventPath.includes(rootWrapperElement ?? rootElement) ||
+        (this.hot.rootPortalElement && eventPath.includes(this.hot.rootPortalElement));
+      const isFocusLostToOutside = this.hot.getFocusManager().isForeignFocusTarget(activeHTMLElement) ||
+        (!wasInsideGridClick && !this.hot.getFocusManager().hasBrowserFocus() && !isPathThroughGridUi);
+
+      if (isOutsideInputElement || isFocusLostToOutside ||
+          (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
+          !this.#isPathWithinGrid(eventPath) && !isRightClick(event))) {
         this.hot.unlisten();
+      }
+
+      if (!wasOutsideClickHandled && activeHTMLElement !== null &&
+          isFocusLostToOutside && selection.isSelected() &&
+          !this.#isPathWithinGrid(eventPath) && !isRightClick(event)) {
+        const clickTarget = eventPath.length > 0 ? eventPath[0] : event.target;
+        const clickTargetElement = isHTMLElement(clickTarget) ? clickTarget : activeHTMLElement;
+        const outsideClickDeselects = typeof this.settings.outsideClickDeselects === 'function' ?
+          this.settings.outsideClickDeselects(clickTargetElement) :
+          this.settings.outsideClickDeselects;
+
+        if (outsideClickDeselects) {
+          this.hot.deselectCell();
+        }
       }
     });
 
@@ -460,10 +510,12 @@ class TableView {
     });
 
     this.eventManager.addEventListener(documentElement, 'mousedown', (event) => {
-      const originalTarget = event.target;
+      const eventPath = event.composedPath();
+      const originalTarget = eventPath.length > 0 ? eventPath[0] : event.target;
       const eventX = (event as MouseEvent).clientX;
       const eventY = (event as MouseEvent).clientY;
-      let next = event.target;
+
+      this.#outsideClickHandled = false;
 
       if (this.#mouseDown || !rootElement || !this.hot.view) {
         return; // it must have been started in a cell
@@ -477,34 +529,23 @@ class TableView {
       // immediate click on "holder" means click on the right side of vertical scrollbar
       const { holder } = this._wt.wtTable;
 
-      if (next === holder) {
+      if (originalTarget === holder) {
         const scrollbarWidth = getScrollbarWidth(rootDocument);
+        const rootNode = rootElement.getRootNode();
+        const pointReader = isShadowRoot(rootNode) ? rootNode : rootDocument;
 
-        if (rootDocument.elementFromPoint(eventX + scrollbarWidth, eventY) !== holder ||
-          rootDocument.elementFromPoint(eventX, eventY + scrollbarWidth) !== holder) {
+        if (pointReader.elementFromPoint(eventX + scrollbarWidth, eventY) !== holder ||
+          pointReader.elementFromPoint(eventX, eventY + scrollbarWidth) !== holder) {
           return;
         }
-      } else {
-        const { rootPortalElement } = this.hot;
-
-        while (next !== documentElement) {
-          if (next === null) {
-            if ((event as MouseEvent & { isTargetWebComponent?: boolean }).isTargetWebComponent) {
-              break;
-            }
-
-            // click on something that was a row but now is detached (possibly because your click triggered a rerender)
-            return;
-          }
-          if (next === rootElement || next === rootPortalElement) {
-            // click inside container or portal
-            return;
-          }
-          next = (next as Node).parentNode;
-        }
+      } else if (this.#isPathWithinGrid(eventPath)) {
+        // click inside container, portal, or a shadow host the grid is rendered within
+        return;
       }
 
       // function did not return until here, we have an outside click!
+      this.#outsideClickHandled = true;
+
       const outsideClickDeselects = typeof this.settings.outsideClickDeselects === 'function' ?
         this.settings.outsideClickDeselects(originalTarget as HTMLElement) :
         this.settings.outsideClickDeselects;
@@ -1512,6 +1553,34 @@ class TableView {
   }
 
   /**
+   * Checks whether the event path points into the grid. The path counts as internal when it
+   * contains the grid's root element or its portal element. A complete path (one that crosses
+   * shadow boundaries and therefore contains ShadowRoot entries) is trusted as-is - a miss
+   * means a genuine outside click, even when the path shares the grid's shadow hosts. Only a
+   * filtered path (no ShadowRoot entries) falls back to the shadow host chain check, which
+   * matters for sandboxed hosts (e.g. Salesforce Lightning Web Security) that collapse paths
+   * observed at the document level to the visible host chain, hiding the grid internals.
+   *
+   * @param {EventTarget[]} eventPath The event propagation path (`event.composedPath()`).
+   * @private
+   * @returns {boolean}
+   */
+  #isPathWithinGrid(eventPath: EventTarget[]): boolean {
+    const { rootElement, rootPortalElement } = this.hot;
+
+    if (eventPath.includes(rootElement) ||
+        (!!rootPortalElement && eventPath.includes(rootPortalElement))) {
+      return true;
+    }
+
+    if (eventPath.some(entry => isShadowRoot(entry))) {
+      return false;
+    }
+
+    return getShadowHostChain(rootElement).some(host => eventPath.includes(host));
+  }
+
+  /**
    * Checks if active cell is editing.
    *
    * @private
@@ -1539,13 +1608,58 @@ class TableView {
   }
 
   /**
+   * Discards the row heights measured from theme values that were cached while the grid's root
+   * element resolved no computed styles, on the first draw that finds them resolvable again.
+   *
+   * A grid whose theme variables were cached against unresolved styles has an unknown default row
+   * height, so every rendered row is recorded oversized at a height it never had, and nothing
+   * re-measures those records on its own (DEV-2515 – the theme half of the unrendered-table problem
+   * described in `walkontable/AGENTS.md`).
+   *
+   * The styles handler answers both halves, because it is what cached the values: whether an earlier
+   * pass read them against unresolved styles, and whether they resolve now. Gating on the unknown row
+   * height instead would wipe the caches on every draw of a page that loads no grid stylesheet at
+   * all, where that value never resolves.
+   *
+   * Runs before `_wt.draw()`, not from the engine's `beforeDraw` setting: that setting fires after
+   * `createCalculators()`, so the rendered row band of that very draw would still be built from the
+   * heights this drops – the grid renders short for one frame and nothing schedules another draw. The
+   * drop stays pending (`#sizesMeasuredWithoutStylesPending`) until a draw has actually rendered the
+   * cells and re-measured them, which is what `afterRender` reports; a `beforeViewRender` listener
+   * that sets `skipRender` cancels the render, and then nothing takes the row heights again.
+   */
+  #discardSizesMeasuredWithoutStyles() {
+    if (this.hot.stylesHandler.recacheValuesMeasuredWithoutStyles()) {
+      this.#sizesMeasuredWithoutStylesPending = true;
+    }
+
+    if (!this.#sizesMeasuredWithoutStylesPending) {
+      return;
+    }
+
+    // `resetAllOversizedRows` already invalidates the row-height cache, so only the width cache is
+    // left to drop. `invalidateIndexSizesCache()` would invalidate the row heights a second time, and
+    // this is the same pair the engine-side reset performs. Dropping the width cache re-asks
+    // `modifyColWidth`, so a width `AutoColumnSize` measured against no layout comes straight back –
+    // that is the narrow-container follow-up, not this pass.
+    this._wt.wtViewport.resetAllOversizedRows();
+    this.invalidateColumnWidthCache();
+  }
+
+  /**
    * `afterRender` callback.
+   *
+   * The engine fires `onDraw` only from a draw that rendered the cell band, which is what spends the
+   * pending theme-measurement drop: the sizes it invalidated have just been taken again against the
+   * resolved styles (see `#discardSizesMeasuredWithoutStyles`).
    *
    * @private
    * @param {boolean} force If `true` rendering was triggered by a change of settings or data or `false` if
    *                        rendering was triggered by scrolling or moving selection.
    */
   afterRender(force: boolean) {
+    this.#sizesMeasuredWithoutStylesPending = false;
+
     if (force) {
       // Measure the rendered grid while the DOM is final, before external `afterViewRender` listeners
       // may mutate it.
@@ -1700,8 +1814,8 @@ class TableView {
     }
 
     if (renderedIndex > -1) {
-      fastInnerHTML(element, String(content(index, headerLevel)), this.hot.getSettings().sanitizer ?? true,
-        'header', this.hot.rootGridElement ?? undefined);
+      fastInnerHTML(element, String(content(index, headerLevel)), getSanitizer(this.hot),
+        'header', this.hot.rootElement);
 
     } else {
       // workaround for https://github.com/handsontable/handsontable/issues/1946

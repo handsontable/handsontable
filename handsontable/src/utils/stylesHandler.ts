@@ -43,6 +43,15 @@ export class StylesHandler {
   #rootComputedStyle: CSSStyleDeclaration | null = null;
 
   /**
+   * Whether the last caching pass ran while the root element resolved no computed styles, so every
+   * value it cached describes nothing.
+   *
+   * @type {boolean}
+   * @private
+   */
+  #cachedWithoutResolvedStyles = false;
+
+  /**
    * The root document of the instance.
    *
    * @type {Document}
@@ -235,6 +244,7 @@ export class StylesHandler {
    * Caches the computed style values for the root element and `td` element.
    */
   #cacheStylesheetValues() {
+    this.#cachedWithoutResolvedStyles = !this.#stylesResolve();
     this.#rootComputedStyle = getComputedStyle(this.#rootElement);
 
     const stylesForTD = this.#getStylesForTD([
@@ -327,6 +337,49 @@ export class StylesHandler {
   #clearCachedValues() {
     this.#computedStyles = {};
     this.#cssVars = {};
+  }
+
+  /**
+   * Checks whether the root element resolves computed styles, so that a value read from them
+   * describes how the grid is rendered.
+   *
+   * An element outside the flat tree resolves against nothing – `getComputedStyle()` yields an empty
+   * declaration, or a full property list of empty strings, depending on the engine. Reading `display`
+   * separates that from an element that merely generates no boxes, which reads its styles fine.
+   *
+   * @returns {boolean} `true` when the root element's computed styles resolve.
+   * @private
+   */
+  #stylesResolve(): boolean {
+    if (!this.#rootElement.isConnected) {
+      return false;
+    }
+
+    const elementWindow = this.#rootElement.ownerDocument.defaultView;
+
+    return elementWindow !== null && elementWindow.getComputedStyle(this.#rootElement).display !== '';
+  }
+
+  /**
+   * Re-reads the cached values when the last pass cached them against unresolved styles and the root
+   * element resolves them now.
+   *
+   * A grid built into an element outside the flat tree caches values that describe nothing, and every
+   * size derived from them – the default row height above all – is wrong. Re-reading them is only
+   * possible once the element resolves its styles, and it is only necessary if an earlier pass did
+   * not, so both are checked here rather than by the caller.
+   *
+   * @returns {boolean} `true` when the values were re-read, so sizes derived from the old ones have
+   *                    to be discarded too.
+   */
+  recacheValuesMeasuredWithoutStyles(): boolean {
+    if (!this.#cachedWithoutResolvedStyles || !this.#stylesResolve()) {
+      return false;
+    }
+
+    this.clearCache();
+
+    return true;
   }
 
   /**

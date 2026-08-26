@@ -479,8 +479,8 @@ class Border {
    * one selection edge. Hovering a band shows a `grab` cursor; a `mousedown` on a band calls the
    * `onSelectionEdgeMouseDown` Walkontable setting so the core can initiate a move drag.
    *
-   * Bands sit at z-index 100 — below the resize pills (z-index 200) and below the autofill fill
-   * handle (`.wtBorder.corner`, z-index 150), so both keep winning their own pixels in the corner
+   * Bands sit at z-index 100 — below the resize pills (z-index 115) and below the autofill fill
+   * handle (`.wtBorder.corner`, z-index 110), so both keep winning their own pixels in the corner
    * regions where the bands overlap them. All four bands are created hidden; `positionMoveZone`
    * + `appear` control their visibility.
    *
@@ -1247,7 +1247,86 @@ class Border {
   }
 
   /**
+   * Tells whether the fill handle must be pulled back inside the selection's inline-end edge instead
+   * of straddling it. Only the grid's last column needs that, where the overhang would spill out of
+   * the trimming container and force a scrollbar. A selection ending on the last frozen-start column
+   * does not: the frozen overlay draws that handle itself and already lands it flush against its own
+   * edge, which `border.spec.js` pins to the pixel — lifting it there moves it off that line.
+   *
+   * @private
+   * @param {number} toColumn The selection's inline-end column index.
+   * @param {number} anchorInlineStart The fill handle anchor's inline-start offset.
+   * @param {HTMLElement} TD The cell that carries the fill handle.
+   * @param {HTMLElement | Window} trimmingContainer The container that clips the grid.
+   * @param {boolean} isRtl Whether the grid renders right-to-left.
+   * @returns {boolean}
+   */
+  isCornerLiftedAtInlineEnd(
+    toColumn: number,
+    anchorInlineStart: number,
+    TD: HTMLElement,
+    trimmingContainer: HTMLElement | Window,
+    isRtl: boolean,
+  ): boolean {
+    if (toColumn !== (this.wot.getSetting('totalColumns') as number) - 1) {
+      return false;
+    }
+
+    const { geometryReader } = this.wot.domBindings;
+    const cornerHalfWidth = parseInt(String(this.cornerDefaultStyle.width), 10) / 2;
+
+    if (isRtl) {
+      return anchorInlineStart - cornerHalfWidth < 0;
+    }
+
+    return anchorInlineStart + geometryReader.outerWidth(TD) + cornerHalfWidth
+      >= geometryReader.innerWidth(trimmingContainer);
+  }
+
+  /**
+   * Block-axis mirror of {@link Border#isCornerLiftedAtInlineEnd}. Two rows pull the fill handle back
+   * inside the selection's bottom edge: the grid's last row, where the overhang would spill out of
+   * the trimming container, and the last scrollable row above the `fixedRowsBottom` line, where the
+   * bottom overlay is painted above the master and would cover the overhang. The last frozen-top row
+   * is not one of them — like the frozen-start column, that handle is drawn by the overlay itself and
+   * already sits flush against its edge.
+   *
+   * @private
+   * @param {number} toRow The selection's bottom row index.
+   * @param {number} anchorTop The fill handle anchor's top offset.
+   * @param {HTMLElement} TD The cell that carries the fill handle.
+   * @param {HTMLElement | Window} trimmingContainer The container that clips the grid.
+   * @returns {boolean}
+   */
+  isCornerLiftedAtBlockEnd(
+    toRow: number,
+    anchorTop: number,
+    TD: HTMLElement,
+    trimmingContainer: HTMLElement | Window,
+  ): boolean {
+    if (this.isFrozenBottomBoundaryEdge(toRow)) {
+      return true;
+    }
+
+    if (toRow !== (this.wot.getSetting('totalRows') as number) - 1) {
+      return false;
+    }
+
+    const { geometryReader } = this.wot.domBindings;
+    const cornerHalfHeight = parseInt(String(this.cornerDefaultStyle.height), 10) / 2;
+
+    return anchorTop + geometryReader.outerHeight(TD) + cornerHalfHeight
+      >= geometryReader.innerHeight(trimmingContainer);
+  }
+
+  /**
    * Show border around one or many cells.
+   *
+   * The fill handle is normally centered on the selection's bottom-end corner, so half of it hangs
+   * past that corner. Where that overhang cannot survive — a container edge, or a frozen pane that
+   * clips or covers it — the handle is pulled back inside instead, and `wtCornerInlineEndEdge` /
+   * `wtCornerBlockEndEdge` pull its hit area along. See {@link Border#isCornerLiftedAtInlineEnd} and
+   * {@link Border#isCornerLiftedAtBlockEnd} for which edges those are.
    *
    * @param {Array} corners The corner coordinates.
    */
@@ -1524,49 +1603,34 @@ class Border {
       const cornerHalfHeight = Math.ceil(parseInt(String(this.cornerDefaultStyle.height), 10) / 2);
       const fillHandleAnchor = this.getFillHandleAnchor(toTDEl, toOffset, trimToWindow);
 
-      if (toColumn === (this.wot.getSetting('totalColumns') as number) - 1) {
-        const { left: toTdOffsetLeft } = fillHandleAnchor;
-        let cornerOverlappingContainer = false;
-        let cornerEdge = 0;
+      const liftsAtInlineEnd = this.isCornerLiftedAtInlineEnd(
+        toColumn, fillHandleAnchor.left, toTDEl, trimmingContainer, isRtl
+      );
 
-        if (isRtl) {
-          cornerEdge = toTdOffsetLeft - (parseInt(String(this.cornerDefaultStyle.width), 10) / 2);
-          cornerOverlappingContainer = cornerEdge < 0;
+      if (liftsAtInlineEnd) {
+        const inlineStartPosition = Math.floor(
+          inlineStartPos + width + this.cornerCenterPointOffset - cornerHalfWidth - cornerBorderCompensation
+        );
 
-        } else {
-          cornerEdge = toTdOffsetLeft + geometryReader.outerWidth(toTDEl)
-            + (parseInt(String(this.cornerDefaultStyle.width), 10) / 2);
-          cornerOverlappingContainer = cornerEdge >= geometryReader.innerWidth(trimmingContainer);
-        }
+        addClass(this.corner!, 'wtCornerInlineEndEdge');
 
-        if (cornerOverlappingContainer) {
-          const inlineStartPosition = Math.floor(
-            inlineStartPos + width + this.cornerCenterPointOffset - cornerHalfWidth - cornerBorderCompensation
-          );
-
-          addClass(this.corner!, 'wtCornerInlineEndEdge');
-
-          this.cornerStyle![inlinePosProperty] = `${inlineStartPosition - 1}px`;
-        }
+        this.cornerStyle![inlinePosProperty] = `${inlineStartPosition - 1}px`;
       } else {
         removeClass(this.corner!, 'wtCornerInlineEndEdge');
       }
 
-      if (toRow === (this.wot.getSetting('totalRows') as number) - 1) {
-        const { top: toTdOffsetTop } = fillHandleAnchor;
-        const cornerHalfHeight = parseInt(String(this.cornerDefaultStyle.height), 10) / 2;
-        const cornerBottomEdge = toTdOffsetTop + geometryReader.outerHeight(toTDEl) + cornerHalfHeight;
-        const cornerOverlappingContainer = cornerBottomEdge >= geometryReader.innerHeight(trimmingContainer);
+      const liftsAtBlockEnd = this.isCornerLiftedAtBlockEnd(
+        toRow, fillHandleAnchor.top, toTDEl, trimmingContainer
+      );
 
-        if (cornerOverlappingContainer) {
-          const cornerTopPosition = Math.floor(
-            top + height + this.cornerCenterPointOffset - cornerHalfHeight - cornerBorderCompensation
-          );
+      if (liftsAtBlockEnd) {
+        const cornerTopPosition = Math.floor(
+          top + height + this.cornerCenterPointOffset - cornerHalfHeight - cornerBorderCompensation
+        );
 
-          addClass(this.corner!, 'wtCornerBlockEndEdge');
+        addClass(this.corner!, 'wtCornerBlockEndEdge');
 
-          this.cornerStyle!.top = `${cornerTopPosition - 1}px`;
-        }
+        this.cornerStyle!.top = `${cornerTopPosition - 1}px`;
       } else {
         removeClass(this.corner!, 'wtCornerBlockEndEdge');
       }

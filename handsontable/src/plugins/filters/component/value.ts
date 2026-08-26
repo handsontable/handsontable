@@ -4,7 +4,7 @@ import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import { arrayEach, arrayFilter, arrayMap } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import * as C from '../../../i18n/constants';
-import { unifyColumnValues, intersectValues, toEmptyString } from '../utils';
+import { unifyColumnValues, intersectValues } from '../utils';
 import { getSortComparatorForMeta } from '../sortComparators';
 import { BaseComponent } from './_base';
 import { MultipleSelectUI } from '../ui/multipleSelect';
@@ -134,15 +134,21 @@ export class ValueComponent extends BaseComponent {
   setState(value?: {
     command: { key: string }; args: unknown[]; itemsSnapshot: Record<string, unknown>[]; locale: string;
   }) {
-    this.reset();
-
     if (value && value.command.key === CONDITION_BY_VALUE) {
+      // The snapshot replaces the list, so only the surrounding UI is reset - rebuilding the list
+      // from the data first would read the whole column just to throw the result away.
+      super.reset();
+
       const select = this.getMultipleSelectElement();
 
       select.setItems(value.itemsSnapshot);
       select.setValue(value.args[0]);
       select.setLocale(value.locale);
+
+      return;
     }
+
+    this.reset();
   }
 
   /**
@@ -177,42 +183,16 @@ export class ValueComponent extends BaseComponent {
       const [firstByValueCondition] = arrayFilter(conditions,
         condition => condition.name === CONDITION_BY_VALUE);
       const state: Record<string, unknown> = {};
-      const defaultBlankCellValue = this.hot?.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS) ?? '';
 
       if (firstByValueCondition) {
         const filteredRows = filteredRowsFactory(physicalColumn, conditionsStack);
-        const rowValues = arrayMap(filteredRows, row => row.value);
-        // The map feeds only the `modifyFiltersMultiSelectValue` hook. Building it costs one
-        // meta-pipeline read per filtered row, so skip it when the hook is not registered.
-        // The rows are addressed through the entry's own `row` property - the coordinate stamps
-        // on `row.meta` are shared with other meta readers and may have been overwritten.
-        const rowMetaMap = this.hot?.hasHook('modifyFiltersMultiSelectValue')
-          ? new Map(
-            filteredRows.map((row: FilteredRow) =>
-              [row.value, this.hot?.getCellMetaTransient(row.row, physicalColumn)])
-          )
-          : null;
-        const columnMeta = filteredRows[0]?.meta;
-        const comparator = getSortComparatorForMeta(columnMeta);
-        const unifiedRowValues = unifyColumnValues(rowValues, comparator);
 
         if (conditionArgsChange) {
           firstByValueCondition.args[0] = conditionArgsChange;
         }
 
-        const selectedValues: unknown[] = [];
-        const itemsSnapshot = intersectValues(
-          unifiedRowValues,
-          firstByValueCondition.args[0] as unknown[],
-          defaultBlankCellValue,
-          (item: Record<string, unknown>) => {
-            if (item.checked) {
-              selectedValues.push(item.value);
-            }
-
-            this.#triggerModifyMultipleSelectionValueHook(item, rowMetaMap);
-          }
-        );
+        const { itemsSnapshot, selectedValues } = this.#buildItemsSnapshot(
+          physicalColumn, filteredRows, firstByValueCondition.args[0] as unknown[]);
 
         const column = stateInfo.editedConditionStack.column;
 
@@ -250,6 +230,47 @@ export class ValueComponent extends BaseComponent {
         stateInfo.editedConditionStack
       );
     }
+  }
+
+  /**
+   * Builds the item list shown in the "filter by value" box for a single column.
+   *
+   * @param {number} physicalColumn The physical column index the items belong to.
+   * @param {Array} filteredRows Data-map entries of the rows the list is built from.
+   * @param {Array} selectedArgs Values that stay checked.
+   * @returns {{itemsSnapshot: Array, selectedValues: Array}} The item list and the checked values.
+   */
+  #buildItemsSnapshot(physicalColumn: number, filteredRows: FilteredRow[], selectedArgs: unknown[]) {
+    const defaultBlankCellValue = this.hot?.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS) ?? '';
+    const rowValues = arrayMap(filteredRows, row => row.value);
+    // The map feeds only the `modifyFiltersMultiSelectValue` hook. Building it costs one
+    // meta-pipeline read per filtered row, so skip it when the hook is not registered.
+    // The rows are addressed through the entry's own `row` property - the coordinate stamps
+    // on `row.meta` are shared with other meta readers and may have been overwritten.
+    const rowMetaMap = this.hot?.hasHook('modifyFiltersMultiSelectValue')
+      ? new Map(
+        filteredRows.map((row: FilteredRow) =>
+          [row.value, this.hot?.getCellMetaTransient(row.row, physicalColumn)])
+      )
+      : null;
+    const columnMeta = filteredRows[0]?.meta;
+    const comparator = getSortComparatorForMeta(columnMeta);
+    const unifiedRowValues = unifyColumnValues(rowValues, comparator);
+    const selectedValues: unknown[] = [];
+    const itemsSnapshot = intersectValues(
+      unifiedRowValues,
+      selectedArgs,
+      defaultBlankCellValue,
+      (item: Record<string, unknown>) => {
+        if (item.checked) {
+          selectedValues.push(item.value);
+        }
+
+        this.#triggerModifyMultipleSelectionValueHook(item, rowMetaMap);
+      }
+    );
+
+    return { itemsSnapshot, selectedValues };
   }
 
   /**
@@ -381,23 +402,20 @@ export class ValueComponent extends BaseComponent {
   }
 
   /**
-   * Get data for currently selected column.
+   * Gets the values the list is built from for the currently selected column. The plugin decides
+   * which rows those are - a filtered column skips its own conditions (issue #12226).
    *
-   * @returns {Array}
+   * @returns {Array} Array of objects with `value` and `meta`, one per row.
    * @private
    */
-  _getColumnVisibleValues(): Array<{ value: string; meta: Record<string, unknown> }> {
-    const selectedColumn = this.hot?.getPlugin('filters').getSelectedColumn() ?? null;
+  _getColumnVisibleValues(): Record<string, unknown>[] {
+    const filtersPlugin = this.hot?.getPlugin('filters');
+    const selectedColumn = filtersPlugin?.getSelectedColumn() ?? null;
 
-    if (selectedColumn === null) {
+    if (!filtersPlugin || selectedColumn === null) {
       return [];
     }
 
-    return arrayMap(this.hot?.getDataAtCol(selectedColumn.visualIndex) ?? [], (v, rowIndex) => {
-      return {
-        value: toEmptyString(v) as string,
-        meta: this.hot?.getCellMetaTransient(rowIndex, selectedColumn.visualIndex) ?? {},
-      };
-    });
+    return filtersPlugin._getValueListDataAtColumn(selectedColumn.visualIndex);
   }
 }

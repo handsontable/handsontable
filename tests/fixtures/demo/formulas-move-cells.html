@@ -50,6 +50,10 @@
         window.hot.destroy();
       }
 
+      // Kept so a test can read the array the grid was handed, not the grid's
+      // projection of it - that is the difference issue #10388 turns on.
+      window.rawData = data;
+
       window.hot = new Handsontable(container, Object.assign({
         data,
         colHeaders: true,
