@@ -197,8 +197,12 @@ describe('Formulas utils', () => {
       expect(isPreservedText('=SUM(A1:B1)', { type: 'text', preserveTextValue: true })).toBe(false);
     });
 
-    it('should detect escaped formula expressions (they are strings, not formulas)', () => {
-      expect(isPreservedText('\'=A1', { type: 'text', preserveTextValue: true })).toBe(true);
+    it('should not detect escaped formula expressions (they already use the engine\'s escape mechanism)', () => {
+      expect(isPreservedText('\'=A1', { type: 'text', preserveTextValue: true })).toBe(false);
+    });
+
+    it('should not preserve escaped formula expressions', () => {
+      expect(isPreservedText('\'=SUM(A1)', { type: 'text', preserveTextValue: true })).toBe(false);
     });
 
     it('should not detect values when the option is disabled or missing', () => {

@@ -3169,6 +3169,33 @@ describe('Formulas general', () => {
         [5],
       ]);
     });
+
+    it('should not double-escape an escaped formula expression', async() => {
+      handsontable({
+        data: [
+          ['x'],
+          ['=LEN(A1)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+          preserveTextValue: true,
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await setDataAtCell(0, 0, '\'=SUM(A1)');
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['\'=SUM(A1)'],
+        ['=LEN(A1)'],
+      ]);
+
+      expect(getDataAtCell(1, 0)).toBe(8); // the 8-character string "=SUM(A1)"
+    });
   });
 
   describe('handling numeric values', () => {
