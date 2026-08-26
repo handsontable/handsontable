@@ -94,6 +94,7 @@
   <div id="grid" data-testid="grid"></div>
   <button type="button" data-testid="open-dialog">Open dialog</button>
   <button type="button" data-testid="paste-html">Paste HTML</button>
+  <button type="button" data-testid="export-file">Export file</button>
   <!--
     Surfaces whose success or failure the spec reads. `data-testid="status"` carries
     the construction outcome so a throw inside the constructor is reported as a
@@ -116,26 +117,49 @@
         createHTML: markup => markup,
       });
 
-      // `?license=expired` exercises the license branding bar (`helpers/mixed.ts`),
-      // which writes its message through a sink of its own. A LAPSED key renders the
-      // bottom bar; a missing or invalid one renders the blocking modal instead.
-      const licenseKey = params.get('license') === 'expired'
-        ? 'd0134-95841-770f2-c4f21-3751d'
-        : 'non-commercial-and-evaluation';
+      // `?license=expired` exercises the license branding bar (`helpers/mixed.ts`), and
+      // `?license=invalid` the Core-owned lock screen (`utils/licenseBranding/lockScreen.ts`),
+      // which is a separate surface with its own markup. A LAPSED key renders the bottom bar; a
+      // key that cannot be read renders the blocking modal instead.
+      const licenseKey = ({
+        expired: 'd0134-95841-770f2-c4f21-3751d',
+        invalid: 'not-a-key',
+      })[params.get('license')] ?? 'non-commercial-and-evaluation';
+
+      // `?colHeader=markup` and `?colHeader=prose` put content into a HEADER, which is the one
+      // surface that still reaches `innerHTML` through `fastInnerHTML`. `prose` carries no markup
+      // at all - `HTML_CHARACTERS` matches any `&` with a later `;`, so an ampersand and a
+      // semicolon in the same string are enough. Cell data is deliberately not parameterized:
+      // `textRenderer` writes through `fastInnerText`, so it never reaches the sink.
+      const headerContent = ({
+        markup: '<b>ID</b>',
+        prose: 'Smith & Sons, Ltd.; est. 1920',
+      })[params.get('colHeader')];
+
+      // `?empty=1` renders the empty data state, `?pagination=1` the pagination bar. Both build
+      // their UI from a `TemplateSpec` and neither ran under enforcement before.
+      const isEmpty = params.get('empty') === '1';
 
       try {
         window.hot = new Handsontable(container, {
-          data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
+          data: isEmpty ? [] : [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
           // `nestedHeaders` is what builds the hidden ghost table, the sink that
-          // fails first today.
-          nestedHeaders: [
-            [{ label: 'Group', colspan: 2 }],
-            ['A', 'B'],
-          ],
+          // fails first today. Swapped for plain `colHeaders` when a header payload is
+          // requested, because that is what routes through `fastInnerHTML`.
+          ...(headerContent
+            ? { colHeaders: [headerContent, 'B'] }
+            : {
+              nestedHeaders: [
+                [{ label: 'Group', colspan: 2 }],
+                ['A', 'B'],
+              ],
+            }),
           rowHeaders: true,
           width: 400,
           height: 200,
           licenseKey,
+          emptyDataState: isEmpty,
+          pagination: params.get('pagination') === '1',
           sanitizer: params.get('sanitizer') === 'trusted'
             ? markup => sanitizerPolicy.createHTML(markup)
             : undefined,
@@ -165,6 +189,39 @@
           status.textContent = `PASTED: ${window.hot.getDataAtCell(0, 0)},${window.hot.getDataAtCell(0, 1)}`;
         } catch (error) {
           status.textContent = `PASTE-THREW: ${error.message}`;
+        }
+      });
+
+      document.querySelector('[data-testid="export-file"]').addEventListener('click', async() => {
+        try {
+          // The export progress dialog only renders for a BINARY formatter with the dialog plugin
+          // enabled (`exportFile.ts`), which is the path that reaches `buildExportDialogContent`.
+          // `downloadFileAsync` is required for a binary format; `downloadFile` rejects one.
+          //
+          // The export itself cannot complete here: `xlsx` needs an ExcelJS engine passed through
+          // the plugin's `engines` option, and bundling it would add a large dependency for no
+          // gain. That does not matter, because the DIALOG is the surface under test and the plugin
+          // shows it BEFORE it does any export work - `exportFile.ts` waits a double
+          // `requestAnimationFrame` so the dialog paints first. So the export is started, not
+          // awaited, and its rejection is swallowed.
+          window.hot.updateSettings({ dialog: true });
+
+          const exporting = window.hot.getPlugin('exportFile')
+            .downloadFileAsync('xlsx', { filename: 'tt' })
+            .catch(() => {});
+
+          // two frames, matching the plugin's own wait, then read what it built
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+          const exportDialog = document.querySelector('.ht-dialog.ht-loading');
+
+          status.textContent = exportDialog
+            ? `EXPORT-DIALOG: ${exportDialog.querySelectorAll('.ht-loading__icon-svg').length} spinner`
+            : 'EXPORT-DIALOG-MISSING';
+
+          await exporting;
+        } catch (error) {
+          status.textContent = `EXPORT-THREW: ${error.message}`;
         }
       });
 

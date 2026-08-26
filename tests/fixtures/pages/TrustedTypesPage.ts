@@ -27,6 +27,7 @@ export class TrustedTypesPage {
   readonly status: Locator;
   readonly openDialogButton: Locator;
   readonly pasteButton: Locator;
+  readonly exportButton: Locator;
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
@@ -36,6 +37,7 @@ export class TrustedTypesPage {
     this.status = page.getByTestId('status');
     this.openDialogButton = page.getByTestId('open-dialog');
     this.pasteButton = page.getByTestId('paste-html');
+    this.exportButton = page.getByTestId('export-file');
   }
 
   /**
@@ -48,16 +50,45 @@ export class TrustedTypesPage {
    * @param {object} [options] Fixture options.
    * @param {boolean} [options.expiredLicense] Render the license branding bar, whose
    * message goes through a sink of its own.
+   * @param {boolean} [options.invalidLicense] Render the Core-owned lock screen, a separate
+   * surface from the bar with its own markup.
    * @param {boolean} [options.trustedSanitizer] Configure a `sanitizer` that returns a
    * `TrustedHTML`, as a page under enforcement must.
+   * @param {boolean} [options.pagination] Render the pagination bar.
+   * @param {boolean} [options.emptyData] Render the empty data state.
+   * @param {'markup'|'prose'} [options.colHeader] Put content in a column header, the one surface
+   * that still reaches `innerHTML`. `prose` carries no markup at all.
    */
-  async goto(options: { expiredLicense?: boolean, trustedSanitizer?: boolean } = {}): Promise<void> {
-    const license = options.expiredLicense ? '&license=expired' : '';
-    const sanitizer = options.trustedSanitizer ? '&sanitizer=trusted' : '';
+  async goto(options: {
+    expiredLicense?: boolean,
+    invalidLicense?: boolean,
+    trustedSanitizer?: boolean,
+    pagination?: boolean,
+    emptyData?: boolean,
+    colHeader?: 'markup' | 'prose',
+  } = {}): Promise<void> {
+    const params = new URLSearchParams({ theme: this.theme, bundle: this.bundle });
 
-    await this.page.goto(
-      `/tests/fixtures/demo/trusted-types.html?theme=${this.theme}&bundle=${this.bundle}${license}${sanitizer}`
-    );
+    if (options.expiredLicense) {
+      params.set('license', 'expired');
+    }
+    if (options.invalidLicense) {
+      params.set('license', 'invalid');
+    }
+    if (options.trustedSanitizer) {
+      params.set('sanitizer', 'trusted');
+    }
+    if (options.pagination) {
+      params.set('pagination', '1');
+    }
+    if (options.emptyData) {
+      params.set('empty', '1');
+    }
+    if (options.colHeader) {
+      params.set('colHeader', options.colHeader);
+    }
+
+    await this.page.goto(`/tests/fixtures/demo/trusted-types.html?${params}`);
     await expect(this.status).not.toBeEmpty();
   }
 
@@ -103,5 +134,20 @@ export class TrustedTypesPage {
   /** The license branding bar, present only under an expired key. */
   licenseBar(): Locator {
     return this.page.locator('.hot-display-license-info');
+  }
+
+  /** The Core-owned lock screen, present only under a key that cannot be read. */
+  lockScreen(): Locator {
+    return this.page.locator('.ht-license-lock');
+  }
+
+  /** The pagination bar. */
+  paginationBar(): Locator {
+    return this.page.locator('.ht-pagination');
+  }
+
+  /** The empty data state container. */
+  emptyDataState(): Locator {
+    return this.page.locator('.ht-empty-data-state');
   }
 }

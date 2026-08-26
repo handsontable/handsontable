@@ -103,4 +103,91 @@ test.describe('Trusted Types enforcement', () => {
     await expect(grid.licenseBar()).toBeVisible();
     await grid.expectNoViolations();
   });
+
+  test('renders the license lock screen', async () => {
+    await grid.goto({ invalidLicense: true });
+
+    // A separate surface from the bar above, with its own markup
+    // (`utils/licenseBranding/lockScreen.ts`), reached by a key that cannot be read.
+    expect(await grid.statusText()).toBe('CONSTRUCTED');
+
+    await expect(grid.lockScreen()).toBeVisible();
+    await grid.expectNoViolations();
+  });
+
+  test('renders the pagination bar', async () => {
+    await grid.goto({ pagination: true });
+
+    expect(await grid.statusText()).toBe('CONSTRUCTED');
+
+    await expect(grid.paginationBar()).toBeVisible();
+    await grid.expectNoViolations();
+  });
+
+  test('renders the empty data state', async () => {
+    await grid.goto({ emptyData: true });
+
+    expect(await grid.statusText()).toBe('CONSTRUCTED');
+
+    await expect(grid.emptyDataState()).toBeVisible();
+    await grid.expectNoViolations();
+  });
+
+  test('renders the export progress dialog', async () => {
+    await grid.goto();
+    await grid.exportButton.click();
+
+    // The spinner count is the load-bearing part: it is an `<svg>`, and one built through
+    // `createElement` without the SVG namespace is an unknown HTML element that renders nothing,
+    // with no error to notice. Reading it here proves the namespace survived the DOM rewrite on a
+    // real browser, not only in the unit test's jsdom.
+    await expect(grid.status).toHaveText('EXPORT-DIALOG: 1 spinner');
+    await grid.expectNoViolations();
+  });
+
+  test.describe('the surviving sink: header content', () => {
+    // Cell data is not in scope here and cannot be: `textRenderer` writes through `fastInnerText`,
+    // so it never reaches a sink whatever it contains. Headers go through `fastInnerHTML`, and
+    // `HTML_CHARACTERS` sends anything holding a `<`, or an `&` with a later `;`, down the
+    // `innerHTML` path. These two tests pin the boundary and its remedy, so neither can rot
+    // unnoticed the way the original documented claim did.
+
+    test('throws for a header holding markup when no sanitizer is configured', async () => {
+      await grid.goto({ colHeader: 'markup' });
+
+      // Not a degraded render: `fastInnerHTML` has no `catch` and `renderCell` uses
+      // `try`/`finally`, so the TypeError escapes the constructor and NOTHING renders.
+      expect(await grid.statusText()).toContain('CONSTRUCT-THREW');
+      expect(await grid.statusText()).toContain('TrustedHTML');
+      await expect(grid.cell(0, 0)).toHaveCount(0);
+    });
+
+    test('throws for a header holding no markup at all, only an ampersand and a semicolon',
+      async () => {
+        await grid.goto({ colHeader: 'prose' });
+
+        // `Smith & Sons, Ltd.; est. 1920`. This is the case a user hits by accident, having
+        // written no markup, and it is why the security guide cannot claim enforcement needs
+        // nothing. DEV-2642 narrows the regex to cover this shape; the `markup` case above
+        // outlives that ticket.
+        expect(await grid.statusText()).toContain('CONSTRUCT-THREW');
+        await expect(grid.cell(0, 0)).toHaveCount(0);
+      });
+
+    test('renders both header shapes through a sanitizer that returns a TrustedHTML', async () => {
+      await grid.goto({ colHeader: 'markup', trustedSanitizer: true });
+
+      expect(await grid.statusText()).toBe('CONSTRUCTED');
+
+      await expect(grid.cell(0, 0)).toHaveText('A1');
+      await grid.expectNoViolations();
+
+      await grid.goto({ colHeader: 'prose', trustedSanitizer: true });
+
+      expect(await grid.statusText()).toBe('CONSTRUCTED');
+
+      await expect(grid.cell(0, 0)).toHaveText('A1');
+      await grid.expectNoViolations();
+    });
+  });
 });

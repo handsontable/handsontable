@@ -126,9 +126,11 @@ The [Trusted Types API](https://developer.mozilla.org/en-US/docs/Web/API/Trusted
 
 Handsontable builds its own interface as DOM nodes rather than as HTML strings, so it needs no Trusted Types policy of its own and no entry in your `trusted-types` directive.
 
-That covers the grid's own markup. It does not cover your data, and one case is worth knowing before you enable enforcement: Handsontable writes cell and header content as HTML whenever that content contains a `<`, or an `&` followed later by a `;`. So a header reading `Smith & Sons, Ltd.; est. 1920` takes the HTML path even though it carries no markup. Under `require-trusted-types-for 'script'` the browser rejects a plain string there, so content of that shape needs a `sanitizer` that returns a `TrustedHTML`, as below. Without one, the write is refused and the grid does not render that cell.
+That covers the grid's own markup. It does not cover **column and row headers**, which is the one case to know before you enable enforcement. Handsontable writes a header as HTML whenever its text contains a `<`, or an `&` followed later by a `;`, so a header reading `Smith & Sons, Ltd.; est. 1920` takes that path even though it carries no markup at all. Under `require-trusted-types-for 'script'` the browser rejects a plain string there, and the write is not recoverable: the error propagates out of the constructor, so the grid does not render at all. A `sanitizer` that returns a `TrustedHTML`, as below, renders both that header and one carrying real markup correctly.
 
-Pasting has the same requirement and degrades rather than failing: the clipboard parser is a sink, so without a policy-backed sanitizer Handsontable falls back to the plain-text flavor of the clipboard and logs one warning.
+Cell values are unaffected. They are written as text, so no cell content reaches a sink however it is spelled. The exception is content you opt into rendering as markup through the [`html` cell type](@/guides/cell-types/cell-type/cell-type.md) or `allowHtml`, which needs the same policy-backed sanitizer.
+
+Pasting needs the same sanitizer and degrades rather than failing: the clipboard parser is a sink, so without one Handsontable pastes the plain-text flavor of the clipboard instead of the HTML flavor, and logs one warning.
 
 Your own data is the part that still needs a policy, because Handsontable writes it on your behalf. Wrap your sanitizer in one and return its `createHTML` result:
 
