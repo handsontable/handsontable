@@ -145,8 +145,8 @@ const foreignHotInstances = new Map();
  * Configuration options removed from the public API, with the version that removed them.
  * Configuring one prints a one-time warning; the value is ignored.
  *
- * `datePickerConfig` is deliberately absent: `DateEditor#prepare` already warns about it, and
- * it also sees the column- and cell-level forms that this top-level check cannot.
+ * `datePickerConfig` is deliberately absent: `DateEditor#prepare` already warns about it, and it
+ * also sees the per-cell forms that `warnAboutRemovedOptions` cannot.
  *
  * @type {Array<Array<string>>}
  */
@@ -154,6 +154,38 @@ const REMOVED_OPTIONS: ReadonlyArray<[string, string]> = [
   ['persistentState', '18.0.0'],
   ['correctFormat', '18.0.0'],
 ];
+
+/**
+ * Warns once per removed option found anywhere in the passed settings.
+ *
+ * Scans the top level and every entry of an array-form `columns`, because the removed options are
+ * not all global: `correctFormat` is a cell option, so `columns: [{ correctFormat: true }]` is its
+ * most common form and a top-level-only check would leave that caller with a clean console and
+ * silently dropped date auto-correction.
+ *
+ * The per-cell forms - a `cells` function, or meta set through `setCellMeta` - stay uncovered.
+ * Reaching them means inspecting resolved meta for every cell on every render, which costs more
+ * than the warning is worth.
+ *
+ * @param {object} settings Settings object passed to `updateSettings`.
+ */
+function warnAboutRemovedOptions(settings: Record<string, unknown>): void {
+  const columns: unknown[] = Array.isArray(settings.columns) ? settings.columns as unknown[] : [];
+  const scopes: unknown[] = [settings, ...columns];
+
+  REMOVED_OPTIONS.forEach(([option, version]) => {
+    const isUsed = scopes.some(
+      scope => isObject(scope) && isDefined((scope as Record<string, unknown>)[option])
+    );
+
+    if (isUsed) {
+      deprecatedWarnOnce(`Core.removedOption.${option}`,
+        `The "${option}" setting was removed in Handsontable ${version} and is ignored. ` +
+        'See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0/ ' +
+        'for the migration path.');
+    }
+  });
+}
 
 /**
  * Internal Core properties not exposed in HotInstance but accessed by constructor-assigned
@@ -3384,13 +3416,7 @@ export default function Core(
       throwWithCause('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
 
-    REMOVED_OPTIONS.forEach(([option, version]) => {
-      if (isDefined((settings as Record<string, unknown>)[option])) {
-        deprecatedWarnOnce(`Core.removedOption.${option}`,
-          `The "${option}" setting was removed in Handsontable ${version} and is ignored. ` +
-          'See https://handsontable.com/docs/migration-from-17.1-to-18.0/ for the migration path.');
-      }
-    });
+    warnAboutRemovedOptions(settings as Record<string, unknown>);
 
     // The `columns` option (or the state its function form reads) may change in this call - drop
     // getColHeader's index translation cache so it rebuilds against the updated settings.
