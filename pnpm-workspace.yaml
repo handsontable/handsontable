@@ -13,10 +13,12 @@ packages:
   - tests
 
 # One Playwright version across the monorepo — the catalog version and the CI
-# container tag (mcr.microsoft.com/playwright:vX.Y.Z-noble) bump together, never
-# apart. visual-tests migrates onto the catalog in a separate reviewed change.
+# container tag (mcr.microsoft.com/playwright:vX.Y.Z-noble in e2e.yml) bump
+# together, never apart. tests/, visual-tests/, and docs/ consume it via
+# `catalog:`; performance-tests/ is npm-managed (own package-lock.json), so its
+# pin is kept in lockstep by hand.
 catalog:
-  '@playwright/test': 1.61.1
+  '@playwright/test': 1.62.1
 
 ignoredBuiltDependencies:
   - lefthook # its postinstall is redundant — scripts/prepare-dev-env.mjs wires the hooks

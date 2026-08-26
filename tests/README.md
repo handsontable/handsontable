@@ -78,6 +78,6 @@ npm --prefix handsontable run test:walkontable # the rendering engine's own pipe
 
 ## One Playwright version across the monorepo
 
-There must be **one** Playwright version, installed once, aligned to the version CI runs — currently **1.61.1**. The mechanism is the pnpm **catalog**: `pnpm-workspace.yaml` declares `catalog: { '@playwright/test': 1.61.1 }` and this package sets `"@playwright/test": "catalog:"`. `visual-tests/` (and later `performance-tests/`, `docs/`) move onto the catalog in their own reviewed bumps.
+There must be **one** Playwright version, installed once, aligned to the version CI runs — currently **1.62.1**. The mechanism is the pnpm **catalog**: `pnpm-workspace.yaml` declares `catalog: { '@playwright/test': 1.62.1 }` and this package, `visual-tests/`, and `docs/` all set `"@playwright/test": "catalog:"`. `performance-tests/` is npm-managed (its own `package-lock.json`), so its pin is bumped by hand in lockstep.
 
-The CI Playwright job runs inside the matching container image, `mcr.microsoft.com/playwright:v1.61.1-noble`, and installs with `pnpm install --filter handsontable-tests`. **The catalog version and the container tag bump together, never apart**, so local, CI, and baseline generation render identically.
+The CI Playwright job runs inside the matching container image, `mcr.microsoft.com/playwright:v1.62.1-noble`, and installs with `pnpm install --filter handsontable-tests`. **The catalog version and the container tag bump together, never apart**, so local, CI, and baseline generation render identically.

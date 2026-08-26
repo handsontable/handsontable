@@ -27,7 +27,9 @@ jobs:
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ matrix.config.cache }}-${{ runner.os }}-${{ hashFiles('visual-tests/package.json') }}
+          # pnpm-workspace.yaml is in the key because the Playwright version
+          # lives in its catalog — package.json alone no longer changes on bumps.
+          key: playwright-${{ matrix.config.cache }}-${{ runner.os }}-${{ hashFiles('visual-tests/package.json', 'pnpm-workspace.yaml') }}
       - name: Install Playwright browser binaries
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx --no playwright install ${{ matrix.config.browsers }}
