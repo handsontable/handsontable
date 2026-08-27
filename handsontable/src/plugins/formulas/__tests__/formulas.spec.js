@@ -4093,6 +4093,7 @@ describe('Formulas general', () => {
       // Array-of-objects rows are built in VISUAL order, so after a move the array index and the
       // physical column disagree - and the meta is read by physical coordinates.
       getPlugin('manualColumnMove').moveColumn(1, 0);
+
       await render();
 
       await updateSettings({});
@@ -4101,6 +4102,16 @@ describe('Formulas general', () => {
 
       // Each value goes through its OWN column's `valueGetter`. Reading the array index as a
       // physical column swaps them, so `0123456` would come back stamped `c1`.
+      // Two different column orders meet here, so the pairing matters more than the positions.
+      // `getSourceDataArray()` returns the row in VISUAL order - after the move that is
+      // [name, id] - and each index is translated back to its physical column before the meta
+      // read. `getSheetSerialized()` then reports the sheet in the engine's own column order,
+      // which the axis syncer keeps aligned with the physical one, so the pair comes back as
+      // [id, name].
+      //
+      // What this pins is the pairing, not either order: `0123456` is the `id` column's value and
+      // must carry `id`'s stamp (physical 0), `a` is `name`'s and must carry `name`'s (physical 1).
+      // Reading the array index as a physical column swaps them, giving `c1:0123456` and `c0:a`.
       expect(p.engine.getSheetSerialized(p.sheetId)).toEqual([['c0:0123456', 'c1:a']]);
     });
 
