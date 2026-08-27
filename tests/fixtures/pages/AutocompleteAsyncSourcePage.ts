@@ -11,6 +11,7 @@ interface HandsontableFixture {
   getSelected(): number[][] | undefined;
   getActiveEditor(): EditorFixture | undefined;
   isListening(): boolean;
+  scrollViewportTo(options: { row: number, verticalSnap: string }): void;
 }
 
 interface FixtureWindow extends Window {
@@ -19,10 +20,12 @@ interface FixtureWindow extends Window {
   htListenCount: number;
   htResolveQueries(col: number): number;
   htPendingCount(col: number): number;
+  htChoices: string[][];
 }
 
 interface PageOptions {
   editor?: 'autocomplete' | 'dropdown';
+  scenario?: 'plain' | 'scroll';
 }
 
 /**
@@ -38,6 +41,7 @@ export class AutocompleteAsyncSourcePage {
   readonly theme: string;
   readonly bundle: string;
   readonly editor: string;
+  readonly scenario: string;
   readonly outsideInput: Locator;
 
   constructor(page: Page, theme = 'main', bundle = 'umd', options: PageOptions = {}) {
@@ -45,6 +49,7 @@ export class AutocompleteAsyncSourcePage {
     this.theme = theme;
     this.bundle = bundle;
     this.editor = options.editor ?? 'autocomplete';
+    this.scenario = options.scenario ?? 'plain';
     this.outsideInput = page.getByTestId('outside-input');
   }
 
@@ -52,7 +57,8 @@ export class AutocompleteAsyncSourcePage {
    * Opens the fixture and waits for the first data cell to render.
    */
   async goto(): Promise<void> {
-    const query = `theme=${this.theme}&bundle=${this.bundle}&editor=${this.editor}`;
+    const query = `theme=${this.theme}&bundle=${this.bundle}` +
+      `&editor=${this.editor}&scenario=${this.scenario}`;
 
     await this.page.goto(`/tests/fixtures/demo/autocomplete-async-source.html?${query}`);
 
@@ -72,8 +78,8 @@ export class AutocompleteAsyncSourcePage {
 
   /**
    * Selects a cell, opens its editor with Enter, and waits until the column's `source` has been
-   * asked for choices. Enter rather than typing: it leaves the query empty, so every choice matches
-   * the filter and the whole list is what the dropdown would show.
+   * asked for choices. Enter rather than typing: full edit mode seeds the editor with the cell's
+   * own value, so the query is the column's shared choice prefix and the whole list matches.
    */
   async openEditor(row: number, col: number): Promise<void> {
     await this.cell(row, col).click();
@@ -182,6 +188,36 @@ export class AutocompleteAsyncSourcePage {
     await this.outsideInput.click();
 
     await expect.poll(() => this.isGridListening()).toBe(false);
+  }
+
+  /**
+   * Returns the choice set the fixture serves for a column, so a spec never carries a second copy.
+   */
+  async choicesFor(col: number): Promise<string[]> {
+    return this.page.evaluate(
+      target => (window as unknown as FixtureWindow).htChoices[target],
+      col,
+    );
+  }
+
+  /**
+   * Returns the editor's state machine value, or null when there is no active editor.
+   */
+  async editorState(): Promise<string | null> {
+    return this.page.evaluate(() => (
+      (window as unknown as FixtureWindow).hot.getActiveEditor()?.state ?? null
+    ));
+  }
+
+  /**
+   * Scrolls the viewport so the given row sits at the top. Past the rendered range this makes
+   * `TextEditor.refreshDimensions()` close the open editor through `afterScrollVertically`, without
+   * finishing the edit - the close that leaves `state` at `EDITING`.
+   */
+  async scrollToRow(row: number): Promise<void> {
+    await this.page.evaluate(target => {
+      (window as unknown as FixtureWindow).hot.scrollViewportTo({ row: target, verticalSnap: 'top' });
+    }, row);
   }
 
   /**

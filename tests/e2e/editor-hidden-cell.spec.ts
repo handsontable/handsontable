@@ -154,10 +154,12 @@ test.describe('non-text editors whose cell is hidden', () => {
     await grid.setPage(2);
 
     await expect.poll(() => grid.isEditorOpen()).toBe(false);
-    // The committed value used to be unassertable here: `queryChoices()`, deferred in `open()` and
-    // again on every keystroke, could land after the page turn and re-highlight a choice that
-    // `HandsontableEditor.finishEditing` then read as the value. DEV-2653 made those deferred calls
-    // bail once the editor is no longer editing, which is what makes this stable.
+    // Tightened opportunistically, not because anything here was fixed. The comment this replaced
+    // called the committed value unstable because a deferred `queryChoices()` could land after the
+    // page turn and re-highlight a choice that `HandsontableEditor.finishEditing` then read as the
+    // value. That race is not reachable with this fixture: `source` is a plain ARRAY, so
+    // `queryChoices()` runs synchronously, and every deferred call from the typing has already
+    // fired before `setPage`. Measured at 15/15 on `develop` as well as on the DEV-2653 branch.
     await expect.poll(() => grid.sourceColumn(0)).toEqual(['A4', 'A2', 'A3', 'A4']);
   });
 });

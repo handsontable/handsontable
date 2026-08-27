@@ -79,8 +79,9 @@ export class AutocompleteEditor extends HandsontableEditor {
    */
   #idPrefix = this.hot.guid.slice(0, 9);
   /**
-   * Generation token for the in-flight choices query. Bumped on every `queryChoices()` call so a
-   * response that belongs to a superseded query can be told apart from the current one.
+   * Generation token for the in-flight choices query. Bumped on every `queryChoices()` call and on
+   * every `close()`, so a response that no longer belongs to the edit in progress can be told apart
+   * from the one the editor is waiting for.
    *
    * @type {number}
    */
@@ -294,6 +295,16 @@ export class AutocompleteEditor extends HandsontableEditor {
    * Closes the editor.
    */
   close(): void {
+    // Invalidates every query still in flight. Closing is the one event that reliably means "no
+    // response is wanted any more", and it is the only one: `state` stays `EDITING` when
+    // `refreshDimensions()` closes an editor whose cell scrolled out of the rendered range
+    // (`TextEditor.refreshDimensions`) and when `afterSetTheme` closes one (`assignHooks`), and
+    // `_opened` stays false after that same cell scrolls back and the editor is shown again.
+    // Bumping here also covers the gap between a close and the next `queryChoices()`: reopening at
+    // another cell only schedules its own query on a timeout, so without this a response for the
+    // previous cell could land first and still match.
+    this.#queryGeneration += 1;
+
     this.removeHooksByKey('beforeKeyDown');
     super.close();
 
@@ -327,9 +338,13 @@ export class AutocompleteEditor extends HandsontableEditor {
   queryChoices(query: string): void {
     // Both callers defer through `hot._registerTimeout()`, which has no cancel path - `close()`
     // never clears the queue, so a timeout scheduled while the editor was open still fires after
-    // it closed. `state` is the signal to check rather than `isOpened()`: `beginEditing()` sets
-    // `state` to `EDITING` before calling `open()` and `_opened` only after it returns, so
-    // `isOpened()` is still false for a source that answers synchronously.
+    // it closed. Bail rather than call the user's `source`, which is typically a network request.
+    //
+    // `state` rather than `isOpened()`: `_opened` is false for the whole of `open()`, and it stays
+    // false after `refreshDimensions()` closes an editor whose cell scrolled out of view and then
+    // shows it again on the way back, without ever restoring the flag. A guard on it would leave
+    // the suggestion list dead for the rest of such an edit. The close paths `state` cannot see are
+    // handled by the generation bump in `close()` instead.
     if (this.state !== EDITOR_STATE.EDITING) {
       return;
     }
@@ -347,11 +362,13 @@ export class AutocompleteEditor extends HandsontableEditor {
       (source as SourceFn).call(this.cellProperties, query, (choices: unknown[]) => {
         // A user-supplied source answers whenever it likes, and `HandsontableEditor.close()` only
         // hides the nested grid, so a late response can still re-show the dropdown and pull focus
-        // back through `hot.listen()`. The state check rejects a response that outlived the edit.
-        // The generation check rejects one that belongs to a superseded query - including a query
-        // from an earlier open at a different cell, which the state check cannot see, because the
-        // editor is a per-instance singleton and is in the `EDITING` state again by then.
-        if (generation !== this.#queryGeneration || this.state !== EDITOR_STATE.EDITING) {
+        // back through `hot.listen()`. The generation carries the whole "is this still wanted"
+        // question: it moves on every close and on every newer query, and those are the only two
+        // ways a response stops being the one the editor is waiting for. Deliberately no state
+        // check here - a response landing while an async validator holds the editor in `WAITING`
+        // belongs to the still-open editor, and rejecting it would leave the list empty for the
+        // rest of the edit when `allowInvalid: false` sends the state back to `EDITING`.
+        if (generation !== this.#queryGeneration) {
           return;
         }
 

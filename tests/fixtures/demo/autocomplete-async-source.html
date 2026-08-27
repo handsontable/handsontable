@@ -19,6 +19,10 @@
     if (!window.htEditor) {
       throw new Error('Unknown ?editor= value: ' + JSON.stringify(htParams.get('editor')));
     }
+    window.htScenario = ({ plain: 'plain', scroll: 'scroll' })[htParams.get('scenario') ?? 'plain'];
+    if (!window.htScenario) {
+      throw new Error('Unknown ?scenario= value: ' + JSON.stringify(htParams.get('scenario')));
+    }
   </script>
 </head>
 <body>
@@ -46,6 +50,10 @@
     // value) showing the same three choices as `dropdown` (which forces `filter: false`), so one
     // assertion covers both editors.
     const SEEDS = ['Al', 'Br'];
+
+    // Read by the page object, so the spec asserts against the fixture's own values instead of a
+    // second copy that could drift out of step with these.
+    window.htChoices = CHOICES;
 
     // The source never answers on its own. A spec resolves a query by hand through
     // `window.htResolveQueries(col)`, which is what makes "the response arrives after the editor
@@ -89,8 +97,18 @@
     // a spec can read the dropdown that a late response re-showed even with no active editor left.
     window.htEditorRef = null;
 
-    window.hot = new Handsontable(container, {
+    // `scroll` is the case where `TextEditor.refreshDimensions()` closes the editor on its own,
+    // through the `afterScrollVertically` hook, once the edited row leaves the rendered range. That
+    // close leaves `state` at `EDITING` and never restores `_opened` on the way back, so it is the
+    // close neither of those two flags describes.
+    const scenarioSettings = window.htScenario === 'scroll' ? {
+      data: Array.from({ length: 100 }, () => SEEDS.slice()),
+      height: 150,
+    } : {
       data: Array.from({ length: 4 }, () => SEEDS.slice()),
+    };
+
+    window.hot = new Handsontable(container, Object.assign({
       colHeaders: true,
       rowHeaders: true,
       columns: [
@@ -110,7 +128,7 @@
         window.htListenCount += 1;
       },
       licenseKey: 'non-commercial-and-evaluation',
-    });
+    }, scenarioSettings));
   </script>
 </body>
 </html>
