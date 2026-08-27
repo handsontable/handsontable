@@ -4113,6 +4113,90 @@ describe('Formulas general', () => {
       expect(getDataAtCell(1, 0)).toBe(7);
     });
 
+    describe('reloading the same sheet after the escaping configuration changed', () => {
+      // A grid built without `data` records `#hotWasInitializedWithEmptyData`, so every later
+      // `afterCellMetaReset` reloads it FROM the engine through `switchSheet()` rather than
+      // rewriting the engine from the grid. That reload is where a value escaped under one
+      // configuration is read back under another.
+      const buildEmptyInitializedGrid = async(settings) => {
+        handsontable({
+          formulas: {
+            engine: HyperFormula,
+          },
+          ...settings,
+        });
+      };
+
+      it('should not leak the escape apostrophe when the option is turned off', async() => {
+        await buildEmptyInitializedGrid({ type: 'text', preserveTextValue: true });
+
+        await setDataAtCell(0, 0, '0123456');
+        await setDataAtCell(1, 0, '=LEN(A1)');
+
+        const plugin = getPlugin('formulas');
+
+        expect(plugin.engine.getSheetSerialized(plugin.sheetId)[0]).toEqual(['\'0123456']);
+        expect(getDataAtCell(1, 0)).toBe(7);
+
+        await updateSettings({ preserveTextValue: false });
+
+        // The gate now reports false at every layer, but the apostrophe was still this plugin's -
+        // the grid's own copy of the value proves it.
+        expect(getSourceDataAtCell(0, 0)).toBe('0123456');
+        expect(getDataAtCell(0, 0)).toBe('0123456');
+      });
+
+      it('should not leak the escape apostrophe when the column moves off the text type', async() => {
+        await buildEmptyInitializedGrid({ type: 'text', preserveTextValue: true });
+
+        await setDataAtCell(0, 0, '0123456');
+
+        await updateSettings({ type: 'numeric' });
+
+        expect(getSourceDataAtCell(0, 0)).toBe('0123456');
+      });
+
+      it('should keep an apostrophe this plugin did not write', async() => {
+        // No `preserveTextValue`, so the plugin never escapes here. The engine uses the same
+        // character as its own string escape, so it stores the user's literal with exactly one
+        // apostrophe - stripping on sight would eat it.
+        await buildEmptyInitializedGrid({ type: 'text' });
+
+        await setDataAtCell(0, 0, '\'0777');
+
+        await updateSettings({ preserveTextValue: false });
+
+        expect(getSourceDataAtCell(0, 0)).toBe('\'0777');
+      });
+
+      it('should keep a user-escaped formula expression', async() => {
+        await buildEmptyInitializedGrid({ type: 'text', preserveTextValue: true });
+
+        // "'=" is the user's own escape, telling the engine to treat the formula as text.
+        // `isPreservedText()` excludes it, so the plugin never adds an apostrophe of its own.
+        await setDataAtCell(0, 0, '\'=SUM(1,2)');
+
+        await updateSettings({ preserveTextValue: false });
+
+        expect(getSourceDataAtCell(0, 0)).toBe('\'=SUM(1,2)');
+      });
+
+      it('should restore a preserved value that itself starts with an apostrophe', async() => {
+        await buildEmptyInitializedGrid({ type: 'text', preserveTextValue: true });
+
+        await setDataAtCell(0, 0, '\'0777');
+
+        const plugin = getPlugin('formulas');
+
+        // Escaped on top of the user's own apostrophe, so the engine holds it doubled.
+        expect(plugin.engine.getSheetSerialized(plugin.sheetId)[0]).toEqual(['\'\'0777']);
+
+        await updateSettings({ preserveTextValue: false });
+
+        expect(getSourceDataAtCell(0, 0)).toBe('\'0777');
+      });
+    });
+
     it('should keep preserved text values escaped after detaching a row with the Nested Rows plugin', async() => {
       handsontable({
         data: [

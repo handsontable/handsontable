@@ -890,15 +890,18 @@ export class Formulas extends BasePlugin {
    *
    * The unescaping has to run BEFORE `loadData`, because afterwards the apostrophe is already part
    * of the grid's data, past every reader that could tell it apart from a user's own leading
-   * apostrophe. It therefore resolves the cell meta through the index maps of the sheet being
-   * switched AWAY from – which is exactly right whenever the sheet being read is the one this grid
-   * is already synced to (the reload that `#onAfterCellMetaReset` performs), because then the
-   * engine's index order IS this grid's index order.
+   * apostrophe.
    *
-   * Accepted limitation, and only for a switch to a genuinely DIFFERENT sheet: that sheet's layout
-   * has no relation to this grid's index maps, so a physically-keyed meta layer – the `cell` array,
-   * or a column-level one under a non-identity column map – can be matched against the wrong cell.
-   * Only the global settings layer is layout-independent and always matches.
+   * The two cases are unescaped differently. A RELOAD of the sheet this grid is already synced to
+   * (what `#onAfterCellMetaReset` performs on the empty-data branch) is confirmed against the
+   * grid's own source data – see `#unescapeAgainstSourceData` – so it survives the escaping
+   * configuration being turned off between the write and the reload.
+   *
+   * A switch to a genuinely DIFFERENT sheet has no such reference: the grid's data belongs to the
+   * sheet being left. It is confirmed against the cell meta instead, with an accepted limitation –
+   * that sheet's layout has no relation to this grid's index maps, so a physically-keyed meta layer
+   * (the `cell` array, or a column-level one under a non-identity column map) can be matched
+   * against the wrong cell. Only the global settings layer is layout-independent and always matches.
    *
    * @param {string} sheetName Sheet name used in the shared HyperFormula instance.
    */
@@ -909,9 +912,16 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    // Captured BEFORE the id is updated. A reload of the sheet this grid is already synced to - what
+    // `#onAfterCellMetaReset` performs on the empty-data branch - can confirm the unescaping against
+    // the grid's own source data, which a switch to a genuinely different sheet cannot.
+    const isSameSheetReload = this.engine.getSheetId(sheetName) === this.sheetId;
+
     this.#updateSheetNameAndSheetId(sheetName);
 
-    const serialized = this.#unescapeEngineSheetArray(this.engine.getSheetSerialized(this.sheetId));
+    const serialized = this.#unescapeEngineSheetArray(
+      this.engine.getSheetSerialized(this.sheetId), isSameSheetReload
+    );
 
     if (serialized.length > 0) {
       this.hot.loadData(serialized, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
@@ -1549,7 +1559,11 @@ export class Formulas extends BasePlugin {
    * @param {Array<Array<*>>} sheetArray Sheet content read out of the engine, in engine index order.
    * @returns {Array<Array<*>>} The unescaped content, or `sheetArray` itself when nothing can apply.
    */
-  #unescapeEngineSheetArray(sheetArray: unknown[][]): unknown[][] {
+  #unescapeEngineSheetArray(sheetArray: unknown[][], isSameSheetReload = false): unknown[][] {
+    if (isSameSheetReload) {
+      return this.#unescapeAgainstSourceData(sheetArray);
+    }
+
     if (!this.#needsEngineBoundEscaping()) {
       return sheetArray;
     }
@@ -1584,6 +1598,78 @@ export class Formulas extends BasePlugin {
         return unescapeEngineBoundValue(value, cellMeta);
       });
     });
+  }
+
+  /**
+   * Reverses the engine-bound escaping on a RELOAD of the sheet this grid is already synced to,
+   * by confirming every strip against the grid's own source data rather than against the cell meta.
+   *
+   * The meta-confirmed path cannot serve this case. It asks whether the CURRENT configuration would
+   * escape the value, so the moment that configuration changes - `preserveTextValue` turned off, or
+   * a column moved off `type: 'text'` - it stops recognizing an escape it applied itself, and the
+   * apostrophe is loaded into the grid as data. That is reachable without a second sheet: a grid
+   * built without `data` records `#hotWasInitializedWithEmptyData`, so every later
+   * `#onAfterCellMetaReset` reloads through `switchSheet()`.
+   *
+   * Stripping unconditionally instead would corrupt the opposite case. A leading apostrophe in the
+   * engine is not proof this plugin put it there - the engine uses the same character as its own
+   * string escape, so a user's literal `'0777` typed into a cell this plugin does not escape is
+   * stored with exactly one apostrophe and round-trips through it.
+   *
+   * The source data separates the two without needing either the old configuration or a record of
+   * what was escaped: the grid's copy is never escaped, so the engine's value is this plugin's
+   * escape of it precisely when it equals that copy with one apostrophe prepended.
+   *
+   * | grid holds     | engine holds    | verdict            |
+   * |----------------|-----------------|--------------------|
+   * | `0123456`      | `'0123456`      | escaped here, strip |
+   * | `'0777`        | `''0777`        | escaped here, strip |
+   * | `'0777`        | `'0777`         | the user's own, keep |
+   * | `'=SUM(1,2)`   | `'=SUM(1,2)`    | the user's own, keep |
+   *
+   * @param {Array<Array<*>>} sheetArray Sheet content read out of the engine, in engine index order.
+   * @returns {Array<Array<*>>} The unescaped content.
+   */
+  #unescapeAgainstSourceData(sheetArray: unknown[][]): unknown[][] {
+    // An engine index outside the dataset has no physical counterpart – the engine extends its own
+    // sheet dimensions to calculate values – so it falls back to being read as a physical index.
+    const toPhysical = (syncer: AxisSyncer | null, hfIndex: number) => {
+      const physicalIndex = syncer?.getPhysicalIndexFromHfIndex(hfIndex) ?? -1;
+
+      return physicalIndex === -1 ? hfIndex : physicalIndex;
+    };
+    // The read has to report what Handsontable STORES: left unguarded, `#onModifySourceData`
+    // answers every formula cell with the engine's own content, which is the very thing being
+    // compared against.
+    const wasInternalOperationPending = this.#internalOperationPending;
+
+    this.#internalOperationPending = true;
+
+    try {
+      return sheetArray.map((rowData: unknown[], hfRow: number) => {
+        // Values without the leading escape apostrophe can never change, so a row holding none of
+        // them skips the source-data reads entirely.
+        if (!rowData.some(isEngineEscapedValue)) {
+          return rowData;
+        }
+
+        const physicalRow = toPhysical(this.rowAxisSyncer, hfRow);
+
+        return rowData.map((value: unknown, hfColumn: number) => {
+          if (!isEngineEscapedValue(value)) {
+            return value;
+          }
+
+          const physicalColumn = toPhysical(this.columnAxisSyncer, hfColumn);
+          const visualColumn = this.hot.toVisualColumn(physicalColumn) ?? physicalColumn;
+          const storedValue = this.hot.getSourceDataAtCell(physicalRow, visualColumn);
+
+          return (typeof storedValue === 'string' && `'${storedValue}` === value) ? storedValue : value;
+        });
+      });
+    } finally {
+      this.#internalOperationPending = wasInternalOperationPending;
+    }
   }
 
   /**
