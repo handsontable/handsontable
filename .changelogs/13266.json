@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the cell's class names losing the space between them after changing the alignment twice, which silently dropped custom classes and the alignment itself.",
+  "title": "Fixed the alignment options dropping the cell's other class names, and undoing an alignment leaving the cell aligned left.",
   "type": "fixed",
   "issueOrPR": 13266,
   "breaking": false,
