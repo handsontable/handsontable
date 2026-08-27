@@ -1653,10 +1653,16 @@ export class Formulas extends BasePlugin {
    * The same shape appears for an engine sheet larger than the dataset, where the out-of-dataset
    * cell has no stored value at all.
    *
-   * So the two references are used in order: the grid's own copy first, because it is exact and
-   * survives a configuration change, and the cell meta second, for every value the copy cannot
-   * speak for. That is strictly better than either alone - each case one reference cannot decide is
-   * decided by the other.
+   * So the two references are used in order, and the handover between them is what makes the rule
+   * exact. Where the grid stores a STRING for the cell, that string decides on its own: it matches
+   * only when this plugin escaped the value, and a mismatch means the apostrophe is the user's own.
+   * The cell meta is consulted only where the grid stores no string at all, which is precisely the
+   * out-of-dataset cell and the initial load described above.
+   *
+   * The distinction matters because the meta answers a different question - whether the CURRENT
+   * configuration WOULD escape this value, not whether it WAS escaped. Consulting it on a mismatch
+   * would strip a literal `'0777` the moment `preserveTextValue` is switched on, contradicting the
+   * table below.
    *
    * Stripping unconditionally instead would corrupt the opposite case. A leading apostrophe in the
    * engine is not proof this plugin put it there - the engine uses the same character as its own
@@ -1667,12 +1673,13 @@ export class Formulas extends BasePlugin {
    * what was escaped: the grid's copy is never escaped, so the engine's value is this plugin's
    * escape of it precisely when it equals that copy with one apostrophe prepended.
    *
-   * | grid holds     | engine holds    | verdict            |
-   * |----------------|-----------------|--------------------|
-   * | `0123456`      | `'0123456`      | escaped here, strip |
-   * | `'0777`        | `''0777`        | escaped here, strip |
-   * | `'0777`        | `'0777`         | the user's own, keep |
-   * | `'=SUM(1,2)`   | `'=SUM(1,2)`    | the user's own, keep |
+   * | grid holds     | engine holds    | verdict                                  |
+   * |----------------|-----------------|------------------------------------------|
+   * | `0123456`      | `'0123456`      | escaped here, strip                      |
+   * | `'0777`        | `''0777`        | escaped here, strip                      |
+   * | `'0777`        | `'0777`         | the user's own, keep - whatever the meta says |
+   * | `'=SUM(1,2)`   | `'=SUM(1,2)`    | the user's own, keep                     |
+   * | nothing stored | `'0123456`      | ask the cell meta                        |
    *
    * @param {Array<Array<*>>} sheetArray Sheet content read out of the engine, in engine index order.
    * @returns {Array<Array<*>>} The unescaped content.
@@ -1705,13 +1712,19 @@ export class Formulas extends BasePlugin {
           const visualColumn = this.hot.toVisualColumn(physicalColumn) ?? physicalColumn;
           const storedValue = this.hot.getSourceDataAtCell(physicalRow, visualColumn);
 
-          if (typeof storedValue === 'string' && `'${storedValue}` === value) {
-            return storedValue;
+          // A stored STRING is a decisive answer either way. It matches only when this plugin
+          // escaped it, and when it does not match, the apostrophe is the user's own – negative
+          // evidence, not absence of evidence. Falling through to the meta here would strip a
+          // literal `'0777` the moment `preserveTextValue` is switched on, because the meta only
+          // knows what the CURRENT configuration would escape, not what was escaped.
+          if (typeof storedValue === 'string') {
+            return `'${storedValue}` === value ? storedValue : value;
           }
 
-          // The grid's copy could not confirm the escape, which does not mean there is none – it
-          // can equally mean the grid has nothing to say about this cell yet. Fall back to the cell
-          // meta, the reference this path used before the comparison existed.
+          // No stored string, so the grid has nothing to say about this cell: it is out of the
+          // dataset, or the grid is still holding its auto-generated one while adopting the
+          // engine's content on an initial load. The cell meta is the only reference left, and it
+          // is the one this path used before the comparison existed.
           const visualRow = this.hot.toVisualRow(physicalRow) ?? physicalRow;
 
           return unescapeEngineBoundValue(value, metaManager.getCellMetaTransient(

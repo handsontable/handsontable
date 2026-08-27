@@ -4339,6 +4339,24 @@ describe('Formulas general', () => {
           expect(getSourceDataAtCell(0, 0)).toBe('0123456');
         });
 
+      it('should keep an apostrophe this plugin did not write when the option is turned ON',
+        async() => {
+          // Written while the option was OFF, so the plugin never escaped it and the engine holds
+          // the user's literal with exactly one apostrophe. Turning the option ON afterwards must
+          // not make that value look like this plugin's own escape.
+          await buildEmptyInitializedGrid({ type: 'text' });
+
+          await setDataAtCell(0, 0, '\'0777');
+
+          const plugin = getPlugin('formulas');
+
+          expect(plugin.engine.getSheetSerialized(plugin.sheetId)[0]).toEqual(['\'0777']);
+
+          await updateSettings({ preserveTextValue: true });
+
+          expect(getSourceDataAtCell(0, 0)).toBe('\'0777');
+        });
+
       it('should keep a user-escaped formula expression', async() => {
         await buildEmptyInitializedGrid({ type: 'text', preserveTextValue: true });
 
