@@ -1761,6 +1761,17 @@ export class Formulas extends BasePlugin {
    * The scan is skipped entirely when `#needsEngineBoundEscaping()` reports that no configuration
    * layer can mark a cell for escaping.
    *
+   * Observable side effect, on every path that runs this scan: the per-cell meta read is a
+   * TRANSIENT one, so the user's `cells` function and the `beforeGetCellMeta`/`afterGetCellMeta`
+   * listeners are invoked once per non-formula string cell. That is not limited to `loadData()`
+   * and `updateData()` – `#onAfterCellMetaReset` runs the same scan, and it fires on every
+   * `updateSettings()` call. The read it replaces (`getCellMetaUncached`) invoked none of them, so
+   * a listener that itself calls `setDataAtCell()` or `updateSettings()` now has a re-entrancy
+   * path it did not have before. Invoking `cells()` is the feature here – it is what lets a type
+   * declared only through that function mark a cell for escaping – so the reads cannot simply be
+   * dropped; the gate above is what keeps a grid that declares no such type from paying for them
+   * at all.
+   *
    * @param {Array<Array<*>>} sourceDataArray Source data array to process.
    * @param {number} [rowOffset=0] Physical row index of the array's first row (non-zero for partial arrays).
    * @param {number} [columnOffset=0] Index of the array's first column, in the array's own column space.
@@ -2007,6 +2018,9 @@ export class Formulas extends BasePlugin {
    * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
    */
   #onAfterCellMetaReset = () => {
+    // Runs on every `updateSettings()` call. Both branches below re-run a full-dataset scan whose
+    // per-cell meta read fires `cells()` and the `beforeGetCellMeta`/`afterGetCellMeta` listeners –
+    // see `#escapeSourceDataArray` for what that changes for a listener with side effects.
     this.#closeLeakedDetachGuard();
 
     if (this.#hotWasInitializedWithEmptyData) {
