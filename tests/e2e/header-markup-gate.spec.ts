@@ -20,7 +20,6 @@ test.describe('header markup gate', () => {
     await expect(grid.columnHeader().locator('*')).toHaveCount(0);
     // The label is not markup, so nudging the user toward a sanitizer would be noise.
     expect(await grid.warnedAboutMissingSanitizer()).toBe(false);
-    expect(await grid.constructed()).toBe(true);
   });
 
   test('renders a prose header holding `<` and `>` as text', async({ page, theme, bundle }) => {

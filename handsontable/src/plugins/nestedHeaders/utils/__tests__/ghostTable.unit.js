@@ -294,6 +294,35 @@ describe('GhostTable', () => {
       expect(container.querySelector('.colHeader').textContent).toBe('Smith & Sons, Ltd.; est. 1920');
     });
 
+    it('should escape a label that holds no markup, so the template cannot complete a tag', () => {
+      // The label is interpolated into `<span class="colHeader">${label}</span>`, and that closing
+      // tag supplies the `>` this payload is missing. Skipping the sanitizer for a label with no
+      // markup in it therefore never meant the RESULT had no markup.
+      const sanitizer = jest.fn(content => content);
+      const { hot, headersStateManager } = createHotMock('<img src=x onerror="throw new Error()"', sanitizer);
+      const ghostTable = new GhostTable({ hot, headersStateManager });
+      const container = getDetachedGhostContainerAfterBuild(ghostTable, 1);
+
+      expect(container.querySelectorAll('img').length).toBe(0);
+      expect(container.querySelector('.colHeader').textContent)
+        .toBe('<img src=x onerror="throw new Error()"');
+    });
+
+    it('should measure an escaped prose label as the text the header actually renders', () => {
+      // Escaping is lossless for measurement: an escaped `&`, `<` or `>` renders as the same single
+      // glyph, so the measured string is character-for-character what `fastInnerText` writes into
+      // the rendered header. If it were not, the column would be sized to the wrong width.
+      const sanitizer = jest.fn(content => content);
+      const label = 'Smith & Sons; 5 < 6 & 7 > 3';
+      const { hot, headersStateManager } = createHotMock(label, sanitizer);
+      const ghostTable = new GhostTable({ hot, headersStateManager });
+      const container = getDetachedGhostContainerAfterBuild(ghostTable, 1);
+
+      expect(sanitizer).not.toHaveBeenCalled();
+      expect(container.querySelector('.colHeader').textContent).toBe(label);
+      expect(container.querySelectorAll('.colHeader *').length).toBe(0);
+    });
+
     it('should still route a label holding real markup through the sanitizer', () => {
       const sanitizer = jest.fn(content => content);
       const { hot, headersStateManager } = createHotMock('<b>ID</b>', sanitizer);

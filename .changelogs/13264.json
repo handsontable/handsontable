@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed plain text containing `&` or `<` being written to the DOM as HTML, which could stop a grid from rendering under a Trusted Types policy.",
+  "title": "Narrowed the test that decides whether cell and header content is written as HTML, so text containing an ampersand or a semicolon is no longer treated as markup. Such content could stop a grid from rendering under a Trusted Types policy.",
   "type": "fixed",
   "issueOrPR": 13264,
   "breaking": false,

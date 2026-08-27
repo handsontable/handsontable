@@ -568,8 +568,15 @@ export function empty(element: Element): void {
  * the whole grid down, from a `colHeaders` string containing no markup at all.
  *
  * The tag alternative therefore requires a tag-like shape: `<`, an optional `/`, then an ASCII
- * letter. The entity alternative covers exactly the three forms a character reference can take:
- * named (`&amp;`, `&frac12;`), decimal (`&#169;`), and hexadecimal (`&#x1F600;`).
+ * letter. The entity alternative covers the three terminated forms of a character reference: named
+ * (`&amp;`, `&frac12;`), decimal (`&#169;`), and hexadecimal (`&#x1F600;`).
+ *
+ * Two residuals, both deliberate. The semicolon-less legacy named form (`&copy 2024`, which a
+ * parser still decodes, with a parse error) is out of scope, so such a label now renders literally;
+ * the old pattern only decoded it when an unrelated `;` happened to appear later in the same
+ * string, which made the behavior depend on the rest of the label. And the tag alternative still
+ * matches prose shaped like a tag, `Type <Enter> to continue` or `<none>`, because the only way to
+ * exclude it is a tag-name allowlist, which would drop custom elements from headers.
  *
  * The named form requires at least two characters on purpose. HTML defines no single-letter named
  * reference - the shortest are two, such as `&lt;` and `&ni;` - so the floor costs nothing and it
@@ -580,8 +587,13 @@ export function empty(element: Element): void {
  *
  * It stays unanchored, so a string mixing prose with a real reference (`Smith & Sons; &amp; more`)
  * still matches on the reference and still reaches the sanitizer.
+ *
+ * The `i` flag carries the case-insensitivity that tag names and hexadecimal digits need anyway
+ * (`<IMG SRC=x>`, `&#X41;`), which is what lets the character classes stay this short. There is
+ * deliberately no `g` flag: it would make `.test()` stateful through `lastIndex`, so consecutive
+ * calls on the same pattern would disagree about identical content.
  */
-export const HTML_CHARACTERS = /(<(\/?[a-zA-Z][^>]*)>|&([a-zA-Z][a-zA-Z0-9]+|#[0-9]+|#[xX][0-9a-fA-F]+);)/;
+export const HTML_CHARACTERS = /(<(\/?[a-z][^>]*)>|&([a-z][a-z\d]+|#\d+|#x[\da-f]+);)/i;
 
 /**
  * Shared "warn once" key for every missing-sanitizer warning, so that all DOM

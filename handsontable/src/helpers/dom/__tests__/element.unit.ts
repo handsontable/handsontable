@@ -827,6 +827,40 @@ describe('DomElement helper', () => {
       expect(HTML_CHARACTERS.test('')).toBe(false);
     });
 
+    it('should not treat a comment, doctype, or other non-tag `<` construct as markup', () => {
+      // None of these can build an element - the HTML tag-open state starts a tag only for `<`
+      // followed by an ASCII letter - so none of them can inject, and routing them to the text
+      // path is what keeps a comment-shaped label from taking the grid down.
+      expect(HTML_CHARACTERS.test('<!-- note -->')).toBe(false);
+      expect(HTML_CHARACTERS.test('<!DOCTYPE html>')).toBe(false);
+      expect(HTML_CHARACTERS.test('<![CDATA[x]]>')).toBe(false);
+      expect(HTML_CHARACTERS.test('<?pi?>')).toBe(false);
+      expect(HTML_CHARACTERS.test('< div>')).toBe(false);
+      expect(HTML_CHARACTERS.test('<12>')).toBe(false);
+    });
+
+    it('should treat markup a parser accepts but a strict reading would not as markup', () => {
+      // These all build a live element, so they MUST keep reaching the sanitizer. They are the
+      // shapes a future narrowing would drop out of the sink without any other test noticing.
+      expect(HTML_CHARACTERS.test('<x:y>a</x:y>')).toBe(true);
+      expect(HTML_CHARACTERS.test('<svg:script>alert(1)</svg:script>')).toBe(true);
+      // A `>` inside an attribute value, so the first `>` does not close the tag.
+      expect(HTML_CHARACTERS.test('<img src="a>b" onerror=alert(1)>')).toBe(true);
+      expect(HTML_CHARACTERS.test('<img/src=x onerror=alert(1)>')).toBe(true);
+      expect(HTML_CHARACTERS.test('<IMG SRC=x ONERROR=alert(1)>')).toBe(true);
+    });
+
+    it('should keep matching prose shaped like a tag, which the pattern cannot exclude', () => {
+      // Documented residual, not an aspiration: excluding these needs a tag-name allowlist, which
+      // would drop custom elements from headers. Pinned so the limit is visible, not surprising.
+      expect(HTML_CHARACTERS.test('Type <Enter> to continue')).toBe(true);
+      expect(HTML_CHARACTERS.test('<none>')).toBe(true);
+      // Same on the entity side: two-plus alphanumerics and a `;` are indistinguishable by shape.
+      expect(HTML_CHARACTERS.test('Ben&Jerry; cones')).toBe(true);
+      // ...whereas the two-character floor does exclude this one.
+      expect(HTML_CHARACTERS.test('AT&T; Inc.')).toBe(false);
+    });
+
     it('should treat a tag as markup, opening, closing, self-closing, and upper-case alike', () => {
       expect(HTML_CHARACTERS.test('<b>ID</b>')).toBe(true);
       expect(HTML_CHARACTERS.test('</b>')).toBe(true);
@@ -851,6 +885,17 @@ describe('DomElement helper', () => {
       // anchored it would silently stop sanitizing this content.
       expect(HTML_CHARACTERS.test('Smith & Sons; &amp; more')).toBe(true);
       expect(HTML_CHARACTERS.test('prose first, then <b>markup</b>')).toBe(true);
+    });
+
+    it('should not carry the `g` flag, which would make `.test()` stateful', () => {
+      // With `g`, `lastIndex` persists between calls, so the same content would be classified
+      // differently depending on what was tested before it.
+      expect(HTML_CHARACTERS.global).toBe(false);
+
+      const content = '<b>ID</b>';
+
+      expect(HTML_CHARACTERS.test(content)).toBe(true);
+      expect(HTML_CHARACTERS.test(content)).toBe(true);
     });
 
     it('should expose three capture groups, as it always has', () => {
