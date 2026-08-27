@@ -85,7 +85,7 @@
     };
 
     /**
-     * Schedules the editor's own deferred `queryChoices()` through a real keydown, then closes the
+     * Schedules the editor's own deferred `queryChoices()` through a keyboard event, then closes the
      * editor synchronously - the same call `TextEditor.refreshDimensions()` makes when the edited
      * cell scrolls out of the rendered range. Doing both in one turn is the only way to land a
      * close inside the timeout's 10-20 ms window: no round trip from the spec is that fast, and
@@ -96,8 +96,12 @@
      */
     window.htScheduleQueryThenClose = function() {
       const editor = window.hot.getActiveEditor();
+      const keydown = new KeyboardEvent('keydown', { key: 'a', code: 'KeyA', bubbles: true });
 
-      editor.TEXTAREA.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 65, bubbles: true }));
+      // Chromium ignores the deprecated `keyCode` init dictionary member. The production handler
+      // deliberately still reads it for browser compatibility, so define it on this test event.
+      Object.defineProperty(keydown, 'keyCode', { value: 65 });
+      editor.TEXTAREA.dispatchEvent(keydown);
       editor.close();
 
       return new Promise(resolve => setTimeout(resolve, 50));
