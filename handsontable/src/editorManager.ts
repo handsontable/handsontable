@@ -105,6 +105,12 @@ class EditorManager {
    * Prepare text input to be displayed at given grid cell.
    */
   prepareEditor() {
+    // A new edit cycle always re-arms the hidden-cell guard. Without this the latch is
+    // instance-scoped, so one editor left stuck in `WAITING` with no `postAfterValidate` (a
+    // `beforeChange` that cancels the change, for instance) would disable the guard for the rest
+    // of the instance's life rather than for that one edit.
+    this.#hiddenCellCloseArmed = false;
+
     if (this.activeEditor && this.activeEditor.isWaiting()) {
       this.closeEditor(false, false, (dataSaved: boolean) => {
         if (dataSaved) {
@@ -363,36 +369,46 @@ class EditorManager {
    * index space instead of preserving it, so the edited coordinates silently rebind to a different
    * row that is still rendered and `isHidden()` reads `false`. That defect predates this method.
    *
-   * The edit is COMMITTED, not discarded, because that is what both existing paths already do:
-   * clicking the pager is an outside click, which deselects and therefore commits, and an editor
-   * orphaned by any other route commits on the next click. Only when the commit is REJECTED is the
-   * edit reverted instead - see below.
+   * The edit is finished rather than cancelled, which for most editors means it is COMMITTED - the
+   * same outcome clicking the pager already produces, since that is an outside click and therefore
+   * deselects. The final say belongs to the editor: `DropdownEditor#finishEditing()` rewrites the
+   * flag to a discard when the active range no longer contains the edited cell, and
+   * `selection.commit()` runs before these hooks, so a dropdown can legitimately discard here.
+   * Where the commit is REJECTED - a validator returned `false` under `allowInvalid: false`, which
+   * re-selects the hidden cell and restores `EDITING` - the edit is reverted instead, because an
+   * editor surviving on a cell the user cannot see is the bug being fixed.
+   *
+   * @param {BaseEditor} [pendingEditor] The editor this call is retrying for. Supplied only by the
+   *                                     async-validation retry below.
    */
-  #closeEditorWhenCellHidden(): void {
-    const activeEditor = this.activeEditor;
+  #closeEditorWhenCellHidden(pendingEditor?: BaseEditor): void {
+    // Fall back to the captured reference: a rejected validation re-selects the hidden cell, which
+    // drives `prepareEditor()` -> `clearActiveEditor()`, so `this.activeEditor` can already be gone
+    // by the time a retry lands even though the editor object is still open.
+    const editor = this.activeEditor ?? pendingEditor;
 
-    if (!activeEditor || activeEditor.row === null || activeEditor.col === null ||
-        !this.#isCellHidden(activeEditor.row, activeEditor.col)) {
+    if (!editor || editor.row === null || editor.col === null ||
+        !this.#isCellHidden(editor.row, editor.col)) {
       return;
     }
 
     // `finishEditing()` is a silent no-op while an async validator is in flight, which would leave
     // the editor orphaned. Re-enter at the top once validation settles rather than assuming the
     // wait is over: `postAfterValidate` is instance-wide and may fire for an unrelated cell.
-    if (activeEditor.isWaiting()) {
+    if (editor.isWaiting()) {
       if (!this.#hiddenCellCloseArmed) {
         this.#hiddenCellCloseArmed = true;
 
         this.hot.addHookOnce('postAfterValidate', () => {
           this.#hiddenCellCloseArmed = false;
-          this.hot._registerTimeout(() => this.#closeEditorWhenCellHidden(), 0);
+          this.hot._registerTimeout(() => this.#closeEditorWhenCellHidden(editor), 0);
         });
       }
 
       return;
     }
 
-    if (activeEditor.state !== EDITOR_STATE.EDITING || this.#hiddenCellCloseArmed) {
+    if (editor.state !== EDITOR_STATE.EDITING || this.#hiddenCellCloseArmed) {
       return;
     }
 
@@ -404,24 +420,20 @@ class EditorManager {
     this.hot._registerTimeout(() => {
       this.#hiddenCellCloseArmed = false;
 
-      const editor = this.activeEditor;
-
-      if (this.destroyed || !editor || editor.state !== EDITOR_STATE.EDITING ||
+      if (this.destroyed || editor.state !== EDITOR_STATE.EDITING ||
           editor.row === null || editor.col === null || !this.#isCellHidden(editor.row, editor.col)) {
         return;
       }
 
-      this.closeEditor(false, false, (dataSaved: boolean) => {
+      // Drive the captured editor directly rather than `closeEditor()`, for the same reason as
+      // the fallback above: `this.activeEditor` may already have been cleared.
+      editor.finishEditing(false, false, (dataSaved: boolean) => {
         if (dataSaved) {
           return;
         }
 
-        // Validation rejected the value and `allowInvalid: false` re-selected the hidden cell and
-        // put the editor back into `EDITING`. Revert through the CAPTURED reference, not through
-        // `closeEditor()`: that re-selection synchronously drives `prepareEditor()`, which finds
-        // the cell hidden and has already run `clearActiveEditor()`, so `this.activeEditor` is
-        // `undefined` by now and `closeEditor()` would be a no-op. Nothing is lost - the rejected
-        // value never reached the dataset, `validateChanges()` splices it out first.
+        // Nothing is lost by reverting - the rejected value never reached the dataset,
+        // `validateChanges()` splices it out first.
         editor.finishEditing(true);
       });
     }, 0);

@@ -29,6 +29,12 @@
     if (window.htSorting === undefined) {
       throw new Error('Unknown ?sorting= value: ' + JSON.stringify(htParams.get('sorting')));
     }
+    window.htValidator = ({ none: 'none', reject: 'reject', rejectAsync: 'rejectAsync' })[
+      htParams.get('validator') ?? 'none'
+    ];
+    if (!window.htValidator) {
+      throw new Error('Unknown ?validator= value: ' + JSON.stringify(htParams.get('validator')));
+    }
   </script>
 </head>
 <body>
@@ -48,12 +54,26 @@
     // so an editor-level guard never reaches them - that is the point of these runs.
     // `multiselect` takes `source`, not `selectOptions`, and carries `_complexDataFormat: true`,
     // so its source data is an ARRAY rather than the joined string `getDataAtCell` returns.
+    // A rejecting validator under `allowInvalid: false` sends `finishEditing` down its worst path:
+    // it re-selects the hidden cell and restores the EDITING state instead of closing. `rejectAsync`
+    // additionally parks the editor in WAITING, which makes `finishEditing` a no-op entirely.
+    const REJECTORS = {
+      none: undefined,
+      reject: (value, callback) => callback(value !== 'BAD'),
+      rejectAsync: (value, callback) => setTimeout(() => callback(value !== 'BAD'), 300),
+    };
+    const validatorColumn = window.htValidator === 'none'
+      ? {}
+      : { allowInvalid: false, validator: REJECTORS[window.htValidator] };
+
     const editorColumn = {
       text: {},
       select: { type: 'select', selectOptions: CHOICES },
       multiSelect: { type: 'multiselect', source: CHOICES },
       dropdown: { type: 'dropdown', source: CHOICES },
     }[window.htEditor];
+
+    Object.assign(editorColumn, validatorColumn);
 
     // `pagination` hides the off-page rows through a HIDING index map, so the edited cell stops
     // being rendered while its visual index stays valid. `scroll` renders every row and only

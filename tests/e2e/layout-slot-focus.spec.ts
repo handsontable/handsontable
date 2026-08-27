@@ -3,7 +3,8 @@ import { LayoutSlotFocusPage } from '../fixtures/pages/LayoutSlotFocusPage';
 
 /**
  * Clicking layout-slot UI is an outside click, and stays one. These cases pin that down so the
- * editor fix above cannot quietly change what `outsideClickDeselects` governs.
+ * hidden-cell editor guard in `editor-hidden-cell.spec.ts` cannot quietly change what
+ * `outsideClickDeselects` governs.
  */
 for (const outsideClickDeselects of [true, false]) {
   test.describe(`layout-slot click (outsideClickDeselects: ${outsideClickDeselects})`, () => {

@@ -19,10 +19,6 @@
     if (window.outsideClickDeselects === undefined) {
       throw new Error('Unknown ?outsideClickDeselects= value: ' + JSON.stringify(htParams.get('outsideClickDeselects')));
     }
-    window.htScenario = ({ pagination: 'pagination', scroll: 'scroll' })[htParams.get('scenario') ?? 'pagination'];
-    if (!window.htScenario) {
-      throw new Error('Unknown ?scenario= value: ' + JSON.stringify(htParams.get('scenario')));
-    }
   </script>
 </head>
 <body>
@@ -41,13 +37,9 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
-    // `pagination` hides the off-page rows through a hiding index map, so an edited cell can stop
-    // being rendered while its visual index stays valid. `scroll` renders every row and only
-    // virtualizes them, which must NOT be treated the same way.
-    const scenarioSettings = window.htScenario === 'scroll' ? {
-      data: Array.from({ length: 100 }, (unused, row) => [`A${row + 1}`, `B${row + 1}`]),
-      height: 150,
-    } : {
+    // Pagination is here only so the fixture has a layout slot to click. Nothing in this file
+    // tests paging behavior; that lives in `editor-hidden-cell.spec.ts`.
+    const scenarioSettings = {
       data: [
         ['A1', 'B1'],
         ['A2', 'B2'],
@@ -57,26 +49,13 @@
       pagination: {
         pageSize: 2,
       },
-      // Sorting shifts the visual-to-physical mapping, which is what separates a correct
-      // hidden-cell check from one that reads another row's flag. Inert until a spec sorts.
-      columnSorting: true,
     };
-
-    // Records every committed change so a spec can assert that NO commit happened, which a poll on
-    // the data alone cannot do: expect.poll passes on its first sample and would race a deferred
-    // commit rather than rule it out.
-    window.htChanges = [];
 
     window.hot = new Handsontable(container, Object.assign({
       colHeaders: true,
       rowHeaders: true,
       outsideClickDeselects: window.outsideClickDeselects,
       renderer: testIdRenderer,
-      afterChange(changes, source) {
-        if (changes) {
-          window.htChanges.push(...changes.map(change => change.concat(source)));
-        }
-      },
       licenseKey: 'non-commercial-and-evaluation',
     }, scenarioSettings));
   </script>

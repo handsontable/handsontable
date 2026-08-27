@@ -163,6 +163,45 @@ test.describe('non-text editors whose cell is hidden', () => {
 });
 
 /**
+ * `allowInvalid: false` with a rejecting validator sends `finishEditing()` down its worst path: it
+ * re-selects the hidden cell and restores `EDITING` rather than closing, and it clears the
+ * manager's `activeEditor` reference on the way. Both cases pin that the editor still ends up
+ * closed, which is why the guard holds its own reference rather than reading the manager's.
+ */
+test.describe('editor whose commit is rejected while its cell is hidden', () => {
+  test('closes when a synchronous validator rejects the value', async({ page, theme, bundle }) => {
+    const grid = new EditorHiddenCellPage(page, theme, bundle, { validator: 'reject' });
+
+    await grid.goto();
+    await grid.openEditorAndType(0, 0, 'BAD');
+    await grid.rememberActiveEditor();
+
+    await grid.setPage(2);
+
+    await expect.poll(() => grid.isAnyEditorStillOpen()).toBe(false);
+    // The rejected value never reaches the dataset - `validateChanges()` splices it out.
+    await expect.poll(() => grid.sourceColumn(0)).toEqual(['A1', 'A2', 'A3', 'A4']);
+  });
+
+  test('closes when an async validator is still in flight as the cell is hidden', async({ page, theme, bundle }) => {
+    const grid = new EditorHiddenCellPage(page, theme, bundle, { validator: 'rejectAsync' });
+
+    await grid.goto();
+    await grid.openEditorAndType(0, 0, 'BAD');
+    await grid.rememberActiveEditor();
+
+    // Park the editor in WAITING first: `finishEditing()` is a no-op there, so the guard has to
+    // retry once validation settles instead of giving up.
+    await grid.beginSave();
+
+    await grid.setPage(2);
+
+    await expect.poll(() => grid.isAnyEditorStillOpen()).toBe(false);
+    await expect.poll(() => grid.sourceColumn(0)).toEqual(['A1', 'A2', 'A3', 'A4']);
+  });
+});
+
+/**
  * Virtualization is not hiding. This keeps the guard from being rewritten against DOM presence,
  * which would silently commit an in-progress edit on every scroll away.
  */

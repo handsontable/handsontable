@@ -2,7 +2,12 @@ import { type Locator, type Page, expect } from '@playwright/test';
 
 interface HandsontableFixture {
   getSelected(): number[][] | undefined;
-  getActiveEditor(): { isOpened(): boolean; state: string; TEXTAREA?: HTMLTextAreaElement } | undefined;
+  getActiveEditor(): {
+    isOpened(): boolean;
+    state: string;
+    TEXTAREA?: HTMLTextAreaElement;
+    finishEditing(restoreOriginalValue?: boolean): void;
+  } | undefined;
   getDataAtCell(row: number, col: number): unknown;
   getSourceData(): unknown[][];
   getPlugin(name: string): {
@@ -25,6 +30,7 @@ interface PageOptions {
   editor?: 'text' | 'select' | 'multiSelect' | 'dropdown';
   scenario?: 'pagination' | 'scroll';
   sorting?: boolean;
+  validator?: 'none' | 'reject' | 'rejectAsync';
 }
 
 /**
@@ -37,6 +43,7 @@ export class EditorHiddenCellPage {
   readonly editor: string;
   readonly scenario: string;
   readonly sorting: boolean;
+  readonly validator: string;
   readonly selectEditor: Locator;
   readonly selectEditorControl: Locator;
   readonly multiSelectEditor: Locator;
@@ -48,6 +55,7 @@ export class EditorHiddenCellPage {
     this.editor = options.editor ?? 'text';
     this.scenario = options.scenario ?? 'pagination';
     this.sorting = options.sorting ?? false;
+    this.validator = options.validator ?? 'none';
     // `.htSelectEditor` is the wrapper div; the <select> itself is a child of it.
     this.selectEditor = page.locator('.htSelectEditor');
     this.selectEditorControl = page.locator('.htSelectEditor select');
@@ -59,7 +67,8 @@ export class EditorHiddenCellPage {
    */
   async goto(): Promise<void> {
     const query = `theme=${this.theme}&bundle=${this.bundle}` +
-      `&editor=${this.editor}&scenario=${this.scenario}&sorting=${this.sorting}`;
+      `&editor=${this.editor}&scenario=${this.scenario}&sorting=${this.sorting}` +
+      `&validator=${this.validator}`;
 
     await this.page.goto(`/tests/fixtures/demo/editor-hidden-cell.html?${query}`);
 
@@ -250,6 +259,39 @@ export class EditorHiddenCellPage {
         .some(state => state.hiddenIndexesChanged),
       axis,
     );
+  }
+
+  /**
+   * Starts the save so an async validator is in flight, without waiting for it to settle. This is
+   * the only way to park the editor in `WAITING`, where `finishEditing()` is a no-op.
+   */
+  async beginSave(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as Window & { hot: HandsontableFixture }).hot.getActiveEditor()?.finishEditing(false);
+    });
+  }
+
+  /**
+   * Reports whether the editor object that was last active is still open, regardless of whether the
+   * manager still references it. A rejected validation clears the manager's reference while leaving
+   * the editor itself open, which is exactly the orphan this asserts against.
+   */
+  async isAnyEditorStillOpen(): Promise<boolean> {
+    return this.page.evaluate(() => {
+      const hot = window as unknown as { __lastEditor?: { isOpened(): boolean; state: string } };
+
+      return hot.__lastEditor ? hot.__lastEditor.isOpened() || hot.__lastEditor.state === 'STATE_EDITING' : false;
+    });
+  }
+
+  /**
+   * Remembers the currently active editor object so it can be inspected after the manager drops it.
+   */
+  async rememberActiveEditor(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as unknown as { __lastEditor?: unknown }).__lastEditor =
+        (window as Window & { hot: HandsontableFixture }).hot.getActiveEditor();
+    });
   }
 
   /**
