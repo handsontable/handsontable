@@ -1,4 +1,4 @@
-import { test, expect } from '../../src/test-runner';
+import { test, expect, waitForScrollbarClearanceToSettle } from '../../src/test-runner';
 import {
   selectCell,
   selectColumnHeaderByNameAndOpenMenu,
@@ -87,6 +87,13 @@ test('Copy and paste data in a scrolled table', async({ goto, tablePage, browser
 
   await tablePage.waitForTimeout(20);
 
+  // The scroll above puts a scrollbar track along both edges for about a second, and while it is there
+  // the strip belongs to the scrollbar (#10370). The cell clicked next is the far bottom-right one, so
+  // its centre sits inside both bands: without this wait the click is swallowed, the selection never
+  // reaches the corner, and only one cell is copied. The assertions below still pass in that case -
+  // they check the first pasted cell - so it shows up only as a changed screenshot.
+  await waitForScrollbarClearanceToSettle(tablePage);
+
   const endCell = table.locator('.ht_master table tr:last-of-type > td:last-of-type');
 
   await endCell.click();
@@ -128,6 +135,13 @@ test('Cut and paste data in a scrolled table', async({ goto, tablePage, browserN
   });
 
   await tablePage.waitForTimeout(20);
+
+  // The scroll above puts a scrollbar track along both edges for about a second, and while it is there
+  // the strip belongs to the scrollbar (#10370). The cell clicked next is the far bottom-right one, so
+  // its centre sits inside both bands: without this wait the click is swallowed, the selection never
+  // reaches the corner, and only one cell is copied. The assertions below still pass in that case -
+  // they check the first pasted cell - so it shows up only as a changed screenshot.
+  await waitForScrollbarClearanceToSettle(tablePage);
 
   const endCell = table.locator('.ht_master table tr:last-of-type > td:last-of-type');
 

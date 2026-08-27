@@ -4,7 +4,6 @@ import { stringify, parse } from '../../3rdparty/SheetClip';
 import { arrayEach } from '../../helpers/array';
 import { isJSON } from '../../helpers/string';
 import { isObject, deepClone } from '../../helpers/object';
-import { warnOnce } from '../../helpers/console';
 import {
   removeContentEditableFromElementAndDeselect,
   runWithSelectedContendEditableElement,
@@ -12,8 +11,8 @@ import {
   isHTMLElement,
   isInternalElement,
   isShadowRoot,
-  SANITIZER_WARN_KEY,
 } from '../../helpers/dom/element';
+import { sanitizeHTML } from '../../utils/sanitizer';
 import { isSafari } from '../../helpers/browser';
 import copyItem from './contextMenuItem/copy';
 import copyColumnHeadersOnlyItem from './contextMenuItem/copyColumnHeadersOnly';
@@ -51,6 +50,26 @@ const META_HEAD = [
   '<meta name="generator" content="Handsontable"/>',
   '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
 ].join('');
+
+/**
+ * Squares off a ragged clipboard in place, filling the gaps with the empty-cell value.
+ *
+ * The grid pastes as wide as the widest row, so the rows that are shorter cover cells too. Doing
+ * this before the `beforePaste` hook keeps the hooks and the grid describing the same paste.
+ *
+ * @param {Array} data The parsed clipboard data.
+ */
+function padRowsToWidest(data: unknown[][]) {
+  const width = data.reduce((widest: number, row: unknown[]) => Math.max(widest, row.length), 0);
+
+  data.forEach((row: unknown[]) => {
+    for (let column = 0; column < width; column += 1) {
+      if (row[column] === undefined) {
+        row[column] = null;
+      }
+    }
+  });
+}
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -612,7 +631,10 @@ export class CopyPaste extends BasePlugin {
 
     const selection = this.hot.getSelectedRangeActive();
     const populatedRowsLength = plainData.length;
-    const populatedColumnsLength = plainData[0].length;
+    // A ragged clipboard (rows of unequal length) must not be narrowed to the first row's width -
+    // cells past that width would never be written. The widest row wins, as in spreadsheet apps.
+    const populatedColumnsLength = plainData
+      .reduce((maxLength: number, row: unknown[]) => Math.max(maxLength, row.length), 0);
     const newRows = [];
 
     if (!selection) {
@@ -680,7 +702,9 @@ export class CopyPaste extends BasePlugin {
           cellValue = parsedCellValue;
         }
 
-        newRow.push(cellValue);
+        // A row shorter than the widest one has no value here. Write the empty-cell value rather
+        // than `undefined`, which would delete the property outright in an object data source.
+        newRow.push(cellValue === undefined ? null : cellValue);
       }
 
       newRows.push(newRow);
@@ -890,6 +914,8 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
+    padRowsToWidest(pastedData as unknown[][]);
+
     // Store a copy of the original pasted data before user can modify it in beforePaste hook.
     // This is needed to detect if user modified values and respect their modifications over source data.
     const originalPastedData = deepClone(pastedData);
@@ -928,7 +954,19 @@ export class CopyPaste extends BasePlugin {
 
     if (event && typeof event.clipboardData !== 'undefined') {
       const clipboardData = event.clipboardData!;
-      const sourceDataHTML = clipboardData.getData(SOURCE_DATA_HTML_MIME_TYPE);
+      // `SOURCE_DATA_HTML_MIME_TYPE` is written by Handsontable's own copy handler, but the
+      // clipboard is not a trusted channel: any page can set the same type from its own `copy`
+      // handler, so it is sanitized like the `text/html` branch below.
+      //
+      // It gets its own context. The sink it feeds is inert (`htmlToGridSettings()` parses through
+      // `DOMParser`), so a sanitizer may pass this payload through without reopening an injection
+      // hole, and passing it through is what keeps object-based source data surviving a strict
+      // sanitizer. Sharing one context would force that choice on everyone and would also run the
+      // sanitizer twice over the same cells on an internal paste, since both clipboard types carry
+      // a full table.
+      const sourceDataHTML = sanitizeHTML(
+        this.hot, clipboardData.getData(SOURCE_DATA_HTML_MIME_TYPE) ?? '', 'CopyPaste.paste.sourceData'
+      );
 
       if (sourceDataHTML) {
         const parsedSourceConfig = htmlToGridSettings(sourceDataHTML, this.hot.rootDocument);
@@ -936,18 +974,7 @@ export class CopyPaste extends BasePlugin {
         pastedSourceData = parsedSourceConfig?.data;
       }
 
-      const rawTextHTML = clipboardData.getData('text/html') ?? '';
-      const customSanitizer = this.hot.getSettings().sanitizer;
-
-      if (rawTextHTML && typeof customSanitizer !== 'function') {
-        warnOnce(this.hot.rootElement, SANITIZER_WARN_KEY,
-          'HTML content is being pasted to the DOM without a sanitizer. ' +
-          'Configure the "sanitizer" option to prevent XSS vulnerabilities.');
-      }
-
-      const textHTML: string = typeof customSanitizer === 'function'
-        ? customSanitizer(rawTextHTML, 'CopyPaste.paste')
-        : rawTextHTML;
+      const textHTML = sanitizeHTML(this.hot, clipboardData.getData('text/html') ?? '', 'CopyPaste.paste');
 
       if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
         const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument);

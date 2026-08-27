@@ -2,8 +2,10 @@ import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
 import { randomString } from '../../helpers/string';
+import { resolveButtonType, type ButtonType } from '../../helpers/uiButton';
 import * as C from '../../i18n/constants';
 import { NotificationUI } from './ui';
+import { getSanitizer } from '../../utils/sanitizer';
 import { FOCUS_SOURCES } from '../../focusManager/constants';
 import { GRID_SCOPE } from '../../shortcuts/contexts/constants';
 import {
@@ -18,7 +20,7 @@ export type { NotificationPosition, NotificationVariant } from './constants';
 
 export interface NotificationAction {
   label: string;
-  type?: 'primary' | 'secondary';
+  type?: ButtonType;
   callback: () => void;
 }
 
@@ -217,7 +219,8 @@ export class Notification extends BasePlugin {
     if (!this.#ui) {
       this.#ui = new NotificationUI({
         overlayElement: this.hot.rootOverlaysElement,
-        sanitizer: this.hot.getSettings().sanitizer,
+        sanitizer: getSanitizer(this.hot),
+        warnScope: this.hot.rootElement,
         isRtl: this.hot.isRtl(),
       });
     }
@@ -465,7 +468,7 @@ export class Notification extends BasePlugin {
       this.#ui.setRtl(this.hot.isRtl());
     }
 
-    this.#ui.setSanitizer(this.hot.getSettings().sanitizer);
+    this.#ui.setSanitizer(getSanitizer(this.hot));
   };
 
   /**
@@ -493,7 +496,7 @@ export class Notification extends BasePlugin {
         throwWithCause('Each notification action needs `label` (string) and `callback` (function).');
       }
 
-      const type: 'primary' | 'secondary' = a.type === 'primary' ? 'primary' : 'secondary';
+      const type = resolveButtonType(a.type);
 
       return { label: a.label as string, type, callback: a.callback as () => void };
     }) : [];

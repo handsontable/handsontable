@@ -18,7 +18,6 @@ vue:
   metaTitle: TypeScript types - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
-menuTag: new
 ---
 
 Handsontable ships TypeScript declarations for its entire public API. This page lists every type you can import and shows how to use them in common scenarios.
@@ -70,6 +69,7 @@ These types describe the settings object you pass to `new Handsontable()` or `up
 | `CellProperties` | Merged cell-level settings after cascading from global → column → cell. Read-only at render time. |
 | `CellMeta` | Mutable per-cell metadata stored in `hot.getCellMeta()`. Extends `CellProperties`. |
 | `Events` | All hook callback signatures, keyed by hook name. Use to type individual hook functions. |
+| `SanitizerContext` | The write surfaces the grid passes to the [`sanitizer`](@/api/options.md#sanitizer) option. Annotate the option's second parameter with it to get completion on those values. |
 
 ```typescript
 import type { GridSettings, ColumnSettings } from 'handsontable';

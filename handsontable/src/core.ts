@@ -1304,15 +1304,22 @@ export default function Core(
       switch (method) {
         case 'shift_down':
           // translate data from a list of rows to a list of columns
-          const populatedDataByColumns: unknown[][] = pivot(input) as unknown[][];
+          const populatedDataByColumns: unknown[][] = pivot(input);
           const numberOfDataColumns = populatedDataByColumns.length;
+
+          // Every input row is empty, so there is nothing to populate. Bailing out here also keeps
+          // the `c % numberOfDataColumns` lookup below from dividing by zero and reading `NaN`.
+          if (numberOfDataColumns === 0) {
+            return false;
+          }
+
           // method's argument can extend the range of data population (data would be repeated)
 
           const numberOfColumnsToPopulate = Math.max(numberOfDataColumns, columnsPopulationEnd);
           const pushedDownDataByRows = instance.getData().slice(startRow!);
 
           // translate data from a list of rows to a list of columns
-          const pushedDownDataByColumns: unknown[][] = (pivot(pushedDownDataByRows) as unknown[][])
+          const pushedDownDataByColumns: unknown[][] = pivot(pushedDownDataByRows)
             .slice(startColumn!, startColumn! + numberOfColumnsToPopulate);
 
           for (c = 0; c < numberOfColumnsToPopulate; c += 1) {
@@ -1338,7 +1345,7 @@ export default function Core(
             }
           }
 
-          instance.populateFromArray(startRow!, startColumn!, pivot(newDataByColumns) as unknown[][]);
+          instance.populateFromArray(startRow!, startColumn!, pivot(newDataByColumns));
 
           break;
 
@@ -2484,6 +2491,8 @@ export default function Core(
    * @param {number} [endCol] End visual column index (use when you want to cut input when certain column is reached).
    * @param {string} [source=populateFromArray] Used to identify this call in the resulting events (beforeChange, afterChange).
    * @param {string} [method=overwrite] Populate method, possible values: `'shift_down'`, `'shift_right'`, `'overwrite'`.
+   * The `input` rows may differ in length. The widest row sets the width of the populated area, and
+   * a shorter row fills the positions it does not reach with the empty-cell value (`null`).
    * @returns {object|undefined} Ending td in pasted area (only if any cell was changed).
    */
   this.populateFromArray = function(
@@ -3668,8 +3677,6 @@ export default function Core(
     // scrollbar and every column stays reachable. Clipping those would silently hide the off-width
     // columns with no scrollbar. A definite width (`px`, `em`, `rem`, and other absolute lengths)
     // establishes a fixed box the table must not visually overflow, so it is clipped.
-    // Browser compatibility: `overflow-x: clip` requires Safari 16+. On Safari 14.1–15.x it silently
-    // falls back to `visible` (graceful degradation — pre-existing behavior, not a new regression).
     if (typeof settings.height !== 'undefined' || typeof settings.width !== 'undefined') {
       const effectiveHeight = instance.rootElement.style.height;
       const effectiveWidth = instance.rootElement.style.width;

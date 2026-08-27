@@ -255,11 +255,14 @@ export default (): Record<string, unknown> => {
      * | `true`            | The [`source`](#source) data is treated as HTML     |
      *
      * __Warning:__ Setting the `allowHtml` option to `true` can cause serious XSS vulnerabilities.
+     * The [`sanitizer`](#sanitizer) option does not apply to this content: `allowHtml` exists to render
+     * the markup you supply, so sanitize the [`source`](#source) items yourself before passing them in.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
      * - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
      * - [`source`](#source)
+     * - [`sanitizer`](#sanitizer)
      *
      * @memberof Options#
      * @type {boolean}
@@ -491,7 +494,12 @@ export default (): Record<string, unknown> => {
      * | `samplingRatio`         | A number                        | The number of samples of the same length to be used in row height calculations                             |
      * | `allowSampleDuplicates` | `true` \| `false`               | When calculating row heights:<br>`true`: Allow duplicate samples<br>`false`: Don't allow duplicate samples |
      *
-     * Using the [`rowHeights`](#rowHeights) option forcibly disables the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
+     * Unlike [`colWidths`](#colWidths), which switches [`AutoColumnSize`](@/api/autoColumnSize.md)
+     * off, the [`rowHeights`](#rowHeights) option does **not** disable this plugin. A height set
+     * through `rowHeights` acts as a minimum: the plugin still measures the row, and a row whose
+     * content is taller than that keeps its measured height. A column can be narrower than its
+     * content and clip it, but a row that is shorter than its content would hide the content, so
+     * rows only ever grow.
      *
      * Read more:
      * - [Plugins: `AutoRowSize`](@/api/autoRowSize.md)
@@ -2167,7 +2175,7 @@ export default (): Record<string, unknown> => {
      * | `template.description`   | The description of the template                                                                                                 | The description of the template         |
      * | `template.buttons`       | Array of objects with the buttons configuration (default: `[]`)                                                                 | The buttons of the template             |
      * | `template.buttons.text`  | The text of the button                                                                                                          | The text of the button                  |
-     * | `template.buttons.type`  | The type of the button ('primary' | 'secondary')                                                                                | The type of the button                  |
+     * | `template.buttons.type`  | The type of the button (`'primary'` \| `'secondary'`)                                                                           | The type of the button                  |
      * | `template.buttons.callback` | The callback function to trigger when the button is clicked                                                                  | The callback function to trigger when the button is clicked |
      * | `content`                | A string, HTMLElement or DocumentFragment (default: `''`)                                                                       | The content of the dialog               |
      * | `customClassName`        | A string (default: `''`)                                                                                                        | The custom class name of the dialog     |
@@ -2176,7 +2184,7 @@ export default (): Record<string, unknown> => {
      * | `animation`              | Boolean (default: `true`)                                                                                                       | Whether to show the animation           |
      * | `closable`               | Boolean (default: `false`)                                                                                                      | Whether to make the dialog closable     |
      * | `a11y`                   | Object with accessibility options (default: `{ role: 'dialog', ariaLabel: 'Dialog', ariaLabelledby: '', ariaDescribedby: '' }`) | Accessibility options for the dialog    |
-     * | `a11y.role`              | The role of the dialog ('dialog' | 'alertdialog')                                                                               | The role of the dialog                  |
+     * | `a11y.role`              | The role of the dialog (`'dialog'` \| `'alertdialog'`)                                                                          | The role of the dialog                  |
      * | `a11y.ariaLabel`         | The label of the dialog                                                                                                         | The label of the dialog                 |
      * | `a11y.ariaLabelledby`    | The ID of the element that labels the dialog                                                                                    | The ID of the element that labels the dialog |
      * | `a11y.ariaDescribedby`   | The ID of the element that describes the dialog                                                                                 | The ID of the element that describes the dialog |
@@ -3918,6 +3926,9 @@ export default (): Record<string, unknown> => {
      * | `title`       | A string          | Custom loading title to display (default: `'Loading...'`) |
      * | `description` | A string          | Custom loading description to display (default: `''`)     |
      *
+     * `title` and `description` render as text. Markup passed in them shows up literally rather
+     * than being interpreted, so use `icon` for the one slot that takes markup.
+     *
      * Read more:
      * - [Plugins: `Loading`](@/api/loading.md)
      *
@@ -4614,8 +4625,16 @@ export default (): Record<string, unknown> => {
      * column is replaced by the `label` from `nestedHeaders`. The `nestedHeaders` label takes precedence.
      * :::
      *
+     * ::: warning
+     * A `label` is written to the DOM as HTML, so a label built from user input or an external system can
+     * inject markup. Handsontable does not sanitize it by default. Set the [`sanitizer`](#sanitizer) option,
+     * which receives nested header labels under the `'header'` source. The `sanitizer` option is grid-level,
+     * so it cannot be narrowed to one header or one column.
+     * :::
+     *
      * Read more:
      * - [Plugins: `NestedHeaders`](@/api/nestedHeaders.md)
+     * - [Security: Content sanitizing](@/guides/security/security/security.md#content-sanitizing)
      * - [Column groups: Nested headers](@/guides/columns/column-groups/column-groups.md#nested-headers)
      * - [Column groups: Choose which columns stay visible when collapsed](@/guides/columns/column-groups/column-groups.md#choose-which-columns-stay-visible-when-collapsed)
      *
@@ -5500,6 +5519,11 @@ export default (): Record<string, unknown> => {
      * | A number | Set the same width for every row header         |
      * | An array | Set different widths for individual row headers |
      *
+     * Row headers have a fixed width. A label longer than that width is clipped, and unlike column
+     * headers, the header does not grow to fit it. To size the header to its content instead, turn
+     * on the [`autoRowHeaderSize`](#autoRowHeaderSize) plugin - it takes the width over, and this
+     * option is then ignored.
+     *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
@@ -5518,6 +5542,85 @@ export default (): Record<string, unknown> => {
      * ```
      */
     rowHeaderWidth: undefined,
+
+    /**
+     * The `autoRowHeaderSize` option configures the [`AutoRowHeaderSize`](@/api/autoRowHeaderSize.md) plugin.
+     *
+     * The plugin sizes the row header column to its widest label, the way
+     * [`AutoColumnSize`](@/api/autoColumnSize.md) sizes a data column to its widest cell. Turning it
+     * on is all you need: it takes the row header's width over, so any
+     * [`rowHeaderWidth`](#rowHeaderWidth) already set is ignored while the plugin is enabled.
+     *
+     * You can set the `autoRowHeaderSize` option to one of the following:
+     *
+     * | Setting   | Description                                                                  |
+     * | --------- | ---------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`AutoRowHeaderSize`](@/api/autoRowHeaderSize.md) plugin          |
+     * | `true`    | Enable the plugin with the default configuration                             |
+     * | An object | Enable the plugin and modify its options                                     |
+     *
+     * If you set the `autoRowHeaderSize` option to an object, you can set the following options:
+     *
+     * | Property                | Possible values   | Description                                                                                                   |
+     * | ----------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------- |
+     * | `samplingRatio`         | A number          | The number of samples of the same label length used in the measurement<br>(default: `3`)                      |
+     * | `allowSampleDuplicates` | `true` \| `false` | When two rows carry the same label:<br>`true`: measure both<br>`false`: measure it once<br>(default: `false`) |
+     * | `syncLimit`             | A number \| a percent string | How many rows are read before the first paint; the rest are read in idle time<br>(default: `500`) |
+     *
+     * By default, the `autoRowHeaderSize` option is set to `undefined`, which disables the plugin.
+     *
+     * Finding the longest label means reading every row header once. On a large grid that work is
+     * split: the first `syncLimit` rows are read before the first paint, and the rest are read in
+     * the browser's idle time, so a header can widen a moment after the grid appears. While that is
+     * running a header only ever widens, so its width never jumps back and forth. The result is
+     * cached, so later draws cost nothing.
+     *
+     * Editing a cell does not re-read the whole grid. Only the rows that changed are read, because
+     * a row header label can be built from cell values, and that reading waits for an idle moment
+     * too. It can make a header wider, but never narrower: a header shrinks again on the next full
+     * pass, which is started by loading or replacing the data, adding or removing a row, sorting,
+     * hiding or showing a row, switching the theme, or a recalculation by the
+     * [`Formulas`](@/api/formulas.md) plugin.
+     *
+     * A grid can render more than one row header, by pushing a renderer through the
+     * [`afterGetRowHeaderRenderers`](@/api/hooks.md#afterGetRowHeaderRenderers) hook. Every one of
+     * them is measured on its own, so each gets exactly the width its own labels need.
+     *
+     * The measured width leaves a little room around the longest label, so the text never sits flush
+     * against the cell border. The grid's own row header renderer wraps its label in a padded
+     * element, but a renderer pushed through
+     * [`afterGetRowHeaderRenderers`](@/api/hooks.md#afterGetRowHeaderRenderers) writes straight into
+     * the cell and has none of its own.
+     *
+     * Two rows carrying the same label are measured once, since the same text renders to the same
+     * width. Set `allowSampleDuplicates` to `true` when that is not true of your grid - a row header
+     * that is indented per row, as [`nestedRows`](#nestedRows) does, renders the same label at a
+     * different width depending on its depth. Raise `samplingRatio` along with it: labels are
+     * grouped by length and only `samplingRatio` of each group are measured, so with the default of
+     * `3` a fourth copy of the same label is still left out, however deep it sits.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @since 18.2.0
+     * @memberof Options#
+     * @type {object|boolean}
+     * @default undefined
+     * @category AutoRowHeaderSize
+     *
+     * @example
+     * ```js
+     * // size the row header column to its longest label
+     * autoRowHeaderSize: true,
+     *
+     * // the same, with the measurement tuned
+     * autoRowHeaderSize: {
+     *   // measure repeated labels too, for headers that render differently per row
+     *   allowSampleDuplicates: true,
+     * },
+     * ```
+     */
+    autoRowHeaderSize: undefined,
 
     /**
      * The `rowHeights` option sets rows' heights, in pixels.
@@ -7294,17 +7397,42 @@ export default (): Record<string, unknown> => {
 
     /**
      * The `sanitizer` option configures the function used to sanitize HTML before it is written to the DOM.
-     * Whenever Handsontable sets HTML (e.g. cell content, headers, context menu labels, dialog content,
-     * paste from clipboard), it can pass the string through this function first. Sanitization is important
-     * when content comes from users or external sources to prevent XSS (e.g. script injection, event handlers).
+     * Sanitization is important when content comes from users or external sources to prevent XSS
+     * (e.g. script injection, event handlers).
      *
      * By default (when no sanitizer is set), HTML is applied as-is (pass-through). You are responsible for
      * XSS protection. Set a sanitizer when you need to allow rich content while stripping or neutralizing
      * dangerous markup.
      *
-     * The function receives the raw HTML string and an optional second argument (source) indicating where
-     * the content is used (e.g. `'innerHTML'`, `'CopyPaste.paste'`), so you can apply different rules per source.
+     * The sanitizer covers the HTML that Handsontable writes on your behalf:
+     *
+     * - cells rendered by the [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type
+     * - column and row headers, including [`nestedHeaders`](#nestedheaders) labels
+     * - [context menu](#contextmenu) and [dropdown menu](#dropdownmenu) item labels
+     * - [`select`](@/api/options.md#selectoptions) editor options
+     * - [dialog](#dialog) and [notification](#notification) content
+     * - HTML pasted from the clipboard, and Handsontable's own clipboard payload carrying the source
+     *   data behind copied cells
+     *
+     * Two surfaces are deliberately excluded, because both exist to render raw markup you supply:
+     * the [`html`](@/guides/cell-types/cell-type/cell-type.md) cell type, and
+     * [`allowHtml`](#allowhtml) sources in `autocomplete` and `dropdown` cells. Sanitize that content
+     * yourself before passing it to the grid.
+     *
+     * The function receives the raw HTML string and a second argument (source) naming the write surface
+     * (`'header'`, `'password'`, `'contextMenu'`, `'selectEditor'`, `'dialog'`, `'notification'`,
+     * `'CopyPaste.paste'`, `'CopyPaste.paste.sourceData'`), so you can apply different rules per source.
      * It must return a string that is safe to assign to `innerHTML`.
+     *
+     * In TypeScript, annotate that parameter with the exported `SanitizerContext` type
+     * (see [TypeScript types](@/guides/tools-and-building/typescript-types/typescript-types.md))
+     * to get editor completion on the values above.
+     *
+     * `'CopyPaste.paste.sourceData'` carries Handsontable's own clipboard payload, the one that lets an
+     * object-valued cell survive a copy between grids. It is parsed into an inert document, so returning it
+     * unchanged does not expose you to a crafted clipboard, and doing so is what keeps
+     * [`parsePastedValue`](#parsepastedvalue) working under a sanitizer that escapes HTML rather than
+     * stripping it.
      *
      * This option is only respected when set in the table settings. It does not work when defined per column
      * or per cell (e.g. in `columns` or cell meta).
@@ -7314,7 +7442,7 @@ export default (): Record<string, unknown> => {
      *
      * @since 17.0.0
      * @memberof Options#
-     * @type {function(string, string): string}
+     * @type {function(string, SanitizerContext): string}
      * @default undefined
      * @category Core
      *

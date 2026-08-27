@@ -274,17 +274,18 @@ The `datePickerConfig` option (which passed options to Pikaday) no longer has an
 
 Handsontable 18.0 removes the built-in DOMPurify dependency. HTML passed to the following surfaces is no longer sanitized automatically:
 
-- `colHeaders` and `rowHeaders`
+- `colHeaders`, `rowHeaders`, and `nestedHeaders` labels
 - Context menu item labels
 - HTML pasted from the clipboard
 - Dialog and notification content
 - Select editor dropdown option values
+- `password` cells whose displayed value carries markup, through a custom `valueFormatter` or a `hashSymbol`
 
 ### Who is affected
 
 You are affected if any of the following apply:
 
-- You pass user-supplied or third-party HTML in `colHeaders`, `rowHeaders`, context-menu labels, or select editor `selectOptions`.
+- You pass user-supplied or third-party HTML in `colHeaders`, `rowHeaders`, `nestedHeaders` labels, context-menu labels, or select editor `selectOptions`.
 - You relied on Handsontable to strip `<script>` tags or event handlers from HTML passed to those surfaces.
 - You use the `sanitizer` option or test sanitization behavior.
 
@@ -353,7 +354,7 @@ Handsontable 18.0 simplifies the table border theme variables. The `--ht-wrapper
 You are affected if any of the following apply:
 
 - Your CSS overrides `--ht-wrapper-border-radius`, `--ht-wrapper-border-width`, or `--ht-wrapper-border-color`.
-- You pass `wrapperBorderRadius`, `wrapperBorderWidth`, or `wrapperBorderColor` tokens to `createTheme()` or `params()`.
+- You pass `wrapperBorderRadius`, `wrapperBorderWidth`, or `wrapperBorderColor` tokens to `registerTheme()` or `params()`.
 
 ### How to migrate
 
@@ -387,7 +388,7 @@ For the JS theme API, rename `wrapperBorderRadius` to `borderRadius` and remove 
 **Before:**
 
 ```javascript
-createTheme('my-theme', {
+registerTheme('my-theme', {
   tokens: {
     wrapperBorderRadius: '8px',
     wrapperBorderWidth: '1px',
@@ -399,7 +400,7 @@ createTheme('my-theme', {
 **After:**
 
 ```javascript
-createTheme('my-theme', {
+registerTheme('my-theme', {
   tokens: {
     borderRadius: '8px'
   }

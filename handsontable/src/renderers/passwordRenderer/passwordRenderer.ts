@@ -2,6 +2,7 @@ import type { HotInstance } from '../../core/types';
 import type { CellProperties } from '../../settings';
 import { fastInnerHTML } from '../../helpers/dom/element';
 import { stringify } from '../../helpers/mixed';
+import { getSanitizer } from '../../utils/sanitizer';
 
 export const RENDERER_TYPE: 'password' = 'password';
 
@@ -37,7 +38,11 @@ export function valueFormatter(value: unknown, cellProperties: CellProperties) {
 export function passwordRenderer(
   hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
   prop: string | number, value: unknown): void {
-  fastInnerHTML(TD, value as string);
+  // `valueFormatter` above replaces the value with a run of `hashSymbol`, so markup reaches this
+  // sink only through a developer-supplied `valueFormatter` or a `hashSymbol` that contains HTML.
+  // Both are the developer's own content, but a configured `sanitizer` must still apply, and the
+  // `'password'` context is what makes the missing-sanitizer warning name its source.
+  fastInnerHTML(TD, value as string, getSanitizer(hotInstance), 'password', hotInstance.rootElement);
 }
 
 passwordRenderer.valueFormatter = valueFormatter;

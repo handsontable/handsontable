@@ -17,7 +17,6 @@ react:
   metaTitle: Server-side Data with Supabase - React Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
-menuTag: new
 ---
 
 This tutorial shows how to wire Handsontable's `dataProvider` plugin to a live [Supabase](https://supabase.com) Postgres table. Every page load, sort, filter, and cell edit goes through the database, so the browser never holds the full dataset.

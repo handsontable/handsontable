@@ -17,7 +17,6 @@ vue:
   metaTitle: Radio Button Cell Type - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Cell Types
-menuTag: new
 ---
 
 This tutorial shows you how to build a custom radio button cell type using a renderer that displays radio inputs directly in cells, with ARIA semantics, roving tabindex, and keyboard navigation.

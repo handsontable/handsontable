@@ -67,10 +67,18 @@
 ## Security Considerations
 
 **No Built-in HTML Sanitizer (Post-DOMPurify Removal):**
-- Risk: DOMPurify was removed in v18.0. HTML content injected via `innerHTML` is no longer sanitized by default. If a user does not provide a `sanitizer` option, HTML cell content is rendered unsanitized and XSS is possible.
-- Files: `handsontable/src/helpers/dom/element.ts`, `handsontable/src/plugins/contextMenu/menu/menuItemRenderer.ts`
-- Current mitigation: `fastInnerHTML` still accepts a `sanitizer` function and applies it when provided. `menuItemRenderer` emits a console warning (once per instance) when an HTML-containing context menu item name is rendered without a sanitizer configured.
-- Recommendations: Document that XSS protection is the user's responsibility when `type: 'html'` or raw HTML is passed as cell content. Encourage users to configure a `sanitizer` option (e.g. wrapping DOMPurify themselves).
+- Risk: DOMPurify was removed in v18.0. HTML content injected via `innerHTML` is no longer sanitized by default. If a user does not provide a `sanitizer` option, HTML cell content is rendered unsanitized and XSS is possible. This is the documented v18.0 contract, not a defect; see the `sanitizer` JSDoc and the security guide.
+- Files: `handsontable/src/utils/sanitizer.ts` (the resolver every sink goes through), `handsontable/src/helpers/dom/element.ts` (`fastInnerHTML`)
+- Current mitigation: every sink resolves the option through `getSanitizer()`/`sanitizeHTML()` in `utils/sanitizer.ts` and binds the missing-sanitizer warning to `hot.rootElement`, so a grid warns once no matter how many surfaces write raw HTML. Covered surfaces and their context strings: `'header'` (including nested headers and the ghost table that measures them), `'password'`, `'contextMenu'`, `'selectEditor'`, `'dialog'`, `'notification'`, `'CopyPaste.paste'`.
+- Deliberate exclusions: the `html` cell type (`renderers/htmlRenderer`) and `allowHtml` autocomplete/dropdown sources both pass `false`, meaning raw and silent. PR #7368 (2020) disabled sanitizing for them on purpose, and it held through the DOMPurify era, so a configured sanitizer has never reached them. Whether it should is an open product question. Do not "fix" it as a bug: it is a behavior change under `.ai/BREAKING-CHANGES.md`.
+- Recommendations: keep new HTML sinks going through `utils/sanitizer.ts` rather than reading `getSettings().sanitizer` inline, and give each one its own context string so the warning names it.
+
+**Clipboard Paste Parses Into an Inert Document:**
+- Risk: `htmlToGridSettings()` used to write pasted markup into a detached `<div>` of the live document. Detached is not inert: the owning document has a browsing context, so `<img src=x onerror>` in a paste payload loaded and executed.
+- Files: `handsontable/src/utils/parseTable.ts`, `handsontable/src/plugins/copyPaste/copyPaste.ts`
+- Current mitigation: the string path parses with `DOMParser.parseFromString()`, which has no browsing context, so nothing loads or runs while the markup is read. Both clipboard branches (`text/html` and the private `application/ht-source-data-json-html`) are sanitized under `'CopyPaste.paste'`.
+- Recommendations: never `importNode` the parsed nodes back into the live document, which would make them live again. Keep every downstream read on that document read-only.
+- Still open in the same class: `Core#toTableElement()` (`handsontable/src/core.ts:6448`) writes `instanceToHTML()` output into a live-document element with `insertAdjacentHTML`, and `instanceToHTML` escapes cell data but not headers (`utils/parseTable.ts:55`), so a `colHeaders` entry containing markup executes there. No internal caller (it is public API only), and the same label executes when rendered into a real `<th>` anyway, so it is not a trust escalation. A `DOMParser` swap does not fix it either: the function must return a node the caller can insert, and adopting it into the live document reactivates the payload. The real fix is escaping headers in `instanceToHTML`.
 
 **innerHTML Usage in Template Literal Tag:**
 - Risk: The `templateLiteralTag.ts` helper uses `template.innerHTML` to parse tagged template literals. If user-supplied data flows into the template, it could introduce XSS.

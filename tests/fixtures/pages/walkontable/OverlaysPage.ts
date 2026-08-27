@@ -67,13 +67,33 @@ export class OverlaysPage {
     return this.master.getByTestId(`cell-${row}-${col}`);
   }
 
-  /** Scroll the master viewport to the far end of both axes. */
+  /**
+   * Scroll the master viewport to the far end of both axes, then wait for the scrollbar track to go.
+   *
+   * Where the browser draws floating scrollbars, a scroll puts a track along each scrolled edge for
+   * about a second, and that track owns its strip while it is there: a press inside it reaches the
+   * scrollbar, not the grid (#10370). The last row's cells are shorter than the strip is deep, so a
+   * click on one lands in the track and selects nothing - which is the intended behavior, and would
+   * make any "scroll to the end, then click the last cell" test fail for a reason that has nothing to
+   * do with what it is testing.
+   *
+   * So the wait belongs here, with the scroll that causes it, rather than in each spec. On a runner
+   * with space-taking scrollbars no track is ever drawn and this resolves at once.
+   */
   async scrollToEnd(): Promise<void> {
     await this.holder().evaluate((el) => {
       el.scrollLeft = el.scrollWidth;
       el.scrollTop = el.scrollHeight;
     });
     await expect(this.cell(this.lastRow, this.lastColumn)).toBeVisible();
+
+    await this.page
+      // eslint-disable-next-line no-undef
+      .waitForFunction(() => document.querySelectorAll('.htScrollbarClearanceFiller').length === 0,
+        undefined, { timeout: 5000 })
+      .catch(() => {
+        throw new Error('the scrollbar track never faded, so a press near the grid edge would land in it');
+      });
   }
 
   /** Click a cell and wait for it to become the focused one. */

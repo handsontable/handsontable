@@ -9,6 +9,7 @@ import {
 } from '../../helpers/dom/element';
 import { objectEach } from '../../helpers/object';
 import { A11Y_HIDDEN } from '../../helpers/a11y';
+import { getSanitizer } from '../../utils/sanitizer';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const SHORTCUTS_GROUP = 'selectEditor';
@@ -162,7 +163,7 @@ export class SelectEditor extends BaseEditor {
 
     empty(this.select);
 
-    const { sanitizer } = this.hot.getSettings();
+    const sanitizer = getSanitizer(this.hot);
 
     if (Array.isArray(options)) {
       for (let i = 0; i < options.length; i++) {

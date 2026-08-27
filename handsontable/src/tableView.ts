@@ -32,6 +32,7 @@ import { isImmediatePropagationStopped, isRightClick, isLeftClick, isMiddleClick
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
+import { getSanitizer } from './utils/sanitizer';
 import { resolveWithInstance } from './utils/staticRegister';
 import {
   A11Y_COLCOUNT,
@@ -1314,7 +1315,8 @@ class TableView {
       },
       onBeforeTouchScroll: () => this.hot.runHooks('beforeTouchScroll'),
       onAfterMomentumScroll: () => this.hot.runHooks('afterMomentumScroll'),
-      onModifyRowHeaderWidth: (rowHeaderWidth: number) => this.hot.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
+      onModifyRowHeaderWidth: (rowHeaderWidth: number | number[]) =>
+        this.hot.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
       onModifyGetCellCoords: (
         renderableRowIndex: number, renderableColumnIndex: number, topmost: boolean, source: string
       ): (number | null)[] | undefined => {
@@ -1813,8 +1815,8 @@ class TableView {
     }
 
     if (renderedIndex > -1) {
-      fastInnerHTML(element, String(content(index, headerLevel)), this.hot.getSettings().sanitizer ?? true,
-        'header', this.hot.rootGridElement ?? undefined);
+      fastInnerHTML(element, String(content(index, headerLevel)), getSanitizer(this.hot),
+        'header', this.hot.rootElement);
 
     } else {
       // workaround for https://github.com/handsontable/handsontable/issues/1946
