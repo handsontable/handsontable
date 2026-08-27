@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Everything on this page concerns the [`sanitizer`](@/api/options.md#sanitizer) option. If you do not set one, nothing here affects you.
+Sections 1 and 2 concern the [`sanitizer`](@/api/options.md#sanitizer) option. If you do not set one, neither affects you. Section 3 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it.
 
 ## 1. Two `source` values your sanitizer receives have changed
 
@@ -104,3 +104,88 @@ sanitizer: (content, source) => {
 This is safe. The payload is parsed into an inert document that cannot load resources or run scripts, so passing it through does not expose you to injection from a crafted clipboard. It has its own source precisely so you can make this choice without weakening how you treat real pasted HTML.
 
 Leaving it sanitized is also fine if none of your columns parse pasted values, and it means your sanitizer sees every clipboard payload, which matters if it does more than filter markup.
+
+## 3. `date` cells reach the formula engine the same way on every data path
+
+These were bugs, not a change of contract. The [`Formulas`](@/api/formulas.md) plugin has always protected a [`date`](@/guides/cell-types/date-cell-type/date-cell-type.md) cell's value from the calculation engine's own parsing when you type into the cell. It did not do the same when the value arrived through [`loadData()`](@/api/core.md#loaddata), [`updateData()`](@/api/core.md#updatedata), [`updateSettings()`](@/api/core.md#updatesettings), or [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell). The same cell held two different values in the engine depending on how it was filled.
+
+All of those paths now match the initial data load.
+
+### Values that are not ISO dates stay text
+
+A `date` column holds strings in your [`dateFormat`](@/api/options.md#dateformat). A value that does not parse as an ISO 8601 date used to reach the engine as whatever the engine made of it on its own: `'123'` became the number 123, `'12:30'` became a time fraction, and `'TRUE'` became a boolean. A formula reading that cell calculated on the converted value.
+
+Those values now reach the engine as text, so a formula reading the cell sees the string you loaded.
+
+### A `type` set through `cells()` now applies
+
+If a `cells()` function is the only place a cell's `type` is declared, the plugin previously ignored that type on the data paths above. It now honors it, the same way it already did for a `type` set on the grid, on a column, or through the `cell` array.
+
+### Your `cells()` function and meta hooks run on those paths
+
+Honoring a `cells()`-provided type means calling that function. On the paths above, the plugin now reads each cell's meta through the same pipeline the rest of the grid uses, so your `cells()` function and your [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta) and [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta) listeners run once per non-formula text cell. The previous read invoked none of them.
+
+`updateSettings()` is the path worth checking, because it runs on every call.
+
+### Who is affected
+
+You are affected only if you use the `Formulas` plugin, and then only in one of these three cases:
+
+- You have a `date` column that can hold values that are not ISO 8601 dates, and a formula reads those cells.
+- You declare a cell's `type` only through a `cells()` function.
+- Your `cells()` function, `beforeGetCellMeta` listener, or `afterGetCellMeta` listener has side effects.
+
+A grid whose configuration declares no `date` type and no [`preserveTextValue`](@/api/options.md#preservetextvalue) option skips the pass entirely, so none of the meta reads happen at all.
+
+### How to migrate
+
+The first two cases need no code change. The values and types are now what the plugin's documentation describes, so what to check is a formula that read one of these cells as a number.
+
+Direct arithmetic and concatenation are unaffected, because the engine coerces a numeric string the way a spreadsheet does. What changes is every function that tells a number from text. With `'123'` loaded into a `date` cell as `A1`:
+
+| Formula | Before | After |
+| --- | --- | --- |
+| `=A1+1` | `124` | `124` |
+| `=A1&"x"` | `123x` | `123x` |
+| `=SUM(A1:A1)` | `123` | `0` |
+| `=COUNT(A1:A1)` | `1` | `0` |
+| `=ISNUMBER(A1)` | `true` | `false` |
+
+If a total has to keep counting those cells, convert them where you read them:
+
+**Before:**
+
+```js
+'=SUM(A1:A10)'
+```
+
+**After:**
+
+```js
+'=SUMPRODUCT(VALUE(A1:A10))'
+```
+
+The better fix is to stop putting non-date values in a `date` column. A column whose cells hold plain numbers is a [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) column, and the engine has always read those as numbers.
+
+For the third case, make the listener safe to call during a data load. A listener that calls `setDataAtCell()` or `updateSettings()` now has a path back into the grid it did not have before:
+
+**Before:**
+
+```js
+cells(row, column) {
+  this.setDataAtCell(row, column, computeSomething(row));
+
+  return { type: 'date' };
+},
+```
+
+**After:**
+
+```js
+cells(row, column) {
+  return {
+    type: 'date',
+    valueGetter: value => value ?? computeSomething(row),
+  };
+},
+```
