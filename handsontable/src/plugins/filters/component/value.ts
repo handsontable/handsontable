@@ -4,7 +4,7 @@ import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import { arrayEach, arrayFilter, arrayMap } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import * as C from '../../../i18n/constants';
-import { unifyColumnValues, intersectValues } from '../utils';
+import { unifyColumnValues, intersectValues, createArrayAssertion } from '../utils';
 import { getSortComparatorForMeta } from '../sortComparators';
 import { BaseComponent } from './_base';
 import { MultipleSelectUI } from '../ui/multipleSelect';
@@ -35,6 +35,7 @@ export interface StateInfo {
   editedConditionStack: ConditionStack;
   dependentConditionStacks: ConditionStack[];
   filteredRowsFactory: (physicalColumn: number, conditionsStack?: ConditionStack) => FilteredRow[];
+  columnValuesFactory?: (physicalColumn: number) => FilteredRow[];
   [key: string]: unknown;
 }
 
@@ -190,7 +191,7 @@ export class ValueComponent extends BaseComponent {
         const filteredRows = filteredRowsFactory(physicalColumn, conditionsStack);
 
         const selectedArgs = firstByValueCondition.args[0] as unknown[];
-        const { itemsSnapshot } = this.#buildItemsSnapshot(physicalColumn, filteredRows, selectedArgs);
+        const { itemsSnapshot } = this.#buildItemsSnapshot(filteredRows, selectedArgs);
 
         // Read from the column being refreshed, not from the edited one - this runs for the
         // dependent column too. `getCellMetaTransient` takes VISUAL coordinates, while every column
@@ -198,11 +199,14 @@ export class ValueComponent extends BaseComponent {
         const visualColumn = this.hot?.toVisualColumn(physicalColumn) ?? physicalColumn;
 
         state.locale = this.hot?.getCellMetaTransient(0, visualColumn).locale;
-        // The whole selection, copied so the component state, `options.value` and the condition
-        // collection stop sharing one array. `itemsSnapshot` already carries the checked flags for
-        // the visible values; the rest has to survive so that confirming a narrowed list does not
-        // shrink the condition to what is on screen.
-        state.args = [[...selectedArgs]];
+        // The whole selection, minus the values that have left the column altogether, and copied so
+        // the component state, `options.value` and the condition collection stop sharing one array.
+        // `itemsSnapshot` already carries the checked flags for the visible values; the rest has to
+        // survive so that confirming a narrowed list does not shrink the condition to what is on
+        // screen. Keeping a value that exists nowhere would be worse than losing it: the list could
+        // never show it again, so "select all" could never empty the column and the header would
+        // read as filtered for good.
+        state.args = [this.#pruneToExistingValues(physicalColumn, selectedArgs, stateInfo)];
         state.command = getConditionDescriptor(CONDITION_BY_VALUE);
         state.itemsSnapshot = itemsSnapshot;
 
@@ -239,25 +243,52 @@ export class ValueComponent extends BaseComponent {
   }
 
   /**
+   * Drops the selected values that no longer appear anywhere in the column.
+   *
+   * A value leaves the item list for two very different reasons, and they must not be treated
+   * alike: another column's filter hides its rows, in which case it has to survive; or it was
+   * edited away, in which case keeping it strands a value the list can never show again. Both the
+   * column's values and the stored selection are normalized the same way (`unifyColumnValues`
+   * applies `toEmptyString`), so a blank matches a blank rather than a stray `null`.
+   *
+   * @param {number} physicalColumn The physical column index the selection belongs to.
+   * @param {Array} selectedArgs The stored selection.
+   * @param {object} stateInfo The state payload, carrying the full-column reader.
+   * @returns {Array} The selection without the values that left the column.
+   */
+  #pruneToExistingValues(physicalColumn: number, selectedArgs: unknown[], stateInfo: StateInfo): unknown[] {
+    const columnValuesFactory = stateInfo.columnValuesFactory;
+
+    if (typeof columnValuesFactory !== 'function' || selectedArgs.length === 0) {
+      return [...selectedArgs];
+    }
+
+    const columnRows = columnValuesFactory(physicalColumn);
+    const comparator = getSortComparatorForMeta(columnRows[0]?.meta);
+    const existingValues = unifyColumnValues(arrayMap(columnRows, row => row.value), comparator);
+    const exists = createArrayAssertion(existingValues);
+
+    return selectedArgs.filter(value => exists(value));
+  }
+
+  /**
    * Builds the item list shown in the "filter by value" box for a single column.
    *
-   * @param {number} physicalColumn The physical column index the items belong to.
    * @param {Array} filteredRows Data-map entries of the rows the list is built from.
    * @param {Array} selectedArgs Values that stay checked.
    * @returns {{itemsSnapshot: Array}} The item list, each entry carrying its checked flag.
    */
-  #buildItemsSnapshot(physicalColumn: number, filteredRows: FilteredRow[], selectedArgs: unknown[]) {
+  #buildItemsSnapshot(filteredRows: FilteredRow[], selectedArgs: unknown[]) {
     const defaultBlankCellValue = this.hot?.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS) ?? '';
     const rowValues = arrayMap(filteredRows, row => row.value);
     // The map feeds only the `modifyFiltersMultiSelectValue` hook. Building it costs one
     // meta-pipeline read per filtered row, so skip it when the hook is not registered.
-    // The rows are addressed through the entry's own `row` property - the coordinate stamps
-    // on `row.meta` are shared with other meta readers and may have been overwritten.
+    // The entry's own `meta` is used rather than a fresh read: `row.row` and `physicalColumn` are
+    // both physical, while `getCellMetaTransient` takes visual coordinates, so re-reading handed the
+    // hook another cell's meta under any sort or filter. `reset()` reads `row.meta` for the same
+    // purpose, and now both paths agree.
     const rowMetaMap = this.hot?.hasHook('modifyFiltersMultiSelectValue')
-      ? new Map(
-        filteredRows.map((row: FilteredRow) =>
-          [row.value, this.hot?.getCellMetaTransient(row.row, physicalColumn)])
-      )
+      ? new Map(filteredRows.map((row: FilteredRow) => [row.value, row.meta]))
       : null;
     const columnMeta = filteredRows[0]?.meta;
     const comparator = getSortComparatorForMeta(columnMeta);

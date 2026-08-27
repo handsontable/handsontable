@@ -138,6 +138,26 @@ export class FiltersValueListPage {
     await expect(checkbox).toBeChecked();
   }
 
+  /**
+   * The filter conditions the grid currently holds, as the plugin exports them. Some defects only
+   * show here — a condition naming a value that no longer exists matches nothing, so the rows on
+   * screen look correct while the column still reads as filtered.
+   *
+   * @returns {Promise<Array>} One entry per filtered column.
+   */
+  async exportedConditions(): Promise<unknown[]> {
+    return this.page.evaluate(() => (window as unknown as {
+      hot: { getPlugin(name: string): { exportConditions(): unknown[] } };
+    }).hot.getPlugin('filters').exportConditions());
+  }
+
+  /** Click the "Select all" link, which checks every value the filter holds. */
+  async selectAllValues(): Promise<void> {
+    await this.menu.locator('.htUIMultipleSelect a', { hasText: /^Select all$/ }).click();
+
+    await expect(this.valueList.first().locator('input[type="checkbox"]')).toBeChecked();
+  }
+
   /** Click the "Clear" link, which unchecks every value the filter holds. */
   async clearAllValues(): Promise<void> {
     await this.menu.locator('.htUIMultipleSelect a', { hasText: /^Clear$/ }).click();

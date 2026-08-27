@@ -61,6 +61,40 @@ test.describe('Filters — editing a cell in a column filtered by value', () => 
       expect(await grid.columnValues(1)).toEqual(['Blue', 'Red']);
     });
 
+  test('drops a selected value once the edit removes it from the column', async({ page, theme, bundle }) => {
+    const grid = new FiltersValueListPage(page, theme, bundle);
+
+    await grid.goto();
+
+    // Blue belongs to Charlie alone. Keep it selected, then edit that row away.
+    await grid.openMenu('Color');
+    await grid.uncheckValue('Red');
+    await grid.confirmMenu();
+
+    expect(await grid.columnValues(0)).toEqual(['Bob', 'Charlie', 'Dave']);
+
+    await grid.typeIntoCell(1, 1, 'Green');
+
+    // Blue is gone from the data, so it must leave the selection instead of lingering as a value
+    // the list can never show again. If it lingered, "Select all" could never clear this column.
+    await grid.openMenu('Color');
+
+    expect(await grid.listedValues()).toEqual([
+      { checked: true, label: 'Green' },
+      { checked: false, label: 'Red' },
+    ]);
+
+    await grid.checkValue('Red');
+    await grid.confirmMenu();
+
+    expect(await grid.columnValues(0)).toEqual(['Alice', 'Bob', 'Charlie', 'Dave', 'Eve']);
+
+    // The rows alone cannot show this: a stranded `Blue` matches nothing, so the grid looks right
+    // either way. The condition is where it shows - with every value ticked the column must hold no
+    // condition at all, not a `by_value` naming a colour that is gone.
+    expect(await grid.exportedConditions()).toEqual([]);
+  });
+
   test('leaves the edited row on screen until the filter is applied again', async({ page, theme, bundle }) => {
     const grid = new FiltersValueListPage(page, theme, bundle);
 

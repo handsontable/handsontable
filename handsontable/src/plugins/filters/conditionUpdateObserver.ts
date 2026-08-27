@@ -171,8 +171,11 @@ class ConditionUpdateObserver {
    * Update all related states which should be changed after invoking changes applied to current column.
    *
    * @param {number} column The column index.
+   * @param {*} [_conditionArgsChange] No longer used. A data change used to hand its value set in
+   * here, which is what rewrote the column's condition behind the user's back (issue #6471). The
+   * parameter is kept so the published typings keep accepting the old two-argument call.
    */
-  updateStatesAtColumn(column: number) {
+  updateStatesAtColumn(column: number, _conditionArgsChange?: unknown) {
     if (this.grouping) {
       if (this.changes.indexOf(column) === -1) {
         this.changes.push(column);
@@ -248,7 +251,11 @@ class ConditionUpdateObserver {
     this.runLocalHooks('update', {
       editedConditionStack: { column, conditions: editedConditions },
       dependentConditionStacks: conditionsAfter,
-      filteredRowsFactory: visibleDataFactory
+      filteredRowsFactory: visibleDataFactory,
+      // Every row of a column, ignoring every condition. Consumers need it to tell a value that is
+      // merely hidden by another column's filter from one that has left the data for good. Shares
+      // the same memo as `visibleDataFactory`, which already reads this column, so it costs nothing.
+      columnValuesFactory: (physicalColumn: number) => this.#getColumnData(physicalColumn)
     });
   }
 

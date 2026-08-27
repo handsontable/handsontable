@@ -723,15 +723,18 @@ const hot = new Handsontable(container, {
 ::: only-for react
 
 ```jsx
+const hotRef = useRef(null);
+
 <HotTable
+  ref={hotRef}
   dropdownMenu={true}
   filters={true}
-  afterChange={function(changes, source) {
+  afterChange={(changes, source) => {
     if (source === 'loadData' || !changes) {
       return;
     }
 
-    this.getPlugin('filters').filter();
+    hotRef.current?.hotInstance?.getPlugin('filters').filter();
   }}
 />
 ```
@@ -741,15 +744,18 @@ const hot = new Handsontable(container, {
 ::: only-for angular
 
 ```ts
-settings = {
+@ViewChild(HotTableComponent, { static: false })
+hotTable!: HotTableComponent;
+
+settings: GridSettings = {
   dropdownMenu: true,
   filters: true,
-  afterChange(changes: any, source: string) {
+  afterChange: (changes, source) => {
     if (source === 'loadData' || !changes) {
       return;
     }
 
-    this.getPlugin('filters').filter();
+    this.hotTable.hotInstance?.getPlugin('filters').filter();
   },
 };
 ```
@@ -764,19 +770,23 @@ settings = {
 
 ```vue
 <template>
-  <hot-table :settings="settings"></hot-table>
+  <hot-table ref="hotTableRef" :settings="settings"></hot-table>
 </template>
 
 <script setup>
+import { ref } from 'vue';
+
+const hotTableRef = ref(null);
+
 const settings = {
   dropdownMenu: true,
   filters: true,
-  afterChange(changes, source) {
+  afterChange: (changes, source) => {
     if (source === 'loadData' || !changes) {
       return;
     }
 
-    this.getPlugin('filters').filter();
+    hotTableRef.value?.hotInstance?.getPlugin('filters').filter();
   },
 };
 </script>
@@ -789,7 +799,11 @@ const settings = {
 The **Filter by value** list of a column only holds the values present in the rows that pass the
 *other* columns' filters, so a value can drop off the list while it's still selected. Those values
 stay selected: confirming the menu keeps them, and they apply again as soon as their rows come back
-into scope. **Clear** removes them along with everything else.
+into scope. **Select all** and **Clear** both act on them along with everything else.
+
+A value that leaves the data entirely is a different case. Once no row holds it, it drops out of the
+filter as well, so a column whose values you edit away stops filtering instead of holding on to a
+value that can never match again.
 
 :::
 

@@ -68,6 +68,17 @@ export class MultipleSelectUI extends BaseUI {
    * Link component for clearing all selected filter values at once.
    */
   #clearAllUI: LinkUI | null = null;
+  /**
+   * Selected values missing from the item list, cached against `#items`. Rebuilt on the first read
+   * after the list or the selection changes — `getState()` asks for it four times per confirmation,
+   * and on a column with many distinct values the Set build dominates that call.
+   */
+  #unlistedValue: unknown[] | null = null;
+  /**
+   * Whether the user emptied the box with "Clear". An empty list cannot say on its own whether the
+   * column filters nothing or excludes everything, so the answer is recorded when it is given.
+   */
+  #cleared = false;
 
   /**
    * Initializes the multiple select UI component, creates child input and link components, and registers event hooks.
@@ -120,7 +131,20 @@ export class MultipleSelectUI extends BaseUI {
   setItems(items: Record<string, unknown>[]) {
     this.#items = items as SelectItem[];
     this.#lowerCaseItemValues = null;
+    this.#unlistedValue = null;
+    this.#cleared = false;
     this.#itemsBox?.loadData(this.#items);
+  }
+
+  /**
+   * Set element value. Recorded whole, so the values the item list cannot show are not lost.
+   *
+   * @param {*} value The selected values.
+   */
+  setValue(value: unknown) {
+    this.#unlistedValue = null;
+    this.#cleared = false;
+    super.setValue(value);
   }
 
   /**
@@ -189,15 +213,23 @@ export class MultipleSelectUI extends BaseUI {
    * @returns {Array} Selected values missing from the item list.
    */
   #getUnlistedValue(): unknown[] {
+    if (this.#unlistedValue !== null) {
+      return this.#unlistedValue;
+    }
+
     const value = (this.options as Record<string, unknown>).value as unknown[] | undefined;
 
     if (!Array.isArray(value) || value.length === 0) {
-      return [];
+      this.#unlistedValue = [];
+
+      return this.#unlistedValue;
     }
 
     const isListed = createArrayAssertion(this.#items.map(item => item.value));
 
-    return value.filter(item => !isListed(item));
+    this.#unlistedValue = value.filter(item => !isListed(item));
+
+    return this.#unlistedValue;
   }
 
   /**
@@ -239,8 +271,13 @@ export class MultipleSelectUI extends BaseUI {
     // here makes `getState()` report "no condition", which deletes them.
     // Comparing `#items.length` against the whole selection would not do: a list holding one
     // unticked value plus one selected unlisted value has matching counts and different sets.
-    // An empty list with an empty selection still answers `true`, which is what lets a column with
-    // nothing to filter by report "no condition".
+    // An empty list with an empty selection answers `true`, which is what lets a column with
+    // nothing to filter by report "no condition" - unless the user emptied it with "Clear", which
+    // means the opposite and is recorded rather than guessed.
+    if (this.#cleared) {
+      return false;
+    }
+
     return this.#items.length === itemsToValue(this.#items).length && this.#getUnlistedValue().length === 0;
   }
 
@@ -427,6 +464,12 @@ export class MultipleSelectUI extends BaseUI {
         hiddenRows.showRows(hiddenRows.getHiddenRows());
       }
 
+      // The search term now owns the selection outright, so the values the list cannot show are no
+      // longer part of it. Leaving them in would confirm a wider set than the box displays.
+      (this.options as Record<string, unknown>).value = [];
+      this.#unlistedValue = null;
+      this.#cleared = false;
+
       this.#items.forEach((item, index) => {
         item.checked = lowerCaseValues[index].indexOf(value) >= 0;
 
@@ -484,6 +527,19 @@ export class MultipleSelectUI extends BaseUI {
       return;
     }
 
+    // "Select all" means the column stops filtering, so the selected values the list cannot show
+    // have to go as well. Leaving them behind keeps `isSelectedAllValues()` false, and the column
+    // would still export a condition and still read as filtered with every box ticked.
+    // "Select all" means the column stops filtering, so the selected values the list cannot show
+    // have to go as well. Leaving them behind keeps `isSelectedAllValues()` false, and the column
+    // would still export a condition and still read as filtered with every box ticked.
+    // "Select all" means the column stops filtering, so the selected values the list cannot show
+    // have to go as well. Leaving them behind keeps `isSelectedAllValues()` false, and the column
+    // would still export a condition and still read as filtered with every box ticked.
+    (this.options as Record<string, unknown>).value = [];
+    this.#unlistedValue = null;
+    this.#cleared = false;
+
     (this.#itemsBox.getSourceData() as SelectItem[]).forEach((row, rowIndex) => {
       row.checked = true;
 
@@ -512,6 +568,10 @@ export class MultipleSelectUI extends BaseUI {
     // Note this still unchecks only the rows the box currently holds, so with an active search term
     // the values it filtered out keep their state - long-standing behavior, unchanged here.
     (this.options as Record<string, unknown>).value = [];
+    this.#unlistedValue = null;
+    // An empty list plus an empty selection is ambiguous - it reads the same whether the column
+    // filters nothing or excludes everything. Record that the user asked for the second one.
+    this.#cleared = true;
 
     (this.#itemsBox.getSourceData() as SelectItem[]).forEach((row, rowIndex) => {
       row.checked = false;

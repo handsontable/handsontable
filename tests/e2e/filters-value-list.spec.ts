@@ -194,6 +194,44 @@ test.describe('Filters — "filter by value" list', () => {
       expect(await grid.columnValues(0)).toEqual(['Alice', 'Bob', 'Dave']);
     });
 
+  test('"Select all" clears the column even when the list cannot show every selected value',
+    async({ page, theme, bundle }) => {
+      const grid = new FiltersValueListPage(page, theme, bundle);
+
+      await grid.goto();
+
+      await grid.openMenu('Name');
+      await grid.uncheckValue('Eve');
+      await grid.confirmMenu();
+
+      await grid.openMenu('Color');
+      await grid.uncheckValue('Blue');
+      await grid.confirmMenu();
+
+      // Narrow Name so Red leaves the Color list while staying selected.
+      await grid.openMenu('Name');
+      await grid.uncheckValue('Alice');
+      await grid.confirmMenu();
+
+      // "Select all" means this column stops filtering, so the unlisted Red has to go with it.
+      await grid.openMenu('Color');
+      await grid.selectAllValues();
+      await grid.confirmMenu();
+
+      // Put every name back. With the Color filter really gone, all five rows return.
+      await grid.openMenu('Name');
+      await grid.checkValue('Alice');
+      await grid.checkValue('Eve');
+      await grid.confirmMenu();
+
+      expect(await grid.columnValues(0)).toEqual(['Alice', 'Bob', 'Charlie', 'Dave', 'Eve']);
+
+      // The rows cannot tell the two apart: a condition naming every colour shows the same grid as
+      // no condition at all. Every value of both columns is now selected, so nothing may be left in
+      // the stack - a leftover Color condition here would mean "Select all" never released it.
+      expect(await grid.exportedConditions()).toEqual([]);
+    });
+
   test('"Clear" also clears the selected values the list cannot show', async({ page, theme, bundle }) => {
     const grid = new FiltersValueListPage(page, theme, bundle);
 
@@ -215,6 +253,14 @@ test.describe('Filters — "filter by value" list', () => {
     // look empty while the filter still matched rows.
     await grid.openMenu('Color');
     await grid.clearAllValues();
+    await grid.confirmMenu();
+
+    expect(await grid.columnValues(0)).toEqual([]);
+
+    // None of the three names left in scope is Red, so the assertion above holds either way. Put
+    // Alice back: her row is Red, so it only stays hidden if "Clear" really dropped Red.
+    await grid.openMenu('Name');
+    await grid.checkValue('Alice');
     await grid.confirmMenu();
 
     expect(await grid.columnValues(0)).toEqual([]);
