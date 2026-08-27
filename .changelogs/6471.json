@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Fixed an issue where editing a cell in a column filtered by value added the typed value to that column's filter conditions, so confirming the menu again dropped the filter.",
+  "title": "Fixed the \"filter by value\" list changing a column's filter conditions on its own: editing a cell no longer adds the typed value to the conditions, and confirming a list that can't show every selected value no longer drops the rest.",
   "type": "fixed",
   "issueOrPR": 6471,
   "breaking": false,

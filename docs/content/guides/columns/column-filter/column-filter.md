@@ -699,13 +699,51 @@ again. The new value joins the **Filter by value** list as an unchecked item, so
 selects a value on your behalf. To apply the filter to the edited data, call
 [`filter()`](@/api/filters.md#filter).
 
+To re-run the filter on every edit, call [`filter()`](@/api/filters.md#filter) from an
+[`afterChange`](@/api/hooks.md#afterchange) hook:
+
+::: only-for javascript
+
+```js
+const hot = new Handsontable(container, {
+  dropdownMenu: true,
+  filters: true,
+  afterChange(changes, source) {
+    if (source === 'loadData' || !changes) {
+      return;
+    }
+
+    hot.getPlugin('filters').filter();
+  },
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  dropdownMenu={true}
+  filters={true}
+  afterChange={function(changes, source) {
+    if (source === 'loadData' || !changes) {
+      return;
+    }
+
+    this.getPlugin('filters').filter();
+  }}
+/>
+```
+
+:::
+
 ::: tip
 
-The **Filter by value** list of a column only ever holds the values present in the rows that pass the
-*other* columns' filters. A value that no longer appears in those rows drops off the list, and
-confirming the menu replaces the column's condition with what the list currently shows. If you need
-to keep a condition that covers values not currently in view, re-apply it with
-[`addCondition()`](@/api/filters.md#addcondition) instead of confirming the menu.
+The **Filter by value** list of a column only holds the values present in the rows that pass the
+*other* columns' filters, so a value can drop off the list while it's still selected. Those values
+stay selected: confirming the menu keeps them, and they apply again as soon as their rows come back
+into scope. **Clear** removes them along with everything else.
 
 :::
 

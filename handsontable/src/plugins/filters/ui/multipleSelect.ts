@@ -170,10 +170,34 @@ export class MultipleSelectUI extends BaseUI {
   /**
    * Get element value.
    *
+   * The list only ever holds the values present in the rows that pass the other columns' filters,
+   * so a selected value whose rows are currently filtered out has no checkbox to read. Those values
+   * are carried through untouched instead of being dropped - otherwise confirming the menu would
+   * silently shrink the column's condition to whatever happens to be on screen.
+   *
    * @returns {Array} Array of selected values.
    */
   getValue() {
-    return itemsToValue(this.#items);
+    return itemsToValue(this.#items).concat(this.#getUnlistedValue());
+  }
+
+  /**
+   * The selected values that the current list cannot show, and that the user therefore cannot
+   * toggle. Reading them from the restored selection keeps them stable while the user works with
+   * the checkboxes, because only listed values can ever be checked or unchecked.
+   *
+   * @returns {Array} Selected values missing from the item list.
+   */
+  #getUnlistedValue(): unknown[] {
+    const value = (this.options as Record<string, unknown>).value as unknown[] | undefined;
+
+    if (!Array.isArray(value) || value.length === 0) {
+      return [];
+    }
+
+    const isListed = createArrayAssertion(this.#items.map(item => item.value));
+
+    return value.filter(item => !isListed(item));
   }
 
   /**
@@ -209,7 +233,9 @@ export class MultipleSelectUI extends BaseUI {
    * @returns {boolean}
    */
   isSelectedAllValues() {
-    return this.#items.length === this.getValue().length;
+    // Counts listed values only. Values the list cannot show are not part of "everything on
+    // screen is ticked", which is the question the action bar asks before dropping the condition.
+    return this.#items.length === itemsToValue(this.#items).length;
   }
 
   /**
@@ -474,6 +500,10 @@ export class MultipleSelectUI extends BaseUI {
     if (!this.#itemsBox) {
       return;
     }
+
+    // "Clear" means every value, including the selected ones the list cannot show. Leaving those
+    // behind would make the link look broken - the box empties, yet the filter keeps matching rows.
+    (this.options as Record<string, unknown>).value = [];
 
     (this.#itemsBox.getSourceData() as SelectItem[]).forEach((row, rowIndex) => {
       row.checked = false;

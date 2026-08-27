@@ -109,6 +109,76 @@ test.describe('Filters — "filter by value" list', () => {
       ]);
     });
 
+  test('confirming a narrowed list keeps the values it cannot show', async({ page, theme, bundle }) => {
+    const grid = new FiltersValueListPage(page, theme, bundle);
+
+    await grid.goto();
+
+    // Name is filtered first, so the Color list is scoped by it.
+    await grid.openMenu('Name');
+    await grid.uncheckValue('Eve');
+    await grid.confirmMenu();
+
+    await grid.openMenu('Color');
+    await grid.uncheckValue('Blue');
+    await grid.confirmMenu();
+
+    expect(await grid.columnValues(0)).toEqual(['Alice', 'Bob', 'Dave']);
+
+    // Narrow Name further. Alice was the only Red row still passing, so Red drops off the Color
+    // list even though the user never touched the Color filter.
+    await grid.openMenu('Name');
+    await grid.uncheckValue('Alice');
+    await grid.confirmMenu();
+
+    await grid.openMenu('Color');
+
+    // Blue still has Charlie's row, so it stays listed and unchecked. Red has no row left, so it
+    // drops off the list entirely while remaining selected.
+    expect(await grid.listedValues()).toEqual([
+      { checked: false, label: 'Blue' },
+      { checked: true, label: 'Green' },
+    ]);
+
+    // Confirming without touching anything must not shrink the Color filter to what is on screen.
+    // Red is still selected, it just has no row to show it.
+    await grid.confirmMenu();
+
+    // Putting Alice back proves Red survived: her Red row returns instead of staying filtered out.
+    await grid.openMenu('Name');
+    await grid.checkValue('Alice');
+    await grid.confirmMenu();
+
+    expect(await grid.columnValues(0)).toEqual(['Alice', 'Bob', 'Dave']);
+    expect(await grid.columnValues(1)).toEqual(['Red', 'Green', 'Green']);
+  });
+
+  test('"Clear" also clears the selected values the list cannot show', async({ page, theme, bundle }) => {
+    const grid = new FiltersValueListPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await grid.openMenu('Name');
+    await grid.uncheckValue('Eve');
+    await grid.confirmMenu();
+
+    await grid.openMenu('Color');
+    await grid.uncheckValue('Blue');
+    await grid.confirmMenu();
+
+    await grid.openMenu('Name');
+    await grid.uncheckValue('Alice');
+    await grid.confirmMenu();
+
+    // Red is selected but unlisted at this point. "Clear" has to drop it too, or the box would
+    // look empty while the filter still matched rows.
+    await grid.openMenu('Color');
+    await grid.clearAllValues();
+    await grid.confirmMenu();
+
+    expect(await grid.columnValues(0)).toEqual([]);
+  });
+
   test('another column\'s list stays narrowed down by the filtered column', async({ page, theme, bundle }) => {
     const grid = new FiltersValueListPage(page, theme, bundle);
 

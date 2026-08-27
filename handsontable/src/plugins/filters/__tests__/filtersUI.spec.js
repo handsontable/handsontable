@@ -2407,13 +2407,20 @@ describe('Filters UI', () => {
           [['Mercedes', 'Fiat', 'Renault', 'Ferrari', 'Peugeot', 'Lamborghini', 'Audi']]);
         filters.filter();
 
+        const valueComponent = filters.components.get('filter_by_value');
+        const stateBeforeEdit = JSON.stringify(valueComponent.state.getValueAtIndex(2));
+
         // Moves the Renault row from France to Italy, so column 1's condition ('Germany', 'France')
         // no longer lets that row through.
         await setDataAtCell(2, 1, 'Italy');
 
-        // The dependent column's stored condition must survive the edit untouched - that is the
-        // #8874 invariant, and it is what a later `filter()` re-applies.
-        expect(getPlugin('filters').conditionCollection.getConditions(2)[0].args[0]).toEqual(
+        // The whole #8874 invariant in one line: a data change in an earlier column must leave this
+        // column's component state byte-for-byte identical. The edit changed no condition, so there
+        // is nothing here to re-scope - and the state is what the next OK writes back.
+        expect(JSON.stringify(valueComponent.state.getValueAtIndex(2))).toBe(stateBeforeEdit);
+
+        // The stored condition is what a later `filter()` re-applies, so it must be intact too.
+        expect(filters.conditionCollection.getConditions(2)[0].args[0]).toEqual(
           jasmine.arrayWithExactContents(['Mercedes', 'Fiat', 'Renault', 'Ferrari', 'Peugeot', 'Lamborghini', 'Audi']));
 
         await dropdownMenu(2);
@@ -2422,14 +2429,11 @@ describe('Filters UI', () => {
         const items = byValueMultipleSelect().getItems();
         const checkedValues = items.filter(item => item.checked).map(item => item.value);
 
-        // The box only ever lists values from rows surviving the *other* columns' conditions, so the
-        // Italy rows (Renault, Ferrari, Lamborghini) drop out of the list and cannot show as checked.
-        // Everything still reachable stays checked - nothing is re-selected or unselected on the
-        // user's behalf.
-        expect(items.map(item => item.value)).toEqual(
-          jasmine.arrayWithExactContents(['BMW', 'Mercedes', 'Fiat', 'Peugeot', 'Audi']));
+        // Ferrari and Lamborghini sit in Italy rows, which column 1's filter excluded before the
+        // edit ever happened, so they were never in this list. Everything the list does hold stays
+        // checked.
         expect(checkedValues).toEqual(
-          jasmine.arrayWithExactContents(['Mercedes', 'Fiat', 'Peugeot', 'Audi']));
+          jasmine.arrayWithExactContents(['Mercedes', 'Fiat', 'Renault', 'Peugeot', 'Audi']));
       });
   });
 });

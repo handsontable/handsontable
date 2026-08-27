@@ -128,6 +128,21 @@ export class FiltersValueListPage {
     })));
   }
 
+  /** Check the "filter by value" item carrying the given label. */
+  async checkValue(label: string): Promise<void> {
+    const checkbox = this.valueList
+      .filter({ has: this.page.locator('label', { hasText: new RegExp(`^${label}$`) }) })
+      .locator('input[type="checkbox"]');
+
+    await checkbox.click();
+    await expect(checkbox).toBeChecked();
+  }
+
+  /** Click the "Clear" link, which unchecks every value the filter holds. */
+  async clearAllValues(): Promise<void> {
+    await this.menu.locator('.htUIMultipleSelect a', { hasText: /^Clear$/ }).click();
+  }
+
   /** Uncheck the "filter by value" item carrying the given label. */
   async uncheckValue(label: string): Promise<void> {
     const checkbox = this.valueList

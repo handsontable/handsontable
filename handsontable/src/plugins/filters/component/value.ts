@@ -35,6 +35,7 @@ export interface StateInfo {
   editedConditionStack: ConditionStack;
   dependentConditionStacks: ConditionStack[];
   filteredRowsFactory: (physicalColumn: number, conditionsStack?: ConditionStack) => FilteredRow[];
+  skipDependentColumns?: boolean;
   [key: string]: unknown;
 }
 
@@ -186,13 +187,16 @@ export class ValueComponent extends BaseComponent {
       if (firstByValueCondition) {
         const filteredRows = filteredRowsFactory(physicalColumn, conditionsStack);
 
-        const { itemsSnapshot, selectedValues } = this.#buildItemsSnapshot(
-          physicalColumn, filteredRows, firstByValueCondition.args[0] as unknown[]);
+        const selectedArgs = firstByValueCondition.args[0] as unknown[];
+        const { itemsSnapshot } = this.#buildItemsSnapshot(physicalColumn, filteredRows, selectedArgs);
 
         const column = stateInfo.editedConditionStack.column;
 
         state.locale = this.hot?.getCellMetaTransient(0, column).locale;
-        state.args = [selectedValues];
+        // The whole selection, not just the part the list can show. `itemsSnapshot` already carries
+        // the checked flags for the visible values, and the rest has to survive so that confirming
+        // a narrowed list does not shrink the condition to what is on screen.
+        state.args = [selectedArgs];
         state.command = getConditionDescriptor(CONDITION_BY_VALUE);
         state.itemsSnapshot = itemsSnapshot;
 
@@ -218,7 +222,11 @@ export class ValueComponent extends BaseComponent {
     // Update the next "by_value" component (filter column conditions added after this condition).
     // Its list of values has to be updated. As the new values by default are unchecked,
     // the further component update is unnecessary.
-    if (stateInfo.dependentConditionStacks.length) {
+    //
+    // A data change skips this: the dependent list is scoped by THIS column's conditions, and a
+    // data change leaves those alone. Rewriting it here would narrow what the user sees for a
+    // filter that never changed, and the narrowed set is what the next OK would store.
+    if (!stateInfo.skipDependentColumns && stateInfo.dependentConditionStacks.length) {
       updateColumnState(
         stateInfo.dependentConditionStacks[0].column,
         stateInfo.dependentConditionStacks[0].conditions,
@@ -234,7 +242,7 @@ export class ValueComponent extends BaseComponent {
    * @param {number} physicalColumn The physical column index the items belong to.
    * @param {Array} filteredRows Data-map entries of the rows the list is built from.
    * @param {Array} selectedArgs Values that stay checked.
-   * @returns {{itemsSnapshot: Array, selectedValues: Array}} The item list and the checked values.
+   * @returns {{itemsSnapshot: Array}} The item list, each entry carrying its checked flag.
    */
   #buildItemsSnapshot(physicalColumn: number, filteredRows: FilteredRow[], selectedArgs: unknown[]) {
     const defaultBlankCellValue = this.hot?.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS) ?? '';
@@ -252,21 +260,16 @@ export class ValueComponent extends BaseComponent {
     const columnMeta = filteredRows[0]?.meta;
     const comparator = getSortComparatorForMeta(columnMeta);
     const unifiedRowValues = unifyColumnValues(rowValues, comparator);
-    const selectedValues: unknown[] = [];
     const itemsSnapshot = intersectValues(
       unifiedRowValues,
       selectedArgs,
       defaultBlankCellValue,
       (item: Record<string, unknown>) => {
-        if (item.checked) {
-          selectedValues.push(item.value);
-        }
-
         this.#triggerModifyMultipleSelectionValueHook(item, rowMetaMap);
       }
     );
 
-    return { itemsSnapshot, selectedValues };
+    return { itemsSnapshot };
   }
 
   /**
