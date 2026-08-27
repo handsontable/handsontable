@@ -70,6 +70,21 @@ class EditorManager {
    * @type {boolean}
    */
   #hiddenCellCloseArmed = false;
+  /**
+   * The PHYSICAL row index of the record the active editor was prepared for, or `null` when no
+   * editor is prepared. Captured because the editor itself stores only VISUAL coordinates, which a
+   * trimming index map invalidates without notice.
+   *
+   * @type {number|null}
+   */
+  #editedPhysicalRow: number | null = null;
+  /**
+   * The PHYSICAL column index of the record the active editor was prepared for, or `null` when no
+   * editor is prepared. The column counterpart of `#editedPhysicalRow`.
+   *
+   * @type {number|null}
+   */
+  #editedPhysicalColumn: number | null = null;
 
   /**
    * @param {Core} hotInstance The Handsontable instance.
@@ -84,8 +99,14 @@ class EditorManager {
 
     this.hot.addHook('afterDocumentKeyDown', (event: KeyboardEvent) => this.#onAfterDocumentKeyDown(event));
     this.hot.addHook('beforeCompositionStart', (event: KeyboardEvent) => this.#onAfterDocumentKeyDown(event));
-    this.hot.addHook('afterRowSequenceCacheUpdate', () => this.#closeEditorWhenCellHidden());
-    this.hot.addHook('afterColumnSequenceCacheUpdate', () => this.#closeEditorWhenCellHidden());
+    this.hot.addHook('afterRowSequenceCacheUpdate', (indexesChangesState) => {
+      this.#reconcileEditorWithTrimmedIndexes(indexesChangesState);
+      this.#closeEditorWhenCellHidden();
+    });
+    this.hot.addHook('afterColumnSequenceCacheUpdate', (indexesChangesState) => {
+      this.#reconcileEditorWithTrimmedIndexes(indexesChangesState);
+      this.#closeEditorWhenCellHidden();
+    });
     this.hot.view._wt.update(
       'onCellDblClick', (event: MouseEvent, coords: { isCell: () => boolean }, _elem: HTMLElement) =>
         this.#onCellDblClick(event, coords)
@@ -163,6 +184,10 @@ class EditorManager {
       // Using not modified coordinates, as we need to get the table element using selection coordinates.
       // There is an extra translation in the editor for saving value.
       this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);
+      // Remember which RECORD this edit belongs to. The editor keeps visual coordinates only, and a
+      // trimming map rebinds those to a different record; see `#reconcileEditorWithTrimmedIndexes()`.
+      this.#editedPhysicalRow = this.hot.rowIndexMapper.getPhysicalFromVisualIndex(row);
+      this.#editedPhysicalColumn = this.hot.columnIndexMapper.getPhysicalFromVisualIndex(col);
     }
   }
 
@@ -268,6 +293,8 @@ class EditorManager {
    */
   clearActiveEditor() {
     this.activeEditor = undefined;
+    this.#editedPhysicalRow = null;
+    this.#editedPhysicalColumn = null;
   }
 
   /**
@@ -346,6 +373,69 @@ class EditorManager {
   }
 
   /**
+   * Keeps an open editor bound to the RECORD it was opened on when a TRIMMING index map changes the
+   * visual index space underneath it.
+   *
+   * Filters, `trimRows` and `nestedRows` all register a `trimming` map. Unlike a hiding map, a
+   * trimming map COLLAPSES the visual index space: the rows below a trimmed row shift up. The editor
+   * stores visual coordinates captured in `prepare()`, and `BaseEditor#saveValue()` writes straight
+   * through them with no bounds check, so after a trim the pending edit lands on whichever record now
+   * occupies that visual slot - or, when the slot is past the shortened row count, on rows that
+   * `applyChanges()` APPENDS to the source data to make room for it. Both are silent data corruption.
+   *
+   * Resolving the stored PHYSICAL index back to a visual one covers all three shapes with one test:
+   * the record was trimmed away (no visual index - discard), the record survived but moved because
+   * rows above it were trimmed (rebind - the edit still commits, to the right record), or nothing
+   * moved (no-op). The last branch is what keeps this from firing spuriously: any row insert churns
+   * the trimming collection, and `BooleanMap#setValues()` emits a change even for a no-op write, so
+   * testing "the trimmed set changed" alone would tear down unrelated edits.
+   *
+   * Runs SYNCHRONOUSLY, unlike `#closeEditorWhenCellHidden()`. `Filters#filter()` re-selects the
+   * highlighted column immediately after writing its map, which commits the open editor before any
+   * deferred handler could run. Deferring here would let the corrupting write happen first. Nothing
+   * re-enters the manager as a result: the rebind writes no data, and the discard goes through
+   * `cancelChanges()` rather than `finishEditing(true)` to skip the render the latter appends, so
+   * neither branch reaches `setDataAtCell()` inside a cache update that is still unwinding.
+   *
+   * `cancelChanges()` also bypasses editor-level discard policy - `DropdownEditor#finishEditing()`
+   * rewrites the restore flag - which is harmless here because a discard is what that override would
+   * decide anyway once the edited record is gone from the visual space.
+   *
+   * The editor keeps its on-screen position until the next render. That is cosmetic and, on the
+   * Filters path, invisible: `filter()` renders before yielding.
+   *
+   * @param {object} indexesChangesState The state object of the index mapper's cache update.
+   * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
+   * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
+   * @param {boolean} indexesChangesState.hiddenIndexesChanged Whether the hidden indexes changed.
+   */
+  #reconcileEditorWithTrimmedIndexes(indexesChangesState: {
+    indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean; hiddenIndexesChanged: boolean;
+  }): void {
+    const editor = this.activeEditor;
+
+    if (!indexesChangesState.trimmedIndexesChanged || !editor ||
+        editor.state !== EDITOR_STATE.EDITING ||
+        this.#editedPhysicalRow === null || this.#editedPhysicalColumn === null) {
+      return;
+    }
+
+    const visualRow = this.hot.rowIndexMapper.getVisualFromPhysicalIndex(this.#editedPhysicalRow);
+    const visualColumn = this.hot.columnIndexMapper.getVisualFromPhysicalIndex(this.#editedPhysicalColumn);
+
+    // No visual index means the record itself is trimmed. There is nowhere to commit to, so the edit
+    // is dropped rather than written through coordinates that now address a different record.
+    if (visualRow === null || visualColumn === null) {
+      editor.cancelChanges();
+
+      return;
+    }
+
+    editor.row = visualRow;
+    editor.col = visualColumn;
+  }
+
+  /**
    * Ends an edit when a HIDING index map removes the edited cell from the DOM while the editor is
    * still open.
    *
@@ -365,9 +455,10 @@ class EditorManager {
    * itself on scroll but keeps `state` at `EDITING`, so the edit survives until the user scrolls
    * back. These hooks never fire on scroll, so that case cannot reach here at all.
    *
-   * A TRIMMING map (Filters, `trimRows`) is deliberately out of scope. It collapses the visual
-   * index space instead of preserving it, so the edited coordinates silently rebind to a different
-   * row that is still rendered and `isHidden()` reads `false`. That defect predates this method.
+   * A TRIMMING map (Filters, `trimRows`) needs the opposite treatment and is handled separately by
+   * `#reconcileEditorWithTrimmedIndexes()`, which runs first on the same two hooks. It collapses the
+   * visual index space instead of preserving it, so `isHidden()` reads `false` for a trimmed row and
+   * this method never fires for one.
    *
    * The edit is finished rather than cancelled, which for most editors means it is COMMITTED - the
    * same outcome clicking the pager already produces, since that is an outside click and therefore
