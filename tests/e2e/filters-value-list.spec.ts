@@ -266,6 +266,29 @@ test.describe('Filters — "filter by value" list', () => {
     expect(await grid.columnValues(0)).toEqual([]);
   });
 
+  test('re-ticking everything after "Clear" releases the column again', async({ page, theme, bundle }) => {
+    const grid = new FiltersValueListPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await grid.openMenu('Color');
+    await grid.clearAllValues();
+    await grid.confirmMenu();
+
+    expect(await grid.columnValues(0)).toEqual([]);
+
+    // Ticking every box back is the same as never having filtered, so the column has to let go of
+    // its condition. "Clear" must not leave a mark that outlives the empty selection it described.
+    await grid.openMenu('Color');
+    await grid.checkValue('Blue');
+    await grid.checkValue('Green');
+    await grid.checkValue('Red');
+    await grid.confirmMenu();
+
+    expect(await grid.columnValues(0)).toEqual(['Alice', 'Bob', 'Charlie', 'Dave', 'Eve']);
+    expect(await grid.exportedConditions()).toEqual([]);
+  });
+
   test('another column\'s list stays narrowed down by the filtered column', async({ page, theme, bundle }) => {
     const grid = new FiltersValueListPage(page, theme, bundle);
 

@@ -143,7 +143,9 @@ export class MultipleSelectUI extends BaseUI {
    */
   setValue(value: unknown) {
     this.#unlistedValue = null;
-    this.#cleared = false;
+    // An empty selection restored from a `by_value` state means the same thing "Clear" does -
+    // exclude everything - so the answer survives the menu being closed and opened again.
+    this.#cleared = Array.isArray(value) && value.length === 0;
     super.setValue(value);
   }
 
@@ -272,9 +274,13 @@ export class MultipleSelectUI extends BaseUI {
     // Comparing `#items.length` against the whole selection would not do: a list holding one
     // unticked value plus one selected unlisted value has matching counts and different sets.
     // An empty list with an empty selection answers `true`, which is what lets a column with
-    // nothing to filter by report "no condition" - unless the user emptied it with "Clear", which
-    // means the opposite and is recorded rather than guessed.
-    if (this.#cleared) {
+    // nothing to filter by report "no condition" - unless the box was emptied on purpose, which
+    // means the opposite and is recorded rather than guessed. That only holds while the selection
+    // is still empty: tick something and the ordinary comparison takes over again, so re-selecting
+    // everything releases the column instead of leaving a condition that filters nothing.
+    const selectedValues = this.getValue();
+
+    if (this.#cleared && selectedValues.length === 0) {
       return false;
     }
 
