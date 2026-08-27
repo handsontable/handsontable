@@ -463,7 +463,7 @@ describe('ContextMenu', () => {
       expect(getCellMeta(0, 0).className).toEqual('class_name htRight htMiddle');
 
       // Picking a second horizontal alignment used to cut `htRight` out of the middle of the string
-      // and glue its neighbours together, producing 'class_namehtMiddle htJustify'. That silently
+      // and glue its neighbors together, producing 'class_namehtMiddle htJustify'. That silently
       // dropped both the custom class and the vertical alignment.
       await selectCell(0, 0);
       await contextMenu();

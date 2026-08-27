@@ -1,5 +1,6 @@
 import {
   getAlignmentClasses,
+  getAlignmentComparatorByClass,
   prepareHorizontalAlignClass,
   prepareVerticalAlignClass,
 } from 'handsontable/plugins/contextMenu/utils';
@@ -67,6 +68,11 @@ describe('contextMenu/utils', () => {
       expect(prepareHorizontalAlignClass('htLeftPanel', 'htRight')).toBe('htLeftPanel htRight');
     });
 
+    it('should drop a competing horizontal alignment even when the picked one is already there', () => {
+      expect(prepareHorizontalAlignClass('htLeft htCenter', 'htCenter')).toBe('htCenter');
+      expect(prepareHorizontalAlignClass('class_name htLeft htRight', 'htRight')).toBe('class_name htRight');
+    });
+
     it('should accept an array `className`, as the documented settings allow (#7122)', () => {
       expect(prepareHorizontalAlignClass(['class_name', 'htLeft'], 'htRight')).toBe('class_name htRight');
     });
@@ -93,6 +99,11 @@ describe('contextMenu/utils', () => {
 
     it('should keep a custom class that merely contains an alignment class name (#7122)', () => {
       expect(prepareVerticalAlignClass('htTopBar', 'htBottom')).toBe('htTopBar htBottom');
+    });
+
+    it('should drop a competing vertical alignment even when the picked one is already there', () => {
+      expect(prepareVerticalAlignClass('htTop htMiddle', 'htMiddle')).toBe('htMiddle');
+      expect(prepareVerticalAlignClass('class_name htTop htBottom', 'htBottom')).toBe('class_name htBottom');
     });
 
     it('should accept an array `className`, as the documented settings allow (#7122)', () => {
@@ -123,6 +134,16 @@ describe('contextMenu/utils', () => {
       expect(afterRight).toBe('class_name htMiddle htRight');
       // Used to return 'class_namehtRight htTop'.
       expect(afterTop).toBe('class_name htRight htTop');
+    });
+
+    it('should not report an alignment for a custom class that merely contains its name', () => {
+      const hotMock = className => ({ getCellMetaTransient: () => ({ className }) });
+
+      expect(getAlignmentComparatorByClass('htLeft').call(hotMock('htLeft'), 0, 0)).toBe(true);
+      expect(getAlignmentComparatorByClass('htLeft').call(hotMock(['htLeft']), 0, 0)).toBe(true);
+      expect(getAlignmentComparatorByClass('htLeft').call(hotMock('htLeftPanel'), 0, 0)).toBe(false);
+      expect(getAlignmentComparatorByClass('htTop').call(hotMock('htTopBar htBottom'), 0, 0)).toBe(false);
+      expect(getAlignmentComparatorByClass('htLeft').call(hotMock(undefined), 0, 0)).toBe(false);
     });
 
     it('should never emit doubled, leading or trailing spaces', () => {

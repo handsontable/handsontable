@@ -12,40 +12,44 @@ const HORIZONTAL_ALIGNMENT_CLASS_NAMES = ['htLeft', 'htCenter', 'htRight', 'htJu
 /**
  * Swaps the alignment class of one axis, leaving every other class name untouched.
  *
- * The class name is compared token by token. Matching substrings is not enough - it both destroys
+ * The class name is compared token by token. Matching substrings is not enough – it both destroys
  * custom classes that merely contain an alignment name (`htTopBar`) and, once a token is cut out of
- * the middle of the string, glues its two neighbours together (#7122).
+ * the middle of the string, glues its two neighbors together (#7122).
  *
- * @param {string|string[]} className The full element class name to process.
+ * Every class name of the axis is dropped, including the one being applied. Returning early when the
+ * picked alignment is already there would leave a competing class name of the same axis in place.
+ *
+ * @param {string|string[]|undefined} className The full element class name to process.
  * @param {string} alignment The alignment class name to apply.
  * @param {string[]} axisClassNames The alignment class names of the axis being changed.
  * @returns {string}
  */
-function prepareAlignClass(className: string | string[], alignment: string, axisClassNames: string[]): string {
-  const classNames = normalizeClassNames(className);
+function prepareAlignClass(
+  className: string | string[] | undefined,
+  alignment: string,
+  axisClassNames: string[]
+): string {
+  const classNames = normalizeClassNames(className)
+    .filter(name => !axisClassNames.includes(name));
 
-  if (classNames.includes(alignment)) {
-    return classNames.join(' ');
-  }
-
-  return [...classNames.filter(name => !axisClassNames.includes(name)), alignment].join(' ');
+  return [...classNames, alignment].join(' ');
 }
 
 /**
- * @param {string|string[]} className The full element class name to process.
+ * @param {string|string[]|undefined} className The full element class name to process.
  * @param {string} alignment The alignment class name to compare with.
  * @returns {string}
  */
-export function prepareVerticalAlignClass(className: string | string[], alignment: string) {
+export function prepareVerticalAlignClass(className: string | string[] | undefined, alignment: string) {
   return prepareAlignClass(className, alignment, VERTICAL_ALIGNMENT_CLASS_NAMES);
 }
 
 /**
- * @param {string|string[]} className The full element class name to process.
+ * @param {string|string[]|undefined} className The full element class name to process.
  * @param {string} alignment The alignment class name to compare with.
  * @returns {string}
  */
-export function prepareHorizontalAlignClass(className: string | string[], alignment: string) {
+export function prepareHorizontalAlignClass(className: string | string[] | undefined, alignment: string) {
   return prepareAlignClass(className, alignment, HORIZONTAL_ALIGNMENT_CLASS_NAMES);
 }
 
@@ -113,16 +117,10 @@ function applyAlignClassName(
   cellDescriptor: (row: number, col: number) => Record<string, unknown>,
   propertySetter: (row: number, col: number, key: string, value: string) => void
 ) {
-  const cellMeta = cellDescriptor(row, col);
-  let className = alignment;
-
-  if (cellMeta.className) {
-    if (type === 'vertical') {
-      className = prepareVerticalAlignClass(cellMeta.className as string | string[], alignment);
-    } else {
-      className = prepareHorizontalAlignClass(cellMeta.className as string | string[], alignment);
-    }
-  }
+  const { className: currentClassName } = cellDescriptor(row, col) as { className?: string | string[] };
+  const className = type === 'vertical' ?
+    prepareVerticalAlignClass(currentClassName, alignment) :
+    prepareHorizontalAlignClass(currentClassName, alignment);
 
   propertySetter(row, col, 'className', className);
 }
@@ -196,6 +194,7 @@ export function getAlignmentComparatorByClass(htClassName: string) {
   return function(this: HotInstance, row: number, col: number): boolean {
     const className = this.getCellMetaTransient(row, col).className as string | string[] | undefined;
 
-    return Boolean(className && className.indexOf(htClassName) !== -1);
+    // Compared token by token. A substring match would report `htLeftPanel` as being aligned left.
+    return normalizeClassNames(className).includes(htClassName);
   };
 }
