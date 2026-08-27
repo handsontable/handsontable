@@ -644,14 +644,14 @@ describe('HotTableComponent', () => {
     };
 
     it('should fall back to the default editor for a grid-level `editor` of `true`', () => {
-      createTable({ editor: true } as GridSettings);
+      createTable({ editor: true });
 
       expect(selectFirstCell).not.toThrow();
       expect(fixture.componentInstance.hotInstance.getCellEditor(0, 0)).toBe(TextEditor);
     });
 
     it('should fall back to the default editor for a column-level `editor` of `true`', () => {
-      createTable({ columns: [{ editor: true }, {}, {}] } as GridSettings);
+      createTable({ columns: [{ editor: true }, {}, {}] });
 
       expect(selectFirstCell).not.toThrow();
       expect(fixture.componentInstance.hotInstance.getCellEditor(0, 0)).toBe(TextEditor);
@@ -660,7 +660,7 @@ describe('HotTableComponent', () => {
     });
 
     it('should keep the editor a column `type` supplies when `editor` is `true`', () => {
-      createTable({ columns: [{ type: 'numeric', editor: true }, {}, {}] } as GridSettings);
+      createTable({ columns: [{ type: 'numeric', editor: true }, {}, {}] });
 
       expect(selectFirstCell).not.toThrow();
       // `true` means "no editor named", not "use the default one" — resolving it to the text
@@ -669,7 +669,7 @@ describe('HotTableComponent', () => {
     });
 
     it('should still disable editing for an `editor` of `false`', () => {
-      createTable({ columns: [{ editor: false }, {}, {}] } as GridSettings);
+      createTable({ columns: [{ editor: false }, {}, {}] });
 
       expect(selectFirstCell).not.toThrow();
       expect(fixture.componentInstance.hotInstance.getCellEditor(0, 0)).toBe(false);
@@ -682,7 +682,7 @@ describe('HotTableComponent', () => {
       fixture.componentInstance.ngOnChanges({
         settings: new SimpleChange(
           fixture.componentInstance.settings,
-          { ...settings, columns: [{ editor: true }, {}, {}] } as GridSettings,
+          { ...settings, columns: [{ editor: true }, {}, {}] },
           false
         ),
       } as SimpleChanges);
