@@ -907,12 +907,20 @@ describe('Filters', () => {
       plugin.addCondition(visualColumn, 'by_value', [['A1', 'A2']]);
       plugin.filter();
 
+      const valueComponent = plugin.components.get('filter_by_value');
+
+      // `addCondition` already refreshed this state through the collection's `afterAdd` hook, so
+      // wipe it first. Without this the assertions below pass even when the method does nothing,
+      // and they also pass when it refreshes the wrong column.
+      valueComponent.state.setValueAtIndex(physicalColumn, null);
+
       plugin.updateValueComponentCondition(physicalColumn);
 
       // The refreshed state must belong to the physical column that was passed in, and list that
       // column's own values - not those of whatever column now sits at that visual index.
-      const state = plugin.components.get('filter_by_value').state.getValueAtIndex(physicalColumn);
+      const state = valueComponent.state.getValueAtIndex(physicalColumn);
 
+      expect(state).not.toBeNull();
       expect(state.itemsSnapshot.map(item => item.value)).toEqual(['A1', 'A2']);
       expect(state.args).toEqual([['A1', 'A2']]);
     });
@@ -951,6 +959,33 @@ describe('Filters', () => {
 
         expect(valueComponentState.args[0]).toEqual(['Mercedes', 'Renault']);
       });
+  });
+
+  describe('Editing a cell in the filtered column itself (issue #6471)', () => {
+    it('should leave the edited column\'s own by_value condition untouched', async() => {
+      handsontable({
+        data: [
+          ['foo'], ['bar'], ['foo'], ['bar'], ['foo'],
+        ],
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+      });
+
+      const filters = getPlugin('filters');
+
+      filters.addCondition(0, 'by_value', [['foo']]);
+      filters.filter();
+
+      // Type the excluded value into a row that survived the filter.
+      await setDataAtCell(0, 0, 'bar');
+
+      // The stored condition is what the next `filter()` re-applies, so it must still say `foo`
+      // alone. Before the fix it was rewritten to every visible value, which made the next
+      // confirmation of the menu report "no condition" and drop the filter entirely.
+      expect(filters.conditionCollection.getConditions(0)[0].args[0]).toEqual(['foo']);
+      expect(filters.exportConditions()[0].conditions[0].args[0]).toEqual(['foo']);
+    });
   });
 
   describe('Batched value component updates (`afterChange`)', () => {

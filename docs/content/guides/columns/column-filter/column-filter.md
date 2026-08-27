@@ -695,9 +695,19 @@ column menu's width for better user experience. You can achieve this with by sty
 Editing a cell doesn't change the column's filter conditions, and doesn't re-run the filter.
 
 If you type a value that the active filter excludes, the row stays in view until the filter runs
-again. The new value joins the **Filter by value** list as an unchecked item, so your selection stays
-as you set it. To apply the filter to the edited data, open the filter menu and confirm it, or call
+again. The new value joins the **Filter by value** list as an unchecked item, so editing a cell never
+selects a value on your behalf. To apply the filter to the edited data, call
 [`filter()`](@/api/filters.md#filter).
+
+::: tip
+
+The **Filter by value** list of a column only ever holds the values present in the rows that pass the
+*other* columns' filters. A value that no longer appears in those rows drops off the list, and
+confirming the menu replaces the column's condition with what the list currently shows. If you need
+to keep a condition that covers values not currently in view, re-apply it with
+[`addCondition()`](@/api/filters.md#addcondition) instead of confirming the menu.
+
+:::
 
 ## Exclude rows from filtering
 

@@ -171,7 +171,7 @@ export class ValueComponent extends BaseComponent {
    *
    * @param {object} stateInfo Information about state containing stack of edited column,
    * stack of dependent conditions and the data factory. It's described by object containing keys:
-   * `editedConditionStack`, `dependentConditionStacks` and `visibleDataFactory`.
+   * `editedConditionStack`, `dependentConditionStacks` and `filteredRowsFactory`.
    */
   updateState(stateInfo: StateInfo) {
     const updateColumnState = (
