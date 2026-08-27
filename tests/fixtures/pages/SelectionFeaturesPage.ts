@@ -223,6 +223,14 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * Press the undo keyboard shortcut, the way a user does. Needs a selected cell so the grid holds
+   * focus. `ControlOrMeta` maps to Cmd on macOS and Ctrl elsewhere.
+   */
+  async pressUndoShortcut(): Promise<void> {
+    await this.page.keyboard.press('ControlOrMeta+z');
+  }
+
+  /**
    * Freeze a column through the ManualColumnFreeze plugin API. Also arms that plugin's own
    * `beforeColumnMove` veto, which only applies after its first use.
    */

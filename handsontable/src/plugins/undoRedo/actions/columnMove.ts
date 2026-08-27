@@ -31,16 +31,19 @@ export class ColumnMoveAction extends BaseAction {
   /**
    * Registers the `afterColumnMove` hook listener that records a new ColumnMoveAction whenever columns are moved.
    *
-   * Recording runs on `afterColumnMove`, not `beforeColumnMove`. `Hooks.run` threads a listener's return
-   * value into the next listener's first argument, so a `beforeColumnMove` listener only sees a veto raised
-   * by a listener registered before it — a `return false` from user settings lands too late and a cancelled
-   * move still reached the stack. `afterColumnMove` never fires for a vetoed move, and its `orderChanged`
-   * argument is `false` when the move was impossible or left the order intact, so gating on it also keeps
-   * no-op moves off the stack.
+   * Recording runs on `afterColumnMove`, not `beforeColumnMove`. UndoRedo registers its actions from its
+   * own constructor, while plugins register in `enablePlugin` (via `beforeInit`) and settings hooks are
+   * attached later still, so this is always the first instance listener on the hook. `Hooks.run` threads
+   * a listener's return value into the next listener's first argument, so every veto is raised after this
+   * listener has already run: the old `columns === false` guard caught no plugin or settings veto at all,
+   * and a cancelled move always reached the stack. `afterColumnMove` never fires for a vetoed move, and its
+   * `orderChanged` argument is `false` when the move was impossible or left the order intact, so gating on
+   * it also keeps no-op moves off the stack.
    */
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     hot.addHook('afterColumnMove', (movedColumns, finalIndex, _dropIndex, _movePossible, orderChanged) => {
-      // `Array.isArray` also covers garbage folded into the argument by a preceding listener.
+      // Only a global `Handsontable.hooks.add` listener runs ahead of this one, and its return value
+      // would replace `movedColumns` — guard the shape before `ColumnMoveAction` calls `.slice()` on it.
       if (!orderChanged || !Array.isArray(movedColumns)) {
         return;
       }

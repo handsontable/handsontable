@@ -107,6 +107,58 @@ test.describe('row and column move undo bookkeeping', () => {
     expect(await grid.isUndoAvailable()).toBe(false);
   });
 
+  test('after a vetoed row move, the undo keyboard shortcut still reaches the previous action', async () => {
+    await grid.setCellValue(0, 0, 'edited');
+
+    await grid.setBeforeRowMoveVeto(true);
+    await grid.moveRows([0], 3);
+
+    // Driven from the keyboard, because a swallowed Ctrl+Z is the reported symptom.
+    await grid.selectCells(0, 0, 0, 0);
+    await grid.pressUndoShortcut();
+
+    expect(await grid.cellValue(0, 0)).toBe('R1C1');
+    expect(await grid.isUndoAvailable()).toBe(false);
+  });
+
+  test('redo re-applies a row move and leaves one action on the stack', async () => {
+    await grid.moveRows([0], 3);
+    await grid.undo();
+
+    expect(await grid.rowOrder()).toEqual(IDENTITY);
+    expect(await grid.isRedoAvailable()).toBe(true);
+
+    // redo() replays the arguments recorded by the new listener, so it exercises the changed path.
+    await grid.redo();
+
+    expect(await grid.rowOrder()).toEqual([1, 2, 3, 0, 4, 5, 6, 7, 8, 9]);
+    expect(await grid.doneActionsCount()).toBe(1);
+  });
+
+  test('a multi-row move records one action, and undo reverses all of it', async () => {
+    await grid.moveRows([0, 1], 3);
+
+    expect(await grid.rowOrder()).toEqual([2, 3, 4, 0, 1, 5, 6, 7, 8, 9]);
+    expect(await grid.doneActionsCount()).toBe(1);
+
+    await grid.undo();
+
+    expect(await grid.rowOrder()).toEqual(IDENTITY);
+  });
+
+  test('a row move still records one action while trimRows is active', async () => {
+    await grid.initGrid({ manualRowMove: true, undo: true, trimRows: [3] });
+
+    await grid.moveRows([0], 2);
+
+    expect(await grid.rowOrder()).not.toEqual(IDENTITY);
+    expect(await grid.doneActionsCount()).toBe(1);
+
+    await grid.undo();
+
+    expect(await grid.rowOrder()).toEqual(IDENTITY);
+  });
+
   test('a move vetoed by manualColumnFreeze records no undo action', async () => {
     await grid.initGrid({ manualColumnMove: true, manualColumnFreeze: true, undo: true });
 
