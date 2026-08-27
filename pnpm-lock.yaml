@@ -36,6 +36,7 @@ overrides:
   pacote>tar: ^7.5.11
   node-gyp>tar: ^7.5.11
   cacache>tar: ^7.5.11
+  typed-rest-client: ^3.1.0
   undici: ^6.28.0
   '@astrojs/mdx': ^6.0.1
 
@@ -11174,12 +11175,12 @@ packages:
     resolution: {integrity: sha512-+Owyggi9IxT1ePKGafcI87ubSmxol6smwJ+RAHDQlx9+9cPwFWDiKFFCPuWhr9ignlGpZ9vDQLw67N4dcTVFEA==}
     engines: {node: '>=20'}
 
-  qs@6.15.1:
-    resolution: {integrity: sha512-6YHEFRL9mfgcAvql/XhwTvf5jKcOiiupt2FiJxHkiX1z4j7WL8J/jRHYLluORvc1XxB5rV20KoeK00gVJamspg==}
-    engines: {node: '>=0.6'}
-
   qs@6.15.2:
     resolution: {integrity: sha512-Rzq0KEyX/w/tEybncDgdkZrJgVUsUMk3xjh3t5bv3S1HTAtg+uOYt72+ZfwiQwKdysThkTBdL/rTi6HDmX9Ddw==}
+    engines: {node: '>=0.6'}
+
+  qs@6.15.3:
+    resolution: {integrity: sha512-O9gl3zCl5h5blw1KGUzQKhA5oUXSl8rwUIM5o0S3nCXMliSvy5Dzx7/DJcI+SwgICv+IneSZwhBh1oSyEHA71A==}
     engines: {node: '>=0.6'}
 
   querystringify@2.2.0:
@@ -12636,9 +12637,9 @@ packages:
   typed-query-selector@2.12.2:
     resolution: {integrity: sha512-EOPFbyIub4ngnEdqi2yOcNeDLaX/0jcE1JoAXQDDMIthap7FoN795lc/SHfIq2d416VufXpM8z/lD+WRm2gfOQ==}
 
-  typed-rest-client@2.3.1:
-    resolution: {integrity: sha512-k4kX5Up6qA68D0Cby2AK+6+vM5k3qTxe+/3FqhnHRExjY5cfbOnzjQZbP/LXleF8hVoDvDqxlgk9KK83HoBZlQ==}
-    engines: {node: '>= 16.0.0'}
+  typed-rest-client@3.1.0:
+    resolution: {integrity: sha512-8fMeur8aKaJw8WsqYUZD4CsUfpMFH3zWlRQigM3KWs406KGjqPMdTBn7RfIpMvPjZ1bH+S8QwG+FK/VY/8ndKg==}
+    engines: {node: '>= 20.0.0'}
 
   typedarray-to-buffer@3.1.5:
     resolution: {integrity: sha512-zdu8XMNEDepKKR+XYOXAVPtWui0ly0NtohUscw+UmaHiAWT8hrV1rr//H6V+0DvJ3OQ19S979M0laLfX8rm82Q==}
@@ -18528,7 +18529,7 @@ snapshots:
       tree-kill: 1.2.2
       tslib: 2.8.1
       typed-inject: 5.0.0
-      typed-rest-client: 2.3.1
+      typed-rest-client: 3.1.0
     transitivePeerDependencies:
       - '@types/node'
       - supports-color
@@ -26163,12 +26164,13 @@ snapshots:
     dependencies:
       hookified: 2.2.0
 
-  qs@6.15.1:
+  qs@6.15.2:
     dependencies:
       side-channel: 1.1.1
 
-  qs@6.15.2:
+  qs@6.15.3:
     dependencies:
+      es-define-property: 1.0.1
       side-channel: 1.1.1
 
   querystringify@2.2.0: {}
@@ -28018,11 +28020,11 @@ snapshots:
 
   typed-query-selector@2.12.2: {}
 
-  typed-rest-client@2.3.1:
+  typed-rest-client@3.1.0:
     dependencies:
       des.js: 1.1.0
       js-md4: 0.3.2
-      qs: 6.15.1
+      qs: 6.15.3
       tunnel: 0.0.6
       underscore: 1.13.8
 
