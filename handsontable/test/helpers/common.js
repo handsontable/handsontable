@@ -1101,10 +1101,22 @@ export function openDropdownSubmenuOption(submenuName, cell) {
 export async function selectDropdownSubmenuOption(submenuName, optionName, cell) {
   openDropdownSubmenuOption(submenuName, cell);
 
-  await sleep(300);
+  // Wait for the submenu to open instead of guessing with a fixed delay.
+  let button = $();
 
-  const dropdownSubMenu = $(`.htDropdownMenuSub_${submenuName}`);
-  const button = dropdownSubMenu.find(`.ht_master .htCore tbody td:contains(${optionName})`);
+  for (let attempt = 0; attempt < 30 && button.length === 0; attempt++) {
+    // eslint-disable-next-line no-await-in-loop
+    await waitForNextAnimationFrames(1);
+
+    button = $(`.htDropdownMenuSub_${submenuName}`)
+      .find(`.ht_master .htCore tbody td:contains(${optionName})`);
+  }
+
+  // Without this the `.simulate()` calls below are silent no-ops and the test passes having
+  // clicked nothing.
+  if (button.length === 0) {
+    throw new Error(`The "${optionName}" option of the "${submenuName}" dropdown submenu was not found.`);
+  }
 
   button
     .simulate('mouseenter')

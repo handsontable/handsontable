@@ -30,7 +30,7 @@ function prepareAlignClass(
   axisClassNames: string[]
 ): string {
   const classNames = normalizeClassNames(className)
-    .filter(name => !axisClassNames.includes(name));
+    .filter(name => name !== alignment && !axisClassNames.includes(name));
 
   return [...classNames, alignment].join(' ');
 }

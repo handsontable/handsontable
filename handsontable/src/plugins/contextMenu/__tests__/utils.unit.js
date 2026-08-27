@@ -136,6 +136,12 @@ describe('contextMenu/utils', () => {
       expect(afterTop).toBe('class_name htRight htTop');
     });
 
+    it('should not emit the alignment twice when it is passed to the other axis helper', () => {
+      // Not reachable through `align()`, but both helpers are exported and called directly here.
+      expect(prepareVerticalAlignClass('htLeft', 'htLeft')).toBe('htLeft');
+      expect(prepareHorizontalAlignClass('class_name htTop', 'htTop')).toBe('class_name htTop');
+    });
+
     it('should not report an alignment for a custom class that merely contains its name', () => {
       const hotMock = className => ({ getCellMetaTransient: () => ({ className }) });
 

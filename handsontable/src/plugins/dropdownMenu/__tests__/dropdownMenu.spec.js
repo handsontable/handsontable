@@ -818,69 +818,33 @@ describe('DropdownMenu', () => {
 
     getPlugin('dropdownMenu').executeCommand('alignment:bottom');
 
-    let cellMeta = getCellMeta(0, 0);
+    expect(getCellMeta(0, 0).className).toBe('htCenter htMiddle');
+    expect(getCellMeta(0, 7).className).toBe('htCenter htBottom');
+    expect(getCellMeta(5, 1).className).toBe('htMiddle');
+    expect(getCellMeta(5, 7).className).toBe('htBottom');
+    expect(getCellMeta(7, 1).className).toBe('htRight htMiddle');
+    expect(getCellMeta(7, 5).className).toBe('htRight');
+    expect(getCellMeta(7, 7).className).toBe('htRight htBottom');
 
-    expect(cellMeta.className).toContain('htCenter');
-    expect(cellMeta.className).toContain('htMiddle');
-
-    cellMeta = getCellMeta(0, 7);
-    expect(cellMeta.className).toContain('htCenter');
-    expect(cellMeta.className).toContain('htBottom');
-
-    cellMeta = getCellMeta(5, 1);
-    expect(cellMeta.className).toContain('htMiddle');
-
-    cellMeta = getCellMeta(5, 7);
-    expect(cellMeta.className).toContain('htBottom');
-
-    cellMeta = getCellMeta(7, 1);
-    expect(cellMeta.className).toContain('htRight');
-    expect(cellMeta.className).toContain('htMiddle');
-
-    cellMeta = getCellMeta(7, 5);
-    expect(cellMeta.className).toContain('htRight');
-
-    cellMeta = getCellMeta(7, 7);
-    expect(cellMeta.className).toContain('htRight');
-    expect(cellMeta.className).toContain('htBottom');
-
+    // Each undo is asserted against the exact expected value, so a class name that is wrongly
+    // wiped fails here just as loudly as one that is wrongly kept.
     getPlugin('undoRedo').undo();
-    cellMeta = getCellMeta(0, 7);
-    expect(cellMeta.className).toContain('htCenter');
-    expect(cellMeta.className ?? '').not.toContain('htBottom');
 
-    cellMeta = getCellMeta(5, 7);
-    expect(cellMeta.className ?? '').not.toContain('htBottom');
-
-    cellMeta = getCellMeta(7, 7);
-    expect(cellMeta.className).toContain('htRight');
-    expect(cellMeta.className ?? '').not.toContain('htBottom');
+    expect(getCellMeta(0, 7).className).toBe('htCenter');
+    expect(getCellMeta(5, 7).className).toBeUndefined();
+    expect(getCellMeta(7, 7).className).toBe('htRight');
 
     getPlugin('undoRedo').undo();
 
-    cellMeta = getCellMeta(0, 0);
-    expect(cellMeta.className).toContain('htCenter');
-    expect(cellMeta.className ?? '').not.toContain('htMiddle');
-
-    cellMeta = getCellMeta(5, 1);
-    expect(cellMeta.className ?? '').not.toContain('htMiddle');
-
-    cellMeta = getCellMeta(7, 1);
-    expect(cellMeta.className).toContain('htRight');
-    expect(cellMeta.className ?? '').not.toContain('htMiddle');
+    expect(getCellMeta(0, 0).className).toBe('htCenter');
+    expect(getCellMeta(5, 1).className).toBeUndefined();
+    expect(getCellMeta(7, 1).className).toBe('htRight');
 
     getPlugin('undoRedo').undo();
 
-    cellMeta = getCellMeta(7, 1);
-    expect(cellMeta.className ?? '').not.toContain('htRight');
-    expect(cellMeta.className ?? '').not.toContain('htMiddle');
-
-    cellMeta = getCellMeta(7, 5);
-    expect(cellMeta.className ?? '').not.toContain('htRight');
-
-    cellMeta = getCellMeta(7, 7);
-    expect(cellMeta.className ?? '').not.toContain('htRight');
-    expect(cellMeta.className ?? '').not.toContain('htBottom');
+    expect(getCellMeta(7, 1).className).toBeUndefined();
+    expect(getCellMeta(7, 5).className).toBeUndefined();
+    expect(getCellMeta(7, 7).className).toBeUndefined();
   });
 
   it('should be possible redo the alignment process by calling the \'Redo\' action without contextMenu', async() => {
