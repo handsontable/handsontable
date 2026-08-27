@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the cell's class names losing the space between them after changing the alignment twice, which silently dropped custom classes and the alignment itself.",
+  "type": "fixed",
+  "issueOrPR": 13266,
+  "breaking": false,
+  "framework": "none"
+}
