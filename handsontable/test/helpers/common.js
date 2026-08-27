@@ -1027,6 +1027,13 @@ export function closeContextMenu() {
 }
 
 /**
+ * Closes the dropdown menu.
+ */
+export function closeDropdownMenu() {
+  $(document).simulate('mousedown');
+}
+
+/**
  * Shows dropdown menu.
  *
  * @param {number|HTMLTableCellElement} [columnIndexOrCell=0] The column index or TD element under which the dropdown menu is triggered.
@@ -1082,6 +1089,29 @@ export function openDropdownSubmenuOption(submenuName, cell) {
   item
     .simulate('mouseenter')
     .simulate('mouseover');
+}
+
+/**
+ * Open, execute the sub menu action and close the dropdown menu.
+ *
+ * @param {string} submenuName The dropdown menu item name (it has to be a submenu) to hover.
+ * @param {string} optionName The dropdown menu subitem name to click.
+ * @param {number|HTMLTableCellElement} [cell] The column index or TH element to open the menu under.
+ */
+export async function selectDropdownSubmenuOption(submenuName, optionName, cell) {
+  openDropdownSubmenuOption(submenuName, cell);
+
+  await sleep(300);
+
+  const dropdownSubMenu = $(`.htDropdownMenuSub_${submenuName}`);
+  const button = dropdownSubMenu.find(`.ht_master .htCore tbody td:contains(${optionName})`);
+
+  button
+    .simulate('mouseenter')
+    .simulate('mousedown')
+    .simulate('mouseup')
+    .simulate('click');
+  closeDropdownMenu();
 }
 
 /**

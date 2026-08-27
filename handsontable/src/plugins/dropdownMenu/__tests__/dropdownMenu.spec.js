@@ -410,6 +410,38 @@ describe('DropdownMenu', () => {
       expect(countCols()).toEqual(3);
     });
 
+    it('should keep the space between the class names when the alignment is picked again (#7122)', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        dropdownMenu: true,
+        colHeaders: true,
+        height: 100,
+        cell: [
+          { row: 0, col: 0, className: 'class_name' },
+        ],
+      });
+
+      // The dropdown menu reaches the alignment items through the same shared `align()` helper as
+      // the context menu, so it used to glue the class names together in exactly the same way.
+      const pickAlignment = async(optionName) => {
+        await selectCell(0, 0);
+        await selectDropdownSubmenuOption('Alignment', optionName, 0);
+      };
+
+      await pickAlignment('Right');
+      await pickAlignment('Middle');
+
+      expect(getCellMeta(0, 0).className).toEqual('class_name htRight htMiddle');
+
+      await pickAlignment('Justify');
+
+      // Used to be 'class_namehtMiddle htJustify', dropping both the custom class and htMiddle.
+      expect(getCellMeta(0, 0).className).toEqual('class_name htMiddle htJustify');
+      expect(getCell(0, 0).classList.contains('class_name')).toBe(true);
+      expect(getCell(0, 0).classList.contains('htMiddle')).toBe(true);
+      expect(getCell(0, 0).classList.contains('htJustify')).toBe(true);
+    });
+
     it('should clear column data', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
