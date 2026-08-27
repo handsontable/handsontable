@@ -15,8 +15,8 @@ import { FormulasMoveCellsPage } from '../fixtures/pages/FormulasMoveCellsPage';
 test.describe('Formulas: preserveTextValue rendered output', () => {
   let grid: FormulasMoveCellsPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new FormulasMoveCellsPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new FormulasMoveCellsPage(page, theme, bundle);
     await grid.goto();
   });
 

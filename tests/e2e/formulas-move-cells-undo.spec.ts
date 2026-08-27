@@ -10,8 +10,8 @@ import { FormulasMoveCellsPage } from '../fixtures/pages/FormulasMoveCellsPage';
 test.describe('Formulas: moveCells undo/redo integration', () => {
   let grid: FormulasMoveCellsPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new FormulasMoveCellsPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new FormulasMoveCellsPage(page, theme, bundle);
     await grid.goto();
     // B1 = '=A1+10' → computed as 11 (A1=1) — the dataset every case starts from.
     await grid.initGrid([[1, '=A1+10'], [null, null], [null, null]]);

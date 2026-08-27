@@ -14,11 +14,13 @@ import type { CellValue } from './windowTypes';
 export class FormulasMoveCellsPage {
   readonly page: Page;
   readonly theme: string;
+  readonly bundle: string;
   readonly grid: Locator;
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.grid = page.getByTestId('grid');
   }
 
@@ -27,7 +29,8 @@ export class FormulasMoveCellsPage {
    * a real DOM condition).
    */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/formulas-move-cells.html?theme=${this.theme}`);
+    await this.page.goto(
+      `/tests/fixtures/demo/formulas-move-cells.html?theme=${this.theme}&bundle=${this.bundle}`);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
