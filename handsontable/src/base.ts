@@ -319,7 +319,7 @@ declare namespace Handsontable {
   export type SanitizerContext = import('./core/settings').SanitizerContext;
   export type ColumnSettings = ColumnSettingsType;
   export type CellProperties = CellPropertiesType;
-  /** @deprecated Use CellProperties */
+  /** Alias of the top-level `CellMeta` export. */
   export type CellMeta = CellMetaType;
   export type CellChange = CellChangeType;
   export type ChangeSource = ChangeSourceType;

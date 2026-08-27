@@ -21,14 +21,6 @@ import { ChangesObservable } from './changesObservable/observable';
 import { throwWithCause } from '../helpers/errors';
 
 /**
- * A set of deprecated feature names.
- *
- * @type {Set<string>}
- */
-// eslint-disable-next-line no-unused-vars
-const deprecationWarns = new Set();
-
-/**
  * @class IndexMapper
  * @description
  *

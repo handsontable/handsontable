@@ -243,7 +243,7 @@ Behavior, verified against `add` in `index.ts` and `warn` in `src/helpers/consol
 - **Both are warnings, not errors.** Using a removed or deprecated hook does not throw. The action still proceeds; the listener still attaches and runs.
 - **The warning fires every time `add`/`once` runs for that name, not once.** `warn` calls `console.warn` directly with no deduplication. There is no once-guard in the hook path or in `warn`.
 
-> Repo-vs-doc conflict (repo wins). The breaking-changes policy in `handsontable/AGENTS.md` describes removed hooks as showing "an error" and deprecated APIs producing a warning "fired only once." For the **hook** path, the code does neither: removed and deprecated hooks both emit a non-deduplicated `console.warn`. When you remove or rename a public hook, add it to `REMOVED_HOOKS` with the removal version so misuse surfaces in the console. Removing or renaming a public hook is a breaking change — deprecate it first.
+> Repo-vs-doc conflict (repo wins). The breaking-changes policy in `handsontable/AGENTS.md` describes removed hooks as showing "an error" and deprecated APIs producing a warning "fired only once." Method, option, and helper deprecations honor the once rule through `deprecatedWarnOnce` in `helpers/console.ts` (once per page). For the **hook** path, the code does neither: removed and deprecated hooks both emit a non-deduplicated `console.warn` on every `add()`. When you remove or rename a public hook, add it to `REMOVED_HOOKS` with the removal version so misuse surfaces in the console. Removing or renaming a public hook is a breaking change — deprecate it first.
 
 ## Cross-references
 
