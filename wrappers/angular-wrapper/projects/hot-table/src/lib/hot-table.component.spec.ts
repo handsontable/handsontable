@@ -2,6 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CUSTOM_ELEMENTS_SCHEMA, NgZone, SimpleChange, SimpleChanges } from '@angular/core';
 import Handsontable from 'handsontable';
 import { registerPlugin, CopyPaste } from 'handsontable/plugins';
+import { NumericEditor, TextEditor } from 'handsontable/editors';
+import { registerCellType, NumericCellType } from 'handsontable/cellTypes';
 import { HotTableModule } from './hot-table.module';
 import { HOT_DESTROYED_WARNING, HotTableComponent } from './hot-table.component';
 import { GridSettings } from './models/grid-settings';
@@ -11,6 +13,8 @@ import { HOT_GLOBAL_CONFIG, HotGlobalConfigService, NON_COMMERCIAL_LICENSE } fro
 import { DynamicComponentService } from './renderer/hot-dynamic-renderer-component.service';
 
 registerPlugin(CopyPaste);
+// The `boolean \`editor\` setting` suite needs a cell type that brings its own editor along.
+registerCellType(NumericCellType);
 
 describe('HotTableComponent', () => {
   let fixture: ComponentFixture<HotTableComponent>;
@@ -620,6 +624,68 @@ describe('HotTableComponent', () => {
       });
 
       expect(capturedZoneState).toBe(true);
+    });
+  });
+
+  describe('boolean `editor` setting', () => {
+    // Core accepts only a string or a constructor as `editor`. A bare `true` used to reach it
+    // untouched and throw `Only strings and functions can be passed as "editor" parameter` the
+    // moment a cell was selected, because selecting a cell prepares its editor.
+    const selectFirstCell = () => fixture.componentInstance.hotInstance.selectCell(0, 0);
+
+    const createTable = (extraSettings: GridSettings) => {
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = { ...settings, ...extraSettings };
+      fixture.componentInstance.data = createSpreadsheetData(3, 3);
+      fixture.detectChanges();
+    };
+
+    it('should fall back to the default editor for a grid-level `editor` of `true`', () => {
+      createTable({ editor: true } as GridSettings);
+
+      expect(selectFirstCell).not.toThrow();
+      expect(fixture.componentInstance.hotInstance.getCellEditor(0, 0)).toBe(TextEditor);
+    });
+
+    it('should fall back to the default editor for a column-level `editor` of `true`', () => {
+      createTable({ columns: [{ editor: true }, {}, {}] } as GridSettings);
+
+      expect(selectFirstCell).not.toThrow();
+      expect(fixture.componentInstance.hotInstance.getCellEditor(0, 0)).toBe(TextEditor);
+      // The control column, which sets no editor, resolves the same way it always did.
+      expect(fixture.componentInstance.hotInstance.getCellEditor(0, 1)).toBe(TextEditor);
+    });
+
+    it('should keep the editor a column `type` supplies when `editor` is `true`', () => {
+      createTable({ columns: [{ type: 'numeric', editor: true }, {}, {}] } as GridSettings);
+
+      expect(selectFirstCell).not.toThrow();
+      // `true` means "no editor named", not "use the default one" — resolving it to the text
+      // editor here would silently strip the numeric editor the `type` brings in.
+      expect(fixture.componentInstance.hotInstance.getCellEditor(0, 0)).toBe(NumericEditor);
+    });
+
+    it('should still disable editing for an `editor` of `false`', () => {
+      createTable({ columns: [{ editor: false }, {}, {}] } as GridSettings);
+
+      expect(selectFirstCell).not.toThrow();
+      expect(fixture.componentInstance.hotInstance.getCellEditor(0, 0)).toBe(false);
+      expect(fixture.componentInstance.hotInstance.getCellEditor(0, 1)).toBe(TextEditor);
+    });
+
+    it('should normalize an `editor` of `true` arriving through a settings update', () => {
+      createTable({});
+
+      fixture.componentInstance.ngOnChanges({
+        settings: new SimpleChange(
+          fixture.componentInstance.settings,
+          { ...settings, columns: [{ editor: true }, {}, {}] } as GridSettings,
+          false
+        ),
+      } as SimpleChanges);
+
+      expect(selectFirstCell).not.toThrow();
+      expect(fixture.componentInstance.hotInstance.getCellEditor(0, 0)).toBe(TextEditor);
     });
   });
 });

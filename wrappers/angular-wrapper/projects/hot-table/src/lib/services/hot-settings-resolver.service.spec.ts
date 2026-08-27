@@ -495,4 +495,80 @@ describe('HotSettingsResolver', () => {
       expect(wrappedTwice).toBe(wrappedOnce);
     });
   });
+
+  describe('boolean `editor` setting', () => {
+    it('should drop a grid-level `editor` of `true` so the cell falls back to the default editor', () => {
+      const inputSettings = { editor: true } as GridSettings;
+
+      const result = service.applyCustomSettings(inputSettings);
+
+      // `true` names no editor. Core takes only a string or a constructor and throws on the first
+      // edit when a bare boolean reaches it, so the key must be gone, not set to `undefined`.
+      expect('editor' in result).toBe(false);
+      // The caller's own object stays untouched, as with every other resolved setting.
+      expect(inputSettings.editor).toBe(true);
+    });
+
+    it('should drop a column-level `editor` of `true`', () => {
+      const inputSettings: GridSettings = {
+        columns: [{ editor: true } as ColumnSettings, { data: 'name' } as ColumnSettings],
+      };
+
+      const result = service.applyCustomSettings(inputSettings);
+
+      expect('editor' in result.columns[0]).toBe(false);
+      // The control column is left exactly as it was.
+      expect('editor' in result.columns[1]).toBe(false);
+      expect((inputSettings.columns[0] as ColumnSettings).editor).toBe(true);
+    });
+
+    it('should keep a column `type` when its `editor` of `true` is dropped', () => {
+      const result = service.applyCustomSettings({
+        columns: [{ type: 'numeric', editor: true } as ColumnSettings],
+      });
+
+      // Resolving `true` to the default text editor would silently throw away the editor the
+      // column's `type` supplies, so it has to be dropped instead of rewritten.
+      expect('editor' in result.columns[0]).toBe(false);
+      expect((result.columns[0] as ColumnSettingsInternal).type).toBe('numeric');
+    });
+
+    it('should leave an `editor` of `false` alone at both levels', () => {
+      const result = service.applyCustomSettings({
+        editor: false,
+        columns: [{ editor: false } as ColumnSettings],
+      } as GridSettings);
+
+      // Core reads `false` as "editing disabled" — it is a real setting, not a missing one.
+      expect(result.editor).toBe(false);
+      expect((result.columns[0] as ColumnSettings).editor).toBe(false);
+    });
+
+    it('should leave an `editor` of `null` alone, so it keeps locking the cell', () => {
+      const result = service.applyCustomSettings({
+        columns: [{ editor: null } as unknown as ColumnSettings],
+      });
+
+      // `null` sits outside the declared `string | ctor | boolean` type. Passing it straight
+      // through keeps the wrapper aligned with vanilla Handsontable, which locks the cell.
+      expect((result.columns[0] as ColumnSettings).editor).toBeNull();
+    });
+
+    it('should not touch a component editor while normalizing booleans', () => {
+      const result = service.applyCustomSettings({
+        columns: [{ editor: TestEditorComponent } as ColumnSettings],
+      });
+
+      expect((result.columns[0] as ColumnSettingsInternal)._editorComponentReference).toBeDefined();
+    });
+
+    it('should tolerate a `columns` function alongside a grid-level `editor` of `true`', () => {
+      const columnsFn = () => ({ data: 'name' }) as ColumnSettings;
+
+      const result = service.applyCustomSettings({ editor: true, columns: columnsFn } as GridSettings);
+
+      expect('editor' in result).toBe(false);
+      expect(result.columns).toBe(columnsFn);
+    });
+  });
 });

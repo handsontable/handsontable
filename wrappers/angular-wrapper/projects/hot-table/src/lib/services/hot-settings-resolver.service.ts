@@ -44,6 +44,7 @@ export class HotSettingsResolver {
       mergedSettings.columns = mergedSettings.columns.map((column) => ({ ...column }));
     }
 
+    this.normalizeEditorSetting(mergedSettings);
     this.updateColumnRendererForGivenCustomRenderer(mergedSettings);
     this.updateColumnEditorForGivenCustomEditor(mergedSettings, previousColumns);
     this.updateColumnValidatorForGivenCustomValidator(mergedSettings);
@@ -74,6 +75,37 @@ export class HotSettingsResolver {
         };
         (wrapped as any)[HOT_ZONE_WRAPPED] = true;
         settings[key] = wrapped;
+      }
+    });
+  }
+
+  /**
+   * Drops an `editor` setting of `true`, on the grid and on every column.
+   *
+   * Core takes only a string or a constructor and throws `Only strings and functions can be passed
+   * as "editor" parameter` on the first edit when a bare `true` reaches it. `true` names no editor,
+   * so it is treated as if the setting were never provided, and the cell keeps whatever editor its
+   * `type`, the grid, or the default supplies. Resolving it to the default editor instead would
+   * silently drop the editor a column's `type` brings in, turning `{ type: 'numeric', editor: true }`
+   * into a plain text cell.
+   *
+   * `false` is left alone — core reads it as "editing disabled" — and so is `null`, which keeps
+   * locking the cell exactly as it does in vanilla Handsontable.
+   *
+   * @param mergedSettings The merged grid settings.
+   */
+  private normalizeEditorSetting(mergedSettings: GridSettings): void {
+    if (mergedSettings.editor === true) {
+      delete mergedSettings.editor;
+    }
+
+    if (!Array.isArray(mergedSettings.columns)) {
+      return;
+    }
+
+    (mergedSettings.columns as ColumnSettings[]).forEach((cellSettings) => {
+      if (cellSettings.editor === true) {
+        delete cellSettings.editor;
       }
     });
   }
