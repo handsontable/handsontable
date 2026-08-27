@@ -1,46 +1,52 @@
 import type { HotInstance } from '../../core/types';
 import { arrayEach } from '../../helpers/array';
+import { normalizeClassNames } from '../../helpers/dom/element';
 
 interface CellRangeLike {
   forAll(callback: (row: number, col: number) => void | boolean): void;
 }
 
+const VERTICAL_ALIGNMENT_CLASS_NAMES = ['htTop', 'htMiddle', 'htBottom'];
+const HORIZONTAL_ALIGNMENT_CLASS_NAMES = ['htLeft', 'htCenter', 'htRight', 'htJustify'];
+
 /**
- * @param {string} className The full element class name to process.
- * @param {string} alignment The alignment class name to compare with.
+ * Swaps the alignment class of one axis, leaving every other class name untouched.
+ *
+ * The class name is compared token by token. Matching substrings is not enough - it both destroys
+ * custom classes that merely contain an alignment name (`htTopBar`) and, once a token is cut out of
+ * the middle of the string, glues its two neighbours together (#7122).
+ *
+ * @param {string|string[]} className The full element class name to process.
+ * @param {string} alignment The alignment class name to apply.
+ * @param {string[]} axisClassNames The alignment class names of the axis being changed.
  * @returns {string}
  */
-export function prepareVerticalAlignClass(className: string, alignment: string) {
-  if (className.indexOf(alignment) !== -1) {
-    return className;
+function prepareAlignClass(className: string | string[], alignment: string, axisClassNames: string[]): string {
+  const classNames = normalizeClassNames(className);
+
+  if (classNames.includes(alignment)) {
+    return classNames.join(' ');
   }
 
-  const replacedClassName = className
-    .replace('htTop', '')
-    .replace('htMiddle', '')
-    .replace('htBottom', '')
-    .replace('  ', '');
-
-  return `${replacedClassName} ${alignment}`;
+  return [...classNames.filter(name => !axisClassNames.includes(name)), alignment].join(' ');
 }
 
 /**
- * @param {string} className The full element class name to process.
+ * @param {string|string[]} className The full element class name to process.
  * @param {string} alignment The alignment class name to compare with.
  * @returns {string}
  */
-export function prepareHorizontalAlignClass(className: string, alignment: string) {
-  if (className.indexOf(alignment) !== -1) {
-    return className;
-  }
-  const replacedClassName = className
-    .replace('htLeft', '')
-    .replace('htCenter', '')
-    .replace('htRight', '')
-    .replace('htJustify', '')
-    .replace('  ', '');
+export function prepareVerticalAlignClass(className: string | string[], alignment: string) {
+  return prepareAlignClass(className, alignment, VERTICAL_ALIGNMENT_CLASS_NAMES);
+}
 
-  return `${replacedClassName} ${alignment}`;
+/**
+ * @param {string|string[]} className The full element class name to process.
+ * @param {string} alignment The alignment class name to compare with.
+ * @returns {string}
+ */
+export function prepareHorizontalAlignClass(className: string | string[], alignment: string) {
+  return prepareAlignClass(className, alignment, HORIZONTAL_ALIGNMENT_CLASS_NAMES);
 }
 
 /**
@@ -112,9 +118,9 @@ function applyAlignClassName(
 
   if (cellMeta.className) {
     if (type === 'vertical') {
-      className = prepareVerticalAlignClass(cellMeta.className as string, alignment);
+      className = prepareVerticalAlignClass(cellMeta.className as string | string[], alignment);
     } else {
-      className = prepareHorizontalAlignClass(cellMeta.className as string, alignment);
+      className = prepareHorizontalAlignClass(cellMeta.className as string | string[], alignment);
     }
   }
 
