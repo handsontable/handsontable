@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the Angular wrapper throwing an error on cell select when a cell's `editor` setting was `true`.",
+  "type": "fixed",
+  "issueOrPR": 13277,
+  "breaking": false,
+  "framework": "angular"
+}
