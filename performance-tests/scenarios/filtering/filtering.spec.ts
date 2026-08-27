@@ -21,7 +21,7 @@ test(config.name, async({ page }) => {
     warmupRuns: config.warmupRuns,
     iterations: config.iterations,
     outputDir,
-    actionFn: async(isMeasured) => {
+    actionFn: async() => {
       // Apply a filter on column 0: contains "1"
       await page.evaluate(() => {
         const hot = (window as any).__hot;
@@ -30,14 +30,15 @@ test(config.name, async({ page }) => {
         filtersPlugin.addCondition(0, 'contains', ['1']);
         filtersPlugin.filter();
       });
+    },
+    // Read back after the window closes -- this is a CDP round trip, and inside the
+    // window it would be billed to the action on measured iterations only, making them
+    // a different shape from the warmups.
+    afterActionFn: async() => {
+      const timing = await getHookTiming(page, 'beforeFilter', 'afterFilter');
 
-      // Capture hook timing only during measured iterations
-      if (isMeasured) {
-        const timing = await getHookTiming(page, 'beforeFilter', 'afterFilter');
-
-        if (timing.deltaMs != null) {
-          hookDeltas.push(timing.deltaMs);
-        }
+      if (timing.deltaMs != null) {
+        hookDeltas.push(timing.deltaMs);
       }
     },
     resetFn: async() => {
