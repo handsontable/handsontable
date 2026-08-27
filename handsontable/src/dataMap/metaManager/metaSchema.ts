@@ -4296,6 +4296,12 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
+     * A merged range clears the cells it covers when it is first applied. Passing the same value to
+     * [`updateSettings()`](@/api/core.md#updatesettings) again keeps the merge but clears nothing a
+     * second time, and fires no `beforeChange` or `afterChange` event. Adding a range to the array
+     * clears only that new range. As a result, passing new `data` alongside an unchanged `mergeCells`
+     * value leaves the covered cells of that new data intact, the same way `loadData()` does.
+     *
      * Read more:
      * - [Merge cells](@/guides/cell-features/merge-cells/merge-cells.md)
      *

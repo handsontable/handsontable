@@ -352,6 +352,25 @@ Both [`getData()`](@/api/core.md#getdata) and [`getSourceData()`](@/api/core.md#
 
 Unmerging does not restore the cleared values. If you need the original values back, keep a copy before merging, or restore them yourself in a [`beforeUnmergeCells`](@/api/hooks.md#beforeunmergecells) or [`afterUnmergeCells`](@/api/hooks.md#afterunmergecells) handler.
 
+### Clearing runs once per merged range
+
+A merged range clears its covered cells when it is first applied, not every time the configuration is read. Passing the same `mergeCells` value to [`updateSettings()`](@/api/core.md#updatesettings) again keeps the merge and changes nothing else: no cells are cleared a second time, and no [`beforeChange`](@/api/hooks.md#beforechange) or [`afterChange`](@/api/hooks.md#afterchange) event fires. Adding a range to the configuration clears only that new range.
+
+This matters when a framework wrapper resends every option on each render. React and Angular do, so without it a store-driven app would keep receiving change events for values that never changed.
+
+One consequence: if you pass new `data` alongside an unchanged `mergeCells` value, the covered cells of the new data keep their values.
+
+```js
+hot.updateSettings({
+  data: [['A1', 'B1'], ['A2', 'B2']],
+  mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }], // unchanged
+});
+
+hot.getDataAtCell(0, 1); // -> 'B1', not null
+```
+
+[`loadData()`](@/api/core.md#loaddata) and [`updateData()`](@/api/core.md#updatedata) behave the same way. To clear the covered cells of a fresh dataset, unmerge the range and merge it again, or clear those cells yourself.
+
 ## Effect on viewport getter methods
 
 With merged cells, the rendered range extends to fit any merged cell that crosses the viewport edge. This is the same expansion that the `virtualized` option turns off. As a result, the rendered-range getters can return indexes beyond what you see on the screen:

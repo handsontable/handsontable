@@ -519,6 +519,75 @@ describe('MergeCells', () => {
       ]);
     });
 
+    it('should leave the covered cells of newly passed data alone when `mergeCells` is unchanged', async() => {
+      const beforeChange = jasmine.createSpy('beforeChange');
+
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2'],
+          ['A3', 'B3', 'C3'],
+        ],
+        mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }],
+        beforeChange,
+      });
+
+      beforeChange.calls.reset();
+
+      // Same behavior as `loadData()`, which never re-cleared the covered cells either.
+      await updateSettings({
+        data: [
+          ['X1', 'Y1', 'Z1'],
+          ['X2', 'Y2', 'Z2'],
+          ['X3', 'Y3', 'Z3'],
+        ],
+        mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }],
+      });
+
+      expect(beforeChange.calls.count()).toBe(0);
+      expect(getData()).toEqual([
+        ['X1', 'Y1', 'Z1'],
+        ['X2', 'Y2', 'Z2'],
+        ['X3', 'Y3', 'Z3'],
+      ]);
+    });
+
+    it('should settle after one re-population when the `mergeCells` config is re-applied over a sorted grid', async() => {
+      const beforeChange = jasmine.createSpy('beforeChange');
+      const mergeCells = [{ row: 1, col: 0, rowspan: 2, colspan: 2 }];
+
+      handsontable({
+        data: [
+          ['A1', 'B1', 5],
+          ['A2', 'B2', 3],
+          ['A3', 'B3', 4],
+          ['A4', 'B4', 1],
+          ['A5', 'B5', 2],
+        ],
+        mergeCells,
+        columnSorting: true,
+        beforeChange,
+      });
+
+      // Sorting re-anchors the merge onto its new visual position, so the area no longer matches the
+      // key the config declares. The next re-apply therefore populates once more — and after that the
+      // collection is back in sync with the config, so further re-applies stay silent.
+      getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      beforeChange.calls.reset();
+
+      await updateSettings({ mergeCells });
+
+      expect(beforeChange.calls.count()).toBe(1);
+
+      beforeChange.calls.reset();
+
+      await updateSettings({ mergeCells });
+      await updateSettings({ mergeCells });
+
+      expect(beforeChange.calls.count()).toBe(0);
+    });
+
     it('should populate the merge area again when the `mergeCells` config changes its span', async() => {
       const beforeChange = jasmine.createSpy('beforeChange');
 
