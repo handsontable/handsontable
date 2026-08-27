@@ -61,11 +61,18 @@ The following dependencies were deprecated in version 17.0 and removed in versio
 
 | Removed | Deprecated in | Replacement | Migration guide |
 | ------- | ------------- | ----------- | --------------- |
-| `persistentState` option and the `persistentStateSave`, `persistentStateLoad`, and `persistentStateReset` hooks. The `PersistentState` plugin itself was removed in 17.0. | 16.1 | Persist state in your application code. | [Changelog 18.0](@/guides/upgrade-and-migration/changelog-18/changelog-18.md) |
-| `hot.undo()`, `hot.redo()`, `hot.clearUndo()`, `hot.isUndoAvailable()`, `hot.isRedoAvailable()`, and `hot.undoRedo` | Before 16.0 | `hot.getPlugin('undoRedo')` | [Changelog 18.0](@/guides/upgrade-and-migration/changelog-18/changelog-18.md) |
 | `correctFormat` and `datePickerConfig` options | 17.0 | `valueParser` and `valueSetter` | [Migrate from 17.1 to 18.0 -> `correctFormat` option](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#correctformat-option) |
 | `numericFormat.pattern` and `numericFormat.culture` | 17.0 | `Intl.NumberFormat` options and the `locale` option | [Migrate from 17.1 to 18.0 -> Numeric formatting](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat) |
 | `handsontable/common` import subpath | -- (never documented) | `handsontable` or `handsontable/base` | [Migrate from 17.1 to 18.0 -> Imports](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#replace-handsontablecommon-imports) |
+
+## Removed in version 17.0
+
+### APIs
+
+| Removed | Deprecated in | Replacement | Migration guide |
+| ------- | ------------- | ----------- | --------------- |
+| `PersistentState` plugin, its `persistentState` option, and the `persistentStateSave`, `persistentStateLoad`, and `persistentStateReset` hooks | 16.1 | Persist state in your application code. The `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, and `loadManualRowHeights()` methods that relied on the plugin are deprecated (see below). | [Changelog 17.0](@/guides/upgrade-and-migration/changelog-17/changelog-17.md) |
+| `hot.undo()`, `hot.redo()`, `hot.clearUndo()`, `hot.isUndoAvailable()`, `hot.isRedoAvailable()`, and `hot.undoRedo` | Before 16.0 | `hot.getPlugin('undoRedo')` | [Changelog 17.0](@/guides/upgrade-and-migration/changelog-17/changelog-17.md) |
 
 ## List of current deprecations
 
@@ -85,7 +92,7 @@ The following APIs are deprecated. They keep working and print a one-time consol
 
 | Deprecated | Deprecated in | Removal | Replacement | Migration guide |
 | ---------- | ------------- | ------- | ----------- | --------------- |
-| `columnHeaders` (export options of the `exportFile` plugin) | 17.0 | 19.0 | `colHeaders` | [Export to CSV](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md) |
+| `columnHeaders` (export options of the `exportFile` plugin) | 17.1 | 19.0 | `colHeaders` – rename the key; the value keeps its meaning. | [Export to CSV -> Available options](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md#available-options-in-the-export-configuration) |
 
 ### TypeScript types
 

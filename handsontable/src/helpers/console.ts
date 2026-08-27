@@ -81,21 +81,20 @@ export function deprecatedWarn(message: string) {
 }
 
 /**
- * Keys of deprecation warnings that were already printed. Module-level on purpose:
- * a deprecated API is reported once per page, regardless of how many grid instances
- * call it, which is what the deprecation policy promises.
+ * Keys of deprecation and removal warnings that were already printed. Module-level on purpose:
+ * a deprecated or removed API is reported once per page, regardless of how many grid instances
+ * touch it, which is what the deprecation policy promises.
  */
 const printedDeprecations = new Set<string>();
 
 /**
- * Logs a deprecation warning to the console only once per `key` if the `console`
- * object is exposed. Use it for every deprecated public API so the warning does
- * not flood the console on repeated calls.
+ * Logs `message` to the console only once per `key` if the `console` object is exposed.
+ * Shared by the deprecation and removal warnings, so both draw from one record and one reset.
  *
- * @param {string} key A stable identifier of the deprecated API (for example, the method name).
- * @param {string} message The message to log.
+ * @param {string} key A stable identifier of the reported API.
+ * @param {string} message The final message to log.
  */
-export function deprecatedWarnOnce(key: string, message: string): void {
+function warnOncePerKey(key: string, message: string): void {
   if (printedDeprecations.has(key)) {
     return;
   }
@@ -107,14 +106,39 @@ export function deprecatedWarnOnce(key: string, message: string): void {
   }
 
   printedDeprecations.add(key);
-  deprecatedWarn(message);
+  console.warn(message);
 }
 
 /**
- * Clears the record of already-printed deprecation warnings.
+ * Logs a deprecation warning to the console only once per `key` if the `console`
+ * object is exposed. Use it for every deprecated public API so the warning does
+ * not flood the console on repeated calls.
+ *
+ * @param {string} key A stable identifier of the deprecated API (for example, the method name).
+ * @param {string} message The message to log.
+ */
+export function deprecatedWarnOnce(key: string, message: string): void {
+  warnOncePerKey(key, `Deprecated: ${message}`);
+}
+
+/**
+ * Logs a removal warning to the console only once per `key` if the `console` object is exposed.
+ * Use it when a caller configures an API that no longer exists. Unlike `deprecatedWarnOnce`, the
+ * message carries no `Deprecated:` prefix: a removed API is not deprecated, it is gone, and the
+ * message itself has to say so (the same way the removed-hook warning in `core/hooks` does).
+ *
+ * @param {string} key A stable identifier of the removed API (for example, the option name).
+ * @param {string} message The message to log.
+ */
+export function removedWarnOnce(key: string, message: string): void {
+  warnOncePerKey(key, message);
+}
+
+/**
+ * Clears the record of already-printed deprecation and removal warnings.
  *
  * Test-only. `printedDeprecations` is module-global and never reset in production, so without this
- * every spec that asserts on a deprecation warning would depend on the order the specs run in.
+ * every spec that asserts on one of these warnings would depend on the order the specs run in.
  *
  * @private
  */

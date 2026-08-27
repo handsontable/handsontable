@@ -31,7 +31,7 @@ export interface SheetOptions {
   /**
    * Include column headers.
    *
-   * @deprecated Since 17.0.0, renamed to `colHeaders`. Still accepted as an alias; it will be
+   * @deprecated Since 17.1.0, renamed to `colHeaders`. Still accepted as an alias; it will be
    * removed in 19.0.0. Use `colHeaders` instead.
    */
   columnHeaders?: boolean;
@@ -174,7 +174,7 @@ export interface ExportOptions {
   /**
    * Include column headers.
    *
-   * @deprecated Since 17.0.0, renamed to `colHeaders`. Still accepted as an alias; it will be
+   * @deprecated Since 17.1.0, renamed to `colHeaders`. Still accepted as an alias; it will be
    * removed in 19.0.0. Use `colHeaders` instead.
    */
   columnHeaders?: boolean;

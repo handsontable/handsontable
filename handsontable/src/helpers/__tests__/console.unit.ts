@@ -10,6 +10,7 @@ import {
   error,
   deprecatedWarn,
   deprecatedWarnOnce,
+  removedWarnOnce,
   logAggregatedItems,
   _resetDeprecationWarnings,
 } from 'handsontable/helpers/console';
@@ -122,6 +123,47 @@ describe('Console', () => {
       _resetDeprecationWarnings();
 
       deprecatedWarnOnce('test-key-e', 'Feature E is deprecated.');
+
+      expect(console.warn).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('removedWarnOnce', () => {
+    it('should warn only once per key and print the message without a prefix', () => {
+      console.warn = jasmine.createSpy('warn');
+
+      removedWarnOnce('removed-key-a', 'The "a" setting was removed in Handsontable 17.0.0.');
+      removedWarnOnce('removed-key-a', 'The "a" setting was removed in Handsontable 17.0.0.');
+      removedWarnOnce('removed-key-b', 'The "b" setting was removed in Handsontable 18.0.0.');
+
+      expect(console.warn).toHaveBeenCalledTimes(2);
+      expect(console.warn).toHaveBeenCalledWith('The "a" setting was removed in Handsontable 17.0.0.');
+      expect(console.warn).toHaveBeenCalledWith('The "b" setting was removed in Handsontable 18.0.0.');
+    });
+
+    it('should not throw when `console` is not exposed', () => {
+      const cachedConsole = console;
+
+      console = undefined;
+
+      expect(() => {
+        removedWarnOnce('removed-key-c', 'x');
+      }).not.toThrow();
+
+      console = cachedConsole;
+    });
+
+    it('should share the once-record and the reset with `deprecatedWarnOnce`', () => {
+      console.warn = jasmine.createSpy('warn');
+
+      removedWarnOnce('shared-key', 'Removed.');
+      deprecatedWarnOnce('shared-key', 'Deprecated.');
+
+      expect(console.warn).toHaveBeenCalledTimes(1);
+
+      _resetDeprecationWarnings();
+
+      removedWarnOnce('shared-key', 'Removed.');
 
       expect(console.warn).toHaveBeenCalledTimes(2);
     });
