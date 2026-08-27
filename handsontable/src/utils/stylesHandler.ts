@@ -10,6 +10,15 @@ import handsontableStyles from '../styles/handsontableStyles';
 const CORE_STYLES_ID = 'handsontable-core-styles';
 
 /**
+ * The largest overgrowth, in pixels, that is still read as the device-pixel border inflation
+ * sub-100% zoom causes. Anything beyond it is treated as styling the measurement probe cannot
+ * represent.
+ *
+ * @type {number}
+ */
+const MAX_CELL_OVERGROWTH = 4;
+
+/**
  * Handles the theme-related style operations.
  */
 export class StylesHandler {
@@ -71,6 +80,18 @@ export class StylesHandler {
    * @type {object} - An object containing the computed styles if a nested structure of `element: { [element type]: {property: value} }`.
    */
   #computedStyles: Record<string, Record<string, string>> = {};
+
+  /**
+   * The last measured height of a populated cell, together with the two inputs that decide it. Kept
+   * apart from `#computedStyles` because that snapshot can predate the theme stylesheet.
+   *
+   * @type {object|null}
+   */
+  #renderedCellHeight: {
+    declaredRowHeight: number;
+    devicePixelRatio: number;
+    cellHeight: number;
+  } | null = null;
 
   /**
    * The callback function to be called when the theme changes.
@@ -224,10 +245,11 @@ export class StylesHandler {
   #calculateRowHeight() {
     const lineHeightVarValue = this.getCSSVariableValue('line-height');
     const verticalPaddingVarValue = this.getCSSVariableValue('cell-vertical-padding');
+    const renderedBottomBorderWidth = Number.parseFloat(this.getStyleForTD('border-bottom-width') ?? '');
     // Math.round (not Math.ceil) so that fractional computed values from sub-100% browser zoom
     // (e.g. "1.111px" at 90%) round to the correct 1px rather than overshooting to 2px, which
     // would make the hider taller than the actual table content and leave a visible gap.
-    const bottomBorderWidth = Math.round(Number.parseFloat(this.getStyleForTD('border-bottom-width') ?? ''));
+    const bottomBorderWidth = Math.round(renderedBottomBorderWidth);
 
     if (
       lineHeightVarValue === null ||
@@ -237,7 +259,90 @@ export class StylesHandler {
       return null;
     }
 
-    return (lineHeightVarValue as number) + (2 * (verticalPaddingVarValue as number)) + bottomBorderWidth;
+    const declaredRowHeight =
+      (lineHeightVarValue as number) + (2 * (verticalPaddingVarValue as number)) + bottomBorderWidth;
+
+    // A border wider than the 1px the theme asks for is the whole defect: below 100% zoom the browser
+    // cannot paint one thinner than a device pixel, so it reports 1.111px at 90%, 1.25px at 80%, and
+    // the cell outgrows its declared box on every row (issue #6280). Every other case keeps the
+    // declared height, which is what this method has always returned:
+    //
+    //   - exactly 1px — the page is at 100%, nothing to correct;
+    //   - below 1px — above 100% the border shrinks to a fraction, but the cell's declared height
+    //     governs and the row keeps it;
+    //   - a whole number of pixels (2px at 50% zoom) — already rounded correctly, and adding a
+    //     measured correction on top overshot by ~0.5px per row;
+    //   - 0 — a surface that removes the border, such as the Filters by-value list.
+    if (!(renderedBottomBorderWidth > bottomBorderWidth)) {
+      return declaredRowHeight;
+    }
+
+    return this.#resolveRenderedRowHeight(declaredRowHeight);
+  }
+
+  /**
+   * Replaces the theme's declared row height with the height the browser actually renders, once the
+   * inflated border has been established as the reason they differ.
+   *
+   * The rendered height is measured rather than derived, because it also carries the browser's
+   * sub-pixel snapping of the cell box, which no arithmetic here can reproduce: at 90% the arithmetic
+   * answer is 29.111px against a rendered 29.097px, and that 0.014px lands on every row.
+   *
+   * The measurement is only reached when the border resolved wider than the theme's whole-pixel value,
+   * which is what makes reading the probe's absolute height safe here. The cells' height rule is
+   * `calc(<vertical padding> * 2 + <line height> + 1px)` — a **literal** 1px — so a surface that
+   * carries a different border renders a different height than the probe reports, and the caller keeps
+   * those on the declared height instead.
+   *
+   * @param {number} declaredRowHeight The row height derived from the theme's CSS variables.
+   * @returns {number} The row height to size the grid from.
+   */
+  #resolveRenderedRowHeight(declaredRowHeight: number): number {
+    const renderedRowHeight = this.#measureRenderedRowHeight(declaredRowHeight);
+    const overgrowth = renderedRowHeight - declaredRowHeight;
+
+    // `>` rather than `!==` also covers a probe that reports nothing usable (`NaN`): the root element
+    // resolves no layout — a grid built into a detached or `display: none` container — or the engine
+    // lays out nothing at all, jsdom above all.
+    if (!(overgrowth > 0)) {
+      return declaredRowHeight;
+    }
+
+    // The inflation is bounded by `1 / devicePixelRatio - 1` px, which is 3px at Chrome's 25% minimum
+    // zoom. Anything beyond that is cell styling the probe cannot represent, so the theme's declared
+    // height stays authoritative.
+    return overgrowth > MAX_CELL_OVERGROWTH ? declaredRowHeight : renderedRowHeight;
+  }
+
+  /**
+   * Measures the height a populated cell renders at, reusing the last measurement while the inputs
+   * that decide it are unchanged.
+   *
+   * The measurement cannot join the `#cacheStylesheetValues()` snapshot: that pass can run before the
+   * theme stylesheet applies, and unlike `#rootComputedStyle` — a live declaration, so the CSS
+   * variables read through it are always current — a snapshotted string stays frozen at whatever the
+   * unthemed cell measured. Keying the cache on the declared height and the device pixel ratio
+   * re-measures once either moves, which covers both a late-arriving theme and a zoom change.
+   *
+   * @param {number} declaredRowHeight The row height derived from the theme's CSS variables.
+   * @returns {number} The measured cell height, or `NaN` when the probe resolves no layout.
+   */
+  #measureRenderedRowHeight(declaredRowHeight: number): number {
+    const devicePixelRatio = this.#rootDocument.defaultView?.devicePixelRatio ?? 1;
+
+    if (
+      this.#renderedCellHeight === null ||
+      this.#renderedCellHeight.declaredRowHeight !== declaredRowHeight ||
+      this.#renderedCellHeight.devicePixelRatio !== devicePixelRatio
+    ) {
+      this.#renderedCellHeight = {
+        declaredRowHeight,
+        devicePixelRatio,
+        cellHeight: Number.parseFloat(this.#getStylesForTD(['height']).height ?? ''),
+      };
+    }
+
+    return this.#renderedCellHeight.cellHeight;
   }
 
   /**
@@ -288,6 +393,11 @@ export class StylesHandler {
     // measurement (issue #4363).
     table.className = 'htCore';
 
+    // A non-breaking space gives the probe cell a line box. Without one the cell has no content to
+    // lay out, so its used `height` collapses to the height the theme declares instead of the height
+    // a populated row actually renders at — and the two differ below 100% zoom (issue #6280).
+    td.textContent = '\u00A0';
+
     tr2.appendChild(td);
     tbody.appendChild(tr);
     tbody.appendChild(tr2);
@@ -337,6 +447,7 @@ export class StylesHandler {
   #clearCachedValues() {
     this.#computedStyles = {};
     this.#cssVars = {};
+    this.#renderedCellHeight = null;
   }
 
   /**
