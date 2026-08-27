@@ -41,6 +41,16 @@ The following example implements the `@handsontable/react-wrapper` component wit
 
 :::
 
+::: tip
+
+The reducer above returns the previous state object when no value actually changed. Keep that guard in your own reducer.
+
+Not every change comes from the user. Plugins write to the grid as well: [`mergeCells`](@/api/options.md#mergecells) clears the cells that a merge area covers. Those writes reach [`beforeChange`](@/api/hooks.md#beforechange) too, and the hook's second argument tells you where a change came from -- `'edit'` for a user edit, the plugin name for a plugin write. Use that argument when you want to treat the two differently.
+
+A reducer that returns a new state object on every action re-renders the component, which resends the settings to the grid. Without the guard, a plugin write and a re-render can keep triggering each other.
+
+:::
+
 ## Advanced example
 
 This example shows:
@@ -59,7 +69,8 @@ The editor component changes the behavior of the renderer component, by passing 
 ## What you learned
 
 - You can connect a `HotTable` component to a Redux store using `react-redux`'s `connect()` method.
-- The `afterChange` hook dispatches Redux actions whenever the user edits a cell, keeping global state in sync.
+- The `beforeChange` hook dispatches Redux actions whenever a cell changes, keeping global state in sync.
+- A reducer that returns the previous state when nothing changed keeps plugin writes from looping with re-renders.
 - Custom editor and renderer components can read from and write to the Redux store, enabling grid cells to reflect shared application state.
 
 ## Next steps
