@@ -1314,22 +1314,11 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const cellMeta = this.hot.getCellMetaTransient(row, column);
-
-    if (isDate(newValue, cellMeta.type)) {
-      if (isDateValid(newValue)) {
-        // Rewriting date in HOT format to HF format.
-        newValue = getDateInHfFormat(newValue);
-
-      } else if (isFormula(newValue) === false) {
-        // Escaping value from date parsing using "'" sign (HF feature).
-        newValue = escapeTextValue(newValue);
-      }
-    }
-
-    if (isPreservedText(newValue, cellMeta)) {
-      // Escaping the value from the engine's value parsing using the "'" sign (HF feature).
-      newValue = escapeTextValue(newValue);
+    // Values the escaping can never change skip the meta read: both `isDate()` and
+    // `isPreservedText()` require a string. That read runs the user-provided `cells` function,
+    // which is the expensive part of a bulk write.
+    if (typeof newValue === 'string') {
+      newValue = this.#escapeEngineBoundValue(newValue, this.hot.getCellMetaTransient(row, column));
     }
 
     return this.engine?.setCellContents(address, newValue);
@@ -1462,6 +1451,21 @@ export class Formulas extends BasePlugin {
    * Escapes a single engine-bound value according to the cell meta: dates in Handsontable
    * format are rewritten to the engine format, while invalid dates and preserved text values
    * are escaped with the "'" sign (the engine's string-escape mechanism).
+   *
+   * This is the one escape rule, shared by every path that writes into the engine –
+   * `syncChangeWithEngine`, `#onAfterSetSourceDataAtCell` and `#escapeSourceDataArray`. Keeping it
+   * in one place is what stops those three from disagreeing about a value, which is how the
+   * `setSourceDataAtCell` path came to send an invalid date to the engine unescaped while the other
+   * two escaped it.
+   *
+   * The `date` branch RETURNS rather than falling through to the preserved text check, so a cell
+   * declaring both `type: 'date'` and `preserveTextValue: true` is treated as a date. The
+   * combination is contradictory - `isPreservedText()` requires `type: 'text'` - and the only way
+   * the fall-through could ever fire was on a value the date branch had already rewritten.
+   *
+   * Callers gate this on `typeof value === 'string'`: both `isDate()` and `isPreservedText()`
+   * require a string, so a non-string skips the cell meta read entirely, and that read is the
+   * expensive part - it runs the user-provided `cells` function.
    *
    * @param {*} value Value to process.
    * @param {object} cellMeta The cell meta object of the value's cell.
@@ -2287,20 +2291,21 @@ export class Formulas extends BasePlugin {
 
       newValue = normalizeValueForFormulaEngine(newValue);
 
-      // The meta is read by PHYSICAL coordinates, with the visual pair passed only as the hook
-      // context the way `#escapeSourceDataArray` does it. Reading it through the visual row would
-      // resolve a trimmed row's index fallback back into a DIFFERENT physical row, so the escaping
-      // would consult a visible neighbor's meta instead of the written cell's own.
-      const physicalColumn = this.hot.toPhysicalColumn(visualColumn) ?? visualColumn;
-      const cellMeta = metaManager.getCellMetaTransient(
-        physicalRow, physicalColumn,
-        { visualRow, visualColumn },
-      );
+      // Values the escaping can never change skip the meta read: both `isDate()` and
+      // `isPreservedText()` require a string. That read runs the user-provided `cells` function,
+      // which is the expensive part of a bulk `setSourceDataAtCell`.
+      if (typeof newValue === 'string') {
+        // The meta is read by PHYSICAL coordinates, with the visual pair passed only as the hook
+        // context the way `#escapeSourceDataArray` does it. Reading it through the visual row would
+        // resolve a trimmed row's index fallback back into a DIFFERENT physical row, so the escaping
+        // would consult a visible neighbor's meta instead of the written cell's own.
+        const physicalColumn = this.hot.toPhysicalColumn(visualColumn) ?? visualColumn;
+        const cellMeta = metaManager.getCellMetaTransient(
+          physicalRow, physicalColumn,
+          { visualRow, visualColumn },
+        );
 
-      if (isPreservedText(newValue, cellMeta)) {
-        // Escaping the value from the engine's value parsing using the "'" sign
-        // (the engine's string-escape mechanism).
-        newValue = escapeTextValue(newValue);
+        newValue = this.#escapeEngineBoundValue(newValue, cellMeta);
       }
 
       changedCells.push({ address });

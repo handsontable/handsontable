@@ -4042,6 +4042,31 @@ describe('Formulas general', () => {
       ]);
     });
 
+    it('should escape an invalid date written through setSourceDataAtCell', async() => {
+      handsontable({
+        data: [
+          ['2020-01-01'],
+          ['=LEN(A1)'],
+        ],
+        columns: [{ type: 'date' }],
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      // An invalid date has to reach the engine escaped, or the engine parses `13/45/2021` as
+      // arithmetic. `syncChangeWithEngine` and `#escapeSourceDataArray` both escape it; this path
+      // has to agree with them.
+      await setSourceDataAtCell(0, 0, '13/45/2021');
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)[0]).toEqual([
+        '\'13/45/2021',
+      ]);
+      expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)[1]).toEqual([10]);
+    });
+
     it('should escape preserved values correctly for array-of-objects data with moved columns', async() => {
       handsontable({
         data: [{ id: '0123456', name: 'a' }, { id: '7654321', name: 'b' }],
