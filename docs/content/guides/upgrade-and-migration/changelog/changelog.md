@@ -26,9 +26,9 @@ This page aggregates all Handsontable release notes. For upgrade instructions, s
 
 [[toc]]
 
-## 18.1.0-rc3
+## 18.1.0-rc4
 
-Released on August 26th, 2026
+Released on August 27th, 2026
 
 For more information about this release, see:
 - [Documentation (18.1)](https://handsontable.com/docs/18.1)
@@ -142,6 +142,7 @@ For more information about this release, see:
 - React: Fixed missing TypeScript autocomplete and type checking for `<HotTable>` and `<HotColumn>` props. [#13007](https://github.com/handsontable/handsontable/issues/13007)
 - Angular: Fixed custom editor shortcut groups in the Angular wrapper. [#13160](https://github.com/handsontable/handsontable/pull/13160)
 - Fixed an issue where clicking focusable plugin UI placed in the grid's layout slots (for example, pagination controls) closed the open cell editor and deselected the grid. [#13243](https://github.com/handsontable/handsontable/pull/13243)
+- Fixed an open cell editor staying visible over an unrelated row, and committing to a row you could no longer see, when the edited cell was hidden - for example by turning a Pagination page or hiding its row or column. [#13245](https://github.com/handsontable/handsontable/pull/13245)
 
 ## 18.0.0
 
