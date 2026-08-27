@@ -136,6 +136,10 @@ const HotTableInner = forwardRef<
 
     if (props.editor) {
       newSettings.editor = makeEditorClass(globalEditorHooksRef, globalEditorClassInstance);
+    } else if (props.editor === false || props.hotEditor === false) {
+      // `false` disables editing and is legal on both prop names, so it must be told apart from
+      // "not provided" — the `||` fallback below would swap it for the text editor.
+      newSettings.editor = false;
     } else {
       newSettings.editor = props.hotEditor || getEditor('text');
     }

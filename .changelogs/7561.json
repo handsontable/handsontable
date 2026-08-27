@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a bug where setting the `editor` or `hotEditor` prop to `false` on `HotTable`, or the `hotEditor` prop to `false` on `HotColumn`, left the cell editable and still opened the default text editor.",
+  "type": "fixed",
+  "issueOrPR": 7561,
+  "breaking": false,
+  "framework": "react"
+}

@@ -780,6 +780,127 @@ describe('Editor configuration using React components', () => {
     expect(console.warn).toHaveBeenCalledWith(OBSOLETE_HOTEDITOR_WARNING);
     expect(console.warn).not.toHaveBeenCalledWith(UNEXPECTED_HOTTABLE_CHILDREN_WARNING);
   });
+
+  it('should disable editing when the HotTable `editor` prop is set to `false`', async () => {
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                columns={[{}, { editor: 'text' }]}
+                editor={false}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }} />
+    )).hotInstance!;
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(false);
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()).toBeUndefined();
+    expect(hotInstance.getDataAtCell(0, 0)).toEqual('A1');
+
+    // A column that names its own editor still overrides the disabled global one, which also proves
+    // the test is not simply failing to open any editor at all.
+    expect(hotInstance.getCellEditor(0, 1).EDITOR_TYPE).toBe('text');
+
+    await act(async () => {
+      hotInstance.selectCell(0, 1);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()).toBeTruthy();
+  });
+
+  it('should disable editing when the HotTable `hotEditor` prop is set to `false`', async () => {
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                columns={[{}, { editor: 'text' }]}
+                hotEditor={false}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }} />
+    )).hotInstance!;
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(false);
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()).toBeUndefined();
+    expect(hotInstance.getDataAtCell(0, 0)).toEqual('A1');
+
+    // Positive control, as above.
+    expect(hotInstance.getCellEditor(0, 1).EDITOR_TYPE).toBe('text');
+
+    await act(async () => {
+      hotInstance.selectCell(0, 1);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()).toBeTruthy();
+  });
+
+  it('should apply and revert a dynamic switch of the `editor` prop to `false`', async () => {
+    const hotTableRef = React.createRef<HotTableRef>();
+    const hotSettings: HotTableProps = {
+      licenseKey: "non-commercial-and-evaluation",
+      id: "test-hot",
+      data: createSpreadsheetData(3, 2),
+      width: 300,
+      height: 300,
+      rowHeights: 23,
+      colWidths: 50,
+      autoRowSize: false,
+      autoColumnSize: false,
+      init: function () {
+        mockElementDimensions(this.rootElement, 300, 300);
+      },
+    };
+
+    renderHotTableWithProps(hotSettings, false, hotTableRef);
+
+    const hotInstance = hotTableRef.current!.hotInstance!;
+
+    expect(hotInstance.getCellEditor(0, 0).EDITOR_TYPE).toBe('text');
+
+    await act(async () => {
+      hotSettings.editor = false;
+      renderHotTableWithProps(hotSettings, false, hotTableRef);
+    });
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(false);
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()).toBeUndefined();
+
+    // Dropping the prop brings the default editor back, so `false` does not stick.
+    await act(async () => {
+      delete hotSettings.editor;
+      renderHotTableWithProps(hotSettings, false, hotTableRef);
+    });
+
+    expect(hotInstance.getCellEditor(0, 0).EDITOR_TYPE).toBe('text');
+  });
 });
 
 describe('Passing children', () => {

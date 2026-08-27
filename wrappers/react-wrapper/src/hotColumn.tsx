@@ -68,6 +68,10 @@ const HotColumn: FC<HotColumnProps> = (props) => {
 
       if (props.editor) {
         columnSettings.editor = makeEditorClass(localEditorHooksRef, localEditorClassInstance);
+      } else if (props.editor === false || props.hotEditor === false) {
+        // `false` disables editing on either prop name. Set it here instead of relying on the
+        // `SettingsMapper` prop passthrough, which only ever carried the `editor` name.
+        columnSettings.editor = false;
       } else if (props.hotEditor) {
         columnSettings.editor = props.hotEditor;
       }
