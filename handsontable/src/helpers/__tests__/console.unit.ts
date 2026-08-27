@@ -8,7 +8,6 @@ import {
   warnOnce,
   info,
   error,
-  deprecatedWarn,
   deprecatedWarnOnce,
   removedWarnOnce,
   logAggregatedItems,
@@ -59,15 +58,6 @@ describe('Console', () => {
       }).not.toThrow();
 
       console = cachedConsole;
-    });
-  });
-
-  describe('deprecatedWarn', () => {
-    it('should call function `console.warn` with all arguments', () => {
-      console.warn = jasmine.createSpy('warn');
-
-      deprecatedWarn('Test');
-      expect(console.warn).toHaveBeenCalledWith('Deprecated: Test');
     });
   });
 

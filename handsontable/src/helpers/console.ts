@@ -70,17 +70,6 @@ export function warnOnce(scope: object, key: string, ...args: unknown[]): void {
 }
 
 /**
- * Logs deprecated warn to the console if the `console` object is exposed.
- *
- * @param {string} message The message to log.
- */
-export function deprecatedWarn(message: string) {
-  if (isDefined(console)) {
-    console.warn(`Deprecated: ${message}`);
-  }
-}
-
-/**
  * Keys of deprecation and removal warnings that were already printed. Module-level on purpose:
  * a deprecated or removed API is reported once per page, regardless of how many grid instances
  * touch it, which is what the deprecation policy promises.

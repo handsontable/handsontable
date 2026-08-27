@@ -92,7 +92,7 @@ The following APIs are deprecated. They keep working and print a one-time consol
 
 | Deprecated | Deprecated in | Removal | Replacement | Migration guide |
 | ---------- | ------------- | ------- | ----------- | --------------- |
-| `columnHeaders` (export options of the `exportFile` plugin) | 17.1 | 19.0 | `colHeaders` – rename the key; the value keeps its meaning. | [Export to CSV -> Available options](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md#available-options-in-the-export-configuration) |
+| `columnHeaders` (export options of the `exportFile` plugin) | 17.1 | 19.0 | `colHeaders` -- rename the key; the value keeps its meaning. | [Export to CSV -> Available options](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md#available-options-in-the-export-configuration) |
 
 ### TypeScript types
 

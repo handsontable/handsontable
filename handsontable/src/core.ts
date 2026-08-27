@@ -172,7 +172,7 @@ interface RemovedOption {
  * `datePickerConfig` is deliberately absent: `DateEditor#prepare` already warns about it, and it
  * also sees the per-cell forms that `warnAboutRemovedOptions` cannot.
  *
- * @type {Array<RemovedOption>}
+ * @type {ReadonlyArray<RemovedOption>}
  */
 const REMOVED_OPTIONS: ReadonlyArray<RemovedOption> = [
   {

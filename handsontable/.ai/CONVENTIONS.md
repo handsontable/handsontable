@@ -140,10 +140,9 @@ export function throwWithCause(message) {
 **Available Functions:**
 - `log(...args)` -- General logging
 - `warn(...args)` -- Warning messages
-- `deprecatedWarn(message)` -- Deprecated feature warnings (prefixed with "Deprecated: ")
 - `removedWarnOnce(key, message)` -- For APIs that no longer exist (an option kept in `REMOVED_OPTIONS` in `core.ts`). Same once-per-key record as `deprecatedWarnOnce`, but no `Deprecated:` prefix: a removed API is gone, not deprecated, and the message must name the removing version.
-- `deprecatedWarnOnce(key, message)` -- Preferred for deprecated public APIs: prints `Deprecated: <message>` once per `key` per page. Use `deprecatedWarn` only when repeated output is intended.
-- `_resetDeprecationWarnings()` -- Test-only. The once-per-key record is module-global, so call this in `beforeEach` of any spec asserting on a deprecation warning; otherwise the assertion passes whenever an earlier spec printed that warning.
+- `deprecatedWarnOnce(key, message)` -- Preferred for deprecated public APIs: prints `Deprecated: <message>` once per `key` per page. There is no repeat-every-call variant: a deprecation that must print on every call is a design smell, use `warn` and say why.
+- `_resetDeprecationWarnings()` -- Test-only. The once-per-key record is module-global and shared by `deprecatedWarnOnce` and `removedWarnOnce`, so call this in `beforeEach` of any spec asserting on a deprecation or removal warning; otherwise the assertion passes whenever an earlier spec printed that warning.
 - `info(...args)` -- Informational messages
 - `error(...args)` -- Error messages
 

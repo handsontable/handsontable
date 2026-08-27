@@ -11,7 +11,7 @@ The lean rule lives in the root `AGENTS.md` "Breaking changes policy" section (a
 | Renaming a CSS class produced by Handsontable | Breaks custom stylesheets | Keep the legacy class name in the DOM. Add tests verifying the old name still works. |
 | Renaming APIs (methods, configuration options, hooks) | Breaks customer integrations | Keep the legacy API working and translate it to the new API internally. Legacy APIs do not produce console warnings. |
 | Changing API signatures or behavior | Breaks customer integrations | Keep the deprecated API working until the next major release. Deprecated APIs produce a console warning (fired only once). |
-| Removing hooks or configuration options | May go undetected by customers | Add the hook to `REMOVED_HOOKS` in `handsontable/src/core/hooks/constants.ts`, or the option to `REMOVED_OPTIONS` in `handsontable/src/core.ts`, so a one-time warning shows when someone uses it in configuration. The warning names the removing version and carries no `Deprecated:` prefix (`removedWarnOnce`, not `deprecatedWarnOnce`). |
+| Removing hooks or configuration options | May go undetected by customers | Add the hook to `REMOVED_HOOKS` in `handsontable/src/core/hooks/constants.ts`, or the option to `REMOVED_OPTIONS` in `handsontable/src/core.ts`, so a warning shows when someone uses it in configuration. Both warnings name the removing version and carry no `Deprecated:` prefix. The option warning is one-time (`removedWarnOnce`, not `deprecatedWarnOnce`); the hook warning goes through plain `warn()` on every `add()` and links to the release notes (see `handsontable/.ai/HOOKS.md`). |
 | Changing a default setting value | 🚫 **Strictly forbidden** — a "really bad" breaking change. | Never change defaults. |
 
 ## Legacy vs deprecated
