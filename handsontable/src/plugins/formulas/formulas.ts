@@ -540,11 +540,6 @@ export class Formulas extends BasePlugin {
     // `#onBeforeDetachChild` for the one `#onAfterDetachChild`'s `finally` cannot cover. Clearing
     // them on enable bounds that to the current enable rather than to the whole session, and it
     // also covers a `disablePlugin()` that lands mid-span.
-    // Both guard flags are cleared here, not only initialized at declaration. A throw inside the
-    // span either of them opens leaves it set, and neither has a second closing path – see
-    // `#onBeforeDetachChild` for the one `#onAfterDetachChild`'s `finally` cannot cover. Clearing
-    // them on enable bounds that to the current enable rather than to the whole session, and it
-    // also covers a `disablePlugin()` that lands mid-span.
     this.#internalOperationPending = false;
     this.#nestedRowsDetachPending = false;
 
@@ -1535,6 +1530,11 @@ export class Formulas extends BasePlugin {
   /**
    * Reverses the engine-bound escaping on a whole sheet read out of the engine.
    *
+   * A RELOAD of the sheet this grid is already synced to is delegated to
+   * `#unescapeAgainstSourceData`, which confirms every strip against the grid's own copy of the
+   * value. Everything below describes the other case – a switch to a genuinely DIFFERENT sheet,
+   * whose content this grid's data says nothing about.
+   *
    * The array is indexed the way the ENGINE is on both axes – by position in the index sequence –
    * which is not the visual coordinate. HyperFormula is fed trimmed rows as well, so a `trimRows` or
    * Filters map alone makes the engine's row index and the visual row index disagree. The escaping
@@ -1546,17 +1546,20 @@ export class Formulas extends BasePlugin {
    * default configuration pays no per-cell meta read. Within the scan, values the unescaping can
    * never change skip the meta read for the same reason.
    *
-   * Accepted residual: both the gate and the per-value confirmation read THIS grid's meta, while
-   * the sheet may have been escaped by a DIFFERENT grid sharing the same engine instance – which is
-   * the case `switchSheet` exists for. If grid A declares `preserveTextValue` and writes `0123456`,
-   * the engine holds `'0123456`; grid B, declaring neither `date` nor `preserveTextValue`, loads
-   * the apostrophe as data. Dropping the gate would not close this: `unescapeEngineBoundValue()`
-   * still confirms the strip against grid B's meta and finds nothing to confirm it with. Closing it
-   * needs the escape to be self-describing, or a per-sheet record of what was escaped – neither of
-   * which the engine's serialized content carries. The apostrophe is the engine's own documented
-   * string-escape, so the value is not corrupted, only un-stripped.
+   * Accepted residual, on this cross-sheet path only: both the gate and the per-value confirmation
+   * read THIS grid's meta, while the sheet may have been escaped by a DIFFERENT grid sharing the
+   * same engine instance. If grid A declares `preserveTextValue` and writes `0123456`, the engine
+   * holds `'0123456`; grid B, declaring neither `date` nor `preserveTextValue`, loads the
+   * apostrophe as data. Dropping the gate would not close this: `unescapeEngineBoundValue()` still
+   * confirms the strip against grid B's meta and finds nothing to confirm it with. Nor would the
+   * source-data comparison used for a reload – grid B's data belongs to the sheet it is leaving.
+   * Closing it needs the escape to be self-describing, or a per-sheet record of what was escaped –
+   * neither of which the engine's serialized content carries. The apostrophe is the engine's own
+   * documented string-escape, so the value is not corrupted, only un-stripped.
    *
    * @param {Array<Array<*>>} sheetArray Sheet content read out of the engine, in engine index order.
+   * @param {boolean} [isSameSheetReload=false] Whether the sheet being read is the one this grid is
+   *   already synced to, rather than a different sheet being switched to.
    * @returns {Array<Array<*>>} The unescaped content, or `sheetArray` itself when nothing can apply.
    */
   #unescapeEngineSheetArray(sheetArray: unknown[][], isSameSheetReload = false): unknown[][] {
