@@ -494,7 +494,12 @@ export default (): Record<string, unknown> => {
      * | `samplingRatio`         | A number                        | The number of samples of the same length to be used in row height calculations                             |
      * | `allowSampleDuplicates` | `true` \| `false`               | When calculating row heights:<br>`true`: Allow duplicate samples<br>`false`: Don't allow duplicate samples |
      *
-     * Using the [`rowHeights`](#rowHeights) option forcibly disables the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
+     * Unlike [`colWidths`](#colWidths), which switches [`AutoColumnSize`](@/api/autoColumnSize.md)
+     * off, the [`rowHeights`](#rowHeights) option does **not** disable this plugin. A height set
+     * through `rowHeights` acts as a minimum: the plugin still measures the row, and a row whose
+     * content is taller than that keeps its measured height. A column can be narrower than its
+     * content and clip it, but a row that is shorter than its content would hide the content, so
+     * rows only ever grow.
      *
      * Read more:
      * - [Plugins: `AutoRowSize`](@/api/autoRowSize.md)
@@ -2190,6 +2195,12 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
+     * The dialog is available on the main grid only. In a grid nested in a cell, that is a cell of the
+     * [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md),
+     * [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or
+     * [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, this
+     * option has no effect.
+     *
      * @since 16.1.0
      * @memberof Options#
      * @type {boolean|object}
@@ -2550,6 +2561,13 @@ export default (): Record<string, unknown> => {
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * The empty data state is available on the main grid only. In a grid nested in a cell, that is a
+     * cell of the
+     * [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md),
+     * [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or
+     * [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, this
+     * option has no effect.
      *
      * @since 16.2.0
      * @memberof Options#
@@ -3930,6 +3948,13 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
+     * The loading indicator is available on the main grid only. In a grid nested in a cell, that is a
+     * cell of the
+     * [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md),
+     * [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or
+     * [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, this
+     * option has no effect.
+     *
      * @since 16.1.0
      * @memberof Options#
      * @type {boolean|object}
@@ -3975,6 +4000,12 @@ export default (): Record<string, unknown> => {
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * Notifications are available on the main grid only. In a grid nested in a cell, that is a cell of
+     * the [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md),
+     * [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or
+     * [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, this
+     * option has no effect.
      *
      * @since 17.1.0
      * @memberof Options#
@@ -4955,6 +4986,12 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
+     * Pagination is available on the main grid only. In a grid nested in a cell, that is a cell of the
+     * [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md),
+     * [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or
+     * [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, this
+     * option has no effect.
+     *
      * @since 16.1.0
      * @memberof Options#
      * @type {boolean}
@@ -5562,6 +5599,11 @@ export default (): Record<string, unknown> => {
      * | A number | Set the same width for every row header         |
      * | An array | Set different widths for individual row headers |
      *
+     * Row headers have a fixed width. A label longer than that width is clipped, and unlike column
+     * headers, the header does not grow to fit it. To size the header to its content instead, turn
+     * on the [`autoRowHeaderSize`](#autoRowHeaderSize) plugin - it takes the width over, and this
+     * option is then ignored.
+     *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
@@ -5580,6 +5622,85 @@ export default (): Record<string, unknown> => {
      * ```
      */
     rowHeaderWidth: undefined,
+
+    /**
+     * The `autoRowHeaderSize` option configures the [`AutoRowHeaderSize`](@/api/autoRowHeaderSize.md) plugin.
+     *
+     * The plugin sizes the row header column to its widest label, the way
+     * [`AutoColumnSize`](@/api/autoColumnSize.md) sizes a data column to its widest cell. Turning it
+     * on is all you need: it takes the row header's width over, so any
+     * [`rowHeaderWidth`](#rowHeaderWidth) already set is ignored while the plugin is enabled.
+     *
+     * You can set the `autoRowHeaderSize` option to one of the following:
+     *
+     * | Setting   | Description                                                                  |
+     * | --------- | ---------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`AutoRowHeaderSize`](@/api/autoRowHeaderSize.md) plugin          |
+     * | `true`    | Enable the plugin with the default configuration                             |
+     * | An object | Enable the plugin and modify its options                                     |
+     *
+     * If you set the `autoRowHeaderSize` option to an object, you can set the following options:
+     *
+     * | Property                | Possible values   | Description                                                                                                   |
+     * | ----------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------- |
+     * | `samplingRatio`         | A number          | The number of samples of the same label length used in the measurement<br>(default: `3`)                      |
+     * | `allowSampleDuplicates` | `true` \| `false` | When two rows carry the same label:<br>`true`: measure both<br>`false`: measure it once<br>(default: `false`) |
+     * | `syncLimit`             | A number \| a percent string | How many rows are read before the first paint; the rest are read in idle time<br>(default: `500`) |
+     *
+     * By default, the `autoRowHeaderSize` option is set to `undefined`, which disables the plugin.
+     *
+     * Finding the longest label means reading every row header once. On a large grid that work is
+     * split: the first `syncLimit` rows are read before the first paint, and the rest are read in
+     * the browser's idle time, so a header can widen a moment after the grid appears. While that is
+     * running a header only ever widens, so its width never jumps back and forth. The result is
+     * cached, so later draws cost nothing.
+     *
+     * Editing a cell does not re-read the whole grid. Only the rows that changed are read, because
+     * a row header label can be built from cell values, and that reading waits for an idle moment
+     * too. It can make a header wider, but never narrower: a header shrinks again on the next full
+     * pass, which is started by loading or replacing the data, adding or removing a row, sorting,
+     * hiding or showing a row, switching the theme, or a recalculation by the
+     * [`Formulas`](@/api/formulas.md) plugin.
+     *
+     * A grid can render more than one row header, by pushing a renderer through the
+     * [`afterGetRowHeaderRenderers`](@/api/hooks.md#afterGetRowHeaderRenderers) hook. Every one of
+     * them is measured on its own, so each gets exactly the width its own labels need.
+     *
+     * The measured width leaves a little room around the longest label, so the text never sits flush
+     * against the cell border. The grid's own row header renderer wraps its label in a padded
+     * element, but a renderer pushed through
+     * [`afterGetRowHeaderRenderers`](@/api/hooks.md#afterGetRowHeaderRenderers) writes straight into
+     * the cell and has none of its own.
+     *
+     * Two rows carrying the same label are measured once, since the same text renders to the same
+     * width. Set `allowSampleDuplicates` to `true` when that is not true of your grid - a row header
+     * that is indented per row, as [`nestedRows`](#nestedRows) does, renders the same label at a
+     * different width depending on its depth. Raise `samplingRatio` along with it: labels are
+     * grouped by length and only `samplingRatio` of each group are measured, so with the default of
+     * `3` a fourth copy of the same label is still left out, however deep it sits.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @since 18.2.0
+     * @memberof Options#
+     * @type {object|boolean}
+     * @default undefined
+     * @category AutoRowHeaderSize
+     *
+     * @example
+     * ```js
+     * // size the row header column to its longest label
+     * autoRowHeaderSize: true,
+     *
+     * // the same, with the measurement tuned
+     * autoRowHeaderSize: {
+     *   // measure repeated labels too, for headers that render differently per row
+     *   allowSampleDuplicates: true,
+     * },
+     * ```
+     */
+    autoRowHeaderSize: undefined,
 
     /**
      * The `rowHeights` option sets rows' heights, in pixels.

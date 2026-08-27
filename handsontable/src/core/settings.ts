@@ -210,6 +210,7 @@ export interface GridSettings {
   // Plugins
   autoColumnSize?: boolean | object;
   autoRowSize?: boolean | object;
+  autoRowHeaderSize?: boolean | object;
   bindRowsWithHeaders?: boolean | string;
   collapsibleColumns?: boolean | { row: number; col: number; collapsible?: boolean; [key: string]: unknown }[];
   columnSummary?: object[] | (() => object[]);
@@ -651,7 +652,7 @@ export interface GridSettings {
   modifyGetCoordsElement?: (row: number, column: number) => void | [number, number];
   modifyRowData?: (row: number) => void;
   modifyRowHeader?: (row: number) => void;
-  modifyRowHeaderWidth?: (rowHeaderWidth: number) => void | number;
+  modifyRowHeaderWidth?: (rowHeaderWidth: number | number[]) => void | number | number[];
   modifyRowHeight?: (height: number, row: number, source?: string) => void | number;
   modifyRowHeightByOverlayName?: (height: number, row: number, overlayType: string) => void | number;
   modifySinglePassLayout?: (singlePassLayout: boolean) => void | boolean;

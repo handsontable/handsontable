@@ -2854,6 +2854,166 @@ describe('Formulas general', () => {
     expect(getDataAtCell(1, 0)).toBe(5);
   });
 
+  it('should replace an existing formula\'s text when the data is replaced through `updateSettings`', async() => {
+    handsontable({
+      data: [
+        [1],
+        ['=A1+1'],
+      ],
+      formulas: {
+        engine: HyperFormula,
+      }
+    });
+
+    const formulasPlugin = getPlugin('formulas');
+
+    // A third public entry point for the same defect, and it reaches the engine through a different
+    // site: `#onAfterLoadData` returns early for the `updateSettings` source, so the data is fed to
+    // the engine from `#onAfterCellMetaReset` instead.
+    await updateSettings({
+      data: [
+        [1],
+        ['=A1+100'],
+      ],
+    });
+
+    expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+      [1],
+      ['=A1+100'],
+    ]);
+
+    expect(getDataAtCell(1, 0)).toBe(101);
+  });
+
+  it('should replace an existing formula\'s text when the `loadData` method is called for array of objects', async() => {
+    handsontable({
+      data: [
+        { value: 1, note: 'skipped' },
+        { value: '=A1+1', note: 'skipped' },
+      ],
+      // The second key is deliberately left out of `columns`, so `countCols()` is lower than
+      // `countSourceCols()` and the shape check in `#getProcessedSourceDataArray` is actually
+      // evaluated. With a single key it would short-circuit and the array-of-objects branch would
+      // be selected without the check ever running.
+      columns: [
+        { data: 'value' },
+      ],
+      formulas: {
+        engine: HyperFormula,
+      }
+    });
+
+    const formulasPlugin = getPlugin('formulas');
+
+    await loadData([
+      { value: 1, note: 'skipped' },
+      { value: '=A1+100', note: 'skipped' },
+    ]);
+
+    expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+      [1],
+      ['=A1+100'],
+    ]);
+
+    expect(getDataAtCell(1, 0)).toBe(101);
+  });
+
+  it('should replace an existing formula\'s text when the `loadData` method is called for data with skipped columns',
+    async() => {
+      handsontable({
+        data: [
+          [1, 'skipped', '=A1+1'],
+          [2, 'skipped', 3],
+        ],
+        // Only the physical columns 0 and 2 are visible, so `#getProcessedSourceDataArray` projects
+        // the rows down to the visible ones before feeding them to the engine - a different branch
+        // than the one the cases above take.
+        columns: [
+          { data: 0 },
+          { data: 2 },
+        ],
+        formulas: {
+          engine: HyperFormula,
+        }
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await loadData([
+        [1, 'skipped', '=A1+100'],
+        [2, 'skipped', 3],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        [1, '=A1+100'],
+        [2, 3],
+      ]);
+
+      expect(getDataAtCell(0, 1)).toBe(101);
+    });
+
+  it('should replace an existing formula\'s text when the `loadData` method is called for data with an empty row',
+    async() => {
+      handsontable({
+        data: [
+          [1, 'skipped', '=A1+1'],
+          null,
+        ],
+        // The shape check in `#getProcessedSourceDataArray` reads the first row only, so a row that
+        // is not an array still reaches the branch projecting rows down to the visible columns.
+        columns: [
+          { data: 0 },
+          { data: 2 },
+        ],
+        formulas: {
+          engine: HyperFormula,
+        }
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await loadData([
+        [1, 'skipped', '=A1+100'],
+        null,
+      ]);
+
+      // The engine drops the trailing empty row, so only the first one is serialized.
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        [1, '=A1+100'],
+      ]);
+
+      expect(getDataAtCell(0, 1)).toBe(101);
+    });
+
+  it('should keep an array formula spilling when the `loadData` method is called', async() => {
+    handsontable({
+      data: [
+        [1, 2],
+        ['=TRANSPOSE(A1:B1)', null],
+        [null, null],
+      ],
+      formulas: {
+        engine: HyperFormula,
+      }
+    });
+
+    // A spill cell reports the `ARRAY` cell type, not `ARRAYFORMULA`, so it passes the
+    // `VALUE`/`EMPTY` early return in `#onModifySourceData` and gets projected as well - as its
+    // calculated value. Feeding that back puts a literal inside the range the array formula needs,
+    // and the engine answers the whole load with `#SPILL!`.
+    await loadData([
+      [10, 20],
+      ['=TRANSPOSE(A1:B1)', null],
+      [null, null],
+    ]);
+
+    expect(getData()).toEqual([
+      [10, 20],
+      [10, null],
+      [20, null],
+    ]);
+  });
+
   it('should display calculated formula after changing value using `beforeChange` hook #6932', async() => {
     handsontable({
       data: [

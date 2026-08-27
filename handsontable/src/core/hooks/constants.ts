@@ -3273,8 +3273,13 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired while retrieving the row header width.
    *
+   * A grid can render more than one row header. Return a single number to give every level the same
+   * width, or an array with one entry per level - starting at the grid's edge - to size each on its
+   * own. The value passed in follows the same rule, so a handler that widens the incoming width
+   * should check for an array before doing arithmetic on it.
+   *
    * @event Hooks#modifyRowHeaderWidth
-   * @param {number} rowHeaderWidth Row header width.
+   * @param {number|number[]} rowHeaderWidth Row header width, or one width per row header level.
    */
   'modifyRowHeaderWidth',
 

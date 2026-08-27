@@ -125,14 +125,202 @@ The [`rowHeaders`](@/api/options.md#rowheaders) can also be populated using a fu
 
 ## Row header width
 
-When you use custom row labels, their content can exceed the default header width. To control the header size, set [`rowHeaderWidth`](@/api/options.md#rowheaderwidth).
+Row headers have a fixed width. When you use custom row labels, a label longer than that width is
+clipped, and the header does not grow to fit it the way a column does.
 
-You can set this option to one of the following:
+You have two ways to deal with this: set the width yourself, or let Handsontable measure it.
+
+### Set the width yourself
+
+To control the header size, set [`rowHeaderWidth`](@/api/options.md#rowheaderwidth) to one of the following:
 
 - A number - set the same width for every row header.
 - An array - set different widths for individual row header levels.
 
 The [Row headers as an array](#row-headers-as-an-array) example uses custom labels together with `rowHeaderWidth: 80`.
+
+### Size the header to its content
+
+To size the row header column to its longest label, enable the
+[`AutoRowHeaderSize`](@/api/autoRowHeaderSize.md) plugin by setting
+[`autoRowHeaderSize`](@/api/options.md#autorowheadersize) to `true`. That is all you need: the plugin
+takes the header's width over, so any `rowHeaderWidth` you already set is ignored while it is enabled.
+
+In the example below, the row labels are too long for the default header width. Turning the plugin on
+is enough to make every label fit.
+
+::: only-for javascript
+
+::: example #example4 --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-header/javascript/example4.js)
+@[code](@/content/guides/rows/row-header/javascript/example4.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example4 :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-header/react/example4.jsx)
+@[code](@/content/guides/rows/row-header/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-header/angular/example4.ts)
+@[code](@/content/guides/rows/row-header/angular/example4.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/rows/row-header/vue/example4.vue)
+
+:::
+
+:::
+
+The plugin is off by default, because turning it on would change the row header width of every grid
+that uses custom labels. This mirrors [`AutoRowSize`](@/api/autoRowSize.md), which is also opt-in,
+while [`AutoColumnSize`](@/api/autoColumnSize.md) - bounded by the number of columns - is on by
+default.
+
+The plugin never makes a header narrower than the default width, so a grid of short labels looks the
+same as it does without the plugin. It also leaves a little room around the longest label, so the
+text never sits flush against the cell border. That matters most for a row header you draw
+yourself: the grid's own renderer wraps its label in a padded element, but a renderer pushed through
+[`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers) writes straight into the
+cell and has no padding of its own.
+
+#### Tuning the measurement
+
+Instead of `true`, you can pass an object to change how the measurement runs. All three properties
+are optional, and the defaults suit most grids:
+
+| Property                | Possible values              | Description                                                                                      |
+| ----------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------ |
+| `samplingRatio`         | A number                     | How many labels of the same length get rendered and measured. Default: `3`.                      |
+| `allowSampleDuplicates` | `true` \| `false`            | Whether two rows carrying the same label are both measured. Default: `false`.                    |
+| `syncLimit`             | A number \| a percent string | How many rows are read before the first paint. Default: `500`.                                   |
+
+```js
+autoRowHeaderSize: {
+  samplingRatio: 5,
+  allowSampleDuplicates: true,
+  syncLimit: 1000,
+},
+```
+
+**`samplingRatio`** exists because reading a label is cheap but laying one out is not. The plugin
+groups the labels by how many characters they have and renders only a few from each group. Raising
+the number measures more of them, which is slightly slower but harder to fool: in a proportional
+font `WWW` is wider than `iii`, so measuring more same-length labels makes it less likely that the
+widest one is missed. Lower it to do less work.
+
+**`allowSampleDuplicates`** decides what happens when two rows carry the same label. By default the
+label is measured once, because the same text normally renders to the same width. Set it to `true`
+when that is not true of your grid - a row header that is indented per row, as
+[`nestedRows`](@/api/options.md#nestedrows) does, draws the same label at a different width
+depending on how deep the row sits, so measuring only the first one would come out too narrow.
+
+Raise `samplingRatio` along with it. Labels are grouped by length and only `samplingRatio` of each
+group get measured, so at the default of `3` a fourth row carrying the same label is still left out
+- which on a deep tree can be the widest one of them.
+
+**`syncLimit`** decides how much of the work happens before the grid first appears. Finding the
+longest label means reading every row header once, which on a large grid takes long enough to be
+felt. So the first `syncLimit` rows are read straight away, and the rest are read in the browser's
+idle time, in short bursts of a few milliseconds each - however many rows fit, which depends on how
+many row header columns the grid draws. A header can therefore widen a moment after the grid
+appears. While that is running a header only ever widens, so its width never jumps back and forth.
+Raise the limit to have more of it settled before the first paint, or pass a percent string such as
+`'40%'` to scale it with the number of rows.
+
+Editing a cell does not start that work again. Only the rows that changed are read, because a row
+header label can be built from cell values - a data column used as the label, for instance. That
+reading also waits for an idle moment, so a header widened by an edit grows a moment after the edit
+rather than during it.
+
+An edit can make a header wider, but never narrower. Working out that a header should shrink means
+finding the new longest label, which no shortcut avoids, so it waits for the next full pass. Loading
+or replacing the data starts one, as does adding or removing a row, sorting, hiding or showing a row,
+switching the theme, and a recalculation by the [`Formulas`](@/api/formulas.md) plugin.
+
+Setting `autoRowHeaderSize` to `false`, or leaving it out, keeps the fixed-width headers.
+
+### Add more row header columns
+
+A grid can render more than one row header. The
+[`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers) hook hands you the array of
+renderers that draw them, one renderer per column. Push your own renderer onto that array, and it
+draws one more row header column to the right of the previous one.
+
+The example below pushes two renderers next to the default numbering, so the grid gets three row
+header columns. Each column holds labels of a different length, and `autoRowHeaderSize` measures
+every column on its own: the numbering column stays narrow, while each label column gets the width
+its own text needs. Turn the plugin off and all three columns fall back to the same fixed width,
+which clips the longer labels.
+
+::: only-for javascript
+
+::: example #example5 --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-header/javascript/example5.js)
+@[code](@/content/guides/rows/row-header/javascript/example5.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example5 :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-header/react/example5.jsx)
+@[code](@/content/guides/rows/row-header/react/example5.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example5 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-header/angular/example5.ts)
+@[code](@/content/guides/rows/row-header/angular/example5.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/rows/row-header/vue/example5.vue)
+
+:::
+
+:::
+
+Each renderer is called with the row's renderable index - the index Handsontable renders by. It is
+the same as the [visual index](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md)
+until rows are hidden. If your grid hides rows, translate the index with
+[`getVisualFromRenderableIndex()`](@/api/indexMapper.md#getvisualfromrenderableindex) before you look
+a label up by it.
 
 ## Bind rows with headers
 
@@ -215,6 +403,7 @@ A tree grid enables you to represent the nested data structures within the data 
 <div class="boxes-list">
 
 - [activeHeaderClassName](@/api/options.md#activeheaderclassname)
+- [autoRowHeaderSize](@/api/options.md#autorowheadersize)
 - [currentHeaderClassName](@/api/options.md#currentheaderclassname)
 - [bindRowsWithHeaders](@/api/options.md#bindrowswithheaders)
 - [rowHeaders](@/api/options.md#rowheaders)
@@ -247,6 +436,7 @@ A tree grid enables you to represent the nested data structures within the data 
 
 <div class="boxes-list">
 
+- [AutoRowHeaderSize](@/api/autoRowHeaderSize.md)
 - [BindRowsWithHeaders](@/api/bindRowsWithHeaders.md)
 
 </div>

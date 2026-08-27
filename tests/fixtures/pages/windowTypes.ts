@@ -43,6 +43,16 @@ export interface FixtureHotInstance {
     enablePlugin(): void,
     disablePlugin(): void,
   };
+  getPlugin(name: 'manualRowMove'): {
+    moveRows(rows: number[], finalIndex: number): boolean,
+  };
+  getPlugin(name: 'manualColumnMove'): {
+    moveColumns(columns: number[], finalIndex: number): boolean,
+  };
+  getPlugin(name: 'manualColumnFreeze'): {
+    freezeColumn(column: number): void,
+    unfreezeColumn(column: number): void,
+  };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
   getPlugin(name: 'multipleSelectionHandles'): { isDragged(): boolean };
   getPlugin(name: 'nestedRows'): {
@@ -104,6 +114,8 @@ export interface FixtureHotInstance {
   updateData(data: unknown[]): void;
   updateSettings(settings: Record<string, unknown>): void;
   countCols(): number;
+  rowIndexMapper: { getIndexesSequence(): number[] };
+  columnIndexMapper: { getIndexesSequence(): number[] };
   _createCellCoords(row: number, col: number): unknown;
   _createCellRange(highlight: unknown, from: unknown, to: unknown): unknown;
 }
@@ -141,5 +153,9 @@ declare global {
     hookLog: { name: string, args: unknown[] }[];
     /** Makes the fixture's `beforeMoveCells` listener return `false`. */
     setBeforeMoveCellsVeto(shouldVeto: boolean): boolean;
+    /** Makes the fixture's `beforeRowMove` listener return `false`. */
+    setBeforeRowMoveVeto(shouldVeto: boolean): boolean;
+    /** Makes the fixture's `beforeColumnMove` listener return `false`. */
+    setBeforeColumnMoveVeto(shouldVeto: boolean): boolean;
   }
 }

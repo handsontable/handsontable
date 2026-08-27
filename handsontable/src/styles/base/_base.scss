@@ -471,7 +471,7 @@
 
         // `-row-seam-bottom`: tagged by SelectionManager on the first bottom-frozen row header when
         // the last non-frozen row is active. Its top border is the bottom-freeze seam, out of reach
-        // of the `-prev-row` accent rule (separate overlay table), so colour it here.
+        // of the `-prev-row` accent rule (separate overlay table), so color it here.
         &.ht__active_highlight,
         &.ht__active_highlight-row-seam-bottom {
           border-top-color: var(--ht-header-active-border-color);
@@ -486,7 +486,7 @@
 
         // `-row-seam-top`: tagged by SelectionManager on the last top-frozen row header when the first
         // non-frozen row is active. Its bottom border is the top-freeze seam, out of reach of the
-        // `-prev-row` accent rule (separate overlay table), so colour it here.
+        // `-prev-row` accent rule (separate overlay table), so color it here.
         &.ht__active_highlight,
         &.ht__active_highlight-row-seam-top {
           border-bottom-color: var(--ht-header-active-border-color);
@@ -734,6 +734,65 @@
     .wtHolder {
       overflow: hidden;
     }
+  }
+
+  // Floating ("overlay") scrollbars (#10370): the frozen overlays stop short of the strip the
+  // scrollbar is painted over, so a press can reach it. That uncovers the master's cells underneath,
+  // scrolled to different columns and rows than the overlay shows, so JS patches the strip with opaque
+  // fillers. Not one engine's problem: it happens wherever the scrollbar takes no layout space, which
+  // is Firefox everywhere, Chrome and Safari on macOS set to "Automatically", and Chrome on Windows 11
+  // and GTK. They sit inside the master holder on purpose. A browser paints a scroll container's
+  // scrollbar above that container's own contents, so a filler in here is drawn under the thumb, while
+  // one stacked above the holder would hide it. The holder is not a containing block for absolute positioning,
+  // hence the sticky host: it stays pinned to the scrollport as the grid scrolls, and carries no size
+  // of its own so it cannot add a phantom scroll step.
+  .htScrollbarClearanceFillers {
+    position: sticky;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    block-size: 0;
+    inline-size: 0;
+    // This box comes and goes as the scrollbar appears and fades, and it is the holder's first child -
+    // so without opting out, the browser's scroll anchoring treats it as content appearing above the
+    // scroll position, nudges the offset to compensate, and emits a scroll event nobody asked for.
+    overflow-anchor: none;
+    // Above the master's cells AND above the selection decorations drawn over them. `.wtHider` and
+    // `.wtSpreader` are positioned but carry no z-index, so they open no stacking context and the
+    // selection's own layers compete directly with this one: border lines 1-6, the moveCells bands
+    // 100, the autofill corner 150, the resize pills 200. At z-index 1 those all won, and a border
+    // painted across the track while the cell it belongs to sat hidden underneath it.
+    // Safe to raise: the cell editor is NOT in this holder - it lives in `.ht-wrapper` alongside it -
+    // so nothing here can cover an open editor. And the scrollbar is not a DOM node; the browser paints
+    // it above the scroller's contents whatever they declare, so the thumb stays visible and grabbable.
+    z-index: 300;
+  }
+
+  // One band per scrollbar, spanning the whole scrollport so the strip reads as a single track rather
+  // than an opaque patch under the frozen cells beside a transparent gap over the master.
+  .htScrollbarClearanceFiller {
+    position: absolute;
+    // The scrollbar's own track color, not the grid background. The browser paints its native track
+    // in this color whenever it decides to draw one (on drag, on hover), so anything else makes the
+    // band change shade between a wheel scroll and a drag.
+    background-color: var(--ht-scrollbar-track-color, var(--ht-background-color));
+    // The band paints over the strip but does not answer for it. Taking the hit made the band the
+    // event target for everything underneath, including the selection's own controls: the autofill
+    // corner of a range that ends near the grid's edge sits inside the strip, and with the band
+    // answering, the press reached the filler instead of the handle, so no fill drag ever started.
+    // Measured on the `main` theme, where that handle lands 14px above the bottom edge and the band
+    // spans the last 16px.
+    // A press on the bare track still must not move the selection to a cell hidden behind the band.
+    // That is handled where it belongs, by coordinate, in `Overlays#swallowBandPress` - which also
+    // knows to let the selection's controls through. The scrollbar itself is unaffected either way: it
+    // is not a DOM node, and a scroll container's scrollbar is hit-tested above its own contents, so
+    // the thumb stays grabbable.
+    pointer-events: none;
+    box-sizing: border-box;
+    // No opacity and no transition, on purpose: the band is drawn UNDER the frozen overlays, which are
+    // clipped out of the strip, so any frame where it is not fully opaque shows the master's cell where
+    // the frozen content belongs. Measured: an opacity ramp put 13 such frames in every appearance.
+    // Do not add a fade here - see `ScrollbarVisibility` for why holding the clip open instead only
+    // moves the defect.
   }
 
   .ht_master .wtHolder {

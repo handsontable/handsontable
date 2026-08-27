@@ -36,6 +36,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   ariaTags: true,
   autoColumnSize: true,
   autoRowSize: true,
+  autoRowHeaderSize: oneOf(true, { samplingRatio: 3, allowSampleDuplicates: true, syncLimit: 500 },
+    { syncLimit: '40%' }),
   autoWrapCol: true,
   autoWrapRow: true,
   bindRowsWithHeaders: true,
@@ -807,7 +809,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   modifyRowData: (row) => {},
   modifyRowHeader: (row) => {},
-  modifyRowHeaderWidth: (rowHeaderWidth) => {},
+  modifyRowHeaderWidth: rowHeaderWidth => oneOf(80, [80, 40]),
   modifyRowHeight: (height, row, source) => {
     const _height: number = height;
     const _row: number = row;
