@@ -176,7 +176,7 @@ For more information about this release, see:
 
 #### Removed
 - **Breaking change**: Removed the numbro, moment.js, DOMPurify, and @handsontable/pikaday dependencies. [#12689](https://github.com/handsontable/handsontable/issues/12689)
-- **Breaking change**: Removed the deprecated `PersistentState` plugin, its `persistentState` option, and the `persistentStateSave`, `persistentStateLoad`, and `persistentStateReset` hooks. Deprecated `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, and `loadManualRowHeights()` — these now no-op and will be removed in the next major release. [#12727](https://github.com/handsontable/handsontable/pull/12727)
+- **Breaking change**: Removed the deprecated `PersistentState` plugin, its `persistentState` option, and the `persistentStateSave`, `persistentStateLoad`, and `persistentStateReset` hooks. Deprecated `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, and `loadManualRowHeights()` — these now no-op and will be removed in the next major release. Removed from the source tree; the published 17.0 release already shipped without it (see [#12015](https://github.com/handsontable/handsontable/pull/12015)). [#12727](https://github.com/handsontable/handsontable/pull/12727)
 - **Breaking change**: Removed the deprecated Core-level undo/redo methods (`hot.undo()`, `hot.redo()`, `hot.clearUndo()`, `hot.isUndoAvailable()`, `hot.isRedoAvailable()`, `hot.undoRedo`). Use `hot.getPlugin('undoRedo')` instead. [#12728](https://github.com/handsontable/handsontable/issues/12728)
 
 #### Fixed

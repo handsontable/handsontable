@@ -60,7 +60,7 @@ import type { ShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcuts/contexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
-import { warn } from './helpers/console';
+import { warn, removedWarnOnce } from './helpers/console';
 import { throwWithCause } from './helpers/errors';
 import {
   install as installAccessibilityAnnouncer,
@@ -142,12 +142,83 @@ function normalizeIndexesGroup(indexes: number[][]): number[][] {
 const foreignHotInstances = new Map();
 
 /**
- * A set of deprecated feature names.
- *
- * @type {Set<string>}
+ * A configuration option removed from the public API.
  */
+interface RemovedOption {
+  /**
+   * The option name as it appears in the settings object.
+   */
+  name: string;
+  /**
+   * The release that removed the option.
+   */
+  version: string;
+  /**
+   * Documentation page that describes the migration path. Points at the release that removed the
+   * option, so each entry carries its own URL rather than a shared one.
+   */
+  migrationUrl: string;
+}
 
-const deprecationWarns = new Set();
+/**
+ * Configuration options removed from the public API, with the version that removed them.
+ * Configuring one prints a one-time warning; the value is ignored.
+ *
+ * `persistentState` says 17.0.0, not 18.0.0: #12015 removed the plugin, its option, and its hooks
+ * in 17.0.0, and no published 17.x or 18.x package carries them. The 18.0.0 changelog entry for
+ * #12727 describes deleting a copy that the TypeScript conversion re-created on `develop` after
+ * 17.1.0 and that never shipped.
+ *
+ * `datePickerConfig` is deliberately absent: `DateEditor#prepare` already warns about it, and it
+ * also sees the per-cell forms that `warnAboutRemovedOptions` cannot.
+ *
+ * @type {ReadonlyArray<RemovedOption>}
+ */
+const REMOVED_OPTIONS: ReadonlyArray<RemovedOption> = [
+  {
+    name: 'persistentState',
+    version: '17.0.0',
+    migrationUrl: 'https://handsontable.com/docs/javascript-data-grid/changelog-17/',
+  },
+  {
+    name: 'correctFormat',
+    version: '18.0.0',
+    migrationUrl: 'https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0/',
+  },
+];
+
+/**
+ * Warns once per removed option found anywhere in the passed settings.
+ *
+ * Scans the top level, every entry of an array-form `columns`, and every entry of the declarative
+ * `cell` array, because the removed options are not all global: `correctFormat` is a cell option,
+ * so `columns: [{ correctFormat: true }]` and `cell: [{ row, col, correctFormat: true }]` are its
+ * common forms, and a top-level-only check would leave those callers with a clean console and
+ * silently dropped date auto-correction.
+ *
+ * The remaining per-cell forms - a `cells` function, or meta set through `setCellMeta` - stay
+ * uncovered. Reaching them means inspecting resolved meta for every cell on every render, which
+ * costs more than the warning is worth.
+ *
+ * @param {object} settings Settings object passed to `updateSettings`.
+ */
+function warnAboutRemovedOptions(settings: Record<string, unknown>): void {
+  const columns: unknown[] = Array.isArray(settings.columns) ? settings.columns as unknown[] : [];
+  const cells: unknown[] = Array.isArray(settings.cell) ? settings.cell as unknown[] : [];
+  const scopes: unknown[] = [settings, ...columns, ...cells];
+
+  REMOVED_OPTIONS.forEach(({ name, version, migrationUrl }) => {
+    const isUsed = scopes.some(
+      scope => isObject(scope) && isDefined((scope as Record<string, unknown>)[name])
+    );
+
+    if (isUsed) {
+      removedWarnOnce(`Core.removedOption.${name}`,
+        `The "${name}" setting was removed in Handsontable ${version} and is ignored. ` +
+        `See ${migrationUrl} for the migration path.`);
+    }
+  });
+}
 
 /**
  * Internal Core properties not exposed in HotInstance but accessed by constructor-assigned
@@ -3377,6 +3448,8 @@ export default function Core(
     if (isDefined(settings.ganttChart)) {
       throwWithCause('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
+
+    warnAboutRemovedOptions(settings as Record<string, unknown>);
 
     // The `columns` option (or the state its function form reads) may change in this call - drop
     // getColHeader's index translation cache so it rebuilds against the updated settings.
