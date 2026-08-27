@@ -217,6 +217,34 @@ class AxisSyncer {
   }
 
   /**
+   * Gets the corresponding HyperFormula index for a physical index. Unlike
+   * {@link getHfIndexFromVisualIndex} this one also answers for trimmed elements: the engine is fed
+   * trimmed rows too, so a physical index that points at one of them still has an HF index, while it
+   * has no visual index to translate through. Returns -1 when the physical index is outside the
+   * dataset.
+   *
+   * @param {number} physicalIndex Physical index.
+   * @returns {number}
+   */
+  getHfIndexFromPhysicalIndex(physicalIndex: number) {
+    return this.#getTranslationCache().hfIndexOfPhysical[physicalIndex] ?? -1;
+  }
+
+  /**
+   * Gets the corresponding physical index for a HyperFormula index. Unlike
+   * {@link getVisualIndexFromHfIndex} this one also answers for trimmed elements: the engine is fed
+   * trimmed rows too, so an index read back out of the engine has no visual counterpart whenever it
+   * points at one of them. Returns -1 when the HF index is outside the dataset, which happens
+   * because the engine extends its own sheet dimensions to calculate values.
+   *
+   * @param {number} hfIndex HyperFormula index.
+   * @returns {number}
+   */
+  getPhysicalIndexFromHfIndex(hfIndex: number) {
+    return this.#getTranslationCache().physicalIndexOfHf[hfIndex] ?? -1;
+  }
+
+  /**
    * Gets corresponding visual index for a HyperFormula index. Inverse of {@link getHfIndexFromVisualIndex}.
    * Returns -1 when the HF index points to a trimmed element (not visible to the user).
    *

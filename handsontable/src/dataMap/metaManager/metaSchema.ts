@@ -5076,6 +5076,54 @@ export default (): Record<string, unknown> => {
     placeholderCellClassName: 'htPlaceholder',
 
     /**
+     * The `preserveTextValue` option configures whether the [`Formulas`](@/api/formulas.md)
+     * plugin passes values of [`text`](@/guides/cell-types/cell-type/cell-type.md)-type cells
+     * to the calculation engine as strings. This protects them from number coercion.
+     *
+     * By default, the engine parses number-like strings into numbers. A `text` cell that
+     * holds `0123456` reaches formulas as `123456` – the leading zero is lost. With
+     * `preserveTextValue` enabled, the value stays a string: `=LEN(A1)` returns `7`, and
+     * concatenation keeps the leading zero.
+     *
+     * You can set the `preserveTextValue` option to one of the following:
+     *
+     * | Setting           | Description                                                 |
+     * | ----------------- | ----------------------------------------------------------- |
+     * | `false` (default) | The engine parses values of `text` cells (number coercion)  |
+     * | `true`            | Values of `text` cells reach the engine as strings          |
+     *
+     * The option takes effect only for cells of the [`text`](#type) type – the default cell
+     * type, so setting `preserveTextValue` at the grid level affects every cell that doesn't
+     * declare another type – and only when the [`Formulas`](@/api/formulas.md) plugin is
+     * enabled. Custom cell types aren't supported, even when they reuse the text editor or
+     * renderer.
+     *
+     * Set the option globally, per column, or per cell (through the [`cell`](#cell) option or
+     * the [`cells`](#cells) function).
+     *
+     * Read more:
+     * - [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
+     *
+     * @memberof Options#
+     * @since 18.1.0
+     * @type {boolean}
+     * @default false
+     * @category Formulas
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *     type: 'text',
+     *     // keep leading zeros of number-like strings in formula results
+     *     preserveTextValue: true,
+     *   },
+     * ],
+     * ```
+     */
+    preserveTextValue: false,
+
+    /**
      * The `preventOverflow` option configures preventing Handsontable
      * from overflowing outside of its parent element.
      *

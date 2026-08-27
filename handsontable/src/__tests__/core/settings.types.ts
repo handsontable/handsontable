@@ -211,6 +211,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   parsePastedValue: true,
   placeholder: 'foo',
   placeholderCellClassName: 'foo',
+  preserveTextValue: true,
   preventOverflow: oneOf(true, 'vertical', 'horizontal'),
   preventWheel: true,
   readOnly: true,

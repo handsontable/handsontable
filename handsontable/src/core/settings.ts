@@ -263,6 +263,7 @@ export interface GridSettings {
   language?: string;
   numericFormat?: object;
   preserveNumericLiteral?: boolean;
+  preserveTextValue?: boolean;
   selectOptions?: string[] | number[] | object[] | Record<string, string>
     | ((visualRow: number, visualColumn: number, prop: string | number) => string[] | Record<string, string>);
   strict?: boolean;
