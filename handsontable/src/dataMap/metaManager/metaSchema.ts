@@ -2195,6 +2195,12 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
+     * The dialog is available on the main grid only. In a grid nested in a cell, that is a cell of the
+     * [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md),
+     * [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or
+     * [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, this
+     * option has no effect.
+     *
      * @since 16.1.0
      * @memberof Options#
      * @type {boolean|object}
@@ -2555,6 +2561,13 @@ export default (): Record<string, unknown> => {
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * The empty data state is available on the main grid only. In a grid nested in a cell, that is a
+     * cell of the
+     * [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md),
+     * [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or
+     * [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, this
+     * option has no effect.
      *
      * @since 16.2.0
      * @memberof Options#
@@ -3935,6 +3948,13 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
+     * The loading indicator is available on the main grid only. In a grid nested in a cell, that is a
+     * cell of the
+     * [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md),
+     * [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or
+     * [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, this
+     * option has no effect.
+     *
      * @since 16.1.0
      * @memberof Options#
      * @type {boolean|object}
@@ -3980,6 +4000,12 @@ export default (): Record<string, unknown> => {
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * Notifications are available on the main grid only. In a grid nested in a cell, that is a cell of
+     * the [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md),
+     * [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or
+     * [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, this
+     * option has no effect.
      *
      * @since 17.1.0
      * @memberof Options#
@@ -4959,6 +4985,12 @@ export default (): Record<string, unknown> => {
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * Pagination is available on the main grid only. In a grid nested in a cell, that is a cell of the
+     * [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md),
+     * [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or
+     * [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, this
+     * option has no effect.
      *
      * @since 16.1.0
      * @memberof Options#

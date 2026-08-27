@@ -5,6 +5,7 @@ import { isObject, isPlainObject } from '../../helpers/object';
 import { isHTMLElement } from '../../helpers/dom/element';
 import { isButtonType } from '../../helpers/uiButton';
 import { getSanitizer } from '../../utils/sanitizer';
+import { isRootInstance } from '../../utils/rootInstance';
 import * as C from '../../i18n/constants';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 
@@ -258,10 +259,15 @@ export class Dialog extends BasePlugin {
   /**
    * Check if the plugin is enabled in the handsontable settings.
    *
+   * The dialog renders into the `ht-overlay` element and registers a modal focus scope, and both
+   * belong to the main Handsontable instance. In a nested grid (the one the `handsontable`,
+   * `autocomplete`, and `dropdown` cell types create) neither exists, so the plugin stays disabled
+   * there.
+   *
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    return !!this.hot.getSettings()[PLUGIN_KEY];
+    return isRootInstance(this.hot) && !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -649,8 +655,15 @@ export class Dialog extends BasePlugin {
 
   /**
    * Unregisters the focus scope for the dialog plugin.
+   *
+   * Nothing was registered on a non-root instance, where the plugin never enables and the
+   * `FocusScopeManager` does not exist, so a direct `disablePlugin()` call there must not reach it.
    */
   #unregisterFocusScope() {
+    if (!isRootInstance(this.hot)) {
+      return;
+    }
+
     this.hot.getFocusScopeManager().unregisterScope(PLUGIN_KEY);
   }
 
