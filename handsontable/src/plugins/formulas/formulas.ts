@@ -288,6 +288,16 @@ export class Formulas extends BasePlugin {
   #sourceDataSyncPending = false;
 
   /**
+   * Guard flag set while `#getProcessedSourceDataArray` reads the source data on the engine's
+   * behalf. Read by `#onModifySourceData` alone, so the read reports what Handsontable stores
+   * without also suspending the value projection every other hook depends on.
+   *
+   * @private
+   * @type {boolean}
+   */
+  #sourceDataProjectionSuspended = false;
+
+  /**
    * The changes that the engine reported while undoing or redoing an action. They are collected in
    * `beforeUndo`/`beforeRedo` and consumed in `afterUndo`/`afterRedo`, where the dependent cells get
    * validated.
@@ -1316,24 +1326,35 @@ export class Formulas extends BasePlugin {
     // actually stores – not what it reports. Left unguarded, `#onModifySourceData` answers every
     // formula cell with the formula the engine already holds, so a `loadData()`/`updateData()` call
     // that changes a formula's text reads the engine's PREVIOUS formula back and writes it straight
-    // into the engine again, silently discarding the newly loaded one. The previous value is saved
-    // and restored rather than cleared, so callers that already hold the flag keep it.
-    const wasInternalOperationPending = this.#internalOperationPending;
+    // into the engine again, silently discarding the newly loaded one.
+    //
+    // The projection is suspended through a dedicated flag rather than `#internalOperationPending`,
+    // which also gates `#onModifyData` and `#onAfterRenderer`. This read runs the `modifyRowData`
+    // and `modifySourceData` hooks for every row and cell, so third-party handlers execute inside
+    // the guarded window - and one that calls `getDataAtCell()` on a formula cell has to keep
+    // receiving the calculated value, not the raw formula.
+    //
+    // The previous value is saved and restored rather than cleared, so callers that already hold
+    // the flag keep it.
+    const wasProjectionSuspended = this.#sourceDataProjectionSuspended;
 
-    this.#internalOperationPending = true;
+    this.#sourceDataProjectionSuspended = true;
 
     let dataArray;
 
     try {
       dataArray = this.hot.getSourceDataArray(row, column, row2, column2);
     } finally {
-      this.#internalOperationPending = wasInternalOperationPending;
+      this.#sourceDataProjectionSuspended = wasProjectionSuspended;
     }
 
     const visibleColumnCount = this.hot.countCols();
     const physicalColumnCount = this.hot.countSourceCols();
+    // Only the shape of the data matters, and it is the same for every row, so one row answers it.
+    // `getSourceData()` would rebuild the whole dataset - through the per-cell `modifySourceData`
+    // hook, and outside the guard above - just to run `isArrayOfArrays` over it.
     const isAoAWithSkippedColumns = visibleColumnCount < physicalColumnCount
-      && isArrayOfArrays(this.hot.getSourceData());
+      && Array.isArray(this.hot.getSourceDataAtRow(0));
 
     if (!isAoAWithSkippedColumns) {
       return dataArray.map((rowObject, rowIndex) => {
@@ -1765,6 +1786,8 @@ export class Formulas extends BasePlugin {
       // value to build the `afterSetSourceDataAtCell` payload, and projecting the engine's formula
       // onto it would hand listeners an old value equal to the new one.
       this.#sourceDataSyncPending ||
+      // Same reason, for the read that feeds the engine: see `#getProcessedSourceDataArray`.
+      this.#sourceDataProjectionSuspended ||
       this.sheetName === null ||
       !this.engine?.doesSheetExist(this.sheetName)
     ) {
@@ -2117,8 +2140,15 @@ export class Formulas extends BasePlugin {
    *
    * Row and column *moves* (and sorting) are deliberately excluded: they reorder the engine's
    * indexes without touching the source data, so the two stop sharing a reference frame. While that
-   * is the case nothing is written back at all - the read-time projection keeps handling it, exactly
-   * as it did before.
+   * is the case nothing is written back at all, and the stored text keeps whatever the last sync
+   * left there.
+   *
+   * Ordinary reads are unaffected: `#onModifySourceData` still projects the engine's current
+   * formula, so the grid keeps reporting the up-to-date text. The reads that feed the engine
+   * (`#getProcessedSourceDataArray`) deliberately do not - they have to report what is stored, or a
+   * data load could never replace a formula - so in a moved or sorted frame those reads hand the
+   * engine the stored, possibly stale text. Narrowing the order guard above so a structural change
+   * in that state still syncs is tracked separately.
    *
    * @private
    */
