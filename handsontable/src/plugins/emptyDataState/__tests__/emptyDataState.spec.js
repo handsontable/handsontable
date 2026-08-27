@@ -313,5 +313,24 @@ describe('EmptyDataState', () => {
       expect(innerHot.getPlugin('emptyDataState').isEnabled()).toBe(false);
       expect(innerHot.getPlugin('emptyDataState').enabled).toBe(false);
     });
+
+    it('should keep the root instance empty data state working when a nested grid asks for it too', async() => {
+      handsontable({
+        data: [],
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            data: createSpreadsheetData(2, 2),
+            emptyDataState: true,
+          },
+        }],
+        emptyDataState: true,
+      });
+
+      await waitForNextAnimationFrames(2);
+
+      expect(getPlugin('emptyDataState').enabled).toBe(true);
+      expect(getEmptyDataStateContainerElement()).toBeTruthy();
+    });
   });
 });

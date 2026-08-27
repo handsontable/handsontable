@@ -283,5 +283,27 @@ describe('Dialog', () => {
       expect(getPlugin('dialog').isVisible()).toBe(true);
       expect(getDialogContainerElement().parentNode).toBe(hot().rootOverlaysElement);
     });
+
+    it('should not throw when the plugin is disabled directly on a nested grid', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            data: createSpreadsheetData(2, 2),
+            dialog: true,
+          },
+        }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const innerHot = getActiveEditor().htEditor;
+
+      // `disablePlugin()` is public, so it can be called on an instance where the plugin never
+      // enabled. It must not reach the `FocusScopeManager` there, because nothing was registered.
+      expect(() => innerHot.getPlugin('dialog').disablePlugin()).not.toThrow();
+    });
   });
 });

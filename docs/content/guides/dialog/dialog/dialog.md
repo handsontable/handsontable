@@ -31,6 +31,8 @@ The Dialog plugin provides a modal dialog system for Handsontable that allows yo
 
 The dialog system is designed to be flexible and customizable, supporting various content types including plain text, HTML, and DOM elements. It also provides options for styling, animations, and user interaction controls.
 
+The plugin works on the main grid only. A grid nested in a cell, that is a cell of the [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, has no overlay layer to render a dialog into, so the [`dialog`](@/api/options.md#dialog) option has no effect there.
+
 ## Basic configuration
 
 To enable the Dialog plugin, set the [`dialog`](@/api/options.md#dialog) option to `true` or provide a configuration object.

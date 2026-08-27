@@ -189,5 +189,28 @@ describe('Loading', () => {
       expect(innerHot.getPlugin('loading').enabled).toBe(false);
       expect(innerHot.getSettings().dialog).toBe(false);
     });
+
+    it('should keep the root instance loading indicator working when a nested grid asks for one too', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            data: createSpreadsheetData(2, 2),
+            loading: true,
+          },
+        }],
+        loading: true,
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp('escape');
+
+      getPlugin('loading').show({ title: 'Loading root' });
+
+      expect(getPlugin('loading').enabled).toBe(true);
+      expect(getPlugin('loading').isVisible()).toBe(true);
+    });
   });
 });

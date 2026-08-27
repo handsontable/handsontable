@@ -1386,5 +1386,29 @@ describe('Notification', () => {
       expect(innerHot.getPlugin('notification').isEnabled()).toBe(false);
       expect(innerHot.getPlugin('notification').enabled).toBe(false);
     });
+
+    it('should keep the root instance notifications working when a nested grid asks for them too', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            data: createSpreadsheetData(2, 2),
+            notification: true,
+          },
+        }],
+        notification: { animation: false },
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      getPlugin('notification').showMessage({ message: 'Root message' });
+
+      await waitForNextAnimationFrames(1);
+
+      expect(getPlugin('notification').enabled).toBe(true);
+      expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
+    });
   });
 });
