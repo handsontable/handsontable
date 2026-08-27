@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Changed how `loadData()`, `updateData()`, `updateSettings()`, and `setSourceDataAtCell()` feed `date`-type cells to the `Formulas` plugin's calculation engine, aligning them with the initial data load: non-ISO date-like values (for example `'123'`, `'12:30'`, or `'TRUE'`) now reach the engine as text instead of a number, a time fraction, or a boolean, and a `type` set only through the `cells()` function now applies on those paths too. As a result, those paths now call the `cells()` function and the `beforeGetCellMeta` and `afterGetCellMeta` hooks once per non-formula text cell, which they previously skipped. A grid whose configuration declares no `date` type and no `preserveTextValue` option skips the whole pass.",
-  "type": "changed",
-  "issueOrPR": 13213,
-  "breaking": false,
-  "framework": "none"
-}

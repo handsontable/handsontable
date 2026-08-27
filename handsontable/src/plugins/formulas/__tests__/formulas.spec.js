@@ -4193,6 +4193,87 @@ describe('Formulas general', () => {
         expect(getSourceDataAtCell(0, 0)).toBe('0123456');
       });
 
+      it('should recover when a dependent grid throws mid-write', async() => {
+        const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+        const shouldThrow = { current: false };
+        const $other = $('<div id="otherGrid"></div>').appendTo('body');
+
+        // A second grid on the same engine, reading this grid's sheet. `renderDependentSheets`
+        // renders it from inside the span `#internalOperationPending` is open across, and that
+        // span has no `try`/`finally` of its own.
+        const otherHot = new Handsontable($other[0], {
+          data: [['=Sheet1!A1']],
+          licenseKey: 'non-commercial-and-evaluation',
+          formulas: { engine, sheetName: 'other' },
+          afterRender() {
+            if (shouldThrow.current) {
+              throw new Error('dependent grid render failed');
+            }
+          },
+        });
+
+        handsontable({
+          data: [['1'], ['=A1+1']],
+          formulas: { engine, sheetName: 'Sheet1' },
+        });
+
+        expect(getDataAtCell(1, 0)).toBe(2);
+
+        shouldThrow.current = true;
+
+        // Changing the content is what gives `renderDependentSheets` something to render.
+        let thrown = null;
+
+        try {
+          await updateSettings({ data: [['9'], ['=A1+1']] });
+        } catch (error) {
+          thrown = error;
+        }
+
+        expect(thrown).not.toBe(null);
+
+        shouldThrow.current = false;
+
+        // The throw escaped the span that `#internalOperationPending` is open across, so the read
+        // hooks early-return and the formula cell reports its own raw text.
+        expect(getDataAtCell(1, 0)).toBe('=A1+1');
+
+        // The next structural operation has to bring it back. Several paths clear the flag today -
+        // the handlers below set and clear it themselves - so this pins the recovery contract
+        // rather than any single mechanism.
+
+        await loadData([['5'], ['=A1+1']]);
+
+        expect(getDataAtCell(1, 0)).toBe(6);
+
+        otherHot.destroy();
+        $other.remove();
+      });
+
+      it('should strip an escape the grid data cannot confirm, on an initial load from the engine',
+        async() => {
+          const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+          engine.addSheet('one');
+          // Escaped content already in the sheet, as this plugin writes it. On the INITIAL load the
+          // grid has only its auto-generated dataset, so its own data cannot confirm the strip -
+          // the cell meta is the only reference left.
+          engine.setSheetContent(engine.getSheetId('one'), [['\'0123456'], ['=LEN(A1)']]);
+
+          handsontable({
+            type: 'text',
+            preserveTextValue: true,
+            formulas: {
+              engine,
+              sheetName: 'one',
+            },
+          });
+
+          expect(getDataAtCell(0, 0)).toBe('0123456');
+          expect(getSourceDataAtCell(0, 0)).toBe('0123456');
+          expect(getDataAtCell(1, 0)).toBe(7);
+        });
+
       it('should keep an apostrophe this plugin did not write', async() => {
         // No `preserveTextValue`, so the plugin never escapes here. The engine uses the same
         // character as its own string escape, so it stores the user's literal with exactly one

@@ -1480,6 +1480,22 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Translates an index of the ENGINE's own sequence into the physical index it stands for.
+   *
+   * An engine index outside the dataset has no physical counterpart – the engine extends its own
+   * sheet dimensions to calculate values – so it falls back to being read as a physical index.
+   *
+   * @param {AxisSyncer|null} syncer The axis syncer for the axis being translated.
+   * @param {number} hfIndex Index in the engine's own sequence.
+   * @returns {number} The physical index, or `hfIndex` itself when it has no physical counterpart.
+   */
+  #toPhysicalFromHf(syncer: AxisSyncer | null, hfIndex: number): number {
+    const physicalIndex = syncer?.getPhysicalIndexFromHfIndex(hfIndex) ?? -1;
+
+    return physicalIndex === -1 ? hfIndex : physicalIndex;
+  }
+
+  /**
    * Escapes a single engine-bound value according to the cell meta: dates in Handsontable
    * format are rewritten to the engine format, while invalid dates and preserved text values
    * are escaped with the "'" sign (the engine's string-escape mechanism).
@@ -1594,16 +1610,9 @@ export class Formulas extends BasePlugin {
     }
 
     const metaManager = this.hot._getMetaManager();
-    // An engine index outside the dataset has no physical counterpart – the engine extends its own
-    // sheet dimensions to calculate values – so it falls back to being read as a physical index.
-    const toPhysical = (syncer: AxisSyncer | null, hfIndex: number) => {
-      const physicalIndex = syncer?.getPhysicalIndexFromHfIndex(hfIndex) ?? -1;
-
-      return physicalIndex === -1 ? hfIndex : physicalIndex;
-    };
 
     return sheetArray.map((rowData: unknown[], hfRow: number) => {
-      const physicalRow = toPhysical(this.rowAxisSyncer, hfRow);
+      const physicalRow = this.#toPhysicalFromHf(this.rowAxisSyncer, hfRow);
       const visualRow = this.hot.toVisualRow(physicalRow) ?? physicalRow;
 
       return rowData.map((value: unknown, hfColumn: number) => {
@@ -1611,7 +1620,7 @@ export class Formulas extends BasePlugin {
           return value;
         }
 
-        const physicalColumn = toPhysical(this.columnAxisSyncer, hfColumn);
+        const physicalColumn = this.#toPhysicalFromHf(this.columnAxisSyncer, hfColumn);
         const visualColumn = this.hot.toVisualColumn(physicalColumn) ?? physicalColumn;
         // The transient read applies the `cells` function and the meta hooks without permanently
         // materializing one meta object per scanned cell.
@@ -1636,6 +1645,19 @@ export class Formulas extends BasePlugin {
    * built without `data` records `#hotWasInitializedWithEmptyData`, so every later
    * `#onAfterCellMetaReset` reloads through `switchSheet()`.
    *
+   * The comparison is not on its own sufficient, because it has TWO callers and only one of them
+   * holds a grid whose data corresponds to the engine's. `#onAfterLoadData` carries the same
+   * empty-data branch, and there - on the initial load of a grid pointed at a sheet that already
+   * has content - the grid holds only its auto-generated dataset while the engine holds the content
+   * being adopted. Nothing matches, and a strip the cell meta could have confirmed would be lost.
+   * The same shape appears for an engine sheet larger than the dataset, where the out-of-dataset
+   * cell has no stored value at all.
+   *
+   * So the two references are used in order: the grid's own copy first, because it is exact and
+   * survives a configuration change, and the cell meta second, for every value the copy cannot
+   * speak for. That is strictly better than either alone - each case one reference cannot decide is
+   * decided by the other.
+   *
    * Stripping unconditionally instead would corrupt the opposite case. A leading apostrophe in the
    * engine is not proof this plugin put it there - the engine uses the same character as its own
    * string escape, so a user's literal `'0777` typed into a cell this plugin does not escape is
@@ -1656,13 +1678,7 @@ export class Formulas extends BasePlugin {
    * @returns {Array<Array<*>>} The unescaped content.
    */
   #unescapeAgainstSourceData(sheetArray: unknown[][]): unknown[][] {
-    // An engine index outside the dataset has no physical counterpart – the engine extends its own
-    // sheet dimensions to calculate values – so it falls back to being read as a physical index.
-    const toPhysical = (syncer: AxisSyncer | null, hfIndex: number) => {
-      const physicalIndex = syncer?.getPhysicalIndexFromHfIndex(hfIndex) ?? -1;
-
-      return physicalIndex === -1 ? hfIndex : physicalIndex;
-    };
+    const metaManager = this.hot._getMetaManager();
     // The read has to report what Handsontable STORES: left unguarded, `#onModifySourceData`
     // answers every formula cell with the engine's own content, which is the very thing being
     // compared against.
@@ -1678,18 +1694,30 @@ export class Formulas extends BasePlugin {
           return rowData;
         }
 
-        const physicalRow = toPhysical(this.rowAxisSyncer, hfRow);
+        const physicalRow = this.#toPhysicalFromHf(this.rowAxisSyncer, hfRow);
 
         return rowData.map((value: unknown, hfColumn: number) => {
           if (!isEngineEscapedValue(value)) {
             return value;
           }
 
-          const physicalColumn = toPhysical(this.columnAxisSyncer, hfColumn);
+          const physicalColumn = this.#toPhysicalFromHf(this.columnAxisSyncer, hfColumn);
           const visualColumn = this.hot.toVisualColumn(physicalColumn) ?? physicalColumn;
           const storedValue = this.hot.getSourceDataAtCell(physicalRow, visualColumn);
 
-          return (typeof storedValue === 'string' && `'${storedValue}` === value) ? storedValue : value;
+          if (typeof storedValue === 'string' && `'${storedValue}` === value) {
+            return storedValue;
+          }
+
+          // The grid's copy could not confirm the escape, which does not mean there is none – it
+          // can equally mean the grid has nothing to say about this cell yet. Fall back to the cell
+          // meta, the reference this path used before the comparison existed.
+          const visualRow = this.hot.toVisualRow(physicalRow) ?? physicalRow;
+
+          return unescapeEngineBoundValue(value, metaManager.getCellMetaTransient(
+            physicalRow, physicalColumn,
+            { visualRow, visualColumn },
+          ));
         });
       });
     } finally {
@@ -1964,13 +1992,6 @@ export class Formulas extends BasePlugin {
     const populationRowLength = sourceEndRow - sourceStartRow + 1;
     const populationColumnLength = sourceEndColumn - sourceStartColumn + 1;
     const metaManager = this.hot._getMetaManager();
-    // An engine index outside the dataset has no physical counterpart – the engine extends its own
-    // sheet dimensions to calculate values – so it falls back to being read as a physical index.
-    const toPhysical = (syncer: AxisSyncer | null, hfIndex: number) => {
-      const physicalIndex = syncer?.getPhysicalIndexFromHfIndex(hfIndex) ?? -1;
-
-      return physicalIndex === -1 ? hfIndex : physicalIndex;
-    };
 
     for (let populatedRowIndex = 0; populatedRowIndex < fillRangeData.length; populatedRowIndex += 1) {
       for (let populatedColumnIndex = 0; populatedColumnIndex < fillRangeData[populatedRowIndex].length;
@@ -1988,8 +2009,8 @@ export class Formulas extends BasePlugin {
         // while having no visual one. Reading such a source through the visual axis yields -1,
         // which `getCellMeta()` rejects outright ("Expecting an unsigned number"), aborting the
         // whole autofill.
-        const physicalSourceRow = toPhysical(this.rowAxisSyncer, sourceRow);
-        const physicalSourceColumn = toPhysical(this.columnAxisSyncer, sourceColumn);
+        const physicalSourceRow = this.#toPhysicalFromHf(this.rowAxisSyncer, sourceRow);
+        const physicalSourceColumn = this.#toPhysicalFromHf(this.columnAxisSyncer, sourceColumn);
         const visualSourceRow = this.hot.toVisualRow(physicalSourceRow) ?? physicalSourceRow;
         const visualSourceColumn = this.hot.toVisualColumn(physicalSourceColumn) ?? physicalSourceColumn;
         const sourceCellMeta = metaManager.getCellMetaTransient(
@@ -2043,11 +2064,12 @@ export class Formulas extends BasePlugin {
    * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
    */
   #onAfterCellMetaReset = () => {
-    // Runs on every `updateSettings()` call. Both branches below re-run a full-dataset scan whose
-    // per-cell meta read fires `cells()` and the `beforeGetCellMeta`/`afterGetCellMeta` listeners –
-    // see `#escapeSourceDataArray` for what that changes for a listener with side effects.
-    this.#closeLeakedDetachGuard();
+    this.#closeLeakedGuards();
 
+    // Runs on every `updateSettings()` call, and both branches below re-run a full-dataset scan
+    // whose per-cell meta read fires `cells()` and the `beforeGetCellMeta`/`afterGetCellMeta`
+    // listeners – see `#escapeSourceDataArray` for what that changes for a listener with side
+    // effects.
     if (this.#hotWasInitializedWithEmptyData) {
       if (this.sheetName !== null) {
         this.switchSheet(this.sheetName);
@@ -2084,7 +2106,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    this.#closeLeakedDetachGuard();
+    this.#closeLeakedGuards();
 
     const formulasSettings = this.hot.getSettings()[PLUGIN_KEY];
     const settingsSheetName = isFormulasSettingsObject(formulasSettings) ? formulasSettings.sheetName : undefined;
@@ -3208,20 +3230,28 @@ export class Formulas extends BasePlugin {
   };
 
   /**
-   * Closes a `#nestedRowsDetachPending` span that `#onAfterDetachChild` never got to close – see
-   * that flag and `#onBeforeDetachChild` for how the span is left open.
+   * Closes guard spans that their own closing path never got to close, at the head of the
+   * structural operations that re-establish the engine's relationship to the source data
+   * (`afterLoadData`, `afterUpdateData`, `afterCellMetaReset`).
    *
-   * Called at the head of the structural operations that re-establish the engine's relationship to
-   * the source data (`afterLoadData`, `afterUpdateData`, `afterCellMetaReset`). By then the detach
-   * the flag was guarding is over either way, so the span cannot still be legitimately open: the
-   * detach runs to completion inside a single `afterDetachChild` emission, well before any of these
-   * fire. Bounding it here matters because the flag's whole purpose is to suppress
-   * `#syncFormulasToSourceData`, and a leaked one suppresses it silently – the developer's array
-   * keeps stale formula text with nothing surfaced. `enablePlugin()` clears it too, but a grid that
-   * is never re-enabled would otherwise stay broken for the rest of the session.
+   * `#nestedRowsDetachPending` is left open when a listener registered ahead of this plugin's own
+   * throws out of `afterDetachChild` – see `#onBeforeDetachChild`. `#internalOperationPending` is
+   * left open by a throw from `setSheetContent`, `setupSyncEndpoint`, or `renderDependentSheets`,
+   * which the two handlers below open it across without a `try`/`finally`. Both leaks are silent:
+   * the first suppresses `#syncFormulasToSourceData`, so the developer's array keeps stale formula
+   * text, and the second makes the read hooks early-return, so formula cells report their raw text.
+   *
+   * This is a BOUND, not a guarantee that the spans are closed. A detach does not run to completion
+   * before these handlers can fire: `dataManager.detachFromParent` emits `beforeCreateRow` and
+   * `afterCreateRow` between `beforeDetachChild` and `afterDetachChild`, and those are
+   * user-reachable, so a listener that calls `updateSettings()` or `loadData()` from inside a
+   * detach clears the flag mid-span and leaves the remaining legs unguarded – which is the
+   * `#REF!`-over-a-live-formula write-back the flag exists to prevent. That is narrower than an
+   * unbounded flag, which is why the trade is made this way, but it is a trade.
    */
-  #closeLeakedDetachGuard() {
+  #closeLeakedGuards() {
     this.#nestedRowsDetachPending = false;
+    this.#internalOperationPending = false;
   }
 
   /**

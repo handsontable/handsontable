@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed several `Formulas` plugin defects: `loadData()` and `updateData()` discarded a formula whose text had changed, writing the engine's previous formula back in its place; `setSourceDataAtCell()` addressed the wrong engine row on a sorted or moved grid, silently overwriting whichever cell it collided with; detaching a row with the `NestedRows` plugin wrote `#REF!` over a formula whose target still existed, and read a cell's `valueGetter` from the wrong row; and autofilling read the source cell's configuration from another cell when rows or columns were trimmed or moved.",
-  "type": "fixed",
-  "issueOrPR": 13213,
-  "breaking": false,
-  "framework": "none"
-}
