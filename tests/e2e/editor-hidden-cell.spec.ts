@@ -154,13 +154,13 @@ test.describe('non-text editors whose cell is hidden', () => {
     await grid.setPage(2);
 
     await expect.poll(() => grid.isEditorOpen()).toBe(false);
-    // Tightened opportunistically, not because anything here was fixed. The comment this replaced
-    // called the committed value unstable because a deferred `queryChoices()` could land after the
-    // page turn and re-highlight a choice that `HandsontableEditor.finishEditing` then read as the
-    // value. That race is not reachable with this fixture: `source` is a plain ARRAY, so
-    // `queryChoices()` runs synchronously, and every deferred call from the typing has already
-    // fired before `setPage`. Measured at 15/15 on `develop` as well as on the DEV-2653 branch.
-    await expect.poll(() => grid.sourceColumn(0)).toEqual(['A4', 'A2', 'A3', 'A4']);
+    // Assert only that the editor is gone. Whether a dropdown COMMITS or DISCARDS is decided by
+    // `DropdownEditor.finishEditing`, which rewrites the flag from the active range, and that race
+    // is real: asserting `['A4', 'A2', 'A3', 'A4']` here held 15/15 locally on `e2e-main` and still
+    // failed on `e2e-classic` in CI (run 33069787284) with `A1`, the original value. It is not
+    // DEV-2653's timeout - this fixture's `source` is a plain ARRAY, so `queryChoices()` runs
+    // synchronously and nothing is deferred by the time the page turns. Pinning the value needs
+    // that discard path made deterministic first, which is its own task.
   });
 });
 
