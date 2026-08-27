@@ -141,7 +141,7 @@ For more information about this release, see:
 - React: Fixed a memory leak in the React wrapper where the portal containers used by component-based renderers were retained for every scrolled cell instead of being released once a cell left the viewport. [#12895](https://github.com/handsontable/handsontable/pull/12895)
 - React: Fixed missing TypeScript autocomplete and type checking for `<HotTable>` and `<HotColumn>` props. [#13007](https://github.com/handsontable/handsontable/issues/13007)
 - Angular: Fixed custom editor shortcut groups in the Angular wrapper. [#13160](https://github.com/handsontable/handsontable/pull/13160)
-- Fixed an issue where clicking focusable plugin UI placed in the grid's layout slots (for example, pagination controls) closed the open cell editor and deselected the grid. [#13243](https://github.com/handsontable/handsontable/pull/13243)
+- Fixed the grid no longer responding to keyboard shortcuts after clicking focusable plugin UI placed in the grid's layout slots (for example, pagination controls). [#13243](https://github.com/handsontable/handsontable/pull/13243)
 - Fixed an open cell editor staying visible over an unrelated row, and committing to a row you could no longer see, when the edited cell was hidden - for example by turning a Pagination page or hiding its row or column. [#13245](https://github.com/handsontable/handsontable/pull/13245)
 
 ## 18.0.0
