@@ -10,6 +10,14 @@ interface TrimRowsPlugin {
   untrimRows(rows: number[]): void;
 }
 
+interface ColumnSortingPlugin {
+  sort(config: { column: number; sortOrder: string }): void;
+}
+
+interface ManualRowMovePlugin {
+  moveRow(row: number, finalIndex: number): void;
+}
+
 interface HandsontableFixture {
   getSelected(): number[][] | undefined;
   getActiveEditor(): {
@@ -18,11 +26,12 @@ interface HandsontableFixture {
     row: number | null;
     col: number | null;
     TEXTAREA?: HTMLTextAreaElement;
+    originalValue: unknown;
   } | undefined;
   getSourceData(): unknown[][];
   countSourceRows(): number;
   countRows(): number;
-  getPlugin(name: string): FiltersPlugin & TrimRowsPlugin;
+  getPlugin(name: string): FiltersPlugin & TrimRowsPlugin & ColumnSortingPlugin & ManualRowMovePlugin;
   toPhysicalRow(row: number): number;
   alter(action: string, index: number, amount?: number): void;
   scrollViewportTo(options: { row: number; verticalSnap: string }): void;
@@ -82,6 +91,24 @@ export class EditorTrimmedRowPage {
     await this.page.waitForFunction(() => 'Handsontable' in window);
 
     await expect(this.cell(0, 0)).toBeVisible();
+
+    // Building the grid already emits a trimming cache update - `loadData` initializes the trimming
+    // map, and the fixture's hooks are attached before that. Leaving it in the log would make every
+    // `sawTrimmingCacheUpdate()` assertion pass without the case's own trigger ever firing.
+    await this.resetCacheUpdateLog();
+  }
+
+  /**
+   * Empties the recorded index-map cache updates, so what a case asserts afterwards can only have
+   * come from that case's own trigger.
+   */
+  async resetCacheUpdateLog(): Promise<void> {
+    await this.page.evaluate(() => {
+      const recorder = (window as unknown as RecordingWindow).htCacheUpdates;
+
+      recorder.row.length = 0;
+      recorder.column.length = 0;
+    });
   }
 
   /**
@@ -145,6 +172,30 @@ export class EditorTrimmedRowPage {
   }
 
   /**
+   * Sorts the first column descending, so a visual row index stops equalling its physical one. This
+   * is what makes the physical-index resolution in the fix non-vacuous.
+   */
+  async sortFirstColumnDescending(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as Window & { hot: HandsontableFixture }).hot
+        .getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+    });
+  }
+
+  /**
+   * Moves one row through `manualRowMove`. Like sorting, this permutes the visual space and reports
+   * `indexesSequenceChanged` - it trims nothing.
+   */
+  async moveRow(row: number, finalIndex: number): Promise<void> {
+    await this.page.evaluate(([target, destination]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+
+      hot.getPlugin('manualRowMove').moveRow(target, destination);
+      (hot as unknown as { render(): void }).render();
+    }, [row, finalIndex] as [number, number]);
+  }
+
+  /**
    * Removes rows through `alter()`. This shifts PHYSICAL indexes, unlike a trimming map, and still
    * emits a trimming-map change - the one way the captured record can go stale without the guard
    * being able to tell.
@@ -187,6 +238,25 @@ export class EditorTrimmedRowPage {
         .hot.getSourceData()[targetRow][targetCol],
       [physicalRow, col] as [number, number],
     );
+  }
+
+  /**
+   * Types onto the current selection, which opens an editor if none is open, and leaves the value
+   * uncommitted.
+   */
+  async typeOnSelection(value: string): Promise<void> {
+    await this.page.keyboard.type(value);
+  }
+
+  /**
+   * Returns the value the active editor believes it is replacing. `prepareEditor()` reads it from
+   * the source data at prepare time, so it reports which record the editor was set up for -
+   * independently of where a save would land.
+   */
+  async editorOriginalValue(): Promise<unknown> {
+    return this.page.evaluate(() => (
+      (window as Window & { hot: HandsontableFixture }).hot.getActiveEditor()?.originalValue ?? null
+    ));
   }
 
   /**
@@ -288,6 +358,19 @@ export class EditorTrimmedRowPage {
     return this.page.evaluate(
       target => (window as unknown as RecordingWindow).htCacheUpdates[target]
         .some(state => state.trimmedIndexesChanged),
+      axis,
+    );
+  }
+
+  /**
+   * Reports whether an index-map cache update that changed the index SEQUENCE has been recorded on
+   * the given axis. This is the flag a sort or a row move raises, and it is separate from the
+   * trimming one.
+   */
+  async sawSequenceCacheUpdate(axis: 'row' | 'column'): Promise<boolean> {
+    return this.page.evaluate(
+      target => (window as unknown as RecordingWindow).htCacheUpdates[target]
+        .some(state => state.indexesSequenceChanged),
       axis,
     );
   }

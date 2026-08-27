@@ -37,9 +37,11 @@ test.describe('Filters trims the edited record away', () => {
 
     await expect.poll(() => grid.sawTrimmingCacheUpdate('row')).toBe(true);
 
-    await expect.poll(() => grid.sourceRowCount()).toBe(5);
-    await expect.poll(() => grid.sourceData()).toEqual(UNTOUCHED);
+    // The change count is what rules out a commit landing a tick later; `expect.poll` would pass on
+    // its first sample and prove nothing about persistence. Read the data plainly, after it.
     expect(await grid.committedChangeCount()).toBe(0);
+    expect(await grid.sourceRowCount()).toBe(5);
+    expect(await grid.sourceData()).toEqual(UNTOUCHED);
 
     // Pins that this case really is the append shape: the editor's visual row (3) is past the last
     // visible row. Without this the case would silently degrade into the wrong-record shape below.
@@ -65,9 +67,9 @@ test.describe('Filters trims the edited record away', () => {
       await expect.poll(() => grid.toPhysicalRow(0)).toBe(2);
       await expect.poll(() => grid.sawTrimmingCacheUpdate('row')).toBe(true);
 
-      await expect.poll(() => grid.sourceRowCount()).toBe(5);
-      await expect.poll(() => grid.sourceData()).toEqual(UNTOUCHED);
       expect(await grid.committedChangeCount()).toBe(0);
+      expect(await grid.sourceRowCount()).toBe(5);
+      expect(await grid.sourceData()).toEqual(UNTOUCHED);
     });
 });
 
@@ -137,10 +139,51 @@ test.describe('trimRows removes or moves the edited record', () => {
 
     await grid.cell(0, 0).click();
 
-    await expect.poll(() => grid.sourceRowCount()).toBe(5);
-    await expect.poll(() => grid.sourceData()).toEqual(UNTOUCHED);
     expect(await grid.committedChangeCount()).toBe(0);
+    expect(await grid.sourceRowCount()).toBe(5);
+    expect(await grid.sourceData()).toEqual(UNTOUCHED);
   });
+
+  /**
+   * The discard has to release the editor, not just its value. `openEditor()` re-prepares only when
+   * there is no active editor, so a lingering reference would let the next keystroke reuse the
+   * pre-trim `TD`, `prop`, `originalValue` and cell meta of a record that is no longer on screen.
+   *
+   * `originalValue` is the discriminating read, not the write. The selection is not adjusted by a
+   * trim, so the coordinates a save goes through are the same either way and the value lands on
+   * `'A4'` regardless - what a stale reference changes is the record the editor was SET UP for:
+   * `'A3'`'s cell meta, `prop`, `TD` and original value, for a record no longer on screen. A stale
+   * `readOnly` or `validator` from that meta would decide the next edit.
+   */
+  test('re-prepares from post-trim state when the user keeps typing after the discard',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.openEditorAndType(3, 0, 'EDITED');
+
+      // Physical row 3 is trimmed, so visual row 3 - still the selected one - now shows `'A4'`.
+      await grid.trimRows([3]);
+
+      await expect.poll(() => grid.isEditorOpen()).toBe(false);
+
+      await grid.typeOnSelection('X');
+
+      await expect.poll(() => grid.isEditorOpen()).toBe(true);
+      // `'A3'` here would mean the discarded editor was reused with the trimmed record's state.
+      expect(await grid.editorOriginalValue()).toBe('A4');
+
+      await grid.commitWithEnter();
+
+      await expect.poll(() => grid.sourceData()).toEqual([
+        ['A0', 'B0'],
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['X', 'B4'],
+      ]);
+      expect(await grid.sourceRowCount()).toBe(5);
+    });
 
   /**
    * The record survives two rows above it being trimmed, so the editor stays open and rebinds. The
@@ -249,10 +292,13 @@ test.describe('states the captured record has to survive', () => {
 
   /**
    * `alter('remove_row')` shifts PHYSICAL indexes and emits a trimming-map change on the way, so the
-   * captured record index can go stale in a way no resolution can detect. Core closes the editor
-   * only when the removed range covers the highlighted row, so editing row 4 while row 1 is removed
-   * leaves the editor open with a coordinate that is now past the end - which before the fix
-   * appended a record on the next commit. The edit is dropped instead; nothing is invented.
+   * captured record index can go stale. Core closes the editor only when the removed range covers
+   * the highlighted row, so editing row 4 while row 1 is removed leaves the editor open with a
+   * coordinate that is now past the end - which before the fix appended a record on the next commit.
+   *
+   * This pins the past-the-end shape only: the captured index no longer resolves, so the edit is
+   * dropped and nothing is invented. The other stale shape - the captured index still resolves, but
+   * to a different surviving record - is not covered here, and the fix does not claim to repair it.
    */
   test('never grows the data set when a row removal strands the editor past the last row',
     async({ page, theme, bundle }) => {
@@ -275,4 +321,111 @@ test.describe('states the captured record has to survive', () => {
         ['A4', 'B4'],
       ]);
     });
+});
+
+/**
+ * With `columnSorting` active a visual row index no longer equals its physical one, so a fix that
+ * accidentally captured or resolved a VISUAL index still passes every case above. This case is the
+ * one that separates the two: the record being edited sits at a visual index that belongs to a
+ * different physical row, and the assertion is which physical record the value lands on.
+ */
+test.describe('a sorted index mapping under the trim', () => {
+  /**
+   * Sorted descending, visual 1 is physical 3 (`'A3'`). The filter then trims physical 0, 1 and 4,
+   * leaving `'A3'` and `'A2'` at visual 0 and 1 - so the edited record moves up one slot and the
+   * editor has to follow it. Before the fix the stale visual row 1 was still in range and the value
+   * landed on `'A2'`, with no row-count change to betray it.
+   */
+  test('commits to the record being edited, not the one at the same visual index',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle, { sorting: true });
+
+      await grid.goto();
+      await grid.sortFirstColumnDescending();
+
+      // The two index spaces genuinely differ here. Without this the case degrades into a plain
+      // repeat of the unsorted moved-record case.
+      await expect.poll(() => grid.toPhysicalRow(1)).toBe(3);
+
+      await grid.openEditorAndType(1, 0, 'EDITED');
+
+      await grid.filterToValues(0, ['A3', 'A2']);
+
+      await expect.poll(() => grid.sawTrimmingCacheUpdate('row')).toBe(true);
+
+      await expect.poll(() => grid.sourceRowCount()).toBe(5);
+      await expect.poll(() => grid.sourceData()).toEqual([
+        ['A0', 'B0'],
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+        ['EDITED', 'B3'],
+        ['A4', 'B4'],
+      ]);
+    });
+});
+
+/**
+ * A SEQUENCE change permutes the visual space without trimming anything: `columnSorting` and
+ * `manualRowMove` report `indexesSequenceChanged` and leave `trimmedIndexesChanged` false. The
+ * editor is stranded exactly as a trim strands it - it holds a visual index that now belongs to a
+ * different record - so the same reconciliation has to cover both, and the row count never betrays
+ * these because no record is added or removed.
+ */
+test.describe('a sequence change under an open editor', () => {
+  /**
+   * Sorting descending while `'A4'` is being edited moves that record from visual 4 to visual 0.
+   * Before the gate covered sequence changes, the stale visual row 4 addressed `'A0'` and the edit
+   * landed there - `['EDITED','A1','A2','A3','A4']`.
+   */
+  test('follows the record through a sort', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle, { sorting: true });
+
+    await grid.goto();
+    await grid.openEditorAndType(4, 0, 'EDITED');
+
+    await grid.sortFirstColumnDescending();
+
+    // Sorting trims nothing - this is the flag that the trimming-only gate did not react to.
+    await expect.poll(() => grid.sawSequenceCacheUpdate('row')).toBe(true);
+    expect(await grid.sawTrimmingCacheUpdate('row')).toBe(false);
+    await expect.poll(() => grid.editorRow()).toBe(0);
+
+    await grid.commitWithEnter();
+
+    await expect.poll(() => grid.sourceData()).toEqual([
+      ['A0', 'B0'],
+      ['A1', 'B1'],
+      ['A2', 'B2'],
+      ['A3', 'B3'],
+      ['EDITED', 'B4'],
+    ]);
+    expect(await grid.sourceRowCount()).toBe(5);
+  });
+
+  /**
+   * `manualRowMove` reaches the same state by a different plugin. Moving the edited record `'A0'`
+   * down to index 3 leaves `'A1'` occupying visual 0, which is where the stale coordinate pointed.
+   */
+  test('follows the record through a row move', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.openEditorAndType(0, 0, 'EDITED');
+
+    await grid.moveRow(0, 3);
+
+    await expect.poll(() => grid.sawSequenceCacheUpdate('row')).toBe(true);
+    await expect.poll(() => grid.editorRow()).toBe(3);
+
+    await grid.commitWithEnter();
+
+    await expect.poll(() => grid.sourceData()).toEqual([
+      ['EDITED', 'B0'],
+      ['A1', 'B1'],
+      ['A2', 'B2'],
+      ['A3', 'B3'],
+      ['A4', 'B4'],
+    ]);
+    expect(await grid.sourceRowCount()).toBe(5);
+  });
 });

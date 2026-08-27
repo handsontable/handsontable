@@ -75,6 +75,10 @@
       dropdownMenu: true,
       trimRows: [],
       columnSorting: window.htSorting,
+      // Sorting and row moving rearrange the visual space without trimming anything - they report
+      // `indexesSequenceChanged`, not `trimmedIndexesChanged`. Enabled unconditionally; inert until
+      // a case drives them.
+      manualRowMove: true,
       // Stamp test ids from `afterRenderer` rather than a grid-level `renderer`, so a column `type`
       // cannot override it and leave the typed column with no test id.
       afterRenderer(td, row, col) {
