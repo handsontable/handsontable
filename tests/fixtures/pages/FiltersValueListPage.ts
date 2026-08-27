@@ -141,6 +141,10 @@ export class FiltersValueListPage {
   /** Click the "Clear" link, which unchecks every value the filter holds. */
   async clearAllValues(): Promise<void> {
     await this.menu.locator('.htUIMultipleSelect a', { hasText: /^Clear$/ }).click();
+
+    // The inner list is its own Handsontable, so wait for it to repaint before the caller confirms
+    // the menu - otherwise OK can read the pre-clear checkboxes.
+    await expect(this.valueList.first().locator('input[type="checkbox"]')).not.toBeChecked();
   }
 
   /** Uncheck the "filter by value" item carrying the given label. */

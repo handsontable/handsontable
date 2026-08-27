@@ -233,9 +233,15 @@ export class MultipleSelectUI extends BaseUI {
    * @returns {boolean}
    */
   isSelectedAllValues() {
-    // Counts listed values only. Values the list cannot show are not part of "everything on
-    // screen is ticked", which is the question the action bar asks before dropping the condition.
-    return this.#items.length === itemsToValue(this.#items).length;
+    // Two conditions, not one count. Every listed value has to be ticked AND nothing may be
+    // selected outside the list. Ticking everything on screen does NOT mean the column filters
+    // nothing - the values the list cannot show are still excluding rows, and answering `true`
+    // here makes `getState()` report "no condition", which deletes them.
+    // Comparing `#items.length` against the whole selection would not do: a list holding one
+    // unticked value plus one selected unlisted value has matching counts and different sets.
+    // An empty list with an empty selection still answers `true`, which is what lets a column with
+    // nothing to filter by report "no condition".
+    return this.#items.length === itemsToValue(this.#items).length && this.#getUnlistedValue().length === 0;
   }
 
   /**
@@ -501,8 +507,10 @@ export class MultipleSelectUI extends BaseUI {
       return;
     }
 
-    // "Clear" means every value, including the selected ones the list cannot show. Leaving those
-    // behind would make the link look broken - the box empties, yet the filter keeps matching rows.
+    // Drop the selected values the list cannot show as well. Without this they would survive into
+    // `getValue()` and the filter would keep matching rows the emptied box no longer accounts for.
+    // Note this still unchecks only the rows the box currently holds, so with an active search term
+    // the values it filtered out keep their state - long-standing behavior, unchanged here.
     (this.options as Record<string, unknown>).value = [];
 
     (this.#itemsBox.getSourceData() as SelectItem[]).forEach((row, rowIndex) => {

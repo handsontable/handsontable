@@ -74,5 +74,13 @@ test.describe('Filters — editing a cell in a column filtered by value', () => 
 
     // The edit alone must not re-run the filter - the row the user is working on stays put.
     expect(await grid.columnValues(1)).toEqual(['Green', 'Blue', 'Red']);
+
+    // Calling `filter()` is the recipe the guide gives for applying the filter to edited data, so
+    // it has to actually remove the row that no longer matches.
+    await page.evaluate(() => (window as unknown as {
+      hot: { getPlugin(name: string): { filter(): void } };
+    }).hot.getPlugin('filters').filter());
+
+    expect(await grid.columnValues(1)).toEqual(['Blue', 'Red']);
   });
 });

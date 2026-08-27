@@ -2408,20 +2408,21 @@ describe('Filters UI', () => {
         filters.filter();
 
         const valueComponent = filters.components.get('filter_by_value');
-        const stateBeforeEdit = JSON.stringify(valueComponent.state.getValueAtIndex(2));
+        const expectedSelection = ['Mercedes', 'Fiat', 'Renault', 'Ferrari', 'Peugeot', 'Lamborghini', 'Audi'];
+
+        expect(valueComponent.state.getValueAtIndex(2).args[0])
+          .toEqual(jasmine.arrayWithExactContents(expectedSelection));
 
         // Moves the Renault row from France to Italy, so column 1's condition ('Germany', 'France')
         // no longer lets that row through.
         await setDataAtCell(2, 1, 'Italy');
 
-        // The whole #8874 invariant in one line: a data change in an earlier column must leave this
-        // column's component state byte-for-byte identical. The edit changed no condition, so there
-        // is nothing here to re-scope - and the state is what the next OK writes back.
-        expect(JSON.stringify(valueComponent.state.getValueAtIndex(2))).toBe(stateBeforeEdit);
-
-        // The stored condition is what a later `filter()` re-applies, so it must be intact too.
-        expect(filters.conditionCollection.getConditions(2)[0].args[0]).toEqual(
-          jasmine.arrayWithExactContents(['Mercedes', 'Fiat', 'Renault', 'Ferrari', 'Peugeot', 'Lamborghini', 'Audi']));
+        // The list follows the data, but the selection behind it does not shrink - that is the
+        // #8874 invariant. The stored selection is what the next OK writes back.
+        expect(valueComponent.state.getValueAtIndex(2).args[0])
+          .toEqual(jasmine.arrayWithExactContents(expectedSelection));
+        expect(filters.conditionCollection.getConditions(2)[0].args[0])
+          .toEqual(jasmine.arrayWithExactContents(expectedSelection));
 
         await dropdownMenu(2);
         await sleep(112);
@@ -2429,11 +2430,16 @@ describe('Filters UI', () => {
         const items = byValueMultipleSelect().getItems();
         const checkedValues = items.filter(item => item.checked).map(item => item.value);
 
-        // Ferrari and Lamborghini sit in Italy rows, which column 1's filter excluded before the
-        // edit ever happened, so they were never in this list. Everything the list does hold stays
-        // checked.
+        // The box can only tick what it lists, and it lists the companies of the rows still passing
+        // the country filter. Renault's row moved to Italy, so it drops out of the list here while
+        // staying selected underneath.
         expect(checkedValues).toEqual(
-          jasmine.arrayWithExactContents(['Mercedes', 'Fiat', 'Renault', 'Peugeot', 'Audi']));
+          jasmine.arrayWithExactContents(['Mercedes', 'Fiat', 'Peugeot', 'Audi']));
+
+        // Nothing was re-selected or unselected on the user's behalf: confirming returns the whole
+        // selection, listed or not.
+        expect(byValueMultipleSelect().getValue())
+          .toEqual(jasmine.arrayWithExactContents(expectedSelection));
       });
   });
 });

@@ -35,7 +35,6 @@ export interface StateInfo {
   editedConditionStack: ConditionStack;
   dependentConditionStacks: ConditionStack[];
   filteredRowsFactory: (physicalColumn: number, conditionsStack?: ConditionStack) => FilteredRow[];
-  skipDependentColumns?: boolean;
   [key: string]: unknown;
 }
 
@@ -160,8 +159,11 @@ export class ValueComponent extends BaseComponent {
     const select = this.getMultipleSelectElement();
     const availableItems = select.getItems();
 
+    // `isSelectedAllValues()` compares the item list against the whole selection, so it already
+    // answers `true` for an empty list with nothing selected. Testing the list for emptiness on its
+    // own would report "no condition" while values the list cannot show are still excluding rows.
     return {
-      command: { key: select.isSelectedAllValues() || !availableItems.length ? CONDITION_NONE : CONDITION_BY_VALUE },
+      command: { key: select.isSelectedAllValues() ? CONDITION_NONE : CONDITION_BY_VALUE },
       args: [select.getValue()],
       itemsSnapshot: availableItems
     };
@@ -190,13 +192,17 @@ export class ValueComponent extends BaseComponent {
         const selectedArgs = firstByValueCondition.args[0] as unknown[];
         const { itemsSnapshot } = this.#buildItemsSnapshot(physicalColumn, filteredRows, selectedArgs);
 
-        const column = stateInfo.editedConditionStack.column;
+        // Read from the column being refreshed, not from the edited one - this runs for the
+        // dependent column too. `getCellMetaTransient` takes VISUAL coordinates, while every column
+        // index in this file is physical.
+        const visualColumn = this.hot?.toVisualColumn(physicalColumn) ?? physicalColumn;
 
-        state.locale = this.hot?.getCellMetaTransient(0, column).locale;
-        // The whole selection, not just the part the list can show. `itemsSnapshot` already carries
-        // the checked flags for the visible values, and the rest has to survive so that confirming
-        // a narrowed list does not shrink the condition to what is on screen.
-        state.args = [selectedArgs];
+        state.locale = this.hot?.getCellMetaTransient(0, visualColumn).locale;
+        // The whole selection, copied so the component state, `options.value` and the condition
+        // collection stop sharing one array. `itemsSnapshot` already carries the checked flags for
+        // the visible values; the rest has to survive so that confirming a narrowed list does not
+        // shrink the condition to what is on screen.
+        state.args = [[...selectedArgs]];
         state.command = getConditionDescriptor(CONDITION_BY_VALUE);
         state.itemsSnapshot = itemsSnapshot;
 
@@ -222,11 +228,7 @@ export class ValueComponent extends BaseComponent {
     // Update the next "by_value" component (filter column conditions added after this condition).
     // Its list of values has to be updated. As the new values by default are unchecked,
     // the further component update is unnecessary.
-    //
-    // A data change skips this: the dependent list is scoped by THIS column's conditions, and a
-    // data change leaves those alone. Rewriting it here would narrow what the user sees for a
-    // filter that never changed, and the narrowed set is what the next OK would store.
-    if (!stateInfo.skipDependentColumns && stateInfo.dependentConditionStacks.length) {
+    if (stateInfo.dependentConditionStacks.length) {
       updateColumnState(
         stateInfo.dependentConditionStacks[0].column,
         stateInfo.dependentConditionStacks[0].conditions,

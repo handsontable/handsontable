@@ -153,6 +153,47 @@ test.describe('Filters — "filter by value" list', () => {
     expect(await grid.columnValues(1)).toEqual(['Red', 'Green', 'Green']);
   });
 
+  test('confirming a list whose every shown value is ticked keeps the rest of the filter',
+    async({ page, theme, bundle }) => {
+      const grid = new FiltersValueListPage(page, theme, bundle);
+
+      await grid.goto();
+
+      // Name goes first, so the Color list is scoped by it.
+      await grid.openMenu('Name');
+      await grid.uncheckValue('Eve');
+      await grid.confirmMenu();
+
+      await grid.openMenu('Color');
+      await grid.uncheckValue('Blue');
+      await grid.confirmMenu();
+
+      // Narrow Name until the only Color left in scope is Green - which is ticked. Every value the
+      // Color list can show is now selected, but Red and Blue are still part of the filter.
+      await grid.openMenu('Name');
+      await grid.uncheckValue('Alice');
+      await grid.uncheckValue('Charlie');
+      await grid.confirmMenu();
+
+      await grid.openMenu('Color');
+
+      expect(await grid.listedValues()).toEqual([
+        { checked: true, label: 'Green' },
+      ]);
+
+      // "Everything on screen is ticked" must not be read as "there is no filter here". Confirming
+      // untouched used to drop the Color condition outright, taking the excluded Blue with it.
+      await grid.confirmMenu();
+
+      await grid.openMenu('Name');
+      await grid.checkValue('Alice');
+      await grid.checkValue('Charlie');
+      await grid.confirmMenu();
+
+      // Charlie is Blue, which the user excluded, so he must stay filtered out.
+      expect(await grid.columnValues(0)).toEqual(['Alice', 'Bob', 'Dave']);
+    });
+
   test('"Clear" also clears the selected values the list cannot show', async({ page, theme, bundle }) => {
     const grid = new FiltersValueListPage(page, theme, bundle);
 

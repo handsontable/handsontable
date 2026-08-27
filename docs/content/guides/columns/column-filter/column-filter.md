@@ -738,6 +738,52 @@ const hot = new Handsontable(container, {
 
 :::
 
+::: only-for angular
+
+```ts
+settings = {
+  dropdownMenu: true,
+  filters: true,
+  afterChange(changes: any, source: string) {
+    if (source === 'loadData' || !changes) {
+      return;
+    }
+
+    this.getPlugin('filters').filter();
+  },
+};
+```
+
+```html
+<hot-table [settings]="settings"></hot-table>
+```
+
+:::
+
+::: only-for vue
+
+```vue
+<template>
+  <hot-table :settings="settings"></hot-table>
+</template>
+
+<script setup>
+const settings = {
+  dropdownMenu: true,
+  filters: true,
+  afterChange(changes, source) {
+    if (source === 'loadData' || !changes) {
+      return;
+    }
+
+    this.getPlugin('filters').filter();
+  },
+};
+</script>
+```
+
+:::
+
 ::: tip
 
 The **Filter by value** list of a column only holds the values present in the rows that pass the

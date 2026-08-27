@@ -1159,15 +1159,14 @@ export class Filters extends BasePlugin {
    * rows surviving the *other* columns' conditions, so a value typed into a filtered column appears
    * in the list unchecked instead of being added to the condition (issue #6471).
    *
-   * The columns filtered after this one keep the state they already hold. Their lists are scoped by
-   * this column's conditions, which a data change does not touch, so rewriting them here would only
-   * narrow what the user sees for a filter that did not change.
+   * The columns filtered after this one are refreshed too, so their lists follow the new data. Their
+   * selections survive that refresh, including the values their lists cannot show.
    *
    * @private
    * @param {number} columnIndex Physical column index of handled ValueComponent condition.
    */
   updateValueComponentCondition(columnIndex: number) {
-    this.conditionUpdateObserver?.updateStatesAtColumn(columnIndex, { skipDependentColumns: true });
+    this.conditionUpdateObserver?.updateStatesAtColumn(columnIndex);
   }
 
   /**

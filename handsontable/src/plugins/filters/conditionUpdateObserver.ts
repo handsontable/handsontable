@@ -171,11 +171,8 @@ class ConditionUpdateObserver {
    * Update all related states which should be changed after invoking changes applied to current column.
    *
    * @param {number} column The column index.
-   * @param {object} [options] Update options.
-   * @param {boolean} [options.skipDependentColumns] When `true`, only the edited column's state is
-   * refreshed and the columns filtered after it keep the state they already hold.
    */
-  updateStatesAtColumn(column: number, options?: { skipDependentColumns?: boolean }) {
+  updateStatesAtColumn(column: number) {
     if (this.grouping) {
       if (this.changes.indexOf(column) === -1) {
         this.changes.push(column);
@@ -184,16 +181,15 @@ class ConditionUpdateObserver {
       return;
     }
 
-    this.#withColumnDataCache(() => this.#updateStatesAtColumnInternal(column, options));
+    this.#withColumnDataCache(() => this.#updateStatesAtColumnInternal(column));
   }
 
   /**
    * Performs the actual state update for the column. Runs with the full-column data memo active.
    *
    * @param {number} column The column index.
-   * @param {object} [options] Update options, forwarded to the `update` hook.
    */
-  #updateStatesAtColumnInternal(column: number, options?: { skipDependentColumns?: boolean }) {
+  #updateStatesAtColumnInternal(column: number) {
     const allConditions = this.conditionCollection.exportAllConditions();
     let editedColumnPosition = this.conditionCollection.getColumnStackPosition(column);
 
@@ -252,8 +248,7 @@ class ConditionUpdateObserver {
     this.runLocalHooks('update', {
       editedConditionStack: { column, conditions: editedConditions },
       dependentConditionStacks: conditionsAfter,
-      filteredRowsFactory: visibleDataFactory,
-      skipDependentColumns: options?.skipDependentColumns === true
+      filteredRowsFactory: visibleDataFactory
     });
   }
 
