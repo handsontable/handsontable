@@ -352,13 +352,15 @@ Both [`getData()`](@/api/core.md#getdata) and [`getSourceData()`](@/api/core.md#
 
 Unmerging does not restore the cleared values. If you need the original values back, keep a copy before merging, or restore them yourself in a [`beforeUnmergeCells`](@/api/hooks.md#beforeunmergecells) or [`afterUnmergeCells`](@/api/hooks.md#afterunmergecells) handler.
 
-### Clearing runs once per merged range
+### Re-applying the same configuration
 
-A merged range clears its covered cells when it is first applied, not every time the configuration is read. Passing the same `mergeCells` value to [`updateSettings()`](@/api/core.md#updatesettings) again keeps the merge and changes nothing else: no cells are cleared a second time, and no [`beforeChange`](@/api/hooks.md#beforechange) or [`afterChange`](@/api/hooks.md#afterchange) event fires. Adding a range to the configuration clears only that new range.
+Re-applying a `mergeCells` value through [`updateSettings()`](@/api/core.md#updatesettings) clears only the cells that still hold a value. A range whose cells are already empty changes no data, so it fires no [`beforeChange`](@/api/hooks.md#beforechange) or [`afterChange`](@/api/hooks.md#afterchange) event.
 
-This matters when a framework wrapper resends every option on each render. React and Angular do, so without it a store-driven app would keep receiving change events for values that never changed.
+This depends on the clearing write reaching the data. If you cancel it -- by returning `false` from `beforeChange`, or with a validator that rejects `null` while [`allowInvalid`](@/api/options.md#allowinvalid) is `false` -- the covered cells keep their values, and every re-apply tries to clear them again.
 
-One consequence: if you pass new `data` alongside an unchanged `mergeCells` value, the covered cells of the new data keep their values.
+This matters when a framework wrapper resends every option on each render. React and Angular do. Without it, an app that writes those events back into a store keeps receiving changes for values that never changed, and the two can keep triggering each other.
+
+Nothing else about the clearing changes. A range still clears its covered cells the first time you apply it, even where those cells are already empty. And if new values arrive in a covered range -- because you passed new `data`, or because sorting, filtering, or a row move brought other rows under the range -- the next re-apply clears them, then stays quiet:
 
 ```js
 hot.updateSettings({
@@ -366,10 +368,8 @@ hot.updateSettings({
   mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }], // unchanged
 });
 
-hot.getDataAtCell(0, 1); // -> 'B1', not null
+hot.getDataAtCell(0, 1); // -> null, cleared as usual
 ```
-
-[`loadData()`](@/api/core.md#loaddata) and [`updateData()`](@/api/core.md#updatedata) behave the same way. To clear the covered cells of a fresh dataset, unmerge the range and merge it again, or clear those cells yourself.
 
 ## Effect on viewport getter methods
 

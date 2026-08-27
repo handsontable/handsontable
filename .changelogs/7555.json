@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Fixed a bug where re-applying an unchanged `mergeCells` configuration through `updateSettings()` cleared the merged-away cells again, emitting `beforeChange` and `afterChange` for values that did not change. In React and Angular, which resend every setting on each render, this looped until the framework aborted it. A merge area that was already applied now keeps its merge but skips the data population, extending the configuration populates only the newly added areas, and `updateSettings({ data, mergeCells })` now leaves the new data alone just as `loadData()` already did.",
+  "title": "Fixed a bug where re-applying an unchanged `mergeCells` configuration through `updateSettings()` cleared the merged-away cells again, firing `beforeChange` and `afterChange` for values that did not change. A re-applied merge area now clears only the cells that still hold a value.",
   "type": "fixed",
   "issueOrPR": 7555,
   "breaking": false,

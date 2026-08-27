@@ -45,18 +45,9 @@ The following example implements the `@handsontable/react-wrapper` component wit
 
 The reducer above returns the previous state object when no value actually changed. Keep that guard in your own reducer.
 
-Not every change comes from the user. Plugins write to the grid as well: [`mergeCells`](@/api/options.md#mergecells) clears the cells that a merge area covers. Those writes reach [`beforeChange`](@/api/hooks.md#beforechange) too, and the hook's second argument tells you where a change came from -- `'edit'` for a user edit, and the plugin's registered name for a plugin write. That name is capitalized, so the merge plugin's writes arrive as `'MergeCells'`, not `'mergeCells'`:
+Not every change comes from the user. Plugins write to the grid as well: [`mergeCells`](@/api/options.md#mergecells) clears the cells that a merge area covers. Those writes reach [`beforeChange`](@/api/hooks.md#beforechange) too, and the hook's second argument tells you where a change came from -- `'edit'` for a user edit, and the plugin's registered name for a plugin write. That name is capitalized, so the merge plugin's writes arrive as `'MergeCells'`, not `'mergeCells'`. See [Definition for `source` argument](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument) for the full list.
 
-```js
-const onBeforeHotChange = (changes, source) => {
-  if (source === 'MergeCells') {
-    // decide here whether these belong in your store
-  }
-  // ...
-};
-```
-
-See [Definition for `source` argument](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument) for the full list.
+Dispatch those writes like any other change. The example returns `false` from `beforeChange`, so the store is the only thing that can apply them. Drop them and the covered cells keep their values, the plugin tries to clear them again on the next render, and the two keep triggering each other. Use `source` to label a change, not to skip it.
 
 A reducer that returns a new state object on every action re-renders the component, which resends the settings to the grid. Without the guard, a plugin write and a re-render can keep triggering each other.
 

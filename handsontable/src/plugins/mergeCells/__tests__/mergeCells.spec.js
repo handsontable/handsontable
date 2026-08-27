@@ -455,6 +455,7 @@ describe('MergeCells', () => {
 
     it('should not emit the change hooks again when the `mergeCells` config is re-applied unchanged (#7555)', async() => {
       const beforeChange = jasmine.createSpy('beforeChange');
+      const afterChange = jasmine.createSpy('afterChange');
 
       handsontable({
         data: [
@@ -464,6 +465,7 @@ describe('MergeCells', () => {
         ],
         mergeCells: [{ row: 1, col: 0, rowspan: 2, colspan: 2 }],
         beforeChange,
+        afterChange,
       });
 
       // The first application clears every cell the merge area covers except its anchor.
@@ -475,6 +477,7 @@ describe('MergeCells', () => {
       ]);
 
       beforeChange.calls.reset();
+      afterChange.calls.reset();
 
       // Framework wrappers resend every setting on each render, so an unchanged `mergeCells` value
       // arrives again. Re-clearing the same cells would write nothing but still emit, which loops a
@@ -484,6 +487,7 @@ describe('MergeCells', () => {
       });
 
       expect(beforeChange.calls.count()).toBe(0);
+      expect(afterChange.calls.count()).toBe(0);
       expect(getData()).toEqual([
         ['A1', 'B1', 'C1'],
         ['A2', null, 'C2'],
@@ -519,7 +523,63 @@ describe('MergeCells', () => {
       ]);
     });
 
-    it('should leave the covered cells of newly passed data alone when `mergeCells` is unchanged', async() => {
+    it('should stay quiet on a re-apply when a `valueGetter` makes a cleared cell read back non-null', async() => {
+      const beforeChange = jasmine.createSpy('beforeChange');
+
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2'],
+          ['A3', 'B3', 'C3'],
+        ],
+        // The displayed value of a cleared cell is no longer `null`, so the decision to skip has to
+        // read the stored value instead.
+        columns: [{ valueGetter: value => value ?? 'N/A' }, { valueGetter: value => value ?? 'N/A' }, {}],
+        mergeCells: [{ row: 1, col: 0, rowspan: 2, colspan: 2 }],
+        beforeChange,
+      });
+
+      beforeChange.calls.reset();
+
+      await updateSettings({ mergeCells: [{ row: 1, col: 0, rowspan: 2, colspan: 2 }] });
+      await updateSettings({ mergeCells: [{ row: 1, col: 0, rowspan: 2, colspan: 2 }] });
+
+      expect(beforeChange.calls.count()).toBe(0);
+      expect(getSourceData()).toEqual([
+        ['A1', 'B1', 'C1'],
+        ['A2', null, 'C2'],
+        [null, null, 'C3'],
+      ]);
+    });
+
+    it('should keep trying to clear a covered cell whose clearing write is cancelled', async() => {
+      // Documented limitation: the skip is decided from the stored value, so a handler that refuses
+      // the write leaves the cell filled and every re-apply tries again.
+      const beforeChange = jasmine.createSpy('beforeChange').and.returnValue(false);
+
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2'],
+          ['A3', 'B3', 'C3'],
+        ],
+        mergeCells: [{ row: 1, col: 0, rowspan: 2, colspan: 2 }],
+        beforeChange,
+      });
+
+      beforeChange.calls.reset();
+
+      await updateSettings({ mergeCells: [{ row: 1, col: 0, rowspan: 2, colspan: 2 }] });
+
+      expect(beforeChange.calls.count()).toBe(1);
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+        ['A3', 'B3', 'C3'],
+      ]);
+    });
+
+    it('should still clear the covered cells of newly passed data when `mergeCells` is unchanged', async() => {
       const beforeChange = jasmine.createSpy('beforeChange');
 
       handsontable({
@@ -534,7 +594,8 @@ describe('MergeCells', () => {
 
       beforeChange.calls.reset();
 
-      // Same behavior as `loadData()`, which never re-cleared the covered cells either.
+      // The new data brings real values back into the covered cells, so they are cleared again. Only
+      // a re-apply that would change nothing is skipped.
       await updateSettings({
         data: [
           ['X1', 'Y1', 'Z1'],
@@ -544,10 +605,10 @@ describe('MergeCells', () => {
         mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }],
       });
 
-      expect(beforeChange.calls.count()).toBe(0);
+      expect(beforeChange.calls.count()).toBe(1);
       expect(getData()).toEqual([
-        ['X1', 'Y1', 'Z1'],
-        ['X2', 'Y2', 'Z2'],
+        ['X1', null, 'Z1'],
+        [null, null, 'Z2'],
         ['X3', 'Y3', 'Z3'],
       ]);
     });
@@ -569,19 +630,38 @@ describe('MergeCells', () => {
         beforeChange,
       });
 
-      // Sorting re-anchors the merge onto its new visual position, so the area no longer matches the
-      // key the config declares. The next re-apply therefore populates once more — and after that the
-      // collection is back in sync with the config, so further re-applies stay silent.
+      // Sorting moves other rows under the merge area, so the covered cells hold values again.
       getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      expect(getData()).toEqual([
+        ['A4', 'B4', 1],
+        ['A5', 'B5', 2],
+        ['A2', null, 3],
+        [null, null, 4],
+        ['A1', 'B1', 5],
+      ]);
 
       beforeChange.calls.reset();
 
       await updateSettings({ mergeCells });
 
+      // Those values are cleared once, and only the cells that still held one are touched.
       expect(beforeChange.calls.count()).toBe(1);
+      expect(beforeChange.calls.mostRecent().args[0]).toEqual([
+        [1, 1, 'B5', null],
+        [2, 0, 'A2', null],
+      ]);
+      expect(getData()).toEqual([
+        ['A4', 'B4', 1],
+        ['A5', null, 2],
+        [null, null, 3],
+        [null, null, 4],
+        ['A1', 'B1', 5],
+      ]);
 
       beforeChange.calls.reset();
 
+      // From here the area is empty again, so further re-applies stay silent.
       await updateSettings({ mergeCells });
       await updateSettings({ mergeCells });
 

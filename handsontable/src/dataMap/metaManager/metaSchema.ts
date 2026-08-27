@@ -4296,11 +4296,13 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
-     * A merged range clears the cells it covers when it is first applied. Passing the same value to
-     * [`updateSettings()`](@/api/core.md#updatesettings) again keeps the merge but clears nothing a
-     * second time, and fires no `beforeChange` or `afterChange` event. Adding a range to the array
-     * clears only that new range. As a result, passing new `data` alongside an unchanged `mergeCells`
-     * value leaves the covered cells of that new data intact, the same way `loadData()` does.
+     * A merged range clears the cells it covers. Re-applying the same value through
+     * [`updateSettings()`](@/api/core.md#updatesettings) clears only the cells that still hold a
+     * value, so a range that is already empty fires no `beforeChange` or `afterChange` event. Values
+     * that come back into a covered range — through new `data`, a sort, a filter, or a row move — are
+     * cleared on the next re-apply, as before. This assumes the clearing write reaches the data:
+     * cancel it (a `beforeChange` returning `false`, or a validator rejecting `null`) and every
+     * re-apply tries again.
      *
      * Read more:
      * - [Merge cells](@/guides/cell-features/merge-cells/merge-cells.md)
