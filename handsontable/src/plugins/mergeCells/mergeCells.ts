@@ -507,13 +507,15 @@ export class MergeCells extends BasePlugin {
    */
   #getStoredValueAt(row: number, column: number): unknown {
     const physicalRow = this.hot.toPhysicalRow(row);
-    const physicalColumn = this.hot.toPhysicalColumn(column);
 
-    if (physicalRow === null || physicalColumn === null) {
+    if (physicalRow === null) {
       return undefined;
     }
 
-    return this.hot.getSourceDataAtCell(physicalRow, physicalColumn);
+    // `getSourceDataAtCell()` takes a physical row but a *visual* column — it runs `colToProp()`,
+    // which translates to physical itself. Translating the column here as well would translate it
+    // twice and read a different cell whenever the two orders differ.
+    return this.hot.getSourceDataAtCell(physicalRow, column);
   }
 
   /**

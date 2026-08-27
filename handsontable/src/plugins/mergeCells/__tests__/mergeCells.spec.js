@@ -523,6 +523,34 @@ describe('MergeCells', () => {
       ]);
     });
 
+    it('should stay quiet on a re-apply when the visual and physical column order differ', async() => {
+      const beforeChange = jasmine.createSpy('beforeChange');
+      const mergeCells = [{ row: 0, col: 0, rowspan: 2, colspan: 2 }];
+
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2'],
+          ['A3', 'B3', 'C3'],
+        ],
+        // Visual column 0 is physical 2, visual 1 is physical 0. Reading the stored value with a
+        // physical index would land on the anchor column and see a value that was never cleared.
+        manualColumnMove: [2, 0, 1],
+        mergeCells,
+        beforeChange,
+      });
+
+      const dataAfterMerge = getData();
+
+      beforeChange.calls.reset();
+
+      await updateSettings({ mergeCells });
+      await updateSettings({ mergeCells });
+
+      expect(beforeChange.calls.count()).toBe(0);
+      expect(getData()).toEqual(dataAfterMerge);
+    });
+
     it('should stay quiet on a re-apply when a `valueGetter` makes a cleared cell read back non-null', async() => {
       const beforeChange = jasmine.createSpy('beforeChange');
 
