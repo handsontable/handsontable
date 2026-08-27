@@ -79,13 +79,20 @@ export class AutocompleteEditor extends HandsontableEditor {
    */
   #idPrefix = this.hot.guid.slice(0, 9);
   /**
-   * Generation token for the in-flight choices query. Bumped on every `queryChoices()` call and on
-   * every `close()`, so a response that no longer belongs to the edit in progress can be told apart
-   * from the one the editor is waiting for.
+   * Generation token for the in-flight choices query. Bumped on every `queryChoices()` call, so a
+   * response belonging to a superseded query can be told apart from the one the editor is waiting
+   * for.
    *
    * @type {number}
    */
   #queryGeneration = 0;
+  /**
+   * Edit-session token. Bumped on every `close()`, so work scheduled during one edit can tell that
+   * the edit has ended - which neither `state` nor `_opened` reports reliably.
+   *
+   * @type {number}
+   */
+  #editSession = 0;
 
   /**
    * Gets current value from editable element.
@@ -286,7 +293,16 @@ export class AutocompleteEditor extends HandsontableEditor {
       setAttribute(this.TEXTAREA, ...A11Y_EXPANDED('true'));
     }
 
+    // The editor can be closed again before this fires - `refreshDimensions()` does exactly that
+    // from inside `open()` when the cell is off-viewport - so carry the session and drop the query
+    // rather than reopening the list over a cell that is no longer being edited.
+    const editSession = this.#editSession;
+
     this.hot._registerTimeout(() => {
+      if (editSession !== this.#editSession) {
+        return;
+      }
+
       this.queryChoices(this.TEXTAREA.value);
     });
   }
@@ -295,15 +311,12 @@ export class AutocompleteEditor extends HandsontableEditor {
    * Closes the editor.
    */
   close(): void {
-    // Invalidates every query still in flight. Closing is the one event that reliably means "no
-    // response is wanted any more", and it is the only one: `state` stays `EDITING` when
-    // `refreshDimensions()` closes an editor whose cell scrolled out of the rendered range
-    // (`TextEditor.refreshDimensions`) and when `afterSetTheme` closes one (`assignHooks`), and
-    // `_opened` stays false after that same cell scrolls back and the editor is shown again.
-    // Bumping here also covers the gap between a close and the next `queryChoices()`: reopening at
-    // another cell only schedules its own query on a timeout, so without this a response for the
-    // previous cell could land first and still match.
-    this.#queryGeneration += 1;
+    // Ends the edit session, which invalidates every query in flight and every query still waiting
+    // on a timeout. Closing is the one event that reliably means "no response is wanted any more":
+    // `state` stays `EDITING` when `refreshDimensions()` closes an editor whose cell scrolled out
+    // of the rendered range and when `afterSetTheme` closes one (`assignHooks`), and `_opened`
+    // stays false after that same cell scrolls back and the editor is shown again.
+    this.#editSession += 1;
 
     this.removeHooksByKey('beforeKeyDown');
     super.close();
@@ -344,7 +357,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     // false after `refreshDimensions()` closes an editor whose cell scrolled out of view and then
     // shows it again on the way back, without ever restoring the flag. A guard on it would leave
     // the suggestion list dead for the rest of such an edit. The close paths `state` cannot see are
-    // handled by the generation bump in `close()` instead.
+    // handled by the edit-session token instead, carried by each caller across its timeout.
     if (this.state !== EDITOR_STATE.EDITING) {
       return;
     }
@@ -352,6 +365,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     type SourceValue = unknown[] | ((query: string, callback: (choices: unknown[]) => void) => void);
     const source = this.cellProperties.source as SourceValue | undefined;
     const generation = this.#queryGeneration + 1;
+    const editSession = this.#editSession;
 
     this.#queryGeneration = generation;
     this.query = query;
@@ -362,13 +376,12 @@ export class AutocompleteEditor extends HandsontableEditor {
       (source as SourceFn).call(this.cellProperties, query, (choices: unknown[]) => {
         // A user-supplied source answers whenever it likes, and `HandsontableEditor.close()` only
         // hides the nested grid, so a late response can still re-show the dropdown and pull focus
-        // back through `hot.listen()`. The generation carries the whole "is this still wanted"
-        // question: it moves on every close and on every newer query, and those are the only two
-        // ways a response stops being the one the editor is waiting for. Deliberately no state
-        // check here - a response landing while an async validator holds the editor in `WAITING`
+        // back through `hot.listen()`. Two ways a response stops being the one the editor waits
+        // for, one token each: the edit ended, or a newer query superseded it. Deliberately no
+        // state check - a response landing while an async validator holds the editor in `WAITING`
         // belongs to the still-open editor, and rejecting it would leave the list empty for the
         // rest of the edit when `allowInvalid: false` sends the state back to `EDITING`.
-        if (generation !== this.#queryGeneration) {
+        if (editSession !== this.#editSession || generation !== this.#queryGeneration) {
           return;
         }
 
@@ -724,11 +737,18 @@ export class AutocompleteEditor extends HandsontableEditor {
         timeOffset += 10;
       }
 
-      if (this.htEditor) {
-        this.hot._registerTimeout(() => {
-          this.queryChoices(this.TEXTAREA.value);
-        }, timeOffset);
-      }
+      // Carried across the delay for the same reason as in `open()`: a close landing inside the
+      // 10-20 ms window leaves `state` at `EDITING` on the scroll-out and theme paths, so without
+      // the session the timeout would start a fresh query against a closed editor.
+      const editSession = this.#editSession;
+
+      this.hot._registerTimeout(() => {
+        if (editSession !== this.#editSession) {
+          return;
+        }
+
+        this.queryChoices(this.TEXTAREA.value);
+      }, timeOffset);
     }
   }
 }

@@ -84,6 +84,29 @@
       return pending.length;
     };
 
+    /**
+     * Schedules the editor's own deferred `queryChoices()` through a real keydown, then closes the
+     * editor synchronously - the same call `TextEditor.refreshDimensions()` makes when the edited
+     * cell scrolls out of the rendered range. Doing both in one turn is the only way to land a
+     * close inside the timeout's 10-20 ms window: no round trip from the spec is that fast, and
+     * `close()` unregisters the `beforeKeyDown` hook, so a later keystroke cannot schedule one.
+     *
+     * Resolves after 50 ms, which is strictly longer than the editor's own delay, so by then that
+     * timeout has provably either run or bailed. The wait is an ordering guarantee, not a guess.
+     */
+    window.htScheduleQueryThenClose = function() {
+      const editor = window.hot.getActiveEditor();
+
+      editor.TEXTAREA.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 65, bubbles: true }));
+      editor.close();
+
+      return new Promise(resolve => setTimeout(resolve, 50));
+    };
+
+    window.htQueryCount = function() {
+      return window.htPendingQueries.length;
+    };
+
     window.htPendingCount = function(col) {
       return window.htPendingQueries.filter(entry => entry.col === col && !entry.resolved).length;
     };

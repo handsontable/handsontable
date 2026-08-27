@@ -140,5 +140,26 @@ EDITORS.forEach((editor) => {
       expect(await grid.dropdownChoices()).toEqual([]);
       expect(await grid.listenCount()).toBe(listenCountBeforeResponse);
     });
+
+    test('starts no new query when a timeout scheduled before the close fires after it', async() => {
+      await grid.openEditor(0, 0);
+
+      const queriesBefore = await grid.totalQueryCount();
+
+      // Invalidating the query already in flight is not enough on its own. A `queryChoices()`
+      // timeout scheduled in the 10-20 ms before the close still fires afterwards, and `state` is
+      // `EDITING` by then, so it would start a FRESH query - current by every other measure - and
+      // re-show the list over the closed editor once that one answered.
+      await grid.scheduleQueryThenClose();
+
+      expect(await grid.editorState()).toBe('STATE_EDITING');
+      expect(await grid.isEditorOpen()).toBe(false);
+      expect(await grid.totalQueryCount()).toBe(queriesBefore);
+
+      await grid.resolveQueries(0);
+
+      expect(await grid.isDropdownShown()).toBe(false);
+      expect(await grid.dropdownChoices()).toEqual([]);
+    });
   });
 });

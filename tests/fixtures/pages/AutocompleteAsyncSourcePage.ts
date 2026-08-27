@@ -21,6 +21,8 @@ interface FixtureWindow extends Window {
   htResolveQueries(col: number): number;
   htPendingCount(col: number): number;
   htChoices: string[][];
+  htScheduleQueryThenClose(): Promise<void>;
+  htQueryCount(): number;
 }
 
 interface PageOptions {
@@ -218,6 +220,21 @@ export class AutocompleteAsyncSourcePage {
     await this.page.evaluate(target => {
       (window as unknown as FixtureWindow).hot.scrollViewportTo({ row: target, verticalSnap: 'top' });
     }, row);
+  }
+
+  /**
+   * Lands a close inside the window of an already-scheduled `queryChoices()` timeout, then returns
+   * once that timeout has run or bailed. See the fixture for why both halves happen page-side.
+   */
+  async scheduleQueryThenClose(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as FixtureWindow).htScheduleQueryThenClose());
+  }
+
+  /**
+   * Returns how many queries the `source` has been asked for since the page loaded, answered or not.
+   */
+  async totalQueryCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).htQueryCount());
   }
 
   /**
