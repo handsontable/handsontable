@@ -1488,8 +1488,8 @@ export class Formulas extends BasePlugin {
    * `cells` function.
    *
    * @param {*} value Value read from the engine.
-   * @param {number} visualRow Visual row index of the value's cell.
-   * @param {number} visualColumn Visual column index of the value's cell.
+   * @param {number} visualRow Visual row index of the cell whose meta the escape was applied from.
+   * @param {number} visualColumn Visual column index of the cell whose meta the escape was applied from.
    * @returns {*} The unescaped value, or the original value when no unescaping applies.
    */
   #unescapeEngineBoundValueAt(value: unknown, visualRow: number, visualColumn: number): unknown {
@@ -2216,15 +2216,20 @@ export class Formulas extends BasePlugin {
 
     const dependentCells: unknown[] = [];
     const changedCells: unknown[] = [];
+    const metaManager = this.hot._getMetaManager();
 
     changes.forEach(([physicalRow, prop, , newValue]) => {
       if (typeof prop !== 'string' && typeof prop !== 'number') {
         return;
       }
 
-      // This hook reports physical rows, so the index has to be translated before it feeds the
-      // engine address or a cell meta read. The fallback keeps rows that have no visual equivalent
-      // (trimmed ones, which the engine is fed with as well) pointing at their own index.
+      // This hook reports physical rows, and the engine holds trimmed rows as well – so the engine
+      // row index is resolved straight out of the physical one. Going through the visual index
+      // instead would have no answer for a trimmed row, and the fallback of reading its physical
+      // index as a visual one lands on a different row of the engine.
+      // The visual row is still resolved, because the cell meta read below needs it as its hook
+      // context; a trimmed row keeps its own index there, which is what a meta hook that has no
+      // visual cell to talk about gets.
       const visualRow = this.hot.toVisualRow(physicalRow) ?? physicalRow;
       // `propToCol` already returns a visual column index – it resolves the prop, or a physical
       // column index for array-based data, through `toVisualColumn`.
@@ -2235,7 +2240,7 @@ export class Formulas extends BasePlugin {
       }
 
       const address = {
-        row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
+        row: this.rowAxisSyncer!.getHfIndexFromPhysicalIndex(physicalRow),
         col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
         sheet: this.sheetId
       };
@@ -2248,7 +2253,15 @@ export class Formulas extends BasePlugin {
 
       newValue = normalizeValueForFormulaEngine(newValue);
 
-      const cellMeta = this.hot.getCellMetaTransient(visualRow, visualColumn);
+      // The meta is read by PHYSICAL coordinates, with the visual pair passed only as the hook
+      // context the way `#escapeSourceDataArray` does it. Reading it through the visual row would
+      // resolve a trimmed row's index fallback back into a DIFFERENT physical row, so the escaping
+      // would consult a visible neighbor's meta instead of the written cell's own.
+      const physicalColumn = this.hot.toPhysicalColumn(visualColumn) ?? visualColumn;
+      const cellMeta = metaManager.getCellMetaTransient(
+        physicalRow, physicalColumn,
+        { visualRow, visualColumn },
+      );
 
       if (isPreservedText(newValue, cellMeta)) {
         // Escaping the value from the engine's value parsing using the "'" sign
@@ -2931,10 +2944,14 @@ export class Formulas extends BasePlugin {
         });
 
         // The serialized content keeps the escape apostrophe that dates and preserved text values
-        // were written with, so it is unescaped before it goes back into the grid.
+        // were written with, so it is unescaped before it goes back into the grid. The meta comes
+        // from the SOURCE cell, which is what the escape was applied from – `preserveTextValue` and
+        // `type` do not travel with a moved cell, so reading the destination's meta would leave the
+        // apostrophe in the grid whenever the value lands on a cell that declares neither. This is
+        // the same source-meta rule the autofill path (`#onBeforeAutofill`) already follows.
         row.push(serialized === null || serialized === undefined
           ? null
-          : this.#unescapeEngineBoundValueAt(serialized, tgtFromRow + r, tgtFromCol + c));
+          : this.#unescapeEngineBoundValueAt(serialized, srcFromRow + r, srcFromCol + c));
       }
 
       targetData.push(row);

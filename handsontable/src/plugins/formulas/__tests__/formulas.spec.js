@@ -4011,6 +4011,42 @@ describe('Formulas general', () => {
       ]);
     });
 
+    it('should respect preserveTextValue when setting source data at a trimmed row', async() => {
+      handsontable({
+        data: [['a'], ['b'], ['c']],
+        // `cells()` is called with physical coordinates, and only physical row 1 – the trimmed row –
+        // is marked as a preserved text cell. Neither of the visible rows is, so an escape appearing
+        // on one of them means the write consulted the wrong row's meta.
+        cells(row, column) {
+          if (row === 1 && column === 0) {
+            return { type: 'text', preserveTextValue: true };
+          }
+
+          return { type: 'text' };
+        },
+        trimRows: [1],
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      // `setSourceDataAtCell` takes a physical row index, and `afterSetSourceDataAtCell` reports it
+      // unchanged. Physical row 1 is trimmed, so it has no visual index at all – reading its meta or
+      // its engine address through the visual index space falls back to reading the physical index
+      // as a visual one, which resolves to physical row 2 (the third row) instead.
+      await setSourceDataAtCell(1, 0, '0123456');
+
+      const formulasPlugin = getPlugin('formulas');
+
+      // The engine holds trimmed rows too, so the written value stays in the engine's second row,
+      // escaped – and neither visible row is touched.
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['a'],
+        ['\'0123456'],
+        ['c'],
+      ]);
+    });
+
     it('should escape preserved values correctly for array-of-objects data with moved columns', async() => {
       handsontable({
         data: [{ id: '0123456', name: 'a' }, { id: '7654321', name: 'b' }],
@@ -4238,6 +4274,45 @@ describe('Formulas general', () => {
       expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
         [],
         ['\'0123456', '\'13/45/2021'],
+      ]);
+    });
+
+    it('should not leak the escape apostrophe into the grid when a moved preserved text cell lands ' +
+      'on a cell without the option', async() => {
+      handsontable({
+        data: [
+          ['0123456'],
+          [null],
+        ],
+        columns: [{ type: 'text' }],
+        // The option is set on the source cell alone. It is not a movable meta key, so the move
+        // target keeps its plain text meta – the unescaping has to read the meta the escape was
+        // applied from, not the one the value lands on.
+        cell: [{ row: 0, col: 0, preserveTextValue: true }],
+        moveCells: true,
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['\'0123456'],
+      ]);
+
+      await selectCells([[0, 0, 0, 0]]);
+
+      getPlugin('moveCells').moveCellRange(getSelectedRangeLast(), cellCoords(1, 0));
+
+      await waitForNextAnimationFrames(2);
+
+      expect(getDataAtCell(1, 0)).toBe('0123456');
+      expect(getSourceDataAtCell(1, 0)).toBe('0123456');
+
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        [],
+        ['\'0123456'],
       ]);
     });
   });
