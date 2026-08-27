@@ -1334,8 +1334,10 @@ export class Formulas extends BasePlugin {
     // the guarded window - and one that calls `getDataAtCell()` on a formula cell has to keep
     // receiving the calculated value, not the raw formula.
     //
-    // The previous value is saved and restored rather than cleared, so callers that already hold
-    // the flag keep it.
+    // No other site sets the flag, so the previous value is saved and restored rather than cleared
+    // for one reason only: those same third-party handlers run inside the window, and one that
+    // reaches this method again - synchronously, through `updateSettings()` or `loadData()` - would
+    // otherwise leave the rest of the outer read unguarded, which is the very defect above.
     const wasProjectionSuspended = this.#sourceDataProjectionSuspended;
 
     this.#sourceDataProjectionSuspended = true;
