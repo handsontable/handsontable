@@ -197,8 +197,9 @@ export class Pagination extends BasePlugin {
    *
    * The pagination bar renders into the bottom slot and registers a focus scope, and the
    * `LayoutManager`, the `FocusScopeManager` and the root grid element all belong to the main
-   * Handsontable instance. In a nested grid (the one that the `handsontable` cell type creates) none
-   * of them exists, so the plugin stays disabled there. A custom `uiContainer` does not change that:
+   * Handsontable instance. In a nested grid (the one the `handsontable`, `autocomplete`, and
+   * `dropdown` cell types create) none of them exists, so the plugin stays disabled there. A custom
+   * `uiContainer` does not change that:
    * it replaces the bottom-slot placement only, while the focus scope and the root grid element are
    * still required.
    *
@@ -259,9 +260,10 @@ export class Pagination extends BasePlugin {
 
     // The layout manager owns the bottom-slot placement and ordering. With a custom `uiContainer`
     // the UI installs itself there instead, so the slot registration is skipped. The manager only
-    // exists on the root instance. That half of the guard is now unreachable, since `isEnabled()`
-    // keeps the plugin disabled on a non-root instance and nothing else here survives one either; it
-    // is kept as a defensive assertion of the requirement, not as support for a nested grid.
+    // exists on the root instance. With `isEnabled()` gated on `isRootInstance` that half is always
+    // false in practice, and it stays only as a statement of the requirement, not as support for a
+    // nested grid: a direct `enablePlugin()` call on a non-root instance dies earlier, in the UI,
+    // which reads `rootGridElement`.
     if (isRootInstance(this.hot) && !this.getSetting('uiContainer')) {
       this.hot.getLayoutManager()
         .register(PLUGIN_KEY, this.#ui.getContainer(), { side: 'bottom', weight: LAYOUT_WEIGHT });
@@ -410,6 +412,7 @@ export class Pagination extends BasePlugin {
 
     this.#unregisterFocusScope();
 
+    // Mirrors the guard in `enablePlugin()`: always false in practice, see the comment there.
     if (isRootInstance(this.hot)) {
       this.hot.getLayoutManager().unregister(PLUGIN_KEY, 'bottom');
     }

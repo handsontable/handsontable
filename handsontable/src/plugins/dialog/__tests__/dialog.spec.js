@@ -235,6 +235,30 @@ describe('Dialog', () => {
       expect(innerHot.getPlugin('dialog').enabled).toBe(false);
     });
 
+    it('should not enable the plugin in a grid nested in the `autocomplete` cell type', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        columns: [{
+          type: 'autocomplete',
+          source: ['A1', 'A2'],
+          handsontable: {
+            dialog: true,
+          },
+        }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const innerHot = getActiveEditor().htEditor;
+
+      // `AutocompleteEditor` and `DropdownEditor` extend `HandsontableEditor`, so they share the
+      // `handsontable` settings passthrough and build the same non-root instance.
+      expect(getActiveEditor().isOpened()).toBe(true);
+      expect(innerHot.getPlugin('dialog').isEnabled()).toBe(false);
+      expect(innerHot.getPlugin('dialog').enabled).toBe(false);
+    });
+
     it('should keep the root instance dialog working when a nested grid asks for one too', async() => {
       handsontable({
         data: createSpreadsheetData(2, 2),

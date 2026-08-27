@@ -260,8 +260,9 @@ export class Dialog extends BasePlugin {
    * Check if the plugin is enabled in the handsontable settings.
    *
    * The dialog renders into the `ht-overlay` element and registers a modal focus scope, and both
-   * belong to the main Handsontable instance. In a nested grid (the one that the `handsontable` cell
-   * type creates) neither exists, so the plugin stays disabled there.
+   * belong to the main Handsontable instance. In a nested grid (the one the `handsontable`,
+   * `autocomplete`, and `dropdown` cell types create) neither exists, so the plugin stays disabled
+   * there.
    *
    * @returns {boolean}
    */

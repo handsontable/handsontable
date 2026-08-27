@@ -172,8 +172,9 @@ export class Loading extends BasePlugin {
    * Check if the plugin is enabled in the handsontable settings.
    *
    * The loading indicator renders through the Dialog plugin, which is available on the main
-   * Handsontable instance only. In a nested grid (the one that the `handsontable` cell type creates)
-   * there is nothing to render into, so the plugin stays disabled there.
+   * Handsontable instance only. In a nested grid (the one the `handsontable`, `autocomplete`, and
+   * `dropdown` cell types create) there is nothing to render into, so the plugin stays disabled
+   * there.
    *
    * @returns {boolean}
    */

@@ -301,8 +301,9 @@ export class EmptyDataState extends BasePlugin {
    * Check if the plugin is enabled in the handsontable settings.
    *
    * The empty data state renders into the root grid element and registers a focus scope, and both
-   * belong to the main Handsontable instance. In a nested grid (the one that the `handsontable` cell
-   * type creates) neither exists, so the plugin stays disabled there.
+   * belong to the main Handsontable instance. In a nested grid (the one the `handsontable`,
+   * `autocomplete`, and `dropdown` cell types create) neither exists, so the plugin stays disabled
+   * there.
    *
    * @returns {boolean}
    */

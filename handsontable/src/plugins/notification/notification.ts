@@ -203,8 +203,9 @@ export class Notification extends BasePlugin {
    * Returns whether the `notification` setting is enabled for this instance.
    *
    * The notification host renders into the `ht-overlay` element and registers a focus scope, and both
-   * belong to the main Handsontable instance. In a nested grid (the one that the `handsontable` cell
-   * type creates) neither exists, so the plugin stays disabled there.
+   * belong to the main Handsontable instance. In a nested grid (the one the `handsontable`,
+   * `autocomplete`, and `dropdown` cell types create) neither exists, so the plugin stays disabled
+   * there.
    *
    * @returns {boolean}
    */

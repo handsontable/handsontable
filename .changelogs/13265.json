@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a crash when the `dialog`, `notification`, `emptyDataState`, `pagination`, or `loading` option was enabled in a grid nested in a cell of the `handsontable` cell type.",
+  "title": "Fixed a crash when the `dialog`, `notification`, `emptyDataState`, `pagination`, or `loading` option was enabled in a grid nested in a cell of the `handsontable`, `autocomplete`, or `dropdown` cell type. These options now apply to the main grid only.",
   "type": "fixed",
   "issueOrPR": 13265,
   "breaking": false,
