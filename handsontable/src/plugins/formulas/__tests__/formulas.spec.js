@@ -3687,7 +3687,7 @@ describe('Formulas general', () => {
       ]);
     });
 
-    it('should read isFormulaCellType() through visual indexes for a date-typed autofill source with a trimmed row preceding it', async() => {
+    it('should resolve a date-typed autofill source that has a trimmed row preceding it', async() => {
       handsontable({
         data: [
           ['trimmed'],
@@ -3709,20 +3709,15 @@ describe('Formulas general', () => {
         trimRows: [0],
       });
 
-      const formulasPlugin = getPlugin('formulas');
-
-      spyOn(formulasPlugin, 'isFormulaCellType').and.callThrough();
-
-      // The `isDate` branch's `isFormulaCellType()` guard is fed the same HyperFormula indexes
-      // as the `preserveTextValue` meta read above it, and takes visual coordinates just the
-      // same – it must receive the translated (0, 0), never the raw HF pair (1, 0).
+      // The source's HyperFormula index (1) is not its visual index (0). Resolving the source
+      // through the wrong axis reads a different cell's meta, which drops the `date` type and with
+      // it the reformat back into the Handsontable date format.
       await selectCell(0, 0);
       autofill(2, 0);
 
       await waitForNextAnimationFrames(2);
 
-      expect(formulasPlugin.isFormulaCellType).toHaveBeenCalledWith(0, 0, formulasPlugin.sheetId);
-      expect(formulasPlugin.isFormulaCellType).not.toHaveBeenCalledWith(1, 0, formulasPlugin.sheetId);
+      expect(getDataAtCol(0)).toEqual(['2020-01-01', '2020-01-01', '2020-01-01']);
     });
 
     it('should respect the option set at the grid level (cascading configuration)', async() => {

@@ -1822,6 +1822,14 @@ export class Formulas extends BasePlugin {
     } = engineSourceRange.end;
     const populationRowLength = sourceEndRow - sourceStartRow + 1;
     const populationColumnLength = sourceEndColumn - sourceStartColumn + 1;
+    const metaManager = this.hot._getMetaManager();
+    // An engine index outside the dataset has no physical counterpart – the engine extends its own
+    // sheet dimensions to calculate values – so it falls back to being read as a physical index.
+    const toPhysical = (syncer: AxisSyncer | null, hfIndex: number) => {
+      const physicalIndex = syncer?.getPhysicalIndexFromHfIndex(hfIndex) ?? -1;
+
+      return physicalIndex === -1 ? hfIndex : physicalIndex;
+    };
 
     for (let populatedRowIndex = 0; populatedRowIndex < fillRangeData.length; populatedRowIndex += 1) {
       for (let populatedColumnIndex = 0; populatedColumnIndex < fillRangeData[populatedRowIndex].length;
@@ -1832,20 +1840,33 @@ export class Formulas extends BasePlugin {
         // moves do not diverge them: a move resyncs HF's own row/column order to match visual order.
         const sourceRow = sourceStartRow + (populatedRowIndex % populationRowLength);
         const sourceColumn = sourceStartColumn + (populatedColumnIndex % populationColumnLength);
-        // `getCellMeta()` and `isFormulaCellType()` both take visual coordinates – translate once
-        // and reuse for both, rather than feeding either the raw HF pair above. `-1` (no visual
-        // counterpart, i.e. a trimmed source) cannot happen here: the source is always the current
-        // selection, and a trimmed cell can never be selected.
-        const visualSourceRow = this.rowAxisSyncer!.getVisualIndexFromHfIndex(sourceRow);
-        const visualSourceColumn = this.columnAxisSyncer!.getVisualIndexFromHfIndex(sourceColumn);
-        const sourceCellMeta = this.hot.getCellMeta(visualSourceRow, visualSourceColumn);
+        // The meta is read by PHYSICAL coordinates, the way `#escapeSourceDataArray` and
+        // `#onAfterSetSourceDataAtCell` read it, with the visual pair passed only as the hook
+        // context. The two endpoints of the range are always selected cells and so always visible,
+        // but the loop walks every HF index BETWEEN them – and a trimmed row keeps its HF index
+        // while having no visual one. Reading such a source through the visual axis yields -1,
+        // which `getCellMeta()` rejects outright ("Expecting an unsigned number"), aborting the
+        // whole autofill.
+        const physicalSourceRow = toPhysical(this.rowAxisSyncer, sourceRow);
+        const physicalSourceColumn = toPhysical(this.columnAxisSyncer, sourceColumn);
+        const visualSourceRow = this.hot.toVisualRow(physicalSourceRow) ?? physicalSourceRow;
+        const visualSourceColumn = this.hot.toVisualColumn(physicalSourceColumn) ?? physicalSourceColumn;
+        const sourceCellMeta = metaManager.getCellMetaTransient(
+          physicalSourceRow, physicalSourceColumn,
+          { visualRow: visualSourceRow, visualColumn: visualSourceColumn },
+        );
 
         if (isDate(populatedValue, sourceCellMeta.type)) {
           if (populatedValue.startsWith('\'')) {
             // Populating values on HOT side without apostrophe.
             fillRangeData[populatedRowIndex][populatedColumnIndex] = populatedValue.slice(1);
 
-          } else if (this.isFormulaCellType(visualSourceRow, visualSourceColumn, this.sheetId) === false) {
+            // Asked of the engine directly with the HF pair already in hand. `isFormulaCellType()`
+            // would translate a visual pair back into this same one, which a trimmed source cannot
+            // round-trip through.
+          } else if (this.engine!.doesCellHaveFormula({
+            sheet: this.sheetId, row: sourceRow, col: sourceColumn
+          }) === false) {
             // Populating date in proper format, coming from the source cell.
             fillRangeData[populatedRowIndex][populatedColumnIndex] =
               getDateInHotFormat(populatedValue);
