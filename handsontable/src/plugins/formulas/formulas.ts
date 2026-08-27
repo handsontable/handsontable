@@ -1333,16 +1333,27 @@ export class Formulas extends BasePlugin {
    * Get the value to be passed to the formula engine.
    * If the value is an object, utilize the valueGetter for that cell, otherwise return the value as is.
    *
-   * @param {number} row The physical row index.
-   * @param {number} column The physical column index.
+   * Both coordinates are PHYSICAL, and the meta is read by them directly, with the visual pair
+   * passed only as the hook context – the way `#escapeSourceDataArray` and `#onBeforeAutofill` read
+   * it. Resolving the meta through the visual axis instead breaks on a trimmed row: Nested Rows
+   * installs a trimming map when it collapses, so `toVisualRow()` answers `null` there.
+   * `getCellMetaTransient()` does not reject that the way `getCellMeta()` rejects a negative index –
+   * it silently resolves a DIFFERENT physical row, so the cell's `valueGetter` is read from a
+   * neighbor and the value written to the engine is the neighbor's projection of it.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
    * @param {*} value The value to be passed to the formula engine.
    * @returns {*} The value to be displayed in the cell.
    */
-  #getValueGetterValue(row: number, column: number, value: unknown) {
+  #getValueGetterValue(physicalRow: number, physicalColumn: number, value: unknown) {
     if (isObject(value) && value !== null) {
-      const visualRow = this.hot.toVisualRow(row);
-      const visualColumn = this.hot.toVisualColumn(column);
-      const cellMeta = this.hot.getCellMetaTransient(visualRow, visualColumn);
+      const visualRow = this.hot.toVisualRow(physicalRow) ?? physicalRow;
+      const visualColumn = this.hot.toVisualColumn(physicalColumn) ?? physicalColumn;
+      const cellMeta = this.hot._getMetaManager().getCellMetaTransient(
+        physicalRow, physicalColumn,
+        { visualRow, visualColumn },
+      );
 
       value = getValueGetterValue(value, cellMeta);
 
@@ -1418,11 +1429,22 @@ export class Formulas extends BasePlugin {
     const rowOffset = row ?? 0;
 
     if (!isAoAWithSkippedColumns) {
+      // The array's own column space, read from the one place that answers it. Array-of-objects
+      // data is built in VISUAL order by `dataSource.getAtRow`, plain array-of-arrays data keeps
+      // the physical order – and `#getValueGetterValue` reads its meta by physical coordinates.
+      const columnsInVisualOrder = !this.#doesEngineHoldPhysicalColumns();
+      const columnStart = column ?? 0;
+
       return dataArray.map((rowObject, rowIndex) => {
         const rowArray = Array.isArray(rowObject) ? rowObject : [];
 
-        return rowArray.map((value: unknown, columnIndex: number) => {
-          return this.#getValueGetterValue(rowOffset + rowIndex, columnIndex, value);
+        return rowArray.map((value: unknown, arrayColumnIndex: number) => {
+          const columnIndex = columnStart + arrayColumnIndex;
+          const physicalColumn = columnsInVisualOrder
+            ? (this.hot.toPhysicalColumn(columnIndex) ?? columnIndex)
+            : columnIndex;
+
+          return this.#getValueGetterValue(rowOffset + rowIndex, physicalColumn, value);
         });
       });
     }
@@ -1450,7 +1472,7 @@ export class Formulas extends BasePlugin {
           continue;
         }
 
-        projected.push(this.#getValueGetterValue(rowOffset + rowIndex, visualCol, rowArray[arrayIndex]));
+        projected.push(this.#getValueGetterValue(rowOffset + rowIndex, physicalCol, rowArray[arrayIndex]));
       }
 
       return projected;

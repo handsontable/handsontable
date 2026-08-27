@@ -325,6 +325,62 @@ describe('Formulas', () => {
       ]);
     });
 
+    it('should detach a collapsed parent whose children hold object values', async() => {
+      handsontable({
+        data: [
+          {
+            col1: { label: 'parent1' },
+            __children: [
+              {
+                col1: { label: 'child1' },
+                __children: [
+                  { col1: { label: 'grandchild1' } },
+                  { col1: { label: 'grandchild2' } },
+                ],
+              },
+            ],
+          },
+          { col1: { label: 'parent2' } },
+        ],
+        columns: [{ data: 'col1', type: 'text' }],
+        // Stamps the PHYSICAL row the meta resolved from onto the value.
+        cells(row) {
+          return {
+            valueGetter(value) {
+              return (value && typeof value === 'object') ? `r${row}:${value.label}` : value;
+            },
+          };
+        },
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        nestedRows: true,
+      });
+
+      // Collapsing `child1` installs a TRIMMING map over its grandchildren, so they keep their
+      // physical rows and lose their visual ones. Detaching `child1` then rewrites a range that
+      // CONTAINS those trimmed rows.
+      getPlugin('nestedRows').collapsingUI.collapseChildren(1);
+
+      getPlugin('nestedRows').dataManager.detachFromParent(
+        getPlugin('nestedRows').dataManager.getDataObject(1)
+      );
+
+      const p = getPlugin('formulas');
+
+      // Every rewritten row resolves its `valueGetter` from its own physical row, the trimmed
+      // grandchildren included. `parent2` keeps the stamp it got at load time - the detach rewrites
+      // only from the detached element down, so the rows above it are not re-read.
+      expect(p.engine.getSheetSerialized(p.sheetId)).toEqual([
+        ['r0:parent1'],
+        ['r4:parent2'],
+        ['r2:child1'],
+        ['r3:grandchild1'],
+        ['r4:grandchild2'],
+      ]);
+    });
+
     it('should clear the detach guard on the next structural operation', async() => {
       const data = [
         [10, '=SUM(A1:A3)'],

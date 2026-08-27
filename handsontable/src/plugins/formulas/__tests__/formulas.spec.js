@@ -4067,6 +4067,43 @@ describe('Formulas general', () => {
       expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)[1]).toEqual([10]);
     });
 
+    it('should read the valueGetter from the cells own column with moved columns', async() => {
+      handsontable({
+        data: [
+          { id: { label: '0123456' }, name: { label: 'a' } },
+        ],
+        columns: [
+          { data: 'id', type: 'text' },
+          { data: 'name', type: 'text' },
+        ],
+        // Stamps the PHYSICAL column the meta resolved from onto the value.
+        cells(row, column) {
+          return {
+            valueGetter(value) {
+              return (value && typeof value === 'object') ? `c${column}:${value.label}` : value;
+            },
+          };
+        },
+        manualColumnMove: true,
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      // Array-of-objects rows are built in VISUAL order, so after a move the array index and the
+      // physical column disagree - and the meta is read by physical coordinates.
+      getPlugin('manualColumnMove').moveColumn(1, 0);
+      await render();
+
+      await updateSettings({});
+
+      const p = getPlugin('formulas');
+
+      // Each value goes through its OWN column's `valueGetter`. Reading the array index as a
+      // physical column swaps them, so `0123456` would come back stamped `c1`.
+      expect(p.engine.getSheetSerialized(p.sheetId)).toEqual([['c0:0123456', 'c1:a']]);
+    });
+
     it('should escape preserved values correctly for array-of-objects data with moved columns', async() => {
       handsontable({
         data: [{ id: '0123456', name: 'a' }, { id: '7654321', name: 'b' }],
@@ -4168,6 +4205,47 @@ describe('Formulas general', () => {
 
         expect(getSourceDataAtCell(0, 0)).toBe('\'0777');
       });
+
+      it('should not leak the escape apostrophe when the columns setting skips a physical column',
+        async() => {
+          // `columns` exposes physical columns 0 and 2, skipping 1 - so the engine's column space
+          // is neither the physical nor a contiguous slice of it, and physical column 2 has no
+          // visual index at all.
+          handsontable({
+            columns: [
+              { data: 0, type: 'text', preserveTextValue: true },
+              { data: 2, type: 'text', preserveTextValue: true },
+            ],
+            formulas: {
+              engine: HyperFormula,
+            },
+          });
+
+          await setDataAtCell(0, 0, '0123456');
+          await setDataAtCell(0, 1, '0999');
+
+          const plugin = getPlugin('formulas');
+
+          expect(plugin.engine.getSheetSerialized(plugin.sheetId)[0]).toEqual([
+            '\'0123456',
+            '\'0999',
+          ]);
+
+          await updateSettings({
+            columns: [
+              { data: 0, type: 'text', preserveTextValue: false },
+              { data: 2, type: 'text', preserveTextValue: false },
+            ],
+          });
+
+          // Only the first column is asserted through the grid. The reload writes the engine's
+          // positional array straight into `loadData`, and with a non-contiguous `columns` map the
+          // second column's value lands on a physical column the grid does not expose - it comes
+          // back `null`. That predates this change and is independent of the escaping: it happens
+          // identically with the unescaping disabled.
+          expect(getDataAtCell(0, 0)).toBe('0123456');
+          expect(getSourceDataAtCell(0, 0)).toBe('0123456');
+        });
 
       it('should keep a user-escaped formula expression', async() => {
         await buildEmptyInitializedGrid({ type: 'text', preserveTextValue: true });
