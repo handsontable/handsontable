@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the autocomplete and dropdown editors re-showing a closed suggestion list and taking keyboard control back from the page when an asynchronous `source` answered after the editor had closed.",
+  "type": "fixed",
+  "issueOrPR": 13273,
+  "breaking": false,
+  "framework": "none"
+}
