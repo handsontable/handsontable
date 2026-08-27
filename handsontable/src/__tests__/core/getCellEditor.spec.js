@@ -223,4 +223,93 @@ describe('Core.getCellEditor', () => {
     expect(getCellEditor(1, 5)).toBe(getCellType('numeric').editor);
     expect(getCellEditor(100, 100)).toBe(getCellType('numeric').editor);
   });
+
+  describe('`editor` set to `true`', () => {
+    // `true` names no editor, so it has to read as "not passed" - the cell keeps the editor its
+    // `type` (or a higher configuration level) provides. Returning the raw `true` made
+    // `getEditorInstance()` throw on the first edit (GH #7561 follow-up).
+    it('should return the default text editor when only `editor: true` is defined', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        editor: true,
+      });
+
+      expect(getCellEditor(1, 1)).toBe(getCellType('text').editor);
+    });
+
+    it('should return the `type` editor when `editor: true` is defined next to a `type`', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        columns: [
+          { type: 'numeric', editor: true },
+          { type: 'password', editor: true },
+          {},
+        ],
+      });
+
+      expect(getCellEditor(1, 0)).toBe(getCellType('numeric').editor);
+      expect(getCellEditor(1, 1)).toBe(getCellType('password').editor);
+      // control column - proves the harness resolves editors at all
+      expect(getCellEditor(1, 2)).toBe(getCellType('text').editor);
+    });
+
+    it('should return the editor inherited from the grid level', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        editor: 'password',
+        columns: [
+          { editor: true },
+          {},
+        ],
+      });
+
+      expect(getCellEditor(1, 0)).toBe(getCellType('password').editor);
+    });
+
+    it('should return the default text editor when passed through the `cell` option', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        cell: [
+          { row: 1, col: 1, editor: true },
+        ],
+      });
+
+      expect(getCellEditor(1, 1)).toBe(getCellType('text').editor);
+    });
+
+    it('should return the `type` editor when passed through the `cells` option', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        cells(row, column) {
+          return column === 0 ? { type: 'numeric', editor: true } : {};
+        },
+      });
+
+      expect(getCellEditor(1, 0)).toBe(getCellType('numeric').editor);
+      expect(getCellEditor(1, 1)).toBe(getCellType('text').editor);
+    });
+
+    it('should return the default text editor after `updateSettings`', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await updateSettings({ editor: true });
+
+      expect(getCellEditor(1, 1)).toBe(getCellType('text').editor);
+    });
+
+    it('should still disable editing for `editor: false`', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        columns: [
+          { type: 'numeric', editor: false },
+          {},
+        ],
+      });
+
+      expect(getCellEditor(1, 0)).toBe(false);
+      expect(getCellEditor(1, 1)).toBe(getCellType('text').editor);
+    });
+  });
 });

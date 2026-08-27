@@ -1,4 +1,4 @@
-import { extendByMetaType, assert } from '../utils';
+import { extendByMetaType, assert, normalizeEditorSetting } from '../utils';
 import LazyFactoryMap from '../lazyFactoryMap';
 import { extend, hasOwnProperty } from '../../../helpers/object';
 import { isDefined } from '../../../helpers/mixed';
@@ -98,9 +98,10 @@ export default class CellMeta {
    */
   updateMeta(physicalRow: number, physicalColumn: number, settings: Record<string, unknown>) {
     const meta = this.getMeta(physicalRow, physicalColumn);
+    const normalizedSettings = normalizeEditorSetting(settings);
 
-    extend(meta, settings);
-    extendByMetaType(meta, settings);
+    extend(meta, normalizedSettings);
+    extendByMetaType(meta, normalizedSettings);
   }
 
   /**

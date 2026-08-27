@@ -4,7 +4,7 @@ import type { CellProperties } from '../../../settings';
 import { Hooks } from '../../../core/hooks';
 import { hasOwnProperty, extend } from '../../../helpers/object';
 import { isFunction } from '../../../helpers/function';
-import { extendByMetaType } from '../utils';
+import { extendByMetaType, normalizeEditorSetting } from '../utils';
 
 /**
  * @class DynamicCellMetaMod
@@ -192,7 +192,7 @@ export class DynamicCellMetaMod {
     }
 
     if (cellSettings) {
-      applyCellSettings(cellSettings);
+      applyCellSettings(normalizeEditorSetting(cellSettings));
     }
 
     hot.runHooks('afterGetCellMeta', visualRow, visualCol, cellMeta);

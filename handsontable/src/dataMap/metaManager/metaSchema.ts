@@ -2474,6 +2474,10 @@ export default (): Record<string, unknown> => {
      * | `Delete` / `Backspace`                  | Clear the contents of the selected cells                    |
      * | `Ctrl` + `Enter` / `Cmd` + `Enter`      | Fill selected cells with the value of the active cell       |
      *
+     * Setting the `editor` option to `true` names no editor, so Handsontable treats it as if the
+     * option was not set at all. The cell keeps the editor that its [`type`](#type) provides, or the
+     * editor inherited from a higher configuration level.
+     *
      * To set the [`editor`](#editor), [`renderer`](#renderer), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.
      *

@@ -4778,7 +4778,12 @@ export default function Core(
 
     type EditorConstructor = (new (hotInstance: HotInstance) => unknown) & { EDITOR_TYPE?: string };
 
-    return (isUndefined(cellEditor) ? getEditor('text') : cellEditor) as EditorConstructor;
+    // An `editor` of `true` names no editor. The meta layers already drop it on the way in, so
+    // reaching this branch means it was written straight onto the cell meta (for example by a
+    // `beforeGetCellMeta` hook). Fall back to the default editor rather than returning the bare
+    // boolean, which `getEditorInstance()` cannot resolve and would throw on.
+    return ((isUndefined(cellEditor) || cellEditor === true) ?
+      getEditor('text') : cellEditor) as EditorConstructor;
   };
 
   /**
