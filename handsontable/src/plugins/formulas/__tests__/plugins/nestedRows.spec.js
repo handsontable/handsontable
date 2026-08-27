@@ -226,5 +226,92 @@ describe('Formulas', () => {
         ['6001111+'],
       ]);
     });
+
+    it('should keep the formula sync working when the detach throws while reading the source data', async() => {
+      const shouldThrow = { current: false };
+
+      handsontable({
+        data: [
+          {
+            col1: { label: 'parent1' },
+            __children: [
+              { col1: { label: 'child1' } },
+            ],
+          },
+          { col1: '=A1 & "!"' },
+        ],
+        columns: [{
+          data: 'col1',
+          type: 'text',
+          // Reached from `#getValueGetterValue`, which runs for object-valued cells only. The
+          // detach listener calls it while its `#internalOperationPending` guard is up - that is
+          // the one window in which a throw can leave the guard set, so it is the one the
+          // `finally` has to cover.
+          valueGetter(value) {
+            if (shouldThrow.current) {
+              throw new Error('valueGetter failed');
+            }
+
+            return (value && typeof value === 'object') ? value.label : value;
+          },
+        }],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        nestedRows: true,
+      });
+
+      expect(getDataAtCell(2, 0)).toEqual('parent1!');
+
+      shouldThrow.current = true;
+
+      expect(() => {
+        getPlugin('nestedRows').dataManager.detachFromParent(
+          getPlugin('nestedRows').dataManager.getDataObject(1)
+        );
+      }).toThrow();
+
+      shouldThrow.current = false;
+
+      // With the guard stuck up, `#onModifyData` early-returns for every cell, so the formula cell
+      // reports its own raw text instead of the engine's value.
+      expect(getDataAtCol(0)).not.toContain('=A1 & "!"');
+      expect(getDataAtCol(0)).toContain('parent1!');
+    });
+
+    it('should clear the detach guard when the plugin is re-enabled', async() => {
+      const data = [
+        [10, '=SUM(A1:A3)'],
+        [20, null],
+        [30, null],
+      ];
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+      });
+
+      // The Nested Rows plugin opens the guard span in `beforeDetachChild`. This plugin's
+      // `afterDetachChild` listener - the one that closes it - is not the first on that hook, so a
+      // throw from the Nested Rows plugin's own listener leaves the span open with nobody to close
+      // it. Running the opening hook on its own reproduces exactly that state.
+      await runHooks('beforeDetachChild');
+      await alter('insert_row_above', 1, 1);
+
+      // The guard is up, so the engine's rewritten formula never reaches the developer's array.
+      expect(data[0][1]).toBe('=SUM(A1:A3)');
+
+      getPlugin('formulas').disablePlugin();
+      getPlugin('formulas').enablePlugin();
+
+      await alter('insert_row_above', 1, 1);
+
+      // `enablePlugin()` clears the guard, so the write-back works again.
+      expect(data[0][1]).toBe('=SUM(A1:A4)');
+    });
   });
 });

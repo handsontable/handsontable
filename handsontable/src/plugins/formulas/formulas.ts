@@ -535,6 +535,19 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    // Both guard flags are cleared here, not only initialized at declaration. A throw inside the
+    // span either of them opens leaves it set, and neither has a second closing path – see
+    // `#onBeforeDetachChild` for the one `#onAfterDetachChild`'s `finally` cannot cover. Clearing
+    // them on enable bounds that to the current enable rather than to the whole session, and it
+    // also covers a `disablePlugin()` that lands mid-span.
+    // Both guard flags are cleared here, not only initialized at declaration. A throw inside the
+    // span either of them opens leaves it set, and neither has a second closing path – see
+    // `#onBeforeDetachChild` for the one `#onAfterDetachChild`'s `finally` cannot cover. Clearing
+    // them on enable bounds that to the current enable rather than to the whole session, and it
+    // also covers a `disablePlugin()` that lands mid-span.
+    this.#internalOperationPending = false;
+    this.#nestedRowsDetachPending = false;
+
     this.engine = setupEngine(this.hot) ?? this.engine;
 
     if (!this.engine) {
@@ -3017,8 +3030,8 @@ export class Formulas extends BasePlugin {
    * whenever that listener runs, even if its own body throws. It does NOT guarantee the listener
    * runs at all: `afterDetachChild` also has an earlier listener, registered by the Nested Rows
    * plugin itself (`#onAfterDetachChild` in `nestedRows.ts`), and a throw there aborts the hook
-   * emitter before this plugin's listener is reached, leaving the flag set for the rest of the
-   * session.
+   * emitter before this plugin's listener is reached, leaving the flag set. `enablePlugin()` clears
+   * it, so that leak is bounded by the next enable rather than lasting the whole session.
    */
   #onBeforeDetachChild = () => {
     this.#nestedRowsDetachPending = true;
@@ -3065,6 +3078,12 @@ export class Formulas extends BasePlugin {
         });
       });
     } finally {
+      // Both flags are opened by this span – `#nestedRowsDetachPending` in `#onBeforeDetachChild`
+      // and `#internalOperationPending` on the first line of the `try` – so both have to close
+      // here. The mid-body reset above still matters (the flag must be down before
+      // `setCellContents` runs); this is the net that catches a throw from a `cells()` function, a
+      // `beforeGetCellMeta` listener, or the engine itself.
+      this.#internalOperationPending = false;
       this.#nestedRowsDetachPending = false;
     }
   };
