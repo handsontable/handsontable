@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Editor with a hidden cell fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    window.htEditor = ({
+      text: 'text', select: 'select', multiSelect: 'multiSelect', dropdown: 'dropdown',
+    })[htParams.get('editor') ?? 'text'];
+    if (!window.htEditor) {
+      throw new Error('Unknown ?editor= value: ' + JSON.stringify(htParams.get('editor')));
+    }
+    window.htScenario = ({ pagination: 'pagination', scroll: 'scroll' })[htParams.get('scenario') ?? 'pagination'];
+    if (!window.htScenario) {
+      throw new Error('Unknown ?scenario= value: ' + JSON.stringify(htParams.get('scenario')));
+    }
+    window.htSorting = ({ true: true, false: false })[htParams.get('sorting') ?? 'false'];
+    if (window.htSorting === undefined) {
+      throw new Error('Unknown ?sorting= value: ' + JSON.stringify(htParams.get('sorting')));
+    }
+  </script>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const CHOICES = ['A1', 'A2', 'A3', 'A4'];
+
+    // Only the editor differs between runs. `select` and `multiSelect` extend BaseEditor directly,
+    // so an editor-level guard never reaches them - that is the point of these runs.
+    // `multiselect` takes `source`, not `selectOptions`, and carries `_complexDataFormat: true`,
+    // so its source data is an ARRAY rather than the joined string `getDataAtCell` returns.
+    const editorColumn = {
+      text: {},
+      select: { type: 'select', selectOptions: CHOICES },
+      multiSelect: { type: 'multiselect', source: CHOICES },
+      dropdown: { type: 'dropdown', source: CHOICES },
+    }[window.htEditor];
+
+    // `pagination` hides the off-page rows through a HIDING index map, so the edited cell stops
+    // being rendered while its visual index stays valid. `scroll` renders every row and only
+    // virtualizes them, which must NOT be treated the same way.
+    const scenarioSettings = window.htScenario === 'scroll' ? {
+      data: Array.from({ length: 100 }, (unused, row) => [`A${row + 1}`]),
+      height: 150,
+    } : {
+      data: [['A1'], ['A2'], ['A3'], ['A4']],
+      pagination: { pageSize: 2 },
+      hiddenRows: { rows: [] },
+      hiddenColumns: { columns: [] },
+    };
+
+    // Records every committed change so a spec can assert that NO commit happened, which a poll on
+    // the data alone cannot do: expect.poll passes on its first sample and would race a deferred
+    // commit rather than rule it out.
+    window.htChanges = [];
+
+    // Records the index-map cache updates so a spec can assert the guard's TRIGGER actually fired.
+    // Without this a case can pass because nothing happened at all, which is how two earlier cases
+    // in this suite went silently vacuous.
+    window.htCacheUpdates = { row: [], column: [] };
+
+    window.hot = new Handsontable(container, Object.assign({
+      colHeaders: true,
+      rowHeaders: true,
+      columns: [editorColumn],
+      columnSorting: window.htSorting,
+      // Stamp test ids from `afterRenderer`, not from a grid-level `renderer`: a column `type`
+      // installs its own renderer, which would override the grid-level one and leave the typed
+      // columns with no test id at all.
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      afterChange(changes, source) {
+        if (changes) {
+          window.htChanges.push(...changes.map(change => change.concat(source)));
+        }
+      },
+      afterRowSequenceCacheUpdate(state) {
+        window.htCacheUpdates.row.push(state);
+      },
+      afterColumnSequenceCacheUpdate(state) {
+        window.htCacheUpdates.column.push(state);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    }, scenarioSettings));
+  </script>
+</body>
+</html>

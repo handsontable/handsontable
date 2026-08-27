@@ -5,6 +5,7 @@ import type { default as SelectionManager } from './selection/selection';
 import { isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
 import { isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors/registry';
+import { EDITOR_STATE } from './editors/baseEditor';
 import type { BaseEditor } from './editors/baseEditor';
 import EventManager from './eventManager';
 
@@ -61,6 +62,14 @@ class EditorManager {
    * @type {object}
    */
   declare cellProperties: CellProperties;
+  /**
+   * Whether a close of an editor stranded on a hidden cell is already pending, either scheduled on
+   * the next tick or waiting on an async validator to settle. Suppresses duplicate work when one
+   * page turn emits the cache-update hook more than once.
+   *
+   * @type {boolean}
+   */
+  #hiddenCellCloseArmed = false;
 
   /**
    * @param {Core} hotInstance The Handsontable instance.
@@ -75,6 +84,8 @@ class EditorManager {
 
     this.hot.addHook('afterDocumentKeyDown', (event: KeyboardEvent) => this.#onAfterDocumentKeyDown(event));
     this.hot.addHook('beforeCompositionStart', (event: KeyboardEvent) => this.#onAfterDocumentKeyDown(event));
+    this.hot.addHook('afterRowSequenceCacheUpdate', () => this.#closeEditorWhenCellHidden());
+    this.hot.addHook('afterColumnSequenceCacheUpdate', () => this.#closeEditorWhenCellHidden());
     this.hot.view._wt.update(
       'onCellDblClick', (event: MouseEvent, coords: { isCell: () => boolean }, _elem: HTMLElement) =>
         this.#onCellDblClick(event, coords)
@@ -277,14 +288,7 @@ class EditorManager {
       return false;
     }
 
-    const {
-      rowIndexMapper,
-      columnIndexMapper
-    } = this.hot;
-    const isCellHidden = rowIndexMapper.isHidden(this.hot.toPhysicalRow(row)) ||
-      columnIndexMapper.isHidden(this.hot.toPhysicalColumn(col));
-
-    if (this.cellProperties.readOnly || !editorClass || isCellHidden) {
+    if (this.cellProperties.readOnly || !editorClass || this.#isCellHidden(row, col)) {
       return false;
     }
 
@@ -315,6 +319,112 @@ class EditorManager {
     } else {
       this.selection.transformStart(enterMoves.row ?? 0, enterMoves.col ?? 0, true);
     }
+  }
+
+  /**
+   * Checks whether the cell at the given VISUAL coordinates is hidden by a hiding index map
+   * (Pagination's page map, `hiddenRows`, `hiddenColumns`).
+   *
+   * `IndexMapper#isHidden()` is keyed by PHYSICAL index, so both coordinates are converted. The two
+   * index spaces coincide only while no sorting, move or trimming map is active; under
+   * `columnSorting` a raw visual index reads a different row's hidden flag, which would both tear
+   * down an edit on a fully visible cell and miss the hidden cell this check exists for.
+   *
+   * @param {number} visualRow The visual row index.
+   * @param {number} visualColumn The visual column index.
+   * @returns {boolean}
+   */
+  #isCellHidden(visualRow: number, visualColumn: number): boolean {
+    return this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(visualRow)) ||
+      this.hot.columnIndexMapper.isHidden(this.hot.toPhysicalColumn(visualColumn));
+  }
+
+  /**
+   * Ends an edit when a HIDING index map removes the edited cell from the DOM while the editor is
+   * still open.
+   *
+   * Pagination turning the page, `hiddenRows` and `hiddenColumns` all register a `hiding` map,
+   * which drops the cell from the render while its visual index stays valid. The editor used to
+   * stay open, pinned to its original pixel position over whatever row slid into that spot, still
+   * bound to its original coordinates, and to commit only on a later click - to a row the user
+   * could no longer see.
+   *
+   * This lives in the manager rather than in an editor so that it covers every editor.
+   * `SelectEditor` and `MultiSelectEditor` extend `BaseEditor` directly, as does anything built
+   * through `editors/factory.ts`, so an editor-level hook reaches none of them.
+   *
+   * Test on `isHidden()`, NOT on whether the `TD` still resolves. A cell merely scrolled out of the
+   * rendered window has no `TD` either, and closing there would silently commit an in-progress edit
+   * on every scroll away. That is long-standing behavior in the other direction: the editor hides
+   * itself on scroll but keeps `state` at `EDITING`, so the edit survives until the user scrolls
+   * back. These hooks never fire on scroll, so that case cannot reach here at all.
+   *
+   * A TRIMMING map (Filters, `trimRows`) is deliberately out of scope. It collapses the visual
+   * index space instead of preserving it, so the edited coordinates silently rebind to a different
+   * row that is still rendered and `isHidden()` reads `false`. That defect predates this method.
+   *
+   * The edit is COMMITTED, not discarded, because that is what both existing paths already do:
+   * clicking the pager is an outside click, which deselects and therefore commits, and an editor
+   * orphaned by any other route commits on the next click. Only when the commit is REJECTED is the
+   * edit reverted instead - see below.
+   */
+  #closeEditorWhenCellHidden(): void {
+    const activeEditor = this.activeEditor;
+
+    if (!activeEditor || activeEditor.row === null || activeEditor.col === null ||
+        !this.#isCellHidden(activeEditor.row, activeEditor.col)) {
+      return;
+    }
+
+    // `finishEditing()` is a silent no-op while an async validator is in flight, which would leave
+    // the editor orphaned. Re-enter at the top once validation settles rather than assuming the
+    // wait is over: `postAfterValidate` is instance-wide and may fire for an unrelated cell.
+    if (activeEditor.isWaiting()) {
+      if (!this.#hiddenCellCloseArmed) {
+        this.#hiddenCellCloseArmed = true;
+
+        this.hot.addHookOnce('postAfterValidate', () => {
+          this.#hiddenCellCloseArmed = false;
+          this.hot._registerTimeout(() => this.#closeEditorWhenCellHidden(), 0);
+        });
+      }
+
+      return;
+    }
+
+    if (activeEditor.state !== EDITOR_STATE.EDITING || this.#hiddenCellCloseArmed) {
+      return;
+    }
+
+    this.#hiddenCellCloseArmed = true;
+
+    // Committing writes through `setDataAtCell`, which re-enters this manager (`closeEditor()`,
+    // `render()`, `prepareEditor()`). Defer so the write never lands inside the cache update that
+    // is still unwinding.
+    this.hot._registerTimeout(() => {
+      this.#hiddenCellCloseArmed = false;
+
+      const editor = this.activeEditor;
+
+      if (this.destroyed || !editor || editor.state !== EDITOR_STATE.EDITING ||
+          editor.row === null || editor.col === null || !this.#isCellHidden(editor.row, editor.col)) {
+        return;
+      }
+
+      this.closeEditor(false, false, (dataSaved: boolean) => {
+        if (dataSaved) {
+          return;
+        }
+
+        // Validation rejected the value and `allowInvalid: false` re-selected the hidden cell and
+        // put the editor back into `EDITING`. Revert through the CAPTURED reference, not through
+        // `closeEditor()`: that re-selection synchronously drives `prepareEditor()`, which finds
+        // the cell hidden and has already run `clearActiveEditor()`, so `this.activeEditor` is
+        // `undefined` by now and `closeEditor()` would be a no-op. Nothing is lost - the rejected
+        // value never reached the dataset, `validateChanges()` splices it out first.
+        editor.finishEditing(true);
+      });
+    }, 0);
   }
 
   /**
