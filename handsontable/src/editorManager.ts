@@ -86,10 +86,36 @@ class EditorManager {
    */
   #editedPhysicalColumn: number | null = null;
   /**
+   * Whether a structural change - a row or column being inserted or removed - is currently running.
+   *
+   * Such a change RENUMBERS the physical space, which invalidates `#editedPhysicalRow` while leaving
+   * the editor's visual coordinate correct. That is the opposite of what a trim or a permutation
+   * does, and the two are indistinguishable from the cache-update state alone, so the reconciliation
+   * stands down while this is set and the captured record is re-derived once the change lands.
+   *
+   * @type {boolean}
+   */
+  #structuralChangeInProgress = false;
+  /**
+   * Marks the start of a structural change, so the cache update it emits does not reconcile against
+   * a physical index that the change is in the middle of renumbering.
+   */
+  #onBeforeStructuralChange = (): void => {
+    this.#structuralChangeInProgress = true;
+  };
+  /**
+   * Marks the end of a structural change and re-derives the edited record from the editor's visual
+   * coordinate, which the change kept valid.
+   */
+  #onAfterStructuralChange = (): void => {
+    this.#structuralChangeInProgress = false;
+    this.#recaptureEditedRecord();
+  };
+  /**
    * Reacts to an index-map cache update on either axis.
    *
-   * The index-map reconciliation runs FIRST so that the hidden-cell guard tests `isHidden()` against
-   * rebound coordinates rather than the stale ones the index map just invalidated.
+   * The trimming reconciliation runs FIRST so that the hidden-cell guard tests `isHidden()` against
+   * rebound coordinates rather than the stale ones a trimming map just invalidated.
    *
    * @param {object} indexesChangesState The state object of the index mapper's cache update.
    * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
@@ -118,6 +144,14 @@ class EditorManager {
     this.hot.addHook('beforeCompositionStart', (event: KeyboardEvent) => this.#onAfterDocumentKeyDown(event));
     this.hot.addHook('afterRowSequenceCacheUpdate', this.#onSequenceCacheUpdate);
     this.hot.addHook('afterColumnSequenceCacheUpdate', this.#onSequenceCacheUpdate);
+    this.hot.addHook('beforeCreateRow', this.#onBeforeStructuralChange);
+    this.hot.addHook('beforeRemoveRow', this.#onBeforeStructuralChange);
+    this.hot.addHook('beforeCreateCol', this.#onBeforeStructuralChange);
+    this.hot.addHook('beforeRemoveCol', this.#onBeforeStructuralChange);
+    this.hot.addHook('afterCreateRow', this.#onAfterStructuralChange);
+    this.hot.addHook('afterRemoveRow', this.#onAfterStructuralChange);
+    this.hot.addHook('afterCreateCol', this.#onAfterStructuralChange);
+    this.hot.addHook('afterRemoveCol', this.#onAfterStructuralChange);
     this.hot.view._wt.update(
       'onCellDblClick', (event: MouseEvent, coords: { isCell: () => boolean }, _elem: HTMLElement) =>
         this.#onCellDblClick(event, coords)
@@ -142,6 +176,10 @@ class EditorManager {
     // `beforeChange` that cancels the change, for instance) would disable the guard for the rest
     // of the instance's life rather than for that one edit.
     this.#hiddenCellCloseArmed = false;
+    // A vetoed `beforeCreateRow`/`beforeRemoveRow` never reaches its `after` counterpart, which
+    // would leave the latch set. Nothing changed in that case, so the only cost is the guard being
+    // inert for the rest of that edit - and a new edit cycle clears it.
+    this.#structuralChangeInProgress = false;
 
     if (this.activeEditor && this.activeEditor.isWaiting()) {
       this.closeEditor(false, false, (dataSaved: boolean) => {
@@ -384,24 +422,64 @@ class EditorManager {
   }
 
   /**
+   * Re-derives the edited record after a structural change has renumbered the physical space.
+   *
+   * Inserting or removing rows shifts the physical indexes of everything below, so the index captured
+   * in `prepareEditor()` now addresses a different record - but the editor's VISUAL coordinate came
+   * through intact, because the index mapper moved the visual space with it. So the visual side is
+   * the trustworthy one here, and it is what the record is read back from.
+   *
+   * A visual coordinate that no longer resolves means the change left the editor past the last row.
+   * There is nothing to commit to, so the edit is dropped rather than written through a coordinate
+   * that `applyChanges()` would satisfy by appending records.
+   */
+  #recaptureEditedRecord(): void {
+    const editor = this.activeEditor;
+
+    if (!editor || editor.state !== EDITOR_STATE.EDITING || editor.row === null || editor.col === null) {
+      return;
+    }
+
+    const physicalRow = this.hot.rowIndexMapper.getPhysicalFromVisualIndex(editor.row);
+    const physicalColumn = this.hot.columnIndexMapper.getPhysicalFromVisualIndex(editor.col);
+
+    if (physicalRow === null || physicalColumn === null) {
+      editor.cancelChanges();
+      this.clearActiveEditor();
+
+      return;
+    }
+
+    this.#editedPhysicalRow = physicalRow;
+    this.#editedPhysicalColumn = physicalColumn;
+  }
+
+  /**
    * Keeps an open editor bound to the RECORD it was opened on when an index map rearranges the
    * visual index space underneath it.
    *
    * Two kinds of change do that. A TRIMMING map (Filters, `trimRows`, `nestedRows`) COLLAPSES the
-   * visual space - the rows below a trimmed row shift up and the row count shrinks. A SEQUENCE
-   * change (`columnSorting`, `manualRowMove`) permutes it. Either way the editor is left holding the
-   * visual coordinates it captured in `prepare()`, and `BaseEditor#saveValue()` writes straight
-   * through them with no bounds check, so the pending edit lands on whichever record now occupies
-   * that visual slot - or, when a trim left the slot past the shortened row count, on rows that
-   * `applyChanges()` APPENDS to the source data to make room for it. Both are silent data corruption.
+   * visual space - the rows below a trimmed row shift up and the row count shrinks. A SEQUENCE change
+   * (`columnSorting`, `manualRowMove`, `manualColumnFreeze`) permutes it. Either way the editor is
+   * left holding the visual coordinates it captured in `prepare()`, and `BaseEditor#saveValue()`
+   * writes straight through them with no bounds check, so the pending edit lands on whichever record
+   * now occupies that visual slot - or, when a trim left the slot past the shortened row count, on
+   * rows that `applyChanges()` APPENDS to the source data to make room for it. Both are silent data
+   * corruption.
    *
    * Resolving the stored PHYSICAL index back to a visual one covers every shape with one test: the
-   * record is gone (no visual index - discard), the record moved (rebind - the edit still commits,
-   * to the right record), or nothing moved (no-op). The last branch is what keeps this from firing
-   * spuriously: a row insert churns both collections, and `BooleanMap#setValues()` emits a change
-   * even for a no-op write, so testing "something changed" alone would tear down unrelated edits.
-   * An insert or removal shifts the visual and physical spaces together, so the resolution returns
-   * the index the editor already held and the no-op branch takes it.
+   * record is gone (no visual index - discard), the record moved (rebind - the edit still commits, to
+   * the right record), or nothing moved (no-op). The last branch is what keeps this from firing
+   * spuriously: `BooleanMap#setValues()` emits a change even for a no-op write, so testing "something
+   * changed" alone would tear down unrelated edits.
+   *
+   * A structural change - an inserted or removed row or column - is the one case this reasoning does
+   * NOT cover, because it renumbers the physical space and invalidates the captured index while
+   * leaving the visual coordinate correct. It raises the same flags and cannot be told apart from the
+   * state object, so `#onBeforeStructuralChange()` stands this method down for the duration and
+   * `#recaptureEditedRecord()` re-derives the record afterwards. Without that, a grid with any
+   * trimming map registered would discard a valid edit on `alter('remove_row', ...)` and, with a sort
+   * active, rebind onto the wrong record on `alter('insert_row_above', ...)`.
    *
    * Runs SYNCHRONOUSLY, unlike `#closeEditorWhenCellHidden()`. `Filters#filter()` re-selects the
    * highlighted column immediately after writing its map, which commits the open editor before any
@@ -414,16 +492,21 @@ class EditorManager {
    * rewrites the restore flag - which is harmless here because a discard is what that override would
    * decide anyway once the edited record is gone from the visual space.
    *
-   * The editor keeps its on-screen position until the next render. That is cosmetic and, on the
-   * Filters path, invisible: `filter()` renders before yielding.
+   * A rebind moves the editor's coordinates, NOT its pixel position or the selection - neither
+   * `render()` nor `view.render()` repositions an open editor, so it stays drawn over the row it
+   * started on for the rest of the edit. On the Filters path that is invisible because `filter()`
+   * closes the editor outright, but on the `trimRows` path the editor is left painted over a
+   * neighbouring row. The commit still lands on the right record; only the position is wrong.
    *
-   * Three limits, all deliberate. A trimming change does NOT adjust the selection - `core.ts` calls
+   * Three limits, all deliberate. An index-map change does NOT adjust the selection - `core.ts` calls
    * `selection.commit()` only for `hiddenIndexesChanged` - so the highlight can be left past the last
    * row, and typing into it grows the data set. That is reachable with no editor involved at all and
-   * is a separate defect; this method does not paper over it. An editor parked in `WAITING` is not
-   * reconciled either, because `finishEditing()` has already run `saveValue()` by then and there is
-   * nothing left to redirect. And no core plugin registers a trimming map on the COLUMN axis - only
-   * `rowIndexMapper` - so the column half runs for user-registered maps only.
+   * is a separate defect; this method does not paper over it. No core plugin registers a TRIMMING map
+   * on the column axis, so the column half of that case runs for user-registered maps only, though
+   * core plugins do permute the column sequence (`manualColumnMove`, `manualColumnFreeze`).
+   *
+   * And an editor parked in `WAITING` is not reconciled: `finishEditing()` has already run
+   * `saveValue()` by then, so there is nothing left to redirect.
    *
    * @param {object} indexesChangesState The state object of the index mapper's cache update.
    * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
@@ -436,7 +519,7 @@ class EditorManager {
     const editor = this.activeEditor;
 
     if ((!indexesChangesState.trimmedIndexesChanged && !indexesChangesState.indexesSequenceChanged) ||
-        !editor ||
+        this.#structuralChangeInProgress || !editor ||
         editor.state !== EDITOR_STATE.EDITING ||
         this.#editedPhysicalRow === null || this.#editedPhysicalColumn === null) {
       return;

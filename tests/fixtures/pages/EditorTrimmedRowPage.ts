@@ -196,6 +196,16 @@ export class EditorTrimmedRowPage {
   }
 
   /**
+   * Inserts rows through `alter()`. A structural change: it renumbers the PHYSICAL space while
+   * leaving the editor's visual coordinate valid, which is the opposite of what a trim does.
+   */
+  async insertRowAbove(row: number, amount = 1): Promise<void> {
+    await this.page.evaluate(([target, count]) => {
+      (window as Window & { hot: HandsontableFixture }).hot.alter('insert_row_above', target, count);
+    }, [row, amount] as [number, number]);
+  }
+
+  /**
    * Removes rows through `alter()`. This shifts PHYSICAL indexes, unlike a trimming map, and still
    * emits a trimming-map change - the one way the captured record can go stale without the guard
    * being able to tell.

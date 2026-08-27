@@ -385,7 +385,7 @@ test.describe('a sequence change under an open editor', () => {
 
     await grid.sortFirstColumnDescending();
 
-    // Sorting trims nothing - this is the flag that the trimming-only gate did not react to.
+    // Sorting trims nothing - this is the flag that a trimming-only gate does not react to.
     await expect.poll(() => grid.sawSequenceCacheUpdate('row')).toBe(true);
     expect(await grid.sawTrimmingCacheUpdate('row')).toBe(false);
     await expect.poll(() => grid.editorRow()).toBe(0);
@@ -415,6 +415,9 @@ test.describe('a sequence change under an open editor', () => {
     await grid.moveRow(0, 3);
 
     await expect.poll(() => grid.sawSequenceCacheUpdate('row')).toBe(true);
+    // Same negative assertion as the sort case, so this cannot silently start passing for the
+    // trimming reason instead of the sequence one.
+    expect(await grid.sawTrimmingCacheUpdate('row')).toBe(false);
     await expect.poll(() => grid.editorRow()).toBe(3);
 
     await grid.commitWithEnter();
@@ -427,5 +430,76 @@ test.describe('a sequence change under an open editor', () => {
       ['A4', 'B4'],
     ]);
     expect(await grid.sourceRowCount()).toBe(5);
+  });
+});
+
+/**
+ * A structural change - `alter()` inserting or removing rows - is the case the physical-index
+ * approach gets backwards. It RENUMBERS the physical space, so the captured index goes stale while
+ * the editor's visual coordinate stays correct; reconciling against the captured index then discards
+ * a valid edit or rebinds onto the wrong record. Both cases below need a permutation active, because
+ * unsorted the two index spaces shift together and the error cancels out.
+ *
+ * Core only closes the editor when the removed range covers the highlighted row (`core.ts`), so an
+ * `alter()` elsewhere in the grid leaves the edit open and live.
+ */
+test.describe('a structural change while an editor is open', () => {
+  /**
+   * Sorted descending, visual 0 is physical 4 (`'A4'`). Removing visual row 4 removes `'A0'` - a
+   * different record entirely - and `'A4'` is still at visual 0, so the edit must still commit onto
+   * it. Reconciling against the captured index instead saw physical 4 fall out of range and dropped
+   * the edit: `['A1','A2','A3','A4']` with the typing lost.
+   */
+  test('keeps a valid edit when an unrelated row is removed', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle, { sorting: true });
+
+    await grid.goto();
+    await grid.sortFirstColumnDescending();
+
+    await expect.poll(() => grid.toPhysicalRow(0)).toBe(4);
+
+    await grid.openEditorAndType(0, 0, 'EDITED');
+    await grid.removeRow(4, 1);
+
+    await expect.poll(() => grid.editorState()).toBe('STATE_EDITING');
+
+    await grid.commitWithEnter();
+
+    await expect.poll(() => grid.sourceData()).toEqual([
+      ['A1', 'B1'],
+      ['A2', 'B2'],
+      ['A3', 'B3'],
+      ['EDITED', 'B4'],
+    ]);
+    expect(await grid.sourceRowCount()).toBe(4);
+  });
+
+  /**
+   * The insert half. `'A4'` is at visual 0 and stays there, but every physical index at or above the
+   * insertion point shifts up by one, so the captured index 4 now addresses `'A3'`. Reconciling
+   * against it rebound the editor to visual 1 and committed onto `'A3'` - the exact corruption shape
+   * this whole change exists to prevent.
+   */
+  test('commits to the right record when a row is inserted', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle, { sorting: true });
+
+    await grid.goto();
+    await grid.sortFirstColumnDescending();
+    await grid.openEditorAndType(0, 0, 'EDITED');
+
+    await grid.insertRowAbove(4, 1);
+
+    await expect.poll(() => grid.editorRow()).toBe(0);
+
+    await grid.commitWithEnter();
+
+    await expect.poll(() => grid.sourceData()).toEqual([
+      [null, null],
+      ['A0', 'B0'],
+      ['A1', 'B1'],
+      ['A2', 'B2'],
+      ['A3', 'B3'],
+      ['EDITED', 'B4'],
+    ]);
   });
 });
