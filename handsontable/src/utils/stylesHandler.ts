@@ -271,6 +271,14 @@ export class StylesHandler {
     //   - a whole number of pixels (2px at 50% zoom) — already rounded correctly, and adding a
     //     measured correction on top overshot by ~0.5px per row;
     //   - 0 — a surface that removes the border, such as the Filters by-value list.
+    //
+    // The border is read from the `#computedStyles` SNAPSHOT, so this decision is taken at init and
+    // retaken only on a theme change or an explicit `clearCache()`. A grid loaded at 100% and then
+    // zoomed out therefore keeps the declared height, and overflows exactly as it did before this
+    // correction existed — the same amount, not a new defect. Following a runtime zoom needs more
+    // than re-reading the border here: with the height corrected by hand, the grid still renders the
+    // old sum until the row-height cache AND the hider sizing are invalidated too.
+    //
     // `Number.isFinite` first: a `NaN` declared height must never reach the measurement, whose cache
     // key it would defeat (`NaN !== NaN`), turning one probe per theme into a probe — a DOM mutation
     // and a forced layout — on every call, per row, inside the draw.
@@ -347,7 +355,10 @@ export class StylesHandler {
    * theme stylesheet applies, and unlike `#rootComputedStyle` — a live declaration, so the CSS
    * variables read through it are always current — a snapshotted string stays frozen at whatever the
    * unthemed cell measured. Keying the cache on the declared height and the device pixel ratio
-   * re-measures once either moves, which covers both a late-arriving theme and a zoom change.
+   * re-measures once either moves, which covers a late-arriving theme, and a zoom change on a grid
+   * that was ALREADY below 100% when it was built. It does not cover a grid built at 100% and zoomed
+   * out afterwards: the gate in front of this reads the border from the `#computedStyles` snapshot,
+   * so the caller never gets here — see the note there.
    *
    * Only a usable measurement is stored. A probe that resolves no layout — a grid built inside a
    * `display: none` tab, accordion or modal — must not be cached: neither key moves when the container
