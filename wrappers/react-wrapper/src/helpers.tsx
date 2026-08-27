@@ -8,6 +8,7 @@ import React, {
   useEffect,
 } from 'react';
 import ReactDOM from 'react-dom';
+import Handsontable from 'handsontable/base';
 import { HotTableProps } from './types';
 
 let bulkComponentContainer: DocumentFragment | null = null;
@@ -130,6 +131,57 @@ function hasChildElementOfType(children: ReactNode, type: 'hot-renderer' | 'hot-
   return childrenArray.some((child) => {
       return (child as React.ReactElement).props[type] !== void 0;
   });
+}
+
+/**
+ * Check whether the `editor` prop holds a component editor, as opposed to a boolean flag.
+ *
+ * Both editor props accept a boolean, so a truthy check alone is not enough to tell a component
+ * apart from a bare `editor={true}`.
+ *
+ * @param {HotTableProps['editor']} editor The `editor` prop.
+ * @returns {boolean} `true` when the prop carries a component to render.
+ */
+export function isComponentEditor(editor: HotTableProps['editor']): boolean {
+  return !!editor && typeof editor !== 'boolean';
+}
+
+/**
+ * Resolve the Handsontable `editor` setting from the two editor props.
+ *
+ * `editor` carries the component editor and `hotEditor` the Handsontable-native one, but both accept
+ * a boolean:
+ *
+ * - `false` disables editing.
+ * - `true` names no editor, so it is treated as if the prop were not provided. It must never reach
+ *   the core, which accepts only a string or a constructor and throws on anything else.
+ * - Any other nullish or falsy value (`null`, `0`, `''`) is also treated as "not provided", so a
+ *   column written as `editor={cond ? MyEditor : null}` inherits instead of locking.
+ *
+ * `hotEditor` is resolved before a falsy `editor`, so an editor named there still wins over a bare
+ * `editor={false}` — the behavior in every released version, where `editor={false}` fell through to
+ * the `hotEditor` value. A component `editor` outranks both: it is picked by `isComponentEditor()`
+ * before this function is reached, so `editor={MyComponent} hotEditor={false}` keeps the component.
+ *
+ * @param {HotTableProps['editor']} editor The `editor` prop.
+ * @param {HotTableProps['hotEditor']} hotEditor The `hotEditor` prop.
+ * @returns {*} The editor setting, or `undefined` when neither prop names one.
+ */
+export function resolveEditorSetting(
+  editor: HotTableProps['editor'],
+  hotEditor: HotTableProps['hotEditor']
+): Handsontable.GridSettings['editor'] | undefined {
+  if (hotEditor === false) {
+    return false;
+  }
+
+  // `true` names no editor, so it must fall through to "not provided" rather than hard-setting the
+  // default one — otherwise it would override the editor a column's `type` or the grid supplies.
+  if (hotEditor && hotEditor !== true) {
+    return hotEditor as Handsontable.GridSettings['editor'];
+  }
+
+  return editor === false ? false : undefined;
 }
 
 /**
