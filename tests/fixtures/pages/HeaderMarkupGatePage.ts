@@ -76,6 +76,17 @@ export class HeaderMarkupGatePage {
       .__sanitizerCalls.map(([content]) => content));
   }
 
+  /**
+   * How many times the sanitizer was handed exactly this content. Both the rendered header and
+   * the ghost table that measures it sanitize the same label under the same source, so the count
+   * is the only observable that distinguishes one surface from both.
+   *
+   * @param {string} content The exact content to count.
+   */
+  async sanitizerCallsFor(content: string): Promise<number> {
+    return (await this.sanitizerContents()).filter(seen => seen === content).length;
+  }
+
   /** The `source` argument of every sanitizer call so far, in order. */
   async sanitizerContexts(): Promise<string[]> {
     return this.page.evaluate(() => (window as unknown as { __sanitizerCalls: [string, string][] })

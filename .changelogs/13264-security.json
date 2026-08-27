@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a nested header label being able to inject an element into the hidden table that measures column widths. A label holding an unterminated tag, such as `<img src=x onerror=...` with no closing bracket, was completed by the surrounding markup and executed.",
-  "type": "security",
-  "issueOrPR": 13264,
-  "breaking": false,
-  "framework": "none"
-}

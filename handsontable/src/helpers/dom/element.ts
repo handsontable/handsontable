@@ -560,7 +560,7 @@ export function empty(element: Element): void {
  * Decides whether a string is written through `innerHTML` (markup, so it has to reach the
  * sanitizer) or `textContent` (plain text, which cannot inject anything).
  *
- * Both alternatives are deliberately shaped to require something that could actually be parsed as
+ * Every alternative is deliberately shaped to require something that could actually be parsed as
  * markup, and must stay that way. A looser test - matching any `<` with a later `>`, or any `&`
  * with a later `;` - routes ordinary prose such as `Smith & Sons, Ltd.; est. 1920` or
  * `Score < 50 > threshold` to `innerHTML`. Under a Trusted Types policy that write throws, and

@@ -86,8 +86,12 @@ test.describe('header markup gate', () => {
 
     await grid.goto({ nested: 'markup', sanitizer: 'truncate' });
 
-    await expect.poll(() => grid.sanitizerContents())
-      .toContain('<b data-testid="markup-marker">ID</b>');
+    // Two surfaces sanitize this label: the rendered header and the ghost table that measures it.
+    // They pass the identical `(content, source)` pair, so presence alone cannot tell them apart -
+    // if the measuring path stopped sanitizing, a `toContain` check would stay green and this test
+    // would still claim to cover it. Counting the calls is what gives it teeth.
+    await expect.poll(() => grid.sanitizerCallsFor('<b data-testid="markup-marker">ID</b>'))
+      .toBeGreaterThanOrEqual(2);
     // Under the `'header'` source, never `'innerHTML'`: a context-aware sanitizer must not
     // get one rule set for the rendered header and another for the measured copy. The positive
     // above has settled the call list, so the negative below reads a complete one.

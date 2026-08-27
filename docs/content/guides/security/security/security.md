@@ -79,6 +79,8 @@ A configured sanitizer runs on the HTML that Handsontable writes on your behalf.
 | HTML pasted from the clipboard | `'CopyPaste.paste'` |
 | Handsontable's own clipboard payload, pasted between grids | `'CopyPaste.paste.sourceData'` |
 
+Handsontable calls the sanitizer only for content that is shaped like markup: something that reads as an HTML tag, a markup declaration, or a character reference. Text that holds none of those is written as text, so it never reaches a sink and never reaches your sanitizer. `Smith & Sons, Ltd.; est. 1920` and `Score < 50 > threshold` are written as text, while `<b>ID</b>` and `a &amp; b` are sanitized and parsed. Keep this in mind if you use the sanitizer as an audit hook or to cap length rather than to strip markup: it does not see every value the grid writes. The clipboard sources are the exception, and they receive every payload.
+
 In TypeScript, annotate the second parameter with [`SanitizerContext`](@/guides/tools-and-building/typescript-types/typescript-types.md) to get completion on the values above:
 
 ```ts

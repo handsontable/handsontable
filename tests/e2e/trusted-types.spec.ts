@@ -173,16 +173,20 @@ test.describe('Trusted Types enforcement', () => {
       await expect(grid.cell(0, 0)).toHaveCount(0);
     });
 
-    test('throws for a header holding no markup at all, only an ampersand and a semicolon',
+    test('constructs for a header holding no markup at all, only an ampersand and a semicolon',
       async () => {
         await grid.goto({ colHeader: 'prose' });
 
         // `Smith & Sons, Ltd.; est. 1920`. This is the case a user hits by accident, having
-        // written no markup, and it is why the security guide cannot claim enforcement needs
-        // nothing. DEV-2642 narrows the regex to cover this shape; the `markup` case above
-        // outlives that ticket.
-        expect(await grid.statusText()).toContain('CONSTRUCT-THREW');
-        await expect(grid.cell(0, 0)).toHaveCount(0);
+        // written no markup at all, and until DEV-2642 narrowed `HTML_CHARACTERS` it took the
+        // whole grid down here: the label matched the old gate, went to `innerHTML`, and the
+        // write threw with no `catch` between it and the constructor.
+        //
+        // It now takes the text path, so enforcement is satisfied without a policy. The `markup`
+        // case above is the boundary that outlives DEV-2642 - a header the user asked to be
+        // rendered as HTML still needs a policy-backed sanitizer.
+        expect(await grid.statusText()).toContain('CONSTRUCTED');
+        await expect(grid.cell(0, 0)).toHaveCount(1);
       });
 
     test('throws when the context menu marks an item as selected', async () => {
