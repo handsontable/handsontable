@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a crash when the Dialog, Notification, Empty data state, Pagination, or Loading plugin was enabled in a nested grid.",
+  "title": "Fixed a crash when the `dialog`, `notification`, `emptyDataState`, `pagination`, or `loading` option was enabled in a grid nested in a cell of the `handsontable` cell type.",
   "type": "fixed",
   "issueOrPR": 13265,
   "breaking": false,

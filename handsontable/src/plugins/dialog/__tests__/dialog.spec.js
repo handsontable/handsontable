@@ -226,6 +226,13 @@ describe('Dialog', () => {
       expect(innerHot.countRows()).toBe(2);
       expect(innerHot.getPlugin('dialog').isEnabled()).toBe(false);
       expect(innerHot.getPlugin('dialog').enabled).toBe(false);
+
+      // An update carrying the plugin's own key reaches the enable-on-update branch of
+      // `BasePlugin#onUpdateSettings`, which the editor's own width/height update does not.
+      await innerHot.updateSettings({ dialog: true });
+
+      expect(innerHot.getPlugin('dialog').isEnabled()).toBe(false);
+      expect(innerHot.getPlugin('dialog').enabled).toBe(false);
     });
 
     it('should keep the root instance dialog working when a nested grid asks for one too', async() => {

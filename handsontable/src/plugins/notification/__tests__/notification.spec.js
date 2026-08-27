@@ -1378,6 +1378,13 @@ describe('Notification', () => {
       expect(innerHot.countRows()).toBe(2);
       expect(innerHot.getPlugin('notification').isEnabled()).toBe(false);
       expect(innerHot.getPlugin('notification').enabled).toBe(false);
+
+      // An update carrying the plugin's own key reaches the enable-on-update branch of
+      // `BasePlugin#onUpdateSettings`, which the editor's own width/height update does not.
+      await innerHot.updateSettings({ notification: true });
+
+      expect(innerHot.getPlugin('notification').isEnabled()).toBe(false);
+      expect(innerHot.getPlugin('notification').enabled).toBe(false);
     });
   });
 });

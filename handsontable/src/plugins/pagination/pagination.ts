@@ -198,7 +198,9 @@ export class Pagination extends BasePlugin {
    * The pagination bar renders into the bottom slot and registers a focus scope, and the
    * `LayoutManager`, the `FocusScopeManager` and the root grid element all belong to the main
    * Handsontable instance. In a nested grid (the one that the `handsontable` cell type creates) none
-   * of them exists, so the plugin stays disabled there.
+   * of them exists, so the plugin stays disabled there. A custom `uiContainer` does not change that:
+   * it replaces the bottom-slot placement only, while the focus scope and the root grid element are
+   * still required.
    *
    * @returns {boolean}
    */

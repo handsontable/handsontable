@@ -180,6 +180,14 @@ describe('Loading', () => {
       expect(innerHot.getPlugin('loading').isEnabled()).toBe(false);
       expect(innerHot.getPlugin('loading').enabled).toBe(false);
       expect(innerHot.getSettings().dialog).toBe(false);
+
+      // An update carrying the plugin's own key reaches the enable-on-update branch of
+      // `BasePlugin#onUpdateSettings`, which the editor's own width/height update does not.
+      await innerHot.updateSettings({ loading: true });
+
+      expect(innerHot.getPlugin('loading').isEnabled()).toBe(false);
+      expect(innerHot.getPlugin('loading').enabled).toBe(false);
+      expect(innerHot.getSettings().dialog).toBe(false);
     });
   });
 });

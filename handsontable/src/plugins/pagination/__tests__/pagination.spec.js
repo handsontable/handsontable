@@ -296,6 +296,39 @@ describe('Pagination', () => {
       expect(innerHot.countRows()).toBe(10);
       expect(innerHot.getPlugin('pagination').isEnabled()).toBe(false);
       expect(innerHot.getPlugin('pagination').enabled).toBe(false);
+
+      // An update carrying the plugin's own key reaches the enable-on-update branch of
+      // `BasePlugin#onUpdateSettings`, which the editor's own width/height update does not.
+      await innerHot.updateSettings({ pagination: { pageSize: 5 } });
+
+      expect(innerHot.getPlugin('pagination').isEnabled()).toBe(false);
+      expect(innerHot.getPlugin('pagination').enabled).toBe(false);
+    });
+
+    it('should keep paging the root grid while a nested grid asks for pagination too', async() => {
+      handsontable({
+        data: createSpreadsheetData(20, 2),
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            data: createSpreadsheetData(10, 2),
+            pagination: { pageSize: 5 },
+          },
+        }, {}],
+        pagination: { pageSize: 8 },
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const innerHot = getActiveEditor().htEditor;
+
+      // The root grid pages as configured, while the nested grid renders all of its rows because
+      // its own pagination never enables.
+      expect(getPlugin('pagination').enabled).toBe(true);
+      expect(rowIndexMapper().getRenderableIndexesLength()).toBe(8);
+      expect(innerHot.countRows()).toBe(10);
+      expect(innerHot.rowIndexMapper.getRenderableIndexesLength()).toBe(10);
     });
   });
 });
