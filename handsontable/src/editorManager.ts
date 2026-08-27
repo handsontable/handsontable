@@ -86,36 +86,41 @@ class EditorManager {
    */
   #editedPhysicalColumn: number | null = null;
   /**
-   * Whether a structural change - a row or column being inserted or removed - is currently running.
+   * The size of each PHYSICAL index space as of the last cache update.
    *
-   * Such a change RENUMBERS the physical space, which invalidates `#editedPhysicalRow` while leaving
-   * the editor's visual coordinate correct. That is the opposite of what a trim or a permutation
-   * does, and the two are indistinguishable from the cache-update state alone, so the reconciliation
-   * stands down while this is set and the captured record is re-derived once the change lands.
+   * Only a structural change - an inserted or removed row or column - changes these. A trim, a
+   * permutation and a hide all leave the physical space the same size, so a difference here is the
+   * signal that `#editedPhysicalRow` has just been renumbered out from under the editor.
    *
-   * @type {boolean}
+   * Seeded in the constructor rather than from a sentinel: the manager is built after the index
+   * mappers are initialized, so the first cache update it ever sees is a real one, and a sentinel
+   * would make that update look structural.
+   *
+   * @type {number}
    */
-  #structuralChangeInProgress = false;
+  #lastRowIndexCount = 0;
   /**
-   * Marks the start of a structural change, so the cache update it emits does not reconcile against
-   * a physical index that the change is in the middle of renumbering.
+   * The column counterpart of `#lastRowIndexCount`.
+   *
+   * @type {number}
    */
-  #onBeforeStructuralChange = (): void => {
-    this.#structuralChangeInProgress = true;
-  };
-  /**
-   * Marks the end of a structural change and re-derives the edited record from the editor's visual
-   * coordinate, which the change kept valid.
-   */
-  #onAfterStructuralChange = (): void => {
-    this.#structuralChangeInProgress = false;
-    this.#recaptureEditedRecord();
-  };
+  #lastColumnIndexCount = 0;
   /**
    * Reacts to an index-map cache update on either axis.
    *
-   * The trimming reconciliation runs FIRST so that the hidden-cell guard tests `isHidden()` against
-   * rebound coordinates rather than the stale ones a trimming map just invalidated.
+   * A structural change and a rearrangement need opposite repairs - one invalidates the captured
+   * PHYSICAL index and keeps the visual coordinate, the other does the reverse - and the state object
+   * cannot tell them apart, because `insertIndexes()`/`removeIndexes()` raise the same flags a filter
+   * does. The SIZE of the physical space can: only an insert or a remove changes it. Comparing it
+   * against the previous update picks the right repair without relying on hook ordering, and nothing
+   * a plugin vetoes can strand it - a cancelled `beforeCreateRow` never changes the count either.
+   *
+   * The one shape this misses is a structural change that leaves the count where it started - an
+   * insert and a removal batched into a single cache update. `alter()` performs one operation per
+   * call, so nothing in core produces it.
+   *
+   * The chosen repair runs BEFORE the hidden-cell guard, so that guard tests `isHidden()` against
+   * corrected coordinates rather than the stale ones the index map just invalidated.
    *
    * @param {object} indexesChangesState The state object of the index mapper's cache update.
    * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
@@ -125,7 +130,20 @@ class EditorManager {
   #onSequenceCacheUpdate = (indexesChangesState: {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean; hiddenIndexesChanged: boolean;
   }): void => {
-    this.#reconcileEditorWithIndexMaps(indexesChangesState);
+    const rowIndexCount = this.hot.rowIndexMapper.getNumberOfIndexes();
+    const columnIndexCount = this.hot.columnIndexMapper.getNumberOfIndexes();
+    const isStructuralChange = rowIndexCount !== this.#lastRowIndexCount ||
+      columnIndexCount !== this.#lastColumnIndexCount;
+
+    this.#lastRowIndexCount = rowIndexCount;
+    this.#lastColumnIndexCount = columnIndexCount;
+
+    if (isStructuralChange) {
+      this.#recaptureEditedRecord();
+    } else {
+      this.#reconcileEditorWithIndexMaps(indexesChangesState);
+    }
+
     this.#closeEditorWhenCellHidden();
   };
 
@@ -139,19 +157,13 @@ class EditorManager {
     this.tableMeta = tableMeta;
     this.selection = selection;
     this.eventManager = new EventManager(hotInstance);
+    this.#lastRowIndexCount = hotInstance.rowIndexMapper.getNumberOfIndexes();
+    this.#lastColumnIndexCount = hotInstance.columnIndexMapper.getNumberOfIndexes();
 
     this.hot.addHook('afterDocumentKeyDown', (event: KeyboardEvent) => this.#onAfterDocumentKeyDown(event));
     this.hot.addHook('beforeCompositionStart', (event: KeyboardEvent) => this.#onAfterDocumentKeyDown(event));
     this.hot.addHook('afterRowSequenceCacheUpdate', this.#onSequenceCacheUpdate);
     this.hot.addHook('afterColumnSequenceCacheUpdate', this.#onSequenceCacheUpdate);
-    this.hot.addHook('beforeCreateRow', this.#onBeforeStructuralChange);
-    this.hot.addHook('beforeRemoveRow', this.#onBeforeStructuralChange);
-    this.hot.addHook('beforeCreateCol', this.#onBeforeStructuralChange);
-    this.hot.addHook('beforeRemoveCol', this.#onBeforeStructuralChange);
-    this.hot.addHook('afterCreateRow', this.#onAfterStructuralChange);
-    this.hot.addHook('afterRemoveRow', this.#onAfterStructuralChange);
-    this.hot.addHook('afterCreateCol', this.#onAfterStructuralChange);
-    this.hot.addHook('afterRemoveCol', this.#onAfterStructuralChange);
     this.hot.view._wt.update(
       'onCellDblClick', (event: MouseEvent, coords: { isCell: () => boolean }, _elem: HTMLElement) =>
         this.#onCellDblClick(event, coords)
@@ -176,10 +188,6 @@ class EditorManager {
     // `beforeChange` that cancels the change, for instance) would disable the guard for the rest
     // of the instance's life rather than for that one edit.
     this.#hiddenCellCloseArmed = false;
-    // A vetoed `beforeCreateRow`/`beforeRemoveRow` never reaches its `after` counterpart, which
-    // would leave the latch set. Nothing changed in that case, so the only cost is the guard being
-    // inert for the rest of that edit - and a new edit cycle clears it.
-    this.#structuralChangeInProgress = false;
 
     if (this.activeEditor && this.activeEditor.isWaiting()) {
       this.closeEditor(false, false, (dataSaved: boolean) => {
@@ -424,6 +432,8 @@ class EditorManager {
   /**
    * Re-derives the edited record after a structural change has renumbered the physical space.
    *
+   * Runs INSTEAD of the reconciliation, never after it, so the stale captured index is never acted on.
+   *
    * Inserting or removing rows shifts the physical indexes of everything below, so the index captured
    * in `prepareEditor()` now addresses a different record - but the editor's VISUAL coordinate came
    * through intact, because the index mapper moved the visual space with it. So the visual side is
@@ -476,10 +486,10 @@ class EditorManager {
    * A structural change - an inserted or removed row or column - is the one case this reasoning does
    * NOT cover, because it renumbers the physical space and invalidates the captured index while
    * leaving the visual coordinate correct. It raises the same flags and cannot be told apart from the
-   * state object, so `#onBeforeStructuralChange()` stands this method down for the duration and
-   * `#recaptureEditedRecord()` re-derives the record afterwards. Without that, a grid with any
-   * trimming map registered would discard a valid edit on `alter('remove_row', ...)` and, with a sort
-   * active, rebind onto the wrong record on `alter('insert_row_above', ...)`.
+   * state object, so `#onSequenceCacheUpdate()` routes those to `#recaptureEditedRecord()` instead,
+   * discriminating on the physical index count. Without that split, a grid with any trimming map
+   * registered would discard a valid edit on `alter('remove_row', ...)` and, with a sort active,
+   * rebind onto the wrong record on `alter('insert_row_above', ...)`.
    *
    * Runs SYNCHRONOUSLY, unlike `#closeEditorWhenCellHidden()`. `Filters#filter()` re-selects the
    * highlighted column immediately after writing its map, which commits the open editor before any
@@ -519,7 +529,7 @@ class EditorManager {
     const editor = this.activeEditor;
 
     if ((!indexesChangesState.trimmedIndexesChanged && !indexesChangesState.indexesSequenceChanged) ||
-        this.#structuralChangeInProgress || !editor ||
+        !editor ||
         editor.state !== EDITOR_STATE.EDITING ||
         this.#editedPhysicalRow === null || this.#editedPhysicalColumn === null) {
       return;

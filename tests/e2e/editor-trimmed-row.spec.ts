@@ -503,3 +503,44 @@ test.describe('a structural change while an editor is open', () => {
     ]);
   });
 });
+
+/**
+ * An invariant guard, not a reproduction: a structural change that gets CANCELLED must leave the
+ * reconciliation working for the rest of the edit.
+ *
+ * `Formulas` returns `false` from `beforeCreateRow` and `beforeRemoveRow` whenever HyperFormula
+ * rejects the operation, and a cancelled insert fires `beforeCreateRow` with no `afterCreateRow` and
+ * no cache update behind it (verified). Any design that armed on the `before` hook and disarmed on
+ * the `after` one is therefore one re-prepare away from latching permanently, which would silently
+ * stop reconciling and put the original corruption back.
+ *
+ * Discriminating on the physical index count sidesteps that entirely - a cancelled insert changes no
+ * counts, so there is nothing to arm and nothing to strand. This case pins the invariant rather than
+ * a failure: it also passes against the earlier hook-pair implementation, because an `alter()` is
+ * followed by a re-prepare that happened to clear the latch. It exists so a future refactor back to
+ * a hook-armed design has to prove the same property.
+ */
+test.describe('a structural change that gets vetoed', () => {
+  test('leaves the reconciliation working for the rest of the edit', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.vetoRowCreation();
+
+    await grid.openEditorAndType(0, 0, 'EDITED');
+
+    await grid.insertRowAbove(0, 1);
+
+    // The veto held, so nothing about the data changed - but `beforeCreateRow` did fire.
+    expect(await grid.sourceRowCount()).toBe(5);
+    await expect.poll(() => grid.editorState()).toBe('STATE_EDITING');
+
+    // The edited record is trimmed away here, so the edit must be discarded rather than written
+    // through a coordinate that now addresses `'A2'`.
+    await grid.filterToValues(0, ['A2']);
+
+    expect(await grid.committedChangeCount()).toBe(0);
+    expect(await grid.sourceRowCount()).toBe(5);
+    expect(await grid.sourceData()).toEqual(UNTOUCHED);
+  });
+});

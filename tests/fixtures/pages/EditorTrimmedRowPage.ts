@@ -19,6 +19,7 @@ interface ManualRowMovePlugin {
 }
 
 interface HandsontableFixture {
+  addHook(name: string, callback: () => boolean): void;
   getSelected(): number[][] | undefined;
   getActiveEditor(): {
     isOpened(): boolean;
@@ -193,6 +194,16 @@ export class EditorTrimmedRowPage {
       hot.getPlugin('manualRowMove').moveRow(target, destination);
       (hot as unknown as { render(): void }).render();
     }, [row, finalIndex] as [number, number]);
+  }
+
+  /**
+   * Makes every subsequent row insertion fail its `beforeCreateRow` veto, the way Formulas does when
+   * HyperFormula rejects the change. The hook fires, nothing is created, and no cache update follows.
+   */
+  async vetoRowCreation(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as Window & { hot: HandsontableFixture }).hot.addHook('beforeCreateRow', () => false);
+    });
   }
 
   /**
