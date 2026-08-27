@@ -827,16 +827,31 @@ describe('DomElement helper', () => {
       expect(HTML_CHARACTERS.test('')).toBe(false);
     });
 
-    it('should not treat a comment, doctype, or other non-tag `<` construct as markup', () => {
-      // None of these can build an element - the HTML tag-open state starts a tag only for `<`
-      // followed by an ASCII letter - so none of them can inject, and routing them to the text
-      // path is what keeps a comment-shaped label from taking the grid down.
-      expect(HTML_CHARACTERS.test('<!-- note -->')).toBe(false);
-      expect(HTML_CHARACTERS.test('<!DOCTYPE html>')).toBe(false);
-      expect(HTML_CHARACTERS.test('<![CDATA[x]]>')).toBe(false);
-      expect(HTML_CHARACTERS.test('<?pi?>')).toBe(false);
+    it('should keep a markup declaration or processing instruction on the HTML path', () => {
+      // None of these can build an element, so they are not a sink concern. They stay on the HTML
+      // path because the `html` cell type and `allowHtml` sources render markup deliberately, and
+      // routing them to text would print them literally where the parser used to absorb them.
+      expect(HTML_CHARACTERS.test('<!-- note -->')).toBe(true);
+      expect(HTML_CHARACTERS.test('<!DOCTYPE html>')).toBe(true);
+      expect(HTML_CHARACTERS.test('<![CDATA[x]]>')).toBe(true);
+      expect(HTML_CHARACTERS.test('<?pi?>')).toBe(true);
+      // No closing `>` required, so an unterminated declaration is classified the same way.
+      expect(HTML_CHARACTERS.test('<!unterminated')).toBe(true);
+    });
+
+    it('should not treat a `<` followed by neither a letter nor `!`/`?` as markup', () => {
       expect(HTML_CHARACTERS.test('< div>')).toBe(false);
       expect(HTML_CHARACTERS.test('<12>')).toBe(false);
+      expect(HTML_CHARACTERS.test('<->')).toBe(false);
+    });
+
+    it('should stay linear on a long run of `<`, which `[^>]*` did not', () => {
+      // `[^>]*` backtracked for over a second here, on the main thread, reachable from a paste.
+      const bomb = '<a'.repeat(40000);
+      const startedAt = Date.now();
+
+      expect(HTML_CHARACTERS.test(bomb)).toBe(false);
+      expect(Date.now() - startedAt).toBeLessThan(100);
     });
 
     it('should treat markup a parser accepts but a strict reading would not as markup', () => {
@@ -848,6 +863,12 @@ describe('DomElement helper', () => {
       expect(HTML_CHARACTERS.test('<img src="a>b" onerror=alert(1)>')).toBe(true);
       expect(HTML_CHARACTERS.test('<img/src=x onerror=alert(1)>')).toBe(true);
       expect(HTML_CHARACTERS.test('<IMG SRC=x ONERROR=alert(1)>')).toBe(true);
+      // A `<` inside an attribute value does not end the run, so a string whose ONLY tag is
+      // spelled that way lands on the text path. Accepted: text cannot inject, and excluding `<`
+      // from the run is what keeps this alternative linear.
+      expect(HTML_CHARACTERS.test('<a x="<">')).toBe(false);
+      // With any other tag present it matches on that one, so this is genuinely the narrow case.
+      expect(HTML_CHARACTERS.test('<a x="<"><b>ID</b>')).toBe(true);
     });
 
     it('should keep matching prose shaped like a tag, which the pattern cannot exclude', () => {
@@ -907,15 +928,14 @@ describe('DomElement helper', () => {
       expect(HTML_CHARACTERS.test(content)).toBe(true);
     });
 
-    it('should expose one capture group per form, with exactly one defined per match', () => {
-      // `Handsontable.dom.HTML_CHARACTERS` is public, so the shape of a match is worth pinning.
-      // Nothing in the grid reads the groups; the count stays at three, as it always has been.
-      expect([...'<b>ID</b>'.match(HTML_CHARACTERS)])
-        .toEqual(['<b>', '<b>', undefined, undefined]);
-      expect([...'a &amp; b'.match(HTML_CHARACTERS)])
-        .toEqual(['&amp;', undefined, '&amp;', undefined]);
-      expect([...'&#x1F600;'.match(HTML_CHARACTERS)])
-        .toEqual(['&#x1F600;', undefined, undefined, '&#x1F600;']);
+    it('should expose no capture groups, and match only the markup it found', () => {
+      // The contract worth pinning is `match[0]`. This value is public, and it used to carry three
+      // groups that nothing in the grid read; renumbering them as the alternatives changed would
+      // have handed consumers a silently different shape, so there are now none at all.
+      expect('<b>ID</b>'.match(HTML_CHARACTERS)[0]).toBe('<b>');
+      expect('a &amp; b'.match(HTML_CHARACTERS)[0]).toBe('&amp;');
+      expect('&#x1F600;'.match(HTML_CHARACTERS)[0]).toBe('&#x1F600;');
+      expect([...'<b>ID</b>'.match(HTML_CHARACTERS)]).toEqual(['<b>']);
     });
   });
 

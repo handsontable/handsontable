@@ -129,16 +129,10 @@
       settings.sanitizer = sanitizer;
     }
 
-    // Reported rather than thrown: a spec asserting that the grid built has to be
-    // able to tell "built" from "threw" without reading the console.
-    window.__constructed = false;
-
-    try {
-      window.hot = new Handsontable(container, settings);
-      window.__constructed = true;
-    } catch (error) {
-      window.__constructError = String(error);
-    }
+    // Deliberately not wrapped in a try/catch. Nothing asserts on a construction failure here -
+    // the Trusted Types enforcement that makes the grid throw lives in the DEV-2617 suite - so
+    // swallowing the error would only hide it behind a locator timeout.
+    window.hot = new Handsontable(container, settings);
   </script>
 </body>
 </html>

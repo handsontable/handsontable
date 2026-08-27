@@ -50,9 +50,14 @@ export class HeaderMarkupGatePage {
       .locator('th[colspan="2"] .colHeader');
   }
 
-  /** Whether the grid constructed without throwing. */
-  async constructed(): Promise<boolean> {
-    return this.page.evaluate(() => (window as unknown as { __constructed: boolean }).__constructed);
+  /**
+   * Force a second render pass, so a spec can show that a warning absent after the first is
+   * still absent after another one - the case a one-shot read on its own would miss.
+   */
+  async rerender(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as unknown as { hot: { render(): void } }).hot.render();
+    });
   }
 
   /** Every warning the grid logged, in order. */
