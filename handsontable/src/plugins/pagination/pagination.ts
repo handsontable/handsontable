@@ -257,8 +257,9 @@ export class Pagination extends BasePlugin {
 
     // The layout manager owns the bottom-slot placement and ordering. With a custom `uiContainer`
     // the UI installs itself there instead, so the slot registration is skipped. The manager only
-    // exists on the root instance; that half of the guard is redundant since `isEnabled()` keeps the
-    // plugin disabled on a non-root instance, and is kept for a direct `enablePlugin()` call.
+    // exists on the root instance. That half of the guard is now unreachable, since `isEnabled()`
+    // keeps the plugin disabled on a non-root instance and nothing else here survives one either; it
+    // is kept as a defensive assertion of the requirement, not as support for a nested grid.
     if (isRootInstance(this.hot) && !this.getSetting('uiContainer')) {
       this.hot.getLayoutManager()
         .register(PLUGIN_KEY, this.#ui.getContainer(), { side: 'bottom', weight: LAYOUT_WEIGHT });

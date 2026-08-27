@@ -153,4 +153,33 @@ describe('Loading', () => {
     expect(getDataAtCell(0, 0)).toBe('new value');
     expect(hot.getSelected()).toBeUndefined();
   });
+
+  describe('nested grid (non-root instance)', () => {
+    it('should not enable the plugin in a grid nested in the `handsontable` cell type', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            data: createSpreadsheetData(2, 2),
+            loading: true,
+          },
+        }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const innerHot = getActiveEditor().htEditor;
+
+      // The loading indicator renders through the Dialog plugin, which is available on the main
+      // instance only. The plugin declines to enable instead of throwing, and it must not turn the
+      // `dialog` setting on in the nested grid either (DEV-2641).
+      expect(getActiveEditor().isOpened()).toBe(true);
+      expect(innerHot.countRows()).toBe(2);
+      expect(innerHot.getPlugin('loading').isEnabled()).toBe(false);
+      expect(innerHot.getPlugin('loading').enabled).toBe(false);
+      expect(innerHot.getSettings().dialog).toBe(false);
+    });
+  });
 });

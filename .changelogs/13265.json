@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a crash when the Dialog, Notification, Empty data state, or Pagination plugin was enabled in a nested grid.",
+  "title": "Fixed a crash when the Dialog, Notification, Empty data state, Pagination, or Loading plugin was enabled in a nested grid.",
   "type": "fixed",
   "issueOrPR": 13265,
   "breaking": false,

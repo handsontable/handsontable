@@ -3941,6 +3941,9 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
+     * The loading indicator is available on the main grid only. In a grid nested in a cell of the
+     * `handsontable` cell type, this option has no effect.
+     *
      * @since 16.1.0
      * @memberof Options#
      * @type {boolean|object}
