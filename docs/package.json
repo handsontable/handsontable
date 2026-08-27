@@ -36,7 +36,7 @@
     "@liveblocks/react-ui": "^3.22.0",
     "@simonwep/pickr": "^1.9.1",
     "@supabase/supabase-js": "^2.110.0",
-    "astro": "^7.0.6",
+    "astro": "^7.1.0",
     "chart.js": "^4.5.1",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.10",
