@@ -153,12 +153,12 @@ test.describe('non-text editors whose cell is hidden', () => {
 
     await grid.setPage(2);
 
-    // Assert only that the editor is gone. Whether a dropdown COMMITS or DISCARDS is decided by
-    // `DropdownEditor.finishEditing`, which rewrites the flag based on the active range, and by its
-    // own `queryChoices` timeout scheduled in `open()`. Both are pre-existing and race real typing,
-    // so the committed value is not a stable assertion here. The editor surviving a hidden cell is
-    // what this change fixes, and that is what this pins.
     await expect.poll(() => grid.isEditorOpen()).toBe(false);
+    // The committed value used to be unassertable here: `queryChoices()`, deferred in `open()` and
+    // again on every keystroke, could land after the page turn and re-highlight a choice that
+    // `HandsontableEditor.finishEditing` then read as the value. DEV-2653 made those deferred calls
+    // bail once the editor is no longer editing, which is what makes this stable.
+    await expect.poll(() => grid.sourceColumn(0)).toEqual(['A4', 'A2', 'A3', 'A4']);
   });
 });
 

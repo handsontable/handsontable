@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Autocomplete with an asynchronous source fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    window.htEditor = ({ autocomplete: 'autocomplete', dropdown: 'dropdown' })[htParams.get('editor') ?? 'autocomplete'];
+    if (!window.htEditor) {
+      throw new Error('Unknown ?editor= value: ' + JSON.stringify(htParams.get('editor')));
+    }
+  </script>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+  <input type="text" data-testid="outside-input">
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // One distinct choice set per column, so a response that belongs to column 0 is recognizable
+    // when it lands while column 1 is the one being edited.
+    const CHOICES = [
+      ['Alpha', 'Alfa', 'Alto'],
+      ['Bravo', 'Bruno', 'Brisk'],
+    ];
+
+    // Each column is seeded with the prefix its whole choice set shares. Two reasons, both load
+    // bearing. An EMPTY cell closes the editor again on the same Enter that opened it, so nothing
+    // would ever stay open to test. And a prefix keeps `autocomplete` (which filters by the typed
+    // value) showing the same three choices as `dropdown` (which forces `filter: false`), so one
+    // assertion covers both editors.
+    const SEEDS = ['Al', 'Br'];
+
+    // The source never answers on its own. A spec resolves a query by hand through
+    // `window.htResolveQueries(col)`, which is what makes "the response arrives after the editor
+    // closed" and "the response arrives after the editor reopened elsewhere" exact rather than a
+    // race against a timer. A `setTimeout`-based source would need the spec to out-wait it, which
+    // is the flake this whole fixture exists to avoid.
+    window.htPendingQueries = [];
+
+    function makeSource(col) {
+      return function(query, process) {
+        window.htPendingQueries.push({ col, query, process, resolved: false });
+      };
+    }
+
+    /**
+     * Resolves every query still pending for a column, oldest first, and returns how many were
+     * resolved. Returns 0 when the column has nothing in flight, which lets a spec poll for the
+     * query to exist rather than assume it does.
+     */
+    window.htResolveQueries = function(col) {
+      const pending = window.htPendingQueries.filter(entry => entry.col === col && !entry.resolved);
+
+      pending.forEach((entry) => {
+        entry.resolved = true;
+        entry.process(CHOICES[entry.col]);
+      });
+
+      return pending.length;
+    };
+
+    window.htPendingCount = function(col) {
+      return window.htPendingQueries.filter(entry => entry.col === col && !entry.resolved).length;
+    };
+
+    // `hot.listen()` moves no DOM focus - it makes the grid the keyboard listener again. Counting
+    // `afterListen` is therefore the precise probe for the focus-steal half of the defect, and it
+    // cannot be satisfied by an unrelated state that happens to leave `isListening()` true.
+    window.htListenCount = 0;
+
+    // Holds the editor object itself. It survives `close()` (which only hides the nested grid), so
+    // a spec can read the dropdown that a late response re-showed even with no active editor left.
+    window.htEditorRef = null;
+
+    window.hot = new Handsontable(container, {
+      data: Array.from({ length: 4 }, () => SEEDS.slice()),
+      colHeaders: true,
+      rowHeaders: true,
+      columns: [
+        { type: window.htEditor, source: makeSource(0) },
+        { type: window.htEditor, source: makeSource(1) },
+      ],
+      // Stamp test ids from `afterRenderer`, not from a grid-level `renderer`: a column `type`
+      // installs its own renderer, which would override the grid-level one and leave the typed
+      // columns with no test id at all.
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      afterBeginEditing() {
+        window.htEditorRef = window.hot.getActiveEditor();
+      },
+      afterListen() {
+        window.htListenCount += 1;
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

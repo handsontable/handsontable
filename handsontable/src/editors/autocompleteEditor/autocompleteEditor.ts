@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../core/types';
 import type { CellProperties } from '../../settings';
+import { EDITOR_STATE } from '../baseEditor';
 import { HandsontableEditor } from '../handsontableEditor';
 import { pivot } from '../../helpers/array';
 import { isKeyValueObject, isObject } from '../../helpers/object';
@@ -77,6 +78,13 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @type {string}
    */
   #idPrefix = this.hot.guid.slice(0, 9);
+  /**
+   * Generation token for the in-flight choices query. Bumped on every `queryChoices()` call so a
+   * response that belongs to a superseded query can be told apart from the current one.
+   *
+   * @type {number}
+   */
+  #queryGeneration = 0;
 
   /**
    * Gets current value from editable element.
@@ -311,17 +319,42 @@ export class AutocompleteEditor extends HandsontableEditor {
   /**
    * Prepares choices list based on applied argument.
    *
+   * Does nothing when the editor is not editing, and ignores a `source` response that arrives after
+   * the editor closed or after a newer query started.
+   *
    * @param {string} query The query.
    */
   queryChoices(query: string): void {
+    // Both callers defer through `hot._registerTimeout()`, which has no cancel path - `close()`
+    // never clears the queue, so a timeout scheduled while the editor was open still fires after
+    // it closed. `state` is the signal to check rather than `isOpened()`: `beginEditing()` sets
+    // `state` to `EDITING` before calling `open()` and `_opened` only after it returns, so
+    // `isOpened()` is still false for a source that answers synchronously.
+    if (this.state !== EDITOR_STATE.EDITING) {
+      return;
+    }
+
     type SourceValue = unknown[] | ((query: string, callback: (choices: unknown[]) => void) => void);
     const source = this.cellProperties.source as SourceValue | undefined;
+    const generation = this.#queryGeneration + 1;
 
+    this.#queryGeneration = generation;
     this.query = query;
 
     if (typeof source === 'function') {
       type SourceFn = (query: string, callback: (choices: unknown[]) => void) => void;
+
       (source as SourceFn).call(this.cellProperties, query, (choices: unknown[]) => {
+        // A user-supplied source answers whenever it likes, and `HandsontableEditor.close()` only
+        // hides the nested grid, so a late response can still re-show the dropdown and pull focus
+        // back through `hot.listen()`. The state check rejects a response that outlived the edit.
+        // The generation check rejects one that belongs to a superseded query - including a query
+        // from an earlier open at a different cell, which the state check cannot see, because the
+        // editor is a per-instance singleton and is in the `EDITING` state again by then.
+        if (generation !== this.#queryGeneration || this.state !== EDITOR_STATE.EDITING) {
+          return;
+        }
+
         this.rawChoices = choices;
         this.updateChoicesList(this.stripValuesIfNeeded(choices));
       });
