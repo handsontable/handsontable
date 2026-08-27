@@ -1406,13 +1406,18 @@ export class Formulas extends BasePlugin {
 
     const visibleColumnCount = this.hot.countCols();
     const isAoAWithSkippedColumns = this.#areSourceColumnsSkipped() && this.#isSourceDataArrayOfArrays();
+    // `dataArray` is indexed from the requested start row, while `#getValueGetterValue` reads the
+    // meta by a PHYSICAL row index. A partial read - the Nested Rows detach is the one caller that
+    // makes one - would otherwise resolve every row's `valueGetter` from `rowOffset` rows too high
+    // up the table.
+    const rowOffset = row ?? 0;
 
     if (!isAoAWithSkippedColumns) {
       return dataArray.map((rowObject, rowIndex) => {
         const rowArray = Array.isArray(rowObject) ? rowObject : [];
 
         return rowArray.map((value: unknown, columnIndex: number) => {
-          return this.#getValueGetterValue(rowIndex, columnIndex, value);
+          return this.#getValueGetterValue(rowOffset + rowIndex, columnIndex, value);
         });
       });
     }
@@ -1440,7 +1445,7 @@ export class Formulas extends BasePlugin {
           continue;
         }
 
-        projected.push(this.#getValueGetterValue(rowIndex, visualCol, rowArray[arrayIndex]));
+        projected.push(this.#getValueGetterValue(rowOffset + rowIndex, visualCol, rowArray[arrayIndex]));
       }
 
       return projected;

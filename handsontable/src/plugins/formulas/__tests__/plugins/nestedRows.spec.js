@@ -280,6 +280,51 @@ describe('Formulas', () => {
       expect(getDataAtCol(0)).toContain('parent1!');
     });
 
+    it('should read the valueGetter from the detached rows own meta', async() => {
+      handsontable({
+        data: [
+          {
+            col1: { label: 'parent1' },
+            __children: [
+              { col1: { label: 'child1' } },
+            ],
+          },
+          { col1: { label: 'parent2' } },
+        ],
+        columns: [{ data: 'col1', type: 'text' }],
+        // Stamps the PHYSICAL row the meta was resolved from onto the value, so the engine content
+        // shows which row's `valueGetter` each cell actually went through.
+        cells(row) {
+          return {
+            valueGetter(value) {
+              return (value && typeof value === 'object') ? `r${row}:${value.label}` : value;
+            },
+          };
+        },
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        nestedRows: true,
+      });
+
+      getPlugin('nestedRows').dataManager.detachFromParent(
+        getPlugin('nestedRows').dataManager.getDataObject(1)
+      );
+
+      const formulasPlugin = getPlugin('formulas');
+
+      // The detach rewrites the rows from the detached element down, so `child1` - now physical
+      // row 2 - has to go through row 2's `valueGetter`. Reading the array-relative index as a
+      // physical one sends it through row 0's instead. The rows above the detached element are not
+      // rewritten, so `parent2` keeps the stamp it got at load time.
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['r0:parent1'],
+        ['r2:parent2'],
+        ['r2:child1'],
+      ]);
+    });
+
     it('should clear the detach guard when the plugin is re-enabled', async() => {
       const data = [
         [10, '=SUM(A1:A3)'],
