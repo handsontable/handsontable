@@ -18,6 +18,23 @@ Documentation-only, test-only, and CI/tooling PRs **pass automatically** — no 
 ...and re-run the failed **Changelog** check from the PR's checks tab (or push any new commit — `git commit --allow-empty` works). The check reads the PR body at run time; editing the description alone does not re-trigger it. The override is logged together with the source files it waves through, so reviewers can judge it.
 
 
+## One entry per pull request
+
+**A pull request adds exactly one entry to this directory. Never more than one.**
+
+This holds even when the PR fixes several issues, touches several packages, or makes several distinct
+user-facing changes — the single title describes the overall change. Two entries from one PR land as
+two overlapping lines in the same `CHANGELOG.md` section, and a reader cannot tell they came from one
+change. If one title cannot carry everything the PR does, split the PR, not the entry.
+
+Check before opening the PR:
+
+```bash
+git diff --name-only origin/develop...HEAD -- .changelogs/
+```
+
+Exactly one path must be listed.
+
 ## Entry format
 
 Every `.json` file in this directory holds a single entry with six required fields:
