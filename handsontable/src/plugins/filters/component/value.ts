@@ -143,6 +143,11 @@ export class ValueComponent extends BaseComponent {
 
       select.setItems(value.itemsSnapshot);
       select.setValue(value.args[0]);
+      // A restored `by_value` state with nothing selected is the record of a deliberate "Clear" -
+      // the condition exists, it just excludes every value. This is the only place that knows it:
+      // `reset()` runs for a column carrying no condition, where an empty list means the opposite
+      // and must not turn a column the user never filtered into one that hides every row.
+      select.setCleared(Array.isArray(value.args[0]) && (value.args[0] as unknown[]).length === 0);
       select.setLocale(value.locale);
 
       return;
@@ -247,9 +252,14 @@ export class ValueComponent extends BaseComponent {
    *
    * A value leaves the item list for two very different reasons, and they must not be treated
    * alike: another column's filter hides its rows, in which case it has to survive; or it was
-   * edited away, in which case keeping it strands a value the list can never show again. Both the
-   * column's values and the stored selection are normalized the same way (`unifyColumnValues`
-   * applies `toEmptyString`), so a blank matches a blank rather than a stray `null`.
+   * edited away, in which case keeping it strands a value the list can never show again.
+   *
+   * Only the column's own values are normalized (`unifyColumnValues` applies `toEmptyString`); the
+   * stored selection is compared as written. That is deliberate. `getDataMapAtColumn()` normalizes
+   * every cell value the same way, so a selection naming a blank as a raw `null` - which only the
+   * public `addCondition()` can produce, never the dropdown - matches no row to begin with, and
+   * neither checks the blank in the list. Dropping it is the point: it is a value the user can
+   * never see or untick.
    *
    * @param {number} physicalColumn The physical column index the selection belongs to.
    * @param {Array} selectedArgs The stored selection.

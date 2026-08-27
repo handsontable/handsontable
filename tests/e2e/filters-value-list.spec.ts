@@ -289,6 +289,68 @@ test.describe('Filters — "filter by value" list', () => {
     expect(await grid.exportedConditions()).toEqual([]);
   });
 
+  test('an emptied list with nothing to show still excludes everything after a reopen',
+    async({ page, theme, bundle }) => {
+      const grid = new FiltersValueListPage(page, theme, bundle);
+
+      await grid.goto();
+
+      // Name hides every row, so Color is left with nothing to list.
+      await grid.openMenu('Name');
+      await grid.clearAllValues();
+      await grid.confirmMenu();
+
+      // "Clear" on that empty list still says "exclude everything in this column".
+      await grid.openEmptyMenu('Color');
+      await grid.clearAllValues({ expectEmptyList: true });
+      await grid.confirmMenu();
+
+      // Reopening shows the same empty box. Confirming it untouched must not read "nothing is
+      // selected" as "nothing is filtered" - that would quietly release the column, and an empty
+      // list gives the checkboxes no way to say otherwise.
+      await grid.openEmptyMenu('Color');
+      await grid.confirmMenu();
+
+      await grid.openMenu('Name');
+      await grid.selectAllValues();
+      await grid.confirmMenu();
+
+      // Name lets every row through again, so only Color can still be holding them back.
+      expect(await grid.columnValues(0)).toEqual([]);
+    });
+
+  test('confirming an empty list on a column that was never filtered adds no condition',
+    async({ page, theme, bundle }) => {
+      const grid = new FiltersValueListPage(page, theme, bundle);
+
+      await grid.goto();
+
+      // Nothing survives the Name filter, so every other column is left with nothing to list.
+      await grid.openMenu('Name');
+      await grid.clearAllValues();
+      await grid.confirmMenu();
+
+      expect(await grid.columnValues(0)).toEqual([]);
+
+      // Color was never filtered - its list is empty only because Name hides every row. An empty
+      // box means "exclude everything" only when the user emptied it, never when there was nothing
+      // to show in the first place.
+      await grid.openEmptyMenu('Color');
+
+      expect(await grid.listedValues()).toEqual([]);
+
+      await grid.confirmMenu();
+
+      await grid.openMenu('Name');
+      await grid.selectAllValues();
+      await grid.confirmMenu();
+
+      // Releasing Name has to bring every row back. A condition picked up by Color would hold them
+      // out for good, because its list can never show a value again.
+      expect(await grid.columnValues(0)).toEqual(['Alice', 'Bob', 'Charlie', 'Dave', 'Eve']);
+      expect(await grid.exportedConditions()).toEqual([]);
+    });
+
   test('another column\'s list stays narrowed down by the filtered column', async({ page, theme, bundle }) => {
     const grid = new FiltersValueListPage(page, theme, bundle);
 

@@ -143,10 +143,22 @@ export class MultipleSelectUI extends BaseUI {
    */
   setValue(value: unknown) {
     this.#unlistedValue = null;
-    // An empty selection restored from a `by_value` state means the same thing "Clear" does -
-    // exclude everything - so the answer survives the menu being closed and opened again.
-    this.#cleared = Array.isArray(value) && value.length === 0;
+    this.#cleared = false;
     super.setValue(value);
+  }
+
+  /**
+   * Record whether an empty selection is the user's own doing.
+   *
+   * An empty box with an empty list reads the same whether the column filters nothing or excludes
+   * everything, and only the caller knows which. `setItems()` and `setValue()` reset the answer to
+   * "filters nothing", so this runs after them - see `ValueComponent.setState()`, the one place
+   * that can tell the two apart.
+   *
+   * @param {boolean} cleared `true` when the empty selection means "exclude everything".
+   */
+  setCleared(cleared: boolean) {
+    this.#cleared = cleared;
   }
 
   /**
@@ -533,12 +545,6 @@ export class MultipleSelectUI extends BaseUI {
       return;
     }
 
-    // "Select all" means the column stops filtering, so the selected values the list cannot show
-    // have to go as well. Leaving them behind keeps `isSelectedAllValues()` false, and the column
-    // would still export a condition and still read as filtered with every box ticked.
-    // "Select all" means the column stops filtering, so the selected values the list cannot show
-    // have to go as well. Leaving them behind keeps `isSelectedAllValues()` false, and the column
-    // would still export a condition and still read as filtered with every box ticked.
     // "Select all" means the column stops filtering, so the selected values the list cannot show
     // have to go as well. Leaving them behind keeps `isSelectedAllValues()` false, and the column
     // would still export a condition and still read as filtered with every box ticked.

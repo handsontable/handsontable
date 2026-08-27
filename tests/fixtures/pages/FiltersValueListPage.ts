@@ -74,6 +74,26 @@ export class FiltersValueListPage {
     await expect(this.valueList.first()).toBeVisible();
   }
 
+  /**
+   * Open the dropdown menu of a column whose value list is empty.
+   *
+   * A column that is not filtered itself builds its list from the rows still on screen, so another
+   * column's filter can leave it with nothing to list. `openMenu()` waits for a first row and would
+   * time out here, so this variant waits for the list container instead.
+   *
+   * @param {string} headerLabel The column header's visible label.
+   */
+  async openEmptyMenu(headerLabel: string): Promise<void> {
+    await this.page
+      .locator('.ht_clone_top th')
+      .filter({ hasText: new RegExp(`^${headerLabel}$`) })
+      .locator('.changeType')
+      .click();
+
+    await expect(this.menu).toBeVisible();
+    await expect(this.menu.locator('.htUIMultipleSelect')).toBeVisible();
+  }
+
   /** Confirm the menu with the "OK" button and wait for it to close. */
   async confirmMenu(): Promise<void> {
     await this.menu.locator('.htUIButtonOK input').click();
@@ -158,9 +178,19 @@ export class FiltersValueListPage {
     await expect(this.valueList.first().locator('input[type="checkbox"]')).toBeChecked();
   }
 
-  /** Click the "Clear" link, which unchecks every value the filter holds. */
-  async clearAllValues(): Promise<void> {
+  /**
+   * Click the "Clear" link, which unchecks every value the filter holds.
+   *
+   * @param {object} [options] Options.
+   * @param {boolean} [options.expectEmptyList] Set when the list holds no values, so there are no
+   *   checkboxes to wait for.
+   */
+  async clearAllValues({ expectEmptyList = false } = {}): Promise<void> {
     await this.menu.locator('.htUIMultipleSelect a', { hasText: /^Clear$/ }).click();
+
+    if (expectEmptyList) {
+      return;
+    }
 
     // The inner list is its own Handsontable, so wait for it to repaint before the caller confirms
     // the menu - otherwise OK can read the pre-clear checkboxes.
