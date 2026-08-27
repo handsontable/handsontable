@@ -25,6 +25,7 @@ For more information about this release, see:
 
 <div class="boxes-list gray">
 
+- [Blog post (18.1.0)](https://handsontable.com/blog/handsontable-18.1.0-shadow-dom-support-for-salesforce-and-web-components-a-faster-grid-and-a-new-demo-playground)
 - [Documentation (18.1)](https://handsontable.com/docs/18.1)
 - [Migration guide (18.0 → 18.1)](@/guides/upgrade-and-migration/migrating-from-18.0-to-18.1/migrating-from-18.0-to-18.1.md)
 
