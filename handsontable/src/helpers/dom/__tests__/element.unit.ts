@@ -14,6 +14,8 @@ import {
   selectElementIfAllowed,
   setAttribute,
   fastInnerHTML,
+  fastInnerText,
+  HTML_CHARACTERS,
   isVisible,
   findFirstParentWithClass,
   isHTMLElement,
@@ -800,6 +802,66 @@ describe('DomElement helper', () => {
   });
 
   //
+  // Handsontable.helper.HTML_CHARACTERS
+  //
+  describe('HTML_CHARACTERS', () => {
+    it('should not treat prose that merely contains `&` and `;` as markup', () => {
+      // Every one of these matched before the pattern was narrowed, so an ordinary header label
+      // took the `innerHTML` path and, under a Trusted Types policy, brought the whole grid down.
+      expect(HTML_CHARACTERS.test('Smith & Sons, Ltd.; est. 1920')).toBe(false);
+      expect(HTML_CHARACTERS.test('R&D; notes')).toBe(false);
+      expect(HTML_CHARACTERS.test('cost: 5 & up; tax incl.')).toBe(false);
+    });
+
+    it('should not treat prose that merely contains `<` and `>` as markup', () => {
+      expect(HTML_CHARACTERS.test('Score < 50 > threshold')).toBe(false);
+      expect(HTML_CHARACTERS.test('<3 > 5')).toBe(false);
+    });
+
+    it('should keep reporting no markup for text with an unpaired `<`, `>`, `&` or `;`', () => {
+      // These were already `false` before the narrowing. They are here as fences, not as evidence
+      // of it: they hold no `<`...`>` and no `&`...`;` pair at all.
+      expect(HTML_CHARACTERS.test('a < b')).toBe(false);
+      expect(HTML_CHARACTERS.test('3 > 2')).toBe(false);
+      expect(HTML_CHARACTERS.test('plain text')).toBe(false);
+      expect(HTML_CHARACTERS.test('')).toBe(false);
+    });
+
+    it('should treat a tag as markup, opening, closing, self-closing, and upper-case alike', () => {
+      expect(HTML_CHARACTERS.test('<b>ID</b>')).toBe(true);
+      expect(HTML_CHARACTERS.test('</b>')).toBe(true);
+      expect(HTML_CHARACTERS.test('<br/>')).toBe(true);
+      expect(HTML_CHARACTERS.test('<A HREF="x">y</A>')).toBe(true);
+      expect(HTML_CHARACTERS.test('<div class="x">y</div>')).toBe(true);
+      expect(HTML_CHARACTERS.test('<span>test<br>test</span>')).toBe(true);
+    });
+
+    it('should treat all three forms of a character reference as markup', () => {
+      expect(HTML_CHARACTERS.test('a &amp; b')).toBe(true);
+      expect(HTML_CHARACTERS.test('&nbsp;')).toBe(true);
+      expect(HTML_CHARACTERS.test('&lt;')).toBe(true);
+      expect(HTML_CHARACTERS.test('&frac12;')).toBe(true);
+      expect(HTML_CHARACTERS.test('&#169;')).toBe(true);
+      expect(HTML_CHARACTERS.test('&#x1F600;')).toBe(true);
+      expect(HTML_CHARACTERS.test('&#X41;')).toBe(true);
+    });
+
+    it('should treat prose that also holds a real character reference as markup', () => {
+      // The pattern is unanchored, so the reference is what it matches on. A narrowing that
+      // anchored it would silently stop sanitizing this content.
+      expect(HTML_CHARACTERS.test('Smith & Sons; &amp; more')).toBe(true);
+      expect(HTML_CHARACTERS.test('prose first, then <b>markup</b>')).toBe(true);
+    });
+
+    it('should expose three capture groups, as it always has', () => {
+      // `Handsontable.dom.HTML_CHARACTERS` is public. Nothing in the grid reads the groups, but
+      // dropping one would change the shape of a published export for no gain.
+      expect([...'<b>ID</b>'.match(HTML_CHARACTERS)]).toEqual(['<b>', '<b>', 'b', undefined]);
+      expect([...'a &amp; b'.match(HTML_CHARACTERS)]).toEqual(['&amp;', '&amp;', undefined, 'amp']);
+    });
+  });
+
+  //
   // Handsontable.helper.fastInnerHTML
   //
   describe('fastInnerHTML', () => {
@@ -962,6 +1024,92 @@ describe('DomElement helper', () => {
       fastInnerHTML(element, '<b>x</b>', () => undefined as unknown as string);
 
       expect(element.childNodes.length).toBe(0);
+    });
+
+    it('should write prose holding `&` or `<` as text, and not warn about a missing sanitizer', () => {
+      // A real element, not an `{ innerHTML: '' }` mock: this content takes the `fastInnerText`
+      // branch, which reaches for `element.ownerDocument`.
+      const element = document.createElement('div');
+
+      fastInnerHTML(element, 'Smith & Sons, Ltd.; est. 1920', true, 'header', {});
+
+      expect(element.childNodes.length).toBe(1);
+      expect(element.childNodes[0].nodeType).toBe(Node.TEXT_NODE);
+      expect(element.textContent).toBe('Smith & Sons, Ltd.; est. 1920');
+      expect(warnSpy).not.toHaveBeenCalled();
+
+      fastInnerHTML(element, 'Score < 50 > threshold', true, 'header', {});
+
+      expect(element.querySelectorAll('*').length).toBe(0);
+      expect(element.textContent).toBe('Score < 50 > threshold');
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should NOT consult a configured sanitizer for prose holding `&` or `<`', () => {
+      const element = document.createElement('div');
+      const sanitizer = jasmine.createSpy('sanitizer').and.returnValue('replaced');
+
+      fastInnerHTML(element, 'R&D; notes', sanitizer, 'header', {});
+
+      expect(sanitizer).not.toHaveBeenCalled();
+      expect(element.textContent).toBe('R&D; notes');
+    });
+
+    it('should still consult a configured sanitizer for a real character reference', () => {
+      const element = document.createElement('div');
+      const sanitizer = jasmine.createSpy('sanitizer').and.callFake(content => content);
+
+      fastInnerHTML(element, 'a &amp; b', sanitizer, 'header', {});
+
+      expect(sanitizer).toHaveBeenCalledWith('a &amp; b', 'header');
+      expect(element.innerHTML).toBe('a &amp; b');
+      // Decoded by the parser, which is the whole reason a real reference must reach this path.
+      expect(element.textContent).toBe('a & b');
+    });
+
+    it('should still write a header holding real markup through `innerHTML`', () => {
+      const element = document.createElement('div');
+
+      fastInnerHTML(element, '<b>ID</b>', true, 'header', {});
+
+      expect(element.querySelector('b')).not.toBe(null);
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  //
+  // Handsontable.helper.fastInnerText
+  //
+  describe('fastInnerText', () => {
+    it('should write the content as a single text node', () => {
+      const element = document.createElement('div');
+
+      fastInnerText(element, 'Smith & Sons, Ltd.; est. 1920');
+
+      expect(element.childNodes.length).toBe(1);
+      expect(element.childNodes[0].nodeType).toBe(Node.TEXT_NODE);
+      expect(element.textContent).toBe('Smith & Sons, Ltd.; est. 1920');
+    });
+
+    it('should replace existing content, including element children', () => {
+      const element = document.createElement('div');
+
+      element.innerHTML = '<b>old</b>';
+
+      fastInnerText(element, 'new');
+
+      expect(element.childNodes.length).toBe(1);
+      expect(element.querySelectorAll('*').length).toBe(0);
+      expect(element.textContent).toBe('new');
+    });
+
+    it('should not parse markup in the content', () => {
+      const element = document.createElement('div');
+
+      fastInnerText(element, '<b>ID</b>');
+
+      expect(element.querySelector('b')).toBe(null);
+      expect(element.textContent).toBe('<b>ID</b>');
     });
   });
 

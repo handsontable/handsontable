@@ -225,6 +225,96 @@ describe('GhostTable', () => {
     expect(bottomRowButtons.length).toBe(2);
   });
 
+  describe('label measurement and the markup gate', () => {
+    /**
+     * Builds the smallest mock the label path reads, for a single header holding `label`.
+     *
+     * @param {string} label The header label to measure.
+     * @param {Function} sanitizer The `sanitizer` setting to expose through `getSettings()`.
+     * @returns {object} A stand-in for a Handsontable instance.
+     */
+    function createHotMock(label, sanitizer) {
+      const widthsMapMock = {
+        data: new Map(),
+        setValueAtIndex(index, value) {
+          this.data.set(index, value);
+        },
+        getValueAtIndex(index) {
+          return this.data.get(index);
+        },
+        clear() {
+          this.data.clear();
+        },
+      };
+
+      return {
+        hot: {
+          rootDocument: document,
+          rootWindow: window,
+          rootElement: document.createElement('div'),
+          getCurrentThemeName: () => '',
+          countCols: () => 1,
+          toPhysicalColumn: visualColumn => visualColumn,
+          getSettings: () => ({ sanitizer }),
+          view: {
+            countRenderableColumns: () => 1,
+          },
+          columnIndexMapper: {
+            createAndRegisterIndexMap: () => widthsMapMock,
+            getRenderableIndexesLength: () => 1,
+            getVisualFromRenderableIndex: renderableColumn => renderableColumn,
+            getRenderableFromVisualIndex: visualColumn => visualColumn,
+            isHidden: () => false,
+          },
+        },
+        headersStateManager: {
+          getHeaderSettings: (row, column) => (row === 0 && column === 0 ? {
+            label,
+            colspan: 1,
+            origColspan: 1,
+            rowspan: 1,
+            isPlaceholder: false,
+            isHidden: false,
+          } : undefined),
+          getHeaderTreeNode: () => null,
+        },
+      };
+    }
+
+    it('should not route a prose label through the sanitizer', () => {
+      // The ghost table has to mirror `fastInnerHTML`, which writes plain text through
+      // `fastInnerText` and never consults the sanitizer. A sanitizer that rewrites plain text -
+      // this one truncates - would otherwise size the column to a string the user never sees.
+      const sanitizer = jest.fn(content => content.slice(0, 4));
+      const { hot, headersStateManager } = createHotMock('Smith & Sons, Ltd.; est. 1920', sanitizer);
+      const ghostTable = new GhostTable({ hot, headersStateManager });
+      const container = getDetachedGhostContainerAfterBuild(ghostTable, 1);
+
+      expect(sanitizer).not.toHaveBeenCalled();
+      expect(container.querySelector('.colHeader').textContent).toBe('Smith & Sons, Ltd.; est. 1920');
+    });
+
+    it('should still route a label holding real markup through the sanitizer', () => {
+      const sanitizer = jest.fn(content => content);
+      const { hot, headersStateManager } = createHotMock('<b>ID</b>', sanitizer);
+      const ghostTable = new GhostTable({ hot, headersStateManager });
+      const container = getDetachedGhostContainerAfterBuild(ghostTable, 1);
+
+      expect(sanitizer).toHaveBeenCalledWith('<b>ID</b>', 'header');
+      expect(container.querySelector('.colHeader b')).not.toBeNull();
+    });
+
+    it('should still route a label holding a real character reference through the sanitizer', () => {
+      const sanitizer = jest.fn(content => content);
+      const { hot, headersStateManager } = createHotMock('a &amp; b', sanitizer);
+      const ghostTable = new GhostTable({ hot, headersStateManager });
+
+      getDetachedGhostContainerAfterBuild(ghostTable, 1);
+
+      expect(sanitizer).toHaveBeenCalledWith('a &amp; b', 'header');
+    });
+  });
+
   it('should add both dropdown and collapsible controls to ghost headers when needed', () => {
     const createHotMock = (isCollapsibleColumnsEnabled) => {
       const widthsMapMock = {

@@ -556,7 +556,32 @@ export function empty(element: Element): void {
   }
 }
 
-export const HTML_CHARACTERS = /(<([^>]*)>|&([^;]*);)/;
+/**
+ * Decides whether a string is written through `innerHTML` (markup, so it has to reach the
+ * sanitizer) or `textContent` (plain text, which cannot inject anything).
+ *
+ * Both alternatives are deliberately shaped to require something that could actually be parsed as
+ * markup, and must stay that way. A looser test - matching any `<` with a later `>`, or any `&`
+ * with a later `;` - routes ordinary prose such as `Smith & Sons, Ltd.; est. 1920` or
+ * `Score < 50 > threshold` to `innerHTML`. Under a Trusted Types policy that write throws, and
+ * because `fastInnerHTML` has no `catch` the error propagates out of header rendering and takes
+ * the whole grid down, from a `colHeaders` string containing no markup at all.
+ *
+ * The tag alternative therefore requires a tag-like shape: `<`, an optional `/`, then an ASCII
+ * letter. The entity alternative covers exactly the three forms a character reference can take:
+ * named (`&amp;`, `&frac12;`), decimal (`&#169;`), and hexadecimal (`&#x1F600;`).
+ *
+ * The named form requires at least two characters on purpose. HTML defines no single-letter named
+ * reference - the shortest are two, such as `&lt;` and `&ni;` - so the floor costs nothing and it
+ * is what keeps `R&D; notes` out of the sink. Matching by shape cannot be exact: `&Dx;` is not a
+ * reference either, yet it is spelled like one. Testing the ~2200 real names would mean a table
+ * lookup on a path that runs for every rendered header, and a browser renders an unknown
+ * reference literally anyway, so shape is where this stops.
+ *
+ * It stays unanchored, so a string mixing prose with a real reference (`Smith & Sons; &amp; more`)
+ * still matches on the reference and still reaches the sanitizer.
+ */
+export const HTML_CHARACTERS = /(<(\/?[a-zA-Z][^>]*)>|&([a-zA-Z][a-zA-Z0-9]+|#[0-9]+|#[xX][0-9a-fA-F]+);)/;
 
 /**
  * Shared "warn once" key for every missing-sanitizer warning, so that all DOM
