@@ -901,6 +901,90 @@ describe('Editor configuration using React components', () => {
 
     expect(hotInstance.getCellEditor(0, 0).EDITOR_TYPE).toBe('text');
   });
+
+  it('should let a `hotEditor` editor win over an `editor` prop set to `false`', async () => {
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                editor={false}
+                hotEditor={CustomNativeEditor}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }} />
+    )).hotInstance!;
+
+    // `editor={false}` only says "no component editor"; a native editor named alongside it still
+    // applies, which is how every released version behaved.
+    expect(hotInstance.getCellEditor(0, 0)).toBe(CustomNativeEditor);
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+      (document.activeElement as HTMLInputElement).value = 'hello';
+      hotInstance.getActiveEditor()!.finishEditing(false);
+    });
+
+    expect(hotInstance.getDataAtCell(0, 0)).toEqual('--hello--');
+  });
+
+  it('should fall back to the default editor when the `editor` prop is set to `true`', async () => {
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                editor={true}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }} />
+    )).hotInstance!;
+
+    // `true` carries no component to render, so it must resolve to the default editor rather than an
+    // editor class with nothing behind it.
+    expect(hotInstance.getCellEditor(0, 0).EDITOR_TYPE).toBe('text');
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()!.constructor.name).toBe('TextEditor');
+  });
+
+  it('should fall back to the default editor when the `hotEditor` prop is set to `true`', async () => {
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                hotEditor={true}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }} />
+    )).hotInstance!;
+
+    // A bare `true` must never reach the core, which accepts only a string or a constructor and
+    // throws on anything else.
+    expect(hotInstance.getCellEditor(0, 0).EDITOR_TYPE).toBe('text');
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()!.constructor.name).toBe('TextEditor');
+  });
 });
 
 describe('Passing children', () => {

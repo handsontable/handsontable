@@ -8,7 +8,9 @@ import { HotTableProps, HotColumnProps, HotEditorHooks } from './types';
 import {
   createEditorPortal,
   displayAnyChildrenWarning,
-  displayObsoleteRenderersEditorsWarning
+  displayObsoleteRenderersEditorsWarning,
+  isComponentEditor,
+  resolveEditorSetting
 } from './helpers';
 import { SettingsMapper } from './settingsMapper';
 import Handsontable from 'handsontable/base';
@@ -66,14 +68,18 @@ const HotColumn: FC<HotColumnProps> = (props) => {
         columnSettings.renderer = props.hotRenderer;
       }
 
-      if (props.editor) {
+      if (isComponentEditor(props.editor)) {
         columnSettings.editor = makeEditorClass(localEditorHooksRef, localEditorClassInstance);
-      } else if (props.editor === false || props.hotEditor === false) {
-        // `false` disables editing on either prop name. Set it here instead of relying on the
-        // `SettingsMapper` prop passthrough, which only ever carried the `editor` name.
-        columnSettings.editor = false;
-      } else if (props.hotEditor) {
-        columnSettings.editor = props.hotEditor;
+      } else {
+        const editorSetting = resolveEditorSetting(props.editor, props.hotEditor);
+
+        if (editorSetting === undefined) {
+          // Neither prop named an editor. Drop whatever the settings mapper copied over — it can be
+          // a bare `true`, which the core rejects — and let the column inherit the grid editor.
+          delete columnSettings.editor;
+        } else {
+          columnSettings.editor = editorSetting;
+        }
       }
 
       return columnSettings

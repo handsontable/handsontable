@@ -8,6 +8,8 @@ import React, {
   useEffect,
 } from 'react';
 import ReactDOM from 'react-dom';
+import Handsontable from 'handsontable/base';
+import { getEditor } from 'handsontable/editors/registry';
 import { HotTableProps } from './types';
 
 let bulkComponentContainer: DocumentFragment | null = null;
@@ -130,6 +132,53 @@ function hasChildElementOfType(children: ReactNode, type: 'hot-renderer' | 'hot-
   return childrenArray.some((child) => {
       return (child as React.ReactElement).props[type] !== void 0;
   });
+}
+
+/**
+ * Check whether the `editor` prop holds a component editor, as opposed to a boolean flag.
+ *
+ * Both editor props accept a boolean, so a truthy check alone is not enough to tell a component
+ * apart from a bare `editor={true}`.
+ *
+ * @param {HotTableProps['editor']} editor The `editor` prop.
+ * @returns {boolean} `true` when the prop carries a component to render.
+ */
+export function isComponentEditor(editor: HotTableProps['editor']): boolean {
+  return !!editor && typeof editor !== 'boolean';
+}
+
+/**
+ * Resolve the Handsontable `editor` setting from the two editor props.
+ *
+ * `editor` carries the component editor and `hotEditor` the Handsontable-native one, but both accept
+ * a boolean. `false` disables editing, while `true` means "the default editor" and must never reach
+ * the core, which accepts only a string or a constructor and throws on anything else.
+ *
+ * `hotEditor` is resolved before a falsy `editor` so that an editor named there still wins over a
+ * bare `editor={false}` — the behavior in every released version, where `editor={false}` fell through
+ * to the `hotEditor` value.
+ *
+ * @param {HotTableProps['editor']} editor The `editor` prop.
+ * @param {HotTableProps['hotEditor']} hotEditor The `hotEditor` prop.
+ * @returns {*} The editor setting, or `undefined` when neither prop names one.
+ */
+export function resolveEditorSetting(
+  editor: HotTableProps['editor'],
+  hotEditor: HotTableProps['hotEditor']
+): Handsontable.GridSettings['editor'] | undefined {
+  if (hotEditor === false) {
+    return false;
+  }
+
+  if (hotEditor === true) {
+    return getEditor('text') as Handsontable.GridSettings['editor'];
+  }
+
+  if (hotEditor) {
+    return hotEditor as Handsontable.GridSettings['editor'];
+  }
+
+  return editor === false ? false : undefined;
 }
 
 /**
