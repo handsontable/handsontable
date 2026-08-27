@@ -17,7 +17,7 @@ import { getStyle } from '../../helpers/dom/element';
 import { isChrome } from '../../helpers/browser';
 import { FocusOrder, type FocusNodeData } from './focusOrder';
 import { createMergeCellRenderer } from './renderer';
-import { sumCellsHeights } from './utils';
+import { sumCellsHeights, toMergeAreaKey } from './utils';
 
 Hooks.getSingleton().register('beforeMergeCells');
 Hooks.getSingleton().register('afterMergeCells');
@@ -311,10 +311,16 @@ export class MergeCells extends BasePlugin {
    *  - [`mergeCells`](@/api/options.md#mergecells)
    */
   updatePlugin() {
+    // Snapshot the applied areas before `disablePlugin()` empties the collection, so
+    // `generateFromSettings()` can tell a re-applied area from a newly declared one.
+    const alreadyAppliedMerges = new Set(
+      this.mergedCellsCollection.mergedCells.map(mergedCell => toMergeAreaKey(mergedCell))
+    );
+
     this.disablePlugin();
     this.enablePlugin();
 
-    this.generateFromSettings();
+    this.generateFromSettings(alreadyAppliedMerges);
     this.#initialized = true;
     this.#captureMergeAnchors();
 
@@ -422,8 +428,12 @@ export class MergeCells extends BasePlugin {
    * Generates the merged cells from the settings provided to the plugin.
    *
    * @private
+   * @param {Set<string>} [alreadyAppliedMerges] Keys of the merge areas that were already applied before
+   * this call, in the {@link toMergeAreaKey} form. Those areas keep their merge but skip the data
+   * population, because their cells were cleared when they were first applied. Defaults to an empty set,
+   * so a first application populates every area.
    */
-  generateFromSettings() {
+  generateFromSettings(alreadyAppliedMerges: Set<string> = new Set()) {
     const validSettings = this.getSetting<{ row: number, col: number, rowspan: number, colspan: number }[]>('cells')
       .filter(mergeCellInfo => this.validateSetting(mergeCellInfo));
     const nonOverlappingSettings = this.mergedCellsCollection
@@ -437,8 +447,16 @@ export class MergeCells extends BasePlugin {
       const to = this.hot._createCellCoords(row + rowspan - 1, col + colspan - 1);
       const mergeRange = this.hot._createCellRange(from, from, to);
 
-      // Merging without data population.
+      // Merging without data population. Runs for every area, re-applied or not — `updatePlugin()`
+      // clears the collection first, so skipping this would drop the merge entirely.
       this.mergeRange(mergeRange, true, true);
+
+      // An area that was already applied has had its cells cleared once. Clearing them again writes
+      // no new value, but still emits `beforeChange`/`afterChange`, which loops any integration that
+      // resends its settings in response to those hooks (#7555).
+      if (alreadyAppliedMerges.has(toMergeAreaKey(mergeCellInfo))) {
+        return;
+      }
 
       for (let r = row; r < row + rowspan; r++) {
         for (let c = col; c < col + colspan; c++) {

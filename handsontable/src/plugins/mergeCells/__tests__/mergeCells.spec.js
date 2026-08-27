@@ -452,6 +452,99 @@ describe('MergeCells', () => {
       expect(TD.getAttribute('rowspan')).toBe(null);
       expect(TD.getAttribute('colspan')).toBe(null);
     });
+
+    it('should not emit the change hooks again when the `mergeCells` config is re-applied unchanged (#7555)', async() => {
+      const beforeChange = jasmine.createSpy('beforeChange');
+
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2'],
+          ['A3', 'B3', 'C3'],
+        ],
+        mergeCells: [{ row: 1, col: 0, rowspan: 2, colspan: 2 }],
+        beforeChange,
+      });
+
+      // The first application clears every cell the merge area covers except its anchor.
+      expect(beforeChange.calls.count()).toBe(1);
+      expect(beforeChange.calls.mostRecent().args[0]).toEqual([
+        [1, 1, 'B2', null],
+        [2, 0, 'A3', null],
+        [2, 1, 'B3', null],
+      ]);
+
+      beforeChange.calls.reset();
+
+      // Framework wrappers resend every setting on each render, so an unchanged `mergeCells` value
+      // arrives again. Re-clearing the same cells would write nothing but still emit, which loops a
+      // store-driven integration that re-renders in response to the hook.
+      await updateSettings({
+        mergeCells: [{ row: 1, col: 0, rowspan: 2, colspan: 2 }],
+      });
+
+      expect(beforeChange.calls.count()).toBe(0);
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1'],
+        ['A2', null, 'C2'],
+        [null, null, 'C3'],
+      ]);
+    });
+
+    it('should populate only the newly added merge area when the `mergeCells` config is extended', async() => {
+      const beforeChange = jasmine.createSpy('beforeChange');
+
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1', 'D1'],
+          ['A2', 'B2', 'C2', 'D2'],
+          ['A3', 'B3', 'C3', 'D3'],
+        ],
+        mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 2 }],
+        beforeChange,
+      });
+
+      beforeChange.calls.reset();
+
+      await updateSettings({
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 1, colspan: 2 },
+          { row: 2, col: 2, rowspan: 1, colspan: 2 },
+        ],
+      });
+
+      expect(beforeChange.calls.count()).toBe(1);
+      expect(beforeChange.calls.mostRecent().args[0]).toEqual([
+        [2, 3, 'D3', null],
+      ]);
+    });
+
+    it('should populate the merge area again when the `mergeCells` config changes its span', async() => {
+      const beforeChange = jasmine.createSpy('beforeChange');
+
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2'],
+          ['A3', 'B3', 'C3'],
+        ],
+        mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 2 }],
+        beforeChange,
+      });
+
+      beforeChange.calls.reset();
+
+      await updateSettings({
+        mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }],
+      });
+
+      expect(beforeChange.calls.count()).toBe(1);
+      expect(beforeChange.calls.mostRecent().args[0]).toEqual([
+        [0, 1, null, null],
+        [1, 0, 'A2', null],
+        [1, 1, 'B2', null],
+      ]);
+    });
   });
 
   describe('loadData', () => {
