@@ -9,6 +9,6 @@ const conditionUpdateObserver = hot.getPlugin('filters').conditionUpdateObserver
 if (conditionUpdateObserver) {
   conditionUpdateObserver.groupChanges();
   conditionUpdateObserver.flush();
-  conditionUpdateObserver.updateStatesAtColumn(1, {});
+  conditionUpdateObserver.updateStatesAtColumn(1);
   conditionUpdateObserver.destroy();
 }

@@ -44,6 +44,24 @@ export class FiltersValueListPage {
     return this.page.locator(`.ht_master .htCore tbody td[data-testid$="-${col}"]`).allTextContents();
   }
 
+  /**
+   * Type a value into a data cell, replacing what it held.
+   *
+   * Typing straight onto a selected cell starts a fresh edit, so the new value replaces the old
+   * one. Opening the editor with a double click would keep the old text and append to it instead.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {string} value The value to type.
+   */
+  async typeIntoCell(row: number, col: number, value: string): Promise<void> {
+    await this.cell(row, col).click();
+    await this.page.keyboard.type(value);
+    await this.page.keyboard.press('Enter');
+
+    await expect(this.cell(row, col)).toHaveText(value);
+  }
+
   /** Open the dropdown menu of the column with the given header label. */
   async openMenu(headerLabel: string): Promise<void> {
     await this.page

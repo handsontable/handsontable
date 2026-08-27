@@ -171,11 +171,8 @@ class ConditionUpdateObserver {
    * Update all related states which should be changed after invoking changes applied to current column.
    *
    * @param {number} column The column index.
-   * @param {object} conditionArgsChange Object describing condition changes which can be handled by filters on `update` hook.
-   * It contains keys `conditionKey` and `conditionValue` which refers to change specified key of condition to specified value
-   * based on referred keys.
    */
-  updateStatesAtColumn(column: number, conditionArgsChange?: unknown) {
+  updateStatesAtColumn(column: number) {
     if (this.grouping) {
       if (this.changes.indexOf(column) === -1) {
         this.changes.push(column);
@@ -184,16 +181,15 @@ class ConditionUpdateObserver {
       return;
     }
 
-    this.#withColumnDataCache(() => this.#updateStatesAtColumnInternal(column, conditionArgsChange));
+    this.#withColumnDataCache(() => this.#updateStatesAtColumnInternal(column));
   }
 
   /**
    * Performs the actual state update for the column. Runs with the full-column data memo active.
    *
    * @param {number} column The column index.
-   * @param {object} conditionArgsChange Object describing condition changes which can be handled by filters on `update` hook.
    */
-  #updateStatesAtColumnInternal(column: number, conditionArgsChange?: unknown) {
+  #updateStatesAtColumnInternal(column: number) {
     const allConditions = this.conditionCollection.exportAllConditions();
     let editedColumnPosition = this.conditionCollection.getColumnStackPosition(column);
 
@@ -252,8 +248,7 @@ class ConditionUpdateObserver {
     this.runLocalHooks('update', {
       editedConditionStack: { column, conditions: editedConditions },
       dependentConditionStacks: conditionsAfter,
-      filteredRowsFactory: visibleDataFactory,
-      conditionArgsChange
+      filteredRowsFactory: visibleDataFactory
     });
   }
 

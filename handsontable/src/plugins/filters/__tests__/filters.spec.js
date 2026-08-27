@@ -880,7 +880,7 @@ describe('Filters', () => {
       expect(plugin.updateValueComponentCondition).toHaveBeenCalledWith(physicalColumn);
     });
 
-    it('should convert visual to physical index in updateValueComponentCondition', async() => {
+    it('should refresh the state of the physical column passed to updateValueComponentCondition', async() => {
       handsontable({
         data: [
           ['A1', 'B1', 'C1'],
@@ -888,35 +888,33 @@ describe('Filters', () => {
         ],
         colHeaders: true,
         manualColumnMove: true,
+        dropdownMenu: true,
         filters: true
       });
 
       const plugin = getPlugin('filters');
       const manualColumnMove = getPlugin('manualColumnMove');
 
-      // Move column 0 to position 2
+      // Move column 0 to position 2, so the physical index no longer equals the visual one.
       manualColumnMove.moveColumn(0, 2);
       await render();
 
       const physicalColumn = 0;
       const visualColumn = toVisualColumn(physicalColumn);
 
+      expect(visualColumn).not.toBe(physicalColumn);
+
       plugin.addCondition(visualColumn, 'by_value', [['A1', 'A2']]);
       plugin.filter();
 
-      // Spy on hot.getDataAtCol to verify it's called with visual index
-      const hotInstance = plugin.hot;
-
-      spyOn(hotInstance, 'getDataAtCol').and.callThrough();
-      spyOn(hotInstance, 'toVisualColumn').and.callThrough();
-
-      // Call updateValueComponentCondition with physical index
       plugin.updateValueComponentCondition(physicalColumn);
 
-      // Verify that toVisualColumn was called to convert physical to visual
-      expect(hotInstance.toVisualColumn).toHaveBeenCalledWith(physicalColumn);
-      // Verify that getDataAtCol was called with the visual index
-      expect(hotInstance.getDataAtCol).toHaveBeenCalledWith(visualColumn);
+      // The refreshed state must belong to the physical column that was passed in, and list that
+      // column's own values - not those of whatever column now sits at that visual index.
+      const state = plugin.components.get('filter_by_value').state.getValueAtIndex(physicalColumn);
+
+      expect(state.itemsSnapshot.map(item => item.value)).toEqual(['A1', 'A2']);
+      expect(state.args).toEqual([['A1', 'A2']]);
     });
   });
 

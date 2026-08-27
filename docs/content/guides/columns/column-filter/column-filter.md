@@ -690,6 +690,15 @@ column menu's width for better user experience. You can achieve this with by sty
 }
 ```
 
+## Edit cells in a filtered column
+
+Editing a cell doesn't change the column's filter conditions, and doesn't re-run the filter.
+
+If you type a value that the active filter excludes, the row stays in view until the filter runs
+again. The new value joins the **Filter by value** list as an unchecked item, so your selection stays
+as you set it. To apply the filter to the edited data, open the filter menu and confirm it, or call
+[`filter()`](@/api/filters.md#filter).
+
 ## Exclude rows from filtering
 
 You can exclude any number of top or bottom rows from filtering.

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed an issue where editing a cell in a column filtered by value added the typed value to that column's filter conditions, so confirming the menu again dropped the filter.",
+  "type": "fixed",
+  "issueOrPR": 6471,
+  "breaking": false,
+  "framework": "none"
+}

@@ -34,7 +34,6 @@ interface FilteredRow {
 export interface StateInfo {
   editedConditionStack: ConditionStack;
   dependentConditionStacks: ConditionStack[];
-  conditionArgsChange: unknown;
   filteredRowsFactory: (physicalColumn: number, conditionsStack?: ConditionStack) => FilteredRow[];
   [key: string]: unknown;
 }
@@ -171,12 +170,12 @@ export class ValueComponent extends BaseComponent {
    * Update state of component.
    *
    * @param {object} stateInfo Information about state containing stack of edited column,
-   * stack of dependent conditions, data factory and optional condition arguments change. It's described by object containing keys:
-   * `editedConditionStack`, `dependentConditionStacks`, `visibleDataFactory` and `conditionArgsChange`.
+   * stack of dependent conditions and the data factory. It's described by object containing keys:
+   * `editedConditionStack`, `dependentConditionStacks` and `visibleDataFactory`.
    */
   updateState(stateInfo: StateInfo) {
     const updateColumnState = (
-      physicalColumn: number, conditions: ConditionEntry[], conditionArgsChange: unknown,
+      physicalColumn: number, conditions: ConditionEntry[],
       filteredRowsFactory: (physicalColumn: number, conditionsStack?: ConditionStack) => FilteredRow[],
       conditionsStack?: ConditionStack
     ) => {
@@ -186,10 +185,6 @@ export class ValueComponent extends BaseComponent {
 
       if (firstByValueCondition) {
         const filteredRows = filteredRowsFactory(physicalColumn, conditionsStack);
-
-        if (conditionArgsChange) {
-          firstByValueCondition.args[0] = conditionArgsChange;
-        }
 
         const { itemsSnapshot, selectedValues } = this.#buildItemsSnapshot(
           physicalColumn, filteredRows, firstByValueCondition.args[0] as unknown[]);
@@ -209,23 +204,24 @@ export class ValueComponent extends BaseComponent {
       this.state?.setValueAtIndex(physicalColumn, state);
     };
 
+    // Both columns are refreshed the same way: the value list is rebuilt so newly introduced values
+    // show up, and the checked set stays whatever the user picked, narrowed to the values that still
+    // exist. Nothing here may re-select a value on the user's behalf - that is what made an edit in a
+    // filtered column add its new value to the condition (issue #6471), and what leaked the edited
+    // column's value set into the dependent column (issue #8874).
     updateColumnState(
       stateInfo.editedConditionStack.column,
       stateInfo.editedConditionStack.conditions,
-      stateInfo.conditionArgsChange,
       stateInfo.filteredRowsFactory
     );
 
     // Update the next "by_value" component (filter column conditions added after this condition).
     // Its list of values has to be updated. As the new values by default are unchecked,
     // the further component update is unnecessary.
-    // `conditionArgsChange` is scoped to the edited column and must not be reapplied here -
-    // doing so overwrites the dependent column's by_value args with the edited column's value set (issue #8874).
     if (stateInfo.dependentConditionStacks.length) {
       updateColumnState(
         stateInfo.dependentConditionStacks[0].column,
         stateInfo.dependentConditionStacks[0].conditions,
-        undefined,
         stateInfo.filteredRowsFactory,
         stateInfo.editedConditionStack
       );

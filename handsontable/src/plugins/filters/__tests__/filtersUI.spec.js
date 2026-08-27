@@ -2407,7 +2407,14 @@ describe('Filters UI', () => {
           [['Mercedes', 'Fiat', 'Renault', 'Ferrari', 'Peugeot', 'Lamborghini', 'Audi']]);
         filters.filter();
 
+        // Moves the Renault row from France to Italy, so column 1's condition ('Germany', 'France')
+        // no longer lets that row through.
         await setDataAtCell(2, 1, 'Italy');
+
+        // The dependent column's stored condition must survive the edit untouched - that is the
+        // #8874 invariant, and it is what a later `filter()` re-applies.
+        expect(getPlugin('filters').conditionCollection.getConditions(2)[0].args[0]).toEqual(
+          jasmine.arrayWithExactContents(['Mercedes', 'Fiat', 'Renault', 'Ferrari', 'Peugeot', 'Lamborghini', 'Audi']));
 
         await dropdownMenu(2);
         await sleep(112);
@@ -2415,8 +2422,14 @@ describe('Filters UI', () => {
         const items = byValueMultipleSelect().getItems();
         const checkedValues = items.filter(item => item.checked).map(item => item.value);
 
+        // The box only ever lists values from rows surviving the *other* columns' conditions, so the
+        // Italy rows (Renault, Ferrari, Lamborghini) drop out of the list and cannot show as checked.
+        // Everything still reachable stays checked - nothing is re-selected or unselected on the
+        // user's behalf.
+        expect(items.map(item => item.value)).toEqual(
+          jasmine.arrayWithExactContents(['BMW', 'Mercedes', 'Fiat', 'Peugeot', 'Audi']));
         expect(checkedValues).toEqual(
-          jasmine.arrayWithExactContents(['Mercedes', 'Fiat', 'Renault', 'Ferrari', 'Peugeot', 'Lamborghini', 'Audi']));
+          jasmine.arrayWithExactContents(['Mercedes', 'Fiat', 'Peugeot', 'Audi']));
       });
   });
 });

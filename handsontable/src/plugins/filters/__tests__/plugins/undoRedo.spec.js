@@ -161,7 +161,12 @@ describe('Filters UI cooperation with UndoRedo', () => {
     const undoPlugin = getPlugin('undoRedo');
     const filtersPlugin = getPlugin('filters');
 
-    filtersPlugin.addCondition(2, 'by_value', [['Gardiner']]);
+    // Both values the row takes during this test are selected up front. Editing a cell no longer
+    // adds its new value to the condition (issue #6471), so the row has to stay matched by the
+    // user's own selection for the filter to keep finding it across the undo/redo steps.
+    // A blank is `''` in `by_value` args, never `null` - the filter compares values that went
+    // through `toEmptyString()`, and the assertion behind it matches by strict identity.
+    filtersPlugin.addCondition(2, 'by_value', [['Gardiner', '']]);
     filtersPlugin.filter();
 
     await setDataAtCell(0, 2, null);
