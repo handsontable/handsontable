@@ -12,6 +12,7 @@ export class FormulasGridPage {
   readonly theme: string;
   readonly bundle: string;
   readonly grid: Locator;
+  readonly holder: Locator;
   readonly areaCorner: Locator;
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
@@ -19,6 +20,7 @@ export class FormulasGridPage {
     this.theme = theme;
     this.bundle = bundle;
     this.grid = page.getByTestId('grid');
+    this.holder = this.grid.locator('.ht_master .wtHolder');
     // The fill handle of a RANGE selection (single-cell selections expose
     // `.current.corner` instead).
     this.areaCorner = page.locator('.ht_master .wtBorder.area.corner');
@@ -45,30 +47,32 @@ export class FormulasGridPage {
   /**
    * Select a rectangular range with a real mouse drag (down → move → up).
    *
-   * Both drag points are clamped into the holder's VISIBLE area: a cell's
-   * bounding box ignores overflow clipping, so on tall-row themes the target
-   * cell's center can lie past the holder's bottom edge — and a real mouse
-   * parked there means "extend the selection past the edge": drag-to-scroll
-   * kicks in and the selection overshoots the intended range by a row (this
-   * is exactly how the horizon legs selected 1,2→3,4 instead of 1,2→2,4).
-   * The achieved range is asserted afterwards so an overshoot fails loudly
-   * here, not as a confusing corner/fill mismatch later.
+   * Both endpoints are first wheel-scrolled into the holder's pressable area,
+   * the way a user brings an off-screen cell into reach. Aiming at a clipped
+   * cell's box center instead would press the header clones or the page body,
+   * or — mid-drag — mean "extend the selection past the edge", where
+   * drag-to-scroll fires and the selection overshoots the intended range by a
+   * row (this is exactly how the horizon legs selected 1,2→3,4 instead of
+   * 1,2→2,4). The achieved range is asserted afterwards so any drift fails
+   * loudly here, not as a confusing corner/fill mismatch later.
    */
   async selectRange(fromRow: number, fromCol: number, toRow: number, toCol: number): Promise<void> {
+    // `to` first, `from` second: the drag starts on `from`, so it must be in
+    // view at mousedown. A range taller than the viewport surfaces here as
+    // the `from` wheel pushing `to` back out — the assertion below reports it.
+    await this.#wheelIntoView(this.cell(toRow, toCol), `cell ${toRow},${toCol}`);
+    await this.#wheelIntoView(this.cell(fromRow, fromCol), `cell ${fromRow},${fromCol}`);
+
     const from = await this.cell(fromRow, fromCol).boundingBox();
     const to = await this.cell(toRow, toCol).boundingBox();
-    const holder = await this.grid.locator('.ht_master .wtHolder').boundingBox();
 
-    if (!from || !to || !holder) {
-      throw new Error('range endpoints or the holder are not rendered');
+    if (!from || !to) {
+      throw new Error('range endpoints are not rendered');
     }
 
-    const clampX = (x: number) => Math.min(Math.max(x, holder.x + 2), holder.x + holder.width - 2);
-    const clampY = (y: number) => Math.min(Math.max(y, holder.y + 2), holder.y + holder.height - 2);
-
-    await this.page.mouse.move(clampX(from.x + from.width / 2), clampY(from.y + from.height / 2));
+    await this.page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
     await this.page.mouse.down();
-    await this.page.mouse.move(clampX(to.x + to.width / 2), clampY(to.y + to.height / 2), { steps: 5 });
+    await this.page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 5 });
     await this.page.mouse.up();
     await expect(this.areaCorner).toBeVisible();
 
@@ -96,49 +100,22 @@ export class FormulasGridPage {
    * condition-driven — no fixed sleeps.
    */
   async dragAreaFillHandleToCell(row: number, col: number): Promise<void> {
-    const gridBox = await this.grid.boundingBox();
-    const holderBox = await this.grid.locator('.ht_master .wtHolder').boundingBox();
-
-    if (!gridBox || !holderBox) {
-      throw new Error('the grid or the holder is not rendered');
-    }
-
     // On tall-row themes a freshly selected range can end past the fold, which
     // leaves its fill handle overflow-clipped below the holder. The corner's
     // box ignores clipping (toBeVisible() passes for a fully clipped element),
     // so grabbing it blind would silently press the page body and never arm
-    // the grid's drag-to-scroll. Mirror what a user does: wheel-scroll the
-    // holder until the corner actually sits inside its visible area.
-    await this.page.mouse.move(holderBox.x + holderBox.width / 2, holderBox.y + holderBox.height / 2);
-    await expect
-      .poll(async() => {
-        const corner = await this.areaCorner.boundingBox();
+    // the grid's drag-to-scroll. Mirror what a user does: wheel it into reach.
+    await this.#wheelIntoView(this.areaCorner, 'area fill handle');
 
-        if (!corner) {
-          return false;
-        }
-        if (corner.y + corner.height > holderBox.y + holderBox.height + 1) {
-          await this.page.mouse.wheel(0, 40);
-
-          return false;
-        }
-        if (corner.y < holderBox.y - 1) {
-          await this.page.mouse.wheel(0, -40);
-
-          return false;
-        }
-
-        return true;
-      }, {
-        message: 'the area fill handle never scrolled into the holder view',
-        timeout: 5000,
-      })
-      .toBe(true);
-
+    // Read the boxes AFTER the wheel loop: when the holder is already at a
+    // scroll limit the browser hands the wheel to the page, so the grid itself
+    // can move — boxes captured before the loop would aim the drag at stale
+    // coordinates (inside the grid, or far below the 20px the comment assumes).
+    const gridBox = await this.grid.boundingBox();
     const handle = await this.areaCorner.boundingBox();
 
-    if (!handle) {
-      throw new Error('the area fill handle is not rendered');
+    if (!gridBox || !handle) {
+      throw new Error('the grid or the area fill handle is not rendered');
     }
 
     const startX = handle.x + handle.width / 2;
@@ -148,18 +125,20 @@ export class FormulasGridPage {
     await this.page.mouse.down();
     await this.page.mouse.move(startX, belowGridY, { steps: 8 });
 
-    // Auto-scroll is TIMER-driven (DragToScroll's ScrollTimer advances one row
-    // per self-rescheduled tick; at 20px past the edge the tick interval is
-    // near its 500ms maximum), so the wait must be bounded by TIME, never by
-    // an iteration count: a fixed number of pumped moves is a hidden wall-clock
+    // Auto-scroll is TIMER-driven: DragToScroll's ScrollTimer advances one row
+    // per self-rescheduled tick, and its log ramp (min 20ms, max 500ms,
+    // rampDistance 120, logScale 200) gives ~180ms per tick for a pointer
+    // 20px past the edge — so the wait must be bounded by TIME, never by an
+    // iteration count: a fixed number of pumped moves is a hidden wall-clock
     // budget that shrinks with every Playwright/CDP speedup and starves the
-    // tallest theme (horizon needs the most ticks) of scroll time. Each probe
-    // still jitters the pointer 1px so the plugin keeps seeing mousemove
-    // events, and checks the holder's VISIBLE area (Playwright's isVisible()
-    // counts overflow-clipped cells as visible, so intersect bounding boxes
-    // instead). An exhausted wait must fail HERE with its real cause — not
-    // later, as a confusing data mismatch after the gesture lands on a
-    // clipped coordinate.
+    // tallest theme (horizon needs the most ticks) of scroll time. The 8s
+    // budget is ~40 ticks of headroom and keeps goto + selectRange + all
+    // polls inside the 20s test timeout, so an exhausted wait still fails
+    // HERE with its real cause instead of a locationless "Test timeout".
+    // Each probe jitters the pointer 1px so the plugin keeps seeing mousemove
+    // events, and checks the holder's pressable area (Playwright's
+    // isVisible() counts overflow-clipped cells as visible, so intersect
+    // bounding boxes instead).
     let jitter = 0;
 
     await expect
@@ -170,7 +149,7 @@ export class FormulasGridPage {
         return this.cellInHolderView(row, col);
       }, {
         message: `auto-scroll never brought cell ${row},${col} into the holder view`,
-        timeout: 15000,
+        timeout: 8000,
       })
       .toBe(true);
 
@@ -185,23 +164,24 @@ export class FormulasGridPage {
   }
 
   /**
-   * Whether a cell's box lies fully inside the master holder's visible area
-   * (not merely rendered-but-clipped past either overflow edge).
+   * Whether a cell's box lies fully inside the holder's pressable area — not
+   * merely rendered-but-clipped past an overflow edge, and not under the
+   * sticky column-header clone that paints over the holder's top strip.
    */
   async cellInHolderView(row: number, col: number): Promise<boolean> {
-    // boundingBox() first waits for 'attached' — a cell the renderer never
-    // produced (virtualized away) would stall the pump loop until the test
-    // timeout with a wrong-cause failure. Bail out fast instead.
+    // count() before boundingBox(): boundingBox() waits for 'attached' first,
+    // so a cell the renderer never produced (virtualized away) would stall
+    // the poll until the test timeout with a wrong-cause failure.
     if (await this.cell(row, col).count() === 0) {
       return false;
     }
 
     const cellBox = await this.cell(row, col).boundingBox();
-    const holderBox = await this.grid.locator('.ht_master .wtHolder').boundingBox();
+    const inner = await this.#pressableBounds();
 
-    return Boolean(cellBox && holderBox &&
-      cellBox.y >= holderBox.y - 1 &&
-      cellBox.y + cellBox.height <= holderBox.y + holderBox.height + 1);
+    return Boolean(cellBox &&
+      cellBox.y >= inner.top - 1 &&
+      cellBox.y + cellBox.height <= inner.bottom + 1);
   }
 
   /** The grid's data, read through the instance the fixture exposes. */
@@ -212,5 +192,82 @@ export class FormulasGridPage {
   /** The grid's raw source data (formulas unevaluated). */
   async sourceData(): Promise<(string | number | null)[][]> {
     return this.page.evaluate(() => (window as any).hot.getSourceData());
+  }
+
+  /**
+   * The vertical bounds of the holder area where content is actually
+   * pressable: the holder box minus the sticky column-header band — the
+   * `ht_clone_top` overlay paints over the holder's top strip, so a cell
+   * scrolled under it still reports a bounding box there, but a click at
+   * those coordinates presses the header clone instead.
+   */
+  async #pressableBounds(): Promise<{ top: number; bottom: number }> {
+    const holderBox = await this.holder.boundingBox();
+
+    if (!holderBox) {
+      throw new Error('the holder is not rendered');
+    }
+
+    const headerClone = this.grid.locator('.ht_clone_top');
+    const headerBox = await headerClone.count() > 0 ? await headerClone.boundingBox() : null;
+
+    return {
+      top: holderBox.y + (headerBox ? headerBox.height : 0),
+      bottom: holderBox.y + holderBox.height,
+    };
+  }
+
+  /**
+   * Wheel-scrolls the holder — the way a user reaches off-screen content —
+   * until `target` lies fully inside the pressable holder area. The wheel
+   * step is the EXACT remaining distance (plus a 2px margin): a fixed step
+   * would turn the poll budget into a hidden reach cap, and a fixed MINIMUM
+   * over-corrects a few-px overflow, which ping-pongs when two nearby targets
+   * need opposite nudges (the selectRange `to`/`from` pair). `count()` is
+   * checked before `boundingBox()`: the target may be torn down and rebuilt
+   * on the re-render each wheel triggers, and `boundingBox()` waits for
+   * `attached`, so a probe landing mid-render would stall past the poll
+   * budget and surface as a generic timeout instead of the message below.
+   */
+  async #wheelIntoView(target: Locator, what: string): Promise<void> {
+    const holderBox = await this.holder.boundingBox();
+
+    if (!holderBox) {
+      throw new Error('the holder is not rendered');
+    }
+
+    await this.page.mouse.move(holderBox.x + holderBox.width / 2, holderBox.y + holderBox.height / 2);
+
+    await expect
+      .poll(async() => {
+        if (await target.count() === 0) {
+          return false;
+        }
+
+        const box = await target.boundingBox();
+
+        if (!box) {
+          return false;
+        }
+
+        const inner = await this.#pressableBounds();
+
+        if (box.y + box.height > inner.bottom + 1) {
+          await this.page.mouse.wheel(0, (box.y + box.height) - inner.bottom + 2);
+
+          return false;
+        }
+        if (box.y < inner.top - 1) {
+          await this.page.mouse.wheel(0, -(inner.top - box.y + 2));
+
+          return false;
+        }
+
+        return true;
+      }, {
+        message: `the ${what} never scrolled into the holder view`,
+        timeout: 2000,
+      })
+      .toBe(true);
   }
 }

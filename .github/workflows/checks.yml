@@ -142,6 +142,10 @@ jobs:
             test-visual:
               - './examples/next/visual-tests/**'
               - './visual-tests/**'
+              # The Playwright version (and thus the rendering browsers) lives
+              # in the workspace catalog — a catalog-only bump must re-render.
+              - './pnpm-lock.yaml'
+              - './pnpm-workspace.yaml'
             test-performance:
               # config-files (deps in package.json, babel/hot.config, bundler config)
               # can shift bundle perf — run the suite on the PR for those too, not just
@@ -177,6 +181,9 @@ jobs:
             docs:
               - './docs/**'
               - './handsontable/package.json'
+              # docs' Playwright version comes from the workspace catalog too.
+              - './pnpm-lock.yaml'
+              - './pnpm-workspace.yaml'
             # True when the PR changes anything that ESLint/scans can act on —
             # i.e. NOT confined to the YAML pipeline definitions. Lint + the
             # code-quality scans (Sonar/CodeQL/FOSSA/audit) gate on this so a
