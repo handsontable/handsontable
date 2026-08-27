@@ -218,7 +218,11 @@ initialState: {
 
 The array both enables column moving and sets the starting order, so don't also pass [`manualColumnMove`](@/api/options.md#manualcolumnmove) at the top level. A regular setting takes precedence over the same key in [`initialState`](@/api/options.md#initialstate), so `manualColumnMove: true` alongside the code above would discard the order.
 
-If you own the order yourself, cancel the move by returning `false` from [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) and reorder your own data. Reordering columns means reordering each row's cells, or reordering your [`columns`](@/api/options.md#columns) definitions, so it takes more work than reordering rows.
+If you own the order yourself, cancel the move by returning `false` from [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) and reorder your own data. Two things follow from that.
+
+[`afterColumnMove`](@/api/hooks.md#aftercolumnmove) never fires. The move stops at [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove), before that hook runs, so persist the order from your own update rather than from the snapshot recipe above.
+
+Reordering columns also takes more work than reordering rows. You either reorder each row's cells, or reorder your [`columns`](@/api/options.md#columns) definitions. Reordering the cells is the safer route: passing `columns` through [`updateSettings()`](@/api/core.md#updatesettings) resets the states tied to rows and columns, including the row and column sequence, column widths, row heights, and frozen columns.
 
 :::
 

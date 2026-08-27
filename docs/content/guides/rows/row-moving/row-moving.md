@@ -112,7 +112,9 @@ Treat the snapshot as output only. Send it to your backend, and leave the grid's
 
 ::: only-for javascript
 
-To replace the data and reset the order together, call [`loadData()`](@/api/core.md#loaddata) instead. It clears the row order map along with the data. It also clears the undo history.
+To replace the data and reset the order together, call [`loadData()`](@/api/core.md#loaddata) instead. It clears the row order map along with the data, and it clears the undo history.
+
+One exception: if you passed [`manualRowMove`](@/api/options.md#manualrowmove) as an array of indexes, the plugin re-applies that array right after the reset. You get the configured order back, not the source order.
 
 :::
 
@@ -155,8 +157,10 @@ Return `false` from [`beforeRowMove`](@/api/hooks.md#beforerowmove) to cancel Ha
 
 In this model you also own the order's history. Reverting a move is your code's job, not the grid's.
 
-Two limits come with it:
+Cancelling the move changes what the grid does for you, so plan for these:
 
+- [`afterRowMove`](@/api/hooks.md#afterrowmove) never fires. The move stops at [`beforeRowMove`](@/api/hooks.md#beforerowmove), before that hook runs, so the snapshot recipe shown earlier on this page does not apply here. Persist the order from your own update instead.
+- The grid does not re-render or restore the selection, because both wait for a move that actually happened. After the drag, the highlighted row headers stay where they were, and those positions now hold different rows. Re-select the moved rows yourself if that matters.
 - The hook reports visual row indexes, and the helper below uses them as positions in your array. Those match only while nothing else reorders or hides rows. Add [`columnSorting`](@/api/options.md#columnsorting), [`filters`](@/api/options.md#filters), or trimmed rows, and a visual index no longer points at the same row in your array, so you have to translate the indexes yourself. `finalIndex` is a visual index too.
 - Cell metadata is keyed by the physical row. Reordering your own array moves the values but not the metadata, so per-row settings such as [`readOnly`](@/api/options.md#readonly), a cell `className`, or a comment stay on the position they were set on and end up on a different row.
 
@@ -264,8 +268,10 @@ const hotSettings = {
       return;
     }
 
-    // replace the contents in place, so the grid sees the new order
-    rows.splice(0, rows.length, ...reorderRows(rows, movedRows, finalIndex));
+    // write the new order into the same array, so the grid sees it
+    reorderRows(rows, movedRows, finalIndex).forEach((row, index) => {
+      rows[index] = row;
+    });
 
     // cancel the grid's own move -- the line above already applied it
     return false;
