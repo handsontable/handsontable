@@ -292,6 +292,10 @@ export class Formulas extends BasePlugin {
    * behalf. Read by `#onModifySourceData` alone, so the read reports what Handsontable stores
    * without also suspending the value projection every other hook depends on.
    *
+   * `#syncFormulasToSourceData` reads the source data with the same intent but deliberately keeps
+   * the broader `#internalOperationPending`: there the flag doubles as the re-entry guard its own
+   * early return checks, which this narrow flag does not provide.
+   *
    * @private
    * @type {boolean}
    */
@@ -1375,7 +1379,11 @@ export class Formulas extends BasePlugin {
     // containing only visible columns so HF cell coordinates stay in sync.
     const columnOffset = column ?? 0;
 
-    return dataArray.map((rowArray, rowIndex) => {
+    return dataArray.map((row, rowIndex) => {
+      // `getSourceDataArray` hands back a falsy row as-is for a hole or a `null` entry, and the
+      // shape check above only reads row 0, so such a row can reach this branch. Treated as empty,
+      // exactly as the pass-through branch above treats it.
+      const rowArray = Array.isArray(row) ? row : [];
       const projected = [];
 
       for (let visualCol = 0; visualCol < visibleColumnCount; visualCol++) {

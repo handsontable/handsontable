@@ -2851,9 +2851,13 @@ describe('Formulas general', () => {
   it('should replace an existing formula\'s text when the `loadData` method is called for array of objects', async() => {
     handsontable({
       data: [
-        { value: 1 },
-        { value: '=A1+1' },
+        { value: 1, note: 'skipped' },
+        { value: '=A1+1', note: 'skipped' },
       ],
+      // The second key is deliberately left out of `columns`, so `countCols()` is lower than
+      // `countSourceCols()` and the shape check in `#getProcessedSourceDataArray` is actually
+      // evaluated. With a single key it would short-circuit and the array-of-objects branch would
+      // be selected without the check ever running.
       columns: [
         { data: 'value' },
       ],
@@ -2865,8 +2869,8 @@ describe('Formulas general', () => {
     const formulasPlugin = getPlugin('formulas');
 
     await loadData([
-      { value: 1 },
-      { value: '=A1+100' },
+      { value: 1, note: 'skipped' },
+      { value: '=A1+100', note: 'skipped' },
     ]);
 
     expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
@@ -2906,6 +2910,39 @@ describe('Formulas general', () => {
       expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
         [1, '=A1+100'],
         [2, 3],
+      ]);
+
+      expect(getDataAtCell(0, 1)).toBe(101);
+    });
+
+  it('should replace an existing formula\'s text when the `loadData` method is called for data with an empty row',
+    async() => {
+      handsontable({
+        data: [
+          [1, 'skipped', '=A1+1'],
+          null,
+        ],
+        // The shape check in `#getProcessedSourceDataArray` reads the first row only, so a row that
+        // is not an array still reaches the branch projecting rows down to the visible columns.
+        columns: [
+          { data: 0 },
+          { data: 2 },
+        ],
+        formulas: {
+          engine: HyperFormula,
+        }
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await loadData([
+        [1, 'skipped', '=A1+100'],
+        null,
+      ]);
+
+      // The engine drops the trailing empty row, so only the first one is serialized.
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        [1, '=A1+100'],
       ]);
 
       expect(getDataAtCell(0, 1)).toBe(101);
