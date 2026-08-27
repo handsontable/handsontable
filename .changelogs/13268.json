@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a bug where setting the `editor` or `hotEditor` prop to `true` on `HotTable` or `HotColumn` threw an error or opened an editor with nothing in it, instead of using the default cell editor.",
-  "type": "fixed",
-  "issueOrPR": 13268,
-  "breaking": false,
-  "framework": "react"
-}

@@ -816,7 +816,7 @@ describe('Editor configuration using React components', () => {
       simulateKeyboardEvent('keydown', 13);
     });
 
-    expect(hotInstance.getActiveEditor()).toBeTruthy();
+    expect(hotInstance.getActiveEditor()!.constructor.name).toBe('TextEditor');
   });
 
   it('should disable editing when the HotTable `hotEditor` prop is set to `false`', async () => {
@@ -853,7 +853,7 @@ describe('Editor configuration using React components', () => {
       simulateKeyboardEvent('keydown', 13);
     });
 
-    expect(hotInstance.getActiveEditor()).toBeTruthy();
+    expect(hotInstance.getActiveEditor()!.constructor.name).toBe('TextEditor');
   });
 
   it('should apply and revert a dynamic switch of the `editor` prop to `false`', async () => {
@@ -984,6 +984,61 @@ describe('Editor configuration using React components', () => {
     });
 
     expect(hotInstance.getActiveEditor()!.constructor.name).toBe('TextEditor');
+  });
+
+  it('should keep opening the editor passed by an `editor={condition && Editor}` prop', async () => {
+    const withEditor = true;
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                editor={withEditor && EditorComponent}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }} />
+    )).hotInstance!;
+
+    // The common `condition && Editor` idiom passes the component itself while the condition holds,
+    // so the editor it names must still open, exactly as before this change.
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()!.constructor.name).toEqual('CustomEditor');
+  });
+
+  it('should disable editing when an `editor={condition && Editor}` prop resolves to `false`', async () => {
+    const withEditor = false;
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                editor={withEditor && EditorComponent}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }} />
+    )).hotInstance!;
+
+    // Once the condition drops the component, the prop is a plain `false`, which is the documented
+    // way to switch editing off.
+    expect(hotInstance.getCellEditor(0, 0)).toBe(false);
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()).toBeUndefined();
+    expect(hotInstance.getDataAtCell(0, 0)).toEqual('A1');
   });
 });
 

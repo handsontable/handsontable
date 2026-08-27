@@ -425,7 +425,7 @@ describe('Editor configuration using React components', () => {
       simulateKeyboardEvent('keydown', 13);
     });
 
-    expect(hotInstance.getActiveEditor()).toBeTruthy();
+    expect(hotInstance.getActiveEditor()!.constructor.name).toBe('TextEditor');
   });
 
   it('should disable editing for a column with the `hotEditor` prop set to `false`', async () => {
@@ -463,7 +463,7 @@ describe('Editor configuration using React components', () => {
       simulateKeyboardEvent('keydown', 13);
     });
 
-    expect(hotInstance.getActiveEditor()).toBeTruthy();
+    expect(hotInstance.getActiveEditor()!.constructor.name).toBe('TextEditor');
   });
 
   it('should apply and revert a dynamic switch of a column `editor` prop to `false`', async () => {
@@ -593,11 +593,11 @@ describe('Editor configuration using React components', () => {
     expect(hotInstance.getDataAtCell(0, 0)).toEqual('--hello--');
   });
 
-  it('should fall back to the default editor when a column `editor` or `hotEditor` prop is `true`', async () => {
+  it('should treat a column `editor` or `hotEditor` prop of `true` as if the prop was not passed', async () => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={createSpreadsheetData(3, 3)}
+                data={createSpreadsheetData(3, 4)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -605,17 +605,48 @@ describe('Editor configuration using React components', () => {
                 init={function () {
                   mockElementDimensions(this.rootElement, 300, 300);
                 }}>
-        <HotColumn editor={true} />
-        <HotColumn hotEditor={true} />
+        <HotColumn type="numeric" editor={true} />
+        <HotColumn type="numeric" hotEditor={true} />
+        <HotColumn type="numeric" />
         <HotColumn />
       </HotTable>
     )).hotInstance!;
 
-    // Neither boolean carries an editor, so both must resolve to the default one. A bare `true` also
+    // The columns carry a `type`, so "treated as not passed" and "hard-set to the default editor"
+    // give different answers here. Both booleans must keep the type's own editor. A bare `true` also
     // must never reach the core, which throws on anything but a string or a constructor.
+    expect(hotInstance.getCellEditor(0, 0).EDITOR_TYPE).toBe('numeric');
+    expect(hotInstance.getCellEditor(0, 1).EDITOR_TYPE).toBe('numeric');
+    expect(hotInstance.getCellEditor(0, 2).EDITOR_TYPE).toBe('numeric');
+    expect(hotInstance.getCellEditor(0, 3).EDITOR_TYPE).toBe('text');
+
+    await act(async () => {
+      hotInstance.selectCell(0, 1);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()!.constructor.name).toBe('NumericEditor');
+  });
+
+  it('should keep a column editable when a falsy `editor` prop is not `false`', async () => {
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }}>
+        {/* The `cond ? MyEditor : null` idiom must inherit, not lock the column. */}
+        <HotColumn editor={null as any} />
+        <HotColumn />
+      </HotTable>
+    )).hotInstance!;
+
     expect(hotInstance.getCellEditor(0, 0).EDITOR_TYPE).toBe('text');
-    expect(hotInstance.getCellEditor(0, 1).EDITOR_TYPE).toBe('text');
-    expect(hotInstance.getCellEditor(0, 2).EDITOR_TYPE).toBe('text');
 
     await act(async () => {
       hotInstance.selectCell(0, 0);
@@ -623,6 +654,38 @@ describe('Editor configuration using React components', () => {
     });
 
     expect(hotInstance.getActiveEditor()!.constructor.name).toBe('TextEditor');
+  });
+
+  it('should let a bare HotColumn inherit an `editor` of `false` set on the grid', async () => {
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                editor={false}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }}>
+        <HotColumn />
+        <HotColumn hotEditor={CustomNativeEditor} />
+      </HotTable>
+    )).hotInstance!;
+
+    // A column that names no editor of its own must inherit the grid-level `false`.
+    expect(hotInstance.getCellEditor(0, 0)).toBe(false);
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()).toBeUndefined();
+
+    // A column that does name one still overrides the grid-level `false`.
+    expect(hotInstance.getCellEditor(0, 1)).toBe(CustomNativeEditor);
   });
 });
 
