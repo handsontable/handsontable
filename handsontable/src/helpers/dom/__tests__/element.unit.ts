@@ -880,6 +880,15 @@ describe('DomElement helper', () => {
       expect(HTML_CHARACTERS.test('&#X41;')).toBe(true);
     });
 
+    it('should admit `&#` with hexadecimal digits and no `x`, which is deliberate imprecision', () => {
+      // Not a real reference, so a parser renders it literally. The two numeric forms share one
+      // branch to keep the pattern within the complexity budget, and the cost is that a few
+      // unrealistic strings are treated as markup - erring toward sanitizing too much.
+      expect(HTML_CHARACTERS.test('&#abc;')).toBe(true);
+      // Still excluded, because `g` is not a hexadecimal digit.
+      expect(HTML_CHARACTERS.test('&#ghi;')).toBe(false);
+    });
+
     it('should treat prose that also holds a real character reference as markup', () => {
       // The pattern is unanchored, so the reference is what it matches on. A narrowing that
       // anchored it would silently stop sanitizing this content.

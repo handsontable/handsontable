@@ -569,7 +569,11 @@ export function empty(element: Element): void {
  *
  * The tag alternative therefore requires a tag-like shape: `<`, an optional `/`, then an ASCII
  * letter. The entity alternative covers the three terminated forms of a character reference: named
- * (`&amp;`, `&frac12;`), decimal (`&#169;`), and hexadecimal (`&#x1F600;`).
+ * (`&amp;`, `&frac12;`), decimal (`&#169;`), and hexadecimal (`&#x1F600;`). The two numeric forms
+ * share one branch, `#x?[\da-f]+`, which also admits `&#abc;` - `#` with hexadecimal digits but no
+ * `x`. That is not a reference, so this errs toward treating a handful of unrealistic strings as
+ * markup; the alternative is a third branch, and the sanitizer seeing slightly too much is the
+ * safe direction to be imprecise in.
  *
  * Two residuals, both deliberate. The semicolon-less legacy named form (`&copy 2024`, which a
  * parser still decodes, with a parse error) is out of scope, so such a label now renders literally;
@@ -593,7 +597,7 @@ export function empty(element: Element): void {
  * deliberately no `g` flag: it would make `.test()` stateful through `lastIndex`, so consecutive
  * calls on the same pattern would disagree about identical content.
  */
-export const HTML_CHARACTERS = /(<(\/?[a-z][^>]*)>|&([a-z][a-z\d]+|#\d+|#x[\da-f]+);)/i;
+export const HTML_CHARACTERS = /(<(\/?[a-z][^>]*)>|&([a-z][a-z\d]+|#x?[\da-f]+);)/i;
 
 /**
  * Shared "warn once" key for every missing-sanitizer warning, so that all DOM
