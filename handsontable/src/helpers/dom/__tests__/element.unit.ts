@@ -907,11 +907,15 @@ describe('DomElement helper', () => {
       expect(HTML_CHARACTERS.test(content)).toBe(true);
     });
 
-    it('should expose three capture groups, as it always has', () => {
-      // `Handsontable.dom.HTML_CHARACTERS` is public. Nothing in the grid reads the groups, but
-      // dropping one would change the shape of a published export for no gain.
-      expect([...'<b>ID</b>'.match(HTML_CHARACTERS)]).toEqual(['<b>', '<b>', 'b', undefined]);
-      expect([...'a &amp; b'.match(HTML_CHARACTERS)]).toEqual(['&amp;', '&amp;', undefined, 'amp']);
+    it('should expose one capture group per form, with exactly one defined per match', () => {
+      // `Handsontable.dom.HTML_CHARACTERS` is public, so the shape of a match is worth pinning.
+      // Nothing in the grid reads the groups; the count stays at three, as it always has been.
+      expect([...'<b>ID</b>'.match(HTML_CHARACTERS)])
+        .toEqual(['<b>', '<b>', undefined, undefined]);
+      expect([...'a &amp; b'.match(HTML_CHARACTERS)])
+        .toEqual(['&amp;', undefined, '&amp;', undefined]);
+      expect([...'&#x1F600;'.match(HTML_CHARACTERS)])
+        .toEqual(['&#x1F600;', undefined, undefined, '&#x1F600;']);
     });
   });
 
