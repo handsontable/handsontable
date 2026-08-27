@@ -5,6 +5,7 @@ import { isObject, isPlainObject } from '../../helpers/object';
 import { isHTMLElement } from '../../helpers/dom/element';
 import { isButtonType } from '../../helpers/uiButton';
 import { getSanitizer } from '../../utils/sanitizer';
+import { isRootInstance } from '../../utils/rootInstance';
 import * as C from '../../i18n/constants';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 
@@ -258,10 +259,14 @@ export class Dialog extends BasePlugin {
   /**
    * Check if the plugin is enabled in the handsontable settings.
    *
+   * The dialog renders into the `ht-overlay` element and registers a modal focus scope, and both
+   * belong to the main Handsontable instance. In a nested grid (the one that the `handsontable` cell
+   * type creates) neither exists, so the plugin stays disabled there.
+   *
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    return !!this.hot.getSettings()[PLUGIN_KEY];
+    return isRootInstance(this.hot) && !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**

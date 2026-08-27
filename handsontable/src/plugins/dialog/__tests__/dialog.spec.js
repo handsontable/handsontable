@@ -201,4 +201,56 @@ describe('Dialog', () => {
       expect(sanitizer).toHaveBeenCalledWith('<b>Bold dialog</b>', 'dialog');
     });
   });
+
+  describe('nested grid (non-root instance)', () => {
+    it('should not enable the plugin in a grid nested in the `handsontable` cell type', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            data: createSpreadsheetData(2, 2),
+            dialog: true,
+          },
+        }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const innerHot = getActiveEditor().htEditor;
+
+      // The dialog needs the FocusScopeManager and the `ht-overlay` element, and both belong to the
+      // root instance only. The plugin declines to enable instead of throwing (DEV-2641).
+      expect(getActiveEditor().isOpened()).toBe(true);
+      expect(innerHot.countRows()).toBe(2);
+      expect(innerHot.getPlugin('dialog').isEnabled()).toBe(false);
+      expect(innerHot.getPlugin('dialog').enabled).toBe(false);
+    });
+
+    it('should keep the root instance dialog working when a nested grid asks for one too', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            data: createSpreadsheetData(2, 2),
+            dialog: true,
+          },
+        }],
+        dialog: { animation: false },
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      getPlugin('dialog').show({
+        content: 'Root content',
+      });
+
+      expect(getPlugin('dialog').enabled).toBe(true);
+      expect(getPlugin('dialog').isVisible()).toBe(true);
+      expect(getDialogContainerElement().parentNode).toBe(hot().rootOverlaysElement);
+    });
+  });
 });

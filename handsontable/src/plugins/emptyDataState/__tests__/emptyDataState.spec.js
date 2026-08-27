@@ -280,4 +280,31 @@ describe('EmptyDataState', () => {
       expect(height).toBeGreaterThan(0);
     });
   });
+
+  describe('nested grid (non-root instance)', () => {
+    it('should not enable the plugin in a grid nested in the `handsontable` cell type', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            data: createSpreadsheetData(2, 2),
+            emptyDataState: true,
+          },
+        }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const innerHot = getActiveEditor().htEditor;
+
+      // The empty data state needs the FocusScopeManager and the root grid element, and both belong
+      // to the root instance only. The plugin declines to enable instead of throwing (DEV-2641).
+      expect(getActiveEditor().isOpened()).toBe(true);
+      expect(innerHot.countRows()).toBe(2);
+      expect(innerHot.getPlugin('emptyDataState').isEnabled()).toBe(false);
+      expect(innerHot.getPlugin('emptyDataState').enabled).toBe(false);
+    });
+  });
 });

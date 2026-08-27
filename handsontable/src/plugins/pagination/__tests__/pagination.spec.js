@@ -270,4 +270,32 @@ describe('Pagination', () => {
 
     expect(rowIndexMapper().getRenderableIndexesLength()).toBe(50);
   });
+
+  describe('nested grid (non-root instance)', () => {
+    it('should not enable the plugin in a grid nested in the `handsontable` cell type', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            data: createSpreadsheetData(10, 2),
+            pagination: { pageSize: 5 },
+          },
+        }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const innerHot = getActiveEditor().htEditor;
+
+      // The pagination bar needs the FocusScopeManager, the LayoutManager and the root grid element,
+      // and all three belong to the root instance only. The plugin declines to enable instead of
+      // throwing (DEV-2641).
+      expect(getActiveEditor().isOpened()).toBe(true);
+      expect(innerHot.countRows()).toBe(10);
+      expect(innerHot.getPlugin('pagination').isEnabled()).toBe(false);
+      expect(innerHot.getPlugin('pagination').enabled).toBe(false);
+    });
+  });
 });

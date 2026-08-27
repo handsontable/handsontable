@@ -2,6 +2,7 @@ import { BasePlugin } from '../base';
 import { EmptyDataStateUI } from './ui';
 import { isObject } from '../../helpers/object';
 import { isButtonType } from '../../helpers/uiButton';
+import { isRootInstance } from '../../utils/rootInstance';
 import * as C from '../../i18n/constants';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 
@@ -299,10 +300,14 @@ export class EmptyDataState extends BasePlugin {
   /**
    * Check if the plugin is enabled in the handsontable settings.
    *
+   * The empty data state renders into the root grid element and registers a focus scope, and both
+   * belong to the main Handsontable instance. In a nested grid (the one that the `handsontable` cell
+   * type creates) neither exists, so the plugin stays disabled there.
+   *
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    return !!this.hot.getSettings()[PLUGIN_KEY];
+    return isRootInstance(this.hot) && !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**

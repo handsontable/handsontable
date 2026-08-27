@@ -195,10 +195,15 @@ export class Pagination extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link Pagination#enablePlugin} method is called.
    *
+   * The pagination bar renders into the bottom slot and registers a focus scope, and the
+   * `LayoutManager`, the `FocusScopeManager` and the root grid element all belong to the main
+   * Handsontable instance. In a nested grid (the one that the `handsontable` cell type creates) none
+   * of them exists, so the plugin stays disabled there.
+   *
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    return !!this.hot.getSettings()[PLUGIN_KEY];
+    return isRootInstance(this.hot) && !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -252,7 +257,8 @@ export class Pagination extends BasePlugin {
 
     // The layout manager owns the bottom-slot placement and ordering. With a custom `uiContainer`
     // the UI installs itself there instead, so the slot registration is skipped. The manager only
-    // exists on the root instance, hence the guard.
+    // exists on the root instance; that half of the guard is redundant since `isEnabled()` keeps the
+    // plugin disabled on a non-root instance, and is kept for a direct `enablePlugin()` call.
     if (isRootInstance(this.hot) && !this.getSetting('uiContainer')) {
       this.hot.getLayoutManager()
         .register(PLUGIN_KEY, this.#ui.getContainer(), { side: 'bottom', weight: LAYOUT_WEIGHT });
