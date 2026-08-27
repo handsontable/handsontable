@@ -1921,6 +1921,8 @@ export class Formulas extends BasePlugin {
    * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
    */
   #onAfterCellMetaReset = () => {
+    this.#closeLeakedDetachGuard();
+
     if (this.#hotWasInitializedWithEmptyData) {
       if (this.sheetName !== null) {
         this.switchSheet(this.sheetName);
@@ -1956,6 +1958,8 @@ export class Formulas extends BasePlugin {
     if (!this.engine) {
       return;
     }
+
+    this.#closeLeakedDetachGuard();
 
     const formulasSettings = this.hot.getSettings()[PLUGIN_KEY];
     const settingsSheetName = isFormulasSettingsObject(formulasSettings) ? formulasSettings.sheetName : undefined;
@@ -3077,6 +3081,23 @@ export class Formulas extends BasePlugin {
   #onBeforeDetachChild = () => {
     this.#nestedRowsDetachPending = true;
   };
+
+  /**
+   * Closes a `#nestedRowsDetachPending` span that `#onAfterDetachChild` never got to close – see
+   * that flag and `#onBeforeDetachChild` for how the span is left open.
+   *
+   * Called at the head of the structural operations that re-establish the engine's relationship to
+   * the source data (`afterLoadData`, `afterUpdateData`, `afterCellMetaReset`). By then the detach
+   * the flag was guarding is over either way, so the span cannot still be legitimately open: the
+   * detach runs to completion inside a single `afterDetachChild` emission, well before any of these
+   * fire. Bounding it here matters because the flag's whole purpose is to suppress
+   * `#syncFormulasToSourceData`, and a leaked one suppresses it silently – the developer's array
+   * keeps stale formula text with nothing surfaced. `enablePlugin()` clears it too, but a grid that
+   * is never re-enabled would otherwise stay broken for the rest of the session.
+   */
+  #closeLeakedDetachGuard() {
+    this.#nestedRowsDetachPending = false;
+  }
 
   /**
    * `afterDetachChild` hook callback.

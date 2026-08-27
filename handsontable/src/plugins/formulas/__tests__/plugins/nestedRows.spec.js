@@ -325,6 +325,45 @@ describe('Formulas', () => {
       ]);
     });
 
+    it('should clear the detach guard on the next structural operation', async() => {
+      const data = [
+        [10, '=SUM(A1:A3)'],
+        [20, null],
+        [30, null],
+      ];
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+      });
+
+      // Leaves the guard span open with nobody to close it - see the re-enable case below for why
+      // `afterDetachChild` can fail to arrive at all.
+      await runHooks('beforeDetachChild');
+      await alter('insert_row_above', 1, 1);
+
+      expect(data[0][1]).toBe('=SUM(A1:A3)');
+
+      // A grid that is never re-enabled has to recover too, so the guard is bounded by the next
+      // structural operation rather than by the next `enablePlugin()`.
+      const reloaded = [
+        [10, '=SUM(A1:A3)'],
+        [20, null],
+        [30, null],
+      ];
+
+      await loadData(reloaded);
+      await alter('insert_row_above', 1, 1);
+
+      // Asserted on the array the grid was handed, not through `getSourceDataAtCell()`:
+      // `#onModifySourceData` answers that getter with the formula the ENGINE holds, which is
+      // already rewritten whether or not the write-back ran.
+      expect(reloaded[0][1]).toBe('=SUM(A1:A4)');
+    });
+
     it('should clear the detach guard when the plugin is re-enabled', async() => {
       const data = [
         [10, '=SUM(A1:A3)'],
