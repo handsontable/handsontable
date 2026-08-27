@@ -820,67 +820,67 @@ describe('DropdownMenu', () => {
 
     let cellMeta = getCellMeta(0, 0);
 
-    expect(cellMeta.className.includes('htCenter')).toBeTruthy();
-    expect(cellMeta.className.includes('htMiddle')).toBeTruthy();
+    expect(cellMeta.className).toContain('htCenter');
+    expect(cellMeta.className).toContain('htMiddle');
 
     cellMeta = getCellMeta(0, 7);
-    expect(cellMeta.className.includes('htCenter')).toBeTruthy();
-    expect(cellMeta.className.includes('htBottom')).toBeTruthy();
+    expect(cellMeta.className).toContain('htCenter');
+    expect(cellMeta.className).toContain('htBottom');
 
     cellMeta = getCellMeta(5, 1);
-    expect(cellMeta.className.includes('htMiddle')).toBeTruthy();
+    expect(cellMeta.className).toContain('htMiddle');
 
     cellMeta = getCellMeta(5, 7);
-    expect(cellMeta.className.includes('htBottom')).toBeTruthy();
+    expect(cellMeta.className).toContain('htBottom');
 
     cellMeta = getCellMeta(7, 1);
-    expect(cellMeta.className.includes('htRight')).toBeTruthy();
-    expect(cellMeta.className.includes('htMiddle')).toBeTruthy();
+    expect(cellMeta.className).toContain('htRight');
+    expect(cellMeta.className).toContain('htMiddle');
 
     cellMeta = getCellMeta(7, 5);
-    expect(cellMeta.className.includes('htRight')).toBeTruthy();
+    expect(cellMeta.className).toContain('htRight');
 
     cellMeta = getCellMeta(7, 7);
-    expect(cellMeta.className.includes('htRight')).toBeTruthy();
-    expect(cellMeta.className.includes('htBottom')).toBeTruthy();
+    expect(cellMeta.className).toContain('htRight');
+    expect(cellMeta.className).toContain('htBottom');
 
     getPlugin('undoRedo').undo();
     cellMeta = getCellMeta(0, 7);
-    expect(cellMeta.className.includes('htCenter')).toBeTruthy();
-    expect(cellMeta.className.includes('htBottom')).toBeFalsy();
+    expect(cellMeta.className).toContain('htCenter');
+    expect(cellMeta.className ?? '').not.toContain('htBottom');
 
     cellMeta = getCellMeta(5, 7);
-    expect(cellMeta.className.includes('htBottom')).toBeFalsy();
+    expect(cellMeta.className ?? '').not.toContain('htBottom');
 
     cellMeta = getCellMeta(7, 7);
-    expect(cellMeta.className.includes('htRight')).toBeTruthy();
-    expect(cellMeta.className.includes('htBottom')).toBeFalsy();
+    expect(cellMeta.className).toContain('htRight');
+    expect(cellMeta.className ?? '').not.toContain('htBottom');
 
     getPlugin('undoRedo').undo();
 
     cellMeta = getCellMeta(0, 0);
-    expect(cellMeta.className.includes('htCenter')).toBeTruthy();
-    expect(cellMeta.className.includes('htMiddle')).toBeFalsy();
+    expect(cellMeta.className).toContain('htCenter');
+    expect(cellMeta.className ?? '').not.toContain('htMiddle');
 
     cellMeta = getCellMeta(5, 1);
-    expect(cellMeta.className.includes('htMiddle')).toBeFalsy();
+    expect(cellMeta.className ?? '').not.toContain('htMiddle');
 
     cellMeta = getCellMeta(7, 1);
-    expect(cellMeta.className.includes('htRight')).toBeTruthy();
-    expect(cellMeta.className.includes('htMiddle')).toBeFalsy();
+    expect(cellMeta.className).toContain('htRight');
+    expect(cellMeta.className ?? '').not.toContain('htMiddle');
 
     getPlugin('undoRedo').undo();
 
     cellMeta = getCellMeta(7, 1);
-    expect(cellMeta.className.includes('htRight')).toBeFalsy();
-    expect(cellMeta.className.includes('htMiddle')).toBeFalsy();
+    expect(cellMeta.className ?? '').not.toContain('htRight');
+    expect(cellMeta.className ?? '').not.toContain('htMiddle');
 
     cellMeta = getCellMeta(7, 5);
-    expect(cellMeta.className.includes('htRight')).toBeFalsy();
+    expect(cellMeta.className ?? '').not.toContain('htRight');
 
     cellMeta = getCellMeta(7, 7);
-    expect(cellMeta.className.includes('htRight')).toBeFalsy();
-    expect(cellMeta.className.includes('htBottom')).toBeFalsy();
+    expect(cellMeta.className ?? '').not.toContain('htRight');
+    expect(cellMeta.className ?? '').not.toContain('htBottom');
   });
 
   it('should be possible redo the alignment process by calling the \'Redo\' action without contextMenu', async() => {
@@ -915,29 +915,29 @@ describe('DropdownMenu', () => {
 
     let cellMeta = getCellMeta(0, 0);
 
-    expect(cellMeta.className.includes('htCenter')).toBeTruthy();
-    expect(cellMeta.className.includes('htMiddle')).toBeTruthy();
+    expect(cellMeta.className).toContain('htCenter');
+    expect(cellMeta.className).toContain('htMiddle');
 
     cellMeta = getCellMeta(0, 7);
-    expect(cellMeta.className.includes('htCenter')).toBeTruthy();
-    expect(cellMeta.className.includes('htBottom')).toBeTruthy();
+    expect(cellMeta.className).toContain('htCenter');
+    expect(cellMeta.className).toContain('htBottom');
 
     cellMeta = getCellMeta(5, 1);
-    expect(cellMeta.className.includes('htMiddle')).toBeTruthy();
+    expect(cellMeta.className).toContain('htMiddle');
 
     cellMeta = getCellMeta(5, 7);
-    expect(cellMeta.className.includes('htBottom')).toBeTruthy();
+    expect(cellMeta.className).toContain('htBottom');
 
     cellMeta = getCellMeta(7, 1);
-    expect(cellMeta.className.includes('htRight')).toBeTruthy();
-    expect(cellMeta.className.includes('htMiddle')).toBeTruthy();
+    expect(cellMeta.className).toContain('htRight');
+    expect(cellMeta.className).toContain('htMiddle');
 
     cellMeta = getCellMeta(7, 5);
-    expect(cellMeta.className.includes('htRight')).toBeTruthy();
+    expect(cellMeta.className).toContain('htRight');
 
     cellMeta = getCellMeta(7, 7);
-    expect(cellMeta.className.includes('htRight')).toBeTruthy();
-    expect(cellMeta.className.includes('htBottom')).toBeTruthy();
+    expect(cellMeta.className).toContain('htRight');
+    expect(cellMeta.className).toContain('htBottom');
 
     getPlugin('undoRedo').undo();
     getPlugin('undoRedo').undo();
@@ -946,39 +946,39 @@ describe('DropdownMenu', () => {
 
     getPlugin('undoRedo').redo();
     cellMeta = getCellMeta(0, 0);
-    expect(cellMeta.className.includes('htCenter')).toBeTruthy();
+    expect(cellMeta.className).toContain('htCenter');
     cellMeta = getCellMeta(1, 5);
-    expect(cellMeta.className.includes('htCenter')).toBeTruthy();
+    expect(cellMeta.className).toContain('htCenter');
     cellMeta = getCellMeta(2, 8);
-    expect(cellMeta.className.includes('htCenter')).toBeTruthy();
+    expect(cellMeta.className).toContain('htCenter');
 
     getPlugin('undoRedo').redo();
     cellMeta = getCellMeta(6, 0);
-    expect(cellMeta.className.includes('htRight')).toBeTruthy();
+    expect(cellMeta.className).toContain('htRight');
     cellMeta = getCellMeta(7, 5);
-    expect(cellMeta.className.includes('htRight')).toBeTruthy();
+    expect(cellMeta.className).toContain('htRight');
     cellMeta = getCellMeta(8, 8);
-    expect(cellMeta.className.includes('htRight')).toBeTruthy();
+    expect(cellMeta.className).toContain('htRight');
 
     getPlugin('undoRedo').redo();
     cellMeta = getCellMeta(0, 0);
-    expect(cellMeta.className.includes('htMiddle')).toBeTruthy();
-    expect(cellMeta.className.includes('htCenter')).toBeTruthy();
+    expect(cellMeta.className).toContain('htMiddle');
+    expect(cellMeta.className).toContain('htCenter');
     cellMeta = getCellMeta(5, 1);
-    expect(cellMeta.className.includes('htMiddle')).toBeTruthy();
+    expect(cellMeta.className).toContain('htMiddle');
     cellMeta = getCellMeta(8, 2);
-    expect(cellMeta.className.includes('htMiddle')).toBeTruthy();
-    expect(cellMeta.className.includes('htRight')).toBeTruthy();
+    expect(cellMeta.className).toContain('htMiddle');
+    expect(cellMeta.className).toContain('htRight');
 
     getPlugin('undoRedo').redo();
     cellMeta = getCellMeta(0, 6);
-    expect(cellMeta.className.includes('htBottom')).toBeTruthy();
-    expect(cellMeta.className.includes('htCenter')).toBeTruthy();
+    expect(cellMeta.className).toContain('htBottom');
+    expect(cellMeta.className).toContain('htCenter');
     cellMeta = getCellMeta(5, 7);
-    expect(cellMeta.className.includes('htBottom')).toBeTruthy();
+    expect(cellMeta.className).toContain('htBottom');
     cellMeta = getCellMeta(8, 8);
-    expect(cellMeta.className.includes('htBottom')).toBeTruthy();
-    expect(cellMeta.className.includes('htRight')).toBeTruthy();
+    expect(cellMeta.className).toContain('htBottom');
+    expect(cellMeta.className).toContain('htRight');
   });
 
   it('should not scroll the viewport after clicking the button in the header of the partially visible column', async() => {

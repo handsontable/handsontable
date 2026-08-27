@@ -73,67 +73,67 @@ describe('UndoRedo -> CellAlignment action', () => {
 
     let cellMeta = getCellMeta(0, 0);
 
-    expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
-    expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htCenter');
+    expect(cellMeta.className).toContain('htMiddle');
 
     cellMeta = getCellMeta(0, 7);
-    expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
-    expect(cellMeta.className.indexOf('htBottom')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htCenter');
+    expect(cellMeta.className).toContain('htBottom');
 
     cellMeta = getCellMeta(5, 1);
-    expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htMiddle');
 
     cellMeta = getCellMeta(5, 7);
-    expect(cellMeta.className.indexOf('htBottom')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htBottom');
 
     cellMeta = getCellMeta(7, 1);
-    expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
-    expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htRight');
+    expect(cellMeta.className).toContain('htMiddle');
 
     cellMeta = getCellMeta(7, 5);
-    expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htRight');
 
     cellMeta = getCellMeta(7, 7);
-    expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
-    expect(cellMeta.className.indexOf('htBottom')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htRight');
+    expect(cellMeta.className).toContain('htBottom');
 
     getPlugin('undoRedo').undo();
     cellMeta = getCellMeta(0, 7);
-    expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
-    expect(cellMeta.className.indexOf('htBottom')).toEqual(-1);
+    expect(cellMeta.className).toContain('htCenter');
+    expect(cellMeta.className ?? '').not.toContain('htBottom');
 
     cellMeta = getCellMeta(5, 7);
-    expect(cellMeta.className.indexOf('htBottom')).toEqual(-1);
+    expect(cellMeta.className ?? '').not.toContain('htBottom');
 
     cellMeta = getCellMeta(7, 7);
-    expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
-    expect(cellMeta.className.indexOf('htBottom')).toEqual(-1);
+    expect(cellMeta.className).toContain('htRight');
+    expect(cellMeta.className ?? '').not.toContain('htBottom');
 
     getPlugin('undoRedo').undo();
 
     cellMeta = getCellMeta(0, 0);
-    expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
-    expect(cellMeta.className.indexOf('htMiddle')).toEqual(-1);
+    expect(cellMeta.className).toContain('htCenter');
+    expect(cellMeta.className ?? '').not.toContain('htMiddle');
 
     cellMeta = getCellMeta(5, 1);
-    expect(cellMeta.className.indexOf('htMiddle')).toEqual(-1);
+    expect(cellMeta.className ?? '').not.toContain('htMiddle');
 
     cellMeta = getCellMeta(7, 1);
-    expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
-    expect(cellMeta.className.indexOf('htMiddle')).toEqual(-1);
+    expect(cellMeta.className).toContain('htRight');
+    expect(cellMeta.className ?? '').not.toContain('htMiddle');
 
     getPlugin('undoRedo').undo();
 
     cellMeta = getCellMeta(7, 1);
-    expect(cellMeta.className.indexOf('htRight')).toEqual(-1);
-    expect(cellMeta.className.indexOf('htMiddle')).toEqual(-1);
+    expect(cellMeta.className ?? '').not.toContain('htRight');
+    expect(cellMeta.className ?? '').not.toContain('htMiddle');
 
     cellMeta = getCellMeta(7, 5);
-    expect(cellMeta.className.indexOf('htRight')).toEqual(-1);
+    expect(cellMeta.className ?? '').not.toContain('htRight');
 
     cellMeta = getCellMeta(7, 7);
-    expect(cellMeta.className.indexOf('htRight')).toEqual(-1);
-    expect(cellMeta.className.indexOf('htBottom')).toEqual(-1);
+    expect(cellMeta.className ?? '').not.toContain('htRight');
+    expect(cellMeta.className ?? '').not.toContain('htBottom');
 
     getPlugin('undoRedo').undo();
 
@@ -149,6 +149,38 @@ describe('UndoRedo -> CellAlignment action', () => {
         expect(finish).toBe(true);
       }
     }
+  });
+
+  it('should restore no class name at all when the cell had none before the alignment', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      colHeaders: true,
+      contextMenu: true,
+    });
+
+    await selectCell(0, 0);
+    await contextMenu();
+    await selectContextSubmenuOption('Alignment', 'Middle');
+
+    expect(getCellMeta(0, 0).className).toBe('htMiddle');
+
+    getPlugin('undoRedo').undo();
+
+    await render();
+
+    // The undo used to fall back to ' htLeft' - a leading space plus a horizontal alignment the
+    // user never picked - so undoing left the cell aligned left instead of unaligned.
+    expect(getCellMeta(0, 0).className).toBeUndefined();
+    expect(getCell(0, 0).classList.contains('htLeft')).toBe(false);
+    expect(getCell(0, 0).classList.contains('htMiddle')).toBe(false);
+
+    getPlugin('undoRedo').redo();
+
+    await render();
+
+    // Redo must land back on exactly the original value, not grow the class name.
+    expect(getCellMeta(0, 0).className).toBe('htMiddle');
   });
 
   it('should undo/redo row removal with cell meta', async() => {
@@ -331,29 +363,29 @@ describe('UndoRedo -> CellAlignment action', () => {
 
     let cellMeta = getCellMeta(0, 0);
 
-    expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
-    expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htCenter');
+    expect(cellMeta.className).toContain('htMiddle');
 
     cellMeta = getCellMeta(0, 7);
-    expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
-    expect(cellMeta.className.indexOf('htBottom')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htCenter');
+    expect(cellMeta.className).toContain('htBottom');
 
     cellMeta = getCellMeta(5, 1);
-    expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htMiddle');
 
     cellMeta = getCellMeta(5, 7);
-    expect(cellMeta.className.indexOf('htBottom')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htBottom');
 
     cellMeta = getCellMeta(7, 1);
-    expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
-    expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htRight');
+    expect(cellMeta.className).toContain('htMiddle');
 
     cellMeta = getCellMeta(7, 5);
-    expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htRight');
 
     cellMeta = getCellMeta(7, 7);
-    expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
-    expect(cellMeta.className.indexOf('htBottom')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htRight');
+    expect(cellMeta.className).toContain('htBottom');
 
     getPlugin('undoRedo').undo();
     getPlugin('undoRedo').undo();
@@ -375,39 +407,39 @@ describe('UndoRedo -> CellAlignment action', () => {
 
     getPlugin('undoRedo').redo();
     cellMeta = getCellMeta(0, 0);
-    expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htCenter');
     cellMeta = getCellMeta(1, 5);
-    expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htCenter');
     cellMeta = getCellMeta(2, 8);
-    expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htCenter');
 
     getPlugin('undoRedo').redo();
     cellMeta = getCellMeta(6, 0);
-    expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htRight');
     cellMeta = getCellMeta(7, 5);
-    expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htRight');
     cellMeta = getCellMeta(8, 8);
-    expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htRight');
 
     getPlugin('undoRedo').redo();
     cellMeta = getCellMeta(0, 0);
-    expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
-    expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htMiddle');
+    expect(cellMeta.className).toContain('htCenter');
     cellMeta = getCellMeta(5, 1);
-    expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htMiddle');
     cellMeta = getCellMeta(8, 2);
-    expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
-    expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htMiddle');
+    expect(cellMeta.className).toContain('htRight');
 
     getPlugin('undoRedo').redo();
     cellMeta = getCellMeta(0, 6);
-    expect(cellMeta.className.indexOf('htBottom')).toBeGreaterThan(-1);
-    expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htBottom');
+    expect(cellMeta.className).toContain('htCenter');
     cellMeta = getCellMeta(5, 7);
-    expect(cellMeta.className.indexOf('htBottom')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htBottom');
     cellMeta = getCellMeta(8, 8);
-    expect(cellMeta.className.indexOf('htBottom')).toBeGreaterThan(-1);
-    expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+    expect(cellMeta.className).toContain('htBottom');
+    expect(cellMeta.className).toContain('htRight');
   });
 
   it('should not throw an error after redoing the row header aligning', async() => {
