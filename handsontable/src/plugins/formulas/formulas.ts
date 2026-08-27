@@ -1536,6 +1536,16 @@ export class Formulas extends BasePlugin {
    * default configuration pays no per-cell meta read. Within the scan, values the unescaping can
    * never change skip the meta read for the same reason.
    *
+   * Accepted residual: both the gate and the per-value confirmation read THIS grid's meta, while
+   * the sheet may have been escaped by a DIFFERENT grid sharing the same engine instance – which is
+   * the case `switchSheet` exists for. If grid A declares `preserveTextValue` and writes `0123456`,
+   * the engine holds `'0123456`; grid B, declaring neither `date` nor `preserveTextValue`, loads
+   * the apostrophe as data. Dropping the gate would not close this: `unescapeEngineBoundValue()`
+   * still confirms the strip against grid B's meta and finds nothing to confirm it with. Closing it
+   * needs the escape to be self-describing, or a per-sheet record of what was escaped – neither of
+   * which the engine's serialized content carries. The apostrophe is the engine's own documented
+   * string-escape, so the value is not corrupted, only un-stripped.
+   *
    * @param {Array<Array<*>>} sheetArray Sheet content read out of the engine, in engine index order.
    * @returns {Array<Array<*>>} The unescaped content, or `sheetArray` itself when nothing can apply.
    */
