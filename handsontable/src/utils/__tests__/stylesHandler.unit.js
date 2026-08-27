@@ -533,21 +533,30 @@ describe('StylesHandler', () => {
   // the container and clips the bottom row headers (issue #6280). The probe cell's measured height
   // is what the row actually renders at, so it wins - but only when it is the taller of the two.
   describe('getDefaultRowHeight (rendered height reconciliation)', () => {
-    const originalDevicePixelRatio = window.devicePixelRatio;
     let createdNodes = [];
+    // The property descriptor, not the value: jsdom defines `devicePixelRatio` as an accessor, and
+    // restoring it as a plain data property would freeze it for every later test in this file. Only
+    // captured when a test actually overrides it, so the untouched majority restore nothing.
+    let originalDevicePixelRatioDescriptor = null;
 
     // Cleanup belongs here, not at the end of each test: a failing assertion would skip it and leak
     // a `td { height }` rule into every test that runs after.
     afterEach(() => {
       createdNodes.forEach(node => node.remove());
       createdNodes = [];
-      Object.defineProperty(window, 'devicePixelRatio', {
-        value: originalDevicePixelRatio,
-        configurable: true,
-      });
+
+      if (originalDevicePixelRatioDescriptor !== null) {
+        Object.defineProperty(window, 'devicePixelRatio', originalDevicePixelRatioDescriptor);
+        originalDevicePixelRatioDescriptor = null;
+      }
     });
 
     const setDevicePixelRatio = (value) => {
+      if (originalDevicePixelRatioDescriptor === null) {
+        originalDevicePixelRatioDescriptor =
+          Object.getOwnPropertyDescriptor(window, 'devicePixelRatio');
+      }
+
       Object.defineProperty(window, 'devicePixelRatio', { value, configurable: true });
     };
 
@@ -633,6 +642,93 @@ describe('StylesHandler', () => {
       const { handler } = setUpHandler('border-bottom-width: 2px; height: 32px;');
 
       expect(handler.getDefaultRowHeight()).toBe(32);
+    });
+
+    it('should not probe the DOM when a required theme variable is missing', () => {
+      // `getCSSVariableValue()` returns `undefined`, not `null`, for a variable that resolves to
+      // nothing - the case core.ts warns about when an `ht-theme-*` class has no stylesheet behind
+      // it yet. The arithmetic then yields NaN, which every caller passes through (`?? 0` only
+      // catches null/undefined) and the next draw recovers from once the stylesheet lands.
+      //
+      // NaN must be RETURNED but must never reach the measurement cache key: `NaN !== NaN`, so the
+      // key could never match and every call would rebuild the probe table and force a layout -
+      // per row, inside the draw. Returning `null` here instead is NOT the fix: `?? 0` would then
+      // collapse the row height to zero and the grid with it.
+      const rootElement = document.createElement('div');
+
+      document.body.appendChild(rootElement);
+      createdNodes.push(rootElement);
+
+      const style = document.createElement('style');
+
+      style.textContent = 'td { border-bottom-width: 1.11111px; height: 31.111px; }';
+      document.head.appendChild(style);
+      createdNodes.push(style);
+
+      const handler = new StylesHandler({
+        hot: createMockHot(),
+        rootElement,
+        rootDocument: document,
+      });
+
+      handler.clearCache();
+      setDevicePixelRatio(0.9);
+
+      const appendChildSpy = jest.spyOn(rootElement, 'appendChild');
+
+      // The value is unchanged from before this reconciliation existed...
+      expect(handler.getDefaultRowHeight()).toBeNaN();
+      expect(handler.getDefaultRowHeight()).toBeNaN();
+      expect(handler.getDefaultRowHeight()).toBeNaN();
+      // ...and it cost no DOM work at all.
+      expect(appendChildSpy).not.toHaveBeenCalled();
+
+      appendChildSpy.mockRestore();
+    });
+
+    it('should re-measure after a grid built while hidden becomes visible', () => {
+      // Tabs, accordions and modals build their grid inside a `display: none` ancestor, where the
+      // probe measures nothing. Caching that unusable answer stuck forever, because neither cache
+      // key moves when the container is revealed - so the fix never reached the most common way a
+      // grid is built off-screen. `#stylesResolve()` does not catch this either: the root element's
+      // own computed `display` is still `block` inside a hidden ancestor.
+      const wrapper = document.createElement('div');
+
+      wrapper.style.display = 'none';
+      document.body.appendChild(wrapper);
+      createdNodes.push(wrapper);
+
+      const rootElement = document.createElement('div');
+
+      rootElement.style.setProperty('--ht-line-height', '20px');
+      rootElement.style.setProperty('--ht-cell-vertical-padding', '5px');
+      wrapper.appendChild(rootElement);
+
+      const style = document.createElement('style');
+
+      // No `height` while hidden: the probe resolves no layout, exactly as in a real browser.
+      style.textContent = 'td { border-bottom-width: 1.11111px; }';
+      document.head.appendChild(style);
+      createdNodes.push(style);
+
+      const handler = new StylesHandler({
+        hot: createMockHot(),
+        rootElement,
+        rootDocument: document,
+      });
+
+      handler.clearCache();
+      setDevicePixelRatio(0.9);
+
+      // Hidden: nothing usable to measure, so the declared height stands.
+      expect(handler.getDefaultRowHeight()).toBe(31);
+
+      // Revealed. Neither cache key changed, so only refusing to store the unusable measurement
+      // lets this be picked up.
+      style.textContent = 'td { border-bottom-width: 1.11111px; height: 31.111px; }';
+      wrapper.style.display = '';
+
+      expect(handler.getDefaultRowHeight()).toBeCloseTo(31.111, 3);
     });
 
     it('should re-measure the rendered height after the device pixel ratio changes', () => {

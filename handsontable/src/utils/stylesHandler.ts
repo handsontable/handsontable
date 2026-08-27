@@ -10,15 +10,6 @@ import handsontableStyles from '../styles/handsontableStyles';
 const CORE_STYLES_ID = 'handsontable-core-styles';
 
 /**
- * The largest overgrowth, in pixels, that is still read as the device-pixel border inflation
- * sub-100% zoom causes. Anything beyond it is treated as styling the measurement probe cannot
- * represent.
- *
- * @type {number}
- */
-const MAX_CELL_OVERGROWTH = 4;
-
-/**
  * Handles the theme-related style operations.
  */
 export class StylesHandler {
@@ -259,6 +250,13 @@ export class StylesHandler {
       return null;
     }
 
+    // `NaN` when a theme variable resolved to nothing: `getCSSVariableValue()` returns `undefined`
+    // there, not `null`, so the guard above does not catch it. That is deliberate and load-bearing —
+    // every caller coalesces with `?? 0`, which passes `NaN` through but turns `null` into a row
+    // height of ZERO, collapsing the grid until the theme lands. The stylesheet is usually just late
+    // (a non-blocking `<link>`), and the next draw reads the variables live and recovers. So the
+    // value is left exactly as it was; it only must not reach the measurement cache below, whose key
+    // `NaN` would never match, re-probing on every call.
     const declaredRowHeight =
       (lineHeightVarValue as number) + (2 * (verticalPaddingVarValue as number)) + bottomBorderWidth;
 
@@ -273,7 +271,10 @@ export class StylesHandler {
     //   - a whole number of pixels (2px at 50% zoom) — already rounded correctly, and adding a
     //     measured correction on top overshot by ~0.5px per row;
     //   - 0 — a surface that removes the border, such as the Filters by-value list.
-    if (!(renderedBottomBorderWidth > bottomBorderWidth)) {
+    // `Number.isFinite` first: a `NaN` declared height must never reach the measurement, whose cache
+    // key it would defeat (`NaN !== NaN`), turning one probe per theme into a probe — a DOM mutation
+    // and a forced layout — on every call, per row, inside the draw.
+    if (!Number.isFinite(declaredRowHeight) || !(renderedBottomBorderWidth > bottomBorderWidth)) {
       return declaredRowHeight;
     }
 
@@ -308,10 +309,34 @@ export class StylesHandler {
       return declaredRowHeight;
     }
 
-    // The inflation is bounded by `1 / devicePixelRatio - 1` px, which is 3px at Chrome's 25% minimum
-    // zoom. Anything beyond that is cell styling the probe cannot represent, so the theme's declared
-    // height stays authoritative.
-    return overgrowth > MAX_CELL_OVERGROWTH ? declaredRowHeight : renderedRowHeight;
+    // What the browser adds cannot exceed the device pixel the border was rounded up to, so the bound
+    // is derived from the ratio rather than picked: 0.25px at 80%, 3px at Chrome's 25% minimum zoom.
+    // Anything past it is cell styling the probe cannot represent, so the declared height stays
+    // authoritative. A fixed cap would be a cliff — a theme override that pushed the cell just past it
+    // would silently reopen this defect while a slightly smaller one stayed corrected.
+    return overgrowth > this.#maxCellOvergrowth() ? declaredRowHeight : renderedRowHeight;
+  }
+
+  /**
+   * The largest overgrowth still explained by the device-pixel border inflation.
+   *
+   * @returns {number} The bound, in pixels.
+   */
+  #maxCellOvergrowth(): number {
+    const devicePixelRatio = this.#devicePixelRatio();
+
+    // A ratio at or above 1 inflates nothing, and this is only reached when something did grow, so
+    // fall back to one whole pixel rather than to zero.
+    return devicePixelRatio > 0 && devicePixelRatio < 1 ? (1 / devicePixelRatio) - 1 : 1;
+  }
+
+  /**
+   * The device pixel ratio the grid's own window renders at.
+   *
+   * @returns {number} The ratio, or `1` when the window is unavailable.
+   */
+  #devicePixelRatio(): number {
+    return this.#rootDocument.defaultView?.devicePixelRatio ?? 1;
   }
 
   /**
@@ -324,25 +349,32 @@ export class StylesHandler {
    * unthemed cell measured. Keying the cache on the declared height and the device pixel ratio
    * re-measures once either moves, which covers both a late-arriving theme and a zoom change.
    *
+   * Only a usable measurement is stored. A probe that resolves no layout — a grid built inside a
+   * `display: none` tab, accordion or modal — must not be cached: neither key moves when the container
+   * is revealed, so the grid would keep the unusable answer for the rest of its life and this fix
+   * would never reach the most common way a grid is built off-screen.
+   *
    * @param {number} declaredRowHeight The row height derived from the theme's CSS variables.
    * @returns {number} The measured cell height, or `NaN` when the probe resolves no layout.
    */
   #measureRenderedRowHeight(declaredRowHeight: number): number {
-    const devicePixelRatio = this.#rootDocument.defaultView?.devicePixelRatio ?? 1;
+    const devicePixelRatio = this.#devicePixelRatio();
 
     if (
-      this.#renderedCellHeight === null ||
-      this.#renderedCellHeight.declaredRowHeight !== declaredRowHeight ||
-      this.#renderedCellHeight.devicePixelRatio !== devicePixelRatio
+      this.#renderedCellHeight !== null &&
+      this.#renderedCellHeight.declaredRowHeight === declaredRowHeight &&
+      this.#renderedCellHeight.devicePixelRatio === devicePixelRatio
     ) {
-      this.#renderedCellHeight = {
-        declaredRowHeight,
-        devicePixelRatio,
-        cellHeight: Number.parseFloat(this.#getStylesForTD(['height']).height ?? ''),
-      };
+      return this.#renderedCellHeight.cellHeight;
     }
 
-    return this.#renderedCellHeight.cellHeight;
+    const cellHeight = Number.parseFloat(this.#getStylesForTD(['height']).height);
+
+    if (cellHeight > 0) {
+      this.#renderedCellHeight = { declaredRowHeight, devicePixelRatio, cellHeight };
+    }
+
+    return cellHeight;
   }
 
   /**
@@ -372,6 +404,13 @@ export class StylesHandler {
    * This method creates a temporary table structure, appends it to the root element,
    * retrieves the computed styles for the `td` element, and then removes the table
    * from the DOM. The computed styles are passed to the provided callback function.
+   *
+   * It no longer runs only at init: `#measureRenderedRowHeight()` calls it lazily, and
+   * `getDefaultRowHeight()` runs inside the Walkontable draw. So this mutates the root element's
+   * child list and forces a synchronous layout mid-render. That is why the measurement is cached on
+   * the inputs that decide it — one probe per theme per zoom level, not one per call — and why the
+   * caller must keep `NaN` out of those keys, since a key that never matches turns this into a
+   * forced layout per row per draw.
    *
    * @param {Array} cssProps - An array of CSS properties to retrieve.
    * @returns {object} An object containing the requested computed styles for the `td` element.

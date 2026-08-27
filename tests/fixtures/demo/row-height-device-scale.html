@@ -81,6 +81,10 @@
   </script>
 
   <div id="wrap">
+    <!-- The theme class is set from `htTheme` in the script below, beside the grid's construction.
+         Linking the stylesheet is not enough on its own: every theme rule is scoped to this class,
+         so without it all three theme legs render the built-in default and claim coverage they do
+         not have. -->
     <div id="grid" data-testid="grid"></div>
     <div id="below" data-testid="below">The element below the grid</div>
   </div>
@@ -106,7 +110,11 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
-    window.hot = new Handsontable(document.getElementById('grid'), {
+    const container = document.getElementById('grid');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    window.hot = new Handsontable(container, {
       data,
       colHeaders: true,
       rowHeaders: true,

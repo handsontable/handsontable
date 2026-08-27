@@ -52,6 +52,19 @@ export class RowHeightDeviceScalePage {
   }
 
   /**
+   * The theme the grid actually resolved, read from the instance rather than from the DOM.
+   *
+   * Linking a theme's stylesheet does not apply it — every rule is scoped to an `ht-theme-*` class on
+   * the container. Without that class all three theme legs render the built-in default and quietly
+   * test one configuration six times over.
+   */
+  async activeTheme(): Promise<string> {
+    return this.page.evaluate(() => (window as unknown as {
+      hot: { getCurrentThemeName(): string },
+    }).hot.getCurrentThemeName());
+  }
+
+  /**
    * The width the browser actually paints a cell's bottom border at.
    *
    * The suite asserts this before anything else. It is the mechanism the whole defect rests

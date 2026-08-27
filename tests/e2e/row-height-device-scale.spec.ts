@@ -24,6 +24,13 @@ test.describe('row height under sub-100% device scaling', () => {
     await grid.goto(0.9);
   });
 
+  test('the leg really runs the theme it claims', async ({ theme }) => {
+    // Guards the matrix itself. The fixture links the theme stylesheet, but the rules only apply
+    // through the container's `ht-theme-*` class — miss it and all six legs render the default theme
+    // while reporting as three.
+    expect(await grid.activeTheme()).toBe(`ht-theme-${theme}`);
+  });
+
   test('the zoom really inflated the cell border', async () => {
     // Guards every assertion below: no inflated border means no defect to catch, and the rest
     // of this file would pass on code that still has it. 1px is the declared width.
