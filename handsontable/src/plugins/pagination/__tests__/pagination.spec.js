@@ -305,6 +305,39 @@ describe('Pagination', () => {
       expect(innerHot.getPlugin('pagination').enabled).toBe(false);
     });
 
+    it('should not fire page-change hooks from the public methods on a nested grid', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            data: createSpreadsheetData(20, 2),
+            pagination: { pageSize: 5 },
+          },
+        }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const innerHot = getActiveEditor().htEditor;
+      const afterPageChange = jasmine.createSpy('afterPageChange');
+      const afterPageSizeChange = jasmine.createSpy('afterPageSizeChange');
+
+      innerHot.addHook('afterPageChange', afterPageChange);
+      innerHot.addHook('afterPageSizeChange', afterPageSizeChange);
+
+      // The plugin is disabled here, so the paging methods must stay quiet. Without the `enabled`
+      // check they announced `afterPageChange(1, 1)` - a page change that never happened.
+      innerHot.getPlugin('pagination').setPage(3);
+      innerHot.getPlugin('pagination').nextPage();
+      innerHot.getPlugin('pagination').setPageSize(10);
+
+      expect(afterPageChange).not.toHaveBeenCalled();
+      expect(afterPageSizeChange).not.toHaveBeenCalled();
+      expect(innerHot.rowIndexMapper.getRenderableIndexesLength()).toBe(20);
+    });
+
     it('should keep paging the root grid while a nested grid asks for pagination too', async() => {
       handsontable({
         data: createSpreadsheetData(20, 2),

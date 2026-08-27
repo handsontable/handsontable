@@ -545,6 +545,10 @@ export class Pagination extends BasePlugin {
    * @fires Hooks#afterPageChange
    */
   setPage(pageNumber: number): void {
+    if (!this.enabled) {
+      return;
+    }
+
     const oldPage = this.#currentPage;
     const shouldProceed = this.hot.runHooks('beforePageChange', oldPage, pageNumber);
 
@@ -576,6 +580,10 @@ export class Pagination extends BasePlugin {
    * @fires Hooks#afterPageSizeChange
    */
   setPageSize(pageSize: number | 'auto'): void {
+    if (!this.enabled) {
+      return;
+    }
+
     const oldPageSize = this.#pageSize;
     const shouldProceed = this.hot.runHooks('beforePageSizeChange', oldPageSize, pageSize);
 

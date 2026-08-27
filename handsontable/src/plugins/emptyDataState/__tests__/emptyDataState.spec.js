@@ -314,6 +314,31 @@ describe('EmptyDataState', () => {
       expect(innerHot.getPlugin('emptyDataState').enabled).toBe(false);
     });
 
+    it('should not enable the plugin in an empty nested grid', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            data: [],
+            emptyDataState: true,
+          },
+        }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const innerHot = getActiveEditor().htEditor;
+
+      // An empty nested grid is the case the plugin is actually about, so it gets its own coverage.
+      expect(getActiveEditor().isOpened()).toBe(true);
+      expect(innerHot.countRows()).toBe(0);
+      expect(innerHot.getPlugin('emptyDataState').isEnabled()).toBe(false);
+      expect(innerHot.getPlugin('emptyDataState').enabled).toBe(false);
+      expect(innerHot.rootElement.querySelector('.ht-empty-data-state')).toBe(null);
+    });
+
     it('should keep the root instance empty data state working when a nested grid asks for it too', async() => {
       handsontable({
         data: [],
