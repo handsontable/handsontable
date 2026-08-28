@@ -1162,7 +1162,7 @@ Starting in **version 17.0**, Handsontable runs `baseRenderer` for every cell, e
 
 - **Automatic base renderer**: Handsontable runs `baseRenderer` after your custom renderer, whenever your renderer didn't run it
 - **Consistent cell classes**: Cells drawn by a custom renderer now receive [`className`](@/api/options.md#classname), the read-only class, the invalid-cell class, and the matching ARIA attributes
-- **Built-in renderers**: The built-in renderers no longer call `baseRenderer` themselves, because Handsontable calls it for them
+- **Built-in renderers**: Most built-in renderers no longer call `baseRenderer` themselves, because Handsontable calls it for them. `multiSelectRenderer` is the exception, and still calls it as its first statement
 
 ### Why this change
 
@@ -1175,27 +1175,28 @@ Most applications need no action. Your custom renderers keep working, and their 
 Two cases need attention:
 
 1. **You styled cells based on a missing class.** Cells drawn by a custom renderer now carry `className` and the other base classes. Review CSS that relied on those classes being absent.
-2. **Your renderer sets a class that `baseRenderer` also manages.** `baseRenderer` runs last, and it removes the invalid-cell class from valid cells. Call `baseRenderer` at the start of your renderer to keep control of the order.
+2. **Your renderer sets a class that `baseRenderer` also manages.** Handsontable's own call runs after your renderer, and it removes the invalid-cell class from valid cells. Call `baseRenderer` at the start of your renderer to keep control of the order. A renderer that already calls `baseRenderer`, or that chains `multiSelectRenderer`, needs no change.
 
-Before:
-
-```js
-// Handsontable 16.2 - this cell receives no `className` from the grid settings
-function myRenderer(instance, td, row, col, prop, value, cellProperties) {
-  td.textContent = value;
-}
-```
-
-After:
+Before, in 16.2 the call was required to get the class names:
 
 ```js
-// Handsontable 17.0 - this cell receives `className` automatically.
-// Call `baseRenderer` first only when you need it to run before your changes.
+import { baseRenderer } from 'handsontable/renderers';
+
 function myRenderer(instance, td, row, col, prop, value, cellProperties) {
   baseRenderer(instance, td, row, col, prop, value, cellProperties);
   td.textContent = value;
 }
 ```
+
+After, in 17.0 the same cell gets them without the call:
+
+```js
+function myRenderer(instance, td, row, col, prop, value, cellProperties) {
+  td.textContent = value;
+}
+```
+
+Keep the explicit call only when you need `baseRenderer` to run before your own changes, as described in case 2 above.
 
 ### What to expect
 

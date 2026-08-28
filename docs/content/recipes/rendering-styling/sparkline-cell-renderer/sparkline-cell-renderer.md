@@ -74,7 +74,7 @@ This recipe shows how to edit weekly values in table cells and render a mini bar
 - Optional coloring: green when a value is at or above the row average, red when below.
 - Interactive behavior -- when you edit W1-W5, Handsontable re-renders the sparkline SVG for that row.
 
-## Step 1: Call the base renderer first
+## Step 1: Run `baseRenderer` before the SVG
 
 The example calls `baseRenderer` before it changes the cell content. That applies read-only styling, validation classes, and ARIA attributes before the SVG replaces the cell content.
 

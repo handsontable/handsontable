@@ -853,7 +853,7 @@ export default (): Record<string, unknown> => {
      * | [`cells`](#cells) or [`cell`](#cell) | No                | The matching cells   |
      *
      * At the grid level, Handsontable adds the class names to two places. It adds them to the
-     * container element – the element you pass to the constructor – and, through
+     * container element – the element that holds the grid – and, through
      * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration),
      * to every cell. To add class names to the `<table>` element instead, use [`tableClassName`](#tableClassName).
      *
