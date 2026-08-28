@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where undoing a row removal threw an error, restored the row without its data, and stopped recording further actions when `dataSchema` was a function returning objects with read-only members or accessor-based columns.",
+  "type": "fixed",
+  "issueOrPR": 13300,
+  "breaking": false,
+  "framework": "none"
+}
