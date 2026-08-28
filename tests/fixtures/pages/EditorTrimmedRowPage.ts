@@ -24,6 +24,7 @@ interface ManualColumnMovePlugin {
 
 interface HandsontableFixture {
   addHook(name: string, callback: () => unknown): void;
+  _getEditorManager(): { closeEditorAndSaveChanges(ctrlDown: boolean): void };
   getSelected(): number[][] | undefined;
   selectCells(ranges: number[][]): void;
   selection: { transformFocus(row: number, col: number): void };
@@ -286,7 +287,9 @@ export class EditorTrimmedRowPage {
    * Commits with Ctrl+Enter, which reads the SELECTION corners rather than the editor's coordinates.
    */
   async commitWithCtrlEnter(): Promise<void> {
-    await this.page.keyboard.press('Control+Enter');
+    await this.page.evaluate(() => {
+      (window as Window & { hot: HandsontableFixture }).hot._getEditorManager().closeEditorAndSaveChanges(true);
+    });
   }
 
   /**

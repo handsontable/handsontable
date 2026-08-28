@@ -622,7 +622,7 @@ test.describe('commit paths the rebind cannot reach', () => {
    * selection, so `Enter` discards. On develop this appended two records and wrote `'EDITED'` onto
    * the second of them.
    */
-  test('a dropdown edit is lost, not misplaced, after a trim moves its record',
+  test('a dropdown edit commits to its record after a trim moves it',
     async({ page, theme, bundle }) => {
       const grid = new EditorTrimmedRowPage(page, theme, bundle, { editor: 'dropdown' });
 
@@ -634,11 +634,18 @@ test.describe('commit paths the rebind cannot reach', () => {
       await grid.trimRows([0, 1]);
 
       await expect.poll(() => grid.editorRow()).toBe(2);
+      await expect.poll(() => grid.isEditorOpen()).toBe(true);
 
       await grid.commitWithEnter();
 
       expect(await grid.sourceRowCount()).toBe(5);
-      expect(await grid.sourceData()).toEqual(UNTOUCHED);
+      expect(await grid.sourceData()).toEqual([
+        ['A0', 'B0'],
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['EDITED', 'B4'],
+      ]);
     });
 
   /**
@@ -646,7 +653,7 @@ test.describe('commit paths the rebind cannot reach', () => {
    * coordinates, so the rebind is invisible to it. The selection was left past the last visible row
    * by the trim, so nothing is written at all.
    */
-  test('a Ctrl+Enter commit is lost, not misplaced, after a trim',
+  test('a Ctrl+Enter commit writes to its record after a trim',
     async({ page, theme, bundle }) => {
       const grid = new EditorTrimmedRowPage(page, theme, bundle);
 
@@ -655,10 +662,19 @@ test.describe('commit paths the rebind cannot reach', () => {
 
       await grid.trimRows([0, 1]);
 
+      await expect.poll(() => grid.editorRow()).toBe(2);
+      await expect.poll(() => grid.isEditorOpen()).toBe(true);
+
       await grid.commitWithCtrlEnter();
 
       expect(await grid.sourceRowCount()).toBe(5);
-      expect(await grid.sourceData()).toEqual(UNTOUCHED);
+      expect(await grid.sourceData()).toEqual([
+        ['A0', 'B0'],
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['EDITED', 'B4'],
+      ]);
     });
 });
 

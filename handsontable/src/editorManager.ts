@@ -693,8 +693,41 @@ class EditorManager {
       return;
     }
 
+    if (visualRow === editor.row && visualColumn === editor.col) {
+      return;
+    }
+
+    const rowOffset = visualRow - (editor.row ?? visualRow);
+    const columnOffset = visualColumn - (editor.col ?? visualColumn);
+
     editor.row = visualRow;
     editor.col = visualColumn;
+
+    const activeSelectionRange = this.selection.getActiveSelectedRange();
+
+    if (activeSelectionRange) {
+      const { from, to, highlight } = activeSelectionRange;
+
+      if (from.row !== null) {
+        from.row += rowOffset;
+      }
+      if (from.col !== null) {
+        from.col += columnOffset;
+      }
+      if (to.row !== null) {
+        to.row += rowOffset;
+      }
+      if (to.col !== null) {
+        to.col += columnOffset;
+      }
+      if (highlight.row !== null) {
+        highlight.row += rowOffset;
+      }
+      if (highlight.col !== null) {
+        highlight.col += columnOffset;
+      }
+      this.selection.refresh();
+    }
   }
 
   /**
