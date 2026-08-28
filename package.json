@@ -66,7 +66,7 @@
     "fs-extra": "^4.0.2",
     "glob": "^7.1.2",
     "global-jsdom": "^24.0.0",
-    "inquirer": "^7.3.3",
+    "inquirer": "^8.2.7",
     "jsdom": "24.0.0",
     "lefthook": "^2.1.10",
     "lodash": "^4.17.21",
@@ -101,7 +101,8 @@
       "pacote>tar": "^7.5.11",
       "node-gyp>tar": "^7.5.11",
       "cacache>tar": "^7.5.11",
-      "undici": "^6.24.0",
+      "typed-rest-client": "^3.1.0",
+      "undici": "^6.28.0",
       "@astrojs/mdx": "^6.0.1"
     },
     "auditConfig": {
