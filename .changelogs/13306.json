@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Changed the touch double-tap gesture that opens the cell editor to accept taps up to 1 second apart, so editing by double-tap works reliably on iPad and other devices that report both touch and mouse input.",
+  "title": "Changed how a touch gesture opens the cell editor on devices that report both touch and mouse input (for example iPad): a single tap no longer opens the editor as it did in 18.0.0 (a side effect of duplicated mouse events); a double-tap does, with taps up to 1 second apart.",
   "type": "changed",
   "issueOrPR": 13306,
   "breaking": false,
