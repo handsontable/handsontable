@@ -711,10 +711,22 @@ describe('exportFile CSV type', () => {
     });
 
     it('should run a configured sanitizer before extracting, so removed content stays out of the file', async() => {
+      // Removes the element through the DOM, the way a real allowlist sanitizer does. A regular
+      // expression would be the wrong shape for the stand-in as well as for production: it misses
+      // `<SCRIPT>` and any tag carrying attributes.
+      const removeScripts = (content) => {
+        const template = document.createElement('template');
+
+        template.innerHTML = content;
+        template.content.querySelectorAll('script').forEach(element => element.remove());
+
+        return template.innerHTML;
+      };
+
       handsontable({
         data: [[1]],
         colHeaders: ['<script>alert()</script>Total'],
-        sanitizer: content => content.replace(/<script>.*?<\/script>/g, ''),
+        sanitizer: removeScripts,
         textExtractor: true,
       });
 
