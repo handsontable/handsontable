@@ -596,7 +596,8 @@ class EditorManager {
    * stating precisely. A plain text commit reads `this.row`/`this.col` and lands on the right record.
    * Two paths do not: an editor whose `finishEditing()` vetoes on a moved range rewrites the commit
    * into a discard (`DropdownEditor` only - `autocomplete` lost that override when #12285 moved it
-   * down, and `date` is built on `TextEditor`, not on this line at all), and a Ctrl+Enter commit reads the SELECTION corners rather than the editor's coordinates
+   * down, and `date` is built on `TextEditor`, not on this line at all), and a Ctrl+Enter commit
+   * reads the SELECTION corners rather than the editor's coordinates
    * (`BaseEditor#saveValue()`). On both the edit is lost rather than misplaced – which is what this
    * method exists to guarantee, and strictly better than the row-appending corruption they produced
    * before it – but the value does not survive. Making it survive means moving the selection with the

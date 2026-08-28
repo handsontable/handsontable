@@ -83,6 +83,8 @@ export class HandsontableEditor extends TextEditor {
    * Always true here: this editor's inner grid is selected either by the user or by `open()`, and
    * both are current by construction. `AutocompleteEditor` derives its selection from the typed
    * value through a DEFERRED query, so it can go stale, and overrides this.
+   *
+   * @private
    */
   canCommitInnerSelection(): boolean {
     return true;

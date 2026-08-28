@@ -102,15 +102,6 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @type {Set}
    */
   #queryTimeouts: Set<ReturnType<typeof setTimeout>> = new Set();
-  /**
-   * The value the currently highlighted choice was matched against, or `null` when no choice is
-   * highlighted.
-   *
-   * `highlightBestMatchingChoice()` runs from a DEFERRED query, so the highlight can describe an
-   * earlier keystroke than the one being committed. Recording what it was computed from is what
-   * lets `canCommitInnerSelection()` tell a current match from a stale one.
-   */
-  #autoHighlightValue: string | null = null;
 
   /**
    * Gets current value from editable element.
@@ -315,40 +306,74 @@ export class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
-   * Returns the value the choice list matches against, derived exactly as `updateChoicesList()`
-   * derives it.
-   *
-   * Shared so the value recorded with a highlight and the value it is later compared to cannot
-   * drift apart - that drift is the only way `canCommitInnerSelection()` can go wrong.
+   * Returns the editor's current value in the form the choice matching works on.
    */
-  #comparableValue(): unknown {
-    const value = this.stripValueIfNeeded(this.getValue());
-
-    return this.#isKeyValueObject(value) ? (value as Record<string, unknown>).value : value;
+  #editorValue(): unknown {
+    return this.stripValueIfNeeded(this.getValue());
   }
 
   /**
-   * Runs a query that is still only scheduled, so the choice list describes the value about to be
-   * committed rather than the one from the previous keystroke.
+   * Works out which choice the list highlights for a value: the narrowed choice array plus the
+   * index within it, or `null` when nothing matches.
    *
-   * `onBeforeKeyDown()` defers every query by 10 ms (a workaround for #7570), so a close forced
-   * between the last keystroke and that timer - a hiding index map removing the edited cell, for
-   * instance - would otherwise read a highlight computed for the earlier text and commit it over
-   * what the user typed.
+   * Extracted so `updateChoicesList()` and `canCommitInnerSelection()` cannot answer this question
+   * differently. The check is only meaningful while both derive the match identically, and a copy
+   * of these rules that drifted would fail silently - by committing a value the user never saw
+   * highlighted.
    *
-   * For an array `source` this resolves inline and the highlight becomes current. A function
-   * `source` cannot answer in time; `canCommitInnerSelection()` catches that case instead, and
-   * `close()` bumps the edit session immediately after, so the late response is dropped.
+   * @param {Array} choicesList The choices to match against, already stripped.
+   * @param {*} value The editor value, already stripped.
+   * @returns {{ choices: Array, highlightIndex: number | null }}
    */
-  #flushPendingQuery(): void {
-    if (this.#queryTimeouts.size === 0) {
-      return;
+  #deriveHighlight(choicesList: ChoiceArray, value: unknown):
+    { choices: ChoiceArray, highlightIndex: number | null } {
+    const sortByRelevanceSetting = this.cellProperties.sortByRelevance as boolean | undefined;
+    const filterSetting = this.cellProperties.filter as boolean | undefined;
+    const locale = this.cellProperties.locale as string | undefined;
+    const filteringCaseSensitive = this.cellProperties.filteringCaseSensitive as boolean | undefined;
+    const comparableValue = this.#isKeyValueObject(value) ?
+      (value as Record<string, unknown>).value : value;
+
+    let highlightIndex: number | null = null;
+    let choices = choicesList;
+
+    if (!sortByRelevanceSetting) {
+      // Sort a copy: `updateChoicesList` is public API, so the caller's array (typically the
+      // `source` setting) must keep its original order. The spread also keeps iterable callers (a
+      // Set, a NodeList) working, which `Array#toSorted` would not — the floor now allows it, but
+      // switching would narrow what this public method accepts.
+      choices = [...choices].sort((a, b) => stringify(a).localeCompare(stringify(b)));
     }
 
-    this.#queryTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
-    this.#queryTimeouts.clear();
+    const filteredChoiceIndexes: number[] = [];
+    const valueToMatch = filteringCaseSensitive ? comparableValue : localeLowerCase(String(comparableValue), locale);
 
-    this.queryChoices(this.TEXTAREA.value);
+    for (let i = 0; i < choices.length; i++) {
+      const currentItem =
+        this.#isKeyValueObject(choices[i]) ?
+          stripTags(stringify((choices[i] as Record<string, unknown>).value)) :
+          stripTags(stringify(choices[i]));
+      const itemToMatch = filteringCaseSensitive ? currentItem : localeLowerCase(currentItem, locale);
+
+      if (itemToMatch.indexOf(String(valueToMatch)) !== -1) {
+        filteredChoiceIndexes.push(i);
+
+        if (filterSetting === false) {
+          break;
+        }
+      }
+    }
+
+    if (filterSetting === false) {
+      if (String(value).length > 0) {
+        highlightIndex = filteredChoiceIndexes[0] ?? null;
+      }
+    } else {
+      choices = filteredChoiceIndexes.map(index => choices[index]);
+      highlightIndex = choices.indexOf(valueToMatch) > -1 ? choices.indexOf(valueToMatch) : 0;
+    }
+
+    return { choices, highlightIndex };
   }
 
   /**
@@ -370,41 +395,44 @@ export class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
-   * Finishes editing, first bringing the choice list up to date with the value being committed.
-   *
-   * Skipped on a discard, which has no value to get right, and skipped when the user picked from
-   * the list themselves - flushing there would let the derived match overwrite their choice.
-   *
-   * @param {boolean} restoreOriginalValue If true, then closes editor without saving value from the editor into a cell.
-   * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in the last selected range.
-   * @param {Function} callback The callback function, fired after editor closing.
-   */
-  finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: () => void): void {
-    if (!restoreOriginalValue && this.innerSelectionOrigin !== 'user') {
-      this.#flushPendingQuery();
-    }
-
-    super.finishEditing(restoreOriginalValue, ctrlDown, callback);
-  }
-
-  /**
    * Whether the inner grid's selection may be committed as the edited cell's value.
    *
-   * A pick the user made is always committable. A match this editor derived from the typed value
-   * is committable only while it still describes that value: strict mode normalizing `'b'` to
-   * `'blue'` is the point of the copy, but committing the match for `'A'` over a typed `'A4'` is
-   * the defect this guards.
+   * A pick the user made with the arrow keys or a click is always committable. Anything else is a
+   * match this editor derived from the typed value, and that is committable only while it is still
+   * the RIGHT match: strict mode normalizing `'b'` to `'blue'` is the point of the copy, but
+   * committing the match for `'A'` over a typed `'A4'` is the defect this guards.
+   *
+   * Re-deriving is what makes this correct rather than merely fresh. `highlightBestMatchingChoice()`
+   * runs from a query deferred 10 ms behind the keystrokes, so the highlight routinely describes
+   * older text than the value being committed - including for the whole time a function `source`
+   * has a response outstanding, which no amount of waiting inside a commit can fix. Asking whether
+   * the highlight is still the match the current value would produce answers that without needing
+   * the query to have run at all, so a typed `'blu'` still commits the highlighted `'blue'`.
+   *
+   * @private
+   * @returns {boolean}
    */
   canCommitInnerSelection(): boolean {
     if (this.innerSelectionOrigin === 'user') {
       return true;
     }
 
-    if (this.innerSelectionOrigin !== 'auto') {
+    const { choices, highlightIndex } = this.#deriveHighlight(
+      this.stripValuesIfNeeded(this.rawChoices), this.#editorValue()
+    );
+
+    if (highlightIndex === null || highlightIndex >= choices.length) {
       return false;
     }
 
-    return this.#autoHighlightValue === String(this.#comparableValue());
+    const expected = choices[highlightIndex];
+
+    // Unwrapped the way the inner grid presents it - its `valueGetter` reduces a key/value entry to
+    // the `value` half, so comparing the raw entry would never match.
+    const expectedValue = this.#isKeyValueObject(expected) ?
+      (expected as Record<string, unknown>).value : expected;
+
+    return expectedValue === this.htEditor.getValue();
   }
 
   /**
@@ -433,11 +461,6 @@ export class AutocompleteEditor extends HandsontableEditor {
     // and separating the two meanings belongs in `TextEditor`, not here.
     this.#queryTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
     this.#queryTimeouts.clear();
-
-    // Paired with the `innerSelectionOrigin` reset in `HandsontableEditor#close()`. Clearing only
-    // one leaves a half-state: `refreshDimensions()` closes without a matching `open()`, and an
-    // origin left at `'auto'` beside a nulled value reads as permanently stale.
-    this.#autoHighlightValue = null;
 
     this.#editSession += 1;
 
@@ -538,51 +561,7 @@ export class AutocompleteEditor extends HandsontableEditor {
   updateChoicesList(choicesList: ChoiceArray): void {
     const pos = getCaretPosition(this.TEXTAREA);
     const endPos = getSelectionEndPosition(this.TEXTAREA);
-    const sortByRelevanceSetting = this.cellProperties.sortByRelevance as boolean | undefined;
-    const filterSetting = this.cellProperties.filter as boolean | undefined;
-    const value = this.stripValueIfNeeded(this.getValue());
-    const comparableValue = this.#comparableValue();
-
-    let highlightIndex: number | null = null;
-    let choices = choicesList;
-
-    if (!sortByRelevanceSetting) {
-      // Sort a copy: `updateChoicesList` is public API, so the caller's array (typically the
-      // `source` setting) must keep its original order. The spread also keeps iterable callers (a
-      // Set, a NodeList) working, which `Array#toSorted` would not — the floor now allows it, but
-      // switching would narrow what this public method accepts.
-      choices = [...choices].sort((a, b) => stringify(a).localeCompare(stringify(b)));
-    }
-
-    const filteredChoiceIndexes: number[] = [];
-    const locale = this.cellProperties.locale as string | undefined;
-    const filteringCaseSensitive = this.cellProperties.filteringCaseSensitive as boolean | undefined;
-    const valueToMatch = filteringCaseSensitive ? comparableValue : localeLowerCase(String(comparableValue), locale);
-
-    for (let i = 0; i < choices.length; i++) {
-      const currentItem =
-        this.#isKeyValueObject(choices[i]) ?
-          stripTags(stringify((choices[i] as Record<string, unknown>).value)) :
-          stripTags(stringify(choices[i]));
-      const itemToMatch = filteringCaseSensitive ? currentItem : localeLowerCase(currentItem, locale);
-
-      if (itemToMatch.indexOf(String(valueToMatch)) !== -1) {
-        filteredChoiceIndexes.push(i);
-
-        if (filterSetting === false) {
-          break;
-        }
-      }
-    }
-
-    if (filterSetting === false) {
-      if (String(value).length > 0) {
-        highlightIndex = filteredChoiceIndexes[0];
-      }
-    } else {
-      choices = filteredChoiceIndexes.map(index => choices[index]);
-      highlightIndex = choices.indexOf(valueToMatch) > -1 ? choices.indexOf(valueToMatch) : 0;
-    }
+    const { choices, highlightIndex } = this.#deriveHighlight(choicesList, this.#editorValue());
 
     this.strippedChoices = choices;
 
@@ -604,10 +583,9 @@ export class AutocompleteEditor extends HandsontableEditor {
 
         this.highlightBestMatchingChoice(matchedIndex);
 
-        // Only on this branch: a late query in non-strict mode must not clobber a `'user'` origin
-        // the arrow keys set, and there `highlightBestMatchingChoice()` never runs at all.
+        // Only on this branch: in non-strict mode `highlightBestMatchingChoice()` never runs, so a
+        // late query must not clear a `'user'` origin the arrow keys set.
         this.innerSelectionOrigin = matchedIndex === undefined ? null : 'auto';
-        this.#autoHighlightValue = matchedIndex === undefined ? null : String(comparableValue);
       }
     }
 
@@ -875,6 +853,12 @@ export class AutocompleteEditor extends HandsontableEditor {
       if (!this.isOpened()) {
         timeOffset += 10;
       }
+
+      // Typing supersedes a pick made with the arrow keys or a click. That pick never wrote to the
+      // TEXTAREA, so without this the origin stays `'user'`, `canCommitInnerSelection()` keeps
+      // short-circuiting to true, and a commit forced before the query below runs writes the old
+      // pick over the text now on screen.
+      this.innerSelectionOrigin = null;
 
       this.#deferQuery(timeOffset);
     }
