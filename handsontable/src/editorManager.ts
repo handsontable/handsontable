@@ -120,13 +120,17 @@ class EditorManager {
    * each suspend and resume the mapper themselves, so even inside `hot.batch()` every `alter()`
    * flushes its own update and the two counts are observed separately.
    *
-   * @param {object} indexesChangesState The state object of the index mapper's cache update.
+   * `afterRowSequenceCacheUpdate` is a PUBLIC hook, so `hot.runHooks()` can fire it with no payload
+   * at all. The state defaults to all-false for that case, which reduces the repair to the structural
+   * one and keeps the hidden-cell guard behind it running.
+   *
+   * @param {object} [indexesChangesState] The state object of the index mapper's cache update.
    * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
    * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
    */
   #onRowSequenceCacheUpdate = (indexesChangesState: {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean;
-  }): void => {
+  } = { indexesSequenceChanged: false, trimmedIndexesChanged: false }): void => {
     const indexCount = this.hot.rowIndexMapper.getNumberOfIndexes();
 
     this.#repairEditor(indexCount !== this.#lastRowIndexCount, indexesChangesState);
@@ -138,13 +142,13 @@ class EditorManager {
    * Kept separate from the row handler so a structural change on one axis cannot route the other
    * axis's rearrangement into the wrong repair.
    *
-   * @param {object} indexesChangesState The state object of the index mapper's cache update.
+   * @param {object} [indexesChangesState] The state object of the index mapper's cache update.
    * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
    * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
    */
   #onColumnSequenceCacheUpdate = (indexesChangesState: {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean;
-  }): void => {
+  } = { indexesSequenceChanged: false, trimmedIndexesChanged: false }): void => {
     const indexCount = this.hot.columnIndexMapper.getNumberOfIndexes();
 
     this.#repairEditor(indexCount !== this.#lastColumnIndexCount, indexesChangesState);
@@ -480,7 +484,8 @@ class EditorManager {
   #recaptureEditedRecord(): void {
     const editor = this.activeEditor;
 
-    if (!editor || editor.state !== EDITOR_STATE.EDITING || editor.row === null || editor.col === null) {
+    if (!editor || (editor.state !== EDITOR_STATE.EDITING && editor.state !== EDITOR_STATE.VIRGIN) ||
+        editor.row === null || editor.col === null) {
       return;
     }
 
@@ -577,10 +582,14 @@ class EditorManager {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean;
   }): void {
     const editor = this.activeEditor;
+    const isEditing = editor?.state === EDITOR_STATE.EDITING;
+    // A prepared-but-untyped editor is just as stale as an editing one, and more quietly so: nothing
+    // re-prepares it, `openEditor()` skips `prepareEditor()` while a reference exists, and the first
+    // keystroke then calls `beginEditing()` on the pre-change coordinates.
+    const isPrepared = editor?.state === EDITOR_STATE.VIRGIN;
 
     if ((!indexesChangesState.trimmedIndexesChanged && !indexesChangesState.indexesSequenceChanged) ||
-        !editor ||
-        editor.state !== EDITOR_STATE.EDITING ||
+        !editor || (!isEditing && !isPrepared) ||
         this.#editedPhysicalRow === null || this.#editedPhysicalColumn === null) {
       return;
     }
@@ -588,14 +597,23 @@ class EditorManager {
     const visualRow = this.hot.rowIndexMapper.getVisualFromPhysicalIndex(this.#editedPhysicalRow);
     const visualColumn = this.hot.columnIndexMapper.getVisualFromPhysicalIndex(this.#editedPhysicalColumn);
 
+    if (isPrepared) {
+      // Nothing has been typed, so there is no value to carry and no reason to rebind. Dropping the
+      // reference is the whole repair: the next keystroke finds no active editor and goes back
+      // through `prepareEditor()`, which reads the coordinates, `TD`, `prop`, `originalValue` and
+      // cell meta from the post-change state.
+      if (visualRow !== editor.row || visualColumn !== editor.col) {
+        this.clearActiveEditor();
+      }
+
+      return;
+    }
+
     // No visual index means the record itself is trimmed. There is nowhere to commit to, so the edit
     // is dropped rather than written through coordinates that now address a different record.
     if (visualRow === null || visualColumn === null) {
       editor.cancelChanges();
-      // Drop the reference too. `openEditor()` re-prepares only when there is no active editor, so a
-      // lingering one would let the next keystroke reuse this editor's pre-trim `TD`, `prop`,
-      // `originalValue` and cell meta. Clearing sends the next edit back through `prepareEditor()`,
-      // which reads them from the post-trim state.
+      // Drop the reference too, for the same reason as the prepared case above.
       this.clearActiveEditor();
 
       return;

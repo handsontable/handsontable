@@ -39,6 +39,7 @@ interface HandsontableFixture {
   getPlugin(name: string): FiltersPlugin & TrimRowsPlugin & ColumnSortingPlugin & ManualRowMovePlugin
     & ManualColumnMovePlugin;
   updateData(data: unknown[][]): void;
+  runHooks(name: string): void;
   toPhysicalRow(row: number): number;
   alter(action: string, index: number, amount?: number): void;
   scrollViewportTo(options: { row: number; verticalSnap: string }): void;
@@ -244,6 +245,22 @@ export class EditorTrimmedRowPage {
     await this.page.evaluate((next) => {
       (window as Window & { hot: HandsontableFixture }).hot.updateData(next);
     }, data);
+  }
+
+  /**
+   * Fires the public cache-update hook with NO payload, the way any integration calling
+   * `hot.runHooks('afterRowSequenceCacheUpdate')` would. Returns the thrown error, or null.
+   */
+  async fireCacheUpdateHookWithoutPayload(): Promise<string | null> {
+    return this.page.evaluate(() => {
+      try {
+        (window as Window & { hot: HandsontableFixture }).hot.runHooks('afterRowSequenceCacheUpdate');
+
+        return null;
+      } catch (error) {
+        return String(error);
+      }
+    });
   }
 
   /**

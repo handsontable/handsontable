@@ -685,3 +685,75 @@ test.describe('a data swap under an open editor', () => {
     expect(await grid.sourceRowCount()).toBe(3);
   });
 });
+
+/**
+ * Two states around the edges of the repair: an editor that exists but has not been typed into, and
+ * the public hook being fired by hand.
+ */
+test.describe('edges of the repair', () => {
+  /**
+   * Clicking a cell runs `prepareEditor()`, so an editor exists in `VIRGIN` holding that cell's
+   * coordinates, `TD`, `prop`, `originalValue` and cell meta - and nothing re-prepares it when a trim
+   * moves the visual space underneath. `openEditor()` skips `prepareEditor()` while a reference
+   * exists, so the first keystroke would otherwise begin editing against the trimmed-away record's
+   * state.
+   *
+   * `originalValue` is the read that shows it: visual row 3 displays `'A4'` after row 0 is trimmed,
+   * so a correctly re-prepared editor reports `'A4'`. Reporting `'A3'` means the stale meta survived,
+   * and with it that record's `readOnly`, `validator` and `type`.
+   *
+   * The target record is NOT what changes here. The selection never moved, so the write goes to the
+   * row the user can see highlighted either way - this is about the editor agreeing with it.
+   */
+  test('re-prepares a prepared-but-untyped editor when a trim moves its cell',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+
+      await grid.cell(3, 0).click();
+      await grid.trimRows([0]);
+
+      await grid.typeOnSelection('EDITED');
+
+      expect(await grid.editorOriginalValue()).toBe('A4');
+
+      await grid.commitWithEnter();
+
+      await expect.poll(() => grid.sourceData()).toEqual([
+        ['A0', 'B0'],
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['EDITED', 'B4'],
+      ]);
+      expect(await grid.sourceRowCount()).toBe(5);
+    });
+
+  /**
+   * `afterRowSequenceCacheUpdate` is public, so anyone can fire it through `runHooks()` with no
+   * payload. The handler reads two flags off that payload, and an unguarded read throws - which also
+   * skips the hidden-cell guard that runs behind it.
+   */
+  test('survives the public hook being fired without a payload', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.openEditorAndType(1, 0, 'EDITED');
+
+    expect(await grid.fireCacheUpdateHookWithoutPayload()).toBeNull();
+
+    // The edit is untouched, and still commits where it was typed.
+    await expect.poll(() => grid.editorState()).toBe('STATE_EDITING');
+
+    await grid.commitWithEnter();
+
+    await expect.poll(() => grid.sourceData()).toEqual([
+      ['A0', 'B0'],
+      ['EDITED', 'B1'],
+      ['A2', 'B2'],
+      ['A3', 'B3'],
+      ['A4', 'B4'],
+    ]);
+  });
+});
