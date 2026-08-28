@@ -62,6 +62,10 @@ export function autocompleteRenderer(
       // hatch; this path needs none, because a tap reaches it only as a compatibility `mousedown`,
       // which carries `button === 0` like any other left press.
       if (isLeftClick(event) && hasClass(eventTargetEl(event)!, 'htAutocompleteArrow')) {
+        // The `null` event is load-bearing, not laziness: `EditorManager#openEditor` only applies
+        // its "no editor for a multi-cell selection" default when the event is a `MouseEvent`, so
+        // forwarding the real one here would stop the arrow from opening the list after a
+        // shift-drag range. Changing that is a behavior change, not a cleanup.
         hotInstance.view._wt.getSetting('onCellDblClick', null, hotInstance._createCellCoords(row, col), TD);
       }
     };
