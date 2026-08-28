@@ -469,7 +469,7 @@
         "cell"
       ],
       "since": null,
-      "note": "Row and column headers read the grid-level value only."
+      "note": "Row and column headers read the grid-level value only, and so does the check that gates dragging a selection with `moveCells`."
     },
     {
       "name": "dragToScroll",

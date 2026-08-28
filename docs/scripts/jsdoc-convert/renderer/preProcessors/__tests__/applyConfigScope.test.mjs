@@ -13,7 +13,6 @@ test('lifts the configscope custom tag onto a top-level field', () => {
     { name: 'readOnly', customTags: [{ tag: 'configscope', value: 'grid columns cells cell' }] },
   ]);
 
-  assert.equal(member.configScope, 'grid columns cells cell');
   assert.deepEqual(member.configScopeLevels, ['grid', 'columns', 'cells', 'cell']);
 });
 
@@ -47,13 +46,24 @@ test('matches the tag name case-insensitively', () => {
   assert.deepEqual(member.configScopeLevels, ['columns']);
 });
 
+test('throws when an option declares the tag twice', () => {
+  // A leftover duplicate would stay in customTags and render as `**Configscope**: ...`
+  // beneath the badge, which is the output this pre-processor exists to prevent.
+  assert.throws(() => applyConfigScope([
+    {
+      name: 'readOnly',
+      customTags: [{ tag: 'configscope', value: 'grid' }, { tag: 'configscope', value: 'columns' }],
+    },
+  ]), /declares @configScope 2 times/);
+});
+
 test('leaves members without the tag untouched', () => {
   const input = [{ name: 'somethingElse', customTags: [{ tag: 'plugin', value: 'X' }] }, { name: 'noTags' }];
   const output = applyConfigScope(input);
 
-  assert.equal(output[0].configScope, undefined);
+  assert.equal(output[0].configScopeLevels, undefined);
   assert.deepEqual(output[0].customTags, [{ tag: 'plugin', value: 'X' }]);
-  assert.equal(output[1].configScope, undefined);
+  assert.equal(output[1].configScopeLevels, undefined);
 });
 
 test('the generated Options reference keeps bare option headings', () => {

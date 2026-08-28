@@ -140,7 +140,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="defaultDate" data-levels="grid columns cells cell"></span>[`defaultDate`](@/api/options.md#defaultdate) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="density" data-levels="grid"></span>[`density`](@/api/options.md#density) | Yes | No | No | No | Core |  |
 | <span data-option="dialog" data-levels="grid"></span>[`dialog`](@/api/options.md#dialog) | Yes | No | No | No | Dialog |  |
-| <span data-option="disableVisualSelection" data-levels="grid columns cells cell"></span>[`disableVisualSelection`](@/api/options.md#disablevisualselection) | Yes | Yes | Yes | Yes | Core | Row and column headers read the grid-level value only. |
+| <span data-option="disableVisualSelection" data-levels="grid columns cells cell"></span>[`disableVisualSelection`](@/api/options.md#disablevisualselection) | Yes | Yes | Yes | Yes | Core | Row and column headers read the grid-level value only, and so does the check that gates dragging a selection with `moveCells`. |
 | <span data-option="dragToScroll" data-levels="grid"></span>[`dragToScroll`](@/api/options.md#dragtoscroll) | Yes | No | No | No | DragToScroll |  |
 | <span data-option="dropdownMenu" data-levels="grid"></span>[`dropdownMenu`](@/api/options.md#dropdownmenu) | Yes | No | No | No | DropdownMenu |  |
 | <span data-option="editor" data-levels="grid columns cells cell"></span>[`editor`](@/api/options.md#editor) | Yes | Yes | Yes | Yes | Core |  |

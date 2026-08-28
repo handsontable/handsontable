@@ -60,6 +60,9 @@ function mount(): void {
 
   if (!rows.length) return;
 
+  const URL_SYNC_DELAY = 200;
+  let urlSyncTimer = 0;
+
   // Seed from the URL so a shared link opens on the same view.
   const params = new URLSearchParams(window.location.search);
   const initialQuery = params.get('q') ?? '';
@@ -105,8 +108,21 @@ function mount(): void {
     active.forEach(level => next.append('level', level));
 
     const qs = next.toString();
+    // Keep the fragment. Rebuilding the URL from the path alone drops it, and because
+    // this runs on mount too, that cancelled the browser's jump to a section link.
+    const { pathname, hash } = window.location;
+    const url = `${pathname}${qs ? `?${qs}` : ''}${hash}`;
 
-    window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
+    // Don't touch history when nothing changed - on mount there is usually nothing to write.
+    if (url === `${pathname}${window.location.search}${hash}`) {
+      return;
+    }
+
+    // Rows filter on every keystroke, but the URL sync is debounced: Safari ignores
+    // `replaceState` after about 100 calls per 30 seconds, and typing an option name
+    // crosses that on its own.
+    window.clearTimeout(urlSyncTimer);
+    urlSyncTimer = window.setTimeout(() => window.history.replaceState(null, '', url), URL_SYNC_DELAY);
   }
 
   search?.addEventListener('input', apply);

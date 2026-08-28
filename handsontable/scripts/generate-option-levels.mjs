@@ -12,7 +12,7 @@
  * Usage (from the repo root):
  *   npm run generate:option-levels --prefix handsontable
  *
- * The parsing and rendering live in `scripts/utils/option-levels.mjs` so the unit test
+ * The parsing and rendering live in `scripts/utils/option-levels.js` so the unit test
  * `test/__tests__/optionLevels.unit.js` can import them without this file's path handling.
  * That test asserts every option carries a valid tag and that the committed page matches
  * this generator's output.
@@ -40,10 +40,8 @@ const MD_END = '<!-- option-levels:end -->';
 function main() {
   const options = parseOptions(readFileSync(META_SCHEMA, 'utf8'));
 
-  mkdirSync(DOCS_DIR, { recursive: true });
-  writeFileSync(JSON_OUT, `${JSON.stringify(buildPayload(options), null, 2)}\n`, 'utf8');
-  console.error(`Wrote ${JSON_OUT} (${options.length} options)`);
-
+  // Validate the page before writing anything. Writing the JSON first would leave the
+  // repository half-generated whenever the markers are missing or out of order.
   const page = readFileSync(PAGE_MD, 'utf8');
   const startIdx = page.indexOf(MD_START);
   const endIdx = page.indexOf(MD_END);
@@ -52,8 +50,15 @@ function main() {
     throw new Error(`Markers not found in ${PAGE_MD}. Expected ${MD_START} and ${MD_END}.`);
   }
 
+  if (endIdx < startIdx + MD_START.length) {
+    throw new Error(`Markers are out of order in ${PAGE_MD}. ${MD_START} must come first.`);
+  }
+
   const updated = `${page.slice(0, startIdx + MD_START.length)}\n${buildMarkdown(options)}\n${page.slice(endIdx)}`;
 
+  mkdirSync(DOCS_DIR, { recursive: true });
+  writeFileSync(JSON_OUT, `${JSON.stringify(buildPayload(options), null, 2)}\n`, 'utf8');
+  console.error(`Wrote ${JSON_OUT} (${options.length} options)`);
   writeFileSync(PAGE_MD, updated, 'utf8');
   console.error(`Wrote ${PAGE_MD}`);
   console.error('\nCommit both updated files to the repository.');

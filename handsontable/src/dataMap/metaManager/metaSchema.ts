@@ -113,7 +113,7 @@ import type { HotInstance } from '../../core/types';
  * - [Individual columns](@/guides/configuration/configuration-options/configuration-options.md#set-column-options)
  * - [Individual rows](@/guides/configuration/configuration-options/configuration-options.md#set-row-options)
  * - [Individual cells](@/guides/configuration/configuration-options/configuration-options.md#set-cell-options)
- * - [Individual grid elements, based on any logic you implement](@/guides/configuration/configuration-options/configuration-options.md#implementing-custom-logic)
+ * - [Individual grid elements, based on any logic you implement](@/guides/configuration/configuration-options/configuration-options.md#implement-custom-logic)
  *
  * Read more:
  * - [Setting options](@/guides/configuration/configuration-options/configuration-options.md)

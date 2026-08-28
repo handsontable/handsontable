@@ -17,10 +17,13 @@
 const LEVELS = ['grid', 'columns', 'cells', 'cell'];
 
 /**
- * Extra explanation for options whose behavior a single mark would misrepresent.
+ * Extra explanation for options whose behavior a level mark alone would misrepresent.
  *
- * The `@configScope` tag stays levels-only so it can be parsed without prose. Each note
- * below is also stated in the option's own description in `metaSchema.ts`.
+ * The `@configScope` tag stays levels-only so it can be parsed without prose, so these
+ * caveats live here and reach the matrix page's Notes column. They do NOT reach the badge
+ * in the Options API reference, which renders levels only - an option listed here reads as
+ * a plain level list there. Moving the caveats into `metaSchema.ts` (a second tag the
+ * badge could render) would close that gap.
  */
 const NOTES = {
   width: 'Sets the grid width at the grid level and the column width inside `columns`. '
@@ -30,7 +33,8 @@ const NOTES = {
   headerClassName: 'Applies to column headers, so it stops at the column level.',
   ariaTags: 'The switch is grid level. A per-cell value only changes that cell\'s ARIA attributes.',
   search: 'The plugin toggle is grid level. `queryMethod` and `callback` resolve per cell.',
-  disableVisualSelection: 'Row and column headers read the grid-level value only.',
+  disableVisualSelection: 'Row and column headers read the grid-level value only, and so does the check '
+    + 'that gates dragging a selection with `moveCells`.',
   cells: 'A grid-level function that is called for every cell.',
 };
 
@@ -102,7 +106,9 @@ function buildMarkdown(options) {
   for (const option of options) {
     const marks = LEVELS.map(level => (option.levels.includes(level) ? 'Yes' : 'No'));
     const anchor = option.name.toLowerCase();
-    const note = NOTES[option.name] ?? '';
+    // A pipe in a note would split the row into extra columns and misalign the table
+    // from that row on, so escape it.
+    const note = (NOTES[option.name] ?? '').split('|').join('\\|');
     // The row carries its own searchable name and level list so the page script can
     // filter without re-parsing the rendered markup.
     const levelAttr = option.levels.join(' ');
@@ -145,7 +151,6 @@ function buildPayload(options) {
 }
 
 exports.LEVELS = LEVELS;
-exports.NOTES = NOTES;
 exports.parseOptions = parseOptions;
 exports.buildMarkdown = buildMarkdown;
 exports.buildPayload = buildPayload;

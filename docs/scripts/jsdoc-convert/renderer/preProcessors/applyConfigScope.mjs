@@ -20,18 +20,27 @@ export const applyConfigScope = (data) => {
       return member;
     }
 
-    const scopeTag = tags.find(tag => tag.tag?.toLowerCase() === 'configscope');
+    // Take every match, not just the first. A leftover duplicate would stay in
+    // `customTags` and render as `**Configscope**: ...` beneath the badge, which is the
+    // exact output this pre-processor exists to prevent.
+    const scopeTags = tags.filter(tag => tag.tag?.toLowerCase() === 'configscope');
 
-    if (!scopeTag) {
+    if (!scopeTags.length) {
       return member;
     }
 
+    if (scopeTags.length > 1) {
+      throw new Error(
+        `\`${member.name}\` declares @configScope ${scopeTags.length} times; it must appear once.`
+      );
+    }
+
+    const [scopeTag] = scopeTags;
     const remaining = tags.filter(tag => tag !== scopeTag);
     const levels = String(scopeTag.value ?? '').trim().split(/\s+/).filter(Boolean);
 
     return {
       ...member,
-      configScope: levels.join(' '),
       configScopeLevels: levels,
       customTags: remaining.length ? remaining : undefined,
     };
