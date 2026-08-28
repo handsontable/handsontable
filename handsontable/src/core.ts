@@ -3423,7 +3423,13 @@ export default function Core(
         }
 
       } else if (!init && hasOwnProperty(settings, i)) { // Update settings
-        globalMeta[i] = settings[i];
+        // An `editor` of `true` names no editor, so it reads as "the setting was not passed" — and a
+        // setting that is not passed leaves the previous value alone. Writing the boolean here would
+        // bypass `normalizeEditorSetting()`, which only runs on the layer `updateMeta` calls, and
+        // park a bare `true` on the global meta for every cell to inherit.
+        if (i !== 'editor' || settings[i] !== true) {
+          globalMeta[i] = settings[i];
+        }
       }
     }
 

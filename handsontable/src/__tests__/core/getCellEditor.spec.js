@@ -277,6 +277,46 @@ describe('Core.getCellEditor', () => {
       expect(getCellEditor(1, 1)).toBe(getCellType('text').editor);
     });
 
+    it('should return the `type` editor when passed through the `cell` option', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        cell: [
+          { row: 1, col: 1, type: 'numeric', editor: true },
+        ],
+      });
+
+      // The `cell` option does not go through the layer `updateMeta` calls - it lands in
+      // `CellMeta#setMeta`, which used to store the raw `true` as an own property and so blocked
+      // the `type` expansion from supplying the numeric editor.
+      expect(getCellEditor(1, 1)).toBe(getCellType('numeric').editor);
+      expect(getCellMeta(1, 1).editor).not.toBe(true);
+    });
+
+    it('should keep the inherited editor when `setCellMeta` writes an `editor` of `true`', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        editor: 'password',
+      });
+
+      setCellMeta(1, 1, 'editor', true);
+
+      expect(getCellEditor(1, 1)).toBe(getCellType('password').editor);
+      expect(getCellMeta(1, 1).editor).not.toBe(true);
+    });
+
+    it('should not drop a grid-level editor when `updateSettings` passes an `editor` of `true`', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        editor: 'password',
+      });
+
+      await updateSettings({ editor: true });
+
+      // "Not passed" means the previous value stands, exactly as `updateSettings({})` would leave it.
+      expect(getCellEditor(1, 1)).toBe(getCellType('password').editor);
+      expect(getCellMeta(1, 1).editor).not.toBe(true);
+    });
+
     it('should return the `type` editor when passed through the `cells` option', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
