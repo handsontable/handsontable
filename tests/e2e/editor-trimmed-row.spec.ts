@@ -291,36 +291,40 @@ test.describe('states the captured record has to survive', () => {
     });
 
   /**
-   * `alter('remove_row')` shifts PHYSICAL indexes and emits a trimming-map change on the way, so the
-   * captured record index can go stale. Core closes the editor only when the removed range covers
-   * the highlighted row, so editing row 4 while row 1 is removed leaves the editor open with a
-   * coordinate that is now past the end - which before the fix appended a record on the next commit.
+   * Removing a row ABOVE the edited one is the case the reconciliation must keep its hands off.
    *
-   * This pins the past-the-end shape only: the captured index no longer resolves, so the edit is
-   * dropped and nothing is invented. The other stale shape - the captured index still resolves, but
-   * to a different surviving record - is not covered here, and the fix does not claim to repair it.
+   * `dataMap.removeRow()` fires the cache update synchronously and `selection.shiftRows()` runs only
+   * afterwards, so at handler time the editor still holds its pre-removal coordinate - which is now
+   * past the last row and resolves to nothing. Treating that as "the record is gone" and discarding
+   * would destroy a live edit, because the selection shift immediately behind it re-prepares the
+   * editor on the right row and the value commits correctly. Core carries this across on its own;
+   * the reconciliation's job here is to not get in the way.
+   *
+   * `'A4'` is being edited when row 1 disappears, so it lands at visual 3 and the edit belongs to it.
    */
-  test('never grows the data set when a row removal strands the editor past the last row',
-    async({ page, theme, bundle }) => {
-      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+  test('leaves an edit alone when a row above it is removed', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
 
-      await grid.goto();
-      await grid.openEditorAndType(4, 0, 'EDITED');
+    await grid.goto();
+    await grid.openEditorAndType(4, 0, 'EDITED');
 
-      await grid.removeRow(1);
+    await grid.removeRow(1);
 
-      await expect.poll(() => grid.sawTrimmingCacheUpdate('row')).toBe(true);
+    // Still live, and re-prepared onto the shifted row rather than discarded.
+    await expect.poll(() => grid.editorState()).toBe('STATE_EDITING');
+    await expect.poll(() => grid.editorRow()).toBe(3);
+    await expect.poll(() => grid.editorText()).toBe('EDITED');
 
-      await grid.cell(0, 0).click();
+    await grid.cell(0, 0).click();
 
-      await expect.poll(() => grid.sourceRowCount()).toBe(4);
-      await expect.poll(() => grid.sourceData()).toEqual([
-        ['A0', 'B0'],
-        ['A2', 'B2'],
-        ['A3', 'B3'],
-        ['A4', 'B4'],
-      ]);
-    });
+    await expect.poll(() => grid.sourceRowCount()).toBe(4);
+    await expect.poll(() => grid.sourceData()).toEqual([
+      ['A0', 'B0'],
+      ['A2', 'B2'],
+      ['A3', 'B3'],
+      ['EDITED', 'B4'],
+    ]);
+  });
 });
 
 /**
@@ -542,5 +546,142 @@ test.describe('a structural change that gets vetoed', () => {
     expect(await grid.committedChangeCount()).toBe(0);
     expect(await grid.sourceRowCount()).toBe(5);
     expect(await grid.sourceData()).toEqual(UNTOUCHED);
+  });
+});
+
+/**
+ * The COLUMN axis. No core plugin trims columns, so the trimming half of the repair is unreachable
+ * there - but `manualColumnMove` permutes the column sequence and `alter('remove_col')` restructures
+ * it, which are the two shapes the column arm of the repair exists for. Without these the captured
+ * physical column, the column half of the recapture, and the column index count are all dead code.
+ */
+test.describe('an index-map change on the column axis', () => {
+  /**
+   * Moving column 0 to index 1 puts the edited cell at visual column 1. The editor has to follow it,
+   * or the commit lands in column `'B'`.
+   */
+  test('follows the record through a column move', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.openEditorAndType(2, 0, 'EDITED');
+
+    await grid.moveColumn(0, 1);
+
+    await expect.poll(() => grid.sawSequenceCacheUpdate('column')).toBe(true);
+    await expect.poll(() => grid.editorCol()).toBe(1);
+
+    await grid.commitWithEnter();
+
+    // Physical column 0 is still the one that was edited, wherever it now sits on screen.
+    await expect.poll(() => grid.sourceData()).toEqual([
+      ['A0', 'B0'],
+      ['A1', 'B1'],
+      ['EDITED', 'B2'],
+      ['A3', 'B3'],
+      ['A4', 'B4'],
+    ]);
+  });
+
+  /**
+   * Removing the OTHER column restructures the column space while the edited cell survives at the
+   * same visual index. The edit must come through untouched - the column mirror of the row case.
+   */
+  test('keeps a valid edit when another column is removed', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.openEditorAndType(2, 0, 'EDITED');
+
+    await grid.removeColumn(1);
+
+    await expect.poll(() => grid.editorState()).toBe('STATE_EDITING');
+
+    await grid.commitWithEnter();
+
+    await expect.poll(() => grid.sourceData()).toEqual([['A0'], ['A1'], ['EDITED'], ['A3'], ['A4']]);
+  });
+});
+
+/**
+ * The two commit paths the rebind cannot reach, pinned so they stay merely lossy.
+ *
+ * Neither is a defect this change introduced - both produced the row-appending corruption before it,
+ * and both now lose the edit instead. They are recorded here because "the edit lands on the right
+ * record" is the guarantee in `#reconcileEditorWithIndexMaps()`'s JSDoc, and these are its two
+ * documented exceptions. A future change that turns either back into a write must fail here.
+ */
+test.describe('commit paths the rebind cannot reach', () => {
+  /**
+   * `DropdownEditor#finishEditing()` rewrites the commit into a discard when the active range no
+   * longer contains `(this.row, this.col)`. The rebind moves those coordinates and nothing moves the
+   * selection, so `Enter` discards. On develop this appended two records and wrote `'EDITED'` onto
+   * the second of them.
+   */
+  test('a dropdown edit is lost, not misplaced, after a trim moves its record',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle, { editor: 'dropdown' });
+
+      await grid.goto();
+
+      await grid.cell(4, 0).click();
+      await grid.typeOnSelection('EDITED');
+
+      await grid.trimRows([0, 1]);
+
+      await expect.poll(() => grid.editorRow()).toBe(2);
+
+      await grid.commitWithEnter();
+
+      expect(await grid.sourceRowCount()).toBe(5);
+      expect(await grid.sourceData()).toEqual(UNTOUCHED);
+    });
+
+  /**
+   * `BaseEditor#saveValue()` reads the SELECTION corners under `ctrlDown`, never the editor's own
+   * coordinates, so the rebind is invisible to it. The selection was left past the last visible row
+   * by the trim, so nothing is written at all.
+   */
+  test('a Ctrl+Enter commit is lost, not misplaced, after a trim',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.openEditorAndType(4, 0, 'EDITED');
+
+      await grid.trimRows([0, 1]);
+
+      await grid.commitWithCtrlEnter();
+
+      expect(await grid.sourceRowCount()).toBe(5);
+      expect(await grid.sourceData()).toEqual(UNTOUCHED);
+    });
+});
+
+/**
+ * `updateData()` swaps the whole physical space without closing an open editor - `core.ts` excludes
+ * it from the teardown list on purpose - and it is the path every wrapper takes when its `data` prop
+ * changes. The count moves, so the repair routes structural and re-derives from the visual
+ * coordinate, which keeps the edit alive against the NEW data set rather than discarding it.
+ */
+test.describe('a data swap under an open editor', () => {
+  test('keeps the edit against the new data set', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.openEditorAndType(1, 0, 'EDITED');
+
+    await grid.updateData([['N0', 'M0'], ['N1', 'M1'], ['N2', 'M2']]);
+
+    await expect.poll(() => grid.editorState()).toBe('STATE_EDITING');
+
+    await grid.commitWithEnter();
+
+    await expect.poll(() => grid.sourceData()).toEqual([
+      ['N0', 'M0'],
+      ['EDITED', 'M1'],
+      ['N2', 'M2'],
+    ]);
+    expect(await grid.sourceRowCount()).toBe(3);
   });
 });

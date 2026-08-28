@@ -18,6 +18,10 @@ interface ManualRowMovePlugin {
   moveRow(row: number, finalIndex: number): void;
 }
 
+interface ManualColumnMovePlugin {
+  moveColumn(column: number, finalIndex: number): void;
+}
+
 interface HandsontableFixture {
   addHook(name: string, callback: () => boolean): void;
   getSelected(): number[][] | undefined;
@@ -32,7 +36,9 @@ interface HandsontableFixture {
   getSourceData(): unknown[][];
   countSourceRows(): number;
   countRows(): number;
-  getPlugin(name: string): FiltersPlugin & TrimRowsPlugin & ColumnSortingPlugin & ManualRowMovePlugin;
+  getPlugin(name: string): FiltersPlugin & TrimRowsPlugin & ColumnSortingPlugin & ManualRowMovePlugin
+    & ManualColumnMovePlugin;
+  updateData(data: unknown[][]): void;
   toPhysicalRow(row: number): number;
   alter(action: string, index: number, amount?: number): void;
   scrollViewportTo(options: { row: number; verticalSnap: string }): void;
@@ -53,6 +59,7 @@ interface RecordingWindow extends Window {
 interface PageOptions {
   sorting?: boolean;
   scenario?: 'small' | 'tall';
+  editor?: 'text' | 'dropdown';
 }
 
 /**
@@ -65,6 +72,7 @@ export class EditorTrimmedRowPage {
   readonly bundle: string;
   readonly sorting: boolean;
   readonly scenario: string;
+  readonly editor: string;
   readonly editorHolder: Locator;
 
   constructor(page: Page, theme = 'main', bundle = 'umd', options: PageOptions = {}) {
@@ -73,6 +81,7 @@ export class EditorTrimmedRowPage {
     this.bundle = bundle;
     this.sorting = options.sorting ?? false;
     this.scenario = options.scenario ?? 'small';
+    this.editor = options.editor ?? 'text';
     // The text editor's textarea wrapper. It stays in the DOM permanently and is merely hidden, so
     // its `ht_editor_hidden` class is the only reliable DOM-level "the editor is not on screen".
     this.editorHolder = page.locator('.handsontableInputHolder');
@@ -83,7 +92,7 @@ export class EditorTrimmedRowPage {
    */
   async goto(): Promise<void> {
     const query = `theme=${this.theme}&bundle=${this.bundle}` +
-      `&sorting=${this.sorting}&scenario=${this.scenario}`;
+      `&sorting=${this.sorting}&scenario=${this.scenario}&editor=${this.editor}`;
 
     await this.page.goto(`/tests/fixtures/demo/editor-trimmed-row.html?${query}`);
 
@@ -204,6 +213,53 @@ export class EditorTrimmedRowPage {
     await this.page.evaluate(() => {
       (window as Window & { hot: HandsontableFixture }).hot.addHook('beforeCreateRow', () => false);
     });
+  }
+
+  /**
+   * Moves one column through `manualColumnMove`, permuting the COLUMN sequence.
+   */
+  async moveColumn(column: number, finalIndex: number): Promise<void> {
+    await this.page.evaluate(([target, destination]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+
+      hot.getPlugin('manualColumnMove').moveColumn(target, destination);
+      (hot as unknown as { render(): void }).render();
+    }, [column, finalIndex] as [number, number]);
+  }
+
+  /**
+   * Removes columns through `alter()` - the column axis's structural change.
+   */
+  async removeColumn(column: number, amount = 1): Promise<void> {
+    await this.page.evaluate(([target, count]) => {
+      (window as Window & { hot: HandsontableFixture }).hot.alter('remove_col', target, count);
+    }, [column, amount] as [number, number]);
+  }
+
+  /**
+   * Replaces the whole data set through `updateData()`, which swaps the physical space without
+   * closing an open editor - the path every wrapper takes when its `data` prop changes.
+   */
+  async updateData(data: unknown[][]): Promise<void> {
+    await this.page.evaluate((next) => {
+      (window as Window & { hot: HandsontableFixture }).hot.updateData(next);
+    }, data);
+  }
+
+  /**
+   * Commits with Ctrl+Enter, which reads the SELECTION corners rather than the editor's coordinates.
+   */
+  async commitWithCtrlEnter(): Promise<void> {
+    await this.page.keyboard.press('Control+Enter');
+  }
+
+  /**
+   * Returns the VISUAL column the active editor is currently bound to.
+   */
+  async editorCol(): Promise<number | null> {
+    return this.page.evaluate(() => (
+      (window as Window & { hot: HandsontableFixture }).hot.getActiveEditor()?.col ?? null
+    ));
   }
 
   /**

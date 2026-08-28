@@ -23,6 +23,10 @@
     if (!window.htScenario) {
       throw new Error('Unknown ?scenario= value: ' + JSON.stringify(htParams.get('scenario')));
     }
+    window.htEditor = ({ text: 'text', dropdown: 'dropdown' })[htParams.get('editor') ?? 'text'];
+    if (!window.htEditor) {
+      throw new Error('Unknown ?editor= value: ' + JSON.stringify(htParams.get('editor')));
+    }
   </script>
 </head>
 <body>
@@ -79,6 +83,15 @@
       // `indexesSequenceChanged`, not `trimmedIndexesChanged`. Enabled unconditionally; inert until
       // a case drives them.
       manualRowMove: true,
+      // The column axis has its own permutation producers, and no core plugin trims columns - so
+      // this is the only way to exercise the column half of the repair.
+      manualColumnMove: true,
+      // `dropdown` extends `autocomplete`, whose `finishEditing()` rewrites a commit into a discard
+      // when the active range no longer contains the editor's coordinates. That is the shape the
+      // rebind cannot rescue, and a case pins it rather than leaving it to a JSDoc claim.
+      columns: window.htEditor === 'dropdown'
+        ? [{ type: 'dropdown', source: ['A0', 'A1', 'A2', 'A3', 'A4', 'EDITED'] }, {}]
+        : undefined,
       // Stamp test ids from `afterRenderer` rather than a grid-level `renderer`, so a column `type`
       // cannot override it and leave the typed column with no test id.
       afterRenderer(td, row, col) {
