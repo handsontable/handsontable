@@ -58,13 +58,14 @@ export class ManualResizeSizeOptionResetPage {
    *
    * @param {number} row The visual row index.
    * @param {number} deltaY How far to drag, in CSS pixels.
+   * @param {string} [testId='rows'] The grid's test id.
    */
-  async dragRowHandle(row: number, deltaY: number): Promise<void> {
-    const header = this.grid('rows').locator('.ht_clone_inline_start tbody tr').nth(row).locator('th');
+  async dragRowHandle(row: number, deltaY: number, testId = 'rows'): Promise<void> {
+    const header = this.grid(testId).locator('.ht_clone_inline_start tbody tr').nth(row).locator('th');
 
     await header.hover();
 
-    const handle = this.grid('rows').locator('.manualRowResizer');
+    const handle = this.grid(testId).locator('.manualRowResizer');
 
     await expect(handle).toBeVisible();
 
@@ -145,6 +146,9 @@ export class ManualResizeSizeOptionResetPage {
     for (const testId of ['rows', 'cols', 'rows-array']) {
       await expect(this.grid(testId).locator('.ht_clone_inline_start')).toBeVisible();
       await expect(this.grid(testId).locator('.ht_clone_top')).toBeVisible();
+      // The clones exist before their rows are laid out, and every test either drags a header or
+      // measures one, so wait for the body rows themselves.
+      await expect(this.grid(testId).locator('.ht_clone_inline_start tbody tr')).toHaveCount(5);
     }
   }
 }

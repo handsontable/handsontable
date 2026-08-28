@@ -88,6 +88,26 @@ test.describe('Manual resize versus the size option', () => {
     expect(await grid.rowHeights('rows-array')).toEqual(new Array(5).fill(ARRAY_HEIGHT));
   });
 
+  test('keeps a dragged height on a manualRowResize array grid when rowHeights is re-declared', async () => {
+    const ARRAY_HEIGHT = 90;
+
+    await grid.dragRowHandle(0, 60, 'rows-array');
+
+    const dragged = (await grid.rowHeights('rows-array'))[0];
+
+    expect(dragged).toBeGreaterThan(ARRAY_HEIGHT);
+
+    // The array states the manual heights, so `rowHeights` does not discard them. The drag has to
+    // survive as it did before: re-initializing the plugin here would replay the declared array and
+    // silently revert the row to 90 - neither the dragged height nor the requested one.
+    await grid.applySettings('rowsArray', { rowHeights: SHORT });
+
+    const heights = await grid.rowHeights('rows-array');
+
+    expect(heights[0]).toBe(dragged);
+    expect(heights.slice(1)).toEqual(new Array(4).fill(ARRAY_HEIGHT));
+  });
+
   test('applies colWidths to a column that was resized by dragging', async () => {
     await grid.applySettings('cols', { colWidths: new Array(5).fill(80) });
     expect(await grid.colWidths()).toEqual(new Array(5).fill(80));

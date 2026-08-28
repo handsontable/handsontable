@@ -1257,6 +1257,13 @@ export default (): Record<string, unknown> => {
      * leave `colWidths` out of the call, or pass
      * [`manualColumnResize`](#manualColumnResize) as an array in the same call.
      *
+     * Two cases never discard the stored widths. A `colWidths` **function** states no fixed width,
+     * so it is left alone. And in the React and Angular wrappers, a `colWidths` prop whose value did
+     * not change is not forwarded, so re-applying the same value does not reset anything. In both
+     * cases, call
+     * [`ManualColumnResize#clearManualSizes()`](@/api/manualColumnResize.md#clearmanualsizes)
+     * followed by `render()`.
+     *
      * Read more:
      * - [Column width](@/guides/columns/column-width/column-width.md)
      * - [Hooks: `modifyColWidth`](@/api/hooks.md#modifyColWidth)
@@ -5885,6 +5892,13 @@ export default (): Record<string, unknown> => {
      * discards the ones stored by the {@link ManualRowResize} plugin. To keep those instead, leave
      * `rowHeights` out of the call, or pass
      * [`manualRowResize`](#manualRowResize) as an array in the same call.
+     *
+     * Two cases never discard the stored heights. A `rowHeights` **function** states no fixed
+     * height, so it is left alone. And in the React and Angular wrappers, a `rowHeights` prop whose
+     * value did not change is not forwarded, so re-applying the same value does not reset anything.
+     * In both cases, call
+     * [`ManualRowResize#clearManualSizes()`](@/api/manualRowResize.md#clearmanualsizes) followed by
+     * `render()`.
      *
      * Read more:
      * - [Row height](@/guides/rows/row-height/row-height.md)

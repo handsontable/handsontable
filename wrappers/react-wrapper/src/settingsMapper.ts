@@ -41,13 +41,21 @@ export class SettingsMapper {
       initOnlySettingKeys?: Array<keyof Handsontable.GridSettings>
     } = {}): Handsontable.GridSettings {
     const shouldSkipProp = (key: keyof Handsontable.GridSettings) => {
-      if (!isInit && DEEP_COMPARABLE_SETTINGS.includes(key)) {
+      if (isInit) {
+        return false;
+      }
+
+      // Checked before the value comparison below. The two lists do not overlap today, but a
+      // changed deep-comparable key used to return early and skip this guard entirely, which would
+      // have forwarded an init-only key to `updateSettings` as soon as one joined both lists.
+      if (initOnlySettingKeys.includes(key)) {
+        return true;
+      }
+
+      if (DEEP_COMPARABLE_SETTINGS.includes(key)) {
         return areEquivalentSettingsValue(prevProps[key], properties[key]);
       }
 
-      if (!isInit && initOnlySettingKeys.includes(key)) {
-        return true;
-      }
       return false;
     };
     let newSettings: Handsontable.GridSettings = {};

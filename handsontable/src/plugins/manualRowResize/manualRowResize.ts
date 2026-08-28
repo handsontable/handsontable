@@ -217,10 +217,22 @@ export class ManualRowResize extends BasePlugin {
    * @param {object} [newSettings] The config object passed to `updateSettings()`.
    */
   updatePlugin(newSettings?: Record<string, unknown>) {
-    this.disablePlugin();
-    this.enablePlugin();
+    // Re-initialize only when the plugin's own option was declared. `#onMapInit` replays the
+    // declared `manualRowResize` array, so re-initializing on a `rowHeights`-only update would
+    // revert a row the user had since dragged to the array's height - neither the dragged height
+    // nor the one being requested.
+    if (newSettings === undefined || newSettings[PLUGIN_KEY] !== undefined) {
+      this.disablePlugin();
+      this.enablePlugin();
 
-    // Runs after `enablePlugin()`, so that the heights replayed on the map's `init` hook are
+    } else {
+      // `BasePlugin#onUpdateSettings` feeds `updatePluginSettings()` with `newSettings[PLUGIN_KEY]`,
+      // which a `rowHeights`-only update does not carry. Restore the option from the merged settings
+      // so `getSetting()` keeps reporting it.
+      this.updatePluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
+    }
+
+    // Runs after the re-initialization, so that the heights replayed on the map's `init` hook are
     // discarded too.
     if (redeclaresManualSizes(newSettings, 'rowHeights', this.hot.getSettings()[PLUGIN_KEY])) {
       this.clearManualSizes();
@@ -318,6 +330,11 @@ export class ManualRowResize extends BasePlugin {
    * @param {number} row Visual row index.
    */
   clearManualSize(row: number): void {
+    // The map only exists while the plugin is enabled, and a disabled plugin stores no heights.
+    if (!this.enabled) {
+      return;
+    }
+
     const physicalRow = this.hot.toPhysicalRow(row);
 
     if (physicalRow !== null) {
@@ -340,7 +357,11 @@ export class ManualRowResize extends BasePlugin {
    */
   clearManualSizes(): void {
     this.#config = [];
-    this.#rowHeightsMap.clear();
+
+    // The map only exists while the plugin is enabled, and a disabled plugin stores no heights.
+    if (this.enabled) {
+      this.#rowHeightsMap.clear();
+    }
   }
 
   /**

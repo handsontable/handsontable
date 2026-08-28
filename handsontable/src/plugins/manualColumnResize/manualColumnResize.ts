@@ -224,10 +224,22 @@ export class ManualColumnResize extends BasePlugin {
    * @param {object} [newSettings] The config object passed to `updateSettings()`.
    */
   updatePlugin(newSettings?: Record<string, unknown>) {
-    this.disablePlugin();
-    this.enablePlugin();
+    // Re-initialize only when the plugin's own option was declared. `#onMapInit` replays the
+    // declared `manualColumnResize` array, so re-initializing on a `colWidths`-only update would
+    // revert a column the user had since dragged to the array's width - neither the dragged width
+    // nor the one being requested.
+    if (newSettings === undefined || newSettings[PLUGIN_KEY] !== undefined) {
+      this.disablePlugin();
+      this.enablePlugin();
 
-    // Runs after `enablePlugin()`, so that the widths replayed on the map's `init` hook are
+    } else {
+      // `BasePlugin#onUpdateSettings` feeds `updatePluginSettings()` with `newSettings[PLUGIN_KEY]`,
+      // which a `colWidths`-only update does not carry. Restore the option from the merged settings
+      // so `getSetting()` keeps reporting it.
+      this.updatePluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
+    }
+
+    // Runs after the re-initialization, so that the widths replayed on the map's `init` hook are
     // discarded too.
     if (redeclaresManualSizes(newSettings, 'colWidths', this.hot.getSettings()[PLUGIN_KEY])) {
       this.clearManualSizes();
@@ -312,6 +324,11 @@ export class ManualColumnResize extends BasePlugin {
    * @param {number} column Visual column index.
    */
   clearManualSize(column: number): void {
+    // The map only exists while the plugin is enabled, and a disabled plugin stores no widths.
+    if (!this.enabled) {
+      return;
+    }
+
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
     this.#columnWidthsMap.setValueAtIndex(physicalColumn, null);
@@ -332,7 +349,11 @@ export class ManualColumnResize extends BasePlugin {
    */
   clearManualSizes(): void {
     this.#config = [];
-    this.#columnWidthsMap.clear();
+
+    // The map only exists while the plugin is enabled, and a disabled plugin stores no widths.
+    if (this.enabled) {
+      this.#columnWidthsMap.clear();
+    }
   }
 
   /**

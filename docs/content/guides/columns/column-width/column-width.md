@@ -258,6 +258,22 @@ hot.updateSettings({ colWidths: 100 });
 
 To resize columns without discarding what the user dragged, leave `colWidths` out of the call. To replace the stored widths with your own, pass [`manualColumnResize`](@/api/options.md#manualcolumnresize) as an array. You can also clear them yourself with [`ManualColumnResize#clearManualSize()`](@/api/manualColumnResize.md#clearmanualsize) for one column, or [`clearManualSizes()`](@/api/manualColumnResize.md#clearmanualsizes) for all of them, followed by `hot.render()`.
 
+::: tip
+
+Two cases never discard the stored widths, so passing `colWidths` does not reset anything:
+
+- `colWidths` set to a function. A function states no fixed width, so the stored widths are left alone.
+- The React and Angular wrappers, where a `colWidths` prop whose value did not change is not forwarded to `updateSettings()`. Re-applying the same value is not an update.
+
+In both cases, clear the widths explicitly:
+
+```js
+hot.getPlugin('manualColumnResize').clearManualSizes();
+hot.render();
+```
+
+:::
+
 ::: only-for javascript
 
 ::: example #example4 --js 1 --ts 2
