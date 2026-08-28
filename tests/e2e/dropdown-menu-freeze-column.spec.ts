@@ -17,8 +17,10 @@ import { DropdownMenuFreezeColumnPage } from '../fixtures/pages/DropdownMenuFree
 test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
   let grid: DropdownMenuFreezeColumnPage;
 
-  const { CUSTOM_KEYS, DEFAULT_MENU, CONTEXT_CONTROL, PLUGIN_OFF, FREEZE_LABEL, UNFREEZE_LABEL } =
-    DropdownMenuFreezeColumnPage;
+  const {
+    CUSTOM_KEYS, DEFAULT_MENU, CONTEXT_CONTROL, PLUGIN_OFF, TOGGLE, FILTERS_ORDER,
+    FREEZE_LABEL, UNFREEZE_LABEL,
+  } = DropdownMenuFreezeColumnPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
     grid = new DropdownMenuFreezeColumnPage(page, theme, bundle);
@@ -27,7 +29,7 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
 
   test.describe('the keys listed explicitly in dropdownMenu', () => {
     test('renders the translated label, not the raw key', async () => {
-      await grid.openColumnMenu(CUSTOM_KEYS, 2);
+      await grid.openColumnMenu(CUSTOM_KEYS, 'Charlie');
 
       const items = await grid.visibleDropdownMenuItems();
 
@@ -41,7 +43,7 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
       // Nothing is frozen yet, so `unfreeze_column`'s `hidden()` must suppress it. This doubles as
       // proof that `hidden()` ran against a real selection: the placeholder the broken build
       // produced had no `hidden()` at all, so it always showed.
-      await grid.openColumnMenu(CUSTOM_KEYS, 2);
+      await grid.openColumnMenu(CUSTOM_KEYS, 'Charlie');
 
       const items = await grid.visibleDropdownMenuItems();
 
@@ -52,7 +54,7 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
     });
 
     test('freezes the picked column', async () => {
-      await grid.openColumnMenu(CUSTOM_KEYS, 2);
+      await grid.openColumnMenu(CUSTOM_KEYS, 'Charlie');
       await grid.clickDropdownMenuItem(FREEZE_LABEL);
 
       expect(await grid.fixedColumnsStart(CUSTOM_KEYS)).toBe(1);
@@ -62,7 +64,7 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
     });
 
     test('leaves the columns past the freeze point where they were', async () => {
-      await grid.openColumnMenu(CUSTOM_KEYS, 2);
+      await grid.openColumnMenu(CUSTOM_KEYS, 'Charlie');
       await grid.clickDropdownMenuItem(FREEZE_LABEL);
 
       // Freezing Charlie shifts only Alpha and Bravo, which sat before it. Delta onwards must keep
@@ -75,12 +77,12 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
     });
 
     test('unfreezes the column again from the frozen area', async () => {
-      await grid.openColumnMenu(CUSTOM_KEYS, 2);
+      await grid.openColumnMenu(CUSTOM_KEYS, 'Charlie');
       await grid.clickDropdownMenuItem(FREEZE_LABEL);
 
       // The frozen column's header is drawn by a different overlay clone, which is the part of the
       // round trip most likely to break silently.
-      await grid.openColumnMenu(CUSTOM_KEYS, 0);
+      await grid.openColumnMenu(CUSTOM_KEYS, 'Charlie');
 
       const items = await grid.visibleDropdownMenuItems();
 
@@ -95,7 +97,7 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
 
   test.describe('dropdownMenu: true', () => {
     test('offers the entry alongside the built-in items', async () => {
-      await grid.openColumnMenu(DEFAULT_MENU, 2);
+      await grid.openColumnMenu(DEFAULT_MENU, 'Charlie');
 
       const items = await grid.visibleDropdownMenuItems();
 
@@ -107,13 +109,77 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
     });
 
     test('freezes the picked column', async () => {
-      await grid.openColumnMenu(DEFAULT_MENU, 2);
+      await grid.openColumnMenu(DEFAULT_MENU, 'Charlie');
       await grid.clickDropdownMenuItem(FREEZE_LABEL);
 
       expect(await grid.fixedColumnsStart(DEFAULT_MENU)).toBe(1);
       expect(await grid.columnHeaders(DEFAULT_MENU)).toEqual(
         ['Charlie', 'Alpha', 'Bravo', 'Delta', 'Echo', 'Foxtrot']
       );
+    });
+  });
+
+  test.describe('toggling manualColumnFreeze after the menu was built', () => {
+    // The dropdown menu assembles its items once, when it is enabled, unlike the context menu
+    // which rebuilds on every open. Without the plugin forcing a rebuild, the menu keeps whatever
+    // it held at build time — and the stale entry stays live, because freezeColumn() has no
+    // enabled-guard of its own.
+    test('drops the entry when the plugin is turned off', async () => {
+      await grid.openColumnMenu(TOGGLE, 'Charlie');
+      expect(await grid.visibleDropdownMenuItems()).toContain(FREEZE_LABEL);
+      await grid.clickDropdownMenuItem(FREEZE_LABEL);
+      expect(await grid.fixedColumnsStart(TOGGLE)).toBe(1);
+
+      await grid.setManualColumnFreeze(TOGGLE, false);
+      await grid.openColumnMenu(TOGGLE, 'Alpha');
+
+      const items = await grid.visibleDropdownMenuItems();
+
+      // Both entries have to go. A stale row is not merely cosmetic: freezeColumn() has no
+      // enabled-guard, so clicking one used to freeze a column through a plugin that was off.
+      expect(items).not.toContain(FREEZE_LABEL);
+      expect(items).not.toContain(UNFREEZE_LABEL);
+      // Turning the plugin off drops its menu entries, but must not undo what it already did.
+      expect(await grid.fixedColumnsStart(TOGGLE)).toBe(1);
+    });
+
+    test('picks the entry up when the plugin is turned on', async () => {
+      await grid.setManualColumnFreeze(TOGGLE, false);
+      await grid.openColumnMenu(TOGGLE, 'Charlie');
+      expect(await grid.visibleDropdownMenuItems()).not.toContain(FREEZE_LABEL);
+
+      await grid.setManualColumnFreeze(TOGGLE, true);
+      await grid.openColumnMenu(TOGGLE, 'Charlie');
+
+      expect(await grid.visibleDropdownMenuItems()).toContain(FREEZE_LABEL);
+
+      await grid.clickDropdownMenuItem(FREEZE_LABEL);
+
+      expect(await grid.fixedColumnsStart(TOGGLE)).toBe(1);
+    });
+  });
+
+  test.describe('alongside the Filters interface', () => {
+    test('puts the entry after the filter items', async () => {
+      await grid.openColumnMenu(FILTERS_ORDER, 'Charlie');
+
+      const items = await grid.visibleDropdownMenuItems();
+
+      // Filters makes up the bulk of the column menu, so the freeze entry belongs at the end.
+      // Registration order follows plugin priority, and ManualColumnFreeze (110) would otherwise
+      // run before Filters (250) and push the whole filter interface down.
+      //
+      // Matched on a prefix because the filter rows are composite: the "Filter by value" cell
+      // carries its whole nested list in its text.
+      const freezeIndex = items.indexOf(FREEZE_LABEL);
+      const filterByValueIndex = items.findIndex(item => item.startsWith('Filter by value'));
+      const filterByConditionIndex = items.findIndex(item => item.startsWith('Filter by condition'));
+
+      expect(freezeIndex).toBeGreaterThan(-1);
+      expect(filterByConditionIndex).toBeGreaterThan(-1);
+      expect(filterByValueIndex).toBeGreaterThan(-1);
+      expect(freezeIndex).toBeGreaterThan(filterByValueIndex);
+      expect(freezeIndex).toBeGreaterThan(filterByConditionIndex);
     });
   });
 
@@ -135,12 +201,19 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
   });
 
   test.describe('manualColumnFreeze disabled', () => {
-    test('offers no freeze entry', async () => {
-      await grid.openColumnMenu(PLUGIN_OFF, 2);
+    test('leaves both keys as inert raw-key rows', async () => {
+      await grid.openColumnMenu(PLUGIN_OFF, 'Charlie');
 
-      // The entries belong to the plugin. With it off nothing may contribute them, which is what
-      // keeps the second hook registration from handing the menu a dead item.
-      expect(await grid.visibleDropdownMenuItems()).not.toContain(FREEZE_LABEL);
+      const items = await grid.visibleDropdownMenuItems();
+
+      // The entries belong to the plugin, so with it off nothing resolves the keys and ItemsFactory
+      // emits its placeholder for each — the very rows the whole bug consisted of. Pinned as the
+      // real behavior rather than asserting the translated label is absent, which would pass on the
+      // broken build too and prove nothing.
+      expect(items).toEqual(['freeze_column', 'unfreeze_column']);
+
+      await grid.clickDropdownMenuItem('freeze_column');
+
       expect(await grid.fixedColumnsStart(PLUGIN_OFF)).toBe(0);
     });
   });

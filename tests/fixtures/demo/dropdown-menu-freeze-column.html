@@ -39,13 +39,15 @@
     through ItemsFactory as a bare `{ name, key }` placeholder, so the dropdown menu rendered a row
     labelled with the RAW KEY that did nothing when clicked.
 
-    The grids below cover the reported config, the default menu, the path that already worked, and
-    the plugin-disabled case.
+    The dropdown menu also builds that list only once, when it is enabled, so the grids below cover
+    the settings toggle in both directions as well as the menu contents.
   -->
   <div id="custom-keys" class="grid" data-testid="custom-keys"></div>
   <div id="default-menu" class="grid" data-testid="default-menu"></div>
   <div id="context-control" class="grid" data-testid="context-control"></div>
   <div id="plugin-off" class="grid" data-testid="plugin-off"></div>
+  <div id="toggle" class="grid" data-testid="toggle"></div>
+  <div id="filters-order" class="grid" data-testid="filters-order"></div>
 
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The
@@ -66,6 +68,16 @@
 
     const MENU_KEYS = ['freeze_column', 'unfreeze_column'];
 
+    // Stamps the header with its NAME, so a test can address a column without counting DOM
+    // positions. The grid is narrower than its columns and virtualizes them, so `nth-child(n)`
+    // stops meaning "visual column n" as soon as the grid scrolls sideways — and freezing moves
+    // the header into a different overlay clone on top of that.
+    const stampHeader = function(column, TH) {
+      if (column >= 0) {
+        TH.setAttribute('data-testid', `header-${COLUMN_HEADERS[this.toPhysicalColumn(column)]}`);
+      }
+    };
+
     const baseSettings = {
       colHeaders: COLUMN_HEADERS,
       rowHeaders: true,
@@ -74,6 +86,7 @@
       // reporter noticed the column was not actually frozen.
       width: 420,
       height: 200,
+      afterGetColHeader: stampHeader,
       licenseKey: 'non-commercial-and-evaluation',
     };
 
@@ -115,10 +128,22 @@
         manualColumnFreeze: true,
         contextMenu: MENU_KEYS,
       }),
-      // Same keys, plugin OFF. Nothing should contribute the entries, so no freeze item appears.
+      // Same keys, plugin OFF. Nothing contributes the entries, so both keys stay unknown to the
+      // menu and render as the raw-key placeholder rows ItemsFactory emits for any unknown key.
       'plugin-off': build('plugin-off', {
         manualColumnFreeze: false,
         dropdownMenu: MENU_KEYS,
+      }),
+      // For toggling `manualColumnFreeze` through updateSettings after the menu has been built.
+      'toggle': build('toggle', {
+        manualColumnFreeze: true,
+        dropdownMenu: true,
+      }),
+      // Filters owns the bulk of the column menu, so the freeze entries have to land after it.
+      'filters-order': build('filters-order', {
+        manualColumnFreeze: true,
+        dropdownMenu: true,
+        filters: true,
       }),
     };
 

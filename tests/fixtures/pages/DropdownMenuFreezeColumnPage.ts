@@ -4,9 +4,10 @@ import { type Page, type Locator, expect } from '@playwright/test';
  * Page Object for the "freeze_column / unfreeze_column as dropdown menu keys" fixture
  * (GitHub #5429).
  *
- * The fixture holds four grids, addressed by the ids below. The page object exposes the two things
- * the bug damaged — what the dropdown menu actually renders for those keys, and whether picking an
- * entry moves the column into the frozen area.
+ * The fixture holds six grids, addressed by the ids below. The page object exposes the three
+ * things the bug touched — what the dropdown menu renders for those keys, whether picking an entry
+ * moves the column into the frozen area, and whether the menu keeps up when `manualColumnFreeze`
+ * is toggled after the menu was built.
  */
 export class DropdownMenuFreezeColumnPage {
   /** The reported config: both keys listed explicitly in `dropdownMenu`. */
@@ -17,9 +18,20 @@ export class DropdownMenuFreezeColumnPage {
   static readonly CONTEXT_CONTROL = 'context-control';
   /** The same keys with `manualColumnFreeze: false`. */
   static readonly PLUGIN_OFF = 'plugin-off';
+  /** For toggling `manualColumnFreeze` through `updateSettings` after the menu was built. */
+  static readonly TOGGLE = 'toggle';
+  /** `filters` as well, so the entries have to land after the filter interface. */
+  static readonly FILTERS_ORDER = 'filters-order';
 
   /** Every grid the fixture builds. */
-  static readonly ALL_GRIDS = ['custom-keys', 'default-menu', 'context-control', 'plugin-off'];
+  static readonly ALL_GRIDS = [
+    DropdownMenuFreezeColumnPage.CUSTOM_KEYS,
+    DropdownMenuFreezeColumnPage.DEFAULT_MENU,
+    DropdownMenuFreezeColumnPage.CONTEXT_CONTROL,
+    DropdownMenuFreezeColumnPage.PLUGIN_OFF,
+    DropdownMenuFreezeColumnPage.TOGGLE,
+    DropdownMenuFreezeColumnPage.FILTERS_ORDER,
+  ];
 
   /** The fixture's named column headers, in their starting order. */
   static readonly COLUMN_HEADERS = ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot'];
@@ -66,53 +78,57 @@ export class DropdownMenuFreezeColumnPage {
   }
 
   /**
-   * Open the column header menu on one visual column.
+   * Open the column header menu on the column carrying this header name.
    *
-   * Which overlay clone holds the clickable header depends on whether the column is frozen: a
-   * frozen column's header is drawn by the top-inline-start corner clone, which paints ON TOP of
-   * the copy `.ht_clone_top` still renders for it. Targeting the wrong clone does not fail
-   * loudly — the click is intercepted by the overlay and times out — so pick the clone from the
-   * grid's current `fixedColumnsStart` rather than guessing.
+   * Addressed by name rather than by DOM position on purpose. The fixture is narrower than its
+   * columns, so Handsontable renders only the columns in view — after a sideways scroll the nth
+   * header cell is no longer the nth column. Freezing compounds it: a frozen column's header is
+   * drawn by the top-inline-start corner clone, which paints ON TOP of the copy `.ht_clone_top`
+   * still renders for it, and clicking the covered copy times out rather than failing clearly.
    */
-  async openColumnMenu(gridId: string, visualColumn: number): Promise<void> {
-    const fixedColumnsStart = await this.fixedColumnsStart(gridId);
-    const clone = visualColumn < fixedColumnsStart ? '.ht_clone_top_inline_start_corner' : '.ht_clone_top';
-    // +2, not +1: the row-header corner cell occupies the first `th` of every header row.
-    const headerCell = this.grid(gridId).locator(`${clone} thead th:nth-child(${visualColumn + 2})`);
+  async openColumnMenu(gridId: string, headerName: string): Promise<void> {
+    const isFrozen = (await this.frozenHeaders(gridId)).includes(headerName);
+    const clone = isFrozen ? '.ht_clone_top_inline_start_corner' : '.ht_clone_top';
 
-    await headerCell.locator('.changeType').click();
-    await expect(this.dropdownMenu()).toBeVisible();
+    await this.grid(gridId)
+      .locator(`${clone} [data-testid="header-${headerName}"] .changeType`)
+      .click();
+
+    await expect(this.openMenu('.htDropdownMenu')).toBeVisible();
   }
 
   /** Open the context menu on one cell. */
   async openContextMenu(gridId: string, row: number, visualColumn: number): Promise<void> {
-    await this.cell(gridId, row, visualColumn).click({ button: 'right' });
-    await expect(this.contextMenu()).toBeVisible();
-  }
-
-  /** A data cell of the master table. */
-  cell(gridId: string, row: number, visualColumn: number): Locator {
-    return this.grid(gridId)
+    await this.grid(gridId)
       .locator('.ht_master tbody tr')
       .nth(row)
       .locator('td')
-      .nth(visualColumn);
+      .nth(visualColumn)
+      .click({ button: 'right' });
+
+    await expect(this.openMenu('.htContextMenu')).toBeVisible();
   }
 
-  private dropdownMenu(): Locator {
-    return this.page.locator('.htDropdownMenu .ht_master').first();
-  }
-
-  private contextMenu(): Locator {
-    return this.page.locator('.htContextMenu .ht_master').first();
+  /**
+   * The menu that is currently on screen.
+   *
+   * Menus render into a body-level `div.ht-portal`, one per grid, so they cannot be scoped to a
+   * grid container. Handsontable removes the inner table when a menu closes, so filtering on
+   * visibility resolves to the single open menu.
+   *
+   * The child combinator matters: the Filters value list is itself a Handsontable, so a descendant
+   * match finds that nested grid's table too and trips Playwright's strict mode.
+   */
+  private openMenu(menuSelector: string): Locator {
+    return this.page.locator(`${menuSelector} > .ht_master:visible`);
   }
 
   /**
    * The labels of the menu rows a user can actually see.
    *
-   * Hidden items stay in the DOM with a zero-height box rather than being dropped, so the `:visible`
-   * filter is what separates "the plugin offered this entry" from "the entry's `hidden()` said no".
-   * That distinction is the whole point of the unfreeze assertions.
+   * Hidden items stay in the DOM with a zero-height box rather than being dropped, so the
+   * `:visible` filter is what separates "the plugin offered this entry" from "the entry's
+   * `hidden()` said no". That distinction is the whole point of the unfreeze assertions.
    */
   async visibleDropdownMenuItems(): Promise<string[]> {
     return this.visibleItemsOf('.htDropdownMenu');
@@ -123,23 +139,34 @@ export class DropdownMenuFreezeColumnPage {
   }
 
   private async visibleItemsOf(menuSelector: string): Promise<string[]> {
-    const labels = await this.page
-      .locator(`${menuSelector} .ht_master td:visible`)
-      .allTextContents();
+    const labels = await this.page.locator(`${menuSelector} td:visible`).allTextContents();
 
     return labels.map(label => label.trim()).filter(label => label.length > 0);
   }
 
   /** Pick one entry from the open column header menu. */
   async clickDropdownMenuItem(label: string): Promise<void> {
-    await this.page.locator('.htDropdownMenu .ht_master td:visible', { hasText: label }).first().click();
-    await expect(this.dropdownMenu()).toBeHidden();
+    await this.menuItem('.htDropdownMenu', label).click();
+    await expect(this.openMenu('.htDropdownMenu')).toBeHidden();
   }
 
   /** Pick one entry from the open context menu. */
   async clickContextMenuItem(label: string): Promise<void> {
-    await this.page.locator('.htContextMenu .ht_master td:visible', { hasText: label }).first().click();
-    await expect(this.contextMenu()).toBeHidden();
+    await this.menuItem('.htContextMenu', label).click();
+    await expect(this.openMenu('.htContextMenu')).toBeHidden();
+  }
+
+  /**
+   * One visible menu row, matched on its whole label.
+   *
+   * The match is anchored because Playwright's `hasText` string form is a case-insensitive
+   * SUBSTRING match, and "Unfreeze column" contains "freeze column" — so the plain form would
+   * happily click unfreeze when asked for freeze.
+   */
+  private menuItem(menuSelector: string, label: string): Locator {
+    const exact = new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`);
+
+    return this.page.locator(`${menuSelector} td:visible`).filter({ hasText: exact }).first();
   }
 
   /** How many columns the grid currently holds in its frozen (inline start) area. */
@@ -162,6 +189,13 @@ export class DropdownMenuFreezeColumnPage {
     );
   }
 
+  /** The headers of the columns currently inside the frozen area. */
+  async frozenHeaders(gridId: string): Promise<string[]> {
+    const headers = await this.columnHeaders(gridId);
+
+    return headers.slice(0, await this.fixedColumnsStart(gridId));
+  }
+
   /** One row of data in its current visual order. */
   async rowData(gridId: string, row: number): Promise<string[]> {
     return this.page.evaluate(
@@ -169,6 +203,16 @@ export class DropdownMenuFreezeColumnPage {
         hots: Record<string, { getDataAtRow: (row: number) => string[] }>;
       }).hots[id as string].getDataAtRow(r as number),
       [gridId, row] as [string, number]
+    );
+  }
+
+  /** Turn `manualColumnFreeze` on or off after the menu has already been built. */
+  async setManualColumnFreeze(gridId: string, enabled: boolean): Promise<void> {
+    await this.page.evaluate(
+      ([id, value]) => (window as unknown as {
+        hots: Record<string, { updateSettings: (settings: object) => void }>;
+      }).hots[id as string].updateSettings({ manualColumnFreeze: value as boolean }),
+      [gridId, enabled] as [string, boolean]
     );
   }
 }
