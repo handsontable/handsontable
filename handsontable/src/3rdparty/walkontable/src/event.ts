@@ -14,7 +14,7 @@ import { getCellCoordsFromMousePosition } from './utils/pointerToCoords';
 import { isTouchSupported } from '../../../helpers/feature';
 import { isMobileBrowser, isChromeWebKit, isFirefoxWebKit, isIOS } from '../../../helpers/browser';
 import { isDefined } from '../../../helpers/mixed';
-import { isTouchSynthesizedMouseEvent } from '../../../helpers/dom/event';
+import { isTouchSynthesizedMouseEvent } from '../../../helpers/dom/inputOrigin';
 
 const LONG_PRESS_DELAY = 500;
 const LONG_PRESS_MOVE_THRESHOLD = 10;

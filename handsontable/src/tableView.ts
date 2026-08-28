@@ -33,8 +33,8 @@ import {
   isRightClick,
   isLeftClick,
   isMiddleClick,
-  isTouchSynthesizedMouseEvent,
 } from './helpers/dom/event';
+import { isTouchSynthesizedMouseEvent } from './helpers/dom/inputOrigin';
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
