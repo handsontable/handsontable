@@ -486,9 +486,9 @@ export class ColumnSummary extends BasePlugin {
   calculateAverage(endpoint: SummaryEndpoint): number | string {
     const entriesCount = this.countEntries(endpoint);
 
-    // An all-empty range divides by zero. Report it the way `min` and `max` do instead of
-    // letting `NaN` reach the cell.
-    if (entriesCount === 0) {
+    // An all-empty range divides by zero, and a malformed range bound makes the count negative or
+    // `NaN`. Report all of them the way `min` and `max` do instead of letting `NaN` reach the cell.
+    if (!Number.isFinite(entriesCount) || entriesCount <= 0) {
       return NOT_ENOUGH_DATA;
     }
 

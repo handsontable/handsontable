@@ -442,6 +442,52 @@ describe('ColumnSummarySpec', () => {
       // The empty cell is left out of both the sum and the divisor, so the result is 15, not 10.
       expect(getDataAtCell(3, 0)).toBe(15);
     });
+
+    it('should display "Not enough data" for an empty column when `ranges` is left at its default', async() => {
+      handsontable({
+        data: [
+          [null],
+          [null],
+          [null],
+          [null],
+        ],
+        columnSummary: [
+          {
+            sourceColumn: 0,
+            destinationColumn: 0,
+            reversedRowCoords: true,
+            destinationRow: 0,
+            type: 'average'
+          },
+        ]
+      });
+
+      // The default range spans every addressable row, so it covers the destination cell too. The
+      // destination is skipped as a summary result, which leaves the range with no entries at all.
+      expect(getDataAtCell(3, 0)).toBe('Not enough data');
+    });
+
+    it('should display "Not enough data" instead of `NaN` when a range bound is not a number', async() => {
+      handsontable({
+        data: [
+          [1],
+          [2],
+          [3],
+          [null],
+        ],
+        columnSummary: [
+          {
+            sourceColumn: 0,
+            destinationColumn: 0,
+            destinationRow: 3,
+            ranges: [['a', 'b']],
+            type: 'average'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(3, 0)).toBe('Not enough data');
+    });
   });
 
   describe('customFunction', () => {
