@@ -5,6 +5,7 @@ import {
   isLeftClick,
   isRightClick,
   isTouchEvent,
+  isTouchSynthesizedMouseEvent,
 } from 'handsontable/helpers/dom/event';
 
 describe('DomEvent helper', () => {
@@ -166,6 +167,25 @@ describe('DomEvent helper', () => {
 
     it('should return null for an event that carries no touch lists', () => {
       expect(getTouchPointById(new MouseEvent('mousemove'), 7)).toBe(null);
+    });
+  });
+
+  //
+  // Handsontable.dom.isTouchSynthesizedMouseEvent
+  //
+  describe('isTouchSynthesizedMouseEvent', () => {
+    it('should return true when the browser reports the event originates from a touch device', () => {
+      expect(isTouchSynthesizedMouseEvent({ sourceCapabilities: { firesTouchEvents: true } })).toBe(true);
+    });
+
+    it('should return false when the browser reports a non-touch input device', () => {
+      expect(isTouchSynthesizedMouseEvent({ sourceCapabilities: { firesTouchEvents: false } })).toBe(false);
+    });
+
+    it('should return undefined when the browser does not expose the information', () => {
+      expect(isTouchSynthesizedMouseEvent({})).toBeUndefined();
+      expect(isTouchSynthesizedMouseEvent({ sourceCapabilities: null })).toBeUndefined();
+      expect(isTouchSynthesizedMouseEvent({ sourceCapabilities: undefined })).toBeUndefined();
     });
   });
 });

@@ -131,6 +131,11 @@ export interface MoveCellsHookRecord {
   isCopy: boolean;
 }
 
+/**
+ * Hook counters the DEV-2687 touch tap-to-edit fixture exposes on `window.hookCounts`.
+ */
+export type HookCounterName = 'beforeOnCellMouseDown' | 'beforeOnCellMouseUp' | 'afterBeginEditing' | 'afterCreateRow';
+
 declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
@@ -157,5 +162,7 @@ declare global {
     setBeforeRowMoveVeto(shouldVeto: boolean): boolean;
     /** Makes the fixture's `beforeColumnMove` listener return `false`. */
     setBeforeColumnMoveVeto(shouldVeto: boolean): boolean;
+    /** Per-hook invocation counters of the touch tap-to-edit fixture (DEV-2687). */
+    hookCounts: Record<HookCounterName, number>;
   }
 }
