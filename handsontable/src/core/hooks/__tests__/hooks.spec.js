@@ -114,14 +114,45 @@ describe('Hooks', () => {
   it('should not register a hook declared in the settings object twice', async() => {
     const beforeInitHandler = jasmine.createSpy('beforeInitHandler');
     const afterInitHandler = jasmine.createSpy('afterInitHandler');
-
-    handsontable({
+    const hotInstance = handsontable({
       beforeInit: beforeInitHandler,
       afterInit: afterInitHandler,
     });
+    const countEntries = (hookName, callback) => Handsontable.hooks
+      .getBucket(hotInstance)
+      .getHooks(hookName)
+      .filter(entry => entry.callback === callback)
+      .length;
 
     expect(beforeInitHandler).toHaveBeenCalledTimes(1);
     expect(afterInitHandler).toHaveBeenCalledTimes(1);
+    // `beforeInit` is registered up front and again by the `updateSettings()` call inside `init()`.
+    expect(countEntries('beforeInit', beforeInitHandler)).toBe(1);
+    expect(countEntries('afterInit', afterInitHandler)).toBe(1);
+  });
+
+  it('should replace a settings-declared hook in place when `updateSettings()` passes a new callback', async() => {
+    const firstHandler = jasmine.createSpy('firstHandler');
+    const secondHandler = jasmine.createSpy('secondHandler');
+    const hotInstance = handsontable({
+      beforeInit: firstHandler,
+    });
+    const countFixedEntries = () => Handsontable.hooks
+      .getBucket(hotInstance)
+      .getHooks('beforeInit')
+      .filter(entry => entry.initialHook)
+      .length;
+
+    expect(countFixedEntries()).toBe(1);
+
+    await updateSettings({ beforeInit: secondHandler });
+
+    // The fixed slot is reused, so repeated `updateSettings()` calls must not stack entries.
+    expect(countFixedEntries()).toBe(1);
+    expect(Handsontable.hooks.getBucket(hotInstance).getHooks('beforeInit')
+      .some(entry => entry.callback === secondHandler)).toBe(true);
+    expect(Handsontable.hooks.getBucket(hotInstance).getHooks('beforeInit')
+      .some(entry => entry.callback === firstHandler)).toBe(false);
   });
 
   it('should fire the `beforeInit` hook declared in the settings object after the plugins are initialized', async() => {
@@ -139,20 +170,24 @@ describe('Hooks', () => {
 
   it('should fire the `beforeInit` hook added between `new Handsontable.Core()` and `init()`', async() => {
     const container = document.createElement('div');
+    const handler = jasmine.createSpy('handler');
 
     document.body.appendChild(container);
 
-    const handler = jasmine.createSpy('handler');
+    // This is the path every framework wrapper uses, so it has to keep working.
     const hotInstance = new Handsontable.Core(container, {
       licenseKey: 'non-commercial-and-evaluation',
     });
 
-    hotInstance.addHook('beforeInit', handler);
-    hotInstance.init();
+    try {
+      hotInstance.addHook('beforeInit', handler);
+      hotInstance.init();
 
-    expect(handler).toHaveBeenCalledTimes(1);
+      expect(handler).toHaveBeenCalledTimes(1);
 
-    hotInstance.destroy();
-    container.remove();
+    } finally {
+      hotInstance.destroy();
+      container.remove();
+    }
   });
 });

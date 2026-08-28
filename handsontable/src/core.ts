@@ -1696,18 +1696,22 @@ export default function Core(
    *
    * The callback is also written to the table meta, so that `getSettings()` returns it back.
    *
+   * @private
    * @param {string} key A hook name.
    * @param {Function|Function[]} hook A callback, or an array of callbacks, to register.
    */
   function registerSettingsHook(key: string, hook: HookCallback | HookCallback[] | undefined) {
     if (isFunction(hook)) {
       Hooks.getSingleton().addAsFixed(key, hook, instance);
-      tableMeta[key] = hook;
 
     } else if (Array.isArray(hook)) {
       Hooks.getSingleton().add(key, hook, instance);
-      tableMeta[key] = hook;
+
+    } else {
+      return;
     }
+
+    tableMeta[key] = hook;
   }
 
   this.init = function() {

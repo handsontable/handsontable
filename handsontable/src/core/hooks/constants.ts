@@ -1627,6 +1627,13 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired before the Handsontable instance is initiated.
    *
+   * At this point the grid is only partly built. The settings are not applied yet, the data is not
+   * loaded, and the table is not rendered, so the plugins are initialized but most of the grid API is
+   * not ready. Calling a method that reads the data or the DOM, such as
+   * [`countRows()`](@/api/core.md#countrows), [`getData()`](@/api/core.md#getdata), or anything on
+   * `hot.view`, throws. Use this hook to prepare your own state, and use
+   * [`afterInit`](@/api/hooks.md#afterinit) to work with the grid.
+   *
    * @event Hooks#beforeInit
    */
   'beforeInit',
@@ -3364,6 +3371,11 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after initializing all the plugins.
    * This hook should be added before Handsontable is initialized.
+   *
+   * This hook runs while `beforeInit` is being dispatched, before Handsontable reads the callbacks
+   * from the settings object. An `afterPluginsInitialized` callback passed in the settings object is
+   * registered too late, so it never runs. To listen to this hook, register it globally with
+   * `Handsontable.hooks.add('afterPluginsInitialized', callback)`.
    *
    * @event Hooks#afterPluginsInitialized
    *

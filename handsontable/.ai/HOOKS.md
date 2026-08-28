@@ -39,12 +39,13 @@ There is one global `Hooks` singleton, reached with `Hooks.getSingleton()` (`src
 
 ### `HooksBucket`
 
-`HooksBucket` (`src/core/hooks/bucket.ts`) stores callbacks per hook name in a `Map<string, HookEntry[]>`. Each `HookEntry` has `callback`, `orderIndex`, `runOnce`, `initialHook`, and `skip`. The bucket constructor seeds an empty array for every name in `REGISTERED_HOOKS`, so known hooks start with a collection.
+`HooksBucket` (`src/core/hooks/bucket.ts`) stores callbacks per hook name in a `Map<string, HookList>`, where each `HookList` is a singly-linked list with `head` and `tail`. Each `HookEntry` has `callback`, `orderIndex`, `runOnce`, `initialHook`, and `next` — the entry *is* the list node. The bucket constructor seeds an empty list for every name in `REGISTERED_HOOKS`, so known hooks start with a collection.
 
-Two mechanics are load-bearing:
+Three mechanics are load-bearing:
 
-- **Soft delete via `skip`.** `remove` does not splice the array. It sets `skip = true` on the entry and increments a per-name skipped counter. `run` ignores entries whose `skip` is `true`. The array is compacted (filtered) only when the skipped counter passes `MAX_SKIPPED_HOOKS_COUNT` (100). This keeps `run` allocation-free during normal add/remove churn. Re-adding the same callback flips `skip` back to `false` rather than pushing a duplicate.
-- **Duplicate add is silently ignored.** `add` looks up the callback by reference. If the same function is already registered for that name, the call returns without adding a second entry.
+- **Removal is a true delete.** `remove` relinks the list around the entry. There is no soft-delete `skip` flag and no compaction threshold. An in-flight `run()` stays correct because it reads `entry.next` fresh after each callback, and `remove` never nulls a removed node's `next`, so a callback that removes itself can still advance.
+- **Duplicate add is silently ignored.** `add` walks the list and compares by reference. If the same function is already registered for that name, the call returns without adding a second entry. This check runs *before* the `initialHook` branch, so re-adding the same reference through `addAsFixed` is also a no-op.
+- **`addAsFixed` replaces in place.** When an entry for that name already has `initialHook`, `add` swaps its `callback` and keeps the node and its position, so an array previously returned by `getHooks()` reflects the swap. The framework wrappers depend on this.
 
 ## The `Hooks` class API
 
@@ -197,6 +198,22 @@ A hook passed in the constructor settings or `updateSettings` attaches automatic
 
 - A **function** value attaches through `addAsFixed` into the reserved initial-hook slot, and is also written onto `tableMeta`.
 - An **array** of functions attaches through `add`.
+
+**Timing, and the one deliberate exception.** That walk lives in `updateSettings()`, and `init()` calls
+it *after* it has already fired `beforeInit`. So a callback declared in the settings object cannot see
+any hook that fires before that call. `core.ts` therefore registers **`beforeInit` alone** up front,
+immediately before `runHooks('beforeInit')` (GitHub issue #5933); both call sites share the
+`registerSettingsHook()` helper, and re-adding the same reference is a no-op.
+
+Do not generalize that pull-forward to the whole settings object. Plugins attach their feature hooks
+inside `enablePlugin()`, which runs *during* the `beforeInit` dispatch, so registering everything early
+would place settings-declared callbacks ahead of every plugin callback, for every hook.
+
+Two hooks stay unreachable from the settings object by the same mechanism, and are documented as such
+on their JSDoc rather than fixed: **`construct`** (fires inside the Core constructor, so registering
+early enough would reorder hooks that wrappers attach between `new Handsontable.Core()` and `init()`)
+and **`afterPluginsInitialized`** (fires from `BasePlugin.init()` during the `beforeInit` dispatch).
+Both are listenable as global hooks.
 
 ```js
 new Handsontable(el, {
