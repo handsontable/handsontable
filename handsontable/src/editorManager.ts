@@ -88,7 +88,7 @@ class EditorManager {
   /**
    * The size of each PHYSICAL index space as of the last cache update.
    *
-   * Only a structural change - an inserted or removed row or column - changes these. A trim, a
+   * Only a structural change – an inserted or removed row or column – changes these. A trim, a
    * permutation and a hide all leave the physical space the same size, so a difference here is the
    * signal that `#editedPhysicalRow` has just been renumbered out from under the editor.
    *
@@ -108,14 +108,14 @@ class EditorManager {
   /**
    * Reacts to a ROW index-map cache update.
    *
-   * A structural change and a rearrangement need opposite repairs - one invalidates the captured
-   * PHYSICAL index and keeps the visual coordinate, the other does the reverse - and the state object
+   * A structural change and a rearrangement need opposite repairs – one invalidates the captured
+   * PHYSICAL index and keeps the visual coordinate, the other does the reverse – and the state object
    * cannot tell them apart, because `insertIndexes()`/`removeIndexes()` raise the same flags a filter
    * does. The SIZE of the physical space can: only an insert or a remove changes it. Comparing it
    * against the previous update picks the right repair without relying on hook ordering, and nothing
-   * a plugin vetoes can strand it - a cancelled `beforeCreateRow` never changes the count either.
+   * a plugin vetoes can strand it – a cancelled `beforeCreateRow` never changes the count either.
    *
-   * The one shape this misses is a structural change that leaves the count where it started - an
+   * The one shape this misses is a structural change that leaves the count where it started – an
    * insert and a removal collapsing into a single cache update. `insertIndexes()`/`removeIndexes()`
    * each suspend and resume the mapper themselves, so even inside `hot.batch()` every `alter()`
    * flushes its own update and the two counts are observed separately.
@@ -471,14 +471,14 @@ class EditorManager {
    * Runs INSTEAD of the reconciliation, never after it, so the stale captured index is never acted on.
    *
    * Inserting or removing rows shifts the physical indexes of everything below, so the index captured
-   * in `prepareEditor()` now addresses a different record - but the editor's VISUAL coordinate came
+   * in `prepareEditor()` now addresses a different record – but the editor's VISUAL coordinate came
    * through intact, because the index mapper moved the visual space with it. So the visual side is
    * the trustworthy one here, and it is what the record is read back from.
    *
    * This never discards. Core already carries an edit across a structural change: `alter()` runs
    * `selection.shiftRows()` after the cache update, and the `prepareEditor()` behind it re-derives
    * the editor's coordinates and the captured record together. All this method does is keep the
-   * captured record correct for the changes core does NOT re-prepare after - a removal entirely below
+   * captured record correct for the changes core does NOT re-prepare after – a removal entirely below
    * the edited cell leaves the selection alone, so nothing else would notice the renumbering.
    */
   #recaptureEditedRecord(): void {
@@ -510,21 +510,21 @@ class EditorManager {
    * visual index space underneath it.
    *
    * Two kinds of change do that. A TRIMMING map (Filters, `trimRows`, `nestedRows`) COLLAPSES the
-   * visual space - the rows below a trimmed row shift up and the row count shrinks. A SEQUENCE change
+   * visual space – the rows below a trimmed row shift up and the row count shrinks. A SEQUENCE change
    * (`columnSorting`, `manualRowMove`, `manualColumnFreeze`) permutes it. Either way the editor is
    * left holding the visual coordinates it captured in `prepare()`, and `BaseEditor#saveValue()`
    * writes straight through them with no bounds check, so the pending edit lands on whichever record
-   * now occupies that visual slot - or, when a trim left the slot past the shortened row count, on
+   * now occupies that visual slot – or, when a trim left the slot past the shortened row count, on
    * rows that `applyChanges()` APPENDS to the source data to make room for it. Both are silent data
    * corruption.
    *
    * Resolving the stored PHYSICAL index back to a visual one covers every shape with one test: the
-   * record is gone (no visual index - discard), the record moved (rebind - the edit still commits, to
+   * record is gone (no visual index – discard), the record moved (rebind – the edit still commits, to
    * the right record), or nothing moved (no-op). The last branch is what keeps this from firing
    * spuriously: `BooleanMap#setValues()` emits a change even for a no-op write, so testing "something
    * changed" alone would tear down unrelated edits.
    *
-   * A structural change - an inserted or removed row or column - is the one case this reasoning does
+   * A structural change – an inserted or removed row or column – is the one case this reasoning does
    * NOT cover, because it renumbers the physical space and invalidates the captured index while
    * leaving the visual coordinate correct. It raises the same flags, so the state object cannot tell
    * it apart; `#onRowSequenceCacheUpdate()` and its column twin discriminate on the physical index
@@ -538,16 +538,16 @@ class EditorManager {
    * branch writes data, so nothing reaches `setDataAtCell()` inside a cache update still unwinding.
    *
    * The discard goes through `cancelChanges()` rather than `finishEditing(true)`, which skips the
-   * render `finishEditing()` appends - but NOT every render: `AutocompleteEditor#discardEditor()`
+   * render `finishEditing()` appends – but NOT every render: `AutocompleteEditor#discardEditor()`
    * calls `view.render()` unconditionally, so for the autocomplete family this repaints from inside
    * `IndexMapper#updateCache()`. That is the same nested repaint the pre-existing `outsideClick`
    * teardown already performs, and the render reads the caches this update has already rebuilt.
    *
-   * `cancelChanges()` also bypasses editor-level discard policy - `DropdownEditor#finishEditing()`
-   * rewrites the restore flag - which is harmless here because a discard is what that override would
+   * `cancelChanges()` also bypasses editor-level discard policy – `DropdownEditor#finishEditing()`
+   * rewrites the restore flag – which is harmless here because a discard is what that override would
    * decide anyway once the edited record is gone from the visual space.
    *
-   * A rebind moves the editor's coordinates and NOTHING else - not its pixel position, not the
+   * A rebind moves the editor's coordinates and NOTHING else – not its pixel position, not the
    * selection. Neither `render()` nor `view.render()` repositions an open editor, so it stays drawn
    * over the row it started on for the rest of the edit; on the Filters path that is invisible
    * because `filter()` closes the editor outright, but on the `trimRows` path it is left painted
@@ -558,13 +558,13 @@ class EditorManager {
    * Two paths do not: an editor whose `finishEditing()` vetoes on a moved range rewrites the commit
    * into a discard (`DropdownEditor`, and the `date`, `autocomplete` and `handsontable` types built
    * on it), and a Ctrl+Enter commit reads the SELECTION corners rather than the editor's coordinates
-   * (`BaseEditor#saveValue()`). On both the edit is lost rather than misplaced - which is what this
+   * (`BaseEditor#saveValue()`). On both the edit is lost rather than misplaced – which is what this
    * method exists to guarantee, and strictly better than the row-appending corruption they produced
-   * before it - but the value does not survive. Making it survive means moving the selection with the
+   * before it – but the value does not survive. Making it survive means moving the selection with the
    * record, which is a larger change than this repair.
    *
-   * Two further limits. An index-map change does NOT adjust the selection - `core.ts` calls
-   * `selection.commit()` only for `hiddenIndexesChanged` - so the highlight can be left past the last
+   * Two further limits. An index-map change does NOT adjust the selection – `core.ts` calls
+   * `selection.commit()` only for `hiddenIndexesChanged` – so the highlight can be left past the last
    * row, and typing into it grows the data set. That is reachable with no editor involved at all and
    * is a separate defect; this method does not paper over it. And an editor parked in `WAITING` is
    * not reconciled: `finishEditing()` has already run `saveValue()` by then, so there is nothing
