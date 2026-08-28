@@ -12,9 +12,13 @@ interface HandsontableFixture {
   getActiveEditor(): EditorFixture | undefined;
   isListening(): boolean;
   scrollViewportTo(options: { row: number, verticalSnap: string }): void;
+  destroy(): void;
 }
 
-interface FixtureWindow extends Window {
+// Deliberately not `extends Window`: `windowTypes.ts` already declares `hot` globally with the
+// full instance type, and narrowing it here to the handful of members these probes use would be a
+// TS2430 conflict. Every access goes through an explicit cast anyway.
+interface FixtureWindow {
   hot: HandsontableFixture;
   htEditorRef: EditorFixture | null;
   htListenCount: number;
@@ -22,12 +26,20 @@ interface FixtureWindow extends Window {
   htPendingCount(col: number): number;
   htChoices: string[][];
   htScheduleQueryThenClose(): Promise<void>;
+  htScheduleQuery(): Promise<void>;
   htQueryCount(): number;
+  htResolveQueryAt(index: number): boolean;
+  htQueryStates(col: number): (string | null)[];
+  htSettleValidation(): number;
+  htArmRefocusThenClose(): void;
+  htFocusProbeDone: boolean;
+  htRefocusAfterClose: number;
 }
 
 interface PageOptions {
   editor?: 'autocomplete' | 'dropdown';
-  scenario?: 'plain' | 'scroll';
+  scenario?: 'plain' | 'scroll' | 'ordering';
+  validator?: 'none' | 'slowAsync';
 }
 
 /**
@@ -44,6 +56,7 @@ export class AutocompleteAsyncSourcePage {
   readonly bundle: string;
   readonly editor: string;
   readonly scenario: string;
+  readonly validator: string;
   readonly outsideInput: Locator;
 
   constructor(page: Page, theme = 'main', bundle = 'umd', options: PageOptions = {}) {
@@ -52,6 +65,7 @@ export class AutocompleteAsyncSourcePage {
     this.bundle = bundle;
     this.editor = options.editor ?? 'autocomplete';
     this.scenario = options.scenario ?? 'plain';
+    this.validator = options.validator ?? 'none';
     this.outsideInput = page.getByTestId('outside-input');
   }
 
@@ -60,7 +74,7 @@ export class AutocompleteAsyncSourcePage {
    */
   async goto(): Promise<void> {
     const query = `theme=${this.theme}&bundle=${this.bundle}` +
-      `&editor=${this.editor}&scenario=${this.scenario}`;
+      `&editor=${this.editor}&scenario=${this.scenario}&validator=${this.validator}`;
 
     await this.page.goto(`/tests/fixtures/demo/autocomplete-async-source.html?${query}`);
 
@@ -224,7 +238,8 @@ export class AutocompleteAsyncSourcePage {
 
   /**
    * Lands a close inside the window of an already-scheduled `queryChoices()` timeout, then returns
-   * once that timeout has run or bailed. See the fixture for why both halves happen page-side.
+   * once that timeout has either run or been cancelled. See the fixture for why both halves happen
+   * page-side and how the wait is ordered against the editor's own timer.
    */
   async scheduleQueryThenClose(): Promise<void> {
     await this.page.evaluate(() => (window as unknown as FixtureWindow).htScheduleQueryThenClose());
@@ -235,6 +250,82 @@ export class AutocompleteAsyncSourcePage {
    */
   async totalQueryCount(): Promise<number> {
     return this.page.evaluate(() => (window as unknown as FixtureWindow).htQueryCount());
+  }
+
+  /**
+   * Returns how many of the column's queries came from the editor itself rather than from
+   * `autocompleteValidator`, which calls the same user `source` on the strict save path.
+   */
+  async editorQueryCount(col: number): Promise<number> {
+    const states = await this.page.evaluate(
+      target => (window as unknown as FixtureWindow).htQueryStates(target),
+      col,
+    );
+
+    return states.filter(state => state === 'STATE_EDITING').length;
+  }
+
+  /**
+   * Returns the editor state captured for each of the column's queries, in call order.
+   */
+  async queryStates(col: number): Promise<(string | null)[]> {
+    return this.page.evaluate(
+      target => (window as unknown as FixtureWindow).htQueryStates(target),
+      col,
+    );
+  }
+
+  /**
+   * Answers one specific query by its position in the call log, so two overlapping queries can be
+   * resolved newest-first.
+   */
+  async resolveQueryAt(index: number): Promise<boolean> {
+    return this.page.evaluate(
+      target => (window as unknown as FixtureWindow).htResolveQueryAt(target),
+      index,
+    );
+  }
+
+  /**
+   * Schedules another `queryChoices()` through a keystroke and returns once its timer has fired,
+   * leaving the editor open.
+   */
+  async scheduleAnotherQuery(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as FixtureWindow).htScheduleQuery());
+  }
+
+  /**
+   * Settles every pending async validation, rejecting the value. Returns how many settled.
+   */
+  async settleValidation(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).htSettleValidation());
+  }
+
+  /**
+   * Tears the grid down while a query is still in flight. `Core#destroy()` never closes the active
+   * editor, so neither token moves and only the destroyed check stops the response.
+   */
+  async destroyGrid(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as FixtureWindow).hot.destroy());
+  }
+
+  /**
+   * Arms the debounced refocus and closes the editor inside its window, returning once the debounce
+   * has provably fired or been cancelled.
+   */
+  async armRefocusThenClose(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as FixtureWindow).htArmRefocusThenClose());
+
+    await expect
+      .poll(() => this.page.evaluate(() => (window as unknown as FixtureWindow).htFocusProbeDone))
+      .toBe(true);
+  }
+
+  /**
+   * Returns how many times the editor refocused itself after that close.
+   */
+  async refocusCountAfterClose(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).htRefocusAfterClose);
   }
 
   /**

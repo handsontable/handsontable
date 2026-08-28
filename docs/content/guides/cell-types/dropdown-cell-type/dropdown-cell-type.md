@@ -105,6 +105,8 @@ Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocompl
 
 The `source` option can be provided in two formats:
 
+You can also assign a function to load the options from a remote source, as described in [Autocomplete strict mode with asynchronous data](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode-with-asynchronous-data). Handsontable ignores a response that arrives after the editor closed - including a close you may not notice, such as scrolling the edited cell out of view - and it ignores a response that a newer query has superseded, which happens on every keystroke. Call the callback whenever the request completes, even late.
+
 ### Array of values
 
 You can provide the `source` option as an array of values that will be used as the dropdown options.

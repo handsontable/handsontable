@@ -6102,6 +6102,10 @@ export default (): Record<string, unknown> => {
      * Note: When defining the `source` option as an array of objects with `key` and `value` properties, the data format for that cell
      * needs to be an object with `key` and `value` properties as well.
      *
+     * Note: When `source` is a function, Handsontable ignores a response that arrives after the editor closed - including
+     * a close you may not notice, such as scrolling the edited cell out of view - and it ignores a response that a newer
+     * query has superseded, which happens on every keystroke. Call the callback whenever the request completes, even late.
+     *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
      * - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)

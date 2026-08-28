@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the autocomplete and dropdown editors re-showing a closed suggestion list and taking keyboard control back from the page when an asynchronous `source` answered after the editor had closed.",
+  "title": "Fixed the autocomplete and dropdown editors re-showing a closed suggestion list and taking keyboard control back from the page when an asynchronous `source` answered after the editor had closed. A `source` function is no longer called at all once the edit has finished, and `queryChoices()` is now a no-op while no edit is in progress.",
   "type": "fixed",
   "issueOrPR": 13273,
   "breaking": false,

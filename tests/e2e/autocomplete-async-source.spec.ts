@@ -53,7 +53,10 @@ EDITORS.forEach((editor) => {
 
       const listenCountBeforeResponse = await grid.listenCount();
 
-      // A zero here would mean nothing was ever in flight and the case proved nothing.
+      // Count the EDITOR's queries, not every query: `autocompleteValidator` calls the same user
+      // `source` on the strict save path, so a bare "something was in flight" guard can be met by
+      // the validator alone and prove nothing about the editor.
+      expect(await grid.editorQueryCount(0)).toBe(1);
       expect(await grid.resolveQueries(0)).toBeGreaterThan(0);
 
       await expect.poll(() => grid.isDropdownShown()).toBe(false);
@@ -75,6 +78,7 @@ EDITORS.forEach((editor) => {
 
       const listenCountBeforeResponse = await grid.listenCount();
 
+      expect(await grid.editorQueryCount(0)).toBe(1);
       expect(await grid.resolveQueries(0)).toBeGreaterThan(0);
 
       await expect.poll(() => grid.isDropdownShown()).toBe(false);
@@ -111,6 +115,158 @@ EDITORS.forEach((editor) => {
     });
   });
 
+  /**
+   * The guard has to tell "the edit ended" apart from "the edit is busy". `WAITING` is busy: an
+   * async validator is running, `close()` has not been called, so `beforeKeyDown` is still hooked
+   * and keystrokes still schedule queries. Under `allowInvalid: false` the editor then goes back to
+   * `EDITING` rather than closing. Rejecting those queries would stop the list refreshing for the
+   * length of every validation, which `develop` did not do.
+   */
+  test.describe(`${editor} editor with an async validator in flight`, () => {
+    let grid: AutocompleteAsyncSourcePage;
+
+    test.beforeEach(async({ page, theme, bundle }) => {
+      grid = new AutocompleteAsyncSourcePage(page, theme, bundle, { editor, validator: 'slowAsync' });
+      await grid.goto();
+    });
+
+    test('still refreshes the list while the editor waits on validation', async() => {
+      await grid.openEditor(0, 0);
+
+      expect(await grid.resolveQueries(0)).toBeGreaterThan(0);
+      await expect.poll(() => grid.isDropdownShown()).toBe(true);
+
+      // Commit without settling the validator: the editor parks in `WAITING`, still open.
+      await grid.page.keyboard.press('Enter');
+      await expect.poll(() => grid.editorState()).toBe('STATE_WAITING');
+      expect(await grid.isEditorOpen()).toBe(true);
+
+      await grid.scheduleAnotherQuery();
+
+      // The query has to reach the `source` at all - that is the half the entry guard decides.
+      const states = await grid.queryStates(0);
+
+      expect(states.filter(state => state === 'STATE_WAITING').length).toBeGreaterThan(0);
+
+      expect(await grid.resolveQueries(0)).toBeGreaterThan(0);
+
+      // And its answer has to render - that is the half the callback guard decides.
+      await expect.poll(() => grid.isDropdownShown()).toBe(true);
+      expect(sorted(await grid.dropdownChoices())).toEqual(sorted(await grid.choicesFor(0)));
+
+      await grid.settleValidation();
+    });
+
+    test('ignores a response from the validation window once the editor finally closes', async() => {
+      await grid.openEditor(0, 0);
+
+      await grid.page.keyboard.press('Enter');
+      await expect.poll(() => grid.editorState()).toBe('STATE_WAITING');
+
+      await grid.scheduleAnotherQuery();
+      await grid.settleValidation();
+
+      // A rejected value under `allowInvalid: false` keeps the editor open, so close it for real.
+      await grid.page.keyboard.press('Escape');
+      await expect.poll(() => grid.isEditorOpen()).toBe(false);
+      await expect.poll(() => grid.isDropdownShown()).toBe(false);
+
+      await grid.clickOutsideInput();
+
+      const listenCountBeforeResponse = await grid.listenCount();
+
+      expect(await grid.resolveQueries(0)).toBeGreaterThan(0);
+
+      await expect.poll(() => grid.isDropdownShown()).toBe(false);
+      expect(await grid.listenCount()).toBe(listenCountBeforeResponse);
+    });
+  });
+
+  /**
+   * The choices response is not the only thing that outlives a close. `#focusDebounced` is armed by
+   * the inner grid's `afterScroll` and runs 100 ms later, outside `hot.timeouts` entirely, and
+   * `hideEditableElement()` only sets `opacity: 0` - so its `focus()` puts the caret back into a
+   * closed editor. Same symptom as the reported defect, different route, so the changelog's claim
+   * depends on this one too.
+   */
+  test.describe(`${editor} editor closed just after its list scrolled`, () => {
+    test('does not refocus itself after the close', async({ page, theme, bundle }) => {
+      const grid = new AutocompleteAsyncSourcePage(page, theme, bundle, { editor });
+
+      await grid.goto();
+      await grid.openEditor(0, 0);
+
+      expect(await grid.resolveQueries(0)).toBeGreaterThan(0);
+      await expect.poll(() => grid.isDropdownShown()).toBe(true);
+
+      await grid.armRefocusThenClose();
+
+      expect(await grid.isEditorOpen()).toBe(false);
+      expect(await grid.refocusCountAfterClose()).toBe(0);
+    });
+  });
+
+  /**
+   * The guide tells people to answer late, and in a single-page app the usual way that happens is
+   * that the grid is gone. `Core#destroy()` never closes the active editor, so neither token moves
+   * and only the destroyed check stops the response from reaching a torn-down `htEditor`.
+   */
+  test.describe(`${editor} editor destroyed with a query in flight`, () => {
+    test('swallows a source response that arrives after the grid was destroyed', async({ page, theme, bundle }) => {
+      const errors: string[] = [];
+
+      page.on('pageerror', error => errors.push(error.message));
+
+      const grid = new AutocompleteAsyncSourcePage(page, theme, bundle, { editor });
+
+      await grid.goto();
+      await grid.openEditor(0, 0);
+
+      expect(await grid.editorQueryCount(0)).toBe(1);
+
+      await grid.destroyGrid();
+
+      expect(await grid.resolveQueries(0)).toBeGreaterThan(0);
+      expect(errors).toEqual([]);
+    });
+  });
+
+  /**
+   * `#queryGeneration` exists for two queries inside ONE edit session, where `#editSession` never
+   * moves and cannot decide anything. Without a case like this the counter can be deleted and every
+   * other test still passes.
+   */
+  test.describe(`${editor} editor with two overlapping queries in one edit`, () => {
+    let grid: AutocompleteAsyncSourcePage;
+
+    test.beforeEach(async({ page, theme, bundle }) => {
+      grid = new AutocompleteAsyncSourcePage(page, theme, bundle, { editor, scenario: 'ordering' });
+      await grid.goto();
+    });
+
+    test('keeps the newest answer when an older one arrives after it', async() => {
+      await grid.openEditor(0, 0);
+      await grid.scheduleAnotherQuery();
+
+      // Two queries, same edit, neither answered yet.
+      expect(await grid.queryStates(0)).toEqual(['STATE_EDITING', 'STATE_EDITING']);
+      expect(await grid.pendingQueryCount(0)).toBe(2);
+
+      // Newest first, then the straggler. Each answer is tagged with its query's index, so the
+      // rendered list names which one won.
+      expect(await grid.resolveQueryAt(1)).toBe(true);
+      await expect.poll(async() => sorted(await grid.dropdownChoices()))
+        .toEqual(sorted((await grid.choicesFor(0)).map(choice => `${choice}-q1`)));
+
+      expect(await grid.resolveQueryAt(0)).toBe(true);
+
+      expect(sorted(await grid.dropdownChoices()))
+        .toEqual(sorted((await grid.choicesFor(0)).map(choice => `${choice}-q1`)));
+      expect(sorted(await grid.rawChoices() as string[]))
+        .toEqual(sorted((await grid.choicesFor(0)).map(choice => `${choice}-q1`)));
+    });
+  });
+
   test.describe(`${editor} editor closed by scrolling its cell out of view`, () => {
     let grid: AutocompleteAsyncSourcePage;
 
@@ -132,13 +288,20 @@ EDITORS.forEach((editor) => {
       expect(await grid.editorState()).toBe('STATE_EDITING');
       expect(await grid.isDropdownShown()).toBe(false);
 
+      // Hand keyboard control away before reading the baseline. `Core#listen()` runs `afterListen`
+      // only on a not-listening to listening transition, and a scroll never unlistens, so without
+      // this the count is pinned and the focus half of the assertion could not fail.
+      await grid.clickOutsideInput();
+
       const listenCountBeforeResponse = await grid.listenCount();
 
+      expect(await grid.editorQueryCount(0)).toBe(1);
       expect(await grid.resolveQueries(0)).toBeGreaterThan(0);
 
       await expect.poll(() => grid.isDropdownShown()).toBe(false);
       expect(await grid.dropdownChoices()).toEqual([]);
       expect(await grid.listenCount()).toBe(listenCountBeforeResponse);
+      expect(await grid.isGridListening()).toBe(false);
     });
 
     test('starts no new query when a timeout scheduled before the close fires after it', async() => {
@@ -156,7 +319,7 @@ EDITORS.forEach((editor) => {
       expect(await grid.isEditorOpen()).toBe(false);
       expect(await grid.totalQueryCount()).toBe(queriesBefore);
 
-      await grid.resolveQueries(0);
+      expect(await grid.resolveQueries(0)).toBeGreaterThan(0);
 
       expect(await grid.isDropdownShown()).toBe(false);
       expect(await grid.dropdownChoices()).toEqual([]);

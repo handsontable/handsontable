@@ -19,9 +19,13 @@
     if (!window.htEditor) {
       throw new Error('Unknown ?editor= value: ' + JSON.stringify(htParams.get('editor')));
     }
-    window.htScenario = ({ plain: 'plain', scroll: 'scroll' })[htParams.get('scenario') ?? 'plain'];
+    window.htScenario = ({ plain: 'plain', scroll: 'scroll', ordering: 'ordering' })[htParams.get('scenario') ?? 'plain'];
     if (!window.htScenario) {
       throw new Error('Unknown ?scenario= value: ' + JSON.stringify(htParams.get('scenario')));
+    }
+    window.htValidator = ({ none: 'none', slowAsync: 'slowAsync' })[htParams.get('validator') ?? 'none'];
+    if (!window.htValidator) {
+      throw new Error('Unknown ?validator= value: ' + JSON.stringify(htParams.get('validator')));
     }
   </script>
 </head>
@@ -64,8 +68,37 @@
 
     function makeSource(col) {
       return function(query, process) {
-        window.htPendingQueries.push({ col, query, process, resolved: false });
+        const editor = window.hot.getActiveEditor();
+
+        // `state` is recorded, not a single "is this the editor asking" boolean, because no one
+        // boolean is right for every case. `autocompleteValidator` calls this same `source` on the
+        // strict path, so a save adds an entry too - that one arrives in `STATE_WAITING`, while an
+        // ordinary keystroke or open arrives in `STATE_EDITING`. A case that legitimately queries
+        // during validation is also `STATE_WAITING`, so each spec reads the shape it expects
+        // instead of trusting a label.
+        window.htPendingQueries.push({
+          col,
+          query,
+          process,
+          resolved: false,
+          state: editor ? editor.state : null,
+          opened: editor ? editor.isOpened() : false,
+        });
       };
+    }
+
+    /**
+     * Answers for one pending query. In the `ordering` scenario each answer is tagged with the
+     * index of the query it belongs to, which is the only way to see WHICH of two overlapping
+     * responses ended up rendered. The tag keeps the column's shared prefix, so it survives the
+     * `autocomplete` filter exactly as the untagged set does.
+     */
+    function answerFor(entry, index) {
+      if (window.htScenario !== 'ordering') {
+        return CHOICES[entry.col];
+      }
+
+      return CHOICES[entry.col].map(choice => `${choice}-q${index}`);
     }
 
     /**
@@ -78,11 +111,51 @@
 
       pending.forEach((entry) => {
         entry.resolved = true;
-        entry.process(CHOICES[entry.col]);
+        entry.process(answerFor(entry, window.htPendingQueries.indexOf(entry)));
       });
 
       return pending.length;
     };
+
+    /**
+     * Answers one specific query by its position in the call log, so a spec can resolve two
+     * overlapping queries newest-first. `htResolveQueries` always answers oldest-first and cannot
+     * express that ordering.
+     */
+    window.htResolveQueryAt = function(index) {
+      const entry = window.htPendingQueries[index];
+
+      if (!entry || entry.resolved) {
+        return false;
+      }
+
+      entry.resolved = true;
+      entry.process(answerFor(entry, index));
+
+      return true;
+    };
+
+    /**
+     * Returns the editor state captured for every query the column has received, in call order.
+     */
+    window.htQueryStates = function(col) {
+      return window.htPendingQueries.filter(entry => entry.col === col).map(entry => entry.state);
+    };
+
+    /**
+     * Resolves once a timer armed AFTER the editor's own deferred query would have fired.
+     *
+     * `onBeforeKeyDown` arms its `queryChoices()` timeout at 10 ms while the editor is open (20 ms
+     * when it is not). This sentinel is armed strictly later with the larger of the two delays, so
+     * its deadline is strictly later too and the editor's timer has either run or been cancelled by
+     * the time this resolves. That is an ordering fact about two timers, not a guess about how
+     * loaded the worker is - and unlike counting callbacks, it holds whether the editor's timeout
+     * ran or was cancelled, which is exactly what the cases here need to tell apart.
+     */
+    function afterEditorQueryTimeout() {
+      return new Promise(resolve => setTimeout(resolve, 20));
+    }
+
 
     /**
      * Schedules the editor's own deferred `queryChoices()` through a keyboard event, then closes the
@@ -91,20 +164,68 @@
      * close inside the timeout's 10-20 ms window: no round trip from the spec is that fast, and
      * `close()` unregisters the `beforeKeyDown` hook, so a later keystroke cannot schedule one.
      *
-     * Resolves after 50 ms, which is strictly longer than the editor's own delay, so by then that
-     * timeout has provably either run or bailed. The wait is an ordering guarantee, not a guess.
+     * Returns the run count captured BEFORE the keystroke, so the caller can wait for exactly one
+     * more rather than for a wall-clock delay.
      */
-    window.htScheduleQueryThenClose = function() {
-      const editor = window.hot.getActiveEditor();
+    function dispatchPrintableKey(editor) {
       const keydown = new KeyboardEvent('keydown', { key: 'a', code: 'KeyA', bubbles: true });
 
       // Chromium ignores the deprecated `keyCode` init dictionary member. The production handler
       // deliberately still reads it for browser compatibility, so define it on this test event.
       Object.defineProperty(keydown, 'keyCode', { value: 65 });
       editor.TEXTAREA.dispatchEvent(keydown);
+    }
+
+    window.htScheduleQuery = function() {
+      dispatchPrintableKey(window.hot.getActiveEditor());
+
+      return afterEditorQueryTimeout();
+    };
+
+    /**
+     * Arms the editor's debounced refocus the way a real dropdown scroll does, closes the editor
+     * inside the 100 ms window, and moves the caret out of the grid - all in one turn, because no
+     * round trip fits inside that window.
+     *
+     * The 200 ms marker is an ordering guarantee rather than a guess: the debounce timer was
+     * started first and is shorter, so it has fired or been cancelled by the time this resolves.
+     */
+    window.htFocusProbeDone = false;
+    window.htRefocusAfterClose = 0;
+
+    window.htArmRefocusThenClose = function() {
+      const editor = window.hot.getActiveEditor();
+      const originalFocus = editor.focus;
+
+      editor.htEditor.runHooks('afterScroll');
       editor.close();
 
-      return new Promise(resolve => setTimeout(resolve, 50));
+      // Wrapped AFTER the close, so it counts only what runs later - and `#focusDebounced` calls
+      // `this.focus()`, resolving the property at call time, so the wrapper still sees it. Counting
+      // the call itself rather than watching `document.activeElement` is what isolates this route:
+      // other machinery moves focus around a close too, and would mask or fake the result.
+      window.htRefocusAfterClose = 0;
+      window.htFocusProbeDone = false;
+
+      editor.focus = function(...args) {
+        window.htRefocusAfterClose += 1;
+
+        return originalFocus.apply(this, args);
+      };
+
+      setTimeout(() => {
+        editor.focus = originalFocus;
+        window.htFocusProbeDone = true;
+      }, 200);
+    };
+
+    window.htScheduleQueryThenClose = function() {
+      const editor = window.hot.getActiveEditor();
+
+      dispatchPrintableKey(editor);
+      editor.close();
+
+      return afterEditorQueryTimeout();
     };
 
     window.htQueryCount = function() {
@@ -135,12 +256,31 @@
       data: Array.from({ length: 4 }, () => SEEDS.slice()),
     };
 
+    // `allowInvalid: false` is what keeps the editor open and sends it back to `EDITING` once a
+    // rejected validation settles, which is the window the entry guard must not shut.
+    window.htPendingValidations = [];
+
+    const validatorColumn = window.htValidator === 'slowAsync' ? {
+      allowInvalid: false,
+      validator(value, callback) {
+        window.htPendingValidations.push(() => callback(false));
+      },
+    } : {};
+
+    window.htSettleValidation = function() {
+      const pending = window.htPendingValidations.splice(0);
+
+      pending.forEach(settle => settle());
+
+      return pending.length;
+    };
+
     window.hot = new Handsontable(container, Object.assign({
       colHeaders: true,
       rowHeaders: true,
       columns: [
-        { type: window.htEditor, source: makeSource(0) },
-        { type: window.htEditor, source: makeSource(1) },
+        Object.assign({ type: window.htEditor, source: makeSource(0) }, validatorColumn),
+        Object.assign({ type: window.htEditor, source: makeSource(1) }, validatorColumn),
       ],
       // Stamp test ids from `afterRenderer`, not from a grid-level `renderer`: a column `type`
       // installs its own renderer, which would override the grid-level one and leave the typed
@@ -156,6 +296,7 @@
       },
       licenseKey: 'non-commercial-and-evaluation',
     }, scenarioSettings));
+
   </script>
 </body>
 </html>

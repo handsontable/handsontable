@@ -87,12 +87,21 @@ export class AutocompleteEditor extends HandsontableEditor {
    */
   #queryGeneration = 0;
   /**
-   * Edit-session token. Bumped on every `close()`, so work scheduled during one edit can tell that
-   * the edit has ended - which neither `state` nor `_opened` reports reliably.
+   * Edit-session token. Bumped on every `close()`, so a `source` response can tell that the edit it
+   * belongs to has ended - which neither `state` nor `_opened` reports reliably. Only the response
+   * needs a token: user code holds that callback and there is nothing to cancel, while the editor's
+   * own deferred queries are cancelled outright through `#queryTimeouts`.
    *
    * @type {number}
    */
   #editSession = 0;
+  /**
+   * Timer ids of the `queryChoices()` calls this editor has deferred and not yet run. Cleared on
+   * `close()`, so a query scheduled during an edit never runs after it.
+   *
+   * @type {Set}
+   */
+  #queryTimeouts: Set<ReturnType<typeof setTimeout>> = new Set();
 
   /**
    * Gets current value from editable element.
@@ -293,29 +302,47 @@ export class AutocompleteEditor extends HandsontableEditor {
       setAttribute(this.TEXTAREA, ...A11Y_EXPANDED('true'));
     }
 
-    // The editor can be closed again before this fires - `refreshDimensions()` does exactly that
-    // from inside `open()` when the cell is off-viewport - so carry the session and drop the query
-    // rather than reopening the list over a cell that is no longer being edited.
-    const editSession = this.#editSession;
+    this.#deferQuery();
+  }
 
-    this.hot._registerTimeout(() => {
-      if (editSession !== this.#editSession) {
-        return;
-      }
-
+  /**
+   * Defers a `queryChoices()` call and keeps its timer id so `close()` can cancel it.
+   *
+   * `hot._registerTimeout()` has no cancel path of its own - `_clearTimeouts()` runs only from
+   * `Core#destroy()` - so without this a query scheduled during an edit still fires after the
+   * editor closed, and starts a fresh request against a cell nobody is editing.
+   *
+   * @param {number} [delay] Delay in milliseconds.
+   */
+  #deferQuery(delay: number = 0): void {
+    const timeoutId = this.hot._registerTimeout(() => {
+      this.#queryTimeouts.delete(timeoutId);
       this.queryChoices(this.TEXTAREA.value);
-    });
+    }, delay);
+
+    this.#queryTimeouts.add(timeoutId);
   }
 
   /**
    * Closes the editor.
    */
   close(): void {
-    // Ends the edit session, which invalidates every query in flight and every query still waiting
-    // on a timeout. Closing is the one event that reliably means "no response is wanted any more":
-    // `state` stays `EDITING` when `refreshDimensions()` closes an editor whose cell scrolled out
-    // of the rendered range and when `afterSetTheme` closes one (`assignHooks`), and `_opened`
-    // stays false after that same cell scrolls back and the editor is shown again.
+    // The debounced refocus is armed by the inner grid's `afterScroll` and runs 100 ms later. It
+    // outlives the close by the same route the choices response used to, and `hideEditableElement()`
+    // only sets `opacity: 0`, so its `focus()` puts the caret back into a closed editor. The next
+    // scroll of a reopened list re-arms it, so cancelling here loses nothing.
+    this.#focusDebounced.cancel();
+
+    // Ends the edit session. Closing is the one event that reliably means "no response is wanted
+    // any more": `state` stays `EDITING` when `refreshDimensions()` closes an editor whose cell
+    // scrolled out of the rendered range and when `afterSetTheme` closes one (`assignHooks`), and
+    // `_opened` stays false after that same cell scrolls back and the editor is shown again.
+    //
+    // Queries this editor deferred are cancelled outright; the token below is for the ones already
+    // handed to user code, which cannot be.
+    this.#queryTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+    this.#queryTimeouts.clear();
+
     this.#editSession += 1;
 
     this.removeHooksByKey('beforeKeyDown');
@@ -358,7 +385,12 @@ export class AutocompleteEditor extends HandsontableEditor {
     // shows it again on the way back, without ever restoring the flag. A guard on it would leave
     // the suggestion list dead for the rest of such an edit. The close paths `state` cannot see are
     // handled by the edit-session token instead, carried by each caller across its timeout.
-    if (this.state !== EDITOR_STATE.EDITING) {
+    //
+    // `WAITING` counts as open. `close()` is what unhooks `beforeKeyDown`, so keystrokes still
+    // schedule queries while an async validator runs, and under `allowInvalid: false` the editor
+    // stays open and returns to `EDITING`. Rejecting them here would stop the list refreshing for
+    // the length of every validation, which is a behavior change rather than a fix.
+    if (this.state !== EDITOR_STATE.EDITING && this.state !== EDITOR_STATE.WAITING) {
       return;
     }
 
@@ -381,7 +413,12 @@ export class AutocompleteEditor extends HandsontableEditor {
         // state check - a response landing while an async validator holds the editor in `WAITING`
         // belongs to the still-open editor, and rejecting it would leave the list empty for the
         // rest of the edit when `allowInvalid: false` sends the state back to `EDITING`.
-        if (editSession !== this.#editSession || generation !== this.#queryGeneration) {
+        // `Core#destroy()` reaches neither token - it never closes the active editor - and
+        // `updateChoicesList()` would then touch an `htEditor` whose root element is gone. The
+        // guide tells people to answer late, and in a single-page app a torn-down grid is the
+        // usual way that happens.
+        if (this.hot.isDestroyed || editSession !== this.#editSession ||
+            generation !== this.#queryGeneration) {
           return;
         }
 
@@ -737,18 +774,7 @@ export class AutocompleteEditor extends HandsontableEditor {
         timeOffset += 10;
       }
 
-      // Carried across the delay for the same reason as in `open()`: a close landing inside the
-      // 10-20 ms window leaves `state` at `EDITING` on the scroll-out and theme paths, so without
-      // the session the timeout would start a fresh query against a closed editor.
-      const editSession = this.#editSession;
-
-      this.hot._registerTimeout(() => {
-        if (editSession !== this.#editSession) {
-          return;
-        }
-
-        this.queryChoices(this.TEXTAREA.value);
-      }, timeOffset);
+      this.#deferQuery(timeOffset);
     }
   }
 }
