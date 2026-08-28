@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a bug where a row or column resized by dragging ignored every later `rowHeights` or `colWidths` value, so `updateSettings()` resized every row or column except the ones the user had dragged. Passing `rowHeights` or `colWidths` to `updateSettings()` now re-declares the sizes and discards the ones stored by the `ManualRowResize` and `ManualColumnResize` plugins. To keep the stored sizes, leave the size option out of the call, or pass `manualRowResize` or `manualColumnResize` as an array in the same call. The plugins also expose `clearManualSizes()`, and `ManualRowResize` now has the `clearManualSize()` method that `ManualColumnResize` already had.",
+  "type": "fixed",
+  "issueOrPR": 4371,
+  "breaking": false,
+  "framework": "none"
+}
