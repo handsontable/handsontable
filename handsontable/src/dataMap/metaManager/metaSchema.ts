@@ -859,7 +859,7 @@ export default (): Record<string, unknown> => {
      * To style the summary row, use the class name assigned automatically by the [`ColumnSummary`](@/api/columnSummary.md) plugin: `columnSummaryResult`.
      * :::
      *
-     * ### Where Handsontable adds the class names
+     * #### Where Handsontable adds the class names
      *
      * The target depends on the level at which you set the option:
      *
@@ -890,7 +890,7 @@ export default (): Record<string, unknown> => {
      * A `className` set at a lower level replaces the value from a higher level. It doesn't merge
      * with it. To keep a class name from a higher level, repeat it at the lower level.
      *
-     * ### Custom renderers
+     * #### Custom renderers
      *
      * Handsontable adds these class names to a cell even when the cell uses a custom
      * [renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md) that calls no built-in
@@ -3548,7 +3548,7 @@ export default (): Record<string, unknown> => {
      * | `'auto'`                                                                   | `height: 'auto'`           |
      * | A function that returns a valid number or string                           | `height() { return 500; }` |
      *
-     * ### How `'auto'` differs from leaving `height` unset
+     * #### How `'auto'` differs from leaving `height` unset
      *
      * When you set `height: 'auto'`, Handsontable writes `height: auto; overflow: clip;`
      * as inline styles on the root element. The grid then grows to match its content height.

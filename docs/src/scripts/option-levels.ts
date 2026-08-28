@@ -113,6 +113,11 @@ function mount(): void {
     const { pathname, hash } = window.location;
     const url = `${pathname}${qs ? `?${qs}` : ''}${hash}`;
 
+    // Cancel any pending write first, even when this call has nothing to write. Returning
+    // early without clearing would let a superseded URL land 200ms later - type one
+    // character, delete it, and the empty box would still get `?q=<char>` in the URL.
+    window.clearTimeout(urlSyncTimer);
+
     // Don't touch history when nothing changed - on mount there is usually nothing to write.
     if (url === `${pathname}${window.location.search}${hash}`) {
       return;
@@ -121,7 +126,6 @@ function mount(): void {
     // Rows filter on every keystroke, but the URL sync is debounced: Safari ignores
     // `replaceState` after about 100 calls per 30 seconds, and typing an option name
     // crosses that on its own.
-    window.clearTimeout(urlSyncTimer);
     urlSyncTimer = window.setTimeout(() => window.history.replaceState(null, '', url), URL_SYNC_DELAY);
   }
 

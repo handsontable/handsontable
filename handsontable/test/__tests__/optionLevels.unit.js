@@ -30,9 +30,21 @@ describe('configuration-option levels', () => {
   it('should give every public option a @configScope tag', () => {
     // parseOptions throws on a missing tag, so reaching here already proves it. Assert the
     // count as well, so an option silently dropped from the parse is caught too.
-    const declared = schemaSource.match(/@memberof Options#/g) ?? [];
+    // `@private` options are excluded on purpose: jsdoc drops them from the API reference,
+    // so listing one would link the matrix at an anchor that does not exist.
+    // Count `@private` only inside blocks that declare an option; the file uses the tag
+    // on non-option members too.
+    const blocks = schemaSource.match(/\/\*\*[\s\S]*?\*\//g) ?? [];
+    const optionBlocks = blocks.filter(block => /@memberof Options#/.test(block));
+    const privateOptions = optionBlocks.filter(block => /^\s*\*\s*@private\s*$/m.test(block));
 
-    expect(options.length).toBe(declared.length);
+    expect(options.length).toBe(optionBlocks.length - privateOptions.length);
+  });
+
+  it('should leave `@private` options out of the matrix', () => {
+    // `preventWheel` is the current case. A dead `@/api/options.md#...` link is invisible
+    // until someone clicks it, so pin the rule rather than the single name.
+    expect(options.find(o => o.name === 'preventWheel')).toBeUndefined();
   });
 
   it('should only use known levels, in cascade order', () => {

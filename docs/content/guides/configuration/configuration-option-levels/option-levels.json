@@ -6,9 +6,9 @@
     "cells",
     "cell"
   ],
-  "total": 169,
+  "total": 168,
   "counts": {
-    "grid": 108,
+    "grid": 107,
     "grid columns cells cell": 58,
     "grid columns": 2,
     "columns": 1
@@ -1152,15 +1152,6 @@
     },
     {
       "name": "preventOverflow",
-      "category": "Core",
-      "levels": [
-        "grid"
-      ],
-      "since": null,
-      "note": null
-    },
-    {
-      "name": "preventWheel",
       "category": "Core",
       "levels": [
         "grid"

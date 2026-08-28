@@ -211,7 +211,6 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="preserveNumericLiteral" data-levels="grid columns cells cell"></span>[`preserveNumericLiteral`](@/api/options.md#preservenumericliteral) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="preserveTextValue" data-levels="grid columns cells cell"></span>[`preserveTextValue`](@/api/options.md#preservetextvalue) | Yes | Yes | Yes | Yes | Formulas |  |
 | <span data-option="preventOverflow" data-levels="grid"></span>[`preventOverflow`](@/api/options.md#preventoverflow) | Yes | No | No | No | Core |  |
-| <span data-option="preventWheel" data-levels="grid"></span>[`preventWheel`](@/api/options.md#preventwheel) | Yes | No | No | No | Core |  |
 | <span data-option="readOnly" data-levels="grid columns cells cell"></span>[`readOnly`](@/api/options.md#readonly) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="readOnlyCellClassName" data-levels="grid columns cells cell"></span>[`readOnlyCellClassName`](@/api/options.md#readonlycellclassname) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="renderAllColumns" data-levels="grid"></span>[`renderAllColumns`](@/api/options.md#renderallcolumns) | Yes | No | No | No | Core |  |

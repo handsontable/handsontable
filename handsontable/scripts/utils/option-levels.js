@@ -61,6 +61,12 @@ function parseOptions(src) {
       continue;
     }
 
+    // jsdoc drops `@private` members, so the API reference has no heading to link to.
+    // Listing such an option would put a dead anchor in the matrix (`preventWheel`).
+    if (/^@private\s*$/m.test(block)) {
+      continue;
+    }
+
     const scope = (block.match(/@configScope\s+([^\n@]+)/) || [])[1];
 
     if (!scope) {
