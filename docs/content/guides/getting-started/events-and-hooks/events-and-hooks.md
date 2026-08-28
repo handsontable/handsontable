@@ -564,5 +564,5 @@ The following demo uses [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
 
 ## Related
 
-- [Configuration options](@/guides/getting-started/configuration-options/configuration-options.md) -- see how hooks interact with grid configuration at initialization.
+- [Setting options](@/guides/configuration/configuration-options/configuration-options.md) -- see how hooks interact with grid configuration at initialization.
 - [Saving data](@/guides/getting-started/saving-data/saving-data.md) -- a practical example of using the `afterChange` hook to persist edits to a backend.

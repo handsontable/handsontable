@@ -1,6 +1,6 @@
 ---
 type: how-to
-title: Configuration options
+title: Setting options
 metaTitle: Configuration options - JavaScript Data Grid | Handsontable
 description: Configure the data grid down to each column, row, and cell, using various built-in options that control Handsontable's behavior and user interface.
 permalink: /configuration-options
@@ -16,7 +16,7 @@ angular:
 vue:
   metaTitle: Configuration options - Vue Data Grid | Handsontable
 searchCategory: Guides
-category: Getting started
+category: Configuration
 menuTag: updated
 ---
 Configure your grid down to each column, row, and cell, using various built-in options that control Handsontable's behavior and user interface.
@@ -186,7 +186,7 @@ When you modify the bottom-level cell options (using the [`cell`](@/api/options.
 
 When you modify any options with the [`cells`](@/api/options.md#cells) function, the changes overwrite all other options.
 
-Unless an option's [reference entry](@/api/options.md) states otherwise, you can set it at any cascading level - the grid level, the [`columns`](@/api/options.md#columns) level, the [`cells`](@/api/options.md#cells) level, and the [`cell`](@/api/options.md#cell) level. An option marked as grid-level only has no effect when you set it per column or per cell.
+Not every option takes effect at every level. Most work at all of them, but some are read only from the grid settings, so setting them per column or per cell has no effect. Each option's [reference entry](@/api/options.md) states the levels it can be set at, and [Option levels](@/guides/configuration/configuration-option-levels/configuration-option-levels.md) lists them all in one searchable table.
 
 ::: tip
 
@@ -308,8 +308,8 @@ As a result, each cell in the grid is read-only:
 
 ::: example #example1 --js 1 --ts 2
 
-@[code](@/content/guides/getting-started/configuration-options/javascript/example1.js)
-@[code](@/content/guides/getting-started/configuration-options/javascript/example1.ts)
+@[code](@/content/guides/configuration/configuration-options/javascript/example1.js)
+@[code](@/content/guides/configuration/configuration-options/javascript/example1.ts)
 
 :::
 
@@ -319,8 +319,8 @@ As a result, each cell in the grid is read-only:
 
 ::: example #example1 :react --js 1 --ts 2
 
-@[code](@/content/guides/getting-started/configuration-options/react/example1.jsx)
-@[code](@/content/guides/getting-started/configuration-options/react/example1.tsx)
+@[code](@/content/guides/configuration/configuration-options/react/example1.jsx)
+@[code](@/content/guides/configuration/configuration-options/react/example1.tsx)
 
 :::
 
@@ -330,8 +330,8 @@ As a result, each cell in the grid is read-only:
 
 ::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/configuration-options/angular/example1.ts)
-@[code](@/content/guides/getting-started/configuration-options/angular/example1.html)
+@[code](@/content/guides/configuration/configuration-options/angular/example1.ts)
+@[code](@/content/guides/configuration/configuration-options/angular/example1.html)
 
 :::
 
@@ -341,7 +341,7 @@ As a result, each cell in the grid is read-only:
 
 ::: example #example1 :vue --js 1
 
-@[code](@/content/guides/getting-started/configuration-options/vue/example1.vue)
+@[code](@/content/guides/configuration/configuration-options/vue/example1.vue)
 
 :::
 
@@ -447,8 +447,8 @@ As a result, each cell in the third and ninth columns is read-only:
 
 ::: example #example2 --js 1 --ts 2
 
-@[code](@/content/guides/getting-started/configuration-options/javascript/example2.js)
-@[code](@/content/guides/getting-started/configuration-options/javascript/example2.ts)
+@[code](@/content/guides/configuration/configuration-options/javascript/example2.js)
+@[code](@/content/guides/configuration/configuration-options/javascript/example2.ts)
 
 :::
 
@@ -458,8 +458,8 @@ As a result, each cell in the third and ninth columns is read-only:
 
 ::: example #example2 :react --js 1 --ts 2
 
-@[code](@/content/guides/getting-started/configuration-options/react/example2.jsx)
-@[code](@/content/guides/getting-started/configuration-options/react/example2.tsx)
+@[code](@/content/guides/configuration/configuration-options/react/example2.jsx)
+@[code](@/content/guides/configuration/configuration-options/react/example2.tsx)
 
 :::
 
@@ -469,8 +469,8 @@ As a result, each cell in the third and ninth columns is read-only:
 
 ::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/configuration-options/angular/example2.ts)
-@[code](@/content/guides/getting-started/configuration-options/angular/example2.html)
+@[code](@/content/guides/configuration/configuration-options/angular/example2.ts)
+@[code](@/content/guides/configuration/configuration-options/angular/example2.html)
 
 :::
 
@@ -480,7 +480,7 @@ As a result, each cell in the third and ninth columns is read-only:
 
 ::: example #example2 :vue --js 1
 
-@[code](@/content/guides/getting-started/configuration-options/vue/example2.vue)
+@[code](@/content/guides/configuration/configuration-options/vue/example2.vue)
 
 :::
 
@@ -618,8 +618,8 @@ Options modified through [`cells`](@/api/options.md#cells) overwrite all other o
 
 ::: example #example3 --js 1 --ts 2
 
-@[code](@/content/guides/getting-started/configuration-options/javascript/example3.js)
-@[code](@/content/guides/getting-started/configuration-options/javascript/example3.ts)
+@[code](@/content/guides/configuration/configuration-options/javascript/example3.js)
+@[code](@/content/guides/configuration/configuration-options/javascript/example3.ts)
 
 :::
 
@@ -629,8 +629,8 @@ Options modified through [`cells`](@/api/options.md#cells) overwrite all other o
 
 ::: example #example3 :react --js 1 --ts 2
 
-@[code](@/content/guides/getting-started/configuration-options/react/example3.jsx)
-@[code](@/content/guides/getting-started/configuration-options/react/example3.tsx)
+@[code](@/content/guides/configuration/configuration-options/react/example3.jsx)
+@[code](@/content/guides/configuration/configuration-options/react/example3.tsx)
 
 :::
 
@@ -640,8 +640,8 @@ Options modified through [`cells`](@/api/options.md#cells) overwrite all other o
 
 ::: example #example3 :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/configuration-options/angular/example3.ts)
-@[code](@/content/guides/getting-started/configuration-options/angular/example3.html)
+@[code](@/content/guides/configuration/configuration-options/angular/example3.ts)
+@[code](@/content/guides/configuration/configuration-options/angular/example3.html)
 
 :::
 
@@ -651,7 +651,7 @@ Options modified through [`cells`](@/api/options.md#cells) overwrite all other o
 
 ::: example #example3 :vue --js 1
 
-@[code](@/content/guides/getting-started/configuration-options/vue/example3.vue)
+@[code](@/content/guides/configuration/configuration-options/vue/example3.vue)
 
 :::
 
@@ -779,8 +779,8 @@ The modified [`cell`](@/api/options.md#cell) options:
 
 ::: example #example4 --js 1 --ts 2
 
-@[code](@/content/guides/getting-started/configuration-options/javascript/example4.js)
-@[code](@/content/guides/getting-started/configuration-options/javascript/example4.ts)
+@[code](@/content/guides/configuration/configuration-options/javascript/example4.js)
+@[code](@/content/guides/configuration/configuration-options/javascript/example4.ts)
 
 :::
 
@@ -790,8 +790,8 @@ The modified [`cell`](@/api/options.md#cell) options:
 
 ::: example #example4 :react --js 1 --ts 2
 
-@[code](@/content/guides/getting-started/configuration-options/react/example4.jsx)
-@[code](@/content/guides/getting-started/configuration-options/react/example4.tsx)
+@[code](@/content/guides/configuration/configuration-options/react/example4.jsx)
+@[code](@/content/guides/configuration/configuration-options/react/example4.tsx)
 
 :::
 
@@ -801,8 +801,8 @@ The modified [`cell`](@/api/options.md#cell) options:
 
 ::: example #example4 :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/configuration-options/angular/example4.ts)
-@[code](@/content/guides/getting-started/configuration-options/angular/example4.html)
+@[code](@/content/guides/configuration/configuration-options/angular/example4.ts)
+@[code](@/content/guides/configuration/configuration-options/angular/example4.html)
 
 :::
 
@@ -812,7 +812,7 @@ The modified [`cell`](@/api/options.md#cell) options:
 
 ::: example #example4 :vue --js 1
 
-@[code](@/content/guides/getting-started/configuration-options/vue/example4.vue)
+@[code](@/content/guides/configuration/configuration-options/vue/example4.vue)
 
 :::
 
@@ -1162,8 +1162,8 @@ In the example below, the modified [`cells`](@/api/options.md#cells) options ove
 
 ::: example #example5 --js 1 --ts 2
 
-@[code](@/content/guides/getting-started/configuration-options/javascript/example5.js)
-@[code](@/content/guides/getting-started/configuration-options/javascript/example5.ts)
+@[code](@/content/guides/configuration/configuration-options/javascript/example5.js)
+@[code](@/content/guides/configuration/configuration-options/javascript/example5.ts)
 
 :::
 
@@ -1247,8 +1247,8 @@ In the example below, some cells are read-only, and some cells are editable:
 
 ::: example #example6 --js 1 --ts 2
 
-@[code](@/content/guides/getting-started/configuration-options/javascript/example6.js)
-@[code](@/content/guides/getting-started/configuration-options/javascript/example6.ts)
+@[code](@/content/guides/configuration/configuration-options/javascript/example6.js)
+@[code](@/content/guides/configuration/configuration-options/javascript/example6.ts)
 
 :::
 
@@ -1258,8 +1258,8 @@ In the example below, some cells are read-only, and some cells are editable:
 
 ::: example #example6 :react --js 1 --ts 2
 
-@[code](@/content/guides/getting-started/configuration-options/react/example6.jsx)
-@[code](@/content/guides/getting-started/configuration-options/react/example6.tsx)
+@[code](@/content/guides/configuration/configuration-options/react/example6.jsx)
+@[code](@/content/guides/configuration/configuration-options/react/example6.tsx)
 
 :::
 
@@ -1315,8 +1315,8 @@ Use [`initialState`](@/api/options.md#initialstate) to apply these options only 
 
 ::: example #example6 :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/configuration-options/angular/example6.ts)
-@[code](@/content/guides/getting-started/configuration-options/angular/example6.html)
+@[code](@/content/guides/configuration/configuration-options/angular/example6.ts)
+@[code](@/content/guides/configuration/configuration-options/angular/example6.html)
 
 :::
 
@@ -1326,7 +1326,7 @@ Use [`initialState`](@/api/options.md#initialstate) to apply these options only 
 
 ::: example #example6 :vue3
 
-@[code](@/content/guides/getting-started/configuration-options/vue/example6.vue)
+@[code](@/content/guides/configuration/configuration-options/vue/example6.vue)
 
 :::
 

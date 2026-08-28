@@ -301,6 +301,6 @@ You can combine both: use `cells` for row-level classes and a custom renderer on
 
 ## Related
 
-- [Configuration options: cell and row metadata](@/guides/getting-started/configuration-options/configuration-options.md#set-cell-options)
+- [Configuration options: cell and row metadata](@/guides/configuration/configuration-options/configuration-options.md#set-cell-options)
 - [`className` option](@/api/options.md#classname)
 - [`cells` option](@/api/options.md#cells)

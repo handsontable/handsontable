@@ -201,6 +201,11 @@
       "cmd": "node scripts/measure-module-sizes.mjs",
       "deps": [],
       "mode": "inherit"
+    },
+    "generate:option-levels": {
+      "cmd": "node scripts/generate-option-levels.mjs",
+      "deps": [],
+      "mode": "inherit"
     }
   },
 
