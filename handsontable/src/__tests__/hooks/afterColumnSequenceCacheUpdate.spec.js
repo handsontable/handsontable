@@ -25,6 +25,7 @@ describe('Hook', () => {
         indexesSequenceChanged: jasmine.any(Boolean),
         trimmedIndexesChanged: jasmine.any(Boolean),
         hiddenIndexesChanged: jasmine.any(Boolean),
+        indexesChangeSource: 'init',
       }));
       expect(afterColumnSequenceCacheUpdate).toHaveBeenCalledTimes(1);
     });
@@ -45,6 +46,7 @@ describe('Hook', () => {
         indexesSequenceChanged: true,
         trimmedIndexesChanged: jasmine.any(Boolean),
         hiddenIndexesChanged: jasmine.any(Boolean),
+        indexesChangeSource: 'move',
       }));
       expect(afterColumnSequenceCacheUpdate).toHaveBeenCalledTimes(1);
     });
@@ -65,6 +67,7 @@ describe('Hook', () => {
         indexesSequenceChanged: true,
         trimmedIndexesChanged: jasmine.any(Boolean),
         hiddenIndexesChanged: jasmine.any(Boolean),
+        indexesChangeSource: 'insert',
       }));
       expect(afterColumnSequenceCacheUpdate).toHaveBeenCalledTimes(1);
     });
@@ -85,6 +88,7 @@ describe('Hook', () => {
         indexesSequenceChanged: true,
         trimmedIndexesChanged: jasmine.any(Boolean),
         hiddenIndexesChanged: jasmine.any(Boolean),
+        indexesChangeSource: 'remove',
       }));
       expect(afterColumnSequenceCacheUpdate).toHaveBeenCalledTimes(1);
     });
@@ -105,6 +109,7 @@ describe('Hook', () => {
         indexesSequenceChanged: true,
         trimmedIndexesChanged: jasmine.any(Boolean),
         hiddenIndexesChanged: jasmine.any(Boolean),
+        indexesChangeSource: 'update',
       }));
       expect(afterColumnSequenceCacheUpdate).toHaveBeenCalledTimes(1);
     });

@@ -43,11 +43,13 @@ describe('Core.batchExecution', () => {
       indexesSequenceChanged: true,
       trimmedIndexesChanged: false,
       hiddenIndexesChanged: false,
+      indexesChangeSource: 'update',
     });
     expect(rowIndexCacheUpdated).toHaveBeenCalledOnceWith({
       indexesSequenceChanged: true,
       trimmedIndexesChanged: false,
       hiddenIndexesChanged: false,
+      indexesChangeSource: 'update',
     });
   });
 
@@ -87,11 +89,13 @@ describe('Core.batchExecution', () => {
       indexesSequenceChanged: true,
       trimmedIndexesChanged: false,
       hiddenIndexesChanged: false,
+      indexesChangeSource: 'update',
     });
     expect(rowIndexCacheUpdated).toHaveBeenCalledOnceWith({
       indexesSequenceChanged: true,
       trimmedIndexesChanged: false,
       hiddenIndexesChanged: false,
+      indexesChangeSource: 'update',
     });
   });
 
@@ -139,12 +143,14 @@ describe('Core.batchExecution', () => {
       indexesSequenceChanged: true,
       trimmedIndexesChanged: false,
       hiddenIndexesChanged: false,
+      indexesChangeSource: 'update',
     });
     expect(rowIndexCacheUpdated).toHaveBeenCalledTimes(2);
     expect(rowIndexCacheUpdated).toHaveBeenCalledWith({
       indexesSequenceChanged: true,
       trimmedIndexesChanged: false,
       hiddenIndexesChanged: false,
+      indexesChangeSource: 'update',
     });
   });
 });
