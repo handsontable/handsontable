@@ -77,6 +77,8 @@ To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) co
 
 To use the default dropdown contents, set it to `true`, or to customize it by setting it to use a custom list of actions. For the available entry options reference, see the [Context Menu demo](@/guides/accessories-and-menus/context-menu/context-menu.md#page-specific).
 
+Some entries come from other plugins, and work only when their plugin is enabled. The `freeze_column` and `unfreeze_column` entries require the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin. When you enable it, both entries also appear in the default dropdown contents.
+
 ::: only-for javascript
 
 ::: example #example2 --js 1 --ts 2

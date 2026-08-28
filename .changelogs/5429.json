@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the `freeze_column` and `unfreeze_column` items not working in the column (dropdown) menu. When `manualColumnFreeze` is enabled, `dropdownMenu: true` now offers both entries as well.",
+  "type": "fixed",
+  "issueOrPR": 5429,
+  "breaking": false,
+  "framework": "none"
+}

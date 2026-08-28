@@ -82,7 +82,7 @@ If your [layout direction](@/guides/internationalization/layout-direction/layout
 
 ## User-triggered freeze
 
-To enable manual column freezing, set [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) to `true`. This lets you freeze and unfreeze columns by using the grid's [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md).
+To enable manual column freezing, set [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) to `true`. This lets you freeze and unfreeze columns by using the grid's [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) or [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md).
 
 Mind that when you unfreeze a frozen column, it doesn't go back to the original position.
 

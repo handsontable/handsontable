@@ -16,7 +16,8 @@ export const PLUGIN_PRIORITY = 110;
  * @class ManualColumnFreeze
  *
  * @description
- * This plugin allows to manually "freeze" and "unfreeze" a column using an entry in the Context Menu or using API.
+ * This plugin allows to manually "freeze" and "unfreeze" a column using an entry in the Context Menu,
+ * an entry in the Dropdown Menu, or using API.
  * You can turn it on by setting a {@link Options#manualColumnFreeze} property to `true`.
  *
  * @example
@@ -66,7 +67,13 @@ export class ManualColumnFreeze extends BasePlugin {
     }
 
     this.addHook('afterContextMenuDefaultOptions', (options: unknown) => {
-      this.#addContextMenuEntry(options as Record<string, unknown>);
+      this.#addMenuEntries(options as Record<string, unknown>);
+    });
+    // The dropdown menu builds its items from a separate hook, so the entries have to be added
+    // twice. Without this the `freeze_column` / `unfreeze_column` keys resolve to inert
+    // placeholder rows there. See issue #5429.
+    this.addHook('afterDropdownMenuDefaultOptions', (options: unknown) => {
+      this.#addMenuEntries(options as Record<string, unknown>);
     });
     this.addHook('beforeColumnMove', this.#onBeforeColumnMove);
 
@@ -167,12 +174,12 @@ export class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Adds the manualColumnFreeze context menu entries.
+   * Adds the manualColumnFreeze entries to a menu. Shared by the context menu and the dropdown menu.
    *
    * @private
-   * @param {object} options Context menu options.
+   * @param {object} options Menu options.
    */
-  #addContextMenuEntry(options: Record<string, unknown>) {
+  #addMenuEntries(options: Record<string, unknown>) {
     (options.items as unknown[]).push(
       { name: '---------' },
       freezeColumnItem(this),
