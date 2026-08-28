@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a right-click on an autocomplete or dropdown cell's arrow opening the cell editor.",
+  "type": "fixed",
+  "issueOrPR": 13295,
+  "breaking": false,
+  "framework": "none"
+}
