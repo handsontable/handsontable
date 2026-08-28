@@ -42,6 +42,16 @@ test.describe('touch tap-to-edit on a device with touch and mouse listeners', ()
     await grid.expectHookCountExactly('beforeOnCellMouseDown', 1);
     await grid.expectHookCountExactly('beforeOnCellMouseUp', 1);
     await grid.expectEditorClosed();
+
+    // A real mouse click is a positive barrier: its trusted `click` lands after anything the tap
+    // could still have in flight, so the counts below are final — the tap contributed exactly one
+    // mousedown/mouseup and no synthesized pair.
+    await grid.clickCell(1, 1);
+    await grid.settleOnClicks(1);
+
+    await grid.expectHookCountExactly('beforeOnCellMouseDown', 2);
+    await grid.expectHookCountExactly('beforeOnCellMouseUp', 2);
+    await grid.expectEditorClosed();
   });
 
   test('a double-tap at a 700 ms cadence opens the editor', async ({ page }) => {

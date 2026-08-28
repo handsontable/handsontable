@@ -17,7 +17,10 @@
  * that arrives inside the ceiling BEFORE the synthesized pair — e.g. a first tap on an unselected
  * cell is `preventDefault`-ed and synthesizes nothing, so the pair never comes — is still
  * dropped: that includes a fill-handle grab or a drag-selection started with a mouse or trackpad
- * within half a second of such a tap.
+ * within half a second of such a tap. A pair that straddles the ceiling yields one unpaired
+ * `mouseup` (the `mousedown` is dropped, the `mouseup` is processed and clears the pending pair).
+ * Besides a first tap on an unselected cell, a long-press synthesizes no pair either, so the
+ * pending pair stays armed for the same ceiling after it.
  */
 export const TOUCH_SYNTHESIZED_MOUSE_WINDOW = 500;
 
