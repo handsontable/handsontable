@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the grid leaving a blank area under the last rendered row when the rows shrank after a column autosize or a data change, until the next scroll.",
+  "type": "fixed",
+  "issueOrPR": 6452,
+  "breaking": false,
+  "framework": "none"
+}
