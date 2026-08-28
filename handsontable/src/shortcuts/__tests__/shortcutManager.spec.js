@@ -561,6 +561,10 @@ describe('shortcutManager', () => {
       await keyDownUp('arrowdown');
 
       expect(getShortcutManager().isCtrlPressed()).toBe(false);
+
+      // The pressed keys are module-level and `unmount()` does not clear them, so a regression here
+      // would leak the held modifier into every later spec instead of failing this one.
+      await keyUp('control/meta');
     });
 
     it('should move the selection instead of adding layers when navigating with arrow keys', async() => {
@@ -576,6 +580,8 @@ describe('shortcutManager', () => {
 
       // Without the fix every arrow key adds a new selection layer, as if Ctrl/Cmd was held.
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,1 from: 3,1 to: 3,1']);
+
+      await keyUp('control/meta');
     });
 
     it('should keep the modifier key pressed while the event still reports it as held', async() => {
@@ -609,6 +615,45 @@ describe('shortcutManager', () => {
       await keyUp('b');
 
       expect(getShortcutManager().isCtrlPressed()).toBe(false);
+    });
+
+    it('should keep the pressed modifier keys when the event carries no `key` (#dev-2096)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await selectCell(1, 1);
+      await keyDown('control/meta');
+
+      // This event shape carries no modifier flags either, so syncing from it would wipe the state
+      // of every grid in the realm.
+      keyTriggerFactory('keydown', undefined, {
+        extend: {},
+        target: document.activeElement,
+      });
+
+      expect(getShortcutManager().isCtrlPressed()).toBe(true);
+
+      await keyUp('control/meta');
+    });
+
+    it('should keep a modifier key pressed when its own keydown does not report the flag', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await selectCell(1, 1);
+
+      // Some browsers do not set the matching flag on a modifier key's own `keydown`. The sync must
+      // run before the key itself is pressed, or such a key could never be marked as held.
+      keyTriggerFactory('keydown', Handsontable.helper.isMacOS() ? 'meta' : 'control', {
+        extend: { ctrlKey: false, metaKey: false },
+        target: document.activeElement,
+      });
+
+      expect(getShortcutManager().isCtrlPressed()).toBe(true);
+
+      await keyUp('control/meta');
     });
   });
 

@@ -38,9 +38,11 @@ const syncModifierKeysState = (event: KeyboardEvent) => {
  * @param {KeyboardEvent} event The event object
  */
 const onkeydownForModKeys = (event: KeyboardEvent) => {
-  syncModifierKeysState(event);
-
+  // Guarded because an event without a string `key` (#dev-2096) carries no modifier flags either,
+  // so syncing from it would release every modifier key. A genuine `KeyboardEvent` always has one.
   if (typeof event.key === 'string') {
+    syncModifierKeysState(event);
+
     const pressedKey = normalizeEventKey(event);
 
     // Runs after the sync on purpose. A browser that does not set the matching flag on a modifier
@@ -57,9 +59,9 @@ const onkeydownForModKeys = (event: KeyboardEvent) => {
  * @param {KeyboardEvent} event The event object
  */
 const onkeyupForModKeys = (event: KeyboardEvent) => {
-  syncModifierKeysState(event);
-
   if (typeof event.key === 'string') {
+    syncModifierKeysState(event);
+
     const pressedKey = normalizeEventKey(event);
 
     if (isModifierKey(pressedKey)) {
