@@ -286,9 +286,37 @@ export default (): Record<string, unknown> => {
     allowHtml: false,
 
     /**
-     * If set to `true`, the `allowInsertColumn` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
+     * The `allowInsertColumn` option controls two things: the insert items in the menus, and whether
+     * the grid may add columns on its own.
+     *
+     * If set to `true`, the option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
+     * and to the [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md):
      * - **Insert column left**
      * - **Insert column right**
+     *
+     * If set to `false`, the option also stops the grid from adding columns on its own:
+     * - A [paste](@/guides/cell-features/clipboard/clipboard.md) that is wider than the columns left to the right of the
+     *   selection stops at the last column. Handsontable drops the extra values, and reports no error. In the
+     *   `shift_right` [`pasteMode`](@/api/copyPaste.md) the values pushed past the last column are **lost**, because no
+     *   column is created to receive them.
+     * - An [autofill](@/guides/cell-features/autofill-values/autofill-values.md) that reaches past the last column stops
+     *   at the last column.
+     * - [`setDataAtCell()`](@/api/core.md#setdataatcell) and [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) no
+     *   longer create the missing columns when you write past the last column. The write still reaches the source data,
+     *   so [`getSourceData()`](@/api/core.md#getsourcedata) returns the value while the grid never displays it. This
+     *   bullet applies only when your [`data`](#data) is an array of arrays and you do not set the
+     *   [`columns`](#columns) option – in any other configuration these methods never add columns anyway.
+     *
+     * The option does not stop these ways of adding columns:
+     * - The [`alter()`](@/api/core.md#alter) method, including its `insert_col_start` and `insert_col_end` actions.
+     * - The [`minCols`](#minCols) and [`minSpareCols`](#minSpareCols) options. Both are themselves skipped when the
+     *   [`columns`](#columns) option is set, and `minSpareCols` also requires [`data`](#data) to be an array of arrays.
+     * - Undo and redo.
+     * - Pressing <kbd>**Enter**</kbd> at the last column, when [`minSpareCols`](#minSpareCols) is above `0` and
+     *   [`enterMoves`](#enterMoves) is set to move the column. The default `enterMoves` moves the row only, so this
+     *   does not happen out of the box.
+     *
+     * To cap the number of columns whatever the source, use [`maxCols`](#maxCols) as well.
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -300,16 +328,44 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // hide the 'Insert column left' and 'Insert column right' menu items from the context menu
+     * // hide the 'Insert column left' and 'Insert column right' menu items,
+     * // and stop the grid from adding columns during paste, autofill, and `setDataAtCell()`
      * allowInsertColumn: false,
      * ```
      */
     allowInsertColumn: true,
 
     /**
-     * If set to `true`, the `allowInsertRow` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
+     * The `allowInsertRow` option controls two things: the insert items in the context menu, and whether
+     * the grid may add rows on its own.
+     *
+     * If set to `true`, the option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
      * - **Insert row above**
      * - **Insert row below**
+     *
+     * If set to `false`, the option also stops the grid from adding rows on its own:
+     * - A [paste](@/guides/cell-features/clipboard/clipboard.md) that is taller than the rows left below the selection
+     *   stops at the last row. Handsontable drops the extra values, and reports no error. In the
+     *   `shift_down` [`pasteMode`](@/api/copyPaste.md) the rows pushed past the last row are **lost**, because no row is
+     *   created to receive them.
+     * - An [autofill](@/guides/cell-features/autofill-values/autofill-values.md) whose fill reaches past the last row
+     *   stops at the last row, unless the [`fillHandle`](#fillHandle) option's `autoInsertRow` setting has already
+     *   appended rows to take it – see the next list.
+     * - [`setDataAtCell()`](@/api/core.md#setdataatcell) and [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) do
+     *   not create the missing rows when you write below the last row. Both currently **throw a `TypeError`** in that
+     *   case, so guard the call, or keep the row index within [`countRows()`](@/api/core.md#countrows).
+     *
+     * The option does not stop these ways of adding rows:
+     * - The [`alter()`](@/api/core.md#alter) method, including its `insert_row_above` and `insert_row_below` actions.
+     * - The [`minRows`](#minRows) and [`minSpareRows`](#minSpareRows) options.
+     * - Undo and redo.
+     * - The fill handle appending rows when you drag it below the last row. That is governed solely by the
+     *   [`fillHandle`](#fillHandle) option's `autoInsertRow` setting, which ignores `allowInsertRow`. It applies only
+     *   when you set [`fillHandle`](#fillHandle) explicitly – left unset, the grid does not append rows this way.
+     * - Pressing <kbd>**Enter**</kbd> at the last row, when [`minSpareRows`](#minSpareRows) is above `0`. Only
+     *   <kbd>**Enter**</kbd> does this – the arrow keys and <kbd>**Tab**</kbd> never create a row.
+     *
+     * To cap the number of rows whatever the source, use [`maxRows`](#maxRows) as well.
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -321,7 +377,8 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // hide the 'Insert row above' and 'Insert row below' menu items from the context menu
+     * // hide the 'Insert row above' and 'Insert row below' menu items from the context menu,
+     * // and stop the grid from adding rows during paste, autofill, and `setDataAtCell()`
      * allowInsertRow: false,
      * ```
      */
@@ -361,8 +418,15 @@ export default (): Record<string, unknown> => {
     allowInvalid: true,
 
     /**
-     * If set to `true`, the `allowRemoveColumn` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
+     * If set to `true`, the `allowRemoveColumn` option adds the following menu item to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
+     * and to the [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md):
      * - **Remove column**
+     *
+     * The option hides that menu item only. It does not stop the [`alter()`](@/api/core.md#alter) method's
+     * `remove_col` action, and it does not stop undo or redo. To block a removal, return `false` from the
+     * [`beforeRemoveCol`](@/api/hooks.md#beforeremovecol) hook – that is the only lever that stops one.
+     * [`minCols`](#minCols) does not: it appends an empty column afterwards to restore the count, and the removed data
+     * is already gone.
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -377,15 +441,21 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // hide the 'Remove column' menu item from the context menu
+     * // hide the 'Remove column' menu item from the context menu and the column menu
      * allowRemoveColumn: false,
      * ```
      */
     allowRemoveColumn: true,
 
     /**
-     * If set to `true`, the `allowRemoveRow` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
+     * If set to `true`, the `allowRemoveRow` option adds the following menu item to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
      * - **Remove row**
+     *
+     * The option hides that menu item only. It does not stop the [`alter()`](@/api/core.md#alter) method's
+     * `remove_row` action, and it does not stop undo or redo. To block a removal, return `false` from the
+     * [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow) hook – that is the only lever that stops one.
+     * [`minRows`](#minRows) does not: it appends an empty row afterwards to restore the count, and the removed data
+     * is already gone.
      *
      * Read more:
      * - [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
@@ -2780,6 +2850,12 @@ export default (): Record<string, unknown> => {
      * | `autoInsertRow` | `true` (default) \| `false`    | `true`: When you reach the grid's bottom, add new rows<br>`false`: When you reach the grid's bottom, stop |
      * | `direction`     | `'vertical'` \| `'horizontal'` | `'vertical'`: Enable vertical autofill<br>`'horizontal'`: Enable horizontal autofill                      |
      *
+     * The `autoInsertRow` default above applies once you set `fillHandle` yourself, to any of the values in the first
+     * table. Leave `fillHandle` unset and the grid does not append rows when you drag the fill handle below the last
+     * row. Setting `direction` to `'horizontal'` also turns `autoInsertRow` off.
+     *
+     * Rows appended this way bypass [`allowInsertRow`](#allowInsertRow): only `autoInsertRow` governs them.
+     *
      * Read more:
      * - [AutoFill values](@/guides/cell-features/autofill-values/autofill-values.md)
      *
@@ -2788,7 +2864,7 @@ export default (): Record<string, unknown> => {
      *
      * @memberof Options#
      * @type {boolean|string|object}
-     * @default true
+     * @default { autoInsertRow: false }
      * @category Core
      *
      * @example
