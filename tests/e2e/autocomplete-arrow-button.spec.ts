@@ -28,10 +28,19 @@ EDITORS.forEach((editor) => {
       await grid.goto();
     });
 
+    // Cell (1, 1) rather than (0, 0), and the editor's own coordinates rather than just "an editor
+    // is open". To be clear about what that does and does not cover: the renderer builds its arrow
+    // listener once and closes over the FIRST rendered cell's coordinates, and no assertion here
+    // can catch that today - the pair reaches only `isCell()`, and `prepareEditor()` takes the
+    // edited cell from the live selection, so the editor's coordinates and `getSelected()` are the
+    // same state. Clicking a cell that is not the first one, and reading the coordinates the editor
+    // was actually prepared with, is what would surface it if a later change starts honoring the
+    // coordinates the listener passes. It does catch an editor reused without a re-`prepare()`.
     test('opens the editor when the arrow is pressed with the left button', async() => {
-      await grid.arrow(0, 0).click();
+      await grid.arrow(1, 1).click();
 
       await expect.poll(() => grid.isEditorOpen()).toBe(true);
+      expect(await grid.editorCoords()).toEqual([1, 1]);
     });
 
     test('leaves the editor closed when the arrow is pressed with the right button', async() => {

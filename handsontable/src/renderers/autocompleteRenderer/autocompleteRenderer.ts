@@ -56,9 +56,11 @@ export function autocompleteRenderer(
 
     // not very elegant but easy and fast
     hotInstance.acArrowListener = function(event: Event) {
-      // Only the left button opens the list. Walkontable applies the same restriction to its own
+      // Only the left button opens the list. Walkontable applies the same button check to its own
       // double-click-to-open path, and without it a right-click on the arrow opens the editor
-      // alongside the context menu.
+      // alongside the context menu. Walkontable pairs that check with a `touchApplied` escape
+      // hatch; this path needs none, because a tap reaches it only as a compatibility `mousedown`,
+      // which carries `button === 0` like any other left press.
       if (isLeftClick(event) && hasClass(eventTargetEl(event)!, 'htAutocompleteArrow')) {
         hotInstance.view._wt.getSetting('onCellDblClick', null, hotInstance._createCellCoords(row, col), TD);
       }

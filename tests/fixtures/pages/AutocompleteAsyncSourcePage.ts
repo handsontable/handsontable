@@ -3,6 +3,8 @@ import { type Locator, type Page, expect } from '@playwright/test';
 interface EditorFixture {
   isOpened(): boolean;
   state: string;
+  row: number;
+  col: number;
   rawChoices: unknown[];
   htEditor: { rootElement: HTMLElement };
   TEXTAREA: HTMLTextAreaElement;
@@ -116,6 +118,19 @@ export class AutocompleteAsyncSourcePage {
 
     await expect.poll(() => this.isEditorOpen()).toBe(true);
     await expect.poll(() => this.pendingQueryCount(col)).toBeGreaterThan(0);
+  }
+
+  /**
+   * Returns the coordinates of the cell the active editor is bound to, or `null` when there is no
+   * editor. `isEditorOpen()` only reports that SOME editor is open, which cannot tell an editor on
+   * the wrong cell apart from the right one.
+   */
+  async editorCoords(): Promise<[number, number] | null> {
+    return this.page.evaluate(() => {
+      const editor = (window as unknown as FixtureWindow).hot.getActiveEditor();
+
+      return editor ? [editor.row, editor.col] : null;
+    });
   }
 
   /**
