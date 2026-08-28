@@ -264,16 +264,25 @@ jobs:
             setReleaseDate('${RELEASE_DATE}');
           "
 
-      - name: Clean node_modules and lock files
+      # Dependencies are already installed above with --frozen-lockfile, so
+      # never clean and reinstall here: a regenerated lockfile floats every
+      # `^` range away from the set develop tested (DEV-2667).
+      - name: Update lockfile for version change
+        run: pnpm install --lockfile-only
+
+      # A version bump never changes pnpm-lock.yaml: the lockfile records
+      # `workspace:^` for every in-repo dependency, never the bumped version
+      # numbers. So a diff here means the `^` ranges re-resolved and the
+      # release would build against dependencies develop never tested — the
+      # DEV-2667 failure, which no downstream `--frozen-lockfile` install can
+      # catch, because a floated lockfile is internally consistent.
+      - name: Verify the lockfile did not float
         run: |
-          node -e "
-            import { cleanNodeModules } from './scripts/utils/filesystem.mjs';
-
-            cleanNodeModules();
-          "
-
-      - name: Install fresh dependencies
-        run: pnpm install --force
+          if ! git diff --quiet HEAD -- pnpm-lock.yaml; then
+            git diff --stat HEAD -- pnpm-lock.yaml
+            echo "::error::pnpm-lock.yaml changed while bumping the version, so dependencies floated away from the develop-tested set. Refusing to cut a release from an untested dependency graph. Land the intended lockfile change on develop, let CI verify it, then re-run this release."
+            exit 1
+          fi
 
       - name: Clean old package builds
         run: npm run all clean -- --e examples
@@ -326,6 +335,19 @@ jobs:
 
       - name: Generate version highlights scaffold
         run: node docs/scripts/generate-version-highlights.mjs '${{ steps.version.outputs.rc-version }}'
+
+      # Re-check right before `git add .`, because this job builds every package
+      # and installs the examples between the bump and the commit. Unlike the
+      # later RC cuts, that span has never been observed clean: the first-RC job
+      # runs once per release, and its only 18.1.0 run was the one that floated
+      # the lockfile. Cheaper than assuming.
+      - name: Verify the lockfile did not float
+        run: |
+          if ! git diff --quiet HEAD -- pnpm-lock.yaml; then
+            git diff --stat HEAD -- pnpm-lock.yaml
+            echo "::error::pnpm-lock.yaml changed while building the first release candidate, so dependencies floated away from the develop-tested set. Refusing to cut a release from an untested dependency graph. Land the intended lockfile change on develop, let CI verify it, then re-run this release."
+            exit 1
+          fi
 
       - name: Commit and push
         env:
@@ -735,6 +757,15 @@ jobs:
 
       - name: Update lockfile for version change
         run: pnpm install --lockfile-only
+
+      # Same guard as the first-RC cut above (DEV-2667).
+      - name: Verify the lockfile did not float
+        run: |
+          if ! git diff --quiet HEAD -- pnpm-lock.yaml; then
+            git diff --stat HEAD -- pnpm-lock.yaml
+            echo "::error::pnpm-lock.yaml changed while bumping the version, so dependencies floated away from the develop-tested set. Refusing to cut a release from an untested dependency graph. Land the intended lockfile change on develop, let CI verify it, then re-run this release."
+            exit 1
+          fi
 
       - name: Clean old package builds
         run: npm run all clean -- --e examples
@@ -1220,6 +1251,15 @@ jobs:
 
       - name: Update lockfile for version change
         run: pnpm install --lockfile-only
+
+      # Same guard as the first-RC cut above (DEV-2667).
+      - name: Verify the lockfile did not float
+        run: |
+          if ! git diff --quiet HEAD -- pnpm-lock.yaml; then
+            git diff --stat HEAD -- pnpm-lock.yaml
+            echo "::error::pnpm-lock.yaml changed while bumping the version, so dependencies floated away from the develop-tested set. Refusing to cut a release from an untested dependency graph. Land the intended lockfile change on develop, let CI verify it, then re-run this release."
+            exit 1
+          fi
 
       - name: Update changelog release date
         run: |
