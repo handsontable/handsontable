@@ -277,12 +277,7 @@ jobs:
       # DEV-2667 failure, which no downstream `--frozen-lockfile` install can
       # catch, because a floated lockfile is internally consistent.
       - name: Verify the lockfile did not float
-        run: |
-          if ! git diff --quiet HEAD -- pnpm-lock.yaml; then
-            git diff --stat HEAD -- pnpm-lock.yaml
-            echo "::error::pnpm-lock.yaml changed while bumping the version, so dependencies floated away from the develop-tested set. Refusing to cut a release from an untested dependency graph. Land the intended lockfile change on develop, let CI verify it, then re-run this release."
-            exit 1
-          fi
+        run: node .github/scripts/lockfile-float-gate.mjs 'bumping the version' 'develop'
 
       - name: Clean old package builds
         run: npm run all clean -- --e examples
@@ -342,12 +337,7 @@ jobs:
       # runs once per release, and its only 18.1.0 run was the one that floated
       # the lockfile. Cheaper than assuming.
       - name: Verify the lockfile did not float
-        run: |
-          if ! git diff --quiet HEAD -- pnpm-lock.yaml; then
-            git diff --stat HEAD -- pnpm-lock.yaml
-            echo "::error::pnpm-lock.yaml changed while building the first release candidate, so dependencies floated away from the develop-tested set. Refusing to cut a release from an untested dependency graph. Land the intended lockfile change on develop, let CI verify it, then re-run this release."
-            exit 1
-          fi
+        run: node .github/scripts/lockfile-float-gate.mjs 'building the first release candidate' 'develop'
 
       - name: Commit and push
         env:
@@ -760,12 +750,7 @@ jobs:
 
       # Same guard as the first-RC cut above (DEV-2667).
       - name: Verify the lockfile did not float
-        run: |
-          if ! git diff --quiet HEAD -- pnpm-lock.yaml; then
-            git diff --stat HEAD -- pnpm-lock.yaml
-            echo "::error::pnpm-lock.yaml changed while bumping the version, so dependencies floated away from the develop-tested set. Refusing to cut a release from an untested dependency graph. Land the intended lockfile change on develop, let CI verify it, then re-run this release."
-            exit 1
-          fi
+        run: node .github/scripts/lockfile-float-gate.mjs 'bumping the version' 'this release branch'
 
       - name: Clean old package builds
         run: npm run all clean -- --e examples
@@ -833,6 +818,11 @@ jobs:
 
       - name: Generate version highlights scaffold
         run: node docs/scripts/generate-version-highlights.mjs '${{ steps.rc-version.outputs.rc-version }}'
+
+      # Re-check right before `git add .`: every step between the bump and the
+      # commit is a chance to touch the lockfile, and `git add .` would commit it.
+      - name: Verify the lockfile did not float
+        run: node .github/scripts/lockfile-float-gate.mjs 'building this release candidate' 'this release branch'
 
       - name: Commit and push
         env:
@@ -1254,12 +1244,7 @@ jobs:
 
       # Same guard as the first-RC cut above (DEV-2667).
       - name: Verify the lockfile did not float
-        run: |
-          if ! git diff --quiet HEAD -- pnpm-lock.yaml; then
-            git diff --stat HEAD -- pnpm-lock.yaml
-            echo "::error::pnpm-lock.yaml changed while bumping the version, so dependencies floated away from the develop-tested set. Refusing to cut a release from an untested dependency graph. Land the intended lockfile change on develop, let CI verify it, then re-run this release."
-            exit 1
-          fi
+        run: node .github/scripts/lockfile-float-gate.mjs 'bumping the version' 'this release branch'
 
       - name: Update changelog release date
         run: |
@@ -1283,6 +1268,11 @@ jobs:
 
       - name: Update docs changelog
         run: node .github/scripts/update-docs-changelog.mjs '${{ steps.version.outputs.version }}'
+
+      # Re-check right before `git add .`: every step between the bump and the
+      # commit is a chance to touch the lockfile, and `git add .` would commit it.
+      - name: Verify the lockfile did not float
+        run: node .github/scripts/lockfile-float-gate.mjs 'preparing the stable release' 'this release branch'
 
       - name: Commit and push
         env:

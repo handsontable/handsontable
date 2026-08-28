@@ -4,110 +4,229 @@ import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
 
-// A release cut must ship the exact dependency set develop tested. `pnpm-lock.yaml`
-// records `workspace:^` for every in-repo dependency and never a package's own
-// version, so bumping the version can never legitimately change it. Any lockfile
-// change during a cut therefore means the `^` ranges re-resolved -- and the release
-// then builds against dependencies no CI run ever saw.
+// A release must ship the exact dependency set CI already tested. `pnpm-lock.yaml`
+// records `specifier: workspace:^` for every in-repo dependency and never a package's
+// own version, so bumping the version can never legitimately change it. Any difference
+// during a cut means the specifiers re-resolved -- and 15 of them are `latest`, which
+// re-resolves to whatever the registry serves that day.
 //
-// That is DEV-2667: the 18.1.0-rc1 cut deleted the lockfile and reinstalled with
-// `pnpm install --force`, floating 509 packages (core-js 3.37/3.49 -> 3.50,
-// browserslist 4.28.2 -> 4.28.8, hyperformula 3.3.0 -> 3.4.0). Every leg that
-// consumes a production bundle went red and stayed red for six release candidates.
+// That is DEV-2667: the 18.1.0-rc1 cut deleted the lockfile and reinstalled, floating
+// 509 packages (core-js 3.37/3.49 -> 3.50, browserslist 4.28.2 -> 4.28.8, hyperformula
+// 3.3.0 -> 3.4.0). Every leg consuming a production bundle went red and stayed red for
+// six release candidates.
 //
 // Nothing downstream catches this on its own: a floated lockfile is internally
-// consistent, so `pnpm install --frozen-lockfile` installs it happily. Only the
-// explicit guard does. This asserts the SHAPE of that arrangement, the way
-// `fork-guards.test.mjs` does for the fork/Dependabot token guards -- the failure
-// mode is a future edit reintroducing a clean-and-reinstall, or adding a cut path
-// without the guard, and nobody noticing until a release is unpublishable.
+// consistent, so `pnpm install --frozen-lockfile` installs it happily. Only
+// `lockfile-float-gate.mjs` does. This asserts the SHAPE of that arrangement, the way
+// `fork-guards.test.mjs` does for the fork/Dependabot token guards -- the failure mode
+// is a future edit deleting the lockfile again, or adding a cut path without the gate,
+// and nobody noticing until a release is unpublishable.
 
 const root = repoRoot();
-const workflowsDir = path.join(root, '.github/workflows');
 const read = rel => readFileSync(path.join(root, rel), 'utf8');
 
-const BUMP_STEP = '- name: Update lockfile for version change';
-const GUARD_STEP = '- name: Verify the lockfile did not float';
+const GATE = '.github/scripts/lockfile-float-gate.mjs';
+const BUMP_STEP = 'Update lockfile for version change';
+const COMMIT_STEP = 'Commit and push';
 
-// The three jobs in publish.yml that bump the version and commit the result.
-const EXPECTED_BUMP_SITES = 3;
+// One gate after each of the three version bumps, and one before each of the three
+// release commits -- every step in between is a chance to touch the lockfile, and
+// `git add .` would commit it.
+const EXPECTED_GATES = 6;
 
-// One guard per bump site, plus a second pass in `first-rc-build` right before its
-// commit -- that job builds every package and installs the examples in between.
-const EXPECTED_GUARDS = 4;
+// `stable-merge` resolves a pnpm-lock.yaml merge conflict by re-running the resolver,
+// which legitimately rewrites the file, so those two calls are deliberately ungated.
+// Pinning the total means a NEW `--lockfile-only` site cannot appear unnoticed.
+const EXPECTED_LOCKFILE_ONLY_CALLS = 5;
 
-test('no workflow reinstalls with --force, which recreates the lockfile', () => {
-  for (const file of readdirSync(workflowsDir).filter(f => f.endsWith('.yml'))) {
-    const source = read(`.github/workflows/${file}`);
+/**
+ * Every YAML file that GitHub Actions executes: workflows and the composite actions
+ * they call. Composite actions already run `pnpm install`, so a `--force` added there
+ * would be just as damaging and is invisible to a workflows-only scan.
+ *
+ * @returns {Array<{rel: string, source: string}>} Each file's repo-relative path and contents.
+ */
+function actionsYaml() {
+  const dirs = ['.github/workflows', '.github/actions'];
+  const files = [];
 
-    assert.equal(
-      /pnpm install\b[^\n]*\s--force\b/.test(source),
-      false,
-      `${file}: \`pnpm install --force\` recreates pnpm-lock.yaml from the registry, `
-      + 'floating every `^` range away from the develop-tested set (DEV-2667). '
-      + 'Install with the committed lockfile instead.'
-    );
+  for (const dir of dirs) {
+    for (const entry of readdirSync(path.join(root, dir), { withFileTypes: true, recursive: true })) {
+      if (!entry.isFile() || !/\.ya?ml$/.test(entry.name)) {
+        continue;
+      }
+
+      // `parentPath` is absolute; make it relative so failures name a checked-in path.
+      const rel = path.relative(root, path.join(entry.parentPath, entry.name));
+
+      files.push({ rel, source: readFileSync(path.join(root, rel), 'utf8') });
+    }
   }
-});
 
-test('no workflow deletes the lockfile via cleanNodeModules()', () => {
-  for (const file of readdirSync(workflowsDir).filter(f => f.endsWith('.yml'))) {
-    const source = read(`.github/workflows/${file}`);
+  return files;
+}
 
-    assert.equal(
-      source.includes('cleanNodeModules'),
-      false,
-      `${file}: cleanNodeModules() removes pnpm-lock.yaml, so the next install `
-      + 're-resolves every dependency (DEV-2667). It is a local developer script '
-      + '(`scripts/clean-node-modules.mjs`), not a CI step.'
-    );
-  }
-});
+/**
+ * Strip `#` comments so a ban cannot fire on prose that merely names the banned thing.
+ *
+ * Only handles whole-line and trailing comments, which is all these workflows contain.
+ * A `#` inside a quoted string would be over-stripped; none of the assertions below
+ * depend on quoted text.
+ *
+ * @param {string} source YAML source.
+ * @returns {string} The source with comments removed.
+ */
+function withoutComments(source) {
+  return source.split('\n').map(line => line.replace(/#.*$/, '')).join('\n');
+}
 
-test('the guard is not quietly dropped from a site', () => {
-  const source = read('.github/workflows/publish.yml');
-  const found = source.split(GUARD_STEP).length - 1;
+/**
+ * Split a workflow into its steps, text-based -- no YAML parser is a dependency of the
+ * repo root, and adding one to assert a step-ordering shape is not worth it.
+ *
+ * A step runs from a `      - ` line until the next one, or until any line indented
+ * less than the step body (the end of the job's `steps:` list). Bounding it at the job
+ * matters: an unbounded forward scan would let a gate in a LATER job satisfy an
+ * assertion about this one.
+ *
+ * @param {string} source Workflow source.
+ * @returns {Array<{line: number, name: string, body: string}>} Steps in file order.
+ */
+function steps(source) {
+  const lines = source.split('\n');
+  const found = [];
+  let current = null;
 
-  assert.equal(
-    found,
-    EXPECTED_GUARDS,
-    `publish.yml: expected ${EXPECTED_GUARDS} "${GUARD_STEP.slice(8)}" steps, found ${found}. `
-    + 'Removing one lets a floated lockfile reach a release commit unnoticed (DEV-2667).'
-  );
-});
+  const close = () => {
+    if (current) {
+      // The name may sit on the `- ` line or on any following key (`- uses:` first).
+      const name = /(?:^|\n)\s*-?\s*name:\s*(.+)$/m.exec(current.body);
 
-test('every version-bump site is followed by the lockfile-float guard', () => {
-  const lines = read('.github/workflows/publish.yml').split('\n');
-  const bumpSites = [];
+      current.name = name ? name[1].trim() : '';
+      found.push(current);
+      current = null;
+    }
+  };
 
   lines.forEach((line, index) => {
-    if (line.includes(BUMP_STEP)) {
-      bumpSites.push(index);
+    if (/^ {6}- /.test(line)) {
+      close();
+      current = { line: index + 1, body: line };
+
+    } else if (current) {
+      // Blank lines and deeper indentation belong to the step; anything shallower
+      // ends the job's step list.
+      if (line.trim() === '' || /^ {7,}/.test(line)) {
+        current.body += `\n${line}`;
+      } else {
+        close();
+      }
     }
   });
 
-  assert.equal(
-    bumpSites.length,
-    EXPECTED_BUMP_SITES,
-    `publish.yml: expected ${EXPECTED_BUMP_SITES} "${BUMP_STEP.slice(8)}" steps, found `
-    + `${bumpSites.length}. A cut path was added or removed -- update EXPECTED_BUMP_SITES `
-    + 'once the new site carries the guard too.'
-  );
+  close();
 
-  for (const at of bumpSites) {
-    // The guard is the very next named step, so stop at the one after it: reading
-    // further would let a guard on a later site pass for this one.
-    const next = lines
-      .slice(at + 1)
-      .findIndex(line => /^\s*-\s+name:/.test(line));
+  return found;
+}
 
-    assert.notEqual(next, -1, `publish.yml:${at + 1}: no step follows the version bump`);
+test('no workflow or composite action reinstalls with --force', () => {
+  // `--force` re-runs the resolver against the registry. Both spellings, and the
+  // `run: |` block form where the flag lands on a continuation line.
+  const forced = /pnpm\s+install\b[\s\S]{0,200}?(?:--force|(?<![\w-])-f)(?![\w-])/;
+
+  for (const { rel, source } of actionsYaml()) {
     assert.equal(
-      lines[at + 1 + next].includes(GUARD_STEP),
+      forced.test(withoutComments(source)),
+      false,
+      `${rel}: \`pnpm install --force\` (or \`-f\`) re-resolves dependencies instead of `
+      + 'installing the committed lockfile. Install with the lockfile as committed (DEV-2667).'
+    );
+  }
+});
+
+test('no workflow or composite action deletes the lockfile', () => {
+  // The rc1 float happened because the lockfile was DELETED and the reinstall then
+  // resolved from scratch -- deletion is the cause, not the reinstall flag. Ban the
+  // helper, the npm script that wraps it, and a direct removal.
+  const deletions = [
+    [/cleanNodeModules/, 'cleanNodeModules() removes pnpm-lock.yaml'],
+    [/clean:node_modules/, '`npm run clean:node_modules` wraps cleanNodeModules()'],
+    [/\b(?:rm|rimraf|unlink)\b[^\n]*pnpm-lock\.yaml/, 'this removes pnpm-lock.yaml directly'],
+  ];
+
+  for (const { rel, source } of actionsYaml()) {
+    const clean = withoutComments(source);
+
+    for (const [pattern, why] of deletions) {
+      assert.equal(
+        pattern.test(clean),
+        false,
+        `${rel}: ${why}, so the next install re-resolves every specifier -- 15 of them are `
+        + '`latest` (DEV-2667). It is a local developer script, not a CI step.'
+      );
+    }
+  }
+});
+
+test('the gate is not quietly dropped from a site', () => {
+  const found = read('.github/workflows/publish.yml').split(GATE).length - 1;
+
+  assert.equal(
+    found,
+    EXPECTED_GATES,
+    `publish.yml: expected ${EXPECTED_GATES} calls to ${GATE}, found ${found}. Removing one `
+    + 'lets a floated lockfile reach a release commit unnoticed (DEV-2667).'
+  );
+});
+
+test('no new --lockfile-only site appears ungated', () => {
+  const source = read('.github/workflows/publish.yml');
+  const found = source.split('pnpm install --lockfile-only').length - 1;
+
+  assert.equal(
+    found,
+    EXPECTED_LOCKFILE_ONLY_CALLS,
+    `publish.yml: expected ${EXPECTED_LOCKFILE_ONLY_CALLS} \`pnpm install --lockfile-only\` `
+    + `calls, found ${found}. Three follow a version bump and are gated; two resolve a `
+    + 'pnpm-lock.yaml merge conflict in `stable-merge` and legitimately rewrite the file. '
+    + 'A new one needs a deliberate decision about which kind it is (DEV-2667).'
+  );
+});
+
+test('every version bump is followed by the gate', () => {
+  const all = steps(read('.github/workflows/publish.yml'));
+  const bumps = all.filter(step => step.name === BUMP_STEP);
+
+  assert.equal(bumps.length, 3, `publish.yml: expected 3 "${BUMP_STEP}" steps, found ${bumps.length}`);
+
+  for (const bump of bumps) {
+    const next = all[all.indexOf(bump) + 1];
+
+    assert.equal(
+      next?.body.includes(GATE),
       true,
-      `publish.yml:${at + 1}: the version bump must be followed immediately by `
-      + `"${GUARD_STEP.slice(8)}". Without it a floated lockfile ships silently, because `
-      + 'a floated lockfile is internally consistent and passes `--frozen-lockfile` (DEV-2667).'
+      `publish.yml:${bump.line}: the version bump must be followed immediately by the `
+      + 'lockfile gate. Without it a floated lockfile ships silently, because a floated '
+      + 'lockfile is internally consistent and passes `--frozen-lockfile` (DEV-2667).'
+    );
+  }
+});
+
+test('every release commit is preceded by the gate', () => {
+  const all = steps(read('.github/workflows/publish.yml'));
+  const commits = all.filter(step => step.name === COMMIT_STEP);
+
+  assert.equal(commits.length, 3, `publish.yml: expected 3 "${COMMIT_STEP}" steps, found ${commits.length}`);
+
+  for (const commit of commits) {
+    const previous = all[all.indexOf(commit) - 1];
+
+    assert.equal(
+      previous?.body.includes(GATE),
+      true,
+      `publish.yml:${commit.line}: this step runs \`git add .\`, so it must be preceded by `
+      + 'the lockfile gate -- otherwise anything the build touched reaches the release '
+      + 'commit unchecked (DEV-2667).'
     );
   }
 });
