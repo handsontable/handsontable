@@ -5375,6 +5375,10 @@ export default function Core(
    *     nor [`rowHeights`](@/api/options.md#rowheights),
    *     nor [`AutoRowSize`](@/api/autoRowSize.md) is used.
    *
+   * Passing [`rowHeights`](@/api/options.md#rowheights) to
+   * [`updateSettings()`](@/api/core.md#updatesettings) discards the heights stored by
+   * [`ManualRowResize`](@/api/manualRowResize.md), so the option applies again from that point on.
+   *
    * The height returned includes 1 px of the row's bottom border.
    *
    * Mind that this method is different from the

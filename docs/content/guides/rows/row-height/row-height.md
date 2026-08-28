@@ -192,6 +192,15 @@ When you set a row height programmatically with [`ManualRowResize#setManualSize(
 
 :::
 
+A row resized this way keeps its height, and that height wins over the [`rowHeights`](@/api/options.md#rowheights) option. To hand control back to the option, pass `rowHeights` to [`updateSettings()`](@/api/core.md#updatesettings). That re-declares the heights and discards the stored ones:
+
+```js
+// every row is 50px again, including the rows the user dragged
+hot.updateSettings({ rowHeights: 50 });
+```
+
+To resize rows without discarding what the user dragged, leave `rowHeights` out of the call. To replace the stored heights with your own, pass [`manualRowResize`](@/api/options.md#manualrowresize) as an array. You can also clear them yourself with [`ManualRowResize#clearManualSize()`](@/api/manualRowResize.md#clearmanualsize) for one row, or [`clearManualSizes()`](@/api/manualRowResize.md#clearmanualsizes) for all of them, followed by `hot.render()`.
+
 ::: only-for javascript
 
 ::: example #example4 --js 1 --ts 2

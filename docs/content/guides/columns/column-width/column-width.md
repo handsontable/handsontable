@@ -249,6 +249,15 @@ When you set a column width programmatically with [`ManualColumnResize#setManual
 
 :::
 
+A column resized this way keeps its width, and that width wins over the [`colWidths`](@/api/options.md#colwidths) option. To hand control back to the option, pass `colWidths` to [`updateSettings()`](@/api/core.md#updatesettings). That re-declares the widths and discards the stored ones:
+
+```js
+// every column is 100px again, including the columns the user dragged
+hot.updateSettings({ colWidths: 100 });
+```
+
+To resize columns without discarding what the user dragged, leave `colWidths` out of the call. To replace the stored widths with your own, pass [`manualColumnResize`](@/api/options.md#manualcolumnresize) as an array. You can also clear them yourself with [`ManualColumnResize#clearManualSize()`](@/api/manualColumnResize.md#clearmanualsize) for one column, or [`clearManualSizes()`](@/api/manualColumnResize.md#clearmanualsizes) for all of them, followed by `hot.render()`.
+
 ::: only-for javascript
 
 ::: example #example4 --js 1 --ts 2

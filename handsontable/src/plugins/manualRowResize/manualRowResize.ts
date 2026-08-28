@@ -18,6 +18,7 @@ import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translati
 import {
   getElementScaleFactor,
   normalizeVisualDelta,
+  redeclaresManualSizes,
   shouldRefreshHandleAfterAutoResize,
   shouldSkipResizeHandlePositioning,
 } from '../manualResize/utils';
@@ -51,6 +52,17 @@ export class ManualRowResize extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the setting keys that trigger a plugin update after an `updateSettings()` call. The
+   * `rowHeights` option is listed alongside the plugin's own key, so that re-declaring the row
+   * heights discards the heights kept from earlier manual resizing.
+   *
+   * @returns {string[]}
+   */
+  static get SETTING_KEYS(): string[] {
+    return [PLUGIN_KEY, 'rowHeights'];
   }
 
   /**
@@ -196,12 +208,25 @@ export class ManualRowResize extends BasePlugin {
    *
    * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
    *  - [`manualRowResize`](@/api/options.md#manualrowresize)
+   *  - [`rowHeights`](@/api/options.md#rowheights)
+   *
+   * Passing `rowHeights` re-declares the row heights, so the heights kept from earlier manual
+   * resizing are discarded. A grid whose `manualRowResize` option is an array keeps that array
+   * instead, whether the array arrives in this call or was set when the grid was built.
+   *
+   * @param {object} [newSettings] The config object passed to `updateSettings()`.
    */
-  updatePlugin() {
+  updatePlugin(newSettings?: Record<string, unknown>) {
     this.disablePlugin();
     this.enablePlugin();
 
-    super.updatePlugin();
+    // Runs after `enablePlugin()`, so that the heights replayed on the map's `init` hook are
+    // discarded too.
+    if (redeclaresManualSizes(newSettings, 'rowHeights', this.hot.getSettings()[PLUGIN_KEY])) {
+      this.clearManualSizes();
+    }
+
+    super.updatePlugin(newSettings);
   }
 
   /**
@@ -275,6 +300,47 @@ export class ManualRowResize extends BasePlugin {
     }
 
     return newHeight;
+  }
+
+  /**
+   * Clears the height stored for the specified row, so the row falls back to the height coming from
+   * the [`rowHeights`](@/api/options.md#rowheights) option or from the theme. Call `render()`
+   * afterwards to repaint the grid.
+   *
+   * @example
+   * ```js
+   * const resizePlugin = hot.getPlugin('manualRowResize');
+   *
+   * resizePlugin.clearManualSize(0);
+   * hot.render();
+   * ```
+   *
+   * @param {number} row Visual row index.
+   */
+  clearManualSize(row: number): void {
+    const physicalRow = this.hot.toPhysicalRow(row);
+
+    if (physicalRow !== null) {
+      this.#rowHeightsMap.setValueAtIndex(physicalRow, null);
+    }
+  }
+
+  /**
+   * Clears the heights stored for every row, so the rows fall back to the heights coming from the
+   * [`rowHeights`](@/api/options.md#rowheights) option or from the theme. Call `render()` afterwards
+   * to repaint the grid.
+   *
+   * @example
+   * ```js
+   * const resizePlugin = hot.getPlugin('manualRowResize');
+   *
+   * resizePlugin.clearManualSizes();
+   * hot.render();
+   * ```
+   */
+  clearManualSizes(): void {
+    this.#config = [];
+    this.#rowHeightsMap.clear();
   }
 
   /**

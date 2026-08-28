@@ -1251,6 +1251,12 @@ export default (): Record<string, unknown> => {
      * of your columns. Otherwise, every column with an undefined width defaults back to 50px,
      * which may cut longer columns names.
      *
+     * A column resized by dragging keeps its width until the width is re-declared. Passing
+     * `colWidths` to [`updateSettings()`](@/api/core.md#updatesettings) re-declares the widths and
+     * discards the ones stored by the {@link ManualColumnResize} plugin. To keep those instead,
+     * leave `colWidths` out of the call, or pass
+     * [`manualColumnResize`](#manualColumnResize) as an array in the same call.
+     *
      * Read more:
      * - [Column width](@/guides/columns/column-width/column-width.md)
      * - [Hooks: `modifyColWidth`](@/api/hooks.md#modifyColWidth)
@@ -5871,8 +5877,14 @@ export default (): Record<string, unknown> => {
      * | A function  | Set row heights dynamically,<br>on each render                                                      | `rowHeights(visualRowIndex) { return visualRowIndex * 10; }` |
      * | `undefined` | Used by the [modifyRowHeight](@/api/hooks.md#modifyRowHeight) hook,<br>to detect row height changes | `rowHeights: undefined`                                      |
      *
-     * The `rowHeights` option also sets the minimum row height that can be set
-     * via the {@link ManualRowResize} and {@link AutoRowSize} plugins (if they are enabled).
+     * When the {@link AutoRowSize} plugin is enabled, `rowHeights` sets the minimum row height, so a
+     * row still grows to fit its content.
+     *
+     * A row resized by dragging keeps its height until the height is re-declared. Passing
+     * `rowHeights` to [`updateSettings()`](@/api/core.md#updatesettings) re-declares the heights and
+     * discards the ones stored by the {@link ManualRowResize} plugin. To keep those instead, leave
+     * `rowHeights` out of the call, or pass
+     * [`manualRowResize`](#manualRowResize) as an array in the same call.
      *
      * Read more:
      * - [Row height](@/guides/rows/row-height/row-height.md)

@@ -3,12 +3,21 @@ import { HotTableProps } from './types';
 import { areEquivalentSettingsValue } from './helpers';
 
 /**
- * Only `dataSchema` and `columns` use deep comparison when diffing props for `updateSettings(false)`.
- * Other object settings (for example `mergeCells`, `cell`, `nestedHeaders`, hooks) stay on strict
+ * Only these settings use deep comparison when diffing props for `updateSettings(false)`. Other
+ * object settings (for example `mergeCells`, `cell`, `nestedHeaders`, hooks) stay on strict
  * reference equality so we avoid expensive deep walks and accidental false positives where functions
  * or class instances would not compare meaningfully by keys alone.
+ *
+ * `rowHeights` and `colWidths` are here because passing either one re-declares the sizes and
+ * discards the ones the user produced by dragging (`ManualRowResize` / `ManualColumnResize`).
+ * A re-render must not do that, and a React app commonly writes the value inline
+ * (`rowHeights={[50, 50]}`), which is a new array on every render and never reference-equal. Both
+ * hold plain numbers, strings or arrays of them, so the deep walk is cheap. The Vue wrapper already
+ * skips unchanged keys this way.
  */
-const DEEP_COMPARABLE_SETTINGS: Array<keyof Handsontable.GridSettings> = ['dataSchema', 'columns'];
+const DEEP_COMPARABLE_SETTINGS: Array<keyof Handsontable.GridSettings> = [
+  'dataSchema', 'columns', 'rowHeights', 'colWidths'
+];
 
 export class SettingsMapper {
   /**

@@ -73,3 +73,42 @@ export function shouldRefreshHandleAfterAutoResize(
 ): boolean {
   return !!header?.parentNode && resizeClickCount >= 2;
 }
+
+/**
+ * Checks whether a config object passed to `updateSettings()` re-declares the sizes that one of the
+ * manual resize plugins keeps. Such a config discards the sizes the user set by dragging, so that
+ * the size option takes effect again.
+ *
+ * `pluginSetting` is the plugin option read from the merged settings rather than from the config
+ * object, so a grid configured with an array keeps that array whether the array arrives in this call
+ * or was set when the grid was built. In both cases it states the manual sizes explicitly, and the
+ * plugin replays it on the map's `init` hook - clearing it here would leave the stored sizes and the
+ * option disagreeing until the next replay put them back.
+ *
+ * @param {object|undefined} newSettings The config object passed to `updateSettings()`.
+ * @param {string} sizeOptionKey The size option name, `rowHeights` or `colWidths`.
+ * @param {*} pluginSetting The plugin option, `manualRowResize` or `manualColumnResize`, read from
+ *                          the merged settings.
+ * @returns {boolean}
+ */
+export function redeclaresManualSizes(
+  newSettings: Record<string, unknown> | undefined,
+  sizeOptionKey: string,
+  pluginSetting: unknown,
+): boolean {
+  if (!newSettings || Array.isArray(pluginSetting)) {
+    return false;
+  }
+
+  const sizeOption = newSettings[sizeOptionKey];
+
+  // A function states no fixed size - it is called again on every render, and a framework wrapper
+  // rebuilds an inline one on every render too, which would discard the stored sizes each time.
+  // Clear them with `clearManualSizes()` instead.
+  if (typeof sizeOption === 'function') {
+    return false;
+  }
+
+  // Matches how `BasePlugin` itself tests a config key for relevance.
+  return sizeOption !== undefined;
+}

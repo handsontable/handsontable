@@ -91,6 +91,57 @@ describe('Settings mapper unit tests', () => {
       expect(result.readOnly).toBe(false);
     });
 
+    // Issue #4371. Passing `rowHeights` or `colWidths` to `updateSettings()` re-declares the sizes
+    // and discards the ones the user produced by dragging. A re-render must not do that, and an app
+    // commonly writes the value inline, which is a new array on every render.
+    it('should skip `rowHeights` and `colWidths` when the value did not change', () => {
+      const prevProps: HotTableProps = {
+        rowHeights: [50, 50, 50],
+        colWidths: 100,
+        readOnly: false,
+      };
+      const nextProps: HotTableProps = {
+        // A new array with the same contents, as an inline prop produces on every render.
+        rowHeights: [50, 50, 50],
+        colWidths: 100,
+        readOnly: false,
+      };
+
+      const settings = SettingsMapper.getSettings(nextProps, { prevProps, isInit: false });
+
+      expect(settings.rowHeights).toBeUndefined();
+      expect(settings.colWidths).toBeUndefined();
+      expect(settings.readOnly).toBe(false);
+    });
+
+    it('should keep `rowHeights` and `colWidths` when the value changed', () => {
+      const prevProps: HotTableProps = {
+        rowHeights: [50, 50, 50],
+        colWidths: 100,
+      };
+      const nextProps: HotTableProps = {
+        rowHeights: [150, 150, 150],
+        colWidths: 120,
+      };
+
+      const settings = SettingsMapper.getSettings(nextProps, { prevProps, isInit: false });
+
+      expect(settings.rowHeights).toEqual([150, 150, 150]);
+      expect(settings.colWidths).toBe(120);
+    });
+
+    it('should keep `rowHeights` and `colWidths` when initializing', () => {
+      const props: HotTableProps = {
+        rowHeights: [50, 50, 50],
+        colWidths: 100,
+      };
+
+      const settings = SettingsMapper.getSettings(props, { prevProps: props, isInit: true });
+
+      expect(settings.rowHeights).toEqual([50, 50, 50]);
+      expect(settings.colWidths).toBe(100);
+    });
+
     it('should keep `dataSchema` in updated settings when the schema changes', () => {
       const prevProps: HotTableProps = {
         dataSchema: {

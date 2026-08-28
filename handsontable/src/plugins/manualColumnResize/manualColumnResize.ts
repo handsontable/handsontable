@@ -18,6 +18,7 @@ import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translati
 import {
   getElementScaleFactor,
   normalizeVisualDelta,
+  redeclaresManualSizes,
   shouldRefreshHandleAfterAutoResize,
   shouldSkipResizeHandlePositioning,
 } from './utils';
@@ -49,6 +50,17 @@ export class ManualColumnResize extends BasePlugin {
    */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
+  }
+
+  /**
+   * Returns the setting keys that trigger a plugin update after an `updateSettings()` call. The
+   * `colWidths` option is listed alongside the plugin's own key, so that re-declaring the column
+   * widths discards the widths kept from earlier manual resizing.
+   *
+   * @returns {string[]}
+   */
+  static get SETTING_KEYS(): string[] {
+    return [PLUGIN_KEY, 'colWidths'];
   }
 
   /**
@@ -203,12 +215,25 @@ export class ManualColumnResize extends BasePlugin {
    *
    * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
    *  - [`manualColumnResize`](@/api/options.md#manualcolumnresize)
+   *  - [`colWidths`](@/api/options.md#colwidths)
+   *
+   * Passing `colWidths` re-declares the column widths, so the widths kept from earlier manual
+   * resizing are discarded. A grid whose `manualColumnResize` option is an array keeps that array
+   * instead, whether the array arrives in this call or was set when the grid was built.
+   *
+   * @param {object} [newSettings] The config object passed to `updateSettings()`.
    */
-  updatePlugin() {
+  updatePlugin(newSettings?: Record<string, unknown>) {
     this.disablePlugin();
     this.enablePlugin();
 
-    super.updatePlugin();
+    // Runs after `enablePlugin()`, so that the widths replayed on the map's `init` hook are
+    // discarded too.
+    if (redeclaresManualSizes(newSettings, 'colWidths', this.hot.getSettings()[PLUGIN_KEY])) {
+      this.clearManualSizes();
+    }
+
+    super.updatePlugin(newSettings);
   }
 
   /**
@@ -290,6 +315,24 @@ export class ManualColumnResize extends BasePlugin {
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
     this.#columnWidthsMap.setValueAtIndex(physicalColumn, null);
+  }
+
+  /**
+   * Clears the widths stored for every column, so the columns fall back to the widths coming from
+   * the [`colWidths`](@/api/options.md#colwidths) option or from the theme. Call `render()`
+   * afterwards to repaint the grid.
+   *
+   * @example
+   * ```js
+   * const resizePlugin = hot.getPlugin('manualColumnResize');
+   *
+   * resizePlugin.clearManualSizes();
+   * hot.render();
+   * ```
+   */
+  clearManualSizes(): void {
+    this.#config = [];
+    this.#columnWidthsMap.clear();
   }
 
   /**
