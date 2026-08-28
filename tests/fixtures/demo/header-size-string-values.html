@@ -69,9 +69,26 @@
     guarded is that it instead reaches the sizing code and renders as `NaN`, which collapses the
     header.
   -->
+  <!--
+    The guides and both JSDoc blocks say the two forms can be mixed inside the array. Nothing
+    asserted that at runtime - only `settings.types.ts`, which is compile-time and never reaches the
+    resolver's `.map` path.
+  -->
+  <h2>Row header width, mixing a number and a pixel string</h2>
+  <div id="row-mixed" data-testid="row-mixed"></div>
+
   <h2>Values that are not a pixel size</h2>
   <div id="row-invalid" data-testid="row-invalid"></div>
   <div id="col-invalid" data-testid="col-invalid"></div>
+
+  <!--
+    An unreadable entry that is NOT the last one. `baseTable._modifyRowHeaderWidth` only corrects the
+    last entry, so the rejected one stays empty and `workspaceSize.getRowHeaderWidth` goes NaN and
+    measures the whole block from the DOM instead of using the default. Pinned here so the documented
+    limit is a tested fact rather than a claim.
+  -->
+  <h2>Row header width, unreadable entry before the last</h2>
+  <div id="row-invalid-first" data-testid="row-invalid-first"></div>
 
   <!--
     The default-sized reference. Every "falls back" assertion is made against this grid rather than
@@ -113,6 +130,25 @@
       }, settings));
     }
 
+    /**
+     * Builds a grid with two row header levels, so a per-level array has something to address.
+     * A grid with plain `rowHeaders: true` draws one level, and only entry 0 would ever be read.
+     *
+     * @param {string} testId The container's test id.
+     * @param {Array} rowHeaderWidth The per-level widths under test.
+     * @returns {Handsontable} The grid instance.
+     */
+    function buildTwoLevelGrid(testId, rowHeaderWidth) {
+      return buildGrid(testId, {
+        rowHeaderWidth,
+        afterGetRowHeaderRenderers(renderers) {
+          renderers.push((row, th) => {
+            th.textContent = `L${row}`;
+          });
+        },
+      });
+    }
+
     window.grids = {
       rowString: buildGrid('row-string', { rowHeaderWidth: String(SIZE) }),
       rowPx: buildGrid('row-px', { rowHeaderWidth: `${SIZE}px` }),
@@ -124,6 +160,10 @@
       rowInvalid: buildGrid('row-invalid', { rowHeaderWidth: '20em' }),
       colInvalid: buildGrid('col-invalid', { columnHeaderHeight: '50%' }),
       defaults: buildGrid('defaults', {}),
+      // Level 0 as a number, level 1 as a pixel string - the documented "mix both forms" case.
+      rowMixed: buildTwoLevelGrid('row-mixed', [60, '90px']),
+      // Level 0 unreadable, level 1 fine. The rejected entry is not the last one.
+      rowInvalidFirst: buildTwoLevelGrid('row-invalid-first', ['20em', 90]),
     };
 
     /**

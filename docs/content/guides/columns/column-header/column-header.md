@@ -322,6 +322,9 @@ an attribute, a JSON config, or a framework template still applies. You can mix 
 array. A value that states no pixel count, such as `'50%'` or `'20em'`, is ignored - the header keeps
 its default height, and Handsontable reports the value once in the browser console.
 
+A negative number is kept as it is, because numbers behave exactly as they did before this option
+read strings. A negative string is rejected, so a typo cannot collapse the header.
+
 The example below uses longer labels together with `columnHeaderHeight: 50`.
 
 ::: only-for javascript

@@ -41,7 +41,7 @@ import {
   A11Y_ROWCOUNT,
   A11Y_TREEGRID
 } from './helpers/a11y';
-import { parsePixelSize } from './helpers/number';
+import { parsePixelSize } from './utils/pixelSize';
 import { warnOnce } from './helpers/console';
 
 /**
@@ -59,16 +59,27 @@ function isUniformSizeSetting(value: unknown): boolean {
 /**
  * Renders a rejected setting value for the warning message.
  *
- * `JSON.stringify` is deliberately not used: it throws on a `BigInt` and on a circular object, and a
- * framework can hand either to a setting. This runs inside a Walkontable settings getter during a
- * draw, so a throw here would take the whole render down – the opposite of the fallback the warning
- * is reporting. `String()` is total for every value a setting can hold, symbols included.
+ * Nothing here may throw. This runs inside a Walkontable settings getter during a draw, and only on
+ * the path that is already falling back, so a throw would turn a soft fallback into a dead grid.
+ *
+ * `JSON.stringify` throws on a `BigInt` and on a circular object. `String()` is not safe either: it
+ * throws on an object with no prototype (`Object.create(null)`) and on one whose `toString`,
+ * `valueOf`, or `Symbol.toPrimitive` throws – and a framework can hand any of those to a setting.
+ * `Object.prototype.toString` never calls user code, so it is the fallback.
  *
  * @param {*} value The value that could not be read.
  * @returns {string}
  */
 function describeValue(value: unknown): string {
-  return typeof value === 'string' ? `"${value}"` : String(value);
+  if (typeof value === 'string') {
+    return `"${value}"`;
+  }
+
+  try {
+    return String(value);
+  } catch {
+    return Object.prototype.toString.call(value);
+  }
 }
 
 /**
@@ -90,12 +101,18 @@ function resolveHeaderSizeEntry(value: unknown, scope: object, optionName: strin
   const size = parsePixelSize(value);
 
   if (size === null) {
+    const described = describeValue(value);
+
     warnOnce(
+      // The value is part of the key, not just the message. Keyed on the option name alone, a later
+      // `updateSettings` with a different bad value would print nothing and the console would only
+      // ever name the first one.
       scope,
-      `invalid-header-size-${optionName}`,
+      `invalid-header-size-${optionName}-${described}`,
       `Handsontable: the \`${optionName}\` option expects a number of pixels, such as \`100\`, ` +
-      `\`'100'\`, or \`'100px'\`. The value ${describeValue(value)} cannot be read as a pixel size, ` +
-      'so it is ignored and the default size is used instead.'
+      `\`'100'\`, or \`'100px'\`. The value ${described} cannot be read as a pixel size, ` +
+      'so it is ignored and the default size is used instead. A negative number is kept as it is, ' +
+      'but a negative string is rejected the same way this value was.'
     );
 
     return null;
@@ -1511,15 +1528,18 @@ class TableView {
         }
         this.hot.runHooks('afterViewportColumnCalculatorOverride', calc);
       },
+      // Scoped to this `TableView`, not to `hot.rootElement`: the container outlives `destroy()`, so
+      // a component that remounts on the same node would inherit the old instance's warned-keys set
+      // and stay silent for the rest of the page.
       rowHeaderWidth: () => resolveHeaderSizeSetting(
-        this.settings.rowHeaderWidth, this.hot.rootElement, 'rowHeaderWidth'
+        this.settings.rowHeaderWidth, this, 'rowHeaderWidth'
       ),
       columnHeaderHeight: () => {
         const hookHeight = this.hot.runHooks('modifyColumnHeaderHeight');
         // Resolved before the merge below reads it, because that merge only accepts numbers – and
         // before the `levels === 0` shortcut, which returns the value without going through it.
         const configured = resolveHeaderSizeSetting(
-          this.settings.columnHeaderHeight, this.hot.rootElement, 'columnHeaderHeight'
+          this.settings.columnHeaderHeight, this, 'columnHeaderHeight'
         );
         const probe = this.renderSizeProbe.columnHeaderHeights;
         // Merge the three provided-height sources per header level: the `columnHeaderHeight` option

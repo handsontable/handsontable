@@ -906,6 +906,10 @@ export default (): Record<string, unknown> => {
      * config still applies. Both forms may be mixed inside the array. A value that is not a pixel
      * size, such as `'50%'` or `'20em'`, is ignored and the default height is used instead.
      *
+     * A negative number is kept as it is, because numbers keep the behavior they had before this
+     * option read strings at all. A negative string is rejected instead, so a typo cannot collapse
+     * the header.
+     *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
@@ -5619,8 +5623,15 @@ export default (): Record<string, unknown> => {
      *
      * The width is a number of pixels. A string that states a pixel size works too, either as a bare
      * number (`'25'`) or with the unit (`'25px'`), so a value coming from an attribute or a JSON
-     * config still applies. Both forms may be mixed inside the array. A value that is not a pixel
-     * size, such as `'50%'` or `'20em'`, is ignored and the default width is used instead.
+     * config still applies. Both forms may be mixed inside the array.
+     *
+     * A value that is not a pixel size, such as `'50%'` or `'20em'`, is ignored and the default width
+     * is used instead. Inside an array, that applies per level, so one unreadable entry does not
+     * disturb the levels around it.
+     *
+     * A negative number is kept as it is, because numbers keep the behavior they had before this
+     * option read strings at all. A negative string is rejected instead, so a typo cannot collapse
+     * the header.
      *
      * Row headers have a fixed width. A label longer than that width is clipped, and unlike column
      * headers, the header does not grow to fit it. To size the header to its content instead, turn
@@ -5631,7 +5642,7 @@ export default (): Record<string, unknown> => {
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
-     * @type {number|number[]}
+     * @type {number|number[]|string|string[]|Array<number|string>}
      * @default undefined
      * @category Core
      *
@@ -5639,6 +5650,9 @@ export default (): Record<string, unknown> => {
      * ```js
      * // set the same width for every row header
      * rowHeaderWidth: 25,
+     *
+     * // set the same width, written as a pixel size
+     * rowHeaderWidth: '25px',
      *
      * // set different widths for individual row headers
      * rowHeaderWidth: [25, 30, 55],

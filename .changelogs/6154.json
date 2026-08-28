@@ -1,8 +1,8 @@
 {
-  "issuesOrigin": "private",
+  "issuesOrigin": "public",
   "title": "Fixed the `rowHeaderWidth` option ignoring values passed as strings. Both `rowHeaderWidth` and `columnHeaderHeight` now accept a pixel size written as a string, either as a bare number (`'100'`) or with the unit (`'100px'`), in the scalar and the per-level array form alike. A value that states no pixel count, such as `'50%'` or `'20em'`, is ignored in favor of the default size and reported once in the console.",
   "type": "fixed",
-  "issueOrPR": 13288,
+  "issueOrPR": 6154,
   "breaking": false,
   "framework": "none"
 }

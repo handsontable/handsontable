@@ -16,6 +16,7 @@ export class HeaderSizeStringValuesPage {
     'row-string', 'row-px', 'row-array', 'row-number',
     'col-string', 'col-px', 'col-array',
     'row-invalid', 'col-invalid', 'defaults',
+    'row-mixed', 'row-invalid-first',
   ];
 
   readonly page: Page;
@@ -47,6 +48,17 @@ export class HeaderSizeStringValuesPage {
   async rowHeaderWidth(testId: string): Promise<number> {
     return this.grid(testId).locator('.ht_master tbody tr th').first()
       .evaluate(th => th.getBoundingClientRect().width);
+  }
+
+  /**
+   * The rendered width of every row header cell of the first body row, one per level.
+   *
+   * @param {string} testId The grid's test id.
+   * @returns {Promise<number[]>}
+   */
+  async rowHeaderWidths(testId: string): Promise<number[]> {
+    return this.grid(testId).locator('.ht_master tbody tr').first().locator('th')
+      .evaluateAll(cells => cells.map(cell => cell.getBoundingClientRect().width));
   }
 
   /**

@@ -8,11 +8,17 @@ import { HeaderSizeStringValuesPage } from '../fixtures/pages/HeaderSizeStringVa
  *
  * All of this is geometry, so none of it can be checked in jsdom, where every size reads as zero.
  *
- * The two options used to disagree for reasons that were pure accident. `rowHeaderWidth` ran
- * through a `typeof width === 'number'` guard that replaced any string with the default column
- * width, so a string never applied at all. `columnHeaderHeight` had no guard and reached a
- * `Math.max(height, providedHeight)`, which coerces `'100'` to `100` - so a bare numeric string
- * worked there while `'100px'` became `NaN`.
+ * The two options used to disagree for reasons that were pure accident, and the accident is a
+ * different one on each side. Read from the 18.0.0 tag:
+ *
+ * `rowHeaderWidth` ran through a `typeof width === 'number'` guard in `baseTable`'s
+ * `_correctRowHeaderWidth`, which replaced any string with the default column width. A string never
+ * applied at all, whatever it said.
+ *
+ * `columnHeaderHeight` was gated on `!isNaN(setting)` in `table.ts` instead. `'100'` passes that and
+ * is stored raw in `oversizedColumnHeaders`, where two consumers then coerce it: the style write
+ * builds `` `${value}px` ``, and `columnUtils.getHeaderHeight` runs `Math.max(height, value)`. So a
+ * bare numeric string worked. `'100px'` fails the `isNaN` gate and is dropped before either of them.
  */
 test.describe('Header size options given as strings', () => {
   let grid: HeaderSizeStringValuesPage;
@@ -72,6 +78,29 @@ test.describe('Header size options given as strings', () => {
     expect(await grid.columnHeaderHeight('col-string')).toBeCloseTo(afterFirstDraw, 0);
   });
 
+  test('applies a per-level width that mixes a number and a pixel string', async () => {
+    // The guides and both JSDoc blocks promise the two forms can be mixed. Until now only
+    // `settings.types.ts` said so, and that is compile-time - it never reaches the resolver's
+    // `.map` path, which is the code that actually has to handle a mixed array.
+    const [numberLevel, stringLevel] = await grid.rowHeaderWidths('row-mixed');
+
+    expect(numberLevel).toBeCloseTo(60, 0);
+    expect(stringLevel).toBeCloseTo(90, 0);
+  });
+
+  test('applies the default to an unreadable entry that is not the last one', async () => {
+    // `baseTable._modifyRowHeaderWidth` only runs its correction on the last array entry, so an
+    // earlier rejected entry reaches the viewport as empty and `getRowHeaderWidth` measures the
+    // header block from the DOM instead of summing. That path still lands on the right number,
+    // because `ColumnUtils.calculateWidths` has already substituted the default into the `col`
+    // element it then measures. Asserted here so the fallback stays true at every level, not just
+    // the last one.
+    const [rejectedLevel, readableLevel] = await grid.rowHeaderWidths('row-invalid-first');
+
+    expect(readableLevel).toBeCloseTo(90, 0);
+    expect(rejectedLevel).toBeCloseTo(await grid.rowHeaderWidth('defaults'), 0);
+  });
+
   test('ignores sizes that state no pixel count and keeps the default instead', async () => {
     // `'20em'` and `'50%'` depend on a layout context these settings have no access to. The grid
     // uses its default size rather than letting the value through to the sizing code, where it
@@ -103,7 +132,9 @@ test.describe('Warning for a size that states no pixel count', () => {
 
     const sizeWarnings = readWarnings().filter(text => text.includes('cannot be read as a pixel size'));
 
-    expect(sizeWarnings.filter(text => text.includes('`rowHeaderWidth`'))).toHaveLength(1);
+    // Two grids configure an unreadable `rowHeaderWidth` (`row-invalid` and `row-invalid-first`),
+    // and the scope is per grid, so each one warns for itself: two in total, not one and not ten.
+    expect(sizeWarnings.filter(text => text.includes('`rowHeaderWidth`'))).toHaveLength(2);
     expect(sizeWarnings.filter(text => text.includes('`columnHeaderHeight`'))).toHaveLength(1);
     // The rejected value is quoted back, so the reader can find it in their own config.
     expect(sizeWarnings.join('\n')).toContain('"20em"');
@@ -118,10 +149,11 @@ test.describe('Warning for a size that states no pixel count', () => {
     await grid.renderRepeatedly('colString', 5);
     await grid.renderRepeatedly('rowPx', 5);
 
-    // Only the two deliberately invalid grids may warn. A number, `'100'`, `'100px'` and an array
+    // Only the three deliberately invalid grids may warn. A number, `'100'`, `'100px'` and an array
     // of those must not - a warning on a supported form would train readers to ignore the channel.
+    // Re-rendering a valid grid must not add one either, which is what the extra draws above check.
     const sizeWarnings = readWarnings().filter(text => text.includes('cannot be read as a pixel size'));
 
-    expect(sizeWarnings).toHaveLength(2);
+    expect(sizeWarnings).toHaveLength(3);
   });
 });
