@@ -1049,11 +1049,19 @@ export class Filters extends BasePlugin {
       this.importConditions(this.#previousConditionStack);
     }
 
-    if (wasSelected && !isSelectionDropped &&
-        selectedHighlightColumn !== null && selectedHighlightColumn !== undefined) {
+    // The selection is read again here, and the captured value is only a FALLBACK. Both halves
+    // earn their place. A selection can arrive during the call - `emptyDataState` restores the one
+    // it stashed when the grid emptied, which is why the state at entry cannot be the only source -
+    // and a selection can disappear during it, dropped by the Core when the trim strands it, which
+    // is why the state at exit cannot be either.
+    const currentHighlightColumn = this.hot.getSelectedRangeActive()?.highlight.col;
+    const columnToSelect = currentHighlightColumn ?? selectedHighlightColumn;
+
+    if ((this.hot.selection.isSelected() || wasSelected) && !isSelectionDropped &&
+        columnToSelect !== null && columnToSelect !== undefined) {
       this.hot.selectCell(
         navigableHeaders ? -1 : 0,
-        selectedHighlightColumn,
+        columnToSelect,
       );
     }
 
