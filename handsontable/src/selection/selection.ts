@@ -178,6 +178,26 @@ class Selection {
    * @type {number | null}
    */
   #handlesHoveredLayer: number | null = null;
+  /**
+   * The PHYSICAL row of the record the active highlight points at, or `null` when there is no
+   * selection or the highlight sits on a header.
+   *
+   * The highlight itself stores a VISUAL coordinate, which a trimming index map can invalidate
+   * without touching it - the collapsed visual space no longer holds the record the user picked.
+   * The physical index is what survives that, and `IndexMapper#updateCache()` rebuilds every cache
+   * BEFORE it fires `cacheUpdated`, so it cannot be recovered afterwards. It has to be captured
+   * while the selection is being laid, which is what `#captureHighlightRecord()` does.
+   *
+   * @type {number | null}
+   */
+  #highlightPhysicalRow: number | null = null;
+  /**
+   * The PHYSICAL column of the record the active highlight points at, or `null`. The column twin of
+   * {@link Selection#highlightPhysicalRow}.
+   *
+   * @type {number | null}
+   */
+  #highlightPhysicalColumn: number | null = null;
 
   /**
    * Initializes the Selection manager with grid settings and table API references, and sets up transformation modules and highlight layers.
@@ -404,6 +424,11 @@ class Selection {
       this.selectedByRowHeader.clear();
       this.selectedByColumnHeader.clear();
     }
+
+    // Captured here as well as in `setRangeFocus()`, for the `fragment` path: it leaves the
+    // highlight written above as the final one, because `setRangeEnd()` never runs.
+    this.#captureHighlightRecord();
+
     if (!fragment) {
       this.setRangeEnd(coords);
     }
@@ -731,6 +756,9 @@ class Selection {
         .syncWith(cellRange);
     }
 
+    // After `syncWith()`, which may move the highlight again onto the nearest visible cell.
+    this.#captureHighlightRecord();
+
     if (!this.inProgress) {
       this.#isFocusSelectionChanged = true;
       this.runLocalHooks('afterSetFocus', cellRange.highlight);
@@ -972,6 +1000,57 @@ class Selection {
     this.runLocalHooks('afterIsMultipleSelection', isMultipleListener);
 
     return isMultipleListener.value;
+  }
+
+  /**
+   * Captures the record the active highlight points at, so a later trimming index map can be asked
+   * whether that record is still there. Runs wherever the highlight settles - see
+   * {@link Selection#highlightPhysicalRow} for why it cannot be read back on demand.
+   *
+   * @private
+   */
+  #captureHighlightRecord() {
+    const highlight = this.getActiveSelectedRange()?.highlight;
+
+    if (!highlight) {
+      this.#highlightPhysicalRow = null;
+      this.#highlightPhysicalColumn = null;
+
+      return;
+    }
+
+    const { row, col } = highlight;
+
+    // A header carries no record, so there is nothing to follow - a negative index captures as
+    // `null` and the stranded check then falls back to the range test for that axis.
+    this.#highlightPhysicalRow = row === null || row < 0 ?
+      null : this.tableProps.rowIndexMapper.getPhysicalFromVisualIndex(row);
+    this.#highlightPhysicalColumn = col === null || col < 0 ?
+      null : this.tableProps.columnIndexMapper.getPhysicalFromVisualIndex(col);
+  }
+
+  /**
+   * Tells whether one axis of the highlight no longer addresses the record it was captured on.
+   *
+   * @private
+   * @param {number | null} visualIndex The highlight's visual index on that axis.
+   * @param {number | null} physicalIndex The captured physical index on that axis, if any.
+   * @param {IndexMapper} indexMapper The index mapper for that axis.
+   * @param {number} count The number of visual indexes on that axis.
+   * @returns {boolean}
+   */
+  #isAxisStranded(
+    visualIndex: number | null, physicalIndex: number | null, indexMapper: IndexMapper, count: number): boolean {
+    // Headers are outside the record space and keep their own coordinates.
+    if (visualIndex === null || visualIndex < 0) {
+      return false;
+    }
+
+    if (physicalIndex !== null && indexMapper.getVisualFromPhysicalIndex(physicalIndex) === null) {
+      return true;
+    }
+
+    return visualIndex > count - 1;
   }
 
   /**
@@ -1279,6 +1358,80 @@ class Selection {
     // TODO: collections selectedByColumnHeader and selectedByRowHeader should be clear too.
     this.selectedRange.clear();
     this.highlight.clear();
+    this.#highlightPhysicalRow = null;
+    this.#highlightPhysicalColumn = null;
+  }
+
+  /**
+   * Re-reads the record the active highlight points at from its VISUAL coordinate.
+   *
+   * Called when a structural change (a row or column insert or remove) has renumbered the physical
+   * space: the captured physical index then addresses a different record, while the visual
+   * coordinate came through intact because the index mapper moved the visual space with it. So the
+   * visual side is the trustworthy one here, and the record is read back from it - the same repair
+   * `EditorManager#recaptureEditedRecord()` applies to the edited cell.
+   */
+  recaptureHighlightRecord() {
+    this.#captureHighlightRecord();
+  }
+
+  /**
+   * Deselects when a trimming index map has left the active highlight pointing at something other
+   * than the record it was put on. Returns whether the selection was dropped.
+   *
+   * A trimmed row leaves the visual space entirely, unlike a hidden one, so the highlight's visual
+   * coordinate can outlive the record it addressed. Writing through such a coordinate is what makes
+   * `applyChanges()` APPEND records to the data set - a paste, a Ctrl+Enter commit or an autofill
+   * all read the selection corners directly - so the selection is dropped rather than moved.
+   *
+   * Two shapes reach that corruption and both are checked here:
+   *   - the record is gone, and the coordinate now addresses a different one that took its place;
+   *   - the record survives further up, and the coordinate is left past the last row.
+   *
+   * ONE shape is deliberately not covered: a trim above the highlight that leaves the coordinate in
+   * range while shifting the record out from under it (trimming row 0 with row 3 highlighted moves
+   * that record to visual 2, and visual 3 now holds its neighbor). Closing it means deselecting on
+   * every trim above the selection, which is a wider behavior change than this repair takes on.
+   *
+   * The rule reads the ACTIVE layer's highlight only. When it fires the whole selection goes, so a
+   * stranded coordinate in a non-active layer of a multi-layer selection is not tracked.
+   *
+   * @returns {boolean}
+   */
+  deselectIfHighlightStranded(): boolean {
+    if (!this.isSelected()) {
+      return false;
+    }
+
+    const highlight = this.getActiveSelectedRange()?.highlight;
+
+    if (!highlight) {
+      return false;
+    }
+
+    const { row, col } = highlight;
+    // Sized from the index mappers rather than `countRows()`/`countCols()`: those read through the
+    // DataMap, which `updateData()` tears down and rebuilds while cache updates are still firing.
+    // The mappers own the trimmed visual space anyway, which is exactly what is being tested here.
+    //
+    // The two measures differ only where `maxRows`/`maxCols` binds - `DataMap#getLength()` is
+    // `Math.min(notTrimmedLength, maxRows)` - which makes this test the more permissive of the two,
+    // while `applyChanges()` grows the data set against the clamped one. That gap is unreachable:
+    // it is non-empty only when the setting is below the not-trimmed length, and in exactly that
+    // case a trim leaves the clamped count untouched, so a highlight that was in range before the
+    // trim is still in range after it. The record test above does not depend on either count.
+    const isRowStranded = this.#isAxisStranded(row, this.#highlightPhysicalRow,
+      this.tableProps.rowIndexMapper, this.tableProps.rowIndexMapper.getNotTrimmedIndexesLength());
+    const isColumnStranded = this.#isAxisStranded(col, this.#highlightPhysicalColumn,
+      this.tableProps.columnIndexMapper, this.tableProps.columnIndexMapper.getNotTrimmedIndexesLength());
+
+    if (!isRowStranded && !isColumnStranded) {
+      return false;
+    }
+
+    this.deselect();
+
+    return true;
   }
 
   /**
@@ -1703,6 +1856,11 @@ class Selection {
         .getFocus()
         .commit()
         .syncWith(cellRange);
+
+      // `syncWith()` is the one place a commit moves the visual highlight - onto the nearest
+      // visible cell when the hiding maps left it on a non-rendered one - so the record it now
+      // points at has to be re-read.
+      this.#captureHighlightRecord();
     }
 
     // Rewriting rendered ranges going through all layers.

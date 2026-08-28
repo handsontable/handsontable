@@ -78,6 +78,10 @@
       filters: true,
       dropdownMenu: true,
       trimRows: [],
+      // Registers a HIDING map, which is the control group: a hidden row keeps its place in the
+      // visual space, so a coordinate over it never strands. Empty, and inert until a case hides
+      // something.
+      hiddenRows: true,
       columnSorting: window.htSorting,
       // Sorting and row moving rearrange the visual space without trimming anything - they report
       // `indexesSequenceChanged`, not `trimmedIndexesChanged`. Enabled unconditionally; inert until

@@ -793,24 +793,98 @@ export default function Core(
 
   this.selection = selection;
 
+  let hadOpenEditorOnCacheUpdate = false;
+
   const onIndexMapperCacheUpdate = ({ hiddenIndexesChanged }: { hiddenIndexesChanged: boolean }) => {
     this.forceFullRender = true;
+
+    // Sampled HERE, before the public cache-update hooks run, because `EditorManager` discards a
+    // stranded editor inside those hooks - by the time the selection repair reads this, an editor
+    // that was open when the trim landed is already gone.
+    //
+    // One window is knowingly left open: a hook consumer that trims from inside
+    // `afterRowSequenceCacheUpdate` nests another cache update, which rewrites this flag before the
+    // outer repair reads it. The nested update samples the same editor state a moment later, so the
+    // two disagree only if that consumer also opened or closed an editor in between.
+    hadOpenEditorOnCacheUpdate = editorManager?.isEditorOpened() === true;
 
     if (hiddenIndexesChanged) {
       this.selection.commit();
     }
   };
 
-  this.columnIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: { hiddenIndexesChanged: boolean }) => {
+  let lastRowIndexCount = this.rowIndexMapper.getNumberOfIndexes();
+  let lastColumnIndexCount = this.columnIndexMapper.getNumberOfIndexes();
+
+  /**
+   * Drops a selection that a TRIMMING index map has left pointing at something other than the
+   * record it was put on.
+   *
+   * A hidden row keeps its place in the visual space, so `selection.commit()` above is enough for
+   * it. A trimmed row leaves that space, so the highlight's visual coordinate can outlive its
+   * record - and a write through such a coordinate makes `applyChanges()` APPEND records to the
+   * data set. `Selection#deselectIfHighlightStranded()` holds the rule and the reasoning.
+   *
+   * A structural change (a row or column insert or remove) raises `trimmedIndexesChanged` exactly
+   * as a filter does, so the flag alone cannot tell them apart. The SIZE of the physical space can:
+   * only an insert or a remove changes it. On a structural change the captured record is re-read
+   * from the visual coordinate instead - the same discrimination and the same repair
+   * `EditorManager` applies to an open editor - and `alter()` re-lays the selection through
+   * `shiftRows()`/`shiftColumns()` right after, which captures it again.
+   *
+   * An editor that was OPEN when the trim landed is left alone, and that is sampled before the
+   * public hooks rather than read here: `EditorManager` discards a stranded editor inside them, so
+   * reading it afterwards would see none and drop the selection out from under a user who is still
+   * typing. While an editor is in play the reconciliation there owns the outcome - and `deselect()`
+   * runs `afterDeselect`, whose first act is `editorManager.closeEditor()`, a commit rather than a
+   * discard.
+   *
+   * @param {boolean} isStructuralChange Whether that axis's physical index count just changed.
+   * @param {object} indexesChangesState The state object of the index mapper's cache update.
+   * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
+   */
+  const repairSelection = (
+    isStructuralChange: boolean, { trimmedIndexesChanged }: { trimmedIndexesChanged?: boolean }
+  ) => {
+    if (!this.selection.isSelected()) {
+      return;
+    }
+
+    if (isStructuralChange) {
+      this.selection.recaptureHighlightRecord();
+
+      return;
+    }
+
+    if (trimmedIndexesChanged && !hadOpenEditorOnCacheUpdate) {
+      this.selection.deselectIfHighlightStranded();
+    }
+  };
+
+  this.columnIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: {
+    hiddenIndexesChanged: boolean; trimmedIndexesChanged?: boolean;
+  }) => {
     onIndexMapperCacheUpdate(indexesChangesState);
 
     this.runHooks('afterColumnSequenceCacheUpdate', indexesChangesState);
+
+    const indexCount = this.columnIndexMapper.getNumberOfIndexes();
+
+    repairSelection(indexCount !== lastColumnIndexCount, indexesChangesState);
+    lastColumnIndexCount = indexCount;
   });
 
-  this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: { hiddenIndexesChanged: boolean }) => {
+  this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: {
+    hiddenIndexesChanged: boolean; trimmedIndexesChanged?: boolean;
+  }) => {
     onIndexMapperCacheUpdate(indexesChangesState);
 
     this.runHooks('afterRowSequenceCacheUpdate', indexesChangesState);
+
+    const indexCount = this.rowIndexMapper.getNumberOfIndexes();
+
+    repairSelection(indexCount !== lastRowIndexCount, indexesChangesState);
+    lastRowIndexCount = indexCount;
   });
 
   this.selection.addLocalHook('afterSetRangeEnd', (

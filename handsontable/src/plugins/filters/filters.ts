@@ -1000,6 +1000,16 @@ export class Filters extends BasePlugin {
       this.#previousConditionStack
     );
 
+    // Captured BEFORE any write to the trimming map below (`setValues`, `clear()`, and the
+    // `importConditions()` rollback all mutate it). Writing the map fires the index mapper's cache
+    // update, and the Core drops a selection that the trim left pointing at a record that is no
+    // longer there - so by the time the re-selection at the end of this method runs, there may be
+    // no selection left to read the column from. Reading it here also keeps the `beforeFilter`
+    // hook able to move the selection, which a consumer may legitimately do.
+    const wasSelected = this.hot.selection.isSelected();
+    const selectedHighlightColumn = this.hot.getSelectedRangeActive()?.highlight.col;
+    let isSelectionDropped = false;
+
     if (allowFiltering !== false && needToFilter) {
       const dataFilter = this._createDataFilter();
       const rowIndexesToShow = arrayMap(dataFilter.filter(),
@@ -1022,6 +1032,7 @@ export class Filters extends BasePlugin {
 
       if (!navigableHeaders && !rowIndexesToShow.length) {
         this.hot.deselectCell();
+        isSelectionDropped = true;
       }
 
       this.#previousConditionStack = this.exportConditions();
@@ -1037,15 +1048,12 @@ export class Filters extends BasePlugin {
       this.importConditions(this.#previousConditionStack);
     }
 
-    if (this.hot.selection.isSelected()) {
-      const highlightCol = this.hot.getSelectedRangeActive()?.highlight.col;
-
-      if (highlightCol !== null && highlightCol !== undefined) {
-        this.hot.selectCell(
-          navigableHeaders ? -1 : 0,
-          highlightCol,
-        );
-      }
+    if (wasSelected && !isSelectionDropped &&
+        selectedHighlightColumn !== null && selectedHighlightColumn !== undefined) {
+      this.hot.selectCell(
+        navigableHeaders ? -1 : 0,
+        selectedHighlightColumn,
+      );
     }
 
     if (allowFiltering !== false) {

@@ -10,6 +10,14 @@ interface TrimRowsPlugin {
   untrimRows(rows: number[]): void;
 }
 
+interface CopyPastePlugin {
+  paste(value: string): void;
+}
+
+interface HiddenRowsPlugin {
+  hideRows(rows: number[]): void;
+}
+
 interface ColumnSortingPlugin {
   sort(config: { column: number; sortOrder: string }): void;
 }
@@ -39,7 +47,11 @@ interface HandsontableFixture {
   countSourceRows(): number;
   countRows(): number;
   getPlugin(name: string): FiltersPlugin & TrimRowsPlugin & ColumnSortingPlugin & ManualRowMovePlugin
-    & ManualColumnMovePlugin;
+    & ManualColumnMovePlugin & CopyPastePlugin & HiddenRowsPlugin;
+  populateFromArray(
+    row: number, column: number, input: unknown[][], endRow: number | null, endColumn: number | null,
+    source?: string
+  ): void;
   updateData(data: unknown[][]): void;
   runHooks(name: string): void;
   toPhysicalRow(row: number): number;
@@ -508,5 +520,55 @@ export class EditorTrimmedRowPage {
    */
   async selected(): Promise<number[][] | undefined> {
     return this.page.evaluate(() => (window as Window & { hot: HandsontableFixture }).hot.getSelected());
+  }
+
+  /**
+   * Selects a single cell, opening no editor. The selection-versus-trimming cases are about the
+   * highlight alone, so nothing here may prepare or open an editor.
+   */
+  async selectCell(row: number, column: number): Promise<void> {
+    await this.page.evaluate(([targetRow, targetColumn]) => {
+      (window as Window & { hot: HandsontableFixture }).hot.selectCells([[targetRow, targetColumn,
+        targetRow, targetColumn]]);
+    }, [row, column] as [number, number]);
+  }
+
+  /**
+   * Hides rows through the `hiddenRows` plugin. A hiding map keeps its rows in the visual space, so
+   * this is the control for the trimming cases: the coordinates it produces stay addressable.
+   */
+  async hideRows(rows: number[]): Promise<void> {
+    await this.page.evaluate((targetRows) => {
+      (window as Window & { hot: HandsontableFixture }).hot.getPlugin('hiddenRows').hideRows(targetRows);
+    }, rows);
+  }
+
+  /**
+   * Pastes a value through the `copyPaste` plugin, which reads the selection's own corners. This is
+   * the user action (Ctrl+V) that turns a stranded highlight into appended records.
+   */
+  async pasteIntoSelection(value: string): Promise<void> {
+    await this.page.evaluate((pasted) => {
+      (window as Window & { hot: HandsontableFixture }).hot.getPlugin('copyPaste').paste(pasted);
+    }, value);
+  }
+
+  /**
+   * Writes through the selection's highlight with `populateFromArray`, the path a Ctrl+Enter commit
+   * and an autofill take. Reads the corners directly, exactly as the paste does.
+   */
+  async populateFromSelection(value: string): Promise<void> {
+    await this.page.evaluate((written) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      const selected = hot.getSelected();
+
+      if (!selected) {
+        return;
+      }
+
+      const [row, column] = selected[0];
+
+      hot.populateFromArray(row, column, [[written]], null, null, 'edit');
+    }, value);
   }
 }
