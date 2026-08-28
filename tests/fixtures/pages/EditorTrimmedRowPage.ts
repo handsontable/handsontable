@@ -25,6 +25,7 @@ interface ManualColumnMovePlugin {
 interface HandsontableFixture {
   addHook(name: string, callback: () => unknown): void;
   _getEditorManager(): { closeEditorAndSaveChanges(ctrlDown: boolean): void };
+  getSelectedRangeActive(): { from: { row: number | null } } | undefined;
   getSelected(): number[][] | undefined;
   selectCells(ranges: number[][]): void;
   selection: { transformFocus(row: number, col: number): void };
@@ -234,6 +235,19 @@ export class EditorTrimmedRowPage {
       hot.selectCells([targetRange as number[]]);
       hot.selection.transformFocus(row as number, column as number);
     }, [range, focusRow, focusColumn] as [number[], number, number]);
+  }
+
+  /**
+   * Sets the active range's starting row, preserving the current editor and its pending value.
+   */
+  async setActiveRangeStartRow(row: number): Promise<void> {
+    await this.page.evaluate((targetRow) => {
+      const range = (window as Window & { hot: HandsontableFixture }).hot.getSelectedRangeActive();
+
+      if (range) {
+        range.from.row = targetRow;
+      }
+    }, row);
   }
 
   /**

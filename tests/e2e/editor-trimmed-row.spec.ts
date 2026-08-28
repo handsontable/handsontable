@@ -617,6 +617,26 @@ test.describe('an index-map change on the column axis', () => {
  */
 test.describe('commit paths the rebind cannot reach', () => {
   /**
+   * Selecting an entire column uses `-1` as the range's row-header sentinel. When the editor's
+   * record moves, only real visual coordinates may move; shifting the sentinel makes the selection
+   * invalid.
+   */
+  test('preserves a column-header selection when the edited record moves',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.openEditorAndType(0, 0, 'EDITED');
+      await grid.setActiveRangeStartRow(-1);
+
+      await expect.poll(() => grid.isEditorOpen()).toBe(true);
+
+      await grid.moveRow(0, 4);
+
+      await expect.poll(() => grid.selected()).toEqual([[-1, 0, 4, 0]]);
+    });
+
+  /**
    * `DropdownEditor#finishEditing()` rewrites the commit into a discard when the active range no
    * longer contains `(this.row, this.col)`. The rebind moves those coordinates and nothing moves the
    * selection, so `Enter` discards. On develop this appended two records and wrote `'EDITED'` onto

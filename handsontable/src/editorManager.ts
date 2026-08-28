@@ -708,22 +708,22 @@ class EditorManager {
     if (activeSelectionRange) {
       const { from, to, highlight } = activeSelectionRange;
 
-      if (from.row !== null) {
+      if (from.row !== null && from.row >= 0) {
         from.row += rowOffset;
       }
-      if (from.col !== null) {
+      if (from.col !== null && from.col >= 0) {
         from.col += columnOffset;
       }
-      if (to.row !== null) {
+      if (to.row !== null && to.row >= 0) {
         to.row += rowOffset;
       }
-      if (to.col !== null) {
+      if (to.col !== null && to.col >= 0) {
         to.col += columnOffset;
       }
-      if (highlight.row !== null) {
+      if (highlight.row !== null && highlight.row >= 0) {
         highlight.row += rowOffset;
       }
-      if (highlight.col !== null) {
+      if (highlight.col !== null && highlight.col >= 0) {
         highlight.col += columnOffset;
       }
       this.selection.refresh();
