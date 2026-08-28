@@ -105,12 +105,14 @@ export class TouchTapToEditPage {
   }
 
   /**
-   * Assert a hook counter has reached exactly the expected value (a duplicate invocation lands
-   * synchronously with the tap, so it would already push the count past the value on the first
-   * read).
+   * Assert a hook counter has reached exactly the expected value, then read it once more: the
+   * poll returns on the first matching sample, and a duplicate invocation can land a browser task
+   * later, so the second read is what makes an over-count fail.
    */
   async expectHookCount(name: HookCounterName, expected: number): Promise<void> {
     await expect.poll(() => this.hookCount(name)).toBe(expected);
+
+    expect(await this.hookCount(name)).toBe(expected);
   }
 
   /**
