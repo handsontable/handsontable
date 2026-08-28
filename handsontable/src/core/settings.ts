@@ -149,7 +149,7 @@ export interface GridSettings {
   copyable?: boolean;
   copyPaste?: boolean | object;
   editor?: string | (new (...args: unknown[]) => unknown) | boolean;
-  emptyValue?: '' | null;
+  emptyValue?: CellValue;
   enterBeginsEditing?: boolean;
   enterMoves?: { col: number; row: number } | ((event: KeyboardEvent) => { col: number; row: number });
   fillHandle?: boolean | string | { autoInsertRow?: boolean; direction?: string };

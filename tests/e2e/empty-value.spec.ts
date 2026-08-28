@@ -55,22 +55,21 @@ test.describe('empty cell values', () => {
       await grid.expectChangeCount(1);
     });
 
-    test('writes a validated cell its own value back, so the validator still runs', async() => {
-      // Column 1 is `numeric`, which ships a validator. A validated cell has to see this confirm,
-      // because `allowInvalid: false` must keep the editor open on an invalid value however the user
-      // got there — so this path writes the cell's OWN value back rather than skipping.
+    test('fires no change event on a validated cell either', async() => {
+      // Column 1 is `numeric`, which ships a validator. That cell is still validated on this confirm
+      // — `allowInvalid: false` has to keep the editor open on an invalid value — but nothing is
+      // written, so the event count matches the unvalidated column.
       //
-      // The trade is one change event with the value unchanged. Validating in place instead was
-      // tried and reverted: `hot.validateCell()` calls back before `postAfterValidate`, and
-      // `allowInvalid: false` then failed to hold the editor open at all.
+      // An earlier version wrote the cell's value back to trigger validation. That fired an event
+      // here and not in column 0, a split nothing in the configuration predicted, and re-applied
+      // `valueSetter` and `emptyValue` to an already-stored value.
       await grid.openAndReplace(2, 0, 'anchor');
       await grid.expectChangeCount(1);
 
       await grid.openAndConfirmUnchanged(0, 1);
 
-      // The stored value is what matters, and it is untouched.
       await grid.expectSource(0, 1, 'null');
-      await grid.expectChangeCount(2);
+      await grid.expectChangeCount(1);
     });
 
     test('keeps `null` on a Ctrl+Enter over a single cell', async() => {

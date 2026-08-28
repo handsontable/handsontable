@@ -2394,7 +2394,7 @@ export default function Core(
         cellProperties = { ...Object.getPrototypeOf(tableMeta) as Record<string, unknown>, ...tableMeta };
       }
 
-      filteredChanges[i][3] = getValueSetterValue(newValue, cellProperties);
+      filteredChanges[i][3] = getValueSetterValue(newValue, cellProperties, source);
     }
 
     return filteredChanges;

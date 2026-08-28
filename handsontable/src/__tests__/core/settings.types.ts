@@ -70,9 +70,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
     {
       type: 'numeric',
       numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 },
-      // Pins the per-column form of `emptyValue` that the option's docs and the binding-to-data
-      // guide both show. `ColumnSettings` derives from `GridSettings`, so this compiles only while
-      // that stays true.
       emptyValue: null,
     },
     { type: 'text', readOnly: true }
@@ -995,3 +992,10 @@ const moveResult: boolean = hot.getPlugin('moveCells')
 // Regression: beforeInit accepts the array form, which the runtime has always supported (#5933).
 hot.updateSettings({ beforeInit: [() => {}, () => {}] });
 hot.updateSettings({ beforeInit: () => {} });
+
+// Regression: `emptyValue` must reach `ColumnSettings` from `GridSettings`, not through the
+// `[key: string]: any` index signature that `ColumnSettings` also carries. A literal inside the
+// `columns` array compiles either way, so it proves nothing on its own — this reads the property
+// type back out and fails if the option is ever dropped from `GridSettings`.
+const columnEmptyValue: Handsontable.ColumnSettings['emptyValue'] = null;
+const cellEmptyValue: Handsontable.CellMeta['emptyValue'] = null;

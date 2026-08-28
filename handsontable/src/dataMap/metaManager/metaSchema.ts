@@ -7284,12 +7284,14 @@ export default (): Record<string, unknown> => {
      * blank cell, store an empty string (`''`). Set `emptyValue` to `null` to make every one of those
      * paths agree on `null`.
      *
-     * You can set the `emptyValue` option to one of the following:
+     * The mapping is one-way: it rewrites an empty string to the value you set, and never the other
+     * way round. Paths that already store `null` are untouched.
      *
      * | Setting        | Description                                                              |
      * | -------------- | ------------------------------------------------------------------------ |
-     * | `''` (default) | Store an empty string when a cell is emptied                             |
-     * | `null`         | Store `null` when a cell is emptied                                      |
+     * | `''` (default) | Leave an emptied cell as the empty string the write produced             |
+     * | `null`         | Store `null` instead                                                     |
+     * | Any other value | Store that value instead                                                |
      *
      * Set `emptyValue: null` when the cell's value leaves the grid — saved to a server, written to a
      * database, or read by a formula. An empty string in a `numeric`, `date` or `time` column is a
@@ -7297,8 +7299,20 @@ export default (): Record<string, unknown> => {
      * `NULL` to a database. It also matches how spreadsheets tell a blank cell from an empty string:
      * `ISBLANK()` is `true` for `null` and `false` for `''`.
      *
-     * The option applies to every write path, including [`setDataAtCell()`](@/api/core.md#setdataatcell).
-     * Writing `''` through the API with `emptyValue: null` set stores `null`.
+     * The option applies to every **write** path: the editor, a paste, a fill,
+     * [`setDataAtCell()`](@/api/core.md#setdataatcell) and
+     * [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell). Writing `''` through either API
+     * with `emptyValue: null` set stores `null`.
+     *
+     * ::: tip
+     * Loading data is not a write. [`loadData()`](@/api/core.md#loaddata),
+     * [`updateData()`](@/api/core.md#updatedata), the initial [`data`](#data) and
+     * `updateSettings({ data })` all bypass this option, so an `''` already present in the data you
+     * load stays an `''`. A grid can therefore hold both `''` and `null` at once. Normalize the data
+     * before you load it if that matters to you.
+     *
+     * Undo and redo are exempt too: they restore what the cell held before, verbatim.
+     * :::
      *
      * A [`valueSetter`](#valuesetter) runs first, so a custom setter that returns `''` still means
      * "empty" and is mapped as well.

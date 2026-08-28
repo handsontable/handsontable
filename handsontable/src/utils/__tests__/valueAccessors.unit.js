@@ -82,14 +82,47 @@ describe('getValueSetterValue', () => {
       // A checkbox with `uncheckedTemplate: ''` stores `''` to mean "unchecked". Mapping that to
       // `null` would leave the cell matching neither template, so it renders `#bad-value#` and can
       // no longer be toggled.
-      expect(getValueSetterValue('', { emptyValue: null, uncheckedTemplate: '' })).toBe('');
-      expect(getValueSetterValue('', { emptyValue: null, checkedTemplate: '' })).toBe('');
+      expect(getValueSetterValue('', { emptyValue: null, type: 'checkbox', uncheckedTemplate: '' })).toBe('');
+      expect(getValueSetterValue('', { emptyValue: null, type: 'checkbox', checkedTemplate: '' })).toBe('');
+    });
+
+    it('reads the checkbox templates off the cell type, not off whatever meta carries them', () => {
+      // The templates cascade, so an `uncheckedTemplate` set once at grid level lands on every cell.
+      // Gating on the key alone would switch `emptyValue` off for every column in the grid.
+      expect(getValueSetterValue('', { emptyValue: null, uncheckedTemplate: '' })).toBe(null);
+      expect(getValueSetterValue('', { emptyValue: null, type: 'text', uncheckedTemplate: '' })).toBe(null);
     });
 
     it('still maps `\'\'` when the checkbox templates are ordinary values', () => {
       expect(
-        getValueSetterValue('', { emptyValue: null, checkedTemplate: 'yes', uncheckedTemplate: 'no' })
+        getValueSetterValue('', { emptyValue: null, type: 'checkbox', checkedTemplate: 'yes', uncheckedTemplate: 'no' })
       ).toBe(null);
+    });
+
+    it('leaves `\'\'` alone when a choice list offers it as a blank option', () => {
+      // Picking the blank entry is an explicit choice. Mapping it to `null` would then fail the
+      // autocomplete validator under `strict: true`, because `null` is not in `source`.
+      expect(getValueSetterValue('', { emptyValue: null, type: 'dropdown', source: ['', 'a', 'b'] })).toBe('');
+      expect(getValueSetterValue('', { emptyValue: null, type: 'autocomplete', source: ['', 'a'] })).toBe('');
+    });
+
+    it('still maps `\'\'` when a choice list does not offer it', () => {
+      expect(getValueSetterValue('', { emptyValue: null, type: 'dropdown', source: ['a', 'b'] })).toBe(null);
+    });
+
+    it('leaves undo and redo alone, so a stored `\'\'` can be restored', () => {
+      // `loadData` never passes through this function, so an `''` can predate the setting. Remapping
+      // it on undo would make the value the user undid to unreachable.
+      expect(getValueSetterValue('', { emptyValue: null }, 'UndoRedo.undo')).toBe('');
+      expect(getValueSetterValue('', { emptyValue: null }, 'UndoRedo.redo')).toBe('');
+      expect(getValueSetterValue('', { emptyValue: null }, 'edit')).toBe(null);
+    });
+
+    it('stores whatever `emptyValue` is set to, not only `null`', () => {
+      // The option reads as "the value to store", so an unsupported setting silently behaving as the
+      // default would be a trap.
+      expect(getValueSetterValue('', { emptyValue: 'N/A' })).toBe('N/A');
+      expect(getValueSetterValue('', { emptyValue: 0 })).toBe(0);
     });
   });
 });
