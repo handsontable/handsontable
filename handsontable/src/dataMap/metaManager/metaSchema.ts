@@ -842,6 +842,44 @@ export default (): Record<string, unknown> => {
      * To style the summary row, use the class name assigned automatically by the [`ColumnSummary`](@/api/columnSummary.md) plugin: `columnSummaryResult`.
      * :::
      *
+     * ### Where Handsontable adds the class names
+     *
+     * The target depends on the level at which you set the option:
+     *
+     * | Level                                | Container element | Cells                |
+     * | ------------------------------------ | ----------------- | -------------------- |
+     * | Grid                                 | Yes               | Every cell           |
+     * | [`columns`](#columns)                | No                | Cells of that column |
+     * | [`cells`](#cells) or [`cell`](#cell) | No                | The matching cells   |
+     *
+     * At the grid level, Handsontable adds the class names to two places. It adds them to the
+     * container element – the element that holds the grid – and, through
+     * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration),
+     * to every cell. To add class names to the `<table>` element instead, use [`tableClassName`](#tableClassName).
+     *
+     * To style the container element alone, set `className` at the grid level and clear it at the
+     * cell level:
+     *
+     * ```js
+     * const hot = new Handsontable(container, {
+     *   className: 'your-class-name',
+     *   // the container element keeps `your-class-name`, the cells don't receive it
+     *   cells() {
+     *     return { className: '' };
+     *   },
+     * });
+     * ```
+     *
+     * A `className` set at a lower level replaces the value from a higher level. It doesn't merge
+     * with it. To keep a class name from a higher level, repeat it at the lower level.
+     *
+     * ### Custom renderers
+     *
+     * Handsontable adds these class names to a cell even when the cell uses a custom
+     * [renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md) that calls no built-in
+     * renderer. Handsontable runs `baseRenderer` after your renderer whenever your renderer didn't
+     * run it. Before version 17.0.0, such a cell received no class names.
+     *
      * To apply different CSS class names on different levels, use Handsontable's [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration).
      *
      * Read more:
