@@ -340,6 +340,13 @@ export class AutocompleteEditor extends HandsontableEditor {
     //
     // Queries this editor deferred are cancelled outright; the token below is for the ones already
     // handed to user code, which cannot be.
+    //
+    // Known limitation: `refreshDimensions()` also calls `close()` as "hide for now" when the
+    // edited cell scrolls out of the rendered range, and there is no signal here to tell that apart
+    // from "the edit ended". So after the cell scrolls back the editor is visible again but its
+    // list can no longer populate. That path was already one-way before this change - the
+    // `removeHooksByKey` below means typing could not re-query after a scroll round trip either -
+    // and separating the two meanings belongs in `TextEditor`, not here.
     this.#queryTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
     this.#queryTimeouts.clear();
 
@@ -376,20 +383,19 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @param {string} query The query.
    */
   queryChoices(query: string): void {
-    // Both callers defer through `hot._registerTimeout()`, which has no cancel path - `close()`
-    // never clears the queue, so a timeout scheduled while the editor was open still fires after
-    // it closed. Bail rather than call the user's `source`, which is typically a network request.
+    // `close()` cancels the queries this editor deferred, so no internal caller reaches here once
+    // an edit has ended. This guard is for the public method: `queryChoices()` ships in the type
+    // declarations, and calling it while no edit is in progress must not invoke the user's
+    // `source`, which is typically a network request.
     //
-    // `state` rather than `isOpened()`: `_opened` is false for the whole of `open()`, and it stays
-    // false after `refreshDimensions()` closes an editor whose cell scrolled out of view and then
-    // shows it again on the way back, without ever restoring the flag. A guard on it would leave
-    // the suggestion list dead for the rest of such an edit. The close paths `state` cannot see are
-    // handled by the edit-session token instead, carried by each caller across its timeout.
-    //
-    // `WAITING` counts as open. `close()` is what unhooks `beforeKeyDown`, so keystrokes still
-    // schedule queries while an async validator runs, and under `allowInvalid: false` the editor
-    // stays open and returns to `EDITING`. Rejecting them here would stop the list refreshing for
+    // `WAITING` counts as in progress. `close()` is what unhooks `beforeKeyDown`, so keystrokes
+    // still schedule queries while an async validator runs, and under `allowInvalid: false` the
+    // editor stays open and returns to `EDITING`. Rejecting them would stop the list refreshing for
     // the length of every validation, which is a behavior change rather than a fix.
+    //
+    // `state` rather than `isOpened()`: `_opened` stays false after `refreshDimensions()` closes an
+    // editor whose cell scrolled out of view and then shows it again on the way back, without ever
+    // restoring the flag.
     if (this.state !== EDITOR_STATE.EDITING && this.state !== EDITOR_STATE.WAITING) {
       return;
     }

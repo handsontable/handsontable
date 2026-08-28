@@ -6104,7 +6104,7 @@ export default (): Record<string, unknown> => {
      *
      * Note: When `source` is a function, Handsontable ignores a response that arrives after the editor closed - including
      * a close you may not notice, such as scrolling the edited cell out of view - and it ignores a response that a newer
-     * query has superseded, which happens on every keystroke. Call the callback whenever the request completes, even late.
+     * query has superseded, which happens as you type. Call the callback whenever the request completes, even late.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)

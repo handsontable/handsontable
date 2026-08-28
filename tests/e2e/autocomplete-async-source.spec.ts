@@ -20,10 +20,11 @@ function sorted(values: string[]): string[] {
  * the suggestion list over a cell that was no longer being edited and called `hot.listen()`,
  * handing keyboard control back to the grid.
  *
- * The guard is keyed on `close()`, which bumps a query generation, rather than on either state
- * flag. Neither flag describes a closed editor on its own: `state` stays `EDITING` when
- * `refreshDimensions()` closes an editor whose cell scrolled out of the rendered range, and
- * `_opened` stays false after that same cell scrolls back and the editor is shown again.
+ * The fix keys on `close()` rather than on either state flag, because neither describes a closed
+ * editor on its own: `state` stays `EDITING` when `refreshDimensions()` closes an editor whose cell
+ * scrolled out of the rendered range, and `_opened` stays false after that same cell scrolls back
+ * and the editor is shown again. `close()` cancels the queries the editor deferred and ends the
+ * edit session that its `source` callbacks were issued under.
  *
  * The fixture's `source` answers only when a case tells it to, so "the answer arrives late" is
  * stated exactly instead of being raced against a timer.
@@ -126,7 +127,14 @@ EDITORS.forEach((editor) => {
     let grid: AutocompleteAsyncSourcePage;
 
     test.beforeEach(async({ page, theme, bundle }) => {
-      grid = new AutocompleteAsyncSourcePage(page, theme, bundle, { editor, validator: 'slowAsync' });
+      // `ordering` tags each answer with the index of the query it belongs to. Without that the
+      // second response is byte-identical to the first, the list never visibly changes, and the
+      // callback-guard half of this case would pass on the stale list.
+      grid = new AutocompleteAsyncSourcePage(page, theme, bundle, {
+        editor,
+        validator: 'slowAsync',
+        scenario: 'ordering',
+      });
       await grid.goto();
     });
 
@@ -150,9 +158,12 @@ EDITORS.forEach((editor) => {
 
       expect(await grid.resolveQueries(0)).toBeGreaterThan(0);
 
-      // And its answer has to render - that is the half the callback guard decides.
+      // And its answer has to REPLACE what the first one rendered - that is the half the callback
+      // guard decides, and only the tag can tell the two responses apart.
+      const secondAnswer = sorted((await grid.choicesFor(0)).map(choice => `${choice}-q1`));
+
       await expect.poll(() => grid.isDropdownShown()).toBe(true);
-      expect(sorted(await grid.dropdownChoices())).toEqual(sorted(await grid.choicesFor(0)));
+      await expect.poll(async() => sorted(await grid.dropdownChoices())).toEqual(secondAnswer);
 
       await grid.settleValidation();
     });
@@ -179,6 +190,28 @@ EDITORS.forEach((editor) => {
 
       await expect.poll(() => grid.isDropdownShown()).toBe(false);
       expect(await grid.listenCount()).toBe(listenCountBeforeResponse);
+    });
+  });
+
+  /**
+   * `queryChoices()` ships in the type declarations, and the changelog now states that it no-ops
+   * while no edit is in progress. With deferred queries cancelled on close, no internal caller can
+   * reach it outside an edit, so this contract is the entry guard's only remaining job - and
+   * removing that guard leaves every other case in this file green.
+   */
+  test.describe(`${editor} editor asked for choices with no edit in progress`, () => {
+    test('does not reach the source', async({ page, theme, bundle }) => {
+      const grid = new AutocompleteAsyncSourcePage(page, theme, bundle, { editor });
+
+      await grid.goto();
+      await grid.openEditor(0, 0);
+
+      await grid.page.keyboard.press('Escape');
+
+      await expect.poll(() => grid.isEditorOpen()).toBe(false);
+      expect(await grid.editorState()).toBe('STATE_VIRGIN');
+
+      expect(await grid.callQueryChoicesDirectly()).toBe(0);
     });
   });
 

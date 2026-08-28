@@ -5,6 +5,8 @@ interface EditorFixture {
   state: string;
   rawChoices: unknown[];
   htEditor: { rootElement: HTMLElement };
+  TEXTAREA: HTMLTextAreaElement;
+  queryChoices(query: string): void;
 }
 
 interface HandsontableFixture {
@@ -326,6 +328,25 @@ export class AutocompleteAsyncSourcePage {
    */
   async refocusCountAfterClose(): Promise<number> {
     return this.page.evaluate(() => (window as unknown as FixtureWindow).htRefocusAfterClose);
+  }
+
+  /**
+   * Calls the public `queryChoices()` and reports how many new queries reached the `source`.
+   *
+   * This is the only way to exercise the entry guard: with deferred queries cancelled on close, no
+   * internal caller can reach the method outside an edit, so the guard exists purely for the
+   * documented public contract - and that contract needs a test of its own.
+   */
+  async callQueryChoicesDirectly(): Promise<number> {
+    return this.page.evaluate(() => {
+      const fixture = window as unknown as FixtureWindow;
+      const editor = fixture.hot.getActiveEditor();
+      const before = fixture.htQueryCount();
+
+      editor?.queryChoices(editor.TEXTAREA.value);
+
+      return fixture.htQueryCount() - before;
+    });
   }
 
   /**
