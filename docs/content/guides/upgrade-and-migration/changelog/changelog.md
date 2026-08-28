@@ -26,9 +26,9 @@ This page aggregates all Handsontable release notes. For upgrade instructions, s
 
 [[toc]]
 
-## 18.1.0-rc6
+## 18.1.0-rc7
 
-Released on August 27th, 2026
+Released on August 28th, 2026
 
 For more information about this release, see:
 - [Documentation (18.1)](https://handsontable.com/docs/18.1)
@@ -43,6 +43,7 @@ For more information about this release, see:
 - Added the `colorScheme` and `density` options, which set the color scheme and the spacing of the grid without declaring a theme. [#13205](https://github.com/handsontable/handsontable/pull/13205)
 - Added a public API to the `NestedRows` plugin for collapsing and expanding parent rows: `collapseAll()`, `expandAll()`, `collapseParent()`, `expandParent()`, `toggleParent()`, `getCollapsedParents()`, `isParentCollapsed()`, `isParent()`, `getRowLevel()`, `getRowParent()`, `countChildren()`, `expandToRow()`, and `expandToLevel()`, plus the new `beforeRowCollapse`, `afterRowCollapse`, `beforeRowExpand`, and `afterRowExpand` hooks. The plugin also no longer loses its collapsed rows on an `updateSettings()` call, and no longer throws when asked for the index, parent, or nesting level of a row object held from before a `loadData()` or `updateData()` call. [#13206](https://github.com/handsontable/handsontable/pull/13206)
 - Added the `formulas.hyperlinks` option, which renders cells holding a `HYPERLINK` formula as clickable links. [#13223](https://github.com/handsontable/handsontable/pull/13223)
+- Added the `SanitizerContext` type, which lists the write surfaces the `sanitizer` option receives. [#13240](https://github.com/handsontable/handsontable/pull/13240)
 
 #### Changed
 - Reduced memory usage when scrolling large datasets by releasing cell metadata for rows scrolled out of the viewport. [#12854](https://github.com/handsontable/handsontable/pull/12854)
@@ -143,6 +144,10 @@ For more information about this release, see:
 - Angular: Fixed custom editor shortcut groups in the Angular wrapper. [#13160](https://github.com/handsontable/handsontable/pull/13160)
 - Fixed the grid no longer responding to keyboard shortcuts after clicking focusable plugin UI placed in the grid's layout slots (for example, pagination controls). [#13243](https://github.com/handsontable/handsontable/pull/13243)
 - Fixed an open cell editor staying visible over an unrelated row, and committing to a row you could no longer see, when the edited cell was hidden - for example by turning a Pagination page or hiding its row or column. [#13245](https://github.com/handsontable/handsontable/pull/13245)
+
+#### Security
+- Fixed pasted HTML being able to run scripts, and applied the `sanitizer` option to the surfaces that previously skipped it. [#13236](https://github.com/handsontable/handsontable/pull/13236)
+- Fixed the `dialog` plugin interpolating an unvalidated `template.id` into the dialog's `id` attribute, and the `loading` plugin rendering its `title` and `description` options as HTML. Those two `loading` options now render as text, so markup passed in them shows up literally instead of being interpreted; use `icon` for markup. The button `type` option of the `dialog`, `emptyDataState`, and `notification` plugins is now resolved where the markup is built. [#13242](https://github.com/handsontable/handsontable/pull/13242)
 
 ## 18.0.0
 
