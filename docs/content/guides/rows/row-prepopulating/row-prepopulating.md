@@ -27,6 +27,12 @@ Pre-populate new rows with default values when users add rows to the grid.
 
 To keep one empty row at the bottom of the grid, set [`minSpareRows`](@/api/options.md#minsparerows) to `1`.
 
+::: tip
+
+Do not combine [`minSpareRows`](@/api/options.md#minsparerows) with [`allowInsertRow: false`](@/api/options.md#allowinsertrow). The spare rows still appear, because [`minSpareRows`](@/api/options.md#minsparerows) ignores [`allowInsertRow`](@/api/options.md#allowinsertrow). But a paste into a spare row stops at the last row, so Handsontable writes the first pasted row and drops the rest without an error.
+
+:::
+
 ::: only-for javascript
 
 ::: example #example1 --js 1 --ts 2

@@ -138,7 +138,8 @@ function getItems(
     arrayEach(pattern as string[], (name: string, key: number) => {
       let item: Record<string, unknown> = items[name];
 
-      // Item deleted from settings `allowInsertRow: false` etc.
+      // A predefined item name with no entry in the items map. The `allowInsert*`/`allowRemove*`
+      // options do not reach here - they hide their items at render time via `hidden()`.
       if (!item && ITEMS.indexOf(name) >= 0) {
         return;
       }
