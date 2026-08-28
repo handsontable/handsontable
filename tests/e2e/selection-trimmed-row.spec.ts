@@ -94,6 +94,36 @@ test.describe('selection stranded by a trimming index map', () => {
     expect(await grid.sourceCell(3, 0)).toBe('PASTED');
   });
 
+  test('drops a multi-cell range whose far corner a trim left past the last row', async() => {
+    // The highlight sits on row 0 and keeps addressing a live record throughout, so the highlight
+    // test alone reports nothing. The RANGE is what a paste sizes its fill loop from: it runs down
+    // to `to.row`, which the trim has left past the last row, and every row it passes beyond the
+    // end gets created.
+    await grid.selectRangeWithFocusAt([0, 0, 4, 0], 0, 0);
+    await grid.trimRows([2, 3, 4]);
+
+    expect(await grid.selected()).toBeUndefined();
+
+    await grid.pasteIntoSelection('PASTED');
+
+    expect(await grid.sourceRowCount()).toBe(5);
+    expect(await grid.sourceData()).toEqual([
+      ['A0', 'B0'],
+      ['A1', 'B1'],
+      ['A2', 'B2'],
+      ['A3', 'B3'],
+      ['A4', 'B4'],
+    ]);
+  });
+
+  test('keeps a multi-cell range a trim left entirely in place', async() => {
+    await grid.selectRangeWithFocusAt([0, 0, 1, 0], 0, 0);
+    // Only rows below the range are trimmed, so neither corner moves out of range.
+    await grid.trimRows([4]);
+
+    expect(await grid.selected()).toEqual([[0, 0, 1, 0]]);
+  });
+
   test('drops every layer when the active highlight is the stranded one', async() => {
     await grid.selectCell(0, 0);
     await grid.selectRangeWithFocusAt([3, 0, 3, 0], 0, 0);

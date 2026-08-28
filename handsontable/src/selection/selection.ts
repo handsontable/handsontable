@@ -1052,6 +1052,14 @@ class Selection {
       return false;
     }
 
+    // An axis trimmed away ENTIRELY is not a stale selection, it is a grid with nothing on that
+    // axis to select - and a selection over it stays meaningful: copying with every row trimmed
+    // yields an empty table rather than nothing at all, and column headers still copy. Established,
+    // tested behavior, so the repair leaves it alone.
+    if (count === 0) {
+      return false;
+    }
+
     if (!unresolvableOnly && physicalIndex !== null &&
         indexMapper.getVisualFromPhysicalIndex(physicalIndex) === null) {
       return true;
@@ -1398,9 +1406,11 @@ class Selection {
    * `applyChanges()` APPEND records to the data set - a paste, a Ctrl+Enter commit or an autofill
    * all read the selection corners directly - so the selection is dropped rather than moved.
    *
-   * Two shapes reach that corruption and both are checked here:
+   * Three shapes reach that corruption and all are checked here:
    *   - the record is gone, and the coordinate now addresses a different one that took its place;
-   *   - the record survives further up, and the coordinate is left past the last row.
+   *   - the record survives further up, and the coordinate is left past the last row;
+   *   - the highlight is fine but a CORNER of the range is left past the last row, which a paste
+   *     still writes down to.
    *
    * ONE shape is deliberately not covered: a trim above the highlight that leaves the coordinate in
    * range while shifting the record out from under it (trimming row 0 with row 3 highlighted moves
@@ -1429,13 +1439,36 @@ class Selection {
       return false;
     }
 
-    const highlight = this.getActiveSelectedRange()?.highlight;
+    const range = this.getActiveSelectedRange();
 
-    if (!highlight) {
+    if (!range) {
       return false;
     }
 
+    const { highlight, from, to } = range;
     const { row, col } = highlight;
+    const maxRow = this.tableProps.rowIndexMapper.getNotTrimmedIndexesLength() - 1;
+    const maxColumn = this.tableProps.columnIndexMapper.getNotTrimmedIndexesLength() - 1;
+
+    // The CORNERS are tested for range as well as the highlight, and they are not redundant with
+    // it: a paste sizes its fill loop from `getTopStartCorner()`/`getBottomEndCorner()`, so a range
+    // dragged across rows that are then trimmed writes all the way down to `to.row` even while the
+    // highlight itself still addresses a live record. That is the same append, reached through a
+    // coordinate the highlight test never looks at.
+    //
+    // An axis trimmed away ENTIRELY is excluded. There the whole visual space is gone rather than
+    // the selection being stale, and selecting headers over it stays meaningful - copying column
+    // headers with every row trimmed is established, tested behavior.
+    const isCornerOutOfRange =
+      (maxRow >= 0 && ((from.row ?? 0) > maxRow || (to.row ?? 0) > maxRow)) ||
+      (maxColumn >= 0 && ((from.col ?? 0) > maxColumn || (to.col ?? 0) > maxColumn));
+
+    if (isCornerOutOfRange) {
+      this.deselect();
+
+      return true;
+    }
+
     // Sized from the index mappers rather than `countRows()`/`countCols()`: those read through the
     // DataMap, which `updateData()` tears down and rebuilds while cache updates are still firing.
     // The mappers own the trimmed visual space anyway, which is exactly what is being tested here.
@@ -1447,11 +1480,9 @@ class Selection {
     // case a trim leaves the clamped count untouched, so a highlight that was in range before the
     // trim is still in range after it. The record test above does not depend on either count.
     const isRowStranded = this.#isAxisStranded(row, this.#highlightPhysicalRow,
-      this.tableProps.rowIndexMapper, this.tableProps.rowIndexMapper.getNotTrimmedIndexesLength(),
-      unresolvableOnly);
+      this.tableProps.rowIndexMapper, maxRow + 1, unresolvableOnly);
     const isColumnStranded = this.#isAxisStranded(col, this.#highlightPhysicalColumn,
-      this.tableProps.columnIndexMapper, this.tableProps.columnIndexMapper.getNotTrimmedIndexesLength(),
-      unresolvableOnly);
+      this.tableProps.columnIndexMapper, maxColumn + 1, unresolvableOnly);
 
     if (!isRowStranded && !isColumnStranded) {
       return false;
