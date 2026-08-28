@@ -264,16 +264,20 @@ jobs:
             setReleaseDate('${RELEASE_DATE}');
           "
 
-      - name: Clean node_modules and lock files
-        run: |
-          node -e "
-            import { cleanNodeModules } from './scripts/utils/filesystem.mjs';
+      # Dependencies are already installed above with --frozen-lockfile, so
+      # never clean and reinstall here: a regenerated lockfile floats every
+      # `^` range away from the set develop tested (DEV-2667).
+      - name: Update lockfile for version change
+        run: pnpm install --lockfile-only
 
-            cleanNodeModules();
-          "
-
-      - name: Install fresh dependencies
-        run: pnpm install --force
+      # A version bump never changes pnpm-lock.yaml: the lockfile records
+      # `workspace:^` for every in-repo dependency, never the bumped version
+      # numbers. So a diff here means the `^` ranges re-resolved and the
+      # release would build against dependencies develop never tested — the
+      # DEV-2667 failure, which no downstream `--frozen-lockfile` install can
+      # catch, because a floated lockfile is internally consistent.
+      - name: Verify the lockfile did not float
+        run: node .github/scripts/lockfile-float-gate.mjs 'bumping the version' 'develop'
 
       - name: Clean old package builds
         run: npm run all clean -- --e examples
@@ -326,6 +330,14 @@ jobs:
 
       - name: Generate version highlights scaffold
         run: node docs/scripts/generate-version-highlights.mjs '${{ steps.version.outputs.rc-version }}'
+
+      # Re-check right before `git add .`, because this job builds every package
+      # and installs the examples between the bump and the commit. Unlike the
+      # later RC cuts, that span has never been observed clean: the first-RC job
+      # runs once per release, and its only 18.1.0 run was the one that floated
+      # the lockfile. Cheaper than assuming.
+      - name: Verify the lockfile did not float
+        run: node .github/scripts/lockfile-float-gate.mjs 'building the first release candidate' 'develop'
 
       - name: Commit and push
         env:
@@ -736,6 +748,10 @@ jobs:
       - name: Update lockfile for version change
         run: pnpm install --lockfile-only
 
+      # Same guard as the first-RC cut above (DEV-2667).
+      - name: Verify the lockfile did not float
+        run: node .github/scripts/lockfile-float-gate.mjs 'bumping the version' 'this release branch'
+
       - name: Clean old package builds
         run: npm run all clean -- --e examples
 
@@ -802,6 +818,11 @@ jobs:
 
       - name: Generate version highlights scaffold
         run: node docs/scripts/generate-version-highlights.mjs '${{ steps.rc-version.outputs.rc-version }}'
+
+      # Re-check right before `git add .`: every step between the bump and the
+      # commit is a chance to touch the lockfile, and `git add .` would commit it.
+      - name: Verify the lockfile did not float
+        run: node .github/scripts/lockfile-float-gate.mjs 'building this release candidate' 'this release branch'
 
       - name: Commit and push
         env:
@@ -1221,6 +1242,10 @@ jobs:
       - name: Update lockfile for version change
         run: pnpm install --lockfile-only
 
+      # Same guard as the first-RC cut above (DEV-2667).
+      - name: Verify the lockfile did not float
+        run: node .github/scripts/lockfile-float-gate.mjs 'bumping the version' 'this release branch'
+
       - name: Update changelog release date
         run: |
           VERSION='${{ steps.version.outputs.version }}'
@@ -1243,6 +1268,11 @@ jobs:
 
       - name: Update docs changelog
         run: node .github/scripts/update-docs-changelog.mjs '${{ steps.version.outputs.version }}'
+
+      # Re-check right before `git add .`: every step between the bump and the
+      # commit is a chance to touch the lockfile, and `git add .` would commit it.
+      - name: Verify the lockfile did not float
+        run: node .github/scripts/lockfile-float-gate.mjs 'preparing the stable release' 'this release branch'
 
       - name: Commit and push
         env:
