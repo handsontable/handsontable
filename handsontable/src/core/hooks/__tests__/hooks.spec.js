@@ -89,14 +89,18 @@ describe('Hooks', () => {
   });
 
   it('should fire the `beforeInit` hook declared in the settings object before the table view is created', async() => {
-    let viewAtCallTime = 'the hook was not called';
+    const handler = jasmine.createSpy('handler');
+    let viewAtCallTime;
 
     handsontable({
       beforeInit() {
+        handler();
         viewAtCallTime = this.view;
       },
     });
 
+    // Assert the call first, so a hook that never fires does not read as a wrong value.
+    expect(handler).toHaveBeenCalledTimes(1);
     expect(viewAtCallTime).toBeUndefined();
   });
 
@@ -129,6 +133,8 @@ describe('Hooks', () => {
     // `beforeInit` is registered up front and again by the `updateSettings()` call inside `init()`.
     expect(countEntries('beforeInit', beforeInitHandler)).toBe(1);
     expect(countEntries('afterInit', afterInitHandler)).toBe(1);
+    // The helper also writes the callback onto the table meta, so `getSettings()` returns it back.
+    expect(getSettings().beforeInit).toBe(beforeInitHandler);
   });
 
   it('should replace a settings-declared hook in place when `updateSettings()` passes a new callback', async() => {
@@ -156,16 +162,60 @@ describe('Hooks', () => {
   });
 
   it('should fire the `beforeInit` hook declared in the settings object after the plugins are initialized', async() => {
-    let pluginEnabledAtCallTime = 'the hook was not called';
+    const handler = jasmine.createSpy('handler');
+    let pluginEnabledAtCallTime;
 
     handsontable({
       comments: true,
       beforeInit() {
+        handler();
         pluginEnabledAtCallTime = this.getPlugin('comments').enabled;
       },
     });
 
+    expect(handler).toHaveBeenCalledTimes(1);
     expect(pluginEnabledAtCallTime).toBe(true);
+  });
+
+  it('should not fire the `construct` hook declared in the settings object, but should fire a global one', async() => {
+    const settingsHandler = jasmine.createSpy('settingsHandler');
+    const globalHandler = jasmine.createSpy('globalHandler');
+
+    Handsontable.hooks.add('construct', globalHandler);
+
+    try {
+      handsontable({
+        construct: settingsHandler,
+      });
+
+      // `construct` runs inside the constructor, so only `beforeInit` is pulled forward. Generalizing
+      // `registerSettingsHook()` to the whole settings walk would turn this green and reorder the
+      // plugin callbacks.
+      expect(settingsHandler).not.toHaveBeenCalled();
+      expect(globalHandler).toHaveBeenCalled();
+
+    } finally {
+      Handsontable.hooks.remove('construct', globalHandler);
+    }
+  });
+
+  it('should not fire the `afterPluginsInitialized` hook declared in the settings object, but should fire a global one', async() => {
+    const settingsHandler = jasmine.createSpy('settingsHandler');
+    const globalHandler = jasmine.createSpy('globalHandler');
+
+    Handsontable.hooks.add('afterPluginsInitialized', globalHandler);
+
+    try {
+      handsontable({
+        afterPluginsInitialized: settingsHandler,
+      });
+
+      expect(settingsHandler).not.toHaveBeenCalled();
+      expect(globalHandler).toHaveBeenCalled();
+
+    } finally {
+      Handsontable.hooks.remove('afterPluginsInitialized', globalHandler);
+    }
   });
 
   it('should fire the `beforeInit` hook added between `new Handsontable.Core()` and `init()`', async() => {

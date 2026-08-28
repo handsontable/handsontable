@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Sections 1 and 2 concern the [`sanitizer`](@/api/options.md#sanitizer) option. If you do not set one, neither affects you. Section 3 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it.
+Sections 1 and 2 concern the [`sanitizer`](@/api/options.md#sanitizer) option. If you do not set one, neither affects you. Section 3 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 4 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings.
 
 ## 1. Two `source` values your sanitizer receives have changed
 
@@ -188,4 +188,70 @@ cells(row, column) {
     valueGetter: value => value ?? computeSomething(row),
   };
 },
+```
+
+## 4. A `beforeInit` callback in your settings now runs
+
+Like section 2, this was a bug rather than a change of contract, but this one can stop the grid from
+loading, so read it if your settings object declares a `beforeInit` callback.
+
+[`beforeInit`](@/api/hooks.md#beforeinit) has been a documented option for years, and passing it in the
+settings object did nothing. Handsontable registered the callbacks from your settings only after it had
+already fired the hook, so the listener always arrived too late. Such a callback now runs.
+
+### Why a dormant callback can break the grid
+
+Because the callback never ran, its body was never exercised. If it calls a method that reads the data,
+it now throws, and nothing catches that. The grid never finishes building, so you get no grid at all.
+In the wrappers the error comes out of the component's mount.
+
+`beforeInit` fires before the data is loaded and before the table is rendered. Your settings are
+readable through [`getSettings()`](@/api/core.md#getsettings), but
+[`countRows()`](@/api/core.md#countrows), [`getData()`](@/api/core.md#getdata), and any method on
+`hot.view` are not available yet.
+
+### Who is affected
+
+You are affected only if your settings object declares `beforeInit`. Callbacks registered with
+`Handsontable.hooks.add('beforeInit', ...)` or with [`addHook()`](@/api/core.md#addhook) are unchanged,
+because those always worked.
+
+### How to migrate
+
+Check what the callback does. If it only prepares your own state, it needs no change. If it touches the
+grid, move that part to [`afterInit`](@/api/hooks.md#afterinit).
+
+**Before:**
+
+```js
+const hot = new Handsontable(container, {
+  data,
+  beforeInit() {
+    this.rowCount = this.countRows(); // Throws, the data is not loaded yet.
+  },
+});
+```
+
+**After:**
+
+```js
+const hot = new Handsontable(container, {
+  data,
+  afterInit() {
+    this.rowCount = this.countRows();
+  },
+});
+```
+
+### Two hooks that still cannot be used as options
+
+[`construct`](@/api/hooks.md#construct) and
+[`afterPluginsInitialized`](@/api/hooks.md#afterpluginsinitialized) run before Handsontable reads the
+callbacks from your settings, so declaring either as an option still does nothing. Register them
+globally:
+
+```js
+Handsontable.hooks.add('construct', () => {
+  // your code
+});
 ```

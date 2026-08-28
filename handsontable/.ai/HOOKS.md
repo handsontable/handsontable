@@ -45,7 +45,7 @@ Three mechanics are load-bearing:
 
 - **Removal is a true delete.** `remove` relinks the list around the entry. There is no soft-delete `skip` flag and no compaction threshold. An in-flight `run()` stays correct because it reads `entry.next` fresh after each callback, and `remove` never nulls a removed node's `next`, so a callback that removes itself can still advance.
 - **Duplicate add is silently ignored.** `add` walks the list and compares by reference. If the same function is already registered for that name, the call returns without adding a second entry. This check runs *before* the `initialHook` branch, so re-adding the same reference through `addAsFixed` is also a no-op.
-- **`addAsFixed` replaces in place.** When an entry for that name already has `initialHook`, `add` swaps its `callback` and keeps the node and its position, so an array previously returned by `getHooks()` reflects the swap. The framework wrappers depend on this.
+- **`addAsFixed` replaces in place.** When an entry for that name already has `initialHook`, `add` swaps its `callback` and keeps the node and its position, so an array previously returned by `getHooks()` reflects the swap. No production caller relies on that today — `bucket.ts` calls it a wrapper contract, but no file under `wrappers/*/src` reads `getHooks` or `getBucket`; the only non-core caller is `wrappers/vue3/test/hotTable.spec.ts`, which asserts it.
 
 ## The `Hooks` class API
 
@@ -209,11 +209,19 @@ Do not generalize that pull-forward to the whole settings object. Plugins attach
 inside `enablePlugin()`, which runs *during* the `beforeInit` dispatch, so registering everything early
 would place settings-declared callbacks ahead of every plugin callback, for every hook.
 
-Two hooks stay unreachable from the settings object by the same mechanism, and are documented as such
-on their JSDoc rather than fixed: **`construct`** (fires inside the Core constructor, so registering
-early enough would reorder hooks that wrappers attach between `new Handsontable.Core()` and `init()`)
-and **`afterPluginsInitialized`** (fires from `BasePlugin.init()` during the `beforeInit` dispatch).
-Both are listenable as global hooks.
+**Everything dispatched before that registration point is unreachable from the settings object** — not
+a closed pair. That covers `construct`, `afterPluginsInitialized`, and any hook a plugin fires from its
+own `enablePlugin()`, since all of those run during the constructor or the `beforeInit` dispatch. Two
+of them are named public options, so each carries a JSDoc note saying it is global-only:
+
+- **`construct`** fires as the constructor's last statement (`core.ts`, after the plugin loop). Making
+  it reachable means registering settings hooks inside the constructor, and there is no safe slot:
+  before the plugin loop inverts settings-vs-plugin order for *every* later hook, and after it still
+  puts settings hooks ahead of the ones wrappers attach between `new Handsontable.Core()` and `init()`
+  (the React wrapper attaches two there).
+- **`afterPluginsInitialized`** is run from `BasePlugin.init()` during the `beforeInit` dispatch.
+  Pulling it forward would land the callback before `enablePlugin()`, so the hook would fire before the
+  plugins are actually enabled.
 
 ```js
 new Handsontable(el, {

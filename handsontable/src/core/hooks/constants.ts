@@ -1627,12 +1627,21 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired before the Handsontable instance is initiated.
    *
-   * At this point the grid is only partly built. The settings are not applied yet, the data is not
-   * loaded, and the table is not rendered, so the plugins are initialized but most of the grid API is
-   * not ready. Calling a method that reads the data or the DOM, such as
-   * [`countRows()`](@/api/core.md#countrows), [`getData()`](@/api/core.md#getdata), or anything on
-   * `hot.view`, throws. Use this hook to prepare your own state, and use
+   * At this point the grid is only partly built. Your settings are already readable through
+   * [`getSettings()`](@/api/core.md#getsettings), but the data is not loaded and the table is not
+   * rendered. Calling a method that reads the data, such as
+   * [`countRows()`](@/api/core.md#countrows) or [`getData()`](@/api/core.md#getdata), throws.
+   * `hot.view` is still `undefined`, so reading it gives `undefined` and calling a method on it
+   * throws. Use this hook to prepare your own state, and use
    * [`afterInit`](@/api/hooks.md#afterinit) to work with the grid.
+   *
+   * Where the callback runs depends on how you register it. A callback passed in the settings object
+   * runs after the plugins are initialized. A callback registered globally with
+   * `Handsontable.hooks.add('beforeInit', callback)`, or with a negative `orderIndex`, runs before
+   * them.
+   *
+   * The hook fires once per instance creation. React's `StrictMode` mounts a component twice in
+   * development, so a grid created there fires it twice.
    *
    * @event Hooks#beforeInit
    */

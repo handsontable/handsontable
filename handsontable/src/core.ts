@@ -1733,6 +1733,9 @@ export default function Core(
     // late for `beforeInit` — hence registering that one here. Re-adding the same reference is a no-op.
     // Only `beforeInit` is pulled forward: doing it for the rest would order settings-declared
     // callbacks ahead of the plugin callbacks registered while `beforeInit` runs.
+    // Note for whoever deprecates this hook: it passes through the helper twice. The function form
+    // stays silent, but `Hooks#add` (the array form) warns on every attach without deduping, so an
+    // array-form `beforeInit` would then warn twice per instance.
     registerSettingsHook('beforeInit', mergedUserSettings.beforeInit as HookCallback | HookCallback[] | undefined);
 
     instance.runHooks('beforeInit');

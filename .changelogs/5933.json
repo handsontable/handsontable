@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Fixed a bug where the `beforeInit` hook passed in the settings object never fired.",
+  "title": "Fixed a bug where the `beforeInit` hook passed in the settings object never fired. Such callbacks now run, before the grid is fully initialized.",
   "type": "fixed",
   "issueOrPR": 5933,
   "breaking": false,

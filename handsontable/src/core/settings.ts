@@ -404,6 +404,11 @@ export interface GridSettings {
   afterPageSizeChange?: (oldPageSize: number | 'auto', newPageSize: number | 'auto') => void;
   afterPageSizeVisibilityChange?: (isVisible: boolean) => void;
   afterPaste?: (data: CellValue[][], coords: RangeType[]) => void;
+  /**
+   * Declaring this callback here has no effect: the hook runs during the `beforeInit` dispatch,
+   * before Handsontable reads the callbacks from the settings object. Register it globally with
+   * `Handsontable.hooks.add('afterPluginsInitialized', callback)` instead.
+   */
   afterPluginsInitialized?: () => void;
   afterRedo?: (action: UndoRedoAction) => void;
   afterRedoStackChange?: (undoneActionsBefore: UndoRedoAction[], undoneActionsAfter: UndoRedoAction[]) => void;
@@ -533,7 +538,7 @@ export interface GridSettings {
     highlightMeta: { selectionType: string; columnCursor: number; selectionWidth: number }) => number | void;
   beforeHighlightingRowHeader?: (row: number, headerLevel: number,
     highlightMeta: { selectionType: string; rowCursor: number; selectionHeight: number }) => number | void;
-  beforeInit?: () => void;
+  beforeInit?: (() => void) | (() => void)[];
   beforeInitWalkontable?: (walkontableConfig: object) => void;
   beforeKeyDown?: (event: KeyboardEvent) => void;
   beforeLanguageChange?: (languageCode: string) => void;
@@ -629,6 +634,11 @@ export interface GridSettings {
   beforeViewportScrollVertically?: (visualRow: number, snapping: 'auto' | 'top' | 'bottom') => number | boolean | null;
   beforeViewRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
   beforeWidthChange?: (width: number | string) => number | string;
+  /**
+   * Declaring this callback here has no effect: the hook runs inside the constructor, before
+   * Handsontable reads the callbacks from the settings object. Register it globally with
+   * `Handsontable.hooks.add('construct', callback)` instead.
+   */
   construct?: () => void;
   dialogFocusNextElement?: () => void;
   dialogFocusPreviousElement?: () => void;
