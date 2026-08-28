@@ -7287,11 +7287,12 @@ export default (): Record<string, unknown> => {
      * The mapping is one-way: it rewrites an empty string to the value you set, and never the other
      * way round. Paths that already store `null` are untouched.
      *
-     * | Setting        | Description                                                              |
-     * | -------------- | ------------------------------------------------------------------------ |
-     * | `''` (default) | Leave an emptied cell as the empty string the write produced             |
-     * | `null`         | Store `null` instead                                                     |
-     * | Any other value | Store that value instead                                                |
+     * | Setting                 | Description                                                     |
+     * | ----------------------- | --------------------------------------------------------------- |
+     * | `''` (default)          | Leave an emptied cell as the empty string the write produced    |
+     * | `null`                  | Store `null` instead                                            |
+     * | `undefined`             | Same as the default — the option counts as unset                |
+     * | Any other value         | Store that value instead                                        |
      *
      * Set `emptyValue: null` when the cell's value leaves the grid — saved to a server, written to a
      * database, or read by a formula. An empty string in a `numeric`, `date` or `time` column is a
@@ -7324,8 +7325,8 @@ export default (): Record<string, unknown> => {
      * :::
      *
      * @memberof Options#
-     * @since 18.1.0
-     * @type {''|null}
+     * @since 18.2.0
+     * @type {*}
      * @default ''
      * @category Core
      *

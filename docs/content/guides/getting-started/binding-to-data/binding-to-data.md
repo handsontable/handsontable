@@ -900,10 +900,13 @@ cell, and is never affected.
 Opening a cell editor and confirming it without typing anything never changes the cell, whatever
 `emptyValue` is set to.
 
-On a cell without a [`validator`](@/api/options.md#validator), nothing is written at all and no
-[`afterChange`](@/api/hooks.md#afterchange) hook fires. On a validated cell the value is written back
-unchanged, so the validator still runs and [`allowInvalid`](@/api/options.md#allowinvalid) keeps
-behaving as it always has. Either way the stored value stays exactly as it was.
+Nothing is written, and no [`afterChange`](@/api/hooks.md#afterchange) hook fires. That holds whether
+or not the cell has a [`validator`](@/api/options.md#validator).
+
+A validated cell is still validated on that confirm, so
+[`allowInvalid`](@/api/options.md#allowinvalid) keeps behaving as it always has and an invalid value
+still holds the editor open. The validator runs against the cell's stored value directly, which is
+why no write is needed to trigger it.
 
 :::
 

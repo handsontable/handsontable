@@ -37,6 +37,12 @@ describe('getValueSetterValue', () => {
       expect(getValueSetterValue('', {})).toBe('');
     });
 
+    it('treats an explicit `undefined` as unset rather than storing `undefined`', () => {
+      // Otherwise a cascade that resolves to `undefined` - a column clearing a grid-level setting -
+      // would blank the cell instead of falling back to the default.
+      expect(getValueSetterValue('', { emptyValue: undefined })).toBe('');
+    });
+
     it('stores `null` instead of an empty string when set to `null`', () => {
       expect(getValueSetterValue('', { emptyValue: null })).toBe(null);
     });
