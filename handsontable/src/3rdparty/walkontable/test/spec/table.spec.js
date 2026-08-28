@@ -353,6 +353,48 @@ describe('WalkontableTable', () => {
     expect(getTableMaster().find('tbody tr:first td:first').text()).toBe('2');
   });
 
+  it('should render enough rows to fill the viewport when the rows shrink between two draws (#6452)', async() => {
+    // Rows 1-3 render 200px tall on the first draw (walkontable measures them as "oversized"),
+    // and at the default height on the second one. The second draw must not keep the band
+    // computed from the stale 200px records - it has to refill the 300px viewport.
+    createDataArray(100, 4);
+    spec().$wrapper.width(300).height(300);
+
+    let tallRows = true;
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      cellRenderer(row, column, TD) {
+        TD.innerHTML = tallRows && row >= 1 && row <= 3
+          ? `<div style="height: 200px">${getData(row, column)}</div>`
+          : getData(row, column);
+      },
+    });
+
+    wt.draw();
+
+    // Sanity: the first draw measured the tall rows, so a full redraw with the same content
+    // keeps a short band (23px + 3 * 200px already exceeds the 300px viewport).
+    wt.draw();
+
+    const renderedTallRowsCount = getTableMaster().find('tbody tr').length;
+
+    expect(renderedTallRowsCount).toBeLessThanOrEqual(3);
+
+    tallRows = false;
+    wt.draw();
+
+    const $rows = getTableMaster().find('tbody tr');
+    const lastRowBottom = $rows.last()[0].getBoundingClientRect().bottom;
+    const holderBottom = getTableMaster().find('.wtHolder')[0].getBoundingClientRect().bottom;
+
+    // 300px / 23px default row height -> at least 13 rows are needed to fill the viewport.
+    expect($rows.length).toBeGreaterThanOrEqual(13);
+    expect(lastRowBottom).toBeGreaterThanOrEqual(holderBottom - 1);
+  });
+
   it('should use column width function to get column width', async() => {
     spec().$wrapper.width(600);
 
@@ -654,5 +696,143 @@ describe('WalkontableTable', () => {
     wt.draw();
 
     expect(cellRenderer).toHaveBeenCalledTimes(18);
+  });
+  describe('post-render visible calculators when the rendered rows grow (DEV-406)', () => {
+    // On the single-pass calculator path (uniform sizes, own-element scroll) the fully-visible row
+    // band is computed BEFORE the cells render. When the rendered rows then measure TALLER than the
+    // heights that band was built from, only the post-render `createVisibleCalculators()` pass can
+    // correct it. Anything that rebuilds the row-height cache before that pass decides whether to
+    // run makes the cache look current again, and the frame then reports a visible band measured
+    // against the pre-render heights.
+    function makeGrowingRowsWot(state) {
+      const cellRenderer = jasmine.createSpy('cellRenderer').and.callFake((row, col, TD) => {
+        if (state.tall && row < 3) {
+          TD.innerHTML = '<div style="height: 200px"></div>';
+        } else {
+          TD.innerHTML = `r${row}c${col}`;
+        }
+      });
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        rowHeightsUniform: () => true,
+        columnWidthsUniform: () => true,
+        cellRenderer,
+      });
+
+      return { wt, cellRenderer };
+    }
+
+    it('should report the grown rows in the visible row band on the same draw', async() => {
+      spec().$wrapper.width(300).height(300);
+
+      const state = { tall: false };
+      const { wt } = makeGrowingRowsWot(state);
+
+      wt.draw();
+
+      // The scenario only exercises the post-render pass on the single-pass path.
+      expect(wt.wtViewport.usesLayoutSnapshotForCalculators()).toBe(true);
+
+      const beforeGrowDraw = wt.wtTable.getLastVisibleRow();
+
+      state.tall = true;
+      wt.draw();
+
+      const afterGrowDraw = wt.wtTable.getLastVisibleRow();
+
+      // The third draw is the oracle: the grown heights are recorded by then, so its very first
+      // calculator pass is already built from them.
+      wt.draw();
+
+      expect(afterGrowDraw).not.toBe(beforeGrowDraw);
+      expect(afterGrowDraw).toBe(wt.wtTable.getLastVisibleRow());
+    });
+
+    it('should render every cell of the grown band exactly once', async() => {
+      spec().$wrapper.width(300).height(300);
+
+      const state = { tall: false };
+      const { wt, cellRenderer } = makeGrowingRowsWot(state);
+
+      wt.draw();
+
+      state.tall = true;
+      cellRenderer.calls.reset();
+
+      wt.draw();
+
+      const renderedCoords = cellRenderer.calls.allArgs().map(([row, col]) => `${row},${col}`);
+
+      // A refill pass would re-render the whole band, so a repeated coordinate is the signal that
+      // the draw spent more than one cell-band render.
+      expect(renderedCoords.length).toBeGreaterThan(0);
+      expect(new Set(renderedCoords).size).toBe(renderedCoords.length);
+    });
+  });
+
+  describe('refilled rendered row band (DEV-406)', () => {
+    // The refill in `table/drawCycle.ts` takes a pass only when the proposed band grows the BOTTOM
+    // edge - #6452 is an under-filled bottom. A proposal that only reaches HIGHER while its bottom
+    // edge comes in must be declined: that is what a grid whose heights depend on the band being
+    // rendered proposes on every scroll draw (virtualized merged cells), and the band it already
+    // rendered is correct. A declined pass must leave the rendered band exactly as it was.
+    it('should not refill when the proposal only moves the bottom edge inwards', async() => {
+      createDataArray(100, 4);
+      spec().$wrapper.width(300).height(300);
+
+      const providedHeights = new Map();
+      const state = { tallCells: false };
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        rowHeight: row => providedHeights.get(row),
+        rowHeightByOverlayName: row => providedHeights.get(row),
+        cellRenderer(row, column, TD) {
+          TD.innerHTML = state.tallCells && row >= 20
+            ? `<div style="height: 100px">${getData(row, column)}</div>`
+            : getData(row, column);
+        },
+      });
+
+      wt.draw();
+
+      getTableMaster().find('.wtHolder').scrollTop(460);
+
+      await sleep(20);
+
+      wt.draw();
+
+      const firstRenderedRow = wt.wtTable.getFirstRenderedRow();
+      const lastRenderedRow = wt.wtTable.getLastRenderedRow();
+      const renderedRowsCount = getTableMaster().find('tbody tr').length;
+
+      // The band has to start mid-table for the scenario to say anything.
+      expect(firstRenderedRow).toBeGreaterThan(0);
+
+      // The rows ABOVE the band grow, so the same scroll offset now proposes a band that starts
+      // EARLIER, and the rows INSIDE the band grow, so that band ends EARLIER. The provided heights
+      // change without invalidating the row-height cache, so this draw still computes its band from
+      // the old heights and only the post-render measurement notices.
+      for (let row = 0; row < 20; row++) {
+        providedHeights.set(row, 60);
+      }
+
+      state.tallCells = true;
+
+      wt.draw();
+
+      expect(wt.wtTable.getFirstRenderedRow()).toBe(firstRenderedRow);
+      expect(wt.wtTable.getLastRenderedRow()).toBe(lastRenderedRow);
+
+      const $rows = getTableMaster().find('tbody tr');
+
+      expect($rows.length).toBe(renderedRowsCount);
+      expect($rows.first().find('td:first').text()).toBe(`${getData(firstRenderedRow, 0)}`);
+      expect($rows.last().find('td:first').text()).toBe(`${getData(lastRenderedRow, 0)}`);
+    });
   });
 });

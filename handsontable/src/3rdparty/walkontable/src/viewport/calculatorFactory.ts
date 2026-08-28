@@ -38,6 +38,7 @@ export interface CalculatorFactory {
   allowsStationaryBands(): boolean;
   applyRenderedColumnsBandOverscan(renderedColumns: ColumnsCalculationType | null): void;
   applyRenderedRowsBandOverscan(renderedRows: RowsCalculationType | null): void;
+  extendRenderedRowsBandTo(startRow: number, endRow: number): void;
   stabilizeRenderedRowsBand(renderedRows: RowsCalculationType | null): void;
   stabilizeRenderedColumnsBand(renderedColumns: ColumnsCalculationType | null): void;
   areAllProposedVisibleRowsAlreadyRendered(
@@ -583,6 +584,65 @@ export const calculatorFactory: CalculatorFactory = {
       renderedRows.count += plan.extension;
       renderedRows.rowStartOffset += plan.extension;
       renderedRows.startPosition = this.rowHeightCache.getOffset(renderedRows.startRow);
+    }
+  },
+
+  /**
+   * Extends the CURRENT rendered row band (`this.rowsRenderCalculator`) so that it covers at least
+   * the `[startRow, endRow]` range. The band never shrinks here: an edge that already lies outside
+   * the range stays where it is, which makes the resulting band the union of the two.
+   *
+   * The refill loop in `table/drawCycle.ts` (`refillRenderedRowsBandIfShrunk`, issue #6452, DEV-406)
+   * is the reason this exists. That loop proposes a fresh band from the heights the last render
+   * measured and assigns it with `createCalculators(false)`, and it takes a pass only when the
+   * proposal grows the BOTTOM edge. A proposal built from re-measured heights can still move the
+   * START edge inwards while `endRow` grows, and applying it wholesale would drop rows the DOM
+   * already shows. The refill calls this right after the recompute with the previous band's edges, so
+   * every row the DOM already showed stays inside the band; a row the fresh proposal dropped remains
+   * rendered as plain overscan.
+   *
+   * This does not make an earlier proposed `startRow` a reason to refill: that trigger belongs to the
+   * caller, and an earlier `startRow` alone is not one. It is the virtualized merged-cell signature —
+   * per-band `modifyRowHeightByOverlayName` heights plus rowspan-inflated `oversizedRows` records make
+   * every scroll draw of such a grid propose a band that starts one row earlier and ends far short of
+   * the rendered one, and refilling from that proposal is what broke
+   * `src/plugins/mergeCells/__tests__/selection.spec.js`.
+   *
+   * The mutation mirrors {@link CalculatorFactory#applyRenderedRowsBandOverscan} field for field, so
+   * `count`, `rowStartOffset`, `rowEndOffset`, and `startPosition` stay consistent with the moved
+   * edges. It is a no-op for a band that renders all rows (`RenderedAllRowsCalculationType`), which
+   * has no edge to move.
+   *
+   * @this Viewport
+   * @param {number} startRow The first row the band must cover. Ignored when negative, which is what
+   * the range queries answer before the first render.
+   * @param {number} endRow The last row the band must cover. Clamped to the last row of the dataset.
+   */
+  extendRenderedRowsBandTo(this: Viewport, startRow: number, endRow: number): void {
+    const band = this.rowsRenderCalculator;
+
+    if (!(band instanceof RenderedRowsCalculationType) || band.startRow === null || band.endRow === null) {
+      return;
+    }
+
+    if (startRow >= 0 && startRow < band.startRow) {
+      const extension = band.startRow - startRow;
+
+      band.startRow -= extension;
+      band.count += extension;
+      band.rowStartOffset += extension;
+      band.startPosition = this.rowHeightCache.getOffset(band.startRow);
+    }
+
+    const lastRow = this.wtSettings.getSetting<number>('totalRows') - 1;
+    const clampedEndRow = Math.min(endRow, lastRow);
+
+    if (clampedEndRow > band.endRow) {
+      const extension = clampedEndRow - band.endRow;
+
+      band.endRow += extension;
+      band.count += extension;
+      band.rowEndOffset += extension;
     }
   },
 

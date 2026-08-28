@@ -261,14 +261,45 @@ All line numbers are in `table.ts` unless noted. "Master only" = guarded by `thi
   design. Measures rendered `<tr>` heights, writes `wtViewport.oversizedRows`, invalidates
   `rowHeightCache` when a row is genuinely taller than its configured size. On the single-pass path this
   is the only thing that can move the visible band post-render (see the second-pass skip below).
+- `refillRenderedRowsBandIfShrunk()` (`table/drawCycle.ts`, master only) — runs when
+  `markOversizedRows()` reported a height change AND `externalRowCalculator` is off. The rendered
+  band was computed before the cells rendered, from heights measured on an earlier draw, so rows
+  that SHRANK leave it too short and the viewport keeps a blank strip under the last row until an
+  unrelated draw (#6452, DEV-406). The helper **proposes** a fresh rendered band with
+  `createRowsCalculator(['rendered'], …)` — a proposal only, nothing is assigned — and applies it
+  (`createCalculators(false)` + `buildRenderFilters` + `renderCellBand`) only when the proposal grows
+  the BOTTOM edge (a later `endRow`). #6452 is exclusively an under-filled bottom; an earlier proposed
+  `startRow` on its own is NOT a refill trigger, because that is the virtualized merged-cell
+  signature — per-band `modifyRowHeightByOverlayName` heights plus rowspan-inflated `oversizedRows`
+  records make every scroll draw of such a grid propose a band that starts one row earlier and ends
+  far short of the rendered one, and the band it rendered is already correct. When a pass runs, the
+  band that gets applied is the UNION of the previous band and the proposal
+  (`Viewport#extendRenderedRowsBandTo`), never the proposal alone: a proposal built from re-measured
+  heights can still move the START edge inwards while `endRow` grows, and applying it wholesale would
+  drop rows the DOM already shows. With the union each pass strictly grows the band, so the loop is
+  bounded by monotonic growth as well as by the cap. `stationaryBands` stays off for the re-passes:
+  this answers a content change, not a scroll step. One pass is often not enough — a stale tall record
+  for a row just outside the first band caps the proposal, and only rendering that row reveals that
+  it shrank too — so the helper loops, bounded by `MAX_ROWS_BAND_REFILL_PASSES`. Exhausting the cap
+  leaves the viewport under-filled until the next scroll or resize, which is the pre-fix #6452
+  behavior. Rows that GREW take no pass: the band then overflows the viewport, which is harmless.
+  Every pass rebuilds both size caches, which is why the Phase F skip below reads
+  `rowHeightsChanged` rather than the caches alone.
 
 ### Phase F — Full path: second calculator pass + overlay sync (`table.ts:587–617`, master only)
 - **Second calculator pass, conditionally skipped (R4).** `usesLayoutSnapshotForCalculators() &&
-  rowHeightCache.isCurrent() && columnWidthCache.isCurrent()` → **skip** `createVisibleCalculators()`
-  (`598–606`): pass 1 already holds the correct visible band, so re-running it is redundant. The legacy
-  path, and any draw where `markOversizedRows` invalidated the row cache (an oversized row), still
-  recompute. `isCurrent()` is read **before** `ensureBuilt()` rebuilds the cache. This whole block is
-  itself gated by `!externalRowCalculator` (i.e. skipped when AutoRowSize owns row sizes).
+  !rowHeightsChanged && rowHeightCache.isCurrent() && columnWidthCache.isCurrent()` → **skip**
+  `createVisibleCalculators()`: pass 1 already holds the correct visible band, so re-running it is
+  redundant. The legacy path, and any draw where `markOversizedRows` invalidated the row cache (an
+  oversized row), still recompute. `isCurrent()` is read **before** `ensureBuilt()` rebuilds the
+  cache. The `!rowHeightsChanged` clause carries that same truth across the refill in Phase E: the
+  refill calls `ensureBuilt()` on every pass, including a pass that declines to grow the band, so by
+  the time this predicate runs the row-height cache reports `isCurrent()` again even though the
+  render changed the heights. `rowHeightsChanged` is what `isCurrent()` answered before the refill
+  existed, so the clause restores the original truth table rather than adding a case. The rule it
+  encodes: nothing between `renderCellBand` and this predicate may rebuild a size cache without also
+  feeding the predicate. This whole block is itself gated by `!externalRowCalculator` (i.e. skipped
+  when AutoRowSize owns row sizes).
 - `wtOverlays.refresh(false)` (`609`) — full overlay re-render — `syncOversizedColumnHeadersWithFrozenOverlays()`
   (`610`), `wtOverlays.applyToDOM()` (`611`).
 - Fire the `onDraw` setting (`613`) → the **public `afterViewRender` hook** (mid-draw, before Phase G).
