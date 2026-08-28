@@ -14,7 +14,7 @@ import { getCellCoordsFromMousePosition } from './utils/pointerToCoords';
 import { isTouchSupported } from '../../../helpers/feature';
 import { isMobileBrowser, isChromeWebKit, isFirefoxWebKit, isIOS } from '../../../helpers/browser';
 import { isDefined } from '../../../helpers/mixed';
-import { isTouchSynthesizedMouseEvent } from '../../../helpers/dom/inputOrigin';
+import { isTouchSynthesizedMouseEvent, TOUCH_SYNTHESIZED_MOUSE_WINDOW } from '../../../helpers/dom/inputOrigin';
 
 const LONG_PRESS_DELAY = 500;
 const LONG_PRESS_MOVE_THRESHOLD = 10;
@@ -38,16 +38,6 @@ const DBLCLICK_MOUSEUP_TIMEOUT = 500;
  * double-tap at 300–600 ms (DEV-2687).
  */
 const TOUCH_DBLTAP_TIMEOUT = 1000;
-
-/**
- * How long (ms) after a touch-driven `onMouseUp` the mouse listeners treat incoming mouse events
- * as the browser-synthesized compatibility sequence that follows a tap. It must exceed the
- * longest delay a browser takes to deliver that sequence (WebKit lands it within ~350 ms even
- * with double-tap-zoom detection). Trade-off: on engines that do not report the input origin
- * (WebKit, Firefox), a real mouse click within the window after a tap is dropped, and a pair
- * straddling the boundary yields one unpaired half.
- */
-const TOUCH_SYNTHESIZED_MOUSE_WINDOW = 500;
 
 /**
  * Assembles the Event module's dependencies from the engine composition context. The DOM roots,
@@ -347,6 +337,9 @@ class Event {
    * `#lastTouchMouseUpAt` stamp), so its browser-synthesized compatibility pair is processed and
    * selects the cell on every engine alike. Both synthesized `mousedown` and `mouseup` must be
    * dropped so the double-click detector sees matched pairs or nothing (DEV-2687, #12803).
+   * Trade-off: on engines that do not report the input origin (WebKit, Firefox), a real mouse
+   * click within the window after a tap is dropped, and a pair straddling the boundary yields one
+   * unpaired half.
    *
    * @param {MouseEvent} event The mouse event object.
    * @returns {boolean}

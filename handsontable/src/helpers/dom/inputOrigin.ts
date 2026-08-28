@@ -5,6 +5,15 @@
  */
 
 /**
+ * How long (ms) after a touch gesture the browser-synthesized `mousedown`/`mouseup`/`click`
+ * sequence is still expected when the engine does not report the input origin (WebKit,
+ * Firefox). Shared by Walkontable's mouse listeners and TableView's outside-click handling so
+ * both layers agree on which events are synthesized. WebKit delivers the sequence within
+ * ~350 ms even with double-tap-zoom detection.
+ */
+export const TOUCH_SYNTHESIZED_MOUSE_WINDOW = 500;
+
+/**
  * Shape of a UI event on engines that implement the InputDeviceCapabilities API (Blink).
  */
 interface EventWithSourceCapabilities extends Event {

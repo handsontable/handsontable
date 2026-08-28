@@ -34,7 +34,7 @@ import {
   isLeftClick,
   isMiddleClick,
 } from './helpers/dom/event';
-import { isTouchSynthesizedMouseEvent } from './helpers/dom/inputOrigin';
+import { isTouchSynthesizedMouseEvent, TOUCH_SYNTHESIZED_MOUSE_WINDOW } from './helpers/dom/inputOrigin';
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
@@ -321,8 +321,10 @@ class TableView {
   #mouseDownLastPos: {row: number, col: number} | null = null;
   /**
    * Flag indicating that a touch interaction just ended. Set to `true` on
-   * `touchend` and reset asynchronously via `_registerTimeout`. Used together with
-   * `sourceCapabilities.firesTouchEvents` (Chrome/Blink) to detect synthetic
+   * `touchend` and reset asynchronously via `_registerTimeout` after
+   * `TOUCH_SYNTHESIZED_MOUSE_WINDOW` — the same fallback window Walkontable's mouse
+   * listeners use, so both layers agree on which events are synthesized. Used together
+   * with `sourceCapabilities.firesTouchEvents` (Chrome/Blink) to detect synthetic
    * mouse events that Android fires after touch interactions. These synthetic
    * events can falsely trigger the outside-click handler, closing editors or
    * popups that just opened via double-tap.
@@ -633,11 +635,13 @@ class TableView {
 
       // Clear the flag after the browser's synthetic mouse event sequence completes.
       // Android dispatches mousedown/mouseup/click asynchronously after touchend,
-      // so the flag must survive across multiple event loop ticks.
+      // so the flag must survive across multiple event loop ticks. The window is shared
+      // with Walkontable's mouse listeners (`TOUCH_SYNTHESIZED_MOUSE_WINDOW`), so both
+      // layers agree on which events are synthesized.
       this.#recentTouchEndTimeout = this.hot._registerTimeout(() => {
         this.#recentTouchEnd = false;
         this.#recentTouchEndTimeout = null;
-      }, 400);
+      }, TOUCH_SYNTHESIZED_MOUSE_WINDOW);
     });
 
     this.eventManager.addEventListener(documentElement, 'mousedown', (event) => {
