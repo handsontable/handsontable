@@ -135,6 +135,12 @@ class EditorManager {
    * each suspend and resume the mapper themselves, so even inside `hot.batch()` every `alter()`
    * flushes its own update and the two counts are observed separately.
    *
+   * The comparison is PROVISIONAL, not the considered design. `IndexMapper` already tracks the real
+   * answer in `indexesChangeSource` (`'insert'`/`'remove'`/`'move'`/`'init'`/`'update'`), which
+   * `nestedHeaders` reads for the same question; it is simply not on the `cacheUpdated` payload yet,
+   * because `insertIndexes()`/`removeIndexes()` clear it before the hook fires. Putting it there
+   * removes both counters, their constructor seeding and the blind spot above – DEV-2681.
+   *
    * `afterRowSequenceCacheUpdate` is a PUBLIC hook, so `hot.runHooks()` can fire it with no payload
    * at all. The state defaults to all-false for that case, which reduces the repair to the structural
    * one and keeps the hidden-cell guard behind it running.
@@ -594,7 +600,12 @@ class EditorManager {
    * (`BaseEditor#saveValue()`). On both the edit is lost rather than misplaced – which is what this
    * method exists to guarantee, and strictly better than the row-appending corruption they produced
    * before it – but the value does not survive. Making it survive means moving the selection with the
-   * record, which is a larger change than this repair.
+   * record, which is a larger change than this repair: DEV-2680.
+   *
+   * Both exceptions are pinned by cases in `tests/e2e/editor-trimmed-row.spec.ts` under `commit paths
+   * the rebind cannot reach`. Those cases assert the LOSS on purpose, so a regression back to a write
+   * fails – they are not a statement that losing the edit is the desired end state. DEV-2680 inverts
+   * them.
    *
    * An editor a structural change stranded past the last row is discarded here rather than rebound:
    * its captured record was cleared as unresolvable, and its own coordinates address nothing, so

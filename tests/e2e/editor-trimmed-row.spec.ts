@@ -610,6 +610,10 @@ test.describe('an index-map change on the column axis', () => {
  * and both now lose the edit instead. They are recorded here because "the edit lands on the right
  * record" is the guarantee in `#reconcileEditorWithIndexMaps()`'s JSDoc, and these are its two
  * documented exceptions. A future change that turns either back into a write must fail here.
+ *
+ * Losing the edit is NOT the desired end state - it is where this repair stops. Making the value
+ * survive means moving the selection with the record, tracked as DEV-2680, which inverts both of
+ * these cases into asserting the value lands on the edited record.
  */
 test.describe('commit paths the rebind cannot reach', () => {
   /**
