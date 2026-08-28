@@ -11,6 +11,7 @@ interface EditorFixture {
 
 interface HandsontableFixture {
   getSelected(): number[][] | undefined;
+  getDataAtCell(row: number, column: number): unknown;
   getActiveEditor(): EditorFixture | undefined;
   isListening(): boolean;
   scrollViewportTo(options: { row: number, verticalSnap: string }): void;
@@ -354,5 +355,18 @@ export class AutocompleteAsyncSourcePage {
    */
   async selected(): Promise<number[][] | undefined> {
     return this.page.evaluate(() => (window as unknown as FixtureWindow).hot.getSelected());
+  }
+
+  /**
+   * Returns a cell's COMMITTED value, read from the dataset rather than the rendered text.
+   *
+   * The editor's own element keeps the typed string, so reading the DOM cannot tell a value that
+   * reached the dataset apart from one still sitting in the textarea.
+   */
+  async cellValue(row: number, col: number): Promise<unknown> {
+    return this.page.evaluate(
+      ([r, c]) => (window as unknown as FixtureWindow).hot.getDataAtCell(r, c),
+      [row, col],
+    );
   }
 }

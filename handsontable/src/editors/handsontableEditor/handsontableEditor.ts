@@ -67,6 +67,26 @@ export class HandsontableEditor extends TextEditor {
    * @type {boolean}
    */
   isFlippedHorizontally: boolean = false;
+  /**
+   * How the inner grid's current selection came about: `'user'` for an explicit pick (the arrow
+   * keys or a click on a choice), `'auto'` for one the editor derived from the value being typed,
+   * `null` for no selection.
+   *
+   * `finishEditing()` commits the inner grid's value over the typed one, and only the origin tells
+   * the two apart - the selection itself looks the same either way.
+   */
+  protected innerSelectionOrigin: 'user' | 'auto' | null = null;
+
+  /**
+   * Whether the inner grid's selection may be committed as the edited cell's value.
+   *
+   * Always true here: this editor's inner grid is selected either by the user or by `open()`, and
+   * both are current by construction. `AutocompleteEditor` derives its selection from the typed
+   * value through a DEFERRED query, so it can go stale, and overrides this.
+   */
+  canCommitInnerSelection(): boolean {
+    return true;
+  }
 
   /**
    * Opens the editor and adjust its size.
@@ -97,8 +117,10 @@ export class HandsontableEditor extends TextEditor {
 
     if (this.cellProperties.strict) {
       this.htEditor.selectCell(0, 0);
+      this.innerSelectionOrigin = 'auto';
     } else {
       this.htEditor.deselectCell();
+      this.innerSelectionOrigin = null;
     }
 
     setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
@@ -117,6 +139,8 @@ export class HandsontableEditor extends TextEditor {
    * Closes the editor.
    */
   close(): void {
+    this.innerSelectionOrigin = null;
+
     if (this.htEditor) {
       this.htEditor.rootElement.style.display = 'none';
     }
@@ -142,6 +166,9 @@ export class HandsontableEditor extends TextEditor {
 
     const { hot } = this;
     const setValue = this.setValue.bind(this);
+    const markUserPick = () => {
+      this.innerSelectionOrigin = 'user';
+    };
     const options: Record<string, unknown> = {
       startRows: 0,
       startCols: 0,
@@ -163,6 +190,8 @@ export class HandsontableEditor extends TextEditor {
         }
 
         const sourceValue = this.getDataAtCell(coords.row, coords.col);
+
+        markUserPick();
 
         // if the value is undefined then it means we don't want to set the value
         if (sourceValue !== undefined) {
@@ -223,7 +252,7 @@ export class HandsontableEditor extends TextEditor {
       this.hot.listen(); // return the focus to the parent HOT instance
     }
 
-    if (this.htEditor && this.htEditor.getSelectedActive()) {
+    if (this.htEditor && this.htEditor.getSelectedActive() && this.canCommitInnerSelection()) {
       const value = this.htEditor.getValue();
 
       if (value !== undefined) { // if the value is undefined then it means we don't want to set the value
@@ -458,8 +487,10 @@ export class HandsontableEditor extends TextEditor {
       if (rowToSelect !== undefined) {
         if (rowToSelect < 0 || (this.isFlippedVertically && rowToSelect > innerHOT.countRows() - 1)) {
           innerHOT.deselectCell();
+          this.innerSelectionOrigin = null;
         } else {
           innerHOT.selectCell(rowToSelect, 0);
+          this.innerSelectionOrigin = 'user';
         }
         if (innerHOT.getData().length) {
           event.preventDefault();
