@@ -7318,6 +7318,18 @@ export default (): Record<string, unknown> => {
      * A [`valueSetter`](#valuesetter) runs first, so a custom setter that returns `''` still means
      * "empty" and is mapped as well.
      *
+     * A column whose configuration already gives `''` a meaning keeps it. In a `checkbox` column, an
+     * `''` used as [`checkedTemplate`](#checkedtemplate) or [`uncheckedTemplate`](#uncheckedtemplate)
+     * is one of the two states the column defines, not an empty cell. In an `autocomplete` or
+     * `dropdown` column, an `''` listed in [`source`](#source) is an option you can pick. Both keep
+     * storing `''`.
+     *
+     * ::: tip
+     * Only an array [`source`](#source) is checked this way. A function `source` answers through a
+     * callback, and the value is stored before that callback runs, so a blank option it returns goes
+     * unnoticed and `emptyValue` applies to the column like any other.
+     * :::
+     *
      * ::: tip
      * Pasting from outside the grid cannot preserve this distinction. A clipboard holding text or HTML
      * has no way to mark a cell as `null`, so an empty pasted cell follows the `emptyValue` setting

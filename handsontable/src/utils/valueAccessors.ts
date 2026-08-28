@@ -4,6 +4,21 @@ import { isFunction } from '../helpers/function';
  * Reports whether the cell's own configuration gives an empty string a meaning of its own, which
  * `emptyValue` must then leave alone.
  *
+ * A `checkbox` names its two states itself, so an `''` used as either template is one of them and not
+ * an empty cell. With `checkedTemplate: ''` a stored `null` would even render as CHECKED: the
+ * renderer falls back to comparing `stringify(value)` with `stringify(template)`, and `stringify()`
+ * turns `null` into `''`, so the two match.
+ *
+ * An `autocomplete` or `dropdown` names its values in `source`, and `dropdown` sets `strict: true` by
+ * default, so every stored value is meant to come from that list. A blank entry is a real option the
+ * user can pick, and remapping it would leave the cell holding a value the list does not offer. The
+ * validator does not catch that - it turns `null` back into `''` before it ever looks at `source`,
+ * and answers with `allowEmpty` - so this is about the data matching its own list, not validation.
+ *
+ * Only an ARRAY `source` can be read here. A function `source` resolves asynchronously and cannot be
+ * consulted on a synchronous write, so a blank option it yields is invisible and `emptyValue` still
+ * applies to that column. Documented on the option.
+ *
  * Read off the cell's declared `type`, not off whichever template keys happen to be on the cascading
  * meta: an `uncheckedTemplate` set once at grid level would otherwise switch `emptyValue` off for
  * every column in the grid, including the ones that hold no checkboxes.

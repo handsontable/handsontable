@@ -85,9 +85,10 @@ describe('getValueSetterValue', () => {
     });
 
     it('leaves `\'\'` alone when it is a checkbox template, which gives it a meaning', () => {
-      // A checkbox with `uncheckedTemplate: ''` stores `''` to mean "unchecked". Mapping that to
-      // `null` would leave the cell matching neither template, so it renders `#bad-value#` and can
-      // no longer be toggled.
+      // A checkbox names its two states itself, so an `''` used as a template is one of them, not an
+      // empty cell. With `checkedTemplate: ''` a stored `null` would render as CHECKED: the renderer
+      // falls back to comparing `stringify(value)` with `stringify(template)`, and `stringify(null)`
+      // is `''`, so the two match.
       expect(getValueSetterValue('', { emptyValue: null, type: 'checkbox', uncheckedTemplate: '' })).toBe('');
       expect(getValueSetterValue('', { emptyValue: null, type: 'checkbox', checkedTemplate: '' })).toBe('');
     });
@@ -106,14 +107,27 @@ describe('getValueSetterValue', () => {
     });
 
     it('leaves `\'\'` alone when a choice list offers it as a blank option', () => {
-      // Picking the blank entry is an explicit choice. Mapping it to `null` would then fail the
-      // autocomplete validator under `strict: true`, because `null` is not in `source`.
+      // A blank entry is a real option the user can pick, and `dropdown` sets `strict: true` by
+      // default, so every stored value is meant to come from `source`. Remapping it would leave the
+      // cell holding a value the list does not offer. Not a validation matter: `autocompleteValidator`
+      // turns `null` back into `''` before it looks at `source`, and answers with `allowEmpty`.
       expect(getValueSetterValue('', { emptyValue: null, type: 'dropdown', source: ['', 'a', 'b'] })).toBe('');
       expect(getValueSetterValue('', { emptyValue: null, type: 'autocomplete', source: ['', 'a'] })).toBe('');
     });
 
     it('still maps `\'\'` when a choice list does not offer it', () => {
       expect(getValueSetterValue('', { emptyValue: null, type: 'dropdown', source: ['a', 'b'] })).toBe(null);
+    });
+
+    it('cannot see a blank option behind a function `source`, so it still maps', () => {
+      // A function `source` answers through a callback, and this runs on a synchronous write, so a
+      // blank option it would yield is invisible here. Treating every function source as "might
+      // offer a blank" instead would make `emptyValue` silently inert on those columns, which is the
+      // trap the last case in this block guards against. The limit is documented on the option.
+      const source = (query, callback) => callback(['', 'a']);
+
+      expect(getValueSetterValue('', { emptyValue: null, type: 'autocomplete', source })).toBe(null);
+      expect(getValueSetterValue('', { emptyValue: null, type: 'dropdown', source })).toBe(null);
     });
 
     it('leaves undo and redo alone, so a stored `\'\'` can be restored', () => {

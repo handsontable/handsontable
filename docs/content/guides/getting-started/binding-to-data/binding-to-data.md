@@ -895,6 +895,23 @@ const hot = new Handsontable(container, {
 The option changes only what an emptied cell stores. A `0` or a `false` is a real value, not an empty
 cell, and is never affected.
 
+A column whose configuration already gives `''` a meaning keeps it. In a
+[`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) column, an `''` used as
+[`checkedTemplate`](@/api/options.md#checkedtemplate) or
+[`uncheckedTemplate`](@/api/options.md#uncheckedtemplate) is one of the two states the column defines,
+not an empty cell. In an
+[`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) or
+[`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column, an `''` listed in
+[`source`](@/api/options.md#source) is an option you can pick. Both keep storing `''`.
+
+::: tip
+
+Only an array [`source`](@/api/options.md#source) is checked this way. A function `source` answers
+through a callback, and the value is stored before that callback runs, so a blank option it returns
+goes unnoticed and `emptyValue` applies to the column like any other.
+
+:::
+
 ::: tip
 
 Opening a cell editor and confirming it without typing anything never changes the cell, whatever
