@@ -232,6 +232,22 @@ Handsontable exposes hundreds of hooks. The ones below are the hooks you reach f
 
 </div>
 
+When [`beforeInit`](@/api/hooks.md#beforeinit) runs, the grid is only partly built. Your settings are
+readable through [`getSettings()`](@/api/core.md#getsettings), but the data is not loaded and the table
+is not rendered, so a call such as [`countRows()`](@/api/core.md#countrows) throws. Use
+[`afterInit`](@/api/hooks.md#afterinit) to work with the grid.
+
+Two lifecycle hooks cannot be used as options at all, because they run before Handsontable reads the
+callbacks from the settings object: [`construct`](@/api/hooks.md#construct), which runs inside the
+constructor, and [`afterPluginsInitialized`](@/api/hooks.md#afterpluginsinitialized), which runs while
+the plugins start up. Register those two globally instead:
+
+```js
+Handsontable.hooks.add('construct', () => {
+  // your code
+});
+```
+
 **Data changes** -- react to or alter the user's edits. Returning `false` from [`beforeChange`](@/api/hooks.md#beforechange) rejects the change.
 
 <div class="boxes-list">

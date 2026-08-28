@@ -986,3 +986,7 @@ hot.updateSettings({ afterMoveCells(sourceRange, targetRange, isCopy) {} });
 // Regression: MoveCells exposes moveCellRange with correct arg/return types.
 const moveResult: boolean = hot.getPlugin('moveCells')
   .moveCellRange(hot.getSelectedRangeLast()!, hot._createCellCoords(5, 5), false);
+
+// Regression: beforeInit accepts the array form, which the runtime has always supported (#5933).
+hot.updateSettings({ beforeInit: [() => {}, () => {}] });
+hot.updateSettings({ beforeInit: () => {} });
