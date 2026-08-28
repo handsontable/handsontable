@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `textExtractor` option, which exports and copies column and row headers as the text the grid displays instead of their raw HTML.",
+  "type": "added",
+  "issueOrPR": 13308,
+  "breaking": false,
+  "framework": "none"
+}
