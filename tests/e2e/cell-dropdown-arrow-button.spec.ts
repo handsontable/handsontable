@@ -1,7 +1,9 @@
 import { test, expect } from '../fixtures/test';
-import { AutocompleteAsyncSourcePage } from '../fixtures/pages/AutocompleteAsyncSourcePage';
+import { CellDropdownArrowPage, type CellType } from '../fixtures/pages/CellDropdownArrowPage';
 
-const EDITORS = ['autocomplete', 'dropdown'] as const;
+// Every cell type that renders the arrow, because they all reach the same listener:
+// `dropdownRenderer` and `handsontableRenderer` both delegate to `autocompleteRenderer`.
+const CELL_TYPES: CellType[] = ['autocomplete', 'dropdown', 'handsontable'];
 
 /**
  * DEV-2677. `autocompleteRenderer` registers a `mousedown` listener that opens the editor when the
@@ -19,12 +21,12 @@ const EDITORS = ['autocomplete', 'dropdown'] as const;
  * opened one tick later. A right-button press selects the cell, so waiting for the selection to
  * land gives a deterministic point at which a single, non-retrying assertion is meaningful.
  */
-EDITORS.forEach((editor) => {
-  test.describe(`${editor} editor dropdown arrow`, () => {
-    let grid: AutocompleteAsyncSourcePage;
+CELL_TYPES.forEach((cellType) => {
+  test.describe(`${cellType} cell dropdown arrow`, () => {
+    let grid: CellDropdownArrowPage;
 
     test.beforeEach(async({ page, theme, bundle }) => {
-      grid = new AutocompleteAsyncSourcePage(page, theme, bundle, { editor });
+      grid = new CellDropdownArrowPage(page, theme, bundle, cellType);
       await grid.goto();
     });
 

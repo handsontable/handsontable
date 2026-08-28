@@ -3,8 +3,6 @@ import { type Locator, type Page, expect } from '@playwright/test';
 interface EditorFixture {
   isOpened(): boolean;
   state: string;
-  row: number;
-  col: number;
   rawChoices: unknown[];
   htEditor: { rootElement: HTMLElement };
   TEXTAREA: HTMLTextAreaElement;
@@ -97,14 +95,6 @@ export class AutocompleteAsyncSourcePage {
   }
 
   /**
-   * Returns a cell's dropdown arrow. The renderer builds the arrow, so it carries no test id of its
-   * own and has to be reached through the cell that owns it.
-   */
-  arrow(row: number, col: number): Locator {
-    return this.cell(row, col).locator('.htAutocompleteArrow');
-  }
-
-  /**
    * Selects a cell, opens its editor with Enter, and waits until the column's `source` has been
    * asked for choices. Enter rather than typing: full edit mode seeds the editor with the cell's
    * own value, so the query is the column's shared choice prefix and the whole list matches.
@@ -124,19 +114,6 @@ export class AutocompleteAsyncSourcePage {
 
     await expect.poll(() => this.isEditorOpen()).toBe(true);
     await expect.poll(() => this.pendingQueryCount(col)).toBeGreaterThan(0);
-  }
-
-  /**
-   * Returns the coordinates of the cell the active editor is bound to, or `null` when there is no
-   * editor. `isEditorOpen()` only reports that SOME editor is open, which cannot tell an editor on
-   * the wrong cell apart from the right one.
-   */
-  async editorCoords(): Promise<[number, number] | null> {
-    return this.page.evaluate(() => {
-      const editor = (window as unknown as FixtureWindow).hot.getActiveEditor();
-
-      return editor ? [editor.row, editor.col] : null;
-    });
   }
 
   /**
