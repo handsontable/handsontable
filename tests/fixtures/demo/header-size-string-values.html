@@ -52,6 +52,14 @@
   <h2>Column header height, as a bare numeric string</h2>
   <div id="col-string" data-testid="col-string"></div>
 
+  <!--
+    The one column-header case that was genuinely broken rather than accidentally working. A bare
+    numeric string reached `Math.max(height, providedHeight)` and was coerced, but `'100px'` became
+    `NaN` there and the header fell back to its default.
+  -->
+  <h2>Column header height, with the px unit</h2>
+  <div id="col-px" data-testid="col-px"></div>
+
   <h2>Column header height, per level, as strings</h2>
   <div id="col-array" data-testid="col-array"></div>
 
@@ -111,6 +119,7 @@
       rowArray: buildGrid('row-array', { rowHeaderWidth: [`${SIZE}px`] }),
       rowNumber: buildGrid('row-number', { rowHeaderWidth: SIZE }),
       colString: buildGrid('col-string', { columnHeaderHeight: String(SIZE) }),
+      colPx: buildGrid('col-px', { columnHeaderHeight: `${SIZE}px` }),
       colArray: buildGrid('col-array', { columnHeaderHeight: [String(SIZE)] }),
       rowInvalid: buildGrid('row-invalid', { rowHeaderWidth: '20em' }),
       colInvalid: buildGrid('col-invalid', { columnHeaderHeight: '50%' }),

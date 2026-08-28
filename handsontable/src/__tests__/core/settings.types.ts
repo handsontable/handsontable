@@ -65,7 +65,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   collapsibleColumns: true,
   colorScheme: oneOf('light', 'dark', 'auto'),
   density: oneOf('default', 'compact', 'comfortable'),
-  columnHeaderHeight: oneOf(35, [35, 55]),
+  columnHeaderHeight: oneOf(35, [35, 55], '35', '35px', ['35px', 55]),
   columns: [
     {
       type: 'numeric',
@@ -224,7 +224,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
      prop: number | string, value: any, cellProperties: Handsontable.CellProperties) => TD
   ),
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
-  rowHeaderWidth: oneOf(25, [25, 30, 55]),
+  rowHeaderWidth: oneOf(25, [25, 30, 55], '25', '25px', ['25px', 30]),
   rowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
   // The option's own signature is unchanged; `SanitizerContext` is the opt-in annotation. Full
   // coverage, including the call-arity axis, lives in `sanitizer.types.ts`.

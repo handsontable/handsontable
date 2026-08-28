@@ -341,8 +341,8 @@ const PIXEL_SIZE_PATTERN = /^\s*(\d+(?:\.\d+)?)\s*(?:px)?\s*$/i;
  * Resolves a pixel size setting written as a number or a string into a number.
  *
  * The grid's size options are documented as numbers of pixels. This helper additionally accepts the
- * two string forms that carry the same unambiguous meaning - a bare numeric string (`'100'`) and a
- * pixel string (`'100px'`) - so a value arriving from an attribute, a JSON config, or a framework
+ * two string forms that carry the same unambiguous meaning – a bare numeric string (`'100'`) and a
+ * pixel string (`'100px'`) – so a value arriving from an attribute, a JSON config, or a framework
  * template still resolves. A number is returned unchanged, including a negative one, so the callers'
  * existing behavior for numbers is untouched.
  *

@@ -57,6 +57,21 @@ function isUniformSizeSetting(value: unknown): boolean {
 }
 
 /**
+ * Renders a rejected setting value for the warning message.
+ *
+ * `JSON.stringify` is deliberately not used: it throws on a `BigInt` and on a circular object, and a
+ * framework can hand either to a setting. This runs inside a Walkontable settings getter during a
+ * draw, so a throw here would take the whole render down – the opposite of the fallback the warning
+ * is reporting. `String()` is total for every value a setting can hold, symbols included.
+ *
+ * @param {*} value The value that could not be read.
+ * @returns {string}
+ */
+function describeValue(value: unknown): string {
+  return typeof value === 'string' ? `"${value}"` : String(value);
+}
+
+/**
  * Resolves one entry of a header size setting into a number of pixels.
  *
  * Warns once per grid instance when the value cannot be read as a pixel size, then returns `null` so
@@ -79,7 +94,7 @@ function resolveHeaderSizeEntry(value: unknown, scope: object, optionName: strin
       scope,
       `invalid-header-size-${optionName}`,
       `Handsontable: the \`${optionName}\` option expects a number of pixels, such as \`100\`, ` +
-      `\`'100'\`, or \`'100px'\`. The value ${JSON.stringify(value)} cannot be read as a pixel size, ` +
+      `\`'100'\`, or \`'100px'\`. The value ${describeValue(value)} cannot be read as a pixel size, ` +
       'so it is ignored and the default size is used instead.'
     );
 
@@ -106,15 +121,18 @@ function isResolvedHeaderSizeEntry(entry: unknown): entry is number | null | und
  *
  * Both options are documented as pixel numbers, and the sizing code downstream requires real
  * numbers: the row header width guard replaces a non-number with the default column width, and the
- * column header height merge skips anything that is not a number. Resolving the value here - the one
- * place each option crosses from the grid settings into Walkontable - satisfies that requirement
+ * column header height merge skips anything that is not a number. Resolving the value here – the one
+ * place each option crosses from the grid settings into Walkontable – satisfies that requirement
  * without adding a branch to the per-cell sizing code that runs on every draw.
  *
  * The `'100'` and `'100px'` string forms are accepted alongside a plain number, so a value arriving
  * from an attribute, a JSON config, or a framework template still resolves.
  *
  * A value that is already a number, or an array already made of numbers, is returned by reference,
- * so the common path allocates nothing.
+ * so the common path allocates nothing. An array holding a string is re-resolved on every read, and
+ * the setting is read a few times per draw. That is left as it is on purpose: a cache keyed on the
+ * array's identity would answer stale after an in-place edit of the caller's own array, which costs
+ * more than the handful of regex matches it would save on a configuration almost nobody writes.
  *
  * @param {*} value The configured setting value.
  * @param {object} scope The object the one-time warning is bound to.
@@ -1498,7 +1516,7 @@ class TableView {
       ),
       columnHeaderHeight: () => {
         const hookHeight = this.hot.runHooks('modifyColumnHeaderHeight');
-        // Resolved before the merge below reads it, because that merge only accepts numbers - and
+        // Resolved before the merge below reads it, because that merge only accepts numbers – and
         // before the `levels === 0` shortcut, which returns the value without going through it.
         const configured = resolveHeaderSizeSetting(
           this.settings.columnHeaderHeight, this.hot.rootElement, 'columnHeaderHeight'

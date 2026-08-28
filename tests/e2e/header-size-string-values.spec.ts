@@ -44,6 +44,13 @@ test.describe('Header size options given as strings', () => {
       .toBeCloseTo(HeaderSizeStringValuesPage.SIZE, 0);
   });
 
+  test('applies a column header height written with the px unit', async () => {
+    // The one column-header case that was genuinely broken rather than accidentally working:
+    // `Math.max` coerced `'100'` to `100`, but turned `'100px'` into `NaN`.
+    expect(await grid.columnHeaderHeight('col-px'))
+      .toBeCloseTo(HeaderSizeStringValuesPage.SIZE, 0);
+  });
+
   test('applies a per-level column header height given as strings', async () => {
     // A per-level array of strings worked before the single-pass layout landed and then stopped:
     // the merge that reads the option only accepts numbers, so every entry was skipped.
@@ -76,5 +83,45 @@ test.describe('Header size options given as strings', () => {
       .toBeCloseTo(await grid.rowHeaderWidth('defaults'), 0);
     expect(await grid.columnHeaderHeight('col-invalid'))
       .toBeCloseTo(await grid.columnHeaderHeight('defaults'), 0);
+  });
+});
+
+/**
+ * The warning has to be watched from before the page loads, because the grids - and the warning -
+ * are built during load. That is why these do not reuse the suite above's `beforeEach`.
+ */
+test.describe('Warning for a size that states no pixel count', () => {
+  test('names the option and the value, once per grid', async ({ page, theme, bundle }) => {
+    const grid = new HeaderSizeStringValuesPage(page, theme, bundle);
+    const readWarnings = grid.collectWarnings();
+
+    await grid.goto();
+    // The fixture draws each grid more than once, so a plain `warn` would repeat. Only the
+    // `warnOnce` keying makes this hold at exactly one per option.
+    await grid.renderRepeatedly('rowInvalid', 5);
+    await grid.renderRepeatedly('colInvalid', 5);
+
+    const sizeWarnings = readWarnings().filter(text => text.includes('cannot be read as a pixel size'));
+
+    expect(sizeWarnings.filter(text => text.includes('`rowHeaderWidth`'))).toHaveLength(1);
+    expect(sizeWarnings.filter(text => text.includes('`columnHeaderHeight`'))).toHaveLength(1);
+    // The rejected value is quoted back, so the reader can find it in their own config.
+    expect(sizeWarnings.join('\n')).toContain('"20em"');
+    expect(sizeWarnings.join('\n')).toContain('"50%"');
+  });
+
+  test('stays silent for sizes it can read', async ({ page, theme, bundle }) => {
+    const grid = new HeaderSizeStringValuesPage(page, theme, bundle);
+    const readWarnings = grid.collectWarnings();
+
+    await grid.goto();
+    await grid.renderRepeatedly('colString', 5);
+    await grid.renderRepeatedly('rowPx', 5);
+
+    // Only the two deliberately invalid grids may warn. A number, `'100'`, `'100px'` and an array
+    // of those must not - a warning on a supported form would train readers to ignore the channel.
+    const sizeWarnings = readWarnings().filter(text => text.includes('cannot be read as a pixel size'));
+
+    expect(sizeWarnings).toHaveLength(2);
   });
 });

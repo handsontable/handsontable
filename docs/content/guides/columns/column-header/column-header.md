@@ -314,7 +314,13 @@ When column labels are longer, header text can wrap and require more vertical sp
 You can set this option to one of the following:
 
 - A number - set the same height for every column header.
+- A string - set the same height, written as a pixel size: `'50'` or `'50px'`.
 - An array - set different heights for individual column header levels.
+
+The height is a number of pixels. A string that states a pixel size works too, so a value coming from
+an attribute, a JSON config, or a framework template still applies. You can mix both forms inside the
+array. A value that states no pixel count, such as `'50%'` or `'20em'`, is ignored - the header keeps
+its default height, and Handsontable reports the value once in the browser console.
 
 The example below uses longer labels together with `columnHeaderHeight: 50`.
 

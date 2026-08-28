@@ -11,6 +11,13 @@ export class HeaderSizeStringValuesPage {
   /** The size every "works" case asks for, in CSS pixels. */
   static readonly SIZE = 100;
 
+  /** Every grid the fixture builds. `goto()` waits for all of them. */
+  static readonly GRID_IDS = [
+    'row-string', 'row-px', 'row-array', 'row-number',
+    'col-string', 'col-px', 'col-array',
+    'row-invalid', 'col-invalid', 'defaults',
+  ];
+
   readonly page: Page;
   readonly theme: string;
   readonly bundle: string;
@@ -69,6 +76,25 @@ export class HeaderSizeStringValuesPage {
   }
 
   /**
+   * Starts collecting console warnings, and returns a reader for what has been collected.
+   *
+   * Call before `goto()`: the grids are built during page load, so the warning fires then.
+   *
+   * @returns {Function} Returns the warning texts collected up to the moment it is called.
+   */
+  collectWarnings(): () => string[] {
+    const warnings: string[] = [];
+
+    this.page.on('console', (message) => {
+      if (message.type() === 'warning') {
+        warnings.push(message.text());
+      }
+    });
+
+    return () => [...warnings];
+  }
+
+  /**
    * Navigate and wait for the grids to have rendered - a real DOM condition, never a sleep.
    *
    * The wait is on the overlay clones rather than on the master's own header cells. Both sizes are
@@ -81,7 +107,10 @@ export class HeaderSizeStringValuesPage {
       `/tests/fixtures/demo/header-size-string-values.html?theme=${this.theme}&bundle=${this.bundle}`
     );
 
-    for (const testId of ['defaults', 'row-string', 'col-string', 'col-array', 'row-invalid']) {
+    // Every grid a test measures has to be waited for, not just the first few: `evaluate` waits for
+    // the element to attach, not for the grid to finish drawing, so an unwaited grid can be read
+    // half-drawn.
+    for (const testId of HeaderSizeStringValuesPage.GRID_IDS) {
       await expect(this.grid(testId).locator('.ht_clone_inline_start')).toBeVisible();
       await expect(this.grid(testId).locator('.ht_clone_top')).toBeVisible();
     }
