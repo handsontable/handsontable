@@ -67,6 +67,22 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   reschedules itself, so one `touchmove` past the edge starts it — poll for a further increase
   instead of holding for a fixed time (`waitForTimeout` is banned, see below).
 
+## Rendering below 100% (zoom / display scaling)
+
+Reach for **CSS `zoom` on the root element**, applied by the fixture before the grid is
+constructed (`fixtures/demo/row-height-device-scale.html`). Chrome routes it through the same
+effective-zoom machinery as browser page zoom, so a cell's 1px border is inflated exactly as it
+is under Ctrl+minus or Windows display scaling — `getComputedStyle` reads `1.111px` at 0.9
+either way. Assert that inflation as the test's own precondition; without it every geometry
+assertion passes on unfixed code.
+
+The two things that do **not** work: Playwright's context-level `deviceScaleFactor` reports the
+ratio faithfully but never inflates the border, so a test built on it is vacuous; and
+`--force-device-scale-factor` needs `viewport: null`, which every project's
+`devices['Desktop Chrome']` forbids by pinning `deviceScaleFactor` (`deviceScaleFactor:
+undefined` in `test.use` does not clear it, and `launchOptions` is rejected inside a
+`describe` — it forces its own worker).
+
 ## The server port
 
 The webServer binds `8123` and has `reuseExistingServer` on outside CI, so a second
