@@ -3122,6 +3122,12 @@ export default (): Record<string, unknown> => {
      *
      * If your grid's [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL, the `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing/column-freezing.md) at the right-hand edge of the grid.
      *
+     * ::: tip
+     * Freeze only as many columns as fit within the grid's width. Frozen columns are always drawn in full.
+     * If they need more space than the grid has, they cover the whole grid. You can then no longer scroll
+     * the remaining columns into view.
+     * :::
+     *
      * Read more:
      * - [Column freezing](@/guides/columns/column-freezing/column-freezing.md)
      * - [Layout direction](@/guides/internationalization/layout-direction/layout-direction.md)
@@ -3169,6 +3175,12 @@ export default (): Record<string, unknown> => {
      * no vertical scrollbar is created and the fixed bottom rows area is not displayed.
      * :::
      *
+     * ::: tip
+     * Freeze only as many rows as fit within the grid's height. Frozen rows are always drawn in full.
+     * If they need more space than the grid has, they cover the whole grid. You can then no longer scroll
+     * the remaining rows into view.
+     * :::
+     *
      * Read more:
      * - [Row freezing](@/guides/rows/row-freezing/row-freezing.md)
      * - [`height`](#height)
@@ -3196,6 +3208,12 @@ export default (): Record<string, unknown> => {
      * For the top frozen rows area to be visually separated from the scrollable body, you must also set the [`height`](#height) option
      * in Handsontable's configuration. If the grid expands to fill its parent container without a defined height,
      * no vertical scrollbar is created and the fixed top rows area is not displayed.
+     * :::
+     *
+     * ::: tip
+     * Freeze only as many rows as fit within the grid's height. Frozen rows are always drawn in full.
+     * If they need more space than the grid has, they cover the whole grid. You can then no longer scroll
+     * the remaining rows into view.
      * :::
      *
      * Read more:

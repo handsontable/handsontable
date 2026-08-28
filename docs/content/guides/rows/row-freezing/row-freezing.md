@@ -91,6 +91,16 @@ const hot = new Handsontable(container, {
 
 You can combine `fixedRowsTop` and `fixedRowsBottom` to keep both a header and a footer row in view at the same time.
 
+## Frozen area size limit
+
+Freeze only as many rows as fit within the grid's height.
+
+Handsontable always draws frozen rows in full. It never shrinks them, and it never scrolls them. If the frozen rows need more space than the grid has, they cover the whole grid. The remaining rows stay out of reach: the vertical scrollbar still moves, but the view no longer changes.
+
+This applies to the total height of the frozen rows, not to how many there are. Taller rows reach the limit sooner.
+
+Both `fixedRowsTop` and `fixedRowsBottom` behave this way. To avoid the problem, keep the combined height of your frozen rows smaller than the height of the grid. If your grid has to work at several sizes, pick a number of frozen rows that fits the shortest one.
+
 ## Result
 
 After completing this guide, the rows you specify with `fixedRowsTop` or `fixedRowsBottom` stay visible while you scroll through the rest of the grid.
