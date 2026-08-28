@@ -95,6 +95,14 @@ export class AutocompleteAsyncSourcePage {
   }
 
   /**
+   * Returns a cell's dropdown arrow. The renderer builds the arrow, so it carries no test id of its
+   * own and has to be reached through the cell that owns it.
+   */
+  arrow(row: number, col: number): Locator {
+    return this.cell(row, col).locator('.htAutocompleteArrow');
+  }
+
+  /**
    * Selects a cell, opens its editor with Enter, and waits until the column's `source` has been
    * asked for choices. Enter rather than typing: full edit mode seeds the editor with the cell's
    * own value, so the query is the column's shared choice prefix and the whole list matches.

@@ -4,6 +4,7 @@ import { htmlRenderer } from '../htmlRenderer';
 import { textRenderer } from '../textRenderer';
 import EventManager from '../../eventManager';
 import { addClass, eventTargetEl, hasClass } from '../../helpers/dom/element';
+import { isLeftClick } from '../../helpers/dom/event';
 import { A11Y_HIDDEN } from '../../helpers/a11y';
 
 export const RENDERER_TYPE: 'autocomplete' = 'autocomplete';
@@ -55,7 +56,10 @@ export function autocompleteRenderer(
 
     // not very elegant but easy and fast
     hotInstance.acArrowListener = function(event: Event) {
-      if (hasClass(eventTargetEl(event)!, 'htAutocompleteArrow')) {
+      // Only the left button opens the list. Walkontable applies the same restriction to its own
+      // double-click-to-open path, and without it a right-click on the arrow opens the editor
+      // alongside the context menu.
+      if (isLeftClick(event) && hasClass(eventTargetEl(event)!, 'htAutocompleteArrow')) {
         hotInstance.view._wt.getSetting('onCellDblClick', null, hotInstance._createCellCoords(row, col), TD);
       }
     };
