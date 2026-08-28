@@ -47,6 +47,7 @@
       beforeOnCellMouseUp: 0,
       afterBeginEditing: 0,
       afterCreateRow: 0,
+      click: 0,
     };
 
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
@@ -74,6 +75,12 @@
       afterBeginEditing() { window.hookCounts.afterBeginEditing += 1; },
       afterCreateRow() { window.hookCounts.afterCreateRow += 1; },
     });
+
+    // `click` is the last event the browser synthesizes after a tap, so counting it (capture
+    // phase, so it is seen regardless of what a listener further down does with the event) gives
+    // the spec a settle barrier that distinguishes "nothing synthesized" (0, a preventDefault-ed
+    // tap) from "a pair was synthesized and dropped" (1) (DEV-2687).
+    container.addEventListener('click', () => { window.hookCounts.click += 1; }, true);
   </script>
 </body>
 </html>

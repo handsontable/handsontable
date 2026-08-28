@@ -136,6 +136,24 @@ export class TouchTapToEditPage {
   }
 
   /**
+   * Wait until the browser has finished the compatibility sequence for the taps performed so far.
+   * `click` is the last event the browser synthesizes after a tap, so polling the click counter to
+   * its expected value is the settle barrier; the mouse counters are then read with a plain
+   * `expect`, which makes them exact rather than first-match assertions.
+   */
+  async settleOnClicks(expectedClicks: number): Promise<void> {
+    await expect.poll(() => this.hookCount('click')).toBe(expectedClicks);
+  }
+
+  /**
+   * Exact read of a hook counter. Call `settleOnClicks()` first so the browser's synthesized
+   * sequence has landed.
+   */
+  async expectHookCountExactly(name: HookCounterName, expected: number): Promise<void> {
+    expect(await this.hookCount(name)).toBe(expected);
+  }
+
+  /**
    * Whether the active cell editor is currently open (the engine's own state, not DOM visibility —
    * the `.handsontableInput` textarea is always rendered, off-screen when closed).
    */

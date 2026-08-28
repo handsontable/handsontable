@@ -134,7 +134,8 @@ export interface MoveCellsHookRecord {
 /**
  * Hook counters the DEV-2687 touch tap-to-edit fixture exposes on `window.hookCounts`.
  */
-export type HookCounterName = 'beforeOnCellMouseDown' | 'beforeOnCellMouseUp' | 'afterBeginEditing' | 'afterCreateRow';
+export type HookCounterName =
+  'beforeOnCellMouseDown' | 'beforeOnCellMouseUp' | 'afterBeginEditing' | 'afterCreateRow' | 'click';
 
 declare global {
   interface Window {
