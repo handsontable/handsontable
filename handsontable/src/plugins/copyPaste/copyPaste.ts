@@ -13,6 +13,7 @@ import {
   isShadowRoot,
 } from '../../helpers/dom/element';
 import { sanitizeHTML } from '../../utils/sanitizer';
+import { extractText, getTextExtractor } from '../../utils/textExtractor';
 import { isSafari } from '../../helpers/browser';
 import copyItem from './contextMenuItem/copy';
 import copyColumnHeadersOnlyItem from './contextMenuItem/copyColumnHeadersOnly';
@@ -1001,17 +1002,52 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Sets the clipboard data.
+   * Projects copied column headers into text, following the grid-level `textExtractor` option.
+   *
+   * Both the `text/plain` and the `text/html` flavours are affected. `_dataToHTML` escapes the
+   * values it writes, so an unprojected header reaches a rich-text target as the visible characters
+   * `<b>Total</b>` rather than as bold text - the same mismatch the option exists to remove.
+   *
+   * The source-data flavour is left alone. It carries the values behind the cells so that a copy
+   * between grids restores them exactly, and a projection would corrupt that round trip.
+   *
+   * The rows are mapped rather than mutated, so the array handed to `beforeCopy` and `afterCopy`
+   * still holds the values those hooks have always received.
+   *
+   * @param {Array[]} rangedData The copied data, header rows first.
+   * @returns {Array[]} The data with its header rows projected into text.
+   */
+  #extractHeaderText(rangedData: unknown[][]): unknown[][] {
+    if (getTextExtractor(this.hot) === false) {
+      return rangedData;
+    }
+
+    const { columnHeadersCount } = this.#countCopiedHeaders(this.copyableRanges);
+
+    if (columnHeadersCount === 0) {
+      return rangedData;
+    }
+
+    return rangedData.map((row, index) => (
+      index < columnHeadersCount
+        ? row.map(value => extractText(this.hot, value, 'CopyPaste.columnHeader'))
+        : row
+    ));
+  }
+
+  /**
+   * Sets the clipboard data for the given event.
    *
    * @param {ClipboardEvent} event The Clipboard event.
    * @param {Array} rangedData Ranged data to set to the clipboard.
    * @param {Array} rangedSourceData Ranged source data to set to the clipboard.
    */
   #setClipboardData(event: ClipboardEvent, rangedData: unknown[][], rangedSourceData: unknown[][]) {
-    const textPlain = stringify(rangedData);
+    const projectedData = this.#extractHeaderText(rangedData);
+    const textPlain = stringify(projectedData);
 
     if (event && event.clipboardData) {
-      const textHTML = _dataToHTML(rangedData);
+      const textHTML = _dataToHTML(projectedData);
       const textSourceDataHTML = _dataToHTML(rangedSourceData);
 
       event.clipboardData.setData('text/plain', textPlain);

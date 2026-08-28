@@ -495,4 +495,100 @@ describe('CopyPaste', () => {
       ].join(''));
     });
   });
+
+  describe('`textExtractor` option', () => {
+    it('should copy markup in column headers as-is when the option is not set', async() => {
+      handsontable({
+        colHeaders: ['<b>Bold</b>', 'Plain'],
+        data: [['A1', 'B1']],
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      await selectAll();
+
+      plugin.copyWithColumnHeaders();
+      plugin.onCopy(copyEvent);
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('<b>Bold</b>\tPlain\nA1\tB1');
+    });
+
+    it('should copy column headers as displayed text into the plain flavour', async() => {
+      handsontable({
+        colHeaders: ['<b>Bold</b>', 'Plain'],
+        data: [['A1', 'B1']],
+        textExtractor: true,
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      await selectAll();
+
+      plugin.copyWithColumnHeaders();
+      plugin.onCopy(copyEvent);
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('Bold\tPlain\nA1\tB1');
+    });
+
+    it('should project the header in the HTML flavour too, because that flavour escapes values', async() => {
+      // `_dataToHTML` escapes what it writes, so an unprojected header reaches a rich-text target
+      // as the visible characters `<b>Bold</b>` rather than as bold text.
+      handsontable({
+        colHeaders: ['<b>Bold</b>', 'Plain'],
+        data: [['A1', 'B1']],
+        textExtractor: true,
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      await selectAll();
+
+      plugin.copyWithColumnHeaders();
+      plugin.onCopy(copyEvent);
+
+      expect(copyEvent.clipboardData.getData('text/html')).toContain('<td>Bold</td>');
+    });
+
+    it('should leave cell values alone when only cells are copied', async() => {
+      handsontable({
+        colHeaders: ['<b>Bold</b>', 'Plain'],
+        data: [['a<b', 'B1']],
+        textExtractor: true,
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      await selectAll();
+
+      plugin.copyCellsOnly();
+      plugin.onCopy(copyEvent);
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('a<b\tB1');
+    });
+
+    it('should hand `beforeCopy` the values it has always received', async() => {
+      const beforeCopy = jasmine.createSpy('beforeCopy');
+
+      handsontable({
+        colHeaders: ['<b>Bold</b>', 'Plain'],
+        data: [['A1', 'B1']],
+        textExtractor: true,
+        beforeCopy,
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      await selectAll();
+
+      plugin.copyWithColumnHeaders();
+      plugin.onCopy(copyEvent);
+
+      expect(beforeCopy.calls.argsFor(0)[0]).toEqual([['<b>Bold</b>', 'Plain'], ['A1', 'B1']]);
+    });
+  });
 });

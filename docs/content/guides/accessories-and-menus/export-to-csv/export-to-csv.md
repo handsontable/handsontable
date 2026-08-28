@@ -198,6 +198,39 @@ To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolea
 :::
 :::
 
+### Export headers as plain text
+
+A column header setting is also its display string. A header of `'<b>Total</b>'` renders as **Total** in the grid, but the export writes the value it was given, so the file receives the literal `<b>Total</b>`.
+
+To export headers as the text the grid displays, set the [`textExtractor`](@/api/options.md#textextractor) option to `true`:
+
+```js
+const hot = new Handsontable(container, {
+  data: [[1, 2]],
+  colHeaders: ['<b>Total</b>', 'Count'],
+  textExtractor: true,
+});
+
+hot.getPlugin('exportFile').downloadFile('csv', { colHeaders: true });
+// The file receives: Total,Count
+```
+
+`textExtractor` is a grid option, not an export configuration option, so you set it alongside `colHeaders` rather than passing it to `downloadFile()`. It applies to column headers, row headers, and [nested headers](@/api/nestedHeaders.md), in both CSV and Excel exports. Copying a header row to the clipboard uses it as well.
+
+Cell data is left alone. A cell exports its value, never its rendered markup, so a value such as `a<b` reaches the file unchanged.
+
+Pass a function instead of `true` when you need different rules per surface:
+
+```js
+textExtractor: (content, source) => {
+  if (source === 'ExportFile.rowHeader') {
+    return content;
+  }
+
+  return stripMarkup(content);
+},
+```
+
 ## Result
 
 After completing this guide, you can export grid data as a downloadable CSV file, a JavaScript Blob, or a string. You can customize delimiters, ranges, headers, and value sanitization through the export configuration.

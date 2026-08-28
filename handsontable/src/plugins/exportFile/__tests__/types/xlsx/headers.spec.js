@@ -54,6 +54,32 @@ describe('exportFile XLSX type — headers', () => {
       expect(ws.getRow(1).getCell(1).value).toBe('Name');
       expect(ws.getRow(1).getCell(2).value).toBe('Age');
     });
+
+    it('should write markup in column headers as-is when `textExtractor` is not set', async() => {
+      handsontable({
+        data: createSpreadsheetData(1, 2),
+        colHeaders: ['<b>Bold</b>', 'Plain'],
+        exportFile: { engines: { xlsx: ExcelJS } },
+      });
+
+      const ws = await parseXlsx({ colHeaders: true });
+
+      expect(ws.getRow(1).getCell(1).value).toBe('<b>Bold</b>');
+    });
+
+    it('should write column headers as displayed text when `textExtractor` is `true`', async() => {
+      handsontable({
+        data: createSpreadsheetData(1, 2),
+        colHeaders: ['<b>Bold</b>', 'Plain'],
+        textExtractor: true,
+        exportFile: { engines: { xlsx: ExcelJS } },
+      });
+
+      const ws = await parseXlsx({ colHeaders: true });
+
+      expect(ws.getRow(1).getCell(1).value).toBe('Bold');
+      expect(ws.getRow(1).getCell(2).value).toBe('Plain');
+    });
   });
 
   describe('row headers', () => {
