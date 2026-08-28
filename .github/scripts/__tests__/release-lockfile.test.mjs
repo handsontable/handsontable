@@ -129,14 +129,25 @@ function steps(source) {
   return found;
 }
 
-test('no workflow or composite action reinstalls with --force', () => {
-  // `--force` re-runs the resolver against the registry. Both spellings, and the
-  // `run: |` block form where the flag lands on a continuation line.
-  const forced = /pnpm\s+install\b[\s\S]{0,200}?(?:--force|(?<![\w-])-f)(?![\w-])/;
+/**
+ * The arguments of every `pnpm install` in a file.
+ *
+ * Scoped to each command's own logical line -- through backslash continuations, but
+ * stopping at the end of the command. A window-based scan instead matches any nearby
+ * flag, so a perfectly ordinary `rm -f` or `grep -f` on the next line of the same
+ * `run:` block reads as `pnpm install -f` and fails the release.
+ *
+ * @param {string} source YAML source, comments already stripped.
+ * @returns {string[]} One argument string per `pnpm install` found.
+ */
+function installArgs(source) {
+  return [...source.matchAll(/pnpm\s+install((?:[^\n\\]|\\\r?\n|\\)*)/g)].map(([, args]) => args);
+}
 
+test('no workflow or composite action reinstalls with --force', () => {
   for (const { rel, source } of actionsYaml()) {
     assert.equal(
-      forced.test(withoutComments(source)),
+      installArgs(withoutComments(source)).some(args => /(?:^|\s)(?:--force|-f)(?![\w-])/.test(args)),
       false,
       `${rel}: \`pnpm install --force\` (or \`-f\`) re-resolves dependencies instead of `
       + 'installing the committed lockfile. Install with the lockfile as committed (DEV-2667).'
