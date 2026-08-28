@@ -415,11 +415,12 @@ export class BaseEditor {
 
       // Ctrl/Meta + Enter over a real range copies the edited value into every other cell of the
       // selection, so an unchanged editor still has work to do there. Over a single cell it writes
-      // only the edited cell, which makes it the same gesture as a plain Enter. `!== true` rather
-      // than `=== false`, so a missing range reads as "does not fill other cells" instead of falling
-      // into the fill branch.
+      // only the edited cell, which makes it the same gesture as a plain Enter. A missing range has
+      // no other cells to fill either, so `?? true` reads it as single and leaves the guard armed.
+      // `!== true` did the opposite: it sent a missing range into the fill branch, which wrote the
+      // editor's `''` over a `null` cell - the #3927 case this guard exists to stop.
       const fillsOtherCells = ctrlDown === true &&
-        this.hot.getSelectedRangeActive()?.isSingle() !== true;
+        (this.hot.getSelectedRangeActive()?.isSingle() ?? true) === false;
 
       let value = this.getValue();
 

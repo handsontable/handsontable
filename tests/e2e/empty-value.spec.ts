@@ -84,6 +84,20 @@ test.describe('empty cell values', () => {
       await grid.expectSource(0, 0, 'null');
     });
 
+    test('keeps `null` on a Ctrl+Enter with no selection range', async() => {
+      // `getSelectedRangeActive()` is typed `CellRange | undefined`, and the editor has to answer
+      // the fill question without one. No range means no other cells to fill, so this is a plain
+      // Enter and the guard stays armed. Reading a missing range as "fills other cells" instead
+      // sent it down the normal save path, which wrote the editor's `''` over the `null`.
+      await grid.expectSource(0, 0, 'null');
+
+      await grid.selectRange(0, 0, 0, 0);
+      await grid.confirmWithCtrlEnterAndNoRange();
+
+      await grid.expectSource(0, 0, 'null');
+      await grid.expectChangeCount(0);
+    });
+
     // The other half of that rule — over a REAL range the guard must stay disarmed, or Ctrl+Enter
     // would silently stop filling — is covered by the Jasmine `BaseEditor` specs ("should populate
     // value from the currently active cell to every cell in the selected range"). Those are what

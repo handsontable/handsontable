@@ -163,6 +163,26 @@
       hot.getActiveEditor().finishEditing(false, true);
     };
 
+    /**
+     * The same Ctrl/Cmd + Enter confirm, but with no active selection range.
+     *
+     * The grid always has a range while an editor is open, so the only way to reach the editor's
+     * missing-range branch from a spec is to take the range away for the length of the call.
+     */
+    window.htConfirmWithCtrlNoRange = function() {
+      const original = hot.getSelectedRangeActive;
+
+      hot.getSelectedRangeActive = function() {
+        return undefined;
+      };
+
+      try {
+        hot.getActiveEditor().finishEditing(false, true);
+      } finally {
+        hot.getSelectedRangeActive = original;
+      }
+    };
+
     /** Pastes clipboard text into the current selection through the CopyPaste plugin. */
     window.htPaste = function(text) {
       hot.getPlugin('copyPaste').paste(text);

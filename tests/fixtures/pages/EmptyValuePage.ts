@@ -165,6 +165,19 @@ export class EmptyValuePage {
   }
 
   /**
+   * The same Ctrl/Cmd + Enter confirm, but with the selection range taken away for the call.
+   *
+   * A range is always there in practice. The editor guards against a missing one anyway, and this
+   * is the only way to reach that branch from a spec.
+   */
+  async confirmWithCtrlEnterAndNoRange(): Promise<void> {
+    await this.page.keyboard.press('Enter');
+    await this.expectEditorOpen();
+    await this.page.evaluate(() => window.htConfirmWithCtrlNoRange());
+    await this.expectEditorClosed();
+  }
+
+  /**
    * Opens the editor on a cell, replaces its content, and confirms.
    *
    * @param {number} row The visual row index.
@@ -238,6 +251,7 @@ declare global {
     htSelect: (row: number, col: number) => void;
     htSelectRange: (fromRow: number, fromCol: number, toRow: number, toCol: number) => void;
     htConfirmWithCtrl: () => void;
+    htConfirmWithCtrlNoRange: () => void;
     htSourceAt: (row: number, col: number) => string;
     htChangeCount: () => number;
     htPaste: (text: string) => void;
