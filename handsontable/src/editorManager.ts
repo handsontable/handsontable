@@ -2,6 +2,7 @@ import type { HotInstance } from './core/types';
 import type { GridSettings } from './core/settings';
 import type { CellProperties } from './settings';
 import type { default as SelectionManager } from './selection/selection';
+import type { IndexesChangeSource } from './translations/indexMapper';
 import { isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
 import { isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors/registry';
@@ -110,11 +111,11 @@ class EditorManager {
    * @param {object} [indexesChangesState] The state object of the index mapper's cache update.
    * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
    * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
-   * @param {'init'|'remove'|'insert'|'move'|'update'} [indexesChangesState.indexesChangeSource] The sequence change source.
+   * @param {IndexesChangeSource} [indexesChangesState.indexesChangeSource] The sequence change source.
    */
   #onRowSequenceCacheUpdate = (indexesChangesState: {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean;
-    indexesChangeSource?: 'init' | 'remove' | 'insert' | 'move' | 'update';
+    indexesChangeSource?: IndexesChangeSource;
   } = { indexesSequenceChanged: false, trimmedIndexesChanged: false }): void => {
     this.#repairEditor(this.#isStructuralChange(indexesChangesState), indexesChangesState);
   };
@@ -127,11 +128,11 @@ class EditorManager {
    * @param {object} [indexesChangesState] The state object of the index mapper's cache update.
    * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
    * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
-   * @param {'init'|'remove'|'insert'|'move'|'update'} [indexesChangesState.indexesChangeSource] The sequence change source.
+   * @param {IndexesChangeSource} [indexesChangesState.indexesChangeSource] The sequence change source.
    */
   #onColumnSequenceCacheUpdate = (indexesChangesState: {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean;
-    indexesChangeSource?: 'init' | 'remove' | 'insert' | 'move' | 'update';
+    indexesChangeSource?: IndexesChangeSource;
   } = { indexesSequenceChanged: false, trimmedIndexesChanged: false }): void => {
     this.#repairEditor(this.#isStructuralChange(indexesChangesState), indexesChangesState);
   };
@@ -139,11 +140,11 @@ class EditorManager {
    * Determines whether a cache update renumbered the physical index space.
    *
    * @param {object} indexesChangesState The state object of the index mapper's cache update.
-   * @param {'init'|'remove'|'insert'|'move'|'update'} [indexesChangesState.indexesChangeSource] The sequence change source.
+   * @param {IndexesChangeSource} [indexesChangesState.indexesChangeSource] The sequence change source.
    * @returns {boolean}
    */
   #isStructuralChange(indexesChangesState: {
-    indexesChangeSource?: 'init' | 'remove' | 'insert' | 'move' | 'update';
+    indexesChangeSource?: IndexesChangeSource;
   }): boolean {
     return indexesChangesState.indexesChangeSource === 'insert' ||
       indexesChangesState.indexesChangeSource === 'remove';
@@ -154,7 +155,7 @@ class EditorManager {
    * The repair runs BEFORE that guard, so it tests `isHidden()` against corrected coordinates rather
    * than the stale ones the index map just invalidated.
    *
-   * @param {boolean} isStructuralChange Whether that axis's physical index count just changed.
+   * @param {boolean} isStructuralChange Whether that axis's physical index space was structurally changed.
    * @param {object} indexesChangesState The state object of the index mapper's cache update.
    * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
    * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.

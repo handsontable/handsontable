@@ -20,6 +20,8 @@ import { isDefined } from '../helpers/mixed';
 import { ChangesObservable } from './changesObservable/observable';
 import { throwWithCause } from '../helpers/errors';
 
+export type IndexesChangeSource = 'init' | 'remove' | 'insert' | 'move' | 'update';
+
 /**
  * @class IndexMapper
  * @description
@@ -141,7 +143,7 @@ export class IndexMapper {
    *
    * @type {undefined|string}
    */
-  indexesChangeSource: string | undefined = undefined;
+  indexesChangeSource: IndexesChangeSource | undefined = undefined;
   /**
    * Source of the next cache update caused by an index sequence change.
    *
@@ -151,7 +153,7 @@ export class IndexMapper {
    *
    * @type {undefined|string}
    */
-  #cacheUpdateSource: string | undefined = undefined;
+  #cacheUpdateSource: IndexesChangeSource | undefined = undefined;
   /**
    * Flag determining whether any action on trimmed indexes has been performed. It's used for cache management.
    *
@@ -767,6 +769,10 @@ export class IndexMapper {
    * @param {'start' | 'end'} [mode] Sets where the column is inserted: at the start of the passed index or at the end.
    */
   insertIndexes(firstInsertedVisualIndex: number, amountOfIndexes: number, mode: 'start' | 'end' = 'start'): void {
+    if (amountOfIndexes === 0) {
+      return;
+    }
+
     const nthVisibleIndex = this.getNotTrimmedIndexes()[firstInsertedVisualIndex];
     const firstInsertedPhysicalIndex = isDefined(nthVisibleIndex)
       ? nthVisibleIndex
@@ -907,17 +913,20 @@ export class IndexMapper {
         this.hidingChangesObservable.emit(this.hidingMapsCollection.getMergedValues());
       }
 
+      const indexesChangeSource = this.#cacheUpdateSource;
+
+      this.#cacheUpdateSource = undefined;
+
       this.runLocalHooks('cacheUpdated', {
         indexesSequenceChanged: this.indexesSequenceChanged,
         trimmedIndexesChanged: this.trimmedIndexesChanged,
         hiddenIndexesChanged: this.hiddenIndexesChanged,
-        indexesChangeSource: this.#cacheUpdateSource,
+        indexesChangeSource,
       });
 
       this.indexesSequenceChanged = false;
       this.trimmedIndexesChanged = false;
       this.hiddenIndexesChanged = false;
-      this.#cacheUpdateSource = undefined;
     }
   }
 
