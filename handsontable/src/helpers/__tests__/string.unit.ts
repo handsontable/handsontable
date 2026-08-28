@@ -1,5 +1,6 @@
 import {
   equalsIgnoreCase,
+  escapeHtml,
   sanitize,
   substitute,
   stripTags,
@@ -96,6 +97,24 @@ describe('String helper', () => {
       expect(stripTags('<script>alert()</script>')).toBe('alert()');
       expect(stripTags('<strong>Hello</strong> <span class="my">my</span> world<sup>2</sup>')).toBe('Hello my world2');
       expect(stripTags('This is my <a href="https://handsontable.com">link</a>')).toBe('This is my link');
+    });
+  });
+
+  describe('escapeHtml', () => {
+    it('should escape the characters that carry meaning in HTML', () => {
+      expect(escapeHtml('')).toBe('');
+      expect(escapeHtml('<i>foo</i>')).toBe('&lt;i&gt;foo&lt;/i&gt;');
+      expect(escapeHtml('" onerror="alert(1)')).toBe('&quot; onerror=&quot;alert(1)');
+      expect(escapeHtml('\' onerror=\'alert(1)')).toBe('&#39; onerror=&#39;alert(1)');
+      expect(escapeHtml('Tom & Jerry')).toBe('Tom &amp; Jerry');
+      // the ampersand is escaped first, so an entity in the input survives as literal text
+      expect(escapeHtml('&lt;')).toBe('&amp;lt;');
+    });
+
+    it('should keep text containing comparison signs whole, unlike stripTags', () => {
+      expect(escapeHtml('Loaded 5 < 10 rows')).toBe('Loaded 5 &lt; 10 rows');
+      expect(escapeHtml('a < b and c > d')).toBe('a &lt; b and c &gt; d');
+      expect(stripTags('Loaded 5 < 10 rows')).toBe('Loaded 5 ');
     });
   });
 

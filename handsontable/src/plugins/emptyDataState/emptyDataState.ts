@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { EmptyDataStateUI } from './ui';
 import { isObject } from '../../helpers/object';
+import { isButtonType } from '../../helpers/uiButton';
 import * as C from '../../i18n/constants';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 
@@ -253,7 +254,7 @@ export class EmptyDataState extends BasePlugin {
             (value.buttons as Record<string, unknown>[]).every((item: Record<string, unknown>) =>
               typeof item === 'object' &&
               typeof item.text === 'string' &&
-              (typeof item.type === 'string' && ['primary', 'secondary'].includes(item.type)) &&
+              isButtonType(item.type) &&
               typeof item.callback === 'function'
             ));
       },
