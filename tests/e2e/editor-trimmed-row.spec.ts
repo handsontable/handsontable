@@ -831,3 +831,37 @@ test.describe('a removal that strands the editor', () => {
       ]);
     });
 });
+
+/**
+ * An index-map change fired from INSIDE the `alter()` that is still running.
+ *
+ * `alter()` emits its cache update before `selection.shiftRows()`, so in between the editor sits on
+ * a coordinate that resolves to nothing while a `prepareEditor()` is still coming. A plugin trimming
+ * from `afterRemoveRow` lands exactly there. Reading the editor as unusable at that moment and
+ * discarding would throw away an edit that was about to commit correctly – `develop` commits it, so
+ * doing anything else here is a regression rather than a gap.
+ */
+test.describe('an index-map change nested inside a removal', () => {
+  test('keeps an edit that the pending re-prepare is about to rescue',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.openEditorAndType(4, 0, 'EDITED');
+
+      // Removes `'A0'`, and trims what is then physical row 0 (`'A1'`) from inside `afterRemoveRow`.
+      await grid.removeRowTrimmingFrom(0, 0);
+
+      await expect.poll(() => grid.editorState()).toBe('STATE_EDITING');
+
+      await grid.commitWithEnter();
+
+      await expect.poll(() => grid.sourceData()).toEqual([
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['EDITED', 'B4'],
+      ]);
+      expect(await grid.sourceRowCount()).toBe(4);
+    });
+});

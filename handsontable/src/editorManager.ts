@@ -86,6 +86,21 @@ class EditorManager {
    */
   #editedPhysicalColumn: number | null = null;
   /**
+   * Whether a structural change stranded the editor during the CURRENT task.
+   *
+   * `alter()` emits its cache update before `selection.shiftRows()`, so between the two the editor
+   * legitimately sits on a coordinate that resolves to nothing while a `prepareEditor()` is still
+   * coming. Anything that reconciles inside that window – a plugin trimming from `afterRemoveRow`,
+   * say – would otherwise read the editor as unusable and discard an edit that was about to commit.
+   *
+   * Cleared on a timeout rather than on a paired hook, so nothing a plugin cancels can strand it:
+   * the window closes when the task that opened it ends, which is where `alter()` has finished all
+   * its synchronous work.
+   *
+   * @type {boolean}
+   */
+  #strandedInCurrentTask = false;
+  /**
    * The size of each PHYSICAL index space as of the last cache update.
    *
    * Only a structural change – an inserted or removed row or column – changes these. A trim, a
@@ -224,6 +239,8 @@ class EditorManager {
     // `beforeChange` that cancels the change, for instance) would disable the guard for the rest
     // of the instance's life rather than for that one edit.
     this.#hiddenCellCloseArmed = false;
+    // A successful re-prepare is the end of any strand window.
+    this.#strandedInCurrentTask = false;
 
     if (this.activeEditor && this.activeEditor.isWaiting()) {
       this.closeEditor(false, false, (dataSaved: boolean) => {
@@ -508,6 +525,11 @@ class EditorManager {
     if (physicalRow === null || physicalColumn === null) {
       this.#editedPhysicalRow = null;
       this.#editedPhysicalColumn = null;
+      this.#strandedInCurrentTask = true;
+
+      this.hot._registerTimeout(() => {
+        this.#strandedInCurrentTask = false;
+      }, 0);
 
       return;
     }
@@ -615,11 +637,16 @@ class EditorManager {
     // commit through those coordinates is what `applyChanges()` satisfies by APPENDING records, so
     // the edit is dropped here rather than at the next keystroke.
     //
+    // Not while `#strandedInCurrentTask` is set: inside the `alter()` that stranded it the editor
+    // reads as unusable only because `selection.shiftRows()` has not run yet, and the re-prepare
+    // behind it is about to make the coordinates good again.
+    //
     // Only reached with no captured record. While one exists it is the better guide - it survives a
     // trim that leaves the editor's own stale coordinates unresolvable, which is the ordinary rebind.
     if (this.#editedPhysicalRow === null || this.#editedPhysicalColumn === null) {
-      if (this.hot.rowIndexMapper.getPhysicalFromVisualIndex(editor.row!) === null ||
-          this.hot.columnIndexMapper.getPhysicalFromVisualIndex(editor.col!) === null) {
+      if (!this.#strandedInCurrentTask &&
+          (this.hot.rowIndexMapper.getPhysicalFromVisualIndex(editor.row!) === null ||
+           this.hot.columnIndexMapper.getPhysicalFromVisualIndex(editor.col!) === null)) {
         if (isEditing) {
           editor.cancelChanges();
         }

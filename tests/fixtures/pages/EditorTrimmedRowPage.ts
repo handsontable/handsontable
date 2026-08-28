@@ -23,7 +23,7 @@ interface ManualColumnMovePlugin {
 }
 
 interface HandsontableFixture {
-  addHook(name: string, callback: () => boolean): void;
+  addHook(name: string, callback: () => unknown): void;
   getSelected(): number[][] | undefined;
   selectCells(ranges: number[][]): void;
   selection: { transformFocus(row: number, col: number): void };
@@ -306,6 +306,21 @@ export class EditorTrimmedRowPage {
     await this.page.evaluate(([target, count]) => {
       (window as Window & { hot: HandsontableFixture }).hot.alter('insert_row_above', target, count);
     }, [row, amount] as [number, number]);
+  }
+
+  /**
+   * Trims a row from inside `afterRemoveRow`, then removes a row - the nesting that puts an index-map
+   * change into the window between `alter()`'s cache update and the selection shift behind it.
+   */
+  async removeRowTrimmingFrom(removeIndex: number, trimRow: number): Promise<void> {
+    await this.page.evaluate(([target, trimmed]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+
+      hot.addHook('afterRemoveRow', () => {
+        hot.getPlugin('trimRows').trimRows([trimmed as number]);
+      });
+      hot.alter('remove_row', target as number, 1);
+    }, [removeIndex, trimRow] as [number, number]);
   }
 
   /**
