@@ -8,8 +8,16 @@
  * How long (ms) after a touch gesture the browser-synthesized `mousedown`/`mouseup`/`click`
  * sequence is still expected when the engine does not report the input origin (WebKit,
  * Firefox). Shared by Walkontable's mouse listeners and TableView's outside-click handling so
- * both layers agree on which events are synthesized. WebKit delivers the sequence within
- * ~350 ms even with double-tap-zoom detection.
+ * both layers agree on which events are synthesized.
+ *
+ * Ceiling, not a target: Walkontable drops only the first `mousedown`/`mouseup` pair after a tap
+ * (see `#synthesizedPairPending`), so the constant only bounds how long that pair may take to
+ * arrive; browsers deliver it within a few hundred milliseconds, which this value covers with
+ * margin. On engines that do not report the input origin (WebKit, Firefox) a real mouse event
+ * that arrives inside the ceiling BEFORE the synthesized pair — e.g. a first tap on an unselected
+ * cell is `preventDefault`-ed and synthesizes nothing, so the pair never comes — is still
+ * dropped: that includes a fill-handle grab or a drag-selection started with a mouse or trackpad
+ * within half a second of such a tap.
  */
 export const TOUCH_SYNTHESIZED_MOUSE_WINDOW = 500;
 

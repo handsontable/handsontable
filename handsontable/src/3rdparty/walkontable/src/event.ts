@@ -177,6 +177,15 @@ class Event {
    */
   #lastTouchMouseUpAt: number = 0;
   /**
+   * `true` between a touch-driven `onMouseUp` and the browser-synthesized `mouseup` that follows it.
+   * Only that first pair is dropped; once it is consumed, real mouse events pass even inside the
+   * `TOUCH_SYNTHESIZED_MOUSE_WINDOW` ceiling, so a fill-handle drag or a drag-selection started with
+   * a mouse right after a tap works on engines that do not report the input origin (DEV-2687).
+   *
+   * @type {boolean}
+   */
+  #synthesizedPairPending: boolean = false;
+  /**
    * @type {boolean}
    */
   #mouseDown: boolean = false;
@@ -333,34 +342,36 @@ class Event {
   }
 
   /**
-   * Checks whether a mouse event caught by the mouse listeners is the browser-synthesized
-   * compatibility sequence that follows a touch tap. The browser report is checked first, but
-   * only as a veto: Blink reports the origin through `sourceCapabilities.firesTouchEvents`, and
-   * `false` means a real mouse or pen click, which is always processed, even right after a tap.
-   * Otherwise the event is synthesized only if the touch path handled a gesture within the
-   * `TOUCH_SYNTHESIZED_MOUSE_WINDOW` after its own `onMouseUp` — a tap that drifted past the
-   * move threshold is treated as a scroll by the touch path (no `onMouseDown`/`onMouseUp`, no
-   * `#lastTouchMouseUpAt` stamp), so its browser-synthesized compatibility pair is processed and
-   * selects the cell on every engine alike. Both synthesized `mousedown` and `mouseup` must be
-   * dropped so the double-click detector sees matched pairs or nothing (DEV-2687, #12803).
-   * Trade-off: on engines that do not report the input origin (WebKit, Firefox), a real mouse
-   * click within the window after a tap is dropped, and a pair straddling the boundary yields one
-   * unpaired half.
+   * Decides whether a mouse event caught by the mouse listeners is one half of the browser-synthesized
+   * `mousedown`/`mouseup` pair that follows a touch tap, and must therefore be dropped. Order of the
+   * checks: an engine that reports the input origin and says "not touch" wins (Blink, a real mouse or
+   * pen is never dropped); otherwise the event is synthesized only if a touch-driven `onMouseUp` just
+   * armed the pair (`#synthesizedPairPending`) and the ceiling has not passed. The `mouseup` half
+   * consumes the pair, so any later mouse event inside the ceiling is treated as real. Dropping both
+   * halves keeps `onCellMouseDown` at one call per tap and context-menu commands at one execution
+   * (#12803); a tap that left no stamp (a gesture treated as a scroll) has its pair processed.
    *
    * @param {MouseEvent} event The mouse event object.
    * @returns {boolean}
    */
   #isTouchSynthesizedMouseEvent(event: MouseEvent): boolean {
-    // An engine that reports the origin and says "not touch" wins: a real mouse or pen click is
-    // never dropped, even right after a tap (Blink).
     if (isTouchSynthesizedMouseEvent(event) === false) {
       return false;
     }
 
-    // Otherwise the event is synthesized only if the touch path handled a gesture just now. A
-    // drifted tap that the touch path treats as a scroll leaves no stamp, so the browser's
-    // compatibility pair is processed and selects the cell on every engine alike.
-    return Date.now() - this.#lastTouchMouseUpAt < TOUCH_SYNTHESIZED_MOUSE_WINDOW;
+    const withinCeiling = Date.now() - this.#lastTouchMouseUpAt < TOUCH_SYNTHESIZED_MOUSE_WINDOW;
+
+    if (!this.#synthesizedPairPending || !withinCeiling) {
+      this.#synthesizedPairPending = false;
+
+      return false;
+    }
+
+    if (event.type === 'mouseup') {
+      this.#synthesizedPairPending = false;
+    }
+
+    return true;
   }
 
   /**
@@ -702,8 +713,13 @@ class Event {
     // before/after hooks (e.g. nestedHeaders, ContextMenu close logic).
     // Suppress only for pure scroll gestures, where onMouseDown was never fired.
     if (!wasScrolled || this.#longPressFired) {
-      this.#lastTouchMouseUpAt = Date.now();
+      // The stamp is taken AFTER the tap is handled, so the selection/render work onMouseUp does
+      // is not charged against the TOUCH_SYNTHESIZED_MOUSE_WINDOW ceiling. Everything onMouseUp
+      // triggers is synchronous; the browser only dispatches the synthesized mousedown/mouseup
+      // sequence after this touchend handler returns.
       this.onMouseUp(event);
+      this.#lastTouchMouseUpAt = Date.now();
+      this.#synthesizedPairPending = true;
     } else {
       // A pure scroll gesture calls neither onMouseDown nor onMouseUp, so #handleTouchTap never
       // runs to reset the tap detector. Reset it here so a scroll between two taps can't pair them.
