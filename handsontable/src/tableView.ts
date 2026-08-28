@@ -41,6 +41,8 @@ import {
   A11Y_ROWCOUNT,
   A11Y_TREEGRID
 } from './helpers/a11y';
+import { parsePixelSize } from './helpers/number';
+import { warnOnce } from './helpers/console';
 
 /**
  * Checks whether a size setting (`rowHeights`, `minRowHeights`, or `colWidths`) guarantees a uniform
@@ -52,6 +54,94 @@ import {
  */
 function isUniformSizeSetting(value: unknown): boolean {
   return value === undefined || value === null || typeof value === 'number';
+}
+
+/**
+ * Resolves one entry of a header size setting into a number of pixels.
+ *
+ * Warns once per grid instance when the value cannot be read as a pixel size, then returns `null` so
+ * the caller falls back to its own default rather than rendering a broken size.
+ *
+ * @param {*} value The configured value.
+ * @param {object} scope The object the one-time warning is bound to.
+ * @param {string} optionName The option's name, used in the warning message.
+ * @returns {number|null}
+ */
+function resolveHeaderSizeEntry(value: unknown, scope: object, optionName: string): number | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  const size = parsePixelSize(value);
+
+  if (size === null) {
+    warnOnce(
+      scope,
+      `invalid-header-size-${optionName}`,
+      `Handsontable: the \`${optionName}\` option expects a number of pixels, such as \`100\`, ` +
+      `\`'100'\`, or \`'100px'\`. The value ${JSON.stringify(value)} cannot be read as a pixel size, ` +
+      'so it is ignored and the default size is used instead.'
+    );
+
+    return null;
+  }
+
+  return size;
+}
+
+/**
+ * Checks whether a header size entry is already a number, or is empty and therefore stands for
+ * "use the default size for this level".
+ *
+ * @param {*} entry The array entry to check.
+ * @returns {boolean}
+ */
+function isResolvedHeaderSizeEntry(entry: unknown): entry is number | null | undefined {
+  return typeof entry === 'number' || entry === null || entry === undefined;
+}
+
+/**
+ * Resolves the `rowHeaderWidth` and `columnHeaderHeight` settings into the numbers the rendering
+ * engine needs.
+ *
+ * Both options are documented as pixel numbers, and the sizing code downstream requires real
+ * numbers: the row header width guard replaces a non-number with the default column width, and the
+ * column header height merge skips anything that is not a number. Resolving the value here - the one
+ * place each option crosses from the grid settings into Walkontable - satisfies that requirement
+ * without adding a branch to the per-cell sizing code that runs on every draw.
+ *
+ * The `'100'` and `'100px'` string forms are accepted alongside a plain number, so a value arriving
+ * from an attribute, a JSON config, or a framework template still resolves.
+ *
+ * A value that is already a number, or an array already made of numbers, is returned by reference,
+ * so the common path allocates nothing.
+ *
+ * @param {*} value The configured setting value.
+ * @param {object} scope The object the one-time warning is bound to.
+ * @param {string} optionName The option's name, used in the warning message.
+ * @returns {number|Array|undefined}
+ */
+function resolveHeaderSizeSetting(
+  value: unknown,
+  scope: object,
+  optionName: string
+): number | Array<number | null | undefined> | undefined {
+  if (value === undefined || typeof value === 'number') {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    const entries: unknown[] = value;
+
+    // Returning the same array keeps the already-numeric case allocation-free on every draw.
+    if (entries.every(isResolvedHeaderSizeEntry)) {
+      return entries;
+    }
+
+    return entries.map(entry => resolveHeaderSizeEntry(entry, scope, optionName));
+  }
+
+  return resolveHeaderSizeEntry(value, scope, optionName) ?? undefined;
 }
 
 /**
@@ -1403,10 +1493,16 @@ class TableView {
         }
         this.hot.runHooks('afterViewportColumnCalculatorOverride', calc);
       },
-      rowHeaderWidth: () => this.settings.rowHeaderWidth,
+      rowHeaderWidth: () => resolveHeaderSizeSetting(
+        this.settings.rowHeaderWidth, this.hot.rootElement, 'rowHeaderWidth'
+      ),
       columnHeaderHeight: () => {
         const hookHeight = this.hot.runHooks('modifyColumnHeaderHeight');
-        const configured = this.settings.columnHeaderHeight;
+        // Resolved before the merge below reads it, because that merge only accepts numbers - and
+        // before the `levels === 0` shortcut, which returns the value without going through it.
+        const configured = resolveHeaderSizeSetting(
+          this.settings.columnHeaderHeight, this.hot.rootElement, 'columnHeaderHeight'
+        );
         const probe = this.renderSizeProbe.columnHeaderHeights;
         // Merge the three provided-height sources per header level: the `columnHeaderHeight` option
         // (scalar or per-level array), the `modifyColumnHeaderHeight` hook (AutoRowSize), and the

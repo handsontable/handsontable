@@ -900,6 +900,11 @@ export default (): Record<string, unknown> => {
      * | A number | Set the same height for every column header         |
      * | An array | Set different heights for individual column headers |
      *
+     * The height is a number of pixels. A string that states a pixel size works too, either as a bare
+     * number (`'25'`) or with the unit (`'25px'`), so a value coming from an attribute or a JSON
+     * config still applies. A value that is not a pixel size, such as `'50%'` or `'20em'`, is ignored
+     * and the default height is used instead.
+     *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
@@ -5606,6 +5611,11 @@ export default (): Record<string, unknown> => {
      * | -------- | ----------------------------------------------- |
      * | A number | Set the same width for every row header         |
      * | An array | Set different widths for individual row headers |
+     *
+     * The width is a number of pixels. A string that states a pixel size works too, either as a bare
+     * number (`'25'`) or with the unit (`'25px'`), so a value coming from an attribute or a JSON
+     * config still applies. A value that is not a pixel size, such as `'50%'` or `'20em'`, is ignored
+     * and the default width is used instead.
      *
      * Row headers have a fixed width. A label longer than that width is clipped, and unlike column
      * headers, the header does not grow to fit it. To size the header to its content instead, turn

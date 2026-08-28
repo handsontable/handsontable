@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Header size string values e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    Issue #6154. `rowHeaderWidth` and `columnHeaderHeight` are documented as pixel numbers, but a
+    value can easily arrive as a string - from an attribute, a JSON config, or a framework template.
+    Both options resolve `'100'` and `'100px'` to a number now.
+
+    All of this is geometry, so none of it can be checked in jsdom, where every size reads as zero.
+
+    Each grid below fixes ONE half of the pair so the other half stays at its default. That keeps a
+    failure readable: only the option under test can move the size being asserted.
+  -->
+  <h2>Row header width, as a bare numeric string</h2>
+  <div id="row-string" data-testid="row-string"></div>
+
+  <h2>Row header width, with the px unit</h2>
+  <div id="row-px" data-testid="row-px"></div>
+
+  <h2>Row header width, per level, as strings</h2>
+  <div id="row-array" data-testid="row-array"></div>
+
+  <h2>Row header width, as a plain number (control)</h2>
+  <div id="row-number" data-testid="row-number"></div>
+
+  <h2>Column header height, as a bare numeric string</h2>
+  <div id="col-string" data-testid="col-string"></div>
+
+  <h2>Column header height, per level, as strings</h2>
+  <div id="col-array" data-testid="col-array"></div>
+
+  <!--
+    A value that states no pixel count at all. It cannot be resolved without a layout context this
+    setting has no access to, so the grid ignores it and uses the default size. The risk being
+    guarded is that it instead reaches the sizing code and renders as `NaN`, which collapses the
+    header.
+  -->
+  <h2>Values that are not a pixel size</h2>
+  <div id="row-invalid" data-testid="row-invalid"></div>
+  <div id="col-invalid" data-testid="col-invalid"></div>
+
+  <!--
+    The default-sized reference. Every "falls back" assertion is made against this grid rather than
+    a hardcoded number, because the default row header width and column header height differ per
+    theme, and this spec runs across all three.
+  -->
+  <h2>Defaults (reference)</h2>
+  <div id="defaults" data-testid="defaults"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    // The size every "works" case asks for. Chosen far from any theme's default so a fallback can
+    // never be mistaken for a hit.
+    const SIZE = 100;
+
+    /**
+     * Builds one grid with the given size settings.
+     *
+     * @param {string} testId The container's test id.
+     * @param {object} settings The size settings under test.
+     * @returns {Handsontable} The grid instance.
+     */
+    function buildGrid(testId, settings) {
+      const container = document.querySelector(`[data-testid="${testId}"]`);
+
+      container.className = `ht-theme-${window.htTheme}`;
+
+      return new Handsontable(container, Object.assign({
+        data: Handsontable.helper.createSpreadsheetData(5, 3),
+        colHeaders: true,
+        rowHeaders: true,
+        width: 400,
+        height: 200,
+        licenseKey: 'non-commercial-and-evaluation',
+      }, settings));
+    }
+
+    window.grids = {
+      rowString: buildGrid('row-string', { rowHeaderWidth: String(SIZE) }),
+      rowPx: buildGrid('row-px', { rowHeaderWidth: `${SIZE}px` }),
+      rowArray: buildGrid('row-array', { rowHeaderWidth: [`${SIZE}px`] }),
+      rowNumber: buildGrid('row-number', { rowHeaderWidth: SIZE }),
+      colString: buildGrid('col-string', { columnHeaderHeight: String(SIZE) }),
+      colArray: buildGrid('col-array', { columnHeaderHeight: [String(SIZE)] }),
+      rowInvalid: buildGrid('row-invalid', { rowHeaderWidth: '20em' }),
+      colInvalid: buildGrid('col-invalid', { columnHeaderHeight: '50%' }),
+      defaults: buildGrid('defaults', {}),
+    };
+
+    /**
+     * Re-renders one grid a number of times.
+     *
+     * The column header height used to shrink by a pixel on every draw when it was given as a
+     * string, so a single draw cannot show that the size actually holds.
+     *
+     * @param {string} name The grid's key in `window.grids`.
+     * @param {number} times How many draws to force.
+     */
+    window.renderRepeatedly = function(name, times) {
+      for (let i = 0; i < times; i++) {
+        window.grids[name].render();
+      }
+    };
+  </script>
+</body>
+</html>
