@@ -294,18 +294,21 @@ export default (): Record<string, unknown> => {
      * - **Insert column left**
      * - **Insert column right**
      *
-     * If set to `false`, the option also stops the grid from adding columns on its own:
+     * If set to `false`, the option also stops the grid from adding columns on its own. This second effect applies
+     * only when your [`data`](#data) is an array of arrays and you do not set the [`columns`](#columns) option –
+     * in every other configuration the grid never adds columns anyway:
      * - A [paste](@/guides/cell-features/clipboard/clipboard.md) that is wider than the columns left to the right of the
      *   selection stops at the last column. Handsontable drops the extra values, and reports no error.
      * - An [autofill](@/guides/cell-features/autofill-values/autofill-values.md) that reaches past the last column stops
      *   at the last column.
      * - [`setDataAtCell()`](@/api/core.md#setdataatcell) and [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) no
-     *   longer create the missing columns when you write past the last column. Handsontable drops the value. This
-     *   applies only when your [`data`](#data) is an array of arrays and you do not set the [`columns`](#columns) option.
+     *   longer create the missing columns when you write past the last column. The write still reaches the source data,
+     *   so [`getSourceData()`](@/api/core.md#getsourcedata) returns the value while the grid never displays it.
      *
      * The option does not stop these ways of adding columns:
      * - The [`alter()`](@/api/core.md#alter) method, including its `insert_col_start` and `insert_col_end` actions.
-     * - The [`minCols`](#minCols) and [`minSpareCols`](#minSpareCols) options.
+     * - The [`minCols`](#minCols) and [`minSpareCols`](#minSpareCols) options. Both are themselves skipped when the
+     *   [`columns`](#columns) option is set, and `minSpareCols` also requires [`data`](#data) to be an array of arrays.
      * - Undo and redo.
      * - Moving the selection past the last column, when [`minSpareCols`](#minSpareCols) is above `0`.
      *
@@ -338,19 +341,22 @@ export default (): Record<string, unknown> => {
      *
      * If set to `false`, the option also stops the grid from adding rows on its own:
      * - A [paste](@/guides/cell-features/clipboard/clipboard.md) that is taller than the rows left below the selection
-     *   stops at the last row. Handsontable drops the extra values, and reports no error.
-     * - An [autofill](@/guides/cell-features/autofill-values/autofill-values.md) whose fill is taller than the remaining
-     *   rows stops at the last row. The fill handle itself can still append rows while you drag it - see the
-     *   [`fillHandle`](#fillHandle) entry in the next list.
-     * - [`setDataAtCell()`](@/api/core.md#setdataatcell) and [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) no
-     *   longer create the missing rows when you write below the last row.
+     *   stops at the last row. Handsontable drops the extra values, and reports no error. In the
+     *   `shift_down` [`pasteMode`](@/api/copyPaste.md) the rows pushed past the last row are **lost**, because no row is
+     *   created to receive them.
+     * - An [autofill](@/guides/cell-features/autofill-values/autofill-values.md) whose fill reaches past the last row
+     *   stops at the last row.
+     * - [`setDataAtCell()`](@/api/core.md#setdataatcell) and [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) do
+     *   not create the missing rows when you write below the last row. Both currently **throw a `TypeError`** in that
+     *   case, so guard the call, or keep the row index within [`countRows()`](@/api/core.md#countrows).
      *
      * The option does not stop these ways of adding rows:
      * - The [`alter()`](@/api/core.md#alter) method, including its `insert_row_above` and `insert_row_below` actions.
      * - The [`minRows`](#minRows) and [`minSpareRows`](#minSpareRows) options.
      * - Undo and redo.
-     * - The fill handle appending a row when you drag it to the bottom edge, which the [`fillHandle`](#fillHandle)
-     *   option's `autoInsertRow` setting controls.
+     * - The fill handle appending rows when you drag it below the last row. That is governed solely by the
+     *   [`fillHandle`](#fillHandle) option's `autoInsertRow` setting, which ignores `allowInsertRow`. It applies only
+     *   when you set [`fillHandle`](#fillHandle) explicitly – left unset, the grid does not append rows this way.
      * - Moving the selection past the last row, when [`minSpareRows`](#minSpareRows) is above `0`.
      *
      * To cap the number of rows whatever the source, use [`maxRows`](#maxRows) as well.
@@ -410,9 +416,9 @@ export default (): Record<string, unknown> => {
      * and to the [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md):
      * - **Remove column**
      *
-     * The option hides those menu items only. It does not stop the [`alter()`](@/api/core.md#alter) method's
+     * The option hides that menu item only. It does not stop the [`alter()`](@/api/core.md#alter) method's
      * `remove_col` action, and it does not stop undo or redo. To cap the number of columns, use
-     * [`minCols`](#minCols) and [`maxCols`](#maxCols).
+     * [`maxCols`](#maxCols), and [`minCols`](#minCols) when the [`columns`](#columns) option is not set.
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -2833,6 +2839,12 @@ export default (): Record<string, unknown> => {
      * | --------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------- |
      * | `autoInsertRow` | `true` (default) \| `false`    | `true`: When you reach the grid's bottom, add new rows<br>`false`: When you reach the grid's bottom, stop |
      * | `direction`     | `'vertical'` \| `'horizontal'` | `'vertical'`: Enable vertical autofill<br>`'horizontal'`: Enable horizontal autofill                      |
+     *
+     * The `autoInsertRow` default above applies once you set `fillHandle` yourself, to any of the values in the first
+     * table. Leave `fillHandle` unset and the grid does not append rows when you drag the fill handle below the last
+     * row. Setting `direction` to `'horizontal'` also turns `autoInsertRow` off.
+     *
+     * Rows appended this way bypass [`allowInsertRow`](#allowInsertRow): only `autoInsertRow` governs them.
      *
      * Read more:
      * - [AutoFill values](@/guides/cell-features/autofill-values/autofill-values.md)

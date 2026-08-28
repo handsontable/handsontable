@@ -139,7 +139,7 @@ function getItems(
       let item: Record<string, unknown> = items[name];
 
       // A predefined item name with no entry in the items map. The `allowInsert*`/`allowRemove*`
-      // options do not reach here - they hide their items at render time via `hidden()`.
+      // options do not reach here – they hide their items at render time via `hidden()`.
       if (!item && ITEMS.indexOf(name) >= 0) {
         return;
       }
