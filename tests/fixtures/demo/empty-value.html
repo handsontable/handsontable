@@ -32,6 +32,16 @@
       throw new Error('Unknown ?emptyValue= value: ' + JSON.stringify(emptyValueParam));
     }
     window.htEmptyValue = emptyValueParam;
+
+    // `strict=on` builds the grid with `allowInvalid: false` + `allowEmpty: false`, so an empty cell
+    // FAILS validation and the editor is reopened on confirm. That is the only way to reach a second
+    // confirm of the same editor session.
+    const strictParam = htParams.get('strict') ?? 'off';
+
+    if (strictParam !== 'off' && strictParam !== 'on') {
+      throw new Error('Unknown ?strict= value: ' + JSON.stringify(strictParam));
+    }
+    window.htStrict = strictParam;
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
 </head>
@@ -81,6 +91,18 @@
       settings.emptyValue = null;
     }
 
+    if (window.htStrict === 'on') {
+      settings.allowInvalid = false;
+      // Rejects `null` but ACCEPTS `''`. That asymmetry is what makes the second confirm dangerous:
+      // the first confirm is rejected and reopens the editor, and a second confirm that fell back to
+      // the old save path would write the editor's `''` — which this validator happily accepts,
+      // destroying the `null` for good. A validator that rejected `''` too would mask the bug,
+      // because the bad write would simply be refused.
+      settings.validator = function(value, callback) {
+        callback(value !== null && value !== undefined);
+      };
+    }
+
     // Recorded so a spec can assert that a confirm which changed nothing also fired
     // no change event — the dirty-state half of the bug.
     window.htChanges = [];
@@ -100,7 +122,10 @@
      * apart — which is the whole subject of these tests.
      */
     window.htSourceAt = function(row, col) {
-      const value = hot.getSourceDataAtCell(row, col);
+      // The page object hands us a VISUAL row; `getSourceDataAtCell` takes a PHYSICAL one. They match
+      // in this fixture only because nothing sorts, trims or moves rows — convert anyway, so adding
+      // such a case here cannot silently read the wrong record.
+      const value = hot.getSourceDataAtCell(hot.toPhysicalRow(row), col);
 
       if (value === null) return 'null';
       if (value === undefined) return 'undefined';
@@ -117,6 +142,25 @@
     /** Selects a cell through the API. See the spec for why this is not a click. */
     window.htSelect = function(row, col) {
       hot.selectCell(row, col);
+    };
+
+    /** Selects a rectangular range, so a spec can exercise Ctrl+Enter over more than one cell. */
+    window.htSelectRange = function(fromRow, fromCol, toRow, toCol) {
+      hot.selectCell(fromRow, fromCol, toRow, toCol);
+    };
+
+    /**
+     * Confirms the open editor the way Ctrl/Cmd + Enter does — `finishEditing(false, ctrlDown)` is
+     * exactly what the `editorCloseAndSaveByEnter` command calls.
+     *
+     * Driven through the API rather than the keyboard because Playwright's synthetic Ctrl/Meta +
+     * Enter never reaches the shortcut: the key arrives with the modifier set, but the editor stays
+     * open and nothing is saved — verified with a REAL edit, which never reaches the unchanged-edit
+     * guard, so it is not something this change introduced. The keyboard route is covered by the
+     * Jasmine `BaseEditor` specs.
+     */
+    window.htConfirmWithCtrl = function() {
+      hot.getActiveEditor().finishEditing(false, true);
     };
 
     /** Pastes clipboard text into the current selection through the CopyPaste plugin. */

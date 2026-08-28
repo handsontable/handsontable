@@ -149,6 +149,7 @@ export interface GridSettings {
   copyable?: boolean;
   copyPaste?: boolean | object;
   editor?: string | (new (...args: unknown[]) => unknown) | boolean;
+  emptyValue?: '' | null;
   enterBeginsEditing?: boolean;
   enterMoves?: { col: number; row: number } | ((event: KeyboardEvent) => { col: number; row: number });
   fillHandle?: boolean | string | { autoInsertRow?: boolean; direction?: string };
@@ -170,7 +171,6 @@ export interface GridSettings {
   valueFormatter?: (value: CellValue, cellProperties: CellProperties) => CellValue;
   valueGetter?: (value: CellValue, visualRow: number, visualCol: number, cellMeta: CellProperties) => CellValue;
   valueSetter?: (value: CellValue, visualRow: number, visualCol: number, cellMeta: CellProperties) => CellValue;
-  emptyValue?: '' | null;
   placeholder?: string | number;
   renderAllRows?: boolean;
   renderAllColumns?: boolean;

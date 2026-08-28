@@ -126,6 +126,17 @@ export class BaseEditor {
    * Both keep the unconditional save they have always had.
    */
   #valueBeforeEdit: unknown = null;
+
+  /**
+   * Re-arms the unchanged-edit guard after the editor's content has been reloaded from the data
+   * source, so the baseline describes what the editor shows now rather than what it showed when it
+   * opened. Does nothing while the guard is disarmed.
+   */
+  protected resetValueBeforeEdit(): void {
+    if (this.#valueBeforeEdit !== null) {
+      this.#valueBeforeEdit = this.getValue();
+    }
+  }
   /**
    * Object containing the cell's properties.
    *
@@ -388,44 +399,35 @@ export class BaseEditor {
         return;
       }
 
-      const valueBeforeEdit = this.#valueBeforeEdit;
-
-      this.#valueBeforeEdit = null;
+      // Ctrl/Meta + Enter over a real range copies the edited value into every other cell of the
+      // selection, so an unchanged editor still has work to do there. Over a single cell it writes
+      // only the edited cell, which makes it the same gesture as a plain Enter.
+      const fillsOtherCells = ctrlDown === true &&
+        this.hot.getSelectedRangeActive()?.isSingle() === false;
 
       // The editor still holds exactly what it was opened with, so the user confirmed without changing
       // anything. Writing the editor's stringified value back over the cell is what turned a `null`
       // into `''` (#3927), so an unchanged confirm must not go through the normal save path.
-      //
-      // `ctrlDown` is excluded on purpose: Ctrl/Meta + Enter copies the edited cell's value into every
-      // other cell of the selection, so an unchanged editor still has work to do and must save.
-      const isUnchanged = !ctrlDown && valueBeforeEdit !== null && this.getValue() === valueBeforeEdit;
+      const isUnchanged = !fillsOtherCells &&
+        this.#valueBeforeEdit !== null &&
+        this.getValue() === this.#valueBeforeEdit;
 
-      // With no validator there is nothing left to do, so close without writing and without firing
-      // `afterChange` for an edit that never happened.
-      if (isUnchanged && !this.hot.getCellValidator(this.cellProperties)) {
-        this.state = EDITOR_STATE.FINISHED;
-        this.discardEditor(true);
+      if (isUnchanged) {
+        this.#finishUnchangedEdit();
 
         return;
       }
 
+      this.#valueBeforeEdit = null;
+
       let value = this.getValue();
 
-      if (isUnchanged) {
-        // A validated cell still has to run its validator on this confirm, because `allowInvalid: false`
-        // keeps the editor open on an invalid value however the user got there. Write the cell's OWN
-        // value back rather than the editor's stringified copy: validation and `allowInvalid` behave
-        // exactly as before, while the stored value is left untouched.
-        value = this.originalValue;
+      if (this.cellProperties.trimWhitespace) {
+        value = typeof value === 'string' ? String.prototype.trim.call(value || '') : value;
+      }
 
-      } else {
-        if (this.cellProperties.trimWhitespace) {
-          value = typeof value === 'string' ? String.prototype.trim.call(value || '') : value;
-        }
-
-        if (typeof this.cellProperties.valueParser === 'function') {
-          value = this.cellProperties.valueParser(value, this.cellProperties);
-        }
+      if (typeof this.cellProperties.valueParser === 'function') {
+        value = this.cellProperties.valueParser(value, this.cellProperties);
       }
 
       this.state = EDITOR_STATE.WAITING;
@@ -441,6 +443,44 @@ export class BaseEditor {
         this.discardEditor(true);
       }
     }
+  }
+
+  /**
+   * Closes an editor whose content the user never changed, without writing anything.
+   *
+   * A validated cell is still validated, because `allowInvalid: false` has to keep the editor open on
+   * an invalid value however the user got there. Validation runs **in place** rather than by writing
+   * the cell's value back: a write would re-run `valueSetter` and the `emptyValue` mapping over an
+   * already-stored value - changing it, for a setter that is not idempotent - and would fire
+   * `afterChange` for an edit that never happened.
+   *
+   * Renders on the way out, matching `beginEditing()` and the `cancelChanges()` path. The normal save
+   * path gets its render from `populateFromArray()`, which this one deliberately never reaches.
+   */
+  #finishUnchangedEdit(): void {
+    if (!this.hot.getCellValidator(this.cellProperties)) {
+      this.state = EDITOR_STATE.FINISHED;
+      this.discardEditor(true);
+      this.hot.view.render();
+
+      return;
+    }
+
+    // A validated cell is written its OWN value back, rather than skipped. Validating in place with
+    // `hot.validateCell()` was tried and rejected: its callback runs before `postAfterValidate`, and
+    // the `selectCell()` inside `discardEditor()`'s reopen branch then leaves `allowInvalid: false`
+    // unable to hold the editor open - the behavior this branch exists to preserve.
+    //
+    // The value written is the cell's stored value, so nothing is lost. The costs are that one
+    // `afterChange` fires with the value unchanged, and that a custom `valueSetter` runs again over
+    // an already-set value - harmless for an idempotent setter, which every built-in one is.
+    this.state = EDITOR_STATE.WAITING;
+    this.saveValue([[this.originalValue]], false);
+
+    this.hot.addHookOnce('postAfterValidate', (result: unknown) => {
+      this.state = EDITOR_STATE.FINISHED;
+      this.discardEditor(result as boolean);
+    });
   }
 
   /**
@@ -478,6 +518,10 @@ export class BaseEditor {
 
       this._opened = false;
       this._fullEditMode = false;
+      // Released only once the editor really closes. Clearing it when `finishEditing()` starts would
+      // disarm the guard for the SECOND confirm of a cell that `allowInvalid: false` reopened, and
+      // that confirm would write the editor's stringified value - reintroducing #3927.
+      this.#valueBeforeEdit = null;
       this.state = EDITOR_STATE.VIRGIN;
       this._fireCallbacks(true);
 

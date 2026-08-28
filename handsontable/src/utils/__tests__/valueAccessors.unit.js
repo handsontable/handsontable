@@ -77,6 +77,20 @@ describe('getValueSetterValue', () => {
 
       expect(getValueSetterValue('', cellMeta)).toBe('replaced');
     });
+
+    it('leaves `\'\'` alone when it is a checkbox template, which gives it a meaning', () => {
+      // A checkbox with `uncheckedTemplate: ''` stores `''` to mean "unchecked". Mapping that to
+      // `null` would leave the cell matching neither template, so it renders `#bad-value#` and can
+      // no longer be toggled.
+      expect(getValueSetterValue('', { emptyValue: null, uncheckedTemplate: '' })).toBe('');
+      expect(getValueSetterValue('', { emptyValue: null, checkedTemplate: '' })).toBe('');
+    });
+
+    it('still maps `\'\'` when the checkbox templates are ordinary values', () => {
+      expect(
+        getValueSetterValue('', { emptyValue: null, checkedTemplate: 'yes', uncheckedTemplate: 'no' })
+      ).toBe(null);
+    });
   });
 });
 

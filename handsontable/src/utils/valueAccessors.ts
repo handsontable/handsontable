@@ -18,7 +18,13 @@ export function getValueSetterValue(value: unknown, cellMeta: Record<string, unk
   // `emptyValue` spells out what an emptied cell stores. It runs after `valueSetter` so a cell that
   // ends up empty lands on the same value whichever path emptied it - the editor, a paste, a fill or
   // `setDataAtCell()` - and so a custom `valueSetter` returning `''` still means "empty" here.
-  if (newValue === '' && emptyValue === null) {
+  //
+  // Unless `''` is a value this cell assigns meaning to. A checkbox configured with
+  // `uncheckedTemplate: ''` stores `''` to mean "unchecked", and mapping that to `null` would leave
+  // the cell matching neither template, rendering `#bad-value#` and refusing to toggle.
+  const isEmptyStringMeaningful = cellMeta.uncheckedTemplate === '' || cellMeta.checkedTemplate === '';
+
+  if (newValue === '' && emptyValue === null && !isEmptyStringMeaningful) {
     return null;
   }
 

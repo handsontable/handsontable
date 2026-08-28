@@ -42,23 +42,55 @@ test.describe('empty cell values', () => {
       // Column 0 is `text`, which ships no validator. The user typed nothing, and an `afterChange`
       // here would make any dirty-state flag, change tracker or autosave report an edit that never
       // happened, so nothing is written at all.
+      //
+      // Anchored on a real edit first. Asserting `0` straight after load would pass on its first
+      // sample whatever the code did, so it would stay green even if a regression wrote the cell
+      // asynchronously. Making a genuine change first proves the counter is live, and the no-op
+      // confirm then has to leave it where it is.
+      await grid.openAndReplace(2, 0, 'anchor');
+      await grid.expectChangeCount(1);
+
       await grid.openAndConfirmUnchanged(0, 0);
 
-      await grid.expectChangeCount(0);
+      await grid.expectChangeCount(1);
     });
 
-    test('still runs the validator on a validated cell, keeping the value intact', async() => {
+    test('writes a validated cell its own value back, so the validator still runs', async() => {
       // Column 1 is `numeric`, which ships a validator. A validated cell has to see this confirm,
-      // because `allowInvalid: false` must keep the editor open on an invalid value however the
-      // user got there. So the cell's OWN value is written back - one change event, and the stored
-      // value is byte-identical. Skipping the write here instead would silently drop validation.
-      await grid.expectSource(0, 1, 'null');
+      // because `allowInvalid: false` must keep the editor open on an invalid value however the user
+      // got there — so this path writes the cell's OWN value back rather than skipping.
+      //
+      // The trade is one change event with the value unchanged. Validating in place instead was
+      // tried and reverted: `hot.validateCell()` calls back before `postAfterValidate`, and
+      // `allowInvalid: false` then failed to hold the editor open at all.
+      await grid.openAndReplace(2, 0, 'anchor');
+      await grid.expectChangeCount(1);
 
       await grid.openAndConfirmUnchanged(0, 1);
 
+      // The stored value is what matters, and it is untouched.
       await grid.expectSource(0, 1, 'null');
-      await grid.expectChangeCount(1);
+      await grid.expectChangeCount(2);
     });
+
+    test('keeps `null` on a Ctrl+Enter over a single cell', async() => {
+      // Ctrl/Cmd + Enter is only excluded from the guard when it actually fills OTHER cells. Over a
+      // single-cell selection it writes just the edited cell, so it is the same gesture as a plain
+      // Enter and must not destroy the `null`.
+      await grid.expectSource(0, 0, 'null');
+
+      await grid.selectRange(0, 0, 0, 0);
+      await grid.confirmWithCtrlEnter();
+
+      await grid.expectSource(0, 0, 'null');
+    });
+
+    // The other half of that rule — over a REAL range the guard must stay disarmed, or Ctrl+Enter
+    // would silently stop filling — is covered by the Jasmine `BaseEditor` specs ("should populate
+    // value from the currently active cell to every cell in the selected range"). Those are what
+    // caught the first version of this guard, which disarmed nothing and broke the fill. Repeating
+    // them here is not possible anyway: with a multi-cell selection, Enter navigates inside the
+    // range instead of opening the editor, so the gesture cannot be staged from this tier.
 
     test('leaves a populated cell untouched, and still fires no change event', async() => {
       await grid.expectSource(1, 0, 'string:abc');
@@ -88,6 +120,41 @@ test.describe('empty cell values', () => {
 
       // Without the guard this stored the string 'true'.
       await grid.expectSource(2, 3, 'boolean:true');
+    });
+  });
+
+  test.describe('an editor that `allowInvalid: false` reopens', () => {
+    let grid: EmptyValuePage;
+
+    test.beforeEach(async({ page, theme, bundle }) => {
+      // `allowInvalid: false` + `allowEmpty: false` makes an empty cell fail validation, so the
+      // editor is reopened instead of closing. That is the only way to reach a SECOND confirm of the
+      // same editor session.
+      grid = new EmptyValuePage(page, theme, bundle, 'default', 'on');
+      await grid.goto();
+    });
+
+    test('keeps `null` on the second confirm, not just the first', async() => {
+      // Column 0 is `text`, which ships no validator of its own, so the fixture's grid-level one
+      // applies. A typed column would quietly use its own validator instead and never reject.
+      await grid.expectSource(0, 0, 'null');
+
+      // First confirm: validation rejects `null`, so the editor stays open.
+      await grid.selectCell(0, 0);
+      await grid.pressEnter();
+      await grid.expectEditorOpen();
+      await grid.pressEnter();
+      await grid.expectEditorOpen();
+
+      await grid.expectSource(0, 0, 'null');
+
+      // Second confirm on the same still-open editor. The unchanged-edit baseline has to survive the
+      // first attempt; releasing it too early re-armed the old path here and wrote `''` — silently
+      // reintroducing #3927 for exactly the users who validate their data most strictly.
+      await grid.pressEnter();
+      await grid.expectEditorOpen();
+
+      await grid.expectSource(0, 0, 'null');
     });
   });
 

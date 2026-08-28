@@ -862,9 +862,10 @@ By default, the way a cell is emptied decides which value it gets:
 | ----------------------------------------------------------- | ------------ |
 | Pressing <kbd>**Delete**</kbd> or <kbd>**Backspace**</kbd>   | `null`       |
 | [`setDataAtCell()`](@/api/core.md#setdataatcell) with `null` | `null`       |
+| Filling a blank cell across a range                          | `null`       |
+| Merging cells over data                                      | `null`       |
 | Clearing the cell editor and confirming                      | `''`         |
 | Pasting a blank cell                                         | `''`         |
-| Filling a blank cell across a range                          | `''`         |
 
 Set [`emptyValue`](@/api/options.md#emptyvalue) to `null` to make every one of those paths store
 `null`:

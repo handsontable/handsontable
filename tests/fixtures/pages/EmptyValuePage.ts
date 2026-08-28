@@ -1,6 +1,16 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 
 /**
+ * The slice of the grid API this page reads in the browser. Declared locally, the way the other
+ * editor page objects do it, rather than augmenting `Window` again — `windowTypes.ts` already
+ * augments it with `hot`, and a second augmentation of the same property with a different type is a
+ * TS2717 error.
+ */
+interface HandsontableFixture {
+  getActiveEditor(): { isOpened(): boolean } | undefined;
+}
+
+/**
  * Page Object for the null-vs-empty-string fixture.
  *
  * Every assertion here reads the DATA SOURCE, never the rendered text: `null` and `''`
@@ -25,6 +35,7 @@ export class EmptyValuePage {
     theme = 'main',
     bundle = 'umd',
     private readonly emptyValue: 'default' | 'null' = 'default',
+    private readonly strict: 'off' | 'on' = 'off',
   ) {
     this.page = page;
     this.theme = theme;
@@ -39,7 +50,7 @@ export class EmptyValuePage {
   async goto(): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/empty-value.html?theme=${this.theme}&bundle=${this.bundle}` +
-      `&emptyValue=${this.emptyValue}`
+      `&emptyValue=${this.emptyValue}&strict=${this.strict}`
     );
     await expect(this.cell(1, 0)).toBeVisible();
   }
@@ -79,7 +90,19 @@ export class EmptyValuePage {
    * @returns {Promise<boolean>}
    */
   private isEditorOpen(): Promise<boolean> {
-    return this.page.evaluate(() => window.hot.getActiveEditor()?.isOpened() === true);
+    return this.page.evaluate(() => (
+      (window as Window & { hot: HandsontableFixture }).hot.getActiveEditor()?.isOpened() === true
+    ));
+  }
+
+  /**
+   * Presses Enter, without asserting anything about what it does.
+   *
+   * Used by specs that drive an editor which validation reopens, where the usual open/confirm
+   * helpers do not apply because the editor never closes.
+   */
+  async pressEnter(): Promise<void> {
+    await this.page.keyboard.press('Enter');
   }
 
   /**
@@ -109,6 +132,35 @@ export class EmptyValuePage {
     await this.page.keyboard.press('Enter');
     await this.expectEditorOpen();
     await this.page.keyboard.press('Enter');
+    await this.expectEditorClosed();
+  }
+
+  /**
+   * Selects a rectangular range through the API.
+   *
+   * @param {number} fromRow The visual row index to start from.
+   * @param {number} fromCol The visual column index to start from.
+   * @param {number} toRow The visual row index to end at.
+   * @param {number} toCol The visual column index to end at.
+   */
+  async selectRange(fromRow: number, fromCol: number, toRow: number, toCol: number): Promise<void> {
+    await this.page.evaluate(
+      ([r1, c1, r2, c2]) => window.htSelectRange(r1, c1, r2, c2),
+      [fromRow, fromCol, toRow, toCol]
+    );
+  }
+
+  /**
+   * Opens the editor on the current selection's focus cell and confirms it the way Ctrl/Cmd + Enter
+   * does, which copies the edited value into every other cell of the selection.
+   *
+   * The confirm goes through the API, not the keyboard — see the fixture's `htConfirmWithCtrl` for
+   * why Playwright cannot deliver that chord to the grid.
+   */
+  async confirmWithCtrlEnter(): Promise<void> {
+    await this.page.keyboard.press('Enter');
+    await this.expectEditorOpen();
+    await this.page.evaluate(() => window.htConfirmWithCtrl());
     await this.expectEditorClosed();
   }
 
@@ -178,10 +230,14 @@ export class EmptyValuePage {
   }
 }
 
+// `hot` is deliberately NOT declared here: `windowTypes.ts` already augments `Window` with it, and a
+// second augmentation of the same property with a different type is a TS2717 error. The one place
+// this page needs the editor API reads it through a local cast, as the other page objects do.
 declare global {
   interface Window {
-    hot: { getActiveEditor: () => { isOpened: () => boolean } | null | undefined };
     htSelect: (row: number, col: number) => void;
+    htSelectRange: (fromRow: number, fromCol: number, toRow: number, toCol: number) => void;
+    htConfirmWithCtrl: () => void;
     htSourceAt: (row: number, col: number) => string;
     htChangeCount: () => number;
     htPaste: (text: string) => void;

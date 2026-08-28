@@ -7277,11 +7277,12 @@ export default (): Record<string, unknown> => {
      * @description
      * The `emptyValue` option sets the value stored when a cell ends up empty.
      *
-     * A cell can be emptied in several ways: the user clears the [cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)
-     * and confirms, pastes a blank cell over it, or fills a blank cell across it. By default all of
-     * these store an empty string (`''`), while the <kbd>**Delete**</kbd> key and the
-     * [`setDataAtCell()`](@/api/core.md#setdataatcell) method store `null`. Set `emptyValue` to `null`
-     * to make every one of those paths agree on `null`.
+     * A cell can be emptied in several ways, and by default they do not agree on what to store. The
+     * <kbd>**Delete**</kbd> key, the [`setDataAtCell()`](@/api/core.md#setdataatcell) method, filling
+     * a blank cell across a range, and merging cells over data all store `null`. Clearing the
+     * [cell editor](@/guides/cell-functions/cell-editor/cell-editor.md) and confirming, or pasting a
+     * blank cell, store an empty string (`''`). Set `emptyValue` to `null` to make every one of those
+     * paths agree on `null`.
      *
      * You can set the `emptyValue` option to one of the following:
      *
