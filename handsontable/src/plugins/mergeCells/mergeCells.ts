@@ -17,7 +17,7 @@ import { getStyle } from '../../helpers/dom/element';
 import { isChrome } from '../../helpers/browser';
 import { FocusOrder, type FocusNodeData } from './focusOrder';
 import { createMergeCellRenderer } from './renderer';
-import { sumCellsHeights } from './utils';
+import { sumCellsHeights, toMergeAreaKey } from './utils';
 
 Hooks.getSingleton().register('beforeMergeCells');
 Hooks.getSingleton().register('afterMergeCells');
@@ -182,6 +182,17 @@ export class MergeCells extends BasePlugin {
    */
   #initialized = false;
   /**
+   * Keys of the merge areas seen in a previous settings application, in the {@link toMergeAreaKey}
+   * form. Recording an area says only that its clearing pass has already run once — not that the
+   * write landed, which a `beforeChange` handler or a validator can still refuse. Derived from the
+   * declared settings, never from `mergedCellsCollection`: the collection's coordinates are
+   * re-anchored when rows are trimmed or reordered, so they stop matching what the settings declare
+   * and would make a re-applied area look new.
+   *
+   * @type {Set<string>}
+   */
+  #appliedMergeKeys: Set<string> = new Set();
+  /**
    * Physical top-left (row/column) of every merged cell, captured while its visual coordinates are
    * authoritative (creation, structural edits). Read on a pure row-trimming change to re-anchor the
    * merge's visual `row`/`col` onto the rows that stay visible — keeping the merge whole (span
@@ -288,6 +299,7 @@ export class MergeCells extends BasePlugin {
   disablePlugin() {
     this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
     this.clearCollections();
+    this.#appliedMergeKeys.clear();
     this.unregisterShortcuts();
     this.hot.render();
     this.#initialized = false;
@@ -311,10 +323,14 @@ export class MergeCells extends BasePlugin {
    *  - [`mergeCells`](@/api/options.md#mergecells)
    */
   updatePlugin() {
+    // Copy before `disablePlugin()` clears the field, so `generateFromSettings()` can tell a
+    // re-applied area from a newly declared one.
+    const alreadyAppliedMerges = new Set(this.#appliedMergeKeys);
+
     this.disablePlugin();
     this.enablePlugin();
 
-    this.generateFromSettings();
+    this.generateFromSettings(alreadyAppliedMerges);
     this.#initialized = true;
     this.#captureMergeAnchors();
 
@@ -422,8 +438,13 @@ export class MergeCells extends BasePlugin {
    * Generates the merged cells from the settings provided to the plugin.
    *
    * @private
+   * @param {Set<string>} [alreadyAppliedMerges] Keys of the merge areas that were already applied before
+   * this call, in the {@link toMergeAreaKey} form — normally a copy of `#appliedMergeKeys` taken before
+   * `disablePlugin()` cleared it. Those areas keep their merge but skip the data population, because
+   * their cells were cleared when they were first applied. Defaults to an empty set, so a first
+   * application populates every area.
    */
-  generateFromSettings() {
+  generateFromSettings(alreadyAppliedMerges: Set<string> = new Set()) {
     const validSettings = this.getSetting<{ row: number, col: number, rowspan: number, colspan: number }[]>('cells')
       .filter(mergeCellInfo => this.validateSetting(mergeCellInfo));
     const nonOverlappingSettings = this.mergedCellsCollection
@@ -437,13 +458,27 @@ export class MergeCells extends BasePlugin {
       const to = this.hot._createCellCoords(row + rowspan - 1, col + colspan - 1);
       const mergeRange = this.hot._createCellRange(from, from, to);
 
-      // Merging without data population.
+      // Merging without data population. Runs for every area, re-applied or not — `updatePlugin()`
+      // clears the collection first, so skipping this would drop the merge entirely.
       this.mergeRange(mergeRange, true, true);
+
+      const mergeAreaKey = toMergeAreaKey(mergeCellInfo);
+      // A first application clears the whole area, exactly as before. A re-applied one clears only
+      // the cells that still hold a value: writing `null` over a cell that is already empty changes
+      // no data, but still emits `beforeChange`/`afterChange`, and that is what loops an integration
+      // resending its settings in response to those hooks (#7555).
+      const isReapplied = alreadyAppliedMerges.has(mergeAreaKey);
+
+      this.#appliedMergeKeys.add(mergeAreaKey);
 
       for (let r = row; r < row + rowspan; r++) {
         for (let c = col; c < col + colspan; c++) {
           // Not resetting a cell representing a merge area's value.
-          if (r !== row || c !== col) {
+          if (r === row && c === col) {
+            continue;
+          }
+
+          if (!isReapplied || this.#getStoredValueAt(r, c) !== null) {
             populatedNulls.push([r, c, null]);
           }
         }
@@ -457,6 +492,30 @@ export class MergeCells extends BasePlugin {
 
     // TODO: Change the `source` argument to a more meaningful value, e.g. `${this.pluginName}.clearCells`.
     this.hot.setDataAtCell(populatedNulls, undefined, undefined, this.pluginName ?? undefined);
+  }
+
+  /**
+   * Reads what a cell holds in the data source, bypassing `valueGetter` and the `modifyData` hook.
+   * A merge area's clearing write stores `null`, so deciding whether it still needs to run has to
+   * compare against the stored value — the displayed one can be non-null for an already cleared cell.
+   * Returns `undefined` when the coordinates cannot be translated, which keeps the caller on the safe
+   * side by treating the cell as not yet cleared.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {*} The stored value.
+   */
+  #getStoredValueAt(row: number, column: number): unknown {
+    const physicalRow = this.hot.toPhysicalRow(row);
+
+    if (physicalRow === null) {
+      return undefined;
+    }
+
+    // `getSourceDataAtCell()` takes a physical row but a *visual* column — it runs `colToProp()`,
+    // which translates to physical itself. Translating the column here as well would translate it
+    // twice and read a different cell whenever the two orders differ.
+    return this.hot.getSourceDataAtCell(physicalRow, column);
   }
 
   /**
