@@ -47,7 +47,9 @@
   <div id="context-control" class="grid" data-testid="context-control"></div>
   <div id="plugin-off" class="grid" data-testid="plugin-off"></div>
   <div id="toggle" class="grid" data-testid="toggle"></div>
+  <div id="toggle-off-start" class="grid" data-testid="toggle-off-start"></div>
   <div id="filters-order" class="grid" data-testid="filters-order"></div>
+  <div id="other-keys" class="grid" data-testid="other-keys"></div>
 
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The
@@ -134,9 +136,16 @@
         manualColumnFreeze: false,
         dropdownMenu: MENU_KEYS,
       }),
-      // For toggling `manualColumnFreeze` through updateSettings after the menu has been built.
+      // For toggling `manualColumnFreeze` off through updateSettings after the menu has been built.
       'toggle': build('toggle', {
         manualColumnFreeze: true,
+        dropdownMenu: true,
+      }),
+      // Starts DISABLED, so the hook is not registered when the menu is first built and the entry
+      // is absent from the list entirely. Only rebuilding the list on open can bring it back —
+      // an enabled-aware `hidden()` has nothing to reveal.
+      'toggle-off-start': build('toggle-off-start', {
+        manualColumnFreeze: false,
         dropdownMenu: true,
       }),
       // Filters owns the bulk of the column menu, so the freeze entries have to land after it.
@@ -144,6 +153,12 @@
         manualColumnFreeze: true,
         dropdownMenu: true,
         filters: true,
+      }),
+      // A custom item list that does NOT name the freeze keys, with the plugin on. The entries
+      // must not be injected into someone else's menu.
+      'other-keys': build('other-keys', {
+        manualColumnFreeze: true,
+        dropdownMenu: ['col_left', 'col_right'],
       }),
     };
 

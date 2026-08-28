@@ -21,11 +21,20 @@ export default function freezeColumnItem(manualColumnFreezePlugin: unknown) {
       this.view.adjustElementsSize();
       this.render();
     },
+    // The menu rebuilds its items on every open, so a disabled plugin contributes none. The
+    // command executor never evicts what it registered, though, so `executeCommand('freeze_column')`
+    // still reaches this entry — and `execute()` gates on `disabled`, not `hidden`.
+    disabled() {
+      return !(manualColumnFreezePlugin as { enabled: boolean }).enabled;
+    },
     hidden(this: HotInstance) {
       const selection = this.getSelectedRange();
       let hide = false;
 
-      if (selection === undefined) {
+      if (!(manualColumnFreezePlugin as { enabled: boolean }).enabled) {
+        hide = true;
+
+      } else if (selection === undefined) {
         hide = true;
 
       } else if (selection.length > 1) {

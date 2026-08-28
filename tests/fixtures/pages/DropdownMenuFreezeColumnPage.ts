@@ -18,10 +18,14 @@ export class DropdownMenuFreezeColumnPage {
   static readonly CONTEXT_CONTROL = 'context-control';
   /** The same keys with `manualColumnFreeze: false`. */
   static readonly PLUGIN_OFF = 'plugin-off';
-  /** For toggling `manualColumnFreeze` through `updateSettings` after the menu was built. */
+  /** For toggling `manualColumnFreeze` off through `updateSettings` after the menu was built. */
   static readonly TOGGLE = 'toggle';
+  /** Starts with the plugin disabled, so the entry is absent from the built list entirely. */
+  static readonly TOGGLE_OFF_START = 'toggle-off-start';
   /** `filters` as well, so the entries have to land after the filter interface. */
   static readonly FILTERS_ORDER = 'filters-order';
+  /** A custom item list that does not name the freeze keys, with the plugin enabled. */
+  static readonly OTHER_KEYS = 'other-keys';
 
   /** Every grid the fixture builds. */
   static readonly ALL_GRIDS = [
@@ -30,7 +34,9 @@ export class DropdownMenuFreezeColumnPage {
     DropdownMenuFreezeColumnPage.CONTEXT_CONTROL,
     DropdownMenuFreezeColumnPage.PLUGIN_OFF,
     DropdownMenuFreezeColumnPage.TOGGLE,
+    DropdownMenuFreezeColumnPage.TOGGLE_OFF_START,
     DropdownMenuFreezeColumnPage.FILTERS_ORDER,
+    DropdownMenuFreezeColumnPage.OTHER_KEYS,
   ];
 
   /** The fixture's named column headers, in their starting order. */
@@ -203,6 +209,57 @@ export class DropdownMenuFreezeColumnPage {
         hots: Record<string, { getDataAtRow: (row: number) => string[] }>;
       }).hots[id as string].getDataAtRow(r as number),
       [gridId, row] as [string, number]
+    );
+  }
+
+  /** Close the open column header menu without picking anything. */
+  async closeDropdownMenu(): Promise<void> {
+    await this.page.keyboard.press('Escape');
+    await expect(this.openMenu('.htDropdownMenu')).toBeHidden();
+  }
+
+  /** Whether a menu is currently on screen. */
+  async isDropdownMenuOpen(): Promise<boolean> {
+    return (await this.page.locator('.htDropdownMenu > .ht_master:visible').count()) > 0;
+  }
+
+  /**
+   * Run a dropdown menu command straight through the plugin's public API, skipping the menu UI.
+   *
+   * This is the path the rendered item list cannot protect: the command executor keeps every
+   * command it was ever given, so an entry contributed by a plugin that is now disabled is still
+   * reachable here.
+   *
+   * The selection is passed the way the menu passes it. `execute()` forwards its extra arguments
+   * straight to the item's callback, so calling it bare makes the callback throw on a missing
+   * selection — which would look like the command was refused when it was not.
+   */
+  async executeDropdownCommand(gridId: string, command: string, visualColumn: number): Promise<string | null> {
+    return this.page.evaluate(
+      ([id, commandName, column]) => {
+        const hot = (window as unknown as {
+          hots: Record<string, {
+            selectColumns: (col: number) => void;
+            getPlugin: (name: string) => { executeCommand: (c: string, ...params: unknown[]) => void };
+          }>;
+        }).hots[id as string];
+
+        hot.selectColumns(column as number);
+
+        const selection = [{
+          start: { row: 0, col: column as number },
+          end: { row: 0, col: column as number },
+        }];
+
+        try {
+          hot.getPlugin('dropdownMenu').executeCommand(commandName as string, selection);
+        } catch (error) {
+          return String((error as Error).message);
+        }
+
+        return null;
+      },
+      [gridId, command, visualColumn] as [string, string, number]
     );
   }
 

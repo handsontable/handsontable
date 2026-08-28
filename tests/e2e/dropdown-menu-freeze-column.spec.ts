@@ -18,9 +18,12 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
   let grid: DropdownMenuFreezeColumnPage;
 
   const {
-    CUSTOM_KEYS, DEFAULT_MENU, CONTEXT_CONTROL, PLUGIN_OFF, TOGGLE, FILTERS_ORDER,
-    FREEZE_LABEL, UNFREEZE_LABEL,
+    CUSTOM_KEYS, DEFAULT_MENU, CONTEXT_CONTROL, PLUGIN_OFF, TOGGLE, TOGGLE_OFF_START,
+    FILTERS_ORDER, OTHER_KEYS, FREEZE_LABEL, UNFREEZE_LABEL,
   } = DropdownMenuFreezeColumnPage;
+
+  /** How many rows carry exactly this label. */
+  const countOf = (items: string[], label: string) => items.filter(item => item === label).length;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
     grid = new DropdownMenuFreezeColumnPage(page, theme, bundle);
@@ -37,6 +40,24 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
       // The exact string the broken build showed. Asserted separately from the positive check
       // because a build that rendered BOTH would still pass the `toContain` above.
       expect(items).not.toContain('freeze_column');
+    });
+
+    test('offers the entry exactly once', async () => {
+      await grid.openColumnMenu(CUSTOM_KEYS, 'Charlie');
+
+      // One handler now serves two hooks, and the list is rebuilt on every open. A membership
+      // check alone would pass just as happily with the entry added twice.
+      expect(countOf(await grid.visibleDropdownMenuItems(), FREEZE_LABEL)).toBe(1);
+    });
+
+    test('stays at one entry after the menu is reopened', async () => {
+      await grid.openColumnMenu(CUSTOM_KEYS, 'Charlie');
+      await grid.closeDropdownMenu();
+      await grid.openColumnMenu(CUSTOM_KEYS, 'Charlie');
+
+      // Rebuilding per open is what makes the plugin state track the menu. It must not also
+      // accumulate rows each time.
+      expect(countOf(await grid.visibleDropdownMenuItems(), FREEZE_LABEL)).toBe(1);
     });
 
     test('offers unfreeze only once the column is frozen', async () => {
@@ -143,19 +164,57 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
       expect(await grid.fixedColumnsStart(TOGGLE)).toBe(1);
     });
 
-    test('picks the entry up when the plugin is turned on', async () => {
+    test('refuses the command through the API once the plugin is off', async () => {
       await grid.setManualColumnFreeze(TOGGLE, false);
+
+      // The menu no longer offers the entry, but the command executor keeps every command it was
+      // ever given, so this path stays reachable. `execute()` gates on `disabled`, not `hidden`,
+      // which is why the guard has to sit on both.
+      const error = await grid.executeDropdownCommand(TOGGLE, 'freeze_column', 2);
+
+      // A throw would also leave the grid unfrozen, so the command must be refused, not broken.
+      expect(error).toBeNull();
+      expect(await grid.fixedColumnsStart(TOGGLE)).toBe(0);
+      expect(await grid.columnHeaders(TOGGLE)).toEqual(
+        ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot']
+      );
+    });
+
+    test('still runs the command through the API while the plugin is on', async () => {
+      // The other half of the guard: it must refuse only when the plugin is off.
+      const error = await grid.executeDropdownCommand(TOGGLE, 'freeze_column', 2);
+
+      expect(error).toBeNull();
+      expect(await grid.fixedColumnsStart(TOGGLE)).toBe(1);
+    });
+
+    test('leaves an already open menu alone', async () => {
       await grid.openColumnMenu(TOGGLE, 'Charlie');
+      await grid.setManualColumnFreeze(TOGGLE, true);
+
+      // The earlier design rebuilt the whole DropdownMenu from this plugin, which destroyed the
+      // menu DOM under the user. Rebuilding on open instead leaves an open menu untouched.
+      expect(await grid.isDropdownMenuOpen()).toBe(true);
+    });
+
+    test('picks the entry up when a plugin that started off is turned on', async () => {
+      // This grid was built with the plugin disabled, so the hook never ran and the entry is not
+      // in the list at all. Only rebuilding the list on open can produce it — a `hidden()` guard
+      // has nothing to reveal here, which is what separates this case from the one above.
+      await grid.openColumnMenu(TOGGLE_OFF_START, 'Charlie');
       expect(await grid.visibleDropdownMenuItems()).not.toContain(FREEZE_LABEL);
 
-      await grid.setManualColumnFreeze(TOGGLE, true);
-      await grid.openColumnMenu(TOGGLE, 'Charlie');
+      await grid.setManualColumnFreeze(TOGGLE_OFF_START, true);
+      await grid.openColumnMenu(TOGGLE_OFF_START, 'Charlie');
 
       expect(await grid.visibleDropdownMenuItems()).toContain(FREEZE_LABEL);
 
       await grid.clickDropdownMenuItem(FREEZE_LABEL);
 
-      expect(await grid.fixedColumnsStart(TOGGLE)).toBe(1);
+      expect(await grid.fixedColumnsStart(TOGGLE_OFF_START)).toBe(1);
+      expect(await grid.columnHeaders(TOGGLE_OFF_START)).toEqual(
+        ['Charlie', 'Alpha', 'Bravo', 'Delta', 'Echo', 'Foxtrot']
+      );
     });
   });
 
@@ -183,6 +242,18 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
     });
   });
 
+  test.describe('a custom list that does not name the keys', () => {
+    test('is left exactly as the developer wrote it', async () => {
+      await grid.openColumnMenu(OTHER_KEYS, 'Charlie');
+
+      // The entries reach `dropdownMenu: true` through the default pattern. A user-supplied item
+      // list is not that pattern, so nothing may be injected into it.
+      expect(await grid.visibleDropdownMenuItems()).toEqual(
+        ['Insert column left', 'Insert column right']
+      );
+    });
+  });
+
   test.describe('the contextMenu path', () => {
     test('still freezes the column', async () => {
       await grid.openContextMenu(CONTEXT_CONTROL, 0, 2);
@@ -201,7 +272,9 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
   });
 
   test.describe('manualColumnFreeze disabled', () => {
-    test('leaves both keys as inert raw-key rows', async () => {
+    // Not coverage of this fix: it pins ItemsFactory's unknown-key fallback, which is what #5429
+    // reported seeing. The assertion holds on the unfixed build too, by design.
+    test('renders ItemsFactory placeholder rows, since nothing resolves the keys', async () => {
       await grid.openColumnMenu(PLUGIN_OFF, 'Charlie');
 
       const items = await grid.visibleDropdownMenuItems();

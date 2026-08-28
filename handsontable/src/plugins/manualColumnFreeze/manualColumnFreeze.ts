@@ -12,6 +12,16 @@ export const PLUGIN_KEY = 'manualColumnFreeze';
 export const PLUGIN_PRIORITY = 110;
 
 /**
+ * Hook order index that places this plugin's dropdown menu entries after the Filters interface.
+ *
+ * Callbacks run in registration order, which follows plugin priority, and this plugin (110) is
+ * enabled before Filters (250). A positive index defers this one past every callback registered at
+ * the default index, so the freeze entries land at the end of the column menu instead of pushing
+ * the filter interface down.
+ */
+const AFTER_FILTERS_ORDER_INDEX = 1;
+
+/**
  * @plugin ManualColumnFreeze
  * @class ManualColumnFreeze
  *
@@ -71,14 +81,13 @@ export class ManualColumnFreeze extends BasePlugin {
     // twice. Without this the `freeze_column` / `unfreeze_column` keys resolve to inert
     // placeholder rows there. See issue #5429.
     //
-    // The order index runs this after the callbacks registered at the default index, which keeps
-    // the entries below the Filters interface — Filters makes up the bulk of the column menu.
-    this.addHook('afterDropdownMenuDefaultOptions', this.#onAfterMenuDefaultOptions, 1);
+    // `AFTER_FILTERS_ORDER_INDEX` runs this after the callbacks registered at the default index,
+    // which keeps the entries below the Filters interface (`filters.ts` registers this hook at the
+    // default index and makes up the bulk of the column menu).
+    this.addHook('afterDropdownMenuDefaultOptions', this.#onAfterMenuDefaultOptions, AFTER_FILTERS_ORDER_INDEX);
     this.addHook('beforeColumnMove', this.#onBeforeColumnMove);
 
     super.enablePlugin();
-
-    this.#refreshDropdownMenu();
   }
 
   /**
@@ -88,8 +97,6 @@ export class ManualColumnFreeze extends BasePlugin {
     this.#afterFirstUse = false;
 
     super.disablePlugin();
-
-    this.#refreshDropdownMenu();
   }
 
   /**
@@ -186,31 +193,6 @@ export class ManualColumnFreeze extends BasePlugin {
   #onAfterMenuDefaultOptions = (options: unknown) => {
     this.#addMenuEntries(options as Record<string, unknown>);
   };
-
-  /**
-   * Rebuilds the dropdown menu so it picks up, or drops, this plugin's entries.
-   *
-   * The dropdown menu assembles its item list once, when it is enabled — unlike the context menu,
-   * which rebuilds on every open. So toggling `manualColumnFreeze` through `updateSettings` would
-   * otherwise leave the menu showing whatever it held at build time: entries that still act after
-   * the plugin is off, or no entries after it is switched on. Filters carries the same workaround
-   * for the same reason.
-   *
-   * Does nothing during the initial setup, where the menu is not built yet — the dropdown menu
-   * plugin assembles it once every plugin is ready.
-   *
-   * @private
-   */
-  #refreshDropdownMenu() {
-    const dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
-
-    if (!dropdownMenuPlugin?.enabled || !dropdownMenuPlugin.menu) {
-      return;
-    }
-
-    dropdownMenuPlugin.disablePlugin();
-    dropdownMenuPlugin.enablePlugin();
-  }
 
   /**
    * Adds the manualColumnFreeze entries to a menu. Shared by the context menu and the dropdown menu.
