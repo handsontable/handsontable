@@ -8,6 +8,11 @@ import { throwWithCause } from '../../helpers/errors';
 export const PLUGIN_KEY = 'columnSummary';
 export const PLUGIN_PRIORITY = 220;
 
+/**
+ * Result shown when a range holds no value to calculate from.
+ */
+const NOT_ENOUGH_DATA = 'Not enough data';
+
 export interface SummaryEndpoint {
   ranges?: number[][];
   sourceColumn?: number;
@@ -378,7 +383,7 @@ export class ColumnSummary extends BasePlugin {
       }
     }
 
-    return result === null ? 'Not enough data' : result;
+    return result === null ? NOT_ENOUGH_DATA : result;
   }
 
   /**
@@ -476,13 +481,18 @@ export class ColumnSummary extends BasePlugin {
    *
    * @private
    * @param {object} endpoint Contains the endpoint information.
-   * @returns {number} Avarage value.
+   * @returns {number|string} Average value, or `'Not enough data'` when the range holds no entries.
    */
-  calculateAverage(endpoint: SummaryEndpoint): number {
-    const sum = this.calculateSum(endpoint);
+  calculateAverage(endpoint: SummaryEndpoint): number | string {
     const entriesCount = this.countEntries(endpoint);
 
-    return sum / entriesCount;
+    // An all-empty range divides by zero. Report it the way `min` and `max` do instead of
+    // letting `NaN` reach the cell.
+    if (entriesCount === 0) {
+      return NOT_ENOUGH_DATA;
+    }
+
+    return this.calculateSum(endpoint) / entriesCount;
   }
 
   /**

@@ -370,6 +370,78 @@ describe('ColumnSummarySpec', () => {
 
       expect(getDataAtCell(3, 0)).toBe(3.6666666666666665);
     });
+
+    it('should display "Not enough data" instead of `NaN` when the range holds no entries', async() => {
+      handsontable({
+        data: [
+          [null],
+          [null],
+          [null],
+          [null],
+        ],
+        columnSummary: [
+          {
+            sourceColumn: 0,
+            destinationColumn: 0,
+            destinationRow: 3,
+            ranges: [[0, 2]],
+            type: 'average'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(3, 0)).toBe('Not enough data');
+    });
+
+    it('should display "Not enough data" after the source cells are cleared with the Delete key', async() => {
+      handsontable({
+        data: [
+          [10],
+          [10],
+          [10],
+          [null],
+        ],
+        columnSummary: [
+          {
+            sourceColumn: 0,
+            destinationColumn: 0,
+            destinationRow: 3,
+            ranges: [[0, 2]],
+            type: 'average'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(3, 0)).toBe(10);
+
+      await selectCells([[0, 0, 2, 0]]);
+      await keyDownUp('delete');
+
+      expect(getDataAtCell(3, 0)).toBe('Not enough data');
+    });
+
+    it('should keep averaging over the non-empty entries only when just some of the cells are empty', async() => {
+      handsontable({
+        data: [
+          [10],
+          [null],
+          [20],
+          [null],
+        ],
+        columnSummary: [
+          {
+            sourceColumn: 0,
+            destinationColumn: 0,
+            destinationRow: 3,
+            ranges: [[0, 2]],
+            type: 'average'
+          },
+        ]
+      });
+
+      // The empty cell is left out of both the sum and the divisor, so the result is 15, not 10.
+      expect(getDataAtCell(3, 0)).toBe(15);
+    });
   });
 
   describe('customFunction', () => {

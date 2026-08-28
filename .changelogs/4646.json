@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a bug where the `average` column summary showed `NaN` once the summarized range held no values, for example after you cleared the source cells with the Delete key. It now shows `Not enough data`, the same result the `min` and `max` summaries already returned for an empty range. Ranges that still hold at least one value are unaffected, and empty cells stay excluded from both the sum and the divisor.",
+  "type": "fixed",
+  "issueOrPR": 4646,
+  "breaking": false,
+  "framework": "none"
+}
