@@ -747,17 +747,72 @@ describe('IndexMapper', () => {
       expect(indexesSequenceChangeCallback).toHaveBeenCalledWith('move');
     });
 
-    it('should expose the source of an inserted index on the `cacheUpdated` hook', () => {
+    it('should expose the source of every sequence change on the `cacheUpdated` hook', () => {
+      const testCases: Array<{
+        source: 'init' | 'insert' | 'remove' | 'move' | 'update';
+        change(indexMapper: IndexMapper): void;
+      }> = [
+        {
+          source: 'init',
+          change(indexMapper) {
+            indexMapper.initToLength(3);
+          },
+        },
+        {
+          source: 'insert',
+          change(indexMapper) {
+            indexMapper.initToLength(3);
+            indexMapper.insertIndexes(1, 1);
+          },
+        },
+        {
+          source: 'remove',
+          change(indexMapper) {
+            indexMapper.initToLength(3);
+            indexMapper.removeIndexes([1]);
+          },
+        },
+        {
+          source: 'move',
+          change(indexMapper) {
+            indexMapper.initToLength(3);
+            indexMapper.moveIndexes([0], 2);
+          },
+        },
+        {
+          source: 'update',
+          change(indexMapper) {
+            indexMapper.initToLength(3);
+            indexMapper.setIndexesSequence([1, 0, 2]);
+          },
+        },
+      ];
+
+      testCases.forEach(({ source, change }) => {
+        const indexMapper = new IndexMapper();
+        const cacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
+
+        indexMapper.addLocalHook('cacheUpdated', cacheUpdatedCallback);
+        change(indexMapper);
+
+        expect(cacheUpdatedCallback).toHaveBeenCalledWith(jasmine.objectContaining({
+          indexesChangeSource: source,
+        }));
+      });
+    });
+
+    it('should expose the source of a batched sequence change on the `cacheUpdated` hook', () => {
       const indexMapper = new IndexMapper();
       const cacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
 
       indexMapper.initToLength(3);
       indexMapper.addLocalHook('cacheUpdated', cacheUpdatedCallback);
-
-      indexMapper.insertIndexes(1, 1);
+      indexMapper.suspendOperations();
+      indexMapper.setIndexesSequence([1, 0, 2]);
+      indexMapper.resumeOperations();
 
       expect(cacheUpdatedCallback).toHaveBeenCalledWith(jasmine.objectContaining({
-        indexesChangeSource: 'insert',
+        indexesChangeSource: 'update',
       }));
     });
   });
