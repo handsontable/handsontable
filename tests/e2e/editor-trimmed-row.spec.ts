@@ -789,3 +789,45 @@ test.describe('edges of the repair', () => {
     ]);
   });
 });
+
+/**
+ * A removal that `Selection#shiftRows()` declines to shift. It only shifts a range whose outer
+ * top-start corner is at or below the removed row, and `core.ts` only closes the editor when the
+ * removed range covers the HIGHLIGHT - so a focus moved below that corner (Enter or Tab inside a
+ * multi-cell selection) leaves the editor sitting past the last row with nothing re-preparing it.
+ *
+ * The commit through those coordinates is the row-appending corruption. This is the one shape where
+ * the repair cannot recover the record: the renumbering invalidated the captured index and the
+ * editor's own coordinates address nothing, so there is nothing left to follow. What it can do is
+ * refuse to write, which is what the next index-map change does.
+ */
+test.describe('a removal that strands the editor', () => {
+  test('discards rather than appending when a later filter would commit through it',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+
+      await grid.selectRangeWithFocusAt([0, 0, 4, 0], 4, 0);
+      await grid.typeOnSelection('EDITED');
+
+      // Row 1 goes; the highlight is not inside the removed range and the range's top-start corner
+      // is above it, so neither `closeEditor()` nor `shiftRows()` touches the editor.
+      await grid.removeRow(1);
+
+      await expect.poll(() => grid.editorRow()).toBe(4);
+      expect(await grid.sourceRowCount()).toBe(4);
+
+      // On develop this filter commits through visual row 4 and appends four records.
+      await grid.filterToValues(0, ['A2']);
+
+      expect(await grid.committedChangeCount()).toBe(0);
+      expect(await grid.sourceRowCount()).toBe(4);
+      expect(await grid.sourceData()).toEqual([
+        ['A0', 'B0'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['A4', 'B4'],
+      ]);
+    });
+});

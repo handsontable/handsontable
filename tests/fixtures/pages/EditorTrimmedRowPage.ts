@@ -25,6 +25,8 @@ interface ManualColumnMovePlugin {
 interface HandsontableFixture {
   addHook(name: string, callback: () => boolean): void;
   getSelected(): number[][] | undefined;
+  selectCells(ranges: number[][]): void;
+  selection: { transformFocus(row: number, col: number): void };
   getActiveEditor(): {
     isOpened(): boolean;
     state: string;
@@ -214,6 +216,23 @@ export class EditorTrimmedRowPage {
     await this.page.evaluate(() => {
       (window as Window & { hot: HandsontableFixture }).hot.addHook('beforeCreateRow', () => false);
     });
+  }
+
+  /**
+   * Selects a range and then moves the FOCUS below its top-start corner, the state Enter or Tab
+   * produces inside a multi-cell selection.
+   *
+   * `Selection#shiftRows()` only shifts a range whose outer top-start corner is at or below the
+   * removed row, so a focus parked below that corner is left where it was when rows above it are
+   * removed - which is how an editor ends up stranded past the last row with nothing re-preparing it.
+   */
+  async selectRangeWithFocusAt(range: number[], focusRow: number, focusColumn: number): Promise<void> {
+    await this.page.evaluate(([targetRange, row, column]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+
+      hot.selectCells([targetRange as number[]]);
+      hot.selection.transformFocus(row as number, column as number);
+    }, [range, focusRow, focusColumn] as [number[], number, number]);
   }
 
   /**

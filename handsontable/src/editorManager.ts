@@ -574,6 +574,11 @@ class EditorManager {
    * before it – but the value does not survive. Making it survive means moving the selection with the
    * record, which is a larger change than this repair.
    *
+   * An editor a structural change stranded past the last row is discarded here rather than rebound:
+   * its captured record was cleared as unresolvable, and its own coordinates address nothing, so
+   * there is no record left to follow. Discarding is what keeps a following `Filters#filter()` from
+   * committing through those coordinates and appending records.
+   *
    * Two further limits. An index-map change does NOT adjust the selection – `core.ts` calls
    * `selection.commit()` only for `hiddenIndexesChanged` – so the highlight can be left past the last
    * row, and typing into it grows the data set. That is reachable with no editor involved at all and
@@ -600,8 +605,28 @@ class EditorManager {
     const isPrepared = editor?.state === EDITOR_STATE.VIRGIN;
 
     if ((!indexesChangesState.trimmedIndexesChanged && !indexesChangesState.indexesSequenceChanged) ||
-        !editor || (!isEditing && !isPrepared) ||
-        this.#editedPhysicalRow === null || this.#editedPhysicalColumn === null) {
+        !editor || (!isEditing && !isPrepared)) {
+      return;
+    }
+
+    // No captured record means an earlier structural change renumbered it away. The editor's own
+    // coordinates are then the only thing left, so check whether they still address anything: if
+    // they do not, that change stranded the editor past the last row and nothing re-prepared it. A
+    // commit through those coordinates is what `applyChanges()` satisfies by APPENDING records, so
+    // the edit is dropped here rather than at the next keystroke.
+    //
+    // Only reached with no captured record. While one exists it is the better guide - it survives a
+    // trim that leaves the editor's own stale coordinates unresolvable, which is the ordinary rebind.
+    if (this.#editedPhysicalRow === null || this.#editedPhysicalColumn === null) {
+      if (this.hot.rowIndexMapper.getPhysicalFromVisualIndex(editor.row!) === null ||
+          this.hot.columnIndexMapper.getPhysicalFromVisualIndex(editor.col!) === null) {
+        if (isEditing) {
+          editor.cancelChanges();
+        }
+
+        this.clearActiveEditor();
+      }
+
       return;
     }
 
