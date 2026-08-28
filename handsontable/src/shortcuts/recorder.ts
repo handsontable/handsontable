@@ -1,5 +1,5 @@
 import { createKeysObserver } from './keyObserver';
-import { normalizeEventKey, isModifierKey, getPressedModifierKeys } from './utils';
+import { normalizeEventKey, isModifierKey, getPressedModifierKeys, MODIFIER_KEYS } from './utils';
 import { isImmediatePropagationStopped } from '../helpers/dom/event';
 import { getParentWindow } from '../helpers/dom/element';
 import { isMacOS } from '../helpers/browser';
@@ -21,6 +21,19 @@ const modKeyListenerRefs = new WeakMap<HTMLElement, number>();
  * @param {KeyboardEvent} event The event object
  */
 const onkeydownForModKeys = (event: KeyboardEvent) => {
+  // The OS can consume a modifier key's `keyup` (e.g. the macOS Cmd+Shift+4 screenshot shortcut),
+  // which would leave that key marked as held forever. Every `keydown` reports the true state of
+  // the modifier keys, so re-sync the observer from the event before handling the key itself.
+  const heldModifierKeys = getPressedModifierKeys(event);
+
+  MODIFIER_KEYS.forEach((modifierKey) => {
+    if (heldModifierKeys.includes(modifierKey)) {
+      modifierKeysObserver.press(modifierKey);
+    } else {
+      modifierKeysObserver.release(modifierKey);
+    }
+  });
+
   if (typeof event.key === 'string') {
     const pressedKey = normalizeEventKey(event);
 
@@ -175,7 +188,9 @@ export function useRecorder(
       modKeyListenerRefs.set(documentElement, refCount + 1);
 
       documentElement.addEventListener('keydown', onkeydown);
-      documentElement.addEventListener('blur', onblur);
+      // The `blur` event does not bubble and a window-level blur is dispatched on the `window`
+      // itself, so it never reaches a listener bound to the `documentElement`.
+      eventTarget.addEventListener('blur', onblur);
 
       eventTarget = getParentWindow(eventTarget);
     }
@@ -202,7 +217,7 @@ export function useRecorder(
       }
 
       documentElement.removeEventListener('keydown', onkeydown);
-      documentElement.removeEventListener('blur', onblur);
+      eventTarget.removeEventListener('blur', onblur);
 
       eventTarget = getParentWindow(eventTarget);
     }

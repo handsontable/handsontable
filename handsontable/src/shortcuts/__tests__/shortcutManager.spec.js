@@ -543,6 +543,78 @@ describe('shortcutManager', () => {
     expect(releasePressedKeys).toHaveBeenCalled();
   });
 
+  describe('modifier key with an OS-consumed `keyup` (#6012)', () => {
+    // The OS can consume the `keyup` of a modifier key (e.g. the macOS Cmd+Shift+4 screenshot
+    // shortcut), so the browser only ever delivers the `keydown`. Simulated below by pressing the
+    // modifier key without releasing it.
+
+    it('should release the modifier key on the next keydown that does not report it as held', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await selectCell(1, 1);
+      await keyDown('control/meta');
+
+      expect(getShortcutManager().isCtrlPressed()).toBe(true);
+
+      await keyDownUp('arrowdown');
+
+      expect(getShortcutManager().isCtrlPressed()).toBe(false);
+    });
+
+    it('should move the selection instead of adding layers when navigating with arrow keys', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await selectCell(1, 1);
+      await keyDown('control/meta');
+
+      await keyDownUp('arrowdown');
+      await keyDownUp('arrowdown');
+
+      // Without the fix every arrow key adds a new selection layer, as if Ctrl/Cmd was held.
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,1 from: 3,1 to: 3,1']);
+    });
+
+    it('should keep the modifier key pressed while the event still reports it as held', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await selectCell(1, 1);
+      await keyDown('control/meta');
+      // A key pressed while Ctrl/Cmd is physically held reports the modifier as active.
+      await keyDown(['control/meta', 'b']);
+
+      expect(getShortcutManager().isCtrlPressed()).toBe(true);
+
+      await keyUp('control/meta');
+
+      expect(getShortcutManager().isCtrlPressed()).toBe(false);
+    });
+
+    it('should release the pressed modifier keys when the window loses focus', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await selectCell(1, 1);
+      await keyDown('control/meta');
+
+      expect(getShortcutManager().isCtrlPressed()).toBe(true);
+
+      // Switching to another application (e.g. Cmd+Tab) dispatches `blur` on the window itself.
+      window.dispatchEvent(new FocusEvent('blur'));
+
+      expect(getShortcutManager().isCtrlPressed()).toBe(false);
+
+      // Resets the modifier key state shared by the keyboard and mouse test helpers.
+      await keyUp('control/meta');
+    });
+  });
+
   describe('`forwardToContext` option', () => {
     it('should forward the event to the other context within the same HoT instance', async() => {
       handsontable();
