@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a bug where the `beforeInit` hook passed in the settings object never fired, because Handsontable registered the callbacks from the settings only after that hook had already run.",
+  "type": "fixed",
+  "issueOrPR": 5933,
+  "breaking": false,
+  "framework": "none"
+}

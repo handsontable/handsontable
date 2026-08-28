@@ -1691,6 +1691,25 @@ export default function Core(
     globalMeta[className] = classSettings;
   }
 
+  /**
+   * Registers a hook callback declared in a settings object as a local hook of this instance.
+   *
+   * The callback is also written to the table meta, so that `getSettings()` returns it back.
+   *
+   * @param {string} key A hook name.
+   * @param {Function|Function[]} hook A callback, or an array of callbacks, to register.
+   */
+  function registerSettingsHook(key: string, hook: HookCallback | HookCallback[] | undefined) {
+    if (isFunction(hook)) {
+      Hooks.getSingleton().addAsFixed(key, hook, instance);
+      tableMeta[key] = hook;
+
+    } else if (Array.isArray(hook)) {
+      Hooks.getSingleton().add(key, hook, instance);
+      tableMeta[key] = hook;
+    }
+  }
+
   this.init = function() {
     const theme = tableMeta.theme;
     const themeName = tableMeta.themeName;
@@ -1705,6 +1724,13 @@ export default function Core(
     }
 
     dataSource.setData(tableMeta.data);
+
+    // `updateSettings()` below registers the callbacks declared in the settings object, which is too
+    // late for `beforeInit` — hence registering that one here. Re-adding the same reference is a no-op.
+    // Only `beforeInit` is pulled forward: doing it for the rest would order settings-declared
+    // callbacks ahead of the plugin callbacks registered while `beforeInit` runs.
+    registerSettingsHook('beforeInit', mergedUserSettings.beforeInit as HookCallback | HookCallback[] | undefined);
+
     instance.runHooks('beforeInit');
 
     if (isMobileBrowser() || isIpadOS()) {
@@ -3484,16 +3510,7 @@ export default function Core(
         instance.view._wt.wtOverlays.syncOverlayTableClassNames();
 
       } else if (Hooks.getSingleton().isRegistered(i) || Hooks.getSingleton().isDeprecated(i)) {
-        const hook = settings[i] as HookCallback | HookCallback[] | undefined;
-
-        if (isFunction(hook)) {
-          Hooks.getSingleton().addAsFixed(i, hook, instance);
-          tableMeta[i] = hook;
-
-        } else if (Array.isArray(hook)) {
-          Hooks.getSingleton().add(i, hook, instance);
-          tableMeta[i] = hook;
-        }
+        registerSettingsHook(i, settings[i] as HookCallback | HookCallback[] | undefined);
 
       } else if (!init && hasOwnProperty(settings, i)) { // Update settings
         globalMeta[i] = settings[i];

@@ -1969,6 +1969,12 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after Handsontable instance is constructed (using `new` operator).
    *
+   * This hook runs inside the constructor, before Handsontable reads the callbacks from the settings
+   * object. A `construct` callback passed in the settings object is registered too late, so it never
+   * runs. To listen to this hook, register it globally with
+   * `Handsontable.hooks.add('construct', callback)`. To run your code from the settings object as early
+   * as possible, use [`beforeInit`](@/api/hooks.md#beforeinit) instead.
+   *
    * @event Hooks#construct
    */
   'construct',
