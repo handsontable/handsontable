@@ -215,9 +215,11 @@ hot.getPlugin('exportFile').downloadFile('csv', { colHeaders: true });
 // The file receives: Total,Count
 ```
 
-`textExtractor` is a grid option, not an export configuration option, so you set it alongside `colHeaders` rather than passing it to `downloadFile()`. It applies to column headers, row headers, and [nested headers](@/api/nestedHeaders.md), in both CSV and Excel exports. Copying a header row to the clipboard uses it as well.
+`textExtractor` is a grid option, not an export configuration option, so you set it alongside `colHeaders` rather than passing it to `downloadFile()`. In an export it applies to column headers, row headers, and [nested headers](@/api/nestedHeaders.md), in both CSV and Excel. Copying to the clipboard uses it for column headers, which are the only headers a copy carries.
 
 Cell data is left alone. A cell exports its value, never its rendered markup, so a value such as `a<b` reaches the file unchanged.
+
+One thing to know before you enable it: extraction turns HTML entities back into the characters they stand for. A header stored as `&#61;SUM(A1)` displays as `=SUM(A1)`, and once extracted it reaches the file as `=SUM(A1)` too, which a spreadsheet reads as a formula. Set [`sanitizeValues`](#sanitizevalues-boolean|regexp|function) to `true` when you export headers that come from untrusted sources.
 
 Pass a function instead of `true` when you need different rules per surface:
 

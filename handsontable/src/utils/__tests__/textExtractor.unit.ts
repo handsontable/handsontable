@@ -92,6 +92,35 @@ describe('textExtractor', () => {
     it('should decode a legacy entity that opens a tag', () => {
       expect(extractText(hot, '&ltx', 'ExportFile.columnHeader')).toBe('<x');
     });
+
+    it('should drop script source, which the grid never paints', () => {
+      // `textContent` reports the source text of a `script` element, so without removing it the
+      // file would receive `alert(1)Total` for a header the grid displays as `Total`.
+      expect(extractText(hot, '<script>alert(1)</script>Total', 'ExportFile.columnHeader')).toBe('Total');
+    });
+
+    it('should drop style source, which the grid never paints', () => {
+      expect(extractText(hot, '<style>.a{color:red}</style>Total', 'ExportFile.columnHeader')).toBe('Total');
+    });
+
+    it('should keep the text of an element the grid does paint', () => {
+      expect(extractText(hot, '<span>Kept</span>', 'ExportFile.columnHeader')).toBe('Kept');
+    });
+  });
+
+  describe('.extractText with a falsy option value', () => {
+    // Only `true` and a function switch the extraction on. A falsy value that is not `false` -
+    // `0` from a `Number(flag)`, `''` from a form field - must read as off, not as on.
+    it.each([
+      ['`false`', false],
+      ['`0`', 0],
+      ['an empty string', ''],
+      ['`NaN`', NaN],
+    ])('should leave content untouched for %s', (_label, value) => {
+      const hot = createHot({ textExtractor: value });
+
+      expect(extractText(hot, '<b>Total</b>', 'ExportFile.columnHeader')).toBe('<b>Total</b>');
+    });
   });
 
   describe('.extractText with non-string values', () => {

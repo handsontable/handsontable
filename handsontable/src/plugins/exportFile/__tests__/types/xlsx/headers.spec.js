@@ -80,6 +80,43 @@ describe('exportFile XLSX type — headers', () => {
       expect(ws.getRow(1).getCell(1).value).toBe('Bold');
       expect(ws.getRow(1).getCell(2).value).toBe('Plain');
     });
+
+    it('should write nested header labels as displayed text', async() => {
+      // XLSX is the only consumer of `getNestedColumnHeaders()`, so this is what covers the
+      // extraction added to both nested-header appenders in the data provider.
+      handsontable({
+        data: createSpreadsheetData(1, 2),
+        colHeaders: true,
+        nestedHeaders: [
+          ['<b>Group</b>'],
+          ['<i>A</i>', 'B'],
+        ],
+        textExtractor: true,
+        exportFile: { engines: { xlsx: ExcelJS } },
+      });
+
+      const ws = await parseXlsx({ colHeaders: true });
+
+      expect(ws.getRow(1).getCell(1).value).toBe('Group');
+      expect(ws.getRow(2).getCell(1).value).toBe('A');
+      expect(ws.getRow(2).getCell(2).value).toBe('B');
+    });
+
+    it('should write nested header labels as-is when `textExtractor` is not set', async() => {
+      handsontable({
+        data: createSpreadsheetData(1, 2),
+        colHeaders: true,
+        nestedHeaders: [
+          ['<b>Group</b>'],
+          ['<i>A</i>', 'B'],
+        ],
+        exportFile: { engines: { xlsx: ExcelJS } },
+      });
+
+      const ws = await parseXlsx({ colHeaders: true });
+
+      expect(ws.getRow(1).getCell(1).value).toBe('<b>Group</b>');
+    });
   });
 
   describe('row headers', () => {

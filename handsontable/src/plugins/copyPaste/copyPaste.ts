@@ -823,10 +823,12 @@ export class CopyPaste extends BasePlugin {
     const rangedSourceData = this.getRangedData(this.copyableRanges, true);
 
     const copiedHeadersCount = this.#countCopiedHeaders(this.copyableRanges);
+    // Captured before `beforeCopy`, which may reshape the array. Identity is what survives that.
+    const headerRows = new Set(rangedData.slice(0, copiedHeadersCount.columnHeadersCount));
     const allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges, copiedHeadersCount);
 
     if (allowCopying) {
-      this.#setClipboardData(event, rangedData, rangedSourceData);
+      this.#setClipboardData(event, rangedData, rangedSourceData, headerRows);
 
       this.hot.runHooks('afterCopy', rangedData, this.copyableRanges, copiedHeadersCount);
     }
@@ -1014,22 +1016,23 @@ export class CopyPaste extends BasePlugin {
    * The rows are mapped rather than mutated, so the array handed to `beforeCopy` and `afterCopy`
    * still holds the values those hooks have always received.
    *
-   * @param {Array[]} rangedData The copied data, header rows first.
+   * The header rows are identified by reference rather than by position, because `beforeCopy` runs
+   * before this and may reshape the array. A listener that drops the header row would leave a
+   * positional count pointing at what is now the first data row, and parsing a data value such as
+   * `a<b` as HTML would destroy it. Matching on identity keeps the projection on the rows that are
+   * still headers, whatever the listener did to the array around them.
+   *
+   * @param {Array[]} rangedData The copied data.
+   * @param {Set} headerRows The row arrays that were column headers when the copy was assembled.
    * @returns {Array[]} The data with its header rows projected into text.
    */
-  #extractHeaderText(rangedData: unknown[][]): unknown[][] {
-    if (getTextExtractor(this.hot) === false) {
+  #extractHeaderText(rangedData: unknown[][], headerRows: Set<unknown[]>): unknown[][] {
+    if (headerRows.size === 0 || getTextExtractor(this.hot) === false) {
       return rangedData;
     }
 
-    const { columnHeadersCount } = this.#countCopiedHeaders(this.copyableRanges);
-
-    if (columnHeadersCount === 0) {
-      return rangedData;
-    }
-
-    return rangedData.map((row, index) => (
-      index < columnHeadersCount
+    return rangedData.map(row => (
+      headerRows.has(row)
         ? row.map(value => extractText(this.hot, value, 'CopyPaste.columnHeader'))
         : row
     ));
@@ -1041,9 +1044,15 @@ export class CopyPaste extends BasePlugin {
    * @param {ClipboardEvent} event The Clipboard event.
    * @param {Array} rangedData Ranged data to set to the clipboard.
    * @param {Array} rangedSourceData Ranged source data to set to the clipboard.
+   * @param {Set} [headerRows] The row arrays of `rangedData` that are column headers.
    */
-  #setClipboardData(event: ClipboardEvent, rangedData: unknown[][], rangedSourceData: unknown[][]) {
-    const projectedData = this.#extractHeaderText(rangedData);
+  #setClipboardData(
+    event: ClipboardEvent,
+    rangedData: unknown[][],
+    rangedSourceData: unknown[][],
+    headerRows: Set<unknown[]> = new Set()
+  ) {
+    const projectedData = this.#extractHeaderText(rangedData, headerRows);
     const textPlain = stringify(projectedData);
 
     if (event && event.clipboardData) {

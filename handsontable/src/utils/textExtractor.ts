@@ -31,7 +31,12 @@ export type { TextExtractorFn } from '../core/settings';
  * @returns {boolean|Function} The configured extractor, or `false` when none is set.
  */
 export function getTextExtractor(hot: HotInstance): boolean | TextExtractorFn {
-  return hot.getSettings().textExtractor ?? false;
+  const extractor = hot.getSettings().textExtractor;
+
+  // Normalize rather than defaulting with `??`. A JavaScript caller can hand over any falsy value -
+  // `0` from a `Number(flag)`, `''` from a form field - and only `null`/`undefined` would be
+  // replaced, leaving a value that is not `false` to switch the extraction *on*.
+  return extractor || false;
 }
 
 /**
@@ -56,6 +61,13 @@ export function getTextExtractor(hot: HotInstance): boolean | TextExtractorFn {
  * @returns {string} The text the grid would display.
  */
 function extractDisplayText(hot: HotInstance, html: string, sanitizerContext: SanitizerContext): string {
+  // Nothing to sanitize and nothing to parse. Guarding here also keeps an auditing or logging
+  // sanitizer from recording an entry for every empty cell, which is why `sanitizeHTML` guards it
+  // too - the nested-header export asks for one projection per layer cell, most of them empty.
+  if (!html) {
+    return html;
+  }
+
   const { sanitizer } = hot.getSettings();
   // Read directly rather than through `sanitizeHTML()`: that helper warns when no sanitizer is
   // configured and the content carries markup, which is guidance about writing to the DOM. Repeating
@@ -72,6 +84,13 @@ function extractDisplayText(hot: HotInstance, html: string, sanitizerContext: Sa
   const template = hot.rootDocument.createElement('template');
 
   template.innerHTML = rendered;
+
+  // `textContent` reports the source text of elements the browser never paints, so a header of
+  // `'<script>alert(1)</script>Total'` displays as `Total` but would extract as `'alert(1)Total'`.
+  // Dropping the non-rendered elements is what keeps the result equal to what is on screen. A
+  // nested `<template>` needs no handling: its children live in its own `content` fragment, which
+  // this one's `textContent` does not reach.
+  template.content.querySelectorAll('script,style').forEach(element => element.remove());
 
   return template.content.textContent ?? '';
 }

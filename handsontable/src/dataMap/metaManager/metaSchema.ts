@@ -7769,7 +7769,7 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
-     * @since 18.1.0
+     * @since 18.2.0
      * @memberof Options#
      * @type {boolean|function(string, TextExtractorContext): string}
      * @default undefined

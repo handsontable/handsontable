@@ -590,5 +590,28 @@ describe('CopyPaste', () => {
 
       expect(beforeCopy.calls.argsFor(0)[0]).toEqual([['<b>Bold</b>', 'Plain'], ['A1', 'B1']]);
     });
+
+    it('should not project a data row that `beforeCopy` shifted into the header position', async() => {
+      // `beforeCopy` may reshape the array. Deriving the header count from the ranges afterwards
+      // would project what is now the first data row, and parsing `a<b` as HTML would destroy it.
+      handsontable({
+        colHeaders: ['<b>Bold</b>', 'Plain'],
+        data: [['a<b', 'B1']],
+        textExtractor: true,
+        beforeCopy: (data) => {
+          data.splice(0, 1);
+        },
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      await selectAll();
+
+      plugin.copyWithColumnHeaders();
+      plugin.onCopy(copyEvent);
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('a<b\tB1');
+    });
   });
 });
