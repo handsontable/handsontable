@@ -3520,7 +3520,13 @@ export default function Core(
         registerSettingsHook(i, settings[i] as HookCallback | HookCallback[] | undefined);
 
       } else if (!init && hasOwnProperty(settings, i)) { // Update settings
-        globalMeta[i] = settings[i];
+        // An `editor` of `true` names no editor, so it reads as "the setting was not passed" — and a
+        // setting that is not passed leaves the previous value alone. Writing the boolean here would
+        // bypass `normalizeEditorSetting()`, which only runs on the layer `updateMeta` calls, and
+        // park a bare `true` on the global meta for every cell to inherit.
+        if (i !== 'editor' || settings[i] !== true) {
+          globalMeta[i] = settings[i];
+        }
       }
     }
 
@@ -4875,7 +4881,12 @@ export default function Core(
 
     type EditorConstructor = (new (hotInstance: HotInstance) => unknown) & { EDITOR_TYPE?: string };
 
-    return (isUndefined(cellEditor) ? getEditor('text') : cellEditor) as EditorConstructor;
+    // An `editor` of `true` names no editor. The meta layers already drop it on the way in, so
+    // reaching this branch means it was written straight onto the cell meta (for example by a
+    // `beforeGetCellMeta` hook). Fall back to the default editor rather than returning the bare
+    // boolean, which `getEditorInstance()` cannot resolve and would throw on.
+    return ((isUndefined(cellEditor) || cellEditor === true) ?
+      getEditor('text') : cellEditor) as EditorConstructor;
   };
 
   /**
