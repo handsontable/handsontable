@@ -143,6 +143,16 @@ export class IndexMapper {
    */
   indexesChangeSource: string | undefined = undefined;
   /**
+   * Source of the next cache update caused by an index sequence change.
+   *
+   * The active source is cleared after the sequence mutation completes. A cache update can be
+   * deferred until batched operations resume, so it needs a separate value that survives until the
+   * cache-update hook is emitted.
+   *
+   * @type {undefined|string}
+   */
+  #cacheUpdateSource: string | undefined = undefined;
+  /**
    * Flag determining whether any action on trimmed indexes has been performed. It's used for cache management.
    *
    * @private
@@ -203,6 +213,7 @@ export class IndexMapper {
   constructor() {
     this.indexesSequence.addLocalHook('change', () => {
       this.indexesSequenceChanged = true;
+      this.#cacheUpdateSource = this.indexesChangeSource;
 
       // Sequence of stored indexes might change.
       this.updateCache();
@@ -900,11 +911,13 @@ export class IndexMapper {
         indexesSequenceChanged: this.indexesSequenceChanged,
         trimmedIndexesChanged: this.trimmedIndexesChanged,
         hiddenIndexesChanged: this.hiddenIndexesChanged,
+        indexesChangeSource: this.#cacheUpdateSource,
       });
 
       this.indexesSequenceChanged = false;
       this.trimmedIndexesChanged = false;
       this.hiddenIndexesChanged = false;
+      this.#cacheUpdateSource = undefined;
     }
   }
 

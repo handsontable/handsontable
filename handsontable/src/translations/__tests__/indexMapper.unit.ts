@@ -746,6 +746,20 @@ describe('IndexMapper', () => {
       expect(indexesSequenceChangeCallback.calls.count()).toEqual(1);
       expect(indexesSequenceChangeCallback).toHaveBeenCalledWith('move');
     });
+
+    it('should expose the source of an inserted index on the `cacheUpdated` hook', () => {
+      const indexMapper = new IndexMapper();
+      const cacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
+
+      indexMapper.initToLength(3);
+      indexMapper.addLocalHook('cacheUpdated', cacheUpdatedCallback);
+
+      indexMapper.insertIndexes(1, 1);
+
+      expect(cacheUpdatedCallback).toHaveBeenCalledWith(jasmine.objectContaining({
+        indexesChangeSource: 'insert',
+      }));
+    });
   });
 
   describe('getNearestNotHiddenIndex()', () => {
