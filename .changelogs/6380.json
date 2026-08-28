@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Added a new `emptyValue` option that lets you store `null` instead of an empty string whenever a cell is emptied, through the editor, a paste, or the API.",
+  "type": "added",
+  "issueOrPR": 6380,
+  "breaking": false,
+  "framework": "none"
+}

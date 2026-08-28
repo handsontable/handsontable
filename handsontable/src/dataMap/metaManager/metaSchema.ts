@@ -7275,6 +7275,62 @@ export default (): Record<string, unknown> => {
 
     /**
      * @description
+     * The `emptyValue` option sets the value stored when a cell ends up empty.
+     *
+     * A cell can be emptied in several ways: the user clears the [cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)
+     * and confirms, pastes a blank cell over it, or fills a blank cell across it. By default all of
+     * these store an empty string (`''`), while the <kbd>**Delete**</kbd> key and the
+     * [`setDataAtCell()`](@/api/core.md#setdataatcell) method store `null`. Set `emptyValue` to `null`
+     * to make every one of those paths agree on `null`.
+     *
+     * You can set the `emptyValue` option to one of the following:
+     *
+     * | Setting        | Description                                                              |
+     * | -------------- | ------------------------------------------------------------------------ |
+     * | `''` (default) | Store an empty string when a cell is emptied                             |
+     * | `null`         | Store `null` when a cell is emptied                                      |
+     *
+     * Set `emptyValue: null` when the cell's value leaves the grid — saved to a server, written to a
+     * database, or read by a formula. An empty string in a `numeric`, `date` or `time` column is a
+     * string where a number, a date or nothing at all is expected, and `''` is not the same value as
+     * `NULL` to a database. It also matches how spreadsheets tell a blank cell from an empty string:
+     * `ISBLANK()` is `true` for `null` and `false` for `''`.
+     *
+     * The option applies to every write path, including [`setDataAtCell()`](@/api/core.md#setdataatcell).
+     * Writing `''` through the API with `emptyValue: null` set stores `null`.
+     *
+     * A [`valueSetter`](#valuesetter) runs first, so a custom setter that returns `''` still means
+     * "empty" and is mapped as well.
+     *
+     * ::: tip
+     * Pasting from outside the grid cannot preserve this distinction. A clipboard holding text or HTML
+     * has no way to mark a cell as `null`, so an empty pasted cell follows the `emptyValue` setting
+     * like any other emptied cell.
+     * :::
+     *
+     * @memberof Options#
+     * @since 18.1.0
+     * @type {''|null}
+     * @default ''
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // store `null` in every emptied cell of the grid
+     * emptyValue: null,
+     *
+     * // or per column: keep text columns storing `''`, and store `null` in the typed ones
+     * columns: [
+     *   { data: 'name' },
+     *   { data: 'amount', type: 'numeric', emptyValue: null },
+     *   { data: 'due', type: 'date', emptyValue: null }
+     * ]
+     * ```
+     */
+    emptyValue: '',
+
+    /**
+     * @description
      * The `viewportColumnRenderingOffset` option configures the number of columns
      * to be rendered outside of the grid's viewport.
      *

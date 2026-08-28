@@ -69,7 +69,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   columns: [
     {
       type: 'numeric',
-      numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+      numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 },
+      // Pins the per-column form of `emptyValue` that the option's docs and the binding-to-data
+      // guide both show. `ColumnSettings` derives from `GridSettings`, so this compiles only while
+      // that stays true.
+      emptyValue: null,
     },
     { type: 'text', readOnly: true }
   ],
@@ -115,6 +119,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   dropdownMenu: true,
   editor: oneOf(true, 'autocomplete', 'checkbox', 'date', 'dropdown', 'handsontable', 'mobile',
     'password', 'select', 'text', 'time', 'custom.editor'),
+  emptyValue: oneOf('' as const, null),
   enterBeginsEditing: true,
   enterMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({ row: 1, col: 1 })),
   exportFile: { engines: { xlsx: {} } },

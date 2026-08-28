@@ -8,13 +8,21 @@ import { isFunction } from '../helpers/function';
  * @returns {*} The value to be set in the cell.
  */
 export function getValueSetterValue(value: unknown, cellMeta: Record<string, unknown>) {
-  const { instance, visualRow, visualCol, valueSetter } = cellMeta;
+  const { instance, visualRow, visualCol, valueSetter, emptyValue } = cellMeta;
+  let newValue = value;
 
   if (isFunction(valueSetter)) {
-    return valueSetter.call(instance, value, visualRow, visualCol, cellMeta);
+    newValue = valueSetter.call(instance, value, visualRow, visualCol, cellMeta);
   }
 
-  return value;
+  // `emptyValue` spells out what an emptied cell stores. It runs after `valueSetter` so a cell that
+  // ends up empty lands on the same value whichever path emptied it - the editor, a paste, a fill or
+  // `setDataAtCell()` - and so a custom `valueSetter` returning `''` still means "empty" here.
+  if (newValue === '' && emptyValue === null) {
+    return null;
+  }
+
+  return newValue;
 }
 
 /**

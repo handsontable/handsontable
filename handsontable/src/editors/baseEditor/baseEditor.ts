@@ -117,6 +117,16 @@ export class BaseEditor {
    */
   originalValue: unknown = null;
   /**
+   * What the editor held the moment it finished opening, captured only when it was seeded from the
+   * cell's own value. `finishEditing()` compares against it to tell a real edit from a confirm that
+   * changed nothing.
+   *
+   * Stays `null` whenever the guard must not apply: the editor was not seeded (fast edit mode, where
+   * the user's first keystroke supplies the value), or it was seeded with a caller-supplied string.
+   * Both keep the unconditional save they have always had.
+   */
+  #valueBeforeEdit: unknown = null;
+  /**
    * Object containing the cell's properties.
    *
    * @type {object}
@@ -305,10 +315,16 @@ export class BaseEditor {
 
     // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
     // otherwise IME (editor for Asia users) doesn't work.
+    // `seededFromCell` records whether the editor was filled from the cell's own value, which is the
+    // only case the no-op guard in `finishEditing()` may act on.
+    let seededFromCell = false;
+
     if (this.isInFullEditMode()) {
       const originalValue = getValueGetterValue(this.originalValue, this.hot.getCellMeta(this.row, this.col));
       const stringifiedInitialValue = typeof newInitialValue === 'string' ?
         newInitialValue : stringify(originalValue);
+
+      seededFromCell = typeof newInitialValue !== 'string';
 
       this.setValue(stringifiedInitialValue);
     }
@@ -316,6 +332,13 @@ export class BaseEditor {
     this.open(event);
     this._opened = true;
     this.focus();
+
+    // Read back through `getValue()` rather than reusing the string passed to `setValue()`: an editor
+    // may normalize what it was given (DateEditor rewrites an unparsable value to an empty string), and
+    // the guard has to compare against what the user actually sees. Captured after `open()` so an editor
+    // that fills its own control while opening is accounted for, but before `afterBeginEditing` runs, so
+    // a value a listener sets there still counts as a change and is saved.
+    this.#valueBeforeEdit = seededFromCell ? this.getValue() : null;
 
     // only rerender the selections (FillHandle should disappear when beginEditing is triggered)
     hotInstance.view.render();
@@ -332,8 +355,6 @@ export class BaseEditor {
    * @param {Function} callback The callback function, fired after editor closing.
    */
   finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: Function): void {
-    let val: unknown;
-
     if (callback) {
       const previousCloseCallback = this._closeCallback;
 
@@ -367,14 +388,44 @@ export class BaseEditor {
         return;
       }
 
-      let value = this.getValue();
+      const valueBeforeEdit = this.#valueBeforeEdit;
 
-      if (this.cellProperties.trimWhitespace) {
-        value = typeof value === 'string' ? String.prototype.trim.call(value || '') : value;
+      this.#valueBeforeEdit = null;
+
+      // The editor still holds exactly what it was opened with, so the user confirmed without changing
+      // anything. Writing the editor's stringified value back over the cell is what turned a `null`
+      // into `''` (#3927), so an unchanged confirm must not go through the normal save path.
+      //
+      // `ctrlDown` is excluded on purpose: Ctrl/Meta + Enter copies the edited cell's value into every
+      // other cell of the selection, so an unchanged editor still has work to do and must save.
+      const isUnchanged = !ctrlDown && valueBeforeEdit !== null && this.getValue() === valueBeforeEdit;
+
+      // With no validator there is nothing left to do, so close without writing and without firing
+      // `afterChange` for an edit that never happened.
+      if (isUnchanged && !this.hot.getCellValidator(this.cellProperties)) {
+        this.state = EDITOR_STATE.FINISHED;
+        this.discardEditor(true);
+
+        return;
       }
 
-      if (typeof this.cellProperties.valueParser === 'function') {
-        value = this.cellProperties.valueParser(value, this.cellProperties);
+      let value = this.getValue();
+
+      if (isUnchanged) {
+        // A validated cell still has to run its validator on this confirm, because `allowInvalid: false`
+        // keeps the editor open on an invalid value however the user got there. Write the cell's OWN
+        // value back rather than the editor's stringified copy: validation and `allowInvalid` behave
+        // exactly as before, while the stored value is left untouched.
+        value = this.originalValue;
+
+      } else {
+        if (this.cellProperties.trimWhitespace) {
+          value = typeof value === 'string' ? String.prototype.trim.call(value || '') : value;
+        }
+
+        if (typeof this.cellProperties.valueParser === 'function') {
+          value = this.cellProperties.valueParser(value, this.cellProperties);
+        }
       }
 
       this.state = EDITOR_STATE.WAITING;

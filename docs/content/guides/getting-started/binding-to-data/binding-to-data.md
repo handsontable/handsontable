@@ -849,6 +849,71 @@ hot.populateFromArray(1, 1, newValues, 2, 2);
 </li>
 </ol>
 
+## Empty cell values
+
+An empty cell can hold either `null` or an empty string (`''`). The two look the same in the grid,
+but they are different values in your data source, and the difference matters as soon as the data
+leaves the grid. An empty string in a `numeric`, `date` or `time` column is a string where a number
+or a date is expected, and `''` is not the same value as `NULL` to a database.
+
+By default, the way a cell is emptied decides which value it gets:
+
+| How the cell is emptied                                     | Stored value |
+| ----------------------------------------------------------- | ------------ |
+| Pressing <kbd>**Delete**</kbd> or <kbd>**Backspace**</kbd>   | `null`       |
+| [`setDataAtCell()`](@/api/core.md#setdataatcell) with `null` | `null`       |
+| Clearing the cell editor and confirming                      | `''`         |
+| Pasting a blank cell                                         | `''`         |
+| Filling a blank cell across a range                          | `''`         |
+
+Set [`emptyValue`](@/api/options.md#emptyvalue) to `null` to make every one of those paths store
+`null`:
+
+```js
+const hot = new Handsontable(container, {
+  data: getData(),
+  emptyValue: null,
+});
+```
+
+You can set it for the whole grid, or only for the columns whose type makes an empty string wrong:
+
+```js
+const hot = new Handsontable(container, {
+  data: getData(),
+  columns: [
+    // a text column keeps storing an empty string
+    { data: 'name' },
+    // these store `null` when emptied
+    { data: 'amount', type: 'numeric', emptyValue: null },
+    { data: 'due', type: 'date', emptyValue: null },
+  ],
+});
+```
+
+The option changes only what an emptied cell stores. A `0` or a `false` is a real value, not an empty
+cell, and is never affected.
+
+::: tip
+
+Opening a cell editor and confirming it without typing anything never changes the cell, whatever
+`emptyValue` is set to.
+
+On a cell without a [`validator`](@/api/options.md#validator), nothing is written at all and no
+[`afterChange`](@/api/hooks.md#afterchange) hook fires. On a validated cell the value is written back
+unchanged, so the validator still runs and [`allowInvalid`](@/api/options.md#allowinvalid) keeps
+behaving as it always has. Either way the stored value stays exactly as it was.
+
+:::
+
+::: tip
+
+Pasting from outside the grid cannot preserve the difference between `null` and `''`. A clipboard
+holds text or HTML, and neither can mark a cell as `null`, so a blank pasted cell follows the
+`emptyValue` setting like any other emptied cell.
+
+:::
+
 ## Working with a copy of data
 
 When working with a copy of data for Handsontable, it is best practice is to clone the data source before loading it into Handsontable. This can be done with `structuredClone(data)` or legacy `JSON.parse(JSON.stringify(data))` or another deep-cloning function.
@@ -908,6 +973,7 @@ When the full dataset lives on a server, use [`dataProvider`](@/api/options.md#d
 - [data](@/api/options.md#data)
 - [dataProvider](@/api/options.md#dataprovider)
 - [dataSchema](@/api/options.md#dataschema)
+- [emptyValue](@/api/options.md#emptyvalue)
 
 </div>
 

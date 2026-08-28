@@ -170,6 +170,7 @@ export interface GridSettings {
   valueFormatter?: (value: CellValue, cellProperties: CellProperties) => CellValue;
   valueGetter?: (value: CellValue, visualRow: number, visualCol: number, cellMeta: CellProperties) => CellValue;
   valueSetter?: (value: CellValue, visualRow: number, visualCol: number, cellMeta: CellProperties) => CellValue;
+  emptyValue?: '' | null;
   placeholder?: string | number;
   renderAllRows?: boolean;
   renderAllColumns?: boolean;

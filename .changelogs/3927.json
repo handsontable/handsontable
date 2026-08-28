@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed an issue where opening a cell editor and confirming it without typing anything overwrote the cell's value and fired a change event.",
+  "type": "fixed",
+  "issueOrPR": 3927,
+  "breaking": false,
+  "framework": "none"
+}
