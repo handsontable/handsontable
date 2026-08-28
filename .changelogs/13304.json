@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed cell edits being lost after rows are trimmed.",
+  "type": "fixed",
+  "issueOrPR": 13304,
+  "breaking": false,
+  "framework": "none"
+}
