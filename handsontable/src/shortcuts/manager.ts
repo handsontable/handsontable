@@ -276,6 +276,9 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
     /**
      * Returns whether `control` or `meta` keys are pressed.
      *
+     * The state is re-read from the modifier flags of every keyboard event, so a synthetic
+     * keyboard event dispatched without those flags reports the keys as released.
+     *
      * @memberof ShortcutManager#
      * @type {Function}
      * @returns {boolean}
