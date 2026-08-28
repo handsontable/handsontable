@@ -76,7 +76,9 @@ This recipe shows how to edit weekly values in table cells and render a mini bar
 
 ## Step 1: Call the base renderer first
 
-Always call `baseRenderer` before you change the cell content. That keeps read-only styling, validation classes, and ARIA attributes consistent with other cells.
+The example calls `baseRenderer` before it changes the cell content. That applies read-only styling, validation classes, and ARIA attributes before the SVG replaces the cell content.
+
+You don't have to call `baseRenderer` yourself. Since version 17.0.0, Handsontable runs it after your renderer whenever your renderer didn't run it. Call it yourself when you need it to run first -- for example, when your renderer sets a class that `baseRenderer` also manages, such as `htInvalid`. A `baseRenderer` that runs last removes that class.
 
 ## Step 2: Map cell values to slots
 
