@@ -39,17 +39,19 @@ function hasSourceCapabilities(event: Event): event is EventWithSourceCapabiliti
 }
 
 /**
- * Checks whether the browser reports that a mouse event was synthesized from a touch gesture.
- * Browsers that fire touch events synthesize a `mousedown`/`mouseup`/`click` sequence after
- * `touchend` for compatibility. Only Blink exposes the origin (`sourceCapabilities.firesTouchEvents`);
- * WebKit and Firefox do not, and script-dispatched events carry `null`. In those cases the function
- * returns `undefined` so the caller can fall back to a timing heuristic.
+ * Returns whether a mouse event was synthesized from a touch gesture, as reported by the browser
+ * (`sourceCapabilities.firesTouchEvents`, Blink only) — `true`/`false` when reported, `undefined`
+ * when the engine does not tell (WebKit, Firefox, script-dispatched events). Browsers that fire
+ * touch events synthesize a `mousedown`/`mouseup`/`click` sequence after `touchend` for
+ * compatibility. Only Blink exposes the origin; WebKit and Firefox do not, and script-dispatched
+ * events carry `null`. In those cases the function returns `undefined` so the caller can fall back
+ * to a timing heuristic.
  *
  * @param {Event} event The mouse event object.
  * @returns {boolean|undefined} `true` when synthesized from touch, `false` when it comes from a
  *                              non-touch device, `undefined` when the browser does not tell.
  */
-export function isTouchSynthesizedMouseEvent(event: Event): boolean | undefined {
+export function getMouseEventTouchOrigin(event: Event): boolean | undefined {
   if (hasSourceCapabilities(event) && event.sourceCapabilities) {
     return event.sourceCapabilities.firesTouchEvents === true;
   }

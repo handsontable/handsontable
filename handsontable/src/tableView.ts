@@ -34,7 +34,7 @@ import {
   isLeftClick,
   isMiddleClick,
 } from './helpers/dom/event';
-import { isTouchSynthesizedMouseEvent, TOUCH_SYNTHESIZED_MOUSE_WINDOW } from './helpers/dom/inputOrigin';
+import { getMouseEventTouchOrigin, TOUCH_SYNTHESIZED_MOUSE_WINDOW } from './helpers/dom/inputOrigin';
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
@@ -1689,7 +1689,7 @@ class TableView {
    * @returns {boolean}
    */
   #isSyntheticMouseEvent(event: Event): boolean {
-    return isTouchSynthesizedMouseEvent(event) ?? this.#recentTouchEnd;
+    return getMouseEventTouchOrigin(event) ?? this.#recentTouchEnd;
   }
 
   /**
