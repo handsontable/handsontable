@@ -66,6 +66,12 @@ export function createEventDeps(ctx: EngineContext) {
 export type EventDeps = ReturnType<typeof createEventDeps>;
 
 /**
+ * The cell object `Event#parentCell()` returns: a TD/TH element and its coords, or both `null`
+ * when the event target maps to neither a cell nor a border affordance.
+ */
+type ParentCell = ReturnType<Event['parentCell']>;
+
+/**
  * @class Event
  */
 class Event {
@@ -580,9 +586,9 @@ class Event {
    * or a tap on another cell resets the detector.
    *
    * @param {MouseEvent|TouchEvent} event The event that ended the tap.
-   * @param {ReturnType<Event['parentCell']>} cell The tapped cell, as returned by `parentCell()`.
+   * @param {ParentCell} cell The tapped cell, as returned by `parentCell()`.
    */
-  #handleTouchTap(event: MouseEvent | TouchEvent, cell: ReturnType<Event['parentCell']>): void {
+  #handleTouchTap(event: MouseEvent | TouchEvent, cell: ParentCell): void {
     if (this.#longPressFired || !cell.TD) {
       this.#lastTapTD = null;
 
@@ -606,9 +612,9 @@ class Event {
    * Fires the corner or the cell double-click callback for the given cell.
    *
    * @param {MouseEvent|TouchEvent} event The event that completed the double-click.
-   * @param {ReturnType<Event['parentCell']>} cell The double-clicked cell.
+   * @param {ParentCell} cell The double-clicked cell.
    */
-  #fireDblClick(event: MouseEvent | TouchEvent, cell: ReturnType<Event['parentCell']>): void {
+  #fireDblClick(event: MouseEvent | TouchEvent, cell: ParentCell): void {
     if (hasClass(eventTargetEl(event)!, 'corner')) {
       this.callListener('onCellCornerDblClick', event, cell.coords!, cell.TD!);
     } else {
@@ -698,6 +704,10 @@ class Event {
     if (!wasScrolled || this.#longPressFired) {
       this.#lastTouchMouseUpAt = Date.now();
       this.onMouseUp(event);
+    } else {
+      // A pure scroll gesture calls neither onMouseDown nor onMouseUp, so #handleTouchTap never
+      // runs to reset the tap detector. Reset it here so a scroll between two taps can't pair them.
+      this.#lastTapTD = null;
     }
 
     this.touchApplied = false;

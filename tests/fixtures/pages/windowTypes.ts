@@ -164,5 +164,10 @@ declare global {
     setBeforeColumnMoveVeto(shouldVeto: boolean): boolean;
     /** Per-hook invocation counters of the touch tap-to-edit fixture (DEV-2687). */
     hookCounts: Record<HookCounterName, number>;
+    /**
+     * Chromium-only InputDeviceCapabilities constructor, used to stamp synthetic mouse events
+     * with their origin (DEV-2687).
+     */
+    InputDeviceCapabilities: new (init: { firesTouchEvents: boolean }) => { firesTouchEvents: boolean };
   }
 }

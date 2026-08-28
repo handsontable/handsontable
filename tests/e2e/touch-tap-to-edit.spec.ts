@@ -119,9 +119,10 @@ test.describe('touch tap-to-edit on a device with touch and mouse listeners', ()
     await grid.dispatchTouchDrag(2, 1, 20);
     await grid.expectHookCount('beforeOnCellMouseDown', 0);
 
-    // The browser's compatibility pair after such a gesture must still select the cell.
-    await grid.dispatchMouseEvent(2, 1, 'mousedown');
-    await grid.dispatchMouseEvent(2, 1, 'mouseup');
+    // The pair is what Blink synthesizes after a drifted gesture and carries
+    // firesTouchEvents === true; the touch path left no stamp, so it must be processed.
+    await grid.dispatchMouseEvent(2, 1, 'mousedown', true);
+    await grid.dispatchMouseEvent(2, 1, 'mouseup', true);
 
     await grid.expectHookCount('beforeOnCellMouseDown', 1);
     await grid.expectHookCount('beforeOnCellMouseUp', 1);

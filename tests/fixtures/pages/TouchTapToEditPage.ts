@@ -52,22 +52,42 @@ export class TouchTapToEditPage {
   }
 
   /**
-   * Dispatch a script-created mouse event on a cell. Such events carry
-   * `sourceCapabilities === null`, which forces the engine onto the timing fallback
-   * used on WebKit and Firefox.
+   * Dispatch a script-created mouse event on a cell. Without `firesTouchEvents`, the event
+   * carries `sourceCapabilities === null`, which forces the engine onto the WebKit/Firefox
+   * timing fallback. Passing `firesTouchEvents` stamps the event with a Chromium
+   * `InputDeviceCapabilities` object, reproducing what Blink itself attaches to its own
+   * synthesized compatibility pairs (`sourceCapabilities.firesTouchEvents === true`) — the
+   * branch that only a real `sourceCapabilities` report, not a script-dispatched `null`, can
+   * exercise.
    */
-  async dispatchMouseEvent(row: number, col: number, type: 'mousedown' | 'mouseup'): Promise<void> {
-    await this.cell(row, col).evaluate((td, eventType) => {
-      td.dispatchEvent(new MouseEvent(eventType, { bubbles: true, cancelable: true, button: 0 }));
-    }, type);
+  async dispatchMouseEvent(
+    row: number,
+    col: number,
+    type: 'mousedown' | 'mouseup',
+    firesTouchEvents?: boolean
+  ): Promise<void> {
+    await this.cell(row, col).evaluate((td, { eventType, fires }) => {
+      interface MouseEventInitWithSourceCapabilities extends MouseEventInit {
+        sourceCapabilities?: { firesTouchEvents: boolean };
+      }
+
+      const init: MouseEventInitWithSourceCapabilities = { bubbles: true, cancelable: true, button: 0 };
+
+      if (fires !== undefined) {
+        init.sourceCapabilities = new window.InputDeviceCapabilities({ firesTouchEvents: fires });
+      }
+
+      td.dispatchEvent(new MouseEvent(eventType, init));
+    }, { eventType: type, fires: firesTouchEvents });
   }
 
   /**
    * Dispatch a script-created touch gesture that drifts `dx` pixels before lifting: a
-   * `touchstart`, a `touchmove` offset by `dx`, then a `touchend`. Script-dispatched events
-   * carry no `sourceCapabilities`, so this — unlike `tapCell()`'s trusted `locator.tap()` —
-   * exercises the timing fallback Walkontable uses to tell a drifted tap (treated as a scroll,
-   * no cell mouse hooks fired) from a real tap.
+   * `touchstart`, a `touchmove` offset by `dx`, then a `touchend`. These touch events drive
+   * Walkontable's 10 px move-threshold path (`LONG_PRESS_MOVE_THRESHOLD`): past that offset the
+   * touch path classifies the gesture as a scroll and fires no cell mouse hooks. The mouse pair
+   * that follows is dispatched separately, with `dispatchMouseEvent()`, to drive the
+   * synthesized-event origin gate.
    */
   async dispatchTouchDrag(row: number, col: number, dx: number): Promise<void> {
     await this.cell(row, col).evaluate((td, dxOffset) => {
