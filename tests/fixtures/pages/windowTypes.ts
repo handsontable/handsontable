@@ -24,6 +24,7 @@ interface FixtureCellRange {
 export interface FixtureHotInstance {
   getDataAtCell(row: number, col: number): CellValue;
   getSourceDataAtCell(row: number, col: number): CellValue;
+  getSourceData(): unknown[];
   setDataAtCell(row: number, col: number, value: CellValue): void;
   getCellMeta(row: number, col: number): { className?: string, readOnly?: boolean };
   getPlugin(name: 'formulas'): {
@@ -36,6 +37,7 @@ export interface FixtureHotInstance {
     isUndoAvailable(): boolean,
     isRedoAvailable(): boolean,
     doneActions: unknown[],
+    ignoreNewActions: boolean,
   };
   getPlugin(name: 'moveCells'): {
     moveCellRange(sourceRange: unknown, targetTopLeft: unknown, isCopy?: boolean): boolean,
@@ -135,6 +137,10 @@ declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
+    /** #5833 fixture: the "getter" grid – constructor rows with a non-configurable derived getter. */
+    hotGetter: FixtureHotInstance;
+    /** #5833 fixture: the "accessor" grid – the docs' function-data-source pattern (function `columns[].data`). */
+    hotAccessor: FixtureHotInstance;
     /** The Handsontable constructor loaded by the fixture — exposes the global hooks bucket. */
     Handsontable: {
       hooks: {

@@ -1,4 +1,8 @@
 import DataMap from 'handsontable/dataMap/dataMap';
+import Handsontable from 'handsontable/base';
+import { registerAllCellTypes } from 'handsontable/registry';
+
+registerAllCellTypes();
 
 describe('DataMap', () => {
   describe('filterData', () => {
@@ -43,5 +47,43 @@ describe('DataMap', () => {
       expect(context.dataSource[0]).toEqual([1]);
       expect(context.dataSource[299998]).toEqual([299999]);
     });
+  });
+});
+
+describe('DataMap.get with function column accessors', () => {
+  let container;
+  let hot;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    if (hot) {
+      hot.destroy();
+      hot = null;
+    }
+
+    container.remove();
+  });
+
+  it('should return null and not call the accessor when the row index maps past the source data', () => {
+    const accessor = jest.fn(row => row.value);
+
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [{ value: 'A1' }, { value: 'A2' }],
+      dataSchema: () => ({ value: null }),
+      columns: [{ data: accessor }],
+    });
+
+    accessor.mockClear();
+    // Reproduces the transient state RemoveRowAction.undo creates: the mapper is one index
+    // longer than the source array until alter() splices the row in.
+    hot.rowIndexMapper.setIndexesSequence([0, 1, 2]);
+
+    expect(hot.getDataAtCell(2, 0)).toBe(null);
+    expect(accessor).not.toHaveBeenCalledWith(undefined);
   });
 });

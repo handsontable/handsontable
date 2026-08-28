@@ -264,10 +264,18 @@ export class UndoRedo extends BasePlugin {
 
     this.hot.runHooks('beforeRedoStackChange', undoneActionsCopy);
 
-    (action as { undo: (hot: HotInstance, callback: () => void) => void }).undo(this.hot, () => {
+    try {
+      (action as { undo: (hot: HotInstance, callback: () => void) => void }).undo(this.hot, () => {
+        this.ignoreNewActions = false;
+        this.undoneActions.push(action);
+      });
+
+    } catch (error) {
+      // An action that throws never reaches its settle callback. Without this reset every later
+      // user action would be silently dropped from the stack for the rest of the session.
       this.ignoreNewActions = false;
-      this.undoneActions.push(action);
-    });
+      throw error;
+    }
 
     this.hot.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions.slice());
     this.hot.runHooks('afterUndo', actionClone);
@@ -317,15 +325,21 @@ export class UndoRedo extends BasePlugin {
       redo: (hot: HotInstance, callback: (result?: { wasRedone?: boolean }) => void) => void
     };
 
-    redo.redo(this.hot, (result) => {
-      this.ignoreNewActions = false;
+    try {
+      redo.redo(this.hot, (result) => {
+        this.ignoreNewActions = false;
 
-      if (result?.wasRedone === false) {
-        this.undoneActions.push(action);
-      } else {
-        this.doneActions.push(action);
-      }
-    });
+        if (result?.wasRedone === false) {
+          this.undoneActions.push(action);
+        } else {
+          this.doneActions.push(action);
+        }
+      });
+
+    } catch (error) {
+      this.ignoreNewActions = false;
+      throw error;
+    }
 
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
     this.hot.runHooks('afterRedo', actionClone);

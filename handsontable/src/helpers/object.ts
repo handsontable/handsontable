@@ -367,6 +367,38 @@ export function getProperty<T = unknown>(object: Record<string | symbol, unknown
 }
 
 /**
+ * Writes a value to the last segment of a property path. A property whose own descriptor is
+ * non-configurable cannot be redefined, so it is written through its setter (accessor) or by
+ * plain assignment (writable data property). A non-configurable read-only member – for example
+ * a derived getter on a constructor-created row – is left untouched instead of throwing.
+ *
+ * @param {object} target The object that owns the property.
+ * @param {string} propName The own property name to write.
+ * @param {*} value The value to write.
+ */
+function writeOwnProperty(target: Record<string, unknown>, propName: string, value: unknown): void {
+  const descriptor = Object.getOwnPropertyDescriptor(target, propName);
+
+  if (descriptor && descriptor.configurable === false) {
+    if (typeof descriptor.set === 'function') {
+      descriptor.set.call(target, value);
+
+    } else if (descriptor.writable === true) {
+      target[propName] = value;
+    }
+
+    return;
+  }
+
+  Object.defineProperty(target, propName, {
+    value,
+    writable: true,
+    enumerable: true,
+    configurable: true,
+  });
+}
+
+/**
  * Set a property value on the provided object. Works on nested object prop names as well (e.g. `first.name`).
  *
  * @param {object} object Object to work on.
@@ -406,12 +438,7 @@ export function setProperty(object: Record<string, unknown>, name: string, value
       workingObject = nextLevel;
 
     } else {
-      Object.defineProperty(workingObject, propName, {
-        value,
-        writable: true,
-        enumerable: true,
-        configurable: true,
-      });
+      writeOwnProperty(workingObject, propName, value);
     }
   }
 }

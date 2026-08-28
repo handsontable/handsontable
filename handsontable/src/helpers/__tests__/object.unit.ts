@@ -495,6 +495,52 @@ describe('Object helper', () => {
 
       expect(testObject).toEqual({ prop1: 0 });
     });
+
+    it('should call the setter of a non-configurable accessor property instead of redefining it', () => {
+      const target: Record<string, unknown> = {};
+      let stored = 0;
+
+      Object.defineProperty(target, 'value', {
+        get: () => stored,
+        set: (next: number) => { stored = next; },
+        enumerable: true,
+        // configurable defaults to false
+      });
+
+      expect(() => setProperty(target, 'value', 42)).not.toThrow();
+      expect(stored).toBe(42);
+      expect(Object.getOwnPropertyDescriptor(target, 'value')?.set).toBeDefined();
+    });
+
+    it('should leave a non-configurable getter-only property untouched', () => {
+      const target: Record<string, unknown> = { a: 1, b: 2 };
+
+      Object.defineProperty(target, 'sum', {
+        get() { return (this as { a: number, b: number }).a + (this as { a: number, b: number }).b; },
+        enumerable: true,
+      });
+
+      expect(() => setProperty(target, 'sum', 999)).not.toThrow();
+      expect(target.sum).toBe(3);
+    });
+
+    it('should assign to a non-configurable but writable data property', () => {
+      const target: Record<string, unknown> = {};
+
+      Object.defineProperty(target, 'count', { value: 1, writable: true, enumerable: true });
+
+      expect(() => setProperty(target, 'count', 5)).not.toThrow();
+      expect(target.count).toBe(5);
+    });
+
+    it('should leave a non-configurable, non-writable data property untouched', () => {
+      const target: Record<string, unknown> = {};
+
+      Object.defineProperty(target, 'frozen', { value: 'x', enumerable: true });
+
+      expect(() => setProperty(target, 'frozen', 'y')).not.toThrow();
+      expect(target.frozen).toBe('x');
+    });
   });
 
   describe('assignObjectDefaults', () => {
