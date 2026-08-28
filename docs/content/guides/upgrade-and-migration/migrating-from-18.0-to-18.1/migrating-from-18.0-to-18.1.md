@@ -18,9 +18,9 @@ category: Upgrade and migration
 
 Migrate from Handsontable 18.0 to Handsontable 18.1.
 
-Handsontable 18.1 is a minor release and removes no public API. Three changes still need your
-attention: one blocks the grid, one changes what a column-header click does, and one makes a
-notification appear that 18.0 suppressed.
+Handsontable 18.1 is a minor release and removes no public API. Four changes still need your
+attention: one blocks the grid, one changes what a column-header click does, one makes a
+notification appear that 18.0 suppressed, and one changes how the grid decides its layout.
 
 For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md).
 
@@ -233,6 +233,54 @@ means an expiration date in the past.
 Nothing to change in your code. To remove the notice, renew the license and pass the new key.
 Contact the [Sales Team](https://handsontable.com/get-a-quote) for a renewal.
 
+## 4. Check custom layout code if the grid renders a wrong scrollbar
+
+Handsontable 18.1 renders the grid in a single pass. It predicts whether scrollbars appear from the
+cached row heights and column widths, then renders once. Handsontable 18.0 rendered the grid,
+measured the result, and rendered it again.
+
+The prediction matches the DOM as long as a cell renders at the size Handsontable cached for it.
+When the two differ, the grid can show a scrollbar it does not need, miss one it does need, or leave
+the viewport short by a row or a column.
+
+The [`mergeCells`](@/guides/cell-features/merge-cells/merge-cells.md) plugin turns the new path off
+for you. A merged cell's height depends on the viewport that the layout is computing, so the
+prediction cannot resolve it.
+
+### Who is affected
+
+You are affected if a cell's rendered size is not known before the cell renders:
+
+- You wrote a plugin whose content size depends on the viewport that the layout is computing. This is
+  the case `mergeCells` opts out of. No other plugin opts out for you.
+- You use a custom renderer or custom CSS that changes a cell's box after Handsontable measured it,
+  for example a style rule that overrides a row height.
+
+If your grid renders the same in 18.1 as it did in 18.0, this section does not apply to you. No
+configuration change is needed.
+
+### How to migrate
+
+Return `false` from the [`modifySinglePassLayout`](@/api/hooks.md#modifysinglepasslayout) hook to
+restore the 18.0 layout path for that instance:
+
+```js
+const hot = new Handsontable(container, {
+  modifySinglePassLayout() {
+    return false;
+  },
+});
+```
+
+From a plugin, register the hook the way `mergeCells` does:
+
+```js
+this.addHook('modifySinglePassLayout', () => false);
+```
+
+Handsontable reads the hook on every layout pass, so enabling or disabling a plugin through
+[`updateSettings()`](@/api/core.md#updatesettings) takes effect without re-creating the grid.
+
 ## Summary of changes
 
 | Change | Who is affected | Action required |
@@ -241,6 +289,7 @@ Contact the [Sales Team](https://handsontable.com/get-a-quote) for a renewal.
 | Column sorting runs on mouse up, and only the header label and its sort indicator sort on click | Tests or scripts that dispatch `mousedown` on a header cell to sort | Dispatch `mousedown` and `mouseup` on the `.colHeader.sortAction` label, without moving the pointer |
 | `beforeColumnMove` and `afterColumnMove` no longer fire on a plain header click | Code using either hook to detect a header click | Use [`afterColumnSort`](@/api/hooks.md#aftercolumnsort) or [`afterOnCellMouseUp`](@/api/hooks.md#afteroncellmouseup) instead |
 | Expired license keys are detected again | Instances running a key past its date | Nothing in code. Renew the license to remove the notice |
+| The grid renders in a single pass and predicts scrollbars instead of measuring them | Plugins whose content size depends on the viewport, and custom renderers or CSS that resize a cell after it is measured | Nothing, unless the layout renders differently. Return `false` from [`modifySinglePassLayout`](@/api/hooks.md#modifysinglepasslayout) to restore the 18.0 path |
 
 ## Result
 
