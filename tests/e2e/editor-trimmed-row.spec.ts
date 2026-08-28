@@ -665,6 +665,38 @@ test.describe('commit paths the rebind cannot reach', () => {
  * coordinate, which keeps the edit alive against the NEW data set rather than discarding it.
  */
 test.describe('a data swap under an open editor', () => {
+  /**
+   * The same swap at the SAME length takes the other branch. The physical count does not move, so
+   * this routes to the rearrangement repair, which resolves the captured index against a data set
+   * that shares nothing with the one the edit was typed into. A replaced `data` prop of unchanged
+   * length is the dominant wrapper shape, so the two branches both need pinning.
+   */
+  test('keeps the edit when the swap does not change the row count',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.openEditorAndType(1, 0, 'EDITED');
+
+      await grid.updateData([
+        ['N0', 'M0'], ['N1', 'M1'], ['N2', 'M2'], ['N3', 'M3'], ['N4', 'M4'],
+      ]);
+
+      await expect.poll(() => grid.editorState()).toBe('STATE_EDITING');
+      await expect.poll(() => grid.editorRow()).toBe(1);
+
+      await grid.commitWithEnter();
+
+      await expect.poll(() => grid.sourceData()).toEqual([
+        ['N0', 'M0'],
+        ['EDITED', 'M1'],
+        ['N2', 'M2'],
+        ['N3', 'M3'],
+        ['N4', 'M4'],
+      ]);
+      expect(await grid.sourceRowCount()).toBe(5);
+    });
+
   test('keeps the edit against the new data set', async({ page, theme, bundle }) => {
     const grid = new EditorTrimmedRowPage(page, theme, bundle);
 

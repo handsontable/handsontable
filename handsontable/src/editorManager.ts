@@ -475,11 +475,18 @@ class EditorManager {
    * through intact, because the index mapper moved the visual space with it. So the visual side is
    * the trustworthy one here, and it is what the record is read back from.
    *
-   * This never discards. Core already carries an edit across a structural change: `alter()` runs
+   * This never discards. USUALLY core carries the edit across on its own: `alter()` runs
    * `selection.shiftRows()` after the cache update, and the `prepareEditor()` behind it re-derives
-   * the editor's coordinates and the captured record together. All this method does is keep the
-   * captured record correct for the changes core does NOT re-prepare after – a removal entirely below
-   * the edited cell leaves the selection alone, so nothing else would notice the renumbering.
+   * the editor's coordinates and the captured record together. Where that happens, discarding here
+   * would throw away an edit that was about to commit correctly.
+   *
+   * It does not always happen. `shiftRows()` only shifts a range whose outer top-start corner is at
+   * or below the removed row, so a focus moved below that corner – Enter or Tab inside a multi-cell
+   * selection – is left where it was, and `core.ts` only closes the editor when the removed range
+   * covers the HIGHLIGHT. The editor is then stranded past the last row and the commit appends, the
+   * same as it does without this repair. What this method still guarantees in that case is that it
+   * does not make things worse: the captured record is cleared rather than left pointing at whatever
+   * record inherited its index, so no later trim can resolve a lie and rebind onto a live record.
    */
   #recaptureEditedRecord(): void {
     const editor = this.activeEditor;
@@ -492,12 +499,16 @@ class EditorManager {
     const physicalRow = this.hot.rowIndexMapper.getPhysicalFromVisualIndex(editor.row);
     const physicalColumn = this.hot.columnIndexMapper.getPhysicalFromVisualIndex(editor.col);
 
-    // A coordinate that no longer resolves means the removal was at or above the edited cell, and
-    // the selection shift that follows has not run yet. Leave everything alone: `shiftRows()` moves
-    // the highlight and the `prepareEditor()` behind it re-derives BOTH the editor's coordinates and
-    // the captured record from the post-change state. Discarding here instead would throw away an
-    // edit that core was about to carry across correctly.
+    // A coordinate that no longer resolves means the removal was at or above the edited cell. Leave
+    // the EDITOR alone – `shiftRows()` normally moves the highlight and the `prepareEditor()` behind
+    // it re-derives everything, and discarding here would throw away an edit about to commit
+    // correctly – but drop the captured record, which the renumbering has just invalidated. Where the
+    // re-prepare does happen it re-captures anyway; where it does not, the reconciliation early-exits
+    // on `null` instead of resolving a stale index onto whatever record inherited it.
     if (physicalRow === null || physicalColumn === null) {
+      this.#editedPhysicalRow = null;
+      this.#editedPhysicalColumn = null;
+
       return;
     }
 
