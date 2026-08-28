@@ -795,7 +795,10 @@ export default function Core(
 
   let hadOpenEditorOnCacheUpdate = false;
 
-  const onIndexMapperCacheUpdate = ({ hiddenIndexesChanged }: { hiddenIndexesChanged: boolean }) => {
+  const onIndexMapperCacheUpdate = (
+    { hiddenIndexesChanged, trimmedIndexesChanged }:
+    { hiddenIndexesChanged: boolean; trimmedIndexesChanged?: boolean }
+  ) => {
     this.forceFullRender = true;
 
     // Sampled HERE, before the public cache-update hooks run, because `EditorManager` discards a
@@ -810,6 +813,15 @@ export default function Core(
 
     if (hiddenIndexesChanged) {
       this.selection.commit();
+
+      // `commit()` can move the highlight onto the nearest visible cell, so the record it points at
+      // has to be re-read - but NOT when the same update also trimmed something. The repair below
+      // is about to compare the captured record against the post-trim state, and re-reading here
+      // would rebase it onto whichever record now sits at the stale coordinate, which is the very
+      // thing that comparison exists to detect.
+      if (!trimmedIndexesChanged) {
+        this.selection.recaptureHighlightRecord();
+      }
     }
   };
 
@@ -825,44 +837,65 @@ export default function Core(
    * record - and a write through such a coordinate makes `applyChanges()` APPEND records to the
    * data set. `Selection#deselectIfHighlightStranded()` holds the rule and the reasoning.
    *
-   * A structural change (a row or column insert or remove) raises `trimmedIndexesChanged` exactly
-   * as a filter does, so the flag alone cannot tell them apart. The SIZE of the physical space can:
-   * only an insert or a remove changes it. On a structural change the captured record is re-read
-   * from the visual coordinate instead - the same discrimination and the same repair
-   * `EditorManager` applies to an open editor - and `alter()` re-lays the selection through
-   * `shiftRows()`/`shiftColumns()` right after, which captures it again.
+   * TWO changes invalidate the captured record instead of stranding the selection, and both are
+   * answered by re-reading it from the visual coordinate, which came through them intact:
    *
-   * An editor that was OPEN when the trim landed is left alone, and that is sampled before the
-   * public hooks rather than read here: `EditorManager` discards a stranded editor inside them, so
-   * reading it afterwards would see none and drop the selection out from under a user who is still
-   * typing. While an editor is in play the reconciliation there owns the outcome - and `deselect()`
-   * runs `afterDeselect`, whose first act is `editorManager.closeEditor()`, a commit rather than a
-   * discard.
+   *   - a STRUCTURAL change (a row or column insert or remove) renumbers the physical space. It
+   *     raises `trimmedIndexesChanged` exactly as a filter does, so the flag cannot tell them apart
+   *     - but the SIZE of that space can, since only an insert or a remove changes it. This is the
+   *     same discrimination `EditorManager` makes for an open editor.
+   *   - a PERMUTATION (a sort, a row move) rewrites which physical index each visual index maps to
+   *     while trimming nothing. Left unhandled it does not merely blur the record test, it INVERTS
+   *     it: after a sort the captured index names a different record, so a healthy selection is
+   *     dropped and a genuinely stranded one is kept.
+   *
+   * An editor changes what this may do, and WHICH editor state matters is the whole subtlety. Two
+   * readings are taken, because `EditorManager` acts between them inside the public hooks:
+   *
+   *   - An editor STILL open afterwards was rebound onto its record, and it owns the selection -
+   *     the pending commit goes through the editor's own coordinates, and `CopyPaste` refuses to
+   *     paste while an editor is open. Nothing here may interfere; moving the selection to follow
+   *     that editor is a separate change.
+   *   - An editor that was open BEFORE and is gone now was discarded, because the trim took its
+   *     record away. Nothing owns the selection any more, and the corruption is live again: the
+   *     highlight outlives the editor and the next paste appends records. So the repair runs - but
+   *     only against a coordinate that addresses NOTHING. `EditorManager` deliberately leaves a
+   *     still-addressable coordinate alone so the next keystroke re-prepares against the record now
+   *     under the cursor, and a write there lands on a real record rather than appending.
    *
    * @param {boolean} isStructuralChange Whether that axis's physical index count just changed.
    * @param {object} indexesChangesState The state object of the index mapper's cache update.
    * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
+   * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
    */
   const repairSelection = (
-    isStructuralChange: boolean, { trimmedIndexesChanged }: { trimmedIndexesChanged?: boolean }
+    isStructuralChange: boolean,
+    { trimmedIndexesChanged, indexesSequenceChanged }:
+    { trimmedIndexesChanged: boolean; indexesSequenceChanged: boolean }
   ) => {
     if (!this.selection.isSelected()) {
       return;
     }
 
-    if (isStructuralChange) {
+    if (isStructuralChange || (indexesSequenceChanged && !trimmedIndexesChanged)) {
       this.selection.recaptureHighlightRecord();
 
       return;
     }
 
-    if (trimmedIndexesChanged && !hadOpenEditorOnCacheUpdate) {
-      this.selection.deselectIfHighlightStranded();
+    if (!trimmedIndexesChanged) {
+      return;
     }
+
+    if (editorManager?.isEditorOpened()) {
+      return;
+    }
+
+    this.selection.deselectIfHighlightStranded({ unresolvableOnly: hadOpenEditorOnCacheUpdate });
   };
 
   this.columnIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: {
-    hiddenIndexesChanged: boolean; trimmedIndexesChanged?: boolean;
+    hiddenIndexesChanged: boolean; trimmedIndexesChanged: boolean; indexesSequenceChanged: boolean;
   }) => {
     onIndexMapperCacheUpdate(indexesChangesState);
 
@@ -875,7 +908,7 @@ export default function Core(
   });
 
   this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: {
-    hiddenIndexesChanged: boolean; trimmedIndexesChanged?: boolean;
+    hiddenIndexesChanged: boolean; trimmedIndexesChanged: boolean; indexesSequenceChanged: boolean;
   }) => {
     onIndexMapperCacheUpdate(indexesChangesState);
 

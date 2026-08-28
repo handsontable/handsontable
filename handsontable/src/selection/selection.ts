@@ -756,13 +756,16 @@ class Selection {
         .syncWith(cellRange);
     }
 
-    // After `syncWith()`, which may move the highlight again onto the nearest visible cell.
-    this.#captureHighlightRecord();
-
     if (!this.inProgress) {
       this.#isFocusSelectionChanged = true;
       this.runLocalHooks('afterSetFocus', cellRange.highlight);
     }
+
+    // Last, because two things move the highlight after it is written above: `syncWith()` snaps it
+    // onto the nearest visible cell, and a consumer of `afterSetFocus` can reassign it outright -
+    // `mergeCells` does, to pull the focus onto a merged parent. Capturing any earlier records the
+    // cell the focus was on BEFORE the merge, so the next trim judges the wrong record.
+    this.#captureHighlightRecord();
   }
 
   /**
@@ -1037,16 +1040,20 @@ class Selection {
    * @param {number | null} physicalIndex The captured physical index on that axis, if any.
    * @param {IndexMapper} indexMapper The index mapper for that axis.
    * @param {number} count The number of visual indexes on that axis.
+   * @param {boolean} unresolvableOnly Whether to report only a coordinate that addresses nothing,
+   *                                   leaving one that merely changed record alone.
    * @returns {boolean}
    */
   #isAxisStranded(
-    visualIndex: number | null, physicalIndex: number | null, indexMapper: IndexMapper, count: number): boolean {
+    visualIndex: number | null, physicalIndex: number | null, indexMapper: IndexMapper, count: number,
+    unresolvableOnly: boolean): boolean {
     // Headers are outside the record space and keep their own coordinates.
     if (visualIndex === null || visualIndex < 0) {
       return false;
     }
 
-    if (physicalIndex !== null && indexMapper.getVisualFromPhysicalIndex(physicalIndex) === null) {
+    if (!unresolvableOnly && physicalIndex !== null &&
+        indexMapper.getVisualFromPhysicalIndex(physicalIndex) === null) {
       return true;
     }
 
@@ -1370,6 +1377,13 @@ class Selection {
    * coordinate came through intact because the index mapper moved the visual space with it. So the
    * visual side is the trustworthy one here, and the record is read back from it - the same repair
    * `EditorManager#recaptureEditedRecord()` applies to the edited cell.
+   *
+   * Called for the same reason after a PERMUTATION (a sort, a row move), which rewrites the
+   * visual-to-physical mapping while trimming nothing.
+   *
+   * This method is not part of the public API and should not be called by a consumer.
+   *
+   * @private
    */
   recaptureHighlightRecord() {
     this.#captureHighlightRecord();
@@ -1396,9 +1410,21 @@ class Selection {
    * The rule reads the ACTIVE layer's highlight only. When it fires the whole selection goes, so a
    * stranded coordinate in a non-active layer of a multi-layer selection is not tracked.
    *
+   * This method is not part of the public API and should not be called by a consumer.
+   *
+   * @private
+   * @param {object} [options] Options.
+   * @param {boolean} [options.unresolvableOnly=false] Drop only a coordinate that addresses nothing
+   *                                                   at all, leaving one whose record merely
+   *                                                   changed. Set while an editor is open, where
+   *                                                   `EditorManager` keeps the selection on purpose
+   *                                                   so the user can carry on typing into the cell
+   *                                                   now under the cursor - a write there lands on
+   *                                                   a real record, while an unresolvable
+   *                                                   coordinate would append new ones.
    * @returns {boolean}
    */
-  deselectIfHighlightStranded(): boolean {
+  deselectIfHighlightStranded({ unresolvableOnly = false }: { unresolvableOnly?: boolean } = {}): boolean {
     if (!this.isSelected()) {
       return false;
     }
@@ -1421,9 +1447,11 @@ class Selection {
     // case a trim leaves the clamped count untouched, so a highlight that was in range before the
     // trim is still in range after it. The record test above does not depend on either count.
     const isRowStranded = this.#isAxisStranded(row, this.#highlightPhysicalRow,
-      this.tableProps.rowIndexMapper, this.tableProps.rowIndexMapper.getNotTrimmedIndexesLength());
+      this.tableProps.rowIndexMapper, this.tableProps.rowIndexMapper.getNotTrimmedIndexesLength(),
+      unresolvableOnly);
     const isColumnStranded = this.#isAxisStranded(col, this.#highlightPhysicalColumn,
-      this.tableProps.columnIndexMapper, this.tableProps.columnIndexMapper.getNotTrimmedIndexesLength());
+      this.tableProps.columnIndexMapper, this.tableProps.columnIndexMapper.getNotTrimmedIndexesLength(),
+      unresolvableOnly);
 
     if (!isRowStranded && !isColumnStranded) {
       return false;
@@ -1856,12 +1884,14 @@ class Selection {
         .getFocus()
         .commit()
         .syncWith(cellRange);
-
-      // `syncWith()` is the one place a commit moves the visual highlight - onto the nearest
-      // visible cell when the hiding maps left it on a non-rendered one - so the record it now
-      // points at has to be re-read.
-      this.#captureHighlightRecord();
     }
+
+    // `syncWith()` above can move the visual highlight onto the nearest visible cell, so the record
+    // it points at goes stale here. Re-reading it is deliberately NOT done inside this method: a
+    // single cache update can carry a hiding change and a trimming one together, and a re-read
+    // would rebase the captured record onto whichever record now sits at the stale coordinate,
+    // defeating the very test the caller is about to run. The Core owns that call and makes it only
+    // when nothing was trimmed - see `repairSelection()` in `core.ts`.
 
     // Rewriting rendered ranges going through all layers.
     for (let layerLevel = 0; layerLevel < this.selectedRange.size(); layerLevel += 1) {

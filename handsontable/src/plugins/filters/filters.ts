@@ -1000,12 +1000,13 @@ export class Filters extends BasePlugin {
       this.#previousConditionStack
     );
 
-    // Captured BEFORE any write to the trimming map below (`setValues`, `clear()`, and the
-    // `importConditions()` rollback all mutate it). Writing the map fires the index mapper's cache
-    // update, and the Core drops a selection that the trim left pointing at a record that is no
-    // longer there - so by the time the re-selection at the end of this method runs, there may be
-    // no selection left to read the column from. Reading it here also keeps the `beforeFilter`
-    // hook able to move the selection, which a consumer may legitimately do.
+    // Captured BEFORE the branch chain below, which is where the trimming map is written
+    // (`setValues()` on the filtering branch, `clear()` on the nothing-to-filter one). Writing the
+    // map fires the index mapper's cache update, and the Core drops a selection that the trim left
+    // pointing at a record that is no longer there - so by the time the re-selection at the end of
+    // this method runs, there may be no selection left to read the column from. Reading it here
+    // also keeps the `beforeFilter` hook able to move the selection, which a consumer may
+    // legitimately do.
     const wasSelected = this.hot.selection.isSelected();
     const selectedHighlightColumn = this.hot.getSelectedRangeActive()?.highlight.col;
     let isSelectionDropped = false;
