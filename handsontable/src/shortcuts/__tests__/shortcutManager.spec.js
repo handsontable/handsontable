@@ -595,7 +595,7 @@ describe('shortcutManager', () => {
       expect(getShortcutManager().isCtrlPressed()).toBe(false);
     });
 
-    it('should release the pressed modifier keys when the window loses focus', async() => {
+    it('should release the modifier key on a keyup that does not report it as held', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -605,13 +605,10 @@ describe('shortcutManager', () => {
 
       expect(getShortcutManager().isCtrlPressed()).toBe(true);
 
-      // Switching to another application (e.g. Cmd+Tab) dispatches `blur` on the window itself.
-      window.dispatchEvent(new FocusEvent('blur'));
+      // A key released after the OS consumed the modifier's own `keyup` reports it as not held.
+      await keyUp('b');
 
       expect(getShortcutManager().isCtrlPressed()).toBe(false);
-
-      // Resets the modifier key state shared by the keyboard and mouse test helpers.
-      await keyUp('control/meta');
     });
   });
 

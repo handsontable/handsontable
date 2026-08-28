@@ -1,5 +1,5 @@
 import { createKeysObserver } from './keyObserver';
-import { normalizeEventKey, isModifierKey, getPressedModifierKeys, MODIFIER_KEYS } from './utils';
+import { normalizeEventKey, isModifierKey, getPressedModifierKeys } from './utils';
 import { isImmediatePropagationStopped } from '../helpers/dom/event';
 import { getParentWindow } from '../helpers/dom/element';
 import { isMacOS } from '../helpers/browser';
@@ -16,27 +16,35 @@ const modifierKeysObserver = createKeysObserver();
 const modKeyListenerRefs = new WeakMap<HTMLElement, number>();
 
 /**
- * `KeyboardEvent`'s callback function for observing the pressed state of the mod keys.
+ * Re-syncs the observer with the modifier keys that the event reports as held.
+ *
+ * The OS can consume a modifier key's `keyup` (e.g. the macOS Cmd+Shift+4 screenshot shortcut),
+ * which would otherwise leave that key marked as held forever. Every key event carries the current
+ * state of the four modifier keys, so the event is the authoritative source. Consequently a
+ * synthetic event dispatched without those flags set releases the modifier keys.
+ *
+ * @param {KeyboardEvent} event The event object
+ */
+const syncModifierKeysState = (event: KeyboardEvent) => {
+  modifierKeysObserver.setPressed('alt', event.altKey);
+  modifierKeysObserver.setPressed('control', event.ctrlKey);
+  modifierKeysObserver.setPressed('meta', event.metaKey);
+  modifierKeysObserver.setPressed('shift', event.shiftKey);
+};
+
+/**
+ * `KeyboardEvent`'s callback function for observing the state of the mod keys on key press.
  *
  * @param {KeyboardEvent} event The event object
  */
 const onkeydownForModKeys = (event: KeyboardEvent) => {
-  // The OS can consume a modifier key's `keyup` (e.g. the macOS Cmd+Shift+4 screenshot shortcut),
-  // which would leave that key marked as held forever. Every `keydown` reports the true state of
-  // the modifier keys, so re-sync the observer from the event before handling the key itself.
-  const heldModifierKeys = getPressedModifierKeys(event);
-
-  MODIFIER_KEYS.forEach((modifierKey) => {
-    if (heldModifierKeys.includes(modifierKey)) {
-      modifierKeysObserver.press(modifierKey);
-    } else {
-      modifierKeysObserver.release(modifierKey);
-    }
-  });
+  syncModifierKeysState(event);
 
   if (typeof event.key === 'string') {
     const pressedKey = normalizeEventKey(event);
 
+    // Runs after the sync on purpose. A browser that does not set the matching flag on a modifier
+    // key's own `keydown` would have had that key released above, so press it back here.
     if (isModifierKey(pressedKey)) {
       modifierKeysObserver.press(pressedKey);
     }
@@ -44,11 +52,13 @@ const onkeydownForModKeys = (event: KeyboardEvent) => {
 };
 
 /**
- * `KeyboardEvent`'s callback function for observing the released state of the mod keys.
+ * `KeyboardEvent`'s callback function for observing the state of the mod keys on key release.
  *
  * @param {KeyboardEvent} event The event object
  */
 const onkeyupForModKeys = (event: KeyboardEvent) => {
+  syncModifierKeysState(event);
+
   if (typeof event.key === 'string') {
     const pressedKey = normalizeEventKey(event);
 
@@ -188,9 +198,7 @@ export function useRecorder(
       modKeyListenerRefs.set(documentElement, refCount + 1);
 
       documentElement.addEventListener('keydown', onkeydown);
-      // The `blur` event does not bubble and a window-level blur is dispatched on the `window`
-      // itself, so it never reaches a listener bound to the `documentElement`.
-      eventTarget.addEventListener('blur', onblur);
+      documentElement.addEventListener('blur', onblur);
 
       eventTarget = getParentWindow(eventTarget);
     }
@@ -217,7 +225,7 @@ export function useRecorder(
       }
 
       documentElement.removeEventListener('keydown', onkeydown);
-      eventTarget.removeEventListener('blur', onblur);
+      documentElement.removeEventListener('blur', onblur);
 
       eventTarget = getParentWindow(eventTarget);
     }
