@@ -670,22 +670,23 @@ test.describe('commit paths the rebind cannot reach', () => {
 
   /**
    * `BaseEditor#saveValue()` reads the SELECTION corners under `ctrlDown`, never the editor's own
-   * coordinates, so the rebind is invisible to it. The selection was left past the last visible row
-   * by the trim, so nothing is written at all.
+   * coordinates. Ctrl+Enter only saves a multi-cell selection, because TextEditor uses that shortcut
+   * to insert a newline for one selected cell.
    */
   test('a Ctrl+Enter commit writes to its record after a trim',
     async({ page, theme, bundle }) => {
       const grid = new EditorTrimmedRowPage(page, theme, bundle);
 
       await grid.goto();
-      await grid.openEditorAndType(4, 0, 'EDITED');
+      await grid.selectRangeWithFocusAt([4, 0, 4, 1], 4, 0);
+      await grid.typeOnSelection('EDITED');
 
       await grid.trimRows([0, 1]);
 
       await expect.poll(() => grid.editorRow()).toBe(2);
       await expect.poll(() => grid.isEditorOpen()).toBe(true);
 
-      await grid.commitWithCtrlEnter();
+      await grid.commitWithCtrlOrMetaEnter();
 
       expect(await grid.sourceRowCount()).toBe(5);
       expect(await grid.sourceData()).toEqual([
@@ -693,7 +694,7 @@ test.describe('commit paths the rebind cannot reach', () => {
         ['A1', 'B1'],
         ['A2', 'B2'],
         ['A3', 'B3'],
-        ['EDITED', 'B4'],
+        ['EDITED', 'EDITED'],
       ]);
     });
 });

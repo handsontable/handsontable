@@ -24,7 +24,6 @@ interface ManualColumnMovePlugin {
 
 interface HandsontableFixture {
   addHook(name: string, callback: () => unknown): void;
-  _getEditorManager(): { closeEditorAndSaveChanges(ctrlDown: boolean): void };
   getSelectedRangeActive(): { from: { row: number | null } } | undefined;
   getSelected(): number[][] | undefined;
   selectCells(ranges: number[][]): void;
@@ -298,15 +297,6 @@ export class EditorTrimmedRowPage {
   }
 
   /**
-   * Commits with Ctrl+Enter, which reads the SELECTION corners rather than the editor's coordinates.
-   */
-  async commitWithCtrlEnter(): Promise<void> {
-    await this.page.evaluate(() => {
-      (window as Window & { hot: HandsontableFixture }).hot._getEditorManager().closeEditorAndSaveChanges(true);
-    });
-  }
-
-  /**
    * Returns the VISUAL column the active editor is currently bound to.
    */
   async editorCol(): Promise<number | null> {
@@ -409,6 +399,15 @@ export class EditorTrimmedRowPage {
    */
   async commitWithEnter(): Promise<void> {
     await this.page.keyboard.press('Enter');
+  }
+
+  /**
+   * Commits a multi-cell edit with the platform-specific Control or Meta modifier.
+   */
+  async commitWithCtrlOrMetaEnter(): Promise<void> {
+    const modifier = await this.page.evaluate(() => navigator.platform.includes('Mac') ? 'Meta' : 'Control');
+
+    await this.page.keyboard.press(`${modifier}+Enter`);
   }
 
   /**
