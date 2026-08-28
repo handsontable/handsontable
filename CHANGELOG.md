@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [18.1.0-rc7] - 2026-08-28
+## [18.1.0-rc8] - 2026-08-28
 
 ### Added
 - Added the `modifySinglePassLayout` hook, which forces the previous measure-then-render layout path for a table. [#12951](https://github.com/handsontable/handsontable/pull/12951)
