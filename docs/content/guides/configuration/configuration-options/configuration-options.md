@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Setting options
-metaTitle: Configuration options - JavaScript Data Grid | Handsontable
+metaTitle: Setting options - JavaScript Data Grid | Handsontable
 description: Configure the data grid down to each column, row, and cell, using various built-in options that control Handsontable's behavior and user interface.
 permalink: /configuration-options
 canonicalUrl: /configuration-options
@@ -10,11 +10,11 @@ tags:
   - config
   - options
 react:
-  metaTitle: Configuration options - React Data Grid | Handsontable
+  metaTitle: Setting options - React Data Grid | Handsontable
 angular:
-  metaTitle: Configuration options - Angular Data Grid | Handsontable
+  metaTitle: Setting options - Angular Data Grid | Handsontable
 vue:
-  metaTitle: Configuration options - Vue Data Grid | Handsontable
+  metaTitle: Setting options - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Configuration
 menuTag: updated

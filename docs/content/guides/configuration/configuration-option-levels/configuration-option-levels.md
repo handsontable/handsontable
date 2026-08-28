@@ -1,7 +1,7 @@
 ---
 type: reference
 title: Option levels
-metaTitle: Configuration option levels - JavaScript Data Grid | Handsontable
+metaTitle: Option levels - JavaScript Data Grid | Handsontable
 description: Check which configuration options take effect at the grid, column, and cell level, and search the full matrix of every built-in option.
 permalink: /configuration-option-levels
 canonicalUrl: /configuration-option-levels
@@ -11,11 +11,11 @@ tags:
   - levels
   - matrix
 react:
-  metaTitle: Configuration option levels - React Data Grid | Handsontable
+  metaTitle: Option levels - React Data Grid | Handsontable
 angular:
-  metaTitle: Configuration option levels - Angular Data Grid | Handsontable
+  metaTitle: Option levels - Angular Data Grid | Handsontable
 vue:
-  metaTitle: Configuration option levels - Vue Data Grid | Handsontable
+  metaTitle: Option levels - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Configuration
 menuTag: new
