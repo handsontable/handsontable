@@ -235,9 +235,8 @@ Contact the [Sales Team](https://handsontable.com/get-a-quote) for a renewal.
 
 ## 4. Check custom layout code if the grid renders a wrong scrollbar
 
-Handsontable 18.1 renders the grid in a single pass. It predicts whether scrollbars appear from the
-cached row heights and column widths, then renders once. Handsontable 18.0 rendered the grid,
-measured the result, and rendered it again.
+Handsontable 18.1 predicts whether scrollbars appear from the cached row heights and column widths.
+Handsontable 18.0 rendered the grid, measured the result, and decided from the measurement.
 
 The prediction matches the DOM as long as a cell renders at the size Handsontable cached for it.
 When the two differ, the grid can show a scrollbar it does not need, miss one it does need, or leave
