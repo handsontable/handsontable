@@ -96,8 +96,35 @@ test.describe('touch tap-to-edit on a device with touch and mouse listeners', ()
     await grid.expectHookCount('beforeOnCellMouseDown', 2);
     await grid.expectHookCount('beforeOnCellMouseUp', 2);
 
-    // A pair that arrives after the 500 ms window but inside the 1000 ms touch pairing window
-    // completes the double-click — the documented consequence of the two windows' ordering.
-    await grid.expectEditorOpen();
+    // The late pair is a real click as far as the grid can tell; it does not pair with the tap.
+    await grid.expectEditorClosed();
+  });
+
+  test('a tap followed by a real mouse click on the same cell does not open the editor', async ({ page }) => {
+    await grid.tapCell(1, 1);
+    await page.clock.runFor(300);
+
+    // A physical mouse click: Chromium reports firesTouchEvents === false, so it is processed.
+    await grid.clickCell(1, 1);
+    await page.clock.runFor(50);
+
+    await grid.expectHookCount('beforeOnCellMouseDown', 2);
+    await grid.expectHookCount('beforeOnCellMouseUp', 2);
+    await grid.expectEditorClosed();
+  });
+
+  test('a drifted tap that the touch path treats as a scroll still lets the browser mouse pair select the cell', async () => {
+    // Script-dispatched touch events (no sourceCapabilities): touchstart, a 20 px touchmove,
+    // touchend. Walkontable treats the gesture as a scroll and fires no cell mouse hooks.
+    await grid.dispatchTouchDrag(2, 1, 20);
+    await grid.expectHookCount('beforeOnCellMouseDown', 0);
+
+    // The browser's compatibility pair after such a gesture must still select the cell.
+    await grid.dispatchMouseEvent(2, 1, 'mousedown');
+    await grid.dispatchMouseEvent(2, 1, 'mouseup');
+
+    await grid.expectHookCount('beforeOnCellMouseDown', 1);
+    await grid.expectHookCount('beforeOnCellMouseUp', 1);
+    await grid.expectSelectedCell(2, 1);
   });
 });

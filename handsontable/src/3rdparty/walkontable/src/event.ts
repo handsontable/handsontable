@@ -32,23 +32,20 @@ const DBLCLICK_MOUSEDOWN_TIMEOUT = 1000;
 const DBLCLICK_MOUSEUP_TIMEOUT = 500;
 
 /**
- * How long (ms) after a touch tap the double-click detector keeps the tap "armed" for a
- * double-tap. A tap stamps both detector slots at `touchend`, so the mouseup slot was the
- * binding limit; aligning it with the mousedown slot gives touch the full 1000 ms window.
- * Human double-tap cadence on iPad is 300–600 ms and iOS drops taps under ~250 ms (DEV-2687).
+ * How long (ms) after a touch tap a second tap on the same cell counts as a double-tap. Touch
+ * taps are paired by `#handleTouchTap()`, independently of the mouse double-click slots, so a
+ * real mouse click after a tap never pairs with it. iOS drops taps under ~250 ms and humans
+ * double-tap at 300–600 ms (DEV-2687).
  */
-const TOUCH_DBLTAP_TIMEOUT = DBLCLICK_MOUSEDOWN_TIMEOUT;
+const TOUCH_DBLTAP_TIMEOUT = 1000;
 
 /**
- * How long (ms) after a touch-driven mouseup the mouse listeners treat incoming mouse events as the
- * browser-synthesized compatibility sequence when the engine does not report their origin
- * (WebKit, Firefox, script-dispatched events). Invariants: it must exceed the longest delay the
- * browser takes to deliver the synthesized sequence (WebKit lands it within ~350 ms even with
- * double-tap-zoom detection), and it stays shorter than `TOUCH_DBLTAP_TIMEOUT`, so a mouse pair that
- * arrives 500–1000 ms after a tap on the same cell is processed and completes the double-click
- * against the still-armed tap. Trade-offs on this fallback path: a real mouse click within the
- * window after a tap is dropped, and a pair straddling the boundary yields one unpaired half
- * (mirror image of the pre-DEV-2687 behavior, where only mouseup was dropped).
+ * How long (ms) after a touch-driven `onMouseUp` the mouse listeners treat incoming mouse events
+ * as the browser-synthesized compatibility sequence that follows a tap. It must exceed the
+ * longest delay a browser takes to deliver that sequence (WebKit lands it within ~350 ms even
+ * with double-tap-zoom detection). Trade-off: on engines that do not report the input origin
+ * (WebKit, Firefox), a real mouse click within the window after a tap is dropped, and a pair
+ * straddling the boundary yields one unpaired half.
  */
 const TOUCH_SYNTHESIZED_MOUSE_WINDOW = 500;
 
@@ -125,6 +122,19 @@ class Event {
    * @type {number[]}
    */
   #dblClickOrigin: (HTMLElement | null)[] = [null, null];
+  /**
+   * Cell of the most recent touch tap, kept for double-tap detection. Touch taps never arm the
+   * mouse double-click slots, so a mouse click after a tap cannot pair with it (DEV-2687).
+   *
+   * @type {HTMLElement|null}
+   */
+  #lastTapTD: HTMLElement | null = null;
+  /**
+   * Timestamp (ms) of the most recent touch tap.
+   *
+   * @type {number}
+   */
+  #lastTapAt: number = 0;
   /**
    * Timer ID for the long-press gesture detection.
    *
@@ -236,9 +246,9 @@ class Event {
     const initMouseEvents = () => {
       // On devices that register both touch and mouse listeners (e.g. iPad Safari with a
       // desktop UA), `touchend` already drove `onMouseDown`/`onMouseUp`. The browser then
-      // synthesizes a `mousedown`/`mouseup` pair ~0-50 ms later; drop BOTH halves so
-      // `onCellMouseDown` fires once per tap and the double-click pairing slots are armed by
-      // the touch alone (DEV-2687) and context-menu commands do not execute twice (#12803).
+      // synthesizes a `mousedown`/`mouseup` pair ~0-50 ms later; drop BOTH halves when the
+      // touch path handled the tap, so `onCellMouseDown` fires once per tap (DEV-2687) and
+      // context-menu commands do not execute twice (#12803).
       this.#deps.eventManager.addEventListener(this.#deps.wtTable.holder, 'mouseup',
         (event: MouseEvent) => {
           if (this.#isTouchSynthesizedMouseEvent(event)) {
@@ -328,22 +338,29 @@ class Event {
 
   /**
    * Checks whether a mouse event caught by the mouse listeners is the browser-synthesized
-   * compatibility sequence that follows a touch tap. Blink reports the origin through
-   * `sourceCapabilities.firesTouchEvents`; WebKit and Firefox do not, so the timing window after
-   * the last touch-driven `onMouseUp` decides. Both synthesized `mousedown` and `mouseup` must be
-   * dropped so the double-click detector sees matched pairs or nothing (DEV-2687), and so
-   * context-menu commands bound to `onCellMouseUp` run once (#12803).
+   * compatibility sequence that follows a touch tap. The browser report is checked first, but
+   * only as a veto: Blink reports the origin through `sourceCapabilities.firesTouchEvents`, and
+   * `false` means a real mouse or pen click, which is always processed, even right after a tap.
+   * Otherwise the event is synthesized only if the touch path handled a gesture within the
+   * `TOUCH_SYNTHESIZED_MOUSE_WINDOW` after its own `onMouseUp` — a tap that drifted past the
+   * move threshold is treated as a scroll by the touch path (no `onMouseDown`/`onMouseUp`, no
+   * `#lastTouchMouseUpAt` stamp), so its browser-synthesized compatibility pair is processed and
+   * selects the cell on every engine alike. Both synthesized `mousedown` and `mouseup` must be
+   * dropped so the double-click detector sees matched pairs or nothing (DEV-2687, #12803).
    *
    * @param {MouseEvent} event The mouse event object.
    * @returns {boolean}
    */
   #isTouchSynthesizedMouseEvent(event: MouseEvent): boolean {
-    const reportedByBrowser = isTouchSynthesizedMouseEvent(event);
-
-    if (reportedByBrowser !== undefined) {
-      return reportedByBrowser;
+    // An engine that reports the origin and says "not touch" wins: a real mouse or pen click is
+    // never dropped, even right after a tap (Blink).
+    if (isTouchSynthesizedMouseEvent(event) === false) {
+      return false;
     }
 
+    // Otherwise the event is synthesized only if the touch path handled a gesture just now. A
+    // drifted tap that the touch path treats as a scroll leaves no stamp, so the browser's
+    // compatibility pair is processed and selects the cell on every engine alike.
     return Date.now() - this.#lastTouchMouseUpAt < TOUCH_SYNTHESIZED_MOUSE_WINDOW;
   }
 
@@ -385,8 +402,9 @@ class Event {
       }
     }
 
-    // doubleclick reacts only for left mouse button or from touch events
-    if (((event as MouseEvent).button === 0 || this.touchApplied) && cell.TD) {
+    // The mouse double-click slots are armed by mouse clicks only; touch taps are paired by
+    // #handleTouchTap() in onMouseUp (DEV-2687).
+    if (!this.touchApplied && (event as MouseEvent).button === 0 && cell.TD) {
       this.#dblClickOrigin[0] = cell.TD;
 
       if (this.#dblClickTimeout[0] !== null) {
@@ -532,17 +550,19 @@ class Event {
       this.callListener('onCellMouseUp', event, cell.coords!, cell.TD);
     }
 
-    // if not left mouse button, and the origin event is not comes from touch
-    if ((event as MouseEvent).button !== 0 && !this.touchApplied) {
+    if (this.touchApplied) {
+      this.#handleTouchTap(event, cell);
+
+      return;
+    }
+
+    // ignore non-left mouse buttons
+    if ((event as MouseEvent).button !== 0) {
       return;
     }
 
     if (cell.TD && cell.TD === this.#dblClickOrigin[0] && cell.TD === this.#dblClickOrigin[1]) {
-      if (hasClass(eventTargetEl(event)!, 'corner')) {
-        this.callListener('onCellCornerDblClick', event, cell.coords!, cell.TD);
-      } else {
-        this.callListener('onCellDblClick', event, cell.coords!, cell.TD);
-      }
+      this.#fireDblClick(event, cell);
 
       this.#dblClickOrigin[0] = null;
       this.#dblClickOrigin[1] = null;
@@ -554,13 +574,52 @@ class Event {
         clearTimeout(this.#dblClickTimeout[1]);
       }
 
-      // A touch tap arms both slots at `touchend`, so the mouseup slot decides how long a
-      // double-tap may take. Give touch the same window as the mousedown slot (DEV-2687).
-      const pairingTimeout = this.touchApplied ? TOUCH_DBLTAP_TIMEOUT : DBLCLICK_MOUSEUP_TIMEOUT;
-
       this.#dblClickTimeout[1] = setTimeout(() => {
         this.#dblClickOrigin[1] = null;
-      }, pairingTimeout);
+      }, DBLCLICK_MOUSEUP_TIMEOUT);
+    }
+  }
+
+  /**
+   * Pairs touch taps into double-taps. Called from `onMouseUp` while `touchApplied` is `true`,
+   * i.e. for the `onMouseUp` that `onTouchEnd` drives. Two taps on the same cell within
+   * `TOUCH_DBLTAP_TIMEOUT` fire the double-click callbacks; a long-press, a tap outside the cells,
+   * or a tap on another cell resets the detector.
+   *
+   * @param {MouseEvent|TouchEvent} event The event that ended the tap.
+   * @param {ReturnType<Event['parentCell']>} cell The tapped cell, as returned by `parentCell()`.
+   */
+  #handleTouchTap(event: MouseEvent | TouchEvent, cell: ReturnType<Event['parentCell']>): void {
+    if (this.#longPressFired || !cell.TD) {
+      this.#lastTapTD = null;
+
+      return;
+    }
+
+    const now = Date.now();
+
+    if (cell.TD === this.#lastTapTD && now - this.#lastTapAt < TOUCH_DBLTAP_TIMEOUT) {
+      this.#fireDblClick(event, cell);
+      this.#lastTapTD = null;
+
+      return;
+    }
+
+    this.#lastTapTD = cell.TD;
+    this.#lastTapAt = now;
+  }
+
+  /**
+   * Fires the corner or the cell double-click callback for the given cell.
+   *
+   * @param {MouseEvent|TouchEvent} event The event that completed the double-click.
+   * @param {ReturnType<Event['parentCell']>} cell The double-clicked cell.
+   */
+  #fireDblClick(event: MouseEvent | TouchEvent, cell: ReturnType<Event['parentCell']>): void {
+    if (hasClass(eventTargetEl(event)!, 'corner')) {
+      this.callListener('onCellCornerDblClick', event, cell.coords!, cell.TD!);
+    } else {
+      this.callListener('onCellDblClick', event, cell.coords!, cell.TD!);
     }
   }
 
@@ -684,6 +743,7 @@ class Event {
 
       this.#dblClickOrigin[0] = null;
       this.#dblClickOrigin[1] = null;
+      this.#lastTapTD = null;
 
       if (this.#dblClickTimeout[0] !== null) {
         clearTimeout(this.#dblClickTimeout[0]);

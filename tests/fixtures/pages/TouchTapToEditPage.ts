@@ -45,6 +45,13 @@ export class TouchTapToEditPage {
   }
 
   /**
+   * A mouse click on a cell, as opposed to `tapCell()`'s touch gesture.
+   */
+  async clickCell(row: number, col: number): Promise<void> {
+    await this.cell(row, col).click();
+  }
+
+  /**
    * Dispatch a script-created mouse event on a cell. Such events carry
    * `sourceCapabilities === null`, which forces the engine onto the timing fallback
    * used on WebKit and Firefox.
@@ -53,6 +60,41 @@ export class TouchTapToEditPage {
     await this.cell(row, col).evaluate((td, eventType) => {
       td.dispatchEvent(new MouseEvent(eventType, { bubbles: true, cancelable: true, button: 0 }));
     }, type);
+  }
+
+  /**
+   * Dispatch a script-created touch gesture that drifts `dx` pixels before lifting: a
+   * `touchstart`, a `touchmove` offset by `dx`, then a `touchend`. Script-dispatched events
+   * carry no `sourceCapabilities`, so this — unlike `tapCell()`'s trusted `locator.tap()` —
+   * exercises the timing fallback Walkontable uses to tell a drifted tap (treated as a scroll,
+   * no cell mouse hooks fired) from a real tap.
+   */
+  async dispatchTouchDrag(row: number, col: number, dx: number): Promise<void> {
+    await this.cell(row, col).evaluate((td, dxOffset) => {
+      const rect = td.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      const touch = (clientX: number) => new Touch({
+        identifier: 1,
+        target: td,
+        clientX,
+        clientY: y,
+        pageX: clientX + window.scrollX,
+        pageY: y + window.scrollY,
+      });
+      const fire = (type: string, clientX: number, ended: boolean) => td.dispatchEvent(new TouchEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        composed: true,
+        touches: ended ? [] : [touch(clientX)],
+        targetTouches: ended ? [] : [touch(clientX)],
+        changedTouches: [touch(clientX)],
+      }));
+
+      fire('touchstart', x, false);
+      fire('touchmove', x + dxOffset, false);
+      fire('touchend', x + dxOffset, true);
+    }, dx);
   }
 
   /**
@@ -92,6 +134,13 @@ export class TouchTapToEditPage {
    */
   async rowCount(): Promise<number> {
     return this.page.evaluate(() => window.hot.countRows());
+  }
+
+  /**
+   * Assert that the given cell is the sole current selection.
+   */
+  async expectSelectedCell(row: number, col: number): Promise<void> {
+    await expect.poll(() => this.page.evaluate(() => window.hot.getSelectedLast())).toEqual([row, col, row, col]);
   }
 
   /**
