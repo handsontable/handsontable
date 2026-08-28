@@ -99,6 +99,7 @@
       "@rollup/pluginutils>picomatch": "^4.0.4",
       "serialize-javascript": "^7.0.3",
       "pacote>tar": "^7.5.11",
+      "pacote>sigstore": "^4.1.1",
       "node-gyp>tar": "^7.5.11",
       "cacache>tar": "^7.5.11",
       "typed-rest-client": "^3.1.0",
