@@ -118,3 +118,35 @@ bin/changelog consume
 This command "consumes" all changelog entries, asserts that they're all valid, formats them, and inserts the result into `CHANGELOG.md`. It also deletes all existing `.changelogs/*.json` files.
 
 It is side-effect free (as in it does nothing outside of your local copy of this repository), to undo just checkout the old versions of `.changelogs` and `CHANGELOG.md`.
+
+
+## No entry may be published twice
+
+`consume` and `sync` both refuse to compile a pending entry whose change `CHANGELOG.md` already publishes. Without that check the same change gets announced in two consecutive releases, which happened at most releases up to 18.1.0.
+
+The cause is that a pending `.json` file can outlive the release-to-develop merge-back after the release branch has already consumed it. Two merge shapes produce it, and neither is easy to spot:
+
+- The change is committed once on the release branch and once on `develop`, with no ancestry between the two commits. Against the merge base the release side reads as add-then-delete, so develop's add is the only change on either side and the merge keeps it. **No conflict is raised at all.**
+- The `.json` file is edited on `develop` after the release branch consumed it. That is a modify/delete conflict, and resolving it in favor of develop keeps a file that should have gone.
+
+Rather than trying to recognize either shape, the check asserts the one thing both produce. It matches on two keys, with different severities:
+
+| Match | Result |
+|---|---|
+| `issueOrPR` already cited in `CHANGELOG.md`, and `issuesOrigin` is `private` | **fails** |
+| `issueOrPR` already cited, and `issuesOrigin` is `public` | warns |
+| the entry's title already published, under any number | warns |
+
+A pull request number cannot ship twice, so a `private` number match is conclusive. The other two can be legitimate: a public **issue** number may be cited by two releases when a partial fix is followed by a complete one, and one title may appear in two sections when a fix is backported to several release lines. Both keys are still needed — a wrong link in the published entry hides the number, and rewording an entry on one branch hides the title.
+
+`sync` targets one version section and already skips entries present in it, so there the check looks at every *other* section.
+
+Because `consume --dry-run` runs on every pull request (see `.github/workflows/checks.yml`), this is enforced on every PR as well as at release time. A failure names every offending file and prints the `git rm` line that clears them.
+
+**To resolve a failure**, delete the entry files it names — their change already shipped. If one of them is genuinely a new change that happens to reuse a released pull request number, renumber the entry to cite its own pull request instead. There is no skip flag: an entry that is already published has nothing left to announce.
+
+After performing a release-to-develop merge-back, check for this before pushing:
+
+```bash
+bin/changelog consume --date 2050-01-01 --dry-run
+```
