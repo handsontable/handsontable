@@ -188,13 +188,33 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
       expect(await grid.fixedColumnsStart(TOGGLE)).toBe(1);
     });
 
+    test('runs the command through the API without the menu ever being opened', async () => {
+      // Commands are registered when the list is built, which happens on open. A caller that
+      // enables the plugin and goes straight to the API would otherwise hit "command not exists",
+      // so whether this works must not depend on the user having opened the menu first.
+      await grid.setManualColumnFreeze(TOGGLE_OFF_START, true);
+
+      const error = await grid.executeDropdownCommand(TOGGLE_OFF_START, 'freeze_column', 2);
+
+      expect(error).toBeNull();
+      expect(await grid.fixedColumnsStart(TOGGLE_OFF_START)).toBe(1);
+    });
+
     test('leaves an already open menu alone', async () => {
       await grid.openColumnMenu(TOGGLE, 'Charlie');
-      await grid.setManualColumnFreeze(TOGGLE, true);
+      // A real transition, not a write of the value it already holds: this grid starts enabled.
+      await grid.setManualColumnFreeze(TOGGLE, false);
 
       // The earlier design rebuilt the whole DropdownMenu from this plugin, which destroyed the
-      // menu DOM under the user. Rebuilding on open instead leaves an open menu untouched.
+      // menu DOM under the user. Rebuilding on open instead leaves an open menu untouched — the
+      // entry it already shows goes stale until the next open, which is the accepted trade.
       expect(await grid.isDropdownMenuOpen()).toBe(true);
+      expect(await grid.visibleDropdownMenuItems()).toContain(FREEZE_LABEL);
+
+      await grid.closeDropdownMenu();
+      await grid.openColumnMenu(TOGGLE, 'Charlie');
+
+      expect(await grid.visibleDropdownMenuItems()).not.toContain(FREEZE_LABEL);
     });
 
     test('picks the entry up when a plugin that started off is turned on', async () => {

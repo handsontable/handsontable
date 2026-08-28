@@ -218,8 +218,6 @@ export class DropdownMenu extends BasePlugin {
       return;
     }
 
-    this.itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS);
-
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
     this.addHook('beforeViewportScrollHorizontally', this.#onBeforeViewportScrollHorizontally);
     this.addHook('beforeDialogShow', () => this.close());
@@ -322,6 +320,10 @@ export class DropdownMenu extends BasePlugin {
 
     if (this.menu) {
       this.menu.destroy();
+      // Cleared, as ContextMenu does. A destroyed menu left in the field still passes the guard in
+      // `prepareMenuItems()`, so a later `open()` or `executeCommand()` would rebuild items against
+      // a detached container on a plugin that is off.
+      this.menu = null;
     }
 
     this.unregisterShortcuts();
@@ -519,6 +521,8 @@ export class DropdownMenu extends BasePlugin {
    * scroll-follow repositioning, or `null` when the anchor is no longer rendered.
    * @fires Hooks#beforeDropdownMenuShow
    * @fires Hooks#afterDropdownMenuShow
+   * @fires Hooks#afterDropdownMenuDefaultOptions
+   * @fires Hooks#beforeDropdownMenuSetItems
    * @example
    * ```js
    * const menu = hot.getPlugin('dropdownMenu');
@@ -583,8 +587,23 @@ export class DropdownMenu extends BasePlugin {
    *
    * @param {string} commandName Command name to execute.
    * @param {*} params Additional parameters passed to the command executor.
+   * @fires Hooks#afterDropdownMenuDefaultOptions
+   * @fires Hooks#beforeDropdownMenuSetItems
    */
   executeCommand(commandName: string, ...params: unknown[]): void {
+    // Commands are registered when the item list is built, which happens on open. A command
+    // contributed by a plugin that was enabled since the last build is not registered yet, so an
+    // unknown name earns a rebuild.
+    //
+    // Only an unknown one: rebuilding on every call would fire both item hooks per command, which
+    // a listener would see as noise. And never while the menu is open — it was just built, and a
+    // rebuild would swap the items out from under the click that is running this command.
+    const [primaryCommandName] = commandName.split(':');
+
+    if (!this.commandExecutor.commands[primaryCommandName] && !this.menu?.isOpened()) {
+      this.prepareMenuItems();
+    }
+
     this.commandExecutor.execute(commandName, ...params);
   }
 

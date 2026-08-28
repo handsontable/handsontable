@@ -4,7 +4,7 @@ import { type Page, type Locator, expect } from '@playwright/test';
  * Page Object for the "freeze_column / unfreeze_column as dropdown menu keys" fixture
  * (GitHub #5429).
  *
- * The fixture holds six grids, addressed by the ids below. The page object exposes the three
+ * The fixture holds eight grids, addressed by the ids below. The page object exposes the three
  * things the bug touched — what the dropdown menu renders for those keys, whether picking an entry
  * moves the column into the frozen area, and whether the menu keeps up when `manualColumnFreeze`
  * is toggled after the menu was built.
@@ -144,10 +144,26 @@ export class DropdownMenuFreezeColumnPage {
     return this.visibleItemsOf('.htContextMenu');
   }
 
+  /**
+   * Reads only the menu's OWN rows.
+   *
+   * A descendant `td` selector also matches the Filters value list, which is a nested Handsontable
+   * living inside one of these cells — its data rows would come back looking like menu entries.
+   * The child chain stops at the menu's own table.
+   */
   private async visibleItemsOf(menuSelector: string): Promise<string[]> {
-    const labels = await this.page.locator(`${menuSelector} td:visible`).allTextContents();
+    return this.page.evaluate((selector) => {
+      const ownTable = document.querySelector(`${selector} > .ht_master table.htCore`);
 
-    return labels.map(label => label.trim()).filter(label => label.length > 0);
+      if (!ownTable) {
+        return [];
+      }
+
+      return Array.from(ownTable.querySelectorAll(':scope > tbody > tr > td'))
+        .filter(cell => cell.getBoundingClientRect().height > 0)
+        .map(cell => (cell.textContent ?? '').trim())
+        .filter(label => label.length > 0);
+    }, menuSelector);
   }
 
   /** Pick one entry from the open column header menu. */
@@ -220,7 +236,7 @@ export class DropdownMenuFreezeColumnPage {
 
   /** Whether a menu is currently on screen. */
   async isDropdownMenuOpen(): Promise<boolean> {
-    return (await this.page.locator('.htDropdownMenu > .ht_master:visible').count()) > 0;
+    return (await this.openMenu('.htDropdownMenu').count()) > 0;
   }
 
   /**

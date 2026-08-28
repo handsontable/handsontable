@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
+import { isPluginOff } from './isPluginOff';
 
 /**
  * @param {ManualColumnFreeze} manualColumnFreezePlugin The plugin instance.
@@ -26,13 +27,13 @@ export default function unfreezeColumnItem(manualColumnFreezePlugin: unknown) {
     // `executeCommand('unfreeze_column')` still reaches this entry — and `execute()` gates on
     // `disabled`, not `hidden`.
     disabled() {
-      return !(manualColumnFreezePlugin as { enabled: boolean }).enabled;
+      return isPluginOff(manualColumnFreezePlugin);
     },
     hidden(this: HotInstance) {
       const selection = this.getSelectedRange();
       let hide = false;
 
-      if (!(manualColumnFreezePlugin as { enabled: boolean }).enabled) {
+      if (isPluginOff(manualColumnFreezePlugin)) {
         hide = true;
 
       } else if (selection === undefined) {

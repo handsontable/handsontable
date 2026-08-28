@@ -2,6 +2,7 @@ import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import freezeColumnItem from './contextMenuItem/freezeColumn';
 import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
+import { SEPARATOR } from '../contextMenu/predefinedItems';
 
 Hooks.getSingleton().register('beforeColumnFreeze');
 Hooks.getSingleton().register('afterColumnFreeze');
@@ -202,7 +203,7 @@ export class ManualColumnFreeze extends BasePlugin {
    */
   #addMenuEntries(options: Record<string, unknown>) {
     (options.items as unknown[]).push(
-      { name: '---------' },
+      { name: SEPARATOR },
       freezeColumnItem(this),
       unfreezeColumnItem(this)
     );
