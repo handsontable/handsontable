@@ -18,6 +18,7 @@ vue:
   metaTitle: Column freezing - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
+menuTag: updated
 ---
 Lock the position of specified columns, keeping them visible when scrolling.
 
