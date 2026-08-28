@@ -1,14 +1,7 @@
 import type { HotInstance } from '../core/types';
 import type { SanitizerContext, TextExtractorContext, TextExtractorFn } from '../core/settings';
 
-/**
- * Matches the only two characters that can make HTML text parsing change a string.
- *
- * Deliberately not `HTML_CHARACTERS` from `helpers/dom/element`: that one requires a closing `;` for
- * an entity, but the parser decodes the legacy named references without it, so `'A &amp B'` becomes
- * `'A & B'`. Skipping the parse on that input would write to a file something the grid never showed.
- */
-const PARSEABLE_CHARACTERS = /[<&]/;
+import { HTML_CHARACTERS } from '../helpers/dom/element';
 
 /**
  * Re-exported for parity with `utils/sanitizer.ts`, whose consumers hold a resolved function.
@@ -68,19 +61,20 @@ function extractDisplayText(hot: HotInstance, html: string, sanitizerContext: Sa
     return html;
   }
 
+  // The same predicate `fastInnerHTML` uses, and it has to stay the same one. That function parses
+  // only content matching `HTML_CHARACTERS` - a complete tag, or an entity closed by `;` - and
+  // writes everything else as literal text without consulting the sanitizer. A header of `'A<B'`
+  // therefore shows those three characters on screen; parsing it here would send `'A'` to the file.
+  // Testing the raw string, before the sanitizer, is part of the mirror.
+  if (!HTML_CHARACTERS.test(html)) {
+    return html;
+  }
+
   const { sanitizer } = hot.getSettings();
   // Read directly rather than through `sanitizeHTML()`: that helper warns when no sanitizer is
   // configured and the content carries markup, which is guidance about writing to the DOM. Repeating
   // it here would fire the warning during an export, where nothing is written to the DOM at all.
   const rendered = typeof sanitizer === 'function' ? sanitizer(html, sanitizerContext) ?? '' : html;
-
-  // A string containing neither `<` nor `&` is a fixed point under HTML text parsing, so the parse
-  // can only return it unchanged. Row headers are why this is worth checking: an export can carry
-  // one per row, and almost all of them are ordinary text.
-  if (!PARSEABLE_CHARACTERS.test(rendered)) {
-    return rendered;
-  }
-
   const template = hot.rootDocument.createElement('template');
 
   template.innerHTML = rendered;

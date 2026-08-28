@@ -683,6 +683,22 @@ describe('exportFile CSV type', () => {
       expect(csv).toBe('\ufeff"H","H2"\r\na<b,x <br 5');
     });
 
+    it('should export exactly what the grid renders for a header that is not markup', async() => {
+      // `fastInnerHTML` writes a header as literal text unless it matches `HTML_CHARACTERS`, so
+      // `A<B` shows those three characters. Parsing it here would send `A` to the file.
+      handsontable({
+        data: [[1]],
+        colHeaders: ['A<B'],
+        textExtractor: true,
+      });
+
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { colHeaders: true }).export();
+      const rendered = spec().$container.find('thead th:eq(0)').text();
+
+      expect(rendered).toBe('A<B');
+      expect(csv).toBe('﻿"A<B"\r\n1');
+    });
+
     it('should keep a numeric header a number', async() => {
       handsontable({
         data: [[1]],

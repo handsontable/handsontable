@@ -83,14 +83,19 @@ describe('textExtractor', () => {
       expect(extractText(hot, 'Profit > 100', 'ExportFile.columnHeader')).toBe('Profit > 100');
     });
 
-    it('should decode a legacy entity written without its semicolon', () => {
-      // The parser decodes the legacy named references without a closing `;`, so the grid displays
-      // `A & B`. The fast path must not skip this one, or the file would disagree with the screen.
-      expect(extractText(hot, 'A &amp B', 'ExportFile.columnHeader')).toBe('A & B');
+    // The next three inputs would each change under a bare HTML parse, and `fastInnerHTML` never
+    // parses them: `HTML_CHARACTERS` wants a complete tag or an entity closed by `;`. The grid shows
+    // them literally, so extraction has to leave them alone or the file loses characters.
+    it('should keep an entity written without its closing semicolon', () => {
+      expect(extractText(hot, 'A &amp B', 'ExportFile.columnHeader')).toBe('A &amp B');
     });
 
-    it('should decode a legacy entity that opens a tag', () => {
-      expect(extractText(hot, '&ltx', 'ExportFile.columnHeader')).toBe('<x');
+    it('should keep an unclosed entity that a bare parse would turn into a tag', () => {
+      expect(extractText(hot, '&ltx', 'ExportFile.columnHeader')).toBe('&ltx');
+    });
+
+    it('should keep an unclosed angle bracket instead of swallowing the rest', () => {
+      expect(extractText(hot, 'A<B', 'ExportFile.columnHeader')).toBe('A<B');
     });
 
     it('should drop script source, which the grid never paints', () => {
@@ -217,9 +222,19 @@ describe('textExtractor', () => {
       const sanitizer = jasmine.createSpy('sanitizer').and.returnValue('clean');
       const hot = createHot({ sanitizer, textExtractor: true });
 
-      extractText(hot, 'x', 'Print.cell', 'password');
+      extractText(hot, '<b>x</b>', 'Print.cell', 'password');
 
-      expect(sanitizer).toHaveBeenCalledWith('x', 'password');
+      expect(sanitizer).toHaveBeenCalledWith('<b>x</b>', 'password');
+    });
+
+    it('should not reach the sanitizer for content the grid renders as literal text', () => {
+      // `fastInnerHTML` skips the sanitizer on that branch too, so calling it here would be a
+      // difference from the render path, and one extra entry for an auditing sanitizer.
+      const sanitizer = jasmine.createSpy('sanitizer').and.returnValue('clean');
+      const hot = createHot({ sanitizer, textExtractor: true });
+
+      expect(extractText(hot, 'A<B', 'ExportFile.columnHeader')).toBe('A<B');
+      expect(sanitizer).not.toHaveBeenCalled();
     });
 
     it('should reduce the sanitizer output to text, so escaping sanitizers do not leak entities', () => {
