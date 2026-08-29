@@ -43,12 +43,14 @@ function createMockHot({
     return meta;
   });
   const getAtCell = jest.fn((row, col) => (getValue ? getValue(row, col) : `${row}-${col}`));
+  const modifyRowData = jest.fn(row => ({ row }));
+  const getAtPhysicalCell = jest.fn((row, col) => getAtCell(row, col));
   const setAtCell = jest.fn();
   const hot = {
     countSourceRows: () => rows,
     countSourceCols: () => cols,
     getSettings: () => settings,
-    _getDataSource: () => ({ getAtCell, setAtCell }),
+    _getDataSource: () => ({ modifyRowData, getAtPhysicalCell, setAtCell }),
     colToProp,
     rowIndexMapper: { getVisualFromPhysicalIndex: toVisualRow },
     columnIndexMapper: { getVisualFromPhysicalIndex: toVisualColumn },
@@ -58,7 +60,7 @@ function createMockHot({
     }),
   };
 
-  return { hot, getCellMetaUncached, getAtCell, setAtCell };
+  return { hot, getCellMetaUncached, getAtCell, modifyRowData, setAtCell };
 }
 
 /**
@@ -254,7 +256,7 @@ describe('runSourceDataValidators', () => {
     const validator = makeValidator(rowIndependent, () => false);
     const toVisualColumn = jest.fn(physicalColumn => 1 - physicalColumn);
     const colToProp = jest.fn(visualColumn => (visualColumn === 0 ? 'second' : 'first'));
-    const { hot, getAtCell, setAtCell } = createMockHot({
+    const { hot, getAtCell, modifyRowData, setAtCell } = createMockHot({
       rows: 2,
       cols: 2,
       validator,
@@ -265,14 +267,20 @@ describe('runSourceDataValidators', () => {
 
     runSourceDataValidators(hot, 'init');
 
-    expect(getAtCell.mock.calls).toEqual([[0, 1], [0, 0], [1, 1], [1, 0]]);
+    expect(getAtCell.mock.calls).toEqual([
+      [0, 'first'],
+      [0, 'second'],
+      [1, 'first'],
+      [1, 'second'],
+    ]);
     expect(setAtCell.mock.calls).toEqual([
       [0, 'first', null],
       [0, 'second', null],
       [1, 'first', null],
       [1, 'second', null],
     ]);
-    expect(toVisualColumn).toHaveBeenCalledTimes(rowIndependent ? 2 : 3);
+    expect(modifyRowData).toHaveBeenCalledTimes(2);
+    expect(toVisualColumn).toHaveBeenCalledTimes(2);
     expect(colToProp).toHaveBeenCalledTimes(2);
   });
 
