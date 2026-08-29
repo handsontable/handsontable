@@ -13,6 +13,51 @@ describe('Formulas', () => {
   });
 
   describe('Integration with Autofill', () => {
+    it('should not leak the escape apostrophe when the source range spans a trimmed row', async() => {
+      handsontable({
+        data: [
+          ['0123456'],
+          ['0222222'],
+          ['0333333'],
+          [null],
+          [null],
+          [null],
+        ],
+        columns: [{ type: 'text' }],
+        // Marked per PHYSICAL row rather than per column, so a meta read that resolves to the wrong
+        // row - or to no row at all - drops the marking instead of silently still finding it.
+        cell: [
+          { row: 0, col: 0, preserveTextValue: true },
+          { row: 1, col: 0, preserveTextValue: true },
+          { row: 2, col: 0, preserveTextValue: true },
+        ],
+        // Physical row 1 keeps its HyperFormula index but has no visual one, so the engine source
+        // range for visual rows 0-1 spans HF rows 0..2 and the fill loop walks the trimmed row.
+        trimRows: [1],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        fillHandle: true,
+      });
+
+      await selectRows(0, 1);
+
+      const lastRowCell = $(getCell(1, 0, true));
+
+      simulateFillHandleDragStart(lastRowCell);
+      simulateFillHandleDragMove(lastRowCell, { offsetY: 200 });
+
+      await waitForNextAnimationFrames(25);
+
+      simulateFillHandleDragFinish(lastRowCell, { offsetY: 200 });
+
+      // The engine stores every preserved text value escaped. Whichever rows the fill ends up
+      // populating, none of them may carry the engine's escape apostrophe into the grid.
+      expect(getDataAtCol(0).filter(value => typeof value === 'string' && value.startsWith('\'')))
+        .toEqual([]);
+    });
+
     it('should cooperate properly with trimmed rows (populating not trimmed elements)', async() => {
       handsontable({
         data: [
@@ -53,6 +98,11 @@ describe('Formulas', () => {
       ]);
     });
 
+    // Verified still failing (2026-08-05): the fill populates only one visual
+    // row (the last source row stays untouched) and the expectation itself
+    // predates trimming semantics (expects 5 visual rows where trimRows leaves
+    // 4). Needs a product-level decision on fill-across-trimmed-rows before
+    // the expectations can be trusted — tracked in DEV-2195.
     xit('should cooperate properly with trimmed rows (populating two elements placed next to trimmed element)',
       async() => {
         handsontable({
@@ -196,115 +246,6 @@ describe('Formulas', () => {
       expect(getSourceDataAtCell(3, 0)).toEqual('=A3');
       expect(getSourceDataAtCell(4, 0)).toEqual('=A4');
       expect(getSourceDataAtCell(5, 0)).toBe(null);
-    });
-
-    // TODO: DEV-99 - fix: this test needs a range selection (rows 1-2, cols 2-4) which uses
-    // the .area fill handle. The simulateFillHandleDrag helper currently only targets
-    // .current.corner. Needs investigation into how to drag .area.corner outside the viewport.
-    xit('should populate dates and formulas referencing to them properly', async() => {
-      handsontable({
-        data: [
-          [null, null, null, null, null],
-          [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
-          [null, null, '=C2', '=D2', '=E2'],
-          [null, null, null, null, null],
-          [null, null, null, null, null],
-          [null, null, null, null, null],
-          [null, null, null, null, null],
-        ],
-        formulas: {
-          engine: HyperFormula,
-          sheetName: 'Sheet1'
-        },
-        columns: [{}, {}, {
-          type: 'date',
-          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
-        }, {
-          type: 'date',
-          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
-        }, {
-          type: 'date',
-          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
-        }],
-        fillHandle: true,
-        width: 400,
-        height: 130,
-        rowHeaders: true,
-        colHeaders: true,
-      });
-
-      await selectCells([[1, 2, 2, 4]]);
-
-      // Drag fill handle below the viewport to extend through all remaining rows.
-      // Use a visible cell as the anchor and add a large offsetY to push mouse below viewport.
-      const visibleCell = $(getCell(2, 2, true));
-
-      simulateFillHandleDragStart(visibleCell);
-      simulateFillHandleDragMove(visibleCell, { offsetY: 400 });
-
-      await waitForNextAnimationFrames(30);
-
-      simulateFillHandleDragFinish(visibleCell, { offsetY: 400 });
-
-      const formulasPlugin = getPlugin('formulas');
-
-      expect(getData()).toEqual([
-        [null, null, null, null, null],
-        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
-        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
-        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
-        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
-        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
-        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
-        [null, null, null, null, null]
-      ]);
-
-      expect(getSourceData()).toEqual([
-        [null, null, null, null, null],
-        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
-        [null, null, '=C2', '=D2', '=E2'],
-        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
-        [null, null, '=C4', '=D4', '=E4'],
-        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
-        [null, null, '=C6', '=D6', '=E6'],
-        [null, null, null, null, null]
-      ]);
-
-      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
-        [],
-        [null, null, '28/02/1900', 60, '28/02/1900'],
-        [null, null, '28/02/1900', 60, '28/02/1900'],
-        [null, null, '28/02/1900', 60, '28/02/1900'],
-        [null, null, '28/02/1900', 60, '28/02/1900'],
-        [null, null, '28/02/1900', 60, '28/02/1900'],
-        [null, null, '28/02/1900', 60, '28/02/1900'],
-      ]);
-
-      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
-        [],
-        [null, null, '\'28/02/1900', '28/02/1900', '\'28/02/1900'],
-        [null, null, '=C2', '=D2', '=E2'],
-        [null, null, '\'28/02/1900', '28/02/1900', '\'28/02/1900'],
-        [null, null, '=C4', '=D4', '=E4'],
-        [null, null, '\'28/02/1900', '28/02/1900', '\'28/02/1900'],
-        [null, null, '=C6', '=D6', '=E6'],
-      ]);
-
-      expect(getCellMeta(3, 2).valid).toBe(false);
-      expect(getCellMeta(3, 3).valid).toBe(true);
-      expect(getCellMeta(3, 4).valid).toBe(false);
-
-      expect(getCellMeta(4, 2).valid).toBe(false);
-      expect(getCellMeta(4, 3).valid).toBe(true);
-      expect(getCellMeta(4, 4).valid).toBe(false);
-
-      expect(getCellMeta(5, 2).valid).toBe(false);
-      expect(getCellMeta(5, 3).valid).toBe(true);
-      expect(getCellMeta(5, 4).valid).toBe(false);
-
-      expect(getCellMeta(6, 2).valid).toBe(false);
-      expect(getCellMeta(6, 3).valid).toBe(true);
-      expect(getCellMeta(6, 4).valid).toBe(false);
     });
   });
 });

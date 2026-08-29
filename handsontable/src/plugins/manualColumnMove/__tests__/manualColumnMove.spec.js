@@ -770,10 +770,12 @@ describe('manualColumnMove', () => {
 
             $firstHeader.simulate('mousedown');
             $firstHeader.simulate('mouseup');
-            $firstHeader.simulate('mousedown');
+            $firstHeader.simulate('mousedown', { clientX: $firstHeader.offset().left });
 
             $firstHeader.simulate('mouseover');
-            $firstHeader.simulate('mousemove');
+            // The pointer has to travel to count as a drag, but stay in the left half of the same
+            // header so the column is dropped where it started.
+            $firstHeader.simulate('mousemove', { clientX: $firstHeader.offset().left + 10 });
             $firstHeader.simulate('mouseup');
 
             expect(finalIndex1).toEqual(0);
@@ -902,10 +904,12 @@ describe('manualColumnMove', () => {
 
             $secondHeader.simulate('mousedown');
             $secondHeader.simulate('mouseup');
-            $secondHeader.simulate('mousedown');
+            $secondHeader.simulate('mousedown', { clientX: $secondHeader.offset().left });
 
             $secondHeader.simulate('mouseover');
-            $secondHeader.simulate('mousemove');
+            // The pointer has to travel to count as a drag, but stay in the left half of the same
+            // header so the column is dropped where it started.
+            $secondHeader.simulate('mousemove', { clientX: $secondHeader.offset().left + 10 });
             $secondHeader.simulate('mouseup');
 
             expect(finalIndex1).toEqual(1);

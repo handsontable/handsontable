@@ -1,5 +1,5 @@
 import { test, expect } from '../../fixtures/test';
-import { WalkontablePage } from '../../fixtures/pages/WalkontablePage';
+import { OverlaysPage } from '../../fixtures/pages/walkontable/OverlaysPage';
 
 /**
  * Walkontable engine E2E via a frozen-panes grid. This is the Playwright home
@@ -8,10 +8,10 @@ import { WalkontablePage } from '../../fixtures/pages/WalkontablePage';
  * per-theme projects.
  */
 test.describe('walkontable overlays', { tag: '@walkontable' }, () => {
-  let wt: WalkontablePage;
+  let wt: OverlaysPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    wt = new WalkontablePage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    wt = new OverlaysPage(page, theme, bundle);
     await wt.goto();
   });
 
@@ -34,5 +34,30 @@ test.describe('walkontable overlays', { tag: '@walkontable' }, () => {
     // Frozen row is still shown by the top overlay after scrolling; corner too.
     await expect(wt.topOverlay.getByText('R1C3', { exact: true }).first()).toBeVisible();
     await expect(wt.corner).toBeVisible();
+  });
+
+  /**
+   * The fill handle of the cell at the far edge of the grid is pulled back
+   * inside the viewport, so it never enlarges the scrollable area. With frozen
+   * panes the master table is shifted by the frozen pane, and missing that
+   * shift made the handle hang past the last column/row and grow a scrollbar
+   * on the master table alone (#13143).
+   */
+  test('selecting the last column does not widen the scrollable area', async () => {
+    await wt.scrollToEnd();
+    const { width } = await wt.scrollSize();
+
+    await wt.selectCell(wt.lastRow - 1, wt.lastColumn);
+
+    await expect.poll(async () => (await wt.scrollSize()).width).toBe(width);
+  });
+
+  test('selecting the last row does not heighten the scrollable area', async () => {
+    await wt.scrollToEnd();
+    const { height } = await wt.scrollSize();
+
+    await wt.selectCell(wt.lastRow, wt.lastColumn - 1);
+
+    await expect.poll(async () => (await wt.scrollSize()).height).toBe(height);
   });
 });

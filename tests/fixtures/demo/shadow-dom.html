@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable shadow DOM e2e fixture</title>
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } #outside-area { margin-top: .8rem; } </style>
+  <!--
+    The grid's stylesheets are linked inside the shadow root below, because document styles
+    do not cross the boundary. They are ALSO linked here, in the light DOM, because the
+    comment editor and the context menu are portaled into `document.body` and so live outside
+    the shadow tree. Without these, `.htComments { position: absolute }` never applies and the
+    tooltip renders in normal page flow - visible, so the show/hide assertions still hold, but
+    positioned nowhere near its cell and impossible to move the pointer onto.
+  -->
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-'
+      + window.htTheme + '.min.css">');
+  </script>
+</head>
+<body>
+  <!--
+    Shadow DOM fixture (DEV-1619). The grid is mounted inside a native open
+    shadow root, the way web-component hosts (Salesforce LWC, Lit, Stencil)
+    embed Handsontable. The stylesheets are linked INSIDE the shadow root —
+    document-level styles do not cross the boundary. The textarea below stays
+    in the light DOM so outside-click behavior can be asserted across the
+    shadow boundary. Cells are stamped with data-testid via a renderer;
+    Playwright locators pierce open shadow roots transparently.
+  -->
+  <div id="shadow-host" data-testid="shadow-host"></div>
+  <div id="outside-area">
+    <textarea data-testid="outside-textarea" rows="3" cols="40"></textarea>
+    <input data-testid="outside-input" type="text">
+    <button data-testid="focus-mover" type="button">Move focus to the input</button>
+  </div>
+  <!--
+    A SECOND, unrelated shadow root, standing in for any other web component on the host
+    page. Moving the pointer from the grid into this tree never touches the light DOM, so
+    it is the case that catches a containment check which only knows the grid's own shadow
+    root - see the comment-tooltip tests.
+  -->
+  <div id="other-shadow-host" data-testid="other-shadow-host"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const shadowRoot = document.querySelector('[data-testid="shadow-host"]').attachShadow({ mode: 'open' });
+
+    const baseCss = document.createElement('link');
+    baseCss.rel = 'stylesheet';
+    baseCss.href = '/handsontable/styles/handsontable.min.css';
+    shadowRoot.appendChild(baseCss);
+
+    const themeCss = document.createElement('link');
+    themeCss.rel = 'stylesheet';
+    themeCss.href = `/handsontable/styles/ht-theme-${window.htTheme}.min.css`;
+    shadowRoot.appendChild(themeCss);
+
+    const container = document.createElement('div');
+    container.className = `ht-theme-${window.htTheme}`;
+    container.setAttribute('data-testid', 'grid');
+    shadowRoot.appendChild(container);
+
+    const shadowSibling = document.createElement('div');
+    shadowSibling.setAttribute('data-testid', 'shadow-sibling');
+    shadowSibling.style.cssText = 'padding: 16px; margin-top: 8px; background: #eee;';
+    shadowSibling.textContent = 'Non-focusable sibling inside the same shadow root';
+    shadowSibling.addEventListener('mousedown', (event) => event.preventDefault());
+    shadowRoot.appendChild(shadowSibling);
+
+    const otherShadowRoot = document.querySelector('[data-testid="other-shadow-host"]')
+      .attachShadow({ mode: 'open' });
+    const otherShadowContent = document.createElement('div');
+
+    otherShadowContent.setAttribute('data-testid', 'other-shadow-content');
+    otherShadowContent.style.cssText = 'padding: 16px; margin-top: 8px; background: #dde;';
+    otherShadowContent.textContent = 'Content inside a different shadow root';
+    otherShadowRoot.appendChild(otherShadowContent);
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    const hot = new Handsontable(container, {
+      data: [
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+        ['A3', 'B3', 'C3'],
+        ['A4', 'B4', 'C4'],
+        ['A5', 'B5', 'C5'],
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      contextMenu: true,
+      // The comment on B4 backs the hover-tooltip cases (issue #8624). B4 and A4 are
+      // untouched by the other tests, so the comment cannot disturb them.
+      comments: true,
+      cell: [{ row: 3, col: 1, comment: { value: 'Comment inside the shadow root' } }],
+      renderer: testIdRenderer,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    document.querySelector('[data-testid="focus-mover"]').addEventListener('mousedown', (event) => {
+      event.preventDefault();
+      document.querySelector('[data-testid="outside-input"]').focus();
+    });
+
+    window.__hotProbe = {
+      isListening: () => hot.isListening(),
+      selected: () => hot.getSelected() ?? null,
+      valueAt: (row, col) => hot.getDataAtCell(row, col),
+      armOutsideClickRecorder: () => {
+        const targets = [];
+
+        hot.updateSettings({
+          outsideClickDeselects: (target) => {
+            targets.push(target.getAttribute('data-testid') || target.tagName.toLowerCase());
+
+            return target.getAttribute('data-testid') !== 'focus-mover';
+          },
+        });
+
+        window.__outsideClickTargets = targets;
+      },
+      outsideClickTargets: () => window.__outsideClickTargets,
+    };
+  </script>
+</body>
+</html>

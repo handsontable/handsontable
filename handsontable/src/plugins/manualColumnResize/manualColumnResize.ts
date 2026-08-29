@@ -13,7 +13,7 @@ import {
 } from '../../helpers/dom/element';
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
-import { deprecatedWarn } from '../../helpers/console';
+import { deprecatedWarnOnce } from '../../helpers/console';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import {
   getElementScaleFactor,
@@ -226,25 +226,29 @@ export class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op and will be removed in a
-   * future major release.
+   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op.
    *
-   * @deprecated
+   * @deprecated Since 18.0.0. The `PersistentState` plugin was removed in 17.0.0, so this method
+   * does nothing. It will be removed in 19.0.0. Persist column widths yourself with
+   * the `afterColumnResize` hook and the `manualColumnResize` option.
    */
   saveManualColumnWidths(): void {
-    deprecatedWarn('`saveManualColumnWidths()` is deprecated and will be removed in a future major release. ' +
+    deprecatedWarnOnce('ManualColumnResize.saveManualColumnWidths',
+      '`saveManualColumnWidths()` is deprecated and will be removed in Handsontable 19.0.0. ' +
       'The PersistentState plugin has been removed.');
   }
 
   /**
-   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op and will be removed in a
-   * future major release.
+   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op.
    *
-   * @deprecated
+   * @deprecated Since 18.0.0. The `PersistentState` plugin was removed in 17.0.0, so this method
+   * returns an empty array. It will be removed in 19.0.0. Restore column widths yourself
+   * by passing an array to the `manualColumnResize` option.
    * @returns {Array}
    */
   loadManualColumnWidths(): Array<number | null> {
-    deprecatedWarn('`loadManualColumnWidths()` is deprecated and will be removed in a future major release. ' +
+    deprecatedWarnOnce('ManualColumnResize.loadManualColumnWidths',
+      '`loadManualColumnWidths()` is deprecated and will be removed in Handsontable 19.0.0. ' +
       'The PersistentState plugin has been removed.');
 
     return [];

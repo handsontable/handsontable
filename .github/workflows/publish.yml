@@ -6,7 +6,16 @@ name: Publish
 # job to another workflow — it would break OIDC for that publish until npm's
 # config is repointed, and repointing breaks the OTHER publishes instead.
 on:
+  # On-demand experimental publish of the dispatched branch (the feature-branch
+  # lever — see the pre-release-dispatch job). Two gates: the checkbox (a
+  # dispatch without it runs nothing — every job in this file skips) and the
+  # `approvers` environment sign-off on the job itself.
   workflow_dispatch:
+    inputs:
+      publish-experimental:
+        description: 'Build this branch and publish it to npm as `experimental` (UNTESTED — pauses for a release approver''s sign-off)'
+        type: boolean
+        default: false
   push:
     branches:
       - 'release/**' # Must match RELEASE_BRANCH_PREFIX
@@ -34,17 +43,19 @@ permissions:
 
 jobs:
   # ============================================================
-  # Scenario A — Experimental pre-release (chained after a green Develop run)
+  # Scenario A — Experimental pre-release (chained after a green Develop run,
+  # or dispatched on demand from a feature branch)
   # ============================================================
   pre-release:
     name: Build and publish a pre-release
     runs-on: ubuntu-latest
-    # Publishes ONLY after a fully green Develop run. Two notes vs the old
-    # Tests-triggered version: (1) stricter — the Develop run also contains the
-    # multi-OS build-all (and, on src/perf merges, the golden perf job), so a
-    # broken Windows/macOS build now blocks the experimental publish (deliberate
-    # hardening); (2) the old manual workflow_dispatch pre-release arm is
-    # removed by design — feature branches use the pkg.pr.new PR previews.
+    # Publishes ONLY after a fully green Develop run — stricter than the old
+    # Tests-triggered version: the Develop run also contains the multi-OS
+    # build-all (and, on src/perf merges, the golden perf job), so a broken
+    # Windows/macOS build blocks the experimental publish (deliberate
+    # hardening). The on-demand feature-branch arm is the separate
+    # pre-release-dispatch job below — keep them separate: this job must stay
+    # environment-free so the develop chain publishes without a human click.
     if: |
       github.event_name == 'workflow_run' &&
       github.event.workflow_run.conclusion == 'success'
@@ -73,6 +84,94 @@ jobs:
 
       - name: Publish pre-release
         run: npm run pre-release
+
+      # The stamped version (0.0.0-next-<sha>-<date>) is buried in the publish
+      # log — surface it as a copy-pasteable install line.
+      - name: Publication summary
+        run: |
+          VERSION=$(node -p "require('./handsontable/package.json').version")
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## 📦 Experimental build published
+
+          \`\`\`sh
+          npm i handsontable@${VERSION}
+          \`\`\`
+
+          All wrapper packages were published under the same version. Built from \`develop\` (chained after a green Develop run) — the npm \`experimental\` dist-tag now points at this build.
+          EOF
+
+  # The on-demand feature-branch lever. DEV-2057 removed it expecting
+  # pkg.pr.new previews to cover feature branches, but those are PR-event-only
+  # and never reach the npm registry — a branch without a PR, or a consumer
+  # that must install from npm, had no path. Restored behind TWO gates:
+  #   1. The publish-experimental checkbox — a casual dispatch runs nothing.
+  #   2. The `approvers` environment — npm trusted publishing is pinned to
+  #      this workflow's FILENAME (plus repo, plus an optional environment),
+  #      never to a ref, so every branch of this file can mint production npm
+  #      OIDC. An approval-free dispatch arm would therefore let any
+  #      write-access dispatch publish untested packages; the environment puts
+  #      the same human gate on it as the rc/stable publishes.
+  # The environment binds only what THIS file's content requests — full,
+  # file-content-independent enforcement needs the environment pinned in the
+  # npm-side trusted-publisher config of each package. That is a publish-
+  # pipeline design decision (it would force EVERY publish job, including the
+  # automated develop chain above, into an environment) — tracked as a
+  # follow-up, deliberately not part of this job.
+  # release/lts branches are excluded — their publishes are the guarded
+  # scenarios below.
+  pre-release-dispatch:
+    name: Build and publish a pre-release (on demand)
+    runs-on: ubuntu-latest
+    environment: approvers
+    if: |
+      github.event_name == 'workflow_dispatch' &&
+      inputs.publish-experimental &&
+      !startsWith(github.ref_name, 'release/') &&
+      !startsWith(github.ref_name, 'lts/')
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          # The EXACT sha GitHub froze when the dispatch was created — the one
+          # the run page shows the approver — NOT the live branch tip: the
+          # approvers gate sits between dispatch and checkout, and the branch
+          # can be pushed (or force-pushed) while the run waits. If the pinned
+          # sha vanishes after a force-push, checkout fails closed. The
+          # detached HEAD is fine: pre-release.mjs only branch-checks for
+          # release/* version stamping, and release/lts refs never reach this
+          # job.
+          ref: ${{ github.sha }}
+
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+        name: Install pnpm
+
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - run: |
+          pnpm install
+          npm install -g npm@11.6 # Ensure npm 11.5.1 or later for trusted publishing
+
+      - name: Publish pre-release
+        run: npm run pre-release
+
+      # The stamped version (0.0.0-next-<sha>-<date>) is buried in the publish
+      # log — surface it so the dispatcher can copy the exact install line.
+      - name: Publication summary
+        run: |
+          VERSION=$(node -p "require('./handsontable/package.json').version")
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## 📦 Experimental build published
+
+          \`\`\`sh
+          npm i handsontable@${VERSION}
+          \`\`\`
+
+          All wrapper packages were published under the same version. Built from \`${{ github.ref_name }}\` at the dispatch-pinned commit \`${{ github.sha }}\` — the npm \`experimental\` dist-tag now points at this build until the next develop publish resets it. Install by the exact version above.
+          EOF
 
   # ============================================================
   # Scenario B — First RC (release event with prerelease flag)
@@ -165,16 +264,20 @@ jobs:
             setReleaseDate('${RELEASE_DATE}');
           "
 
-      - name: Clean node_modules and lock files
-        run: |
-          node -e "
-            import { cleanNodeModules } from './scripts/utils/filesystem.mjs';
+      # Dependencies are already installed above with --frozen-lockfile, so
+      # never clean and reinstall here: a regenerated lockfile floats every
+      # `^` range away from the set develop tested (DEV-2667).
+      - name: Update lockfile for version change
+        run: pnpm install --lockfile-only
 
-            cleanNodeModules();
-          "
-
-      - name: Install fresh dependencies
-        run: pnpm install --force
+      # A version bump never changes pnpm-lock.yaml: the lockfile records
+      # `workspace:^` for every in-repo dependency, never the bumped version
+      # numbers. So a diff here means the `^` ranges re-resolved and the
+      # release would build against dependencies develop never tested — the
+      # DEV-2667 failure, which no downstream `--frozen-lockfile` install can
+      # catch, because a floated lockfile is internally consistent.
+      - name: Verify the lockfile did not float
+        run: node .github/scripts/lockfile-float-gate.mjs 'bumping the version' 'develop'
 
       - name: Clean old package builds
         run: npm run all clean -- --e examples
@@ -227,6 +330,14 @@ jobs:
 
       - name: Generate version highlights scaffold
         run: node docs/scripts/generate-version-highlights.mjs '${{ steps.version.outputs.rc-version }}'
+
+      # Re-check right before `git add .`, because this job builds every package
+      # and installs the examples between the bump and the commit. Unlike the
+      # later RC cuts, that span has never been observed clean: the first-RC job
+      # runs once per release, and its only 18.1.0 run was the one that floated
+      # the lockfile. Cheaper than assuming.
+      - name: Verify the lockfile did not float
+        run: node .github/scripts/lockfile-float-gate.mjs 'building the first release candidate' 'develop'
 
       - name: Commit and push
         env:
@@ -637,6 +748,10 @@ jobs:
       - name: Update lockfile for version change
         run: pnpm install --lockfile-only
 
+      # Same guard as the first-RC cut above (DEV-2667).
+      - name: Verify the lockfile did not float
+        run: node .github/scripts/lockfile-float-gate.mjs 'bumping the version' 'this release branch'
+
       - name: Clean old package builds
         run: npm run all clean -- --e examples
 
@@ -703,6 +818,11 @@ jobs:
 
       - name: Generate version highlights scaffold
         run: node docs/scripts/generate-version-highlights.mjs '${{ steps.rc-version.outputs.rc-version }}'
+
+      # Re-check right before `git add .`: every step between the bump and the
+      # commit is a chance to touch the lockfile, and `git add .` would commit it.
+      - name: Verify the lockfile did not float
+        run: node .github/scripts/lockfile-float-gate.mjs 'building this release candidate' 'this release branch'
 
       - name: Commit and push
         env:
@@ -1122,6 +1242,10 @@ jobs:
       - name: Update lockfile for version change
         run: pnpm install --lockfile-only
 
+      # Same guard as the first-RC cut above (DEV-2667).
+      - name: Verify the lockfile did not float
+        run: node .github/scripts/lockfile-float-gate.mjs 'bumping the version' 'this release branch'
+
       - name: Update changelog release date
         run: |
           VERSION='${{ steps.version.outputs.version }}'
@@ -1144,6 +1268,11 @@ jobs:
 
       - name: Update docs changelog
         run: node .github/scripts/update-docs-changelog.mjs '${{ steps.version.outputs.version }}'
+
+      # Re-check right before `git add .`: every step between the bump and the
+      # commit is a chance to touch the lockfile, and `git add .` would commit it.
+      - name: Verify the lockfile did not float
+        run: node .github/scripts/lockfile-float-gate.mjs 'preparing the stable release' 'this release branch'
 
       - name: Commit and push
         env:

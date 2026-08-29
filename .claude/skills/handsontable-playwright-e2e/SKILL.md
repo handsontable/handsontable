@@ -13,11 +13,13 @@ Locally, run **only the specs you created or changed** — never the full suite,
 and under the **default theme** only (fast smoke):
 `cd tests && npx playwright test --project=e2e-main e2e/<your-spec>.spec.ts`.
 The Stop hook and pre-push do exactly this automatically (session-touched /
-branch-touched specs). Every spec is parametrized across themes
-(main/horizon/classic) by the per-theme Playwright projects; the **full theme
-matrix** belongs to CI (one `[TEST] Playwright (theme: …)` job per theme), plus
-the full matrix nightly on develop. To run all themes locally for one spec, drop
-the `--project` filter: `npx playwright test e2e/<your-spec>.spec.ts`. `npm test`
+branch-touched specs). Every spec is parametrized across a **theme
+(main/horizon/classic) × bundle (`umd` = `handsontable.js`, `full-min` =
+`handsontable.full.min.js`) matrix** — six projects, 1:1 with the Puppeteer
+legs; the full matrix belongs to CI (one `E2E / Playwright <bundle>
+(theme: …)` job per leg). The local gates run `e2e-main` (plain UMD) only —
+the `-min` legs are CI-only. To run all legs locally for one spec, drop the
+`--project` filter: `npx playwright test e2e/<your-spec>.spec.ts`. `npm test`
 in `tests/` (the whole suite × all themes) locally = wasted minutes, never
 required evidence.
 
@@ -27,6 +29,7 @@ required evidence.
 2. **Hook by `data-testid`, not structural CSS.** Stamp ids in the fixture (or add them to the component when it removes ambiguity). Fall back to role/text locators before ever reaching into grid internals.
 3. **Web-first waits only.** `await expect(locator).toBeVisible()` — never `sleep`/`waitForTimeout`/`networkidle` or a custom ready flag. Await *every* assertion (a missing await is the sneakiest flake).
 4. **Isolation, no flake.** One instance per test; `page.route()` / `page.clock()` for network/time. `failOnFlakyTests` is on in CI — pass-on-retry is a hard failure.
+5. **Thread the bundle axis.** Import `test` from `tests/fixtures/test.ts`, destructure `{ page, theme, bundle }`, and pass both to the page object. A new fixture copies the fail-loud `?theme=`/`?bundle=` allowlist block from `demo/grid.html` — never a hardcoded bundle `<script src=…>`. Formulas specs load HyperFormula as an external script in the fixture (the `umd` legs' base bundle ships none). The never-get-wrong list: `tests/AGENTS.md`.
 
 ## Which test — decide, then route
 

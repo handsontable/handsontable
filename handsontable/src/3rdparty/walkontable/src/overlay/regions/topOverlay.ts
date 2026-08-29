@@ -10,6 +10,12 @@ import {
 import { isMobileBrowser } from '../../../../../helpers/browser';
 import TopOverlayTable from '../../table/regions/topTable';
 import { Overlay, type OverlayDeps } from './_base';
+import {
+  axisScrollbarClearance,
+  holderOwnsScrollbars,
+  reservedScrollbarSpace,
+  overlayExtentBesideScrollbar,
+} from '../scrollbarClearance';
 import { getCornerStyle } from '../../selection';
 import type { Selection } from '../../selection';
 import type { BorderInstanceSettings } from '../../selection/border/types';
@@ -29,6 +35,12 @@ export class TopOverlay extends Overlay {
    * @type {number}
    */
   cachedFixedRowsTop = -1;
+
+  /**
+   * How much narrower than its root the overlay's holder is kept, so an overlay ("floating")
+   * vertical scrollbar underneath stays reachable. 0 whenever the scrollbar has real width.
+   */
+  #holderClearance = 0;
 
   /**
    */
@@ -170,6 +182,10 @@ export class TopOverlay extends Overlay {
     if (this.needFullRender) {
       this.adjustRootElementSize();
       this.adjustRootChildrenSize();
+
+    } else if (this.clone) {
+      // Stopped rendering: drop the clearance, or its filler stays behind over live cells.
+      this.clearScrollbarClearance();
     }
   }
 
@@ -188,11 +204,40 @@ export class TopOverlay extends Overlay {
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow: boolean | string = this.wtSettings.getSetting('preventOverflow');
 
-    if (this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal') {
+    // The master's vertical scrollbar sits along the inline-end edge this overlay spans. Only worth a
+    // strip when this overlay is sized against the scrollport - see `inlineStartOverlay`.
+    const rootSized = this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal';
+    // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
+    // Clip and band together, or not at all. Every rendered clone has to be clipped or it covers the
+    // scrollbar - but clipping one uncovers the master underneath, scrolled elsewhere, so a clip with
+    // no band behind it shows the wrong cells in the strip.
+    //
+    // Being rendered is the whole question. An overlay drawn on this edge covers the scrollbar there
+    // whether it carries frozen rows or only a column header, so a header-only grid needs the strip
+    // for exactly the reason a frozen one does. Asking instead whether this overlay held frozen rows
+    // left the vertical scrollbar covered on any grid with frozen columns but no frozen rows - the
+    // commonest arrangement there is. The strips below are published only while the clone is
+    // rendered, so nothing further has to be asked here.
+    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
+
+    this.#holderClearance = axisScrollbarClearance(
+      this.deps.geometryReader,
+      wtTable.holder,
+      this.deps.geometryReader.getScrollbarWidth(rootDocument),
+      clearanceApplies && wtViewport.hasVerticalScroll(),
+      'vertical'
+    );
+
+    if (rootSized) {
       let width = wtViewport.getWorkspaceWidth();
 
       if (wtViewport.hasVerticalScroll()) {
-        width -= this.deps.geometryReader.getScrollbarWidth(rootDocument);
+        width = overlayExtentBesideScrollbar(
+          width,
+          this.deps.geometryReader.clientWidth(wtTable.holder),
+          this.deps.geometryReader.getScrollbarWidth(rootDocument),
+          reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'vertical')
+        );
       }
 
       width = Math.min(width, this.deps.geometryReader.scrollWidth(wtTable.wtRootElement));
@@ -201,6 +246,7 @@ export class TopOverlay extends Overlay {
     } else {
       overlayRootStyle.width = '';
     }
+
     this.clone.wtTable.holder.style.width = overlayRootStyle.width;
 
     let tableHeight = this.deps.geometryReader.outerHeight(this.clone.wtTable.TABLE);
@@ -210,6 +256,11 @@ export class TopOverlay extends Overlay {
     }
 
     overlayRootStyle.height = `${tableHeight}px`;
+
+    this.publishScrollbarClearance({
+      inlineEnd: this.#holderClearance,
+      rtl: this.isRtl(),
+    }, this.wot.wtOverlays.isScrollbarVisible());
   }
 
   /**
@@ -287,8 +338,9 @@ export class TopOverlay extends Overlay {
     if (typeof rowsRenderCalculator?.startPosition === 'number') {
       this.spreader.style.top = `${rowsRenderCalculator.startPosition}px`;
 
-    } else if (total === 0) {
-      // can happen if there are 0 rows
+    } else if (total === 0 || rowsRenderCalculator === null) {
+      // 0 rows, or nothing rendered yet — a `null` calculator is the drawn-but-never-rendered state
+      // a skipped first draw leaves behind (see `restoreRenderedStateIfSafe` in `table/drawCycle.ts`).
       this.spreader.style.top = '0';
 
     } else {

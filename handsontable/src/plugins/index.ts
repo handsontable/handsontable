@@ -1,6 +1,7 @@
 import { AutoColumnSize } from './autoColumnSize';
 import { Autofill } from './autofill';
 import { AutoRowSize } from './autoRowSize';
+import { AutoRowHeaderSize } from './autoRowHeaderSize';
 export { BasePlugin } from './base';
 import { BindRowsWithHeaders } from './bindRowsWithHeaders';
 import { CollapsibleColumns } from './collapsibleColumns';
@@ -24,12 +25,14 @@ import { ManualColumnResize } from './manualColumnResize';
 import { ManualRowMove } from './manualRowMove';
 import { ManualRowResize } from './manualRowResize';
 import { MergeCells } from './mergeCells';
+import { MoveCells } from './moveCells';
 import { MultiColumnSorting } from './multiColumnSorting';
 import { MultipleSelectionHandles } from './multipleSelectionHandles';
 import { NestedHeaders } from './nestedHeaders';
 import { NestedRows } from './nestedRows';
 import { Pagination } from './pagination';
 import { Search } from './search';
+import { SelectionHandles } from './selectionHandles';
 import { StretchColumns } from './stretchColumns';
 import { TouchScroll } from './touchScroll';
 import { TrimRows } from './trimRows';
@@ -52,6 +55,7 @@ declare module './registry' {
     autoColumnSize: typeof AutoColumnSize;
     autofill: typeof Autofill;
     autoRowSize: typeof AutoRowSize;
+    autoRowHeaderSize: typeof AutoRowHeaderSize;
     bindRowsWithHeaders: typeof BindRowsWithHeaders;
     collapsibleColumns: typeof CollapsibleColumns;
     columnSorting: typeof ColumnSorting;
@@ -74,12 +78,14 @@ declare module './registry' {
     manualRowMove: typeof ManualRowMove;
     manualRowResize: typeof ManualRowResize;
     mergeCells: typeof MergeCells;
+    moveCells: typeof MoveCells;
     multiColumnSorting: typeof MultiColumnSorting;
     multipleSelectionHandles: typeof MultipleSelectionHandles;
     nestedHeaders: typeof NestedHeaders;
     nestedRows: typeof NestedRows;
     pagination: typeof Pagination;
     search: typeof Search;
+    selectionHandles: typeof SelectionHandles;
     stretchColumns: typeof StretchColumns;
     touchScroll: typeof TouchScroll;
     trimRows: typeof TrimRows;
@@ -98,6 +104,7 @@ export function registerAllPlugins() {
   registerPlugin(AutoColumnSize);
   registerPlugin(Autofill);
   registerPlugin(AutoRowSize);
+  registerPlugin(AutoRowHeaderSize);
   registerPlugin(BindRowsWithHeaders);
   registerPlugin(CollapsibleColumns);
   registerPlugin(ColumnSorting);
@@ -120,12 +127,14 @@ export function registerAllPlugins() {
   registerPlugin(ManualRowMove);
   registerPlugin(ManualRowResize);
   registerPlugin(MergeCells);
+  registerPlugin(MoveCells);
   registerPlugin(MultiColumnSorting);
   registerPlugin(MultipleSelectionHandles);
   registerPlugin(NestedHeaders);
   registerPlugin(NestedRows);
   registerPlugin(Pagination);
   registerPlugin(Search);
+  registerPlugin(SelectionHandles);
   registerPlugin(StretchColumns);
   registerPlugin(TouchScroll);
   registerPlugin(TrimRows);
@@ -140,6 +149,7 @@ export {
   AutoColumnSize,
   Autofill,
   AutoRowSize,
+  AutoRowHeaderSize,
   BindRowsWithHeaders,
   CollapsibleColumns,
   ColumnSorting,
@@ -162,12 +172,14 @@ export {
   ManualRowMove,
   ManualRowResize,
   MergeCells,
+  MoveCells,
   MultiColumnSorting,
   MultipleSelectionHandles,
   NestedHeaders,
   NestedRows,
   Pagination,
   Search,
+  SelectionHandles,
   StretchColumns,
   TouchScroll,
   TrimRows,

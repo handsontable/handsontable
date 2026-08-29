@@ -383,8 +383,10 @@ describe('Filters UI', () => {
       expect(inputs[2].value).toBe('5');
       expect(conditionSelectRootElements().first.textContent).toBe('Contains');
       expect(conditionSelectRootElements().second.textContent).toBe('Contains');
-      expect(byValueMultipleSelect().getItems().length).toBe(1);
-      expect(byValueMultipleSelect().getValue().length).toBe(1);
+      // The column is filtered by its own conditions only. Its "filter by value" list is not narrowed
+      // down by them, so all 7 source values are listed and stay checked (issue #12226).
+      expect(byValueMultipleSelect().getItems().length).toBe(7);
+      expect(byValueMultipleSelect().getValue().length).toBe(7);
     }
     {
       await dropdownMenu(2);
@@ -1314,10 +1316,10 @@ describe('Filters UI', () => {
       await dropdownMenu(1);
       await sleep(208);
 
-      const $multipleSelectElements = $(byValueMultipleSelect().element
-        .querySelectorAll('.htUIMultipleSelectHot td input'));
+      // The list holds every value of the column, not just the ones the condition kept (issue #12226),
+      // so the item to uncheck is picked by its label.
+      await uncheckByValueItem('Mathis Boone');
 
-      $multipleSelectElements.eq(0).simulate('click');
       // disjunction
       $(conditionRadioInput(1).element).find('input[type="radio"]').simulate('click');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
@@ -1359,10 +1361,10 @@ describe('Filters UI', () => {
       await dropdownMenu(1);
       await sleep(208);
 
-      const $multipleSelectElements = $(byValueMultipleSelect().element
-        .querySelectorAll('.htUIMultipleSelectHot td input'));
+      // The list holds every value of the column, not just the ones the conditions kept (issue #12226),
+      // so the item to uncheck is picked by its label.
+      await uncheckByValueItem('Mathis Boone');
 
-      $multipleSelectElements.eq(0).simulate('click');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       await sleep(16);
@@ -1523,10 +1525,10 @@ describe('Filters UI', () => {
       await dropdownMenu(1);
       await sleep(208);
 
-      const $multipleSelectElements = $(byValueMultipleSelect().element
-        .querySelectorAll('.htUIMultipleSelectHot td input'));
+      // The list holds every value of the column, not just the ones the condition kept (issue #12226),
+      // so the item to uncheck is picked by its label.
+      await uncheckByValueItem('Mathis Boone');
 
-      $multipleSelectElements.eq(0).simulate('click');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       await dropdownMenu(1);
@@ -2405,7 +2407,22 @@ describe('Filters UI', () => {
           [['Mercedes', 'Fiat', 'Renault', 'Ferrari', 'Peugeot', 'Lamborghini', 'Audi']]);
         filters.filter();
 
+        const valueComponent = filters.components.get('filter_by_value');
+        const expectedSelection = ['Mercedes', 'Fiat', 'Renault', 'Ferrari', 'Peugeot', 'Lamborghini', 'Audi'];
+
+        expect(valueComponent.state.getValueAtIndex(2).args[0])
+          .toEqual(jasmine.arrayWithExactContents(expectedSelection));
+
+        // Moves the Renault row from France to Italy, so column 1's condition ('Germany', 'France')
+        // no longer lets that row through.
         await setDataAtCell(2, 1, 'Italy');
+
+        // The list follows the data, but the selection behind it does not shrink - that is the
+        // #8874 invariant. The stored selection is what the next OK writes back.
+        expect(valueComponent.state.getValueAtIndex(2).args[0])
+          .toEqual(jasmine.arrayWithExactContents(expectedSelection));
+        expect(filters.conditionCollection.getConditions(2)[0].args[0])
+          .toEqual(jasmine.arrayWithExactContents(expectedSelection));
 
         await dropdownMenu(2);
         await sleep(112);
@@ -2413,8 +2430,16 @@ describe('Filters UI', () => {
         const items = byValueMultipleSelect().getItems();
         const checkedValues = items.filter(item => item.checked).map(item => item.value);
 
+        // The box can only tick what it lists, and it lists the companies of the rows still passing
+        // the country filter. Renault's row moved to Italy, so it drops out of the list here while
+        // staying selected underneath.
         expect(checkedValues).toEqual(
-          jasmine.arrayWithExactContents(['Mercedes', 'Fiat', 'Renault', 'Ferrari', 'Peugeot', 'Lamborghini', 'Audi']));
+          jasmine.arrayWithExactContents(['Mercedes', 'Fiat', 'Peugeot', 'Audi']));
+
+        // Nothing was re-selected or unselected on the user's behalf: confirming returns the whole
+        // selection, listed or not.
+        expect(byValueMultipleSelect().getValue())
+          .toEqual(jasmine.arrayWithExactContents(expectedSelection));
       });
   });
 });

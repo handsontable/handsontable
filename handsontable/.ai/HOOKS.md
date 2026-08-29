@@ -39,12 +39,13 @@ There is one global `Hooks` singleton, reached with `Hooks.getSingleton()` (`src
 
 ### `HooksBucket`
 
-`HooksBucket` (`src/core/hooks/bucket.ts`) stores callbacks per hook name in a `Map<string, HookEntry[]>`. Each `HookEntry` has `callback`, `orderIndex`, `runOnce`, `initialHook`, and `skip`. The bucket constructor seeds an empty array for every name in `REGISTERED_HOOKS`, so known hooks start with a collection.
+`HooksBucket` (`src/core/hooks/bucket.ts`) stores callbacks per hook name in a `Map<string, HookList>`, where each `HookList` is a singly-linked list with `head` and `tail`. Each `HookEntry` has `callback`, `orderIndex`, `runOnce`, `initialHook`, and `next` — the entry *is* the list node. The bucket constructor seeds an empty list for every name in `REGISTERED_HOOKS`, so known hooks start with a collection.
 
-Two mechanics are load-bearing:
+Three mechanics are load-bearing:
 
-- **Soft delete via `skip`.** `remove` does not splice the array. It sets `skip = true` on the entry and increments a per-name skipped counter. `run` ignores entries whose `skip` is `true`. The array is compacted (filtered) only when the skipped counter passes `MAX_SKIPPED_HOOKS_COUNT` (100). This keeps `run` allocation-free during normal add/remove churn. Re-adding the same callback flips `skip` back to `false` rather than pushing a duplicate.
-- **Duplicate add is silently ignored.** `add` looks up the callback by reference. If the same function is already registered for that name, the call returns without adding a second entry.
+- **Removal is a true delete.** `remove` relinks the list around the entry. There is no soft-delete `skip` flag and no compaction threshold. An in-flight `run()` stays correct because it reads `entry.next` fresh after each callback, and `remove` never nulls a removed node's `next`, so a callback that removes itself can still advance.
+- **Duplicate add is silently ignored.** `add` walks the list and compares by reference. If the same function is already registered for that name, the call returns without adding a second entry. This check runs *before* the `initialHook` branch, so re-adding the same reference through `addAsFixed` is also a no-op.
+- **`addAsFixed` replaces in place.** When an entry for that name already has `initialHook`, `add` swaps its `callback` and keeps the node and its position, so an array previously returned by `getHooks()` reflects the swap. No production caller relies on that today — `bucket.ts` calls it a wrapper contract, but no file under `wrappers/*/src` reads `getHooks` or `getBucket`; the only non-core caller is `wrappers/vue3/test/hotTable.spec.ts`, which asserts it.
 
 ## The `Hooks` class API
 
@@ -126,6 +127,8 @@ This one mechanism produces every hook behavior:
 - **`after*` notification.** An `after*` callback's return value still replaces `p1`, but Core does not act on the result of an `after*` hook. So an `after*` hook cannot cancel anything. Do not put cancellation logic in an `after*` hook.
 - **`modify*` transformation.** A `modify*` callback returns the transformed value, which threads to the next callback and back to the caller, which uses it.
 
+**Internal listeners must not trust `p1`.** Threading applies to every hook, so a user callback returning a truthy non-`undefined` value replaces the first argument for every listener after it — and the global bucket always runs before the instance bucket a plugin registers into. A plugin listener that reads its operation off `p1` is therefore reading user-controlled input. In a `before*` hook the recovery is to shape-guard and veto (`MoveCells`/`Formulas` do this). In an `after*` hook there is nothing left to veto — the operation already happened — so bailing out silently skips work the rest of the system assumes ran. Capture what an `after*` listener needs in the matching `before*` phase and keep it in plugin state; `Formulas#onAfterMoveCells` takes no arguments at all for this reason. Only `p1` is replaceable — later parameters are passed through untouched.
+
 The `run` loop uses index-based `while` loops and `fastCall` on purpose. The source comment warns against rewriting it with `arrayEach` or arrow functions, because that regresses performance through garbage collection in this hot path. Do not refactor it for style.
 
 ## Call ordering — `orderIndex`
@@ -162,6 +165,10 @@ To add a new built-in hook, do **both** steps. Each step serves a different purp
 
 Miss step 1 and the bus does not recognize the name. Miss step 2 and the hook has no IDE support. When changing a hook signature, add a TypeScript regression test (`src/__tests__/core/settings.types.ts`) alongside the runtime test.
 
+Step 2 is machine-enforced, so a missing `GridSettings` entry fails the build rather than degrading quietly: `src/__tests__/core/settings.types.ts` declares `const allSettings: Required<Handsontable.GridSettings>`, and `Required<...>` makes every new hook a mandatory key of that object literal. `npm run test:types` reports it as `TS2739: ... is missing the following properties`. Add the hook to `allSettings` in the same change.
+
+> **Index types in a hook payload are per-plugin, and trimming forces the choice.** `nestedRows` reports **physical** row indexes in `beforeRowCollapse` / `afterRowCollapse` / `beforeRowExpand` / `afterRowExpand`, and its `getCollapsedParents()` returns physical indexes too — even though its collapse/expand *methods* take visual indexes. The reason is the plugin's `collapsedRowsMap` being a `TrimmingMap`: a collapsed parent nested inside another collapsed parent is trimmed, so `toVisualRow()` returns `null` for it and the state is not expressible in visual indexes at all. `trimRows` is physical throughout for the same reason, while `hiddenRows` is visual throughout because hiding preserves visual indexes. Before picking an index type for a new payload, check whether the plugin's map trims or hides.
+
 > Type locations. Consumers import hook types from the package: `import type { Events } from 'handsontable'`, where `Events` maps each hook name to its callback signature — see `docs/content/guides/tools-and-building/typescript-types/typescript-types.md`. To add a built-in hook in core, edit the source: the `GridSettings` interface in `src/core/settings.ts` (from which `Events` derives) and the `REGISTERED_HOOKS` array in `src/core/hooks/constants.ts`. The `register()` method in `src/core/hooks/index.ts` is the runtime call plugins use to add their own hook names (next section), not where built-in names are declared.
 
 ### Plugin hook — register at module level
@@ -191,6 +198,30 @@ A hook passed in the constructor settings or `updateSettings` attaches automatic
 
 - A **function** value attaches through `addAsFixed` into the reserved initial-hook slot, and is also written onto `tableMeta`.
 - An **array** of functions attaches through `add`.
+
+**Timing, and the one deliberate exception.** That walk lives in `updateSettings()`, and `init()` calls
+it *after* it has already fired `beforeInit`. So a callback declared in the settings object cannot see
+any hook that fires before that call. `core.ts` therefore registers **`beforeInit` alone** up front,
+immediately before `runHooks('beforeInit')` (GitHub issue #5933); both call sites share the
+`registerSettingsHook()` helper, and re-adding the same reference is a no-op.
+
+Do not generalize that pull-forward to the whole settings object. Plugins attach their feature hooks
+inside `enablePlugin()`, which runs *during* the `beforeInit` dispatch, so registering everything early
+would place settings-declared callbacks ahead of every plugin callback, for every hook.
+
+**Everything dispatched before that registration point is unreachable from the settings object** — not
+a closed pair. That covers `construct`, `afterPluginsInitialized`, and any hook a plugin fires from its
+own `enablePlugin()`, since all of those run during the constructor or the `beforeInit` dispatch. Two
+of them are named public options, so each carries a JSDoc note saying it is global-only:
+
+- **`construct`** fires as the constructor's last statement (`core.ts`, after the plugin loop). Making
+  it reachable means registering settings hooks inside the constructor, and there is no safe slot:
+  before the plugin loop inverts settings-vs-plugin order for *every* later hook, and after it still
+  puts settings hooks ahead of the ones wrappers attach between `new Handsontable.Core()` and `init()`
+  (the React wrapper attaches two there).
+- **`afterPluginsInitialized`** is run from `BasePlugin.init()` during the `beforeInit` dispatch.
+  Pulling it forward would land the callback before `enablePlugin()`, so the hook would fire before the
+  plugins are actually enabled.
 
 ```js
 new Handsontable(el, {
@@ -237,7 +268,7 @@ Behavior, verified against `add` in `index.ts` and `warn` in `src/helpers/consol
 - **Both are warnings, not errors.** Using a removed or deprecated hook does not throw. The action still proceeds; the listener still attaches and runs.
 - **The warning fires every time `add`/`once` runs for that name, not once.** `warn` calls `console.warn` directly with no deduplication. There is no once-guard in the hook path or in `warn`.
 
-> Repo-vs-doc conflict (repo wins). The breaking-changes policy in `handsontable/AGENTS.md` describes removed hooks as showing "an error" and deprecated APIs producing a warning "fired only once." For the **hook** path, the code does neither: removed and deprecated hooks both emit a non-deduplicated `console.warn`. When you remove or rename a public hook, add it to `REMOVED_HOOKS` with the removal version so misuse surfaces in the console. Removing or renaming a public hook is a breaking change — deprecate it first.
+> Repo-vs-doc conflict (repo wins). The breaking-changes policy in `handsontable/AGENTS.md` describes removed hooks as showing "an error" and deprecated APIs producing a warning "fired only once." Method, option, and helper deprecations honor the once rule through `deprecatedWarnOnce` in `helpers/console.ts` (once per page). For the **hook** path, the code does neither: removed and deprecated hooks both emit a non-deduplicated `console.warn` on every `add()`. When you remove or rename a public hook, add it to `REMOVED_HOOKS` with the removal version so misuse surfaces in the console. Removing or renaming a public hook is a breaking change — deprecate it first.
 
 ## Cross-references
 

@@ -105,6 +105,8 @@ Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocompl
 
 The `source` option can be provided in two formats:
 
+You can also assign a function to load the options from a remote source, as described in [Autocomplete strict mode with asynchronous data](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode-with-asynchronous-data). Handsontable ignores a response that arrives after the editor closed - including a close you may not notice, such as scrolling the edited cell out of view - and it ignores a response that a newer query has superseded, which happens as you type. Call the callback whenever the request completes, even late.
+
 ### Array of values
 
 You can provide the `source` option as an array of values that will be used as the dropdown options.
@@ -237,10 +239,10 @@ When working with object-based dropdown data, you can use methods like [`getSour
 
 By default, the dropdown list matches the width of the edited cell, so long options can be truncated. To let the list expand to fit its longest option, set [`trimDropdown`](@/api/options.md#trimdropdown) to `false`.
 
-| Setting          | Description                                               |
-| ---------------- | --------------------------------------------------------- |
-| `true` (default) | Match the dropdown list's width to the edited cell.       |
-| `false`          | Scale the dropdown list's width to its longest option.    |
+| Setting          | Description                                                                      |
+| ---------------- | -------------------------------------------------------------------------------- |
+| `true` (default) | Match the dropdown list's width to the edited cell.                              |
+| `false`          | Expand the list to its content, but keep it at least as wide as the edited cell. |
 
 In the example below, the **Department (default)** column trims the list to the cell, while the **Department (full width)** column expands it. Open a cell in each column to compare.
 

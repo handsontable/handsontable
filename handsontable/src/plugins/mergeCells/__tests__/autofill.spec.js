@@ -88,6 +88,63 @@ describe('MergeCells cooperation with autofill', () => {
     expect(getDataAtCell(4, 2)).toBe('C5'); // untouched - drag stopped one row down
   });
 
+  it('should fill a column that sits within a horizontal merge belonging to a different row (DEV-2124)', async() => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      mergeCells: [
+        { row: 0, col: 0, rowspan: 1, colspan: 3 }, // A1:C1 - horizontal merge in row 0 only
+      ],
+    });
+
+    await selectCell(2, 0); // A3 - normal cell below the merged row
+
+    // Drag the fill handle right by a single column, to B3 - a column that lies inside row 0's
+    // merged band (columns 0-2). Regression: the mouse-to-column lookup measured against the
+    // merged row, so every X inside the band collapsed onto the merge anchor (A3) and the drag
+    // resolved back to the source cell, filling nothing.
+    simulateFillHandleDrag(getCell(2, 1));
+
+    expect(getDataAtCell(2, 1)).toBe('A3'); // filled from the source
+    expect(getDataAtCell(2, 2)).toBe('C3'); // untouched - drag stopped at B3
+  });
+
+  it('should fill several columns within a horizontal merge belonging to a different row (DEV-2124)', async() => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      mergeCells: [
+        { row: 0, col: 0, rowspan: 1, colspan: 3 }, // A1:C1 - horizontal merge in row 0 only
+      ],
+    });
+
+    await selectCell(2, 0); // A3
+
+    // Drag right to C3 - the last column inside row 0's merged band.
+    simulateFillHandleDrag(getCell(2, 2));
+
+    expect(getDataAtCell(2, 1)).toBe('A3');
+    expect(getDataAtCell(2, 2)).toBe('A3');
+    expect(getDataAtCell(2, 3)).toBe('D3'); // untouched - right of the drag range
+  });
+
+  it('should fill into a merged band when a hidden row sits between it and the dragged row (DEV-2124)', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 10),
+      hiddenRows: { rows: [1] }, // hide row 1, between the merged row 0 and row 2
+      mergeCells: [
+        { row: 0, col: 0, rowspan: 1, colspan: 3 }, // A1:C1 horizontal merge in row 0
+      ],
+    });
+
+    await selectCell(2, 0); // the first cell of row 2 within the merged band (row 1 hidden)
+
+    // Drag right one column. The reference-row search must skip the hidden row 1 (no rendered
+    // cell) instead of picking it, which would collapse the column lookup onto the merge anchor.
+    simulateFillHandleDrag(getCell(2, 1));
+
+    expect(getDataAtCell(2, 1)).toBe('A3'); // filled from the source
+    expect(getDataAtCell(2, 2)).toBe('C3'); // untouched - drag stopped one column right
+  });
+
   it('should populate merged cells data up', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),

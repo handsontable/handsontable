@@ -1,0 +1,177 @@
+import { html } from '../../helpers/templateLiteralTag';
+import type { LockContent } from './content';
+import type { HotInstance } from '../../core/types';
+
+// The lock reuses the confirm Dialog's CSS by wearing its class names. The stylesheet ships in full
+// regardless of which JS plugins are bundled, so borrowing the classes inherits the dialog's whole
+// look and sizing for free - while the JS below is a minimal, self-contained copy that never
+// imports the (optional) Dialog plugin. Keep these names in sync with `plugins/dialog/constants.ts`
+// and the confirm template.
+const DIALOG_CLASS = 'ht-dialog';
+const LOCK_CLASS = 'ht-license-lock';
+const SCOPE_ID = 'licenseLock';
+const SHORTCUTS_CONTEXT_NAME = `plugin:${SCOPE_ID}`;
+const SHORTCUTS_GROUP = SCOPE_ID;
+
+/**
+ * Mounts the license lock screen: a blocking, non-dismissable overlay covering the grid.
+ * It looks and sizes itself exactly like a confirm Dialog by wearing the dialog's own CSS class
+ * names (the stylesheet is always shipped in full, so the styling is inherited without duplicating
+ * it), but it is a self-contained Core-owned element - it never touches the Dialog PLUGIN, which is
+ * optional (it may be absent from a bundle) and, being a single shared surface an app uses for its
+ * own dialogs, could not tell its own lifecycle apart from the lock's. This lock owns its element,
+ * so showing it is unambiguous.
+ *
+ * Only the copy and behavior differ from a confirm dialog: it cannot be dismissed (no Close button,
+ * no Escape shortcut - the hard stop is final), and it sits above app dialogs. Its width is pinned
+ * to the table's workspace width on every render (the `.ht-dialog` box is otherwise `width: 100%`,
+ * which would span the whole root wrapper, not the grid - a minimal copy of the plugin's own
+ * sizing); its height is the grid box. It integrates with the focus manager as a modal scope and
+ * routes its Tab focus trap through the shortcut manager, exactly like the Dialog plugin.
+ *
+ * @param {HotInstance} hotInstance The root Handsontable instance.
+ * @param {LockContent} content The lock copy.
+ * @returns {void}
+ */
+export function mountLicenseLock(hotInstance: HotInstance, content: LockContent): void {
+  const host = hotInstance.rootOverlaysElement;
+
+  if (!host) {
+    return;
+  }
+
+  const focusScopeManager = hotInstance.getFocusScopeManager();
+  const shortcutManager = hotInstance.getShortcutManager();
+  const isRtl = hotInstance.isRtl();
+  const titleId = `${hotInstance.guid}-license-lock-title`;
+  const descriptionId = `${hotInstance.guid}-license-lock-description`;
+  // The exact class set the plugin's confirm dialog carries when shown, plus `ht-license-lock`.
+  const lockClassName = `${DIALOG_CLASS} ${DIALOG_CLASS}--confirm handsontable ${LOCK_CLASS} ` +
+    `${DIALOG_CLASS}--background-solid ${DIALOG_CLASS}--show`;
+
+  // The confirm-dialog DOM, rebuilt with the dialog's class names (`ht-dialog--confirm`,
+  // `__content-wrapper`, `__content`, `__title`, `__description`, `__buttons`, `ht-button`) plus the
+  // `handsontable` class the dialog carries (the `.ht-button` base rules are scoped under it). The
+  // copy is assigned through `textContent` below, never interpolated into the markup.
+  const { refs } = html`
+    <div data-ref="lock" class="${lockClassName}"
+      role="alertdialog" aria-modal="true"
+      aria-labelledby="${titleId}" aria-describedby="${descriptionId}"
+      tabindex="-1" dir="${isRtl ? 'rtl' : 'ltr'}" style="display: block;">
+      <div class="${DIALOG_CLASS}__content-wrapper">
+        <div data-ref="inner" tabindex="-1" class="${DIALOG_CLASS}__content-wrapper-inner">
+          <div class="${DIALOG_CLASS}__content">
+            <h2 data-ref="title" id="${titleId}" class="${DIALOG_CLASS}__title"></h2>
+            <p data-ref="description" id="${descriptionId}" class="${DIALOG_CLASS}__description"></p>
+          </div>
+          <div class="${DIALOG_CLASS}__buttons">
+            <a data-ref="contactButton" class="ht-button ht-button--secondary" rel="noopener"></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  const lock = refs.lock;
+
+  refs.title.textContent = content.title;
+  refs.description.textContent = content.description;
+  // A real ANCHOR wearing the button classes, not a button with a click handler. The action is a
+  // `mailto:` address, and neither scripted route is safe for one: `window.open(..., '_blank')`
+  // leaves an empty tab behind on Firefox and Safari once the mail client takes over, and assigning
+  // `location.href` is treated as a real navigation by several browsers when no mail handler is
+  // registered - which would unload the app, or the iframe, from under a lock that cannot be
+  // dismissed. A same-window anchor click is the one path browsers special-case, and it is what the
+  // bottom bar and the badge popover already use for the same addresses.
+  refs.contactButton.textContent = content.action.text;
+  // `setAttribute`, because the template's refs are plain `HTMLElement`s - no cast needed for one
+  // attribute.
+  refs.contactButton.setAttribute('href', content.action.href);
+
+  // Built as nodes, never interpolated: the copy is authored here, but keeping it out of `innerHTML`
+  // means no license sentence can ever become markup. The anchor joins the Tab trap for free -
+  // `getFocusableControls` below collects `a[href]` too.
+  if (content.docsLink) {
+    const link = hotInstance.rootDocument.createElement('a');
+
+    link.href = content.docsLink.href;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.textContent = content.docsLink.text;
+
+    refs.description.appendChild(link);
+    refs.description.appendChild(hotInstance.rootDocument.createTextNode(content.docsLink.trailingText));
+  }
+
+  // Collects the action anchor and the optional documentation link, in document order.
+  const getFocusableControls = () => Array.from(lock.querySelectorAll<HTMLElement>('a[href], button'));
+
+  // Match the dialog's sizing: the `.ht-dialog` box is `width: 100%` of the root wrapper, so it is
+  // pinned to the table's workspace width on every render (a minimal copy of the plugin's
+  // `#onAfterViewRender`); the height is the grid box via the CSS `height: 100%`.
+  const syncWidth = () => {
+    const { view } = hotInstance;
+    const width = view.isHorizontallyScrollableByWindow()
+      ? view.getTotalTableWidth() : view.getWorkspaceWidth();
+
+    lock.style.width = `${width}px`;
+  };
+
+  hotInstance.addHook('afterViewRender', syncWidth);
+
+  const shortcutsContext = shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME) ??
+    shortcutManager.addContext(SHORTCUTS_CONTEXT_NAME);
+
+  // The modal focus trap: Tab cycles through the lock's own controls and never leaves. The focus
+  // scope switches the manager to this context while focus is inside the lock, so these shortcuts
+  // never fire for the grid and the grid's shortcuts never fire under the lock.
+  shortcutsContext.addShortcut({
+    keys: [['Tab'], ['Shift', 'Tab']],
+    callback: (event: KeyboardEvent) => {
+      const controls = getFocusableControls();
+      const index = controls.indexOf(hotInstance.rootDocument.activeElement as HTMLElement);
+      const delta = event.shiftKey ? -1 : 1;
+
+      controls[(index + delta + controls.length) % controls.length]?.focus();
+    },
+    group: SHORTCUTS_GROUP,
+  });
+
+  focusScopeManager.registerScope(SCOPE_ID, lock, {
+    shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
+    type: 'modal',
+    onActivate: (focusSource: string) => {
+      const controls = getFocusableControls();
+
+      if (focusSource === 'tab_from_below') {
+        controls[controls.length - 1]?.focus();
+      } else {
+        // The ACTION, not the first control in document order: where a lock carries a documentation
+        // link, that link sits inside the description and so comes first in the DOM. Tab still
+        // cycles in document order - only the landing point is the button.
+        refs.contactButton.focus();
+      }
+    },
+  });
+
+  host.appendChild(lock);
+
+  // The lock mounts during `init()`, before the grid's first render, so its width sync waits for
+  // `afterInit`.
+  //
+  // It does NOT take focus here. A grid can initialize while the user is typing somewhere else on the
+  // page (a login form above it, another grid), and grabbing the keyboard at construction would pull
+  // focus out of that field, scroll the page down to the lock, and - because `listen()` un-listens
+  // every other instance - take the keyboard away from a licensed grid too. Two blocked grids would
+  // fight over it. The Dialog plugin guards its own focus grab the same way, on whether the grid was
+  // already listening.
+  //
+  // Nothing is lost by waiting: the focus scope manager activates a scope, and calls `listen()`
+  // itself, on the first focusin or click inside the scope element. So the Tab trap engages the moment
+  // the user actually reaches the lock - by clicking it (it covers the whole grid) or by tabbing in
+  // through a focus catcher - and not one moment earlier.
+  hotInstance.addHookOnce('afterInit', () => {
+    syncWidth();
+    // The grid underneath is unusable, so it must not look selected. This moves no focus.
+    hotInstance.deselectCell();
+  });
+}

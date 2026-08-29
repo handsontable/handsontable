@@ -1,5 +1,6 @@
 import {
   equalsIgnoreCase,
+  escapeHtml,
   sanitize,
   substitute,
   stripTags,
@@ -7,8 +8,15 @@ import {
   toHyphen,
   localeLowerCase,
 } from 'handsontable/helpers/string';
+import { _resetDeprecationWarnings } from 'handsontable/helpers/console';
 
 describe('String helper', () => {
+  beforeEach(() => {
+    // `deprecatedWarnOnce` records printed warnings module-globally, so without this the
+    // `sanitize` deprecation assertion below would depend on the order the specs run in.
+    _resetDeprecationWarnings();
+  });
+
   //
   // Handsontable.helper.equalsIgnoreCase
   //
@@ -50,6 +58,22 @@ describe('String helper', () => {
   // Handsontable.helper.sanitize
   //
   describe('sanitize', () => {
+    // Runs first: the warning is printed once per page, before any other call in this suite.
+    it('should warn once about the deprecation', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      sanitize('<b>a</b>');
+      sanitize('plain');
+
+      const deprecationCalls = warnSpy.mock.calls
+        .filter(([message]) => String(message).includes('`sanitize()`'));
+
+      expect(deprecationCalls.length).toBe(1);
+      expect(deprecationCalls[0][0]).toMatch(/^Deprecated: .*`sanitizer`/);
+
+      warnSpy.mockRestore();
+    });
+
     it('should return the string unchanged (pass-through — DOMPurify removed)', () => {
       expect(sanitize('')).toBe('');
       expect(sanitize('<i aria-label="bar">foo</i>')).toBe('<i aria-label="bar">foo</i>');
@@ -73,6 +97,24 @@ describe('String helper', () => {
       expect(stripTags('<script>alert()</script>')).toBe('alert()');
       expect(stripTags('<strong>Hello</strong> <span class="my">my</span> world<sup>2</sup>')).toBe('Hello my world2');
       expect(stripTags('This is my <a href="https://handsontable.com">link</a>')).toBe('This is my link');
+    });
+  });
+
+  describe('escapeHtml', () => {
+    it('should escape the characters that carry meaning in HTML', () => {
+      expect(escapeHtml('')).toBe('');
+      expect(escapeHtml('<i>foo</i>')).toBe('&lt;i&gt;foo&lt;/i&gt;');
+      expect(escapeHtml('" onerror="alert(1)')).toBe('&quot; onerror=&quot;alert(1)');
+      expect(escapeHtml('\' onerror=\'alert(1)')).toBe('&#39; onerror=&#39;alert(1)');
+      expect(escapeHtml('Tom & Jerry')).toBe('Tom &amp; Jerry');
+      // the ampersand is escaped first, so an entity in the input survives as literal text
+      expect(escapeHtml('&lt;')).toBe('&amp;lt;');
+    });
+
+    it('should keep text containing comparison signs whole, unlike stripTags', () => {
+      expect(escapeHtml('Loaded 5 < 10 rows')).toBe('Loaded 5 &lt; 10 rows');
+      expect(escapeHtml('a < b and c > d')).toBe('a &lt; b and c &gt; d');
+      expect(stripTags('Loaded 5 < 10 rows')).toBe('Loaded 5 ');
     });
   });
 

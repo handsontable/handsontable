@@ -348,44 +348,6 @@ describe('exportFile XLSX type — cell types', () => {
 
       expect(ws.getRow(1).getCell(1).value).toBe('not-a-time');
     });
-
-    // Known issue: Excel for Mac shows time cells in the "Custom" format category
-    // instead of "Time", even though ExcelJS correctly writes the built-in OOXML
-    // numFmtId=21 (`h:mm:ss`).  All evidence points to a Mac Excel quirk — the
-    // generated OOXML is spec-compliant and Excel for Windows categorizes it correctly.
-    // The test is disabled until either:
-    //   (a) a workaround is found (e.g. a different numFmt code that Mac Excel reliably
-    //       places in the "Time" category), or
-    //   (b) we establish a programmatic way to assert Excel's UI category from OOXML.
-    // To reproduce manually: export any Handsontable with a `time`-type column, open
-    // the XLSX in Excel for Mac, select a time cell, press ⌘1 — Category shows "Custom"
-    // instead of "Time".
-    xit('should render time cells in the "Time" format category (not "Custom") in Excel', async() => {
-      // The OOXML built-in format IDs that Excel maps to the "Time" category:
-      // 18 → h:mm AM/PM   19 → h:mm:ss AM/PM   20 → h:mm   21 → h:mm:ss
-      // 45 → mm:ss        46 → [h]:mm:ss        47 → mmss.0
-      const BUILT_IN_TIME_FORMAT_CODES = new Set([
-        'h:mm AM/PM', 'h:mm:ss AM/PM', 'h:mm', 'h:mm:ss', 'mm:ss', '[h]:mm:ss', 'mmss.0',
-      ]);
-
-      handsontable({
-        data: [['09:30:00']],
-        columns: [{
-          type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
-        }],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-      const cell = ws.getRow(1).getCell(1);
-
-      // The numFmt read back by ExcelJS must be one of the built-in OOXML Time format
-      // codes.  If it is, the cell uses a built-in numFmtId (<164) and Excel should
-      // place it in the "Time" category.  Currently this assertion passes (ExcelJS
-      // writes numFmtId=21, `h:mm:ss`), yet Excel for Mac still shows "Custom".
-      // Replace / extend this assertion once a real fix is found.
-      expect(BUILT_IN_TIME_FORMAT_CODES.has(cell.numFmt)).toBe(true);
-    });
   });
 
   describe('checkbox type cells', () => {

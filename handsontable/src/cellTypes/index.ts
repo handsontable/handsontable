@@ -4,6 +4,7 @@ import { DateCellType, CELL_TYPE as DATE_TYPE } from './dateType';
 import { DropdownCellType, CELL_TYPE as DROPDOWN_TYPE } from './dropdownType';
 import { HandsontableCellType, CELL_TYPE as HANDSONTABLE_TYPE } from './handsontableType';
 import { IntlDateCellType, CELL_TYPE as INTL_DATE_TYPE } from './intlDateType';
+import { IntlDatetimeCellType, CELL_TYPE as INTL_DATETIME_TYPE } from './intlDatetimeType';
 import { IntlTimeCellType, CELL_TYPE as INTL_TIME_TYPE } from './intlTimeType';
 import { MultiSelectCellType, LEGACY_CELL_TYPE as LEGACY_MULTISELECT_TYPE } from './multiSelectType';
 export { CELL_TYPE as MULTISELECT_TYPE } from './multiSelectType';
@@ -26,6 +27,7 @@ export function registerAllCellTypes() {
   registerCellType(DropdownCellType);
   registerCellType(HandsontableCellType);
   registerCellType(IntlDateCellType);
+  registerCellType(IntlDatetimeCellType);
   registerCellType(IntlTimeCellType);
   registerCellType(MultiSelectCellType);
   registerCellType(LEGACY_MULTISELECT_TYPE, MultiSelectCellType);
@@ -43,6 +45,7 @@ export {
   DropdownCellType, DROPDOWN_TYPE,
   HandsontableCellType, HANDSONTABLE_TYPE,
   IntlDateCellType, INTL_DATE_TYPE,
+  IntlDatetimeCellType, INTL_DATETIME_TYPE,
   IntlTimeCellType, INTL_TIME_TYPE,
   MultiSelectCellType,
   NumericCellType, NUMERIC_TYPE,
@@ -64,5 +67,6 @@ export {
  * All built-in cell type names.
  */
 export type CellType = typeof AUTOCOMPLETE_TYPE | typeof CHECKBOX_TYPE | typeof DATE_TYPE |
-  typeof DROPDOWN_TYPE | typeof HANDSONTABLE_TYPE | typeof INTL_DATE_TYPE | typeof INTL_TIME_TYPE |
+  typeof DROPDOWN_TYPE | typeof HANDSONTABLE_TYPE | typeof INTL_DATE_TYPE |
+  typeof INTL_DATETIME_TYPE | typeof INTL_TIME_TYPE |
   typeof NUMERIC_TYPE | typeof PASSWORD_TYPE | typeof SELECT_TYPE | typeof TEXT_TYPE | typeof TIME_TYPE | string;

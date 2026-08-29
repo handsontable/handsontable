@@ -2,6 +2,7 @@ import { A11Y_HIDDEN } from '../a11y';
 import { isSafariBefore261, isMobileBrowser, isIpadOS, isWindowsOS } from '../browser';
 import { throwWithCause } from '../../helpers/errors';
 import { warnOnce } from '../../helpers/console';
+import type { SanitizerContext } from '../../core/settings';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -309,6 +310,30 @@ function filterEmptyClassNames(classNames: string[]) {
   return classNames.filter((x: string) => !!x);
 }
 
+/**
+ * Normalizes a `className` value to a flat array of non-empty class names.
+ * Accepts a space-separated string, an array of strings, or a nullish value.
+ *
+ * Filtering is truthiness-based and shared with `addClass` through `filterEmptyClassNames`, so the
+ * cell meta path and the DOM path always agree on what counts as a class. A truthy non-string
+ * therefore survives, which makes the declared `string[]` slightly optimistic for out-of-contract
+ * input - that is deliberate. Do not "fix" the type by adding a second, stricter filter here.
+ *
+ * @param {string|string[]|null|undefined} className The `className` value to normalize.
+ * @returns {string[]}
+ */
+export function normalizeClassNames(className: string | string[] | null | undefined): string[] {
+  if (Array.isArray(className)) {
+    return filterEmptyClassNames(className);
+  }
+
+  if (typeof className === 'string') {
+    return filterEmptyClassNames(className.split(' '));
+  }
+
+  return [];
+}
+
 function filterRegexes(list: (string | RegExp)[], returnBoth: true): { regexFree: string[]; regexes: RegExp[] };
 function filterRegexes(list: (string | RegExp)[], returnBoth?: false): string[];
 /**
@@ -525,6 +550,24 @@ export const HTML_CHARACTERS = /(<([^>]*)>|&([^;]*);)/;
 export const SANITIZER_WARN_KEY = 'sanitizer';
 
 /**
+ * Builds the missing-sanitizer warning. Every surface that writes raw HTML uses this, whether it
+ * goes through `fastInnerHTML` or sanitizes a string first (`utils/sanitizer.ts`), so the wording
+ * cannot drift between them.
+ *
+ * It lives here rather than beside its second caller because `utils/sanitizer.ts` already imports
+ * from this module, and the reverse direction would be a cycle. That makes it public through
+ * `Handsontable.dom`, like `HTML_CHARACTERS` and `SANITIZER_WARN_KEY` above it - accepted
+ * deliberately: it is a pure string builder, and it is useful to anyone writing their own sink.
+ *
+ * @param {string} context The write surface that is about to receive raw HTML.
+ * @returns {string} The warning message.
+ */
+export function missingSanitizerMessage(context: string): string {
+  return `HTML content is being written to the DOM ("${context}") without a sanitizer. ` +
+    'Configure the "sanitizer" option to prevent XSS vulnerabilities.';
+}
+
+/**
  * Default scope used when a caller writes raw HTML without supplying a per-instance
  * scope. Keeps the warning to once per process for such callers.
  */
@@ -535,32 +578,34 @@ const defaultSanitizerWarnScope = {};
  *
  * @param {HTMLElement} element An element to write into.
  * @param {string} content The text to write.
- * @param {boolean|function(string, string): string} [sanitizer] When a function, use it as the sanitizer; when `false`,
+ * @param {boolean|function(string, SanitizerContext): string} [sanitizer] When a function, use it as the sanitizer; when `false`,
  * write the content as raw HTML on purpose (no warning); when `true` (the default), write the content as raw HTML and
  * warn once that no sanitizer is configured.
- * @param {string} [context] The sanitization context passed as the second argument to a custom sanitizer function, and
+ * @param {SanitizerContext} [context] The sanitization context passed as the second argument to a custom sanitizer function, and
  * used in the missing-sanitizer warning to identify the write surface.
- * @param {object} [scope] Object the "warn once" state is bound to (for example, `hot.rootGridElement`), so the warning
- * is shown at most once per Handsontable instance.
+ * @param {object} [scope] Object the "warn once" state is bound to (`hot.rootElement` at every call site
+ * inside the grid), so the warning is shown at most once per Handsontable instance.
  */
 export function fastInnerHTML(
   element: HTMLElement, content: string,
-  sanitizer: boolean | ((html: string, context: string) => string) = true,
-  context = 'innerHTML',
+  sanitizer: boolean | ((html: string, context: SanitizerContext) => string) = true,
+  context: SanitizerContext = 'innerHTML',
   scope: object = defaultSanitizerWarnScope): void {
   if (HTML_CHARACTERS.test(content)) {
     let sanitized: string;
 
     if (typeof sanitizer === 'function') {
-      sanitized = sanitizer(content, context);
+      // `?? ''` rather than `?? content`: a sanitizer that returns nothing for input it strips
+      // entirely must not have the raw input written back, which would undo the sanitizing. The
+      // declared return type is `string`, but JavaScript callers are not held to it, and without
+      // this guard the literal word "undefined" reaches the DOM.
+      sanitized = sanitizer(content, context) ?? '';
     } else {
       // `false` means the caller renders raw HTML deliberately (for example, the `html` cell type).
       // Any other non-function value (the default `true`) is an implicit raw write, so nudge once
       // toward configuring a sanitizer to prevent XSS.
       if (sanitizer !== false) {
-        warnOnce(scope, SANITIZER_WARN_KEY,
-          `HTML content is being written to the DOM ("${context}") without a sanitizer. ` +
-          'Configure the "sanitizer" option to prevent XSS vulnerabilities.');
+        warnOnce(scope, SANITIZER_WARN_KEY, missingSanitizerMessage(context));
       }
 
       sanitized = content;
@@ -1351,7 +1396,7 @@ export function isOutsideInput(element: HTMLElement): boolean {
  * @param {HTMLElement} element - DOM element.
  */
 export function selectElementIfAllowed(element: HTMLElement): void {
-  const activeElement = element.ownerDocument.activeElement;
+  const activeElement = getDeepActiveElement(element.ownerDocument);
 
   if (isHTMLElement(activeElement) && !isOutsideInput(activeElement) &&
       (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)) {
@@ -1373,10 +1418,15 @@ export function isDetached(element: HTMLElement): boolean {
  * Set up an observer to recognize when the provided element first becomes visible and trigger a callback when it
  * happens.
  *
+ * The observer is returned so the caller can disconnect it earlier - a pending delivery carries the state from
+ * the moment its snapshot was taken, so it can arrive after the observed element (or its owner) is gone.
+ *
  * @param {HTMLElement} elementToBeObserved Element to be observed.
  * @param {Function} callback The callback function.
+ * @returns {IntersectionObserver} The observer watching the element.
  */
-export function observeVisibilityChangeOnce(elementToBeObserved: HTMLElement, callback: () => void) {
+export function observeVisibilityChangeOnce(
+  elementToBeObserved: HTMLElement, callback: () => void): IntersectionObserver {
   const visibilityObserver = new IntersectionObserver((entries, observer) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
@@ -1387,6 +1437,8 @@ export function observeVisibilityChangeOnce(elementToBeObserved: HTMLElement, ca
   });
 
   visibilityObserver.observe(elementToBeObserved);
+
+  return visibilityObserver;
 }
 
 /**
@@ -1504,11 +1556,61 @@ export function isHTMLInputElement(element: HTMLElement): element is HTMLInputEl
 /**
  * Check if the node is a ShadowRoot (a document fragment attached to a host element).
  *
- * @param {Node} node Node to check.
+ * @param {Node|EventTarget} node Node to check.
  * @returns {boolean} `true` if the node is a ShadowRoot.
  */
-export function isShadowRoot(node: Node): node is ShadowRoot {
-  return node.nodeType === Node.DOCUMENT_FRAGMENT_NODE && 'host' in node;
+export function isShadowRoot(node: Node | EventTarget): node is ShadowRoot {
+  if (typeof node !== 'object' || node === null) {
+    return false;
+  }
+
+  return 'nodeType' in node && node.nodeType === Node.DOCUMENT_FRAGMENT_NODE && 'host' in node;
+}
+
+/**
+ * Gets the chain of shadow host elements the node is rendered within, ordered from the
+ * closest host outward to the host attached to the document.
+ *
+ * @param {Node} node The node to read the host chain from.
+ * @returns {HTMLElement[]} The shadow host elements; empty when the node is not in a Shadow DOM tree.
+ */
+export function getShadowHostChain(node: Node): HTMLElement[] {
+  const hosts: HTMLElement[] = [];
+  let rootNode = node.getRootNode();
+
+  while (isShadowRoot(rootNode)) {
+    const { host } = rootNode;
+
+    if (!isHTMLElement(host)) {
+      break;
+    }
+
+    hosts.push(host);
+    rootNode = host.getRootNode();
+  }
+
+  return hosts;
+}
+
+/**
+ * Gets the deepest active (focused) element in the document. When the focus is inside
+ * a Shadow DOM tree, `document.activeElement` points at the shadow host instead of the
+ * focused element. This helper descends through the open shadow roots and returns
+ * the element that actually holds the focus.
+ *
+ * @param {Document} rootDocument The document to read the active element from.
+ * @returns {Element|null} The deepest focused element. The browser reports `document.body`
+ * when no other element holds the focus; `null` appears only in edge cases such as
+ * a document with no body.
+ */
+export function getDeepActiveElement(rootDocument: Document): Element | null {
+  let element = rootDocument.activeElement;
+
+  while (element?.shadowRoot?.activeElement) {
+    element = element.shadowRoot.activeElement;
+  }
+
+  return element;
 }
 
 /**

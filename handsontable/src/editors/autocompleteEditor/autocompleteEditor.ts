@@ -1,10 +1,12 @@
 import type { HotInstance } from '../../core/types';
 import type { CellProperties } from '../../settings';
+import { EDITOR_STATE } from '../baseEditor';
 import { HandsontableEditor } from '../handsontableEditor';
 import { pivot } from '../../helpers/array';
 import { isKeyValueObject, isObject } from '../../helpers/object';
 import {
   addClass,
+  fastInnerHTML,
   getCaretPosition,
   getFractionalScalingCompensation,
   getScrollbarWidth,
@@ -76,6 +78,30 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @type {string}
    */
   #idPrefix = this.hot.guid.slice(0, 9);
+  /**
+   * Generation token for the in-flight choices query. Bumped on every `queryChoices()` call, so a
+   * response belonging to a superseded query can be told apart from the one the editor is waiting
+   * for.
+   *
+   * @type {number}
+   */
+  #queryGeneration = 0;
+  /**
+   * Edit-session token. Bumped on every `close()`, so a `source` response can tell that the edit it
+   * belongs to has ended - which neither `state` nor `_opened` reports reliably. Only the response
+   * needs a token: user code holds that callback and there is nothing to cancel, while the editor's
+   * own deferred queries are cancelled outright through `#queryTimeouts`.
+   *
+   * @type {number}
+   */
+  #editSession = 0;
+  /**
+   * Timer ids of the `queryChoices()` calls this editor has deferred and not yet run. Cleared on
+   * `close()`, so a query scheduled during an edit never runs after it.
+   *
+   * @type {Set}
+   */
+  #queryTimeouts: Set<ReturnType<typeof setTimeout>> = new Set();
 
   /**
    * Gets current value from editable element.
@@ -168,6 +194,14 @@ export class AutocompleteEditor extends HandsontableEditor {
     this.htEditor.updateSettings({
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : undefined,
       autoColumnSize: true,
+      // With `trimDropdown: false` the list column is sized from its content by
+      // AutoColumnSize, so short options produced a list narrower than the edited
+      // cell (#13180). Floor the column at the cell width: the option rows stay
+      // full-width click targets, and `getTargetEditorWidth()` (which reads
+      // `getColWidth(0)`) widens the outer container to match automatically.
+      modifyColWidth: trimDropdown ? undefined : (width?: number): number => {
+        return Math.max(width ?? 0, outerWidth(this.TEXTAREA) - 2);
+      },
       renderer: (
         hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
         prop: string | number, value: unknown, cellProperties: CellProperties) => {
@@ -179,7 +213,21 @@ export class AutocompleteEditor extends HandsontableEditor {
         const cellValue = stringify(value);
 
         if (allowHtml) {
-          TD.innerHTML = cellValue;
+          // `allowHtml` is an explicit opt-in to raw HTML, disabled by default and warned about in
+          // its own documentation. PR #7368 turned sanitizing off for it and for the `html` cell
+          // type deliberately, and `autocompleteRenderer` still writes the cell that way, so the
+          // dropdown keeps matching it: `false` means raw, and silent about it.
+          //
+          // Going through `fastInnerHTML` rather than assigning `innerHTML` directly is what makes
+          // that a stated policy instead of an unguarded sink, and leaves one place to revisit if
+          // a configured `sanitizer` is ever made to cover this content.
+          //
+          // The scope argument is inert while the sanitizer is `false` - nothing reads an option
+          // and nothing warns. It is `this.hot.rootElement`, not the `hotInstance` argument,
+          // because this renderer runs inside `htEditor`, a separate Handsontable instance with
+          // its own settings. That matters the moment the `false` above is revisited: reading the
+          // option off the argument would silently consult the wrong grid.
+          fastInnerHTML(TD, cellValue, false, 'html', this.hot.rootElement);
         } else if (cellValue && query && query.length > 0) {
           const indexOfMatch = filteringCaseSensitive === true ?
             cellValue.indexOf(query) : localeLowerCase(cellValue, locale).indexOf(localeLowerCase(query, locale));
@@ -254,15 +302,56 @@ export class AutocompleteEditor extends HandsontableEditor {
       setAttribute(this.TEXTAREA, ...A11Y_EXPANDED('true'));
     }
 
-    this.hot._registerTimeout(() => {
+    this.#deferQuery();
+  }
+
+  /**
+   * Defers a `queryChoices()` call and keeps its timer id so `close()` can cancel it.
+   *
+   * `hot._registerTimeout()` has no cancel path of its own - `_clearTimeouts()` runs only from
+   * `Core#destroy()` - so without this a query scheduled during an edit still fires after the
+   * editor closed, and starts a fresh request against a cell nobody is editing.
+   *
+   * @param {number} [delay] Delay in milliseconds.
+   */
+  #deferQuery(delay: number = 0): void {
+    const timeoutId = this.hot._registerTimeout(() => {
+      this.#queryTimeouts.delete(timeoutId);
       this.queryChoices(this.TEXTAREA.value);
-    });
+    }, delay);
+
+    this.#queryTimeouts.add(timeoutId);
   }
 
   /**
    * Closes the editor.
    */
   close(): void {
+    // The debounced refocus is armed by the inner grid's `afterScroll` and runs 100 ms later. It
+    // outlives the close by the same route the choices response used to, and `hideEditableElement()`
+    // only sets `opacity: 0`, so its `focus()` puts the caret back into a closed editor. The next
+    // scroll of a reopened list re-arms it, so cancelling here loses nothing.
+    this.#focusDebounced.cancel();
+
+    // Ends the edit session. Closing is the one event that reliably means "no response is wanted
+    // any more": `state` stays `EDITING` when `refreshDimensions()` closes an editor whose cell
+    // scrolled out of the rendered range and when `afterSetTheme` closes one (`assignHooks`), and
+    // `_opened` stays false after that same cell scrolls back and the editor is shown again.
+    //
+    // Queries this editor deferred are cancelled outright; the token below is for the ones already
+    // handed to user code, which cannot be.
+    //
+    // Known limitation: `refreshDimensions()` also calls `close()` as "hide for now" when the
+    // edited cell scrolls out of the rendered range, and there is no signal here to tell that apart
+    // from "the edit ended". So after the cell scrolls back the editor is visible again but its
+    // list can no longer populate. That path was already one-way before this change - the
+    // `removeHooksByKey` below means typing could not re-query after a scroll round trip either -
+    // and separating the two meanings belongs in `TextEditor`, not here.
+    this.#queryTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+    this.#queryTimeouts.clear();
+
+    this.#editSession += 1;
+
     this.removeHooksByKey('beforeKeyDown');
     super.close();
 
@@ -288,17 +377,57 @@ export class AutocompleteEditor extends HandsontableEditor {
   /**
    * Prepares choices list based on applied argument.
    *
+   * Does nothing when the editor is not editing, and ignores a `source` response that arrives after
+   * the editor closed or after a newer query started.
+   *
    * @param {string} query The query.
    */
   queryChoices(query: string): void {
+    // `close()` cancels the queries this editor deferred, so no internal caller reaches here once
+    // an edit has ended. This guard is for the public method: `queryChoices()` ships in the type
+    // declarations, and calling it while no edit is in progress must not invoke the user's
+    // `source`, which is typically a network request.
+    //
+    // `WAITING` counts as in progress. `close()` is what unhooks `beforeKeyDown`, so keystrokes
+    // still schedule queries while an async validator runs, and under `allowInvalid: false` the
+    // editor stays open and returns to `EDITING`. Rejecting them would stop the list refreshing for
+    // the length of every validation, which is a behavior change rather than a fix.
+    //
+    // `state` rather than `isOpened()`: `_opened` stays false after `refreshDimensions()` closes an
+    // editor whose cell scrolled out of view and then shows it again on the way back, without ever
+    // restoring the flag.
+    if (this.state !== EDITOR_STATE.EDITING && this.state !== EDITOR_STATE.WAITING) {
+      return;
+    }
+
     type SourceValue = unknown[] | ((query: string, callback: (choices: unknown[]) => void) => void);
     const source = this.cellProperties.source as SourceValue | undefined;
+    const generation = this.#queryGeneration + 1;
+    const editSession = this.#editSession;
 
+    this.#queryGeneration = generation;
     this.query = query;
 
     if (typeof source === 'function') {
       type SourceFn = (query: string, callback: (choices: unknown[]) => void) => void;
+
       (source as SourceFn).call(this.cellProperties, query, (choices: unknown[]) => {
+        // A user-supplied source answers whenever it likes, and `HandsontableEditor.close()` only
+        // hides the nested grid, so a late response can still re-show the dropdown and pull focus
+        // back through `hot.listen()`. Two ways a response stops being the one the editor waits
+        // for, one token each: the edit ended, or a newer query superseded it. Deliberately no
+        // state check - a response landing while an async validator holds the editor in `WAITING`
+        // belongs to the still-open editor, and rejecting it would leave the list empty for the
+        // rest of the edit when `allowInvalid: false` sends the state back to `EDITING`.
+        // `Core#destroy()` reaches neither token - it never closes the active editor - and
+        // `updateChoicesList()` would then touch an `htEditor` whose root element is gone. The
+        // guide tells people to answer late, and in a single-page app a torn-down grid is the
+        // usual way that happens.
+        if (this.hot.isDestroyed || editSession !== this.#editSession ||
+            generation !== this.#queryGeneration) {
+          return;
+        }
+
         this.rawChoices = choices;
         this.updateChoicesList(this.stripValuesIfNeeded(choices));
       });
@@ -329,7 +458,11 @@ export class AutocompleteEditor extends HandsontableEditor {
     let choices = choicesList;
 
     if (!sortByRelevanceSetting) {
-      choices = choices.toSorted((a, b) => stringify(a).localeCompare(stringify(b)));
+      // Sort a copy: `updateChoicesList` is public API, so the caller's array (typically the
+      // `source` setting) must keep its original order. The spread also keeps iterable callers (a
+      // Set, a NodeList) working, which `Array#toSorted` would not — the floor now allows it, but
+      // switching would narrow what this public method accepts.
+      choices = [...choices].sort((a, b) => stringify(a).localeCompare(stringify(b)));
     }
 
     const filteredChoiceIndexes: number[] = [];
@@ -416,23 +549,42 @@ export class AutocompleteEditor extends HandsontableEditor {
     const dropdownHeight = this.getDropdownHeight();
 
     if (dropdownHeight > spaceAvailable) {
-      let tempHeight = 0;
-      let lastRowHeight = 0;
-      let height = 0;
+      const rowHeight = this.htEditor.stylesHandler.getDefaultRowHeight() ?? 0;
 
-      do {
-        lastRowHeight = this.htEditor.stylesHandler.getDefaultRowHeight() ?? 0;
-        tempHeight += lastRowHeight;
-      } while (tempHeight < spaceAvailable);
+      if (rowHeight === 0) {
+        return;
+      }
 
-      height = tempHeight - lastRowHeight;
+      // Show whole rows only, and stop one row short of the boundary: `Math.ceil(...) - 1` is the
+      // exact arithmetic of the do/while this replaced ("add rows until one crosses the free
+      // space, then step back a row"), so an exactly-fitting space still leaves its last row out.
+      // That margin is deliberately preserved - the list is trimmed because it overflows the
+      // workspace, and the rendered rows carry a border the raw row height does not.
+      //
+      // `Math.max(..., 1)` is the fix: without it the height collapsed to 0 whenever the free
+      // space was not taller than a single row, rendering the list as an invisible sliver that hid
+      // every choice - the flexbox-squeezed grids reported in #8872. The MultiSelect editor's
+      // dropdown clamps to one entry the same way (`dropdownController.updateDimensions()`).
+      //
+      // A caveat this cannot solve here: the grid's root element gets `overflow: clip` whenever a
+      // `height` is set, so when the free space is narrower than the forced row, that row is
+      // partly clipped by the grid's bottom edge - fully so when the space reaches 0. Making it
+      // readable in those extremes needs the dropdown to escape the clipping root (DEV-1656).
+      //
+      // No border compensation here, unlike `getTargetDropdownHeight()`'s `getTableHeight() + 1`.
+      // Adding it was measured and changes nothing a user sees: the clipping root, not the list's
+      // own budget, is what bounds the visible row, so the extra pixel only pushes the holder
+      // further past the clip (main 31->32px holder, 28px of option visible either way; classic
+      // 28->29 and 25; horizon 37->38 and 37).
+      const rowsThatFit = Math.max(Math.ceil(spaceAvailable / rowHeight) - 1, 1);
+      const height = rowsThatFit * rowHeight;
 
       if (this.isFlippedVertically) {
         this.htEditor.rootElement.style.top =
           `${parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height}px`;
       }
 
-      this.setDropdownHeight(tempHeight - lastRowHeight);
+      this.setDropdownHeight(height);
     }
   }
 
@@ -628,11 +780,7 @@ export class AutocompleteEditor extends HandsontableEditor {
         timeOffset += 10;
       }
 
-      if (this.htEditor) {
-        this.hot._registerTimeout(() => {
-          this.queryChoices(this.TEXTAREA.value);
-        }, timeOffset);
-      }
+      this.#deferQuery(timeOffset);
     }
   }
 }

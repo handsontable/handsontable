@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - nested rows public API</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Active theme from the ?theme= query param set by the Playwright project.
+    // Mapped through a fixed allowlist to a LITERAL (default main), so a crafted
+    // ?theme= can never be reflected into the document - no XSS.
+    window.htTheme = ({ horizon: 'horizon', classic: 'classic' })[new URLSearchParams(location.search).get('theme')] || 'main';
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    Fixture for the NestedRows public collapse/expand API (DEV-1023).
+
+    The tree is deliberately three levels deep, because the interesting cases only appear
+    with nesting: a parent collapsed inside another collapsed parent is TRIMMED, so it has
+    no visual index at all. That is why the hooks and `getCollapsedParents()` report
+    physical indexes while the methods take visual ones.
+
+    Physical layout of the seeded tree:
+      0  Root A            (parent, level 0)
+      1    A-1             (leaf,   level 1)
+      2    A-2             (parent, level 1)
+      3      A-2-a         (leaf,   level 2)
+      4      A-2-b         (leaf,   level 2)
+      5    A-3             (leaf,   level 1)
+      6  Root B            (parent, level 0)
+      7    B-1             (leaf,   level 1)
+      8    B-2             (leaf,   level 1)
+
+    Every collapse/expand hook appends to `window.hookLog`, so a spec can assert the exact
+    arguments and the exact firing order, and can prove a `before*` hook blocked an action
+    by the absence of its `after*` entry. `?block=` makes the matching `before*` hook return
+    false, which is the only way to test cancelling from a real page.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script src="/handsontable/dist/handsontable.full.min.js"></script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // ?block=rowCollapse|rowExpand makes that before* hook veto, so the spec can drive
+    // cancellation without injecting code into the page.
+    const blocked = new URLSearchParams(location.search).get('block');
+
+    window.hookLog = [];
+
+    // `blocked` is null when the param is absent, so build the vetoed hook name only when set.
+    const blockedHook = blocked ? `before${blocked.charAt(0).toUpperCase()}${blocked.slice(1)}` : null;
+
+    const record = name => (...args) => {
+      window.hookLog.push({ name, args });
+
+      if (name === blockedHook) {
+        return false;
+      }
+    };
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    window.hot = new Handsontable(container, {
+      data: [
+        {
+          name: 'Root A',
+          __children: [
+            { name: 'A-1' },
+            {
+              name: 'A-2',
+              __children: [{ name: 'A-2-a' }, { name: 'A-2-b' }],
+            },
+            { name: 'A-3' },
+          ],
+        },
+        {
+          name: 'Root B',
+          __children: [{ name: 'B-1' }, { name: 'B-2' }],
+        },
+      ],
+      columns: [{ data: 'name' }],
+      colHeaders: ['Name'],
+      rowHeaders: true,
+      nestedRows: true,
+      contextMenu: true,
+      navigableHeaders: true,
+      renderer: testIdRenderer,
+      height: 'auto',
+      licenseKey: 'non-commercial-and-evaluation',
+      beforeRowCollapse: record('beforeRowCollapse'),
+      afterRowCollapse: record('afterRowCollapse'),
+      beforeRowExpand: record('beforeRowExpand'),
+      afterRowExpand: record('afterRowExpand'),
+    });
+  </script>
+</body>
+</html>

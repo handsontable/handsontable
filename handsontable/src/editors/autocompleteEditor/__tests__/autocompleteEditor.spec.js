@@ -881,42 +881,6 @@ describe('AutocompleteEditor', () => {
         .toBeGreaterThan(editor.find('.handsontableInput').width());
     });
 
-    // TODO: This test never properly tests the case of refreshing editor after re-render the table. Previously this
-    // test passes because sleep timeout was small enough to read the valid width before the editor element was resized.
-    // Related issue #5103
-    xit('autocomplete textarea should have cell dimensions (after render)', async() => {
-      const data = [
-        ['a', 'b'],
-        ['c', 'd']
-      ];
-
-      handsontable({
-        data,
-        minRows: 4,
-        minCols: 4,
-        minSpareRows: 4,
-        minSpareCols: 4,
-        cells() {
-          return {
-            type: Handsontable.AutocompleteCell
-          };
-        }
-      });
-
-      await selectCell(1, 1);
-      await keyDownUp('enter');
-      await waitForNextAnimationFrames(1);
-
-      data[1][1] = 'dddddddddddddddddddd';
-      await render();
-
-      await waitForNextAnimationFrames(1);
-
-      const $td = spec().$container.find('.htCore tbody tr:eq(1) td:eq(1)');
-
-      expect(autocompleteEditor().width()).toEqual($td.width());
-    });
-
     it('should invoke beginEditing only once after doubleclicking on a cell (#1011)', async() => {
       handsontable({
         columns: [
@@ -1378,11 +1342,44 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('enter');
       await waitForNextAnimationFrames(2);
 
-      const sortedChoices = choices.toSorted();
+      const sortedChoices = [...choices].sort();
 
       for (let i = 0; i < choices.length; i++) {
         expect(editor.find(`tbody td:eq(${i})`).text()).toEqual(sortedChoices[i]);
       }
+    });
+
+    it('should not reorder the array passed to `updateChoicesList`, when the `sortByRelevance` option is set to `false`', async() => {
+      handsontable({
+        editor: 'autocomplete',
+        source: choices,
+        sortByRelevance: false,
+        height: 1000
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await waitForNextAnimationFrames(2);
+
+      // `updateChoicesList` is public API, so it has to sort a copy and leave the caller's array
+      // alone. The internal path happens to hand it a freshly mapped array, so only a direct call
+      // would expose an in-place sort.
+      const callerOwnedChoices = ['orange', 'apple', 'banana'];
+
+      getActiveEditor().updateChoicesList(callerOwnedChoices);
+
+      await waitForNextAnimationFrames(2);
+
+      expect(callerOwnedChoices).toEqual(['orange', 'apple', 'banana']);
+
+      // ...and the dropdown still shows them sorted.
+      const renderedChoices = $('.autocompleteEditor').find('tbody td')
+        .map(function() {
+          return $(this).text();
+        })
+        .get();
+
+      expect(renderedChoices).toEqual(['apple', 'banana', 'orange']);
     });
   });
 
@@ -3026,6 +3023,50 @@ describe('AutocompleteEditor', () => {
       ]);
 
       delete window.__xssTestInjection;
+    });
+
+    it('should not emit the missing-sanitizer warning for the dropdown items', async() => {
+      const warnSpy = spyOnConsoleWarn();
+
+      handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ['<b>foo</b>', '<i>bar</i>'],
+            allowHtml: true,
+          }
+        ]
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await waitForNextAnimationFrames(2);
+
+      // `allowHtml` is an explicit opt-in to raw HTML, so the dropdown declares that intent to
+      // `fastInnerHTML` instead of tripping the nudge meant for implicit raw writes. This mirrors
+      // what the `html` cell type asserts in `htmlRenderer.spec.js`.
+      expect(warnSpy).not.toHaveBeenCalledWith(jasmine.stringMatching(/without a sanitizer/));
+    });
+
+    it('should render plain-text items unchanged', async() => {
+      handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ['plain one', 'plain two'],
+            allowHtml: true,
+          }
+        ]
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await waitForNextAnimationFrames(2);
+
+      const innerHot = getActiveEditor().htEditor;
+
+      expect(innerHot.getCell(0, 0).textContent).toBe('plain one');
+      expect(innerHot.getCell(1, 0).textContent).toBe('plain two');
     });
   });
 

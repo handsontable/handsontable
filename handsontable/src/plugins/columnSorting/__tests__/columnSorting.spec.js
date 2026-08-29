@@ -227,33 +227,51 @@ describe('ColumnSorting', () => {
       expect(computedStyle.getPropertyValue('-webkit-mask-image')).toMatch(/url/);
 
       // _column-sorting.scss sets `top: 50%; right: 2px;` (LTR) or `left: 2px;` (RTL) on
-      // `.columnSorting::before`. Assert the exact hardcoded horizontal offset and that the
-      // vertical anchor resolves to the span's vertical midpoint.
-      const spanRect = sortedColumn.getBoundingClientRect();
+      // `.columnSorting::before`. The label is sized to its text, so the indicator is positioned
+      // against the header's `.relative` container - that is what keeps it pinned to the header
+      // edge instead of travelling with the label. Assert the hardcoded horizontal offset against
+      // that container, and that the indicator ends up centred in the header cell.
+      const container = sortedColumn.closest('.relative');
+      const containerRect = container.getBoundingClientRect();
+      const headerRect = sortedColumn.closest('th').getBoundingClientRect();
       const topPx = parseFloat(computedStyle.getPropertyValue('top'));
       const iconSize = parseFloat(
         window.getComputedStyle(sortedColumn).getPropertyValue('--ht-icon-size')
       ) || 16;
 
-      // `top: 50%` resolves relative to the ::before's containing block (the sortedColumn span);
-      // allow a 1px tolerance for sub-pixel rounding.
-      expect(Math.abs(topPx - (spanRect.height / 2))).toBeLessThanOrEqual(1);
+      // `top: 50%` resolves relative to the ::before's containing block; allow a 1px tolerance
+      // for sub-pixel rounding.
+      expect(Math.abs(topPx - (containerRect.height / 2))).toBeLessThanOrEqual(1);
+
+      // What the user actually sees: the indicator sits on the header's vertical midline.
+      // `translateY(-50%)` puts its centre at the containing block's top plus `top`.
+      const indicatorCentreY = containerRect.top + topPx;
+
+      expect(Math.abs(indicatorCentreY - ((headerRect.top + headerRect.bottom) / 2)))
+        .toBeLessThanOrEqual(1);
+
+      // The indicator carries inline margins that hold it clear of the cell padding, so they are
+      // part of what the free edge resolves to.
+      const inlineMargins = (parseFloat(computedStyle.getPropertyValue('margin-left')) || 0) +
+        (parseFloat(computedStyle.getPropertyValue('margin-right')) || 0);
+      const freeEdge = containerRect.width - iconSize - inlineMargins - 2 - 1;
 
       if (htmlDir === 'rtl' || layoutDirection === 'rtl') {
-        // In RTL mode the indicator is anchored to the left of the span at exactly 2px.
+        // In RTL mode the indicator is anchored to the left of the container at exactly 2px.
         expect(parseFloat(computedStyle.getPropertyValue('left'))).toBe(2);
         // The opposite edge is declared `auto`; browsers resolve it to a positive value that
-        // equals (span width - left anchor - icon width) within a small rounding tolerance.
+        // equals (container width - left anchor - icon width - margins) within a rounding
+        // tolerance.
         const rightPx = parseFloat(computedStyle.getPropertyValue('right'));
 
-        expect(rightPx).toBeGreaterThanOrEqual(spanRect.width - iconSize - 2 - 1);
+        expect(rightPx).toBeGreaterThanOrEqual(freeEdge);
 
       } else {
-        // In LTR mode the indicator is anchored to the right of the span at exactly 2px.
+        // In LTR mode the indicator is anchored to the right of the container at exactly 2px.
         expect(parseFloat(computedStyle.getPropertyValue('right'))).toBe(2);
         const leftPx = parseFloat(computedStyle.getPropertyValue('left'));
 
-        expect(leftPx).toBeGreaterThanOrEqual(spanRect.width - iconSize - 2 - 1);
+        expect(leftPx).toBeGreaterThanOrEqual(freeEdge);
       }
     });
   });
@@ -3020,6 +3038,103 @@ describe('ColumnSorting', () => {
       newHeaderWidth = spec().$container.find('th').eq(0).width();
 
       expect(headerWidthAtStart).toBeLessThan(newHeaderWidth);
+    });
+
+    it('should not let the dropdown menu button cover the sort indicator', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 3),
+        colHeaders: ['Sell date', 'B', 'C'],
+        colWidths: 150,
+        dropdownMenu: true,
+        columnSorting: { initialConfig: { column: 0, sortOrder: 'asc' } },
+      });
+
+      const label = spec().$container.find('th span.colHeader')[0];
+      const container = label.closest('.relative');
+      const containerRect = container.getBoundingClientRect();
+      const indicatorStyle = window.getComputedStyle(label, ':before');
+      const iconSize = parseFloat(
+        window.getComputedStyle(label).getPropertyValue('--ht-icon-size')
+      ) || 16;
+
+      // The indicator is an absolutely positioned pseudo, so its box has to be derived. `.relative`
+      // carries no border, so its client rect edges are the padding box the pseudo resolves against.
+      const marginRight = parseFloat(indicatorStyle.getPropertyValue('margin-right')) || 0;
+      const indicatorRight = containerRect.right -
+        parseFloat(indicatorStyle.getPropertyValue('right')) - marginRight;
+      const indicatorLeft = indicatorRight - iconSize;
+
+      // The button paints above the indicator (`z-index: 1`), so any overlap hides it completely.
+      const button = container.querySelector('.changeType');
+      const buttonRect = button.getBoundingClientRect();
+      const overlap = Math.min(buttonRect.right, indicatorRight) - Math.max(buttonRect.left, indicatorLeft);
+
+      expect(button).not.toBe(null);
+      expect(overlap).toBeLessThanOrEqual(0);
+    });
+
+    it('should keep the header text aligned by `headerClassName` when the plugin is enabled', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 3),
+        colHeaders: ['Left', 'Middle', 'Right'],
+        colWidths: 160,
+        columns: [
+          { headerClassName: 'htLeft' },
+          {},
+          { headerClassName: 'htRight' },
+        ],
+        columnSorting: { initialConfig: { column: 2, sortOrder: 'asc' } },
+      });
+
+      // The painted text, not the label box - the label is sized to its text, so only the text
+      // says where the alignment landed.
+      const textBox = (column) => {
+        const span = spec().$container.find('th span.colHeader')[column];
+        const range = document.createRange();
+
+        range.selectNodeContents(span);
+
+        const text = range.getBoundingClientRect();
+        const th = span.closest('th').getBoundingClientRect();
+
+        return { fromLeft: text.left - th.left, fromRight: th.right - text.right };
+      };
+
+      // `htLeft` hugs the left edge, `htRight` the right one. Without the alignment rules the
+      // label's auto margins centre every header and both gaps come out equal.
+      const left = textBox(0);
+      const right = textBox(2);
+
+      expect(left.fromLeft).toBeLessThan(left.fromRight);
+      expect(right.fromRight).toBeLessThan(right.fromLeft);
+
+      // And the middle column, which asked for nothing, stays centred.
+      const middle = textBox(1);
+
+      expect(Math.abs(middle.fromLeft - middle.fromRight)).toBeLessThanOrEqual(2);
+    });
+
+    it('should not measure the sort indicator offsets into the auto column width when the dropdown menu is enabled', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 2),
+        colHeaders: ['Revenue per employee division', 'B'],
+        autoColumnSize: true,
+        columnSorting: { initialConfig: { column: 0, sortOrder: 'asc' } },
+      });
+
+      spec().$container[0].style.width = 'auto';
+      await render();
+
+      const widthWithoutMenu = spec().$container.find('th').eq(0).width();
+
+      await updateSettings({ dropdownMenu: true });
+
+      const widthWithMenu = spec().$container.find('th').eq(0).width();
+
+      // The menu button takes its own room in the header, but the indicator's reserve is held out
+      // of the ghost table measurement, so it must not land there a second time. The button costs
+      // 4px (classic), 6px (main) or 8px (horizon); counting the reserve twice adds ~18px on top.
+      expect(widthWithMenu - widthWithoutMenu).toBeLessThan(12);
     });
 
     it('should work properly also when `rowHeaders` option is set to `true`', async() => {

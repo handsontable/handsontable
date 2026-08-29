@@ -11,7 +11,8 @@
 import { execSync, spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pathToFileURL } from 'node:url';
+import { repoRoot } from '../.github/scripts/lib/repo-root.mjs';
 import { lintable, runEslint } from './lint-files.mjs';
 import { filterCached, recordGreen } from './e2e-run-cache.mjs';
 
@@ -92,20 +93,191 @@ export function isJestInfraFailure(output) {
   return infra && !ran;
 }
 
+/**
+ * Buffer cap for a hook-spawned test run. A suite can print far more than Node's
+ * 1 MB default, and overflowing the buffer kills the child mid-run: the result
+ * then carries a nonzero status and no summary, which reads exactly like failing
+ * tests unless the caller inspects `result.error`.
+ *
+ * @type {number}
+ */
+export const TEST_RUN_MAX_BUFFER = 64 * 1024 * 1024;
+
+/**
+ * Longest line kept verbatim in a condensed excerpt. Longer ones are truncated
+ * rather than dropped, so a long `Expected:`/`Received:` value still shows its
+ * head instead of vanishing.
+ *
+ * @type {number}
+ */
+const MAX_LINE_LENGTH = 200;
+
+/**
+ * SGR (color) escape sequences, stripped before anything is matched. A test run
+ * inherits the hook's environment, so a leaked `FORCE_COLOR` would wrap every
+ * failure marker in escape codes and silently defeat the anchor and summary
+ * patterns — the excerpt would stay bounded but stop pointing at the diagnosis.
+ *
+ * @type {RegExp}
+ */
+// eslint-disable-next-line no-control-regex -- ESC is exactly what this matches.
+const ANSI_SGR = /\u001b\[[0-9;]*m/g;
+
+/**
+ * Output size past which the pre-push gate condenses a run rather than printing
+ * it whole. A terminal tolerates far more than a condensed excerpt, but not the
+ * tens of megabytes `TEST_RUN_MAX_BUFFER` allows a run to produce.
+ *
+ * @type {number}
+ */
+const TERMINAL_OUTPUT_LIMIT = 256 * 1024;
+
+/**
+ * Did the child process itself fail to run to completion — killed by a signal,
+ * or aborted by Node (ENOBUFS on buffer overflow) — rather than finish and
+ * report failing tests? Such a result carries no verdict and must not block.
+ *
+ * @param {{error?: Error, signal?: string|null, status?: number|null}} result A `spawnSync` result.
+ * @returns {boolean} True when the process never produced a verdict.
+ */
+export function isSpawnInfraFailure(result) {
+  return Boolean(result?.error) || Boolean(result?.signal) || result?.status === null;
+}
+
+/**
+ * Condense a test run's output down to a bounded excerpt.
+ * Three problems at once: stack frames and injected-stylesheet dumps are pure
+ * noise, single lines repeat hundreds of times, and the result must stay inside a
+ * fixed size budget no matter how much the run printed.
+ *
+ * Noise is identified by what a line IS, never by how long it is: an over-long
+ * line is truncated, not dropped, because Jest puts each of the
+ * `Expected:`/`Received:` values on a single line and those run long exactly
+ * when they matter.
+ *
+ * Once a failure marker is found the excerpt keeps the lines that FOLLOW it, not
+ * the tail of the run: the diagnosis sits at the anchor, so trimming from the end
+ * would discard it exactly when the failure block is long enough to need trimming.
+ * With no failure to anchor on (a crash, an infra error) the tail is the
+ * informative part and is kept instead. The summary lines are pulled out and
+ * always appended, so the counts survive either way.
+ *
+ * @param {string} output Combined stdout + stderr of the run.
+ * @param {{maxLines?: number, maxChars?: number}} [options] Excerpt caps.
+ * @returns {string} A bounded excerpt, prefixed with a note when truncated.
+ */
+export function condenseTestOutput(output, { maxLines = 120, maxChars = 8000 } = {}) {
+  const isSummary = line => /^\s*(Tests|Test Suites|Snapshots):\s/.test(line);
+  // Only these three are pure noise. Length alone is NOT a noise signal: Jest
+  // prints the `Expected:`/`Received:` values on one line each, and dropping
+  // those by length removes exactly the values needed to read the failure.
+  const isNoise = line => /^\s+at\s/.test(line)
+    || /Could not parse CSS stylesheet/.test(line)
+    || /url\(["']?data:/.test(line);
+  const raw = (output || '').replace(ANSI_SGR, '').replace(/\r\n/g, '\n').replace(/\n+$/, '').split('\n');
+  const lines = raw
+    .filter(line => !isNoise(line))
+    .map(line => (line.length > MAX_LINE_LENGTH ? `${line.slice(0, MAX_LINE_LENGTH)} …` : line));
+
+  const collapsed = [];
+
+  for (const line of lines) {
+    const previous = collapsed[collapsed.length - 1];
+
+    if (previous && previous.line === line) {
+      previous.count += 1;
+    } else {
+      collapsed.push({ line, count: 1 });
+    }
+  }
+
+  // Blank lines separate Jest's blocks, so they collapse to one but never carry a
+  // repeat count — `(×4)` stamped on emptiness reads as content that is not there.
+  const rendered = collapsed
+    .map(({ line, count }) => (count > 1 && line.trim() !== '' ? `${line}    (×${count})` : line))
+    .filter((line, index, all) => line.trim() !== '' || (all[index - 1] || '').trim() !== '');
+
+  const summary = rendered.filter(isSummary);
+  // `FAIL` is a fallback anchor, never a first-choice one. Jest prints a suite's
+  // buffered console output between the `FAIL` header and the failure details, so
+  // anchoring on the first marker of any kind returns the console flood and cuts
+  // the block the diagnosis lives in — exactly the case this helper exists for.
+  // Anchor on the earliest marker that names a failing test instead, and fall
+  // back to the bare suite header only when the run printed no such marker at all
+  // (a suite killed before it could report one).
+  //
+  // Two `●` headers are not failures and must not anchor: `● Console` opens the
+  // console dump itself, and `● Validation Warning:` / `● Deprecation Warning:`
+  // are config notices Jest prints before any test runs. `● Test suite failed to
+  // run` IS a failure and is deliberately still matched.
+  //
+  // Playwright's numbered form requires its `›`, so an ordinary numbered line in
+  // someone's output cannot anchor the excerpt by accident.
+  const isNonFailureBullet = line => /^\s*●\s*(Console\b|(Validation|Deprecation)\s+Warning:)/.test(line);
+  const namesAFailure = line => (/^\s*(●|✕|✘)/.test(line) && !isNonFailureBullet(line))
+    || /^\s*\d+\)\s.*›/.test(line);
+  const namedFailure = rendered.findIndex(namesAFailure);
+  const firstFailure = namedFailure === -1 ? rendered.findIndex(line => /^\s*FAIL\b/.test(line)) : namedFailure;
+  const anchored = (firstFailure === -1 ? rendered : rendered.slice(firstFailure)).filter(l => !isSummary(l));
+  const lineBudget = Math.max(1, maxLines - summary.length);
+  const kept = firstFailure === -1 ? anchored.slice(-lineBudget) : anchored.slice(0, lineBudget);
+  // Count against the RAW line total, not the post-`isNoise` one: noise-filtered
+  // lines are gone from `lines` before this point, so measuring from there
+  // under-reports the flood by exactly the part that caused it.
+  const dropped = raw.length - kept.length - summary.length;
+  const charBudget = Math.max(0, maxChars - summary.join('\n').length);
+  let excerpt = kept.join('\n').trimEnd();
+  const cutByChars = excerpt.length > charBudget;
+
+  if (cutByChars) {
+    // Tail slices index from the front rather than passing a negative offset:
+    // `slice(-0)` is `slice(0)`, which returns the whole string and silently
+    // bypasses the cap when the summary alone fills the budget.
+    excerpt = firstFailure === -1
+      ? `…\n${excerpt.slice(excerpt.length - charBudget)}`
+      : `${excerpt.slice(0, charBudget)}\n…`;
+  }
+
+  const body = [excerpt, ...summary].filter(part => part !== '').join('\n');
+
+  // Nothing survived (blank or noise-only output) — a lone header describing an
+  // empty excerpt is worse than saying nothing.
+  if (body.trim() === '' || (dropped === 0 && !cutByChars)) {
+    return body;
+  }
+
+  // Say when the excerpt was cut on size alone, or the header would read "0 lines
+  // dropped" over an excerpt that was in fact truncated.
+  const note = dropped > 0
+    ? `${dropped} noise/duplicate lines dropped${cutByChars ? ', excerpt truncated' : ''}`
+    : 'excerpt truncated';
+
+  return `[output condensed — ${note}]\n${body}`;
+}
+
 // Exit early when imported by a test. pathToFileURL handles the cases a naive
 // `file://${argv[1]}` template misses (Windows drive letters, URL-escaped chars).
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  // Anchor every path/spawn to the repo root — callers may start the hook from
-  // any cwd, so resolve the root from THIS script's location, not the cwd.
-  const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-  const root = execSync('git rev-parse --show-toplevel', { encoding: 'utf8', cwd: scriptDir }).trim();
+  // Anchor every path/spawn to the repo root, resolved from THIS script's
+  // location. A git-derived root is wrong under the `GIT_DIR` every hook exports
+  // — see `.github/scripts/lib/repo-root.mjs`.
+  const root = repoRoot();
   const base = resolveBase(root);
+
+  // Hand the children a clean git environment. Each runs with an explicit cwd,
+  // and an inherited `GIT_DIR`/`GIT_WORK_TREE` makes git take that cwd as the
+  // work tree — so any git call from `tests/` or `handsontable/` would resolve a
+  // subdirectory as the repository root.
+  const env = { ...process.env };
+
+  delete env.GIT_DIR;
+  delete env.GIT_WORK_TREE;
 
   // 1) Presence gate (block mode).
   const gate = spawnSync('node', [path.join(root, '.github/scripts/test-presence-gate.mjs')], {
     stdio: 'inherit',
     cwd: root,
-    env: { ...process.env, GATE_MODE: 'block', GATE_BASE: base },
+    env: { ...env, GATE_MODE: 'block', GATE_BASE: base },
   });
 
   if (gate.status !== 0) {
@@ -126,7 +298,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   spawnSync('node', [path.join(root, '.github/scripts/test-weakening-gate.mjs')], {
     stdio: 'inherit',
     cwd: root,
-    env: { ...process.env, GATE_BASE: base },
+    env: { ...env, GATE_BASE: base },
   });
 
   // 4) Run any Playwright spec the push changed, so a new test is proven.
@@ -148,6 +320,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       cwd: path.join(root, 'tests'),
       stdio: 'inherit',
       shell: WIN,
+      env,
     });
 
     if (pw.status !== 0) {
@@ -171,13 +344,34 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       const jest = spawnSync(
         'npm',
         ['run', 'test:unit', '--', `--testPathPattern=${unitTestPattern(file)}`],
-        { cwd: path.join(root, 'handsontable'), encoding: 'utf8', shell: WIN },
+        {
+          cwd: path.join(root, 'handsontable'),
+          encoding: 'utf8',
+          shell: WIN,
+          env,
+          maxBuffer: TEST_RUN_MAX_BUFFER,
+        },
       );
 
-      process.stdout.write(jest.stdout || '');
-      process.stderr.write(jest.stderr || '');
+      const runOutput = `${jest.stdout || ''}${jest.stderr || ''}`;
+
+      if (runOutput.length > TERMINAL_OUTPUT_LIMIT) {
+        process.stdout.write(`${condenseTestOutput(runOutput, { maxLines: 400, maxChars: 40000 })}\n`);
+        process.stdout.write(`pre-push: ${Math.round(runOutput.length / 1024)} KB of output condensed — `
+          + `run \`npm run test:unit --prefix handsontable -- --testPathPattern=${unitTestPattern(file)}\` `
+          + 'to see all of it.\n');
+      } else {
+        process.stdout.write(jest.stdout || '');
+        process.stderr.write(jest.stderr || '');
+      }
 
       if (jest.status !== 0) {
+        if (isSpawnInfraFailure(jest)) {
+          // Only this file lost its verdict; the remaining runs are independent.
+          console.log(`pre-push: the unit run for ${file} could not complete (${
+            jest.error?.code || jest.signal}) — skipping; CI runs it.`);
+          continue;
+        }
         if (isJestInfraFailure(`${jest.stdout || ''}${jest.stderr || ''}`)) {
           console.log('pre-push: could not run unit tests locally (jest infra) — skipping; CI runs them.');
           break;

@@ -8,6 +8,12 @@ import {
 import BottomOverlayTable from '../../table/regions/bottomTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
+  axisScrollbarClearance,
+  holderOwnsScrollbars,
+  overlayExtentBesideScrollbar,
+  reservedScrollbarSpace,
+} from '../scrollbarClearance';
+import {
   CLONE_BOTTOM,
 } from '../constants';
 import { throwWithCause } from '../../../../../helpers/errors';
@@ -23,6 +29,19 @@ export class BottomOverlay extends Overlay {
    * @type {number}
    */
   cachedFixedRowsBottom = -1;
+
+  /**
+   * How much narrower than its root the overlay's holder is kept, so an overlay ("floating")
+   * vertical scrollbar underneath stays reachable. 0 whenever the scrollbar has real width.
+   */
+  #holderClearance = 0;
+
+  /**
+   * How much shorter than its root the overlay's holder is kept, so an overlay ("floating") horizontal
+   * scrollbar underneath stays reachable. This overlay spans the bottom edge, so unlike the top one it
+   * covers both scrollbars. 0 whenever the scrollbar has real width.
+   */
+  #bottomClearance = 0;
 
   /**
    */
@@ -106,7 +125,6 @@ export class BottomOverlay extends Overlay {
 
     const wtTable = this.deps.getWtTable();
     const wtViewport = this.deps.getWtViewport();
-    const { rootDocument } = this.deps;
     const cloneRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     let bottomOffset = 0;
 
@@ -115,7 +133,12 @@ export class BottomOverlay extends Overlay {
     }
 
     if (wtViewport.hasVerticalScroll() && wtViewport.hasHorizontalScroll()) {
-      bottomOffset += this.deps.geometryReader.getScrollbarWidth(rootDocument);
+      // The gutter this holder really gives up. `getScrollbarWidth()` describes the ENGINE, not this
+      // element, and the two diverge on a styled scroller: Firefox 154 honors `::-webkit-scrollbar`,
+      // which `.wtHolder` sets and the probe element does not, so the probe reads 0 against a real
+      // scrollbar and the frozen rows come to rest on top of it (#10370). The magnitude is the answer
+      // here, so there is no cheap probe test to skip the read on, as `axisScrollbarClearance` has.
+      bottomOffset += reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'horizontal');
     }
 
     cloneRoot.style.bottom = `${bottomOffset}px`;
@@ -182,6 +205,11 @@ export class BottomOverlay extends Overlay {
     if (this.needFullRender) {
       this.adjustRootElementSize();
       this.adjustRootChildrenSize();
+
+    } else if (this.clone) {
+      // Stopped rendering - `fixedRowsBottom` set back to 0, say. Nothing below sizes this overlay any
+      // more, so drop its clearance here or the filler stays behind as an opaque strip over live cells.
+      this.clearScrollbarClearance();
     }
   }
 
@@ -200,11 +228,31 @@ export class BottomOverlay extends Overlay {
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wtSettings.getSetting<boolean | string>('preventOverflow');
 
-    if (this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal') {
+    // Both strips need this overlay to be laid out against the scrollport; when the window anchors it
+    // instead, `repositionOverlay` never runs and clipping would expose the master for nothing.
+    const rootSized = this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal';
+    // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`.
+    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
+
+    // The master's vertical scrollbar sits along the inline-end edge this overlay spans.
+    this.#holderClearance = axisScrollbarClearance(
+      this.deps.geometryReader,
+      wtTable.holder,
+      this.deps.geometryReader.getScrollbarWidth(rootDocument),
+      clearanceApplies && wtViewport.hasVerticalScroll(),
+      'vertical'
+    );
+
+    if (rootSized) {
       let width = wtViewport.getWorkspaceWidth();
 
       if (wtViewport.hasVerticalScroll()) {
-        width -= this.deps.geometryReader.getScrollbarWidth(rootDocument);
+        width = overlayExtentBesideScrollbar(
+          width,
+          this.deps.geometryReader.clientWidth(wtTable.holder),
+          this.deps.geometryReader.getScrollbarWidth(rootDocument),
+          reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'vertical')
+        );
       }
 
       width = Math.min(width, this.deps.geometryReader.scrollWidth(wtTable.wtRootElement));
@@ -213,6 +261,18 @@ export class BottomOverlay extends Overlay {
     } else {
       overlayRootStyle.width = '';
     }
+
+    // This overlay also spans the bottom edge, where the horizontal scrollbar is painted - but only
+    // while it actually sits on that edge. Without a vertical scroll `repositionOverlay` lifts it to
+    // where the rows end, clear of the scrollbar, so no strip is needed then.
+    this.#bottomClearance = axisScrollbarClearance(
+      this.deps.geometryReader,
+      wtTable.holder,
+      this.deps.geometryReader.getScrollbarWidth(rootDocument),
+      clearanceApplies && wtViewport.hasHorizontalScroll() && wtViewport.hasVerticalScroll(),
+      'horizontal'
+    );
+
     this.clone.wtTable.holder.style.width = overlayRootStyle.width;
 
     let tableHeight = this.deps.geometryReader.outerHeight(this.clone.wtTable.TABLE);
@@ -222,6 +282,12 @@ export class BottomOverlay extends Overlay {
     }
 
     overlayRootStyle.height = `${tableHeight}px`;
+
+    this.publishScrollbarClearance({
+      bottom: this.#bottomClearance,
+      inlineEnd: this.#holderClearance,
+      rtl: this.isRtl(),
+    }, this.wot.wtOverlays.isScrollbarVisible());
   }
 
   /**
@@ -252,8 +318,9 @@ export class BottomOverlay extends Overlay {
     if (typeof rowsRenderCalculator?.startPosition === 'number') {
       this.spreader.style.top = `${rowsRenderCalculator.startPosition}px`;
 
-    } else if (total === 0) {
-      // can happen if there are 0 rows
+    } else if (total === 0 || rowsRenderCalculator === null) {
+      // 0 rows, or nothing rendered yet — a `null` calculator is the drawn-but-never-rendered state
+      // a skipped first draw leaves behind (see `restoreRenderedStateIfSafe` in `table/drawCycle.ts`).
       this.spreader.style.top = '0';
 
     } else {

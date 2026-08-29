@@ -17,7 +17,9 @@ import {
   AUTOSIZE_WARNING,
   createEditorPortal,
   getContainerAttributesProps,
+  isComponentEditor,
   isCSR,
+  resolveEditorSetting,
   warn,
   displayObsoleteRenderersEditorsWarning,
   useUpdateEffect,
@@ -134,10 +136,15 @@ const HotTableInner = forwardRef<
       newSettings.renderer = props.hotRenderer || getRenderer('text');
     }
 
-    if (props.editor) {
+    if (isComponentEditor(props.editor)) {
       newSettings.editor = makeEditorClass(globalEditorHooksRef, globalEditorClassInstance);
     } else {
-      newSettings.editor = props.hotEditor || getEditor('text');
+      const editorSetting = resolveEditorSetting(props.editor, props.hotEditor);
+
+      // `undefined` means neither prop named an editor, so the grid falls back to the default one.
+      newSettings.editor = editorSetting === undefined ?
+        getEditor('text') as Handsontable.GridSettings['editor'] :
+        editorSetting;
     }
 
     return newSettings;

@@ -76,6 +76,9 @@ describe('Hook', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         afterUnlisten,
+        // A legacy key that expired on 23/05/2011: the state that still renders the license bar this
+        // test clicks. A missing key renders the blocking modal instead from 18.1 on (DEV-2562).
+        licenseKey: 'd0134-95841-770f2-c4f21-3751d',
       }, true);
       await listen();
       await simulateClick(document.body);

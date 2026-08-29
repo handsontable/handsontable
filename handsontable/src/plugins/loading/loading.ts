@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { loadingContent } from './content';
 import * as C from '../../i18n/constants';
+import { isRootInstance } from '../../utils/rootInstance';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
 
 /**
@@ -40,8 +41,11 @@ export { LOADING_CLASS_NAME };
  *
  * The plugin provides several configuration options to customize the loading behavior and appearance:
  * - `icon`: Loading icon to display HTML (as string) in svg format (default: `<svg ... />`).
- * - `title`: Loading title to display (default: 'Loading...').
- * - `description`: Loading description to display (default: '').
+ * - `title`: Loading title to display, rendered as text (default: 'Loading...').
+ * - `description`: Loading description to display, rendered as text (default: '').
+ *
+ * `icon` is the only option written to the DOM as markup. `title` and `description` are escaped, so
+ * markup passed in them shows up literally instead of being interpreted.
  *
  * @example
  *
@@ -167,10 +171,15 @@ export class Loading extends BasePlugin {
   /**
    * Check if the plugin is enabled in the handsontable settings.
    *
+   * The loading indicator renders through the Dialog plugin, which is available on the main
+   * Handsontable instance only. In a nested grid (the one the `handsontable`, `autocomplete`, and
+   * `dropdown` cell types create) there is nothing to render into, so the plugin stays disabled
+   * there.
+   *
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    return !!this.hot.getSettings()[PLUGIN_KEY];
+    return isRootInstance(this.hot) && !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**

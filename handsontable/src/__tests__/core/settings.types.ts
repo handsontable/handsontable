@@ -36,6 +36,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   ariaTags: true,
   autoColumnSize: true,
   autoRowSize: true,
+  autoRowHeaderSize: oneOf(true, { samplingRatio: 3, allowSampleDuplicates: true, syncLimit: 500 },
+    { syncLimit: '40%' }),
   autoWrapCol: true,
   autoWrapRow: true,
   bindRowsWithHeaders: true,
@@ -61,7 +63,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   className: oneOf('foo', ['foo']),
   colHeaders: oneOf(true, ['first-class-name', 'second-class-name']),
   collapsibleColumns: true,
-  columnHeaderHeight: oneOf(35, [35, 55]),
+  colorScheme: oneOf('light', 'dark', 'auto'),
+  density: oneOf('default', 'compact', 'comfortable'),
+  columnHeaderHeight: oneOf(35, [35, 55], '35', '35px', ['35px', 55]),
   columns: [
     {
       type: 'numeric',
@@ -81,6 +85,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   currentHeaderClassName: 'foo',
   currentRowClassName: 'foo',
   customBorders: true,
+  customBordersProgressive: oneOf(true, { chunkSize: 5000 }),
   data: oneOf([{}, {}, {}], [[], [], []]),
   dataDotNotation: oneOf(true),
   dataProvider: {
@@ -92,6 +97,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   dataSchema: oneOf({}, [[]], (index: number) => oneOf([index], { index })),
   dateFormat: oneOf({ year: 'numeric', month: '2-digit', day: '2-digit' } as Intl.DateTimeFormatOptions),
+  dateTimeFormat: oneOf(
+    { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' } as
+      Intl.DateTimeFormatOptions
+  ),
   defaultDate: 'foo',
   timeFormat: oneOf({ hour: 'numeric', minute: '2-digit' } as Intl.DateTimeFormatOptions),
   tabNavigation: oneOf(false),
@@ -187,6 +196,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   nestedRows: true,
   noWordWrapClassName: 'foo',
   numericFormat: numericIntlFormatOptions,
+  preserveNumericLiteral: true,
   observeDOMVisibility: true,
   outsideClickDeselects: oneOf(true, (target: HTMLElement) => false),
   pagination: oneOf(true, {
@@ -201,6 +211,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   parsePastedValue: true,
   placeholder: 'foo',
   placeholderCellClassName: 'foo',
+  preserveTextValue: true,
   preventOverflow: oneOf(true, 'vertical', 'horizontal'),
   preventWheel: true,
   readOnly: true,
@@ -213,11 +224,20 @@ const allSettings: Required<Handsontable.GridSettings> = {
      prop: number | string, value: any, cellProperties: Handsontable.CellProperties) => TD
   ),
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
-  rowHeaderWidth: oneOf(25, [25, 30, 55]),
+  rowHeaderWidth: oneOf(25, [25, 30, 55], '25', '25px', ['25px', 30]),
   rowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
-  sanitizer: (content: string, source: 'innerHTML' | 'CopyPaste.paste') => content,
+  // The option's own signature is unchanged; `SanitizerContext` is the opt-in annotation. Full
+  // coverage, including the call-arity axis, lives in `sanitizer.types.ts`.
+  sanitizer: oneOf(
+    (content: string) => content,
+    (content: string, source: string) => content,
+    (content: string, source: Handsontable.SanitizerContext) => content,
+    (content: string, source: 'innerHTML' | 'CopyPaste.paste') => content,
+  ),
   search: true,
   selectionMode: oneOf('single', 'range', 'multiple'),
+  selectionHandles: true,
+  moveCells: true,
   selectOptions: oneOf(
     ['A', 'B', 'C'],
     { a: 'A', b: 'B', c: 'C' },
@@ -386,6 +406,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterColumnMove: (columns, target) => {},
   afterColumnResize: (newSize, column, isDoubleClick) => {},
   afterColumnSequenceChange: (source) => {},
+  afterCustomBordersUpdate: () => {},
   afterColumnSequenceCacheUpdate: (indexesChangesState) => {},
   afterColumnSort: (currentSortConfig, destinationSortConfigs) => {},
   afterColumnUnfreeze: (columnIndex, isFreezingPerformed) => {},
@@ -458,11 +479,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const colTransform: number = colTransformDir;
   },
   afterMomentumScroll: () => {},
+  afterMoveCells: (sourceRange, targetRange, isCopy) => {},
   afterNamedExpressionAdded: (namedExpressionName, changes) => {},
   afterNamedExpressionRemoved: (namedExpressionName, changes) => {},
   afterOnCellContextMenu: (event, coords, TD) => {},
   afterOnCellCornerDblClick: (event) => {},
   afterOnCellCornerMouseDown: (event) => {},
+  afterOnSelectionHandleMouseDown: (event, edge) => {},
+  afterOnSelectionEdgeMouseDown: (event, edge) => {},
   afterOnCellMouseDown: (event, coords, TD) => {},
   afterOnCellMouseOver: (event, coords, TD) => {},
   afterOnCellMouseOverOutside: (event, coords, TD) => {},
@@ -497,6 +521,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterRowsMutationError: (operation, error, payload) => {},
   afterRender: (isForced) => {},
   afterRenderer: (TD, row, col, prop, value, cellProperties) => {},
+  afterRowCollapse: (currentCollapsedRows, destinationCollapsedRows, collapsePossible,
+                     successfullyCollapsed) => {},
+  afterRowExpand: (currentCollapsedRows, destinationCollapsedRows, expandPossible,
+                   successfullyExpanded) => {},
   afterRowMove: (movedRows, finalIndex, dropIndex, movePossible,
                  orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
   afterRowResize: (newSize, row, isDoubleClick) => {},
@@ -639,6 +667,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeLanguageChange: (languageCode) => {},
   beforeLoadData: (sourceData, firstTime, source) => {},
   beforeMergeCells: (cellRange, auto) => {},
+  beforeMoveCells: (sourceRange, targetTopLeft, isCopy) => {},
   beforeOnCellContextMenu: (event, coords, TD) => {},
   beforeOnCellMouseDown: (event, coords, TD, controller) => {},
   beforeOnCellMouseOut: (event, coords, TD) => {},
@@ -667,11 +696,13 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeRedoStackChange: (undoneActions) => {},
   beforeRefreshDimensions: (previousDimensions, currentDimensions, actionPossible) => {},
   beforeRemoveCellClassNames: () => {},
-  beforeRemoveCellMeta: (row, column, key, value) => {},
+  beforeRemoveCellMeta: (row, column, key, value) => false,
   beforeRemoveCol: (index, amount, physicalColumns = [1, 2, 3], source) => {},
   beforeRemoveRow: (index, amount, physicalRows = [1, 2, 3], source) => {},
   beforeRender: (isForced) => {},
   beforeRenderer: (TD, row, col, prop, value, cellProperties) => {},
+  beforeRowCollapse: (currentCollapsedRows, destinationCollapsedRows, collapsePossible) => {},
+  beforeRowExpand: (currentCollapsedRows, destinationCollapsedRows, expandPossible) => {},
   beforeRowMove: (movedRows, finalIndex, dropIndex, movePossible) => {},
   beforeRowResize: (newSize, row, isDoubleClick) => false,
   beforeRowWrap: (isActionInterrupted, newCoords, isRowFlipped) => {
@@ -778,7 +809,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   modifyRowData: (row) => {},
   modifyRowHeader: (row) => {},
-  modifyRowHeaderWidth: (rowHeaderWidth) => {},
+  modifyRowHeaderWidth: rowHeaderWidth => oneOf(80, [80, 40]),
   modifyRowHeight: (height, row, source) => {
     const _height: number = height;
     const _row: number = row;
@@ -937,3 +968,25 @@ hot.addHook('afterCreateRow', (index: number, amount: number, source: string) =>
 // Rung 3: a dynamic/plugin-only hook name still compiles, including with a typed callback
 // (the `HookCallback` fallback is the sound function top type, not `(...args: unknown[])`).
 hot.addHook('someCustomPluginHook', (payload: { id: number }, flag: boolean) => {});
+
+// Regression: selectionHandles must be accepted by updateSettings.
+hot.updateSettings({ selectionHandles: true });
+
+// Regression: moveCells must be accepted by updateSettings.
+hot.updateSettings({ moveCells: true });
+
+// Regression: afterOnSelectionHandleMouseDown must be accepted by updateSettings.
+hot.updateSettings({ afterOnSelectionHandleMouseDown(event, edge) {} });
+hot.updateSettings({ afterOnSelectionEdgeMouseDown(event, edge) {} });
+
+// Regression: beforeMoveCells and afterMoveCells must be accepted by updateSettings.
+hot.updateSettings({ beforeMoveCells(sourceRange, targetTopLeft, isCopy) { return true; } });
+hot.updateSettings({ afterMoveCells(sourceRange, targetRange, isCopy) {} });
+
+// Regression: MoveCells exposes moveCellRange with correct arg/return types.
+const moveResult: boolean = hot.getPlugin('moveCells')
+  .moveCellRange(hot.getSelectedRangeLast()!, hot._createCellCoords(5, 5), false);
+
+// Regression: beforeInit accepts the array form, which the runtime has always supported (#5933).
+hot.updateSettings({ beforeInit: [() => {}, () => {}] });
+hot.updateSettings({ beforeInit: () => {} });

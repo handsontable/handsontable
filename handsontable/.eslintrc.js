@@ -28,6 +28,27 @@ module.exports = {
         selector: "CallExpression[callee.property.name='toLocaleLowerCase'], CallExpression[callee.property.name='toLocaleUpperCase']",
         message: 'Do not call String.prototype.toLocaleLowerCase/toLocaleUpperCase directly. Use localeLowerCase() from helpers/string — it avoids the slow Intl path for non-tailoring locales and is locale-correct. See handsontable/.ai/CONVENTIONS.md.',
       },
+      // ES-version compliance with the library's declared build target (../browser-targets.js:
+      // Chrome >= 130, Edge >= 130, Firefox >= 132, Safari >= 18.2, iOS >= 18.2). swc lowers
+      // *syntax* only — it never injects core-js polyfills — so any instance/static method newer
+      // than the oldest targeted engine throws `X is not a function` on a supported browser. The
+      // API floor is also pinned as `lib` in ./tsconfig.json (kept in sync with
+      // ../browser-targets.js by ES_TARGET), which catches prototype methods this rule would miss;
+      // both must be pruned together whenever the floors move. `compat/compat` cannot see these: it
+      // does not resolve prototype methods on non-literal receivers, which is how `toSorted` and
+      // `Array#at` shipped in 18.0.0.
+      //
+      // `with` is the only method this repo's own core-js-compat data.json places above the floor,
+      // and it is above on two engines at once: `Array#with` is Firefox 140 against our Firefox 132,
+      // and `TypedArray#with` is Safari/iOS 26.0 against our 18.2. The selector cannot tell the two
+      // receivers apart, so the message names both — a developer who hits this on a typed array and
+      // reads only the Firefox number would conclude the rule misfired and add a disable. Their
+      // ES2023 siblings toSorted/toSpliced/toReversed sit inside the floor and are allowed.
+      // Test files are exempt (no-restricted-syntax is off for them).
+      {
+        selector: "CallExpression[callee.property.name='with']",
+        message: 'Array#with needs Firefox 140+ and TypedArray#with needs Safari/iOS 26+, both above the ../browser-targets.js baseline (Firefox >= 132, Safari >= 18.2, iOS >= 18.2). Use arr.slice() plus an index assignment instead.',
+      },
     ],
     'handsontable/restricted-module-imports': [
       'error',

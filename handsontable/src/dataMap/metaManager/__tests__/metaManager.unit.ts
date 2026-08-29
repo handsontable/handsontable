@@ -3,7 +3,7 @@ import GlobalMeta from '../metaLayers/globalMeta';
 import TableMeta from '../metaLayers/tableMeta';
 import ColumnMeta from '../metaLayers/columnMeta';
 import CellMeta from '../metaLayers/cellMeta';
-import { registerAllCellTypes } from '../../../cellTypes';
+import { registerAllCellTypes, getCellType } from '../../../cellTypes';
 
 registerAllCellTypes();
 
@@ -196,6 +196,26 @@ describe('MetaManager', () => {
 
       expect(metaManager.removeCellMeta(34, 22, 'bar')).toBeUndefined();
       expect(metaManager.cellMeta.removeMeta).toHaveBeenCalledWith(34, 22, 'bar');
+    });
+
+    it('should not materialize cell meta when removing a key from an untouched cell', () => {
+      // Bulk callers (e.g. the MoveCells plugin) remove keys across whole regions; obtaining a
+      // meta object just to delete a key from it retained O(visited cells) memory the viewport
+      // eviction cannot sweep.
+      const metaManager = new MetaManager();
+
+      metaManager.removeCellMeta(5, 5, 'className');
+
+      expect(metaManager.getCellsMeta()).toEqual([]);
+    });
+
+    it('should still remove a stored key', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.setCellMeta(5, 5, 'className', 'marked');
+      metaManager.removeCellMeta(5, 5, 'className');
+
+      expect(metaManager.getCellMeta(5, 5, { visualRow: 5, visualColumn: 5 }).className).toBeUndefined();
     });
   });
 
@@ -489,6 +509,113 @@ describe('MetaManager', () => {
 
       expect(meta.className).toBe('htCenter');
       expect(metaManager.cellMeta.getMetaIfExists(10, 4)).toBeUndefined();
+    });
+  });
+
+  describe('an "editor" setting of `true`', () => {
+    // `true` names no editor, so it has to read as "not passed" - the cell keeps the editor its
+    // "type" (or a higher meta layer) provides. Without normalization the raw `true` reaches
+    // `getEditorInstance()`, which throws on the first edit (GH #7561 follow-up).
+    const textEditor = () => getCellType('text').editor;
+    const numericEditor = () => getCellType('numeric').editor;
+
+    it('should fall back to the default editor when passed to the global meta layer', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.updateGlobalMeta({ editor: true });
+
+      expect(metaManager.getGlobalMeta().editor).toBe(textEditor());
+    });
+
+    it('should fall back to the default editor when passed to the table meta layer', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.updateTableMeta({ editor: true });
+
+      expect(metaManager.getTableMeta().editor).toBe(textEditor());
+    });
+
+    it('should fall back to the default editor when passed to the column meta layer', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.updateColumnMeta(2, { editor: true });
+
+      const meta = metaManager.getCellMeta(0, 2, { visualRow: 0, visualColumn: 2 });
+
+      expect(meta.editor).toBe(textEditor());
+    });
+
+    it('should fall back to the default editor when passed to the cell meta layer', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.updateCellMeta(1, 1, { editor: true });
+
+      const meta = metaManager.getCellMeta(1, 1, { visualRow: 1, visualColumn: 1 });
+
+      expect(meta.editor).toBe(textEditor());
+    });
+
+    it('should keep the editor supplied by the cell "type" of the same column', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.updateColumnMeta(3, { type: 'numeric', editor: true });
+
+      const meta = metaManager.getCellMeta(0, 3, { visualRow: 0, visualColumn: 3 });
+
+      expect(meta.editor).toBe(numericEditor());
+      expect(meta.renderer).toBe(getCellType('numeric').renderer);
+    });
+
+    it('should keep the editor supplied by the cell "type" of the same cell', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.updateCellMeta(2, 2, { type: 'numeric', editor: true });
+
+      const meta = metaManager.getCellMeta(2, 2, { visualRow: 2, visualColumn: 2 });
+
+      expect(meta.editor).toBe(numericEditor());
+    });
+
+    it('should keep the editor inherited from a higher meta layer', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.updateGlobalMeta({ editor: 'password' });
+      metaManager.updateColumnMeta(1, { editor: true });
+
+      const meta = metaManager.getCellMeta(0, 1, { visualRow: 0, visualColumn: 1 });
+
+      expect(meta.editor).toBe('password');
+    });
+
+    it('should not leave the raw `true` on the meta object', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.updateColumnMeta(0, { type: 'numeric', editor: true });
+
+      const meta = metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 });
+
+      expect(meta.editor).not.toBe(true);
+      expect(metaManager.getColumnMeta(0).editor).not.toBe(true);
+    });
+
+    it('should not affect an "editor" setting of `false`, which still disables editing', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.updateColumnMeta(0, { type: 'numeric', editor: false });
+
+      const meta = metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 });
+
+      expect(meta.editor).toBe(false);
+    });
+
+    it('should not affect a named editor, which still wins over the cell "type"', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.updateColumnMeta(0, { type: 'numeric', editor: 'password' });
+
+      const meta = metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 });
+
+      expect(meta.editor).toBe('password');
     });
   });
 });

@@ -3,6 +3,7 @@ import { isKeyValueObject } from '../../../helpers/object';
 import { throwWithCause } from '../../../helpers/errors';
 import DataProvider from '../dataProvider';
 import BaseType from './_base';
+import { normalizeExportOptions } from '../utils';
 import {
   buildSummaryFormula,
   normalizeFormula,
@@ -25,8 +26,10 @@ import {
 import {
   parseIsoStringToSerial,
   parseTimeStringToSerial,
+  parseIsoDateTimeStringToSerial,
   getDateNumFmt,
   getTimeNumFmt,
+  getDateTimeNumFmt,
 } from './xlsx/date-utils';
 import { intlNumFormatToExcelNumFmt } from './xlsx/numeric-utils';
 import type { HotInstance } from '../../../core/types';
@@ -282,14 +285,9 @@ class Xlsx extends BaseType {
 
       sheets.forEach((sheetConfig) => {
         const dp = new DataProvider(sheetConfig.instance);
-        // Apply the same legacy-alias promotion that _mergeOptions does for top-level
-        // options: if the caller passed the deprecated `columnHeaders` on a per-sheet
-        // config without also passing `colHeaders`, promote it so `dataProvider.js`
-        // (which only reads `colHeaders`) picks it up correctly.
-        const normalizedSheetConfig = ('columnHeaders' in sheetConfig && !('colHeaders' in sheetConfig))
-          ? { ...sheetConfig, colHeaders: sheetConfig.columnHeaders }
-          : sheetConfig;
-        const sheetOptions = { ...this.options, ...normalizedSheetConfig };
+        // Promote the deprecated `columnHeaders` alias on the per-sheet config before it is merged
+        // with the already-normalized top-level options, which carry `colHeaders` either way.
+        const sheetOptions = { ...this.options, ...normalizeExportOptions(sheetConfig) };
 
         dp.setOptions(sheetOptions);
 
@@ -674,6 +672,14 @@ class Xlsx extends BaseType {
         },
         numFmt: null,
       };
+    }
+
+    if (meta.type === 'intl-datetime') {
+      const serial = parseIsoDateTimeStringToSerial(cellValue);
+
+      if (serial !== null) {
+        return { value: serial, numFmt: getDateTimeNumFmt() };
+      }
     }
 
     if (meta.type === 'date' || meta.type === 'intl-date') {

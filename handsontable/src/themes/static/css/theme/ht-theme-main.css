@@ -107,6 +107,12 @@
   --ht-cell-mobile-handle-border-color: var(--ht-accent-color);
   --ht-cell-mobile-handle-background-color: var(--ht-accent-color);
   --ht-cell-mobile-handle-background-opacity: 40%;
+  --ht-cell-selection-handle-size: var(--ht-sizing-size-2);
+  --ht-cell-selection-handle-length: var(--ht-sizing-size-4);
+  --ht-cell-selection-handle-border-width: var(--ht-sizing-size-0-25);
+  --ht-cell-selection-handle-border-radius: var(--ht-sizing-size-3);
+  --ht-cell-selection-handle-border-color: var(--ht-accent-color);
+  --ht-cell-selection-handle-background-color: var(--ht-background-color);
   --ht-header-font-weight: var(--ht-font-weight);
   --ht-header-foreground-color: var(--ht-foreground-color);
   --ht-header-background-color: var(--ht-background-secondary-color);

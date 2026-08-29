@@ -414,27 +414,6 @@ describe('AutoRowSize', () => {
     expect(parseInt(getCell(0, -1).style.height, 10)).toBe(70);
   });
 
-  // Currently columns.height is not supported
-  xit('should not trigger autoRowSize when column height is defined (through columns.height)', async() => {
-    handsontable({
-      data: arrayOfObjects(),
-      autoRowSize: true,
-      rowHeights: 77,
-      columns: [
-        { height: 70 },
-        { height: 70 },
-        { height: 70 }
-      ],
-      width: 500,
-      height: 100,
-      rowHeaders: true
-    });
-
-    await setDataAtCell(0, 0, 'LongLongLongLong');
-
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(69); // -1px of cell border
-  });
-
   it('should consider renderer that uses conditional formatting for specific row & column index', async() => {
     const data = arrayOfObjects();
 

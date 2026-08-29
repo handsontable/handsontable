@@ -3,6 +3,35 @@
 // Handsontable Base Row and Col
 
 @mixin output {
+  // Scope cell and header styling to the grid's own tables so it never leaks into a `<table>`
+  // a user renders inside a cell (issue #4363). `:where()` adds zero specificity, so the
+  // resolved cascade stays identical to the former bare `th` / `td` selectors, while the `>`
+  // combinators stop the rules reaching a nested table's cells.
+  // Grid-owned tables are the rendered `table.htCore` AND every off-DOM measurement (ghost)
+  // table (direct child of an `.htGhostTable` container — core GhostTable, NestedHeaders
+  // ghost). Ghosts must measure with the exact cell styling of a real grid cell, so they
+  // share the scope. The `>` in the variable (and in every chain built on it) keeps a
+  // user-rendered table inside a ghost cell out, exactly like in the rendered grid.
+  $ghost-table: ".htGhostTable > table";
+  $grid-head-row: "table.htCore > thead > tr, #{$ghost-table} > thead > tr";
+  $grid-body-row: "table.htCore > tbody > tr, #{$ghost-table} > tbody > tr";
+  $grid-body: "table.htCore > tbody, #{$ghost-table} > tbody";
+  $grid-sections: "table.htCore > thead, table.htCore > tbody, #{$ghost-table} > thead, #{$ghost-table} > tbody";
+  // Anything a user renders inside a body cell. Used with `:not(:where(...))` to keep grid
+  // normalize rules off user content without changing their specificity (`:where()` = 0) (#4363).
+  // Two carve-outs keep grid-owned in-cell chrome normalized:
+  //  - the checkbox renderer's `<input>` — the only element the grid renders into a DATA cell —
+  //    must keep the `input` normalize (`box-sizing`/`min-height`) or host-page rules like
+  //    `input { min-height: 40px }` inflate grid checkboxes;
+  //  - `td.htCustomMenuRenderer` — a menu (context/dropdown/filters) is itself a grid, and a
+  //    custom menu item renders its whole UI inside that grid's body cell: the Filters search
+  //    box, the OK/Cancel `<input type="button">`s, and the value-list grid. Excluding the `td`
+  //    keeps its entire subtree in the normalized set — without it the same host rule stretched
+  //    every one of those inputs to its own `min-height`.
+  // A body cell that can hold user content: any `td` that is not a menu's custom-renderer cell.
+  $user-cell: "td:not(.htCustomMenuRenderer)";
+  $user-cell-content: "table.htCore > tbody > tr > #{$user-cell} *:not(.htCheckboxRendererInput), #{$ghost-table} > tbody > tr > #{$user-cell} *:not(.htCheckboxRendererInput)";
+
   // Root wrapper
   .ht-root-wrapper {
     @include mixins.font-family;
@@ -11,6 +40,14 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+
+    // The `ht-shadow-dom` class is stamped by the core when the grid renders inside a Shadow DOM
+    // tree. The isolated stacking context keeps the internal z-indexes (overlay clones, editors)
+    // from competing with the host page UI, which typically layers its own chrome above the
+    // embedded component (e.g. Salesforce Lightning navigation over a scrolled grid).
+    &.ht-shadow-dom {
+      isolation: isolate;
+    }
 
     // The `ht-slot-*-filled` classes are kept in sync by the `LayoutManager` (they mean "the slot
     // has at least one `.ht-slot-element` child"). Selecting on `:has()` here instead makes every
@@ -56,6 +93,10 @@
 
   .ht-slot-top, .ht-slot-bottom {
     flex: 0 0 auto;
+    // A slot element may enforce its own minimum width (for example the license
+    // notification bar); on grids narrower than that the slot scrolls the excess
+    // instead of letting the element overflow the grid.
+    overflow-x: auto;
   }
 
   .ht-slot-element {
@@ -140,10 +181,8 @@
       width: 100%;
 
       &:not(.htFirstDatasetColumnNotRendered) {
-        td {
-          &:first-of-type {
-            border-inline-start-width: 1px;
-          }
+        :where(#{$grid-body-row}) > td:first-of-type {
+          border-inline-start-width: 1px;
         }
       }
     }
@@ -196,32 +235,32 @@
       }
     }
 
-    // Row even & odd
-    tr {
+    // Row even & odd — grid rows only, never a nested user table (#4363)
+    :where(#{$grid-body}) > tr {
       &.ht__row_even {
-        th {
+        > th {
           background-color: var(--ht-row-header-even-background-color);
         }
 
-        td {
+        > td {
           background-color: var(--ht-row-cell-even-background-color);
         }
       }
 
       &.ht__row_odd {
-        th {
+        > th {
           background-color: var(--ht-row-header-odd-background-color);
         }
 
-        td {
+        > td {
           background-color: var(--ht-row-cell-odd-background-color);
         }
       }
     }
 
-    // Cell and Header
-    th,
-    td {
+    // Cell and Header — grid cells only, never a nested user table (#4363)
+    :where(#{$grid-head-row}, #{$grid-body-row}) > th,
+    :where(#{$grid-body-row}) > td {
       height: calc(var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 1px);
       padding: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);
       vertical-align: top;
@@ -253,8 +292,8 @@
       }
     }
 
-    // Header
-    th {
+    // Header — grid headers only, never a nested user table (#4363)
+    :where(#{$grid-head-row}, #{$grid-body-row}) > th {
       position: relative;
       overflow: visible;
       text-align: center;
@@ -328,12 +367,12 @@
       }
     }
 
-    // Header in Row
-    tbody {
-      tr {
+    // Header in Row — grid rows only, never a nested user table (#4363)
+    :where(table.htCore, #{$ghost-table}) > tbody {
+      > tr {
         &.ht__row_odd,
         &.ht__row_even {
-          th {
+          > th {
             &.ht__highlight {
               color: var(--ht-header-row-highlighted-foreground-color);
               background-color: var(--ht-header-row-highlighted-background-color);
@@ -349,8 +388,8 @@
         // Prevents the first row from "jumping" by adding a pseudo-element
         // that maintains the minimum height when the cell is empty
         &:first-of-type {
-          th,
-          td {
+          > th,
+          > td {
             &:first-child:empty::after {
               content: "";
               display: block;
@@ -359,7 +398,7 @@
           }
         }
 
-        th {
+        > th {
           padding: 0;
           color: var(--ht-header-row-foreground-color);
           background-color: var(--ht-header-row-background-color);
@@ -370,7 +409,7 @@
           }
         }
 
-        td {
+        > td {
           &:first-child {
             border-inline-start-color: var(--ht-border-color);
           }
@@ -389,15 +428,15 @@
       // of the row above (selecting on `tr:has(+ tr > th.ht__active_highlight) th` instead makes
       // every toggle of the active class trigger a host-page-scaled style invalidation). The first
       // row of each overlay (no row above to borrow from) is handled by `tr:first-child`.
-      tr th.ht__active_highlight-prev-row {
+      > tr > th.ht__active_highlight-prev-row {
         border-bottom-color: var(--ht-header-active-border-color);
       }
     }
 
-    // Header in Col
-    thead {
-      tr {
-        th {
+    // Header in Col — grid headers only, never a nested user table (#4363)
+    :where(table.htCore, #{$ghost-table}) > thead {
+      > tr {
+        > th {
           padding: 0;
 
           &.ht__active_highlight {
@@ -423,15 +462,16 @@
       }
     }
 
-    tr:first-child {
-      th,
-      td {
+    // First/last row borders — grid rows only, never a nested user table (#4363)
+    :where(#{$grid-sections}) > tr:first-child {
+      > th,
+      > td {
         border-top-color: var(--ht-border-color);
         border-top-width: 1px;
 
         // `-row-seam-bottom`: tagged by SelectionManager on the first bottom-frozen row header when
         // the last non-frozen row is active. Its top border is the bottom-freeze seam, out of reach
-        // of the `-prev-row` accent rule (separate overlay table), so colour it here.
+        // of the `-prev-row` accent rule (separate overlay table), so color it here.
         &.ht__active_highlight,
         &.ht__active_highlight-row-seam-bottom {
           border-top-color: var(--ht-header-active-border-color);
@@ -439,14 +479,14 @@
       }
     }
 
-    tr:last-child {
-      th,
-      td {
+    :where(#{$grid-sections}) > tr:last-child {
+      > th,
+      > td {
         border-bottom-color: var(--ht-border-color);
 
         // `-row-seam-top`: tagged by SelectionManager on the last top-frozen row header when the first
         // non-frozen row is active. Its bottom border is the top-freeze seam, out of reach of the
-        // `-prev-row` accent rule (separate overlay table), so colour it here.
+        // `-prev-row` accent rule (separate overlay table), so color it here.
         &.ht__active_highlight,
         &.ht__active_highlight-row-seam-top {
           border-bottom-color: var(--ht-header-active-border-color);
@@ -500,15 +540,13 @@
         }
       }
 
-      // Cell
-      td {
-        &:first-of-type {
-          border-inline-start-width: 1px;
-        }
+      // Cell — grid cells only, never a nested user table (#4363)
+      :where(#{$grid-body-row}) > td:first-of-type {
+        border-inline-start-width: 1px;
       }
     }
 
-    thead tr:not(:last-child) th {
+    :where(table.htCore, #{$ghost-table}) > thead > tr:not(:last-child) > th {
       /* Fix for - nested columns with hidden column  */
       overflow: hidden;
     }
@@ -547,17 +585,24 @@
       white-space: nowrap;
     }
 
-    table,
-    tbody,
-    thead,
-    input,
-    textarea,
-    div {
+    // Box-sizing normalize — grid chrome only. Scoped so it never forces `content-box` onto a
+    // table/div/input a user renders inside a cell, which would fight a host `border-box` (#4363).
+    table.htCore,
+    // `&:where(...)`, not a descendant selector: a ghost container carries `handsontable` and
+    // `htGhostTable` on the SAME element, and the NestedHeaders ghost is appended to `<body>`,
+    // so `.handsontable :where(.htGhostTable)` would never match it. `:where()` keeps the
+    // specificity at the former bare `table` selector's (0,1,1).
+    &:where(.htGhostTable) > table,
+    :where(table.htCore, #{$ghost-table}) > thead,
+    :where(table.htCore, #{$ghost-table}) > tbody,
+    input:not(:where(#{$user-cell-content})),
+    textarea:not(:where(#{$user-cell-content})),
+    div:not(:where(#{$user-cell-content})) {
       box-sizing: content-box;
     }
 
-    input,
-    textarea {
+    input:not(:where(#{$user-cell-content})),
+    textarea:not(:where(#{$user-cell-content})) {
       min-height: initial;
     }
 
@@ -573,7 +618,8 @@
       background-color: var(--ht-background-color);
     }
 
-    col {
+    // Grid colgroup only, never a nested user table's <col> (#4363)
+    :where(table.htCore, #{$ghost-table}) > colgroup > col {
       width: 64px;
 
       &.rowHeader {
@@ -594,16 +640,22 @@
       }
     }
 
-    tr.hidden {
+    // Grid rows only, never a nested user table (#4363)
+    :where(#{$grid-sections}) > tr.hidden {
       display: none;
 
-      td,
-      th {
+      > td,
+      > th {
         display: none;
       }
     }
 
-    a {
+    // Grid-chrome links only (license notice, menus). A link a user renders inside a cell keeps
+    // its own color (#4363). The grid renders no `<a>` into a DATA cell, so every `<a>` matched
+    // there is user content. Filters does render links (`.htUISelectAll a`, `.htUIClearAll a`)
+    // inside the menu grid's cells — those stay grid chrome because `$user-cell` excludes
+    // `td.htCustomMenuRenderer` (`_filters.scss` also colors them explicitly).
+    a:not(:where(#{$user-cell-content})) {
       color: var(--ht-link-color);
 
       &:hover {
@@ -613,25 +665,27 @@
 
     // Visual fixes
     // It removes double right border from first column header when row headers are disabled
-    .ht_clone_top th:nth-child(2) {
+    // Header border fixes — grid headers only, never a nested user table (#4363).
+    // `:where(table.htCore …)` keeps each selector at its former specificity.
+    .ht_clone_top :where(table.htCore > thead > tr) > th:nth-child(2) {
       border-inline-start-width: 0;
       border-inline-end-width: 1px;
     }
 
-    .ht_clone_top_inline_start_corner th:nth-child(2) {
+    .ht_clone_top_inline_start_corner :where(table.htCore > thead > tr) > th:nth-child(2) {
       border-inline-start-width: 0;
       border-inline-end-width: 1px;
     }
 
-    &.htRowHeaders thead tr th:nth-child(2) {
+    &.htRowHeaders :where(table.htCore) > thead > tr > th:nth-child(2) {
       border-inline-start-width: 1px;
     }
 
     .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) {
-      tbody tr th,
-      thead tr th:first-child,
-      ~ .handsontable:not(.htGhostTable) tbody tr th,
-      ~ .handsontable:not(.ht_clone_top):not(.htGhostTable) thead tr th:first-child {
+      :where(table.htCore) > tbody > tr > th,
+      :where(table.htCore) > thead > tr > th:first-child,
+      ~ .handsontable:not(.htGhostTable) :where(table.htCore) > tbody > tr > th,
+      ~ .handsontable:not(.ht_clone_top):not(.htGhostTable) :where(table.htCore) > thead > tr > th:first-child {
         border-inline-end-width: 0;
         border-inline-start-width: 1px;
       }
@@ -640,33 +694,25 @@
     //  innerBorderTop - Property controlled by top overlay
     //  innerBorderBottom - Property controlled by bottom overlay
     .ht_master:not(.innerBorderTop):not(.innerBorderBottom) {
-      thead tr:last-child th,
-      & ~ .handsontable thead tr:last-child th,
-      thead tr.lastChild th,
-      & ~ .handsontable thead tr.lastChild th {
+      :where(table.htCore) > thead > tr:last-child > th,
+      & ~ .handsontable :where(table.htCore) > thead > tr:last-child > th,
+      :where(table.htCore) > thead > tr.lastChild > th,
+      & ~ .handsontable :where(table.htCore) > thead > tr.lastChild > th {
         border-bottom-width: 0;
       }
     }
 
     &.htAutoRowSize {
       .ht_master.innerBorderTop {
-        tbody {
-          tr:first-child {
-            th,
-            td {
-              border-top-width: 0;
-            }
-          }
+        :where(table.htCore) > tbody > tr:first-child > th,
+        :where(table.htCore) > tbody > tr:first-child > td {
+          border-top-width: 0;
         }
 
         & ~ .ht_clone_inline_start {
-          tbody {
-            tr:first-child {
-              th,
-              td {
-                border-top-width: 0;
-              }
-            }
+          :where(table.htCore) > tbody > tr:first-child > th,
+          :where(table.htCore) > tbody > tr:first-child > td {
+            border-top-width: 0;
           }
         }
       }
@@ -690,24 +736,78 @@
     }
   }
 
+  // Floating ("overlay") scrollbars (#10370): the frozen overlays stop short of the strip the
+  // scrollbar is painted over, so a press can reach it. That uncovers the master's cells underneath,
+  // scrolled to different columns and rows than the overlay shows, so JS patches the strip with opaque
+  // fillers. Not one engine's problem: it happens wherever the scrollbar takes no layout space, which
+  // is Firefox everywhere, Chrome and Safari on macOS set to "Automatically", and Chrome on Windows 11
+  // and GTK. They sit inside the master holder on purpose. A browser paints a scroll container's
+  // scrollbar above that container's own contents, so a filler in here is drawn under the thumb, while
+  // one stacked above the holder would hide it. The holder is not a containing block for absolute positioning,
+  // hence the sticky host: it stays pinned to the scrollport as the grid scrolls, and carries no size
+  // of its own so it cannot add a phantom scroll step.
+  .htScrollbarClearanceFillers {
+    position: sticky;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    block-size: 0;
+    inline-size: 0;
+    // This box comes and goes as the scrollbar appears and fades, and it is the holder's first child -
+    // so without opting out, the browser's scroll anchoring treats it as content appearing above the
+    // scroll position, nudges the offset to compensate, and emits a scroll event nobody asked for.
+    overflow-anchor: none;
+    // Above the master's cells AND above the selection decorations drawn over them. `.wtHider` and
+    // `.wtSpreader` are positioned but carry no z-index, so they open no stacking context and the
+    // selection's own layers compete directly with this one: border lines 1-6, the moveCells bands
+    // 100, the autofill corner 150, the resize pills 200. At z-index 1 those all won, and a border
+    // painted across the track while the cell it belongs to sat hidden underneath it.
+    // Safe to raise: the cell editor is NOT in this holder - it lives in `.ht-wrapper` alongside it -
+    // so nothing here can cover an open editor. And the scrollbar is not a DOM node; the browser paints
+    // it above the scroller's contents whatever they declare, so the thumb stays visible and grabbable.
+    z-index: 300;
+  }
+
+  // One band per scrollbar, spanning the whole scrollport so the strip reads as a single track rather
+  // than an opaque patch under the frozen cells beside a transparent gap over the master.
+  .htScrollbarClearanceFiller {
+    position: absolute;
+    // The scrollbar's own track color, not the grid background. The browser paints its native track
+    // in this color whenever it decides to draw one (on drag, on hover), so anything else makes the
+    // band change shade between a wheel scroll and a drag.
+    background-color: var(--ht-scrollbar-track-color, var(--ht-background-color));
+    // The band paints over the strip but does not answer for it. Taking the hit made the band the
+    // event target for everything underneath, including the selection's own controls: the autofill
+    // corner of a range that ends near the grid's edge sits inside the strip, and with the band
+    // answering, the press reached the filler instead of the handle, so no fill drag ever started.
+    // Measured on the `main` theme, where that handle lands 14px above the bottom edge and the band
+    // spans the last 16px.
+    // A press on the bare track still must not move the selection to a cell hidden behind the band.
+    // That is handled where it belongs, by coordinate, in `Overlays#swallowBandPress` - which also
+    // knows to let the selection's controls through. The scrollbar itself is unaffected either way: it
+    // is not a DOM node, and a scroll container's scrollbar is hit-tested above its own contents, so
+    // the thumb stays grabbable.
+    pointer-events: none;
+    box-sizing: border-box;
+    // No opacity and no transition, on purpose: the band is drawn UNDER the frozen overlays, which are
+    // clipped out of the strip, so any frame where it is not fully opaque shows the master's cell where
+    // the frozen content belongs. Measured: an opacity ramp put 13 such frames in every appearance.
+    // Do not add a fade here - see `ScrollbarVisibility` for why holding the clip open instead only
+    // moves the defect.
+  }
+
   .ht_master .wtHolder {
     overflow: auto;
   }
 
   [dir="rtl"].handsontable {
-    td[dir="ltr"] {
+    // Grid cells only, never a nested user table (#4363)
+    :where(#{$grid-body-row}) > td[dir="ltr"] {
       border-inline-end-width: 0;
       border-inline-start-width: 1px;
     }
 
-    tbody {
-      tr {
-        td[dir="ltr"] {
-          &:last-child {
-            border-inline-start-color: var(--ht-border-color);
-          }
-        }
-      }
+    :where(table.htCore, #{$ghost-table}) > tbody > tr > td[dir="ltr"]:last-child {
+      border-inline-start-color: var(--ht-border-color);
     }
 
     // header highlight line rtl fix

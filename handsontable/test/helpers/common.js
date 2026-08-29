@@ -1027,6 +1027,13 @@ export function closeContextMenu() {
 }
 
 /**
+ * Closes the dropdown menu.
+ */
+export function closeDropdownMenu() {
+  $(document).simulate('mousedown');
+}
+
+/**
  * Shows dropdown menu.
  *
  * @param {number|HTMLTableCellElement} [columnIndexOrCell=0] The column index or TD element under which the dropdown menu is triggered.
@@ -1082,6 +1089,41 @@ export function openDropdownSubmenuOption(submenuName, cell) {
   item
     .simulate('mouseenter')
     .simulate('mouseover');
+}
+
+/**
+ * Open, execute the sub menu action and close the dropdown menu.
+ *
+ * @param {string} submenuName The dropdown menu item name (it has to be a submenu) to hover.
+ * @param {string} optionName The dropdown menu subitem name to click.
+ * @param {number|HTMLTableCellElement} [cell] The column index or TH element to open the menu under.
+ */
+export async function selectDropdownSubmenuOption(submenuName, optionName, cell) {
+  openDropdownSubmenuOption(submenuName, cell);
+
+  // Wait for the submenu to open instead of guessing with a fixed delay.
+  let button = $();
+
+  for (let attempt = 0; attempt < 30 && button.length === 0; attempt++) {
+    // eslint-disable-next-line no-await-in-loop
+    await waitForNextAnimationFrames(1);
+
+    button = $(`.htDropdownMenuSub_${submenuName}`)
+      .find(`.ht_master .htCore tbody td:contains(${optionName})`);
+  }
+
+  // Without this the `.simulate()` calls below are silent no-ops and the test passes having
+  // clicked nothing.
+  if (button.length === 0) {
+    throw new Error(`The "${optionName}" option of the "${submenuName}" dropdown submenu was not found.`);
+  }
+
+  button
+    .simulate('mouseenter')
+    .simulate('mousedown')
+    .simulate('mouseup')
+    .simulate('click');
+  closeDropdownMenu();
 }
 
 /**
@@ -1484,6 +1526,8 @@ export function swapDisplayedColumns(container, from, to) {
   $from.simulate('mouseup');
 }
 
+let touchIdentifier = 0;
+
 /**
  * Creates touch event and dispatch it for handled element.
  *
@@ -1494,8 +1538,15 @@ export function swapDisplayedColumns(container, from, to) {
  * @returns {Event} Returns the Event instance used to trigger the event.
  */
 function sendTouchEvent(x, y, element, eventType) {
+  // A real finger keeps one identifier for its whole gesture, and code that follows a drag matches
+  // on it. `Date.now()` handed out a fresh identifier per event, so a touchstart and the touchmove
+  // after it looked like two different fingers whenever the calls landed in different milliseconds.
+  if (eventType === 'touchstart') {
+    touchIdentifier += 1;
+  }
+
   const touchObj = new Touch({
-    identifier: Date.now(),
+    identifier: touchIdentifier,
     target: element,
     clientX: x,
     clientY: y,

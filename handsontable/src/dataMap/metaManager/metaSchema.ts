@@ -255,11 +255,14 @@ export default (): Record<string, unknown> => {
      * | `true`            | The [`source`](#source) data is treated as HTML     |
      *
      * __Warning:__ Setting the `allowHtml` option to `true` can cause serious XSS vulnerabilities.
+     * The [`sanitizer`](#sanitizer) option does not apply to this content: `allowHtml` exists to render
+     * the markup you supply, so sanitize the [`source`](#source) items yourself before passing them in.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
      * - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
      * - [`source`](#source)
+     * - [`sanitizer`](#sanitizer)
      *
      * @memberof Options#
      * @type {boolean}
@@ -283,9 +286,37 @@ export default (): Record<string, unknown> => {
     allowHtml: false,
 
     /**
-     * If set to `true`, the `allowInsertColumn` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
+     * The `allowInsertColumn` option controls two things: the insert items in the menus, and whether
+     * the grid may add columns on its own.
+     *
+     * If set to `true`, the option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
+     * and to the [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md):
      * - **Insert column left**
      * - **Insert column right**
+     *
+     * If set to `false`, the option also stops the grid from adding columns on its own:
+     * - A [paste](@/guides/cell-features/clipboard/clipboard.md) that is wider than the columns left to the right of the
+     *   selection stops at the last column. Handsontable drops the extra values, and reports no error. In the
+     *   `shift_right` [`pasteMode`](@/api/copyPaste.md) the values pushed past the last column are **lost**, because no
+     *   column is created to receive them.
+     * - An [autofill](@/guides/cell-features/autofill-values/autofill-values.md) that reaches past the last column stops
+     *   at the last column.
+     * - [`setDataAtCell()`](@/api/core.md#setdataatcell) and [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) no
+     *   longer create the missing columns when you write past the last column. The write still reaches the source data,
+     *   so [`getSourceData()`](@/api/core.md#getsourcedata) returns the value while the grid never displays it. This
+     *   bullet applies only when your [`data`](#data) is an array of arrays and you do not set the
+     *   [`columns`](#columns) option – in any other configuration these methods never add columns anyway.
+     *
+     * The option does not stop these ways of adding columns:
+     * - The [`alter()`](@/api/core.md#alter) method, including its `insert_col_start` and `insert_col_end` actions.
+     * - The [`minCols`](#minCols) and [`minSpareCols`](#minSpareCols) options. Both are themselves skipped when the
+     *   [`columns`](#columns) option is set, and `minSpareCols` also requires [`data`](#data) to be an array of arrays.
+     * - Undo and redo.
+     * - Pressing <kbd>**Enter**</kbd> at the last column, when [`minSpareCols`](#minSpareCols) is above `0` and
+     *   [`enterMoves`](#enterMoves) is set to move the column. The default `enterMoves` moves the row only, so this
+     *   does not happen out of the box.
+     *
+     * To cap the number of columns whatever the source, use [`maxCols`](#maxCols) as well.
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -297,16 +328,44 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // hide the 'Insert column left' and 'Insert column right' menu items from the context menu
+     * // hide the 'Insert column left' and 'Insert column right' menu items,
+     * // and stop the grid from adding columns during paste, autofill, and `setDataAtCell()`
      * allowInsertColumn: false,
      * ```
      */
     allowInsertColumn: true,
 
     /**
-     * If set to `true`, the `allowInsertRow` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
+     * The `allowInsertRow` option controls two things: the insert items in the context menu, and whether
+     * the grid may add rows on its own.
+     *
+     * If set to `true`, the option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
      * - **Insert row above**
      * - **Insert row below**
+     *
+     * If set to `false`, the option also stops the grid from adding rows on its own:
+     * - A [paste](@/guides/cell-features/clipboard/clipboard.md) that is taller than the rows left below the selection
+     *   stops at the last row. Handsontable drops the extra values, and reports no error. In the
+     *   `shift_down` [`pasteMode`](@/api/copyPaste.md) the rows pushed past the last row are **lost**, because no row is
+     *   created to receive them.
+     * - An [autofill](@/guides/cell-features/autofill-values/autofill-values.md) whose fill reaches past the last row
+     *   stops at the last row, unless the [`fillHandle`](#fillHandle) option's `autoInsertRow` setting has already
+     *   appended rows to take it – see the next list.
+     * - [`setDataAtCell()`](@/api/core.md#setdataatcell) and [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) do
+     *   not create the missing rows when you write below the last row. Both currently **throw a `TypeError`** in that
+     *   case, so guard the call, or keep the row index within [`countRows()`](@/api/core.md#countrows).
+     *
+     * The option does not stop these ways of adding rows:
+     * - The [`alter()`](@/api/core.md#alter) method, including its `insert_row_above` and `insert_row_below` actions.
+     * - The [`minRows`](#minRows) and [`minSpareRows`](#minSpareRows) options.
+     * - Undo and redo.
+     * - The fill handle appending rows when you drag it below the last row. That is governed solely by the
+     *   [`fillHandle`](#fillHandle) option's `autoInsertRow` setting, which ignores `allowInsertRow`. It applies only
+     *   when you set [`fillHandle`](#fillHandle) explicitly – left unset, the grid does not append rows this way.
+     * - Pressing <kbd>**Enter**</kbd> at the last row, when [`minSpareRows`](#minSpareRows) is above `0`. Only
+     *   <kbd>**Enter**</kbd> does this – the arrow keys and <kbd>**Tab**</kbd> never create a row.
+     *
+     * To cap the number of rows whatever the source, use [`maxRows`](#maxRows) as well.
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -318,7 +377,8 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // hide the 'Insert row above' and 'Insert row below' menu items from the context menu
+     * // hide the 'Insert row above' and 'Insert row below' menu items from the context menu,
+     * // and stop the grid from adding rows during paste, autofill, and `setDataAtCell()`
      * allowInsertRow: false,
      * ```
      */
@@ -358,8 +418,15 @@ export default (): Record<string, unknown> => {
     allowInvalid: true,
 
     /**
-     * If set to `true`, the `allowRemoveColumn` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
+     * If set to `true`, the `allowRemoveColumn` option adds the following menu item to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
+     * and to the [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md):
      * - **Remove column**
+     *
+     * The option hides that menu item only. It does not stop the [`alter()`](@/api/core.md#alter) method's
+     * `remove_col` action, and it does not stop undo or redo. To block a removal, return `false` from the
+     * [`beforeRemoveCol`](@/api/hooks.md#beforeremovecol) hook – that is the only lever that stops one.
+     * [`minCols`](#minCols) does not: it appends an empty column afterwards to restore the count, and the removed data
+     * is already gone.
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -374,15 +441,21 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // hide the 'Remove column' menu item from the context menu
+     * // hide the 'Remove column' menu item from the context menu and the column menu
      * allowRemoveColumn: false,
      * ```
      */
     allowRemoveColumn: true,
 
     /**
-     * If set to `true`, the `allowRemoveRow` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
+     * If set to `true`, the `allowRemoveRow` option adds the following menu item to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
      * - **Remove row**
+     *
+     * The option hides that menu item only. It does not stop the [`alter()`](@/api/core.md#alter) method's
+     * `remove_row` action, and it does not stop undo or redo. To block a removal, return `false` from the
+     * [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow) hook – that is the only lever that stops one.
+     * [`minRows`](#minRows) does not: it appends an empty row afterwards to restore the count, and the removed data
+     * is already gone.
      *
      * Read more:
      * - [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
@@ -491,7 +564,12 @@ export default (): Record<string, unknown> => {
      * | `samplingRatio`         | A number                        | The number of samples of the same length to be used in row height calculations                             |
      * | `allowSampleDuplicates` | `true` \| `false`               | When calculating row heights:<br>`true`: Allow duplicate samples<br>`false`: Don't allow duplicate samples |
      *
-     * Using the [`rowHeights`](#rowHeights) option forcibly disables the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
+     * Unlike [`colWidths`](#colWidths), which switches [`AutoColumnSize`](@/api/autoColumnSize.md)
+     * off, the [`rowHeights`](#rowHeights) option does **not** disable this plugin. A height set
+     * through `rowHeights` acts as a minimum: the plugin still measures the row, and a row whose
+     * content is taller than that keeps its measured height. A column can be narrower than its
+     * content and clip it, but a row that is shorter than its content would hide the content, so
+     * rows only ever grow.
      *
      * Read more:
      * - [Plugins: `AutoRowSize`](@/api/autoRowSize.md)
@@ -764,6 +842,44 @@ export default (): Record<string, unknown> => {
      * To style the summary row, use the class name assigned automatically by the [`ColumnSummary`](@/api/columnSummary.md) plugin: `columnSummaryResult`.
      * :::
      *
+     * ### Where Handsontable adds the class names
+     *
+     * The target depends on the level at which you set the option:
+     *
+     * | Level                                | Container element | Cells                |
+     * | ------------------------------------ | ----------------- | -------------------- |
+     * | Grid                                 | Yes               | Every cell           |
+     * | [`columns`](#columns)                | No                | Cells of that column |
+     * | [`cells`](#cells) or [`cell`](#cell) | No                | The matching cells   |
+     *
+     * At the grid level, Handsontable adds the class names to two places. It adds them to the
+     * container element – the element that holds the grid – and, through
+     * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration),
+     * to every cell. To add class names to the `<table>` element instead, use [`tableClassName`](#tableClassName).
+     *
+     * To style the container element alone, set `className` at the grid level and clear it at the
+     * cell level:
+     *
+     * ```js
+     * const hot = new Handsontable(container, {
+     *   className: 'your-class-name',
+     *   // the container element keeps `your-class-name`, the cells don't receive it
+     *   cells() {
+     *     return { className: '' };
+     *   },
+     * });
+     * ```
+     *
+     * A `className` set at a lower level replaces the value from a higher level. It doesn't merge
+     * with it. To keep a class name from a higher level, repeat it at the lower level.
+     *
+     * ### Custom renderers
+     *
+     * Handsontable adds these class names to a cell even when the cell uses a custom
+     * [renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md) that calls no built-in
+     * renderer. Handsontable runs `baseRenderer` after your renderer whenever your renderer didn't
+     * run it. Before version 17.0.0, such a cell received no class names.
+     *
      * To apply different CSS class names on different levels, use Handsontable's [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration).
      *
      * Read more:
@@ -887,16 +1003,26 @@ export default (): Record<string, unknown> => {
      *
      * You can set the `columnHeaderHeight` option to one of the following:
      *
-     * | Setting  | Description                                         |
-     * | -------- | --------------------------------------------------- |
-     * | A number | Set the same height for every column header         |
-     * | An array | Set different heights for individual column headers |
+     * | Setting  | Description                                                     |
+     * | -------- | --------------------------------------------------------------- |
+     * | A number | Set the same height for every column header                     |
+     * | A string | Set the same height, written as a pixel size (`'25'`, `'25px'`)  |
+     * | An array | Set different heights for individual column headers             |
+     *
+     * The height is a number of pixels. A string that states a pixel size works too, either as a bare
+     * number (`'25'`) or with the unit (`'25px'`), so a value coming from an attribute or a JSON
+     * config still applies. Both forms may be mixed inside the array. A value that is not a pixel
+     * size, such as `'50%'` or `'20em'`, is ignored and the default height is used instead.
+     *
+     * A negative number is kept as it is, because numbers keep the behavior they had before this
+     * option read strings at all. A negative string is rejected instead, so a typo cannot collapse
+     * the header.
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
-     * @type {number|number[]}
+     * @type {number|number[]|string|string[]|Array<number|string>}
      * @default undefined
      * @category Core
      *
@@ -904,6 +1030,9 @@ export default (): Record<string, unknown> => {
      * ```js
      * // set the same height for every column header
      * columnHeaderHeight: 25,
+     *
+     * // set the same height, written as a pixel size
+     * columnHeaderHeight: '25px',
      *
      * // set different heights for individual column headers
      * columnHeaderHeight: [25, 30, 55],
@@ -1654,6 +1783,40 @@ export default (): Record<string, unknown> => {
 
     /**
      * @description
+     * The `customBordersProgressive` option controls how a large [`customBorders`](#customborders)
+     * configuration is applied at initialization.
+     *
+     * By default (`false`), all custom borders are built synchronously before the first render, which
+     * can block the initial paint when the configuration contains a very large number of borders.
+     *
+     * Set it to `true` to apply the borders in background batches after the grid has rendered: the
+     * grid becomes interactive immediately and the borders fill in progressively. Pass an object to
+     * tune the batch size, for example `{ chunkSize: 5000 }`.
+     *
+     * When enabled, [`getBorders()`](@/api/customBorders.md#getborders) and the borders' cell meta
+     * are populated incrementally, so they may be incomplete until the
+     * [`afterCustomBordersUpdate`](@/api/hooks.md#aftercustombordersupdate) hook fires.
+     *
+     * @since 18.1.0
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default false
+     * @category CustomBorders
+     *
+     * @example
+     * ```js
+     * // apply a large custom-borders config in background batches
+     * customBorders: [ / * ...many borders... * / ],
+     * customBordersProgressive: true,
+     *
+     * // tune the batch size
+     * customBordersProgressive: { chunkSize: 5000 },
+     * ```
+     */
+    customBordersProgressive: false,
+
+    /**
+     * @description
      * The `data` option sets the initial [data](@/guides/getting-started/binding-to-data/binding-to-data.md) of your Handsontable instance.
      *
      * Handsontable's data is bound to your source data by reference (i.e. when you edit Handsontable's data, your source data alters as well).
@@ -1847,6 +2010,11 @@ export default (): Record<string, unknown> => {
      * Source data must be in ISO 8601 date format (`YYYY-MM-DD`). Otherwise operations such
      * as sorting and filtering can be unstable or unpredictable. The `dateFormat` object affects only how dates are
      * displayed; the underlying value should remain ISO.
+     *
+     * Time-related options (`hour`, `minute`, `second`, `timeStyle`, `hour12`, `hourCycle`,
+     * `fractionalSecondDigits`) only affect display and always render midnight (`00:00:00`) for
+     * `date`/`intl-date` cells, because their source data is date-only. For editable date *and*
+     * time values, use the [`intl-datetime` cell type](@/guides/cell-types/datetime-cell-type/datetime-cell-type.md).
      * :::
      *
      * **Style shortcuts:**
@@ -1974,6 +2142,55 @@ export default (): Record<string, unknown> => {
     timeFormat: { hour: '2-digit', minute: '2-digit' },
 
     /**
+     * Configures the date-time format for `intl-datetime` cells using an
+     * [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat)
+     * options object. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
+     *
+     * ::: tip Source data format
+     * Source data must be in ISO 8601 date-time format (`YYYY-MM-DDTHH:mm:ss`; a date-only
+     * `YYYY-MM-DD` value is treated as midnight). Otherwise operations such as sorting and filtering
+     * can be unstable or unpredictable. The `dateTimeFormat` object affects only how values are
+     * displayed; the underlying value should remain ISO.
+     * :::
+     *
+     * For the full list of supported properties, see
+     * [MDN: Intl.DateTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat).
+     *
+     * Read more:
+     * - [Date-time cell type](@/guides/cell-types/datetime-cell-type/datetime-cell-type.md)
+     * - [`locale`](@/api/options.md#locale)
+     *
+     * @since 18.1.0
+     * @memberof Options#
+     * @type {object}
+     * @default { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
+     * @category Core
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *     type: 'intl-datetime',
+     *     locale: 'en-US',
+     *     dateTimeFormat: {
+     *       dateStyle: 'medium',
+     *       timeStyle: 'short'
+     *     }
+     *   }
+     * ]
+     * ```
+     */
+    dateTimeFormat: {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    },
+
+    /**
      * The `defaultDate` option configures the date pre-selected in the date picker editor
      * when opening an empty [`date`](@/guides/cell-types/date-cell-type/date-cell-type.md) cell for editing.
      *
@@ -2079,7 +2296,7 @@ export default (): Record<string, unknown> => {
      * | `template.description`   | The description of the template                                                                                                 | The description of the template         |
      * | `template.buttons`       | Array of objects with the buttons configuration (default: `[]`)                                                                 | The buttons of the template             |
      * | `template.buttons.text`  | The text of the button                                                                                                          | The text of the button                  |
-     * | `template.buttons.type`  | The type of the button ('primary' | 'secondary')                                                                                | The type of the button                  |
+     * | `template.buttons.type`  | The type of the button (`'primary'` \| `'secondary'`)                                                                           | The type of the button                  |
      * | `template.buttons.callback` | The callback function to trigger when the button is clicked                                                                  | The callback function to trigger when the button is clicked |
      * | `content`                | A string, HTMLElement or DocumentFragment (default: `''`)                                                                       | The content of the dialog               |
      * | `customClassName`        | A string (default: `''`)                                                                                                        | The custom class name of the dialog     |
@@ -2088,7 +2305,7 @@ export default (): Record<string, unknown> => {
      * | `animation`              | Boolean (default: `true`)                                                                                                       | Whether to show the animation           |
      * | `closable`               | Boolean (default: `false`)                                                                                                      | Whether to make the dialog closable     |
      * | `a11y`                   | Object with accessibility options (default: `{ role: 'dialog', ariaLabel: 'Dialog', ariaLabelledby: '', ariaDescribedby: '' }`) | Accessibility options for the dialog    |
-     * | `a11y.role`              | The role of the dialog ('dialog' | 'alertdialog')                                                                               | The role of the dialog                  |
+     * | `a11y.role`              | The role of the dialog (`'dialog'` \| `'alertdialog'`)                                                                          | The role of the dialog                  |
      * | `a11y.ariaLabel`         | The label of the dialog                                                                                                         | The label of the dialog                 |
      * | `a11y.ariaLabelledby`    | The ID of the element that labels the dialog                                                                                    | The ID of the element that labels the dialog |
      * | `a11y.ariaDescribedby`   | The ID of the element that describes the dialog                                                                                 | The ID of the element that describes the dialog |
@@ -2098,6 +2315,12 @@ export default (): Record<string, unknown> => {
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * The dialog is available on the main grid only. In a grid nested in a cell, that is a cell of the
+     * [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md),
+     * [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or
+     * [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, this
+     * option has no effect.
      *
      * @since 16.1.0
      * @memberof Options#
@@ -2378,6 +2601,10 @@ export default (): Record<string, unknown> => {
      * | `Delete` / `Backspace`                  | Clear the contents of the selected cells                    |
      * | `Ctrl` + `Enter` / `Cmd` + `Enter`      | Fill selected cells with the value of the active cell       |
      *
+     * Setting the `editor` option to `true` names no editor, so Handsontable treats it as if the
+     * option was not set at all. The cell keeps the editor that its [`type`](#type) provides, or the
+     * editor inherited from a higher configuration level.
+     *
      * To set the [`editor`](#editor), [`renderer`](#renderer), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.
      *
@@ -2459,6 +2686,13 @@ export default (): Record<string, unknown> => {
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * The empty data state is available on the main grid only. In a grid nested in a cell, that is a
+     * cell of the
+     * [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md),
+     * [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or
+     * [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, this
+     * option has no effect.
      *
      * @since 16.2.0
      * @memberof Options#
@@ -2671,6 +2905,12 @@ export default (): Record<string, unknown> => {
      * | `autoInsertRow` | `true` (default) \| `false`    | `true`: When you reach the grid's bottom, add new rows<br>`false`: When you reach the grid's bottom, stop |
      * | `direction`     | `'vertical'` \| `'horizontal'` | `'vertical'`: Enable vertical autofill<br>`'horizontal'`: Enable horizontal autofill                      |
      *
+     * The `autoInsertRow` default above applies once you set `fillHandle` yourself, to any of the values in the first
+     * table. Leave `fillHandle` unset and the grid does not append rows when you drag the fill handle below the last
+     * row. Setting `direction` to `'horizontal'` also turns `autoInsertRow` off.
+     *
+     * Rows appended this way bypass [`allowInsertRow`](#allowInsertRow): only `autoInsertRow` governs them.
+     *
      * Read more:
      * - [AutoFill values](@/guides/cell-features/autofill-values/autofill-values.md)
      *
@@ -2679,7 +2919,7 @@ export default (): Record<string, unknown> => {
      *
      * @memberof Options#
      * @type {boolean|string|object}
-     * @default true
+     * @default { autoInsertRow: false }
      * @category Core
      *
      * @example
@@ -2993,6 +3233,16 @@ export default (): Record<string, unknown> => {
      * | `sheetId`   | A number                                                                                                                                                                                                               |
      * | `sheetName` | A string                                                                                                                                                                                                               |
      * | `language`  | A [HyperFormula language pack](https://handsontable.github.io/hyperformula/guide/localizing-functions.html), imported from `hyperformula/es/i18n/languages`                                                          |
+     * | `hyperlinks` | `true` \|<br>`false` (default)                                                                                                                                                                                        |
+     *
+     * Set `hyperlinks` to `true` to render a cell whose formula is `HYPERLINK()` as a link. The cell
+     * keeps its own renderer, and the link label is the value the formula returns. Only a cell whose
+     * root expression is `HYPERLINK()` becomes a link, so a nested call such as
+     * `=CONCATENATE("see ", HYPERLINK("https://example.com"))` renders as plain text.
+     *
+     * A link is created only for the `http`, `https`, `mailto` and `tel` schemes. Any other scheme,
+     * `javascript:` included, renders the label as plain text instead. Press
+     * <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd> to open the link of the selected cell.
      *
      * Read more:
      * - [Plugins: `Formulas`](@/api/formulas.md)
@@ -3016,6 +3266,12 @@ export default (): Record<string, unknown> => {
      *   engine: HyperFormula,
      *   sheetId: 1,
      *   sheetName: 'Sheet 1'
+     * }
+     *
+     * // or, render `HYPERLINK()` formulas as links
+     * formulas: {
+     *   engine: HyperFormula,
+     *   hyperlinks: true
      * }
      *
      * // or, add a HyperFormula instance
@@ -3726,6 +3982,7 @@ export default (): Record<string, unknown> => {
      * | Setting                                                                                                 | Description                                                                                       |
      * | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
      * | A string with your [commercial license key](@/guides/getting-started/license-key/license-key.md#commercial-license) | For [commercial use](@/guides/technical-specification/software-license/software-license.md#commercial-use)         |
+     * | A string with your [entitlement license key](@/guides/getting-started/license-key/license-key.md#entitlement-license-keys) (plain-English text ending with a `[...]` block) | For trial, subscription, or perpetual use |
      * | `'non-commercial-and-evaluation'`                                                                       | For [non-commercial use](@/guides/technical-specification/software-license/software-license.md#non-commercial-use) |
      *
      * Read more:
@@ -3741,8 +3998,12 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // for commercial use
+     * // for commercial use (legacy 25-character format)
      * licenseKey: 'xxxxx-xxxxx-xxxxx-xxxxx-xxxxx', // your commercial license key
+     *
+     * // for an entitlement license key (trial, subscription, or perpetual),
+     * // pass the whole key string exactly as you received it
+     * licenseKey: 'This is a Handsontable license key for Acme Corp, ... [eyJwcm9kdWN0cyI6...3a4f8361]',
      *
      * // for non-commercial use
      * licenseKey: 'non-commercial-and-evaluation',
@@ -3809,11 +4070,21 @@ export default (): Record<string, unknown> => {
      * | `title`       | A string          | Custom loading title to display (default: `'Loading...'`) |
      * | `description` | A string          | Custom loading description to display (default: `''`)     |
      *
+     * `title` and `description` render as text. Markup passed in them shows up literally rather
+     * than being interpreted, so use `icon` for the one slot that takes markup.
+     *
      * Read more:
      * - [Plugins: `Loading`](@/api/loading.md)
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * The loading indicator is available on the main grid only. In a grid nested in a cell, that is a
+     * cell of the
+     * [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md),
+     * [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or
+     * [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, this
+     * option has no effect.
      *
      * @since 16.1.0
      * @memberof Options#
@@ -3860,6 +4131,12 @@ export default (): Record<string, unknown> => {
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * Notifications are available on the main grid only. In a grid nested in a cell, that is a cell of
+     * the [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md),
+     * [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or
+     * [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, this
+     * option has no effect.
      *
      * @since 17.1.0
      * @memberof Options#
@@ -4149,6 +4426,14 @@ export default (): Record<string, unknown> => {
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * A merged range clears the cells it covers. Re-applying the same value through
+     * [`updateSettings()`](@/api/core.md#updatesettings) clears only the cells that still hold a
+     * value, so a range that is already empty fires no `beforeChange` or `afterChange` event. Values
+     * that come back into a covered range — through new `data`, a sort, a filter, or a row move — are
+     * cleared on the next re-apply, as before. This assumes the clearing write reaches the data:
+     * cancel it (a `beforeChange` returning `false`, or a validator rejecting `null`) and every
+     * re-apply tries again.
      *
      * Read more:
      * - [Merge cells](@/guides/cell-features/merge-cells/merge-cells.md)
@@ -4505,8 +4790,16 @@ export default (): Record<string, unknown> => {
      * column is replaced by the `label` from `nestedHeaders`. The `nestedHeaders` label takes precedence.
      * :::
      *
+     * ::: warning
+     * A `label` is written to the DOM as HTML, so a label built from user input or an external system can
+     * inject markup. Handsontable does not sanitize it by default. Set the [`sanitizer`](#sanitizer) option,
+     * which receives nested header labels under the `'header'` source. The `sanitizer` option is grid-level,
+     * so it cannot be narrowed to one header or one column.
+     * :::
+     *
      * Read more:
      * - [Plugins: `NestedHeaders`](@/api/nestedHeaders.md)
+     * - [Security: Content sanitizing](@/guides/security/security/security.md#content-sanitizing)
      * - [Column groups: Nested headers](@/guides/columns/column-groups/column-groups.md#nested-headers)
      * - [Column groups: Choose which columns stay visible when collapsed](@/guides/columns/column-groups/column-groups.md#choose-which-columns-stay-visible-when-collapsed)
      *
@@ -4692,6 +4985,49 @@ export default (): Record<string, unknown> => {
     numericFormat: undefined,
 
     /**
+     * Controls whether a [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
+     * cell keeps the exact text you typed when converting it to a JavaScript number would lose
+     * information.
+     *
+     * By default (`false`), a numeric cell always stores the parsed JavaScript number, so a value
+     * like `9.0` is stored as `9` and the editor shows `9` the next time you open it. Numbers whose
+     * magnitude exceeds the safe-integer limit (`9007199254740991`) also lose precision.
+     *
+     * When set to `true`, and only when parsing would be lossy, the cell keeps the original literal
+     * string instead of the number. This preserves trailing decimal zeros (`9.0`, `9.50`) and the
+     * full precision of large numbers in the cell editor, matching spreadsheet software. Values
+     * that convert without loss (for example `9`, `9.5`, `1000`) are still stored as numbers, so
+     * sorting, filtering, and formula calculations are unaffected. A preserved literal also keeps
+     * behaving like a number in those features: column sorting and filter conditions compare it
+     * numerically, and the [`Formulas`](@/api/formulas.md) engine parses the literal as a number,
+     * so functions such as `SUM` still include the cell. The cell renderer still formats
+     * the value according to [`numericFormat`](@/api/options.md#numericformat); only the editor
+     * shows the preserved literal. One exception: the filter menu's "Filter by value" checkbox
+     * list compares values strictly, so a preserved literal (`'9.0'`) and its plain number (`9`)
+     * appear as two separate entries.
+     *
+     * The default is `false` so existing configurations keep their current behavior.
+     *
+     * @memberof Options#
+     * @since 18.1.0
+     * @type {boolean}
+     * @default false
+     * @category Core
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *     type: 'numeric',
+     *     // keep `9.0` and very large numbers as typed in the editor
+     *     preserveNumericLiteral: true,
+     *   }
+     * ],
+     * ```
+     */
+    preserveNumericLiteral: false,
+
+    /**
      * If the `observeDOMVisibility` option is set to `true`,
      * Handsontable rerenders every time it detects that the grid was made visible in the DOM.
      *
@@ -4789,6 +5125,12 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
+     * Pagination is available on the main grid only. In a grid nested in a cell, that is a cell of the
+     * [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md),
+     * [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or
+     * [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, this
+     * option has no effect.
+     *
      * @since 16.1.0
      * @memberof Options#
      * @type {boolean}
@@ -4871,6 +5213,54 @@ export default (): Record<string, unknown> => {
      * ```
      */
     placeholderCellClassName: 'htPlaceholder',
+
+    /**
+     * The `preserveTextValue` option configures whether the [`Formulas`](@/api/formulas.md)
+     * plugin passes values of [`text`](@/guides/cell-types/cell-type/cell-type.md)-type cells
+     * to the calculation engine as strings. This protects them from number coercion.
+     *
+     * By default, the engine parses number-like strings into numbers. A `text` cell that
+     * holds `0123456` reaches formulas as `123456` – the leading zero is lost. With
+     * `preserveTextValue` enabled, the value stays a string: `=LEN(A1)` returns `7`, and
+     * concatenation keeps the leading zero.
+     *
+     * You can set the `preserveTextValue` option to one of the following:
+     *
+     * | Setting           | Description                                                 |
+     * | ----------------- | ----------------------------------------------------------- |
+     * | `false` (default) | The engine parses values of `text` cells (number coercion)  |
+     * | `true`            | Values of `text` cells reach the engine as strings          |
+     *
+     * The option takes effect only for cells of the [`text`](#type) type – the default cell
+     * type, so setting `preserveTextValue` at the grid level affects every cell that doesn't
+     * declare another type – and only when the [`Formulas`](@/api/formulas.md) plugin is
+     * enabled. Custom cell types aren't supported, even when they reuse the text editor or
+     * renderer.
+     *
+     * Set the option globally, per column, or per cell (through the [`cell`](#cell) option or
+     * the [`cells`](#cells) function).
+     *
+     * Read more:
+     * - [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
+     *
+     * @memberof Options#
+     * @since 18.1.0
+     * @type {boolean}
+     * @default false
+     * @category Formulas
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *     type: 'text',
+     *     // keep leading zeros of number-like strings in formula results
+     *     preserveTextValue: true,
+     *   },
+     * ],
+     * ```
+     */
+    preserveTextValue: false,
 
     /**
      * The `preventOverflow` option configures preventing Handsontable
@@ -5343,16 +5733,34 @@ export default (): Record<string, unknown> => {
      *
      * You can set the `rowHeaderWidth` option to one of the following:
      *
-     * | Setting  | Description                                     |
-     * | -------- | ----------------------------------------------- |
-     * | A number | Set the same width for every row header         |
-     * | An array | Set different widths for individual row headers |
+     * | Setting  | Description                                                    |
+     * | -------- | -------------------------------------------------------------- |
+     * | A number | Set the same width for every row header                        |
+     * | A string | Set the same width, written as a pixel size (`'25'`, `'25px'`) |
+     * | An array | Set different widths for individual row headers                |
+     *
+     * The width is a number of pixels. A string that states a pixel size works too, either as a bare
+     * number (`'25'`) or with the unit (`'25px'`), so a value coming from an attribute or a JSON
+     * config still applies. Both forms may be mixed inside the array.
+     *
+     * A value that is not a pixel size, such as `'50%'` or `'20em'`, is ignored and the default width
+     * is used instead. Inside an array, that applies per level, so one unreadable entry does not
+     * disturb the levels around it.
+     *
+     * A negative number is kept as it is, because numbers keep the behavior they had before this
+     * option read strings at all. A negative string is rejected instead, so a typo cannot collapse
+     * the header.
+     *
+     * Row headers have a fixed width. A label longer than that width is clipped, and unlike column
+     * headers, the header does not grow to fit it. To size the header to its content instead, turn
+     * on the [`autoRowHeaderSize`](#autoRowHeaderSize) plugin - it takes the width over, and this
+     * option is then ignored.
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
-     * @type {number|number[]}
+     * @type {number|number[]|string|string[]|Array<number|string>}
      * @default undefined
      * @category Core
      *
@@ -5361,11 +5769,93 @@ export default (): Record<string, unknown> => {
      * // set the same width for every row header
      * rowHeaderWidth: 25,
      *
+     * // set the same width, written as a pixel size
+     * rowHeaderWidth: '25px',
+     *
      * // set different widths for individual row headers
      * rowHeaderWidth: [25, 30, 55],
      * ```
      */
     rowHeaderWidth: undefined,
+
+    /**
+     * The `autoRowHeaderSize` option configures the [`AutoRowHeaderSize`](@/api/autoRowHeaderSize.md) plugin.
+     *
+     * The plugin sizes the row header column to its widest label, the way
+     * [`AutoColumnSize`](@/api/autoColumnSize.md) sizes a data column to its widest cell. Turning it
+     * on is all you need: it takes the row header's width over, so any
+     * [`rowHeaderWidth`](#rowHeaderWidth) already set is ignored while the plugin is enabled.
+     *
+     * You can set the `autoRowHeaderSize` option to one of the following:
+     *
+     * | Setting   | Description                                                                  |
+     * | --------- | ---------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`AutoRowHeaderSize`](@/api/autoRowHeaderSize.md) plugin          |
+     * | `true`    | Enable the plugin with the default configuration                             |
+     * | An object | Enable the plugin and modify its options                                     |
+     *
+     * If you set the `autoRowHeaderSize` option to an object, you can set the following options:
+     *
+     * | Property                | Possible values   | Description                                                                                                   |
+     * | ----------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------- |
+     * | `samplingRatio`         | A number          | The number of samples of the same label length used in the measurement<br>(default: `3`)                      |
+     * | `allowSampleDuplicates` | `true` \| `false` | When two rows carry the same label:<br>`true`: measure both<br>`false`: measure it once<br>(default: `false`) |
+     * | `syncLimit`             | A number \| a percent string | How many rows are read before the first paint; the rest are read in idle time<br>(default: `500`) |
+     *
+     * By default, the `autoRowHeaderSize` option is set to `undefined`, which disables the plugin.
+     *
+     * Finding the longest label means reading every row header once. On a large grid that work is
+     * split: the first `syncLimit` rows are read before the first paint, and the rest are read in
+     * the browser's idle time, so a header can widen a moment after the grid appears. While that is
+     * running a header only ever widens, so its width never jumps back and forth. The result is
+     * cached, so later draws cost nothing.
+     *
+     * Editing a cell does not re-read the whole grid. Only the rows that changed are read, because
+     * a row header label can be built from cell values, and that reading waits for an idle moment
+     * too. It can make a header wider, but never narrower: a header shrinks again on the next full
+     * pass, which is started by loading or replacing the data, adding or removing a row, sorting,
+     * hiding or showing a row, switching the theme, or a recalculation by the
+     * [`Formulas`](@/api/formulas.md) plugin.
+     *
+     * A grid can render more than one row header, by pushing a renderer through the
+     * [`afterGetRowHeaderRenderers`](@/api/hooks.md#afterGetRowHeaderRenderers) hook. Every one of
+     * them is measured on its own, so each gets exactly the width its own labels need.
+     *
+     * The measured width leaves a little room around the longest label, so the text never sits flush
+     * against the cell border. The grid's own row header renderer wraps its label in a padded
+     * element, but a renderer pushed through
+     * [`afterGetRowHeaderRenderers`](@/api/hooks.md#afterGetRowHeaderRenderers) writes straight into
+     * the cell and has none of its own.
+     *
+     * Two rows carrying the same label are measured once, since the same text renders to the same
+     * width. Set `allowSampleDuplicates` to `true` when that is not true of your grid - a row header
+     * that is indented per row, as [`nestedRows`](#nestedRows) does, renders the same label at a
+     * different width depending on its depth. Raise `samplingRatio` along with it: labels are
+     * grouped by length and only `samplingRatio` of each group are measured, so with the default of
+     * `3` a fourth copy of the same label is still left out, however deep it sits.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @since 18.2.0
+     * @memberof Options#
+     * @type {object|boolean}
+     * @default undefined
+     * @category AutoRowHeaderSize
+     *
+     * @example
+     * ```js
+     * // size the row header column to its longest label
+     * autoRowHeaderSize: true,
+     *
+     * // the same, with the measurement tuned
+     * autoRowHeaderSize: {
+     *   // measure repeated labels too, for headers that render differently per row
+     *   allowSampleDuplicates: true,
+     * },
+     * ```
+     */
+    autoRowHeaderSize: undefined,
 
     /**
      * The `rowHeights` option sets rows' heights, in pixels.
@@ -5554,6 +6044,65 @@ export default (): Record<string, unknown> => {
      * ```
      */
     selectionMode: 'multiple',
+
+    /**
+     * The `selectionHandles` option enables draggable handles on the edges of a
+     * [selection](@/guides/cell-features/selection/selection.md). When enabled, hovering over a
+     * selected range shows a pill-shaped handle at the midpoint of each edge; dragging a handle
+     * resizes that edge of the selection. This adjusts the selected area only – it does not move,
+     * fill, or change any cell data.
+     *
+     * Handles are shown on desktop only and are hidden on any edge that is flush with the grid
+     * boundary -- or that lands on a frozen-pane line ([`fixedRowsTop`](#fixedrowstop),
+     * [`fixedRowsBottom`](#fixedrowsbottom), [`fixedColumnsStart`](#fixedcolumnsstart)). The option
+     * has no effect when [`selectionMode`](#selectionmode) is `'single'`.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     *
+     * @since 18.1.0
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // enable draggable selection-edge handles
+     * selectionHandles: true,
+     * ```
+     */
+    selectionHandles: false,
+
+    /**
+     * The `moveCells` option lets you move a [selection](@/guides/cell-features/selection/selection.md) by
+     * dragging its edge. When enabled, hovering the border of a selected cell range shows a grab cursor;
+     * dragging the border moves the block's data (values, the [`className`](#classname) cell meta, and – with the
+     * [`formulas`](@/api/options.md#formulas) plugin – adjusted formula references) to the new location.
+     * Other cell meta (for example [`numericFormat`](#numericformat) or [`readOnly`](#readonly)) stays at the
+     * source cells.
+     * Hold <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> during the drag to copy instead of move.
+     *
+     * The move applies to a single contiguous cell range only. It has no effect on full-row, full-column,
+     * select-all, or multiple selections, the range may span at most 100,000 cells, and the source and
+     * target must stay within the grid. Neither the target nor
+     * the source may overlap read-only cells, because a move has to clear the source — a copy leaves the
+     * source in place, so a read-only source cell blocks a move but not a copy.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     *
+     * @since 18.1.0
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // enable drag-to-move for selections
+     * moveCells: true,
+     * ```
+     */
+    moveCells: false,
 
     /**
      * The `selectOptions` option configures options that the end user can choose from in [`select`](@/guides/cell-types/select-cell-type/select-cell-type.md) cells.
@@ -5755,6 +6304,10 @@ export default (): Record<string, unknown> => {
      *
      * Note: When defining the `source` option as an array of objects with `key` and `value` properties, the data format for that cell
      * needs to be an object with `key` and `value` properties as well.
+     *
+     * Note: When `source` is a function, Handsontable ignores a response that arrives after the editor closed - including
+     * a close you may not notice, such as scrolling the edited cell out of view - and it ignores a response that a newer
+     * query has superseded, which happens as you type. Call the callback whenever the request completes, even late.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
@@ -6110,6 +6663,112 @@ export default (): Record<string, unknown> => {
     theme: undefined,
 
     /**
+     * The `colorScheme` option sets the color scheme of the grid without declaring a theme.
+     *
+     * You can set it to one of the following:
+     *
+     * | Setting               | Description                                                     |
+     * | --------------------- | --------------------------------------------------------------- |
+     * | `undefined` (default) | Use the color scheme of the current theme                        |
+     * | `'light'`             | Always render the light color scheme                             |
+     * | `'dark'`              | Always render the dark color scheme                              |
+     * | `'auto'`              | Follow the color scheme of the operating system                  |
+     *
+     * The option is a per-instance override. It applies on top of the current theme, so the theme
+     * itself stays unchanged and other grids that use the same theme keep their own color scheme.
+     * You can change it at runtime with [`updateSettings()`](@/api/core.md#updatesettings).
+     *
+     * The option requires the theme engine, so it has no effect when the theme comes from a CSS
+     * class name (the [`theme`](#theme) option set to a string, or an `ht-theme-*` class on the
+     * container element). In that case, use the theme's dark class name instead.
+     *
+     * An unsupported value is ignored with a console warning rather than throwing.
+     *
+     * Read more:
+     * - [Themes](@/guides/styling/themes/themes.md)
+     * - [`density`](#density)
+     * - [`theme`](#theme)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @memberof Options#
+     * @type {string|undefined}
+     * @default undefined
+     * @category Core
+     * @since 18.1.0
+     *
+     * @example
+     * ```js
+     * // Render the grid in dark mode, without declaring a theme
+     * const hot = new Handsontable(container, {
+     *   colorScheme: 'dark',
+     * });
+     * ```
+     * @example
+     * ```js
+     * // Switch the color scheme at runtime
+     * hot.updateSettings({
+     *   colorScheme: 'auto',
+     * });
+     * ```
+     */
+    colorScheme: undefined,
+
+    /**
+     * The `density` option sets the amount of white space inside the grid without declaring a theme.
+     *
+     * You can set it to one of the following:
+     *
+     * | Setting               | Description                                              |
+     * | --------------------- | -------------------------------------------------------- |
+     * | `undefined` (default) | Use the density of the current theme                     |
+     * | `'default'`           | Standard spacing                                         |
+     * | `'compact'`           | Tighter spacing, fits more rows on the screen            |
+     * | `'comfortable'`       | Looser spacing, easier to read and to tap                |
+     *
+     * The option is a per-instance override. It applies on top of the current theme, so the theme
+     * itself stays unchanged and other grids that use the same theme keep their own density.
+     * You can change it at runtime with [`updateSettings()`](@/api/core.md#updatesettings).
+     *
+     * The option requires the theme engine, so it has no effect when the theme comes from a CSS
+     * class name (the [`theme`](#theme) option set to a string, or an `ht-theme-*` class on the
+     * container element).
+     *
+     * An unsupported value is ignored with a console warning rather than throwing.
+     *
+     * Read more:
+     * - [Themes](@/guides/styling/themes/themes.md)
+     * - [`colorScheme`](#colorScheme)
+     * - [`theme`](#theme)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @memberof Options#
+     * @type {string|undefined}
+     * @default undefined
+     * @category Core
+     * @since 18.1.0
+     *
+     * @example
+     * ```js
+     * // Render the grid with tighter spacing, without declaring a theme
+     * const hot = new Handsontable(container, {
+     *   density: 'compact',
+     * });
+     * ```
+     * @example
+     * ```js
+     * // Change the density at runtime
+     * hot.updateSettings({
+     *   density: 'comfortable',
+     * });
+     * ```
+     */
+    density: undefined,
+
+    /**
      * The `injectCoreCss` option controls whether Handsontable injects its core CSS into the document.
      *
      * You can set the `injectCoreCss` option to one of the following:
@@ -6222,14 +6881,14 @@ export default (): Record<string, unknown> => {
      *
      * When set to `true` (default), the list is trimmed to match the width of the edited cell,
      * which can truncate long option labels. When set to `false`, the list expands to fit its
-     * longest option, which may make the list wider than the cell.
+     * longest option – it can grow wider than the cell, but never narrower.
      *
      * You can set the `trimDropdown` option to one of the following:
      *
      * | Setting          | Description                                                                     |
      * | ---------------- | ------------------------------------------------------------------------------- |
      * | `true` (default) | Make the dropdown/autocomplete list's width the same as the edited cell's width |
-     * | `false`          | Scale the dropdown/autocomplete list's width to the list's content              |
+     * | `false`          | Expand the list to its content, but keep it at least as wide as the edited cell |
      *
      * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
      * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
@@ -6349,6 +7008,7 @@ export default (): Record<string, unknown> => {
      * | `'text'`                                                          | Renderer: `TextRenderer`<br>Editor: `TextEditor`<br>Validator: -                                                                                                                                       |
      * | [`'time`'](@/guides/cell-types/time-cell-type/time-cell-type.md)                 | Renderer: `TimeRenderer`<br>Editor: `TimeEditor`<br>Validator: `TimeValidator`                                                                                                 |
      * | [`'intl-time'`](@/guides/cell-types/time-cell-type/time-cell-type.md)                 | Renderer: `IntlTimeRenderer`<br>Editor: `IntlTimeEditor`<br>Validator: `IntlTimeValidator`                                                                                                 |
+     * | [`'intl-datetime'`](@/guides/cell-types/datetime-cell-type/datetime-cell-type.md)                 | Renderer: `IntlDatetimeRenderer`<br>Editor: `IntlDatetimeEditor`<br>Validator: `IntlDatetimeValidator`                                                                                                 |
      *
      * Read more:
      * - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
@@ -6976,17 +7636,42 @@ export default (): Record<string, unknown> => {
 
     /**
      * The `sanitizer` option configures the function used to sanitize HTML before it is written to the DOM.
-     * Whenever Handsontable sets HTML (e.g. cell content, headers, context menu labels, dialog content,
-     * paste from clipboard), it can pass the string through this function first. Sanitization is important
-     * when content comes from users or external sources to prevent XSS (e.g. script injection, event handlers).
+     * Sanitization is important when content comes from users or external sources to prevent XSS
+     * (e.g. script injection, event handlers).
      *
      * By default (when no sanitizer is set), HTML is applied as-is (pass-through). You are responsible for
      * XSS protection. Set a sanitizer when you need to allow rich content while stripping or neutralizing
      * dangerous markup.
      *
-     * The function receives the raw HTML string and an optional second argument (source) indicating where
-     * the content is used (e.g. `'innerHTML'`, `'CopyPaste.paste'`), so you can apply different rules per source.
+     * The sanitizer covers the HTML that Handsontable writes on your behalf:
+     *
+     * - cells rendered by the [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type
+     * - column and row headers, including [`nestedHeaders`](#nestedheaders) labels
+     * - [context menu](#contextmenu) and [dropdown menu](#dropdownmenu) item labels
+     * - [`select`](@/api/options.md#selectoptions) editor options
+     * - [dialog](#dialog) and [notification](#notification) content
+     * - HTML pasted from the clipboard, and Handsontable's own clipboard payload carrying the source
+     *   data behind copied cells
+     *
+     * Two surfaces are deliberately excluded, because both exist to render raw markup you supply:
+     * the [`html`](@/guides/cell-types/cell-type/cell-type.md) cell type, and
+     * [`allowHtml`](#allowhtml) sources in `autocomplete` and `dropdown` cells. Sanitize that content
+     * yourself before passing it to the grid.
+     *
+     * The function receives the raw HTML string and a second argument (source) naming the write surface
+     * (`'header'`, `'password'`, `'contextMenu'`, `'selectEditor'`, `'dialog'`, `'notification'`,
+     * `'CopyPaste.paste'`, `'CopyPaste.paste.sourceData'`), so you can apply different rules per source.
      * It must return a string that is safe to assign to `innerHTML`.
+     *
+     * In TypeScript, annotate that parameter with the exported `SanitizerContext` type
+     * (see [TypeScript types](@/guides/tools-and-building/typescript-types/typescript-types.md))
+     * to get editor completion on the values above.
+     *
+     * `'CopyPaste.paste.sourceData'` carries Handsontable's own clipboard payload, the one that lets an
+     * object-valued cell survive a copy between grids. It is parsed into an inert document, so returning it
+     * unchanged does not expose you to a crafted clipboard, and doing so is what keeps
+     * [`parsePastedValue`](#parsepastedvalue) working under a sanitizer that escapes HTML rather than
+     * stripping it.
      *
      * This option is only respected when set in the table settings. It does not work when defined per column
      * or per cell (e.g. in `columns` or cell meta).
@@ -6996,7 +7681,7 @@ export default (): Record<string, unknown> => {
      *
      * @since 17.0.0
      * @memberof Options#
-     * @type {function(string, string): string}
+     * @type {function(string, SanitizerContext): string}
      * @default undefined
      * @category Core
      *

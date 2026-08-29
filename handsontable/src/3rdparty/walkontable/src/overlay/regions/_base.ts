@@ -15,6 +15,11 @@ import {
   CLONE_INLINE_START,
 } from '../constants';
 import Clone from '../../core/clone';
+import {
+  applyOverlayScrollbarClearance,
+  type OverlayScrollbarClearanceStrips,
+  type ScrollbarBandsOpen,
+} from '../scrollbarClearance';
 import { A11Y_PRESENTATION } from '../../../../../helpers/a11y';
 import { throwWithCause } from '../../../../../helpers/errors';
 
@@ -187,6 +192,12 @@ export abstract class Overlay {
   declare clone: WalkontableInstance | null;
 
   /**
+   * The bands this overlay last asked to keep clear, so they can be re-applied when the scrollbar
+   * appears or fades without recomputing anything (#10370).
+   */
+  #clearanceStrips: OverlayScrollbarClearanceStrips | null = null;
+
+  /**
    * @param {OverlayDeps} deps The overlay module dependencies.
    * @param {CLONE_TYPES_ENUM} type The overlay type name (clone name).
    */
@@ -243,6 +254,78 @@ export abstract class Overlay {
    */
   hasRenderingStateChanged() {
     return this.needFullRender !== this.shouldBeRendered();
+  }
+
+  /**
+   * Records the bands this overlay keeps clear for an overlay scrollbar, and applies them (#10370).
+   *
+   * @param {OverlayScrollbarClearanceStrips} strips The bands to keep clear, in pixels.
+   * @param {ScrollbarBandsOpen} open Which bands are currently showing.
+   */
+  publishScrollbarClearance(strips: OverlayScrollbarClearanceStrips, open: ScrollbarBandsOpen) {
+    if (!this.clone) {
+      return;
+    }
+
+    this.#clearanceStrips = strips;
+    applyOverlayScrollbarClearance(
+      this.clone.wtTable.holder.parentNode as HTMLElement, strips, open
+    );
+  }
+
+  /**
+   * Whether this overlay is currently keeping a strip clear along one of the scrollbar edges.
+   *
+   * The track band is drawn only where the answer is yes for at least one overlay. A band with nothing
+   * clipped behind it is a grey strip painted over live cells, and it swallows presses there.
+   *
+   * The strips are the single source of truth here, and an overlay publishes one only while its clone
+   * is rendered - so this asks nothing else. Two gates for one decision is how this feature drifted: a
+   * band was suppressed while the clip that needed it stayed.
+   *
+   * @param {'bottom' | 'inlineEnd'} edge The scrollbar edge to ask about.
+   * @returns {boolean}
+   */
+  coversScrollbarEdge(edge: 'bottom' | 'inlineEnd'): boolean {
+    // `clone` exists for every overlay type whether or not it is being rendered, so it cannot answer
+    // this on its own: a grid with nothing frozen still owns a bottom-corner clone, and asking only
+    // whether the object exists drew a band for an overlay that paints nothing.
+    if (!this.clone || !this.needFullRender || !this.#clearanceStrips) {
+      return false;
+    }
+
+    return (this.#clearanceStrips[edge] ?? 0) > 0;
+  }
+
+  /**
+   * Drops the clearance this overlay was keeping, for when it stops rendering altogether.
+   *
+   * The record has to go with it. Leaving it behind meant the next scrollbar flip re-applied a stale
+   * strip to a stopped overlay, and made it look as though the edge were still covered.
+   */
+  clearScrollbarClearance() {
+    if (!this.clone) {
+      return;
+    }
+
+    this.#clearanceStrips = null;
+    applyOverlayScrollbarClearance(this.clone.wtTable.holder.parentNode as HTMLElement, {});
+  }
+
+  /**
+   * Re-applies the recorded bands after the scrollbar appears or fades. Paint only - nothing is
+   * measured or resized, which is what keeps a fade off the layout path.
+   *
+   * @param {ScrollbarBandsOpen} open Which bands are currently showing.
+   */
+  refreshScrollbarClearance(open: ScrollbarBandsOpen) {
+    if (!this.clone || !this.#clearanceStrips) {
+      return;
+    }
+
+    applyOverlayScrollbarClearance(
+      this.clone.wtTable.holder.parentNode as HTMLElement, this.#clearanceStrips, open
+    );
   }
 
   /**
@@ -595,6 +678,15 @@ export abstract class Overlay {
    * Destroy overlay instance.
    */
   destroy() {
+    // Every clone owns its own `Event` instance, and only the master's is reached by
+    // `CoreAbstract#destroy()`. Destroying it here clears the timers the clone armed - the 200 ms
+    // momentum-scroll timer (registered on touch devices), plus the double-click and long-press
+    // ones. Left pending, the momentum timer fires after `Core#destroy()` and calls
+    // `runHooks('afterMomentumScroll')` on a destroyed instance, which throws (issue #13120).
+    if (this.clone instanceof Clone) {
+      this.clone.wtEvent.destroy();
+    }
+
     this.clone?.eventManager.destroy(); // todo check if it is good place for that operation
   }
 }

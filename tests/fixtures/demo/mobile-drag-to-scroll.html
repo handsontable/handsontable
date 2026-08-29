@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Handsontable e2e fixture — mobile drag to scroll</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    E2E fixture for issue #11658: dragging a mobile selection handle to the edge
+    of the viewport must auto-scroll the grid. The page must be visited with
+    mobile emulation (touch + mobile user agent) — Handsontable creates the
+    mobile selection handles only when it detects a mobile browser at grid
+    construction time.
+
+    The grid is deliberately smaller than its data in BOTH axes, so there is
+    somewhere to scroll on each one, and the scroll container is the grid's own
+    holder rather than the window.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    // Rebuilt per test through window.initMobileGrid(overrides) so a test needing different
+    // settings (dragToScroll: false, for one) gets a fresh instance instead of a mutated one.
+    // Exposed as `window.hot` — the shared fixture convention.
+    window.initMobileGrid = (overrides = {}) => {
+      if (window.hot) {
+        window.hot.destroy();
+      }
+
+      window.hot = new Handsontable(container, {
+        data: Array.from({ length: 200 }, (_, r) =>
+          Array.from({ length: 30 }, (_, c) => `R${r}C${c}`)),
+        colHeaders: true,
+        rowHeaders: true,
+        width: 320,
+        height: 300,
+        renderer: testIdRenderer,
+        dragToScroll: true,
+        licenseKey: 'non-commercial-and-evaluation',
+        ...overrides,
+      });
+
+      return true;
+    };
+
+    window.initMobileGrid();
+  </script>
+</body>
+</html>

@@ -20,6 +20,7 @@ vue:
   metaTitle: Loading - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Dialog
+menuTag: updated
 ---
 Display loading indicators and progress feedback in your data grid application using the Loading plugin.
 
@@ -30,6 +31,8 @@ Display loading indicators and progress feedback in your data grid application u
 The Loading plugin provides a loading overlay for Handsontable using the [Dialog](@/api/dialog.md) plugin. It displays a loading indicator with a customizable title, icon, and description. This is useful for showing progress feedback during data operations, API calls, or any other time-consuming tasks.
 
 With simplicity and effectiveness in mind, the loading plugin was designed to provide a consistent user experience with customizable appearance and behavior. It requires the [Dialog](@/api/dialog.md) plugin to be enabled to function properly.
+
+Because it renders through the Dialog plugin, it works on the main grid only. A grid nested in a cell, that is a cell of the [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, has no overlay layer, so the [`loading`](@/api/options.md#loading) option has no effect there.
 
 ## Basic configuration
 
@@ -81,6 +84,9 @@ To enable the Loading plugin, set the [`loading`](@/api/options.md#loading) opti
 ## Custom configuration
 
 The loading dialog supports customization of the icon, title, and description.
+
+The `title` and `description` options render as text, so markup passed in them shows up literally.
+Use `icon` for the one option that takes markup, such as a custom SVG spinner.
 
 ::: only-for javascript
 

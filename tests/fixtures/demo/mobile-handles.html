@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Walkontable (frozen panes) e2e fixture</title>
+  <title>Handsontable mobile selection handles fixture</title>
   <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
   <script>
     // Active theme from the ?theme= query param set by the Playwright project.
@@ -17,9 +17,10 @@
 </head>
 <body>
   <!--
-    Exercises the Walkontable rendering engine (overlays, frozen panes, scroll
-    sync) through a real grid. Frozen rows/columns produce walkontable's overlay
-    clones: master, top, inline-start, and the top/inline-start corner.
+    Fixture for the mobile selection handles regression spec (DEV-2165). The
+    page must be visited with mobile emulation (touch + mobile user agent) —
+    Handsontable creates the selection handles only when it detects a mobile
+    browser at grid construction time.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -29,23 +30,21 @@
 
     container.className = `ht-theme-${window.htTheme}`;
 
-    const data = Array.from({ length: 50 }, (_, r) =>
-      Array.from({ length: 10 }, (_, c) => `R${r + 1}C${c + 1}`));
-
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
     new Handsontable(container, {
-      data,
-      width: 420,
-      height: 300,
-      colWidths: 80,
-      fixedRowsTop: 2,
-      fixedColumnsStart: 2,
-      rowHeaders: true,
+      data: [
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+        ['A3', 'B3', 'C3'],
+        ['A4', 'B4', 'C4'],
+        ['A5', 'B5', 'C5'],
+      ],
       colHeaders: true,
+      rowHeaders: true,
       renderer: testIdRenderer,
       licenseKey: 'non-commercial-and-evaluation',
     });

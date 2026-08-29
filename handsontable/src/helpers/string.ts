@@ -1,4 +1,9 @@
 import { stringify } from './mixed';
+import { deprecatedWarnOnce } from './console';
+
+// Re-exported to keep `substitute` reachable from its documented `helpers/string` path. The
+// implementation lives in a leaf module so that `helpers/console` can use it without a cycle.
+export { substitute } from './templateString';
 
 /**
  * Convert string to upper case first letter.
@@ -77,24 +82,6 @@ export function isPercentValue(value: string): boolean {
 }
 
 /**
- * Substitute strings placed between square brackets into value defined in `variables` object. String names defined in
- * square brackets must be the same as property name of `variables` object.
- *
- * @param {string} template Template string.
- * @param {object} variables Object which contains all available values which can be injected into template.
- * @returns {string}
- */
-export function substitute(template: string, variables: Record<string, unknown> = {}): string {
-  return (`${template}`).replace(/(?:\\)?\[([^[\]]+)]/g, (match, name) => {
-    if (match.charAt(0) === '\\') {
-      return match.substr(1, match.length - 1);
-    }
-
-    return variables[name] === undefined ? '' : String(variables[name]);
-  });
-}
-
-/**
  * Strip any HTML tag from the string.
  *
  * @param {string} string String to cut HTML from.
@@ -127,15 +114,42 @@ export function stripTags(string: string): string {
   return result;
 }
 
+const HTML_ESCAPE_CHARS: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  '\'': '&#39;',
+};
+
+/**
+ * Escapes the characters that carry meaning in HTML, so the string renders as the text it is.
+ *
+ * Prefer this over {@link stripTags} for a value interpolated into a markup string: `stripTags`
+ * drops everything between a `<` and the next `>`, so a title such as `'Loaded 5 < 10 rows'` loses
+ * half of itself, while escaping blocks the markup and keeps the text whole.
+ *
+ * @param {string} string String to escape.
+ * @returns {string}
+ */
+export function escapeHtml(string: string): string {
+  return String(string).replace(/[&<>"']/g, char => HTML_ESCAPE_CHARS[char]);
+}
+
 /**
  * Returns the string unchanged.
  *
- * @deprecated Default sanitization is now a pass-through. Use the sanitizer
- * configuration option to supply a custom sanitizer function.
+ * @deprecated Since 18.0.0. Handsontable no longer bundles an HTML sanitizer; this helper is a
+ * pass-through and will be removed in 19.0.0. Supply your own sanitizer through the
+ * `sanitizer` configuration option instead.
  * @param {string} string String to return.
  * @returns {string}
  */
 export function sanitize(string: string): string {
+  deprecatedWarnOnce('helper.sanitize',
+    '`sanitize()` is deprecated and will be removed in Handsontable 19.0.0. ' +
+    'It returns its input unchanged. Use the `sanitizer` option to supply your own sanitizer.');
+
   return string;
 }
 

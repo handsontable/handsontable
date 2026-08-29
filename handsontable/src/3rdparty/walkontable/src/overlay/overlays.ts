@@ -16,6 +16,15 @@ import {
 import { createOverlayDeps } from './regions/_base';
 import { StickyScrollStrategy, createStickyScrollStrategyDeps } from './strategies/stickyScrollStrategy';
 import { ResizeMonitor, createResizeMonitorDeps } from './resizeMonitor';
+import { ScrollbarVisibility, createScrollbarVisibilityDeps } from './scrollbarVisibility';
+import {
+  BAND_SWALLOWED_EVENTS,
+  canGrabScrollbar,
+  isPointInScrollbarBand,
+  axisScrollbarClearance,
+  syncScrollbarTrackBands,
+  type ScrollbarBandsOpen,
+} from './scrollbarClearance';
 import { SpreaderSize, createSpreaderSizeDeps } from './spreaderSize';
 import { ScrollSync, createScrollSyncDeps } from './scroll/scrollSync';
 import { NativeScrollInput, createNativeScrollInputDeps } from './scroll/nativeScrollInput';
@@ -46,6 +55,7 @@ export function createOverlaysDeps(ctx: EngineContext) {
     // owning Overlays instance (for `refreshAll`/`applyToDOM`/`scrollableElement`/`eventManager`).
     makeStickyScrollDeps: (overlays: Overlays) => createStickyScrollStrategyDeps(ctx, overlays),
     makeResizeMonitorDeps: () => createResizeMonitorDeps(ctx),
+    makeScrollbarVisibilityDeps: () => createScrollbarVisibilityDeps(ctx),
     makeSpreaderSizeDeps: (overlays: Overlays) => createSpreaderSizeDeps(ctx, overlays),
     makeScrollSyncDeps: (overlays: Overlays, stickyScroll: StickyScrollStrategy) =>
       createScrollSyncDeps(ctx, overlays, stickyScroll),
@@ -182,6 +192,19 @@ class Overlays {
   }
 
   /**
+   * Whether the scrolling element was resolved while the table generated no boxes, so the answer was
+   * taken against nothing and a later draw still has to settle it.
+   *
+   * Covers that answer only, not the sizes measured in the same state. Goes false once a pass settles
+   * it, or once a pass gives up because the answer stopped changing.
+   *
+   * @returns {boolean}
+   */
+  get isScrollableElementProvisional() {
+    return this.#scrollSync.isScrollableElementProvisional;
+  }
+
+  /**
    * Walkontable instance's reference.
    *
    * @protected
@@ -271,6 +294,24 @@ class Overlays {
   #resizeMonitor!: ResizeMonitor;
 
   /**
+   * Tracks whether an overlay scrollbar is on screen, so the clearance strip the frozen overlays leave
+   * for it opens with it and closes again when it fades (#10370).
+   */
+  #scrollbarVisibility!: ScrollbarVisibility;
+
+  /**
+   * The band sizes currently drawn, so a press landing in one can be swallowed (#10370).
+   */
+  #bandSizes = { bottom: 0, inlineEnd: 0 };
+
+  /**
+   * Whether the press being handled started as a touch, so the compatibility `mousedown`/`click`/
+   * `contextmenu` that follow the same tap can be recognised and let through - only `pointerdown`
+   * carries a `pointerType`.
+   */
+  #pressIsTouch = false;
+
+  /**
    * @param {OverlaysDeps} deps The Overlays module dependencies.
    */
   constructor(deps: OverlaysDeps) {
@@ -291,6 +332,12 @@ class Overlays {
     // drives sticky activation on scroll; it owns the scrollable element and the scroll state.
     this.#stickyScroll = new StickyScrollStrategy(this.#deps.makeStickyScrollDeps(this));
     this.#resizeMonitor = new ResizeMonitor(this.#deps.makeResizeMonitorDeps());
+    // Re-applies the clearance when the scrollbar comes or goes. Only clip-path and a filler's
+    // visibility change, so this costs paint, never layout.
+    this.#scrollbarVisibility = new ScrollbarVisibility(
+      this.#deps.makeScrollbarVisibilityDeps(),
+      () => this.#refreshScrollbarClearance()
+    );
     this.#spreaderSize = new SpreaderSize(this.#deps.makeSpreaderSizeDeps(this));
     this.#scrollSync = new ScrollSync(this.#deps.makeScrollSyncDeps(this, this.#stickyScroll));
     this.#nativeScrollInput = new NativeScrollInput(
@@ -373,6 +420,16 @@ class Overlays {
    * Runs logic for the overlays before the table is drawn.
    */
   beforeDraw() {
+    // Before anything measures: drops the sizes a previous draw took while the table had no settled
+    // layout, so this draw re-measures them and resizes from the results. Not on a fast draw – it
+    // re-renders nothing, so it cannot re-measure the row heights this drops, and taking the reset
+    // there would leave them dropped. The mark stays pending until `afterDraw` sees a draw that
+    // actually rendered the band (a `skipRender` hook cancels one that got this far), so the drop is
+    // simply retaken on the next draw that can re-measure.
+    if (!this.isScrollDrivenDraw) {
+      this.#scrollSync.resetSizesMeasuredBeforeLayoutSettled();
+    }
+
     this.#scrollSync.setRenderingStateChanged(this.#overlays.reduce((acc, overlay) => {
       return overlay.hasRenderingStateChanged() || acc;
     }, false));
@@ -382,8 +439,21 @@ class Overlays {
 
   /**
    * Runs logic for the overlays after the table is drawn.
+   *
+   * A fast draw never runs `alignOverlaysWithTrimmingContainer`, so the holder still carries the
+   * `overflow: visible` it was born with and the trimming container is whatever the last full draw
+   * left – a layout resolution taken from it would read a table that nothing has aligned yet. No such
+   * draw can currently precede the first full one (`refreshAll()` returns while `drawn` is false, and
+   * a table built outside the layout stays undrawn until it joins it), so the gate protects the
+   * settle test in `ScrollSync#resolveProvisionalLayout` from a state it never has to judge.
+   *
+   * @param {boolean} cellsRendered Whether this draw rendered the cell band. `false` for a fast
+   *                                (scroll) draw and for a draw whose `beforeDraw` hook set
+   *                                `skipRender`. Only a draw that rendered the band re-measured the
+   *                                sizes the reset on the way in dropped, so only it may spend the
+   *                                mark – otherwise the drop is retaken on the next draw.
    */
-  afterDraw() {
+  afterDraw(cellsRendered: boolean) {
     this.syncScrollWithMaster();
     this.#overlays.forEach((overlay) => {
       const hasRenderingStateChanged = overlay.hasRenderingStateChanged();
@@ -394,6 +464,20 @@ class Overlays {
         overlay.reset();
       }
     });
+
+    if (cellsRendered) {
+      this.#scrollSync.confirmSizesRemeasured();
+    }
+
+    // Runs after the overlays refreshed their trimming containers and the holder got its final
+    // overflow, so a table born outside the layout can settle on the scrollable element and the sizes
+    // it would have had if it had been rendered from the start. It cannot run in `beforeDraw`: both
+    // are still stale there, so the scrollable element would settle on the window again. A fast draw
+    // is stale in the same way – it never aligns the overlays – so it must not resolve anything
+    // either; the flag survives to the next full draw.
+    if (!this.isScrollDrivenDraw) {
+      this.#scrollSync.resolveProvisionalLayout();
+    }
   }
 
   /**
@@ -419,6 +503,136 @@ class Overlays {
    */
   registerListeners() {
     this.#nativeScrollInput.registerListeners();
+
+    // An overlay scrollbar comes on screen when the pointer nears it, so the strip it needs has to be
+    // driven by pointer position. Passive, and the handler reads no DOM - the scrollport rect it
+    // compares against is cached and only re-read on scroll or resize.
+    this.eventManager.addEventListener(this.#deps.rootWindow as unknown as HTMLElement, 'pointermove', ((
+      event: PointerEvent
+    ) => {
+      this.#scrollbarVisibility.notifyPointerMoved(
+        event.clientX, event.clientY, this.wtSettings.getSetting<boolean>('rtlMode')
+      );
+    }) as EventListener, { passive: true });
+
+    // Nothing can hold a band open once the pointer is gone. Releasing a pin needs a move that says
+    // "no longer near", and once the pointer leaves the window no more moves arrive - so without this
+    // the strip stayed painted for as long as the page was open.
+    this.eventManager.addEventListener(
+      this.#deps.rootDocument.documentElement,
+      'pointerleave',
+      (() => this.#scrollbarVisibility.notifyPointerLeft()) as EventListener,
+      { passive: true }
+    );
+
+    // The cached scrollport rect is in viewport coordinates, so scrolling the PAGE moves the grid
+    // without any of the grid's own scroll offsets changing. Left alone, a pointer beside the real
+    // scrollbar then read as "not near" and the band closed under a drawn thumb, or one sitting
+    // mid-grid fell inside the stale edge zone and pinned it open. Only drops the cache; no reads.
+    this.eventManager.addEventListener(
+      this.#deps.rootWindow as unknown as HTMLElement,
+      'scroll',
+      (() => this.#scrollbarVisibility.notifyResized()) as EventListener,
+      { passive: true, capture: true }
+    );
+
+    // A press inside an open band must do nothing: no selection, no deselect, no menu. It is caught by
+    // coordinate on the way down rather than by target, because the band does not hit-test - the point
+    // is answered by whatever the band is painted over, which is a different element in every part of
+    // the strip.
+    BAND_SWALLOWED_EVENTS.forEach((eventName) => {
+      this.eventManager.addEventListener(
+        this.wtTable.holder,
+        eventName,
+        ((event: MouseEvent) => this.#swallowBandPress(event)) as EventListener,
+        { capture: true }
+      );
+    });
+  }
+
+  /**
+   * Stops a pointer event that landed inside an open scrollbar band (#10370).
+   *
+   * @param {MouseEvent} event The pointer event on its way down to the grid.
+   */
+  #swallowBandPress(event: MouseEvent) {
+    const { bottom, inlineEnd } = this.#bandSizes;
+
+    // A tap is how you scroll on a touchscreen, not how you grab a thumb. `canGrabScrollbar` answers
+    // "does this machine have a mouse *somewhere*", which is the right question for drawing the band
+    // and the wrong one for swallowing a press: on a hybrid device (touchscreen laptop, tablet with a
+    // trackpad) it is true, so without this the band ate finger taps in the bottom strip - the exact
+    // "scroll, then tap a cell near the edge" failure the touch-only exclusion was written to prevent.
+    //
+    // Only `pointerdown` carries a `pointerType`; the `mousedown`/`click`/`dblclick` that follow a tap
+    // are compatibility events indistinguishable from real mouse ones. So the answer is recorded at the
+    // press that starts the gesture and read by the rest of it.
+    //
+    // Every press re-records it, which is what keeps it from going stale: a mouse press sets it back to
+    // false before anything downstream reads it. Clearing it on `click` instead - to bound the same
+    // staleness - broke the double-tap, because `dblclick` arrives AFTER the `click` that would have
+    // cleared it and is the event that opens the editor: the tap selected the cell and nothing opened.
+    if (event.type === 'pointerdown') {
+      this.#pressIsTouch = (event as PointerEvent).pointerType === 'touch';
+    }
+
+    if (this.#pressIsTouch) {
+      return;
+    }
+
+    if (bottom === 0 && inlineEnd === 0) {
+      return;
+    }
+
+    // The selection's own controls are drawn in this strip too - the autofill corner most of all, on
+    // any selection that reaches the grid's edge. The band is painted over them so the track reads as
+    // one clean line, but painting over a control must not disarm it: swallowing here left the fill
+    // handle dead for as long as the track showed. A press that really landed on one is the user
+    // reaching for that control, not for the scrollbar, so it goes through.
+    const target = event.target as HTMLElement | null;
+
+    if (target && typeof target.closest === 'function' && target.closest('.wtBorder')) {
+      return;
+    }
+
+    const rect = this.#deps.geometryReader.getBoundingClientRect(this.wtTable.holder);
+
+    const rtl = this.wtSettings.getSetting<boolean>('rtlMode');
+
+    if (isPointInScrollbarBand(rect, bottom, inlineEnd, rtl, event.clientX, event.clientY)) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+  }
+
+  /**
+   * Whether an overlay scrollbar is currently on screen, and so whether the frozen overlays should be
+   * leaving a clearance strip for it (#10370).
+   *
+   * @returns {ScrollbarBandsOpen}
+   */
+  isScrollbarVisible(): ScrollbarBandsOpen {
+    // The clip and the band switch on the same flag, so the two can never disagree - either half-
+    // switched state is visible (a seam down the strip, or a column header cut short). See
+    // `ScrollbarVisibility`.
+    const visible = this.#scrollbarVisibility.visible;
+
+    return { bottom: visible.horizontal, inlineEnd: visible.vertical };
+  }
+
+  /**
+   * Reports a scroll to the scrollbar-visibility tracker: scrolling is what puts an overlay scrollbar
+   * on screen, alongside the pointer nearing it.
+   */
+  notifyScrolledForScrollbarVisibility(): void {
+    // Nothing downstream can produce a band on a classic-scrollbar system, so a scroll there should not
+    // flip state, schedule a timer per axis and run two no-op refresh passes. `getScrollbarWidth`
+    // caches after its first call, so this costs a lookup on a path that fires on every scroll.
+    if (this.#deps.geometryReader.getScrollbarWidth(this.#deps.rootDocument) !== 0) {
+      return;
+    }
+
+    this.#scrollbarVisibility.notifyScrolled();
   }
 
   /**
@@ -488,6 +702,7 @@ class Overlays {
   destroy() {
     this.#postponedAdjustElementsSize.cancel();
     this.#resizeMonitor.destroy();
+    this.#scrollbarVisibility.destroy();
     this.#stickyScroll.destroy();
     this.eventManager.destroy();
     // todo, probably all below `destroy` calls has no sense. To analyze
@@ -590,6 +805,88 @@ class Overlays {
    */
   adjustElementsSize() {
     this.#spreaderSize.adjustElementsSize();
+    // The scrollport may have just moved or changed size, so the rect the pointer is compared against
+    // has to be re-read on next use. Dropping a field, no measurement.
+    this.#scrollbarVisibility.notifyResized();
+    this.#syncScrollbarTrackBands();
+  }
+
+  /**
+   * Re-applies the clearance after the scrollbar appears or fades, and nothing else (#10370).
+   *
+   * Opening and closing the band is a paint change - a `clip-path` and an opacity - so it must not drag
+   * a full `adjustElementsSize` behind it: that walks every column, resizes three overlays, and (being
+   * an extra pass no other input triggers) changes what the render-offset specs count.
+   */
+  #refreshScrollbarClearance() {
+    const open = this.isScrollbarVisible();
+
+    // The bands have to come and go on this signal, not wait for the next draw - a scroll may not
+    // trigger one, and the scrollbar is already on screen by then.
+    this.#syncScrollbarTrackBands();
+
+    this.#overlays.forEach((overlay) => {
+      overlay.refreshScrollbarClearance(open);
+    });
+  }
+
+  /**
+   * Draws the band each overlay scrollbar is painted in, across the whole scrollport (#10370).
+   *
+   * Owned here rather than per overlay: the band has to span the master too, or the frozen part reads as
+   * an opaque patch next to a transparent gap. Skipped entirely unless the grid is in the
+   * overlay-scrollbar regime, so a classic-scrollbar grid pays nothing - not even the two reads.
+   */
+  #syncScrollbarTrackBands() {
+    const { geometryReader, rootDocument } = this.#deps;
+    const wtViewport = this.wot.wtViewport;
+    const holder = this.wtTable.holder;
+    // Only when the holder is the scroller. With page-level scrolling the scrollbar belongs to the
+    // window, nowhere near this holder, so a band in here would carve a strip out of nothing.
+    // Also off on a touch-only device: nothing there can grab a thumb, and the band would swallow the
+    // press that becomes a tap - see `canGrabScrollbar`.
+    const holderScrolls = this.scrollableElement === holder
+      && canGrabScrollbar(this.#deps.rootWindow);
+    const scrollbarWidth = geometryReader.getScrollbarWidth(rootDocument);
+    // Only where an overlay is actually clipped out of the strip. The band exists to fill in for the
+    // frozen content that stops short of the scrollbar; along an edge no overlay reaches, there is
+    // nothing to fill in for, and drawing one paints a grey strip over live cells and swallows the
+    // presses there - which is what a grid with no frozen rows or columns used to get.
+    const covers = (edge: 'bottom' | 'inlineEnd') =>
+      this.#overlays.some(overlay => overlay.coversScrollbarEdge(edge));
+    const bottom = holderScrolls && covers('bottom')
+      ? axisScrollbarClearance(
+        geometryReader, holder, scrollbarWidth, wtViewport.hasHorizontalScroll(), 'horizontal'
+      ) : 0;
+    const inlineEnd = holderScrolls && covers('inlineEnd')
+      ? axisScrollbarClearance(
+        geometryReader, holder, scrollbarWidth, wtViewport.hasVerticalScroll(), 'vertical'
+      ) : 0;
+
+    const open = this.isScrollbarVisible();
+
+    // Only an open band can swallow a press; a closed edge is ordinary grid again.
+    this.#bandSizes = {
+      bottom: open.bottom ? bottom : 0,
+      inlineEnd: open.inlineEnd ? inlineEnd : 0,
+    };
+
+    if (bottom === 0 && inlineEnd === 0) {
+      syncScrollbarTrackBands(
+        holder,
+        { bottom: 0, inlineEnd: 0, scrollportWidth: 0, scrollportHeight: 0 },
+        { bottom: false, inlineEnd: false }
+      );
+
+      return;
+    }
+
+    syncScrollbarTrackBands(holder, {
+      bottom,
+      inlineEnd,
+      scrollportWidth: geometryReader.clientWidth(holder),
+      scrollportHeight: geometryReader.clientHeight(holder),
+    }, open);
   }
 
   /**

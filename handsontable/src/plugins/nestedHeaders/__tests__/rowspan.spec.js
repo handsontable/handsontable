@@ -486,6 +486,11 @@ describe('NestedHeaders', () => {
       expect(highlight.col).toBe(-1);
     });
 
+    // Verified still failing (2026-08-05): keyboard navigation order across
+    // rowspan headers was never finished after the rowspan feature shipped
+    // (skipped at introduction, 7fabac1) — and running this spec also leaks
+    // state that fails 3 neighboring specs. Feature completion tracked in
+    // DEV-2196; unskip with it.
     it.skip('should move through all header levels in correct order when wrapping horizontally ' +
       'around rowspans', async() => {
       handsontable({
@@ -834,6 +839,11 @@ describe('NestedHeaders', () => {
       expect(isInSingleLine(deRowspanHeader, headerLabel, collapseButton, dropdownButton)).toBe(true);
     });
 
+    // Verified still failing (2026-08-05): keyboard navigation order across
+    // rowspan headers was never finished after the rowspan feature shipped
+    // (skipped at introduction, 7fabac1) — and running this spec also leaks
+    // state that fails 3 neighboring specs. Feature completion tracked in
+    // DEV-2196; unskip with it.
     it.skip('should keep header level order when navigating left and right across mixed rowspans', async() => {
       handsontable({
         data: [

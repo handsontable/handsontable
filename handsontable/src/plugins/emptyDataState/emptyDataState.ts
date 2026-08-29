@@ -1,6 +1,8 @@
 import { BasePlugin } from '../base';
 import { EmptyDataStateUI } from './ui';
 import { isObject } from '../../helpers/object';
+import { isButtonType } from '../../helpers/uiButton';
+import { isRootInstance } from '../../utils/rootInstance';
 import * as C from '../../i18n/constants';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 
@@ -253,7 +255,7 @@ export class EmptyDataState extends BasePlugin {
             (value.buttons as Record<string, unknown>[]).every((item: Record<string, unknown>) =>
               typeof item === 'object' &&
               typeof item.text === 'string' &&
-              (typeof item.type === 'string' && ['primary', 'secondary'].includes(item.type)) &&
+              isButtonType(item.type) &&
               typeof item.callback === 'function'
             ));
       },
@@ -298,10 +300,15 @@ export class EmptyDataState extends BasePlugin {
   /**
    * Check if the plugin is enabled in the handsontable settings.
    *
+   * The empty data state renders into the root grid element and registers a focus scope, and both
+   * belong to the main Handsontable instance. In a nested grid (the one the `handsontable`,
+   * `autocomplete`, and `dropdown` cell types create) neither exists, so the plugin stays disabled
+   * there.
+   *
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    return !!this.hot.getSettings()[PLUGIN_KEY];
+    return isRootInstance(this.hot) && !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -430,10 +437,10 @@ export class EmptyDataState extends BasePlugin {
 
           if (focusableElements.length > 0) {
             if (focusSource === 'tab_from_above') {
-              focusableElements.at(0)?.focus();
+              focusableElements[0]?.focus();
 
             } else if (focusSource === 'tab_from_below') {
-              focusableElements.at(-1)?.focus();
+              focusableElements[focusableElements.length - 1]?.focus();
             }
           }
         },
@@ -442,8 +449,15 @@ export class EmptyDataState extends BasePlugin {
 
   /**
    * Unregisters the focus scope for the emptyDataState plugin.
+   *
+   * Nothing was registered on a non-root instance, where the plugin never enables and the
+   * `FocusScopeManager` does not exist, so a direct `disablePlugin()` call there must not reach it.
    */
   #unregisterFocusScope() {
+    if (!isRootInstance(this.hot)) {
+      return;
+    }
+
     this.hot.getFocusScopeManager().unregisterScope(PLUGIN_KEY);
   }
 

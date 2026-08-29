@@ -92,6 +92,7 @@ This is the docs-**site** voice — it overrides the monorepo-wide documentation
 ### Formatting conventions
 
 - Hyphens (`-`) or double hyphens (`--`) to separate clauses. No en dashes or em dashes.
+- Sentence case for every heading and for the frontmatter `title:`. Capitalize only the first word, plus proper nouns, product names, API identifiers, and acronyms: `Use a cell renderer`, not `Use a Cell Renderer`. Composes with the Diátaxis title patterns in 2.1.
 - Straight quotes (`"` and `'`) only. No curly/smart quotes.
 - Bold for UI elements: **Save**, **Add column**.
 - Inline code for API names: `columnSorting`, `readOnly`.
@@ -425,6 +426,36 @@ Use the `@` prefix with `.md` extension for all internal links:
 
 Do not use relative paths (`../`) for internal links.
 
+### Template variables in links
+
+Never hardcode a branch name in a GitHub link. Five template variables resolve at
+build time - production builds point at the frozen branch for the docs version,
+every other build points at the development branch. All five are declared and
+substituted in `src/plugins/template-variables.mjs`, the sole registry:
+
+| Variable | Production | Otherwise | Use for |
+|---|---|---|---|
+| `{{$examplesBranch}}` | `prod-examples/<major>` | `master` | `handsontable/examples` starter sources |
+| `{{$currentMinorVersion}}` | `prod-docs/<major>.<minor>` | `develop` | `handsontable/handsontable` sources |
+| `{{$currentVersion}}` | package.json version | `0.0.0-next-<sha>-<date>` | version strings, runner links |
+| `{{$latestChangelogVersion}}` | highest `changelog-N` major | same | links to the newest changelog page |
+| `{{$basePath}}` | `''` | `''` | root-relative asset paths |
+
+Three pipelines substitute them and all three go through that module: the content
+loader (`src/plugins/framework-loader.mjs`), the Vite pre-transform
+(`src/plugins/vuepress-preprocessor.mjs`), and the `_md` route generator in
+`astro.config.mjs` that backs Copy Markdown. Add a variable in one place only.
+The exception is `{{$basePath}}` inside **embedded example source files**, which
+`framework-loader.mjs` substitutes with `/docs` rather than `''`.
+
+A hardcoded `tree/master` link sends a reader on older docs to a starter that no
+longer matches their version (DEV-2214).
+
+Exception: the `server-side-*` recipes keep `tree/master/server-examples/...`.
+`server-examples/` is not in the runner's `frameworks.json`, is not bucketed per
+major, and receives no per-major repair, so a `prod-examples/<major>` copy of it
+would be a frozen unmaintained snapshot.
+
 ---
 
 ## 2.8 Trademark Notices
@@ -464,6 +495,7 @@ Copy and complete this checklist in your PR description:
 - [ ] No `var` in code examples; uses `const` / `let`
 - [ ] All examples include `licenseKey: 'non-commercial-and-evaluation'`
 - [ ] Heading hierarchy is correct (no skipped levels, e.g., H2 → H4)
+- [ ] Headings and the frontmatter `title:` use sentence case
 - [ ] Active voice and second person ("you") used throughout
 - [ ] No banned words: simply, just, easy, straightforward, note that, please
 - [ ] Tutorials and how-tos have a Prerequisites section
@@ -508,6 +540,20 @@ The custom loader (`src/plugins/framework-loader.mjs`) renders every source page
 - **A framework runtime (`react`, `vue`, `zone.js`, `@angular/compiler`) must only be imported inside `loadRuntime()`.** A bare `await import(...)` there escapes every try/catch as an unhandled rejection and leaves each example of that framework stuck on its loading shimmer forever. `loadRuntime()` returns `null` on failure, and the group is marked with `markFailed()` - the only place that shows a reader-visible notice (`.hot-example-error`). Per-example failures keep the silent `markLoaded()` degradation, because some examples render nothing by design.
 
 Guards for both rules live in `src/lib/__tests__/example-error-reporting.test.mjs` (run by `npm run docs:test:plugins`).
+
+### The two-layer drop policy
+
+`reportExampleError()` only sees failures the runner **caught**. Anything raised outside our try/catch - Astro's own island hydration, for one - reaches Sentry through `onerror`/`onunhandledrejection` and can only be filtered in the `beforeSend` hook inlined in `astro.config.mjs` (`window.sentryOnLoad`). When triage says "expected noise", ask which layer the event actually travels through before editing a drop list; a rule added to the wrong layer changes nothing in production.
+
+The two layers overlap on failed dynamic imports of content-hashed `_astro/*.js` chunks - stale cached HTML, offline readers, blocking extensions. Three phrase lists must stay in step: `isChunkLoadError()` in `src/lib/example-error-reporting.mjs`, the same check in `src/scripts/docs-assistant-bootstrap.ts`, and `chunkLoadFailures` in the `beforeSend` hook. Each engine words the failure differently (Chrome `Failed to fetch dynamically imported module`, Firefox `error loading dynamically imported module`, Safari `Importing a module script failed`), so a one-engine list silently keeps filing issues from the other two.
+
+Neither layer reaches a frozen version build under `/docs/<major>.<minor>/`. `deploy/build_previous_versions.sh` copies each archived version out of its own Docker image verbatim, so those pages run the `beforeSend` and the bundles that shipped at their release - a rule added on `develop` today never appears there. Check a Sentry issue's `url` tag before writing a filter for it: when the events come from a versioned path, the only mechanism that drops them is a **Sentry project-level inbound filter on the message** (server-side, so frozen HTML is irrelevant), and the group belongs in `ignored`/`archived forever`, never `resolved` - the archived page is live, so a resolve auto-regresses. Example: HANDSONTABLE-DOCS-1FM mixes both, 11 of 18 events on current recipe pages (which the hook does filter) and 1 on `/docs/17.1/`, still calling the `http://localhost:3000/tickets` its bundle was built with.
+
+The same gap exists one branch away: production docs build from `prod-docs/<major>.<minor>`, which cherry-picks from `develop` selectively and does not carry `sentryOnLoad` today. Every rule here is inert in production until that cherry-pick lands - say so when reporting that a filter is done.
+
+Gate any rule that is expected noise only in one place (a recipe page with no backend, a demo without a server) on the page URL, so the same failure stays visible everywhere else.
+
+Regression tests for the hook live in `src/scripts/__tests__/sentry-before-send.test.mjs`; it evaluates the script exactly as inlined, so every drop rule needs both a drops-it and a keeps-the-real-thing case.
 
 ---
 

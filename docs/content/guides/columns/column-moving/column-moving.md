@@ -29,6 +29,14 @@ To enable column moving, set the [`manualColumnMove`](@/api/options.md#manualcol
 
 A draggable move handle appears above the selected column header. You can click and drag it to any location in the grid.
 
+A column has to be selected before you can drag it. You can start the drag anywhere on the selected column's
+header, including on the sorting label when [column sorting](@/guides/rows/rows-sorting/rows-sorting.md) is
+enabled. Handsontable tells a click from a drag by whether the pointer moves: press and release without moving
+to sort the column, and press and drag to move it.
+
+When column sorting is enabled, only the header label and its sort indicator sort on click. Pressing the header
+around them selects the column without sorting it, so you can select a column and drag it in one gesture.
+
 ::: only-for javascript
 
 ::: example #example1 --js 1 --ts 2
@@ -183,9 +191,46 @@ The array must contain all physical column indexes (its length must equal the to
 
 For more on how physical and visual indexes relate, see [Understanding data and indexes](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md).
 
+## Data model behavior
+
+Moving columns does not reorder your source data. Handsontable stores the new order as index metadata through its [`IndexMapper`](@/api/indexMapper.md), and leaves the original data untouched. This affects how you read and save the data:
+
+- [`getData()`](@/api/core.md#getdata) returns cells in their current visual order, so it reflects any moves. Call it inside the [`afterColumnMove`](@/api/hooks.md#aftercolumnmove) hook to get an order-accurate snapshot to persist.
+- [`getSourceData()`](@/api/core.md#getsourcedata) returns cells in their original physical order, ignoring any moves.
+
+### Don't feed the snapshot back into the grid
+
+Sending the reordered snapshot back to the grid as its new data applies the move a second time. [`updateData()`](@/api/core.md#updatedata) keeps the current column order on purpose, so Handsontable re-applies the order map it already holds on top of your already-reordered data. One drag then moves the column twice.
+
+Treat the snapshot as output only. Send it to your backend, and leave the grid's own data alone.
+
+::: only-for react angular vue
+
+The data you bind to [`data`](@/api/options.md#data) does not change when a user moves a column, so you have to decide who owns the order. The two models are the same as for rows, and mixing them causes the same double move -- see [Choose who owns the row order](@/guides/rows/row-moving/row-moving.md#choose-who-owns-the-row-order).
+
+If you let Handsontable own the order, seed the starting order with [`initialState`](@/api/options.md#initialstate) rather than [`manualColumnMove`](@/api/options.md#manualcolumnmove). Handsontable reads [`initialState`](@/api/options.md#initialstate) only when it creates the grid, so a re-render can't apply the order a second time:
+
+```js
+initialState: {
+  manualColumnMove: [1, 0, 2],
+},
+```
+
+The array both enables column moving and sets the starting order, so don't also pass [`manualColumnMove`](@/api/options.md#manualcolumnmove) at the top level. A regular setting takes precedence over the same key in [`initialState`](@/api/options.md#initialstate), so `manualColumnMove: true` alongside the code above would discard the order.
+
+If you own the order yourself, cancel the move by returning `false` from [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) and reorder your own data. Two things follow from that.
+
+[`afterColumnMove`](@/api/hooks.md#aftercolumnmove) never fires. The move stops at [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove), before that hook runs, so persist the order from your own update rather than from the snapshot recipe above.
+
+Reordering columns also takes more work than reordering rows. You either reorder each row's cells, or reorder your [`columns`](@/api/options.md#columns) definitions. Reordering the cells is the safer route: passing `columns` through [`updateSettings()`](@/api/core.md#updatesettings) resets the states tied to rows and columns, including the row and column sequence, column widths, row heights, and frozen columns.
+
+:::
+
 ## Control column moving
 
 Use the [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) hook to decide whether each column move is allowed. Returning `false` cancels the move while keeping the [`manualColumnMove`](@/api/options.md#manualcolumnmove) plugin enabled.
+
+Both [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) and [`afterColumnMove`](@/api/hooks.md#aftercolumnmove) run only when the pointer actually drags a column. A click on a column header does not fire them.
 
 In the following example, select **Allow column moving** before you drag a column to a new position. Clear the checkbox to block column moving again.
 

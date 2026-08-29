@@ -7,6 +7,7 @@ import { isObject } from '../../helpers/object';
 import { valueAccordingPercent, rangeEach } from '../../helpers/number';
 import SamplesGenerator from '../../utils/samplesGenerator';
 import { isPercentValue } from '../../helpers/string';
+import { formatCellValue } from '../../renderers/renderCell';
 import { DEFAULT_COLUMN_WIDTH } from '../../3rdparty/walkontable/src';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import type { CellChange } from '../../settings';
@@ -270,7 +271,7 @@ export class AutoColumnSize extends BasePlugin {
     // per column, and the eager `getCellMeta` would permanently materialize one meta per visited
     // cell (O(rows x columns) retention on init).
     const cellMeta = this.hot.getCellMetaTransient(row, column);
-    let cellValue = '';
+    let cellValue: unknown = '';
     let seedValue: unknown = '';
 
     if (cellMeta.hidden) {
@@ -279,14 +280,12 @@ export class AutoColumnSize extends BasePlugin {
     }
 
     if (!cellMeta.spanned) {
-      seedValue = this.hot.getDataAtCell(row, column);
-      // Use the raw value for rendering (functions remain as functions for the renderer to call)
-      cellValue = seedValue as string;
-
-      if (typeof cellMeta.valueFormatter === 'function') {
-        cellValue = (cellMeta.valueFormatter as (value: unknown, meta: typeof cellMeta) => string)(cellValue, cellMeta);
-        seedValue = cellValue;
-      }
+      // Format through the same precedence as the render path (cell-level `valueFormatter`, then
+      // the renderer's own static), so the measured string matches what the renderer produces.
+      cellValue = formatCellValue(
+        this.hot.getDataAtCell(row, column), cellMeta, this.hot.getCellRenderer(cellMeta)
+      );
+      seedValue = cellValue;
     }
 
     let bundleSeed = '';
@@ -882,8 +881,8 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Runs the cell's `valueFormatter` (when defined) over a probed value so the measured string
-   * matches what the renderer produced for it.
+   * Formats a probed value the way the render path would — cell-level `valueFormatter` first,
+   * then the renderer's own static — so the measured string matches what the renderer produces.
    *
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
@@ -893,11 +892,7 @@ export class AutoColumnSize extends BasePlugin {
   #formatProbeValue(row: number, column: number, value: unknown) {
     const cellMeta = this.hot.getCellMetaTransient(row, column);
 
-    if (typeof cellMeta.valueFormatter === 'function') {
-      return (cellMeta.valueFormatter as (v: unknown, meta: typeof cellMeta) => unknown)(value, cellMeta);
-    }
-
-    return value;
+    return formatCellValue(value, cellMeta, this.hot.getCellRenderer(cellMeta));
   }
 
   /**

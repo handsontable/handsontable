@@ -384,6 +384,34 @@ describe('Hooks', () => {
 
       expect(hooks.isRegistered('test3')).toBe(true);
     });
+
+    it('should include afterOnSelectionHandleMouseDown in the registered hooks list', () => {
+      const hooks = new Hooks();
+
+      expect(hooks.isRegistered('afterOnSelectionHandleMouseDown')).toBe(true);
+    });
+
+    it('should include afterOnSelectionEdgeMouseDown in the registered hooks list', () => {
+      const hooks = new Hooks();
+
+      expect(hooks.isRegistered('afterOnSelectionEdgeMouseDown')).toBe(true);
+    });
+
+    it('should register the beforeMoveCells and afterMoveCells hooks', () => {
+      const hooks = new Hooks();
+
+      expect(hooks.isRegistered('beforeMoveCells')).toBe(true);
+      expect(hooks.isRegistered('afterMoveCells')).toBe(true);
+    });
+
+    it('should register the NestedRows collapse and expand hooks', () => {
+      const hooks = new Hooks();
+
+      expect(hooks.isRegistered('beforeRowCollapse')).toBe(true);
+      expect(hooks.isRegistered('afterRowCollapse')).toBe(true);
+      expect(hooks.isRegistered('beforeRowExpand')).toBe(true);
+      expect(hooks.isRegistered('afterRowExpand')).toBe(true);
+    });
   });
 
   describe('deregister()', () => {

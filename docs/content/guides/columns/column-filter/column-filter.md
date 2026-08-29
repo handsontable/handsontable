@@ -690,6 +690,123 @@ column menu's width for better user experience. You can achieve this with by sty
 }
 ```
 
+## Edit cells in a filtered column
+
+Editing a cell doesn't change the column's filter conditions, and doesn't re-run the filter.
+
+If you type a value that the active filter excludes, the row stays in view until the filter runs
+again. The new value joins the **Filter by value** list as an unchecked item, so editing a cell never
+selects a value on your behalf. To apply the filter to the edited data, call
+[`filter()`](@/api/filters.md#filter).
+
+To re-run the filter on every edit, call [`filter()`](@/api/filters.md#filter) from an
+[`afterChange`](@/api/hooks.md#afterchange) hook:
+
+::: only-for javascript
+
+```js
+const hot = new Handsontable(container, {
+  dropdownMenu: true,
+  filters: true,
+  afterChange(changes, source) {
+    if (source === 'loadData' || !changes) {
+      return;
+    }
+
+    hot.getPlugin('filters').filter();
+  },
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+const hotRef = useRef(null);
+
+<HotTable
+  ref={hotRef}
+  dropdownMenu={true}
+  filters={true}
+  afterChange={(changes, source) => {
+    if (source === 'loadData' || !changes) {
+      return;
+    }
+
+    hotRef.current?.hotInstance?.getPlugin('filters').filter();
+  }}
+/>
+```
+
+:::
+
+::: only-for angular
+
+```ts
+@ViewChild(HotTableComponent, { static: false })
+hotTable!: HotTableComponent;
+
+settings: GridSettings = {
+  dropdownMenu: true,
+  filters: true,
+  afterChange: (changes, source) => {
+    if (source === 'loadData' || !changes) {
+      return;
+    }
+
+    this.hotTable.hotInstance?.getPlugin('filters').filter();
+  },
+};
+```
+
+```html
+<hot-table [settings]="settings"></hot-table>
+```
+
+:::
+
+::: only-for vue
+
+```vue
+<template>
+  <hot-table ref="hotTableRef" :settings="settings"></hot-table>
+</template>
+
+<script setup>
+import { ref } from 'vue';
+
+const hotTableRef = ref(null);
+
+const settings = {
+  dropdownMenu: true,
+  filters: true,
+  afterChange: (changes, source) => {
+    if (source === 'loadData' || !changes) {
+      return;
+    }
+
+    hotTableRef.value?.hotInstance?.getPlugin('filters').filter();
+  },
+};
+</script>
+```
+
+:::
+
+::: tip
+
+The **Filter by value** list of a column only holds the values present in the rows that pass the
+*other* columns' filters, so a value can drop off the list while it's still selected. Those values
+stay selected: confirming the menu keeps them, and they apply again as soon as their rows come back
+into scope. **Select all** and **Clear** both act on them along with everything else.
+
+A value that leaves the data entirely is a different case. Once no row holds it, it drops out of the
+filter as well, so a column whose values you edit away stops filtering instead of holding on to a
+value that can never match again.
+
+:::
+
 ## Exclude rows from filtering
 
 You can exclude any number of top or bottom rows from filtering.

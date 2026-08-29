@@ -311,8 +311,8 @@ Style the button with CSS:
 If you load Handsontable from a CDN, add jsPDF and the AutoTable plugin after Handsontable:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/jspdf@3.0.4/dist/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@5.0.7/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@5.0.8/dist/jspdf.plugin.autotable.min.js"></script>
 ```
 
 Then use the global `jspdf.jsPDF` constructor and call `autoTable(doc, options)` the same way as in the example (the plugin registers `autoTable` on the UMD build).

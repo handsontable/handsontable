@@ -3,6 +3,9 @@ import { throwWithCause } from '../../helpers/errors';
 import { DialogUI } from './ui';
 import { isObject, isPlainObject } from '../../helpers/object';
 import { isHTMLElement } from '../../helpers/dom/element';
+import { isButtonType } from '../../helpers/uiButton';
+import { getSanitizer } from '../../utils/sanitizer';
+import { isRootInstance } from '../../utils/rootInstance';
 import * as C from '../../i18n/constants';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 
@@ -209,7 +212,7 @@ export class Dialog extends BasePlugin {
           Array.isArray(value?.buttons) && value.buttons.every((item: unknown) =>
             isPlainObject(item) &&
           typeof item.text === 'string' &&
-          ['primary', 'secondary'].includes(String(item.type)) &&
+          isButtonType(item.type) &&
           (typeof item.callback === 'undefined' || typeof item.callback === 'function')
           )),
       content: (value: unknown) => typeof value === 'string' ||
@@ -256,10 +259,15 @@ export class Dialog extends BasePlugin {
   /**
    * Check if the plugin is enabled in the handsontable settings.
    *
+   * The dialog renders into the `ht-overlay` element and registers a modal focus scope, and both
+   * belong to the main Handsontable instance. In a nested grid (the one the `handsontable`,
+   * `autocomplete`, and `dropdown` cell types create) neither exists, so the plugin stays disabled
+   * there.
+   *
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    return !!this.hot.getSettings()[PLUGIN_KEY];
+    return isRootInstance(this.hot) && !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -273,7 +281,8 @@ export class Dialog extends BasePlugin {
     if (!this.#ui) {
       this.#ui = new DialogUI({
         overlayContainer: this.hot.rootOverlaysElement,
-        sanitizer: this.hot.getSettings().sanitizer as ((html: string) => string | undefined) | undefined,
+        sanitizer: getSanitizer(this.hot),
+        warnScope: this.hot.rootElement,
         isRtl: this.hot.isRtl(),
       });
     }
@@ -458,9 +467,14 @@ export class Dialog extends BasePlugin {
     if (templateValue) {
       const template = templateValue as { type: string; [key: string]: unknown };
 
+      // `id` is assigned AFTER the spread on purpose. The template interpolates it into the `id`
+      // attribute of its title and description elements, so a caller-supplied `template.id`
+      // carrying a quote used to break out of that attribute. A benign custom value was no good
+      // either: two grids configured with the same one emitted duplicate element ids into a single
+      // document. The grid's own GUID always wins, and it cannot collide.
       this.#ui!.useTemplate(template.type, {
-        id: this.hot.guid,
         ...template,
+        id: this.hot.guid,
       });
     } else {
       this.#ui!.useDefaultTemplate();
@@ -617,10 +631,10 @@ export class Dialog extends BasePlugin {
 
           if (focusableElements.length > 0) {
             if (focusSource === 'tab_from_above') {
-              focusableElements.at(0)?.focus();
+              focusableElements[0]?.focus();
 
             } else if (focusSource === 'tab_from_below') {
-              focusableElements.at(-1)?.focus();
+              focusableElements[focusableElements.length - 1]?.focus();
             }
 
           } else if (
@@ -641,8 +655,15 @@ export class Dialog extends BasePlugin {
 
   /**
    * Unregisters the focus scope for the dialog plugin.
+   *
+   * Nothing was registered on a non-root instance, where the plugin never enables and the
+   * `FocusScopeManager` does not exist, so a direct `disablePlugin()` call there must not reach it.
    */
   #unregisterFocusScope() {
+    if (!isRootInstance(this.hot)) {
+      return;
+    }
+
     this.hot.getFocusScopeManager().unregisterScope(PLUGIN_KEY);
   }
 

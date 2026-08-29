@@ -15,6 +15,7 @@ vue:
 |Plugin Name  | Description |
 |--|--|
 |[AutoColumnSize](@/api/autoColumnSize.md) |Automatically adjusts the column's width to the size of the content.|
+|[AutoRowHeaderSize](@/api/autoRowHeaderSize.md)| Automatically adjusts the row header's width to the size of its longest label.|
 |[AutoRowSize](@/api/autoRowSize.md)| Automatically adjusts the row's height to the size of the content.|
 |[Autofill](@/api/autofill.md)| Drag the fill handle - a square in the bottom right corner of the cell to fill cells with the data series.|
 |[BindRowsWithHeaders](@/api/bindRowsWithHeaders.md)| Bind rows with headers to lock the row number, always displaying them side by side. Especially useful when each row has its unique ID.|

@@ -1,6 +1,6 @@
 import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
-import { arrayEach, arrayMap } from '../../helpers/array';
+import { arrayEach, arrayFilter, arrayMap } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { addClass, isBottomMostColumnHeader, isHTMLElement, removeClass } from '../../helpers/dom/element';
@@ -18,8 +18,7 @@ import { ActionBarComponent } from './component/actionBar';
 import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
-import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
-import { getSortComparatorForMeta } from './sortComparators';
+import { createArrayAssertion, toEmptyString } from './utils';
 import { createMenuFocusController } from './menu/focusController';
 import type { Menu } from '../contextMenu/menu/menu';
 import type { DropdownMenu } from '../dropdownMenu/dropdownMenu';
@@ -1153,19 +1152,21 @@ export class Filters extends BasePlugin {
   };
 
   /**
-   * Update the condition of ValueComponent, based on the handled changes.
+   * Refreshes the "filter by value" list of a column whose data changed, leaving the user's
+   * selection alone.
+   *
+   * A data change must never re-select values on the user's behalf. The list is rebuilt from the
+   * rows surviving the *other* columns' conditions, so a value typed into a filtered column appears
+   * in the list unchecked instead of being added to the condition (issue #6471).
+   *
+   * The columns filtered after this one are refreshed too, so their lists follow the new data. Their
+   * selections survive that refresh, including the values their lists cannot show.
    *
    * @private
    * @param {number} columnIndex Physical column index of handled ValueComponent condition.
    */
   updateValueComponentCondition(columnIndex: number) {
-    const visualColumnIndex = this.hot.toVisualColumn(columnIndex);
-    const dataAtCol = this.hot.getDataAtCol(visualColumnIndex);
-    const columnMeta = this.hot.countRows() > 0 ? this.hot.getCellMetaTransient(0, visualColumnIndex) : null;
-    const comparator = getSortComparatorForMeta(columnMeta);
-    const selectedValues = unifyColumnValues(dataAtCol, comparator);
-
-    this.conditionUpdateObserver?.updateStatesAtColumn(columnIndex, selectedValues);
+    this.conditionUpdateObserver?.updateStatesAtColumn(columnIndex);
   }
 
   /**
@@ -1467,6 +1468,57 @@ export class Filters extends BasePlugin {
   };
 
   /**
+   * Gets the values the "filter by value" list of a column is built from.
+   *
+   * A column that carries conditions of its own reads the rows that survive the conditions of the
+   * columns defined BEFORE it in the filter stack. Its own conditions are deliberately skipped - a
+   * column's filter must not narrow down its own value list, or the values it filters out drop off
+   * the list and become impossible to select again (issue #12226). A column with no conditions of
+   * its own reads the currently visible data, which the other columns' filters already narrowed
+   * down.
+   *
+   * @private
+   * @param {number} column Visual column index.
+   * @returns {Array<{value: *, meta: CellProperties}>} Array of objects with `value` and `meta`, one per row.
+   */
+  _getValueListDataAtColumn(column: number): Record<string, unknown>[] {
+    const physicalColumn = this.hot.toPhysicalColumn(column);
+    const stackPosition = this.conditionCollection?.getColumnStackPosition(physicalColumn) ?? -1;
+
+    // A data provider filters server-side and the list is hidden anyway, so re-running the
+    // conditions locally would filter data that is already filtered.
+    if (stackPosition === -1 || this.#isDataProviderActive) {
+      return arrayMap(this.hot.getDataAtCol(column), (value, rowIndex) => ({
+        value: toEmptyString(value),
+        meta: this.hot.getCellMetaTransient(rowIndex, column),
+      }));
+    }
+
+    const allRows = this.getDataMapAtColumn(physicalColumn);
+    const conditionsBefore = (this.conditionCollection?.exportAllConditions() ?? []).slice(0, stackPosition);
+
+    if (conditionsBefore.length === 0) {
+      return allRows;
+    }
+
+    const splitConditionCollection = new ConditionCollection(this.hot, false);
+
+    splitConditionCollection.importAllConditions(conditionsBefore);
+
+    // Rows are correlated through the entry's own `row` property - the coordinate stamps on `meta`
+    // are shared with every other meta reader and may have been overwritten since.
+    // `DataFilter` is typed against `unknown[]` throughout, so its entries are narrowed here - the
+    // same boundary cast `DataFilter.filter()` and `ConditionUpdateObserver` already make.
+    const survivingRows = arrayMap(this._createDataFilter(splitConditionCollection).filter(),
+      rowData => (rowData as { row: number }).row);
+    const survivingRowsAssertion = createArrayAssertion(survivingRows);
+
+    splitConditionCollection.destroy();
+
+    return arrayFilter(allRows, rowData => survivingRowsAssertion(rowData.row));
+  }
+
+  /**
    * Creates DataFilter instance based on condition collection.
    *
    * @private
@@ -1497,23 +1549,9 @@ export class Filters extends BasePlugin {
     const editedStack = conditionsState.editedConditionStack as Record<string, unknown>;
     const conditions = editedStack.conditions as unknown[];
     const column = editedStack.column as number;
-    const conditionArgsChange = conditionsState.conditionArgsChange;
 
-    if (Array.isArray(conditionArgsChange)) {
-      // update the previous condition stack (only for 'by_value' condition) on each dataset
-      // change to make the undo/redo work properly
-      this.#previousConditionStack = this.#previousConditionStack.map((stack) => {
-        if (stack.column === column && conditions.length > 0) {
-          stack.conditions.forEach((condition) => {
-            if (condition.name === 'by_value') {
-              condition.args = [[...(conditionArgsChange as unknown[])]];
-            }
-          });
-        }
-
-        return stack;
-      });
-    }
+    // `#previousConditionStack` needs no re-sync here: a data change no longer rewrites the live
+    // `by_value` args, so the snapshot taken by the last `filter()` still matches the collection.
 
     const conditionsByValue = conditions.filter(
       condition => (condition as Record<string, unknown>).name === CONDITION_BY_VALUE);

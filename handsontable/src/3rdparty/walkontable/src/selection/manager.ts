@@ -23,7 +23,7 @@ import {
 } from '../../../../helpers/dom/element';
 import { SelectionScanner } from './scanner';
 import Border from './border/border';
-import { ACTIVE_HEADER_TYPE } from './constants';
+import { ACTIVE_HEADER_TYPE, CUSTOM_SELECTION_TYPE } from './constants';
 
 /**
  * Module responsible for rendering selections (CSS classes) and borders based on the
@@ -159,6 +159,37 @@ export class SelectionManager {
   }
 
   /**
+   * Checks whether a custom-border selection falls entirely outside the active overlay's rendered
+   * cell range, so its border does not need to be drawn (and its DOM does not need to exist) here.
+   * Mirrors the range test `Border#appear` performs before it early-outs, so culling produces the
+   * same visual result while avoiding the cost of materializing off-screen border DOM.
+   *
+   * @param {Selection} selection The custom-border selection instance.
+   * @returns {boolean}
+   */
+  #isCustomSelectionOffscreen(selection: Selection): boolean {
+    // A hidden/trimmed cell has a `null` cellRange (nothing to draw); treat it as off-screen and
+    // avoid `getCorners()`, which dereferences the range.
+    if (selection.isEmpty()) {
+      return true;
+    }
+
+    const { wtTable } = this.#activeOverlaysWot!;
+    const [fromRow, fromColumn, toRow, toColumn] = selection.getCorners();
+    const firstRow = wtTable.getFirstRenderedRow();
+    const lastRow = wtTable.getLastRenderedRow();
+    const firstColumn = wtTable.getFirstRenderedColumn();
+    const lastColumn = wtTable.getLastRenderedColumn();
+
+    // Nothing (or only headers) rendered in this overlay - the border cannot be visible here.
+    if ((firstRow < 0 && lastRow < 0) || (firstColumn < 0 && lastColumn < 0)) {
+      return true;
+    }
+
+    return toRow < firstRow || fromRow > lastRow || toColumn < firstColumn || fromColumn > lastColumn;
+  }
+
+  /**
    * Destroys the Border instance associated with Selection instance.
    *
    * @param {Selection} selection The selection instance.
@@ -216,6 +247,18 @@ export class SelectionManager {
       if (!this.#destroyListeners.has(selection)) {
         this.#destroyListeners.add(selection);
         selection.addLocalHook('destroy', () => this.destroyBorders(selection));
+      }
+
+      // Virtualize custom borders. A per-cell custom-border selection outside this overlay's rendered
+      // range draws nothing anyway - `appear()` early-outs once `getCell()` reports the cell as not
+      // rendered. Skipping it here (without calling `getBorderInstance`) means its Border DOM is never
+      // created while off-screen, which is what lets grids with very many bordered cells scale: only
+      // the visible borders get DOM and layout work, mirroring cell virtualization. The visual result
+      // is identical to letting `appear()` early-out, just without the O(all-borders) DOM.
+      if (selectionType === CUSTOM_SELECTION_TYPE && this.#isCustomSelectionOffscreen(selection)) {
+        this.#selectionBorders.get(selection)?.get(this.#activeOverlaysWot!)?.disappear();
+
+        continue; // eslint-disable-line no-continue
       }
 
       const borderInstance = this.getBorderInstance(selection);

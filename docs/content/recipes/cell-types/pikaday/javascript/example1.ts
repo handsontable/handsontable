@@ -278,7 +278,6 @@ const cellDefinition: Pick<
         "INPUT",
       ) as HTMLInputElement;
 
-      //editor.showDatepicker = (editor, event) => {
       editor.datePicker = editor.container;
 
       /**
@@ -292,14 +291,7 @@ const cellDefinition: Pick<
           editor.hideDatepicker(editor);
         }
       });
-
-      // TODO: fix this https://github.com/handsontable/dev-handsontable/issues/3004
-      // @ts-ignore
-      // editor.hot.rootPortalElement.appendChild(editor.datePicker);
     },
-    // afterInit(editor) {
-    //   editor.pickaday = new Pikaday(editor.getDatePickerConfig(editor));
-    // },
     getDatePickerConfig(editor) {
       const htInput = editor.input;
       const options: Pikaday.PikadayOptions = {};

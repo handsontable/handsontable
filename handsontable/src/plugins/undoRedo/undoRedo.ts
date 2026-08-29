@@ -310,9 +310,21 @@ export class UndoRedo extends BasePlugin {
 
     this.hot.runHooks('beforeUndoStackChange', doneActionsCopy);
 
-    (action as { redo: (hot: HotInstance, callback: () => void) => void }).redo(this.hot, () => {
+    // Most actions settle the redo by calling back with no argument. An action that can legitimately
+    // fail to redo (currently only MoveCellsAction) reports it with `{ wasRedone: false }`, which
+    // pushes the action back onto the undone stack instead of the done stack.
+    const redo = action as {
+      redo: (hot: HotInstance, callback: (result?: { wasRedone?: boolean }) => void) => void
+    };
+
+    redo.redo(this.hot, (result) => {
       this.ignoreNewActions = false;
-      this.doneActions.push(action);
+
+      if (result?.wasRedone === false) {
+        this.undoneActions.push(action);
+      } else {
+        this.doneActions.push(action);
+      }
     });
 
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());

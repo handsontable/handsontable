@@ -25,6 +25,7 @@ export const FactoryEditorAdapter = (componentRef: ComponentRef<HotCellEditorAdv
   editorFactory<ExtendedEditor<any>>({
     position: componentRef.instance.position,
     shortcuts: componentRef.instance.shortcuts,
+    shortcutsGroup: componentRef.instance.shortcutsGroup,
     config: componentRef.instance.config,
     init(editor: EditorInstance): void {
       editor._componentRef = componentRef;

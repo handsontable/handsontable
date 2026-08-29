@@ -1,5 +1,7 @@
 import { fastInnerHTML } from '../../helpers/dom/element';
 import { stripTags } from '../../helpers/string';
+import { resolveButtonType } from '../../helpers/uiButton';
+import type { SanitizerFn } from '../../utils/sanitizer';
 import { NOTIFICATION_CLASS_NAME, NOTIFICATION_POSITIONS } from './constants';
 import type { NotificationNormalizedOptions, NotificationAction } from './notification';
 
@@ -13,9 +15,17 @@ export class NotificationUI {
   #overlayElement: HTMLElement;
 
   /**
-   * @type {function(string, string): string | undefined}
+   * @type {boolean|function(string, string): string}
    */
-  #sanitizer: ((html: string, context: string) => string | undefined) | null | undefined;
+  #sanitizer: boolean | SanitizerFn;
+
+  /**
+   * Object the missing-sanitizer "warn once" state is bound to. The grid root element, so this
+   * plugin shares one warning per instance with every other HTML write surface.
+   *
+   * @type {HTMLElement}
+   */
+  #warnScope: HTMLElement;
 
   /**
    * @type {boolean}
@@ -35,16 +45,19 @@ export class NotificationUI {
   /**
    * @param {object} params Constructor parameters.
    * @param {HTMLElement} params.overlayElement Handsontable root overlays layer element.
-   * @param {function(string, string): string | undefined} params.sanitizer Sanitizer for HTML strings.
+   * @param {boolean|function(string, string): string} params.sanitizer Sanitizer for HTML strings.
+   * @param {HTMLElement} params.warnScope Element the missing-sanitizer warning is deduplicated against.
    * @param {boolean} params.isRtl Whether the grid uses RTL layout.
    */
-  constructor({ overlayElement, sanitizer, isRtl }: {
+  constructor({ overlayElement, sanitizer, warnScope, isRtl }: {
     overlayElement: HTMLElement;
-    sanitizer: ((html: string, context: string) => string | undefined) | null | undefined;
+    sanitizer: boolean | SanitizerFn;
+    warnScope: HTMLElement;
     isRtl: boolean;
   }) {
     this.#overlayElement = overlayElement;
     this.#sanitizer = sanitizer;
+    this.#warnScope = warnScope;
     this.#isRtl = isRtl;
   }
 
@@ -108,9 +121,9 @@ export class NotificationUI {
   /**
    * Updates the HTML sanitizer used for string notification messages.
    *
-   * @param {function(string, string): string | undefined} sanitizer Sanitizer from Handsontable settings, if any.
+   * @param {boolean|function(string, string): string} sanitizer Sanitizer resolved from the grid settings.
    */
-  setSanitizer(sanitizer: ((html: string, context: string) => string | undefined) | null | undefined): void {
+  setSanitizer(sanitizer: boolean | SanitizerFn): void {
     this.#sanitizer = sanitizer;
   }
 
@@ -171,8 +184,7 @@ export class NotificationUI {
     messageEl.className = `${NOTIFICATION_CLASS_NAME}__message`;
 
     if (typeof options.message === 'string') {
-      fastInnerHTML(messageEl, options.message, this.#sanitizer as boolean | ((html: string) => string),
-        'notification', this.#overlayElement);
+      fastInnerHTML(messageEl, options.message, this.#sanitizer, 'notification', this.#warnScope);
     } else {
       messageEl.appendChild(options.message);
     }
@@ -188,7 +200,7 @@ export class NotificationUI {
         const btn = doc.createElement('button');
 
         btn.type = 'button';
-        btn.className = `ht-button ht-button--${action.type === 'primary' ? 'primary' : 'secondary'}`;
+        btn.className = `ht-button ht-button--${resolveButtonType(action.type)}`;
         btn.textContent = stripTags(action.label);
         btn.dataset.htNotificationAction = String(index);
         actionsRow.appendChild(btn);

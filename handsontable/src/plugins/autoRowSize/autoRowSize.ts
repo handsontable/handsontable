@@ -6,6 +6,7 @@ import { isObject } from '../../helpers/object';
 import { valueAccordingPercent, rangeEach } from '../../helpers/number';
 import SamplesGenerator from '../../utils/samplesGenerator';
 import { isPercentValue } from '../../helpers/string';
+import { formatCellValue } from '../../renderers/renderCell';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { addClass, removeClass } from '../../helpers/dom/element';
 
@@ -195,10 +196,16 @@ export class AutoRowSize extends BasePlugin {
 
   /**
    * Returns the default settings applied when the plugin is enabled without explicit configuration.
+   *
+   * There is deliberately no `useHeaders` entry here, even though {@link AutoColumnSize} declares one.
+   * That setting decides whether a header is rendered next to the samples being measured, and this
+   * plugin never asks that question: a row's height is measured with its row header always attached
+   * (see `GhostTable#createRow`, which keys off `hasRowHeaders()`), and the column header's own
+   * height is measured separately by `addColumnHeadersRow`. Declaring the setting anyway would offer
+   * a switch that changes nothing.
    */
-  static get DEFAULT_SETTINGS(): { useHeaders: boolean; samplingRatio: number | null; allowSampleDuplicates: boolean } {
+  static get DEFAULT_SETTINGS(): { samplingRatio: number | null; allowSampleDuplicates: boolean } {
     return {
-      useHeaders: true,
       samplingRatio: null,
       allowSampleDuplicates: false,
     };
@@ -264,8 +271,10 @@ export class AutoRowSize extends BasePlugin {
     if (row >= 0) {
       cellValue = this.hot.getDataAtCell(row, column);
 
-      if (typeof cellMeta?.valueFormatter === 'function') {
-        cellValue = (cellMeta.valueFormatter as (v: unknown, meta: unknown) => unknown)(cellValue, cellMeta);
+      if (cellMeta) {
+        // Format through the same precedence as the render path (cell-level `valueFormatter`, then
+        // the renderer's own static), so the measured string matches what the renderer produces.
+        cellValue = formatCellValue(cellValue, cellMeta, this.hot.getCellRenderer(cellMeta));
       }
     } else if (row === -1) {
       cellValue = this.hot.getColHeader(column);

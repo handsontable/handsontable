@@ -13,12 +13,24 @@ import { getCornerStyle } from '../../selection';
 import {
   CLONE_INLINE_START,
 } from '../constants';
+import {
+  holderOwnsScrollbars,
+  reservedScrollbarSpace,
+  overlayExtentBesideScrollbar,
+  axisScrollbarClearance,
+} from '../scrollbarClearance';
 import { throwWithCause } from '../../../../../helpers/errors';
 
 /**
  * @class InlineStartOverlay
  */
 export class InlineStartOverlay extends Overlay {
+  /**
+   * How much shorter than its root the overlay's holder is kept, so an overlay ("floating") horizontal
+   * scrollbar underneath stays reachable. 0 whenever the scrollbar has real width.
+   */
+  #holderClearance = 0;
+
   /**
    */
   constructor(deps: OverlayDeps) {
@@ -159,6 +171,10 @@ export class InlineStartOverlay extends Overlay {
     if (this.needFullRender) {
       this.adjustRootElementSize();
       this.adjustRootChildrenSize();
+
+    } else if (this.clone) {
+      // Stopped rendering: drop the clearance, or its filler stays behind over live cells.
+      this.clearScrollbarClearance();
     }
   }
 
@@ -177,20 +193,36 @@ export class InlineStartOverlay extends Overlay {
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
-    if (this.trimmingContainer !== rootWindow || preventOverflow === 'vertical') {
+    // The master's horizontal scrollbar sits along the bottom edge this overlay covers. Only worth a
+    // strip when this overlay is sized against the scrollport - otherwise the page scrolls, the
+    // scrollbar is not under this overlay, and clipping would expose the master for nothing.
+    const rootSized = this.trimmingContainer !== rootWindow || preventOverflow === 'vertical';
+    // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
+    // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`.
+    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
+
+    this.#holderClearance = axisScrollbarClearance(
+      this.deps.geometryReader,
+      wtTable.holder,
+      this.deps.geometryReader.getScrollbarWidth(rootDocument),
+      clearanceApplies && wtViewport.hasHorizontalScroll(),
+      'horizontal'
+    );
+
+    if (rootSized) {
       let height = wtViewport.getWorkspaceHeight();
 
       if (wtViewport.hasHorizontalScroll()) {
-        // Match the master holder's actual inner height instead of subtracting a rounded scrollbar
-        // width. `clientHeight` natively accounts for the horizontal scrollbar at the browser's
-        // sub-pixel accuracy; under fractional browser zoom a rounded `getScrollbarWidth()` diverges
-        // from the real scrollbar size, giving the frozen overlay a different vertical scroll range
-        // than the master. That mismatch clamps the overlay's scrollTop ~1px short at the bottom and
-        // shifts the frozen rows out of alignment (#12632).
-        const masterClientHeight = this.deps.geometryReader.clientHeight(wtTable.holder);
-
-        height = masterClientHeight > 0
-          ? masterClientHeight : height - this.deps.geometryReader.getScrollbarWidth(rootDocument);
+        // The same rule the top and bottom overlays apply to widths - `clientHeight` accounts for the
+        // horizontal scrollbar at the browser's sub-pixel accuracy, where a rounded
+        // `getScrollbarWidth()` diverges under fractional zoom and gave the frozen overlay a different
+        // vertical scroll range than the master, clamping its scrollTop ~1px short (#12632).
+        height = overlayExtentBesideScrollbar(
+          height,
+          this.deps.geometryReader.clientHeight(wtTable.holder),
+          this.deps.geometryReader.getScrollbarWidth(rootDocument),
+          reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'horizontal')
+        );
       }
 
       height = Math.min(height, this.deps.geometryReader.scrollHeight(wtTable.wtRootElement));
@@ -199,11 +231,17 @@ export class InlineStartOverlay extends Overlay {
     } else {
       overlayRootStyle.height = '';
     }
+
     this.clone.wtTable.holder.style.height = overlayRootStyle.height;
 
     const tableWidth = this.deps.geometryReader.outerWidth(this.clone.wtTable.TABLE);
 
     overlayRootStyle.width = `${tableWidth}px`;
+
+    this.publishScrollbarClearance({
+      bottom: this.#holderClearance,
+      rtl: this.isRtl(),
+    }, this.wot.wtOverlays.isScrollbarVisible());
   }
 
   /**
@@ -240,7 +278,9 @@ export class InlineStartOverlay extends Overlay {
     if (typeof columnsRenderCalculator?.startPosition === 'number') {
       this.spreader.style[styleProperty] = `${columnsRenderCalculator.startPosition}px`;
 
-    } else if (total === 0) {
+    } else if (total === 0 || columnsRenderCalculator === null) {
+      // 0 columns, or nothing rendered yet — a `null` calculator is the drawn-but-never-rendered state
+      // a skipped first draw leaves behind (see `restoreRenderedStateIfSafe` in `table/drawCycle.ts`).
       this.spreader.style[styleProperty] = '0';
 
     } else {

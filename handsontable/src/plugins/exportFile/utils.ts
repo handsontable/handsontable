@@ -1,12 +1,56 @@
 import { html } from '../../helpers/templateLiteralTag';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
+import { escapeHtml } from '../../helpers/string';
+import { deprecatedWarnOnce } from '../../helpers/console';
+
+export function normalizeExportOptions<T extends Record<string, unknown>>(options: T): T;
+export function normalizeExportOptions<T extends Record<string, unknown>>(options: T | undefined): T | undefined;
+/**
+ * Resolves the deprecated `columnHeaders` export option to its current name, `colHeaders`.
+ *
+ * Call this at every entry point that accepts caller-supplied export options. The promotion has to
+ * happen before the options are merged with the defaults, because `BaseType.DEFAULT_OPTIONS`
+ * carries `colHeaders`, and a merged object therefore always has the new key already.
+ *
+ * The warning prints once per page, so calling this on several code paths for one export is safe.
+ *
+ * The overloads keep the contract honest at both kinds of call site: a caller that passes a definite
+ * object gets a definite object back, while a caller that may pass `undefined` (a missing options
+ * argument) gets `undefined` back and has to handle it.
+ *
+ * @param {object|undefined} options Caller-supplied export options, or `undefined` when the caller
+ *   passed none.
+ * @returns {object|undefined} The input as-is when it is `undefined` or `columnHeaders` is absent,
+ *   otherwise a copy with `colHeaders` filled in. An explicit `colHeaders` always wins.
+ */
+export function normalizeExportOptions<T extends Record<string, unknown>>(options: T | undefined): T | undefined {
+  if (!options || !('columnHeaders' in options)) {
+    return options;
+  }
+
+  deprecatedWarnOnce('ExportFile.columnHeaders',
+    'The `columnHeaders` export option is deprecated and will be removed in Handsontable 19.0.0. ' +
+    'Use `colHeaders` instead.');
+
+  if ('colHeaders' in options) {
+    return options;
+  }
+
+  return { ...options, colHeaders: options.columnHeaders };
+}
 
 /**
  * Builds the dialog overlay DOM fragment for the export progress indicator.
  *
  * The title text is resolved at call-time so it reflects the active locale.
  *
- * @param {string} title Translated title string (e.g. "Exporting…").
+ * The title is escaped rather than trusted. Its only current caller passes a translated phrase,
+ * which no end user controls, but a customer-registered language dictionary does reach it, and this
+ * function is the kind that acquires callers. Escaping (not stripping) keeps a phrase containing
+ * `<` intact.
+ *
+ * @param {string} title Translated title string (e.g. "Exporting…"). Rendered as text; markup in it
+ *   shows up literally.
  * @returns {DocumentFragment}
  */
 export function buildExportDialogContent(title: string): DocumentFragment {
@@ -21,7 +65,7 @@ export function buildExportDialogContent(title: string): DocumentFragment {
         </svg>
       </i>
       <div class="${LOADING_CLASS_NAME}__text">
-        <h2 class="${LOADING_CLASS_NAME}__title">${title}</h2>
+        <h2 class="${LOADING_CLASS_NAME}__title">${escapeHtml(title)}</h2>
       </div>
     </div>
   `;

@@ -1,7 +1,7 @@
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { arrayReduce } from '../../helpers/array';
-import { addClass, eventTargetEl, removeClass, offset, hasClass, outerWidth } from '../../helpers/dom/element';
+import { addClass, removeClass, offset, outerWidth } from '../../helpers/dom/element';
 import { offsetRelativeTo } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
 import BacklightUI from './ui/backlight';
@@ -16,6 +16,9 @@ const CSS_PLUGIN = 'ht__manualColumnMove';
 const CSS_SHOW_UI = 'show-ui';
 const CSS_ON_MOVING = 'on-moving--columns';
 const CSS_AFTER_SELECTION = 'after-selection--columns';
+// Matches ColumnSorting's tolerance. Kept as a local constant rather than imported - plugins do not
+// import each other.
+const POINTER_DRAG_TOLERANCE = 3;
 
 /**
  * @plugin ManualColumnMove
@@ -80,6 +83,15 @@ export class ManualColumnMove extends BasePlugin {
    * @type {boolean}
    */
   #pressed = false;
+  /**
+   * Whether the pointer travelled far enough since the header was pressed to count as a drag. A
+   * press that stayed put is a click to sort, so no columns move and the move hooks stay quiet.
+   */
+  #dragged = false;
+  /**
+   * Pointer client coordinates captured on press, for measuring that travel.
+   */
+  #pressOrigin = { x: 0, y: 0 };
   /**
    * @type {object}
    */
@@ -254,6 +266,19 @@ export class ManualColumnMove extends BasePlugin {
     this.#cachedDropIndex = dropIndex;
 
     return this.moveColumns(columns, finalIndex);
+  }
+
+  /**
+   * Checks whether a column drag is in progress - the header is held down and the pointer has
+   * travelled far enough to count as a drag rather than a click.
+   *
+   * `ColumnSorting` asks this on release to tell a click apart from a drag, so the two plugins
+   * cannot disagree about where that line is.
+   *
+   * @returns {boolean}
+   */
+  isDragging(): boolean {
+    return this.enabled && this.#pressed && this.#dragged;
   }
 
   /**
@@ -609,11 +634,10 @@ export class ManualColumnMove extends BasePlugin {
     const wtTable = this.hot.view._wt.wtTable;
     const isHeaderSelection = this.hot.selection.isSelectedByColumnHeader();
     const selection = this.hot.getSelectedRangeActive();
-    // This block action shouldn't be handled below.
-    const isSortingElement = hasClass(eventTargetEl(event)!, 'sortAction');
 
-    if (!selection || !isHeaderSelection || this.#pressed || event.button !== 0 || isSortingElement) {
+    if (!selection || !isHeaderSelection || this.#pressed || event.button !== 0) {
       this.#pressed = false;
+      this.#dragged = false;
       this.#columnsToMove.length = 0;
       removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
 
@@ -635,6 +659,7 @@ export class ManualColumnMove extends BasePlugin {
     if (coords.row < 0 && (coords.col >= start && coords.col <= end)) {
       controller.column = true;
       this.#pressed = true;
+      this.#pressOrigin = { x: event.clientX, y: event.clientY };
 
       const eventOffsetX = TD.firstChild ? offsetRelativeTo(event, TD.firstChild as HTMLElement).x : event.offsetX;
 
@@ -666,11 +691,14 @@ export class ManualColumnMove extends BasePlugin {
       this.#backlight.setSize(this.getColumnsWidth(start, end), wtTable.hider.offsetHeight - topPos);
       this.#backlight.setOffset(0, -inlineOffset);
 
+      this.#dragged = false;
+
       addClass(this.hot.rootElement, CSS_ON_MOVING);
 
     } else {
       removeClass(this.hot.rootElement, CSS_AFTER_SELECTION);
       this.#pressed = false;
+      this.#dragged = false;
       this.#columnsToMove.length = 0;
     }
   };
@@ -683,6 +711,13 @@ export class ManualColumnMove extends BasePlugin {
   #onMouseMove(event: MouseEvent) {
     if (!this.#pressed) {
       return;
+    }
+
+    // Same tolerance ColumnSorting uses to tell a click from a drag, so a pointer that jitters a
+    // pixel or two does not both sort and fire the move hooks.
+    if (Math.abs(event.clientX - this.#pressOrigin.x) > POINTER_DRAG_TOLERANCE ||
+        Math.abs(event.clientY - this.#pressOrigin.y) > POINTER_DRAG_TOLERANCE) {
+      this.#dragged = true;
     }
 
     this.#target.eventPageX = event.pageX;
@@ -744,9 +779,11 @@ export class ManualColumnMove extends BasePlugin {
   #onMouseUp() {
     const target = this.#target.col;
     const columnsLen = this.#columnsToMove.length;
+    const wasDragged = this.#dragged;
 
     this.#hoveredColumn = undefined;
     this.#pressed = false;
+    this.#dragged = false;
 
     removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
 
@@ -754,7 +791,11 @@ export class ManualColumnMove extends BasePlugin {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
 
-    if (columnsLen < 1 || target === undefined) {
+    // A press that never travelled is a click, not a move. Bailing out here also keeps
+    // `beforeColumnMove` / `afterColumnMove` from firing on every header click.
+    if (!wasDragged || columnsLen < 1 || target === undefined) {
+      this.#columnsToMove.length = 0;
+
       return;
     }
 

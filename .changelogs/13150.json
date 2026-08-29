@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the grid's cell styling (borders, padding, background, box-sizing, and corner radius) leaking into a table or other element rendered inside a cell.",
+  "type": "fixed",
+  "issueOrPR": 13150,
+  "breaking": false,
+  "framework": "none"
+}

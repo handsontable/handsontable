@@ -1,0 +1,324 @@
+@use "../../utils/mixins";
+
+// Handsontable license branding: the corner "H." badge + its popover (shown for a running or
+// soft-stopped trial only) and the Core-owned hard-stop lock screen.
+// ---
+// This is the ONLY definition of the glyph, and deliberately not a theme icon. It was briefly
+// registered as `licenseBadge` in the theme icon catalogs; that was wrong twice over - the key is not
+// in `VALID_ICON_KEYS` (so registering a built-in theme logged "Unknown icon key"), and `iconsMap`
+// has no rule for it (so it emitted no CSS at all). Do not re-add it: a theme-overridable entry would
+// let a host application blank out the license mark, and the glyph has to render from the base
+// stylesheet anyway, without the per-theme icon-CSS regeneration that needs the gitignored Figma
+// `tokens.json`.
+$license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='14.8626' height='16' viewBox='0 0 14.8626 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0H3.28665V4.35577H7.03576V0H10.306V11.407H7.03576V6.90834H3.28665V11.407H0V0Z' fill='%23000'/%3E%3Cpath d='M11.0991 12.236H14.8633V16.0001H11.0991V12.236Z' fill='%23000'/%3E%3C/svg%3E";
+
+@mixin output {
+  .ht-license-badge-wrapper {
+    position: absolute;
+    // Spans the root wrapper box exactly and clips its children: an absolutely positioned box still
+    // adds scrollable overflow to a scroll container above it, so a badge sticking out of a short
+    // grid would spawn a scrollbar on the user's `overflow: auto` container (and shrink the measured
+    // grid width - see the settings/width E2E specs). With inset 0, the license chrome can never
+    // leak outside the grid's own box. `clip` would be the better keyword - it clips without
+    // creating a scroll container - and it is inside the current floor (Safari 16, against our
+    // 18.2); it was ruled out when the floor was 14.1, where it fell back to `visible` and clipped
+    // nothing. `hidden` is kept for now because the swap changes layout behavior rather than
+    // comments: the box stops being a scroll container, which the settings/width specs measure.
+    // The cost of keeping it is a scroll container that nothing ever scrolls.
+    inset: 0;
+    overflow: hidden;
+    z-index: 1050; // above the grid, below the hard-stop dialog (1060)
+    // Click-through: the corner header cell underneath keeps its native behavior (select-all click,
+    // right-click context menu, drag, touch). Hovering is detected by a delegated listener that stamps
+    // `is-corner-hover` (see licenseBranding.ts); the popover re-enables pointer events for its links.
+    pointer-events: none;
+  }
+
+  // The visual glyph renders INSIDE the corner header cell (the first header row's first cell of
+  // the corner overlay clone), so it can never overflow or drift out of the corner: the cell is the
+  // positioning context (`th` is `position: relative`), `inset: 0; margin: auto` centers the glyph
+  // exactly, and `min()` scales it down inside corners narrower than the glyph. No JS measurement
+  // is involved - themes, nested headers, runtime resizes, and RTL all align for free. The
+  // `ht-license-badge-on` class is stamped on the root element (licenseBranding.ts) only while a
+  // branded state has a corner cell to sit on. The `ht-license-badge-corner` marker is stamped on
+  // THIS grid's own corner clone table (resolved through the Walkontable overlay API, see badge.ts);
+  // targeting the structural `.ht_clone_top_inline_start_corner` class instead would also paint a
+  // stray glyph in a nested grid's corner (the `handsontable` cell type) inside this branded root.
+  .ht-license-badge-on .ht-license-badge-corner thead tr:first-child th:first-child::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    // The +3px optical nudge (a 6px start inset halved by the auto margins), clamped so it decays
+    // to zero in corners too narrow to absorb it - the glyph must never leave the cell. A raw
+    // `translate` would push it back out of narrow corners.
+    inset-inline-start: clamp(0px, calc(100% - var(--ht-license-badge-size, 16px)), 6px);
+    inline-size: min(var(--ht-license-badge-size, 16px), 100%);
+    block-size: min(var(--ht-license-badge-size, 16px), 100%);
+    // The design system's own tokens (Figma `common/colors/disabled-color`), so the glyph tracks the
+    // theme and the light/dark scheme instead of pinning one gray: #a3a3a3 in main light, #aeaeae in
+    // horizon light, and so on. The literal is only the no-theme fallback.
+    background-color: var(--ht-license-badge-color, var(--ht-disabled-color, #a3a3a3));
+    pointer-events: none;
+    -webkit-mask-image: url($license-badge-icon);
+    mask-image: url($license-badge-icon);
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+  }
+
+  // Hover darkens the glyph (Figma `common/colors/read-only-color`). The badge above is
+  // click-through, so the pointer lands on the corner cell itself and its own `:hover` is what
+  // drives this - no JS, and no dependency on the wrapper's `is-corner-hover` class, which lives in
+  // the overlays layer and cannot be selected from here.
+  .ht-license-badge-on .ht-license-badge-corner thead tr:first-child th:first-child:hover::after {
+    background-color: var(--ht-license-badge-hover-color, var(--ht-read-only-color, #68696c));
+  }
+
+  // The optical nudge is a physical RIGHTWARD shift in both directions (per design): in RTL,
+  // inline-start maps to the right edge, so the clamped inset moves to the opposite logical side
+  // to keep the same physical direction.
+  [dir="rtl"] .ht-license-badge-on .ht-license-badge-corner thead tr:first-child th:first-child::after {
+    inset-inline-start: 0;
+    inset-inline-end: clamp(0px, calc(100% - var(--ht-license-badge-size, 16px)), 6px);
+  }
+
+  // The badge button is screen-reader-only: it carries the accessible name, the popover wiring
+  // (aria-controls / aria-expanded), and the keyboard entry point, while the VISUAL glyph lives in
+  // the corner cell above. Keeping the visual out of this box is what guarantees the alignment.
+  .ht-license-badge {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    background: transparent;
+    color: transparent;
+  }
+
+  .ht-license-popover {
+    @include mixins.font-family;
+
+    position: absolute;
+    inset-block-start: 0;
+    // The panel's leading edge sits exactly at the corner's trailing edge, measured from the design:
+    // the corner header there is 60px wide and the panel starts at 60px. The tail then hangs to the
+    // left of the panel, overlapping the last few pixels of the corner cell - so the tail size does
+    // NOT enter this offset.
+    inset-inline-start: var(--ht-license-badge-area-width, 50px);
+    // Clamped to the grid box: the wrapper clips its children (`overflow: clip` above), so a fixed
+    // 320px panel would be CUT OFF on a small grid - including its close button and links. With the
+    // end inset + auto sizing, the panel shrinks to the available width instead; its inner content
+    // (`__content`) scrolls when the grid is shorter than the copy. The panel itself stays
+    // `overflow: visible` so the tail is not clipped (any non-`visible` overflow would compute
+    // `overflow-x` to a clipping value and cut off the tail that sits just past the leading edge).
+    inset-inline-end: 0;
+    z-index: 1051;
+    display: none;
+    flex-direction: column;
+    inline-size: auto;
+    max-inline-size: min(var(--ht-license-popover-width, 320px), calc(100vw - 32px));
+    max-block-size: 100%;
+    overflow: visible;
+    padding: 16px;
+    border-radius: var(--ht-border-radius, 8px);
+    // The top-start corner stays square: the tail merges into it.
+    border-start-start-radius: 0;
+    background-color: var(--ht-license-popover-background-color, #16171a);
+    color: var(--ht-license-popover-foreground-color, #fff);
+    font-size: var(--ht-font-size-small, 12px);
+    line-height: var(--ht-line-height-small, 18px);
+    text-align: start;
+    // The panel is interactive (links, close button) even though its wrapper is click-through.
+    pointer-events: auto;
+
+    @include mixins.box-shadow;
+
+    // The tail: a right triangle on the leading edge whose flat top runs collinear with the panel's
+    // top edge and whose hypotenuse slopes back into the panel - built from the border-triangle
+    // trick, so it mirrors automatically in RTL. 5px legs, measured off the design (the wedge there
+    // spans 5px horizontally and 5 rows vertically before meeting the panel edge).
+    &::before {
+      content: "";
+      position: absolute;
+      inset-block-start: 0;
+      inset-inline-end: 100%;
+      inline-size: 0;
+      block-size: 0;
+      border-block-start: var(--ht-license-popover-tail-size, 5px)
+        solid var(--ht-license-popover-background-color, #16171a);
+      border-inline-start: var(--ht-license-popover-tail-size, 5px) solid transparent;
+    }
+  }
+
+  // The scrollable text column: it, not the panel, carries the overflow, so a grid shorter than the
+  // copy scrolls the content while the panel keeps its tail visible. `min-block-size: 0` lets it
+  // shrink below its content height inside the flex-column panel.
+  .ht-license-popover__content {
+    min-block-size: 0;
+    overflow-y: auto;
+  }
+
+  // Visibility is pointer-driven (the popover is a purely visual floating element - never focused):
+  // it shows while the pointer roams the corner (`is-corner-hover`, stamped by delegation) or hovers
+  // the popover itself, and the soft-stop popover additionally stays open via `is-open`.
+  // `is-dismissed` (the close button) gates every hover rule - at dismissal time the pointer still
+  // hovers the popover, so without the gate the hover rules would keep it visible.
+  .ht-license-badge-wrapper.is-corner-hover:not(.is-dismissed) .ht-license-popover,
+  .ht-license-badge-wrapper:not(.is-dismissed):hover .ht-license-popover,
+  .ht-license-popover.is-open {
+    display: flex;
+  }
+
+  // Without a corner cell (no row or column headers) there is nothing for the badge to sit on and
+  // nothing for the tail to point at: the badge hides, and the popover attaches to the table's
+  // inline-start edge with its rounded corner restored and no tail.
+  .ht-license-badge-wrapper.is-cornerless {
+    .ht-license-badge {
+      display: none;
+    }
+
+    .ht-license-popover {
+      inset-inline-start: 0;
+      border-start-start-radius: var(--ht-border-radius, 8px);
+
+      &::before {
+        display: none;
+      }
+    }
+  }
+
+  .ht-license-popover__title {
+    margin-block-end: 8px;
+    padding-inline-end: 16px; // clear the close button
+    font-weight: bold;
+  }
+
+  .ht-license-popover__body {
+    margin: 0 0 12px;
+    color: var(--ht-license-popover-body-color, #d5d6d8);
+  }
+
+  .ht-license-popover__link {
+    color: var(--ht-license-popover-link-color, #3ba0ff);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .ht-license-popover__close {
+    position: absolute;
+    inset-block-start: 12px;
+    inset-inline-end: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 20px;
+    block-size: 20px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    line-height: 1;
+
+    &::before {
+      content: "\2715"; // placeholder close glyph until the design icon ships
+      font-size: 14px;
+    }
+  }
+
+  // The hard-stop lock screen is Core-owned DOM (see licenseBranding/lockScreen.ts) that WEARS the
+  // confirm dialog's class names, so it inherits the dialog's styling and sizing from
+  // `components/plugins/_dialog.scss` without importing the Dialog PLUGIN - which is optional, and
+  // is a shared surface an app uses for its own dialogs. `ht-license-lock` is the lock's own class
+  // on top of that set. Only two things differ from a plain confirm dialog: the lock renders above
+  // app dialogs, and it wears a header strip carrying the "H." logomark.
+  .ht-dialog.ht-license-lock {
+    // Above the badge chrome (1050/1051) AND any Dialog-plugin dialog (1060) - an app dialog must
+    // never cover the license lock.
+    z-index: 1070;
+
+    // The strip along the top edge (per design): an imitation of a column-header row, so the locked
+    // grid still reads as a grid rather than a bare panel. It is DECORATION - the real header is
+    // underneath and unreachable, which is the point of a hard block. Height is the header row's
+    // own formula (line box + the vertical cell padding twice), so it follows the density setting.
+    &::before {
+      content: "";
+      position: absolute;
+      inset-block-start: 0;
+      inset-inline: 0;
+      block-size: calc(var(--ht-line-height, 20px) + var(--ht-density-cell-vertical, 4px) * 2);
+      background-color: var(--ht-header-background-color);
+      border-block-end: 1px solid var(--ht-cell-horizontal-border-color, var(--ht-border-color));
+    }
+
+    // The grayed "H." logomark, centered in that strip where a corner header's badge would sit.
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block-start: calc(
+        var(--ht-density-cell-vertical, 4px) +
+        (var(--ht-line-height, 20px) - var(--ht-license-badge-size, 16px)) / 2
+      );
+      inset-inline-start: var(--ht-cell-horizontal-padding, 8px);
+      inline-size: var(--ht-license-badge-size, 16px);
+      block-size: var(--ht-license-badge-size, 16px);
+      background-color: var(--ht-license-badge-color, var(--ht-disabled-color, #a3a3a3));
+      -webkit-mask-image: url($license-badge-icon);
+      mask-image: url($license-badge-icon);
+      -webkit-mask-size: contain;
+      mask-size: contain;
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+    }
+
+    // Keep the copy optically centered in the area BELOW the strip, as the design shows it, instead
+    // of centered in the whole box (which the strip would push off by half its height).
+    .ht-dialog__content-wrapper {
+      padding-block-start: calc(var(--ht-line-height, 20px) + var(--ht-density-cell-vertical, 4px) * 2);
+    }
+
+    // The copy holds unbreakable tokens ('non-commercial-and-evaluation', e-mail addresses) and the
+    // lock is only as wide as the grid, so on a narrow grid they push the text past the box - the
+    // same overflow the bottom bar had to solve (DEV-2192).
+    // Two rules are needed, and `overflow-wrap` alone is not enough: the content column is a FLEX
+    // ITEM, whose default `min-width: auto` is its min-content width - the width of the longest
+    // unbreakable token - so it refuses to shrink to the lock and simply sticks out. `min-inline-size:
+    // 0` lets it shrink, and only then does the wrap take effect. `break-word` rather than
+    // `anywhere` because the latter is Safari 15.4, above the declared 14.1 floor.
+    .ht-dialog__content-wrapper-inner,
+    .ht-dialog__content {
+      min-inline-size: 0;
+    }
+
+    // The action is an anchor wearing the button classes (see lockScreen.ts for why it is not a
+    // button), so it needs the two things a link does not get for free.
+    a.ht-button {
+      display: inline-block;
+      text-decoration: none;
+    }
+
+    .ht-dialog__title,
+    .ht-dialog__description {
+      // `word-break`, not just `overflow-wrap`: only the former shrinks the MIN-CONTENT width, which
+      // is what the flex items above are sized by. `overflow-wrap: break-word` breaks a long token
+      // during layout but still reports it whole as the minimum, so the column would keep sticking
+      // out. (`overflow-wrap: anywhere` would do both on its own, and at Safari 15.4 it is inside
+      // the current floor - the pair is kept because collapsing it changes where lines break.)
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+  }
+}

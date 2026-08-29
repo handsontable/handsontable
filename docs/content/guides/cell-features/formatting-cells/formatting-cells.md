@@ -38,7 +38,7 @@ Choose an approach based on your goal:
 
 In this example, you add a custom class `custom-cell` to the cell in the top-left corner and a `custom-table` CSS class that highlights the table headers.
 
-To add a CSS class to a cell, column, or row, use the [`className`](@/api/options.md#classname) option. Set it in the grid configuration, in a `columns` entry, or per cell through the [`cells`](@/api/options.md#cells) callback. The class you provide is added to the cell's `<td>` element, where your CSS rules can target it.
+To add a CSS class to a cell, column, or row, use the [`className`](@/api/options.md#classname) option. Set it in the grid configuration, in a `columns` entry, or per cell through the [`cells`](@/api/options.md#cells) callback. The class you provide is added to the cell's `<td>` element, where your CSS rules can target it. Set in the grid configuration, it is also added to the container element that holds the grid -- see [`className`](@/api/options.md#classname) for the full breakdown.
 
 ::: only-for javascript
 
@@ -84,6 +84,22 @@ To add a CSS class to a cell, column, or row, use the [`className`](@/api/option
 :::
 
 :::
+
+### Give your rule enough specificity
+
+A theme styles cells through rules such as `.ht-theme-main .htCore td`, which is more specific than a single class selector. A rule like `.custom-cell { font-size: 24px; }` therefore loses to the theme, and the cell keeps the theme's font size.
+
+To win, include the theme class and the element in your selector:
+
+```css
+.ht-theme-main .htCore td.custom-cell {
+  font-size: 24px;
+}
+```
+
+Adding `!important` to your original rule works too, but the selector above keeps the cascade readable.
+
+[`autoRowSize`](@/api/options.md#autorowsize) and [`autoColumnSize`](@/api/options.md#autocolumnsize) measure each cell with its class applied, so a class that changes a cell's font size, padding, or borders is reflected in the calculated row heights and column widths.
 
 ## Apply inline styles
 
@@ -191,6 +207,39 @@ The following example shows different border styles on selected cell ranges.
 
 :::
 
+### Apply borders progressively for large configurations
+
+Building a very large [`customBorders`](@/api/options.md#customborders) configuration before the first render can delay the initial paint. To render the grid first and apply the borders in background batches, set [`customBordersProgressive`](@/api/options.md#custombordersprogressive) to `true`:
+
+```js
+const hot = new Handsontable(container, {
+  data,
+  customBorders: largeBorderConfig,
+  customBordersProgressive: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+Pass an object to control how many border entries are applied per batch:
+
+```js
+customBordersProgressive: { chunkSize: 5000 },
+```
+
+With progressive application enabled, the borders fill in after the grid becomes interactive, so [`getBorders()`](@/api/customBorders.md#getborders) and the cells' border metadata are complete only once the [`afterCustomBordersUpdate`](@/api/hooks.md#aftercustombordersupdate) hook fires:
+
+```js
+const hot = new Handsontable(container, {
+  data,
+  customBorders: largeBorderConfig,
+  customBordersProgressive: true,
+  licenseKey: 'non-commercial-and-evaluation',
+  afterCustomBordersUpdate() {
+    // every custom border is now applied
+  },
+});
+```
+
 ## Result
 
 The grid renders your configured classes, inline styles, and border definitions. Formatting stays consistent after each render.
@@ -216,6 +265,7 @@ The grid renders your configured classes, inline styles, and border definitions.
 - [currentHeaderClassName](@/api/options.md#currentheaderclassname)
 - [currentRowClassName](@/api/options.md#currentrowclassname)
 - [customBorders](@/api/options.md#customborders)
+- [customBordersProgressive](@/api/options.md#custombordersprogressive)
 - [invalidCellClassName](@/api/options.md#invalidcellclassname)
 - [noWordWrapClassName](@/api/options.md#nowordwrapclassname)
 - [placeholder](@/api/options.md#placeholder)

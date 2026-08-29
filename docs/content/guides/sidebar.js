@@ -102,6 +102,7 @@ const cellTypesItems = [
   { path: 'guides/cell-types/numeric-cell-type/numeric-cell-type' },
   { path: 'guides/cell-types/date-cell-type/date-cell-type' },
   { path: 'guides/cell-types/time-cell-type/time-cell-type' },
+  { path: 'guides/cell-types/datetime-cell-type/datetime-cell-type' },
   { path: 'guides/cell-types/checkbox-cell-type/checkbox-cell-type' },
   { path: 'guides/cell-types/select-cell-type/select-cell-type' },
   { path: 'guides/cell-types/dropdown-cell-type/dropdown-cell-type' },
@@ -112,6 +113,7 @@ const cellTypesItems = [
 ];
 
 const formulasItems = [
+  { path: 'guides/formulas/installation/installation' },
   { path: 'guides/formulas/formula-calculation/formula-calculation' },
 ];
 
@@ -151,6 +153,7 @@ const buildingAndToolingItems = [
   { path: 'guides/tools-and-building/typescript-types/typescript-types' },
   { path: 'guides/tools-and-building/custom-plugins/custom-plugins' },
   { path: 'guides/tools-and-building/custom-builds/custom-builds' },
+  { path: 'guides/tools-and-building/shadow-dom/shadow-dom' },
   { path: 'guides/tools-and-building/testing/testing' },
 ];
 
@@ -196,6 +199,7 @@ const upgradeAndMigrationItems = [
   { path: 'guides/upgrade-and-migration/versioning-policy/versioning-policy' },
   { path: 'guides/upgrade-and-migration/deprecation-policy/deprecation-policy' },
   { path: 'guides/upgrade-and-migration/long-term-support/long-term-support' },
+  { path: 'guides/upgrade-and-migration/migrating-from-18.1-to-18.2/migrating-from-18.1-to-18.2' },
   { path: 'guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-16.0-to-16.1/migrating-from-16.0-to-16.1' },

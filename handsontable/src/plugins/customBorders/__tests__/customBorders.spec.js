@@ -915,7 +915,9 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.end).toEqual(EMPTY);
     expect(countVisibleCustomBorders()).toBe(4);
-    expect(countCustomBorders()).toBe(40);
+    // Border DOM is virtualized: only the 4 bordered cells in the master overlay carry border
+    // elements (4 × 5 divs); the header overlay no longer materializes redundant copies.
+    expect(countCustomBorders()).toBe(20);
   });
 
   it('should not throw an error when borders menu is opened through column header', async() => {
@@ -938,7 +940,9 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.start).toEqual(EMPTY);
     expect(countVisibleCustomBorders()).toBe(4);
-    expect(countCustomBorders()).toBe(40);
+    // Border DOM is virtualized: only the 4 bordered cells in the master overlay carry border
+    // elements (4 × 5 divs); the header overlay no longer materializes redundant copies.
+    expect(countCustomBorders()).toBe(20);
   });
 
   it('should draw borders from context menu options when was first cleared borders by the clearBorders method', async() => {
@@ -1149,7 +1153,9 @@ describe('CustomBorders', () => {
       // row below (see Core_count.spec.js), so the count is exactly `expectedVisibleRows + 1`.
       expect(renderedRows).toBe(expectedVisibleRows(containerHeight, 0) + 1);
       expect(countVisibleCustomBorders()).toEqual(renderedRows);
-      expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
+      // Border DOM is virtualized: only the rendered rows carry border elements (5 divs each),
+      // not all 10 rows. This is the guarantee that lets large bordered grids stay cheap.
+      expect(countCustomBorders()).toEqual(renderedRows * 5);
     });
 
     it('should render borders only for rendered rows, after scrolling', async() => {
@@ -1174,7 +1180,9 @@ describe('CustomBorders', () => {
       expect(renderedRows).toBeGreaterThanOrEqual(expectedVisible + 1);
       expect(renderedRows).toBeLessThanOrEqual(expectedVisible + 2);
       expect(countVisibleCustomBorders()).toEqual(renderedRows);
-      expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
+      // Border DOM is virtualized and tracks the viewport: after scrolling, only the rendered rows
+      // carry border elements (5 divs each), so off-screen rows' border DOM is released.
+      expect(countCustomBorders()).toEqual(renderedRows * 5);
     });
 
     it('should render borders only for rendered rows, including rows rendered because of viewportRowRenderingOffset', async() => {

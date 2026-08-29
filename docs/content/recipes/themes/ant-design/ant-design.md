@@ -33,11 +33,11 @@ In this tutorial, you will integrate Handsontable into a React app that uses Ant
 ></iframe>
 
 [**Open in sandbox**](https://demos.handsontable.com/?example=ant-design&v={{$currentVersion}})
-[**View source on GitHub**](https://github.com/handsontable/examples/tree/master/examples/ant-design)
+[**View source on GitHub**](https://github.com/handsontable/examples/tree/{{$examplesBranch}}/examples/ant-design)
 
 ## Overview
 
-This recipe uses the official [handsontable/examples Ant Design demo](https://github.com/handsontable/examples/tree/master/examples/ant-design) as the live reference implementation. It shows how to integrate Handsontable into a React app that uses [Ant Design](https://ant.design/) by registering a custom theme and mapping Handsontable theme colors and tokens to Ant Design table-like styles.
+This recipe uses the official [handsontable/examples Ant Design demo](https://github.com/handsontable/examples/tree/{{$examplesBranch}}/examples/ant-design) as the live reference implementation. It shows how to integrate Handsontable into a React app that uses [Ant Design](https://ant.design/) by registering a custom theme and mapping Handsontable theme colors and tokens to Ant Design table-like styles.
 
 **Difficulty:** Beginner
 **Time:** ~15 minutes

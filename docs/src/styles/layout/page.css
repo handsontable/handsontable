@@ -120,7 +120,7 @@ starlight-theme-select :is(:hover, :focus-visible) :is(.moon, .sun) {
 /* Align fixed sidebar with the constrained page */
 @media (min-width: 50rem) {
   .sidebar-pane {
-    inset-inline-start: max(0px, calc(50vw - 750px)) !important;
+    inset-inline-start: max(0px, calc(50% - 750px)) !important;
   }
 }
 
@@ -302,6 +302,15 @@ starlight-toc {
 @media (max-width: 71.99rem) {
   .content-panel {
     padding-inline: 1rem !important;
+  }
+}
+
+/* ...and on the three-column desktop layout, where the content column otherwise
+   starts flush against the sidebar divider until the viewport is wide enough for
+   the 45rem column to center itself (DEV-2628). */
+@media (min-width: 72rem) {
+  .content-panel {
+    padding-inline: var(--sl-content-pad-x) !important;
   }
 }
 

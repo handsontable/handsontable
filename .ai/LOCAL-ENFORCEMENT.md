@@ -26,6 +26,15 @@ Same rules, escalating authority: **agent-time → pre-commit → pre-push → C
 **Changed unit tests** run too — fast (Jest maps to `src`, no build), in both the
 Stop hook and pre-push. A Jest *infra* failure (couldn't start) warns instead of
 blocking (CI is authoritative), the same way the presence gate skips a config gap.
+**A run that was killed is the same case.** A child aborted by Node on buffer
+overflow (`ENOBUFS`) or by a signal produced no verdict — `spawnSync` returns
+`status: null` with a truncated buffer, which is indistinguishable from a real
+failure unless the caller inspects `error`/`signal`. `isSpawnInfraFailure()`
+(`scripts/pre-push.mjs`) classifies it, and it warns instead of blocking. Every
+hook-spawned test run also passes `TEST_RUN_MAX_BUFFER` (64 MB) so the run reaches
+its summary rather than dying on Node's 1 MB default. The trade-off is deliberate:
+a genuinely failing run whose output overflows stops blocking locally, and CI
+catches it.
 **Coverage is a CI floor, not a hook** (it needs a full instrumented run, too slow
 for a hook): the `[CHECK] Coverage floor` job measures the percent of *added*
 executable lines the unit tests cover (`.github/scripts/diff-coverage-gate.mjs`,
@@ -33,8 +42,9 @@ report-only at 80% until calibrated — a unit floor reads 0% for correctly
 E2E-tested changes, so it earns "blocking" only after the numbers are trusted).
 
 **Touched E2E specs run exactly once locally, whichever tool proves them first.**
-The Stop hook and pre-push share a green-run cache (`.git/hot-e2e-green.json`,
-via `scripts/e2e-run-cache.mjs`) keyed on spec content + environment (dist bundle,
+The Stop hook and pre-push share a green-run cache (`hot-e2e-green.json` in the
+checkout's git directory — `<root>/.git/` in a clone, `<main>/.git/worktrees/<name>/`
+in a linked worktree; via `scripts/e2e-run-cache.mjs`) keyed on spec content + environment (dist bundle,
 fixtures, Playwright config): with Claude, Stop proves the spec and pre-push skips
 it; with Cursor (no agent hooks), pre-push proves it once and repeat pushes skip.
 Editing the spec, rebuilding the dist, or touching a fixture invalidates the entry.
@@ -77,10 +87,13 @@ presence gate or the test requirement. Do not use it to dodge writing tests.
 
 ## 2. Creating or changing enforcement hooks (git + agent) — exact rules
 
-- **Location.** Git hooks → `lefthook.yml` + `scripts/` (`pre-push.mjs`, `lint-staged.mjs`, `lint-files.mjs`). Agent hooks → `scripts/claude/` (`post-tool-use.mjs`, `stop.mjs`, `session.mjs`), wired in `.claude/settings.json`. Shared, pure classifiers → `.github/scripts/lib/` (`presence-gate.mjs`, `test-weakening.mjs`).
+- **Location.** Git hooks → `lefthook.yml` + `scripts/` (`pre-push.mjs`, `lint-staged.mjs`, `lint-files.mjs`). Agent hooks → `scripts/claude/` (`post-tool-use.mjs`, `stop.mjs`, `session.mjs`), wired in `.claude/settings.json`. Shared, pure classifiers and layout helpers → `.github/scripts/lib/` (`presence-gate.mjs`, `test-weakening.mjs`, `repo-root.mjs`).
+- **Must work in a linked worktree.** Agent-driven work runs in `git worktree` checkouts, so never derive the repo layout from git or the cwd: take the root from `repoRoot()` (`.github/scripts/lib/repo-root.mjs`) and per-checkout state from `gitDir(root)`. A hook exports `GIT_DIR`, and with it set `git rev-parse --show-toplevel` returns the *cwd*, not the work tree; in a worktree `<root>/.git` is a **file**, so writing under it fails with ENOTDIR. Strip `GIT_DIR`/`GIT_WORK_TREE` from the environment of any child you spawn with an explicit `cwd`.
 - **Pure + tested.** Put the decision logic in a **pure function** in a lib and **unit-test it** (`scripts/__tests__/`, `.github/scripts/__tests__/`, run with `node --test`). **A hook change ships a test change** — this rule applies to the enforcement machinery too.
 - **Must not false-block.** Skip config/parse gaps (ESLint exit 2), record only **repo-relative, in-repo** paths (never scratchpad/out-of-repo), tolerate a missing base ref. A hook that fires on a false positive gets disabled — that is worse than no hook.
 - **Must stay fast.** No build in the pre-push or agent hooks; run only the **changed scope**. Heavy/full-suite work is CI's job.
+- **Bound what you feed the agent.** An agent hook's failure message is a conversation message, so its cost is re-paid on every later request in the session — never paste a raw run or lint report into it. Pass it through `condenseTestOutput()` (`scripts/pre-push.mjs`): noise stripped, repeats collapsed, the excerpt anchored at the failing test so the diagnosis survives, capped at 120 lines / 8 KB. The caps are structural, not filter-dependent — filter-proof input still condenses. A hook writing to a **terminal** (pre-push) keeps printing in full up to `TERMINAL_OUTPUT_LIMIT`.
+- **Know who reads your stderr.** Claude Code forwards a hook's stderr to the agent only on **exit 2**. A non-blocking leg's note lands in the debug log unless a later leg in the same run blocks, so treat those notes as best-effort and never make the flow depend on the agent reading one.
 - **Floor for everyone.** The git hooks must work without Claude Code; the agent hooks are additive, never the only line of defense.
 
 ## 3. Creating or updating skills — exact rules

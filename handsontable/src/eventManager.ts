@@ -1,7 +1,7 @@
 import { stopImmediatePropagation as _stopImmediatePropagation } from './helpers/dom/event';
 
 interface EventListenerEntry {
-  element: Element | Document | Window;
+  element: Element | Document | Window | ShadowRoot;
   event: string;
   callback: (event: Event) => void;
   callbackProxy: (event: Event) => void;
@@ -50,7 +50,7 @@ class EventManager {
    * @returns {Function} Returns function which you can easily call to remove that event.
    */
   addEventListener<E extends Event = Event>(
-    element: Element | Document | Window, eventName: string,
+    element: Element | Document | Window | ShadowRoot, eventName: string,
     callback: (event: E) => void, options: boolean | AddEventListenerOptions = false
   ): () => void {
     if (!this.context) {
@@ -93,7 +93,8 @@ class EventManager {
    * @param {boolean} [onlyOwnEvents] Whether whould remove only events registered using this instance of EventManager.
    */
   removeEventListener(
-    element: Element | Document | Window, eventName: string, callback: (event: Event) => void, onlyOwnEvents = false
+    element: Element | Document | Window | ShadowRoot, eventName: string,
+    callback: (event: Event) => void, onlyOwnEvents = false
   ): void {
     if (!this.context) {
       return;

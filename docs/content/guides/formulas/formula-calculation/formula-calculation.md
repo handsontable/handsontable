@@ -651,6 +651,52 @@ The plugin inherits all calculation capabilities from HyperFormula. The complete
 in the
 [HyperFormula built-in functions docs](https://handsontable.github.io/hyperformula/guide/built-in-functions.html).
 
+## Render `HYPERLINK` formulas as links
+
+By default, a cell that holds a `HYPERLINK` formula displays the link label as plain text. To render
+it as a clickable link, set the `hyperlinks` property of the [`formulas`](@/api/options.md#formulas)
+option to `true`:
+
+```js
+formulas: {
+  engine: HyperFormula,
+  hyperlinks: true,
+},
+```
+
+With `hyperlinks` enabled, `=HYPERLINK("https://handsontable.com", "Handsontable")` renders
+`Handsontable` as a link that points to `https://handsontable.com`. When you omit the second
+argument, the URL becomes the label.
+
+The cell keeps its own renderer. Handsontable wraps whatever the renderer produced in a link element,
+so a custom renderer, a [cell type](@/guides/cell-types/cell-type/cell-type.md), and the cell's
+configuration all keep working.
+
+Only a cell whose root expression is `HYPERLINK` becomes a link. A nested call such as
+`=CONCATENATE("see ", HYPERLINK("https://handsontable.com"))` evaluates to text, so the cell renders
+as text.
+
+### Allowed URL schemes
+
+Handsontable creates a link only for the `http`, `https`, `mailto`, and `tel` schemes. Any other
+scheme, including `javascript:`, renders the label as plain text and logs a warning. This applies to
+the URL that the formula produces, so a URL that comes from cell data is checked the same way.
+
+### Keyboard access
+
+A link inside a cell stays out of the tab order, so tabbing still moves between cells. To open the
+link of the selected cell, press <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>. Links open in a new browser
+tab.
+
+### Styling
+
+Each link element gets the `ht-hyperlink` class, and takes its color from the `--ht-link-color` and
+`--ht-link-hover-color` [theme variables](@/guides/styling/themes/themes.md).
+
+To render links in cells that hold plain URLs rather than formulas, write a
+[custom renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md#render-hyperlinks-in-cells)
+instead.
+
 ## [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook
 
 This hook fires whenever the calculation engine recomputes cell values - including cells that
@@ -1043,6 +1089,123 @@ hot.updateSettings({
 For the full list of available language packs, see the
 [HyperFormula localizing functions guide](https://hyperformula.handsontable.com/guide/localizing-functions.html).
 
+## Preserve text values
+
+By default, the engine parses number-like strings into numbers, following the behavior known
+from spreadsheet software. A cell of the [`text`](@/guides/cell-types/cell-type/cell-type.md)
+type that holds `0123456` reaches formulas as `123456`, so the leading zero is lost.
+
+To keep such values as strings on the engine side, enable the
+[`preserveTextValue`](@/api/options.md#preservetextvalue) option on the `text`-type cells.
+The value then stays a string: `=LEN(A1)` returns `7`, and concatenation keeps the leading zero.
+
+::: only-for javascript
+
+```js
+const hot = new Handsontable(container, {
+  data: [
+    ['0123456'],
+    ['=LEN(A1)'],
+  ],
+  columns: [
+    {
+      type: 'text',
+      preserveTextValue: true,
+    },
+  ],
+  formulas: {
+    engine: HyperFormula,
+  },
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={[
+        ['0123456'],
+        ['=LEN(A1)'],
+      ]}
+      columns={[
+        {
+          type: 'text',
+          preserveTextValue: true,
+        },
+      ]}
+      formulas={{
+        engine: HyperFormula,
+      }}
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+import {HyperFormula} from 'hyperformula';
+
+const configurationOptions: GridSettings = {
+  data: [
+    ['0123456'],
+    ['=LEN(A1)'],
+  ],
+  columns: [
+    {
+      type: 'text',
+      preserveTextValue: true,
+    },
+  ],
+  formulas: {
+    engine: HyperFormula,
+  },
+  licenseKey: 'non-commercial-and-evaluation',
+};
+```
+
+```html
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  data: [
+    ['0123456'],
+    ['=LEN(A1)'],
+  ],
+  columns: [
+    {
+      type: 'text',
+      preserveTextValue: true,
+    },
+  ],
+  formulas: {
+    engine: HyperFormula,
+  },
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 ## View the explainer video
 
 <div class="docs-video-embed">
@@ -1054,6 +1217,7 @@ For the full list of available language packs, see the
 - Using the [`IndexMapper`](@/api/indexMapper.md) API to programmatically [move rows](@/guides/rows/row-moving/row-moving.md) or [columns](@/guides/columns/column-moving/column-moving.md) that contain formulas is not supported. Instead, use the [`ManualRowMove`](@/api/manualRowMove.md) or [`ManualColumnMove`](@/api/manualColumnMove.md) APIs.
 - Formulas don't support [`getSourceData()`](@/api/core.md#getsourcedata), as this method operates on source data (using [physical indexes](@/api/indexMapper.md)), whereas formulas operate on visual data (using visual indexes).
 - Formulas don't support nested data, i.e., when Handsontable's [`data`](@/api/options.md#data) is set to an [array of nested objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects).
+- [`preserveTextValue`](@/api/options.md#preservetextvalue) works only with the built-in [`text`](@/guides/cell-types/cell-type/cell-type.md) cell type. Custom cell types are not supported, even when they reuse the text editor or renderer.
 
 ### HyperFormula version support
 
