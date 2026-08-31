@@ -1476,33 +1476,41 @@ class Selection {
     // test usually subsumes it - but it is checked in its own right rather than by assumption,
     // because nothing in this class holds the highlight inside the range, and a highlight the
     // corners do not cover is exactly the coordinate a commit would write through.
-    const isOutOfRange =
+    const isRowOutOfRange =
       this.#isAxisOutOfRange(row, maxRow + 1) ||
       this.#isAxisOutOfRange(from.row, maxRow + 1) ||
-      this.#isAxisOutOfRange(to.row, maxRow + 1) ||
+      this.#isAxisOutOfRange(to.row, maxRow + 1);
+    const isColumnOutOfRange =
       this.#isAxisOutOfRange(col, maxColumn + 1) ||
       this.#isAxisOutOfRange(from.col, maxColumn + 1) ||
       this.#isAxisOutOfRange(to.col, maxColumn + 1);
 
-    if (isOutOfRange) {
-      // A selection ANCHORED IN THE HEADERS - a full column, a full row, select-all - means "all of
-      // it", not a range naming particular records: its far corner tracks the grid rather than a
-      // record, so a trim that shortens the grid leaves it describing a longer one than exists.
-      // Clamping is what such a selection already means, and it closes the append just as well as
-      // dropping would, so the user keeps the column they were working in.
+    if (isRowOutOfRange || isColumnOutOfRange) {
+      // A header anchor says an extent TRACKS THE GRID rather than naming records, and it says so
+      // PER AXIS. Anchoring in the column header (`from.row < 0`) is what makes a full-column
+      // selection span every row, so a shorter grid means a shorter selection and clamping is what
+      // it already meant. Anchoring in the row header (`from.col < 0`) says the same about columns.
+      //
+      // The two must not be conflated: a full-row selection is anchored in the ROW header, yet its
+      // row index still names one particular record. Clamping that onto whichever row survives
+      // would slide the selection to a neighbor, and the next paste would overwrite it - the silent
+      // wrong-record write this repair exists to prevent. So each axis is judged by its own anchor.
       //
       // `isEntireColumnSelected()` cannot answer this: it compares the range height against the
       // CURRENT row count, which the trim has already changed, so it reads false exactly here. The
       // header anchor is structural and survives the trim.
-      if ((from.row ?? 0) < 0 || (from.col ?? 0) < 0) {
-        this.refresh();
+      const isRowExtentTracked = (from.row ?? 0) < 0;
+      const isColumnExtentTracked = (from.col ?? 0) < 0;
 
-        return false;
+      if ((isRowOutOfRange && !isRowExtentTracked) || (isColumnOutOfRange && !isColumnExtentTracked)) {
+        this.deselect();
+
+        return true;
       }
 
-      this.deselect();
+      this.refresh();
 
-      return true;
+      return false;
     }
 
     if (unresolvableOnly) {

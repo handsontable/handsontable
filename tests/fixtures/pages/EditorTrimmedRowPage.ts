@@ -35,6 +35,7 @@ interface HandsontableFixture {
   getSelected(): number[][] | undefined;
   selectCells(ranges: number[][]): void;
   selectColumns(column: number): void;
+  selectRows(row: number): void;
   selection: { transformFocus(row: number, col: number): void };
   getActiveEditor(): {
     isOpened(): boolean;
@@ -543,6 +544,16 @@ export class EditorTrimmedRowPage {
     await this.page.evaluate((targetColumn) => {
       (window as Window & { hot: HandsontableFixture }).hot.selectColumns(targetColumn);
     }, column);
+  }
+
+  /**
+   * Selects a whole row through its header. Anchored in the ROW header, so its COLUMN extent tracks
+   * the grid - while its row index still names one particular record.
+   */
+  async selectWholeRow(row: number): Promise<void> {
+    await this.page.evaluate((targetRow) => {
+      (window as Window & { hot: HandsontableFixture }).hot.selectRows(targetRow);
+    }, row);
   }
 
   /**

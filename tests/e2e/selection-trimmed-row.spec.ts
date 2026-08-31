@@ -156,6 +156,31 @@ test.describe('selection stranded by a trimming index map', () => {
     expect(await grid.sourceRowCount()).toBe(5);
   });
 
+  test('drops a full-row selection whose row a trim stranded, rather than sliding it', async() => {
+    await grid.selectWholeRow(3);
+
+    expect(await grid.selected()).toEqual([[3, -1, 3, 1]]);
+
+    // A full-row selection is anchored in the ROW header, so its COLUMN extent tracks the grid -
+    // but its row index still names one record. Two rows remain, so row 3 addresses nothing, and
+    // clamping it onto whichever row survives would slide the selection onto a neighbor for the
+    // next paste to overwrite.
+    await grid.trimRows([0, 1, 3]);
+
+    expect(await grid.selected()).toBeUndefined();
+
+    await grid.pasteIntoSelection('PASTED');
+
+    expect(await grid.sourceRowCount()).toBe(5);
+    expect(await grid.sourceData()).toEqual([
+      ['A0', 'B0'],
+      ['A1', 'B1'],
+      ['A2', 'B2'],
+      ['A3', 'B3'],
+      ['A4', 'B4'],
+    ]);
+  });
+
   test('drops every layer when the active highlight is the stranded one', async() => {
     // Two ranges in ONE call, because a second `selectCells()` replaces the first rather than
     // adding a layer. The active layer is the last one, so the first survives the trim untouched
