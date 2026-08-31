@@ -79,8 +79,12 @@
     // `click` is the last event the browser synthesizes after a tap, so counting it (capture
     // phase, so it is seen regardless of what a listener further down does with the event) gives
     // the spec a settle barrier that distinguishes "nothing synthesized" (0, a preventDefault-ed
-    // tap) from "a pair was synthesized and dropped" (1) (DEV-2687).
-    container.addEventListener('click', () => { window.hookCounts.click += 1; }, true);
+    // tap) from "a pair was synthesized and dropped" (1) (DEV-2687). Listens on `document`, not
+    // `container`: the ContextMenu plugin opens a SEPARATE Handsontable root outside the fixture's
+    // grid container, so a tap on a menu item synthesizes its click there — a `container`-scoped
+    // listener would never see it and the #12803 duplicate-command guard would have no barrier for
+    // that click. Clicks on the grid itself still bubble to `document` and count exactly once.
+    document.addEventListener('click', () => { window.hookCounts.click += 1; }, true);
   </script>
 </body>
 </html>

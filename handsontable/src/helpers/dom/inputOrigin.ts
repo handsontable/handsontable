@@ -8,7 +8,7 @@
  * How long (ms) after a touch gesture the browser-synthesized `mousedown`/`mouseup`/`click`
  * sequence is still expected when the engine does not report the input origin (WebKit,
  * Firefox). Shared by Walkontable's mouse listeners and TableView's outside-click handling so
- * both layers agree on which events are synthesized.
+ * both layers use the same fallback window.
  *
  * Ceiling, not a target: Walkontable drops only the first `mousedown`/`mouseup` pair after a tap
  * (see `#synthesizedPairPending`), so the constant only bounds how long that pair may take to

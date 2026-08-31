@@ -250,6 +250,8 @@ class Event {
         (event: TouchEvent) => this.onTouchEnd(event));
       this.#deps.eventManager.addEventListener(this.#deps.wtTable.holder, 'touchmove',
         (event: TouchEvent) => this.onTouchMove(event));
+      this.#deps.eventManager.addEventListener(this.#deps.wtTable.holder, 'touchcancel',
+        () => this.onTouchCancel());
       this.#deps.eventManager.addEventListener(this.#deps.wtTable.holder, 'scroll', () => this.onHolderScroll());
     };
 
@@ -742,6 +744,25 @@ class Event {
     this.touchApplied = false;
     this.#touchWasMoved = false;
     this.#longPressFired = false;
+  }
+
+  /**
+   * OnTouchCancel callback. Browsers cancel a gesture instead of ending it whenever the system
+   * claims the touch (an edge-swipe, a dialog, a context callout) — `touchend` then never fires.
+   * Without this reset `touchApplied` stays `true` and every REAL mouse `mouseup` is routed into
+   * the touch tap detector, which has no button filter, so two right-clicks or two drag-selections
+   * ending on the same cell within the double-tap window would fire a phantom double-click.
+   *
+   * @private
+   */
+  onTouchCancel() {
+    this.#cancelLongPressTimer();
+
+    this.touchApplied = false;
+    this.#touchWasMoved = false;
+    this.#longPressFired = false;
+    this.#deferredTouchStartEvent = null;
+    this.#lastTapCoords = null;
   }
 
   /**

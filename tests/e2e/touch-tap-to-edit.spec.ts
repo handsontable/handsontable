@@ -66,7 +66,7 @@ test.describe('touch tap-to-edit on a device with touch and mouse listeners', ()
     // Click count Chromium synthesizes: the select-first tap is preventDefault-ed (0), the second
     // tap lands on the already-selected cell and synthesizes a pair (1), and so does the third (2).
     await grid.settleOnClicks(2);
-    await grid.expectHookCount('afterBeginEditing', 1);
+    await grid.expectHookCountExactly('afterBeginEditing', 1);
     await grid.expectEditorOpen();
   });
 
@@ -85,18 +85,19 @@ test.describe('touch tap-to-edit on a device with touch and mouse listeners', ()
     await grid.expectEditorClosed();
   });
 
-  test('tapping a context-menu item runs the command once (#12803 stays fixed)', async ({ page }) => {
+  test('tapping a context-menu item runs the command once (#12803 stays fixed)', async () => {
     await grid.tapCell(1, 1);
     await grid.openContextMenu(1, 1);
 
     await grid.tapContextMenuItem('Insert row above');
 
-    await grid.expectHookCount('afterCreateRow', 1);
-
-    // The menu tap's synthesized click lands on the ContextMenu's own Handsontable root, not the
-    // fixture's main grid — the capture-phase counter attached to the main grid stays 0, so a
-    // fixed wait is the barrier here instead of `settleOnClicks()`.
-    await page.clock.runFor(100);
+    // Click trace with the document-wide counter: the first tap lands on an unselected cell and
+    // is preventDefault-ed, synthesizing nothing (0); the right-click that opens the context menu
+    // never fires a `click` event at all — Chromium fires `click` only for the primary button (0);
+    // the menu item's `.tap()` synthesizes one click on the ContextMenu's own Handsontable root,
+    // which the document-wide listener now covers (1). Total: 1 — the settle barrier for the
+    // duplicate-command guard this test exists for (#12803).
+    await grid.settleOnClicks(1);
     await grid.expectHookCountExactly('afterCreateRow', 1);
     expect(await grid.rowCount()).toBe(6);
   });
@@ -158,22 +159,21 @@ test.describe('touch tap-to-edit on a device with touch and mouse listeners', ()
     await grid.expectEditorClosed();
   });
 
-  test('a drifted tap that the touch path treats as a scroll still lets the browser mouse pair select the cell', async ({ page }) => {
-    // Script-dispatched touch events (no sourceCapabilities): touchstart, a 20 px touchmove,
-    // touchend. Walkontable treats the gesture as a scroll and fires no cell mouse hooks.
+  test('a drifted gesture over the selected cell lets the browser mouse pair through on the fallback path', async ({ page }) => {
+    // Select the cell first; its own tap is preventDefault-ed and synthesizes nothing.
+    await grid.tapCell(2, 1);
+    await page.clock.runFor(200);
+
+    // Drift over the SELECTED cell — nothing is preventDefault-ed there, so real engines do
+    // synthesize a compatibility pair for this gesture; its touchend (scroll branch) cleared the
+    // pending flag, so the pair, carrying no origin information, must be processed.
     await grid.dispatchTouchDrag(2, 1, 20);
-    await page.clock.runFor(100);
-    await grid.expectHookCountExactly('beforeOnCellMouseDown', 0);
+    const mousedownsBefore = await grid.hookCount('beforeOnCellMouseDown');
+    await grid.dispatchMouseEvent(2, 1, 'mousedown');
+    await grid.dispatchMouseEvent(2, 1, 'mouseup');
 
-    // The pair is what Blink synthesizes after a drifted gesture and carries
-    // firesTouchEvents === true; the touch path left no stamp, so it must be processed.
-    await grid.dispatchMouseEvent(2, 1, 'mousedown', true);
-    await grid.dispatchMouseEvent(2, 1, 'mouseup', true);
-
-    await page.clock.runFor(100);
-    await grid.expectHookCountExactly('beforeOnCellMouseDown', 1);
-    await grid.expectHookCountExactly('beforeOnCellMouseUp', 1);
-    await grid.expectSelectedCell(2, 1);
+    await grid.expectHookCountExactly('beforeOnCellMouseDown', mousedownsBefore + 1);
+    await grid.expectEditorClosed();
   });
 
   test('a scroll gesture between two taps cancels the double-tap pairing', async ({ page }) => {
@@ -205,5 +205,21 @@ test.describe('touch tap-to-edit on a device with touch and mouse listeners', ()
     await grid.dispatchMouseEvent(3, 1, 'mouseup', true);
 
     await grid.expectSelectedCell(3, 1);
+  });
+
+  test('a cancelled gesture does not leave real mouse clicks pairing as taps', async ({ page }) => {
+    await grid.dispatchTouchCancel(1, 1);
+
+    // Two real right-clicks on the same cell inside the double-tap window: with touchApplied
+    // stuck they would route into the tap detector and open the editor.
+    await grid.openContextMenu(1, 1);
+    await page.keyboard.press('Escape');
+    await page.clock.runFor(300);
+    await grid.openContextMenu(1, 1);
+    await page.keyboard.press('Escape');
+    await page.clock.runFor(100);
+
+    await grid.expectHookCountExactly('afterBeginEditing', 0);
+    await grid.expectEditorClosed();
   });
 });

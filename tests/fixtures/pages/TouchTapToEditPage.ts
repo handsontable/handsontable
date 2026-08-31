@@ -118,21 +118,41 @@ export class TouchTapToEditPage {
   }
 
   /**
+   * Dispatch a script touchstart followed by a touchcancel on a cell — the shape of a gesture the
+   * system claims (edge-swipe, dialog): `touchend` never fires.
+   */
+  async dispatchTouchCancel(row: number, col: number): Promise<void> {
+    await this.cell(row, col).evaluate(td => {
+      const rect = td.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      const touch = new Touch({
+        identifier: 1,
+        target: td,
+        clientX: x,
+        clientY: y,
+        pageX: x + window.scrollX,
+        pageY: y + window.scrollY,
+      });
+      const fire = (type: string, touches: Touch[]) => td.dispatchEvent(new TouchEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        composed: true,
+        touches,
+        targetTouches: touches,
+        changedTouches: [touch],
+      }));
+
+      fire('touchstart', [touch]);
+      fire('touchcancel', []);
+    });
+  }
+
+  /**
    * Read one of the fixture's hook counters.
    */
   async hookCount(name: HookCounterName): Promise<number> {
     return this.page.evaluate(counter => window.hookCounts[counter], name);
-  }
-
-  /**
-   * Assert a hook counter has reached exactly the expected value, then read it once more: the
-   * poll returns on the first matching sample, and a duplicate invocation can land a browser task
-   * later, so the second read is what makes an over-count fail.
-   */
-  async expectHookCount(name: HookCounterName, expected: number): Promise<void> {
-    await expect.poll(() => this.hookCount(name)).toBe(expected);
-
-    expect(await this.hookCount(name)).toBe(expected);
   }
 
   /**
