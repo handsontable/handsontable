@@ -184,8 +184,8 @@ class Event {
    * Only that first pair is dropped; once it is consumed, real mouse events pass even inside the
    * `TOUCH_SYNTHESIZED_MOUSE_WINDOW` ceiling, so a fill-handle drag or a drag-selection started with
    * a mouse right after a tap works on engines that do not report the input origin (DEV-2687). The
-   * residual is bounded to a single gesture: the flag is re-armed only by a touch-driven `onMouseUp`
-   * and cleared when the next gesture starts.
+   * flag is re-armed by every touch-driven `onMouseUp` and cleared when a scroll-classified gesture
+   * ends, so a tap that synthesized nothing cannot swallow that gesture's own compatibility pair.
    *
    * @type {boolean}
    */
@@ -658,11 +658,6 @@ class Event {
     this.#longPressFired = false;
     this.#deferredTouchStartEvent = event;
 
-    // A new gesture means the previous gesture's synthesized pair can no longer arrive; without
-    // this reset a pair armed by a `preventDefault`-ed tap (which synthesizes nothing) would
-    // swallow THIS gesture's compatibility pair (DEV-2687 review).
-    this.#synthesizedPairPending = false;
-
     this.#startLongPressTimer(event);
   }
 
@@ -739,6 +734,9 @@ class Event {
       // A pure scroll gesture calls neither onMouseDown nor onMouseUp, so #handleTouchTap never
       // runs to reset the tap detector. Reset it here so a scroll between two taps can't pair them.
       this.#lastTapCoords = null;
+      // This gesture armed nothing, so a still-pending flag belongs to an earlier gesture whose
+      // pair never came; clear it so THIS gesture's compatibility pair is processed.
+      this.#synthesizedPairPending = false;
     }
 
     this.touchApplied = false;

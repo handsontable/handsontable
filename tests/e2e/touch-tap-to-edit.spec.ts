@@ -196,10 +196,11 @@ test.describe('touch tap-to-edit on a device with touch and mouse listeners', ()
     await grid.tapCell(1, 1);
     await page.clock.runFor(200);
 
-    // A drifted gesture on another cell, still inside the armed ceiling; the browser's
-    // compatibility pair for it carries firesTouchEvents === true (Blink) — no veto. The
-    // touchstart of this gesture must have disarmed the stale pair, so the pair is processed.
-    await grid.dispatchTouchDrag(3, 1, 20);
+    // A drifted gesture ON THE SELECTED CELL, still inside the armed ceiling: selectedCellWasTouched()
+    // is true, so nothing is preventDefault-ed and Blink does synthesize a pair for it (firesTouchEvents
+    // === true, no veto). The touch path left no stamp, and the scroll-classified touchend cleared the
+    // still-pending flag from the first tap, so this gesture's own pair must be processed.
+    await grid.dispatchTouchDrag(1, 1, 20);
     await grid.dispatchMouseEvent(3, 1, 'mousedown', true);
     await grid.dispatchMouseEvent(3, 1, 'mouseup', true);
 
