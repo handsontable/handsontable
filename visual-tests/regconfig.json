@@ -17,13 +17,6 @@
         "region": "auto",
         "endpoint": "${R2_ENDPOINT}"
       }
-    },
-    "reg-notify-github-with-api-plugin": {
-      "owner": "handsontable",
-      "repository": "handsontable",
-      "privateToken": "${GITHUB_TOKEN}",
-      "shortDescription": true,
-      "ref": "${REG_NOTIFY_REF}"
     }
   }
 }

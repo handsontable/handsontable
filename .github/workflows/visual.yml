@@ -210,10 +210,6 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # The plugin needs the head branch to find the PR to comment on: a
-          # pull_request checkout is a detached HEAD, so it cannot infer one.
-          REG_NOTIFY_REF: ${{ github.head_ref && format('refs/heads/{0}', github.head_ref) || '' }}
         run: npm run in visual-tests compare
 
       # A fork gets no secrets, so it reads the golden records over anonymous
@@ -256,9 +252,24 @@ jobs:
           name: visual-diff-report
           path: visual-tests/.reg
 
-      # `reg-suit run` exits 0 whatever it finds, so this step is the whole
-      # gate. Adding the `visual-approved` label accepts every diff at once.
+      # `reg-suit run` exits 0 whatever it finds, so this step is the whole gate.
+      # It always runs, even when approved, so the comment below is refreshed
+      # rather than left showing a verdict that no longer holds.
       - name: Visual approval gate
         if: github.event_name == 'pull_request'
-          && !contains(github.event.pull_request.labels.*.name, 'visual-approved')
+        env:
+          VISUAL_APPROVED: ${{ contains(github.event.pull_request.labels.*.name, 'visual-approved') }}
+          VISUAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node ./visual-tests/scripts/visual-gate.mjs
+
+      # One sticky comment, rewritten in place, carrying the counts, the report
+      # link and how to accept the changes. Fork runs have no write token, so
+      # they are excluded by the same guard the rest of the repo uses.
+      - name: Comment the visual verdict on the pull request
+        if: always() && github.event_name == 'pull_request'
+          && (github.event.pull_request.head.repo.full_name == github.repository
+              && github.actor != 'dependabot[bot]')
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
+        with:
+          header: visual-tests
+          path: visual-tests/.reg/comment.md
