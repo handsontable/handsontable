@@ -40,7 +40,7 @@ Disabling a cell makes the cell read-only or non-editable. Both have similar out
 
 ## Make the grid read-only
 
-To make the entire grid read-only, set [`readOnly`](@/api/options.md#readonly) to `true` as a [top-level grid option](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+To make the entire grid read-only, set [`readOnly`](@/api/options.md#readonly) to `true` as a [top-level grid option](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
 
 ::: only-for javascript
 

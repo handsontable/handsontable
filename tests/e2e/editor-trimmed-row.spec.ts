@@ -518,8 +518,8 @@ test.describe('a structural change while an editor is open', () => {
  * the `after` one is therefore one re-prepare away from latching permanently, which would silently
  * stop reconciling and put the original corruption back.
  *
- * Discriminating on the physical index count sidesteps that entirely - a cancelled insert changes no
- * counts, so there is nothing to arm and nothing to strand. This case pins the invariant rather than
+ * Discriminating on the cache update source sidesteps that entirely - a cancelled insert produces no
+ * cache update, so there is nothing to arm and nothing to strand. This case pins the invariant rather than
  * a failure: it also passes against the earlier hook-pair implementation, because an `alter()` is
  * followed by a re-prepare that happened to clear the latch. It exists so a future refactor back to
  * a hook-armed design has to prove the same property.
@@ -665,13 +665,12 @@ test.describe('commit paths the rebind cannot reach', () => {
 /**
  * `updateData()` swaps the whole physical space without closing an open editor - `core.ts` excludes
  * it from the teardown list on purpose - and it is the path every wrapper takes when its `data` prop
- * changes. The count moves, so the repair routes structural and re-derives from the visual
- * coordinate, which keeps the edit alive against the NEW data set rather than discarding it.
+ * changes. The mapper's cache-update source lets the repair preserve the edit against the NEW data
+ * set rather than discarding it.
  */
 test.describe('a data swap under an open editor', () => {
   /**
-   * The same swap at the SAME length takes the other branch. The physical count does not move, so
-   * this routes to the rearrangement repair, which resolves the captured index against a data set
+   * The same swap at the SAME length routes to the rearrangement repair, which resolves the captured index against a data set
    * that shares nothing with the one the edit was typed into. A replaced `data` prop of unchanged
    * length is the dominant wrapper shape, so the two branches both need pinning.
    */
