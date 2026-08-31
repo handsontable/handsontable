@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an expired trial license key not blocking the grid when the key carried the `no-ui-warns` flag.",
+  "type": "fixed",
+  "issueOrPR": 13312,
+  "breaking": false,
+  "framework": "none"
+}

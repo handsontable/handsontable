@@ -93,6 +93,9 @@ describe('entitlement license notification (via _injectProductInfo)', () => {
         'Your Handsontable trial license key expired on 2026-09-26 (UTC). ' +
         'To continue using Handsontable, you need to purchase a license.'
       );
+      // The badge popover auto-opens with these same two sentences, and the bar stays anyway: it is
+      // the only surface with a focusable link, and the only one that survives the popover being
+      // dismissed. See the note on `entitlementDomMessages` in `helpers/mixed.ts`.
       expect(node).not.toBe(null);
       expect(bar()).toBe(
         'Your Handsontable license key has expired. To continue using Handsontable, you need to ' +
