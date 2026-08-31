@@ -27,7 +27,19 @@ interface HandsontableFixture {
   getSelectedRangeActive(): { from: { row: number | null } } | undefined;
   getSelected(): number[][] | undefined;
   selectCells(ranges: number[][]): void;
-  selection: { transformFocus(row: number, col: number): void };
+  selectColumns(
+    startColumn: number,
+    endColumn?: number,
+    focusPosition?: number | { row?: number; col?: number },
+  ): boolean;
+  selection: {
+    transformFocus(row: number, col: number): void;
+    isEntireColumnSelected(): boolean;
+    getActiveSelectionLayerIndex(): number;
+    highlight: {
+      getAreas(): Array<{ isEmpty(): boolean; getCorners(): number[] }>;
+    };
+  };
   getActiveEditor(): {
     isOpened(): boolean;
     state: string;
@@ -39,6 +51,7 @@ interface HandsontableFixture {
   getSourceData(): unknown[][];
   countSourceRows(): number;
   countRows(): number;
+  listen(): void;
   getPlugin(name: string): FiltersPlugin & TrimRowsPlugin & ColumnSortingPlugin & ManualRowMovePlugin
     & ManualColumnMovePlugin;
   updateData(data: unknown[][]): void;
@@ -237,16 +250,30 @@ export class EditorTrimmedRowPage {
   }
 
   /**
-   * Sets the active range's starting row, preserving the current editor and its pending value.
+   * Selects multiple ranges through the public API, then opens the editor on the active range.
    */
-  async setActiveRangeStartRow(row: number): Promise<void> {
-    await this.page.evaluate((targetRow) => {
-      const range = (window as Window & { hot: HandsontableFixture }).hot.getSelectedRangeActive();
+  async selectRangesAndType(ranges: number[][], value: string): Promise<void> {
+    await this.page.evaluate((targetRanges) => {
+      (window as Window & { hot: HandsontableFixture }).hot.selectCells(targetRanges);
+    }, ranges);
+    await this.page.keyboard.type(value);
 
-      if (range) {
-        range.from.row = targetRow;
-      }
-    }, row);
+    await expect.poll(() => this.isEditorOpen()).toBe(true);
+  }
+
+  /**
+   * Selects a complete column with its focus on a data cell, then opens the editor there.
+   */
+  async selectColumnWithFocusAndType(column: number, focusRow: number, value: string): Promise<void> {
+    await this.page.evaluate(([targetColumn, targetRow]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+
+      hot.selectColumns(targetColumn as number, targetColumn as number, { row: targetRow as number });
+      hot.listen();
+    }, [column, focusRow] as [number, number]);
+    await this.page.keyboard.type(value);
+
+    await expect.poll(() => this.isEditorOpen()).toBe(true);
   }
 
   /**
@@ -405,9 +432,7 @@ export class EditorTrimmedRowPage {
    * Commits a multi-cell edit with the platform-specific Control or Meta modifier.
    */
   async commitWithCtrlOrMetaEnter(): Promise<void> {
-    const modifier = await this.page.evaluate(() => navigator.platform.includes('Mac') ? 'Meta' : 'Control');
-
-    await this.page.keyboard.press(`${modifier}+Enter`);
+    await this.page.keyboard.press('ControlOrMeta+Enter');
   }
 
   /**
@@ -524,5 +549,35 @@ export class EditorTrimmedRowPage {
    */
   async selected(): Promise<number[][] | undefined> {
     return this.page.evaluate(() => (window as Window & { hot: HandsontableFixture }).hot.getSelected());
+  }
+
+  /**
+   * Reports whether the active range and its header marker still describe a complete column.
+   */
+  async isEntireColumnSelected(): Promise<boolean> {
+    return this.page.evaluate(() => (
+      (window as Window & { hot: HandsontableFixture }).hot.selection.isEntireColumnSelected()
+    ));
+  }
+
+  /**
+   * Returns the corners of area-highlight layers that still contain a drawable range.
+   */
+  async highlightedAreaCorners(): Promise<number[][]> {
+    return this.page.evaluate(() => (
+      (window as Window & { hot: HandsontableFixture }).hot.selection.highlight
+        .getAreas()
+        .filter(area => !area.isEmpty())
+        .map(area => area.getCorners())
+    ));
+  }
+
+  /**
+   * Returns the index of the selection layer that owns the focus highlight.
+   */
+  async activeSelectionLayer(): Promise<number> {
+    return this.page.evaluate(() => (
+      (window as Window & { hot: HandsontableFixture }).hot.selection.getActiveSelectionLayerIndex()
+    ));
   }
 }

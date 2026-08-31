@@ -604,70 +604,71 @@ test.describe('an index-map change on the column axis', () => {
 });
 
 /**
- * Commit paths that read selection coordinates after an editor rebind.
+ * Commit paths that read selection coordinates after an editor rebind caused by trimming.
  *
  * Both `DropdownEditor#finishEditing()` and Ctrl+Enter's `BaseEditor#saveValue()` use the active
- * selection. The selection must therefore follow the edited physical record as the mapper rebuilds,
- * rather than only rebinding the editor's visual coordinates.
+ * selection. For a pure trim, the selection follows surviving physical records as the mapper
+ * rebuilds. Sequence permutations keep their visual range because one rectangular range cannot
+ * represent records that a move or sort makes non-contiguous.
  */
-test.describe('commit paths that read the selection', () => {
+test.describe('commit paths that read the selection after trimming', () => {
   /**
    * Selecting an entire column uses `-1` as the range's row-header sentinel. When the editor's
    * record moves, only real visual coordinates may move; shifting the sentinel makes the selection
    * invalid.
    */
-  test('preserves a column-header selection when the edited record moves',
+  test('preserves a whole-column selection when rows are trimmed',
     async({ page, theme, bundle }) => {
       const grid = new EditorTrimmedRowPage(page, theme, bundle);
 
       await grid.goto();
-      await grid.openEditorAndType(0, 0, 'EDITED');
-      await grid.setActiveRangeStartRow(-1);
-
-      await expect.poll(() => grid.isEditorOpen()).toBe(true);
-
-      await grid.moveRow(0, 4);
+      await grid.selectColumnWithFocusAndType(0, 0, 'EDITED');
 
       await expect.poll(() => grid.selected()).toEqual([[-1, 0, 4, 0]]);
+      await expect.poll(() => grid.editorRow()).toBe(0);
+
+      await grid.trimRows([3, 4]);
+
+      await expect.poll(() => grid.selected()).toEqual([[-1, 0, 2, 0]]);
+      await expect.poll(() => grid.isEntireColumnSelected()).toBe(true);
+      await expect.poll(() => grid.editorRow()).toBe(0);
+
+      await grid.commitWithEnter();
+
+      expect(await grid.sourceRowCount()).toBe(5);
+      expect(await grid.sourceData()).toEqual([
+        ['EDITED', 'B0'],
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['A4', 'B4'],
+      ]);
     });
 
   /**
-   * A mapper rebase must not rebuild selection through the public setter pipeline. That pipeline
-   * changes the active layer and fires hooks which can prepare the editor again while its index
-   * mapper cache is still updating.
+   * Trimming a record out of a non-active layer must remove that layer instead of moving it onto a
+   * neighboring record. The active layer and its pending edit still follow their surviving record.
    */
-  test('rebases every layer without changing its active layer, source, or firing selection hooks',
+  test('drops unresolved layers without changing the source or firing selection hooks',
     async({ page, theme, bundle }) => {
       const grid = new EditorTrimmedRowPage(page, theme, bundle);
 
       await grid.goto();
-      await grid.openEditorAndType(0, 0, 'EDITED');
+      await grid.selectRangesAndType([[0, 0, 1, 0], [4, 0, 4, 1]], 'EDITED');
 
       const beforeState = await page.evaluate(() => {
         const hot = (window as Window & {
           hot: {
             addHook(name: string, callback: () => void): void;
             getSelectedRange(): Array<{ from: { row: number; col: number }; to: { row: number; col: number };
-              highlight: { row: number; col: number }; clone(): unknown }>;
+              highlight: { row: number; col: number } }>;
             selection: {
               getActiveSelectionLayerIndex(): number; getSelectionSource(): string; markSource(source: string): void;
-              getSelectedRange(): { push(range: unknown): void }; setActiveSelectionLayerIndex(index: number): void;
             };
           };
           selectionHookCalls: number;
         }).hot;
 
-        const additionalRange = hot.getSelectedRange()[0].clone() as {
-          from: { row: number; col: number }; to: { row: number; col: number };
-          highlight: { row: number; col: number };
-        };
-
-        additionalRange.from.row = 2;
-        additionalRange.to.row = 3;
-        additionalRange.to.col = 1;
-        additionalRange.highlight.row = 2;
-        hot.selection.getSelectedRange().push(additionalRange);
-        hot.selection.setActiveSelectionLayerIndex(1);
         hot.selection.markSource('editor-rebase-test');
         (window as Window & { selectionHookCalls: number }).selectionHookCalls = 0;
         hot.addHook('afterSelection', () => {
@@ -681,7 +682,7 @@ test.describe('commit paths that read the selection', () => {
         };
       });
 
-      await grid.moveRow(0, 4);
+      await grid.trimRows([0]);
 
       const afterState = await page.evaluate(() => {
         const hot = (window as Window & {
@@ -705,19 +706,61 @@ test.describe('commit paths that read the selection', () => {
         activeLayer: 1,
         source: 'editor-rebase-test',
         ranges: [
-          { from: { row: 0, col: 0 }, to: { row: 0, col: 0 }, highlight: { row: 0, col: 0 } },
-          { from: { row: 2, col: 0 }, to: { row: 3, col: 1 }, highlight: { row: 2, col: 0 } },
+          { from: { row: 0, col: 0 }, to: { row: 1, col: 0 }, highlight: { row: 0, col: 0 } },
+          { from: { row: 4, col: 0 }, to: { row: 4, col: 1 }, highlight: { row: 4, col: 0 } },
         ],
       });
       expect(afterState).toEqual({
-        activeLayer: 1,
+        activeLayer: 0,
         source: 'editor-rebase-test',
         ranges: [
-          { from: { row: 4, col: 0 }, to: { row: 4, col: 0 }, highlight: { row: 4, col: 0 } },
-          { from: { row: 1, col: 0 }, to: { row: 2, col: 1 }, highlight: { row: 1, col: 0 } },
+          { from: { row: 3, col: 0 }, to: { row: 3, col: 1 }, highlight: { row: 3, col: 0 } },
         ],
         selectionHookCalls: 0,
       });
+      expect(await grid.highlightedAreaCorners()).toEqual([[3, 0, 3, 1]]);
+    });
+
+  test('keeps surviving layers when the active range loses a corner',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectRangesAndType([[4, 0, 4, 0], [1, 0, 0, 0]], 'EDITED');
+      await grid.trimRows([0]);
+
+      await expect.poll(() => grid.selected()).toEqual([[3, 0, 3, 0]]);
+      await expect.poll(() => grid.activeSelectionLayer()).toBe(0);
+      await expect.poll(() => grid.editorRow()).toBe(0);
+      await expect.poll(() => grid.isEditorOpen()).toBe(true);
+      expect(await grid.sourceData()).toEqual(UNTOUCHED);
+    });
+
+  test('repaints a surviving multi-cell layer when the active layer is a single cell',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectRangesAndType([[2, 0, 3, 1], [4, 0, 4, 0]], 'EDITED');
+      await grid.trimRows([0]);
+
+      await expect.poll(() => grid.selected()).toEqual([[1, 0, 2, 1], [3, 0, 3, 0]]);
+      await expect.poll(() => grid.activeSelectionLayer()).toBe(1);
+      expect(await grid.highlightedAreaCorners()).toEqual([[1, 0, 2, 1], [3, 0, 3, 0]]);
+    });
+
+  test('does not widen a multi-cell selection when a moved row crosses it',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectRangeWithFocusAt([0, 0, 2, 0], 0, 0);
+      await grid.typeOnSelection('EDITED');
+      await grid.moveRow(4, 1);
+
+      await expect.poll(() => grid.selected()).toEqual([[0, 0, 2, 0]]);
+      expect(await grid.sourceRowCount()).toBe(5);
+      expect(await grid.sourceData()).toEqual(UNTOUCHED);
     });
 
   /**

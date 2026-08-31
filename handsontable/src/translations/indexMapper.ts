@@ -883,30 +883,37 @@ export class IndexMapper {
       this.trimmedIndexesChanged || this.hiddenIndexesChanged;
 
     if (force === true || (this.isBatched === false && anyCachedIndexChanged === true)) {
-      this.runLocalHooks('beforeCacheUpdate');
-
-      this.trimmingMapsCollection.updateCache();
-      this.hidingMapsCollection.updateCache();
-      this.notTrimmedIndexesCache = this.getNotTrimmedIndexes(false);
-      this.notHiddenIndexesCache = this.getNotHiddenIndexes(false);
-      this.renderablePhysicalIndexesCache = this.getRenderableIndexes(false);
-      this.cacheFromPhysicalToVisualIndexes();
-      this.cacheFromVisualToRenderableIndexes();
-
-      // Currently there's support only for the "hiding" map type.
-      if (this.hiddenIndexesChanged) {
-        this.hidingChangesObservable.emit(this.hidingMapsCollection.getMergedValues());
-      }
-
-      this.runLocalHooks('cacheUpdated', {
+      const indexesChangesState = {
         indexesSequenceChanged: this.indexesSequenceChanged,
         trimmedIndexesChanged: this.trimmedIndexesChanged,
         hiddenIndexesChanged: this.hiddenIndexesChanged,
-      });
+      };
 
-      this.indexesSequenceChanged = false;
-      this.trimmedIndexesChanged = false;
-      this.hiddenIndexesChanged = false;
+      try {
+        this.runLocalHooks('beforeCacheUpdate', indexesChangesState);
+
+        this.trimmingMapsCollection.updateCache();
+        this.hidingMapsCollection.updateCache();
+        this.notTrimmedIndexesCache = this.getNotTrimmedIndexes(false);
+        this.notHiddenIndexesCache = this.getNotHiddenIndexes(false);
+        this.renderablePhysicalIndexesCache = this.getRenderableIndexes(false);
+        this.cacheFromPhysicalToVisualIndexes();
+        this.cacheFromVisualToRenderableIndexes();
+
+        // Currently there's support only for the "hiding" map type.
+        if (this.hiddenIndexesChanged) {
+          this.hidingChangesObservable.emit(this.hidingMapsCollection.getMergedValues());
+        }
+
+        this.runLocalHooks('cacheUpdated', indexesChangesState);
+
+        this.indexesSequenceChanged = false;
+        this.trimmedIndexesChanged = false;
+        this.hiddenIndexesChanged = false;
+
+      } finally {
+        this.runLocalHooks('afterCacheUpdate');
+      }
     }
   }
 

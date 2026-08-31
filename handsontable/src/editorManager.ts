@@ -586,10 +586,16 @@ class EditorManager {
    * rewrites the restore flag – which is harmless here because a discard is what that override would
    * decide anyway once the edited record is gone from the visual space.
    *
-   * `Selection` separately snapshots every layer in physical coordinates before the cache rebuild and
-   * restores it afterwards. Keeping that operation out of this manager prevents selection hooks from
-   * preparing an editor while the mapper is still unwinding. It lets editor-specific commit paths,
-   * including DropdownEditor and Ctrl+Enter, keep targeting the moved record.
+   * For a pure trimming update, `Selection` separately snapshots every layer in physical coordinates
+   * before the cache rebuild and restores surviving ranges afterwards. Keeping that operation out of
+   * this manager prevents selection hooks from preparing an editor while the mapper is still
+   * unwinding. It lets editor-specific commit paths, including DropdownEditor and Ctrl+Enter, keep
+   * targeting a surviving record that moved because earlier records were trimmed.
+   *
+   * A sequence permutation is deliberately outside that selection repair. Reordering can make the
+   * records from one rectangular range non-contiguous, which `CellRange` cannot represent without
+   * selecting unrelated records. The editor still follows its own record, but selection-dependent
+   * commit paths retain their existing limitation for sorting and moving.
    *
    * An editor a structural change stranded past the last row is discarded here rather than rebound:
    * its captured record was cleared as unresolvable, and its own coordinates address nothing, so
@@ -598,6 +604,10 @@ class EditorManager {
    *
    * An editor parked in `WAITING` is not reconciled: `finishEditing()` has already run `saveValue()`,
    * so there is nothing left to redirect.
+   *
+   * Selection changes with no open editor are also outside this repair. `Selection` captures only
+   * while an editor is open, so a trimming update can still leave a standalone highlight out of
+   * range. That broader selection issue is tracked separately as DEV-2679.
    *
    * No core plugin registers a TRIMMING map on the column axis, so that half runs for user-registered
    * maps only; core plugins do permute the column sequence (`manualColumnMove`, `manualColumnFreeze`)

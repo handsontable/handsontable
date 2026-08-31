@@ -2369,6 +2369,35 @@ describe('IndexMapper', () => {
   });
 
   describe('cache management', () => {
+    it('should expose the pending change state before replacing the caches', () => {
+      const indexMapper = new IndexMapper();
+      const beforeCacheUpdate = jasmine.createSpy('beforeCacheUpdate');
+
+      indexMapper.initToLength(5);
+      indexMapper.addLocalHook('beforeCacheUpdate', beforeCacheUpdate);
+      indexMapper.trimmedIndexesChanged = true;
+      indexMapper.updateCache();
+
+      expect(beforeCacheUpdate).toHaveBeenCalledWith({
+        indexesSequenceChanged: false,
+        trimmedIndexesChanged: true,
+        hiddenIndexesChanged: false,
+      });
+    });
+
+    it('should finish the cache-update lifecycle when rebuilding a cache throws', () => {
+      const indexMapper = new IndexMapper();
+      const afterCacheUpdate = jasmine.createSpy('afterCacheUpdate');
+
+      indexMapper.initToLength(5);
+      indexMapper.addLocalHook('afterCacheUpdate', afterCacheUpdate);
+      indexMapper.trimmedIndexesChanged = true;
+      spyOn(indexMapper.trimmingMapsCollection, 'updateCache').and.throwError('cache failure');
+
+      expect(() => indexMapper.updateCache()).toThrowError('cache failure');
+      expect(afterCacheUpdate).toHaveBeenCalledTimes(1);
+    });
+
     it('should reset the cache when `initToLength` function is called', () => {
       const indexMapper = new IndexMapper();
       const cacheUpdatedCallback = jasmine.createSpy('cacheUpdated');

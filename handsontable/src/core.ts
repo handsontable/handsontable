@@ -793,48 +793,72 @@ export default function Core(
 
   this.selection = selection;
 
-  let rowIndexCount = this.rowIndexMapper.getNumberOfIndexes();
-  let columnIndexCount = this.columnIndexMapper.getNumberOfIndexes();
+  type IndexMapperCacheChanges = {
+    hiddenIndexesChanged: boolean;
+    indexesSequenceChanged: boolean;
+    trimmedIndexesChanged: boolean;
+  };
+  type IndexAxis = 'row' | 'column';
 
-  const onIndexMapperCacheUpdate = (
-    { hiddenIndexesChanged, indexesSequenceChanged, trimmedIndexesChanged }: {
-      hiddenIndexesChanged: boolean; indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean;
-    },
-    indexMapper: IndexMapper,
-    previousIndexCount: number,
-  ): number => {
-    this.forceFullRender = true;
+  const shouldRestoreSelection = (
+    { indexesSequenceChanged, trimmedIndexesChanged }: IndexMapperCacheChanges
+  ): boolean => trimmedIndexesChanged && !indexesSequenceChanged;
 
-    const indexCount = indexMapper.getNumberOfIndexes();
-
-    if (indexCount === previousIndexCount && (indexesSequenceChanged || trimmedIndexesChanged)) {
-      this.selection.restorePhysicalSelection();
+  const onBeforeIndexMapperCacheUpdate = (
+    indexesChangesState: IndexMapperCacheChanges,
+    axis: IndexAxis,
+  ): void => {
+    if (shouldRestoreSelection(indexesChangesState)) {
+      this.selection.capturePhysicalSelection(axis);
     } else {
-      this.selection.discardPhysicalSelectionSnapshot();
+      this.selection.discardPhysicalSelectionSnapshot(axis);
     }
-
-    if (hiddenIndexesChanged) {
-      this.selection.commit();
-    }
-
-    return indexCount;
   };
 
-  this.columnIndexMapper.addLocalHook('beforeCacheUpdate', () => this.selection.capturePhysicalSelection());
-  this.rowIndexMapper.addLocalHook('beforeCacheUpdate', () => this.selection.capturePhysicalSelection());
+  const onIndexMapperCacheUpdate = (
+    indexesChangesState: IndexMapperCacheChanges,
+    axis: IndexAxis,
+  ): void => {
+    this.forceFullRender = true;
 
-  this.columnIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: {
-    hiddenIndexesChanged: boolean; indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean;
-  }) => {
-    columnIndexCount = onIndexMapperCacheUpdate(indexesChangesState, this.columnIndexMapper, columnIndexCount);
+    if (shouldRestoreSelection(indexesChangesState)) {
+      this.selection.restorePhysicalSelection(axis);
+    } else {
+      this.selection.discardPhysicalSelectionSnapshot(axis);
+    }
+
+    if (indexesChangesState.hiddenIndexesChanged) {
+      this.selection.commit();
+    }
+  };
+
+  this.columnIndexMapper.addLocalHook(
+    'beforeCacheUpdate',
+    (indexesChangesState: IndexMapperCacheChanges) =>
+      onBeforeIndexMapperCacheUpdate(indexesChangesState, 'column'),
+  );
+  this.rowIndexMapper.addLocalHook(
+    'beforeCacheUpdate',
+    (indexesChangesState: IndexMapperCacheChanges) =>
+      onBeforeIndexMapperCacheUpdate(indexesChangesState, 'row'),
+  );
+  this.columnIndexMapper.addLocalHook(
+    'afterCacheUpdate',
+    () => this.selection.discardPhysicalSelectionSnapshot('column'),
+  );
+  this.rowIndexMapper.addLocalHook(
+    'afterCacheUpdate',
+    () => this.selection.discardPhysicalSelectionSnapshot('row'),
+  );
+
+  this.columnIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexMapperCacheChanges) => {
+    onIndexMapperCacheUpdate(indexesChangesState, 'column');
 
     this.runHooks('afterColumnSequenceCacheUpdate', indexesChangesState);
   });
 
-  this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: {
-    hiddenIndexesChanged: boolean; indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean;
-  }) => {
-    rowIndexCount = onIndexMapperCacheUpdate(indexesChangesState, this.rowIndexMapper, rowIndexCount);
+  this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexMapperCacheChanges) => {
+    onIndexMapperCacheUpdate(indexesChangesState, 'row');
 
     this.runHooks('afterRowSequenceCacheUpdate', indexesChangesState);
   });
