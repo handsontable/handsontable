@@ -39,10 +39,12 @@ if (baseBranch && domain) {
   const manifestResponse = await fetch(`${goldenUrl}/out.json`);
 
   if (!manifestResponse.ok) {
-    console.error(`No golden records for "${baseBranch}" at ${goldenUrl}/out.json `
+    // Seeding needs write credentials this run does not have, so leave the
+    // baseline to a same-repo build and let the pull request through rather
+    // than blocking an external contributor on missing infrastructure.
+    console.log(`No golden records for "${baseBranch}" at ${goldenUrl}/out.json `
       + `(HTTP ${manifestResponse.status}).`);
-    console.error('A build of that branch has to publish its golden records first.');
-    process.exitCode = 1;
+    console.log('Skipping the comparison: a same-repo build has to seed the baseline first.');
   } else {
     const manifest = await manifestResponse.json();
     const items = manifest.actualItems ?? [];

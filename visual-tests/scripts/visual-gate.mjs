@@ -15,6 +15,16 @@ import { join } from 'node:path';
 
 const REPORT_PATH = join(import.meta.dirname, '..', '.reg', 'out.json');
 
+// Nothing to compare against yet. The workflow promotes this build to the
+// golden records instead, so a branch without a baseline cannot wedge every
+// pull request opened against it. Checked before reading the report, because
+// the credential-free path writes none in this case.
+if (process.env.VISUAL_BOOTSTRAP === 'true') {
+  console.log('No golden records existed for this base branch, so this build seeds them.');
+  console.log('Nothing to compare yet — the next build of the base branch becomes the authoritative baseline.');
+  process.exit(0);
+}
+
 let report;
 
 try {

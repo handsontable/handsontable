@@ -186,6 +186,20 @@ jobs:
             echo "REG_ACTUAL_KEY=base/$REF_NAME" >> "$GITHUB_ENV"
           fi
 
+      # A branch with no golden records yet must not wedge every PR opened
+      # against it. The probe is a plain HTTPS GET against the public bucket, so
+      # it works on fork runs too, and it reads the same `out.json` that the
+      # fetch contract relies on.
+      - name: Check for golden records
+        run: |
+          if curl -sfI --max-time 20 "https://$VISUAL_REPORT_DOMAIN/$REG_EXPECTED_KEY/out.json" >/dev/null; then
+            echo "VISUAL_BOOTSTRAP=false" >> "$GITHUB_ENV"
+            echo "Golden records found for $REG_EXPECTED_KEY."
+          else
+            echo "VISUAL_BOOTSTRAP=true" >> "$GITHUB_ENV"
+            echo "No golden records for $REG_EXPECTED_KEY — this build seeds them."
+          fi
+
       # Two comparison paths, one verdict. Both write `.reg/out.json`, and the
       # gate below reads only that, so a fork is held to the same standard.
       - name: Compare against the golden records
@@ -210,6 +224,26 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref }}
         run: node ./visual-tests/scripts/compare-fork.mjs "$BASE_REF"
+
+      # First build for this base branch: promote what we just rendered to the
+      # golden records, so the next PR has something to compare against. The
+      # base branch's own next build overwrites this with the authoritative
+      # render, so an unreviewed baseline can survive at most one merge.
+      - name: Seed the golden records
+        if: env.VISUAL_BOOTSTRAP == 'true'
+          && github.event_name == 'pull_request'
+          && (github.event.pull_request.head.repo.full_name == github.repository
+              && github.actor != 'dependabot[bot]')
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+        run: |
+          aws s3 cp ./visual-tests/screenshots "s3://$R2_BUCKET_NAME/$REG_EXPECTED_KEY/actual" \
+            --recursive --endpoint-url "$R2_ENDPOINT"
+          aws s3 cp ./visual-tests/.reg/out.json "s3://$R2_BUCKET_NAME/$REG_EXPECTED_KEY/out.json" \
+            --endpoint-url "$R2_ENDPOINT"
 
       # Fallback for reading the diff when the report URL is not reachable.
       - name: Upload the visual diff report
