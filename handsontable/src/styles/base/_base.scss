@@ -262,7 +262,7 @@
     :where(#{$grid-head-row}, #{$grid-body-row}) > th,
     :where(#{$grid-body-row}) > td {
       height: calc(var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 1px);
-      padding: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);
+      padding: var(--ht-cell-vertical-padding) calc(var(--ht-cell-horizontal-padding) + 6px);
       vertical-align: top;
       border-top-width: 0;
       border-inline-start-width: 0;
