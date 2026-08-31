@@ -71,6 +71,11 @@ Three things about this pipeline are easy to get wrong.
   the gate for the whole build; there is no per-screenshot review. The label is removed automatically on
   every push (`.github/workflows/visual-cleanup.yml`), so approval never carries over to unreviewed
   screenshots.
+- **The comparison tolerates antialiasing, deliberately.** `regconfig.json` sets `enableAntialias` and
+  `thresholdPixel: 150`. Chromium's text antialiasing is not bit-stable between runs: a measured example
+  differed by 78 pixels out of 921,600 with no visible change, and at zero tolerance that failed 104 of
+  1,646 screenshots — all of them focus- or menu-state captures. Do not lower these back to zero without
+  re-measuring; a real regression is orders of magnitude larger.
 - **A missing baseline never blocks.** `Check for golden records` probes
   `https://<domain>/base/<branch>/out.json` over plain HTTPS. When that 404s the run sets
   `VISUAL_BOOTSTRAP=true`: `visual-gate.mjs` passes without reading a report, and a same-repo build promotes
