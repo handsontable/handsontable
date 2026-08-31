@@ -7911,6 +7911,84 @@ export default (): Record<string, unknown> => {
     sanitizer: undefined,
 
     /**
+     * The `textExtractor` option configures how grid content is turned into plain text for consumers
+     * that do not write to the DOM, such as an exported file.
+     *
+     * It is the counterpart to [`sanitizer`](#sanitizer). Read the pair as one idea:
+     *
+     * - `sanitizer` decides how content is written **to the screen** (HTML in, HTML out).
+     * - `textExtractor` decides how the same content becomes **text everywhere else** (HTML in, text out).
+     *
+     * The option exists because a header setting is also its display string. A header of
+     * `'<b>Total</b>'` renders as **Total** in the grid, and without this option the same header
+     * reaches a CSV file as the literal `<b>Total</b>`, so the file disagrees with the screen.
+     * Copying a header row to the clipboard carries the same markup.
+     *
+     * By default (when no extractor is set) content is exported exactly as it is stored, which is the
+     * behavior of every earlier version.
+     *
+     * Set `true` to use the built-in extraction, which returns the text the grid displays:
+     *
+     * ```js
+     * textExtractor: true,
+     * ```
+     *
+     * `false` behaves the same as leaving the option out, so you can pass a flag straight through
+     * without a ternary.
+     *
+     * Set a function for full control. It receives the content and the consumer surface, so you can
+     * apply different rules per surface. In TypeScript, annotate the second parameter with the
+     * exported `TextExtractorContext` type
+     * (see [TypeScript types](@/guides/tools-and-building/typescript-types/typescript-types.md))
+     * to get editor completion on the values below.
+     *
+     * The surfaces that pass a context today are `'ExportFile.columnHeader'`, `'ExportFile.rowHeader'`
+     * and `'CopyPaste.columnHeader'`. A plugin may pass a surface of its own, so treat the list as open.
+     *
+     * The built-in extraction runs a configured [`sanitizer`](#sanitizer) first, under the `'header'`
+     * surface, then reduces the result to text. That order matters: a sanitizer may remove content
+     * rather than only unwrap it, so extracting text from the unsanitized value would put content in
+     * a file that the grid never displayed. Parsing is also what turns entities back into the
+     * characters they stand for, so a header shown as `Tom & Jerry` is written to a file as
+     * `Tom & Jerry` rather than `Tom &amp; Jerry`.
+     *
+     * Values that are not strings are never passed to the extractor. A numeric header stays a number,
+     * so a spreadsheet still reads it as one.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @since 18.2.0
+     * @memberof Options#
+     * @type {boolean|function(string, TextExtractorContext): string}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // Export headers as the text the grid displays
+     * textExtractor: true,
+     * ```
+     *
+     * @example
+     * ```js
+     * // Keep row headers as they are, reduce column headers to text
+     * textExtractor: (content, source) => {
+     *   if (source === 'ExportFile.rowHeader') {
+     *     return content;
+     *   }
+     *
+     *   const tpl = document.createElement('template');
+     *
+     *   tpl.innerHTML = content;
+     *
+     *   return tpl.content.textContent ?? '';
+     * },
+     * ```
+     */
+    textExtractor: undefined,
+
+    /**
      * The `parsePastedValue` option determines how pasted content is written to cells when the user pastes
      * from the clipboard into Handsontable (e.g. from another Handsontable instance or between cells in the same table).
      * It does not affect how other applications read or process the clipboard.
