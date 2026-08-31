@@ -262,7 +262,7 @@
     :where(#{$grid-head-row}, #{$grid-body-row}) > th,
     :where(#{$grid-body-row}) > td {
       height: calc(var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 1px);
-      padding: var(--ht-cell-vertical-padding) calc(var(--ht-cell-horizontal-padding) + 6px);
+      padding: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);
       vertical-align: top;
       border-top-width: 0;
       border-inline-start-width: 0;
@@ -277,7 +277,7 @@
       outline-width: 0;
       empty-cells: show;
       box-sizing: border-box;
-      color: var(--ht-foreground-color);
+      color: var(--ht-accent-color);
       border-top-color: var(--ht-cell-vertical-border-color);
       border-bottom-color: var(--ht-cell-vertical-border-color);
       border-inline-start-color: var(--ht-cell-horizontal-border-color);
