@@ -182,7 +182,7 @@ jobs:
     # scope — NOT on the build module merely succeeding. A tests/**-only PR
     # builds UMD (for Playwright) but not ES+CJS, and must not pay for the full
     # visual suite (matches the pre-split behaviour).
-    if: ${{ !cancelled() && (needs.build.outputs.es-cjs-built == 'true' || needs.checks.outputs.test-visual == 'true') }}
+    if: ${{ !failure() && !cancelled() && (needs.build.outputs.es-cjs-built == 'true' || needs.checks.outputs.test-visual == 'true') }}
     uses: ./.github/workflows/visual.yml
     secrets: inherit
 
