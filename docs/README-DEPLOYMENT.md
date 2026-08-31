@@ -83,6 +83,8 @@ To deploy the documentation to the [production environment](https://handsontable
 
 The workflow assembles the multi-version site (current plus previous versions, pulled from the published GHCR Docker images) using the scripts in `docs/deploy/`, then deploys it to the `handsontable-docs` Cloudflare Pages project on the `production` branch label, which serves it at the apex.
 
+During assembly, two scripts post-process the frozen previous-version builds (which are never rebuilt): `rewriteVersionedPaths.mjs` prefixes root-relative links in Astro builds (>= 17.1) with their version segment, and `injectBannerTopCss.mjs` injects a CSS override into legacy VuePress builds so the "newer version available" banner renders at the top of the page instead of the bottom (PRO-1303). Both changes take effect in production only after they land on the `prod-docs/<MAJOR.MINOR>` branch that triggers the next deploy - a deploy triggered from an older `prod-docs` branch (e.g. a hotfix) assembles from that branch's checkout and reverts any assembly-script change it does not carry.
+
 ### Reverting a production deployment
 
 To revert a production deployment to a previous version:
