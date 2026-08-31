@@ -834,5 +834,184 @@ describe('WalkontableTable', () => {
       expect($rows.first().find('td:first').text()).toBe(`${getData(firstRenderedRow, 0)}`);
       expect($rows.last().find('td:first').text()).toBe(`${getData(lastRenderedRow, 0)}`);
     });
+
+    it('should settle a shrink that leaves stale tall records below the band within the pass cap', async() => {
+      // Rows 1-5 render 200px tall on the first draw, so the second draw's band holds only the
+      // first few of them - the records for the tall rows below that band go stale (those rows are
+      // no longer rendered, so no draw can re-measure them). The shrink draw then has to cascade:
+      // each refill pass's proposal is capped at the first stale tall record below the band, and
+      // only rendering that row reveals it shrank too. Two stale out-of-band records must settle
+      // within MAX_ROWS_BAND_REFILL_PASSES (3).
+      createDataArray(100, 4);
+      spec().$wrapper.width(300).height(300);
+
+      let tallRows = true;
+
+      const cellRenderer = jasmine.createSpy('cellRenderer').and.callFake((row, column, TD) => {
+        TD.innerHTML = tallRows && row >= 1 && row <= 5
+          ? `<div style="height: 200px">${getData(row, column)}</div>`
+          : getData(row, column);
+      });
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        cellRenderer,
+      });
+
+      wt.draw();
+      wt.draw();
+
+      // Sanity: the shrink scenario needs at least two of the tall rows to sit OUTSIDE the band
+      // with their records intact.
+      expect(wt.wtTable.getLastRenderedRow()).toBeLessThanOrEqual(3);
+
+      tallRows = false;
+      cellRenderer.calls.reset();
+      wt.draw();
+
+      const $rows = getTableMaster().find('tbody tr');
+      const lastRowBottom = $rows.last()[0].getBoundingClientRect().bottom;
+      const holderBottom = getTableMaster().find('.wtHolder')[0].getBoundingClientRect().bottom;
+
+      // 300px / 23px default row height -> at least 13 rows are needed to fill the viewport.
+      expect($rows.length).toBeGreaterThanOrEqual(13);
+      expect(lastRowBottom).toBeGreaterThanOrEqual(holderBottom - 1);
+
+      // The cascade really spent more than one refill pass: the band's first cell re-rendered once
+      // per band render. The exact count is offset-sensitive (the ±1 rendering offset at the band
+      // edges decides which stale record caps which pass), so pin the range: at least the initial
+      // render plus two refill passes (one per stale out-of-band record), at most the initial
+      // render plus MAX_ROWS_BAND_REFILL_PASSES.
+      const firstCellRenders = cellRenderer.calls.allArgs()
+        .filter(([row, column]) => row === wt.wtTable.getFirstRenderedRow() && column === 0)
+        .length;
+
+      expect(firstCellRenders).toBeGreaterThanOrEqual(3);
+      expect(firstCellRenders).toBeLessThanOrEqual(4);
+    });
+
+    it('should keep the rows the DOM already shows when the refill proposal starts lower (rows above the band shrank)', async() => {
+      // Scrolled mid-table, the rows ABOVE the viewport shrink (provided heights drop) on the same
+      // draw the rows INSIDE the band shrink. The refill's proposal then starts LATER than the
+      // rendered band (less height above the scroll offset) while its bottom edge grows - the band
+      // that gets applied must be the union, so no row the DOM already shows is dropped.
+      createDataArray(100, 4);
+      spec().$wrapper.width(300).height(300);
+
+      const providedHeights = new Map();
+      const state = { tallCells: true };
+
+      for (let row = 0; row < 20; row++) {
+        providedHeights.set(row, 60);
+      }
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        rowHeight: row => providedHeights.get(row),
+        rowHeightByOverlayName: row => providedHeights.get(row),
+        cellRenderer(row, column, TD) {
+          TD.innerHTML = state.tallCells && row >= 21 && row <= 24
+            ? `<div style="height: 100px">${getData(row, column)}</div>`
+            : getData(row, column);
+        },
+      });
+
+      wt.draw();
+
+      getTableMaster().find('.wtHolder').scrollTop(1250);
+
+      await sleep(20);
+
+      wt.draw();
+      wt.draw();
+
+      const firstRenderedRow = wt.wtTable.getFirstRenderedRow();
+      const lastRenderedRow = wt.wtTable.getLastRenderedRow();
+
+      // The band has to start mid-table for the scenario to say anything.
+      expect(firstRenderedRow).toBeGreaterThan(0);
+
+      for (let row = 0; row < 20; row++) {
+        providedHeights.set(row, 58);
+      }
+
+      state.tallCells = false;
+      wt.draw();
+
+      const newFirstRenderedRow = wt.wtTable.getFirstRenderedRow();
+      const newLastRenderedRow = wt.wtTable.getLastRenderedRow();
+      const $rows = getTableMaster().find('tbody tr');
+
+      // The union keeps every previously rendered row in the band while the bottom edge grows.
+      expect(newFirstRenderedRow).toBeLessThanOrEqual(firstRenderedRow);
+      expect(newLastRenderedRow).toBeGreaterThan(lastRenderedRow);
+      expect($rows.length).toBe(newLastRenderedRow - newFirstRenderedRow + 1);
+      expect($rows.first().find('td:first').text()).toBe(`${getData(newFirstRenderedRow, 0)}`);
+      expect($rows.last().find('td:first').text()).toBe(`${getData(newLastRenderedRow, 0)}`);
+    });
+
+    it('should refill the viewport without dropping frozen-derived row heights (fixedColumnsStart)', async() => {
+      // A grid with frozen columns scrolled horizontally past them: the master's band starts past
+      // column 0, so row 1's tall content in frozen column 0 is measured only by the inline-start
+      // overlays and force-applied to the master (the frozen-column row sync). A shrink of the
+      // scrollable columns' content on that same layout must refill the viewport while that
+      // frozen-derived height survives.
+      createDataArray(100, 10);
+      spec().$wrapper.width(450).height(300);
+
+      const state = { tallCells: true };
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        columnWidth: 70,
+        fixedColumnsStart: 2,
+        cellRenderer(row, column, TD) {
+          if (row === 1 && column === 0) {
+            TD.innerHTML = `<div style="height: 100px">${getData(row, column)}</div>`;
+          } else if (state.tallCells && row >= 2 && row <= 4 && column === 5) {
+            TD.innerHTML = `<div style="height: 200px">${getData(row, column)}</div>`;
+          } else {
+            TD.innerHTML = getData(row, column);
+          }
+        },
+      });
+
+      wt.draw();
+
+      getTableMaster().find('.wtHolder').scrollLeft(300);
+
+      await sleep(20);
+
+      wt.draw();
+      wt.draw();
+
+      // The scenario needs the master to NOT render the frozen columns itself.
+      expect(wt.wtTable.getFirstRenderedColumn()).toBeGreaterThan(0);
+
+      state.tallCells = false;
+      wt.draw();
+
+      const $rows = getTableMaster().find('tbody tr');
+      const lastRowBottom = $rows.last()[0].getBoundingClientRect().bottom;
+      const holder = getTableMaster().find('.wtHolder')[0];
+      // `clientHeight`, not the rect bottom: the 10 columns overflow the 450px wrapper, so the
+      // holder carries a horizontal scrollbar the rows must not be expected to cover.
+      const viewportBottom = holder.getBoundingClientRect().top + holder.clientHeight;
+
+      // The viewport is refilled after the shrink...
+      expect(lastRowBottom).toBeGreaterThanOrEqual(viewportBottom - 1);
+
+      // ...and the frozen-derived height survives it, on the master and the inline-start clone alike.
+      const masterRow1Height = $rows.eq(1)[0].getBoundingClientRect().height;
+      const cloneRow1Height = $('.ht_clone_inline_start tbody tr').eq(1)[0].getBoundingClientRect().height;
+
+      expect(masterRow1Height).toBeGreaterThanOrEqual(100);
+      expect(cloneRow1Height).toBe(masterRow1Height);
+    });
   });
 });

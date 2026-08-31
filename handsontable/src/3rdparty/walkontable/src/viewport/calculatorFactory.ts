@@ -30,8 +30,10 @@ export type ViewportBand = 'render' | 'visible';
  * Calculator-creation queries, mixed into `Viewport`.
  */
 export interface CalculatorFactory {
-  createRowsCalculator(calculatorTypes?: string[], band?: ViewportBand): ViewportRowsCalculator;
-  createColumnsCalculator(calculatorTypes?: string[], band?: ViewportBand): ViewportColumnsCalculator;
+  createRowsCalculator(
+    calculatorTypes?: string[], band?: ViewportBand, options?: { proposeOnly?: boolean }): ViewportRowsCalculator;
+  createColumnsCalculator(
+    calculatorTypes?: string[], band?: ViewportBand, options?: { proposeOnly?: boolean }): ViewportColumnsCalculator;
   createCalculators(fastDraw?: boolean, options?: { stationaryBands?: boolean }): boolean;
   createVisibleCalculators(): void;
   usesLayoutSnapshotForCalculators(): boolean;
@@ -177,12 +179,19 @@ export const calculatorFactory: CalculatorFactory = {
    *
    * @this Viewport
    * @param {'rendered' | 'fullyVisible' | 'partiallyVisible'} calculatorTypes The list of the calculation types.
+   * @param {'render' | 'visible'} band The viewport box the calculator reads.
+   * @param {object} [options] The calculator-creation options.
+   * @param {boolean} [options.proposeOnly=false] When `true` (a propose-only build, e.g. the refill
+   * loop in `table/drawCycle.ts`), the `rowHeaderWidth` memo is NOT reset, so a build whose result
+   * is never assigned leaves no side effect — a declined refill then costs no header re-measure on
+   * the next `getRowHeaderWidth()`.
    * @returns {ViewportRowsCalculator}
    */
   createRowsCalculator(
     this: Viewport,
     calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible'],
-    band: ViewportBand = 'visible'
+    band: ViewportBand = 'visible',
+    { proposeOnly = false }: { proposeOnly?: boolean } = {}
   ): ViewportRowsCalculator {
     const { wtSettings, wtTable } = this;
     const totalRows = wtSettings.getSetting<number>('totalRows');
@@ -204,7 +213,9 @@ export const calculatorFactory: CalculatorFactory = {
       height = this.getViewportHeight();
     }
 
-    this.rowHeaderWidth = NaN;
+    if (!proposeOnly) {
+      this.rowHeaderWidth = NaN;
+    }
 
     const topOverlay = this.deps.getTopOverlay();
     const bottomOverlay = this.deps.getBottomOverlay();
@@ -256,12 +267,17 @@ export const calculatorFactory: CalculatorFactory = {
    *
    * @this Viewport
    * @param {'rendered' | 'fullyVisible' | 'partiallyVisible'} calculatorTypes The list of the calculation types.
+   * @param {'render' | 'visible'} band The viewport box the calculator reads.
+   * @param {object} [options] The calculator-creation options.
+   * @param {boolean} [options.proposeOnly=false] When `true`, the `columnHeaderHeight` memo is NOT
+   * reset — the propose-only twin of the `createRowsCalculator` option, see there.
    * @returns {ViewportColumnsCalculator}
    */
   createColumnsCalculator(
     this: Viewport,
     calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible'],
-    band: ViewportBand = 'visible'
+    band: ViewportBand = 'visible',
+    { proposeOnly = false }: { proposeOnly?: boolean } = {}
   ): ViewportColumnsCalculator {
     const { wtSettings, wtTable } = this;
     const inlineStartOverlay = this.deps.getInlineStartOverlay();
@@ -283,7 +299,9 @@ export const calculatorFactory: CalculatorFactory = {
 
     let pos = Math.abs(inlineStartOverlay.getScrollPosition()) - inlineStartOverlay.getTableParentOffset();
 
-    this.columnHeaderHeight = NaN;
+    if (!proposeOnly) {
+      this.columnHeaderHeight = NaN;
+    }
 
     const fixedColumnsStart = wtSettings.getSetting<number>('fixedColumnsStart');
 
@@ -608,10 +626,23 @@ export const calculatorFactory: CalculatorFactory = {
    * the rendered one, and refilling from that proposal is what broke
    * `src/plugins/mergeCells/__tests__/selection.spec.js`.
    *
-   * The mutation mirrors {@link CalculatorFactory#applyRenderedRowsBandOverscan} field for field, so
-   * `count`, `rowStartOffset`, `rowEndOffset`, and `startPosition` stay consistent with the moved
-   * edges. It is a no-op for a band that renders all rows (`RenderedAllRowsCalculationType`), which
-   * has no edge to move.
+   * In practice only the START edge ever moves from that call site: the refill takes a pass only
+   * when the proposal's `endRow` already exceeds the previous band's, so the `endRow` this receives
+   * is always at or inside the band's bottom edge. The end-edge branch below is defensive — kept so
+   * the method honors its "covers at least `[startRow, endRow]`" contract for any future caller —
+   * and is pinned by direct unit tests rather than by the refill specs.
+   *
+   * The mutation updates the same fields as {@link CalculatorFactory#applyRenderedRowsBandOverscan},
+   * so `count`, `rowStartOffset`, `rowEndOffset`, and `startPosition` stay consistent with the moved
+   * edges — but unlike the overscan it carries no own magnitude cap. The growth is bounded by the
+   * caller instead: the refill declines any proposal that does not overlap (or touch) the previous
+   * band, so the union never exceeds the two bands' combined span. Growing `rowStartOffset` with the
+   * extension is deliberate, not just mirroring: the rows folded back into the band really are
+   * rendered above the viewport, so the `viewportRowRenderingThreshold` containment padding in
+   * {@link CalculatorFactory#areAllProposedVisibleRowsAlreadyRendered} and the
+   * {@link CalculatorFactory#stabilizeRenderedRowsBand} size baseline must both see them, exactly as
+   * they see overscan rows. It is a no-op for a band that renders all rows
+   * (`RenderedAllRowsCalculationType`), which has no edge to move.
    *
    * @this Viewport
    * @param {number} startRow The first row the band must cover. Ignored when negative, which is what

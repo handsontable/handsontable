@@ -280,9 +280,22 @@ All line numbers are in `table.ts` unless noted. "Master only" = guarded by `thi
   bounded by monotonic growth as well as by the cap. `stationaryBands` stays off for the re-passes:
   this answers a content change, not a scroll step. One pass is often not enough — a stale tall record
   for a row just outside the first band caps the proposal, and only rendering that row reveals that
-  it shrank too — so the helper loops, bounded by `MAX_ROWS_BAND_REFILL_PASSES`. Exhausting the cap
-  leaves the viewport under-filled until the next scroll or resize, which is the pre-fix #6452
-  behavior. Rows that GREW take no pass: the band then overflows the viewport, which is harmless.
+  it shrank too — so the helper loops, bounded by `MAX_ROWS_BAND_REFILL_PASSES`. Passes scale roughly
+  one-per-stale-out-of-band tall record (`resetOversizedRows` wipes only in-band records, so every
+  stale record below the band survives to cap the next proposal); a shrink that leaves more of them
+  than the cap exhausts it, and the viewport stays under-filled until the next scroll or resize,
+  which is the pre-fix #6452 behavior. Rows that GREW take no pass: the band then overflows the
+  viewport, which is harmless. Four declines guard a pass: `renderAllRows`/band-at-dataset-end skip
+  the proposal walk outright; a proposal that does not overlap or touch the previous band is declined
+  (the union would span the whole gap — a whole-dataset shrink while scrolled deep reaches this), and
+  this no-overlap guard is what bounds the union to the two bands' combined span; and a pass whose
+  recomputed column band disagrees with the captured `ctx.syncFrozenRows` decision is declined
+  (`refillDisagreesWithFrozenColumnSync` — the refill's recompute carries no columns overscan, so it
+  can start past column 0 where pass 1's band started at 0, after `releaseFrozenOversizedRows()`
+  already ran). Proposals are side-effect free: they pass `{ proposeOnly: true }`, which skips the
+  `rowHeaderWidth`/`columnHeaderHeight` memo reset inside
+  `createRowsCalculator`/`createColumnsCalculator` (the resets themselves must stay where they are —
+  their position relative to the neighboring viewport-size reads is load-bearing).
   Every pass rebuilds both size caches, which is why the Phase F skip below reads
   `rowHeightsChanged` rather than the caches alone.
 

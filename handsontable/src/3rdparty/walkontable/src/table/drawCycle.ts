@@ -16,6 +16,7 @@ import {
 import type Table from './baseTable';
 import type { default as Overlays } from '../overlay/overlays';
 import type Viewport from '../viewport/viewport';
+import type { ViewportBand } from '../viewport/calculatorFactory';
 import type { ColumnsCalculationType, RowsCalculationType } from '../calculator/viewportBase';
 
 /**
@@ -206,12 +207,16 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
     } else {
       const columnHeadersRenderSkippable = isPureVerticalScrollDraw(wtOverlays);
       const rowHeightsChanged = renderCellBand(table, ctx, filters, columnHeadersRenderSkippable);
+      const hasExternalRowCalculator = wtSettings.getSetting<boolean>('externalRowCalculator');
 
-      if (rowHeightsChanged && !wtSettings.getSetting('externalRowCalculator')) {
+      // `rowHeightsChanged` alone gates the refill: `markOversizedRows` returns `false` before
+      // measuring anything when `externalRowCalculator` is on, so the flag already carries that
+      // condition.
+      if (rowHeightsChanged) {
         refillRenderedRowsBandIfShrunk(table, ctx, columnHeadersRenderSkippable);
       }
 
-      if (!wtSettings.getSetting('externalRowCalculator')) {
+      if (!hasExternalRowCalculator) {
         // Single-pass: the fully/partially-visible calculators were already computed in pass 1
         // (`createCalculators`) from the layout snapshot. On the snapshot path, the only thing that
         // can change them post-render is `markOversizedRows` invalidating the row-height cache when
@@ -540,22 +545,28 @@ function renderCellBand(
 
 /**
  * The upper bound on how many extra cell-band renders one draw may spend refilling the viewport
- * after the rendered rows measured shorter than the band was computed from. Two passes cover the
- * cascade this exists for: the first re-render grows the band past the rows that shrank, and the
- * second settles the rows the grown band newly exposed, whose own oversized records were recorded
- * on an older draw and could not be re-measured while they sat outside the band. The third is
- * headroom.
+ * after the rendered rows measured shorter than the band was computed from.
+ *
+ * Passes scale with the number of stale tall records BELOW the band, roughly one pass per record:
+ * each pass's proposal is capped at the first row below the band that still holds a stale tall
+ * record (the axis calculator stops where the cumulative offsets — stale record included — cross
+ * the viewport, and `resetOversizedRows` wipes only the rows inside the band, so every
+ * previously-measured tall row below it survives to cap the next proposal). Only rendering that row
+ * re-measures it and lets the following pass propose past it. The overscan does not help here:
+ * `rowHeightsUniform` is `false` in exactly this scenario. So the practical limit is a shrink that
+ * leaves at most `MAX_ROWS_BAND_REFILL_PASSES` stale out-of-band tall records between the pre-shrink
+ * band and the settled one — the #6452 fixture (rows 1-7 tall, a ~5-row pre-fix band) already
+ * consumes all three passes.
  *
  * Exhausting the cap does NOT self-correct on the next draw. The pass that spent the last iteration
  * re-measured every row inside the final band accurately, so what still caps the band is a stale
  * tall record for a row just OUTSIDE it — and that is precisely the state in which the next draw's
  * `markOversizedRows` reports no change, `rowHeightsChanged` is `false`, and the refill never fires.
  * The viewport then stays under-filled until a scroll or a resize brings those rows into a rendered
- * band, i.e. exactly the pre-fix #6452 behavior. That is not a regression, and it takes a cascade of
- * four or more stale tall records each sitting just past the previous pass's band to reach; the cap
- * buys that against letting one draw re-render the band an unbounded number of times. Do not "fix"
- * it by dropping the out-of-band records: a record for a row that is still genuinely tall is
- * legitimate, and dropping it would shrink the scroll range on unrelated edits.
+ * band, i.e. exactly the pre-fix #6452 behavior. That is not a regression; the cap buys it against
+ * letting one draw re-render the band an unbounded number of times. Do not "fix" it by dropping the
+ * out-of-band records: a record for a row that is still genuinely tall is legitimate, and dropping
+ * it would shrink the scroll range on unrelated edits.
  */
 const MAX_ROWS_BAND_REFILL_PASSES = 3;
 
@@ -594,6 +605,15 @@ const MAX_ROWS_BAND_REFILL_PASSES = 3;
  * The loop also stops as soon as a pass proposes no further growth of the bottom edge, or measures
  * no further height change.
  *
+ * Three more declines keep a pass cheap or safe. `renderAllRows`, and a band already at the dataset
+ * end, skip the proposal walk — the bottom edge cannot grow there. A proposal that does not overlap
+ * (or touch) the previous band is declined: the union would span the whole gap between them and one
+ * `renderCellBand` would build it all (a whole-dataset shrink while scrolled deep reaches this).
+ * And a pass whose recomputed column band disagrees with the captured `ctx.syncFrozenRows` decision
+ * is declined — see {@link refillDisagreesWithFrozenColumnSync}. Every decline leaves the rendered
+ * state exactly as pass 1 rendered it, which is the pre-fix #6452 behavior: under-filled until the
+ * next scroll, resize, or content draw.
+ *
  * Accepted trade-off: `createCalculators(false)` runs with `stationaryBands` off, so a scroll-driven
  * draw that reaches a refill loses the columns overscan/stabilization for that draw. A shrink during
  * a scroll draw is rare, and the recompute is answering a content change rather than a scroll step,
@@ -619,26 +639,43 @@ function refillRenderedRowsBandIfShrunk(
   ctx: DrawContext,
   columnHeadersRenderSkippable: boolean,
 ): void {
+  const { wtSettings } = table;
   const wtViewport = table.deps.getWtViewport();
+
+  // With `renderAllRows` every row is already in the band, so the bottom edge can never grow —
+  // skip the proposal walk entirely.
+  if (wtSettings.getSetting<boolean>('renderAllRows')) {
+    return;
+  }
+
+  const lastDatasetRow = wtSettings.getSetting<number>('totalRows') - 1;
 
   for (let pass = 0; pass < MAX_ROWS_BAND_REFILL_PASSES; pass++) {
     const previousStartRow = table.getFirstRenderedRow();
     const previousEndRow = table.getLastRenderedRow();
+
+    // A band that already reaches the dataset end cannot grow its bottom edge; skip the cache
+    // builds and the proposal walk that would only conclude the same. Rows that merely GREW
+    // still pay one proposal walk per pass-triggering draw — the walk is the only place the
+    // viewport-fill question is answered without duplicating the axis math.
+    if (previousEndRow >= lastDatasetRow) {
+      return;
+    }
 
     // Both caches, as at the other `createVisibleCalculators` call sites: an unbuilt column strategy
     // answers every offset with 0.
     wtViewport.rowHeightCache.ensureBuilt();
     wtViewport.columnWidthCache.ensureBuilt();
 
-    // Propose only — this does not assign the viewport's calculators. `createRowsCalculator` builds a
-    // calculator without touching `rowsRenderCalculator`, so a band that must not grow leaves the
-    // rendered state alone. It is not entirely free of side effects: it resets the `rowHeaderWidth`
-    // memo to `NaN` (`viewport/calculatorFactory.ts`), so a declined refill still costs one
-    // re-measure on the next `getRowHeaderWidth()`.
+    // Propose only — this does not assign the viewport's calculators, and `proposeOnly` skips the
+    // `rowHeaderWidth` memo reset (the build's one side effect), so a declined pass leaves the
+    // rendered state alone and costs no header re-measure.
     // Mirror `createCalculators`: the render band reads the scrollbar-unaware box on the single-pass
     // path; the legacy measured path serves render and visible from the same 'visible' band.
-    const renderBand = wtViewport.usesLayoutSnapshotForCalculators() ? 'render' : 'visible';
-    const proposedBand = wtViewport.createRowsCalculator(['rendered'], renderBand).getResultsFor('rendered');
+    const renderBand: ViewportBand = wtViewport.usesLayoutSnapshotForCalculators() ? 'render' : 'visible';
+    const proposedBand = wtViewport
+      .createRowsCalculator(['rendered'], renderBand, { proposeOnly: true })
+      .getResultsFor('rendered');
 
     // Only a bottom edge that must grow takes a pass. An earlier proposed `startRow` on its own is
     // not a refill signal — see the JSDoc: it is the virtualized-merged-cell signature, and the band
@@ -648,6 +685,21 @@ function refillRenderedRowsBandIfShrunk(
       proposedBand.startRow === null || proposedBand.endRow === null ||
       proposedBand.endRow <= previousEndRow
     ) {
+      return;
+    }
+
+    // A proposal that shares no row with (and is not adjacent to) the previous band would union into
+    // a band spanning the whole gap between them — a whole-dataset shrink while scrolled deep puts
+    // the proposal near the dataset end with the previous band thousands of rows above it, and the
+    // `renderCellBand` below would build all of it in one go. Decline the pass instead: the viewport
+    // stays under-filled until the next scroll or resize (the pre-fix #6452 behavior). This guard is
+    // also what bounds `extendRenderedRowsBandTo`'s start-edge growth: with it, the union can never
+    // exceed the two bands' combined span.
+    if (proposedBand.startRow > previousEndRow + 1) {
+      return;
+    }
+
+    if (refillDisagreesWithFrozenColumnSync(table, ctx, renderBand)) {
       return;
     }
 
@@ -668,6 +720,42 @@ function refillRenderedRowsBandIfShrunk(
       return;
     }
   }
+}
+
+/**
+ * Whether a refill pass would render with a frozen-column sync decision different from the one this
+ * draw already acted on. `ctx.syncFrozenRows` is a function of the master's first rendered column
+ * (`shouldSyncOversizedRowsWithFrozenOverlays`), resolved from the PREVIOUS draw's column band —
+ * and pass 1's band got the columns overscan, which the refill's `createCalculators(false)` (no
+ * `stationaryBands`) does not re-apply, so the recomputed band can start past column 0 where the
+ * captured one started at 0. Rendering with that mismatch is destructive when the flag was captured
+ * `false`: `releaseFrozenOversizedRows()` already ran, so the refill's `resetOversizedRows` would
+ * wipe frozen-tall records with no exemption left, on a master that no longer renders the frozen
+ * columns and therefore can never re-measure them. The refill declines the pass on any disagreement
+ * (the opposite direction merely leaves the records one draw staler, but a declined pass is the
+ * pre-fix behavior either way and settles on the next draw).
+ *
+ * The column proposal here is prediction, not assignment: `createColumnsCalculator` builds the same
+ * band `createCalculators(false)` would assign, without touching the viewport's calculators.
+ * `externalRowCalculator` needs no re-check — the refill only runs when `markOversizedRows`
+ * reported a change, which it never does with that setting on.
+ *
+ * @param {Table} table The master table.
+ * @param {DrawContext} ctx The per-draw scratch (supplies the captured `syncFrozenRows` flag).
+ * @param {ViewportBand} renderBand The viewport band the refill's proposals read.
+ * @returns {boolean} `true` when the pass must be declined.
+ */
+function refillDisagreesWithFrozenColumnSync(table: Table, ctx: DrawContext, renderBand: ViewportBand): boolean {
+  if (!table.wtSettings.getSetting<number>('fixedColumnsStart')) {
+    return false;
+  }
+
+  const wtViewport = table.deps.getWtViewport();
+  const proposedStartColumn = wtViewport
+    .createColumnsCalculator(['rendered'], renderBand, { proposeOnly: true })
+    .getResultsFor('rendered')?.startColumn ?? null;
+
+  return (proposedStartColumn !== null && proposedStartColumn > 0) !== ctx.syncFrozenRows;
 }
 
 /**

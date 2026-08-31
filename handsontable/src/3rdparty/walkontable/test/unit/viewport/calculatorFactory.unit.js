@@ -1,4 +1,5 @@
-import { directionalBandOverscan } from '../../../src/viewport/calculatorFactory';
+import { calculatorFactory, directionalBandOverscan } from '../../../src/viewport/calculatorFactory';
+import { RenderedAllRowsCalculationType, RenderedRowsCalculationType } from '../../../src/calculator';
 
 describe('directionalBandOverscan', () => {
   const NO_PREVIOUS_OVERSCAN = { startOffset: 0, endOffset: 0 };
@@ -106,5 +107,127 @@ describe('directionalBandOverscan', () => {
 
       expect(plan).toBeNull();
     });
+  });
+});
+
+describe('extendRenderedRowsBandTo', () => {
+  const ROW_HEIGHT = 23;
+
+  function createRenderedBand({ startRow, endRow }) {
+    const band = new RenderedRowsCalculationType();
+
+    band.startRow = startRow;
+    band.endRow = endRow;
+    band.count = endRow - startRow + 1;
+    band.startPosition = startRow * ROW_HEIGHT;
+
+    return band;
+  }
+
+  function createViewportStub(band, { totalRows = 100 } = {}) {
+    return {
+      rowsRenderCalculator: band,
+      rowHeightCache: { getOffset: row => row * ROW_HEIGHT },
+      wtSettings: { getSetting: () => totalRows },
+    };
+  }
+
+  function extendBandTo(viewport, startRow, endRow) {
+    calculatorFactory.extendRenderedRowsBandTo.call(viewport, startRow, endRow);
+  }
+
+  it('should extend the start edge to cover an earlier row and keep the derived fields consistent', () => {
+    const band = createRenderedBand({ startRow: 10, endRow: 20 });
+    const viewport = createViewportStub(band);
+
+    extendBandTo(viewport, 5, 15);
+
+    expect(band.startRow).toBe(5);
+    expect(band.endRow).toBe(20);
+    expect(band.count).toBe(16);
+    expect(band.rowStartOffset).toBe(5);
+    expect(band.rowEndOffset).toBe(0);
+    expect(band.startPosition).toBe(5 * ROW_HEIGHT);
+  });
+
+  it('should union both edges when the range sticks out on both sides', () => {
+    // The refill call site can only move the start edge (it declines any proposal whose bottom
+    // edge does not already exceed the previous band's), but the method's contract is the full
+    // union — this pins the defensive end-edge branch directly.
+    const band = createRenderedBand({ startRow: 10, endRow: 20 });
+    const viewport = createViewportStub(band);
+
+    extendBandTo(viewport, 8, 25);
+
+    expect(band.startRow).toBe(8);
+    expect(band.endRow).toBe(25);
+    expect(band.count).toBe(18);
+    expect(band.rowStartOffset).toBe(2);
+    expect(band.rowEndOffset).toBe(5);
+    expect(band.startPosition).toBe(8 * ROW_HEIGHT);
+  });
+
+  it('should clamp the end edge to the last row of the dataset', () => {
+    const band = createRenderedBand({ startRow: 90, endRow: 95 });
+    const viewport = createViewportStub(band, { totalRows: 100 });
+
+    extendBandTo(viewport, 90, 200);
+
+    expect(band.startRow).toBe(90);
+    expect(band.endRow).toBe(99);
+    expect(band.count).toBe(10);
+    expect(band.rowEndOffset).toBe(4);
+  });
+
+  it('should not shrink the band when the range lies inside it', () => {
+    const band = createRenderedBand({ startRow: 10, endRow: 20 });
+    const viewport = createViewportStub(band);
+
+    extendBandTo(viewport, 12, 18);
+
+    expect(band.startRow).toBe(10);
+    expect(band.endRow).toBe(20);
+    expect(band.count).toBe(11);
+    expect(band.rowStartOffset).toBe(0);
+    expect(band.rowEndOffset).toBe(0);
+    expect(band.startPosition).toBe(10 * ROW_HEIGHT);
+  });
+
+  it('should ignore a negative start row (the pre-first-render range query answer)', () => {
+    const band = createRenderedBand({ startRow: 10, endRow: 20 });
+    const viewport = createViewportStub(band);
+
+    extendBandTo(viewport, -1, 15);
+
+    expect(band.startRow).toBe(10);
+    expect(band.count).toBe(11);
+    expect(band.rowStartOffset).toBe(0);
+  });
+
+  it('should be a no-op for a band that renders all rows', () => {
+    const band = new RenderedAllRowsCalculationType();
+
+    band.startRow = 0;
+    band.endRow = 99;
+    band.count = 100;
+
+    const viewport = createViewportStub(band);
+
+    extendBandTo(viewport, 5, 200);
+
+    expect(band.startRow).toBe(0);
+    expect(band.endRow).toBe(99);
+    expect(band.count).toBe(100);
+  });
+
+  it('should be a no-op for an empty band (null edges)', () => {
+    const band = new RenderedRowsCalculationType();
+    const viewport = createViewportStub(band);
+
+    extendBandTo(viewport, 0, 10);
+
+    expect(band.startRow).toBeNull();
+    expect(band.endRow).toBeNull();
+    expect(band.count).toBe(0);
   });
 });
