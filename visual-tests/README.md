@@ -36,6 +36,10 @@ changes. In that case:
 Approval binds to one set of screenshots. Pushing a new commit removes the `visual-approved` label, so
 screenshots nobody has looked at never inherit an earlier approval.
 
+If the branch you target has no golden records yet, the check does not fail. The build promotes its own
+screenshots to that branch's golden records and passes, so a fresh branch cannot wedge every pull request
+opened against it. The next build of the base branch overwrites them with the authoritative render.
+
 ## Visual tests structure
 
 Visual tests are divided into:

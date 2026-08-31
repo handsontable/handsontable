@@ -71,6 +71,12 @@ Three things about this pipeline are easy to get wrong.
   the gate for the whole build; there is no per-screenshot review. The label is removed automatically on
   every push (`.github/workflows/visual-cleanup.yml`), so approval never carries over to unreviewed
   screenshots.
+- **A missing baseline never blocks.** `Check for golden records` probes
+  `https://<domain>/base/<branch>/out.json` over plain HTTPS. When that 404s the run sets
+  `VISUAL_BOOTSTRAP=true`: `visual-gate.mjs` passes without reading a report, and a same-repo build promotes
+  its own screenshots to that branch's golden records. A fork cannot seed (no credentials), so it skips the
+  comparison instead. An unreviewed baseline therefore survives at most one merge, because the base
+  branch's own next build overwrites it.
 - **A golden record is just a previous build's `actual/` directory.** reg-suit fetches
   `<expectedKey>/actual/**` into the local `expected/` dir, so the goldens and a normal build share one
   format. There is no separate baseline artifact to maintain.
