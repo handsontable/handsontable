@@ -69,7 +69,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   columns: [
     {
       type: 'numeric',
-      numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+      numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 },
+      emptyValue: null,
     },
     { type: 'text', readOnly: true }
   ],
@@ -115,6 +116,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   dropdownMenu: true,
   editor: oneOf(true, 'autocomplete', 'checkbox', 'date', 'dropdown', 'handsontable', 'mobile',
     'password', 'select', 'text', 'time', 'custom.editor'),
+  emptyValue: oneOf('' as const, null),
   enterBeginsEditing: true,
   enterMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({ row: 1, col: 1 })),
   exportFile: { engines: { xlsx: {} } },
@@ -1006,3 +1008,10 @@ const moveResult: boolean = hot.getPlugin('moveCells')
 // Regression: beforeInit accepts the array form, which the runtime has always supported (#5933).
 hot.updateSettings({ beforeInit: [() => {}, () => {}] });
 hot.updateSettings({ beforeInit: () => {} });
+
+// Regression: `emptyValue` must reach `ColumnSettings` from `GridSettings`, not through the
+// `[key: string]: any` index signature that `ColumnSettings` also carries. A literal inside the
+// `columns` array compiles either way, so it proves nothing on its own — this reads the property
+// type back out and fails if the option is ever dropped from `GridSettings`.
+const columnEmptyValue: Handsontable.ColumnSettings['emptyValue'] = null;
+const cellEmptyValue: Handsontable.CellMeta['emptyValue'] = null;

@@ -2543,7 +2543,7 @@ export default function Core(
         cellProperties = { ...Object.getPrototypeOf(tableMeta) as Record<string, unknown>, ...tableMeta };
       }
 
-      filteredChanges[i][3] = getValueSetterValue(newValue, cellProperties);
+      filteredChanges[i][3] = getValueSetterValue(newValue, cellProperties, source);
     }
 
     return filteredChanges;
@@ -4530,6 +4530,7 @@ export default function Core(
         const newValue = getValueSetterValue(
           changeValue,
           getCellProperties(changeRow, changeProp),
+          source,
         );
 
         changesForHook.push([
@@ -4545,7 +4546,8 @@ export default function Core(
       const cellMeta = getCellProperties(changeRow, changeProp);
       const newValue = getValueSetterValue(
         changeValue,
-        cellMeta
+        cellMeta,
+        source
       );
 
       if (runSourceDataValidator(newValue, cellMeta, source ?? 'setSourceDataAtCell')) {
@@ -5450,6 +5452,11 @@ export default function Core(
   /**
    * Returns the width of the requested column.
    *
+   * Passing [`colWidths`](@/api/options.md#colwidths) to
+   * [`updateSettings()`](@/api/core.md#updatesettings) discards the widths stored by
+   * [`ManualColumnResize`](@/api/manualColumnResize.md), so the option applies again from that point
+   * on.
+   *
    * @memberof Core#
    * @function getColWidth
    * @param {number} column Visual column index.
@@ -5523,6 +5530,10 @@ export default function Core(
    *   4. `undefined`, if neither [`ManualRowResize`](@/api/manualRowResize.md),
    *     nor [`rowHeights`](@/api/options.md#rowheights),
    *     nor [`AutoRowSize`](@/api/autoRowSize.md) is used.
+   *
+   * Passing [`rowHeights`](@/api/options.md#rowheights) to
+   * [`updateSettings()`](@/api/core.md#updatesettings) discards the heights stored by
+   * [`ManualRowResize`](@/api/manualRowResize.md), so the option applies again from that point on.
    *
    * The height returned includes 1 px of the row's bottom border.
    *

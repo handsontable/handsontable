@@ -279,6 +279,66 @@ describe('HotTableComponent', () => {
       expect(passedSettings.width).toBe(500);
     });
 
+    // Issue #4371. Passing `rowHeights` or `colWidths` to `updateSettings()` re-declares the sizes
+    // and discards the ones the user produced by dragging. `ngOnChanges` carries the whole settings
+    // object, so an unchanged size value must not be forwarded when another setting changes.
+    it('should not pass an unchanged rowHeights or colWidths to updateSettings', () => {
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = {
+        rowHeights: [50, 50, 50],
+        colWidths: 100,
+        width: 300,
+      };
+      fixture.detectChanges();
+
+      const component = fixture.componentInstance;
+      const updateSettingsSpy = jest.spyOn(component.hotInstance, 'updateSettings');
+
+      const changes: SimpleChanges = {
+        settings: new SimpleChange(
+          { rowHeights: [50, 50, 50], colWidths: 100, width: 300 },
+          // A new array with the same contents, as a template expression produces on every run.
+          { rowHeights: [50, 50, 50], colWidths: 100, width: 500 },
+          false
+        ),
+      };
+
+      component.ngOnChanges(changes);
+
+      const passedSettings = updateSettingsSpy.mock.calls[0][0];
+
+      expect(passedSettings.rowHeights).toBe(void 0);
+      expect(passedSettings.colWidths).toBe(void 0);
+      expect(passedSettings.width).toBe(500);
+    });
+
+    it('should pass a changed rowHeights or colWidths to updateSettings', () => {
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = {
+        rowHeights: [50, 50, 50],
+        colWidths: 100,
+      };
+      fixture.detectChanges();
+
+      const component = fixture.componentInstance;
+      const updateSettingsSpy = jest.spyOn(component.hotInstance, 'updateSettings');
+
+      const changes: SimpleChanges = {
+        settings: new SimpleChange(
+          { rowHeights: [50, 50, 50], colWidths: 100 },
+          { rowHeights: [150, 150, 150], colWidths: 120 },
+          false
+        ),
+      };
+
+      component.ngOnChanges(changes);
+
+      const passedSettings = updateSettingsSpy.mock.calls[0][0];
+
+      expect(passedSettings.rowHeights).toEqual([150, 150, 150]);
+      expect(passedSettings.colWidths).toBe(120);
+    });
+
     it('should apply each change when settings change multiple times rapidly', () => {
       fixture = TestBed.createComponent(HotTableComponent);
       fixture.componentInstance.settings = { ...settings };

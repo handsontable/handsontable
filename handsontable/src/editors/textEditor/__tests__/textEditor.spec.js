@@ -928,7 +928,10 @@ describe('TextEditor', () => {
 
     await keyDownUp('enter');
 
-    expect(getDataAtCell(1, 1)).toEqual('');
+    // The nested property does not exist, so the editor opens empty and the confirm changes nothing.
+    // This used to assert `''`, because closing an unchanged editor wrote the editor's stringified
+    // value back over the cell (#3927). The missing property now reads back as `null`, unwritten.
+    expect(getDataAtCell(1, 1)).toBeNull();
   });
 
   it('should render nested object value in textarea after change columns order', async() => {
@@ -966,7 +969,9 @@ describe('TextEditor', () => {
 
     await keyDownUp('enter');
 
-    expect(getDataAtCell(0, 0)).toEqual('');
+    // As above: the nested property does not exist, and an unchanged confirm no longer creates it
+    // as an empty string (#3927).
+    expect(getDataAtCell(0, 0)).toBeNull();
 
     await selectCell(1, 1);
     await keyDownUp('enter');
