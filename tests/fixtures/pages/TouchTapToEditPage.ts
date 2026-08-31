@@ -118,11 +118,11 @@ export class TouchTapToEditPage {
   }
 
   /**
-   * Dispatch a script touchstart followed by a touchcancel on a cell — the shape of a gesture the
-   * system claims (edge-swipe, dialog): `touchend` never fires.
+   * Dispatch a script touch event of the given type on a cell. `touchstart` carries the touch in
+   * the active lists; `touchcancel` reports it only in `changedTouches` (the finger is gone).
    */
-  async dispatchTouchCancel(row: number, col: number): Promise<void> {
-    await this.cell(row, col).evaluate(td => {
+  async dispatchTouchEvent(row: number, col: number, type: 'touchstart' | 'touchcancel'): Promise<void> {
+    await this.cell(row, col).evaluate((td, eventType) => {
       const rect = td.getBoundingClientRect();
       const x = rect.left + rect.width / 2;
       const y = rect.top + rect.height / 2;
@@ -134,18 +134,43 @@ export class TouchTapToEditPage {
         pageX: x + window.scrollX,
         pageY: y + window.scrollY,
       });
-      const fire = (type: string, touches: Touch[]) => td.dispatchEvent(new TouchEvent(type, {
+      const activeTouches = eventType === 'touchstart' ? [touch] : [];
+
+      td.dispatchEvent(new TouchEvent(eventType, {
         bubbles: true,
         cancelable: true,
         composed: true,
-        touches,
-        targetTouches: touches,
+        touches: activeTouches,
+        targetTouches: activeTouches,
         changedTouches: [touch],
       }));
+    }, type);
+  }
 
-      fire('touchstart', [touch]);
-      fire('touchcancel', []);
-    });
+  /**
+   * Dispatch a script touchstart followed by a touchcancel on a cell — the shape of a gesture the
+   * system claims (edge-swipe, dialog): `touchend` never fires.
+   */
+  async dispatchTouchCancel(row: number, col: number): Promise<void> {
+    await this.dispatchTouchEvent(row, col, 'touchstart');
+    await this.dispatchTouchEvent(row, col, 'touchcancel');
+  }
+
+  /**
+   * Dispatch a script mousemove on the document at the given client coordinates. Walkontable
+   * listens for mousemove document-wide, so coordinates far outside the grid drive the
+   * drag-selection (`onCellMouseOverOutside`) path when its mouse-down flag is armed.
+   */
+  async dispatchMouseMove(clientX: number, clientY: number): Promise<void> {
+    await this.page.evaluate(({ x, y }) => {
+      document.dispatchEvent(new MouseEvent('mousemove', {
+        bubbles: true,
+        cancelable: true,
+        clientX: x,
+        clientY: y,
+        button: 0,
+      }));
+    }, { x: clientX, y: clientY });
   }
 
   /**
@@ -209,6 +234,14 @@ export class TouchTapToEditPage {
   async openContextMenu(row: number, col: number): Promise<void> {
     await this.cell(row, col).click({ button: 'right' });
     await expect(this.contextMenu).toBeVisible();
+  }
+
+  async expectContextMenuOpen(): Promise<void> {
+    await expect(this.contextMenu).toBeVisible();
+  }
+
+  async expectContextMenuClosed(): Promise<void> {
+    await expect(this.contextMenu).not.toBeVisible();
   }
 
   /**

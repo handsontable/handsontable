@@ -166,13 +166,19 @@ test.describe('touch tap-to-edit on a device with touch and mouse listeners', ()
 
     // Drift over the SELECTED cell — nothing is preventDefault-ed there, so real engines do
     // synthesize a compatibility pair for this gesture; its touchend (scroll branch) cleared the
-    // pending flag, so the pair, carrying no origin information, must be processed.
+    // pending flag, so the pair, carrying no origin information, must be processed. The counts
+    // are absolute on purpose: the tap above contributed exactly one mousedown/mouseup, and a
+    // scroll-classified drift must contribute none — this is the assertion that proves the
+    // deferred-mousedown scroll classification (#11659) still holds.
     await grid.dispatchTouchDrag(2, 1, 20);
-    const mousedownsBefore = await grid.hookCount('beforeOnCellMouseDown');
+    await grid.expectHookCountExactly('beforeOnCellMouseDown', 1);
+    await grid.expectHookCountExactly('beforeOnCellMouseUp', 1);
+
     await grid.dispatchMouseEvent(2, 1, 'mousedown');
     await grid.dispatchMouseEvent(2, 1, 'mouseup');
 
-    await grid.expectHookCountExactly('beforeOnCellMouseDown', mousedownsBefore + 1);
+    await grid.expectHookCountExactly('beforeOnCellMouseDown', 2);
+    await grid.expectHookCountExactly('beforeOnCellMouseUp', 2);
     await grid.expectEditorClosed();
   });
 
@@ -210,6 +216,12 @@ test.describe('touch tap-to-edit on a device with touch and mouse listeners', ()
   test('a cancelled gesture does not leave real mouse clicks pairing as taps', async ({ page }) => {
     await grid.dispatchTouchCancel(1, 1);
 
+    // The cancel also killed the long-press timer: well past LONG_PRESS_DELAY nothing fires —
+    // no long-press mousedown, no synthetic contextmenu.
+    await page.clock.runFor(600);
+    await grid.expectHookCountExactly('beforeOnCellMouseDown', 0);
+    await grid.expectContextMenuClosed();
+
     // Two real right-clicks on the same cell inside the double-tap window: with touchApplied
     // stuck they would route into the tap detector and open the editor.
     await grid.openContextMenu(1, 1);
@@ -221,5 +233,43 @@ test.describe('touch tap-to-edit on a device with touch and mouse listeners', ()
 
     await grid.expectHookCountExactly('afterBeginEditing', 0);
     await grid.expectEditorClosed();
+  });
+
+  test('a cancelled gesture does not leave a stale pending pair swallowing the next real mouse pair', async ({ page }) => {
+    // First tap on an unselected cell: preventDefault-ed, no pair arrives, but the gate was armed.
+    await grid.tapCell(1, 1);
+    await page.clock.runFor(200);
+
+    // The next gesture is cancelled, not ended: the cancel must clear the leftover flag the same
+    // way a scroll gesture's touchend does.
+    await grid.dispatchTouchCancel(2, 1);
+
+    // A real mouse pair with no origin information (the WebKit/Firefox fallback), still inside
+    // the 500 ms ceiling from the tap: were the stale flag to survive the cancel, the mousedown
+    // half would be dropped and the selection would stay on the tapped cell.
+    await grid.dispatchMouseEvent(3, 1, 'mousedown');
+    await grid.dispatchMouseEvent(3, 1, 'mouseup');
+
+    await grid.expectSelectedCell(3, 1);
+  });
+
+  test('a cancelled long-press releases the mouse-down flag: no drag-selection follows', async ({ page }) => {
+    // A held touch: the long-press timer fires the mousedown (selecting the cell) and opens the
+    // context menu through the synthetic contextmenu event.
+    await grid.dispatchTouchEvent(1, 1, 'touchstart');
+    await page.clock.runFor(600);
+    await grid.expectHookCountExactly('beforeOnCellMouseDown', 1);
+    await grid.expectSelectedCell(1, 1);
+    await grid.expectContextMenuOpen();
+
+    // The system claims the touch: no touchend follows, so no mouseup ever pairs the long-press
+    // mousedown — only the cancel path can release the mouse-down flag.
+    await grid.dispatchTouchEvent(1, 1, 'touchcancel');
+    await page.keyboard.press('Escape');
+
+    // A mousemove far outside the viewport: with the mouse-down flag stuck, drag-selection would
+    // extend the selection to the nearest edge cell.
+    await grid.dispatchMouseMove(10_000, 10_000);
+    await grid.expectSelectedCell(1, 1);
   });
 });
