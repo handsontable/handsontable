@@ -1496,11 +1496,17 @@ class Selection {
       // would slide the selection to a neighbor, and the next paste would overwrite it - the silent
       // wrong-record write this repair exists to prevent. So each axis is judged by its own anchor.
       //
-      // `isEntireColumnSelected()` cannot answer this: it compares the range height against the
-      // CURRENT row count, which the trim has already changed, so it reads false exactly here. The
-      // header anchor is structural and survives the trim.
-      const isRowExtentTracked = (from.row ?? 0) < 0;
-      const isColumnExtentTracked = (from.col ?? 0) < 0;
+      // Read from the header-selection state rather than the range's corners. A negative corner
+      // says the same thing only when the grid HAS headers - `selectColumns()` on a grid without
+      // `colHeaders`, which is the default, anchors `from.row` at 0 - so testing the coordinate
+      // would drop exactly the full-column selections this branch exists to keep. The state sets
+      // are written by `selectColumns()`/`selectRows()` whether or not headers are rendered, and
+      // `refresh()` carries them across, so they survive the trim.
+      //
+      // `isEntireColumnSelected()` cannot answer this either: it compares the range height against
+      // the CURRENT row count, which the trim has already changed, so it reads false exactly here.
+      const isRowExtentTracked = this.isSelectedByColumnHeader();
+      const isColumnExtentTracked = this.isSelectedByRowHeader();
 
       if ((isRowOutOfRange && !isRowExtentTracked) || (isColumnOutOfRange && !isColumnExtentTracked)) {
         this.deselect();

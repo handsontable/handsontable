@@ -27,6 +27,10 @@
     if (!window.htEditor) {
       throw new Error('Unknown ?editor= value: ' + JSON.stringify(htParams.get('editor')));
     }
+    window.htHeaders = ({ on: true, off: false })[htParams.get('headers') ?? 'on'];
+    if (window.htHeaders === undefined) {
+      throw new Error('Unknown ?headers= value: ' + JSON.stringify(htParams.get('headers')));
+    }
   </script>
 </head>
 <body>
@@ -71,8 +75,10 @@
     };
 
     window.hot = new Handsontable(container, Object.assign({
-      colHeaders: ['A', 'B'],
-      rowHeaders: true,
+      // `?headers=off` drops both header rails. That is the DEFAULT Handsontable shape, and the one
+      // where `selectColumns()` anchors its range at row 0 instead of a negative header row.
+      colHeaders: window.htHeaders ? ['A', 'B'] : false,
+      rowHeaders: window.htHeaders,
       // Both plugins register a TRIMMING index map, and they reach the editor by different routes:
       // `filter()` re-selects and renders before it returns, `trimRows()` does neither.
       filters: true,

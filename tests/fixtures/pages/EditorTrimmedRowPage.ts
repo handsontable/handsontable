@@ -78,6 +78,7 @@ interface PageOptions {
   sorting?: boolean;
   scenario?: 'small' | 'tall';
   editor?: 'text' | 'dropdown';
+  headers?: boolean;
 }
 
 /**
@@ -91,6 +92,7 @@ export class EditorTrimmedRowPage {
   readonly sorting: boolean;
   readonly scenario: string;
   readonly editor: string;
+  readonly headers: boolean;
   readonly editorHolder: Locator;
 
   constructor(page: Page, theme = 'main', bundle = 'umd', options: PageOptions = {}) {
@@ -100,6 +102,7 @@ export class EditorTrimmedRowPage {
     this.sorting = options.sorting ?? false;
     this.scenario = options.scenario ?? 'small';
     this.editor = options.editor ?? 'text';
+    this.headers = options.headers ?? true;
     // The text editor's textarea wrapper. It stays in the DOM permanently and is merely hidden, so
     // its `ht_editor_hidden` class is the only reliable DOM-level "the editor is not on screen".
     this.editorHolder = page.locator('.handsontableInputHolder');
@@ -110,7 +113,8 @@ export class EditorTrimmedRowPage {
    */
   async goto(): Promise<void> {
     const query = `theme=${this.theme}&bundle=${this.bundle}` +
-      `&sorting=${this.sorting}&scenario=${this.scenario}&editor=${this.editor}`;
+      `&sorting=${this.sorting}&scenario=${this.scenario}&editor=${this.editor}` +
+      `&headers=${this.headers ? 'on' : 'off'}`;
 
     await this.page.goto(`/tests/fixtures/demo/editor-trimmed-row.html?${query}`);
 

@@ -156,6 +156,27 @@ test.describe('selection stranded by a trimming index map', () => {
     expect(await grid.sourceRowCount()).toBe(5);
   });
 
+  test('clamps a full-column selection on a grid with no headers', async({ page, theme, bundle }) => {
+    // Headers are OFF here, which is Handsontable's default. `selectColumns()` then anchors the
+    // range at row 0 rather than a negative header row, so a test that read the corner coordinate
+    // would call this a plain cell range and drop it. What marks the extent as grid-tracking is the
+    // header-selection state, which `selectColumns()` records either way.
+    const headerless = new EditorTrimmedRowPage(page, theme, bundle, { headers: false });
+
+    await headerless.goto();
+    await headerless.selectWholeColumn(0);
+
+    expect(await headerless.selected()).toEqual([[0, 0, 4, 0]]);
+
+    await headerless.trimRows([0]);
+
+    expect(await headerless.selected()).toEqual([[0, 0, 3, 0]]);
+
+    await headerless.pasteIntoSelection('PASTED');
+
+    expect(await headerless.sourceRowCount()).toBe(5);
+  });
+
   test('drops a full-row selection whose row a trim stranded, rather than sliding it', async() => {
     await grid.selectWholeRow(3);
 
