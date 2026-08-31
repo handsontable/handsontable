@@ -711,7 +711,7 @@ export default (): Record<string, unknown> => {
      * option, whose `row` and `column` are physical indexes.
      *
      * Read more:
-     * - [Configuration options: Setting cell options](@/guides/configuration/configuration-options/configuration-options.md#set-cell-options)
+     * - [Setting options: Setting cell options](@/guides/configuration/configuration-options/configuration-options.md#set-cell-options)
      * - [`columns`](#columns)
      * - [`cells`](#cells)
      *
@@ -760,8 +760,8 @@ export default (): Record<string, unknown> => {
      * `this.instance` is not available inside them – use a regular or shorthand function instead.
      *
      * Read more:
-     * - [Configuration options: Implementing custom logic](@/guides/configuration/configuration-options/configuration-options.md#implement-custom-logic)
-     * - [Configuration options: Setting row options](@/guides/configuration/configuration-options/configuration-options.md#set-row-options)
+     * - [Setting options: Implementing custom logic](@/guides/configuration/configuration-options/configuration-options.md#implement-custom-logic)
+     * - [Setting options: Setting row options](@/guides/configuration/configuration-options/configuration-options.md#set-row-options)
      * - [`columns`](#columns)
      * - [`cell`](#cell)
      *
@@ -900,7 +900,7 @@ export default (): Record<string, unknown> => {
      * To apply different CSS class names on different levels, use Handsontable's [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration).
      *
      * Read more:
-     * - [Configuration options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
+     * - [Setting options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
      * - [`currentRowClassName`](#currentRowClassName)
      * - [`currentColClassName`](#currentColClassName)
      * - [`currentHeaderClassName`](#currentHeaderClassName)
@@ -1074,7 +1074,7 @@ export default (): Record<string, unknown> => {
      * When you use `columns`, the [`startCols`](#startCols), [`minCols`](#minCols), and [`maxCols`](#maxCols) options are ignored.
      *
      * Read more:
-     * - [Configuration options: Setting column options](@/guides/configuration/configuration-options/configuration-options.md#set-column-options)
+     * - [Setting options: Setting column options](@/guides/configuration/configuration-options/configuration-options.md#set-column-options)
      * - [`startCols`](#startCols)
      * - [`minCols`](#minCols)
      * - [`maxCols`](#maxCols)
@@ -1163,7 +1163,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean|object}
      * @default undefined
      * @category ColumnSorting
-     * @configScope grid
+     * @configScope grid columns
      *
      * @example
      * ```js
@@ -1483,7 +1483,7 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Clipboard](@/guides/cell-features/clipboard/clipboard.md)
-     * - [Configuration options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
+     * - [Setting options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
      * - [Password cell type](@/guides/cell-types/password-cell-type/password-cell-type.md)
      *
      * @memberof Options#
@@ -2659,7 +2659,7 @@ export default (): Record<string, unknown> => {
      * - [Keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md)
      * - [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)
      * - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
-     * - [Configuration options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
+     * - [Setting options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
      * - [`type`](#type)
      *
      * @memberof Options#
@@ -4761,7 +4761,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean|object}
      * @default undefined
      * @category MultiColumnSorting
-     * @configScope grid
+     * @configScope grid columns
      *
      * @example
      * ```js
@@ -5448,7 +5448,7 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Read-only cells](@/guides/cell-features/read-only-cells/read-only-cells.md)
-     * - [Configuration options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
+     * - [Setting options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
      *
      * @memberof Options#
      * @type {boolean}
@@ -5611,7 +5611,7 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
      * - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
-     * - [Configuration options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
+     * - [Setting options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
      * - [`type`](#type)
      *
      * @memberof Options#
@@ -5684,7 +5684,7 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
-     * - [Configuration options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
+     * - [Setting options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
      *
      * @memberof Options#
      * @since 17.0.0
@@ -5767,7 +5767,7 @@ export default (): Record<string, unknown> => {
      * - [`renderer`](#renderer)
      * - [`valueFormatter`](#valueformatter)
      * - [`sourceDataValidator`](#sourcedatavalidator)
-     * - [Configuration options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
+     * - [Setting options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
      *
      * @memberof Options#
      * @since 17.0.0
@@ -6307,7 +6307,7 @@ export default (): Record<string, unknown> => {
      * | `true`            | - Disable pasting data into this column<br>- On pasting, paste data into the next column to the right |
      *
      * Read more:
-     * - [Configuration options: Setting column options](@/guides/configuration/configuration-options/configuration-options.md#set-column-options)
+     * - [Setting options: Setting column options](@/guides/configuration/configuration-options/configuration-options.md#set-column-options)
      *
      * @memberof Options#
      * @type {boolean}
@@ -6342,7 +6342,7 @@ export default (): Record<string, unknown> => {
      * | `true`            | - Disable pasting data into this row<br>- On pasting, paste data into the row below |
      *
      * Read more:
-     * - [Configuration options: Setting row options](@/guides/configuration/configuration-options/configuration-options.md#set-row-options)
+     * - [Setting options: Setting row options](@/guides/configuration/configuration-options/configuration-options.md#set-row-options)
      *
      * @memberof Options#
      * @type {boolean}
@@ -7167,7 +7167,7 @@ export default (): Record<string, unknown> => {
      * - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
      * - [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)
      * - [Cell validator](@/guides/cell-functions/cell-validator/cell-validator.md)
-     * - [Configuration options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
+     * - [Setting options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
      * - [`renderer`](#renderer)
      * - [`editor`](#editor)
      * - [`validator`](#validator)
@@ -7322,7 +7322,7 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Cell validator](@/guides/cell-functions/cell-validator/cell-validator.md)
      * - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
-     * - [Configuration options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
+     * - [Setting options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
      * - [`type`](#type)
      *
      * @memberof Options#

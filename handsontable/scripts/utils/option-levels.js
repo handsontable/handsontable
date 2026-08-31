@@ -36,6 +36,12 @@ const NOTES = {
   disableVisualSelection: 'Row and column headers read the grid-level value only, and so does the check '
     + 'that gates dragging a selection with `moveCells`.',
   cells: 'A grid-level function that is called for every cell.',
+  columnSorting: 'Turn the plugin on at the grid level. Inside `columns` you can override its '
+    + 'sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. '
+    + 'Read from the raw `columns` setting, like `title`.',
+  multiColumnSorting: 'Turn the plugin on at the grid level. Inside `columns` you can override its '
+    + 'sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. '
+    + 'Read from the raw `columns` setting, like `title`.',
 };
 
 /**

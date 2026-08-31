@@ -8,9 +8,9 @@
   ],
   "total": 168,
   "counts": {
-    "grid": 107,
+    "grid": 105,
     "grid columns cells cell": 58,
-    "grid columns": 2,
+    "grid columns": 4,
     "columns": 1
   },
   "options": [
@@ -249,10 +249,11 @@
       "name": "columnSorting",
       "category": "ColumnSorting",
       "levels": [
-        "grid"
+        "grid",
+        "columns"
       ],
       "since": null,
-      "note": null
+      "note": "Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. Read from the raw `columns` setting, like `title`."
     },
     {
       "name": "columnSummary",
@@ -998,10 +999,11 @@
       "name": "multiColumnSorting",
       "category": "MultiColumnSorting",
       "levels": [
-        "grid"
+        "grid",
+        "columns"
       ],
       "since": null,
-      "note": null
+      "note": "Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. Read from the raw `columns` setting, like `title`."
     },
     {
       "name": "navigableHeaders",

@@ -67,7 +67,12 @@ Two facts explain most of the matrix:
 - **Plugin options are grid level.** Every plugin reads its own setting from the grid settings, so
   you cannot switch a plugin on for one column or one cell. Some plugins still read per-cell
   options once they are on - [`comments`](@/api/options.md#comments) is turned on for the grid,
-  then a comment is attached to a single cell.
+  then a comment is attached to a single cell. A few plugins go further and let you override
+  their sub-options per column, which is why
+  [`columnSorting`](@/api/options.md#columnsorting) and
+  [`multiColumnSorting`](@/api/options.md#multicolumnsorting) are marked for `columns` too. You
+  still turn them on for the whole grid; check the Notes column before assuming a plugin can be
+  enabled per column.
 
 ## Options matrix
 
@@ -118,7 +123,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="colorScheme" data-levels="grid"></span>[`colorScheme`](@/api/options.md#colorscheme) | Yes | No | No | No | Core |  |
 | <span data-option="columnHeaderHeight" data-levels="grid"></span>[`columnHeaderHeight`](@/api/options.md#columnheaderheight) | Yes | No | No | No | Core |  |
 | <span data-option="columns" data-levels="grid"></span>[`columns`](@/api/options.md#columns) | Yes | No | No | No | Core |  |
-| <span data-option="columnSorting" data-levels="grid"></span>[`columnSorting`](@/api/options.md#columnsorting) | Yes | No | No | No | ColumnSorting |  |
+| <span data-option="columnSorting" data-levels="grid columns"></span>[`columnSorting`](@/api/options.md#columnsorting) | Yes | Yes | No | No | ColumnSorting | Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. Read from the raw `columns` setting, like `title`. |
 | <span data-option="columnSummary" data-levels="grid"></span>[`columnSummary`](@/api/options.md#columnsummary) | Yes | No | No | No | ColumnSummary |  |
 | <span data-option="colWidths" data-levels="grid"></span>[`colWidths`](@/api/options.md#colwidths) | Yes | No | No | No | Core |  |
 | <span data-option="commentedCellClassName" data-levels="grid columns cells cell"></span>[`commentedCellClassName`](@/api/options.md#commentedcellclassname) | Yes | Yes | Yes | Yes | Core |  |
@@ -195,7 +200,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="minSpareCols" data-levels="grid"></span>[`minSpareCols`](@/api/options.md#minsparecols) | Yes | No | No | No | Core |  |
 | <span data-option="minSpareRows" data-levels="grid"></span>[`minSpareRows`](@/api/options.md#minsparerows) | Yes | No | No | No | Core |  |
 | <span data-option="moveCells" data-levels="grid"></span>[`moveCells`](@/api/options.md#movecells) | Yes | No | No | No | Core |  |
-| <span data-option="multiColumnSorting" data-levels="grid"></span>[`multiColumnSorting`](@/api/options.md#multicolumnsorting) | Yes | No | No | No | MultiColumnSorting |  |
+| <span data-option="multiColumnSorting" data-levels="grid columns"></span>[`multiColumnSorting`](@/api/options.md#multicolumnsorting) | Yes | Yes | No | No | MultiColumnSorting | Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. Read from the raw `columns` setting, like `title`. |
 | <span data-option="navigableHeaders" data-levels="grid"></span>[`navigableHeaders`](@/api/options.md#navigableheaders) | Yes | No | No | No | Core |  |
 | <span data-option="nestedHeaders" data-levels="grid"></span>[`nestedHeaders`](@/api/options.md#nestedheaders) | Yes | No | No | No | NestedHeaders |  |
 | <span data-option="nestedRows" data-levels="grid"></span>[`nestedRows`](@/api/options.md#nestedrows) | Yes | No | No | No | NestedRows |  |
