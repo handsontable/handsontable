@@ -622,7 +622,10 @@ class Event {
       return;
     }
 
-    this.#lastTapCoords = cell.coords;
+    // Clone: parentCell()'s border branches return references into the live selection CellRange,
+    // which normalize() mutates in place — a stored alias could silently shift within the
+    // double-tap window.
+    this.#lastTapCoords = cell.coords.clone();
     this.#lastTapAt = now;
   }
 
