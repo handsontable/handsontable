@@ -567,6 +567,22 @@ export class EditorTrimmedRowPage {
   }
 
   /**
+   * Removes a row and trims rows inside one `batch()`. Unlike a sort, an alteration flushes its own
+   * cache update even inside a batch, so this produces a structural update followed by a trim-only
+   * one - the shape that must not let the structural early return swallow the repair.
+   */
+  async batchRemoveRowAndTrim(removeIndex: number, trimmedRows: number[]): Promise<void> {
+    await this.page.evaluate(([target, rows]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+
+      hot.batch(() => {
+        hot.alter('remove_row', target as number, 1);
+        hot.getPlugin('trimRows').trimRows(rows as number[]);
+      });
+    }, [removeIndex, trimmedRows] as [number, number[]]);
+  }
+
+  /**
    * Sorts and trims inside one `batch()`, which collapses both into a SINGLE index-map cache update
    * carrying `indexesSequenceChanged` and `trimmedIndexesChanged` together. Driving them separately
    * produces two updates and never exercises that pairing.

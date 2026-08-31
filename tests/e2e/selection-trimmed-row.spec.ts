@@ -316,6 +316,23 @@ test.describe('selection stranded by a trimming index map', () => {
       expect(await sorted.sourceRowCount()).toBe(5);
     });
 
+  test('drops a selection stranded by a batch that both alters and trims', async() => {
+    await grid.selectCell(3, 0);
+    // `alter()` and the trim land in one `batch()`, but they do NOT collapse into one cache update:
+    // `removeIndexes()` suspends and resumes the mapper itself, so the alteration flushes its own
+    // update and the trim gets a separate, non-structural one. That second update is what carries
+    // the repair - the structural early return never swallows it.
+    await grid.batchRemoveRowAndTrim(4, [0, 1]);
+
+    expect(await grid.selected()).toBeUndefined();
+
+    const before = await grid.sourceRowCount();
+
+    await grid.pasteIntoSelection('PASTED');
+
+    expect(await grid.sourceRowCount()).toBe(before);
+  });
+
   test('keeps a selection whose row is merely hidden, since the record stays in the visual space', async() => {
     await grid.selectCell(3, 0);
     await grid.hideRows([0, 1, 3]);
