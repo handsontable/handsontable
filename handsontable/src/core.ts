@@ -1691,6 +1691,29 @@ export default function Core(
     globalMeta[className] = classSettings;
   }
 
+  /**
+   * Registers a hook callback declared in a settings object as a local hook of this instance.
+   *
+   * The callback is also written to the table meta, so that `getSettings()` returns it back.
+   *
+   * @private
+   * @param {string} key A hook name.
+   * @param {Function|Function[]} hook A callback, or an array of callbacks, to register.
+   */
+  function registerSettingsHook(key: string, hook: HookCallback | HookCallback[] | undefined) {
+    if (isFunction(hook)) {
+      Hooks.getSingleton().addAsFixed(key, hook, instance);
+
+    } else if (Array.isArray(hook)) {
+      Hooks.getSingleton().add(key, hook, instance);
+
+    } else {
+      return;
+    }
+
+    tableMeta[key] = hook;
+  }
+
   this.init = function() {
     const theme = tableMeta.theme;
     const themeName = tableMeta.themeName;
@@ -1705,6 +1728,16 @@ export default function Core(
     }
 
     dataSource.setData(tableMeta.data);
+
+    // `updateSettings()` below registers the callbacks declared in the settings object, which is too
+    // late for `beforeInit` — hence registering that one here. Re-adding the same reference is a no-op.
+    // Only `beforeInit` is pulled forward: doing it for the rest would order settings-declared
+    // callbacks ahead of the plugin callbacks registered while `beforeInit` runs.
+    // Note for whoever deprecates this hook: it passes through the helper twice. The function form
+    // stays silent, but `Hooks#add` (the array form) warns on every attach without deduping, so an
+    // array-form `beforeInit` would then warn twice per instance.
+    registerSettingsHook('beforeInit', mergedUserSettings.beforeInit as HookCallback | HookCallback[] | undefined);
+
     instance.runHooks('beforeInit');
 
     if (isMobileBrowser() || isIpadOS()) {
@@ -3485,19 +3518,16 @@ export default function Core(
         instance.view._wt.wtOverlays.syncOverlayTableClassNames();
 
       } else if (Hooks.getSingleton().isRegistered(i) || Hooks.getSingleton().isDeprecated(i)) {
-        const hook = settings[i] as HookCallback | HookCallback[] | undefined;
-
-        if (isFunction(hook)) {
-          Hooks.getSingleton().addAsFixed(i, hook, instance);
-          tableMeta[i] = hook;
-
-        } else if (Array.isArray(hook)) {
-          Hooks.getSingleton().add(i, hook, instance);
-          tableMeta[i] = hook;
-        }
+        registerSettingsHook(i, settings[i] as HookCallback | HookCallback[] | undefined);
 
       } else if (!init && hasOwnProperty(settings, i)) { // Update settings
-        globalMeta[i] = settings[i];
+        // An `editor` of `true` names no editor, so it reads as "the setting was not passed" — and a
+        // setting that is not passed leaves the previous value alone. Writing the boolean here would
+        // bypass `normalizeEditorSetting()`, which only runs on the layer `updateMeta` calls, and
+        // park a bare `true` on the global meta for every cell to inherit.
+        if (i !== 'editor' || settings[i] !== true) {
+          globalMeta[i] = settings[i];
+        }
       }
     }
 
@@ -3844,12 +3874,12 @@ export default function Core(
    *
    * The returned object contains the settings passed to the constructor or the most recent
    * `updateSettings()` call. It reflects the
-   * [grid-level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options)
+   * [grid-level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options)
    * configuration only.
    *
    * It does not include merged per-cell or per-column values. Configuration options cascade from
    * grid to column to cell (see
-   * [Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)).
+   * [Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)).
    * To read the effective value for a specific cell, use [[getCellMeta]]. To read column-level meta, use [[getColumnMeta]].
    *
    * @memberof Core#
@@ -4687,7 +4717,7 @@ export default function Core(
    * Returns the cell properties object for the given `row` and `column` coordinates.
    *
    * The returned object reflects the effective cell configuration after
-   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+   * [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
    * (grid, column, and cell levels). To read global grid settings only, use [[getSettings]].
    * To read column-level meta, use [[getColumnMeta]].
    *
@@ -4727,7 +4757,7 @@ export default function Core(
    * retaining it in the cell meta cache.
    *
    * Like [[getCellMeta]], the returned object reflects the effective cell configuration after
-   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+   * [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
    * and dynamic extension (the `cells` function and the `beforeGetCellMeta`/`afterGetCellMeta`
    * hooks run). Unlike `getCellMeta`, when the cell has no stored meta object the extension runs
    * on a temporary object that is not saved, so scanning many cells (for example, a whole column
@@ -4770,7 +4800,7 @@ export default function Core(
    * Returns the meta information for the provided column.
    *
    * The returned object reflects the column-level configuration after
-   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+   * [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
    * (grid and column levels). To read global grid settings only, use [[getSettings]].
    * To read the effective configuration for a specific cell, use [[getCellMeta]].
    *
@@ -4798,7 +4828,7 @@ export default function Core(
 
   /**
    * Checks if your [data format](@/guides/getting-started/binding-to-data/binding-to-data.md#compatible-data-types)
-   * and [configuration options](@/guides/getting-started/configuration-options/configuration-options.md)
+   * and [configuration options](@/guides/configuration/configuration-options/configuration-options.md)
    * allow for changing the number of columns.
    *
    * Returns `false` when your data is an array of objects,
@@ -4866,7 +4896,12 @@ export default function Core(
 
     type EditorConstructor = (new (hotInstance: HotInstance) => unknown) & { EDITOR_TYPE?: string };
 
-    return (isUndefined(cellEditor) ? getEditor('text') : cellEditor) as EditorConstructor;
+    // An `editor` of `true` names no editor. The meta layers already drop it on the way in, so
+    // reaching this branch means it was written straight onto the cell meta (for example by a
+    // `beforeGetCellMeta` hook). Fall back to the default editor rather than returning the bare
+    // boolean, which `getEditorInstance()` cannot resolve and would throw on.
+    return ((isUndefined(cellEditor) || cellEditor === true) ?
+      getEditor('text') : cellEditor) as EditorConstructor;
   };
 
   /**

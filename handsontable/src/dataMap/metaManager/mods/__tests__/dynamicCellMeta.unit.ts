@@ -151,6 +151,35 @@ describe('DynamicCellMetaMod', () => {
     expect(cellMeta.cells).toHaveBeenCalledWith(1, 2, 'prop_2');
   });
 
+  it('should drop an "editor" of `true` returned by the "cells" setting option', () => {
+    const hotMock = new Handsontable();
+    const metaManager = new MetaManager(hotMock);
+    const mod = new DynamicCellMetaMod(metaManager as MetaManagerArg);
+    const cellMeta = {
+      row: 1,
+      col: 2,
+      visualRow: 1,
+      visualCol: 2,
+      cells() {
+        return {
+          type: 'numeric',
+          editor: true,
+        };
+      },
+    };
+
+    jest.spyOn(metaManager, 'updateCellMeta').mockReset();
+
+    mod.extendCellMeta(createCellMeta(cellMeta));
+
+    // `true` names no editor, so it must not reach the meta layers - otherwise it would both block
+    // the numeric editor the "type" supplies and throw once the cell is edited.
+    expect(metaManager.updateCellMeta).toHaveBeenCalledTimes(1);
+    expect(metaManager.updateCellMeta).toHaveBeenCalledWith(1, 2, {
+      type: 'numeric',
+    });
+  });
+
   it('should extend the cell meta object only once per table slow render cycle', () => {
     const hotMock = new Handsontable();
     const metaManager = new MetaManager(hotMock);

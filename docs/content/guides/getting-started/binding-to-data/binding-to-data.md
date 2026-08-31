@@ -969,5 +969,5 @@ When the full dataset lives on a server, use [`dataProvider`](@/api/options.md#d
 
 ## Next steps
 
-- [Configuration options](@/guides/getting-started/configuration-options/configuration-options.md) -- learn how to configure every aspect of your grid.
+- [Setting options](@/guides/configuration/configuration-options/configuration-options.md) -- learn how to configure every aspect of your grid.
 - [Saving data](@/guides/getting-started/saving-data/saving-data.md) -- persist changes to a backend or local storage.

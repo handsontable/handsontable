@@ -29,6 +29,21 @@ export function createKeysObserver() {
       PRESSED_KEYS.delete(key);
     },
     /**
+     * Set the pressed state of a key.
+     *
+     * @param {string} key Names of the shortcut's keys,
+     * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
+     * in lowercase or uppercase, unified across browsers
+     * @param {boolean} isPressed Whether the key is held down
+     */
+    setPressed(key: string, isPressed: boolean) {
+      if (isPressed) {
+        PRESSED_KEYS.add(key);
+      } else {
+        PRESSED_KEYS.delete(key);
+      }
+    },
+    /**
      * Release all pressed keys.
      */
     releaseAll() {

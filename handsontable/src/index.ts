@@ -212,7 +212,7 @@ Handsontable.themes.reinitTheme = reinitTheme;
 export { IndexMapper } from './translations';
 
 // Named type exports for user-facing API — direct from canonical sources
-export type { GridSettings, Events, SanitizerContext } from './core/settings';
+export type { GridSettings, Events, SanitizerContext, TextExtractorContext } from './core/settings';
 export type {
   CellValue, CellChange, ColumnDataGetterSetterFunction, RowObject, ChangeSource,
   CellMeta, CellProperties, ColumnSettings, SourceRowData, RemoveIndexSignature

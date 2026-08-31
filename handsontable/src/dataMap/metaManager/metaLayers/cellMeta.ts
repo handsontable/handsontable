@@ -1,4 +1,4 @@
-import { extendByMetaType, assert } from '../utils';
+import { extendByMetaType, assert, normalizeEditorSetting } from '../utils';
 import LazyFactoryMap from '../lazyFactoryMap';
 import { extend, hasOwnProperty } from '../../../helpers/object';
 import { isDefined } from '../../../helpers/mixed';
@@ -98,9 +98,10 @@ export default class CellMeta {
    */
   updateMeta(physicalRow: number, physicalColumn: number, settings: Record<string, unknown>) {
     const meta = this.getMeta(physicalRow, physicalColumn);
+    const normalizedSettings = normalizeEditorSetting(settings);
 
-    extend(meta, settings);
-    extendByMetaType(meta, settings);
+    extend(meta, normalizedSettings);
+    extendByMetaType(meta, normalizedSettings);
   }
 
   /**
@@ -229,6 +230,20 @@ export default class CellMeta {
    */
   setMeta(physicalRow: number, physicalColumn: number, key: string, value: unknown) {
     const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
+
+    // An `editor` of `true` names no editor, so it reads as "the setting was not passed". Dropping
+    // the own property lets the cell keep the editor its `type` expands to, or the one inherited
+    // from the column and grid layers. Storing the boolean instead would hand a bare `true` to
+    // `getEditorInstance()` and, by clearing the key from `_automaticallyAssignedMetaProps`, would
+    // also stop `extendByMetaType()` from supplying the type's editor. The bookkeeping entries are
+    // cleared too, so an earlier real write does not keep the cell pinned against meta eviction.
+    if (key === 'editor' && value === true) {
+      delete cellMeta[key];
+      (cellMeta._persistedMetaProps as Set<string> | undefined)?.delete(key);
+      (cellMeta._userDefinedMetaProps as Set<string> | undefined)?.delete(key);
+
+      return;
+    }
 
     (cellMeta._automaticallyAssignedMetaProps as Set<string> | undefined)?.delete(key);
     cellMeta[key] = value;

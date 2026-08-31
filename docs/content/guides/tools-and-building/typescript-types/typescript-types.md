@@ -70,6 +70,7 @@ These types describe the settings object you pass to `new Handsontable()` or `up
 | `CellMeta` | Mutable per-cell metadata stored in `hot.getCellMeta()`. Extends `CellProperties`. |
 | `Events` | All hook callback signatures, keyed by hook name. Use to type individual hook functions. |
 | `SanitizerContext` | The write surfaces the grid passes to the [`sanitizer`](@/api/options.md#sanitizer) option. Annotate the option's second parameter with it to get completion on those values. |
+| `TextExtractorContext` | The consumer surfaces the grid passes to the [`textExtractor`](@/api/options.md#textextractor) option. Annotate the option's second parameter with it to get completion on those values. |
 
 ```typescript
 import type { GridSettings, ColumnSettings } from 'handsontable';
