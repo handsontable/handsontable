@@ -365,13 +365,13 @@ When your custom renderer should preserve the default text output, call the buil
 
 ## Extend a built-in renderer
 
-When you build on top of a built-in renderer, Handsontable does not call that base renderer for you. You call it inside your custom renderer before your extra logic.
+When you build on top of a built-in renderer such as `textRenderer` or `htmlRenderer`, Handsontable doesn't call it for you. You call it inside your custom renderer, before your extra logic.
 
-Use `textRenderer` as the base when you want plain-text output and then apply styling or additional DOM changes.
+Use `textRenderer` when you want plain-text output and then apply styling or additional DOM changes.
 
-Use `htmlRenderer` as the base when your output is trusted HTML and you intentionally render with `innerHTML`.
+Use `htmlRenderer` when your output is trusted HTML and you intentionally render with `innerHTML`.
 
-Skip a base renderer when your renderer fully controls cell output from scratch, for example the image-based `coverRenderer` in [Render custom HTML in cells](#render-custom-html-in-cells).
+Skip the built-in renderer when your renderer fully controls cell output from scratch, for example the image-based `coverRenderer` in [Render custom HTML in cells](#render-custom-html-in-cells).
 
 Both of the following call styles are valid:
 
@@ -382,6 +382,14 @@ textRenderer.apply(this, arguments);
 // Direct invocation style, common in ESM and TypeScript examples.
 textRenderer(instance, td, row, column, prop, value, cellProperties);
 ```
+
+### Handsontable runs `baseRenderer` for you
+
+`baseRenderer` is a separate renderer, and it isn't one of the renderers described above. It adds the cell's class names and ARIA attributes, including [`className`](@/api/options.md#classname), [`readOnly`](@/api/options.md#readonly), and the invalid-cell class.
+
+Since version 17.0.0, Handsontable runs `baseRenderer` for you. It runs after your custom renderer, whenever your renderer didn't run it. Your cells keep their class names even when your renderer calls no built-in renderer at all. Before version 17.0.0, such cells received no class names.
+
+Call `baseRenderer` yourself when you need it to run before your changes -- for example, when your renderer sets a class that `baseRenderer` also manages, such as the invalid-cell class. A `baseRenderer` that runs last removes that class.
 
 ## Render custom HTML in cells
 

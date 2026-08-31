@@ -54,11 +54,13 @@
       ['Bravo', 'Bruno', 'Brisk'],
     ];
 
-    // Each column is seeded with the prefix its whole choice set shares. Two reasons, both load
-    // bearing. An EMPTY cell closes the editor again on the same Enter that opened it, so nothing
-    // would ever stay open to test. And a prefix keeps `autocomplete` (which filters by the typed
-    // value) showing the same three choices as `dropdown` (which forces `filter: false`), so one
-    // assertion covers both editors.
+    // Each column is seeded with the prefix its whole choice set shares, so that `autocomplete`
+    // (which filters by the typed value) shows the same three choices as `dropdown` (which forces
+    // `filter: false`) and one assertion covers both editors.
+    //
+    // The seed also keeps a centred `cell.click()` off the dropdown arrow, but only as a side
+    // effect: content widens the column, and the right-floated arrow moves clear of the centre with
+    // it. Do not rely on that - see the fixture-contract bullet in `tests/AGENTS.md`.
     const SEEDS = ['Al', 'Br'];
 
     // Read by the page object, so the spec asserts against the fixture's own values instead of a

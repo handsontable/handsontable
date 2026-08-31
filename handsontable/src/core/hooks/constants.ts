@@ -334,6 +334,7 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} indexesChangesState.indexesSequenceChanged Indicates if the sequence of indexes has changed.
    * @param {boolean} indexesChangesState.trimmedIndexesChanged Indicates if the trimmed indexes have changed.
    * @param {boolean} indexesChangesState.hiddenIndexesChanged Indicates if the hidden indexes have changed.
+   * @param {'init'|'remove'|'insert'|'move'|'update'} [indexesChangesState.indexesChangeSource] Indicates what caused a sequence change.
    */
   'afterColumnSequenceCacheUpdate',
 
@@ -808,6 +809,7 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} indexesChangesState.indexesSequenceChanged Indicates if the sequence of indexes has changed.
    * @param {boolean} indexesChangesState.trimmedIndexesChanged Indicates if the trimmed indexes have changed.
    * @param {boolean} indexesChangesState.hiddenIndexesChanged Indicates if the hidden indexes have changed.
+   * @param {'init'|'remove'|'insert'|'move'|'update'} [indexesChangesState.indexesChangeSource] Indicates what caused a sequence change.
    */
   'afterRowSequenceCacheUpdate',
 
@@ -1627,6 +1629,22 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired before the Handsontable instance is initiated.
    *
+   * At this point the grid is only partly built. Your settings are already readable through
+   * [`getSettings()`](@/api/core.md#getsettings), but the data is not loaded and the table is not
+   * rendered. Calling a method that reads the data, such as
+   * [`countRows()`](@/api/core.md#countrows) or [`getData()`](@/api/core.md#getdata), throws.
+   * `hot.view` is still `undefined`, so reading it gives `undefined` and calling a method on it
+   * throws. Use this hook to prepare your own state, and use
+   * [`afterInit`](@/api/hooks.md#afterinit) to work with the grid.
+   *
+   * Where the callback runs depends on how you register it. A callback passed in the settings object
+   * runs after the plugins are initialized. A callback registered globally with
+   * `Handsontable.hooks.add('beforeInit', callback)`, or with a negative `orderIndex`, runs before
+   * them.
+   *
+   * The hook fires once per instance creation. React's `StrictMode` mounts a component twice in
+   * development, so a grid created there fires it twice.
+   *
    * @event Hooks#beforeInit
    */
   'beforeInit',
@@ -1968,6 +1986,12 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired after Handsontable instance is constructed (using `new` operator).
+   *
+   * This hook runs inside the constructor, before Handsontable reads the callbacks from the settings
+   * object. A `construct` callback passed in the settings object is registered too late, so it never
+   * runs. To listen to this hook, register it globally with
+   * `Handsontable.hooks.add('construct', callback)`. To run your code from the settings object as early
+   * as possible, use [`beforeInit`](@/api/hooks.md#beforeinit) instead.
    *
    * @event Hooks#construct
    */
@@ -3358,6 +3382,11 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after initializing all the plugins.
    * This hook should be added before Handsontable is initialized.
+   *
+   * This hook runs while `beforeInit` is being dispatched, before Handsontable reads the callbacks
+   * from the settings object. An `afterPluginsInitialized` callback passed in the settings object is
+   * registered too late, so it never runs. To listen to this hook, register it globally with
+   * `Handsontable.hooks.add('afterPluginsInitialized', callback)`.
    *
    * @event Hooks#afterPluginsInitialized
    *

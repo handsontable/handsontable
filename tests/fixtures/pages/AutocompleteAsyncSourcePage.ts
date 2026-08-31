@@ -105,7 +105,13 @@ export class AutocompleteAsyncSourcePage {
    * own value, so the query is the column's shared choice prefix and the whole list matches.
    */
   async openEditor(row: number, col: number): Promise<void> {
-    await this.cell(row, col).click();
+    // Near the cell's leading edge, NOT its centre. A centred click can land on the right-floated
+    // dropdown arrow, whose `mousedown` listener opens the editor by itself - the Enter below would
+    // then commit and close it, and every case here would fail at "the editor never opened" with
+    // nothing in the log. Today the seeds widen the column enough that a centred click misses, but
+    // that margin is a few pixels and moves with the seed, the header and the theme's cell padding,
+    // so it is not something to rely on. See the fixture-contract bullet in `tests/AGENTS.md`.
+    await this.cell(row, col).click({ position: { x: 5, y: 5 } });
 
     await expect.poll(() => this.selected()).toEqual([[row, col, row, col]]);
 
