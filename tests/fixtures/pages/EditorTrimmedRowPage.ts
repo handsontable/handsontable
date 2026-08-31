@@ -35,6 +35,7 @@ interface HandsontableFixture {
   getSelected(): number[][] | undefined;
   selectCells(ranges: number[][]): void;
   selectColumns(column: number): void;
+  selectAll(): void;
   selectRows(row: number): void;
   selection: { transformFocus(row: number, col: number): void };
   getActiveEditor(): {
@@ -548,6 +549,16 @@ export class EditorTrimmedRowPage {
     await this.page.evaluate((targetColumn) => {
       (window as Window & { hot: HandsontableFixture }).hot.selectColumns(targetColumn);
     }, column);
+  }
+
+  /**
+   * Selects everything, the corner-click / Ctrl+A shape. It writes BOTH header-state sets, which is
+   * the case the individual header predicates deliberately answer `false` for.
+   */
+  async selectEverything(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as Window & { hot: HandsontableFixture }).hot.selectAll();
+    });
   }
 
   /**

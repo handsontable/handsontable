@@ -177,6 +177,23 @@ test.describe('selection stranded by a trimming index map', () => {
     expect(await headerless.sourceRowCount()).toBe(5);
   });
 
+  test('clamps a select-all rather than dropping it', async() => {
+    await grid.selectEverything();
+
+    expect(await grid.selected()).toEqual([[-1, -1, 4, 1]]);
+
+    // Selecting everything tracks the grid on BOTH axes, so a shorter grid means a shorter
+    // selection. It is its own case because a corner selection satisfies neither individual header
+    // predicate - both of them open by excluding it.
+    await grid.trimRows([0]);
+
+    expect(await grid.selected()).toEqual([[-1, -1, 3, 1]]);
+
+    await grid.pasteIntoSelection('PASTED');
+
+    expect(await grid.sourceRowCount()).toBe(5);
+  });
+
   test('drops a full-row selection whose row a trim stranded, rather than sliding it', async() => {
     await grid.selectWholeRow(3);
 

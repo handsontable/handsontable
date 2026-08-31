@@ -1505,8 +1505,14 @@ class Selection {
       //
       // `isEntireColumnSelected()` cannot answer this either: it compares the range height against
       // the CURRENT row count, which the trim has already changed, so it reads false exactly here.
-      const isRowExtentTracked = this.isSelectedByColumnHeader();
-      const isColumnExtentTracked = this.isSelectedByRowHeader();
+      // A corner selection - select-all, by keyboard or by clicking the corner - has to be spelled
+      // out separately: it writes BOTH header-state sets, and `isSelectedByRowHeader()` /
+      // `isSelectedByColumnHeader()` each answer `false` for exactly that case (both open with
+      // `!isSelectedByCorner()`). Selecting everything tracks the grid on both axes, so leaving it
+      // out dropped a select-all on any trim.
+      const isSelectedByCorner = this.isSelectedByCorner();
+      const isRowExtentTracked = isSelectedByCorner || this.isSelectedByColumnHeader();
+      const isColumnExtentTracked = isSelectedByCorner || this.isSelectedByRowHeader();
 
       if ((isRowOutOfRange && !isRowExtentTracked) || (isColumnOutOfRange && !isColumnExtentTracked)) {
         this.deselect();
