@@ -106,6 +106,12 @@ export interface MoveCellsHookRecord {
   isCopy: boolean;
 }
 
+/**
+ * Hook counters the DEV-2687 touch tap-to-edit fixture exposes on `window.hookCounts`.
+ */
+export type HookCounterName =
+  'beforeOnCellMouseDown' | 'beforeOnCellMouseUp' | 'afterBeginEditing' | 'afterCreateRow' | 'click';
+
 declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
@@ -128,5 +134,12 @@ declare global {
     hookLog: { name: string, args: unknown[] }[];
     /** Makes the fixture's `beforeMoveCells` listener return `false`. */
     setBeforeMoveCellsVeto(shouldVeto: boolean): boolean;
+    /** Per-hook invocation counters of the touch tap-to-edit fixture (DEV-2687). */
+    hookCounts: Record<HookCounterName, number>;
+    /**
+     * Chromium-only InputDeviceCapabilities constructor, used to stamp synthetic mouse events
+     * with their origin (DEV-2687).
+     */
+    InputDeviceCapabilities: new (init: { firesTouchEvents: boolean }) => { firesTouchEvents: boolean };
   }
 }
