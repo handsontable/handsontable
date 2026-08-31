@@ -205,12 +205,28 @@ test.describe('entitlement license key branding', () => {
     // warning, so the lock must survive the flag. This is driven through a real key so the whole
     // chain is covered - payload read, `resolveChannels`, then the branding routing. The unit test
     // for the same rule mocks `_getLicenseState`, so it cannot see a regression in flag resolution.
-    test('still blocks when the key carries no-ui-warns, with no badge and no bar', async () => {
+    test('still blocks when the key carries no-ui-warns', async () => {
       await license.goto(INSTANT.trialHardStop, { key: 'trial-external' });
 
       await expect(license.lock).toBeVisible();
       await expect(license.lock).toContainText('Your Handsontable trial license key expired on 2026-09-26.');
-      // The warning surfaces stay silenced - that half of the flag is unchanged.
+    });
+  });
+
+  test.describe('a trial issued for external use', () => {
+    // The other half of the same flag, asserted where it actually bites. At the HARD stop the badge
+    // and bar are absent for every key - the lock branch returns before the badge is mounted, and
+    // `_rendersBlockingModal` withholds the bar - so asserting their absence there proves nothing.
+    // The soft stop is the instant where an unflagged trial shows both, so this is the comparison
+    // that fails if `resolveChannels` ever stops reading `no-ui-warns`.
+    test('shows the badge and the bar without the flag, and neither with it', async () => {
+      await license.goto(INSTANT.trialSoftStop, { key: 'trial' });
+
+      await expect(license.badgeWrapper).toHaveCount(1);
+      await expect(license.bar).toContainText('Your Handsontable license key has expired');
+
+      await license.goto(INSTANT.trialSoftStop, { key: 'trial-external' });
+
       await expect(license.badgeWrapper).toHaveCount(0);
       await expect(license.bar).toHaveCount(0);
     });

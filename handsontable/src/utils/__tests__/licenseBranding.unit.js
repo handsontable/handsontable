@@ -763,11 +763,12 @@ describe('licenseBranding', () => {
       }
     );
 
-    // ...but it must NOT switch the block off. The specification scopes the flag to UI warnings
-    // (S2.3), while the hard stop is the enforcement of a licence that has stopped (S4.1). Since an
-    // external/SaaS key carries this flag by default, honoring it here would have made every such
-    // key unblockable. This assertion fails if the `channels.ui` gate is ever moved back in front of
-    // the `LOCK_CONTENT` routing - which is the whole point of it.
+    // ...but it must NOT switch the block off. The flag covers UI warnings; the hard stop is the
+    // enforcement of a license that has stopped (product decision, DEV-2709). Since an external/SaaS
+    // key carries this flag by default, honoring it here made external TRIALS unblockable - the only
+    // externally-issued keys that can be blocked at all, since a lapsed subscription blocks nothing.
+    // This assertion fails if the `channels.ui` gate is ever moved back in front of the
+    // `LOCK_CONTENT` routing - which is the whole point of it.
     //
     // Only `trial_hard_stop` is reachable this way in production: `invalid` and `missing` describe
     // keys whose flags could not be read, so `_getLicenseState` returns OPEN_CHANNELS for both and
