@@ -535,6 +535,16 @@ export class EditorTrimmedRowPage {
   }
 
   /**
+   * Selects several ranges in ONE call, which is what actually produces a multi-layer selection -
+   * a second `selectCells()` replaces the first rather than adding to it.
+   */
+  async selectRanges(ranges: number[][]): Promise<void> {
+    await this.page.evaluate((targetRanges) => {
+      (window as Window & { hot: HandsontableFixture }).hot.selectCells(targetRanges);
+    }, ranges);
+  }
+
+  /**
    * Sorts and trims inside one `batch()`, which collapses both into a SINGLE index-map cache update
    * carrying `indexesSequenceChanged` and `trimmedIndexesChanged` together. Driving them separately
    * produces two updates and never exercises that pairing.

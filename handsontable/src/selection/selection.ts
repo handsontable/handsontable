@@ -1033,39 +1033,50 @@ class Selection {
   }
 
   /**
-   * Tells whether one axis of the highlight no longer addresses the record it was captured on.
+   * Tells whether one axis of a coordinate has been left past the last index.
+   *
+   * Applied to the highlight AND to both range corners, because a paste sizes its fill loop from
+   * the corners: a range whose far corner outruns the axis writes down to it and appends records,
+   * whatever the highlight is doing.
+   *
+   * @private
+   * @param {number | null} visualIndex The visual index on that axis.
+   * @param {number} count The number of visual indexes on that axis.
+   * @returns {boolean}
+   */
+  #isAxisOutOfRange(visualIndex: number | null, count: number): boolean {
+    // Headers are outside the record space and keep their own coordinates. An axis trimmed away
+    // ENTIRELY is excluded too: that is a grid with nothing on that axis rather than a stale
+    // selection, and selecting headers over it stays meaningful - copying with every row trimmed
+    // yields an empty table, and column headers still copy. Established, tested behavior.
+    if (visualIndex === null || visualIndex < 0 || count === 0) {
+      return false;
+    }
+
+    return visualIndex > count - 1;
+  }
+
+  /**
+   * Tells whether one axis of the highlight no longer addresses the record it was captured on,
+   * although the coordinate itself still addresses something.
+   *
+   * This is the half an open editor is exempt from: a write through such a coordinate lands on a
+   * real record rather than appending, and `EditorManager` keeps the selection there on purpose.
    *
    * @private
    * @param {number | null} visualIndex The highlight's visual index on that axis.
    * @param {number | null} physicalIndex The captured physical index on that axis, if any.
    * @param {IndexMapper} indexMapper The index mapper for that axis.
    * @param {number} count The number of visual indexes on that axis.
-   * @param {boolean} unresolvableOnly Whether to report only a coordinate that addresses nothing,
-   *                                   leaving one that merely changed record alone.
    * @returns {boolean}
    */
-  #isAxisStranded(
-    visualIndex: number | null, physicalIndex: number | null, indexMapper: IndexMapper, count: number,
-    unresolvableOnly: boolean): boolean {
-    // Headers are outside the record space and keep their own coordinates.
-    if (visualIndex === null || visualIndex < 0) {
+  #isAxisRecordGone(
+    visualIndex: number | null, physicalIndex: number | null, indexMapper: IndexMapper, count: number): boolean {
+    if (visualIndex === null || visualIndex < 0 || count === 0 || physicalIndex === null) {
       return false;
     }
 
-    // An axis trimmed away ENTIRELY is not a stale selection, it is a grid with nothing on that
-    // axis to select - and a selection over it stays meaningful: copying with every row trimmed
-    // yields an empty table rather than nothing at all, and column headers still copy. Established,
-    // tested behavior, so the repair leaves it alone.
-    if (count === 0) {
-      return false;
-    }
-
-    if (!unresolvableOnly && physicalIndex !== null &&
-        indexMapper.getVisualFromPhysicalIndex(physicalIndex) === null) {
-      return true;
-    }
-
-    return visualIndex > count - 1;
+    return indexMapper.getVisualFromPhysicalIndex(physicalIndex) === null;
   }
 
   /**
@@ -1450,41 +1461,45 @@ class Selection {
     const maxRow = this.tableProps.rowIndexMapper.getNotTrimmedIndexesLength() - 1;
     const maxColumn = this.tableProps.columnIndexMapper.getNotTrimmedIndexesLength() - 1;
 
-    // The CORNERS are tested for range as well as the highlight, and they are not redundant with
-    // it: a paste sizes its fill loop from `getTopStartCorner()`/`getBottomEndCorner()`, so a range
-    // dragged across rows that are then trimmed writes all the way down to `to.row` even while the
-    // highlight itself still addresses a live record. That is the same append, reached through a
-    // coordinate the highlight test never looks at.
-    //
-    // An axis trimmed away ENTIRELY is excluded. There the whole visual space is gone rather than
-    // the selection being stale, and selecting headers over it stays meaningful - copying column
-    // headers with every row trimmed is established, tested behavior.
-    const isCornerOutOfRange =
-      (maxRow >= 0 && ((from.row ?? 0) > maxRow || (to.row ?? 0) > maxRow)) ||
-      (maxColumn >= 0 && ((from.col ?? 0) > maxColumn || (to.col ?? 0) > maxColumn));
-
-    if (isCornerOutOfRange) {
-      this.deselect();
-
-      return true;
-    }
-
-    // Sized from the index mappers rather than `countRows()`/`countCols()`: those read through the
-    // DataMap, which `updateData()` tears down and rebuilds while cache updates are still firing.
-    // The mappers own the trimmed visual space anyway, which is exactly what is being tested here.
+    // Both counts are sized from the index mappers rather than `countRows()`/`countCols()`: those
+    // read through the DataMap, which `updateData()` tears down and rebuilds while cache updates
+    // are still firing. The mappers own the trimmed visual space anyway, which is what is tested.
     //
     // The two measures differ only where `maxRows`/`maxCols` binds - `DataMap#getLength()` is
     // `Math.min(notTrimmedLength, maxRows)` - which makes this test the more permissive of the two,
     // while `applyChanges()` grows the data set against the clamped one. That gap is unreachable:
     // it is non-empty only when the setting is below the not-trimmed length, and in exactly that
-    // case a trim leaves the clamped count untouched, so a highlight that was in range before the
-    // trim is still in range after it. The record test above does not depend on either count.
-    const isRowStranded = this.#isAxisStranded(row, this.#highlightPhysicalRow,
-      this.tableProps.rowIndexMapper, maxRow + 1, unresolvableOnly);
-    const isColumnStranded = this.#isAxisStranded(col, this.#highlightPhysicalColumn,
-      this.tableProps.columnIndexMapper, maxColumn + 1, unresolvableOnly);
+    // case a trim leaves the clamped count untouched, so a coordinate that was in range before the
+    // trim is still in range after it.
+    //
+    // The HIGHLIGHT is tested alongside both corners. It normally sits between them, so the corner
+    // test usually subsumes it - but it is checked in its own right rather than by assumption,
+    // because nothing in this class holds the highlight inside the range, and a highlight the
+    // corners do not cover is exactly the coordinate a commit would write through.
+    const isOutOfRange =
+      this.#isAxisOutOfRange(row, maxRow + 1) ||
+      this.#isAxisOutOfRange(from.row, maxRow + 1) ||
+      this.#isAxisOutOfRange(to.row, maxRow + 1) ||
+      this.#isAxisOutOfRange(col, maxColumn + 1) ||
+      this.#isAxisOutOfRange(from.col, maxColumn + 1) ||
+      this.#isAxisOutOfRange(to.col, maxColumn + 1);
 
-    if (!isRowStranded && !isColumnStranded) {
+    if (isOutOfRange) {
+      this.deselect();
+
+      return true;
+    }
+
+    if (unresolvableOnly) {
+      return false;
+    }
+
+    const isRecordGone =
+      this.#isAxisRecordGone(row, this.#highlightPhysicalRow, this.tableProps.rowIndexMapper, maxRow + 1) ||
+      this.#isAxisRecordGone(col, this.#highlightPhysicalColumn,
+        this.tableProps.columnIndexMapper, maxColumn + 1);
+
+    if (!isRecordGone) {
       return false;
     }
 

@@ -124,9 +124,29 @@ test.describe('selection stranded by a trimming index map', () => {
     expect(await grid.selected()).toEqual([[0, 0, 1, 0]]);
   });
 
+  test('re-reads the record after a trim it tolerated, so the next trim is judged fresh', async() => {
+    await grid.selectCell(2, 0);
+    // Trimming a row ABOVE the highlight is the documented gap: the selection is kept, and visual
+    // row 2 now holds `A3` instead of `A2`. Unless the record is re-read here, the capture keeps
+    // naming `A2` and every later trim is judged against a record the highlight no longer sits on.
+    await grid.trimRows([0]);
+
+    expect(await grid.selected()).toEqual([[2, 0, 2, 0]]);
+
+    // `A2` is now irrelevant to the highlight, so trimming it must not disturb the selection.
+    await grid.trimRows([2]);
+
+    expect(await grid.selected()).toEqual([[2, 0, 2, 0]]);
+  });
+
   test('drops every layer when the active highlight is the stranded one', async() => {
-    await grid.selectCell(0, 0);
-    await grid.selectRangeWithFocusAt([3, 0, 3, 0], 0, 0);
+    // Two ranges in ONE call, because a second `selectCells()` replaces the first rather than
+    // adding a layer. The active layer is the last one, so the first survives the trim untouched
+    // and only the rule's "when it fires the whole selection goes" clause can explain it going.
+    await grid.selectRanges([[0, 0, 0, 0], [3, 0, 3, 0]]);
+
+    expect(await grid.selected()).toEqual([[0, 0, 0, 0], [3, 0, 3, 0]]);
+
     await grid.trimRows([0, 1, 3]);
 
     expect(await grid.selected()).toBeUndefined();

@@ -793,23 +793,41 @@ export default function Core(
 
   this.selection = selection;
 
-  let hadOpenEditorOnCacheUpdate = false;
+  /**
+   * The state object an index mapper sends with every `cacheUpdated`. All three flags are always
+   * present - `IndexMapper#updateCache()` builds the object literal - so none of them is optional.
+   * Declared once because four sites read it, and a partial payload at any of them would
+   * destructure to `undefined` and silently skip a repair.
+   */
+  type IndexesChangesState = {
+    indexesSequenceChanged: boolean;
+    trimmedIndexesChanged: boolean;
+    hiddenIndexesChanged: boolean;
+  };
 
+  /**
+   * Reacts to an index-map cache update, and reports whether an editor was open when it landed.
+   *
+   * That answer is RETURNED rather than stored, because both axes share this function: a column
+   * update nested inside the row hooks would overwrite a shared flag, and by then `EditorManager`
+   * has discarded the stranded editor, so it would write `false` and the outer row repair would run
+   * the full record test instead of the narrower one - dropping a selection the editor deliberately
+   * kept. Returning it gives each axis its own value.
+   *
+   * @param {object} indexesChangesState The state object of the index mapper's cache update.
+   * @param {boolean} indexesChangesState.hiddenIndexesChanged Whether the hidden indexes changed.
+   * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
+   * @returns {boolean}
+   */
   const onIndexMapperCacheUpdate = (
-    { hiddenIndexesChanged, trimmedIndexesChanged }:
-    { hiddenIndexesChanged: boolean; trimmedIndexesChanged?: boolean }
-  ) => {
+    { hiddenIndexesChanged, trimmedIndexesChanged }: IndexesChangesState
+  ): boolean => {
     this.forceFullRender = true;
 
     // Sampled HERE, before the public cache-update hooks run, because `EditorManager` discards a
     // stranded editor inside those hooks - by the time the selection repair reads this, an editor
     // that was open when the trim landed is already gone.
-    //
-    // One window is knowingly left open: a hook consumer that trims from inside
-    // `afterRowSequenceCacheUpdate` nests another cache update, which rewrites this flag before the
-    // outer repair reads it. The nested update samples the same editor state a moment later, so the
-    // two disagree only if that consumer also opened or closed an editor in between.
-    hadOpenEditorOnCacheUpdate = editorManager?.isEditorOpened() === true;
+    const hadOpenEditor = editorManager?.isEditorOpened() === true;
 
     if (hiddenIndexesChanged) {
       this.selection.commit();
@@ -823,6 +841,8 @@ export default function Core(
         this.selection.recaptureHighlightRecord();
       }
     }
+
+    return hadOpenEditor;
   };
 
   let lastRowIndexCount = this.rowIndexMapper.getNumberOfIndexes();
@@ -870,8 +890,8 @@ export default function Core(
    */
   const repairSelection = (
     isStructuralChange: boolean,
-    { trimmedIndexesChanged, indexesSequenceChanged }:
-    { trimmedIndexesChanged: boolean; indexesSequenceChanged: boolean }
+    { trimmedIndexesChanged, indexesSequenceChanged }: IndexesChangesState,
+    hadOpenEditor: boolean
   ) => {
     if (!this.selection.isSelected()) {
       return;
@@ -896,36 +916,43 @@ export default function Core(
       return;
     }
 
+    // EVERY path that leaves the selection in place re-reads the record under it, because a trim
+    // this repair tolerates still moves the record the highlight addresses - trimming a row above
+    // it is the documented gap. Leaving the old capture in place would make it drift: the next trim
+    // would judge the selection against a record it no longer sits on, dropping a healthy selection
+    // when that record goes and keeping a stranded one when it stays.
     if (editorManager?.isEditorOpened()) {
+      this.selection.recaptureHighlightRecord();
+
       return;
     }
 
-    this.selection.deselectIfHighlightStranded({ unresolvableOnly: hadOpenEditorOnCacheUpdate });
+    if (!this.selection.deselectIfHighlightStranded({ unresolvableOnly: hadOpenEditor })) {
+      this.selection.recaptureHighlightRecord();
+    }
   };
 
-  this.columnIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: {
-    hiddenIndexesChanged: boolean; trimmedIndexesChanged: boolean; indexesSequenceChanged: boolean;
-  }) => {
-    onIndexMapperCacheUpdate(indexesChangesState);
+  this.columnIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexesChangesState) => {
+    const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState);
+    // Read BEFORE the public hook, so the structural-versus-trim answer cannot be rewritten by what
+    // a consumer does: one that calls `alter()` from the hook would make a plain trim look
+    // structural and skip the repair entirely. The count is already final when `cacheUpdated`
+    // fires, so reading it early costs nothing.
+    const indexCount = this.columnIndexMapper.getNumberOfIndexes();
 
     this.runHooks('afterColumnSequenceCacheUpdate', indexesChangesState);
 
-    const indexCount = this.columnIndexMapper.getNumberOfIndexes();
-
-    repairSelection(indexCount !== lastColumnIndexCount, indexesChangesState);
+    repairSelection(indexCount !== lastColumnIndexCount, indexesChangesState, hadOpenEditor);
     lastColumnIndexCount = indexCount;
   });
 
-  this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: {
-    hiddenIndexesChanged: boolean; trimmedIndexesChanged: boolean; indexesSequenceChanged: boolean;
-  }) => {
-    onIndexMapperCacheUpdate(indexesChangesState);
+  this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexesChangesState) => {
+    const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState);
+    const indexCount = this.rowIndexMapper.getNumberOfIndexes();
 
     this.runHooks('afterRowSequenceCacheUpdate', indexesChangesState);
 
-    const indexCount = this.rowIndexMapper.getNumberOfIndexes();
-
-    repairSelection(indexCount !== lastRowIndexCount, indexesChangesState);
+    repairSelection(indexCount !== lastRowIndexCount, indexesChangesState, hadOpenEditor);
     lastRowIndexCount = indexCount;
   });
 

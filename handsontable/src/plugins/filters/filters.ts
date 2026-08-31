@@ -1007,7 +1007,6 @@ export class Filters extends BasePlugin {
     // this method runs, there may be no selection left to read the column from. Reading it here
     // also keeps the `beforeFilter` hook able to move the selection, which a consumer may
     // legitimately do.
-    const wasSelected = this.hot.selection.isSelected();
     const selectedHighlightColumn = this.hot.getSelectedRangeActive()?.highlight.col;
     let isSelectionDropped = false;
 
@@ -1054,11 +1053,16 @@ export class Filters extends BasePlugin {
     // it stashed when the grid emptied, which is why the state at entry cannot be the only source -
     // and a selection can disappear during it, dropped by the Core when the trim strands it, which
     // is why the state at exit cannot be either.
+    // The captured column is a FALLBACK, and it deliberately outranks a deselect that happened
+    // during the call, because the Core drops a selection this filter's own trim stranded and the
+    // re-selection below is what puts the user back on the column they were working in. The cost is
+    // that a consumer deselecting from `beforeFilter` or a cache-update hook is overruled; a
+    // consumer that wants the grid deselected after filtering should do it from `afterFilter`,
+    // which runs last.
     const currentHighlightColumn = this.hot.getSelectedRangeActive()?.highlight.col;
     const columnToSelect = currentHighlightColumn ?? selectedHighlightColumn;
 
-    if ((this.hot.selection.isSelected() || wasSelected) && !isSelectionDropped &&
-        columnToSelect !== null && columnToSelect !== undefined) {
+    if (!isSelectionDropped && columnToSelect !== null && columnToSelect !== undefined) {
       this.hot.selectCell(
         navigableHeaders ? -1 : 0,
         columnToSelect,
