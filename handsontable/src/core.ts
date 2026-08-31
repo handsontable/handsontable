@@ -28,6 +28,7 @@ import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
 import { spreadsheetColumnLabel, hasChangeForCell } from './helpers/data';
 import { IndexMapper } from './translations';
+import type { IndexesChangeSource } from './translations/indexMapper';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
 import { DEFAULT_COLUMN_WIDTH } from './3rdparty/walkontable/src';
 import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from './i18n/registry';
@@ -797,6 +798,7 @@ export default function Core(
     hiddenIndexesChanged: boolean;
     indexesSequenceChanged: boolean;
     trimmedIndexesChanged: boolean;
+    indexesChangeSource?: IndexesChangeSource;
   };
   type IndexAxis = 'row' | 'column';
 
@@ -3923,12 +3925,12 @@ export default function Core(
    *
    * The returned object contains the settings passed to the constructor or the most recent
    * `updateSettings()` call. It reflects the
-   * [grid-level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options)
+   * [grid-level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options)
    * configuration only.
    *
    * It does not include merged per-cell or per-column values. Configuration options cascade from
    * grid to column to cell (see
-   * [Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)).
+   * [Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)).
    * To read the effective value for a specific cell, use [[getCellMeta]]. To read column-level meta, use [[getColumnMeta]].
    *
    * @memberof Core#
@@ -4752,7 +4754,7 @@ export default function Core(
    * Returns the cell properties object for the given `row` and `column` coordinates.
    *
    * The returned object reflects the effective cell configuration after
-   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+   * [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
    * (grid, column, and cell levels). To read global grid settings only, use [[getSettings]].
    * To read column-level meta, use [[getColumnMeta]].
    *
@@ -4792,7 +4794,7 @@ export default function Core(
    * retaining it in the cell meta cache.
    *
    * Like [[getCellMeta]], the returned object reflects the effective cell configuration after
-   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+   * [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
    * and dynamic extension (the `cells` function and the `beforeGetCellMeta`/`afterGetCellMeta`
    * hooks run). Unlike `getCellMeta`, when the cell has no stored meta object the extension runs
    * on a temporary object that is not saved, so scanning many cells (for example, a whole column
@@ -4835,7 +4837,7 @@ export default function Core(
    * Returns the meta information for the provided column.
    *
    * The returned object reflects the column-level configuration after
-   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+   * [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
    * (grid and column levels). To read global grid settings only, use [[getSettings]].
    * To read the effective configuration for a specific cell, use [[getCellMeta]].
    *
@@ -4863,7 +4865,7 @@ export default function Core(
 
   /**
    * Checks if your [data format](@/guides/getting-started/binding-to-data/binding-to-data.md#compatible-data-types)
-   * and [configuration options](@/guides/getting-started/configuration-options/configuration-options.md)
+   * and [configuration options](@/guides/configuration/configuration-options/configuration-options.md)
    * allow for changing the number of columns.
    *
    * Returns `false` when your data is an array of objects,

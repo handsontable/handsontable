@@ -334,6 +334,7 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} indexesChangesState.indexesSequenceChanged Indicates if the sequence of indexes has changed.
    * @param {boolean} indexesChangesState.trimmedIndexesChanged Indicates if the trimmed indexes have changed.
    * @param {boolean} indexesChangesState.hiddenIndexesChanged Indicates if the hidden indexes have changed.
+   * @param {'init'|'remove'|'insert'|'move'|'update'} [indexesChangesState.indexesChangeSource] Indicates what caused a sequence change.
    */
   'afterColumnSequenceCacheUpdate',
 
@@ -808,6 +809,7 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} indexesChangesState.indexesSequenceChanged Indicates if the sequence of indexes has changed.
    * @param {boolean} indexesChangesState.trimmedIndexesChanged Indicates if the trimmed indexes have changed.
    * @param {boolean} indexesChangesState.hiddenIndexesChanged Indicates if the hidden indexes have changed.
+   * @param {'init'|'remove'|'insert'|'move'|'update'} [indexesChangesState.indexesChangeSource] Indicates what caused a sequence change.
    */
   'afterRowSequenceCacheUpdate',
 

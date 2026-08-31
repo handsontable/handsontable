@@ -33,10 +33,10 @@ overrides:
   '@parcel/watcher>picomatch': ^4.0.4
   '@rollup/pluginutils>picomatch': ^4.0.4
   serialize-javascript: ^7.0.3
-  pacote>tar: ^7.5.11
+  pacote>tar: ^7.5.19
   pacote>sigstore: ^4.1.1
-  node-gyp>tar: ^7.5.11
-  cacache>tar: ^7.5.11
+  node-gyp>tar: ^7.5.19
+  cacache>tar: ^7.5.19
   typed-rest-client: ^3.1.0
   undici: ^6.28.0
   '@astrojs/mdx': ^6.0.1
@@ -12346,8 +12346,8 @@ packages:
   tar-stream@3.2.0:
     resolution: {integrity: sha512-ojzvCvVaNp6aOTFmG7jaRD0meowIAuPc3cMMhSgKiVWws1GyHbGd/xvnyuRKcKlMpt3qvxx6r0hreCNITP9hIg==}
 
-  tar@7.5.16:
-    resolution: {integrity: sha512-56adEpPMouktRlBLXiaYFFzZ/3+JXa8P9n7WbR+ibIjtviN55mEaOkiysCnPnWm+7kkui1Dn8J9l+g6zV8731w==}
+  tar@7.5.22:
+    resolution: {integrity: sha512-MFO/QzvtAOmJbkhOaCTvbGcFN9L9b+JunIsDwaKljSOdcLMea3NJ1k9Usz/rjdfSXTq4dfzfeS7W4p4YOAAHeA==}
     engines: {node: '>=18'}
 
   teex@1.0.1:
@@ -20434,7 +20434,7 @@ snapshots:
       minipass-pipeline: 1.2.4
       p-map: 7.0.4
       ssri: 12.0.0
-      tar: 7.5.16
+      tar: 7.5.22
       unique-filename: 4.0.0
 
   cacache@20.0.4:
@@ -25515,7 +25515,7 @@ snapshots:
       nopt: 8.1.0
       proc-log: 5.0.0
       semver: 7.8.4
-      tar: 7.5.16
+      tar: 7.5.22
       tinyglobby: 0.2.17
       which: 5.0.0
     transitivePeerDependencies:
@@ -25837,7 +25837,7 @@ snapshots:
       promise-retry: 2.0.1
       sigstore: 4.1.1
       ssri: 12.0.0
-      tar: 7.5.16
+      tar: 7.5.22
     transitivePeerDependencies:
       - supports-color
 
@@ -27803,7 +27803,7 @@ snapshots:
       - bare-buffer
       - react-native-b4a
 
-  tar@7.5.16:
+  tar@7.5.22:
     dependencies:
       '@isaacs/fs-minipass': 4.0.1
       chownr: 3.0.0

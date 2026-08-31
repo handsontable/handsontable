@@ -2,7 +2,6 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/introduction/introduction' },
   { path: 'guides/getting-started/demo/demo' },
   { path: 'guides/getting-started/installation/installation' },
-  { path: 'guides/getting-started/configuration-options/configuration-options' },
   { path: 'guides/getting-started/grid-size/grid-size' },
   { path: 'guides/getting-started/custom-id-class-style/custom-id-class-style' },
   { path: 'guides/getting-started/react-methods/react-methods', onlyFor: ['react'] },
@@ -14,6 +13,11 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/vue3-pinia/vue3-pinia', onlyFor: ['vue'] },
   { path: 'guides/getting-started/vue3-nuxt/vue3-nuxt', onlyFor: ['vue'] },
   { path: 'guides/getting-started/license-key/license-key' },
+];
+
+const configurationItems = [
+  { path: 'guides/configuration/configuration-options/configuration-options' },
+  { path: 'guides/configuration/configuration-option-levels/configuration-option-levels' },
 ];
 
 const aiToolsItems = [
@@ -217,6 +221,7 @@ const upgradeAndMigrationItems = [
 module.exports = {
   sidebar: [
     { title: 'Getting started', children: gettingStartedItems },
+    { title: 'Configuration', children: configurationItems },
     { title: 'AI Tools', children: aiToolsItems },
     { title: 'Styling', children: stylingItems },
     { title: 'Columns', children: columnsItems },

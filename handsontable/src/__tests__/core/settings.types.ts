@@ -235,6 +235,16 @@ const allSettings: Required<Handsontable.GridSettings> = {
     (content: string, source: 'innerHTML' | 'CopyPaste.paste') => content,
   ),
   search: true,
+  // The `true` shorthand selects the built-in extraction. Full coverage, including the union's
+  // effect on reading the option back out, lives in `textExtractor.types.ts`.
+  textExtractor: oneOf(
+    true,
+    false,
+    (content: string) => content,
+    (content: string, source: string) => content,
+    (content: string, source: Handsontable.TextExtractorContext) => content,
+    (content: string, source: 'ExportFile.columnHeader') => content,
+  ),
   selectionMode: oneOf('single', 'range', 'multiple'),
   selectionHandles: true,
   moveCells: true,
@@ -407,7 +417,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterColumnResize: (newSize, column, isDoubleClick) => {},
   afterColumnSequenceChange: (source) => {},
   afterCustomBordersUpdate: () => {},
-  afterColumnSequenceCacheUpdate: (indexesChangesState) => {},
+  afterColumnSequenceCacheUpdate: (indexesChangesState) => {
+    const _source: 'init' | 'remove' | 'insert' | 'move' | 'update' | undefined =
+      indexesChangesState.indexesChangeSource;
+  },
   afterColumnSort: (currentSortConfig, destinationSortConfigs) => {},
   afterColumnUnfreeze: (columnIndex, isFreezingPerformed) => {},
   beforeCompositionStart: (event) => {
@@ -529,7 +542,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
                  orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
   afterRowResize: (newSize, row, isDoubleClick) => {},
   afterRowSequenceChange: (source) => {},
-  afterRowSequenceCacheUpdate: (indexesChangesState) => {},
+  afterRowSequenceCacheUpdate: (indexesChangesState) => {
+    const _source: 'init' | 'remove' | 'insert' | 'move' | 'update' | undefined =
+      indexesChangesState.indexesChangeSource;
+  },
   afterScrollHorizontally: () => {},
   afterScrollVertically: () => {},
   afterScroll: () => {},

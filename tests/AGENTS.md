@@ -34,19 +34,34 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   warning and silently stays off) and **no languages pack** (an i18n fixture
   loads `dist/languages/all.js` explicitly — the Puppeteer harness does that
   for you, this tier does not).
-- **Seed an editor fixture's cells with a non-empty value.** On an EMPTY cell,
-  `cell.click()` followed by `keyboard.press('Enter')` opens the editor and
-  closes it again on the same keypress. The trace is `afterBeginEditing`
-  (EDITING) → `beforeChange` (WAITING) → `afterChange` (VIRGIN). Nothing is
-  logged, so the spec just fails at "the editor never opened" with no pointer to
-  the cause. It is specific to click-then-Enter: `hot.selectCell()` then Enter
-  keeps an empty cell's editor open, and so does click-then-Enter as soon as the
-  cell has a value. Pre-existing and not root-caused (see the sibling case,
-  `dropdownEditor.spec.js`'s "empty-value focus"). For `autocomplete` /
-  `dropdown`, seed with a prefix the whole column's choice set shares (`'Al'` for
-  `Alpha/Alfa/Alto`) so `autocomplete`, which filters by the typed value, renders
-  the same list as `dropdown`, which forces `filter: false`, and one assertion
-  covers both. Reference: `fixtures/demo/autocomplete-async-source.html`.
+- **On a cell with a dropdown arrow, a centred `cell.click()` can land on the
+  arrow and open the editor by itself.** `autocompleteRenderer` registers a
+  `mousedown` listener that opens the list whenever the press lands on
+  `.htAutocompleteArrow`, so the editor is already open before your
+  `keyboard.press('Enter')` — and that Enter then correctly commits and closes
+  it. The spec fails at "the editor never opened" with nothing in the log to
+  point at the cause. It is not only `autocomplete` and `dropdown`:
+  `handsontableRenderer` and `dropdownRenderer` both delegate to
+  `autocompleteRenderer`, so `type: 'handsontable'` carries the same arrow.
+  Whether the click lands on it is pure geometry, and **the outcome is
+  theme-dependent** — the arrow is right-floated at `var(--ht-icon-size)`, which
+  is 16 px on `main` and `horizon` but 12 px on `classic`, and the deciding term
+  is the theme's cell padding, which leaves the arrow's left edge within about a
+  pixel of the centre. Measured on `main`: at the 50 px default column width the
+  arrow spans x=24–40 while the centre is x=25. So the same centred click can hit
+  on one leg of the theme × bundle matrix and miss on another. An EMPTY cell is
+  the common way to end up at that default width, which is why empty fixtures
+  trip it and seeded ones usually do not — but a long header or narrow content
+  puts the arrow back under the centre, so cell content is not a guarantee
+  either. Click off-centre, or select with `hot.selectCell()`, when the spec
+  means to open the editor with Enter. Root-caused in DEV-2677; the arrow's own
+  coverage is `e2e/cell-dropdown-arrow-button.spec.ts`, over all three cell
+  types.
+- **Seed an `autocomplete` / `dropdown` fixture with a prefix the whole column's
+  choice set shares** (`'Al'` for `Alpha/Alfa/Alto`), so `autocomplete`, which
+  filters by the typed value, renders the same list as `dropdown`, which forces
+  `filter: false`, and one assertion covers both. Reference:
+  `fixtures/demo/autocomplete-async-source.html`.
 - A fixture-served library MUST be a dependency of THIS package, loaded from
   `/tests/node_modules/…` — CI installs only the filtered `handsontable-tests`
   workspace, so a path into any other package's `node_modules` does not exist
