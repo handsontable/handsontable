@@ -141,10 +141,10 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
   });
 
   test.describe('toggling manualColumnFreeze after the menu was built', () => {
-    // The dropdown menu assembles its items once, when it is enabled, unlike the context menu
-    // which rebuilds on every open. Without the plugin forcing a rebuild, the menu keeps whatever
-    // it held at build time — and the stale entry stays live, because freezeColumn() has no
-    // enabled-guard of its own.
+    // The menu rebuilds its item list on every open, the same way the context menu does, so a
+    // plugin switched on or off through `updateSettings` is picked up the next time it opens.
+    // The entries carry their own enabled check as well: `CommandExecutor` never evicts a command
+    // it registered, so the rebuild alone does not close the `executeCommand()` path.
     test('drops the entry when the plugin is turned off', async () => {
       await grid.openColumnMenu(TOGGLE, 'Charlie');
       expect(await grid.visibleDropdownMenuItems()).toContain(FREEZE_LABEL);

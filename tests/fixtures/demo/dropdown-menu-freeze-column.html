@@ -39,8 +39,8 @@
     through ItemsFactory as a bare `{ name, key }` placeholder, so the dropdown menu rendered a row
     labelled with the RAW KEY that did nothing when clicked.
 
-    The dropdown menu also builds that list only once, when it is enabled, so the grids below cover
-    the settings toggle in both directions as well as the menu contents.
+    The dropdown menu rebuilds that list every time it opens, so the grids below cover the settings
+    toggle in both directions as well as the menu contents.
   -->
   <div id="custom-keys" class="grid" data-testid="custom-keys"></div>
   <div id="default-menu" class="grid" data-testid="default-menu"></div>
