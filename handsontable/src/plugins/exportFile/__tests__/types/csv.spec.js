@@ -592,4 +592,163 @@ describe('exportFile CSV type', () => {
       });
     });
   });
+
+  describe('`textExtractor` option', () => {
+    it('should export markup in column headers as-is when the option is not set', async() => {
+      handsontable({
+        data: [[1, 2]],
+        colHeaders: ['<b>Bold</b>', 'Plain'],
+      });
+
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { colHeaders: true }).export();
+
+      expect(csv).toBe('\ufeff"<b>Bold</b>","Plain"\r\n1,2');
+    });
+
+    it('should export column headers as displayed text when set to `true`', async() => {
+      handsontable({
+        data: [[1, 2]],
+        colHeaders: ['<b>Bold</b>', '<span style="color:red">Red</span>'],
+        textExtractor: true,
+      });
+
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { colHeaders: true }).export();
+
+      expect(csv).toBe('\ufeff"Bold","Red"\r\n1,2');
+    });
+
+    it('should export a column title defined in `columns` as displayed text', async() => {
+      handsontable({
+        data: [[1, 2]],
+        colHeaders: true,
+        columns: [{ title: '<i>Italic</i>' }, { title: 'Plain' }],
+        textExtractor: true,
+      });
+
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { colHeaders: true }).export();
+
+      expect(csv).toBe('\ufeff"Italic","Plain"\r\n1,2');
+    });
+
+    it('should export row headers as displayed text', async() => {
+      handsontable({
+        data: [[1, 2]],
+        rowHeaders: ['<b>R1</b>'],
+        textExtractor: true,
+      });
+
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { rowHeaders: true }).export();
+
+      expect(csv).toBe('\ufeffR1,1,2');
+    });
+
+    it('should export nested headers as displayed text', async() => {
+      handsontable({
+        data: [[1, 2]],
+        colHeaders: true,
+        nestedHeaders: [
+          ['<b>Group</b>'],
+          ['<i>A</i>', 'B'],
+        ],
+        textExtractor: true,
+      });
+
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { colHeaders: true }).export();
+
+      expect(csv).toBe('\ufeff"A","B"\r\n1,2');
+    });
+
+    it('should decode entities so a header reads in the file as it does on screen', async() => {
+      handsontable({
+        data: [[1]],
+        colHeaders: ['Tom &amp; Jerry'],
+        textExtractor: true,
+      });
+
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { colHeaders: true }).export();
+
+      expect(csv).toBe('\ufeff"Tom & Jerry"\r\n1');
+    });
+
+    it('should leave cell data untouched, because a cell exports its value and not its markup', async() => {
+      // A value such as `a<b` is data, never a display string. Parsing it as HTML would destroy it.
+      handsontable({
+        data: [['a<b', 'x <br 5']],
+        colHeaders: ['<b>H</b>', 'H2'],
+        textExtractor: true,
+      });
+
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { colHeaders: true }).export();
+
+      expect(csv).toBe('\ufeff"H","H2"\r\na<b,x <br 5');
+    });
+
+    it('should export exactly what the grid renders for a header that is not markup', async() => {
+      // `fastInnerHTML` writes a header as literal text unless it matches `HTML_CHARACTERS`, so
+      // `A<B` shows those three characters. Parsing it here would send `A` to the file.
+      handsontable({
+        data: [[1]],
+        colHeaders: ['A<B'],
+        textExtractor: true,
+      });
+
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { colHeaders: true }).export();
+      const rendered = spec().$container.find('thead th:eq(0)').text();
+
+      expect(rendered).toBe('A<B');
+      expect(csv).toBe('﻿"A<B"\r\n1');
+    });
+
+    it('should keep a numeric header a number', async() => {
+      handsontable({
+        data: [[1]],
+        colHeaders: [2024],
+        textExtractor: true,
+      });
+
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { colHeaders: true }).export();
+
+      expect(csv).toBe('\ufeff"2024"\r\n1');
+    });
+
+    it('should use a configured extractor function and pass it the consumer surface', async() => {
+      const textExtractor = jasmine.createSpy('textExtractor').and.returnValue('replaced');
+
+      handsontable({
+        data: [[1]],
+        colHeaders: ['<b>Bold</b>'],
+        textExtractor,
+      });
+
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { colHeaders: true }).export();
+
+      expect(csv).toBe('\ufeff"replaced"\r\n1');
+      expect(textExtractor).toHaveBeenCalledWith('<b>Bold</b>', 'ExportFile.columnHeader');
+    });
+
+    it('should run a configured sanitizer before extracting, so removed content stays out of the file', async() => {
+      // Removes the element through the DOM, the way a real allowlist sanitizer does. A regular
+      // expression would be the wrong shape for the stand-in as well as for production: it misses
+      // `<SCRIPT>` and any tag carrying attributes.
+      const removeScripts = (content) => {
+        const template = document.createElement('template');
+
+        template.innerHTML = content;
+        template.content.querySelectorAll('script').forEach(element => element.remove());
+
+        return template.innerHTML;
+      };
+
+      handsontable({
+        data: [[1]],
+        colHeaders: ['<script>alert()</script>Total'],
+        sanitizer: removeScripts,
+        textExtractor: true,
+      });
+
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { colHeaders: true }).export();
+
+      expect(csv).toBe('\ufeff"Total"\r\n1');
+    });
+  });
 });
