@@ -766,7 +766,13 @@ describe('licenseBranding', () => {
     // ...but it must NOT switch the block off. The specification scopes the flag to UI warnings
     // (S2.3), while the hard stop is the enforcement of a licence that has stopped (S4.1). Since an
     // external/SaaS key carries this flag by default, honoring it here would have made every such
-    // key unblockable.
+    // key unblockable. This assertion fails if the `channels.ui` gate is ever moved back in front of
+    // the `LOCK_CONTENT` routing - which is the whole point of it.
+    //
+    // Only `trial_hard_stop` is reachable this way in production: `invalid` and `missing` describe
+    // keys whose flags could not be read, so `_getLicenseState` returns OPEN_CHANNELS for both and
+    // the combination below exists only because that function is mocked here. They are kept as a
+    // guard on the routing order, not as a claim about shipped states.
     it.each(['trial_hard_stop', 'invalid', 'missing'])(
       'should still render the lock screen for the "%s" state when the UI channel is closed',
       (state) => {
@@ -776,9 +782,6 @@ describe('licenseBranding', () => {
         initLicenseBranding(hotInstance);
 
         expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
-        // The badge is a warning surface, so the flag still withholds it.
-        expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-badge-wrapper')).toBe(null);
-        expect(hotInstance.rootElement.classList.contains('ht-license-badge-on')).toBe(false);
       }
     );
   });

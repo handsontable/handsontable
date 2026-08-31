@@ -6,9 +6,9 @@ import {
   NO_CONSOLE_WARNS_KEY,
   NO_UI_WARNS_KEY,
   TRIAL_KEY,
+  TRIAL_NO_CONSOLE_WARNS_KEY,
   TRIAL_NO_UI_WARNS_KEY,
   PERPETUAL_KEY,
-  PERPETUAL_NO_CONSOLE_WARNS_KEY,
   PERPETUAL_NO_UI_WARNS_KEY,
   HF_ONLY_KEY,
 } from '../../utils/entitlementLicenseKey/__tests__/fixtures';
@@ -86,18 +86,21 @@ describe('entitlement license notification (via _injectProductInfo)', () => {
       expect(node).toBe(null);
     });
 
-    it('should error, and leave the message to the badge popover, once the trial has expired', () => {
+    it('should error and show the bar once the trial has expired', () => {
       const { node, bar } = inject(TRIAL_KEY, { now: TRIAL_SOFT_STOP });
 
       expect(console.error).toHaveBeenCalledWith(
         'Your Handsontable trial license key expired on 2026-09-26 (UTC). ' +
         'To continue using Handsontable, you need to purchase a license.'
       );
-      // No bar. The soft-stopped trial's auto-opening popover already carries these two sentences,
-      // so a bar would put the same message on screen twice - and the popover, floating over the
-      // corner, covers the grid's first rows while it does.
-      expect(node).toBe(null);
-      expect(bar()).toBe(null);
+      // The badge popover auto-opens with these same two sentences, and the bar stays anyway: it is
+      // the only surface with a focusable link, and the only one that survives the popover being
+      // dismissed. See the note on `entitlementDomMessages` in `helpers/mixed.ts`.
+      expect(node).not.toBe(null);
+      expect(bar()).toBe(
+        'Your Handsontable license key has expired. To continue using Handsontable, you need to ' +
+        'purchase a license. <a href="mailto:sales@handsontable.com">Contact Sales</a>.'
+      );
     });
 
     it('should error, and leave the bar to the lock screen, once the grace period is over', () => {
@@ -209,22 +212,17 @@ describe('entitlement license notification (via _injectProductInfo)', () => {
     });
 
     it('should keep the console quiet and the bar loud with no-console-warns', () => {
-      // A build past its maintenance date is the ONE state that speaks on both channels (console
-      // error + bottom bar), so it is the only one that can show a flag closing exactly one of them.
-      // The soft-stopped trial used to serve here; it no longer renders a bar at all.
-      const { node, bar } = inject(PERPETUAL_NO_CONSOLE_WARNS_KEY, {
-        now: SUBSCRIPTION_RUNNING,
-        releaseDate: BUILD_PAST_MAINTENANCE,
-      });
+      // A soft-stopped trial is the state that speaks on BOTH channels, so it is the one that can
+      // show a flag closing exactly one of them.
+      const { node, bar } = inject(TRIAL_NO_CONSOLE_WARNS_KEY, { now: TRIAL_SOFT_STOP });
 
       expect(console.warn).not.toHaveBeenCalled();
       expect(console.error).not.toHaveBeenCalled();
       expect(node).not.toBe(null);
-      expect(bar()).toContain('The license key for Handsontable expired on 2027-08-12');
+      expect(bar()).toContain('Your Handsontable license key has expired.');
     });
 
-    it('should keep the console loud with no-ui-warns', () => {
-      // The flags are independent: closing the UI channel must not touch the console.
+    it('should keep the bar quiet and the console loud with no-ui-warns', () => {
       const { node } = inject(TRIAL_NO_UI_WARNS_KEY, { now: TRIAL_SOFT_STOP });
 
       expect(console.error).toHaveBeenCalledWith(

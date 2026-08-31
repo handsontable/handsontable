@@ -201,6 +201,20 @@ test.describe('entitlement license key branding', () => {
       await expect(license.lock).toBeVisible();
     });
 
+    // DEV-2709. `no-ui-warns` suppresses license WARNINGS; the hard stop is enforcement, not a
+    // warning, so the lock must survive the flag. This is driven through a real key so the whole
+    // chain is covered - payload read, `resolveChannels`, then the branding routing. The unit test
+    // for the same rule mocks `_getLicenseState`, so it cannot see a regression in flag resolution.
+    test('still blocks when the key carries no-ui-warns, with no badge and no bar', async () => {
+      await license.goto(INSTANT.trialHardStop, { key: 'trial-external' });
+
+      await expect(license.lock).toBeVisible();
+      await expect(license.lock).toContainText('Your Handsontable trial license key expired on 2026-09-26.');
+      // The warning surfaces stay silenced - that half of the flag is unchanged.
+      await expect(license.badgeWrapper).toHaveCount(0);
+      await expect(license.bar).toHaveCount(0);
+    });
+
     test('is unaffected by the app using the Dialog plugin for its own dialogs', async () => {
       await license.goto(INSTANT.trialHardStop, { variant: 'dialog' });
 
