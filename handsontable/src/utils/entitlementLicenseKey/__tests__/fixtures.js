@@ -120,6 +120,14 @@ export const TRIAL_NO_UI_WARNS_KEY = '[eyJwcm9kdWN0cyI6eyJoYW5kc29udGFibGUiOnsiY
 export const PERPETUAL_NO_UI_WARNS_KEY = '[eyJwcm9kdWN0cyI6eyJoYW5kc29udGFibGUiOnsiY2FwYWJpbGl0aWVzIjpbImNvcmUiXSwicmVsZWFzZV91bnRpbCI6IjIwMjctMDgtMTIiLCJub3RpY2UiOjAsImdyYWNlIjowLCJmbGFncyI6WyJuby11aS13YXJucyJdfX19f99c791278f85a3af95d7af29340f3a6660d2067e193e3dc879c54a7467087c8e0ec2b849129b7c2835c9d580b225c69f64503d3851ecdcb06dd487550fae047]';
 
 /**
+ * A perpetual license with the console silenced, so a lapsed maintenance date speaks only
+ * through the bar (examples A4 + A7).
+ *
+ * @type {string}
+ */
+export const PERPETUAL_NO_CONSOLE_WARNS_KEY = '[eyJwcm9kdWN0cyI6eyJoYW5kc29udGFibGUiOnsiY2FwYWJpbGl0aWVzIjpbImNvcmUiXSwicmVsZWFzZV91bnRpbCI6IjIwMjctMDgtMTIiLCJub3RpY2UiOjAsImdyYWNlIjowLCJmbGFncyI6WyJuby1jb25zb2xlLXdhcm5zIl19fX0bb952faf3cbaae6d8c70ca8c1242eb2cfd71476d0882f2860f193891b8f592de3627580ba3786ba9636fa4c219830ad4523aa2a257bf06487b336e70eec0c24d]';
+
+/**
  * The complete A1 artifact - the prose the customer reads, then the block. It reads identically to
  * `SUBSCRIPTION_KEY`, which is the point: the prose is neither parsed nor checksummed.
  *

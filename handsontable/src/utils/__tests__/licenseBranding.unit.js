@@ -747,8 +747,9 @@ describe('licenseBranding', () => {
   });
 
   describe('the no-ui-warns flag', () => {
-    // A key issued for external use must show its end users nothing, whatever state it is in.
-    it.each(['trial_notice', 'trial_soft_stop', 'trial_hard_stop', 'invalid', 'missing'])(
+    // A key issued for external use must show its end users no license WARNING - that is what the
+    // flag is for.
+    it.each(['trial_valid', 'trial_notice', 'trial_soft_stop'])(
       'should render nothing for the "%s" state when the UI channel is closed',
       (state) => {
         setLifecycle(state, { licensedUntil: '2026-09-26' }, { console: true, ui: false });
@@ -759,6 +760,25 @@ describe('licenseBranding', () => {
         expect(hotInstance.rootOverlaysElement.children).toHaveLength(0);
         expect(hotInstance.rootElement.classList.contains('ht-license-badge-on')).toBe(false);
         expect(hotInstance.focusScope.registerScope).not.toHaveBeenCalled();
+      }
+    );
+
+    // ...but it must NOT switch the block off. The specification scopes the flag to UI warnings
+    // (S2.3), while the hard stop is the enforcement of a licence that has stopped (S4.1). Since an
+    // external/SaaS key carries this flag by default, honoring it here would have made every such
+    // key unblockable.
+    it.each(['trial_hard_stop', 'invalid', 'missing'])(
+      'should still render the lock screen for the "%s" state when the UI channel is closed',
+      (state) => {
+        setLifecycle(state, { licensedUntil: '2026-09-26' }, { console: true, ui: false });
+        const hotInstance = createMockHotInstance();
+
+        initLicenseBranding(hotInstance);
+
+        expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
+        // The badge is a warning surface, so the flag still withholds it.
+        expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-badge-wrapper')).toBe(null);
+        expect(hotInstance.rootElement.classList.contains('ht-license-badge-on')).toBe(false);
       }
     );
   });

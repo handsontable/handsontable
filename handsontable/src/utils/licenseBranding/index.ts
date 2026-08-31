@@ -19,8 +19,15 @@ import type { HotInstance } from '../../core/types';
  * running subscription and a covered perpetual license render nothing here; their console message
  * and any bottom bar come from `initLicenseNotification`.
  *
- * A key carrying `no-ui-warns` renders nothing at all - the flag closes this whole surface, which is
- * what keeps a licensed SaaS application from showing license copy to its own end users.
+ * A key carrying `no-ui-warns` renders no WARNING surface - no badge and no popover - which is what
+ * keeps a licensed SaaS application from showing license copy to its own end users. It does NOT
+ * suppress the lock screen: the specification scopes the flag to UI *warnings* (S2.3), while the
+ * hard stop is the *enforcement* of a licence that has stopped (S4.1). The lock is therefore routed
+ * BEFORE the channel gate below. Gating it on the flag made every external/SaaS key unblockable,
+ * because such keys carry `no-ui-warns` by default.
+ *
+ * In practice only `trial_hard_stop` is affected: `invalid` and `missing` describe keys whose flags
+ * could not be read, and both resolve to open channels, so they reached the lock either way.
  *
  * @param {HotInstance} hotInstance The root Handsontable instance.
  * @param {ReturnType<typeof _getLicenseState>} descriptor The resolved license state descriptor.
@@ -31,16 +38,15 @@ function mountBrandingSurface(
   descriptor: ReturnType<typeof _getLicenseState>,
 ): void {
   const { lifecycle, channels } = descriptor;
-
-  if (!channels.ui) {
-    return;
-  }
-
   const buildLockContent = LOCK_CONTENT[lifecycle.state];
 
   if (buildLockContent) {
     mountLicenseLock(hotInstance, buildLockContent(lifecycle));
 
+    return;
+  }
+
+  if (!channels.ui) {
     return;
   }
 

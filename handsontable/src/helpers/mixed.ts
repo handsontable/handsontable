@@ -269,16 +269,17 @@ const entitlementConsoleNotifications: Partial<Record<LicenseStateKey, Entitleme
 };
 
 /**
- * The bottom-bar (DOM) copy for the states that show one: the soft-stopped
- * trial and a build past its maintenance date. Three states render the
- * Core-owned lock screen instead of a bar (see `_BLOCKING_MODAL_STATES` below
- * and `utils/licenseBranding/lockScreen.ts`), and a non-trial license never
- * renders a bar - it is developer-facing only in 18.1.
+ * The bottom-bar (DOM) copy for the only state that shows one: a build past its
+ * maintenance date.
+ *
+ * Every other state that speaks to the user speaks through a single surface, never two at once.
+ * Three states render the Core-owned lock screen instead of a bar (see `_BLOCKING_MODAL_STATES`
+ * below and `utils/licenseBranding/lockScreen.ts`). The soft-stopped trial renders the badge
+ * popover, which auto-opens carrying the same two sentences a bar would - it deliberately has NO
+ * entry here, because rendering both put one message on screen twice. And a non-trial license never
+ * renders a bar at all - it is developer-facing only in 18.1.
  */
 const entitlementDomMessages: Partial<Record<LicenseStateKey, (params: EntitlementMessageParams) => string>> = {
-  trial_soft_stop: () => toSingleLine`
-    ${_LICENSE_EXPIRED_TITLE} ${_PURCHASE_LICENSE_TEXT}\x20
-    <a href="mailto:sales@handsontable.com">Contact Sales</a>.`,
   release_expired: ({ licensedUntil, hotVersion }) => toSingleLine`
     The license key for Handsontable expired on ${licensedUntil}, and is not valid for the installed\x20
     version ${hotVersion}. <a href="https://handsontable.com/pricing" target="_blank">Renew</a> your license\x20
