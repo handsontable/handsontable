@@ -7536,6 +7536,94 @@ export default (): Record<string, unknown> => {
 
     /**
      * @description
+     * The `emptyValue` option sets the value stored when a cell ends up empty.
+     *
+     * A cell can be emptied in several ways, and by default they do not agree on what to store. The
+     * <kbd>**Delete**</kbd> key, the [`setDataAtCell()`](@/api/core.md#setdataatcell) method, filling
+     * a blank cell across a range, and merging cells over data all store `null`. Clearing the
+     * [cell editor](@/guides/cell-functions/cell-editor/cell-editor.md) and confirming, or pasting a
+     * blank cell, store an empty string (`''`). Set `emptyValue` to `null` to make every one of those
+     * paths agree on `null`.
+     *
+     * The mapping is one-way: it rewrites an empty string to the value you set, and never the other
+     * way round. Paths that already store `null` are untouched.
+     *
+     * | Setting                 | Description                                                     |
+     * | ----------------------- | --------------------------------------------------------------- |
+     * | `''` (default)          | Leave an emptied cell as the empty string the write produced    |
+     * | `null`                  | Store `null` instead                                            |
+     * | `undefined`             | Same as the default — the option counts as unset                |
+     * | Any other value         | Store that value instead                                        |
+     *
+     * Set `emptyValue: null` when the cell's value leaves the grid — saved to a server, written to a
+     * database, or read by a formula. An empty string in a `numeric`, `date` or `time` column is a
+     * string where a number, a date or nothing at all is expected, and `''` is not the same value as
+     * `NULL` to a database. It also matches how spreadsheets tell a blank cell from an empty string:
+     * `ISBLANK()` is `true` for `null` and `false` for `''`.
+     *
+     * The option applies to every **write** path: the editor, a paste, a fill,
+     * [`setDataAtCell()`](@/api/core.md#setdataatcell) and
+     * [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell). Writing `''` through either API
+     * with `emptyValue: null` set stores `null`.
+     *
+     * ::: tip
+     * Loading data is not a write. [`loadData()`](@/api/core.md#loaddata),
+     * [`updateData()`](@/api/core.md#updatedata), the initial [`data`](#data) and
+     * `updateSettings({ data })` all bypass this option, so an `''` already present in the data you
+     * load stays an `''`. A grid can therefore hold both `''` and `null` at once. Normalize the data
+     * before you load it if that matters to you.
+     *
+     * Undo and redo are exempt too: they restore what the cell held before, verbatim.
+     * :::
+     *
+     * A [`valueSetter`](#valuesetter) runs first, so a custom setter that returns `''` still means
+     * "empty" and is mapped as well.
+     *
+     * A column whose configuration already gives `''` a meaning keeps it. In a `checkbox` column, an
+     * `''` used as [`checkedTemplate`](#checkedtemplate) or [`uncheckedTemplate`](#uncheckedtemplate)
+     * is one of the two states the column defines, not an empty cell. In an `autocomplete` or
+     * `dropdown` column, an `''` listed in [`source`](#source) is an option you can pick. Both keep
+     * storing `''`.
+     *
+     * ::: tip
+     * Only an array [`source`](#source) is checked this way. A function `source` answers through a
+     * callback, and the value is stored before that callback runs, so a blank option it returns goes
+     * unnoticed and `emptyValue` applies to the column like any other.
+     * :::
+     *
+     * ::: tip
+     * Pasting from outside the grid cannot preserve this distinction. A clipboard holding text or HTML
+     * has no way to mark a cell as `null`, so an empty pasted cell follows the `emptyValue` setting
+     * like any other emptied cell.
+     * :::
+     *
+     * This option can be set at any level of the [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     *
+     * @memberof Options#
+     * @since 18.3.0
+     * @type {*}
+     * @default ''
+     * @category Core
+     * @configScope grid columns cells cell
+     *
+     * @example
+     * ```js
+     * // store `null` in every emptied cell of the grid
+     * emptyValue: null,
+     *
+     * // or per column: keep text columns storing `''`, and store `null` in the typed ones
+     * columns: [
+     *   { data: 'name' },
+     *   { data: 'amount', type: 'numeric', emptyValue: null },
+     *   { data: 'due', type: 'date', emptyValue: null }
+     * ]
+     * ```
+     */
+    emptyValue: '',
+
+    /**
+     * @description
      * The `viewportColumnRenderingOffset` option configures the number of columns
      * to be rendered outside of the grid's viewport.
      *

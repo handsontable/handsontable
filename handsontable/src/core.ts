@@ -2394,7 +2394,7 @@ export default function Core(
         cellProperties = { ...Object.getPrototypeOf(tableMeta) as Record<string, unknown>, ...tableMeta };
       }
 
-      filteredChanges[i][3] = getValueSetterValue(newValue, cellProperties);
+      filteredChanges[i][3] = getValueSetterValue(newValue, cellProperties, source);
     }
 
     return filteredChanges;
@@ -4381,6 +4381,7 @@ export default function Core(
         const newValue = getValueSetterValue(
           changeValue,
           getCellProperties(changeRow, changeProp),
+          source,
         );
 
         changesForHook.push([
@@ -4396,7 +4397,8 @@ export default function Core(
       const cellMeta = getCellProperties(changeRow, changeProp);
       const newValue = getValueSetterValue(
         changeValue,
-        cellMeta
+        cellMeta,
+        source
       );
 
       if (runSourceDataValidator(newValue, cellMeta, source ?? 'setSourceDataAtCell')) {
