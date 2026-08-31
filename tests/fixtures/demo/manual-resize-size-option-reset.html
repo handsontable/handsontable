@@ -72,6 +72,10 @@
   <h2>Columns, built with a manualColumnResize array</h2>
   <div id="cols-array" data-testid="cols-array"></div>
 
+  <!-- The column twin of the empty-array grid. -->
+  <h2>Columns, built with an empty manualColumnResize array</h2>
+  <div id="cols-empty-array" data-testid="cols-empty-array"></div>
+
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The
     // closing tag is split so the HTML parser does not end THIS script block.
@@ -115,6 +119,7 @@
       colsArray: buildGrid('cols-array', {
         manualColumnResize: new Array(5).fill(window.ARRAY_WIDTH),
       }),
+      colsEmptyArray: buildGrid('cols-empty-array', { manualColumnResize: [] }),
     };
 
     /**

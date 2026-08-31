@@ -321,8 +321,8 @@ export class ManualColumnResize extends BasePlugin {
 
   /**
    * Clears the width stored for the specified column, so the column falls back to the width coming
-   * from the [`colWidths`](@/api/options.md#colwidths) option or from the theme. Call `render()`
-   * afterwards to repaint the grid.
+   * from the [`colWidths`](@/api/options.md#colwidths) option, or to the built-in default width.
+   * Call `render()` afterwards to repaint the grid.
    *
    * @example
    * ```js
@@ -351,8 +351,8 @@ export class ManualColumnResize extends BasePlugin {
 
   /**
    * Clears the widths stored for every column, so the columns fall back to the widths coming from
-   * the [`colWidths`](@/api/options.md#colwidths) option or from the theme. Call `render()`
-   * afterwards to repaint the grid.
+   * the [`colWidths`](@/api/options.md#colwidths) option, or to the built-in default width. Call
+   * `render()` afterwards to repaint the grid.
    *
    * @example
    * ```js

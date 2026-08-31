@@ -260,12 +260,13 @@ To resize columns without discarding what the user dragged, leave `colWidths` ou
 
 ::: tip
 
-Two cases never discard the stored widths, so passing `colWidths` does not reset anything:
+These cases never discard the stored widths, so passing `colWidths` does not reset anything:
 
 - `colWidths` set to a function. A function states no fixed width, so the stored widths are left alone.
-- The React and Angular wrappers, where a `colWidths` prop whose value did not change is not forwarded to `updateSettings()`. Re-applying the same value is not an update.
+- A grid whose [`manualColumnResize`](@/api/options.md#manualcolumnresize) option is already a non-empty array. The plugin replays that array, so the stored widths stay.
+- The React, Angular and Vue wrappers, where a `colWidths` prop whose value did not change is not forwarded to `updateSettings()`. Re-applying the same value is not an update.
 
-In both cases, clear the widths explicitly:
+In each case, clear the widths explicitly:
 
 ```js
 hot.getPlugin('manualColumnResize').clearManualSizes();

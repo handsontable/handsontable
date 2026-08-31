@@ -176,6 +176,33 @@ test.describe('Manual resize versus the size option', () => {
     expect(await grid.rowHeights()).toEqual(new Array(5).fill(SHORT));
   });
 
+  test('does nothing when clearManualSize() is given an out-of-range index', async () => {
+    await grid.applySettings('rows', { rowHeights: SHORT });
+    await grid.dragRowHandle(0, 70);
+
+    const dragged = (await grid.rowHeights())[0];
+
+    expect(dragged).toBeGreaterThan(SHORT);
+
+    // `toPhysicalRow` returns null out here, and writing that would store an entry under the
+    // string "null" and invalidate the size cache for nothing.
+    await grid.callPluginMethod('rows', 'manualRowResize', 'clearManualSize', [999]);
+    await grid.callPluginMethod('cols', 'manualColumnResize', 'clearManualSize', [999]);
+
+    expect((await grid.rowHeights())[0]).toBe(dragged);
+  });
+
+  test('applies colWidths to a grid built with an empty manualColumnResize array', async () => {
+    // The column twin of the empty-array row case: `[]` presets nothing, so the reset still runs.
+    await grid.dragColumnHandle(0, 70, 'cols-empty-array');
+
+    expect((await grid.colWidths('cols-empty-array'))[0]).toBeGreaterThan(60);
+
+    await grid.applySettings('colsEmptyArray', { colWidths: 60 });
+
+    expect(await grid.colWidths('cols-empty-array')).toEqual(new Array(5).fill(60));
+  });
+
   test('does nothing when clearManualSizes() runs on a disabled plugin', async () => {
     await grid.applySettings('rows', { rowHeights: SHORT, manualRowResize: false });
 

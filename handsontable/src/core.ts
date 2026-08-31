@@ -5301,6 +5301,11 @@ export default function Core(
   /**
    * Returns the width of the requested column.
    *
+   * Passing [`colWidths`](@/api/options.md#colwidths) to
+   * [`updateSettings()`](@/api/core.md#updatesettings) discards the widths stored by
+   * [`ManualColumnResize`](@/api/manualColumnResize.md), so the option applies again from that point
+   * on.
+   *
    * @memberof Core#
    * @function getColWidth
    * @param {number} column Visual column index.

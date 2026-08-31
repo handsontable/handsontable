@@ -168,6 +168,7 @@ export class ManualResizeSizeOptionResetPage {
 
     for (const testId of [
       'rows', 'cols', 'rows-array', 'rows-empty-array', 'rows-auto', 'cols-array',
+      'cols-empty-array',
     ]) {
       await expect(this.grid(testId).locator('.ht_clone_inline_start')).toBeVisible();
       await expect(this.grid(testId).locator('.ht_clone_top')).toBeVisible();
