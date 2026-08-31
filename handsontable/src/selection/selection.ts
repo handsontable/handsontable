@@ -1681,6 +1681,12 @@ class Selection {
       return;
     }
 
+    if (this.tableProps.countRows() === 0 || this.tableProps.countCols() === 0) {
+      this.clear();
+
+      return;
+    }
+
     this.selectedRange.ranges = snapshot.ranges.map(({ physical, visual }) => this.tableProps.createCellRange(
       this.#createVisualCoords(physical.highlight, visual.highlight),
       this.#createVisualCoords(physical.from, visual.from),

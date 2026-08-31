@@ -849,6 +849,23 @@ test.describe('a data swap under an open editor', () => {
  */
 test.describe('edges of the repair', () => {
   /**
+   * Rebuilding a selection against an empty visual grid must clear it. A fallback visual index of
+   * zero would otherwise leave an addressable-looking selection that a later keystroke can append to.
+   */
+  test('deselects when a trim removes every row while an editor is open',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.openEditorAndType(0, 0, 'EDITED');
+      await grid.trimRows([0, 1, 2, 3, 4]);
+
+      await expect.poll(() => grid.selected()).toBeUndefined();
+      expect(await grid.sourceRowCount()).toBe(5);
+      expect(await grid.sourceData()).toEqual(UNTOUCHED);
+    });
+
+  /**
    * Clicking a cell runs `prepareEditor()`, so an editor exists in `VIRGIN` holding that cell's
    * coordinates, `TD`, `prop`, `originalValue` and cell meta - and nothing re-prepares it when a trim
    * moves the visual space underneath. `openEditor()` skips `prepareEditor()` while a reference
