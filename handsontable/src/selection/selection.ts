@@ -71,7 +71,12 @@ function snapToNearestVisible(indexMapper: IndexMapper, index: number, isSingleL
 type IndexAxis = 'row' | 'column';
 
 type PhysicalSelectionSnapshot = {
-  ranges: Array<{ physical: CellRange; visual: CellRange; originalLayerIndex: number }>;
+  ranges: Array<{
+    physical: CellRange;
+    visual: CellRange;
+    physicalSpan: number[];
+    originalLayerIndex: number;
+  }>;
   activeSelectionLayer: number;
   selectedByRowHeader: Set<number>;
   selectedByColumnHeader: Set<number>;
@@ -1673,6 +1678,7 @@ class Selection {
         ranges.push({
           physical,
           visual: range.clone(),
+          physicalSpan: this.#capturePhysicalSpan(range, axis, indexMapper, originalLayerIndex),
           originalLayerIndex,
         });
       }
@@ -1719,8 +1725,9 @@ class Selection {
 
     const restoredRanges: Array<{ range: CellRange; originalLayerIndex: number }> = [];
 
-    snapshot.ranges.forEach(({ physical, visual, originalLayerIndex }) => {
-      const range = this.#restorePhysicalRange(physical, visual, originalLayerIndex, axis, snapshot);
+    snapshot.ranges.forEach(({ physical, visual, physicalSpan, originalLayerIndex }) => {
+      const range = this.#restorePhysicalRange(
+        physical, visual, physicalSpan, originalLayerIndex, axis, snapshot);
 
       if (range) {
         restoredRanges.push({ range, originalLayerIndex });
@@ -1883,6 +1890,79 @@ class Selection {
   }
 
   /**
+   * Records the physical indexes a range covers along one axis, in `from`-to-`to` order, so a
+   * trimmed corner can later be shrunk onto the nearest record the user actually selected.
+   *
+   * Whole-row and whole-column layers are skipped: they re-pin to the axis boundaries on restore,
+   * so walking their span would cost one pass over the grid for a result that is never read.
+   *
+   * @param {CellRange} range The range being captured, in visual coordinates.
+   * @param {'row'|'column'} axis The mapper axis being updated.
+   * @param {IndexMapper} indexMapper The mapper for that axis, still holding its pre-update cache.
+   * @param {number} layerIndex The range's layer index.
+   * @returns {number[]} The covered physical indexes, without header sentinels.
+   */
+  #capturePhysicalSpan(
+    range: CellRange,
+    axis: IndexAxis,
+    indexMapper: IndexMapper,
+    layerIndex: number,
+  ): number[] {
+    const isWholeColumn = axis === 'row' && this.selectedByColumnHeader.has(layerIndex);
+    const isWholeRow = axis === 'column' && this.selectedByRowHeader.has(layerIndex);
+    const coordinateKey = axis === 'row' ? 'row' : 'col';
+    const fromIndex = range.from[coordinateKey];
+    const toIndex = range.to[coordinateKey];
+
+    if (isWholeColumn || isWholeRow || fromIndex === null || toIndex === null) {
+      return [];
+    }
+
+    const step = toIndex >= fromIndex ? 1 : -1;
+    const span: number[] = [];
+
+    for (let visualIndex = fromIndex;
+      step > 0 ? visualIndex <= toIndex : visualIndex >= toIndex;
+      visualIndex += step) {
+      const physicalIndex = this.#getPhysicalIndex(visualIndex, indexMapper);
+
+      if (physicalIndex !== null && physicalIndex >= 0) {
+        span.push(physicalIndex);
+      }
+    }
+
+    return span;
+  }
+
+  /**
+   * Finds the visual index of the first record in a captured span that survived the update,
+   * scanning from whichever end of the range lost its corner.
+   *
+   * @param {number[]} physicalSpan The physical indexes the range covered, in `from`-to-`to` order.
+   * @param {'row'|'column'} axis The mapper axis being restored.
+   * @param {boolean} searchFromStart Whether to scan from the `from` end rather than the `to` end.
+   * @returns {number|null} The surviving record's visual index, or `null` when none survived.
+   */
+  #nearestSurvivingVisualIndex(
+    physicalSpan: number[],
+    axis: IndexAxis,
+    searchFromStart: boolean,
+  ): number | null {
+    const indexMapper = axis === 'row' ? this.tableProps.rowIndexMapper : this.tableProps.columnIndexMapper;
+
+    for (let offset = 0; offset < physicalSpan.length; offset++) {
+      const physicalIndex = physicalSpan[searchFromStart ? offset : physicalSpan.length - 1 - offset];
+      const visualIndex = indexMapper.getVisualFromPhysicalIndex(physicalIndex);
+
+      if (visualIndex !== null) {
+        return visualIndex;
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Converts a physical index to a visual one while preserving header sentinels.
    *
    * @param {number|null} index The physical index.
@@ -1904,7 +1984,7 @@ class Selection {
    * @param {CellCoords} visualCoordsBeforeUpdate The coordinates before the mapper update.
    * @param {'row'|'column'} axis The mapper axis being restored.
    * @param {number} [forcedVisualIndex] A boundary required by a whole-row or whole-column selection.
-   * @param {boolean} [useVisualFallback=false] Whether a removed active focus may keep its visual slot.
+   * @param {number|null} [fallbackVisualIndex=null] Where the coordinate lands when its record was trimmed.
    * @returns {CellCoords|null} Rebased visual coordinates, or `null` for a trimmed record.
    */
   #createVisualCoords(
@@ -1912,18 +1992,13 @@ class Selection {
     visualCoordsBeforeUpdate: CellCoords,
     axis: IndexAxis,
     forcedVisualIndex?: number,
-    useVisualFallback = false,
+    fallbackVisualIndex: number | null = null,
   ): CellCoords | null {
     const indexMapper = axis === 'row' ? this.tableProps.rowIndexMapper : this.tableProps.columnIndexMapper;
     const coordinateKey = axis === 'row' ? 'row' : 'col';
-    const visualIndex = forcedVisualIndex ?? this.#getVisualIndex(physicalCoords[coordinateKey], indexMapper) ??
-      (useVisualFallback ?
-        clamp(
-          visualCoordsBeforeUpdate[coordinateKey] ?? 0,
-          0,
-          (axis === 'row' ? this.tableProps.countRows() : this.tableProps.countCols()) - 1,
-        ) :
-        null);
+    const visualIndex = forcedVisualIndex ??
+      this.#getVisualIndex(physicalCoords[coordinateKey], indexMapper) ??
+      fallbackVisualIndex;
 
     if (visualIndex === null) {
       return null;
@@ -1937,19 +2012,27 @@ class Selection {
   }
 
   /**
-   * Restores one range, dropping it when a selected record no longer has a visual index. Whole-row
-   * and whole-column ranges keep spanning the complete opposite axis after its size changes.
+   * Restores one range. A range whose focus survived SHRINKS onto its surviving records rather than
+   * being dropped, because `BaseEditor#saveValue()` fills the active range on `Ctrl+Enter`: dropping
+   * a partially trimmed active layer would hand that commit to whichever layer inherits the active
+   * slot, writing the typed value onto a record the user never edited. Trimming only removes
+   * records, so the survivors of a contiguous range stay contiguous and a `CellRange` still
+   * describes them exactly. A range is dropped only when its focus itself was trimmed.
+   *
+   * Whole-row and whole-column ranges keep spanning the complete opposite axis after its size changes.
    *
    * @param {CellRange} physicalRange The physical-coordinate snapshot.
    * @param {CellRange} visualRange The range before the mapper update.
+   * @param {number[]} physicalSpan The physical indexes the range covered along the restored axis.
    * @param {number} layerIndex The range's original layer index.
    * @param {'row'|'column'} axis The mapper axis being restored.
    * @param {PhysicalSelectionSnapshot} snapshot The selection state captured with the range.
-   * @returns {CellRange|null} The restored range, or `null` when one of its records was trimmed.
+   * @returns {CellRange|null} The restored range, or `null` when its focus was trimmed.
    */
   #restorePhysicalRange(
     physicalRange: CellRange,
     visualRange: CellRange,
+    physicalSpan: number[],
     layerIndex: number,
     axis: IndexAxis,
     snapshot: PhysicalSelectionSnapshot,
@@ -1970,14 +2053,27 @@ class Selection {
 
     const indexMapper = axis === 'row' ? this.tableProps.rowIndexMapper : this.tableProps.columnIndexMapper;
     const coordinateKey = axis === 'row' ? 'row' : 'col';
-    const useVisualFallback = layerIndex === snapshot.activeSelectionLayer &&
+    // The active layer holds the open editor, so when its focus is trimmed the range keeps the
+    // visual slot instead of shrinking. That leaves the editor somewhere `EditorManager` can cancel
+    // it, and keeps all three corners on one consistent fallback.
+    const keepsVisualSlot = layerIndex === snapshot.activeSelectionLayer &&
       this.#getVisualIndex(physicalRange.highlight[coordinateKey], indexMapper) === null;
+    const axisLength = axis === 'row' ? this.tableProps.countRows() : this.tableProps.countCols();
+    const clampToGrid = (coords: CellCoords): number | null => (
+      keepsVisualSlot ? clamp(coords[coordinateKey] ?? 0, 0, axisLength - 1) : null
+    );
     const highlight = this.#createVisualCoords(
-      physicalRange.highlight, visualRange.highlight, axis, undefined, useVisualFallback);
+      physicalRange.highlight, visualRange.highlight, axis, undefined, clampToGrid(visualRange.highlight));
     const from = this.#createVisualCoords(
-      physicalRange.from, visualRange.from, axis, fromBoundary, useVisualFallback);
+      physicalRange.from, visualRange.from, axis, fromBoundary,
+      keepsVisualSlot ?
+        clampToGrid(visualRange.from) :
+        this.#nearestSurvivingVisualIndex(physicalSpan, axis, true));
     const to = this.#createVisualCoords(
-      physicalRange.to, visualRange.to, axis, toBoundary, useVisualFallback);
+      physicalRange.to, visualRange.to, axis, toBoundary,
+      keepsVisualSlot ?
+        clampToGrid(visualRange.to) :
+        this.#nearestSurvivingVisualIndex(physicalSpan, axis, false));
 
     if (!highlight || !from || !to) {
       return null;

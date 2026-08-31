@@ -562,7 +562,9 @@ class EditorManager {
    * before the cache rebuild and restores surviving ranges afterwards. Keeping that operation out of
    * this manager prevents selection hooks from preparing an editor while the mapper is still
    * unwinding. It lets editor-specific commit paths, including DropdownEditor and Ctrl+Enter, keep
-   * targeting a surviving record that moved because earlier records were trimmed.
+   * targeting a surviving record that moved because earlier records were trimmed. A range that loses
+   * only part of itself shrinks onto its surviving records instead of being dropped, so `Ctrl+Enter`
+   * keeps filling the layer holding the editor rather than one that merely inherited the active slot.
    *
    * A sequence permutation is deliberately outside that selection repair. Reordering can make the
    * records from one rectangular range non-contiguous, which `CellRange` cannot represent without

@@ -721,7 +721,37 @@ test.describe('commit paths that read the selection after trimming', () => {
       expect(await grid.highlightedAreaCorners()).toEqual([[3, 0, 3, 1]]);
     });
 
-  test('keeps surviving layers when the active range loses a corner',
+  /**
+   * `saveValue()` fills the ACTIVE range on `Ctrl+Enter`, so dropping a partially trimmed active
+   * layer does not merely lose the highlight - it hands the commit to whichever layer inherits the
+   * active slot. The user selected physical rows 1-3 and typed into row 3; trimming row 1 leaves
+   * rows 2 and 3 selected. Dropping the layer instead filled physical row 4, from the other layer -
+   * two records the user never opened an editor on.
+   */
+  test('commits to the surviving selected records when the active range loses a corner',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectRangesAndType([[4, 0, 4, 1], [3, 0, 1, 0]], 'EDITED');
+      await grid.trimRows([1]);
+      await grid.commitWithCtrlOrMetaEnter();
+
+      expect(await grid.sourceRowCount()).toBe(5);
+      expect(await grid.sourceData()).toEqual([
+        ['A0', 'B0'],
+        ['A1', 'B1'],
+        ['EDITED', 'B2'],
+        ['EDITED', 'B3'],
+        ['A4', 'B4'],
+      ]);
+    });
+
+  /**
+   * The shrink keeps the range describing the records the user selected, so the layer stays active
+   * and the editor stays on its own record instead of being orphaned onto another layer.
+   */
+  test('shrinks the active range onto its surviving records rather than dropping it',
     async({ page, theme, bundle }) => {
       const grid = new EditorTrimmedRowPage(page, theme, bundle);
 
@@ -729,8 +759,8 @@ test.describe('commit paths that read the selection after trimming', () => {
       await grid.selectRangesAndType([[4, 0, 4, 0], [1, 0, 0, 0]], 'EDITED');
       await grid.trimRows([0]);
 
-      await expect.poll(() => grid.selected()).toEqual([[3, 0, 3, 0]]);
-      await expect.poll(() => grid.activeSelectionLayer()).toBe(0);
+      await expect.poll(() => grid.selected()).toEqual([[3, 0, 3, 0], [0, 0, 0, 0]]);
+      await expect.poll(() => grid.activeSelectionLayer()).toBe(1);
       await expect.poll(() => grid.editorRow()).toBe(0);
       await expect.poll(() => grid.isEditorOpen()).toBe(true);
       expect(await grid.sourceData()).toEqual(UNTOUCHED);
