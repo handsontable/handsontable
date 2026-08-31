@@ -186,6 +186,13 @@ export class AutocompleteEditor extends HandsontableEditor {
    * Opens the editor and adjust its size and internal Handsontable's instance.
    */
   open(): void {
+    // The editor instance is reused across cells and `updateChoicesList()` is the only writer, so
+    // without this the list from the PREVIOUS cell survives until this cell's deferred query lands.
+    // `resolveInnerSelectionValue()` matches against it, so a commit inside that window could write
+    // a choice belonging to another column's `source`.
+    this.strippedChoices = [];
+    this.rawChoices = [];
+
     super.open();
 
     const trimDropdownSetting = this.cellProperties.trimDropdown as boolean | undefined;
@@ -427,10 +434,15 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @returns {*}
    */
   resolveInnerSelectionValue(): unknown {
-    // Non-strict never derives a highlight of its own, so there is nothing to re-derive: whatever
-    // is selected got there by the user's own arrow keys or click, or nothing is.
-    if (this.innerSelectionOrigin === 'user' || this.cellProperties.strict !== true) {
+    if (this.innerSelectionOrigin === 'user') {
       return super.resolveInnerSelectionValue();
+    }
+
+    // Non-strict derives no highlight of its own, so with no pick outstanding there is nothing the
+    // list can contribute. Checking the origin FIRST is what makes clearing it on `input` mean
+    // something here: short-circuiting on `strict` would hand back a pick the typing superseded.
+    if (this.cellProperties.strict !== true) {
+      return undefined;
     }
 
     const { choices, highlightIndex } = this.#deriveHighlight(this.strippedChoices, this.#editorValue());

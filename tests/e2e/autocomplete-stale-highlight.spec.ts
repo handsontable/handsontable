@@ -134,6 +134,77 @@ test.describe('committing an autocomplete whose choice list is out of date', () 
 });
 
 /**
+ * Non-strict autocomplete derives no highlight of its own, so the only way its inner grid gets a
+ * selection is the user's own arrow keys or click. That pick still has to yield to text typed after
+ * it - the same rule as strict mode, reached without any matching involved.
+ */
+test.describe('committing a non-strict autocomplete after a pick', () => {
+  test('lets later text supersede the pick', async({ page, theme, bundle }) => {
+    const grid = new AutocompleteAsyncSourcePage(page, theme, bundle, { editor: 'autocomplete' });
+
+    await grid.goto();
+    await grid.openEditor(0, 0);
+    await grid.resolveQueries(0);
+
+    await page.keyboard.press('ArrowDown');
+
+    await page.evaluate(() => {
+      const editor = (window as unknown as { hot: { getActiveEditor(): {
+        TEXTAREA: HTMLTextAreaElement; finishEditing(restore: boolean): void;
+      } } }).hot.getActiveEditor();
+
+      editor.TEXTAREA.value = 'Alx';
+      editor.TEXTAREA.dispatchEvent(new Event('input', { bubbles: true }));
+      editor.finishEditing(false);
+    });
+
+    // Non-strict accepts anything, so the typed text is the whole answer - no validator involved.
+    await expect.poll(() => grid.cellValue(0, 0)).toBe('Alx');
+  });
+});
+
+/**
+ * The editor instance is reused across cells, so anything it remembers about the LIST has to be
+ * dropped when it reopens somewhere else. The fixture gives each column its own choice set, which
+ * is what makes a leak visible: a value from column 0's source reaching column 1 can only have come
+ * from the previous edit.
+ */
+test.describe('reopening an autocomplete on another cell', () => {
+  test('does not commit a choice left over from the previous cell', async({ page, theme, bundle }) => {
+    const grid = new AutocompleteAsyncSourcePage(page, theme, bundle, { editor: 'dropdown' });
+
+    await grid.goto();
+    await grid.openEditor(0, 0);
+    await grid.resolveQueries(0);
+
+    await expect.poll(() => grid.dropdownChoices()).toEqual(['Alpha', 'Alfa', 'Alto']);
+
+    await page.keyboard.press('Escape');
+    await expect.poll(() => grid.isEditorOpen()).toBe(false);
+
+    // Column 1 answers with `Bravo/Bruno/Brisk`. Open it and commit before its query lands, typing
+    // text that only column 0's set can match - so a commit of `'Alpha'` here is proof the editor
+    // matched against the list from the cell it just left.
+    await grid.openEditor(0, 1);
+
+    await page.evaluate(() => {
+      const editor = (window as unknown as { hot: { getActiveEditor(): {
+        TEXTAREA: HTMLTextAreaElement; finishEditing(restore: boolean): void;
+      } } }).hot.getActiveEditor();
+
+      editor.TEXTAREA.value = 'Al';
+      editor.TEXTAREA.dispatchEvent(new Event('input', { bubbles: true }));
+      editor.finishEditing(false);
+    });
+
+    await expect.poll(() => grid.pendingQueryCount(1)).toBeGreaterThan(0);
+    await grid.resolveQueries(1);
+
+    await expect.poll(() => grid.cellValue(0, 1)).toBe('Al');
+  });
+});
+
+/**
  * `DropdownEditor.prepare()` hardcodes `filter: false`, so every case above exercises only the
  * first-substring-match branch. Plain `autocomplete` keeps `filter: true` and takes the other one,
  * which narrows the list and falls back to index 0. The changelog claims both editors, so this
