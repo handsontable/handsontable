@@ -119,12 +119,14 @@ class Event {
    */
   #dblClickOrigin: (HTMLElement | null)[] = [null, null];
   /**
-   * Cell of the most recent touch tap, kept for double-tap detection. Touch taps never arm the
-   * mouse double-click slots, so a mouse click after a tap cannot pair with it (DEV-2687).
+   * Coordinates of the most recent touch tap, kept for double-tap detection. Coordinates, not the
+   * resolved TD: Walkontable recycles TD elements across scrolls and re-renders, so element
+   * identity can pair two taps that landed on different cells (DEV-2687 review). Touch taps never
+   * arm the mouse double-click slots, so a mouse click after a tap cannot pair with a tap.
    *
-   * @type {HTMLElement|null}
+   * @type {CellCoords|null}
    */
-  #lastTapTD: HTMLElement | null = null;
+  #lastTapCoords: CellCoords | null = null;
   /**
    * Timestamp (ms) of the most recent touch tap.
    *
@@ -169,7 +171,8 @@ class Event {
    * On devices that register both touch and mouse listeners (iPad with a desktop UA, Windows
    * touchscreens) the browser synthesizes a `mousedown`/`mouseup`/`click` sequence after
    * `touchend`. The whole sequence must be ignored – dropping only one half fires
-   * `onCellMouseDown` a second time per tap and re-arms the double-click pairing slot (DEV-2687).
+   * `onCellMouseDown` a second time per tap, and the leaked pair would act as a phantom mouse
+   * click (DEV-2687).
    * Used as the fallback for engines that do not expose `sourceCapabilities`
    * (see `#isTouchSynthesizedMouseEvent`).
    *
@@ -180,7 +183,9 @@ class Event {
    * `true` between a touch-driven `onMouseUp` and the browser-synthesized `mouseup` that follows it.
    * Only that first pair is dropped; once it is consumed, real mouse events pass even inside the
    * `TOUCH_SYNTHESIZED_MOUSE_WINDOW` ceiling, so a fill-handle drag or a drag-selection started with
-   * a mouse right after a tap works on engines that do not report the input origin (DEV-2687).
+   * a mouse right after a tap works on engines that do not report the input origin (DEV-2687). The
+   * residual is bounded to a single gesture: the flag is re-armed only by a touch-driven `onMouseUp`
+   * and cleared when the next gesture starts.
    *
    * @type {boolean}
    */
@@ -592,30 +597,32 @@ class Event {
 
   /**
    * Pairs touch taps into double-taps. Called from `onMouseUp` while `touchApplied` is `true`,
-   * i.e. for the `onMouseUp` that `onTouchEnd` drives. Two taps on the same cell within
+   * i.e. for the `onMouseUp` that `onTouchEnd` drives. Two taps on the same coordinates within
    * `TOUCH_DBLTAP_TIMEOUT` fire the double-click callbacks; a long-press, a tap outside the cells,
-   * or a tap on another cell resets the detector.
+   * or a tap on different coordinates resets the detector.
    *
    * @param {MouseEvent|TouchEvent} event The event that ended the tap.
    * @param {ParentCell} cell The tapped cell, as returned by `parentCell()`.
    */
   #handleTouchTap(event: MouseEvent | TouchEvent, cell: ParentCell): void {
-    if (this.#longPressFired || !cell.TD) {
-      this.#lastTapTD = null;
+    if (this.#longPressFired || !cell.TD || !cell.coords) {
+      this.#lastTapCoords = null;
 
       return;
     }
 
     const now = Date.now();
+    const isSameCell = this.#lastTapCoords !== null &&
+      this.#lastTapCoords.row === cell.coords.row && this.#lastTapCoords.col === cell.coords.col;
 
-    if (cell.TD === this.#lastTapTD && now - this.#lastTapAt < TOUCH_DBLTAP_TIMEOUT) {
+    if (isSameCell && now - this.#lastTapAt < TOUCH_DBLTAP_TIMEOUT) {
       this.#fireDblClick(event, cell);
-      this.#lastTapTD = null;
+      this.#lastTapCoords = null;
 
       return;
     }
 
-    this.#lastTapTD = cell.TD;
+    this.#lastTapCoords = cell.coords;
     this.#lastTapAt = now;
   }
 
@@ -647,6 +654,11 @@ class Event {
     this.#touchWasMoved = false;
     this.#longPressFired = false;
     this.#deferredTouchStartEvent = event;
+
+    // A new gesture means the previous gesture's synthesized pair can no longer arrive; without
+    // this reset a pair armed by a `preventDefault`-ed tap (which synthesizes nothing) would
+    // swallow THIS gesture's compatibility pair (DEV-2687 review).
+    this.#synthesizedPairPending = false;
 
     this.#startLongPressTimer(event);
   }
@@ -723,7 +735,7 @@ class Event {
     } else {
       // A pure scroll gesture calls neither onMouseDown nor onMouseUp, so #handleTouchTap never
       // runs to reset the tap detector. Reset it here so a scroll between two taps can't pair them.
-      this.#lastTapTD = null;
+      this.#lastTapCoords = null;
     }
 
     this.touchApplied = false;
@@ -762,7 +774,7 @@ class Event {
 
       this.#dblClickOrigin[0] = null;
       this.#dblClickOrigin[1] = null;
-      this.#lastTapTD = null;
+      this.#lastTapCoords = null;
 
       if (this.#dblClickTimeout[0] !== null) {
         clearTimeout(this.#dblClickTimeout[0]);

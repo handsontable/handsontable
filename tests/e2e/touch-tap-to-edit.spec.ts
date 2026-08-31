@@ -175,4 +175,34 @@ test.describe('touch tap-to-edit on a device with touch and mouse listeners', ()
     await grid.expectHookCountExactly('beforeOnCellMouseUp', 1);
     await grid.expectSelectedCell(2, 1);
   });
+
+  test('a scroll gesture between two taps cancels the double-tap pairing', async ({ page }) => {
+    await grid.tapCell(1, 1);
+    await page.clock.runFor(200);
+
+    // A drifted (scroll-classified) gesture on the same cell resets the tap detector.
+    await grid.dispatchTouchDrag(1, 1, 20);
+    await page.clock.runFor(200);
+
+    await grid.tapCell(1, 1);
+    await page.clock.runFor(100);
+
+    await grid.expectHookCountExactly('afterBeginEditing', 0);
+    await grid.expectEditorClosed();
+  });
+
+  test('a pair armed by a tap that synthesized nothing does not swallow the next gesture\'s pair', async ({ page }) => {
+    // First tap on an unselected cell: preventDefault-ed, no pair arrives, but the gate was armed.
+    await grid.tapCell(1, 1);
+    await page.clock.runFor(200);
+
+    // A drifted gesture on another cell, still inside the armed ceiling; the browser's
+    // compatibility pair for it carries firesTouchEvents === true (Blink) — no veto. The
+    // touchstart of this gesture must have disarmed the stale pair, so the pair is processed.
+    await grid.dispatchTouchDrag(3, 1, 20);
+    await grid.dispatchMouseEvent(3, 1, 'mousedown', true);
+    await grid.dispatchMouseEvent(3, 1, 'mouseup', true);
+
+    await grid.expectSelectedCell(3, 1);
+  });
 });

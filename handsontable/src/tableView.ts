@@ -322,11 +322,10 @@ class TableView {
   /**
    * Flag indicating that a touch interaction just ended. Set to `true` on
    * `touchend` and reset asynchronously via `_registerTimeout` after
-   * `TOUCH_SYNTHESIZED_MOUSE_WINDOW` — the same fallback window Walkontable's mouse
-   * listeners use, so both layers agree on which events are synthesized. Used together
-   * with `sourceCapabilities.firesTouchEvents` (Chrome/Blink) to detect synthetic
-   * mouse events that Android fires after touch interactions. These synthetic
-   * events can falsely trigger the outside-click handler, closing editors or
+   * `TOUCH_SYNTHESIZED_MOUSE_WINDOW`, shared with Walkontable's mouse listeners so both layers
+   * use the same fallback window. Used together with `sourceCapabilities.firesTouchEvents`
+   * (Chrome/Blink) to detect synthetic mouse events that Android fires after touch interactions.
+   * These synthetic events can falsely trigger the outside-click handler, closing editors or
    * popups that just opened via double-tap.
    *
    * @type {boolean}
@@ -637,7 +636,11 @@ class TableView {
       // Android dispatches mousedown/mouseup/click asynchronously after touchend,
       // so the flag must survive across multiple event loop ticks. The window is shared
       // with Walkontable's mouse listeners (`TOUCH_SYNTHESIZED_MOUSE_WINDOW`), so both
-      // layers agree on which events are synthesized.
+      // layers use the same fallback window.
+      // The policies deliberately differ: Walkontable drops only the first pending pair
+      // (veto → pending → ceiling), while this layer keeps
+      // `getMouseEventTouchOrigin(event) ?? #recentTouchEnd` — a Blink-flagged pair must never
+      // run the outside-click handling that closes editors.
       this.#recentTouchEndTimeout = this.hot._registerTimeout(() => {
         this.#recentTouchEnd = false;
         this.#recentTouchEndTimeout = null;
