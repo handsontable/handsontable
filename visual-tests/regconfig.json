@@ -1,0 +1,28 @@
+{
+  "core": {
+    "workingDir": ".reg",
+    "actualDir": "screenshots",
+    "thresholdRate": 0
+  },
+  "plugins": {
+    "reg-simple-keygen-plugin": {
+      "expectedKey": "${REG_EXPECTED_KEY}",
+      "actualKey": "${REG_ACTUAL_KEY}"
+    },
+    "reg-publish-s3-plugin": {
+      "bucketName": "${R2_BUCKET_NAME}",
+      "enableACL": false,
+      "customDomain": "${VISUAL_REPORT_DOMAIN}",
+      "sdkOptions": {
+        "region": "auto",
+        "endpoint": "${R2_ENDPOINT}"
+      }
+    },
+    "reg-notify-github-with-api-plugin": {
+      "owner": "handsontable",
+      "repository": "handsontable",
+      "privateToken": "${GITHUB_TOKEN}",
+      "shortDescription": true
+    }
+  }
+}

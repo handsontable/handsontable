@@ -9,7 +9,8 @@ We run visual tests automatically by using the following tools:
 | Tool                                                                   | Description                                                                                                                                             |
 | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [Playwright](https://playwright.dev/docs/intro)                        | An open-source testing framework backed by Microsoft. We use it to write and run visual tests.                                                          |
-| [Argos](https://argos-ci.com/docs/visual-testing)                      | An external visual testing service. We use it to compare screenshots.                                                                                   |
+| [reg-suit](https://github.com/reg-viz/reg-suit)                        | An open-source visual regression suite. We use it to compare screenshots and to publish an HTML report.                                                 |
+| [Cloudflare R2](https://developers.cloudflare.com/r2/)                 | Object storage. We use it to hold the golden records and to serve the diff reports.                                                                     |
 | [GitHub Actions](https://github.com/handsontable/handsontable/actions) | GitHub's CI platform. We use it to automate our [test workflows](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml). |
 
 When you push changes to a GitHub pull request:
@@ -17,22 +18,23 @@ When you push changes to a GitHub pull request:
    workflow checks the code of each visual test.
 2. The [Tests](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml) workflow runs all
    of Handsontable's tests.
-3. After all tests pass successfully, the [Visual tests](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml#L432-L502)
-   job runs the visual tests and uploads the resulting screenshots to Argos.
-4. Argos compares your feature branch screenshots against the reference branch (`develop`) screenshots
-   (so-called "reference", "baseline" or "golden" screenshots).
+3. After all tests pass successfully, the [Visual](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/visual.yml)
+   workflow runs the visual tests, then compares the resulting screenshots against the golden records.
+4. The golden records come from the branch your pull request targets — usually `develop`. Every build of a
+   base branch rewrites that branch's golden records, so a pull request into a release or LTS branch is
+   compared against the right baseline with no extra configuration.
 
-If Argos spots differences between two corresponding screenshots,
-the **Visual tests** check on on your pull request fails, and you can't merge your changes to `develop`. In that case:
-1. Open the log of the **Visual tests** job:<br>
-   At the bottom of your pull request, find the **Visual tests** check. Select **Details**.
-2. Open the Argos URL and [review the differences](https://argos-ci.com/docs/visual-testing#reviewing-visual-changes).
-   You can:
-      - [Reject the modified screenshots](https://argos-ci.com/docs/visual-testing#-reject-a-build-workflow), update your code,
-        and [re-run the visual tests](#run-visual-tests-through-github-actions).
-      - [Accept the modified screenshots](https://argos-ci.com/docs/visual-testing#-approving-a-build).
-        You can then merge your changes to `develop`.
-        As a result, the modified screenshots become the new baseline.
+If reg-suit spots differences, the **Compare** check on your pull request fails, and you can't merge your
+changes. In that case:
+1. Open the report. reg-suit comments the report URL on your pull request. If that URL is unreachable,
+   download the `visual-diff-report` artifact from the workflow run instead.
+2. Decide what the differences mean:
+      - They are a regression. Push a commit that removes them, and the check goes green.
+      - They are intentional. Add the `visual-approved` label to the pull request, then re-run the
+        **Compare** job. Approval covers the whole build — there is no per-screenshot review.
+
+Approval binds to one set of screenshots. Pushing a new commit removes the `visual-approved` label, so
+screenshots nobody has looked at never inherit an earlier approval.
 
 ## Visual tests structure
 
@@ -75,17 +77,22 @@ Our GitHub Actions configuration runs the visual tests automatically, but you ca
 
 ## Run visual tests locally
 
-You can manually run visual tests on your machine and then upload the resulting screenshots to Argos.
+You can manually run visual tests on your machine and then compare the resulting screenshots against the
+golden records.
 
 First, prepare your local visual testing environment:
 
 1. Make sure you're using the Node and npm versions mentioned [here](https://handsontable.com/docs/react-data-grid/custom-builds/#build-requirements).
 2. From the `./visual-tests/` directory, run `npm install`.
-3. In the `./visual-tests/` directory, create a file called `.env`. In the file, add the Argos token:
+3. In the `./visual-tests/` directory, create a file called `.env`. In the file, add the R2 credentials:
    ```bash
-   ARGOS_TOKEN=xxx
+   AWS_ACCESS_KEY_ID=xxx
+   AWS_SECRET_ACCESS_KEY=xxx
+   R2_BUCKET_NAME=xxx
+   R2_ENDPOINT=https://xxx.r2.cloudflarestorage.com
+   VISUAL_REPORT_DOMAIN=xxx
    ```
-   Ask your supervisor about the token's value.
+   Ask your supervisor about the values.
 
 To run the visual tests locally:
 
@@ -97,8 +104,12 @@ To run the visual tests locally:
    | `npx playwright test {{ file name }}` | Run a specific test.<br><br>For example: `npx playwright test mouse-wheel`                         |
 
    The resulting screenshots are saved in `./visual-tests/screenshots/`.
-2. From the `./visual-tests/` directory, run `npm run upload`.
-3. Open the Argos URL displayed in the terminal.
+2. From the `./visual-tests/` directory, set the snapshot keys and run the comparison:
+   ```bash
+   REG_EXPECTED_KEY=base/develop REG_ACTUAL_KEY=local/$(git rev-parse --short HEAD) npm run compare
+   ```
+   A local run never writes to `base/`, so it cannot overwrite a golden record.
+3. Open the report URL printed in the terminal, or open `./visual-tests/.reg/index.html` directly.
 
 ## Write a new visual test
 

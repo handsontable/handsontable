@@ -1,6 +1,8 @@
 # Visual Regression Tests
 
-Playwright-based visual regression testing with Argos CI for screenshot comparison.
+Playwright-based visual regression testing. Screenshots are compared by
+[reg-suit](https://github.com/reg-viz/reg-suit); golden records and the HTML diff reports live in
+Cloudflare R2.
 
 ## Framework
 
@@ -37,7 +39,7 @@ test(__filename, async({ tablePage }) => {
 
 ## Golden snapshots: js-copied baselines (critical gotcha)
 
-The reference (golden) baseline and PR builds are generated **differently**, and this asymmetry is a recurring source of false-positive Argos diffs.
+The reference (golden) baseline and PR builds are generated **differently**, and this asymmetry is a recurring source of false-positive diffs.
 
 - **Reference branch (`develop`)** — `scripts/run-tests.mjs` renders **only the `js` framework** (`getFrameworkList()` returns `[REFERENCE_FRAMEWORK]` when `isReferenceBranch()`), then **copies** the js `multi-frameworks` screenshots into the `react-wrapper` / `vue3` / `angular-wrapper` baselines. The wrapper screenshots in the golden set are therefore **identical to the js render** — the wrappers are never actually rendered on `develop`.
 - **Pull requests (non-reference branches)** — every framework (`js` + all wrappers) is rendered for real from its own visual-test example, and each is compared against the copied js baseline.
@@ -54,8 +56,38 @@ The reference (golden) baseline and PR builds are generated **differently**, and
 - `src/helpers.ts`: screenshotPath, DOM selectors, platform detection
 - `src/page-helpers.ts`: selectCell, menu navigation, high-level interactions
 
+## Comparison and approval (reg-suit)
+
+`npm run in visual-tests compare` runs `reg-suit run`: it fetches the golden records, diffs them against
+`screenshots/`, publishes the images plus a self-contained `index.html` to R2, and comments the report URL
+on the pull request.
+
+Three things about this pipeline are easy to get wrong.
+
+- **`reg-suit run` exits 0 no matter what it finds.** It rejects only on notifier and credential errors.
+  `scripts/visual-gate.mjs` reads `.reg/out.json` and is the only thing that turns the check red. Never
+  assume a green `compare` step means no diffs.
+- **Approval is all-or-nothing and is a GitHub label.** The `visual-approved` label on a pull request skips
+  the gate for the whole build; there is no per-screenshot review. The label is removed automatically on
+  every push (`.github/workflows/visual-cleanup.yml`), so approval never carries over to unreviewed
+  screenshots.
+- **A golden record is just a previous build's `actual/` directory.** reg-suit fetches
+  `<expectedKey>/actual/**` into the local `expected/` dir, so the goldens and a normal build share one
+  format. There is no separate baseline artifact to maintain.
+
+Snapshot keys, set in `.github/workflows/visual.yml`:
+
+```
+base/<branch>/     golden records, rewritten by every build of that branch
+pr-<number>/<sha>/ report and images for one pull request build, deleted when the PR closes
+```
+
+`EXPECTED_KEY` derives from `github.base_ref`, so a pull request is always compared against the branch it
+targets. The `js`-to-wrapper baseline copy in `run-tests.mjs` (see the golden snapshots gotcha above) still
+applies — reg-suit matches screenshots by their path.
+
 ## Run
 
-See `package.json` scripts for build, test, and upload commands.
+See `package.json` scripts for build, test, and comparison commands.
 
 For detailed guidance: use skills `visual-testing`, `creating-visual-test-examples`

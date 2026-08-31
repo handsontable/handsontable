@@ -1,0 +1,52 @@
+name: Visual cleanup
+
+# Housekeeping for the visual regression bucket, split from the Visual workflow
+# because both jobs react to pull request lifecycle events rather than to a
+# test run.
+#
+#   purge           - a merged or abandoned pull request keeps no screenshots.
+#   reset-approval  - `visual-approved` accepts one specific set of screenshots,
+#                     so a new push has to be re-reviewed. Without this the
+#                     label would stay open over commits nobody looked at.
+on:
+  pull_request:
+    types: [ closed, synchronize ]
+
+permissions:
+  contents: read
+
+env:
+  R2_BUCKET_NAME: handsontable-visual
+
+jobs:
+  purge:
+    name: Purge screenshots
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      # The AWS CLI ships on the runner image. `wrangler r2 object delete` has
+      # no recursive mode, so the S3 API is the practical way to drop a prefix.
+      - name: Delete this pull request's screenshots from R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+        run: |
+          aws s3 rm "s3://$R2_BUCKET_NAME/pr-${{ github.event.number }}/" \
+            --recursive \
+            --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com"
+
+  reset-approval:
+    name: Reset visual approval
+    if: github.event.action == 'synchronize'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Drop the visual-approved label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        # Absent label is the common case, so a failure here is not an error.
+        run: gh pr edit ${{ github.event.number }} --remove-label visual-approved || true
