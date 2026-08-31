@@ -324,6 +324,10 @@ To make specific cells non-editable, set `editor: false` in the cell configurati
 
 :::
 
+## Block the entire grid
+
+The [`readOnly`](@/api/options.md#readonly) and [`editor`](@/api/options.md#editor) options control editing, but users can still navigate and select cells. To block all interaction with the grid temporarily -- for example, during a loading state or a blocking workflow step -- use the [Dialog](@/guides/dialog/dialog/dialog.md) plugin. An open dialog overlays the grid and moves keyboard input into its own [focus scope](@/guides/navigation/focus-scopes/focus-scopes.md), so users can't reach the cells until the dialog closes. The grid regains focus automatically.
+
 ## Accessibility
 
 When [`ariaTags`](@/api/options.md#ariatags) is enabled (the default), Handsontable adds `aria-readonly="true"` to the DOM element of every read-only cell, so screen readers announce that the cell can't be edited. Non-editable cells (`editor: false`) don't get this attribute, because Handsontable doesn't treat them as read-only in the data model -- only their editor is disabled.
