@@ -877,10 +877,19 @@ export default function Core(
       return;
     }
 
-    if (isStructuralChange || (indexesSequenceChanged && !trimmedIndexesChanged)) {
+    if (isStructuralChange) {
       this.selection.recaptureHighlightRecord();
 
       return;
+    }
+
+    // A permutation is repaired FIRST and does not return, because one cache update can carry both
+    // it and a trim - `hot.batch()` around a sort and a filter collapses them into one. Recapturing
+    // here leaves the trim below testing a record that is current, which is what the selection is
+    // actually sitting on; skipping it would run that test against the pre-permutation index and
+    // invert it, dropping a healthy selection and keeping a stranded one.
+    if (indexesSequenceChanged) {
+      this.selection.recaptureHighlightRecord();
     }
 
     if (!trimmedIndexesChanged) {

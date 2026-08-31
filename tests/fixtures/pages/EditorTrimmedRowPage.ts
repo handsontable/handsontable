@@ -52,6 +52,7 @@ interface HandsontableFixture {
     row: number, column: number, input: unknown[][], endRow: number | null, endColumn: number | null,
     source?: string
   ): void;
+  batch(callback: () => void): void;
   updateData(data: unknown[][]): void;
   runHooks(name: string): void;
   toPhysicalRow(row: number): number;
@@ -531,6 +532,22 @@ export class EditorTrimmedRowPage {
       (window as Window & { hot: HandsontableFixture }).hot.selectCells([[targetRow, targetColumn,
         targetRow, targetColumn]]);
     }, [row, column] as [number, number]);
+  }
+
+  /**
+   * Sorts and trims inside one `batch()`, which collapses both into a SINGLE index-map cache update
+   * carrying `indexesSequenceChanged` and `trimmedIndexesChanged` together. Driving them separately
+   * produces two updates and never exercises that pairing.
+   */
+  async batchSortAndTrim(rows: number[]): Promise<void> {
+    await this.page.evaluate((targetRows) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+
+      hot.batch(() => {
+        hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+        hot.getPlugin('trimRows').trimRows(targetRows);
+      });
+    }, rows);
   }
 
   /**

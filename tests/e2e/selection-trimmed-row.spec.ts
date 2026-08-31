@@ -223,6 +223,37 @@ test.describe('selection stranded by a trimming index map', () => {
       expect(await sorted.selected()).toBeUndefined();
     });
 
+  test('judges the record after a sort and a trim that arrive in the same cache update',
+    async({ page, theme, bundle }) => {
+      const sorted = new EditorTrimmedRowPage(page, theme, bundle, { sorting: true });
+
+      await sorted.goto();
+      await sorted.selectCell(1, 0);
+      // `batch()` collapses the sort and the trim into ONE update carrying both flags. Handled as a
+      // trim alone, the record test runs against the pre-permutation index and inverts: `A1` is the
+      // record being trimmed, but it is not the one under the highlight after the sort, so a
+      // selection that must survive gets dropped.
+      await sorted.batchSortAndTrim([1]);
+
+      expect(await sorted.selected()).toEqual([[1, 0, 1, 0]]);
+    });
+
+  test('still drops when a batched sort and trim leave the coordinate past the last row',
+    async({ page, theme, bundle }) => {
+      const sorted = new EditorTrimmedRowPage(page, theme, bundle, { sorting: true });
+
+      await sorted.goto();
+      await sorted.selectCell(3, 0);
+      // Two rows remain, so visual row 3 addresses nothing regardless of the permutation.
+      await sorted.batchSortAndTrim([0, 1, 3]);
+
+      expect(await sorted.selected()).toBeUndefined();
+
+      await sorted.pasteIntoSelection('PASTED');
+
+      expect(await sorted.sourceRowCount()).toBe(5);
+    });
+
   test('keeps a selection whose row is merely hidden, since the record stays in the visual space', async() => {
     await grid.selectCell(3, 0);
     await grid.hideRows([0, 1, 3]);
