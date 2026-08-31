@@ -239,6 +239,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   // effect on reading the option back out, lives in `textExtractor.types.ts`.
   textExtractor: oneOf(
     true,
+    false,
     (content: string) => content,
     (content: string, source: string) => content,
     (content: string, source: Handsontable.TextExtractorContext) => content,

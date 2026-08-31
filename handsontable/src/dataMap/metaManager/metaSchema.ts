@@ -7747,6 +7747,9 @@ export default (): Record<string, unknown> => {
      * textExtractor: true,
      * ```
      *
+     * `false` behaves the same as leaving the option out, so you can pass a flag straight through
+     * without a ternary.
+     *
      * Set a function for full control. It receives the content and the consumer surface, so you can
      * apply different rules per surface. In TypeScript, annotate the second parameter with the
      * exported `TextExtractorContext` type

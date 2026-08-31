@@ -328,8 +328,11 @@ export interface GridSettings {
   // naming it here would raise the option's minimum call arity to two, breaking anyone who reuses
   // the configured extractor as `hot.getSettings().textExtractor?.(value)`. The contract is
   // published as the exported `TextExtractorContext` type instead.
+  // `boolean`, not `true`: `false` reads as off at runtime, the JSDoc documents it, and typing the
+  // option narrower would stop a caller passing a plain `boolean` - a feature flag, a value read
+  // from configuration - without a ternary that only exists to satisfy the type.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  textExtractor?: true | ((content: string, ...args: any[]) => string);
+  textExtractor?: boolean | ((content: string, ...args: any[]) => string);
 
   // State
   initialState?: Record<string, unknown>;
@@ -754,7 +757,7 @@ export type SanitizerFn = NonNullable<RemoveIndexSignature<GridSettings>['saniti
  * users are given instead.
  */
 export type TextExtractorFn =
-  Exclude<NonNullable<RemoveIndexSignature<GridSettings>['textExtractor']>, true>;
+  Exclude<NonNullable<RemoveIndexSignature<GridSettings>['textExtractor']>, boolean>;
 
 /**
  * Map of all Handsontable hook names to their typed callback signatures.

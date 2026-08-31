@@ -19,6 +19,21 @@ const builtIn: GridSettings = {
 };
 
 /**
+ * `false` and a plain `boolean` have to be assignable. The option is typed `boolean` rather than
+ * `true` so a caller can pass a flag straight through; narrowing it to `true` breaks the last two
+ * of these with TS2322, which is the whole reason the wider type is there.
+ */
+declare const flag: boolean;
+
+const explicitlyOff: GridSettings = {
+  textExtractor: false,
+};
+
+const fromFlag: GridSettings = {
+  textExtractor: flag,
+};
+
+/**
  * The point of the exported type. Annotating the parameter names the surfaces the grid emits, so an
  * editor completes them as you write the branch. It cannot reject a misspelled comparison: the
  * `(string & {})` member accepts every string, which is the deliberate trade it inherits.
