@@ -1,7 +1,7 @@
 {
   "issuesOrigin": "public",
-  "title": "Fixed an issue where confirming a cell editor without typing anything overwrote the cell's value with an empty string and fired a change event, and added an `emptyValue` option that sets what an emptied cell stores.",
-  "type": "fixed",
+  "title": "Added an `emptyValue` option that sets what an emptied cell stores, and stopped a cell editor confirmed without any typing from overwriting the cell's value with an empty string.",
+  "type": "added",
   "issueOrPR": 3927,
   "breaking": false,
   "framework": "none"
