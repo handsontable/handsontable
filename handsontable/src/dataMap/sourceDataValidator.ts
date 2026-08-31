@@ -99,7 +99,7 @@ function validateSourceCell(
 }
 
 /**
- * Resolves the source, physical, and visual coordinate mapping once for every visible column.
+ * Resolves the source, physical, and visual coordinate mapping once for every non-trimmed column.
  *
  * @param {HotInstance} hotInstance The Handsontable instance.
  * @param {number} colSourceCount The number of physical source columns.
@@ -136,7 +136,7 @@ function collectColumnMappings(
  * any column carries a validator that may depend on per-row meta.
  *
  * @param {HotInstance} hotInstance The Handsontable instance.
- * @param {Array} columnMappings The source, physical, and visual coordinate mapping for visible columns.
+ * @param {Array} columnMappings The source, physical, and visual coordinate mapping for non-trimmed columns.
  * @returns {object} `{ fullScan, columns }` — when `fullScan` is `true`, `columns` is empty.
  */
 function collectColumnValidators(
@@ -180,7 +180,7 @@ function collectColumnValidators(
  * @param {HotInstance} hotInstance The Handsontable instance.
  * @param {DataSource} dataSource The data source.
  * @param {number} rowSourceCount The number of physical source rows.
- * @param {Array} columnMappings The source, physical, and visual coordinate mapping for visible columns.
+ * @param {Array} columnMappings The source, physical, and visual coordinate mapping for non-trimmed columns.
  * @param {Map} invalidByMessageType The accumulator of invalid entries keyed by warning message.
  * @param {string} [source] The source identifier of the operation.
  * @returns {void}

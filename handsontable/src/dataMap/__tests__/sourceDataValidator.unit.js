@@ -60,7 +60,7 @@ function createMockHot({
     }),
   };
 
-  return { hot, getCellMetaUncached, getAtCell, modifyRowData, setAtCell };
+  return { hot, getCellMetaUncached, getAtCell, getAtPhysicalCell, modifyRowData, setAtCell };
 }
 
 /**
@@ -256,7 +256,7 @@ describe('runSourceDataValidators', () => {
     const validator = makeValidator(rowIndependent, () => false);
     const toVisualColumn = jest.fn(physicalColumn => 1 - physicalColumn);
     const colToProp = jest.fn(visualColumn => (visualColumn === 0 ? 'second' : 'first'));
-    const { hot, getAtCell, modifyRowData, setAtCell } = createMockHot({
+    const { hot, getAtCell, getAtPhysicalCell, modifyRowData, setAtCell } = createMockHot({
       rows: 2,
       cols: 2,
       validator,
@@ -272,6 +272,12 @@ describe('runSourceDataValidators', () => {
       [0, 'second'],
       [1, 'first'],
       [1, 'second'],
+    ]);
+    expect(getAtPhysicalCell.mock.calls).toEqual([
+      [0, 'first', { row: 0 }],
+      [0, 'second', { row: 0 }],
+      [1, 'first', { row: 1 }],
+      [1, 'second', { row: 1 }],
     ]);
     expect(setAtCell.mock.calls).toEqual([
       [0, 'first', null],
