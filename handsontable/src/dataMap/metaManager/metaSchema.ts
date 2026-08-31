@@ -7955,7 +7955,7 @@ export default (): Record<string, unknown> => {
      * Values that are not strings are never passed to the extractor. A numeric header stays a number,
      * so a spreadsheet still reads it as one.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 18.2.0
@@ -7963,7 +7963,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean|function(string, TextExtractorContext): string}
      * @default undefined
      * @category Core
-     @configScope grid
+     * @configScope grid
      *
      * @example
      * ```js
