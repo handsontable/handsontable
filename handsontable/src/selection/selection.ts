@@ -66,8 +66,8 @@ function snapToNearestVisible(indexMapper: IndexMapper, index: number, isSingleL
  * @property {number[]} selectedByRowHeader The state of the selected row headers.
  * @property {number[]} selectedByColumnHeader The state of the selected column headers.
  * @property {boolean} disableHeadersHighlight The state of the disable headers highlight.
- * @property {boolean} rowExtentSpansGrid Whether the row extent spans the whole grid.
- * @property {boolean} columnExtentSpansGrid Whether the column extent spans the whole grid.
+ * @property {number[]} rowExtentSpansGrid The layers whose row extent spans the whole grid.
+ * @property {number[]} columnExtentSpansGrid The layers whose column extent spans the whole grid.
  */
 
 /**
@@ -201,8 +201,12 @@ class Selection {
    */
   #highlightPhysicalColumn: number | null = null;
   /**
-   * Whether the active selection's ROW extent spans the whole grid by construction rather than
-   * naming particular records - a full-column selection or a select-all.
+   * The selection layers whose ROW extent spans the whole grid by construction rather than naming
+   * particular records - a full-column selection or a select-all.
+   *
+   * Kept per LAYER, like the header-selection sets beside it: a non-contiguous selection can hold a
+   * full column in one layer and a plain cell range in another, and the repair judges whichever
+   * layer is active.
    *
    * Recorded by the API that creates such a selection, because nothing about the resulting range
    * can be read back to tell the two apart later. The tempting signals all fail: the range's own
@@ -210,16 +214,16 @@ class Selection {
    * `isEntireColumnSelected()` measures the range against the CURRENT row count that a trim has
    * already changed, and the header-selection sets exclude a corner select-all by design.
    *
-   * @type {boolean}
+   * @type {Set<number>}
    */
-  #rowExtentSpansGrid = false;
+  #rowExtentSpansGrid = new Set<number>();
   /**
-   * Whether the active selection's COLUMN extent spans the whole grid by construction - a full-row
+   * The selection layers whose COLUMN extent spans the whole grid by construction - a full-row
    * selection or a select-all. The column counterpart of {@link Selection#rowExtentSpansGrid}.
    *
-   * @type {boolean}
+   * @type {Set<number>}
    */
-  #columnExtentSpansGrid = false;
+  #columnExtentSpansGrid = new Set<number>();
 
   /**
    * Initializes the Selection manager with grid settings and table API references, and sets up transformation modules and highlight layers.
@@ -421,12 +425,6 @@ class Selection {
 
     this.#disableHeadersHighlight = false;
     this.#isFocusSelectionChanged = false;
-    // Cleared for every selection. The three APIs that DO span an axis - `selectColumns()`,
-    // `selectRows()`, `selectAll()` - set it back after their range is laid, and the paths that
-    // merely re-lay an existing selection (`refresh()`, `shiftRows()`, `shiftColumns()`) carry it
-    // across, so only a genuinely new selection lands here with both cleared.
-    this.#rowExtentSpansGrid = false;
-    this.#columnExtentSpansGrid = false;
     this.runLocalHooks(`beforeSetRangeStart${fragment ? 'Only' : ''}`, coordsClone);
 
     if (!isMultipleMode || (isMultipleMode && !isMultipleSelection && isUndefined(multipleSelection))) {
@@ -451,6 +449,10 @@ class Selection {
     if (this.getLayerLevel() === 0) {
       this.selectedByRowHeader.clear();
       this.selectedByColumnHeader.clear();
+      // Dropped with the header sets, and for the same reason: a fresh selection at layer 0
+      // replaces whatever the previous one spanned.
+      this.#rowExtentSpansGrid.clear();
+      this.#columnExtentSpansGrid.clear();
     }
 
     // Captured here as well as in `setRangeFocus()`, for the `fragment` path: it leaves the
@@ -888,8 +890,8 @@ class Selection {
       const clampToVisibleRow = (visualRow: number): number =>
         snapToNearestVisible(this.tableProps.rowIndexMapper, visualRow, isSingleRow);
 
-      const rowExtentSpansGrid = this.#rowExtentSpansGrid;
-      const columnExtentSpansGrid = this.#columnExtentSpansGrid;
+      const rowExtentSpansGrid = new Set(this.#rowExtentSpansGrid);
+      const columnExtentSpansGrid = new Set(this.#columnExtentSpansGrid);
 
       // Remove from the stack the last added selection as that selection below will be
       // replaced by new transformed selection.
@@ -967,8 +969,8 @@ class Selection {
       const clampToVisibleColumn = (visualColumn: number): number =>
         snapToNearestVisible(this.tableProps.columnIndexMapper, visualColumn, isSingleColumn);
 
-      const rowExtentSpansGrid = this.#rowExtentSpansGrid;
-      const columnExtentSpansGrid = this.#columnExtentSpansGrid;
+      const rowExtentSpansGrid = new Set(this.#rowExtentSpansGrid);
+      const columnExtentSpansGrid = new Set(this.#columnExtentSpansGrid);
 
       // Remove from the stack the last added selection as that selection below will be
       // replaced by new transformed selection.
@@ -1430,8 +1432,8 @@ class Selection {
     this.highlight.clear();
     this.#highlightPhysicalRow = null;
     this.#highlightPhysicalColumn = null;
-    this.#rowExtentSpansGrid = false;
-    this.#columnExtentSpansGrid = false;
+    this.#rowExtentSpansGrid.clear();
+    this.#columnExtentSpansGrid.clear();
   }
 
   /**
@@ -1551,8 +1553,9 @@ class Selection {
       //
       // `isEntireColumnSelected()` cannot answer this either: it compares the range height against
       // the CURRENT row count, which the trim has already changed, so it reads false exactly here.
-      const isRowExtentTracked = this.#rowExtentSpansGrid;
-      const isColumnExtentTracked = this.#columnExtentSpansGrid;
+      const activeLayer = this.getActiveSelectionLayerIndex();
+      const isRowExtentTracked = this.#rowExtentSpansGrid.has(activeLayer);
+      const isColumnExtentTracked = this.#columnExtentSpansGrid.has(activeLayer);
 
       if ((isRowOutOfRange && !isRowExtentTracked) || (isColumnOutOfRange && !isColumnExtentTracked)) {
         this.deselect();
@@ -1656,8 +1659,8 @@ class Selection {
     // Recorded for BOTH axes and without a header condition. The header-state writes below are
     // deliberately conditional - they drive header highlighting, which only means something when a
     // header is rendered - so they cannot answer "does this extent span the grid".
-    this.#rowExtentSpansGrid = true;
-    this.#columnExtentSpansGrid = true;
+    this.#rowExtentSpansGrid.add(this.getLayerLevel());
+    this.#columnExtentSpansGrid.add(this.getLayerLevel());
 
     if (columnFrom < 0) {
       this.selectedByRowHeader.add(this.getLayerLevel());
@@ -1788,7 +1791,7 @@ class Selection {
       this.setRangeStartOnly(from, undefined, highlight);
       this.selectedByColumnHeader.add(this.getLayerLevel());
       // A column selection covers every row by construction, so its row extent follows the grid.
-      this.#rowExtentSpansGrid = true;
+      this.#rowExtentSpansGrid.add(this.getLayerLevel());
       this.setRangeEnd(to);
       this.runLocalHooks('afterSelectColumns', from, to, highlight);
 
@@ -1854,7 +1857,7 @@ class Selection {
       this.setRangeStartOnly(from, undefined, highlight);
       this.selectedByRowHeader.add(this.getLayerLevel());
       // A row selection covers every column by construction.
-      this.#columnExtentSpansGrid = true;
+      this.#columnExtentSpansGrid.add(this.getLayerLevel());
       this.setRangeEnd(to);
       this.runLocalHooks('afterSelectRows', from, to, highlight);
 
@@ -1883,12 +1886,12 @@ class Selection {
     selectedByRowHeader,
     selectedByColumnHeader,
     disableHeadersHighlight,
-    rowExtentSpansGrid = false,
-    columnExtentSpansGrid = false,
+    rowExtentSpansGrid = [],
+    columnExtentSpansGrid = [],
   }: {
     ranges: CellRange[]; activeRange: CellRange; activeSelectionLayer: number;
     selectedByRowHeader: number[]; selectedByColumnHeader: number[]; disableHeadersHighlight: boolean;
-    rowExtentSpansGrid?: boolean; columnExtentSpansGrid?: boolean;
+    rowExtentSpansGrid?: number[]; columnExtentSpansGrid?: number[];
   }) {
     if (ranges.length === 0) {
       return;
@@ -1901,8 +1904,8 @@ class Selection {
 
     this.selectedByRowHeader = new Set(selectedByRowHeader);
     this.selectedByColumnHeader = new Set(selectedByColumnHeader);
-    this.#rowExtentSpansGrid = rowExtentSpansGrid;
-    this.#columnExtentSpansGrid = columnExtentSpansGrid;
+    this.#rowExtentSpansGrid = new Set(rowExtentSpansGrid);
+    this.#columnExtentSpansGrid = new Set(columnExtentSpansGrid);
 
     this.setActiveSelectionLayerIndex(0);
 
@@ -1934,8 +1937,8 @@ class Selection {
       // and restores it later - `dialog` and `emptyDataState` both do - would otherwise hand back a
       // full-column or select-all selection that no longer knows it spans the grid, and the next
       // trim would drop it instead of clamping it.
-      rowExtentSpansGrid: this.#rowExtentSpansGrid,
-      columnExtentSpansGrid: this.#columnExtentSpansGrid,
+      rowExtentSpansGrid: Array.from(this.#rowExtentSpansGrid),
+      columnExtentSpansGrid: Array.from(this.#columnExtentSpansGrid),
     };
   }
 
@@ -1968,8 +1971,8 @@ class Selection {
 
     const selectedByRowHeader = new Set(this.selectedByRowHeader);
     const selectedByColumnHeader = new Set(this.selectedByColumnHeader);
-    const rowExtentSpansGrid = this.#rowExtentSpansGrid;
-    const columnExtentSpansGrid = this.#columnExtentSpansGrid;
+    const rowExtentSpansGrid = new Set(this.#rowExtentSpansGrid);
+    const columnExtentSpansGrid = new Set(this.#columnExtentSpansGrid);
 
     this.clear();
     this.setExpectedLayers(ranges.length);
