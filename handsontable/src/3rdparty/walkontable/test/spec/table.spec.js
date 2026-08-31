@@ -1013,5 +1013,61 @@ describe('WalkontableTable', () => {
       expect(masterRow1Height).toBeGreaterThanOrEqual(100);
       expect(cloneRow1Height).toBe(masterRow1Height);
     });
+
+    it('should decline a refill whose proposal does not overlap the rendered band (whole-dataset shrink while scrolled deep)', async() => {
+      // Scrolled deep into a tall dataset, then EVERY row shrinks in one draw: the recomputed
+      // heights place the same scroll offset past the whole dataset, so the proposal lands near the
+      // dataset end, thousands of rows below the rendered band. Refilling from it would union the
+      // whole gap into one band and render all of it in a single `renderCellBand` — the pass must
+      // be declined instead, leaving the rendered band and the DOM exactly as pass 1 rendered them
+      // (the pre-fix #6452 behavior until the next scroll settles the position).
+      createDataArray(1000, 4);
+      spec().$wrapper.width(300).height(300);
+
+      const state = { rowHeight: 60, tallCells: true };
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        rowHeight: () => state.rowHeight,
+        rowHeightByOverlayName: () => state.rowHeight,
+        cellRenderer(row, column, TD) {
+          TD.innerHTML = state.tallCells && row >= 490 && row <= 520
+            ? `<div style="height: 200px">${getData(row, column)}</div>`
+            : getData(row, column);
+        },
+      });
+
+      wt.draw();
+
+      getTableMaster().find('.wtHolder').scrollTop(30000);
+
+      await sleep(20);
+
+      wt.draw();
+      wt.draw();
+
+      const firstRenderedRow = wt.wtTable.getFirstRenderedRow();
+      const lastRenderedRow = wt.wtTable.getLastRenderedRow();
+      const renderedRowsCount = getTableMaster().find('tbody tr').length;
+
+      // The band has to sit deep in the dataset for the scenario to say anything.
+      expect(firstRenderedRow).toBeGreaterThan(400);
+
+      state.rowHeight = 23;
+      state.tallCells = false;
+
+      wt.draw();
+
+      // The declined pass leaves the rendered band and the DOM untouched.
+      expect(wt.wtTable.getFirstRenderedRow()).toBe(firstRenderedRow);
+      expect(wt.wtTable.getLastRenderedRow()).toBe(lastRenderedRow);
+
+      const $rows = getTableMaster().find('tbody tr');
+
+      expect($rows.length).toBe(renderedRowsCount);
+      expect($rows.first().find('td:first').text()).toBe(`${getData(firstRenderedRow, 0)}`);
+    });
   });
 });

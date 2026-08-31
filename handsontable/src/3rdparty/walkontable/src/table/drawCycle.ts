@@ -552,8 +552,14 @@ function renderCellBand(
  * record (the axis calculator stops where the cumulative offsets — stale record included — cross
  * the viewport, and `resetOversizedRows` wipes only the rows inside the band, so every
  * previously-measured tall row below it survives to cap the next proposal). Only rendering that row
- * re-measures it and lets the following pass propose past it. The overscan does not help here:
- * `rowHeightsUniform` is `false` in exactly this scenario. So the practical limit is a shrink that
+ * re-measures it and lets the following pass propose past it. The overscan cannot shortcut the
+ * cascade, but only because `applyRenderedRowsBandOverscan` runs solely under `stationaryBands`,
+ * which the refill's `createCalculators(false)` never sets. Do not reason from `rowHeightsUniform`
+ * here: that setting is settings-only (`rowHeights`/`minRowHeights`/the `modifyRowHeight` hook,
+ * `tableView.ts`) and stays `true` in the #6452 fixture — measured `oversizedRows` never enter it;
+ * `PositionCache` ANDs the record count in separately. And on a SCROLL-driven shrink draw, pass 1's
+ * overscan genuinely can fire (`allowsStationaryBands` deliberately drops the uniformity
+ * requirement) and can pull a stale out-of-band record into the band. So the practical limit is a shrink that
  * leaves at most `MAX_ROWS_BAND_REFILL_PASSES` stale out-of-band tall records between the pre-shrink
  * band and the settled one — the #6452 fixture (rows 1-7 tall, a ~5-row pre-fix band) already
  * consumes all three passes.
@@ -739,6 +745,12 @@ function refillRenderedRowsBandIfShrunk(
  * band `createCalculators(false)` would assign, without touching the viewport's calculators.
  * `externalRowCalculator` needs no re-check — the refill only runs when `markOversizedRows`
  * reported a change, which it never does with that setting on.
+ *
+ * The disagreeing branch is untested by design, not by omission: staging it needs a SCROLL-driven
+ * draw whose columns overscan lands the pass-1 band at column 0 (natural `startColumn` 1..8, moving
+ * toward the inline start, uniform widths, 'auto' offset) on the same draw a row shrinks, and the
+ * Jasmine harness cannot force that alignment deterministically. The agreeing path is covered by
+ * the `fixedColumnsStart` refill spec in `test/spec/table.spec.js`.
  *
  * @param {Table} table The master table.
  * @param {DrawContext} ctx The per-draw scratch (supplies the captured `syncFrozenRows` flag).

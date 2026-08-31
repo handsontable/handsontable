@@ -211,9 +211,12 @@ describe('extendRenderedRowsBandTo', () => {
     band.endRow = 99;
     band.count = 100;
 
-    const viewport = createViewportStub(band);
+    // `totalRows: 200` with a range that sticks out past the band's end: without the `instanceof`
+    // guard the end-edge branch would grow `endRow` to 150 (and NaN the offsets), so these inputs
+    // actually observe the guard.
+    const viewport = createViewportStub(band, { totalRows: 200 });
 
-    extendBandTo(viewport, 5, 200);
+    extendBandTo(viewport, 0, 150);
 
     expect(band.startRow).toBe(0);
     expect(band.endRow).toBe(99);
@@ -229,5 +232,57 @@ describe('extendRenderedRowsBandTo', () => {
     expect(band.startRow).toBeNull();
     expect(band.endRow).toBeNull();
     expect(band.count).toBe(0);
+  });
+});
+
+describe('createRowsCalculator `proposeOnly` option', () => {
+  const ROW_HEIGHT = 23;
+
+  function createFactoryViewportStub() {
+    return {
+      rowHeaderWidth: 120,
+      wtSettings: {
+        getSetting: key => ({ totalRows: 100, fixedRowsTop: 0, fixedRowsBottom: 0 })[key],
+        getSettingPure: () => null,
+      },
+      wtTable: { holder: {} },
+      deps: {
+        getTopOverlay: () => ({ getScrollPosition: () => 0, getTableParentOffset: () => 0 }),
+        getBottomOverlay: () => ({ clone: null }),
+        geometryReader: {
+          clientHeight: () => 300,
+          offsetHeight: () => 300,
+          getScrollbarWidth: () => 15,
+        },
+        rootDocument: {},
+      },
+      usesLayoutSnapshotForCalculators: () => false,
+      getViewportHeight: () => 300,
+      rowsCalculatorTypes: new Map([['rendered', () => new RenderedRowsCalculationType()]]),
+      rowHeightCache: {
+        findIndexAtOffset: offset => Math.floor(offset / ROW_HEIGHT),
+        getOffset: row => row * ROW_HEIGHT,
+        getSizeAt: () => ROW_HEIGHT,
+      },
+    };
+  }
+
+  it('should reset the `rowHeaderWidth` memo on a default build', () => {
+    const viewport = createFactoryViewportStub();
+
+    calculatorFactory.createRowsCalculator.call(viewport, ['rendered'], 'visible');
+
+    expect(viewport.rowHeaderWidth).toBeNaN();
+  });
+
+  it('should leave the `rowHeaderWidth` memo untouched on a propose-only build', () => {
+    const viewport = createFactoryViewportStub();
+
+    const calculator = calculatorFactory.createRowsCalculator
+      .call(viewport, ['rendered'], 'visible', { proposeOnly: true });
+
+    expect(viewport.rowHeaderWidth).toBe(120);
+    // The build itself still computes a real band.
+    expect(calculator.getResultsFor('rendered').endRow).not.toBeNull();
   });
 });
