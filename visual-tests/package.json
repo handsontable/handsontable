@@ -10,7 +10,7 @@
     "test": "node ./scripts/run-tests.mjs",
     "test:cross-browser": "npx playwright test --config playwright-cross-browser.config.ts --reporter=dot",
     "serve-example": "npm --prefix ../examples/next/visual-tests/js/demo run serve -- --port=8082",
-    "compare": "reg-suit run",
+    "compare": "node ./scripts/compare.mjs",
     "compare:fork": "node ./scripts/compare-fork.mjs",
     "install-system-dependencies": "npx --no playwright install --with-deps",
     "publish-package": "echo \"There is nothing to publish. Skipped.\"",

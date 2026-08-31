@@ -16,7 +16,7 @@
  * Usage: node visual-tests/scripts/compare-fork.mjs <base-branch>
  */
 
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { spawn } from 'node:child_process';
 
@@ -28,6 +28,37 @@ const EXPECTED_DIR = join(WORKING_DIR, 'expected');
 const [baseBranch] = process.argv.slice(2);
 const domain = process.env.VISUAL_REPORT_DOMAIN;
 
+/**
+ * Read the comparison tolerances from `regconfig.json` so both comparison paths
+ * apply the same ones. Hard-coding them here would let the fork path drift into
+ * failing on antialiasing noise that a same-repo run tolerates.
+ *
+ * @returns {Promise<string[]>} `reg-cli` flags.
+ */
+async function toleranceFlags() {
+  const config = JSON.parse(await readFile(join(ROOT, 'regconfig.json'), 'utf-8'));
+  const core = config.core ?? {};
+  const flags = [];
+
+  if (core.enableAntialias) {
+    flags.push('-A');
+  }
+
+  if (core.thresholdPixel !== undefined) {
+    flags.push('-S', String(core.thresholdPixel));
+  }
+
+  if (core.thresholdRate !== undefined) {
+    flags.push('-T', String(core.thresholdRate));
+  }
+
+  if (core.matchingThreshold !== undefined) {
+    flags.push('-M', String(core.matchingThreshold));
+  }
+
+  return flags;
+}
+
 if (!baseBranch || !domain) {
   console.error('Usage: node visual-tests/scripts/compare-fork.mjs <base-branch>');
   console.error('VISUAL_REPORT_DOMAIN must be set.');
@@ -36,16 +67,29 @@ if (!baseBranch || !domain) {
 
 if (baseBranch && domain) {
   const goldenUrl = `https://${domain}/base/${baseBranch}`;
-  const manifestResponse = await fetch(`${goldenUrl}/out.json`);
+  let manifestResponse;
 
-  if (!manifestResponse.ok) {
+  try {
+    manifestResponse = await fetch(`${goldenUrl}/out.json`);
+  } catch (error) {
+    console.error(`Could not reach ${goldenUrl}/out.json: ${error.message}`);
+    process.exitCode = 1;
+  }
+
+  if (manifestResponse && manifestResponse.status !== 404 && !manifestResponse.ok) {
+    // A 403/429/5xx is not "no baseline yet". Reporting it as one would send
+    // someone debugging a red check off after a baseline that already exists.
+    console.error('Unexpected response fetching the golden records manifest: '
+      + `HTTP ${manifestResponse.status} from ${goldenUrl}/out.json.`);
+    process.exitCode = 1;
+  } else if (manifestResponse && manifestResponse.status === 404) {
     // Seeding needs write credentials this run does not have, so leave the
     // baseline to a same-repo build and let the pull request through rather
     // than blocking an external contributor on missing infrastructure.
     console.log(`No golden records for "${baseBranch}" at ${goldenUrl}/out.json `
       + `(HTTP ${manifestResponse.status}).`);
     console.log('Skipping the comparison: a same-repo build has to seed the baseline first.');
-  } else {
+  } else if (manifestResponse) {
     const manifest = await manifestResponse.json();
     const items = manifest.actualItems ?? [];
 
@@ -57,7 +101,14 @@ if (baseBranch && domain) {
     const worker = async() => {
       while (queue.length > 0) {
         const item = queue.pop();
-        const response = await fetch(`${goldenUrl}/actual/${item}`);
+        let response;
+
+        try {
+          response = await fetch(`${goldenUrl}/actual/${item}`);
+        } catch (error) {
+          failures.push(`${item} (${error.message})`);
+          continue;
+        }
 
         if (!response.ok) {
           failures.push(`${item} (HTTP ${response.status})`);
@@ -80,6 +131,10 @@ if (baseBranch && domain) {
     } else {
       console.log('Comparing …');
 
+      const flags = await toleranceFlags();
+
+      console.log(`Comparing with tolerances: ${flags.join(' ') || '(none configured)'}`);
+
       const exitCode = await new Promise((resolve) => {
         spawn('npx', [
           '--no', 'reg-cli',
@@ -89,6 +144,7 @@ if (baseBranch && domain) {
           '-R', join(WORKING_DIR, 'index.html'),
           '-J', join(WORKING_DIR, 'out.json'),
           '-I', // never fail here; visual-gate.mjs owns the verdict
+          ...flags,
         ], { cwd: ROOT, stdio: 'inherit', shell: process.platform === 'win32' })
           .on('close', resolve);
       });

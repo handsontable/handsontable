@@ -192,13 +192,28 @@ jobs:
       # fetch contract relies on.
       - name: Check for golden records
         run: |
-          if curl -sfI --max-time 20 "https://$VISUAL_REPORT_DOMAIN/$REG_EXPECTED_KEY/out.json" >/dev/null; then
-            echo "VISUAL_BOOTSTRAP=false" >> "$GITHUB_ENV"
-            echo "Golden records found for $REG_EXPECTED_KEY."
-          else
-            echo "VISUAL_BOOTSTRAP=true" >> "$GITHUB_ENV"
-            echo "No golden records for $REG_EXPECTED_KEY — this build seeds them."
-          fi
+          # Only a definite 404 means "no baseline yet". A transport failure or
+          # any other status must never be read as absence: the seed step below
+          # would then overwrite `base/<branch>`, the baseline every other pull
+          # request compares against, with this build's render.
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 \
+            --retry 3 --retry-all-errors --retry-delay 2 \
+            -I "https://$VISUAL_REPORT_DOMAIN/$REG_EXPECTED_KEY/out.json") || code=000
+          case "$code" in
+            2??)
+              echo "VISUAL_BOOTSTRAP=false" >> "$GITHUB_ENV"
+              echo "Golden records found for $REG_EXPECTED_KEY."
+              ;;
+            404)
+              echo "VISUAL_BOOTSTRAP=true" >> "$GITHUB_ENV"
+              echo "No golden records for $REG_EXPECTED_KEY — this build seeds them."
+              ;;
+            *)
+              echo "::error::Could not tell whether golden records exist for $REG_EXPECTED_KEY (HTTP $code)."
+              echo "Refusing to guess — seeding on a transient failure would overwrite the baseline."
+              exit 1
+              ;;
+          esac
 
       # Two comparison paths, one verdict. Both write `.reg/out.json`, and the
       # gate below reads only that, so a fork is held to the same standard.
@@ -258,9 +273,27 @@ jobs:
       - name: Visual approval gate
         if: github.event_name == 'pull_request'
         env:
-          VISUAL_APPROVED: ${{ contains(github.event.pull_request.labels.*.name, 'visual-approved') }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          # `visual-cleanup.yml` cannot strip the label on a fork or Dependabot
+          # push (read-only token), so an approval there would outlive the
+          # screenshots it covered. Those runs ignore the label entirely.
+          IS_UNTRUSTED: ${{ github.event.pull_request.head.repo.full_name != github.repository
+            || github.actor == 'dependabot[bot]' }}
           VISUAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: node ./visual-tests/scripts/visual-gate.mjs
+        run: |
+          # Read the labels live. `github.event.pull_request.labels` is a
+          # snapshot of the triggering event, so a re-run after applying the
+          # label would still see the old set and could never turn green.
+          if [ "$IS_UNTRUSTED" = "true" ]; then
+            approved=false
+          else
+            approved=$(gh api "repos/$REPO/issues/$PR_NUMBER/labels" \
+              --jq 'any(.[]; .name == "visual-approved")')
+          fi
+          echo "visual-approved present: $approved"
+          VISUAL_APPROVED="$approved" node ./visual-tests/scripts/visual-gate.mjs
 
       # One sticky comment, rewritten in place, carrying the counts, the report
       # link and how to accept the changes. Fork runs have no write token, so

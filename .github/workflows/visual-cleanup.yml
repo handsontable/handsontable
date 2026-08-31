@@ -21,7 +21,14 @@ env:
 jobs:
   purge:
     name: Purge screenshots
-    if: github.event.action == 'closed'
+    # Same-repo only. A fork or Dependabot run gets no secrets, so `aws s3 rm`
+    # would hard-fail on every external contributor's PR close -- and it would
+    # be a no-op anyway, because the credentialed publish steps are themselves
+    # same-repo-guarded and `compare-fork.mjs` never writes to R2, so no
+    # `pr-<n>/` prefix exists for those pull requests.
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+      && (github.event.pull_request.head.repo.full_name == github.repository
+          && github.actor != 'dependabot[bot]')
     runs-on: ubuntu-latest
     steps:
       # The AWS CLI ships on the runner image. `wrangler r2 object delete` has
@@ -38,7 +45,13 @@ jobs:
 
   reset-approval:
     name: Reset visual approval
-    if: github.event.action == 'synchronize'
+    # Same-repo only, for the same reason: a fork or Dependabot pull_request run
+    # holds a read-only token, so this write 403s. The visual gate compensates by
+    # ignoring `visual-approved` entirely on those runs, so a label that cannot
+    # be cleared here can never approve anything either.
+    if: github.event_name == 'pull_request' && github.event.action == 'synchronize'
+      && (github.event.pull_request.head.repo.full_name == github.repository
+          && github.actor != 'dependabot[bot]')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -48,5 +61,18 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
-        # Absent label is the common case, so a failure here is not an error.
-        run: gh pr edit ${{ github.event.number }} --remove-label visual-approved || true
+          PR_NUMBER: ${{ github.event.number }}
+        # An absent label is the common case and fine. Anything else is not:
+        # a silently swallowed failure would leave a stale approval covering
+        # screenshots nobody reviewed, which is the one thing this job exists
+        # to prevent.
+        run: |
+          if gh pr edit "$PR_NUMBER" --remove-label visual-approved 2>/tmp/err; then
+            echo "Removed the visual-approved label."
+          elif grep -qiE "not (found|labeled)|does not have" /tmp/err; then
+            echo "No visual-approved label to remove."
+          else
+            echo "::error::Could not remove the visual-approved label:"
+            cat /tmp/err
+            exit 1
+          fi

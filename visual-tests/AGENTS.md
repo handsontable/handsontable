@@ -59,8 +59,10 @@ The reference (golden) baseline and PR builds are generated **differently**, and
 ## Comparison and approval (reg-suit)
 
 `npm run in visual-tests compare` runs `reg-suit run`: it fetches the golden records, diffs them against
-`screenshots/`, publishes the images plus a self-contained `index.html` to R2, and comments the report URL
-on the pull request.
+`screenshots/`, and publishes the images plus a self-contained `index.html` to R2. reg-suit posts nothing
+itself — no notifier plugin is configured. The pull request comment is written by `visual-gate.mjs` to
+`.reg/comment.md` and posted by the `marocchino/sticky-pull-request-comment` step in `visual.yml`, which is
+why it carries the approval instructions as well as the counts.
 
 Three things about this pipeline are easy to get wrong.
 

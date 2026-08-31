@@ -26,8 +26,8 @@ When you push changes to a GitHub pull request:
 
 If reg-suit spots differences, the **Compare** check on your pull request fails, and you can't merge your
 changes. In that case:
-1. Open the report. reg-suit comments the report URL on your pull request. If that URL is unreachable,
-   download the `visual-diff-report` artifact from the workflow run instead.
+1. Open the report. The **Visual** workflow comments the report URL on your pull request. If that URL is
+   unreachable, download the `visual-diff-report` artifact from the workflow run instead.
 2. Decide what the differences mean:
       - They are a regression. Push a commit that removes them, and the check goes green.
       - They are intentional. Add the `visual-approved` label to the pull request, then re-run the
@@ -64,13 +64,14 @@ flowchart TD
     SEED --> PASS
 
     PROBE -->|"200"| WHO{"Fork or Dependabot?"}
-    WHO -->|"no, has secrets"| SUIT["reg-suit run<br/>fetch, diff, publish, comment URL"]
+    WHO -->|"no, has secrets"| SUIT["reg-suit run<br/>fetch, diff, publish"]
     WHO -->|"yes, no secrets"| FORK["compare-fork.mjs<br/>anonymous HTTPS, publishes nothing"]
 
     SUIT --> OUT["screenshots compared<br/>.reg/out.json"]
     FORK --> OUT
 
     OUT --> GATE{"visual-gate.mjs<br/>any differences?"}
+    GATE --> COMMENT["visual-gate.mjs writes the comment,<br/>sticky action posts it"]
     GATE -->|"none"| PASS["Check passes, PR mergeable"]
     GATE -->|"differences found"| LABEL{"visual-approved<br/>label present?"}
     LABEL -->|"yes"| PASS
