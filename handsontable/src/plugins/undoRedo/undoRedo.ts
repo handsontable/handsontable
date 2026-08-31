@@ -272,7 +272,9 @@ export class UndoRedo extends BasePlugin {
 
     } catch (error) {
       // An action that throws never reaches its settle callback. Without this reset every later
-      // user action would be silently dropped from the stack for the rest of the session.
+      // user action would be silently dropped from the stack for the rest of the session. The
+      // popped action itself is deliberately discarded: it applied only partially, so neither
+      // replaying its undo nor redoing it can be trusted to land on a consistent grid.
       this.ignoreNewActions = false;
       throw error;
     }
@@ -337,6 +339,8 @@ export class UndoRedo extends BasePlugin {
       });
 
     } catch (error) {
+      // Same contract as `undo()`: reset the flag and deliberately discard the partially applied
+      // action rather than pushing it back onto either stack.
       this.ignoreNewActions = false;
       throw error;
     }

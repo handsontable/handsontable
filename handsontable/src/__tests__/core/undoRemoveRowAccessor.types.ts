@@ -61,3 +61,21 @@ const userAccessor: ColumnDataGetterSetterFunction = (
 hot.setSourceDataAtCell(0, userAccessor, 'x');
 
 const accessorValue: unknown = hot.getSourceDataAtCell(0, userAccessor);
+
+// ---------------------------------------------------------------------------
+// `modifySourceData` receives `number | string | ColumnDataGetterSetterFunction`
+// as `column`, and (method-syntax bivariance) a pre-widening narrow handler
+// still compiles
+// ---------------------------------------------------------------------------
+new Handsontable.Core(element, {
+  modifySourceData(row: number, column: number | string | ColumnDataGetterSetterFunction) {
+    if (typeof column === 'function') {
+      column({ name: 'x' });
+    }
+  },
+});
+
+new Handsontable.Core(element, {
+  // The `column: number` shape every existing handler was written against must keep compiling.
+  modifySourceData(row: number, column: number) {},
+});

@@ -49,6 +49,9 @@ describe('UndoRedo plugin', () => {
 
     expect(() => plugin.undo()).toThrow('undo boom');
     expect(plugin.ignoreNewActions).toBe(false);
+    // The partially applied action is deliberately discarded – it lands on neither stack.
+    expect(plugin.doneActions.length).toBe(0);
+    expect(plugin.undoneActions.length).toBe(0);
 
     hot.alter('remove_row', 0);
 
@@ -75,6 +78,9 @@ describe('UndoRedo plugin', () => {
 
     expect(() => plugin.redo()).toThrow('redo boom');
     expect(plugin.ignoreNewActions).toBe(false);
+    // Same contract as undo: the throwing action is discarded from both stacks.
+    expect(plugin.doneActions.length).toBe(0);
+    expect(plugin.undoneActions.length).toBe(0);
 
     hot.alter('remove_row', 0);
 

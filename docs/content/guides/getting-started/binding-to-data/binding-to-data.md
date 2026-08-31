@@ -453,7 +453,7 @@ Three more things to know about this setup:
 
 ### Identify changed columns in hooks
 
-When you use a [function data source](#function-data-source-and-schema), each column's [`data`](@/api/options.md#data) option is a getter/setter function. In [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange), the second element of each change tuple is `prop`. With function-based columns, `prop` is that accessor function -- not a property name or a column index.
+When you use a [function data source](#function-data-source-and-schema), each column's [`data`](@/api/options.md#data) option is a getter/setter function. In [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange), the second element of each change tuple is `prop`. With function-based columns, `prop` is that accessor function -- not a property name or a column index. In TypeScript, the accessor's type is exported as `ColumnDataGetterSetterFunction` (see [TypeScript types](@/guides/tools-and-building/typescript-types/typescript-types.md#data-types)).
 
 To find which column changed, call [`propToCol()`](@/api/core.md#proptocol) on the `prop` value:
 

@@ -4335,7 +4335,13 @@ export default function Core(
       changeRow: number, changeProp: string | number | ColumnDataGetterSetterFunction
     ): CellProperties => {
       const visualRow = instance.toVisualRow(changeRow);
-      const visualColumn = typeof changeProp === 'function' ? null : instance.toVisualColumn(changeProp as number);
+      // A function prop resolves through the accessor-aware `propToCol` cache, so an accessor
+      // column reads its own column meta (`valueSetter`, `sourceDataValidator`) instead of the
+      // table-meta fallback; an unresolvable accessor comes back as the function itself and
+      // falls through to that fallback below.
+      const visualColumn: unknown = typeof changeProp === 'function'
+        ? datamap.propToCol(changeProp)
+        : instance.toVisualColumn(changeProp as number);
 
       if (Number.isInteger(visualColumn)) {
         // The transient read keeps a bulk source-data write from permanently materializing one

@@ -367,23 +367,35 @@ export function getProperty<T = unknown>(object: Record<string | symbol, unknown
 }
 
 /**
- * Writes a value to the last segment of a property path. A property whose own descriptor is
- * non-configurable cannot be redefined, so it is written through its setter (accessor) or by
- * plain assignment (writable data property). A non-configurable read-only member – for example
- * a derived getter on a constructor-created row – is left untouched instead of throwing.
+ * Writes a value to the last segment of a property path. An own accessor is written through its
+ * setter and never redefined into a data property – redefining would silently detach a derived
+ * member (e.g. an object-literal getter on a row created by a `dataSchema` function) from the
+ * fields it derives from; a getter-only accessor is left untouched instead of throwing. A
+ * non-configurable data property cannot be redefined either, so it is written by plain
+ * assignment when writable and left untouched (read-only) otherwise.
  *
  * @param {object} target The object that owns the property.
  * @param {string} propName The own property name to write.
  * @param {*} value The value to write.
  */
 function writeOwnProperty(target: Record<string, unknown>, propName: string, value: unknown): void {
+  if (propName === '__proto__' || propName === 'constructor' || propName === 'prototype') {
+    // Security: prototype-polluting is not allowed
+    return;
+  }
+
   const descriptor = Object.getOwnPropertyDescriptor(target, propName);
 
-  if (descriptor && descriptor.configurable === false) {
+  if (descriptor && (descriptor.get || descriptor.set)) {
     if (typeof descriptor.set === 'function') {
       descriptor.set.call(target, value);
+    }
 
-    } else if (descriptor.writable === true) {
+    return;
+  }
+
+  if (descriptor && descriptor.configurable === false) {
+    if (descriptor.writable === true) {
       target[propName] = value;
     }
 

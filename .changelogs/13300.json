@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a bug where undoing a row removal threw an error, restored the row without its data, and stopped recording further actions when `dataSchema` was a function returning objects with read-only members or accessor-based columns.",
+  "title": "Fixed a bug where undoing a row removal threw an error, restored the row without its data, and stopped recording further actions when `dataSchema` was a function, either because the row objects had read-only members or because the columns used function `data` accessors. Writing to a read-only source-data member with `setSourceDataAtCell()` no longer throws (the write is skipped), and a row's own function-valued properties are no longer restored by reference on undo.",
   "type": "fixed",
   "issueOrPR": 13300,
   "breaking": false,

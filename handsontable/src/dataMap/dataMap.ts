@@ -910,12 +910,13 @@ class DataMap {
       value = out;
 
     } else if (typeof prop === 'function') {
-      const sourceRow = this.dataSource![physicalRow];
-
-      // A row index that is mapped but not (yet) backed by source data – e.g. mid-way through an
-      // undo of a row removal – must read as empty instead of handing `undefined` to user code.
-      if (sourceRow !== undefined) {
-        value = prop(sourceRow);
+      // `dataRow` already reflects the `modifyRowData` hook (e.g. `nestedRows` swaps the row),
+      // so the accessor must read through it like every other branch. It is also `undefined` for
+      // a row index that is mapped but not (yet) backed by source data – e.g. mid-way through an
+      // undo of a row removal – which must read as empty instead of handing `undefined` to user
+      // code.
+      if (dataRow) {
+        value = prop(dataRow);
       }
     }
 
@@ -1024,8 +1025,12 @@ class DataMap {
 
       out[sliced[i]] = newValue;
     } else if (typeof prop === 'function') {
-      (prop as (row: unknown, value: unknown) => void)(
-        this.dataSource!.slice(physicalRow, physicalRow + 1)[0], newValue);
+      // Mirrors the `get()` guard: read through the `modifyRowData`-aware `dataRow`, and skip the
+      // write when the row index is mapped but not (yet) backed by source data – calling the
+      // accessor with `undefined` would throw inside user code.
+      if (dataRow) {
+        (prop as (row: unknown, value: unknown) => void)(dataRow, newValue);
+      }
 
     } else {
       if (prop === '__proto__' || prop === 'constructor' || prop === 'prototype') {

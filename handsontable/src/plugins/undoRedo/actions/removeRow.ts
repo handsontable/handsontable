@@ -4,11 +4,41 @@ import { BaseAction } from './_base';
 import { getCellMetas, collectAffectedMergedCells, restoreMergedCells } from '../utils';
 import { deepClone, isPlainObject } from '../../../helpers/object';
 import { isDataAccessorFn } from '../../../dataMap/dataSource';
+import type { DataAccessorFn } from '../../../dataMap/dataSource';
 
 /**
- * Snapshots one source row for later restoration. Function-valued keys are dropped – a function is
- * never a cell value, and writing it back would alias the removed row's closure onto the row the
- * `dataSchema` creates on undo. `__children` is dropped because `nestedRows` restores its own tree.
+ * Recursively deletes function-valued keys from a cloned row. `deepClone` keeps functions by
+ * reference at every depth, so a top-level-only sweep would still alias a nested closure of the
+ * removed row onto the row the `dataSchema` creates on undo.
+ *
+ * @param {unknown} value The cloned value to sweep.
+ */
+function stripFunctionValues(value: unknown): void {
+  if (Array.isArray(value)) {
+    value.forEach((entry, index) => {
+      if (typeof entry === 'function') {
+        value[index] = null;
+      } else {
+        stripFunctionValues(entry);
+      }
+    });
+
+  } else if (isPlainObject(value)) {
+    Object.keys(value).forEach((key) => {
+      if (typeof value[key] === 'function') {
+        delete value[key];
+      } else {
+        stripFunctionValues(value[key]);
+      }
+    });
+  }
+}
+
+/**
+ * Snapshots one source row for later restoration. Function-valued keys are dropped (at every
+ * depth) – a function is never a cell value, and writing it back would alias the removed row's
+ * closure onto the row the `dataSchema` creates on undo. `__children` is dropped because
+ * `nestedRows` restores its own tree.
  *
  * @param {HotInstance} hot The Handsontable instance.
  * @param {number} physicalRow Physical index of the row being removed.
@@ -19,27 +49,23 @@ function captureRowData(hot: HotInstance, physicalRow: number): unknown {
 
   if (isPlainObject(rowData)) {
     delete rowData.__children;
-
-    Object.keys(rowData).forEach((key) => {
-      if (typeof rowData[key] === 'function') {
-        delete rowData[key];
-      }
-    });
+    stripFunctionValues(rowData);
   }
 
   return rowData;
 }
 
 /**
- * Reads the values of every accessor-function column for one row. Returns an empty list when no
- * column uses a function `data` accessor, so the action shape stays unchanged for the common case.
+ * Collects the `[physicalColumnIndex, accessor]` pair of every column whose `data` is an accessor
+ * function. The set does not depend on the row, so it is scanned once per removal and reused for
+ * every removed row. Returns an empty list when no column uses a function `data` accessor, so the
+ * action shape stays unchanged for the common case.
  *
  * @param {HotInstance} hot The Handsontable instance.
- * @param {number} physicalRow Physical index of the row being removed.
- * @returns {Array<[number, unknown]>} `[physicalColumnIndex, value]` pairs.
+ * @returns {Array<[number, DataAccessorFn]>} `[physicalColumnIndex, accessor]` pairs.
  */
-function captureAccessorValues(hot: HotInstance, physicalRow: number): Array<[number, unknown]> {
-  const values: Array<[number, unknown]> = [];
+function collectAccessorColumns(hot: HotInstance): Array<[number, DataAccessorFn]> {
+  const accessorColumns: Array<[number, DataAccessorFn]> = [];
 
   for (let visualColumn = 0; visualColumn < hot.countCols(); visualColumn++) {
     // `colToProp` is declared as `string | number` – the shape it has always had publicly – but it
@@ -47,11 +73,28 @@ function captureAccessorValues(hot: HotInstance, physicalRow: number): Array<[nu
     const prop: unknown = hot.colToProp(visualColumn);
 
     if (isDataAccessorFn(prop)) {
-      values.push([hot.toPhysicalColumn(visualColumn), hot.getSourceDataAtCell(physicalRow, prop)]);
+      accessorColumns.push([hot.toPhysicalColumn(visualColumn), prop]);
     }
   }
 
-  return values;
+  return accessorColumns;
+}
+
+/**
+ * Reads the values of every accessor-function column for one row.
+ *
+ * @param {HotInstance} hot The Handsontable instance.
+ * @param {number} physicalRow Physical index of the row being removed.
+ * @param {Array<[number, DataAccessorFn]>} accessorColumns The pairs collected by
+ *   `collectAccessorColumns`.
+ * @returns {Array<[number, unknown]>} `[physicalColumnIndex, value]` pairs.
+ */
+function captureAccessorValues(
+  hot: HotInstance, physicalRow: number, accessorColumns: Array<[number, DataAccessorFn]>
+): Array<[number, unknown]> {
+  return accessorColumns.map(
+    ([physicalColumn, prop]) => [physicalColumn, hot.getSourceDataAtCell(physicalRow, prop)]
+  );
 }
 
 /**
@@ -137,10 +180,11 @@ export class RemoveRowAction extends BaseAction {
         const lastRowIndex = physicalRowIndex + amount - 1;
         const removedData: unknown[] = [];
         const removedAccessorValues: Array<Array<[number, unknown]>> = [];
+        const accessorColumns = collectAccessorColumns(hot);
 
         for (let i = 0; i < amount; i++) {
           removedData.push(captureRowData(hot, physicalRowIndex + i));
-          removedAccessorValues.push(captureAccessorValues(hot, physicalRowIndex + i));
+          removedAccessorValues.push(captureAccessorValues(hot, physicalRowIndex + i, accessorColumns));
         }
 
         return new RemoveRowAction({
@@ -220,7 +264,16 @@ export class RemoveRowAction extends BaseAction {
     restoreMergedCells(hot, this.removedMergedCells);
 
     hot.addHookOnce('afterViewRender', undoneCallback);
-    hot.setSourceDataAtCell(changes, undefined, undefined, 'UndoRedo.undo');
+
+    try {
+      hot.setSourceDataAtCell(changes, undefined, undefined, 'UndoRedo.undo');
+    } catch (error) {
+      // The hook was armed before the write because `setSourceDataAtCell` renders internally. When
+      // the write throws, the settle callback must not stay armed – it would fire on the next
+      // render and push this half-undone action onto the redo stack.
+      hot.removeHook('afterViewRender', undoneCallback);
+      throw error;
+    }
   }
 
   /**
