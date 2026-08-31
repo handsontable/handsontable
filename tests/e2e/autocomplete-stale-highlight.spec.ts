@@ -51,16 +51,19 @@ test.describe('committing an autocomplete whose choice list is out of date', () 
 
     await page.keyboard.press('ArrowDown');
 
-    // An arrow pick never writes to the TEXTAREA, so nothing about the text says it happened. Typing
-    // afterwards has to clear it, or the pick keeps winning over the value now on screen - the same
-    // defect this file exists for, reached through the branch that lets a pick win.
+    // An arrow pick never writes to the TEXTAREA, so nothing about the text says it happened. New
+    // text has to clear it, or the pick keeps winning over the value now on screen - the same defect
+    // this file exists for, reached through the branch that lets a pick win.
+    //
+    // Deliberately NO keydown: this is the right-click Paste / drag-and-drop / IME shape, where text
+    // lands in the box with no key event at all. Watching keystrokes alone misses it.
     await page.evaluate(() => {
       const editor = (window as unknown as { hot: { getActiveEditor(): {
         TEXTAREA: HTMLTextAreaElement; finishEditing(restore: boolean): void;
       } } }).hot.getActiveEditor();
 
       editor.TEXTAREA.value = 'Alx';
-      editor.TEXTAREA.dispatchEvent(new KeyboardEvent('keydown', { key: 'x', keyCode: 88, bubbles: true }));
+      editor.TEXTAREA.dispatchEvent(new Event('input', { bubbles: true }));
       editor.finishEditing(false);
     });
 
@@ -131,6 +134,33 @@ test.describe('committing an autocomplete whose choice list is out of date', () 
 });
 
 /**
+ * `DropdownEditor.prepare()` hardcodes `filter: false`, so every case above exercises only the
+ * first-substring-match branch. Plain `autocomplete` keeps `filter: true` and takes the other one,
+ * which narrows the list and falls back to index 0. The changelog claims both editors, so this
+ * covers the branch that claim rests on.
+ */
+test.describe('committing a filtering autocomplete whose choice list is out of date', () => {
+  test('commits the match the current value would produce, not the one on screen', async({ page, theme, bundle }) => {
+    // Strict is what makes the editor derive a highlight at all; `autocomplete` does not force it
+    // the way `dropdown` does.
+    const grid = new AutocompleteAsyncSourcePage(page, theme, bundle, { editor: 'autocomplete', strict: true });
+
+    await grid.goto();
+    await grid.openEditor(0, 0);
+    await grid.resolveQueries(0);
+
+    await page.keyboard.type('f');
+    await expect.poll(() => grid.pendingQueryCount(0)).toBeGreaterThan(0);
+
+    await commit(grid);
+
+    // `'Alfa'`: the list still describes `'Al'`, but `'Alf'` narrows to `'Alfa'`. Answering merely
+    // "the highlight is stale" would commit `'Alf'`, which the strict validator rejects.
+    await expect.poll(() => grid.cellValue(0, 0)).toBe('Alfa');
+  });
+});
+
+/**
  * The same rule on the ARRAY-source path, where the deferred query has not run at all rather than
  * merely being outstanding. Deleting a character leaves the choice `'A1'` still the right match for
  * `'A'`, so strict mode must normalize to it even though the list still describes `'A1'`.
@@ -161,8 +191,9 @@ test.describe('committing an autocomplete with a query still only scheduled', ()
         TEXTAREA: HTMLTextAreaElement; finishEditing(restore: boolean): void;
       } } }).hot.getActiveEditor();
 
-      editor.TEXTAREA.value = 'A';
       editor.TEXTAREA.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', keyCode: 8, bubbles: true }));
+      editor.TEXTAREA.value = 'A';
+      editor.TEXTAREA.dispatchEvent(new Event('input', { bubbles: true }));
       editor.finishEditing(false);
     });
 

@@ -78,16 +78,23 @@ export class HandsontableEditor extends TextEditor {
   protected innerSelectionOrigin: 'user' | 'auto' | null = null;
 
   /**
-   * Whether the inner grid's selection may be committed as the edited cell's value.
+   * The value the inner grid contributes to the commit, or `undefined` to leave the typed value
+   * alone.
    *
-   * Always true here: this editor's inner grid is selected either by the user or by `open()`, and
-   * both are current by construction. `AutocompleteEditor` derives its selection from the typed
-   * value through a DEFERRED query, so it can go stale, and overrides this.
+   * Here that is simply whatever the inner grid has selected: it is selected either by the user or
+   * by `open()`, and both describe the list on screen by construction. `AutocompleteEditor` derives
+   * its selection from the typed value through a DEFERRED query, so its selection can describe
+   * older text than the value being committed, and it overrides this.
    *
    * @private
+   * @returns {*}
    */
-  canCommitInnerSelection(): boolean {
-    return true;
+  resolveInnerSelectionValue(): unknown {
+    if (!this.htEditor || !this.htEditor.getSelectedActive()) {
+      return undefined;
+    }
+
+    return this.htEditor.getValue();
   }
 
   /**
@@ -141,8 +148,11 @@ export class HandsontableEditor extends TextEditor {
    * Closes the editor.
    */
   close(): void {
-    this.innerSelectionOrigin = null;
-
+    // Deliberately NOT clearing `innerSelectionOrigin` here. `TextEditor#refreshDimensions()` calls
+    // `close()` as "hide for now" when the edited cell scrolls out of the rendered range, and
+    // `afterSetTheme` does the same - neither ends the edit, `state` stays `EDITING` and the inner
+    // grid keeps its selection. Clearing here threw away a pick the user could still see and had
+    // not finished with. `open()` sets the origin on every real re-open, which is what resets it.
     if (this.htEditor) {
       this.htEditor.rootElement.style.display = 'none';
     }
@@ -254,12 +264,10 @@ export class HandsontableEditor extends TextEditor {
       this.hot.listen(); // return the focus to the parent HOT instance
     }
 
-    if (this.htEditor && this.htEditor.getSelectedActive() && this.canCommitInnerSelection()) {
-      const value = this.htEditor.getValue();
+    const innerValue = this.resolveInnerSelectionValue();
 
-      if (value !== undefined) { // if the value is undefined then it means we don't want to set the value
-        this.setValue(value);
-      }
+    if (innerValue !== undefined) { // if the value is undefined then it means we don't want to set the value
+      this.setValue(innerValue);
     }
 
     super.finishEditing(restoreOriginalValue, ctrlDown, callback);

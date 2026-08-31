@@ -43,6 +43,7 @@ interface PageOptions {
   editor?: 'autocomplete' | 'dropdown';
   scenario?: 'plain' | 'scroll' | 'ordering';
   validator?: 'none' | 'slowAsync';
+  strict?: boolean;
 }
 
 /**
@@ -60,6 +61,7 @@ export class AutocompleteAsyncSourcePage {
   readonly editor: string;
   readonly scenario: string;
   readonly validator: string;
+  readonly strict: boolean;
   readonly outsideInput: Locator;
 
   constructor(page: Page, theme = 'main', bundle = 'umd', options: PageOptions = {}) {
@@ -69,6 +71,7 @@ export class AutocompleteAsyncSourcePage {
     this.editor = options.editor ?? 'autocomplete';
     this.scenario = options.scenario ?? 'plain';
     this.validator = options.validator ?? 'none';
+    this.strict = options.strict ?? false;
     this.outsideInput = page.getByTestId('outside-input');
   }
 
@@ -77,7 +80,8 @@ export class AutocompleteAsyncSourcePage {
    */
   async goto(): Promise<void> {
     const query = `theme=${this.theme}&bundle=${this.bundle}` +
-      `&editor=${this.editor}&scenario=${this.scenario}&validator=${this.validator}`;
+      `&editor=${this.editor}&scenario=${this.scenario}&validator=${this.validator}` +
+      `&strict=${this.strict}`;
 
     await this.page.goto(`/tests/fixtures/demo/autocomplete-async-source.html?${query}`);
 

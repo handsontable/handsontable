@@ -27,6 +27,12 @@
     if (!window.htValidator) {
       throw new Error('Unknown ?validator= value: ' + JSON.stringify(htParams.get('validator')));
     }
+    // `dropdown` forces `strict: true` itself; `autocomplete` needs it asked for, and only then
+    // does it derive a highlight of its own.
+    window.htStrict = ({ true: true, false: false })[htParams.get('strict') ?? 'false'];
+    if (window.htStrict === undefined) {
+      throw new Error('Unknown ?strict= value: ' + JSON.stringify(htParams.get('strict')));
+    }
   </script>
 </head>
 <body>
@@ -260,6 +266,7 @@
     // rejected validation settles, which is the window the entry guard must not shut.
     window.htPendingValidations = [];
 
+    const strictColumn = window.htStrict ? { strict: true } : {};
     const validatorColumn = window.htValidator === 'slowAsync' ? {
       allowInvalid: false,
       validator(value, callback) {
@@ -279,8 +286,8 @@
       colHeaders: true,
       rowHeaders: true,
       columns: [
-        Object.assign({ type: window.htEditor, source: makeSource(0) }, validatorColumn),
-        Object.assign({ type: window.htEditor, source: makeSource(1) }, validatorColumn),
+        Object.assign({ type: window.htEditor, source: makeSource(0) }, strictColumn, validatorColumn),
+        Object.assign({ type: window.htEditor, source: makeSource(1) }, strictColumn, validatorColumn),
       ],
       // Stamp test ids from `afterRenderer`, not from a grid-level `renderer`: a column `type`
       // installs its own renderer, which would override the grid-level one and leave the typed

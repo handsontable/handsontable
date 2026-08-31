@@ -131,6 +131,15 @@ export class AutocompleteEditor extends HandsontableEditor {
   createElements(): void {
     super.createElements();
 
+    // Typing supersedes a pick made with the arrow keys or a click - that pick never wrote to the
+    // TEXTAREA, so nothing about the text says it happened. `input` rather than the `beforeKeyDown`
+    // hook because text arrives here by routes that fire no keydown at all: a right-click Paste, a
+    // drag-and-drop, an IME commit. It does not fire for a programmatic `setValue()`, so the commit
+    // path writing the resolved choice back cannot clear the origin it just acted on.
+    this.eventManager.addEventListener(this.TEXTAREA, 'input', () => {
+      this.innerSelectionOrigin = null;
+    });
+
     addClass(this.htContainer, 'autocompleteEditor');
     addClass(this.htContainer, this.hot.rootWindow.navigator.platform.indexOf('Mac') === -1 ? '' : 'htMacScroll');
 
@@ -316,7 +325,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    * Works out which choice the list highlights for a value: the narrowed choice array plus the
    * index within it, or `null` when nothing matches.
    *
-   * Extracted so `updateChoicesList()` and `canCommitInnerSelection()` cannot answer this question
+   * Extracted so `updateChoicesList()` and `resolveInnerSelectionValue()` cannot answer this question
    * differently. The check is only meaningful while both derive the match identically, and a copy
    * of these rules that drifted would fail silently - by committing a value the user never saw
    * highlighted.
@@ -395,44 +404,46 @@ export class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
-   * Whether the inner grid's selection may be committed as the edited cell's value.
+   * The value the choice list contributes to the commit, or `undefined` to keep the typed text.
    *
-   * A pick the user made with the arrow keys or a click is always committable. Anything else is a
-   * match this editor derived from the typed value, and that is committable only while it is still
-   * the RIGHT match: strict mode normalizing `'b'` to `'blue'` is the point of the copy, but
-   * committing the match for `'A'` over a typed `'A4'` is the defect this guards.
+   * A pick the user made with the arrow keys or a click is theirs, and is returned as-is. In strict
+   * mode anything else is a match derived from the typed value, and this works that match out
+   * afresh rather than trusting the highlight: `highlightBestMatchingChoice()` runs from a query
+   * deferred 10 ms behind the keystrokes, so the highlight routinely describes older text than the
+   * value being committed - including for the whole time a function `source` has a response
+   * outstanding, which no amount of waiting inside a commit can fix.
    *
-   * Re-deriving is what makes this correct rather than merely fresh. `highlightBestMatchingChoice()`
-   * runs from a query deferred 10 ms behind the keystrokes, so the highlight routinely describes
-   * older text than the value being committed - including for the whole time a function `source`
-   * has a response outstanding, which no amount of waiting inside a commit can fix. Asking whether
-   * the highlight is still the match the current value would produce answers that without needing
-   * the query to have run at all, so a typed `'blu'` still commits the highlighted `'blue'`.
+   * Returning the derived match rather than merely accepting or rejecting the highlight matters
+   * under `allowInvalid: false`: for a typed `'Alf'` whose list still shows `'Alpha'`, answering
+   * "no" would commit `'Alf'`, which the strict validator then rejects outright. `'Alfa'` is the
+   * value strict mode owes the user, and it is already in hand here.
+   *
+   * Derived from `strippedChoices` - the list actually loaded into the inner grid - NOT from
+   * `rawChoices`. `updateChoicesList()` is public API and can be handed an array that never came
+   * from `source` (`queryChoices()`'s own empty-source branch does exactly that), and matching
+   * against a set the user cannot see would drop the choice they can.
    *
    * @private
-   * @returns {boolean}
+   * @returns {*}
    */
-  canCommitInnerSelection(): boolean {
-    if (this.innerSelectionOrigin === 'user') {
-      return true;
+  resolveInnerSelectionValue(): unknown {
+    // Non-strict never derives a highlight of its own, so there is nothing to re-derive: whatever
+    // is selected got there by the user's own arrow keys or click, or nothing is.
+    if (this.innerSelectionOrigin === 'user' || this.cellProperties.strict !== true) {
+      return super.resolveInnerSelectionValue();
     }
 
-    const { choices, highlightIndex } = this.#deriveHighlight(
-      this.stripValuesIfNeeded(this.rawChoices), this.#editorValue()
-    );
+    const { choices, highlightIndex } = this.#deriveHighlight(this.strippedChoices, this.#editorValue());
 
     if (highlightIndex === null || highlightIndex >= choices.length) {
-      return false;
+      return undefined;
     }
 
-    const expected = choices[highlightIndex];
+    const matched = choices[highlightIndex];
 
     // Unwrapped the way the inner grid presents it - its `valueGetter` reduces a key/value entry to
-    // the `value` half, so comparing the raw entry would never match.
-    const expectedValue = this.#isKeyValueObject(expected) ?
-      (expected as Record<string, unknown>).value : expected;
-
-    return expectedValue === this.htEditor.getValue();
+    // the `value` half, so returning the raw entry would write an object into the cell.
+    return this.#isKeyValueObject(matched) ? (matched as Record<string, unknown>).value : matched;
   }
 
   /**
@@ -587,6 +598,10 @@ export class AutocompleteEditor extends HandsontableEditor {
         // late query must not clear a `'user'` origin the arrow keys set.
         this.innerSelectionOrigin = matchedIndex === undefined ? null : 'auto';
       }
+    } else {
+      // The list is empty and hidden, so there is nothing left on screen that a pick could refer
+      // to. Without this an arrow pick made against an earlier list stays authoritative.
+      this.innerSelectionOrigin = null;
     }
 
     this.hot.listen();
@@ -853,12 +868,6 @@ export class AutocompleteEditor extends HandsontableEditor {
       if (!this.isOpened()) {
         timeOffset += 10;
       }
-
-      // Typing supersedes a pick made with the arrow keys or a click. That pick never wrote to the
-      // TEXTAREA, so without this the origin stays `'user'`, `canCommitInnerSelection()` keeps
-      // short-circuiting to true, and a commit forced before the query below runs writes the old
-      // pick over the text now on screen.
-      this.innerSelectionOrigin = null;
 
       this.#deferQuery(timeOffset);
     }
