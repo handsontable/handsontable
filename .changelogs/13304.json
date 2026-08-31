@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed cell edits being lost after rows are trimmed.",
+  "title": "Fixed cell selections not following edited records after index changes.",
   "type": "fixed",
   "issueOrPR": 13304,
   "breaking": false,

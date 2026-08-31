@@ -883,6 +883,8 @@ export class IndexMapper {
       this.trimmedIndexesChanged || this.hiddenIndexesChanged;
 
     if (force === true || (this.isBatched === false && anyCachedIndexChanged === true)) {
+      this.runLocalHooks('beforeCacheUpdate');
+
       this.trimmingMapsCollection.updateCache();
       this.hidingMapsCollection.updateCache();
       this.notTrimmedIndexesCache = this.getNotTrimmedIndexes(false);

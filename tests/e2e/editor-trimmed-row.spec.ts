@@ -604,18 +604,13 @@ test.describe('an index-map change on the column axis', () => {
 });
 
 /**
- * The two commit paths the rebind cannot reach, pinned so they stay merely lossy.
+ * Commit paths that read selection coordinates after an editor rebind.
  *
- * Neither is a defect this change introduced - both produced the row-appending corruption before it,
- * and both now lose the edit instead. They are recorded here because "the edit lands on the right
- * record" is the guarantee in `#reconcileEditorWithIndexMaps()`'s JSDoc, and these are its two
- * documented exceptions. A future change that turns either back into a write must fail here.
- *
- * Losing the edit is NOT the desired end state - it is where this repair stops. Making the value
- * survive means moving the selection with the record, tracked as DEV-2680, which inverts both of
- * these cases into asserting the value lands on the edited record.
+ * Both `DropdownEditor#finishEditing()` and Ctrl+Enter's `BaseEditor#saveValue()` use the active
+ * selection. The selection must therefore follow the edited physical record as the mapper rebuilds,
+ * rather than only rebinding the editor's visual coordinates.
  */
-test.describe('commit paths the rebind cannot reach', () => {
+test.describe('commit paths that read the selection', () => {
   /**
    * Selecting an entire column uses `-1` as the range's row-header sentinel. When the editor's
    * record moves, only real visual coordinates may move; shifting the sentinel makes the selection
@@ -634,6 +629,95 @@ test.describe('commit paths the rebind cannot reach', () => {
       await grid.moveRow(0, 4);
 
       await expect.poll(() => grid.selected()).toEqual([[-1, 0, 4, 0]]);
+    });
+
+  /**
+   * A mapper rebase must not rebuild selection through the public setter pipeline. That pipeline
+   * changes the active layer and fires hooks which can prepare the editor again while its index
+   * mapper cache is still updating.
+   */
+  test('rebases every layer without changing its active layer, source, or firing selection hooks',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.openEditorAndType(0, 0, 'EDITED');
+
+      const beforeState = await page.evaluate(() => {
+        const hot = (window as Window & {
+          hot: {
+            addHook(name: string, callback: () => void): void;
+            getSelectedRange(): Array<{ from: { row: number; col: number }; to: { row: number; col: number };
+              highlight: { row: number; col: number }; clone(): unknown }>;
+            selection: {
+              getActiveSelectionLayerIndex(): number; getSelectionSource(): string; markSource(source: string): void;
+              getSelectedRange(): { push(range: unknown): void }; setActiveSelectionLayerIndex(index: number): void;
+            };
+          };
+          selectionHookCalls: number;
+        }).hot;
+
+        const additionalRange = hot.getSelectedRange()[0].clone() as {
+          from: { row: number; col: number }; to: { row: number; col: number };
+          highlight: { row: number; col: number };
+        };
+
+        additionalRange.from.row = 2;
+        additionalRange.to.row = 3;
+        additionalRange.to.col = 1;
+        additionalRange.highlight.row = 2;
+        hot.selection.getSelectedRange().push(additionalRange);
+        hot.selection.setActiveSelectionLayerIndex(1);
+        hot.selection.markSource('editor-rebase-test');
+        (window as Window & { selectionHookCalls: number }).selectionHookCalls = 0;
+        hot.addHook('afterSelection', () => {
+          (window as Window & { selectionHookCalls: number }).selectionHookCalls += 1;
+        });
+
+        return {
+          activeLayer: hot.selection.getActiveSelectionLayerIndex(),
+          source: hot.selection.getSelectionSource(),
+          ranges: hot.getSelectedRange(),
+        };
+      });
+
+      await grid.moveRow(0, 4);
+
+      const afterState = await page.evaluate(() => {
+        const hot = (window as Window & {
+          hot: {
+            getSelectedRange(): Array<{ from: { row: number; col: number }; to: { row: number; col: number };
+              highlight: { row: number; col: number } }>;
+            selection: { getActiveSelectionLayerIndex(): number; getSelectionSource(): string };
+          };
+          selectionHookCalls: number;
+        }).hot;
+
+        return {
+          activeLayer: hot.selection.getActiveSelectionLayerIndex(),
+          source: hot.selection.getSelectionSource(),
+          ranges: hot.getSelectedRange(),
+          selectionHookCalls: (window as Window & { selectionHookCalls: number }).selectionHookCalls,
+        };
+      });
+
+      expect(beforeState).toEqual({
+        activeLayer: 1,
+        source: 'editor-rebase-test',
+        ranges: [
+          { from: { row: 0, col: 0 }, to: { row: 0, col: 0 }, highlight: { row: 0, col: 0 } },
+          { from: { row: 2, col: 0 }, to: { row: 3, col: 1 }, highlight: { row: 2, col: 0 } },
+        ],
+      });
+      expect(afterState).toEqual({
+        activeLayer: 1,
+        source: 'editor-rebase-test',
+        ranges: [
+          { from: { row: 4, col: 0 }, to: { row: 4, col: 0 }, highlight: { row: 4, col: 0 } },
+          { from: { row: 1, col: 0 }, to: { row: 2, col: 1 }, highlight: { row: 1, col: 0 } },
+        ],
+        selectionHookCalls: 0,
+      });
     });
 
   /**

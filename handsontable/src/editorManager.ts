@@ -586,38 +586,18 @@ class EditorManager {
    * rewrites the restore flag – which is harmless here because a discard is what that override would
    * decide anyway once the edited record is gone from the visual space.
    *
-   * A rebind moves the editor's coordinates and NOTHING else – not its pixel position, not the
-   * selection. Neither `render()` nor `view.render()` repositions an open editor, so it stays drawn
-   * over the row it started on for the rest of the edit; on the Filters path that is invisible
-   * because `filter()` closes the editor outright, but on the `trimRows` path it is left painted
-   * over a neighboring row.
-   *
-   * That the selection does not follow bounds what the rebind can promise, and the boundary is worth
-   * stating precisely. A plain text commit reads `this.row`/`this.col` and lands on the right record.
-   * Two paths do not: an editor whose `finishEditing()` vetoes on a moved range rewrites the commit
-   * into a discard (`DropdownEditor`, and the `date`, `autocomplete` and `handsontable` types built
-   * on it), and a Ctrl+Enter commit reads the SELECTION corners rather than the editor's coordinates
-   * (`BaseEditor#saveValue()`). On both the edit is lost rather than misplaced – which is what this
-   * method exists to guarantee, and strictly better than the row-appending corruption they produced
-   * before it – but the value does not survive. Making it survive means moving the selection with the
-   * record, which is a larger change than this repair: DEV-2680.
-   *
-   * Both exceptions are pinned by cases in `tests/e2e/editor-trimmed-row.spec.ts` under `commit paths
-   * the rebind cannot reach`. Those cases assert the LOSS on purpose, so a regression back to a write
-   * fails – they are not a statement that losing the edit is the desired end state. DEV-2680 inverts
-   * them.
+   * `Selection` separately snapshots every layer in physical coordinates before the cache rebuild and
+   * restores it afterwards. Keeping that operation out of this manager prevents selection hooks from
+   * preparing an editor while the mapper is still unwinding. It lets editor-specific commit paths,
+   * including DropdownEditor and Ctrl+Enter, keep targeting the moved record.
    *
    * An editor a structural change stranded past the last row is discarded here rather than rebound:
    * its captured record was cleared as unresolvable, and its own coordinates address nothing, so
    * there is no record left to follow. Discarding is what keeps a following `Filters#filter()` from
    * committing through those coordinates and appending records.
    *
-   * Two further limits. An index-map change does NOT adjust the selection – `core.ts` calls
-   * `selection.commit()` only for `hiddenIndexesChanged` – so the highlight can be left past the last
-   * row, and typing into it grows the data set. That is reachable with no editor involved at all and
-   * is a separate defect; this method does not paper over it. And an editor parked in `WAITING` is
-   * not reconciled: `finishEditing()` has already run `saveValue()` by then, so there is nothing
-   * left to redirect.
+   * An editor parked in `WAITING` is not reconciled: `finishEditing()` has already run `saveValue()`,
+   * so there is nothing left to redirect.
    *
    * No core plugin registers a TRIMMING map on the column axis, so that half runs for user-registered
    * maps only; core plugins do permute the column sequence (`manualColumnMove`, `manualColumnFreeze`)
@@ -693,41 +673,8 @@ class EditorManager {
       return;
     }
 
-    if (visualRow === editor.row && visualColumn === editor.col) {
-      return;
-    }
-
-    const rowOffset = visualRow - (editor.row ?? visualRow);
-    const columnOffset = visualColumn - (editor.col ?? visualColumn);
-
     editor.row = visualRow;
     editor.col = visualColumn;
-
-    const activeSelectionRange = this.selection.getActiveSelectedRange();
-
-    if (activeSelectionRange) {
-      const { from, to, highlight } = activeSelectionRange;
-
-      if (from.row !== null && from.row >= 0) {
-        from.row += rowOffset;
-      }
-      if (from.col !== null && from.col >= 0) {
-        from.col += columnOffset;
-      }
-      if (to.row !== null && to.row >= 0) {
-        to.row += rowOffset;
-      }
-      if (to.col !== null && to.col >= 0) {
-        to.col += columnOffset;
-      }
-      if (highlight.row !== null && highlight.row >= 0) {
-        highlight.row += rowOffset;
-      }
-      if (highlight.col !== null && highlight.col >= 0) {
-        highlight.col += columnOffset;
-      }
-      this.selection.refresh();
-    }
   }
 
   /**

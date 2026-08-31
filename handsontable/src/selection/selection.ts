@@ -173,6 +173,21 @@ class Selection {
    */
   #activeSelectionLayer = 0;
   /**
+   * A physical-coordinate copy of the selection captured before an index mapper rebuilds its caches.
+   * It exists only while an editor is open, so ordinary mapper updates do not allocate or change
+   * selection state.
+   *
+   * @type {object|null}
+   */
+  #physicalSelectionSnapshot: {
+    ranges: Array<{ physical: CellRange; visual: CellRange }>;
+    activeSelectionLayer: number;
+    selectedByRowHeader: Set<number>;
+    selectedByColumnHeader: Set<number>;
+    disableHeadersHighlight: boolean;
+    selectionSource: string;
+  } | null = null;
+  /**
    * Visual layer index of the range currently hovered while `selectionHandles` is on, or `null`.
    *
    * @type {number | null}
@@ -1617,6 +1632,88 @@ class Selection {
   }
 
   /**
+   * Captures every selection layer in physical coordinates before an index mapper replaces its
+   * visual-to-physical cache. Header coordinates remain untouched because they are sentinels, not
+   * indexes. The snapshot is intentionally limited to a live editor because only that path needs
+   * its selection to follow a record through a trim or permutation.
+   */
+  capturePhysicalSelection(): void {
+    const activeRange = this.getActiveSelectedRange();
+
+    if (!this.tableProps.isEditorOpened() || !activeRange ||
+        !this.#hasResolvedPhysicalCoords(activeRange.highlight)) {
+      this.#physicalSelectionSnapshot = null;
+
+      return;
+    }
+
+    this.#physicalSelectionSnapshot = {
+      ranges: this.selectedRange.ranges.map(range => ({
+        physical: this.#mapRangeCoordinates(range, (coords) => {
+          const physicalCoords = coords.clone();
+
+          physicalCoords.row = this.#getPhysicalIndex(coords.row, this.tableProps.rowIndexMapper);
+          physicalCoords.col = this.#getPhysicalIndex(coords.col, this.tableProps.columnIndexMapper);
+
+          return physicalCoords;
+        }),
+        visual: range.clone(),
+      })),
+      activeSelectionLayer: this.#activeSelectionLayer,
+      selectedByRowHeader: new Set(this.selectedByRowHeader),
+      selectedByColumnHeader: new Set(this.selectedByColumnHeader),
+      disableHeadersHighlight: this.#disableHeadersHighlight,
+      selectionSource: this.#selectionSource,
+    };
+  }
+
+  /**
+   * Rebuilds the selection from its physical snapshot after a nonstructural mapper update. This
+   * directly commits highlights so selection hooks cannot prepare an editor while cache updates are
+   * still unwinding.
+   */
+  restorePhysicalSelection(): void {
+    const snapshot = this.#physicalSelectionSnapshot;
+
+    this.#physicalSelectionSnapshot = null;
+
+    if (!snapshot) {
+      return;
+    }
+
+    this.selectedRange.ranges = snapshot.ranges.map(({ physical, visual }) => this.tableProps.createCellRange(
+      this.#createVisualCoords(physical.highlight, visual.highlight),
+      this.#createVisualCoords(physical.from, visual.from),
+      this.#createVisualCoords(physical.to, visual.to),
+    ));
+    this.#activeSelectionLayer = snapshot.activeSelectionLayer;
+    this.selectedByRowHeader = snapshot.selectedByRowHeader;
+    this.selectedByColumnHeader = snapshot.selectedByColumnHeader;
+    this.#disableHeadersHighlight = snapshot.disableHeadersHighlight;
+    this.#selectionSource = snapshot.selectionSource;
+    this.#extenderTransformation.setActiveLayerIndex(this.#activeSelectionLayer);
+    this.#focusTransformation.setActiveLayerIndex(this.#activeSelectionLayer);
+
+    this.selectedRange.ranges.forEach((range, layerIndex) => this.applyAndCommit(range, layerIndex));
+
+    const activeRange = this.getActiveSelectedRange();
+
+    this.highlight.useLayerLevel(this.#activeSelectionLayer);
+    this.highlight.getFocus().clear();
+
+    if (activeRange && this.highlight.isEnabledFor(FOCUS_TYPE, activeRange.highlight)) {
+      this.highlight.getFocus().add(activeRange.highlight).commit().syncWith(activeRange);
+    }
+  }
+
+  /**
+   * Clears a snapshot that must not be restored after a structural mapper update.
+   */
+  discardPhysicalSelectionSnapshot(): void {
+    this.#physicalSelectionSnapshot = null;
+  }
+
+  /**
    * Refreshes the whole selection by clearing, reapplying and committing (calculating visual to renderable indexes)
    * the selection by using already added visual ranges. The method can be useful when underneath some indexes
    * was hidden/showed or dataset size was changed or the range of the cell ranges was modified. Then, to see the
@@ -1676,6 +1773,104 @@ class Selection {
 
     this.finish();
     this.markEndSource();
+  }
+
+  /**
+   * Maps all three coordinate sets in a selection range through a coordinate factory.
+   *
+   * @param {CellRange} range The range whose coordinates should be mapped.
+   * @param {function(CellCoords): CellCoords} mapCoords The coordinate mapping function.
+   * @returns {CellRange} The mapped range.
+   */
+  #mapRangeCoordinates(
+    range: CellRange,
+    mapCoords: (coords: CellCoords) => CellCoords,
+  ): CellRange {
+    return this.tableProps.createCellRange(
+      mapCoords(range.highlight),
+      mapCoords(range.from),
+      mapCoords(range.to),
+    );
+  }
+
+  /**
+   * Converts a visual index to a physical one while preserving header sentinels and unresolved
+   * coordinates.
+   *
+   * @param {number|null} index The visual index.
+   * @param {IndexMapper} indexMapper The axis mapper.
+   * @returns {number|null} The physical index.
+   */
+  #getPhysicalIndex(index: number | null, indexMapper: IndexMapper): number | null {
+    if (index === null || index < 0) {
+      return index;
+    }
+
+    return indexMapper.getPhysicalFromVisualIndex(index);
+  }
+
+  /**
+   * Tests whether the active focus still identifies a physical record. A structural update can
+   * temporarily leave a live editor and its selection past the visual boundary until core
+   * re-prepares them. Capturing in that window would turn that transient state into a rebase.
+   *
+   * @param {CellCoords} coords The active focus coordinates.
+   * @returns {boolean} Whether both coordinates resolve to physical indexes.
+   */
+  #hasResolvedPhysicalCoords(coords: CellCoords): boolean {
+    return this.#getPhysicalIndex(coords.row, this.tableProps.rowIndexMapper) !== null &&
+      this.#getPhysicalIndex(coords.col, this.tableProps.columnIndexMapper) !== null;
+  }
+
+  /**
+   * Converts a physical index to a visual one while preserving header sentinels. A trimmed physical
+   * index falls back to the nearest valid former visual index so it never reaches the selection
+   * renderer as `null`; the editor reconciliation subsequently drops an edit whose record was trimmed.
+   *
+   * @param {number|null} index The physical index.
+   * @param {IndexMapper} indexMapper The axis mapper.
+   * @param {number|null} fallbackIndex The visual index before the mapper update.
+   * @param {number} count The number of indexes after the mapper update.
+   * @returns {number|null} The visual index.
+   */
+  #getVisualIndex(
+    index: number | null,
+    indexMapper: IndexMapper,
+    fallbackIndex: number | null,
+    count: number,
+  ): number | null {
+    if (index !== null && index < 0) {
+      return index;
+    }
+
+    return (index === null ? null : indexMapper.getVisualFromPhysicalIndex(index)) ??
+      clamp(fallbackIndex ?? 0, 0, Math.max(count - 1, 0));
+  }
+
+  /**
+   * Creates post-update visual coordinates from their physical snapshot and pre-update fallback.
+   *
+   * @param {CellCoords} physicalCoords The physical-coordinate snapshot.
+   * @param {CellCoords} fallbackCoords The coordinates before the mapper update.
+   * @returns {CellCoords} Rebased visual coordinates.
+   */
+  #createVisualCoords(physicalCoords: CellCoords, fallbackCoords: CellCoords): CellCoords {
+    const visualCoords = fallbackCoords.clone();
+
+    visualCoords.row = this.#getVisualIndex(
+      physicalCoords.row,
+      this.tableProps.rowIndexMapper,
+      fallbackCoords.row,
+      this.tableProps.countRows(),
+    );
+    visualCoords.col = this.#getVisualIndex(
+      physicalCoords.col,
+      this.tableProps.columnIndexMapper,
+      fallbackCoords.col,
+      this.tableProps.countCols(),
+    );
+
+    return visualCoords;
   }
 
   /**

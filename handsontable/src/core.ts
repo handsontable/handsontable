@@ -793,22 +793,48 @@ export default function Core(
 
   this.selection = selection;
 
-  const onIndexMapperCacheUpdate = ({ hiddenIndexesChanged }: { hiddenIndexesChanged: boolean }) => {
+  let rowIndexCount = this.rowIndexMapper.getNumberOfIndexes();
+  let columnIndexCount = this.columnIndexMapper.getNumberOfIndexes();
+
+  const onIndexMapperCacheUpdate = (
+    { hiddenIndexesChanged, indexesSequenceChanged, trimmedIndexesChanged }: {
+      hiddenIndexesChanged: boolean; indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean;
+    },
+    indexMapper: IndexMapper,
+    previousIndexCount: number,
+  ): number => {
     this.forceFullRender = true;
+
+    const indexCount = indexMapper.getNumberOfIndexes();
+
+    if (indexCount === previousIndexCount && (indexesSequenceChanged || trimmedIndexesChanged)) {
+      this.selection.restorePhysicalSelection();
+    } else {
+      this.selection.discardPhysicalSelectionSnapshot();
+    }
 
     if (hiddenIndexesChanged) {
       this.selection.commit();
     }
+
+    return indexCount;
   };
 
-  this.columnIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: { hiddenIndexesChanged: boolean }) => {
-    onIndexMapperCacheUpdate(indexesChangesState);
+  this.columnIndexMapper.addLocalHook('beforeCacheUpdate', () => this.selection.capturePhysicalSelection());
+  this.rowIndexMapper.addLocalHook('beforeCacheUpdate', () => this.selection.capturePhysicalSelection());
+
+  this.columnIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: {
+    hiddenIndexesChanged: boolean; indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean;
+  }) => {
+    columnIndexCount = onIndexMapperCacheUpdate(indexesChangesState, this.columnIndexMapper, columnIndexCount);
 
     this.runHooks('afterColumnSequenceCacheUpdate', indexesChangesState);
   });
 
-  this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: { hiddenIndexesChanged: boolean }) => {
-    onIndexMapperCacheUpdate(indexesChangesState);
+  this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: {
+    hiddenIndexesChanged: boolean; indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean;
+  }) => {
+    rowIndexCount = onIndexMapperCacheUpdate(indexesChangesState, this.rowIndexMapper, rowIndexCount);
 
     this.runHooks('afterRowSequenceCacheUpdate', indexesChangesState);
   });
