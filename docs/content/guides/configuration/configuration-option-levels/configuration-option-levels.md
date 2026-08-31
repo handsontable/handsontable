@@ -150,6 +150,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="dropdownMenu" data-levels="grid"></span>[`dropdownMenu`](@/api/options.md#dropdownmenu) | Yes | No | No | No | DropdownMenu |  |
 | <span data-option="editor" data-levels="grid columns cells cell"></span>[`editor`](@/api/options.md#editor) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="emptyDataState" data-levels="grid"></span>[`emptyDataState`](@/api/options.md#emptydatastate) | Yes | No | No | No | EmptyDataState |  |
+| <span data-option="emptyValue" data-levels="grid columns cells cell"></span>[`emptyValue`](@/api/options.md#emptyvalue) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="enterBeginsEditing" data-levels="grid"></span>[`enterBeginsEditing`](@/api/options.md#enterbeginsediting) | Yes | No | No | No | Core |  |
 | <span data-option="enterCommits" data-levels="grid columns cells cell"></span>[`enterCommits`](@/api/options.md#entercommits) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="enterMoves" data-levels="grid"></span>[`enterMoves`](@/api/options.md#entermoves) | Yes | No | No | No | Core |  |

@@ -7556,11 +7556,15 @@ export default (): Record<string, unknown> => {
      * like any other emptied cell.
      * :::
      *
+     * This option can be set at any level of the [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     *
      * @memberof Options#
      * @since 18.2.0
      * @type {*}
      * @default ''
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
