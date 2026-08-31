@@ -1473,7 +1473,7 @@ For a reference list of filter-related shortcuts, see [Keyboard shortcuts](@/gui
 
 ## API reference
 
-For the list of [options](@/guides/getting-started/configuration-options/configuration-options.md), methods, and
+For the list of [options](@/guides/configuration/configuration-options/configuration-options.md), methods, and
 [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) related to filtering, see the
 following API reference pages:
 

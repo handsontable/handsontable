@@ -603,6 +603,8 @@ Taller rows or wider columns lower these limits proportionally. For example, wit
 
 If your dataset can grow past these limits, load it in smaller chunks, for example with server-side or lazy data loading.
 
+Frozen rows and columns carry a separate limit: the frozen area must fit within the grid's width and height. Handsontable always draws that area in full, so when it needs more room than the grid has, it covers the whole grid and the rest can no longer be scrolled into view. Read more in [Column freezing](@/guides/columns/column-freezing/column-freezing.md) and [Row freezing](@/guides/rows/row-freezing/row-freezing.md).
+
 ## Result
 
 Your grid now renders at the dimensions you specified, responding to container size or fixed pixel values as configured.
