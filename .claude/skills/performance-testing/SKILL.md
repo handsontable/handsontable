@@ -147,11 +147,15 @@ await injectHookTimer(page, 'beforeFilter', 'afterFilter');
 const hookDeltas: number[] = [];
 const outputDir = path.resolve('output', config.name);
 
-// Inside actionFn, capture timing after the action:
-const timing = await getHookTiming(page, 'beforeFilter', 'afterFilter');
-if (timing.deltaMs != null) {
-  hookDeltas.push(timing.deltaMs);
-}
+// In afterActionFn -- NOT actionFn. getHookTiming is a page.evaluate, and inside
+// actionFn its CDP round trip falls inside the marked window, so it is measured as
+// part of the operation on measured iterations only:
+afterActionFn: async() => {
+  const timing = await getHookTiming(page, 'beforeFilter', 'afterFilter');
+  if (timing.deltaMs != null) {
+    hookDeltas.push(timing.deltaMs);
+  }
+},
 
 // Inside resetFn, call injectHookTimer again to reset the store
 // (it is idempotent -- prevents duplicate listener registration):
@@ -228,9 +232,25 @@ Push retries with rebase (up to 3 attempts) protect against concurrent gh-pages 
 
 Understanding the data flow helps when debugging or extending:
 
-1. **Spec** calls `runTracedScenario()` -> CDP `Tracing.start` / `Tracing.end` -> raw JSON per iteration
+### The measured window (read before adding a scenario)
+
+Everything published describes the slice between the two `performance.mark`s that
+`runTracedScenario()` writes around the action. Two rules follow:
+
+- **No harness round trips inside `actionFn`.** A `page.evaluate` that reads a value back
+  is measured as part of the operation. Put readbacks in `afterActionFn`, which runs after
+  the end mark.
+- **A `resetFn` must leave no frame behind.** The runner settles after `setupFn` and
+  `resetFn` for this reason, and `skipSettle` does not turn those off. Note that
+  `scrollToRow`/`scrollToColumn` report trimming, not scroll position, so their
+  `waitForFunction` returns before the scroll has rendered.
+
+A category measured as exactly `0`, or a CV of `141.42%` (the CV of `{x, 0, 0}` at three
+iterations), means the window is wrong -- not that the operation was cheap.
+
+1. **Spec** calls `runTracedScenario()` -> CDP `Tracing.start`, start mark, action, settle, end mark, `Tracing.end` -> raw JSON per iteration
 2. **Teardown** (`lib/teardown.mjs`) discovers `output/*/iteration-*.json`, calls `parseTrace()` from `trace-parser.mjs`
-3. **trace-parser.mjs** categorizes events into DevTools categories (scripting, rendering, painting, loading, system, idle), computes the auto-zoomed window, synthesizes ProfileCall scripting from CPU profile data
+3. **trace-parser.mjs** categorizes events into DevTools categories (scripting, rendering, painting, loading, system, idle), measures the window `runTracedScenario()` marked around the action (falling back to the auto-zoomed window only for traces recorded without marks), synthesizes ProfileCall scripting from CPU profile data
 4. **Teardown** averages across iterations via `averageParsedTraces()`, collects per-iteration values for CV% calculation, strips internal fields (`_iterationValues`, `_debug`) from saved snapshots
 5. **report-builder.mjs** assembles a compact markdown PR comment; **html-report-builder.mjs** generates a full interactive HTML report with inline SVG charts from **chart-generator.mjs**
 6. If `PERF_MODE=golden`: `snapshot-store.mjs` saves averaged results, deployed to gh-pages

@@ -366,6 +366,91 @@ The example below shows how to use such objects:
 
 :::
 
+### Column-oriented data source
+
+Handsontable reads its data row by row. If your data arrives as one array per column, you don't have to keep a transposed copy in sync -- point each column's [`data`](@/api/options.md#data) option at the array it belongs to.
+
+Handsontable can't tell the two orientations apart on its own. `[['a', 'b'], ['c', 'd']]` is the same value whether you mean it as two rows or as two columns, so you state which one you mean through [`columns`](@/api/options.md#columns).
+
+The [`data`](@/api/options.md#data) option still needs one entry per row. Use a small object per row that records its own index, and mint new ones through [`dataSchema`](@/api/options.md#dataschema):
+
+```javascript
+const source = [
+  ['a', 'b'],      // column A
+  ['c', 'd', 'e'], // column B
+];
+
+const rowCount = source.reduce((max, column) => Math.max(max, column.length), 0);
+const restamp = rows => {
+  rows.forEach((row, index) => {
+    row.index = index;
+  });
+
+  return rows;
+};
+
+// Handsontable splices this array in place, so it stays a live view of the row order.
+const rows = restamp(Array.from({ length: rowCount }, () => ({ index: 0 })));
+
+// A regular function, not an arrow function: `arguments.length` tells a read from a write.
+const accessor = columnIndex => function(row, value) {
+  if (arguments.length === 1) {
+    // The row can be missing while the grid measures sizes or replays an undo step.
+    return row ? source[columnIndex][row.index] ?? null : null;
+  }
+
+  if (row) {
+    source[columnIndex][row.index] = value;
+  }
+};
+
+const settings = {
+  data: rows,
+  columns: source.map((column, columnIndex) => ({ data: accessor(columnIndex) })),
+  dataSchema: () => ({ index: -1 }),
+};
+```
+
+Pass `settings` to Handsontable the way your framework does -- as the second argument to the constructor, or as the component's settings.
+
+The grid now renders one row per position across the columns. Columns of unequal length leave empty cells at the bottom of the shorter ones. An edit writes straight into `source`, so no copy can fall behind.
+
+That is the whole setup for reading and writing existing cells. Adding and removing rows needs two more hooks.
+
+A row the grid creates has no slot in your column arrays yet. Its row object still holds the [`dataSchema`](@/api/options.md#dataschema) marker `-1`, so the accessor writes a value typed into that row to `source[columnIndex][-1]` -- a property on the array object, not one of its elements. The grid displays the value, because the accessor reads the same slot back, but the value never joins your data, and every row the grid creates shares that one slot. So if anything can create a row -- the context menu, [`minSpareRows`](@/api/options.md#minsparerows), or [`alter()`](@/api/core.md#alter) -- keep the column arrays in step through [`afterCreateRow`](@/api/hooks.md#aftercreaterow) and [`afterRemoveRow`](@/api/hooks.md#afterremoverow).
+
+Both hooks report a **visual** row index, while the column arrays are physical, so translate before you splice. For an insert, the new row object still carries the [`dataSchema`](@/api/options.md#dataschema) marker, and its position in `rows` is the physical index. For a removal, use the hook's `physicalRows` argument and splice the highest index first:
+
+```javascript
+const settings = {
+  // ... the options above
+  afterCreateRow(index, amount) {
+    const at = rows.findIndex(row => row.index === -1);
+
+    source.forEach(column => {
+      column.splice(at === -1 ? index : at, 0, ...new Array(amount).fill(null));
+    });
+    restamp(rows);
+    // Call `this.render()`, not a variable holding the instance: with `minSpareRows` this hook
+    // runs while Handsontable is still starting up, before that variable holds anything.
+    this.render();
+  },
+  afterRemoveRow(index, amount, physicalRows) {
+    [...physicalRows].sort((a, b) => b - a).forEach(row => {
+      source.forEach(column => column.splice(row, 1));
+    });
+    restamp(rows);
+    this.render();
+  },
+};
+```
+
+Three more things to know about this setup:
+
+- [`getSourceData()`](@/api/core.md#getsourcedata) returns copies of the row objects, so you can't re-stamp the row indexes through it. Hold on to the array you passed as [`data`](@/api/options.md#data).
+- Undo of a row removal restores the row object, which carries no cell values. To bring the values back, record them in [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow) and put them back in [`afterCreateRow`](@/api/hooks.md#aftercreaterow) when `source` is `'UndoRedo.undo'`.
+- [`columns`](@/api/options.md#columns) fixes the number of columns, so [`alter()`](@/api/core.md#alter) can't insert one. To add a column, push a new array onto your source and call [`updateSettings()`](@/api/core.md#updatesettings) with a new [`columns`](@/api/options.md#columns) array.
+
 ### Identify changed columns in hooks
 
 When you use a [function data source](#function-data-source-and-schema), each column's [`data`](@/api/options.md#data) option is a getter/setter function. In [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange), the second element of each change tuple is `prop`. With function-based columns, `prop` is that accessor function -- not a property name or a column index.
@@ -884,5 +969,5 @@ When the full dataset lives on a server, use [`dataProvider`](@/api/options.md#d
 
 ## Next steps
 
-- [Configuration options](@/guides/getting-started/configuration-options/configuration-options.md) -- learn how to configure every aspect of your grid.
+- [Setting options](@/guides/configuration/configuration-options/configuration-options.md) -- learn how to configure every aspect of your grid.
 - [Saving data](@/guides/getting-started/saving-data/saving-data.md) -- persist changes to a backend or local storage.

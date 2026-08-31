@@ -51,10 +51,10 @@ packageExtensions:
       'zone.js': '*'
   'jsdom@16':
     peerDependencies:
-      'form-data': '3.0.4'
+      'form-data': '3.0.5'
   'jsdom@24':
     peerDependencies:
-      'form-data': '4.0.4'
+      'form-data': '4.0.6'
   'jsdom@20':
     peerDependencies:
-      'form-data': '4.0.4'
+      'form-data': '4.0.6'

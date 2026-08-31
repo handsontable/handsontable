@@ -10,8 +10,8 @@ import { FormulasMoveCellsPage } from '../fixtures/pages/FormulasMoveCellsPage';
 test.describe('Formulas: moveCells undo/redo integration', () => {
   let grid: FormulasMoveCellsPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new FormulasMoveCellsPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new FormulasMoveCellsPage(page, theme, bundle);
     await grid.goto();
     // B1 = '=A1+10' → computed as 11 (A1=1) — the dataset every case starts from.
     await grid.initGrid([[1, '=A1+10'], [null, null], [null, null]]);
@@ -94,5 +94,26 @@ test.describe('Formulas: moveCells undo/redo integration', () => {
     // source, and the target's source data is cleared.
     expect(await grid.sourceCellValue(0, 1)).toBe('=A1+10');
     expect(await grid.sourceCellValue(2, 1)).toBe(null);
+  });
+
+  test('restores a dependent formula in the passed data array after undo', async () => {
+    // C1 points at A1:A3. Moving that range makes HyperFormula rewrite C1, and the rewrite is
+    // written into the array the developer owns. Undo has to put the original back there too -
+    // `MoveCellsAction.undo` restores the regions without replaying the move, so `afterMoveCells`
+    // never fires and the write-back has to be driven from `afterUndo`.
+    await grid.initGrid([
+      [1, null, '=SUM(A1:A3)'],
+      [2, null, null],
+      [3, null, null],
+    ]);
+
+    await grid.moveRange([0, 0, 2, 0], [0, 1]);
+
+    expect((await grid.rawData())[0][2]).toBe('=SUM(B1:B3)');
+
+    await grid.undo();
+
+    expect((await grid.rawData())[0][2]).toBe('=SUM(A1:A3)');
+    expect(await grid.sourceCellValue(0, 2)).toBe('=SUM(A1:A3)');
   });
 });

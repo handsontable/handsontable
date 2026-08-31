@@ -352,6 +352,25 @@ Both [`getData()`](@/api/core.md#getdata) and [`getSourceData()`](@/api/core.md#
 
 Unmerging does not restore the cleared values. If you need the original values back, keep a copy before merging, or restore them yourself in a [`beforeUnmergeCells`](@/api/hooks.md#beforeunmergecells) or [`afterUnmergeCells`](@/api/hooks.md#afterunmergecells) handler.
 
+### Re-applying the same configuration
+
+Re-applying a `mergeCells` value through [`updateSettings()`](@/api/core.md#updatesettings) clears only the cells that still hold a value. A range whose cells are already empty changes no data, so it fires no [`beforeChange`](@/api/hooks.md#beforechange) or [`afterChange`](@/api/hooks.md#afterchange) event.
+
+This depends on the clearing write reaching the data. If you cancel it -- by returning `false` from `beforeChange`, or with a validator that rejects `null` while [`allowInvalid`](@/api/options.md#allowinvalid) is `false` -- the covered cells keep their values, and every re-apply tries to clear them again.
+
+This matters when a framework wrapper resends every option on each render. React and Angular do. Without it, an app that writes those events back into a store keeps receiving changes for values that never changed, and the two can keep triggering each other.
+
+Nothing else about the clearing changes. A range still clears its covered cells the first time you apply it, even where those cells are already empty. And if new values arrive in a covered range -- because you passed new `data`, or because sorting, filtering, or a row move brought other rows under the range -- the next re-apply clears them, then stays quiet:
+
+```js
+hot.updateSettings({
+  data: [['A1', 'B1'], ['A2', 'B2']],
+  mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }], // unchanged
+});
+
+hot.getDataAtCell(0, 1); // -> null, cleared as usual
+```
+
 ## Effect on viewport getter methods
 
 With merged cells, the rendered range extends to fit any merged cell that crosses the viewport edge. This is the same expansion that the `virtualized` option turns off. As a result, the rendered-range getters can return indexes beyond what you see on the screen:

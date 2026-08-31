@@ -108,17 +108,44 @@ performance-tests/
 
 ### Trace pipeline
 
-1. The **spec file** calls `runTracedScenario()`, which starts CDP tracing (`Tracing.start`), executes the action, stops tracing (`Tracing.end`), and writes the raw JSON per iteration.
+1. The **spec file** calls `runTracedScenario()`, which starts CDP tracing (`Tracing.start`), marks the start of the measured window, executes the action, waits for the resulting frame to reach the compositor, marks the end, stops tracing (`Tracing.end`), and writes the raw JSON per iteration.
 
 2. The **globalTeardown** (`lib/teardown.mjs`) discovers all `output/*/iteration-*.json` files and feeds them to the trace parser.
 
-3. The **trace parser** (`trace-parser.mjs`) categorizes every trace event into DevTools-equivalent categories: scripting, rendering, painting, loading, system (other), and idle. It computes the auto-zoomed window (matching DevTools' `MainThreadActivity.calculateWindow`), synthesizes ProfileCall scripting from CPU profile data, and extracts UpdateCounters (heap, nodes, listeners).
+3. The **trace parser** (`trace-parser.mjs`) categorizes every trace event into DevTools-equivalent categories: scripting, rendering, painting, loading, system (other), and idle. It measures the window the runner marked around the action, synthesizes ProfileCall scripting from CPU profile data, and extracts UpdateCounters (heap, nodes, listeners). Traces recorded without the marks fall back to the auto-zoomed window (matching DevTools' `MainThreadActivity.calculateWindow`); teardown warns when that happens, because the two are not comparable -- see [The measured window](#the-measured-window).
 
 4. Results are **averaged** across iterations with per-iteration values retained for CV% (coefficient of variation) calculation.
 
 5. Two **report builders** produce output:
    - **Markdown** (`report-builder.mjs`): compact summary table with regression callouts, posted as a sticky PR comment.
    - **HTML** (`html-report-builder.mjs`): self-contained interactive page with inline SVG bar charts, sortable tables, and scenario detail views. Deployed to GitHub Pages per branch.
+
+### The measured window
+
+Everything the suite publishes describes one slice of the trace, and picking that slice
+correctly is the difference between measuring the grid and measuring the harness.
+
+`runTracedScenario()` brackets the action with `performance.mark` (recorded via the
+`blink.user_timing` category) and the parser measures between those marks. It does **not**
+auto-zoom onto the busiest region of the trace, because for any scenario driven through
+`page.evaluate` the busiest region is the V8 interrupt CDP uses to enter the isolate -- a
+blob of a few hundred milliseconds that maps to no category, lands in `other`, and is
+excluded from `Total`. Worse, a window fitted to it closes before the `Paint`, `Layout` and
+`Commit` events the action caused, so rendering and painting score exactly zero.
+
+Two rules follow for anyone writing or changing a scenario:
+
+- **Keep harness round trips out of the window.** A `page.evaluate` inside `actionFn` that
+  reads a value back is billed to the action. Use `afterActionFn`, which runs after the end
+  mark, for readbacks such as hook timings.
+- **Let the reset settle.** A reset renders synchronously but paints a frame later. The
+  runner settles after `setupFn` and `resetFn` for this reason, and `skipSettle` does not
+  reach those -- it gates only the in-window settle. Note that `scrollToRow` and
+  `scrollToColumn` wait on trimming, not scroll position, so they return before the scroll
+  has rendered; the settle is what makes those resets deterministic.
+
+A category measured as exactly `0`, or a CV of `141.42%` (the CV of `{x, 0, 0}` at three
+iterations), means the window is wrong -- not that the operation was cheap.
 
 ### Golden baseline workflow
 
@@ -221,7 +248,9 @@ test(config.name, async({ page }) => {
     actionFn: async() => {
       // The measured action
     },
-    // Optional: resetFn to restore state between iterations
+    // Optional: resetFn to restore state between iterations (the runner settles after it)
+    // Optional: afterActionFn for readbacks, which run once the measured window has closed
+    // Optional: settleFn to replace the default settle, or skipSettle to opt out of it
   });
 });
 ```
@@ -231,7 +260,7 @@ test(config.name, async({ page }) => {
 For scenarios that measure a specific Handsontable hook pair (like filtering or sorting):
 
 1. Call `injectHookTimer(page, beforeHook, afterHook)` once before `runTracedScenario`. It is idempotent -- safe to call again in `resetFn` to reset the timer store.
-2. Inside `actionFn`, call `getHookTiming(page, beforeHook, afterHook)` and push `timing.deltaMs` to a deltas array.
+2. In `afterActionFn` -- **not** `actionFn` -- call `getHookTiming(page, beforeHook, afterHook)` and push `timing.deltaMs` to a deltas array. It is a `page.evaluate`, so inside the action its CDP round trip would be measured as part of the operation.
 3. After `runTracedScenario`, call `saveHookTimings(outputDir, deltas)` to persist the data.
 
 All three functions are exported from `lib/hook-timing.mjs`. See the `filtering` or `sorting` scenario specs for the complete pattern.

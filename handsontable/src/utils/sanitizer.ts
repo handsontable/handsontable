@@ -1,12 +1,19 @@
 import type { HotInstance } from '../core/types';
+import type { SanitizerContext, SanitizerFn } from '../core/settings';
 import { HTML_CHARACTERS, SANITIZER_WARN_KEY, missingSanitizerMessage } from '../helpers/dom/element';
 import { warnOnce } from '../helpers/console';
 
 /**
- * Signature of the `sanitizer` grid option. The second argument names the write surface,
- * so a sanitizer can apply different rules per context (for example, stricter for paste).
+ * Re-exported for the plugins that hold a resolved sanitizer (`dialog`, `notification`).
+ *
+ * Treat this as reachable by consumers, not sealed. The published `exports` map has no `./utils/*`
+ * entry, but that only blocks subpath resolution under `node16` and `bundler`; classic
+ * `moduleResolution: node` ignores `exports` entirely, and `tmp/utils/sanitizer.d.ts` is shipped
+ * with no `files` field trimming it. So renaming or narrowing what this module exports can break a
+ * consumer. `SanitizerContext` is published from `handsontable` itself, which is where users should
+ * take it from.
  */
-export type SanitizerFn = (html: string, context: string) => string;
+export type { SanitizerFn } from '../core/settings';
 
 /**
  * Reads the grid-level `sanitizer` option in the form `fastInnerHTML` expects.
@@ -41,10 +48,10 @@ export function getSanitizer(hot: HotInstance): boolean | SanitizerFn {
  *
  * @param {object} hot The Handsontable instance.
  * @param {string} html The HTML string to sanitize.
- * @param {string} context The write surface, passed to the sanitizer and named in the warning.
+ * @param {SanitizerContext} context The write surface, passed to the sanitizer and named in the warning.
  * @returns {string} The sanitized string, or the input unchanged when no sanitizer is configured.
  */
-export function sanitizeHTML(hot: HotInstance, html: string, context: string): string {
+export function sanitizeHTML(hot: HotInstance, html: string, context: SanitizerContext): string {
   // An absent clipboard flavour reads as `''`. There is nothing to sanitize and nothing to warn
   // about, and calling the sanitizer would add a spurious entry to an auditing one on every paste.
   if (!html) {

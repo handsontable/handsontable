@@ -15,7 +15,7 @@ module.exports = {
     {
       title: 'Rows',
       children: [
-        'autoRowSize', 'bindRowsWithHeaders', 'hiddenRows',
+        'autoRowHeaderSize', 'autoRowSize', 'bindRowsWithHeaders', 'hiddenRows',
         'manualRowMove', 'manualRowResize', 'nestedRows', 'trimRows',
       ],
     },

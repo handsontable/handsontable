@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `preserveTextValue` cell meta option that makes the `Formulas` plugin pass values of `text`-type cells to the calculation engine as strings, preserving leading zeros of number-like values. Aligning the escaping across every write path also changed how `loadData()`, `updateData()`, `updateSettings()`, and `setSourceDataAtCell()` feed `date`-type cells to the engine: non-ISO date-like values (for example `'123'`, `'12:30'`, or `'TRUE'`) now reach the engine as text instead of a number, a time fraction, or a boolean, a `type` set only through the `cells()` function now applies on those paths, and those paths now call the `cells()` function and the `beforeGetCellMeta` and `afterGetCellMeta` hooks once per non-formula text cell. The same work fixes the plugin addressing the wrong engine row from `setSourceDataAtCell()` on a sorted or moved grid, writing `#REF!` over a formula whose target still existed and reading a cell's `valueGetter` from the wrong row or column when detaching a row with the `NestedRows` plugin, and reading the autofill source cell's configuration from another cell when rows or columns were trimmed or moved.",
+  "type": "added",
+  "issueOrPR": 13213,
+  "breaking": false,
+  "framework": "none"
+}

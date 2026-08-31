@@ -60,7 +60,7 @@ import type { ShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcuts/contexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
-import { warn } from './helpers/console';
+import { warn, removedWarnOnce } from './helpers/console';
 import { throwWithCause } from './helpers/errors';
 import {
   install as installAccessibilityAnnouncer,
@@ -142,12 +142,83 @@ function normalizeIndexesGroup(indexes: number[][]): number[][] {
 const foreignHotInstances = new Map();
 
 /**
- * A set of deprecated feature names.
- *
- * @type {Set<string>}
+ * A configuration option removed from the public API.
  */
+interface RemovedOption {
+  /**
+   * The option name as it appears in the settings object.
+   */
+  name: string;
+  /**
+   * The release that removed the option.
+   */
+  version: string;
+  /**
+   * Documentation page that describes the migration path. Points at the release that removed the
+   * option, so each entry carries its own URL rather than a shared one.
+   */
+  migrationUrl: string;
+}
 
-const deprecationWarns = new Set();
+/**
+ * Configuration options removed from the public API, with the version that removed them.
+ * Configuring one prints a one-time warning; the value is ignored.
+ *
+ * `persistentState` says 17.0.0, not 18.0.0: #12015 removed the plugin, its option, and its hooks
+ * in 17.0.0, and no published 17.x or 18.x package carries them. The 18.0.0 changelog entry for
+ * #12727 describes deleting a copy that the TypeScript conversion re-created on `develop` after
+ * 17.1.0 and that never shipped.
+ *
+ * `datePickerConfig` is deliberately absent: `DateEditor#prepare` already warns about it, and it
+ * also sees the per-cell forms that `warnAboutRemovedOptions` cannot.
+ *
+ * @type {ReadonlyArray<RemovedOption>}
+ */
+const REMOVED_OPTIONS: ReadonlyArray<RemovedOption> = [
+  {
+    name: 'persistentState',
+    version: '17.0.0',
+    migrationUrl: 'https://handsontable.com/docs/javascript-data-grid/changelog-17/',
+  },
+  {
+    name: 'correctFormat',
+    version: '18.0.0',
+    migrationUrl: 'https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0/',
+  },
+];
+
+/**
+ * Warns once per removed option found anywhere in the passed settings.
+ *
+ * Scans the top level, every entry of an array-form `columns`, and every entry of the declarative
+ * `cell` array, because the removed options are not all global: `correctFormat` is a cell option,
+ * so `columns: [{ correctFormat: true }]` and `cell: [{ row, col, correctFormat: true }]` are its
+ * common forms, and a top-level-only check would leave those callers with a clean console and
+ * silently dropped date auto-correction.
+ *
+ * The remaining per-cell forms - a `cells` function, or meta set through `setCellMeta` - stay
+ * uncovered. Reaching them means inspecting resolved meta for every cell on every render, which
+ * costs more than the warning is worth.
+ *
+ * @param {object} settings Settings object passed to `updateSettings`.
+ */
+function warnAboutRemovedOptions(settings: Record<string, unknown>): void {
+  const columns: unknown[] = Array.isArray(settings.columns) ? settings.columns as unknown[] : [];
+  const cells: unknown[] = Array.isArray(settings.cell) ? settings.cell as unknown[] : [];
+  const scopes: unknown[] = [settings, ...columns, ...cells];
+
+  REMOVED_OPTIONS.forEach(({ name, version, migrationUrl }) => {
+    const isUsed = scopes.some(
+      scope => isObject(scope) && isDefined((scope as Record<string, unknown>)[name])
+    );
+
+    if (isUsed) {
+      removedWarnOnce(`Core.removedOption.${name}`,
+        `The "${name}" setting was removed in Handsontable ${version} and is ignored. ` +
+        `See ${migrationUrl} for the migration path.`);
+    }
+  });
+}
 
 /**
  * Internal Core properties not exposed in HotInstance but accessed by constructor-assigned
@@ -1304,15 +1375,22 @@ export default function Core(
       switch (method) {
         case 'shift_down':
           // translate data from a list of rows to a list of columns
-          const populatedDataByColumns: unknown[][] = pivot(input) as unknown[][];
+          const populatedDataByColumns: unknown[][] = pivot(input);
           const numberOfDataColumns = populatedDataByColumns.length;
+
+          // Every input row is empty, so there is nothing to populate. Bailing out here also keeps
+          // the `c % numberOfDataColumns` lookup below from dividing by zero and reading `NaN`.
+          if (numberOfDataColumns === 0) {
+            return false;
+          }
+
           // method's argument can extend the range of data population (data would be repeated)
 
           const numberOfColumnsToPopulate = Math.max(numberOfDataColumns, columnsPopulationEnd);
           const pushedDownDataByRows = instance.getData().slice(startRow!);
 
           // translate data from a list of rows to a list of columns
-          const pushedDownDataByColumns: unknown[][] = (pivot(pushedDownDataByRows) as unknown[][])
+          const pushedDownDataByColumns: unknown[][] = pivot(pushedDownDataByRows)
             .slice(startColumn!, startColumn! + numberOfColumnsToPopulate);
 
           for (c = 0; c < numberOfColumnsToPopulate; c += 1) {
@@ -1338,7 +1416,7 @@ export default function Core(
             }
           }
 
-          instance.populateFromArray(startRow!, startColumn!, pivot(newDataByColumns) as unknown[][]);
+          instance.populateFromArray(startRow!, startColumn!, pivot(newDataByColumns));
 
           break;
 
@@ -1613,6 +1691,29 @@ export default function Core(
     globalMeta[className] = classSettings;
   }
 
+  /**
+   * Registers a hook callback declared in a settings object as a local hook of this instance.
+   *
+   * The callback is also written to the table meta, so that `getSettings()` returns it back.
+   *
+   * @private
+   * @param {string} key A hook name.
+   * @param {Function|Function[]} hook A callback, or an array of callbacks, to register.
+   */
+  function registerSettingsHook(key: string, hook: HookCallback | HookCallback[] | undefined) {
+    if (isFunction(hook)) {
+      Hooks.getSingleton().addAsFixed(key, hook, instance);
+
+    } else if (Array.isArray(hook)) {
+      Hooks.getSingleton().add(key, hook, instance);
+
+    } else {
+      return;
+    }
+
+    tableMeta[key] = hook;
+  }
+
   this.init = function() {
     const theme = tableMeta.theme;
     const themeName = tableMeta.themeName;
@@ -1627,6 +1728,16 @@ export default function Core(
     }
 
     dataSource.setData(tableMeta.data);
+
+    // `updateSettings()` below registers the callbacks declared in the settings object, which is too
+    // late for `beforeInit` — hence registering that one here. Re-adding the same reference is a no-op.
+    // Only `beforeInit` is pulled forward: doing it for the rest would order settings-declared
+    // callbacks ahead of the plugin callbacks registered while `beforeInit` runs.
+    // Note for whoever deprecates this hook: it passes through the helper twice. The function form
+    // stays silent, but `Hooks#add` (the array form) warns on every attach without deduping, so an
+    // array-form `beforeInit` would then warn twice per instance.
+    registerSettingsHook('beforeInit', mergedUserSettings.beforeInit as HookCallback | HookCallback[] | undefined);
+
     instance.runHooks('beforeInit');
 
     if (isMobileBrowser() || isIpadOS()) {
@@ -2484,6 +2595,8 @@ export default function Core(
    * @param {number} [endCol] End visual column index (use when you want to cut input when certain column is reached).
    * @param {string} [source=populateFromArray] Used to identify this call in the resulting events (beforeChange, afterChange).
    * @param {string} [method=overwrite] Populate method, possible values: `'shift_down'`, `'shift_right'`, `'overwrite'`.
+   * The `input` rows may differ in length. The widest row sets the width of the populated area, and
+   * a shorter row fills the positions it does not reach with the empty-cell value (`null`).
    * @returns {object|undefined} Ending td in pasted area (only if any cell was changed).
    */
   this.populateFromArray = function(
@@ -3378,6 +3491,8 @@ export default function Core(
       throwWithCause('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
 
+    warnAboutRemovedOptions(settings as Record<string, unknown>);
+
     // The `columns` option (or the state its function form reads) may change in this call - drop
     // getColHeader's index translation cache so it rebuilds against the updated settings.
     columnsSettingIndexes = null;
@@ -3402,19 +3517,16 @@ export default function Core(
         instance.view._wt.wtOverlays.syncOverlayTableClassNames();
 
       } else if (Hooks.getSingleton().isRegistered(i) || Hooks.getSingleton().isDeprecated(i)) {
-        const hook = settings[i] as HookCallback | HookCallback[] | undefined;
-
-        if (isFunction(hook)) {
-          Hooks.getSingleton().addAsFixed(i, hook, instance);
-          tableMeta[i] = hook;
-
-        } else if (Array.isArray(hook)) {
-          Hooks.getSingleton().add(i, hook, instance);
-          tableMeta[i] = hook;
-        }
+        registerSettingsHook(i, settings[i] as HookCallback | HookCallback[] | undefined);
 
       } else if (!init && hasOwnProperty(settings, i)) { // Update settings
-        globalMeta[i] = settings[i];
+        // An `editor` of `true` names no editor, so it reads as "the setting was not passed" — and a
+        // setting that is not passed leaves the previous value alone. Writing the boolean here would
+        // bypass `normalizeEditorSetting()`, which only runs on the layer `updateMeta` calls, and
+        // park a bare `true` on the global meta for every cell to inherit.
+        if (i !== 'editor' || settings[i] !== true) {
+          globalMeta[i] = settings[i];
+        }
       }
     }
 
@@ -3761,12 +3873,12 @@ export default function Core(
    *
    * The returned object contains the settings passed to the constructor or the most recent
    * `updateSettings()` call. It reflects the
-   * [grid-level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options)
+   * [grid-level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options)
    * configuration only.
    *
    * It does not include merged per-cell or per-column values. Configuration options cascade from
    * grid to column to cell (see
-   * [Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)).
+   * [Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)).
    * To read the effective value for a specific cell, use [[getCellMeta]]. To read column-level meta, use [[getColumnMeta]].
    *
    * @memberof Core#
@@ -4590,7 +4702,7 @@ export default function Core(
    * Returns the cell properties object for the given `row` and `column` coordinates.
    *
    * The returned object reflects the effective cell configuration after
-   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+   * [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
    * (grid, column, and cell levels). To read global grid settings only, use [[getSettings]].
    * To read column-level meta, use [[getColumnMeta]].
    *
@@ -4630,7 +4742,7 @@ export default function Core(
    * retaining it in the cell meta cache.
    *
    * Like [[getCellMeta]], the returned object reflects the effective cell configuration after
-   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+   * [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
    * and dynamic extension (the `cells` function and the `beforeGetCellMeta`/`afterGetCellMeta`
    * hooks run). Unlike `getCellMeta`, when the cell has no stored meta object the extension runs
    * on a temporary object that is not saved, so scanning many cells (for example, a whole column
@@ -4673,7 +4785,7 @@ export default function Core(
    * Returns the meta information for the provided column.
    *
    * The returned object reflects the column-level configuration after
-   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+   * [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
    * (grid and column levels). To read global grid settings only, use [[getSettings]].
    * To read the effective configuration for a specific cell, use [[getCellMeta]].
    *
@@ -4701,7 +4813,7 @@ export default function Core(
 
   /**
    * Checks if your [data format](@/guides/getting-started/binding-to-data/binding-to-data.md#compatible-data-types)
-   * and [configuration options](@/guides/getting-started/configuration-options/configuration-options.md)
+   * and [configuration options](@/guides/configuration/configuration-options/configuration-options.md)
    * allow for changing the number of columns.
    *
    * Returns `false` when your data is an array of objects,
@@ -4769,7 +4881,12 @@ export default function Core(
 
     type EditorConstructor = (new (hotInstance: HotInstance) => unknown) & { EDITOR_TYPE?: string };
 
-    return (isUndefined(cellEditor) ? getEditor('text') : cellEditor) as EditorConstructor;
+    // An `editor` of `true` names no editor. The meta layers already drop it on the way in, so
+    // reaching this branch means it was written straight onto the cell meta (for example by a
+    // `beforeGetCellMeta` hook). Fall back to the default editor rather than returning the bare
+    // boolean, which `getEditorInstance()` cannot resolve and would throw on.
+    return ((isUndefined(cellEditor) || cellEditor === true) ?
+      getEditor('text') : cellEditor) as EditorConstructor;
   };
 
   /**

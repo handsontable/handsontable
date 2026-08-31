@@ -67,7 +67,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@octokit/rest": "^18.6.7",
+    "@octokit/rest": "^21.1.1",
     "@playwright/test": "catalog:",
     "@types/node": "^20.11.27",
     "@types/pikaday": "^1.7.10",
@@ -75,7 +75,6 @@
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-vue": "^6.0.7",
     "@vue/compiler-sfc": "^3.5.35",
-    "broken-link-checker": "^0.7.8",
     "chalk": "^4.1.1",
     "cross-env": "^7.0.3",
     "dmd": "^6.0.0",

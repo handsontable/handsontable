@@ -1154,6 +1154,65 @@ The **Formulas** plugin uses [HyperFormula](https://hyperformula.handsontable.co
 
 See the [Formulas installation](@/guides/formulas/installation/installation.md) guide to install and license HyperFormula, and the [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md) guide for configuration details.
 
+## 8. Custom renderers always receive the base cell classes
+
+Starting in **version 17.0**, Handsontable runs `baseRenderer` for every cell, even when the cell's renderer never calls it. `baseRenderer` adds the cell's class names and ARIA attributes.
+
+### What changed
+
+- **Automatic base renderer**: Handsontable runs `baseRenderer` after your custom renderer, whenever your renderer didn't run it
+- **Consistent cell classes**: Cells drawn by a custom renderer now receive [`className`](@/api/options.md#classname), the read-only class, the invalid-cell class, and the matching ARIA attributes
+- **Built-in renderers**: Most built-in renderers no longer call `baseRenderer` themselves, because Handsontable calls it for them. `multiSelectRenderer` is the exception, and still calls it as its first statement
+
+### Why this change
+
+Before version 17.0, a custom renderer that called no built-in renderer produced cells without those class names. One grid could show one column with the classes and another column without them, depending on how each column's renderer was written.
+
+### How to migrate
+
+Most applications need no action. Your custom renderers keep working, and their cells gain the class names they were missing.
+
+Two cases need attention:
+
+1. **You styled cells based on a missing class.** Cells drawn by a custom renderer now carry `className` and the other base classes. Review CSS that relied on those classes being absent.
+2. **Your renderer sets a class that `baseRenderer` also manages.** Handsontable's own call runs after your renderer, and it removes the invalid-cell class from valid cells. Call `baseRenderer` at the start of your renderer to keep control of the order. A renderer that already calls `baseRenderer`, or that chains `multiSelectRenderer`, needs no change.
+
+Before, in 16.2 the call was required to get the class names:
+
+```js
+import { baseRenderer } from 'handsontable/renderers';
+
+function myRenderer(instance, td, row, col, prop, value, cellProperties) {
+  baseRenderer(instance, td, row, col, prop, value, cellProperties);
+  td.textContent = value;
+}
+```
+
+After, in 17.0 the same cell gets them without the call:
+
+```js
+function myRenderer(instance, td, row, col, prop, value, cellProperties) {
+  td.textContent = value;
+}
+```
+
+Keep the explicit call only when you need `baseRenderer` to run before your own changes, as described in case 2 above.
+
+### What to expect
+
+- **Consistent classes**: Every cell receives the base class names, whichever renderer draws it
+- **No duplicate work**: Handsontable skips its own call when your renderer already ran `baseRenderer`
+- **Same API**: Renderer signatures are unchanged
+
+### Timeline
+
+- **Version 17.0**: Handsontable runs `baseRenderer` for every cell
+
+### Related resources
+
+- [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md) - Write and extend cell renderers
+- [`className`](@/api/options.md#classname) - Add CSS class names to cells and to the container element
+
 ## Summary of breaking changes
 
 | Change                                            | Action Required                                                            |
@@ -1163,6 +1222,7 @@ See the [Formulas installation](@/guides/formulas/installation/installation.md) 
 | CSS-based themes (optional migration)             | Consider migrating to Theme API for runtime features                       |
 | `core-js` dependency removed                      | Add `core-js` or other polyfills in your app if you support older environments |
 | Built-in HyperFormula (deprecation)               | In 18.0, import HyperFormula yourself and pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'` |
+| Custom renderers receive the base cell classes    | Review CSS that relied on those classes being absent from custom-rendered cells |
 
 ## Result
 

@@ -36,6 +36,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   ariaTags: true,
   autoColumnSize: true,
   autoRowSize: true,
+  autoRowHeaderSize: oneOf(true, { samplingRatio: 3, allowSampleDuplicates: true, syncLimit: 500 },
+    { syncLimit: '40%' }),
   autoWrapCol: true,
   autoWrapRow: true,
   bindRowsWithHeaders: true,
@@ -63,7 +65,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   collapsibleColumns: true,
   colorScheme: oneOf('light', 'dark', 'auto'),
   density: oneOf('default', 'compact', 'comfortable'),
-  columnHeaderHeight: oneOf(35, [35, 55]),
+  columnHeaderHeight: oneOf(35, [35, 55], '35', '35px', ['35px', 55]),
   columns: [
     {
       type: 'numeric',
@@ -209,6 +211,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   parsePastedValue: true,
   placeholder: 'foo',
   placeholderCellClassName: 'foo',
+  preserveTextValue: true,
   preventOverflow: oneOf(true, 'vertical', 'horizontal'),
   preventWheel: true,
   readOnly: true,
@@ -221,10 +224,27 @@ const allSettings: Required<Handsontable.GridSettings> = {
      prop: number | string, value: any, cellProperties: Handsontable.CellProperties) => TD
   ),
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
-  rowHeaderWidth: oneOf(25, [25, 30, 55]),
+  rowHeaderWidth: oneOf(25, [25, 30, 55], '25', '25px', ['25px', 30]),
   rowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
-  sanitizer: (content: string, source: 'innerHTML' | 'CopyPaste.paste') => content,
+  // The option's own signature is unchanged; `SanitizerContext` is the opt-in annotation. Full
+  // coverage, including the call-arity axis, lives in `sanitizer.types.ts`.
+  sanitizer: oneOf(
+    (content: string) => content,
+    (content: string, source: string) => content,
+    (content: string, source: Handsontable.SanitizerContext) => content,
+    (content: string, source: 'innerHTML' | 'CopyPaste.paste') => content,
+  ),
   search: true,
+  // The `true` shorthand selects the built-in extraction. Full coverage, including the union's
+  // effect on reading the option back out, lives in `textExtractor.types.ts`.
+  textExtractor: oneOf(
+    true,
+    false,
+    (content: string) => content,
+    (content: string, source: string) => content,
+    (content: string, source: Handsontable.TextExtractorContext) => content,
+    (content: string, source: 'ExportFile.columnHeader') => content,
+  ),
   selectionMode: oneOf('single', 'range', 'multiple'),
   selectionHandles: true,
   moveCells: true,
@@ -397,7 +417,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterColumnResize: (newSize, column, isDoubleClick) => {},
   afterColumnSequenceChange: (source) => {},
   afterCustomBordersUpdate: () => {},
-  afterColumnSequenceCacheUpdate: (indexesChangesState) => {},
+  afterColumnSequenceCacheUpdate: (indexesChangesState) => {
+    const _source: 'init' | 'remove' | 'insert' | 'move' | 'update' | undefined =
+      indexesChangesState.indexesChangeSource;
+  },
   afterColumnSort: (currentSortConfig, destinationSortConfigs) => {},
   afterColumnUnfreeze: (columnIndex, isFreezingPerformed) => {},
   beforeCompositionStart: (event) => {
@@ -519,7 +542,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
                  orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
   afterRowResize: (newSize, row, isDoubleClick) => {},
   afterRowSequenceChange: (source) => {},
-  afterRowSequenceCacheUpdate: (indexesChangesState) => {},
+  afterRowSequenceCacheUpdate: (indexesChangesState) => {
+    const _source: 'init' | 'remove' | 'insert' | 'move' | 'update' | undefined =
+      indexesChangesState.indexesChangeSource;
+  },
   afterScrollHorizontally: () => {},
   afterScrollVertically: () => {},
   afterScroll: () => {},
@@ -799,7 +825,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   modifyRowData: (row) => {},
   modifyRowHeader: (row) => {},
-  modifyRowHeaderWidth: (rowHeaderWidth) => {},
+  modifyRowHeaderWidth: rowHeaderWidth => oneOf(80, [80, 40]),
   modifyRowHeight: (height, row, source) => {
     const _height: number = height;
     const _row: number = row;
@@ -976,3 +1002,7 @@ hot.updateSettings({ afterMoveCells(sourceRange, targetRange, isCopy) {} });
 // Regression: MoveCells exposes moveCellRange with correct arg/return types.
 const moveResult: boolean = hot.getPlugin('moveCells')
   .moveCellRange(hot.getSelectedRangeLast()!, hot._createCellCoords(5, 5), false);
+
+// Regression: beforeInit accepts the array form, which the runtime has always supported (#5933).
+hot.updateSettings({ beforeInit: [() => {}, () => {}] });
+hot.updateSettings({ beforeInit: () => {} });

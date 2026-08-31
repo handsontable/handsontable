@@ -13,7 +13,7 @@ import {
 } from '../../helpers/dom/element';
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
-import { deprecatedWarn } from '../../helpers/console';
+import { deprecatedWarnOnce } from '../../helpers/console';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import {
   getElementScaleFactor,
@@ -220,25 +220,29 @@ export class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op and will be removed in a
-   * future major release.
+   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op.
    *
-   * @deprecated
+   * @deprecated Since 18.0.0. The `PersistentState` plugin was removed in 17.0.0, so this method
+   * does nothing. It will be removed in 19.0.0. Persist row heights yourself with
+   * the `afterRowResize` hook and the `manualRowResize` option.
    */
   saveManualRowHeights(): void {
-    deprecatedWarn('`saveManualRowHeights()` is deprecated and will be removed in a future major release. ' +
+    deprecatedWarnOnce('ManualRowResize.saveManualRowHeights',
+      '`saveManualRowHeights()` is deprecated and will be removed in Handsontable 19.0.0. ' +
       'The PersistentState plugin has been removed.');
   }
 
   /**
-   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op and will be removed in a
-   * future major release.
+   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op.
    *
-   * @deprecated
+   * @deprecated Since 18.0.0. The `PersistentState` plugin was removed in 17.0.0, so this method
+   * returns an empty array. It will be removed in 19.0.0. Restore row heights yourself
+   * by passing an array to the `manualRowResize` option.
    * @returns {Array}
    */
   loadManualRowHeights(): Array<number | null> {
-    deprecatedWarn('`loadManualRowHeights()` is deprecated and will be removed in a future major release. ' +
+    deprecatedWarnOnce('ManualRowResize.loadManualRowHeights',
+      '`loadManualRowHeights()` is deprecated and will be removed in Handsontable 19.0.0. ' +
       'The PersistentState plugin has been removed.');
 
     return [];

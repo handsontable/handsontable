@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Removed the unused `useHeaders` key from the `AutoRowSize` plugin's default settings. Nothing read it, so row sizing is unchanged, but `autoRowSize.getSetting()` no longer returns that key.",
+  "type": "removed",
+  "issueOrPR": 13239,
+  "breaking": false,
+  "framework": "none"
+}

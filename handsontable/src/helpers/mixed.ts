@@ -718,7 +718,7 @@ function _injectEntitlementProductInfo(
     if (notification) {
       // The global `console`, not the `helpers/console` wrappers: importing them would put this
       // module - the leaf that `function`, `object`, `string` and `dateTime` all import - at the top
-      // of a cycle (`console` imports `substitute` from `string`, and `string` imports from here).
+      // of a cycle (`console` imports `isDefined` from here).
       // The frozen legacy path prints the same way. Disabled per line, not per file - the blanket
       // exemptions end above, so everything else here is linted normally.
       // eslint-disable-next-line no-console, no-restricted-globals

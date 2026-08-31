@@ -316,9 +316,11 @@ declare namespace Handsontable {
   /** Cell value type (e.g. for getData/getSourceData). */
   export type CellValue = unknown;
   export type GridSettings = GridSettingsType;
+  export type SanitizerContext = import('./core/settings').SanitizerContext;
+  export type TextExtractorContext = import('./core/settings').TextExtractorContext;
   export type ColumnSettings = ColumnSettingsType;
   export type CellProperties = CellPropertiesType;
-  /** @deprecated Use CellProperties */
+  /** Alias of the top-level `CellMeta` export. */
   export type CellMeta = CellMetaType;
   export type CellChange = CellChangeType;
   export type ChangeSource = ChangeSourceType;
@@ -456,7 +458,7 @@ export {
 
 // Named type exports for user-facing API (mirrors src/index.ts)
 // Note: CellCoords and CellRange are already exported as runtime values above.
-export type { GridSettings, Events } from './core/settings';
+export type { GridSettings, Events, SanitizerContext, TextExtractorContext } from './core/settings';
 export type {
   CellValue, CellChange, RowObject, SourceRowData, ChangeSource, CellMeta, CellProperties,
   ColumnSettings, RemoveIndexSignature

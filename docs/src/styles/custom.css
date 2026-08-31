@@ -18,6 +18,7 @@
 @import './components/dropdowns.css';
 @import './components/not-found.css';
 @import './components/minesweeper.css';
+@import './components/option-levels.css';
 
 /* Mobile */
 @import './mobile/subbar.css';

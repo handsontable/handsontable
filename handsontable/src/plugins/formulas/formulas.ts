@@ -7,14 +7,18 @@ import { isDefined, isUndefined } from '../../helpers/mixed';
 import { getRegisteredHotInstances, setupEngine, setupSheet, unregisterEngine, } from './engine/register';
 import {
   coalesceIndexesToSpans,
+  escapeTextValue,
   getDateFromExcelDate,
   getDateInHfFormat,
   getDateInHotFormat,
   getTimeFromHfTimeFraction,
   isDate,
   isDateValid,
+  isEngineEscapedValue,
   isFormula,
+  isPreservedText,
   normalizeValueForFormulaEngine,
+  unescapeEngineBoundValue,
   unescapeFormulaExpression,
 } from './utils';
 import { resolveHyperlinkUrl } from './hyperlinkUrl';
@@ -119,9 +123,40 @@ Hooks.getSingleton().register('afterFormulasValuesUpdate');
 const isBlockedSource = (source: unknown) =>
   source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto';
 
+// Undo/redo actions that add or remove rows or columns. They are the only ones that make
+// HyperFormula rewrite formula references, so they are the only ones whose source data has to be
+// caught up in `afterUndo`/`afterRedo`. Reordering actions (a row move, for instance) must not
+// trigger the write-back - they leave the source data's own reference frame untouched.
+const STRUCTURAL_ACTION_TYPES = new Set(['insert_row', 'insert_col', 'remove_row', 'remove_col']);
+
+const getActionType = (action: unknown) => {
+  if (typeof action !== 'object' || action === null || !('actionType' in action)) {
+    return null;
+  }
+
+  return (action as { actionType: string }).actionType;
+};
+
+const isStructuralAction = (action: unknown) => STRUCTURAL_ACTION_TYPES.has(getActionType(action) as string);
+
+// `MoveCellsAction.undo` restores both regions with `restoreRegion` instead of replaying the move, so
+// `afterMoveCells` - where the forward direction syncs - never fires. Undo has to cover it here.
+// Redo does replay the move, so it must NOT be listed, or the sheet would be scanned twice.
+const isUndoneMoveCells = (action: unknown) => getActionType(action) === 'move_cells';
+
+// Only these can leave a formula pointing at cells that no longer exist.
+const REFERENCE_BREAKING_ACTION_TYPES = new Set(['remove_row', 'remove_col', 'move_cells']);
+
+const canBreakReferences = (action: unknown) =>
+  REFERENCE_BREAKING_ACTION_TYPES.has(getActionType(action) as string);
+
 // Maximum number of `[startIndex, amount]` spans passed to a single variadic engine
 // `removeRows`/`removeColumns` call. An unbounded argument spread could overflow the call stack.
 const REMOVAL_SPANS_CHUNK_SIZE = 1000;
+
+// A formula whose reference the engine could not keep. Only operations that remove or relocate
+// cells may put one into the source data - see `#syncFormulasToSourceData`.
+const REF_ERROR_PATTERN = /#REF!/;
 
 // Group under which the plugin's grid shortcuts are registered, so `disablePlugin` can drop them all.
 const SHORTCUTS_GROUP = PLUGIN_KEY;
@@ -244,6 +279,43 @@ export class Formulas extends BasePlugin {
    * @type {boolean}
    */
   #moveCellsSyncPending = false;
+
+  /**
+   * Guard flag set while `#syncFormulasToSourceData` writes engine-rewritten formulas back to
+   * Handsontable.
+   * Prevents the `afterSetSourceDataAtCell` hook from pushing the very same formulas into
+   * HyperFormula again.
+   *
+   * @private
+   * @type {boolean}
+   */
+  #sourceDataSyncPending = false;
+
+  /**
+   * Guard flag set while `#getProcessedSourceDataArray` reads the source data on the engine's
+   * behalf. Read by `#onModifySourceData` alone, so the read reports what Handsontable stores
+   * without also suspending the value projection every other hook depends on.
+   *
+   * `#syncFormulasToSourceData` reads the source data with the same intent but deliberately keeps
+   * the broader `#internalOperationPending`: there the flag doubles as the re-entry guard its own
+   * early return checks, which this narrow flag does not provide.
+   *
+   * @private
+   * @type {boolean}
+   */
+  #sourceDataProjectionSuspended = false;
+
+  /**
+   * Guard flag set for the whole span of a Nested Rows detach – from `beforeDetachChild` until
+   * `#onAfterDetachChild` has finished rewriting the moved rows in the engine.
+   * Keeps `#syncFormulasToSourceData` out of that span: the detach MOVES rows inside the source data
+   * and expresses the move as a row removal followed by a row creation, so between the two legs the
+   * engine holds references the source data's own reference frame never had.
+   *
+   * @private
+   * @type {boolean}
+   */
+  #nestedRowsDetachPending = false;
 
   /**
    * The changes that the engine reported while undoing or redoing an action. They are collected in
@@ -477,6 +549,14 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    // Both guard flags are cleared here, not only initialized at declaration. A throw inside the
+    // span either of them opens leaves it set, and neither has a second closing path – see
+    // `#onBeforeDetachChild` for the one `#onAfterDetachChild`'s `finally` cannot cover. Clearing
+    // them on enable bounds that to the current enable rather than to the whole session, and it
+    // also covers a `disablePlugin()` that lands mid-span.
+    this.#internalOperationPending = false;
+    this.#nestedRowsDetachPending = false;
+
     this.engine = setupEngine(this.hot) ?? this.engine;
 
     if (!this.engine) {
@@ -488,7 +568,11 @@ export class Formulas extends BasePlugin {
 
     // Useful for disabling -> enabling the plugin using `updateSettings` or the API.
     if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName)) {
-      const newSheetName = this.addSheet(this.sheetName, this.#getProcessedSourceDataArray());
+      const sourceDataArray = this.#getProcessedSourceDataArray();
+
+      this.#escapeSourceDataArray(sourceDataArray);
+
+      const newSheetName = this.addSheet(this.sheetName, sourceDataArray);
 
       if (typeof newSheetName === 'string') {
         this.#updateSheetNameAndSheetId(newSheetName);
@@ -581,9 +665,9 @@ export class Formulas extends BasePlugin {
       this.columnAxisSyncer!.calculateAndSyncMoves(unfreezePerformed, unfreezePerformed);
     });
 
-    // TODO: Actions related to overwriting dates from HOT format to HF default format are done as callback to this
-    // hook, because some hooks, such as `afterLoadData` doesn't have information about composed cell properties.
-    // Another hooks are triggered to late for setting HF's engine data needed for some actions.
+    // Date and preserved-text escaping runs both here (for `updateSettings`-driven
+    // initialization, where `afterLoadData` returns early) and in `afterLoadData` /
+    // `afterUpdateData`, where the transient meta read provides composed cell properties.
     this.addHook('afterCellMetaReset', this.#onAfterCellMetaReset);
 
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
@@ -618,7 +702,7 @@ export class Formulas extends BasePlugin {
       this.#undoRedoDependentCells = this.#isRedoingMoveCells ? [] : (this.engine!.redo() ?? []);
     });
 
-    this.addHook('afterUndo', () => {
+    this.addHook('afterUndo', (action: unknown) => {
       this.indexSyncer!.setPerformUndo(false);
       // Also clears the redo flags: a redo cancelled by a `beforeRedo` listener never fires
       // `afterRedo`, so without these resets the flags set in `beforeRedo` would leak until the
@@ -626,17 +710,28 @@ export class Formulas extends BasePlugin {
       this.indexSyncer!.setPerformRedo(false);
       this.#isRedoingMoveCells = false;
       this.#validateUndoRedoDependentCells();
+
+      // The structural hooks skip blocked sources, so undoing a row/column change reverts the
+      // formulas inside the engine only - the source data has to be caught up separately.
+      if (isStructuralAction(action) || isUndoneMoveCells(action)) {
+        this.#syncFormulasToSourceData(canBreakReferences(action));
+      }
     });
 
-    this.addHook('afterRedo', () => {
+    this.addHook('afterRedo', (action: unknown) => {
       this.indexSyncer!.setPerformRedo(false);
       this.#validateUndoRedoDependentCells();
+
+      if (isStructuralAction(action)) {
+        this.#syncFormulasToSourceData(canBreakReferences(action));
+      }
     });
 
     this.addHook('afterRedo', () => {
       this.#isRedoingMoveCells = false;
     });
 
+    this.addHook('beforeDetachChild', this.#onBeforeDetachChild);
     this.addHook('afterDetachChild', this.#onAfterDetachChild);
     this.addHook('beforeAutofill', this.#onBeforeAutofill);
 
@@ -707,7 +802,11 @@ export class Formulas extends BasePlugin {
         this.switchSheet(sheetName);
 
       } else {
-        const newSheetName = this.addSheet(sheetName ?? undefined, this.#getProcessedSourceDataArray());
+        const sourceDataArray = this.#getProcessedSourceDataArray();
+
+        this.#escapeSourceDataArray(sourceDataArray);
+
+        const newSheetName = this.addSheet(sheetName ?? undefined, sourceDataArray);
 
         if (typeof newSheetName === 'string') {
           this.#updateSheetNameAndSheetId(newSheetName);
@@ -794,6 +893,25 @@ export class Formulas extends BasePlugin {
    * Switch the sheet used as data in the Handsontable instance (it loads the data from the shared HyperFormula
    * instance).
    *
+   * The engine's serialized content keeps the escape apostrophe that dates and preserved text values
+   * were written with, so it is unescaped before the load – otherwise the apostrophe becomes part of
+   * the grid's data.
+   *
+   * The unescaping has to run BEFORE `loadData`, because afterwards the apostrophe is already part
+   * of the grid's data, past every reader that could tell it apart from a user's own leading
+   * apostrophe.
+   *
+   * The two cases are unescaped differently. A RELOAD of the sheet this grid is already synced to
+   * (what `#onAfterCellMetaReset` performs on the empty-data branch) is confirmed against the
+   * grid's own source data – see `#unescapeAgainstSourceData` – so it survives the escaping
+   * configuration being turned off between the write and the reload.
+   *
+   * A switch to a genuinely DIFFERENT sheet has no such reference: the grid's data belongs to the
+   * sheet being left. It is confirmed against the cell meta instead, with an accepted limitation –
+   * that sheet's layout has no relation to this grid's index maps, so a physically-keyed meta layer
+   * (the `cell` array, or a column-level one under a non-identity column map) can be matched
+   * against the wrong cell. Only the global settings layer is layout-independent and always matches.
+   *
    * @param {string} sheetName Sheet name used in the shared HyperFormula instance.
    */
   switchSheet(sheetName: string): void {
@@ -803,9 +921,16 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    // Captured BEFORE the id is updated. A reload of the sheet this grid is already synced to - what
+    // `#onAfterCellMetaReset` performs on the empty-data branch - can confirm the unescaping against
+    // the grid's own source data, which a switch to a genuinely different sheet cannot.
+    const isSameSheetReload = this.engine.getSheetId(sheetName) === this.sheetId;
+
     this.#updateSheetNameAndSheetId(sheetName);
 
-    const serialized = this.engine.getSheetSerialized(this.sheetId);
+    const serialized = this.#unescapeEngineSheetArray(
+      this.engine.getSheetSerialized(this.sheetId), isSameSheetReload
+    );
 
     if (serialized.length > 0) {
       this.hot.loadData(serialized, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
@@ -1208,17 +1333,11 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const cellMeta = this.hot.getCellMetaTransient(row, column);
-
-    if (isDate(newValue, cellMeta.type)) {
-      if (isDateValid(newValue)) {
-        // Rewriting date in HOT format to HF format.
-        newValue = getDateInHfFormat(newValue);
-
-      } else if (isFormula(newValue) === false) {
-        // Escaping value from date parsing using "'" sign (HF feature).
-        newValue = `'${newValue}`;
-      }
+    // Values the escaping can never change skip the meta read: both `isDate()` and
+    // `isPreservedText()` require a string. That read runs the user-provided `cells` function,
+    // which is the expensive part of a bulk write.
+    if (typeof newValue === 'string') {
+      newValue = this.#escapeEngineBoundValue(newValue, this.hot.getCellMetaTransient(row, column));
     }
 
     return this.engine?.setCellContents(address, newValue);
@@ -1228,16 +1347,27 @@ export class Formulas extends BasePlugin {
    * Get the value to be passed to the formula engine.
    * If the value is an object, utilize the valueGetter for that cell, otherwise return the value as is.
    *
-   * @param {number} row The physical row index.
-   * @param {number} column The physical column index.
+   * Both coordinates are PHYSICAL, and the meta is read by them directly, with the visual pair
+   * passed only as the hook context – the way `#escapeSourceDataArray` and `#onBeforeAutofill` read
+   * it. Resolving the meta through the visual axis instead breaks on a trimmed row: Nested Rows
+   * installs a trimming map when it collapses, so `toVisualRow()` answers `null` there.
+   * `getCellMetaTransient()` does not reject that the way `getCellMeta()` rejects a negative index –
+   * it silently resolves a DIFFERENT physical row, so the cell's `valueGetter` is read from a
+   * neighbor and the value written to the engine is the neighbor's projection of it.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
    * @param {*} value The value to be passed to the formula engine.
    * @returns {*} The value to be displayed in the cell.
    */
-  #getValueGetterValue(row: number, column: number, value: unknown) {
+  #getValueGetterValue(physicalRow: number, physicalColumn: number, value: unknown) {
     if (isObject(value) && value !== null) {
-      const visualRow = this.hot.toVisualRow(row);
-      const visualColumn = this.hot.toVisualColumn(column);
-      const cellMeta = this.hot.getCellMetaTransient(visualRow, visualColumn);
+      const visualRow = this.hot.toVisualRow(physicalRow) ?? physicalRow;
+      const visualColumn = this.hot.toVisualColumn(physicalColumn) ?? physicalColumn;
+      const cellMeta = this.hot._getMetaManager().getCellMetaTransient(
+        physicalRow, physicalColumn,
+        { visualRow, visualColumn },
+      );
 
       value = getValueGetterValue(value, cellMeta);
 
@@ -1250,28 +1380,97 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Tells whether the source data is a plain array-of-arrays dataset. The shape is read from the
+   * first source row, because `getSourceData()` shallow-clones the whole dataset on every call.
+   *
+   * This is the only implementation of that check. Together with `#areSourceColumnsSkipped()` it
+   * answers both column-space questions the plugin asks – whether `#getProcessedSourceDataArray`
+   * has to project a row down to the visible columns, and, through
+   * `#doesEngineHoldPhysicalColumns()`, which column space the resulting array is in. Never inline
+   * either check, or hardening one copy would make those two answers disagree.
+   *
+   * @returns {boolean}
+   */
+  #isSourceDataArrayOfArrays(): boolean {
+    return Array.isArray(this.hot.getSourceDataAtRow(0));
+  }
+
+  /**
+   * Tells whether the visible columns are a strict subset of the source columns – a `columns` list
+   * that skips physical indexes rather than merely reordering them.
+   *
+   * @returns {boolean}
+   */
+  #areSourceColumnsSkipped(): boolean {
+    return this.hot.countCols() < this.hot.countSourceCols();
+  }
+
+  /**
    * Get the source data array to be passed to the formula engine.
    * If the value is an object, utilize the valueGetter for that cell, otherwise return the value as is.
    *
-   * @param {number} [row] The starting visual row index.
-   * @param {number} [column] The starting visual column index.
-   * @param {number} [row2] The ending visual row index.
-   * @param {number} [column2] The ending visual column index.
+   * @param {number} [row] The starting physical row index.
+   * @param {number} [column] The starting physical column index (or visual, for array-of-objects data).
+   * @param {number} [row2] The ending physical row index.
+   * @param {number} [column2] The ending physical column index (or visual, for array-of-objects data).
    * @returns {Array} The source data array to be passed to the formula engine.
    */
   #getProcessedSourceDataArray(row?: number, column?: number, row2?: number, column2?: number) {
-    const dataArray = this.hot.getSourceDataArray(row, column, row2, column2);
+    // Every caller feeds the result to the engine, so this read has to report what Handsontable
+    // actually stores – not what it reports. Left unguarded, `#onModifySourceData` answers every
+    // formula cell with the formula the engine already holds, so a `loadData()`/`updateData()` call
+    // that changes a formula's text reads the engine's PREVIOUS formula back and writes it straight
+    // into the engine again, silently discarding the newly loaded one.
+    //
+    // The projection is suspended through a dedicated flag rather than `#internalOperationPending`,
+    // which also gates `#onModifyData` and `#onAfterRenderer`. This read runs the `modifyRowData`
+    // and `modifySourceData` hooks for every row and cell, so third-party handlers execute inside
+    // the guarded window - and one that calls `getDataAtCell()` on a formula cell has to keep
+    // receiving the calculated value, not the raw formula.
+    //
+    // No other site sets the flag, so the previous value is saved and restored rather than cleared
+    // for one reason only: those same third-party handlers run inside the window, and one that
+    // reaches this method again - synchronously, through `updateSettings()` or `loadData()` - would
+    // otherwise leave the rest of the outer read unguarded, which is the very defect above.
+    const wasProjectionSuspended = this.#sourceDataProjectionSuspended;
+
+    this.#sourceDataProjectionSuspended = true;
+
+    let dataArray;
+
+    try {
+      dataArray = this.hot.getSourceDataArray(row, column, row2, column2);
+    } finally {
+      this.#sourceDataProjectionSuspended = wasProjectionSuspended;
+    }
+
     const visibleColumnCount = this.hot.countCols();
-    const physicalColumnCount = this.hot.countSourceCols();
-    const isAoAWithSkippedColumns = visibleColumnCount < physicalColumnCount
-      && isArrayOfArrays(this.hot.getSourceData());
+    // Asked through the named checks rather than inlined: `#doesEngineHoldPhysicalColumns()` asks
+    // the same two questions below, and a second copy here is what lets the two answers drift.
+    const isAoAWithSkippedColumns = this.#areSourceColumnsSkipped() && this.#isSourceDataArrayOfArrays();
+    // `dataArray` is indexed from the requested start row, while `#getValueGetterValue` reads the
+    // meta by a PHYSICAL row index. A partial read - the Nested Rows detach is the one caller that
+    // makes one - would otherwise resolve every row's `valueGetter` from `rowOffset` rows too high
+    // up the table.
+    const rowOffset = row ?? 0;
 
     if (!isAoAWithSkippedColumns) {
+      // The array's own column space, read from the one place that answers it. Array-of-objects
+      // data is built in VISUAL order by `dataSource.getAtRow`, plain array-of-arrays data keeps
+      // the physical order – and `#getValueGetterValue` reads its meta by physical coordinates.
+      const columnsInVisualOrder = !this.#doesEngineHoldPhysicalColumns();
+      const columnStart = column ?? 0;
+
       return dataArray.map((rowObject, rowIndex) => {
         const rowArray = Array.isArray(rowObject) ? rowObject : [];
 
-        return rowArray.map((value: unknown, columnIndex: number) => {
-          return this.#getValueGetterValue(rowIndex, columnIndex, value);
+        return rowArray.map((value: unknown, arrayColumnIndex: number) => {
+          const columnIndex = columnStart + arrayColumnIndex;
+          const physicalColumn = columnsInVisualOrder
+            ? (this.hot.toPhysicalColumn(columnIndex) ?? columnIndex)
+            : columnIndex;
+
+          return this.#getValueGetterValue(rowOffset + rowIndex, physicalColumn, value);
         });
       });
     }
@@ -1283,7 +1482,11 @@ export class Formulas extends BasePlugin {
     // containing only visible columns so HF cell coordinates stay in sync.
     const columnOffset = column ?? 0;
 
-    return dataArray.map((rowArray, rowIndex) => {
+    return dataArray.map((row, rowIndex) => {
+      // `getSourceDataArray` hands back a falsy row as-is for a hole or a `null` entry, and the
+      // shape check above only reads row 0, so such a row can reach this branch. Treated as empty,
+      // exactly as the pass-through branch above treats it.
+      const rowArray = Array.isArray(row) ? row : [];
       const projected = [];
 
       for (let visualCol = 0; visualCol < visibleColumnCount; visualCol++) {
@@ -1299,10 +1502,415 @@ export class Formulas extends BasePlugin {
           continue;
         }
 
-        projected.push(this.#getValueGetterValue(rowIndex, visualCol, rowArray[arrayIndex]));
+        projected.push(this.#getValueGetterValue(rowOffset + rowIndex, physicalCol, rowArray[arrayIndex]));
       }
 
       return projected;
+    });
+  }
+
+  /**
+   * Translates an index of the ENGINE's own sequence into the physical index it stands for.
+   *
+   * An engine index outside the dataset has no physical counterpart – the engine extends its own
+   * sheet dimensions to calculate values – so it falls back to being read as a physical index.
+   *
+   * @param {AxisSyncer|null} syncer The axis syncer for the axis being translated.
+   * @param {number} hfIndex Index in the engine's own sequence.
+   * @returns {number} The physical index, or `hfIndex` itself when it has no physical counterpart.
+   */
+  #toPhysicalFromHf(syncer: AxisSyncer | null, hfIndex: number): number {
+    const physicalIndex = syncer?.getPhysicalIndexFromHfIndex(hfIndex) ?? -1;
+
+    return physicalIndex === -1 ? hfIndex : physicalIndex;
+  }
+
+  /**
+   * Escapes a single engine-bound value according to the cell meta: dates in Handsontable
+   * format are rewritten to the engine format, while invalid dates and preserved text values
+   * are escaped with the "'" sign (the engine's string-escape mechanism).
+   *
+   * This is the one escape rule, shared by every path that writes into the engine –
+   * `syncChangeWithEngine`, `#onAfterSetSourceDataAtCell` and `#escapeSourceDataArray`. Keeping it
+   * in one place is what stops those three from disagreeing about a value, which is how the
+   * `setSourceDataAtCell` path came to send an invalid date to the engine unescaped while the other
+   * two escaped it.
+   *
+   * The `date` branch RETURNS rather than falling through to the preserved text check, so a cell
+   * declaring both `type: 'date'` and `preserveTextValue: true` is treated as a date. The
+   * combination is contradictory - `isPreservedText()` requires `type: 'text'` - and the only way
+   * the fall-through could ever fire was on a value the date branch had already rewritten.
+   *
+   * Callers gate this on `typeof value === 'string'`: both `isDate()` and `isPreservedText()`
+   * require a string, so a non-string skips the cell meta read entirely, and that read is the
+   * expensive part - it runs the user-provided `cells` function.
+   *
+   * @param {*} value Value to process.
+   * @param {object} cellMeta The cell meta object of the value's cell.
+   * @returns {*} The escaped value, or the original value when no escaping applies.
+   */
+  #escapeEngineBoundValue(value: unknown, cellMeta: { type?: string; preserveTextValue?: boolean }): unknown {
+    if (isDate(value, cellMeta.type)) {
+      if (isDateValid(value)) {
+        // Rewriting the date from the Handsontable format to the engine format.
+        return getDateInHfFormat(value);
+      }
+
+      if (!isFormula(value)) {
+        // Escaping the value from date parsing using the "'" sign (the engine's string-escape mechanism).
+        return escapeTextValue(value);
+      }
+
+      return value;
+    }
+
+    if (isPreservedText(value, cellMeta)) {
+      // Escaping the value from the engine's value parsing using the "'" sign (the engine's
+      // string-escape mechanism).
+      return escapeTextValue(value);
+    }
+
+    return value;
+  }
+
+  /**
+   * Unescapes a single value read back out of the engine, reading the cell meta the unescaping needs
+   * from the given VISUAL coordinates.
+   *
+   * Values the unescaping can never change – non-strings, and strings without the leading escape
+   * apostrophe – skip the meta read altogether, the same way `#escapeSourceDataArray` skips it on the
+   * write side. That read is the expensive part of a per-cell scan, because it runs the user-provided
+   * `cells` function.
+   *
+   * @param {*} value Value read from the engine.
+   * @param {number} visualRow Visual row index of the cell whose meta the escape was applied from.
+   * @param {number} visualColumn Visual column index of the cell whose meta the escape was applied from.
+   * @returns {*} The unescaped value, or the original value when no unescaping applies.
+   */
+  #unescapeEngineBoundValueAt(value: unknown, visualRow: number, visualColumn: number): unknown {
+    if (!isEngineEscapedValue(value)) {
+      return value;
+    }
+
+    return unescapeEngineBoundValue(value, this.hot.getCellMetaTransient(visualRow, visualColumn));
+  }
+
+  /**
+   * Reverses the engine-bound escaping on a whole sheet read out of the engine.
+   *
+   * A RELOAD of the sheet this grid is already synced to is delegated to
+   * `#unescapeAgainstSourceData`, which confirms every strip against the grid's own copy of the
+   * value. Everything below describes the other case – a switch to a genuinely DIFFERENT sheet,
+   * whose content this grid's data says nothing about.
+   *
+   * The array is indexed the way the ENGINE is on both axes – by position in the index sequence –
+   * which is not the visual coordinate. HyperFormula is fed trimmed rows as well, so a `trimRows` or
+   * Filters map alone makes the engine's row index and the visual row index disagree. The escaping
+   * was applied per PHYSICAL cell (`#escapeSourceDataArray`), so its inverse has to resolve the same
+   * physical cell, and the engine index translates to it through the axis syncers.
+   *
+   * The whole scan is skipped – just like the escape scan – when `#needsEngineBoundEscaping()`
+   * reports that no configuration layer can mark a cell for escaping, so a sheet switch in the
+   * default configuration pays no per-cell meta read. Within the scan, values the unescaping can
+   * never change skip the meta read for the same reason.
+   *
+   * Accepted residual, on this cross-sheet path only: both the gate and the per-value confirmation
+   * read THIS grid's meta, while the sheet may have been escaped by a DIFFERENT grid sharing the
+   * same engine instance. If grid A declares `preserveTextValue` and writes `0123456`, the engine
+   * holds `'0123456`; grid B, declaring neither `date` nor `preserveTextValue`, loads the
+   * apostrophe as data. Dropping the gate would not close this: `unescapeEngineBoundValue()` still
+   * confirms the strip against grid B's meta and finds nothing to confirm it with. Nor would the
+   * source-data comparison used for a reload – grid B's data belongs to the sheet it is leaving.
+   * Closing it needs the escape to be self-describing, or a per-sheet record of what was escaped –
+   * neither of which the engine's serialized content carries. The apostrophe is the engine's own
+   * documented string-escape, so the value is not corrupted, only un-stripped.
+   *
+   * @param {Array<Array<*>>} sheetArray Sheet content read out of the engine, in engine index order.
+   * @param {boolean} [isSameSheetReload=false] Whether the sheet being read is the one this grid is
+   *   already synced to, rather than a different sheet being switched to.
+   * @returns {Array<Array<*>>} The unescaped content, or `sheetArray` itself when nothing can apply.
+   */
+  #unescapeEngineSheetArray(sheetArray: unknown[][], isSameSheetReload = false): unknown[][] {
+    if (isSameSheetReload) {
+      return this.#unescapeAgainstSourceData(sheetArray);
+    }
+
+    if (!this.#needsEngineBoundEscaping()) {
+      return sheetArray;
+    }
+
+    const metaManager = this.hot._getMetaManager();
+
+    return sheetArray.map((rowData: unknown[], hfRow: number) => {
+      const physicalRow = this.#toPhysicalFromHf(this.rowAxisSyncer, hfRow);
+      const visualRow = this.hot.toVisualRow(physicalRow) ?? physicalRow;
+
+      return rowData.map((value: unknown, hfColumn: number) => {
+        if (!isEngineEscapedValue(value)) {
+          return value;
+        }
+
+        const physicalColumn = this.#toPhysicalFromHf(this.columnAxisSyncer, hfColumn);
+        const visualColumn = this.hot.toVisualColumn(physicalColumn) ?? physicalColumn;
+        // The transient read applies the `cells` function and the meta hooks without permanently
+        // materializing one meta object per scanned cell.
+        const cellMeta = metaManager.getCellMetaTransient(
+          physicalRow, physicalColumn,
+          { visualRow, visualColumn },
+        );
+
+        return unescapeEngineBoundValue(value, cellMeta);
+      });
+    });
+  }
+
+  /**
+   * Reverses the engine-bound escaping on a RELOAD of the sheet this grid is already synced to,
+   * by confirming every strip against the grid's own source data rather than against the cell meta.
+   *
+   * The meta-confirmed path cannot serve this case. It asks whether the CURRENT configuration would
+   * escape the value, so the moment that configuration changes - `preserveTextValue` turned off, or
+   * a column moved off `type: 'text'` - it stops recognizing an escape it applied itself, and the
+   * apostrophe is loaded into the grid as data. That is reachable without a second sheet: a grid
+   * built without `data` records `#hotWasInitializedWithEmptyData`, so every later
+   * `#onAfterCellMetaReset` reloads through `switchSheet()`.
+   *
+   * The comparison is not on its own sufficient, because it has TWO callers and only one of them
+   * holds a grid whose data corresponds to the engine's. `#onAfterLoadData` carries the same
+   * empty-data branch, and there - on the initial load of a grid pointed at a sheet that already
+   * has content - the grid holds only its auto-generated dataset while the engine holds the content
+   * being adopted. Nothing matches, and a strip the cell meta could have confirmed would be lost.
+   * The same shape appears for an engine sheet larger than the dataset, where the out-of-dataset
+   * cell has no stored value at all.
+   *
+   * So the two references are used in order, and the handover between them is what makes the rule
+   * exact. Where the grid stores a STRING for the cell, that string decides on its own: it matches
+   * only when this plugin escaped the value, and a mismatch means the apostrophe is the user's own.
+   * The cell meta is consulted only where the grid stores no string at all, which is precisely the
+   * out-of-dataset cell and the initial load described above.
+   *
+   * The distinction matters because the meta answers a different question - whether the CURRENT
+   * configuration WOULD escape this value, not whether it WAS escaped. Consulting it on a mismatch
+   * would strip a literal `'0777` the moment `preserveTextValue` is switched on, contradicting the
+   * table below.
+   *
+   * Stripping unconditionally instead would corrupt the opposite case. A leading apostrophe in the
+   * engine is not proof this plugin put it there - the engine uses the same character as its own
+   * string escape, so a user's literal `'0777` typed into a cell this plugin does not escape is
+   * stored with exactly one apostrophe and round-trips through it.
+   *
+   * The source data separates the two without needing either the old configuration or a record of
+   * what was escaped: the grid's copy is never escaped, so the engine's value is this plugin's
+   * escape of it precisely when it equals that copy with one apostrophe prepended.
+   *
+   * | grid holds     | engine holds    | verdict                                  |
+   * |----------------|-----------------|------------------------------------------|
+   * | `0123456`      | `'0123456`      | escaped here, strip                      |
+   * | `'0777`        | `''0777`        | escaped here, strip                      |
+   * | `'0777`        | `'0777`         | the user's own, keep - whatever the meta says |
+   * | `'=SUM(1,2)`   | `'=SUM(1,2)`    | the user's own, keep                     |
+   * | nothing stored | `'0123456`      | ask the cell meta                        |
+   *
+   * @param {Array<Array<*>>} sheetArray Sheet content read out of the engine, in engine index order.
+   * @returns {Array<Array<*>>} The unescaped content.
+   */
+  #unescapeAgainstSourceData(sheetArray: unknown[][]): unknown[][] {
+    const metaManager = this.hot._getMetaManager();
+    // The read has to report what Handsontable STORES: left unguarded, `#onModifySourceData`
+    // answers every formula cell with the engine's own content, which is the very thing being
+    // compared against. Suspended through the narrow flag for the reason `#getProcessedSourceDataArray`
+    // gives - this read also runs third-party `modifySourceData` handlers, and one that calls
+    // `getDataAtCell()` has to keep receiving the calculated value.
+    const wasProjectionSuspended = this.#sourceDataProjectionSuspended;
+
+    this.#sourceDataProjectionSuspended = true;
+
+    try {
+      return sheetArray.map((rowData: unknown[], hfRow: number) => {
+        // Values without the leading escape apostrophe can never change, so a row holding none of
+        // them skips the source-data reads entirely.
+        if (!rowData.some(isEngineEscapedValue)) {
+          return rowData;
+        }
+
+        const physicalRow = this.#toPhysicalFromHf(this.rowAxisSyncer, hfRow);
+
+        return rowData.map((value: unknown, hfColumn: number) => {
+          if (!isEngineEscapedValue(value)) {
+            return value;
+          }
+
+          const physicalColumn = this.#toPhysicalFromHf(this.columnAxisSyncer, hfColumn);
+          const visualColumn = this.hot.toVisualColumn(physicalColumn) ?? physicalColumn;
+          const storedValue = this.hot.getSourceDataAtCell(physicalRow, visualColumn);
+
+          // A stored STRING is a decisive answer either way. It matches only when this plugin
+          // escaped it, and when it does not match, the apostrophe is the user's own – negative
+          // evidence, not absence of evidence. Falling through to the meta here would strip a
+          // literal `'0777` the moment `preserveTextValue` is switched on, because the meta only
+          // knows what the CURRENT configuration would escape, not what was escaped.
+          if (typeof storedValue === 'string') {
+            return `'${storedValue}` === value ? storedValue : value;
+          }
+
+          // No stored string, so the grid has nothing to say about this cell: it is out of the
+          // dataset, or the grid is still holding its auto-generated one while adopting the
+          // engine's content on an initial load. The cell meta is the only reference left, and it
+          // is the one this path used before the comparison existed.
+          const visualRow = this.hot.toVisualRow(physicalRow) ?? physicalRow;
+
+          return unescapeEngineBoundValue(value, metaManager.getCellMetaTransient(
+            physicalRow, physicalColumn,
+            { visualRow, visualColumn },
+          ));
+        });
+      });
+    } finally {
+      this.#sourceDataProjectionSuspended = wasProjectionSuspended;
+    }
+  }
+
+  /**
+   * Tells whether any configuration layer can mark a cell as a `date`-typed cell or as a preserved
+   * text cell. Only those two markings make the escape scan change a value, so when no layer can
+   * carry them the whole full-dataset scan is skipped – in the default configuration it would
+   * translate indexes and read meta for every cell only to change nothing.
+   *
+   * The layers checked here are exactly the ones a cell meta can be composed from: the global
+   * settings layer, the `columns` setting, the `cell` array, the already stored cell metas (which is
+   * where `setCellMeta` and the applied `cell` array land), and the `beforeGetCellMeta` hook.
+   *
+   * Two things are opaque and therefore always count as "can mark a cell": a `columns` **function**
+   * (its per-column result only exists at meta-build time) and a `cells` **function**. The latter is
+   * part of the per-layer predicate, not a table-layer-only check, because `#runMetaExtension`
+   * (`dataMap/metaManager/mods/dynamicCellMeta.ts`) reads `cellMeta.cells` off the cell meta object
+   * and so resolves it through the prototype chain – a `cells` function declared on a `columns`
+   * entry (`columns: [{ cells: () => ({ type: 'date' }) }]`) is honored just like a global one.
+   *
+   * The `columns` setting is probed by index rather than through `Array.isArray`, because
+   * `core.ts` reads it as `columnSetting[j]`, which accepts an array-LIKE object too.
+   *
+   * Accepted residual: `afterGetCellMeta` is deliberately NOT part of the gate, because
+   * `mergeCells`, `hiddenRows`, and `hiddenColumns` register it unconditionally – including it
+   * would make the gate always true for any grid using merged cells or hidden rows/columns. As a
+   * consequence, an `afterGetCellMeta` listener that injects `type: 'date'` or
+   * `preserveTextValue` into a grid whose settings declare neither is not honored on the bulk load
+   * path. Setting a cell type from a meta hook is not a documented pattern.
+   *
+   * @returns {boolean}
+   */
+  #needsEngineBoundEscaping(): boolean {
+    const layerDeclaresEscaping = (layer: unknown): boolean => {
+      const meta = layer as {
+        type?: unknown, preserveTextValue?: unknown, cells?: unknown
+      } | null | undefined;
+
+      return !!meta && (
+        meta.type === 'date' ||
+        meta.preserveTextValue === true ||
+        typeof meta.cells === 'function'
+      );
+    };
+    const tableMeta = this.hot.getSettings();
+    const columnsSetting = tableMeta.columns as
+      { length?: number, [index: number]: unknown } | ((column: number) => unknown) | undefined;
+    const columnsDeclareEscaping = (): boolean => {
+      if (typeof columnsSetting === 'function') {
+        return true;
+      }
+
+      if (typeof columnsSetting !== 'object' || columnsSetting === null) {
+        return false;
+      }
+
+      const columnCount = Math.max(this.hot.countCols(), columnsSetting.length ?? 0);
+
+      for (let column = 0; column < columnCount; column++) {
+        if (layerDeclaresEscaping(columnsSetting[column])) {
+          return true;
+        }
+      }
+
+      return false;
+    };
+
+    if (
+      layerDeclaresEscaping(tableMeta) ||
+      columnsDeclareEscaping() ||
+      (Array.isArray(tableMeta.cell) && tableMeta.cell.some(layerDeclaresEscaping)) ||
+      this.hot.hasHook('beforeGetCellMeta')
+    ) {
+      return true;
+    }
+
+    // Checked last: unlike the settings layers above, this one allocates an array of every cell
+    // meta materialized so far.
+    return this.hot._getMetaManager().getCellsMeta().some(layerDeclaresEscaping);
+  }
+
+  /**
+   * Escapes, in place, the source-data-array values that must reach the engine in a protected
+   * form. The array rows always come in physical order (`getSourceDataArray` iterates the
+   * underlying dataset). The column order depends on the data shape: plain array-of-arrays data
+   * keeps the physical order, while array-of-objects data and the skipped-columns projection are
+   * built in visual order. That distinction is read from `#doesEngineHoldPhysicalColumns()`, the one
+   * place that answers it – see its note.
+   *
+   * The scan is skipped entirely when `#needsEngineBoundEscaping()` reports that no configuration
+   * layer can mark a cell for escaping.
+   *
+   * Observable side effect, on every path that runs this scan: the per-cell meta read is a
+   * TRANSIENT one, so the user's `cells` function and the `beforeGetCellMeta`/`afterGetCellMeta`
+   * listeners are invoked once per non-formula string cell. That is not limited to `loadData()`
+   * and `updateData()` – `#onAfterCellMetaReset` runs the same scan, and it fires on every
+   * `updateSettings()` call. The read it replaces (`getCellMetaUncached`) invoked none of them, so
+   * a listener that itself calls `setDataAtCell()` or `updateSettings()` now has a re-entrancy
+   * path it did not have before. Invoking `cells()` is the feature here – it is what lets a type
+   * declared only through that function mark a cell for escaping – so the reads cannot simply be
+   * dropped; the gate above is what keeps a grid that declares no such type from paying for them
+   * at all.
+   *
+   * @param {Array<Array<*>>} sourceDataArray Source data array to process.
+   * @param {number} [rowOffset=0] Physical row index of the array's first row (non-zero for partial arrays).
+   * @param {number} [columnOffset=0] Index of the array's first column, in the array's own column space.
+   */
+  #escapeSourceDataArray(sourceDataArray: unknown[][], rowOffset = 0, columnOffset = 0) {
+    if (!this.#needsEngineBoundEscaping()) {
+      return;
+    }
+
+    const columnsInVisualOrder = !this.#doesEngineHoldPhysicalColumns();
+    const metaManager = this.hot._getMetaManager();
+
+    sourceDataArray.forEach((rowData: unknown[], arrayRowIndex: number) => {
+      const physicalRow = rowOffset + arrayRowIndex;
+      const visualRow = this.hot.toVisualRow(physicalRow) ?? physicalRow;
+
+      rowData.forEach((cellValue: unknown, arrayColumnIndex: number) => {
+        // Values that the escaping can never change – non-strings, and formulas, which the engine
+        // parses on its own – skip the meta read altogether. That read is the expensive part of
+        // this full-dataset scan, and it runs the user-provided `cells` function.
+        if (typeof cellValue !== 'string' || isFormula(cellValue)) {
+          return;
+        }
+
+        const columnIndex = columnOffset + arrayColumnIndex;
+        const visualColumn = columnsInVisualOrder
+          ? columnIndex
+          : (this.hot.toVisualColumn(columnIndex) ?? columnIndex);
+        const physicalColumn = columnsInVisualOrder
+          ? (this.hot.toPhysicalColumn(columnIndex) ?? columnIndex)
+          : columnIndex;
+
+        // The transient read applies the `cells` function and the meta hooks without permanently
+        // materializing one meta object per scanned cell.
+        const cellMeta = metaManager.getCellMetaTransient(
+          physicalRow, physicalColumn,
+          { visualRow, visualColumn },
+        );
+
+        sourceDataArray[arrayRowIndex][arrayColumnIndex] = this.#escapeEngineBoundValue(cellValue, cellMeta);
+      });
     });
   }
 
@@ -1428,25 +2036,51 @@ export class Formulas extends BasePlugin {
     } = engineSourceRange.end;
     const populationRowLength = sourceEndRow - sourceStartRow + 1;
     const populationColumnLength = sourceEndColumn - sourceStartColumn + 1;
+    const metaManager = this.hot._getMetaManager();
 
     for (let populatedRowIndex = 0; populatedRowIndex < fillRangeData.length; populatedRowIndex += 1) {
       for (let populatedColumnIndex = 0; populatedColumnIndex < fillRangeData[populatedRowIndex].length;
         populatedColumnIndex += 1) {
         const populatedValue = fillRangeData[populatedRowIndex][populatedColumnIndex];
+        // HyperFormula indexes – trimmed rows/columns (`trimRows`, Filters) still occupy an HF
+        // index but no visual one, so these can diverge from the visual coordinates below. Plain
+        // moves do not diverge them: a move resyncs HF's own row/column order to match visual order.
         const sourceRow = sourceStartRow + (populatedRowIndex % populationRowLength);
         const sourceColumn = sourceStartColumn + (populatedColumnIndex % populationColumnLength);
-        const sourceCellMeta = this.hot.getCellMeta(sourceRow, sourceColumn);
+        // The meta is read by PHYSICAL coordinates, the way `#escapeSourceDataArray` and
+        // `#onAfterSetSourceDataAtCell` read it, with the visual pair passed only as the hook
+        // context. The two endpoints of the range are always selected cells and so always visible,
+        // but the loop walks every HF index BETWEEN them – and a trimmed row keeps its HF index
+        // while having no visual one. Reading such a source through the visual axis yields -1,
+        // which `getCellMeta()` rejects outright ("Expecting an unsigned number"), aborting the
+        // whole autofill.
+        const physicalSourceRow = this.#toPhysicalFromHf(this.rowAxisSyncer, sourceRow);
+        const physicalSourceColumn = this.#toPhysicalFromHf(this.columnAxisSyncer, sourceColumn);
+        const visualSourceRow = this.hot.toVisualRow(physicalSourceRow) ?? physicalSourceRow;
+        const visualSourceColumn = this.hot.toVisualColumn(physicalSourceColumn) ?? physicalSourceColumn;
+        const sourceCellMeta = metaManager.getCellMetaTransient(
+          physicalSourceRow, physicalSourceColumn,
+          { visualRow: visualSourceRow, visualColumn: visualSourceColumn },
+        );
 
         if (isDate(populatedValue, sourceCellMeta.type)) {
           if (populatedValue.startsWith('\'')) {
             // Populating values on HOT side without apostrophe.
             fillRangeData[populatedRowIndex][populatedColumnIndex] = populatedValue.slice(1);
 
-          } else if (this.isFormulaCellType(sourceRow, sourceColumn, this.sheetId) === false) {
+            // Asked of the engine directly with the HF pair already in hand. `isFormulaCellType()`
+            // would translate a visual pair back into this same one, which a trimmed source cannot
+            // round-trip through.
+          } else if (this.engine!.doesCellHaveFormula({
+            sheet: this.sheetId, row: sourceRow, col: sourceColumn
+          }) === false) {
             // Populating date in proper format, coming from the source cell.
             fillRangeData[populatedRowIndex][populatedColumnIndex] =
               getDateInHotFormat(populatedValue);
           }
+        } else if (isPreservedText(populatedValue, sourceCellMeta) && populatedValue.startsWith('\'')) {
+          // Populating values on the Handsontable side without the escape apostrophe.
+          fillRangeData[populatedRowIndex][populatedColumnIndex] = populatedValue.slice(1);
         }
       }
     }
@@ -1475,6 +2109,12 @@ export class Formulas extends BasePlugin {
    * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
    */
   #onAfterCellMetaReset = () => {
+    this.#closeLeakedGuards();
+
+    // Runs on every `updateSettings()` call, and both branches below re-run a full-dataset scan
+    // whose per-cell meta read fires `cells()` and the `beforeGetCellMeta`/`afterGetCellMeta`
+    // listeners – see `#escapeSourceDataArray` for what that changes for a listener with side
+    // effects.
     if (this.#hotWasInitializedWithEmptyData) {
       if (this.sheetName !== null) {
         this.switchSheet(this.sheetName);
@@ -1485,26 +2125,7 @@ export class Formulas extends BasePlugin {
 
     const sourceDataArray = this.#getProcessedSourceDataArray();
 
-    sourceDataArray.forEach((rowData: unknown[], rowIndex: number) => {
-      rowData.forEach((cellValue: unknown, columnIndex: number) => {
-        // The uncached read keeps this full source-data scan from permanently materializing
-        // one meta object per cell (same no-extension semantics as `skipMetaExtension`).
-        const cellMeta = this.hot._getMetaManager().getCellMetaUncached(
-          this.hot.toPhysicalRow(rowIndex) ?? rowIndex, this.hot.toPhysicalColumn(columnIndex) ?? columnIndex,
-          { visualRow: rowIndex, visualColumn: columnIndex },
-        );
-
-        if (isDate(cellValue, cellMeta.type)) {
-          if (isDateValid(cellValue)) {
-            // Rewriting date in HOT format to HF format.
-            sourceDataArray[rowIndex][columnIndex] = getDateInHfFormat(cellValue);
-          } else if (!cellValue.startsWith('=')) {
-            // Escaping value from date parsing using "'" sign (HF feature).
-            sourceDataArray[rowIndex][columnIndex] = `'${cellValue}`;
-          }
-        }
-      });
-    });
+    this.#escapeSourceDataArray(sourceDataArray);
 
     this.#internalOperationPending = true;
     const dependentCells = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
@@ -1530,6 +2151,8 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    this.#closeLeakedGuards();
+
     const formulasSettings = this.hot.getSettings()[PLUGIN_KEY];
     const settingsSheetName = isFormulasSettingsObject(formulasSettings) ? formulasSettings.sheetName : undefined;
     // Fall back to the sheet this instance already owns. Without it every `loadData`/`updateData`
@@ -1547,7 +2170,14 @@ export class Formulas extends BasePlugin {
     if (!this.#hotWasInitializedWithEmptyData) {
       const sourceDataArray = this.#getProcessedSourceDataArray();
 
+      // The guard only range-checks the sheet against the array dimensions, so escaping can run
+      // after it – and then it is skipped altogether when the content is not replaced. Observable
+      // side effect of that ordering: on the rejected branch the user's `cells` function and the
+      // `beforeGetCellMeta`/`afterGetCellMeta` listeners are no longer invoked once per cell, where
+      // the pre-guard scan used to invoke them before discarding the result.
       if (this.engine!.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
+        this.#escapeSourceDataArray(sourceDataArray);
+
         this.#internalOperationPending = true;
 
         const dependentCells = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
@@ -1692,6 +2322,12 @@ export class Formulas extends BasePlugin {
     if (
       ioMode !== 'get' ||
       this.#internalOperationPending ||
+      // While the write-back runs, reads must report what is really stored. Core reads the previous
+      // value to build the `afterSetSourceDataAtCell` payload, and projecting the engine's formula
+      // onto it would hand listeners an old value equal to the new one.
+      this.#sourceDataSyncPending ||
+      // Same reason, for the read that feeds the engine: see `#getProcessedSourceDataArray`.
+      this.#sourceDataProjectionSuspended ||
       this.sheetName === null ||
       !this.engine?.doesSheetExist(this.sheetName)
     ) {
@@ -1806,11 +2442,18 @@ export class Formulas extends BasePlugin {
   /**
    * `onAfterSetSourceDataAtCell` hook callback.
    *
-   * @param {Array[]} changes An array of changes in format [[row, column, oldValue, value], ...].
+   * Unlike `afterSetDataAtCell`, this hook reports **physical** row indexes.
+   *
+   * @param {Array[]} changes An array of changes in format [[physicalRow, prop, oldValue, value], ...].
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   #onAfterSetSourceDataAtCell = (changes: CellChange[], source: string) => {
+    // Checked before the blocked-source branch so the write-back never reaches undo/redo tracking.
+    if (this.#sourceDataSyncPending) {
+      return;
+    }
+
     if (isBlockedSource(source)) {
       this.#registerUndoRedoWrite(changes, source, false);
 
@@ -1824,11 +2467,23 @@ export class Formulas extends BasePlugin {
 
     const dependentCells: unknown[] = [];
     const changedCells: unknown[] = [];
+    const metaManager = this.hot._getMetaManager();
 
-    changes.forEach(([visualRow, prop, , newValue]) => {
+    changes.forEach(([physicalRow, prop, , newValue]) => {
       if (typeof prop !== 'string' && typeof prop !== 'number') {
         return;
       }
+
+      // This hook reports physical rows, and the engine holds trimmed rows as well – so the engine
+      // row index is resolved straight out of the physical one. Going through the visual index
+      // instead would have no answer for a trimmed row, and the fallback of reading its physical
+      // index as a visual one lands on a different row of the engine.
+      // The visual row is still resolved, because the cell meta read below needs it as its hook
+      // context; a trimmed row keeps its own index there, which is what a meta hook that has no
+      // visual cell to talk about gets.
+      const visualRow = this.hot.toVisualRow(physicalRow) ?? physicalRow;
+      // `propToCol` already returns a visual column index – it resolves the prop, or a physical
+      // column index for array-based data, through `toVisualColumn`.
       const visualColumn = this.hot.propToCol(prop);
 
       if (!isNumeric(visualColumn)) {
@@ -1836,7 +2491,7 @@ export class Formulas extends BasePlugin {
       }
 
       const address = {
-        row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
+        row: this.rowAxisSyncer!.getHfIndexFromPhysicalIndex(physicalRow),
         col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
         sheet: this.sheetId
       };
@@ -1848,6 +2503,23 @@ export class Formulas extends BasePlugin {
       }
 
       newValue = normalizeValueForFormulaEngine(newValue);
+
+      // Values the escaping can never change skip the meta read: both `isDate()` and
+      // `isPreservedText()` require a string. That read runs the user-provided `cells` function,
+      // which is the expensive part of a bulk `setSourceDataAtCell`.
+      if (typeof newValue === 'string') {
+        // The meta is read by PHYSICAL coordinates, with the visual pair passed only as the hook
+        // context the way `#escapeSourceDataArray` does it. Reading it through the visual row would
+        // resolve a trimmed row's index fallback back into a DIFFERENT physical row, so the escaping
+        // would consult a visible neighbor's meta instead of the written cell's own.
+        const physicalColumn = this.hot.toPhysicalColumn(visualColumn) ?? visualColumn;
+        const cellMeta = metaManager.getCellMetaTransient(
+          physicalRow, physicalColumn,
+          { visualRow, visualColumn },
+        );
+
+        newValue = this.#escapeEngineBoundValue(newValue, cellMeta);
+      }
 
       changedCells.push({ address });
       dependentCells.push(...this.engine!.setCellContents(address, newValue));
@@ -1940,6 +2612,225 @@ export class Formulas extends BasePlugin {
   };
 
   /**
+   * Checks whether the engine's column indexes are Handsontable's *physical* ones.
+   *
+   * `#getProcessedSourceDataArray` feeds the engine rows projected to the visible columns only when
+   * an array-of-arrays source actually skips physical indexes; array-of-objects rows arrive already
+   * projected. In every other case the engine receives the raw physical row, so a `columns` list
+   * that merely *reorders* the same number of columns leaves the engine on physical indexes while
+   * the grid reads them through `colToProp`.
+   *
+   * This is the single source of truth for that question. `#syncFormulasToSourceData` asks it
+   * directly, and `#escapeSourceDataArray` asks for its negation – the column space of the array fed
+   * to the engine is visual exactly when the engine is not on physical columns. Neither may
+   * re-derive the answer from `#areSourceColumnsSkipped()` and `#isSourceDataArrayOfArrays()` on its
+   * own, or hardening either of those checks would make the escape scan and the formula write-back
+   * classify the same dataset differently.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  #doesEngineHoldPhysicalColumns(): boolean {
+    return !this.#areSourceColumnsSkipped() && this.#isSourceDataArrayOfArrays();
+  }
+
+  /**
+   * Resolves an engine column index to the visual column to read from and the prop to write to.
+   *
+   * The two differ: `getSourceDataAtCell` resolves its column argument as a visual index, while
+   * `setSourceDataAtCell` takes a prop. Returns `null` when the cell has no visual counterpart and
+   * must be left alone.
+   *
+   * @private
+   * @param {number} hfColumn The engine's column index.
+   * @param {boolean} engineHoldsPhysicalColumns Result of `#doesEngineHoldPhysicalColumns`, passed in
+   *   because it reads the whole source data and must not be recomputed per cell.
+   * @returns {{ visualColumn: number, prop: string | number } | null}
+   */
+  #resolveEngineColumn(hfColumn: number, engineHoldsPhysicalColumns: boolean) {
+    if (engineHoldsPhysicalColumns) {
+      // The engine index is the physical one, which doubles as the prop for array-of-arrays data.
+      const visualColumn = this.hot.propToCol(hfColumn);
+
+      return isNumeric(visualColumn) && (visualColumn as number) >= 0
+        ? { visualColumn: visualColumn as number, prop: hfColumn }
+        : null;
+    }
+
+    const visualColumn = this.columnAxisSyncer!.getVisualIndexFromHfIndex(hfColumn);
+
+    // A trimmed column has no visual index, and without one there is no prop to write to either.
+    return visualColumn === -1 ? null : { visualColumn, prop: this.hot.colToProp(visualColumn) as string | number };
+  }
+
+  /**
+   * Checks whether a stored cell value is the same formula as the one the engine holds, ignoring
+   * how it was spelled.
+   *
+   * HyperFormula hands back a canonical form - `=sum( a1 : a2 )` comes out as `=SUM( A1:A2 )`. A
+   * plain string comparison would read that as a change and rewrite formulas the operation never
+   * touched, including ones with no cell references at all.
+   *
+   * @private
+   * @param {*} stored The value held in the source data.
+   * @param {string} engineFormula The formula reported by the engine.
+   * @returns {boolean}
+   */
+  #isSameFormula(stored: unknown, engineFormula: string) {
+    if (!isFormula(stored)) {
+      return false;
+    }
+
+    try {
+      return this.engine!.normalizeFormula(stored as string) === engineFormula;
+    } catch {
+      // Not something the engine can parse - treat it as different and let the write happen.
+      return false;
+    }
+  }
+
+  /**
+   * Writes the formulas that HyperFormula rewrote during a structural change back into
+   * Handsontable's source data.
+   *
+   * Inserting or removing rows and columns makes HyperFormula shift the references inside every
+   * affected formula (`=SUM(A1:A3)` becomes `=SUM(A1:A4)` after a row is inserted into that
+   * range). Until this sync runs, that rewrite lives only inside the engine and is projected onto
+   * reads by the `modifySourceData` hook, which leaves the array the developer passed to
+   * Handsontable holding the *old* formula. Any consumer that owns the data outside the grid — a
+   * Redux store, a React `data` prop, a snapshot saved to a server — then keeps the stale text and
+   * reverts the formula the moment that array is loaded back in.
+   *
+   * The engine changes reported by `addRows`/`removeRows`/... cannot drive this: they list cells
+   * whose *value* changed, and a reference shift usually leaves the value intact. So the sheet's
+   * formulas are read in bulk and only the cells that actually differ are written.
+   *
+   * The write is fenced with `#sourceDataSyncPending` so `afterSetSourceDataAtCell` does not push
+   * the formulas straight back into the engine. External listeners still receive that hook, which
+   * is what lets an outside store learn the new formula text - with a real previous value, because
+   * the same flag switches the read projection off while Core builds that payload.
+   *
+   * Row and column *moves* (and sorting) are deliberately excluded: they reorder the engine's
+   * indexes without touching the source data, so the two stop sharing a reference frame. While that
+   * is the case nothing is written back at all, and the stored text keeps whatever the last sync
+   * left there.
+   *
+   * Ordinary reads are unaffected: `#onModifySourceData` still projects the engine's current
+   * formula, so the grid keeps reporting the up-to-date text. The reads that feed the engine
+   * (`#getProcessedSourceDataArray`) deliberately do not - they have to report what is stored, or a
+   * data load could never replace a formula - so in a moved or sorted frame those reads hand the
+   * engine the stored, possibly stale text. Narrowing the order guard above so a structural change
+   * in that state still syncs is tracked separately.
+   *
+   * A Nested Rows detach is excluded for the same reason, and needs its own flag to be recognized:
+   * that plugin moves the rows inside the source data itself and reports the move as a row removal
+   * followed by a row creation, so the axis order stays physical throughout and the exclusion above
+   * cannot see it. Between the two legs the engine holds a reference to the detached row as broken,
+   * and the removal leg is one of the operations allowed to persist a broken reference – so without
+   * the flag the developer's array ends up with a `#REF!` in place of a formula whose target still
+   * exists, one row further down.
+   *
+   * @private
+   */
+  #syncFormulasToSourceData(allowBrokenReferences = false) {
+    if (
+      this.#internalOperationPending ||
+      this.#nestedRowsDetachPending ||
+      this.sheetName === null ||
+      !this.engine?.doesSheetExist(this.sheetName)
+    ) {
+      return;
+    }
+
+    // Once rows or columns have been moved or sorted, the engine and the source data no longer
+    // share a reference frame, and the engine's formulas would be wrong in the source data's terms.
+    if (!this.rowAxisSyncer!.isHfOrderPhysical() || !this.columnAxisSyncer!.isHfOrderPhysical()) {
+      return;
+    }
+
+    const sheetId = this.engine.getSheetId(this.sheetName)!;
+    const dimensions = this.engine.getSheetDimensions(sheetId);
+
+    if (dimensions.width === 0 && dimensions.height === 0) {
+      return;
+    }
+
+    const formulas = this.engine.getSheetFormulas(sheetId);
+    const changes: Array<[number, string | number, unknown]> = [];
+    // Resolved once for the run, and only if a formula cell is actually found - it reads the data.
+    let engineHoldsPhysicalColumns: boolean | null = null;
+
+    // Compare against what Handsontable stores, not against what it reports - `#onModifySourceData`
+    // would otherwise answer with the engine's formula and hide every diff.
+    this.#internalOperationPending = true;
+
+    try {
+      for (let hfRow = 0; hfRow < formulas.length; hfRow++) {
+        const formulasRow = formulas[hfRow];
+
+        if (!formulasRow) {
+          continue;
+        }
+
+        // The order guard above means the engine's index IS the physical index, so trimmed rows
+        // (Filters, `trimRows`) are reached too - they hold formulas that need the same catch-up.
+        const physicalRow = hfRow;
+
+        for (let hfColumn = 0; hfColumn < formulasRow.length; hfColumn++) {
+          const formula = formulasRow[hfColumn];
+
+          if (formula === undefined) {
+            continue;
+          }
+
+          if (engineHoldsPhysicalColumns === null) {
+            engineHoldsPhysicalColumns = this.#doesEngineHoldPhysicalColumns();
+          }
+
+          const column = this.#resolveEngineColumn(hfColumn, engineHoldsPhysicalColumns);
+
+          if (column === null) {
+            continue;
+          }
+
+          // `getSourceDataAtCell` takes a physical row and a visual column, `setSourceDataAtCell`
+          // a physical row and a prop.
+          const stored = this.hot.getSourceDataAtCell(physicalRow, column.visualColumn);
+
+          if (stored === formula || this.#isSameFormula(stored, formula)) {
+            continue;
+          }
+
+          // An engine formula can hold `#REF!` for reasons this change did not cause. Persisting it
+          // would overwrite a still-good formula in the developer's array with an unrecoverable one,
+          // so it is only written for the operations that can legitimately break a reference.
+          if (!allowBrokenReferences && REF_ERROR_PATTERN.test(formula) && !REF_ERROR_PATTERN.test(String(stored))) {
+            continue;
+          }
+
+          changes.push([physicalRow, column.prop, formula]);
+        }
+      }
+    } finally {
+      this.#internalOperationPending = false;
+    }
+
+    if (changes.length === 0) {
+      return;
+    }
+
+    this.#sourceDataSyncPending = true;
+
+    try {
+      this.hot.setSourceDataAtCell(
+        changes, undefined, undefined, `${toUpperCaseFirst(PLUGIN_KEY)}.syncSourceData`
+      );
+    } finally {
+      this.#sourceDataSyncPending = false;
+    }
+  }
+
+  /**
    * `afterCreateRow` hook callback.
    *
    * @param {number} visualRow Represents the visual index of first newly created row in the data source array.
@@ -1955,6 +2846,7 @@ export class Formulas extends BasePlugin {
     const changes = this.engine!.addRows(this.sheetId,
       [this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow), amount]);
 
+    this.#syncFormulasToSourceData();
     this.renderDependentSheets(changes);
   };
 
@@ -1974,6 +2866,7 @@ export class Formulas extends BasePlugin {
     const changes = this.engine!.addColumns(this.sheetId,
       [this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn), amount]);
 
+    this.#syncFormulasToSourceData();
     this.renderDependentSheets(changes);
   };
 
@@ -1997,6 +2890,7 @@ export class Formulas extends BasePlugin {
       this.#removeSpansFromEngine(removedSpans, 'removeRows');
     });
 
+    this.#syncFormulasToSourceData(true);
     this.renderDependentSheets(changes);
   };
 
@@ -2020,6 +2914,7 @@ export class Formulas extends BasePlugin {
       this.#removeSpansFromEngine(removedSpans, 'removeColumns');
     });
 
+    this.#syncFormulasToSourceData(true);
     this.renderDependentSheets(changes);
   };
 
@@ -2252,6 +3147,10 @@ export class Formulas extends BasePlugin {
     // correct values for VALUE/EMPTY cells (formula cells are already served via modifyData).
     this.#syncHotDataAfterMoveCells(committed);
 
+    // `#syncHotDataAfterMoveCells` covers the cells that were moved. Formulas elsewhere that
+    // pointed at the moved range were rewritten by the engine too, and need the same catch-up.
+    this.#syncFormulasToSourceData(true);
+
     // During undo/redo replay the engine step was skipped (dependentCells is null) and the
     // HOT re-render after undo/redo refreshes all dependent cells anyway.
     if (dependentCells !== null) {
@@ -2303,7 +3202,15 @@ export class Formulas extends BasePlugin {
           col: hfCol,
         });
 
-        row.push(serialized ?? null);
+        // The serialized content keeps the escape apostrophe that dates and preserved text values
+        // were written with, so it is unescaped before it goes back into the grid. The meta comes
+        // from the SOURCE cell, which is what the escape was applied from – `preserveTextValue` and
+        // `type` do not travel with a moved cell, so reading the destination's meta would leave the
+        // apostrophe in the grid whenever the value lands on a cell that declares neither. This is
+        // the same source-meta rule the autofill path (`#onBeforeAutofill`) already follows.
+        row.push(serialized === null || serialized === undefined
+          ? null
+          : this.#unescapeEngineBoundValueAt(serialized, srcFromRow + r, srcFromCol + c));
       }
 
       targetData.push(row);
@@ -2363,6 +3270,45 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * `beforeDetachChild` hook callback.
+   * Opens the guarded span in which `#syncFormulasToSourceData` must not run – see
+   * `#nestedRowsDetachPending`. `#onAfterDetachChild`'s `try`/`finally` guarantees the span closes
+   * whenever that listener runs, even if its own body throws. It does NOT guarantee the listener
+   * runs at all: `afterDetachChild` also has an earlier listener, registered by the Nested Rows
+   * plugin itself (`#onAfterDetachChild` in `nestedRows.ts`), and a throw there aborts the hook
+   * emitter before this plugin's listener is reached, leaving the flag set. `enablePlugin()` clears
+   * it, so that leak is bounded by the next enable rather than lasting the whole session.
+   */
+  #onBeforeDetachChild = () => {
+    this.#nestedRowsDetachPending = true;
+  };
+
+  /**
+   * Closes guard spans that their own closing path never got to close, at the head of the
+   * structural operations that re-establish the engine's relationship to the source data
+   * (`afterLoadData`, `afterUpdateData`, `afterCellMetaReset`).
+   *
+   * `#nestedRowsDetachPending` is left open when a listener registered ahead of this plugin's own
+   * throws out of `afterDetachChild` – see `#onBeforeDetachChild`. `#internalOperationPending` is
+   * left open by a throw from `setSheetContent`, `setupSyncEndpoint`, or `renderDependentSheets`,
+   * which the two handlers below open it across without a `try`/`finally`. Both leaks are silent:
+   * the first suppresses `#syncFormulasToSourceData`, so the developer's array keeps stale formula
+   * text, and the second makes the read hooks early-return, so formula cells report their raw text.
+   *
+   * This is a BOUND, not a guarantee that the spans are closed. A detach does not run to completion
+   * before these handlers can fire: `dataManager.detachFromParent` emits `beforeCreateRow` and
+   * `afterCreateRow` between `beforeDetachChild` and `afterDetachChild`, and those are
+   * user-reachable, so a listener that calls `updateSettings()` or `loadData()` from inside a
+   * detach clears the flag mid-span and leaves the remaining legs unguarded – which is the
+   * `#REF!`-over-a-live-formula write-back the flag exists to prevent. That is narrower than an
+   * unbounded flag, which is why the trade is made this way, but it is a trade.
+   */
+  #closeLeakedGuards() {
+    this.#nestedRowsDetachPending = false;
+    this.#internalOperationPending = false;
+  }
+
+  /**
    * `afterDetachChild` hook callback.
    * Used to sync the data of the rows detached in the Nested Rows plugin with the engine's dataset.
    *
@@ -2372,28 +3318,45 @@ export class Formulas extends BasePlugin {
    */
   #onAfterDetachChild = (parent: Record<string, unknown>, element: Record<string, unknown>,
                          finalElementRowIndex: number) => {
-    this.#internalOperationPending = true;
+    try {
+      this.#internalOperationPending = true;
 
-    const children = element.__children;
-    const childrenCount = Array.isArray(children) ? children.length : 0;
-    const rowsData = this.#getProcessedSourceDataArray(
-      finalElementRowIndex,
-      0,
-      finalElementRowIndex + childrenCount,
-      this.hot.countSourceCols()
-    );
+      const children = element.__children;
+      const childrenCount = Array.isArray(children) ? children.length : 0;
+      const rowsData = this.#getProcessedSourceDataArray(
+        finalElementRowIndex,
+        0,
+        finalElementRowIndex + childrenCount,
+        this.hot.countSourceCols()
+      );
 
-    this.#internalOperationPending = false;
+      this.#internalOperationPending = false;
 
-    rowsData.forEach((row: unknown[], relativeRowIndex: number) => {
-      row.forEach((value: unknown, colIndex: number) => {
-        this.engine?.setCellContents({
-          col: colIndex,
-          row: finalElementRowIndex + relativeRowIndex,
-          sheet: this.sheetId
-        }, [[value]]);
+      // `rowsData` is a partial array starting at the detached element's row, so the escaping needs
+      // that row as its offset. The reported row index is a physical one – the Nested Rows data
+      // manager derives it from the flattened source data (`dataManager.getRowIndex()`), not from the
+      // visual order. That distinction matters, because collapsing rows in that plugin installs a
+      // trimming map, under which the visual and physical row spaces genuinely differ.
+      this.#escapeSourceDataArray(rowsData, finalElementRowIndex, 0);
+
+      rowsData.forEach((row: unknown[], relativeRowIndex: number) => {
+        row.forEach((value: unknown, colIndex: number) => {
+          this.engine?.setCellContents({
+            col: colIndex,
+            row: finalElementRowIndex + relativeRowIndex,
+            sheet: this.sheetId
+          }, [[value]]);
+        });
       });
-    });
+    } finally {
+      // Both flags are opened by this span – `#nestedRowsDetachPending` in `#onBeforeDetachChild`
+      // and `#internalOperationPending` on the first line of the `try` – so both have to close
+      // here. The mid-body reset above still matters (the flag must be down before
+      // `setCellContents` runs); this is the net that catches a throw from a `cells()` function, a
+      // `beforeGetCellMeta` listener, or the engine itself.
+      this.#internalOperationPending = false;
+      this.#nestedRowsDetachPending = false;
+    }
   };
 
 }

@@ -26,6 +26,7 @@
     "stylelint": "node scripts/run.mjs lint:stylelint",
     "stylelint:fix": "node scripts/run.mjs lint:stylelint.fix",
     "measure:module-sizes": "node scripts/run.mjs measure:module-sizes",
+    "generate:option-levels": "node scripts/run.mjs generate:option-levels",
     "test": "node scripts/run.mjs --sequential test",
     "test.random": "node scripts/run.mjs --sequential test -- --random",
     "test:walkontable": "node scripts/run.mjs --sequential test:walkontable",
