@@ -33,6 +33,8 @@ interface SelectionState {
   selectedByRowHeader: number[];
   selectedByColumnHeader: number[];
   disableHeadersHighlight: boolean;
+  rowExtentSpansGrid: boolean;
+  columnExtentSpansGrid: boolean;
 }
 
 export const PLUGIN_KEY = 'emptyDataState';

@@ -6,9 +6,9 @@ import { EditorTrimmedRowPage } from '../fixtures/pages/EditorTrimmedRowPage';
  *
  * `selection-trimmed-row.spec.ts` pins the MECHANISM one case at a time - the record test, the
  * corner test, the permutation recapture. This file pins the DECISION TABLE instead: every shape a
- * user can select, with headers and without, against a trim that shortens the grid. Four defects in
- * a row were narrowing errors in that table which no single-shape case could see, because each of
- * them exercised the one shape it was written for.
+ * user can select, with headers and without, restored from an export or not, against a trim that
+ * shortens the grid. A run of defects in this area were all narrowing errors in that table which no
+ * single-shape case could see, because each of them exercised the one shape it was written for.
  *
  * Two outcomes are asserted, and which one a shape gets is the whole rule:
  *
@@ -86,45 +86,58 @@ const SHAPES: ShapeCase[] = [
 ];
 
 for (const headers of [true, false]) {
-  test.describe(`selection shapes against a trim, headers ${headers ? 'on' : 'off'}`, () => {
-    for (const shape of SHAPES) {
-      test(`${shape.outcome}: ${shape.name}`, async({ page, theme, bundle }) => {
-        const grid = new EditorTrimmedRowPage(page, theme, bundle, { headers });
+  for (const roundTrip of [false, true]) {
+    const suffix = roundTrip ? ', restored from an export' : '';
 
-        await grid.goto();
-        await shape.select(grid);
+    test.describe(`selection shapes against a trim, headers ${headers ? 'on' : 'off'}${suffix}`, () => {
+      for (const shape of SHAPES) {
+        test(`${shape.outcome}: ${shape.name}`, async({ page, theme, bundle }) => {
+          const grid = new EditorTrimmedRowPage(page, theme, bundle, { headers });
 
-        expect(await grid.selected()).toBeDefined();
+          await grid.goto();
+          await shape.select(grid);
 
-        await grid.trimRows(shape.trim);
+          expect(await grid.selected()).toBeDefined();
 
-        const selected = await grid.selected();
+          if (roundTrip) {
+            // `dialog` and `emptyDataState` stash the selection, deselect, and put it back. Whatever
+            // the repair relies on has to survive that trip, or a restored selection gets judged by
+            // a different rule than the one the user made.
+            await grid.roundTripSelectionThroughExport();
 
-        if (shape.outcome === 'dropped') {
-          expect(selected).toBeUndefined();
-        } else {
-          expect(selected).toBeDefined();
-
-          const visibleRows = await grid.visibleRowCount();
-
-          // Whatever survived has to be addressable: nothing may reach past the last visible row,
-          // which is the coordinate a write would grow the data set through.
-          for (const [fromRow, , toRow] of selected!) {
-            expect(fromRow).toBeLessThan(visibleRows);
-            expect(toRow).toBeLessThan(visibleRows);
+            expect(await grid.selected()).toBeDefined();
           }
 
-          if (shape.outcome === 'clamped') {
-            // A clamped extent still spans the axis it was created to span - it shrank with the
-            // grid rather than being cut back to some inner row.
-            expect(Math.max(...selected!.map(([, , toRow]) => toRow))).toBe(visibleRows - 1);
+          await grid.trimRows(shape.trim);
+
+          const selected = await grid.selected();
+
+          if (shape.outcome === 'dropped') {
+            expect(selected).toBeUndefined();
+          } else {
+            expect(selected).toBeDefined();
+
+            const visibleRows = await grid.visibleRowCount();
+
+            // Whatever survived has to be addressable: nothing may reach past the last visible row,
+            // which is the coordinate a write would grow the data set through.
+            for (const [fromRow, , toRow] of selected!) {
+              expect(fromRow).toBeLessThan(visibleRows);
+              expect(toRow).toBeLessThan(visibleRows);
+            }
+
+            if (shape.outcome === 'clamped') {
+              // A clamped extent still spans the axis it was created to span - it shrank with the
+              // grid rather than being cut back to some inner row.
+              expect(Math.max(...selected!.map(([, , toRow]) => toRow))).toBe(visibleRows - 1);
+            }
           }
-        }
 
-        await grid.pasteIntoSelection('PASTED');
+          await grid.pasteIntoSelection('PASTED');
 
-        expect(await grid.sourceRowCount()).toBe(5);
-      });
-    }
-  });
+          expect(await grid.sourceRowCount()).toBe(5);
+        });
+      }
+    });
+  }
 }

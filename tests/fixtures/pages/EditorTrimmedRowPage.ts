@@ -36,8 +36,13 @@ interface HandsontableFixture {
   selectCells(ranges: number[][]): void;
   selectColumns(column: number): void;
   selectAll(): void;
+  deselectCell(): void;
   selectRows(row: number): void;
-  selection: { transformFocus(row: number, col: number): void };
+  selection: {
+    transformFocus(row: number, col: number): void;
+    exportSelection(): unknown;
+    importSelection(state: unknown): void;
+  };
   getActiveEditor(): {
     isOpened(): boolean;
     state: string;
@@ -549,6 +554,20 @@ export class EditorTrimmedRowPage {
     await this.page.evaluate((targetColumn) => {
       (window as Window & { hot: HandsontableFixture }).hot.selectColumns(targetColumn);
     }, column);
+  }
+
+  /**
+   * Stashes the selection, deselects, and restores it - the round trip `dialog` and
+   * `emptyDataState` perform when they take the grid over and hand it back.
+   */
+  async roundTripSelectionThroughExport(): Promise<void> {
+    await this.page.evaluate(() => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      const stashed = hot.selection.exportSelection();
+
+      hot.deselectCell();
+      hot.selection.importSelection(stashed);
+    });
   }
 
   /**

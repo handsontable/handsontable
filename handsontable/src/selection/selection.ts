@@ -66,6 +66,8 @@ function snapToNearestVisible(indexMapper: IndexMapper, index: number, isSingleL
  * @property {number[]} selectedByRowHeader The state of the selected row headers.
  * @property {number[]} selectedByColumnHeader The state of the selected column headers.
  * @property {boolean} disableHeadersHighlight The state of the disable headers highlight.
+ * @property {boolean} rowExtentSpansGrid Whether the row extent spans the whole grid.
+ * @property {boolean} columnExtentSpansGrid Whether the column extent spans the whole grid.
  */
 
 /**
@@ -1881,9 +1883,12 @@ class Selection {
     selectedByRowHeader,
     selectedByColumnHeader,
     disableHeadersHighlight,
+    rowExtentSpansGrid = false,
+    columnExtentSpansGrid = false,
   }: {
     ranges: CellRange[]; activeRange: CellRange; activeSelectionLayer: number;
     selectedByRowHeader: number[]; selectedByColumnHeader: number[]; disableHeadersHighlight: boolean;
+    rowExtentSpansGrid?: boolean; columnExtentSpansGrid?: boolean;
   }) {
     if (ranges.length === 0) {
       return;
@@ -1896,6 +1901,8 @@ class Selection {
 
     this.selectedByRowHeader = new Set(selectedByRowHeader);
     this.selectedByColumnHeader = new Set(selectedByColumnHeader);
+    this.#rowExtentSpansGrid = rowExtentSpansGrid;
+    this.#columnExtentSpansGrid = columnExtentSpansGrid;
 
     this.setActiveSelectionLayerIndex(0);
 
@@ -1923,6 +1930,12 @@ class Selection {
       selectedByRowHeader: Array.from(this.selectedByRowHeader),
       selectedByColumnHeader: Array.from(this.selectedByColumnHeader),
       disableHeadersHighlight: this.#disableHeadersHighlight,
+      // Carried like the header state beside it: a consumer that stashes the selection, deselects,
+      // and restores it later - `dialog` and `emptyDataState` both do - would otherwise hand back a
+      // full-column or select-all selection that no longer knows it spans the grid, and the next
+      // trim would drop it instead of clamping it.
+      rowExtentSpansGrid: this.#rowExtentSpansGrid,
+      columnExtentSpansGrid: this.#columnExtentSpansGrid,
     };
   }
 
