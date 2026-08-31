@@ -918,7 +918,9 @@ Opening a cell editor and confirming it without typing anything never changes th
 `emptyValue` is set to.
 
 Nothing is written, and no [`afterChange`](@/api/hooks.md#afterchange) hook fires. That holds whether
-or not the cell has a [`validator`](@/api/options.md#validator).
+or not the cell has a [`validator`](@/api/options.md#validator). Because there is no change,
+[`beforeChange`](@/api/hooks.md#beforechange) does not run either, so a handler that cancels changes
+has nothing to cancel on such a confirm.
 
 A validated cell is still validated on that confirm, so
 [`allowInvalid`](@/api/options.md#allowinvalid) keeps behaving as it always has and an invalid value
