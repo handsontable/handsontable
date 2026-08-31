@@ -279,5 +279,27 @@ test.describe('empty cell values', () => {
 
       await grid.expectSource(0, 1, 'null');
     });
+
+    // Undo restores removed data through `setSourceDataAtCell()`, which runs `emptyValue` like any
+    // other write. Without the `UndoRedo.` exemption reaching it, undoing a removal rewrites every
+    // restored `''` to `null` - a whole row or column at a time, and silently.
+    //
+    // Row 3 holds an `''` that came from the loaded data, not from a write. That is what makes the
+    // assertion meaningful: loading bypasses `emptyValue`, so this `''` is a value the grid is
+    // supposed to keep, and undo has no business changing it.
+    test('restores a real `\'\'` when a removed row is undone', async() => {
+      await grid.expectSource(3, 0, 'empty-string');
+
+      await grid.removeRow(3);
+      await grid.undo();
+
+      await grid.expectSource(3, 0, 'empty-string');
+    });
+
+    // Undoing a removed COLUMN is the same code path - `removeColumn.ts` restores through the same
+    // `setSourceDataAtCell()` call with the same `UndoRedo.undo` source - so it is not repeated here.
+    // It could not be staged from this fixture anyway: the grid declares `columns`, and Handsontable
+    // refuses to remove a column then ("cannot remove column with object data source or columns
+    // option specified").
   });
 });

@@ -75,6 +75,10 @@
         [null, null, null, null],
         ['abc', 5, '2024-01-01', 5],
         [null, null, null, true],
+        // Row 3 carries a REAL `''`, put there by loading rather than by a write. Loading bypasses
+        // `emptyValue`, so this `''` survives even under `emptyValue: null` - which makes it the only
+        // way to prove undo restores what the cell held instead of remapping it.
+        ['', null, null, ''],
       ],
       columns: [
         { type: 'text', renderer: testIdRenderer },
@@ -181,6 +185,16 @@
       } finally {
         hot.getSelectedRangeActive = original;
       }
+    };
+
+    /** Removes one row, so a spec can undo the removal afterwards. */
+    window.htRemoveRow = function(row) {
+      hot.alter('remove_row', row);
+    };
+
+    /** Undoes the last action. Undo restores removed data through `setSourceDataAtCell`. */
+    window.htUndo = function() {
+      hot.getPlugin('undoRedo').undo();
     };
 
     /** Pastes clipboard text into the current selection through the CopyPaste plugin. */

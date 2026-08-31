@@ -209,6 +209,22 @@ export class EmptyValuePage {
   }
 
   /**
+   * Removes one row through the API.
+   *
+   * @param {number} row The visual row index.
+   */
+  async removeRow(row: number): Promise<void> {
+    await this.page.evaluate(r => window.htRemoveRow(r), row);
+  }
+
+  /**
+   * Undoes the last action.
+   */
+  async undo(): Promise<void> {
+    await this.page.evaluate(() => window.htUndo());
+  }
+
+  /**
    * Pastes clipboard text into a cell through the CopyPaste plugin.
    *
    * @param {number} row The visual row index to paste at.
@@ -255,5 +271,7 @@ declare global {
     htSourceAt: (row: number, col: number) => string;
     htChangeCount: () => number;
     htPaste: (text: string) => void;
+    htRemoveRow: (row: number) => void;
+    htUndo: () => void;
   }
 }
