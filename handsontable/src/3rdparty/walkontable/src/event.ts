@@ -752,6 +752,9 @@ class Event {
    * Without this reset `touchApplied` stays `true` and every REAL mouse `mouseup` is routed into
    * the touch tap detector, which has no button filter, so two right-clicks or two drag-selections
    * ending on the same cell within the double-tap window would fire a phantom double-click.
+   * It also releases the mouse-down flag: a long-press fires `onMouseDown` from its timer, and
+   * after a cancel no `mouseup` ever follows, which would leave mouse-move selection dragging
+   * armed until the next click.
    *
    * @private
    */
@@ -759,6 +762,7 @@ class Event {
     this.#cancelLongPressTimer();
 
     this.touchApplied = false;
+    this.#mouseDown = false;
     this.#touchWasMoved = false;
     this.#longPressFired = false;
     this.#deferredTouchStartEvent = null;
