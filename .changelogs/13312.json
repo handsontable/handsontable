@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an expired trial license key not blocking the grid when the key carried the `no-ui-warns` flag, and stopped an expired trial from showing the same expiry message twice, in both the bottom bar and the corner popover.",
+  "type": "fixed",
+  "issueOrPR": 13312,
+  "breaking": false,
+  "framework": "none"
+}
