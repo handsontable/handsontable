@@ -40,6 +40,58 @@ If the branch you target has no golden records yet, the check does not fail. The
 screenshots to that branch's golden records and passes, so a fresh branch cannot wedge every pull request
 opened against it. The next build of the base branch overwrites them with the authoritative render.
 
+## How the comparison works
+
+```mermaid
+flowchart TD
+    PR["Push to a pull request"] --> RENDER
+    DEV["Push to develop or a release branch"] --> RENDER
+
+    subgraph RENDER["Render (matrix)"]
+        R1["multi-framework<br/>js + 3 wrappers, 4 themes"]
+        R2["cross-browser<br/>chromium, firefox, webkit"]
+    end
+
+    RENDER --> KEYS{"Which ref?"}
+    KEYS -->|"pull request"| KPR["expected = base/TARGET<br/>actual = pr-NUMBER/SHA"]
+    KEYS -->|"base branch"| KBR["expected = actual = base/BRANCH"]
+
+    KPR --> PROBE
+    KBR --> PROBE
+    PROBE{"Do golden records exist?<br/>GET /base/BRANCH/out.json"}
+
+    PROBE -->|"404, none yet"| SEED["Promote this build to<br/>the golden records"]
+    SEED --> PASS
+
+    PROBE -->|"200"| WHO{"Fork or Dependabot?"}
+    WHO -->|"no, has secrets"| SUIT["reg-suit run<br/>fetch, diff, publish, comment URL"]
+    WHO -->|"yes, no secrets"| FORK["compare-fork.mjs<br/>anonymous HTTPS, publishes nothing"]
+
+    SUIT --> OUT["screenshots compared<br/>.reg/out.json"]
+    FORK --> OUT
+
+    OUT --> GATE{"visual-gate.mjs<br/>any differences?"}
+    GATE -->|"none"| PASS["Check passes, PR mergeable"]
+    GATE -->|"differences found"| LABEL{"visual-approved<br/>label present?"}
+    LABEL -->|"yes"| PASS
+    LABEL -->|"no"| FAIL["Check fails, PR blocked"]
+
+    FAIL --> REVIEW["Open the report URL<br/>or the visual-diff-report artifact"]
+    REVIEW -->|"a regression: fix it"| PR
+    REVIEW -->|"intentional: add the label"| PR
+
+    KBR -.->|"rewrites the baseline"| R2[("Cloudflare R2<br/>base/BRANCH/actual/")]
+    SEED -.-> R2
+    R2 -.->|"read as expected"| PROBE
+
+    CLOSED["Pull request closed"] --> PURGE["Delete pr-NUMBER/ from R2"]
+```
+
+Two behaviors are worth reading off the diagram:
+
+- **Approval is all or nothing.** The `visual-approved` label accepts every difference in the build at once. Pushing a new commit removes the label, so an approval covers exactly the screenshots someone looked at.
+- **A missing baseline never blocks.** The first build for a branch promotes its own screenshots to the golden records and passes. The next build of that branch replaces them, so an unreviewed baseline survives at most one merge.
+
 ## Visual tests structure
 
 Visual tests are divided into:
