@@ -2,6 +2,7 @@ import type { HotInstance } from './core/types';
 import type { GridSettings } from './core/settings';
 import type { CellProperties } from './settings';
 import type { default as SelectionManager } from './selection/selection';
+import type { IndexesChangeSource } from './translations/indexMapper';
 import { isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
 import { isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors/registry';
@@ -101,61 +102,22 @@ class EditorManager {
    */
   #strandedInCurrentTask = false;
   /**
-   * The size of each PHYSICAL index space as of the last cache update.
-   *
-   * Only a structural change – an inserted or removed row or column – changes these. A trim, a
-   * permutation and a hide all leave the physical space the same size, so a difference here is the
-   * signal that `#editedPhysicalRow` has just been renumbered out from under the editor.
-   *
-   * Seeded in the constructor rather than from a sentinel: the manager is built after the index
-   * mappers are initialized, so the first cache update it ever sees is a real one, and a sentinel
-   * would make that update look structural.
-   *
-   * @type {number}
-   */
-  #lastRowIndexCount = 0;
-  /**
-   * The column counterpart of `#lastRowIndexCount`.
-   *
-   * @type {number}
-   */
-  #lastColumnIndexCount = 0;
-  /**
    * Reacts to a ROW index-map cache update.
    *
-   * A structural change and a rearrangement need opposite repairs – one invalidates the captured
-   * PHYSICAL index and keeps the visual coordinate, the other does the reverse – and the state object
-   * cannot tell them apart, because `insertIndexes()`/`removeIndexes()` raise the same flags a filter
-   * does. The SIZE of the physical space can: only an insert or a remove changes it. Comparing it
-   * against the previous update picks the right repair without relying on hook ordering, and nothing
-   * a plugin vetoes can strand it – a cancelled `beforeCreateRow` never changes the count either.
-   *
-   * The one shape this misses is a structural change that leaves the count where it started – an
-   * insert and a removal collapsing into a single cache update. `insertIndexes()`/`removeIndexes()`
-   * each suspend and resume the mapper themselves, so even inside `hot.batch()` every `alter()`
-   * flushes its own update and the two counts are observed separately.
-   *
-   * The comparison is PROVISIONAL, not the considered design. `IndexMapper` already tracks the real
-   * answer in `indexesChangeSource` (`'insert'`/`'remove'`/`'move'`/`'init'`/`'update'`), which
-   * `nestedHeaders` reads for the same question; it is simply not on the `cacheUpdated` payload yet,
-   * because `insertIndexes()`/`removeIndexes()` clear it before the hook fires. Putting it there
-   * removes both counters, their constructor seeding and the blind spot above – DEV-2681.
-   *
    * `afterRowSequenceCacheUpdate` is a PUBLIC hook, so `hot.runHooks()` can fire it with no payload
-   * at all. The state defaults to all-false for that case, which reduces the repair to the structural
-   * one and keeps the hidden-cell guard behind it running.
+   * at all. The state defaults to all-false for that case, which routes through reconciliation and
+   * keeps the hidden-cell guard behind it running.
    *
    * @param {object} [indexesChangesState] The state object of the index mapper's cache update.
    * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
    * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
+   * @param {IndexesChangeSource} [indexesChangesState.indexesChangeSource] The sequence change source.
    */
   #onRowSequenceCacheUpdate = (indexesChangesState: {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean;
+    indexesChangeSource?: IndexesChangeSource;
   } = { indexesSequenceChanged: false, trimmedIndexesChanged: false }): void => {
-    const indexCount = this.hot.rowIndexMapper.getNumberOfIndexes();
-
-    this.#repairEditor(indexCount !== this.#lastRowIndexCount, indexesChangesState);
-    this.#lastRowIndexCount = indexCount;
+    this.#repairEditor(this.#isStructuralChange(indexesChangesState), indexesChangesState);
   };
   /**
    * Reacts to a COLUMN index-map cache update.
@@ -166,22 +128,34 @@ class EditorManager {
    * @param {object} [indexesChangesState] The state object of the index mapper's cache update.
    * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
    * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
+   * @param {IndexesChangeSource} [indexesChangesState.indexesChangeSource] The sequence change source.
    */
   #onColumnSequenceCacheUpdate = (indexesChangesState: {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean;
+    indexesChangeSource?: IndexesChangeSource;
   } = { indexesSequenceChanged: false, trimmedIndexesChanged: false }): void => {
-    const indexCount = this.hot.columnIndexMapper.getNumberOfIndexes();
-
-    this.#repairEditor(indexCount !== this.#lastColumnIndexCount, indexesChangesState);
-    this.#lastColumnIndexCount = indexCount;
+    this.#repairEditor(this.#isStructuralChange(indexesChangesState), indexesChangesState);
   };
+  /**
+   * Determines whether a cache update renumbered the physical index space.
+   *
+   * @param {object} indexesChangesState The state object of the index mapper's cache update.
+   * @param {IndexesChangeSource} [indexesChangesState.indexesChangeSource] The sequence change source.
+   * @returns {boolean}
+   */
+  #isStructuralChange(indexesChangesState: {
+    indexesChangeSource?: IndexesChangeSource;
+  }): boolean {
+    return indexesChangesState.indexesChangeSource === 'insert' ||
+      indexesChangesState.indexesChangeSource === 'remove';
+  }
   /**
    * Applies the repair one axis's cache update calls for, then lets the hidden-cell guard run.
    *
    * The repair runs BEFORE that guard, so it tests `isHidden()` against corrected coordinates rather
    * than the stale ones the index map just invalidated.
    *
-   * @param {boolean} isStructuralChange Whether that axis's physical index count just changed.
+   * @param {boolean} isStructuralChange Whether that axis's physical index space was structurally changed.
    * @param {object} indexesChangesState The state object of the index mapper's cache update.
    * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
    * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
@@ -214,8 +188,6 @@ class EditorManager {
     this.tableMeta = tableMeta;
     this.selection = selection;
     this.eventManager = new EventManager(hotInstance);
-    this.#lastRowIndexCount = hotInstance.rowIndexMapper.getNumberOfIndexes();
-    this.#lastColumnIndexCount = hotInstance.columnIndexMapper.getNumberOfIndexes();
 
     this.hot.addHook('afterDocumentKeyDown', (event: KeyboardEvent) => this.#onAfterDocumentKeyDown(event));
     this.hot.addHook('beforeCompositionStart', (event: KeyboardEvent) => this.#onAfterDocumentKeyDown(event));
