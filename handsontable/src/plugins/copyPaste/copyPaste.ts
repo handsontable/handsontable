@@ -86,7 +86,7 @@ function padRowsToWidest(data: unknown[][]) {
  *
  * Read more:
  * - [Guides: Clipboard](@/guides/cell-features/clipboard/clipboard.md)
- * - [Configuration options: `copyPaste`](@/api/options.md#copypaste)
+ * - [Setting options: `copyPaste`](@/api/options.md#copypaste)
  *
  * @example
  * ```js
