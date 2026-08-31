@@ -7963,6 +7963,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean|function(string, TextExtractorContext): string}
      * @default undefined
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js

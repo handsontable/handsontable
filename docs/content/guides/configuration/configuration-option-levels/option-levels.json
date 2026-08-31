@@ -6,9 +6,9 @@
     "cells",
     "cell"
   ],
-  "total": 168,
+  "total": 169,
   "counts": {
-    "grid": 105,
+    "grid": 106,
     "grid columns cells cell": 58,
     "grid columns": 4,
     "columns": 1
@@ -1465,6 +1465,15 @@
         "cell"
       ],
       "since": "16.0.0",
+      "note": null
+    },
+    {
+      "name": "textExtractor",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "18.2.0",
       "note": null
     },
     {
