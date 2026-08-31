@@ -7560,7 +7560,7 @@ export default (): Record<string, unknown> => {
      * the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * @memberof Options#
-     * @since 18.2.0
+     * @since 18.3.0
      * @type {*}
      * @default ''
      * @category Core
