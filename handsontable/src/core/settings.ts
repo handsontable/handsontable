@@ -26,6 +26,7 @@ import type {
 } from '../plugins/dataProvider';
 import type { RangeType, HotInstance } from './types';
 import type { ThemeColorScheme, DensityType } from '../themes/types';
+import type { IndexesChangeSource } from '../translations/indexMapper';
 
 /**
  * The function shape of the `sourceDataValidator` option. Returns `true` when the value is valid.
@@ -317,6 +318,7 @@ export interface GridSettings {
   afterCustomBordersUpdate?: () => void;
   afterColumnSequenceCacheUpdate?: (indexesChangesState: {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean; hiddenIndexesChanged: boolean;
+    indexesChangeSource?: IndexesChangeSource;
   }) => void;
   afterColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[]) => void;
   afterColumnUnfreeze?: (columnIndex: number, isFreezingPerformed: boolean) => void;
@@ -430,6 +432,7 @@ export interface GridSettings {
   afterRowSequenceChange?: (source: ChangeSource) => void;
   afterRowSequenceCacheUpdate?: (indexesChangesState: {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean; hiddenIndexesChanged: boolean;
+    indexesChangeSource?: IndexesChangeSource;
   }) => void;
   afterRowsMutation?: (operation: string, payload: RowMutationPayload) => void;
   afterRowsMutationError?: (operation: string, error: Error, payload: RowMutationPayload) => void;
