@@ -16,6 +16,7 @@ import { rangeEach } from '../../helpers/number';
 import { deprecatedWarnOnce } from '../../helpers/console';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import {
+  ROW_SIZE_OPTIONS,
   getElementScaleFactor,
   normalizeVisualDelta,
   redeclaresManualSizes,
@@ -62,7 +63,7 @@ export class ManualRowResize extends BasePlugin {
    * @returns {string[]}
    */
   static get SETTING_KEYS(): string[] {
-    return [PLUGIN_KEY, 'rowHeights'];
+    return [PLUGIN_KEY, ...ROW_SIZE_OPTIONS];
   }
 
   /**
@@ -234,7 +235,7 @@ export class ManualRowResize extends BasePlugin {
 
     // Runs after the re-initialization, so that the heights replayed on the map's `init` hook are
     // discarded too.
-    if (redeclaresManualSizes(newSettings, 'rowHeights', this.hot.getSettings()[PLUGIN_KEY])) {
+    if (redeclaresManualSizes(newSettings, ROW_SIZE_OPTIONS, this.hot.getSettings()[PLUGIN_KEY])) {
       this.clearManualSizes();
     }
 

@@ -8,15 +8,24 @@ import { areEquivalentSettingsValue } from './helpers';
  * reference equality so we avoid expensive deep walks and accidental false positives where functions
  * or class instances would not compare meaningfully by keys alone.
  *
- * `rowHeights` and `colWidths` are here because passing either one re-declares the sizes and
- * discards the ones the user produced by dragging (`ManualRowResize` / `ManualColumnResize`).
- * A re-render must not do that, and a React app commonly writes the value inline
- * (`rowHeights={[50, 50]}`), which is a new array on every render and never reference-equal. Both
- * hold plain numbers, strings or arrays of them, so the deep walk is cheap. The Vue wrapper already
- * skips unchanged keys this way.
+ * `rowHeights`, `minRowHeights` (its documented alias) and `colWidths` are here because passing any
+ * of them re-declares the sizes and discards the ones the user produced by dragging
+ * (`ManualRowResize` / `ManualColumnResize`). A re-render must not do that, and a React app commonly
+ * writes the value inline (`rowHeights={[50, 50]}`), which is a new array on every render and never
+ * reference-equal. All three hold plain numbers, strings or arrays of them, so the deep walk is
+ * cheap. The Vue wrapper already skips unchanged keys this way.
  */
 const DEEP_COMPARABLE_SETTINGS: Array<keyof Handsontable.GridSettings> = [
-  'dataSchema', 'columns', 'rowHeights', 'colWidths'
+  'dataSchema', 'columns', 'rowHeights', 'minRowHeights', 'colWidths'
+];
+
+/**
+ * The size settings are compared against the grid's live settings rather than the previous props,
+ * which is what the Angular and Vue wrappers already do. Comparing against props alone would stop
+ * re-asserting the prop after anything changed the size through the instance ref.
+ */
+const COMPARED_AGAINST_LIVE_SETTINGS: Array<keyof Handsontable.GridSettings> = [
+  'rowHeights', 'minRowHeights', 'colWidths'
 ];
 
 export class SettingsMapper {
@@ -34,11 +43,13 @@ export class SettingsMapper {
     {
       prevProps = {},
       isInit = false,
-      initOnlySettingKeys = []
+      initOnlySettingKeys = [],
+      currentSettings
     }: {
       prevProps?: HotTableProps;
       isInit?: boolean;
-      initOnlySettingKeys?: Array<keyof Handsontable.GridSettings>
+      initOnlySettingKeys?: Array<keyof Handsontable.GridSettings>;
+      currentSettings?: Handsontable.GridSettings;
     } = {}): Handsontable.GridSettings {
     const shouldSkipProp = (key: keyof Handsontable.GridSettings) => {
       if (isInit) {
@@ -53,7 +64,11 @@ export class SettingsMapper {
       }
 
       if (DEEP_COMPARABLE_SETTINGS.includes(key)) {
-        return areEquivalentSettingsValue(prevProps[key], properties[key]);
+        const comparedValue = currentSettings && COMPARED_AGAINST_LIVE_SETTINGS.includes(key) ?
+          currentSettings[key] :
+          prevProps[key];
+
+        return areEquivalentSettingsValue(comparedValue, properties[key]);
       }
 
       return false;

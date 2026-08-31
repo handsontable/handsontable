@@ -44,10 +44,11 @@ export class ManualResizeSizeOptionResetPage {
    * The rendered widths of the column header cells, in CSS pixels. The corner cell is dropped, so
    * index 0 is the first data column.
    *
+   * @param {string} [testId='cols'] The grid's test id.
    * @returns {Promise<number[]>}
    */
-  async colWidths(): Promise<number[]> {
-    const widths = await this.grid('cols').locator('.ht_clone_top thead tr').first().locator('th')
+  async colWidths(testId = 'cols'): Promise<number[]> {
+    const widths = await this.grid(testId).locator('.ht_clone_top thead tr').first().locator('th')
       .evaluateAll(cells => cells.map(cell => Math.round(cell.getBoundingClientRect().width)));
 
     return widths.slice(1);
@@ -92,15 +93,16 @@ export class ManualResizeSizeOptionResetPage {
    *
    * @param {number} column The visual column index.
    * @param {number} deltaX How far to drag, in CSS pixels.
+   * @param {string} [testId='cols'] The grid's test id.
    */
-  async dragColumnHandle(column: number, deltaX: number): Promise<void> {
+  async dragColumnHandle(column: number, deltaX: number, testId = 'cols'): Promise<void> {
     // `nth(column + 1)` skips the corner cell, so index 0 addresses the first data column.
-    const header = this.grid('cols').locator('.ht_clone_top thead tr').first().locator('th')
+    const header = this.grid(testId).locator('.ht_clone_top thead tr').first().locator('th')
       .nth(column + 1);
 
     await header.hover();
 
-    const handle = this.grid('cols').locator('.manualColumnResizer');
+    const handle = this.grid(testId).locator('.manualColumnResizer');
 
     await expect(handle).toBeVisible();
 
@@ -136,14 +138,37 @@ export class ManualResizeSizeOptionResetPage {
   }
 
   /**
-   * Navigate and wait for both grids to have rendered - a real DOM condition, never a sleep.
+   * Calls a method on one grid's resize plugin and repaints, the way the guides tell users to.
+   *
+   * @param {string} name The grid's key in the fixture's `grids` object.
+   * @param {string} plugin The plugin name.
+   * @param {string} method The method to call.
+   * @param {Array} args The arguments to pass.
+   */
+  async callPluginMethod(
+    name: string, plugin: string, method: string, args: unknown[] = []
+  ): Promise<void> {
+    await this.page.evaluate(
+      ([gridName, pluginName, methodName, methodArgs]) => (window as unknown as {
+        callPluginMethod: (n: string, p: string, m: string, a: unknown[]) => void
+      }).callPluginMethod(
+        gridName as string, pluginName as string, methodName as string, methodArgs as unknown[]
+      ),
+      [name, plugin, method, args] as [string, string, string, unknown[]]
+    );
+  }
+
+  /**
+   * Navigate and wait for every grid to have rendered - a real DOM condition, never a sleep.
    */
   async goto(): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/manual-resize-size-option-reset.html?theme=${this.theme}&bundle=${this.bundle}`
     );
 
-    for (const testId of ['rows', 'cols', 'rows-array']) {
+    for (const testId of [
+      'rows', 'cols', 'rows-array', 'rows-empty-array', 'rows-auto', 'cols-array',
+    ]) {
       await expect(this.grid(testId).locator('.ht_clone_inline_start')).toBeVisible();
       await expect(this.grid(testId).locator('.ht_clone_top')).toBeVisible();
       // The clones exist before their rows are laid out, and every test either drags a header or

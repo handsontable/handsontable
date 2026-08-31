@@ -28,7 +28,7 @@ export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this co
  * The size options that discard the sizes stored by the manual resize plugins when they are passed
  * to `updateSettings()`.
  */
-const SIZE_SETTING_KEYS = new Set<string>(['rowHeights', 'colWidths']);
+const SIZE_SETTING_KEYS = new Set<string>(['rowHeights', 'minRowHeights', 'colWidths']);
 
 /**
  * Compares two size option values. Both hold a number, a string, a function or an array of numbers

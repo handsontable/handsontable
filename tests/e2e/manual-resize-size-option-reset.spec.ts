@@ -122,6 +122,116 @@ test.describe('Manual resize versus the size option', () => {
     expect(await grid.colWidths()).toEqual(new Array(5).fill(120));
   });
 
+  test('applies rowHeights to a grid built with an empty manualRowResize array', async () => {
+    // `manualRowResize: []` presets nothing, so it must not stop the reset the way a real array does.
+    await grid.dragRowHandle(0, 70, 'rows-empty-array');
+
+    expect((await grid.rowHeights('rows-empty-array'))[0]).toBeGreaterThan(SHORT);
+
+    await grid.applySettings('rowsEmptyArray', { rowHeights: SHORT });
+
+    expect(await grid.rowHeights('rows-empty-array')).toEqual(new Array(5).fill(SHORT));
+  });
+
+  test('applies minRowHeights, the documented alias, to a dragged row', async () => {
+    // `Core#_getRowHeightFromSettings` reads `rowHeights ?? minRowHeights`, so the alias states the
+    // heights just as `rowHeights` does.
+    await grid.dragRowHandle(0, 70);
+
+    expect((await grid.rowHeights())[0]).toBeGreaterThan(SHORT);
+
+    await grid.applySettings('rows', { minRowHeights: TALL });
+
+    expect(await grid.rowHeights()).toEqual(new Array(5).fill(TALL));
+  });
+
+  test('clears one dragged row height with clearManualSize()', async () => {
+    await grid.applySettings('rows', { rowHeights: SHORT });
+    await grid.dragRowHandle(0, 70);
+    await grid.dragRowHandle(2, 70);
+
+    const dragged = await grid.rowHeights();
+
+    expect(dragged[0]).toBeGreaterThan(SHORT);
+    expect(dragged[2]).toBeGreaterThan(SHORT);
+
+    // What the guides tell users to call when the option cannot reset the sizes.
+    await grid.callPluginMethod('rows', 'manualRowResize', 'clearManualSize', [0]);
+
+    const cleared = await grid.rowHeights();
+
+    expect(cleared[0]).toBe(SHORT);
+    // Only the named row is cleared.
+    expect(cleared[2]).toBe(dragged[2]);
+  });
+
+  test('clears every dragged row height with clearManualSizes()', async () => {
+    await grid.applySettings('rows', { rowHeights: SHORT });
+    await grid.dragRowHandle(0, 70);
+
+    expect((await grid.rowHeights())[0]).toBeGreaterThan(SHORT);
+
+    await grid.callPluginMethod('rows', 'manualRowResize', 'clearManualSizes');
+
+    expect(await grid.rowHeights()).toEqual(new Array(5).fill(SHORT));
+  });
+
+  test('does nothing when clearManualSizes() runs on a disabled plugin', async () => {
+    await grid.applySettings('rows', { rowHeights: SHORT, manualRowResize: false });
+
+    // The map only exists while the plugin is enabled, so the call must be a no-op, not a throw.
+    await grid.callPluginMethod('rows', 'manualRowResize', 'clearManualSizes');
+    await grid.callPluginMethod('rows', 'manualRowResize', 'clearManualSize', [0]);
+
+    expect(await grid.rowHeights()).toEqual(new Array(5).fill(SHORT));
+  });
+
+  test('lets a taller rowHeights win over a dragged height when AutoRowSize is on', async () => {
+    // With AutoRowSize enabled the plugin takes `Math.max(stored, incoming)`, so the option wins
+    // whenever it asks for more. That is why the option docs scope the "keeps its height" rule to
+    // AutoRowSize being disabled.
+    await grid.dragRowHandle(0, 40, 'rows-auto');
+
+    const dragged = (await grid.rowHeights('rows-auto'))[0];
+
+    expect(dragged).toBeLessThan(TALL);
+
+    await grid.applySettings('rowsAuto', { rowHeights: TALL });
+
+    expect((await grid.rowHeights('rows-auto'))[0]).toBe(TALL);
+  });
+
+  test('keeps a dragged width on a manualColumnResize array grid when colWidths is re-declared',
+    async () => {
+      const ARRAY_WIDTH = 90;
+
+      await grid.dragColumnHandle(0, 60, 'cols-array');
+
+      const dragged = (await grid.colWidths('cols-array'))[0];
+
+      expect(dragged).toBeGreaterThan(ARRAY_WIDTH);
+
+      // The column twin of the row case: re-initializing here would replay the declared array and
+      // revert the column to 90, which is neither the dragged width nor the requested one.
+      await grid.applySettings('colsArray', { colWidths: 60 });
+
+      const widths = await grid.colWidths('cols-array');
+
+      expect(widths[0]).toBe(dragged);
+      expect(widths.slice(1)).toEqual(new Array(4).fill(ARRAY_WIDTH));
+    });
+
+  test('clears every dragged column width with clearManualSizes()', async () => {
+    await grid.applySettings('cols', { colWidths: 80 });
+    await grid.dragColumnHandle(0, 70);
+
+    expect((await grid.colWidths())[0]).toBeGreaterThan(80);
+
+    await grid.callPluginMethod('cols', 'manualColumnResize', 'clearManualSizes');
+
+    expect(await grid.colWidths()).toEqual(new Array(5).fill(80));
+  });
+
   test('keeps a dragged column width when the update does not re-declare colWidths', async () => {
     await grid.dragColumnHandle(0, 70);
 

@@ -53,6 +53,25 @@
   <h2>Rows, built with a manualRowResize array</h2>
   <div id="rows-array" data-testid="rows-array"></div>
 
+  <!--
+    `manualRowResize: []` is a normal way to spell "enabled, no presets". It presets nothing, so it
+    must not stop `rowHeights` from discarding the dragged heights the way a real array does.
+  -->
+  <h2>Rows, built with an empty manualRowResize array</h2>
+  <div id="rows-empty-array" data-testid="rows-empty-array"></div>
+
+  <!--
+    With AutoRowSize on, `#onModifyRowHeight` takes `Math.max(stored, incoming)`, so a taller
+    `rowHeights` overrides a dragged height with no re-declaration at all. That different branch is
+    the premise the whole fix rests on, so it is pinned here.
+  -->
+  <h2>Rows, with AutoRowSize</h2>
+  <div id="rows-auto" data-testid="rows-auto"></div>
+
+  <!-- The column twin of the array grid. The logic is duplicated in `manualColumnResize.ts`. -->
+  <h2>Columns, built with a manualColumnResize array</h2>
+  <div id="cols-array" data-testid="cols-array"></div>
+
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The
     // closing tag is split so the HTML parser does not end THIS script block.
@@ -83,12 +102,18 @@
 
     // Well above every theme's default row height, so it cannot be confused with a fallback.
     window.ARRAY_HEIGHT = 90;
+    window.ARRAY_WIDTH = 90;
 
     window.grids = {
       rows: buildGrid('rows', { manualRowResize: true }),
       cols: buildGrid('cols', { manualColumnResize: true }),
       rowsArray: buildGrid('rows-array', {
         manualRowResize: new Array(5).fill(window.ARRAY_HEIGHT),
+      }),
+      rowsEmptyArray: buildGrid('rows-empty-array', { manualRowResize: [] }),
+      rowsAuto: buildGrid('rows-auto', { manualRowResize: true, autoRowSize: true }),
+      colsArray: buildGrid('cols-array', {
+        manualColumnResize: new Array(5).fill(window.ARRAY_WIDTH),
       }),
     };
 
@@ -100,6 +125,21 @@
      */
     window.applySettings = function(name, settings) {
       window.grids[name].updateSettings(settings);
+    };
+
+    /**
+     * Calls a method on one grid's resize plugin and repaints, the way the guides tell users to.
+     *
+     * @param {string} name The grid's key in `window.grids`.
+     * @param {string} plugin The plugin name.
+     * @param {string} method The method to call.
+     * @param {Array} args The arguments to pass.
+     */
+    window.callPluginMethod = function(name, plugin, method, args) {
+      const grid = window.grids[name];
+
+      grid.getPlugin(plugin)[method](...args);
+      grid.render();
     };
   </script>
 </body>

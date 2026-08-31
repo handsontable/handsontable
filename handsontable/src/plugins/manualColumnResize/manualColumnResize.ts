@@ -16,6 +16,7 @@ import { rangeEach } from '../../helpers/number';
 import { deprecatedWarnOnce } from '../../helpers/console';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import {
+  COLUMN_SIZE_OPTIONS,
   getElementScaleFactor,
   normalizeVisualDelta,
   redeclaresManualSizes,
@@ -60,7 +61,7 @@ export class ManualColumnResize extends BasePlugin {
    * @returns {string[]}
    */
   static get SETTING_KEYS(): string[] {
-    return [PLUGIN_KEY, 'colWidths'];
+    return [PLUGIN_KEY, ...COLUMN_SIZE_OPTIONS];
   }
 
   /**
@@ -241,7 +242,7 @@ export class ManualColumnResize extends BasePlugin {
 
     // Runs after the re-initialization, so that the widths replayed on the map's `init` hook are
     // discarded too.
-    if (redeclaresManualSizes(newSettings, 'colWidths', this.hot.getSettings()[PLUGIN_KEY])) {
+    if (redeclaresManualSizes(newSettings, COLUMN_SIZE_OPTIONS, this.hot.getSettings()[PLUGIN_KEY])) {
       this.clearManualSizes();
     }
 
@@ -319,7 +320,17 @@ export class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Clears the cache for the specified column index.
+   * Clears the width stored for the specified column, so the column falls back to the width coming
+   * from the [`colWidths`](@/api/options.md#colwidths) option or from the theme. Call `render()`
+   * afterwards to repaint the grid.
+   *
+   * @example
+   * ```js
+   * const resizePlugin = hot.getPlugin('manualColumnResize');
+   *
+   * resizePlugin.clearManualSize(0);
+   * hot.render();
+   * ```
    *
    * @param {number} column Visual column index.
    */
@@ -331,7 +342,11 @@ export class ManualColumnResize extends BasePlugin {
 
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
-    this.#columnWidthsMap.setValueAtIndex(physicalColumn, null);
+    // An out-of-range visual index resolves to `null`, which would write an entry under the string
+    // "null" and invalidate the width cache for nothing.
+    if (physicalColumn !== null) {
+      this.#columnWidthsMap.setValueAtIndex(physicalColumn, null);
+    }
   }
 
   /**

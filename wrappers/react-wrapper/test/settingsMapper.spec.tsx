@@ -130,6 +130,33 @@ describe('Settings mapper unit tests', () => {
       expect(settings.colWidths).toBe(120);
     });
 
+    it('should compare `rowHeights` against the live grid settings, not the previous props', () => {
+      // Angular and Vue already diff against the grid. Comparing props alone would stop re-asserting
+      // the prop after something changed the size through the instance ref.
+      const props: HotTableProps = { rowHeights: 50 };
+
+      // The grid was moved to 100 imperatively, so the unchanged prop still has to be forwarded.
+      const settings = SettingsMapper.getSettings(props, {
+        prevProps: props,
+        isInit: false,
+        currentSettings: { rowHeights: 100 },
+      });
+
+      expect(settings.rowHeights).toBe(50);
+    });
+
+    it('should skip `rowHeights` when the live grid settings already match', () => {
+      const props: HotTableProps = { rowHeights: 50 };
+
+      const settings = SettingsMapper.getSettings(props, {
+        prevProps: props,
+        isInit: false,
+        currentSettings: { rowHeights: 50 },
+      });
+
+      expect(settings.rowHeights).toBeUndefined();
+    });
+
     it('should keep `rowHeights` and `colWidths` when initializing', () => {
       const props: HotTableProps = {
         rowHeights: [50, 50, 50],

@@ -1253,14 +1253,21 @@ export default (): Record<string, unknown> => {
      *
      * A column resized by dragging keeps its width until the width is re-declared. Passing
      * `colWidths` to [`updateSettings()`](@/api/core.md#updatesettings) re-declares the widths and
-     * discards the ones stored by the {@link ManualColumnResize} plugin. To keep those instead,
-     * leave `colWidths` out of the call, or pass
-     * [`manualColumnResize`](#manualColumnResize) as an array in the same call.
+     * discards the ones stored by the {@link ManualColumnResize} plugin. To keep the stored widths,
+     * leave `colWidths` out of the call.
      *
-     * Two cases never discard the stored widths. A `colWidths` **function** states no fixed width,
-     * so it is left alone. And in the React and Angular wrappers, a `colWidths` prop whose value did
-     * not change is not forwarded, so re-applying the same value does not reset anything. In both
-     * cases, call
+     * Passing [`manualColumnResize`](#manualColumnResize) as an array in the same call **replaces**
+     * the stored widths with that array rather than keeping them.
+     *
+     * These cases never discard the stored widths:
+     *
+     * - A `colWidths` **function**. It states no fixed width, so it is left alone.
+     * - A grid whose `manualColumnResize` option is already a non-empty array. The plugin replays
+     *   that array, so the stored widths stay.
+     * - The React, Angular and Vue wrappers, when the `colWidths` prop did not change. An unchanged
+     *   prop is not forwarded, so re-applying the same value resets nothing.
+     *
+     * In each case, call
      * [`ManualColumnResize#clearManualSizes()`](@/api/manualColumnResize.md#clearmanualsizes)
      * followed by `render()`.
      *
@@ -5887,16 +5894,24 @@ export default (): Record<string, unknown> => {
      * When the {@link AutoRowSize} plugin is enabled, `rowHeights` sets the minimum row height, so a
      * row still grows to fit its content.
      *
-     * A row resized by dragging keeps its height until the height is re-declared. Passing
-     * `rowHeights` to [`updateSettings()`](@/api/core.md#updatesettings) re-declares the heights and
-     * discards the ones stored by the {@link ManualRowResize} plugin. To keep those instead, leave
-     * `rowHeights` out of the call, or pass
-     * [`manualRowResize`](#manualRowResize) as an array in the same call.
+     * When {@link AutoRowSize} is disabled, a row resized by dragging keeps its height until the
+     * height is re-declared. Passing `rowHeights` or [`minRowHeights`](#minRowHeights) to
+     * [`updateSettings()`](@/api/core.md#updatesettings) re-declares the heights and discards the
+     * ones stored by the {@link ManualRowResize} plugin. To keep the stored heights, leave both
+     * options out of the call.
      *
-     * Two cases never discard the stored heights. A `rowHeights` **function** states no fixed
-     * height, so it is left alone. And in the React and Angular wrappers, a `rowHeights` prop whose
-     * value did not change is not forwarded, so re-applying the same value does not reset anything.
-     * In both cases, call
+     * Passing [`manualRowResize`](#manualRowResize) as an array in the same call **replaces** the
+     * stored heights with that array rather than keeping them.
+     *
+     * These cases never discard the stored heights:
+     *
+     * - A `rowHeights` **function**. It states no fixed height, so it is left alone.
+     * - A grid whose `manualRowResize` option is already a non-empty array. The plugin replays that
+     *   array, so the stored heights stay.
+     * - The React, Angular and Vue wrappers, when the `rowHeights` prop did not change. An unchanged
+     *   prop is not forwarded, so re-applying the same value resets nothing.
+     *
+     * In each case, call
      * [`ManualRowResize#clearManualSizes()`](@/api/manualRowResize.md#clearmanualsizes) followed by
      * `render()`.
      *
