@@ -26,7 +26,7 @@ This page aggregates all Handsontable release notes. For upgrade instructions, s
 
 [[toc]]
 
-## 18.1.0-rc9
+## 18.1.0-rc10
 
 Released on August 31st, 2026
 
@@ -72,6 +72,7 @@ For more information about this release, see:
 - Improved the performance of bulk grid alterations: removing many rows or columns, inserting multiple columns, pasting data that extends the grid, and edits with the `minSpareCols` or `minCols` options on large datasets. [#13091](https://github.com/handsontable/handsontable/issues/13091)
 - Improved `getColHeader` performance: the index translation derived from the `columns` function is now cached instead of being rebuilt on every call, which also speeds up grid initialization and `updateSettings` on grids with many columns. [#13096](https://github.com/handsontable/handsontable/issues/13096)
 - Improved sizing plugins performance: AutoColumnSize measures only the changed cells on edits instead of rescanning whole columns, its background width sweep is budgeted and runs on browser idle time, AutoRowSize reuses the cached header height on selection-driven renders, and a multi-column resize triggers one height recalculation instead of one per column. [#13097](https://github.com/handsontable/handsontable/issues/13097)
+- Changed how touch opens the cell editor on devices that report both touch and mouse input, such as iPad: a double-tap opens it (taps up to 1 second apart), and a single tap on an already selected cell no longer opens it as it did in 18.0.0, where duplicated mouse events after the tap triggered the double-click. [#13306](https://github.com/handsontable/handsontable/pull/13306)
 
 #### Removed
 - Removed leftover Pikaday styles from the themes. [#13156](https://github.com/handsontable/handsontable/pull/13156)
