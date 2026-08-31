@@ -38,7 +38,7 @@ Choose an approach based on your goal:
 
 In this example, you add a custom class `custom-cell` to the cell in the top-left corner and a `custom-table` CSS class that highlights the table headers.
 
-To add a CSS class to a cell, column, or row, use the [`className`](@/api/options.md#classname) option. Set it in the grid configuration, in a `columns` entry, or per cell through the [`cells`](@/api/options.md#cells) callback. The class you provide is added to the cell's `<td>` element, where your CSS rules can target it.
+To add a CSS class to a cell, column, or row, use the [`className`](@/api/options.md#classname) option. Set it in the grid configuration, in a `columns` entry, or per cell through the [`cells`](@/api/options.md#cells) callback. The class you provide is added to the cell's `<td>` element, where your CSS rules can target it. Set in the grid configuration, it is also added to the container element that holds the grid -- see [`className`](@/api/options.md#classname) for the full breakdown.
 
 ::: only-for javascript
 

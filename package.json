@@ -98,10 +98,10 @@
       "@parcel/watcher>picomatch": "^4.0.4",
       "@rollup/pluginutils>picomatch": "^4.0.4",
       "serialize-javascript": "^7.0.3",
-      "pacote>tar": "^7.5.11",
+      "pacote>tar": "^7.5.19",
       "pacote>sigstore": "^4.1.1",
-      "node-gyp>tar": "^7.5.11",
-      "cacache>tar": "^7.5.11",
+      "node-gyp>tar": "^7.5.19",
+      "cacache>tar": "^7.5.19",
       "typed-rest-client": "^3.1.0",
       "undici": "^6.28.0",
       "@astrojs/mdx": "^6.0.1"
