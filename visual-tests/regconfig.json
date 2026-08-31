@@ -22,7 +22,8 @@
       "owner": "handsontable",
       "repository": "handsontable",
       "privateToken": "${GITHUB_TOKEN}",
-      "shortDescription": true
+      "shortDescription": true,
+      "ref": "${REG_NOTIFY_REF}"
     }
   }
 }
