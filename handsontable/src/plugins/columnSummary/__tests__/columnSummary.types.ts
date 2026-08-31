@@ -123,7 +123,7 @@ columnSummary.calculate(endpoint);
 const sum: number = columnSummary.calculateSum(endpoint);
 const min: number | string = columnSummary.calculateMinMax(endpoint, 'min');
 const max: number | string = columnSummary.calculateMinMax(endpoint, 'max');
-const avr: number = columnSummary.calculateAverage(endpoint);
+const avr: number | string = columnSummary.calculateAverage(endpoint);
 const empty: number = columnSummary.countEmpty([1, 1, 2, 2], 2);
 const entries: number = columnSummary.countEntries(endpoint);
 const cellValue: unknown = columnSummary.getCellValue(2, 2);
