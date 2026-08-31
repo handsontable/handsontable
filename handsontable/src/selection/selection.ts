@@ -1485,6 +1485,21 @@ class Selection {
       this.#isAxisOutOfRange(to.col, maxColumn + 1);
 
     if (isOutOfRange) {
+      // A selection ANCHORED IN THE HEADERS - a full column, a full row, select-all - means "all of
+      // it", not a range naming particular records: its far corner tracks the grid rather than a
+      // record, so a trim that shortens the grid leaves it describing a longer one than exists.
+      // Clamping is what such a selection already means, and it closes the append just as well as
+      // dropping would, so the user keeps the column they were working in.
+      //
+      // `isEntireColumnSelected()` cannot answer this: it compares the range height against the
+      // CURRENT row count, which the trim has already changed, so it reads false exactly here. The
+      // header anchor is structural and survives the trim.
+      if ((from.row ?? 0) < 0 || (from.col ?? 0) < 0) {
+        this.refresh();
+
+        return false;
+      }
+
       this.deselect();
 
       return true;

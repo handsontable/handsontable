@@ -34,6 +34,7 @@ interface HandsontableFixture {
   addHook(name: string, callback: () => unknown): void;
   getSelected(): number[][] | undefined;
   selectCells(ranges: number[][]): void;
+  selectColumns(column: number): void;
   selection: { transformFocus(row: number, col: number): void };
   getActiveEditor(): {
     isOpened(): boolean;
@@ -532,6 +533,16 @@ export class EditorTrimmedRowPage {
       (window as Window & { hot: HandsontableFixture }).hot.selectCells([[targetRow, targetColumn,
         targetRow, targetColumn]]);
     }, [row, column] as [number, number]);
+  }
+
+  /**
+   * Selects a whole column through its header, which anchors the range in the column header and
+   * makes its far corner track the grid rather than name a record.
+   */
+  async selectWholeColumn(column: number): Promise<void> {
+    await this.page.evaluate((targetColumn) => {
+      (window as Window & { hot: HandsontableFixture }).hot.selectColumns(targetColumn);
+    }, column);
   }
 
   /**

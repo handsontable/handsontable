@@ -934,26 +934,32 @@ export default function Core(
 
   this.columnIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexesChangesState) => {
     const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState);
-    // Read BEFORE the public hook, so the structural-versus-trim answer cannot be rewritten by what
-    // a consumer does: one that calls `alter()` from the hook would make a plain trim look
-    // structural and skip the repair entirely. The count is already final when `cacheUpdated`
-    // fires, so reading it early costs nothing.
+    // Read and RECORDED before the public hook, both for the same reason: what a consumer does must
+    // not rewrite this update's answer, and must not be undone by it either. A consumer calling
+    // `alter()` from the hook nests a cache update that advances the counter itself, so writing a
+    // pre-hook snapshot back afterwards would rewind it - and the next update would then look
+    // structural and skip the stranded-selection test. The count is already final when
+    // `cacheUpdated` fires, so reading it early costs nothing.
     const indexCount = this.columnIndexMapper.getNumberOfIndexes();
+    const isStructuralChange = indexCount !== lastColumnIndexCount;
+
+    lastColumnIndexCount = indexCount;
 
     this.runHooks('afterColumnSequenceCacheUpdate', indexesChangesState);
 
-    repairSelection(indexCount !== lastColumnIndexCount, indexesChangesState, hadOpenEditor);
-    lastColumnIndexCount = indexCount;
+    repairSelection(isStructuralChange, indexesChangesState, hadOpenEditor);
   });
 
   this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexesChangesState) => {
     const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState);
     const indexCount = this.rowIndexMapper.getNumberOfIndexes();
+    const isStructuralChange = indexCount !== lastRowIndexCount;
+
+    lastRowIndexCount = indexCount;
 
     this.runHooks('afterRowSequenceCacheUpdate', indexesChangesState);
 
-    repairSelection(indexCount !== lastRowIndexCount, indexesChangesState, hadOpenEditor);
-    lastRowIndexCount = indexCount;
+    repairSelection(isStructuralChange, indexesChangesState, hadOpenEditor);
   });
 
   this.selection.addLocalHook('afterSetRangeEnd', (

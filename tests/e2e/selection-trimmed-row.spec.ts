@@ -139,6 +139,23 @@ test.describe('selection stranded by a trimming index map', () => {
     expect(await grid.selected()).toEqual([[2, 0, 2, 0]]);
   });
 
+  test('clamps a full-column selection rather than dropping it', async() => {
+    await grid.selectWholeColumn(0);
+
+    expect(await grid.selected()).toEqual([[-1, 0, 4, 0]]);
+
+    // The far corner of a header-anchored selection tracks the grid rather than naming a record, so
+    // a shorter grid means a shorter selection - not a stranded one. It survives, clamped.
+    await grid.trimRows([0]);
+
+    expect(await grid.selected()).toEqual([[-1, 0, 3, 0]]);
+
+    await grid.pasteIntoSelection('PASTED');
+
+    // Clamping has to close the append just as dropping would.
+    expect(await grid.sourceRowCount()).toBe(5);
+  });
+
   test('drops every layer when the active highlight is the stranded one', async() => {
     // Two ranges in ONE call, because a second `selectCells()` replaces the first rather than
     // adding a layer. The active layer is the last one, so the first survives the trim untouched
