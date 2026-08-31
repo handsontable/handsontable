@@ -245,6 +245,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="tabMoves" data-levels="grid"></span>[`tabMoves`](@/api/options.md#tabmoves) | Yes | No | No | No | Core |  |
 | <span data-option="tabNavigation" data-levels="grid"></span>[`tabNavigation`](@/api/options.md#tabnavigation) | Yes | No | No | No | Core |  |
 | <span data-option="textEllipsis" data-levels="grid columns cells cell"></span>[`textEllipsis`](@/api/options.md#textellipsis) | Yes | Yes | Yes | Yes | Core |  |
+| <span data-option="textExtractor" data-levels="grid"></span>[`textExtractor`](@/api/options.md#textextractor) | Yes | No | No | No | Core |  |
 | <span data-option="theme" data-levels="grid"></span>[`theme`](@/api/options.md#theme) | Yes | No | No | No | Core |  |
 | <span data-option="themeName" data-levels="grid"></span>[`themeName`](@/api/options.md#themename) | Yes | No | No | No | Core |  |
 | <span data-option="timeFormat" data-levels="grid columns cells cell"></span>[`timeFormat`](@/api/options.md#timeformat) | Yes | Yes | Yes | Yes | Core |  |
