@@ -79,4 +79,32 @@ describe('Core.propToCol', () => {
     // a `result < countCols()` guard would let this `null` through as column 0.
     expect(propToCol('name')).toBe(null);
   });
+
+  it('should hand back a bare physical index whose column is trimmed (array data)', async() => {
+    const hot = handsontable({
+      data: [
+        ['a0', 'a1', 'a2', 'a3'],
+        ['b0', 'b1', 'b2', 'b3'],
+      ]
+    });
+
+    const trimmingMap = hot.columnIndexMapper.createAndRegisterIndexMap('spec-trim-array', 'trimming');
+
+    trimmingMap.setValueAtIndex(1, true);
+
+    await render();
+
+    expect(hot.toVisualColumn(1)).toBe(null);
+
+    // KNOWN DEFECT, tracked as DEV-2726. Plain array data caches no properties, so this takes the
+    // uncached branch, which falls back to the passed index instead of returning `null` like the
+    // cached branch above. The index it returns addresses a DIFFERENT column — visual 1 is physical
+    // 2 here — so the caller gets a wrong answer rather than an unknown one.
+    //
+    // Pinned to keep the documented behavior and the code in step. When DEV-2726 lands this
+    // expectation becomes `null`, and the `propToCol` JSDoc in `core.ts` has to be simplified with
+    // it.
+    expect(propToCol(1)).toBe(1);
+    expect(hot.toPhysicalColumn(1)).toBe(2);
+  });
 });
