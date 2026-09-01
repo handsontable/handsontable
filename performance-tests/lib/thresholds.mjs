@@ -1,18 +1,43 @@
 // Shared classification logic for performance change percentages.
 // Used by both the markdown report builder and the HTML report builder.
 
-export const REGRESSION_CALLOUT_THRESHOLD = 5;
+// Timing and heap need separate thresholds: replaying the 18 post-PR1 develop goldens on gh-pages
+// against a trailing median-of-5 baseline, timing's run-to-run CV is 11-19% per scenario while
+// heap's is 0.4-3.6%. A shared value cannot serve both -- at 15 a genuine +10% heap leak is detected
+// 9% of the time instead of 93%.
+//
+// The timing number is interim. It is set at the knee of the false-positive curve measured against
+// a cross-runner baseline (34% of no-change comparisons fire a callout at 5, 3% at 15). Once the
+// suite compares two builds on the same runner in one job, re-derive it against that noise floor.
+export const REGRESSION_CALLOUT_THRESHOLD_TIMING = 15;
+export const REGRESSION_CALLOUT_THRESHOLD_HEAP = 5;
+
+// Coefficient of variation above which a measurement is flagged as unreliable.
+export const CV_WARNING_THRESHOLD = 15;
+
+// Rendered in place of a percentage when the baseline did not capture a category that the current
+// run did. A failed capture must not read as "no data", which is what a bare "--" would say.
+export const BASELINE_INCOMPLETE_LABEL = 'baseline incomplete';
+
+// The categories that make up "active" time. Loading, other, experience and idle are excluded.
+export const ACTIVE_CATEGORIES = ['scripting', 'rendering', 'painting'];
 
 /**
+ * Classifies a percentage change into a status, emoji and CSS class.
+ *
+ * The band is the callout threshold, so the colour a row is painted and the callout the comment
+ * makes can never disagree.
+ *
  * @param {number | null} pctChange -- percentage change (positive = regression)
+ * @param {number} [threshold] -- band edge; defaults to the timing callout threshold
  * @returns {{ status: string, emoji: string, cssClass: string }}
  */
-export function classifyChange(pctChange) {
+export function classifyChange(pctChange, threshold = REGRESSION_CALLOUT_THRESHOLD_TIMING) {
   if (pctChange == null) {
     return { status: 'unknown', emoji: '', cssClass: 'unknown' };
   }
 
-  if (pctChange > 10) {
+  if (pctChange > threshold) {
     return { status: 'regression', emoji: '\u{1F534}', cssClass: 'regression' };
   }
 
@@ -20,7 +45,7 @@ export function classifyChange(pctChange) {
     return { status: 'neutral-up', emoji: '\u{1F7E1}', cssClass: 'neutral-up' };
   }
 
-  if (pctChange < -10) {
+  if (pctChange < -threshold) {
     return { status: 'improvement', emoji: '\u{1F7E2}', cssClass: 'improvement' };
   }
 
@@ -53,6 +78,32 @@ export function sumActive(categories) {
 }
 
 /**
+ * Sums active time on both sides of a comparison and reports whether the two are comparable.
+ *
+ * A baseline that recorded zero for a category the current run did record is a failed capture, not
+ * a cheap operation. `pctChange` already refuses to divide by such a category; without this check
+ * `sumActive` would fold it into the total anyway and publish the resulting percentage.
+ *
+ * @param {object | null | undefined} baselineCategories
+ * @param {object | null | undefined} currentCategories
+ * @returns {{ baseline: number, current: number, incompleteCategories: string[], comparable: boolean }}
+ */
+export function sumActiveComparable(baselineCategories, currentCategories) {
+  const baseline = baselineCategories ?? {};
+  const current = currentCategories ?? {};
+  const incompleteCategories = ACTIVE_CATEGORIES.filter(
+    key => (baseline[key] || 0) === 0 && (current[key] || 0) > 0
+  );
+
+  return {
+    baseline: sumActive(baseline),
+    current: sumActive(current),
+    incompleteCategories,
+    comparable: incompleteCategories.length === 0,
+  };
+}
+
+/**
  * @param {number | null} v -- milliseconds
  * @returns {string}
  */
@@ -80,15 +131,16 @@ export function fmtPct(pct) {
 
 /**
  * @param {number | null} pct
+ * @param {number} [threshold] -- band edge passed through to `classifyChange`
  * @returns {string}
  */
-export function fmtPctWithEmoji(pct) {
+export function fmtPctWithEmoji(pct, threshold = REGRESSION_CALLOUT_THRESHOLD_TIMING) {
   if (pct == null) {
     return '--';
   }
 
   const text = fmtPct(pct);
-  const { emoji } = classifyChange(pct);
+  const { emoji } = classifyChange(pct, threshold);
 
   if (Math.abs(pct) < 1) {
     return text;
@@ -119,24 +171,50 @@ export function formatTitle(name) {
 }
 
 /**
- * @param {number[]} values
- * @returns {string}
+ * Coefficient of variation, as a percentage.
+ *
+ * Uses the sample standard deviation (n-1). The suite runs three iterations, where the population
+ * form understates spread by about 18% -- and this number gates how much trust a reader puts in the
+ * delta beside it, so it should not read tighter than the data supports.
+ *
+ * @param {number[] | null | undefined} values
+ * @returns {number | null} -- null when there is too little data or the mean is zero
  */
-export function fmtCv(values) {
-  if (!values || values.length < 2) {
-    return '';
+export function calcCv(values) {
+  if (!Array.isArray(values) || values.length < 2) {
+    return null;
   }
 
   const mean = values.reduce((a, b) => a + b, 0) / values.length;
 
   if (mean === 0) {
-    return '';
+    return null;
   }
 
-  const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length;
-  const stddev = Math.sqrt(variance);
-  const cv = (stddev / Math.abs(mean)) * 100;
-  const warning = cv > 15 ? ' !!!' : '';
+  const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / (values.length - 1);
 
-  return `${cv.toFixed(1)}%${warning}`;
+  return (Math.sqrt(variance) / Math.abs(mean)) * 100;
+}
+
+/**
+ * Formats an already-computed CV. Renders `n/a` rather than a number when the spread is unknown --
+ * a rendered `0.0%` would read as a perfectly stable measurement.
+ *
+ * @param {number | null | undefined} cv
+ * @returns {string}
+ */
+export function fmtCvValue(cv) {
+  if (cv == null || !Number.isFinite(cv)) {
+    return 'n/a';
+  }
+
+  return `${cv.toFixed(1)}%${cv > CV_WARNING_THRESHOLD ? ' \u26A0\uFE0F' : ''}`;
+}
+
+/**
+ * @param {number[] | null | undefined} values
+ * @returns {string}
+ */
+export function fmtCv(values) {
+  return fmtCvValue(calcCv(values));
 }

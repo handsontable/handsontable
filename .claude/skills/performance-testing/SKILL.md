@@ -17,6 +17,7 @@ Each scenario traces a specific user interaction (scrolling, filtering, sorting,
 ```
 performance-tests/
   scripts/run.mjs           # Orchestrator: build HOT UMD -> copy to fixtures -> run Playwright
+  scripts/replay-goldens.mjs # Replays gh-pages develop goldens to re-derive the callout thresholds
   playwright.config.ts       # Sequential, 1 worker, 5 min timeout, chromium only
   trace-parser.mjs           # CDP trace -> DevTools-equivalent category breakdown
   .eslintrc.js               # Extends root config, relaxes JSDoc/console/await-in-loop rules
@@ -24,6 +25,7 @@ performance-tests/
     trace-runner.mjs          # CDP Tracing.start/stop + warmup/iteration loop + progress output
     hook-timing.mjs           # Hook pair timing (inject/get/save) for before/after measurements
     snapshot-store.mjs        # Golden baseline save/load/compare
+    median-snapshot.mjs       # Synthesizes the rolling-median develop baseline (+ its run-to-run spread)
     thresholds.mjs            # Shared classification logic (regression/improvement thresholds)
     chart-generator.mjs       # Inline SVG horizontal bar charts (base64 data URIs)
     report-builder.mjs        # Compact markdown PR comment (summary table + regression callouts)
@@ -187,13 +189,15 @@ These combine `scrollViewportTo()` with a deterministic `waitForFunction` that c
 
 | Scenario | Grid size | Action | Special |
 |---|---|---|---|
-| scroll-down | 5000x10 | `mouse.wheel(0, 350)` x 500 | - |
-| scroll-up | 5000x10 | `mouse.wheel(0, -350)` x 500 | Pre-scrolls to bottom via `scrollToRow` |
+| scroll-down | 10000x50 | `mouse.wheel(0, 350)` x 500 | - |
+| scroll-up | 10000x50 | `mouse.wheel(0, -350)` x 500 | Pre-scrolls to bottom via `scrollToRow` |
 | scroll-right | 10x5000 | `mouse.wheel(350, 0)` x 500 | - |
 | scroll-left | 10x5000 | `mouse.wheel(-350, 0)` x 500 | Pre-scrolls to right via `scrollToColumn` |
-| filtering | 1000x1000 | `filters.addCondition` + `filter()` | Hook timing |
-| sorting | 1000x1000 | `columnSorting.sort()` asc/desc alternating | Hook timing |
+| filtering | 100000x100 | `filters.addCondition` + `filter()` | Hook timing |
+| sorting | 100000x100 | `columnSorting.sort()` asc/desc alternating | Hook timing |
 | cell-editing | 5000x10 | selectCell + Enter + type + Enter x 20 | - |
+| initial-load | 100000x100 | `new Handsontable(...)` | Grid construction only |
+| source-data-validator-load | 100000x100 | `new Handsontable(...)` with `sourceDataValidator` | initial-load's fixture plus the one option |
 
 ## Run Commands
 
@@ -264,7 +268,7 @@ The `lib/` directory provides reusable helpers to avoid duplication across scena
 |---|---|---|
 | `fs-utils.mjs` | `exists(path)` | Async file existence check (used by teardown, snapshot-store, run.mjs) |
 | `scroll-utils.mjs` | `scrollToRow(page, row)`, `scrollToColumn(page, col)` | Scroll + deterministic wait for renderable index |
-| `thresholds.mjs` | `pctChange()`, `classifyChange()`, `fmtMs()`, `fmtPct()`, `fmtCv()`, etc. | Shared classification and formatting for both report builders |
+| `thresholds.mjs` | `pctChange()`, `classifyChange()`, `sumActiveComparable()`, `calcCv()`, `fmtMs()`, `fmtPct()`, `fmtCv()`, etc. | Shared classification and formatting for both report builders. The single source of the callout thresholds and colour bands: never restate either number elsewhere, and never retune one by eye (see `scripts/replay-goldens.mjs`) |
 | `hook-timing.mjs` | `injectHookTimer()`, `getHookTiming()`, `saveHookTimings()` | Hook pair timing injection, retrieval, and persistence |
 
 Always import from these shared modules rather than duplicating logic in scenario specs.

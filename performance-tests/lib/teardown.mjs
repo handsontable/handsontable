@@ -237,6 +237,8 @@ export default async function teardown() {
     baseBranch: 'develop',
     pagesUrl: process.env.PAGES_URL || null,
     crossWindowScenarios: mismatched,
+    commit: process.env.GITHUB_SHA || null,
+    runId: process.env.GITHUB_RUN_ID || null,
   };
 
   const report = buildReport(scenarioResults, golden, meta);

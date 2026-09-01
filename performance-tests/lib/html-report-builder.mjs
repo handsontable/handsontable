@@ -3,10 +3,15 @@
 // GitHub-native (Primer-inspired) design, vanilla JS for interactivity.
 
 import {
-  REGRESSION_CALLOUT_THRESHOLD,
+  REGRESSION_CALLOUT_THRESHOLD_TIMING,
+  REGRESSION_CALLOUT_THRESHOLD_HEAP,
+  CV_WARNING_THRESHOLD,
+  BASELINE_INCOMPLETE_LABEL,
+  calcCv,
   classifyChange,
   pctChange,
   sumActive,
+  sumActiveComparable,
   formatTitle,
 } from './thresholds.mjs';
 
@@ -21,7 +26,7 @@ export function buildHtmlReport(scenarioResults, goldenSnapshots, meta = {}) {
   const hasGolden = Object.keys(goldenScenarios).length > 0;
 
   // Build data payload for client-side rendering
-  const payload = buildPayload(scenarioResults, goldenScenarios, hasGolden, meta);
+  const payload = buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenSnapshots);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -43,8 +48,9 @@ ${buildScript()}
 
 // --- data payload ---
 
-function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta) {
+function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenSnapshots) {
   const scenarios = [];
+  const crossWindow = new Set(meta.crossWindowScenarios || []);
 
   for (const [name, current] of Object.entries(scenarioResults)) {
     const golden = goldenScenarios[name] || null;
@@ -52,10 +58,15 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta) {
     const gCats = golden?.categories || {};
     const currentTotal = sumActive(cCats);
     const goldenTotal = golden ? sumActive(gCats) : null;
-    const totalChange = pctChange(goldenTotal, currentTotal);
+    // A baseline that missed a category the current run recorded cannot be divided into, and a
+    // baseline measured through a different trace window is not the same quantity at all. Either
+    // way the total delta is withheld rather than published.
+    const baselineIncomplete = !!golden
+      && (crossWindow.has(name) || !sumActiveComparable(gCats, cCats).comparable);
+    const totalChange = baselineIncomplete ? null : pctChange(goldenTotal, currentTotal);
     const heap = buildHeapChartData(current, golden);
-    const timingRegressed = totalChange != null && totalChange > REGRESSION_CALLOUT_THRESHOLD;
-    const heapRegressed = heap?.change != null && heap.change > REGRESSION_CALLOUT_THRESHOLD;
+    const timingRegressed = totalChange != null && totalChange > REGRESSION_CALLOUT_THRESHOLD_TIMING;
+    const heapRegressed = heap?.change != null && heap.change > REGRESSION_CALLOUT_THRESHOLD_HEAP;
     const isRegression = timingRegressed || heapRegressed;
     let { status } = classifyChange(totalChange);
 
@@ -74,6 +85,10 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta) {
       title: formatTitle(name),
       status,
       hasBaseline: !!golden,
+      baselineIncomplete,
+      // How far apart the develop runs behind the median baseline sit. Distinct from the per-row
+      // `cv`, which is the spread across this run's own iterations.
+      baselineSpread: golden?.spread ?? null,
       totalChange,
       badgeChange,
       badgeIsHeap,
@@ -118,8 +133,28 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta) {
       branch: meta.branch || 'unknown',
       baseBranch: meta.baseBranch || 'develop',
       pagesUrl: meta.pagesUrl || null,
+      commit: meta.commit || null,
+      runId: meta.runId || null,
       generatedAt: new Date().toISOString(),
     },
+    // Where the baseline came from, so the report can say whether a delta was measured against one
+    // develop run or a median of several.
+    baseline: hasGolden && goldenSnapshots
+      ? {
+        timestamp: goldenSnapshots.timestamp ?? null,
+        isMedian: !!goldenSnapshots.isMedian,
+        medianWindowSize: goldenSnapshots.medianWindowSize ?? null,
+        medianSourceTimestamps: goldenSnapshots.medianSourceTimestamps ?? [],
+      }
+      : null,
+    // Serialized rather than restated in the client script, so the colour bands and the callout
+    // thresholds cannot drift apart.
+    thresholds: {
+      timing: REGRESSION_CALLOUT_THRESHOLD_TIMING,
+      heap: REGRESSION_CALLOUT_THRESHOLD_HEAP,
+      cvWarning: CV_WARNING_THRESHOLD,
+    },
+    baselineIncompleteLabel: BASELINE_INCOMPLETE_LABEL,
     summary: {
       total: scenarios.length,
       regressions,
@@ -164,11 +199,16 @@ function buildDetailedMetrics(current, golden) {
     current: cTotal,
     baseline: gTotal,
     change: pctChange(gTotal, cTotal),
-    cv: null,
+    // Recombined per iteration rather than left null: the summed total is what the callout acts on,
+    // so its spread is the one a reader most needs beside it.
+    cv: calcCv(activeTotalsPerIteration(current._iterationValues?.categories)),
     isBold: true,
   });
 
-  // Trace window
+  // Trace window. Marked as informational: after the measurement fix this is mark-to-mark harness
+  // wall clock, not grid work. On the four scroll scenarios it is 500 sequential wheel round trips
+  // and sits at a run-to-run CV of 0.0-0.2% regardless of what the grid does, so colouring it
+  // red or green would report CI latency as a performance verdict.
   rows.push({
     label: 'Trace window',
     key: 'trace-window',
@@ -176,9 +216,33 @@ function buildDetailedMetrics(current, golden) {
     baseline: golden?.rangeEnd || 0,
     change: pctChange(golden?.rangeEnd, current.rangeEnd),
     cv: calcCv(current._iterationValues?.rangeEnd),
+    neutral: true,
+    note: 'harness wall clock',
   });
 
   return rows;
+}
+
+/**
+ * Recombines per-category iteration arrays into one active-time total per iteration.
+ *
+ * @param {Record<string, number[]> | undefined} categories
+ * @returns {number[]}
+ */
+function activeTotalsPerIteration(categories) {
+  if (!categories) {
+    return [];
+  }
+
+  const length = Math.max(
+    ...['scripting', 'rendering', 'painting'].map(key => categories[key]?.length ?? 0)
+  );
+
+  return Array.from({ length }, (_, i) => sumActive({
+    scripting: categories.scripting?.[i],
+    rendering: categories.rendering?.[i],
+    painting: categories.painting?.[i],
+  }));
 }
 
 function buildMemoryMetrics(current, golden) {
@@ -228,6 +292,7 @@ function buildHookTiming(current, golden) {
     current: current.hookTiming,
     baseline: golden?.hookTiming ?? null,
     change: golden?.hookTiming != null ? pctChange(golden.hookTiming, current.hookTiming) : null,
+    cv: calcCv(current._iterationValues?.hookTiming),
   };
 }
 
@@ -259,22 +324,6 @@ function categoryLabel(key) {
   };
 
   return labels[key] || key;
-}
-
-function calcCv(values) {
-  if (!values || values.length < 2) {
-    return null;
-  }
-
-  const mean = values.reduce((a, b) => a + b, 0) / values.length;
-
-  if (mean === 0) {
-    return null;
-  }
-
-  const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length;
-
-  return (Math.sqrt(variance) / Math.abs(mean)) * 100;
 }
 
 // --- CSS ---
@@ -418,6 +467,18 @@ a:hover { text-decoration: underline; }
   color: #656d76;
 }
 .card-header .arrow.open { transform: rotate(90deg); }
+/* Keeps the badge and the baseline-spread note together on the right, so the header stays a
+   two-part flex layout however many notes are attached. */
+.card-header .header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.card-header .baseline-spread {
+  font-size: 12px;
+  color: #656d76;
+  white-space: nowrap;
+}
 
 /* Change badge */
 .badge {
@@ -604,7 +665,29 @@ function buildScript() {
     if (data.meta.prNumber) parts.push('PR #' + data.meta.prNumber);
     if (data.meta.branch !== 'unknown') parts.push(data.meta.branch + ' vs ' + data.meta.baseBranch);
     parts.push('Generated: ' + new Date(data.meta.generatedAt).toUTCString());
+    if (data.meta.commit) parts.push('commit ' + String(data.meta.commit).slice(0, 7));
+    if (data.meta.runId) parts.push('run ' + data.meta.runId);
     header.appendChild(elText('div', parts.join(' \\u00B7 '), 'meta'));
+
+    // States what every delta below was measured against. Without it the report reads identically
+    // whether the baseline was a five-run median or one fluke develop push.
+    const baseline = data.baseline;
+    if (baseline) {
+      let text;
+      if (baseline.isMedian) {
+        const sources = baseline.medianSourceTimestamps || [];
+        text = 'Baseline: median of ' + baseline.medianWindowSize + ' develop runs';
+        if (sources.length > 1) {
+          text += ' (' + sources[sources.length - 1] + ' to ' + sources[0] + ')';
+        }
+      } else if (baseline.timestamp) {
+        text = 'Baseline: single develop run ' + baseline.timestamp;
+      } else {
+        text = 'Baseline: self-comparison, no develop baseline';
+      }
+      header.appendChild(elText('div', text, 'meta'));
+    }
+
     return header;
   }
 
@@ -738,9 +821,23 @@ function buildScript() {
     titleRow.appendChild(document.createTextNode(scenario.title));
     header.appendChild(titleRow);
 
-    const badgeText = fmtPct(scenario.badgeChange) + (scenario.badgeIsHeap ? ' heap' : '');
-    const badge = elText('span', badgeText, 'badge ' + scenario.status);
-    header.appendChild(badge);
+    const badgeText = scenario.baselineIncomplete && !scenario.badgeIsHeap
+      ? data.baselineIncompleteLabel
+      : fmtPct(scenario.badgeChange) + (scenario.badgeIsHeap ? ' heap' : '');
+    const right = el('div', 'header-right');
+
+    // How far apart the develop runs behind the baseline sit. A wide spread means the delta beside
+    // it is measured against a moving target, which the percentage alone does not say.
+    if (data.hasBaseline && scenario.baselineSpread != null) {
+      const spread = elText(
+        'span', 'baseline spread ' + fmtCvValue(scenario.baselineSpread), 'baseline-spread'
+      );
+      if (scenario.baselineSpread > data.thresholds.cvWarning) spread.classList.add('cv-warn');
+      right.appendChild(spread);
+    }
+
+    right.appendChild(elText('span', badgeText, 'badge ' + scenario.status));
+    header.appendChild(right);
 
     header.addEventListener('click', () => {
       const body = card.querySelector('.card-body');
@@ -931,6 +1028,9 @@ function buildScript() {
         text += ' (' + fmtPct(hookTiming.change) + ')';
       }
     }
+    if (hookTiming.cv != null) {
+      text += ' \\u00B7 CV ' + fmtCvValue(hookTiming.cv);
+    }
     div.textContent = text;
     return div;
   }
@@ -953,21 +1053,27 @@ function buildScript() {
     const tbody = el('tbody');
     for (const row of scenario.detailedMetrics) {
       const tr = el('tr');
-      const labelTd = elText('td', row.label, row.isBold ? 'bold' : '');
+      const labelTd = elText(
+        'td', row.note ? row.label + ' (' + row.note + ')' : row.label, row.isBold ? 'bold' : ''
+      );
       tr.appendChild(labelTd);
 
       if (data.hasBaseline) {
         tr.appendChild(elText('td', Math.round(row.baseline) + ' ms', 'num'));
         tr.appendChild(elText('td', Math.round(row.current) + ' ms', 'num'));
         const changeTd = elText('td', fmtPct(row.change), 'num');
-        changeTd.style.color = statusColor(classifyChangeCss(row.change));
+        // An informational row (harness wall clock) states its number without a verdict on it.
+        changeTd.style.color = row.neutral
+          ? statusColor('neutral')
+          : statusColor(classifyChangeCss(row.change));
+        if (row.note) changeTd.title = row.note;
         tr.appendChild(changeTd);
       } else {
         tr.appendChild(elText('td', Math.round(row.current) + ' ms', 'num'));
       }
 
-      const cvTd = elText('td', row.cv != null ? row.cv.toFixed(1) + '%' : '', 'num');
-      if (row.cv != null && row.cv > 15) cvTd.classList.add('cv-warn');
+      const cvTd = elText('td', fmtCvValue(row.cv), 'num');
+      if (row.cv != null && row.cv > data.thresholds.cvWarning) cvTd.classList.add('cv-warn');
       tr.appendChild(cvTd);
 
       tbody.appendChild(tr);
@@ -997,7 +1103,9 @@ function buildScript() {
         tr.appendChild(elText('td', row.baselineDisplay, 'num'));
         tr.appendChild(elText('td', row.currentDisplay, 'num'));
         const changeTd = elText('td', fmtPct(row.change), 'num');
-        changeTd.style.color = statusColor(classifyChangeCss(row.change));
+        // Memory is banded on the heap threshold, which is an order of magnitude tighter than the
+        // timing one because heap barely moves run to run.
+        changeTd.style.color = statusColor(classifyChangeCss(row.change, data.thresholds.heap));
         tr.appendChild(changeTd);
       } else {
         tr.appendChild(elText('td', row.currentDisplay, 'num'));
@@ -1111,13 +1219,21 @@ function buildScript() {
     return sign + pct.toFixed(1) + '%';
   }
 
-  function classifyChangeCss(pct) {
+  // Mirrors classifyChange() in thresholds.mjs. The band edge is not restated here: it comes from
+  // the serialized thresholds, so a row can never be painted red at a percentage the comment
+  // reports as within tolerance.
+  function classifyChangeCss(pct, threshold) {
+    const edge = threshold != null ? threshold : data.thresholds.timing;
     if (pct == null) return 'neutral';
-    if (pct > 10) return 'regression';
+    if (pct > edge) return 'regression';
     if (pct > 0) return 'neutral-up';
-    if (pct < -10) return 'improvement';
+    if (pct < -edge) return 'improvement';
     if (pct < 0) return 'neutral-down';
     return 'neutral';
+  }
+
+  function fmtCvValue(cv) {
+    return cv == null ? 'n/a' : cv.toFixed(1) + '%';
   }
 
   function statusColor(cls) {
