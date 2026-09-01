@@ -53,8 +53,7 @@ npm run test --prefix wrappers/angular-wrapper
 The repository has a PR template at `.github/PULL_REQUEST_TEMPLATE.md`. Fill in each section:
 
 - **Context** -- Explain *why* the change is needed, not just what changed. Link the ClickUp task or GitHub issue.
-- **Test evidence** -- Fill in every bullet the template lists; write "none" with a reason rather than deleting a line. For a bug fix, name the spec that fails without the fix and the red/green counts you actually measured.
-- **Commands run** -- Paste the commands and their final output lines, so a reviewer can re-run them.
+- **How has this been tested?** -- List the specific tests you added or ran (unit, E2E, manual). Include commands someone can copy-paste to reproduce.
 - **Types of changes** -- Check the box that applies: bug fix, new feature, breaking change, or translation.
 - **Related issue(s)** -- Link GitHub issues with `#xxx`. Include ClickUp task IDs (e.g. `DEV-627`) so they auto-link.
 - **Affected project(s)** -- Check every package your change touches: `handsontable`, `@handsontable/react-wrapper`, `@handsontable/angular-wrapper`, `@handsontable/vue3`.
@@ -103,31 +102,16 @@ gh pr create --draft --base develop \
   --body-file /tmp/pr-body-DEV-xxx.md
 ```
 
-The body file template (write this with the Write tool, backticks and all, no escaping).
-
-**Mirror `.github/PULL_REQUEST_TEMPLATE.md`, and re-read it before you write** — it is the source of
-truth and it changes. Do not invent or rename sections: a body with `### How has this been tested?`
-in place of `### Test evidence` and `### Commands run` silently drops the evidence bullets a reviewer
-looks for. **Tick a box in every checkbox group**, `Types of changes` included: there is no
-documentation-only option, so a docs or test correction goes under `Bug fix` with a line saying
-what defect it fixes. Leaving the whole group empty reads as an unfilled template.
+The body file template (write this with the Write tool, backticks and all, no escaping):
 
 ```markdown
 ### Context
 
 <why this change is needed; link the task and explain the problem>
 
-### Test evidence (required for source changes)
+### How has this been tested?
 
-- Unit tests added/modified (`*.unit.js`): <paths, or "none — covered by <path>">
-- E2E tests added/modified (Playwright `tests/e2e/*.spec.ts`): <paths>
-- Type tests (`*.types.ts`) updated if public API changed: <paths, or "none — no signature changed">
-- For a bug fix — the spec that fails without this fix: <name, and the red/green counts you measured>
-- Demo page / recorded trace (for UI changes): <link, or "n/a">
-
-### Commands run
-
-<the commands and their final output lines, pasted>
+- <tests you added or ran, with commands>
 
 ### Types of changes
 
@@ -152,7 +136,6 @@ what defect it fixes. Leaving the whole group empty reads as an unfilled templat
 - [x] I have reviewed the guidelines about [Contributing to Handsontable](https://github.com/handsontable/handsontable/blob/master/CONTRIBUTING.md) and I confirm that my code follows the code style of this project.
 - [x] I have signed the [Contributor License Agreement](https://cla.handsontable.com/sign) — one signature covers both Handsontable and HyperFormula; the `cla/signed` check on this PR confirms it.
 - [ ] My change requires a change to the documentation.
-- [ ] This change needs a manual QA pass.
 
 ClickUp task: https://app.clickup.com/t/9015210959/DEV-xxx
 ```
