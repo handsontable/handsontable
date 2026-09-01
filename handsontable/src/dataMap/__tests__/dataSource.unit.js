@@ -47,6 +47,23 @@ describe('DataSource', () => {
       expect(data[0].__children[0].artist).toBe('Updated child');
       expect(data[1].artist).toBe('Second parent');
     });
+
+    it('should write through a column accessor function', () => {
+      const rows = [{ v: 'A1' }, { v: 'A2' }];
+      const accessor = (row, value) => {
+        if (value === undefined) {
+          return row.v;
+        }
+
+        row.v = value;
+      };
+      const dataSource = new DataSource(createHotMock(), rows);
+
+      dataSource.setAtCell(1, accessor, 'changed');
+
+      expect(rows[1].v).toBe('changed');
+      expect(dataSource.getAtCell(1, accessor)).toBe('changed');
+    });
   });
 
   describe('getData()', () => {

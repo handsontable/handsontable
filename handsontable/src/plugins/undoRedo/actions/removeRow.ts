@@ -2,7 +2,100 @@ import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
 import { BaseAction } from './_base';
 import { getCellMetas, collectAffectedMergedCells, restoreMergedCells } from '../utils';
-import { deepClone } from '../../../helpers/object';
+import { deepClone, isPlainObject } from '../../../helpers/object';
+import { isDataAccessorFn } from '../../../dataMap/dataSource';
+import type { DataAccessorFn } from '../../../dataMap/dataSource';
+
+/**
+ * Recursively deletes function-valued keys from a cloned row. `deepClone` keeps functions by
+ * reference at every depth, so a top-level-only sweep would still alias a nested closure of the
+ * removed row onto the row the `dataSchema` creates on undo.
+ *
+ * @param {unknown} value The cloned value to sweep.
+ */
+function stripFunctionValues(value: unknown): void {
+  if (Array.isArray(value)) {
+    value.forEach((entry, index) => {
+      if (typeof entry === 'function') {
+        value[index] = null;
+      } else {
+        stripFunctionValues(entry);
+      }
+    });
+
+  } else if (isPlainObject(value)) {
+    Object.keys(value).forEach((key) => {
+      if (typeof value[key] === 'function') {
+        delete value[key];
+      } else {
+        stripFunctionValues(value[key]);
+      }
+    });
+  }
+}
+
+/**
+ * Snapshots one source row for later restoration. Function-valued keys are dropped (at every
+ * depth) – a function is never a cell value, and writing it back would alias the removed row's
+ * closure onto the row the `dataSchema` creates on undo. `__children` is dropped because
+ * `nestedRows` restores its own tree.
+ *
+ * @param {HotInstance} hot The Handsontable instance.
+ * @param {number} physicalRow Physical index of the row being removed.
+ * @returns {unknown} A detached copy of the row.
+ */
+function captureRowData(hot: HotInstance, physicalRow: number): unknown {
+  const rowData = deepClone(hot.getSourceDataAtRow(physicalRow));
+
+  if (isPlainObject(rowData)) {
+    delete rowData.__children;
+    stripFunctionValues(rowData);
+  }
+
+  return rowData;
+}
+
+/**
+ * Collects the `[physicalColumnIndex, accessor]` pair of every column whose `data` is an accessor
+ * function. The set does not depend on the row, so it is scanned once per removal and reused for
+ * every removed row. Returns an empty list when no column uses a function `data` accessor, so the
+ * action shape stays unchanged for the common case.
+ *
+ * @param {HotInstance} hot The Handsontable instance.
+ * @returns {Array<[number, DataAccessorFn]>} `[physicalColumnIndex, accessor]` pairs.
+ */
+function collectAccessorColumns(hot: HotInstance): Array<[number, DataAccessorFn]> {
+  const accessorColumns: Array<[number, DataAccessorFn]> = [];
+
+  for (let visualColumn = 0; visualColumn < hot.countCols(); visualColumn++) {
+    // `colToProp` is declared as `string | number` – the shape it has always had publicly – but it
+    // hands back the `columns[].data` accessor as-is, so read it as `unknown` and narrow it here.
+    const prop: unknown = hot.colToProp(visualColumn);
+
+    if (isDataAccessorFn(prop)) {
+      accessorColumns.push([hot.toPhysicalColumn(visualColumn), prop]);
+    }
+  }
+
+  return accessorColumns;
+}
+
+/**
+ * Reads the values of every accessor-function column for one row.
+ *
+ * @param {HotInstance} hot The Handsontable instance.
+ * @param {number} physicalRow Physical index of the row being removed.
+ * @param {Array<[number, DataAccessorFn]>} accessorColumns The pairs collected by
+ *   `collectAccessorColumns`.
+ * @returns {Array<[number, unknown]>} `[physicalColumnIndex, value]` pairs.
+ */
+function captureAccessorValues(
+  hot: HotInstance, physicalRow: number, accessorColumns: Array<[number, DataAccessorFn]>
+): Array<[number, unknown]> {
+  return accessorColumns.map(
+    ([physicalColumn, prop]) => [physicalColumn, hot.getSourceDataAtCell(physicalRow, prop)]
+  );
+}
 
 /**
  * Action that tracks changes in row removal.
@@ -19,6 +112,12 @@ export class RemoveRowAction extends BaseAction {
    * @param {Array} data The removed data.
    */
   data;
+  /**
+   * @param {Array} accessorValues Per removed row, the `[physicalColumnIndex, value]` pairs of every column whose
+   *   `data` is an accessor function. Those values live behind the function and are invisible to the
+   *   `data` snapshot, so they are captured and restored through the accessor.
+   */
+  accessorValues;
   /**
    * @param {number} fixedRowsBottom Number of fixed rows on the bottom. Remove row action change it sometimes.
    */
@@ -42,24 +141,28 @@ export class RemoveRowAction extends BaseAction {
   removedMergedCells;
 
   /**
-   * Initializes the remove row action with the removed data, row index sequence, fixed-row counts, cell meta backup, and affected merged cells.
+   * Initializes the remove row action with the removed data, captured accessor-column values, row index
+   * sequence, fixed-row counts, cell meta backup, and affected merged cells.
    */
   constructor({
     index,
     data,
+    accessorValues,
     fixedRowsBottom,
     fixedRowsTop,
     rowIndexesSequence,
     removedCellMetas,
     removedMergedCells,
   }: {
-    index: number, indexes?: number[], data: unknown[][], fixedRowsBottom: number, fixedRowsTop: number,
+    index: number, indexes?: number[], data: unknown[][], accessorValues: Array<Array<[number, unknown]>>,
+    fixedRowsBottom: number, fixedRowsTop: number,
     rowIndexesSequence: number[], removedCellMetas: unknown[],
     removedMergedCells: Array<{ row: number, col: number, rowspan: number, colspan: number }>
   }) {
     super('remove_row');
     this.index = index;
     this.data = data;
+    this.accessorValues = accessorValues;
     this.fixedRowsBottom = fixedRowsBottom;
     this.fixedRowsTop = fixedRowsTop;
     this.rowIndexesSequence = rowIndexesSequence;
@@ -75,24 +178,19 @@ export class RemoveRowAction extends BaseAction {
       const wrappedAction = () => {
         const physicalRowIndex = hot.toPhysicalRow(index);
         const lastRowIndex = physicalRowIndex + amount - 1;
-        const removedData = [];
+        const removedData: unknown[] = [];
+        const removedAccessorValues: Array<Array<[number, unknown]>> = [];
+        const accessorColumns = collectAccessorColumns(hot);
 
         for (let i = 0; i < amount; i++) {
-          const rowData = deepClone(hot.getSourceDataAtRow(physicalRowIndex + i));
-
-          // `nestedRows` manages its `__children` tree restoration on undo
-          // independently; writing `__children` back via `setSourceDataAtCell`
-          // would clash with the plugin's internal state.
-          if (rowData && typeof rowData === 'object' && !Array.isArray(rowData)) {
-            delete (rowData as Record<string, unknown>).__children;
-          }
-
-          removedData.push(rowData);
+          removedData.push(captureRowData(hot, physicalRowIndex + i));
+          removedAccessorValues.push(captureAccessorValues(hot, physicalRowIndex + i, accessorColumns));
         }
 
         return new RemoveRowAction({
           index: physicalRowIndex,
           data: removedData as unknown[][],
+          accessorValues: removedAccessorValues,
           fixedRowsBottom: hot.getSettings().fixedRowsBottom ?? 0,
           fixedRowsTop: hot.getSettings().fixedRowsTop ?? 0,
           rowIndexesSequence: hot.rowIndexMapper.getIndexesSequence(),
@@ -130,6 +228,23 @@ export class RemoveRowAction extends BaseAction {
       });
     });
 
+    // Accessor-column values live behind a function and are invisible to `data`; restore them
+    // through the accessor itself, the same way `dataSource.setAtCell` writes through it. The guard
+    // also bails out when the column has no visual index left – a column trimmed since the removal
+    // makes `toVisualColumn` return `null`, and `colToProp(null)` echoes `null` back, which is not
+    // an accessor. A hidden column keeps its visual index, so it restores like any other. A column
+    // trimmed at removal time is never captured either, because `captureAccessorValues` iterates
+    // `countCols()`, which does not count trimmed columns.
+    this.accessorValues.forEach((rowValues, rowIndexDelta) => {
+      rowValues.forEach(([physicalColumn, value]) => {
+        const prop: unknown = hot.colToProp(hot.toVisualColumn(physicalColumn));
+
+        if (isDataAccessorFn(prop)) {
+          changes.push([this.index + rowIndexDelta, prop, value]);
+        }
+      });
+    });
+
     // The indexes sequence have to be applied twice.
     //  * First for proper index translation. The alter method accepts a visual index
     //    and we are able to retrieve the correct index indicating where to add a new row based
@@ -149,7 +264,16 @@ export class RemoveRowAction extends BaseAction {
     restoreMergedCells(hot, this.removedMergedCells);
 
     hot.addHookOnce('afterViewRender', undoneCallback);
-    hot.setSourceDataAtCell(changes, undefined, undefined, 'UndoRedo.undo');
+
+    try {
+      hot.setSourceDataAtCell(changes, undefined, undefined, 'UndoRedo.undo');
+    } catch (error) {
+      // The hook was armed before the write because `setSourceDataAtCell` renders internally. When
+      // the write throws, the settle callback must not stay armed – it would fire on the next
+      // render and push this half-undone action onto the redo stack.
+      hot.removeHook('afterViewRender', undoneCallback);
+      throw error;
+    }
   }
 
   /**
