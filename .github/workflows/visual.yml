@@ -265,17 +265,32 @@ jobs:
           AWS_DEFAULT_REGION: auto
           R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
         run: |
-          # `--delete` makes an empty render catastrophic rather than harmless:
-          # it would remove every object under `base/<branch>/actual/`, and the
-          # gate is pull-request-only so this run would stay green while every
-          # open pull request went red with ~1,646 "new" items.
-          total=$(jq '(.failedItems | length) + (.newItems | length) + (.deletedItems | length) + (.passedItems | length)' \
+          # `--delete` makes a failed render catastrophic rather than harmless:
+          # it would remove objects under `base/<branch>/actual/`, and the gate is
+          # pull-request-only, so this run stays green while every open pull
+          # request fails against a baseline that is no longer there.
+          #
+          # Count only the buckets that prove something was rendered. A missing
+          # screenshots directory still fetches the goldens, so the report comes
+          # back as all `deletedItems` and a plain "is the report empty" test
+          # passes it straight through.
+          rendered=$(jq '(.failedItems | length) + (.newItems | length) + (.passedItems | length)' \
             ./visual-tests/.reg/out.json)
+          deleted=$(jq '(.deletedItems | length)' ./visual-tests/.reg/out.json)
 
-          if [ "$total" = "0" ]; then
-            echo "::error::The comparison produced an empty report; refusing to reconcile."
-            echo "Syncing with --delete here would erase the whole baseline."
+          if [ "$rendered" = "0" ]; then
+            echo "::error::The comparison rendered no screenshots; refusing to reconcile."
+            echo "Syncing with --delete here would erase the baseline ($deleted goldens)."
             exit 1
+          fi
+
+          # A partial render is not distinguishable from a deliberate mass
+          # removal, so this warns rather than blocks -- a false refusal here
+          # blocks trunk, which is worse. It gives the run a searchable marker if
+          # a later PR reports a baseline that lost screenshots.
+          if [ "$deleted" -gt "$((rendered / 4))" ]; then
+            echo "::warning::Reconcile is removing $deleted goldens against $rendered rendered." \
+              "If that was not a deliberate removal or rename, check the render step."
           fi
 
           aws s3 sync ./visual-tests/.reg/actual "s3://$R2_BUCKET_NAME/$REG_EXPECTED_KEY/actual" \
