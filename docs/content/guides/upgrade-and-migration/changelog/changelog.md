@@ -26,9 +26,9 @@ This page aggregates all Handsontable release notes. For upgrade instructions, s
 
 [[toc]]
 
-## 18.1.0-rc10
+## 18.1.0-rc11
 
-Released on August 31st, 2026
+Released on September 1st, 2026
 
 For more information about this release, see:
 - [Documentation (18.1)](https://handsontable.com/docs/18.1)
