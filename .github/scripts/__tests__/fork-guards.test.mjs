@@ -75,7 +75,7 @@ const GUARDED_SITES = [
   ['.github/workflows/visual.yml', 'name: Compare against the golden records'],
   ['.github/workflows/visual.yml', 'name: Seed the golden records'],
   ['.github/workflows/visual.yml', 'name: Comment the visual verdict on the pull request'],
-  ['.github/workflows/visual-cleanup.yml', '  purge:'],
+  ['.github/workflows/pr-cleanup.yml', '  purge-visual-screenshots:'],
   ['.github/workflows/visual-cleanup.yml', '  reset-approval:'],
 ];
 

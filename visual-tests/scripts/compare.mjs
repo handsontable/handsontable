@@ -10,10 +10,36 @@
  */
 
 import { spawn } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+// Nothing else loads it: dotenv is not a dependency and both Playwright configs
+// have their `require('dotenv').config()` commented out. The README tells people
+// to put their R2 credentials here, so honour that rather than silently running
+// with the keys unset.
+const envFile = join(import.meta.dirname, '..', '.env');
+
+if (existsSync(envFile)) {
+  for (const line of readFileSync(envFile, 'utf-8').split('\n')) {
+    const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
+
+    if (match && process.env[match[1]] === undefined) {
+      process.env[match[1]] = match[2].trim().replace(/^["']|["']$/g, '');
+    }
+  }
+}
 
 const actualKey = process.env.REG_ACTUAL_KEY ?? '';
+const expectedKey = process.env.REG_EXPECTED_KEY ?? '';
 
-if (process.env.CI !== 'true' && actualKey.startsWith('base/')) {
+if (!actualKey || !expectedKey) {
+  // reg-suit expands an unset `${REG_ACTUAL_KEY}` to the literal string
+  // "undefined", which slips past the `base/` guard below and publishes the
+  // whole tree to `s3://<bucket>/undefined/`. Fail before spawning instead.
+  console.error('REG_EXPECTED_KEY and REG_ACTUAL_KEY must both be set.');
+  console.error('reg-suit expands an unset key to the literal string "undefined" and publishes there.');
+  process.exitCode = 1;
+} else if (process.env.CI !== 'true' && actualKey.startsWith('base/')) {
   console.error(`Refusing to publish to "${actualKey}" outside CI.`);
   console.error('Keys under `base/` are the golden records every pull request is compared against;');
   console.error('only a CI build of that branch may write them. Use a `local/...` key to experiment.');

@@ -1,55 +1,28 @@
-name: Visual cleanup
+name: Visual approval reset
 
-# Housekeeping for the visual regression bucket, split from the Visual workflow
-# because both jobs react to pull request lifecycle events rather than to a
-# test run.
+# Clears the `visual-approved` label whenever a pull request gains new commits,
+# so an approval only ever covers the screenshots someone actually reviewed.
 #
-#   purge           - a merged or abandoned pull request keeps no screenshots.
-#   reset-approval  - `visual-approved` accepts one specific set of screenshots,
-#                     so a new push has to be re-reviewed. Without this the
-#                     label would stay open over commits nobody looked at.
+# On-PR-CLOSE cleanup does NOT belong here: `pr-cleanup.yml` is the single
+# close-triggered pipeline, and the R2 screenshot purge lives there as
+# `purge-visual-screenshots`. This file exists only because `synchronize` and
+# `reopened` are outside that workflow's trigger.
 on:
   pull_request:
-    types: [ closed, synchronize ]
+    types: [ synchronize, reopened ]
 
 permissions:
   contents: read
 
-env:
-  R2_BUCKET_NAME: handsontable-visual
-
 jobs:
-  purge:
-    name: Purge screenshots
-    # Same-repo only. A fork or Dependabot run gets no secrets, so `aws s3 rm`
-    # would hard-fail on every external contributor's PR close -- and it would
-    # be a no-op anyway, because the credentialed publish steps are themselves
-    # same-repo-guarded and `compare-fork.mjs` never writes to R2, so no
-    # `pr-<n>/` prefix exists for those pull requests.
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
-      && (github.event.pull_request.head.repo.full_name == github.repository
-          && github.actor != 'dependabot[bot]')
-    runs-on: ubuntu-latest
-    steps:
-      # The AWS CLI ships on the runner image. `wrangler r2 object delete` has
-      # no recursive mode, so the S3 API is the practical way to drop a prefix.
-      - name: Delete this pull request's screenshots from R2
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: auto
-        run: |
-          aws s3 rm "s3://$R2_BUCKET_NAME/pr-${{ github.event.number }}/" \
-            --recursive \
-            --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com"
-
   reset-approval:
     name: Reset visual approval
     # Same-repo only, for the same reason: a fork or Dependabot pull_request run
     # holds a read-only token, so this write 403s. The visual gate compensates by
     # ignoring `visual-approved` entirely on those runs, so a label that cannot
     # be cleared here can never approve anything either.
-    if: github.event_name == 'pull_request' && github.event.action == 'synchronize'
+    if: github.event_name == 'pull_request'
+      && (github.event.action == 'synchronize' || github.event.action == 'reopened')
       && (github.event.pull_request.head.repo.full_name == github.repository
           && github.actor != 'dependabot[bot]')
     runs-on: ubuntu-latest

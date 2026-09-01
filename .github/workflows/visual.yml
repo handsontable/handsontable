@@ -134,10 +134,13 @@ jobs:
     name: Compare
     runs-on: ubuntu-latest
     needs: [ render ]
-    if: ${{ !failure() && !cancelled() }}
-    # Job-level, mirroring integration.yml's preview job: reg-suit's notifier
-    # comments the report URL on the PR. Kept off the workflow level so the
-    # `render` jobs keep the caller's default grant untouched.
+    # Tags reach here through publish.yml -> test.yml. They are not base
+    # branches: publishing would leave a full tree under `base/<tag>/` that
+    # nothing reads and no lifecycle rule purges.
+    if: ${{ !failure() && !cancelled() && github.ref_type != 'tag' }}
+    # Job-level, mirroring integration.yml's preview job: the sticky-comment
+    # step below needs it to post the verdict. Kept off the workflow level so
+    # the `render` jobs keep the caller's default grant untouched.
     permissions:
       contents: read
       pull-requests: write
@@ -159,13 +162,6 @@ jobs:
       - run: |
           tar -zxf screenshots-multi.tar.gz
           tar -zxf screenshots-cross.tar.gz
-      - run: tar -zcf screenshots.tar.gz ./visual-tests/screenshots
-      - name: Upload the test results artifact
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
-        with:
-          name: visual-tests-screenshots
-          path: screenshots.tar.gz
-
       # Golden records live under `base/<branch>` and are rewritten by every
       # build of that branch. A PR compares against the branch it targets, so
       # PRs into a release or LTS branch pick up the right baseline for free.
@@ -182,6 +178,13 @@ jobs:
             echo "REG_EXPECTED_KEY=base/$BASE_REF" >> "$GITHUB_ENV"
             echo "REG_ACTUAL_KEY=pr-$PR_NUMBER/$PR_HEAD_SHA" >> "$GITHUB_ENV"
           else
+            case "$REF_NAME" in
+              develop|master|release/*|lts/*) ;;
+              *)
+                echo "::notice::$REF_NAME is not a base branch; skipping the visual comparison."
+                echo "VISUAL_SKIP=true" >> "$GITHUB_ENV"
+                ;;
+            esac
             echo "REG_EXPECTED_KEY=base/$REF_NAME" >> "$GITHUB_ENV"
             echo "REG_ACTUAL_KEY=base/$REF_NAME" >> "$GITHUB_ENV"
           fi
@@ -191,6 +194,7 @@ jobs:
       # it works on fork runs too, and it reads the same `out.json` that the
       # fetch contract relies on.
       - name: Check for golden records
+        if: env.VISUAL_SKIP != 'true'
         run: |
           # Only a definite 404 means "no baseline yet". A transport failure or
           # any other status must never be read as absence: the seed step below
@@ -218,7 +222,8 @@ jobs:
       # Two comparison paths, one verdict. Both write `.reg/out.json`, and the
       # gate below reads only that, so a fork is held to the same standard.
       - name: Compare against the golden records
-        if: github.event_name != 'pull_request'
+        if: env.VISUAL_SKIP != 'true'
+          && github.event_name != 'pull_request'
           || (github.event.pull_request.head.repo.full_name == github.repository
               && github.actor != 'dependabot[bot]')
         env:
@@ -238,6 +243,21 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref }}
         run: node ./visual-tests/scripts/compare-fork.mjs "$BASE_REF"
+
+      # reg-suit only ever PUTs, and its fetch lists the whole prefix, so a
+      # deleted or renamed screenshot would linger under `base/<branch>/actual/`
+      # and show up as a phantom deletion on every later pull request. Reconcile
+      # the prefix to exactly what this build rendered.
+      - name: Reconcile the golden records
+        if: env.VISUAL_SKIP != 'true' && github.event_name != 'pull_request'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+        run: |
+          aws s3 sync ./visual-tests/.reg/actual "s3://$R2_BUCKET_NAME/$REG_EXPECTED_KEY/actual" \
+            --delete --endpoint-url "$R2_ENDPOINT"
 
       # First build for this base branch: promote what we just rendered to the
       # golden records, so the next PR has something to compare against. The
@@ -259,19 +279,15 @@ jobs:
           aws s3 cp ./visual-tests/.reg/out.json "s3://$R2_BUCKET_NAME/$REG_EXPECTED_KEY/out.json" \
             --endpoint-url "$R2_ENDPOINT"
 
-      # Fallback for reading the diff when the report URL is not reachable.
-      - name: Upload the visual diff report
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
-        with:
-          name: visual-diff-report
-          path: visual-tests/.reg
-
       # `reg-suit run` exits 0 whatever it finds, so this step is the whole gate.
       # It always runs, even when approved, so the comment below is refreshed
       # rather than left showing a verdict that no longer holds.
+      # `always()`, not the implicit `success()`: an earlier failure would
+      # otherwise skip this, leave `.reg/comment.md` unwritten, and let the
+      # sticky step below fail on a missing path while the previous push's
+      # verdict stayed up -- the staleness this whole arrangement avoids.
       - name: Visual approval gate
-        if: github.event_name == 'pull_request'
+        if: always() && github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -283,6 +299,13 @@ jobs:
             || github.actor == 'dependabot[bot]' }}
           VISUAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
+          # A fork run publishes nothing, so there is no hosted report to link.
+          if [ "$IS_UNTRUSTED" = "true" ]; then
+            export VISUAL_PUBLISHED=false
+          else
+            export VISUAL_PUBLISHED=true
+          fi
+
           # Read the labels live. `github.event.pull_request.labels` is a
           # snapshot of the triggering event, so a re-run after applying the
           # label would still see the old set and could never turn green.
@@ -299,15 +322,44 @@ jobs:
             approved=false
           fi
           echo "visual-approved present: $approved"
-          VISUAL_APPROVED="$approved" node ./visual-tests/scripts/visual-gate.mjs
+
+          # Tell the contributor why their label did nothing, rather than
+          # leaving them to re-apply it against instructions that cannot work.
+          if [ "$IS_UNTRUSTED" = "true" ] \
+            && gh api "repos/$REPO/issues/$PR_NUMBER/labels" \
+                 --jq 'any(.[]; .name == "visual-approved")' 2>/dev/null | grep -q true; then
+            echo "::warning::visual-approved is ignored on fork and Dependabot runs, because" \
+              "nothing can clear it when you push again. A maintainer has to re-raise the branch" \
+              "from the main repository to approve these differences."
+          fi
+
+          VISUAL_APPROVED="$approved" VISUAL_SEEDED="$([ "$IS_UNTRUSTED" = true ] && echo false || echo true)" \
+            node ./visual-tests/scripts/visual-gate.mjs
 
       # One sticky comment, rewritten in place, carrying the counts, the report
       # link and how to accept the changes. Fork runs have no write token, so
       # they are excluded by the same guard the rest of the repo uses.
-      - name: Comment the visual verdict on the pull request
+      # Unguarded, and needs no token: on a fork run the comment step below is
+      # guarded off, so this is the only place the verdict is readable. Root
+      # AGENTS.md: "Withheld content goes to $GITHUB_STEP_SUMMARY".
+      - name: Mirror the verdict to the job summary
         if: always() && github.event_name == 'pull_request'
+        run: cat visual-tests/.reg/comment.md >> "$GITHUB_STEP_SUMMARY" || true
+
+      # Kept for the runs that produced no hosted report, or a red gate. A green
+      # same-repo run needs neither: the report is already published to R2.
+      - name: Upload the visual diff report
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: visual-diff-report
+          path: visual-tests/.reg
+          retention-days: 3
+
+      - name: Comment the visual verdict on the pull request
+        if: ${{ !cancelled() && github.event_name == 'pull_request'
           && (github.event.pull_request.head.repo.full_name == github.repository
-              && github.actor != 'dependabot[bot]')
+              && github.actor != 'dependabot[bot]') }}
         uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
         with:
           header: visual-tests

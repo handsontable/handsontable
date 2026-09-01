@@ -14,8 +14,8 @@ We run visual tests automatically by using the following tools:
 | [GitHub Actions](https://github.com/handsontable/handsontable/actions) | GitHub's CI platform. We use it to automate our [test workflows](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml). |
 
 When you push changes to a GitHub pull request:
-1. The [Visual tests linter](https://github.com/handsontable/handsontable/actions/workflows/visual-tests-linter.yml)
-   workflow checks the code of each visual test.
+1. The **Lint / visual tests** check ([`lint.yml`](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/lint.yml))
+   checks the code of each visual test.
 2. The [Tests](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml) workflow runs all
    of Handsontable's tests.
 3. After all tests pass successfully, the [Visual](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/visual.yml)
@@ -35,6 +35,21 @@ changes. In that case:
 
 Approval binds to one set of screenshots. Pushing a new commit removes the `visual-approved` label, so
 screenshots nobody has looked at never inherit an earlier approval.
+
+Two cases the label cannot solve:
+
+- **Your pull request comes from a fork, or from Dependabot.** Those runs get no secrets, so nothing can
+  clear the label when you push again — which means it is ignored there rather than trusted. The check
+  reports the real verdict, the workflow run's job summary carries it, and the `visual-diff-report`
+  artifact holds the images. To accept intentional differences, a maintainer has to re-raise the branch
+  from the main repository.
+- **A visual change merged into the branch you target.** The golden records always come from that branch's
+  latest build, so once someone else's intentional change lands, your next run inherits their differences
+  as well as yours. **Rebase** — approving would also approve any real regression of your own that the same
+  build contains.
+
+Approval is read live at the moment the gate runs, so it binds to wall-clock time rather than to a commit.
+Applying the label while a newer push is still rendering approves whatever that build produces.
 
 If the branch you target has no golden records yet, the check does not fail. The build promotes its own
 screenshots to that branch's golden records and passes, so a fresh branch cannot wedge every pull request
@@ -81,9 +96,9 @@ flowchart TD
     REVIEW -->|"a regression: fix it"| PR
     REVIEW -->|"intentional: add the label"| PR
 
-    KBR -.->|"rewrites the baseline"| R2[("Cloudflare R2<br/>base/BRANCH/actual/")]
-    SEED -.-> R2
-    R2 -.->|"read as expected"| PROBE
+    KBR -.->|"rewrites the baseline"| BUCKET[("Cloudflare R2<br/>base/BRANCH/actual/")]
+    SEED -.-> BUCKET
+    BUCKET -.->|"read as expected"| PROBE
 
     CLOSED["Pull request closed"] --> PURGE["Delete pr-NUMBER/ from R2"]
 ```
@@ -128,8 +143,8 @@ There main demo available for all frameworks is served on `/`. There are additio
 
 Our GitHub Actions configuration runs the visual tests automatically, but you can run them manually as well:
 
-1. On GitHub, at the bottom of your pull request, find the **Visual tests** check. Select **Details**.
-2. On the left, next to the **Visual tests** job, select 🔄.
+1. On GitHub, at the bottom of your pull request, find the **Visual / Compare** check. Select **Details**.
+2. On the left, next to the **Compare** job, select 🔄.
 3. Select **Re-run jobs**.
 
 ## Run visual tests locally
@@ -165,6 +180,8 @@ To run the visual tests locally:
    ```bash
    REG_EXPECTED_KEY=base/develop REG_ACTUAL_KEY=local/$(git rev-parse --short HEAD) npm run compare
    ```
+   `compare` loads `./.env` itself if the file exists, so the credentials from step 3 are picked up
+   without exporting them by hand.
    A local run never writes to `base/`, so it cannot overwrite a golden record.
 3. Open the report URL printed in the terminal, or open `./visual-tests/.reg/index.html` directly.
 
@@ -182,8 +199,8 @@ To add a new visual test:
       - [Helpers](#helpers)
       - [Take screenshots](#take-screenshots)
 4. Push your changes to a pull request.<br>
-   The [Visual tests linter](https://github.com/handsontable/handsontable/actions/workflows/visual-tests-linter.yml)
-   workflow checks the code of your test.
+   The **Lint / visual tests** check ([`lint.yml`](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/lint.yml))
+   checks the code of your test.
 
 ### Take screenshots
 

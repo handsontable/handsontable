@@ -18,26 +18,52 @@
  *
  * @param {object} options Evaluation inputs.
  * @param {object|null} options.report Parsed `out.json`, or `null` when unreadable.
- * @param {boolean} [options.bootstrap] Whether this build is seeding the baseline.
+ * @param {boolean} [options.bootstrap] Whether the probe found no golden records.
+ * @param {boolean} [options.seeded] Whether this run may write the baseline.
  * @param {boolean} [options.approved] Whether `visual-approved` is on the pull request.
- * @param {string} [options.reportUrl] Published report URL, when known.
+ * @param {string} [options.reportUrl] Published report URL, or '' when nothing was published.
  * @param {string} [options.runUrl] Workflow run URL, when known.
  * @returns {Verdict} The verdict.
  */
-export function evaluate({ report, bootstrap = false, approved = false, reportUrl = '', runUrl = '' }) {
-  if (bootstrap) {
-    return {
-      blocked: false,
-      summary: 'No golden records existed for this base branch, so this build seeds them.',
-      comment: [
-        '## Visual tests — baseline created',
-        '',
-        'This branch had no golden records, so this build became the baseline.',
-        'There was nothing to compare against yet, and the next build of the base',
-        'branch replaces it with the authoritative render.',
-        '',
-      ].join('\n'),
-    };
+export function evaluate({
+  report, bootstrap = false, seeded = true, approved = false, reportUrl = '', runUrl = '',
+}) {
+  // `bootstrap` comes from a probe of `out.json`, which is a different source of
+  // truth from the comparison itself. A base build killed mid-publish can leave
+  // `actual/**` uploaded with no manifest: the probe then says "no baseline"
+  // while reg-suit fetches those actuals and produces a report with real
+  // differences. Trusting the probe alone would pass that build and overwrite
+  // the baseline with it, so a real comparison always wins.
+  const compared = Boolean(report && (report.failedItems.length || report.passedItems.length));
+
+  if (bootstrap && !compared) {
+    return seeded
+      ? {
+        blocked: false,
+        summary: 'No golden records existed for this base branch, so this build seeds them.',
+        comment: [
+          '## Visual tests — baseline created',
+          '',
+          'This branch had no golden records, so this build became the baseline.',
+          'There was nothing to compare against yet, and the next build of the base',
+          'branch replaces it with the authoritative render.',
+          '',
+        ].join('\n'),
+      }
+      : {
+        blocked: false,
+        summary: 'No golden records exist for this base branch, and this run cannot seed them.',
+        comment: [
+          '## Visual tests — nothing to compare',
+          '',
+          'This base branch has no golden records yet, and a fork or Dependabot run',
+          'cannot create them. Nothing was compared and nothing was seeded.',
+          '',
+          'A build from the main repository has to publish the baseline first; after',
+          'that this pull request is compared normally on its next run.',
+          '',
+        ].join('\n'),
+      };
   }
 
   if (!report) {

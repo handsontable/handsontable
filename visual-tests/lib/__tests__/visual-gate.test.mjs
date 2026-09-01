@@ -20,12 +20,38 @@ test('seeding a baseline passes without comparing', () => {
   assert.match(v.comment, /baseline created/);
 });
 
-test('bootstrap wins over a missing report', () => {
+test('bootstrap covers a missing report', () => {
   // The credential-free path writes no report when there are no golden records,
-  // so bootstrap has to be checked before the report is required.
+  // so bootstrap has to be honoured before the report is required.
   const v = evaluate({ report: null, bootstrap: true, approved: false });
 
   assert.equal(v.blocked, false);
+});
+
+test('bootstrap covers an all-new report', () => {
+  // The normal seeding shape: everything is new because nothing existed.
+  const v = evaluate({ report: report({ added: 1646 }), bootstrap: true });
+
+  assert.equal(v.blocked, false);
+  assert.match(v.comment, /baseline created/);
+});
+
+test('a real comparison overrides a stale bootstrap probe', () => {
+  // A base build killed mid-publish can leave `actual/**` up with no manifest.
+  // The probe then reports "no baseline" while reg-suit compares against those
+  // actuals for real. Passing that would overwrite the baseline with this build.
+  const v = evaluate({ report: report({ changed: 12, passed: 1634 }), bootstrap: true });
+
+  assert.equal(v.blocked, true);
+  assert.match(v.comment, /changes detected/);
+});
+
+test('a run that cannot seed says so instead of claiming a baseline was created', () => {
+  const v = evaluate({ report: null, bootstrap: true, seeded: false });
+
+  assert.equal(v.blocked, false);
+  assert.match(v.comment, /nothing to compare/i);
+  assert.doesNotMatch(v.comment, /became the baseline/);
 });
 
 test('an unreadable report blocks rather than passing silently', () => {

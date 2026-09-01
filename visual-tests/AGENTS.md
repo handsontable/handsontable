@@ -67,11 +67,13 @@ itself — no notifier plugin is configured. The pull request comment is written
 `.reg/comment.md` and posted by the `marocchino/sticky-pull-request-comment` step in `visual.yml`, which is
 why it carries the approval instructions as well as the counts.
 
-Three things about this pipeline are easy to get wrong.
+Five things about this pipeline are worth knowing before changing it.
 
-- **`reg-suit run` exits 0 no matter what it finds.** It rejects only on notifier and credential errors.
-  `scripts/visual-gate.mjs` reads `.reg/out.json` and is the only thing that turns the check red. Never
-  assume a green `compare` step means no diffs.
+- **`reg-suit run` exits 0 no matter what it finds.** A comparison result never fails it; fetch, publish
+  and comparison-runtime errors do. Notifier errors are the one class it deliberately swallows
+  (`processor.js`: "Don't re-throw notifiers error because it's not fatal"), which is why a broken notifier
+  is invisible. `scripts/visual-gate.mjs` reads `.reg/out.json` and is the only thing that turns the check
+  red. Never assume a green `compare` step means no differences.
 - **Approval is all-or-nothing and is a GitHub label.** The `visual-approved` label on a pull request skips
   the gate for the whole build; there is no per-screenshot review. The label is removed automatically on
   every push (`.github/workflows/visual-cleanup.yml`), so approval never carries over to unreviewed

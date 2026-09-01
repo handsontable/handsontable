@@ -13,20 +13,28 @@
  * What a fork does not get is the hosted report URL and the pull request
  * comment, both of which need write access it does not have.
  *
- * Usage: node visual-tests/scripts/compare-fork.mjs <base-branch>
+ * Usage: node visual-tests/scripts/compare-fork.mjs [expected-key]
  */
 
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname, join, resolve, sep } from 'node:path';
 import { spawn } from 'node:child_process';
 
 const CONCURRENCY = 16;
 const ROOT = join(import.meta.dirname, '..');
 const WORKING_DIR = join(ROOT, '.reg');
 const EXPECTED_DIR = join(WORKING_DIR, 'expected');
+const ACTUAL_DIR = join(WORKING_DIR, 'actual');
 
-const [baseBranch] = process.argv.slice(2);
+// The workflow already exports the key, so read it rather than re-deriving the
+// scheme here; argv stays as a convenience for running this by hand.
+const expectedKey = process.env.REG_EXPECTED_KEY
+  || (process.argv[2] ? `base/${process.argv[2]}` : '');
 const domain = process.env.VISUAL_REPORT_DOMAIN;
+
+// Golden PNGs are served with a 4-hour max-age and the keys are rewritten in
+// place, so a fresh manifest can otherwise be paired with stale cached images.
+const cacheBuster = process.env.GITHUB_RUN_ID || String(Date.now());
 
 /**
  * Read the comparison tolerances from `regconfig.json` so both comparison paths
@@ -68,14 +76,27 @@ async function toleranceFlags() {
   return flags;
 }
 
-if (!baseBranch || !domain) {
-  console.error('Usage: node visual-tests/scripts/compare-fork.mjs <base-branch>');
-  console.error('VISUAL_REPORT_DOMAIN must be set.');
-  process.exitCode = 1;
+/**
+ * Resolve a manifest entry inside the expected directory.
+ *
+ * The manifest is remote input, so a `../`-style entry would otherwise write
+ * outside the working directory.
+ *
+ * @param {string} item Path from the manifest.
+ * @returns {string|null} Absolute path, or `null` when it escapes.
+ */
+function safeTarget(item) {
+  const target = resolve(EXPECTED_DIR, item);
+
+  return target.startsWith(EXPECTED_DIR + sep) ? target : null;
 }
 
-if (baseBranch && domain) {
-  const goldenUrl = `https://${domain}/base/${baseBranch}`;
+if (!expectedKey || !domain) {
+  console.error('Usage: node visual-tests/scripts/compare-fork.mjs [expected-key]');
+  console.error('REG_EXPECTED_KEY (or an argument) and VISUAL_REPORT_DOMAIN must be set.');
+  process.exitCode = 1;
+} else {
+  const goldenUrl = `https://${domain}/${expectedKey}`;
   let manifestResponse;
 
   try {
@@ -85,82 +106,110 @@ if (baseBranch && domain) {
     process.exitCode = 1;
   }
 
-  if (manifestResponse && manifestResponse.status !== 404 && !manifestResponse.ok) {
+  if (manifestResponse && manifestResponse.status === 404) {
+    // Seeding needs write credentials this run does not have, so leave the
+    // baseline to a same-repo build and let the pull request through rather
+    // than blocking an external contributor on missing infrastructure.
+    console.log(`No golden records for "${expectedKey}" at ${goldenUrl}/out.json.`);
+    console.log('Skipping the comparison: a same-repo build has to seed the baseline first.');
+  } else if (manifestResponse && !manifestResponse.ok) {
     // A 403/429/5xx is not "no baseline yet". Reporting it as one would send
     // someone debugging a red check off after a baseline that already exists.
     console.error('Unexpected response fetching the golden records manifest: '
       + `HTTP ${manifestResponse.status} from ${goldenUrl}/out.json.`);
     process.exitCode = 1;
-  } else if (manifestResponse && manifestResponse.status === 404) {
-    // Seeding needs write credentials this run does not have, so leave the
-    // baseline to a same-repo build and let the pull request through rather
-    // than blocking an external contributor on missing infrastructure.
-    console.log(`No golden records for "${baseBranch}" at ${goldenUrl}/out.json `
-      + `(HTTP ${manifestResponse.status}).`);
-    console.log('Skipping the comparison: a same-repo build has to seed the baseline first.');
   } else if (manifestResponse) {
-    const manifest = await manifestResponse.json();
-    const items = manifest.actualItems ?? [];
+    let manifest;
 
-    console.log(`Downloading ${items.length} golden records from ${goldenUrl} …`);
-
-    const queue = [...items];
-    const failures = [];
-
-    const worker = async() => {
-      while (queue.length > 0) {
-        const item = queue.pop();
-        let response;
-
-        try {
-          response = await fetch(`${goldenUrl}/actual/${item}`);
-        } catch (error) {
-          failures.push(`${item} (${error.message})`);
-          continue;
-        }
-
-        if (!response.ok) {
-          failures.push(`${item} (HTTP ${response.status})`);
-          continue;
-        }
-
-        const target = join(EXPECTED_DIR, item);
-
-        await mkdir(dirname(target), { recursive: true });
-        await writeFile(target, Buffer.from(await response.arrayBuffer()));
-      }
-    };
-
-    await Promise.all(Array.from({ length: CONCURRENCY }, worker));
-
-    if (failures.length > 0) {
-      console.error(`Could not download ${failures.length} golden records, for example:`);
-      failures.slice(0, 5).forEach(f => console.error(`  ${f}`));
+    try {
+      manifest = await manifestResponse.json();
+    } catch (error) {
+      console.error(
+        `The golden records manifest at ${goldenUrl}/out.json is not valid JSON: ${error.message}`
+      );
       process.exitCode = 1;
-    } else {
-      console.log('Comparing …');
+    }
 
-      const flags = await toleranceFlags();
+    const items = Array.isArray(manifest?.actualItems) ? manifest.actualItems : null;
 
-      console.log(`Comparing with tolerances: ${flags.join(' ') || '(none configured)'}`);
+    if (manifest && (items === null || items.length === 0)) {
+      // Treating this as an empty baseline would report every screenshot as new
+      // and block with a verdict indistinguishable from a real regression — on
+      // the one path that gets no pull request comment to explain it.
+      console.error(`The golden records manifest at ${goldenUrl}/out.json lists no screenshots.`);
+      console.error('Refusing to compare against an empty baseline; it is more likely truncated '
+        + 'or malformed than genuinely empty.');
+      process.exitCode = 1;
+    } else if (items) {
+      console.log(`Downloading ${items.length} golden records from ${goldenUrl} …`);
 
-      const exitCode = await new Promise((resolve) => {
-        spawn('npx', [
-          '--no', 'reg-cli',
-          join(ROOT, 'screenshots'),
-          EXPECTED_DIR,
-          join(WORKING_DIR, 'diff'),
-          '-R', join(WORKING_DIR, 'index.html'),
-          '-J', join(WORKING_DIR, 'out.json'),
-          '-I', // never fail here; visual-gate.mjs owns the verdict
-          ...flags,
-        ], { cwd: ROOT, stdio: 'inherit', shell: process.platform === 'win32' })
-          .on('close', resolve);
-      });
+      const queue = [...items];
+      const failures = [];
 
-      if (exitCode !== 0) {
-        console.error(`reg-cli exited with ${exitCode}.`);
+      const worker = async() => {
+        while (queue.length > 0) {
+          const item = queue.pop();
+          const target = safeTarget(item);
+
+          if (!target) {
+            failures.push(`${item} (path escapes the expected directory)`);
+            continue;
+          }
+
+          let response;
+
+          try {
+            response = await fetch(`${goldenUrl}/actual/${item}?v=${cacheBuster}`);
+          } catch (error) {
+            failures.push(`${item} (${error.message})`);
+            continue;
+          }
+
+          if (!response.ok) {
+            failures.push(`${item} (HTTP ${response.status})`);
+            continue;
+          }
+
+          await mkdir(dirname(target), { recursive: true });
+          await writeFile(target, Buffer.from(await response.arrayBuffer()));
+        }
+      };
+
+      await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+
+      if (failures.length > 0) {
+        console.error(`Could not download ${failures.length} golden records, for example:`);
+        failures.slice(0, 5).forEach(f => console.error(`  ${f}`));
         process.exitCode = 1;
+      } else {
+        // reg-cli embeds image paths relative to the report, so pointing it at
+        // `../screenshots` would leave every "actual" pane broken in the
+        // uploaded artifact — the only report this path produces. reg-suit
+        // copies into `.reg/actual` for the same reason; match its layout.
+        await cp(join(ROOT, 'screenshots'), ACTUAL_DIR, { recursive: true });
+
+        const flags = await toleranceFlags();
+
+        console.log(`Comparing with tolerances: ${flags.join(' ') || '(none configured)'}`);
+
+        const exitCode = await new Promise((resolve_) => {
+          spawn('npx', [
+            '--no', 'reg-cli',
+            ACTUAL_DIR,
+            EXPECTED_DIR,
+            join(WORKING_DIR, 'diff'),
+            '-R', join(WORKING_DIR, 'index.html'),
+            '-J', join(WORKING_DIR, 'out.json'),
+            '-I', // never fail here; visual-gate.mjs owns the verdict
+            ...flags,
+          ], { cwd: ROOT, stdio: 'inherit', shell: process.platform === 'win32' })
+            .on('close', resolve_);
+        });
+
+        if (exitCode !== 0) {
+          console.error(`reg-cli exited with ${exitCode}.`);
+          process.exitCode = 1;
+        }
       }
     }
   }

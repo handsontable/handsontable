@@ -29,11 +29,17 @@ try {
   console.log(`No comparison result read: ${error.message}`);
 }
 
+// A fork run publishes nothing, so linking `pr-<n>/<sha>/index.html` would send
+// the one audience with no PR comment to a 404. Falling back to the artifact
+// wording is the point of that branch in the evaluator.
+const published = process.env.VISUAL_PUBLISHED !== 'false';
+
 const verdict = evaluate({
   report,
   bootstrap: process.env.VISUAL_BOOTSTRAP === 'true',
+  seeded: process.env.VISUAL_SEEDED !== 'false',
   approved: process.env.VISUAL_APPROVED === 'true',
-  reportUrl: domain && actualKey ? `https://${domain}/${actualKey}/index.html` : '',
+  reportUrl: published && domain && actualKey ? `https://${domain}/${actualKey}/index.html` : '',
   runUrl: process.env.VISUAL_RUN_URL ?? '',
 });
 
