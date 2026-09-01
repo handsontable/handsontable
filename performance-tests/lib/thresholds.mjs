@@ -6,9 +6,16 @@
 // heap's is 0.4-3.6%. A shared value cannot serve both -- at 15 a genuine +10% heap leak is detected
 // 9% of the time instead of 93%.
 //
-// The timing number is interim. It is set at the knee of the false-positive curve measured against
-// a cross-runner baseline (34% of no-change comparisons fire a callout at 5, 3% at 15). Once the
-// suite compares two builds on the same runner in one job, re-derive it against that noise floor.
+// The timing number is interim, and it is only correct for the baseline it was measured against:
+// the knee of the false-positive curve for a cross-runner median baseline (34% of no-change
+// comparisons fire a callout at 5, 3% at 15). Re-derive it with scripts/replay-goldens.mjs
+// whenever the comparand changes -- a quieter baseline makes 15 far too permissive to catch
+// anything.
+//
+// Do not assume a same-runner comparison is that quieter baseline. Running the suite twice in one
+// job against a byte-identical build was measured and does not hold: the second run came out
+// slower on 8 of 9 scenarios, median +9.2%, worst +22.5%. Whatever replaces the comparand has to
+// be calibrated the same way rather than argued for from first principles.
 export const REGRESSION_CALLOUT_THRESHOLD_TIMING = 15;
 export const REGRESSION_CALLOUT_THRESHOLD_HEAP = 5;
 
