@@ -69,7 +69,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   columns: [
     {
       type: 'numeric',
-      numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+      numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 },
+      emptyValue: null,
     },
     { type: 'text', readOnly: true }
   ],
@@ -115,6 +116,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   dropdownMenu: true,
   editor: oneOf(true, 'autocomplete', 'checkbox', 'date', 'dropdown', 'handsontable', 'mobile',
     'password', 'select', 'text', 'time', 'custom.editor'),
+  emptyValue: oneOf('' as const, null),
   enterBeginsEditing: true,
   enterMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({ row: 1, col: 1 })),
   exportFile: { engines: { xlsx: {} } },
@@ -235,6 +237,16 @@ const allSettings: Required<Handsontable.GridSettings> = {
     (content: string, source: 'innerHTML' | 'CopyPaste.paste') => content,
   ),
   search: true,
+  // The `true` shorthand selects the built-in extraction. Full coverage, including the union's
+  // effect on reading the option back out, lives in `textExtractor.types.ts`.
+  textExtractor: oneOf(
+    true,
+    false,
+    (content: string) => content,
+    (content: string, source: string) => content,
+    (content: string, source: Handsontable.TextExtractorContext) => content,
+    (content: string, source: 'ExportFile.columnHeader') => content,
+  ),
   selectionMode: oneOf('single', 'range', 'multiple'),
   selectionHandles: true,
   moveCells: true,
@@ -407,7 +419,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterColumnResize: (newSize, column, isDoubleClick) => {},
   afterColumnSequenceChange: (source) => {},
   afterCustomBordersUpdate: () => {},
-  afterColumnSequenceCacheUpdate: (indexesChangesState) => {},
+  afterColumnSequenceCacheUpdate: (indexesChangesState) => {
+    const _source: 'init' | 'remove' | 'insert' | 'move' | 'update' | undefined =
+      indexesChangesState.indexesChangeSource;
+  },
   afterColumnSort: (currentSortConfig, destinationSortConfigs) => {},
   afterColumnUnfreeze: (columnIndex, isFreezingPerformed) => {},
   beforeCompositionStart: (event) => {
@@ -529,7 +544,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
                  orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
   afterRowResize: (newSize, row, isDoubleClick) => {},
   afterRowSequenceChange: (source) => {},
-  afterRowSequenceCacheUpdate: (indexesChangesState) => {},
+  afterRowSequenceCacheUpdate: (indexesChangesState) => {
+    const _source: 'init' | 'remove' | 'insert' | 'move' | 'update' | undefined =
+      indexesChangesState.indexesChangeSource;
+  },
   afterScrollHorizontally: () => {},
   afterScrollVertically: () => {},
   afterScroll: () => {},
@@ -990,3 +1008,10 @@ const moveResult: boolean = hot.getPlugin('moveCells')
 // Regression: beforeInit accepts the array form, which the runtime has always supported (#5933).
 hot.updateSettings({ beforeInit: [() => {}, () => {}] });
 hot.updateSettings({ beforeInit: () => {} });
+
+// Regression: `emptyValue` must reach `ColumnSettings` from `GridSettings`, not through the
+// `[key: string]: any` index signature that `ColumnSettings` also carries. A literal inside the
+// `columns` array compiles either way, so it proves nothing on its own — this reads the property
+// type back out and fails if the option is ever dropped from `GridSettings`.
+const columnEmptyValue: Handsontable.ColumnSettings['emptyValue'] = null;
+const cellEmptyValue: Handsontable.CellMeta['emptyValue'] = null;

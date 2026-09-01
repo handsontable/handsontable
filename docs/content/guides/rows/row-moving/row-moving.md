@@ -147,7 +147,7 @@ A `manualRowMove` array passed as a regular option can be re-applied on a later 
 
 ::: only-for react
 
-For more on this, see [Non-idempotent options](@/guides/getting-started/configuration-options/configuration-options.md#non-idempotent-options).
+For more on this, see [Non-idempotent options](@/guides/configuration/configuration-options/configuration-options.md#non-idempotent-options).
 
 :::
 

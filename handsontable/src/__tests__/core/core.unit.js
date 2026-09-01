@@ -132,4 +132,30 @@ describe('Core', () => {
     expect(moduleRegisterer.getNames()).toEqual([]);
     expect(resolveWithInstance(core, 'testValue')).toBeUndefined();
   });
+
+  it('should pass the index sequence change source to public cache-update hooks', () => {
+    const afterRowSequenceCacheUpdate = jasmine.createSpy('afterRowSequenceCacheUpdate');
+    const afterColumnSequenceCacheUpdate = jasmine.createSpy('afterColumnSequenceCacheUpdate');
+    const core = new Core(container, {
+      data: [['a', 'b'], ['c', 'd']],
+      afterRowSequenceCacheUpdate,
+      afterColumnSequenceCacheUpdate,
+    });
+
+    core.init();
+    afterRowSequenceCacheUpdate.calls.reset();
+    afterColumnSequenceCacheUpdate.calls.reset();
+
+    core.rowIndexMapper.insertIndexes(1, 1);
+    core.columnIndexMapper.insertIndexes(1, 1);
+
+    expect(afterRowSequenceCacheUpdate).toHaveBeenCalledWith(jasmine.objectContaining({
+      indexesChangeSource: 'insert',
+    }));
+    expect(afterColumnSequenceCacheUpdate).toHaveBeenCalledWith(jasmine.objectContaining({
+      indexesChangeSource: 'insert',
+    }));
+
+    core.destroy();
+  });
 });
