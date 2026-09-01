@@ -76,14 +76,34 @@
       : [];
     const fillerCell = frozen ? Array.from({ length: 8 }, (unused, i) => `f${i}`) : [];
 
+    // `?overflow=1` puts more chips in a `multiselect` cell than a fixed narrow column can show, so
+    // the renderer hides the ones that do not fit and adds the `+N` badge. That is the only state
+    // where the indicator's width reservation is observable: with a single chip there is slack, and
+    // a chip can sit under the indicator without any assertion noticing. Only meaningful for
+    // `multiselect` — the other three cell types render text, not chips.
+    const overflow = htParams.get('overflow') === '1';
+    const OVERFLOW_VALUES = ['Alpha', 'Alfa', 'Alto', 'Alpine', 'Almond', 'Altair'];
+
+    // Each mode below builds one grid. Every branch keeps the same `afterRenderer` test ids, so the
+    // page object addresses cells identically whichever mode is on.
+    const settings = overflow
+      ? {
+        data: [[OVERFLOW_VALUES.slice()], [OVERFLOW_VALUES.slice()]],
+        columns: [{ type: 'multiselect', source: OVERFLOW_VALUES }],
+        colWidths: 200,
+      }
+      : {
+        data: [
+          [seed(), seed(), ...fillerCell],
+          [seed(), seed(), ...fillerCell],
+          [null, null, ...fillerCell],
+        ],
+        columns: [column, column, ...filler],
+        ...(frozen ? { fixedColumnsStart: 1, colWidths: 140, width: 420, height: 260 } : {}),
+      };
+
     window.hot = new Handsontable(container, {
-      data: [
-        [seed(), seed(), ...fillerCell],
-        [seed(), seed(), ...fillerCell],
-        [null, null, ...fillerCell],
-      ],
-      columns: [column, column, ...filler],
-      ...(frozen ? { fixedColumnsStart: 1, colWidths: 140, width: 420, height: 260 } : {}),
+      ...settings,
       colHeaders: true,
       rowHeaders: true,
       // Stamp test ids from `afterRenderer`, not from a grid-level `renderer`: a column `type`

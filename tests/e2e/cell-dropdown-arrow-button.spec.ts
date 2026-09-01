@@ -87,6 +87,49 @@ CELL_TYPES.forEach((cellType) => {
  * separate, pre-existing quirk this PR does not touch, and exercising it here would put a red leg on
  * an unrelated defect.
  */
+/**
+ * The indicator takes real space at the cell's trailing edge, so `recalculateChipsVisibility`
+ * subtracts its width before deciding how many chips fit. Nothing guarded that: the legacy specs do
+ * assert the `+N` counts, but they were written before the reservation existed and hold with or
+ * without it, and every other case in this file seeds a single chip, which always has slack.
+ *
+ * What is asserted is deliberately the cell's own box, not the indicator's left edge. The
+ * reservation keeps the chips inside the cell; it does not yet clear the indicator, because the
+ * budget comes from `getColWidth` — a border-box width — and the cell's padding and border are still
+ * not taken out of it. Measured on `main` at a 238px column: the chips have 195px of real room and
+ * the code hands them 213px. Asserting the stronger, correct invariant here would park a red test on
+ * every leg; closing that last gap changes how many chips every multiselect cell shows and breaks
+ * four frozen legacy specs, so it needs its own ticket and sign-off.
+ *
+ * The sweep is what makes this bite. The reservation is worth about one indicator's width, so at
+ * most column widths the chips have slack and a single-width check passes either way. Somewhere in
+ * the range the cumulative chip width lands in that band, and that width is the one that notices the
+ * reservation disappearing — verified by deleting it and watching this fail.
+ */
+test.describe('multiselect chips overflowing next to the indicator', () => {
+  let grid: CellDropdownArrowPage;
+
+  test.beforeEach(async({ page, theme, bundle }) => {
+    grid = new CellDropdownArrowPage(page, theme, bundle, 'multiselect');
+    await grid.goto({ overflow: true });
+  });
+
+  test('keeps chips and the +N badge inside the cell at every column width', async() => {
+    const widths = Array.from({ length: 60 }, (unused, i) => 120 + (i * 2));
+    const layouts = await grid.chipLayoutAcrossWidths(0, 0, widths);
+
+    // The sweep has to actually reach the overflow state, or the checks below are vacuous.
+    const overflowing = layouts.filter(l => l.overflowing);
+
+    expect(overflowing.length).toBeGreaterThan(0);
+
+    // Sub-pixel layout rounding is not a defect; a chip spilling out of its cell is.
+    const spilling = overflowing.filter(l => l.contentRight > l.cellRight + 1);
+
+    expect(spilling).toEqual([]);
+  });
+});
+
 test.describe('multiselect indicator on a frozen column', () => {
   let grid: CellDropdownArrowPage;
 

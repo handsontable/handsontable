@@ -291,12 +291,13 @@ export function cacheColumnWidthAndRegisterResizeHook(
  * Both margins are summed, so the physical `marginLeft`/`marginRight` pair works for LTR and RTL
  * alike and does not depend on logical-property support.
  *
- * @param {HTMLElement} chipsContainer The chips container whose cell holds the indicator.
+ * @param {HTMLElement} chipsContainer The chips container whose cell holds the indicator, already
+ *   appended to its cell by the caller.
  * @param {Document} rootDocument The document that owns the grid.
  * @returns {number} The reserved width in pixels, or `0` when no indicator is rendered.
  */
 function getDropdownIndicatorReserve(chipsContainer: HTMLElement, rootDocument: Document): number {
-  const indicator = chipsContainer.parentElement?.querySelector<HTMLElement>(`.${ARROW_CLASS}`);
+  const indicator = chipsContainer.parentElement!.querySelector<HTMLElement>(`.${ARROW_CLASS}`);
 
   if (!indicator) {
     return 0;

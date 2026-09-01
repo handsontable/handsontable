@@ -15,6 +15,7 @@ interface FixtureWindow {
     getActiveEditor(): EditorFixture | undefined;
     getCell(row: number, col: number, topmost?: boolean): HTMLElement | null;
     scrollViewportTo(options: { col: number }): boolean;
+    updateSettings(settings: { colWidths: number }): void;
     render(): void;
   };
 }
@@ -55,9 +56,12 @@ export class CellDropdownArrowPage {
    * @param {object} [options] Fixture options.
    * @param {boolean} [options.frozen] Freeze the first column and add columns to scroll past it.
    */
-  async goto({ frozen = false }: { frozen?: boolean } = {}): Promise<void> {
+  async goto({ frozen = false, overflow = false }: {
+    frozen?: boolean, overflow?: boolean,
+  } = {}): Promise<void> {
     const query = `theme=${this.theme}&bundle=${this.bundle}&cellType=${this.cellType}`
-      + (frozen ? '&frozen=1' : '');
+      + (frozen ? '&frozen=1' : '')
+      + (overflow ? '&overflow=1' : '');
 
     await this.page.goto(`/tests/fixtures/demo/cell-dropdown-arrow.html?${query}`);
 
@@ -132,6 +136,61 @@ export class CellDropdownArrowPage {
 
       return hot.getCell(0, 0) === null && hot.getCell(0, 0, true) !== null;
     })).toBe(true);
+  }
+
+  /**
+   * Sweeps a multiselect column through a range of widths and measures, at each one, how far the
+   * cell's content reaches against its dropdown indicator.
+   *
+   * A sweep rather than one fixed width, because the reservation only decides anything inside a
+   * narrow band: it is worth about the indicator's own width, so at most widths the chips have slack
+   * and a single-width check passes whether the reservation is there or not. Somewhere in the range
+   * the cumulative chip width lands in that band, and that is the width that catches its removal.
+   * Sweeping also keeps the case honest across themes, whose chip padding and icon size differ, so
+   * no hardcoded width could sit in the band on all three.
+   *
+   * Everything is read from real boxes, never from the renderer's own arithmetic — the failure this
+   * guards against is visible overlap, not a wrong number.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {number[]} widths Column widths to measure, in pixels.
+   * @returns {Promise<object[]>} One entry per width: the indicator's left edge, the furthest right
+   *   edge any visible chip or `+N` badge reaches, and whether the badge was showing.
+   */
+  async chipLayoutAcrossWidths(row: number, col: number, widths: number[]): Promise<Array<{
+    width: number,
+    cellRight: number,
+    contentRight: number,
+    overflowing: boolean,
+  }>> {
+    return this.page.evaluate(({ row: r, col: c, widths: ws }) => {
+      const { hot } = window as unknown as FixtureWindow;
+      const isShown = (el: HTMLElement) => getComputedStyle(el).display !== 'none'
+        && getComputedStyle(el).visibility !== 'hidden';
+
+      return ws.map((width) => {
+        hot.updateSettings({ colWidths: width });
+
+        const td = hot.getCell(r, c)!;
+        const badge = td.querySelector('.ht-multi-select-overflow') as HTMLElement | null;
+        const shownChips = Array.from(td.querySelectorAll('.ht-multi-select-chip'))
+          .filter(el => isShown(el as HTMLElement));
+        const badgeShown = !!badge && isShown(badge);
+        const rights = shownChips.map(el => el.getBoundingClientRect().right);
+
+        if (badgeShown) {
+          rights.push(badge!.getBoundingClientRect().right);
+        }
+
+        return {
+          width,
+          cellRight: td.getBoundingClientRect().right,
+          contentRight: rights.length ? Math.max(...rights) : Number.NEGATIVE_INFINITY,
+          overflowing: badgeShown,
+        };
+      });
+    }, { row, col, widths });
   }
 
   /**
