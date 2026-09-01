@@ -1,6 +1,7 @@
 import { test } from '@playwright/test';
 import path from 'node:path';
 import { runTracedScenario } from '../../lib/trace-runner.mjs';
+import { scrollToColumn } from '../../lib/scroll-utils.mjs';
 import config from './scenario.config.mjs';
 
 const fixturePath = path.resolve(import.meta.dirname, 'fixture.html');
@@ -22,6 +23,9 @@ test(config.name, async({ page }) => {
       for (let i = 0; i < 500; i++) {
         await page.mouse.wheel(350, 0);
       }
+    },
+    resetFn: async() => {
+      await scrollToColumn(page, 0);
     },
   });
 });

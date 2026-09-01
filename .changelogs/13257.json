@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a row or column move blocked by `beforeRowMove` or `beforeColumnMove` still adding an entry to the undo stack; impossible moves and moves that leave the order unchanged are no longer recorded either.",
+  "type": "fixed",
+  "issueOrPR": 13257,
+  "breaking": false,
+  "framework": "none"
+}

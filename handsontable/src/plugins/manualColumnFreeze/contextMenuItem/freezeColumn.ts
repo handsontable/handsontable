@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
+import { isPluginOff } from './isPluginOff';
 
 /**
  * @param {ManualColumnFreeze} manualColumnFreezePlugin The plugin instance.
@@ -21,11 +22,20 @@ export default function freezeColumnItem(manualColumnFreezePlugin: unknown) {
       this.view.adjustElementsSize();
       this.render();
     },
+    // The menu rebuilds its items on every open, so a disabled plugin contributes none. The
+    // command executor never evicts what it registered, though, so `executeCommand('freeze_column')`
+    // still reaches this entry — and `execute()` gates on `disabled`, not `hidden`.
+    disabled() {
+      return isPluginOff(manualColumnFreezePlugin);
+    },
     hidden(this: HotInstance) {
       const selection = this.getSelectedRange();
       let hide = false;
 
-      if (selection === undefined) {
+      if (isPluginOff(manualColumnFreezePlugin)) {
+        hide = true;
+
+      } else if (selection === undefined) {
         hide = true;
 
       } else if (selection.length > 1) {

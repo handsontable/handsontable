@@ -40,13 +40,13 @@ The new Handsontable version comes with an updated set of keyboard shortcuts. Mo
 | Selects all cells and headers  | Selects all cells _without_ headers  |
 | Selection highlight moves to the top-left cell of the selection  | Focused cell does not move  |
 
-##### <kbd>TAB</kbd> in the Filtering menu
+##### <kbd>TAB</kbd> in the filtering menu
 
 | Before  | After  |
 | ------------ | ------------ |
 | Iterates through the content list  | Iterates through the menu items. When focused on the search input, the arrow keys allow iterating through the content list  |
 
-##### Hover behavior in the Filtering menu
+##### Hover behavior in the filtering menu
 
 | Before  | After  |
 | ------------ | ------------ |

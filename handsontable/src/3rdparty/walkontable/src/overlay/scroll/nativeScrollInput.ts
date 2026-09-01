@@ -51,6 +51,7 @@ export function createNativeScrollInputDeps(
     geometryReader: ctx.geometryReader,
     wtTable: ctx.getWtTable(),
     eventManager: overlays.eventManager,
+    notifyScrolledForScrollbarVisibility: () => overlays.notifyScrolledForScrollbarVisibility(),
     getTopOverlay: () => overlays.topOverlay,
     getInlineStartOverlay: () => overlays.inlineStartOverlay,
     getCloneableOverlays: () => [
@@ -204,6 +205,14 @@ export class NativeScrollInput {
     const masterHorizontal = this.#deps.getInlineStartOverlay().mainTableScrollableElement;
     const masterVertical = this.#deps.getTopOverlay().mainTableScrollableElement;
     const target = event.target;
+
+    // Scrolling is what brings an overlay scrollbar on screen, so the clearance strip the frozen
+    // overlays leave for it has to open now and fade with it (#10370). Deliberately below the
+    // key-press branch: keyboard navigation moves the viewport without the browser drawing a
+    // scrollbar, and notifying from there carved out a strip nothing was painted in.
+    if (!this.#keyPressed) {
+      this.#deps.notifyScrolledForScrollbarVisibility();
+    }
 
     // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
     // by hot.refreshBorder

@@ -566,7 +566,14 @@ export function markOversizedRows(
   let currentTr;
   let rowHeader;
 
-  if (expectedTableHeight === actualTableHeight && !table.wtSettings.getSetting('fixedRowsBottom')) {
+  // Compared with a sub-pixel tolerance, not `===`. The default row height is fractional below 100%
+  // zoom (`StylesHandler#getDefaultRowHeight`, issue #6280) while `actualTableHeight` comes from an
+  // integer `clientHeight`, so an exact match is unreachable there and this fast path would be dead
+  // for every user below 100% — walking every rendered row on every draw, however uniform the grid.
+  // Strictly-less-than-1 keeps a genuinely oversized row (>= 1px) falling through to the walk.
+  const isUniformHeight = Math.abs(expectedTableHeight - actualTableHeight) < 1;
+
+  if (isUniformHeight && !table.wtSettings.getSetting('fixedRowsBottom')) {
     // If the actual table height equals rowCount * default single row height, no row is oversized -> no need to iterate over them.
     // Rows that WERE oversized before this render shrank back to the default height, so their
     // cached heights are stale and the row-height cache must still be dropped.

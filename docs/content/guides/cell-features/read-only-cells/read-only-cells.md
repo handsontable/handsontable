@@ -40,7 +40,7 @@ Disabling a cell makes the cell read-only or non-editable. Both have similar out
 
 ## Make the grid read-only
 
-To make the entire grid read-only, set [`readOnly`](@/api/options.md#readonly) to `true` as a [top-level grid option](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+To make the entire grid read-only, set [`readOnly`](@/api/options.md#readonly) to `true` as a [top-level grid option](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
 
 ::: only-for javascript
 
@@ -323,6 +323,10 @@ To make specific cells non-editable, set `editor: false` in the cell configurati
 :::
 
 :::
+
+## Block the entire grid
+
+The [`readOnly`](@/api/options.md#readonly) and [`editor`](@/api/options.md#editor) options control editing, but users can still navigate and select cells. To block all interaction with the grid temporarily -- for example, during a loading state or a blocking workflow step -- use the [Dialog](@/guides/dialog/dialog/dialog.md) plugin. An open dialog overlays the grid and moves keyboard input into its own [focus scope](@/guides/navigation/focus-scopes/focus-scopes.md), so users can't reach the cells until the dialog closes. The grid regains focus automatically.
 
 ## Accessibility
 

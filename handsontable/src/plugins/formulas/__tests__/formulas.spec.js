@@ -1162,6 +1162,394 @@ describe('Formulas general', () => {
     });
   });
 
+  describe('persisting engine-rewritten formulas in the source data (#10388)', () => {
+    // A structural change makes HyperFormula rewrite every reference that points at the moved
+    // range. Until that rewrite reaches the array the developer handed to Handsontable, an outside
+    // owner of that array (a Redux store, a React `data` prop) keeps the old formula and reverts it
+    // the moment the array is loaded back in.
+    const getDataWithFormula = () => [
+      [10, '=SUM(A1:A3)'],
+      [20, null],
+      [30, null],
+    ];
+
+    it('should write the rewritten formula into the passed data array after inserting a row', async() => {
+      const data = getDataWithFormula();
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      await alter('insert_row_above', 1, 1);
+
+      expect(data[0][1]).toBe('=SUM(A1:A4)');
+    });
+
+    it('should write the rewritten formula into the passed data array after removing a row', async() => {
+      const data = getDataWithFormula();
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      await alter('remove_row', 1, 1);
+
+      expect(data[0][1]).toBe('=SUM(A1:A2)');
+    });
+
+    it('should write the rewritten formula into the passed data array after inserting a column', async() => {
+      const data = getDataWithFormula();
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      await alter('insert_col_start', 0, 1);
+
+      expect(data[0][2]).toBe('=SUM(B1:B3)');
+    });
+
+    it('should write the rewritten formula into the passed data array after removing a column', async() => {
+      const data = [
+        [10, 5, '=SUM(B1:B3)'],
+        [20, 5, null],
+        [30, 5, null],
+      ];
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      await alter('remove_col', 0, 1);
+
+      expect(data[0][1]).toBe('=SUM(A1:A3)');
+    });
+
+    it('should keep the rewritten formula when the passed data array is loaded back in', async() => {
+      const data = getDataWithFormula();
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      await alter('insert_row_above', 1, 1);
+
+      // Replays what a Redux-driven re-render does: push the store's array back into the grid.
+      await updateSettings({ data });
+
+      expect(getSourceDataAtCell(0, 1)).toBe('=SUM(A1:A4)');
+      expect(getDataAtCell(0, 1)).toBe(60);
+    });
+
+    it('should write the rewritten formula into an object data source under its own property', async() => {
+      const data = [
+        { year: 10, total: '=SUM(A1:A3)' },
+        { year: 20, total: null },
+        { year: 30, total: null },
+      ];
+
+      handsontable({
+        data,
+        columns: [{ data: 'year' }, { data: 'total' }],
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      await alter('insert_row_above', 1, 1);
+
+      expect(data[0].total).toBe('=SUM(A1:A4)');
+      expect(Object.keys(data[0])).toEqual(['year', 'total']);
+    });
+
+    it('should restore the formula in the passed data array with a single undo', async() => {
+      const data = getDataWithFormula();
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      await alter('insert_row_above', 1, 1);
+
+      expect(data[0][1]).toBe('=SUM(A1:A4)');
+
+      getPlugin('undoRedo').undo();
+
+      expect(data[0][1]).toBe('=SUM(A1:A3)');
+      expect(getSourceDataAtCell(0, 1)).toBe('=SUM(A1:A3)');
+      expect(countRows()).toBe(3);
+
+      getPlugin('undoRedo').redo();
+
+      expect(data[0][1]).toBe('=SUM(A1:A4)');
+      expect(getSourceDataAtCell(0, 1)).toBe('=SUM(A1:A4)');
+      expect(countRows()).toBe(4);
+    });
+
+    it('should write the rewritten formula into a row hidden by a filter', async() => {
+      const data = [
+        ['show', 1, '=SUM(B1:B4)'],
+        ['show', 2, null],
+        ['hide', 3, '=SUM(B1:B4)'],
+        ['show', 4, null],
+      ];
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+        filters: true,
+        dropdownMenu: true,
+        colHeaders: true,
+      });
+
+      const filters = getPlugin('filters');
+
+      filters.addCondition(0, 'eq', ['show']);
+      filters.filter();
+
+      await alter('insert_row_above', 0, 1);
+
+      // Both rows moved down by one. The filtered-out row holds a formula too, and the engine
+      // rewrote it just the same - it must not be left behind.
+      expect(data[1][2]).toBe('=SUM(B2:B5)');
+      expect(data[3][2]).toBe('=SUM(B2:B5)');
+    });
+
+    it('should leave a formula the change did not affect spelled as the developer wrote it', async() => {
+      const data = [
+        [1, '=SUM(A1:A3)'],
+        [2, null],
+        [3, null],
+        [4, '=sum( a1 : a2 )'],
+        [5, '=iF(TruE(),1,2)'],
+      ];
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      // Inserting below everything shifts no reference at all.
+      await alter('insert_row_below', 4, 1);
+
+      // The engine reports a canonical spelling. Treating that as a change would rewrite formulas
+      // the operation never touched - including one with no cell reference in it.
+      expect(data[3][1]).toBe('=sum( a1 : a2 )');
+      expect(data[4][1]).toBe('=iF(TruE(),1,2)');
+      expect(data[0][1]).toBe('=SUM(A1:A3)');
+    });
+
+    it('should write into the right column when `columns` reorders the source columns', async() => {
+      const data = [
+        [1, '=SUM(A1:A3)'],
+        [2, null],
+        [3, null],
+      ];
+
+      handsontable({
+        data,
+        // Same column count, so the data fed to the engine is not projected - the engine holds
+        // physical indexes while the grid reads them through `colToProp`.
+        columns: [{ data: 1 }, { data: 0 }],
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      await alter('insert_row_above', 1, 1);
+
+      expect(data[0][1]).toBe('=SUM(A1:A4)');
+      // The number must survive - writing the formula here would destroy it for good.
+      expect(data[0][0]).toBe(1);
+    });
+
+    it('should not persist a broken reference the change could not have caused', async() => {
+      const data = [
+        [1, '=SUM(A1:A3)'],
+        [2, null],
+        [3, null],
+      ];
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+        manualRowMove: true,
+        columnSorting: true,
+        rowHeaders: true,
+      });
+
+      getPlugin('manualRowMove').moveRow(0, 2);
+      await render();
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      // The engine is left holding `=SUM(#REF!)` here for reasons this change did not cause.
+      await alter('insert_row_above', 1, 1);
+
+      // An insert cannot break a reference, so the good formula must stay.
+      expect(data[0][1]).toBe('=SUM(A1:A3)');
+    });
+
+    it('should not touch the passed data array when rows are only moved', async() => {
+      const data = getDataWithFormula();
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+        manualRowMove: true,
+        rowHeaders: true,
+      });
+
+      getPlugin('manualRowMove').moveRow(0, 2);
+      await render();
+
+      // A move reorders the indexes only - the source array keeps its own order and its own
+      // reference frame, so nothing has to be written back to it.
+      expect(data[0][1]).toBe('=SUM(A1:A3)');
+    });
+
+    it('should not touch the passed data array when a row is inserted into a moved grid', async() => {
+      const data = [
+        [1, '=A1+10'],
+        [2, '=A2+100'],
+        [3, '=A3+1000'],
+      ];
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+        manualRowMove: true,
+        rowHeaders: true,
+      });
+
+      getPlugin('manualRowMove').moveRow(0, 2);
+      await render();
+
+      await alter('insert_row_below', 2, 1);
+
+      // Once rows are moved the engine and the source data no longer share a reference frame, so
+      // the engine's formulas must not be copied into the array the developer owns.
+      expect(data[0][1]).toBe('=A1+10');
+      expect(data[1][1]).toBe(null);
+      expect(data[2][1]).toBe('=A2+100');
+      expect(data[3][1]).toBe('=A3+1000');
+    });
+
+    it('should not touch the passed data array when an edit is undone in a moved grid', async() => {
+      const data = [
+        [1, '=A1+10'],
+        [2, '=A2+100'],
+        [3, '=A3+1000'],
+      ];
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+        manualRowMove: true,
+        rowHeaders: true,
+      });
+
+      getPlugin('manualRowMove').moveRow(0, 2);
+      await render();
+
+      await setDataAtCell(0, 0, 999);
+
+      getPlugin('undoRedo').undo();
+
+      // Undoing a plain cell edit is not a structural change, so it must not persist the moved
+      // reference frame into the array the developer owns.
+      expect(data[0][1]).toBe('=A1+10');
+      expect(data[1][1]).toBe('=A2+100');
+      expect(data[2][1]).toBe('=A3+1000');
+    });
+
+    it('should report the rewritten formula through the `afterSetSourceDataAtCell` hook', async() => {
+      const data = getDataWithFormula();
+      const afterSetSourceDataAtCell = jasmine.createSpy('afterSetSourceDataAtCell');
+
+      handsontable({
+        data,
+        formulas: {
+          engine: HyperFormula
+        },
+        afterSetSourceDataAtCell,
+      });
+
+      await alter('insert_row_above', 1, 1);
+
+      // The reported previous value must be the one that was really stored, not the engine's new
+      // formula - a store that compares the two has to be able to see the change.
+      expect(afterSetSourceDataAtCell).toHaveBeenCalledTimes(1);
+      expect(afterSetSourceDataAtCell.calls.mostRecent().args[0]).toEqual([[0, 1, '=SUM(A1:A3)', '=SUM(A1:A4)']]);
+    });
+
+    it('should not write the engine\'s rewritten formula into the data array when the Nested Rows ' +
+      'plugin detaches a row', async() => {
+      const data = [
+        {
+          col1: 1,
+          __children: [
+            { col1: 2 },
+            { col1: '=A1+A2' },
+          ],
+        },
+        { col1: 9 },
+      ];
+
+      handsontable({
+        data,
+        columns: [{ data: 'col1', type: 'text' }],
+        nestedRows: true,
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      getPlugin('nestedRows').dataManager.detachFromParent(
+        getPlugin('nestedRows').dataManager.getDataObject(1)
+      );
+
+      // A detach is a MOVE that the Nested Rows plugin performs on the source data itself, expressed
+      // as a row removal followed by a row creation. The engine therefore reports the reference to
+      // the detached row as broken while that row still exists, and the removal leg allows broken
+      // references through. Persisting that intermediate state would replace a good formula in the
+      // developer's array with an unrecoverable `#REF!`.
+      expect(data[0].__children[0].col1).toBe('=A1+A2');
+      expect(data[0].col1).toBe(1);
+      expect(data[1].col1).toBe(9);
+      expect(data[2].col1).toBe(2);
+    });
+  });
+
   describe('Autofill', () => {
     it('should not override result of simple autofill (populating one cell) #8050', async() => {
       handsontable({
@@ -2963,6 +3351,45 @@ describe('Formulas general', () => {
       expect(getCellMeta(1, 0).valid).toBe(true);
     });
 
+    it('should escape an invalid ISO date loaded via loadData()', async() => {
+      handsontable({
+        data: [
+          ['2022-12-11'],
+          ['=A1'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'date',
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      // '123' is not a valid ISO date, so the date-typed column still escapes it before writing to
+      // the engine – unlike 'not-a-date', HyperFormula WOULD otherwise coerce this value to the
+      // number 123, so it is a value the escape can actually be proven against.
+      //
+      // The dependent formula reads `ISTEXT(A1)` rather than plain `=A1`: any numeric-looking
+      // *computed* value in a `date`-typed cell is reformatted as an Excel-style serial date by the
+      // `modifyData` hook's unrelated date-display branch (`cellMeta.type === 'date' && isNumeric()`),
+      // which would mask the escaping outcome behind that reformatting either way. `ISTEXT()` returns
+      // a boolean, so it is read back untouched and discriminates cleanly through the public API:
+      // `true` only if A1 reached the engine as a string (i.e. the escape ran).
+      await loadData([
+        ['123'],
+        ['=ISTEXT(A1)'],
+      ]);
+
+      expect(getDataAtCell(1, 0)).toBe(true);
+
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['\'123'],
+        ['=ISTEXT(A1)'],
+      ]);
+    });
+
     it('should handle HF configuration property (HF instance should not overwrite `leapYear1900` and `nullDate` properties)', async() => {
       // Create an external HyperFormula instance with ISO date format support
       const hfInstance = HyperFormula.buildEmpty({ dateFormats: ['YYYY-MM-DD'] });
@@ -3097,6 +3524,1248 @@ describe('Formulas general', () => {
       });
 
       expect(warnSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('preserveTextValue', () => {
+    it('should pass an edited text-cell value to the engine as a string', async() => {
+      handsontable({
+        data: [
+          ['x'],
+          ['="ID"&"_"&A1'],
+          ['=LEN(A1)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+          preserveTextValue: true,
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await setDataAtCell(0, 0, '0123456');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['0123456'],
+        ['ID_0123456'],
+        [7],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['\'0123456'],
+        ['="ID"&"_"&A1'],
+        ['=LEN(A1)'],
+      ]);
+
+      expect(getData()).toEqual([
+        ['0123456'],
+        ['ID_0123456'],
+        [7],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['0123456'],
+        ['="ID"&"_"&A1'],
+        ['=LEN(A1)'],
+      ]);
+    });
+
+    it('should keep the default (coercing) behavior when the option is not enabled', async() => {
+      handsontable({
+        data: [
+          ['x'],
+          ['="ID"&"_"&A1'],
+          ['=LEN(A1)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await setDataAtCell(0, 0, '0123456');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        [123456],
+        ['ID_123456'],
+        [6],
+      ]);
+    });
+
+    it('should pass initial text-cell values to the engine as strings', async() => {
+      handsontable({
+        data: [
+          ['0123456'],
+          ['="ID"&"_"&A1'],
+          ['=LEN(A1)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+          preserveTextValue: true,
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['0123456'],
+        ['ID_0123456'],
+        [7],
+      ]);
+
+      expect(getData()).toEqual([
+        ['0123456'],
+        ['ID_0123456'],
+        [7],
+      ]);
+    });
+
+    it('should pass text-cell values loaded via loadData() to the engine as strings', async() => {
+      handsontable({
+        data: [['x'], ['="ID"&"_"&A1'], ['=LEN(A1)']],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+          preserveTextValue: true,
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await loadData([['0123456'], ['="ID"&"_"&A1'], ['=LEN(A1)']]);
+
+      // `loadData()` recreates the engine sheet, so the values are read from the current sheet.
+      expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)).toEqual([
+        ['0123456'],
+        ['ID_0123456'],
+        [7],
+      ]);
+
+      expect(getData()).toEqual([
+        ['0123456'],
+        ['ID_0123456'],
+        [7],
+      ]);
+    });
+
+    it('should keep coercing number-like text values on loadData when preserveTextValue is not enabled', async() => {
+      handsontable({
+        data: [['x'], ['=LEN(A1)']],
+        columns: [{ type: 'text' }],
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      await loadData([['0123456'], ['=LEN(A1)']]);
+
+      // Default behavior (the option is off) – the engine coerces the value to the number 123456,
+      // dropping the leading zero, so its length is 6 rather than the preserved 7.
+      expect(getDataAtCell(1, 0)).toBe(6);
+    });
+
+    it('should pass a text-cell value set via setSourceDataAtCell() to the engine as a string', async() => {
+      handsontable({
+        data: [
+          ['x'],
+          ['=LEN(A1)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+          preserveTextValue: true,
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await setSourceDataAtCell(0, 0, '0123456');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['0123456'],
+        [7],
+      ]);
+
+      // The engine assertions above only prove the escape apostrophe reached HyperFormula – they
+      // would still pass if it also leaked back into Handsontable's own data. Pin the public API too.
+      expect(getSourceDataAtCell(0, 0)).toBe('0123456');
+      expect(getDataAtCell(0, 0)).toBe('0123456');
+    });
+
+    it('should autofill preserved text values without the escape apostrophe', async() => {
+      handsontable({
+        data: [
+          ['0123456', '=LEN(A1)'],
+          ['', '=LEN(A2)'],
+          ['', '=LEN(A3)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+          preserveTextValue: true,
+        }, {}],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await selectCell(0, 0);
+      autofill(2, 0);
+
+      await waitForNextAnimationFrames(2);
+
+      expect(getDataAtCol(0)).toEqual(['0123456', '0123456', '0123456']);
+      expect(getSourceDataAtCol(0)).toEqual(['0123456', '0123456', '0123456']);
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['0123456', 7],
+        ['0123456', 7],
+        ['0123456', 7],
+      ]);
+    });
+
+    it('should read the autofill source cell meta through visual indexes when a trimmed row precedes it', async() => {
+      handsontable({
+        data: [
+          ['trimmed'],
+          [''],
+          [''],
+          [''],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        // Only physical row 1 – the autofill source (visual row 0, since physical row 0 is
+        // trimmed) – is marked as preserved. `cells()` is called with physical coordinates.
+        cells(row, column) {
+          if (row === 1 && column === 0) {
+            return { type: 'text', preserveTextValue: true };
+          }
+
+          return { type: 'text' };
+        },
+        trimRows: [0],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await setDataAtCell(0, 0, '0123456');
+
+      // Physical row 0 is trimmed but still occupies a HyperFormula index (the engine is fed
+      // trimmed rows too), so the source cell's HF index (1) and its visual index (0) diverge –
+      // reading `getCellMeta()` with the raw HF index (1) lands on visual row 1 instead of the
+      // actual (visual row 0) source cell, and visual row 1 is not marked as preserved.
+      await selectCell(0, 0);
+      autofill(2, 0);
+
+      await waitForNextAnimationFrames(2);
+
+      // `getDataAtCol`/`getSourceDataAtCol` range over the raw physical row count, so they would
+      // include the trimmed row – read cell-by-cell through the visual (`getDataAtCell`) and
+      // physical (`getSourceDataAtCell`) coordinates instead.
+      expect(getDataAtCell(0, 0)).toBe('0123456');
+      expect(getDataAtCell(1, 0)).toBe('0123456');
+      expect(getDataAtCell(2, 0)).toBe('0123456');
+
+      expect(getSourceDataAtCell(1, 0)).toBe('0123456');
+      expect(getSourceDataAtCell(2, 0)).toBe('0123456');
+      expect(getSourceDataAtCell(3, 0)).toBe('0123456');
+
+      // Only physical row 1 (the source) carries `preserveTextValue`, so the engine keeps only
+      // that cell escaped – the filled cells are not preserved cells in their own right and are
+      // synced to the engine as plain text.
+      const filledHfCells = [1, 2, 3].map(row => formulasPlugin.engine.getCellSerialized({
+        sheet: formulasPlugin.sheetId, row, col: 0,
+      }));
+
+      expect(filledHfCells).toEqual(['\'0123456', '0123456', '0123456']);
+    });
+
+    it('should autofill an escaped formula expression from a preserveTextValue source without changing its escaping', async() => {
+      handsontable({
+        data: [
+          ['x', '=LEN(A1)'],
+          ['', '=LEN(A2)'],
+          ['', '=LEN(A3)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+          preserveTextValue: true,
+        }, {}],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      // `'=SUM(A1)` is the documented way to store a formula expression as plain text (a leading
+      // apostrophe escapes it from HyperFormula's formula parsing).
+      await setDataAtCell(0, 0, '\'=SUM(A1)');
+
+      // The source cell's own displayed value is the engine-computed one, apostrophe stripped.
+      expect(getDataAtCell(0, 0)).toBe('=SUM(A1)');
+
+      await selectCell(0, 0);
+      autofill(2, 0);
+
+      await waitForNextAnimationFrames(2);
+
+      // The escaped formula expression is excluded from the `preserveTextValue` stripping branch
+      // (`isPreservedText` returns `false` for it), so autofill must reach every filled cell with
+      // neither an apostrophe gained (it would then read as the literal text `'=SUM(A1)`) nor one
+      // lost (it would then be parsed by the engine as a real formula). `getDataAtCol` reads the
+      // displayed value (engine-computed, apostrophe stripped, matching the source cell's own
+      // displayed value above); `getSourceDataAtCol` reads the raw stored value (still escaped,
+      // as written).
+      expect(getDataAtCol(0)).toEqual(['=SUM(A1)', '=SUM(A1)', '=SUM(A1)']);
+      expect(getSourceDataAtCol(0)).toEqual(['\'=SUM(A1)', '\'=SUM(A1)', '\'=SUM(A1)']);
+
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['\'=SUM(A1)', '=LEN(A1)'],
+        ['\'=SUM(A1)', '=LEN(A2)'],
+        ['\'=SUM(A1)', '=LEN(A3)'],
+      ]);
+      expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)).toEqual([
+        ['=SUM(A1)', 8],
+        ['=SUM(A1)', 8],
+        ['=SUM(A1)', 8],
+      ]);
+    });
+
+    it('should resolve a date-typed autofill source that has a trimmed row preceding it', async() => {
+      handsontable({
+        data: [
+          ['trimmed'],
+          ['2020-01-01'],
+          [''],
+          [''],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        // Only physical row 1 (visual row 0, since physical row 0 is trimmed) is date-typed.
+        cells(row, column) {
+          if (row === 1 && column === 0) {
+            return { type: 'date' };
+          }
+
+          return {};
+        },
+        trimRows: [0],
+      });
+
+      // The source's HyperFormula index (1) is not its visual index (0). Resolving the source
+      // through the wrong axis reads a different cell's meta, which drops the `date` type and with
+      // it the reformat back into the Handsontable date format.
+      await selectCell(0, 0);
+      autofill(2, 0);
+
+      await waitForNextAnimationFrames(2);
+
+      expect(getDataAtCol(0)).toEqual(['2020-01-01', '2020-01-01', '2020-01-01']);
+    });
+
+    it('should respect the option set at the grid level (cascading configuration)', async() => {
+      handsontable({
+        data: [
+          ['0123456'],
+          ['=LEN(A1)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        type: 'text',
+        preserveTextValue: true,
+      });
+
+      expect(getPlugin('formulas').engine.getSheetValues(0)).toEqual([
+        ['0123456'],
+        [7],
+      ]);
+    });
+
+    it('should respect the option set through a columns function', async() => {
+      handsontable({
+        data: [
+          ['0123456', '0123456'],
+          ['=LEN(A1)', '=LEN(B1)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns(column) {
+          return column === 0 ? { type: 'text', preserveTextValue: true } : { type: 'text' };
+        },
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)).toEqual([
+        ['0123456', 123456],
+        [7, 6],
+      ]);
+    });
+
+    it('should respect the option set through a cells function declared on a column', async() => {
+      handsontable({
+        data: [
+          ['0123456', '0123456'],
+          ['=LEN(A1)', '=LEN(B1)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [
+          {
+            cells() {
+              return { type: 'text', preserveTextValue: true };
+            },
+          },
+          {},
+        ],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)).toEqual([
+        ['0123456', 123456],
+        [7, 6],
+      ]);
+    });
+
+    it('should respect the option set through the cell option', async() => {
+      handsontable({
+        data: [
+          ['0123456'],
+          ['=LEN(A1)'],
+        ],
+        columns: [{ type: 'text' }],
+        cell: [{ row: 0, col: 0, preserveTextValue: true }],
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      // The `cell` option is documented alongside `columns`/`cells()` as a way to set
+      // `preserveTextValue` – proved here through the public API, isolated from any other
+      // interaction (sorting, moves, nested rows) that the other `cell`-option cases layer on top.
+      expect(getDataAtCell(1, 0)).toBe(7);
+    });
+
+    it('should respect the option set per cell via the cells function on both the load and edit paths', async() => {
+      handsontable({
+        data: [
+          ['0123456', '0123456'],
+          ['=LEN(A1)', '=LEN(B1)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        cells(row, column) {
+          if (row === 0 && column === 0) {
+            return { type: 'text', preserveTextValue: true };
+          }
+        },
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      // The initial load path applies the `cells` function, so only the first column is preserved.
+      expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)).toEqual([
+        ['0123456', 123456],
+        [7, 6],
+      ]);
+
+      await loadData([
+        ['0999', '0999'],
+        ['=LEN(A1)', '=LEN(B1)'],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)).toEqual([
+        ['0999', 999],
+        [4, 3],
+      ]);
+
+      await setDataAtCell(0, 0, '0123456');
+      await setDataAtCell(0, 1, '0123456');
+
+      expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)).toEqual([
+        ['0123456', 123456],
+        [7, 6],
+      ]);
+    });
+
+    it('should restore the preserved value correctly on undo and redo', async() => {
+      handsontable({
+        data: [
+          ['0123456'],
+          ['=LEN(A1)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+          preserveTextValue: true,
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await setDataAtCell(0, 0, '00099');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([['00099'], [5]]);
+
+      getPlugin('undoRedo').undo();
+
+      expect(getDataAtCell(0, 0)).toBe('0123456');
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([['0123456'], [7]]);
+
+      getPlugin('undoRedo').redo();
+
+      expect(getDataAtCell(0, 0)).toBe('00099');
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([['00099'], [5]]);
+    });
+
+    it('should still treat a formula typed into a preserved text cell as a formula', async() => {
+      handsontable({
+        data: [
+          ['0123456'],
+          ['x'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+          preserveTextValue: true,
+        }],
+      });
+
+      await setDataAtCell(1, 0, '=LEN(A1)');
+
+      expect(getDataAtCell(1, 0)).toBe(7);
+    });
+
+    it('should preserve a value that already starts with an apostrophe', async() => {
+      handsontable({
+        data: [
+          ['x'],
+          ['=LEN(A1)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+          preserveTextValue: true,
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await setDataAtCell(0, 0, '\'0123');
+
+      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
+        ['\'0123'],
+        [5],
+      ]);
+    });
+
+    it('should not double-escape an escaped formula expression', async() => {
+      handsontable({
+        data: [
+          ['x'],
+          ['=LEN(A1)'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+        columns: [{
+          type: 'text',
+          preserveTextValue: true,
+        }],
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await setDataAtCell(0, 0, '\'=SUM(A1)');
+
+      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
+        ['\'=SUM(A1)'],
+        ['=LEN(A1)'],
+      ]);
+
+      expect(getDataAtCell(1, 0)).toBe(8); // the 8-character string "=SUM(A1)"
+    });
+
+    it('should escape preserved values correctly after sorting and updateData (physical row order)', async() => {
+      handsontable({
+        data: [['0123456'], ['9876543']],
+        columns: [{ type: 'text' }],
+        cell: [{ row: 0, col: 0, preserveTextValue: true }],
+        columnSorting: true,
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      await updateData([['0123456'], ['9876543']]);
+
+      const formulasPlugin = getPlugin('formulas');
+
+      // The `cell` option marks physical row 0, and the engine sheet is kept in visual order, so
+      // after the descending sort the preserved value is the only escaped one and it sits in the
+      // engine's second row.
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['9876543'],
+        ['\'0123456'],
+      ]);
+    });
+
+    it('should respect preserveTextValue when setting source data on a sorted grid', async() => {
+      handsontable({
+        data: [['0123456'], ['9876543']],
+        columns: [{ type: 'text' }],
+        cell: [{ row: 0, col: 0, preserveTextValue: true }],
+        columnSorting: true,
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      // `setSourceDataAtCell` takes a physical row index, and the `afterSetSourceDataAtCell` hook
+      // reports it unchanged. Physical row 0 is the preserved cell and, after the descending sort,
+      // it is visual row 1 – which is engine row 1, because the engine sheet follows the visual order.
+      await setSourceDataAtCell(0, 0, '0555');
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['9876543'],
+        ['\'0555'],
+      ]);
+    });
+
+    it('should respect preserveTextValue when setting source data at a trimmed row', async() => {
+      handsontable({
+        data: [['a'], ['b'], ['c']],
+        // `cells()` is called with physical coordinates, and only physical row 1 – the trimmed row –
+        // is marked as a preserved text cell. Neither of the visible rows is, so an escape appearing
+        // on one of them means the write consulted the wrong row's meta.
+        cells(row, column) {
+          if (row === 1 && column === 0) {
+            return { type: 'text', preserveTextValue: true };
+          }
+
+          return { type: 'text' };
+        },
+        trimRows: [1],
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      // `setSourceDataAtCell` takes a physical row index, and `afterSetSourceDataAtCell` reports it
+      // unchanged. Physical row 1 is trimmed, so it has no visual index at all – reading its meta or
+      // its engine address through the visual index space falls back to reading the physical index
+      // as a visual one, which resolves to physical row 2 (the third row) instead.
+      await setSourceDataAtCell(1, 0, '0123456');
+
+      const formulasPlugin = getPlugin('formulas');
+
+      // The engine holds trimmed rows too, so the written value stays in the engine's second row,
+      // escaped – and neither visible row is touched.
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['a'],
+        ['\'0123456'],
+        ['c'],
+      ]);
+    });
+
+    it('should escape an invalid date written through setSourceDataAtCell', async() => {
+      handsontable({
+        data: [
+          ['2020-01-01'],
+          ['=LEN(A1)'],
+        ],
+        columns: [{ type: 'date' }],
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      // An invalid date has to reach the engine escaped, or the engine parses `13/45/2021` as
+      // arithmetic. `syncChangeWithEngine` and `#escapeSourceDataArray` both escape it; this path
+      // has to agree with them.
+      await setSourceDataAtCell(0, 0, '13/45/2021');
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)[0]).toEqual([
+        '\'13/45/2021',
+      ]);
+      expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)[1]).toEqual([10]);
+    });
+
+    it('should read the valueGetter from the cells own column with moved columns', async() => {
+      handsontable({
+        data: [
+          { id: { label: '0123456' }, name: { label: 'a' } },
+        ],
+        columns: [
+          { data: 'id', type: 'text' },
+          { data: 'name', type: 'text' },
+        ],
+        // Stamps the PHYSICAL column the meta resolved from onto the value.
+        cells(row, column) {
+          return {
+            valueGetter(value) {
+              return (value && typeof value === 'object') ? `c${column}:${value.label}` : value;
+            },
+          };
+        },
+        manualColumnMove: true,
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      // Array-of-objects rows are built in VISUAL order, so after a move the array index and the
+      // physical column disagree - and the meta is read by physical coordinates.
+      getPlugin('manualColumnMove').moveColumn(1, 0);
+
+      await render();
+
+      await updateSettings({});
+
+      const p = getPlugin('formulas');
+
+      // Each value goes through its OWN column's `valueGetter`. Reading the array index as a
+      // physical column swaps them, so `0123456` would come back stamped `c1`.
+      // Two different column orders meet here, so the pairing matters more than the positions.
+      // `getSourceDataArray()` returns the row in VISUAL order - after the move that is
+      // [name, id] - and each index is translated back to its physical column before the meta
+      // read. `getSheetSerialized()` then reports the sheet in the engine's own column order,
+      // which the axis syncer keeps aligned with the physical one, so the pair comes back as
+      // [id, name].
+      //
+      // What this pins is the pairing, not either order: `0123456` is the `id` column's value and
+      // must carry `id`'s stamp (physical 0), `a` is `name`'s and must carry `name`'s (physical 1).
+      // Reading the array index as a physical column swaps them, giving `c1:0123456` and `c0:a`.
+      expect(p.engine.getSheetSerialized(p.sheetId)).toEqual([['c0:0123456', 'c1:a']]);
+    });
+
+    it('should escape preserved values correctly for array-of-objects data with moved columns', async() => {
+      handsontable({
+        data: [{ id: '0123456', name: 'a' }, { id: '7654321', name: 'b' }],
+        columns: [
+          { data: 'name', type: 'text' },
+          { data: 'id', type: 'text', preserveTextValue: true },
+        ],
+        manualColumnMove: true,
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+      const firstRow = [0, 1].map(col => formulasPlugin.engine.getCellSerialized({
+        sheet: formulasPlugin.sheetId, row: 0, col,
+      }));
+
+      // Exactly one column of the row is escaped, and it is the one holding the preserved value.
+      expect(firstRow.filter(value => value === '\'0123456').length).toBe(1);
+      expect(firstRow.filter(value => value === 'a').length).toBe(1);
+    });
+
+    it('should keep preserved text values escaped after disabling and enabling the plugin', async() => {
+      handsontable({
+        data: [['0123456'], ['=LEN(A1)']],
+        columns: [{ type: 'text', preserveTextValue: true }],
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      expect(getDataAtCell(1, 0)).toBe(7);
+
+      await updateSettings({ formulas: false });
+      await updateSettings({ formulas: { engine: HyperFormula } });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['\'0123456'],
+        ['=LEN(A1)'],
+      ]);
+      expect(getDataAtCell(1, 0)).toBe(7);
+    });
+
+    describe('reloading the same sheet after the escaping configuration changed', () => {
+      // A grid built without `data` records `#hotWasInitializedWithEmptyData`, so every later
+      // `afterCellMetaReset` reloads it FROM the engine through `switchSheet()` rather than
+      // rewriting the engine from the grid. That reload is where a value escaped under one
+      // configuration is read back under another.
+      const buildEmptyInitializedGrid = async(settings) => {
+        handsontable({
+          formulas: {
+            engine: HyperFormula,
+          },
+          ...settings,
+        });
+      };
+
+      it('should not leak the escape apostrophe when the option is turned off', async() => {
+        await buildEmptyInitializedGrid({ type: 'text', preserveTextValue: true });
+
+        await setDataAtCell(0, 0, '0123456');
+        await setDataAtCell(1, 0, '=LEN(A1)');
+
+        const plugin = getPlugin('formulas');
+
+        expect(plugin.engine.getSheetSerialized(plugin.sheetId)[0]).toEqual(['\'0123456']);
+        expect(getDataAtCell(1, 0)).toBe(7);
+
+        await updateSettings({ preserveTextValue: false });
+
+        // The gate now reports false at every layer, but the apostrophe was still this plugin's -
+        // the grid's own copy of the value proves it.
+        expect(getSourceDataAtCell(0, 0)).toBe('0123456');
+        expect(getDataAtCell(0, 0)).toBe('0123456');
+      });
+
+      it('should not leak the escape apostrophe when the column moves off the text type', async() => {
+        await buildEmptyInitializedGrid({ type: 'text', preserveTextValue: true });
+
+        await setDataAtCell(0, 0, '0123456');
+
+        await updateSettings({ type: 'numeric' });
+
+        expect(getSourceDataAtCell(0, 0)).toBe('0123456');
+      });
+
+      it('should recover when a dependent grid throws mid-write', async() => {
+        const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+        const shouldThrow = { current: false };
+        const $other = $('<div id="otherGrid"></div>').appendTo('body');
+
+        // A second grid on the same engine, reading this grid's sheet. `renderDependentSheets`
+        // renders it from inside the span `#internalOperationPending` is open across, and that
+        // span has no `try`/`finally` of its own.
+        const otherHot = new Handsontable($other[0], {
+          data: [['=Sheet1!A1']],
+          licenseKey: 'non-commercial-and-evaluation',
+          formulas: { engine, sheetName: 'other' },
+          afterRender() {
+            if (shouldThrow.current) {
+              throw new Error('dependent grid render failed');
+            }
+          },
+        });
+
+        handsontable({
+          data: [['1'], ['=A1+1']],
+          formulas: { engine, sheetName: 'Sheet1' },
+        });
+
+        expect(getDataAtCell(1, 0)).toBe(2);
+
+        shouldThrow.current = true;
+
+        // Changing the content is what gives `renderDependentSheets` something to render.
+        let thrown = null;
+
+        try {
+          await updateSettings({ data: [['9'], ['=A1+1']] });
+        } catch (error) {
+          thrown = error;
+        }
+
+        expect(thrown).not.toBe(null);
+
+        shouldThrow.current = false;
+
+        // The throw escaped the span that `#internalOperationPending` is open across, so the read
+        // hooks early-return and the formula cell reports its own raw text.
+        expect(getDataAtCell(1, 0)).toBe('=A1+1');
+
+        // The next structural operation has to bring it back. Several paths clear the flag today -
+        // the handlers below set and clear it themselves - so this pins the recovery contract
+        // rather than any single mechanism.
+
+        await loadData([['5'], ['=A1+1']]);
+
+        expect(getDataAtCell(1, 0)).toBe(6);
+
+        otherHot.destroy();
+        $other.remove();
+      });
+
+      it('should strip an escape the grid data cannot confirm, on an initial load from the engine',
+        async() => {
+          const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+          engine.addSheet('one');
+          // Escaped content already in the sheet, as this plugin writes it. On the INITIAL load the
+          // grid has only its auto-generated dataset, so its own data cannot confirm the strip -
+          // the cell meta is the only reference left.
+          engine.setSheetContent(engine.getSheetId('one'), [['\'0123456'], ['=LEN(A1)']]);
+
+          handsontable({
+            type: 'text',
+            preserveTextValue: true,
+            formulas: {
+              engine,
+              sheetName: 'one',
+            },
+          });
+
+          expect(getDataAtCell(0, 0)).toBe('0123456');
+          expect(getSourceDataAtCell(0, 0)).toBe('0123456');
+          expect(getDataAtCell(1, 0)).toBe(7);
+        });
+
+      it('should keep an apostrophe this plugin did not write', async() => {
+        // No `preserveTextValue`, so the plugin never escapes here. The engine uses the same
+        // character as its own string escape, so it stores the user's literal with exactly one
+        // apostrophe - stripping on sight would eat it.
+        await buildEmptyInitializedGrid({ type: 'text' });
+
+        await setDataAtCell(0, 0, '\'0777');
+
+        await updateSettings({ preserveTextValue: false });
+
+        expect(getSourceDataAtCell(0, 0)).toBe('\'0777');
+      });
+
+      it('should not leak the escape apostrophe when the columns setting skips a physical column',
+        async() => {
+          // `columns` exposes physical columns 0 and 2, skipping 1 - so the engine's column space
+          // is neither the physical nor a contiguous slice of it, and physical column 2 has no
+          // visual index at all.
+          handsontable({
+            columns: [
+              { data: 0, type: 'text', preserveTextValue: true },
+              { data: 2, type: 'text', preserveTextValue: true },
+            ],
+            formulas: {
+              engine: HyperFormula,
+            },
+          });
+
+          await setDataAtCell(0, 0, '0123456');
+          await setDataAtCell(0, 1, '0999');
+
+          const plugin = getPlugin('formulas');
+
+          expect(plugin.engine.getSheetSerialized(plugin.sheetId)[0]).toEqual([
+            '\'0123456',
+            '\'0999',
+          ]);
+
+          await updateSettings({
+            columns: [
+              { data: 0, type: 'text', preserveTextValue: false },
+              { data: 2, type: 'text', preserveTextValue: false },
+            ],
+          });
+
+          // Only the first column is asserted through the grid. The reload writes the engine's
+          // positional array straight into `loadData`, and with a non-contiguous `columns` map the
+          // second column's value lands on a physical column the grid does not expose - it comes
+          // back `null`. That predates this change and is independent of the escaping: it happens
+          // identically with the unescaping disabled.
+          expect(getDataAtCell(0, 0)).toBe('0123456');
+          expect(getSourceDataAtCell(0, 0)).toBe('0123456');
+        });
+
+      it('should keep an apostrophe this plugin did not write when the option is turned ON',
+        async() => {
+          // Written while the option was OFF, so the plugin never escaped it and the engine holds
+          // the user's literal with exactly one apostrophe. Turning the option ON afterwards must
+          // not make that value look like this plugin's own escape.
+          await buildEmptyInitializedGrid({ type: 'text' });
+
+          await setDataAtCell(0, 0, '\'0777');
+
+          const plugin = getPlugin('formulas');
+
+          expect(plugin.engine.getSheetSerialized(plugin.sheetId)[0]).toEqual(['\'0777']);
+
+          await updateSettings({ preserveTextValue: true });
+
+          expect(getSourceDataAtCell(0, 0)).toBe('\'0777');
+        });
+
+      it('should keep a user-escaped formula expression', async() => {
+        await buildEmptyInitializedGrid({ type: 'text', preserveTextValue: true });
+
+        // "'=" is the user's own escape, telling the engine to treat the formula as text.
+        // `isPreservedText()` excludes it, so the plugin never adds an apostrophe of its own.
+        await setDataAtCell(0, 0, '\'=SUM(1,2)');
+
+        await updateSettings({ preserveTextValue: false });
+
+        expect(getSourceDataAtCell(0, 0)).toBe('\'=SUM(1,2)');
+      });
+
+      it('should restore a preserved value that itself starts with an apostrophe', async() => {
+        await buildEmptyInitializedGrid({ type: 'text', preserveTextValue: true });
+
+        await setDataAtCell(0, 0, '\'0777');
+
+        const plugin = getPlugin('formulas');
+
+        // Escaped on top of the user's own apostrophe, so the engine holds it doubled.
+        expect(plugin.engine.getSheetSerialized(plugin.sheetId)[0]).toEqual(['\'\'0777']);
+
+        await updateSettings({ preserveTextValue: false });
+
+        expect(getSourceDataAtCell(0, 0)).toBe('\'0777');
+      });
+    });
+
+    it('should keep preserved text values escaped after detaching a row with the Nested Rows plugin', async() => {
+      handsontable({
+        data: [
+          {
+            col1: 'parent1',
+            __children: [
+              { col1: '0123456' },
+              { col1: 'child2' },
+            ],
+          },
+          { col1: 'parent2' },
+        ],
+        columns: [{ data: 'col1', type: 'text' }],
+        // Only one physical row is marked as a preserved text cell, so the escaping on the detach
+        // path has to read the meta of the exact row it writes – a wrong row offset lands on one of
+        // the unmarked rows and loses the escape.
+        cell: [{ row: 3, col: 0, preserveTextValue: true }],
+        nestedRows: true,
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      // Before the detach the marked physical row 3 holds `parent2`, while the child value sits in
+      // an ordinary text cell – so it reaches the engine unescaped, and the engine reads it as the
+      // number 123456.
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['parent1'],
+        ['0123456'],
+        ['child2'],
+        ['\'parent2'],
+      ]);
+      expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)[1]).toEqual([123456]);
+
+      // Detaching the child moves it below its former parent's block, so it becomes physical row 3
+      // – the preserved text cell. The `cell` markings stay with their physical coordinates, they do
+      // not follow the moved row.
+      getPlugin('nestedRows').dataManager.detachFromParent(
+        getPlugin('nestedRows').dataManager.getDataObject(1)
+      );
+
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['parent1'],
+        ['child2'],
+        ['\'parent2'],
+        ['\'0123456'],
+      ]);
+    });
+
+    it('should not leak the escape apostrophe into the grid when switching sheets', async() => {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+      engine.addSheet('one');
+      engine.addSheet('two');
+      engine.setSheetContent(engine.getSheetId('two'), [['other', 'values']]);
+
+      handsontable({
+        data: [['0123456', '13/45/2021']],
+        // Column-level meta – layout-independent, so the pre-`loadData` meta read in `switchSheet`
+        // resolves it the same way whichever sheet is currently loaded.
+        columns: [
+          { type: 'text', preserveTextValue: true },
+          { type: 'date' },
+        ],
+        formulas: {
+          engine,
+          sheetName: 'one',
+        },
+      });
+
+      const plugin = getPlugin('formulas');
+
+      // Both values are escaped in the engine: the preserved text value keeps its leading zero,
+      // and the invalid date is protected from the engine's date parsing.
+      expect(engine.getSheetSerialized(engine.getSheetId('one'))).toEqual([
+        ['\'0123456', '\'13/45/2021'],
+      ]);
+
+      plugin.switchSheet('two');
+      plugin.switchSheet('one');
+
+      // `getSheetSerialized` keeps the escape apostrophe, so the value written back by `loadData`
+      // has to be unescaped – otherwise a round trip through another sheet turns `0123456` into
+      // `'0123456`.
+      expect(getDataAtCell(0, 0)).toBe('0123456');
+      expect(getSourceDataAtCell(0, 0)).toBe('0123456');
+      expect(getDataAtCell(0, 1)).toBe('13/45/2021');
+      expect(getSourceDataAtCell(0, 1)).toBe('13/45/2021');
+
+      // The engine's own content is untouched by the read – it still holds the escaped values.
+      expect(engine.getSheetSerialized(engine.getSheetId('one'))).toEqual([
+        ['\'0123456', '\'13/45/2021'],
+      ]);
+    });
+
+    it('should not leak the escape apostrophe into the grid when reloading the engine sheet with ' +
+      'trimmed rows', async() => {
+      handsontable({
+        data: [
+          ['a'],
+          ['0123456'],
+          ['c'],
+        ],
+        columns: [{ type: 'text' }],
+        // The `cell` array is addressed with VISUAL coordinates, so visual row 0 is physical row 1 –
+        // the preserved text cell is the one holding `0123456`.
+        cell: [{ row: 0, col: 0, preserveTextValue: true }],
+        // The engine is fed trimmed rows too, so its row index counts physical row 0 while the
+        // visual row index does not. Reading the sheet back therefore has to translate the engine's
+        // row index, not assume it is a visual one.
+        trimRows: [0],
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      const plugin = getPlugin('formulas');
+
+      expect(plugin.engine.getSheetSerialized(plugin.sheetId)).toEqual([
+        ['a'],
+        ['\'0123456'],
+        ['c'],
+      ]);
+
+      plugin.switchSheet(plugin.sheetName);
+
+      expect(getSourceData()).toEqual([
+        ['a'],
+        ['0123456'],
+        ['c'],
+      ]);
+      expect(getDataAtCell(0, 0)).toBe('0123456');
+    });
+
+    it('should not leak the escape apostrophe into the grid after moving a preserved text cell', async() => {
+      handsontable({
+        data: [
+          ['0123456', '13/45/2021'],
+          [null, null],
+        ],
+        columns: [
+          { type: 'text', preserveTextValue: true },
+          { type: 'date' },
+        ],
+        moveCells: true,
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      // `getSheetSerialized` trims trailing empties, so the all-empty second row is absent here and
+      // comes back as `[]` after the move. The shape is deterministic, and asserting on the whole
+      // sheet is what pins down where the content is NOT – a move that also duplicated it into
+      // another row would slip past a per-cell read.
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['\'0123456', '\'13/45/2021'],
+      ]);
+
+      await selectCells([[0, 0, 0, 1]]);
+
+      getPlugin('moveCells').moveCellRange(getSelectedRangeLast(), cellCoords(1, 0));
+
+      await waitForNextAnimationFrames(2);
+
+      // `#syncHotDataAfterMoveCells` snapshots the moved cells with `getCellSerialized`, which keeps
+      // the escape apostrophe, and writes them back with `populateFromArray` – so the snapshot has
+      // to be unescaped before it reaches the grid.
+      expect(getDataAtCell(1, 0)).toBe('0123456');
+      expect(getSourceDataAtCell(1, 0)).toBe('0123456');
+      expect(getDataAtCell(1, 1)).toBe('13/45/2021');
+      expect(getSourceDataAtCell(1, 1)).toBe('13/45/2021');
+
+      // The moved cells stay escaped in the engine, so the preserved text value keeps its leading
+      // zero there as well – and the emptied source row holds nothing at all.
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        [],
+        ['\'0123456', '\'13/45/2021'],
+      ]);
+    });
+
+    it('should not leak the escape apostrophe into the grid when a moved preserved text cell lands ' +
+      'on a cell without the option', async() => {
+      handsontable({
+        data: [
+          ['0123456'],
+          [null],
+        ],
+        columns: [{ type: 'text' }],
+        // The option is set on the source cell alone. It is not a movable meta key, so the move
+        // target keeps its plain text meta – the unescaping has to read the meta the escape was
+        // applied from, not the one the value lands on.
+        cell: [{ row: 0, col: 0, preserveTextValue: true }],
+        moveCells: true,
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['\'0123456'],
+      ]);
+
+      await selectCells([[0, 0, 0, 0]]);
+
+      getPlugin('moveCells').moveCellRange(getSelectedRangeLast(), cellCoords(1, 0));
+
+      await waitForNextAnimationFrames(2);
+
+      expect(getDataAtCell(1, 0)).toBe('0123456');
+      expect(getSourceDataAtCell(1, 0)).toBe('0123456');
+
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        [],
+        ['\'0123456'],
+      ]);
     });
   });
 

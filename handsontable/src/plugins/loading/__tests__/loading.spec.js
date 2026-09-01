@@ -153,4 +153,64 @@ describe('Loading', () => {
     expect(getDataAtCell(0, 0)).toBe('new value');
     expect(hot.getSelected()).toBeUndefined();
   });
+
+  describe('nested grid (non-root instance)', () => {
+    it('should not enable the plugin in a grid nested in the `handsontable` cell type', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            data: createSpreadsheetData(2, 2),
+            loading: true,
+          },
+        }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const innerHot = getActiveEditor().htEditor;
+
+      // The loading indicator renders through the Dialog plugin, which is available on the main
+      // instance only. The plugin declines to enable instead of throwing, and it must not turn the
+      // `dialog` setting on in the nested grid either (DEV-2641).
+      expect(getActiveEditor().isOpened()).toBe(true);
+      expect(innerHot.countRows()).toBe(2);
+      expect(innerHot.getPlugin('loading').isEnabled()).toBe(false);
+      expect(innerHot.getPlugin('loading').enabled).toBe(false);
+      expect(innerHot.getSettings().dialog).toBe(false);
+
+      // An update carrying the plugin's own key reaches the enable-on-update branch of
+      // `BasePlugin#onUpdateSettings`, which the editor's own width/height update does not.
+      await innerHot.updateSettings({ loading: true });
+
+      expect(innerHot.getPlugin('loading').isEnabled()).toBe(false);
+      expect(innerHot.getPlugin('loading').enabled).toBe(false);
+      expect(innerHot.getSettings().dialog).toBe(false);
+    });
+
+    it('should keep the root instance loading indicator working when a nested grid asks for one too', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            data: createSpreadsheetData(2, 2),
+            loading: true,
+          },
+        }],
+        loading: true,
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp('escape');
+
+      getPlugin('loading').show({ title: 'Loading root' });
+
+      expect(getPlugin('loading').enabled).toBe(true);
+      expect(getPlugin('loading').isVisible()).toBe(true);
+    });
+  });
 });

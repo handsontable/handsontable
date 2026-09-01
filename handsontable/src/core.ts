@@ -76,7 +76,7 @@ import type { ThemeBuilder } from './themes/engine/builder';
 import type { ThemeOverridesInput } from './themes/engine/manager';
 import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
-import type { CellChange, CellProperties } from './settings';
+import type { CellChange, CellProperties, ColumnDataGetterSetterFunction } from './settings';
 import type { GridHelperInstance, HotInstance, ViewportScrollerInstance } from './core/types';
 import type { FocusScopeManager } from './focusManager/scopeManager';
 import type { SelectionTableProps } from './selection/types';
@@ -1375,15 +1375,22 @@ export default function Core(
       switch (method) {
         case 'shift_down':
           // translate data from a list of rows to a list of columns
-          const populatedDataByColumns: unknown[][] = pivot(input) as unknown[][];
+          const populatedDataByColumns: unknown[][] = pivot(input);
           const numberOfDataColumns = populatedDataByColumns.length;
+
+          // Every input row is empty, so there is nothing to populate. Bailing out here also keeps
+          // the `c % numberOfDataColumns` lookup below from dividing by zero and reading `NaN`.
+          if (numberOfDataColumns === 0) {
+            return false;
+          }
+
           // method's argument can extend the range of data population (data would be repeated)
 
           const numberOfColumnsToPopulate = Math.max(numberOfDataColumns, columnsPopulationEnd);
           const pushedDownDataByRows = instance.getData().slice(startRow!);
 
           // translate data from a list of rows to a list of columns
-          const pushedDownDataByColumns: unknown[][] = (pivot(pushedDownDataByRows) as unknown[][])
+          const pushedDownDataByColumns: unknown[][] = pivot(pushedDownDataByRows)
             .slice(startColumn!, startColumn! + numberOfColumnsToPopulate);
 
           for (c = 0; c < numberOfColumnsToPopulate; c += 1) {
@@ -1409,7 +1416,7 @@ export default function Core(
             }
           }
 
-          instance.populateFromArray(startRow!, startColumn!, pivot(newDataByColumns) as unknown[][]);
+          instance.populateFromArray(startRow!, startColumn!, pivot(newDataByColumns));
 
           break;
 
@@ -1684,6 +1691,29 @@ export default function Core(
     globalMeta[className] = classSettings;
   }
 
+  /**
+   * Registers a hook callback declared in a settings object as a local hook of this instance.
+   *
+   * The callback is also written to the table meta, so that `getSettings()` returns it back.
+   *
+   * @private
+   * @param {string} key A hook name.
+   * @param {Function|Function[]} hook A callback, or an array of callbacks, to register.
+   */
+  function registerSettingsHook(key: string, hook: HookCallback | HookCallback[] | undefined) {
+    if (isFunction(hook)) {
+      Hooks.getSingleton().addAsFixed(key, hook, instance);
+
+    } else if (Array.isArray(hook)) {
+      Hooks.getSingleton().add(key, hook, instance);
+
+    } else {
+      return;
+    }
+
+    tableMeta[key] = hook;
+  }
+
   this.init = function() {
     const theme = tableMeta.theme;
     const themeName = tableMeta.themeName;
@@ -1698,6 +1728,16 @@ export default function Core(
     }
 
     dataSource.setData(tableMeta.data);
+
+    // `updateSettings()` below registers the callbacks declared in the settings object, which is too
+    // late for `beforeInit` — hence registering that one here. Re-adding the same reference is a no-op.
+    // Only `beforeInit` is pulled forward: doing it for the rest would order settings-declared
+    // callbacks ahead of the plugin callbacks registered while `beforeInit` runs.
+    // Note for whoever deprecates this hook: it passes through the helper twice. The function form
+    // stays silent, but `Hooks#add` (the array form) warns on every attach without deduping, so an
+    // array-form `beforeInit` would then warn twice per instance.
+    registerSettingsHook('beforeInit', mergedUserSettings.beforeInit as HookCallback | HookCallback[] | undefined);
+
     instance.runHooks('beforeInit');
 
     if (isMobileBrowser() || isIpadOS()) {
@@ -2304,13 +2344,14 @@ export default function Core(
   /**
    * @ignore
    * @param {number} row The visual row index.
-   * @param {string|number} propOrCol The visual prop or column index.
+   * @param {string|number|Function} propOrCol The visual prop, the column index, or a `columns[].data`
+   *   accessor function.
    * @param {*} value The cell value.
    * @returns {Array}
    */
-  function setDataInputToArray(
-    row: number | Array<[number, string | number, unknown]>, propOrCol: string | number, value: unknown
-  ): Array<[number, string | number, unknown]> {
+  function setDataInputToArray<TProp extends string | number | ColumnDataGetterSetterFunction = string | number>(
+    row: number | Array<[number, TProp, unknown]>, propOrCol: TProp, value: unknown
+  ): Array<[number, TProp, unknown]> {
     if (Array.isArray(row)) { // it's an array of changes
       return row;
     }
@@ -2354,7 +2395,7 @@ export default function Core(
         cellProperties = { ...Object.getPrototypeOf(tableMeta) as Record<string, unknown>, ...tableMeta };
       }
 
-      filteredChanges[i][3] = getValueSetterValue(newValue, cellProperties);
+      filteredChanges[i][3] = getValueSetterValue(newValue, cellProperties, source);
     }
 
     return filteredChanges;
@@ -2555,6 +2596,8 @@ export default function Core(
    * @param {number} [endCol] End visual column index (use when you want to cut input when certain column is reached).
    * @param {string} [source=populateFromArray] Used to identify this call in the resulting events (beforeChange, afterChange).
    * @param {string} [method=overwrite] Populate method, possible values: `'shift_down'`, `'shift_right'`, `'overwrite'`.
+   * The `input` rows may differ in length. The widest row sets the width of the populated area, and
+   * a shorter row fills the positions it does not reach with the empty-cell value (`null`).
    * @returns {object|undefined} Ending td in pasted area (only if any cell was changed).
    */
   this.populateFromArray = function(
@@ -3475,19 +3518,16 @@ export default function Core(
         instance.view._wt.wtOverlays.syncOverlayTableClassNames();
 
       } else if (Hooks.getSingleton().isRegistered(i) || Hooks.getSingleton().isDeprecated(i)) {
-        const hook = settings[i] as HookCallback | HookCallback[] | undefined;
-
-        if (isFunction(hook)) {
-          Hooks.getSingleton().addAsFixed(i, hook, instance);
-          tableMeta[i] = hook;
-
-        } else if (Array.isArray(hook)) {
-          Hooks.getSingleton().add(i, hook, instance);
-          tableMeta[i] = hook;
-        }
+        registerSettingsHook(i, settings[i] as HookCallback | HookCallback[] | undefined);
 
       } else if (!init && hasOwnProperty(settings, i)) { // Update settings
-        globalMeta[i] = settings[i];
+        // An `editor` of `true` names no editor, so it reads as "the setting was not passed" — and a
+        // setting that is not passed leaves the previous value alone. Writing the boolean here would
+        // bypass `normalizeEditorSetting()`, which only runs on the layer `updateMeta` calls, and
+        // park a bare `true` on the global meta for every cell to inherit.
+        if (i !== 'editor' || settings[i] !== true) {
+          globalMeta[i] = settings[i];
+        }
       }
     }
 
@@ -3741,8 +3781,6 @@ export default function Core(
     // scrollbar and every column stays reachable. Clipping those would silently hide the off-width
     // columns with no scrollbar. A definite width (`px`, `em`, `rem`, and other absolute lengths)
     // establishes a fixed box the table must not visually overflow, so it is clipped.
-    // Browser compatibility: `overflow-x: clip` requires Safari 16+. On Safari 14.1–15.x it silently
-    // falls back to `visible` (graceful degradation — pre-existing behavior, not a new regression).
     if (typeof settings.height !== 'undefined' || typeof settings.width !== 'undefined') {
       const effectiveHeight = instance.rootElement.style.height;
       const effectiveWidth = instance.rootElement.style.width;
@@ -3836,12 +3874,12 @@ export default function Core(
    *
    * The returned object contains the settings passed to the constructor or the most recent
    * `updateSettings()` call. It reflects the
-   * [grid-level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options)
+   * [grid-level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options)
    * configuration only.
    *
    * It does not include merged per-cell or per-column values. Configuration options cascade from
    * grid to column to cell (see
-   * [Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)).
+   * [Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)).
    * To read the effective value for a specific cell, use [[getCellMeta]]. To read column-level meta, use [[getColumnMeta]].
    *
    * @memberof Core#
@@ -4059,7 +4097,9 @@ export default function Core(
    * @memberof Core#
    * @function colToProp
    * @param {number} column Visual column index.
-   * @returns {string|number} Column property or physical column index.
+   * @returns {string|number} Column property or physical column index. When the column's `data`
+   *   option is an accessor function, that function is returned at runtime – check
+   *   `typeof` before treating the result as a property name.
    */
   this.colToProp = function(column: number) {
     return datamap.colToProp(column);
@@ -4308,20 +4348,30 @@ export default function Core(
    * @memberof Core#
    * @function setSourceDataAtCell
    * @param {number|Array} row Physical row index or array of changes in format `[[row, prop, value], ...]`.
-   * @param {number|string} column Physical column index / prop name.
+   * @param {number|string|Function} column Physical column index, prop name, or a `columns[].data`
+   *   accessor function (called as `accessor(rowObject, value)`).
    * @param {*} value The value to be set at the provided coordinates.
    * @param {string} [source] Source of the change as a string.
    */
 
   this.setSourceDataAtCell = function(
-    row: number | Array<[number, string | number, unknown]>, column: number | string, value: unknown, source: string
+    row: number | Array<[number, string | number | ColumnDataGetterSetterFunction, unknown]>,
+    column: number | string | ColumnDataGetterSetterFunction, value: unknown, source: string
   ) {
     const input = setDataInputToArray(row, column, value);
     const isThereAnySetSourceListener = instance.hasHook('afterSetSourceDataAtCell');
     const changesForHook: Array<Array<unknown>> = [];
-    const getCellProperties = (changeRow: number, changeProp: string | number): CellProperties => {
+    const getCellProperties = (
+      changeRow: number, changeProp: string | number | ColumnDataGetterSetterFunction
+    ): CellProperties => {
       const visualRow = instance.toVisualRow(changeRow);
-      const visualColumn = instance.toVisualColumn(changeProp as number);
+      // A function prop resolves through the accessor-aware `propToCol` cache, so an accessor
+      // column reads its own column meta (`valueSetter`, `sourceDataValidator`) instead of the
+      // table-meta fallback; an unresolvable accessor comes back as the function itself and
+      // falls through to that fallback below.
+      const visualColumn: unknown = typeof changeProp === 'function'
+        ? datamap.propToCol(changeProp)
+        : instance.toVisualColumn(changeProp as number);
 
       if (Number.isInteger(visualColumn)) {
         // The transient read keeps a bulk source-data write from permanently materializing one
@@ -4344,6 +4394,7 @@ export default function Core(
         const newValue = getValueSetterValue(
           changeValue,
           getCellProperties(changeRow, changeProp),
+          source,
         );
 
         changesForHook.push([
@@ -4359,12 +4410,14 @@ export default function Core(
       const cellMeta = getCellProperties(changeRow, changeProp);
       const newValue = getValueSetterValue(
         changeValue,
-        cellMeta
+        cellMeta,
+        source
       );
 
       if (runSourceDataValidator(newValue, cellMeta, source ?? 'setSourceDataAtCell')) {
-        // changeProp is a physical column index for array-based data sources.
-        dataSource.setAtCell(changeRow, changeProp as string | number, newValue);
+        // changeProp is a physical column index, a prop name, or a `columns[].data` accessor
+        // function for array-based data sources.
+        dataSource.setAtCell(changeRow, changeProp, newValue);
       }
     });
 
@@ -4402,11 +4455,12 @@ export default function Core(
    * @memberof Core#
    * @function getSourceDataAtCell
    * @param {number} row Physical row index.
-   * @param {number} column Visual column index.
+   * @param {number|string|Function} column Visual column index, prop name, or a `columns[].data`
+   *   accessor function (called as `column(dataRow)`).
    * @returns {*} Cell data.
    */
   // TODO: Getting data from `sourceData` should work always on physical indexes.
-  this.getSourceDataAtCell = function(row: number, column: number) {
+  this.getSourceDataAtCell = function(row: number, column: number | string | ColumnDataGetterSetterFunction) {
     return dataSource.getAtCell(row, column);
   };
 
@@ -4665,7 +4719,7 @@ export default function Core(
    * Returns the cell properties object for the given `row` and `column` coordinates.
    *
    * The returned object reflects the effective cell configuration after
-   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+   * [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
    * (grid, column, and cell levels). To read global grid settings only, use [[getSettings]].
    * To read column-level meta, use [[getColumnMeta]].
    *
@@ -4705,7 +4759,7 @@ export default function Core(
    * retaining it in the cell meta cache.
    *
    * Like [[getCellMeta]], the returned object reflects the effective cell configuration after
-   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+   * [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
    * and dynamic extension (the `cells` function and the `beforeGetCellMeta`/`afterGetCellMeta`
    * hooks run). Unlike `getCellMeta`, when the cell has no stored meta object the extension runs
    * on a temporary object that is not saved, so scanning many cells (for example, a whole column
@@ -4748,7 +4802,7 @@ export default function Core(
    * Returns the meta information for the provided column.
    *
    * The returned object reflects the column-level configuration after
-   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+   * [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
    * (grid and column levels). To read global grid settings only, use [[getSettings]].
    * To read the effective configuration for a specific cell, use [[getCellMeta]].
    *
@@ -4776,7 +4830,7 @@ export default function Core(
 
   /**
    * Checks if your [data format](@/guides/getting-started/binding-to-data/binding-to-data.md#compatible-data-types)
-   * and [configuration options](@/guides/getting-started/configuration-options/configuration-options.md)
+   * and [configuration options](@/guides/configuration/configuration-options/configuration-options.md)
    * allow for changing the number of columns.
    *
    * Returns `false` when your data is an array of objects,
@@ -4844,7 +4898,12 @@ export default function Core(
 
     type EditorConstructor = (new (hotInstance: HotInstance) => unknown) & { EDITOR_TYPE?: string };
 
-    return (isUndefined(cellEditor) ? getEditor('text') : cellEditor) as EditorConstructor;
+    // An `editor` of `true` names no editor. The meta layers already drop it on the way in, so
+    // reaching this branch means it was written straight onto the cell meta (for example by a
+    // `beforeGetCellMeta` hook). Fall back to the default editor rather than returning the bare
+    // boolean, which `getEditorInstance()` cannot resolve and would throw on.
+    return ((isUndefined(cellEditor) || cellEditor === true) ?
+      getEditor('text') : cellEditor) as EditorConstructor;
   };
 
   /**
@@ -5259,6 +5318,11 @@ export default function Core(
   /**
    * Returns the width of the requested column.
    *
+   * Passing [`colWidths`](@/api/options.md#colwidths) to
+   * [`updateSettings()`](@/api/core.md#updatesettings) discards the widths stored by
+   * [`ManualColumnResize`](@/api/manualColumnResize.md), so the option applies again from that point
+   * on.
+   *
    * @memberof Core#
    * @function getColWidth
    * @param {number} column Visual column index.
@@ -5332,6 +5396,10 @@ export default function Core(
    *   4. `undefined`, if neither [`ManualRowResize`](@/api/manualRowResize.md),
    *     nor [`rowHeights`](@/api/options.md#rowheights),
    *     nor [`AutoRowSize`](@/api/autoRowSize.md) is used.
+   *
+   * Passing [`rowHeights`](@/api/options.md#rowheights) to
+   * [`updateSettings()`](@/api/core.md#updatesettings) discards the heights stored by
+   * [`ManualRowResize`](@/api/manualRowResize.md), so the option applies again from that point on.
    *
    * The height returned includes 1 px of the row's bottom border.
    *

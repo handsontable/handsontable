@@ -18,6 +18,26 @@ Documentation-only, test-only, and CI/tooling PRs **pass automatically** — no 
 ...and re-run the failed **Changelog** check from the PR's checks tab (or push any new commit — `git commit --allow-empty` works). The check reads the PR body at run time; editing the description alone does not re-trigger it. The override is logged together with the source files it waves through, so reviewers can judge it.
 
 
+## One entry per changelog section
+
+**A PR never adds two entries that land in the same `CHANGELOG.md` section for the same package.** One entry per PR is the norm.
+
+One entry stays the norm even when the PR fixes several issues, touches several packages, or makes several distinct user-facing changes — the single title describes the overall change. Two entries that share a `type` and a `framework` land as two overlapping lines in the same section, and a reader cannot tell they came from one change. If one title cannot carry everything the PR does, split the PR, not the entry.
+
+A second entry is correct only when it lands somewhere else — a different `type`, or a different `framework`. The common case is a public issue fixed alongside a private behavior change: `fixed` plus `changed`. Those two cannot fold into one file, because a file carries one `type` and `type` picks the section.
+
+The CI gate does not count entries. It only asserts that a source change adds at least one, so this rule rests on the author and the reviewer.
+
+Check before you commit the entry:
+
+```bash
+git fetch origin develop
+git diff --name-only --diff-filter=A origin/develop...HEAD -- '.changelogs/*.json'
+```
+
+Read the `type` and `framework` of every path it lists. Two paths that share both are wrong — fold them together and delete the extra. Swap `develop` for the PR's base branch when you target a release branch.
+
+
 ## Entry format
 
 Every `.json` file in this directory holds a single entry with six required fields:

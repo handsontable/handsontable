@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>freeze_column / unfreeze_column in the dropdown menu e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    .grid { margin-bottom: 1.5rem; }
+  </style>
+</head>
+<body>
+  <!--
+    GitHub #5429. `freeze_column` and `unfreeze_column` worked as `contextMenu` keys but not as
+    `dropdownMenu` keys. The two menus build their items from separate hooks, and
+    ManualColumnFreeze registered only `afterContextMenuDefaultOptions`. An unknown key falls
+    through ItemsFactory as a bare `{ name, key }` placeholder, so the dropdown menu rendered a row
+    labelled with the RAW KEY that did nothing when clicked.
+
+    The dropdown menu rebuilds that list every time it opens, so the grids below cover the settings
+    toggle in both directions as well as the menu contents.
+  -->
+  <div id="custom-keys" class="grid" data-testid="custom-keys"></div>
+  <div id="default-menu" class="grid" data-testid="default-menu"></div>
+  <div id="context-control" class="grid" data-testid="context-control"></div>
+  <div id="plugin-off" class="grid" data-testid="plugin-off"></div>
+  <div id="toggle" class="grid" data-testid="toggle"></div>
+  <div id="toggle-off-start" class="grid" data-testid="toggle-off-start"></div>
+  <div id="filters-order" class="grid" data-testid="filters-order"></div>
+  <div id="other-keys" class="grid" data-testid="other-keys"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    // Named headers, not the positional A/B/C defaults. A named header travels with its column, so
+    // "which column ended up frozen" is readable straight off the header row — the positional
+    // defaults would still read A, B, C after the move and prove nothing.
+    const COLUMN_HEADERS = ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot'];
+
+    const DATA = [
+      ['a1', 'b1', 'c1', 'd1', 'e1', 'f1'],
+      ['a2', 'b2', 'c2', 'd2', 'e2', 'f2'],
+      ['a3', 'b3', 'c3', 'd3', 'e3', 'f3'],
+    ];
+
+    const MENU_KEYS = ['freeze_column', 'unfreeze_column'];
+
+    // Stamps the header with its NAME, so a test can address a column without counting DOM
+    // positions. The grid is narrower than its columns and virtualizes them, so `nth-child(n)`
+    // stops meaning "visual column n" as soon as the grid scrolls sideways — and freezing moves
+    // the header into a different overlay clone on top of that.
+    const stampHeader = function(column, TH) {
+      if (column >= 0) {
+        TH.setAttribute('data-testid', `header-${COLUMN_HEADERS[this.toPhysicalColumn(column)]}`);
+      }
+    };
+
+    const baseSettings = {
+      colHeaders: COLUMN_HEADERS,
+      rowHeaders: true,
+      colWidths: 100,
+      // Narrower than the columns add up to, so the grid scrolls sideways — the state in which the
+      // reporter noticed the column was not actually frozen.
+      width: 420,
+      height: 200,
+      afterGetColHeader: stampHeader,
+      licenseKey: 'non-commercial-and-evaluation',
+    };
+
+    /**
+     * Build one grid. A constructor that throws must not take the whole page down with it —
+     * otherwise the later grids never render and every test fails for the same reason, hiding
+     * which scenario actually broke. The thrown message is stamped on the container so a failure
+     * reads as the real error instead of a bare "element not visible".
+     */
+    function build(testId, settings) {
+      const container = document.querySelector(`[data-testid="${testId}"]`);
+
+      container.className = `grid ht-theme-${window.htTheme}`;
+
+      try {
+        return new Handsontable(container, Object.assign({}, baseSettings, { data: DATA.map(row => row.slice()) }, settings));
+      } catch (error) {
+        container.setAttribute('data-init-error', String(error && error.message));
+
+        return null;
+      }
+    }
+
+    window.hots = {
+      // The reported config: the two keys listed explicitly as dropdown menu items.
+      'custom-keys': build('custom-keys', {
+        manualColumnFreeze: true,
+        dropdownMenu: MENU_KEYS,
+      }),
+      // `dropdownMenu: true` takes its items from DropdownMenu.DEFAULT_ITEMS plus whatever the
+      // enabled plugins contribute — the same way `contextMenu: true` already picked these up.
+      'default-menu': build('default-menu', {
+        manualColumnFreeze: true,
+        dropdownMenu: true,
+      }),
+      // The path that already worked before the fix. Kept as a regression control: the fix adds a
+      // second hook registration and must not disturb the first.
+      'context-control': build('context-control', {
+        manualColumnFreeze: true,
+        contextMenu: MENU_KEYS,
+      }),
+      // Same keys, plugin OFF. Nothing contributes the entries, so both keys stay unknown to the
+      // menu and render as the raw-key placeholder rows ItemsFactory emits for any unknown key.
+      'plugin-off': build('plugin-off', {
+        manualColumnFreeze: false,
+        dropdownMenu: MENU_KEYS,
+      }),
+      // For toggling `manualColumnFreeze` off through updateSettings after the menu has been built.
+      'toggle': build('toggle', {
+        manualColumnFreeze: true,
+        dropdownMenu: true,
+      }),
+      // Starts DISABLED, so the hook is not registered when the menu is first built and the entry
+      // is absent from the list entirely. Only rebuilding the list on open can bring it back —
+      // an enabled-aware `hidden()` has nothing to reveal.
+      'toggle-off-start': build('toggle-off-start', {
+        manualColumnFreeze: false,
+        dropdownMenu: true,
+      }),
+      // Filters owns the bulk of the column menu, so the freeze entries have to land after it.
+      'filters-order': build('filters-order', {
+        manualColumnFreeze: true,
+        dropdownMenu: true,
+        filters: true,
+      }),
+      // A custom item list that does NOT name the freeze keys, with the plugin on. The entries
+      // must not be injected into someone else's menu.
+      'other-keys': build('other-keys', {
+        manualColumnFreeze: true,
+        dropdownMenu: ['col_left', 'col_right'],
+      }),
+    };
+
+    window.columnHeaders = COLUMN_HEADERS;
+  </script>
+</body>
+</html>

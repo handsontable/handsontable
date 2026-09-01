@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../core/types';
 import type { CellProperties } from '../../settings';
+import { EDITOR_STATE } from '../baseEditor';
 import { HandsontableEditor } from '../handsontableEditor';
 import { pivot } from '../../helpers/array';
 import { isKeyValueObject, isObject } from '../../helpers/object';
@@ -77,6 +78,30 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @type {string}
    */
   #idPrefix = this.hot.guid.slice(0, 9);
+  /**
+   * Generation token for the in-flight choices query. Bumped on every `queryChoices()` call, so a
+   * response belonging to a superseded query can be told apart from the one the editor is waiting
+   * for.
+   *
+   * @type {number}
+   */
+  #queryGeneration = 0;
+  /**
+   * Edit-session token. Bumped on every `close()`, so a `source` response can tell that the edit it
+   * belongs to has ended - which neither `state` nor `_opened` reports reliably. Only the response
+   * needs a token: user code holds that callback and there is nothing to cancel, while the editor's
+   * own deferred queries are cancelled outright through `#queryTimeouts`.
+   *
+   * @type {number}
+   */
+  #editSession = 0;
+  /**
+   * Timer ids of the `queryChoices()` calls this editor has deferred and not yet run. Cleared on
+   * `close()`, so a query scheduled during an edit never runs after it.
+   *
+   * @type {Set}
+   */
+  #queryTimeouts: Set<ReturnType<typeof setTimeout>> = new Set();
 
   /**
    * Gets current value from editable element.
@@ -277,15 +302,56 @@ export class AutocompleteEditor extends HandsontableEditor {
       setAttribute(this.TEXTAREA, ...A11Y_EXPANDED('true'));
     }
 
-    this.hot._registerTimeout(() => {
+    this.#deferQuery();
+  }
+
+  /**
+   * Defers a `queryChoices()` call and keeps its timer id so `close()` can cancel it.
+   *
+   * `hot._registerTimeout()` has no cancel path of its own - `_clearTimeouts()` runs only from
+   * `Core#destroy()` - so without this a query scheduled during an edit still fires after the
+   * editor closed, and starts a fresh request against a cell nobody is editing.
+   *
+   * @param {number} [delay] Delay in milliseconds.
+   */
+  #deferQuery(delay: number = 0): void {
+    const timeoutId = this.hot._registerTimeout(() => {
+      this.#queryTimeouts.delete(timeoutId);
       this.queryChoices(this.TEXTAREA.value);
-    });
+    }, delay);
+
+    this.#queryTimeouts.add(timeoutId);
   }
 
   /**
    * Closes the editor.
    */
   close(): void {
+    // The debounced refocus is armed by the inner grid's `afterScroll` and runs 100 ms later. It
+    // outlives the close by the same route the choices response used to, and `hideEditableElement()`
+    // only sets `opacity: 0`, so its `focus()` puts the caret back into a closed editor. The next
+    // scroll of a reopened list re-arms it, so cancelling here loses nothing.
+    this.#focusDebounced.cancel();
+
+    // Ends the edit session. Closing is the one event that reliably means "no response is wanted
+    // any more": `state` stays `EDITING` when `refreshDimensions()` closes an editor whose cell
+    // scrolled out of the rendered range and when `afterSetTheme` closes one (`assignHooks`), and
+    // `_opened` stays false after that same cell scrolls back and the editor is shown again.
+    //
+    // Queries this editor deferred are cancelled outright; the token below is for the ones already
+    // handed to user code, which cannot be.
+    //
+    // Known limitation: `refreshDimensions()` also calls `close()` as "hide for now" when the
+    // edited cell scrolls out of the rendered range, and there is no signal here to tell that apart
+    // from "the edit ended". So after the cell scrolls back the editor is visible again but its
+    // list can no longer populate. That path was already one-way before this change - the
+    // `removeHooksByKey` below means typing could not re-query after a scroll round trip either -
+    // and separating the two meanings belongs in `TextEditor`, not here.
+    this.#queryTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+    this.#queryTimeouts.clear();
+
+    this.#editSession += 1;
+
     this.removeHooksByKey('beforeKeyDown');
     super.close();
 
@@ -311,17 +377,57 @@ export class AutocompleteEditor extends HandsontableEditor {
   /**
    * Prepares choices list based on applied argument.
    *
+   * Does nothing when the editor is not editing, and ignores a `source` response that arrives after
+   * the editor closed or after a newer query started.
+   *
    * @param {string} query The query.
    */
   queryChoices(query: string): void {
+    // `close()` cancels the queries this editor deferred, so no internal caller reaches here once
+    // an edit has ended. This guard is for the public method: `queryChoices()` ships in the type
+    // declarations, and calling it while no edit is in progress must not invoke the user's
+    // `source`, which is typically a network request.
+    //
+    // `WAITING` counts as in progress. `close()` is what unhooks `beforeKeyDown`, so keystrokes
+    // still schedule queries while an async validator runs, and under `allowInvalid: false` the
+    // editor stays open and returns to `EDITING`. Rejecting them would stop the list refreshing for
+    // the length of every validation, which is a behavior change rather than a fix.
+    //
+    // `state` rather than `isOpened()`: `_opened` stays false after `refreshDimensions()` closes an
+    // editor whose cell scrolled out of view and then shows it again on the way back, without ever
+    // restoring the flag.
+    if (this.state !== EDITOR_STATE.EDITING && this.state !== EDITOR_STATE.WAITING) {
+      return;
+    }
+
     type SourceValue = unknown[] | ((query: string, callback: (choices: unknown[]) => void) => void);
     const source = this.cellProperties.source as SourceValue | undefined;
+    const generation = this.#queryGeneration + 1;
+    const editSession = this.#editSession;
 
+    this.#queryGeneration = generation;
     this.query = query;
 
     if (typeof source === 'function') {
       type SourceFn = (query: string, callback: (choices: unknown[]) => void) => void;
+
       (source as SourceFn).call(this.cellProperties, query, (choices: unknown[]) => {
+        // A user-supplied source answers whenever it likes, and `HandsontableEditor.close()` only
+        // hides the nested grid, so a late response can still re-show the dropdown and pull focus
+        // back through `hot.listen()`. Two ways a response stops being the one the editor waits
+        // for, one token each: the edit ended, or a newer query superseded it. Deliberately no
+        // state check - a response landing while an async validator holds the editor in `WAITING`
+        // belongs to the still-open editor, and rejecting it would leave the list empty for the
+        // rest of the edit when `allowInvalid: false` sends the state back to `EDITING`.
+        // `Core#destroy()` reaches neither token - it never closes the active editor - and
+        // `updateChoicesList()` would then touch an `htEditor` whose root element is gone. The
+        // guide tells people to answer late, and in a single-page app a torn-down grid is the
+        // usual way that happens.
+        if (this.hot.isDestroyed || editSession !== this.#editSession ||
+            generation !== this.#queryGeneration) {
+          return;
+        }
+
         this.rawChoices = choices;
         this.updateChoicesList(this.stripValuesIfNeeded(choices));
       });
@@ -352,10 +458,10 @@ export class AutocompleteEditor extends HandsontableEditor {
     let choices = choicesList;
 
     if (!sortByRelevanceSetting) {
-      // Sort a copy, never the passed-in array: `updateChoicesList` is public API and the caller's
-      // array (typically the `source` setting) must keep its original order. `Array#toSorted` would
-      // do this in one call but is outside the `browser-targets.js` baseline (Firefox 115+,
-      // Safari 16+), and swc lowers syntax only — it adds no instance-method polyfills.
+      // Sort a copy: `updateChoicesList` is public API, so the caller's array (typically the
+      // `source` setting) must keep its original order. The spread also keeps iterable callers (a
+      // Set, a NodeList) working, which `Array#toSorted` would not — the floor now allows it, but
+      // switching would narrow what this public method accepts.
       choices = [...choices].sort((a, b) => stringify(a).localeCompare(stringify(b)));
     }
 
@@ -674,11 +780,7 @@ export class AutocompleteEditor extends HandsontableEditor {
         timeOffset += 10;
       }
 
-      if (this.htEditor) {
-        this.hot._registerTimeout(() => {
-          this.queryChoices(this.TEXTAREA.value);
-        }, timeOffset);
-      }
+      this.#deferQuery(timeOffset);
     }
   }
 }

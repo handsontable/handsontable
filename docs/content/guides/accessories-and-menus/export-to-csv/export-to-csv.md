@@ -155,7 +155,7 @@ Like the Blob example, this export uses only visible data and skips hidden rows 
 :::
 :::
 
-### Prevent CSV Injection attack
+### Prevent CSV injection attack
 
 "CSV Injection, also known as Formula Injection, occurs when websites embed untrusted input inside CSV files. When a spreadsheet program such as Microsoft Excel or LibreOffice Calc is used to open a CSV, any cells starting with = will be interpreted by the software as a formula." (from [OWASP website](https://owasp.org/www-community/attacks/CSV_Injection))
 
@@ -197,6 +197,41 @@ To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolea
 
 :::
 :::
+
+### Export headers as plain text
+
+A column header setting is also its display string. A header of `'<b>Total</b>'` renders as **Total** in the grid, but the export writes the value it was given, so the file receives the literal `<b>Total</b>`.
+
+To export headers as the text the grid displays, set the [`textExtractor`](@/api/options.md#textextractor) option to `true`:
+
+```js
+const hot = new Handsontable(container, {
+  data: [[1, 2]],
+  colHeaders: ['<b>Total</b>', 'Count'],
+  textExtractor: true,
+});
+
+hot.getPlugin('exportFile').downloadFile('csv', { colHeaders: true });
+// The file receives: Total,Count
+```
+
+`textExtractor` is a grid option, not an export configuration option, so you set it alongside `colHeaders` rather than passing it to `downloadFile()`. In an export it applies to column headers, row headers, and [nested headers](@/api/nestedHeaders.md), in both CSV and Excel. Copying to the clipboard uses it for column headers, which are the only headers a copy carries.
+
+Cell data is left alone. A cell exports its value, never its rendered markup, so a value such as `a<b` reaches the file unchanged.
+
+One thing to know before you enable it: extraction turns HTML entities back into the characters they stand for. A header stored as `&#61;SUM(A1)` displays as `=SUM(A1)`, and once extracted it reaches the file as `=SUM(A1)` too, which a spreadsheet reads as a formula. Set [`sanitizeValues`](#sanitizevalues-boolean|regexp|function) to `true` when you export headers that come from untrusted sources.
+
+Pass a function instead of `true` when you need different rules per surface:
+
+```js
+textExtractor: (content, source) => {
+  if (source === 'ExportFile.rowHeader') {
+    return content;
+  }
+
+  return stripMarkup(content);
+},
+```
 
 ## Result
 

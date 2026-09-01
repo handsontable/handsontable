@@ -1,7 +1,7 @@
 import { html } from '../../helpers/templateLiteralTag';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
-import { deprecatedWarnOnce } from '../../helpers/console';
 import { escapeHtml } from '../../helpers/string';
+import { deprecatedWarnOnce } from '../../helpers/console';
 
 export function normalizeExportOptions<T extends Record<string, unknown>>(options: T): T;
 export function normalizeExportOptions<T extends Record<string, unknown>>(options: T | undefined): T | undefined;

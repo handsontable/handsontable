@@ -24,6 +24,7 @@ interface FixtureCellRange {
 export interface FixtureHotInstance {
   getDataAtCell(row: number, col: number): CellValue;
   getSourceDataAtCell(row: number, col: number): CellValue;
+  getSourceData(): unknown[];
   setDataAtCell(row: number, col: number, value: CellValue): void;
   getCellMeta(row: number, col: number): { className?: string, readOnly?: boolean };
   getPlugin(name: 'formulas'): {
@@ -36,12 +37,23 @@ export interface FixtureHotInstance {
     isUndoAvailable(): boolean,
     isRedoAvailable(): boolean,
     doneActions: unknown[],
+    ignoreNewActions: boolean,
   };
   getPlugin(name: 'moveCells'): {
     moveCellRange(sourceRange: unknown, targetTopLeft: unknown, isCopy?: boolean): boolean,
     isDragActive(): boolean,
     enablePlugin(): void,
     disablePlugin(): void,
+  };
+  getPlugin(name: 'manualRowMove'): {
+    moveRows(rows: number[], finalIndex: number): boolean,
+  };
+  getPlugin(name: 'manualColumnMove'): {
+    moveColumns(columns: number[], finalIndex: number): boolean,
+  };
+  getPlugin(name: 'manualColumnFreeze'): {
+    freezeColumn(column: number): void,
+    unfreezeColumn(column: number): void,
   };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
   getPlugin(name: 'multipleSelectionHandles'): { isDragged(): boolean };
@@ -59,6 +71,18 @@ export interface FixtureHotInstance {
     countChildren(row: number, recursive?: boolean): number,
     expandToRow(row: number): boolean,
     expandToLevel(level: number): void,
+    // Private, but a spec needs it: there is no public API for the stash window that add child,
+    // detach child, remove row and row move open around themselves.
+    collapsingUI: {
+      collapsedRowsStash: {
+        stash(): void,
+        applyStash(): void,
+      },
+    },
+    dataManager: {
+      getDataObject(row: number): object | null,
+      addChild(parent: object): void,
+    },
   };
   getPlugin(name: 'selectionHandles'): {
     isDragActive(): boolean,
@@ -89,8 +113,11 @@ export interface FixtureHotInstance {
   toPhysicalRow(row: number): number | null;
   selectCell(row: number, col: number): boolean;
   loadData(data: unknown[]): void;
+  updateData(data: unknown[]): void;
   updateSettings(settings: Record<string, unknown>): void;
   countCols(): number;
+  rowIndexMapper: { getIndexesSequence(): number[] };
+  columnIndexMapper: { getIndexesSequence(): number[] };
   _createCellCoords(row: number, col: number): unknown;
   _createCellRange(highlight: unknown, from: unknown, to: unknown): unknown;
 }
@@ -116,6 +143,10 @@ declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
+    /** #5833 fixture: the "getter" grid – constructor rows with a non-configurable derived getter. */
+    hotGetter: FixtureHotInstance;
+    /** #5833 fixture: the "accessor" grid – the docs' function-data-source pattern (function `columns[].data`). */
+    hotAccessor: FixtureHotInstance;
     /** The Handsontable constructor loaded by the fixture — exposes the global hooks bucket. */
     Handsontable: {
       hooks: {
@@ -134,6 +165,10 @@ declare global {
     hookLog: { name: string, args: unknown[] }[];
     /** Makes the fixture's `beforeMoveCells` listener return `false`. */
     setBeforeMoveCellsVeto(shouldVeto: boolean): boolean;
+    /** Makes the fixture's `beforeRowMove` listener return `false`. */
+    setBeforeRowMoveVeto(shouldVeto: boolean): boolean;
+    /** Makes the fixture's `beforeColumnMove` listener return `false`. */
+    setBeforeColumnMoveVeto(shouldVeto: boolean): boolean;
     /** Per-hook invocation counters of the touch tap-to-edit fixture (DEV-2687). */
     hookCounts: Record<HookCounterName, number>;
     /**

@@ -30,6 +30,10 @@ export interface SelectOptionsObject {
  */
 export type SourceRowData = RowObject | CellValue[];
 
+/**
+ * The function shape of the `columns[].data` option. Called with the source row alone to read the
+ * cell value, and with the source row and a value to write it.
+ */
 export interface ColumnDataGetterSetterFunction {
   (row: RowObject | CellValue[]): CellValue;
   (row: RowObject | CellValue[], value: CellValue): void;
@@ -53,7 +57,7 @@ export type ChangeSource = 'auto' | 'edit' | 'loadData' | 'updateData' | 'popula
   'CopyPaste.paste' | 'CopyPaste.cut' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'ColumnSummary.set' |
   'ColumnSummary.reset' | 'DataProvider.revert';
 
-export type { GridSettings, SourceDataValidatorFn, SanitizerContext } from './core/settings';
+export type { GridSettings, SourceDataValidatorFn, SanitizerContext, TextExtractorContext } from './core/settings';
 
 /**
  * Removes the `[key: string]: any` / `[key: number]: any` index signature from a type while keeping

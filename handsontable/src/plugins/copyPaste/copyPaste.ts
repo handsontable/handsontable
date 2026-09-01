@@ -13,6 +13,7 @@ import {
   isShadowRoot,
 } from '../../helpers/dom/element';
 import { sanitizeHTML } from '../../utils/sanitizer';
+import { extractText, getTextExtractor } from '../../utils/textExtractor';
 import { isSafari } from '../../helpers/browser';
 import copyItem from './contextMenuItem/copy';
 import copyColumnHeadersOnlyItem from './contextMenuItem/copyColumnHeadersOnly';
@@ -51,6 +52,26 @@ const META_HEAD = [
   '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
 ].join('');
 
+/**
+ * Squares off a ragged clipboard in place, filling the gaps with the empty-cell value.
+ *
+ * The grid pastes as wide as the widest row, so the rows that are shorter cover cells too. Doing
+ * this before the `beforePaste` hook keeps the hooks and the grid describing the same paste.
+ *
+ * @param {Array} data The parsed clipboard data.
+ */
+function padRowsToWidest(data: unknown[][]) {
+  const width = data.reduce((widest: number, row: unknown[]) => Math.max(widest, row.length), 0);
+
+  data.forEach((row: unknown[]) => {
+    for (let column = 0; column < width; column += 1) {
+      if (row[column] === undefined) {
+        row[column] = null;
+      }
+    }
+  });
+}
+
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
@@ -66,7 +87,7 @@ const META_HEAD = [
  *
  * Read more:
  * - [Guides: Clipboard](@/guides/cell-features/clipboard/clipboard.md)
- * - [Configuration options: `copyPaste`](@/api/options.md#copypaste)
+ * - [Setting options: `copyPaste`](@/api/options.md#copypaste)
  *
  * @example
  * ```js
@@ -611,7 +632,10 @@ export class CopyPaste extends BasePlugin {
 
     const selection = this.hot.getSelectedRangeActive();
     const populatedRowsLength = plainData.length;
-    const populatedColumnsLength = plainData[0].length;
+    // A ragged clipboard (rows of unequal length) must not be narrowed to the first row's width -
+    // cells past that width would never be written. The widest row wins, as in spreadsheet apps.
+    const populatedColumnsLength = plainData
+      .reduce((maxLength: number, row: unknown[]) => Math.max(maxLength, row.length), 0);
     const newRows = [];
 
     if (!selection) {
@@ -679,7 +703,9 @@ export class CopyPaste extends BasePlugin {
           cellValue = parsedCellValue;
         }
 
-        newRow.push(cellValue);
+        // A row shorter than the widest one has no value here. Write the empty-cell value rather
+        // than `undefined`, which would delete the property outright in an object data source.
+        newRow.push(cellValue === undefined ? null : cellValue);
       }
 
       newRows.push(newRow);
@@ -797,10 +823,12 @@ export class CopyPaste extends BasePlugin {
     const rangedSourceData = this.getRangedData(this.copyableRanges, true);
 
     const copiedHeadersCount = this.#countCopiedHeaders(this.copyableRanges);
+    // Captured before `beforeCopy`, which may reshape the array. Identity is what survives that.
+    const headerRows = new Set(rangedData.slice(0, copiedHeadersCount.columnHeadersCount));
     const allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges, copiedHeadersCount);
 
     if (allowCopying) {
-      this.#setClipboardData(event, rangedData, rangedSourceData);
+      this.#setClipboardData(event, rangedData, rangedSourceData, headerRows);
 
       this.hot.runHooks('afterCopy', rangedData, this.copyableRanges, copiedHeadersCount);
     }
@@ -889,6 +917,8 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
+    padRowsToWidest(pastedData as unknown[][]);
+
     // Store a copy of the original pasted data before user can modify it in beforePaste hook.
     // This is needed to detect if user modified values and respect their modifications over source data.
     const originalPastedData = deepClone(pastedData);
@@ -974,17 +1004,59 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Sets the clipboard data.
+   * Projects copied column headers into text, following the grid-level `textExtractor` option.
+   *
+   * Both the `text/plain` and the `text/html` flavours are affected. `_dataToHTML` escapes the
+   * values it writes, so an unprojected header reaches a rich-text target as the visible characters
+   * `<b>Total</b>` rather than as bold text - the same mismatch the option exists to remove.
+   *
+   * The source-data flavour is left alone. It carries the values behind the cells so that a copy
+   * between grids restores them exactly, and a projection would corrupt that round trip.
+   *
+   * The rows are mapped rather than mutated, so the array handed to `beforeCopy` and `afterCopy`
+   * still holds the values those hooks have always received.
+   *
+   * The header rows are identified by reference rather than by position, because `beforeCopy` runs
+   * before this and may reshape the array. A listener that drops the header row would leave a
+   * positional count pointing at what is now the first data row, and parsing a data value such as
+   * `a<b` as HTML would destroy it. Matching on identity keeps the projection on the rows that are
+   * still headers, whatever the listener did to the array around them.
+   *
+   * @param {Array[]} rangedData The copied data.
+   * @param {Set} headerRows The row arrays that were column headers when the copy was assembled.
+   * @returns {Array[]} The data with its header rows projected into text.
+   */
+  #extractHeaderText(rangedData: unknown[][], headerRows: Set<unknown[]>): unknown[][] {
+    if (headerRows.size === 0 || getTextExtractor(this.hot) === false) {
+      return rangedData;
+    }
+
+    return rangedData.map(row => (
+      headerRows.has(row)
+        ? row.map(value => extractText(this.hot, value, 'CopyPaste.columnHeader'))
+        : row
+    ));
+  }
+
+  /**
+   * Sets the clipboard data for the given event.
    *
    * @param {ClipboardEvent} event The Clipboard event.
    * @param {Array} rangedData Ranged data to set to the clipboard.
    * @param {Array} rangedSourceData Ranged source data to set to the clipboard.
+   * @param {Set} [headerRows] The row arrays of `rangedData` that are column headers.
    */
-  #setClipboardData(event: ClipboardEvent, rangedData: unknown[][], rangedSourceData: unknown[][]) {
-    const textPlain = stringify(rangedData);
+  #setClipboardData(
+    event: ClipboardEvent,
+    rangedData: unknown[][],
+    rangedSourceData: unknown[][],
+    headerRows: Set<unknown[]> = new Set()
+  ) {
+    const projectedData = this.#extractHeaderText(rangedData, headerRows);
+    const textPlain = stringify(projectedData);
 
     if (event && event.clipboardData) {
-      const textHTML = _dataToHTML(rangedData);
+      const textHTML = _dataToHTML(projectedData);
       const textSourceDataHTML = _dataToHTML(rangedSourceData);
 
       event.clipboardData.setData('text/plain', textPlain);

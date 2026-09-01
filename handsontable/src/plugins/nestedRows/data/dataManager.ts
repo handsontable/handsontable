@@ -311,6 +311,73 @@ class DataManager {
   }
 
   /**
+   * Get the position of a row within the nested structure, expressed as the chain of child indexes
+   * that leads from the top level down to that row.
+   *
+   * A physical row index shifts as soon as any other node gains or loses children. A tree path does
+   * not, so it can be used to find the same node again after the data is replaced.
+   *
+   * Assumes each row object appears in the tree once. The path is built with `indexOf`, on object
+   * identity, while `getRowIndexByTreePath()` finishes through the `cache.nodeInfo` WeakMap, which
+   * keeps only a node's last occurrence - so the same object placed at two spots makes the two
+   * disagree.
+   *
+   * @param {number} row Physical row index.
+   * @returns {number[]|null} The path, or `null` when the row is not part of the current structure.
+   */
+  getRowTreePath(row: number): number[] | null {
+    let rowObject: RowObject | null | undefined = this.getDataObject(row);
+
+    if (!rowObject) {
+      return null;
+    }
+
+    const path: number[] = [];
+
+    while (rowObject) {
+      const indexWithinParent = this.getRowIndexWithinParent(rowObject);
+
+      if (indexWithinParent === -1) {
+        return null;
+      }
+
+      path.unshift(indexWithinParent);
+      rowObject = this.getRowObjectParent(rowObject);
+    }
+
+    return path;
+  }
+
+  /**
+   * Find the physical row index of the node that the provided tree path points at.
+   *
+   * @param {number[]|null} path Chain of child indexes, as returned by
+   * {@link DataManager#getRowTreePath} - which returns `null` for a row it does not know, so the
+   * `null` is accepted here rather than filtered at every call site.
+   * @returns {number|null} Physical row index, or `null` when the path leads outside the structure.
+   */
+  getRowIndexByTreePath(path: number[] | null): number | null {
+    if (!Array.isArray(path) || path.length === 0) {
+      return null;
+    }
+
+    let siblings: RowObject[] | null | undefined = this.data;
+    let node: RowObject | null = null;
+
+    for (let i = 0; i < path.length; i++) {
+      node = siblings?.[path[i]] ?? null;
+
+      if (node === null) {
+        return null;
+      }
+
+      siblings = node.__children;
+    }
+
+    return this.getRowIndex(node);
+  }
+
+  /**
    * Count all rows (including all parents and children).
    *
    * @returns {number}
@@ -508,12 +575,33 @@ class DataManager {
 
     this.rewriteCache();
 
-    const newRowIndex = this.getRowIndex(childElement) ?? 0;
+    const newPhysicalIndex = this.getRowIndex(childElement);
+    const newRowIndex = newPhysicalIndex ?? 0;
 
     this.hot.rowIndexMapper.insertIndexes(newRowIndex, 1);
 
+    this.shiftCellsMeta(newPhysicalIndex);
+
     this.hot.runHooks('afterCreateRow', newRowIndex, 1);
     this.hot.runHooks('afterAddChild', parent, childElement);
+  }
+
+  /**
+   * Inserts one empty cell meta row, so meta stored below the new row moves down with its data.
+   *
+   * The methods that build a row by hand have to do this themselves - only `DataMap#createRow`
+   * does it on the regular insert path, and it is never reached from here (#7727). `MetaManager`
+   * takes a physical index, which is what `getRowIndex()` returns, and it does not render.
+   *
+   * @param {number|null} physicalRow Physical index of the new row. `null` skips the shift, so an
+   * unknown row object cannot move every meta row from index 0 down.
+   */
+  shiftCellsMeta(physicalRow: number | null) {
+    if (physicalRow === null) {
+      return;
+    }
+
+    this.hot._getMetaManager().createRow(physicalRow, 1);
   }
 
   /**
@@ -555,6 +643,10 @@ class DataManager {
       this.hot.rowIndexMapper.insertIndexes(finalChildIndex, 1);
 
       this.plugin.enableCoreAPIModifiers();
+
+      // Read the real index instead of reusing `finalChildIndex`: that one assumes every preceding
+      // sibling is a leaf, so a sibling with descendants would splice the meta above the new row.
+      this.shiftCellsMeta(this.getRowIndex(childElement));
 
       this.hot.runHooks('afterCreateRow', finalChildIndex, 1);
 
