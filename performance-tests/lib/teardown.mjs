@@ -169,7 +169,12 @@ export default async function teardown() {
 
   // Save golden snapshots
   if (mode === 'golden') {
-    const savedPath = await saveSnapshots(stripInternalFields(scenarioResults));
+    const metadata = {
+      commit: process.env.GITHUB_SHA || null,
+      runId: process.env.GITHUB_RUN_ID || null,
+      runNumber: process.env.GITHUB_RUN_NUMBER || null,
+    };
+    const savedPath = await saveSnapshots(stripInternalFields(scenarioResults), metadata);
 
     console.log(`Golden snapshots saved to ${savedPath}`);
 
@@ -194,7 +199,14 @@ export default async function teardown() {
     if (golden) {
       const goldenCount = Object.keys(golden.scenarios || {}).length;
 
-      console.log(`Golden baseline loaded (${goldenCount} scenarios from ${golden.timestamp})`);
+      if (golden.medianWindowSize) {
+        console.log(
+          `Golden baseline is a median of ${golden.medianWindowSize} marks-valid develop run(s), ` +
+          `newest ${golden.timestamp} (${goldenCount} scenarios)`
+        );
+      } else {
+        console.log(`Golden baseline loaded (${goldenCount} scenarios from ${golden.timestamp})`);
+      }
     } else if (mode === 'compare') {
       // Self-compare: use current results as golden so charts always render
       console.log('No golden baseline found -- self-comparing for chart preview');
