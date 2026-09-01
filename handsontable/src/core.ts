@@ -4094,12 +4094,17 @@ export default function Core(
    * Returns the property name that corresponds with the given column index.
    * If the data source is an array of arrays, it returns the columns index.
    *
+   * When the column index does not point at an existing column, the method returns the argument you
+   * passed, unchanged. It does not return `null`, unlike {@link Core#toVisualColumn} and the other
+   * index translators. Check the index against {@link Core#countCols} first if you need to tell an
+   * out-of-range call apart from a real result.
+   *
    * @memberof Core#
    * @function colToProp
    * @param {number} column Visual column index.
-   * @returns {string|number} Column property or physical column index. When the column's `data`
-   *   option is an accessor function, that function is returned at runtime – check
-   *   `typeof` before treating the result as a property name.
+   * @returns {string|number} Column property, physical column index, or the passed argument. When
+   *   the column's `data` option is an accessor function, that function is returned at runtime –
+   *   check `typeof` before treating the result as a property name.
    */
   this.colToProp = function(column: number) {
     return datamap.colToProp(column);
@@ -4108,10 +4113,16 @@ export default function Core(
   /**
    * Returns column index that corresponds with the given property.
    *
+   * When the property matches no column, the method returns the argument you passed, unchanged. It
+   * does not return `null`, unlike {@link Core#toVisualColumn} and the other index translators. The
+   * TypeScript declaration narrows the result to `number`, so a returned property name is not
+   * visible to the type checker – compare against {@link Core#countCols} when the property may be
+   * unknown.
+   *
    * @memberof Core#
    * @function propToCol
    * @param {string|number} prop Property name or physical column index.
-   * @returns {number} Visual column index.
+   * @returns {string|number} Visual column index, or the passed argument.
    */
   this.propToCol = function(prop: string | number) {
     return datamap.propToCol(prop) as number;
