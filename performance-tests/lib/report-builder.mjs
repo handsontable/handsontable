@@ -6,6 +6,7 @@ import {
   REGRESSION_CALLOUT_THRESHOLD_TIMING,
   REGRESSION_CALLOUT_THRESHOLD_HEAP,
   BASELINE_INCOMPLETE_LABEL,
+  activeTotalsPerIteration,
   calcCv,
   fmtCvValue,
   pctChange,
@@ -39,8 +40,9 @@ export function buildReport(allScenarioResults, goldenSnapshots, meta = {}) {
     sections.push(hookTiming);
   }
 
-  // Regression callouts (only for scenarios > threshold)
-  if (hasGolden) {
+  // Regression callouts (only for scenarios > threshold). Suppressed on a self-comparison, where
+  // every delta is 0% by construction and "within tolerance" would be a claim about nothing.
+  if (hasGolden && !goldenSnapshots?.isSelfCompare) {
     sections.push(buildRegressionCallouts(allScenarioResults, goldenScenarios, crossWindow));
   }
 
@@ -135,28 +137,6 @@ function reliabilityCell(current, golden) {
   const iterationTotals = activeTotalsPerIteration(current._iterationValues?.categories);
 
   return `${fmtCvValue(calcCv(iterationTotals))} / ${fmtCvValue(golden?.spread)}`;
-}
-
-/**
- * Recombines per-category iteration arrays into one active-time total per iteration.
- *
- * @param {Record<string, number[]> | undefined} categories
- * @returns {number[]}
- */
-function activeTotalsPerIteration(categories) {
-  if (!categories) {
-    return [];
-  }
-
-  const length = Math.max(
-    ...['scripting', 'rendering', 'painting'].map(key => categories[key]?.length ?? 0)
-  );
-
-  return Array.from({ length }, (_, i) => sumActive({
-    scripting: categories.scripting?.[i],
-    rendering: categories.rendering?.[i],
-    painting: categories.painting?.[i],
-  }));
 }
 
 function buildSummaryTable(results, goldenScenarios, hasGolden, crossWindow) {
@@ -277,15 +257,21 @@ function buildRegressionCallouts(results, goldenScenarios, crossWindow) {
       continue;
     }
 
-    const { change: totalPct, incomplete } = totalDelta(current, golden, crossWindow.has(name));
+    const isCrossWindow = crossWindow.has(name);
+    const { change: totalPct, incomplete } = totalDelta(current, golden, isCrossWindow);
 
     if (incomplete) {
       skipped.push(formatTitle(name));
     }
 
-    const heapPct = pctChange(
-      golden.updateCounters?.jsHeapMaxBytes, current.updateCounters?.jsHeapMaxBytes
-    );
+    // Heap survives a baseline that missed a timing category -- the two are measured independently.
+    // It does not survive a window mismatch: jsHeapMaxBytes is a maximum over the UpdateCounters
+    // samples inside the parsed window, so two different windows sample two different things.
+    const heapPct = isCrossWindow
+      ? null
+      : pctChange(
+        golden.updateCounters?.jsHeapMaxBytes, current.updateCounters?.jsHeapMaxBytes
+      );
     const timingRegressed = totalPct != null && totalPct > REGRESSION_CALLOUT_THRESHOLD_TIMING;
     const heapRegressed = heapPct != null && heapPct > REGRESSION_CALLOUT_THRESHOLD_HEAP;
 
@@ -311,9 +297,11 @@ function buildRegressionCallouts(results, goldenScenarios, crossWindow) {
   }
 
   // A scenario whose baseline is unusable was neither cleared nor flagged, so say so rather than
-  // letting it fall silently into "within tolerance".
+  // letting it fall silently into "within tolerance". Scoped to the total, because heap may still
+  // have been assessed for the same scenario -- otherwise the note would contradict a callout
+  // standing directly above it.
   const note = skipped.length > 0
-    ? `\n\n<sub>Not assessed (${BASELINE_INCOMPLETE_LABEL}): ${skipped.join(', ')}.</sub>`
+    ? `\n\n<sub>Total delta not assessed (${BASELINE_INCOMPLETE_LABEL}): ${skipped.join(', ')}.</sub>`
     : '';
 
   if (callouts.length === 0) {
@@ -341,7 +329,10 @@ function buildProvenanceFooter(goldenSnapshots, meta, hasGolden) {
 
   let baseline;
 
-  if (goldenSnapshots?.isMedian) {
+  if (goldenSnapshots?.isSelfCompare) {
+    baseline = 'this run compared against itself, no develop baseline was available '
+      + '(every delta above is 0% by construction)';
+  } else if (goldenSnapshots?.isMedian) {
     const sources = goldenSnapshots.medianSourceTimestamps || [];
     const range = sources.length > 1
       ? ` (${sources[sources.length - 1]} to ${sources[0]})`
@@ -351,7 +342,7 @@ function buildProvenanceFooter(goldenSnapshots, meta, hasGolden) {
   } else if (goldenSnapshots?.timestamp) {
     baseline = `single develop run ${goldenSnapshots.timestamp}`;
   } else {
-    baseline = 'self-comparison, no develop baseline';
+    baseline = 'unknown';
   }
 
   const currentParts = [];

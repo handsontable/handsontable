@@ -17,6 +17,7 @@ import {
   CV_WARNING_THRESHOLD,
   BASELINE_INCOMPLETE_LABEL,
   ACTIVE_CATEGORIES,
+  activeTotalsPerIteration,
   calcCv,
   classifyChange,
   fmtCv,
@@ -241,6 +242,53 @@ describe('fmtPct and fmtPctWithEmoji', () => {
 
     assert.ok(fmtPctWithEmoji(pct, REGRESSION_CALLOUT_THRESHOLD_HEAP).includes('\u{1F534}'));
     assert.ok(!fmtPctWithEmoji(pct, REGRESSION_CALLOUT_THRESHOLD_TIMING).includes('\u{1F534}'));
+  });
+});
+
+describe('activeTotalsPerIteration', () => {
+  test('sums the three active categories per iteration', () => {
+    assert.deepEqual(
+      activeTotalsPerIteration({
+        scripting: [10, 20, 30],
+        rendering: [1, 2, 3],
+        painting: [1, 1, 1],
+      }),
+      [12, 23, 34]
+    );
+  });
+
+  test('treats a short array as zero at the missing index, not as a shift', () => {
+    // The bug this guards: compacting the arrays would pair iteration 3's scripting with
+    // iteration 3's absent painting AND iteration 2's scripting with iteration 3's painting,
+    // producing a CV that is wrong rather than merely conservative.
+    assert.deepEqual(
+      activeTotalsPerIteration({ scripting: [10, 20, 30], painting: [1, 1] }),
+      [11, 21, 30]
+    );
+  });
+
+  test('handles a category missing entirely', () => {
+    assert.deepEqual(activeTotalsPerIteration({ scripting: [10, 20] }), [10, 20]);
+  });
+
+  test('ignores non-finite entries rather than propagating NaN', () => {
+    assert.deepEqual(
+      activeTotalsPerIteration({ scripting: [10, NaN, 30], rendering: [1, 1, 1] }),
+      [11, 1, 31]
+    );
+  });
+
+  test('returns an empty array for absent or empty input', () => {
+    assert.deepEqual(activeTotalsPerIteration(null), []);
+    assert.deepEqual(activeTotalsPerIteration(undefined), []);
+    assert.deepEqual(activeTotalsPerIteration({}), []);
+  });
+
+  test('ignores categories that are not active time', () => {
+    assert.deepEqual(
+      activeTotalsPerIteration({ scripting: [10, 10], idle: [900, 900], other: [50, 50] }),
+      [10, 10]
+    );
   });
 });
 

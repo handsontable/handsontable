@@ -91,6 +91,10 @@ runs:
         PR_NUMBER: ${{ github.event.pull_request.number || '' }}
         PAGES_URL: ${{ steps.report-url.outputs.pages_url || '' }}
         GITHUB_HEAD_REF: ${{ github.head_ref || '' }}
+        # The commit the report names. On a pull_request event the default GITHUB_SHA is the
+        # ephemeral refs/pull/N/merge commit, which does not exist on the branch under review, so
+        # the report would cite a SHA nobody can look up. Fall back to GITHUB_SHA off the PR path.
+        PERF_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         PERF_MODE: ${{ github.event_name == 'push' && 'golden' || 'compare' }}
       run: PERF_MODE=$PERF_MODE node scripts/run.mjs
 

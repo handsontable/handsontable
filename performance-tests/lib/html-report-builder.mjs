@@ -7,6 +7,7 @@ import {
   REGRESSION_CALLOUT_THRESHOLD_HEAP,
   CV_WARNING_THRESHOLD,
   BASELINE_INCOMPLETE_LABEL,
+  activeTotalsPerIteration,
   calcCv,
   classifyChange,
   pctChange,
@@ -111,7 +112,7 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
         },
         total: { current: currentTotal, baseline: goldenTotal || 0, change: totalChange },
       },
-      detailedMetrics: buildDetailedMetrics(current, golden),
+      detailedMetrics: buildDetailedMetrics(current, golden, baselineIncomplete),
       memory: buildMemoryMetrics(current, golden),
       hookTiming: buildHookTiming(current, golden),
       heap,
@@ -126,6 +127,10 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
 
   const regressions = scenarios.filter(s => s.isRegression).length;
   const improvements = scenarios.filter(s => s.status === 'improvement').length;
+  // Counted separately, never folded into Neutral. A scenario whose baseline could not be compared
+  // against was not cleared, and a dashboard that shows it beside the genuinely flat ones is the
+  // same "assessed by omission" failure the withheld delta exists to prevent.
+  const notAssessed = scenarios.filter(s => s.baselineIncomplete && !s.isRegression).length;
 
   return {
     meta: {
@@ -143,6 +148,7 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
       ? {
         timestamp: goldenSnapshots.timestamp ?? null,
         isMedian: !!goldenSnapshots.isMedian,
+        isSelfCompare: !!goldenSnapshots.isSelfCompare,
         medianWindowSize: goldenSnapshots.medianWindowSize ?? null,
         medianSourceTimestamps: goldenSnapshots.medianSourceTimestamps ?? [],
       }
@@ -159,14 +165,15 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
       total: scenarios.length,
       regressions,
       improvements,
-      neutral: scenarios.length - regressions - improvements,
+      notAssessed,
+      neutral: scenarios.length - regressions - improvements - notAssessed,
     },
     hasBaseline: hasGolden,
     scenarios,
   };
 }
 
-function buildDetailedMetrics(current, golden) {
+function buildDetailedMetrics(current, golden, baselineIncomplete = false) {
   const rows = [];
   const cCats = current.categories || {};
   const gCats = golden?.categories || {};
@@ -198,7 +205,10 @@ function buildDetailedMetrics(current, golden) {
     key: 'total-active',
     current: cTotal,
     baseline: gTotal,
-    change: pctChange(gTotal, cTotal),
+    // Withheld on the same terms as the card badge and the markdown comment. Publishing it here
+    // would put the exact number the badge refuses to show one click away, painted red.
+    change: baselineIncomplete ? null : pctChange(gTotal, cTotal),
+    incomplete: baselineIncomplete,
     // Recombined per iteration rather than left null: the summed total is what the callout acts on,
     // so its spread is the one a reader most needs beside it.
     cv: calcCv(activeTotalsPerIteration(current._iterationValues?.categories)),
@@ -221,28 +231,6 @@ function buildDetailedMetrics(current, golden) {
   });
 
   return rows;
-}
-
-/**
- * Recombines per-category iteration arrays into one active-time total per iteration.
- *
- * @param {Record<string, number[]> | undefined} categories
- * @returns {number[]}
- */
-function activeTotalsPerIteration(categories) {
-  if (!categories) {
-    return [];
-  }
-
-  const length = Math.max(
-    ...['scripting', 'rendering', 'painting'].map(key => categories[key]?.length ?? 0)
-  );
-
-  return Array.from({ length }, (_, i) => sumActive({
-    scripting: categories.scripting?.[i],
-    rendering: categories.rendering?.[i],
-    painting: categories.painting?.[i],
-  }));
 }
 
 function buildMemoryMetrics(current, golden) {
@@ -389,6 +377,7 @@ a:hover { text-decoration: underline; }
 .counter-card.regression .count { color: #cf222e; }
 .counter-card.improvement .count { color: #1a7f37; }
 .counter-card.neutral .count { color: #656d76; }
+.counter-card.unknown .count { color: #9a6700; }
 
 /* Filter + sort bar */
 .controls {
@@ -674,7 +663,10 @@ function buildScript() {
     const baseline = data.baseline;
     if (baseline) {
       let text;
-      if (baseline.isMedian) {
+      if (baseline.isSelfCompare) {
+        text = 'Baseline: this run compared against itself, no develop baseline was available'
+          + ' (every delta below is 0% by construction)';
+      } else if (baseline.isMedian) {
         const sources = baseline.medianSourceTimestamps || [];
         text = 'Baseline: median of ' + baseline.medianWindowSize + ' develop runs';
         if (sources.length > 1) {
@@ -683,7 +675,7 @@ function buildScript() {
       } else if (baseline.timestamp) {
         text = 'Baseline: single develop run ' + baseline.timestamp;
       } else {
-        text = 'Baseline: self-comparison, no develop baseline';
+        text = 'Baseline: unknown';
       }
       header.appendChild(elText('div', text, 'meta'));
     }
@@ -697,6 +689,9 @@ function buildScript() {
     dash.appendChild(counterCard(data.summary.regressions, 'Regressions', 'regression'));
     dash.appendChild(counterCard(data.summary.improvements, 'Improvements', 'improvement'));
     dash.appendChild(counterCard(data.summary.neutral, 'Neutral', 'neutral'));
+    if (data.summary.notAssessed > 0) {
+      dash.appendChild(counterCard(data.summary.notAssessed, 'Not assessed', 'unknown'));
+    }
     return dash;
   }
 
@@ -1061,9 +1056,11 @@ function buildScript() {
       if (data.hasBaseline) {
         tr.appendChild(elText('td', Math.round(row.baseline) + ' ms', 'num'));
         tr.appendChild(elText('td', Math.round(row.current) + ' ms', 'num'));
-        const changeTd = elText('td', fmtPct(row.change), 'num');
+        const changeTd = elText(
+          'td', row.incomplete ? data.baselineIncompleteLabel : fmtPct(row.change), 'num'
+        );
         // An informational row (harness wall clock) states its number without a verdict on it.
-        changeTd.style.color = row.neutral
+        changeTd.style.color = row.neutral || row.incomplete
           ? statusColor('neutral')
           : statusColor(classifyChangeCss(row.change));
         if (row.note) changeTd.title = row.note;

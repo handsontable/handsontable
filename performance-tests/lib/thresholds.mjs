@@ -104,6 +104,30 @@ export function sumActiveComparable(baselineCategories, currentCategories) {
 }
 
 /**
+ * Recombines per-category iteration arrays into one active-time total per iteration.
+ *
+ * Lives here rather than in either report builder so the set of active categories is stated once.
+ * A category array shorter than the others means that iteration recorded no time for it, which is
+ * a zero at that index, not a shift of every later value onto the wrong iteration.
+ *
+ * @param {Record<string, number[]> | null | undefined} categories
+ * @returns {number[]}
+ */
+export function activeTotalsPerIteration(categories) {
+  if (!categories) {
+    return [];
+  }
+
+  const length = Math.max(0, ...ACTIVE_CATEGORIES.map(key => categories[key]?.length ?? 0));
+
+  return Array.from({ length }, (_, i) => ACTIVE_CATEGORIES.reduce((sum, key) => {
+    const value = categories[key]?.[i];
+
+    return sum + (typeof value === 'number' && Number.isFinite(value) ? value : 0);
+  }, 0));
+}
+
+/**
  * @param {number | null} v -- milliseconds
  * @returns {string}
  */

@@ -88,7 +88,7 @@ describe('buildReport -- incomplete baseline', () => {
       {}
     );
 
-    assert.ok(report.includes('Not assessed'));
+    assert.ok(report.includes('Total delta not assessed'));
     assert.ok(report.includes('Filtering'));
   });
 
@@ -315,7 +315,79 @@ describe('buildReport -- callouts', () => {
     );
 
     assert.ok(!report.includes('regressed +'));
-    assert.ok(report.includes('Not assessed'));
+    assert.ok(report.includes('Total delta not assessed'));
+  });
+});
+
+describe('buildReport -- self-comparison', () => {
+  // teardown.mjs falls back to comparing a run against itself when no golden exists, stamping the
+  // fallback with a fresh timestamp. Branching on the timestamp alone made that indistinguishable
+  // from a real single-run golden, so the comment claimed a develop baseline and cleared every
+  // scenario as "within tolerance" on a comparison that was 0% by construction.
+  const selfCompare = golden({ sorting: goldenScenario({ spread: undefined }) }, {
+    isSelfCompare: true,
+    timestamp: '2026-09-01T10:43:05.777Z',
+  });
+
+  test('never describes a self-comparison as a develop baseline', () => {
+    const report = buildReport({ sorting: currentScenario() }, selfCompare, {});
+
+    assert.ok(!report.includes('single develop run'));
+    assert.ok(report.includes('compared against itself'));
+  });
+
+  test('does not claim the scenarios are within tolerance', () => {
+    const report = buildReport({ sorting: currentScenario() }, selfCompare, {});
+
+    assert.ok(!report.includes('within tolerance'));
+  });
+
+  test('still reports a real single-run golden as one', () => {
+    const report = buildReport(
+      { sorting: currentScenario() },
+      golden({ sorting: goldenScenario() }),
+      {}
+    );
+
+    assert.ok(report.includes('single develop run'));
+    assert.ok(!report.includes('compared against itself'));
+  });
+});
+
+describe('buildReport -- cross-window heap', () => {
+  test('withholds the heap callout too when the trace windows disagree', () => {
+    // jsHeapMaxBytes is a maximum over the UpdateCounters samples inside the parsed window, so two
+    // different windows sample two different things. Flagging heap while the total is withheld
+    // would also put a regression callout directly above a "not assessed" note for one scenario.
+    const report = buildReport(
+      {
+        sorting: currentScenario({
+          updateCounters: { jsHeapMaxBytes: 150_000_000, jsHeapMaxLabel: '150 MB' },
+        }),
+      },
+      golden({ sorting: goldenScenario() }),
+      { crossWindowScenarios: ['sorting'] }
+    );
+
+    assert.ok(!report.includes('JS heap'));
+    assert.ok(report.includes('Total delta not assessed'));
+  });
+
+  test('still assesses heap when only a timing category was missing from the baseline', () => {
+    // Heap and the timing categories are measured independently, so a baseline that missed
+    // rendering says nothing about whether its heap figure is usable.
+    const report = buildReport(
+      {
+        sorting: currentScenario({
+          updateCounters: { jsHeapMaxBytes: 150_000_000, jsHeapMaxLabel: '150 MB' },
+        }),
+      },
+      golden({ sorting: goldenScenario({ categories: { scripting: 20, rendering: 0, painting: 0 } }) }),
+      {}
+    );
+
+    assert.ok(report.includes('JS heap'));
+    assert.ok(report.includes('Total delta not assessed'));
   });
 });
 

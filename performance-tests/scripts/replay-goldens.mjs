@@ -134,10 +134,20 @@ function replay(goldens, windowSize) {
       const baseHeap = baselineEntry.updateCounters?.jsHeapMaxBytes;
       const currentHeap = currentEntry.updateCounters?.jsHeapMaxBytes;
 
+      // Both sides must be finite numbers. A golden entry carrying updateCounters but no
+      // jsHeapMaxBytes would otherwise yield NaN, which survives a null filter, inflates the
+      // sample count, understates every fired count and prints a NaN worst-case.
+      const comparable = (base, value) => Number.isFinite(base) && base > 0
+        && Number.isFinite(value);
+
       deltas.push({
         scenario,
-        timing: baseTotal > 0 ? ((currentTotal - baseTotal) / baseTotal) * 100 : null,
-        heap: baseHeap > 0 ? ((currentHeap - baseHeap) / baseHeap) * 100 : null,
+        timing: comparable(baseTotal, currentTotal)
+          ? ((currentTotal - baseTotal) / baseTotal) * 100
+          : null,
+        heap: comparable(baseHeap, currentHeap)
+          ? ((currentHeap - baseHeap) / baseHeap) * 100
+          : null,
       });
     }
   }
