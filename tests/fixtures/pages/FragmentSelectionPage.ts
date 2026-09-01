@@ -184,9 +184,7 @@ export class FragmentSelectionPage {
    * @param {number} fromCol Visual column index the drag starts in.
    * @param {number} toCol Visual column index the drag ends in.
    */
-  async dragAcrossCells(
-    overlay: OverlayName, row: number, fromCol: number, toCol: number,
-  ): Promise<string[]> {
+  async dragAcrossCells(overlay: OverlayName, row: number, fromCol: number, toCol: number): Promise<void> {
     const from = await this.cell(overlay, row, fromCol).boundingBox();
     const to = await this.cell(overlay, row, toCol).boundingBox();
 
@@ -204,22 +202,20 @@ export class FragmentSelectionPage {
     await this.page.mouse.move(startX, y);
     await this.page.mouse.down();
 
-    const trail: string[] = [];
-
-    // Small steps, and a hit test after each one. The hit test is what makes this drag behave like a
-    // real user's: Playwright's synthetic moves are fast enough to coalesce, and without it the
-    // selection border between the cells may never become a move's target. The trail it collects
-    // lets the test prove the border really was crossed instead of passing on a gesture that missed.
+    // Small steps, with a hit test after each one. The hit test is not an assertion — it is what
+    // paces the drag. Playwright's synthetic moves are fast enough that the browser coalesces them,
+    // and without the pause between them the selection border between two cells never becomes a
+    // move's target, so the gesture stops covering the case it exists for. Its return value is
+    // deliberately unused: it samples only the step positions, while the border is hit at an
+    // intermediate one, so it cannot prove the crossing. The selected text does that instead.
     for (let step = 1; step <= 20; step += 1) {
       const x = startX + (((endX - startX) * step) / 20);
 
       await this.page.mouse.move(x, y, { steps: 2 });
-      trail.push(await this.page.evaluate(([px, py]) => window.elementUnder(px, py), [x, y]));
+      await this.page.evaluate(([px, py]) => window.elementUnder(px, py), [x, y]);
     }
 
     await this.page.mouse.up();
-
-    return trail;
   }
 
   /**

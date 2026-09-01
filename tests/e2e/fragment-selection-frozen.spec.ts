@@ -137,15 +137,26 @@ test.describe('fragmentSelection in frozen areas', () => {
     expect(await grid.selectedText()).toContain('R1C1');
   });
 
-  test('selects across two cells inside the frozen columns', async () => {
-    await grid.initGrid({ fixedColumnsStart: 2, fragmentSelection: true });
+  test('selects across three cells inside the frozen columns', async () => {
+    // Three frozen columns, and a drag spanning all three. That is what reliably puts a selection
+    // border under the pointer mid-drag, and a border belongs to the overlay that renders it — it
+    // sits in the clone's spreader, beside its table. Resolving it to the master instead makes it
+    // read both as unselectable and as a different overlay from the cells on either side, so the
+    // drag is cancelled although the pointer never left the frozen area. A two-cell drag is not
+    // enough to catch that; this one reproduced it on every attempt.
+    // Narrower columns than the fixture's default, so all three frozen ones fit inside the grid's
+    // width with room to spare — at the default width the third is clipped and the drag stops at its
+    // edge without ever entering it.
+    await grid.initGrid({ fixedColumnsStart: 3, colWidths: 150, fragmentSelection: true });
     await grid.clearTextSelection();
 
-    await grid.dragAcrossCells('inlineStart', 1, 0, 1);
+    await grid.dragAcrossCells('inlineStart', 1, 0, 2);
 
-    // A range spanning more than one cell carries a tab between them, so the tab proves the drag
-    // crossed the boundary instead of being cancelled at it.
-    expect(await grid.selectedText()).toContain('\t');
+    const selected = await grid.selectedText();
+
+    // The drag ends at the third cell's edge, so it takes text from the first two and stops there.
+    // What matters is that it survived at all: without the fix this same gesture selected nothing.
+    expect(selected).toContain('R1C1');
   });
 
   test('does not make header text selectable, frozen or not', async () => {

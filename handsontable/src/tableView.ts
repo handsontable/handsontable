@@ -538,7 +538,7 @@ class TableView {
 
       // Only `fragmentSelection` reads this, so a grid using the default pays no overlay lookup.
       this.#textSelectionOverlay = this.settings.fragmentSelection
-        ? this.getElementOverlayName(mouseDownTarget)
+        ? this.#getRenderingOverlayName(mouseDownTarget)
         : null;
 
       if (!this.isTextSelectionAllowed(mouseDownTarget)) {
@@ -1715,34 +1715,55 @@ class TableView {
   }
 
   /**
-   * Checks whether the element belongs to the selectable area of the table that renders it.
+   * Resolves the table whose rendered area holds the given element, or `null` when the element sits
+   * outside every table — the grid's own scrollbars and padding, or the page around it.
    *
    * A frozen cell lives in an overlay clone, which is a sibling of the master table rather than its
-   * descendant, so the owning table has to be resolved first — testing against the master alone
-   * rejects every cell in a frozen row, frozen column, or corner (#4980).
+   * descendant, so the owning table has to be resolved before anything can be asked about the
+   * element — testing against the master alone rejects every cell in a frozen row, frozen column, or
+   * corner (#4980).
    *
-   * Everything the owning table renders counts, not just the cells. The selection borders sit in the
-   * spreader beside the table, and a multi-cell drag passes over them: rejecting one cancels a
-   * selection that is still inside the same area, which is what `fragmentSelection: true` exists to
-   * allow. Headers are the one exception — see below.
+   * Matching is by rendered area rather than by `TABLE`, because a table renders more than its
+   * cells: the selection borders are appended to the spreader beside it. `getParentOverlay` misses
+   * those and reports a frozen area's borders as the master's, which is wrong in both directions —
+   * the border reads as unselectable, and as a different overlay from the cells it sits between.
+   *
+   * @param {HTMLElement} el The element to resolve.
+   * @returns {Walkontable|null}
+   */
+  #getRenderingWt(el: HTMLElement) {
+    const overlay = this._wt.wtOverlays.getParentOverlayByRenderedArea(el);
+
+    if (overlay !== null) {
+      return overlay;
+    }
+
+    return isChildOf(el, this._wt.wtTable.spreader) ? this._wt : null;
+  }
+
+  /**
+   * Checks whether the element belongs to the selectable area of the table that renders it.
+   *
+   * Everything that table renders counts, not just the cells. A multi-cell drag passes over the
+   * selection borders, and rejecting one cancels a selection that is still inside the same area —
+   * which is exactly what `fragmentSelection: true` exists to allow. Headers are the one exception:
+   * column headers sit in the THEAD and row headers are `TH` elements inside the TBODY's own rows,
+   * and every grid with headers renders them into a clone, so allowing them here would make header
+   * labels selectable on any grid that has headers at all, frozen or not.
    *
    * @param {HTMLElement} el The element to check.
    * @returns {boolean}
    */
   #isSelectableTableArea(el: HTMLElement) {
-    const { spreader } = this.#getOwningWt(el).wtTable;
+    const wt = this.#getRenderingWt(el);
 
-    // Checked before the walk below, which is what bounds it: `closest` runs past its `until`
-    // argument when that node is not an ancestor, and would then leave the grid entirely and match a
-    // `TD` on the host page — making a header selectable whenever the grid sits inside a table cell.
-    if (!isChildOf(el, spreader)) {
+    if (wt === null) {
       return false;
     }
 
-    // Column headers sit in the THEAD and row headers are `TH` elements inside the TBODY's own rows.
-    // Every grid with headers renders them into a clone, so allowing them here would make header
-    // labels selectable on any grid that has headers at all, frozen or not.
-    return closest(el, ['TH'], spreader) === null;
+    // The spreader bounds the walk. `closest` runs past an `until` that is not an ancestor, and
+    // would then leave the grid entirely and match a `TH` on the host page.
+    return closest(el, ['TH'], wt.wtTable.spreader) === null;
   }
 
   /**
@@ -1757,7 +1778,22 @@ class TableView {
    * @returns {boolean}
    */
   #hasLeftTextSelectionOverlay(el: HTMLElement) {
-    return this.getElementOverlayName(el) !== this.#textSelectionOverlay;
+    return this.#getRenderingOverlayName(el) !== this.#textSelectionOverlay;
+  }
+
+  /**
+   * Names the overlay whose rendered area holds the given element, or `null` when it sits outside
+   * every table.
+   *
+   * This is not `getElementOverlayName`, which resolves by `TABLE` and so reports a frozen area's
+   * selection borders as the master's. Naming a border differently from the cells it sits between
+   * would read as leaving the overlay and cancel a drag that never left it.
+   *
+   * @param {HTMLElement} el The element to name.
+   * @returns {string|null}
+   */
+  #getRenderingOverlayName(el: HTMLElement) {
+    return this.#getRenderingWt(el)?.wtTable.name ?? null;
   }
 
   /**

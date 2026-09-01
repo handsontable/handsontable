@@ -926,6 +926,43 @@ class Overlays {
   }
 
   /**
+   * Get the overlay whose rendered area contains the provided element.
+   *
+   * This matches against each clone's spreader rather than its `TABLE`, so it also resolves the
+   * elements an overlay renders beside its table — the selection borders, which are appended to the
+   * spreader. `getParentOverlay` misses those and reports them as the master's.
+   *
+   * @param {HTMLElement} element An element to process.
+   * @returns {WalkontableInstance|null}
+   */
+  getParentOverlayByRenderedArea(element: HTMLElement): WalkontableInstance | null {
+    if (!element) {
+      return null;
+    }
+
+    const overlays = [
+      this.topOverlay,
+      this.inlineStartOverlay,
+      this.bottomOverlay,
+      this.topInlineStartCornerOverlay,
+      this.bottomInlineStartCornerOverlay
+    ];
+    let result = null;
+
+    arrayEach(overlays, (overlay) => {
+      if (!overlay) {
+        return;
+      }
+
+      if (overlay.clone && overlay.clone.wtTable.spreader.contains(element)) { // todo demeter
+        result = overlay.clone;
+      }
+    });
+
+    return result;
+  }
+
+  /**
    * Get the parent overlay of the provided element.
    *
    * @param {HTMLElement} element An element to process.

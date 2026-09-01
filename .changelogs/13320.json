@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed text selection not working inside frozen rows and columns when `fragmentSelection` is enabled.",
+  "title": "Fixed text selection not working inside frozen rows and columns when `fragmentSelection` is enabled. A selection now stays within the area it starts in.",
   "type": "fixed",
   "issueOrPR": 13320,
   "breaking": false,
