@@ -1,6 +1,12 @@
 import type { default as CellCoords } from '../3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from '../3rdparty/walkontable/src/cell/range';
-import type { SelectionFocusPosition, SelectionSettings, SelectionTableProps } from './types';
+import type {
+  ImportedSelectionState,
+  SelectionFocusPosition,
+  SelectionSettings,
+  SelectionState,
+  SelectionTableProps,
+} from './types';
 import type { IndexMapper } from '../translations';
 import Highlight, {
   AREA_TYPE,
@@ -1888,11 +1894,7 @@ class Selection {
     disableHeadersHighlight,
     rowExtentSpansGrid = [],
     columnExtentSpansGrid = [],
-  }: {
-    ranges: CellRange[]; activeRange: CellRange; activeSelectionLayer: number;
-    selectedByRowHeader: number[]; selectedByColumnHeader: number[]; disableHeadersHighlight: boolean;
-    rowExtentSpansGrid?: number[]; columnExtentSpansGrid?: number[];
-  }) {
+  }: ImportedSelectionState) {
     if (ranges.length === 0) {
       return;
     }
@@ -1925,7 +1927,7 @@ class Selection {
    *
    * @returns {SelectionState}
    */
-  exportSelection() {
+  exportSelection(): SelectionState {
     return {
       ranges: Array.from(this.selectedRange).map(range => range.clone()),
       activeRange: this.getActiveSelectedRange(),

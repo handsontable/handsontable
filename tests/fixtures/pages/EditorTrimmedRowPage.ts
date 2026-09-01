@@ -18,6 +18,11 @@ interface HiddenRowsPlugin {
   hideRows(rows: number[]): void;
 }
 
+interface DialogPlugin {
+  show(options: Record<string, unknown>): void;
+  hide(): void;
+}
+
 interface ColumnSortingPlugin {
   sort(config: { column: number; sortOrder: string }): void;
 }
@@ -55,7 +60,7 @@ interface HandsontableFixture {
   countSourceRows(): number;
   countRows(): number;
   getPlugin(name: string): FiltersPlugin & TrimRowsPlugin & ColumnSortingPlugin & ManualRowMovePlugin
-    & ManualColumnMovePlugin & CopyPastePlugin & HiddenRowsPlugin;
+    & ManualColumnMovePlugin & CopyPastePlugin & HiddenRowsPlugin & DialogPlugin;
   populateFromArray(
     row: number, column: number, input: unknown[][], endRow: number | null, endColumn: number | null,
     source?: string
@@ -559,6 +564,10 @@ export class EditorTrimmedRowPage {
   /**
    * Stashes the selection, deselects, and restores it - the round trip `dialog` and
    * `emptyDataState` perform when they take the grid over and hand it back.
+   *
+   * This is the SELECTION API's own round trip: the exported object goes back in whole. It cannot
+   * see a consumer that rebuilds the object field by field on the way in, which is what
+   * `roundTripSelectionThroughDialog()` covers.
    */
   async roundTripSelectionThroughExport(): Promise<void> {
     await this.page.evaluate(() => {
@@ -567,6 +576,22 @@ export class EditorTrimmedRowPage {
 
       hot.deselectCell();
       hot.selection.importSelection(stashed);
+    });
+  }
+
+  /**
+   * Runs the same round trip through the `dialog` PLUGIN, by opening a dialog and closing it.
+   *
+   * Worth its own path rather than folding into the export helper above: the plugin does the stash
+   * and the restore itself, so this is the only way to catch it handing `importSelection()` a
+   * narrower object than the one it exported. It dropped the grid-span flags exactly that way.
+   */
+  async roundTripSelectionThroughDialog(): Promise<void> {
+    await this.page.evaluate(() => {
+      const dialog = (window as Window & { hot: HandsontableFixture }).hot.getPlugin('dialog');
+
+      dialog.show({ content: 'stash', animation: false });
+      dialog.hide();
     });
   }
 

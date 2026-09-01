@@ -85,9 +85,25 @@ const SHAPES: ShapeCase[] = [
   },
 ];
 
+/**
+ * The ways a selection can reach the trim. `none` is the user's own selection; the other two are
+ * the stash-deselect-restore trip that `dialog` and `emptyDataState` perform, taken at the two
+ * levels it can break at.
+ *
+ * `export` drives the Selection API directly, handing the exported object straight back.
+ * `dialog` drives the PLUGIN, which builds its own argument - and a plugin that rebuilds the object
+ * field by field can drop part of it while the API-level trip stays green. That is not
+ * hypothetical: the `dialog` restore lost the grid-span flags this way, turning every clamp below
+ * into a deselect, with the `export` column passing throughout.
+ */
+const ROUND_TRIPS = [
+  { mode: 'none', suffix: '' },
+  { mode: 'export', suffix: ', restored from an export' },
+  { mode: 'dialog', suffix: ', restored by the dialog plugin' },
+] as const;
+
 for (const headers of [true, false]) {
-  for (const roundTrip of [false, true]) {
-    const suffix = roundTrip ? ', restored from an export' : '';
+  for (const { mode: roundTrip, suffix } of ROUND_TRIPS) {
 
     test.describe(`selection shapes against a trim, headers ${headers ? 'on' : 'off'}${suffix}`, () => {
       for (const shape of SHAPES) {
@@ -99,11 +115,15 @@ for (const headers of [true, false]) {
 
           expect(await grid.selected()).toBeDefined();
 
-          if (roundTrip) {
+          if (roundTrip !== 'none') {
             // `dialog` and `emptyDataState` stash the selection, deselect, and put it back. Whatever
             // the repair relies on has to survive that trip, or a restored selection gets judged by
             // a different rule than the one the user made.
-            await grid.roundTripSelectionThroughExport();
+            if (roundTrip === 'dialog') {
+              await grid.roundTripSelectionThroughDialog();
+            } else {
+              await grid.roundTripSelectionThroughExport();
+            }
 
             expect(await grid.selected()).toBeDefined();
           }

@@ -88,6 +88,9 @@
       // visual space, so a coordinate over it never strands. Empty, and inert until a case hides
       // something.
       hiddenRows: true,
+      // One of the two plugins that stash the selection, deselect, and put it back, and the only
+      // one a test can drive directly - `emptyDataState` shows itself. Inert until a case opens it.
+      dialog: true,
       columnSorting: window.htSorting,
       // Sorting and row moving rearrange the visual space without trimming anything - they report
       // `indexesSequenceChanged`, not `trimmedIndexesChanged`. Enabled unconditionally; inert until
