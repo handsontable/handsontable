@@ -40,7 +40,8 @@ const EXPECTED_GATES = 6;
 // (`@handsontable/angular-wrapper`), so its lockfile MUST change or every docs deploy
 // dies on ERR_PNPM_OUTDATED_LOCKFILE -- `docs-production.yml` installs with
 // `--frozen-lockfile`. That call cannot use the float gate, which demands zero change;
-// it asserts the diff is purely additive instead. It is also confined to a
+// it asserts the intended entry landed and that no other package lost its resolved
+// `name@version` identity instead. It is also confined to a
 // `prod-docs/*` branch that never reaches a registry.
 // Pinning the total means a NEW `--lockfile-only` site cannot appear unnoticed.
 const EXPECTED_LOCKFILE_ONLY_CALLS = 6;
@@ -207,7 +208,8 @@ test('no new --lockfile-only site appears ungated', () => {
     + `calls, found ${found}. Three follow a version bump and are gated; two resolve a `
     + 'pnpm-lock.yaml merge conflict in `stable-merge` and legitimately rewrite the file; '
     + 'one adds the docs devDependency on the `prod-docs/*` branch and is checked for an '
-    + 'additive-only diff. A new one needs a deliberate decision about which kind it is '
+    + 'no other package losing its resolved identity. A new one needs a deliberate '
+    + 'decision about which kind it is '
     + '(DEV-2667).'
   );
 });
