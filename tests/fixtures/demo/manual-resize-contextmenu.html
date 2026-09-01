@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Manual resize context menu e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    DEV-2708. Both resize plugins remove their handle and their guide from the root element when a
+    "contextmenu" lands on the handle, but the two elements are attached at different moments: the
+    handle on `mouseover` over a header, the guide only once a `mousedown` reaches the plugin's own
+    root-element listener. A context menu opened over a handle the user has only hovered therefore
+    detached a guide that was never attached, and `removeChild` threw
+    "The node to be removed is not a child of this node" out of the handler.
+
+    Nothing here can be checked in jsdom: the handle only exists once the header has a layout box,
+    and the failure is an uncaught error raised inside a real listener.
+  -->
+  <h2>Rows and columns</h2>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    window.grid = new Handsontable(container, {
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      colHeaders: true,
+      rowHeaders: true,
+      manualRowResize: true,
+      manualColumnResize: true,
+      width: 600,
+      height: 400,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    /**
+     * Installs host-page code that swallows every `mousedown` before it reaches the grid, which is
+     * what an overlay, a drag library or a sandboxed editor around the grid does. It is one of the
+     * two ways a "contextmenu" reaches a resize handle with no `mousedown` having been handled; the
+     * other is a synthetic event, which the spec dispatches directly.
+     */
+    window.swallowMousedown = function() {
+      document.addEventListener('mousedown', event => event.stopPropagation(), true);
+    };
+  </script>
+</body>
+</html>
