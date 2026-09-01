@@ -20,6 +20,10 @@ node_modules/
 docs/tests/test-artifacts/
 docs/tests/.env
 docs/.env
+# Local credentials for any package (R2 keys for the visual suite, etc.).
+.env
+.env.local
+**/.env
 
 *.nupkg
 
