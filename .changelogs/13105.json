@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed autofill dragging near vertically merged cells — the fill handle can now target rows inside a merged band in a neighboring column instead of jumping past the whole merge.",
-  "type": "fixed",
-  "issueOrPR": 13105,
-  "breaking": false,
-  "framework": "none"
-}
