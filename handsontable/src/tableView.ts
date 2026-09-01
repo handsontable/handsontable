@@ -28,7 +28,13 @@ import {
 import EventManager from './eventManager';
 import { formatCellValue, renderCell } from './renderers/renderCell';
 import { RenderSizeProbe } from './renderSizeProbe';
-import { isImmediatePropagationStopped, isRightClick, isLeftClick, isMiddleClick } from './helpers/dom/event';
+import {
+  isImmediatePropagationStopped,
+  isRightClick,
+  isLeftClick,
+  isMiddleClick,
+} from './helpers/dom/event';
+import { getMouseEventTouchOrigin, TOUCH_SYNTHESIZED_MOUSE_WINDOW } from './helpers/dom/inputOrigin';
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
@@ -315,10 +321,11 @@ class TableView {
   #mouseDownLastPos: {row: number, col: number} | null = null;
   /**
    * Flag indicating that a touch interaction just ended. Set to `true` on
-   * `touchend` and reset asynchronously via `_registerTimeout`. Used together with
-   * `sourceCapabilities.firesTouchEvents` (Chrome/Blink) to detect synthetic
-   * mouse events that Android fires after touch interactions. These synthetic
-   * events can falsely trigger the outside-click handler, closing editors or
+   * `touchend` and reset asynchronously via `_registerTimeout` after
+   * `TOUCH_SYNTHESIZED_MOUSE_WINDOW`, shared with Walkontable's mouse listeners so both layers
+   * use the same fallback window. Used together with `sourceCapabilities.firesTouchEvents`
+   * (Chrome/Blink) to detect synthetic mouse events that Android fires after touch interactions.
+   * These synthetic events can falsely trigger the outside-click handler, closing editors or
    * popups that just opened via double-tap.
    *
    * @type {boolean}
@@ -627,11 +634,17 @@ class TableView {
 
       // Clear the flag after the browser's synthetic mouse event sequence completes.
       // Android dispatches mousedown/mouseup/click asynchronously after touchend,
-      // so the flag must survive across multiple event loop ticks.
+      // so the flag must survive across multiple event loop ticks. The window is shared
+      // with Walkontable's mouse listeners (`TOUCH_SYNTHESIZED_MOUSE_WINDOW`), so both
+      // layers use the same fallback window.
+      // The policies deliberately differ: Walkontable drops only the first pending pair
+      // (veto → pending → ceiling), while this layer keeps
+      // `getMouseEventTouchOrigin(event) ?? #recentTouchEnd` — a Blink-flagged pair must never
+      // run the outside-click handling that closes editors.
       this.#recentTouchEndTimeout = this.hot._registerTimeout(() => {
         this.#recentTouchEnd = false;
         this.#recentTouchEndTimeout = null;
-      }, 400);
+      }, TOUCH_SYNTHESIZED_MOUSE_WINDOW);
     });
 
     this.eventManager.addEventListener(documentElement, 'mousedown', (event) => {
@@ -1675,16 +1688,11 @@ class TableView {
    * Uses `sourceCapabilities.firesTouchEvents` (Chrome/Blink) when available,
    * falls back to the `#recentTouchEnd` flag for other browsers (Firefox, Safari).
    *
-   * @param {MouseEvent} event The mouse event to check.
-   * @private
+   * @param {Event} event The mouse event to check.
    * @returns {boolean}
    */
-  #isSyntheticMouseEvent(event: Event & { sourceCapabilities?: { firesTouchEvents: boolean } }) {
-    if (event.sourceCapabilities) {
-      return event.sourceCapabilities.firesTouchEvents === true;
-    }
-
-    return this.#recentTouchEnd;
+  #isSyntheticMouseEvent(event: Event): boolean {
+    return getMouseEventTouchOrigin(event) ?? this.#recentTouchEnd;
   }
 
   /**

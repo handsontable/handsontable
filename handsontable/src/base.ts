@@ -460,8 +460,8 @@ export {
 // Note: CellCoords and CellRange are already exported as runtime values above.
 export type { GridSettings, Events, SanitizerContext, TextExtractorContext } from './core/settings';
 export type {
-  CellValue, CellChange, RowObject, SourceRowData, ChangeSource, CellMeta, CellProperties,
-  ColumnSettings, RemoveIndexSignature
+  CellValue, CellChange, ColumnDataGetterSetterFunction, RowObject, SourceRowData, ChangeSource,
+  CellMeta, CellProperties, ColumnSettings, RemoveIndexSignature
 } from './settings';
 export type { RangeType, HotInstance } from './core/types';
 export type { OverlayType } from './3rdparty/walkontable/src/types';

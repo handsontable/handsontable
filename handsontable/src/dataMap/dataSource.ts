@@ -11,7 +11,26 @@ import { arrayEach } from '../helpers/array';
 import { rangeEach } from '../helpers/number';
 import { isFunction } from '../helpers/function';
 
-type DataAccessorFn = (dataRow: unknown) => unknown;
+/**
+ * A `columns[].data` accessor: called with the row object only to read, and with the row object
+ * and a value to write.
+ *
+ * Declared through the bivariance hack so that the public `ColumnDataGetterSetterFunction`, whose
+ * row parameter is narrower, stays assignable to it under `strictFunctionTypes`.
+ */
+export type DataAccessorFn = {
+  bivarianceHack(dataRow: unknown, value?: unknown): unknown
+}['bivarianceHack'];
+
+/**
+ * Checks whether the passed value is a `columns[].data` accessor function.
+ *
+ * @param {*} value The value to test.
+ * @returns {boolean} `true` when the value is an accessor function.
+ */
+export function isDataAccessorFn(value: unknown): value is DataAccessorFn {
+  return typeof value === 'function';
+}
 
 /**
  * @class DataSource
@@ -217,10 +236,11 @@ class DataSource {
    * Set the provided value in the source data set at the provided coordinates.
    *
    * @param {number|string} row Physical row index.
-   * @param {number|string} column Property name / physical column index.
+   * @param {number|string|Function} column Property name / physical column index / a `columns[].data`
+   *   accessor function (called as `column(dataRow, value)`).
    * @param {*} value The value to be set at the provided coordinates.
    */
-  setAtCell(row: number | string, column: string | number, value: unknown) {
+  setAtCell(row: number | string, column: string | number | DataAccessorFn, value: unknown) {
     // Normalize row: accept string numeric indices (e.g. '0', '1') passed by setSourceDataAtCell,
     // but reject prototype-pollution keys like '__proto__', 'constructor', 'prototype'.
     let normalizedRow: number;
@@ -254,6 +274,15 @@ class DataSource {
     }
 
     const dataRow = this.modifyRowData(normalizedRow);
+
+    if (typeof column === 'function') {
+      // The accessor owns the write, the same way it owns the read in `getAtPhysicalCell`.
+      if (dataRow !== undefined && dataRow !== null) {
+        column(dataRow, value);
+      }
+
+      return;
+    }
 
     if (!Number.isInteger(column)) {
       // column argument is the prop name
@@ -321,13 +350,15 @@ class DataSource {
    * Returns a single value from the data.
    *
    * @param {number} row Physical row index.
-   * @param {number} columnOrProp Visual column index or property.
+   * @param {number|string|Function} columnOrProp Visual column index, property, or a `columns[].data`
+   *   accessor function.
    * @returns {*}
    */
-  getAtCell(row: number, columnOrProp: number | string): unknown {
+  getAtCell(row: number, columnOrProp: number | string | DataAccessorFn): unknown {
     const dataRow = this.modifyRowData(row);
+    const prop = typeof columnOrProp === 'function' ? columnOrProp : this.colToProp(columnOrProp);
 
-    return this.getAtPhysicalCell(row, this.colToProp(columnOrProp) as number | string | DataAccessorFn, dataRow);
+    return this.getAtPhysicalCell(row, prop as number | string | DataAccessorFn, dataRow);
   }
 
   /**
@@ -377,11 +408,11 @@ class DataSource {
    * Returns single value from the data array (intended for clipboard copy to an external application).
    *
    * @param {number} row Visual row index.
-   * @param {number} prop The column property.
+   * @param {number|string|Function} prop The column property, or a `columns[].data` accessor function.
    * @since 16.1.0
    * @returns {string}
    */
-  getCopyable(row: number, prop: string | number): unknown {
+  getCopyable(row: number, prop: string | number | DataAccessorFn): unknown {
     const visualColumn = this.propToCol(prop);
 
     // The transient read honors a `cells()`-driven `copyable: false` (the dynamic extension

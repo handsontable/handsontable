@@ -448,12 +448,12 @@ const settings = {
 Three more things to know about this setup:
 
 - [`getSourceData()`](@/api/core.md#getsourcedata) returns copies of the row objects, so you can't re-stamp the row indexes through it. Hold on to the array you passed as [`data`](@/api/options.md#data).
-- Undo of a row removal restores the row object, which carries no cell values. To bring the values back, record them in [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow) and put them back in [`afterCreateRow`](@/api/hooks.md#aftercreaterow) when `source` is `'UndoRedo.undo'`.
+- Undo of a row removal restores the removed cell values through your column accessors, so you don't have to record them yourself. The values are written after the row is back in the grid, so the [`afterCreateRow`](@/api/hooks.md#aftercreaterow) hook above has to give the restored row its slot in the column arrays first.
 - [`columns`](@/api/options.md#columns) fixes the number of columns, so [`alter()`](@/api/core.md#alter) can't insert one. To add a column, push a new array onto your source and call [`updateSettings()`](@/api/core.md#updatesettings) with a new [`columns`](@/api/options.md#columns) array.
 
 ### Identify changed columns in hooks
 
-When you use a [function data source](#function-data-source-and-schema), each column's [`data`](@/api/options.md#data) option is a getter/setter function. In [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange), the second element of each change tuple is `prop`. With function-based columns, `prop` is that accessor function -- not a property name or a column index.
+When you use a [function data source](#function-data-source-and-schema), each column's [`data`](@/api/options.md#data) option is a getter/setter function. In [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange), the second element of each change tuple is `prop`. With function-based columns, `prop` is that accessor function -- not a property name or a column index. In TypeScript, the accessor's type is exported as `ColumnDataGetterSetterFunction` (see [TypeScript types](@/guides/tools-and-building/typescript-types/typescript-types.md#data-types)).
 
 To find which column changed, call [`propToCol()`](@/api/core.md#proptocol) on the `prop` value:
 
