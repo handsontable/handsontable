@@ -2102,7 +2102,8 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#modifySourceData
    * @since 8.0.0
    * @param {number} row Physical row index.
-   * @param {number} column Physical column index or property name.
+   * @param {number|string|Function} column Physical column index, property name, or a
+   *   `columns[].data` accessor function (see {@link Options#data}).
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
