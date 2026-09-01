@@ -63,22 +63,24 @@ export async function loadSnapshots() {
  */
 async function loadMedianFromHistory() {
   const files = (await readdir(GOLDEN_HISTORY_DIR)).filter(name => name.endsWith('.json'));
-  const snapshots = [];
 
-  for (const file of files) {
+  const parsed = await Promise.all(files.map(async(file) => {
     try {
-      snapshots.push(JSON.parse(await readFile(join(GOLDEN_HISTORY_DIR, file), 'utf8')));
+      return JSON.parse(await readFile(join(GOLDEN_HISTORY_DIR, file), 'utf8'));
     } catch (err) {
       console.warn(`Warning: failed to parse golden history file ${file} (${err.message}) -- skipping`);
-    }
-  }
 
+      return null;
+    }
+  }));
+
+  const snapshots = parsed.filter(Boolean);
   const median = computeMedianSnapshot(snapshots);
 
   if (!median && snapshots.length > 0) {
     console.warn(
-      'Golden history present but no snapshot had a marked trace window on every scenario ' +
-      '-- falling back to latest.json'
+      'Golden history present but not enough snapshots had a marked trace window on every ' +
+      'scenario -- falling back to latest.json'
     );
   }
 

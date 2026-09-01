@@ -4,13 +4,21 @@
 // (latest.json), which every develop push overwrites -- so a fluke run could
 // become the baseline for every later PR. computeMedianSnapshot() synthesizes
 // a baseline from the last N *valid* develop snapshots instead. "Valid" means
-// every scenario in the snapshot carries a marked trace window: snapshots
-// recorded before that measurement fix have no `windowSource` field at all,
-// which is what excludes them here without a manual cutoff date.
+// a parseable timestamp and every scenario in the snapshot carrying a marked
+// trace window: snapshots recorded before that measurement fix have no
+// `windowSource` field at all, which is what excludes them here without a
+// manual cutoff date. Below MIN_VALID_SNAPSHOTS, computeMedianSnapshot()
+// returns null rather than silently reporting a "median" of one run --
+// itself the single-fluke-baseline problem this module exists to fix.
 
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { computeMedianSnapshot, isValidForMedian, MEDIAN_WINDOW_SIZE } from '../median-snapshot.mjs';
+import {
+  computeMedianSnapshot,
+  isValidForMedian,
+  MEDIAN_WINDOW_SIZE,
+  MIN_VALID_SNAPSHOTS,
+} from '../median-snapshot.mjs';
 
 const DEFAULT_UPDATE_COUNTERS = {
   sampleCount: 3,
@@ -70,6 +78,18 @@ describe('isValidForMedian', () => {
   test('rejects an empty snapshot', () => {
     assert.equal(isValidForMedian({ timestamp: '2026-08-28T00:00:00Z', scenarios: {} }), false);
   });
+
+  test('rejects a scenario value that is not an object, instead of throwing', () => {
+    const malformed = snapshot('2026-08-28T00:00:00Z', { filtering: null });
+
+    assert.doesNotThrow(() => isValidForMedian(malformed));
+    assert.equal(isValidForMedian(malformed), false);
+  });
+
+  test('rejects a snapshot with a missing or unparseable timestamp', () => {
+    assert.equal(isValidForMedian(snapshot(undefined)), false);
+    assert.equal(isValidForMedian(snapshot('not-a-date')), false);
+  });
 });
 
 describe('computeMedianSnapshot', () => {
@@ -79,6 +99,13 @@ describe('computeMedianSnapshot', () => {
     delete preFix.scenarios.sorting.windowSource;
 
     assert.equal(computeMedianSnapshot([preFix]), null);
+  });
+
+  test('returns null (not a "median of 1") below MIN_VALID_SNAPSHOTS', () => {
+    // A one-run "median" is exactly the single-fluke-baseline problem this module
+    // exists to fix, just relabeled -- so it must not report isMedian: true.
+    assert.equal(MIN_VALID_SNAPSHOTS, 2, 'test assumes the floor is 2; update the fixtures below if this changes');
+    assert.equal(computeMedianSnapshot([snapshot('2026-08-28T00:00:00Z')]), null);
   });
 
   test('medians an odd number of values to the middle one', () => {
@@ -117,10 +144,24 @@ describe('computeMedianSnapshot', () => {
   });
 
   test('regenerates the heap labels from the medianed bytes', () => {
-    const result = computeMedianSnapshot([snapshot('2026-08-28T00:00:00Z')]);
+    const result = computeMedianSnapshot([
+      snapshot('2026-08-28T00:00:00Z'),
+      snapshot('2026-08-29T00:00:00Z'),
+    ]);
 
     assert.equal(result.scenarios.sorting.updateCounters.jsHeapMinLabel, '1000 kB');
     assert.equal(result.scenarios.sorting.updateCounters.jsHeapMaxLabel, '2.0 MB');
+  });
+
+  test('medians rangeStart and runs alongside the other scalar fields', () => {
+    const snapshots = [10, 20].map((runs, i) => snapshot(`2026-08-2${i}T00:00:00Z`, {
+      sorting: { rangeStart: 0, runs },
+    }));
+
+    const result = computeMedianSnapshot(snapshots);
+
+    assert.equal(result.scenarios.sorting.rangeStart, 0);
+    assert.equal(result.scenarios.sorting.runs, 15);
   });
 
   test('uses only the newest MEDIAN_WINDOW_SIZE of more snapshots than that', () => {
@@ -141,7 +182,10 @@ describe('computeMedianSnapshot', () => {
     // Guards against a regression that would leave this field unset: teardown.mjs's
     // windowSourceOf() treats a missing field as 'auto-zoom', which would make the
     // median baseline read as cross-window-mismatched against every real PR run.
-    const result = computeMedianSnapshot([snapshot('2026-08-28T00:00:00Z')]);
+    const result = computeMedianSnapshot([
+      snapshot('2026-08-28T00:00:00Z'),
+      snapshot('2026-08-29T00:00:00Z'),
+    ]);
 
     assert.equal(result.scenarios.sorting.windowSource, 'marks');
   });
@@ -154,7 +198,10 @@ describe('computeMedianSnapshot', () => {
 
     assert.equal(result.scenarios.sorting.hookTiming, 50);
 
-    const noneWithHook = computeMedianSnapshot([snapshot('2026-08-28T00:00:00Z')]);
+    const noneWithHook = computeMedianSnapshot([
+      snapshot('2026-08-28T00:00:00Z'),
+      snapshot('2026-08-29T00:00:00Z'),
+    ]);
 
     assert.equal('hookTiming' in noneWithHook.scenarios.sorting, false);
   });

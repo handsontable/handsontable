@@ -8,6 +8,12 @@ import { formatHeapMinBytesLabel, formatHeapMaxBytesLabel } from '../trace-parse
 // as much older history, large enough to smooth out one flaky CI run.
 export const MEDIAN_WINDOW_SIZE = 5;
 
+// Below this many valid snapshots, a "median" is no more robust than the single-run
+// baseline this module exists to replace -- so computeMedianSnapshot() refuses to
+// produce one, and the caller falls back to the plain (honestly-labeled) single
+// snapshot instead of a median that silently degenerates to one fluke run.
+export const MIN_VALID_SNAPSHOTS = 2;
+
 /**
  * @param {Array<number | null | undefined>} values
  * @returns {number | null}
@@ -36,22 +42,30 @@ function medianRounded(values) {
 }
 
 /**
- * A snapshot only qualifies for the median if every scenario in it carries a
- * marked trace window. Pre-PR1 snapshots have no `windowSource` field on any
- * scenario at all, so the mere absence of the field already excludes them --
- * no cutoff date or migration step is needed.
+ * A snapshot only qualifies for the median if its timestamp is usable for sorting
+ * and every scenario in it carries a marked trace window. Pre-PR1 snapshots have no
+ * `windowSource` field on any scenario at all, so the mere absence of the field
+ * already excludes them -- no cutoff date or migration step is needed. A scenario
+ * value that isn't an object (a shape-malformed but JSON-valid history file) is
+ * rejected rather than crashing on `.windowSource`.
  *
  * @param {object} snapshot
  * @returns {boolean}
  */
 export function isValidForMedian(snapshot) {
+  if (!Number.isFinite(Date.parse(snapshot?.timestamp))) {
+    return false;
+  }
+
   const scenarios = snapshot?.scenarios;
 
   if (!scenarios || Object.keys(scenarios).length === 0) {
     return false;
   }
 
-  return Object.values(scenarios).every(scenario => scenario.windowSource === 'marks');
+  return Object.values(scenarios).every(
+    scenario => scenario !== null && typeof scenario === 'object' && scenario.windowSource === 'marks'
+  );
 }
 
 /**
@@ -95,8 +109,10 @@ function medianScenario(entries) {
 
   return {
     categories,
+    rangeStart: median(entries.map(entry => entry.rangeStart)),
     rangeEnd: median(entries.map(entry => entry.rangeEnd)),
     total: median(entries.map(entry => entry.total)),
+    runs: medianRounded(entries.map(entry => entry.runs)),
     updateCounters,
     // Set explicitly, never left to default. teardown.mjs's windowSourceOf()
     // treats a missing field as 'auto-zoom' -- an unset value here would make
@@ -115,10 +131,12 @@ function medianScenario(entries) {
 export function computeMedianSnapshot(snapshots, { windowSize = MEDIAN_WINDOW_SIZE } = {}) {
   const valid = (snapshots || [])
     .filter(isValidForMedian)
-    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    // isValidForMedian already rejected anything with an unparseable timestamp, so
+    // this subtraction is never NaN here.
+    .sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp))
     .slice(0, windowSize);
 
-  if (valid.length === 0) {
+  if (valid.length < MIN_VALID_SNAPSHOTS) {
     return null;
   }
 

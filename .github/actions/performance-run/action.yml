@@ -45,10 +45,10 @@ runs:
       shell: bash
       run: |
         git fetch origin gh-pages:gh-pages 2>/dev/null || true
-        mkdir -p performance-tests/golden performance-tests/golden/history
+        mkdir -p performance-tests/golden
 
-        # Single-file fallback, kept for when history/ below is empty or has
-        # nothing with a marked trace window on every scenario.
+        # Single-file fallback, kept for when the history/ fetch below is empty or
+        # has nothing with a marked trace window on every scenario.
         if git show gh-pages:performance-reports/develop/latest.json > performance-tests/golden/snapshots.json 2>/dev/null; then
           echo "Golden baseline (latest.json) restored from gh-pages"
         else
@@ -56,26 +56,10 @@ runs:
           rm -f performance-tests/golden/snapshots.json
         fi
 
-        # Rolling-median history: dump the last HISTORY_FETCH_COUNT timestamped
-        # develop runs as raw files. This step does no filtering or math --
-        # median-snapshot.mjs filters to windowSource === 'marks' and medians
-        # the newest MEDIAN_WINDOW_SIZE of whatever qualifies. The fetch count
-        # is generous on purpose; it only needs to exceed MEDIAN_WINDOW_SIZE
-        # after marks-filtering.
-        HISTORY_FETCH_COUNT=20
-        DIRS=$( (git ls-tree --name-only gh-pages -- performance-reports/develop/ \
-          | grep -E '/[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}-[0-9]{2}-[0-9]{2}Z$' \
-          | sort -r | head -n "$HISTORY_FETCH_COUNT") || true )
-
-        if [ -n "$DIRS" ]; then
-          while IFS= read -r dir; do
-            name=$(basename "$dir")
-            git show "gh-pages:${dir}/snapshots.json" > "performance-tests/golden/history/${name}.json" 2>/dev/null || true
-          done <<< "$DIRS"
-          echo "Fetched $(ls performance-tests/golden/history | wc -l) historical snapshot(s) for median baseline"
-        else
-          echo "No timestamped develop runs found on gh-pages -- median baseline will fall back to latest.json"
-        fi
+        # Rolling-median history, shared with .github/workflows/performance-tests.yml
+        # so the two golden-restore call sites can't drift on the fetch count or the
+        # timestamp pattern.
+        node .github/scripts/fetch-golden-history.mjs
 
     - name: Compute report URL
       id: report-url
