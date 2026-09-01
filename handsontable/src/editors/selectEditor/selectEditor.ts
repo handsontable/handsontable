@@ -214,6 +214,11 @@ export class SelectEditor extends BaseEditor {
     this.originalValue = sourceData;
 
     this.setValue(sourceData);
+    // Same reason as in `TextEditor#refreshValue()`: the control now shows the cell's own value
+    // again, so the unchanged-edit baseline has to follow it. Leaving the opening value in place
+    // would compare the user's next confirm against an option the editor no longer shows, and the
+    // choice they actually picked would be dropped.
+    this.resetValueBeforeEdit();
     this.refreshDimensions();
   }
 

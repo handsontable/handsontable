@@ -106,6 +106,13 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   on its own, so `scrollTop > 0` passes with the auto-scroller dead. The scroll timer
   reschedules itself, so one `touchmove` past the edge starts it — poll for a further increase
   instead of holding for a fixed time (`waitForTimeout` is banned, see below).
+- Dual-listener devices (iPad with a desktop UA, Windows touchscreens) are emulated with
+  `test.use({ ...devices['Desktop Chrome'], hasTouch: true, browserName: 'chromium' })` — desktop
+  UA keeps `isMobileBrowser()` false while `hasTouch` makes Walkontable register touch AND mouse
+  listeners, and Chromium synthesizes the same mousedown/mouseup/click after `locator.tap()` that
+  iPad Safari does. Drive the pairing timers with `page.clock`. Reference:
+  `e2e/touch-tap-to-edit.spec.ts` (page object in `fixtures/pages/`, not `fixtures/pages/mobile/`,
+  because the fixture is not a mobile-UA grid).
 
 ## Rendering below 100% (zoom / display scaling)
 

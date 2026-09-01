@@ -30,6 +30,10 @@ export interface SelectOptionsObject {
  */
 export type SourceRowData = RowObject | CellValue[];
 
+/**
+ * The function shape of the `columns[].data` option. Called with the source row alone to read the
+ * cell value, and with the source row and a value to write it.
+ */
 export interface ColumnDataGetterSetterFunction {
   (row: RowObject | CellValue[]): CellValue;
   (row: RowObject | CellValue[], value: CellValue): void;

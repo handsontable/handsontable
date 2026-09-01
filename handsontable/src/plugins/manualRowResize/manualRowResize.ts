@@ -16,8 +16,10 @@ import { rangeEach } from '../../helpers/number';
 import { deprecatedWarnOnce } from '../../helpers/console';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import {
+  ROW_SIZE_OPTIONS,
   getElementScaleFactor,
   normalizeVisualDelta,
+  redeclaresManualSizes,
   shouldRefreshHandleAfterAutoResize,
   shouldSkipResizeHandlePositioning,
 } from '../manualResize/utils';
@@ -51,6 +53,17 @@ export class ManualRowResize extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the setting keys that trigger a plugin update after an `updateSettings()` call. The
+   * `rowHeights` option is listed alongside the plugin's own key, so that re-declaring the row
+   * heights discards the heights kept from earlier manual resizing.
+   *
+   * @returns {string[]}
+   */
+  static get SETTING_KEYS(): string[] {
+    return [PLUGIN_KEY, ...ROW_SIZE_OPTIONS];
   }
 
   /**
@@ -196,12 +209,37 @@ export class ManualRowResize extends BasePlugin {
    *
    * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
    *  - [`manualRowResize`](@/api/options.md#manualrowresize)
+   *  - [`rowHeights`](@/api/options.md#rowheights)
+   *
+   * Passing `rowHeights` re-declares the row heights, so the heights kept from earlier manual
+   * resizing are discarded. A grid whose `manualRowResize` option is an array keeps that array
+   * instead, whether the array arrives in this call or was set when the grid was built.
+   *
+   * @param {object} [newSettings] The config object passed to `updateSettings()`.
    */
-  updatePlugin() {
-    this.disablePlugin();
-    this.enablePlugin();
+  updatePlugin(newSettings?: Record<string, unknown>) {
+    // Re-initialize only when the plugin's own option was declared. `#onMapInit` replays the
+    // declared `manualRowResize` array, so re-initializing on a `rowHeights`-only update would
+    // revert a row the user had since dragged to the array's height - neither the dragged height
+    // nor the one being requested.
+    if (newSettings === undefined || newSettings[PLUGIN_KEY] !== undefined) {
+      this.disablePlugin();
+      this.enablePlugin();
 
-    super.updatePlugin();
+    } else {
+      // `BasePlugin#onUpdateSettings` feeds `updatePluginSettings()` with `newSettings[PLUGIN_KEY]`,
+      // which a `rowHeights`-only update does not carry. Restore the option from the merged settings
+      // so `getSetting()` keeps reporting it.
+      this.updatePluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
+    }
+
+    // Runs after the re-initialization, so that the heights replayed on the map's `init` hook are
+    // discarded too.
+    if (redeclaresManualSizes(newSettings, ROW_SIZE_OPTIONS, this.hot.getSettings()[PLUGIN_KEY])) {
+      this.clearManualSizes();
+    }
+
+    super.updatePlugin(newSettings);
   }
 
   /**
@@ -275,6 +313,56 @@ export class ManualRowResize extends BasePlugin {
     }
 
     return newHeight;
+  }
+
+  /**
+   * Clears the height stored for the specified row, so the row falls back to the height coming from
+   * the [`rowHeights`](@/api/options.md#rowheights) option or from the theme. Call `render()`
+   * afterwards to repaint the grid.
+   *
+   * @example
+   * ```js
+   * const resizePlugin = hot.getPlugin('manualRowResize');
+   *
+   * resizePlugin.clearManualSize(0);
+   * hot.render();
+   * ```
+   *
+   * @param {number} row Visual row index.
+   */
+  clearManualSize(row: number): void {
+    // The map only exists while the plugin is enabled, and a disabled plugin stores no heights.
+    if (!this.enabled) {
+      return;
+    }
+
+    const physicalRow = this.hot.toPhysicalRow(row);
+
+    if (physicalRow !== null) {
+      this.#rowHeightsMap.setValueAtIndex(physicalRow, null);
+    }
+  }
+
+  /**
+   * Clears the heights stored for every row, so the rows fall back to the heights coming from the
+   * [`rowHeights`](@/api/options.md#rowheights) option or from the theme. Call `render()` afterwards
+   * to repaint the grid.
+   *
+   * @example
+   * ```js
+   * const resizePlugin = hot.getPlugin('manualRowResize');
+   *
+   * resizePlugin.clearManualSizes();
+   * hot.render();
+   * ```
+   */
+  clearManualSizes(): void {
+    this.#config = [];
+
+    // The map only exists while the plugin is enabled, and a disabled plugin stores no heights.
+    if (this.enabled) {
+      this.#rowHeightsMap.clear();
+    }
   }
 
   /**

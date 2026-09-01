@@ -8,7 +8,8 @@ import type {
   CellRange as WalkontableCellRange,
 } from '../3rdparty/walkontable/src';
 import type {
-  CellChange, ChangeSource, RowObject, CellValue, CellProperties, ColumnSettings, RemoveIndexSignature,
+  CellChange, ChangeSource, RowObject, CellValue, CellProperties, ColumnSettings,
+  ColumnDataGetterSetterFunction, RemoveIndexSignature,
 } from '../settings';
 import type { ColumnConditions } from '../plugins/filters';
 import type { LayoutConfig } from './layout';
@@ -179,6 +180,7 @@ export interface GridSettings {
   copyable?: boolean;
   copyPaste?: boolean | object;
   editor?: string | (new (...args: unknown[]) => unknown) | boolean;
+  emptyValue?: CellValue;
   enterBeginsEditing?: boolean;
   enterMoves?: { col: number; row: number } | ((event: KeyboardEvent) => { col: number; row: number });
   fillHandle?: boolean | string | { autoInsertRow?: boolean; direction?: string };
@@ -709,7 +711,13 @@ export interface GridSettings {
   modifyRowHeight?: (height: number, row: number, source?: string) => void | number;
   modifyRowHeightByOverlayName?: (height: number, row: number, overlayType: string) => void | number;
   modifySinglePassLayout?: (singlePassLayout: boolean) => void | boolean;
-  modifySourceData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
+  // Method syntax on purpose: the `column` parameter was widened after the hook started receiving
+  // a `columns[].data` accessor function, and only bivariant method-style checking keeps existing
+  // `(row, column: number, ...)` handlers assignable under `strictFunctionTypes`.
+  modifySourceData?(
+    row: number, column: number | string | ColumnDataGetterSetterFunction,
+    valueHolder: { value: CellValue }, ioMode: 'get' | 'set'
+  ): void;
   modifyTransformEnd?: (delta: WalkontableCellCoords) => void;
   modifyTransformFocus?: (delta: WalkontableCellCoords) => void;
   modifyTransformStart?: (delta: WalkontableCellCoords) => void;
