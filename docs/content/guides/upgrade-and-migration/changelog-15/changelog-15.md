@@ -183,7 +183,6 @@ For more information about this release see:
 - Fixed a problem with the header widths when using Nested Headers with the new themes enabled. [#11410](https://github.com/handsontable/handsontable/pull/11410)
 - Fixed the header text overlap in Nested Headers. [#11413](https://github.com/handsontable/handsontable/pull/11413)
 - Fixed a problem with the merged cells height calculation in the new themes. [#11423](https://github.com/handsontable/handsontable/pull/11423)
-- Fixed the copy/paste feature not working correctly in Chrome 133. [#11428](https://github.com/handsontable/handsontable/pull/11428)
 - Fixed a problem, where clicking on the Comments' editor element deselected the currently selected cells. [#11446](https://github.com/handsontable/handsontable/pull/11446)
 
 
@@ -215,7 +214,6 @@ For more information about this release see:
 
 #### Removed
 - **Breaking change**: Removed check marks from the Context Menu's alignment submenu. [#11278](https://github.com/handsontable/handsontable/pull/11278)
-- Removed `aria-hidden` from TextEditor's and PasswordEditor's `TEXTAREA` elements.  [#11218](https://github.com/handsontable/handsontable/pull/11218)
 
 #### Fixed
 - Fixed the Autocomplete and Dropdown editors' container size calculations. [#11201](https://github.com/handsontable/handsontable/pull/11201)

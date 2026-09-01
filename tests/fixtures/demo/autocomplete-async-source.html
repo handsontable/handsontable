@@ -27,6 +27,12 @@
     if (!window.htValidator) {
       throw new Error('Unknown ?validator= value: ' + JSON.stringify(htParams.get('validator')));
     }
+    // `dropdown` forces `strict: true` itself; `autocomplete` needs it asked for, and only then
+    // does it derive a highlight of its own.
+    window.htStrict = ({ true: true, false: false })[htParams.get('strict') ?? 'false'];
+    if (window.htStrict === undefined) {
+      throw new Error('Unknown ?strict= value: ' + JSON.stringify(htParams.get('strict')));
+    }
   </script>
 </head>
 <body>
@@ -48,11 +54,13 @@
       ['Bravo', 'Bruno', 'Brisk'],
     ];
 
-    // Each column is seeded with the prefix its whole choice set shares. Two reasons, both load
-    // bearing. An EMPTY cell closes the editor again on the same Enter that opened it, so nothing
-    // would ever stay open to test. And a prefix keeps `autocomplete` (which filters by the typed
-    // value) showing the same three choices as `dropdown` (which forces `filter: false`), so one
-    // assertion covers both editors.
+    // Each column is seeded with the prefix its whole choice set shares, so that `autocomplete`
+    // (which filters by the typed value) shows the same three choices as `dropdown` (which forces
+    // `filter: false`) and one assertion covers both editors.
+    //
+    // The seed also keeps a centred `cell.click()` off the dropdown arrow, but only as a side
+    // effect: content widens the column, and the right-floated arrow moves clear of the centre with
+    // it. Do not rely on that - see the fixture-contract bullet in `tests/AGENTS.md`.
     const SEEDS = ['Al', 'Br'];
 
     // Read by the page object, so the spec asserts against the fixture's own values instead of a
@@ -260,6 +268,7 @@
     // rejected validation settles, which is the window the entry guard must not shut.
     window.htPendingValidations = [];
 
+    const strictColumn = window.htStrict ? { strict: true } : {};
     const validatorColumn = window.htValidator === 'slowAsync' ? {
       allowInvalid: false,
       validator(value, callback) {
@@ -279,8 +288,8 @@
       colHeaders: true,
       rowHeaders: true,
       columns: [
-        Object.assign({ type: window.htEditor, source: makeSource(0) }, validatorColumn),
-        Object.assign({ type: window.htEditor, source: makeSource(1) }, validatorColumn),
+        Object.assign({ type: window.htEditor, source: makeSource(0) }, strictColumn, validatorColumn),
+        Object.assign({ type: window.htEditor, source: makeSource(1) }, strictColumn, validatorColumn),
       ],
       // Stamp test ids from `afterRenderer`, not from a grid-level `renderer`: a column `type`
       // installs its own renderer, which would override the grid-level one and leave the typed

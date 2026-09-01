@@ -19,7 +19,7 @@ global helpers, mocking, fixtures, custom matchers), see
 | React wrapper | Jest + `@testing-library/react` | — | `npm --prefix wrappers/react-wrapper run test` | `wrappers/react-wrapper/AGENTS.md` |
 | Vue 3 wrapper | Jest + `@vue/test-utils` | — | `npm --prefix wrappers/vue3 run test` | `wrappers/vue3/AGENTS.md` |
 | Angular wrapper | `jest-preset-angular` | — | `npm --prefix wrappers/angular-wrapper run test` | `wrappers/angular-wrapper/AGENTS.md` |
-| Visual regression | Playwright + Argos | — | `npm --prefix visual-tests run test` | `visual-tests/AGENTS.md`; skills `visual-testing`, `creating-visual-test-examples` |
+| Visual regression | Playwright + reg-suit | — | `npm --prefix visual-tests run test` | `visual-tests/AGENTS.md`; skills `visual-testing`, `creating-visual-test-examples` |
 | Performance | Playwright + CDP traces | — | `node scripts/run.mjs` (run from `performance-tests/`) | skill `performance-testing` |
 
 ## Notes

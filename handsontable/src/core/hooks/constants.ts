@@ -334,6 +334,7 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} indexesChangesState.indexesSequenceChanged Indicates if the sequence of indexes has changed.
    * @param {boolean} indexesChangesState.trimmedIndexesChanged Indicates if the trimmed indexes have changed.
    * @param {boolean} indexesChangesState.hiddenIndexesChanged Indicates if the hidden indexes have changed.
+   * @param {'init'|'remove'|'insert'|'move'|'update'} [indexesChangesState.indexesChangeSource] Indicates what caused a sequence change.
    */
   'afterColumnSequenceCacheUpdate',
 
@@ -808,6 +809,7 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} indexesChangesState.indexesSequenceChanged Indicates if the sequence of indexes has changed.
    * @param {boolean} indexesChangesState.trimmedIndexesChanged Indicates if the trimmed indexes have changed.
    * @param {boolean} indexesChangesState.hiddenIndexesChanged Indicates if the hidden indexes have changed.
+   * @param {'init'|'remove'|'insert'|'move'|'update'} [indexesChangesState.indexesChangeSource] Indicates what caused a sequence change.
    */
   'afterRowSequenceCacheUpdate',
 
@@ -2100,7 +2102,8 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#modifySourceData
    * @since 8.0.0
    * @param {number} row Physical row index.
-   * @param {number} column Physical column index or property name.
+   * @param {number|string|Function} column Physical column index, property name, or a
+   *   `columns[].data` accessor function (see {@link Options#data}).
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
@@ -3187,7 +3190,7 @@ export const REGISTERED_HOOKS = [
    * whose content size depends on the viewport that is being computed (for example, merged cells) opts
    * out this way; user code can also return `false` to disable single-pass rendering.
    *
-   * @since 18.0.0
+   * @since 18.1.0
    * @event Hooks#modifySinglePassLayout
    * @param {boolean} singlePassLayout `true` when single-pass rendering is currently enabled.
    * @returns {boolean|void} Return `false` to force the legacy measure-then-render path.

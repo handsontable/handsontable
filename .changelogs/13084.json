@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Restored the horizon theme alternating stripe on even row headers, which stopped showing after the even row header background was made to cascade from headerRowBackgroundColor.",
-  "type": "fixed",
-  "issueOrPR": 13084,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed the license notification bar content overflowing on grids narrower than 300px.",
-  "type": "fixed",
-  "issueOrPR": 13167,
-  "breaking": false,
-  "framework": "none"
-}

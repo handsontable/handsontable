@@ -18,6 +18,7 @@ vue:
   metaTitle: Column freezing - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
+menuTag: updated
 ---
 Lock the position of specified columns, keeping them visible when scrolling.
 
@@ -82,7 +83,7 @@ If your [layout direction](@/guides/internationalization/layout-direction/layout
 
 ## User-triggered freeze
 
-To enable manual column freezing, set [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) to `true`. This lets you freeze and unfreeze columns by using the grid's [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md).
+To enable manual column freezing, set [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) to `true`. This lets you freeze and unfreeze columns by using the grid's [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) or [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md).
 
 Mind that when you unfreeze a frozen column, it doesn't go back to the original position.
 
@@ -128,6 +129,16 @@ Mind that when you unfreeze a frozen column, it doesn't go back to the original 
 :::
 
 :::
+
+## Frozen area size limit
+
+Freeze only as many columns as fit within the grid's width.
+
+Handsontable always draws frozen columns in full. It never shrinks them, and it never scrolls them. If the frozen columns need more space than the grid has, they cover the whole grid. The remaining columns stay out of reach: the horizontal scrollbar still moves, but the view no longer changes.
+
+This applies to the total width of the frozen columns, not to how many there are. A single frozen column that you resize wider than the grid causes the same result.
+
+To avoid this, keep the combined width of your frozen columns smaller than the width of the grid. If your grid has to work at several sizes, pick a number of frozen columns that fits the narrowest one.
 
 ## Related API reference
 
