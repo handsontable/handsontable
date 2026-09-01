@@ -13,6 +13,7 @@ vue:
   metaTitle: MultiSelect cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Collect user input with a list of multiple-selection choices, by using the MultiSelect cell type.
 
