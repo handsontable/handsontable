@@ -149,7 +149,7 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
         total: { current: currentTotal, baseline: goldenTotal || 0, change: totalChange },
       },
       detailedMetrics: buildDetailedMetrics(current, golden, baselineIncomplete, isCrossWindow),
-      memory: buildMemoryMetrics(current, golden),
+      memory: buildMemoryMetrics(current, golden, isCrossWindow),
       hookTiming: buildHookTiming(current, golden),
       heap,
       cv: {
@@ -272,7 +272,17 @@ function buildDetailedMetrics(current, golden, baselineIncomplete = false, isCro
   return rows;
 }
 
-function buildMemoryMetrics(current, golden) {
+/**
+ * Every row here is an extremum over the UpdateCounters samples inside the parsed window -- heap,
+ * node count and listener count alike -- so a window mismatch invalidates all of them for exactly
+ * the reason it invalidates the heap maximum.
+ *
+ * @param {object} current
+ * @param {object | null} golden
+ * @param {boolean} [isCrossWindow]
+ * @returns {Array<object>}
+ */
+function buildMemoryMetrics(current, golden, isCrossWindow = false) {
   const cUc = current.updateCounters;
   const gUc = golden?.updateCounters;
 
@@ -303,7 +313,8 @@ function buildMemoryMetrics(current, golden) {
       label,
       currentDisplay: cDisplay != null ? String(cDisplay) : '--',
       baselineDisplay: gDisplay != null ? String(gDisplay) : '--',
-      change: pctChange(gUc?.[numKey], cUc[numKey]),
+      change: isCrossWindow ? null : pctChange(gUc?.[numKey], cUc[numKey]),
+      incomplete: isCrossWindow,
     });
   }
 
@@ -1142,10 +1153,14 @@ function buildScript() {
       if (data.hasBaseline) {
         tr.appendChild(elText('td', row.baselineDisplay, 'num'));
         tr.appendChild(elText('td', row.currentDisplay, 'num'));
-        const changeTd = elText('td', fmtPct(row.change), 'num');
+        const changeTd = elText(
+          'td', row.incomplete ? data.baselineIncompleteLabel : fmtPct(row.change), 'num'
+        );
         // Memory is banded on the heap threshold, which is an order of magnitude tighter than the
         // timing one because heap barely moves run to run.
-        changeTd.style.color = statusColor(classifyChangeCss(row.change, data.thresholds.heap));
+        changeTd.style.color = row.incomplete
+          ? statusColor('neutral')
+          : statusColor(classifyChangeCss(row.change, data.thresholds.heap));
         tr.appendChild(changeTd);
       } else {
         tr.appendChild(elText('td', row.currentDisplay, 'num'));

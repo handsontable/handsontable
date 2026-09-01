@@ -185,6 +185,16 @@ describe('buildHtmlReport -- cross-window comparison', () => {
     assert.equal(crossWindow().heap.change, null);
   });
 
+  test('withholds every memory delta, which are extrema over the same window', () => {
+    // Heap min/max, node count and listener count are all UpdateCounters extrema taken inside the
+    // parsed window, so the argument that invalidates the heap maximum invalidates each of them.
+    const changes = crossWindow().memory.map(r => r.change);
+
+    assert.ok(changes.length > 0, 'the fixture must produce memory rows');
+    assert.deepEqual(changes, changes.map(() => null));
+    assert.ok(crossWindow().memory.every(r => r.incomplete === true));
+  });
+
   test('does not count the scenario as a regression', () => {
     const scenario = crossWindow();
 
