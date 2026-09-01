@@ -249,6 +249,32 @@ When you set a column width programmatically with [`ManualColumnResize#setManual
 
 :::
 
+A column resized this way keeps its width, and that width wins over the [`colWidths`](@/api/options.md#colwidths) option. To hand control back to the option, pass `colWidths` to [`updateSettings()`](@/api/core.md#updatesettings). That re-declares the widths and discards the stored ones:
+
+```js
+// every column is 100px again, including the columns the user dragged
+hot.updateSettings({ colWidths: 100 });
+```
+
+To resize columns without discarding what the user dragged, leave `colWidths` out of the call. To replace the stored widths with your own, pass [`manualColumnResize`](@/api/options.md#manualcolumnresize) as an array. You can also clear them yourself with [`ManualColumnResize#clearManualSize()`](@/api/manualColumnResize.md#clearmanualsize) for one column, or [`clearManualSizes()`](@/api/manualColumnResize.md#clearmanualsizes) for all of them, followed by `hot.render()`.
+
+::: tip
+
+These cases never discard the stored widths, so passing `colWidths` does not reset anything:
+
+- `colWidths` set to a function. A function states no fixed width, so the stored widths are left alone.
+- A grid whose [`manualColumnResize`](@/api/options.md#manualcolumnresize) option is already a non-empty array. The plugin replays that array, so the stored widths stay.
+- The React, Angular and Vue wrappers, where a `colWidths` prop whose value did not change is not forwarded to `updateSettings()`. Re-applying the same value is not an update.
+
+In each case, clear the widths explicitly:
+
+```js
+hot.getPlugin('manualColumnResize').clearManualSizes();
+hot.render();
+```
+
+:::
+
 ::: only-for javascript
 
 ::: example #example4 --js 1 --ts 2

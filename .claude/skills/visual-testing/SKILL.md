@@ -1,14 +1,14 @@
 ---
 name: visual-testing
 path: visual-tests/**
-description: Use when writing Playwright visual regression tests or creating visual test examples for Handsontable - covers the custom tablePage fixture, screenshot workflow, Argos CI integration, and example creation in examples/next/docs/
+description: Use when writing Playwright visual regression tests or creating visual test examples for Handsontable - covers the custom tablePage fixture, screenshot workflow, reg-suit comparison, and example creation in examples/next/docs/
 ---
 
 # Visual Regression Testing with Playwright
 
 ## Overview
 
-Visual tests live in `visual-tests/` and use Playwright with TypeScript. Screenshots are compared against baselines by Argos CI to detect visual regressions. There are two workflows: (a) add visual tests for existing examples, and (b) create a new example in `examples/next/docs/` and write visual tests for it.
+Visual tests live in `visual-tests/` and use Playwright with TypeScript. Screenshots are compared against golden records by reg-suit to detect visual regressions. There are two workflows: (a) add visual tests for existing examples, and (b) create a new example in `examples/next/docs/` and write visual tests for it.
 
 ## Custom Fixture: `tablePage`
 
@@ -46,7 +46,7 @@ test(__filename, async({ tablePage }) => {
 });
 ```
 
-Always use `helpers.screenshotPath()` for the `path` argument. It auto-generates unique, deterministic file names based on the test file path, browser, framework, and screenshot index. Using any other naming approach will break Argos CI comparison.
+Always use `helpers.screenshotPath()` for the `path` argument. It auto-generates unique, deterministic file names based on the test file path, browser, framework, and screenshot index. Using any other naming approach will break the comparison, which matches screenshots by path.
 
 ## Test Organization
 
@@ -93,7 +93,7 @@ When creating a new example at `examples/next/docs/js/demo/`, include:
 
 ## Common Mistakes
 
-- Not using `helpers.screenshotPath()` -- breaks Argos CI screenshot matching.
+- Not using `helpers.screenshotPath()` -- breaks screenshot matching, which is purely path-based.
 - Forgetting to wait for animations or async rendering before taking a screenshot.
 - Placing JS-only tests in `multi-frameworks/` or vice versa.
 - Not disabling animations -- the `tablePage` fixture handles this, but if you use `goto` to navigate to a different page, animations are still disabled automatically by the fixture.

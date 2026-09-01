@@ -2726,7 +2726,10 @@ describe('AutocompleteEditor', () => {
 
     spec().$container.simulate('mousedown');
 
-    expect(getDataAtCell(0, 0)).toEqual('');
+    // Hovering and leaving picks nothing, so the editor closes holding exactly what it opened with
+    // and the cell keeps its original `null`. This used to assert `''`, because closing an unchanged
+    // editor wrote the editor's stringified value back over the cell (#3927).
+    expect(getDataAtCell(0, 0)).toBeNull();
   });
 
   it('should be able to use empty value ("")', async() => {

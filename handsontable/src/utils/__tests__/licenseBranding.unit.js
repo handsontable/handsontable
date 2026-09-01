@@ -747,8 +747,9 @@ describe('licenseBranding', () => {
   });
 
   describe('the no-ui-warns flag', () => {
-    // A key issued for external use must show its end users nothing, whatever state it is in.
-    it.each(['trial_notice', 'trial_soft_stop', 'trial_hard_stop', 'invalid', 'missing'])(
+    // A key issued for external use must show its end users no license WARNING - that is what the
+    // flag is for.
+    it.each(['trial_valid', 'trial_notice', 'trial_soft_stop'])(
       'should render nothing for the "%s" state when the UI channel is closed',
       (state) => {
         setLifecycle(state, { licensedUntil: '2026-09-26' }, { console: true, ui: false });
@@ -759,6 +760,29 @@ describe('licenseBranding', () => {
         expect(hotInstance.rootOverlaysElement.children).toHaveLength(0);
         expect(hotInstance.rootElement.classList.contains('ht-license-badge-on')).toBe(false);
         expect(hotInstance.focusScope.registerScope).not.toHaveBeenCalled();
+      }
+    );
+
+    // ...but it must NOT switch the block off. The flag covers UI warnings; the hard stop is the
+    // enforcement of a license that has stopped (product decision, DEV-2709). Since an external/SaaS
+    // key carries this flag by default, honoring it here made external TRIALS unblockable - the only
+    // externally-issued keys that can be blocked at all, since a lapsed subscription blocks nothing.
+    // This assertion fails if the `channels.ui` gate is ever moved back in front of the
+    // `LOCK_CONTENT` routing - which is the whole point of it.
+    //
+    // Only `trial_hard_stop` is reachable this way in production: `invalid` and `missing` describe
+    // keys whose flags could not be read, so `_getLicenseState` returns OPEN_CHANNELS for both and
+    // the combination below exists only because that function is mocked here. They are kept as a
+    // guard on the routing order, not as a claim about shipped states.
+    it.each(['trial_hard_stop', 'invalid', 'missing'])(
+      'should still render the lock screen for the "%s" state when the UI channel is closed',
+      (state) => {
+        setLifecycle(state, { licensedUntil: '2026-09-26' }, { console: true, ui: false });
+        const hotInstance = createMockHotInstance();
+
+        initLicenseBranding(hotInstance);
+
+        expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
       }
     );
   });
