@@ -47,6 +47,14 @@
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
   </script>
   <script>
+    // Counts every "contextmenu" that reaches the document, so a test driving a real right-click can
+    // prove the gesture produced the event instead of assuming it. Capture phase, and it neither
+    // cancels nor stops the event.
+    window.contextMenuEvents = 0;
+    document.addEventListener('contextmenu', () => {
+      window.contextMenuEvents += 1;
+    }, true);
+
     const container = document.querySelector('[data-testid="grid"]');
 
     container.className = `ht-theme-${window.htTheme}`;
@@ -57,6 +65,9 @@
       rowHeaders: true,
       manualRowResize: true,
       manualColumnResize: true,
+      // The Sentry reports come from grids that have the ContextMenu plugin on, which adds a second
+      // "contextmenu" listener running after the resize plugin has already detached its elements.
+      contextMenu: true,
       width: 600,
       height: 400,
       licenseKey: 'non-commercial-and-evaluation',

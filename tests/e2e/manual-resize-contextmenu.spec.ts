@@ -33,6 +33,13 @@ test.describe('Manual resize handle and the context menu', () => {
     await grid.goto();
   });
 
+  // Checked after the whole body rather than inline, so the tail of every test is covered too - the
+  // re-hover the first two tests end on, and the 500 ms autoresize timeout the drag tests leave
+  // armed.
+  test.afterEach(async () => {
+    expect(pageErrors).toEqual([]);
+  });
+
   test('survives a synthetic context menu over a hovered row handle', async () => {
     await grid.hoverRowHeader(2);
 
@@ -46,7 +53,6 @@ test.describe('Manual resize handle and the context menu', () => {
 
     // The handler detaches the handle, so its disappearance is the observable end of the gesture.
     await expect(grid.rowHandle).toHaveCount(0);
-    expect(pageErrors).toEqual([]);
 
     // The handler suppresses the "mouseover" that a context menu triggers right after it, and clears
     // that flag in a microtask. A later hover must therefore bring the handle back.
@@ -63,7 +69,6 @@ test.describe('Manual resize handle and the context menu', () => {
     await grid.dispatchContextMenu(grid.columnHandle);
 
     await expect(grid.columnHandle).toHaveCount(0);
-    expect(pageErrors).toEqual([]);
 
     await grid.hoverColumnHeader(2);
     await expect(grid.columnHandle).toHaveCount(1);
@@ -81,7 +86,10 @@ test.describe('Manual resize handle and the context menu', () => {
     // sends a fresh "mouseover" that re-reveals it. Whether that lands before or after the
     // suppression microtask is up to the browser, and no native menu covers the grid here.
     await expect(grid.rowGuide).toHaveCount(0);
-    expect(pageErrors).toEqual([]);
+    // The absence of an error is the only discriminator on this path, so the gesture has to be shown
+    // to have produced a "contextmenu" at all. Without this the test could stay green covering
+    // nothing.
+    await expect.poll(() => grid.contextMenuEventCount()).toBeGreaterThan(0);
   });
 
   test('survives a right-click on a column handle when the host page swallows mousedown', async () => {
@@ -91,7 +99,7 @@ test.describe('Manual resize handle and the context menu', () => {
     await grid.rightClick(grid.columnHandle);
 
     await expect(grid.columnGuide).toHaveCount(0);
-    expect(pageErrors).toEqual([]);
+    await expect.poll(() => grid.contextMenuEventCount()).toBeGreaterThan(0);
   });
 
   test('keeps removing both row elements after a real resize drag has attached the guide', async () => {
@@ -108,7 +116,6 @@ test.describe('Manual resize handle and the context menu', () => {
 
     await expect(grid.rowHandle).toHaveCount(0);
     await expect(grid.rowGuide).toHaveCount(0);
-    expect(pageErrors).toEqual([]);
   });
 
   test('keeps removing both column elements after a real resize drag has attached the guide', async () => {
@@ -121,6 +128,5 @@ test.describe('Manual resize handle and the context menu', () => {
 
     await expect(grid.columnHandle).toHaveCount(0);
     await expect(grid.columnGuide).toHaveCount(0);
-    expect(pageErrors).toEqual([]);
   });
 });

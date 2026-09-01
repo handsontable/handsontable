@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { dragResizeHandle } from '../gestures';
 
 /**
  * Page Object for the manual resize context-menu fixture (DEV-2708).
@@ -99,23 +100,7 @@ export class ManualResizeContextMenuPage {
    */
   async dragRowHandle(row: number, deltaY: number): Promise<void> {
     await this.hoverRowHeader(row);
-
-    const box = await this.rowHandle.boundingBox();
-
-    if (!box) {
-      throw new Error('The row resize handle has no layout box.');
-    }
-
-    const x = box.x + (box.width / 2);
-    const y = box.y + (box.height / 2);
-
-    await this.page.mouse.move(x, y);
-    await this.page.mouse.down();
-    // Several moves, because the plugin tracks the drag through `mousemove` and a single jump can
-    // be swallowed as a click.
-    await this.page.mouse.move(x, y + (deltaY / 2));
-    await this.page.mouse.move(x, y + deltaY);
-    await this.page.mouse.up();
+    await dragResizeHandle(this.page, this.rowHandle, { y: deltaY });
   }
 
   /**
@@ -126,21 +111,7 @@ export class ManualResizeContextMenuPage {
    */
   async dragColumnHandle(column: number, deltaX: number): Promise<void> {
     await this.hoverColumnHeader(column);
-
-    const box = await this.columnHandle.boundingBox();
-
-    if (!box) {
-      throw new Error('The column resize handle has no layout box.');
-    }
-
-    const x = box.x + (box.width / 2);
-    const y = box.y + (box.height / 2);
-
-    await this.page.mouse.move(x, y);
-    await this.page.mouse.down();
-    await this.page.mouse.move(x + (deltaX / 2), y);
-    await this.page.mouse.move(x + deltaX, y);
-    await this.page.mouse.up();
+    await dragResizeHandle(this.page, this.columnHandle, { x: deltaX });
   }
 
   /**
@@ -161,15 +132,10 @@ export class ManualResizeContextMenuPage {
    * @param {Locator} target The element to right-click.
    */
   async rightClick(target: Locator): Promise<void> {
-    const box = await target.boundingBox();
-
-    if (!box) {
-      throw new Error('The resize handle has no layout box.');
-    }
-
-    await this.page.mouse.move(box.x + (box.width / 2), box.y + (box.height / 2));
-    await this.page.mouse.down({ button: 'right' });
-    await this.page.mouse.up({ button: 'right' });
+    // Playwright's own click, not `mouse.down`/`mouse.up`, so its actionability and hit-target
+    // checks apply: a handle covered by another element on one theme leg then fails loudly instead
+    // of being pressed through the cover.
+    await target.click({ button: 'right' });
   }
 
   /**
@@ -183,6 +149,19 @@ export class ManualResizeContextMenuPage {
     await target.evaluate(element => element.dispatchEvent(
       new MouseEvent('contextmenu', { bubbles: true, cancelable: true })
     ));
+  }
+
+  /**
+   * How many "contextmenu" events have reached the document since the fixture loaded. A real
+   * right-click asserts this so the test cannot stay green while covering nothing, should the
+   * gesture ever stop producing the event.
+   *
+   * @returns {Promise<number>}
+   */
+  async contextMenuEventCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as {
+      contextMenuEvents: number
+    }).contextMenuEvents);
   }
 
   /**
