@@ -367,6 +367,50 @@ export function getProperty<T = unknown>(object: Record<string | symbol, unknown
 }
 
 /**
+ * Writes a value to the last segment of a property path. An own accessor is written through its
+ * setter and never redefined into a data property – redefining would silently detach a derived
+ * member (e.g. an object-literal getter on a row created by a `dataSchema` function) from the
+ * fields it derives from; a getter-only accessor is left untouched instead of throwing. A
+ * non-configurable data property cannot be redefined either, so it is written by plain
+ * assignment when writable and left untouched (read-only) otherwise.
+ *
+ * @param {object} target The object that owns the property.
+ * @param {string} propName The own property name to write.
+ * @param {*} value The value to write.
+ */
+function writeOwnProperty(target: Record<string, unknown>, propName: string, value: unknown): void {
+  if (propName === '__proto__' || propName === 'constructor' || propName === 'prototype') {
+    // Security: prototype-polluting is not allowed
+    return;
+  }
+
+  const descriptor = Object.getOwnPropertyDescriptor(target, propName);
+
+  if (descriptor && (descriptor.get || descriptor.set)) {
+    if (typeof descriptor.set === 'function') {
+      descriptor.set.call(target, value);
+    }
+
+    return;
+  }
+
+  if (descriptor && descriptor.configurable === false) {
+    if (descriptor.writable === true) {
+      target[propName] = value;
+    }
+
+    return;
+  }
+
+  Object.defineProperty(target, propName, {
+    value,
+    writable: true,
+    enumerable: true,
+    configurable: true,
+  });
+}
+
+/**
  * Set a property value on the provided object. Works on nested object prop names as well (e.g. `first.name`).
  *
  * @param {object} object Object to work on.
@@ -406,12 +450,7 @@ export function setProperty(object: Record<string, unknown>, name: string, value
       workingObject = nextLevel;
 
     } else {
-      Object.defineProperty(workingObject, propName, {
-        value,
-        writable: true,
-        enumerable: true,
-        configurable: true,
-      });
+      writeOwnProperty(workingObject, propName, value);
     }
   }
 }

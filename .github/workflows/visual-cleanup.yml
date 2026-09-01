@@ -1,0 +1,51 @@
+name: Visual approval reset
+
+# Clears the `visual-approved` label whenever a pull request gains new commits,
+# so an approval only ever covers the screenshots someone actually reviewed.
+#
+# On-PR-CLOSE cleanup does NOT belong here: `pr-cleanup.yml` is the single
+# close-triggered pipeline, and the R2 screenshot purge lives there as
+# `purge-visual-screenshots`. This file exists only because `synchronize` and
+# `reopened` are outside that workflow's trigger.
+on:
+  pull_request:
+    types: [ synchronize, reopened ]
+
+permissions:
+  contents: read
+
+jobs:
+  reset-approval:
+    name: Reset visual approval
+    # Same-repo only, for the same reason: a fork or Dependabot pull_request run
+    # holds a read-only token, so this write 403s. The visual gate compensates by
+    # ignoring `visual-approved` entirely on those runs, so a label that cannot
+    # be cleared here can never approve anything either.
+    if: github.event_name == 'pull_request'
+      && (github.event.action == 'synchronize' || github.event.action == 'reopened')
+      && (github.event.pull_request.head.repo.full_name == github.repository
+          && github.actor != 'dependabot[bot]')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Drop the visual-approved label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.number }}
+        # An absent label is the common case and fine. Anything else is not:
+        # a silently swallowed failure would leave a stale approval covering
+        # screenshots nobody reviewed, which is the one thing this job exists
+        # to prevent.
+        run: |
+          if gh pr edit "$PR_NUMBER" --remove-label visual-approved 2>/tmp/err; then
+            echo "Removed the visual-approved label."
+          elif grep -qiE "not (found|labeled)|does not have" /tmp/err; then
+            echo "No visual-approved label to remove."
+          else
+            echo "::error::Could not remove the visual-approved label:"
+            cat /tmp/err
+            exit 1
+          fi

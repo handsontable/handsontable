@@ -76,7 +76,7 @@ import type { ThemeBuilder } from './themes/engine/builder';
 import type { ThemeOverridesInput } from './themes/engine/manager';
 import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
-import type { CellChange, CellProperties } from './settings';
+import type { CellChange, CellProperties, ColumnDataGetterSetterFunction } from './settings';
 import type { GridHelperInstance, HotInstance, ViewportScrollerInstance } from './core/types';
 import type { FocusScopeManager } from './focusManager/scopeManager';
 import type { SelectionTableProps } from './selection/types';
@@ -2344,13 +2344,14 @@ export default function Core(
   /**
    * @ignore
    * @param {number} row The visual row index.
-   * @param {string|number} propOrCol The visual prop or column index.
+   * @param {string|number|Function} propOrCol The visual prop, the column index, or a `columns[].data`
+   *   accessor function.
    * @param {*} value The cell value.
    * @returns {Array}
    */
-  function setDataInputToArray(
-    row: number | Array<[number, string | number, unknown]>, propOrCol: string | number, value: unknown
-  ): Array<[number, string | number, unknown]> {
+  function setDataInputToArray<TProp extends string | number | ColumnDataGetterSetterFunction = string | number>(
+    row: number | Array<[number, TProp, unknown]>, propOrCol: TProp, value: unknown
+  ): Array<[number, TProp, unknown]> {
     if (Array.isArray(row)) { // it's an array of changes
       return row;
     }
@@ -4096,7 +4097,9 @@ export default function Core(
    * @memberof Core#
    * @function colToProp
    * @param {number} column Visual column index.
-   * @returns {string|number} Column property or physical column index.
+   * @returns {string|number} Column property or physical column index. When the column's `data`
+   *   option is an accessor function, that function is returned at runtime – check
+   *   `typeof` before treating the result as a property name.
    */
   this.colToProp = function(column: number) {
     return datamap.colToProp(column);
@@ -4345,20 +4348,30 @@ export default function Core(
    * @memberof Core#
    * @function setSourceDataAtCell
    * @param {number|Array} row Physical row index or array of changes in format `[[row, prop, value], ...]`.
-   * @param {number|string} column Physical column index / prop name.
+   * @param {number|string|Function} column Physical column index, prop name, or a `columns[].data`
+   *   accessor function (called as `accessor(rowObject, value)`).
    * @param {*} value The value to be set at the provided coordinates.
    * @param {string} [source] Source of the change as a string.
    */
 
   this.setSourceDataAtCell = function(
-    row: number | Array<[number, string | number, unknown]>, column: number | string, value: unknown, source: string
+    row: number | Array<[number, string | number | ColumnDataGetterSetterFunction, unknown]>,
+    column: number | string | ColumnDataGetterSetterFunction, value: unknown, source: string
   ) {
     const input = setDataInputToArray(row, column, value);
     const isThereAnySetSourceListener = instance.hasHook('afterSetSourceDataAtCell');
     const changesForHook: Array<Array<unknown>> = [];
-    const getCellProperties = (changeRow: number, changeProp: string | number): CellProperties => {
+    const getCellProperties = (
+      changeRow: number, changeProp: string | number | ColumnDataGetterSetterFunction
+    ): CellProperties => {
       const visualRow = instance.toVisualRow(changeRow);
-      const visualColumn = instance.toVisualColumn(changeProp as number);
+      // A function prop resolves through the accessor-aware `propToCol` cache, so an accessor
+      // column reads its own column meta (`valueSetter`, `sourceDataValidator`) instead of the
+      // table-meta fallback; an unresolvable accessor comes back as the function itself and
+      // falls through to that fallback below.
+      const visualColumn: unknown = typeof changeProp === 'function'
+        ? datamap.propToCol(changeProp)
+        : instance.toVisualColumn(changeProp as number);
 
       if (Number.isInteger(visualColumn)) {
         // The transient read keeps a bulk source-data write from permanently materializing one
@@ -4402,8 +4415,9 @@ export default function Core(
       );
 
       if (runSourceDataValidator(newValue, cellMeta, source ?? 'setSourceDataAtCell')) {
-        // changeProp is a physical column index for array-based data sources.
-        dataSource.setAtCell(changeRow, changeProp as string | number, newValue);
+        // changeProp is a physical column index, a prop name, or a `columns[].data` accessor
+        // function for array-based data sources.
+        dataSource.setAtCell(changeRow, changeProp, newValue);
       }
     });
 
@@ -4441,11 +4455,12 @@ export default function Core(
    * @memberof Core#
    * @function getSourceDataAtCell
    * @param {number} row Physical row index.
-   * @param {number} column Visual column index.
+   * @param {number|string|Function} column Visual column index, prop name, or a `columns[].data`
+   *   accessor function (called as `column(dataRow)`).
    * @returns {*} Cell data.
    */
   // TODO: Getting data from `sourceData` should work always on physical indexes.
-  this.getSourceDataAtCell = function(row: number, column: number) {
+  this.getSourceDataAtCell = function(row: number, column: number | string | ColumnDataGetterSetterFunction) {
     return dataSource.getAtCell(row, column);
   };
 
