@@ -5,13 +5,15 @@ import { type Page, type Locator, expect } from '@playwright/test';
  * master table in the DOM, so every lookup names the overlay it means — an unscoped `data-testid`
  * match would be ambiguous for any frozen cell.
  */
-export type OverlayName = 'master' | 'inlineStart' | 'top' | 'corner';
+export type OverlayName = 'master' | 'inlineStart' | 'top' | 'corner' | 'bottom' | 'bottomCorner';
 
 const OVERLAY_SELECTORS: Record<OverlayName, string> = {
   master: '.ht_master',
   inlineStart: '.ht_clone_inline_start',
   top: '.ht_clone_top',
   corner: '.ht_clone_top_inline_start_corner',
+  bottom: '.ht_clone_bottom',
+  bottomCorner: '.ht_clone_bottom_inline_start_corner',
 };
 
 /**
@@ -78,20 +80,30 @@ export class FragmentSelectionPage {
   }
 
   /**
-   * Fails loudly when a drag would run outside the grid's visible box. A cell that the grid's width
-   * clips still reports a layout box, so a drag aimed at it would silently land on whatever is
-   * really at those pixels and the test would assert against the wrong gesture.
+   * Locates a column header inside one specific overlay. Headers live in every overlay that renders
+   * them, so the lookup names the one it means.
    *
-   * @param {OverlayName} overlay The overlay holding the cell, for the error message.
-   * @param {number} row Visual row index, for the error message.
-   * @param {number} col Visual column index, for the error message.
+   * @param {OverlayName} overlay The overlay to look in.
+   * @param {number} col Visual column index.
+   * @returns {Locator}
+   */
+  columnHeader(overlay: OverlayName, col: number): Locator {
+    return this.grid
+      .locator(OVERLAY_SELECTORS[overlay])
+      .locator(`thead th:nth-child(${col + 1})`);
+  }
+
+  /**
+   * Fails loudly when a drag would run outside the grid's visible box. An element the grid's width
+   * or height clips still reports a layout box, so a drag aimed at it would silently land on
+   * whatever is really at those pixels and the test would assert against the wrong gesture.
+   *
+   * @param {string} label Describes the drag target, for the error message.
    * @param {number} startX Where the drag begins.
    * @param {number} endX Where the drag ends.
    * @param {number} y The drag's vertical position.
    */
-  async #assertDragStaysInsideGrid(
-    overlay: OverlayName, row: number, col: number, startX: number, endX: number, y: number,
-  ): Promise<void> {
+  async #assertDragStaysInsideGrid(label: string, startX: number, endX: number, y: number): Promise<void> {
     const gridBox = await this.grid.boundingBox();
 
     if (!gridBox) {
@@ -103,33 +115,32 @@ export class FragmentSelectionPage {
 
     if (!withinX || !withinY) {
       throw new Error(
-        `The drag across cell ${row},${col} in the ${overlay} overlay leaves the grid's visible box `
+        `The drag across ${label} leaves the grid's visible box `
         + `(x ${Math.min(startX, endX)}–${Math.max(startX, endX)}, y ${y} vs grid `
         + `x ${gridBox.x}–${gridBox.x + gridBox.width}, y ${gridBox.y}–${gridBox.y + gridBox.height}). `
-        + 'Pick a cell the grid actually shows.');
+        + 'Pick a target the grid actually shows.');
     }
   }
 
   /**
-   * Drags the mouse horizontally across a cell's text, the way a user sweeps out a text fragment.
-   * The drag stays well inside the cell so it can never reach a neighbouring one.
+   * Drags the mouse horizontally across one element's text, the way a user sweeps out a text
+   * fragment. The drag stays well inside the element so it can never reach a neighbour.
    *
-   * @param {OverlayName} overlay The overlay holding the cell.
-   * @param {number} row Visual row index.
-   * @param {number} col Visual column index.
+   * @param {Locator} target The element to sweep across.
+   * @param {string} label Describes the target, for the guard's error message.
    */
-  async dragAcrossTextIn(overlay: OverlayName, row: number, col: number): Promise<void> {
-    const box = await this.cell(overlay, row, col).boundingBox();
+  async dragAcrossText(target: Locator, label: string): Promise<void> {
+    const box = await target.boundingBox();
 
     if (!box) {
-      throw new Error(`Cell ${row},${col} in the ${overlay} overlay has no layout box`);
+      throw new Error(`${label} has no layout box`);
     }
 
     const y = box.y + (box.height / 2);
     const startX = box.x + 10;
     const endX = box.x + (box.width * 0.75);
 
-    await this.#assertDragStaysInsideGrid(overlay, row, col, startX, endX, y);
+    await this.#assertDragStaysInsideGrid(label, startX, endX, y);
 
     await this.page.mouse.move(startX, y);
     await this.page.mouse.down();
@@ -138,6 +149,29 @@ export class FragmentSelectionPage {
     await this.page.mouse.move(startX + (((endX - startX) * 2) / 3), y, { steps: 5 });
     await this.page.mouse.move(endX, y, { steps: 5 });
     await this.page.mouse.up();
+  }
+
+  /**
+   * Drags the mouse across a cell's text.
+   *
+   * @param {OverlayName} overlay The overlay holding the cell.
+   * @param {number} row Visual row index.
+   * @param {number} col Visual column index.
+   */
+  async dragAcrossTextIn(overlay: OverlayName, row: number, col: number): Promise<void> {
+    await this.dragAcrossText(
+      this.cell(overlay, row, col), `cell ${row},${col} in the ${overlay} overlay`);
+  }
+
+  /**
+   * Drags the mouse across a column header's text.
+   *
+   * @param {OverlayName} overlay The overlay holding the header.
+   * @param {number} col Visual column index.
+   */
+  async dragAcrossColumnHeaderIn(overlay: OverlayName, col: number): Promise<void> {
+    await this.dragAcrossText(
+      this.columnHeader(overlay, col), `column header ${col} in the ${overlay} overlay`);
   }
 
   /**

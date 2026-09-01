@@ -8,13 +8,13 @@ import {
   addClass,
   removeClass,
   clearTextSelection,
+  closest,
   empty,
   eventTargetEl,
   fastInnerHTML,
   fastInnerText,
   getScrollbarWidth,
   hasClass,
-  isChildOf,
   getDeepActiveElement,
   getShadowHostChain,
   isHTMLElement,
@@ -535,7 +535,10 @@ class TableView {
 
       const mouseDownTarget = eventTargetEl(event)!;
 
-      this.#textSelectionOverlay = this.getElementOverlayName(mouseDownTarget);
+      // Only `fragmentSelection` reads this, so a grid using the default pays no overlay lookup.
+      this.#textSelectionOverlay = this.settings.fragmentSelection
+        ? this.getElementOverlayName(mouseDownTarget)
+        : null;
 
       if (!this.isTextSelectionAllowed(mouseDownTarget)) {
         clearTextSelection(rootWindow);
@@ -559,10 +562,11 @@ class TableView {
       }
 
       const target = eventTargetEl(event)!;
-      // Confinement applies to `fragmentSelection` only. It exists to stop a native range from
-      // spanning two overlays, and gating it here keeps the editing path — where a drag out of the
-      // editor is allowed by `isCellEdited()` regardless of the element — behaving as it did.
-      const leftItsOverlay = Boolean(this.settings.fragmentSelection) &&
+      // Confinement applies to `fragmentSelection` only, and never to an input: the editor's
+      // textarea lives outside every clone, so a drag reaching it would otherwise count as leaving
+      // the starting overlay and cancel a gesture `isTextSelectionAllowed` explicitly permits.
+      const leftItsOverlay = this.#textSelectionOverlay !== null &&
+        !isInput(target) &&
         this.#hasLeftTextSelectionOverlay(target);
 
       if (!this.isTextSelectionAllowed(target) || leftItsOverlay) {
@@ -596,6 +600,12 @@ class TableView {
       if (this.#isSyntheticMouseEvent(event)) {
         return;
       }
+
+      // The listener on `rootElement` never sees a release outside the grid, so clear the drag state
+      // here too. Left set, a later hover over the grid would look like a drag still in progress and
+      // wipe whatever the user has selected on the host page.
+      this.#selectionMouseDown = false;
+      this.#textSelectionOverlay = null;
 
       const activeElement = getDeepActiveElement(rootDocument);
       const activeHTMLElement = isHTMLElement(activeElement) ? activeElement : null;
@@ -1673,19 +1683,15 @@ class TableView {
       return true;
     }
 
-    // A frozen cell is rendered in an overlay clone, which is a sibling of the master table rather
-    // than its descendant. Testing against the master spreader alone therefore rejects every cell in
-    // a frozen row, frozen column, or corner (#4980), so resolve the spreader that owns the element.
-    const parentOverlay = this._wt.wtOverlays.getParentOverlay(el) ?? this._wt;
-    const isChildOfTableBody = isChildOf(el, parentOverlay.wtTable.spreader);
+    const isInsideDataCell = this.#isInsideDataCell(el);
 
-    if (this.settings.fragmentSelection === true && isChildOfTableBody) {
+    if (this.settings.fragmentSelection === true && isInsideDataCell) {
       return true;
     }
 
     const isSingleCell = this.hot.getSelectedRangeActive()?.isSingleCell() ?? false;
 
-    if (this.settings.fragmentSelection === 'cell' && isSingleCell && isChildOfTableBody) {
+    if (this.settings.fragmentSelection === 'cell' && isSingleCell && isInsideDataCell) {
       return true;
     }
 
@@ -1694,6 +1700,38 @@ class TableView {
     }
 
     return false;
+  }
+
+  /**
+   * Resolves the Walkontable instance that renders the given element: the overlay clone that owns
+   * it, or the master instance when the element sits outside every clone.
+   *
+   * @param {HTMLElement} el The element to resolve.
+   * @returns {Walkontable}
+   */
+  #getOwningWt(el: HTMLElement) {
+    return this._wt.wtOverlays.getParentOverlay(el) ?? this._wt;
+  }
+
+  /**
+   * Checks whether the element sits inside a data cell of the table that renders it.
+   *
+   * A frozen cell lives in an overlay clone, which is a sibling of the master table rather than its
+   * descendant, so the owning table has to be resolved first — testing against the master alone
+   * rejects every cell in a frozen row, frozen column, or corner (#4980).
+   *
+   * The search is bounded by that table's TBODY and looks for a `TD`, which excludes both kinds of
+   * header. Column headers sit in the THEAD, and row headers are `TH` elements inside the TBODY's
+   * own rows; every grid with headers renders them into a clone, so a looser test would make header
+   * labels selectable on any grid that has headers at all, frozen or not.
+   *
+   * @param {HTMLElement} el The element to check.
+   * @returns {boolean}
+   */
+  #isInsideDataCell(el: HTMLElement) {
+    const { TBODY } = this.#getOwningWt(el).wtTable;
+
+    return TBODY !== null && closest(el, ['TD'], TBODY) !== null;
   }
 
   /**
@@ -1708,8 +1746,7 @@ class TableView {
    * @returns {boolean}
    */
   #hasLeftTextSelectionOverlay(el: HTMLElement) {
-    return this.#textSelectionOverlay !== null &&
-      this.getElementOverlayName(el) !== this.#textSelectionOverlay;
+    return this.getElementOverlayName(el) !== this.#textSelectionOverlay;
   }
 
   /**
@@ -1987,7 +2024,7 @@ class TableView {
     element: HTMLElement, index: number, content: (index: number, headerLevel?: number) => unknown, headerLevel = 0
   ) {
     let renderedIndex = index;
-    const parentOverlay = this._wt.wtOverlays.getParentOverlay(element) || this._wt;
+    const parentOverlay = this.#getOwningWt(element);
 
     // prevent wrong calculations from SampleGenerator
     if (element.parentNode) {
@@ -2284,7 +2321,7 @@ class TableView {
    * @returns {'master'|'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'}
    */
   getElementOverlayName(element: HTMLElement) {
-    return (this._wt.wtOverlays.getParentOverlay(element) ?? this._wt).wtTable.name;
+    return this.#getOwningWt(element).wtTable.name;
   }
 
   /**

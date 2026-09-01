@@ -13,9 +13,10 @@ test.describe('fragmentSelection in frozen areas', () => {
   let grid: FragmentSelectionPage;
 
   /**
-   * Every frozen area, plus the master as the control that proves the drag gesture works at all.
-   * Each cell is one the grid's 620px actually shows: with two frozen columns of 200px the master
-   * only has room for column 2, and a clipped cell would put the drag somewhere else entirely.
+   * Every frozen area `getParentOverlay` can resolve, plus the master as the control that proves the
+   * drag gesture works at all. Each cell is one the grid's 620px box actually shows: with two frozen
+   * columns of 200px the master only has room for column 2, and a clipped cell would put the drag
+   * somewhere else entirely. The fixture holds 6 rows, so row 5 is the last.
    */
   const AREAS: { label: string, overlay: OverlayName, settings: Record<string, unknown>, row: number, col: number }[] = [
     { label: 'master table', overlay: 'master', settings: { fixedColumnsStart: 2 }, row: 1, col: 2 },
@@ -26,6 +27,14 @@ test.describe('fragmentSelection in frozen areas', () => {
       overlay: 'corner',
       settings: { fixedRowsTop: 2, fixedColumnsStart: 2 },
       row: 0,
+      col: 0,
+    },
+    { label: 'frozen bottom rows', overlay: 'bottom', settings: { fixedRowsBottom: 2 }, row: 5, col: 0 },
+    {
+      label: 'bottom-start corner',
+      overlay: 'bottomCorner',
+      settings: { fixedRowsBottom: 2, fixedColumnsStart: 2 },
+      row: 5,
       col: 0,
     },
   ];
@@ -77,10 +86,12 @@ test.describe('fragmentSelection in frozen areas', () => {
     expect(await grid.selectedText()).toEqual('');
   });
 
-  test('does not select cells the pointer never crossed when a drag leaves the frozen area', async () => {
+  test('clears the selection when a drag leaves the area it started in', async () => {
     // The overlays sit next to each other in the DOM in an order that does not follow the visual
-    // layout, so a native range spanning two of them sweeps up unrelated columns. Dragging left out
-    // of the master and into the frozen columns must not collect the columns to the RIGHT.
+    // layout, so a native range spanning two of them sweeps up unrelated columns — a leftward drag
+    // would collect the columns to the RIGHT. The selection is dropped instead. Asserting the exact
+    // empty string, not "at most one cell": that upper bound also passes when the selection is
+    // destroyed, so it could not tell the documented behavior from a silent failure.
     await grid.initGrid({ fixedColumnsStart: 2, fragmentSelection: true });
     await grid.clearTextSelection();
 
@@ -89,10 +100,43 @@ test.describe('fragmentSelection in frozen areas', () => {
       { overlay: 'inlineStart', row: 1, col: 0 },
     );
 
-    // Every cell opens with its own `R<row>C<col>` marker, so counting the markers in the selected
-    // text counts the cells it reaches — regardless of whether the drag ends up clamped or dropped.
-    const markers = (await grid.selectedText()).match(/R\d+C\d+/g) ?? [];
+    expect(await grid.selectedText()).toEqual('');
+  });
 
-    expect(markers.length).toBeLessThanOrEqual(1);
+  test('keeps a selection that stops short of the frozen boundary', async () => {
+    // The companion to the test above: it pins that the clearing is caused by crossing the seam, not
+    // by dragging leftward, and that exactly one cell's text comes back when the drag stays put.
+    await grid.initGrid({ fixedColumnsStart: 2, fragmentSelection: true });
+    await grid.clearTextSelection();
+
+    await grid.dragAcrossTextIn('master', 1, 2);
+
+    const selected = await grid.selectedText();
+    // Every cell opens with its own `R<row>C<col>` marker, so counting markers counts the cells the
+    // selection reaches. Exactly one, and it has to be the cell that was dragged.
+    const markers = selected.match(/R\d+C\d+/g) ?? [];
+
+    expect(selected.length).toBeGreaterThan(0);
+    expect(markers).toEqual([]);
+    expect(await grid.cellText('master', 1, 2)).toContain(selected);
+  });
+
+  test('does not make header text selectable, frozen or not', async () => {
+    // Guards the containment test against widening back to the spreader, which holds the THEAD too.
+    // Every grid with headers renders them into a clone, so matching the spreader made header labels
+    // selectable on any grid with headers at all — no frozen rows or columns needed.
+    // A plain array, not a function: settings cross into the page through `evaluate` and have to be
+    // serializable. Long labels so a drag has text to sweep across.
+    await grid.initGrid({
+      colHeaders: Array.from({ length: 8 }, (unused, index) =>
+        `Header ${index} with a good deal of text in it`),
+      rowHeaders: true,
+      fragmentSelection: true,
+    });
+    await grid.clearTextSelection();
+
+    await grid.dragAcrossColumnHeaderIn('top', 1);
+
+    expect(await grid.selectedText()).toEqual('');
   });
 });
