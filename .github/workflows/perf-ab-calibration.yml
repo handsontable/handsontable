@@ -1,0 +1,88 @@
+name: Perf A/B calibration (TEMPORARY)
+
+# TEMPORARY. Delete this file before the pull request that adds it is marked ready.
+#
+# It measures whether running the performance suite twice in one job actually removes the
+# CI-runner-speed noise that DEV-2629's remaining false positives come from. It builds
+# Handsontable ONCE and runs the suite TWICE against that single build, so both halves measure
+# byte-identical code and every delta it reports is noise by construction -- the same property that
+# makes the develop-golden replay valid.
+#
+# It exists because the premise of the same-runner A/B design is unmeasured. The 0.63x-1.10x spread
+# that motivates it is CROSS-JOB variance; it says nothing about drift WITHIN a ~13-minute job
+# (thermal throttling, noisy neighbours, heap and page-cache accumulation between the halves).
+#
+# Read the residual it prints:
+#   ~1-3%   design validated, and this run is also the threshold derivation
+#   ~5-8%   A/B helps but does not close it -- interleave the halves and re-measure
+#   10%+    the approach does not work; do not write the CI wiring
+#
+# Run it three times before deciding. One job's residual is itself a single sample.
+
+on:
+  workflow_dispatch:
+    inputs:
+      pairs:
+        description: 'A/B pairs to run in this job (each pair is ~12 min)'
+        required: false
+        default: '1'
+
+# No writes: this reports to the job summary and an artifact, never to a PR or gh-pages.
+permissions:
+  contents: read
+
+jobs:
+  calibrate:
+    name: same-SHA A/B
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+
+      - uses: ./.github/actions/setup-workspace
+
+      # Built once, on purpose. Both halves must load the identical dist, or the residual measures
+      # a build difference rather than runner drift.
+      - name: Build Handsontable once
+        run: |
+          cd handsontable
+          npm run build:umd
+          npm run build:languages
+
+      - name: Run the suite twice per pair
+        env:
+          # Skips the rebuild inside run.mjs so every half reuses the single build above.
+          HOT_PREBUILT: '1'
+          # golden is the only mode that writes output/snapshots.json, and it throws on an unmarked
+          # trace instead of warning -- so a bad capture fails the job rather than skewing the number.
+          PERF_MODE: golden
+        run: |
+          set -euo pipefail
+          mkdir -p ab-calibration
+
+          for pair in $(seq 1 "${{ inputs.pairs }}"); do
+            for half in a b; do
+              # performance-tests/output/ is never cleared by the suite. iteration-N.json is
+              # overwritten by name only and hook-timing.json is not rewritten when a run produces
+              # no deltas, so a leftover file from the previous half is folded into this half's
+              # average. Clearing it is what makes the two halves independent.
+              rm -rf performance-tests/output performance-tests/golden
+
+              echo "::group::pair ${pair} half ${half}"
+              (cd performance-tests && node scripts/run.mjs)
+              echo "::endgroup::"
+
+              cp performance-tests/output/snapshots.json "ab-calibration/pair${pair}-${half}.json"
+            done
+          done
+
+      - name: Report the residual
+        run: node .github/scripts/perf-ab-residual.mjs ab-calibration >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the raw snapshots
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: perf-ab-calibration
+          path: ab-calibration
+          retention-days: 14
