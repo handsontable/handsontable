@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed text selection not working inside frozen rows and columns when `fragmentSelection` is enabled.",
+  "type": "fixed",
+  "issueOrPR": 13320,
+  "breaking": false,
+  "framework": "none"
+}
