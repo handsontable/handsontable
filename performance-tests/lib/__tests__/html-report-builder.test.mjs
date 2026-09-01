@@ -340,6 +340,101 @@ describe('buildHtmlReport -- gating boundaries', () => {
   });
 });
 
+describe('buildHtmlReport -- scenario absent from the baseline', () => {
+  // A scenario just added to the suite, or one the median omitted because too few windowed
+  // snapshots carried it. There is nothing to compare against, which is not a failed capture --
+  // the markdown path returns early and prints "--", and the HTML must agree.
+  const newScenario = () => payloadOf(buildHtmlReport(
+    { sorting: currentScenario(), 'brand-new': currentScenario() },
+    { timestamp: 't', scenarios: { sorting: goldenScenario() } },
+    {}
+  )).scenarios.find(s => s.name === 'brand-new');
+
+  test('is not reported as an incomplete capture', () => {
+    const scenario = newScenario();
+
+    assert.equal(scenario.hasBaseline, false);
+    assert.equal(scenario.baselineIncomplete, false);
+    assert.equal(scenario.incompleteLabel, null);
+  });
+
+  test('marks no category incomplete, so the detail table reads "--" like the comment', () => {
+    const scenario = newScenario();
+
+    assert.equal(scenario.metrics.scripting.incomplete, false);
+    assert.equal(scenario.metrics.rendering.incomplete, false);
+    assert.deepEqual(
+      scenario.detailedMetrics
+        .filter(r => ['scripting', 'rendering', 'painting'].includes(r.key))
+        .map(r => r.incomplete),
+      [false, false, false]
+    );
+  });
+
+  test('is not counted as not-assessed, which is reserved for a failed comparison', () => {
+    assert.equal(newScenario().notAssessed, false);
+  });
+});
+
+describe('buildHtmlReport -- dashboard and filters agree', () => {
+  // The counter and the filter are computed on opposite sides of the serialization boundary, so
+  // they can only stay consistent by reading the same flag. Deriving the predicate twice is what
+  // made the Neutral list longer than the Neutral count.
+  const mixed = () => payloadOf(buildHtmlReport(
+    {
+      flat: currentScenario(),
+      incomparable: currentScenario({ categories: { scripting: 20, rendering: 0, painting: 0 } }),
+      leaky: currentScenario({
+        updateCounters: { jsHeapMaxBytes: 200_000_000, jsHeapMaxLabel: '200 MB' },
+      }),
+    },
+    {
+      timestamp: 't',
+      scenarios: {
+        flat: goldenScenario(),
+        incomparable: goldenScenario(),
+        leaky: goldenScenario(),
+      },
+    },
+    {}
+  ));
+
+  test('every scenario falls into exactly one dashboard bucket', () => {
+    const { summary } = mixed();
+    const buckets = summary.regressions + summary.improvements + summary.neutral
+      + summary.notAssessed;
+
+    assert.equal(buckets, summary.total);
+  });
+
+  test('the not-assessed flag drives both the counter and the filterable set', () => {
+    const payload = mixed();
+    const flagged = payload.scenarios.filter(s => s.notAssessed);
+
+    assert.equal(flagged.length, payload.summary.notAssessed);
+    assert.equal(flagged.length, 1);
+    assert.equal(flagged[0].name, 'incomparable');
+  });
+
+  test('a scenario that both failed comparison and regressed counts as a regression', () => {
+    // It produced a callout, so it was assessed. Counting it in both buckets would double-count.
+    const scenario = payloadOf(buildHtmlReport(
+      {
+        sorting: currentScenario({
+          categories: { scripting: 20, rendering: 0, painting: 0 },
+          updateCounters: { jsHeapMaxBytes: 200_000_000, jsHeapMaxLabel: '200 MB' },
+        }),
+      },
+      { timestamp: 't', scenarios: { sorting: goldenScenario() } },
+      {}
+    )).scenarios[0];
+
+    assert.equal(scenario.isRegression, true);
+    assert.equal(scenario.baselineIncomplete, true);
+    assert.equal(scenario.notAssessed, false);
+  });
+});
+
 describe('buildHtmlReport -- baseline provenance', () => {
   test('flags a self-comparison so it is not described as a develop baseline', () => {
     const html = buildHtmlReport(

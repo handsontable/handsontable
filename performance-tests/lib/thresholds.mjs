@@ -131,6 +131,18 @@ export function sumActiveComparable(baselineCategories, currentCategories) {
   };
 }
 
+// The verdict for a scenario the baseline does not contain at all -- one just added to the suite,
+// or one the median omitted because too few windowed snapshots carried it. There is nothing to
+// compare against, which is not the same as a comparison that failed: every delta is simply absent
+// ("--"), and calling it "baseline incomplete" would send a maintainer looking for a capture bug.
+export const NO_BASELINE_VERDICT = Object.freeze({
+  comparable: true,
+  reason: null,
+  shortLabel: null,
+  label: null,
+  incompleteCategories: Object.freeze([]),
+});
+
 /**
  * Joins names for prose: "a", "a or b", "a, b or c".
  *

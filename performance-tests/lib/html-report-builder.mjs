@@ -12,6 +12,7 @@ import {
   pctChange,
   sumActive,
   comparability,
+  NO_BASELINE_VERDICT,
   formatTitle,
 } from './thresholds.mjs';
 
@@ -112,7 +113,10 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
     // baseline measured through a different trace window is not the same quantity at all. Either
     // way the total delta is withheld rather than published.
     const isCrossWindow = crossWindow.has(name);
-    const verdict = comparability(gCats, cCats, isCrossWindow);
+    // Only ask the question when there is something to compare against. Running the check against
+    // an absent baseline reports every category as uncaptured, which the markdown path avoids by
+    // returning early -- so the two reports disagreed on a scenario that is simply new.
+    const verdict = golden ? comparability(gCats, cCats, isCrossWindow) : NO_BASELINE_VERDICT;
     const baselineIncomplete = !!golden && !verdict.comparable;
     const totalChange = baselineIncomplete ? null : pctChange(goldenTotal, currentTotal);
     // Heap is derived from the same trace window, so a window mismatch invalidates it too. It is
@@ -146,6 +150,9 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
       badgeChange,
       badgeIsHeap,
       isRegression,
+      // Serialized once and read by both the dashboard counter and the filter. Deriving it
+      // separately on each side is how the counter came to disagree with the list it labels.
+      notAssessed: baselineIncomplete && !isRegression,
       incompleteLabel: verdict.shortLabel,
       incompleteReason: verdict.label,
       // Withheld per category, on the verdict rather than on the window alone. Gating only the
@@ -175,7 +182,7 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
   // Counted separately, never folded into Neutral. A scenario whose baseline could not be compared
   // against was not cleared, and a dashboard that shows it beside the genuinely flat ones is the
   // same "assessed by omission" failure the withheld delta exists to prevent.
-  const notAssessed = scenarios.filter(s => s.baselineIncomplete && !s.isRegression).length;
+  const notAssessed = scenarios.filter(s => s.notAssessed).length;
 
   return {
     meta: {
@@ -797,6 +804,13 @@ function buildScript() {
       ['neutral', 'Neutral'],
     ];
 
+    // Offered only when there is one, mirroring the counter card. Without its own filter a
+    // not-assessed scenario would be reachable from All alone, having just been excluded from
+    // Neutral -- less discoverable than before, not more.
+    if (data.summary.notAssessed > 0) {
+      filters.push(['notAssessed', 'Not assessed']);
+    }
+
     for (const [mode, text] of filters) {
       const btn = elText('button', text, 'btn' + (filterMode === mode ? ' active' : ''));
       btn.dataset.filter = mode;
@@ -866,7 +880,13 @@ function buildScript() {
     } else if (filterMode === 'improvement') {
       list = list.filter(s => s.status === 'improvement');
     } else if (filterMode === 'neutral') {
-      list = list.filter(s => !s.isRegression && s.status !== 'regression' && s.status !== 'improvement');
+      // Excludes the not-assessed, matching the counter card of the same name. Without this the
+      // Neutral list is longer than the Neutral count, and a scenario nothing could be said about
+      // reads as one that was checked and cleared.
+      list = list.filter(s => !s.isRegression && s.status !== 'regression'
+        && s.status !== 'improvement' && !s.notAssessed);
+    } else if (filterMode === 'notAssessed') {
+      list = list.filter(s => s.notAssessed);
     }
 
     // Sort
