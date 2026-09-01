@@ -104,6 +104,28 @@
       return true;
     };
 
+    /**
+     * Reports what kind of element is under a point: a selection border, a cell, or neither.
+     *
+     * A drag across a cell boundary passes over the selection border that sits between the cells,
+     * and that element is what a containment test can wrongly reject. Calling this between mouse
+     * moves also paces the drag: Playwright's synthetic moves are fast enough to coalesce, and
+     * without a hit test in between the border may never become a move's target at all.
+     */
+    window.elementUnder = function(x, y) {
+      const el = document.elementFromPoint(x, y);
+
+      if (!el) {
+        return 'none';
+      }
+
+      if (String(el.className).indexOf('wtBorder') > -1) {
+        return 'border';
+      }
+
+      return el.closest('td') ? 'cell' : 'other';
+    };
+
     // Built on `load`, not during parsing. A container that still measures zero when Handsontable
     // is constructed sends it down the hidden-init path, where the first render waits on an
     // observer that never fires for an element that was visible all along — the grid then stays

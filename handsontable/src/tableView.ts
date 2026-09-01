@@ -9,6 +9,7 @@ import {
   removeClass,
   clearTextSelection,
   closest,
+  isChildOf,
   empty,
   eventTargetEl,
   fastInnerHTML,
@@ -1683,15 +1684,15 @@ class TableView {
       return true;
     }
 
-    const isInsideDataCell = this.#isInsideDataCell(el);
+    const isSelectableArea = this.#isSelectableTableArea(el);
 
-    if (this.settings.fragmentSelection === true && isInsideDataCell) {
+    if (this.settings.fragmentSelection === true && isSelectableArea) {
       return true;
     }
 
     const isSingleCell = this.hot.getSelectedRangeActive()?.isSingleCell() ?? false;
 
-    if (this.settings.fragmentSelection === 'cell' && isSingleCell && isInsideDataCell) {
+    if (this.settings.fragmentSelection === 'cell' && isSingleCell && isSelectableArea) {
       return true;
     }
 
@@ -1714,24 +1715,34 @@ class TableView {
   }
 
   /**
-   * Checks whether the element sits inside a data cell of the table that renders it.
+   * Checks whether the element belongs to the selectable area of the table that renders it.
    *
    * A frozen cell lives in an overlay clone, which is a sibling of the master table rather than its
    * descendant, so the owning table has to be resolved first — testing against the master alone
    * rejects every cell in a frozen row, frozen column, or corner (#4980).
    *
-   * The search is bounded by that table's TBODY and looks for a `TD`, which excludes both kinds of
-   * header. Column headers sit in the THEAD, and row headers are `TH` elements inside the TBODY's
-   * own rows; every grid with headers renders them into a clone, so a looser test would make header
-   * labels selectable on any grid that has headers at all, frozen or not.
+   * Everything the owning table renders counts, not just the cells. The selection borders sit in the
+   * spreader beside the table, and a multi-cell drag passes over them: rejecting one cancels a
+   * selection that is still inside the same area, which is what `fragmentSelection: true` exists to
+   * allow. Headers are the one exception — see below.
    *
    * @param {HTMLElement} el The element to check.
    * @returns {boolean}
    */
-  #isInsideDataCell(el: HTMLElement) {
-    const { TBODY } = this.#getOwningWt(el).wtTable;
+  #isSelectableTableArea(el: HTMLElement) {
+    const { spreader } = this.#getOwningWt(el).wtTable;
 
-    return TBODY !== null && closest(el, ['TD'], TBODY) !== null;
+    // Checked before the walk below, which is what bounds it: `closest` runs past its `until`
+    // argument when that node is not an ancestor, and would then leave the grid entirely and match a
+    // `TD` on the host page — making a header selectable whenever the grid sits inside a table cell.
+    if (!isChildOf(el, spreader)) {
+      return false;
+    }
+
+    // Column headers sit in the THEAD and row headers are `TH` elements inside the TBODY's own rows.
+    // Every grid with headers renders them into a clone, so allowing them here would make header
+    // labels selectable on any grid that has headers at all, frozen or not.
+    return closest(el, ['TH'], spreader) === null;
   }
 
   /**

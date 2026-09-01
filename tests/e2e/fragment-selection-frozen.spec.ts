@@ -121,6 +121,33 @@ test.describe('fragmentSelection in frozen areas', () => {
     expect(await grid.cellText('master', 1, 2)).toContain(selected);
   });
 
+  test('selects across two cells in the master table', async () => {
+    // `fragmentSelection: true` means "text selection in multiple cells at a time", so this covers
+    // the option's headline behavior, which every other test here only exercises inside one cell.
+    //
+    // It does NOT cover the related trap: a drag over a cell boundary can land a mousemove on the
+    // selection border between the cells, and a containment test narrow enough to reject that
+    // element cancels the whole gesture. Whether the border ends up under the pointer depends on
+    // timing, so it could not be pinned deterministically here — it is checked by hand instead.
+    await grid.initGrid({ fragmentSelection: true });
+    await grid.clearTextSelection();
+
+    await grid.dragAcrossCells('master', 1, 0, 2);
+
+    expect(await grid.selectedText()).toContain('R1C1');
+  });
+
+  test('selects across two cells inside the frozen columns', async () => {
+    await grid.initGrid({ fixedColumnsStart: 2, fragmentSelection: true });
+    await grid.clearTextSelection();
+
+    await grid.dragAcrossCells('inlineStart', 1, 0, 1);
+
+    // A range spanning more than one cell carries a tab between them, so the tab proves the drag
+    // crossed the boundary instead of being cancelled at it.
+    expect(await grid.selectedText()).toContain('\t');
+  });
+
   test('does not make header text selectable, frozen or not', async () => {
     // Guards the containment test against widening back to the spreader, which holds the THEAD too.
     // Every grid with headers renders them into a clone, so matching the spreader made header labels

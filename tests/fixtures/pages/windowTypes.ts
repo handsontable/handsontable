@@ -165,6 +165,8 @@ declare global {
     readTextSelection(): string;
     /** Drops any existing text selection (fragmentSelection fixture). */
     clearTextSelection(): boolean;
+    /** Reports whether a selection border, a cell, or neither is under a point (fragmentSelection fixture). */
+    elementUnder(x: number, y: number): string;
     /** Recorded moveCells hook calls for the current grid instance. */
     moveCellsHookLog: MoveCellsHookRecord[];
     /** Recorded NestedRows collapse/expand hook calls, in firing order. */

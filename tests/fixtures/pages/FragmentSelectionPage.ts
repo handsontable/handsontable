@@ -175,6 +175,54 @@ export class FragmentSelectionPage {
   }
 
   /**
+   * Drags the mouse from one cell to another in the same row and overlay, sweeping across the cell
+   * boundary between them. The pointer passes over the selection border that sits between the cells,
+   * which is the part a single-cell drag never exercises.
+   *
+   * @param {OverlayName} overlay The overlay holding both cells.
+   * @param {number} row Visual row index.
+   * @param {number} fromCol Visual column index the drag starts in.
+   * @param {number} toCol Visual column index the drag ends in.
+   */
+  async dragAcrossCells(
+    overlay: OverlayName, row: number, fromCol: number, toCol: number,
+  ): Promise<string[]> {
+    const from = await this.cell(overlay, row, fromCol).boundingBox();
+    const to = await this.cell(overlay, row, toCol).boundingBox();
+
+    if (!from || !to) {
+      throw new Error(`Cells ${fromCol}..${toCol} in row ${row} of the ${overlay} overlay have no layout box`);
+    }
+
+    const y = from.y + (from.height / 2);
+    const startX = from.x + 15;
+    const endX = to.x + to.width - 15;
+
+    await this.#assertDragStaysInsideGrid(
+      `cells ${fromCol}..${toCol} in row ${row} of the ${overlay} overlay`, startX, endX, y);
+
+    await this.page.mouse.move(startX, y);
+    await this.page.mouse.down();
+
+    const trail: string[] = [];
+
+    // Small steps, and a hit test after each one. The hit test is what makes this drag behave like a
+    // real user's: Playwright's synthetic moves are fast enough to coalesce, and without it the
+    // selection border between the cells may never become a move's target. The trail it collects
+    // lets the test prove the border really was crossed instead of passing on a gesture that missed.
+    for (let step = 1; step <= 20; step += 1) {
+      const x = startX + (((endX - startX) * step) / 20);
+
+      await this.page.mouse.move(x, y, { steps: 2 });
+      trail.push(await this.page.evaluate(([px, py]) => window.elementUnder(px, py), [x, y]));
+    }
+
+    await this.page.mouse.up();
+
+    return trail;
+  }
+
+  /**
    * Drags from a cell in one overlay to a cell in another, crossing the seam between them.
    *
    * @param {object} from The cell the drag starts in.
