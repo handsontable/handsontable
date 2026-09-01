@@ -89,6 +89,23 @@ export function evaluate({
     `| ${changed} | ${added} | ${deleted} | ${passed} |`,
   ];
 
+  // An empty report is not a pass. reg-suit exits 0 when it globs no screenshots
+  // at all — a missing `regconfig.json`, or the tarballs landing somewhere else —
+  // and reading that as "no changes" would let a broken setup merge unchecked.
+  if (changed + added + deleted + passed === 0) {
+    return {
+      blocked: true,
+      summary: 'The comparison found no screenshots at all, so nothing was checked.',
+      comment: [
+        '## Visual tests — nothing was compared',
+        '',
+        'The report lists no passing, changed, new, or deleted screenshots. That means',
+        'the comparison never found them, not that they match.',
+        runUrl ? `\n[Workflow run](${runUrl})\n` : '',
+      ].join('\n'),
+    };
+  }
+
   if (changed + added + deleted === 0) {
     return {
       blocked: false,

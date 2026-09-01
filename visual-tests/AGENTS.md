@@ -87,8 +87,9 @@ Five things about this pipeline are worth knowing before changing it.
   `https://<domain>/base/<branch>/out.json` over plain HTTPS. When that 404s the run sets
   `VISUAL_BOOTSTRAP=true`: `visual-gate.mjs` passes without reading a report, and a same-repo build promotes
   its own screenshots to that branch's golden records. A fork cannot seed (no credentials), so it skips the
-  comparison instead. An unreviewed baseline therefore survives at most one merge, because the base
-  branch's own next build overwrites it.
+  comparison instead. An unreviewed baseline survives at most one merge on `develop`, `master` and
+  `release/*`, because that branch's next build overwrites it. **Not on `lts/*`:** nothing triggers this
+  workflow on an LTS push, so an LTS baseline is whatever the first pull request rendered, indefinitely.
 - **A golden record is just a previous build's `actual/` directory.** reg-suit fetches
   `<expectedKey>/actual/**` into the local `expected/` dir, so the goldens and a normal build share one
   format. There is no separate baseline artifact to maintain.

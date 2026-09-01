@@ -47,6 +47,10 @@ if (!actualKey || !expectedKey) {
 } else {
   const exitCode = await new Promise((resolve) => {
     spawn('npx', ['--no', 'reg-suit', 'run'], {
+      // reg-suit resolves regconfig.json by walking up from cwd to the nearest
+      // package.json. Unpinned, running this file from the repo root finds the
+      // monorepo manifest, loads no config, and compares nothing while exiting 0.
+      cwd: join(import.meta.dirname, '..'),
       stdio: 'inherit',
       shell: process.platform === 'win32',
     }).on('close', resolve);

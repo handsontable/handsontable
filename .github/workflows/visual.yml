@@ -129,6 +129,9 @@ jobs:
         with:
           name: ${{ matrix.config.artifact }}
           path: ${{ matrix.config.tar }}
+          # "Re-run all jobs" re-uploads under a name that already exists; without
+          # this the render job fails and Compare never runs.
+          overwrite: true
 
   compare:
     name: Compare
@@ -178,6 +181,12 @@ jobs:
             echo "REG_EXPECTED_KEY=base/$BASE_REF" >> "$GITHUB_ENV"
             echo "REG_ACTUAL_KEY=pr-$PR_NUMBER/$PR_HEAD_SHA" >> "$GITHUB_ENV"
           else
+            # `lts/*` is listed for correctness, but nothing triggers this
+            # workflow on an LTS push today: test.yml pushes on master,
+            # develop.yml on develop, publish.yml on release/** and explicitly
+            # excludes lts/. So an LTS baseline is seeded by the first pull
+            # request into that branch and never refreshed -- see the caveat in
+            # visual-tests/README.md.
             case "$REF_NAME" in
               develop|master|release/*|lts/*) ;;
               *)
@@ -202,7 +211,7 @@ jobs:
           # request compares against, with this build's render.
           code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 \
             --retry 3 --retry-all-errors --retry-delay 2 \
-            -I "https://$VISUAL_REPORT_DOMAIN/$REG_EXPECTED_KEY/out.json") || code=000
+            -L -I "https://$VISUAL_REPORT_DOMAIN/$REG_EXPECTED_KEY/out.json") || code=000
           case "$code" in
             2??)
               echo "VISUAL_BOOTSTRAP=false" >> "$GITHUB_ENV"
@@ -223,9 +232,9 @@ jobs:
       # gate below reads only that, so a fork is held to the same standard.
       - name: Compare against the golden records
         if: env.VISUAL_SKIP != 'true'
-          && github.event_name != 'pull_request'
-          || (github.event.pull_request.head.repo.full_name == github.repository
-              && github.actor != 'dependabot[bot]')
+          && (github.event_name != 'pull_request'
+              || (github.event.pull_request.head.repo.full_name == github.repository
+                  && github.actor != 'dependabot[bot]'))
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -274,6 +283,19 @@ jobs:
           AWS_DEFAULT_REGION: auto
           R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
         run: |
+          # The probe alone is not enough. A base build killed mid-publish leaves
+          # `actual/**` up with no manifest: the probe then reads 404 while
+          # reg-suit compares against those actuals for real. Seeding there would
+          # replace the baseline with one pull request's render, and this step
+          # runs before the gate, so the damage would be done before anything
+          # went red. Same signal the evaluator uses.
+          if [ -f ./visual-tests/.reg/out.json ] \
+            && [ "$(jq '(.failedItems | length) + (.passedItems | length)' ./visual-tests/.reg/out.json)" != "0" ]; then
+            echo "::error::The probe reported no golden records, but the comparison found some."
+            echo "Refusing to seed: the baseline exists and this build must not replace it."
+            exit 1
+          fi
+
           aws s3 cp ./visual-tests/screenshots "s3://$R2_BUCKET_NAME/$REG_EXPECTED_KEY/actual" \
             --recursive --endpoint-url "$R2_ENDPOINT"
           aws s3 cp ./visual-tests/.reg/out.json "s3://$R2_BUCKET_NAME/$REG_EXPECTED_KEY/out.json" \
@@ -355,6 +377,7 @@ jobs:
           name: visual-diff-report
           path: visual-tests/.reg
           retention-days: 3
+          overwrite: true
 
       - name: Comment the visual verdict on the pull request
         if: ${{ !cancelled() && github.event_name == 'pull_request'

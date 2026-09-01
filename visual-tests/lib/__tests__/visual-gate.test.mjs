@@ -68,6 +68,16 @@ test('no differences passes', () => {
   assert.match(v.comment, /All 1646 screenshots match/);
 });
 
+test('an empty report blocks instead of reporting a pass', () => {
+  // reg-suit exits 0 having globbed nothing when the config or the screenshots
+  // are missing. Reading that as "no changes" would merge a broken setup.
+  const v = evaluate({ report: report({}) });
+
+  assert.equal(v.blocked, true);
+  assert.match(v.comment, /nothing was compared/i);
+  assert.doesNotMatch(v.comment, /All 0 screenshots match/);
+});
+
 test('changed items block and the comment explains how to approve', () => {
   const v = evaluate({ report: report({ changed: 1573, passed: 73 }), reportUrl: 'https://x/i.html' });
 

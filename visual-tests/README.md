@@ -21,8 +21,13 @@ When you push changes to a GitHub pull request:
 3. After all tests pass successfully, the [Visual](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/visual.yml)
    workflow runs the visual tests, then compares the resulting screenshots against the golden records.
 4. The golden records come from the branch your pull request targets — usually `develop`. Every build of a
-   base branch rewrites that branch's golden records, so a pull request into a release or LTS branch is
-   compared against the right baseline with no extra configuration.
+   base branch rewrites that branch's golden records, so a pull request into `develop`, `master`, or a
+   release branch is compared against the right baseline with no extra configuration.
+
+   **Exception — LTS branches.** No workflow currently runs the visual tests on a push to `lts/*`, so an
+   LTS baseline is created by the first pull request into that branch and is never replaced. Later LTS
+   pull requests are therefore compared against one contributor's unreviewed screenshots. Treat an LTS
+   result as advisory until an LTS push trigger exists.
 
 If reg-suit spots differences, the **Compare** check on your pull request fails, and you can't merge your
 changes. In that case:
@@ -53,7 +58,8 @@ Applying the label while a newer push is still rendering approves whatever that 
 
 If the branch you target has no golden records yet, the check does not fail. The build promotes its own
 screenshots to that branch's golden records and passes, so a fresh branch cannot wedge every pull request
-opened against it. The next build of the base branch overwrites them with the authoritative render.
+opened against it. The next build of the base branch overwrites them with the authoritative render — on
+every base branch except `lts/*`, which has no push trigger (see the exception above).
 
 ## How the comparison works
 
