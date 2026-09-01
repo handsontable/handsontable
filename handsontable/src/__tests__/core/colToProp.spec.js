@@ -66,6 +66,41 @@ describe('Core.colToProp', () => {
     columnIndexMapper().setIndexesSequence([3, 2, 1, 0]);
 
     expect(colToProp(0)).toBe('date');
-    expect(propToCol(10)).toBe(10); // I'm not sure if this should return result like that by design.
+    // Was `propToCol(10)` — a copy of the propToCol spec that left `colToProp` out of range
+    // untested. The pass-through below is by design (introduced with the index mappers in #5945)
+    // and is what the API reference documents.
+    expect(colToProp(10)).toBe(10);
+  });
+
+  it('should hand an out-of-range column index back unchanged', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 3),
+    });
+
+    expect(colToProp(10)).toBe(10);
+    expect(colToProp(-1)).toBe(-1);
+  });
+
+  it('should hand a non-integer argument back unchanged, `null` included', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 3),
+    });
+
+    // `UndoRedo`'s row-removal action relies on this echo: it feeds `colToProp` the result of
+    // `toVisualColumn`, which is `null` for a trimmed column, and bails out on a non-accessor.
+    expect(colToProp(null)).toBe(null);
+    expect(colToProp('name')).toBe('name');
+  });
+
+  it('should return `null` for a column declared as `{ data: null }`', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+      columns: [{ data: null }, { data: 1 }],
+    });
+
+    // A valid, in-range index that still resolves to `null` — so a `null` result does not mean
+    // "no such column".
+    expect(countCols()).toBe(2);
+    expect(colToProp(0)).toBe(null);
   });
 });

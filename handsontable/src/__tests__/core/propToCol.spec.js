@@ -33,7 +33,9 @@ describe('Core.propToCol', () => {
     columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
     expect(propToCol(0)).toBe(4);
-    expect(propToCol(10)).toBe(10); // I'm not sure if this should return result like that by design.
+    // By design: an unmatched property comes straight back (introduced with the index mappers in
+    // #5945, and `applyChanges()` depends on it to grow the grid past the last column).
+    expect(propToCol(10)).toBe(10);
   });
 
   it('should return proper value after calling the function when columns was reorganized (data is array of objects)', async() => {
@@ -51,6 +53,30 @@ describe('Core.propToCol', () => {
 
     expect(propToCol('id')).toBe(3);
     expect(propToCol(0)).toBe(3);
-    expect(propToCol(10)).toBe(10); // I'm not sure if this should return result like that by design.
+    // By design: an unmatched property comes straight back (introduced with the index mappers in
+    // #5945, and `applyChanges()` depends on it to grow the grid past the last column).
+    expect(propToCol(10)).toBe(10);
+  });
+
+  it('should return `null` for a property whose column is trimmed', async() => {
+    const hot = handsontable({
+      data: [
+        { id: 1, name: 'Ted', lastName: 'Right' },
+        { id: 2, name: 'Frank', lastName: 'Honest' },
+      ]
+    });
+
+    expect(propToCol('name')).toBe(1);
+
+    const trimmingMap = hot.columnIndexMapper.createAndRegisterIndexMap('spec-trim', 'trimming');
+
+    trimmingMap.setValueAtIndex(1, true);
+
+    await render();
+
+    // A cached property resolves through `toVisualColumn()`, which has no visual index left to
+    // return. So `null` is a real result here — the unmatched-property echo does not cover it, and
+    // a `result < countCols()` guard would let this `null` through as column 0.
+    expect(propToCol('name')).toBe(null);
   });
 });

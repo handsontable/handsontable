@@ -116,6 +116,12 @@ export interface HotInstance {
   toPhysicalColumn(column: number): number;
   toVisualRow(row: number): number;
   toVisualColumn(column: number): number;
+  /**
+   * These two return types are narrower than what runs. Both methods hand an unmatched argument
+   * straight back, and both can return `null` – `propToCol` for a trimmed column, `colToProp` for a
+   * column declared as `{ data: null }`. Validate the result before using it as an index or a
+   * property name.
+   */
   propToCol(prop: string | number): number;
   colToProp(column: number): string | number;
 
