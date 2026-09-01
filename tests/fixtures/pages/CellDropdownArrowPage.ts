@@ -13,6 +13,9 @@ interface FixtureWindow {
   hot: {
     getSelected(): number[][] | undefined;
     getActiveEditor(): EditorFixture | undefined;
+    getCell(row: number, col: number, topmost?: boolean): HTMLElement | null;
+    scrollViewportTo(options: { col: number }): boolean;
+    render(): void;
   };
 }
 
@@ -48,9 +51,13 @@ export class CellDropdownArrowPage {
 
   /**
    * Opens the fixture and waits for the first data cell to render.
+   *
+   * @param {object} [options] Fixture options.
+   * @param {boolean} [options.frozen] Freeze the first column and add columns to scroll past it.
    */
-  async goto(): Promise<void> {
-    const query = `theme=${this.theme}&bundle=${this.bundle}&cellType=${this.cellType}`;
+  async goto({ frozen = false }: { frozen?: boolean } = {}): Promise<void> {
+    const query = `theme=${this.theme}&bundle=${this.bundle}&cellType=${this.cellType}`
+      + (frozen ? '&frozen=1' : '');
 
     await this.page.goto(`/tests/fixtures/demo/cell-dropdown-arrow.html?${query}`);
 
@@ -58,7 +65,9 @@ export class CellDropdownArrowPage {
     // so "cell not found" alone cannot tell a slow bundle apart from a grid that failed to render.
     await this.page.waitForFunction(() => 'Handsontable' in window);
 
-    await expect(this.cell(0, 0)).toBeVisible();
+    // Scoped to the master table: with a frozen column, cell (0, 0) is rendered in the inline-start
+    // overlay clone as well, and an unscoped test id then matches twice and fails strict mode.
+    await expect(this.page.locator('.ht_master').getByTestId('cell-0-0')).toBeVisible();
   }
 
   /**
@@ -91,6 +100,38 @@ export class CellDropdownArrowPage {
     }
 
     await this.page.mouse.click(box.x + 4, box.y + (box.height / 2));
+  }
+
+  /**
+   * Returns a frozen cell's indicator from the inline-start overlay clone.
+   *
+   * Header and frozen cells are rendered in more than one overlay layer, so the plain `arrow()`
+   * locator matches twice and fails Playwright's strict mode. This scopes to the clone the user
+   * actually sees once the master's rendered range has scrolled past the frozen column.
+   */
+  frozenArrow(): Locator {
+    return this.page.locator(`.ht_clone_inline_start .${ARROW_CLASS[this.cellType]}`).first();
+  }
+
+  /**
+   * Scrolls the viewport to a column and waits until the frozen column has left the master table's
+   * rendered range — the state where `getCell()` without `topmost` answers `null`.
+   *
+   * @param {number} col Visual column index to scroll to.
+   */
+  async scrollPastFrozenColumn(col: number): Promise<void> {
+    await this.page.evaluate((target) => {
+      const { hot } = window as unknown as FixtureWindow;
+
+      hot.scrollViewportTo({ col: target });
+      hot.render();
+    }, col);
+
+    await expect.poll(() => this.page.evaluate(() => {
+      const { hot } = window as unknown as FixtureWindow;
+
+      return hot.getCell(0, 0) === null && hot.getCell(0, 0, true) !== null;
+    })).toBe(true);
   }
 
   /**

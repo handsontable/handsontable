@@ -73,3 +73,38 @@ CELL_TYPES.forEach((cellType) => {
     });
   });
 });
+
+/**
+ * `multiselect` only, and deliberately so. Its listener resolves the cell at click time, which is
+ * what makes this case reachable: the first version called `hot.getCell(row, col)` and bailed when
+ * it answered `null`, and without the `topmost` flag that reads the MASTER table — so a frozen cell
+ * scrolled past the master's rendered range returned `null` while its inline-start overlay clone,
+ * the one on screen under the pointer, rendered fine. The visible indicator did nothing.
+ *
+ * The other three cell types reach `autocompleteRenderer`, which passes the `TD` its render closure
+ * captured and never calls `getCell`, so they cannot fail this way. They are left out rather than
+ * asserted as passing, because that same closure holds the FIRST rendered cell's coordinates — a
+ * separate, pre-existing quirk this PR does not touch, and exercising it here would put a red leg on
+ * an unrelated defect.
+ */
+test.describe('multiselect indicator on a frozen column', () => {
+  let grid: CellDropdownArrowPage;
+
+  test.beforeEach(async({ page, theme, bundle }) => {
+    grid = new CellDropdownArrowPage(page, theme, bundle, 'multiselect');
+    await grid.goto({ frozen: true });
+  });
+
+  test('opens the editor when the frozen clone is the only rendered copy', async() => {
+    await grid.scrollPastFrozenColumn(7);
+
+    await expect(grid.frozenArrow()).toBeVisible();
+
+    await grid.frozenArrow().click();
+
+    await expect.poll(() => grid.isEditorOpen()).toBe(true);
+    // The cell, not merely "some editor": the coordinates come from the indicator's own dataset,
+    // so a wrong row or column here would mean the click resolved against the wrong clone.
+    expect(await grid.editorCoords()).toEqual([0, 0]);
+  });
+});

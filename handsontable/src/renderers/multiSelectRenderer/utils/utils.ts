@@ -173,11 +173,13 @@ export function registerDropdownIndicatorEvents(hotInstance: HotInstance): void 
     // one reason its class is not reused here.
     const visualRow = Number(target.dataset.row);
     const visualColumn = Number(target.dataset.col);
-    const td = hotInstance.getCell(visualRow, visualColumn);
-
-    if (!td) {
-      return;
-    }
+    // Take the cell from the clicked element, never `getCell()`. Without its `topmost` flag that
+    // reads the master table, and a frozen cell scrolled past the master's rendered range returns
+    // `null` there while its overlay clone — the one the user actually sees and clicks — renders
+    // fine, so a guard on the result silently dropped the click on frozen columns and rows.
+    // `onCellDblClick` ignores this element anyway (`editorManager` names the parameter `_elem`);
+    // it is passed to match the shape `autocompleteRenderer` uses.
+    const td = target.closest<HTMLTableCellElement>('td');
 
     // The `null` event is load-bearing, not laziness: `EditorManager#openEditor` only applies its
     // "no editor for a multi-cell selection" default when the event is a `MouseEvent`, so forwarding

@@ -66,13 +66,24 @@
     // keeps an ordinary cell click available as a control. Row 2 is left empty on purpose: an empty
     // list cell is where a missing indicator shows most, and it is the state `multiselect` used to
     // render completely blank.
+    // `?frozen=1` freezes the first column and adds enough plain columns to scroll past it, so a
+    // spec can reach the state where the frozen cell exists ONLY in the inline-start overlay clone
+    // and no longer in the master table's rendered range. Absent, the grid is exactly the two-column
+    // one every other case here measures against — the param must not move their geometry.
+    const frozen = htParams.get('frozen') === '1';
+    const filler = frozen
+      ? Array.from({ length: 8 }, () => ({}))
+      : [];
+    const fillerCell = frozen ? Array.from({ length: 8 }, (unused, i) => `f${i}`) : [];
+
     window.hot = new Handsontable(container, {
       data: [
-        [seed(), seed()],
-        [seed(), seed()],
-        [null, null],
+        [seed(), seed(), ...fillerCell],
+        [seed(), seed(), ...fillerCell],
+        [null, null, ...fillerCell],
       ],
-      columns: [column, column],
+      columns: [column, column, ...filler],
+      ...(frozen ? { fixedColumnsStart: 1, colWidths: 140, width: 420, height: 260 } : {}),
       colHeaders: true,
       rowHeaders: true,
       // Stamp test ids from `afterRenderer`, not from a grid-level `renderer`: a column `type`
