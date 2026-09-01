@@ -289,11 +289,24 @@ jobs:
           # replace the baseline with one pull request's render, and this step
           # runs before the gate, so the damage would be done before anything
           # went red. Same signal the evaluator uses.
-          if [ -f ./visual-tests/.reg/out.json ] \
-            && [ "$(jq '(.failedItems | length) + (.passedItems | length)' ./visual-tests/.reg/out.json)" != "0" ]; then
-            echo "::error::The probe reported no golden records, but the comparison found some."
-            echo "Refusing to seed: the baseline exists and this build must not replace it."
-            exit 1
+          if [ -f ./visual-tests/.reg/out.json ]; then
+            checked=$(jq '(.failedItems | length) + (.passedItems | length)' ./visual-tests/.reg/out.json)
+            total=$(jq '(.failedItems | length) + (.newItems | length) + (.deletedItems | length) + (.passedItems | length)' \
+              ./visual-tests/.reg/out.json)
+
+            if [ "$checked" != "0" ]; then
+              echo "::error::The probe reported no golden records, but the comparison found some."
+              echo "Refusing to seed: the baseline exists and this build must not replace it."
+              exit 1
+            fi
+
+            # An empty report means reg-suit globbed nothing, not that this is a
+            # clean first build. Seeding it would publish a blank manifest, and
+            # the probe would then return 200 forever.
+            if [ "$total" = "0" ]; then
+              echo "::error::The comparison produced an empty report; there is nothing to seed."
+              exit 1
+            fi
           fi
 
           aws s3 cp ./visual-tests/screenshots "s3://$R2_BUCKET_NAME/$REG_EXPECTED_KEY/actual" \

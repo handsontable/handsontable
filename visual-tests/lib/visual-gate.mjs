@@ -36,6 +36,28 @@ export function evaluate({
   // the baseline with it, so a real comparison always wins.
   const compared = Boolean(report && (report.failedItems.length || report.passedItems.length));
 
+  // Checked before `bootstrap`, not after. reg-suit exits 0 having globbed
+  // nothing when the config or the screenshots are missing, and that report has
+  // no failed and no passed items either -- so it looks exactly like a legitimate
+  // first build. Left later in the order, a broken first run would pass as
+  // "baseline created" and seed a blank manifest, after which the probe returns
+  // 200 forever and every later pull request compares against nothing.
+  // A null report is the credential-free path, which legitimately writes none.
+  if (report && report.failedItems.length + report.newItems.length
+    + report.deletedItems.length + report.passedItems.length === 0) {
+    return {
+      blocked: true,
+      summary: 'The comparison found no screenshots at all, so nothing was checked.',
+      comment: [
+        '## Visual tests — nothing was compared',
+        '',
+        'The report lists no passing, changed, new, or deleted screenshots. That means',
+        'the comparison never found them, not that they match.',
+        runUrl ? `\n[Workflow run](${runUrl})\n` : '',
+      ].join('\n'),
+    };
+  }
+
   if (bootstrap && !compared) {
     return seeded
       ? {
@@ -88,23 +110,6 @@ export function evaluate({
     '| ---: | ---: | ---: | ---: |',
     `| ${changed} | ${added} | ${deleted} | ${passed} |`,
   ];
-
-  // An empty report is not a pass. reg-suit exits 0 when it globs no screenshots
-  // at all — a missing `regconfig.json`, or the tarballs landing somewhere else —
-  // and reading that as "no changes" would let a broken setup merge unchecked.
-  if (changed + added + deleted + passed === 0) {
-    return {
-      blocked: true,
-      summary: 'The comparison found no screenshots at all, so nothing was checked.',
-      comment: [
-        '## Visual tests — nothing was compared',
-        '',
-        'The report lists no passing, changed, new, or deleted screenshots. That means',
-        'the comparison never found them, not that they match.',
-        runUrl ? `\n[Workflow run](${runUrl})\n` : '',
-      ].join('\n'),
-    };
-  }
 
   if (changed + added + deleted === 0) {
     return {

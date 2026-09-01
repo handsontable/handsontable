@@ -28,6 +28,18 @@ test('bootstrap covers a missing report', () => {
   assert.equal(v.blocked, false);
 });
 
+test('an empty report blocks even on the bootstrap path', () => {
+  // The composition that made the two fixes cancel out: a first run that globbed
+  // nothing has no failed and no passed items, so it looks identical to a
+  // legitimate first build. Passing it seeds a blank manifest, after which the
+  // probe returns 200 forever and nothing is ever compared again.
+  const v = evaluate({ report: report({}), bootstrap: true });
+
+  assert.equal(v.blocked, true);
+  assert.match(v.comment, /nothing was compared/i);
+  assert.doesNotMatch(v.comment, /baseline created/);
+});
+
 test('bootstrap covers an all-new report', () => {
   // The normal seeding shape: everything is new because nothing existed.
   const v = evaluate({ report: report({ added: 1646 }), bootstrap: true });
