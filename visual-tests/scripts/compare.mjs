@@ -13,7 +13,7 @@ import { spawn } from 'node:child_process';
 
 const actualKey = process.env.REG_ACTUAL_KEY ?? '';
 
-if (!process.env.CI && actualKey.startsWith('base/')) {
+if (process.env.CI !== 'true' && actualKey.startsWith('base/')) {
   console.error(`Refusing to publish to "${actualKey}" outside CI.`);
   console.error('Keys under `base/` are the golden records every pull request is compared against;');
   console.error('only a CI build of that branch may write them. Use a `local/...` key to experiment.');
@@ -26,5 +26,8 @@ if (!process.env.CI && actualKey.startsWith('base/')) {
     }).on('close', resolve);
   });
 
-  process.exitCode = exitCode ?? 0;
+  // `close` passes null when the child was killed by a signal (OOM,
+  // cancellation). Treating that as success would report a green comparison
+  // that never finished.
+  process.exitCode = exitCode ?? 1;
 }

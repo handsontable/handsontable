@@ -42,11 +42,21 @@ await writeFile(join(WORKING_DIR, 'comment.md'), verdict.comment, 'utf-8');
 
 if (verdict.blocked) {
   console.error(verdict.summary);
-  console.error('');
-  console.error('Open the report linked in the pull request comment, or download the');
-  console.error('`visual-diff-report` artifact from this run. Then either:');
-  console.error('  - push a commit that removes the differences, or');
-  console.error('  - add the `visual-approved` label to accept them as the new baseline.');
+
+  // Only offer remedies that apply. When no report was produced there is
+  // nothing to review and nothing to approve — the comparison itself failed.
+  if (report) {
+    console.error('');
+    console.error('Open the report linked in the pull request comment, or download the');
+    console.error('`visual-diff-report` artifact from this run. Then either:');
+    console.error('  - push a commit that removes the differences, or');
+    console.error('  - add the `visual-approved` label to accept them as the new baseline.');
+  } else {
+    console.error('');
+    console.error('This is a comparison failure, not a visual difference. Check the');
+    console.error('`Compare against the golden records` step above for the cause.');
+  }
+
   process.exitCode = 1;
 } else {
   console.log(verdict.summary);

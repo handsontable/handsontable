@@ -58,8 +58,11 @@ The reference (golden) baseline and PR builds are generated **differently**, and
 
 ## Comparison and approval (reg-suit)
 
-`npm run in visual-tests compare` runs `reg-suit run`: it fetches the golden records, diffs them against
-`screenshots/`, and publishes the images plus a self-contained `index.html` to R2. reg-suit posts nothing
+`npm run in visual-tests compare` runs `scripts/compare.mjs`, which wraps `reg-suit run`. The wrapper
+refuses to run when `REG_ACTUAL_KEY` starts with `base/` outside CI, so a local debugging session holding R2
+credentials cannot overwrite the golden records every pull request is compared against — use a `local/...`
+key instead. `reg-suit` itself fetches the golden records, diffs them against `screenshots/`, and publishes
+the images plus a self-contained `index.html` to R2. reg-suit posts nothing
 itself — no notifier plugin is configured. The pull request comment is written by `visual-gate.mjs` to
 `.reg/comment.md` and posted by the `marocchino/sticky-pull-request-comment` step in `visual.yml`, which is
 why it carries the approval instructions as well as the counts.

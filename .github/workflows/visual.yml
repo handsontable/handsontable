@@ -288,9 +288,15 @@ jobs:
           # label would still see the old set and could never turn green.
           if [ "$IS_UNTRUSTED" = "true" ]; then
             approved=false
-          else
-            approved=$(gh api "repos/$REPO/issues/$PR_NUMBER/labels" \
-              --jq 'any(.[]; .name == "visual-approved")')
+          elif ! approved=$(gh api "repos/$REPO/issues/$PR_NUMBER/labels" \
+                 --jq 'any(.[]; .name == "visual-approved")' 2>/tmp/label-err); then
+            # Steps run under `set -e`, so an unhandled failure here would abort
+            # before the gate runs and leave the sticky comment showing a stale
+            # verdict. Fall back to "not approved": the safe direction, and the
+            # gate still writes a fresh comment explaining the result.
+            echo "::warning::Could not read the pull request labels; treating as not approved."
+            cat /tmp/label-err
+            approved=false
           fi
           echo "visual-approved present: $approved"
           VISUAL_APPROVED="$approved" node ./visual-tests/scripts/visual-gate.mjs

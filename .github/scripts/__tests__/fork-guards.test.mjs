@@ -129,8 +129,8 @@ test('the guarded-site list in AGENTS.md names every file that carries a guard',
 // Regression lock. Writing to R2 needs real credentials, which a fork never
 // gets, so the credentialed comparison carries the canonical guard. Guarding it
 // without a replacement would delete visual review for every external
-// contributor -- the mistake made once on this same workflow and reverted after
-// fork PR #13207. The fork path reads the golden records from the public bucket
+// contributor -- the mistake made once on this same workflow and reverted in
+// #13222 (DEV-2592). The fork path reads the golden records from the public bucket
 // over anonymous HTTPS and publishes nothing, so both paths end at the same
 // `visual-gate.mjs` verdict and an external contribution is held to it too.
 test('a fork still gets a visual comparison', () => {

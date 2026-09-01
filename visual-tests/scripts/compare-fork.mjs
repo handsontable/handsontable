@@ -36,7 +36,16 @@ const domain = process.env.VISUAL_REPORT_DOMAIN;
  * @returns {Promise<string[]>} `reg-cli` flags.
  */
 async function toleranceFlags() {
-  const config = JSON.parse(await readFile(join(ROOT, 'regconfig.json'), 'utf-8'));
+  let config;
+
+  try {
+    config = JSON.parse(await readFile(join(ROOT, 'regconfig.json'), 'utf-8'));
+  } catch (error) {
+    // Comparing at different tolerances than the same-repo path would produce a
+    // verdict nobody can reproduce, so stop rather than silently use defaults.
+    throw new Error(`Could not read regconfig.json for comparison tolerances: ${error.message}`);
+  }
+
   const core = config.core ?? {};
   const flags = [];
 
