@@ -94,9 +94,10 @@ test.describe('Manual resize handle and the context menu', () => {
     expect(pageErrors).toEqual([]);
   });
 
-  test('keeps removing both elements after a real resize drag has attached the guide', async () => {
+  test('keeps removing both row elements after a real resize drag has attached the guide', async () => {
     // A real drag, so the guide is attached the way the working path attaches it. The fix must not
-    // stop the handler from detaching it.
+    // stop the handler from detaching it. The drag helper waits for the handle, never for the guide,
+    // so the count below is the test's premise rather than a repeated wait.
     await grid.dragRowHandle(2, 40);
 
     await expect(grid.rowGuide).toHaveCount(1);
@@ -107,6 +108,19 @@ test.describe('Manual resize handle and the context menu', () => {
 
     await expect(grid.rowHandle).toHaveCount(0);
     await expect(grid.rowGuide).toHaveCount(0);
+    expect(pageErrors).toEqual([]);
+  });
+
+  test('keeps removing both column elements after a real resize drag has attached the guide', async () => {
+    await grid.dragColumnHandle(2, 40);
+
+    await expect(grid.columnGuide).toHaveCount(1);
+
+    await grid.parkPointer();
+    await grid.dispatchContextMenu(grid.columnHandle);
+
+    await expect(grid.columnHandle).toHaveCount(0);
+    await expect(grid.columnGuide).toHaveCount(0);
     expect(pageErrors).toEqual([]);
   });
 });

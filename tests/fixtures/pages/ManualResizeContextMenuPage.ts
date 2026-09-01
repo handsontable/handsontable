@@ -119,6 +119,31 @@ export class ManualResizeContextMenuPage {
   }
 
   /**
+   * Resizes a column by dragging its resize handle, which is what attaches the resize guide.
+   *
+   * @param {number} column The visual column index.
+   * @param {number} deltaX How far to drag, in CSS pixels.
+   */
+  async dragColumnHandle(column: number, deltaX: number): Promise<void> {
+    await this.hoverColumnHeader(column);
+
+    const box = await this.columnHandle.boundingBox();
+
+    if (!box) {
+      throw new Error('The column resize handle has no layout box.');
+    }
+
+    const x = box.x + (box.width / 2);
+    const y = box.y + (box.height / 2);
+
+    await this.page.mouse.move(x, y);
+    await this.page.mouse.down();
+    await this.page.mouse.move(x + (deltaX / 2), y);
+    await this.page.mouse.move(x + deltaX, y);
+    await this.page.mouse.up();
+  }
+
+  /**
    * Parks the pointer outside the grid.
    *
    * Detaching the handle from UNDER the pointer changes the element the cursor is over, so the
