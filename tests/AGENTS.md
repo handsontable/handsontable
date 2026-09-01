@@ -66,8 +66,8 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   trip it and seeded ones usually do not — but a long header or narrow content
   puts the arrow back under the centre, so cell content is not a guarantee
   either. Click off-centre, or select with `hot.selectCell()`, when the spec
-  means to open the editor with Enter. Root-caused in DEV-2677; the arrow's own
-  coverage is `e2e/cell-dropdown-arrow-button.spec.ts`, over all three cell
+  means to open the editor with Enter. Root-caused in DEV-2677; the indicator's
+  own coverage is `e2e/cell-dropdown-arrow-button.spec.ts`, over all four cell
   types.
 - **Seed an `autocomplete` / `dropdown` fixture with a prefix the whole column's
   choice set shares** (`'Al'` for `Alpha/Alfa/Alto`), so `autocomplete`, which
