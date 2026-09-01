@@ -50,6 +50,20 @@ test('lintable drops dotfiles and dot-directory paths CI lints only as directori
   );
 });
 
+test('lintable drops paths the owning package .eslintignore excludes', () => {
+  // Inside the `handsontable/scripts/` scope, but `handsontable/.eslintignore` excludes it.
+  // The hook runs ESLint from the repo root where that ignore does not apply, and the file is
+  // outside every tsconfig project, so ESLint answers with a parsing error — exit 1, which
+  // would block the commit on a file CI never lints.
+  assert.deepEqual(
+    lintable([
+      'handsontable/scripts/themes/figma/templates/iconsMap.ts',
+      'handsontable/scripts/themes/figma/utils/helpers/iconsMap.mjs', // NOT ignored — must survive
+    ]),
+    ['handsontable/scripts/themes/figma/utils/helpers/iconsMap.mjs'],
+  );
+});
+
 test('lintable drops non-lintable extensions', () => {
   assert.deepEqual(
     lintable(['handsontable/src/x.css', 'tests/fixtures/demo/grid.html', 'handsontable/.ai/TESTING.md']),

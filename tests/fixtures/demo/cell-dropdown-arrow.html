@@ -17,6 +17,7 @@
     }
     window.htCellType = ({
       autocomplete: 'autocomplete', dropdown: 'dropdown', handsontable: 'handsontable',
+      multiselect: 'multiselect',
     })[htParams.get('cellType') ?? 'autocomplete'];
     if (!window.htCellType) {
       throw new Error('Unknown ?cellType= value: ' + JSON.stringify(htParams.get('cellType')));
@@ -36,25 +37,41 @@
 
     const CHOICES = ['Alpha', 'Alfa', 'Alto'];
 
-    // All three cell types render the SAME arrow: `dropdownRenderer` and `handsontableRenderer`
-    // both delegate to `autocompleteRenderer`, which is where the arrow and its `mousedown`
-    // listener come from. They configure their choices differently though - `autocomplete` and
-    // `dropdown` take a flat `source`, while `handsontable` takes a whole nested grid config -
-    // which is why this fixture exists instead of a third value on the async-source fixture, whose
-    // `source` is a query recorder that a nested grid would never call.
+    // Three of the four cell types render the SAME arrow: `dropdownRenderer` and
+    // `handsontableRenderer` both delegate to `autocompleteRenderer`, which is where
+    // `htAutocompleteArrow` and its `mousedown` listener come from. They configure their choices
+    // differently though - `autocomplete` and `dropdown` take a flat `source`, while `handsontable`
+    // takes a whole nested grid config - which is why this fixture exists instead of a third value
+    // on the async-source fixture, whose `source` is a query recorder that a nested grid would
+    // never call.
+    //
+    // `multiselect` is the fourth, and it reaches a DIFFERENT element and listener:
+    // `.ht-multi-select-arrow`, built by `multiSelectRenderer`. It is covered here anyway so the
+    // affordance shared by every list cell type has one home (#13316).
     const columnByCellType = {
       autocomplete: { type: 'autocomplete', source: CHOICES },
       dropdown: { type: 'dropdown', source: CHOICES },
       handsontable: { type: 'handsontable', handsontable: { data: CHOICES.map(choice => [choice]) } },
+      multiselect: { type: 'multiselect', source: CHOICES },
     };
 
     const column = columnByCellType[window.htCellType];
 
-    // Cells are seeded so the column is not at its default minimum width, which is the width where
-    // a centred click lands on the arrow. Cases here address the arrow directly, so this only keeps
-    // an ordinary cell click available as a control.
+    // A fresh value per cell: `multiselect` stores an array, and sharing one instance across cells
+    // would let a chip removal in one cell show up in the others.
+    const seed = () => (window.htCellType === 'multiselect' ? ['Alpha'] : 'Al');
+
+    // Rows 0 and 1 are seeded so the column is not at its default minimum width, which is the width
+    // where a centred click lands on the arrow. Cases here address the arrow directly, so this only
+    // keeps an ordinary cell click available as a control. Row 2 is left empty on purpose: an empty
+    // list cell is where a missing indicator shows most, and it is the state `multiselect` used to
+    // render completely blank.
     window.hot = new Handsontable(container, {
-      data: Array.from({ length: 3 }, () => ['Al', 'Al']),
+      data: [
+        [seed(), seed()],
+        [seed(), seed()],
+        [null, null],
+      ],
       columns: [column, column],
       colHeaders: true,
       rowHeaders: true,

@@ -43,6 +43,12 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   point at the cause. It is not only `autocomplete` and `dropdown`:
   `handsontableRenderer` and `dropdownRenderer` both delegate to
   `autocompleteRenderer`, so `type: 'handsontable'` carries the same arrow.
+  `multiselect` carries one too, but a **different** element and listener —
+  `.ht-multi-select-arrow`, built by `multiSelectRenderer` (#13316) — so a
+  locator written against `.htAutocompleteArrow` finds nothing there, and vice
+  versa. Its indicator also renders on an EMPTY cell, where the other three sit
+  at the default width, so a centred click on an empty `multiselect` cell is the
+  most likely of the four to land on the indicator.
   Whether the click lands on it is pure geometry, and **the outcome is
   theme-dependent** — the arrow is right-floated at `var(--ht-icon-size)`, which
   is 16 px on `main` and `horizon` but 12 px on `classic`, and the deciding term

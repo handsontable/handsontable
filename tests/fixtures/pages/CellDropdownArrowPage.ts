@@ -16,7 +16,16 @@ interface FixtureWindow {
   };
 }
 
-export type CellType = 'autocomplete' | 'dropdown' | 'handsontable';
+export type CellType = 'autocomplete' | 'dropdown' | 'handsontable' | 'multiselect';
+
+// `multiselect` builds its own indicator in `multiSelectRenderer` rather than reusing
+// `htAutocompleteArrow`, whose styling and global listener belong to `autocompleteRenderer`.
+const ARROW_CLASS: Record<CellType, string> = {
+  autocomplete: 'htAutocompleteArrow',
+  dropdown: 'htAutocompleteArrow',
+  handsontable: 'htAutocompleteArrow',
+  multiselect: 'ht-multi-select-arrow',
+};
 
 /**
  * Page Object for the fixture whose cells carry a dropdown arrow.
@@ -64,7 +73,24 @@ export class CellDropdownArrowPage {
    * own and has to be reached through the cell that owns it.
    */
   arrow(row: number, col: number): Locator {
-    return this.cell(row, col).locator('.htAutocompleteArrow');
+    return this.cell(row, col).locator(`.${ARROW_CLASS[this.cellType]}`);
+  }
+
+  /**
+   * Clicks a cell near its leading edge, far from the dropdown arrow.
+   *
+   * A centred click can land on the right-floated arrow at narrow column widths, and whether it
+   * does is theme-dependent. Addressing the leading edge keeps "a click on the cell body" a
+   * meaningful control regardless of theme or column width.
+   */
+  async clickCellBody(row: number, col: number): Promise<void> {
+    const box = await this.cell(row, col).boundingBox();
+
+    if (!box) {
+      throw new Error(`Cell (${row}, ${col}) is not rendered`);
+    }
+
+    await this.page.mouse.click(box.x + 4, box.y + (box.height / 2));
   }
 
   /**

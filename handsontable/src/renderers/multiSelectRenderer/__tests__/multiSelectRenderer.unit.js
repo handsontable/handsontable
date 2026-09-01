@@ -39,6 +39,8 @@ describe('multiSelectRenderer', () => {
       const toPhysicalColumn = jest.fn(() => 9);
       const hotInstance = {
         rootDocument: document,
+        // The renderer registers the dropdown indicator's delegated listener on the root element.
+        rootElement: document.createElement('div'),
         getSettings: () => ({ ariaTags: false }),
         toPhysicalRow: () => physicalRow,
         toPhysicalColumn,
@@ -69,6 +71,104 @@ describe('multiSelectRenderer', () => {
         { key: 'r', value: 'Red' },
         { key: 'b', value: 'Blue' },
       ]);
+    });
+  });
+
+  describe('dropdown indicator (#13316)', () => {
+    const ARROW_SELECTOR = '.ht-multi-select-arrow';
+
+    /**
+     * Builds the smallest instance stub the renderer needs to reach all three of its render paths.
+     *
+     * @param {object} [options] Stub options.
+     * @param {Array} [options.values] Value returned by `getSourceDataAtCell`.
+     * @param {boolean} [options.ariaTags] Value of the `ariaTags` setting.
+     * @returns {object} The stubbed Handsontable instance.
+     */
+    function createHotStub({ values = [], ariaTags = false } = {}) {
+      return {
+        rootDocument: document,
+        rootElement: document.createElement('div'),
+        getSettings: () => ({ ariaTags }),
+        toPhysicalRow: row => row,
+        getSourceDataAtCell: () => values,
+        getColWidth: () => 200,
+        addHook: jest.fn(),
+      };
+    }
+
+    it('should render the indicator in a cell that holds chips', () => {
+      const TD = document.createElement('td');
+
+      multiSelectRenderer(
+        createHotStub({ values: ['Red', 'Green'] }), TD, 0, 0, 0, ['Red', 'Green'], {}
+      );
+
+      expect(TD.querySelectorAll(ARROW_SELECTOR)).toHaveLength(1);
+      expect(TD.querySelectorAll('.ht-multi-select-chip')).toHaveLength(2);
+    });
+
+    it('should render the indicator in an empty cell, so the cell still reads as a list cell', () => {
+      const TD = document.createElement('td');
+
+      multiSelectRenderer(createHotStub({ values: [] }), TD, 0, 0, 0, null, {});
+
+      expect(TD.querySelectorAll(ARROW_SELECTOR)).toHaveLength(1);
+    });
+
+    it('should render the indicator alongside the placeholder', () => {
+      const TD = document.createElement('td');
+
+      multiSelectRenderer(
+        createHotStub({ values: [] }), TD, 0, 0, 0, null, { placeholder: 'Select items' }
+      );
+
+      expect(TD.querySelectorAll(ARROW_SELECTOR)).toHaveLength(1);
+      expect(TD.textContent).toContain('Select items');
+    });
+
+    it('should not accumulate indicators when the same TD is re-rendered', () => {
+      // Handsontable reuses TD elements between renders, and the placeholder branch writes through
+      // `fastInnerText`, which can leave earlier child nodes in place.
+      const TD = document.createElement('td');
+      const cellProperties = { placeholder: 'Select items' };
+
+      multiSelectRenderer(createHotStub({ values: [] }), TD, 0, 0, 0, null, cellProperties);
+      multiSelectRenderer(createHotStub({ values: [] }), TD, 0, 0, 0, null, cellProperties);
+      multiSelectRenderer(createHotStub({ values: [] }), TD, 0, 0, 0, null, cellProperties);
+
+      expect(TD.querySelectorAll(ARROW_SELECTOR)).toHaveLength(1);
+    });
+
+    it('should carry the visual coordinates so one delegated listener can serve every cell', () => {
+      const TD = document.createElement('td');
+
+      multiSelectRenderer(createHotStub({ values: ['Red'] }), TD, 4, 7, 7, ['Red'], {});
+
+      const arrow = TD.querySelector(ARROW_SELECTOR);
+
+      expect(arrow.dataset.row).toBe('4');
+      expect(arrow.dataset.col).toBe('7');
+    });
+
+    it('should hide the indicator from assistive technology when ariaTags is enabled', () => {
+      const TD = document.createElement('td');
+
+      multiSelectRenderer(
+        createHotStub({ values: ['Red'], ariaTags: true }), TD, 0, 0, 0, ['Red'], {}
+      );
+
+      expect(TD.querySelector(ARROW_SELECTOR).getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('should not set aria-hidden when ariaTags is disabled', () => {
+      const TD = document.createElement('td');
+
+      multiSelectRenderer(
+        createHotStub({ values: ['Red'], ariaTags: false }), TD, 0, 0, 0, ['Red'], {}
+      );
+
+      expect(TD.querySelector(ARROW_SELECTOR).hasAttribute('aria-hidden')).toBe(false);
     });
   });
 });

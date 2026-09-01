@@ -1,9 +1,11 @@
 import { test, expect } from '../fixtures/test';
 import { CellDropdownArrowPage, type CellType } from '../fixtures/pages/CellDropdownArrowPage';
 
-// Every cell type that renders the arrow, because they all reach the same listener:
+// Every cell type that renders a dropdown indicator. The first three reach the same listener:
 // `dropdownRenderer` and `handsontableRenderer` both delegate to `autocompleteRenderer`.
-const CELL_TYPES: CellType[] = ['autocomplete', 'dropdown', 'handsontable'];
+// `multiselect` reaches its own element and its own listener (#13316) and is included so the
+// affordance every list cell type shares is asserted in one place.
+const CELL_TYPES: CellType[] = ['autocomplete', 'dropdown', 'handsontable', 'multiselect'];
 
 /**
  * DEV-2677. `autocompleteRenderer` registers a `mousedown` listener that opens the editor when the
@@ -51,6 +53,23 @@ CELL_TYPES.forEach((cellType) => {
       await expect.poll(() => grid.selected()).toEqual([[0, 0, 0, 0]]);
 
       expect(await grid.isEditorOpen()).toBe(false);
+    });
+
+    // The indicator is the click target, so pressing the cell anywhere else must still only select.
+    // Without this, a change that made the whole cell open the editor would pass every case above
+    // while breaking ordinary selection and range dragging.
+    test('leaves the editor closed when the cell body is clicked', async() => {
+      await grid.clickCellBody(1, 1);
+
+      await expect.poll(() => grid.selected()).toEqual([[1, 1, 1, 1]]);
+
+      expect(await grid.isEditorOpen()).toBe(false);
+    });
+
+    // Row 2 is empty in the fixture. An empty cell is where the indicator matters most: it is the
+    // only thing marking the cell as a list cell, and `multiselect` used to render it blank.
+    test('renders the indicator in an empty cell', async() => {
+      await expect(grid.arrow(2, 0)).toBeVisible();
     });
   });
 });

@@ -6,9 +6,12 @@ import { isEmpty, stringify } from '../../helpers/mixed';
 import {
   parseValue,
   createChipElement,
+  createDropdownIndicator,
   registerChipRemovingEvents,
+  registerDropdownIndicatorEvents,
   cacheColumnWidthAndRegisterResizeHook,
   handleChipsOverflow,
+  ARROW_CLASS,
 } from './utils/utils';
 
 export { CHIP_CLASS } from './utils/utils';
@@ -16,6 +19,38 @@ export const RENDERER_TYPE = 'multiselect';
 
 const MULTISELECT_RENDERER_CLASS = 'ht-multi-select-renderer';
 const CHIPS_CONTAINER_CLASS = 'ht-multi-select-chips-container';
+
+/**
+ * Puts the dropdown indicator in the cell and wires its single-click handler.
+ *
+ * Any indicator left by an earlier render is removed first. Handsontable reuses `TD` elements
+ * between renders, and the placeholder branch writes through `fastInnerText`, which may keep
+ * existing child nodes.
+ *
+ * The indicator goes in as the first child so its float clears the cell's content, the same
+ * placement `autocompleteRenderer` uses for `htAutocompleteArrow`.
+ *
+ * @param {HotInstance} hotInstance The Handsontable instance.
+ * @param {HTMLTableCellElement} TD The rendered cell element.
+ * @param {number} row The visual row index.
+ * @param {number} col The visual column index.
+ * @param {boolean} isAriaEnabled `true` when the `ariaTags` option is enabled.
+ */
+function renderDropdownIndicator(
+  hotInstance: HotInstance,
+  TD: HTMLTableCellElement,
+  row: number,
+  col: number,
+  isAriaEnabled: boolean
+): void {
+  TD.querySelector(`.${ARROW_CLASS}`)?.remove();
+  TD.insertBefore(
+    createDropdownIndicator(hotInstance.rootDocument, isAriaEnabled, row, col),
+    TD.firstChild
+  );
+
+  registerDropdownIndicatorEvents(hotInstance);
+}
 
 /**
  * Multi-select renderer that displays values as chips.
@@ -31,18 +66,20 @@ export function multiSelectRenderer(
 ): void {
   baseRenderer(hotInstance, TD, row, col, prop, value, cellProperties);
 
+  const { rootDocument } = hotInstance;
+  const isAriaEnabled = hotInstance.getSettings().ariaTags ?? false;
+
   let escaped: unknown = value;
 
   if (isEmpty(escaped) && cellProperties.placeholder) {
     escaped = cellProperties.placeholder;
     escaped = stringify(escaped);
     fastInnerText(TD, escaped as string);
+    renderDropdownIndicator(hotInstance, TD, row, col, isAriaEnabled);
 
     return;
   }
 
-  const { rootDocument } = hotInstance;
-  const isAriaEnabled = hotInstance.getSettings().ariaTags;
   const physicalRow = hotInstance.toPhysicalRow(row);
   const sourceData = hotInstance.getSourceDataAtCell(physicalRow, col);
   const values = parseValue(sourceData);
@@ -52,6 +89,7 @@ export function multiSelectRenderer(
 
   if (values.length === 0) {
     TD.appendChild(rootDocument.createTextNode(''));
+    renderDropdownIndicator(hotInstance, TD, row, col, isAriaEnabled);
 
     return;
   }
@@ -61,7 +99,7 @@ export function multiSelectRenderer(
   chipsContainer.className = CHIPS_CONTAINER_CLASS;
 
   values.forEach((item) => {
-    const chip = createChipElement(rootDocument, item, isAriaEnabled ?? false, row, col, prop);
+    const chip = createChipElement(rootDocument, item, isAriaEnabled, row, col, prop);
 
     chipsContainer.appendChild(chip);
   });
@@ -69,6 +107,9 @@ export function multiSelectRenderer(
   TD.appendChild(chipsContainer);
 
   registerChipRemovingEvents(hotInstance, RENDERER_TYPE);
+
+  // Added before the overflow pass so that pass can measure the indicator and reserve its width.
+  renderDropdownIndicator(hotInstance, TD, row, col, isAriaEnabled);
 
   const columnWidth = cacheColumnWidthAndRegisterResizeHook(hotInstance, col);
 
