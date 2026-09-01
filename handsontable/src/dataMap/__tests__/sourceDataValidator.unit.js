@@ -14,12 +14,14 @@ import { runSourceDataValidators } from '../sourceDataValidator';
  * @param {object} [options.settings] The settings returned by `getSettings`.
  * @param {Function} [options.getValue] Maps `(row, col)` to a source value.
  * @param {Function} [options.toVisualRow] Maps a physical row to its visual index (or `null`).
+ * @param {Function} [options.toVisualColumn] Maps a physical column to its visual index (or `null`).
+ * @param {Function} [options.colToProp] Maps a visual column to its source property.
  * @param {Array} [options.userDefinedCellMetas] Imperatively-set cell metas (`setCellMeta`) to report.
  * @returns {object} The mock and its spies.
  */
 function createMockHot({
   rows, cols, validator, allowInvalid, settings = {}, getValue, toVisualRow = row => row,
-  userDefinedCellMetas = [],
+  toVisualColumn = col => col, colToProp = col => col, userDefinedCellMetas = [],
 } = {}) {
   const getCellMetaUncached = jest.fn((physicalRow, physicalColumn, { visualRow, visualColumn }) => {
     const meta = {
@@ -41,21 +43,24 @@ function createMockHot({
     return meta;
   });
   const getAtCell = jest.fn((row, col) => (getValue ? getValue(row, col) : `${row}-${col}`));
+  const modifyRowData = jest.fn(row => ({ row }));
+  const getAtPhysicalCell = jest.fn((row, col) => getAtCell(row, col));
   const setAtCell = jest.fn();
   const hot = {
     countSourceRows: () => rows,
     countSourceCols: () => cols,
     getSettings: () => settings,
-    _getDataSource: () => ({ getAtCell, setAtCell }),
+    _getDataSource: () => ({ modifyRowData, getAtPhysicalCell, setAtCell }),
+    colToProp,
     rowIndexMapper: { getVisualFromPhysicalIndex: toVisualRow },
-    columnIndexMapper: { getVisualFromPhysicalIndex: col => col },
+    columnIndexMapper: { getVisualFromPhysicalIndex: toVisualColumn },
     _getMetaManager: () => ({
       getCellMetaUncached,
       getUserDefinedCellMetas: () => userDefinedCellMetas,
     }),
   };
 
-  return { hot, getCellMetaUncached, getAtCell, setAtCell };
+  return { hot, getCellMetaUncached, getAtCell, getAtPhysicalCell, modifyRowData, setAtCell };
 }
 
 /**
@@ -242,6 +247,47 @@ describe('runSourceDataValidators', () => {
 
     expect(setAtCell).toHaveBeenCalledTimes(1);
     expect(setAtCell).toHaveBeenCalledWith(1, 1, null);
+  });
+
+  it.each([
+    ['batched', true],
+    ['per-cell', false],
+  ])('should translate columns when reading and blanking source values (%s path)', (_path, rowIndependent) => {
+    const validator = makeValidator(rowIndependent, () => false);
+    const toVisualColumn = jest.fn(physicalColumn => 1 - physicalColumn);
+    const colToProp = jest.fn(visualColumn => (visualColumn === 0 ? 'second' : 'first'));
+    const { hot, getAtCell, getAtPhysicalCell, modifyRowData, setAtCell } = createMockHot({
+      rows: 2,
+      cols: 2,
+      validator,
+      allowInvalid: false,
+      toVisualColumn,
+      colToProp,
+    });
+
+    runSourceDataValidators(hot, 'init');
+
+    expect(getAtCell.mock.calls).toEqual([
+      [0, 'first'],
+      [0, 'second'],
+      [1, 'first'],
+      [1, 'second'],
+    ]);
+    expect(getAtPhysicalCell.mock.calls).toEqual([
+      [0, 'first', { row: 0 }],
+      [0, 'second', { row: 0 }],
+      [1, 'first', { row: 1 }],
+      [1, 'second', { row: 1 }],
+    ]);
+    expect(setAtCell.mock.calls).toEqual([
+      [0, 'first', null],
+      [0, 'second', null],
+      [1, 'first', null],
+      [1, 'second', null],
+    ]);
+    expect(modifyRowData).toHaveBeenCalledTimes(2);
+    expect(toVisualColumn).toHaveBeenCalledTimes(2);
+    expect(colToProp).toHaveBeenCalledTimes(2);
   });
 
   it('should not blank invalid values when allowInvalid is true (batched path)', () => {

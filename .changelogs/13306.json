@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Changed how touch opens the cell editor on devices that report both touch and mouse input, such as iPad: a double-tap opens it (taps up to 1 second apart), and a single tap on an already selected cell no longer opens it as it did in 18.0.0, where duplicated mouse events after the tap triggered the double-click.",
-  "type": "changed",
-  "issueOrPR": 13306,
-  "breaking": false,
-  "framework": "none"
-}
