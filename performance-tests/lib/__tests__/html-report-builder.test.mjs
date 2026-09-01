@@ -269,6 +269,77 @@ describe('buildHtmlReport -- incomplete capture on the current side', () => {
   });
 });
 
+describe('buildHtmlReport -- gating boundaries', () => {
+  test('a category zero on both sides keeps the comparison comparable', () => {
+    // Neither side captured it, so nothing is missing and nothing is withheld. It renders "--"
+    // rather than 0%, because pctChange rightly refuses a zero denominator.
+    const scenario = payloadOf(buildHtmlReport(
+      { sorting: currentScenario({ categories: { scripting: 22, rendering: 3, painting: 0 } }) },
+      {
+        timestamp: 't',
+        scenarios: {
+          sorting: goldenScenario({ categories: { scripting: 20, rendering: 3, painting: 0 } }),
+        },
+      },
+      {}
+    )).scenarios[0];
+
+    assert.equal(scenario.baselineIncomplete, false);
+    assert.equal(scenario.metrics.painting.incomplete, false);
+    assert.notEqual(scenario.metrics.scripting.change, null);
+  });
+
+  test('non-active categories still publish when only a timing category was missed', () => {
+    // loading/other/experience/idle never enter a total, so an incomplete active category says
+    // nothing about them. Only a window mismatch invalidates them.
+    const rows = payloadOf(buildHtmlReport(
+      {
+        sorting: currentScenario({
+          categories: { scripting: 20, rendering: 0, painting: 1, loading: 25 },
+        }),
+      },
+      {
+        timestamp: 't',
+        scenarios: {
+          sorting: goldenScenario({ categories: { scripting: 20, rendering: 3, painting: 1, loading: 10 } }),
+        },
+      },
+      {}
+    )).scenarios[0].detailedMetrics;
+
+    assert.equal(rows.find(r => r.key === 'rendering').change, null);
+    assert.notEqual(rows.find(r => r.key === 'loading').change, null);
+  });
+
+  test('a window mismatch withholds the non-active categories too', () => {
+    const rows = payloadOf(buildHtmlReport(
+      { sorting: currentScenario({ categories: { scripting: 20, rendering: 3, painting: 1, loading: 25 } }) },
+      {
+        timestamp: 't',
+        scenarios: {
+          sorting: goldenScenario({ categories: { scripting: 20, rendering: 3, painting: 1, loading: 10 } }),
+        },
+      },
+      { crossWindowScenarios: ['sorting'] }
+    )).scenarios[0].detailedMetrics;
+
+    assert.equal(rows.find(r => r.key === 'loading').change, null);
+  });
+
+  test('the badge carries the long explanation as its tooltip', () => {
+    // The short label cannot name the categories, and the HTML report is the artifact opened for
+    // detail -- it must not be the one surface that loses it.
+    const scenario = payloadOf(buildHtmlReport(
+      { sorting: currentScenario({ categories: { scripting: 20, rendering: 0, painting: 0 } }) },
+      { timestamp: 't', scenarios: { sorting: goldenScenario() } },
+      {}
+    )).scenarios[0];
+
+    assert.ok(scenario.incompleteReason.includes('rendering'));
+    assert.ok(scenario.incompleteReason.includes('painting'));
+  });
+});
+
 describe('buildHtmlReport -- baseline provenance', () => {
   test('flags a self-comparison so it is not described as a develop baseline', () => {
     const html = buildHtmlReport(

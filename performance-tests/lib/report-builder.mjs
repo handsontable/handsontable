@@ -5,7 +5,7 @@
 import {
   REGRESSION_CALLOUT_THRESHOLD_TIMING,
   REGRESSION_CALLOUT_THRESHOLD_HEAP,
-  BASELINE_INCOMPLETE_LABEL,
+  INCOMPARABLE_LABELS,
   activeTotalsPerIteration,
   calcCv,
   fmtCvValue,
@@ -169,7 +169,10 @@ function buildSummaryTable(results, goldenScenarios, hasGolden, crossWindow) {
       // windows sample two different things. Gated here as well as in the callouts, so the table
       // and the callout below it cannot reach opposite verdicts on the same run.
       const heapChange = isCrossWindow
-        ? BASELINE_INCOMPLETE_LABEL
+        // Not the baseline-side label: the heap cell is only ever withheld for a window mismatch,
+        // where the baseline captured everything and it is the windows that differ. Saying
+        // "baseline incomplete" here gives one row two explanations for one cause.
+        ? INCOMPARABLE_LABELS['window-mismatch']
         : fmtPctWithEmoji(
           pctChange(golden?.updateCounters?.jsHeapMaxBytes, current.updateCounters?.jsHeapMaxBytes),
           REGRESSION_CALLOUT_THRESHOLD_HEAP

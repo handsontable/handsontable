@@ -132,6 +132,20 @@ export function sumActiveComparable(baselineCategories, currentCategories) {
 }
 
 /**
+ * Joins names for prose: "a", "a or b", "a, b or c".
+ *
+ * @param {string[]} items
+ * @returns {string}
+ */
+function joinList(items) {
+  if (items.length < 3) {
+    return items.join(' or ');
+  }
+
+  return `${items.slice(0, -1).join(', ')} or ${items[items.length - 1]}`;
+}
+
+/**
  * Decides, once per scenario, whether any delta between the two sides may be published.
  *
  * Every site that renders a percentage must consult this and no other rule. Deciding it per site
@@ -179,7 +193,7 @@ export function comparability(baselineCategories, currentCategories, isCrossWind
     ['this run', missingFrom('current')],
   ]
     .filter(([, keys]) => keys.length > 0)
-    .map(([side, keys]) => `${side} captured no ${keys.join(' or ')}`);
+    .map(([side, keys]) => `${side} captured no ${joinList(keys)}`);
   const reason = phrases.length > 1 ? 'both-incomplete' : `${incompleteSide}-incomplete`;
 
   return {

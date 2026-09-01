@@ -178,6 +178,17 @@ describe('comparability', () => {
     assert.equal(comparability(undefined, { scripting: 5 }, false).comparable, false);
   });
 
+  test('reads as prose for one, two and three categories', () => {
+    // "no scripting or rendering or painting" is the shape a plain join produces.
+    const one = comparability({ scripting: 20, rendering: 0, painting: 1 }, complete, false);
+    const two = comparability({ scripting: 20, rendering: 0, painting: 0 }, complete, false);
+    const three = comparability({}, complete, false);
+
+    assert.ok(one.label.endsWith('no rendering'));
+    assert.ok(two.label.endsWith('no rendering or painting'));
+    assert.ok(three.label.endsWith('no scripting, rendering or painting'));
+  });
+
   test('two complete sides over the same window are comparable', () => {
     const verdict = comparability(complete, complete, false);
 

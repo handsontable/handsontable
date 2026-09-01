@@ -6,7 +6,6 @@ import {
   REGRESSION_CALLOUT_THRESHOLD_TIMING,
   REGRESSION_CALLOUT_THRESHOLD_HEAP,
   CV_WARNING_THRESHOLD,
-  BASELINE_INCOMPLETE_LABEL,
   activeTotalsPerIteration,
   calcCv,
   classifyChange,
@@ -158,7 +157,7 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
         painting: categoryMetric('painting', gCats, cCats, verdict),
         total: { current: currentTotal, baseline: goldenTotal || 0, change: totalChange },
       },
-      detailedMetrics: buildDetailedMetrics(current, golden, baselineIncomplete, verdict),
+      detailedMetrics: buildDetailedMetrics(current, golden, verdict),
       memory: buildMemoryMetrics(current, golden, isCrossWindow),
       hookTiming: buildHookTiming(current, golden),
       heap,
@@ -206,7 +205,6 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
       heap: REGRESSION_CALLOUT_THRESHOLD_HEAP,
       cvWarning: CV_WARNING_THRESHOLD,
     },
-    baselineIncompleteLabel: BASELINE_INCOMPLETE_LABEL,
     summary: {
       total: scenarios.length,
       regressions,
@@ -219,15 +217,24 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
   };
 }
 
-function buildDetailedMetrics(current, golden, baselineIncomplete = false, verdict = null) {
+/**
+ * @param {object} current
+ * @param {object | null} golden
+ * @param {{ comparable: boolean, reason: string | null, incompleteCategories: string[] }} verdict
+ *   -- required, and deliberately not defaulted: a caller passing the old boolean argument shape
+ *   would silently un-gate every per-category delta rather than fail
+ * @returns {Array<object>}
+ */
+function buildDetailedMetrics(current, golden, verdict) {
   const rows = [];
   const cCats = current.categories || {};
   const gCats = golden?.categories || {};
-  const incompleteCategories = verdict?.incompleteCategories ?? [];
+  const baselineIncomplete = !!golden && !verdict.comparable;
+  const { incompleteCategories } = verdict;
   // Only the active categories participate in the comparability verdict. The others (loading,
   // other, experience, idle) are reported but never summed into a total, so a window mismatch is
   // the only thing that invalidates them.
-  const isCrossWindow = verdict?.reason === 'window-mismatch';
+  const isCrossWindow = verdict.reason === 'window-mismatch';
 
   for (const key of ['scripting', 'rendering', 'painting', 'loading', 'other', 'experience', 'idle']) {
     const c = cCats[key];
@@ -896,6 +903,10 @@ function buildScript() {
       ? scenario.incompleteLabel
       : fmtPct(scenario.badgeChange) + (scenario.badgeIsHeap ? ' heap' : '');
     const right = el('div', 'header-right');
+    // Naming which side missed which category is the whole point of the label, and the short form
+    // on the badge cannot carry it. Without this the HTML report -- the artifact a reader opens
+    // precisely to get the detail -- is the one surface that loses it.
+    const badgeTitle = scenario.baselineIncomplete ? scenario.incompleteReason : null;
 
     // How far apart the develop runs behind the baseline sit. A wide spread means the delta beside
     // it is measured against a moving target, which the percentage alone does not say.
@@ -907,7 +918,10 @@ function buildScript() {
       right.appendChild(spread);
     }
 
-    right.appendChild(elText('span', badgeText, 'badge ' + scenario.status));
+    const badge = elText('span', badgeText, 'badge ' + scenario.status);
+
+    if (badgeTitle) badge.title = badgeTitle;
+    right.appendChild(badge);
     header.appendChild(right);
 
     header.addEventListener('click', () => {

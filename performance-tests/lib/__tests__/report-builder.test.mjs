@@ -12,6 +12,7 @@ import assert from 'node:assert/strict';
 import { buildReport } from '../report-builder.mjs';
 import {
   BASELINE_INCOMPLETE_LABEL,
+  INCOMPARABLE_LABELS,
   REGRESSION_CALLOUT_THRESHOLD_TIMING,
   REGRESSION_CALLOUT_THRESHOLD_HEAP,
 } from '../thresholds.mjs';
@@ -98,8 +99,26 @@ describe('buildReport -- incomplete baseline', () => {
       golden({ sorting: goldenScenario() }),
       { crossWindowScenarios: ['sorting'] }
     );
+    const row = report.split('\n').find(line => line.includes('| Sorting'));
 
-    assert.ok(report.includes(BASELINE_INCOMPLETE_LABEL));
+    // Named for what actually happened. The baseline captured everything here; it is the windows
+    // that differ, so "baseline incomplete" would be both misleading and factually wrong.
+    assert.ok(row.includes(INCOMPARABLE_LABELS['window-mismatch']));
+    assert.ok(!row.includes(INCOMPARABLE_LABELS['baseline-incomplete']));
+  });
+
+  test('the heap cell and the total cell give the same reason', () => {
+    // One row must not carry two explanations for one cause: the heap cell said "baseline
+    // incomplete" while the total beside it said "window mismatch".
+    const report = buildReport(
+      { sorting: currentScenario() },
+      golden({ sorting: goldenScenario() }),
+      { crossWindowScenarios: ['sorting'] }
+    );
+    const row = report.split('\n').find(line => line.includes('| Sorting'));
+    const occurrences = row.split(INCOMPARABLE_LABELS['window-mismatch']).length - 1;
+
+    assert.equal(occurrences, 2, `total and heap must both read window mismatch: ${row}`);
   });
 
   test('a comparable baseline still publishes its delta', () => {
