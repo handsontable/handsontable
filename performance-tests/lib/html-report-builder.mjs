@@ -79,6 +79,26 @@ function escapeHtml(value) {
 
 // --- data payload ---
 
+/**
+ * One category's before/after pair, with its delta withheld when that category is not comparable.
+ *
+ * @param {string} key
+ * @param {object} gCats -- baseline categories
+ * @param {object} cCats -- current categories
+ * @param {{ incompleteCategories: string[] }} verdict
+ * @returns {{ current: number, baseline: number, change: number | null, incomplete: boolean }}
+ */
+function categoryMetric(key, gCats, cCats, verdict) {
+  const incomplete = verdict.incompleteCategories.includes(key);
+
+  return {
+    current: cCats[key] || 0,
+    baseline: gCats[key] || 0,
+    change: incomplete ? null : pctChange(gCats[key], cCats[key]),
+    incomplete,
+  };
+}
+
 function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenSnapshots) {
   const scenarios = [];
   const crossWindow = new Set(meta.crossWindowScenarios || []);
@@ -127,28 +147,18 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
       badgeChange,
       badgeIsHeap,
       isRegression,
-      // Per-category deltas are withheld on a window mismatch for the same reason the total is:
-      // the two sides describe different slices of their traces, so a "+900%" here would be the
-      // two windows disagreeing rather than any change in the grid.
+      incompleteLabel: verdict.shortLabel,
+      incompleteReason: verdict.label,
+      // Withheld per category, on the verdict rather than on the window alone. Gating only the
+      // window left the incomplete-capture branch publishing a green "-100%" for exactly the
+      // category the verdict had just declared uncaptured.
       metrics: {
-        scripting: {
-          current: cCats.scripting || 0,
-          baseline: gCats.scripting || 0,
-          change: isCrossWindow ? null : pctChange(gCats.scripting, cCats.scripting),
-        },
-        rendering: {
-          current: cCats.rendering || 0,
-          baseline: gCats.rendering || 0,
-          change: isCrossWindow ? null : pctChange(gCats.rendering, cCats.rendering),
-        },
-        painting: {
-          current: cCats.painting || 0,
-          baseline: gCats.painting || 0,
-          change: isCrossWindow ? null : pctChange(gCats.painting, cCats.painting),
-        },
+        scripting: categoryMetric('scripting', gCats, cCats, verdict),
+        rendering: categoryMetric('rendering', gCats, cCats, verdict),
+        painting: categoryMetric('painting', gCats, cCats, verdict),
         total: { current: currentTotal, baseline: goldenTotal || 0, change: totalChange },
       },
-      detailedMetrics: buildDetailedMetrics(current, golden, baselineIncomplete, isCrossWindow),
+      detailedMetrics: buildDetailedMetrics(current, golden, baselineIncomplete, verdict),
       memory: buildMemoryMetrics(current, golden, isCrossWindow),
       hookTiming: buildHookTiming(current, golden),
       heap,
@@ -209,10 +219,15 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
   };
 }
 
-function buildDetailedMetrics(current, golden, baselineIncomplete = false, isCrossWindow = false) {
+function buildDetailedMetrics(current, golden, baselineIncomplete = false, verdict = null) {
   const rows = [];
   const cCats = current.categories || {};
   const gCats = golden?.categories || {};
+  const incompleteCategories = verdict?.incompleteCategories ?? [];
+  // Only the active categories participate in the comparability verdict. The others (loading,
+  // other, experience, idle) are reported but never summed into a total, so a window mismatch is
+  // the only thing that invalidates them.
+  const isCrossWindow = verdict?.reason === 'window-mismatch';
 
   for (const key of ['scripting', 'rendering', 'painting', 'loading', 'other', 'experience', 'idle']) {
     const c = cCats[key];
@@ -222,15 +237,18 @@ function buildDetailedMetrics(current, golden, baselineIncomplete = false, isCro
       continue;
     }
 
+    // Withheld per category: on a window mismatch these are the deltas teardown warns are "not
+    // measurements of a code change; they are the two windows disagreeing", and on an incomplete
+    // capture the affected category's delta is the fake win the total guard exists to suppress.
+    const incomplete = isCrossWindow || incompleteCategories.includes(key);
+
     rows.push({
       label: categoryLabel(key),
       key,
       current: c ?? 0,
       baseline: g ?? 0,
-      // Withheld on a window mismatch: these are the deltas teardown warns are "not measurements
-      // of a code change; they are the two windows disagreeing".
-      change: isCrossWindow ? null : pctChange(g, c),
-      incomplete: isCrossWindow,
+      change: incomplete ? null : pctChange(g, c),
+      incomplete,
       cv: calcCv(current._iterationValues?.categories?.[key]),
     });
   }
@@ -266,7 +284,9 @@ function buildDetailedMetrics(current, golden, baselineIncomplete = false, isCro
     change: pctChange(golden?.rangeEnd, current.rangeEnd),
     cv: calcCv(current._iterationValues?.rangeEnd),
     neutral: true,
-    note: 'harness wall clock',
+    // Deliberately still printed on a window mismatch, and the one percentage that is: this row is
+    // the size of the two windows, so it explains the mismatch the other rows are withheld for.
+    note: isCrossWindow ? 'harness wall clock; the windows differ' : 'harness wall clock',
   });
 
   return rows;
@@ -870,8 +890,10 @@ function buildScript() {
     titleRow.appendChild(document.createTextNode(scenario.title));
     header.appendChild(titleRow);
 
+    // The verdict's own label, not a fixed "baseline incomplete": saying the baseline failed when
+    // this run is the side that missed a category sends a maintainer to re-run develop for nothing.
     const badgeText = scenario.baselineIncomplete && !scenario.badgeIsHeap
-      ? data.baselineIncompleteLabel
+      ? scenario.incompleteLabel
       : fmtPct(scenario.badgeChange) + (scenario.badgeIsHeap ? ' heap' : '');
     const right = el('div', 'header-right');
 
@@ -1111,7 +1133,7 @@ function buildScript() {
         tr.appendChild(elText('td', Math.round(row.baseline) + ' ms', 'num'));
         tr.appendChild(elText('td', Math.round(row.current) + ' ms', 'num'));
         const changeTd = elText(
-          'td', row.incomplete ? data.baselineIncompleteLabel : fmtPct(row.change), 'num'
+          'td', row.incomplete ? scenario.incompleteLabel : fmtPct(row.change), 'num'
         );
         // An informational row (harness wall clock) states its number without a verdict on it.
         changeTd.style.color = row.neutral || row.incomplete
@@ -1154,7 +1176,7 @@ function buildScript() {
         tr.appendChild(elText('td', row.baselineDisplay, 'num'));
         tr.appendChild(elText('td', row.currentDisplay, 'num'));
         const changeTd = elText(
-          'td', row.incomplete ? data.baselineIncompleteLabel : fmtPct(row.change), 'num'
+          'td', row.incomplete ? scenario.incompleteLabel : fmtPct(row.change), 'num'
         );
         // Memory is banded on the heap threshold, which is an order of magnitude tighter than the
         // timing one because heap barely moves run to run.

@@ -15,9 +15,19 @@ export const REGRESSION_CALLOUT_THRESHOLD_HEAP = 5;
 // Coefficient of variation above which a measurement is flagged as unreliable.
 export const CV_WARNING_THRESHOLD = 15;
 
-// Rendered in place of a percentage when the baseline did not capture a category that the current
-// run did. A failed capture must not read as "no data", which is what a bare "--" would say.
-export const BASELINE_INCOMPLETE_LABEL = 'baseline incomplete';
+// Rendered in place of a percentage when the comparison cannot support one. A failed capture must
+// not read as "no data", which is what a bare "--" would say -- and it must name the side that
+// failed, because "baseline incomplete" on a run whose own capture failed sends a maintainer to
+// re-run develop for nothing.
+export const INCOMPARABLE_LABELS = {
+  'window-mismatch': 'window mismatch',
+  'baseline-incomplete': 'baseline incomplete',
+  'current-incomplete': 'capture incomplete',
+  'both-incomplete': 'capture incomplete',
+};
+
+// The baseline-side label, kept as a named export because it is the case the task filed.
+export const BASELINE_INCOMPLETE_LABEL = INCOMPARABLE_LABELS['baseline-incomplete'];
 
 // The categories that make up "active" time. Loading, other, experience and idle are excluded.
 export const ACTIVE_CATEGORIES = ['scripting', 'rendering', 'painting'];
@@ -134,27 +144,51 @@ export function sumActiveComparable(baselineCategories, currentCategories) {
  * @returns {{ comparable: boolean, reason: string | null, label: string | null }}
  */
 export function comparability(baselineCategories, currentCategories, isCrossWindow = false) {
-  // A window mismatch invalidates every quantity derived from the trace, including the heap
-  // extrema, which are maxima over the samples inside the window.
+  // A window mismatch invalidates every quantity derived from the trace, including the heap and
+  // DOM extrema, which are taken over the samples inside the window.
   if (isCrossWindow) {
-    return { comparable: false, reason: 'window-mismatch', label: 'window mismatch' };
+    return {
+      comparable: false,
+      reason: 'window-mismatch',
+      shortLabel: INCOMPARABLE_LABELS['window-mismatch'],
+      label: 'the two sides were measured over different trace windows',
+      // Nothing derived from the trace is comparable, so no category is exempt.
+      incompleteCategories: [...ACTIVE_CATEGORIES],
+    };
   }
 
+  const baseline = baselineCategories ?? {};
+  const current = currentCategories ?? {};
   const { comparable, incompleteCategories, incompleteSide } = sumActiveComparable(
-    baselineCategories, currentCategories
+    baseline, current
   );
 
   if (comparable) {
-    return { comparable: true, reason: null, label: null };
+    return {
+      comparable: true, reason: null, shortLabel: null, label: null, incompleteCategories: [],
+    };
   }
 
-  const side = incompleteSide === 'current' ? 'this run' : 'baseline';
+  // Attribute each category to the side that actually missed it. Reporting the union against one
+  // side names a category the other side recorded, which is the opposite of the point.
+  const missingFrom = side => incompleteCategories.filter(
+    key => ((side === 'baseline' ? baseline : current)[key] || 0) === 0
+  );
+  const phrases = [
+    ['baseline', missingFrom('baseline')],
+    ['this run', missingFrom('current')],
+  ]
+    .filter(([, keys]) => keys.length > 0)
+    .map(([side, keys]) => `${side} captured no ${keys.join(' or ')}`);
+  const reason = phrases.length > 1 ? 'both-incomplete' : `${incompleteSide}-incomplete`;
 
   return {
     comparable: false,
-    reason: `${incompleteSide}-incomplete`,
+    reason,
+    shortLabel: INCOMPARABLE_LABELS[reason] ?? INCOMPARABLE_LABELS['both-incomplete'],
     // Naming the categories is the one detail that tells a maintainer whether to re-run develop.
-    label: `${side} captured no ${incompleteCategories.join(' or ')}`,
+    label: phrases.join('; '),
+    incompleteCategories,
   };
 }
 

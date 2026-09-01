@@ -218,6 +218,57 @@ describe('buildHtmlReport -- cross-window comparison', () => {
   });
 });
 
+describe('buildHtmlReport -- incomplete capture on the current side', () => {
+  // The branch that survived the first round: per-category deltas were gated on the window alone,
+  // so when THIS run missed a category the card badged itself incomparable and then published a
+  // green -100.0% for that very category one row below. pctChange's zero-denominator guard masks
+  // the mirror case, which is why only this direction leaked.
+  const currentMissed = () => payloadOf(buildHtmlReport(
+    { sorting: currentScenario({ categories: { scripting: 20, rendering: 0, painting: 0 } }) },
+    { timestamp: 't', scenarios: { sorting: goldenScenario() } },
+    {}
+  )).scenarios[0];
+
+  test('publishes no delta for a category this run failed to capture', () => {
+    const { metrics } = currentMissed();
+
+    assert.equal(metrics.rendering.change, null);
+    assert.equal(metrics.painting.change, null);
+    assert.equal(metrics.total.change, null);
+  });
+
+  test('withholds the same categories in the detail table', () => {
+    const rows = currentMissed().detailedMetrics;
+
+    assert.equal(rows.find(r => r.key === 'rendering').change, null);
+    assert.equal(rows.find(r => r.key === 'painting').change, null);
+  });
+
+  test('still publishes the categories both sides did capture', () => {
+    // Withholding everything would hide usable data behind one failed capture.
+    assert.notEqual(currentMissed().metrics.scripting.change, null);
+    assert.equal(
+      currentMissed().detailedMetrics.find(r => r.key === 'scripting').incomplete, false
+    );
+  });
+
+  test('blames this run rather than the baseline', () => {
+    const scenario = currentMissed();
+
+    assert.equal(scenario.incompleteLabel, 'capture incomplete');
+    assert.ok(scenario.incompleteReason.includes('this run'));
+    assert.ok(!scenario.incompleteReason.includes('baseline'));
+  });
+
+  test('is never counted as an improvement', () => {
+    assert.equal(payloadOf(buildHtmlReport(
+      { sorting: currentScenario({ categories: { scripting: 20, rendering: 0, painting: 0 } }) },
+      { timestamp: 't', scenarios: { sorting: goldenScenario() } },
+      {}
+    )).summary.improvements, 0);
+  });
+});
+
 describe('buildHtmlReport -- baseline provenance', () => {
   test('flags a self-comparison so it is not described as a develop baseline', () => {
     const html = buildHtmlReport(

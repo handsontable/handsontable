@@ -104,20 +104,24 @@ function orderedScenarioEntries(results) {
  */
 function totalDelta(current, golden, isCrossWindow) {
   if (!golden) {
-    return { change: null, incomplete: false, label: null };
+    return { change: null, incomplete: false, label: null, shortLabel: null };
   }
 
   const verdict = comparability(golden.categories, current.categories, isCrossWindow);
 
   if (!verdict.comparable) {
-    return { change: null, incomplete: true, label: verdict.label };
+    return {
+      change: null, incomplete: true, label: verdict.label, shortLabel: verdict.shortLabel,
+    };
   }
 
   const { baseline, current: currentTotal } = sumActiveComparable(
     golden.categories, current.categories
   );
 
-  return { change: pctChange(baseline, currentTotal), incomplete: false, label: null };
+  return {
+    change: pctChange(baseline, currentTotal), incomplete: false, label: null, shortLabel: null,
+  };
 }
 
 /**
@@ -156,8 +160,10 @@ function buildSummaryTable(results, goldenScenarios, hasGolden, crossWindow) {
     if (hasGolden) {
       const golden = goldenScenarios[name];
       const isCrossWindow = crossWindow.has(name);
-      const { change, incomplete } = totalDelta(current, golden, isCrossWindow);
-      const totalChange = incomplete ? BASELINE_INCOMPLETE_LABEL : fmtPctWithEmoji(change);
+      const { change, incomplete, shortLabel } = totalDelta(current, golden, isCrossWindow);
+      // The verdict's own wording. A fixed "baseline incomplete" misattributes a failure of this
+      // run's own capture to develop, and sends a maintainer to re-run develop for nothing.
+      const totalChange = incomplete ? shortLabel : fmtPctWithEmoji(change);
       // Heap survives a missed timing category -- the two are measured independently -- but not a
       // window mismatch: jsHeapMaxBytes is a maximum over the samples inside the window, so two
       // windows sample two different things. Gated here as well as in the callouts, so the table

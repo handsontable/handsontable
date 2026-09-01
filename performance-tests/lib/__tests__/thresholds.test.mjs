@@ -134,7 +134,48 @@ describe('comparability', () => {
 
     assert.equal(verdict.comparable, false);
     assert.equal(verdict.reason, 'window-mismatch');
-    assert.equal(verdict.label, 'window mismatch');
+    assert.equal(verdict.shortLabel, 'window mismatch');
+  });
+
+  test('a window mismatch exempts no category, since nothing from the trace is comparable', () => {
+    assert.deepEqual(comparability(complete, complete, true).incompleteCategories, ACTIVE_CATEGORIES);
+  });
+
+  test('only the uncaptured categories are marked incomparable', () => {
+    // The captured categories still describe the same quantity on both sides, so withholding them
+    // too would hide usable data behind one failed capture.
+    const verdict = comparability(complete, { scripting: 20, rendering: 0, painting: 1 }, false);
+
+    assert.deepEqual(verdict.incompleteCategories, ['rendering']);
+  });
+
+  test('a current-side failure is labelled as this run, not as the baseline', () => {
+    // "baseline incomplete" on a run whose own capture failed sends a maintainer to re-run develop
+    // for nothing.
+    const verdict = comparability(complete, { scripting: 20, rendering: 0, painting: 0 }, false);
+
+    assert.equal(verdict.reason, 'current-incomplete');
+    assert.equal(verdict.shortLabel, 'capture incomplete');
+    assert.ok(verdict.label.includes('this run'));
+    assert.ok(!verdict.label.includes('baseline'));
+  });
+
+  test('when both sides missed a category, each is named against its own side', () => {
+    // The union attributed to one side named a category the other side had actually recorded.
+    const verdict = comparability(
+      { scripting: 20, rendering: 0, painting: 1 },
+      { scripting: 20, rendering: 5, painting: 0 },
+      false
+    );
+
+    assert.equal(verdict.reason, 'both-incomplete');
+    assert.ok(verdict.label.includes('baseline captured no rendering'));
+    assert.ok(verdict.label.includes('this run captured no painting'));
+  });
+
+  test('tolerates null category objects', () => {
+    assert.equal(comparability(null, null, false).comparable, true);
+    assert.equal(comparability(undefined, { scripting: 5 }, false).comparable, false);
   });
 
   test('two complete sides over the same window are comparable', () => {
