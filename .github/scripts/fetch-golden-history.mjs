@@ -44,8 +44,16 @@ export function selectHistoryDirs(lsTreeOutput, count = HISTORY_FETCH_COUNT) {
     .filter(Boolean)
     .map(match => ({ dir: match[1], name: match[2] }))
     // The timestamp format is fixed-width and zero-padded, so lexicographic order
-    // is chronological order -- no Date parsing needed here.
-    .sort((a, b) => (a.name < b.name ? 1 : -1))
+    // is chronological order -- no Date parsing needed here. Explicit 0 for the
+    // equal case: a plain `< ? 1 : -1` breaks the comparator contract on a tie
+    // (e.g. two identically-timestamped dirs) and can sort unstably.
+    .sort((a, b) => {
+      if (a.name === b.name) {
+        return 0;
+      }
+
+      return a.name < b.name ? 1 : -1;
+    })
     .slice(0, count);
 }
 
@@ -61,7 +69,11 @@ function main() {
       ['ls-tree', '--name-only', 'gh-pages', '--', 'performance-reports/develop/'],
       { encoding: 'utf8' }
     );
-  } catch {
+  } catch (err) {
+    // Distinguish a real git failure (missing gh-pages ref, corrupt local clone) from
+    // the legitimate "nothing there yet" case below -- both would otherwise look like
+    // an empty history and print the same harmless-sounding message.
+    console.warn(`Warning: git ls-tree failed (${err.message}) -- treating history as empty`);
     lsTreeOutput = '';
   }
 

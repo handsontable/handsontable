@@ -61,6 +61,18 @@ describe('selectHistoryDirs', () => {
     assert.deepEqual(selectHistoryDirs(''), []);
     assert.deepEqual(selectHistoryDirs('performance-reports/develop/latest.json'), []);
   });
+
+  test('keeps both entries and does not drop one on a name tie', () => {
+    // Two identically-timestamped dirs (e.g. a republish) must not violate the sort
+    // comparator contract -- a naive `<  ? 1 : -1` returns -1 on a tie, which some
+    // engines' sort can use to silently reorder or drop equal elements.
+    const output = [
+      'performance-reports/develop/2026-08-28T06-17-50Z',
+      'performance-reports/develop/2026-08-28T06-17-50Z',
+    ].join('\n');
+
+    assert.equal(selectHistoryDirs(output).length, 2);
+  });
 });
 
 // The golden-restore step exists in both .github/workflows/performance-tests.yml and
