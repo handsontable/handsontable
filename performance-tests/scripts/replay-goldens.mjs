@@ -26,6 +26,7 @@ import {
   REGRESSION_CALLOUT_THRESHOLD_HEAP,
   REGRESSION_CALLOUT_THRESHOLD_TIMING,
   calcCv,
+  comparability,
   sumActive,
 } from '../lib/thresholds.mjs';
 
@@ -109,6 +110,7 @@ function loadGoldens({ since }) {
  */
 function replay(goldens, windowSize) {
   const deltas = [];
+  let skippedIncomparable = 0;
 
   for (let i = windowSize; i < goldens.length; i += 1) {
     // Only the trailing window, never the run under test -- otherwise the baseline contains the
@@ -126,6 +128,21 @@ function replay(goldens, windowSize) {
       const baselineEntry = baseline.scenarios?.[scenario];
 
       if (!baselineEntry) {
+        continue;
+      }
+
+      // Model what the reports actually publish, not every arithmetic difference. The median
+      // baseline is always marks-valid (isValidForMedian enforces it), but the run standing in for
+      // a PR is not filtered, so its window source has to be checked here the way teardown checks
+      // it. A comparison the shipped code refuses to publish must not count toward the
+      // false-positive rate used to pick the thresholds.
+      const currentWindow = currentEntry.windowSource ?? 'auto-zoom';
+      const verdict = comparability(
+        baselineEntry.categories, currentEntry.categories, currentWindow !== 'marks'
+      );
+
+      if (!verdict.comparable) {
+        skippedIncomparable += 1;
         continue;
       }
 
@@ -152,7 +169,7 @@ function replay(goldens, windowSize) {
     }
   }
 
-  return deltas;
+  return { deltas, skippedIncomparable };
 }
 
 /**
@@ -242,7 +259,14 @@ async function main(argv) {
     );
   }
 
-  const deltas = replay(goldens, windowSize);
+  const { deltas, skippedIncomparable } = replay(goldens, windowSize);
+
+  if (skippedIncomparable > 0) {
+    console.log(
+      `Skipped ${skippedIncomparable} comparison(s) the reports would refuse to publish `
+      + '(incomplete capture or window mismatch).\n'
+    );
+  }
 
   console.log(`Replayed ${deltas.length} scenario comparison(s). Every one measures develop`);
   console.log('against develop, so every delta below is noise.\n');

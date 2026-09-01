@@ -80,26 +80,81 @@ export function sumActive(categories) {
 /**
  * Sums active time on both sides of a comparison and reports whether the two are comparable.
  *
- * A baseline that recorded zero for a category the current run did record is a failed capture, not
- * a cheap operation. `pctChange` already refuses to divide by such a category; without this check
- * `sumActive` would fold it into the total anyway and publish the resulting percentage.
+ * A run that recorded zero for a category the other side did record is a failed capture, not a
+ * cheap operation. `pctChange` already refuses to divide by a zero baseline; without this check
+ * `sumActive` would fold the category into the total anyway and publish the percentage.
+ *
+ * The check is symmetric on purpose. A baseline that missed a category inflates the delta into a
+ * fake regression; a current run that missed one deflates it into a fake improvement. The second
+ * is no more supportable than the first, and on these scenarios a genuine 0 ms of rendering or
+ * painting does not occur.
  *
  * @param {object | null | undefined} baselineCategories
  * @param {object | null | undefined} currentCategories
- * @returns {{ baseline: number, current: number, incompleteCategories: string[], comparable: boolean }}
+ * @returns {{ baseline: number, current: number, incompleteCategories: string[],
+ *   incompleteSide: 'baseline' | 'current' | null, comparable: boolean }}
  */
 export function sumActiveComparable(baselineCategories, currentCategories) {
   const baseline = baselineCategories ?? {};
   const current = currentCategories ?? {};
-  const incompleteCategories = ACTIVE_CATEGORIES.filter(
+  const missingFromBaseline = ACTIVE_CATEGORIES.filter(
     key => (baseline[key] || 0) === 0 && (current[key] || 0) > 0
   );
+  const missingFromCurrent = ACTIVE_CATEGORIES.filter(
+    key => (current[key] || 0) === 0 && (baseline[key] || 0) > 0
+  );
+  const incompleteCategories = [...new Set([...missingFromBaseline, ...missingFromCurrent])];
+  let incompleteSide = null;
+
+  if (missingFromBaseline.length > 0) {
+    incompleteSide = 'baseline';
+  } else if (missingFromCurrent.length > 0) {
+    incompleteSide = 'current';
+  }
 
   return {
     baseline: sumActive(baseline),
     current: sumActive(current),
     incompleteCategories,
+    incompleteSide,
     comparable: incompleteCategories.length === 0,
+  };
+}
+
+/**
+ * Decides, once per scenario, whether any delta between the two sides may be published.
+ *
+ * Every site that renders a percentage must consult this and no other rule. Deciding it per site
+ * is how one comment came to print a red heap regression in its table, clear the same run in its
+ * callouts, and count it as a regression in the linked report.
+ *
+ * @param {object | null | undefined} baselineCategories
+ * @param {object | null | undefined} currentCategories
+ * @param {boolean} [isCrossWindow] -- the two sides were measured over different trace windows
+ * @returns {{ comparable: boolean, reason: string | null, label: string | null }}
+ */
+export function comparability(baselineCategories, currentCategories, isCrossWindow = false) {
+  // A window mismatch invalidates every quantity derived from the trace, including the heap
+  // extrema, which are maxima over the samples inside the window.
+  if (isCrossWindow) {
+    return { comparable: false, reason: 'window-mismatch', label: 'window mismatch' };
+  }
+
+  const { comparable, incompleteCategories, incompleteSide } = sumActiveComparable(
+    baselineCategories, currentCategories
+  );
+
+  if (comparable) {
+    return { comparable: true, reason: null, label: null };
+  }
+
+  const side = incompleteSide === 'current' ? 'this run' : 'baseline';
+
+  return {
+    comparable: false,
+    reason: `${incompleteSide}-incomplete`,
+    // Naming the categories is the one detail that tells a maintainer whether to re-run develop.
+    label: `${side} captured no ${incompleteCategories.join(' or ')}`,
   };
 }
 

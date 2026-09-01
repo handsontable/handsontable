@@ -12,14 +12,15 @@ import {
   classifyChange,
   pctChange,
   sumActive,
-  sumActiveComparable,
+  comparability,
   formatTitle,
 } from './thresholds.mjs';
 
 /**
  * @param {Record<string, object>} scenarioResults -- keyed by scenario name
  * @param {object | null} goldenSnapshots -- golden baseline
- * @param {object} [meta] -- { prNumber, branch, baseBranch, pagesUrl }
+ * @param {object} [meta] -- { prNumber, branch, baseBranch, pagesUrl, commit, runId,
+ *   crossWindowScenarios }
  * @returns {string} self-contained HTML document
  */
 export function buildHtmlReport(scenarioResults, goldenSnapshots, meta = {}) {
@@ -91,10 +92,13 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
     // A baseline that missed a category the current run recorded cannot be divided into, and a
     // baseline measured through a different trace window is not the same quantity at all. Either
     // way the total delta is withheld rather than published.
-    const baselineIncomplete = !!golden
-      && (crossWindow.has(name) || !sumActiveComparable(gCats, cCats).comparable);
+    const isCrossWindow = crossWindow.has(name);
+    const verdict = comparability(gCats, cCats, isCrossWindow);
+    const baselineIncomplete = !!golden && !verdict.comparable;
     const totalChange = baselineIncomplete ? null : pctChange(goldenTotal, currentTotal);
-    const heap = buildHeapChartData(current, golden);
+    // Heap is derived from the same trace window, so a window mismatch invalidates it too. It is
+    // unaffected by a missed timing category, which is measured independently.
+    const heap = buildHeapChartData(current, golden, isCrossWindow);
     const timingRegressed = totalChange != null && totalChange > REGRESSION_CALLOUT_THRESHOLD_TIMING;
     const heapRegressed = heap?.change != null && heap.change > REGRESSION_CALLOUT_THRESHOLD_HEAP;
     const isRegression = timingRegressed || heapRegressed;
@@ -123,25 +127,28 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
       badgeChange,
       badgeIsHeap,
       isRegression,
+      // Per-category deltas are withheld on a window mismatch for the same reason the total is:
+      // the two sides describe different slices of their traces, so a "+900%" here would be the
+      // two windows disagreeing rather than any change in the grid.
       metrics: {
         scripting: {
           current: cCats.scripting || 0,
           baseline: gCats.scripting || 0,
-          change: pctChange(gCats.scripting, cCats.scripting),
+          change: isCrossWindow ? null : pctChange(gCats.scripting, cCats.scripting),
         },
         rendering: {
           current: cCats.rendering || 0,
           baseline: gCats.rendering || 0,
-          change: pctChange(gCats.rendering, cCats.rendering),
+          change: isCrossWindow ? null : pctChange(gCats.rendering, cCats.rendering),
         },
         painting: {
           current: cCats.painting || 0,
           baseline: gCats.painting || 0,
-          change: pctChange(gCats.painting, cCats.painting),
+          change: isCrossWindow ? null : pctChange(gCats.painting, cCats.painting),
         },
         total: { current: currentTotal, baseline: goldenTotal || 0, change: totalChange },
       },
-      detailedMetrics: buildDetailedMetrics(current, golden, baselineIncomplete),
+      detailedMetrics: buildDetailedMetrics(current, golden, baselineIncomplete, isCrossWindow),
       memory: buildMemoryMetrics(current, golden),
       hookTiming: buildHookTiming(current, golden),
       heap,
@@ -202,7 +209,7 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
   };
 }
 
-function buildDetailedMetrics(current, golden, baselineIncomplete = false) {
+function buildDetailedMetrics(current, golden, baselineIncomplete = false, isCrossWindow = false) {
   const rows = [];
   const cCats = current.categories || {};
   const gCats = golden?.categories || {};
@@ -220,7 +227,10 @@ function buildDetailedMetrics(current, golden, baselineIncomplete = false) {
       key,
       current: c ?? 0,
       baseline: g ?? 0,
-      change: pctChange(g, c),
+      // Withheld on a window mismatch: these are the deltas teardown warns are "not measurements
+      // of a code change; they are the two windows disagreeing".
+      change: isCrossWindow ? null : pctChange(g, c),
+      incomplete: isCrossWindow,
       cv: calcCv(current._iterationValues?.categories?.[key]),
     });
   }
@@ -313,7 +323,7 @@ function buildHookTiming(current, golden) {
   };
 }
 
-function buildHeapChartData(current, golden) {
+function buildHeapChartData(current, golden, isCrossWindow = false) {
   const cur = current.updateCounters?.jsHeapMaxBytes;
 
   if (cur == null) {
@@ -325,7 +335,9 @@ function buildHeapChartData(current, golden) {
   return {
     current: cur,
     baseline,
-    change: baseline != null ? pctChange(baseline, cur) : null,
+    // jsHeapMaxBytes is a maximum over the UpdateCounters samples inside the parsed window, so two
+    // different windows sample two different things and the delta between them means nothing.
+    change: baseline != null && !isCrossWindow ? pctChange(baseline, cur) : null,
   };
 }
 
@@ -613,7 +625,9 @@ a:hover { text-decoration: underline; }
 .metrics-table tr:last-child td { border-bottom: none; }
 .metrics-table .bold { font-weight: 600; }
 .metrics-table .num { font-variant-numeric: tabular-nums; text-align: right; }
-.metrics-table .cv-warn { color: #cf222e; font-weight: 600; }
+/* Not scoped to .metrics-table: the baseline-spread note in a card header carries this class too,
+   and a table-only rule made that flag a silent no-op. */
+.cv-warn { color: #cf222e; font-weight: 600; }
 
 /* Hook timing */
 .hook-timing {
@@ -1258,8 +1272,11 @@ function buildScript() {
     return 'neutral';
   }
 
+  // Mirrors fmtCvValue() in thresholds.mjs, warning glyph included, so the markdown comment and
+  // this report flag an unreliable spread the same way.
   function fmtCvValue(cv) {
-    return cv == null ? 'n/a' : cv.toFixed(1) + '%';
+    if (cv == null) return 'n/a';
+    return cv.toFixed(1) + '%' + (cv > data.thresholds.cvWarning ? ' \\u26A0\\uFE0F' : '');
   }
 
   function statusColor(cls) {

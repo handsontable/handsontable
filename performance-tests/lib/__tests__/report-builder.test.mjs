@@ -136,7 +136,9 @@ describe('buildReport -- reliability columns', () => {
       {}
     );
 
-    assert.ok(report.includes('n/a'));
+    const row = report.split('\n').find(line => line.includes('| Sorting'));
+
+    assert.ok(row.includes('n/a'), `expected n/a in the Sorting row: ${row}`);
   });
 
   test('flags a baseline spread above the warning threshold', () => {
@@ -146,7 +148,7 @@ describe('buildReport -- reliability columns', () => {
       {}
     );
 
-    assert.ok(report.includes('30.0% ⚠️'));
+    assert.ok(report.includes('30.0% \u26A0\uFE0F'));
   });
 
   test('computes the intra-run spread when a real trace omitted a category entirely', () => {
@@ -265,7 +267,7 @@ describe('buildReport -- callouts', () => {
 
     const row = report.split('\n').find(line => line.includes('| Sorting'));
 
-    assert.ok(row.includes('🔴'), `heap delta of +${between}% must be flagged in the table: ${row}`);
+    assert.ok(row.includes('\u{1F534}'), `heap delta of +${between}% must be flagged in the table: ${row}`);
   });
 
   test('the timing column is not banded on the heap threshold', () => {
@@ -282,7 +284,7 @@ describe('buildReport -- callouts', () => {
 
     const row = report.split('\n').find(line => line.includes('| Sorting'));
 
-    assert.ok(!row.includes('🔴'), `timing delta of +${between}% is below the timing band: ${row}`);
+    assert.ok(!row.includes('\u{1F534}'), `timing delta of +${between}% is below the timing band: ${row}`);
   });
 
   test('heap is judged on the heap threshold, which is tighter than timing', () => {
@@ -371,6 +373,25 @@ describe('buildReport -- cross-window heap', () => {
 
     assert.ok(!report.includes('JS heap'));
     assert.ok(report.includes('Total delta not assessed'));
+  });
+
+  test('withholds the heap delta in the summary table too, not only in the callout', () => {
+    // The table and the callouts must not reach opposite verdicts on the same run: gating only the
+    // callout printed a red "+50.0%" heap cell above a comment clearing the run.
+    const report = buildReport(
+      {
+        sorting: currentScenario({
+          updateCounters: { jsHeapMaxBytes: 150_000_000, jsHeapMaxLabel: '150 MB' },
+        }),
+      },
+      golden({ sorting: goldenScenario() }),
+      { crossWindowScenarios: ['sorting'] }
+    );
+
+    const row = report.split('\n').find(line => line.includes('| Sorting'));
+
+    assert.ok(!row.includes('+50.0%'), `heap delta must not be published: ${row}`);
+    assert.ok(!row.includes('\u{1F534}'), `nothing in the row may be flagged red: ${row}`);
   });
 
   test('still assesses heap when only a timing category was missing from the baseline', () => {

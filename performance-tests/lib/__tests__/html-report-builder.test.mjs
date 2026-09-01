@@ -148,6 +148,66 @@ describe('buildHtmlReport -- incomplete baseline', () => {
   });
 });
 
+describe('buildHtmlReport -- cross-window comparison', () => {
+  // teardown warns that these deltas "are not measurements of a code change; they are the two
+  // windows disagreeing". Gating only the total left the per-category rows, the quick-metric strip
+  // and the heap chart publishing them, so a card badged "baseline incomplete" carried red
+  // +900% rows underneath and the dashboard counted it as a regression.
+  const crossWindow = () => payloadOf(buildHtmlReport(
+    {
+      sorting: currentScenario({
+        categories: { scripting: 200, rendering: 30, painting: 10 },
+        updateCounters: { jsHeapMaxBytes: 150_000_000, jsHeapMaxLabel: '150 MB' },
+      }),
+    },
+    { timestamp: 't', scenarios: { sorting: goldenScenario() } },
+    { crossWindowScenarios: ['sorting'] }
+  )).scenarios[0];
+
+  test('withholds every per-category delta, not just the total', () => {
+    const changes = crossWindow().detailedMetrics
+      .filter(r => ['scripting', 'rendering', 'painting'].includes(r.key))
+      .map(r => r.change);
+
+    assert.deepEqual(changes, [null, null, null]);
+  });
+
+  test('withholds the quick-metric deltas', () => {
+    const { metrics } = crossWindow();
+
+    assert.equal(metrics.scripting.change, null);
+    assert.equal(metrics.rendering.change, null);
+    assert.equal(metrics.painting.change, null);
+    assert.equal(metrics.total.change, null);
+  });
+
+  test('withholds the heap delta, because the heap max is sampled inside the window', () => {
+    assert.equal(crossWindow().heap.change, null);
+  });
+
+  test('does not count the scenario as a regression', () => {
+    const scenario = crossWindow();
+
+    assert.equal(scenario.isRegression, false);
+    assert.equal(scenario.baselineIncomplete, true);
+  });
+
+  test('a same-window comparison still publishes heap and per-category deltas', () => {
+    const scenario = payloadOf(buildHtmlReport(
+      {
+        sorting: currentScenario({
+          updateCounters: { jsHeapMaxBytes: 150_000_000, jsHeapMaxLabel: '150 MB' },
+        }),
+      },
+      { timestamp: 't', scenarios: { sorting: goldenScenario() } },
+      {}
+    )).scenarios[0];
+
+    assert.notEqual(scenario.heap.change, null);
+    assert.notEqual(scenario.metrics.scripting.change, null);
+  });
+});
+
 describe('buildHtmlReport -- baseline provenance', () => {
   test('flags a self-comparison so it is not described as a develop baseline', () => {
     const html = buildHtmlReport(

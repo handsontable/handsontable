@@ -19,6 +19,7 @@ import {
   ACTIVE_CATEGORIES,
   activeTotalsPerIteration,
   calcCv,
+  comparability,
   classifyChange,
   fmtCv,
   fmtCvValue,
@@ -100,14 +101,67 @@ describe('sumActiveComparable', () => {
     assert.deepEqual(result.incompleteCategories, []);
   });
 
-  test('stays comparable when the current run dropped to zero and the baseline had work', () => {
-    // This direction is a real improvement, not a broken capture, so it must still be published.
+  test('refuses the comparison when the current run missed a category the baseline recorded', () => {
+    // The mirror of the filed defect, and equally unsupportable. Publishing it would report a
+    // capture failure as a -23% improvement, which a reader cannot tell from a real one. On these
+    // scenarios a genuine 0 ms of rendering or painting does not occur.
     const result = sumActiveComparable(
       { scripting: 20, rendering: 5, painting: 1 },
       { scripting: 20, rendering: 0, painting: 0 }
     );
 
-    assert.equal(result.comparable, true);
+    assert.equal(result.comparable, false);
+    assert.equal(result.incompleteSide, 'current');
+    assert.deepEqual(result.incompleteCategories, ['rendering', 'painting']);
+  });
+
+  test('names which side failed, so a maintainer knows whether to re-run develop', () => {
+    const baselineSide = sumActiveComparable(
+      { scripting: 20, rendering: 0, painting: 1 },
+      { scripting: 20, rendering: 5, painting: 1 }
+    );
+
+    assert.equal(baselineSide.incompleteSide, 'baseline');
+    assert.equal(sumActiveComparable({ scripting: 1 }, { scripting: 1 }).incompleteSide, null);
+  });
+});
+
+describe('comparability', () => {
+  const complete = { scripting: 20, rendering: 5, painting: 1 };
+
+  test('a window mismatch is incomparable regardless of the categories', () => {
+    const verdict = comparability(complete, complete, true);
+
+    assert.equal(verdict.comparable, false);
+    assert.equal(verdict.reason, 'window-mismatch');
+    assert.equal(verdict.label, 'window mismatch');
+  });
+
+  test('two complete sides over the same window are comparable', () => {
+    const verdict = comparability(complete, complete, false);
+
+    assert.equal(verdict.comparable, true);
+    assert.equal(verdict.label, null);
+  });
+
+  test('names the missing categories in the label', () => {
+    const verdict = comparability(
+      { scripting: 20, rendering: 0, painting: 0 }, complete, false
+    );
+
+    assert.equal(verdict.comparable, false);
+    assert.ok(verdict.label.includes('baseline'));
+    assert.ok(verdict.label.includes('rendering'));
+    assert.ok(verdict.label.includes('painting'));
+  });
+
+  test('attributes a current-side failure to this run, not to the baseline', () => {
+    const verdict = comparability(
+      complete, { scripting: 20, rendering: 0, painting: 0 }, false
+    );
+
+    assert.equal(verdict.comparable, false);
+    assert.ok(verdict.label.includes('this run'));
   });
 
   test('tolerates null category objects', () => {
@@ -207,8 +261,8 @@ describe('fmtCvValue', () => {
   });
 
   test('flags a spread above the warning threshold', () => {
-    assert.ok(fmtCvValue(CV_WARNING_THRESHOLD + 1).includes('⚠️'));
-    assert.ok(!fmtCvValue(CV_WARNING_THRESHOLD - 1).includes('⚠️'));
+    assert.ok(fmtCvValue(CV_WARNING_THRESHOLD + 1).includes('\u26A0\uFE0F'));
+    assert.ok(!fmtCvValue(CV_WARNING_THRESHOLD - 1).includes('\u26A0\uFE0F'));
   });
 
   test('does not flag exactly at the threshold', () => {

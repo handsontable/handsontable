@@ -11,6 +11,7 @@ import {
   fmtCvValue,
   pctChange,
   sumActive,
+  comparability,
   sumActiveComparable,
   fmtMs,
   fmtPct,
@@ -21,7 +22,7 @@ import {
 /**
  * @param {Record<string, object>} allScenarioResults -- keyed by scenario name
  * @param {object | null} goldenSnapshots -- golden baseline (or null to self-compare)
- * @param {object} [meta] -- { pagesUrl, crossWindowScenarios, baseline }
+ * @param {object} [meta] -- { pagesUrl, crossWindowScenarios, commit, runId }
  * @returns {string} full markdown report
  */
 export function buildReport(allScenarioResults, goldenSnapshots, meta = {}) {
@@ -103,22 +104,20 @@ function orderedScenarioEntries(results) {
  */
 function totalDelta(current, golden, isCrossWindow) {
   if (!golden) {
-    return { change: null, incomplete: false };
+    return { change: null, incomplete: false, label: null };
   }
 
-  if (isCrossWindow) {
-    return { change: null, incomplete: true };
+  const verdict = comparability(golden.categories, current.categories, isCrossWindow);
+
+  if (!verdict.comparable) {
+    return { change: null, incomplete: true, label: verdict.label };
   }
 
-  const { baseline, current: currentTotal, comparable } = sumActiveComparable(
+  const { baseline, current: currentTotal } = sumActiveComparable(
     golden.categories, current.categories
   );
 
-  if (!comparable) {
-    return { change: null, incomplete: true };
-  }
-
-  return { change: pctChange(baseline, currentTotal), incomplete: false };
+  return { change: pctChange(baseline, currentTotal), incomplete: false, label: null };
 }
 
 /**
@@ -156,12 +155,19 @@ function buildSummaryTable(results, goldenScenarios, hasGolden, crossWindow) {
 
     if (hasGolden) {
       const golden = goldenScenarios[name];
-      const { change, incomplete } = totalDelta(current, golden, crossWindow.has(name));
+      const isCrossWindow = crossWindow.has(name);
+      const { change, incomplete } = totalDelta(current, golden, isCrossWindow);
       const totalChange = incomplete ? BASELINE_INCOMPLETE_LABEL : fmtPctWithEmoji(change);
-      const heapChange = fmtPctWithEmoji(
-        pctChange(golden?.updateCounters?.jsHeapMaxBytes, current.updateCounters?.jsHeapMaxBytes),
-        REGRESSION_CALLOUT_THRESHOLD_HEAP
-      );
+      // Heap survives a missed timing category -- the two are measured independently -- but not a
+      // window mismatch: jsHeapMaxBytes is a maximum over the samples inside the window, so two
+      // windows sample two different things. Gated here as well as in the callouts, so the table
+      // and the callout below it cannot reach opposite verdicts on the same run.
+      const heapChange = isCrossWindow
+        ? BASELINE_INCOMPLETE_LABEL
+        : fmtPctWithEmoji(
+          pctChange(golden?.updateCounters?.jsHeapMaxBytes, current.updateCounters?.jsHeapMaxBytes),
+          REGRESSION_CALLOUT_THRESHOLD_HEAP
+        );
 
       rows.push([
         formatTitle(name), fmtMs(cats.scripting), fmtMs(cats.rendering),
@@ -258,10 +264,10 @@ function buildRegressionCallouts(results, goldenScenarios, crossWindow) {
     }
 
     const isCrossWindow = crossWindow.has(name);
-    const { change: totalPct, incomplete } = totalDelta(current, golden, isCrossWindow);
+    const { change: totalPct, incomplete, label } = totalDelta(current, golden, isCrossWindow);
 
     if (incomplete) {
-      skipped.push(formatTitle(name));
+      skipped.push(`${formatTitle(name)} (${label})`);
     }
 
     // Heap survives a baseline that missed a timing category -- the two are measured independently.
@@ -301,7 +307,7 @@ function buildRegressionCallouts(results, goldenScenarios, crossWindow) {
   // have been assessed for the same scenario -- otherwise the note would contradict a callout
   // standing directly above it.
   const note = skipped.length > 0
-    ? `\n\n<sub>Total delta not assessed (${BASELINE_INCOMPLETE_LABEL}): ${skipped.join(', ')}.</sub>`
+    ? `\n\n<sub>Total delta not assessed: ${skipped.join(', ')}.</sub>`
     : '';
 
   if (callouts.length === 0) {
