@@ -150,6 +150,15 @@ export function registerDropdownIndicatorEvents(hotInstance: HotInstance): void 
 
   arrowEventManagers.set(hotInstance, eventManager);
 
+  // Core's teardown clears the shared `eventListeners` array this manager writes into, so this is
+  // belt-and-braces today. It is here because `EventManager` carries a standing TODO to track
+  // listeners per instance, and on that day the shared sweep stops covering us — leaving a
+  // `mousedown` handler on the user's element that calls into a destroyed instance.
+  hotInstance.addHookOnce('afterDestroy', () => {
+    eventManager.destroy();
+    arrowEventManagers.delete(hotInstance);
+  });
+
   eventManager.addEventListener(hotInstance.rootElement, 'mousedown', (event: Event) => {
     const target = eventTargetEl(event);
 
@@ -306,7 +315,11 @@ function recalculateChipsVisibility(
   chipsContainer: HTMLElement,
   rootDocument: Document
 ): void {
-  // Subtract the indicator so the last visible chip and the `+N` badge never slide underneath it.
+  // Subtract the indicator so the last visible chip and the `+N` badge stop short of it. This
+  // narrows the overlap band rather than closing it: `columnWidth` is a border-box width from
+  // `getColWidth`, and the cell's own horizontal padding is still not subtracted — a pre-existing
+  // gap. Closing it means measuring the container's content box instead of deriving the budget from
+  // the column width, which changes how many chips every multiselect cell shows.
   const containerWidth = columnWidth === null
     ? null
     : columnWidth - getDropdownIndicatorReserve(chipsContainer, rootDocument);

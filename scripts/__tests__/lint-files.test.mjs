@@ -58,9 +58,17 @@ test('lintable drops paths the owning package .eslintignore excludes', () => {
   assert.deepEqual(
     lintable([
       'handsontable/scripts/themes/figma/templates/iconsMap.ts',
+      'handsontable/test/lib/jquery.min.js', // vendored
+      'handsontable/test/dist/helpers.js', // built test bundle
+      'handsontable/src/3rdparty/autoResize/autoResize.js',
+      'handsontable/src/3rdparty/walkontable/test/lib/jquery.js',
       'handsontable/scripts/themes/figma/utils/helpers/iconsMap.mjs', // NOT ignored — must survive
+      'handsontable/test/e2e/x.spec.js', // NOT ignored — must survive
     ]),
-    ['handsontable/scripts/themes/figma/utils/helpers/iconsMap.mjs'],
+    [
+      'handsontable/scripts/themes/figma/utils/helpers/iconsMap.mjs',
+      'handsontable/test/e2e/x.spec.js',
+    ],
   );
 });
 

@@ -39,8 +39,10 @@ describe('multiSelectRenderer', () => {
       const toPhysicalColumn = jest.fn(() => 9);
       const hotInstance = {
         rootDocument: document,
-        // The renderer registers the dropdown indicator's delegated listener on the root element.
+        // The renderer registers the dropdown indicator's delegated listener on the root element,
+        // and an `afterDestroy` hook to tear it down.
         rootElement: document.createElement('div'),
+        addHookOnce: jest.fn(),
         getSettings: () => ({ ariaTags: false }),
         toPhysicalRow: () => physicalRow,
         toPhysicalColumn,
@@ -94,6 +96,7 @@ describe('multiSelectRenderer', () => {
         getSourceDataAtCell: () => values,
         getColWidth: () => 200,
         addHook: jest.fn(),
+        addHookOnce: jest.fn(),
       };
     }
 
@@ -127,17 +130,32 @@ describe('multiSelectRenderer', () => {
       expect(TD.textContent).toContain('Select items');
     });
 
-    it('should not accumulate indicators when the same TD is re-rendered', () => {
-      // Handsontable reuses TD elements between renders, and the placeholder branch writes through
-      // `fastInnerText`, which can leave earlier child nodes in place.
-      const TD = document.createElement('td');
-      const cellProperties = { placeholder: 'Select items' };
+    describe.each([
+      ['placeholder', { placeholder: 'Select items' }, []],
+      ['empty', {}, []],
+      ['chips', {}, ['Red', 'Green']],
+    ])('re-rendering a reused TD (%s branch)', (unusedName, cellProperties, values) => {
+      it('should leave exactly one indicator, discarding the one from the previous render', () => {
+        // Handsontable reuses TD elements between renders. The renderer relies on each branch
+        // clearing the cell first rather than de-duplicating, so seed a stale indicator and prove
+        // it does not survive. A plain re-render cannot prove this: it would also pass if the
+        // clearing stopped happening but the indicator were merely never added twice.
+        const hotInstance = createHotStub({ values });
+        const TD = document.createElement('td');
+        const stale = document.createElement('span');
 
-      multiSelectRenderer(createHotStub({ values: [] }), TD, 0, 0, 0, null, cellProperties);
-      multiSelectRenderer(createHotStub({ values: [] }), TD, 0, 0, 0, null, cellProperties);
-      multiSelectRenderer(createHotStub({ values: [] }), TD, 0, 0, 0, null, cellProperties);
+        stale.className = 'ht-multi-select-arrow';
+        stale.dataset.row = '99';
+        TD.appendChild(stale);
 
-      expect(TD.querySelectorAll(ARROW_SELECTOR)).toHaveLength(1);
+        multiSelectRenderer(hotInstance, TD, 0, 0, 0, values.length ? values : null, cellProperties);
+
+        const arrows = TD.querySelectorAll(ARROW_SELECTOR);
+
+        expect(arrows).toHaveLength(1);
+        // The survivor is the fresh one, not the seeded stale element.
+        expect(arrows[0].dataset.row).toBe('0');
+      });
     });
 
     it('should carry the visual coordinates so one delegated listener can serve every cell', () => {

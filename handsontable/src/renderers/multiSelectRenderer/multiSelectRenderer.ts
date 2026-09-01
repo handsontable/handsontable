@@ -11,7 +11,6 @@ import {
   registerDropdownIndicatorEvents,
   cacheColumnWidthAndRegisterResizeHook,
   handleChipsOverflow,
-  ARROW_CLASS,
 } from './utils/utils';
 
 export { CHIP_CLASS } from './utils/utils';
@@ -23,12 +22,14 @@ const CHIPS_CONTAINER_CLASS = 'ht-multi-select-chips-container';
 /**
  * Puts the dropdown indicator in the cell and wires its single-click handler.
  *
- * Any indicator left by an earlier render is removed first. Handsontable reuses `TD` elements
- * between renders, and the placeholder branch writes through `fastInnerText`, which may keep
- * existing child nodes.
- *
  * The indicator goes in as the first child so its float clears the cell's content, the same
  * placement `autocompleteRenderer` uses for `htAutocompleteArrow`.
+ *
+ * Handsontable reuses `TD` elements between renders, so this relies on every caller having cleared
+ * the cell first — the two data branches through `empty()`, and the placeholder branch through
+ * `fastInnerText`, whose fast lane needs a lone text node as `firstChild` and therefore always
+ * falls through to `empty()` while an indicator sits there. `multiSelectRenderer.unit.js` pins that
+ * a stale indicator does not survive a re-render.
  *
  * @param {HotInstance} hotInstance The Handsontable instance.
  * @param {HTMLTableCellElement} TD The rendered cell element.
@@ -43,7 +44,6 @@ function renderDropdownIndicator(
   col: number,
   isAriaEnabled: boolean
 ): void {
-  TD.querySelector(`.${ARROW_CLASS}`)?.remove();
   TD.insertBefore(
     createDropdownIndicator(hotInstance.rootDocument, isAriaEnabled, row, col),
     TD.firstChild

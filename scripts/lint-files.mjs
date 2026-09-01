@@ -42,10 +42,17 @@ const DOT_SEGMENT = /(^|\/)\.[^/]+(\/|$)/;
 // verbatim TS stencils outside any tsconfig project, so ESLint answers with a
 // PARSING error; that is reported as a lint error (exit 1), not as the config gap
 // (exit 2) `runEslint` tolerates, and it would block the commit.
+// Mirrors every `handsontable/.eslintignore` entry that falls inside a scope above. Entries the
+// scopes never reach (`dist/*`, `tmp/*`, `node_modules`) need no row here. `wrappers/vue3` has an
+// entry of the same shape (`src/lib/lru`) but that directory no longer exists.
 const PACKAGE_IGNORED = [
-  // handsontable/.eslintignore: "Verbatim TS stencil copied into generated theme
-  // output; not lintable source."
+  // "Verbatim TS stencil copied into generated theme output; not lintable source."
   /^handsontable\/scripts\/themes\/figma\/templates\//,
+  // Vendored test libraries (jquery and friends) and built test bundles: third-party or generated
+  // code that would fail rules CI never runs on it.
+  /^handsontable\/test\/(lib|dist)\//,
+  /^handsontable\/src\/3rdparty\/autoResize\//,
+  /^handsontable\/src\/3rdparty\/walkontable\/test\/(lib|dist)\//,
 ];
 
 /**

@@ -46,9 +46,15 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   `multiselect` carries one too, but a **different** element and listener —
   `.ht-multi-select-arrow`, built by `multiSelectRenderer` (#13316) — so a
   locator written against `.htAutocompleteArrow` finds nothing there, and vice
-  versa. Its indicator also renders on an EMPTY cell, where the other three sit
-  at the default width, so a centred click on an empty `multiselect` cell is the
-  most likely of the four to land on the indicator.
+  versa. All four render their indicator on an empty cell, at the same icon size
+  and margins, so none of them is the safe one to click centred.
+  `multiselect` adds a SECOND hazard the other three do not have: its chip's `×`
+  button suppresses selection through `beforeOnCellMouseDown`, so a centred press
+  that lands on a chip's `×` selects **nothing** and any wait on
+  `hot.getSelected()` times out with no editor and no selection to explain it.
+  The indicator is also measured by `autoColumnSize`, so adding one moved an
+  auto-sized column's midpoint by ~25px and slid it onto a chip's `×` — that is
+  how `editor-hidden-cell.spec.ts` broke, having passed by 4px before (#13316).
   Whether the click lands on it is pure geometry, and **the outcome is
   theme-dependent** — the arrow is right-floated at `var(--ht-icon-size)`, which
   is 16 px on `main` and `horizon` but 12 px on `classic`, and the deciding term
