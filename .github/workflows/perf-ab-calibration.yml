@@ -19,13 +19,14 @@ name: Perf A/B calibration (TEMPORARY)
 #
 # Run it three times before deciding. One job's residual is itself a single sample.
 
+# Triggered by pushes to this one branch, not workflow_dispatch: GitHub only offers a dispatch for
+# workflows that already exist on the default branch, and this one is never going to land there.
+# Scoping it to a single branch name keeps it inert for everyone else. Each push is one sample --
+# push an empty commit to take another.
 on:
-  workflow_dispatch:
-    inputs:
-      pairs:
-        description: 'A/B pairs to run in this job (each pair is ~12 min)'
-        required: false
-        default: '1'
+  push:
+    branches:
+      - feature/DEV-2629_Same-runner-ab-baseline
 
 # No writes: this reports to the job summary and an artifact, never to a PR or gh-pages.
 permissions:
@@ -60,7 +61,7 @@ jobs:
           set -euo pipefail
           mkdir -p ab-calibration
 
-          for pair in $(seq 1 "${{ inputs.pairs }}"); do
+          for pair in 1; do
             for half in a b; do
               # performance-tests/output/ is never cleared by the suite. iteration-N.json is
               # overwritten by name only and hook-timing.json is not rewritten when a run produces
