@@ -3451,6 +3451,10 @@ export default (): Record<string, unknown> => {
      * When [`selectionMode`](@/api/options.md#selectionmode) is set to `'single'`, copying is
      * limited to a single cell.
      *
+     * A text selection stays inside the area it starts in. Frozen rows and columns are rendered
+     * apart from the rest of the grid, so a selection that starts in a frozen area does not reach
+     * past it, and one that starts outside does not reach into it.
+     *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *

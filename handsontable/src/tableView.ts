@@ -284,6 +284,13 @@ class TableView {
    */
   #selectionMouseDown = false;
   /**
+   * Name of the overlay the current mouse drag started in, or `null` when no drag is in progress.
+   * Used to keep a text selection from spreading past the overlay it began in.
+   *
+   * @type {string|null}
+   */
+  #textSelectionOverlay: string | null = null;
+  /**
    * @type {boolean}
    */
   #mouseDown: boolean = false;
@@ -526,7 +533,11 @@ class TableView {
 
       this.#selectionMouseDown = true;
 
-      if (!this.isTextSelectionAllowed(eventTargetEl(event)!)) {
+      const mouseDownTarget = eventTargetEl(event)!;
+
+      this.#textSelectionOverlay = this.getElementOverlayName(mouseDownTarget);
+
+      if (!this.isTextSelectionAllowed(mouseDownTarget)) {
         clearTextSelection(rootWindow);
         event.preventDefault();
         rootWindow.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
@@ -540,9 +551,21 @@ class TableView {
       }
 
       this.#selectionMouseDown = false;
+      this.#textSelectionOverlay = null;
     });
     this.eventManager.addEventListener(rootElement, 'mousemove', (event) => {
-      if (this.#selectionMouseDown && !this.isTextSelectionAllowed(eventTargetEl(event)!)) {
+      if (!this.#selectionMouseDown) {
+        return;
+      }
+
+      const target = eventTargetEl(event)!;
+      // Confinement applies to `fragmentSelection` only. It exists to stop a native range from
+      // spanning two overlays, and gating it here keeps the editing path — where a drag out of the
+      // editor is allowed by `isCellEdited()` regardless of the element — behaving as it did.
+      const leftItsOverlay = Boolean(this.settings.fragmentSelection) &&
+        this.#hasLeftTextSelectionOverlay(target);
+
+      if (!this.isTextSelectionAllowed(target) || leftItsOverlay) {
         // Clear selection only when fragmentSelection is enabled, otherwise clearing selection breaks the IME editor.
         if (this.settings.fragmentSelection) {
           clearTextSelection(rootWindow);
@@ -1650,7 +1673,11 @@ class TableView {
       return true;
     }
 
-    const isChildOfTableBody = isChildOf(el, this._wt.wtTable.spreader);
+    // A frozen cell is rendered in an overlay clone, which is a sibling of the master table rather
+    // than its descendant. Testing against the master spreader alone therefore rejects every cell in
+    // a frozen row, frozen column, or corner (#4980), so resolve the spreader that owns the element.
+    const parentOverlay = this._wt.wtOverlays.getParentOverlay(el) ?? this._wt;
+    const isChildOfTableBody = isChildOf(el, parentOverlay.wtTable.spreader);
 
     if (this.settings.fragmentSelection === true && isChildOfTableBody) {
       return true;
@@ -1667,6 +1694,22 @@ class TableView {
     }
 
     return false;
+  }
+
+  /**
+   * Checks whether the pointer has moved out of the overlay the current text selection started in.
+   *
+   * Each frozen area is rendered as a separate table, and those tables sit next to the master table
+   * in the DOM in an order that does not follow the visual layout. A native selection range that
+   * spans two of them therefore picks up cells the pointer never crossed, so a selection is confined
+   * to the overlay it began in.
+   *
+   * @param {HTMLElement} el The element currently under the pointer.
+   * @returns {boolean}
+   */
+  #hasLeftTextSelectionOverlay(el: HTMLElement) {
+    return this.#textSelectionOverlay !== null &&
+      this.getElementOverlayName(el) !== this.#textSelectionOverlay;
   }
 
   /**
