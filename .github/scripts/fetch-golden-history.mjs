@@ -24,6 +24,7 @@
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { repoRoot } from './lib/repo-root.mjs';
 
 // Only needs to exceed MEDIAN_WINDOW_SIZE (performance-tests/lib/median-snapshot.mjs)
@@ -101,23 +102,39 @@ function main() {
   let fetched = 0;
 
   for (const { dir, name } of dirs) {
+    let content;
+
     try {
-      const content = execFileSync('git', ['show', `gh-pages:${dir}/snapshots.json`], {
+      content = execFileSync('git', ['show', `gh-pages:${dir}/snapshots.json`], {
         encoding: 'utf8',
         cwd: repoRoot(),
       });
-
-      writeFileSync(join(HISTORY_DIR, `${name}.json`), content, 'utf8');
-      fetched += 1;
-    } catch {
-      // A missing snapshots.json for one timestamped dir shouldn't block the rest.
+    } catch (err) {
+      // A missing snapshots.json for one timestamped dir shouldn't block the rest --
+      // that is the expected case for a dir git couldn't find the blob for.
+      console.warn(`Warning: no snapshots.json for ${name} (${err.message.split('\n')[0]}) -- skipping`);
+      continue;
     }
+
+    // Deliberately outside the try above: a write failure (disk full, permissions) is
+    // a different problem than "this dir has no snapshots.json", and must not be
+    // silently folded into the same skip-and-continue path.
+    writeFileSync(join(HISTORY_DIR, `${name}.json`), content, 'utf8');
+    fetched += 1;
   }
 
   console.log(`Fetched ${fetched} historical snapshot(s) for median baseline`);
 }
 
-if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
-  main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  try {
+    main();
+  } catch (err) {
+    // A missing baseline is optional by design -- the restore step's own `latest.json`
+    // fetch already tolerates this (every command there ends in `|| true`). This
+    // script must fail the same way: warn, don't take the whole performance job down
+    // over history that a compare-mode run can simply do without.
+    console.warn(`Warning: fetch-golden-history.mjs failed (${err.message}) -- continuing without history`);
+  }
 }
 /* c8 ignore stop */

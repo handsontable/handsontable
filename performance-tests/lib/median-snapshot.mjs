@@ -109,9 +109,12 @@ function medianScenario(entries) {
 
   return {
     categories,
-    rangeStart: median(entries.map(entry => entry.rangeStart)),
-    rangeEnd: median(entries.map(entry => entry.rangeEnd)),
-    total: median(entries.map(entry => entry.total)),
+    // Rounded, like averageParsedTraces (trace-parser.mjs) rounds these on a real
+    // snapshot -- an even window would otherwise produce e.g. rangeEnd: 92.5, a shape
+    // no real run could ever save.
+    rangeStart: medianRounded(entries.map(entry => entry.rangeStart)),
+    rangeEnd: medianRounded(entries.map(entry => entry.rangeEnd)),
+    total: medianRounded(entries.map(entry => entry.total)),
     runs: medianRounded(entries.map(entry => entry.runs)),
     updateCounters,
     // Set explicitly, never left to default. teardown.mjs's windowSourceOf()

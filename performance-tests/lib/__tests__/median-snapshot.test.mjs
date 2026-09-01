@@ -164,6 +164,21 @@ describe('computeMedianSnapshot', () => {
     assert.equal(result.scenarios.sorting.runs, 15);
   });
 
+  test('rounds rangeEnd and total, matching how a real snapshot saves them', () => {
+    // A real snapshot always has integer rangeEnd/total (averageParsedTraces rounds
+    // them). An even window's median would otherwise land on a .5, a shape no real
+    // saved snapshot could ever have.
+    const snapshots = [100, 101].map((rangeEnd, i) => snapshot(`2026-08-2${i}T00:00:00Z`, {
+      sorting: { rangeEnd, total: rangeEnd },
+    }));
+
+    const result = computeMedianSnapshot(snapshots);
+
+    assert.equal(result.scenarios.sorting.rangeEnd, 101);
+    assert.equal(result.scenarios.sorting.total, 101);
+    assert.equal(Number.isInteger(result.scenarios.sorting.rangeEnd), true);
+  });
+
   test('uses only the newest MEDIAN_WINDOW_SIZE of more snapshots than that', () => {
     const timestamps = Array.from({ length: MEDIAN_WINDOW_SIZE + 3 }, (_, i) =>
       `2026-08-${String(10 + i).padStart(2, '0')}T00:00:00Z`);
