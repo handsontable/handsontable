@@ -147,7 +147,19 @@ export function computeMedianSnapshot(snapshots, { windowSize = MEDIAN_WINDOW_SI
   const scenarios = {};
 
   for (const name of scenarioNames) {
-    scenarios[name] = medianScenario(valid.map(snapshot => snapshot.scenarios[name]).filter(Boolean));
+    const entries = valid.map(snapshot => snapshot.scenarios[name]).filter(Boolean);
+
+    // A scenario present in only a few of the windowed snapshots (e.g. one just added)
+    // would otherwise get a "median" computed from fewer than MIN_VALID_SNAPSHOTS
+    // entries -- the single-fluke-baseline problem this module exists to fix,
+    // reproduced silently per scenario under the same isMedian: true the rest of the
+    // snapshot reports. Omit it instead; the comparison for that scenario then falls
+    // through to "no baseline" the same way a brand-new scenario already does.
+    if (entries.length < MIN_VALID_SNAPSHOTS) {
+      continue;
+    }
+
+    scenarios[name] = medianScenario(entries);
   }
 
   return {

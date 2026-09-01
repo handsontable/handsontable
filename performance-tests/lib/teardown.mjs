@@ -199,10 +199,11 @@ export default async function teardown() {
     if (golden) {
       const goldenCount = Object.keys(golden.scenarios || {}).length;
 
-      if (golden.medianWindowSize) {
+      if (golden.isMedian) {
         console.log(
           `Golden baseline is a median of ${golden.medianWindowSize} marks-valid develop run(s), ` +
-          `newest ${golden.timestamp} (${goldenCount} scenarios)`
+          `newest ${golden.timestamp} (${goldenCount} scenarios). Source runs: ` +
+          `${(golden.medianSourceTimestamps || []).join(', ')}`
         );
       } else {
         console.log(`Golden baseline loaded (${goldenCount} scenarios from ${golden.timestamp})`);

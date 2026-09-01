@@ -178,6 +178,37 @@ describe('computeMedianSnapshot', () => {
     );
   });
 
+  test('omits a scenario present in fewer than MIN_VALID_SNAPSHOTS of the windowed snapshots', () => {
+    // A scenario just added to the suite might exist in only 1 of the last 5 develop
+    // snapshots. Medianing that single entry would reproduce the single-fluke-baseline
+    // problem this module exists to fix, silently, for just that one scenario.
+    const filteringOnce = { categories: { scripting: 40 }, windowSource: 'marks' };
+    const snapshots = [
+      snapshot('2026-08-27T00:00:00Z'),
+      snapshot('2026-08-28T00:00:00Z', { filtering: filteringOnce }),
+      snapshot('2026-08-29T00:00:00Z'),
+    ];
+
+    const result = computeMedianSnapshot(snapshots);
+
+    assert.equal('filtering' in result.scenarios, false);
+    // The rest of the snapshot is unaffected -- only the underrepresented scenario is dropped.
+    assert.equal('sorting' in result.scenarios, true);
+  });
+
+  test('keeps a scenario present in exactly MIN_VALID_SNAPSHOTS of the windowed snapshots', () => {
+    const filteringTwice = { categories: { scripting: 40 }, windowSource: 'marks' };
+    const snapshots = [
+      snapshot('2026-08-27T00:00:00Z', { filtering: filteringTwice }),
+      snapshot('2026-08-28T00:00:00Z', { filtering: filteringTwice }),
+      snapshot('2026-08-29T00:00:00Z'),
+    ];
+
+    const result = computeMedianSnapshot(snapshots);
+
+    assert.equal(result.scenarios.filtering.categories.scripting, 40);
+  });
+
   test('every synthesized scenario is explicitly windowSource "marks"', () => {
     // Guards against a regression that would leave this field unset: teardown.mjs's
     // windowSourceOf() treats a missing field as 'auto-zoom', which would make the

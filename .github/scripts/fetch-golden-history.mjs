@@ -22,15 +22,19 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { repoRoot } from './lib/repo-root.mjs';
 
 // Only needs to exceed MEDIAN_WINDOW_SIZE (performance-tests/lib/median-snapshot.mjs)
 // after windowSource filtering -- generous on purpose since re-fetching a few extra
 // small JSON files is cheap.
 export const HISTORY_FETCH_COUNT = 20;
 const TIMESTAMPED_DIR = /^(.*\/(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z))$/;
-const HISTORY_DIR = join('performance-tests', 'golden', 'history');
+// Anchored via repoRoot(), not a bare relative path -- a CI runner's cwd is always the
+// repo root so this made no difference there, but a bare relative path resolves
+// against whatever directory a manual/local invocation happens to run from.
+const HISTORY_DIR = join(repoRoot(), 'performance-tests', 'golden', 'history');
 
 /**
  * @param {string} lsTreeOutput -- stdout of `git ls-tree --name-only gh-pages -- performance-reports/develop/`
@@ -59,6 +63,10 @@ export function selectHistoryDirs(lsTreeOutput, count = HISTORY_FETCH_COUNT) {
 
 /* c8 ignore start -- exercises real git/fs, covered by manual verification, not unit tests */
 function main() {
+  // Cleared, not just created: an entry from a previous invocation (a stale local
+  // history/ from an earlier manual run, or a dir since removed from gh-pages) would
+  // otherwise linger and keep outranking a fresh single-file golden forever.
+  rmSync(HISTORY_DIR, { recursive: true, force: true });
   mkdirSync(HISTORY_DIR, { recursive: true });
 
   let lsTreeOutput;
@@ -67,7 +75,12 @@ function main() {
     lsTreeOutput = execFileSync(
       'git',
       ['ls-tree', '--name-only', 'gh-pages', '--', 'performance-reports/develop/'],
-      { encoding: 'utf8' }
+      // `cwd` is load-bearing, not decoration: the `performance-reports/develop/`
+      // pathspec is resolved by git relative to the process cwd, not the repo root --
+      // discovered when this script, invoked from a subdirectory, silently returned
+      // zero matches instead of erroring. Anchoring both git calls here mirrors
+      // HISTORY_DIR's repoRoot() anchoring above for the same reason.
+      { encoding: 'utf8', cwd: repoRoot() }
     );
   } catch (err) {
     // Distinguish a real git failure (missing gh-pages ref, corrupt local clone) from
@@ -89,7 +102,10 @@ function main() {
 
   for (const { dir, name } of dirs) {
     try {
-      const content = execFileSync('git', ['show', `gh-pages:${dir}/snapshots.json`], { encoding: 'utf8' });
+      const content = execFileSync('git', ['show', `gh-pages:${dir}/snapshots.json`], {
+        encoding: 'utf8',
+        cwd: repoRoot(),
+      });
 
       writeFileSync(join(HISTORY_DIR, `${name}.json`), content, 'utf8');
       fetched += 1;
