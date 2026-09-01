@@ -766,6 +766,81 @@ test.describe('commit paths that read the selection after trimming', () => {
       expect(await grid.sourceData()).toEqual(UNTOUCHED);
     });
 
+  /**
+   * The restored corners have to live in ONE index space. A corner whose record survived is rebased
+   * through the post-update mapper; a corner whose record was trimmed used to fall back to the
+   * visual slot it held BEFORE the update. When the same trim also removes records ABOVE the range,
+   * those two spaces differ by exactly that many records, so the restored range slides off its
+   * survivors - and `Ctrl+Enter`, which fills the active range, writes to the wrong ones.
+   *
+   * Physical rows 1-4 are selected with the focus on row 1. Trimming rows 0 and 1 leaves rows 2, 3
+   * and 4 selected at visual 0-2. Mixing the spaces pinned `from` to the stale visual 1 and left
+   * `to` at the rebased visual 2, dropping physical row 2 out of the fill.
+   */
+  test('keeps the active range on its survivors when the trim removes its focus and rows above it',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectRangesAndType([[1, 0, 4, 0]], 'EDITED');
+      await grid.trimRows([0, 1]);
+
+      await expect.poll(() => grid.selected()).toEqual([[0, 0, 2, 0]]);
+
+      await grid.typeOnSelection('AGAIN');
+
+      await expect.poll(() => grid.isEditorOpen()).toBe(true);
+      await grid.commitWithCtrlOrMetaEnter();
+
+      expect(await grid.sourceRowCount()).toBe(5);
+      expect(await grid.sourceData()).toEqual([
+        ['A0', 'B0'],
+        ['A1', 'B1'],
+        ['AGAIN', 'B2'],
+        ['AGAIN', 'B3'],
+        ['AGAIN', 'B4'],
+      ]);
+    });
+
+  /**
+   * The other half of the same index-space mix, and the severe one: with the trim removing more
+   * records above the range than the range has survivors, the stale `from` slot lands BELOW the
+   * rebased `to`, so the restored range covers records the trim merely slid into those visual slots.
+   * Physical rows 2 and 3 are selected; trimming rows 0-2 leaves only physical row 3, but the range
+   * used to span visual 0-1 - physical rows 3 AND 4, and row 4 was never selected.
+   */
+  test('does not widen the active range onto records the trim slid in behind it',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectRangesAndType([[2, 0, 3, 0]], 'EDITED');
+      await grid.trimRows([0, 1, 2]);
+
+      await expect.poll(() => grid.selected()).toEqual([[0, 0, 0, 0]]);
+      expect(await grid.highlightedAreaCorners()).toEqual([]);
+      // The focus record is trimmed, so `EditorManager` discards the edit and nothing is written.
+      expect(await grid.sourceData()).toEqual(UNTOUCHED);
+    });
+
+  /**
+   * With NO survivor left there is no post-update index to shrink onto, and the range parks on the
+   * focus's clamped pre-update slot so the next keystroke still lands somewhere. All three corners
+   * take that one slot together: letting `to` keep its own stale slot spanned whatever now sits
+   * between two independently stale corners - here physical row 4, which was never selected.
+   */
+  test('collapses a fully trimmed active range onto one parked cell',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectRangesAndType([[1, 0, 2, 0]], 'EDITED');
+      await grid.trimRows([1, 2]);
+
+      await expect.poll(() => grid.selected()).toEqual([[1, 0, 1, 0]]);
+      expect(await grid.sourceData()).toEqual(UNTOUCHED);
+    });
+
   test('repaints a surviving multi-cell layer when the active layer is a single cell',
     async({ page, theme, bundle }) => {
       const grid = new EditorTrimmedRowPage(page, theme, bundle);

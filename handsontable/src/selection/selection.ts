@@ -2012,12 +2012,14 @@ class Selection {
   }
 
   /**
-   * Restores one range. A range whose focus survived SHRINKS onto its surviving records rather than
+   * Restores one range. A partially trimmed range SHRINKS onto its surviving records rather than
    * being dropped, because `BaseEditor#saveValue()` fills the active range on `Ctrl+Enter`: dropping
    * a partially trimmed active layer would hand that commit to whichever layer inherits the active
    * slot, writing the typed value onto a record the user never edited. Trimming only removes
    * records, so the survivors of a contiguous range stay contiguous and a `CellRange` still
-   * describes them exactly. A range is dropped only when its focus itself was trimmed.
+   * describes them exactly. The ACTIVE layer is dropped only when nothing it covered survived; a
+   * non-active layer is also dropped when its focus alone was trimmed, rather than having its
+   * highlight moved onto a neighbouring record.
    *
    * Whole-row and whole-column ranges keep spanning the complete opposite axis after its size changes.
    *
@@ -2027,7 +2029,7 @@ class Selection {
    * @param {number} layerIndex The range's original layer index.
    * @param {'row'|'column'} axis The mapper axis being restored.
    * @param {PhysicalSelectionSnapshot} snapshot The selection state captured with the range.
-   * @returns {CellRange|null} The restored range, or `null` when its focus was trimmed.
+   * @returns {CellRange|null} The restored range, or `null` when it has nothing left to describe.
    */
   #restorePhysicalRange(
     physicalRange: CellRange,
@@ -2051,29 +2053,40 @@ class Selection {
       toBoundary = this.tableProps.countCols() - 1;
     }
 
-    const indexMapper = axis === 'row' ? this.tableProps.rowIndexMapper : this.tableProps.columnIndexMapper;
     const coordinateKey = axis === 'row' ? 'row' : 'col';
-    // The active layer holds the open editor, so when its focus is trimmed the range keeps the
-    // visual slot instead of shrinking. That leaves the editor somewhere `EditorManager` can cancel
-    // it, and keeps all three corners on one consistent fallback.
-    const keepsVisualSlot = layerIndex === snapshot.activeSelectionLayer &&
-      this.#getVisualIndex(physicalRange.highlight[coordinateKey], indexMapper) === null;
+    const isActiveLayer = layerIndex === snapshot.activeSelectionLayer;
     const axisLength = axis === 'row' ? this.tableProps.countRows() : this.tableProps.countCols();
-    const clampToGrid = (coords: CellCoords): number | null => (
-      keepsVisualSlot ? clamp(coords[coordinateKey] ?? 0, 0, axisLength - 1) : null
-    );
+    const survivingFromEnd = this.#nearestSurvivingVisualIndex(physicalSpan, axis, true);
+    const survivingToEnd = this.#nearestSurvivingVisualIndex(physicalSpan, axis, false);
+    // Every corner a trim removed has to be replaced by an index in the POST-update visual space.
+    // The corner's own PRE-update slot is not one: it and a surviving corner rebased through the
+    // mapper differ by however many records the same update trimmed ABOVE the range, so mixing them
+    // slides the restored range down onto records the user never selected, and the next fill writes
+    // into them. A survivor of the range's own span is in the right space by construction.
+    //
+    // The focus falls back the same way `from` does, which keeps it inside the shrunk range. Losing
+    // it is not what drops a layer: the editor bound to a trimmed focus is discarded by
+    // `EditorManager` on the hook behind this one, and that decision reads the editor's OWN captured
+    // physical index rather than this highlight.
+    //
+    // With NO survivor there is no such index, and the pre-update slot clamped into the grid becomes
+    // the right answer rather than the wrong one - it is a parking spot for the cursor, not a claim
+    // about records. All three corners take it together, so the range collapses onto that one cell
+    // instead of spanning whatever now sits between two independently stale corners. Only the ACTIVE
+    // layer is parked: the user keeps typing there, and `re-prepares from post-trim state when the
+    // user keeps typing after the discard` pins that. A non-active layer with nothing left is
+    // dropped, as is one whose focus alone is gone - moving another layer's highlight onto a
+    // neighbouring record would make `applyAndCommit` paint a selection the user never made.
+    const parkedVisualIndex = isActiveLayer && survivingFromEnd === null ?
+      clamp(visualRange.highlight[coordinateKey] ?? 0, 0, axisLength - 1) :
+      null;
     const highlight = this.#createVisualCoords(
-      physicalRange.highlight, visualRange.highlight, axis, undefined, clampToGrid(visualRange.highlight));
+      physicalRange.highlight, visualRange.highlight, axis, undefined,
+      isActiveLayer ? survivingFromEnd ?? parkedVisualIndex : null);
     const from = this.#createVisualCoords(
-      physicalRange.from, visualRange.from, axis, fromBoundary,
-      keepsVisualSlot ?
-        clampToGrid(visualRange.from) :
-        this.#nearestSurvivingVisualIndex(physicalSpan, axis, true));
+      physicalRange.from, visualRange.from, axis, fromBoundary, survivingFromEnd ?? parkedVisualIndex);
     const to = this.#createVisualCoords(
-      physicalRange.to, visualRange.to, axis, toBoundary,
-      keepsVisualSlot ?
-        clampToGrid(visualRange.to) :
-        this.#nearestSurvivingVisualIndex(physicalSpan, axis, false));
+      physicalRange.to, visualRange.to, axis, toBoundary, survivingToEnd ?? parkedVisualIndex);
 
     if (!highlight || !from || !to) {
       return null;
