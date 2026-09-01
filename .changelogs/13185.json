@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed mobile selection handles not being visible on touch devices.",
-  "type": "fixed",
-  "issueOrPR": 13185,
-  "breaking": false,
-  "framework": "none"
-}

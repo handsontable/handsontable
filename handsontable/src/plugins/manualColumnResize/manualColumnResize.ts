@@ -783,8 +783,12 @@ export class ManualColumnResize extends BasePlugin {
    */
   #onContextMenu() {
     this.hideHandleAndGuide();
-    this.hot.rootElement.removeChild(this.#handle);
-    this.hot.rootElement.removeChild(this.#guide);
+    // Both elements are detached with `remove()`, which is a no-op on an element that has no
+    // parent. The guide is attached only once a "mousedown" over the handle reaches `#onMouseDown`,
+    // so a context menu opened over a merely hovered handle reaches a guide that was never
+    // attached, and `removeChild` threw there (DEV-2708).
+    this.#handle.remove();
+    this.#guide.remove();
 
     this.#pressed = false;
     this.#isTriggeredByRMB = true;

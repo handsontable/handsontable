@@ -688,9 +688,18 @@ class EditorManager {
    *
    * The edit is finished rather than cancelled, which for most editors means it is COMMITTED - the
    * same outcome clicking the pager already produces, since that is an outside click and therefore
-   * deselects. The final say belongs to the editor: `DropdownEditor#finishEditing()` rewrites the
-   * flag to a discard when the active range no longer contains the edited cell, and
-   * `selection.commit()` runs before these hooks, so a dropdown can legitimately discard here.
+   * deselects. The final say still belongs to the editor: `DropdownEditor#finishEditing()` rewrites
+   * the flag to a discard when the active range no longer contains the edited cell. On THIS path it
+   * does not fire - `core.ts` calls `selection.commit()` for a hiding change, and that re-derives
+   * the highlights without moving the range, so the range still contains the edited cell (measured
+   * over 600 runs while chasing DEV-2676). A deselect from any other source still makes it fire.
+   *
+   * DEV-2676 was mistaken for that veto and was not it: the value lost here came from
+   * `AutocompleteEditor`'s choice list, whose highlight is moved by a query deferred 10 ms behind
+   * the keystrokes, so a commit forced inside that window read the match for the PREVIOUS keystroke
+   * and `HandsontableEditor#finishEditing()` copied it over the typed text. The editors now refuse
+   * a stale match (`canCommitInnerSelection()`), so this path commits what was typed.
+   *
    * Where the commit is REJECTED - a validator returned `false` under `allowInvalid: false`, which
    * re-selects the hidden cell and restores `EDITING` - the edit is reverted instead, because an
    * editor surviving on a cell the user cannot see is the bug being fixed.
