@@ -34,17 +34,46 @@ export function buildHtmlReport(scenarioResults, goldenSnapshots, meta = {}) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Performance Report${meta.prNumber ? ` - PR #${meta.prNumber}` : ''}</title>
+<title>Performance Report${escapeHtml(meta.prNumber ? ` - PR #${meta.prNumber}` : '')}</title>
 ${buildStyles()}
 </head>
 <body>
 <div id="app"></div>
 <script>
-window.__PERF_DATA__ = ${JSON.stringify(payload)};
+window.__PERF_DATA__ = ${serializePayload(payload)};
 </script>
 ${buildScript()}
 </body>
 </html>`;
+}
+
+/**
+ * Serializes the payload for embedding inside a `<script>` block.
+ *
+ * `JSON.stringify` does not escape `<`, so a string containing `</script>` would close the block
+ * early and everything after it would be parsed as markup. The branch name reaches this payload
+ * from `GITHUB_HEAD_REF`, which a fork pull request controls. Escaping `<` keeps the JSON valid
+ * (`<` is the same character to a JSON parser) while making that impossible.
+ *
+ * @param {object} payload
+ * @returns {string}
+ */
+function serializePayload(payload) {
+  return JSON.stringify(payload).replace(/</g, '\\u003c');
+}
+
+/**
+ * Escapes a value interpolated into markup rather than into the JSON payload.
+ *
+ * @param {string} value
+ * @returns {string}
+ */
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 // --- data payload ---
