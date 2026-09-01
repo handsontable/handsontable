@@ -34,7 +34,11 @@ export function evaluate({
   // while reg-suit fetches those actuals and produces a report with real
   // differences. Trusting the probe alone would pass that build and overwrite
   // the baseline with it, so a real comparison always wins.
-  const compared = Boolean(report && (report.failedItems.length || report.passedItems.length));
+  // `deletedItems` counts too: an expected file that matched nothing still
+  // proves a baseline existed. Without it, a torn manifest plus a build that
+  // renames every screenshot slips through and seeds over the real records.
+  const compared = Boolean(report
+    && (report.failedItems.length || report.passedItems.length || report.deletedItems.length));
 
   // Checked before `bootstrap`, not after. reg-suit exits 0 having globbed
   // nothing when the config or the screenshots are missing, and that report has

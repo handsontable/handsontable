@@ -58,6 +58,16 @@ test('a real comparison overrides a stale bootstrap probe', () => {
   assert.match(v.comment, /changes detected/);
 });
 
+test('deleted-only differences count as a real comparison', () => {
+  // A build that renames every screenshot produces only deletions plus new
+  // items. Those deletions prove a baseline existed, so a stale probe must not
+  // be able to seed over it.
+  const v = evaluate({ report: report({ deleted: 1646, added: 1646 }), bootstrap: true });
+
+  assert.equal(v.blocked, true);
+  assert.doesNotMatch(v.comment, /baseline created/);
+});
+
 test('a run that cannot seed says so instead of claiming a baseline was created', () => {
   const v = evaluate({ report: null, bootstrap: true, seeded: false });
 

@@ -10,7 +10,6 @@
  */
 
 import { spawn } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 // Nothing else loads it: dotenv is not a dependency and both Playwright configs
@@ -19,14 +18,13 @@ import { join } from 'node:path';
 // with the keys unset.
 const envFile = join(import.meta.dirname, '..', '.env');
 
-if (existsSync(envFile)) {
-  for (const line of readFileSync(envFile, 'utf-8').split('\n')) {
-    const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
-
-    if (match && process.env[match[1]] === undefined) {
-      process.env[match[1]] = match[2].trim().replace(/^["']|["']$/g, '');
-    }
-  }
+try {
+  // Node's own `--env-file` semantics: existing environment wins, quoting and
+  // `export` prefixes handled. Nothing else loads this file -- dotenv is not a
+  // dependency and both Playwright configs have their loader commented out.
+  process.loadEnvFile(envFile);
+} catch {
+  // Absent or unreadable .env is the normal case in CI.
 }
 
 const actualKey = process.env.REG_ACTUAL_KEY ?? '';

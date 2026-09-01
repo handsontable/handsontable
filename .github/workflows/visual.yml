@@ -265,6 +265,19 @@ jobs:
           AWS_DEFAULT_REGION: auto
           R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
         run: |
+          # `--delete` makes an empty render catastrophic rather than harmless:
+          # it would remove every object under `base/<branch>/actual/`, and the
+          # gate is pull-request-only so this run would stay green while every
+          # open pull request went red with ~1,646 "new" items.
+          total=$(jq '(.failedItems | length) + (.newItems | length) + (.deletedItems | length) + (.passedItems | length)' \
+            ./visual-tests/.reg/out.json)
+
+          if [ "$total" = "0" ]; then
+            echo "::error::The comparison produced an empty report; refusing to reconcile."
+            echo "Syncing with --delete here would erase the whole baseline."
+            exit 1
+          fi
+
           aws s3 sync ./visual-tests/.reg/actual "s3://$R2_BUCKET_NAME/$REG_EXPECTED_KEY/actual" \
             --delete --endpoint-url "$R2_ENDPOINT"
 
@@ -290,7 +303,8 @@ jobs:
           # runs before the gate, so the damage would be done before anything
           # went red. Same signal the evaluator uses.
           if [ -f ./visual-tests/.reg/out.json ]; then
-            checked=$(jq '(.failedItems | length) + (.passedItems | length)' ./visual-tests/.reg/out.json)
+            checked=$(jq '(.failedItems | length) + (.passedItems | length) + (.deletedItems | length)' \
+              ./visual-tests/.reg/out.json)
             total=$(jq '(.failedItems | length) + (.newItems | length) + (.deletedItems | length) + (.passedItems | length)' \
               ./visual-tests/.reg/out.json)
 
