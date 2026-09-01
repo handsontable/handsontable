@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — sourceDataValidator cell address</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    E2E fixture for DEV-2722.
+
+    `sourceDataValidator` used to READ a value through `dataSource.getAtCell()` (which resolves a
+    VISUAL column index) but BLANK it through `dataSource.setAtCell()` (which takes the source
+    address). Wherever the two disagree — a moved column, or `columns[].data` remapping the source
+    indexes — it judged one cell and cleared another.
+
+    The validator here rejects everything, so with `allowInvalid: false` exactly the cell it was
+    handed must end up `null`. Cell values are `r<row>c<col>`, so the value the validator saw names
+    the column it really came from.
+  -->
+  <div data-testid="status">idle</div>
+  <div data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+    const status = document.querySelector('[data-testid="status"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    /**
+     * Build a grid whose column `targetColumn` rejects every value, and report what the validator
+     * was handed plus the resulting source row. Validation runs at load, so the grid is built and
+     * destroyed inside this call.
+     */
+    window.htRunSourceDataValidator = (scenario) => {
+      const data = Array.from({ length: 3 }, (_, r) => Array.from({ length: 6 }, (_, c) => `r${r}c${c}`));
+      const seen = [];
+      const columns = (scenario.columns ?? [{}, {}, {}, {}, {}, {}]).map((column, index) => (
+        index === scenario.targetColumn
+          ? Object.assign({}, column, {
+            allowInvalid: false,
+            sourceDataValidator: (value) => {
+              seen.push(value);
+
+              return false;
+            },
+          })
+          : Object.assign({}, column)
+      ));
+      const settings = {
+        data,
+        columns,
+        licenseKey: 'non-commercial-and-evaluation',
+        width: 600,
+        height: 200,
+      };
+
+      if (scenario.manualColumnMove) {
+        settings.manualColumnMove = scenario.manualColumnMove;
+      }
+
+      const hot = new Handsontable(container, settings);
+
+      try {
+        return {
+          seenValues: seen,
+          sourceRow0: hot.getSourceDataAtRow(0),
+        };
+      } finally {
+        hot.destroy();
+      }
+    };
+
+    status.textContent = 'ready';
+  </script>
+</body>
+</html>

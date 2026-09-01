@@ -1,7 +1,7 @@
 import type { HotInstance } from '../core/types';
 import type { GridSettings } from '../core/settings';
 import type { CellProperties } from '../settings';
-import type { default as DataSource } from './dataSource';
+import type { default as DataSource, DataAccessorFn } from './dataSource';
 import { logAggregatedItems, warn } from '../helpers/console';
 import { isFunction } from '../helpers/function';
 import { stringify } from '../helpers/mixed';
@@ -10,8 +10,24 @@ type InvalidItems = Map<string, Array<{ row: number; col: number; value: unknown
 
 type ColumnValidator = {
   physicalColumn: number;
+  prop: string | number | DataAccessorFn;
   cellMeta: CellProperties;
 };
+
+/**
+ * Resolves the source address of a physical column – the key or index the value actually lives
+ * under, which is what `columns[].data` remaps and what a moved column keeps.
+ *
+ * `colToProp()` takes a *visual* index, so the physical one has to be translated first. A column
+ * with no visual index (trimmed) has no address here; callers skip those before asking.
+ *
+ * @param {HotInstance} hotInstance The Handsontable instance.
+ * @param {number} visualColumn Visual column index.
+ * @returns {string|number|Function} The property, source index, or `columns[].data` accessor.
+ */
+function resolveProp(hotInstance: HotInstance, visualColumn: number): string | number | DataAccessorFn {
+  return hotInstance.colToProp(visualColumn) as string | number | DataAccessorFn;
+}
 
 /**
  * Runs source-data validator for a single cell.
@@ -50,7 +66,8 @@ export function runSourceDataValidator(value: unknown, cellMeta: CellProperties,
  * @param {object} cellMeta The resolved cell meta (its `sourceDataValidator` must be a function).
  * @param {unknown} value The source value to validate.
  * @param {number} physicalRow The physical row index.
- * @param {number} physicalColumn The physical column index.
+ * @param {number} physicalColumn The physical column index, used for the aggregated warning.
+ * @param {string|number|Function} prop The column's source address, used to read and to blank.
  * @param {object} dataSource The data source used to blank invalid values.
  * @param {Map} invalidByMessageType The accumulator of invalid entries keyed by warning message.
  * @param {string} [source] The source identifier of the operation.
@@ -61,6 +78,7 @@ function validateSourceCell(
   value: unknown,
   physicalRow: number,
   physicalColumn: number,
+  prop: string | number | DataAccessorFn,
   dataSource: DataSource,
   invalidByMessageType: InvalidItems,
   source?: string
@@ -78,7 +96,9 @@ function validateSourceCell(
   }
 
   if (cellMeta.allowInvalid === false) {
-    dataSource.setAtCell(physicalRow, physicalColumn, null);
+    // Blanked at the same address the value was read from. Passing the physical column here
+    // instead cleared a different cell whenever `columns[].data` remapped the source indexes.
+    dataSource.setAtCell(physicalRow, prop, null);
   }
 
   const message = cellMeta.sourceDataWarningMessage;
@@ -132,7 +152,7 @@ function collectColumnValidators(
       return { fullScan: true, columns: [] };
     }
 
-    columns.push({ physicalColumn, cellMeta });
+    columns.push({ physicalColumn, prop: resolveProp(hotInstance, visualColumn), cellMeta });
   }
 
   return { fullScan: false, columns };
@@ -180,9 +200,12 @@ function validatePerCell(
         continue;
       }
 
-      const value = dataSource.getAtCell(row, col);
+      // The prop is the source address of this physical column; `getAtCell()` would resolve `col`
+      // as a *visual* index and read another column whenever the two differ.
+      const prop = resolveProp(hotInstance, visualColumn);
+      const value = dataSource.getAtPhysicalCell(row, prop, dataSource.modifyRowData(row));
 
-      validateSourceCell(cellMeta, value, row, col, dataSource, invalidByMessageType, source);
+      validateSourceCell(cellMeta, value, row, col, prop, dataSource, invalidByMessageType, source);
     }
   }
 }
@@ -218,10 +241,11 @@ function validateBatched(
     }
 
     for (let i = 0; i < columns.length; i += 1) {
-      const { physicalColumn, cellMeta } = columns[i];
-      const value = dataSource.getAtCell(row, physicalColumn);
+      const { physicalColumn, prop, cellMeta } = columns[i];
+      // Read by the column's source address, for the same reason as in `validatePerCell()`.
+      const value = dataSource.getAtPhysicalCell(row, prop, dataSource.modifyRowData(row));
 
-      validateSourceCell(cellMeta, value, row, physicalColumn, dataSource, invalidByMessageType, source);
+      validateSourceCell(cellMeta, value, row, physicalColumn, prop, dataSource, invalidByMessageType, source);
     }
   }
 }
