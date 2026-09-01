@@ -44,8 +44,7 @@ export function multiSelectRenderer(
   const { rootDocument } = hotInstance;
   const isAriaEnabled = hotInstance.getSettings().ariaTags;
   const physicalRow = hotInstance.toPhysicalRow(row);
-  const physicalColumn = typeof col === 'string' ? col : hotInstance.toPhysicalColumn(col);
-  const sourceData = hotInstance.getSourceDataAtCell(physicalRow, physicalColumn);
+  const sourceData = hotInstance.getSourceDataAtCell(physicalRow, col);
   const values = parseValue(sourceData);
 
   empty(TD);
@@ -62,7 +61,7 @@ export function multiSelectRenderer(
   chipsContainer.className = CHIPS_CONTAINER_CLASS;
 
   values.forEach((item) => {
-    const chip = createChipElement(rootDocument, item, isAriaEnabled ?? false, row, prop);
+    const chip = createChipElement(rootDocument, item, isAriaEnabled ?? false, row, col, prop);
 
     chipsContainer.appendChild(chip);
   });

@@ -13,8 +13,9 @@ import {
 import { BasePlugin } from '../base';
 import StateManager from './stateManager';
 import { createColumnVisibilityAdapter } from './stateManager/columnVisibility';
+import { createColumnArrangementAdapter } from './stateManager/columnArrangement';
 import type { HeaderNodeData } from './stateManager/headersTree';
-import type { HeaderVisibility } from './stateManager/utils';
+import type { ColumnDropMode, HeaderVisibility } from './stateManager/utils';
 import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
 import GhostTable from './utils/ghostTable';
 import { resolveRowspanNavigationContextRow } from './utils/navigation';
@@ -46,6 +47,15 @@ export interface NestedHeaderSettings {
    * See the `CollapsibleColumns` plugin.
    */
   visibleWhen?: HeaderVisibility;
+  /**
+   * Controls what a group does when a column move (with the `ManualColumnMove` plugin) drops a foreign
+   * column - one belonging to another group - into its span. When `'adopt'` (default), the group stays
+   * a single banner and adopts that column as a child. When `'split'`, the group keeps its identity and
+   * renders as several same-label banners around the foreign column (it splits). A group always reclaims
+   * its own columns moved back into its span, regardless of this setting. Set per group; meaningful only
+   * on a header that spans columns.
+   */
+  columnDropMode?: ColumnDropMode;
   [key: string]: unknown;
 }
 
@@ -151,12 +161,60 @@ export class NestedHeaders extends BasePlugin {
    */
   #stateManager = new StateManager();
   /**
+   * Set by afterColumnMove when a move runs inside a batched (suspended) index operation. The
+   * structure cannot be re-derived there (the mapper's caches are stale until resume), so the rebuild
+   * is deferred to the cacheUpdated that fires on resume, where the visual<->physical mapping is fresh.
+   */
+  #structureRebuildPending = false;
+  /**
+   * The physical indexes of the columns a move is relocating, captured in `beforeColumnMove` (where
+   * the pre-move mapping is fresh). After the move, `#reparentMovedColumns` translates them to their
+   * new visual positions and re-parents them into the cohesive group they were dropped inside. Cleared
+   * once consumed. Null when no move is in flight.
+   */
+  #movedPhysicalColumns: number[] | null = null;
+  /**
+   * The column index sequence captured in `beforeColumnMove`, before the move is applied. Compared
+   * against the post-move sequence so a no-op move (e.g. clicking a selected group header, which
+   * "moves" the columns to their own position) skips re-parenting - recomputing membership there
+   * would needlessly drop a column's existing adoption. Null when no move is in flight.
+   */
+  #preMoveColumnSequence: number[] | null = null;
+  /**
    * Handler bound to columnIndexMapper's cacheUpdated local hook. Keeps header colspan state
    * in sync with the current hiding map whenever visibility or column order changes.
    */
-  #onColumnIndexMapperCacheUpdated = ({ hiddenIndexesChanged }: { hiddenIndexesChanged: boolean }) => {
+  #onColumnIndexMapperCacheUpdated = ({ indexesSequenceChanged, hiddenIndexesChanged }: {
+    indexesSequenceChanged: boolean, hiddenIndexesChanged: boolean
+  }) => {
     if (!this.enabled) {
       return;
+    }
+
+    // A column move changes the visual<->physical mapping without mutating the authored settings, so
+    // re-derive the header tree to make the structure (labels and group spans) follow the data; a
+    // group whose columns are no longer adjacent renders as multiple same-label banners. A non-batched
+    // move carries the 'move' change source on this cache update. A batched / suspended move's cache
+    // update fires on resume with the source already cleared, so afterColumnMove flags a pending
+    // rebuild for that case. Both re-derive here, where the mapping is fresh. The 'move' gate excludes
+    // init / insert / remove, which rebuild through their own paths (setState, afterCreateCol,
+    // afterRemoveCol) and would otherwise be double-processed (e.g. re-applying a collapse twice).
+    const isColumnMove = indexesSequenceChanged && this.hot.columnIndexMapper.indexesChangeSource === 'move';
+
+    if (isColumnMove || this.#structureRebuildPending) {
+      // Re-parent the moved columns first (cohesive groups adopt/release members), then re-derive so
+      // the tree reflects both the new arrangement and the membership changes.
+      this.#reparentMovedColumns();
+      this.#stateManager.rebuildState();
+
+      // Only release the captured move state once it has been consumed here. A move that splits a
+      // collapsed group makes CollapsibleColumns expand it from its own beforeColumnMove handler; that
+      // expansion mutates the hiding map and fires a synchronous cacheUpdated (hiddenIndexesChanged
+      // only) before moveIndexes runs. Clearing the capture unconditionally on that intermediate update
+      // dropped #movedPhysicalColumns, so the real move's cacheUpdated found nothing to re-parent.
+      this.#structureRebuildPending = false;
+      this.#movedPhysicalColumns = null;
+      this.#preMoveColumnSequence = null;
     }
 
     // syncVisibility must run on every cache update (including a pure column move) so the tree's
@@ -172,6 +230,101 @@ export class NestedHeaders extends BasePlugin {
     }
   };
   /**
+   * Handler bound to the afterColumnMove hook. A non-batched move is re-derived directly by
+   * #onColumnIndexMapperCacheUpdated (the cache update carries the 'move' source). A batched move's
+   * cache update fires on resume with the source already cleared, so flag a pending rebuild here -
+   * the resume cache update consumes it once the mapping is fresh.
+   */
+  #onAfterColumnMove = () => {
+    if (this.enabled && this.hot.columnIndexMapper.isBatched) {
+      this.#structureRebuildPending = true;
+    }
+  };
+  /**
+   * Handler bound to the beforeColumnMove hook. Captures the moved columns as physical indexes while
+   * the pre-move mapping is fresh; `#reparentMovedColumns` consumes them after the move to re-parent
+   * each into the cohesive group it lands inside (or standalone).
+   *
+   * @param {number[]} movedColumns Visual indexes of the columns being moved.
+   * @param {number} finalIndex The target visual index (unused).
+   * @param {number|undefined} dropIndex The drop visual index (unused).
+   * @param {boolean} movePossible Whether the move can be performed.
+   */
+  #onBeforeColumnMove = (movedColumns: number[], finalIndex: number, dropIndex: number | undefined,
+                         movePossible: boolean) => {
+    if (this.enabled && movePossible !== false) {
+      this.#movedPhysicalColumns = movedColumns.map(visualColumn => this.hot.toPhysicalColumn(visualColumn));
+      this.#preMoveColumnSequence = this.hot.columnIndexMapper.getIndexesSequence();
+    }
+  };
+  /**
+   * Re-parents the columns captured by `#onBeforeColumnMove` after the move completes. Translates the
+   * stored physical indexes to their new visual positions (the mapping is fresh by the time this runs)
+   * and hands them to the state manager, which records the membership overrides the derive needs to
+   * keep `columnDropMode: 'adopt'` groups cohesive.
+   */
+  #reparentMovedColumns() {
+    const movedPhysicalColumns = this.#movedPhysicalColumns;
+    const previous = this.#preMoveColumnSequence;
+
+    if (movedPhysicalColumns === null || previous === null) {
+      return;
+    }
+
+    // A no-op move (the column order is unchanged - e.g. clicking a selected group header) must not
+    // re-parent: recomputing membership for the "moved" columns would drop a prior adoption and split
+    // the group. Only re-parent when the move actually reordered the columns.
+    const sequence = this.hot.columnIndexMapper.getIndexesSequence();
+
+    if (previous.length === sequence.length &&
+        previous.every((physicalColumn, index) => physicalColumn === sequence[index])) {
+      return;
+    }
+
+    // The capture is only valid for the move that produced this cache update. A hard-vetoed move
+    // (a beforeColumnMove handler returning false) leaves the capture set with no move performed, and
+    // a later 'move' cache update from another path (e.g. manualColumnFreeze calling moveIndexes
+    // directly, which skips beforeColumnMove) would then re-parent the stale columns. moveIndexes
+    // rebuilds the sequence as the non-moved columns in their original order with the moved columns
+    // reinserted, so removing the captured columns from both sequences must leave identical residuals.
+    // When they differ, this update came from a different reordering - skip rather than misapply it.
+    if (!this.#capturedMoveExplainsReorder(movedPhysicalColumns, previous, sequence)) {
+      return;
+    }
+
+    const movedVisualColumns: number[] = [];
+
+    movedPhysicalColumns.forEach((physicalColumn) => {
+      const visualColumn = this.hot.columnIndexMapper.getVisualFromPhysicalIndex(physicalColumn);
+
+      if (visualColumn !== null) {
+        movedVisualColumns.push(visualColumn);
+      }
+    });
+
+    this.#stateManager.reparentColumns(movedVisualColumns);
+  }
+  /**
+   * Reports whether the captured moved columns account for the whole reordering between the pre-move
+   * and current physical index sequences. Removing those columns from both sequences must leave
+   * identical residuals, which holds by construction for any single `moveIndexes` call and fails when
+   * the cache update came from an unrelated reordering consuming a stale capture.
+   *
+   * @param {number[]} movedPhysicalColumns The physical indexes captured before the move.
+   * @param {number[]} previousSequence The physical index sequence captured before the move.
+   * @param {number[]} currentSequence The physical index sequence after the move.
+   * @returns {boolean} `true` when the captured columns explain the observed reordering.
+   */
+  #capturedMoveExplainsReorder(movedPhysicalColumns: number[], previousSequence: number[],
+                               currentSequence: number[]): boolean {
+    const movedSet = new Set(movedPhysicalColumns);
+    const residualBefore = previousSequence.filter(physicalColumn => !movedSet.has(physicalColumn));
+    const residualAfter = currentSequence.filter(physicalColumn => !movedSet.has(physicalColumn));
+
+    return residualBefore.length === residualAfter.length &&
+      residualBefore.every((physicalColumn, index) => physicalColumn === residualAfter[index]);
+  }
+  /**
    * Stores the initial focus coordinates before a column header click initiates a range selection.
    */
   #focusInitialCoords: { row: number, col: number, clone: () => CellCoords } | null = null;
@@ -179,6 +332,13 @@ export class NestedHeaders extends BasePlugin {
    * Indicates whether a column selection drag triggered by a nested header click is currently in progress.
    */
   #isColumnsSelectionInProgress = false;
+  /**
+   * Holds the columns to be selected when the pointer moves over a nested header during a drag. The selection
+   * is applied in the `afterOnCellMouseOver` hook so that it stays gated by `stopImmediatePropagation` called
+   * in a `beforeOnCellMouseOver` listener - mirroring how the mouse-down path applies its selection in
+   * `afterOnCellMouseDown`. Reset on every `beforeOnCellMouseOver` to avoid applying a stale range.
+   */
+  #columnsToSelectOnMouseOver: [number, number, number] | null = null;
   /**
    * Keeps the last highlight position made by column selection. The coords are necessary to scroll
    * the viewport to the correct position when the nested header is clicked when the `navigableHeaders`
@@ -244,9 +404,12 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterCreateCol', this.#onAfterCreateCol);
     this.addHook('afterRemoveCol', this.#onAfterRemoveCol);
+    this.addHook('beforeColumnMove', this.#onBeforeColumnMove);
+    this.addHook('afterColumnMove', this.#onAfterColumnMove);
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
     this.addHook('afterOnCellMouseDown', this.#onAfterOnCellMouseDown);
     this.addHook('beforeOnCellMouseOver', this.#onBeforeOnCellMouseOver);
+    this.addHook('afterOnCellMouseOver', this.#onAfterOnCellMouseOver);
     this.addHook('beforeOnCellMouseUp', this.#onBeforeOnCellMouseUp);
     this.addHook('beforeSelectionHighlightSet', this.#onBeforeSelectionHighlightSet);
     this.addHook('modifyTransformStart', this.#onModifyTransformStart);
@@ -286,6 +449,8 @@ export class NestedHeaders extends BasePlugin {
     this.#rowspanHeaderNavigationContextRow = null;
     this.#expectedNextKeyboardHighlightCoords = null;
     this.#stateManager.setColumnsLimit(this.hot.countCols());
+    // Derive the header structure against the live column arrangement so it follows column moves.
+    this.#stateManager.setColumnArrangement(createColumnArrangementAdapter(this.hot));
 
     if (Array.isArray(nestedHeaders)) {
       this.detectedOverlappedHeaders = this.#stateManager.setState(nestedHeaders);
@@ -918,12 +1083,17 @@ export class NestedHeaders extends BasePlugin {
   };
 
   /**
-   * Extends the column selection range when the pointer moves over a nested header cell during a drag selection.
+   * Computes the column selection range when the pointer moves over a nested header cell during a drag
+   * selection and stores it for the `afterOnCellMouseOver` hook to apply. Blocks the core's default
+   * selection handling through the `controller` so the range is driven solely by this plugin. The actual
+   * selection is deferred to `afterOnCellMouseOver` so it stays cancellable through `stopImmediatePropagation`.
    */
   #onBeforeOnCellMouseOver = (
     event: MouseEvent, coords: { row: number, col: number }, TD: HTMLElement,
     controller: { column: boolean, cell: boolean }
   ) => {
+    this.#columnsToSelectOnMouseOver = null;
+
     if (!this.hot.view.isMouseDown() || controller.column) {
       return;
     }
@@ -965,6 +1135,23 @@ export class NestedHeaders extends BasePlugin {
       columnsToSelect = [columnIndex, columnIndex + origColspan - 1, headerLevel];
     }
 
+    this.#columnsToSelectOnMouseOver = columnsToSelect;
+  };
+
+  /**
+   * Applies the column selection computed in `beforeOnCellMouseOver`. Running in the `afterOnCellMouseOver`
+   * hook keeps the selection cancellable - the core skips this hook when `stopImmediatePropagation` is called
+   * in a `beforeOnCellMouseOver` listener, so a drag over nested headers can be blocked the same way it is for
+   * regular column headers.
+   */
+  #onAfterOnCellMouseOver = () => {
+    if (this.#columnsToSelectOnMouseOver === null) {
+      return;
+    }
+
+    const columnsToSelect = this.#columnsToSelectOnMouseOver;
+
+    this.#columnsToSelectOnMouseOver = null;
     this.hot.selection.selectColumns(...columnsToSelect);
   };
 
@@ -1266,9 +1453,23 @@ export class NestedHeaders extends BasePlugin {
   };
 
   /**
-   * Extends the viewport start column to include any header spans that begin outside the calculated viewport boundary.
+   * Extends the viewport's rendered column range so that every nested header group intersecting
+   * the viewport is rendered in full. A wide colspan straddling a viewport edge would otherwise
+   * render only partially, so its `<th>` width changes as columns enter or leave the render range
+   * while scrolling - which makes the center-aligned header label jump. Expanding both the start
+   * and the end boundary to the group's edges keeps each colspan `<th>` at a constant width while
+   * the group is visible (issue #4628).
    */
-  #onAfterViewportColumnCalculatorOverride = (calc: { startColumn: number }) => {
+  #onAfterViewportColumnCalculatorOverride = (calc: { startColumn: number, endColumn: number }) => {
+    this.#extendViewportStartColumn(calc);
+    this.#extendViewportEndColumn(calc);
+  };
+
+  /**
+   * Extends the viewport start column to include any header spans that begin before the calculated
+   * viewport start boundary.
+   */
+  #extendViewportStartColumn(calc: { startColumn: number }) {
     const headerLayersCount = this.#stateManager.getLayersCount();
     let newStartColumn = calc.startColumn;
     let nonRenderable = !!headerLayersCount;
@@ -1291,7 +1492,35 @@ export class NestedHeaders extends BasePlugin {
       nonRenderable ?
         (this.#stateManager.getHeaderTreeNodeData(0, newStartColumn)?.columnIndex ?? newStartColumn) :
         newStartColumn;
-  };
+  }
+
+  /**
+   * Extends the viewport end column to include any header spans that end after the calculated
+   * viewport end boundary, keeping a colspan header that straddles the right edge fully rendered.
+   */
+  #extendViewportEndColumn(calc: { endColumn: number }) {
+    const columnIndexMapper = this.hot.columnIndexMapper;
+    const headerLayersCount = this.#stateManager.getLayersCount();
+    const visualEndColumn = columnIndexMapper.getVisualFromRenderableIndex(calc.endColumn);
+
+    if (visualEndColumn === null) {
+      return;
+    }
+
+    for (let headerLayer = 0; headerLayer < headerLayersCount; headerLayer++) {
+      const endColumn = this.#stateManager.findRightMostColumnIndex(headerLayer, visualEndColumn);
+      const nearestColumn = columnIndexMapper.getNearestNotHiddenIndex(endColumn, -1);
+      const renderedEndColumn = nearestColumn === null ?
+        null : columnIndexMapper.getRenderableFromVisualIndex(nearestColumn);
+
+      // The top header layer holds the widest spans, so the first layer that expands the
+      // boundary already yields the largest extent - no deeper layer can exceed it.
+      if (renderedEndColumn !== null && renderedEndColumn > calc.endColumn) {
+        calc.endColumn = renderedEndColumn;
+        break;
+      }
+    }
+  }
 
   /**
    * `modifyColWidth` hook callback - returns width from cache, when is greater than incoming from hook.
@@ -1384,7 +1613,12 @@ export class NestedHeaders extends BasePlugin {
    * @param {number} amount The number of inserted columns.
    */
   #onAfterCreateCol = (visualColumnIndex: number, amount: number) => {
-    this.#stateManager.insertColumns(visualColumnIndex, amount);
+    // The authored header settings are keyed by physical column, but the hook reports a visual index.
+    // Translate it so the structure stays aligned after a column move, where visual != physical.
+    const physicalColumnIndex = this.hot.columnIndexMapper.getPhysicalFromVisualIndex(visualColumnIndex) ??
+      visualColumnIndex;
+
+    this.#stateManager.insertColumns(visualColumnIndex, physicalColumnIndex, amount);
     this.#updateWidthsMap = true;
   };
 
@@ -1395,9 +1629,10 @@ export class NestedHeaders extends BasePlugin {
    *
    * @param {number} visualColumnIndex A visual column index from which the columns were removed.
    * @param {number} amount The number of removed columns.
+   * @param {number[]} physicalColumns The physical indexes of the removed columns.
    */
-  #onAfterRemoveCol = (visualColumnIndex: number, amount: number) => {
-    this.#stateManager.removeColumns(visualColumnIndex, amount);
+  #onAfterRemoveCol = (visualColumnIndex: number, amount: number, physicalColumns: number[]) => {
+    this.#stateManager.removeColumns(visualColumnIndex, amount, physicalColumns);
     this.#updateWidthsMap = true;
   };
 

@@ -1,7 +1,21 @@
-import { rangeEach } from '../../helpers/number';
 import { mixin } from '../../helpers/object';
 import { isFunction } from '../../helpers/function';
 import localHooks from '../../mixins/localHooks';
+
+/**
+ * Configuration options for an {@link IndexMap}.
+ */
+export interface IndexMapOptions {
+  /**
+   * When `true`, `setValueAtIndex` treats a write of a strictly-equal (`===`) value as a no-op:
+   * nothing is stored and the `change` hook does not run. Opt in only for maps that hold scalar
+   * values (numbers, strings, booleans, `null`) — for maps holding objects, reference equality
+   * would swallow the change event of a caller that mutates the stored object and re-sets the
+   * same reference. The option is honored only by maps whose `setValueAtIndex` delegates to the
+   * `IndexMap` implementation.
+   */
+  skipUnchangedWrites?: boolean;
+}
 
 /**
  * Map for storing mappings from an index to a value.
@@ -23,6 +37,13 @@ export class IndexMap {
    * @type {*}
    */
   initValueOrFn;
+  /**
+   * Whether `setValueAtIndex` skips the write and the `change` hook when the new value is
+   * strictly equal to the stored one. See {@link IndexMapOptions#skipUnchangedWrites}.
+   *
+   * @type {boolean}
+   */
+  readonly #skipUnchangedWrites: boolean;
 
   // Mixin declarations for localHooks (signature must match mixin for subclass assignability)
   /**
@@ -39,10 +60,23 @@ export class IndexMap {
   declare clearLocalHooks: () => void;
 
   /**
-   * Initializes the index map with an optional default value or factory function applied to each index.
+   * Initializes the index map with an optional default value or factory function applied to each
+   * index, and optional map behavior options.
    */
-  constructor(initValueOrFn: unknown = null) {
+  constructor(initValueOrFn: unknown = null, { skipUnchangedWrites = false }: IndexMapOptions = {}) {
     this.initValueOrFn = initValueOrFn;
+    this.#skipUnchangedWrites = skipUnchangedWrites;
+  }
+
+  /**
+   * Whether `setValueAtIndex` treats a write of a strictly-equal value as a no-op. Read-only;
+   * configured through the constructor. Exposed so subclasses that fully override
+   * `setValueAtIndex` (e.g. `BooleanMap`) can honor the same contract.
+   *
+   * @returns {boolean}
+   */
+  get skipUnchangedWrites(): boolean {
+    return this.#skipUnchangedWrites;
   }
 
   /**
@@ -96,6 +130,12 @@ export class IndexMap {
    */
   setValueAtIndex(index: number, value: unknown): boolean {
     if (index < this.indexedValues.length) {
+      // A no-op write on an opted-in scalar map: the postcondition already holds, so skip the
+      // store and the `change` hook (each `change` rebuilds consumer caches).
+      if (this.skipUnchangedWrites && this.indexedValues[index] === value) {
+        return true;
+      }
+
       this.indexedValues[index] = value;
 
       this.runLocalHooks('change');
@@ -131,14 +171,21 @@ export class IndexMap {
    * @param {number} [length] Length of list.
    */
   setDefaultValues(length = this.indexedValues.length) {
-    this.indexedValues.length = 0;
-
+    // Build the backing array presized instead of growing it with `push` per index. On large
+    // datasets the repeated array-growth reallocation dominated load time (~106 ms to seed 1M
+    // values); a presized fill/assignment is a tight native loop. Same element type and values.
     if (isFunction(this.initValueOrFn)) {
-      rangeEach(0, length - 1,
-        index => this.indexedValues.push((this.initValueOrFn as (index: number) => unknown)(index)));
+      const values = new Array(length);
+      const initFn = this.initValueOrFn as (index: number) => unknown;
+
+      for (let index = 0; index < length; index += 1) {
+        values[index] = initFn(index);
+      }
+
+      this.indexedValues = values;
 
     } else {
-      rangeEach(0, length - 1, () => this.indexedValues.push(this.initValueOrFn));
+      this.indexedValues = new Array(length).fill(this.initValueOrFn);
     }
 
     this.runLocalHooks('change');

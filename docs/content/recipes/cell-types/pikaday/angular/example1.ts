@@ -7,7 +7,9 @@ import {
   HotTableModule
 } from '@handsontable/angular-wrapper';
 import moment from 'moment';
-import Pikaday from '@handsontable/pikaday';
+import Pikaday from 'pikaday';
+import 'pikaday/css/pikaday.css';
+import './example1.css';
 
 const DATE_FORMAT_US = 'MM/DD/YYYY';
 
@@ -18,11 +20,12 @@ const DATE_FORMAT_US = 'MM/DD/YYYY';
   styles: [
     `
     :host { display: block; }
-    .pikaday-container { min-height: 250px; }
+    .pikaday-container { width: 278px; }
   `,
   ],
 })
 export class PikadayEditorComponent extends HotCellEditorAdvancedComponent<string> {
+  override position = 'portal' as const;
   @ViewChild('container', { static: true }) container!: ElementRef;
   private pikaday: Pikaday | null = null;
 
@@ -34,6 +37,11 @@ export class PikadayEditorComponent extends HotCellEditorAdvancedComponent<strin
       container: this.container.nativeElement,
       bound: false,
       format: FORMAT,
+      // Pikaday only formats and parses through Moment.js when it can reach `moment` itself, which
+      // it cannot under a bundler. These two hooks take precedence over its internal path, so the
+      // `format` above is honored both on display and on input.
+      toString: (date: Date, format?: string) => moment(date).format(format),
+      parse: (dateString: string, format: string) => moment(dateString, format).toDate(),
       onSelect: (date: Date) => {
         this.setValue(moment(date).format(FORMAT));
       },
@@ -46,7 +54,7 @@ export class PikadayEditorComponent extends HotCellEditorAdvancedComponent<strin
       const m = moment(this.value, FORMAT, true);
 
       if (m.isValid()) {
-        (this.pikaday as any).setMoment?.(m);
+        this.pikaday.setDate(m.toDate(), true);
       }
     }
 
@@ -154,9 +162,11 @@ export class AppComponent {
         type: 'numeric',
         width: 120,
         className: 'htRight',
+        locale: 'en-US',
         numericFormat: {
-          pattern: '$0,0.00',
-          culture: 'en-US',
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 2,
         },
       },
     ],

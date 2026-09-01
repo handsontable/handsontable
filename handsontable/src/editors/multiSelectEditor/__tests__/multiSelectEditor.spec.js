@@ -1147,8 +1147,7 @@ describe('MultiSelectEditor', () => {
 
         const removeButton = visibleChips.eq(0).find('.ht-multi-select-chip-remove');
 
-        removeButton.click();
-        await sleep(10);
+        await simulateClick(removeButton);
 
         $dropdown = $('.ht-multi-select-editor');
         $checkedCheckboxes = $dropdown.find('input[type="checkbox"]:checked');
@@ -1199,8 +1198,7 @@ describe('MultiSelectEditor', () => {
 
         const removeButton = visibleChips.eq(0).find('.ht-multi-select-chip-remove');
 
-        removeButton.click();
-        await sleep(10);
+        await simulateClick(removeButton);
 
         getCell(0, 0).click();
         await sleep(10);

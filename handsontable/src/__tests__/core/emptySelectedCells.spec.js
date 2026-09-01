@@ -154,6 +154,29 @@ describe('Core.emptySelectedCells', () => {
     expect(onBeforeChange).not.toHaveBeenCalled();
   });
 
+  it('should not permanently retain a cell meta object for every cleared cell', async() => {
+    const rows = [];
+
+    for (let i = 0; i < 200; i++) {
+      rows.push([1, 2, 3]);
+    }
+
+    const hot = handsontable({
+      data: rows,
+      width: 400,
+      height: 200,
+    });
+
+    await selectCells([[0, 0, 199, 2]]);
+
+    const retainedBefore = hot.getCellsMeta().length;
+
+    await emptySelectedCells(); // clears all 600 cells, mostly off-screen
+
+    expect(getDataAtCell(199, 0)).toBe(null);
+    expect(hot.getCellsMeta().length).toBe(retainedBefore);
+  });
+
   it('should override cleared values using `beforeChange` hook', async() => {
     handsontable({
       data: [

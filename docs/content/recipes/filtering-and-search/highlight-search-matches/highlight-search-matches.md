@@ -1,5 +1,4 @@
 ---
-id: a7f4d2c1
 title: Highlight search matches
 metaTitle: Highlight Search Matches - JavaScript Data Grid | Handsontable
 description: Learn how to highlight matched text fragments with a custom renderer that safely uses mark tags and updates in real time from a search input.
@@ -12,13 +11,10 @@ tags:
   - search
   - renderer
 react:
-  id: e9b3f6a2
   metaTitle: Highlight Search Matches - React Data Grid | Handsontable
 angular:
-  id: c4d8e1b5
   metaTitle: Highlight Search Matches - Angular Data Grid | Handsontable
 vue:
-  id: trf4mxau
   metaTitle: Highlight Search Matches - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Filtering and Search

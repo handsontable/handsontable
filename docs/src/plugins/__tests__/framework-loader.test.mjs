@@ -5,6 +5,32 @@ import { mkdtempSync, mkdirSync, writeFileSync, utimesSync, rmSync } from 'node:
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { frameworkLoader } from '../framework-loader.mjs';
+import { setRenderedHtmlDirForTests, readRenderedHtml } from '../rendered-html-store.mjs';
+import { LATEST_CHANGELOG_MAJOR } from '../changelog-parser.mjs';
+import { CURRENT_DOCS_VERSION, CURRENT_EXAMPLES_BRANCH } from '../docs-version.mjs';
+
+// The loader writes each entry's rendered HTML to a file and stores only a
+// marker in the data store (see rendered-html-store.mjs) — keep test writes
+// out of the real docs/.astro directory.
+const renderedHtmlDir = mkdtempSync(join(tmpdir(), 'hot-rendered-'));
+
+setRenderedHtmlDirForTests(renderedHtmlDir);
+test.after(() => rmSync(renderedHtmlDir, { recursive: true, force: true }));
+
+/**
+ * Resolves an entry's rendered HTML through the marker + file indirection.
+ *
+ * @param {Map<string, object>} store
+ * @param {string} id
+ * @returns {string}
+ */
+function renderedHtmlOf(store, id) {
+  const marker = store.get(id).rendered.html;
+
+  assert.match(marker, /^<!--hot-rendered:[\w./-]+-->$/, 'store must hold a marker, not HTML');
+
+  return readRenderedHtml(id);
+}
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -108,7 +134,7 @@ test('initial load emits one entry per framework and inlines example code', asyn
     }
 
     assert.ok(store.has('index'), 'missing root index entry');
-    assert.match(store.get('javascript-data-grid/intro').rendered.html, /EXAMPLE_CODE_V1/);
+    assert.match(renderedHtmlOf(store, 'javascript-data-grid/intro'), /EXAMPLE_CODE_V1/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -122,7 +148,7 @@ test('editing a markdown file hot reloads its entries', async () => {
 
     await frameworkLoader({ contentDir }).load(ctx);
 
-    const before = store.get('javascript-data-grid/intro').rendered.html;
+    const before = renderedHtmlOf(store, 'javascript-data-grid/intro');
 
     assert.match(before, /Intro body v1\./);
 
@@ -146,7 +172,7 @@ test('editing a markdown file hot reloads its entries', async () => {
     watcher.emit('change', introMd);
     await sleep(250);
 
-    const after = store.get('javascript-data-grid/intro').rendered.html;
+    const after = renderedHtmlOf(store, 'javascript-data-grid/intro');
 
     assert.match(after, /Intro body v2 EDITED\./);
   } finally {
@@ -162,7 +188,7 @@ test('editing an embedded example source hot reloads the pages that embed it', a
 
     await frameworkLoader({ contentDir }).load(ctx);
 
-    assert.match(store.get('react-data-grid/intro').rendered.html, /EXAMPLE_CODE_V1/);
+    assert.match(renderedHtmlOf(store, 'react-data-grid/intro'), /EXAMPLE_CODE_V1/);
 
     // Rewrite the example and force a distinct mtime so the digest changes even
     // on filesystems with coarse mtime granularity.
@@ -174,7 +200,7 @@ test('editing an embedded example source hot reloads the pages that embed it', a
     watcher.emit('change', exampleJs);
     await sleep(250);
 
-    assert.match(store.get('react-data-grid/intro').rendered.html, /EXAMPLE_CODE_V2/);
+    assert.match(renderedHtmlOf(store, 'react-data-grid/intro'), /EXAMPLE_CODE_V2/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -248,6 +274,384 @@ test('changes outside the content directory are ignored', async () => {
     await sleep(250);
 
     assert.equal(store.size, keysBefore);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+/**
+ * Builds a temp content tree with a React example that embeds both a .jsx and a
+ * .tsx source file, so the fenced-code language mapping can be asserted.
+ *
+ * @returns {{ contentDir: string, root: string }}
+ */
+function createReactFixture() {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-'));
+  const contentDir = join(root, 'content');
+  const reactDir = join(contentDir, 'guides', 'intro', 'react');
+
+  mkdirSync(reactDir, { recursive: true });
+
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+
+  writeFileSync(
+    join(contentDir, 'guides', 'intro', 'intro.md'),
+    [
+      '---',
+      'title: Introduction',
+      'permalink: /intro',
+      '---',
+      '',
+      'Intro body.',
+      '',
+      '::: example #ex1',
+      '@[code](@/content/guides/intro/react/example1.jsx)',
+      '@[code](@/content/guides/intro/react/example1.tsx)',
+      ':::',
+      '',
+    ].join('\n')
+  );
+
+  writeFileSync(join(reactDir, 'example1.jsx'), 'export const Grid = () => <HotTable data={[]} />;\n');
+  writeFileSync(join(reactDir, 'example1.tsx'), 'export const Grid = (): JSX.Element => <HotTable data={[]} />;\n');
+
+  return { contentDir, root };
+}
+
+test('.jsx/.tsx examples render with jsx/tsx code fences, not js/ts', async () => {
+  const { contentDir, root } = createReactFixture();
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const html = renderedHtmlOf(store, 'react-data-grid/intro');
+
+    // The fix: .jsx/.tsx extensions map to the jsx/tsx Shiki grammars, so the
+    // angle-bracket markup highlights correctly.
+    assert.ok(html.includes('````jsx title="JavaScript"'), 'expected a jsx code fence');
+    assert.ok(html.includes('````tsx title="TypeScript"'), 'expected a tsx code fence');
+
+    // Regression guard: before the fix these fell back to the plain js/ts
+    // grammars, which mis-colored JSX. The tab labels stay JavaScript/TypeScript.
+    assert.ok(!html.includes('````javascript title='), '.jsx must not fall back to a javascript fence');
+    assert.ok(!html.includes('````typescript title='), '.tsx must not fall back to a typescript fence');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+/**
+ * Builds a temp content tree with a server-side-only example (a .cs file with
+ * no runnable JS/TS/Vue entry point), so the fenced-code language mapping for
+ * non-JS backend languages can be asserted.
+ *
+ * @returns {{ contentDir: string, root: string }}
+ */
+function createCsharpFixture() {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-'));
+  const contentDir = join(root, 'content');
+  const serverDir = join(contentDir, 'guides', 'intro', 'server');
+
+  mkdirSync(serverDir, { recursive: true });
+
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+
+  writeFileSync(
+    join(contentDir, 'guides', 'intro', 'intro.md'),
+    [
+      '---',
+      'title: Introduction',
+      'permalink: /intro',
+      '---',
+      '',
+      'Intro body.',
+      '',
+      '::: example #ex1',
+      '@[code csharp](@/content/guides/intro/server/Order.cs)',
+      ':::',
+      '',
+    ].join('\n')
+  );
+
+  writeFileSync(join(serverDir, 'Order.cs'), 'public class Order\n{\n    public int Id { get; set; }\n}\n');
+
+  return { contentDir, root };
+}
+
+test('.cs examples render with a csharp code fence, not a plain-text fence', async () => {
+  const { contentDir, root } = createCsharpFixture();
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const html = renderedHtmlOf(store, 'javascript-data-grid/intro');
+
+    // The fix: .cs extensions map to the csharp Shiki grammar, so the code
+    // highlights instead of rendering as flat, uncolored text.
+    assert.ok(html.includes('````csharp title="C#"'), 'expected a csharp code fence');
+
+    // Regression guard: before the fix, .cs had no EXT_TO_LANG entry and fell
+    // back to the plain-text grammar (no highlighting).
+    assert.ok(!html.includes('````text title='), '.cs must not fall back to a plain-text fence');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+/**
+ * Builds a temp content tree with an intro page whose "Changelog" link uses
+ * the {{$latestChangelogVersion}} placeholder inside an @/...md reference,
+ * plus a matching changelog-N target page (DEV-2031).
+ *
+ * @returns {{ contentDir: string, root: string }}
+ */
+function createChangelogLinkFixture() {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-changelog-'));
+  const contentDir = join(root, 'content');
+  const introDir = join(contentDir, 'guides', 'intro');
+  const changelogDir = join(contentDir, 'guides', 'upgrade-and-migration', `changelog-${LATEST_CHANGELOG_MAJOR}`);
+
+  mkdirSync(introDir, { recursive: true });
+  mkdirSync(changelogDir, { recursive: true });
+
+  writeFileSync(
+    join(introDir, 'intro.md'),
+    [
+      '---',
+      'title: Introduction',
+      'permalink: /intro',
+      '---',
+      '',
+      '[Changelog](@/guides/upgrade-and-migration/changelog-{{$latestChangelogVersion}}/changelog-{{$latestChangelogVersion}}.md)',
+      '',
+    ].join('\n')
+  );
+
+  writeFileSync(
+    join(changelogDir, `changelog-${LATEST_CHANGELOG_MAJOR}.md`),
+    ['---', 'title: Changelog', `permalink: /changelog-${LATEST_CHANGELOG_MAJOR}`, '---', '', 'Changelog body.', ''].join('\n')
+  );
+
+  return { contentDir, root };
+}
+
+/**
+ * Builds a temp content tree with a vanilla guide example that embeds both a
+ * .js and a .ts source file, so the runner-link tab-follow data can be asserted.
+ *
+ * @returns {{ contentDir: string, root: string }}
+ */
+function createVanillaJsTsFixture() {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-jsts-'));
+  const contentDir = join(root, 'content');
+  const jsDir = join(contentDir, 'guides', 'intro', 'javascript');
+
+  mkdirSync(jsDir, { recursive: true });
+
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+
+  writeFileSync(
+    join(contentDir, 'guides', 'intro', 'intro.md'),
+    [
+      '---',
+      'title: Introduction',
+      'permalink: /intro',
+      '---',
+      '',
+      'Intro body.',
+      '',
+      '::: example #ex1 --js 1 --ts 2',
+      '@[code](@/content/guides/intro/javascript/example1.js)',
+      '@[code](@/content/guides/intro/javascript/example1.ts)',
+      ':::',
+      '',
+    ].join('\n')
+  );
+
+  writeFileSync(join(jsDir, 'example1.js'), "const grid = 'EXAMPLE_CODE_V1';\n");
+  writeFileSync(join(jsDir, 'example1.ts'), "const grid: string = 'EXAMPLE_CODE_V1';\n");
+
+  return { contentDir, root };
+}
+
+test('vanilla JS/TS guide example gets a runner link that follows the active tab', async () => {
+  const { contentDir, root } = createVanillaJsTsFixture();
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const html = renderedHtmlOf(store, 'javascript-data-grid/intro');
+
+    assert.ok(html.includes('class="hot-example-runner-btn"'), 'expected a runner link');
+    assert.ok(
+      html.includes(`href="https://demos.handsontable.com/?docs=guides/intro/javascript/example1.js&amp;v=${CURRENT_DOCS_VERSION}"`),
+      'runner href should point at the .js variant with the resolved docs version'
+    );
+    assert.ok(html.includes('data-docs-ts="guides/intro/javascript/example1.ts"'), 'expected the .ts variant path for the client-side tab rewrite');
+    assert.ok(html.includes('data-runner-version="'), 'expected the version to be carried for the client-side rewrite');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('React example links the runner to the .tsx variant, not .jsx, with no tab-follow data', async () => {
+  const { contentDir, root } = createReactFixture();
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const html = renderedHtmlOf(store, 'react-data-grid/intro');
+
+    assert.ok(
+      html.includes(`href="https://demos.handsontable.com/?docs=guides/intro/react/example1.tsx&amp;v=${CURRENT_DOCS_VERSION}"`),
+      'runner href should point at the .tsx variant even though .jsx is listed first'
+    );
+    assert.ok(!html.includes('data-docs-js'), 'React examples have no manifest-eligible JS variant to follow');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+/**
+ * Builds a temp content tree with a recipe example (not under guides/), to
+ * confirm recipe examples get a runner link just like guide examples do.
+ *
+ * @returns {{ contentDir: string, root: string }}
+ */
+function createRecipeFixture() {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-recipe-'));
+  const contentDir = join(root, 'content');
+  const jsDir = join(contentDir, 'recipes', 'themes', 'base-theme', 'javascript');
+
+  mkdirSync(jsDir, { recursive: true });
+
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+
+  writeFileSync(
+    join(contentDir, 'recipes', 'themes', 'base-theme', 'base-theme.md'),
+    [
+      '---',
+      'title: Base theme',
+      'permalink: /recipes/themes/base-theme',
+      '---',
+      '',
+      '::: example #ex1',
+      '@[code](@/content/recipes/themes/base-theme/javascript/example1.js)',
+      ':::',
+      '',
+    ].join('\n')
+  );
+
+  writeFileSync(join(jsDir, 'example1.js'), "const grid = 'RECIPE_EXAMPLE';\n");
+
+  return { contentDir, root };
+}
+
+test('recipe examples (outside guides/) get a runner link too', async () => {
+  const { contentDir, root } = createRecipeFixture();
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const html = renderedHtmlOf(store, 'javascript-data-grid/recipes/themes/base-theme');
+
+    assert.ok(
+      html.includes(`href="https://demos.handsontable.com/?docs=recipes/themes/base-theme/javascript/example1.js&amp;v=${CURRENT_DOCS_VERSION}"`),
+      'recipe examples should link the runner the same way guide examples do'
+    );
+    assert.ok(!html.includes('hot-example-stackblitz-btn'), 'StackBlitz button should not render');
+    assert.ok(!html.includes('hot-example-sb-data'), 'StackBlitz data blob should not render');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('server-side-only examples still render no toolbar at all (regression guard)', async () => {
+  const { contentDir, root } = createCsharpFixture();
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const html = renderedHtmlOf(store, 'javascript-data-grid/intro');
+
+    assert.ok(!html.includes('hot-example-runner-btn'), 'no runnable entry point means no toolbar, including the runner link');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('{{$latestChangelogVersion}} placeholder resolves to the latest changelog page inside an @/...md link', async () => {
+  const { contentDir, root } = createChangelogLinkFixture();
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const html = renderedHtmlOf(store, 'javascript-data-grid/intro');
+
+    // The fix: the placeholder is resolved before @/...md link resolution,
+    // so the link lands on the real latest changelog-N page.
+    assert.ok(
+      html.includes(`/docs/javascript-data-grid/changelog-${LATEST_CHANGELOG_MAJOR}/`),
+      `expected link to resolve to the latest changelog (changelog-${LATEST_CHANGELOG_MAJOR})`
+    );
+
+    // Regression guard: if the placeholder were substituted after (or never),
+    // the literal "{{" would leak into the link or the fallback path.
+    assert.ok(!html.includes('{{'), 'no unresolved {{$latestChangelogVersion}} placeholder should remain');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('{{$examplesBranch}} placeholder resolves to the matching handsontable/examples branch', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-examples-branch-'));
+  const contentDir = join(root, 'content');
+  const recipeDir = join(contentDir, 'recipes', 'themes', 'mui-theme');
+
+  mkdirSync(recipeDir, { recursive: true });
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+  writeFileSync(
+    join(recipeDir, 'mui-theme.md'),
+    [
+      '---',
+      'title: MUI theme',
+      'permalink: /mui-theme',
+      '---',
+      '',
+      '[**View source on GitHub**](https://github.com/handsontable/examples/tree/{{$examplesBranch}}/examples/mui)',
+      '',
+    ].join('\n')
+  );
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const html = renderedHtmlOf(store, 'javascript-data-grid/mui-theme');
+
+    assert.ok(
+      html.includes(`https://github.com/handsontable/examples/tree/${CURRENT_EXAMPLES_BRANCH}/examples/mui`),
+      `expected the starter link to point at ${CURRENT_EXAMPLES_BRANCH}`
+    );
+
+    // DEV-2214: a hardcoded tree/master link sends a reader on older docs to a
+    // starter that no longer matches their version.
+    assert.ok(!html.includes('{{'), 'no unresolved {{$examplesBranch}} placeholder should remain');
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

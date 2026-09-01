@@ -1,0 +1,18 @@
+{
+  "name": "docs-deploy",
+  "version": "1.0.0",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "Build scripts for assembling the multi-version documentation site deployed to Cloudflare Pages.",
+  "dependencies": {
+    "@octokit/rest": "^21.1.1",
+    "semver": "^7.7.1"
+  }
+}

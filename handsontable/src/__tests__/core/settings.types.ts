@@ -1,6 +1,8 @@
 import type Handsontable from 'handsontable';
 import HyperFormula from 'hyperformula';
-import type { CellProperties, CellCoords } from 'handsontable';
+import type {
+  CellProperties, CellCoords, RangeType, RemoveIndexSignature, Events, HotInstance, CellChange, ChangeSource,
+} from 'handsontable';
 
 // Helpers to verify multiple different settings and prevent TS control-flow from eliminating unreachable values
 declare function oneOf<T extends Array<string | number | boolean | undefined | null | object>>(...args: T): T[number];
@@ -59,6 +61,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   className: oneOf('foo', ['foo']),
   colHeaders: oneOf(true, ['first-class-name', 'second-class-name']),
   collapsibleColumns: true,
+  colorScheme: oneOf('light', 'dark', 'auto'),
+  density: oneOf('default', 'compact', 'comfortable'),
   columnHeaderHeight: oneOf(35, [35, 55]),
   columns: [
     {
@@ -79,6 +83,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   currentHeaderClassName: 'foo',
   currentRowClassName: 'foo',
   customBorders: true,
+  customBordersProgressive: oneOf(true, { chunkSize: 5000 }),
   data: oneOf([{}, {}, {}], [[], [], []]),
   dataDotNotation: oneOf(true),
   dataProvider: {
@@ -90,6 +95,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   dataSchema: oneOf({}, [[]], (index: number) => oneOf([index], { index })),
   dateFormat: oneOf({ year: 'numeric', month: '2-digit', day: '2-digit' } as Intl.DateTimeFormatOptions),
+  dateTimeFormat: oneOf(
+    { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' } as
+      Intl.DateTimeFormatOptions
+  ),
   defaultDate: 'foo',
   timeFormat: oneOf({ hour: 'numeric', minute: '2-digit' } as Intl.DateTimeFormatOptions),
   tabNavigation: oneOf(false),
@@ -185,6 +194,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   nestedRows: true,
   noWordWrapClassName: 'foo',
   numericFormat: numericIntlFormatOptions,
+  preserveNumericLiteral: true,
   observeDOMVisibility: true,
   outsideClickDeselects: oneOf(true, (target: HTMLElement) => false),
   pagination: oneOf(true, {
@@ -213,9 +223,18 @@ const allSettings: Required<Handsontable.GridSettings> = {
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
   rowHeaderWidth: oneOf(25, [25, 30, 55]),
   rowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
-  sanitizer: (content: string, source: 'innerHTML' | 'CopyPaste.paste') => content,
+  // The option's own signature is unchanged; `SanitizerContext` is the opt-in annotation. Full
+  // coverage, including the call-arity axis, lives in `sanitizer.types.ts`.
+  sanitizer: oneOf(
+    (content: string) => content,
+    (content: string, source: string) => content,
+    (content: string, source: Handsontable.SanitizerContext) => content,
+    (content: string, source: 'innerHTML' | 'CopyPaste.paste') => content,
+  ),
   search: true,
   selectionMode: oneOf('single', 'range', 'multiple'),
+  selectionHandles: true,
+  moveCells: true,
   selectOptions: oneOf(
     ['A', 'B', 'C'],
     { a: 'A', b: 'B', c: 'C' },
@@ -384,6 +403,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterColumnMove: (columns, target) => {},
   afterColumnResize: (newSize, column, isDoubleClick) => {},
   afterColumnSequenceChange: (source) => {},
+  afterCustomBordersUpdate: () => {},
   afterColumnSequenceCacheUpdate: (indexesChangesState) => {},
   afterColumnSort: (currentSortConfig, destinationSortConfigs) => {},
   afterColumnUnfreeze: (columnIndex, isFreezingPerformed) => {},
@@ -456,13 +476,17 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const colTransform: number = colTransformDir;
   },
   afterMomentumScroll: () => {},
+  afterMoveCells: (sourceRange, targetRange, isCopy) => {},
   afterNamedExpressionAdded: (namedExpressionName, changes) => {},
   afterNamedExpressionRemoved: (namedExpressionName, changes) => {},
   afterOnCellContextMenu: (event, coords, TD) => {},
   afterOnCellCornerDblClick: (event) => {},
   afterOnCellCornerMouseDown: (event) => {},
+  afterOnSelectionHandleMouseDown: (event, edge) => {},
+  afterOnSelectionEdgeMouseDown: (event, edge) => {},
   afterOnCellMouseDown: (event, coords, TD) => {},
   afterOnCellMouseOver: (event, coords, TD) => {},
+  afterOnCellMouseOverOutside: (event, coords, TD) => {},
   afterOnCellMouseOut: (event, coords, TD) => {},
   afterOnCellMouseUp: (event, coords, TD) => {},
   afterPageChange(oldPage, newPage) {
@@ -494,6 +518,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterRowsMutationError: (operation, error, payload) => {},
   afterRender: (isForced) => {},
   afterRenderer: (TD, row, col, prop, value, cellProperties) => {},
+  afterRowCollapse: (currentCollapsedRows, destinationCollapsedRows, collapsePossible,
+                     successfullyCollapsed) => {},
+  afterRowExpand: (currentCollapsedRows, destinationCollapsedRows, expandPossible,
+                   successfullyExpanded) => {},
   afterRowMove: (movedRows, finalIndex, dropIndex, movePossible,
                  orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
   afterRowResize: (newSize, row, isDoubleClick) => {},
@@ -636,10 +664,12 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeLanguageChange: (languageCode) => {},
   beforeLoadData: (sourceData, firstTime, source) => {},
   beforeMergeCells: (cellRange, auto) => {},
+  beforeMoveCells: (sourceRange, targetTopLeft, isCopy) => {},
   beforeOnCellContextMenu: (event, coords, TD) => {},
   beforeOnCellMouseDown: (event, coords, TD, controller) => {},
   beforeOnCellMouseOut: (event, coords, TD) => {},
   beforeOnCellMouseOver: (event, coords, TD, controller) => {},
+  beforeOnCellMouseOverOutside: (event, coords, TD, controller) => {},
   beforeOnCellMouseUp: (event, coords, TD) => {},
   beforeDataProviderFetch: queryParameters => true,
   beforePageChange(oldPage, newPage) {
@@ -663,11 +693,13 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeRedoStackChange: (undoneActions) => {},
   beforeRefreshDimensions: (previousDimensions, currentDimensions, actionPossible) => {},
   beforeRemoveCellClassNames: () => {},
-  beforeRemoveCellMeta: (row, column, key, value) => {},
+  beforeRemoveCellMeta: (row, column, key, value) => false,
   beforeRemoveCol: (index, amount, physicalColumns = [1, 2, 3], source) => {},
   beforeRemoveRow: (index, amount, physicalRows = [1, 2, 3], source) => {},
   beforeRender: (isForced) => {},
   beforeRenderer: (TD, row, col, prop, value, cellProperties) => {},
+  beforeRowCollapse: (currentCollapsedRows, destinationCollapsedRows, collapsePossible) => {},
+  beforeRowExpand: (currentCollapsedRows, destinationCollapsedRows, expandPossible) => {},
   beforeRowMove: (movedRows, finalIndex, dropIndex, movePossible) => {},
   beforeRowResize: (newSize, row, isDoubleClick) => false,
   beforeRowWrap: (isActionInterrupted, newCoords, isRowFlipped) => {
@@ -749,7 +781,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const _column: number = column;
     const _source: string | undefined = source;
   },
-  modifyCopyableRange: (copyableRanges) => {},
+  modifyCopyableRange: (copyableRanges) => {
+    const _copyableRanges: RangeType[] = copyableRanges;
+
+    return _copyableRanges;
+  },
   modifyFiltersMultiSelectValue: (value, meta) => '123',
   modifyFocusedElement: (row, column, focusedElement) => document.createElement('TD'),
   modifyData: () => {},
@@ -780,6 +816,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const _height: number = height;
     const _row: number = row;
     const _overlayType: string = overlayType;
+  },
+  modifySinglePassLayout: (singlePassLayout) => {
+    const _singlePassLayout: boolean = singlePassLayout;
+
+    return false;
   },
   modifyTransformEnd: (delta) => {
     const rowDelta: number | null = delta.row;
@@ -841,3 +882,104 @@ const _hotColumnGetValueFn: Handsontable.ColumnSettings = {
 // Custom plugin/meta keys still allowed via the `[key: string]: any` signature inherited from `GridSettings`.
 const _columnArbitraryKeys: Handsontable.ColumnSettings = { someCustomPluginKey: 123 };
 const _cellMetaArbitraryKeys: Handsontable.CellMeta = { someCustomMetaKey: true };
+
+// DEV-2020 regression: `GridSettings` carries a `[key: string]: any` index signature. `Omit`/`Pick`
+// over a type with a string index signature widens `keyof` to `string`, which collapses the result to
+// a bare index signature and drops every named option. The framework wrappers derive their prop types
+// with `Omit`, so without stripping the index signature first their props lose all option names (and
+// IDE autocomplete). `RemoveIndexSignature<T>` removes the index signature while keeping the named
+// members — the following asserts it does exactly that, so wrappers can `Omit` over the result safely.
+type _StrippedGridSettings = RemoveIndexSignature<Handsontable.GridSettings>;
+// The named options keep their real types after stripping.
+// @ts-expect-error `width` is `number | string | (() => number | string)`, not `boolean`.
+const _strippedWidthTyped: _StrippedGridSettings = { width: true };
+// @ts-expect-error `readOnly` is `boolean`, not `string`.
+const _strippedReadOnlyTyped: _StrippedGridSettings = { readOnly: 'nope' };
+// The index signature is gone, so arbitrary keys are no longer accepted on the stripped type.
+// @ts-expect-error `someCustomPluginKey` is not a known `GridSettings` option.
+const _strippedNoArbitraryKeys: _StrippedGridSettings = { someCustomPluginKey: 123 };
+// A valid, fully-typed config still compiles (options resolve to their real types).
+const _strippedTypedConfig: _StrippedGridSettings = {
+  width: 80,
+  readOnly: true,
+  className: 'foo',
+};
+
+// DEV-2056 regression: `ColumnSettings` derives from `Omit<RemoveIndexSignature<GridSettings>, 'data'>`
+// (NOT from `GridSettings` directly), so named options keep their real declared types through
+// `ColumnSettings`, `CellMeta`, and `CellProperties` instead of collapsing into the index-signature
+// `any`. Renderers and plugins read these options straight off `CellProperties` — no local
+// re-declaration (like the removed `CheckboxCellProperties`) is needed.
+declare const _cellPropsForNamedOptions: Handsontable.CellProperties;
+// `checkedTemplate` is declared `unknown` on `GridSettings` — an `any` read would let this compile.
+// @ts-expect-error `checkedTemplate` resolves to `unknown`, not `any` — no arithmetic on it.
+const _checkedTemplateIsUnknown: number = _cellPropsForNamedOptions.checkedTemplate + 1;
+// @ts-expect-error `readOnly` is `boolean`, not `string`, when read through `CellProperties`.
+const _cellPropsReadOnlyTyped: string = _cellPropsForNamedOptions.readOnly;
+// The `source` option keeps its declared union type through the chain.
+const _cellPropsSourceTyped: unknown[] | ((query: string, callback: (items: unknown[]) => void) => void) | undefined =
+  _cellPropsForNamedOptions.source;
+
+// `sourceDataValidator` is a public option and is declared on `GridSettings` (with its
+// `rowIndependent` batching flag), so validators typed against the documented signature compile.
+const _sourceDataValidatorTyped: Handsontable.GridSettings = {
+  sourceDataWarningMessage: 'The source data is invalid.',
+  sourceDataValidator: (value, cellMeta) => cellMeta.allowEmpty === true || typeof value === 'string',
+};
+const _sourceDataValidatorBadReturn: Handsontable.GridSettings = {
+  // @ts-expect-error the validator must return `boolean`, not `string`.
+  sourceDataValidator: () => 'yes',
+};
+
+// DEV-2072 regression: `Events` is derived from `GridSettings` via `HookKey`. Without stripping
+// `GridSettings`'s index signature first, `HookKey` (and thus `Events`) collapsed to a bare index
+// signature, so every hook callback typed through `Events[hookName]` inferred its parameters as `any`.
+const _onAfterChange: Events['afterChange'] = (changes, source) => {
+  // These assignments only compile if the parameters keep their real, non-`any` types.
+  const _changes: CellChange[] | null = changes;
+  const _source: ChangeSource = source;
+};
+// Newly-documented hooks (previously missing from `GridSettings`) resolve to real callback types too.
+const _onBeforeOnCellMouseOverOutside: Events['beforeOnCellMouseOverOutside'] = (event, coords, TD, controller) => {
+  const _event: MouseEvent = event;
+  const _coords: CellCoords = coords;
+  const _TD: HTMLTableCellElement = TD;
+  const _controller: { row: boolean, column: boolean, cell: boolean } = controller;
+};
+
+// @ts-expect-error `notARealHook` is not a hook-shaped `GridSettings` property.
+type _NotAHook = Events['notARealHook'];
+// @ts-expect-error An arbitrary string is not a member of the now-finite `keyof Events` union.
+const _arbitraryHookKey: keyof Events = 'someArbitraryString';
+
+declare const hot: HotInstance;
+// Rung 1 of the `addHook` overload ladder: an unannotated arrow under a known hook name
+// gets full parameter inference from `Events[K]`.
+hot.addHook('afterChange', (changes, source) => {
+  const _changes: CellChange[] | null = changes;
+  const _source: ChangeSource = source;
+});
+// Rung 2: an explicitly-annotated callback that doesn't exactly match the declared hook
+// signature is still accepted under a known hook name (back-compat with pre-tightening code).
+hot.addHook('afterCreateRow', (index: number, amount: number, source: string) => {});
+// Rung 3: a dynamic/plugin-only hook name still compiles, including with a typed callback
+// (the `HookCallback` fallback is the sound function top type, not `(...args: unknown[])`).
+hot.addHook('someCustomPluginHook', (payload: { id: number }, flag: boolean) => {});
+
+// Regression: selectionHandles must be accepted by updateSettings.
+hot.updateSettings({ selectionHandles: true });
+
+// Regression: moveCells must be accepted by updateSettings.
+hot.updateSettings({ moveCells: true });
+
+// Regression: afterOnSelectionHandleMouseDown must be accepted by updateSettings.
+hot.updateSettings({ afterOnSelectionHandleMouseDown(event, edge) {} });
+hot.updateSettings({ afterOnSelectionEdgeMouseDown(event, edge) {} });
+
+// Regression: beforeMoveCells and afterMoveCells must be accepted by updateSettings.
+hot.updateSettings({ beforeMoveCells(sourceRange, targetTopLeft, isCopy) { return true; } });
+hot.updateSettings({ afterMoveCells(sourceRange, targetRange, isCopy) {} });
+
+// Regression: MoveCells exposes moveCellRange with correct arg/return types.
+const moveResult: boolean = hot.getPlugin('moveCells')
+  .moveCellRange(hot.getSelectedRangeLast()!, hot._createCellCoords(5, 5), false);

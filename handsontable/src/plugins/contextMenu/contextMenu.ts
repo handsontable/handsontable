@@ -7,6 +7,7 @@ import { ItemsFactory } from './itemsFactory';
 import {
   Menu,
 } from './menu';
+import type { MenuAnchorRectProvider } from './menu';
 import { getDocumentOffsetByElement } from './utils';
 import { eventTargetEl, hasClass, isHTMLElement } from '../../helpers/dom/element';
 import {
@@ -45,6 +46,10 @@ export interface MenuItemConfig {
   submenu?: { items: MenuItemConfig[] };
   [key: string]: unknown;
 }
+
+// Re-exported so consumers of this plugin's public `open()` signature (and `DropdownMenu`'s,
+// which shares the same `Menu` class) don't have to reach into the internal `menu/` module.
+export type { MenuAnchorRectProvider };
 
 export const PLUGIN_KEY = 'contextMenu';
 export const PLUGIN_PRIORITY = 70;
@@ -101,6 +106,16 @@ export class ContextMenu extends BasePlugin {
     return [
       'plugin:AutoColumnSize',
     ];
+  }
+
+  /**
+   * The item descriptor that identifies a menu separator. Use it as a value in a custom
+   * `items` configuration object to insert a separator line at that key.
+   *
+   * @returns {MenuItemConfig}
+   */
+  static get SEPARATOR(): MenuItemConfig {
+    return { name: SEPARATOR };
   }
 
   /**
@@ -259,6 +274,10 @@ export class ContextMenu extends BasePlugin {
           }, {
             left: rect.width,
             above: -rect.height,
+          }, () => {
+            const anchorCell = this.hot.getCell(highlight.row!, highlight.col!, true);
+
+            return anchorCell ? anchorCell.getBoundingClientRect() : null;
           });
           // Make sure the first item is selected (role=menuitem). Otherwise, screen readers
           // will block the Esc key for the whole menu.
@@ -292,6 +311,8 @@ export class ContextMenu extends BasePlugin {
    * `Event` instance (e.g., a `MouseEvent`).
    * @param {{ above: number, below: number, left: number, right: number }} offset An object that applies
    * an offset to the menu position.
+   * @param {Function} [anchorRectProvider] Returns the current anchor rectangle for
+   * scroll-follow repositioning, or `null` when the anchor is no longer rendered.
    * @fires Hooks#beforeContextMenuShow
    * @fires Hooks#afterContextMenuShow
    * @example
@@ -306,7 +327,8 @@ export class ContextMenu extends BasePlugin {
     position: Record<string, number> | Event,
     offset: { above?: number; below?: number; left?: number; right?: number } = {
       above: 0, below: 0, left: 0, right: 0
-    }
+    },
+    anchorRectProvider?: MenuAnchorRectProvider,
   ): void {
     if (this.menu?.isOpened()) {
       return;
@@ -324,7 +346,7 @@ export class ContextMenu extends BasePlugin {
       this.menu!.setOffset(key, value);
     });
 
-    this.menu!.setPosition(position);
+    this.menu!.setPosition(position, anchorRectProvider);
   }
 
   /**
@@ -443,11 +465,27 @@ export class ContextMenu extends BasePlugin {
     }
 
     const offset = getDocumentOffsetByElement(this.menu!.container, this.hot.rootDocument);
+    const anchorCell = element.closest<HTMLElement>('td, th');
+    let anchorRectProvider: MenuAnchorRectProvider | undefined;
+
+    if (anchorCell) {
+      const cellCoords = this.hot.getCoords(anchorCell);
+
+      if (cellCoords && cellCoords.row !== null && cellCoords.col !== null) {
+        const { row, col } = cellCoords;
+
+        anchorRectProvider = () => {
+          const cell = this.hot.getCell(row, col, true);
+
+          return cell ? cell.getBoundingClientRect() : null;
+        };
+      }
+    }
 
     this.open({
       top: (event as MouseEvent).clientY + offset.top,
       left: (event as MouseEvent).clientX + offset.left,
-    });
+    }, undefined, anchorRectProvider);
   };
 
   /**
@@ -477,7 +515,3 @@ export class ContextMenu extends BasePlugin {
     super.destroy();
   }
 }
-
-(ContextMenu as unknown as Record<string, unknown>).SEPARATOR = {
-  name: SEPARATOR
-};

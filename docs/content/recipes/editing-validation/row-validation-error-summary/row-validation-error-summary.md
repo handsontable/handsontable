@@ -1,5 +1,4 @@
 ---
-id: f2q8n4k1
 title: Row validation with error summary
 metaTitle: Row Validation Error Summary Recipe - JavaScript Data Grid | Handsontable
 description: Validate every row on a Submit action, list failures outside the grid, highlight cells with htInvalid, and clear state when the user fixes a cell.
@@ -11,13 +10,10 @@ tags:
   - recipes
   - validation
 react:
-  id: g5r1m7p3
   metaTitle: Row Validation Error Summary Recipe - React Data Grid | Handsontable
 angular:
-  id: h8s4n9q6
   metaTitle: Row Validation Error Summary Recipe - Angular Data Grid | Handsontable
 vue:
-  id: 94krzohb
   metaTitle: Row Validation Error Summary Recipe - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Editing and Validation

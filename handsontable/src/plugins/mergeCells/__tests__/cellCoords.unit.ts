@@ -192,6 +192,31 @@ describe('MergeCells', () => {
       });
     });
 
+    describe('`relocate` method', () => {
+      it('should move the merged cell and invalidate the lazily cached range', () => {
+        const mergedCell = createMergedCellCoords(1, 1, 2, 2);
+
+        // populate the lazy `#cellRange` cache before relocating
+        const before = mergedCell.getRange();
+
+        expect(before.from.row).toEqual(1);
+        expect(before.from.col).toEqual(1);
+
+        mergedCell.relocate(4, 5);
+
+        expect(mergedCell.row).toEqual(4);
+        expect(mergedCell.col).toEqual(5);
+
+        // a stale cache would still report the old top-left here
+        const after = mergedCell.getRange();
+
+        expect(after.from.row).toEqual(4);
+        expect(after.from.col).toEqual(5);
+        expect(after.to.row).toEqual(5); // 4 + rowspan(2) - 1
+        expect(after.to.col).toEqual(6); // 5 + colspan(2) - 1
+      });
+    });
+
     describe('`isFarther` method', () => {
       it('should return whether the "base" merged cell is farther in the defined direction than the provided merged cell', () => {
         const TopLeftMergedCell = createMergedCellCoords(1, 1, 2, 2);

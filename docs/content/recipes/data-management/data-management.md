@@ -8,15 +8,11 @@ searchCategory: Recipes
 hotPlugin: false
 editLink: false
 type: how-to
-id: c4b7e2f1
 react:
-  id: 9d2f6a4b
   metaTitle: Data Management Recipes - React Data Grid | Handsontable
 angular:
-  id: 6e1c8b3d
   metaTitle: Data Management Recipes - Angular Data Grid | Handsontable
 vue:
-  id: ikay0eju
   metaTitle: Data Management Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]
@@ -35,6 +31,7 @@ Current recipes:
 - [Sync two grids](@/recipes/data-management/sync-two-grids/sync-two-grids.md)
 - [Auto-save changes to a backend](@/recipes/data-management/auto-save-backend/auto-save-backend.md)
 - [Undo / redo with a custom UI](@/recipes/data-management/undo-redo-custom-ui/undo-redo-custom-ui.md)
+- [Server-side data with ASP.NET Core](@/recipes/data-management/server-side-aspnet/server-side-aspnet.md)
 - [Server-side data with Django](@/recipes/data-management/server-side-django/server-side-django.md)
 - [Server-side data with Express.js](@/recipes/data-management/server-side-expressjs/server-side-expressjs.md)
 - [Server-side data with Laravel](@/recipes/data-management/server-side-laravel/server-side-laravel.md)

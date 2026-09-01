@@ -1,0 +1,98 @@
+name: PR cleanup
+
+# THE single on-PR-close pipeline. Any job that must run when a PR closes
+# (preview teardown, cache eviction, label bookkeeping, …) belongs HERE — never
+# as its own workflow, so a closed PR produces exactly one cleanup run.
+on:
+  pull_request:
+    types: [closed]
+
+defaults:
+  run:
+    working-directory: ./docs/
+
+jobs:
+  delete-preview-on-pull-request:
+    name: Delete Cloudflare Pages previews
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: ".nvmrc"
+
+      # A closed PR's preview can live under up to three branch labels,
+      # matching the cf-target step in docs-staging.yml: pr-<N> always;
+      # rc-<version> too if the PR's head was a release/x.y.z branch (its
+      # push build deploys there instead of the PR-preview build); and the
+      # sanitized head-branch slug, in case a workflow_dispatch run on this
+      # branch also left a preview. Deleting a label with nothing under it is
+      # a no-op in deleteDeployments.mjs.
+      - name: Determine preview branch labels to clean up
+        id: cf-labels
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
+        with:
+          script: |
+            const headRef = context.payload.pull_request.head.ref;
+            const releaseMatch = headRef.match(/^release\/(\d+\.\d+\.\d+)$/);
+
+            // Kept identical to the slug() in docs-staging.yml's cf-target
+            // step - both must resolve the same branch to the same label.
+            const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 28).replace(/^-+|-+$/g, '') || 'branch';
+
+            core.setOutput('pr_label', `pr-${context.payload.pull_request.number}`);
+            core.setOutput('slug_label', slug(headRef));
+            core.setOutput('rc_label', releaseMatch ? `rc-${releaseMatch[1].replace(/\./g, '-')}` : '');
+
+      # No if: always() / continue-on-error: those existed so cleanup still
+      # ran when the since-removed Netlify steps failed (DEV-1787). This is
+      # now the workflow's only functional step, so masking its failure would
+      # mean an expired CLOUDFLARE_API_TOKEN silently stops all preview
+      # cleanup while every run stays green.
+      - name: Delete Cloudflare Pages deployments for branch
+        run: |
+          status=0
+          for label in "${{ steps.cf-labels.outputs.pr_label }}" "${{ steps.cf-labels.outputs.slug_label }}" "${{ steps.cf-labels.outputs.rc_label }}"; do
+            if [ -n "$label" ]; then
+              echo "Deleting deployments for branch label: $label"
+              CF_BRANCH_NAME="$label" node cloudflare/deleteDeployments.mjs || status=1
+            fi
+          done
+          exit $status
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_PROJECT_NAME: handsontable-docs-staging
+
+  purge-visual-screenshots:
+    name: Purge visual screenshots
+    # Same-repo only. A fork or Dependabot run gets no secrets, so `aws s3 rm`
+    # would hard-fail -- and it would be a no-op anyway, because the credentialed
+    # publish steps in visual.yml are themselves same-repo-guarded and
+    # compare-fork.mjs never writes to R2, so no `pr-<n>/` prefix exists. One
+    # exception: a human pushing to a Dependabot branch flips the actor and
+    # re-enables the publish, yet Dependabot closes its own PR, so that tree is
+    # left to the 30-day R2 lifecycle rule.
+    if: github.event_name == 'pull_request'
+      && (github.event.pull_request.head.repo.full_name == github.repository
+          && github.actor != 'dependabot[bot]')
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    env:
+      R2_BUCKET_NAME: handsontable-visual
+    steps:
+      # The AWS CLI ships on the runner image. `wrangler r2 object delete` has no
+      # recursive mode, so the S3 API is the practical way to drop a prefix.
+      - name: Delete this pull request's screenshots from R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+        run: |
+          aws s3 rm "s3://$R2_BUCKET_NAME/pr-${{ github.event.number }}/" \
+            --recursive \
+            --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com"

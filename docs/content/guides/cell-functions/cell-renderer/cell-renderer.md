@@ -13,6 +13,7 @@ vue:
   metaTitle: Cell renderer - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
+menuTag: updated
 ---
 
 A cell renderer is a function that controls how cell content is displayed in the DOM. Override a built-in renderer or write your own to customize the visual output.
@@ -229,7 +230,7 @@ All the sections below describe how to utilize the features available for the Ha
 
 ## Register custom cell renderer
 
-To register your own alias use `registerRenderer()` function from the `@handsontable/renderers` package. It takes two arguments:
+To register your own alias use `registerRenderer()` function from the `handsontable/renderers` module. It takes two arguments:
 
 - `rendererName` - a string representing a renderer function
 - `renderer` - a renderer function that will be represented by `rendererName`
@@ -237,7 +238,7 @@ To register your own alias use `registerRenderer()` function from the `@handsont
 If you'd like to register `asteriskDecoratorRenderer` under alias `asterisk` you have to call:
 
 ```js
-import { registerRenderer } from "@handsontable/renderers";
+import { registerRenderer } from "handsontable/renderers";
 
 registerRenderer("asterisk", asteriskDecoratorRenderer);
 ```
@@ -255,7 +256,7 @@ When using `registerRenderer()`, remember to call it at startup (e.g. in `main.t
 Choose aliases wisely. If you register your renderer under name that is already registered, the target function will be overwritten:
 
 ```js
-import { registerRenderer } from "@handsontable/renderers";
+import { registerRenderer } from "handsontable/renderers";
 
 registerRenderer("text", asteriskDecoratorRenderer);
 ```
@@ -265,7 +266,7 @@ Now `"text"` alias points to `asteriskDecoratorRenderer` function, not the built
 So, unless you intentionally want to overwrite an existing alias, try to choose a unique name. A good practice is prefixing your aliases with some custom name (for example your GitHub username) to minimize the possibility of name collisions. This is especially important if you want to publish your renderer, because you never know aliases has been registered by the user who uses your renderer.
 
 ```js
-import { registerRenderer } from "@handsontable/renderers";
+import { registerRenderer } from "handsontable/renderers";
 
 registerRenderer("asterisk", asteriskDecoratorRenderer);
 ```
@@ -273,7 +274,7 @@ registerRenderer("asterisk", asteriskDecoratorRenderer);
 Someone might already registered such alias
 
 ```js
-import { registerRenderer } from "@handsontable/renderers";
+import { registerRenderer } from "handsontable/renderers";
 
 registerRenderer("my.asterisk", asteriskDecoratorRenderer);
 ```
@@ -287,7 +288,7 @@ The final touch is to use registered aliases. That way users can easily refer to
 To sum up, a well prepared renderer function should look like this:
 
 ```js
-import { registerRenderer } from "@handsontable/renderers";
+import { registerRenderer } from "handsontable/renderers";
 
 function customRenderer(
   hotInstance,
@@ -360,6 +361,28 @@ settings = {
 
 :::
 
+When your custom renderer should preserve the default text output, call the built-in `textRenderer()` first. See [Extend a built-in renderer](#extend-a-built-in-renderer).
+
+## Extend a built-in renderer
+
+When you build on top of a built-in renderer, Handsontable does not call that base renderer for you. You call it inside your custom renderer before your extra logic.
+
+Use `textRenderer` as the base when you want plain-text output and then apply styling or additional DOM changes.
+
+Use `htmlRenderer` as the base when your output is trusted HTML and you intentionally render with `innerHTML`.
+
+Skip a base renderer when your renderer fully controls cell output from scratch, for example the image-based `coverRenderer` in [Render custom HTML in cells](#render-custom-html-in-cells).
+
+Both of the following call styles are valid:
+
+```js
+// Legacy style, common in classic JavaScript examples.
+textRenderer.apply(this, arguments);
+
+// Direct invocation style, common in ESM and TypeScript examples.
+textRenderer(instance, td, row, column, prop, value, cellProperties);
+```
+
 ## Render custom HTML in cells
 
 This example shows how to use custom cell renderers to display HTML content in a cell. This is a very powerful feature. Just remember to escape any HTML code that could be used for XSS attacks.
@@ -412,9 +435,38 @@ In the below configuration:
 
 :::
 
+## Render hyperlinks in cells
+
+A common use of a custom renderer is to turn a cell value into a clickable hyperlink. The renderer reads the cell value, builds an anchor (`<a>`) element, and appends it to the cell's DOM node.
+
+```js
+function hyperlinkRenderer(instance, td, row, column, prop, value, cellProperties) {
+  Handsontable.dom.empty(td);
+
+  const link = document.createElement('a');
+
+  link.href = value;
+  link.textContent = value;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+
+  td.appendChild(link);
+
+  return td;
+}
+```
+
+Assign the renderer to a column through the [`renderer`](@/api/options.md#renderer) option, or register it by alias with `registerRenderer()` as shown in [Register custom cell renderer](#register-custom-cell-renderer).
+
+::: warning Security
+When the link comes from untrusted input, validate the URL before rendering it. An unchecked `href` lets an attacker inject a `javascript:` link or other XSS vector. See [Security](@/guides/security/security/security.md) for details.
+:::
+
 ## Render custom HTML in header
 
 You can also put HTML into row and column headers. If you need to attach events to DOM elements like the checkbox below, just remember to identify the element by class name, not by id. This is because row and column headers are duplicated in the DOM tree and id attribute must be unique.
+
+If your goal is to extend a built-in renderer before adding custom logic, see [Extend a built-in renderer](#extend-a-built-in-renderer).
 
 ::: warning Security
 Handsontable does not include a built-in HTML sanitizer. When header content comes from untrusted sources, supply a [`sanitizer`](@/api/options.md#sanitizer) function to prevent XSS.
@@ -476,6 +528,10 @@ If you did't find a suitable _Handsontable event_ put the cell content into a wr
 Cell renderers are called separately for every displayed cell, during every table render. Table can be rendered multiple times during its lifetime (after table scroll, after table sorting, after cell edit etc.), therefore you should keep your `renderer` functions as simple and fast as possible or you might experience a performance drop, especially when dealing with large sets of data.
 
 If you only need to format the displayed value (e.g., add units, format dates, or apply text transformations), consider using the [`valueFormatter`](@/api/options.md#valueformatter) option instead of a custom renderer. The `valueFormatter` is called before the renderer and focuses solely on value transformation, making it more performant for simple formatting tasks. Use a renderer when you need to modify the DOM structure, add custom HTML elements, or handle complex visual layouts.
+
+## Result
+
+You now have a custom cell renderer that controls how cell content appears in the DOM. You can use a built-in renderer by alias, register and reuse your own with `registerRenderer()`, or write inline renderer functions for full control over the cell's HTML structure.
 
 ## Related API
 
@@ -714,6 +770,53 @@ settings = {
 
 In this example, `valueFormatter` adds the currency symbol and formatting, while `renderer` wraps it in a custom DOM structure with additional styling.
 
+#### Format symbols outside the `Intl` standard
+
+The `numeric` renderer's `numericFormat` option formats numbers through `Intl.NumberFormat`, which only recognizes ISO 4217 currency codes and a fixed list of ECMA-402 sanctioned units. Symbols outside that list, such as the Bitcoin symbol (₿) or per mille (‰), aren't available through `numericFormat`. Attach them with `valueFormatter` instead:
+
+::: only-for javascript
+
+::: example #example6 --js 1 --ts 2
+
+@[code](@/content/guides/cell-functions/cell-renderer/javascript/example6.js)
+@[code](@/content/guides/cell-functions/cell-renderer/javascript/example6.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example6 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-functions/cell-renderer/react/example6.jsx)
+@[code](@/content/guides/cell-functions/cell-renderer/react/example6.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example7 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example7.ts)
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example7.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example6 :vue3
+
+@[code](@/content/guides/cell-functions/cell-renderer/vue/example6.vue)
+
+:::
+
+:::
+
 ### Configuration options and API
 
 ::: only-for javascript
@@ -774,7 +877,3 @@ In this example, `valueFormatter` adds the currency symbol and formatting, while
 - [beforeRenderer](@/api/hooks.md#beforerenderer)
 
 </div>
-
-## Result
-
-You now have a custom cell renderer that controls how cell content appears in the DOM. You can use a built-in renderer by alias, register and reuse your own with `registerRenderer()`, or write inline renderer functions for full control over the cell's HTML structure.

@@ -38,9 +38,8 @@
 
 **Testing:**
 - Jest 27 - Unit tests (`handsontable/jest.config.js`, `*.unit.js` files, jsdom environment, `jest-jasmine2` runner)
-- Jasmine 3.4 - E2E browser tests (`*.spec.js` files, run via Puppeteer)
-- Puppeteer 24 - Headless Chrome for E2E tests
-- Playwright 1.58 - Visual regression tests (`visual-tests/`)
+- Playwright 1.61 - **E2E (the paradigm for new tests, `tests/e2e/`)** and visual regression (`visual-tests/`, migrating into `tests/visual/`). One version across the monorepo via a pnpm catalog; CI runs the matching container image.
+- Jasmine 3.4 + Puppeteer 24 - **LEGACY (frozen) E2E** browser tests (`*.spec.js`, headless Chrome). Add no new specs; migrate broken ones to Playwright. Walkontable (`test/spec/**`) is frozen the same way and has a Playwright home at `tests/e2e/walkontable/`; its Jasmine job and the Playwright e2e job run in parallel in CI.
 - `@testing-library/react` 14 - React wrapper tests
 - `@vue/test-utils` 2.0.0-rc.16 - Vue 3 wrapper tests
 - `jest-preset-angular` 14 - Angular wrapper tests (requires `NODE_OPTIONS=--openssl-legacy-provider`)
@@ -171,13 +170,26 @@
 **Platform:** GitHub Actions (`.github/workflows/`)
 
 **Key workflows:**
-- `test.yml` - Main test pipeline (unit, E2E, Walkontable, wrapper tests)
-- `build-all.yml` - Full build verification
-- `code-quality.yml` - Linting and code quality checks
-- `linter.yml` - ESLint checks
-- `publish.yml` - Package publishing pipeline to npm
-- `docs-staging.yml` / `docs-production.yml` - Documentation deployment (Netlify)
-- `docs-visual-tests.yml` - Visual regression testing for docs
-- `changelog.yml` - Changelog verification
-- `audit.yml` - Security audit
-- `pkg-pr-new.yml` - PR package preview
+- `test.yml` - PR and master-push orchestrator, also called by `publish.yml` on the RC/stable
+  path; calls every reusable module and ends in `CI Gate`
+- `CI Gate` (a job in `test.yml`, not a file) - the single status check to require in branch
+  protection. It always runs and passes only when every module job reported `success` or `skipped`,
+  so individual/matrix check names must stay unpinned
+- `develop.yml` - post-merge develop pipeline; same modules plus trunk-only stages, no `CI Gate`
+- `checks.yml` - scope router (which modules run) plus the changelog and test-presence gates
+- `build.yml` / `build-all.yml` - shared UMD and ES+CJS build artifacts / multi-OS build verification
+- `lint.yml` - core linters
+- `code-quality.yml` - SonarCloud, CodeQL, FOSSA, npm audit
+- `unit.yml` / `types.yml` / `e2e.yml` / `walkontable.yml` / `emitted-types.yml` - the test tiers
+- `manual-qa.yml` - the human merge gate, and a `CI Gate` dependency like every module above
+- `integration.yml` - wrapper tests, ESM/CJS format checks, pkg.pr.new PR package preview
+- `performance.yml` (PR) / `performance-tests.yml` (develop golden baseline) - the CDP perf suite
+- `visual.yml` - visual regression render matrix plus the reg-suit comparison and approval gate
+- `visual-cleanup.yml` - clears the `visual-approved` label on new commits (the R2 screenshot purge lives in `pr-cleanup.yml`)
+- `publish.yml` - package publishing pipeline to npm (the only workflow npm trusted publishing trusts)
+- `docs.yml` / `docs-staging.yml` / `docs-production.yml` - docs gates and deployment (Cloudflare Pages)
+- `docs-visual-tests.yml` - visual regression testing for docs
+
+Fork PRs and Dependabot PRs both run on a read-only token with no Actions secrets. Read the two
+fork-guard bullets in the root `AGENTS.md` before touching any step that comments, pushes to a ref,
+or depends on a secret. Some paths degrade gracefully and must not be guarded.

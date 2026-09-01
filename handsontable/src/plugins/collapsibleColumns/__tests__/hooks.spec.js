@@ -195,7 +195,7 @@ describe('CollapsibleColumns Hooks', () => {
           <th class="">G1</th>
           <th class="">H1</th>
           <th class="">I1</th>
-          <th class="">J1</th>
+          <th class="htLastVisibleHeader">J1</th>
         </tr>
         <tr>
           <th class="">A2</th>
@@ -207,7 +207,7 @@ describe('CollapsibleColumns Hooks', () => {
           <th class="">G2</th>
           <th class="">H2</th>
           <th class="">I2</th>
-          <th class="">J2</th>
+          <th class="htLastVisibleHeader">J2</th>
         </tr>
       </thead>
       <tbody>
@@ -257,7 +257,7 @@ describe('CollapsibleColumns Hooks', () => {
           <th class="">G1</th>
           <th class="">H1</th>
           <th class="">I1</th>
-          <th class="">J1</th>
+          <th class="htLastVisibleHeader">J1</th>
         </tr>
         <tr>
           <th class="">A2</th>
@@ -266,7 +266,7 @@ describe('CollapsibleColumns Hooks', () => {
           <th class="">G2</th>
           <th class="">H2</th>
           <th class="">I2</th>
-          <th class="">J2</th>
+          <th class="htLastVisibleHeader">J2</th>
         </tr>
       </thead>
       <tbody>
@@ -312,7 +312,7 @@ describe('CollapsibleColumns Hooks', () => {
           <th class="">G1</th>
           <th class="">H1</th>
           <th class="">I1</th>
-          <th class="">J1</th>
+          <th class="htLastVisibleHeader">J1</th>
         </tr>
         <tr>
           <th class="">A2</th>
@@ -322,7 +322,7 @@ describe('CollapsibleColumns Hooks', () => {
           <th class="">G2</th>
           <th class="">H2</th>
           <th class="">I2</th>
-          <th class="">J2</th>
+          <th class="htLastVisibleHeader">J2</th>
         </tr>
       </thead>
       <tbody>
@@ -352,7 +352,7 @@ describe('CollapsibleColumns Hooks', () => {
           <th class="">G1</th>
           <th class="">H1</th>
           <th class="">I1</th>
-          <th class="">J1</th>
+          <th class="htLastVisibleHeader">J1</th>
         </tr>
         <tr>
           <th class="">A2</th>
@@ -362,7 +362,7 @@ describe('CollapsibleColumns Hooks', () => {
           <th class="">G2</th>
           <th class="">H2</th>
           <th class="">I2</th>
-          <th class="">J2</th>
+          <th class="htLastVisibleHeader">J2</th>
         </tr>
       </thead>
       <tbody>
@@ -411,7 +411,7 @@ describe('CollapsibleColumns Hooks', () => {
           <th class="">G1</th>
           <th class="">H1</th>
           <th class="">I1</th>
-          <th class="">J1</th>
+          <th class="htLastVisibleHeader">J1</th>
         </tr>
         <tr>
           <th class="">A2</th>
@@ -422,7 +422,7 @@ describe('CollapsibleColumns Hooks', () => {
           <th class="">G2</th>
           <th class="">H2</th>
           <th class="">I2</th>
-          <th class="">J2</th>
+          <th class="htLastVisibleHeader">J2</th>
         </tr>
       </thead>
       <tbody>
@@ -454,7 +454,7 @@ describe('CollapsibleColumns Hooks', () => {
           <th class="">G1</th>
           <th class="">H1</th>
           <th class="">I1</th>
-          <th class="">J1</th>
+          <th class="htLastVisibleHeader">J1</th>
         </tr>
         <tr>
           <th class="">A2</th>
@@ -465,7 +465,7 @@ describe('CollapsibleColumns Hooks', () => {
           <th class="">G2</th>
           <th class="">H2</th>
           <th class="">I2</th>
-          <th class="">J2</th>
+          <th class="htLastVisibleHeader">J2</th>
         </tr>
       </thead>
       <tbody>

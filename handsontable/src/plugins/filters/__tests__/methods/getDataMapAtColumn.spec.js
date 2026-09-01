@@ -23,6 +23,7 @@ describe('Filters - getDataMapAtColumn method', () => {
     expect(data.length).toBe(5);
     expect(data).toEqual([
       {
+        row: 0,
         value: 'B1',
         meta: jasmine.objectContaining({
           row: 0,
@@ -32,6 +33,7 @@ describe('Filters - getDataMapAtColumn method', () => {
         })
       },
       {
+        row: 1,
         value: 'B2',
         meta: jasmine.objectContaining({
           row: 1,
@@ -41,6 +43,7 @@ describe('Filters - getDataMapAtColumn method', () => {
         })
       },
       {
+        row: 2,
         value: 'B3',
         meta: jasmine.objectContaining({
           row: 2,
@@ -50,6 +53,7 @@ describe('Filters - getDataMapAtColumn method', () => {
         })
       },
       {
+        row: 3,
         value: 'B4',
         meta: jasmine.objectContaining({
           row: 3,
@@ -59,6 +63,7 @@ describe('Filters - getDataMapAtColumn method', () => {
         })
       },
       {
+        row: 4,
         value: 'B5',
         meta: jasmine.objectContaining({
           row: 4,
@@ -84,6 +89,7 @@ describe('Filters - getDataMapAtColumn method', () => {
     expect(data.length).toBe(5);
     expect(data).toEqual([
       {
+        row: 0,
         value: 'B1',
         meta: jasmine.objectContaining({
           row: 0,
@@ -93,6 +99,7 @@ describe('Filters - getDataMapAtColumn method', () => {
         })
       },
       {
+        row: 1,
         value: 'B2',
         meta: jasmine.objectContaining({
           row: 1,
@@ -102,6 +109,7 @@ describe('Filters - getDataMapAtColumn method', () => {
         })
       },
       {
+        row: 2,
         value: 'B3',
         meta: jasmine.objectContaining({
           row: 2,
@@ -111,6 +119,7 @@ describe('Filters - getDataMapAtColumn method', () => {
         })
       },
       {
+        row: 3,
         value: 'B4',
         meta: jasmine.objectContaining({
           row: 3,
@@ -120,6 +129,7 @@ describe('Filters - getDataMapAtColumn method', () => {
         })
       },
       {
+        row: 4,
         value: 'B5',
         meta: jasmine.objectContaining({
           row: 4,
@@ -150,6 +160,7 @@ describe('Filters - getDataMapAtColumn method', () => {
     expect(data.length).toBe(5);
     expect(data).toEqual([
       {
+        row: 0,
         value: 'B1',
         meta: jasmine.objectContaining({
           row: 0,
@@ -159,6 +170,7 @@ describe('Filters - getDataMapAtColumn method', () => {
         })
       },
       {
+        row: 1,
         value: 'B2',
         meta: jasmine.objectContaining({
           row: 1,
@@ -168,6 +180,7 @@ describe('Filters - getDataMapAtColumn method', () => {
         })
       },
       {
+        row: 2,
         value: 'B3',
         meta: jasmine.objectContaining({
           row: 2,
@@ -177,6 +190,7 @@ describe('Filters - getDataMapAtColumn method', () => {
         })
       },
       {
+        row: 3,
         value: 'B4',
         meta: jasmine.objectContaining({
           row: 3,
@@ -186,6 +200,7 @@ describe('Filters - getDataMapAtColumn method', () => {
         })
       },
       {
+        row: 4,
         value: 'B5',
         meta: jasmine.objectContaining({
           row: 4,

@@ -81,6 +81,14 @@
   display: none;
 }
 
+/* Failure notice added by example-runner.ts when a framework runtime cannot load, so the reader
+   sees why the example is missing instead of an empty box. */
+.hot-example-error {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--sl-color-gray-2);
+}
+
 /* Keep the mount container invisible while loading to avoid a flash of
    unstyled content (Handsontable sets its own dimensions after mount). */
 .hot-example-preview--loading #\31 ,
@@ -161,7 +169,7 @@
   display: none !important;
 }
 
-.example-controls-container .controls:not(:has(button:not([hidden]))):not(:has(input:not([hidden]))) {
+.example-controls-container .controls:not(:has(button:not([hidden]))):not(:has(input:not([hidden]))):not(:has(select:not([hidden]))) {
   display: none;
 }
 
@@ -199,6 +207,14 @@
 .hot-example-preview > button:active,
 .ht-dialog__content button.hot-doc-dialog-html-button:active {
   background: var(--sl-color-gray-4);
+}
+
+.example-controls-container button:focus-visible,
+.example-controls-container .button:focus-visible,
+.hot-example-preview > button:focus-visible,
+.ht-dialog__content button.hot-doc-dialog-html-button:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--sl-color-accent);
 }
 
 /* Dialog guide: HTML `content` buttons sit below paragraph copy */
@@ -351,8 +367,8 @@
   transform: rotate(180deg);
 }
 
-/* Icon-only action buttons (StackBlitz, GitHub) — merged as cells */
-.hot-example-stackblitz-btn,
+/* Icon-only action buttons (runner, GitHub) — merged as cells */
+.hot-example-runner-btn,
 .hot-example-github-btn {
   appearance: none;
   display: inline-flex;
@@ -369,13 +385,13 @@
   transition: color 0.15s, background-color 0.15s;
 }
 
-.hot-example-stackblitz-btn:hover,
+.hot-example-runner-btn:hover,
 .hot-example-github-btn:hover {
   color: var(--sl-color-white);
   background: var(--sl-color-gray-6);
 }
 
-.hot-example-stackblitz-btn:focus-visible,
+.hot-example-runner-btn:focus-visible,
 .hot-example-github-btn:focus-visible {
   outline: none;
   box-shadow: inset 0 0 0 2px var(--sl-color-accent);

@@ -1,6 +1,36 @@
 import { throwWithCause } from '../../helpers/errors';
 import { DomSlot } from './domSlot';
-import { LAYOUT_SLOTS, SLOT_ITEM_CLASS, type LayoutSlotName, type LayoutSide } from './constants';
+import {
+  LAYOUT_SLOTS,
+  SLOT_ITEM_CLASS,
+  getSlotFilledClassName,
+  type LayoutSlotName,
+  type LayoutSide,
+} from './constants';
+
+/**
+ * Mirrors the slot's fill state onto its parent (the root wrapper) as a `ht-slot-<name>-filled`
+ * class. "Filled" is derived from the DOM — at least one direct `.ht-slot-element` child — not
+ * from the registration registry, because foreign nodes (the license notification) carry the
+ * slot-item class without registering. The class replaces the former
+ * `.ht-root-wrapper:has(> .ht-slot-<name> > .ht-slot-element)` selectors, whose `:has()` made
+ * every grid DOM mutation trigger a style invalidation scaled to the whole host page.
+ *
+ * @param {LayoutSlotName} name The slot name.
+ * @param {HTMLElement} slotElement The slot container element.
+ * @returns {void}
+ */
+export function refreshSlotFilledState(name: LayoutSlotName, slotElement: HTMLElement): void {
+  const wrapper = slotElement.parentElement;
+
+  if (!wrapper) {
+    return;
+  }
+
+  const isFilled = slotElement.querySelector(`:scope > .${SLOT_ITEM_CLASS}`) !== null;
+
+  wrapper.classList.toggle(getSlotFilledClassName(name), isFilled);
+}
 
 /**
  * User-facing layout configuration: an ordered list of element keys per user-orderable slot. The
@@ -37,7 +67,10 @@ export class LayoutManager {
     this.#slots = new Map(
       (Object.keys(elements) as LayoutSlotName[]).map(name => [
         name,
-        new DomSlot(elements[name], { itemClass: SLOT_ITEM_CLASS }),
+        new DomSlot(elements[name], {
+          itemClass: SLOT_ITEM_CLASS,
+          onContentChange: () => refreshSlotFilledState(name, elements[name]),
+        }),
       ])
     );
   }

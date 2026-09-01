@@ -1,5 +1,4 @@
 ---
-id: e3a8f4c9
 title: Undo / redo with a custom UI
 metaTitle: Undo / redo with a custom UI - JavaScript Data Grid | Handsontable
 description: Build external Undo and Redo buttons that stay in sync with Handsontable undo/redo stack availability.
@@ -13,13 +12,10 @@ tags:
   - redo
   - custom ui
 react:
-  id: b7d1a2f6
   metaTitle: Undo / redo with a custom UI - React Data Grid | Handsontable
 angular:
-  id: c4e9b8a1
   metaTitle: Undo / redo with a custom UI - Angular Data Grid | Handsontable
 vue:
-  id: 3ku6qxps
   metaTitle: Undo / redo with a custom UI - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management

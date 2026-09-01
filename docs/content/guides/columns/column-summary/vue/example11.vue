@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
 
 // register Handsontable's modules
 registerAllModules();
+
+const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 
 const hotSettings = ref<GridSettings>({
   autoWrapRow: true,
@@ -20,24 +22,48 @@ const hotSettings = ref<GridSettings>({
       destinationRow: 0,
       destinationColumn: 0,
       reversedRowCoords: true,
-      // enable throwing data type errors for this column summary
-      suppressDataTypeErrors: false,
     },
     {
       type: 'sum',
       destinationRow: 0,
       destinationColumn: 1,
       reversedRowCoords: true,
-      // enable throwing data type errors for this column summary
-      suppressDataTypeErrors: false,
     },
   ],
   height: 'auto',
 });
+
+function throwErrors() {
+  hotRef.value?.hotInstance?.updateSettings({
+    columnSummary: [
+      {
+        type: 'sum',
+        destinationRow: 0,
+        destinationColumn: 0,
+        reversedRowCoords: true,
+        suppressDataTypeErrors: false,
+      },
+      {
+        type: 'sum',
+        destinationRow: 0,
+        destinationColumn: 1,
+        reversedRowCoords: true,
+        suppressDataTypeErrors: false,
+      },
+    ],
+  });
+}
 </script>
 
 <template>
   <div id="example11">
-    <HotTable :settings="hotSettings" />
+    <div class="example-controls-container">
+      <div class="controls">
+        <button class="button button--primary" @click="throwErrors">
+          Throw data type errors
+        </button>
+      </div>
+    </div>
+    <HotTable ref="hotRef" :settings="hotSettings" />
   </div>
 </template>

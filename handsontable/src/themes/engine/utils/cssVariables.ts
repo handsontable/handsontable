@@ -59,14 +59,43 @@ function toCssKey(prefix: string, key: string): string {
 }
 
 /**
+ * Options that change how a value list is turned into a CSS value.
+ */
+export interface FlattenOptions {
+  /**
+   * Resolves a `[light, dark]` value list to that one branch instead of emitting
+   * `light-dark()`. Needed because `light-dark()` is newer than the browsers
+   * Handsontable supports, so the shipped minified CSS does not use it.
+   */
+  resolveScheme?: 'light' | 'dark';
+  /**
+   * Emits only the variables whose value is a `[light, dark]` list. Values that
+   * are the same in both schemes do not need to be repeated in an override block.
+   */
+  lightDarkOnly?: boolean;
+}
+
+/**
+ * Checks whether a value is a `[light, dark]` value list.
+ *
+ * @param {*} value - The value to check.
+ * @returns {boolean} - True when the value carries a separate light and dark value.
+ */
+function isLightDarkValue(value: unknown): boolean {
+  return Array.isArray(value) && value.length >= 2 &&
+    typeof value[0] === 'string' && typeof value[1] === 'string';
+}
+
+/**
  * Converts a value to a CSS variable value.
  * Handles variable references, light/dark values, and single values.
  *
  * @param {string|object} value - The value to convert.
  * @param {string} [key] - The CSS key name (used for exceptions like font-family).
+ * @param {object} [options] - The flattening options.
  * @returns {string} - The CSS value.
  */
-function toCssValue(value: unknown, key?: string): string {
+function toCssValue(value: unknown, key?: string, options: FlattenOptions = {}): string {
   if (typeof value === 'string' && isVarReference(value)) {
     return toVarReference(value);
   }
@@ -76,21 +105,29 @@ function toCssValue(value: unknown, key?: string): string {
       const [light, dark]: [unknown, unknown] = value as [unknown, unknown];
 
       if (typeof light === 'string' && typeof dark === 'string') {
-        return `light-dark(${toCssValue(light, key)}, ${toCssValue(dark, key)})`;
+        if (options.resolveScheme === 'light') {
+          return toCssValue(light, key, options);
+        }
+
+        if (options.resolveScheme === 'dark') {
+          return toCssValue(dark, key, options);
+        }
+
+        return `light-dark(${toCssValue(light, key, options)}, ${toCssValue(dark, key, options)})`;
       }
 
       if (typeof light === 'string') {
-        return toCssValue(light, key);
+        return toCssValue(light, key, options);
       }
 
       if (typeof dark === 'string') {
-        return toCssValue(dark, key);
+        return toCssValue(dark, key, options);
       }
 
       return '';
     }
 
-    return toCssValue(value[0], key);
+    return toCssValue(value[0], key, options);
   }
 
   if (key && CSS_KEY_EXCEPTIONS.includes(key)) {
@@ -106,10 +143,11 @@ function toCssValue(value: unknown, key?: string): string {
  * @param {string} prefix - The prefix to add to the CSS variable.
  * @param {string} key - The key to convert.
  * @param {string} value - The value to convert.
+ * @param {object} [options] - The flattening options.
  * @returns {string} - The CSS variable line.
  */
-function toCssLine(prefix: string, key: string, value: unknown): string {
-  return `${toCssKey(prefix, key)}: ${toCssValue(value, key)};`;
+function toCssLine(prefix: string, key: string, value: unknown, options: FlattenOptions = {}): string {
+  return `${toCssKey(prefix, key)}: ${toCssValue(value, key, options)};`;
 }
 
 /**
@@ -118,10 +156,15 @@ function toCssLine(prefix: string, key: string, value: unknown): string {
  * @param {object} cssVariables - The CSS variables object to flatten.
  * @param {string} [prefix='colors'] - The prefix to add to the CSS variables.
  * @param {string} [parentKey=''] - The parent key to add to the CSS variables.
+ * @param {object} [options] - The flattening options.
  * @returns {string} - The flattened CSS variables.
  */
 export function flattenCssVariables(
-  cssVariables: Record<string, unknown>, prefix: string = '', parentKey: string = ''): string {
+  cssVariables: Record<string, unknown>,
+  prefix: string = '',
+  parentKey: string = '',
+  options: FlattenOptions = {}
+): string {
   let cssVars = '';
 
   Object.entries(cssVariables).forEach(([key, value]) => {
@@ -129,9 +172,9 @@ export function flattenCssVariables(
     const fullKey = parentKey ? `${parentKey}-${normalizedKey}` : normalizedKey;
 
     if (isObject(value)) {
-      cssVars += flattenCssVariables(value as Record<string, unknown>, prefix, fullKey);
-    } else {
-      cssVars += `${toCssLine(prefix, fullKey, value)}\n`;
+      cssVars += flattenCssVariables(value as Record<string, unknown>, prefix, fullKey, options);
+    } else if (!options.lightDarkOnly || isLightDarkValue(value)) {
+      cssVars += `${toCssLine(prefix, fullKey, value, options)}\n`;
     }
   });
 

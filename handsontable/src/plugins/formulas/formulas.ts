@@ -1,11 +1,12 @@
 import { BasePlugin } from '../base';
 import { staticRegister } from '../../utils/staticRegister';
-import { error, warn } from '../../helpers/console';
+import { error, warn, warnOnce } from '../../helpers/console';
 import { isNumeric } from '../../helpers/number';
 import { isObject } from '../../helpers/object';
 import { isDefined, isUndefined } from '../../helpers/mixed';
 import { getRegisteredHotInstances, setupEngine, setupSheet, unregisterEngine, } from './engine/register';
 import {
+  coalesceIndexesToSpans,
   getDateFromExcelDate,
   getDateInHfFormat,
   getDateInHotFormat,
@@ -16,6 +17,7 @@ import {
   normalizeValueForFormulaEngine,
   unescapeFormulaExpression,
 } from './utils';
+import { resolveHyperlinkUrl } from './hyperlinkUrl';
 import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
@@ -26,6 +28,8 @@ import type AxisSyncer from './indexSyncer/axisSyncer';
 import type { HyperFormulaEngine } from './engine/types';
 import type { CellChange } from '../../settings';
 import type CellRange from '../../3rdparty/walkontable/src/cell/range';
+import { isCellRangeLike } from '../../3rdparty/walkontable/src/cell/range';
+import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
 
 /**
  * Represents a cell change from the HyperFormula engine.
@@ -50,11 +54,29 @@ function isHFCellChange(value: unknown): value is HFCellChange {
 }
 
 /**
+ * The visual-coordinate rectangle of a `moveCells` operation, captured in `beforeMoveCells`.
+ *
+ * The `afterMoveCells` listener works off this instead of its hook arguments: `Hooks.run` threads a
+ * listener's non-`undefined` return value into the next listener's first argument, so a global
+ * listener returning a truthy non-range would otherwise replace `sourceRange` for the plugin.
+ */
+interface MoveCellsRect {
+  fromRow: number;
+  fromCol: number;
+  toRow: number;
+  toCol: number;
+  targetRow: number;
+  targetCol: number;
+  isCopy: boolean;
+}
+
+/**
  * The expected shape of the `formulas` plugin settings object (the non-boolean form).
  */
 interface FormulasPluginSettings {
   sheetName?: string;
   engine: unknown;
+  hyperlinks?: boolean;
 }
 
 /**
@@ -78,6 +100,8 @@ function hasValueProperty(candidate: unknown): candidate is { value: unknown } {
 }
 
 export const PLUGIN_KEY = 'formulas';
+// `maxRows` and `maxColumns` no longer reach the engine at all (GH #10672), but they stay here:
+// `updatePlugin` also creates or switches the sheet, and dropping them would skip that.
 export const SETTING_KEYS = ['maxRows', 'maxColumns', 'language'];
 export const PLUGIN_PRIORITY = 260;
 
@@ -94,6 +118,21 @@ Hooks.getSingleton().register('afterFormulasValuesUpdate');
 // instances of Handsontable and HyperFormula should be synced (number of actions should be the same).
 const isBlockedSource = (source: unknown) =>
   source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto';
+
+// Maximum number of `[startIndex, amount]` spans passed to a single variadic engine
+// `removeRows`/`removeColumns` call. An unbounded argument spread could overflow the call stack.
+const REMOVAL_SPANS_CHUNK_SIZE = 1000;
+
+// Group under which the plugin's grid shortcuts are registered, so `disablePlugin` can drop them all.
+const SHORTCUTS_GROUP = PLUGIN_KEY;
+
+// Class name of the anchor that wraps the content of a `HYPERLINK` cell. It is also the marker that
+// keeps the wrapping idempotent when a renderer leaves the previous DOM in place.
+const HYPERLINK_CLASS_NAME = 'ht-hyperlink';
+
+// `warnOnce` key for a `HYPERLINK` URL refused by the protocol allowlist. Warning per cell would
+// flood the console on every render pass.
+const HYPERLINK_WARN_KEY = 'formulas-hyperlink-refused';
 
 /**
  * This plugin allows you to perform Excel-like calculations in your business applications. It does it by an
@@ -139,12 +178,111 @@ export class Formulas extends BasePlugin {
   #internalOperationPending = false;
 
   /**
+   * Whether `HYPERLINK` cells are rendered as links. Mirrors the `hyperlinks` plugin setting, cached
+   * because it is read once per rendered cell.
+   */
+  #hyperlinksEnabled = false;
+
+  /**
    * Flag needed to mark if Handsontable was initialized with no data.
    * (Required to work around the fact, that Handsontable auto-generates sample data, when no data is provided).
    *
    * @type {boolean}
    */
   #hotWasInitializedWithEmptyData = false;
+
+  /**
+   * Stores the HyperFormula source range and destination address prepared in `beforeMoveCells` so that
+   * `commitPendingMoveCells` can execute the corresponding HF operation without recomputing
+   * visual-to-HF coordinates. `rect` carries the same operation in visual coordinates for the
+   * post-commit data sync.
+   *
+   * Set to `null` when no move is in flight.
+   *
+   * @private
+   * @type {{ source: object, dest: object, isCopy: boolean, rect: object }|null}
+   */
+  #pendingMoveCells: { source: object; dest: object; isCopy: boolean; rect: MoveCellsRect } | null = null;
+
+  /**
+   * The visual rectangle of the operation `commitPendingMoveCells` committed to the engine (or
+   * intentionally skipped during undo/redo replay). Consumed by the `afterMoveCells` listener,
+   * which runs the HOT-data sync only for committed operations and only off this value — never
+   * off its own hook arguments, which a preceding listener's return value can replace.
+   *
+   * Set to `null` when no committed move is awaiting its sync.
+   *
+   * @private
+   * @type {object|null}
+   */
+  #committedMoveCells: MoveCellsRect | null = null;
+
+  /**
+   * `true` while a move-cells redo is replaying through the MoveCells plugin.
+   *
+   * Unlike other redo actions, it must validate the Handsontable move before advancing
+   * HyperFormula, so `commitPendingMoveCells` performs the engine operation itself.
+   */
+  #isRedoingMoveCells = false;
+
+  /**
+   * The dependent-cell changes returned by the engine operation in `commitPendingMoveCells`,
+   * consumed by the `afterMoveCells` listener to re-render dependent sheets. `null` when the
+   * engine step was skipped (undo/redo replay re-renders everything anyway).
+   *
+   * @private
+   * @type {unknown[]|null}
+   */
+  #moveCellsChanges: unknown[] | null = null;
+
+  /**
+   * Guard flag set while writing synced values back to HOT after a `moveCells` operation.
+   * Prevents the `afterSetDataAtCell` / `afterSetSourceDataAtCell` hooks from re-writing
+   * the same values into HyperFormula a second time.
+   *
+   * @private
+   * @type {boolean}
+   */
+  #moveCellsSyncPending = false;
+
+  /**
+   * Guard flag set while `#getProcessedSourceDataArray` reads the source data on the engine's
+   * behalf. Read by `#onModifySourceData` alone, so the read reports what Handsontable stores
+   * without also suspending the value projection every other hook depends on.
+   *
+   * @private
+   * @type {boolean}
+   */
+  #sourceDataProjectionSuspended = false;
+
+  /**
+   * The changes that the engine reported while undoing or redoing an action. They are collected in
+   * `beforeUndo`/`beforeRedo` and consumed in `afterUndo`/`afterRedo`, where the dependent cells get
+   * validated.
+   *
+   * @type {Array}
+   */
+  #undoRedoDependentCells: unknown[] = [];
+
+  /**
+   * The addresses of the cells that the `UndoRedo` plugin writes through `setDataAtCell`. The Core
+   * validates those on its own, so they are excluded from the dependent-cell validation.
+   *
+   * Cells restored through `setSourceDataAtCell` are deliberately absent: that path runs
+   * `sourceDataValidator`, which never touches the `valid` flag, so excluding them would leave them
+   * unvalidated by anyone.
+   *
+   * @type {Array}
+   */
+  #undoRedoChangedCells: unknown[] = [];
+
+  /**
+   * Whether the action being undone or redone wrote any cell data. Only then are the dependent cells
+   * worth validating.
+   *
+   * @type {boolean}
+   */
+  #undoRedoWroteData = false;
 
   /**
    * Maps a HyperFormula `ExportedCellChange` to the same change with `newValue` translated to a
@@ -169,7 +307,12 @@ export class Formulas extends BasePlugin {
       return change;
     }
 
-    const cellMeta = this.hot.getCellMeta(visualRow, visualColumn, { skipMetaExtension: true });
+    // The uncached read keeps the same no-extension semantics as the previous
+    // `skipMetaExtension` read, without permanently materializing the cell meta.
+    const cellMeta = this.hot._getMetaManager().getCellMetaUncached(
+      this.hot.toPhysicalRow(visualRow) ?? visualRow, this.hot.toPhysicalColumn(visualColumn) ?? visualColumn,
+      { visualRow, visualColumn },
+    );
     let newValue: unknown;
 
     if (cellMeta.type === 'date') {
@@ -242,7 +385,15 @@ export class Formulas extends BasePlugin {
    * @param {string} newDisplayName The new name of the sheet.
    */
   #onEngineSheetRenamed = (oldDisplayName: string, newDisplayName: string) => {
-    this.#updateSheetNameAndSheetId(newDisplayName);
+    // The event is engine-wide, so it also reaches instances that do not own the renamed sheet.
+    // Repointing those would make them operate on a sheet belonging to another instance.
+    // Sheet ids are compared rather than names: the engine matches names without looking at the
+    // case but keeps the casing it was given, so `sheetName` may differ in case from the event's
+    // display names. The rename is already applied here, so the new name resolves to the same id.
+    if (this.engine?.getSheetId(newDisplayName) === this.sheetId) {
+      this.#updateSheetNameAndSheetId(newDisplayName);
+    }
+
     this.hot.runHooks('afterSheetRenamed', oldDisplayName, newDisplayName);
   };
 
@@ -449,28 +600,65 @@ export class Formulas extends BasePlugin {
     this.addHook('beforeUndo', () => {
       this.indexSyncer!.setPerformUndo(true);
 
-      this.engine!.undo();
+      this.#undoRedoChangedCells = [];
+      this.#undoRedoWroteData = false;
+      this.#undoRedoDependentCells = this.engine!.undo() ?? [];
     });
 
-    // Handling redo actions on data just using HyperFormula's UndoRedo mechanism
-    this.addHook('beforeRedo', () => {
-      this.indexSyncer!.setPerformRedo(true);
+    // Handling redo actions on data just using HyperFormula's UndoRedo mechanism.
+    this.addHook('beforeRedo', (action: unknown) => {
+      // Defensive: `Hooks.run` threads a preceding listener's non-`undefined` return value into
+      // this argument, and the global bucket runs before this one. Without a trustworthy
+      // `actionType` the engine step cannot be dispatched safely (`engine.redo()` vs the
+      // `move_cells` replay path — the wrong branch runs the engine operation twice), so cancel
+      // the redo instead of desyncing HyperFormula. The guard runs BEFORE `setPerformRedo(true)`
+      // — a cancelled redo never fires `afterRedo`, so a flag set here would leak.
+      if (typeof action !== 'object' || action === null || !('actionType' in action)) {
+        return false;
+      }
 
-      this.engine!.redo();
+      this.indexSyncer!.setPerformRedo(true);
+      this.#isRedoingMoveCells = action.actionType === 'move_cells';
+
+      this.#undoRedoChangedCells = [];
+      this.#undoRedoWroteData = false;
+      // For a `move_cells` redo the engine operation runs in `commitPendingMoveCells` (the
+      // Handsontable move must be validated first), so `engine.redo()` is not called here and
+      // there are no engine-reported dependent cells to collect.
+      this.#undoRedoDependentCells = this.#isRedoingMoveCells ? [] : (this.engine!.redo() ?? []);
     });
 
     this.addHook('afterUndo', () => {
       this.indexSyncer!.setPerformUndo(false);
+      // Also clears the redo flags: a redo cancelled by a `beforeRedo` listener never fires
+      // `afterRedo`, so without these resets the flags set in `beforeRedo` would leak until the
+      // next successful redo.
+      this.indexSyncer!.setPerformRedo(false);
+      this.#isRedoingMoveCells = false;
+      this.#validateUndoRedoDependentCells();
     });
 
-    this.addHook('afterUndo', () => {
+    this.addHook('afterRedo', () => {
       this.indexSyncer!.setPerformRedo(false);
+      this.#validateUndoRedoDependentCells();
+    });
+
+    this.addHook('afterRedo', () => {
+      this.#isRedoingMoveCells = false;
     });
 
     this.addHook('afterDetachChild', this.#onAfterDetachChild);
     this.addHook('beforeAutofill', this.#onBeforeAutofill);
 
+    this.addHook('beforeMoveCells', this.#onBeforeMoveCells);
+    this.addHook('afterMoveCells', this.#onAfterMoveCells);
+
+    this.addHook('afterRenderer', this.#onAfterRenderer);
+
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine!.on(eventName, listener));
+
+    this.#refreshHyperlinksSetting();
+    this.registerShortcuts();
 
     super.enablePlugin();
   }
@@ -479,6 +667,8 @@ export class Formulas extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.#unwrapRenderedHyperlinks();
+    this.unregisterShortcuts();
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
 
     if (this.engine) {
@@ -509,7 +699,10 @@ export class Formulas extends BasePlugin {
       pluginSettings !== undefined &&
       typeof pluginSettings !== 'boolean' &&
       pluginSettings.sheetName !== undefined &&
-      pluginSettings.sheetName !== this.sheetName
+      // Sheet ids are compared rather than names, because `sheetName` holds the engine's casing
+      // while the setting keeps the one it was written with. An unknown name has no id, which
+      // still differs from the current one and lets `switchSheet` report it.
+      this.engine?.getSheetId(pluginSettings.sheetName) !== this.sheetId
     ) {
       this.switchSheet(pluginSettings.sheetName);
     }
@@ -531,6 +724,8 @@ export class Formulas extends BasePlugin {
         }
       }
     }
+
+    this.#refreshHyperlinksSetting();
 
     super.updatePlugin(newSettings);
   }
@@ -557,8 +752,13 @@ export class Formulas extends BasePlugin {
    * @param {string} [sheetName] The new sheet name.
    */
   #updateSheetNameAndSheetId(sheetName: string) {
-    this.sheetName = sheetName;
-    this.sheetId = this.engine?.getSheetId(this.sheetName) ?? null;
+    const sheetId = this.engine?.getSheetId(sheetName) ?? null;
+
+    // Store the name the engine itself reports. The engine matches names without regard to case
+    // but keeps the casing it was given, so the name passed here may differ from the engine's own.
+    // Keeping them in step makes every exact-string reader of `sheetName` safe by construction.
+    this.sheetName = (sheetId === null ? null : this.engine?.getSheetName(sheetId)) ?? sheetName;
+    this.sheetId = sheetId;
   }
 
   /**
@@ -664,6 +864,172 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Registers the shortcut that opens the link of the selected `HYPERLINK` cell. The anchor is kept
+   * out of the tab order, so this is the only keyboard path to the link.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      ?.addShortcut({
+        keys: [['Alt', 'Enter']],
+        callback: () => {
+          const highlight = this.hot.getSelectedRangeActive()?.highlight;
+
+          if (!highlight || highlight.row === null || highlight.col === null) {
+            return;
+          }
+
+          const href = this.#getHyperlinkHref(highlight.row, highlight.col);
+
+          if (href !== null) {
+            this.hot.rootWindow.open(href, '_blank', 'noopener,noreferrer');
+          }
+        },
+        stopPropagation: true,
+        // The shortcut prevents the default action and stops propagation whenever `runOnlyIf`
+        // passes, so it must claim the chord only for a cell that actually resolves to a link.
+        // Testing just `isCell()` would swallow `Alt`+`Enter` grid-wide and break a host
+        // application's own handler for it.
+        runOnlyIf: (): boolean => {
+          const highlight = this.hot.getSelectedRangeActive()?.highlight;
+
+          return this.#hyperlinksEnabled &&
+            !!highlight?.isCell() &&
+            highlight.row !== null &&
+            highlight.col !== null &&
+            this.#getHyperlinkHref(highlight.row, highlight.col) !== null;
+        },
+        group: SHORTCUTS_GROUP,
+      });
+  }
+
+  /**
+   * Removes the shortcuts registered by the plugin.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext('grid')
+      ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
+  }
+
+  /**
+   * Reads the `hyperlinks` plugin setting into the cached flag.
+   */
+  #refreshHyperlinksSetting() {
+    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
+    const wasEnabled = this.#hyperlinksEnabled;
+
+    this.#hyperlinksEnabled = isFormulasSettingsObject(pluginSettings) && pluginSettings.hyperlinks === true;
+
+    // Turning the option off is the moment to clean up, not every subsequent draw: a renderer that
+    // leaves its previous DOM in place would keep an anchor that no later render pass rewrites.
+    // Doing it here keeps the per-cell path free for the default, disabled case.
+    if (wasEnabled && !this.#hyperlinksEnabled) {
+      this.#unwrapRenderedHyperlinks();
+    }
+  }
+
+  /**
+   * Unwraps every `HYPERLINK` anchor currently in the grid, including the overlay clones.
+   *
+   * Disabling the plugin removes the `afterRenderer` hook, so a renderer that leaves its previous
+   * DOM in place would keep its cells clickable with nothing left to clean them up. The anchors are
+   * matched by the plugin's own class, so no knowledge of the rendering internals is needed.
+   */
+  #unwrapRenderedHyperlinks() {
+    this.hot.rootElement
+      ?.querySelectorAll<HTMLElement>(`a.${HYPERLINK_CLASS_NAME}`)
+      .forEach(link => this.#unwrapLink(link));
+  }
+
+  /**
+   * Moves an anchor's content up into the anchor's own parent and drops the anchor.
+   *
+   * The insertion goes through `link.parentNode` rather than the cell: a renderer that leaves the
+   * previous DOM in place can wrap an existing anchor, leaving it as `TD > div > a` instead of a
+   * direct child. Inserting relative to the cell would then throw `NotFoundError` and, because this
+   * runs inside `afterRenderer`, take the whole draw down with it.
+   *
+   * @param {Element} link The anchor to unwrap.
+   */
+  #unwrapLink(link: Element) {
+    const { parentNode } = link;
+
+    while (link.firstChild) {
+      parentNode?.insertBefore(link.firstChild, link);
+    }
+
+    link.remove();
+  }
+
+  /**
+   * Moves the content of a cell's `HYPERLINK` anchor back into the cell and drops the anchor. Loops
+   * so that anchors nested by an older render pass are unwrapped as well.
+   *
+   * @param {HTMLTableCellElement} TD The rendered cell element.
+   */
+  #unwrapHyperlink(TD: HTMLTableCellElement) {
+    // A cell rendered as plain text has no element children at all, which is the overwhelmingly
+    // common case and the one that must not pay for a selector query on every render pass.
+    if (TD.firstElementChild === null) {
+      return;
+    }
+
+    let link = TD.querySelector(`a.${HYPERLINK_CLASS_NAME}`);
+
+    while (link !== null) {
+      this.#unwrapLink(link);
+      link = TD.querySelector(`a.${HYPERLINK_CLASS_NAME}`);
+    }
+  }
+
+  /**
+   * Returns the URL that a cell should link to, or `null` when the cell must not become a link.
+   *
+   * The engine reports a hyperlink only for a cell whose root expression is `HYPERLINK()`, so a
+   * nested call such as `=CONCATENATE("see ", HYPERLINK(...))` resolves to `null` here.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {string|null} The resolved absolute URL, or `null`.
+   */
+  #getHyperlinkHref(row: number, column: number): string | null {
+    if (
+      this.sheetName === null ||
+      !this.engine?.doesSheetExist(this.sheetName) ||
+      !this.rowAxisSyncer ||
+      !this.columnAxisSyncer ||
+      !this.isFormulaCellType(row, column)
+    ) {
+      return null;
+    }
+
+    const url = this.engine.getCellHyperlink({
+      sheet: this.sheetId,
+      row: this.rowAxisSyncer.getHfIndexFromVisualIndex(row),
+      col: this.columnAxisSyncer.getHfIndexFromVisualIndex(column),
+    });
+
+    if (url === undefined) {
+      return null;
+    }
+
+    const href = resolveHyperlinkUrl(url, this.hot.rootDocument.baseURI);
+
+    if (href === null) {
+      warnOnce(this, HYPERLINK_WARN_KEY,
+        `A "HYPERLINK" formula points at a URL that Handsontable refuses to link to ("${url}"). ` +
+        'Only the "http", "https", "mailto" and "tel" schemes can be linked.');
+    }
+
+    return href;
+  }
+
+  /**
    * Renders dependent sheets (handsontable instances) based on the changes - list of the
    * recalculated dependent cells.
    *
@@ -747,6 +1113,90 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Records that the action being undone or redone wrote cell data, and - when the Core validates
+   * that write itself - which cells it wrote, so that `#validateUndoRedoDependentCells` can skip
+   * them.
+   *
+   * `coreValidatesWrite` separates the two write paths. `setDataAtCell` ends in the Core's own
+   * `validateCell`, so those cells must be excluded to avoid validating them twice.
+   * `setSourceDataAtCell` does not - it runs `sourceDataValidator`, which never touches the `valid`
+   * flag - so its cells must stay in the validation pass. Skipping them is also why their row index
+   * is never translated here: that hook reports physical rows, unlike `afterSetDataAtCell`.
+   *
+   * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
+   * @param {string} source String that identifies the source of the hook call.
+   * @param {boolean} coreValidatesWrite `true` when the Core validates the written cells itself.
+   */
+  #registerUndoRedoWrite(changes: CellChange[], source: string, coreValidatesWrite: boolean) {
+    if (source !== 'UndoRedo.undo' && source !== 'UndoRedo.redo') {
+      return;
+    }
+
+    if (!changes?.length) {
+      return;
+    }
+
+    this.#undoRedoWroteData = true;
+
+    if (!coreValidatesWrite) {
+      return;
+    }
+
+    changes.forEach(([visualRow, prop]) => {
+      if (typeof prop !== 'string' && typeof prop !== 'number') {
+        return;
+      }
+
+      const visualColumn = this.hot.propToCol(prop);
+
+      if (!isNumeric(visualRow) || !isNumeric(visualColumn)) {
+        return;
+      }
+
+      const hfRow = this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow);
+      const hfColumn = this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn);
+
+      // `-1` marks an index that is out of range or trimmed. Such an address matches no real engine
+      // address, so keeping it would only risk colliding with a genuine dependent cell.
+      if (hfRow === -1 || hfColumn === -1) {
+        return;
+      }
+
+      this.#undoRedoChangedCells.push({
+        address: { row: hfRow, col: hfColumn, sheet: this.sheetId },
+      });
+    });
+  }
+
+  /**
+   * Validates the cells that the engine recalculated while an action was undone or redone.
+   *
+   * The `afterSetDataAtCell` and `afterSetSourceDataAtCell` listeners ignore changes coming from the
+   * `UndoRedo` plugin, because the engine reverts them through its own undo stack. Without this step
+   * the dependent formula cells would keep the `valid` flag they were given before the action was
+   * reverted - a formula cell that turned into an error, and is a correct value again after the undo,
+   * would stay marked as invalid.
+   *
+   * Runs only when the action wrote cell data. That covers undoing an edit (`setDataAtCell`) and
+   * undoing a row or column removal, which restores the data with `setSourceDataAtCell`. Actions
+   * that only reorder or hide - moving, sorting, filtering, merging - write no data, do not validate
+   * dependent cells outside of undo either, and are skipped.
+   */
+  #validateUndoRedoDependentCells() {
+    const dependentCells = this.#undoRedoDependentCells;
+    const changedCells = this.#undoRedoChangedCells;
+    const wroteData = this.#undoRedoWroteData;
+
+    this.#undoRedoDependentCells = [];
+    this.#undoRedoChangedCells = [];
+    this.#undoRedoWroteData = false;
+
+    if (wroteData && dependentCells.length) {
+      this.validateDependentCells(dependentCells, changedCells);
+    }
+  }
+
+  /**
    * Sync a change from the change-related hooks with the engine.
    *
    * @private
@@ -768,7 +1218,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const cellMeta = this.hot.getCellMeta(row, column);
+    const cellMeta = this.hot.getCellMetaTransient(row, column);
 
     if (isDate(newValue, cellMeta.type)) {
       if (isDateValid(newValue)) {
@@ -797,10 +1247,9 @@ export class Formulas extends BasePlugin {
     if (isObject(value) && value !== null) {
       const visualRow = this.hot.toVisualRow(row);
       const visualColumn = this.hot.toVisualColumn(column);
-      const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
-      const valueGetter = cellMeta.valueGetter;
+      const cellMeta = this.hot.getCellMetaTransient(visualRow, visualColumn);
 
-      value = getValueGetterValue(value, this.hot.getCellMeta(visualRow, visualColumn));
+      value = getValueGetterValue(value, cellMeta);
 
       if (value !== null && value !== undefined) {
         value = Object(value).toString();
@@ -821,11 +1270,41 @@ export class Formulas extends BasePlugin {
    * @returns {Array} The source data array to be passed to the formula engine.
    */
   #getProcessedSourceDataArray(row?: number, column?: number, row2?: number, column2?: number) {
-    const dataArray = this.hot.getSourceDataArray(row, column, row2, column2);
+    // Every caller feeds the result to the engine, so this read has to report what Handsontable
+    // actually stores – not what it reports. Left unguarded, `#onModifySourceData` answers every
+    // formula cell with the formula the engine already holds, so a `loadData()`/`updateData()` call
+    // that changes a formula's text reads the engine's PREVIOUS formula back and writes it straight
+    // into the engine again, silently discarding the newly loaded one.
+    //
+    // The projection is suspended through a dedicated flag rather than `#internalOperationPending`,
+    // which also gates `#onModifyData` and `#onAfterRenderer`. This read runs the `modifyRowData`
+    // and `modifySourceData` hooks for every row and cell, so third-party handlers execute inside
+    // the guarded window - and one that calls `getDataAtCell()` on a formula cell has to keep
+    // receiving the calculated value, not the raw formula.
+    //
+    // No other site sets the flag, so the previous value is saved and restored rather than cleared
+    // for one reason only: those same third-party handlers run inside the window, and one that
+    // reaches this method again - synchronously, through `updateSettings()` or `loadData()` - would
+    // otherwise leave the rest of the outer read unguarded, which is the very defect above.
+    const wasProjectionSuspended = this.#sourceDataProjectionSuspended;
+
+    this.#sourceDataProjectionSuspended = true;
+
+    let dataArray;
+
+    try {
+      dataArray = this.hot.getSourceDataArray(row, column, row2, column2);
+    } finally {
+      this.#sourceDataProjectionSuspended = wasProjectionSuspended;
+    }
+
     const visibleColumnCount = this.hot.countCols();
     const physicalColumnCount = this.hot.countSourceCols();
+    // Only the shape of the data matters, and it is the same for every row, so one row answers it.
+    // `getSourceData()` would rebuild the whole dataset - through the per-cell `modifySourceData`
+    // hook, and outside the guard above - just to run `isArrayOfArrays` over it.
     const isAoAWithSkippedColumns = visibleColumnCount < physicalColumnCount
-      && isArrayOfArrays(this.hot.getSourceData());
+      && Array.isArray(this.hot.getSourceDataAtRow(0));
 
     if (!isAoAWithSkippedColumns) {
       return dataArray.map((rowObject, rowIndex) => {
@@ -844,7 +1323,11 @@ export class Formulas extends BasePlugin {
     // containing only visible columns so HF cell coordinates stay in sync.
     const columnOffset = column ?? 0;
 
-    return dataArray.map((rowArray, rowIndex) => {
+    return dataArray.map((row, rowIndex) => {
+      // `getSourceDataArray` hands back a falsy row as-is for a hole or a `null` entry, and the
+      // shape check above only reads row 0, so such a row can reach this branch. Treated as empty,
+      // exactly as the pass-through branch above treats it.
+      const rowArray = Array.isArray(row) ? row : [];
       const projected = [];
 
       for (let visualCol = 0; visualCol < visibleColumnCount; visualCol++) {
@@ -886,7 +1369,7 @@ export class Formulas extends BasePlugin {
         sheet: this.sheetId,
       };
 
-      const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
+      const cellMeta = this.hot.getCellMetaTransient(visualRow, visualColumn);
       let cellValue = this.engine!.getCellValue(address); // Date as an integer (Excel-like date).
 
       if (cellMeta.type === 'date' && isNumeric(cellValue)) {
@@ -1048,7 +1531,12 @@ export class Formulas extends BasePlugin {
 
     sourceDataArray.forEach((rowData: unknown[], rowIndex: number) => {
       rowData.forEach((cellValue: unknown, columnIndex: number) => {
-        const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex, { skipMetaExtension: true });
+        // The uncached read keeps this full source-data scan from permanently materializing
+        // one meta object per cell (same no-extension semantics as `skipMetaExtension`).
+        const cellMeta = this.hot._getMetaManager().getCellMetaUncached(
+          this.hot.toPhysicalRow(rowIndex) ?? rowIndex, this.hot.toPhysicalColumn(columnIndex) ?? columnIndex,
+          { visualRow: rowIndex, visualColumn: columnIndex },
+        );
 
         if (isDate(cellValue, cellMeta.type)) {
           if (isDateValid(cellValue)) {
@@ -1088,7 +1576,10 @@ export class Formulas extends BasePlugin {
 
     const formulasSettings = this.hot.getSettings()[PLUGIN_KEY];
     const settingsSheetName = isFormulasSettingsObject(formulasSettings) ? formulasSettings.sheetName : undefined;
-    const sheetName = setupSheet(this.engine, settingsSheetName!);
+    // Fall back to the sheet this instance already owns. Without it every `loadData`/`updateData`
+    // call adds a sheet and abandons the previous one - with its whole dependency graph - inside
+    // the engine, which the engine then recalculates on every subsequent call.
+    const sheetName = setupSheet(this.engine, settingsSheetName ?? this.sheetName);
 
     this.#updateSheetNameAndSheetId(sheetName);
 
@@ -1109,6 +1600,21 @@ export class Formulas extends BasePlugin {
         this.renderDependentSheets(dependentCells);
 
         this.#internalOperationPending = false;
+
+      } else {
+        // The sheet is reused, so leaving it untouched would keep the previous data in the engine
+        // while the grid already shows the new one. Empty it instead of serving stale values.
+        this.#internalOperationPending = true;
+
+        const dependentCells = this.engine!.setSheetContent(this.sheetId, [[]]);
+
+        // Emptying the sheet changes what the grids reading it compute, so they need a redraw.
+        this.renderDependentSheets(dependentCells);
+
+        this.#internalOperationPending = false;
+
+        warn('The loaded data could not be passed to the formula engine, so the formulas were ' +
+          'cleared. It most likely exceeds the engine\'s `maxRows` or `maxColumns` limit.');
       }
 
     } else if (this.sheetName !== null) {
@@ -1154,7 +1660,12 @@ export class Formulas extends BasePlugin {
     };
     let cellValue = this.engine!.getCellValue(address); // Date as an integer (Excel like date).
 
-    const cellMeta = this.hot.getCellMeta(visualRow, visualColumn, { skipMetaExtension: true });
+    // The uncached read matters here: this hook fires inside bulk data reads (for example, the
+    // filters column scan), so an eager read would materialize one meta per scanned cell.
+    const cellMeta = this.hot._getMetaManager().getCellMetaUncached(
+      this.hot.toPhysicalRow(visualRow) ?? visualRow, this.hot.toPhysicalColumn(visualColumn) ?? visualColumn,
+      { visualRow, visualColumn },
+    );
 
     if (cellMeta.type === 'date' && isNumeric(cellValue)) {
       cellValue = getDateFromExcelDate(cellValue);
@@ -1164,6 +1675,50 @@ export class Formulas extends BasePlugin {
 
     // If `cellValue` is an object it is expected to be an error
     valueHolder.value = hasValueProperty(cellValue) ? cellValue.value : cellValue;
+  };
+
+  /**
+   * `afterRenderer` hook callback. Wraps the already rendered content of a `HYPERLINK` cell in an
+   * anchor. The cell keeps its own renderer and its cell meta is left untouched, so disabling the
+   * plugin or clearing the formula needs no cleanup.
+   *
+   * @param {HTMLTableCellElement} TD The rendered cell element.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   */
+  #onAfterRenderer = (TD: HTMLTableCellElement, row: number, column: number) => {
+    if (!this.#hyperlinksEnabled || this.#internalOperationPending) {
+      return;
+    }
+
+    // Walkontable recycles TD elements, and a renderer is free to leave its previous DOM in place.
+    // Unwrapping first keeps this idempotent by construction: no anchor nests inside another one
+    // across render passes, and the `href` is always rebuilt from the current formula instead of
+    // inherited from whatever the previous pass resolved. Cleanup for the option being turned off
+    // happens once, in `#refreshHyperlinksSetting`, so this path never runs for a disabled grid.
+    this.#unwrapHyperlink(TD);
+
+    const href = this.#getHyperlinkHref(row, column);
+
+    if (href === null) {
+      return;
+    }
+
+    const link = this.hot.rootDocument.createElement('a');
+
+    link.className = HYPERLINK_CLASS_NAME;
+    link.href = href;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    // Cell content stays out of the grid's tab order; `Alt`+`Enter` is the keyboard path instead.
+    link.tabIndex = -1;
+
+    // The nodes are moved, never re-serialized, so a label containing markup stays text.
+    while (TD.firstChild) {
+      link.appendChild(TD.firstChild);
+    }
+
+    TD.appendChild(link);
   };
 
   /**
@@ -1181,6 +1736,9 @@ export class Formulas extends BasePlugin {
     if (
       ioMode !== 'get' ||
       this.#internalOperationPending ||
+      // The read that feeds the engine must report what is really stored: see
+      // `#getProcessedSourceDataArray`.
+      this.#sourceDataProjectionSuspended ||
       this.sheetName === null ||
       !this.engine?.doesSheetExist(this.sheetName)
     ) {
@@ -1224,10 +1782,17 @@ export class Formulas extends BasePlugin {
    *
    * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   #onAfterSetDataAtCell = (changes: CellChange[], source: string) => {
     if (isBlockedSource(source)) {
+      this.#registerUndoRedoWrite(changes, source, true);
+
+      return;
+    }
+
+    // Skip HF re-sync when we are writing back to HOT after a moveCells HF operation.
+    if (this.#moveCellsSyncPending) {
       return;
     }
 
@@ -1290,10 +1855,17 @@ export class Formulas extends BasePlugin {
    *
    * @param {Array[]} changes An array of changes in format [[row, column, oldValue, value], ...].
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   #onAfterSetSourceDataAtCell = (changes: CellChange[], source: string) => {
     if (isBlockedSource(source)) {
+      this.#registerUndoRedoWrite(changes, source, false);
+
+      return;
+    }
+
+    // Skip HF re-sync when we are writing back to HOT after a moveCells HF operation.
+    if (this.#moveCellsSyncPending) {
       return;
     }
 
@@ -1420,7 +1992,7 @@ export class Formulas extends BasePlugin {
    * @param {number} visualRow Represents the visual index of first newly created row in the data source array.
    * @param {number} amount Number of newly created rows in the data source array.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   #onAfterCreateRow = (visualRow: number, amount: number, source: string) => {
     if (isBlockedSource(source)) {
@@ -1439,7 +2011,7 @@ export class Formulas extends BasePlugin {
    * @param {number} visualColumn Represents the visual index of first newly created column in the data source.
    * @param {number} amount Number of newly created columns in the data source.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   #onAfterCreateCol = (visualColumn: number, amount: number, source: string) => {
     if (isBlockedSource(source)) {
@@ -1459,21 +2031,17 @@ export class Formulas extends BasePlugin {
    * @param {number} amount An amount of removed rows.
    * @param {number[]} physicalRows An array of physical rows removed from the data source.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   #onAfterRemoveRow = (row: number, amount: number, physicalRows: number[], source: string) => {
     if (isBlockedSource(source)) {
       return;
     }
 
-    const descendingHfRows = this.rowAxisSyncer!
-      .getRemovedHfIndexes()
-      .sort((a: number, b: number) => b - a); // sort numeric values descending
+    const removedSpans = coalesceIndexesToSpans(this.rowAxisSyncer!.getRemovedHfIndexes());
 
     const changes = this.engine!.batch(() => {
-      descendingHfRows.forEach((hfRow: number) => {
-        this.engine!.removeRows(this.sheetId, [hfRow, 1]);
-      });
+      this.#removeSpansFromEngine(removedSpans, 'removeRows');
     });
 
     this.renderDependentSheets(changes);
@@ -1486,25 +2054,360 @@ export class Formulas extends BasePlugin {
    * @param {number} amount An amount of removed columns.
    * @param {number[]} physicalColumns An array of physical columns removed from the data source.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   #onAfterRemoveCol = (col: number, amount: number, physicalColumns: number[], source: string) => {
     if (isBlockedSource(source)) {
       return;
     }
 
-    const descendingHfColumns = this.columnAxisSyncer!
-      .getRemovedHfIndexes()
-      .sort((a: number, b: number) => b - a); // sort numeric values descending
+    const removedSpans = coalesceIndexesToSpans(this.columnAxisSyncer!.getRemovedHfIndexes());
 
     const changes = this.engine!.batch(() => {
-      descendingHfColumns.forEach((hfColumn: number) => {
-        this.engine!.removeColumns(this.sheetId, [hfColumn, 1]);
-      });
+      this.#removeSpansFromEngine(removedSpans, 'removeColumns');
     });
 
     this.renderDependentSheets(changes);
   };
+
+  /**
+   * Checks whether every visual index in the `[visualFrom, visualTo]` span maps to consecutive
+   * HyperFormula indexes on the given axis. Only then is a visual rectangle equivalent to the
+   * single HF rectangle the `moveCells` engine operation works on.
+   *
+   * @param {AxisSyncer} syncer The row or column axis syncer.
+   * @param {number} visualFrom The first visual index of the span.
+   * @param {number} visualTo The last visual index of the span.
+   * @returns {boolean}
+   */
+  #mapsToContiguousHfBlock(syncer: AxisSyncer, visualFrom: number, visualTo: number): boolean {
+    const hfBase = syncer.getHfIndexFromVisualIndex(visualFrom);
+
+    if (hfBase < 0) {
+      return false;
+    }
+
+    for (let offset = 1; offset <= visualTo - visualFrom; offset++) {
+      if (syncer.getHfIndexFromVisualIndex(visualFrom + offset) !== hfBase + offset) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * `beforeMoveCells` hook callback.
+   *
+   * Converts the visual source range and target top-left corner to HyperFormula
+   * (physical) coordinates, validates feasibility for a MOVE operation, and stores
+   * the converted addresses for use in the `afterMoveCells` handler.
+   *
+   * Returns `false` to veto the whole operation when the source range is not a valid range
+   * (the documented `false` veto value, or garbage folded into the argument by a preceding
+   * listener's truthy return value), when HyperFormula reports the move is not possible
+   * (e.g. the source or target contains an array formula), or when the visual ranges do not map
+   * to contiguous HF blocks (trimmed/filtered/reordered indexes), because the engine rectangle
+   * would then cover cells outside the visual operation.
+   *
+   * @param {CellRange|boolean} sourceRange The visual source range, or `false` after an earlier veto.
+   * @param {CellCoords} targetTopLeft The visual top-left of the destination.
+   * @param {boolean} isCopy `true` when copying (not moving) cells.
+   * @returns {boolean|undefined} `false` to cancel the operation; `undefined` otherwise.
+   */
+  #onBeforeMoveCells = (sourceRange: unknown, targetTopLeft: CellCoords, isCopy: boolean) => {
+    if (!isCellRangeLike(sourceRange)) {
+      this.#pendingMoveCells = null;
+
+      return false;
+    }
+
+    if (!this.engine || this.sheetId === null) {
+      return;
+    }
+
+    const topStart = sourceRange.getTopStartCorner();
+    const bottomEnd = sourceRange.getBottomEndCorner();
+    const fromRow = topStart.row!;
+    const fromCol = topStart.col!;
+    const toRow = bottomEnd.row!;
+    const toCol = bottomEnd.col!;
+    const targetRow = targetTopLeft.row!;
+    const targetCol = targetTopLeft.col!;
+
+    // The engine operates on a single HF rectangle built from the mapped corners below. That is
+    // only equivalent to the visual operation when every visual index in all four spans maps to
+    // consecutive HF indexes. With Filters/TrimRows the HF sheet still contains the trimmed rows,
+    // and sorting or manual move permutes the order — a rectangle would then move cells the grid
+    // never touches, desyncing the engine from the data source. Veto instead.
+    if (
+      !this.#mapsToContiguousHfBlock(this.rowAxisSyncer!, fromRow, toRow) ||
+      !this.#mapsToContiguousHfBlock(this.columnAxisSyncer!, fromCol, toCol) ||
+      !this.#mapsToContiguousHfBlock(this.rowAxisSyncer!, targetRow, targetRow + (toRow - fromRow)) ||
+      !this.#mapsToContiguousHfBlock(this.columnAxisSyncer!, targetCol, targetCol + (toCol - fromCol))
+    ) {
+      this.#pendingMoveCells = null;
+
+      return false;
+    }
+
+    const hfFromRow = this.rowAxisSyncer!.getHfIndexFromVisualIndex(fromRow);
+    const hfFromCol = this.columnAxisSyncer!.getHfIndexFromVisualIndex(fromCol);
+    const hfToRow = this.rowAxisSyncer!.getHfIndexFromVisualIndex(toRow);
+    const hfToCol = this.columnAxisSyncer!.getHfIndexFromVisualIndex(toCol);
+    const hfTargetRow = this.rowAxisSyncer!.getHfIndexFromVisualIndex(targetRow);
+    const hfTargetCol = this.columnAxisSyncer!.getHfIndexFromVisualIndex(targetCol);
+
+    const source = {
+      start: { sheet: this.sheetId, row: hfFromRow, col: hfFromCol },
+      end: { sheet: this.sheetId, row: hfToRow, col: hfToCol },
+    };
+    const dest = { sheet: this.sheetId, row: hfTargetRow, col: hfTargetCol };
+
+    if (!isCopy && !this.engine.isItPossibleToMoveCells(source, dest)) {
+      this.#pendingMoveCells = null;
+
+      return false;
+    }
+
+    if (isCopy) {
+      // Pre-check the paste target for a COPY the same way isItPossibleToMoveCells guards a
+      // MOVE (e.g. pasting over part of an array formula throws in `engine.paste`), so the
+      // operation vetoes cleanly before the grid mutates instead of failing halfway through.
+      const targetRegion = {
+        start: dest,
+        end: {
+          sheet: this.sheetId,
+          row: hfTargetRow + (hfToRow - hfFromRow),
+          col: hfTargetCol + (hfToCol - hfFromCol),
+        },
+      };
+
+      if (!this.engine.isItPossibleToSetCellContents(targetRegion)) {
+        this.#pendingMoveCells = null;
+
+        return false;
+      }
+    }
+
+    this.#pendingMoveCells = {
+      source,
+      dest,
+      isCopy,
+      rect: { fromRow, fromCol, toRow, toCol, targetRow, targetCol, isCopy },
+    };
+  };
+
+  /**
+   * Executes the HyperFormula move or copy operation prepared in `beforeMoveCells`. Called by
+   * the MoveCells plugin BEFORE any grid mutation (cell meta, selection, undo history),
+   * so a failed engine operation aborts the whole `moveCells` operation atomically instead of
+   * leaving the grid state recording a move whose data write never happened.
+   *
+   * For a MOVE, calls `engine.moveCells`, which physically relocates cell content and adjusts
+   * all dependent formula references (Excel-style). For a COPY, calls `engine.copy` followed
+   * by `engine.paste`, which duplicates the content with adjusted relative references. Note:
+   * `engine.copy` reads cell values and must NOT be wrapped in `engine.batch` because batch
+   * suspends evaluation, causing `copy` to throw `EvaluationSuspendedError`.
+   *
+   * During undo and non-move redo operations, the engine has already been advanced in the
+   * `beforeUndo`/`beforeRedo` hook, so this method only enables the HOT-data sync in the
+   * `afterMoveCells` listener. A move redo is validated first, then executed here to keep a
+   * rejected move from advancing HyperFormula.
+   *
+   * This is the second half of a two-phase protocol with the MoveCells plugin: `beforeMoveCells`
+   * prepares `#pendingMoveCells`, and this method commits it. It is internal despite being reachable
+   * through `getPlugin('formulas')` — not part of the public API.
+   *
+   * @private
+   * @returns {boolean} `true` when the engine operation succeeded (or was intentionally
+   *   skipped); `false` when there is no prepared operation or the engine rejected it.
+   */
+  commitPendingMoveCells(): boolean {
+    if (!this.engine || !this.#pendingMoveCells) {
+      return false;
+    }
+
+    const { source, dest, isCopy, rect } = this.#pendingMoveCells;
+
+    this.#pendingMoveCells = null;
+    this.#moveCellsChanges = null;
+
+    if (this.indexSyncer?.isPerformingUndoRedo() && !this.#isRedoingMoveCells) {
+      this.#committedMoveCells = rect;
+
+      return true;
+    }
+
+    // HyperFormula can still throw for cases the isItPossibleTo* pre-checks in
+    // `beforeMoveCells` do not cover. Failing here is safe: the core has not mutated
+    // anything yet and aborts the whole operation when `false` is returned.
+    try {
+      if (isCopy) {
+        // copy() reads cell values and cannot run inside batch() (evaluation must not be suspended).
+        this.engine.copy(source);
+        this.#moveCellsChanges = this.engine.paste(dest);
+      } else {
+        this.#moveCellsChanges = this.engine.batch(() => {
+          this.engine!.moveCells(source, dest);
+        });
+      }
+    } catch (e) {
+      const operation = isCopy ? 'copy/paste' : 'moveCells';
+      const reason = e instanceof Error ? e.message : String(e);
+
+      warn(`Formulas: HyperFormula operation failed during ${operation}: ${reason}`);
+
+      return false;
+    }
+
+    this.#committedMoveCells = rect;
+
+    return true;
+  }
+
+  /**
+   * `afterMoveCells` hook callback.
+   *
+   * Runs after the engine operation already executed in `commitPendingMoveCells` (the core
+   * calls it before mutating the grid, so a failed engine operation never reaches this hook).
+   * Synchronises HOT's source data array with HF's state so that `getDataAtCell` returns
+   * correct values for plain VALUE / EMPTY cells (formula cells are already served from HF
+   * via the `modifyData` hook), then re-renders the dependent sheets. The sync is guarded by
+   * `#moveCellsSyncPending` so that `afterSetDataAtCell` does not re-write the same values
+   * back into HyperFormula.
+   *
+   * Takes no arguments on purpose. The engine has already moved the cells by the time this runs, so
+   * there is nothing left to veto and bailing out would strand the data source out of sync with the
+   * engine — which is what reading the replaceable `sourceRange` argument used to cause. The
+   * operation is read from `#committedMoveCells` instead, captured before any listener could run.
+   */
+  #onAfterMoveCells = () => {
+    const committed = this.#committedMoveCells;
+    const dependentCells = this.#moveCellsChanges;
+
+    // Consume the state on every run, including the ones that return early below, so a run without
+    // a committed move behind it cannot pick up the previous operation's leftovers.
+    this.#committedMoveCells = null;
+    this.#moveCellsChanges = null;
+
+    if (!this.engine || committed === null) {
+      return;
+    }
+
+    // Sync HOT's source data with HF's updated state so that getDataAtCell returns
+    // correct values for VALUE/EMPTY cells (formula cells are already served via modifyData).
+    this.#syncHotDataAfterMoveCells(committed);
+
+    // During undo/redo replay the engine step was skipped (dependentCells is null) and the
+    // HOT re-render after undo/redo refreshes all dependent cells anyway.
+    if (dependentCells !== null) {
+      this.renderDependentSheets(dependentCells, true);
+    }
+  };
+
+  /**
+   * Synchronises HOT's raw data source array with HyperFormula's state after a
+   * `moveCells` or copy operation.
+   *
+   * Formula cells are already served correctly through `modifyData` via `getCellValue`.
+   * Plain VALUE / EMPTY cells, however, fall back to the raw HOT data, so after HF
+   * moves the data the old raw values must be cleared from the source cells and the
+   * serialised HF content must be written to the target cells.
+   *
+   * The write is fenced with `#moveCellsSyncPending` to prevent the `afterSetDataAtCell`
+   * hook from re-syncing the same data back into HyperFormula.
+   *
+   * @private
+   * @param {object} rect The committed operation in visual coordinates.
+   */
+  #syncHotDataAfterMoveCells(rect: MoveCellsRect) {
+    const {
+      fromRow: srcFromRow,
+      fromCol: srcFromCol,
+      toRow: srcToRow,
+      toCol: srcToCol,
+      targetRow: tgtFromRow,
+      targetCol: tgtFromCol,
+      isCopy,
+    } = rect;
+
+    const height = srcToRow - srcFromRow + 1;
+    const width = srcToCol - srcFromCol + 1;
+
+    // Build target values from HF serialized content (formula strings or raw values).
+    const targetData: unknown[][] = [];
+
+    for (let r = 0; r < height; r++) {
+      const row: unknown[] = [];
+
+      for (let c = 0; c < width; c++) {
+        const hfRow = this.rowAxisSyncer!.getHfIndexFromVisualIndex(tgtFromRow + r);
+        const hfCol = this.columnAxisSyncer!.getHfIndexFromVisualIndex(tgtFromCol + c);
+        const serialized = this.engine!.getCellSerialized({
+          sheet: this.sheetId,
+          row: hfRow,
+          col: hfCol,
+        });
+
+        row.push(serialized ?? null);
+      }
+
+      targetData.push(row);
+    }
+
+    this.#moveCellsSyncPending = true;
+
+    try {
+      if (!isCopy) {
+        // Clear source cells in HOT's data first (HF already moved them out), so that an
+        // overlapping source/target range does not null out cells the target write is about
+        // to fill — the target data was already snapshotted from HF above.
+        const nullRow: null[] = Array.from<null>({ length: width }).fill(null);
+        const nullGrid: null[][] = Array.from({ length: height }, () => nullRow.slice());
+
+        this.hot.populateFromArray(
+          srcFromRow, srcFromCol, nullGrid,
+          srcToRow, srcToCol,
+          'auto'
+        );
+      }
+
+      // Write target cells with HF-serialised content (formula strings preserved).
+      // Use 'auto' source so UndoRedo does not record these writes as separate DataChangeActions
+      // — they are part of the move and are covered by the MoveCellsAction in the undo stack.
+      this.hot.populateFromArray(
+        tgtFromRow, tgtFromCol, targetData,
+        tgtFromRow + height - 1, tgtFromCol + width - 1,
+        'auto'
+      );
+    } finally {
+      this.#moveCellsSyncPending = false;
+    }
+  }
+
+  /**
+   * Removes the provided `[startIndex, amount]` spans from the engine in as few calls as possible.
+   * One call handles many spans, so the engine pays its dependency-graph remap once per call instead
+   * of once per removed row or column. The engine methods are variadic, so the spans are chunked to
+   * keep the argument spread within call-stack limits; chunks run from the highest spans down, which
+   * keeps the original coordinates of the not-yet-removed lower spans valid.
+   *
+   * @param {Array<Array<number>>} spans Ascending list of `[startIndex, amount]` spans to remove.
+   * @param {'removeRows'|'removeColumns'} engineMethodName The engine removal method to call.
+   */
+  #removeSpansFromEngine(spans: [number, number][], engineMethodName: 'removeRows' | 'removeColumns') {
+    for (let end = spans.length; end > 0; end -= REMOVAL_SPANS_CHUNK_SIZE) {
+      const chunk = spans.slice(Math.max(0, end - REMOVAL_SPANS_CHUNK_SIZE), end);
+
+      if (engineMethodName === 'removeRows') {
+        this.engine!.removeRows(this.sheetId, ...chunk);
+
+      } else {
+        this.engine!.removeColumns(this.sheetId, ...chunk);
+      }
+    }
+  }
 
   /**
    * `afterDetachChild` hook callback.

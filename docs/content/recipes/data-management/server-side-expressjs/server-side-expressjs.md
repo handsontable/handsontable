@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: b5e92d71
 title: Server-side Data with Express.js
 metaTitle: Server-side Data with Express.js - JavaScript Data Grid | Handsontable
 description: Wire Handsontable's dataProvider plugin to an Express.js 4 backend with paginated, sorted, and filtered server-side data and full CRUD operations backed by PostgreSQL via TypeORM and Zod.
@@ -13,17 +12,13 @@ tags:
   - typescript
   - recipes
 react:
-  id: 7a3c1f8e
   metaTitle: Server-side data with Express.js - React Data Grid | Handsontable
 angular:
-  id: 4n6q9v2w
   metaTitle: Server-side Data with Express.js - Angular Data Grid | Handsontable
 vue:
-  id: 7r84584r
   metaTitle: Server-side Data with Express.js - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
-menuTag: new
 ---
 
 This tutorial shows how to wire Handsontable's `dataProvider` plugin to an Express.js 4 backend. The backend provides paginated, sorted, and filtered server-side data with full CRUD operations using PostgreSQL via TypeORM and Zod for request validation.
@@ -327,3 +322,4 @@ Handsontable passes an array of `id` strings matching `dataProvider.rowId`. The 
 - Share the Zod schema types between the Express backend and the Handsontable frontend in a monorepo using a shared `packages/types` workspace package.
 - Compare with the [NestJS recipe](@/recipes/data-management/server-side-nestjs/server-side-nestjs.md) to see the same pattern implemented with decorators, a DI container, and `class-validator` instead of Zod.
 - Compare with the [Symfony recipe](@/recipes/data-management/server-side-symfony/server-side-symfony.md) to see the same Handsontable frontend wired to a PHP backend using the same endpoint shapes.
+- Compare with the [ASP.NET Core recipe](@/recipes/data-management/server-side-aspnet/server-side-aspnet.md) to see the same `buildUrl`/`fetchRows` pattern targeting ASP.NET Core's dot-notation query binding instead of Express's bracket notation.

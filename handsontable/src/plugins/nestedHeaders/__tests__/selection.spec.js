@@ -51,7 +51,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">C</th>
+            <th class="htLastVisibleHeader">C</th>
           </tr>
           <tr>
             <th class="">D</th>
@@ -63,10 +63,10 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">G</th>
+            <th class="htLastVisibleHeader">G</th>
           </tr>
           <tr>
-            <th class="">H</th>
+            <th class="my-active-header-prev">H</th>
             <th class="my-active-header" colspan="2">I</th>
             <th class="hiddenHeader"></th>
             <th class="" colspan="2">J</th>
@@ -75,11 +75,11 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="" colspan="2">L</th>
             <th class="hiddenHeader"></th>
-            <th class="">M</th>
+            <th class="htLastVisibleHeader">M</th>
           </tr>
           <tr>
-            <th class="">N</th>
-            <th class="my-current-header my-active-header">O</th>
+            <th class="my-active-header-prev">N</th>
+            <th class="my-current-header my-active-header my-active-header-prev">O</th>
             <th class="my-current-header my-active-header">P</th>
             <th class="">Q</th>
             <th class="">R</th>
@@ -87,7 +87,7 @@ describe('NestedHeaders', () => {
             <th class="">T</th>
             <th class="">U</th>
             <th class="">V</th>
-            <th class="">W</th>
+            <th class="htLastVisibleHeader">W</th>
           </tr>
         </thead>
         `);
@@ -1570,6 +1570,82 @@ describe('NestedHeaders', () => {
         |   :   : 0 : 0 : A :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,4 from: -1,2 to: 2,4']);
+    });
+  });
+
+  describe('blocking the selection through the mouse event hooks (#6026)', () => {
+    it('should not initiate a column selection when `beforeOnCellMouseDown` stops the event on a nested header', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 10),
+        colHeaders: true,
+        rowHeaders: true,
+        nestedHeaders: [
+          ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+        ],
+        beforeOnCellMouseDown(event, coords) {
+          if (coords.row < 0) {
+            event.stopImmediatePropagation();
+          }
+        },
+      });
+
+      getTopClone().find('thead tr:eq(0) th:eq(2)') // "O"
+        .simulate('mousedown')
+        .simulate('mouseup');
+
+      expect(getSelected()).toBeUndefined();
+    });
+
+    it('should not modify the selection while dragging over nested headers when both `beforeOnCellMouseDown` ' +
+       'and `beforeOnCellMouseOver` stop the event', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 10),
+        colHeaders: true,
+        rowHeaders: true,
+        nestedHeaders: [
+          ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+        ],
+        beforeOnCellMouseDown(event, coords) {
+          if (coords.row < 0) {
+            event.stopImmediatePropagation();
+          }
+        },
+        beforeOnCellMouseOver(event, coords) {
+          if (coords.row < 0) {
+            event.stopImmediatePropagation();
+          }
+        },
+      });
+
+      await selectCell(2, 4);
+
+      // Drag across the column headers, which both hooks block.
+      getTopClone().find('thead tr:eq(0) th:eq(1)').simulate('mousedown'); // "N"
+      getTopClone().find('thead tr:eq(0) th:eq(2)').simulate('mouseover'); // "O"
+      getTopClone().find('thead tr:eq(0) th:eq(3)').simulate('mouseover'); // "P"
+      getTopClone().find('thead tr:eq(0) th:eq(3)').simulate('mouseup');
+
+      // The selection stays where it was - the header drag is fully blocked, matching the behavior
+      // of regular (non-nested) column headers.
+      expect(getSelected()).toEqual([[2, 4, 2, 4]]);
+    });
+
+    it('should still allow drag-selecting columns over nested headers when the event is not blocked', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 10),
+        colHeaders: true,
+        rowHeaders: true,
+        nestedHeaders: [
+          ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+        ],
+      });
+
+      getTopClone().find('thead tr:eq(0) th:eq(1)').simulate('mousedown'); // "N"
+      getTopClone().find('thead tr:eq(0) th:eq(2)').simulate('mouseover'); // "O"
+      getTopClone().find('thead tr:eq(0) th:eq(3)').simulate('mouseover'); // "P"
+      getTopClone().find('thead tr:eq(0) th:eq(3)').simulate('mouseup');
+
+      expect(getSelected()).toEqual([[-1, 0, countRows() - 1, 2]]);
     });
   });
 });

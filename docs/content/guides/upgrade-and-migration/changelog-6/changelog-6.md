@@ -1,13 +1,11 @@
 ---
 type: reference
-id: k4mn8vr2
 title: Changelog 6.2.2
 metaTitle: Changelog 6.2.2 - JavaScript Data Grid | Handsontable
 description: See the release notes for Handsontable 6.2.2, the earliest version tracked by the version comparison page.
 permalink: /changelog-6
 canonicalUrl: /changelog-6
 react:
-  id: w5pq3tnh
   metaTitle: Changelog 6.2.2 - React Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration

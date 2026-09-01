@@ -67,19 +67,28 @@ function getCommitDate() {
 }
 
 /**
+ * Reads the `version` field from `handsontable/package.json`.
+ *
+ * @returns {string|null}
+ */
+function getPackageVersion() {
+  try {
+    const pkg = _require(join(_dir, '../../../handsontable/package.json'));
+
+    return pkg.version ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Computes the version string used in docs page links (e.g. CodeSandbox URLs).
  *
  * @returns {string}
  */
 function computeDocsVersion() {
   if (process.env.BUILD_MODE === 'production') {
-    try {
-      const pkg = _require(join(_dir, '../../../handsontable/package.json'));
-
-      return pkg.version ?? 'next';
-    } catch {
-      return 'next';
-    }
+    return getPackageVersion() ?? 'next';
   }
 
   // Staging / dev: 0.0.0-next-{shortSHA}-{YYYYMMDD}
@@ -120,3 +129,46 @@ export const CURRENT_DOCS_MINOR_VERSION = (() => {
 
   return 'develop';
 })();
+
+/**
+ * Derives the `handsontable/examples` branch that matches a docs version.
+ *
+ * Production builds produce `prod-examples/<major>` (e.g. `prod-examples/18`),
+ * matching the per-major starter snapshot branches in the examples repository.
+ * The snapshots are cut per major only, so the major is the right granularity.
+ *
+ * Every other build falls back to `master`, the sole development branch of the
+ * examples repository. It is `master` rather than `develop` because that repo
+ * has no `develop` branch.
+ *
+ * A version that carries no released major - an unparsable string, or the
+ * `0.0.0-next-<sha>-<date>` placeholder reaching a production build - also falls
+ * back to `master`. There is no `prod-examples/0` branch, so a derived link
+ * would 404.
+ *
+ * @param {string} version The docs version string to derive the branch from.
+ * @param {boolean} isProduction Whether this is a production docs build.
+ * @returns {string}
+ */
+export function deriveExamplesBranch(version, isProduction) {
+  if (!isProduction) {
+    return 'master';
+  }
+
+  const major = String(version ?? '').match(/^(\d+)\./)?.[1];
+
+  return major && major !== '0' ? `prod-examples/${major}` : 'master';
+}
+
+/**
+ * The `handsontable/examples` branch used for starter source links in
+ * documentation pages.
+ *
+ * Evaluated once at module load time so all imports share the same value.
+ *
+ * @type {string}
+ */
+export const CURRENT_EXAMPLES_BRANCH = deriveExamplesBranch(
+  CURRENT_DOCS_VERSION,
+  process.env.BUILD_MODE === 'production'
+);

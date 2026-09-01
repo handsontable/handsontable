@@ -79,6 +79,19 @@ pnpm add handsontable @handsontable/angular-wrapper
   </code-block>
 </code-group>
 
+## Install Skills for Claude Code
+
+Skills for Claude Code give Claude AI deep knowledge of Handsontable's APIs, so it can build, configure, and debug your grid accurately. We recommend installing them alongside Handsontable.
+
+In Claude Code, run:
+
+```bash
+/plugin marketplace add handsontable/handsontable-skills
+/plugin install handsontable-skills@handsontable-skills
+```
+
+For more details, see [Skills for Claude Code](@/guides/ai-tools/skills-for-claude-code/skills-for-claude-code.md).
+
 ## Configure `app.config.ts`
 
 In `app.config.ts`, register Handsontable's modules and set global configuration values via the `HOT_GLOBAL_CONFIG` token. You can modify these values at any time using `HotGlobalConfigService`, or override them per table. All properties of `HotGlobalConfig` are optional.
@@ -150,7 +163,7 @@ export class HotTableWrapperComponent {
 
 ### Preview the result
 
-::: example :angular --ts 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
 @[code](@/content/guides/getting-started/installation/angular/example1.ts)
 @[code](@/content/guides/getting-started/installation/angular/example1.html)
@@ -263,6 +276,19 @@ To install Handsontable locally using a package manager, run one of these comman
   </code-block>
 </code-group>
 
+### Install Skills for Claude Code
+
+Skills for Claude Code give Claude AI deep knowledge of Handsontable's APIs, so it can build, configure, and debug your grid accurately. We recommend installing them alongside Handsontable.
+
+In Claude Code, run:
+
+```bash
+/plugin marketplace add handsontable/handsontable-skills
+/plugin install handsontable-skills@handsontable-skills
+```
+
+For more details, see [Skills for Claude Code](@/guides/ai-tools/skills-for-claude-code/skills-for-claude-code.md).
+
 ### Using a CDN
 
 To get Handsontable's files from a CDN, use the following locations:
@@ -302,7 +328,7 @@ Use the `script` tag. For example, if you're loading Handsontable's JavaScript f
 In your HTML, add an empty `div`, which serves as a container for your Handsontable instance.
 
 ```html
-<div id="example"></div>
+<div id="example1"></div>
 ```
 
 ## Initialize your grid
@@ -310,7 +336,7 @@ In your HTML, add an empty `div`, which serves as a container for your Handsonta
 Now turn your container into a data grid with sample data.
 
 ```js
-const container = document.querySelector('#example');
+const container = document.querySelector('#example1');
 
 const hot = new Handsontable(container, {
   data: [
@@ -330,10 +356,10 @@ const hot = new Handsontable(container, {
 
 ### Preview the result
 
-::: example #example --js 1 --ts 2
+::: example #example1 --js 1 --ts 2
 
-@[code](@/content/guides/getting-started/installation/javascript/example.js)
-@[code](@/content/guides/getting-started/installation/javascript/example.ts)
+@[code](@/content/guides/getting-started/installation/javascript/example1.js)
+@[code](@/content/guides/getting-started/installation/javascript/example1.ts)
 
 :::
 
@@ -368,6 +394,19 @@ To install Handsontable locally using a package manager, run one of these comman
 
   </code-block>
 </code-group>
+
+## Install Skills for Claude Code
+
+Skills for Claude Code give Claude AI deep knowledge of Handsontable's APIs, so it can build, configure, and debug your grid accurately. We recommend installing them alongside Handsontable.
+
+In Claude Code, run:
+
+```bash
+/plugin marketplace add handsontable/handsontable-skills
+/plugin install handsontable-skills@handsontable-skills
+```
+
+For more details, see [Skills for Claude Code](@/guides/ai-tools/skills-for-claude-code/skills-for-claude-code.md).
 
 ## Register Handsontable's modules
 
@@ -417,10 +456,10 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 
 ### Preview the result
 
-::: example #example :react --js 1 --ts 2
+::: example #example1 :react --js 1 --ts 2
 
-@[code](@/content/guides/getting-started/installation/react/example.jsx)
-@[code](@/content/guides/getting-started/installation/react/example.tsx)
+@[code](@/content/guides/getting-started/installation/react/example1.jsx)
+@[code](@/content/guides/getting-started/installation/react/example1.tsx)
 
 :::
 
@@ -455,6 +494,19 @@ To install Handsontable locally using a package manager, run one of these comman
 
   </code-block>
 </code-group>
+
+## Install Skills for Claude Code
+
+Skills for Claude Code give Claude AI deep knowledge of Handsontable's APIs, so it can build, configure, and debug your grid accurately. We recommend installing them alongside Handsontable.
+
+In Claude Code, run:
+
+```bash
+/plugin marketplace add handsontable/handsontable-skills
+/plugin install handsontable-skills@handsontable-skills
+```
+
+For more details, see [Skills for Claude Code](@/guides/ai-tools/skills-for-claude-code/skills-for-claude-code.md).
 
 ## Register Handsontable's modules
 
@@ -511,12 +563,17 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 
 </div>
 
+## Result
+
+Handsontable is installed and ready to use in your project. Import it and create your first grid instance.
+
 ## Related articles
 
 **Related guides**
 
 <div class="boxes-list">
 
+- [Skills for Claude Code](@/guides/ai-tools/skills-for-claude-code/skills-for-claude-code.md)
 - [Modules](@/guides/tools-and-building/modules/modules.md)
 
 </div>
@@ -546,7 +603,3 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 - [construct](@/api/hooks.md#construct)
 
 </div>
-
-## Result
-
-Handsontable is installed and ready to use in your project. Import it and create your first grid instance.

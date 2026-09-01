@@ -1,0 +1,26 @@
+import type { TableDeps } from '../baseTable';
+import Table from '../baseTable';
+import stickyRowsTop from '../rangeQuery/stickyRowsTop';
+import { columnRangeQuery } from '../rangeQuery/virtualRange';
+import { mixin } from '../../../../../helpers/object';
+import { CLONE_TOP } from '../../overlay';
+
+/**
+ * Subclass of `Table` that provides the helper methods relevant to TopOverlay, implemented through mixins.
+ *
+ * @mixes stickyRowsTop
+ * @mixes calculatedColumns
+ */
+class TopOverlayTable extends Table {
+  /**
+   * @param {TableDeps} deps The table module dependencies.
+   */
+  constructor(deps: TableDeps) {
+    super(deps, CLONE_TOP);
+  }
+}
+
+mixin(TopOverlayTable, stickyRowsTop);
+mixin(TopOverlayTable, columnRangeQuery);
+
+export default TopOverlayTable;

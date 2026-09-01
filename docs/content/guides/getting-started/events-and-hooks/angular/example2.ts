@@ -1,7 +1,6 @@
 /* file: app.component.ts */
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
-import { stopImmediatePropagation } from 'handsontable/helpers/dom/event';
 
 @Component({
   selector: 'example2-events-hooks',
@@ -42,37 +41,46 @@ export class AppComponent implements AfterViewInit {
       beforeKeyDown: (e) => {
         const selection = hot?.getSelected()?.[0];
 
-        if (!selection) return;
+        if (!selection) return undefined;
 
         // Ignore header and corner selections (row or column index < 0)
-        if (selection[0] < 0 || selection[1] < 0) return;
+        if (selection[0] < 0 || selection[1] < 0) return undefined;
 
         console.log(selection);
 
         // BACKSPACE or DELETE
         if (e.keyCode === 8 || e.keyCode === 46) {
-          stopImmediatePropagation(e);
           // remove data at cell, shift up
           hot.spliceCol(selection[1], selection[0], 1);
           e.preventDefault();
+          this.lastChange = null;
+
+          // block the default deletion behavior
+          return false;
         }
+
         // ENTER
-        else if (e.keyCode === 13) {
+        if (e.keyCode === 13) {
           // if last change affected a single cell and did not change it's values
           if (
             this.lastChange &&
             this.lastChange.length === 1 &&
             this.lastChange[0][2] == this.lastChange[0][3]
           ) {
-            stopImmediatePropagation(e);
             hot.spliceCol(selection[1], selection[0], 0, '');
             // add new cell
             hot.selectCell(selection[0], selection[1]);
             // select new cell
+            this.lastChange = null;
+
+            // block the default Enter behavior
+            return false;
           }
         }
 
         this.lastChange = null;
+
+        return undefined;
       },
     });
   }

@@ -5,6 +5,7 @@
 export interface HyperFormulaEngine {
   doesSheetExist(sheetName: string): boolean;
   getSheetId(sheetName: string): number;
+  getSheetName(sheetId: number): string | undefined;
   addSheet(sheetName?: string): string;
   setSheetContent(sheetId: number | null, data: unknown[][]): unknown[];
   getSheetSerialized(sheetId: number | null): unknown[][];
@@ -12,6 +13,7 @@ export interface HyperFormulaEngine {
   getCellType(address: { sheet: number | null; row: number; col: number }): unknown;
   doesCellHaveFormula(address: { sheet: number | null; row: number; col: number }): boolean;
   getCellValue(address: { sheet: number | null; row: number; col: number }): unknown;
+  getCellHyperlink(address: { sheet: number | null; row: number; col: number }): string | undefined;
   getCellSerialized(address: { sheet: number | null; row: number; col: number }): unknown;
   isItPossibleToSetCellContents(address: object): boolean;
   setCellContents(address: { sheet: number | null; row: number; col: number }, value: unknown): unknown[];
@@ -22,9 +24,13 @@ export interface HyperFormulaEngine {
   isItPossibleToRemoveColumns(sheetId: number | null, spec: [number, number]): boolean;
   addRows(sheetId: number | null, spec: [number, number]): unknown[];
   addColumns(sheetId: number | null, spec: [number, number]): unknown[];
-  removeRows(sheetId: number | null, spec: [number, number]): void;
-  removeColumns(sheetId: number | null, spec: [number, number]): void;
+  removeRows(sheetId: number | null, ...indexes: [number, number][]): void;
+  removeColumns(sheetId: number | null, ...indexes: [number, number][]): void;
   getFillRangeData(sourceRange: object, targetRange: object): unknown[][];
+  isItPossibleToMoveCells(source: object, destinationLeftCorner: object): boolean;
+  moveCells(source: object, destinationLeftCorner: object): unknown[];
+  copy(source: object): unknown[][];
+  paste(targetLeftCorner: object): unknown[];
   batch(callback: () => void): unknown[];
   getConfig(): Record<string, unknown>;
   updateConfig(config: Record<string, unknown>): void;

@@ -1,9 +1,11 @@
 ---
 name: handsontable-e2e-testing
-description: Use when writing or modifying Jasmine/Puppeteer E2E tests (*.spec.js) for Handsontable, or when a bug fix or feature change needs E2E test coverage. Covers standard boilerplate, async/await rules, global helpers, event simulation, plugin lifecycle patterns, and writing theme-agnostic assertions that pass under all themes without branching on theme name.
+description: Use ONLY when maintaining the FROZEN legacy Jasmine/Puppeteer E2E suite (*.spec.js) — editing an existing spec, or migrating a broken one to Playwright. Do NOT use for new E2E: new E2E is Playwright (skill handsontable-playwright-e2e). Covers the legacy boilerplate, async/await rules, global helpers, event simulation, and theme-agnostic assertions.
 ---
 
-# Handsontable E2E Testing Guide
+# Handsontable E2E Testing Guide (legacy Jasmine/Puppeteer — frozen)
+
+> **This suite is frozen.** New E2E tests are **Playwright** — use the `handsontable-playwright-e2e` skill and put them in `tests/e2e/`. This guide is for *maintaining* existing `*.spec.js` files. The presence gate blocks a newly added `*.spec.js`. If a legacy spec is broken or flaky, **migrate it to Playwright** rather than patching it here.
 
 ## Standard boilerplate (MUST follow)
 

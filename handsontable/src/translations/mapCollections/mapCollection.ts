@@ -74,12 +74,25 @@ export class MapCollection {
   }
 
   /**
-   * Get index map for the provided name.
+   * Get all registered index maps.
+   *
+   * @returns {IndexMap[]}
+   */
+  get(): IndexMap[];
+  /**
+   * Get the index map registered under the provided name.
+   *
+   * @param {string} name Name of the index map.
+   * @returns {IndexMap | undefined}
+   */
+  get(name: string): IndexMap | undefined;
+  /**
+   * Get index map(s): all registered maps when called without a name, or a single map by name.
    *
    * @param {string} [name] Name of the index map.
-   * @returns {Array|IndexMap}
+   * @returns {IndexMap[] | IndexMap | undefined}
    */
-  get(name?: string) {
+  get(name?: string): IndexMap[] | IndexMap | undefined {
     if (isUndefined(name)) {
       return Array.from(this.collection.values());
     }

@@ -18,6 +18,7 @@ vue:
   metaTitle: Dropdown cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Collect user input with a searchable list of choices, by using the dropdown cell type.
 
@@ -232,9 +233,122 @@ When working with object-based dropdown data, you can use methods like [`getSour
 
 :::
 
+## Set the dropdown width
+
+By default, the dropdown list matches the width of the edited cell, so long options can be truncated. To let the list expand to fit its longest option, set [`trimDropdown`](@/api/options.md#trimdropdown) to `false`.
+
+| Setting          | Description                                                                      |
+| ---------------- | -------------------------------------------------------------------------------- |
+| `true` (default) | Match the dropdown list's width to the edited cell.                              |
+| `false`          | Expand the list to its content, but keep it at least as wide as the edited cell. |
+
+In the example below, the **Department (default)** column trims the list to the cell, while the **Department (full width)** column expands it. Open a cell in each column to compare.
+
+::: only-for javascript
+
+::: example #example4 .docs-height-small --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/javascript/example4.js)
+@[code](@/content/guides/cell-types/dropdown-cell-type/javascript/example4.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example4 .docs-height-small :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/react/example4.jsx)
+@[code](@/content/guides/cell-types/dropdown-cell-type/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 .docs-height-small :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/angular/example4.ts)
+@[code](@/content/guides/cell-types/dropdown-cell-type/angular/example4.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example4 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/vue/example4.vue)
+
+:::
+
+:::
+
+## Set the dropdown height
+
+By default, the dropdown list shows up to 10 options before a scrollbar appears. To change how many options are visible at once, set [`visibleRows`](@/api/options.md#visiblerows) to the number of options you want to show.
+
+::: tip
+
+If the grid has a fixed [`height`](@/api/options.md#height) set, the dropdown list can be constrained by the available space and show fewer rows than the `visibleRows` value.
+
+:::
+
+In the example below, the **Job title (default)** column uses the default height, while the **Job title (compact)** column shows three options at a time. Open a cell in each column to compare.
+
+::: only-for javascript
+
+::: example #example5 .docs-height-small --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/javascript/example5.js)
+@[code](@/content/guides/cell-types/dropdown-cell-type/javascript/example5.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example5 .docs-height-small :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/react/example5.jsx)
+@[code](@/content/guides/cell-types/dropdown-cell-type/react/example5.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example5 .docs-height-small :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/angular/example5.ts)
+@[code](@/content/guides/cell-types/dropdown-cell-type/angular/example5.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example5 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/vue/example5.vue)
+
+:::
+
+:::
+
 ## Result
 
 After configuring the dropdown cell type, cells display a button that opens a dropdown list of options. Users can search the list by typing. Only values from the source list are accepted. The selected value is stored in the data source.
+
+## Keyboard shortcuts
+
+The dropdown cell editor is an [autocomplete](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) editor with strict mode always on, so it uses the same keyboard shortcuts as [Autocomplete strict mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode). See the [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#dropdown-editor-keyboard-shortcuts) reference for details.
 
 ## Related articles
 

@@ -1,0 +1,52 @@
+name: Setup workspace
+description: >-
+  pnpm + Node (with the pnpm store cache) + install. With puppeteer-chrome,
+  also restores the Chrome browser cache and re-runs puppeteer's postinstall
+  so browser jobs always have Chrome. Requires the repo to be checked out
+  first (local composite actions resolve from the workspace).
+
+inputs:
+  puppeteer-chrome:
+    description: >-
+      'true' provisions Chrome for Puppeteer: restores ~/.cache/puppeteer
+      (keyed by the lockfile) and runs a scoped rebuild as the correctness
+      backstop — on a warm cache the download is a near-no-op.
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Install pnpm
+      uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # https://github.com/pnpm/action-setup/releases/tag/v6.0.8
+
+    - name: Use Node.js
+      uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+      with:
+        node-version-file: '.nvmrc'
+        cache: 'pnpm'
+
+    - name: Cache Chrome for Puppeteer
+      if: inputs.puppeteer-chrome == 'true'
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
+      with:
+        path: ~/.cache/puppeteer
+        key: puppeteer-chrome-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+        restore-keys: |
+          puppeteer-chrome-${{ runner.os }}-
+
+    - name: Install dependencies
+      if: inputs.puppeteer-chrome != 'true'
+      shell: bash
+      env:
+        PUPPETEER_SKIP_DOWNLOAD: 'true'
+      run: pnpm install
+
+    # Chrome for Puppeteer: pnpm's side-effects cache skips the postinstall on
+    # a warm store, and a non-recursive `pnpm rebuild` only sees the root
+    # project (puppeteer is a devDep of handsontable/) — rebuild it there so
+    # the browser download actually runs when the cache above missed.
+    - name: Install dependencies and provision Chrome
+      if: inputs.puppeteer-chrome == 'true'
+      shell: bash
+      run: pnpm install && pnpm --filter handsontable rebuild puppeteer

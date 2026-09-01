@@ -11,7 +11,7 @@ import { isObject, isPlainObject } from '../../helpers/object';
 import { isFunction } from '../../helpers/function';
 import { arrayMap } from '../../helpers/array';
 import { BasePlugin } from '../base';
-import { IndexesSequence, PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import type { IndexesSequence, PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { Hooks } from '../../core/hooks';
 import { ColumnStatesManager } from './columnStatesManager';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
@@ -25,6 +25,9 @@ import {
   warnAboutPluginsConflict,
 } from './utils';
 import {
+  HEADER_ACTION_CLASS,
+  HEADER_CLASS_ASC_SORT,
+  HEADER_CLASS_DESC_SORT,
   getClassesToRemove,
   getClassesToAdd
 } from './domHelpers';
@@ -50,8 +53,30 @@ export const PLUGIN_PRIORITY = 50;
 export const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 export const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
+/**
+ * Marks the header container of a column that is showing a sort indicator. The indicator is
+ * positioned against that container, so the room it needs is reserved there rather than as padding
+ * on the label - padding on the label would enlarge the area that sorts on click, which is exactly
+ * what it must not do. A class rather than a `:has()` selector, which is banned in this package.
+ */
+const CONTAINER_WITH_INDICATOR_CLASS = 'has-sort-indicator';
 
 registerRootComparator(PLUGIN_KEY, rootComparator);
+
+/**
+ * A press on a sortable column header, waiting to be resolved on mouse up.
+ */
+export interface HeaderSortPress {
+  column: number;
+  isCtrlPressed: boolean;
+  /**
+   * Settles once the cell that was being edited at press time has finished validating, or `null`
+   * when nothing was being edited.
+   */
+  validation: Promise<void> | null;
+  /** Set when ManualColumnMove ran its move before this press was resolved. */
+  consumedByMove: boolean;
+}
 
 export interface SortConfig {
   column: number;
@@ -103,7 +128,7 @@ const pluginConflictsState = new WeakMap();
  * }
  *
  * // as an object passed to the `column` property, allows specifying a custom options for the desired column.
- * // please take a look at documentation of `column` property: https://handsontable.com/docs/Options.html#columns
+ * // see the `columns` option documentation: @/api/options.md#columns
  * columns: [{
  *   columnSorting: {
  *     indicator: false, // disable indicator for the first column,
@@ -147,6 +172,10 @@ export class ColumnSorting extends BasePlugin {
    * @type {null|PhysicalIndexToValueMap}
    */
   columnMetaCache: IndexToValueMap | null = null;
+  /**
+   * Sort queued by a header press, applied on mouse up unless the press became a column drag.
+   */
+  #pendingHeaderSort: HeaderSortPress | null = null;
   /**
    * Main settings key designed for the plugin.
    *
@@ -195,21 +224,34 @@ export class ColumnSorting extends BasePlugin {
     pluginConflictsState.set(this.hot, this.pluginKey);
 
     this.columnStatesManager = new ColumnStatesManager(this.hot, `${this.pluginKey}.sortingStates`);
-    this.columnMetaCache = new IndexToValueMap((physicalIndex: number) => {
-      let visualIndex: number = this.hot.toVisualColumn(physicalIndex);
+    this.columnMetaCache = this.hot.columnIndexMapper.createAndRegisterIndexMap(
+      `${this.pluginKey}.columnMeta`,
+      'physicalIndexToValue',
+      (physicalIndex: number) => {
+        let visualIndex: number = this.hot.toVisualColumn(physicalIndex);
 
-      if (visualIndex === null) {
-        visualIndex = physicalIndex;
-      }
+        if (visualIndex === null) {
+          visualIndex = physicalIndex;
+        }
 
-      return this.getMergedPluginSettings(visualIndex);
-    });
-    this.hot.columnIndexMapper.registerMap(`${this.pluginKey}.columnMeta`, this.columnMetaCache);
+        return this.getMergedPluginSettings(visualIndex);
+      },
+    );
 
     this.addHook('afterGetColHeader', this.#onAfterGetColHeader);
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
     this.addHook('afterOnCellMouseDown',
       (event: Event, target: { row: number, col: number }) => this.onAfterOnCellMouseDown(event, target));
+    // Primary release signal. On touch devices Walkontable calls its `onMouseUp` directly from
+    // `touchend` instead of dispatching a DOM `mouseup`, so a document listener alone would never
+    // fire and tapping a header would stop sorting.
+    this.addHook('afterOnCellMouseUp', this.#resolvePendingSort);
+    // Fallback for a release that lands outside any cell - that is the drag case, and the queued
+    // sort still has to be cleared rather than left pending for the next release.
+    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mouseup',
+      () => this.#resolvePendingSort());
+    this.addHook('afterColumnMove', this.#onAfterColumnMove);
+
     this.addHook('afterInit', this.#loadOrSortBySettings);
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch, -1);
@@ -235,6 +277,7 @@ export class ColumnSorting extends BasePlugin {
       }
 
       this.updateHeaderClasses(headerSpanElement);
+      this.#syncIndicatorReserve(headerSpanElement);
     };
 
     pluginConflictsState.delete(this.hot);
@@ -258,6 +301,7 @@ export class ColumnSorting extends BasePlugin {
     this.columnStatesManager?.destroy();
     this.columnMetaCache = null;
     this.columnStatesManager = null;
+    this.#pendingHeaderSort = null;
 
     this.unregisterShortcuts();
     super.disablePlugin();
@@ -348,7 +392,7 @@ export class ColumnSorting extends BasePlugin {
 
     if (currentSortConfig.length === 0 && this.indexesSequenceCache === null) {
       this.indexesSequenceCache =
-        this.hot.rowIndexMapper.registerMap(this.pluginKey, new IndexesSequence());
+        this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginKey, 'indexesSequence');
       this.indexesSequenceCache.setValues(this.hot.rowIndexMapper.getIndexesSequence());
     }
 
@@ -576,7 +620,7 @@ export class ColumnSorting extends BasePlugin {
   getMergedPluginSettings(column: number): Record<string, unknown> {
     const pluginMainSettings = this.hot.getSettings()[this.pluginKey] as Record<string, unknown>;
     const storedColumnProperties = this.columnStatesManager?.getAllColumnsProperties() ?? {};
-    const cellMeta = this.hot.getCellMeta(0, column);
+    const cellMeta = this.hot.getCellMetaTransient(0, column);
     const columnMeta = Object.getPrototypeOf(cellMeta) as Record<string, unknown>;
 
     if (Array.isArray(columnMeta.columns)) {
@@ -602,7 +646,7 @@ export class ColumnSorting extends BasePlugin {
   // TODO: Workaround. Inheriting of non-primitive cell meta values doesn't work. Instead of getting properties from column meta we call this function.
   // TODO: Remove test named: "should not break the dataset when inserted new row" (#5431).
   getFirstCellSettings(column: number): Record<string, unknown> {
-    const cellMeta = this.hot.getCellMeta(0, column);
+    const cellMeta = this.hot.getCellMetaTransient(0, column);
 
     const cellMetaCopy = Object.create(cellMeta) as Record<string, unknown>;
 
@@ -743,6 +787,7 @@ export class ColumnSorting extends BasePlugin {
       showSortIndicator,
       headerActionEnabled
     );
+    this.#syncIndicatorReserve(headerSpanElement);
 
     if (this.hot.getSettings().ariaTags) {
       const currentSortState = this.columnStatesManager?.getSortOrderOfColumn(column);
@@ -774,6 +819,38 @@ export class ColumnSorting extends BasePlugin {
         showSortIndicator ?? false,
         headerActionEnabled ?? false
       ));
+    }
+  }
+
+  /**
+   * Reserves room for the sort indicator on the header container, matching the state the label
+   * was just given.
+   *
+   * Called from the header render paths, not from `updateHeaderClasses`, so it runs after any
+   * subclass override has finished adding its classes. `TableView` rebuilds the container's class
+   * list on every render, so this has to run per render.
+   *
+   * @param {HTMLElement} headerSpanElement The header label element.
+   */
+  #syncIndicatorReserve(headerSpanElement: HTMLElement) {
+    const container = headerSpanElement.parentElement;
+
+    if (container === null) {
+      return;
+    }
+
+    // `sortAction` is required: the CSS that pulls the indicator out of the flex row is keyed on
+    // it. With `headerAction: false` the label shows an indicator but keeps its full width, so
+    // reserving would just push it inwards.
+    const showsIndicator = hasClass(headerSpanElement, HEADER_ACTION_CLASS) && (
+      hasClass(headerSpanElement, HEADER_CLASS_ASC_SORT) ||
+      hasClass(headerSpanElement, HEADER_CLASS_DESC_SORT)
+    );
+
+    if (showsIndicator) {
+      addClass(container, CONTAINER_WITH_INDICATOR_CLASS);
+    } else {
+      removeClass(container, CONTAINER_WITH_INDICATOR_CLASS);
     }
   }
 
@@ -854,6 +931,11 @@ export class ColumnSorting extends BasePlugin {
     event: Event, coords: { row: number, col: number }, TD: HTMLTableCellElement,
     controller: { column: boolean }
   ) => {
+    // Drop any press whose release never arrived - e.g. the window lost focus while the button
+    // was held. Without this a stale press would resolve on the next unrelated release and sort
+    // a column out of nowhere.
+    this.#pendingHeaderSort = null;
+
     if (wasHeaderClickedProperly(coords.row, coords.col, event) === false) {
       return;
     }
@@ -866,6 +948,11 @@ export class ColumnSorting extends BasePlugin {
   /**
    * Callback for the `onAfterOnCellMouseDown` hook.
    *
+   * Queues the sort rather than running it. The header is also the surface ManualColumnMove
+   * drags a column by, so which action the user meant is only known once the button is
+   * released: a press that stays put is a click to sort, a press that travels is a drag.
+   * Selection changes stay here so the header still reacts the moment it is pressed.
+   *
    * @private
    * @param {Event} event Event which are provided by hook.
    * @param {CellCoords} coords Visual coords of the selected cell.
@@ -875,34 +962,111 @@ export class ColumnSorting extends BasePlugin {
       return;
     }
 
-    if (this.wasClickableHeaderClicked(event, coords.col)) {
-      if (this.hot.getShortcutManager().isCtrlPressed()) {
-        this.hot.deselectCell();
-        this.hot.selectColumns(coords.col);
-      }
-
-      const activeEditor = this.hot.getActiveEditor();
-      const nextConfig = this.getColumnNextConfig(coords.col);
-
-      if (
-        activeEditor?.isOpened() &&
-        this.hot.getCellValidator(activeEditor.row!, activeEditor.col!)
-      ) {
-        // Postpone sorting until the cell's value is validated and saved.
-        this.hot.addHookOnce('postAfterValidate', () => {
-          this.sort(nextConfig);
-        });
-
-      } else {
-        this.sort(nextConfig);
-      }
+    if (this.wasClickableHeaderClicked(event, coords.col) === false) {
+      return;
     }
+
+    const isCtrlPressed = this.hot.getShortcutManager().isCtrlPressed();
+
+    if (isCtrlPressed) {
+      this.hot.deselectCell();
+      this.hot.selectColumns(coords.col);
+    }
+
+    const activeEditor = this.hot.getActiveEditor();
+    const awaitsValidation = !!(
+      activeEditor?.isOpened() &&
+      this.hot.getCellValidator(activeEditor.row!, activeEditor.col!)
+    );
+
+    this.#pendingHeaderSort = {
+      column: coords.col,
+      isCtrlPressed,
+      // Subscribed on press, not on release: selecting the column closes the editor and its
+      // validation runs in a microtask, so it is already over before mouse up. Reading
+      // `awaitsValidation` on release is wrong too - by then the new selection has opened an
+      // editor on the highlighted cell.
+      validation: awaitsValidation ? new Promise<void>((resolve) => {
+        this.hot.addHookOnce('postAfterValidate', () => resolve());
+      }) : null,
+      consumedByMove: false,
+    };
+  }
+
+  /**
+   * Applies the sort queued by a header press.
+   *
+   * Kept separate from the press handler so `MultiColumnSorting` can choose a different sort
+   * configuration for the same gesture without repeating the click-versus-drag handling.
+   *
+   * @private
+   * @param {object} press The press that queued this sort.
+   */
+  applyHeaderClickSort(press: HeaderSortPress) {
+    this.sort(this.getColumnNextConfig(press.column));
+  }
+
+  /**
+   * Resolves a header press on release: sorts, unless ManualColumnMove turned the press into a
+   * drag.
+   *
+   * Safe to call more than once for the same gesture - the queued press is taken first, so
+   * whichever release signal arrives first wins and the rest are no-ops.
+   */
+  #resolvePendingSort = () => {
+    const pending = this.#pendingHeaderSort;
+
+    if (pending === null) {
+      return;
+    }
+
+    this.#pendingHeaderSort = null;
+
+    // Two signals, because both plugins handle the same `mouseup` and the listener order is not
+    // fixed - re-enabling `columnSorting` after `manualColumnMove` appends this plugin's listener
+    // last. Running first, the drag is still in progress; running second, the move has already
+    // fired. Either one cancels the sort.
+    if (pending.consumedByMove || this.#isColumnBeingDragged()) {
+      return;
+    }
+
+    // A cell that was mid-edit must finish validating before the rows move under it. Waited on
+    // here, not in `applyHeaderClickSort`, so subclasses that override that seam still get it.
+    if (pending.validation === null) {
+      this.applyHeaderClickSort(pending);
+
+      return;
+    }
+
+    void pending.validation.then(() => this.applyHeaderClickSort(pending));
+  };
+
+  /**
+   * Marks a queued press as spent once ManualColumnMove has moved the column.
+   */
+  #onAfterColumnMove = () => {
+    if (this.#pendingHeaderSort !== null) {
+      this.#pendingHeaderSort.consumedByMove = true;
+    }
+  };
+
+  /**
+   * Whether ManualColumnMove is mid-drag. False when that plugin is absent or disabled.
+   */
+  #isColumnBeingDragged(): boolean {
+    const manualColumnMove = this.hot.getPlugin('manualColumnMove');
+
+    return manualColumnMove?.isDragging() === true;
   }
 
   /**
    * Destroys the plugin instance.
    */
   destroy(): void {
+    // `BasePlugin.destroy` nulls enumerable own properties, which cannot reach a `#private`
+    // field, so drop the queued press here.
+    this.#pendingHeaderSort = null;
+
     // TODO: Probably not supported yet by ESLint: https://github.com/eslint/eslint/issues/11045
     // eslint-disable-next-line no-unused-expressions
     this.columnStatesManager?.destroy();

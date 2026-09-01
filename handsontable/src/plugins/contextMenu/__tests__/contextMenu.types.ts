@@ -1,4 +1,6 @@
 import Handsontable from 'handsontable';
+import { ContextMenu } from 'handsontable/plugins/contextMenu';
+import type { MenuItemConfig } from 'handsontable/plugins/contextMenu';
 
 const hot = new Handsontable(document.createElement('div'), {
   contextMenu: true,
@@ -87,6 +89,17 @@ new Handsontable(document.createElement('div'), {
         hidden: false,
         disabled: false,
       }
+    }
+  }
+});
+
+const separator: MenuItemConfig = ContextMenu.SEPARATOR;
+
+new Handsontable(document.createElement('div'), {
+  contextMenu: {
+    items: {
+      sep1: ContextMenu.SEPARATOR,
+      row_above: 'row_above',
     }
   }
 });

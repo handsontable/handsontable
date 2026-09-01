@@ -35,5 +35,6 @@ export function condition(dataRow: DataRow, [value]: unknown[]): boolean {
 registerCondition(CONDITION_NAME, condition, {
   name: C.FILTERS_CONDITIONS_AFTER_OR_EQUAL,
   inputsCount: 1,
-  showOperators: true
+  showOperators: true,
+  inputType: 'date',
 });

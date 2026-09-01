@@ -152,7 +152,7 @@ Handsontable separates rendering (displaying cell values) from editing (changing
 
 :::
 
-**Overriding keyboard behavior:** Register a [`beforeKeyDown`](@/api/hooks.md#beforekeydown) hook listener and call `Handsontable.dom.stopImmediatePropagation(event)` to prevent `EditorManager` from processing a specific key. The native `event.stopImmediatePropagation()` does not stop Handsontable's internal key pipeline - you must use the `Handsontable.dom` helper (or import `stopImmediatePropagation` from `handsontable/helpers/dom/event`). Register the listener in `open()` and remove it in `close()` so it only intercepts events while your editor is active.
+**Overriding keyboard behavior:** Register a [`beforeKeyDown`](@/api/hooks.md#beforekeydown) hook listener and return `false` to prevent `EditorManager` from processing a specific key. The native `event.stopImmediatePropagation()` does not stop Handsontable's internal key pipeline - you must [block the keyboard shortcut's actions](@/guides/navigation/custom-shortcuts/custom-shortcuts.md#block-a-keyboard-shortcut-s-actions) by returning `false` from the hook's callback. Register the listener in `open()` and remove it in `close()` so it only intercepts events while your editor is active.
 
 **Editor singleton:** Each editor class has exactly one instance per table. The constructor and `init()` run once per table; `prepare()` runs every time you select a cell that uses that editor.
 
@@ -241,8 +241,8 @@ Override only the methods you need. The `PasswordEditor` below extends `TextEdit
 
 ::: example #example3 :react --js 1 --ts 2
 
-@[code](@/content/guides/cell-functions/cell-editor/react/example2.jsx)
-@[code](@/content/guides/cell-functions/cell-editor/react/example2.tsx)
+@[code](@/content/guides/cell-functions/cell-editor/react/example3.jsx)
+@[code](@/content/guides/cell-functions/cell-editor/react/example3.tsx)
 
 :::
 
@@ -252,8 +252,8 @@ Override only the methods you need. The `PasswordEditor` below extends `TextEdit
 
 ::: example #example3 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-functions/cell-editor/angular/example2.ts)
-@[code](@/content/guides/cell-functions/cell-editor/angular/example2.html)
+@[code](@/content/guides/cell-functions/cell-editor/angular/example3.ts)
+@[code](@/content/guides/cell-functions/cell-editor/angular/example3.html)
 
 :::
 
@@ -418,6 +418,10 @@ class ExtendedSelectEditor extends MySelectEditor {
 
 :::
 
+## Result
+
+You now have a custom cell editor that controls how values are entered in your data grid. You can extend a built-in editor for small changes, or build from `BaseEditor` for a completely custom editing experience.
+
 ## Related keyboard shortcuts
 
 | Windows | macOS | Action | Excel | Sheets |
@@ -514,7 +518,3 @@ class ExtendedSelectEditor extends MySelectEditor {
 - [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
 
 </div>
-
-## Result
-
-You now have a custom cell editor that controls how values are entered in your data grid. You can extend a built-in editor for small changes, or build from `BaseEditor` for a completely custom editing experience.

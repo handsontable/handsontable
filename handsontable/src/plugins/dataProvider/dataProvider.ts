@@ -141,7 +141,8 @@ export interface DataProviderFetchOptions {
 }
 
 /**
- * @deprecated Use DataProviderFetchOptions
+ * @deprecated Since 18.0.0, renamed to `DataProviderFetchOptions`. This alias will be removed in
+ * 19.0.0. Use {@link DataProviderFetchOptions} instead.
  */
 export type DataProviderOptions = DataProviderFetchOptions;
 
@@ -308,7 +309,7 @@ export class DataProvider extends BasePlugin {
     this.enablePlugin();
 
     if (this.hot.view) {
-      void this.fetchData();
+      void this.#fetchDataSilently();
     }
 
     super.updatePlugin();
@@ -765,7 +766,7 @@ export class DataProvider extends BasePlugin {
               notificationPlugin.hide(toastId);
             }
 
-            void this.fetchData();
+            void this.#fetchDataSilently();
           },
         },
       ];
@@ -822,6 +823,26 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
+   * Runs [[#fetchData]] for internal fire-and-forget refetches (initial load, `updatePlugin`, sort, filter, and the
+   * Refetch notification action). [[#fetchData]] already surfaces the failure – it fires
+   * [[Hooks#afterDataProviderFetchError]] and shows the error notification – before rethrowing for its public callers,
+   * so here the rejection is only logged and settled. Without this, `fetchRows` failures reach the page as
+   * `unhandledrejection` events.
+   *
+   * @param {object} [overrides] Partial query overrides passed to [[#fetchData]].
+   * @returns {Promise<{ rows: Array<*>, totalRows: number }|null>} Resolves to `null` when the fetch fails.
+   */
+  #fetchDataSilently(
+    overrides: DataProviderFetchDataOverrides = {}
+  ): Promise<{ rows: unknown[]; totalRows: number } | null> {
+    return this.fetchData(overrides).catch((err) => {
+      logError('Data fetch failed:', err);
+
+      return null;
+    });
+  }
+
+  /**
    * Default handler for [[Hooks#hasExternalDataSource]]: `true` when this instance has a complete server-backed
    * `dataProvider` configuration. Registered in the constructor (early lifecycle) and in `enablePlugin()` after each
    * `disablePlugin()` clears `addHook` listeners.
@@ -834,7 +855,7 @@ export class DataProvider extends BasePlugin {
    * @returns {void}
    */
   readonly #onAfterInit = () => {
-    void this.fetchData();
+    void this.#fetchDataSilently();
   };
 
   /**
@@ -896,7 +917,7 @@ export class DataProvider extends BasePlugin {
       applyFiltersAndRefetch: (filtersForProvider) => {
         this.#queryParameters.filters = filtersForProvider ?? null;
         this.#queryParameters.page = 1;
-        void this.fetchData();
+        void this.#fetchDataSilently();
       },
     },
     conditionsStack
@@ -915,7 +936,7 @@ export class DataProvider extends BasePlugin {
       hot: this.hot,
       hasFetchFn: () => isFunction(this.#getFetchFn()),
       applyQueryParametersFromPlugins: () => this.#applyQueryParametersFromPlugins(),
-      fetchData: overrides => this.fetchData(overrides),
+      fetchData: overrides => this.#fetchDataSilently(overrides),
     },
     currentSortConfig,
     destinationSortConfigs,

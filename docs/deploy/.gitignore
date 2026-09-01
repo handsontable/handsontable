@@ -1,0 +1,8 @@
+# Build artifacts assembled for the Cloudflare Pages deploy
+docs
+preview
+.DS_Store
+node_modules
+package-lock.json
+VERSIONS_VARS
+LATEST_DOCS_VERSION

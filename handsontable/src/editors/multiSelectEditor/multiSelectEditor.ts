@@ -4,8 +4,9 @@ import { BaseEditor } from '../baseEditor';
 import EventManager from '../../eventManager';
 import { DropdownController, type DropdownEntry } from './controllers/dropdownController';
 import { SelectedItemsController } from './controllers/selectedItemsController';
-import { addClass, setAttribute } from '../../helpers/dom/element';
+import { addClass, getDeepActiveElement, setAttribute } from '../../helpers/dom/element';
 import { isPrintableChar } from '../../helpers/unicode';
+import { localeLowerCase } from '../../helpers/string';
 import { A11Y_LABEL, A11Y_GROUP } from '../../helpers/a11y';
 import { EDITOR_EDIT_GROUP } from '../../shortcuts/contexts/constants';
 import {
@@ -166,8 +167,8 @@ export class MultiSelectEditor extends BaseEditor {
     );
 
     this.addHook('afterDestroy', () => this.destroy());
-    this.addHook('afterSetSourceDataAtCell',
-      (changes: unknown[][], source: string) => this.#onAfterSetSourceDataAtCell(changes, source));
+    this.addHook('afterChange',
+      (changes: unknown[][], source: string) => this.#onAfterChange(changes, source));
     this.addHook('afterScrollHorizontally', () => this.refreshDimensions());
     this.addHook('afterScrollVertically', () => this.refreshDimensions());
 
@@ -295,7 +296,7 @@ export class MultiSelectEditor extends BaseEditor {
     }, {
       keys: [['ArrowDown']],
       callback: () => {
-        if (this.hot.rootDocument.activeElement === this.getInputElement()) {
+        if (getDeepActiveElement(this.hot.rootDocument) === this.getInputElement()) {
           this.dropdownController!.focusFirstItem();
         } else {
           this.dropdownController!.focusNextItem();
@@ -309,7 +310,7 @@ export class MultiSelectEditor extends BaseEditor {
       keys: [['enter'], ['shift', 'enter'], ['control/meta', 'enter'], ['control/meta', 'shift', 'enter']],
       runOnlyIf: () => !this.#getEditorSetting('enterCommits'),
       callback: (event: Event) => {
-        const activeElement = this.hot.rootDocument.activeElement;
+        const activeElement = getDeepActiveElement(this.hot.rootDocument);
 
         if (activeElement instanceof HTMLInputElement && activeElement.type === 'checkbox') {
           activeElement.checked = !activeElement.checked;
@@ -378,6 +379,7 @@ export class MultiSelectEditor extends BaseEditor {
     query: string,
     filterSelectedItems: boolean = this.#getEditorSetting<boolean>('filterSelectedItems') ?? true
   ): void {
+    const locale = this.cellProperties.locale as string | undefined;
     const filteredItems = this.#getSource().filter((item: unknown) => {
       const value = (typeof item === 'object' && item !== null && 'value' in item)
         ? item.value
@@ -391,7 +393,7 @@ export class MultiSelectEditor extends BaseEditor {
         return String(value).includes(query);
       }
 
-      return String(value).toLowerCase().includes(query.toLowerCase());
+      return localeLowerCase(String(value), locale).includes(localeLowerCase(query, locale));
     });
 
     this.dropdownController!.fillDropdown(filteredItems, this.#selectedItems.getItemsArray());
@@ -477,14 +479,16 @@ export class MultiSelectEditor extends BaseEditor {
   }
 
   /**
-   * Handles the afterSetSourceDataAtCell hook to re-sync the dropdown when the renderer updates the source data for the edited cell.
+   * Handles the `afterChange` hook to re-sync the dropdown when the renderer removes a chip from the edited cell.
    */
-  #onAfterSetSourceDataAtCell(changes: unknown[][], source: string): void {
+  #onAfterChange(changes: unknown[][] | null, source: string): void {
     if (
       this.isOpened() &&
       source === `${EDITOR_TYPE}-renderer` &&
-      parseInt(String(changes[0][0]), 10) === this.cellProperties.visualRow &&
-      parseInt(String(changes[0][1]), 10) === this.cellProperties.visualCol
+      Array.isArray(changes) &&
+      changes.length > 0 &&
+      changes[0][0] === this.cellProperties.visualRow &&
+      this.hot.propToCol(changes[0][1] as string | number) === this.cellProperties.visualCol
     ) {
       this.#syncSelectedValues(changes[0][3] as unknown[]);
       this.dropdownController!.fillDropdown(this.#getSource(), this.#selectedItems.getItemsArray());

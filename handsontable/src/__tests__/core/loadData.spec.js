@@ -355,7 +355,9 @@ describe('Core.loadData', () => {
       cells: cellsSpy,
     });
 
-    expect(cellsSpy.calls.count()).toBe(24); // 12 calls x 2 (for rendering engine and data source validation)
+    // 12 calls for the rendering engine only. Source-data validation no longer resolves per-cell meta
+    // (it runs uncached and skips entirely when no validator is defined), so it does not re-invoke `cells`.
+    expect(cellsSpy.calls.count()).toBe(12);
   });
 
   // https://github.com/handsontable/handsontable/pull/233
@@ -389,7 +391,9 @@ describe('Core.loadData', () => {
       cells: cellsSpy
     });
 
-    expect(cellsSpy.calls.count()).toBe(24); // 12 calls x 2 (for rendering engine and data source validation)
+    // 12 calls for the rendering engine only. Source-data validation no longer resolves per-cell meta
+    // (it runs uncached and skips entirely when no validator is defined), so it does not re-invoke `cells`.
+    expect(cellsSpy.calls.count()).toBe(12);
   });
 
   it('should not invoke the cells callback multiple times with the same row/col (with overlays, separate `loadData`' +

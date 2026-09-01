@@ -7,7 +7,9 @@ import type {
   CellCoords as WalkontableCellCoords,
   CellRange as WalkontableCellRange,
 } from '../3rdparty/walkontable/src';
-import type { CellChange, ChangeSource, RowObject, CellValue, CellProperties, ColumnSettings } from '../settings';
+import type {
+  CellChange, ChangeSource, RowObject, CellValue, CellProperties, ColumnSettings, RemoveIndexSignature,
+} from '../settings';
 import type { ColumnConditions } from '../plugins/filters';
 import type { LayoutConfig } from './layout';
 import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
@@ -23,6 +25,58 @@ import type {
   DataProviderConfig,
 } from '../plugins/dataProvider';
 import type { RangeType, HotInstance } from './types';
+import type { ThemeColorScheme, DensityType } from '../themes/types';
+
+/**
+ * The function shape of the `sourceDataValidator` option. Returns `true` when the value is valid.
+ * The optional `rowIndependent` flag marks a validator whose result depends only on the value and
+ * column/global-level meta, never on per-row meta - letting the source-data validation pass batch
+ * whole columns instead of scanning every cell.
+ */
+export type SourceDataValidatorFn = {
+  (value: CellValue, cellMeta: CellProperties, source?: string): boolean;
+  rowIndependent?: boolean;
+};
+
+/**
+ * The write surface passed as the second argument to the `sanitizer` option, so a sanitizer can
+ * apply different rules per surface (for example, stricter for pasted content).
+ *
+ * Annotate the parameter with it to get completion on the values you branch on:
+ *
+ * ```ts
+ * import type { SanitizerContext } from 'handsontable';
+ *
+ * const settings = {
+ *   sanitizer: (content: string, source: SanitizerContext) =>
+ *     source === 'CopyPaste.paste' ? strict(content) : loose(content),
+ * };
+ * ```
+ *
+ * The listed values are the ones a grid write surface passes to a configured sanitizer. Two more
+ * strings reach `fastInnerHTML` and are deliberately not listed:
+ *
+ * - `'html'`, from the `allowHtml` autocomplete and dropdown path only. It always travels with
+ *   `sanitizer: false`, so no sanitizer ever sees it. (The `html` cell type passes no context at all
+ *   and so falls through to the default below.)
+ * - `'innerHTML'`, the `context` parameter's own default. No grid surface reaches a sanitizer under
+ *   it, but `Handsontable.dom.fastInnerHTML()` is public, so a caller passing their own sanitizer
+ *   and no context of their own does receive it.
+ *
+ * The `(string & {})` member is what keeps that last case compiling, along with a sanitizer shared
+ * with another library or one branching on a surface added in a later release. The trade is that the
+ * type cannot reject a wrong value: a misspelled comparison comes out as a branch that never runs.
+ */
+export type SanitizerContext =
+  | 'header'
+  | 'password'
+  | 'contextMenu'
+  | 'selectEditor'
+  | 'dialog'
+  | 'notification'
+  | 'CopyPaste.paste'
+  | 'CopyPaste.paste.sourceData'
+  | (string & {});
 
 /**
  * Grid settings interface representing all possible Handsontable configuration options.
@@ -43,6 +97,8 @@ export interface GridSettings {
   readOnlyCellClassName?: string;
   tableClassName?: string | string[];
   themeName?: string;
+  colorScheme?: ThemeColorScheme;
+  density?: DensityType;
 
   // Dimensions
   width?: number | string | (() => number | string);
@@ -100,6 +156,8 @@ export interface GridSettings {
   readOnly?: boolean;
   skipColumnOnPaste?: boolean;
   skipRowOnPaste?: boolean;
+  sourceDataValidator?: SourceDataValidatorFn;
+  sourceDataWarningMessage?: string;
   tabMoves?: { row: number; col: number } | ((event: KeyboardEvent) => { row: number; col: number });
   trimWhitespace?: boolean;
   undo?: boolean;
@@ -128,6 +186,8 @@ export interface GridSettings {
   navigableHeaders?: boolean;
   outsideClickDeselects?: boolean | ((target: HTMLElement, coords?: WalkontableCellCoords) => boolean);
   selectionMode?: 'single' | 'range' | 'multiple';
+  selectionHandles?: boolean;
+  moveCells?: boolean;
   tabNavigation?: boolean;
   autoWrapCol?: boolean;
   autoWrapRow?: boolean;
@@ -156,13 +216,14 @@ export interface GridSettings {
   comments?: boolean | object | object[];
   contextMenu?: boolean | object | string[];
   customBorders?: boolean | object[];
+  customBordersProgressive?: boolean | { chunkSize?: number };
   dialog?: boolean | object;
   dataProvider?: DataProviderConfig;
   dragToScroll?: boolean | { interval?: { min?: number; max?: number }; rampDistance?: number };
   dropdownMenu?: boolean | object | string[];
   emptyDataState?: boolean | object;
   filters?: boolean | object;
-  formulas?: boolean | { engine: unknown; sheetName?: string; [key: string]: unknown };
+  formulas?: boolean | { engine: unknown; sheetName?: string; hyperlinks?: boolean; [key: string]: unknown };
   hiddenColumns?: boolean | object;
   hiddenRows?: boolean | object;
   loading?: boolean | object;
@@ -185,6 +246,7 @@ export interface GridSettings {
   // Date / Time
   dateFormat?: Intl.DateTimeFormatOptions;
   timeFormat?: Intl.DateTimeFormatOptions;
+  dateTimeFormat?: Intl.DateTimeFormatOptions;
   defaultDate?: string;
 
   // Password
@@ -199,6 +261,7 @@ export interface GridSettings {
   locale?: string;
   language?: string;
   numericFormat?: object;
+  preserveNumericLiteral?: boolean;
   selectOptions?: string[] | number[] | object[] | Record<string, string>
     | ((visualRow: number, visualColumn: number, prop: string | number) => string[] | Record<string, string>);
   strict?: boolean;
@@ -219,7 +282,15 @@ export interface GridSettings {
   preventWheel?: boolean;
 
   // Security
-  sanitizer?: (html: string, ...args: any[]) => string; // eslint-disable-line @typescript-eslint/no-explicit-any
+  // Deliberately left as `...args: any[]` rather than naming `context: SanitizerContext` here.
+  // Declaring the second parameter would raise the option's minimum *call* arity from one to two,
+  // so `hot.getSettings().sanitizer?.(html)` would stop compiling (TS2555) for anyone who reuses the
+  // configured sanitizer. Declaring it optional instead types it `SanitizerContext | undefined`,
+  // which breaks any body that uses the parameter as a definite string. Both are build breaks on
+  // upgrade, so the contract is published as the exported `SanitizerContext` type that a user opts
+  // into on their own parameter - see its docs above.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sanitizer?: (html: string, ...args: any[]) => string;
 
   // State
   initialState?: Record<string, unknown>;
@@ -241,6 +312,7 @@ export interface GridSettings {
     movePossible: boolean, orderChanged: boolean) => void;
   afterColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void;
   afterColumnSequenceChange?: (source: ChangeSource) => void;
+  afterCustomBordersUpdate?: () => void;
   afterColumnSequenceCacheUpdate?: (indexesChangesState: {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean; hiddenIndexesChanged: boolean;
   }) => void;
@@ -259,7 +331,7 @@ export interface GridSettings {
   afterCut?: (data: CellValue[][], coords: RangeType[]) => void;
   afterDeselect?: () => void;
   afterDestroy?: () => void;
-  afterDetachChild?: (parent: RowObject, element: RowObject) => void;
+  afterDetachChild?: (parent: RowObject, element: RowObject, finalElementPosition: number | null) => void;
   afterDialogFocus?: (focusSource: 'tab_from_above' | 'tab_from_below' | 'click' | 'show') => void;
   afterDialogHide?: () => void;
   afterDialogShow?: () => void;
@@ -295,6 +367,12 @@ export interface GridSettings {
   afterModifyTransformFocus?: (coords: WalkontableCellCoords, rowTransformDir: number, colTransformDir: number) => void;
   afterModifyTransformStart?: (coords: WalkontableCellCoords, rowTransformDir: number, colTransformDir: number) => void;
   afterMomentumScroll?: () => void;
+  /**
+   * Fired after a `moveCells` drag has relocated a selection.
+   *
+   * @since 18.1.0
+   */
+  afterMoveCells?: (sourceRange: WalkontableCellRange, targetRange: WalkontableCellRange, isCopy: boolean) => void;
   afterNamedExpressionAdded?: (namedExpressionName: string, changes: unknown[]) => void;
   afterNamedExpressionRemoved?: (namedExpressionName: string, changes: unknown[]) => void;
   afterNotificationHide?: (id: string) => void;
@@ -311,9 +389,12 @@ export interface GridSettings {
   afterOnCellContextMenu?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellCornerDblClick?: (event: MouseEvent) => void;
   afterOnCellCornerMouseDown?: (event: MouseEvent) => void;
+  afterOnSelectionHandleMouseDown?: (event: MouseEvent, edge: 'top' | 'bottom' | 'start' | 'end') => void;
+  afterOnSelectionEdgeMouseDown?: (event: MouseEvent, edge: 'top' | 'bottom' | 'start' | 'end') => void;
   afterOnCellMouseDown?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseOut?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseOver?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
+  afterOnCellMouseOverOutside?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseUp?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterPageChange?: (oldPage: number, newPage: number) => void;
   afterPageCounterVisibilityChange?: (isVisible: boolean) => void;
@@ -332,6 +413,10 @@ export interface GridSettings {
   afterRender?: (isForced: boolean) => void;
   afterRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number,
     value: CellValue, cellProperties: CellProperties) => void;
+  afterRowCollapse?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
+    collapsePossible: boolean, successfullyCollapsed: boolean) => void;
+  afterRowExpand?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
+    expandPossible: boolean, successfullyExpanded: boolean) => void;
   afterRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean, orderChanged: boolean) => void;
   afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
@@ -454,6 +539,16 @@ export interface GridSettings {
   beforeLoadingHide?: () => boolean | void;
   beforeLoadingShow?: () => boolean | void;
   beforeMergeCells?: (cellRange: WalkontableCellRange, auto: boolean) => void;
+  /**
+   * Fired before a `moveCells` drag relocates a selection. Return `false` to cancel the move.
+   *
+   * @since 18.1.0
+   */
+  beforeMoveCells?: (
+    sourceRange: WalkontableCellRange,
+    targetTopLeft: WalkontableCellCoords,
+    isCopy: boolean
+  ) => void | boolean;
   beforeNotificationHide?: (id: string) => boolean | void;
   beforeNotificationShow?: (options: {
     id: string;
@@ -471,6 +566,8 @@ export interface GridSettings {
   beforeOnCellMouseOut?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   beforeOnCellMouseOver?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement,
     controller: { preventDefault: boolean }) => void;
+  beforeOnCellMouseOverOutside?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement,
+    controller: { row: boolean, column: boolean, cell: boolean }) => void;
   beforeOnCellMouseUp?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   beforePageChange?: (oldPage: number, newPage: number) => void | boolean;
   beforePageSizeChange?: (oldPageSize: number | 'auto', newPageSize: number | 'auto') => void | boolean;
@@ -480,12 +577,16 @@ export interface GridSettings {
   beforeRefreshDimensions?: (previousDimensions: { width: number; height: number },
     currentDimensions: { width: number; height: number }, actionPossible: boolean) => boolean | void;
   beforeRemoveCellClassNames?: () => string[] | void;
-  beforeRemoveCellMeta?: (row: number, column: number, key: string, value: unknown) => void;
+  beforeRemoveCellMeta?: (row: number, column: number, key: string, value: unknown) => boolean | void;
   beforeRemoveCol?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
   beforeRemoveRow?: (index: number, amount: number, physicalRows: number[], source?: ChangeSource) => void;
   beforeRender?: (isForced: boolean) => void;
   beforeRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number,
     value: CellValue, cellProperties: CellProperties) => void;
+  beforeRowCollapse?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
+    collapsePossible: boolean) => void | boolean;
+  beforeRowExpand?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
+    expandPossible: boolean) => void | boolean;
   beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean) => void | boolean;
   beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void | false;
@@ -539,7 +640,7 @@ export interface GridSettings {
   modifyColumnHeaderHeight?: () => void;
   modifyColumnHeaderValue?: (headerValue: string, visualColumnIndex: number, headerLevel: number) => void | string;
   modifyColWidth?: (width: number, column: number, source?: string) => void | number;
-  modifyCopyableRange?: (copyableRanges: RangeType[]) => void;
+  modifyCopyableRange?: (copyableRanges: RangeType[]) => RangeType[] | void;
   modifyData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
   modifyFiltersMultiSelectValue?: (value: string, meta: CellProperties) => void | string;
   modifyFocusedElement?: (row: number, column: number, focusedElement: HTMLElement) => void | HTMLElement;
@@ -552,6 +653,7 @@ export interface GridSettings {
   modifyRowHeaderWidth?: (rowHeaderWidth: number) => void | number;
   modifyRowHeight?: (height: number, row: number, source?: string) => void | number;
   modifyRowHeightByOverlayName?: (height: number, row: number, overlayType: string) => void | number;
+  modifySinglePassLayout?: (singlePassLayout: boolean) => void | boolean;
   modifySourceData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
   modifyTransformEnd?: (delta: WalkontableCellCoords) => void;
   modifyTransformFocus?: (delta: WalkontableCellCoords) => void;
@@ -565,10 +667,29 @@ export interface GridSettings {
 /**
  * Extracts all hook callback keys from GridSettings.
  * Used to derive the Events type for addHook/removeHook generics.
+ *
+ * Derived from `RemoveIndexSignature<GridSettings>` rather than `GridSettings` directly -- the raw
+ * type's `[key: string]: any` index signature makes `keyof GridSettings` include `string`, which
+ * collapses this mapped type to `string` and, in turn, collapses `Events` to `{ [key: string]: any }`.
  */
 type HookKey = {
-  [K in keyof GridSettings]-?: NonNullable<GridSettings[K]> extends (...args: any[]) => any ? K : never; // eslint-disable-line @typescript-eslint/no-explicit-any
-}[keyof GridSettings];
+  [K in keyof RemoveIndexSignature<GridSettings>]-?:
+    NonNullable<GridSettings[K]> extends (...args: never[]) => unknown ? K : never;
+}[keyof RemoveIndexSignature<GridSettings>];
+
+/**
+ * The shape of a configured `sanitizer`, derived from the option so the two cannot drift apart.
+ *
+ * `RemoveIndexSignature` is what makes that guarantee real. `GridSettings` carries a
+ * `[key: string]: any`, so a plain `GridSettings['sanitizer']` lookup would keep resolving - to
+ * `any` - if the option were ever renamed, silently un-typing every internal consumer. Stripping the
+ * index signature first turns the same rename into a compile error here.
+ *
+ * Not re-exported from the package entry points: with the option's second parameter absorbed by
+ * `...args: any[]`, annotating with this type conveys no context, so `SanitizerContext` is what
+ * users are given instead.
+ */
+export type SanitizerFn = NonNullable<RemoveIndexSignature<GridSettings>['sanitizer']>;
 
 /**
  * Map of all Handsontable hook names to their typed callback signatures.

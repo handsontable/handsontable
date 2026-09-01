@@ -4,11 +4,11 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/installation/installation' },
   { path: 'guides/getting-started/configuration-options/configuration-options' },
   { path: 'guides/getting-started/grid-size/grid-size' },
+  { path: 'guides/getting-started/custom-id-class-style/custom-id-class-style' },
   { path: 'guides/getting-started/react-methods/react-methods', onlyFor: ['react'] },
   { path: 'guides/getting-started/angular-hot-instance/angular-hot-instance', onlyFor: ['angular'] },
   { path: 'guides/getting-started/vue3-hot-reference/vue3-hot-reference', onlyFor: ['vue'] },
   { path: 'guides/getting-started/vue3-hot-column/vue3-hot-column', onlyFor: ['vue'] },
-  { path: 'guides/getting-started/vue3-custom-id-class-style/vue3-custom-id-class-style', onlyFor: ['vue'] },
   { path: 'guides/getting-started/react-redux/react-redux', onlyFor: ['react'] },
   { path: 'guides/getting-started/vue3-vuex/vue3-vuex', onlyFor: ['vue'] },
   { path: 'guides/getting-started/vue3-pinia/vue3-pinia', onlyFor: ['vue'] },
@@ -41,9 +41,11 @@ const dataManagementItems = [
   { path: 'guides/getting-started/binding-to-data/binding-to-data' },
   { path: 'guides/getting-started/saving-data/saving-data' },
   { path: 'guides/getting-started/events-and-hooks/events-and-hooks' },
+  { path: 'guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes' },
   { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
   { path: 'guides/accessories-and-menus/export-to-csv/export-to-csv' },
   { path: 'guides/cell-features/clipboard/clipboard' },
+  { path: 'guides/data-management/collaboration/collaboration' },
 ];
 
 
@@ -52,12 +54,12 @@ const columnsItems = [
   { path: 'guides/columns/column-header/column-header' },
   { path: 'guides/columns/column-groups/column-groups' },
   { path: 'guides/columns/column-hiding/column-hiding' },
+  { path: 'guides/columns/column-adding/column-adding' },
   { path: 'guides/columns/column-moving/column-moving' },
   { path: 'guides/columns/column-freezing/column-freezing' },
   { path: 'guides/columns/column-width/column-width' },
   { path: 'guides/columns/column-summary/column-summary' },
   { path: 'guides/columns/column-virtualization/column-virtualization' },
-  { path: 'guides/columns/column-menu/column-menu' },
   { path: 'guides/columns/column-filter/column-filter' },
 ];
 
@@ -80,7 +82,7 @@ const cellFeaturesItems = [
   { path: 'guides/cell-features/merge-cells/merge-cells' },
   { path: 'guides/cell-features/conditional-formatting/conditional-formatting' },
   { path: 'guides/cell-features/text-alignment/text-alignment' },
-  { path: 'guides/cell-features/disabled-cells/disabled-cells' },
+  { path: 'guides/cell-features/read-only-cells/read-only-cells' },
   { path: 'guides/cell-features/comments/comments' },
   { path: 'guides/cell-features/autofill-values/autofill-values' },
   { path: 'guides/cell-features/formatting-cells/formatting-cells' },
@@ -96,9 +98,11 @@ const cellFunctionsItems = [
 
 const cellTypesItems = [
   { path: 'guides/cell-types/cell-type/cell-type' },
+  { path: 'guides/cell-types/text-cell-type/text-cell-type' },
   { path: 'guides/cell-types/numeric-cell-type/numeric-cell-type' },
   { path: 'guides/cell-types/date-cell-type/date-cell-type' },
   { path: 'guides/cell-types/time-cell-type/time-cell-type' },
+  { path: 'guides/cell-types/datetime-cell-type/datetime-cell-type' },
   { path: 'guides/cell-types/checkbox-cell-type/checkbox-cell-type' },
   { path: 'guides/cell-types/select-cell-type/select-cell-type' },
   { path: 'guides/cell-types/dropdown-cell-type/dropdown-cell-type' },
@@ -109,6 +113,7 @@ const cellTypesItems = [
 ];
 
 const formulasItems = [
+  { path: 'guides/formulas/installation/installation' },
   { path: 'guides/formulas/formula-calculation/formula-calculation' },
 ];
 
@@ -123,9 +128,11 @@ const navigationAndAccessibilityItems = [
 
 const accessoriesAndMenusItems = [
   { path: 'guides/accessories-and-menus/context-menu/context-menu' },
+  { path: 'guides/accessories-and-menus/column-menu/column-menu' },
   { path: 'guides/accessories-and-menus/drag-to-scroll/drag-to-scroll' },
   { path: 'guides/accessories-and-menus/undo-redo/undo-redo' },
   { path: 'guides/accessories-and-menus/icon-pack/icon-pack' },
+  { path: 'guides/accessories-and-menus/use-icons-in-cells/use-icons-in-cells' },
   { path: 'guides/accessories-and-menus/empty-data-state/empty-data-state' },
   { path: 'guides/dialog/dialog/dialog' },
   { path: 'guides/dialog/loading/loading' },
@@ -146,6 +153,7 @@ const buildingAndToolingItems = [
   { path: 'guides/tools-and-building/typescript-types/typescript-types' },
   { path: 'guides/tools-and-building/custom-plugins/custom-plugins' },
   { path: 'guides/tools-and-building/custom-builds/custom-builds' },
+  { path: 'guides/tools-and-building/shadow-dom/shadow-dom' },
   { path: 'guides/tools-and-building/testing/testing' },
 ];
 
@@ -191,6 +199,7 @@ const upgradeAndMigrationItems = [
   { path: 'guides/upgrade-and-migration/versioning-policy/versioning-policy' },
   { path: 'guides/upgrade-and-migration/deprecation-policy/deprecation-policy' },
   { path: 'guides/upgrade-and-migration/long-term-support/long-term-support' },
+  { path: 'guides/upgrade-and-migration/migrating-from-18.0-to-18.1/migrating-from-18.0-to-18.1' },
   { path: 'guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-16.0-to-16.1/migrating-from-16.0-to-16.1' },

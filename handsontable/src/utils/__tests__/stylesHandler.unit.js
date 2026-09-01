@@ -577,4 +577,52 @@ describe('StylesHandler', () => {
       expect(handler.getDefaultRowHeight()).toBeNull();
     });
   });
+  describe('recacheValuesMeasuredWithoutStyles', () => {
+    it('should report no re-read for a root element that resolved its styles from the start', () => {
+      const rootElement = createMockRootElement();
+
+      document.body.appendChild(rootElement);
+
+      const handler = new StylesHandler({
+        hot: createMockHot(),
+        rootElement,
+        rootDocument: document,
+      });
+
+      handler.useTheme('ht-theme-main');
+
+      expect(handler.recacheValuesMeasuredWithoutStyles()).toBe(false);
+
+      rootElement.remove();
+    });
+
+    it('should report no re-read while the root element still resolves no styles', () => {
+      const handler = new StylesHandler({
+        hot: createMockHot(),
+        rootElement: createMockRootElement(),
+        rootDocument: document,
+      });
+
+      handler.useTheme('ht-theme-main');
+
+      expect(handler.recacheValuesMeasuredWithoutStyles()).toBe(false);
+    });
+
+    it('should re-read the values once the root element resolves its styles, and only once', () => {
+      const rootElement = createMockRootElement();
+      const handler = new StylesHandler({
+        hot: createMockHot(),
+        rootElement,
+        rootDocument: document,
+      });
+
+      handler.useTheme('ht-theme-main');
+      document.body.appendChild(rootElement);
+
+      expect(handler.recacheValuesMeasuredWithoutStyles()).toBe(true);
+      expect(handler.recacheValuesMeasuredWithoutStyles()).toBe(false);
+
+      rootElement.remove();
+    });
+  });
 });

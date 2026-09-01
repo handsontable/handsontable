@@ -1,7 +1,7 @@
 import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
 import { BaseAction } from './_base';
-import { getCellMetas } from '../utils';
+import { getCellMetas, collectAffectedMergedCells, restoreMergedCells } from '../utils';
 import { deepClone } from '../../../helpers/object';
 
 /**
@@ -97,7 +97,7 @@ export class RemoveRowAction extends BaseAction {
           fixedRowsTop: hot.getSettings().fixedRowsTop ?? 0,
           rowIndexesSequence: hot.rowIndexMapper.getIndexesSequence(),
           removedCellMetas: getCellMetas(hot, physicalRowIndex, lastRowIndex, 0, hot.countCols() - 1),
-          removedMergedCells: collectAffectedMergedCells(hot, index, amount),
+          removedMergedCells: collectAffectedMergedCells(hot, 'row', index, amount),
         });
       };
 
@@ -160,73 +160,4 @@ export class RemoveRowAction extends BaseAction {
     hot.addHookOnce('afterRemoveRow', redoneCallback);
     hot.alter('remove_row', hot.toVisualRow(this.index), this.data.length, 'UndoRedo.redo');
   }
-}
-
-/**
- * Collects merged cells that overlap the removed visual row range.
- * The plugin's own `shiftCollections` logic mutates surviving merges asymmetrically
- * (a partial top removal cannot be reversed on `afterCreateRow`), so on undo we
- * must restore every overlapping merge from its pre-removal state.
- *
- * @param {Core} hot The Handsontable instance.
- * @param {number} visualRow First visual row being removed.
- * @param {number} amount Number of rows being removed.
- * @returns {Array} Array of `{ row, col, rowspan, colspan }` objects.
- */
-function collectAffectedMergedCells(hot: HotInstance, visualRow: number, amount: number) {
-  const mergeCellsPlugin = hot.getPlugin('mergeCells');
-
-  if (!mergeCellsPlugin?.enabled) {
-    return [];
-  }
-
-  const lastVisualRow = visualRow + amount - 1;
-  const affected: Array<{ row: number; col: number; rowspan: number; colspan: number }> = [];
-
-  type MergedCell = { row: number; col: number; rowspan: number; colspan: number };
-
-  mergeCellsPlugin.mergedCellsCollection?.mergedCells.forEach(({ row, col, rowspan, colspan }: MergedCell) => {
-    const mergeStart = row;
-    const mergeEnd = row + rowspan - 1;
-
-    if (mergeStart <= lastVisualRow && mergeEnd >= visualRow) {
-      affected.push({ row, col, rowspan, colspan });
-    }
-  });
-
-  return affected;
-}
-
-/**
- * Re-applies merged cells affected by row removal. Any leftover partial merge in
- * the captured area is unmerged first so the original range can be re-merged.
- *
- * @param {Core} hot The Handsontable instance.
- * @param {Array} mergedCells Array of `{ row, col, rowspan, colspan }` objects.
- */
-function restoreMergedCells(
-  hot: HotInstance, mergedCells: Array<{ row: number; col: number; rowspan: number; colspan: number }>
-) {
-  if (!mergedCells || mergedCells.length === 0) {
-    return;
-  }
-
-  const mergeCellsPlugin = hot.getPlugin('mergeCells');
-
-  if (!mergeCellsPlugin?.enabled) {
-    return;
-  }
-
-  type MergedCell = { row: number; col: number; rowspan: number; colspan: number };
-
-  mergedCells.forEach(({ row, col, rowspan, colspan }: MergedCell) => {
-    const endRow = row + rowspan - 1;
-    const endCol = col + colspan - 1;
-    const start = hot._createCellCoords(row, col);
-    const end = hot._createCellCoords(endRow, endCol);
-    const range = hot._createCellRange(start, start, end);
-
-    mergeCellsPlugin.unmergeRange(range, true);
-    mergeCellsPlugin.merge(row, col, endRow, endCol);
-  });
 }

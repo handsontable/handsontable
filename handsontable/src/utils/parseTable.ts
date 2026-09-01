@@ -59,7 +59,7 @@ export function instanceToHTML(instance: HotInstance): string {
 
       } else {
         const cellData = data[row][column];
-        const { hidden, rowspan, colspan } = instance.getCellMeta(row - columnModifier, column - rowModifier);
+        const { hidden, rowspan, colspan } = instance.getCellMetaTransient(row - columnModifier, column - rowModifier);
 
         if (!hidden) {
           const attrs = [];
@@ -270,19 +270,28 @@ export function replaceTdCellsWithTextContent(html: string): string {
 // eslint-disable-next-line no-restricted-globals
 export function htmlToGridSettings(element: HTMLTableElement | string, rootDocument: Document = document) {
   const settingsObj: Record<string, unknown> = {};
-  const fragment = rootDocument.createDocumentFragment();
-  const tempElem = rootDocument.createElement('div');
-
-  fragment.appendChild(tempElem);
 
   let checkElement: HTMLTableElement | string | null = element;
+  // Root the sibling-node lookups below (currently only the generator `<meta>`) at the parsed
+  // markup. Stays `null` when a live element is passed in, which is what the previous
+  // implementation effectively did - the scratch element it searched was empty in that case.
+  let parsedRoot: Document | null = null;
 
   if (typeof checkElement === 'string') {
     // Use replaceTdCellsWithTextContent so nested <td> (e.g. Excel shape cells) are matched correctly
     const normalizedHTML = replaceTdCellsWithTextContent(checkElement);
 
-    tempElem.insertAdjacentHTML('afterbegin', normalizedHTML);
-    checkElement = tempElem.querySelector<HTMLTableElement>('table');
+    // `DOMParser` builds a document with no browsing context, so reading the pasted markup cannot
+    // run any of it: no image fetch, no `onerror`, no script. Writing the same string into a
+    // detached element of `rootDocument` does run it - the element is detached, but the document
+    // owning it is not inert, which is how an `<img src=x onerror>` in a paste payload executed.
+    // The parsed nodes are only ever read from here. Importing them into `rootDocument` would
+    // make them live again, so never do that.
+    // eslint-disable-next-line no-restricted-globals
+    const Parser = rootDocument.defaultView?.DOMParser ?? DOMParser;
+
+    parsedRoot = new Parser().parseFromString(normalizedHTML, 'text/html');
+    checkElement = parsedRoot.querySelector<HTMLTableElement>('table');
   }
 
   if (!checkElement || !isHTMLTable(checkElement as HTMLElement)) {
@@ -290,7 +299,7 @@ export function htmlToGridSettings(element: HTMLTableElement | string, rootDocum
   }
 
   const el: HTMLTableElement = checkElement as HTMLTableElement;
-  const generator = tempElem.querySelector('meta[name$="enerator"]') as HTMLMetaElement | null;
+  const generator = parsedRoot?.querySelector<HTMLMetaElement>('meta[name$="enerator"]') ?? null;
   const hasRowHeaders = el.querySelector('tbody th') !== null;
   const trElement = el.querySelector('tr') as HTMLTableRowElement | null;
   const countCols = !trElement ? 0 : (Array.from(trElement.cells)

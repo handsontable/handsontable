@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable license bar e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    E2E fixture for the license notification bar (DEV-2192). The grid is
+    intentionally narrow and initialized WITHOUT a license key, so the license
+    notification renders in the bottom slot and its content (including the
+    unbreakable support e-mail address) must fit the grid-defined bar width.
+    The grid width is configurable via the ?width= query param (sanitized to a
+    positive integer, default 150) so tests can probe several narrow widths.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const widthParam = parseInt(new URLSearchParams(location.search).get('width'), 10);
+    const gridWidth = Number.isInteger(widthParam) && widthParam > 0 ? widthParam : 150;
+
+    const hot = new Handsontable(container, {
+      data: [
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      width: gridWidth,
+      height: 150,
+      // A real legacy key that expired on 23/05/2011, so it is expired against any modern build.
+      // A LAPSED key is the state that renders the bottom bar: since DEV-2562 a missing or invalid
+      // key renders the blocking modal instead and no bar at all. The bar's copy still carries the
+      // unbreakable e-mail address this spec is about.
+      licenseKey: 'd0134-95841-770f2-c4f21-3751d',
+    });
+  </script>
+</body>
+</html>

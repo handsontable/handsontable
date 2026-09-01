@@ -1,4 +1,10 @@
 .htSummaryRow {
   font-weight: 600;
-  background-color: var(--ht-background-color-extra-light, #f2f3f5);
+}
+
+/* The summary row is always read-only, so Handsontable applies its built-in .htDimmed
+   background with `!important`. Match that specificity and add `!important` here too,
+   so this rule - not the default read-only style - decides the summary row's background. */
+.handsontable .htSummaryRow.htDimmed {
+  background-color: var(--ht-background-secondary-color, #f2f3f5) !important;
 }

@@ -25,7 +25,6 @@ const ExampleComponent: FC = () => (
     colHeaders={true}
     height="auto"
     width="auto"
-    minSpareRows={1}
     autoWrapRow={true}
     autoWrapCol={true}
     licenseKey="non-commercial-and-evaluation"

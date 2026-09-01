@@ -7,8 +7,6 @@ import type { GridSettings } from 'handsontable/settings';
 // register Handsontable's modules
 registerAllModules();
 
-const colorData = [['yellow'], ['red'], ['orange'], ['green'], ['blue'], ['gray'], ['black'], ['white']];
-
 const manufacturerData = [
   { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
   { name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC' },
@@ -49,18 +47,12 @@ const hotSettings = ref<GridSettings>({
     },
     { type: 'numeric' },
     {
-      type: 'handsontable',
-      handsontable: {
-        colHeaders: false,
-        data: colorData,
-      },
+      type: 'dropdown',
+      source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'],
     },
     {
-      type: 'handsontable',
-      handsontable: {
-        colHeaders: false,
-        data: colorData,
-      },
+      type: 'dropdown',
+      source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'],
     },
   ],
   licenseKey: 'non-commercial-and-evaluation',

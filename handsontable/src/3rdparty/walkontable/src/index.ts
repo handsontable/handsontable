@@ -20,7 +20,7 @@ import {
   COLUMN_TYPE,
   CUSTOM_SELECTION_TYPE,
 } from './selection';
-import * as Renderer from './renderer';
+import * as Renderer from './render';
 import { NodesPool } from './utils/nodesPool';
 
 export { OrderView, SharedOrderView } from './utils/orderView';

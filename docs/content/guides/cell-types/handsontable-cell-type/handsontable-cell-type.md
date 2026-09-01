@@ -13,6 +13,7 @@ vue:
   metaTitle: Handsontable cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Add a spreadsheet editor in a popup, by using the Handsontable cell type.
 
@@ -31,6 +32,8 @@ HOT-in-HOT opens by any of the following:
 While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused at all times.
 
 ## Basic example
+
+The first column uses the handsontable cell type for a searchable manufacturer list. The color columns use the [dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) for compact selection from a short list.
 
 ::: only-for javascript
 
@@ -86,6 +89,8 @@ While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused 
 | <kbd>**Arrow Up**</kbd> | Move selection in HOT-in-HOT upwards. If the first row was selected, deselect. If HOT-in-HOT was deselected, behave as <kbd>**Enter**</kbd> but move main HOT selection upwards |
 | <kbd>**Arrow Right**</kbd> | Move text cursor in the text field to the left. If cursor was at start, behave as <kbd>**Enter**</kbd> but move main HOT selection to the left |
 | <kbd>**Arrow Left**</kbd> | Move text cursor in the text field to the right. If cursor was at end, behave as <kbd>**Tab**</kbd> |
+
+For the full list of default keyboard shortcuts, see [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#handsontable-editor-keyboard-shortcuts).
 
 ## Result
 

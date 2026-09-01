@@ -15,7 +15,6 @@ vue:
   metaTitle: Bundle size - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
-menuTag: updated
 ---
 Reduce the size of your JavaScript bundle by getting rid of redundant Handsontable modules.
 
@@ -83,6 +82,29 @@ export class ExampleComponent {
     contextMenu: true,
   };
 }
+```
+
+:::
+
+::: only-for vue
+
+```vue
+<script setup lang="ts">
+import Handsontable from 'handsontable/base';
+import { HotTable } from '@handsontable/vue3';
+import { registerPlugin, ContextMenu } from 'handsontable/plugins';
+import type { GridSettings } from 'handsontable/settings';
+
+registerPlugin(ContextMenu);
+
+const hotSettings: GridSettings = {
+  contextMenu: true,
+};
+</script>
+
+<template>
+  <HotTable :settings="hotSettings" />
+</template>
 ```
 
 :::

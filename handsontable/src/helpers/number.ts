@@ -243,6 +243,85 @@ export function getParsedNumber(numericData: string, options: { decimalSeparator
 }
 
 /**
+ * Converts a decimal or scientific-notation numeric string to its plain decimal form
+ * (`1e2` → `100`, `1e-7` → `0.0000001`). Leading zeros and a leading `+` are dropped, and the
+ * `.5`/`5.` shorthands gain the missing digit. Trailing fractional zeros are kept — they carry
+ * the information [[isLossyNumericConversion]] detects. A string that does not match the plain
+ * number grammar is returned trimmed but otherwise unchanged.
+ *
+ * @param {string} numericText The numeric string to normalize.
+ * @returns {string}
+ */
+function toPlainDecimalString(numericText: string): string {
+  const match = /^([+-]?)(\d*)(?:\.(\d*))?(?:e([+-]?\d+))?$/i.exec(numericText.trim());
+
+  if (match === null || (match[2] === '' && (match[3] ?? '') === '')) {
+    return numericText.trim();
+  }
+
+  const sign = match[1] === '-' ? '-' : '';
+  const integerDigits = match[2];
+  const fractionDigits = match[3] ?? '';
+  const exponent = Number.parseInt(match[4] ?? '0', 10);
+
+  // A double tops out near 1e308, so an exponent this large can never describe a finite
+  // number. The exponent is also the only unbounded driver of the two expansions below
+  // (the digits themselves only ever shrink or keep the string length): without this bound
+  // they allocate an enormous string or throw `RangeError: Invalid string length` for
+  // inputs like `1e999999999`. Bounding the exponent alone — not the digit count — keeps
+  // long leading-zero literals (`000…0005`) normalizing, so they do not read as lossy.
+  if (Math.abs(exponent) > 1000) {
+    return numericText.trim();
+  }
+
+  let digits = `${integerDigits}${fractionDigits}`;
+  let pointIndex = integerDigits.length + exponent;
+
+  if (pointIndex > digits.length) {
+    digits = digits.padEnd(pointIndex, '0');
+  }
+
+  if (pointIndex < 1) {
+    digits = `${'0'.repeat(1 - pointIndex)}${digits}`;
+    pointIndex = 1;
+  }
+
+  const integerPart = digits.slice(0, pointIndex).replace(/^0+(?=\d)/, '');
+  const fractionPart = digits.slice(pointIndex);
+
+  return `${sign}${integerPart}${fractionPart.length > 0 ? `.${fractionPart}` : ''}`;
+}
+
+/**
+ * Whether converting a plain numeric string to its parsed JS number loses information.
+ * Two situations count as lossy: trailing fractional zeros (e.g. `9.0` → `9`) and precision
+ * beyond `Number.MAX_SAFE_INTEGER` (e.g. `12345678901234567.8` → `12345678901234568`).
+ *
+ * Both the input and `String(parsedNumber)` are normalized to plain decimal notation before
+ * comparing, so purely cosmetic differences (leading zeros, a leading `+`, `.5`/`5.`, and
+ * scientific notation on either side — `1e2` vs `100`, `0.0000001` vs `1e-7`) are not treated
+ * as loss. A plain `-0` is not loss either — the parsed number `-0` keeps the sign even though
+ * `String(-0)` drops it. A mantissa trailing zero that a positive exponent shifts onto or left of the
+ * decimal point (`1.0e2` → `100`, `1.10e2` → `110`) survives as an integer digit of the exact
+ * value, so it is not loss either; only zeros that stay fractional after the shift
+ * (`1.10e1` → `11.0`) are dropped by parsing and count as lossy.
+ *
+ * Intended only for the plain float path. Thousands-grouped inputs (e.g. `7.000`) are resolved
+ * by the caller before this runs and must not be passed here.
+ *
+ * @param {string} rawInput The raw user input string.
+ * @param {number} parsedNumber The number produced from `rawInput` by `getParsedNumber`.
+ * @returns {boolean}
+ */
+export function isLossyNumericConversion(rawInput: string, parsedNumber: number): boolean {
+  // `String(-0)` drops the sign (`"0"`), but the number `-0` stores the sign exactly, so a
+  // plain `-0` input round-trips without loss and must not read as lossy.
+  const parsedNumberText = Object.is(parsedNumber, -0) ? '-0' : String(parsedNumber);
+
+  return toPlainDecimalString(rawInput.replace(',', '.')) !== toPlainDecimalString(parsedNumberText);
+}
+
+/**
  * Check if the provided argument is an unsigned number.
  *
  * @param {*} value Value to check.

@@ -5,20 +5,22 @@
 import type CellCoords from './cell/coords';
 import type CellRange from './cell/range';
 import type { default as WalkontableSettings } from './settings';
-import type { default as WalkontableTable } from './table';
-import type { default as WalkontableViewport } from './viewport';
-import type { default as WalkontableScroll } from './scroll';
-import type { default as WalkontableOverlays } from './overlays';
+import type { default as WalkontableTable } from './table/baseTable';
+import type { default as WalkontableViewport } from './viewport/viewport';
+import type { default as WalkontableScroll } from './scroll/scroll';
+import type { default as WalkontableOverlays } from './overlay/overlays';
 import type { SelectionManager as WalkontableSelectionManager } from './selection/manager';
-import type { Overlay as WalkontableOverlay } from './overlay/_base';
+import type { Overlay as WalkontableOverlay } from './overlay/regions/_base';
 import type EventManager from '../../../eventManager';
 import type WalkontableEvent from './event';
+import type { GeometryReader } from './domMeasure/geometryReader';
 
 export interface DomBindings {
   rootDocument: Document;
   rootWindow: Window;
   rootElement: HTMLElement;
   rootTable: HTMLTableElement;
+  geometryReader: GeometryReader;
   [key: string]: unknown;
 }
 
@@ -71,68 +73,5 @@ export interface StylesHandler {
   getCSSVariableValue(variableName: string): string | number;
   getDefaultRowHeight(visualRowIndex?: number): number;
   areCellsBorderBox(): boolean;
-  [key: string]: unknown;
-}
-
-/**
- * Data access object passed to Walkontable table/viewport/scroll subsystems.
- */
-export interface DataAccessObject {
-  wot: WalkontableInstance;
-  wtTable: WalkontableTable;
-  wtViewport: WalkontableViewport;
-  wtOverlays: WalkontableOverlays;
-  domBindings: DomBindings;
-  cloneSource: WalkontableInstance;
-  selectionManager: WalkontableSelectionManager;
-  drawn: boolean;
-  parentTableOffset: { top: number; left: number } | number;
-  topOverlayTrimmingContainer: HTMLElement | Window;
-  inlineStartOverlayTrimmingContainer: HTMLElement | Window;
-  topScrollPosition: number;
-  topParentOffset: number;
-  inlineStartScrollPosition: number;
-  inlineStartParentOffset: number;
-  topOverlay: WalkontableOverlay;
-  bottomOverlay: WalkontableOverlay;
-  inlineStartOverlay: WalkontableOverlay;
-  workspaceWidth: number;
-  startColumnRendered: number | null;
-  startColumnVisible: number | null;
-  startColumnPartiallyVisible: number | null;
-  endColumnRendered: number | null;
-  endColumnVisible: number | null;
-  endColumnPartiallyVisible: number | null;
-  countColumnsRendered: number;
-  countColumnsVisible: number;
-  startRowRendered: number | null;
-  startRowVisible: number | null;
-  startRowPartiallyVisible: number | null;
-  endRowRendered: number | null;
-  endRowVisible: number | null;
-  endRowPartiallyVisible: number | null;
-  countRowsRendered: number;
-  countRowsVisible: number;
-  columnHeaders: Function[];
-  rowHeaders: Function[];
-  [key: string]: unknown;
-}
-
-/**
- * Scroll data access object passed to the Walkontable scroll module.
- */
-export interface ScrollDao {
-  drawn: boolean;
-  topOverlay: WalkontableOverlay;
-  inlineStartOverlay: WalkontableOverlay;
-  wtTable: WalkontableTable;
-  wtViewport: WalkontableViewport;
-  wtSettings: WalkontableSettings;
-  rootWindow: Window;
-  totalRows: number;
-  totalColumns: number;
-  fixedRowsTop: number;
-  fixedRowsBottom: number;
-  fixedColumnsStart: number;
   [key: string]: unknown;
 }

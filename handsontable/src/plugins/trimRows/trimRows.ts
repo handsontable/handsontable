@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { TrimmingMap } from '../../translations';
+import type { TrimmingMap } from '../../translations';
 import { arrayEach, arrayReduce } from '../../helpers/array';
 
 export const PLUGIN_KEY = 'trimRows';
@@ -200,8 +200,14 @@ export class TrimRows extends BasePlugin {
       return;
     }
 
-    this.trimmedRowsMap = this.hot.rowIndexMapper.registerMap('trimRows', new TrimmingMap()) as TrimmingMap;
+    this.trimmedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap('trimRows', 'trimming');
     this.trimmedRowsMap!.addLocalHook('init', this.#onMapInit);
+
+    // `createAndRegisterIndexMap` initializes the map synchronously when the dataset is already
+    // loaded (a plugin re-enable), before the hook above could attach - replay the init handler.
+    if (this.hot.rowIndexMapper.getNumberOfIndexes() > 0) {
+      this.#onMapInit();
+    }
 
     super.enablePlugin();
   }

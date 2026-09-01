@@ -132,6 +132,171 @@ describe('AutoFill', () => {
     expect(getSelected()).toEqual([[0, 1, 3, 5]]);
   });
 
+  it('should fill the cells when the fill handle of the last column is dragged diagonally, ' +
+     'with the pointer moved past the table\'s right edge (#dev-2024)', async() => {
+    handsontable({
+      data: [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+        [1, 2, 3],
+      ],
+      fillHandle: true,
+    });
+
+    await selectCell(0, 2);
+
+    const corners = spec().$container.find('.wtBorder.current.corner').toArray();
+    const fillHandle = corners.find(el => el.offsetWidth > 0 && el.offsetHeight > 0);
+    const handleRect = fillHandle.getBoundingClientRect();
+    const targetRect = getCell(2, 2).getBoundingClientRect();
+
+    $(fillHandle).simulate('mousedown', {
+      clientX: handleRect.left + (handleRect.width / 2),
+      clientY: handleRect.top + (handleRect.height / 2),
+    });
+    // the pointer moves down and slightly to the right, past the table's right edge -
+    // it hovers no cell element, so only the document-level `mousemove` listener fires
+    $(document.documentElement).simulate('mousemove', {
+      clientX: targetRect.right + 5,
+      clientY: targetRect.top + (targetRect.height / 2),
+    });
+    $(document.body).simulate('mouseup');
+
+    expect(getData()).toEqual([
+      [1, 2, 3],
+      [4, 5, 3],
+      [7, 8, 3],
+      [1, 2, 3],
+    ]);
+  });
+
+  it('should not fill any cells when the fill handle is clicked and the pointer moves ' +
+     'within the selected cell only', async() => {
+    handsontable({
+      data: [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+        [1, 2, 3],
+      ],
+      fillHandle: true,
+    });
+
+    await selectCell(0, 2);
+
+    const corners = spec().$container.find('.wtBorder.current.corner').toArray();
+    const fillHandle = corners.find(el => el.offsetWidth > 0 && el.offsetHeight > 0);
+    const handleRect = fillHandle.getBoundingClientRect();
+    const sourceRect = getCell(0, 2).getBoundingClientRect();
+
+    $(fillHandle).simulate('mousedown', {
+      clientX: handleRect.left + (handleRect.width / 2),
+      clientY: handleRect.top + (handleRect.height / 2),
+    });
+    $(document.documentElement).simulate('mousemove', {
+      clientX: sourceRect.left + (sourceRect.width / 2),
+      clientY: sourceRect.top + (sourceRect.height / 2),
+    });
+    $(document.body).simulate('mouseup');
+
+    expect(getData()).toEqual([
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9],
+      [1, 2, 3],
+    ]);
+  });
+
+  it('should not fill any cells when the fill handle is pressed and released without a drag ' +
+     '(pointer jitter stays on the handle)', async() => {
+    handsontable({
+      data: [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+        [1, 2, 3],
+      ],
+      fillHandle: true,
+    });
+
+    await selectCell(0, 2);
+
+    const corners = spec().$container.find('.wtBorder.current.corner').toArray();
+    const fillHandle = corners.find(el => el.offsetWidth > 0 && el.offsetHeight > 0);
+    const handleRect = fillHandle.getBoundingClientRect();
+    const cx = handleRect.left + (handleRect.width / 2);
+    const cy = handleRect.top + (handleRect.height / 2);
+
+    $(fillHandle).simulate('mousedown', { clientX: cx, clientY: cy });
+    // a `mousemove` fired at the handle position itself (a press jitter) must not count as a drag
+    $(document.documentElement).simulate('mousemove', { clientX: cx, clientY: cy });
+    $(document.body).simulate('mouseup');
+
+    expect(getData()).toEqual([
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9],
+      [1, 2, 3],
+    ]);
+  });
+
+  it('should not fill any cells when the viewport is scrolled after pressing the fill handle, ' +
+     'but before any drag move', async() => {
+    const sourceData = createSpreadsheetData(100, 5);
+
+    handsontable({
+      data: sourceData.map(row => row.slice()),
+      fillHandle: true,
+      height: 200,
+    });
+
+    await selectCell(20, 0);
+
+    const corners = spec().$container.find('.wtBorder.current.corner').toArray();
+    const fillHandle = corners.find(el => el.offsetWidth > 0 && el.offsetHeight > 0);
+    const handleRect = fillHandle.getBoundingClientRect();
+
+    $(fillHandle).simulate('mousedown', {
+      clientX: handleRect.left + (handleRect.width / 2),
+      clientY: handleRect.top + (handleRect.height / 2),
+    });
+    // scrolling replays the last pointer position through the `afterScroll` handler; before any
+    // real `mousemove` there is no such position, so the scroll must not count as a drag
+    await scrollViewportTo({ row: 0, col: 0 });
+    $(document.body).simulate('mouseup');
+
+    expect(getData()).toEqual(sourceData);
+  });
+
+  it('should not fill any cells when the viewport is scrolled after a press jitter on the fill ' +
+     'handle, but before any drag move', async() => {
+    const sourceData = createSpreadsheetData(100, 5);
+
+    handsontable({
+      data: sourceData.map(row => row.slice()),
+      fillHandle: true,
+      height: 200,
+    });
+
+    await selectCell(20, 0);
+
+    const corners = spec().$container.find('.wtBorder.current.corner').toArray();
+    const fillHandle = corners.find(el => el.offsetWidth > 0 && el.offsetHeight > 0);
+    const handleRect = fillHandle.getBoundingClientRect();
+    const cx = handleRect.left + (handleRect.width / 2);
+    const cy = handleRect.top + (handleRect.height / 2);
+
+    $(fillHandle).simulate('mousedown', { clientX: cx, clientY: cy });
+    // a press jitter records a real pointer position without extending the fill; a following
+    // scroll must not re-count that position as a drag step just because the cell under it moved
+    $(document.documentElement).simulate('mousemove', { clientX: cx, clientY: cy });
+    await scrollViewportTo({ row: 0, col: 0 });
+    $(document.body).simulate('mouseup');
+
+    expect(getData()).toEqual(sourceData);
+  });
+
   it('should not change cell value (drag when fillHandle is set to `false`)', async() => {
     handsontable({
       data: [
@@ -313,6 +478,30 @@ describe('AutoFill', () => {
 
     expect(getDataAtCell(2, 2)).toEqual(3);
     expect(getDataAtCell(3, 2)).toEqual(3);
+  });
+
+  it('should not permanently retain a cell meta object for every cell filled by a fill-down', async() => {
+    const rows = [];
+
+    for (let i = 0; i < 200; i++) {
+      rows.push([`a${i}`, i === 0 ? 'x' : null]);
+    }
+
+    const hot = handsontable({
+      data: rows,
+      width: 300,
+      height: 150,
+    });
+
+    await selectCell(0, 1);
+
+    const fillHandle = spec().$container.find('.wtBorder.current.corner')[0];
+    const retainedBefore = hot.getCellsMeta().length;
+
+    await mouseDoubleClick(fillHandle); // fills B2:B200, mostly off-screen
+
+    expect(getDataAtCell(199, 1)).toBe('x');
+    expect(hot.getCellsMeta().length).toBe(retainedBefore);
   });
 
   // https://github.com/handsontable/dev-handsontable/issues/1757

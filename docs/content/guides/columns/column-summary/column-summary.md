@@ -21,6 +21,7 @@ vue:
   metaTitle: Column summary - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
+menuTag: updated
 ---
 Calculate sum, min, max, count, average or custom aggregates of individual columns' data, using Handsontable's aggregate functions.
 
@@ -29,6 +30,8 @@ Calculate sum, min, max, count, average or custom aggregates of individual colum
 ## Overview
 
 The [`ColumnSummary`](@/api/columnSummary.md) plugin lets you quickly calculate and display a column summary.
+
+Handsontable's aggregates are column-based: `ColumnSummary` summarizes a range of rows within a column. There is no separate row summary (`rowSummary`) feature. To show a per-row total across columns, compute it in your data source or a [custom renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md).
 
 To customize your column summaries, you can:
 
@@ -1095,8 +1098,9 @@ To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummar
 
 ::: only-for javascript
 
-::: example #example11 --js 1 --ts 2
+::: example #example11 --html 1 --js 2 --ts 3
 
+@[code](@/content/guides/columns/column-summary/javascript/example11.html)
 @[code](@/content/guides/columns/column-summary/javascript/example11.js)
 @[code](@/content/guides/columns/column-summary/javascript/example11.ts)
 
@@ -1135,6 +1139,10 @@ To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummar
 :::
 
 :::
+
+## Result
+
+After completing this guide, your grid calculates and displays column aggregates using built-in or custom summary functions. You can target specific cell ranges, control rounding, and handle non-numeric values.
 
 ## Related API reference
 

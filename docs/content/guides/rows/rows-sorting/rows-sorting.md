@@ -32,6 +32,7 @@ vue:
   metaTitle: Rows sorting - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
+menuTag: updated
 ---
 Sort rows alphabetically or numerically, in ascending, descending, or a custom order, by one or multiple columns.
 
@@ -43,6 +44,11 @@ Handsontable provides two plugins for sorting rows:
 
 - [`ColumnSorting`](@/api/columnSorting.md) -- sorts rows by a **single column** at a time. Clicking a column header cycles through ascending, descending, and unsorted states.
 - [`MultiColumnSorting`](@/api/multiColumnSorting.md) -- sorts rows by **multiple columns** simultaneously. Hold Ctrl/Cmd and click column headers to add more sort criteria.
+
+Sorting runs when you release the mouse button, not when you press it, and only the header label and its sort
+indicator respond to the click. Pressing the header around them selects the column without sorting it. If the
+pointer moves while the button is held, Handsontable treats the gesture as a column drag instead of a sort, so
+[column moving](@/guides/columns/column-moving/column-moving.md) can share the same header.
 
 Both plugins sort the view only. The source data array is never modified. To persist the sorted order back to the data source, see [Saving data](@/guides/getting-started/saving-data/saving-data.md).
 
@@ -529,8 +535,8 @@ const configurationOptions = {
   columnSorting: {
     compareFunctionFactory: function(sortOrder, columnMeta) {
       return function(value, nextValue) {
-        if (value < nextValue) return -1;
-        if (value > nextValue) return 1;
+        if (value < nextValue) return sortOrder === 'asc' ? -1 : 1;
+        if (value > nextValue) return sortOrder === 'asc' ? 1 : -1;
         return 0;
       };
     },
@@ -547,8 +553,8 @@ const configurationOptions = {
   columnSorting={{
     compareFunctionFactory: function(sortOrder, columnMeta) {
       return function(value, nextValue) {
-        if (value < nextValue) return -1;
-        if (value > nextValue) return 1;
+        if (value < nextValue) return sortOrder === 'asc' ? -1 : 1;
+        if (value > nextValue) return sortOrder === 'asc' ? 1 : -1;
         return 0;
       };
     },
@@ -567,8 +573,8 @@ const configurationOptions: GridSettings = {
   columnSorting: {
     compareFunctionFactory: function(sortOrder, columnMeta) {
       return function(value, nextValue) {
-        if (value < nextValue) return -1;
-        if (value > nextValue) return 1;
+        if (value < nextValue) return sortOrder === 'asc' ? -1 : 1;
+        if (value > nextValue) return sortOrder === 'asc' ? 1 : -1;
         return 0;
       };
     },
@@ -589,8 +595,8 @@ const hotSettings = {
   columnSorting: {
     compareFunctionFactory: function(sortOrder, columnMeta) {
       return function(value, nextValue) {
-        if (value < nextValue) return -1;
-        if (value > nextValue) return 1;
+        if (value < nextValue) return sortOrder === 'asc' ? -1 : 1;
+        if (value > nextValue) return sortOrder === 'asc' ? 1 : -1;
         return 0;
       };
     },
@@ -607,75 +613,51 @@ Run code before or after sorting using the following [Handsontable hooks](@/guid
 - [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) — fires before sorting. Return `false` to cancel the sort and keep the current order.
 - [`afterColumnSort`](@/api/hooks.md#aftercolumnsort) — fires after sorting completes.
 
-A common use of `beforeColumnSort` is server-side sorting: cancel the client-side sort, send the sort configuration to a server, and reload the data. A common use of `afterColumnSort` is excluding specific rows from the sorted result.
+A common use of `beforeColumnSort` is server-side sorting: cancel the client-side sort, send the sort configuration to a server, and reload the data. The following example simulates this: it cancels the front-end sort, "asks a server" to sort the rows, and loads the sorted rows back into the grid.
+
+A common use of `afterColumnSort` is excluding specific rows from the sorted result — see the [`afterColumnSort` example](#exclude-rows-from-sorting) in the next section.
 
 ::: only-for javascript
 
-```js
-const configurationOptions = {
-  beforeColumnSort(currentSortConfig, destinationSortConfigs) {
-    // add your code here
-    return false; // return false to block front-end sorting
-  },
-  afterColumnSort(currentSortConfig, sortedSortConfigs) {
-    // add your code here
-  },
-};
-```
+::: example #exampleSortingHooks --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortingHooks.html)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortingHooks.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortingHooks.ts)
+
+:::
 
 :::
 
 ::: only-for react
 
-```jsx
-<HotTable
-  beforeColumnSort={(currentSortConfig, destinationSortConfigs) => {
-    // add your code here
-    return false; // return false to block front-end sorting
-  }}
-  afterColumnSort={(currentSortConfig, sortedSortConfigs) => {
-    // add your code here
-  }}
-/>
-```
+::: example #exampleSortingHooks :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/rows-sorting/react/exampleSortingHooks.jsx)
+@[code](@/content/guides/rows/rows-sorting/react/exampleSortingHooks.tsx)
+
+:::
 
 :::
 
 ::: only-for angular
 
-```ts
-import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+::: example #example11 :angular --ts 1 --html 2
 
-const configurationOptions: GridSettings = {
-  beforeColumnSort(currentSortConfig, destinationSortConfigs) {
-    // add your code here
-    return false; // return false to block front-end sorting
-  },
-  afterColumnSort(currentSortConfig, sortedSortConfigs) {
-    // add your code here
-  },
-};
-```
+@[code](@/content/guides/rows/rows-sorting/angular/example11.ts)
+@[code](@/content/guides/rows/rows-sorting/angular/example11.html)
 
-```html
-<hot-table [settings]="configurationOptions"></hot-table>
-```
+:::
 
 :::
 
 ::: only-for vue
 
-```ts
-const hotSettings = {
-  beforeColumnSort(currentSortConfig, destinationSortConfigs) {
-    // add your code here
-    return false; // return false to block front-end sorting
-  },
-  afterColumnSort(currentSortConfig, sortedSortConfigs) {
-    // add your code here
-  },
-};
-```
+::: example #exampleSortingHooks :vue3
+
+@[code](@/content/guides/rows/rows-sorting/vue/exampleSortingHooks.vue)
+
+:::
 
 :::
 
@@ -928,6 +910,8 @@ The [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin extends [`ColumnS
 - Hold <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd> and click a column header to add it to the active sort criteria without replacing the existing sort.
 - Press <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> with a column header focused to append that column to the active sort criteria.
 - `initialConfig` accepts an **array** of sort config objects to define a multi-column initial order.
+
+The <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> shortcut requires a focused column header. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys.
 
 `ColumnSorting` and `MultiColumnSorting` are mutually exclusive. If both are set to `true`, `ColumnSorting` is automatically disabled.
 
@@ -1416,7 +1400,13 @@ import { registerPlugin, ColumnSorting } from 'handsontable/plugins';
 registerPlugin(ColumnSorting);
 ```
 
+## Result
+
+After completing this guide, users can sort rows by clicking column headers, and you can control sort order programmatically. You can use `ColumnSorting` for single-column sorting or `MultiColumnSorting` for multi-column sorting with custom priority.
+
 ## Related keyboard shortcuts
+
+These header-focused shortcuts work only when a column header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
 
 | Windows | macOS | Action | Excel | Sheets |
 | --- | --- | --- | :---: | :---: |
@@ -1444,10 +1434,6 @@ registerPlugin(ColumnSorting);
 | `indicator` | `boolean` | `true` | When `true`, a sort-order arrow icon is shown in the column header. |
 | `compareFunctionFactory` | `function` | -- | A factory that returns a custom comparator function. See [Add a custom comparator](#add-a-custom-comparator). |
 | `initialConfig` | `object` | -- | Sort config applied at initialization. Contains `column` (visual index) and `sortOrder` (`'asc'` or `'desc'`). |
-
-## Result
-
-After completing this guide, users can sort rows by clicking column headers, and you can control sort order programmatically. You can use `ColumnSorting` for single-column sorting or `MultiColumnSorting` for multi-column sorting with custom priority.
 
 ## API reference
 

@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import { normalizeExportOptions } from './utils';
 import type { SummaryEndpoint } from '../columnSummary/columnSummary';
 
 interface MergeCellDescriptor {
@@ -60,13 +61,7 @@ class DataProvider {
    * @param {object} options Object with specified options.
    */
   setOptions(options: Record<string, unknown>) {
-    if (options && 'columnHeaders' in options && !('colHeaders' in options)) {
-      this.options = { ...options, colHeaders: options.columnHeaders };
-
-      return;
-    }
-
-    this.options = options;
+    this.options = normalizeExportOptions(options);
   }
 
   /**
@@ -339,8 +334,12 @@ class DataProvider {
    * @returns {Array}
    */
   getCellsMeta(): Record<string, unknown>[][] {
+    // The transient read resolves the full dynamic meta (hooks + `cells`) without storing
+    // anything - an export walks the whole range, and the eager `getCellMeta` would permanently
+    // materialize one meta object per exported cell. The returned transients are complete
+    // snapshots (prototype cascade + extension), safe for read-only serialization.
     return this._extractDataMatrix(
-      (row: number, col: number): Record<string, unknown> => this.hot.getCellMeta(row, col)
+      (row: number, col: number): Record<string, unknown> => this.hot.getCellMetaTransient(row, col)
     );
   }
 

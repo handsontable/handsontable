@@ -4,6 +4,7 @@ import { extend, hasOwnProperty } from '../../../helpers/object';
 import { isDefined } from '../../../helpers/mixed';
 import { isUnsignedNumber } from '../../../helpers/number';
 import type ColumnMeta from './columnMeta';
+import type { CellProperties } from '../../../settings';
 
 /**
  * @class CellMeta
@@ -106,9 +107,10 @@ export default class CellMeta {
    * Creates one or more rows at specific position.
    *
    * @param {number} physicalRow The physical row index which points from what position the row is added.
+   *   Pass `null` to append at the end.
    * @param {number} amount An amount of rows to add.
    */
-  createRow(physicalRow: number, amount: number) {
+  createRow(physicalRow: number | null, amount: number) {
     this.metas.insert(physicalRow, amount);
   }
 
@@ -116,11 +118,15 @@ export default class CellMeta {
    * Creates one or more columns at specific position.
    *
    * @param {number} physicalColumn The physical column index which points from what position the column is added.
+   *   Pass `null` to append at the end.
    * @param {number} amount An amount of columns to add.
    */
-  createColumn(physicalColumn: number, amount: number) {
-    for (let i = 0; i < this.metas.size(); i++) {
-      this.metas.obtain(i).insert(physicalColumn, amount);
+  createColumn(physicalColumn: number | null, amount: number) {
+    // Iterate only materialized rows. Evicted/unmaterialized rows hold no cell meta to shift, so
+    // re-creating them here (the previous `obtain(i)` over `size()`) would needlessly re-inflate
+    // memory and add O(total rows) work after a viewport eviction.
+    for (const [, rowMeta] of this.metas) {
+      rowMeta.insert(physicalColumn, amount);
     }
   }
 
@@ -141,8 +147,10 @@ export default class CellMeta {
    * @param {number} amount An amount of columns to remove.
    */
   removeColumn(physicalColumn: number, amount: number) {
-    for (let i = 0; i < this.metas.size(); i++) {
-      this.metas.obtain(i).remove(physicalColumn, amount);
+    // Iterate only materialized rows (see `createColumn`); evicted/unmaterialized rows have no cell
+    // meta to shift, so skipping them avoids re-creating them after a viewport eviction.
+    for (const [, rowMeta] of this.metas) {
+      rowMeta.remove(physicalColumn, amount);
     }
   }
 
@@ -154,7 +162,7 @@ export default class CellMeta {
    * @param {string} [key] If the key exists its value will be returned, otherwise the whole cell meta object.
    * @returns {object}
    */
-  getMeta(physicalRow: number, physicalColumn: number): Record<string, unknown>;
+  getMeta(physicalRow: number, physicalColumn: number): CellProperties;
   /**
    * Returns the value of the specified property key from the cell meta object at the given physical row and column.
    */
@@ -162,7 +170,7 @@ export default class CellMeta {
   /**
    * Returns the cell meta object or a specific property value from it, depending on whether a key is provided.
    */
-  getMeta(physicalRow: number, physicalColumn: number, key?: string): Record<string, unknown> | unknown {
+  getMeta(physicalRow: number, physicalColumn: number, key?: string): CellProperties | unknown {
     const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
 
     if (key === undefined) {
@@ -170,6 +178,45 @@ export default class CellMeta {
     }
 
     return cellMeta[key];
+  }
+
+  /**
+   * Checks whether a cell meta object has already been created for the given coordinates, without
+   * creating one. Used to decide whether a cell carries its own (user/declarative) meta that must be
+   * reused, as opposed to deriving a fresh object from the column layer.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @returns {boolean}
+   */
+  hasMeta(physicalRow: number, physicalColumn: number): boolean {
+    return this.metas.has(physicalRow) && this.metas.obtain(physicalRow).has(physicalColumn);
+  }
+
+  /**
+   * Returns the stored cell meta object for the given coordinates, or `undefined` when the cell
+   * has no materialized meta. Unlike `getMeta`, it never creates row or cell objects, so it is
+   * safe for bulk scans; unlike `hasMeta` followed by `getMeta`, it resolves in two map lookups
+   * instead of five, which matters on the per-cell read path.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @returns {object|undefined}
+   */
+  getMetaIfExists(physicalRow: number, physicalColumn: number): CellProperties | undefined {
+    return this.metas.getIfExists(physicalRow)?.getIfExists(physicalColumn);
+  }
+
+  /**
+   * Creates a cell meta object inheriting from the column layer without storing it in the map. The
+   * returned object is transient (eligible for garbage collection) and carries no per-cell overrides,
+   * so it must only be used for reads that do not need persisted per-cell meta.
+   *
+   * @param {number} physicalColumn The physical column index.
+   * @returns {object}
+   */
+  createTransientMeta(physicalColumn: number): CellProperties {
+    return this._createMeta(physicalColumn);
   }
 
   /**
@@ -185,6 +232,14 @@ export default class CellMeta {
 
     (cellMeta._automaticallyAssignedMetaProps as Set<string> | undefined)?.delete(key);
     cellMeta[key] = value;
+
+    // Every `setMeta` write - imperative or declarative (`cell` option) - is non-reconstructable by
+    // `getCellMeta`, so record it; the viewport-eviction pass keeps cells whose set is non-empty.
+    if (cellMeta._persistedMetaProps === undefined) {
+      cellMeta._persistedMetaProps = new Set();
+    }
+
+    (cellMeta._persistedMetaProps as Set<string>).add(key);
 
     if (this.#userDefinedMetaRecordingSuspendCount === 0) {
       if (cellMeta._userDefinedMetaProps === undefined) {
@@ -205,10 +260,18 @@ export default class CellMeta {
    * @param {string} key The property name to remove.
    */
   removeMeta(physicalRow: number, physicalColumn: number, key: string) {
-    const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
+    // Peek instead of `obtain`: removing a key from a cell with no materialized meta is a no-op,
+    // and materializing one object per visited cell here would retain memory the viewport
+    // eviction cannot sweep (bulk callers remove keys across whole regions).
+    const cellMeta = this.metas.getIfExists(physicalRow)?.getIfExists(physicalColumn);
+
+    if (cellMeta === undefined) {
+      return;
+    }
 
     delete cellMeta[key];
     (cellMeta._userDefinedMetaProps as Set<string> | undefined)?.delete(key);
+    (cellMeta._persistedMetaProps as Set<string> | undefined)?.delete(key);
   }
 
   /**
@@ -218,8 +281,8 @@ export default class CellMeta {
    *
    * @returns {object[]}
    */
-  getMetas(): Record<string, unknown>[] {
-    const metas: Record<string, unknown>[] = [];
+  getMetas(): CellProperties[] {
+    const metas: CellProperties[] = [];
     const rows = Array.from(this.metas.values());
 
     for (let row = 0; row < rows.length; row++) {
@@ -243,15 +306,13 @@ export default class CellMeta {
   getMetasAtRow(physicalRow: number) {
     assert(() => isUnsignedNumber(physicalRow), 'Expecting an unsigned number.');
 
-    const rowsMeta = new Map(
-      this.metas as unknown as Iterable<readonly [number, LazyFactoryMap<Record<string, unknown>>]>
-    );
+    const rowMeta = this.metas.getIfExists(physicalRow);
 
-    if (!rowsMeta.has(physicalRow)) {
+    if (rowMeta === undefined) {
       return [];
     }
 
-    return Array.from((rowsMeta.get(physicalRow) as LazyFactoryMap))
+    return Array.from(rowMeta)
       .sort(([a], [b]) => a - b)
       .map(([, meta]) => meta);
   }
@@ -288,6 +349,57 @@ export default class CellMeta {
   }
 
   /**
+   * Releases render-derived cell meta objects for a single physical row, freeing memory for rows
+   * scrolled out of the viewport. A cell is evicted only when it is purely render-derived: it carries
+   * no persisted meta props (nothing set through `setMeta`/`setCellMeta`, whether imperatively or via
+   * the declarative `cell` option) and is not flagged invalid (`valid === false`, written directly by
+   * the validation flow and not rebuilt on render). Such cells are pure cascade/`cells`/`type`
+   * derivations and are re-created lazily on the next `getMeta` call. Cells with persisted props or a
+   * failed validation result are kept so those values survive scrolling. When the whole row is purely
+   * render-derived, its inner map is dropped as well.
+   *
+   * @param {number} physicalRow The physical row index to evict.
+   * @returns {number[]} The physical column indexes whose meta was evicted (empty when nothing was).
+   */
+  evictRow(physicalRow: number) {
+    const rowMap = this.metas.getIfExists(physicalRow);
+
+    if (rowMap === undefined) {
+      return [];
+    }
+
+    let hasKeptCell = false;
+    const evictedColumns: number[] = [];
+
+    for (const [physicalColumn, meta] of rowMap) {
+      const persistedProps = meta._persistedMetaProps as Set<string> | undefined;
+      const hasPersistedProps = persistedProps !== undefined && persistedProps.size > 0;
+      // A failed validation result (`valid === false`) is written directly onto the meta object by
+      // the core validation flow (not through `setMeta`) and is not rebuilt on render, so the cell
+      // must survive eviction or the invalid-cell highlight would disappear after scrolling away.
+      // Only `false` is preserved, not `valid === true`: a passing result has no rendered state and
+      // preserving every validated-valid cell would defeat the memory bound on a fully validated grid.
+      // The trade-off is that `getCellMeta().valid` reads back as `undefined` (not `true`) for an
+      // evicted-and-re-minted valid cell until it is validated again; no core reader distinguishes the
+      // two (all branch on `!== false`).
+      const isInvalid = meta.valid === false;
+
+      if (hasPersistedProps || isInvalid) {
+        hasKeptCell = true;
+      } else {
+        rowMap.evict(physicalColumn);
+        evictedColumns.push(physicalColumn);
+      }
+    }
+
+    if (!hasKeptCell) {
+      this.metas.evict(physicalRow);
+    }
+
+    return evictedColumns;
+  }
+
+  /**
    * Clears all saved cell meta objects.
    */
   clearCache() {
@@ -312,7 +424,11 @@ export default class CellMeta {
    * @returns {object}
    */
   _createMeta(physicalColumn: number) {
-    const ColumnMeta = this.columnMeta.getMetaConstructor(physicalColumn) as new () => Record<string, unknown>;
+    // The constructor is produced by `columnFactory` through runtime prototype inheritance, which
+    // TypeScript cannot follow - this single cast is where the meta object type enters the layer.
+    // The prototype chain supplies every grid setting; the coordinate properties are stamped by
+    // `MetaManager` on each read, completing the `CellProperties` shape.
+    const ColumnMeta = this.columnMeta.getMetaConstructor(physicalColumn) as new () => CellProperties;
 
     return new ColumnMeta();
   }

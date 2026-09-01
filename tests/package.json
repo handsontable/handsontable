@@ -1,0 +1,18 @@
+{
+  "name": "handsontable-tests",
+  "private": true,
+  "type": "module",
+  "description": "Consolidated Playwright test package (functional e2e + visual). See tests/README.md.",
+  "scripts": {
+    "test": "playwright test",
+    "test:e2e": "playwright test --project=e2e-main",
+    "report": "playwright show-report",
+    "lint": "eslint --ext .ts e2e fixtures"
+  },
+  "devDependencies": {
+    "@playwright/test": "catalog:",
+    "@typescript-eslint/parser": "8.61.0",
+    "eslint": "8.57.1",
+    "hyperformula": "3.3.0"
+  }
+}

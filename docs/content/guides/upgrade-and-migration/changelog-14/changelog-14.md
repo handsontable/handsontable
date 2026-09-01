@@ -112,10 +112,8 @@ For more information about this release see:
 - Improved the rendering performance. [#11069](https://github.com/handsontable/handsontable/pull/11069)
 
 #### Fixed
-- Fixed Context.getShortcuts type.  [#10910](https://github.com/handsontable/handsontable/pull/10910)
 - Improved performance of cell merging. [#10995](https://github.com/handsontable/handsontable/pull/10995)
 - Fixed a problem where clicking and dragging on cells in window-controlled scrolled instances would result in unpredictable behavior. [#10996](https://github.com/handsontable/handsontable/pull/10996)
-- Fixed a bug that prevented column sorting of the checkbox cell types. [#11004](https://github.com/handsontable/handsontable/pull/11004)
 - Fixed merged cells misalignment in overlays. [#11007](https://github.com/handsontable/handsontable/pull/11007)
 - Fixed selection expansion for merged cells. [#11010](https://github.com/handsontable/handsontable/pull/11010)
 - Fixed a problem where the table could go into an endless resize loop when one of the instance's parents was using `dvh` values for sizing, and the table was not given any size itself. [#11021](https://github.com/handsontable/handsontable/pull/11021)
@@ -334,6 +332,7 @@ For more information on this release, see:
 - Added an accessibility demo for javascript and React. [#10532](https://github.com/handsontable/handsontable/pull/10532)
 - Added `handsontable` and `date` renderers for their respective cell types to allow adding the a11y attributes. [#10535](https://github.com/handsontable/handsontable/pull/10535)
 - Added new `beforeColumnWrap` and `beforeRowWrap` hooks. [#10550](https://github.com/handsontable/handsontable/pull/10550)
+- Add a set of `angular@17` examples to ensure Handsontable works with that Angular version. [#10584](https://github.com/handsontable/handsontable/pull/10584)
 
 #### Changed
 
@@ -343,7 +342,6 @@ For more information on this release, see:
 - **Breaking change**: Changed the way Handsontable handles focus by focusing the browser on cell elements. Introduced a new `imeFastEdit` option to minimize the negative effects affecting the "fast edit" feature for the IME users. [#10342](https://github.com/handsontable/handsontable/pull/10342)
 - Improved the keyboard navigation for the context and dropdown menus and added a new `forwardToContext` option to the ShortcutManager. [#10519](https://github.com/handsontable/handsontable/pull/10519)
 - Extended the Core's `scrollViewportTo` method to allow disabling of cell auto-snapping. [#10508](https://github.com/handsontable/handsontable/pull/10508)
-- Upgraded the monorepo to utilize Node 20. [#10468](https://github.com/handsontable/handsontable/pull/10468)
 - Improved DX by adding an exception to be thrown when trying to activate a shortcut context that has been not yet registered. [#10476](https://github.com/handsontable/handsontable/pull/10476)
 - Improved the performance of the table for cases when the table is hidden. [#10490](https://github.com/handsontable/handsontable/pull/10490)
 - Updated the TypeScript definitions.  [#10492](https://github.com/handsontable/handsontable/pull/10492) [#10493](https://github.com/handsontable/handsontable/pull/10493)  [#10494](https://github.com/handsontable/handsontable/pull/10494) [#10509](https://github.com/handsontable/handsontable/issues/10509)

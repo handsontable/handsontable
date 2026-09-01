@@ -13,6 +13,10 @@
     color: var(--ht-license-foreground-color);
     background-color: var(--ht-license-background-color, #f7f7f9);
     text-align: left;
+    // The grid defines the notification width, so on narrow grids unbreakable tokens
+    // (for example the support e-mail address) would otherwise overflow the bar. The
+    // minimum width keeps the message readable; the slot container scrolls the excess.
+    min-width: 300px;
 
     a {
       font-size: var(--ht-license-font-size);

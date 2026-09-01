@@ -8,15 +8,11 @@ searchCategory: Recipes
 hotPlugin: false
 editLink: false
 type: how-to
-id: w4d6e8f0
 react:
-  id: x5e7f9g1
   metaTitle: Real-time and Integration Recipes - React Data Grid | Handsontable
 angular:
-  id: y6f8g0h2
   metaTitle: Real-time and Integration Recipes - Angular Data Grid | Handsontable
 vue:
-  id: g4d4zmrv
   metaTitle: Real-time and Integration Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]
@@ -33,5 +29,7 @@ Current recipes:
 
 - [Real-time cell updates via WebSocket](@/recipes/real-time/websocket-updates/websocket-updates.md)
 - [Sync rows to a Chart.js chart](@/recipes/real-time/chartjs-sync/chartjs-sync.md)
+- [Multiplayer editing with Liveblocks](@/recipes/real-time/liveblocks-multiplayer/liveblocks-multiplayer.md)
+- [Cell comments with Liveblocks](@/recipes/real-time/liveblocks-comments/liveblocks-comments.md)
 
 </div>

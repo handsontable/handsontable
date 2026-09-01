@@ -17,6 +17,7 @@ vue:
   metaTitle: Binding to data - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 ---
 Fill your data grid with various data structures, including an array of arrays or an array of objects.
 
@@ -168,6 +169,10 @@ An array of objects can be used as a data source as follows:
 :::
 
 :::
+
+If your data arrives as a JSON string (for example, from an API response), parse it with `JSON.parse()` into an array of objects before passing it to Handsontable -- the resulting structure matches the array of objects shown above.
+
+To combine an array-of-objects data source with a custom cell renderer, a checkbox cell type, and currency-formatted numeric columns, see the [built-in cell types example](@/guides/cell-types/cell-type/cell-type.md#built-in-cell-types-example) and [format numbers](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md#format-numbers) sections.
 
 ### Array of objects with column as a function
 
@@ -361,6 +366,32 @@ The example below shows how to use such objects:
 
 :::
 
+### Identify changed columns in hooks
+
+When you use a [function data source](#function-data-source-and-schema), each column's [`data`](@/api/options.md#data) option is a getter/setter function. In [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange), the second element of each change tuple is `prop`. With function-based columns, `prop` is that accessor function -- not a property name or a column index.
+
+To find which column changed, call [`propToCol()`](@/api/core.md#proptocol) on the `prop` value:
+
+```javascript
+afterChange(changes, source) {
+  if (source === 'loadData' || !changes) {
+    return;
+  }
+
+  changes.forEach(([row, prop, oldValue, newValue]) => {
+    const column = this.propToCol(prop);
+
+    // column is the visual column index
+  });
+}
+```
+
+You can also compare `prop` to the accessor function you defined in `columns`, if you keep a reference to it.
+
+Unlike [`beforeValidate`](@/api/hooks.md#beforevalidate) and [`afterValidate`](@/api/hooks.md#aftervalidate), change hooks pass the accessor function as `prop`. The grid needs that reference to write values back to your data model.
+
+For more on change hooks, see [Events and hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md).
+
 ### No data
 
 By default, if you don't provide any data, Handsontable renders as an empty 5x5 grid.
@@ -416,6 +447,9 @@ To change the number of rows or columns rendered by default, use the [`startRows
 
 Handsontable binds to your data source by reference, not by values. We don't copy the input dataset, and we rely on
 JavaScript to handle the objects. Any data entered into the grid will alter the original data source.
+
+This applies to cell value edits. Structural changes such as moving, sorting, or filtering rows do not reorder the
+source array - Handsontable stores that order as index metadata instead. For details, see [Row moving](@/guides/rows/row-moving/row-moving.md#data-model-behavior).
 
 ::: tip
 
@@ -626,6 +660,8 @@ You can also use the built-in mechanism of the Angular wrapper to update data. W
 
 To modify just a subset of data passed to Handsontable, these are the methods you might want to check out:
 
+Every accepted change -- even a single cell -- makes Handsontable re-render all visible cells. When you call several of these methods one after another, wrap them in [`batch()`](@/guides/optimization/batch-operations/batch-operations.md) so the grid renders only once.
+
 <ol class="sl-steps">
 <li>
 
@@ -677,7 +713,7 @@ hot.setDataAtRowProp(changes);
 
 **[`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell)**
 
-As the displayed data coordinates can differ from the way it's stored internally, sometimes you might need to target the cells more directly - that's when [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell) comes in handy. The `row` and `columns`/`prop` arguments represent the *physical* indexes.
+As the displayed data coordinates can differ from the way it's stored internally, sometimes you might need to target the cells more directly - that's when [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell) comes in handy. The `row` and `columns`/`prop` arguments represent the *physical* indexes. To learn how physical and visual indexes relate, see [Understanding data and indexes](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md).
 
 ```js
 // Replaces the cell contents at the (0, 2) coordinates (0 being the
@@ -707,7 +743,7 @@ hot.setSourceDataAtCell(changes);
 
 Replaces a chunk of the dataset by provided the start (and optionally end) coordinates and a two-dimensional data array of new values.
 
-<aside class="starlight-aside starlight-aside--tip"><p class="starlight-aside__content">The <code>populateFromArray()</code> method can't change <a href="/docs/javascript-data-grid/disabled-cells/">read-only</a> cells.</p></aside>
+<aside class="starlight-aside starlight-aside--tip"><p class="starlight-aside__content">The <code>populateFromArray()</code> method can't change <a href="/docs/javascript-data-grid/read-only-cells/">read-only</a> cells.</p></aside>
 
 ```js
 const newValues = [

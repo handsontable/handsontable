@@ -1,6 +1,15 @@
 import { arrayFilter } from '../../../helpers/array';
 
 /**
+ * Above this many removed indexes a `Set` lookup is used instead of `Array.prototype.includes`,
+ * turning the removal scan from O(n × k) into O(n + k). Below it, a linear `includes` is cheaper
+ * than building a `Set`.
+ *
+ * @type {number}
+ */
+const SET_LOOKUP_THRESHOLD = 16;
+
+/**
  * Insert new items to the list.
  *
  * @private
@@ -22,7 +31,11 @@ export function getListWithInsertedItems(indexedValues: number[], insertionIndex
  * @returns {Array} Reduced list of mappings.
  */
 export function getListWithRemovedItems(indexedValues: number[], removedIndexes: number[]): number[] {
-  return arrayFilter(indexedValues, (index) => {
-    return removedIndexes.includes(index) === false;
-  });
+  if (removedIndexes.length <= SET_LOOKUP_THRESHOLD) {
+    return arrayFilter(indexedValues, index => removedIndexes.includes(index) === false);
+  }
+
+  const removed = new Set(removedIndexes);
+
+  return arrayFilter(indexedValues, index => removed.has(index) === false);
 }

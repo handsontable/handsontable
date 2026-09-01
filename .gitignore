@@ -20,9 +20,10 @@ node_modules/
 docs/tests/test-artifacts/
 docs/tests/.env
 docs/.env
-
-# Local Netlify folder
-.netlify
+# Local credentials for any package (R2 keys for the visual suite, etc.).
+.env
+.env.local
+**/.env
 
 *.nupkg
 
@@ -31,3 +32,12 @@ docs/.env
 /docs/*.png
 # Added by code-review-graph
 .code-review-graph/
+
+# QA overhaul planning scaffold — local-only, never committed. Durable rules
+# live in the committed structure (AGENTS.md, .ai/, .claude/skills/, ESLint
+# rules, hooks); decisions are recorded in ClickUp (DEV-2055).
+quality/
+
+# StrykerJS mutation-testing artifacts (evals — DEV-2061)
+.stryker-tmp/
+reports/mutation/

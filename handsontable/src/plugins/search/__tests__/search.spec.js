@@ -629,4 +629,55 @@ describe('Search plugin', () => {
 
     expect(matches).toEqual([1, 2]);
   });
+
+  it('should not leave a stale search highlight on the wrong cell after inserting a row', async() => {
+    handsontable({
+      data: [['x'], ['y'], ['match'], ['w'], ['v']],
+      search: true,
+    });
+
+    const search = getPlugin('search');
+
+    search.query('match');
+
+    await render();
+
+    expect($(getCell(2, 0)).hasClass('htSearchResult')).toBe(true);
+
+    // Inserting a row shifts physical indexes. The matched-cell set is keyed by the coordinates
+    // captured at query() time, so without clearing it the cell now sitting at the match's old index
+    // would get a stray highlight.
+    await alter('insert_row_above', 0, 1);
+
+    // The match moved down with its data and keeps its highlight; the old position must not be lit.
+    expect($(getCell(3, 0)).hasClass('htSearchResult')).toBe(true);
+    expect($(getCell(2, 0)).hasClass('htSearchResult')).toBe(false);
+  });
+
+  it('should keep the search highlight after a row insert and viewport eviction (no re-query)', async() => {
+    handsontable({
+      data: createSpreadsheetData(1000, 5),
+      height: 200,
+      colWidths: 50,
+      rowHeights: 23,
+      search: true,
+    });
+
+    const search = getPlugin('search');
+
+    search.query('A500'); // unique match at row 499, column 0
+
+    // Insert a row above the match: it shifts to row 500, carrying its `isSearchResult` meta.
+    await alter('insert_row_above', 0, 1);
+
+    // Scroll the match far out of the viewport (evicting its meta) and back, without re-querying.
+    await scrollViewportTo({ row: 0, verticalSnap: 'top' });
+    await render();
+    await scrollViewportTo({ row: 500, verticalSnap: 'top' });
+    await render();
+
+    // The highlight survives eviction (persisted meta) and the structural shift; no stray highlight.
+    expect($(getCell(500, 0)).hasClass('htSearchResult')).toBe(true);
+    expect($(getCell(499, 0)).hasClass('htSearchResult')).toBe(false);
+  });
 });

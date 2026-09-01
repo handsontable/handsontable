@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: b7e4912f
 title: Server-side Data with Spring Boot
 metaTitle: Server-side Data with Spring Boot - JavaScript Data Grid | Handsontable
 description: Wire Handsontable's dataProvider plugin to a Spring Boot 3 backend with JPA-backed pagination, server-side sorting and filtering, and full CRUD operations using H2.
@@ -13,13 +12,10 @@ tags:
   - java
   - recipes
 react:
-  id: tl8m1ydh
   metaTitle: Server-side data with Spring Boot - React Data Grid | Handsontable
 angular:
-  id: d7f9h1j3
   metaTitle: Server-side Data with Spring Boot - Angular Data Grid | Handsontable
 vue:
-  id: yllq4802
   metaTitle: Server-side Data with Spring Boot - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
@@ -381,3 +377,4 @@ Because `beforeRowsMutation` is synchronous and checks for a strict `=== false` 
 - Secure the API with Spring Security: require authentication for mutation endpoints while keeping `GET /api/products` public.
 - Compare with the [Laravel recipe](@/recipes/data-management/server-side-laravel/server-side-laravel.md) to see the same Handsontable frontend wired to a PHP backend using the same endpoint shapes.
 - Compare with the [Symfony recipe](@/recipes/data-management/server-side-symfony/server-side-symfony.md) to see the same Handsontable frontend wired to a PHP/Symfony backend using the same endpoint shapes.
+- Compare with the [ASP.NET Core recipe](@/recipes/data-management/server-side-aspnet/server-side-aspnet.md) to see the same Handsontable frontend wired to a .NET backend using EF Core instead of Spring Data JPA.

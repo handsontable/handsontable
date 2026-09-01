@@ -160,5 +160,55 @@ describe('CSS Variables utilities', () => {
       expect(result).toContain('--ht-mixed-array: light-dark(light, dark);');
       expect(result).toContain('--ht-mixed-reference: var(--ht-colors-primary);');
     });
+
+    describe('resolveScheme option', () => {
+      const input = {
+        pair: ['lightValue', 'darkValue'],
+        reference: ['colors.white', 'colors.palette.950'],
+        single: '14px',
+      };
+
+      it('should resolve light/dark pairs to the light branch', () => {
+        const result = flattenCssVariables(input, '', '', { resolveScheme: 'light' });
+
+        expect(result).toContain('--ht-pair: light-value;');
+        expect(result).toContain('--ht-reference: var(--ht-colors-white);');
+        expect(result).not.toContain('light-dark(');
+      });
+
+      it('should resolve light/dark pairs to the dark branch', () => {
+        const result = flattenCssVariables(input, '', '', { resolveScheme: 'dark' });
+
+        expect(result).toContain('--ht-pair: dark-value;');
+        expect(result).toContain('--ht-reference: var(--ht-colors-palette-950);');
+        expect(result).not.toContain('light-dark(');
+      });
+
+      it('should still emit light-dark() when no scheme is requested', () => {
+        const result = flattenCssVariables(input, '');
+
+        expect(result).toContain('--ht-pair: light-dark(light-value, dark-value);');
+      });
+    });
+
+    describe('lightDarkOnly option', () => {
+      it('should emit only the variables that differ between schemes', () => {
+        const input = {
+          pair: ['lightValue', 'darkValue'],
+          single: '14px',
+          nested: {
+            innerPair: ['a', 'b'],
+            innerSingle: 'plain',
+          },
+        };
+
+        const result = flattenCssVariables(input, '', '', { lightDarkOnly: true, resolveScheme: 'dark' });
+
+        expect(result).toContain('--ht-pair: dark-value;');
+        expect(result).toContain('--ht-nested-inner-pair: b;');
+        expect(result).not.toContain('--ht-single:');
+        expect(result).not.toContain('--ht-nested-inner-single:');
+      });
+    });
   });
 });

@@ -2,7 +2,7 @@ import { isObject } from '../../helpers/object';
 import { isRightClick } from '../../helpers/dom/event';
 import { eventTargetEl, isBottomMostColumnHeader } from '../../helpers/dom/element';
 import { isEmpty } from '../../helpers/mixed';
-import { parseToLocalDate, parseToLocalTime } from '../../helpers/dateTime';
+import { parseToLocalDate, parseToLocalTime, parseToLocalDateTime } from '../../helpers/dateTime';
 import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from './sortService';
 import { warn } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
@@ -115,16 +115,35 @@ export function wasHeaderClickedProperly(row: number, column: number, clickEvent
 }
 
 /**
- * Creates intl-date sorting compare function.
+ * Creates a date/time sorting compare function around the given parse function.
  *
+ * Parse results are memoized per sort run as epoch milliseconds (or `null` for unparsable input).
+ * The compare function is created once per sort run, so each distinct cell value pays the
+ * regex-and-`Date` parsing once instead of on every comparison (~2*log(n) times per row in a sort).
+ *
+ * @param {Function} parseValue Converts a raw cell value to a `Date` or `null` when unparsable.
  * @param {string} sortOrder Sort order (`asc` for ascending, `desc` for descending).
  * @param {object} columnPluginSettings Plugin settings for the column.
  * @returns {Function} The compare function.
  */
-export function createIntlDateCompareFunction(
+function createParsingCompareFunction(
+  parseValue: (value: unknown) => Date | null,
   sortOrder: string,
   columnPluginSettings: Record<string, unknown>
 ): (value: unknown, nextValue: unknown) => number {
+  const parseCache = new Map<unknown, number | null>();
+
+  const getParsedTime = (value: unknown): number | null => {
+    let parsedTime = parseCache.get(value);
+
+    if (parsedTime === undefined) {
+      parsedTime = parseValue(value)?.getTime() ?? null;
+      parseCache.set(value, parsedTime);
+    }
+
+    return parsedTime;
+  };
+
   return function(value: unknown, nextValue: unknown) {
     const { sortEmptyCells } = columnPluginSettings;
 
@@ -154,27 +173,41 @@ export function createIntlDateCompareFunction(
       return FIRST_BEFORE_SECOND;
     }
 
-    const firstDate = parseToLocalDate(value);
-    const nextDate = parseToLocalDate(nextValue);
+    const firstTime = getParsedTime(value);
+    const nextTime = getParsedTime(nextValue);
 
-    if (firstDate === null) {
+    if (firstTime === null) {
       return FIRST_AFTER_SECOND;
     }
 
-    if (nextDate === null) {
+    if (nextTime === null) {
       return FIRST_BEFORE_SECOND;
     }
 
-    if (nextDate > firstDate) {
+    if (nextTime > firstTime) {
       return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
     }
 
-    if (nextDate < firstDate) {
+    if (nextTime < firstTime) {
       return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
     }
 
     return DO_NOT_SWAP;
   };
+}
+
+/**
+ * Creates intl-date sorting compare function.
+ *
+ * @param {string} sortOrder Sort order (`asc` for ascending, `desc` for descending).
+ * @param {object} columnPluginSettings Plugin settings for the column.
+ * @returns {Function} The compare function.
+ */
+export function createIntlDateCompareFunction(
+  sortOrder: string,
+  columnPluginSettings: Record<string, unknown>
+): (value: unknown, nextValue: unknown) => number {
+  return createParsingCompareFunction(parseToLocalDate, sortOrder, columnPluginSettings);
 }
 
 /**
@@ -188,56 +221,21 @@ export function createIntlTimeCompareFunction(
   sortOrder: string,
   columnPluginSettings: Record<string, unknown>
 ): (value: unknown, nextValue: unknown) => number {
-  return function(value: unknown, nextValue: unknown) {
-    const { sortEmptyCells } = columnPluginSettings;
+  return createParsingCompareFunction(parseToLocalTime, sortOrder, columnPluginSettings);
+}
 
-    if (value === nextValue) {
-      return DO_NOT_SWAP;
-    }
-
-    if (isEmpty(value)) {
-      if (isEmpty(nextValue)) {
-        return DO_NOT_SWAP;
-      }
-
-      // Just fist value is empty and `sortEmptyCells` option was set
-      if (sortEmptyCells) {
-        return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
-      }
-
-      return FIRST_AFTER_SECOND;
-    }
-
-    if (isEmpty(nextValue)) {
-      // Just second value is empty and `sortEmptyCells` option was set
-      if (sortEmptyCells) {
-        return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
-      }
-
-      return FIRST_BEFORE_SECOND;
-    }
-
-    const firstDate = parseToLocalTime(value);
-    const nextDate = parseToLocalTime(nextValue);
-
-    if (firstDate === null) {
-      return FIRST_AFTER_SECOND;
-    }
-
-    if (nextDate === null) {
-      return FIRST_BEFORE_SECOND;
-    }
-
-    if (nextDate > firstDate) {
-      return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
-    }
-
-    if (nextDate < firstDate) {
-      return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
-    }
-
-    return DO_NOT_SWAP;
-  };
+/**
+ * Creates a date-time sorting compare function.
+ *
+ * @param {string} sortOrder Sort order (`asc` for ascending, `desc` for descending).
+ * @param {object} columnPluginSettings Plugin settings for the column.
+ * @returns {Function} The compare function.
+ */
+export function createDateTimeCompareFunction(
+  sortOrder: string,
+  columnPluginSettings: Record<string, unknown>
+): (value: unknown, nextValue: unknown) => number {
+  return createParsingCompareFunction(parseToLocalDateTime, sortOrder, columnPluginSettings);
 }
 
 /**

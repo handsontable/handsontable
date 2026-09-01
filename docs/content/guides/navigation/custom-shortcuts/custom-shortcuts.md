@@ -24,6 +24,7 @@ vue:
   metaTitle: Custom shortcuts - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
+menuTag: updated
 ---
 Use the [`ShortcutManager`](@/api/shortcutManager.md) API to add, remove, replace, or block keyboard shortcuts in Handsontable.
 
@@ -133,6 +134,45 @@ gridContext.addShortcut({
 
 </li>
 </ol>
+
+### Try it out
+
+The example below registers a custom keyboard shortcut in the `grid` context, using the [`addShortcut()`](@/api/shortcutContext.md#addshortcut) method. Select a cell and press <kbd>Control</kbd>/<kbd>Cmd</kbd> + <kbd>Enter</kbd> to insert a new row below it.
+
+::: only-for javascript
+
+::: example #example1 --js 1 --ts 2
+@[code](@/content/guides/navigation/custom-shortcuts/javascript/example1.js)
+@[code](@/content/guides/navigation/custom-shortcuts/javascript/example1.ts)
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 :react --js 1 --ts 2
+@[code](@/content/guides/navigation/custom-shortcuts/react/example1.jsx)
+@[code](@/content/guides/navigation/custom-shortcuts/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+@[code](@/content/guides/navigation/custom-shortcuts/angular/example1.ts)
+@[code](@/content/guides/navigation/custom-shortcuts/angular/example1.html)
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+@[code](@/content/guides/navigation/custom-shortcuts/vue/example1.vue)
+:::
+
+:::
 
 ### Add a conditional keyboard action
 
@@ -333,6 +373,10 @@ const hotSettings = ref({
 
 :::
 
+## Result
+
+After completing these steps, you have custom keyboard shortcuts registered in the target context. The shortcuts trigger your callbacks when the user presses the configured key combination, and only when the specified context is active.
+
 ## Reference
 
 ### Keyboard shortcut contexts
@@ -367,6 +411,8 @@ The [`keys`](@/api/shortcutContext.md#addshortcut) parameter:
 - Accepts key names in both lowercase and uppercase (e.g., both `Enter` and `enter` work)
 - Handles key-name discrepancies between browsers (e.g., both `'Spacebar'` and `' '` work)
 - Accepts key names in any order (e.g., both `[['control', 'a']]` and `[['a', 'control']]`) work)
+
+The `control/meta` key name is specific to Handsontable. It matches `Control` on Windows and Linux, and `Meta` on macOS. For arrow keys, use `KeyboardEvent.key` names such as `ArrowLeft`, not display glyphs such as `←`.
 
 ## API reference
 
@@ -410,10 +456,6 @@ For the list of [options](@/guides/getting-started/configuration-options/configu
 - [beforeKeyDown](@/api/hooks.md#beforekeydown)
 
 </div>
-
-## Result
-
-After completing these steps, you have custom keyboard shortcuts registered in the target context. The shortcuts trigger your callbacks when the user presses the configured key combination, and only when the specified context is active.
 
 ## Troubleshooting
 

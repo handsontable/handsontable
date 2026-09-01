@@ -1,5 +1,4 @@
 ---
-id: b3e7f2a1
 title: Real-time cell updates via WebSocket
 metaTitle: Real-time WebSocket Updates - JavaScript Data Grid | Handsontable
 description: Learn how to connect Handsontable to a WebSocket and update individual cells in real time using setDataAtCell, without re-rendering the entire grid.
@@ -13,13 +12,10 @@ tags:
   - tutorial
   - recipes
 react:
-  id: c4f8a2e7
   metaTitle: Real-time WebSocket Updates - React Data Grid | Handsontable
 angular:
-  id: d9b1e5f3
   metaTitle: Real-time WebSocket Updates - Angular Data Grid | Handsontable
 vue:
-  id: fvoen1lx
   metaTitle: Real-time WebSocket Updates - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Real-time & Integrations

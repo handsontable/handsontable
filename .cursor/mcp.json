@@ -21,6 +21,10 @@
     "filesystem_docs": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "./docs/content"]
+    },
+    "code-review-graph": {
+      "command": "pipx",
+      "args": ["run", "code-review-graph==2.3.6", "serve"]
     }
   }
 }

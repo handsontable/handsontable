@@ -10,7 +10,7 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "18.0.0",
+  "version": "18.1.0",
   "main": "index",
   "module": "index.mjs",
   "jsnext:main": "index.mjs",
@@ -51,6 +51,7 @@
     "watch": "node scripts/run.mjs --sequential watch",
     "build": "node scripts/run.mjs --parallel build",
     "postbuild": "node scripts/run.mjs prepare-package-for-publish",
+    "postbuild:partial": "node scripts/run.mjs prepare-package-for-publish.partial",
     "build:sequential": "node scripts/run.mjs --sequential build",
     "build:commonjs": "node scripts/run.mjs build:commonjs",
     "build:es": "node scripts/run.mjs build:es",
@@ -148,6 +149,7 @@
     "stylelint": "^16.3.1",
     "stylelint-config-standard": "^36.0.1",
     "stylelint-config-standard-scss": "^13.1.0",
+    "stylelint-plugin-handsontable": "file:.config/plugin/stylelint",
     "typescript": "^6.0.0"
   },
   "license": "SEE LICENSE IN LICENSE.txt",

@@ -1,4 +1,4 @@
-import { PhysicalIndexToValueMap } from './physicalIndexToValueMap';
+import { BooleanMap } from './booleanMap';
 import { arrayReduce } from '../../helpers/array';
 
 /**
@@ -7,12 +7,15 @@ import { arrayReduce } from '../../helpers/array';
  *
  * @class HidingMap
  */
-export class HidingMap extends PhysicalIndexToValueMap {
+export class HidingMap extends BooleanMap {
   /**
    * Initializes the hiding map with an optional default value, defaulting to `false` (not hidden).
+   *
+   * The map stores flags coerced to booleans, so a write of an unchanged flag is provably a no-op —
+   * `skipUnchangedWrites` is always on, keeping no-op writes from rebuilding the index caches.
    */
   constructor(initValueOrFn = false) {
-    super(initValueOrFn);
+    super(initValueOrFn, { skipUnchangedWrites: true });
   }
 
   /**

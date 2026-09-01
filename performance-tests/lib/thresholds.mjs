@@ -97,11 +97,21 @@ export function fmtPctWithEmoji(pct) {
   return emoji ? `${text} ${emoji}` : text;
 }
 
+// Display titles that cannot be derived from the kebab-case scenario name (e.g. need punctuation
+// or inline code). Keyed by scenario name.
+const TITLE_OVERRIDES = {
+  'source-data-validator-load': 'Initial Load (`sourceDataValidator`)',
+};
+
 /**
  * @param {string} name -- kebab-case scenario name
  * @returns {string}
  */
 export function formatTitle(name) {
+  if (TITLE_OVERRIDES[name]) {
+    return TITLE_OVERRIDES[name];
+  }
+
   return name
     .split('-')
     .map(w => w.charAt(0).toUpperCase() + w.slice(1))

@@ -8,4 +8,5 @@ es
 .idea
 .rpt2_cache
 *.log
+*.tgz
 /*.d.ts

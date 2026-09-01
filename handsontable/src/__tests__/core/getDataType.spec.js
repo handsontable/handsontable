@@ -35,12 +35,12 @@ describe('Core_getDataType', () => {
       data: arrayOfArrays()
     });
 
-    spyOn(hot, 'getCellMeta').and.callThrough();
+    spyOn(hot, 'getCellMetaTransient').and.callThrough();
 
     expect(getDataType(-1, -2, 2, 2)).toEqual('text');
-    expect(hot.getCellMeta.calls.count()).toBe(9);
-    expect(hot.getCellMeta.calls.first().args).toEqual([0, 0]);
-    expect(hot.getCellMeta.calls.mostRecent().args).toEqual([2, 2]);
+    expect(hot.getCellMetaTransient.calls.count()).toBe(9);
+    expect(hot.getCellMetaTransient.calls.first().args).toEqual([0, 0]);
+    expect(hot.getCellMetaTransient.calls.mostRecent().args).toEqual([2, 2]);
   });
 
   it('should return data type at specified range (type defined in columns)', async() => {
@@ -121,5 +121,19 @@ describe('Core_getDataType', () => {
     expect(getDataType(1, 1)).toEqual('date');
     expect(getDataType(1, 2)).toEqual('checkbox');
     expect(getDataType(0, 0, 1, 1)).toEqual('mixed');
+  });
+
+  it('should not permanently retain a cell meta object for every scanned cell', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(200, 10),
+      width: 400,
+      height: 200,
+    });
+
+    const retainedBefore = hot.getCellsMeta().length;
+
+    getDataType(0, 0, 199, 9); // scans all 2,000 cells
+
+    expect(hot.getCellsMeta().length).toBe(retainedBefore);
   });
 });

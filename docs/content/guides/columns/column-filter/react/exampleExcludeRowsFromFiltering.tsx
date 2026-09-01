@@ -14,7 +14,7 @@ const ExampleComponent = () => {
     const filtersRowsMap = hotInstance?.getPlugin('filters').filtersRowsMap;
 
     filtersRowsMap.setValueAtIndex(0, false);
-    filtersRowsMap.setValueAtIndex(filtersRowsMap.indexedValues.length - 1, false);
+    filtersRowsMap.setValueAtIndex(filtersRowsMap.getLength() - 1, false);
   };
 
   return (
@@ -184,7 +184,6 @@ const ExampleComponent = () => {
       colWidths={[120, 150, 120, 140, 120, 120]}
       fixedRowsTop={1}
       fixedRowsBottom={1}
-      minSpareRows={1}
       colHeaders={true}
       filters={true}
       dropdownMenu={true}

@@ -1,4 +1,4 @@
-import { LayoutManager } from '../layoutManager';
+import { LayoutManager, refreshSlotFilledState } from '../layoutManager';
 
 describe('LayoutManager', () => {
   function setup() {
@@ -157,5 +157,133 @@ describe('LayoutManager', () => {
     manager.destroy();
 
     expect(top.children.length).toBe(0);
+  });
+
+  describe('slot-filled wrapper state', () => {
+    function setupWithWrapper() {
+      const wrapper = document.createElement('div');
+      const top = document.createElement('div');
+      const bottom = document.createElement('div');
+
+      wrapper.appendChild(top);
+      wrapper.appendChild(bottom);
+
+      const manager = new LayoutManager({ top, bottom });
+
+      return { manager, wrapper, top, bottom };
+    }
+
+    it('mirrors each slot\'s fill state onto the slot parent as items are added and removed', () => {
+      const { manager, wrapper } = setupWithWrapper();
+
+      expect(wrapper.classList.contains('ht-slot-top-filled')).toBe(false);
+      expect(wrapper.classList.contains('ht-slot-bottom-filled')).toBe(false);
+
+      manager.register('a', make('a'), { side: 'top' });
+
+      expect(wrapper.classList.contains('ht-slot-top-filled')).toBe(true);
+      expect(wrapper.classList.contains('ht-slot-bottom-filled')).toBe(false);
+
+      manager.register('b', make('b'), { side: 'bottom' });
+
+      expect(wrapper.classList.contains('ht-slot-bottom-filled')).toBe(true);
+
+      manager.unregister('a', 'top');
+
+      expect(wrapper.classList.contains('ht-slot-top-filled')).toBe(false);
+      expect(wrapper.classList.contains('ht-slot-bottom-filled')).toBe(true);
+    });
+
+    it('keeps the class while at least one registered item remains', () => {
+      const { manager, wrapper } = setupWithWrapper();
+
+      manager.register('a', make('a'), { side: 'bottom' });
+      manager.register('b', make('b'), { side: 'bottom' });
+
+      manager.unregister('a', 'bottom');
+
+      expect(wrapper.classList.contains('ht-slot-bottom-filled')).toBe(true);
+
+      manager.unregister('b', 'bottom');
+
+      expect(wrapper.classList.contains('ht-slot-bottom-filled')).toBe(false);
+    });
+
+    it('keeps the class when re-registering under the same key', () => {
+      const { manager, wrapper } = setupWithWrapper();
+
+      manager.register('x', make('x1'), { side: 'top' });
+      manager.register('x', make('x2'), { side: 'top' });
+
+      expect(wrapper.classList.contains('ht-slot-top-filled')).toBe(true);
+    });
+
+    it('removes the classes on destroy', () => {
+      const { manager, wrapper } = setupWithWrapper();
+
+      manager.register('a', make('a'), { side: 'top' });
+      manager.register('b', make('b'), { side: 'bottom' });
+
+      manager.destroy();
+
+      expect(wrapper.classList.contains('ht-slot-top-filled')).toBe(false);
+      expect(wrapper.classList.contains('ht-slot-bottom-filled')).toBe(false);
+    });
+
+    it('keeps the class on destroy while a foreign slot item remains in the slot', () => {
+      const { manager, wrapper, bottom } = setupWithWrapper();
+
+      // Mimic the license notification: a foreign element that carries the slot-item class but is
+      // never registered with the manager, so `destroy` does not remove it.
+      const foreign = make('foreign');
+
+      foreign.classList.add('ht-slot-element');
+      bottom.appendChild(foreign);
+      refreshSlotFilledState('bottom', bottom);
+
+      manager.register('a', make('a'), { side: 'bottom' });
+      manager.destroy();
+
+      expect(wrapper.classList.contains('ht-slot-bottom-filled')).toBe(true);
+    });
+
+    it('does not throw when the slot container has no parent', () => {
+      const { manager } = setup();
+
+      expect(() => manager.register('a', make('a'), { side: 'top' })).not.toThrow();
+    });
+  });
+
+  describe('refreshSlotFilledState', () => {
+    it('counts only direct children carrying the slot-item class', () => {
+      const wrapper = document.createElement('div');
+      const slot = document.createElement('div');
+
+      wrapper.appendChild(slot);
+
+      // A child without the slot-item class does not fill the slot.
+      slot.appendChild(document.createElement('div'));
+      refreshSlotFilledState('top', slot);
+
+      expect(wrapper.classList.contains('ht-slot-top-filled')).toBe(false);
+
+      // A nested (non-direct) slot item does not fill the slot either.
+      const nested = document.createElement('div');
+
+      nested.classList.add('ht-slot-element');
+      slot.firstChild.appendChild(nested);
+      refreshSlotFilledState('top', slot);
+
+      expect(wrapper.classList.contains('ht-slot-top-filled')).toBe(false);
+
+      // A direct slot item does.
+      const item = document.createElement('div');
+
+      item.classList.add('ht-slot-element');
+      slot.appendChild(item);
+      refreshSlotFilledState('top', slot);
+
+      expect(wrapper.classList.contains('ht-slot-top-filled')).toBe(true);
+    });
   });
 });

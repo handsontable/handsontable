@@ -1,0 +1,431 @@
+name: Visual
+
+# Visual regression — the post-test budgeting gate (the orchestrator runs it
+# only after the functional tests pass). Two render configs (multi-framework
+# chromium, cross-browser chromium+firefox+webkit) as a matrix; then the compare
+# job consumes both screenshot sets. Each config downloads the core + wrapper
+# build artifacts, falling back to a local build if an artifact is missing.
+on:
+  workflow_call:
+
+# Not secrets, so these stay readable on fork runs too.
+env:
+  R2_BUCKET_NAME: handsontable-visual
+  VISUAL_REPORT_DOMAIN: visual.handsontable.com
+
+jobs:
+  render:
+    name: ${{ matrix.config.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - { name: 'multi-framework', browsers: 'chromium', cache: 'chromium', test: 'test', artifact: 'vt-screenshots-multi', tar: 'screenshots-multi.tar.gz' }
+          - { name: 'cross-browser', browsers: 'chromium firefox webkit', cache: 'all', test: 'test:cross-browser', artifact: 'vt-screenshots-cross', tar: 'screenshots-cross.tar.gz' }
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/setup-workspace
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ matrix.config.cache }}-${{ runner.os }}-${{ hashFiles('visual-tests/package.json') }}
+      - name: Install Playwright browser binaries
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx --no playwright install ${{ matrix.config.browsers }}
+        working-directory: visual-tests
+      - name: Install Playwright system dependencies
+        run: npx --no playwright install-deps ${{ matrix.config.cache == 'chromium' && 'chromium' || '' }}
+        working-directory: visual-tests
+
+      - name: Download the Handsontable ES + CJS build artifact
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          name: handsontable-build-es-cjs
+          path: ./handsontable-build-es-cjs
+        continue-on-error: true
+      - run: |
+          if test -f "handsontable-build-es-cjs/tmp.tar.gz"; then
+            tar -zxf handsontable-build-es-cjs/tmp.tar.gz
+            rm -r handsontable-build-es-cjs
+          else
+            npm run in handsontable build:es
+            npm run in handsontable build:commonjs
+            npm run in handsontable build:languages.es
+          fi
+
+      - name: Download the Handsontable UMD build artifact
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          name: handsontable-build-umd
+          path: ./handsontable-build-umd
+        continue-on-error: true
+      - run: |
+          if test -f "handsontable-build-umd/dist.tar.gz"; then
+            tar -zxf handsontable-build-umd/dist.tar.gz
+            rm -r handsontable-build-umd
+          else
+            npm run in handsontable build:umd
+            npm run in handsontable build:umd.min
+            npm run in handsontable build:languages
+            npm run in handsontable build:languages.min
+          fi
+          # Composes a tree for the screenshot runs, not for publishing (no theme UMD
+          # bundles on the fallback path), so it skips the packaging checks.
+          npm run in handsontable postbuild:partial
+
+      - name: Download the Angular wrapper build artifact
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          name: angular-wrapper-build
+          path: ./angular-wrapper-build
+        continue-on-error: true
+      - run: |
+          if test -f "angular-wrapper-build/angular-wrapper.tar.gz"; then
+            tar -zxf angular-wrapper-build/angular-wrapper.tar.gz
+            rm -r angular-wrapper-build
+          else
+            npm run in angular-wrapper build
+          fi
+
+      - name: Download the React wrapper build artifact
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          name: react-wrapper-build
+          path: ./react-wrapper-build
+        continue-on-error: true
+      - run: |
+          if test -f "react-wrapper-build/react-wrapper.tar.gz"; then
+            tar -zxf react-wrapper-build/react-wrapper.tar.gz
+            rm -r react-wrapper-build
+          else
+            npm run in react-wrapper build
+          fi
+
+      - name: Download the Vue3 wrapper build artifact
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          name: vue3-build
+          path: ./vue3-build
+        continue-on-error: true
+      - run: |
+          if test -f "vue3-build/vue3.tar.gz"; then
+            tar -zxf vue3-build/vue3.tar.gz
+            rm -r vue3-build
+          else
+            npm run in vue3 build
+          fi
+
+      - name: Build visual test examples
+        run: npm run in visual-tests build
+      - name: Run visual tests (${{ matrix.config.name }})
+        run: npm run in visual-tests ${{ matrix.config.test }}
+      - run: tar -zcf ${{ matrix.config.tar }} ./visual-tests/screenshots
+      - name: Upload the screenshots artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: ${{ matrix.config.artifact }}
+          path: ${{ matrix.config.tar }}
+          # "Re-run all jobs" re-uploads under a name that already exists; without
+          # this the render job fails and Compare never runs.
+          overwrite: true
+
+  compare:
+    name: Compare
+    runs-on: ubuntu-latest
+    needs: [ render ]
+    # Tags reach here through publish.yml -> test.yml. They are not base
+    # branches: publishing would leave a full tree under `base/<tag>/` that
+    # nothing reads and no lifecycle rule purges.
+    if: ${{ !failure() && !cancelled() && github.ref_type != 'tag' }}
+    # Job-level, mirroring integration.yml's preview job: the sticky-comment
+    # step below needs it to post the verdict. Kept off the workflow level so
+    # the `render` jobs keep the caller's default grant untouched.
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      # No `fetch-depth: 0` — the snapshot keys come from the event context, not
+      # from walking the git graph, so a shallow clone is enough.
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/setup-workspace
+      - name: Download multi-framework screenshots
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          name: vt-screenshots-multi
+          path: ./
+      - name: Download cross-browser screenshots
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          name: vt-screenshots-cross
+          path: ./
+      - run: |
+          tar -zxf screenshots-multi.tar.gz
+          tar -zxf screenshots-cross.tar.gz
+      # Golden records live under `base/<branch>` and are rewritten by every
+      # build of that branch. A PR compares against the branch it targets, so
+      # PRs into a release or LTS branch pick up the right baseline for free.
+      - name: Resolve the snapshot keys
+        # Context values go through the environment rather than into the script
+        # body, so a branch name can never be read as shell.
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_REF: ${{ github.base_ref }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ -n "$PR_NUMBER" ]; then
+            echo "REG_EXPECTED_KEY=base/$BASE_REF" >> "$GITHUB_ENV"
+            echo "REG_ACTUAL_KEY=pr-$PR_NUMBER/$PR_HEAD_SHA" >> "$GITHUB_ENV"
+          else
+            # `lts/*` is listed for correctness, but nothing triggers this
+            # workflow on an LTS push today: test.yml pushes on master,
+            # develop.yml on develop, publish.yml on release/** and explicitly
+            # excludes lts/. So an LTS baseline is seeded by the first pull
+            # request into that branch and never refreshed -- see the caveat in
+            # visual-tests/README.md.
+            case "$REF_NAME" in
+              develop|master|release/*|lts/*) ;;
+              *)
+                echo "::notice::$REF_NAME is not a base branch; skipping the visual comparison."
+                echo "VISUAL_SKIP=true" >> "$GITHUB_ENV"
+                ;;
+            esac
+            echo "REG_EXPECTED_KEY=base/$REF_NAME" >> "$GITHUB_ENV"
+            echo "REG_ACTUAL_KEY=base/$REF_NAME" >> "$GITHUB_ENV"
+          fi
+
+      # A branch with no golden records yet must not wedge every PR opened
+      # against it. The probe is a plain HTTPS GET against the public bucket, so
+      # it works on fork runs too, and it reads the same `out.json` that the
+      # fetch contract relies on.
+      - name: Check for golden records
+        if: env.VISUAL_SKIP != 'true'
+        run: |
+          # Only a definite 404 means "no baseline yet". A transport failure or
+          # any other status must never be read as absence: the seed step below
+          # would then overwrite `base/<branch>`, the baseline every other pull
+          # request compares against, with this build's render.
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 \
+            --retry 3 --retry-all-errors --retry-delay 2 \
+            -L -I "https://$VISUAL_REPORT_DOMAIN/$REG_EXPECTED_KEY/out.json") || code=000
+          case "$code" in
+            2??)
+              echo "VISUAL_BOOTSTRAP=false" >> "$GITHUB_ENV"
+              echo "Golden records found for $REG_EXPECTED_KEY."
+              ;;
+            404)
+              echo "VISUAL_BOOTSTRAP=true" >> "$GITHUB_ENV"
+              echo "No golden records for $REG_EXPECTED_KEY — this build seeds them."
+              ;;
+            *)
+              echo "::error::Could not tell whether golden records exist for $REG_EXPECTED_KEY (HTTP $code)."
+              echo "Refusing to guess — seeding on a transient failure would overwrite the baseline."
+              exit 1
+              ;;
+          esac
+
+      # Two comparison paths, one verdict. Both write `.reg/out.json`, and the
+      # gate below reads only that, so a fork is held to the same standard.
+      - name: Compare against the golden records
+        if: env.VISUAL_SKIP != 'true'
+          && (github.event_name != 'pull_request'
+              || (github.event.pull_request.head.repo.full_name == github.repository
+                  && github.actor != 'dependabot[bot]'))
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+        run: npm run in visual-tests compare
+
+      # A fork gets no secrets, so it reads the golden records over anonymous
+      # HTTPS and publishes nothing. Guarding the comparison away instead would
+      # delete visual review for external contributors -- see the fork-guard
+      # rules in the root AGENTS.md.
+      - name: Compare against the golden records (no credentials)
+        if: github.event_name == 'pull_request'
+          && (github.event.pull_request.head.repo.full_name != github.repository
+              || github.actor == 'dependabot[bot]')
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: node ./visual-tests/scripts/compare-fork.mjs "$BASE_REF"
+
+      # reg-suit only ever PUTs, and its fetch lists the whole prefix, so a
+      # deleted or renamed screenshot would linger under `base/<branch>/actual/`
+      # and show up as a phantom deletion on every later pull request. Reconcile
+      # the prefix to exactly what this build rendered.
+      - name: Reconcile the golden records
+        if: env.VISUAL_SKIP != 'true' && github.event_name != 'pull_request'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+        run: |
+          # `--delete` makes a failed render catastrophic rather than harmless:
+          # it would remove objects under `base/<branch>/actual/`, and the gate is
+          # pull-request-only, so this run stays green while every open pull
+          # request fails against a baseline that is no longer there.
+          #
+          # Count only the buckets that prove something was rendered. A missing
+          # screenshots directory still fetches the goldens, so the report comes
+          # back as all `deletedItems` and a plain "is the report empty" test
+          # passes it straight through.
+          rendered=$(jq '(.failedItems | length) + (.newItems | length) + (.passedItems | length)' \
+            ./visual-tests/.reg/out.json)
+          deleted=$(jq '(.deletedItems | length)' ./visual-tests/.reg/out.json)
+
+          if [ "$rendered" = "0" ]; then
+            echo "::error::The comparison rendered no screenshots; refusing to reconcile."
+            echo "Syncing with --delete here would erase the baseline ($deleted goldens)."
+            exit 1
+          fi
+
+          # A partial render is not distinguishable from a deliberate mass
+          # removal, so this warns rather than blocks -- a false refusal here
+          # blocks trunk, which is worse. It gives the run a searchable marker if
+          # a later PR reports a baseline that lost screenshots.
+          if [ "$deleted" -gt "$((rendered / 4))" ]; then
+            echo "::warning::Reconcile is removing $deleted goldens against $rendered rendered." \
+              "If that was not a deliberate removal or rename, check the render step."
+          fi
+
+          aws s3 sync ./visual-tests/.reg/actual "s3://$R2_BUCKET_NAME/$REG_EXPECTED_KEY/actual" \
+            --delete --endpoint-url "$R2_ENDPOINT"
+
+      # First build for this base branch: promote what we just rendered to the
+      # golden records, so the next PR has something to compare against. The
+      # base branch's own next build overwrites this with the authoritative
+      # render, so an unreviewed baseline can survive at most one merge.
+      - name: Seed the golden records
+        if: env.VISUAL_BOOTSTRAP == 'true'
+          && github.event_name == 'pull_request'
+          && (github.event.pull_request.head.repo.full_name == github.repository
+              && github.actor != 'dependabot[bot]')
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+        run: |
+          # The probe alone is not enough. A base build killed mid-publish leaves
+          # `actual/**` up with no manifest: the probe then reads 404 while
+          # reg-suit compares against those actuals for real. Seeding there would
+          # replace the baseline with one pull request's render, and this step
+          # runs before the gate, so the damage would be done before anything
+          # went red. Same signal the evaluator uses.
+          if [ -f ./visual-tests/.reg/out.json ]; then
+            checked=$(jq '(.failedItems | length) + (.passedItems | length) + (.deletedItems | length)' \
+              ./visual-tests/.reg/out.json)
+            total=$(jq '(.failedItems | length) + (.newItems | length) + (.deletedItems | length) + (.passedItems | length)' \
+              ./visual-tests/.reg/out.json)
+
+            if [ "$checked" != "0" ]; then
+              echo "::error::The probe reported no golden records, but the comparison found some."
+              echo "Refusing to seed: the baseline exists and this build must not replace it."
+              exit 1
+            fi
+
+            # An empty report means reg-suit globbed nothing, not that this is a
+            # clean first build. Seeding it would publish a blank manifest, and
+            # the probe would then return 200 forever.
+            if [ "$total" = "0" ]; then
+              echo "::error::The comparison produced an empty report; there is nothing to seed."
+              exit 1
+            fi
+          fi
+
+          aws s3 cp ./visual-tests/screenshots "s3://$R2_BUCKET_NAME/$REG_EXPECTED_KEY/actual" \
+            --recursive --endpoint-url "$R2_ENDPOINT"
+          aws s3 cp ./visual-tests/.reg/out.json "s3://$R2_BUCKET_NAME/$REG_EXPECTED_KEY/out.json" \
+            --endpoint-url "$R2_ENDPOINT"
+
+      # `reg-suit run` exits 0 whatever it finds, so this step is the whole gate.
+      # It always runs, even when approved, so the comment below is refreshed
+      # rather than left showing a verdict that no longer holds.
+      # `always()`, not the implicit `success()`: an earlier failure would
+      # otherwise skip this, leave `.reg/comment.md` unwritten, and let the
+      # sticky step below fail on a missing path while the previous push's
+      # verdict stayed up -- the staleness this whole arrangement avoids.
+      - name: Visual approval gate
+        if: always() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          # `visual-cleanup.yml` cannot strip the label on a fork or Dependabot
+          # push (read-only token), so an approval there would outlive the
+          # screenshots it covered. Those runs ignore the label entirely.
+          IS_UNTRUSTED: ${{ github.event.pull_request.head.repo.full_name != github.repository
+            || github.actor == 'dependabot[bot]' }}
+          VISUAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          # A fork run publishes nothing, so there is no hosted report to link.
+          if [ "$IS_UNTRUSTED" = "true" ]; then
+            export VISUAL_PUBLISHED=false
+          else
+            export VISUAL_PUBLISHED=true
+          fi
+
+          # Read the labels live. `github.event.pull_request.labels` is a
+          # snapshot of the triggering event, so a re-run after applying the
+          # label would still see the old set and could never turn green.
+          if [ "$IS_UNTRUSTED" = "true" ]; then
+            approved=false
+          elif ! approved=$(gh api "repos/$REPO/issues/$PR_NUMBER/labels" \
+                 --jq 'any(.[]; .name == "visual-approved")' 2>/tmp/label-err); then
+            # Steps run under `set -e`, so an unhandled failure here would abort
+            # before the gate runs and leave the sticky comment showing a stale
+            # verdict. Fall back to "not approved": the safe direction, and the
+            # gate still writes a fresh comment explaining the result.
+            echo "::warning::Could not read the pull request labels; treating as not approved."
+            cat /tmp/label-err
+            approved=false
+          fi
+          echo "visual-approved present: $approved"
+
+          # Tell the contributor why their label did nothing, rather than
+          # leaving them to re-apply it against instructions that cannot work.
+          if [ "$IS_UNTRUSTED" = "true" ] \
+            && gh api "repos/$REPO/issues/$PR_NUMBER/labels" \
+                 --jq 'any(.[]; .name == "visual-approved")' 2>/dev/null | grep -q true; then
+            echo "::warning::visual-approved is ignored on fork and Dependabot runs, because" \
+              "nothing can clear it when you push again. A maintainer has to re-raise the branch" \
+              "from the main repository to approve these differences."
+          fi
+
+          VISUAL_APPROVED="$approved" VISUAL_SEEDED="$([ "$IS_UNTRUSTED" = true ] && echo false || echo true)" \
+            node ./visual-tests/scripts/visual-gate.mjs
+
+      # One sticky comment, rewritten in place, carrying the counts, the report
+      # link and how to accept the changes. Fork runs have no write token, so
+      # they are excluded by the same guard the rest of the repo uses.
+      # Unguarded, and needs no token: on a fork run the comment step below is
+      # guarded off, so this is the only place the verdict is readable. Root
+      # AGENTS.md: "Withheld content goes to $GITHUB_STEP_SUMMARY".
+      - name: Mirror the verdict to the job summary
+        if: always() && github.event_name == 'pull_request'
+        run: cat visual-tests/.reg/comment.md >> "$GITHUB_STEP_SUMMARY" || true
+
+      # Kept for the runs that produced no hosted report, or a red gate. A green
+      # same-repo run needs neither: the report is already published to R2.
+      - name: Upload the visual diff report
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: visual-diff-report
+          path: visual-tests/.reg
+          retention-days: 3
+          overwrite: true
+
+      - name: Comment the visual verdict on the pull request
+        if: ${{ !cancelled() && github.event_name == 'pull_request'
+          && (github.event.pull_request.head.repo.full_name == github.repository
+              && github.actor != 'dependabot[bot]') }}
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
+        with:
+          header: visual-tests
+          path: visual-tests/.reg/comment.md

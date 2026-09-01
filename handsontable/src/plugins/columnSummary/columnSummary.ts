@@ -499,13 +499,20 @@ export class ColumnSummary extends BasePlugin {
     let cellValue: number | string | null = (visualRowIndex !== null
       ? this.hot.getDataAtCell(visualRowIndex, col)
       : this.hot.getSourceDataAtCell(row, col)) as number | string | null;
-    let cellClassName = '';
 
-    if (visualRowIndex !== null) {
-      cellClassName = (this.hot.getCellMeta(visualRowIndex, col).className as string) || '';
-    }
+    // A trimmed row has no visual coordinates, so its cell meta - and with it the
+    // `columnSummaryResult` class - cannot be read. Fall back to the endpoint destinations, or a
+    // hidden summary row is summed as plain data and inflates every summary covering it.
+    //
+    // The two tests are deliberately exclusive, not OR-ed: a *visible* destination cell still holds
+    // the user's own value on the first calculation pass, before any result was written, and that
+    // value counts towards the summary. Three long-standing specs pin that behavior.
+    const isSummaryResult = visualRowIndex !== null
+      ? ((this.hot.getCellMetaTransient(visualRowIndex, col).className as string) || '')
+        .indexOf('columnSummaryResult') > -1
+      : this.endpoints!.isSummaryDestination(row, col);
 
-    if (cellClassName.indexOf('columnSummaryResult') > -1) {
+    if (isSummaryResult) {
       return null;
     }
 

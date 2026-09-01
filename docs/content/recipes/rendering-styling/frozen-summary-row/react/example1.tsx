@@ -60,7 +60,7 @@ function formatSummary(prop: keyof Row): string {
   const sum = numbers.reduce((acc, n) => acc + n, 0);
   const avg = sum / numbers.length;
 
-  return `Sum: ${sum.toFixed(2)} · Avg: ${avg.toFixed(2)} · Count: ${numbers.length}`;
+  return `Sum: ${sum.toFixed(2)}\nAvg: ${avg.toFixed(2)}\nCount: ${numbers.length}`;
 }
 
 function refreshSummary(hot: Handsontable): void {
@@ -106,6 +106,7 @@ const ExampleComponent = () => {
 
         if (prop !== 'item') {
           meta.type = 'text';
+          meta.validator = undefined;
           meta.className = 'htSummaryRow htRight';
         }
 

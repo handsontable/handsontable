@@ -1,4 +1,8 @@
 // Table Border Radius
+// Every rule that rounds a corner cell is scoped with `>` child combinators down from
+// `.htCore` so it reaches only the grid's own cells — never a `<table>` a user renders inside
+// a cell (issue #4363). Child vs descendant combinators do not change specificity, so the
+// resolved cascade for a normal grid is identical to before.
 @mixin output {
   .handsontable {
     &.ht-wrapper {
@@ -7,10 +11,10 @@
       &:not(.htColumnHeaders) {
         .ht_master {
           .htCore {
-            tbody {
-              tr {
+            > tbody {
+              > tr {
                 &:first-child {
-                  td {
+                  > td {
                     &:first-child {
                       border-start-start-radius: var(--ht-border-radius);
                     }
@@ -27,10 +31,10 @@
 
         .ht_clone_top_inline_start_corner {
           .htCore {
-            tbody {
-              tr {
+            > tbody {
+              > tr {
                 &:first-child {
-                  td {
+                  > td {
                     &:first-child {
                       border-start-start-radius: var(--ht-border-radius);
                     }
@@ -43,10 +47,10 @@
 
         .ht_clone_top {
           .htCore {
-            tbody {
-              tr {
+            > tbody {
+              > tr {
                 &:first-child {
-                  td {
+                  > td {
                     &:first-child {
                       border-start-start-radius: var(--ht-border-radius);
                     }
@@ -63,11 +67,11 @@
 
         .ht_clone_inline_start {
           .htCore {
-            tbody {
-              tr {
+            > tbody {
+              > tr {
                 &:first-child {
-                  th,
-                  td {
+                  > th,
+                  > td {
                     &:first-child {
                       border-start-start-radius: var(--ht-border-radius);
                     }
@@ -87,27 +91,27 @@
         .htCore {
           border-radius: var(--ht-border-radius);
 
-          thead {
-            tr {
+          > thead {
+            > tr {
               &:first-child {
-                th {
+                > th {
                   &:first-child {
                     border-start-start-radius: var(--ht-border-radius);
                   }
 
-                  &:not(.hiddenHeader):not(:has(~ th:not(.hiddenHeader))) {
+                  &:not(.hiddenHeader).htLastVisibleHeader {
                     border-start-end-radius: var(--ht-border-radius);
                   }
                 }
               }
 
               &:last-child {
-                th {
+                > th {
                   &:first-child {
                     border-end-start-radius: var(--ht-border-radius);
                   }
 
-                  &:not(.hiddenHeader):not(:has(~ th:not(.hiddenHeader))) {
+                  &:not(.hiddenHeader).htLastVisibleHeader {
                     border-end-end-radius: var(--ht-border-radius);
                   }
                 }
@@ -115,10 +119,10 @@
             }
           }
 
-          tbody {
-            tr {
+          > tbody {
+            > tr {
               &:last-child {
-                td {
+                > td {
                   &:first-child {
                     border-end-start-radius: var(--ht-border-radius);
                   }
@@ -137,10 +141,10 @@
         .htCore {
           border-start-start-radius: var(--ht-border-radius);
 
-          thead {
-            tr {
+          > thead {
+            > tr {
               &:first-child {
-                th {
+                > th {
                   &:first-child {
                     border-start-start-radius: var(--ht-border-radius);
                   }
@@ -156,15 +160,15 @@
           border-start-start-radius: var(--ht-border-radius);
           border-start-end-radius: var(--ht-border-radius);
 
-          thead {
-            tr {
+          > thead {
+            > tr {
               &:first-child {
-                th {
+                > th {
                   &:first-child {
                     border-start-start-radius: var(--ht-border-radius);
                   }
 
-                  &:not(.hiddenHeader):not(:has(~ th:not(.hiddenHeader))) {
+                  &:not(.hiddenHeader).htLastVisibleHeader {
                     border-start-end-radius: var(--ht-border-radius);
                   }
                 }
@@ -179,10 +183,10 @@
           border-start-start-radius: var(--ht-border-radius);
           border-end-start-radius: var(--ht-border-radius);
 
-          thead {
-            tr {
+          > thead {
+            > tr {
               &:first-child {
-                th {
+                > th {
                   &:first-child {
                     border-start-start-radius: var(--ht-border-radius);
                   }
@@ -191,11 +195,11 @@
             }
           }
 
-          tbody {
-            tr {
+          > tbody {
+            > tr {
               &:last-child {
-                th,
-                td {
+                > th,
+                > td {
                   &:first-child {
                     border-end-start-radius: var(--ht-border-radius);
                   }
@@ -210,12 +214,14 @@
         .htCore {
           border-end-start-radius: var(--ht-border-radius);
 
-          tr {
-            &:last-child {
-              th,
-              td {
-                &:first-child {
-                  border-end-start-radius: var(--ht-border-radius);
+          > :where(thead, tbody) {
+            > tr {
+              &:last-child {
+                > th,
+                > td {
+                  &:first-child {
+                    border-end-start-radius: var(--ht-border-radius);
+                  }
                 }
               }
             }
@@ -228,16 +234,18 @@
           border-end-start-radius: var(--ht-border-radius);
           border-end-end-radius: var(--ht-border-radius);
 
-          tr {
-            &:last-child {
-              th,
-              td {
-                &:first-child {
-                  border-end-start-radius: var(--ht-border-radius);
-                }
+          > :where(thead, tbody) {
+            > tr {
+              &:last-child {
+                > th,
+                > td {
+                  &:first-child {
+                    border-end-start-radius: var(--ht-border-radius);
+                  }
 
-                &:last-child {
-                  border-end-end-radius: var(--ht-border-radius);
+                  &:last-child {
+                    border-end-end-radius: var(--ht-border-radius);
+                  }
                 }
               }
             }
@@ -250,15 +258,15 @@
           border-end-start-radius: 0;
           border-end-end-radius: 0;
 
-          thead tr:last-child th:first-child,
-          tbody tr:last-child td:first-child,
-          tbody tr:last-child th:first-child {
+          > thead > tr:last-child > th:first-child,
+          > tbody > tr:last-child > td:first-child,
+          > tbody > tr:last-child > th:first-child {
             border-end-start-radius: 0;
           }
 
-          thead tr:last-child th:not(.hiddenHeader):not(:has(~ th:not(.hiddenHeader))),
-          tbody tr:last-child td:last-child,
-          tbody tr:last-child th:last-child {
+          > thead > tr:last-child > th:not(.hiddenHeader).htLastVisibleHeader,
+          > tbody > tr:last-child > td:last-child,
+          > tbody > tr:last-child > th:last-child {
             border-end-end-radius: 0;
           }
         }
@@ -269,15 +277,15 @@
           border-start-end-radius: 0;
           border-end-end-radius: 0;
 
-          thead tr:first-child th:not(.hiddenHeader):not(:has(~ th:not(.hiddenHeader))),
-          tbody tr:first-child td:last-child,
-          tbody tr:first-child th:last-child {
+          > thead > tr:first-child > th:not(.hiddenHeader).htLastVisibleHeader,
+          > tbody > tr:first-child > td:last-child,
+          > tbody > tr:first-child > th:last-child {
             border-start-end-radius: 0;
           }
 
-          thead tr:last-child th:not(.hiddenHeader):not(:has(~ th:not(.hiddenHeader))),
-          tbody tr:last-child td:last-child,
-          tbody tr:last-child th:last-child {
+          > thead > tr:last-child > th:not(.hiddenHeader).htLastVisibleHeader,
+          > tbody > tr:last-child > td:last-child,
+          > tbody > tr:last-child > th:last-child {
             border-end-end-radius: 0;
           }
         }
@@ -288,7 +296,10 @@
   .ht-root-wrapper {
     border-radius: var(--ht-border-radius);
 
-    &:has(> .ht-slot-bottom > .ht-slot-element) {
+    // `ht-slot-*-filled` = the slot has at least one `.ht-slot-element` child; kept in sync by the
+    // `LayoutManager`. A `:has()` selector here would re-run host-page-scaled style invalidation on
+    // every grid DOM mutation.
+    &.ht-slot-bottom-filled {
       .ht-wrapper,
       .ht_master .wtHolder {
         border-end-start-radius: 0;
@@ -299,15 +310,15 @@
         border-end-start-radius: 0 !important;
         border-end-end-radius: 0 !important;
 
-        thead tr:last-child th:first-child,
-        tbody tr:last-child td:first-child,
-        tbody tr:last-child th:first-child {
+        > thead > tr:last-child > th:first-child,
+        > tbody > tr:last-child > td:first-child,
+        > tbody > tr:last-child > th:first-child {
           border-end-start-radius: 0 !important;
         }
 
-        thead tr:last-child th:not(.hiddenHeader):not(:has(~ th:not(.hiddenHeader))),
-        tbody tr:last-child td:last-child,
-        tbody tr:last-child th:last-child {
+        > thead > tr:last-child > th:not(.hiddenHeader).htLastVisibleHeader,
+        > tbody > tr:last-child > td:last-child,
+        > tbody > tr:last-child > th:last-child {
           border-end-end-radius: 0 !important;
         }
       }
@@ -315,7 +326,7 @@
 
     // Mirror of the bottom-slot rules: the top slot sits above the grid, so it squares the
     // grid's top (block-start) corners instead of the bottom ones.
-    &:has(> .ht-slot-top > .ht-slot-element) {
+    &.ht-slot-top-filled {
       .ht-wrapper,
       .ht_master .wtHolder {
         border-start-start-radius: 0;
@@ -326,15 +337,15 @@
         border-start-start-radius: 0 !important;
         border-start-end-radius: 0 !important;
 
-        thead tr:first-child th:first-child,
-        tbody tr:first-child td:first-child,
-        tbody tr:first-child th:first-child {
+        > thead > tr:first-child > th:first-child,
+        > tbody > tr:first-child > td:first-child,
+        > tbody > tr:first-child > th:first-child {
           border-start-start-radius: 0 !important;
         }
 
-        thead tr:first-child th:not(.hiddenHeader):not(:has(~ th:not(.hiddenHeader))),
-        tbody tr:first-child td:last-child,
-        tbody tr:first-child th:last-child {
+        > thead > tr:first-child > th:not(.hiddenHeader).htLastVisibleHeader,
+        > tbody > tr:first-child > td:last-child,
+        > tbody > tr:first-child > th:last-child {
           border-start-end-radius: 0 !important;
         }
       }

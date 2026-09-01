@@ -451,5 +451,55 @@ describe('Core.alter', () => {
         alter('remove_col', 0, 1);
       }).not.toThrow();
     });
+
+    describe('when the removed columns map to non-contiguous physical indexes', () => {
+      it('should remove the correct columns after the column order was changed', async() => {
+        handsontable({
+          data: createSpreadsheetData(3, 8),
+        });
+
+        // visual order: A, E, F, G, H, B, C, D
+        columnIndexMapper().setIndexesSequence([0, 4, 5, 6, 7, 1, 2, 3]);
+        await render();
+
+        // removes visual G, H, B -> physical 6, 7, 1 (non-contiguous)
+        await alter('remove_col', 3, 3);
+
+        expect(countCols()).toBe(5);
+        expect(getDataAtRow(0)).toEqual(['A1', 'E1', 'F1', 'C1', 'D1']);
+        expect(getSourceDataAtRow(0)).toEqual(['A1', 'C1', 'D1', 'E1', 'F1']);
+      });
+
+      it('should remove all columns when the whole reordered grid range is passed', async() => {
+        handsontable({
+          data: createSpreadsheetData(2, 3),
+        });
+
+        columnIndexMapper().setIndexesSequence([1, 0, 2]);
+        await render();
+
+        await alter('remove_col', 0, 3);
+
+        expect(countCols()).toBe(0);
+        expect(getSourceDataAtRow(0)).toEqual([]);
+      });
+
+      it('should mutate the source row arrays in place', async() => {
+        const data = createSpreadsheetData(2, 5);
+        const rowReference = data[0];
+
+        handsontable({ data });
+
+        columnIndexMapper().setIndexesSequence([0, 3, 1, 2, 4]);
+        await render();
+
+        // removes visual D, B -> physical 3, 1 (non-contiguous)
+        await alter('remove_col', 1, 2);
+
+        expect(getSourceDataAtRow(0)).toEqual(['A1', 'C1', 'E1']);
+        expect(data[0]).toBe(rowReference);
+        expect(rowReference).toEqual(['A1', 'C1', 'E1']);
+      });
+    });
   });
 });

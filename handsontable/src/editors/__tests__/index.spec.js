@@ -289,6 +289,46 @@ describe('editors', () => {
       expect(editor.refreshDimensions).toHaveBeenCalled();
     });
 
+    it('should register and remove shortcuts when shortcutsGroup is not provided', async() => {
+      const callback = jasmine.createSpy('callback');
+      const CustomEditor = minimalFactoryEditor({
+        shortcuts: [{
+          keys: [['ArrowLeft']],
+          callback,
+        }],
+      });
+
+      handsontable({
+        data: [['a']],
+        columns: [{ editor: CustomEditor }],
+      });
+
+      let caughtError;
+
+      try {
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+      } catch (error) {
+        caughtError = error;
+      }
+
+      expect(caughtError).toBeUndefined();
+
+      const editorContext = getShortcutManager().getContext('editor');
+      const customShortcuts = () => editorContext.getShortcuts(['arrowleft'])
+        .filter(shortcut => shortcut.group === 'customEditor');
+
+      expect(customShortcuts().length).toBe(1);
+
+      await keyDownUp('arrowleft');
+
+      expect(callback).toHaveBeenCalled();
+
+      getActiveEditor().close();
+
+      expect(customShortcuts().length).toBe(0);
+    });
+
     it('should throw an error if input is not assigned in init callback', async() => {
       let caughtError;
 

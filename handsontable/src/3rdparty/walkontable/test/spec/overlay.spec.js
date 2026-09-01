@@ -48,6 +48,28 @@ describe('WalkontableOverlay', () => {
     expect($(wt.wtOverlays.bottomOverlay.clone.wtTable.holder).height()).toBe(47);
   });
 
+  it('should share a single geometry reader between the master and every overlay clone', async() => {
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      fixedColumnsStart: 2,
+      fixedRowsTop: 2,
+      fixedRowsBottom: 2,
+    });
+
+    wt.draw();
+
+    const masterReader = wt.domBindings.geometryReader;
+
+    expect(masterReader).toBeTruthy();
+    expect(wt.wtOverlays.topOverlay.clone.domBindings.geometryReader).toBe(masterReader);
+    expect(wt.wtOverlays.bottomOverlay.clone.domBindings.geometryReader).toBe(masterReader);
+    expect(wt.wtOverlays.inlineStartOverlay.clone.domBindings.geometryReader).toBe(masterReader);
+    expect(wt.wtOverlays.topInlineStartCornerOverlay.clone.domBindings.geometryReader).toBe(masterReader);
+    expect(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.domBindings.geometryReader).toBe(masterReader);
+  });
+
   it('should cloned overlays have to have proper dimensions (overflow clip)', async() => {
     spec().$wrapper.css({ overflow: 'clip' });
 
@@ -517,6 +539,52 @@ describe('WalkontableOverlay', () => {
     expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(24); // 23px + 1px (innerBorderTop)
     expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).width()).toBe(50);
     expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).height()).toBe(200 - getScrollbarWidth());
+  });
+
+  it('should apply innerBorderTop before the render and skip the nested re-draw on the single-pass gated path (S16b)', async() => {
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      columnHeaders: [function(column, TH) { // makes top overlay + drives the innerBorderTop toggle
+        TH.innerHTML = column + 1;
+      }],
+      singlePassLayout: true,
+      rowHeightsUniform: () => true,
+      columnWidthsUniform: () => true,
+    });
+
+    wt.draw();
+
+    // Precondition: this fixture takes the single-pass calculator path (uniform + element + singlePass).
+    expect(wt.wtViewport.usesLayoutSnapshotForCalculators()).toBe(true);
+
+    const masterParent = wt.wtTable.holder.parentNode;
+
+    // At the top there is no inner border.
+    expect(masterParent.classList.contains('innerBorderTop')).toBe(false);
+
+    // Cross the top edge (0 -> N): the border must be resolved pre-render, so the post-render
+    // resetFixedPosition toggle is a no-op and the nested wot.draw(true) never fires.
+    wt.scrollViewportVertically(getTotalRows() - 1);
+
+    const refreshAllSpy = spyOn(wt.wtOverlays, 'refreshAll').and.callThrough();
+
+    wt.draw();
+
+    expect(masterParent.classList.contains('innerBorderTop')).toBe(true);
+    expect(refreshAllSpy).not.toHaveBeenCalled(); // no nested re-draw
+    // Final geometry is correct in a single pass: 23px header + 1px innerBorderTop.
+    expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(24);
+
+    // Cross back to the top (N -> 0): the border is removed pre-render, still single pass.
+    wt.scrollViewportVertically(0);
+    refreshAllSpy.calls.reset();
+    wt.draw();
+
+    expect(masterParent.classList.contains('innerBorderTop')).toBe(false);
+    expect(refreshAllSpy).not.toHaveBeenCalled();
+    expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(23);
   });
 
   it('should cloned header overlays have to have proper dimensions after table scroll (window object as scrollable element)', async() => {

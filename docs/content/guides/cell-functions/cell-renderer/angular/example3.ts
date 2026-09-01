@@ -43,7 +43,7 @@ export class AppComponent {
       title:
         '<a href="https://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691">Professional JavaScript for Web Developers</a>',
       description:
-        'This <a href="https://bit.ly/sM1bDf">book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.',
+        'This <a href="https://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691">book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.',
       rate: 3
     },
     {

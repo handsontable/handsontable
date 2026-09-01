@@ -7,6 +7,10 @@ description:
   clutter and improve the grid's performance.
 permalink: /column-hiding
 canonicalUrl: /column-hiding
+tags:
+  - hiding
+  - hidden columns
+  - HiddenColumns
 react:
   metaTitle: Column hiding - React Data Grid | Handsontable
 angular:
@@ -348,6 +352,10 @@ object, set the [`copyPasteEnabled`](@/api/hiddenColumns.md) property to `false`
 :::
 
 :::
+
+## Result
+
+After completing this guide, you can hide columns from the grid without changing source data. You can configure default hidden columns, UI indicators, context menu items, and copy-paste behavior.
 
 ## Column hiding API methods
 

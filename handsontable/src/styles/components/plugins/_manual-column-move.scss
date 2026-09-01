@@ -10,7 +10,11 @@
 
     .ht__manualColumnMove,
     &.ht__manualColumnMove {
-      &.after-selection--columns thead th.ht__highlight {
+      // `ht__highlight` marks the selected leaf header; `ht__active_highlight` additionally marks the
+      // nested group header(s) spanning the selection. Both are draggable (a group moves as a unit),
+      // so both show the grab cursor - not just the lowest header row.
+      &.after-selection--columns thead th.ht__highlight,
+      &.after-selection--columns thead th.ht__active_highlight {
         @include mixins.cursor-grab;
       }
 

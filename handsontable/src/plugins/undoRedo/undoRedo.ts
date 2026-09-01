@@ -162,6 +162,32 @@ export class UndoRedo extends BasePlugin {
   /**
    * Stash information about performed actions.
    *
+   * @example
+   * ```js
+   * // Register a custom action, for example when setting cell metadata directly
+   * // (a change that UndoRedo doesn't track by default).
+   * function setCellBackgroundColor(row, col, className) {
+   *   const undoRedo = hot.getPlugin('undoRedo');
+   *   const previousClassName = hot.getCellMeta(row, col).className;
+   *
+   *   undoRedo.done(() => ({
+   *     actionType: 'cellBackgroundColor',
+   *     undo(instance, callback) {
+   *       instance.setCellMeta(row, col, 'className', previousClassName);
+   *       instance.render();
+   *       callback();
+   *     },
+   *     redo(instance, callback) {
+   *       instance.setCellMeta(row, col, 'className', className);
+   *       instance.render();
+   *       callback();
+   *     },
+   *   }), 'cellBackgroundColor');
+   *
+   *   hot.setCellMeta(row, col, 'className', className);
+   *   hot.render();
+   * }
+   * ```
    * @fires Hooks#beforeUndoStackChange
    * @fires Hooks#afterUndoStackChange
    * @fires Hooks#beforeRedoStackChange
@@ -284,9 +310,21 @@ export class UndoRedo extends BasePlugin {
 
     this.hot.runHooks('beforeUndoStackChange', doneActionsCopy);
 
-    (action as { redo: (hot: HotInstance, callback: () => void) => void }).redo(this.hot, () => {
+    // Most actions settle the redo by calling back with no argument. An action that can legitimately
+    // fail to redo (currently only MoveCellsAction) reports it with `{ wasRedone: false }`, which
+    // pushes the action back onto the undone stack instead of the done stack.
+    const redo = action as {
+      redo: (hot: HotInstance, callback: (result?: { wasRedone?: boolean }) => void) => void
+    };
+
+    redo.redo(this.hot, (result) => {
       this.ignoreNewActions = false;
-      this.doneActions.push(action);
+
+      if (result?.wasRedone === false) {
+        this.undoneActions.push(action);
+      } else {
+        this.doneActions.push(action);
+      }
     });
 
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());

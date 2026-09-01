@@ -16,6 +16,7 @@ interface ConditionDescriptor {
   key?: string;
   name?: string;
   inputsCount?: number;
+  inputType?: string;
   [key: string]: unknown;
 }
 
@@ -102,6 +103,7 @@ export class ConditionComponent extends BaseComponent {
 
       const element = this.getInputElement(index);
 
+      element.setType(copyOfCommand.inputType ?? 'text');
       element.setValue(arg);
       element[(copyOfCommand.inputsCount ?? 0) > index ? 'show' : 'hide']();
 
@@ -257,6 +259,7 @@ export class ConditionComponent extends BaseComponent {
    */
   #onConditionSelect(command: ConditionDescriptor) {
     arrayEach(this.getInputElements(), (element, index) => {
+      element.setType(command.inputType ?? 'text');
       element[(command.inputsCount ?? 0) > index ? 'show' : 'hide']();
 
       if (index === 0) {

@@ -34,6 +34,7 @@ Explore Handsontable core features in this interactive demo. Click cells, sort c
 @[code](@/content/guides/getting-started/demo/react/example2.html)
 @[code](@/content/guides/getting-started/demo/react/example2.css)
 @[code](@/content/guides/getting-started/demo/react/example2.jsx)
+@[code](@/content/guides/getting-started/demo/react/example2.tsx)
 :::
 :::
 
@@ -79,7 +80,7 @@ Explore the demo and discover Handsontable's most popular features:
 - [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
 - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
 - [Column groups](@/guides/columns/column-groups/column-groups.md)
-- [Column menu](@/guides/columns/column-menu/column-menu.md)
+- [Column menu](@/guides/accessories-and-menus/column-menu/column-menu.md)
 - [Column filter](@/guides/columns/column-filter/column-filter.md)
 - [Column hiding](@/guides/columns/column-hiding/column-hiding.md)
 - [Rows sorting](@/guides/rows/rows-sorting/rows-sorting.md)

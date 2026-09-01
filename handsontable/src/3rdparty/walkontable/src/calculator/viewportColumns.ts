@@ -1,4 +1,4 @@
-import type { PositionCache } from '../utils/positionCache';
+import type { PositionCache } from '../axisSizing/positionCache';
 import type { AxisCalculatorContext } from './axisCalculation';
 import { calculateAxis } from './axisCalculation';
 import type { CalculationTypeLike, ColumnsCalculationType } from './viewportBase';

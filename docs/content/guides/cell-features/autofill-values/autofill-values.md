@@ -21,6 +21,7 @@ vue:
   metaTitle: Autofill values - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
+menuTag: updated
 ---
 Copy a cell's value into multiple other cells, using the "fill handle" UI element. Configure the direction of copying, and more, through Handsontable's API.
 
@@ -30,7 +31,20 @@ Autofill lets users drag the fill handle to copy or extend values across adjacen
 
 ## Autofill in all directions
 
-Using the tiny square known as the 'fill handle' in the corner of the selected cell, you can drag it (drag-down) to repeat the values from the cell. Double click the fill handle in `cell B4` where the value is `30` to fill the selection down to the last value in neighboring column, just like it would in Excel or Google Sheets.
+Using the tiny square known as the 'fill handle' in the corner of the selected cell, you can drag it to repeat or extend values across adjacent cells.
+
+You can also **double-click the fill handle** to autofill downward without dragging. Double-click the fill handle in `cell B4` where the value is `30` to see this in action.
+
+### How double-click autofill determines the range
+
+Handsontable scans the rows below your selection and fills down to the last row where the column immediately to the left or right of your selection contains a value. In the example below, the year column (column A) acts as the guide -- rows 2020 and 2021 have values there, so the fill extends through both rows.
+
+Two conditions must be met for the fill to happen:
+
+- **All cells below the selection in the filled column(s) must be empty.** If any cell below the selection in those columns contains data, double-clicking does nothing.
+- At least one column adjacent to your selection must have data in the rows below.
+
+**Visual difference from drag-fill:** When you drag the fill handle, a preview border shows the target range as you drag. When you double-click, no drag-preview appears -- the cells populate immediately based on the adjacent column data.
 
 ::: only-for javascript
 
@@ -122,6 +136,70 @@ In this configuration, the fill handle is restricted to move only vertically. Ne
 
 :::
 
+## Altering and tracking autofilled values
+
+Use the [`beforeAutofill`](@/api/hooks.md#beforeautofill) hook to change the values Handsontable is about to fill in, and the [`afterAutofill`](@/api/hooks.md#afterautofill) hook to react once the fill completes.
+
+In the example below, drag the fill handle from `cell B4` down through rows `2020` and `2021`. The `beforeAutofill` hook rounds every filled sales figure up to the nearest multiple of 5, and the `afterAutofill` hook logs the affected range and direction to the output box below the grid.
+
+When Handsontable fires [`beforeChange`](@/api/hooks.md#beforechange) or [`afterChange`](@/api/hooks.md#afterchange) as part of an autofill operation, their `source` argument is `Autofill.fill`. Read more about the `source` argument in [Events and hooks: Definition for `source` argument](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument).
+
+::: only-for javascript
+
+::: example #example3 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/cell-features/autofill-values/javascript/example3.html)
+@[code](@/content/guides/cell-features/autofill-values/javascript/example3.js)
+@[code](@/content/guides/cell-features/autofill-values/javascript/example3.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example3 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/autofill-values/react/example3.jsx)
+@[code](@/content/guides/cell-features/autofill-values/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/autofill-values/angular/example3.ts)
+@[code](@/content/guides/cell-features/autofill-values/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/cell-features/autofill-values/vue/example3.vue)
+
+:::
+
+:::
+
+## Autofill and formulas
+
+With the [`Formulas`](@/guides/formulas/formula-calculation/formula-calculation.md) plugin enabled, autofill delegates to the HyperFormula engine instead of copying cell contents literally:
+
+- **Relative references adjust per target cell.** Filling `=A1+B1` down from row 1 to row 2 produces `=A2+B2` in the new cell, the same way a spreadsheet application adjusts formulas on fill.
+- **Absolute references stay fixed.** Filling `=$A$1+B1` down keeps `$A$1` unchanged in every filled cell, while the relative `B1` part still adjusts.
+- **The fill is cancelled** if the engine reports that the target cells can't be written to (for example, because they're part of another formula's dependency chain), leaving the target range unchanged.
+
+## Result
+
+The fill handle appears on the selected cell. Dragging it copies or extends values into adjacent cells in the configured direction.
+
 ## Related API reference
 
 **Configuration options**
@@ -149,7 +227,3 @@ In this configuration, the fill handle is restricted to move only vertically. Ne
 - [Autofill](@/api/autofill.md)
 
 </div>
-
-## Result
-
-The fill handle appears on the selected cell. Dragging it copies or extends values into adjacent cells in the configured direction.

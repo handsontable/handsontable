@@ -745,10 +745,10 @@ function DemoOptions({
                 aria-labelledby="arrow-rl-first-last-column-label"
                 onChange={() => handleCheckboxChange('enable-arrow-rl-first-last-column')}
               />
-              The right/left arrow keys move the focus to the first/last column
+              The right/left arrow keys wrap focus to the adjacent row
             </label>
             <a
-              href="https://handsontable.com/docs/react-data-grid/api/options/#autowrapcol"
+              href="https://handsontable.com/docs/react-data-grid/api/options/#autowraprow"
               target="_blank"
               className="external-link"
               rel="noopener noreferrer"
@@ -770,10 +770,10 @@ function DemoOptions({
                 aria-labelledby="arrow-td-first-last-column-label"
                 onChange={() => handleCheckboxChange('enable-arrow-td-first-last-column')}
               />
-              The up/down arrow keys move the focus to the first/last row
+              The up/down arrow keys wrap focus to the adjacent column
             </label>
             <a
-              href="https://handsontable.com/docs/react-data-grid/api/options/#autowraprow"
+              href="https://handsontable.com/docs/react-data-grid/api/options/#autowrapcol"
               target="_blank"
               className="external-link"
               rel="noopener noreferrer"

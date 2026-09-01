@@ -13,7 +13,6 @@ vue:
   metaTitle: Password cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
-menuTag: updated
 ---
 Use the password cell type to mask confidential values by rendering entered characters as symbols.
 
@@ -214,6 +213,10 @@ When `hashRevealDelay` is set, the editor switches from a native `<input type="p
 ## Result
 
 After configuring the password cell type, cells display asterisks instead of the actual value. The editor uses an `<input type="password">` field (or `<input type="text">` when `hashRevealDelay` is set). The actual data is stored in plain text in the data source and is not encrypted by Handsontable.
+
+## Keyboard shortcuts
+
+The password cell editor is a text editor, so it uses the standard [edition keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#edition-keyboard-shortcuts). It has no password-specific key bindings.
 
 ## Related articles
 

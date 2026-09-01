@@ -141,8 +141,10 @@ function detectExplicitBackgroundColor(doc: Document, metaClasses: string[], vie
     return docCache.get(cacheKey) ?? null;
   }
 
-  // Off-screen probe with Handsontable CSS context so scoped rules (e.g.
-  // `.handsontable td { … }`) apply to the temporary cells.
+  // Off-screen probe with Handsontable CSS context. The grid's own cell rules are scoped to
+  // `table.htCore > … > td` (#4363) and deliberately skip this class-less probe table; that is
+  // fine because both cells miss them equally and only the full-vs-base *difference* is read —
+  // the probe only needs the user's class rules (e.g. `.handsontable td.my-class`) to apply.
   const probe = doc.createElement('div');
 
   probe.className = 'handsontable';

@@ -11,6 +11,7 @@ registerAllModules();
 
 const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 const namedExpressionValue = ref('=10 * Sheet1!$A$2');
+const errorMessage = ref('');
 
 const data = [
   ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
@@ -46,8 +47,16 @@ function buttonClickCallback() {
   const hotInstance = hotRef.value?.hotInstance;
   const formulasPlugin = hotInstance?.getPlugin('formulas');
 
-  formulasPlugin?.engine?.changeNamedExpression('ADDITIONAL_COST', namedExpressionValue.value);
+  try {
+    formulasPlugin?.engine?.changeNamedExpression('ADDITIONAL_COST', namedExpressionValue.value);
+  } catch (error) {
+    // HyperFormula rejects some expressions, for example relative references such as `Sheet1!A2`.
+    errorMessage.value = error instanceof Error ? error.message : String(error);
 
+    return;
+  }
+
+  errorMessage.value = '';
   hotInstance?.render();
 }
 </script>
@@ -66,6 +75,7 @@ function buttonClickCallback() {
           Calculate the price
         </button>
       </div>
+      <output :class="{ 'is-error': errorMessage }">{{ errorMessage }}</output>
     </div>
     <HotTable ref="hotRef" :settings="hotSettings" />
   </div>

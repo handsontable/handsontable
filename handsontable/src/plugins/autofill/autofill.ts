@@ -1,5 +1,6 @@
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
+import type { CellProperties } from '../../settings';
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { offset, outerHeight, outerWidth } from '../../helpers/dom/element';
@@ -19,6 +20,15 @@ export const PLUGIN_PRIORITY = 20;
 const SETTING_KEY = 'fillHandle';
 const INSERT_ROW_ALTER_ACTION_NAME = 'insert_row_below';
 const INTERVAL_FOR_ADDING_ROW = 200;
+
+/**
+ * Cell meta shape read by autofill. The `source` option is typed by `CellProperties` itself;
+ * `_complexDataFormat` is a private plugin key with no public declaration, typed here so its
+ * reads are `unknown` rather than the index-signature `any`.
+ */
+interface AutofillCellProperties extends CellProperties {
+  _complexDataFormat?: unknown;
+}
 
 /**
  * This plugin provides "drag-down" and "copy-down" functionalities, both operated using the small square in the right
@@ -126,11 +136,13 @@ export class Autofill extends BasePlugin {
    */
   #currentDragDirection: string | null = null;
   /**
-   * Last mouse client position.
+   * Last mouse client position. Stays `null` until the first `mousemove` of a drag, so a scroll
+   * that happens after pressing the fill handle but before any drag move is not replayed with a
+   * stale or default position.
    *
-   * @type {{ clientX: number, clientY: number }}
+   * @type {{ clientX: number, clientY: number } | null}
    */
-  #lastMouseClientPosition = { clientX: 0, clientY: 0 };
+  #lastMouseClientPosition: { clientX: number, clientY: number } | null = null;
 
   /**
    * Checks if the plugin is enabled in the Handsontable settings.
@@ -228,17 +240,21 @@ export class Autofill extends BasePlugin {
     }]);
     const copyableRows: number[] = [];
     const copyableColumns: number[] = [];
+    const seenRows = new Set<number>();
+    const seenColumns = new Set<number>();
     const data: unknown[][] = [];
 
     arrayEach(copyableRanges, (range) => {
       for (let visualRow = range.startRow; visualRow <= range.endRow; visualRow += 1) {
-        if (copyableRows.indexOf(visualRow) === -1) {
+        if (!seenRows.has(visualRow)) {
+          seenRows.add(visualRow);
           copyableRows.push(visualRow);
         }
       }
 
       for (let visualColumn = range.startCol; visualColumn <= range.endCol; visualColumn += 1) {
-        if (copyableColumns.indexOf(visualColumn) === -1) {
+        if (!seenColumns.has(visualColumn)) {
+          seenColumns.add(visualColumn);
           copyableColumns.push(visualColumn);
         }
       }
@@ -781,7 +797,9 @@ export class Autofill extends BasePlugin {
         columnIndex += 1
       ) {
         const targetCellSourceData = this.hot.getSourceDataAtCell(rowIndex, columnIndex);
-        const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex);
+        // The transient read keeps a large drag-fill or fill-down from permanently materializing
+        // one meta object per filled cell - the loop only reads `source`/`_complexDataFormat`.
+        const cellMeta = this.hot.getCellMetaTransient<AutofillCellProperties>(rowIndex, columnIndex);
         const cellSource = cellMeta.source;
         const cellSourceFirstItem: unknown = Array.isArray(cellSource) ? cellSource[0] : undefined;
         const isComplexDataFormatCell =
@@ -831,6 +849,7 @@ export class Autofill extends BasePlugin {
     this.handleDraggedCells = 1;
     this.mouseDownOnCellCorner = true;
     this.#currentDragDirection = null;
+    this.#lastMouseClientPosition = null;
   };
 
   /**
@@ -869,13 +888,26 @@ export class Autofill extends BasePlugin {
    * On mouse move listener.
    *
    * @param {MouseEvent} event `mousemove` event properties.
+   * @param {boolean} [countDragStep=true] Whether a move onto a new cell should be counted as a
+   * drag step. Only genuine pointer moves count; a scroll replay (see `#onAfterScroll`) redraws
+   * the border without counting, otherwise a scroll that shifts the cell under a resting pointer
+   * would register a drag that never happened.
    */
-  #onMouseMove(event: Pick<MouseEvent, 'clientX' | 'clientY'>) {
+  #onMouseMove(event: Pick<MouseEvent, 'clientX' | 'clientY'>, countDragStep = true) {
     if (this.mouseDownOnCellCorner) {
       const { clientX, clientY } = event;
       const cellCoords = getCellCoordsFromMousePosition(this.hot, clientX, clientY);
+      const selectedRange = this.hot.getSelectedRangeLast();
 
       this.#lastMouseClientPosition = { clientX, clientY };
+
+      // The `beforeOnCellMouseOver`-based counting doesn't fire when the pointer leaves
+      // the table element (e.g. dragging the last column's fill handle at a slight angle,
+      // past the table's edge), so count the drag here as well. Otherwise the fill made
+      // with such a drag would never be committed on mouseup.
+      if (countDragStep && this.handleDraggedCells > 0 && selectedRange && !selectedRange.includes(cellCoords)) {
+        this.handleDraggedCells += 1;
+      }
 
       this.redrawBorders(cellCoords);
     }
@@ -899,8 +931,8 @@ export class Autofill extends BasePlugin {
    * Refreshes the autofill borders using the last mouse client position after scroll.
    */
   #onAfterScroll = () => {
-    if (this.mouseDownOnCellCorner) {
-      this.#onMouseMove(this.#lastMouseClientPosition);
+    if (this.mouseDownOnCellCorner && this.#lastMouseClientPosition) {
+      this.#onMouseMove(this.#lastMouseClientPosition, false);
     }
   };
 

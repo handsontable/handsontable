@@ -5,17 +5,29 @@ import { localeLowerCase } from '../../../helpers/string';
 /**
  * Normalizes a cell value for comparison by converting booleans to numbers and strings to lowercase.
  *
+ * Lowercased strings are memoized in the provided cache. The compare function is created once per
+ * sort run, so each distinct string pays the locale-aware lowercasing once instead of on every
+ * comparison (~2*log(n) times per row in a sort).
+ *
  * @param {unknown} value The value to normalize.
  * @param {string | undefined} locale The locale to use for string lowercasing.
+ * @param {Map} lowerCaseCache Per-sort-run cache mapping original strings to lowercased ones.
  * @returns {unknown} The normalized value.
  */
-function normalizeValue(value: unknown, locale: string | undefined): unknown {
+function normalizeValue(value: unknown, locale: string | undefined, lowerCaseCache: Map<string, string>): unknown {
   if (typeof value === 'boolean') {
     return Number(value);
   }
 
   if (typeof value === 'string') {
-    return localeLowerCase(value, locale);
+    let lowerCasedValue = lowerCaseCache.get(value);
+
+    if (lowerCasedValue === undefined) {
+      lowerCasedValue = localeLowerCase(value, locale);
+      lowerCaseCache.set(value, lowerCasedValue);
+    }
+
+    return lowerCasedValue;
   }
 
   return value;
@@ -75,12 +87,13 @@ export function compareFunctionFactory(
   sortOrder: string, columnMeta: Record<string, unknown>, columnPluginSettings: Record<string, unknown>
 ) {
   const locale = columnMeta.locale as string | undefined;
+  const lowerCaseCache = new Map<string, string>();
 
   return function(value: unknown, nextValue: unknown) {
     const { sortEmptyCells } = columnPluginSettings;
 
-    const normalizedValue = normalizeValue(value, locale);
-    const normalizedNextValue = normalizeValue(nextValue, locale);
+    const normalizedValue = normalizeValue(value, locale, lowerCaseCache);
+    const normalizedNextValue = normalizeValue(nextValue, locale, lowerCaseCache);
 
     if (normalizedValue === normalizedNextValue) {
       return DO_NOT_SWAP;

@@ -1,5 +1,4 @@
 ---
-id: b4e7c9f2
 title: Freeze and unfreeze columns at runtime
 metaTitle: Freeze and unfreeze columns at runtime - JavaScript Data Grid | Handsontable
 description: Freeze and unfreeze columns dynamically using external buttons that call hot.updateSettings with fixedColumnsStart, and understand how frozen columns interact with manual column reordering.
@@ -12,13 +11,10 @@ tags:
   - manualColumnMove
   - column management
 react:
-  id: c3d8e1f4
   metaTitle: Freeze and unfreeze columns at runtime - React Data Grid | Handsontable
 angular:
-  id: a7b2c5d9
   metaTitle: Freeze and unfreeze columns at runtime - Angular Data Grid | Handsontable
 vue:
-  id: 1r6wwd0v
   metaTitle: Freeze and unfreeze columns at runtime - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Column Management

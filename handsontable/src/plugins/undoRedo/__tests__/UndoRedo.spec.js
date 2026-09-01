@@ -1803,6 +1803,144 @@ describe('UndoRedo', () => {
         expect(getSettings().fixedRowsTop).toBe(1);
       });
 
+      it('should keep the number of bottom fixed rows after undoing an insertion above them', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 2),
+          colHeaders: true,
+          rowHeaders: true,
+          fixedRowsBottom: 1,
+        });
+
+        await alter('insert_row_below', 3, 1);
+
+        expect(countRows()).toBe(6);
+        expect(getSettings().fixedRowsBottom).toBe(1);
+
+        getPlugin('undoRedo').undo();
+
+        expect(countRows()).toBe(5);
+        expect(getSettings().fixedRowsBottom).toBe(1);
+      });
+
+      it('should keep the number of bottom fixed rows after undoing an insertion within them', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 2),
+          colHeaders: true,
+          rowHeaders: true,
+          fixedRowsBottom: 2,
+        });
+
+        await alter('insert_row_below', 4, 1);
+
+        expect(countRows()).toBe(6);
+
+        getPlugin('undoRedo').undo();
+
+        expect(countRows()).toBe(5);
+        expect(getSettings().fixedRowsBottom).toBe(2);
+        expect(getBottomClone().find('tbody tr').length).toBe(2);
+      });
+
+      it('should restore the number of bottom fixed rows changed after the insertion', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 2),
+          colHeaders: true,
+          rowHeaders: true,
+          fixedRowsBottom: 1,
+        });
+
+        await alter('insert_row_below', 4, 1);
+
+        await updateSettings({
+          fixedRowsBottom: 3,
+        });
+
+        getPlugin('undoRedo').undo();
+
+        expect(countRows()).toBe(5);
+        expect(getSettings().fixedRowsBottom).toBe(3);
+        expect(getBottomClone().find('tbody tr').length).toBe(3);
+      });
+
+      it('should render the bottom fixed rows only once while undoing an insertion within them', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 2),
+          colHeaders: true,
+          rowHeaders: true,
+          fixedRowsBottom: 2,
+        });
+
+        await alter('insert_row_below', 4, 1);
+
+        const fixedRowsBottomPerRender = [];
+
+        addHook('afterRender', () => {
+          fixedRowsBottomPerRender.push(getSettings().fixedRowsBottom);
+        });
+
+        getPlugin('undoRedo').undo();
+
+        expect(fixedRowsBottomPerRender).toEqual([2]);
+      });
+
+      it('should keep the number of start fixed columns after undoing an insertion within them', async() => {
+        handsontable({
+          data: createSpreadsheetData(2, 5),
+          colHeaders: true,
+          rowHeaders: true,
+          fixedColumnsStart: 2,
+        });
+
+        await alter('insert_col_start', 0, 1);
+
+        expect(countCols()).toBe(6);
+
+        getPlugin('undoRedo').undo();
+
+        expect(countCols()).toBe(5);
+        expect(getSettings().fixedColumnsStart).toBe(2);
+        expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(2);
+      });
+
+      it('should restore the number of start fixed columns changed after the insertion', async() => {
+        handsontable({
+          data: createSpreadsheetData(2, 5),
+          colHeaders: true,
+          rowHeaders: true,
+          fixedColumnsStart: 1,
+        });
+
+        await alter('insert_col_start', 0, 1);
+
+        await updateSettings({
+          fixedColumnsStart: 3,
+        });
+
+        getPlugin('undoRedo').undo();
+
+        expect(countCols()).toBe(5);
+        expect(getSettings().fixedColumnsStart).toBe(3);
+        expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(3);
+      });
+
+      it('should keep the number of top fixed rows after undoing an insertion within them', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 2),
+          colHeaders: true,
+          rowHeaders: true,
+          fixedRowsTop: 2,
+        });
+
+        await alter('insert_row_above', 0, 1);
+
+        expect(countRows()).toBe(6);
+
+        getPlugin('undoRedo').undo();
+
+        expect(countRows()).toBe(5);
+        expect(getSettings().fixedRowsTop).toBe(2);
+      });
+
       it('should undo multiple changes', async() => {
         handsontable({
           data: createObjectData().slice(0, 2)

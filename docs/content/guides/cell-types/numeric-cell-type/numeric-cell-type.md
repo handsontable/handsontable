@@ -17,7 +17,7 @@ menuTag: updated
 ---
 Display, format, sort, and filter numbers correctly by using the numeric cell type.
 
-The numeric cell type formats numbers using Intl.NumberFormat, right-aligns values, and restricts input to valid numbers.
+The numeric cell type formats numbers using Intl.NumberFormat, right-aligns values, and validates input, marking non-numeric values as invalid.
 
 [[toc]]
 
@@ -315,6 +315,18 @@ settings = {
 - **Percent**: Use `style: 'percent'` for percentage formatting
 - **Unit**: Use `style: 'unit'` with a `unit` property (e.g., `'kilometer'`, `'liter'`)
 
+To add thousands separators and a fixed number of decimal places, use `useGrouping` together with
+`minimumFractionDigits` and `maximumFractionDigits`:
+
+```js
+numericFormat: {
+  style: 'decimal',
+  useGrouping: true, // adds thousands separators, for example 1,000,000
+  minimumFractionDigits: 2, // always shows two decimal places
+  maximumFractionDigits: 2,
+}
+```
+
 **Available options:**
 
 **Style options:**
@@ -386,10 +398,45 @@ you edit a numeric cell:
   these as `7000` and `7000.25` respectively. For other locales, the thousands separator is added
   automatically after editing, based on your [`numericFormat`](@/api/options.md#numericformat)
   configuration.
+- By default, entering `9.0` stores the number `9`, so the editor shows `9` the next time you open
+  it, and very large numbers lose precision. To keep the exact text you typed, set the
+  [`preserveNumericLiteral`](@/api/options.md#preservenumericliteral) option to `true`. Then, only
+  when converting your entry to a JavaScript number would lose information -- a trailing decimal
+  zero such as `9.0`, or a value whose magnitude exceeds the safe-integer limit
+  (`9007199254740991`) -- Handsontable keeps the literal you typed, so the editor shows it exactly.
+  Values that convert without loss (such as `9.5`) are still stored as numbers, so sorting,
+  filtering, and formulas are unaffected. A preserved literal still behaves like a number in those
+  features: sorting and filter conditions compare it numerically, and the formulas engine parses it
+  as a number, so functions such as `SUM` still include the cell. One exception: the filter menu's
+  "Filter by value" checkbox list compares values strictly, so a preserved literal (`9.0`) and its
+  plain number (`9`) appear as two separate entries. This option is `false` by default.
+
+## Validate numbers
+
+The numeric cell type includes a built-in validator. When a cell is validated, any value that is not a
+valid number is marked with the `htInvalid` CSS class, which renders as a red cell background in the
+default theme. Themes control the actual color.
+
+Validation runs after you edit a cell. To validate and mark values that are already in the data source
+(for example, after [`loadData()`](@/api/core.md#loaddata)), call
+[`validateCells()`](@/api/core.md#validatecells).
+
+Two options control how the validator treats values:
+
+- [`allowInvalid`](@/api/options.md#allowinvalid) (default `true`): invalid values are kept, saved to
+  the data source, and marked as invalid. Set `allowInvalid` to `false` to reject invalid input and
+  keep the [cell editor](@/guides/cell-functions/cell-editor/cell-editor.md) open until you enter a
+  valid number.
+- [`allowEmpty`](@/api/options.md#allowempty) (default `true`): empty cells pass validation. Set
+  `allowEmpty` to `false` to mark empty cells as invalid.
 
 ## Result
 
-After configuring the numeric cell type, cells right-align their values and display them using the format you defined in `numericFormat`. Invalid (non-numeric) input is rejected. The underlying data source stores the raw number.
+After configuring the numeric cell type, cells right-align their values and display them using the format you defined in `numericFormat`. Invalid (non-numeric) values are marked as invalid -- see [Validate numbers](#validate-numbers). The underlying data source stores the raw number.
+
+## Keyboard shortcuts
+
+The numeric cell editor is a text editor, so it uses the standard [edition keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#edition-keyboard-shortcuts). It has no numeric-specific key bindings. Type a period (`.`) or a comma (`,`) to enter a decimal separator -- see [Editor behavior](#editor-behavior).
 
 ## Related articles
 
@@ -409,6 +456,9 @@ After configuring the numeric cell type, cells right-align their values and disp
 - [locale](@/api/options.md#locale)
 - [type](@/api/options.md#type)
 - [valueFormatter](@/api/options.md#valueformatter)
+- [validator](@/api/options.md#validator)
+- [allowInvalid](@/api/options.md#allowinvalid)
+- [allowEmpty](@/api/options.md#allowempty)
 
 </div>
 
@@ -420,6 +470,7 @@ After configuring the numeric cell type, cells right-align their values and disp
 - [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
 - [getCellsMeta()](@/api/core.md#getcellsmeta)
 - [getDataType()](@/api/core.md#getdatatype)
+- [validateCells()](@/api/core.md#validatecells)
 - [setCellMeta()](@/api/core.md#setcellmeta)
 - [setCellMetaObject()](@/api/core.md#setcellmetaobject)
 - [removeCellMeta()](@/api/core.md#removecellmeta)

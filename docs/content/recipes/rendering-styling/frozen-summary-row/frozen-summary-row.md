@@ -1,5 +1,4 @@
 ---
-id: k9m2xp4q
 title: Frozen summary row
 metaTitle: Frozen summary row recipe - JavaScript Data Grid | Handsontable
 description: Pin a read-only totals row at the bottom with fixedRowsBottom, recalculate on afterChange, and style it with the cells callback.
@@ -12,17 +11,15 @@ tags:
   - fixed rows
   - summary
 react:
-  id: n4w7rt8y
   metaTitle: Frozen summary row recipe - React Data Grid | Handsontable
 angular:
-  id: h3j6vs2b
   metaTitle: Frozen summary row recipe - Angular Data Grid | Handsontable
 vue:
-  id: 3udunsuv
   metaTitle: Frozen summary row recipe - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Rendering and styling
 type: how-to
+menuTag: updated
 ---
 
 In this tutorial, you will pin a read-only totals row at the bottom of the grid. You will learn how to use `fixedRowsBottom`, recalculate aggregates on `afterChange`, and style the summary row with the `cells` callback.
@@ -99,6 +96,8 @@ For each column, compute:
 - **Avg** - sum divided by how many numeric values you counted.
 - **Count** - number of numeric values (not including blanks or non-numeric text).
 
+Join the three stats with a newline (`\n`) instead of a single line, so `Sum`, `Avg`, and `Count` each render on their own line inside the cell. The grid's default `white-space: pre-wrap` cell style turns that `\n` into a real line break, so the count never gets stranded mid-wrap next to the other stats.
+
 Write the formatted string into the summary cells with [`setDataAtRowProp`](@/api/core.md#setdataatrowprop).
 
 ## Step 4: Recalculate on load and on edits
@@ -115,8 +114,9 @@ Use the [`cells`](@/api/options.md#cells) callback (row, column, prop) to return
 - Set [`readOnly: true`](@/api/options.md#readonly) so users cannot edit totals.
 - Set [`className`](@/api/options.md#classname) (for example `htSummaryRow`, and `htRight` on numeric columns) and define those classes in a small CSS file.
 - For summary cells that display text aggregates, set [`type: 'text'`](@/api/options.md#type) so Handsontable does not run the numeric cell renderer on those strings.
+- Also set `validator: undefined` on those same cells. Overriding `type` on a cell whose column has a different `type` does not clear a property the column's type already set - the text cell type declares no `validator`, so the cell keeps inheriting the column's numeric validator. That validator then fails on the aggregate text and marks the cell invalid, which Handsontable renders with its built-in error background instead of your `htSummaryRow` style.
 
-Prefer Handsontable theme variables (for example `--ht-background-color-extra-light`) so the row still looks correct with different themes.
+A read-only cell also gets Handsontable's built-in `.htDimmed` background, applied with `!important`. Give your own background rule at least the same specificity and add `!important` too - for example `.handsontable .htSummaryRow.htDimmed { background-color: ...; }` - so it wins instead of silently losing to the default read-only style. Prefer Handsontable theme variables (for example `--ht-background-secondary-color`) so the row still looks correct with different themes.
 
 ## Related guides
 
@@ -128,7 +128,7 @@ Prefer Handsontable theme variables (for example `--ht-background-color-extra-li
 - How `fixedRowsBottom` pins the last N rows at the bottom of the grid so they stay visible during scrolling.
 - How to recalculate summary values in `afterChange` and `afterInit` and write them back with `hot.setDataAtRowProp()`.
 - How to use the `cells` callback to mark only the summary row as `readOnly` and apply a custom `className` for styling.
-- Why you should use Handsontable theme CSS variables (such as `--ht-background-color-extra-light`) in your summary row styles so the row stays visually consistent across themes.
+- Why you should use Handsontable theme CSS variables (such as `--ht-background-secondary-color`) in your summary row styles so the row stays visually consistent across themes, and why a custom background rule on a read-only row needs to match or exceed the specificity of Handsontable's built-in `.htDimmed` style to actually take effect.
 
 ## Next steps
 

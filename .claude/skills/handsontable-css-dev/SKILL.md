@@ -22,6 +22,18 @@ No-icons variants: `ht-theme-main-no-icons`, `ht-theme-classic-no-icons`, `ht-th
 
 Theme customization is done entirely through CSS variables. These variables are the **public API** for theming. Renaming or removing a CSS custom property is a **breaking change** and requires a legacy compatibility path (keep the old variable working).
 
+## Cell padding must come from the variables, not from the cell
+
+`StylesHandler#getDefaultRowHeight()` computes
+`--ht-line-height + 2 * --ht-cell-vertical-padding + border-bottom-width`, and Walkontable sizes a
+table's scroll range from the summed row heights. Writing `padding` onto a `td` leaves the variable at
+the theme's value, so the engine computes a row height the cells do not have and the scroll range comes
+out wrong. Override `--ht-cell-vertical-padding` / `--ht-cell-horizontal-padding` and derive the `td`
+padding from them.
+
+A nested grid built inside a hidden container masks this: its styles cache is empty, the derived row
+height reads `null`, and the engine measures the DOM instead.
+
 ## Strict CSS/JS Separation
 
 Never mix CSS into JavaScript files. CSS and JS are always in separate files. This is enforced by convention and code review.
@@ -40,6 +52,21 @@ Never mix CSS into JavaScript files. CSS and JS are always in separate files. Th
 - `build:styles` - Compile SCSS to CSS.
 - `build:themes-*` - Build theme-specific assets.
 - Stylelint validates all CSS/SCSS (`npm run stylelint --prefix handsontable`).
+
+## No `:has()` in stylesheets (lint-enforced)
+
+The custom rule `handsontable/no-has-selector` (error) bans the `:has()` relational pseudo-class in all
+`src/**/*.{css,scss}`. In Chrome, a `:has()` rule anywhere in the document makes every matching DOM
+mutation re-run style invalidation at a cost that scales with the whole host page — and the grid mutates
+the DOM on every scroll re-render, so `:has()` turns scrolling janky on large/complex host pages. Drive
+the style from a **class that JS toggles on the target element** instead (the `SelectionManager`
+header-accent stamping — `#markActiveHeaderNeighbors` / the `-seam` taggers — is the reference pattern).
+The rule lives in `.config/plugin/stylelint/` (a pnpm `file:` dependency, the SCSS analog of
+`eslint-plugin-handsontable`; **copied, not symlinked — run `pnpm install` after editing it**). A
+genuinely necessary exception (a `:has()` on state that is NOT re-evaluated during a scroll — dialog
+focus, dropdown selection, the offscreen `.htGhostTable`) uses
+`// stylelint-disable-next-line handsontable/no-has-selector -- <reason>` with a reason that says why it
+is off the scroll path.
 
 ## Browser Compatibility
 

@@ -46,14 +46,14 @@ Handsontable is a frontend-only library with no built-in external API integratio
 **Hosting:**
 - npm registry (published as `handsontable`, `@handsontable/react-wrapper`, `@handsontable/angular-wrapper`, `@handsontable/vue3`)
 - CDN: jsDelivr and unpkg (automatic from npm publish)
-- Documentation: Netlify (`docs/netlify/`)
+- Documentation: Cloudflare Pages (`docs/cloudflare/`, `docs/deploy/`)
 
 **CI Pipeline:**
 - GitHub Actions (`.github/workflows/`)
 - Key workflows: `test.yml`, `build-all.yml`, `code-quality.yml`, `publish.yml`
 
 **Visual Regression Testing:**
-- Argos CI (`@argos-ci/core` ^5.1.1) - Screenshot comparison service used in `visual-tests/`
+- reg-suit (`reg-suit` ^0.14.5) - Screenshot comparison used in `visual-tests/`; golden records and HTML diff reports are stored in Cloudflare R2
 - Playwright for screenshot capture
 
 **Documentation Search:**
@@ -73,7 +73,7 @@ Handsontable is a frontend-only library with no built-in external API integratio
 
 **Secrets location:**
 - No secrets in the repository. No `.env` files present.
-- CI secrets managed via GitHub Actions secrets (for npm publish, Netlify deploy, Algolia reindex).
+- CI secrets managed via GitHub Actions secrets (for npm publish, Cloudflare deploy, Algolia reindex).
 
 ## Webhooks & Callbacks
 

@@ -2,12 +2,13 @@
  * Cloudflare Pages Worker for Handsontable docs preview site.
  *
  * When a _worker.js is present in Cloudflare Pages, it intercepts ALL requests
- * and _redirects is ignored. This worker re-implements all redirect logic that
- * lives in the Netlify _redirects file and the Netlify edge functions.
+ * and _redirects is ignored. This worker is the sole, hand-maintained authority
+ * for every redirect rule below - there is no generator.
  *
  * Redirect priority order (first match wins):
  *   1. /docs/next/:splat                   → /docs/:splat
  *  1a. /docs/sitemap.xml                   → /docs/sitemap-index.xml
+ *  1b. /docs/{LATEST_VERSION}/:splat       → /docs/:splat
  *   2. / → /docs
  *  2a. /0.8.0/*                            → /docs/javascript-data-grid/changelog
  *  2b. /docs/redirect?pageId=*             → /docs/javascript-data-grid/changelog
@@ -20,6 +21,7 @@
  *   5. /docs/:ver/:page.html               → versioned framework pages (cookie)
  *   6. /docs/(javascript|angular|react)-data-grid/(row-sorting|column-sorting|release-notes)
  *   7. Cross-framework page fixes (angular/react wrong-prefix pages)
+ *  7a. Vue 3 legacy page redirects      → /docs/vue-data-grid/*
  *   8. Recipe cell-type slug mismatches
  *   9. Angular-only recipe redirects for React/JS
  *  10. JS/React-only recipe redirects for Angular/React
@@ -32,6 +34,7 @@
  *  17. /docs/react, /docs/angular, etc.    → framework homes
  *  18. /{/}                               → /docs
  *  19. /docs{/}                           → /docs/(framework)/ (cookie)
+ * 19a. POST /docs/scripts/json/save.json  → mock 200 JSON (saving-data demo)
  *  20. Static asset fallback (env.ASSETS)
  */
 
@@ -108,6 +111,18 @@ function redirect302(destination) {
 function abs(path, base) {
   return `${base.origin}${path}`;
 }
+
+// ---------------------------------------------------------------------------
+// Data: latest documentation version
+// ---------------------------------------------------------------------------
+
+// The MAJOR.MINOR version whose docs are also served at the unversioned
+// `/docs/...` root. The `__LATEST_DOCS_VERSION__` placeholder is replaced at
+// deploy time with the value computed by deploy/getListOrPreviousVersions.mjs
+// (the same source the docs build uses). When the placeholder is left
+// unreplaced (for example, on staging previews that have no versioned docs),
+// the `\d+\.\d+` guard in rule 1b makes the latest-version redirect a no-op.
+const LATEST_VERSION = '__LATEST_DOCS_VERSION__';
 
 // ---------------------------------------------------------------------------
 // Data: versioned HTML redirect map (used by /docs/{ver}/{page}.html)
@@ -349,8 +364,8 @@ const FLAT_HTML_MAP = {
   'demo-auto-fill': 'autofill-values',
   'demo-merged-cells': 'merge-cells',
   'demo-alignment': 'text-alignment',
-  'demo-read-only': 'disabled-cells',
-  'demo-disabled-editing': 'disabled-cells',
+  'demo-read-only': 'read-only-cells',
+  'demo-disabled-editing': 'read-only-cells',
   'demo-custom-renderers': 'cell-renderer',
   'demo-numeric': 'numeric-cell-type',
   'demo-date': 'date-cell-type',
@@ -465,6 +480,7 @@ const FLAT_PAGES_REMAP = {
   latest: '/',
   'internationalization-i18n': '/language/',
   'keyboard-navigation': '/keyboard-shortcuts/',
+  'disabled-cells': '/read-only-cells/',
   building: '/custom-builds/',
   plugins: '/custom-plugins/',
   'file-structure': '/folder-structure/',
@@ -538,7 +554,7 @@ const SITEMAP_PASSTHROUGH_SLUGS = new Set([
   'formatting-cells',
   'merge-cells',
   'selection',
-  'disabled-cells',
+  'read-only-cells',
   'text-alignment',
   'cell-function',
   'basic-clipboard',
@@ -689,12 +705,83 @@ const FLAT_REACT_PAGES = {
   'react-hot-reference': '/docs/react-data-grid/instance-methods/',
 };
 
+// Old integrate-with-vue3 slugs redirect to the current Vue data grid pages.
+// Used as-is by the versioned rule below (7b): frozen historical doc versions
+// never got the 'custom-id-class-style' unification from rule 6, so
+// 'vue3-custom-id-class-style' still belongs here for that case. Rule 7a
+// (unversioned, framework-prefixed) never reaches this entry for that one
+// page - the crossFramework map (rule 6) matches it first, since that page's
+// *current* docs were unified into an all-framework 'custom-id-class-style'
+// page.
+const VUE3_LEGACY_PAGES = {
+  'vue3-installation': '/docs/vue-data-grid/installation/',
+  'vue3-basic-example': '/docs/vue-data-grid/installation/',
+  'vue3-modules': '/docs/vue-data-grid/modules/',
+  'vue3-hot-column': '/docs/vue-data-grid/vue-hot-column/',
+  'vue3-hot-reference': '/docs/vue-data-grid/vue-instance-reference/',
+  'vue3-custom-renderer-example': '/docs/vue-data-grid/cell-renderer/',
+  'vue3-custom-editor-example': '/docs/vue-data-grid/cell-editor/',
+  'vue3-custom-context-menu-example': '/docs/vue-data-grid/context-menu/',
+  'vue3-custom-id-class-style': '/docs/vue-data-grid/vue-custom-id-class-style/',
+  'vue3-formulas-example': '/docs/vue-data-grid/formula-calculation/',
+  'vue3-language-change-example': '/docs/vue-data-grid/language/',
+  'vue3-setting-up-a-translation': '/docs/vue-data-grid/language/',
+  'vue3-vuex-example': '/docs/vue-data-grid/vue-vuex/',
+};
+
 // ---------------------------------------------------------------------------
 // Main worker
 // ---------------------------------------------------------------------------
 
-export default {
-  async fetch(request, env) {
+// ---------------------------------------------------------------------------
+//  Security headers
+// ---------------------------------------------------------------------------
+// This docs site owns its own Content-Security-Policy so the policy reaches the
+// browser directly from Cloudflare Pages. The handsontable.com marketing Worker
+// reverse-proxies /docs and must NOT overwrite this CSP.
+//
+// It is the proven handsontable.com baseline policy plus the docs-only hosts
+// the marketing policy lacks: Algolia DocSearch (https://*.algolia.net and
+// https://*.algolianet.com). The baseline already covers the docs AI assistant
+// (hot-docs-assistant.netlify.app), CodeSandbox embeds, GTM/GA/Hotjar/Sentry/
+// Cookiebot, api.github.com, and *.handsontable.com (which covers
+// status.handsontable.com and the version-switcher data on handsontable.com).
+//
+// The docs-assistant backend is migrating from Netlify to a Cloudflare Worker
+// (SU-633). The dev Worker host is added to connect-src alongside the Netlify
+// host so the dev soak can reach it; the Netlify host stays because production
+// still uses it until its own separate cutover.
+//
+// Set here rather than in a Pages `_headers` file because the policy exceeds the
+// 2000-character-per-line `_headers` limit and a CSP cannot be split across
+// multiple Content-Security-Policy lines.
+const CONTENT_SECURITY_POLICY = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://google.com https://js-eu1.hsforms.net https://static.reo.dev/ https://static.hsappstatic.net https://js-eu1.hs-analytics.net https://js-eu1.hsadspixel.net https://js-eu1.hscollectedforms.net https://js-eu1.hs-banner.com https://js-eu1.hs-scripts.com https://www.redditstatic.com https://bat.bing.com https://bat.bing.net https://dev.visualwebsiteoptimizer.com https://analytics.ahrefs.com https://*.cloudflareinsights.com https://sbl.onfastspring.com https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://*.hotjar.com https://snap.licdn.com https://static.ads-twitter.com https://analytics.twitter.com https://consentcdn.cookiebot.com https://consent.cookiebot.com https://handsontable.piwik.pro https://handsontable.containers.piwik.pro https://*.list-manage.com https://docs.handsontable.com https://s3.amazonaws.com https://unpkg.com https://cdn.jsdelivr.net https://buttons.github.io https://code.jquery.com https://cdn.headwayapp.co https://www.google.com https://www.gstatic.com https://www.googleadservices.com https://www.googletagmanager.com https://*.google-analytics.com https://tagmanager.google.com https://script.crazyegg.com https://*.cloudfront.net https://*.cloudflare.com https://*.s3.amazonaws.com https://*.doubleclick.net https://connect.facebook.net https://*.sentry-cdn.com; img-src * 'self' data: https:; style-src 'self' 'unsafe-inline' https://sbl.onfastspring.com https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://www.googletagmanager.com https://*.hotjar.com https://*.cloudflare.com https://fonts.googleapis.com https://tagmanager.google.com https://cdn.jsdelivr.net; font-src 'self' data: https://*.zendesk.com https://*.zdassets.com https://*.hotjar.com https://fonts.gstatic.com; frame-src 'self' 'unsafe-inline' https://google.com https://js-eu1.hsforms.net https://handsontablestore.onfastspring.com https://handsontablestore.test.onfastspring.com https://*.doubleclick.net https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://examples.handsontable.com https://demos.handsontable.com https://handsontable.github.io https://*.hotjar.com https://consentcdn.cookiebot.com https://www.google.com https://headway-widget.net https://www.youtube.com https://player.vimeo.com https://codesandbox.io https://www.youtube-nocookie.com https://www.facebook.com https://www.googletagmanager.com/ https://embed.figma.com; object-src 'self'; connect-src 'self' https://hot-docs-assistant.netlify.app https://hot-docs-assistant-dev.handsontable-sandbox.workers.dev https://hot-docs-assistant.handsontable-sandbox.workers.dev https://*.algolia.net https://*.algolianet.com https://browser.sentry-cdn.com https://api.reo.dev https://api-eu1.hubapi.com https://static.hsappstatic.net https://forms-eu1.hscollectedforms.net https://ads.reddit.com https://www.redditstatic.com https://pixel-config.reddit.com https://www.googleadservices.com https://bat.bing.net https://bat.bing.com https://dev.visualwebsiteoptimizer.com https://api.github.com https://analytics.ahrefs.com https://ingesteer.services-prod.nsvcs.net https://plausible.io https://*.linkedin.com https://*.zendesk.com https://adservice.google.com https://*.zdassets.com https://*.hotjar.com https://*.hotjar.io wss://*.hotjar.com https://consentcdn.cookiebot.com https://cdn.linkedin.oribi.io https://www.google.com https://google.com https://stats.g.doubleclick.net https://googleads.g.doubleclick.net https://*.doubleclick.net https://www.google.pl https://*.google-analytics.com https://*.analytics.google.com https://*.googlesyndication.com https://*.handsontable.com https://www.googletagmanager.com https://handsontable.com https://handsontablestore.test.onfastspring.com https://handsontablestore.onfastspring.com https://snap.licdn.com https://www.facebook.com https://*.sentry.io https://jsonplaceholder.typicode.com https://graphqlzero.almansi.me; worker-src 'self' blob:; frame-ancestors 'self';";
+
+const SECURITY_HEADERS = {
+  'Content-Security-Policy': CONTENT_SECURITY_POLICY,
+  'X-Frame-Options': 'SAMEORIGIN',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+};
+
+// Apply the security headers to served documents/assets. Redirects (3xx) are
+// passed through untouched.
+function withSecurityHeaders(response) {
+  if (response.status >= 300 && response.status < 400) {
+    return response;
+  }
+
+  const decorated = new Response(response.body, response);
+
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
+    decorated.headers.set(name, value);
+  }
+
+  return decorated;
+}
+
+async function route(request, env) {
     const url = new URL(request.url);
     const path = url.pathname;
 
@@ -710,6 +797,19 @@ export default {
     // Redirect the legacy single-file sitemap URL to Astro's sitemap index.
     if (path === '/docs/sitemap.xml') {
       return redirect301(abs('/docs/sitemap-index.xml', url));
+    }
+
+    // -- 1b. /docs/{LATEST_VERSION}/:splat → /docs/:splat ---------------------
+    // The latest version's docs are also served at the unversioned `/docs/...`
+    // root, so the versioned URLs are duplicates. Redirect them to the
+    // canonical unversioned path. The `\d+\.\d+` guard makes this a no-op
+    // when the deploy-time placeholder was not substituted.
+    if (/^\d+\.\d+$/.test(LATEST_VERSION) &&
+        (path === `/docs/${LATEST_VERSION}` || path.startsWith(`/docs/${LATEST_VERSION}/`))) {
+      const splat = path.slice(`/docs/${LATEST_VERSION}`.length) || '/';
+      const dest = `/docs${splat}${url.search}`;
+
+      return redirect301(abs(dest, url));
     }
 
     // -- 2. Root / → /docs ---------------------------------------------------
@@ -826,6 +926,20 @@ export default {
         '/docs/javascript-data-grid/angular-custom-renderer-example/': '/docs/angular-data-grid/cell-renderer/',
         '/docs/javascript-data-grid/angular-language-change-example/': '/docs/angular-data-grid/language/',
         '/docs/javascript-data-grid/angular-hot-reference/': '/docs/angular-data-grid/api/core/',
+        // Custom ID, class, and style: Vue-only page unified into an all-framework
+        // page (permalink renamed vue-custom-id-class-style → custom-id-class-style).
+        '/docs/javascript-data-grid/vue-custom-id-class-style/': '/docs/javascript-data-grid/custom-id-class-style/',
+        '/docs/react-data-grid/vue-custom-id-class-style/': '/docs/react-data-grid/custom-id-class-style/',
+        '/docs/angular-data-grid/vue-custom-id-class-style/': '/docs/angular-data-grid/custom-id-class-style/',
+        '/docs/vue-data-grid/vue-custom-id-class-style/': '/docs/vue-data-grid/custom-id-class-style/',
+        '/docs/javascript-data-grid/vue3-custom-id-class-style/': '/docs/javascript-data-grid/custom-id-class-style/',
+        '/docs/react-data-grid/vue3-custom-id-class-style/': '/docs/react-data-grid/custom-id-class-style/',
+        '/docs/angular-data-grid/vue3-custom-id-class-style/': '/docs/angular-data-grid/custom-id-class-style/',
+        '/docs/vue-data-grid/vue3-custom-id-class-style/': '/docs/vue-data-grid/custom-id-class-style/',
+        '/docs/javascript-data-grid/disabled-cells/': '/docs/javascript-data-grid/read-only-cells/',
+        '/docs/react-data-grid/disabled-cells/': '/docs/react-data-grid/read-only-cells/',
+        '/docs/angular-data-grid/disabled-cells/': '/docs/angular-data-grid/read-only-cells/',
+        '/docs/vue-data-grid/disabled-cells/': '/docs/vue-data-grid/read-only-cells/',
       };
       // Also normalise without trailing slash.
       const normalised = path.endsWith('/') ? path : `${path}/`;
@@ -845,6 +959,35 @@ export default {
         const dest = `/docs/${framework}${pageRemap[m[2]]}`;
 
         return redirect301(abs(dest, url));
+      }
+    }
+
+    // -- 7a. Vue 3 legacy pages ---------------------------------------------
+    {
+      const m = path.match(/^\/docs\/(javascript|react|angular|vue)-data-grid\/(vue3-[^/]+)\/?$/);
+
+      if (m) {
+        const page = m[2];
+
+        if (Object.prototype.hasOwnProperty.call(VUE3_LEGACY_PAGES, page)) {
+          return redirect301(abs(VUE3_LEGACY_PAGES[page], url));
+        }
+      }
+    }
+
+    // -- 7b. Versioned Vue 3 legacy pages -----------------------------------
+    {
+      const m = path.match(/^\/docs\/(\d+\.\d+)\/(vue3-[^/]+)\/?$/);
+
+      if (m) {
+        const version = m[1];
+        const page = m[2];
+
+        if (Object.prototype.hasOwnProperty.call(VUE3_LEGACY_PAGES, page)) {
+          const dest = `/docs/${version}${VUE3_LEGACY_PAGES[page].slice('/docs'.length)}`;
+
+          return redirect301(abs(dest, url));
+        }
       }
     }
 
@@ -874,16 +1017,6 @@ export default {
         '/docs/angular-data-grid/recipes/cell-types/colorful-picker/': '/docs/angular-data-grid/recipes/cell-types/color-picker/',
         '/docs/angular-data-grid/recipes/cell-types/feedback-react/': '/docs/angular-data-grid/recipes/cell-types/feedback/',
         '/docs/angular-data-grid/recipes/cell-types/react-rating/': '/docs/angular-data-grid/recipes/cell-types/rating/',
-        '/docs/react-data-grid/recipes/cell-types/flatpickr/': '/docs/react-data-grid/recipes/cell-types/',
-        '/docs/angular-data-grid/recipes/cell-types/flatpickr/': '/docs/angular-data-grid/recipes/cell-types/',
-        '/docs/react-data-grid/recipes/cell-types/pikaday/': '/docs/react-data-grid/recipes/cell-types/',
-        '/docs/angular-data-grid/recipes/cell-types/pikaday/': '/docs/angular-data-grid/recipes/cell-types/',
-        '/docs/react-data-grid/recipes/cell-types/numbro/': '/docs/react-data-grid/recipes/cell-types/',
-        '/docs/angular-data-grid/recipes/cell-types/numbro/': '/docs/angular-data-grid/recipes/cell-types/',
-        '/docs/react-data-grid/recipes/cell-types/moment-date/': '/docs/react-data-grid/recipes/cell-types/',
-        '/docs/angular-data-grid/recipes/cell-types/moment-date/': '/docs/angular-data-grid/recipes/cell-types/',
-        '/docs/react-data-grid/recipes/cell-types/moment-time/': '/docs/react-data-grid/recipes/cell-types/',
-        '/docs/angular-data-grid/recipes/cell-types/moment-time/': '/docs/angular-data-grid/recipes/cell-types/',
         '/docs/javascript-data-grid/recipes/cell-types/datepicker/': '/docs/javascript-data-grid/recipes/cell-types/',
         '/docs/react-data-grid/recipes/cell-types/datepicker/': '/docs/react-data-grid/recipes/cell-types/',
       };
@@ -953,8 +1086,8 @@ export default {
       const shortcuts = {
         '/docs/react': '/docs/react-data-grid/installation/',
         '/docs/angular': '/docs/javascript-data-grid/angular-installation/',
-        '/docs/vue': '/docs/javascript-data-grid/vue3-installation/',
-        '/docs/vue3': '/docs/javascript-data-grid/vue3-installation/',
+        '/docs/vue': VUE3_LEGACY_PAGES['vue3-installation'],
+        '/docs/vue3': VUE3_LEGACY_PAGES['vue3-installation'],
       };
 
       if (Object.prototype.hasOwnProperty.call(shortcuts, path)) {
@@ -1018,7 +1151,17 @@ export default {
         }
 
         const cookieValue = getCookie(request, 'docs_fw');
-        const framework = getFrameworkFromCookie(cookieValue);
+        let framework = getFrameworkFromCookie(cookieValue);
+
+        // Angular has no dedicated per-version docs before 16.0 (see the
+        // LEGACY_ANGULAR_TO_ANGULAR_SET/_TO_JS_SET rule above). Sending the
+        // angular-cookie framework here would manufacture a
+        // /docs/{version}/angular-data-grid URL that rule 3 then collapses to
+        // the unversioned latest docs, dropping the version requested here.
+        if (framework === 'angular-data-grid' && major < 16) {
+          framework = 'javascript-data-grid';
+        }
+
         const dest = isFrameworkVersion ? `/docs/${version}/${framework}` : `/docs/${version}`;
 
         return redirect302(abs(dest, url));
@@ -1122,7 +1265,25 @@ export default {
       }
     }
 
+    // -- 18a. POST to the saving-data demo's mock save endpoint --------------
+    // Cloudflare Pages' static-asset handler only serves GET/HEAD; a POST to
+    // a static file returns 405. The saving-data guide's demo intentionally
+    // POSTs here to illustrate a save request (see saving-data.md's "just a
+    // mockup" note), so answer it directly instead of falling through to
+    // env.ASSETS, which would 405.
+    if (path === '/docs/scripts/json/save.json' && request.method !== 'GET' && request.method !== 'HEAD') {
+      return new Response(JSON.stringify({ result: 'ok' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     // -- 19. Fallback: serve static assets via env.ASSETS --------------------
     return env.ASSETS.fetch(request);
+}
+
+export default {
+  async fetch(request, env) {
+    return withSecurityHeaders(await route(request, env));
   },
 };

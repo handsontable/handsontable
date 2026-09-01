@@ -22,6 +22,11 @@ const IGNORED_ERROR_PATTERNS: RegExp[] = [
   /^HTTP \d{3}$/,
   // Vite dep-optimizer cache invalidation during dev-server warm-up.
   /Outdated Optimize Dep/i,
+  // CodeSandbox embeds in theme recipe pages fire a phishing-check fetch from
+  // *.csb.app → codesandbox.io/api that is always blocked by CORS policy.
+  // These errors originate in the iframe, not in Handsontable code.
+  /csb\.app/i,
+  /codesandbox\.io/i,
 ];
 
 function shouldIgnoreError(message: string): boolean {
@@ -89,13 +94,23 @@ recipePages.forEach(({ path: pagePath, framework, hasExamples }) => {
     const fullUrl = `${baseURL}/${framework}/${pagePath}`;
 
     await page.goto(fullUrl);
+    await expect(page.getByText('We are verifying your connection')).toHaveCount(0, { timeout: 30000 });
     await expect(page.getByText('Page not found (404)')).toHaveCount(0);
     await expect(page.getByText('Password protected site')).toHaveCount(0);
     await page.waitForLoadState('domcontentloaded');
 
     if (hasExamples) {
-      // Angular bootstrapApplication is the slowest initializer — 30 s is safe.
-      const loadTimeout = framework === 'angular-data-grid' ? 30_000 : 20_000;
+      // Angular bootstrapApplication is the slowest initializer. 30 s is also
+      // needed for JS/React recipes when the dev server is under parallel load.
+      const loadTimeout = 30_000;
+
+      // Wait for JS to hydrate the example container before checking loading state.
+      // Recipe pages use .hot-example-loader (not .hot-example-preview--loading) so
+      // the negative wait below resolves immediately — this positive wait prevents
+      // the count check from racing ahead of hydration.
+      await expect(page.locator('.hot-example').first()).toBeAttached({
+        timeout: loadTimeout,
+      });
 
       // Every .hot-example-preview--loading class must be removed before we check.
       await expect(page.locator('.hot-example-preview--loading')).toHaveCount(0, {

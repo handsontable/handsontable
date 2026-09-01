@@ -1,12 +1,13 @@
 import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
-import { cancelAnimationFrame, requestAnimationFrame } from '../../helpers/feature';
+import { cancelIdleTask, requestIdleTask } from '../../helpers/feature';
 import GhostTable from '../../utils/ghostTable';
 import { isObject } from '../../helpers/object';
 import { valueAccordingPercent, rangeEach } from '../../helpers/number';
 import SamplesGenerator from '../../utils/samplesGenerator';
 import { isPercentValue } from '../../helpers/string';
-import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import { formatCellValue } from '../../renderers/renderCell';
+import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { addClass, removeClass } from '../../helpers/dom/element';
 
 export const PLUGIN_KEY = 'autoRowSize';
@@ -40,17 +41,42 @@ const AUTO_ROW_SIZE_CLASS_NAME = 'htAutoRowSize';
  *
  * // as a string (percent)
  * autoRowSize: {syncLimit: '40%'},
- *
- * // allow sample duplication
- * autoRowSize: {syncLimit: '40%', allowSampleDuplicates: true},
  * ```
  *
- * You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row
- * height. __Note__, that this might have a negative impact on performance.
+ * To speed up the calculations, the plugin samples a subset of rows rather than measuring every row. By default, it
+ * skips rows whose value it has already sampled, on the assumption that identical values render at the same height.
+ *
+ * Sampling accepts additional options:
+ * - *samplingRatio* - Defines how many samples for the same length will be used to calculate. Default is `3`.
+ *
+ * ```js
+ *   autoRowSize: {
+ *     samplingRatio: 10,
+ *   }
+ * ```
+ *
+ * Set the `allowSampleDuplicates` option to `true` to sample duplicate values as well:
+ *
+ * ```js
+ * autoRowSize: {allowSampleDuplicates: true},
+ * ```
+ *
+ * Enable this option when rows with the same value can still render at different heights - for example, with multiline
+ * text, or with custom renderers that vary a row's height based on its position or other data. Without it, the plugin
+ * may sample only one of those rows and apply its height to the rest, leading to incorrect row heights.
+ *
+ * The tradeoff is performance: allowing duplicates increases the number of rows measured, which lengthens the
+ * calculation and can block the UI for longer on large data sets.
  *
  * ::: tip
  * Note: Updating some of the table's settings can cause the row heights to change (e.g. `wordWrap`, `textEllipsis`, renderers etc.).
  * In those cases, to ensure that the row heights are properly recalculated, you need to call the {@link AutoRowSize#recalculateAllRowsHeight} method after calling {@link Core#updateSettings}.
+ * :::
+ *
+ * ::: tip
+ * If you use custom renderers, multiline text, or custom styles that produce non-standard row heights, and you call
+ * {@link Core#scrollViewportTo}, you must enable `AutoRowSize`. Without it, `scrollViewportTo()` calculates scroll
+ * positions based on the default row height and may scroll to an incorrect position.
  * :::
  *
  * To configure this plugin see {@link Options#autoRowSize}.
@@ -223,7 +249,10 @@ export class AutoRowSize extends BasePlugin {
     let cellMeta;
 
     if (row >= 0 && column >= 0) {
-      cellMeta = this.hot.getCellMeta(row, column);
+      // The transient read resolves the full dynamic meta (hooks + `cells`, so `hidden` from
+      // merged cells works) without storing anything - this sampler sweeps every row, and the
+      // eager `getCellMeta` would permanently materialize one meta per visited cell.
+      cellMeta = this.hot.getCellMetaTransient(row, column);
 
       if (cellMeta.hidden) {
         // do not generate samples for cells that are covered by merged cell (null values)
@@ -236,8 +265,10 @@ export class AutoRowSize extends BasePlugin {
     if (row >= 0) {
       cellValue = this.hot.getDataAtCell(row, column);
 
-      if (typeof cellMeta?.valueFormatter === 'function') {
-        cellValue = (cellMeta.valueFormatter as (v: unknown, meta: unknown) => unknown)(cellValue, cellMeta);
+      if (cellMeta) {
+        // Format through the same precedence as the render path (cell-level `valueFormatter`, then
+        // the renderer's own static), so the measured string matches what the renderer produces.
+        cellValue = formatCellValue(cellValue, cellMeta, this.hot.getCellRenderer(cellMeta));
       }
     } else if (row === -1) {
       cellValue = this.hot.getColHeader(column);
@@ -263,7 +294,7 @@ export class AutoRowSize extends BasePlugin {
    * @private
    * @type {PhysicalIndexToValueMap}
    */
-  rowHeightsMap = new IndexToValueMap();
+  rowHeightsMap: IndexToValueMap;
   /**
    * An array of row indexes whose height will be recalculated.
    *
@@ -282,13 +313,26 @@ export class AutoRowSize extends BasePlugin {
    * @type {boolean}
    */
   #isInitialized = false;
+  /**
+   * `true` when a full row-height recalculation is already scheduled for the current
+   * column-resize gesture. Resizing several selected columns fires `beforeColumnResize` once
+   * per column in one synchronous loop — the flag coalesces those calls into a single
+   * recalculation that runs after every new width has been applied.
+   *
+   * @type {boolean}
+   */
+  #columnResizeRecalcScheduled = false;
 
   /**
    * Initializes the plugin, registers the row heights map, and sets up the row resize hook.
    */
   constructor(hotInstance: HotInstance) {
     super(hotInstance);
-    this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
+    // The map holds numbers only, so re-writing an unchanged height is a no-op that must not
+    // invalidate the row-height position cache.
+    this.rowHeightsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(
+      ROW_WIDTHS_MAP_NAME, 'physicalIndexToValue', null, { skipUnchangedWrites: true },
+    );
 
     // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
     // This is necessary for height recalculation for resize handler doubleclick (ManualRowResize).
@@ -325,7 +369,7 @@ export class AutoRowSize extends BasePlugin {
 
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeChangeRender', this.#onBeforeChange);
-    this.addHook('beforeColumnResize', () => this.recalculateAllRowsHeight());
+    this.addHook('beforeColumnResize', this.#onBeforeColumnResize);
     this.addHook('afterFormulasValuesUpdate', this.#onAfterFormulasValuesUpdate);
     this.addHook('beforeViewRender', this.#onBeforeViewRender);
     this.addHook('beforeRender', this.#onBeforeRender);
@@ -402,7 +446,11 @@ export class AutoRowSize extends BasePlugin {
     const rowsRange = typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange;
     const columnsRange = typeof colRange === 'number' ? { from: colRange, to: colRange } : colRange;
 
-    if (this.hot.getColHeader(0) !== null) {
+    // The cached header height is reused unless the caller explicitly overwrites the cache
+    // (full renders triggered by data or settings changes do). Without this guard, every
+    // render — including selection-driven ones — would re-sample the header row across all
+    // columns and force a ghost-table reflow even when every height is already cached.
+    if ((overwriteCache || this.headerHeight === null) && this.hot.getColHeader(0) !== null) {
       const samples = this.samplesGenerator.generateRowSamples(-1, columnsRange);
 
       this.ghostTable.addColumnHeadersRow(samples.get(-1));
@@ -460,7 +508,7 @@ export class AutoRowSize extends BasePlugin {
     const loop = () => {
       // When hot was destroyed after calculating finished cancel frame
       if (!this.hot) {
-        cancelAnimationFrame(timer);
+        cancelIdleTask(timer);
         this.inProgress = false;
 
         return;
@@ -474,9 +522,9 @@ export class AutoRowSize extends BasePlugin {
       current = current + AutoRowSize.CALCULATION_STEP + 1;
 
       if (current < length) {
-        timer = requestAnimationFrame(loop);
+        timer = requestIdleTask(loop);
       } else {
-        cancelAnimationFrame(timer);
+        cancelIdleTask(timer);
         this.inProgress = false;
 
         // @TODO Should call once per render cycle, currently fired separately in different plugins
@@ -620,6 +668,11 @@ export class AutoRowSize extends BasePlugin {
   /**
    * Get the first visible row.
    *
+   * When the {@link MergeCells} plugin is enabled with its default `virtualized: false` setting, a merged
+   * cell that crosses the viewport edge extends the rendered row range. In that case this method can
+   * return a row index outside the strictly visible viewport. To read the actual visible viewport, use
+   * {@link Core#getFirstFullyVisibleRow} or {@link Core#getFirstPartiallyVisibleRow}.
+   *
    * @returns {number} Returns row index, -1 if table is not rendered or if there are no rows to base the the calculations on.
    */
   getFirstVisibleRow(): number {
@@ -628,6 +681,11 @@ export class AutoRowSize extends BasePlugin {
 
   /**
    * Gets the last visible row.
+   *
+   * When the {@link MergeCells} plugin is enabled with its default `virtualized: false` setting, a merged
+   * cell that crosses the viewport edge extends the rendered row range. In that case this method can
+   * return a row index outside the strictly visible viewport. To read the actual visible viewport, use
+   * {@link Core#getLastFullyVisibleRow} or {@link Core#getLastPartiallyVisibleRow}.
    *
    * @returns {number} Returns row index or -1 if table is not rendered.
    */
@@ -725,6 +783,25 @@ export class AutoRowSize extends BasePlugin {
   };
 
   /**
+   * Schedules a single full row-height recalculation per column-resize gesture. The hook fires
+   * once per selected column, so the recalculation is deferred until the gesture's synchronous
+   * loop (and the render that applies the new widths) has finished — the heights are then
+   * measured once, against the final column widths.
+   */
+  #onBeforeColumnResize = () => {
+    if (this.#columnResizeRecalcScheduled) {
+      return;
+    }
+
+    this.#columnResizeRecalcScheduled = true;
+
+    this.hot._registerTimeout(() => {
+      this.#columnResizeRecalcScheduled = false;
+      this.recalculateAllRowsHeight();
+    }, 0);
+  };
+
+  /**
    * Recalculates the row height from content on a double-click and returns it as the new
    * size; returns the user-dragged size otherwise.
    */
@@ -755,17 +832,15 @@ export class AutoRowSize extends BasePlugin {
    * recalculated on the next render.
    */
   #onBeforeChange = (changes: unknown[][]) => {
-    const changedRows = changes.reduce<number[]>((acc, [row]: unknown[]) => {
-      const rowIndex = Number(row);
+    const changedRows = new Set<number>();
 
-      if (acc.indexOf(rowIndex) === -1) {
-        acc.push(rowIndex);
-      }
+    changes.forEach(([row]: unknown[]) => {
+      changedRows.add(Number(row));
+    });
 
-      return acc;
-    }, [] as number[]);
-
-    this.#visualRowsToRefresh.push(...changedRows);
+    changedRows.forEach((rowIndex) => {
+      this.#visualRowsToRefresh.push(rowIndex);
+    });
   };
 
   /**

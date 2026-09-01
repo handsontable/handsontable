@@ -22,6 +22,12 @@ const GLOB_MAP = {
   'handsontable-celltype-dev': ['handsontable/src/cellTypes/**'],
   'handsontable-unit-testing': ['handsontable/src/**/*.unit.js', 'handsontable/test/unit/**'],
   'handsontable-e2e-testing': ['handsontable/src/**/*.spec.js', 'handsontable/test/e2e/**'],
+  'handsontable-playwright-e2e': ['tests/e2e/**', 'tests/fixtures/**'],
+  // Auto-attach in Cursor whenever a test file is edited (parity with Claude, where
+  // the model invokes the skill). Covers every test kind across the monorepo.
+  'test-writing-discipline': [
+    '**/*.spec.js', '**/*.spec.ts', '**/*.unit.js', '**/*.unit.ts', '**/*.types.ts', 'tests/**',
+  ],
   'walkontable-dev': ['handsontable/src/3rdparty/walkontable/**'],
   'walkontable-testing': ['handsontable/src/3rdparty/walkontable/test/**'],
   'visual-testing': ['visual-tests/**'],

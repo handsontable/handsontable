@@ -121,18 +121,27 @@ When you add an example that uses a new library:
 2. Run `pnpm install` at the repo root to update `pnpm-lock.yaml`.
 3. Commit both `package.json` and `pnpm-lock.yaml`.
 
-If the library has no TypeScript declarations at all (not even via `@types/`), add a bare `declare module` entry to `types/shims.d.ts` instead:
+If the library has no TypeScript declarations at all (not even via `@types/`), suppress the error at the import site in the example itself:
+
+```ts
+// some-library ships no type declarations.
+// @ts-expect-error -- untyped module
+import thing from 'some-library/dist/thing.js';
+```
+
+Use `@ts-expect-error`, not `@ts-ignore`: it fails this check once the library starts shipping declarations, so the suppression gets removed instead of outliving its cause.
+
+Do **not** reach for `types/shims.d.ts` first. A shim makes the example pass this check while the same import still breaks the docs example runner (`demos.handsontable.com`, which type-checks the generated Angular project with `strict: true`) and any reader who copies the snippet into their own strict project. That is exactly how `numbro/dist/languages.min.js` shipped broken - see DEV-2133.
+
+## Type shims
+
+`types/shims.d.ts` is the fallback for cases where the suppression cannot live at a single import - for example, a library with no declarations at all whose symbols are used across many lines. It is currently empty.
+
 ```ts
 declare module 'some-library';
 ```
 
-## Type shims
-
-`types/shims.d.ts` declares modules that ship without TypeScript declarations:
-
-- `numbro/dist/languages.min.js`
-
-Add further `declare module '...'` entries there for any other untyped imports used in examples.
+Keep that file free of top-level `import`/`export`; either would turn it into a module and demote its `declare module` blocks to augmentations.
 
 ## CI
 

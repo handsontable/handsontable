@@ -232,6 +232,10 @@ To control how dates are displayed in [cell renderers](@/guides/cell-functions/c
 
 Since Handsontable 18.0, the **object form** of `dateFormat` with the `intl-date` and `date` cell types is required. It uses the native [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
 
+::: tip
+Time-related `dateFormat` options (`hour`, `minute`, `second`, `timeStyle`, `hour12`, `hourCycle`, `fractionalSecondDigits`) only affect display. Because `date`/`intl-date` source data is date-only, these options always render midnight (`00:00:00`). To edit and store both a date and a time, use the [date-time cell type](@/guides/cell-types/datetime-cell-type/datetime-cell-type.md).
+:::
+
 ### Using Intl.DateTimeFormat
 
 The `dateFormat` option accepts all properties of [`Intl.DateTimeFormat` options](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat). Use it with `type: 'intl-date'` or `type: 'date'`.
@@ -379,6 +383,10 @@ The [`dateFormat`](@/api/options.md#dateformat) option controls how dates are di
 ## Result
 
 After configuring the date cell type, cells display dates formatted according to your `dateFormat` configuration. Clicking an `intl-date` or `date` cell opens a native date picker. Source data is stored in ISO 8601 format (`YYYY-MM-DD`) regardless of the display format.
+
+## Keyboard shortcuts
+
+The `intl-date` and `date` cell editors open the browser's native date picker. Keyboard navigation inside the picker comes from the browser, so it varies between browsers and operating systems. Outside the picker, the standard [edition keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#edition-keyboard-shortcuts) apply.
 
 ## Related articles
 

@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: a3f82c91
 title: Server-side Data with NestJS
 metaTitle: Server-side Data with NestJS - JavaScript Data Grid | Handsontable
 description: Wire Handsontable's dataProvider plugin to a NestJS 10 backend with paginated, sorted, and filtered server-side data and full CRUD operations backed by PostgreSQL via TypeORM.
@@ -13,13 +12,10 @@ tags:
   - typescript
   - recipes
 react:
-  id: 02t7jojx
   metaTitle: Server-side data with NestJS - React Data Grid | Handsontable
 angular:
-  id: n3p5r7t9
   metaTitle: Server-side Data with NestJS - Angular Data Grid | Handsontable
 vue:
-  id: f362z4hr
   metaTitle: Server-side Data with NestJS - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
@@ -351,3 +347,4 @@ Handsontable passes an array of `id` strings matching `dataProvider.rowId`. The 
 - Share the DTO types between the NestJS backend and the Handsontable frontend in a monorepo using a shared `packages/types` workspace package.
 - Compare with the [Spring Boot recipe](@/recipes/data-management/server-side-spring/server-side-spring.md) to see the same Handsontable frontend wired to a Java backend using the same endpoint shapes.
 - Compare with the [Symfony recipe](@/recipes/data-management/server-side-symfony/server-side-symfony.md) to see the same Handsontable frontend wired to a PHP backend using the same endpoint shapes.
+- Compare with the [ASP.NET Core recipe](@/recipes/data-management/server-side-aspnet/server-side-aspnet.md) to see the same decorator-and-DI-container pattern implemented with ASP.NET Core MVC controllers and EF Core instead of NestJS and TypeORM.

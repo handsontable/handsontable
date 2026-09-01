@@ -185,6 +185,7 @@
             background: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent);
           }
 
+          // stylelint-disable-next-line handsontable/no-has-selector -- focus state on the open multi-select editor; does not re-render on scroll, so the :has() invalidation cost is not on any hot path.
           &:has(input:focus) {
             background: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent);
           }

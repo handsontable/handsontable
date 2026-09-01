@@ -126,6 +126,34 @@ describe('CheckboxRenderer', () => {
     expect(getData()).toEqual([[true], [true], [true]]);
   });
 
+  it('should not permanently retain a cell meta object for every toggled cell in a large selection', async() => {
+    const rows = [];
+
+    for (let i = 0; i < 200; i++) {
+      rows.push([true]);
+    }
+
+    const hot = handsontable({
+      data: rows,
+      width: 300,
+      height: 150,
+      columns: [
+        {
+          type: 'checkbox'
+        }
+      ]
+    });
+
+    await selectCell(0, 0, 199, 0);
+
+    const retainedBefore = hot.getCellsMeta().length;
+
+    await keyDownUp(' '); // toggles all 200 cells, mostly off-screen
+
+    expect(getDataAtCell(199, 0)).toBe(false);
+    expect(hot.getCellsMeta().length).toBe(retainedBefore);
+  });
+
   it('should change checkboxes values properly when data contains null or/and undefined', async() => {
     handsontable({
       data: [[null], [undefined]],
@@ -660,7 +688,18 @@ describe('CheckboxRenderer', () => {
   it('should internally call base renderer once', async() => {
     const originalBaseRenderer = Handsontable.renderers.BaseRenderer;
 
-    spyOn(Handsontable.renderers, 'BaseRenderer');
+    const renderedCellCalls = [];
+
+    spyOn(Handsontable.renderers, 'BaseRenderer').and.callFake((...args) => {
+      const TD = args[1];
+
+      // The GhostTable that AutoColumnSize measures in renders its own cells, flagged with the
+      // `ghost-table` attribute, and those go through the same renderer contract. They are a
+      // separate render pass, not a second call on the rendered cell this spec is about.
+      if (!TD.hasAttribute('ghost-table')) {
+        renderedCellCalls.push(TD);
+      }
+    });
 
     Handsontable.renderers.registerRenderer('base', Handsontable.renderers.BaseRenderer);
     handsontable({
@@ -668,7 +707,7 @@ describe('CheckboxRenderer', () => {
       renderer: 'checkbox',
     });
 
-    expect(Handsontable.renderers.BaseRenderer).toHaveBeenCalledTimes(1);
+    expect(renderedCellCalls.length).toBe(1);
 
     Handsontable.renderers.registerRenderer('base', originalBaseRenderer);
   });

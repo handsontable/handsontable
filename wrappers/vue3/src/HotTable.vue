@@ -1,5 +1,9 @@
 <template>
   <div :id="id" style="height: 100%">
+    <!-- `hot-column` children render invisible comment anchors in source order.
+         Handsontable appends its own DOM to this container without clearing
+         pre-existing nodes, so the anchors survive; the parent reads their
+         document position to order the columns. -->
     <slot></slot>
   </div>
 </template>
@@ -27,7 +31,8 @@ const HotTable = defineComponent({
   props: propFactory('HotTable'),
   provide() {
     return {
-      columnsCache: this.columnsCache
+      columnsCache: this.columnsCache,
+      refreshColumns: this.refreshColumns,
     };
   },
   watch: {
@@ -79,6 +84,7 @@ const HotTable = defineComponent({
       },
       columnSettings: null as HotTableProps[],
       columnsCache: new Map<VNode, HotTableProps>(),
+      columnsRefreshScheduled: false,
       get hotInstance(): Handsontable | null {
         if (!this.__hotInstance || (this.__hotInstance && !this.__hotInstance.isDestroyed)) {
 
@@ -168,17 +174,94 @@ const HotTable = defineComponent({
     /**
      * Get settings for the columns provided in the `hot-column` components.
      *
+     * The columns are ordered by the document position of each `hot-column`'s
+     * anchor node, not by the `columnsCache` insertion order. This keeps the
+     * order correct when columns are inserted in the middle, removed, or
+     * reordered, and when a `hot-column` is nested inside a wrapper component.
+     *
      * @returns {HotTableProps[] | undefined}
      */
     getColumnSettings(): HotTableProps[] | void {
-      const columnSettings: HotTableProps[] = Array.from(this.columnsCache.values());
+      const orderedColumns = Array.from(this.columnsCache.entries())
+        .sort(([columnA], [columnB]) => {
+          const anchorA = (columnA as { $el?: Node }).$el;
+          const anchorB = (columnB as { $el?: Node }).$el;
 
-      return columnSettings.length ? columnSettings : void 0;
+          if (!anchorA || !anchorB) {
+            return 0;
+          }
+
+          const position = anchorA.compareDocumentPosition(anchorB);
+
+          // eslint-disable-next-line no-bitwise
+          if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
+            return -1;
+          }
+
+          // eslint-disable-next-line no-bitwise
+          if (position & Node.DOCUMENT_POSITION_PRECEDING) {
+            return 1;
+          }
+
+          return 0;
+        })
+        .map(([, columnSettings]) => columnSettings);
+
+      return orderedColumns.length ? orderedColumns : void 0;
+    },
+
+    /**
+     * Re-read the column settings declared by `hot-column` children and push them
+     * to the Handsontable instance. Called by children on mount, prop change, and
+     * unmount, and by the parent on reorder. Multiple notifications in the same
+     * tick are coalesced into a single `updateSettings` call.
+     */
+    refreshColumns(): void {
+      if (this.columnsRefreshScheduled) {
+        return;
+      }
+
+      this.columnsRefreshScheduled = true;
+
+      this.$nextTick(() => {
+        this.columnsRefreshScheduled = false;
+
+        if (!this.hotInstance) {
+          return;
+        }
+
+        const newColumnSettings = this.getColumnSettings();
+        const previousColumnSettings = this.columnSettings;
+
+        // Each `hot-column` rebuilds its settings object whenever its props change,
+        // so an unchanged column keeps the same object reference. Comparing the
+        // arrays by reference and order is cheaper than a deep compare and avoids
+        // an `updateSettings` call on unrelated re-renders (e.g. data-only updates).
+        const isUnchanged =
+          (!previousColumnSettings && !newColumnSettings) ||
+          (!!previousColumnSettings && !!newColumnSettings &&
+            previousColumnSettings.length === newColumnSettings.length &&
+            previousColumnSettings.every((settings, index) => settings === newColumnSettings[index]));
+
+        if (isUnchanged) {
+          return;
+        }
+
+        this.columnSettings = newColumnSettings || null;
+        this.hotInstance.updateSettings({ columns: newColumnSettings || void 0 });
+      });
     },
   },
   mounted() {
     this.columnSettings = this.getColumnSettings();
     this.hotInit();
+  },
+  updated() {
+    // Reordering keyed `hot-column` children reuses their instances and fires no
+    // child lifecycle hook, so the children cannot notify on their own. The slot
+    // vnodes do change, which re-renders `HotTable` - refresh from here to cover
+    // reorders (coalesced with any child-triggered refresh).
+    this.refreshColumns();
   },
   beforeUnmount() {
     if (this.hotInstance) {

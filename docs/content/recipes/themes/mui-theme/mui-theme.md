@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: f2a7b9c1
 title: Handsontable with MUI
 metaTitle: Handsontable with MUI - JavaScript Data Grid | Handsontable
 description: Integrate Handsontable into a React app with MUI so your grid follows Material UI colors, typography, and spacing.
@@ -17,13 +16,10 @@ tags:
   - themes
   - Theme API
 react:
-  id: d4e8a6f2
   metaTitle: Handsontable with MUI - React Data Grid | Handsontable
 angular:
-  id: a3b7c9e1
   metaTitle: Handsontable with MUI - Angular Data Grid | Handsontable
 vue:
-  id: 6qpczr7i
   metaTitle: Handsontable with MUI - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Themes
@@ -31,14 +27,15 @@ category: Themes
 
 This tutorial shows you how to integrate Handsontable into a React app that uses MUI, registering a custom theme that maps MUI palette values to Handsontable colors and tokens.
 
-<iframe src="https://codesandbox.io/embed/y4vsfq?view=preview"
+<iframe src="https://demos.handsontable.com/embed/2n1i1s6572"
   style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
   title="Handsontable with MUI recipe (icons fixed)"
   allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
   sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
 ></iframe>
 
-[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/y4vsfq)
+[**Open in sandbox**](https://demos.handsontable.com/?example=mui&v={{$currentVersion}})
+[**View source on GitHub**](https://github.com/handsontable/examples/tree/{{$examplesBranch}}/examples/mui)
 
 ## Overview
 

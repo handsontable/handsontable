@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: q7n4k2p9
 title: Handsontable with Base Web
 metaTitle: Handsontable with Base Web - React Data Grid | Handsontable
 description: Integrate Handsontable into a React app using Base Web and style a custom theme with your design tokens so the grid matches your design system.
@@ -17,27 +16,25 @@ tags:
   - Theme API
   - custom theme
 react:
-  id: t3m8v6c1
   metaTitle: Handsontable with Base Web - React Data Grid | Handsontable
 angular:
-  id: w5r2d8h4
   metaTitle: Handsontable with Base Web - Angular Data Grid | Handsontable
 vue:
-  id: x4lqd0rx
 searchCategory: Recipes
 category: Themes
 ---
 
 This tutorial shows you how to integrate Handsontable into a React app that uses Base Web, mapping Base design tokens to Handsontable colors and tokens so the grid follows your design system.
 
-<iframe src="https://codesandbox.io/embed/3ctq7w?view=preview"
+<iframe src="https://demos.handsontable.com/embed/1pi3y3p3h2"
   style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
   title="Handsontable with Base Web recipe"
   allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
   sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
 ></iframe>
 
-[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/3ctq7w)
+[**Open in sandbox**](https://demos.handsontable.com/?example=base-web&v={{$currentVersion}})
+[**View source on GitHub**](https://github.com/handsontable/examples/tree/{{$examplesBranch}}/examples/base-web)
 
 ## Overview
 

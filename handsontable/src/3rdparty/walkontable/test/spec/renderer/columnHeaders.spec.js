@@ -60,12 +60,12 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
         <tr>
           <th class="">1</th>
           <th class="">1</th>
-          <th class="">1</th>
+          <th class="htLastVisibleHeader">1</th>
         </tr>
         <tr>
           <th class="">1</th>
           <th class="">1</th>
-          <th class="">1</th>
+          <th class="htLastVisibleHeader">1</th>
         </tr>
       </thead>
       `);
@@ -83,7 +83,7 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
       <thead>
         <tr>
           <th class="">2</th>
-          <th class="">2</th>
+          <th class="htLastVisibleHeader">2</th>
         </tr>
       </thead>
       `);
@@ -101,7 +101,7 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
       <thead>
         <tr>
           <th class="">3</th>
-          <th class="">3</th>
+          <th class="htLastVisibleHeader">3</th>
         </tr>
       </thead>
       `);
@@ -131,11 +131,11 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
       <thead>
         <tr>
           <th class="">4</th>
-          <th class="">4</th>
+          <th class="htLastVisibleHeader">4</th>
         </tr>
         <tr>
           <th class="">4</th>
-          <th class="">4</th>
+          <th class="htLastVisibleHeader">4</th>
         </tr>
       </thead>
       `);
@@ -160,12 +160,12 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
         <tr>
           <th class="">1</th>
           <th class="">1</th>
-          <th class="">1</th>
+          <th class="htLastVisibleHeader">1</th>
         </tr>
         <tr>
           <th class="">1</th>
           <th class="">1</th>
-          <th class="">1</th>
+          <th class="htLastVisibleHeader">1</th>
         </tr>
       </thead>
       `);
@@ -206,12 +206,12 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
         <tr>
           <th class=""></th>
           <th class=""></th>
-          <th class=""></th>
+          <th class="htLastVisibleHeader"></th>
         </tr>
         <tr>
           <th class=""></th>
           <th class=""></th>
-          <th class=""></th>
+          <th class="htLastVisibleHeader"></th>
         </tr>
       </thead>
       `);
@@ -235,6 +235,84 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     expect(rootNode.children[0].children[1]).toBe(prevChildren[0].children[1]);
     expect(rootNode.children[1].children[0]).toBe(prevChildren[1].children[0]);
     expect(rootNode.children[1].children[1]).toBe(prevChildren[1].children[1]);
+  });
+
+  it('should stamp the `htLastVisibleHeader` class on the last TH that is not a hidden header', async() => {
+    const renderers = createRenderer();
+    const { tableMock, rootNode } = renderers;
+
+    tableMock.columnsToRender = 3;
+    tableMock.columnHeadersCount = 1;
+    tableMock.rowHeadersCount = 0;
+    tableMock.columnHeaderFunctions = [
+      (sourceColumnIndex, TH) => {
+        TH.innerHTML = `${sourceColumnIndex}`;
+
+        if (sourceColumnIndex === 2) {
+          TH.className = 'hiddenHeader';
+        }
+      },
+    ];
+
+    renderAll(renderers);
+
+    expect(rootNode.outerHTML).toMatchHTML(`
+      <thead>
+        <tr>
+          <th class="">0</th>
+          <th class="htLastVisibleHeader">1</th>
+          <th class="hiddenHeader">2</th>
+        </tr>
+      </thead>
+      `);
+  });
+
+  it('should move the `htLastVisibleHeader` class when the hidden headers change on the next render cycle', async() => {
+    const renderers = createRenderer();
+    const { tableMock, rootNode } = renderers;
+    let hiddenSourceColumnIndex = -1;
+
+    tableMock.columnsToRender = 3;
+    tableMock.columnHeadersCount = 1;
+    tableMock.rowHeadersCount = 0;
+    tableMock.columnHeaderFunctions = [
+      (sourceColumnIndex, TH) => {
+        TH.innerHTML = `${sourceColumnIndex}`;
+
+        if (sourceColumnIndex === hiddenSourceColumnIndex) {
+          TH.className = 'hiddenHeader';
+        }
+      },
+    ];
+
+    renderAll(renderers);
+
+    expect(rootNode.outerHTML).toMatchHTML(`
+      <thead>
+        <tr>
+          <th class="">0</th>
+          <th class="">1</th>
+          <th class="htLastVisibleHeader">2</th>
+        </tr>
+      </thead>
+      `);
+
+    hiddenSourceColumnIndex = 2;
+
+    renderAll(renderers);
+
+    expect(rootNode.outerHTML).toMatchHTML(`
+      <thead>
+        <tr>
+          <th class="">0</th>
+          <th class="htLastVisibleHeader">1</th>
+          <th class="hiddenHeader">2</th>
+        </tr>
+      </thead>
+      `);
+
+    expect(rootNode.querySelectorAll('.htLastVisibleHeader').length).toBe(1);
+    expect(rootNode.querySelector('.htLastVisibleHeader').textContent).toBe('1');
   });
 
   it('should call column headers renderers with valid arguments', async() => {

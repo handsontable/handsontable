@@ -265,6 +265,12 @@
   color: var(--sl-color-text);
 }
 
+/* Plain-text fallback shown when a lazy markdown-renderer chunk fails to load. */
+.da-markdown-plain {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
 /* Headings */
 .da-assistant-body :is(h1, h2, h3, h4, h5, h6) {
   font-weight: 500;

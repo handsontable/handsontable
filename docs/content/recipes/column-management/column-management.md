@@ -8,15 +8,11 @@ searchCategory: Recipes
 hotPlugin: false
 editLink: false
 type: how-to
-id: z7g9h1i3
 react:
-  id: a8h0i2j4
   metaTitle: Column Management Recipes - React Data Grid | Handsontable
 angular:
-  id: b9i1j3k5
   metaTitle: Column Management Recipes - Angular Data Grid | Handsontable
 vue:
-  id: xhr39rj8
   metaTitle: Column Management Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]

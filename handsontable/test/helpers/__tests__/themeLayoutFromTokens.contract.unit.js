@@ -3,7 +3,7 @@ import * as themeModules from '../../../src/themes/theme';
 import density from '../../../src/themes/static/variables/density';
 import sizing from '../../../src/themes/static/variables/sizing';
 import { createThemeLayoutCore, E2E_REGISTERED_THEME_KEYS } from '../themeLayoutFromTokens';
-import WalkontableSettings from '../../../src/3rdparty/walkontable/src/settings';
+import { getDefaults } from '../../../src/3rdparty/walkontable/src/settings/defaults';
 
 const ALL_THEMES = Object.values(themeModules).filter(m => m && m.name);
 
@@ -40,12 +40,10 @@ describe('themeLayoutFromTokens Walkontable constant contract', () => {
   // If this test fails after a Walkontable change, update WALKONTABLE_DEFAULT_COLUMN_WIDTH
   // in themeLayoutFromTokens.js to match.
   it('defaultColumnWidth matches walkontable/src/settings.js defaultColumnWidth', () => {
-    // Build a minimal settings object. We use Object.create to access the defaults
-    // without triggering required-field validation (facade, table, data, etc.).
-    const proto = WalkontableSettings.prototype;
-    // getDefaults uses `this.getSetting` for dynamic defaults (overlays); stub it.
+    // `getDefaults` was split out of the Settings class into a standalone function
+    // (settings/defaults.ts). It uses `settings.getSetting` for dynamic defaults (overlays); stub it.
     const stubSelf = { getSetting: () => 0 };
-    const walkoDefaults = proto.getDefaults.call(stubSelf);
+    const walkoDefaults = getDefaults(stubSelf);
 
     const coreLayout = createThemeLayoutCore(mainTheme.name);
 

@@ -137,10 +137,23 @@ export const REGISTERED_HOOKS = [
    * Fired after one or more cells has been changed. The changes are triggered in any situation when the
    * value is entered using an editor or changed using API (e.q [`setDataAtCell`](@/api/core.md#setdataatcell) method).
    *
-   * __Note:__ For performance reasons, the `changes` array is null for `"loadData"` source.
+   * For performance reasons, the `changes` array is `null` when the `source` is `"loadData"` or `"updateData"`.
+   *
+   * Calling [`updateSettings()`](@/api/core.md#updatesettings) with the `data` option inside this hook
+   * triggers another `afterChange` call with the `"updateData"` source. Check the `source` argument
+   * to prevent an infinite loop.
    *
    * @event Hooks#afterChange
-   * @param {Array[]} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`. `row` is a visual row index.
+   * @param {Array[]|null} changes 2D array containing information about each of the edited cells
+   *                               `[[row, prop, oldVal, newVal], ...]`, or `null` for the `"loadData"`
+   *                               and `"updateData"` sources. `row` is a visual row index. `prop` is a property name,
+   *                               a column index, or – when [`columns[].data`](@/api/options.md#columns) is a function –
+   *                               the column accessor function. To resolve a visual column index from `prop`, call
+   *                               [`propToCol()`](@/api/core.md#proptocol). Unlike
+   *                               [`beforeValidate`](@/api/hooks.md#beforevalidate) and
+   *                               [`afterValidate`](@/api/hooks.md#aftervalidate), this hook passes the accessor function
+   *                               as `prop` so the grid can write data back. Read more:
+   *                               [Binding to data: Identify changed columns in hooks](@/guides/getting-started/binding-to-data/binding-to-data.md#identify-changed-columns-in-hooks).
    * @param {string} [source] String that identifies source of hook call ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    * @example
    * ::: only-for javascript
@@ -345,11 +358,13 @@ export const REGISTERED_HOOKS = [
   'afterCreateCol',
 
   /**
-   * Fired before created a new row.
+   * Fired before a new row is created.
    *
    * @event Hooks#beforeCreateRow
-   * @param {number} index Represents the visual index of first newly created row in the data source array.
-   * @param {number} amount Number of newly created rows in the data source array.
+   * @param {number} index Represents the visual index at which new row(s) are about to be inserted.
+   *                       Note that the actual visual index of the inserted row(s) may differ - use the
+   *                       `afterCreateRow` hook to get the final position.
+   * @param {number} amount Number of rows to be created.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    * @returns {*|boolean} If false is returned the action is canceled.
@@ -593,6 +608,49 @@ export const REGISTERED_HOOKS = [
    * @param {Event} event `mousedown` event object.
    */
   'afterOnCellCornerMouseDown',
+
+  /**
+   * Fired after the user presses a selection-adjustment handle (see [`selectionHandles`](@/api/options.md#selectionhandles)).
+   *
+   * @event Hooks#afterOnSelectionHandleMouseDown
+   * @since 18.1.0
+   * @param {Event} event The `mousedown` event.
+   * @param {'top' | 'bottom' | 'start' | 'end'} edge The pressed handle's edge.
+   */
+  'afterOnSelectionHandleMouseDown',
+
+  /**
+   * Fired after the user presses a selection edge move zone.
+   *
+   * @event Hooks#afterOnSelectionEdgeMouseDown
+   * @since 18.1.0
+   * @param {Event} event The `mousedown` event.
+   * @param {'top' | 'bottom' | 'start' | 'end'} edge The pressed edge.
+   */
+  'afterOnSelectionEdgeMouseDown',
+
+  /**
+   * Fired before a `moveCells` drag relocates a selection. Return `false` to cancel the move.
+   *
+   * @event Hooks#beforeMoveCells
+   * @since 18.1.0
+   * @param {CellRange} sourceRange The range being moved.
+   * @param {CellCoords} targetTopLeft The top-left target cell.
+   * @param {boolean} isCopy `true` when copying (Ctrl held) instead of moving.
+   * @returns {void|boolean}
+   */
+  'beforeMoveCells',
+
+  /**
+   * Fired after a `moveCells` drag has relocated a selection.
+   *
+   * @event Hooks#afterMoveCells
+   * @since 18.1.0
+   * @param {CellRange} sourceRange The original range.
+   * @param {CellRange} targetRange The range the data was moved to.
+   * @param {boolean} isCopy `true` when the operation was a copy.
+   */
+  'afterMoveCells',
 
   /**
    * Fired after a `dblclick` event is triggered on the cell corner (the drag handle).
@@ -907,8 +965,8 @@ export const REGISTERED_HOOKS = [
    *                                  Handsontable uses to control scroll behavior after selection.
    * @param {number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    * @example
-   * ```js
    * ::: only-for javascript
+   * ```js
    * new Handsontable(element, {
    *   afterSelectionByProp: (row, column, row2, column2, preventScrolling, selectionLayerLevel) => {
    *     // setting if prevent scrolling after selection
@@ -990,8 +1048,8 @@ export const REGISTERED_HOOKS = [
    *                                  Property `preventScrolling.value` expects a boolean value that
    *                                  Handsontable uses to control scroll behavior after selection.
    * @example
-   * ```js
    * ::: only-for javascript
+   * ```js
    * new Handsontable(element, {
    *   afterSelectionFocusSet: (row, column, preventScrolling) => {
    *     // If set to `false` (default): when focused cell selection is outside the viewport,
@@ -1311,7 +1369,8 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} isValid `true` if valid, `false` if not.
    * @param {*} value The value in question.
    * @param {number} row Visual row index.
-   * @param {string|number} prop Property name / visual column index.
+   * @param {string|number} prop Property name or column index. For array-based data, this is the physical column
+   *                            index. When `columns[i].data` is a function, this is the visual column index.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    * @returns {undefined | boolean} If `false` the cell will be marked as invalid, `true` otherwise.
@@ -1370,7 +1429,8 @@ export const REGISTERED_HOOKS = [
    * Fired before aligning the cell contents.
    *
    * @event Hooks#beforeCellAlignment
-   * @param {object} stateBefore An object with class names defining the cell alignment.
+   * @param {object} stateBefore An object where each key is a visual row index and each value is an array
+   *                             of class names indexed by visual column.
    * @param {CellRange[]} range An array of `CellRange` coordinates where the alignment will be applied.
    * @param {string} type Type of the alignment - either `horizontal` or `vertical`.
    * @param {string} alignmentClass String defining the alignment class added to the cell.
@@ -1385,8 +1445,21 @@ export const REGISTERED_HOOKS = [
    *
    * To ignore the user's changes, use a nullified array or return `false`.
    *
+   * This hook doesn't run when the entire data source is replaced through
+   * [`loadData()`](@/api/core.md#loaddata), [`updateData()`](@/api/core.md#updatedata), or
+   * [`updateSettings()`](@/api/core.md#updatesettings) with the `data` option. To intercept these
+   * replacements, use [`beforeLoadData`](@/api/hooks.md#beforeloaddata) or
+   * [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata).
+   *
    * @event Hooks#beforeChange
-   * @param {Array[]} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`. `row` is a visual row index.
+   * @param {Array[]} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`.
+   *                          `row` is a visual row index. `prop` is a property name, a column index, or – when
+   *                          [`columns[].data`](@/api/options.md#columns) is a function – the column accessor function.
+   *                          To resolve a visual column index from `prop`, call [`propToCol()`](@/api/core.md#proptocol).
+   *                          Unlike [`beforeValidate`](@/api/hooks.md#beforevalidate) and
+   *                          [`afterValidate`](@/api/hooks.md#aftervalidate), this hook passes the accessor function
+   *                          as `prop` so the grid can write data back. Read more:
+   *                          [Binding to data: Identify changed columns in hooks](@/guides/getting-started/binding-to-data/binding-to-data.md#identify-changed-columns-in-hooks).
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    * @returns {undefined | boolean} If `false` all changes were cancelled, `true` otherwise.
@@ -1876,7 +1949,8 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforeValidate
    * @param {*} value Value of the cell.
    * @param {number} row Visual row index.
-   * @param {string|number} prop Property name / column index.
+   * @param {string|number} prop Property name or column index. For array-based data, this is the physical column
+   *                            index. When `columns[i].data` is a function, this is the visual column index.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
@@ -1921,6 +1995,16 @@ export const REGISTERED_HOOKS = [
    * @param {number} width Current column width.
    * @param {number} column Visual column index.
    * @param {string} [source] String that identifies source of hook call.
+   * @see [Column width](@/guides/columns/column-width/column-width.md)
+   * @example
+   * ```js
+   * // Cap the Product column at 100px when content would exceed 150px.
+   * modifyColWidth(width, column) {
+   *   if (column === 1 && width > 150) {
+   *     return 100;
+   *   }
+   * }
+   * ```
    */
   'modifyColWidth',
 
@@ -2114,10 +2198,69 @@ export const REGISTERED_HOOKS = [
   'modifyAutofillRange',
 
   /**
-   * Fired to allow modifying the copyable range with a callback function.
+   * Fired by {@link CopyPaste} plugin to allow modifying the range that is about to be copied or cut. It's
+   * recalculated whenever the selection changes, and again right before the values are copied or cut to the
+   * clipboard. This hook is fired when {@link Options#copyPaste} option is enabled. It's also fired by the
+   * {@link Autofill} plugin while a fill-handle drag is in progress, to determine the range that would be
+   * copied if the drag ended at the current position.
    *
    * @event Hooks#modifyCopyableRange
-   * @param {Array[]} copyableRanges Array of objects defining copyable cells.
+   * @param {object[]} copyableRanges An array of objects with ranges of the visual indexes (`startRow`, `startCol`,
+   *                                  `endRow`, `endCol`) that are copyable.
+   * @returns {object[]|undefined} The modified array of copyable ranges. If nothing is returned, the ranges
+   *                                passed to the callback are used unchanged.
+   * @example
+   * ::: only-for javascript
+   * ```js
+   * new Handsontable(element, {
+   *   // Copy only the last column of each selected range, regardless of the selection width.
+   *   modifyCopyableRange(copyableRanges) {
+   *     return copyableRanges.map(({ startRow, endRow, endCol }) => ({
+   *       startRow,
+   *       endRow,
+   *       startCol: endCol,
+   *       endCol,
+   *     }));
+   *   }
+   * });
+   * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   // Copy only the last column of each selected range, regardless of the selection width.
+   *   modifyCopyableRange={(copyableRanges) => {
+   *     return copyableRanges.map(({ startRow, endRow, endCol }) => ({
+   *       startRow,
+   *       endRow,
+   *       startCol: endCol,
+   *       endCol,
+   *     }));
+   *   }}
+   * />
+   * ```
+   * :::
+   *
+   * ::: only-for angular
+   *```ts
+   * settings = {
+   *   // Copy only the last column of each selected range, regardless of the selection width.
+   *   modifyCopyableRange: (copyableRanges) => {
+   *     return copyableRanges.map(({ startRow, endRow, endCol }) => ({
+   *       startRow,
+   *       endRow,
+   *       startCol: endCol,
+   *       endCol,
+   *     }));
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings"></hot-table>
+   * ```
+   * :::
    */
   'modifyCopyableRange',
 
@@ -2321,8 +2464,8 @@ export const REGISTERED_HOOKS = [
    *                       that correspond to the previously selected area.
    * @returns {*} If returns `false` then pasting is canceled.
    * @example
-   * ```js
    * ::: only-for javascript
+   * ```js
    * // To disregard a single row, remove it from array using data.splice(i, 1).
    * new Handsontable(example, {
    *   beforePaste: (data, coords) => {
@@ -2462,6 +2605,18 @@ export const REGISTERED_HOOKS = [
   'afterColumnMove',
 
   /**
+   * Fired by the {@link CustomBorders} plugin after all custom borders from the configuration have
+   * been applied. With [`customBordersProgressive`](@/api/options.md#custombordersprogressive)
+   * disabled it fires once, synchronously, right after the borders are built. With progressive
+   * application enabled it fires when the last background batch has been applied, signaling that
+   * `getBorders()` and the borders' cell meta are now complete.
+   *
+   * @since 18.1.0
+   * @event Hooks#afterCustomBordersUpdate
+   */
+  'afterCustomBordersUpdate',
+
+  /**
    * Fired by the {@link ManualColumnFreeze} plugin, before unfreezing a column.
    *
    * @event Hooks#beforeColumnUnfreeze
@@ -2481,6 +2636,62 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} unfreezePerformed If `true`: the column got successfully unfrozen. If `false`: the column didn't get unfrozen.
    */
   'afterColumnUnfreeze',
+
+  /**
+   * Fired by the {@link NestedRows} plugin before parent rows are collapsed. This hook is fired when the
+   * {@link Options#nestedRows} option is enabled.
+   *
+   * Returning `false` in the callback will prevent the collapsing action from completing.
+   *
+   * @event Hooks#beforeRowCollapse
+   * @since 18.1.0
+   * @param {Array} currentCollapsedRows A list of the physical indexes of the currently collapsed parent rows.
+   * @param {Array} destinationCollapsedRows A list of the physical indexes of the parent rows that will be collapsed.
+   * @param {boolean} collapsePossible `true`, if every provided index points at a row that has children, `false` otherwise.
+   * @returns {undefined|boolean} If the callback returns `false`, the collapsing action will not be completed.
+   */
+  'beforeRowCollapse',
+
+  /**
+   * Fired by the {@link NestedRows} plugin after parent rows are collapsed. This hook is fired when the
+   * {@link Options#nestedRows} option is enabled.
+   *
+   * @event Hooks#afterRowCollapse
+   * @since 18.1.0
+   * @param {Array} currentCollapsedRows A list of the physical indexes of the parent rows that were collapsed before the action.
+   * @param {Array} destinationCollapsedRows A list of the physical indexes of the parent rows collapsed after the action.
+   * @param {boolean} collapsePossible `true`, if every provided index points at a row that has children, `false` otherwise.
+   * @param {boolean} successfullyCollapsed `true`, if the action changed the collapsed state, `false` otherwise.
+   */
+  'afterRowCollapse',
+
+  /**
+   * Fired by the {@link NestedRows} plugin before parent rows are expanded. This hook is fired when the
+   * {@link Options#nestedRows} option is enabled.
+   *
+   * Returning `false` in the callback will prevent the expanding action from completing.
+   *
+   * @event Hooks#beforeRowExpand
+   * @since 18.1.0
+   * @param {Array} currentCollapsedRows A list of the physical indexes of the currently collapsed parent rows.
+   * @param {Array} destinationCollapsedRows A list of the physical indexes of the parent rows that will stay collapsed.
+   * @param {boolean} expandPossible `true`, if every provided index points at a row that has children, `false` otherwise.
+   * @returns {undefined|boolean} If the callback returns `false`, the expanding action will not be completed.
+   */
+  'beforeRowExpand',
+
+  /**
+   * Fired by the {@link NestedRows} plugin after parent rows are expanded. This hook is fired when the
+   * {@link Options#nestedRows} option is enabled.
+   *
+   * @event Hooks#afterRowExpand
+   * @since 18.1.0
+   * @param {Array} currentCollapsedRows A list of the physical indexes of the parent rows that were collapsed before the action.
+   * @param {Array} destinationCollapsedRows A list of the physical indexes of the parent rows collapsed after the action.
+   * @param {boolean} expandPossible `true`, if every provided index points at a row that has children, `false` otherwise.
+   * @param {boolean} successfullyExpanded `true`, if the action changed the collapsed state, `false` otherwise.
+   */
+  'afterRowExpand',
 
   /**
    * Fired by {@link ManualRowMove} plugin before changing the order of the visual indexes. This hook is fired when
@@ -2662,7 +2873,7 @@ export const REGISTERED_HOOKS = [
    *
    * | Property     | Possible values                                                         | Description                                                                                                              |
    * | ------------ | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-   * | `column`     | Number                                                                  | A visual index of the column to which the filter will be applied.                                                        |
+   * | `column`     | Number                                                                  | A physical index of the column to which the filter will be applied.                                                      |
    * | `conditions` | Array of objects                                                        | Each object represents one condition. For details, see [`addCondition()`](@/api/filters.md#addcondition).                |
    * | `operation`  | `'conjunction'` \| `'disjunction'` \| `'disjunctionWithExtraCondition'` | An operation to perform on your set of `conditions`. For details, see [`addCondition()`](@/api/filters.md#addcondition). |
    *
@@ -2722,7 +2933,7 @@ export const REGISTERED_HOOKS = [
    *
    * | Property     | Possible values                                                         | Description                                                                                                              |
    * | ------------ | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-   * | `column`     | Number                                                                  | A visual index of the column to which the filter was applied.                                                            |
+   * | `column`     | Number                                                                  | A physical index of the column to which the filter was applied.                                                          |
    * | `conditions` | Array of objects                                                        | Each object represents one condition. For details, see [`addCondition()`](@/api/filters.md#addcondition).                |
    * | `operation`  | `'conjunction'` \| `'disjunction'` \| `'disjunctionWithExtraCondition'` | An operation to perform on your set of `conditions`. For details, see [`addCondition()`](@/api/filters.md#addcondition). |
    *
@@ -2848,6 +3059,10 @@ export const REGISTERED_HOOKS = [
    *
    * This hook gets also fired on Handsontable's initialization, returning the addresses and values of all cells.
    *
+   * The `row` and `col` of each address are HyperFormula engine indexes, not Handsontable visual indexes.
+   * They match Handsontable's physical and visual indexes only when no rows or columns are moved, trimmed, or hidden.
+   * Once you reorder, trim, or hide rows or columns, the engine indexes diverge from the visual ones.
+   *
    * Read more:
    * - [Guides: Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
    * - [HyperFormula documentation: `valuesUpdated`](https://hyperformula.handsontable.com/api/interfaces/listeners.html#valuesupdated)
@@ -2861,6 +3076,12 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by the {@link Formulas} plugin when a named expression is added to the engine instance.
    *
+   * This hook fires after the HyperFormula engine's `addNamedExpression()` method runs, either
+   * because you called it directly or because you defined the `namedExpressions` configuration option.
+   *
+   * Read more:
+   * - [HyperFormula documentation: `addNamedExpression`](https://hyperformula.handsontable.com/api/classes/hyperformula.html#addnamedexpression)
+   *
    * @since 9.0.0
    * @event Hooks#afterNamedExpressionAdded
    * @param {string} namedExpressionName The name of the added expression.
@@ -2870,6 +3091,11 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by the {@link Formulas} plugin when a named expression is removed from the engine instance.
+   *
+   * This hook fires after the HyperFormula engine's `removeNamedExpression()` method runs.
+   *
+   * Read more:
+   * - [HyperFormula documentation: `removeNamedExpression`](https://hyperformula.handsontable.com/api/classes/hyperformula.html#removenamedexpression)
    *
    * @since 9.0.0
    * @event Hooks#afterNamedExpressionRemoved
@@ -2881,6 +3107,14 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by the {@link Formulas} plugin when a new sheet is added to the engine instance.
    *
+   * The {@link Formulas} plugin creates a sheet on Handsontable's initialization (using the sheet name from
+   * {@link Options#formulas}, or a name auto-generated by HyperFormula, e.g. `Sheet1`, if none was provided), so
+   * this hook also fires once during initialization, before any user-triggered sheet additions.
+   *
+   * Read more:
+   * - [Guides: Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
+   * - [HyperFormula documentation: `sheetAdded`](https://hyperformula.handsontable.com/api/interfaces/listeners.html#sheetadded)
+   *
    * @since 9.0.0
    * @event Hooks#afterSheetAdded
    * @param {string} addedSheetDisplayName The name of the added sheet.
@@ -2889,6 +3123,10 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by the {@link Formulas} plugin when a sheet in the engine instance is renamed.
+   *
+   * Read more:
+   * - [Guides: Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
+   * - [HyperFormula documentation: `sheetRenamed`](https://hyperformula.handsontable.com/api/interfaces/listeners.html#sheetrenamed)
    *
    * @since 9.0.0
    * @event Hooks#afterSheetRenamed
@@ -2899,6 +3137,10 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by the {@link Formulas} plugin when a sheet is removed from the engine instance.
+   *
+   * Read more:
+   * - [Guides: Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
+   * - [HyperFormula documentation: `sheetRemoved`](https://hyperformula.handsontable.com/api/interfaces/listeners.html#sheetremoved)
    *
    * @since 9.0.0
    * @event Hooks#afterSheetRemoved
@@ -2913,6 +3155,22 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#modifyColumnHeaderHeight
    */
   'modifyColumnHeaderHeight',
+
+  /**
+   * Fired while resolving whether the table renders in a single pass.
+   *
+   * Single-pass rendering predicts, from the row/column sizes and the container box, whether
+   * scrollbars will appear and then renders once — instead of rendering, measuring the result, and
+   * re-rendering. Return `false` to force the legacy measure-then-render path for the table. A feature
+   * whose content size depends on the viewport that is being computed (for example, merged cells) opts
+   * out this way; user code can also return `false` to disable single-pass rendering.
+   *
+   * @since 18.1.0
+   * @event Hooks#modifySinglePassLayout
+   * @param {boolean} singlePassLayout `true` when single-pass rendering is currently enabled.
+   * @returns {boolean|void} Return `false` to force the legacy measure-then-render path.
+   */
+  'modifySinglePassLayout',
 
   /**
    * Fired while retrieving a column header's value.

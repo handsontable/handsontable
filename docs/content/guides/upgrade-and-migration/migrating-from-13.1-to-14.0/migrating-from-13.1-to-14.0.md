@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: migrating-13.1-to-14.0
 title: Migrating from 13.1 to 14.0
 metaTitle: Migrating from 13.1 to 14.0 - JavaScript Data Grid | Handsontable
 description: Migrate from Handsontable 13.1 to Handsontable 14.0, released on November 30th, 2023.
@@ -8,10 +7,8 @@ permalink: /migration-from-13.1-to-14.0
 canonicalUrl: /migration-from-13.1-to-14.0
 pageClass: migration-guide
 react:
-  id: migrating-13.1-to-14.0-react
   metaTitle: Migrate from 13.1 to 14.0 - React Data Grid | Handsontable
 angular:
-  id: rxlauyd8-13.1-to-14.0-react
   metaTitle: Migrate from 13.1 to 14.0 - Angular Data Grid | Handsontable
 vue:
   metaTitle: Migrate from 13.1 to 14.0 - Vue Data Grid | Handsontable
@@ -48,6 +45,12 @@ The new Handsontable version comes with an updated set of keyboard shortcuts. Mo
 | Before  | After  |
 | ------------ | ------------ |
 | Iterates through the content list  | Iterates through the menu items. When focused on the search input, the arrow keys allow iterating through the content list  |
+
+##### Hover behavior in the Filtering menu
+
+| Before  | After  |
+| ------------ | ------------ |
+| After pressing <kbd>TAB</kbd> from the search input to **Select all**, hovering other menu items keeps keyboard focus on **Select all**.  | After pressing <kbd>TAB</kbd> from the search input to **Select all**, hovering a non-filter menu item (for example, **Clear column**) resets the filter-components focus order. The next <kbd>TAB</kbd> moves focus to the first filter component.  |
 
 More information: [Keyboard Shortcuts page in the documentation](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md)
 

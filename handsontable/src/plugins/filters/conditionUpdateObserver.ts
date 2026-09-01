@@ -61,6 +61,12 @@ class ConditionUpdateObserver {
    * @type {Array}
    */
   latestOrderStack: number[] = [];
+  /**
+   * Memoized full-column results of `columnDataFactory`, keyed by physical column index. Active
+   * (non-null) only for the duration of one state update or one `flush()` batch — reading a column's
+   * data map walks every source row, and one update reads the same columns several times.
+   */
+  #columnDataCache: Map<number, Record<string, unknown>[]> | null = null;
 
   /**
    * Initializes the observer with the Handsontable instance, a condition collection to watch, and an optional factory for column source data.
@@ -68,7 +74,7 @@ class ConditionUpdateObserver {
   constructor(
     hot: HotInstance,
     conditionCollection: ConditionCollection,
-    columnDataFactory: (physicalColumn: number) => Record<string, unknown>[] = () => []
+    columnDataFactory: (physicalColumn: number, physicalRows?: number[]) => Record<string, unknown>[] = () => []
   ) {
     this.hot = hot;
     this.conditionCollection = conditionCollection;
@@ -96,10 +102,59 @@ class ConditionUpdateObserver {
   flush() {
     this.grouping = false;
 
-    arrayEach(this.changes, (column) => {
-      this.updateStatesAtColumn(column);
+    this.#withColumnDataCache(() => {
+      arrayEach(this.changes, (column) => {
+        this.updateStatesAtColumn(column);
+      });
     });
     this.changes.length = 0;
+  }
+
+  /**
+   * Runs the callback with the full-column data memo active. Source data does not change while
+   * component states are recomputed, so every full-column read within one update (the edited
+   * column, the first dependent column, and each column re-scanned by `DataFilter`) can share
+   * one data map per column. Nested activations reuse the outer cache.
+   *
+   * @param {Function} callback The callback to run with the cache active.
+   */
+  #withColumnDataCache(callback: () => void) {
+    if (this.#columnDataCache !== null) {
+      callback();
+
+      return;
+    }
+
+    this.#columnDataCache = new Map();
+
+    try {
+      callback();
+    } finally {
+      this.#columnDataCache = null;
+    }
+  }
+
+  /**
+   * Reads the data map for a column through the active memo. Subset reads (with `physicalRows`)
+   * are already narrowed to surviving rows, so only full-column reads are memoized.
+   *
+   * @param {number} physicalColumn The physical column index.
+   * @param {number[]} [physicalRows] When provided, only these physical rows are read.
+   * @returns {Array} Array of objects with `meta` and `value`, one per read row.
+   */
+  #getColumnData(physicalColumn: number, physicalRows?: number[]): Record<string, unknown>[] {
+    if (physicalRows || this.#columnDataCache === null) {
+      return this.columnDataFactory(physicalColumn, physicalRows);
+    }
+
+    let columnData = this.#columnDataCache.get(physicalColumn);
+
+    if (!columnData) {
+      columnData = this.columnDataFactory(physicalColumn);
+      this.#columnDataCache.set(physicalColumn, columnData);
+    }
+
+    return columnData;
   }
 
   /**
@@ -129,6 +184,16 @@ class ConditionUpdateObserver {
       return;
     }
 
+    this.#withColumnDataCache(() => this.#updateStatesAtColumnInternal(column, conditionArgsChange));
+  }
+
+  /**
+   * Performs the actual state update for the column. Runs with the full-column data memo active.
+   *
+   * @param {number} column The column index.
+   * @param {object} conditionArgsChange Object describing condition changes which can be handled by filters on `update` hook.
+   */
+  #updateStatesAtColumnInternal(column: number, conditionArgsChange?: unknown) {
     const allConditions = this.conditionCollection.exportAllConditions();
     let editedColumnPosition = this.conditionCollection.getColumnStackPosition(column);
 
@@ -157,7 +222,7 @@ class ConditionUpdateObserver {
       // in the next conditions in the chain
       splitConditionCollection.importAllConditions(curriedConditionsBeforeArray);
 
-      const allRows = this.columnDataFactory(Number(curriedColumn));
+      const allRows = this.#getColumnData(Number(curriedColumn));
       let visibleRows;
 
       if (splitConditionCollection.isEmpty()) {
@@ -165,17 +230,20 @@ class ConditionUpdateObserver {
       } else {
         visibleRows = (new DataFilter(
           splitConditionCollection,
-          this.columnDataFactory
+          (physicalColumn: number, physicalRows?: number[]) => this.#getColumnData(physicalColumn, physicalRows)
         )).filter();
       }
-      visibleRows = arrayMap(visibleRows, rowData => (rowData as { meta: { visualRow: number } }).meta.visualRow);
+      // Correlate rows through the immutable `row` property of the data-map entries. The coordinate
+      // stamps on `meta` are shared with every other meta reader (each read re-stamps them), so they
+      // must not be used to match rows between two reads.
+      visibleRows = arrayMap(visibleRows, rowData => (rowData as { row: number }).row);
 
       const visibleRowsAssertion = createArrayAssertion(visibleRows);
 
       splitConditionCollection.destroy();
 
       return arrayFilter(allRows, (rowData) => {
-        return visibleRowsAssertion((rowData as { meta: { visualRow: number } }).meta.visualRow);
+        return visibleRowsAssertion((rowData as { row: number }).row);
       });
     })(conditionsBefore);
 
@@ -204,8 +272,10 @@ class ConditionUpdateObserver {
    * @private
    */
   #onConditionAfterClean() {
-    arrayEach(this.latestOrderStack, (column) => {
-      this.updateStatesAtColumn(column);
+    this.#withColumnDataCache(() => {
+      arrayEach(this.latestOrderStack, (column) => {
+        this.updateStatesAtColumn(column);
+      });
     });
   }
 

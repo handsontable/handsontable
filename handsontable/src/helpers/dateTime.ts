@@ -36,15 +36,36 @@ export function parseToLocalDate(value: unknown): Date | null {
 }
 
 /**
+ * Number of days in each month for a non-leap year, indexed by zero-based month.
+ */
+const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+/**
+ * Checks if a year is a leap year in the proleptic Gregorian calendar.
+ */
+function isLeapYear(year: number): boolean {
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+}
+
+/**
  * Checks if a string is a valid ISO 8601 date.
  */
 export function isValidISODate(value: unknown): value is string {
   if (typeof value !== 'string' || !ISO_DATE_REGEX.test(value)) {
     return false;
   }
-  const date = new Date(value);
 
-  return !Number.isNaN(date.getTime()) && value === date.toISOString().slice(0, 10);
+  // The regex guarantees the YYYY-MM-DD shape with month 01-12 and day 01-31. The only remaining
+  // check is the calendar bound: that the day fits the given month and year (e.g. rejecting 02-30,
+  // 04-31, or 02-29 in a non-leap year). Doing this arithmetically avoids constructing a Date and
+  // round-tripping through toISOString() for every cell, which dominated load time on large
+  // date-typed grids.
+  const year = +value.slice(0, 4);
+  const month = +value.slice(5, 7);
+  const day = +value.slice(8, 10);
+  const maxDay = month === 2 && isLeapYear(year) ? 29 : DAYS_IN_MONTH[month - 1];
+
+  return day <= maxDay;
 }
 
 /**
@@ -83,6 +104,65 @@ export function parseToLocalTime(value: unknown): Date | null {
  */
 export function isValidTime(value: unknown): value is string {
   return typeof value === 'string' && TIME_REGEX.test(value);
+}
+
+/**
+ * ISO 8601 date-time pattern. The date part is required; the time part is optional and may use a
+ * `T` or space separator, with optional seconds and fractional seconds (`YYYY-MM-DD`,
+ * `YYYY-MM-DDTHH:mm`, `YYYY-MM-DDTHH:mm:ss`, `YYYY-MM-DD HH:mm:ss.SSS`).
+ */
+export const ISO_DATETIME_REGEX =
+  /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])(?:[T ]([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d)(?:\.(\d{1,3}))?)?)?$/;
+
+/**
+ * Parses an ISO 8601 date-time string to a local Date. Date-only values become local midnight.
+ */
+export function parseToLocalDateTime(value: unknown): Date | null {
+  if (isEmpty(value)) {
+    return null;
+  }
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const match = ISO_DATETIME_REGEX.exec(value);
+
+  if (!match) {
+    return null;
+  }
+
+  const [datePart] = value.split(/[T ]/);
+  const [year, month, day] = datePart.split('-').map(Number);
+  const hours = match[3] !== undefined ? Number(match[3]) : 0;
+  const minutes = match[4] !== undefined ? Number(match[4]) : 0;
+  const seconds = match[5] !== undefined ? Number(match[5]) : 0;
+  const milliseconds = match[6] !== undefined
+    ? Number(match[6].padEnd(3, '0').slice(0, 3))
+    : 0;
+
+  return new Date(year, month - 1, day, hours, minutes, seconds, milliseconds);
+}
+
+/**
+ * Checks if a string is a valid ISO 8601 date-time, enforcing the day-of-month calendar bound.
+ */
+export function isValidISODateTime(value: unknown): value is string {
+  if (typeof value !== 'string') {
+    return false;
+  }
+
+  const match = ISO_DATETIME_REGEX.exec(value);
+
+  if (!match) {
+    return false;
+  }
+
+  const year = +value.slice(0, 4);
+  const month = +match[1];
+  const day = +match[2];
+  const maxDay = month === 2 && isLeapYear(year) ? 29 : DAYS_IN_MONTH[month - 1];
+
+  return day <= maxDay;
 }
 
 /**

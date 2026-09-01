@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 8f3c91ab
 title: Handsontable with shadcn/ui
 metaTitle: Handsontable with shadcn/ui - React Data Grid | Handsontable
 description: Integrate Handsontable into a React app using shadcn/ui so the grid matches your design system colors, typography, and dark mode via the Theme API.
@@ -18,26 +17,24 @@ tags:
   - Theme API
   - custom theme
 react:
-  id: 9a4d82bc
   metaTitle: Handsontable with shadcn/ui - React Data Grid | Handsontable
 angular:
-  id: b582k93d
   metaTitle: Handsontable with shadcn/ui - Angular Data Grid | Handsontable
 vue:
-  id: jo0cv4kp
 searchCategory: Recipes
 category: Themes
 ---
 
 This tutorial shows you how to integrate Handsontable into a Next.js app that uses shadcn/ui, registering a custom theme that maps shadcn CSS variables and Lucide icons to the Handsontable Theme API.
 
-<iframe src="https://codesandbox.io/p/devbox/5kjc5d?embed=1&file=%2Fcomponents%2FDataGrid.tsx"
+<iframe src="https://demos.handsontable.com/embed/6k14o3s142"
      style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
      title="Handsontable with shadcn"
      sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
    ></iframe>
 
-[**Open in CodeSandbox**](https://codesandbox.io/p/devbox/5kjc5d)
+[**Open in sandbox**](https://demos.handsontable.com/?example=next-shadcn.js&v={{$currentVersion}})
+[**View source on GitHub**](https://github.com/handsontable/examples/tree/{{$examplesBranch}}/examples/next-shadcn.js)
 
 ## Overview
 

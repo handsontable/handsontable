@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: cf4e768b
 title: Numbro
 metaTitle: Numbro Cell Type - JavaScript Data Grid | Handsontable
 description: Learn how to create a Handsontable custom numbro cell type using the Numbro library
@@ -12,13 +11,10 @@ tags:
   - recipes
   - numbro
 react:
-  id: 9f2d530e
   metaTitle: Numbro Cell Type - React Data Grid | Handsontable
 angular:
-  id: 1e23a45b
   metaTitle: Numbro Cell Type - Angular Data Grid | Handsontable
 vue:
-  id: teohjohf
   metaTitle: Numbro Cell Type - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Cell Types
@@ -90,6 +86,8 @@ import { getEditor } from 'handsontable/editors';
 import { getValidator } from 'handsontable/validators';
 import { registerCellType } from 'handsontable/cellTypes';
 import numbro from 'numbro';
+// numbro ships no type declarations for its bundled language pack.
+// @ts-expect-error -- untyped module
 import languages from 'numbro/dist/languages.min.js';
 
 registerAllModules();
@@ -101,6 +99,7 @@ Object.values(languages).forEach((language) => numbro.registerLanguage(language)
 - `numbro` handles locale-aware number formatting (currencies, decimals, thousands separators)
 - `rendererFactory` creates a custom renderer that formats values with Numbro before displaying
 - Registering all Numbro languages upfront enables any `culture` to be used in `numericFormat`
+- Numbro's bundled language pack ships no TypeScript declarations, so the import needs `@ts-expect-error` in a strict TypeScript project
 
 ## Step 2: Create the Numeric Helper
 

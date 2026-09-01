@@ -220,7 +220,7 @@ describe('CollapsibleColumns API', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="">J1</th>
-            <th class="">K1</th>
+            <th class="htLastVisibleHeader">K1</th>
           </tr>
           <tr>
             <th class="">A2</th>
@@ -231,7 +231,7 @@ describe('CollapsibleColumns API', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="">J2</th>
-            <th class="collapsibleIndicator collapsed">K2</th>
+            <th class="htLastVisibleHeader collapsibleIndicator collapsed">K2</th>
           </tr>
           <tr>
             <th class="">A3</th>
@@ -242,7 +242,7 @@ describe('CollapsibleColumns API', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="">J3</th>
-            <th class="">K3</th>
+            <th class="htLastVisibleHeader">K3</th>
           </tr>
           <tr>
             <th class="">A4</th>
@@ -253,7 +253,7 @@ describe('CollapsibleColumns API', () => {
             <th class="" colspan="2">H4</th>
             <th class="hiddenHeader"></th>
             <th class="">J4</th>
-            <th class="">K4</th>
+            <th class="htLastVisibleHeader">K4</th>
           </tr>
           <tr>
             <th class="">A5</th>
@@ -264,7 +264,7 @@ describe('CollapsibleColumns API', () => {
             <th class="">H5</th>
             <th class="">I5</th>
             <th class="">J5</th>
-            <th class="">K5</th>
+            <th class="htLastVisibleHeader">K5</th>
           </tr>
         </thead>
         <tbody>
@@ -313,7 +313,7 @@ describe('CollapsibleColumns API', () => {
             <th class="collapsibleIndicator collapsed">T1</th>
             <th class="">AB1</th>
             <th class="collapsibleIndicator collapsed">AC1</th>
-            <th class="">AK1</th>
+            <th class="htLastVisibleHeader">AK1</th>
           </tr>
           <tr>
             <th class="">A2</th>
@@ -324,7 +324,7 @@ describe('CollapsibleColumns API', () => {
             <th class="collapsibleIndicator collapsed">T2</th>
             <th class="">AB2</th>
             <th class="collapsibleIndicator collapsed">AC2</th>
-            <th class="">AK2</th>
+            <th class="htLastVisibleHeader">AK2</th>
           </tr>
           <tr>
             <th class="">A3</th>
@@ -335,7 +335,7 @@ describe('CollapsibleColumns API', () => {
             <th class="collapsibleIndicator collapsed">T3</th>
             <th class="">AB3</th>
             <th class="collapsibleIndicator collapsed">AC3</th>
-            <th class="">AK3</th>
+            <th class="htLastVisibleHeader">AK3</th>
           </tr>
           <tr>
             <th class="">A4</th>
@@ -346,7 +346,7 @@ describe('CollapsibleColumns API', () => {
             <th class="">T4</th>
             <th class="">AB4</th>
             <th class="">AC4</th>
-            <th class="">AK4</th>
+            <th class="htLastVisibleHeader">AK4</th>
           </tr>
           <tr>
             <th class="">A5</th>
@@ -357,7 +357,7 @@ describe('CollapsibleColumns API', () => {
             <th class="">T5</th>
             <th class="">AB5</th>
             <th class="">AC5</th>
-            <th class="">AK5</th>
+            <th class="htLastVisibleHeader">AK5</th>
           </tr>
         </thead>
         <tbody>
@@ -404,7 +404,7 @@ describe('CollapsibleColumns API', () => {
             <th class="collapsibleIndicator collapsed">CE1</th>
             <th class="">CM1</th>
             <th class="collapsibleIndicator collapsed">CN1</th>
-            <th class="">CV1</th>
+            <th class="htLastVisibleHeader">CV1</th>
           </tr>
           <tr>
             <th class="collapsibleIndicator collapsed">K2</th>
@@ -426,7 +426,7 @@ describe('CollapsibleColumns API', () => {
             <th class="collapsibleIndicator collapsed">CE2</th>
             <th class="">CM2</th>
             <th class="collapsibleIndicator collapsed">CN2</th>
-            <th class="">CV2</th>
+            <th class="htLastVisibleHeader">CV2</th>
           </tr>
           <tr>
             <th class="collapsibleIndicator collapsed">K3</th>
@@ -448,7 +448,7 @@ describe('CollapsibleColumns API', () => {
             <th class="collapsibleIndicator collapsed">CE3</th>
             <th class="">CM3</th>
             <th class="collapsibleIndicator collapsed">CN3</th>
-            <th class="">CV3</th>
+            <th class="htLastVisibleHeader">CV3</th>
           </tr>
           <tr>
             <th class="">K4</th>
@@ -470,7 +470,7 @@ describe('CollapsibleColumns API', () => {
             <th class="">CE4</th>
             <th class="">CM4</th>
             <th class="">CN4</th>
-            <th class="">CV4</th>
+            <th class="htLastVisibleHeader">CV4</th>
           </tr>
           <tr>
             <th class="">K5</th>
@@ -492,7 +492,7 @@ describe('CollapsibleColumns API', () => {
             <th class="">CE5</th>
             <th class="">CM5</th>
             <th class="">CN5</th>
-            <th class="">CV5</th>
+            <th class="htLastVisibleHeader">CV5</th>
           </tr>
         </thead>
         <tbody>
@@ -597,7 +597,7 @@ describe('CollapsibleColumns API', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">J1</th>
+            <th class="htLastVisibleHeader">J1</th>
           </tr>
           <tr>
             <th class="">A2</th>
@@ -609,7 +609,7 @@ describe('CollapsibleColumns API', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">J2</th>
+            <th class="htLastVisibleHeader">J2</th>
           </tr>
           <tr>
             <th class="">A3</th>
@@ -621,7 +621,7 @@ describe('CollapsibleColumns API', () => {
             <th class="hiddenHeader"></th>
             <th class="collapsibleIndicator expanded" colspan="2">H3</th>
             <th class="hiddenHeader"></th>
-            <th class="">J3</th>
+            <th class="htLastVisibleHeader">J3</th>
           </tr>
         </thead>
         <tbody>
@@ -734,7 +734,7 @@ describe('CollapsibleColumns API', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">J1</th>
+            <th class="htLastVisibleHeader">J1</th>
           </tr>
           <tr>
             <th class="">A2</th>
@@ -743,7 +743,7 @@ describe('CollapsibleColumns API', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">J2</th>
+            <th class="htLastVisibleHeader">J2</th>
           </tr>
           <tr>
             <th class="">A3</th>
@@ -752,7 +752,7 @@ describe('CollapsibleColumns API', () => {
             <th class="hiddenHeader"></th>
             <th class="collapsibleIndicator collapsed" colspan="2">F3</th>
             <th class="hiddenHeader"></th>
-            <th class="">J3</th>
+            <th class="htLastVisibleHeader">J3</th>
           </tr>
           <tr>
             <th class="">A4</th>
@@ -761,7 +761,7 @@ describe('CollapsibleColumns API', () => {
             <th class="hiddenHeader"></th>
             <th class="collapsibleIndicator expanded" colspan="2">F4</th>
             <th class="hiddenHeader"></th>
-            <th class="">J4</th>
+            <th class="htLastVisibleHeader">J4</th>
           </tr>
           <tr>
             <th class="">A5</th>
@@ -770,7 +770,7 @@ describe('CollapsibleColumns API', () => {
             <th class="">E5</th>
             <th class="">F5</th>
             <th class="">G5</th>
-            <th class="">J5</th>
+            <th class="htLastVisibleHeader">J5</th>
           </tr>
         </thead>
         <tbody>
@@ -825,7 +825,7 @@ describe('CollapsibleColumns API', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">J1</th>
+            <th class="htLastVisibleHeader">J1</th>
           </tr>
           <tr>
             <th class="">A2</th>
@@ -837,7 +837,7 @@ describe('CollapsibleColumns API', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">J2</th>
+            <th class="htLastVisibleHeader">J2</th>
           </tr>
           <tr>
             <th class="">A3</th>
@@ -849,7 +849,7 @@ describe('CollapsibleColumns API', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">J3</th>
+            <th class="htLastVisibleHeader">J3</th>
           </tr>
           <tr>
             <th class="">A4</th>
@@ -861,7 +861,7 @@ describe('CollapsibleColumns API', () => {
             <th class="hiddenHeader"></th>
             <th class="collapsibleIndicator expanded" colspan="2">H4</th>
             <th class="hiddenHeader"></th>
-            <th class="">J4</th>
+            <th class="htLastVisibleHeader">J4</th>
           </tr>
           <tr>
             <th class="">A5</th>
@@ -873,7 +873,7 @@ describe('CollapsibleColumns API', () => {
             <th class="">G5</th>
             <th class="">H5</th>
             <th class="">I5</th>
-            <th class="">J5</th>
+            <th class="htLastVisibleHeader">J5</th>
           </tr>
         </thead>
         <tbody>

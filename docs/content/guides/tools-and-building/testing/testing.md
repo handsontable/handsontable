@@ -84,6 +84,10 @@ To avoid unintended changes to Handsontable's UI, we use automated visual regres
 
 Learn more on our [GitHub](https://github.com/handsontable/handsontable/blob/develop/visual-tests/README.md).
 
+## Result
+
+Your tests ran and reported pass or fail results. A green test suite confirms your change does not introduce regressions.
+
 ## Related guides
 
 <div class="boxes-list">
@@ -97,7 +101,3 @@ Learn more on our [GitHub](https://github.com/handsontable/handsontable/blob/dev
 :::
 
 </div>
-
-## Result
-
-Your tests ran and reported pass or fail results. A green test suite confirms your change does not introduce regressions.

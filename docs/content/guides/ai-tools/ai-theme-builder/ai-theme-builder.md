@@ -1,22 +1,17 @@
 ---
 type: explanation
-id: ai7k4m2n
 title: AI Theme Builder
 metaTitle: AI Theme Builder - JavaScript Data Grid | Handsontable
 description: An AI-assisted tool that turns a written description into a complete Handsontable theme, generating the CSS variables that drive the grid's appearance.
 permalink: /ai-theme-builder
 react:
-  id: ai9p3x5q
   metaTitle: AI Theme Builder - React Data Grid | Handsontable
 angular:
-  id: aiq2v8w1
   metaTitle: AI Theme Builder - Angular Data Grid | Handsontable
 vue:
-  id: aih6t3z4
   metaTitle: AI Theme Builder - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: AI Tools
-menuTag: new
 ---
 The <a href="https://handsontable.com/theme-builder" target="_blank" rel="noopener noreferrer">Theme Builder</a> is a free web tool for building Handsontable themes visually, instead of writing code. You can manually adjust over 200 design tokens with UI controls and see the table update in real-time. Then you can export the theme and use it in your own app!
 

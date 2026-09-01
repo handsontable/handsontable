@@ -53,7 +53,7 @@ describe('dataProvider crud', () => {
   describe('filterChangesForBatchedServerUpdate', () => {
     const hot = {
       propToCol: prop => (prop === 'bad' ? -1 : 0),
-      getCellMeta: (row, col) => ({ valid: row === 0 && col === 0 }),
+      getCellMetaTransient: (row, col) => ({ valid: row === 0 && col === 0 }),
     };
 
     it('should drop no-op edits and invalid cells', () => {
@@ -319,6 +319,7 @@ describe('dataProvider crud', () => {
         propToCol: () => 0,
         colToProp: () => 'name',
         getCellMeta: () => ({ allowInvalid: false }),
+        getCellMetaTransient: () => ({ allowInvalid: false }),
         getCellValidator: () => () => {},
         validateCell: (value, cellMeta, cb) => {
           cb(false);

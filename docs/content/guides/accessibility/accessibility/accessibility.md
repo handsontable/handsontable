@@ -78,8 +78,10 @@ Handsontable doesn't require a mouse to navigate across the grid's elements. Thi
 
 Our experience with hundreds of implementations shows that Handsontable tends to be used either as a **spreadsheet application** or a **data grid component**. While at first the difference seems subtle, it significantly impacts user expectations regarding navigation.
 
-In a typical spreadsheet application (think of Microsoft Excel or Google Sheets), you can't move the focus onto headers. This makes it difficult to sort or filter data without knowing complex [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md). Additionally, opening a [column menu](@/guides/columns/column-menu/column-menu.md) is not trivial.
-Handsontable offers flexibility in this regard, allowing users to switch between data grid and spreadsheet "modes". To do that switch, you can use a combination of two options: [`navigableHeaders`](@/api/options.md#navigableheaders) to enable or disable moving focus onto headers, and [`tabNavigation`](@/api/options.md#tabnavigation) to decide if the <kbd>**Tab**</kbd> key can be used to navigate across cells and headers.
+In a typical spreadsheet application (think of Microsoft Excel or Google Sheets), you can't move the focus onto headers. This makes it difficult to sort or filter data without knowing complex [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md). Additionally, opening a [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md) is not trivial.
+Handsontable offers flexibility in this regard, letting you switch between data grid and spreadsheet "modes". To do that switch, you can use a combination of two options: [`navigableHeaders`](@/api/options.md#navigableheaders) to enable or disable moving focus onto headers, and [`tabNavigation`](@/api/options.md#tabnavigation) to decide if the <kbd>**Tab**</kbd> key can be used to navigate across cells and headers.
+
+To control arrow-key wrapping at grid boundaries, use [`autoWrapRow`](@/api/options.md#autowraprow) and [`autoWrapCol`](@/api/options.md#autowrapcol). `autoWrapRow` wraps focus to the adjacent row when you move right or left past a row edge. `autoWrapCol` wraps focus to the adjacent column when you move up or down past a column edge.
 
 The following table provides more details about these two scenarios:
  
@@ -106,6 +108,8 @@ Handsontable provides a wide range of [keyboard shortcuts](@/guides/navigation/k
 | <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**\\**</kbd> <br> <kbd>**Shift**</kbd>+<kbd>**F10**</kbd> | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**\\**</kbd> <br> <kbd>⇧</kbd>+<kbd>**F10**</kbd> | Open a context menu | Any cell        |
 
 *To use this shortcut, disable the default macOS behavior for the <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd> key combination, under **System Settings** > **Keyboard** > **Keyboard Shortcuts** > **Input Sources**.
+
+For filter-menu-specific navigation details, including <kbd>**Tab**</kbd> traversal and hover behavior, see [Column filter](@/guides/columns/column-filter/column-filter.md#navigate-the-filter-menu).
 
 ## Support for screen readers
 
@@ -287,6 +291,10 @@ We make sure our data grid remains accessible by taking the following measures:
 - Dynamic ARIA attributes are sometimes omitted by screen readers.
 - The `aria-rowcount` attribute is intentionally set to `-1`, as most screen readers either ignore or misinterpret it. This configuration ensures accuracy with screen readers such as VoiceOver. We plan to revise this approach once screen readers consistently handle the `aria-rowcount` attribute correctly.
 
+## Result
+
+Your grid now supports keyboard navigation, screen reader announcements, and ARIA attributes for all major interactive elements.
+
 ## API reference
 
 For the list of [options](@/guides/getting-started/configuration-options/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) related to accessibility, see the following API reference pages:
@@ -329,7 +337,3 @@ Didn't find what you need? Try this:
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
 
 </div>
-
-## Result
-
-Your grid now supports keyboard navigation, screen reader announcements, and ARIA attributes for all major interactive elements.

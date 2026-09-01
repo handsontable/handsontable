@@ -274,17 +274,18 @@ The `datePickerConfig` option (which passed options to Pikaday) no longer has an
 
 Handsontable 18.0 removes the built-in DOMPurify dependency. HTML passed to the following surfaces is no longer sanitized automatically:
 
-- `colHeaders` and `rowHeaders`
+- `colHeaders`, `rowHeaders`, and `nestedHeaders` labels
 - Context menu item labels
 - HTML pasted from the clipboard
 - Dialog and notification content
 - Select editor dropdown option values
+- `password` cells whose displayed value carries markup, through a custom `valueFormatter` or a `hashSymbol`
 
 ### Who is affected
 
 You are affected if any of the following apply:
 
-- You pass user-supplied or third-party HTML in `colHeaders`, `rowHeaders`, context-menu labels, or select editor `selectOptions`.
+- You pass user-supplied or third-party HTML in `colHeaders`, `rowHeaders`, `nestedHeaders` labels, context-menu labels, or select editor `selectOptions`.
 - You relied on Handsontable to strip `<script>` tags or event handlers from HTML passed to those surfaces.
 - You use the `sanitizer` option or test sanitization behavior.
 
@@ -509,6 +510,10 @@ Use class-based selectors instead of positional ones, so future layout slot addi
 | `--ht-wrapper-border-radius` renamed to `--ht-border-radius`; `--ht-wrapper-border-width` and `--ht-wrapper-border-color` removed | Projects overriding these theme variables or passing the matching JS tokens | Rename to `--ht-border-radius` / `borderRadius`; recreate a wrapper border with `box-shadow` if needed |
 | Wrapper DOM structure changed -- new `.ht-grid-content`, `.ht-slot-top`, `.ht-slot-bottom`, and `.ht-overlay` elements | Projects with CSS selectors or DOM queries targeting Handsontable's wrapper elements by position | Update selectors to be class-based; account for the new `.ht-grid-content` wrapper and sibling slot containers |
 
+## Result
+
+Your application now runs on Handsontable 18.0.
+
 ## Related resources
 
 - [TypeScript types](@/guides/tools-and-building/typescript-types/typescript-types.md)
@@ -517,7 +522,3 @@ Use class-based selectors instead of positional ones, so future layout slot addi
 - [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
 - [Time cell type](@/guides/cell-types/time-cell-type/time-cell-type.md)
 - [Security](@/guides/security/security/security.md)
-
-## Result
-
-Your application now runs on Handsontable 18.0.

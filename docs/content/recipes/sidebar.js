@@ -1,6 +1,8 @@
 const realTimeItems = [
   { path: 'real-time/websocket-updates/websocket-updates', title: 'Real-time updates via WebSocket', onlyFor: ['javascript', 'react', 'angular'] },
   { path: 'real-time/chartjs-sync/chartjs-sync', title: 'Sync rows to Chart.js', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
+  { path: 'real-time/liveblocks-multiplayer/liveblocks-multiplayer', title: 'Multiplayer editing with Liveblocks', onlyFor: ['javascript', 'react'] },
+  { path: 'real-time/liveblocks-comments/liveblocks-comments', title: 'Cell comments with Liveblocks', onlyFor: ['javascript', 'react'] },
 ];
 
 const columnManagementItems = [
@@ -10,6 +12,7 @@ const columnManagementItems = [
 
 const contextMenuItems = [
   { path: 'context-menu/custom-context-menu/custom-context-menu', title: 'Custom context menu actions', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
+  { path: 'context-menu/add-column-object-data/add-column-object-data', title: 'Add a column to an object-based dataset', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
   { path: 'context-menu/row-operations/row-operations', title: 'Programmatic row operations', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
 ];
 
@@ -19,12 +22,14 @@ const dataManagementItems = [
   { path: 'data-management/sync-two-grids/sync-two-grids', title: 'Sync two grids', onlyFor: ['javascript', 'angular', 'react'] },
   { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript', 'angular', 'react', 'vue'] },
   { path: 'data-management/auto-save-backend/auto-save-backend', title: 'Auto-save changes to a backend', onlyFor: ['javascript', 'angular', 'react', 'vue'] },
+  { path: 'data-management/server-side-aspnet/server-side-aspnet', title: 'Server-side data with ASP.NET Core', onlyFor: ['javascript', 'angular', 'react', 'vue'] },
   { path: 'data-management/server-side-django/server-side-django', title: 'Server-side data with Django', onlyFor: ['javascript', 'angular', 'react', 'vue'] },
   { path: 'data-management/server-side-expressjs/server-side-expressjs', title: 'Server-side data with Express.js', onlyFor: ['javascript', 'angular', 'react', 'vue'] },
   { path: 'data-management/server-side-laravel/server-side-laravel', title: 'Server-side data with Laravel', onlyFor: ['javascript', 'angular', 'react', 'vue'] },
   { path: 'data-management/server-side-nestjs/server-side-nestjs', title: 'Server-side data with NestJS', onlyFor: ['javascript', 'angular', 'react'] },
   { path: 'data-management/server-side-rails/server-side-rails', title: 'Server-side data with Ruby on Rails', onlyFor: ['javascript', 'angular', 'react'] },
   { path: 'data-management/server-side-spring/server-side-spring', title: 'Server-side data with Spring Boot', onlyFor: ['javascript', 'angular', 'react'] },
+  { path: 'data-management/server-side-supabase/server-side-supabase', title: 'Server-side data with Supabase', onlyFor: ['react'] },
   { path: 'data-management/server-side-symfony/server-side-symfony', title: 'Server-side data with Symfony', onlyFor: ['javascript', 'angular', 'react'] },
 ];
 
@@ -33,12 +38,13 @@ const cellTypesItems = [
   { path: 'cell-types/color-picker/color-picker', title: 'Color picker', onlyFor: ['javascript', 'angular', 'vue'] },
   { path: 'cell-types/feedback/feedback', title: 'Feedback', onlyFor: ['javascript', 'angular', 'vue'] },
   { path: 'cell-types/rating/rating', title: 'Star Rating', onlyFor: ['javascript', 'angular', 'vue'] },
-  // JavaScript + Vue only
-  { path: 'cell-types/flatpickr/flatpickr', title: 'Flatpickr', onlyFor: ['javascript', 'vue'] },
-  { path: 'cell-types/moment-date/moment-date', title: 'Moment.js-based date', onlyFor: ['javascript', 'vue'] },
-  { path: 'cell-types/moment-time/moment-time', title: 'Moment.js-based time', onlyFor: ['javascript', 'vue'] },
-  { path: 'cell-types/numbro/numbro', title: 'Numbro', onlyFor: ['javascript', 'vue'] },
-  { path: 'cell-types/pikaday/pikaday', title: 'Pikaday', onlyFor: ['javascript', 'vue'] },
+  // All frameworks
+  { path: 'cell-types/radio/radio', title: 'Radio buttons', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
+  { path: 'cell-types/numbro/numbro', title: 'Numbro', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
+  { path: 'cell-types/flatpickr/flatpickr', title: 'Flatpickr', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
+  { path: 'cell-types/moment-date/moment-date', title: 'Moment.js-based date', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
+  { path: 'cell-types/moment-time/moment-time', title: 'Moment.js-based time', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
+  { path: 'cell-types/pikaday/pikaday', title: 'Pikaday', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
   // React only
   { path: 'cell-types/feedback-react/feedback-react', title: 'Feedback', onlyFor: ['react'] },
   { path: 'cell-types/colorful-picker/colorful-picker', title: 'Colorful Picker', onlyFor: ['react'] },

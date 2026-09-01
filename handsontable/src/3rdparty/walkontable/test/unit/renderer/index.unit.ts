@@ -1,7 +1,7 @@
 import {
   TableRenderer,
   Renderer,
-} from 'walkontable/renderer';
+} from 'walkontable/render';
 
 /**
  *

@@ -754,9 +754,64 @@ describe('Formulas general', () => {
       spyOn(engine, 'removeRows').and.callThrough();
       await alter('remove_row', 9, 3);
 
-      expect(engine.removeRows.calls.argsFor(0)).toEqual([0, [11, 1]]);
-      expect(engine.removeRows.calls.argsFor(1)).toEqual([0, [10, 1]]);
-      expect(engine.removeRows.calls.argsFor(2)).toEqual([0, [9, 1]]);
+      expect(engine.removeRows.calls.count()).toBe(1);
+      expect(engine.removeRows.calls.argsFor(0)).toEqual([0, [9, 3]]);
+    });
+
+    it('should remove rows with non-contiguous engine indexes (trimmed rows in between) within a single engine call', async() => {
+      handsontable({
+        data: [
+          [1, null],
+          [2, null],
+          [3, null],
+          [4, null],
+          [5, null],
+          [6, '=SUM(A1:A6)'],
+        ],
+        trimRows: [2],
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      const engine = getPlugin('formulas').engine;
+
+      spyOn(engine, 'removeRows').and.callThrough();
+
+      // Visual rows 0-3 map to physical (and engine) rows 0, 1, 3, 4 — the trimmed
+      // physical row 2 splits them into two spans.
+      await alter('remove_row', 0, 4);
+
+      expect(engine.removeRows.calls.count()).toBe(1);
+      expect(engine.removeRows.calls.argsFor(0)).toEqual([0, [0, 2], [3, 2]]);
+      expect(countRows()).toBe(1);
+      expect(getDataAtRow(0)).toEqual([6, 9]);
+    });
+
+    it('should restore values with a single undo after a coalesced multi-row removal', async() => {
+      handsontable({
+        data: [
+          [1, '=SUM(A1:A5)'],
+          [2, null],
+          [3, null],
+          [4, null],
+          [5, null],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      await alter('remove_row', 1, 3);
+
+      expect(countRows()).toBe(2);
+      expect(getDataAtCell(0, 1)).toBe(6);
+
+      getPlugin('undoRedo').undo();
+
+      expect(countRows()).toBe(5);
+      expect(getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
+      expect(getDataAtCell(0, 1)).toBe(15);
     });
 
     it('should not throw an error after removing all rows', async() => {
@@ -942,9 +997,8 @@ describe('Formulas general', () => {
       spyOn(engine, 'removeColumns').and.callThrough();
       await alter('remove_col', 9, 3);
 
-      expect(engine.removeColumns.calls.argsFor(0)).toEqual([0, [11, 1]]);
-      expect(engine.removeColumns.calls.argsFor(1)).toEqual([0, [10, 1]]);
-      expect(engine.removeColumns.calls.argsFor(2)).toEqual([0, [9, 1]]);
+      expect(engine.removeColumns.calls.count()).toBe(1);
+      expect(engine.removeColumns.calls.argsFor(0)).toEqual([0, [9, 3]]);
     });
 
     it('should recalculate table and replace coordinates in formula expressions into #REF! ' +
@@ -1612,7 +1666,7 @@ describe('Formulas general', () => {
   });
 
   describe('hyperformula alter operation blocks', () => {
-    it('should block creating too many rows', async() => {
+    it('should cap row creation at `maxRows`, like a grid without the plugin', async() => {
       handsontable({
         data: [],
         formulas: {
@@ -1626,7 +1680,9 @@ describe('Formulas general', () => {
 
       await alter('insert_row_above', 0, 20000);
 
-      expect(countRows()).toEqual(0);
+      // The engine no longer carries the grid's `maxRows` (GH #10672), so it stops cancelling the whole
+      // insert and `dataMap.createRow` caps it at `maxRows` - the same as a grid without the plugin.
+      expect(countRows()).toEqual(10000);
     });
 
     it('should block creating too many columns', async() => {
@@ -2297,6 +2353,277 @@ describe('Formulas general', () => {
     ]);
 
     expect(getDataAtCell(1, 4)).toEqual(3);
+  });
+
+  it('should replace an existing formula\'s text when the `loadData` method is called', async() => {
+    handsontable({
+      data: [
+        [1],
+        ['=A1+1'],
+      ],
+      formulas: {
+        engine: HyperFormula,
+      }
+    });
+
+    const formulasPlugin = getPlugin('formulas');
+
+    // The sheet is reused across `loadData` calls, so at this point the engine still holds the
+    // PREVIOUS formula. The data fed to the engine has to come from what the grid stores, not from
+    // the `modifySourceData` projection – that projection answers a formula cell with the engine's
+    // own formula, which would write the stale `=A1+1` straight back and drop the loaded one.
+    await loadData([
+      [1],
+      ['=A1+100'],
+    ]);
+
+    expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+      [1],
+      ['=A1+100'],
+    ]);
+
+    expect(getDataAtCell(1, 0)).toBe(101);
+  });
+
+  it('should replace an existing formula\'s text when the `updateData` method is called', async() => {
+    handsontable({
+      data: [
+        [1],
+        ['=A1+1'],
+      ],
+      formulas: {
+        engine: HyperFormula,
+      }
+    });
+
+    const formulasPlugin = getPlugin('formulas');
+
+    await updateData([
+      [1],
+      ['=A1+100'],
+    ]);
+
+    expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+      [1],
+      ['=A1+100'],
+    ]);
+
+    expect(getDataAtCell(1, 0)).toBe(101);
+  });
+
+  it('should replace an existing formula with a literal value when the `loadData` method is called', async() => {
+    handsontable({
+      data: [
+        [1],
+        ['=A1+1'],
+      ],
+      formulas: {
+        engine: HyperFormula,
+      }
+    });
+
+    const formulasPlugin = getPlugin('formulas');
+
+    // The same defect as in the two cases above, with the loaded value no longer being a formula.
+    // The `modifySourceData` projection answers a formula cell with the formula the engine holds, so
+    // reading the newly loaded data through it resurrects `=A1+1` into what is now a value cell.
+    await loadData([
+      [1],
+      [5],
+    ]);
+
+    expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+      [1],
+      [5],
+    ]);
+
+    expect(getDataAtCell(1, 0)).toBe(5);
+  });
+
+  it('should replace an existing formula with a literal value when the `updateData` method is called', async() => {
+    handsontable({
+      data: [
+        [1],
+        ['=A1+1'],
+      ],
+      formulas: {
+        engine: HyperFormula,
+      }
+    });
+
+    const formulasPlugin = getPlugin('formulas');
+
+    await updateData([
+      [1],
+      [5],
+    ]);
+
+    expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+      [1],
+      [5],
+    ]);
+
+    expect(getDataAtCell(1, 0)).toBe(5);
+  });
+
+  it('should replace an existing formula\'s text when the data is replaced through `updateSettings`', async() => {
+    handsontable({
+      data: [
+        [1],
+        ['=A1+1'],
+      ],
+      formulas: {
+        engine: HyperFormula,
+      }
+    });
+
+    const formulasPlugin = getPlugin('formulas');
+
+    // A third public entry point for the same defect, and it reaches the engine through a different
+    // site: `#onAfterLoadData` returns early for the `updateSettings` source, so the data is fed to
+    // the engine from `#onAfterCellMetaReset` instead.
+    await updateSettings({
+      data: [
+        [1],
+        ['=A1+100'],
+      ],
+    });
+
+    expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+      [1],
+      ['=A1+100'],
+    ]);
+
+    expect(getDataAtCell(1, 0)).toBe(101);
+  });
+
+  it('should replace an existing formula\'s text when the `loadData` method is called for array of objects', async() => {
+    handsontable({
+      data: [
+        { value: 1, note: 'skipped' },
+        { value: '=A1+1', note: 'skipped' },
+      ],
+      // The second key is deliberately left out of `columns`, so `countCols()` is lower than
+      // `countSourceCols()` and the shape check in `#getProcessedSourceDataArray` is actually
+      // evaluated. With a single key it would short-circuit and the array-of-objects branch would
+      // be selected without the check ever running.
+      columns: [
+        { data: 'value' },
+      ],
+      formulas: {
+        engine: HyperFormula,
+      }
+    });
+
+    const formulasPlugin = getPlugin('formulas');
+
+    await loadData([
+      { value: 1, note: 'skipped' },
+      { value: '=A1+100', note: 'skipped' },
+    ]);
+
+    expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+      [1],
+      ['=A1+100'],
+    ]);
+
+    expect(getDataAtCell(1, 0)).toBe(101);
+  });
+
+  it('should replace an existing formula\'s text when the `loadData` method is called for data with skipped columns',
+    async() => {
+      handsontable({
+        data: [
+          [1, 'skipped', '=A1+1'],
+          [2, 'skipped', 3],
+        ],
+        // Only the physical columns 0 and 2 are visible, so `#getProcessedSourceDataArray` projects
+        // the rows down to the visible ones before feeding them to the engine - a different branch
+        // than the one the cases above take.
+        columns: [
+          { data: 0 },
+          { data: 2 },
+        ],
+        formulas: {
+          engine: HyperFormula,
+        }
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await loadData([
+        [1, 'skipped', '=A1+100'],
+        [2, 'skipped', 3],
+      ]);
+
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        [1, '=A1+100'],
+        [2, 3],
+      ]);
+
+      expect(getDataAtCell(0, 1)).toBe(101);
+    });
+
+  it('should replace an existing formula\'s text when the `loadData` method is called for data with an empty row',
+    async() => {
+      handsontable({
+        data: [
+          [1, 'skipped', '=A1+1'],
+          null,
+        ],
+        // The shape check in `#getProcessedSourceDataArray` reads the first row only, so a row that
+        // is not an array still reaches the branch projecting rows down to the visible columns.
+        columns: [
+          { data: 0 },
+          { data: 2 },
+        ],
+        formulas: {
+          engine: HyperFormula,
+        }
+      });
+
+      const formulasPlugin = getPlugin('formulas');
+
+      await loadData([
+        [1, 'skipped', '=A1+100'],
+        null,
+      ]);
+
+      // The engine drops the trailing empty row, so only the first one is serialized.
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        [1, '=A1+100'],
+      ]);
+
+      expect(getDataAtCell(0, 1)).toBe(101);
+    });
+
+  it('should keep an array formula spilling when the `loadData` method is called', async() => {
+    handsontable({
+      data: [
+        [1, 2],
+        ['=TRANSPOSE(A1:B1)', null],
+        [null, null],
+      ],
+      formulas: {
+        engine: HyperFormula,
+      }
+    });
+
+    // A spill cell reports the `ARRAY` cell type, not `ARRAYFORMULA`, so it passes the
+    // `VALUE`/`EMPTY` early return in `#onModifySourceData` and gets projected as well - as its
+    // calculated value. Feeding that back puts a literal inside the range the array formula needs,
+    // and the engine answers the whole load with `#SPILL!`.
+    await loadData([
+      [10, 20],
+      ['=TRANSPOSE(A1:B1)', null],
+      [null, null],
+    ]);
+
+    expect(getData()).toEqual([
+      [10, 20],
+      [10, null],
+      [20, null],
+    ]);
   });
 
   it('should display calculated formula after changing value using `beforeChange` hook #6932', async() => {

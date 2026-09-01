@@ -373,6 +373,12 @@ export function createStylesHandler() {
         'cell-autofill-size': 6,
         'cell-autofill-border-width': 1,
         'cell-autofill-border-color': '#FFF',
+        'cell-selection-handle-size': 8,
+        'cell-selection-handle-length': 24,
+        'cell-selection-handle-border-width': 1,
+        'cell-selection-handle-border-radius': 12,
+        'cell-selection-handle-border-color': '#1A73E8',
+        'cell-selection-handle-background-color': '#1A73E8',
       };
 
       return cssVariables[variableName];

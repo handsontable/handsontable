@@ -21,6 +21,27 @@ describe('Filters UI', () => {
     }
   });
 
+  it('should not draw the frame ring on the "Filter by value" list holder (its separator comes from the menu item)', async() => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      filters: true,
+      dropdownMenu: true,
+      width: 500,
+      height: 300,
+    });
+
+    await dropdownMenu(1);
+
+    const embeddedHolder = document.querySelector('.htDropdownMenu .htUIMultipleSelect .ht_master .wtHolder');
+
+    // Without the override, the embedded value-list grid gets the base inset frame ring
+    // (box-shadow) because it has its own scrollbar; its bottom line then doubles with the
+    // `.htFiltersMenuValue` menu item's separator border right below it.
+    expect(embeddedHolder).not.toBe(null);
+    expect(getComputedStyle(embeddedHolder).boxShadow).toBe('none');
+  });
+
   it('should deselect all values in "Filter by value" after clicking "Clear" link', async() => {
     handsontable({
       data: getDataForFilters(),
@@ -362,8 +383,10 @@ describe('Filters UI', () => {
       expect(inputs[2].value).toBe('5');
       expect(conditionSelectRootElements().first.textContent).toBe('Contains');
       expect(conditionSelectRootElements().second.textContent).toBe('Contains');
-      expect(byValueMultipleSelect().getItems().length).toBe(1);
-      expect(byValueMultipleSelect().getValue().length).toBe(1);
+      // The column is filtered by its own conditions only. Its "filter by value" list is not narrowed
+      // down by them, so all 7 source values are listed and stay checked (issue #12226).
+      expect(byValueMultipleSelect().getItems().length).toBe(7);
+      expect(byValueMultipleSelect().getValue().length).toBe(7);
     }
     {
       await dropdownMenu(2);
@@ -1293,10 +1316,10 @@ describe('Filters UI', () => {
       await dropdownMenu(1);
       await sleep(208);
 
-      const $multipleSelectElements = $(byValueMultipleSelect().element
-        .querySelectorAll('.htUIMultipleSelectHot td input'));
+      // The list holds every value of the column, not just the ones the condition kept (issue #12226),
+      // so the item to uncheck is picked by its label.
+      await uncheckByValueItem('Mathis Boone');
 
-      $multipleSelectElements.eq(0).simulate('click');
       // disjunction
       $(conditionRadioInput(1).element).find('input[type="radio"]').simulate('click');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
@@ -1338,10 +1361,10 @@ describe('Filters UI', () => {
       await dropdownMenu(1);
       await sleep(208);
 
-      const $multipleSelectElements = $(byValueMultipleSelect().element
-        .querySelectorAll('.htUIMultipleSelectHot td input'));
+      // The list holds every value of the column, not just the ones the conditions kept (issue #12226),
+      // so the item to uncheck is picked by its label.
+      await uncheckByValueItem('Mathis Boone');
 
-      $multipleSelectElements.eq(0).simulate('click');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       await sleep(16);
@@ -1502,10 +1525,10 @@ describe('Filters UI', () => {
       await dropdownMenu(1);
       await sleep(208);
 
-      const $multipleSelectElements = $(byValueMultipleSelect().element
-        .querySelectorAll('.htUIMultipleSelectHot td input'));
+      // The list holds every value of the column, not just the ones the condition kept (issue #12226),
+      // so the item to uncheck is picked by its label.
+      await uncheckByValueItem('Mathis Boone');
 
-      $multipleSelectElements.eq(0).simulate('click');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       await dropdownMenu(1);
@@ -1911,6 +1934,66 @@ describe('Filters UI', () => {
     text = elements.map(element => $(element).text());
 
     expect(text).toEqual(['Furkan İnanç']);
+  });
+
+  it('should search within the current column values after the data changed between dropdown openings', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      colHeaders: true,
+      filters: true,
+      dropdownMenu: true,
+    });
+
+    await dropdownMenu(1);
+    await sleep(208);
+
+    const event = new Event('input', {
+      bubbles: true,
+      cancelable: true,
+    });
+    let inputElement = dropdownMenuRootElement().querySelector('.htUIMultipleSelectSearch input');
+
+    $(inputElement).simulate('mousedown').simulate('mouseup').simulate('click');
+    $(inputElement).focus();
+
+    await sleep(208);
+
+    document.activeElement.value = 'b1';
+    document.activeElement.dispatchEvent(event);
+
+    let elements = $(byValueBoxRootElement()).find('label').toArray();
+    let text = elements.map(element => $(element).text());
+
+    expect(text).toEqual(['B1']);
+
+    await selectCell(0, 0);
+    await setDataAtCell(0, 1, 'Zebra');
+
+    await dropdownMenu(1);
+    await sleep(208);
+
+    inputElement = dropdownMenuRootElement().querySelector('.htUIMultipleSelectSearch input');
+
+    $(inputElement).simulate('mousedown').simulate('mouseup').simulate('click');
+    $(inputElement).focus();
+
+    await sleep(208);
+
+    document.activeElement.value = 'zebra';
+    document.activeElement.dispatchEvent(event);
+
+    elements = $(byValueBoxRootElement()).find('label').toArray();
+    text = elements.map(element => $(element).text());
+
+    expect(text).toEqual(['Zebra']);
+
+    document.activeElement.value = 'b2';
+    document.activeElement.dispatchEvent(event);
+
+    elements = $(byValueBoxRootElement()).find('label').toArray();
+    text = elements.map(element => $(element).text());
+
+    expect(text).toEqual(['B2']);
   });
 
   it('should handle selection in value box properly', async() => {

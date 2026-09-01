@@ -746,20 +746,20 @@ function computeProfileCallScripting(events, mainPid, mainTid, windowMinUs, wind
 }
 
 function formatHeapMinBytesLabel(bytes) {
-  return `${Math.round(bytes / 1000)} kb`;
+  return `${Math.round(bytes / 1000)} kB`;
 }
 
 function formatHeapMaxBytesLabel(bytes) {
   if (bytes >= 1_000_000) {
-    return `${(bytes / 1_000_000).toFixed(1)} Mb`;
+    return `${(bytes / 1_000_000).toFixed(1)} MB`;
   }
 
-  return `${Math.round(bytes / 1000)} kb`;
+  return `${Math.round(bytes / 1000)} kB`;
 }
 
 /**
  * Min/max from UpdateCounters instant events (args.data: jsHeapSizeUsed, documents, nodes, jsEventListeners).
- * Matches DevTools decimal labels: kb = bytes/1000, Mb = bytes/1e6.
+ * Matches DevTools decimal labels: kB = bytes/1000, MB = bytes/1e6.
  */
 export function computeUpdateCountersRanges(events, mainThread) {
   const list = events.filter(

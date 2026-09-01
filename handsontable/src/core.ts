@@ -1,4 +1,4 @@
-import { addClass, empty, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
+import { addClass, empty, isShadowRoot, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, isEmpty } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
@@ -60,21 +60,23 @@ import type { ShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcuts/contexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
-import { warn } from './helpers/console';
+import { warn, removedWarnOnce } from './helpers/console';
 import { throwWithCause } from './helpers/errors';
 import {
   install as installAccessibilityAnnouncer,
   uninstall as uninstallAccessibilityAnnouncer,
 } from './utils/a11yAnnouncer';
 import { initLicenseNotification } from './utils/licenseNotification';
+import { initLicenseBranding } from './utils/licenseBranding';
 import { getValueSetterValue } from './utils/valueAccessors';
-import { createThemeManager } from './themes/engine';
+import { createThemeManager, isThemeOverrideEmpty } from './themes/engine';
 import { LayoutManager, type LayoutConfig } from './core/layout';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
 import type { ThemeBuilder } from './themes/engine/builder';
+import type { ThemeOverridesInput } from './themes/engine/manager';
 import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
-import type { CellChange } from './settings';
+import type { CellChange, CellProperties } from './settings';
 import type { GridHelperInstance, HotInstance, ViewportScrollerInstance } from './core/types';
 import type { FocusScopeManager } from './focusManager/scopeManager';
 import type { SelectionTableProps } from './selection/types';
@@ -140,12 +142,83 @@ function normalizeIndexesGroup(indexes: number[][]): number[][] {
 const foreignHotInstances = new Map();
 
 /**
- * A set of deprecated feature names.
- *
- * @type {Set<string>}
+ * A configuration option removed from the public API.
  */
+interface RemovedOption {
+  /**
+   * The option name as it appears in the settings object.
+   */
+  name: string;
+  /**
+   * The release that removed the option.
+   */
+  version: string;
+  /**
+   * Documentation page that describes the migration path. Points at the release that removed the
+   * option, so each entry carries its own URL rather than a shared one.
+   */
+  migrationUrl: string;
+}
 
-const deprecationWarns = new Set();
+/**
+ * Configuration options removed from the public API, with the version that removed them.
+ * Configuring one prints a one-time warning; the value is ignored.
+ *
+ * `persistentState` says 17.0.0, not 18.0.0: #12015 removed the plugin, its option, and its hooks
+ * in 17.0.0, and no published 17.x or 18.x package carries them. The 18.0.0 changelog entry for
+ * #12727 describes deleting a copy that the TypeScript conversion re-created on `develop` after
+ * 17.1.0 and that never shipped.
+ *
+ * `datePickerConfig` is deliberately absent: `DateEditor#prepare` already warns about it, and it
+ * also sees the per-cell forms that `warnAboutRemovedOptions` cannot.
+ *
+ * @type {ReadonlyArray<RemovedOption>}
+ */
+const REMOVED_OPTIONS: ReadonlyArray<RemovedOption> = [
+  {
+    name: 'persistentState',
+    version: '17.0.0',
+    migrationUrl: 'https://handsontable.com/docs/javascript-data-grid/changelog-17/',
+  },
+  {
+    name: 'correctFormat',
+    version: '18.0.0',
+    migrationUrl: 'https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0/',
+  },
+];
+
+/**
+ * Warns once per removed option found anywhere in the passed settings.
+ *
+ * Scans the top level, every entry of an array-form `columns`, and every entry of the declarative
+ * `cell` array, because the removed options are not all global: `correctFormat` is a cell option,
+ * so `columns: [{ correctFormat: true }]` and `cell: [{ row, col, correctFormat: true }]` are its
+ * common forms, and a top-level-only check would leave those callers with a clean console and
+ * silently dropped date auto-correction.
+ *
+ * The remaining per-cell forms - a `cells` function, or meta set through `setCellMeta` - stay
+ * uncovered. Reaching them means inspecting resolved meta for every cell on every render, which
+ * costs more than the warning is worth.
+ *
+ * @param {object} settings Settings object passed to `updateSettings`.
+ */
+function warnAboutRemovedOptions(settings: Record<string, unknown>): void {
+  const columns: unknown[] = Array.isArray(settings.columns) ? settings.columns as unknown[] : [];
+  const cells: unknown[] = Array.isArray(settings.cell) ? settings.cell as unknown[] : [];
+  const scopes: unknown[] = [settings, ...columns, ...cells];
+
+  REMOVED_OPTIONS.forEach(({ name, version, migrationUrl }) => {
+    const isUsed = scopes.some(
+      scope => isObject(scope) && isDefined((scope as Record<string, unknown>)[name])
+    );
+
+    if (isUsed) {
+      removedWarnOnce(`Core.removedOption.${name}`,
+        `The "${name}" setting was removed in Handsontable ${version} and is ignored. ` +
+        `See ${migrationUrl} for the migration path.`);
+    }
+  });
+}
 
 /**
  * Internal Core properties not exposed in HotInstance but accessed by constructor-assigned
@@ -268,6 +341,12 @@ export default function Core(
   let focusGridManager: FocusGridManager;
   let viewportScroller: ViewportScrollerInstance;
   let firstRun: boolean | [null, string] = true;
+  // Guards the "colorScheme/density need the theme engine" warning so it is logged once per
+  // instance instead of on every `updateSettings()` call that carries the options.
+  let themeOverridesWarningShown = false;
+  // Set only when the table is initialized while invisible (see the `init` method). Kept in the closure, not on
+  // the instance, because `destroy` nulls every instance property before it could be read there.
+  let visibilityObserver: IntersectionObserver | null = null;
 
   const mergedUserSettings: GridSettings = {
     ...userSettings.initialState,
@@ -384,6 +463,10 @@ export default function Core(
 
     addClass(this.rootElement, ['ht-wrapper', 'handsontable']);
     addClass(this.rootWrapperElement, 'ht-root-wrapper');
+
+    if (isShadowRoot(this.rootContainer.getRootNode())) {
+      addClass(this.rootWrapperElement, 'ht-shadow-dom');
+    }
     addClass(this.rootSlotTopElement, 'ht-slot-top');
     addClass(this.rootGridElement, 'ht-grid');
     addClass(this.rootGridContentElement, 'ht-grid-content');
@@ -681,6 +764,7 @@ export default function Core(
 
       return editor ? (editor.isOpened() as boolean) : false;
     },
+    isPluginEnabled: (pluginName: string) => instance.getPlugin(pluginName)?.enabled === true,
     countRenderableColumns: () => instance.view.countRenderableColumns() as number,
     countRenderableRows: () => instance.view.countRenderableRows() as number,
     countRowHeaders: () => instance.countRowHeaders() as number,
@@ -900,8 +984,8 @@ export default function Core(
      *                             format `[[index, amount], [index, amount]...]` this can be used to remove
      *                             non-consecutive columns or rows in one call.
      * @param {number} [amount=1] Amount of rows or columns to remove.
-     * @param {string} [source] Optional. Source of hook runner.
-     * @param {boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
+     * @param {string} [source] Optional. Source indicator passed to related hooks.
+     * @param {boolean} [keepEmptyRows] Optional. Flag for skipping the post-alter empty row and column adjustment.
      */
     alter(action: string, index: number | number[][] | undefined, amount = 1, source: string, keepEmptyRows: boolean) {
 
@@ -985,6 +1069,8 @@ export default function Core(
                 groupIndex = Math.max(groupIndex - offset, 0);
               }
 
+              const totalRowsBefore = instance.countRows();
+
               // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
               // inside the datamap.removeRow breaks the removing functionality.
               const wasRemoved = datamap.removeRow(groupIndex, groupAmount, source);
@@ -1010,8 +1096,27 @@ export default function Core(
 
               const fixedRowsBottom = tableMeta.fixedRowsBottom;
 
-              if (fixedRowsBottom && calcIndex >= totalRows - fixedRowsBottom) {
-                tableMeta.fixedRowsBottom -= Math.min(groupAmount, fixedRowsBottom);
+              if (fixedRowsBottom) {
+                // Count how many of the removed rows belonged to the bottom fixed rows. Those rows occupied
+                // the `[totalRowsBefore - fixedRowsBottom, totalRowsBefore - 1]` range, so the boundary has
+                // to be compared with the row count from *before* the removal. Rows removed above that
+                // range keep the setting untouched (DEV-2551).
+                const removedRowsCount = totalRowsBefore - totalRows;
+                // With no index passed, `datamap.removeRow` takes the rows from the end, so the removal
+                // starts that many rows before the last one. `calcIndex` points at the last row then, not
+                // at the first removed one.
+                const firstRemovedRowIndex = Number.isInteger(groupIndex)
+                  ? calcIndex
+                  : Math.max(totalRowsBefore - removedRowsCount, 0);
+                const firstFixedRowIndex = totalRowsBefore - fixedRowsBottom;
+                const lastRemovedRowIndex =
+                  Math.min(firstRemovedRowIndex + removedRowsCount - 1, totalRowsBefore - 1);
+                const removedFixedRowsCount =
+                  lastRemovedRowIndex - Math.max(firstRemovedRowIndex, firstFixedRowIndex) + 1;
+
+                if (removedFixedRowsCount > 0) {
+                  tableMeta.fixedRowsBottom -= Math.min(removedFixedRowsCount, fixedRowsBottom);
+                }
               }
 
               if (totalRows === 0) {
@@ -1103,7 +1208,12 @@ export default function Core(
               const fixedColumnsStart = tableMeta.fixedColumnsStart;
 
               if (fixedColumnsStart >= calcIndex + 1) {
-                tableMeta.fixedColumnsStart -= Math.min(groupAmount, fixedColumnsStart - calcIndex);
+                // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
+                // However, keeping the old name still in effect. When both option names are used together,
+                // the error is thrown. To prevent that, the engine needs to modify the original option key
+                // to bypass the validation.
+                (tableMeta as unknown as { _fixedColumnsStart: number })._fixedColumnsStart -=
+                  Math.min(groupAmount, fixedColumnsStart - calcIndex);
               }
 
               if (Array.isArray(tableMeta.colHeaders)) {
@@ -1177,10 +1287,25 @@ export default function Core(
       }
       {
         let emptyCols = 0;
+        const canCreateSpareCols = minSpareCols > 0 && !tableMeta.columns && instance.dataType === 'array';
 
-        // count currently empty cols
-        if (minCols || minSpareCols) {
-          emptyCols = instance.countEmptyCols(true);
+        // Count trailing empty columns, but only when the `minSpareCols` branch below can consume
+        // the result, and never beyond `minSpareCols` itself. Verifying that a column is empty
+        // scans every row of that column, and this method runs after every change batch - an
+        // uncapped count (the previous `countEmptyCols(true)` call) paid O(empty columns * rows)
+        // per edit and also ran when only `minCols` was set, where the result was never used.
+        if (canCreateSpareCols) {
+          for (let visualIndex = instance.countCols() - 1; visualIndex >= 0; visualIndex--) {
+            if (!instance.isEmptyCol(visualIndex)) {
+              break;
+            }
+
+            emptyCols += 1;
+
+            if (emptyCols >= minSpareCols) {
+              break;
+            }
+          }
         }
 
         let nrOfColumns = instance.countCols();
@@ -1196,9 +1321,7 @@ export default function Core(
           datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto' });
         }
         // should I add empty cols to meet minSpareCols?
-        if (minSpareCols && !tableMeta.columns && instance.dataType === 'array' &&
-          emptyCols < minSpareCols) {
-
+        if (canCreateSpareCols && emptyCols < minSpareCols) {
           nrOfColumns = instance.countCols();
           const emptyColsMissing = minSpareCols - emptyCols;
           const colsToCreate = Math.min(emptyColsMissing, tableMeta.maxCols - nrOfColumns);
@@ -1373,7 +1496,11 @@ export default function Core(
             }
             current.col = start.col!;
 
-            cellMeta = instance.getCellMeta(current.row, current.col);
+            // The transient read keeps a bulk paste/fill from permanently materializing one meta
+            // object per target cell - this loop only reads (`skipRowOnPaste`, `skipColumnOnPaste`,
+            // `readOnly`, `valueSetter`, `parsePastedValue`); the write itself goes through the
+            // data layer.
+            cellMeta = instance.getCellMetaTransient(current.row, current.col);
 
             if ((source === 'CopyPaste.paste' || source === 'Autofill.fill' || source === 'autofill.fill') &&
                 cellMeta.skipRowOnPaste) {
@@ -1395,7 +1522,7 @@ export default function Core(
                 break;
               }
 
-              cellMeta = instance.getCellMeta(current.row, current.col);
+              cellMeta = instance.getCellMetaTransient(current.row, current.col);
 
               if ((source === 'CopyPaste.paste' || source === 'Autofill.fill' || source === 'autofill.fill') &&
                   cellMeta.skipColumnOnPaste) {
@@ -1567,7 +1694,7 @@ export default function Core(
       !rootContainerThemeClassName &&
       (isObject(theme) || (!theme && !themeName))
     ) {
-      initializeThemeManager(theme as ThemeBuilder | undefined);
+      initializeThemeManager(theme as ThemeBuilder | undefined, readStoredThemeOverrides());
     }
 
     dataSource.setData(tableMeta.data);
@@ -1590,6 +1717,7 @@ export default function Core(
     if (isRootInstance(this)) {
       installAccessibilityAnnouncer(instance.rootPortalElement);
       initLicenseNotification(instance);
+      initLicenseBranding(instance);
 
       // Keep the edge slots (top, bottom) as wide as the table so their content
       // (toolbars, pagination, license notification) aligns with the grid.
@@ -1634,7 +1762,13 @@ export default function Core(
 
     // Run the logic only if it's the table's initialization and the root element is not visible.
     if (!!firstRun && instance.rootElement.offsetParent === null) {
-      observeVisibilityChangeOnce(instance.rootElement, () => {
+      visibilityObserver = observeVisibilityChangeOnce(instance.rootElement, () => {
+        // A delivery carries the state from the moment its snapshot was taken, so it can arrive after the
+        // instance is gone even though `destroy` disconnects the observer.
+        if (!instance || instance.isDestroyed || !instance.view) {
+          return;
+        }
+
         // Update the spreader size cache before rendering.
         instance.view._wt.wtOverlays.updateLastSpreaderSize();
         instance.view.adjustElementsSize();
@@ -1652,12 +1786,109 @@ export default function Core(
   };
 
   /**
+   * Reads the per-instance color scheme and density overrides from a settings object.
+   *
+   * Only the keys actually present are returned, so a missing key keeps the value already applied
+   * instead of resetting it to the theme default.
+   *
+   * @param {object} settings - The settings object to read the overrides from.
+   * @returns {object} The theme overrides object.
+   */
+  function readThemeOverrides(settings: Record<string, unknown>): ThemeOverridesInput {
+    const overrides: ThemeOverridesInput = {};
+
+    if (hasOwnProperty(settings, 'colorScheme')) {
+      overrides.colorScheme = settings.colorScheme;
+    }
+
+    if (hasOwnProperty(settings, 'density')) {
+      overrides.density = settings.density;
+    }
+
+    return overrides;
+  }
+
+  /**
+   * Reads the color scheme and density currently configured on this instance.
+   *
+   * Unlike `readThemeOverrides()`, this reads the effective values rather than only the keys that
+   * one payload carries. `updateSettings()` stores grid options on the global meta, which the table
+   * meta inherits through its prototype, so an own-property check would miss them. Use this when
+   * rebuilding a ThemeManager, which has to pick up options set by an earlier call.
+   *
+   * @returns {object} The theme overrides object.
+   */
+  function readStoredThemeOverrides(): ThemeOverridesInput {
+    return {
+      colorScheme: tableMeta.colorScheme,
+      density: tableMeta.density,
+    };
+  }
+
+  /**
+   * Applies the `colorScheme` and `density` options to the ThemeManager of this instance.
+   *
+   * The options are per-instance overrides, so the shared theme object stays untouched and other
+   * grids using the same theme keep their own look.
+   *
+   * @param {object} settings - The settings object that may carry the overrides.
+   * @param {boolean} init - `true` when called during initialization. The initial styles are
+   * injected by the ThemeManager constructor, so nothing has to be refreshed in that case.
+   * @returns {boolean} `true` when the overrides changed and `afterSetTheme` still has to run.
+   */
+  function applyThemeOverrides(settings: GridSettings, init: boolean): boolean {
+    const overrides = readThemeOverrides(settings);
+
+    if (!hasOwnProperty(overrides, 'colorScheme') && !hasOwnProperty(overrides, 'density')) {
+      return false;
+    }
+
+    if (!instance.themeManager) {
+      // Only complain when a value is actually asked for. Clearing the options is documented, and a
+      // framework wrapper re-sends every prop on each render, so warning on key presence alone
+      // would fill the console for grids that never used these options.
+      const isValueRequested = !isThemeOverrideEmpty(overrides.colorScheme) ||
+        !isThemeOverrideEmpty(overrides.density);
+
+      if (isValueRequested && !themeOverridesWarningShown) {
+        themeOverridesWarningShown = true;
+
+        warn('The `colorScheme` and `density` options require the theme engine, so they have no ' +
+          'effect when the theme is enabled by a CSS class name. Pass a theme config object or a ' +
+          '`ThemeBuilder` instance to the `theme` option, or remove the `ht-theme-*` class from ' +
+          'the container element to use the default theme.');
+      }
+
+      return false;
+    }
+
+    const hasChanged = instance.themeManager.setOverrides(overrides);
+
+    if (!hasChanged || init) {
+      return false;
+    }
+
+    // Clear the cache here so the render at the end of `updateSettings` measures the new sizes.
+    // Rendering here as well would paint once with stale meta and then immediately paint again.
+    instance.stylesHandler.clearCache();
+
+    return true;
+  }
+
+  /**
    * Initializes the ThemeManager with the given theme configuration.
    *
    * @param {object|boolean} theme - The theme configuration object or `true` to use the default theme.
+   * @param {object} [overrides] - The per-instance color scheme and density overrides.
    */
-  function initializeThemeManager(theme?: ThemeBuilder) {
+  function initializeThemeManager(theme?: ThemeBuilder, overrides?: ThemeOverridesInput) {
     let themeObject;
+
+    // Tear the previous manager down first. Without this its `<style>` node stays in the wrapper,
+    // and because a new manager prepends its own node the orphan ends up LATER in source order —
+    // so at the same specificity the orphan's override rules win and the grid can never change or
+    // reset a `colorScheme` or `density` that was set at construction time.
+    instance.themeManager?.destroy();
 
     if (typeof theme === 'undefined') {
       if (hasTheme('main')) {
@@ -1676,7 +1907,8 @@ export default function Core(
     instance.themeManager = createThemeManager({
 
       hot: instance,
-      themeObject
+      themeObject,
+      overrides
     });
   }
 
@@ -1788,8 +2020,15 @@ export default function Core(
       let cellProperties;
 
       if (Number.isInteger(visualCol)) {
+        // The transient read keeps a bulk change set from permanently materializing one meta
+        // object per changed cell while the validator is looked up. Cells that DO have a
+        // validator switch to the eagerly stored meta object below - validation writes its
+        // `valid` result on the meta, and that result must survive on the stored object.
+        cellProperties = instance.getCellMetaTransient(row, visualCol as number);
 
-        cellProperties = instance.getCellMeta(row, visualCol as number);
+        if (instance.getCellValidator(cellProperties)) {
+          cellProperties = instance.getCellMeta(row, visualCol as number);
+        }
 
       } else {
         // If there's no requested visual column, we can use the table meta as the cell properties when retrieving
@@ -1829,7 +2068,7 @@ export default function Core(
    *
    * @private
    * @param {Array} changes Array in form of [row, prop, oldValue, newValue].
-   * @param {string} source String that identifies how this change will be described in changes array (useful in onChange callback).
+   * @param {string} source String that identifies how this change will be described in changes array (useful in {@link Hooks#afterChange} or {@link Hooks#beforeChange} callbacks).
    * @fires Hooks#beforeChangeRender
    * @fires Hooks#afterChange
    */
@@ -1850,10 +2089,15 @@ export default function Core(
       }
 
       if (tableMeta.allowInsertRow) {
+        // Create the whole missing range in one call - one index-mapper insert and one hook
+        // round instead of one per row. Creating row by row made a paste reaching far below
+        // the last row quadratic in the gap size. The loop re-checks the count so a partial
+        // creation (e.g. a `maxRows` clamp) is detected and the change is skipped.
         while (changes[i][0] > instance.countRows() - 1) {
+          const missingRows = changes[i][0] - (instance.countRows() - 1);
           const {
             delta: numberOfCreatedRows
-          } = datamap.createRow(undefined, undefined, { source: 'auto' });
+          } = datamap.createRow(undefined, missingRows, { source: 'auto' });
 
           if (numberOfCreatedRows === 0) {
             skipThisChange = true;
@@ -1865,9 +2109,11 @@ export default function Core(
       if (instance.dataType === 'array' && (!tableMeta.columns || tableMeta.columns.length === 0) &&
           tableMeta.allowInsertColumn) {
         while (Number(datamap.propToCol(changes[i][1] as string | number)) > instance.countCols() - 1) {
+          const missingColumns =
+            Number(datamap.propToCol(changes[i][1] as string | number)) - (instance.countCols() - 1);
           const {
             delta: numberOfCreatedColumns
-          } = datamap.createCol(undefined, undefined, { source: 'auto' });
+          } = datamap.createCol(undefined, missingColumns, { source: 'auto' });
 
           if (numberOfCreatedColumns === 0) {
             skipThisChange = true;
@@ -2099,8 +2345,10 @@ export default function Core(
       let cellProperties;
 
       if (Number.isInteger(visualColumn)) {
-
-        cellProperties = instance.getCellMeta(row, visualColumn as number);
+        // The transient read keeps a bulk change set (paste, fill, checkbox toggle over a large
+        // selection) from permanently materializing one meta object per changed cell - the meta
+        // is only read here (`valueSetter`).
+        cellProperties = instance.getCellMetaTransient(row, visualColumn as number);
       } else {
         // If there's no requested visual column, we can use the table meta as the cell properties
         cellProperties = { ...Object.getPrototypeOf(tableMeta) as Record<string, unknown>, ...tableMeta };
@@ -2122,7 +2370,9 @@ export default function Core(
    * @param {number|Array} row Visual row index or array of changes in format `[[row, col, value],...]`.
    * @param {number} [column] Visual column index.
    * @param {string} [value] New value.
-   * @param {string} [source] String that identifies how this change will be described in the changes array (useful in afterChange or beforeChange callback). Set to 'edit' if left empty.
+   * @param {string} [source] String that identifies how this change will be described in the changes array (useful in {@link Hooks#afterChange} or {@link Hooks#beforeChange} callbacks). Set to 'edit' if left empty.
+   * @fires Hooks#beforeChange
+   * @fires Hooks#afterChange
    */
   this.setDataAtCell = function(
     row: number | Array<[number, string | number, unknown]>, column: number | string, value: string, source?: string
@@ -2186,7 +2436,9 @@ export default function Core(
    * @param {number|Array} row Visual row index or array of changes in format `[[row, prop, value], ...]`.
    * @param {string} prop Property name or the source string (e.g. `'first.name'` or `'0'`).
    * @param {string} value Value to be set.
-   * @param {string} [source] String that identifies how this change will be described in changes array (useful in onChange callback).
+   * @param {string} [source] String that identifies how this change will be described in changes array (useful in {@link Hooks#afterChange} or {@link Hooks#beforeChange} callbacks).
+   * @fires Hooks#beforeChange
+   * @fires Hooks#afterChange
    */
   this.setDataAtRowProp = function(
     row: number | Array<[number, string | number, unknown]>, prop: string | number, value: string, source?: string
@@ -2275,7 +2527,7 @@ export default function Core(
    * @memberof Core#
    * @function destroyEditor
    * @param {boolean} [revertOriginal=false] If `true`, the previous value will be restored. Otherwise, the edited value will be saved.
-   * @param {boolean} [prepareEditorIfNeeded=true] If `true` the editor under the selected cell will be prepared to open.
+   * @param {boolean} [prepareEditorIfNeeded=true] If `true`, the editor under the selected cell will be prepared to open.
    */
   this.destroyEditor = function(revertOriginal = false, prepareEditorIfNeeded = true) {
     editorManager.closeEditor(revertOriginal);
@@ -2478,8 +2730,10 @@ export default function Core(
    *
    * @memberof Core#
    * @function emptySelectedCells
-   * @param {string} [source] String that identifies how this change will be described in the changes array (useful in afterChange or beforeChange callback). Set to 'edit' if left empty.
+   * @param {string} [source] String that identifies how this change will be described in the changes array (useful in {@link Hooks#afterChange} or {@link Hooks#beforeChange} callbacks). Set to 'edit' if left empty.
    * @since 0.36.0
+   * @fires Hooks#beforeChange
+   * @fires Hooks#afterChange
    */
   this.emptySelectedCells = function(source: string) {
     if (!selection.isSelected() || this.countRows() === 0 || this.countCols() === 0) {
@@ -2506,7 +2760,9 @@ export default function Core(
 
       const collectEmptyCellChanges = (row: number) => {
         rangeEach(fromColumn, toColumn, (column) => {
-          if (!this.getCellMeta(row, column).readOnly) {
+          // The transient read keeps clearing a large selection from permanently materializing
+          // one meta object per cell - only `readOnly` is read here.
+          if (!this.getCellMetaTransient(row, column).readOnly) {
             changes.push([row, column, null]);
           }
         });
@@ -2615,7 +2871,8 @@ export default function Core(
    * to the DOM. While rendering the table all cell renderers are recalled.
    *
    * Calling this method manually is not recommended. Handsontable tries to render itself by choosing the most
-   * optimal moments in its lifecycle.
+   * optimal moments in its lifecycle. After [setCellMeta()](@/api/core.md#setcellmeta) changes visual cell
+   * properties, call this method to apply them, or wrap multiple calls in [batch()](@/api/core.md#batch).
    *
    * @memberof Core#
    * @function render
@@ -2892,8 +3149,8 @@ export default function Core(
    * @memberof Core#
    * @function updateData
    * @since 11.1.0
-   * @param {Array} data An [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), that contains Handsontable's data
-   * @param {string} [source] The source of the `updateData()` call
+   * @param {Array} data An [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), that contains Handsontable's data.
+   * @param {string} [source] The source of the `updateData()` call.
    * @fires Hooks#beforeUpdateData
    * @fires Hooks#afterUpdateData
    * @fires Hooks#afterChange
@@ -2942,8 +3199,8 @@ export default function Core(
    *
    * @memberof Core#
    * @function loadData
-   * @param {Array} data An [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), that contains Handsontable's data
-   * @param {string} [source] The source of the `loadData()` call
+   * @param {Array} data An [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), that contains Handsontable's data.
+   * @param {string} [source] The source of the `loadData()` call.
    * @fires Hooks#beforeLoadData
    * @fires Hooks#afterLoadData
    * @fires Hooks#afterChange
@@ -3033,11 +3290,17 @@ export default function Core(
   };
 
   /**
-   * Returns the current data object (the same one that was passed by `data` configuration option or `loadData` method,
-   * unless some modifications have been applied (i.e. Sequence of rows/columns was changed, some row/column was skipped).
-   * If that's the case - use the {@link Core#getSourceData} method.).
+   * Returns the current visual data as a 2D array.
    *
-   * Optionally you can provide cell range by defining `row`, `column`, `row2`, `column2` to get only a fragment of table data.
+   * Unlike the source data (which may be an array of objects), `getData()` always
+   * returns an array of arrays regardless of the original data format. The returned
+   * data reflects the current visual state of the grid: rows and columns are in their
+   * current visual order, after any sorting, filtering, or reordering.
+   *
+   * To retrieve the data in its original source format, use the {@link Core#getSourceData} method instead.
+   *
+   * Optionally you can provide a cell range by defining `row`, `column`, `row2`, `column2`
+   * to get only a fragment of the data.
    *
    * @memberof Core#
    * @function getData
@@ -3045,7 +3308,7 @@ export default function Core(
    * @param {number} [column] From visual column index.
    * @param {number} [row2] To visual row index.
    * @param {number} [column2] To visual column index.
-   * @returns {Array[]} Array with the data.
+   * @returns {Array[]} A 2D array of cell values in the current visual order.
    * @example
    * ```js
    * // Get all data (in order how it is rendered in the table).
@@ -3133,11 +3396,19 @@ export default function Core(
    * __Note__, that although the `updateSettings` method doesn't overwrite the previously declared settings, it might reset
    * the settings made post-initialization. (for example - ignore changes made using the columnResize feature).
    *
-   * Since 8.0.0 passing `columns` or `data` inside `settings` objects will result in resetting states corresponding to rows and columns
-   * (for example, row/column sequence, column width, row height, frozen columns etc.).
+   * Passing `columns` inside the `settings` object resets the states corresponding to rows and columns
+   * (for example, row/column sequence, column width, row height, frozen columns etc.). Passing `data` does not reset these states.
    *
-   * Since 12.0.0 passing `data` inside `settings` objects no longer results in resetting states corresponding to rows and columns
-   * (for example, row/column sequence, column width, row height, frozen columns etc.).
+   * After initialization, passing `data` calls [`updateData()`](@/api/core.md#updatedata) internally.
+   * The resulting [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata) and
+   * [`afterUpdateData`](@/api/hooks.md#afterupdatedata) hooks receive `"updateSettings"` as their
+   * `source`, while [`afterChange`](@/api/hooks.md#afterchange) receives `null` as its `changes`
+   * argument and `"updateData"` as its `source`. If you call `updateSettings` with `data` inside
+   * `afterChange`, check the hook's `source` to prevent an infinite loop.
+   *
+   * Cell meta set imperatively through [[setCellMeta]] (for example, by the user or the context menu) is preserved across
+   * `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. On a direct conflict, a value re-stated
+   * through the declarative `cell` option takes precedence over the preserved imperative value.
    *
    * Cell meta set imperatively through [[setCellMeta]] (for example, by the user or the context menu) is preserved across
    * `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. On a direct conflict, a value re-stated
@@ -3177,6 +3448,12 @@ export default function Core(
     if (isDefined(settings.ganttChart)) {
       throwWithCause('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
+
+    warnAboutRemovedOptions(settings as Record<string, unknown>);
+
+    // The `columns` option (or the state its function form reads) may change in this call - drop
+    // getColHeader's index translation cache so it rebuilds against the updated settings.
+    columnsSettingIndexes = null;
 
     if (isDefined(settings.rowHeights) && isDefined(settings.minRowHeights)) {
       warn('Both `rowHeights` and `minRowHeights` are defined in your configuration. ' +
@@ -3255,14 +3532,18 @@ export default function Core(
 
       // Use `theme` option if it's a string and differs from current theme (takes priority over `themeName`).
       if (themeOptionExists && typeof settings.theme === 'string' && currentThemeName !== settings.theme) {
-        instance.themeManager?.unmount();
-        instance.themeManager = null;
+        // `destroy()`, not `unmount()`. Unmounting removes the style node but leaves the manager
+        // subscribed to the shared theme object, so the next theme change re-injects its scoped
+        // rules and the grid gets stuck on whatever override the dead manager still holds.
+        instance.themeManager?.destroy();
         instance.useTheme(settings.theme);
 
       // Use `themeName` option if `theme` is not provided and the name differs from current theme.
       } else if (themeNameOptionExists && !themeOptionExists && currentThemeName !== settings.themeName) {
-        instance.themeManager?.unmount();
-        instance.themeManager = null;
+        // `destroy()`, not `unmount()`. Unmounting removes the style node but leaves the manager
+        // subscribed to the shared theme object, so the next theme change re-injects its scoped
+        // rules and the grid gets stuck on whatever override the dead manager still holds.
+        instance.themeManager?.destroy();
         tableMeta.theme = settings.themeName;
         tableMeta.themeName = undefined;
         instance.useTheme(settings.themeName!);
@@ -3274,7 +3555,9 @@ export default function Core(
         isObject(settings.theme)
       ) {
         if (instance.themeManager === null) {
-          initializeThemeManager(settings.theme as ThemeBuilder);
+          // Read the overrides from `tableMeta`, not from this payload. The options may have been
+          // set by an earlier call, and the manager being rebuilt here starts with none of them.
+          initializeThemeManager(settings.theme as ThemeBuilder, readStoredThemeOverrides());
           instance.useTheme(instance.themeManager!.getClassName());
 
         } else {
@@ -3292,6 +3575,8 @@ export default function Core(
         }
       }
     }
+
+    const themeOverridesChanged = applyThemeOverrides(settings, init);
 
     // Load data or create data map
     if (instance.runHooks('hasExternalDataSource') === true) {
@@ -3450,11 +3735,23 @@ export default function Core(
     // width blocks ran) so partial updateSettings calls see the correct state.
     // When height IS set, the height block's `overflow: clip` shorthand handles both axes — leave
     // overflowX untouched to avoid breaking that shorthand.
+    // Only clip for a definite width. A relative width (`100%`, other percentages, viewport units,
+    // or a `calc()` that mixes them in) fills its container, and content wider than that scrolls
+    // with the window — matching the long-standing behavior where the page gains a horizontal
+    // scrollbar and every column stays reachable. Clipping those would silently hide the off-width
+    // columns with no scrollbar. A definite width (`px`, `em`, `rem`, and other absolute lengths)
+    // establishes a fixed box the table must not visually overflow, so it is clipped.
     // Browser compatibility: `overflow-x: clip` requires Safari 16+. On Safari 14.1–15.x it silently
     // falls back to `visible` (graceful degradation — pre-existing behavior, not a new regression).
     if (typeof settings.height !== 'undefined' || typeof settings.width !== 'undefined') {
       const effectiveHeight = instance.rootElement.style.height;
       const effectiveWidth = instance.rootElement.style.width;
+      // Relative: percentages and viewport units resolve against an ancestor, so a `%` or a viewport
+      // unit (`vw`/`vh`/`vmin`/`vmax`, and dynamic `dvh`/`svh`/`lvh` via the `vh` match) anywhere —
+      // including inside `calc()` — marks the width as container-driven. No word boundaries: the unit
+      // is preceded by digits (`100vw`), which are word characters, so `\bv` would never match.
+      const isRelativeWidth = /%|v(?:w|h|min|max)/i.test(effectiveWidth);
+      const isDefiniteWidth = effectiveWidth !== '' && effectiveWidth !== 'auto' && !isRelativeWidth;
 
       if (!effectiveHeight) {
         const currentOverflowX = instance.rootElement.style.overflowX;
@@ -3464,8 +3761,7 @@ export default function Core(
         // by `clip`. Unlike `hidden`, `clip` creates no block formatting context and allows no
         // programmatic scroll.
         if (currentOverflowX === '' || currentOverflowX === 'clip') {
-          instance.rootElement.style.overflowX =
-            (effectiveWidth && effectiveWidth !== 'auto') ? 'clip' : '';
+          instance.rootElement.style.overflowX = isDefiniteWidth ? 'clip' : '';
         }
       }
     }
@@ -3486,6 +3782,13 @@ export default function Core(
     if (instance.view && !firstRun) {
       instance.render();
       instance.view._wt.wtOverlays.adjustElementsSize();
+    }
+
+    // Fired after the render above, so a listener reading cell sizes sees the new density. The
+    // manager can be gone by now: an `afterUpdateSettings` listener is free to move the grid to a
+    // class-name theme, which tears the engine down.
+    if (themeOverridesChanged && instance.themeManager) {
+      instance.runHooks('afterSetTheme', instance.themeManager.getClassName(), false);
     }
 
     if (!init && instance.view && (currentHeight === '' || height === '' || height === undefined) &&
@@ -3529,11 +3832,36 @@ export default function Core(
   };
 
   /**
-   * Returns the object settings.
+   * Returns the current global grid settings object.
+   *
+   * The returned object contains the settings passed to the constructor or the most recent
+   * `updateSettings()` call. It reflects the
+   * [grid-level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options)
+   * configuration only.
+   *
+   * It does not include merged per-cell or per-column values. Configuration options cascade from
+   * grid to column to cell (see
+   * [Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)).
+   * To read the effective value for a specific cell, use [[getCellMeta]]. To read column-level meta, use [[getColumnMeta]].
    *
    * @memberof Core#
    * @function getSettings
-   * @returns {TableMeta} Object containing the current table settings.
+   * @returns {TableMeta} Object containing the current global grid settings.
+   * @example
+   * ```js
+   * const hot = new Handsontable(container, {
+   *   readOnly: false,
+   *   columns: (index) => ({
+   *     readOnly: index === 2 || index === 8,
+   *   }),
+   * });
+   *
+   * // returns `false` (global grid-level setting)
+   * hot.getSettings().readOnly;
+   *
+   * // returns `true` for column 2 (merged column and cell meta)
+   * hot.getCellMeta(0, 2).readOnly;
+   * ```
    */
   this.getSettings = function() {
     return tableMeta as unknown as GridSettings;
@@ -3592,8 +3920,10 @@ export default function Core(
    * @param {number|number[]} [index] A visual index of the row/column before or after which the new row/column will be
    *                                inserted or removed. Can also be an array of arrays, in format `[[index, amount],...]`.
    * @param {number} [amount] The amount of rows or columns to be inserted or removed (default: `1`).
-   * @param {string} [source] Source indicator.
-   * @param {boolean} [keepEmptyRows] If set to `true`: prevents removing empty rows.
+   * @param {string} [source] Source indicator passed to related hooks.
+   * @param {boolean} [keepEmptyRows] If set to `true`, skips the automatic adjustment that normally adds empty rows
+   *                                  or columns after the operation to satisfy `minRows`, `minSpareRows`,
+   *                                  `minCols`, or `minSpareCols`.
    * @example
    * ```js
    * // above row 10 (by visual index), insert 1 new row
@@ -3613,9 +3943,23 @@ export default function Core(
    * // remove 2 rows, starting from row 10 (by visual index)
    * hot.alter('remove_row', 10, 2);
    *
+   * // remove 2 columns, starting from column 3 (by visual index)
+   * hot.alter('remove_col', 3, 2);
+   *
    * // remove 3 rows, starting from row 1 (by visual index)
    * // remove 2 rows, starting from row 5 (by visual index)
    * hot.alter('remove_row', [[1, 3], [5, 2]]);
+   *
+   * // pass a custom source string to hooks
+   * hot.addHook('afterCreateRow', (index, amount, source) => {
+   *   if (source === 'inventory-import') {
+   *     // Run logic only for rows created by the inventory import.
+   *   }
+   * });
+   * hot.alter('insert_row_above', 0, 1, 'inventory-import');
+   *
+   * // remove a row without immediately adding empty rows required by `minRows` or `minSpareRows`
+   * hot.alter('remove_row', 4, 1, 'inventory-cleanup', true);
    * ```
    */
   this.alter = function(
@@ -3975,16 +4319,24 @@ export default function Core(
     const input = setDataInputToArray(row, column, value);
     const isThereAnySetSourceListener = instance.hasHook('afterSetSourceDataAtCell');
     const changesForHook: Array<Array<unknown>> = [];
-    const getCellProperties = (changeRow: number, changeProp: string | number) => {
+    const getCellProperties = (changeRow: number, changeProp: string | number): CellProperties => {
       const visualRow = instance.toVisualRow(changeRow);
       const visualColumn = instance.toVisualColumn(changeProp as number);
 
       if (Number.isInteger(visualColumn)) {
-        return instance.getCellMeta(visualRow!, visualColumn as number) as Record<string, unknown>;
+        // The transient read keeps a bulk source-data write from permanently materializing one
+        // meta object per changed cell - the meta only feeds the `valueSetter` and the
+        // source-data validator, both read-only.
+        return instance.getCellMetaTransient(visualRow!, visualColumn as number);
       }
 
-      // If there's no requested visual column, we can use the table meta as the cell properties
-      return { ...(Object.getPrototypeOf(tableMeta) as Record<string, unknown>), ...tableMeta };
+      // If there's no requested visual column, we can use the table meta as the cell properties.
+      // The snapshot lacks the per-cell coordinate properties, but every consumer here reads
+      // settings-level keys only.
+      return {
+        ...(Object.getPrototypeOf(tableMeta) as Record<string, unknown>),
+        ...tableMeta,
+      } as unknown as CellProperties;
     };
 
     if (isThereAnySetSourceListener) {
@@ -4114,7 +4466,7 @@ export default function Core(
       let isTypeEqual = true;
 
       rangeEach(Math.max(Math.min(columnStart, columnEnd), 0), Math.max(columnStart, columnEnd), (column) => {
-        const cellType = instance.getCellMeta(row, column);
+        const cellType = instance.getCellMetaTransient(row, column);
 
         currentType = (cellType.type as string | null | undefined) ?? null;
 
@@ -4213,7 +4565,57 @@ export default function Core(
   };
 
   /**
+   * Writes a configuration-derived cell meta value declaratively. The value is applied to the cell meta
+   * (so it is retained while the cell is released from the viewport by the meta eviction), but is NOT
+   * recorded as user-defined, so an `updateSettings` cache reset clears it and it is re-applied from the
+   * current configuration - exactly like the `cell` option. Used by built-in plugins that derive cell
+   * meta from their own configuration (for example ColumnSummary) and re-apply it on each update.
+   *
+   * Unlike the public `setCellMeta`, this does NOT fire `beforeSetCellMeta`/`afterSetCellMeta` and is
+   * not vetoable: the write is plugin-internal render state the user never requested, so it must not
+   * surface through public hooks or be blocked by a `beforeSetCellMeta` veto. This matches the direct
+   * meta-object write these plugins used before the viewport meta eviction was introduced.
+   *
+   * Internal API: deliberately NOT declared on the public `HotInstance` type (`core/types.ts`), so it
+   * is not exposed to third-party code or the published `.d.ts`. Built-in consumers reach it through a
+   * local internal type (see `HotInstanceInternal` in the ColumnSummary plugin). Do not add it to
+   * `HotInstance` - that would turn an implementation detail into a supported public API.
+   *
+   * @private
+   * @memberof Core#
+   * @function _setCellMetaDeclarative
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string} key The property name to set.
+   * @param {*} value The value to write.
+   */
+  this._setCellMetaDeclarative = function(row: number, column: number, key: string, value: unknown) {
+    let physicalRow = row;
+    let physicalColumn = column;
+
+    if (row < instance.countRows()) {
+      physicalRow = instance.toPhysicalRow(row);
+    }
+
+    if (column < instance.countCols()) {
+      physicalColumn = instance.toPhysicalColumn(column);
+    }
+
+    metaManager.disableUserDefinedMetaRecording();
+
+    try {
+      metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
+    } finally {
+      metaManager.enableUserDefinedMetaRecording();
+    }
+  };
+
+  /**
    * Sets a property defined by the `key` property to the meta object of a cell corresponding to params `row` and `column`.
+   *
+   * This method updates internal cell metadata only. It does not repaint the grid. To reflect visual changes (such as
+   * `className`, `type`, or `readOnly`), call [render()](@/api/core.md#render) afterward, or wrap multiple calls in
+   * [batch()](@/api/core.md#batch).
    *
    * @memberof Core#
    * @function setCellMeta
@@ -4262,6 +4664,11 @@ export default function Core(
   /**
    * Returns the cell properties object for the given `row` and `column` coordinates.
    *
+   * The returned object reflects the effective cell configuration after
+   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+   * (grid, column, and cell levels). To read global grid settings only, use [[getSettings]].
+   * To read column-level meta, use [[getColumnMeta]].
+   *
    * @memberof Core#
    * @function getCellMeta
    * @param {number} row Visual row index.
@@ -4272,7 +4679,7 @@ export default function Core(
    * @fires Hooks#beforeGetCellMeta
    * @fires Hooks#afterGetCellMeta
    */
-  this.getCellMeta = function<M extends object = Record<string, unknown>>(
+  this.getCellMeta = function<M extends object = CellProperties>(
     row: number, column: number, options = { skipMetaExtension: false }
   ): M {
     let physicalRow = instance.toPhysicalRow(row);
@@ -4294,7 +4701,56 @@ export default function Core(
   };
 
   /**
+   * Returns the cell properties object for the given `row` and `column` coordinates without
+   * retaining it in the cell meta cache.
+   *
+   * Like [[getCellMeta]], the returned object reflects the effective cell configuration after
+   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+   * and dynamic extension (the `cells` function and the `beforeGetCellMeta`/`afterGetCellMeta`
+   * hooks run). Unlike `getCellMeta`, when the cell has no stored meta object the extension runs
+   * on a temporary object that is not saved, so scanning many cells (for example, a whole column
+   * or the entire dataset) does not permanently allocate one meta object per visited cell. Cells
+   * that already carry stored meta (for example, written by [[setCellMeta]] or the `cell` option)
+   * return their stored object, exactly as `getCellMeta` would.
+   *
+   * Use this method for read-only bulk scans. Do not write to the returned object - for cells
+   * without stored meta the write lands on the temporary object and is lost; use `setCellMeta`
+   * to persist values.
+   *
+   * @memberof Core#
+   * @function getCellMetaTransient
+   * @since 18.1.0
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {object} The cell properties object.
+   * @fires Hooks#beforeGetCellMeta
+   * @fires Hooks#afterGetCellMeta
+   */
+  this.getCellMetaTransient = function<M extends object = CellProperties>(row: number, column: number): M {
+    let physicalRow = instance.toPhysicalRow(row);
+    let physicalColumn = instance.toPhysicalColumn(column);
+
+    if (physicalRow === null) {
+      physicalRow = row;
+    }
+
+    if (physicalColumn === null) {
+      physicalColumn = column;
+    }
+
+    return metaManager.getCellMetaTransient(physicalRow, physicalColumn, {
+      visualRow: row,
+      visualColumn: column,
+    }) as M;
+  };
+
+  /**
    * Returns the meta information for the provided column.
+   *
+   * The returned object reflects the column-level configuration after
+   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+   * (grid and column levels). To read global grid settings only, use [[getSettings]].
+   * To read the effective configuration for a specific cell, use [[getCellMeta]].
    *
    * @since 14.5.0
    * @memberof Core#
@@ -4536,12 +4992,27 @@ export default function Core(
         }
         waitingForValidator.addValidatorToQueue();
 
-        instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), (result: boolean) => {
+        // The transient read keeps a bulk validation from permanently materializing one meta
+        // object per validated cell (O(rows x columns) retention). Cells with stored meta -
+        // including every currently rendered cell - still receive their `valid` result on the
+        // stored object, because the transient read returns the stored object for them.
+        const row = i;
+        const column = j;
+        const cellMeta = instance.getCellMetaTransient(row, column);
+
+        instance.validateCell(instance.getDataAtCell(row, column), cellMeta, (result: boolean) => {
           if (typeof result !== 'boolean') {
             throwWithCause('Validation error: result is not boolean');
           }
           if (result === false) {
             waitingForValidator.valid = false;
+
+            // A failed result written on a throwaway object would be lost - persist it on the
+            // stored meta (a DIRECT write, exactly like the edit-path validation flow; NOT
+            // `setCellMeta`, which would mark the property as user-persisted and change
+            // updateSettings/eviction semantics). Only failures materialize, so retention stays
+            // O(invalid cells); the eviction pass already keeps `valid === false` cells.
+            instance.getCellMeta(row, column, { skipMetaExtension: true }).valid = false;
           }
           waitingForValidator.removeValidatorFormQueue();
         }, 'validateCells');
@@ -4624,6 +5095,19 @@ export default function Core(
   };
 
   /**
+   * Caches the index translation that `getColHeader` derives from the `columns` option when that
+   * option is a function: the source column indexes for which `columns(index)` returns a truthy
+   * settings object. Only the membership array is cached — titles are still read live from the
+   * `columns` function. Rebuilt when the function reference or the column count changes; cleared
+   * by `updateSettings`.
+   */
+  let columnsSettingIndexes: {
+    columns: (...args: unknown[]) => Record<string, unknown>;
+    columnsLen: number;
+    indexes: number[];
+  } | null = null;
+
+  /**
    * Gets the values of column headers (if column headers are [enabled](@/api/options.md#colheaders)).
    *
    * To get an array with the values of all
@@ -4680,31 +5164,34 @@ export default function Core(
 
     let result: unknown = tableMeta.colHeaders;
     const columns = tableMeta.columns;
+    const columnsFn = typeof columns === 'function' ? columns : null;
+    const physicalColumn = instance.toPhysicalColumn(columnIndex as number);
+    let columnSettings: Record<string, unknown> | null = null;
 
-    const translateVisualIndexToColumns = function(visualColumnIndex: number) {
-      const arr: number[] = [];
-
+    if (columnsFn !== null) {
       const columnsLen = instance.countCols();
-      let index = 0;
 
-      for (; index < columnsLen; index++) {
-        if (isFunction(columns) && columns(index)) {
-          arr.push(index);
+      if (columnsSettingIndexes === null || columnsSettingIndexes.columns !== columnsFn ||
+          columnsSettingIndexes.columnsLen !== columnsLen) {
+        const indexes: number[] = [];
+
+        for (let index = 0; index < columnsLen; index++) {
+          if (columnsFn(index)) {
+            indexes.push(index);
+          }
         }
+
+        columnsSettingIndexes = { columns: columnsFn, columnsLen, indexes };
       }
 
-      return arr[visualColumnIndex];
-    };
-
-    const physicalColumn = instance.toPhysicalColumn(columnIndex as number);
-    const prop = translateVisualIndexToColumns(physicalColumn!);
+      columnSettings = columnsFn(columnsSettingIndexes.indexes[physicalColumn!]) ?? null;
+    }
 
     if (tableMeta.colHeaders === false) {
       result = null;
 
-    } else if (columns && isFunction(columns) && columns(prop) &&
-               (columns(prop) as Record<string, unknown>).title) {
-      result = (columns(prop) as Record<string, unknown>).title;
+    } else if (columnSettings && columnSettings.title) {
+      result = columnSettings.title;
 
     } else if (columns && !isFunction(columns) && columns[physicalColumn!] &&
                columns[physicalColumn!].title) {
@@ -4923,9 +5410,9 @@ export default function Core(
    * @returns {number} Returns -1 if table is not visible.
    */
   this.countRenderedRows = function(): number {
-    const view = instance.view as TableView;
+    const view = instance.view as TableView | undefined;
 
-    return view._wt.drawn ? view._wt.wtTable.getRenderedRowsCount() as number : -1;
+    return view?._wt.drawn ? view._wt.wtTable.getRenderedRowsCount() as number : -1;
   };
 
   /**
@@ -4937,9 +5424,9 @@ export default function Core(
    * @returns {number} Number of visible rows or -1.
    */
   this.countVisibleRows = function(): number {
-    const view = instance.view as TableView;
+    const view = instance.view as TableView | undefined;
 
-    return view._wt.drawn ? view._wt.wtTable.getVisibleRowsCount() as number : -1;
+    return view?._wt.drawn ? view._wt.wtTable.getVisibleRowsCount() as number : -1;
   };
 
   /**
@@ -4951,9 +5438,9 @@ export default function Core(
    * @returns {number} Returns -1 if table is not visible.
    */
   this.countRenderedCols = function(): number {
-    const view = instance.view as TableView;
+    const view = instance.view as TableView | undefined;
 
-    return view._wt.drawn ? view._wt.wtTable.getRenderedColumnsCount() as number : -1;
+    return view?._wt.drawn ? view._wt.wtTable.getRenderedColumnsCount() as number : -1;
   };
 
   /**
@@ -4965,9 +5452,9 @@ export default function Core(
    * @returns {number} Number of visible columns or -1.
    */
   this.countVisibleCols = function(): number {
-    const view = instance.view as TableView;
+    const view = instance.view as TableView | undefined;
 
-    return view._wt.drawn ? view._wt.wtTable.getVisibleColumnsCount() as number : -1;
+    return view?._wt.drawn ? view._wt.wtTable.getVisibleColumnsCount() as number : -1;
   };
 
   /**
@@ -4979,7 +5466,9 @@ export default function Core(
    * @returns {number} Number of row headers.
    */
   this.countRowHeaders = function(): number {
-    return (instance.view as TableView).getRowHeadersCount();
+    const view = instance.view as TableView | undefined;
+
+    return view ? view.getRowHeadersCount() : 0;
   };
 
   /**
@@ -4991,7 +5480,9 @@ export default function Core(
    * @returns {number} Number of column headers.
    */
   this.countColHeaders = function(): number {
-    return (instance.view as TableView).getColumnHeadersCount();
+    const view = instance.view as TableView | undefined;
+
+    return view ? view.getColumnHeadersCount() : 0;
   };
 
   /**
@@ -5106,8 +5597,8 @@ export default function Core(
    * @param {number|string} column A visual column index (`number`), or a column property's value (`string`).
    * @param {number} [endRow] If selecting a range: the visual row index of the last cell in the range.
    * @param {number|string} [endColumn] If selecting a range: the visual column index (or a column property's value) of the last cell in the range.
-   * @param {boolean} [scrollToCell=true] `true`: scroll the viewport to the newly-selected cells. `false`: keep the previous viewport.
-   * @param {boolean} [changeListener=true] `true`: switch the keyboard focus to Handsontable. `false`: keep the
+   * @param {boolean} [scrollToCell=true] If `true`, scrolls the viewport to the newly-selected cells. If `false`, keeps the previous viewport.
+   * @param {boolean} [changeListener=true] If `true`, switches the keyboard focus to Handsontable. If `false`, keeps the
    * previous keyboard focus. If an element outside Handsontable (such as a custom input) currently owns the browser
    * focus, it remains focused after the call.
    * @returns {boolean} `true`: the selection was successful, `false`: the selection failed.
@@ -5188,8 +5679,8 @@ export default function Core(
    * @param {Array[]|CellRange[]} coords Visual coordinates,
    * passed either as an array of arrays (`[[rowStart, columnStart, rowEnd, columnEnd], ...]`)
    * or as an array of [`CellRange`](@/api/cellRange.md) objects.
-   * @param {boolean} [scrollToCell=true] `true`: scroll the viewport to the newly-selected cells. `false`: keep the previous viewport.
-   * @param {boolean} [changeListener=true] `true`: switch the keyboard focus to Handsontable. `false`: keep the
+   * @param {boolean} [scrollToCell=true] If `true`, scrolls the viewport to the newly-selected cells. If `false`, keeps the previous viewport.
+   * @param {boolean} [changeListener=true] If `true`, switches the keyboard focus to Handsontable. If `false`, keeps the
    * previous keyboard focus. If an element outside Handsontable (such as a custom input) currently owns the browser
    * focus, it remains focused after the call.
    * @returns {boolean} `true`: the selection was successful, `false`: the selection failed.
@@ -5246,8 +5737,8 @@ export default function Core(
    * @memberof Core#
    * @since 0.38.0
    * @function selectColumns
-   * @param {number} startColumn The visual column index from which the selection starts.
-   * @param {number} [endColumn=startColumn] The visual column index to which the selection finishes. If `endColumn`
+   * @param {number | string} startColumn The visual column index or column property from which the selection starts.
+   * @param {number | string} [endColumn=startColumn] The visual column index or column property to which the selection finishes. If `endColumn`
    * is not defined the column defined by `startColumn` will be selected.
    * @param {number | { row: number, col: number } | CellCoords} [focusPosition=0] The argument allows changing the cell/header focus
    * position. The value can take visual row index from -N to N, where negative values point to the headers and positive
@@ -5332,16 +5823,15 @@ export default function Core(
    * @since 0.38.2
    * @memberof Core#
    * @function selectAll
-   * @param {boolean} [includeRowHeaders=false] `true` If the selection should include the row headers,
-   * `false` otherwise.
-   * @param {boolean} [includeColumnHeaders=false] `true` If the selection should include the column
-   * headers, `false` otherwise.
+   * @param {boolean} [includeRowHeaders=false] If `true`, includes the row headers in the selection.
+   * @param {boolean} [includeColumnHeaders=false] If `true`, includes the column headers in the selection.
    *
-   * @param {object} [options] Additional object with options. Since 14.0.0
+   * @param {object} [options] Additional object with options. Since 14.0.0.
    * @param {{row: number, col: number} | boolean} [options.focusPosition] The argument allows changing the cell/header
    * focus position. The value takes an object with a `row` and `col` properties from -N to N, where
    * negative values point to the headers and positive values point to the cell range. If `false`, the focus
-   * position won't be changed. Example:
+   * position won't be changed. When the {@link Options#navigableHeaders} option is disabled (the default), a
+   * `focusPosition` that points to a header is relocated to the nearest cell in the data set. Example:
    * ```js
    * hot.selectAll(0, 0, {
    * focusPosition: { row: 0, col: 1 },
@@ -5350,7 +5840,9 @@ export default function Core(
    * ```
    *
    * @param {boolean} [options.disableHeadersHighlight] If `true`, disables highlighting the headers even when
-   * the logical coordinates points on them.
+   * the logical coordinates points on them. This only suppresses the highlight shown on headers of a fully-selected
+   * row or column. It doesn't affect the focus indicator on the individual cell or header that holds the focus,
+   * which stays visible even when {@link Options#navigableHeaders} moves the focus onto a header.
    */
   this.selectAll = function(
     includeRowHeaders = true, includeColumnHeaders = includeRowHeaders, options: Record<string, unknown>
@@ -5394,6 +5886,9 @@ export default function Core(
   /**
    * Scroll viewport to coordinates specified by the `row` and/or `col` object properties.
    *
+   * The object-based signature was introduced in v14.0.0. The positional arguments form is retained
+   * for backward compatibility.
+   *
    * ```js
    * // scroll the viewport to the visual row index (leave the horizontal scroll untouched)
    * hot.scrollViewportTo({ row: 50 });
@@ -5408,6 +5903,9 @@ export default function Core(
    * }, () => {
    *   // callback function executed after the viewport is scrolled
    * });
+   *
+   * // scroll the viewport using the backward-compatible positional arguments form
+   * hot.scrollViewportTo(50, 50, true, true);
    * ```
    *
    * @memberof Core#
@@ -5552,6 +6050,11 @@ export default function Core(
     instance._clearTimeouts();
     instance._clearMicrotasks();
 
+    // Drop the hidden-init visibility observer before the teardown below nulls the instance. Otherwise a
+    // delivery queued while the table was becoming visible runs its callback on a destroyed instance.
+    visibilityObserver?.disconnect();
+    visibilityObserver = null;
+
     if (instance.view) { // in case HT is destroyed before initialization has finished
       instance.view.destroy();
     }
@@ -5666,6 +6169,11 @@ export default function Core(
   /**
    * Returns the first rendered row in the DOM (usually, it is not visible in the table's viewport).
    *
+   * When the {@link MergeCells} plugin is enabled with its default `virtualized: false` setting, a merged
+   * cell that crosses the viewport edge extends the rendered row range, so this method can return a row
+   * index further from the viewport than usual. For the actual visible viewport, use
+   * {@link Core#getFirstFullyVisibleRow} or {@link Core#getFirstPartiallyVisibleRow}.
+   *
    * @since 14.6.0
    * @memberof Core#
    * @function getFirstRenderedVisibleRow
@@ -5677,6 +6185,11 @@ export default function Core(
 
   /**
    * Returns the last rendered row in the DOM (usually, it is not visible in the table's viewport).
+   *
+   * When the {@link MergeCells} plugin is enabled with its default `virtualized: false` setting, a merged
+   * cell that crosses the viewport edge extends the rendered row range, so this method can return a row
+   * index further from the viewport than usual. For the actual visible viewport, use
+   * {@link Core#getLastFullyVisibleRow} or {@link Core#getLastPartiallyVisibleRow}.
    *
    * @since 14.6.0
    * @memberof Core#
@@ -5690,6 +6203,11 @@ export default function Core(
   /**
    * Returns the first rendered column in the DOM (usually, it is not visible in the table's viewport).
    *
+   * When the {@link MergeCells} plugin is enabled with its default `virtualized: false` setting, a merged
+   * cell that crosses the viewport edge extends the rendered column range, so this method can return a
+   * column index further from the viewport than usual. For the actual visible viewport, use
+   * {@link Core#getFirstFullyVisibleColumn} or {@link Core#getFirstPartiallyVisibleColumn}.
+   *
    * @since 14.6.0
    * @memberof Core#
    * @function getFirstRenderedVisibleColumn
@@ -5701,6 +6219,11 @@ export default function Core(
 
   /**
    * Returns the last rendered column in the DOM (usually, it is not visible in the table's viewport).
+   *
+   * When the {@link MergeCells} plugin is enabled with its default `virtualized: false` setting, a merged
+   * cell that crosses the viewport edge extends the rendered column range, so this method can return a
+   * column index further from the viewport than usual. For the actual visible viewport, use
+   * {@link Core#getLastFullyVisibleColumn} or {@link Core#getLastPartiallyVisibleColumn}.
    *
    * @since 14.6.0
    * @memberof Core#
@@ -6284,7 +6807,7 @@ export default function Core(
     !rootContainerThemeClassName &&
     (isObject(theme) || (!theme && !themeName))
   ) {
-    initializeThemeManager(theme as ThemeBuilder | undefined);
+    initializeThemeManager(theme as ThemeBuilder | undefined, readThemeOverrides(mergedUserSettings));
   }
 
   getPluginsNames().forEach((pluginName) => {

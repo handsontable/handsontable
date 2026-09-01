@@ -15,7 +15,6 @@ vue:
   metaTitle: Modules - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
-menuTag: updated
 ---
 Reduce the size of your JavaScript bundle, by importing only the modules that you need. The base module is mandatory, all other modules are optional.
 
@@ -86,6 +85,12 @@ import Handsontable from 'handsontable/base';
 ```
 
 Now, you're ready to use any [optional modules](#optional-modules) of your choice.
+
+::: tip
+
+The base module doesn't resize columns to fit their content. If your columns look too narrow or your content gets clipped, import the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin module (and, for rows, [`AutoRowSize`](@/api/autoRowSize.md)). This differs from [`StretchColumns`](@/api/stretchColumns.md), which stretches columns to fill the available container width instead of fitting them to content.
+
+:::
 
 ## Optional modules
 
@@ -483,6 +488,8 @@ const hotSettings = ref<GridSettings>({
 ### Plugin modules
 
 Plugin modules contain Handsontable's [plugins](@/api/plugins.md).
+
+Some plugin modules affect how content displays by default. For example, without the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin module, columns don't resize to fit their content -- to fill the available container width instead, use [`StretchColumns`](@/api/stretchColumns.md).
 
 You can import the following plugin modules:
 
@@ -1344,6 +1351,10 @@ You can also use modules with Handsontable's framework wrappers:
 
 :::
 
+## Result
+
+Your bundle now includes only the modules you imported, reducing its size compared to the full Handsontable package.
+
 ## Related articles
 
 **Related guides**
@@ -1371,7 +1382,3 @@ You can also use modules with Handsontable's framework wrappers:
 - [Handsontable 11.0.0: modularization for React, Angular, and Vue](https://handsontable.com/blog/handsontable-11.0.0-modularization-for-react-angular-and-vue)
 
 </div>
-
-## Result
-
-Your bundle now includes only the modules you imported, reducing its size compared to the full Handsontable package.

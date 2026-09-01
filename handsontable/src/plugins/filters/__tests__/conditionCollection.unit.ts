@@ -8,6 +8,7 @@ const hotMock = {
   toVisualColumn: column => column,
   columnIndexMapper: new IndexMapper(),
   getCellMeta: () => ({}),
+  getCellMetaTransient: () => ({}),
   addHook: () => {},
 };
 

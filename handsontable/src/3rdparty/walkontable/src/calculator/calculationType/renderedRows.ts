@@ -17,6 +17,15 @@ export class RenderedRowsCalculationType extends PartiallyVisibleRowsCalculation
    * @type {number}
    */
   rowEndOffset: number = 0;
+  /**
+   * The vertical scroll offset (zero-based, in px) the band was computed at. Read on the next
+   * scroll-driven draw by `applyRenderedRowsBandOverscan` (`viewport/calculatorFactory.ts`): the sign
+   * of the offset delta between two consecutive full draws picks the band side that receives the
+   * directional overscan.
+   *
+   * @type {number}
+   */
+  scrollOffset: number = 0;
 
   /**
    * Finalizes the calculation.
@@ -31,6 +40,8 @@ export class RenderedRowsCalculationType extends PartiallyVisibleRowsCalculation
       totalRows,
       positionCache,
     } = viewportCalculator;
+
+    this.scrollOffset = viewportCalculator.zeroBasedScrollOffset;
 
     if (this.startRow !== null && typeof overrideFn === 'function') {
       const startRow = this.startRow;

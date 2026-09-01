@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: m4n7p2q8
 title: Server-side data with Laravel
 metaTitle: Server-side data with Laravel - JavaScript Data Grid | Handsontable
 description: Connect Handsontable's dataProvider plugin to a Laravel backend -- paginated fetchRows, server-side sorting and filtering, and full CRUD with onRowsCreate, onRowsUpdate, and onRowsRemove.
@@ -13,13 +12,10 @@ tags:
   - recipes
   - dataprovider
 react:
-  id: 1qclffzb
   metaTitle: Server-side data with Laravel - React Data Grid | Handsontable
 angular:
-  id: v9x1z3b5
   metaTitle: Server-side data with Laravel - Angular Data Grid | Handsontable
 vue:
-  id: vzywhp2f
   metaTitle: Server-side data with Laravel - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management

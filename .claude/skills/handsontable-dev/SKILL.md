@@ -25,8 +25,10 @@ Always invoke `handsontable-code-review` (architecture dimension) alongside the 
 | Create / modify a **renderer** | `handsontable-renderer-dev` |
 | Create / modify a **validator** | `handsontable-validator-dev` |
 | Create / modify a **cell type** | `handsontable-celltype-dev` |
-| Write / modify **E2E tests** (`*.spec.js`) | `handsontable-e2e-testing` |
+| Write a **new E2E test** | `handsontable-playwright-e2e` (Playwright, `tests/e2e/`) |
+| Maintain a **legacy E2E test** (`*.spec.js`, frozen) | `handsontable-e2e-testing` |
 | Write / modify **unit tests** (`*.unit.js`) | `handsontable-unit-testing` |
+| Make a test actually prove behavior | `test-writing-discipline` |
 | Build a **demo / test page** | `handsontable-demo-page` |
 | Work on **CSS / themes** | `handsontable-css-dev` |
 | Walkontable rendering engine | `walkontable-dev` / `walkontable-testing` |
@@ -74,6 +76,8 @@ Test files stay as `.js`: `*.spec.js` (E2E) and `*.unit.js` (unit).
 These are the highest-impact mistakes in this codebase. Most lint passes won't catch them; reviewers will.
 
 ### 1. Don't cast — generalize the signature
+
+**Rule for new code: add zero `as` casts.** When you write or modify code here, the target is no new casts at all. Treat the urge to write `as` as a signal that a type is wrong somewhere upstream — so fix the type instead of papering over it: make the function or entity generic, declare the missing field on its interface, or narrow with a type guard. A cast trades a real compile-time guarantee for a silent assumption the next refactor can break without warning; that concrete cost — not style preference — is why casting is bad practice in this codebase. If you genuinely cannot type something without a cast, that's a signal to refactor the surrounding module so the type flows correctly, not to reach for `as`. (The one narrow exception, a true external I/O or normalization boundary, is covered below and must be commented with *why*.)
 
 The wrong reflex is to silence a type error with `as SomeType` (or `<SomeType>value`). Casts are an assertion that you know better than the compiler — and the next refactor breaks silently.
 
@@ -367,7 +371,7 @@ The CI `verify-emitted-types` job reports the exact leaked identifier with `TS23
 - [ ] No `as` / `any` casts introduced — used generics or `unknown` + guards instead
 - [ ] No `.d.ts` files hand-edited
 - [ ] Unit tests written (`*.unit.js`) — pure logic, no mocks
-- [ ] E2E tests written (`*.spec.js`) — DOM / rendering behavior
+- [ ] E2E tests written — Playwright in `tests/e2e/` (new); the legacy `*.spec.js` suite is frozen
 - [ ] `npm run build` (or `build:types` + `downlevel:types`) run if public types changed
 - [ ] Wired into all relevant index / factory files
 - [ ] Added to `metaSchema.ts` if a new option was introduced

@@ -105,7 +105,7 @@ Implementing Handsontable requires a certain level of front-end development skil
 
 <div class="boxes-list">
 
-- [Changelog](@/guides/upgrade-and-migration/changelog-17/changelog-17.md)
+- [Changelog](@/guides/upgrade-and-migration/changelog-{{$latestChangelogVersion}}/changelog-{{$latestChangelogVersion}}.md)
 - [Blog](https://handsontable.com/blog)
 - [X](https://x.com/handsontable)
 - [LinkedIn](https://linkedin.com/company/handsontable)

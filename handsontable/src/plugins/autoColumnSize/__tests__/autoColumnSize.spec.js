@@ -1334,4 +1334,166 @@ describe('AutoColumnSize', () => {
       expect(toVisualColumnSpy).not.toHaveBeenCalled();
     });
   });
+
+  describe('width refresh probe', () => {
+    /**
+     * Generates a single-column dataset with short values and one long value at the given row.
+     *
+     * @param {number} rows Number of rows to generate.
+     * @param {number} longValueRow The row that receives the long (width-determining) value.
+     * @returns {Array} The generated dataset.
+     */
+    function dataWithOneLongValue(rows, longValueRow) {
+      const data = [];
+
+      for (let i = 0; i < rows; i++) {
+        data.push([i === longValueRow ? 'the longest value of them all' : 'x']);
+      }
+
+      return data;
+    }
+
+    it('should not rescan the whole column when the edited cell does not determine the column width', async() => {
+      const hotInstance = handsontable({
+        data: dataWithOneLongValue(200, 50),
+        autoColumnSize: true,
+      });
+
+      // Settle the table: the first full render after the initial calculation re-walks the
+      // visible columns once (their samples are refreshed after all plugins applied their
+      // cell meta) — steady-state edits are measured below.
+      await render();
+      await waitForNextAnimationFrames(2);
+
+      const widthBefore = colWidth(spec().$container, 0);
+      const getDataAtCellSpy = spyOn(hotInstance, 'getDataAtCell').and.callThrough();
+
+      await setDataAtCell(0, 0, 'y');
+      await waitForNextAnimationFrames(2);
+
+      expect(colWidth(spec().$container, 0)).toBe(widthBefore);
+      // The probe measures only the changed cells (plus their previous values) — a full
+      // rescan would read every one of the 200 rows.
+      expect(getDataAtCellSpy.calls.count()).toBeLessThan(50);
+    });
+
+    it('should grow the column width in place when the edited value becomes the widest', async() => {
+      const hotInstance = handsontable({
+        data: dataWithOneLongValue(200, 50),
+        autoColumnSize: true,
+      });
+
+      await render();
+      await waitForNextAnimationFrames(2);
+
+      const widthBefore = colWidth(spec().$container, 0);
+      const getDataAtCellSpy = spyOn(hotInstance, 'getDataAtCell').and.callThrough();
+
+      await setDataAtCell(0, 0, 'an even longer value than the longest value of them all');
+      await waitForNextAnimationFrames(2);
+
+      expect(colWidth(spec().$container, 0)).toBeGreaterThan(widthBefore);
+      expect(getDataAtCellSpy.calls.count()).toBeLessThan(50);
+    });
+
+    it('should shrink the column width when the widest value is replaced by a shorter one', async() => {
+      handsontable({
+        data: dataWithOneLongValue(200, 50),
+        autoColumnSize: true,
+      });
+
+      const widthBefore = colWidth(spec().$container, 0);
+
+      await setDataAtCell(50, 0, 'x');
+      await waitForNextAnimationFrames(2);
+
+      expect(colWidth(spec().$container, 0)).toBeLessThan(widthBefore);
+      expect(colWidth(spec().$container, 0)).toBe(getDefaultColumnWidth());
+    });
+
+    it('should keep the grown width across full renders (e.g. when CSS may have changed)', async() => {
+      handsontable({
+        data: dataWithOneLongValue(200, 50),
+        autoColumnSize: true,
+      });
+
+      await render();
+      await waitForNextAnimationFrames(2);
+
+      await setDataAtCell(0, 0, 'an even longer value than the longest value of them all');
+      await waitForNextAnimationFrames(2);
+
+      const grownWidth = colWidth(spec().$container, 0);
+
+      await render();
+      await waitForNextAnimationFrames(2);
+
+      expect(colWidth(spec().$container, 0)).toBe(grownWidth);
+    });
+
+    it('should drop pending width refreshes when the dataset is replaced by loadData', async() => {
+      const hotInstance = handsontable({
+        data: dataWithOneLongValue(200, 50),
+        autoColumnSize: true,
+      });
+
+      await render();
+      await waitForNextAnimationFrames(2);
+
+      // A suspended render leaves the change queued (no `beforeRender` consumes it) while
+      // `loadData` replaces the dataset — the queued row/previous-value pair must not feed
+      // the width-determiner probe against the new data.
+      hotInstance.suspendRender();
+      await setDataAtCell(0, 0, 'an even longer value than the longest value of them all');
+      await loadData(createSpreadsheetData(5, 1));
+      hotInstance.resumeRender();
+
+      await waitForNextAnimationFrames(2);
+
+      expect(colWidth(spec().$container, 0)).toBe(getDefaultColumnWidth());
+    });
+
+    it('should recalculate the column width when a cell meta change affects the rendered value', async() => {
+      handsontable({
+        data: dataWithOneLongValue(200, 50),
+        autoColumnSize: true,
+      });
+
+      await render();
+      await waitForNextAnimationFrames(2);
+
+      const widthBefore = colWidth(spec().$container, 0);
+
+      // The formatter shrinks the widest cell's rendered value without a data change.
+      await setCellMeta(50, 0, 'valueFormatter', () => 'x');
+      await render();
+      await waitForNextAnimationFrames(2);
+
+      expect(colWidth(spec().$container, 0)).toBeLessThan(widthBefore);
+    });
+
+    it('should recalculate the column width when hiding the row with the widest value', async() => {
+      handsontable({
+        data: dataWithOneLongValue(200, 50),
+        autoColumnSize: true,
+        hiddenRows: {
+          rows: [],
+        },
+      });
+
+      const widthBefore = colWidth(spec().$container, 0);
+
+      getPlugin('hiddenRows').hideRow(50);
+      await render();
+      await waitForNextAnimationFrames(2);
+
+      expect(colWidth(spec().$container, 0)).toBeLessThan(widthBefore);
+
+      getPlugin('hiddenRows').showRow(50);
+      await render();
+      await waitForNextAnimationFrames(2);
+
+      expect(colWidth(spec().$container, 0)).toBe(widthBefore);
+    });
+  });
 });
