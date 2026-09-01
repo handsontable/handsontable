@@ -36,8 +36,14 @@ const EXPECTED_GATES = 6;
 
 // `stable-merge` resolves a pnpm-lock.yaml merge conflict by re-running the resolver,
 // which legitimately rewrites the file, so those two calls are deliberately ungated.
+// `stable-publish` adds a third kind: the docs branch gains a real devDependency
+// (`@handsontable/angular-wrapper`), so its lockfile MUST change or every docs deploy
+// dies on ERR_PNPM_OUTDATED_LOCKFILE -- `docs-production.yml` installs with
+// `--frozen-lockfile`. That call cannot use the float gate, which demands zero change;
+// it asserts the diff is purely additive instead. It is also confined to a
+// `prod-docs/*` branch that never reaches a registry.
 // Pinning the total means a NEW `--lockfile-only` site cannot appear unnoticed.
-const EXPECTED_LOCKFILE_ONLY_CALLS = 5;
+const EXPECTED_LOCKFILE_ONLY_CALLS = 6;
 
 /**
  * Every YAML file that GitHub Actions executes: workflows and the composite actions
@@ -199,8 +205,10 @@ test('no new --lockfile-only site appears ungated', () => {
     EXPECTED_LOCKFILE_ONLY_CALLS,
     `publish.yml: expected ${EXPECTED_LOCKFILE_ONLY_CALLS} \`pnpm install --lockfile-only\` `
     + `calls, found ${found}. Three follow a version bump and are gated; two resolve a `
-    + 'pnpm-lock.yaml merge conflict in `stable-merge` and legitimately rewrite the file. '
-    + 'A new one needs a deliberate decision about which kind it is (DEV-2667).'
+    + 'pnpm-lock.yaml merge conflict in `stable-merge` and legitimately rewrite the file; '
+    + 'one adds the docs devDependency on the `prod-docs/*` branch and is checked for an '
+    + 'additive-only diff. A new one needs a deliberate decision about which kind it is '
+    + '(DEV-2667).'
   );
 });
 
