@@ -1,3 +1,9 @@
+// Every other test of the `{before,after}RefreshDimensions` hooks was migrated to
+// `tests/e2e/refresh-dimensions.spec.ts` (DEV-2744) - the fixed `sleep(50)` waits here were on
+// DEV-2668's flake ledger. The dvh loop-guard spec below is the deliberate leftover: it cannot be
+// made honestly green until DEV-2740 fixes the guard in `resizeMonitor.ts` (the `=== 300`
+// consecutive count with a 100 ms wall-clock reset never trips on a loaded runner), and migrating
+// it before that fix would only move the red. Migrate it together with the DEV-2740 fix.
 describe('Hook', () => {
   const id = 'testContainer';
 
@@ -13,105 +19,6 @@ describe('Hook', () => {
   });
 
   describe('afterRefreshDimensions', () => {
-    it('should be fired after root element size change', async() => {
-      const afterRefreshDimensions = jasmine.createSpy('afterRefreshDimensions');
-      const hot = handsontable({
-        width: 120,
-        height: 100,
-        afterRefreshDimensions,
-      });
-
-      await sleep(50);
-      hot.rootElement.style.width = '200px';
-
-      expect(afterRefreshDimensions.calls.count()).toBe(1);
-    });
-
-    it('should be fired with proper arguments (when root element size is changed)', async() => {
-      const afterRefreshDimensions = jasmine.createSpy('afterRefreshDimensions');
-      const hot = handsontable({
-        width: 120,
-        height: 100,
-        afterRefreshDimensions,
-      });
-
-      hot.rootElement.style.width = '200px';
-      await sleep(50);
-
-      expect(afterRefreshDimensions).toHaveBeenCalledWith(
-        { width: 120, height: 100 },
-        { width: 200, height: 100 },
-        true,
-      );
-    });
-
-    it('should be fired with proper arguments (when root element size does not changed)', async() => {
-      const afterRefreshDimensions = jasmine.createSpy('afterRefreshDimensions');
-      const hot = handsontable({
-        width: 120,
-        height: 100,
-        afterRefreshDimensions,
-      });
-
-      hot.rootElement.style.width = '120px';
-      await sleep(50);
-
-      expect(afterRefreshDimensions).toHaveBeenCalledWith(
-        { width: 120, height: 100 },
-        { width: 120, height: 100 },
-        false,
-      );
-    });
-
-    it('should not be fired when the table\'s root element is hidden', async() => {
-      const afterRefreshDimensions = jasmine.createSpy('afterRefreshDimensions');
-      const hot = handsontable({
-        width: 120,
-        height: 100,
-        afterRefreshDimensions,
-      });
-
-      hot.rootElement.style.display = 'none';
-      await sleep(50);
-
-      expect(afterRefreshDimensions).not.toHaveBeenCalled();
-    });
-
-    it('should not be fired when the document body element is hidden', async() => {
-      const afterRefreshDimensions = jasmine.createSpy('afterRefreshDimensions');
-
-      handsontable({
-        width: 120,
-        height: 100,
-        afterRefreshDimensions,
-      });
-
-      document.body.style.display = 'none';
-      await sleep(50);
-
-      expect(afterRefreshDimensions).not.toHaveBeenCalled();
-
-      document.body.style.display = '';
-    });
-
-    it('should be synced with `requestAnimationFrame` call', async() => {
-      const afterRefreshDimensions = jasmine.createSpy('afterRefreshDimensions');
-
-      spyOn(window, 'requestAnimationFrame');
-
-      const hot = handsontable({
-        width: 120,
-        height: 100,
-        afterRefreshDimensions,
-      });
-
-      await sleep(50);
-      hot.rootElement.style.width = '200px';
-
-      expect(window.requestAnimationFrame).toHaveBeenCalledTimes(1);
-      expect(afterRefreshDimensions.calls.count()).toBe(0);
-    });
-
     it('should not be stuck in an infinite loop when the parent container is sized with dynamic units (`dvh`) and' +
       ' additional elements were added to the parent container - it should break the cycle and display an' +
       ' appropriate warning message', async() => {
@@ -155,87 +62,6 @@ describe('Hook', () => {
 
       destroy();
       $parentContainer.remove();
-    });
-
-    describe('running in iframe', () => {
-      beforeEach(async function() {
-        this.$iframe = $('<iframe width="500px" height="60px"/>').appendTo(this.$container);
-
-        const doc = this.$iframe[0].contentDocument;
-
-        doc.open('text/html', 'replace');
-        doc.write(`
-          <!doctype html>
-          <head>
-            ${getE2eNormalizeStylesheetLinkTagHtml()}
-            ${getE2eThemeStylesheetLinkTagsHtml()}
-          </head>`);
-        doc.close();
-
-        this.$iframeContainer = $('<div/>').appendTo(doc.body);
-
-        await sleep(50); // wait for iframe to load to prevent double resize events
-      });
-
-      afterEach(function() {
-        this.$iframeContainer.handsontable('destroy');
-        this.$iframe.remove();
-      });
-
-      it('should be fired after window resize', async() => {
-        const afterRefreshDimensions = jasmine.createSpy('afterRefreshDimensions');
-
-        spec().$iframeContainer.handsontable({
-          afterRefreshDimensions,
-        });
-
-        spec().$iframe[0].width = '50px';
-
-        await sleep(50);
-
-        expect(afterRefreshDimensions.calls.count()).toBe(1);
-      });
-
-      it('should be fired with proper arguments (when window size is changed)', async() => {
-        const afterRefreshDimensions = jasmine.createSpy('afterRefreshDimensions');
-
-        spec().$iframeContainer.handsontable({
-          afterRefreshDimensions,
-        });
-
-        spec().$iframe[0].width = '50px';
-
-        await sleep(50);
-
-        const layout = getThemeLayout();
-        const expectedHeight = layout.overlayHeight({ rows: 5 });
-
-        expect(afterRefreshDimensions).toHaveBeenCalledWith(
-          { width: 500, height: 0 },
-          { width: 35, height: expectedHeight },
-          true,
-        );
-      });
-
-      it('should be fired with proper arguments (when window size does not changed)', async() => {
-        const afterRefreshDimensions = jasmine.createSpy('afterRefreshDimensions');
-
-        spec().$iframeContainer.handsontable({
-          afterRefreshDimensions,
-          width: 300,
-          height: 300,
-        });
-
-        spec().$iframe[0].width = '50px';
-
-        await sleep(50);
-
-        expect(afterRefreshDimensions).toHaveBeenCalledWith(
-          { width: 300, height: 300 },
-          { width: 300, height: 300 },
-          false,
-        );
-      });
     });
   });
 });
