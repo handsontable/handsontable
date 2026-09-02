@@ -80,7 +80,10 @@ describe('Core.propToCol', () => {
     expect(propToCol('name')).toBe(null);
   });
 
-  it('should hand back a bare physical index whose column is trimmed (array data)', async() => {
+  // Not a specification of correct behavior — this pins a defect so the JSDoc and the code cannot
+  // drift apart. See the comment on the assertion below.
+  it('pins known defect DEV-2726: a bare physical index whose column is trimmed comes back ' +
+    'unchanged instead of `null` (array data)', async() => {
     const hot = handsontable({
       data: [
         ['a0', 'a1', 'a2', 'a3'],

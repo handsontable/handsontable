@@ -49,7 +49,9 @@ describe('Core.colToProp', () => {
     columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
     expect(colToProp(0)).toBe(4);
-    expect(colToProp(10)).toBe(10); // I'm not sure if this should return result like that by design.
+    // The pass-through below is by design (introduced with the index mappers in #5945) and is what
+    // the API reference documents.
+    expect(colToProp(10)).toBe(10);
   });
 
   it('should return proper value after calling the function when columns was reorganized (data is array of objects)', async() => {

@@ -4104,7 +4104,8 @@ export default function Core(
    *
    * @memberof Core#
    * @function colToProp
-   * @param {number} column Visual column index.
+   * @param {number} column Visual column index. An argument that is not an integer comes back
+   *   unchanged, so the declared type is narrower than what the method accepts at runtime.
    * @returns {string|number|null} Column property, physical column index, `null`, or the passed
    *   argument. When the column's `data` option is an accessor function, that function is returned
    *   at runtime – check `typeof` before treating the result as a property name.
@@ -4121,16 +4122,18 @@ export default function Core(
    *
    * The result can also be `null`, and for a **trimmed** column which of the two you get depends on
    * how the property is declared. A property held in the column cache – object data, or one named
-   * by a `columns[].data` entry – resolves through {@link Core#toVisualColumn} and comes back
+   * by a `columns[].data` entry – resolves through [[Core#toVisualColumn]] and comes back
    * `null`. A bare physical index on array data comes back unchanged instead, which does not
    * identify a usable visual column.
    *
    * So validate the result before using it as a column index: `Number.isInteger()` alone lets the
-   * second case through, and a {@link Core#countCols} comparison alone lets `null` through, because
+   * second case through, and a [[Core#countCols]] comparison alone lets `null` through, because
    * `null` compares as `0`.
    *
-   * The TypeScript declaration narrows the result to `number`, so neither a returned property name
-   * nor `null` is visible to the type checker.
+   * The TypeScript declaration is narrower than what runs at both ends. It narrows the result to
+   * `number`, so neither a returned property name nor `null` is visible to the type checker, and it
+   * narrows the parameter to `string | number`, so passing a `columns[].data` accessor function
+   * works at runtime but does not type-check.
    *
    * @memberof Core#
    * @function propToCol
