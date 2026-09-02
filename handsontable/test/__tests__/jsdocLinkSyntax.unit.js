@@ -12,31 +12,40 @@ import { join, relative, resolve, sep } from 'path';
  * `docs/scripts/jsdoc-convert/renderer/postProcessors/jsdocLinksFixer.mjs` rewrites into an
  * `@/api/<page>.md#<anchor>` link. Write it in the qualified form, naming the class that owns
  * the reference page and the member (`Core#getCellMeta`), and use inline code for anything the
- * API reference does not document - an unresolvable link tag silently points at a page that
+ * API reference does not document – an unresolvable link tag silently points at a page that
  * does not exist. A guide page links the same target the long way round, as
  * `[label](@/api/<page>.md#<anchor>)`.
  *
  * Only identifier-shaped targets are reported, so `[[1, 2], [3, 4]]` and the other array
  * literals the examples are full of stay legal. In source, only comment lines are scanned;
  * an `@example` block counts as a comment, so an example that writes `[[value]]` trips this
- * test - name the array in a variable instead.
+ * test – name the array in a variable instead.
  */
 
 const REPO_ROOT = resolve(__dirname, '../..', '..');
 const CORE_SRC = 'handsontable/src';
 const DOCS_CONTENT = 'docs/content';
 
-// Directories that hold generated or vendored output rather than authored files.
+// Vendored output rather than authored source.
 const SKIPPED_DIRS = [
   join('handsontable', 'src', '3rdparty', 'walkontable', 'dist'),
-  // Regenerated from the core source on every docs build, and gitignored.
-  join('docs', 'content', 'api'),
 ];
 
+// `docs/content/api` is regenerated from the core source on every docs build, so scanning it
+// would only re-report what the core-source case already covers. Its `.gitignore` un-ignores
+// three files, though (`/content/api/*` followed by `!introduction.md`, `!plugins.md`,
+// `!sidebar.js`): those are hand-authored and tracked, they are the likeliest place for a
+// hand-written API cross-reference, and they must stay in the scan.
+const GENERATED_API_DIR = join('docs', 'content', 'api');
+const AUTHORED_API_FILES = ['introduction.md', 'plugins.md', 'sidebar.js'];
+
 const TYPEDOC_LINK = /\[\[[A-Za-z_#][A-Za-z0-9_#+.]*\]\]/;
-const COMMENT_LINE = /^\s*\*/;
+// A JSDoc block: its opening line and its continuation lines. `//` is deliberately absent –
+// jsdoc parses `/**` blocks only, so a `[[Target]]` in a line comment cannot reach a page,
+// and including it would flag commented-out code such as `// data: [[ISO_DATE]]`.
+const COMMENT_LINE = /^\s*(?:\/\*|\*)/;
 // VuePress table-of-contents directive, carried by every generated and legacy page.
-const TOC_DIRECTIVE = /^\s*\[\[\s*toc\s*\]\]\s*$/;
+const TOC_DIRECTIVE = /^\s*\[\[\s*toc\s*\]\]\s*$/i;
 
 /**
  * Lists the files under `dir` whose name ends with one of `extensions`, recursively.
@@ -60,13 +69,23 @@ function walk(dir, extensions) {
       const path = join(current, entry.name);
       const relativePath = relative(REPO_ROOT, path);
 
-      if (SKIPPED_DIRS.some(skipped => relativePath === skipped)) {
+      if (SKIPPED_DIRS.includes(relativePath)) {
         continue;
       }
 
       if (entry.isDirectory()) {
         queue.push(path);
-      } else if (extensions.some(extension => entry.name.endsWith(extension))) {
+        continue;
+      }
+
+      const isGeneratedApiPage = relative(REPO_ROOT, current) === GENERATED_API_DIR
+        && !AUTHORED_API_FILES.includes(entry.name);
+
+      if (isGeneratedApiPage) {
+        continue;
+      }
+
+      if (extensions.some(extension => entry.name.endsWith(extension))) {
         found.push(relativePath.split(sep).join('/'));
       }
     }
