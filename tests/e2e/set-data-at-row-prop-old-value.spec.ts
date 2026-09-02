@@ -18,8 +18,8 @@ import { SetDataAtRowPropPage } from '../fixtures/pages/SetDataAtRowPropPage';
 test.describe('setDataAtRowProp old value', () => {
   let grid: SetDataAtRowPropPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new SetDataAtRowPropPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new SetDataAtRowPropPage(page, theme, bundle);
     await grid.goto();
   });
 
@@ -32,6 +32,7 @@ test.describe('setDataAtRowProp old value', () => {
     });
 
     expect(result.oldValue).toBe('r1c5');
+    expect(result.reportedProp).toBe(5);
     expect((result.after as unknown[])[5]).toBe('NEW');
   });
 
@@ -102,8 +103,20 @@ test.describe('setDataAtRowProp old value', () => {
     });
 
     expect(result.oldValue).toBe('r1c3');
+    expect(result.reportedProp).toBe('p3');
     expect((result.after as Record<string, unknown>).p3).toBe('NEW');
     expect(result.undone).toEqual(result.before);
+  });
+
+  test('reads the numeric key a numeric prop writes to when the data is object-shaped', async () => {
+    // A numeric prop has no meaning for object data: the write lands on the literal `0` key, so the
+    // read has to land there too. It used to go through `colToProp(0)`, report `p0` as the old value
+    // and let undo overwrite `p0` with it, even though `p0` was never touched.
+    const result = await grid.setDataAtRowProp({ dataKind: 'object', prop: 0 });
+
+    expect(result.oldValue).toBeUndefined();
+    expect((result.after as Record<string, unknown>).p0).toBe('r1c0');
+    expect((result.after as Record<string, unknown>)[0]).toBe('NEW');
   });
 
   test('keeps string props working when columns[].data selects a subset', async () => {
@@ -121,8 +134,8 @@ test.describe('setDataAtRowProp old value', () => {
 test.describe('setSourceDataAtCell old value', () => {
   let grid: SetDataAtRowPropPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new SetDataAtRowPropPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new SetDataAtRowPropPage(page, theme, bundle);
     await grid.goto();
   });
 
@@ -134,6 +147,18 @@ test.describe('setSourceDataAtCell old value', () => {
 
     expect(result.oldValue).toBe('r1c5');
     expect((result.after as unknown[])[5]).toBe('NEW');
+  });
+
+  test('reports the previous value of the addressed index when columns are moved', async () => {
+    // A different route into the same bug: the old read resolved prop 3 through
+    // `toPhysicalColumn()` rather than `colToPropCache`, and landed on source 1.
+    const result = await grid.setSourceDataAtCell({
+      manualColumnMove: [4, 3, 2, 1, 0],
+      prop: 3,
+    });
+
+    expect(result.oldValue).toBe('r1c3');
+    expect((result.after as unknown[])[3]).toBe('NEW');
   });
 
   test('reports the previous value of the addressed index when nothing remaps the columns', async () => {
