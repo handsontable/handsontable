@@ -66,33 +66,45 @@ describe('DataSource', () => {
     });
   });
 
-  describe('getAtSourceProp', () => {
-    it('should read by a string prop', () => {
-      const dataSource = new DataSource(createHotMock(), [{ artist: 'A1' }, { artist: 'A2' }]);
+  describe('getAtCellByProp()', () => {
+    it('should read an array row by its source index, without translating it', () => {
+      const dataSource = new DataSource(createHotMock(), [['a0', 'a1', 'a2'], ['b0', 'b1', 'b2']]);
 
-      expect(dataSource.getAtSourceProp(1, 'artist')).toBe('A2');
+      expect(dataSource.getAtCellByProp(1, 0)).toBe('b0');
+      expect(dataSource.getAtCellByProp(1, 2)).toBe('b2');
     });
 
-    it('should read by a source column index', () => {
-      const dataSource = new DataSource(createHotMock(), [['a', 'b'], ['c', 'd']]);
+    it('should read an object row by its key', () => {
+      const dataSource = new DataSource(createHotMock(), [{ name: 'Timothy', surname: 'Dalton' }]);
 
-      expect(dataSource.getAtSourceProp(1, 1)).toBe('d');
+      expect(dataSource.getAtCellByProp(0, 'surname')).toBe('Dalton');
+    });
+
+    it('should return `undefined` for a numeric prop against object data', () => {
+      // A numeric prop names no key on an object row, and `setAtCell()` writes to the literal `0`
+      // key, so reading it back is what keeps the reported old value in step with the write.
+      const dataSource = new DataSource(createHotMock(), [{ name: 'Timothy', surname: 'Dalton' }]);
+
+      expect(dataSource.getAtCellByProp(0, 0)).toBeUndefined();
     });
 
     it('should read through a column accessor function', () => {
-      const accessor = (row, value) => {
-        if (value === undefined) {
-          return row.v;
-        }
-
-        row.v = value;
-      };
+      const accessor = row => row.v;
       const dataSource = new DataSource(createHotMock(), [{ v: 'A1' }, { v: 'A2' }]);
 
-      expect(dataSource.getAtSourceProp(0, accessor)).toBe('A1');
+      expect(dataSource.getAtCellByProp(1, accessor)).toBe('A2');
     });
 
-    it('should resolve the row through `modifyRowData` when no row is passed', () => {
+    it('should honor `dataDotNotation` for a nested key', () => {
+      const dataSource = new DataSource(
+        createHotMock({ dataDotNotation: true }),
+        [{ address: { city: 'Gdansk' } }]
+      );
+
+      expect(dataSource.getAtCellByProp(0, 'address.city')).toBe('Gdansk');
+    });
+
+    it('should read the row the `modifyRowData` hook points at', () => {
       const data = [
         { artist: 'Parent', __children: [{ artist: 'Child' }] },
         { artist: 'Second parent' },
@@ -101,25 +113,17 @@ describe('DataSource', () => {
         modifyRowData: rowIndex => (rowIndex === 1 ? data[0].__children[0] : data[rowIndex]),
       }), data);
 
-      expect(dataSource.getAtSourceProp(1, 'artist')).toBe('Child');
+      expect(dataSource.getAtCellByProp(1, 'artist')).toBe('Child');
     });
 
-    it('should use the passed row and not call `modifyRowData` again', () => {
+    it('should use a passed row representation instead of resolving one again', () => {
+      // What lets a caller read many columns of one row without re-running the hook per column.
       const data = [['a', 'b']];
       const dataSource = new DataSource(createHotMock({ modifyRowData: row => data[row] }), data);
-      const spy = jest.spyOn(dataSource, 'modifyRowData');
+      const modifyRowData = jest.spyOn(dataSource, 'modifyRowData');
 
-      expect(dataSource.getAtSourceProp(0, 1, ['x', 'y'])).toBe('y');
-      expect(spy).not.toHaveBeenCalled();
-    });
-
-    it('should read the same value as `getAtCell` when no remapping is in play', () => {
-      const data = [['a', 'b']];
-      const dataSource = new DataSource(createHotMock(), data);
-
-      dataSource.colToProp = column => column;
-
-      expect(dataSource.getAtSourceProp(0, 1)).toBe(dataSource.getAtCell(0, 1));
+      expect(dataSource.getAtCellByProp(0, 1, ['x', 'y'])).toBe('y');
+      expect(modifyRowData).not.toHaveBeenCalled();
     });
   });
 

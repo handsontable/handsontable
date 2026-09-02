@@ -251,4 +251,35 @@ describe('computeMedianSnapshot', () => {
 
     assert.equal('hookTiming' in noneWithHook.scenarios.sorting, false);
   });
+
+  test('records how far apart the windowed runs sit, as a CV of their active time', () => {
+    // The per-iteration values are stripped before a golden is saved, so this is the only spread
+    // the baseline side can ever report -- and it is the one that matters, because it measures the
+    // run-to-run variance a PR's single run is being compared against.
+    const result = computeMedianSnapshot([
+      snapshot('2026-08-28T00:00:00Z', {
+        sorting: { categories: { scripting: 90, rendering: 10, painting: 0 } },
+      }),
+      snapshot('2026-08-29T00:00:00Z', {
+        sorting: { categories: { scripting: 100, rendering: 0, painting: 0 } },
+      }),
+      snapshot('2026-08-30T00:00:00Z', {
+        sorting: { categories: { scripting: 110, rendering: 0, painting: 0 } },
+      }),
+    ]);
+
+    // Active totals 100 / 100 / 110. Mean 103.33, sample stddev sqrt(66.67/2) = 5.7735,
+    // so the CV is 5.59%.
+    assert.ok(result.scenarios.sorting.spread > 0);
+    assert.equal(result.scenarios.sorting.spread.toFixed(2), '5.59');
+  });
+
+  test('reports a zero spread when every windowed run measured the same active time', () => {
+    const result = computeMedianSnapshot([
+      snapshot('2026-08-28T00:00:00Z'),
+      snapshot('2026-08-29T00:00:00Z'),
+    ]);
+
+    assert.equal(result.scenarios.sorting.spread, 0);
+  });
 });

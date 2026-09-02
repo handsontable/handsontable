@@ -235,7 +235,7 @@ function validatePerCell(
 
       // Read by the column's source address; `getAtCell()` would resolve it as a *visual* index
       // and reach another column whenever the two differ.
-      const value = dataSource.getAtSourceProp(row, sourceColumn, dataRow);
+      const value = dataSource.getAtCellByProp(row, sourceColumn, dataRow);
 
       validateSourceCell(
         cellMeta, value, row, physicalColumn, sourceColumn, dataSource, invalidByMessageType, source
@@ -281,7 +281,7 @@ function validateBatched(
     for (let i = 0; i < columns.length; i += 1) {
       const { physicalColumn, sourceColumn, cellMeta } = columns[i];
       // Read by the column's source address, for the same reason as in `validatePerCell()`.
-      const value = dataSource.getAtSourceProp(row, sourceColumn, dataRow);
+      const value = dataSource.getAtCellByProp(row, sourceColumn, dataRow);
 
       validateSourceCell(
         cellMeta, value, row, physicalColumn, sourceColumn, dataSource, invalidByMessageType, source
