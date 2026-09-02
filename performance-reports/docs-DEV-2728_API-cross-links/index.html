@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Performance Report - PR #13339</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #1f2328;
+  background: #ffffff;
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+a { color: #0969da; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Header */
+.report-header {
+  border-bottom: 1px solid #d0d7de;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+.report-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.report-header .meta {
+  color: #656d76;
+  font-size: 13px;
+}
+
+/* Dashboard counters */
+.dashboard {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.counter-card {
+  flex: 1;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  padding: 12px 16px;
+  text-align: center;
+}
+.counter-card .count {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.counter-card .label {
+  font-size: 12px;
+  color: #656d76;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.counter-card.regression .count { color: #cf222e; }
+.counter-card.improvement .count { color: #1a7f37; }
+.counter-card.neutral .count { color: #656d76; }
+.counter-card.unknown .count { color: #9a6700; }
+
+/* Filter + sort bar */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.filter-group, .sort-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.controls label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #656d76;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  background: #f6f8fa;
+  color: #1f2328;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.btn:hover { background: #eaeef2; }
+.btn.active {
+  background: #0969da;
+  color: #ffffff;
+  border-color: #0969da;
+}
+
+/* Scenario cards */
+.scenario-card {
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+.scenario-card.regression { border-left: 3px solid #cf222e; }
+.scenario-card.improvement { border-left: 3px solid #1a7f37; }
+.scenario-card.neutral-up { border-left: 3px solid #bf8700; }
+.scenario-card.neutral-down { border-left: 3px solid #0969da; }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+  user-select: none;
+  background: #f6f8fa;
+}
+.card-header:hover { background: #eaeef2; }
+.card-header h3 {
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-header .arrow {
+  display: inline-block;
+  transition: transform 0.15s;
+  font-size: 12px;
+  color: #656d76;
+}
+.card-header .arrow.open { transform: rotate(90deg); }
+/* Keeps the badge and the baseline-spread note together on the right, so the header stays a
+   two-part flex layout however many notes are attached. */
+.card-header .header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.card-header .baseline-spread {
+  font-size: 12px;
+  color: #656d76;
+  white-space: nowrap;
+}
+
+/* Change badge */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.badge.regression { background: #ffebe9; color: #cf222e; }
+.badge.improvement { background: #dafbe1; color: #1a7f37; }
+.badge.neutral-up { background: #fff8c5; color: #bf8700; }
+.badge.neutral-down { background: #ddf4ff; color: #0969da; }
+.badge.neutral { background: #f6f8fa; color: #656d76; }
+.badge.unknown { background: #f6f8fa; color: #656d76; }
+
+/* Card body */
+.card-body {
+  padding: 16px;
+  display: none;
+  border-top: 1px solid #d0d7de;
+}
+.card-body.open { display: block; }
+
+/* Quick metrics row */
+.quick-metrics {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.quick-metric {
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+}
+.quick-metric .metric-label {
+  font-size: 11px;
+  color: #656d76;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.quick-metric .metric-value {
+  font-size: 18px;
+  font-weight: 600;
+}
+.quick-metric .metric-change {
+  font-size: 12px;
+}
+
+/* Chart area */
+.chart-container {
+  margin: 16px 0;
+  overflow-x: auto;
+}
+.chart-container svg {
+  display: block;
+}
+
+/* Expandable sections */
+.expand-section {
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  margin-top: 12px;
+}
+.expand-header {
+  padding: 8px 12px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: #656d76;
+  background: #f6f8fa;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.expand-header:hover { background: #eaeef2; }
+.expand-header .arrow {
+  display: inline-block;
+  transition: transform 0.15s;
+  font-size: 10px;
+}
+.expand-header .arrow.open { transform: rotate(90deg); }
+.expand-body {
+  display: none;
+  padding: 12px;
+}
+.expand-body.open { display: block; }
+
+/* Tables */
+.metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.metrics-table th {
+  text-align: left;
+  padding: 6px 10px;
+  font-weight: 600;
+  border-bottom: 2px solid #d0d7de;
+  color: #656d76;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+}
+.metrics-table th:hover { color: #1f2328; }
+.metrics-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid #eaeef2;
+}
+.metrics-table tr:last-child td { border-bottom: none; }
+.metrics-table .bold { font-weight: 600; }
+.metrics-table .num { font-variant-numeric: tabular-nums; text-align: right; }
+/* Not scoped to .metrics-table: the baseline-spread note in a card header carries this class too,
+   and a table-only rule made that flag a silent no-op. The card-header rule below beats
+   .card-header .baseline-spread (two classes) on specificity, so the warning colour actually wins
+   there instead of just the bold weight. */
+.cv-warn { color: #cf222e; font-weight: 600; }
+.card-header .baseline-spread.cv-warn { color: #cf222e; }
+
+/* Hook timing */
+.hook-timing {
+  font-size: 13px;
+  color: #656d76;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: #f6f8fa;
+  border-radius: 6px;
+}
+
+/* Tooltip */
+.tooltip {
+  position: fixed;
+  background: #1f2328;
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  pointer-events: none;
+  z-index: 1000;
+  white-space: nowrap;
+  display: none;
+}
+
+/* No results */
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #656d76;
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+window.__PERF_DATA__ = {"meta":{"prNumber":"13339","branch":"docs/DEV-2728_API-cross-links","baseBranch":"develop","pagesUrl":"https://handsontable.github.io/handsontable/performance-reports/docs-DEV-2728_API-cross-links/","commit":"6ba01e397b1007eea25a319a732af05a88cf3d9d","runId":"33628813371","generatedAt":"2026-09-02T12:27:25.138Z"},"baseline":{"timestamp":"2026-09-02T11:47:17.184Z","isMedian":true,"isSelfCompare":false,"medianWindowSize":5,"medianSourceTimestamps":["2026-09-02T11:47:17.184Z","2026-09-02T10:27:54.840Z","2026-09-02T10:12:40.109Z","2026-09-02T08:04:26.724Z","2026-09-02T07:45:08.592Z"]},"thresholds":{"timing":15,"heap":5,"cvWarning":15},"summary":{"total":9,"regressions":1,"improvements":7,"notAssessed":0,"noBaseline":0,"neutral":1},"hasBaseline":true,"scenarios":[{"name":"cell-editing","title":"Cell Editing","status":"regression","hasBaseline":true,"baselineIncomplete":false,"baselineSpread":11.808338097339496,"totalChange":-20.820950780119553,"badgeChange":5.297963882516093,"badgeIsHeap":true,"isRegression":true,"notAssessed":false,"incompleteLabel":null,"incompleteReason":null,"metrics":{"scripting":{"current":234.3766666664553,"baseline":294.2480000001583,"change":-20.347235438701638,"incomplete":false},"rendering":{"current":202.59033333375314,"baseline":262.59666666576715,"change":-22.85114053195124,"incomplete":false},"painting":{"current":38.52799999998145,"baseline":43.686666666631936,"change":-11.808332061623494,"incomplete":false},"total":{"current":475.49500000018986,"baseline":600.5313333325573,"change":-20.820950780119553}},"detailedMetrics":[{"label":"Scripting","key":"scripting","current":234.3766666664553,"baseline":294.2480000001583,"change":-20.347235438701638,"incomplete":false,"cv":2.4225119940838558},{"label":"Rendering","key":"rendering","current":202.59033333375314,"baseline":262.59666666576715,"change":-22.85114053195124,"incomplete":false,"cv":7.505425805569195},{"label":"Painting","key":"painting","current":38.52799999998145,"baseline":43.686666666631936,"change":-11.808332061623494,"incomplete":false,"cv":10.548772122733007},{"label":"System","key":"other","current":69.03133333323007,"baseline":83.49200000011649,"change":-17.319823057138706,"incomplete":false,"cv":7.543091631397081},{"label":"Idle","key":"idle","current":1797.0253333332464,"baseline":1824.6969999999612,"change":-1.516507489556645,"incomplete":false,"cv":0.7777083098370013},{"label":"Total active","key":"total-active","current":475.49500000018986,"baseline":600.5313333325573,"change":-20.820950780119553,"incomplete":false,"cv":5.145545724942097,"isBold":true},{"label":"Trace window","key":"trace-window","current":2341,"baseline":2506,"change":-6.584197924980048,"cv":1.421909478604654,"neutral":true,"note":"harness wall clock"}],"memory":[{"label":"Min JS heap","currentDisplay":"12974 kB","baselineDisplay":"12874 kB","change":0.7757871874457191,"incomplete":false},{"label":"Max JS heap","currentDisplay":"22.5 MB","baselineDisplay":"21.4 MB","change":5.297963882516093,"incomplete":false},{"label":"Min Nodes","currentDisplay":"856","baselineDisplay":"884","change":-3.167420814479638,"incomplete":false},{"label":"Max Nodes","currentDisplay":"1154","baselineDisplay":"1155","change":-0.08658008658008658,"incomplete":false},{"label":"Min Listeners","currentDisplay":"193","baselineDisplay":"193","change":0,"incomplete":false},{"label":"Max Listeners","currentDisplay":"398","baselineDisplay":"412","change":-3.3980582524271843,"incomplete":false}],"hookTiming":null,"heap":{"current":22527637.333333332,"baseline":21394181.333333332,"change":5.297963882516093},"cv":{"scripting":2.4225119940838558,"rendering":7.505425805569195,"painting":10.548772122733007},"runs":3},{"name":"filtering","title":"Filtering","status":"neutral-up","hasBaseline":true,"baselineIncomplete":false,"baselineSpread":27.5774631686309,"totalChange":2.2276674543259603,"badgeChange":2.2276674543259603,"badgeIsHeap":false,"isRegression":false,"notAssessed":false,"incompleteLabel":null,"incompleteReason":null,"metrics":{"scripting":{"current":33.294333333342486,"baseline":33.52733333332045,"change":-0.6949553597404683,"incomplete":false},"rendering":{"current":7.84800000001754,"baseline":6.714999999977105,"change":16.87267312054054,"incomplete":false},"painting":{"current":1.5506666666575863,"baseline":1.5203333333289872,"change":1.995176496076682,"incomplete":false},"total":{"current":42.69300000001761,"baseline":41.76266666662654,"change":2.2276674543259603}},"detailedMetrics":[{"label":"Scripting","key":"scripting","current":33.294333333342486,"baseline":33.52733333332045,"change":-0.6949553597404683,"incomplete":false,"cv":41.49081673188059},{"label":"Rendering","key":"rendering","current":7.84800000001754,"baseline":6.714999999977105,"change":16.87267312054054,"incomplete":false,"cv":56.79643632341315},{"label":"Painting","key":"painting","current":1.5506666666575863,"baseline":1.5203333333289872,"change":1.995176496076682,"incomplete":false,"cv":28.647463599131218},{"label":"System","key":"other","current":31.714333333299265,"baseline":21.914999999999925,"change":44.71518746657255,"incomplete":false,"cv":91.54075822073338},{"label":"Idle","key":"idle","current":10.157666666685449,"baseline":15.956333333340202,"change":-36.340846894559675,"incomplete":false,"cv":20.103081409129114},{"label":"Total active","key":"total-active","current":42.69300000001761,"baseline":41.76266666662654,"change":2.2276674543259603,"incomplete":false,"cv":43.82125442672283,"isBold":true},{"label":"Trace window","key":"trace-window","current":85,"baseline":82,"change":3.6585365853658534,"cv":53.7931295557488,"neutral":true,"note":"harness wall clock"}],"memory":[{"label":"Min JS heap","currentDisplay":"288345 kB","baselineDisplay":"302694 kB","change":-4.740399266743541,"incomplete":false},{"label":"Max JS heap","currentDisplay":"309.5 MB","baselineDisplay":"320.0 MB","change":-3.277800910783492,"incomplete":false},{"label":"Min Nodes","currentDisplay":"1966","baselineDisplay":"2000","change":-1.7000000000000002,"incomplete":false},{"label":"Max Nodes","currentDisplay":"2000","baselineDisplay":"2000","change":0,"incomplete":false},{"label":"Min Listeners","currentDisplay":"223","baselineDisplay":"226","change":-1.3274336283185841,"incomplete":false},{"label":"Max Listeners","currentDisplay":"226","baselineDisplay":"226","change":0,"incomplete":false}],"hookTiming":{"current":29.833333333333332,"baseline":43.26666666666764,"change":-31.047765793530058,"cv":12.471496167638712},"heap":{"current":309499934.6666667,"baseline":319988521.3333333,"change":-3.277800910783492},"cv":{"scripting":41.49081673188059,"rendering":56.79643632341315,"painting":28.647463599131218},"runs":3},{"name":"initial-load","title":"Initial Load","status":"improvement","hasBaseline":true,"baselineIncomplete":false,"baselineSpread":16.87169584049429,"totalChange":-49.1055318554289,"badgeChange":-49.1055318554289,"badgeIsHeap":false,"isRegression":false,"notAssessed":false,"incompleteLabel":null,"incompleteReason":null,"metrics":{"scripting":{"current":22.03366666665541,"baseline":50.677333333340094,"change":-56.52165333616777,"incomplete":false},"rendering":{"current":12.529999999979433,"baseline":17.785000000022894,"change":-29.547371380583055,"incomplete":false},"painting":{"current":1.823333333338572,"baseline":3.032666666661195,"change":-39.87689602082232,"incomplete":false},"total":{"current":36.38699999997342,"baseline":71.49500000002419,"change":-49.1055318554289}},"detailedMetrics":[{"label":"Scripting","key":"scripting","current":22.03366666665541,"baseline":50.677333333340094,"change":-56.52165333616777,"incomplete":false,"cv":12.582841809192184},{"label":"Rendering","key":"rendering","current":12.529999999979433,"baseline":17.785000000022894,"change":-29.547371380583055,"incomplete":false,"cv":0.7464544582899189},{"label":"Painting","key":"painting","current":1.823333333338572,"baseline":3.032666666661195,"change":-39.87689602082232,"incomplete":false,"cv":1.3615755883944396},{"label":"System","key":"other","current":2.4793333333859144,"baseline":29.296666666561133,"change":-91.53714870840308,"incomplete":false,"cv":108.29253169700699},{"label":"Idle","key":"idle","current":6.142999999967287,"baseline":10.63866666702476,"change":-42.25780173179111,"incomplete":false,"cv":12.816107194716572},{"label":"Total active","key":"total-active","current":36.38699999997342,"baseline":71.49500000002419,"change":-49.1055318554289,"incomplete":false,"cv":7.866360075132059,"isBold":true},{"label":"Trace window","key":"trace-window","current":44,"baseline":109,"change":-59.63302752293578,"cv":15.35381793733995,"neutral":true,"note":"harness wall clock"}],"memory":[{"label":"Min JS heap","currentDisplay":"300994 kB","baselineDisplay":"292620 kB","change":2.861875182252811,"incomplete":false},{"label":"Max JS heap","currentDisplay":"303.0 MB","baselineDisplay":"313.2 MB","change":-3.2498944493609088,"incomplete":false},{"label":"Min Nodes","currentDisplay":"4815","baselineDisplay":"3598","change":33.824346859366315,"incomplete":false},{"label":"Max Nodes","currentDisplay":"5398","baselineDisplay":"5398","change":0,"incomplete":false},{"label":"Min Listeners","currentDisplay":"716","baselineDisplay":"460","change":55.65217391304348,"incomplete":false},{"label":"Max Listeners","currentDisplay":"758","baselineDisplay":"758","change":0,"incomplete":false}],"hookTiming":null,"heap":{"current":302992669.3333333,"baseline":313170376,"change":-3.2498944493609088},"cv":{"scripting":12.582841809192184,"rendering":0.7464544582899189,"painting":1.3615755883944396},"runs":3},{"name":"scroll-down","title":"Scroll Down","status":"improvement","hasBaseline":true,"baselineIncomplete":false,"baselineSpread":17.04322840519014,"totalChange":-19.82375049591844,"badgeChange":-19.82375049591844,"badgeIsHeap":false,"isRegression":false,"notAssessed":false,"incompleteLabel":null,"incompleteReason":null,"metrics":{"scripting":{"current":2278.396666664883,"baseline":2936.0566666671225,"change":-22.39943143702281,"incomplete":false},"rendering":{"current":3077.303000000393,"baseline":3789.192666666369,"change":-18.78737053748913,"incomplete":false},"painting":{"current":1039.8886666669375,"baseline":1251.6619999992447,"change":-16.91937067135017,"incomplete":false},"total":{"current":6395.588333332214,"baseline":7976.911333332736,"change":-19.82375049591844}},"detailedMetrics":[{"label":"Scripting","key":"scripting","current":2278.396666664883,"baseline":2936.0566666671225,"change":-22.39943143702281,"incomplete":false,"cv":4.3194993016892935},{"label":"Rendering","key":"rendering","current":3077.303000000393,"baseline":3789.192666666369,"change":-18.78737053748913,"incomplete":false,"cv":2.599221638622901},{"label":"Painting","key":"painting","current":1039.8886666669375,"baseline":1251.6619999992447,"change":-16.91937067135017,"incomplete":false,"cv":3.448747161804672},{"label":"System","key":"other","current":740.7956666668173,"baseline":857.5309999983282,"change":-13.612957820969559,"incomplete":false,"cv":3.375351295145738},{"label":"Idle","key":"idle","current":9551.398000000967,"baseline":7958.800000000425,"change":20.010529225517125,"incomplete":false,"cv":2.4092739702585866},{"label":"Total active","key":"total-active","current":6395.588333332214,"baseline":7976.911333332736,"change":-19.82375049591844,"incomplete":false,"cv":3.315799070706414,"isBold":true},{"label":"Trace window","key":"trace-window","current":16688,"baseline":16717,"change":-0.17347610217144224,"cv":0.04194630872483222,"neutral":true,"note":"harness wall clock"}],"memory":[{"label":"Min JS heap","currentDisplay":"22463 kB","baselineDisplay":"22458 kB","change":0.022667663378911077,"incomplete":false},{"label":"Max JS heap","currentDisplay":"50.9 MB","baselineDisplay":"51.6 MB","change":-1.208913184435474,"incomplete":false},{"label":"Min Nodes","currentDisplay":"2105","baselineDisplay":"2105","change":0,"incomplete":false},{"label":"Max Nodes","currentDisplay":"2107","baselineDisplay":"2107","change":0,"incomplete":false},{"label":"Min Listeners","currentDisplay":"175","baselineDisplay":"175","change":0,"incomplete":false},{"label":"Max Listeners","currentDisplay":"175","baselineDisplay":"175","change":0,"incomplete":false}],"hookTiming":null,"heap":{"current":50939220,"baseline":51562566.666666664,"change":-1.208913184435474},"cv":{"scripting":4.3194993016892935,"rendering":2.599221638622901,"painting":3.448747161804672},"runs":3},{"name":"scroll-left","title":"Scroll Left","status":"improvement","hasBaseline":true,"baselineIncomplete":false,"baselineSpread":17.065637416410954,"totalChange":-22.964471406894297,"badgeChange":-22.964471406894297,"badgeIsHeap":false,"isRegression":false,"notAssessed":false,"incompleteLabel":null,"incompleteReason":null,"metrics":{"scripting":{"current":1072.0293333337545,"baseline":1409.9556666674187,"change":-23.967160196773367,"incomplete":false},"rendering":{"current":1140.1833333326601,"baseline":1477.083000000188,"change":-22.808445203653747,"incomplete":false},"painting":{"current":545.2900000002797,"baseline":692.481999999795,"change":-21.25571494992777,"incomplete":false},"total":{"current":2757.502666666694,"baseline":3579.5206666674017,"change":-22.964471406894297}},"detailedMetrics":[{"label":"Scripting","key":"scripting","current":1072.0293333337545,"baseline":1409.9556666674187,"change":-23.967160196773367,"incomplete":false,"cv":3.1271333813650486},{"label":"Rendering","key":"rendering","current":1140.1833333326601,"baseline":1477.083000000188,"change":-22.808445203653747,"incomplete":false,"cv":1.7112360005406126},{"label":"Painting","key":"painting","current":545.2900000002797,"baseline":692.481999999795,"change":-21.25571494992777,"incomplete":false,"cv":3.0526785542909423},{"label":"System","key":"other","current":356.21766666477384,"baseline":448.4616666660434,"change":-20.568982113238462,"incomplete":false,"cv":2.2898503359546956},{"label":"Idle","key":"idle","current":13579.86700000187,"baseline":12654.44633333323,"change":7.313007952240302,"incomplete":false,"cv":0.5480247798301718},{"label":"Total active","key":"total-active","current":2757.502666666694,"baseline":3579.5206666674017,"change":-22.964471406894297,"incomplete":false,"cv":2.4666548524372214,"isBold":true},{"label":"Trace window","key":"trace-window","current":16694,"baseline":16684,"change":0.05993766482857828,"cv":0.022678893575608608,"neutral":true,"note":"harness wall clock"}],"memory":[{"label":"Min JS heap","currentDisplay":"15457 kB","baselineDisplay":"15448 kB","change":0.05608369572394186,"incomplete":false},{"label":"Max JS heap","currentDisplay":"23.2 MB","baselineDisplay":"23.2 MB","change":-0.02549008761621583,"incomplete":false},{"label":"Min Nodes","currentDisplay":"1231","baselineDisplay":"1321","change":-6.813020439061317,"incomplete":false},{"label":"Max Nodes","currentDisplay":"1502","baselineDisplay":"1592","change":-5.653266331658291,"incomplete":false},{"label":"Min Listeners","currentDisplay":"175","baselineDisplay":"175","change":0,"incomplete":false},{"label":"Max Listeners","currentDisplay":"175","baselineDisplay":"175","change":0,"incomplete":false}],"hookTiming":null,"heap":{"current":23182188,"baseline":23188098.666666668,"change":-0.02549008761621583},"cv":{"scripting":3.1271333813650486,"rendering":1.7112360005406126,"painting":3.0526785542909423},"runs":3},{"name":"scroll-right","title":"Scroll Right","status":"improvement","hasBaseline":true,"baselineIncomplete":false,"baselineSpread":17.24174098756342,"totalChange":-22.388620913869097,"badgeChange":-22.388620913869097,"badgeIsHeap":false,"isRegression":false,"notAssessed":false,"incompleteLabel":null,"incompleteReason":null,"metrics":{"scripting":{"current":1025.9693333332427,"baseline":1334.511999999679,"change":-23.120261688655507,"incomplete":false},"rendering":{"current":1084.5129999989683,"baseline":1401.9636666659692,"change":-22.64328771243659,"incomplete":false},"painting":{"current":400.1086666667834,"baseline":498.3476666664549,"change":-19.712944711231707,"incomplete":false},"total":{"current":2510.5909999989944,"baseline":3234.823333332103,"change":-22.388620913869097}},"detailedMetrics":[{"label":"Scripting","key":"scripting","current":1025.9693333332427,"baseline":1334.511999999679,"change":-23.120261688655507,"incomplete":false,"cv":2.631252179774092},{"label":"Rendering","key":"rendering","current":1084.5129999989683,"baseline":1401.9636666659692,"change":-22.64328771243659,"incomplete":false,"cv":1.9575984607470935},{"label":"Painting","key":"painting","current":400.1086666667834,"baseline":498.3476666664549,"change":-19.712944711231707,"incomplete":false,"cv":1.5298860739809967},{"label":"System","key":"other","current":335.84000000054175,"baseline":393.1800000019125,"change":-14.583651254156326,"incomplete":false,"cv":3.5303794288752735},{"label":"Idle","key":"idle","current":13853.516666667128,"baseline":13058.031333332649,"change":6.091923912786764,"incomplete":false,"cv":0.4948254465073249},{"label":"Total active","key":"total-active","current":2510.5909999989944,"baseline":3234.823333332103,"change":-22.388620913869097,"incomplete":false,"cv":1.6581728189802198,"isBold":true},{"label":"Trace window","key":"trace-window","current":16700,"baseline":16686,"change":0.08390267289943665,"cv":0.11795039283588149,"neutral":true,"note":"harness wall clock"}],"memory":[{"label":"Min JS heap","currentDisplay":"15390 kB","baselineDisplay":"15450 kB","change":-0.3880500871481581,"incomplete":false},{"label":"Max JS heap","currentDisplay":"22.8 MB","baselineDisplay":"23.0 MB","change":-1.00421129078765,"incomplete":false},{"label":"Min Nodes","currentDisplay":"1321","baselineDisplay":"1321","change":0,"incomplete":false},{"label":"Max Nodes","currentDisplay":"1322","baselineDisplay":"1322","change":0,"incomplete":false},{"label":"Min Listeners","currentDisplay":"175","baselineDisplay":"175","change":0,"incomplete":false},{"label":"Max Listeners","currentDisplay":"175","baselineDisplay":"175","change":0,"incomplete":false}],"hookTiming":null,"heap":{"current":22805776,"baseline":23037117.333333332,"change":-1.00421129078765},"cv":{"scripting":2.631252179774092,"rendering":1.9575984607470935,"painting":1.5298860739809967},"runs":3},{"name":"scroll-up","title":"Scroll Up","status":"improvement","hasBaseline":true,"baselineIncomplete":false,"baselineSpread":16.603574235150354,"totalChange":-15.43591858095765,"badgeChange":-15.43591858095765,"badgeIsHeap":false,"isRegression":false,"notAssessed":false,"incompleteLabel":null,"incompleteReason":null,"metrics":{"scripting":{"current":2387.9556666674416,"baseline":2889.6760000028903,"change":-17.362511691101247,"incomplete":false},"rendering":{"current":3248.140666666208,"baseline":3808.758333333671,"change":-14.71917138351948,"incomplete":false},"painting":{"current":1101.770666666911,"baseline":1269.3303333335014,"change":-13.200635190569109,"incomplete":false},"total":{"current":6737.86700000056,"baseline":7967.764666670063,"change":-15.43591858095765}},"detailedMetrics":[{"label":"Scripting","key":"scripting","current":2387.9556666674416,"baseline":2889.6760000028903,"change":-17.362511691101247,"incomplete":false,"cv":5.205941911727741},{"label":"Rendering","key":"rendering","current":3248.140666666208,"baseline":3808.758333333671,"change":-14.71917138351948,"incomplete":false,"cv":5.712328462314565},{"label":"Painting","key":"painting","current":1101.770666666911,"baseline":1269.3303333335014,"change":-13.200635190569109,"incomplete":false,"cv":4.530015259576792},{"label":"System","key":"other","current":784.8836666657694,"baseline":855.9349999984219,"change":-8.301019742478513,"incomplete":false,"cv":7.196138045487493},{"label":"Idle","key":"idle","current":9179.27933333368,"baseline":7957.938333331161,"change":15.3474549417785,"incomplete":false,"cv":4.52335626248588},{"label":"Total active","key":"total-active","current":6737.86700000056,"baseline":7967.764666670063,"change":-15.43591858095765,"incomplete":false,"cv":5.327695213648465,"isBold":true},{"label":"Trace window","key":"trace-window","current":16702,"baseline":16697,"change":0.029945499191471523,"cv":0.048395791449883804,"neutral":true,"note":"harness wall clock"}],"memory":[{"label":"Min JS heap","currentDisplay":"22484 kB","baselineDisplay":"22483 kB","change":0.006511648704973626,"incomplete":false},{"label":"Max JS heap","currentDisplay":"51.0 MB","baselineDisplay":"51.7 MB","change":-1.3767858069107932,"incomplete":false},{"label":"Min Nodes","currentDisplay":"2105","baselineDisplay":"2084","change":1.0076775431861804,"incomplete":false},{"label":"Max Nodes","currentDisplay":"2478","baselineDisplay":"2458","change":0.8136696501220505,"incomplete":false},{"label":"Min Listeners","currentDisplay":"175","baselineDisplay":"175","change":0,"incomplete":false},{"label":"Max Listeners","currentDisplay":"175","baselineDisplay":"175","change":0,"incomplete":false}],"hookTiming":null,"heap":{"current":50956234.666666664,"baseline":51667586.666666664,"change":-1.3767858069107932},"cv":{"scripting":5.205941911727741,"rendering":5.712328462314565,"painting":4.530015259576792},"runs":3},{"name":"sorting","title":"Sorting","status":"improvement","hasBaseline":true,"baselineIncomplete":false,"baselineSpread":17.896113350266628,"totalChange":-30.802458128504483,"badgeChange":-30.802458128504483,"badgeIsHeap":false,"isRegression":false,"notAssessed":false,"incompleteLabel":null,"incompleteReason":null,"metrics":{"scripting":{"current":80.07433333335864,"baseline":116.73766666664602,"change":-31.406601125566898,"incomplete":false},"rendering":{"current":5.415000000037253,"baseline":7.0456666667402414,"change":-23.14424942072139,"incomplete":false},"painting":{"current":1.1766666666565773,"baseline":1.4610000000102445,"change":-19.46155601311934,"incomplete":false},"total":{"current":86.66600000005246,"baseline":125.24433333339651,"change":-30.802458128504483}},"detailedMetrics":[{"label":"Scripting","key":"scripting","current":80.07433333335864,"baseline":116.73766666664602,"change":-31.406601125566898,"incomplete":false,"cv":34.44563777271984},{"label":"Rendering","key":"rendering","current":5.415000000037253,"baseline":7.0456666667402414,"change":-23.14424942072139,"incomplete":false,"cv":5.2199551938563475},{"label":"Painting","key":"painting","current":1.1766666666565773,"baseline":1.4610000000102445,"change":-19.46155601311934,"incomplete":false,"cv":8.558851450229184},{"label":"System","key":"other","current":31.4253333332922,"baseline":36.74533333344633,"change":-14.478028956432848,"incomplete":false,"cv":97.09120264208835},{"label":"Idle","key":"idle","current":14.105999999990066,"baseline":10.347999999998137,"change":36.31619636637616,"incomplete":false,"cv":9.813402186690197},{"label":"Total active","key":"total-active","current":86.66600000005246,"baseline":125.24433333339651,"change":-30.802458128504483,"incomplete":false,"cv":31.70501264487416,"isBold":true},{"label":"Trace window","key":"trace-window","current":132,"baseline":176,"change":-25,"cv":44.23230477877272,"neutral":true,"note":"harness wall clock"}],"memory":[{"label":"Min JS heap","currentDisplay":"305720 kB","baselineDisplay":"305695 kB","change":0.008163262920573795,"incomplete":false},{"label":"Max JS heap","currentDisplay":"333.7 MB","baselineDisplay":"333.8 MB","change":-0.02802146528607898,"incomplete":false},{"label":"Min Nodes","currentDisplay":"1866","baselineDisplay":"1866","change":0,"incomplete":false},{"label":"Max Nodes","currentDisplay":"1897","baselineDisplay":"1897","change":0,"incomplete":false},{"label":"Min Listeners","currentDisplay":"163","baselineDisplay":"163","change":0,"incomplete":false},{"label":"Max Listeners","currentDisplay":"163","baselineDisplay":"163","change":0,"incomplete":false}],"hookTiming":{"current":101.46666666665503,"baseline":132.70000000001164,"change":-23.536799799060944,"cv":55.58251433022565},"heap":{"current":333688681.3333333,"baseline":333782212,"change":-0.02802146528607898},"cv":{"scripting":34.44563777271984,"rendering":5.2199551938563475,"painting":8.558851450229184},"runs":3},{"name":"source-data-validator-load","title":"Initial Load (`sourceDataValidator`)","status":"improvement","hasBaseline":true,"baselineIncomplete":false,"baselineSpread":18.324883387567002,"totalChange":-28.22920291156199,"badgeChange":-28.22920291156199,"badgeIsHeap":false,"isRegression":false,"notAssessed":false,"incompleteLabel":null,"incompleteReason":null,"metrics":{"scripting":{"current":717.5520000000774,"baseline":1002.2433333332814,"change":-28.40541052903507,"incomplete":false},"rendering":{"current":13.976666666644936,"baseline":17.435000000017073,"change":-19.835579772691425,"incomplete":false},"painting":{"current":2.0940000000021732,"baseline":2.495999999984633,"change":-16.105769230165663,"incomplete":false},"total":{"current":733.6226666667246,"baseline":1022.1743333332831,"change":-28.22920291156199}},"detailedMetrics":[{"label":"Scripting","key":"scripting","current":717.5520000000774,"baseline":1002.2433333332814,"change":-28.40541052903507,"incomplete":false,"cv":31.243175729443706},{"label":"Rendering","key":"rendering","current":13.976666666644936,"baseline":17.435000000017073,"change":-19.835579772691425,"incomplete":false,"cv":3.1329966191910814},{"label":"Painting","key":"painting","current":2.0940000000021732,"baseline":2.495999999984633,"change":-16.105769230165663,"incomplete":false,"cv":3.805186839096436},{"label":"System","key":"other","current":164.39366666658904,"baseline":219.23233333323074,"change":-25.013950192870286,"incomplete":false,"cv":164.84004597735682},{"label":"Idle","key":"idle","current":13.701000000000931,"baseline":12.148000000005899,"change":12.783997365774432,"incomplete":false,"cv":19.092052926799987},{"label":"Total active","key":"total-active","current":733.6226666667246,"baseline":1022.1743333332831,"change":-28.22920291156199,"incomplete":false,"cv":30.533427563231275,"isBold":true},{"label":"Trace window","key":"trace-window","current":911,"baseline":1252,"change":-27.23642172523962,"cv":5.814964555810039,"neutral":true,"note":"harness wall clock"}],"memory":[{"label":"Min JS heap","currentDisplay":"282271 kB","baselineDisplay":"278034 kB","change":1.5241834797126532,"incomplete":false},{"label":"Max JS heap","currentDisplay":"300.0 MB","baselineDisplay":"298.6 MB","change":0.4602936638146462,"incomplete":false},{"label":"Min Nodes","currentDisplay":"3649","baselineDisplay":"3605","change":1.2205270457697643,"incomplete":false},{"label":"Max Nodes","currentDisplay":"5398","baselineDisplay":"5398","change":0,"incomplete":false},{"label":"Min Listeners","currentDisplay":"632","baselineDisplay":"376","change":68.08510638297872,"incomplete":false},{"label":"Max Listeners","currentDisplay":"758","baselineDisplay":"758","change":0,"incomplete":false}],"hookTiming":null,"heap":{"current":299964350.6666667,"baseline":298589960,"change":0.4602936638146462},"cv":{"scripting":31.243175729443706,"rendering":3.1329966191910814,"painting":3.805186839096436},"runs":3}]};
+</script>
+<script>
+(function() {
+  'use strict';
+
+  const data = window.__PERF_DATA__;
+  const app = document.getElementById('app');
+
+  // --- State ---
+  let filterMode = 'all';
+  let sortKey = 'name';
+  let sortAsc = true;
+
+  // --- Tooltip (created once, outside render cycle) ---
+  const tooltip = buildTooltip();
+  document.body.appendChild(tooltip);
+
+  // --- Render ---
+  function render() {
+    app.innerHTML = '';
+    app.appendChild(buildHeader());
+    app.appendChild(buildDashboard());
+    app.appendChild(buildControls());
+    app.appendChild(buildScenarioList());
+  }
+
+  function buildHeader() {
+    const header = el('div', 'report-header');
+    header.appendChild(elText('h1', '\u26A1 Performance Report'));
+    const parts = [];
+    if (data.meta.prNumber) parts.push('PR #' + data.meta.prNumber);
+    if (data.meta.branch !== 'unknown') parts.push(data.meta.branch + ' vs ' + data.meta.baseBranch);
+    parts.push('Generated: ' + new Date(data.meta.generatedAt).toUTCString());
+    if (data.meta.commit) parts.push('commit ' + String(data.meta.commit).slice(0, 7));
+    if (data.meta.runId) parts.push('run ' + data.meta.runId);
+    header.appendChild(elText('div', parts.join(' \u00B7 '), 'meta'));
+
+    // States what every delta below was measured against. Without it the report reads identically
+    // whether the baseline was a five-run median or one fluke develop push.
+    const baseline = data.baseline;
+    if (baseline) {
+      let text;
+      if (baseline.isSelfCompare) {
+        text = 'Baseline: this run compared against itself, no develop baseline was available'
+          + ' (every delta below is 0% by construction)';
+      } else if (baseline.isMedian) {
+        const sources = baseline.medianSourceTimestamps || [];
+        text = 'Baseline: median of ' + baseline.medianWindowSize + ' develop runs';
+        if (sources.length > 1) {
+          text += ' (' + sources[sources.length - 1] + ' to ' + sources[0] + ')';
+        }
+      } else if (baseline.timestamp) {
+        text = 'Baseline: single develop run ' + baseline.timestamp;
+      } else {
+        text = 'Baseline: unknown';
+      }
+      header.appendChild(elText('div', text, 'meta'));
+    }
+
+    return header;
+  }
+
+  function buildDashboard() {
+    const dash = el('div', 'dashboard');
+    dash.appendChild(counterCard(data.summary.total, 'Total Scenarios', 'neutral'));
+    dash.appendChild(counterCard(data.summary.regressions, 'Regressions', 'regression'));
+    dash.appendChild(counterCard(data.summary.improvements, 'Improvements', 'improvement'));
+    dash.appendChild(counterCard(data.summary.neutral, 'Neutral', 'neutral'));
+    if (data.summary.notAssessed > 0) {
+      dash.appendChild(counterCard(data.summary.notAssessed, 'Not assessed', 'unknown'));
+    }
+    if (data.summary.noBaseline > 0) {
+      dash.appendChild(counterCard(data.summary.noBaseline, 'No baseline', 'unknown'));
+    }
+    return dash;
+  }
+
+  function counterCard(count, label, cls) {
+    const card = el('div', 'counter-card ' + cls);
+    card.appendChild(elText('div', count, 'count'));
+    card.appendChild(elText('div', label, 'label'));
+    return card;
+  }
+
+  function buildControls() {
+    const controls = el('div', 'controls');
+
+    // Filter
+    const filterGroup = el('div', 'filter-group');
+    filterGroup.appendChild(elText('label', 'Filter:'));
+
+    const filters = [
+      ['all', 'All'],
+      ['regression', 'Regressions'],
+      ['improvement', 'Improvements'],
+      ['neutral', 'Neutral'],
+    ];
+
+    // Offered only when there is one, mirroring the counter card. Without its own filter a
+    // not-assessed scenario would be reachable from All alone, having just been excluded from
+    // Neutral -- less discoverable than before, not more.
+    if (data.summary.notAssessed > 0) {
+      filters.push(['notAssessed', 'Not assessed']);
+    }
+
+    if (data.summary.noBaseline > 0) {
+      filters.push(['noBaseline', 'No baseline']);
+    }
+
+    for (const [mode, text] of filters) {
+      const btn = elText('button', text, 'btn' + (filterMode === mode ? ' active' : ''));
+      btn.dataset.filter = mode;
+      btn.addEventListener('click', () => {
+        filterMode = mode;
+        render();
+      });
+      filterGroup.appendChild(btn);
+    }
+
+    controls.appendChild(filterGroup);
+
+    // Sort
+    const sortGroup = el('div', 'sort-group');
+    sortGroup.appendChild(elText('label', 'Sort:'));
+
+    const sorts = [
+      ['name', 'Name'],
+      ['total', 'Total'],
+      ['change', 'Change %'],
+    ];
+
+    for (const [key, text] of sorts) {
+      const arrow = sortKey === key ? (sortAsc ? ' \u2191' : ' \u2193') : '';
+      const btn = elText('button', text + arrow, 'btn' + (sortKey === key ? ' active' : ''));
+      btn.dataset.sort = key;
+      btn.addEventListener('click', () => {
+        if (sortKey === key) {
+          sortAsc = !sortAsc;
+        } else {
+          sortKey = key;
+          sortAsc = true;
+        }
+        render();
+      });
+      sortGroup.appendChild(btn);
+    }
+
+    controls.appendChild(sortGroup);
+    return controls;
+  }
+
+  function buildScenarioList() {
+    const list = el('div', 'scenario-list');
+    let scenarios = getFilteredSorted();
+
+    if (scenarios.length === 0) {
+      const empty = el('div', 'empty-state');
+      empty.textContent = 'No scenarios match the current filter.';
+      list.appendChild(empty);
+      return list;
+    }
+
+    for (const s of scenarios) {
+      list.appendChild(buildScenarioCard(s));
+    }
+
+    return list;
+  }
+
+  function getFilteredSorted() {
+    let list = [...data.scenarios];
+
+    // Filter
+    if (filterMode === 'regression') {
+      list = list.filter(s => s.isRegression || s.status === 'regression');
+    } else if (filterMode === 'improvement') {
+      list = list.filter(s => s.status === 'improvement');
+    } else if (filterMode === 'neutral') {
+      // Excludes the not-assessed and the no-baseline scenarios, matching the counter card of the
+      // same name. Without this the Neutral list is longer than the Neutral count, and a scenario
+      // nothing could be said about reads as one that was checked and cleared.
+      list = list.filter(s => !s.isRegression && s.status !== 'regression'
+        && s.status !== 'improvement' && !s.notAssessed && s.hasBaseline);
+    } else if (filterMode === 'notAssessed') {
+      list = list.filter(s => s.notAssessed);
+    } else if (filterMode === 'noBaseline') {
+      list = list.filter(s => !s.hasBaseline);
+    }
+
+    // Sort
+    list.sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === 'name') {
+        cmp = a.title.localeCompare(b.title);
+      } else if (sortKey === 'total') {
+        cmp = a.metrics.total.current - b.metrics.total.current;
+      } else if (sortKey === 'change') {
+        cmp = (a.totalChange || 0) - (b.totalChange || 0);
+      }
+      return sortAsc ? cmp : -cmp;
+    });
+
+    return list;
+  }
+
+  function buildScenarioCard(scenario) {
+    const card = el('div', 'scenario-card ' + scenario.status);
+    const autoExpand = scenario.isRegression;
+
+    // Header
+    const header = el('div', 'card-header');
+    const titleRow = el('h3');
+    const arrow = elText('span', '\u25B6', 'arrow' + (autoExpand ? ' open' : ''));
+    titleRow.appendChild(arrow);
+    titleRow.appendChild(document.createTextNode(scenario.title));
+    header.appendChild(titleRow);
+
+    // The verdict's own label, not a fixed "baseline incomplete": saying the baseline failed when
+    // this run is the side that missed a category sends a maintainer to re-run develop for nothing.
+    const badgeText = scenario.baselineIncomplete && !scenario.badgeIsHeap
+      ? scenario.incompleteLabel
+      : fmtPct(scenario.badgeChange) + (scenario.badgeIsHeap ? ' heap' : '');
+    const right = el('div', 'header-right');
+    // Naming which side missed which category is the whole point of the label, and the short form
+    // on the badge cannot carry it. Without this the HTML report -- the artifact a reader opens
+    // precisely to get the detail -- is the one surface that loses it.
+    const badgeTitle = scenario.baselineIncomplete ? scenario.incompleteReason : null;
+
+    // How far apart the develop runs behind the baseline sit. A wide spread means the delta beside
+    // it is measured against a moving target, which the percentage alone does not say.
+    if (data.hasBaseline && scenario.baselineSpread != null) {
+      const spread = elText(
+        'span', 'baseline spread ' + fmtCvValue(scenario.baselineSpread), 'baseline-spread'
+      );
+      if (scenario.baselineSpread > data.thresholds.cvWarning) spread.classList.add('cv-warn');
+      right.appendChild(spread);
+    }
+
+    const badge = elText('span', badgeText, 'badge ' + scenario.status);
+
+    if (badgeTitle) badge.title = badgeTitle;
+    right.appendChild(badge);
+    header.appendChild(right);
+
+    header.addEventListener('click', () => {
+      const body = card.querySelector('.card-body');
+      body.classList.toggle('open');
+      arrow.classList.toggle('open');
+    });
+
+    card.appendChild(header);
+
+    // Body
+    const body = el('div', 'card-body' + (autoExpand ? ' open' : ''));
+
+    // Quick metrics
+    body.appendChild(buildQuickMetrics(scenario));
+
+    // Chart
+    if (data.hasBaseline) {
+      body.appendChild(buildChart(scenario));
+
+      if (scenario.heap) {
+        body.appendChild(buildHeapChart(scenario));
+      }
+    }
+
+    // Hook timing
+    if (scenario.hookTiming) {
+      body.appendChild(buildHookTimingEl(scenario.hookTiming));
+    }
+
+    // Detailed metrics (expandable)
+    body.appendChild(buildExpandSection('Detailed Metrics', () => buildMetricsTable(scenario), autoExpand));
+
+    // Memory (expandable)
+    if (scenario.memory && scenario.memory.length > 0) {
+      body.appendChild(buildExpandSection('Memory & DOM', () => buildMemoryTable(scenario)));
+    }
+
+    card.appendChild(body);
+    return card;
+  }
+
+  function buildQuickMetrics(scenario) {
+    const row = el('div', 'quick-metrics');
+    const keys = ['scripting', 'rendering', 'painting', 'total'];
+    const labels = { scripting: 'Scripting', rendering: 'Rendering', painting: 'Painting', total: 'Total' };
+
+    for (const key of keys) {
+      const m = scenario.metrics[key];
+      const item = el('div', 'quick-metric');
+      item.appendChild(elText('span', labels[key], 'metric-label'));
+      item.appendChild(elText('span', Math.round(m.current) + ' ms', 'metric-value'));
+      if (data.hasBaseline && m.change != null) {
+        const changeEl = elText('span', fmtPct(m.change), 'metric-change');
+        const cls = classifyChangeCss(m.change);
+        changeEl.style.color = statusColor(cls);
+        item.appendChild(changeEl);
+      }
+      row.appendChild(item);
+    }
+
+    return row;
+  }
+
+  function buildChart(scenario) {
+    const container = el('div', 'chart-container');
+    const metrics = [
+      { label: 'Scripting', ...scenario.metrics.scripting },
+      { label: 'Rendering', ...scenario.metrics.rendering },
+      { label: 'Painting', ...scenario.metrics.painting },
+    ];
+
+    const maxVal = Math.max(...metrics.flatMap(m => [m.current, m.baseline]), 1);
+    const LABEL_W = 90;
+    const BAR_AREA = 460;
+    const BAR_H = 16;
+    const BAR_GAP = 3;
+    const GROUP_GAP = 16;
+    const groupH = BAR_H * 2 + BAR_GAP;
+    const totalH = metrics.length * (groupH + GROUP_GAP) + 36;
+    const W = LABEL_W + BAR_AREA + 100;
+
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('width', W);
+    svg.setAttribute('height', totalH);
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + totalH);
+
+    // Legend
+    const legendY = 12;
+    svg.appendChild(svgRect(LABEL_W, legendY - 9, 10, 10, '#6c8ebf', 1));
+    svg.appendChild(svgText(LABEL_W + 14, legendY, 'Baseline (' + data.meta.baseBranch + ')', '#656d76', 11));
+    svg.appendChild(svgRect(LABEL_W + 140, legendY - 9, 10, 10, '#d4a03c', 1));
+    svg.appendChild(svgText(LABEL_W + 154, legendY, 'Current (PR)', '#656d76', 11));
+
+    let y = 30;
+    for (const m of metrics) {
+      const bw = Math.max(1, (m.baseline / maxVal) * BAR_AREA);
+      const cw = Math.max(1, (m.current / maxVal) * BAR_AREA);
+
+      // Label
+      svg.appendChild(svgText(LABEL_W - 8, y + BAR_H - 2, m.label, '#1f2328', 12, 'end'));
+
+      // Baseline bar
+      const bBar = svgRect(LABEL_W, y, bw, BAR_H, '#6c8ebf', 2);
+      bBar.dataset.tooltip = m.label + ' baseline: ' + Math.round(m.baseline) + ' ms';
+      svg.appendChild(bBar);
+      svg.appendChild(svgText(LABEL_W + bw + 6, y + BAR_H - 4, Math.round(m.baseline) + ' ms', '#656d76', 11));
+
+      // Current bar
+      const cy = y + BAR_H + BAR_GAP;
+      const cBar = svgRect(LABEL_W, cy, cw, BAR_H, '#d4a03c', 2);
+      cBar.dataset.tooltip = m.label + ' current: ' + Math.round(m.current) + ' ms';
+      svg.appendChild(cBar);
+      svg.appendChild(svgText(LABEL_W + cw + 6, cy + BAR_H - 4, Math.round(m.current) + ' ms', '#656d76', 11));
+
+      y += groupH + GROUP_GAP;
+    }
+
+    container.appendChild(svg);
+    return container;
+  }
+
+  function buildHeapChart(scenario) {
+    const heap = scenario.heap;
+    const container = el('div', 'chart-container');
+    const cur = heap.current;
+    const hasBaseline = heap.baseline != null;
+    const base = hasBaseline ? heap.baseline : 0;
+    const maxVal = Math.max(cur, base, 1);
+    const LABEL_W = 90;
+    const BAR_AREA = 460;
+    const BAR_H = 16;
+    const BAR_GAP = 3;
+    const totalH = (BAR_H * 2) + BAR_GAP + 36;
+    const W = LABEL_W + BAR_AREA + 100;
+    const mb = bytes => (bytes / 1e6).toFixed(1) + ' MB';
+
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('width', W);
+    svg.setAttribute('height', totalH);
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + totalH);
+
+    // Legend (JS heap is in MB on its own scale -- not comparable to the ms chart above).
+    const legendY = 12;
+    svg.appendChild(svgRect(LABEL_W, legendY - 9, 10, 10, '#6c8ebf', 1));
+    svg.appendChild(svgText(LABEL_W + 14, legendY, 'Baseline (' + data.meta.baseBranch + ')', '#656d76', 11));
+    svg.appendChild(svgRect(LABEL_W + 140, legendY - 9, 10, 10, '#d4a03c', 1));
+    svg.appendChild(svgText(LABEL_W + 154, legendY, 'Current (PR)', '#656d76', 11));
+
+    const y = 30;
+
+    svg.appendChild(svgText(LABEL_W - 8, y + BAR_H - 2, 'JS Heap', '#1f2328', 12, 'end'));
+
+    // Draw the baseline bar only when the golden snapshot has heap data; otherwise show "no baseline"
+    // rather than a misleading 0 MB bar.
+    if (hasBaseline) {
+      const bw = Math.max(1, (base / maxVal) * BAR_AREA);
+      const bBar = svgRect(LABEL_W, y, bw, BAR_H, '#6c8ebf', 2);
+
+      bBar.dataset.tooltip = 'JS heap baseline: ' + mb(base);
+      svg.appendChild(bBar);
+      svg.appendChild(svgText(LABEL_W + bw + 6, y + BAR_H - 4, mb(base), '#656d76', 11));
+    } else {
+      svg.appendChild(svgText(LABEL_W, y + BAR_H - 4, 'no baseline', '#8c959f', 11));
+    }
+
+    const cy = y + BAR_H + BAR_GAP;
+    const cw = Math.max(1, (cur / maxVal) * BAR_AREA);
+    const cBar = svgRect(LABEL_W, cy, cw, BAR_H, '#d4a03c', 2);
+
+    cBar.dataset.tooltip = 'JS heap current: ' + mb(cur);
+    svg.appendChild(cBar);
+    svg.appendChild(svgText(LABEL_W + cw + 6, cy + BAR_H - 4, mb(cur), '#656d76', 11));
+
+    container.appendChild(svg);
+
+    return container;
+  }
+
+  function buildHookTimingEl(hookTiming) {
+    const div = el('div', 'hook-timing');
+    let text = 'Hook timing: ' + Math.round(hookTiming.current) + ' ms';
+    if (hookTiming.baseline != null) {
+      text = 'Hook timing: ' + Math.round(hookTiming.baseline)
+        + ' ms \u2192 ' + Math.round(hookTiming.current) + ' ms';
+      if (hookTiming.change != null) {
+        text += ' (' + fmtPct(hookTiming.change) + ')';
+      }
+    }
+    if (hookTiming.cv != null) {
+      text += ' \u00B7 CV ' + fmtCvValue(hookTiming.cv);
+    }
+    div.textContent = text;
+    return div;
+  }
+
+  function buildMetricsTable(scenario) {
+    const table = el('table', 'metrics-table');
+    const thead = el('thead');
+    const headRow = el('tr');
+
+    const headers = data.hasBaseline
+      ? ['Metric', 'Baseline', 'Current', 'Change', 'CV%']
+      : ['Metric', 'Value', 'CV%'];
+
+    for (const h of headers) {
+      headRow.appendChild(elText('th', h));
+    }
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    const tbody = el('tbody');
+    for (const row of scenario.detailedMetrics) {
+      const tr = el('tr');
+      const labelTd = elText(
+        'td', row.note ? row.label + ' (' + row.note + ')' : row.label, row.isBold ? 'bold' : ''
+      );
+      tr.appendChild(labelTd);
+
+      if (data.hasBaseline) {
+        tr.appendChild(elText('td', Math.round(row.baseline) + ' ms', 'num'));
+        tr.appendChild(elText('td', Math.round(row.current) + ' ms', 'num'));
+        const changeTd = elText(
+          'td', row.incomplete ? scenario.incompleteLabel : fmtPct(row.change), 'num'
+        );
+        // An informational row (harness wall clock) states its number without a verdict on it.
+        changeTd.style.color = row.neutral || row.incomplete
+          ? statusColor('neutral')
+          : statusColor(classifyChangeCss(row.change));
+        if (row.note) changeTd.title = row.note;
+        tr.appendChild(changeTd);
+      } else {
+        tr.appendChild(elText('td', Math.round(row.current) + ' ms', 'num'));
+      }
+
+      const cvTd = elText('td', fmtCvValue(row.cv), 'num');
+      if (row.cv != null && row.cv > data.thresholds.cvWarning) cvTd.classList.add('cv-warn');
+      tr.appendChild(cvTd);
+
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    return table;
+  }
+
+  function buildMemoryTable(scenario) {
+    const table = el('table', 'metrics-table');
+    const thead = el('thead');
+    const headRow = el('tr');
+    const headers = data.hasBaseline
+      ? ['Metric', 'Baseline', 'Current', 'Change']
+      : ['Metric', 'Value'];
+    for (const h of headers) {
+      headRow.appendChild(elText('th', h));
+    }
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    const tbody = el('tbody');
+    for (const row of scenario.memory) {
+      const tr = el('tr');
+      tr.appendChild(elText('td', row.label));
+      if (data.hasBaseline) {
+        tr.appendChild(elText('td', row.baselineDisplay, 'num'));
+        tr.appendChild(elText('td', row.currentDisplay, 'num'));
+        const changeTd = elText(
+          'td', row.incomplete ? scenario.incompleteLabel : fmtPct(row.change), 'num'
+        );
+        // Memory is banded on the heap threshold, which is an order of magnitude tighter than the
+        // timing one because heap barely moves run to run.
+        changeTd.style.color = row.incomplete
+          ? statusColor('neutral')
+          : statusColor(classifyChangeCss(row.change, data.thresholds.heap));
+        tr.appendChild(changeTd);
+      } else {
+        tr.appendChild(elText('td', row.currentDisplay, 'num'));
+      }
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    return table;
+  }
+
+  function buildExpandSection(title, contentFn, autoOpen) {
+    const section = el('div', 'expand-section');
+    const header = el('div', 'expand-header');
+    const arrow = elText('span', '\u25B6', 'arrow' + (autoOpen ? ' open' : ''));
+    header.appendChild(arrow);
+    header.appendChild(document.createTextNode(' ' + title));
+
+    const body = el('div', 'expand-body' + (autoOpen ? ' open' : ''));
+
+    header.addEventListener('click', () => {
+      // Lazy-render content on first expand
+      if (!body.dataset.rendered) {
+        body.appendChild(contentFn());
+        body.dataset.rendered = '1';
+      }
+      body.classList.toggle('open');
+      arrow.classList.toggle('open');
+    });
+
+    // If auto-open, render immediately
+    if (autoOpen) {
+      body.appendChild(contentFn());
+      body.dataset.rendered = '1';
+    }
+
+    section.appendChild(header);
+    section.appendChild(body);
+    return section;
+  }
+
+  function buildTooltip() {
+    const tip = el('div', 'tooltip');
+    tip.id = 'tooltip';
+
+    document.addEventListener('mouseover', (e) => {
+      const target = e.target.closest('[data-tooltip]');
+      if (target) {
+        tip.textContent = target.dataset.tooltip;
+        tip.style.display = 'block';
+      }
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (tip.style.display === 'block') {
+        tip.style.left = (e.clientX + 12) + 'px';
+        tip.style.top = (e.clientY - 8) + 'px';
+      }
+    });
+
+    document.addEventListener('mouseout', (e) => {
+      if (e.target.closest('[data-tooltip]')) {
+        tip.style.display = 'none';
+      }
+    });
+
+    return tip;
+  }
+
+  // --- Helpers ---
+
+  function el(tag, cls) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    return e;
+  }
+
+  function elText(tag, text, cls) {
+    const e = el(tag, cls);
+    e.textContent = text;
+    return e;
+  }
+
+  function svgRect(x, y, w, h, fill, rx) {
+    const ns = 'http://www.w3.org/2000/svg';
+    const rect = document.createElementNS(ns, 'rect');
+    rect.setAttribute('x', x);
+    rect.setAttribute('y', y);
+    rect.setAttribute('width', w);
+    rect.setAttribute('height', h);
+    rect.setAttribute('fill', fill);
+    if (rx) rect.setAttribute('rx', rx);
+    return rect;
+  }
+
+  function svgText(x, y, text, fill, size, anchor) {
+    const ns = 'http://www.w3.org/2000/svg';
+    const t = document.createElementNS(ns, 'text');
+    t.setAttribute('x', x);
+    t.setAttribute('y', y);
+    t.setAttribute('fill', fill);
+    t.setAttribute('font-size', size);
+    t.setAttribute('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif');
+    if (anchor) t.setAttribute('text-anchor', anchor);
+    t.textContent = text;
+    return t;
+  }
+
+  function fmtPct(pct) {
+    if (pct == null) return '--';
+    const sign = pct >= 0 ? '+' : '';
+    return sign + pct.toFixed(1) + '%';
+  }
+
+  // Mirrors classifyChange() in thresholds.mjs. The band edge is not restated here: it comes from
+  // the serialized thresholds, so a row can never be painted red at a percentage the comment
+  // reports as within tolerance.
+  function classifyChangeCss(pct, threshold) {
+    const edge = threshold != null ? threshold : data.thresholds.timing;
+    if (pct == null) return 'neutral';
+    if (pct > edge) return 'regression';
+    if (pct > 0) return 'neutral-up';
+    if (pct < -edge) return 'improvement';
+    if (pct < 0) return 'neutral-down';
+    return 'neutral';
+  }
+
+  // Mirrors fmtCvValue() in thresholds.mjs, warning glyph included, so the markdown comment and
+  // this report flag an unreliable spread the same way.
+  function fmtCvValue(cv) {
+    if (cv == null) return 'n/a';
+    return cv.toFixed(1) + '%' + (cv > data.thresholds.cvWarning ? ' \u26A0\uFE0F' : '');
+  }
+
+  function statusColor(cls) {
+    const colors = {
+      'regression': '#cf222e',
+      'neutral-up': '#bf8700',
+      'improvement': '#1a7f37',
+      'neutral-down': '#0969da',
+      'neutral': '#656d76',
+    };
+    return colors[cls] || '#656d76';
+  }
+
+  // --- Init ---
+  document.body.appendChild(buildTooltip());
+  render();
+})();
+</script>
+</body>
+</html>
