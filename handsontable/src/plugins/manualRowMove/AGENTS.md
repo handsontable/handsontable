@@ -30,7 +30,9 @@ The UI has one extra quirk over the column version: **the first row is taller th
 "hover on the lower part of the TD" test is special-cased for it. There are also clamps for the backlight
 below the table and the guideline below the table.
 
-`isRowInFixedTopSection()` exists because a row inside `fixedRowsTop` behaves differently as a drop target.
+`isFixedRowTop(row)` and `isFixedRowBottom(row)` exist because a row inside `fixedRowsTop` or
+`fixedRowsBottom` behaves differently as a drop target. Both are checked — a fix aimed at only the top
+band misses the bottom one.
 
 ## NestedRows reimplements this plugin
 

@@ -5,7 +5,7 @@ Read this before touching `autofill.ts` or `utils.ts`.
 
 Two behaviors, one handle:
 
-- **drag-down** — drag the square to expand the selected values into neighbouring cells.
+- **drag-down** — drag the square to expand the selected values into neighboring cells.
 - **copy-down** — double-click the square to copy the selection into all empty cells below.
 
 ## The setting is `fillHandle`, not `autofill`

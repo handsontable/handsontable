@@ -28,7 +28,7 @@ Two real differences worth knowing:
   per-row equivalent of the `columns` option. The rule is the same though: only clear the marker the
   plugin itself set, or unhiding a row erases a user-defined value.
 
-The marker class is applied for `this.isHidden(row - 1)` — the class describes the **neighbour**
+The marker class is applied for `this.isHidden(row - 1)` — the class describes the **neighbor**
 relationship, so an off-by-one there is a real bug.
 
 ## Known concern

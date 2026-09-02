@@ -47,10 +47,11 @@ onto the **undone** stack instead of the done stack.
    current state instead of blanket-removing over the whole region keeps the per-cell `removeCellMeta` hook
    dispatch proportional to **styled cells**, not to region area.
 
-The movable key set is **imported from a shared module in `utils/`**, not duplicated: undo must restore
-exactly the key set `moveCellRange` moved, and two copies would drift the moment a key is added to one.
-The module lives in `utils/` rather than in the MoveCells plugin **so this action does not import another
-plugin** — registering just `UndoRedo` must not pull MoveCells code into the bundle.
+The movable key set is **imported from `../../utils/movableMeta.ts`** (`MOVABLE_META_KEYS`,
+`collectMovableMeta`), not duplicated: undo must restore exactly the key set `moveCellRange` moved, and two
+copies would drift the moment a key is added to one. Note that is the **core** `src/utils/`, not this
+directory's own `undoRedo/utils.ts` — it lives outside the MoveCells plugin **so this action does not import
+another plugin**, since registering just `UndoRedo` must not pull MoveCells code into the bundle.
 
 ## Two hook-argument hazards, both from `Hooks.run` threading
 
@@ -104,6 +105,6 @@ spec is wrong, not the fix.
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='undoRedo'`
 - `npm run test:unit --prefix handsontable -- --testPathPattern='undoRedo'`
 
-`__tests__/actions/` holds a spec per action — put a new action's coverage there, not in the 1.7k-line
+`__tests__/actions/` holds a spec per action — put a new action's coverage there, not in the 2.5k-line
 `UndoRedo.spec.js`. There are also dedicated `hooks`, `keyboardShortcuts`, `scroll` and `selection` specs,
 plus `../mergeCells/__tests__/undoRedo.spec.js` for that interaction.

@@ -36,7 +36,7 @@ about where that line is. The drag tolerance is a **local constant that delibera
 ColumnSorting's** — plugins do not import each other, so the value is duplicated with a comment saying so.
 Change one and you must change the other.
 
-A press that never travelled is a click, not a move, and bailing out on that also keeps
+A press that never traveled is a click, not a move, and bailing out on that also keeps
 `beforeColumnMove` / `afterColumnMove` from firing on every header click. The full protocol on the sorting
 side — the queued press, the two release signals, the two cancel checks — is in `../columnSorting/AGENTS.md`.
 

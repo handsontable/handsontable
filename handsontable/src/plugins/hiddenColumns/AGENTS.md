@@ -58,7 +58,7 @@ Three rules, all visible in `#onAfterGetCellMeta`:
 The parameter is typed `CellProperties`, never `Record<string, unknown>` — the latter erases every property
 to `unknown`, which is what let the `as string` cast compile in the first place.
 
-Note the hook reads `this.isHidden(column - 1)`: the indicator classes describe the **neighbour**
+Note the hook reads `this.isHidden(column - 1)`: the indicator classes describe the **neighbor**
 relationship, so an off-by-one here is a real bug, not a style choice.
 
 ## `modifyColWidth` is registered at order index 2

@@ -28,7 +28,7 @@ because `IndexMapper#updateCache()` rebuilds every cache *before* it fires `cach
 
 Four rules ride along, each from a measured defect:
 
-1. **Drop, never clamp** a stranded cell selection. Clamping slides the highlight onto a neighbouring record
+1. **Drop, never clamp** a stranded cell selection. Clamping slides the highlight onto a neighboring record
    and the next paste overwrites it. The exception is a **header-anchored extent** — a full column, a full
    row, select-all — whose far corner tracks the grid rather than naming records; that is clamped, judged
    **per axis**.

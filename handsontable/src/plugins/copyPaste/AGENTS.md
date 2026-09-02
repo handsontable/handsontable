@@ -62,10 +62,16 @@ Background in `../../../.ai/CONCERNS.md`.
 
 ## Copy is not a sanitizer surface — it is a text surface
 
-Content leaving the grid for the clipboard is *text*, so it goes through `utils/textExtractor.ts`
-(`extractText(hot, value, 'CopyPaste.…')`) and the grid-level `textExtractor` option. Routing it through
-`sanitizer` entity-encodes plain values (`R&D` → `R&amp;D`). The full rule and the three traps behind it are
-in `../exportFile/AGENTS.md`, which shares the mechanism.
+Content leaving the grid as *text* goes through `utils/textExtractor.ts`, never through `sanitizer` —
+routing it through a sanitizer entity-encodes plain values (`R&D` → `R&amp;D`). The full rule and the three
+traps behind it are in `../exportFile/AGENTS.md`, which shares the mechanism.
+
+**The scope here is column headers only.** There is exactly one call site — `extractText(this.hot, value,
+'CopyPaste.columnHeader')` — behind an early return when `getTextExtractor(this.hot) === false` or no header
+rows are copied. Cell values and row headers are **not** projected, and that is deliberate: a value such as
+`a<b` is data rather than a display string, and parsing it as HTML would destroy it. So a user's
+`textExtractor` not running on copied cell values is the designed behavior, not a missing call — do not
+"complete" it.
 
 ## Hook ordering details
 

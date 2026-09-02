@@ -43,9 +43,9 @@ areas are copied *before* `disablePlugin()` clears them.
 ## Focus order is a scan, not a linked list
 
 `focusOrder.ts` replaced a linked-list implementation, and several methods keep a cast with the note *"with
-no current node the method returns `undefined` at runtime and the callers rely on that behavior."* Likewise
-`getNodeByLayer`-style lookups keep "without a layer index no node can match", mirroring the old comparison
-against `undefined`.
+no current node the method returns `undefined` at runtime and the callers rely on that behavior."* The
+layer lookups (`#getNodeAt`, `#findNodeInLayer`) likewise keep "without a layer index no node can match",
+mirroring the old comparison against `undefined`.
 
 **Those casts are compatibility, not sloppiness.** Removing one changes the value callers receive.
 

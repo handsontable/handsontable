@@ -14,7 +14,7 @@ those levels. The samples for a level are generated for column `-1` across the r
 Each header level is bucketed by **the labels it draws**, never by another level's labels — sampling level 1
 by level 0's text skips the row carrying level 1's longest label and leaves that level narrow.
 
-**The grid's own renderer is recognised by reference, not by position.** A listener on
+**The grid's own renderer is recognized by reference, not by position.** A listener on
 `afterGetRowHeaderRenderers` may `unshift` or replace, so "level 0 is the grid's own" is not safe to assume.
 Only the grid's own renderer has text that `getRowHeader()` can be trusted for; reading a custom renderer's
 level through `getRowHeader` buckets it by the wrong text entirely.

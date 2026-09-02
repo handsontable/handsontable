@@ -2,7 +2,7 @@
 
 The `loading` plugin shows a spinner over the grid. Read this before touching `loading.ts` or `content.ts`.
 
-It is the smallest plugin here (~370 lines) because **it owns no DOM of its own**: it drives the Dialog
+It is the smallest plugin here (~340 lines) because **it owns no DOM of its own**: it drives the Dialog
 plugin.
 
 ## It force-enables the Dialog plugin

@@ -24,10 +24,14 @@ instance would activate at once. The exception: when focus is outside every `.ht
 one** grid may claim F6, and only if it is the only grid on the page. With multiple roots and focus outside
 all of them, F6 does nothing until focus is in a grid.
 
-That logic lives in `#shouldThisInstanceHandleF6ForActiveElement()` and is wired as the `runOnlyIf` guard on
-**two** shortcut contexts: `plugin:notification` (grid) and `plugin:notification:global`
-(`scope: 'global'`). Both need the guard — the global context is what makes F6 reachable when focus is
-outside the grid.
+The wired guard is `#shouldRunNotificationF6Shortcut()`, which calls
+`#shouldThisInstanceHandleF6ForActiveElement()` internally. **One shortcut object is registered on two
+contexts** (`#registerNotificationShortcuts`): `plugin:notification:global` (`scope: 'global'`) and the
+**core `grid` context** (`GRID_SCOPE`, from `shortcuts/contexts/constants`) when it exists. The global one
+is what makes F6 reachable while focus is outside the grid.
+
+The plugin's own `plugin:notification` context carries **Escape and Tab only — not F6.** Changing the
+multi-instance rule there changes nothing; edit the shared shortcut object and its `runOnlyIf` instead.
 
 ## `stackLimit` queues rather than drops
 

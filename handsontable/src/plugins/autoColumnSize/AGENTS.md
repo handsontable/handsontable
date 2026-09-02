@@ -5,9 +5,11 @@ The `autoColumnSize` plugin sizes columns from their content. Read this before t
 
 Two facts to get right before anything else:
 
-- **It is enabled by default.** `autoColumnSize: undefined` behaves like `true` (the opposite of
-  `autoRowSize`, which is off by default). So a change here reaches every grid that never mentioned the
-  option.
+- **It is enabled by default, but `colWidths` switches it off.** `isEnabled()` is
+  `getSettings()[PLUGIN_KEY] !== false && !getSettings().colWidths` — so `autoColumnSize: undefined`
+  behaves like `true` (the opposite of `autoRowSize`, which is off by default), **and any `colWidths`
+  setting silently disables the plugin.** Check `isEnabled()` first when a grid "is not measuring": on a
+  grid that declares `colWidths` there is nothing to find in the sampler or the ghost table.
 - **`PLUGIN_PRIORITY = 10`, the lowest of all plugins**, so it enables first and its `modifyColWidth`
   listener sits at the head of that hook's list.
 

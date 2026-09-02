@@ -7,7 +7,13 @@ plugin that has to reason about *when* it runs relative to another one.
 Nothing here is a feature. Change `base.ts` and you change all 42 plugins at once, so treat every edit
 as monorepo-wide.
 
-## The five statics, and what each one really controls
+## The statics, and what each one really controls
+
+`base.ts` declares **five**: `PLUGIN_KEY`, `SETTING_KEYS`, `DEFAULT_SETTINGS`, `SETTINGS_VALIDATORS` and
+`PLUGIN_DEPS`. `PLUGIN_PRIORITY` is listed with them because a plugin must supply it, but it is **not on
+the base class** — it is a per-plugin module export plus a per-plugin `static get`, read by `registry.ts`
+at registration. There is no default and no getter to override: a plugin that declares none is not
+mis-prioritized, it lands in the un-prioritized registration-order bucket.
 
 | Static | Answers | Trap |
 |---|---|---|
@@ -55,9 +61,16 @@ Details that bite:
 - **`destroy()` nulls every own property except `hot`, and `hot` is `delete`d** (it is non-writable, so
   `Reflect.set` silently fails on it). That is deliberate: an async guard written `if (!this.hot) { return; }`
   then reads `undefined` and returns. Write teardown guards that way, not `if (this.hot.isDestroyed)`.
-- **`addHook()` on the plugin, never `this.hot.addHook()`.** The plugin's own `addHook` records the callback
-  in `#hooks` so `disablePlugin()` can remove it. A hook registered straight on the instance survives
-  `disablePlugin()` and fires against a dead plugin.
+- **Default to `addHook()` on the plugin, not `this.hot.addHook()`.** The plugin's own `addHook` records the
+  callback in `#hooks` so `disablePlugin()` can remove it; a hook registered straight on the instance
+  survives `disablePlugin()` and can fire against a disabled plugin. **The exception is deliberate and
+  real** — about two dozen `this.hot.addHook` / `addHookOnce` sites exist across the plugins (filters,
+  dropdownMenu, columnSorting, search, comments, customBorders, columnSummary, formulas, loading,
+  contextMenu/menu), several precisely *because* the listener must outlive `disablePlugin()`:
+  `../loading/` registers `afterDialogFocus` once behind a `#dialogPlugin === null` guard, and the auto-size
+  plugins keep their recalculation listener bound so double-click autofit still works while disabled. So do
+  not convert these in a compliance pass — an instance-level hook needs a guard that tolerates being
+  disabled, and the reason belongs in a comment.
 - Hook callbacks must be **arrow function class fields** passed directly: `this.addHook('afterX', this.#onAfterX)`.
   Never `.bind(this)` and never an inline wrapper — `removeHooks` matches by identity.
 - `addHook`'s third argument is an **order index**: negative runs before the un-indexed listeners, positive
@@ -81,8 +94,17 @@ branches, on purpose: branches 1 and 2 must not depend on it.
 ## Hard conflicts
 
 `registerConflict(blockedKey, incompatibleSettingKeys)` declares "this plugin must never enable while that
-top-level setting is truthy". It is checked in two places — `init()`'s deferred enable and
-`onUpdateSettings` — and it warns to the console when it blocks.
+top-level setting is truthy". It is checked in two places, and **they do not behave identically**:
+
+| Site | On a block |
+|---|---|
+| `init()`'s deferred enable | warns **and writes `getSettings()[PLUGIN_KEY] = false`**, then returns |
+| `onUpdateSettings` branch 3 | warns and calls `disablePlugin()`; the setting is left alone |
+
+Two consequences. A grid blocked at init reports its own option as `false`, so a test asserting
+`getSettings().pagination === true` fails and removing the conflicting option later does not bring the
+plugin back at init. And `isHardConflictBlocked()` warns as a *side effect*, so a blocked plugin can emit
+the same warning twice for one `updateSettings()` call.
 
 The check is `!!settings[incompatibleSettingKey]`. It is a *setting* key, not a plugin key, so it also
 catches options no plugin owns (`fixedRowsTop`).
@@ -148,7 +170,10 @@ distinction.
 
 Because `enablePlugin()` fires on `afterPluginsInitialized`, a plugin that needs rendering state has to
 guard on `!this.hot.view` and sometimes force an `updatePlugin()` call from inside `enablePlugin()`.
-NestedHeaders carries 4 such sites and CollapsibleColumns 3. They are marked `#6806` in the source.
+**Only CollapsibleColumns' three sites are actually marked `#6806`** (`collapsibleColumns.ts`); grep for
+that number and NestedHeaders looks clean. It is not — it carries an unnumbered
+`// @TODO: Workaround for broken plugin initialization abstraction.` (`nestedHeaders.ts:1593`) plus its
+`this.hot.view` guards. `../../../.ai/CONCERNS.md` counts 4 sites there; do not trust a grep alone.
 
 Do not copy the workaround into a new plugin without checking whether you actually need `view` during
 enable. The real fix — guaranteeing `hot.view` before `enablePlugin()` — is tracked in

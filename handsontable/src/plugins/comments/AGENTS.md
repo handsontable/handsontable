@@ -59,7 +59,8 @@ Keep them that way.
 ## `DisplaySwitch` owns the show/hide delays
 
 Show is a `debounce`d call whose reference is **immutable** (re-creating it per hover would never fire);
-hide is a plain `setTimeout`. `hideCommentAfterDelay` / `cancelHiding` / `updateDelay` are the API.
+hide is a plain `setTimeout`. The API is `show(range)` / `hide()` / `cancelHiding()` / `updateDelay()` —
+`updateDelay()` is what builds the debounced show, so it is also the constructor path.
 
 Its internal flag records whether the last action was a show or a hide. Anything that hides the tooltip
 clears that flag — which is exactly the shadow-DOM double-binding failure above.

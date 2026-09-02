@@ -6,7 +6,7 @@ The `moveCells` plugin lets the user grab the border of a selection and drag the
 `PLUGIN_PRIORITY = 25`, and `isDragActive()` is reachable through `getPlugin` **only** so DragToScroll can
 ask whether this plugin accepted a press. It is internal, not public API.
 
-## Six guards before anything is written, and each one earns its place
+## Four guards before anything is written, and each one earns its place
 
 `moveCellRange()` runs roughly six full passes over the source and target regions before a single value
 changes: two read-only scans, two movable-meta collections, the value snapshot, plus UndoRedo's two region
