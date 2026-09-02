@@ -21,8 +21,9 @@ import { ManualResizeTeardownPage } from '../fixtures/pages/ManualResizeTeardown
  * detached, and a spec built on either would be green on the unfixed code. `toBeHidden()` appears
  * once, on the guide, and there it states the inertness rather than the teardown.
  *
- * Five of these tests are red on unfixed code: the four detach cases and the swallowed click. The
- * rest are pins, and each says so where it could be mistaken for coverage it does not provide.
+ * Six of the eleven tests are red on unfixed code: the four detach cases, the swallowed click, and
+ * the plugin-level destroy. The other five are pins, and each says so where it could otherwise be
+ * mistaken for coverage it does not provide.
  */
 test.describe('Manual resize handle and guide teardown', () => {
   let grid: ManualResizeTeardownPage;
