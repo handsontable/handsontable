@@ -223,9 +223,9 @@ jobs:
 
       # Manual QA is requested by ticking "This change needs a manual QA pass"
       # in the PR description (the template carries the line — its wording is
-      # this regex's contract). Read LIVE, never from the frozen event payload,
-      # so ticking the box later + "Re-run all jobs" arms the gate on an
-      # existing run. This is only the routing bit — the gate itself (the
+      # this regex's contract). Read LIVE, never from the frozen event payload:
+      # that is what lets pr-manual-qa-label.yml arm the gate on an existing
+      # run by simply re-running it when the box is newly ticked. This is only the routing bit — the gate itself (the
       # environment-approval sign-off job) lives in manual-qa.yml, and an
       # unticked PR skips that module without spending a runner on it.
       - id: manual-qa

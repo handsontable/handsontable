@@ -80,8 +80,8 @@ nuance no snapshot covers, a high-risk area — or a QA-owned pass such as an
 RC adversarial sweep or a screen-reader check), tick **"This change needs a
 manual QA pass"** in the PR description (author or agent may tick it; the
 template carries the line, and its wording is machine-read — keep it
-verbatim) and say in one line what to check. The PR is labelled
-**`Requires Manual QA`** so the request is visible in the PR list
+verbatim) and say in one line what to check. The PR gets the red
+**`Requires Manual QA`** label so the request is visible in the PR list
 (`pr-manual-qa-label.yml` — a marker only, never the trigger; fork and
 Dependabot PRs skip the label but not the gate). The Checks scope router
 reads the box live and routes the Manual QA module only when ticked; its
@@ -93,8 +93,11 @@ sign-off. While it waits, CI Gate cannot report, so the merge stays blocked
 without any job going red; a rejection turns CI Gate red. Unticked PRs
 *skip* the module — shown as skipped, never as a misleading green "passed",
 with no runner spent. Approval is per run: a new push re-asks the reviewers.
-Because the body is read live, a box ticked after a finished run needs a
-**"Re-run all jobs"** press to arm. This **adds** a recorded human pass; it
+Enforcement is decided per run too, but it **auto-arms**: ticking the box
+after a run already went green re-runs that Tests run, so the PR cannot sit
+mergeable with the box newly ticked. The reverse never happens by itself —
+automation here only ever ADDS the human gate. To drop enforcement, untick
+and press **"Re-run all jobs"** (or push), so a person owns the decision. This **adds** a recorded human pass; it
 never replaces the presence gate or the test requirement. Do not use it to
 dodge writing tests.
 

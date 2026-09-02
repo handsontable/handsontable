@@ -7,8 +7,17 @@ name: PR Manual QA label
 #
 # Ticking "This change needs a manual QA pass" in the PR description applies
 # the label; unticking removes it. It fires on `edited` too, so ticking the box
-# after opening is picked up immediately — unlike the gate, which needs a
-# "Re-run all jobs" press.
+# after opening is picked up immediately. The label is created on first use in
+# RED and re-asserted on every run, so it cannot drift to another colour.
+#
+# AUTO-ARM, NEVER AUTO-DISARM. Enforcement is decided per RUN, when the Checks
+# scope router reads the box. Ticking the box after a run already went green
+# would otherwise leave the PR mergeable with no gate — a real hole — so on the
+# unticked -> ticked transition this workflow RE-RUNS the latest Tests run for
+# the head commit, which re-reads the box and arms the gate. The reverse is
+# deliberately manual: automation here can only ever ADD the human gate, never
+# remove one. To drop enforcement, untick and press "Re-run all jobs" (or push)
+# — a person does it, and it is recorded as their action.
 #
 # Deliberately standalone, NOT a Tests module: it needs `issues: write`, and a
 # nested job-level permission request inside a reusable module is validated
@@ -27,6 +36,8 @@ permissions:
   contents: read
   issues: write
   pull-requests: write
+  # Re-running the Tests run when the box is newly ticked (see "auto-arm").
+  actions: write
 
 concurrency:
   group: pr-manual-qa-label-${{ github.event.pull_request.number }}
@@ -50,6 +61,32 @@ jobs:
             // Keep in sync with the tickbox regex in checks.yml and the
             // template line in .github/PULL_REQUEST_TEMPLATE.md.
             const LABEL = 'Requires Manual QA';
+            const COLOR = 'b60205'; // GitHub's red — a stop sign in the PR list.
+            const DESCRIPTION = 'Waits for a manual-qa environment sign-off before it can merge';
+
+            // Assert the label's appearance every time: created on first use,
+            // and repaired if someone recolours it by hand. Without this the
+            // first addLabels call would invent a random colour.
+            const ensureLabel = async () => {
+              try {
+                const { data: existing } = await github.rest.issues.getLabel({
+                  owner: context.repo.owner, repo: context.repo.repo, name: LABEL,
+                });
+                if (existing.color === COLOR && existing.description === DESCRIPTION) return;
+                await github.rest.issues.updateLabel({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  name: LABEL, color: COLOR, description: DESCRIPTION,
+                });
+                core.notice(`Restored the "${LABEL}" label's colour and description.`);
+              } catch (error) {
+                if (error.status !== 404) throw error;
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  name: LABEL, color: COLOR, description: DESCRIPTION,
+                });
+                core.notice(`Created the "${LABEL}" label.`);
+              }
+            };
             const prNumber = context.payload.pull_request.number;
             // Live read: another workflow may have moved the labels since this
             // event was queued.
@@ -64,15 +101,49 @@ jobs:
               return;
             }
             if (ticked) {
+              await ensureLabel();
               await github.rest.issues.addLabels({
                 owner: context.repo.owner, repo: context.repo.repo,
                 issue_number: prNumber, labels: [LABEL],
               });
               core.notice(`Applied "${LABEL}" — this PR waits for a manual-qa sign-off.`);
+
+              // Auto-arm: the box went from unticked to ticked, so the Tests run
+              // that already evaluated it decided "no gate". Re-run it so the
+              // scope router re-reads the box and the sign-off job appears.
+              // Best-effort — a failure here must not fail the label sync.
+              try {
+                const { data: runs } = await github.rest.actions.listWorkflowRunsForRepo({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  head_sha: pr.head.sha, per_page: 50,
+                });
+                const tests = runs.workflow_runs
+                  .filter((run) => run.path === '.github/workflows/test.yml')
+                  .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                const latest = tests[0];
+
+                if (!latest) {
+                  core.notice('No Tests run for this commit yet — the next one reads the box and arms the gate.');
+                } else if (latest.status === 'completed') {
+                  await github.rest.actions.reRunWorkflow({
+                    owner: context.repo.owner, repo: context.repo.repo, run_id: latest.id,
+                  });
+                  core.notice(`Re-ran Tests run ${latest.id} so the manual-QA gate arms on this commit.`);
+                } else {
+                  core.notice(`Tests run ${latest.id} is still ${latest.status}; if it already passed `
+                    + '"Checks / scope", press "Re-run all jobs" to arm the gate.');
+                }
+              } catch (error) {
+                core.warning(`Could not re-run the Tests workflow (${error.message}). `
+                  + 'Press "Re-run all jobs" on the Tests run to arm the manual-QA gate.');
+              }
               return;
             }
             await github.rest.issues.removeLabel({
               owner: context.repo.owner, repo: context.repo.repo,
               issue_number: prNumber, name: LABEL,
             });
-            core.notice(`Removed "${LABEL}" — the manual-QA box is no longer ticked.`);
+            core.notice(`Removed "${LABEL}" — the manual-QA box is no longer ticked. `
+              + 'Enforcement is NOT lifted automatically: a Tests run already waiting on the '
+              + 'manual-qa environment stays waiting. Press "Re-run all jobs" (or push) to '
+              + 'evaluate the unticked box and drop the gate.');

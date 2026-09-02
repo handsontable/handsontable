@@ -18,11 +18,14 @@ name: Manual QA
 # Semantics that follow from the mechanism:
 # - approval is PER RUN: every new push re-asks the reviewers — a fresh QA
 #   pass on fresh code, deliberately;
-# - the box is read live, but ticking it AFTER a run finished does not
-#   retro-block that run: press "Re-run all jobs" to arm the gate on it
-#   (same ergonomics as the run-docs-visual label).
+# - the box is read live, per run. Ticking it after a run already finished
+#   ARMS the gate anyway: pr-manual-qa-label.yml re-runs that Tests run on
+#   the unticked -> ticked transition, so a green PR cannot stay green with
+#   the box newly ticked. Unticking is NOT symmetric — enforcement is never
+#   lifted by automation; press "Re-run all jobs" (or push) so a person
+#   drops the gate and it is recorded as their action.
 #
-# A ticked PR also gets the `Requires Manual QA` label, so the request is
+# A ticked PR also gets the red `Requires Manual QA` label, so the request is
 # visible in the PR list without opening it (pr-manual-qa-label.yml — a
 # separate workflow; the label is a marker, never the trigger).
 #
