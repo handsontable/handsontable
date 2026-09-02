@@ -8,10 +8,8 @@
  * only when `--reset-lockfiles` asks for it, which is how a deliberate refresh is done: run it,
  * review the diff, land it on `develop` as its own change.
  */
-import rimraf from 'rimraf';
 import { promisify } from 'util';
 
-const rimrafPromisified = promisify(rimraf);
 const args = process.argv.slice(2);
 const resetLockfiles = args.includes('--reset-lockfiles');
 const [version] = args.filter(arg => !arg.startsWith('--'));
@@ -26,6 +24,13 @@ if (resetLockfiles && !version) {
 
   process.exit(1);
 }
+
+// Imported after the argument check, not with the other imports: a static import is hoisted, so
+// an unusable argument would come back as `Cannot find package 'rimraf'` anywhere the examples
+// workspace is not installed (the `tooling tests` CI job, for one) instead of as the message
+// above.
+const { default: rimraf } = await import('rimraf');
+const rimrafPromisified = promisify(rimraf);
 
 if (version) {
   console.log(`Removing:
