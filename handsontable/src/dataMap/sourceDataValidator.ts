@@ -1,7 +1,7 @@
 import type { HotInstance } from '../core/types';
 import type { GridSettings } from '../core/settings';
 import type { CellProperties } from '../settings';
-import type { default as DataSource } from './dataSource';
+import type { default as DataSource, DataAccessorFn } from './dataSource';
 import { logAggregatedItems, warn } from '../helpers/console';
 import { isFunction } from '../helpers/function';
 import { stringify } from '../helpers/mixed';
@@ -11,7 +11,7 @@ type InvalidItems = Map<string, Array<{ row: number; col: number; value: unknown
 type ColumnMapping = {
   physicalColumn: number;
   visualColumn: number;
-  sourceColumn: string | number;
+  sourceColumn: string | number | DataAccessorFn;
 };
 
 type ColumnValidator = ColumnMapping & {
@@ -55,8 +55,8 @@ export function runSourceDataValidator(value: unknown, cellMeta: CellProperties,
  * @param {object} cellMeta The resolved cell meta (its `sourceDataValidator` must be a function).
  * @param {unknown} value The source value to validate.
  * @param {number} physicalRow The physical row index.
- * @param {number} physicalColumn The physical column index.
- * @param {string|number} sourceColumn The source data property or physical column index.
+ * @param {number} physicalColumn The physical column index, used for the aggregated warning.
+ * @param {string|number|Function} sourceColumn The column's source address, used to blank the value.
  * @param {object} dataSource The data source used to blank invalid values.
  * @param {Map} invalidByMessageType The accumulator of invalid entries keyed by warning message.
  * @param {string} [source] The source identifier of the operation.
@@ -67,7 +67,7 @@ function validateSourceCell(
   value: unknown,
   physicalRow: number,
   physicalColumn: number,
-  sourceColumn: string | number,
+  sourceColumn: string | number | DataAccessorFn,
   dataSource: DataSource,
   invalidByMessageType: InvalidItems,
   source?: string
@@ -85,6 +85,8 @@ function validateSourceCell(
   }
 
   if (cellMeta.allowInvalid === false) {
+    // Blanked at the same address the value was read from. Passing the physical column here
+    // instead cleared a different cell whenever `columns[].data` remapped the source indexes.
     dataSource.setAtCell(physicalRow, sourceColumn, null);
   }
 
@@ -100,6 +102,11 @@ function validateSourceCell(
 
 /**
  * Resolves the source, physical, and visual coordinate mapping once for every non-trimmed column.
+ *
+ * `sourceColumn` is the address the value actually lives under — the key or index that
+ * `columns[].data` remaps and that a moved column keeps. `colToProp()` takes a *visual* index, so
+ * the physical one has to be translated first. A trimmed column has no visual index, and no
+ * address here.
  *
  * @param {HotInstance} hotInstance The Handsontable instance.
  * @param {number} colSourceCount The number of physical source columns.
@@ -118,7 +125,9 @@ function collectColumnMappings(
       columns.push({
         physicalColumn,
         visualColumn,
-        sourceColumn: hotInstance.colToProp(visualColumn),
+        // A `columns[].data` accessor comes back as the function itself, which owns both the read
+        // and the write.
+        sourceColumn: hotInstance.colToProp(visualColumn) as string | number | DataAccessorFn,
       });
     }
   }
@@ -203,6 +212,9 @@ function validatePerCell(
       continue;
     }
 
+    // The row representation depends on the row alone, so it is resolved at most once per row
+    // instead of once per column — `modifyRowData` runs a hook, and rows with no validated cell
+    // must not pay for it at all.
     let dataRow: unknown = null;
     let hasDataRow = false;
 
@@ -221,7 +233,9 @@ function validatePerCell(
         hasDataRow = true;
       }
 
-      const value = dataSource.getAtPhysicalCell(row, sourceColumn, dataRow);
+      // Read by the column's source address; `getAtCell()` would resolve it as a *visual* index
+      // and reach another column whenever the two differ.
+      const value = dataSource.getAtCellByProp(row, sourceColumn, dataRow);
 
       validateSourceCell(
         cellMeta, value, row, physicalColumn, sourceColumn, dataSource, invalidByMessageType, source
@@ -260,11 +274,14 @@ function validateBatched(
       continue;
     }
 
+    // Resolved once per row, not once per column: every column of this row shares it, and
+    // `modifyRowData` runs a hook on each call.
     const dataRow = dataSource.modifyRowData(row);
 
     for (let i = 0; i < columns.length; i += 1) {
       const { physicalColumn, sourceColumn, cellMeta } = columns[i];
-      const value = dataSource.getAtPhysicalCell(row, sourceColumn, dataRow);
+      // Read by the column's source address, for the same reason as in `validatePerCell()`.
+      const value = dataSource.getAtCellByProp(row, sourceColumn, dataRow);
 
       validateSourceCell(
         cellMeta, value, row, physicalColumn, sourceColumn, dataSource, invalidByMessageType, source
