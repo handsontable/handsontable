@@ -76,6 +76,25 @@ function snapToNearestVisible(indexMapper: IndexMapper, index: number, isSingleL
  * @property {number[]} columnExtentSpansGrid The layers whose column extent spans the whole grid.
  */
 
+type IndexAxis = 'row' | 'column';
+
+type PhysicalSelectionSnapshot = {
+  ranges: Array<{
+    physical: CellRange;
+    visual: CellRange;
+    physicalSpan: number[];
+    spansAxis: boolean;
+    originalLayerIndex: number;
+  }>;
+  activeSelectionLayer: number;
+  selectedByRowHeader: Set<number>;
+  selectedByColumnHeader: Set<number>;
+  rowExtentSpansGrid: Set<number>;
+  columnExtentSpansGrid: Set<number>;
+  disableHeadersHighlight: boolean;
+  selectionSource: string;
+};
+
 /**
  * @class Selection
  * @util
@@ -180,6 +199,36 @@ class Selection {
    * @type {number}
    */
   #activeSelectionLayer = 0;
+  /**
+   * Physical-coordinate copies captured independently for row and column trimming cache rebuilds.
+   * They exist only while an editor is open, so ordinary mapper updates do not retain selection state.
+   *
+   * A STACK per axis, not one slot, because `IndexMapper#updateCache()` can nest: a consumer of
+   * `hidingChangesObservable` (emitted between `beforeCacheUpdate` and `cacheUpdated`) that touches
+   * a trimming map runs a whole inner update inside the outer one's window. One slot per axis let
+   * the inner update's capture overwrite the outer's, and its `afterCacheUpdate` discard clear it -
+   * the outer restore then silently did nothing and left the selection on stale coordinates with an
+   * editor open, which is the corruption this class exists to prevent. Every entry is pushed by
+   * `capturePhysicalSelection()` (`null` when the update must not restore) and popped by
+   * `discardPhysicalSelectionSnapshot()`, which `IndexMapper` pairs through a `finally`.
+   *
+   * @type {Array[]}
+   */
+  #physicalSelectionSnapshots: Record<IndexAxis, Array<PhysicalSelectionSnapshot | null>> = {
+    row: [],
+    column: [],
+  };
+  /**
+   * The axis whose restore dropped the whole selection and still owes an `afterDeselect`, or `null`.
+   *
+   * Tagged with the axis rather than a bare flag so the notification cannot be consumed by the other
+   * axis: a consumer of `afterRowSequenceCacheUpdate` that triggers a COLUMN mapper update nests a
+   * `cacheUpdated` whose notification would otherwise fire the row axis's debt early - before
+   * `EditorManager` has discarded the stranded editor, which is the whole point of deferring it.
+   *
+   * @type {'row'|'column'|null}
+   */
+  #deferredDeselect: IndexAxis | null = null;
   /**
    * Visual layer index of the range currently hovered while `selectionHandles` is on, or `null`.
    *
@@ -606,7 +655,8 @@ class Selection {
     rowHighlight?.clear();
     columnHighlight?.clear();
 
-    if (this.highlight.isEnabledFor(AREA_TYPE, cellRange.highlight) && (this.isMultiple() || layerLevel >= 1)) {
+    if (this.highlight.isEnabledFor(AREA_TYPE, cellRange.highlight) &&
+        (this.isMultiple(cellRange) || layerLevel >= 1)) {
       areaHighlight
         ?.add(cellRange.from)
         .add(cellRange.to)
@@ -645,6 +695,7 @@ class Selection {
     if (this.highlight.isEnabledFor(HEADER_TYPE, cellRange.highlight)) {
       this.#applyHeaderHighlights(
         cellRange,
+        layerLevel,
         countRows,
         countCols,
         rowHeaderHighlight,
@@ -662,6 +713,7 @@ class Selection {
    * Applies header-type highlights for the given cell range.
    *
    * @param {CellRange} cellRange The cell range to highlight.
+   * @param {number} layerLevel The selection layer being painted.
    * @param {number} countRows The total number of rows.
    * @param {number} countCols The total number of columns.
    * @param {object | null | undefined} rowHeaderHighlight The row header highlight instance.
@@ -674,6 +726,7 @@ class Selection {
    */
   #applyHeaderHighlights(
     cellRange: CellRange,
+    layerLevel: number,
     countRows: number,
     countCols: number,
     rowHeaderHighlight: ReturnType<Highlight['createRowHeader']>,
@@ -716,12 +769,12 @@ class Selection {
       }
     }
 
-    const highlightRowHeaders = !this.#disableHeadersHighlight && (this.isEntireRowSelected() &&
+    const highlightRowHeaders = !this.#disableHeadersHighlight && (this.isEntireRowSelected(layerLevel) &&
       (countCols > 0 && countCols === cellRange.getWidth() ||
-      countCols === 0 && this.isSelectedByRowHeader()));
-    const highlightColumnHeaders = !this.#disableHeadersHighlight && (this.isEntireColumnSelected() &&
+      countCols === 0 && this.isSelectedByRowHeader(layerLevel)));
+    const highlightColumnHeaders = !this.#disableHeadersHighlight && (this.isEntireColumnSelected(layerLevel) &&
       (countRows > 0 && countRows === cellRange.getHeight() ||
-      countRows === 0 && this.isSelectedByColumnHeader()));
+      countRows === 0 && this.isSelectedByColumnHeader(layerLevel)));
 
     if (highlightRowHeaders) {
       activeRowHeaderHighlight
@@ -1945,6 +1998,242 @@ class Selection {
   }
 
   /**
+   * Captures every resolvable selection layer along one axis before a trimming mapper replaces its
+   * visual-to-physical cache. Header coordinates remain untouched because they are sentinels.
+   *
+   * @private
+   * @param {'row'|'column'} axis The mapper axis being updated.
+   * @param {boolean} canRestore Whether this update's shape allows a restore at all. A `false` pushes
+   *                             an empty entry, which keeps the push/pop pairing with
+   *                             `discardPhysicalSelectionSnapshot()` intact for nested updates.
+   */
+  capturePhysicalSelection(axis: IndexAxis, canRestore = true): void {
+    const activeRange = this.getActiveSelectedRange();
+
+    if (!canRestore || !this.tableProps.isEditorOpened() || !activeRange) {
+      this.#physicalSelectionSnapshots[axis].push(null);
+
+      return;
+    }
+
+    const indexMapper = axis === 'row' ? this.tableProps.rowIndexMapper : this.tableProps.columnIndexMapper;
+    const coordinateKey = axis === 'row' ? 'row' : 'col';
+    // Read from the MAPPER, not from `countRows()`/`countCols()`: those resolve through `DataMap`,
+    // which `updateData()` tears down and rebuilds while cache updates are still firing, and the
+    // mapper owns the trimmed visual space this measures anyway. `deselectIfHighlightStranded()`
+    // sizes the same test the same way, for the same reason.
+    const axisLength = indexMapper.getNotTrimmedIndexesLength();
+    const ranges: PhysicalSelectionSnapshot['ranges'] = [];
+
+    this.selectedRange.ranges.forEach((range, originalLayerIndex) => {
+      const physical = this.#mapRangeCoordinates(range, (coords) => {
+        const physicalCoords = coords.clone();
+
+        physicalCoords[coordinateKey] = this.#getPhysicalIndex(coords[coordinateKey], indexMapper);
+
+        return physicalCoords;
+      });
+
+      if (this.#hasResolvedPhysicalRange(physical, axis)) {
+        // Whether this layer's extent along the restored axis TRACKS THE GRID, which decides
+        // whether the restore re-pins it to the axis boundaries or shrinks it onto survivors. It
+        // takes BOTH a declaration of intent and the geometry to back it, and neither half is
+        // sufficient:
+        //
+        //   - Intent comes from the `…ExtentSpansGrid` set for this axis, written by `selectAll()`,
+        //     `selectColumns()` and `selectRows()`. Geometry alone would mean a drag-selected range
+        //     that happens to reach both ends of the grid gets re-pinned, and it names records - so
+        //     a later untrim would grow it onto records the user never selected.
+        //   - Geometry is required because that set is STICKY: it is written when the selection is
+        //     laid and cleared only wholesale, so a `Shift+Up` that shrinks a full-column selection
+        //     to rows 0-3 leaves it still saying "spans the grid". Re-pinning then grows the range
+        //     back to the whole column and `Ctrl+Enter` fills a row the user had excluded.
+        //
+        // The `selectedByRowHeader` / `selectedByColumnHeader` sets are NOT consulted, which their
+        // own field JSDoc explains: they are written only when a header is rendered, so they answer
+        // "should a header be highlighted", not "does this extent span the grid".
+        //
+        // Measured here because here is the only place it can be: the length is still the
+        // pre-update one, and the range still describes the space it was laid in.
+        const extentSpansGrid = axis === 'row' ? this.#rowExtentSpansGrid : this.#columnExtentSpansGrid;
+        const fromIndex = range.from[coordinateKey];
+        const toIndex = range.to[coordinateKey];
+        const spansAxis = extentSpansGrid.has(originalLayerIndex) &&
+          (fromIndex ?? 0) <= 0 && (toIndex ?? -1) >= axisLength - 1;
+
+        ranges.push({
+          physical,
+          visual: range.clone(),
+          physicalSpan: this.#capturePhysicalSpan(range, axis, indexMapper, spansAxis),
+          spansAxis,
+          originalLayerIndex,
+        });
+      }
+    });
+
+    if (!ranges.some(({ originalLayerIndex }) => originalLayerIndex === this.#activeSelectionLayer)) {
+      this.#physicalSelectionSnapshots[axis].push(null);
+
+      return;
+    }
+
+    this.#physicalSelectionSnapshots[axis].push({
+      ranges,
+      activeSelectionLayer: this.#activeSelectionLayer,
+      selectedByRowHeader: new Set(this.selectedByRowHeader),
+      selectedByColumnHeader: new Set(this.selectedByColumnHeader),
+      // Carried for the same reason as the header sets, and it is the same kind of state: both are
+      // keyed by LAYER INDEX, and the restore re-indexes the layers it keeps. Left behind, a
+      // full-column or select-all layer would hand its "spans the grid" flag to whichever layer
+      // inherited its slot, and `deselectIfHighlightStranded()` would then clamp the wrong one.
+      rowExtentSpansGrid: new Set(this.#rowExtentSpansGrid),
+      columnExtentSpansGrid: new Set(this.#columnExtentSpansGrid),
+      disableHeadersHighlight: this.#disableHeadersHighlight,
+      selectionSource: this.#selectionSource,
+    });
+  }
+
+  /**
+   * Rebuilds the selection from one axis's physical snapshot after a pure trimming update. This
+   * directly commits highlights so selection hooks cannot prepare an editor while caches unwind.
+   *
+   * The snapshot is CONSUMED rather than popped: `discardPhysicalSelectionSnapshot()` owns the pop,
+   * so a nested update's entry cannot be taken for this one's.
+   *
+   * @private
+   * @param {'row'|'column'} axis The mapper axis that was updated.
+   */
+  restorePhysicalSelection(axis: IndexAxis): void {
+    const stack = this.#physicalSelectionSnapshots[axis];
+    const snapshot = stack.length > 0 ? stack[stack.length - 1] : null;
+
+    if (stack.length > 0) {
+      stack[stack.length - 1] = null;
+    }
+
+    if (!snapshot) {
+      return;
+    }
+
+    const rowsLength = this.tableProps.rowIndexMapper.getNotTrimmedIndexesLength();
+    const columnsLength = this.tableProps.columnIndexMapper.getNotTrimmedIndexesLength();
+
+    if (rowsLength === 0 || columnsLength === 0) {
+      this.#clearForRestore(axis);
+
+      return;
+    }
+
+    const restoredRanges: Array<{ range: CellRange; originalLayerIndex: number }> = [];
+
+    snapshot.ranges.forEach(({ physical, visual, physicalSpan, spansAxis, originalLayerIndex }) => {
+      const range = this.#restorePhysicalRange(
+        physical, visual, physicalSpan, spansAxis, originalLayerIndex, axis, snapshot);
+
+      if (range) {
+        restoredRanges.push({ range, originalLayerIndex });
+      }
+    });
+
+    const activeSelectionLayer = restoredRanges.findIndex(
+      ({ originalLayerIndex }) => originalLayerIndex === snapshot.activeSelectionLayer);
+
+    // An ACTIVE layer that could not be restored takes the whole selection with it, and it is never
+    // replaced by whichever layer inherits its slot. The only way to lose it is a range whose every
+    // record the trim removed AND whose own visual slot the same trim left out of range, so nothing
+    // addressable is left to keep: the editor bound to it is discarded on the hook behind this one,
+    // and a write through that coordinate would APPEND records. That is exactly what
+    // `Selection#deselectIfHighlightStranded()` drops for a selection with no editor, and the other
+    // layers go with it there too, for the same reason - the fill and paste paths read the ACTIVE
+    // range, so promoting a bystander layer would hand them a selection the user never made.
+    //
+    if (restoredRanges.length === 0 || activeSelectionLayer === -1) {
+      this.#clearForRestore(axis);
+
+      return;
+    }
+
+    this.selectedRange.ranges = restoredRanges.map(({ range }) => range);
+    this.#activeSelectionLayer = activeSelectionLayer;
+    this.selectedByRowHeader = this.#remapLayerSet(snapshot.selectedByRowHeader, restoredRanges);
+    this.selectedByColumnHeader = this.#remapLayerSet(snapshot.selectedByColumnHeader, restoredRanges);
+    this.#rowExtentSpansGrid = this.#remapLayerSet(snapshot.rowExtentSpansGrid, restoredRanges);
+    this.#columnExtentSpansGrid = this.#remapLayerSet(snapshot.columnExtentSpansGrid, restoredRanges);
+    this.#disableHeadersHighlight = snapshot.disableHeadersHighlight;
+    this.#selectionSource = snapshot.selectionSource;
+    this.#extenderTransformation.setActiveLayerIndex(this.#activeSelectionLayer);
+    this.#focusTransformation.setActiveLayerIndex(this.#activeSelectionLayer);
+
+    this.highlight.clear();
+    this.selectedRange.ranges.forEach((range, layerIndex) => this.applyAndCommit(range, layerIndex));
+
+    const activeRange = this.getActiveSelectedRange();
+
+    this.highlight.useLayerLevel(this.#activeSelectionLayer);
+    this.highlight.getFocus().clear();
+
+    if (activeRange && this.highlight.isEnabledFor(FOCUS_TYPE, activeRange.highlight)) {
+      this.highlight.getFocus().add(activeRange.highlight).commit().syncWith(activeRange);
+    }
+  }
+
+  /**
+   * Drops the whole selection from inside a restore, and OWES the `afterDeselect` that a
+   * `deselect()` would have run.
+   *
+   * The notification cannot be sent from here. `Core` answers `afterDeselect` with
+   * `EditorManager#closeEditor()`, which SAVES the pending value, and this runs before the public
+   * cache-update hooks - so the editor whose record the trim removed is still open, and closing it
+   * would commit the edit through the coordinates this drop exists to abandon, appending records.
+   * `EditorManager` discards that editor inside those hooks; `notifyDeferredDeselect()` fires
+   * afterwards, when closing is a no-op. On develop the same drop went through
+   * `deselectIfHighlightStranded()`, which is already past that point, which is why it could
+   * deselect directly.
+   *
+   * @param {'row'|'column'} axis The mapper axis whose restore dropped the selection.
+   */
+  #clearForRestore(axis: IndexAxis): void {
+    this.clear();
+    this.selectedByRowHeader.clear();
+    this.selectedByColumnHeader.clear();
+    this.inProgress = false;
+    this.#deferredDeselect = axis;
+  }
+
+  /**
+   * Runs an `afterDeselect` that a restore owes, once the public cache-update hooks of the SAME axis
+   * have run. Stays silent when anything re-selected in the meantime - a `Filters#filter()`
+   * re-selecting the highlighted column is the case - because the selection the notification would
+   * describe is back.
+   *
+   * @private
+   * @param {'row'|'column'} axis The axis whose public cache-update hook has just run.
+   */
+  notifyDeferredDeselect(axis: IndexAxis): void {
+    if (this.#deferredDeselect !== axis) {
+      return;
+    }
+
+    this.#deferredDeselect = null;
+
+    if (!this.isSelected()) {
+      this.runLocalHooks('afterDeselect');
+    }
+  }
+
+  /**
+   * Pops one axis's snapshot when its mapper update finishes, restored or not. Paired with the push
+   * in `capturePhysicalSelection()` by `IndexMapper`'s `try/finally`, so a nested update cannot
+   * discard the entry the outer update is still going to read.
+   *
+   * @private
+   * @param {'row'|'column'} axis The mapper axis whose snapshot should be dropped.
+   */
+  discardPhysicalSelectionSnapshot(axis: IndexAxis): void {
+    this.#physicalSelectionSnapshots[axis].pop();
+  }
+
+  /**
    * Refreshes the whole selection by clearing, reapplying and committing (calculating visual to renderable indexes)
    * the selection by using already added visual ranges. The method can be useful when underneath some indexes
    * was hidden/showed or dataset size was changed or the range of the cell ranges was modified. Then, to see the
@@ -2008,6 +2297,382 @@ class Selection {
 
     this.finish();
     this.markEndSource();
+  }
+
+  /**
+   * Maps all three coordinate sets in a selection range through a coordinate factory.
+   *
+   * @param {CellRange} range The range whose coordinates should be mapped.
+   * @param {function(CellCoords): CellCoords} mapCoords The coordinate mapping function.
+   * @returns {CellRange} The mapped range.
+   */
+  #mapRangeCoordinates(
+    range: CellRange,
+    mapCoords: (coords: CellCoords) => CellCoords,
+  ): CellRange {
+    return this.tableProps.createCellRange(
+      mapCoords(range.highlight),
+      mapCoords(range.from),
+      mapCoords(range.to),
+    );
+  }
+
+  /**
+   * Converts a visual index to a physical one while preserving header sentinels and unresolved
+   * coordinates.
+   *
+   * @param {number|null} index The visual index.
+   * @param {IndexMapper} indexMapper The axis mapper.
+   * @returns {number|null} The physical index.
+   */
+  #getPhysicalIndex(index: number | null, indexMapper: IndexMapper): number | null {
+    if (index === null || index < 0) {
+      return index;
+    }
+
+    return indexMapper.getPhysicalFromVisualIndex(index);
+  }
+
+  /**
+   * Tests whether every real coordinate in a physical range resolved on the updated axis.
+   *
+   * @param {CellRange} range The range mapped to physical coordinates.
+   * @param {'row'|'column'} axis The mapped axis.
+   * @returns {boolean} Whether all three coordinates resolved.
+   */
+  #hasResolvedPhysicalRange(range: CellRange, axis: IndexAxis): boolean {
+    const coordinateKey = axis === 'row' ? 'row' : 'col';
+
+    return [range.highlight, range.from, range.to].every(coords => coords[coordinateKey] !== null);
+  }
+
+  /**
+   * Records the physical indexes a range covers along one axis, in `from`-to-`to` order, so a
+   * trimmed corner can later be shrunk onto the nearest record the user actually selected.
+   *
+   * Whole-row and whole-column layers are skipped: they re-pin to the axis boundaries on restore,
+   * so walking their span would cost one pass over the grid for a result that is never read.
+   *
+   * @param {CellRange} range The range being captured, in visual coordinates.
+   * @param {'row'|'column'} axis The mapper axis being updated.
+   * @param {IndexMapper} indexMapper The mapper for that axis, still holding its pre-update cache.
+   * @param {boolean} spansAxis Whether the range's extent along this axis covered the whole axis.
+   * @returns {number[]} The covered physical indexes, without header sentinels.
+   */
+  #capturePhysicalSpan(
+    range: CellRange,
+    axis: IndexAxis,
+    indexMapper: IndexMapper,
+    spansAxis: boolean,
+  ): number[] {
+    const coordinateKey = axis === 'row' ? 'row' : 'col';
+    const fromIndex = range.from[coordinateKey];
+    const toIndex = range.to[coordinateKey];
+
+    // A grid-tracking extent names no records along this axis, so there is nothing to survive and
+    // the walk below would allocate one entry per index in the grid to say so.
+    if (spansAxis || fromIndex === null || toIndex === null) {
+      return [];
+    }
+
+    const step = toIndex >= fromIndex ? 1 : -1;
+    const span: number[] = [];
+
+    for (let visualIndex = fromIndex;
+      step > 0 ? visualIndex <= toIndex : visualIndex >= toIndex;
+      visualIndex += step) {
+      const physicalIndex = this.#getPhysicalIndex(visualIndex, indexMapper);
+
+      if (physicalIndex !== null && physicalIndex >= 0) {
+        span.push(physicalIndex);
+      }
+    }
+
+    return span;
+  }
+
+  /**
+   * Finds the visual index of the first record in a captured span that survived the update,
+   * scanning from whichever end of the range lost its corner.
+   *
+   * @param {number[]} physicalSpan The physical indexes the range covered, in `from`-to-`to` order.
+   * @param {'row'|'column'} axis The mapper axis being restored.
+   * @param {boolean} searchFromStart Whether to scan from the `from` end rather than the `to` end.
+   * @returns {number|null} The surviving record's visual index, or `null` when none survived.
+   */
+  #nearestSurvivingVisualIndex(
+    physicalSpan: number[],
+    axis: IndexAxis,
+    searchFromStart: boolean,
+  ): number | null {
+    const indexMapper = axis === 'row' ? this.tableProps.rowIndexMapper : this.tableProps.columnIndexMapper;
+
+    for (let offset = 0; offset < physicalSpan.length; offset++) {
+      const physicalIndex = physicalSpan[searchFromStart ? offset : physicalSpan.length - 1 - offset];
+      const visualIndex = indexMapper.getVisualFromPhysicalIndex(physicalIndex);
+
+      if (visualIndex !== null) {
+        return visualIndex;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Converts a physical index to a visual one while preserving header sentinels.
+   *
+   * @param {number|null} index The physical index.
+   * @param {IndexMapper} indexMapper The axis mapper.
+   * @returns {number|null} The visual index.
+   */
+  #getVisualIndex(index: number | null, indexMapper: IndexMapper): number | null {
+    if (index !== null && index < 0) {
+      return index;
+    }
+
+    return index === null ? null : indexMapper.getVisualFromPhysicalIndex(index);
+  }
+
+  /**
+   * Creates post-update visual coordinates from one axis's physical snapshot.
+   *
+   * @param {CellCoords} physicalCoords The physical-coordinate snapshot.
+   * @param {CellCoords} visualCoordsBeforeUpdate The coordinates before the mapper update.
+   * @param {'row'|'column'} axis The mapper axis being restored.
+   * @param {number} [forcedVisualIndex] A boundary required by a whole-row or whole-column selection.
+   * @param {number|null} [fallbackVisualIndex=null] Where the coordinate lands when its record was trimmed.
+   * @returns {CellCoords|null} Rebased visual coordinates, or `null` for a trimmed record.
+   */
+  #createVisualCoords(
+    physicalCoords: CellCoords,
+    visualCoordsBeforeUpdate: CellCoords,
+    axis: IndexAxis,
+    forcedVisualIndex?: number,
+    fallbackVisualIndex: number | null = null,
+  ): CellCoords | null {
+    const indexMapper = axis === 'row' ? this.tableProps.rowIndexMapper : this.tableProps.columnIndexMapper;
+    const coordinateKey = axis === 'row' ? 'row' : 'col';
+    const visualIndex = forcedVisualIndex ??
+      this.#getVisualIndex(physicalCoords[coordinateKey], indexMapper) ??
+      fallbackVisualIndex;
+
+    if (visualIndex === null) {
+      return null;
+    }
+
+    const visualCoords = visualCoordsBeforeUpdate.clone();
+
+    visualCoords[coordinateKey] = visualIndex;
+
+    return visualCoords;
+  }
+
+  /**
+   * Restores one range. A partially trimmed range SHRINKS onto its surviving records rather than
+   * being dropped, because `BaseEditor#saveValue()` fills the active range on `Ctrl+Enter`: dropping
+   * a partially trimmed active layer would hand that commit to whichever layer inherits the active
+   * slot, writing the typed value onto a record the user never edited. Trimming only removes
+   * records, so the survivors of a contiguous range stay contiguous and a `CellRange` still
+   * describes them exactly. The ACTIVE layer with nothing left parks on its focus's pre-update slot
+   * when the trim left that slot in range, and is dropped when the slot addresses nothing; a
+   * non-active layer is dropped either way, as it is when its focus alone was trimmed, rather than
+   * having its highlight moved onto a neighbouring record.
+   *
+   * Whole-row and whole-column ranges keep spanning the complete opposite axis after its size changes.
+   *
+   * @param {CellRange} physicalRange The physical-coordinate snapshot.
+   * @param {CellRange} visualRange The range before the mapper update.
+   * @param {number[]} physicalSpan The physical indexes the range covered along the restored axis.
+   * @param {boolean} spansAxis Whether the range's extent along this axis covered the whole axis.
+   * @param {number} layerIndex The range's original layer index.
+   * @param {'row'|'column'} axis The mapper axis being restored.
+   * @param {PhysicalSelectionSnapshot} snapshot The selection state captured with the range.
+   * @returns {CellRange|null} The restored range, or `null` when it has nothing left to describe.
+   */
+  #restorePhysicalRange(
+    physicalRange: CellRange,
+    visualRange: CellRange,
+    physicalSpan: number[],
+    spansAxis: boolean,
+    layerIndex: number,
+    axis: IndexAxis,
+    snapshot: PhysicalSelectionSnapshot,
+  ): CellRange | null {
+    const coordinateKey = axis === 'row' ? 'row' : 'col';
+    const isActiveLayer = layerIndex === snapshot.activeSelectionLayer;
+    const indexMapper = axis === 'row' ? this.tableProps.rowIndexMapper : this.tableProps.columnIndexMapper;
+    const axisLength = indexMapper.getNotTrimmedIndexesLength();
+    let fromBoundary;
+    let toBoundary;
+
+    // A grid-tracking extent is re-pinned to the axis boundaries, because that is what it always
+    // meant: a shorter grid is a shorter selection. `spansAxis` required both the layer's
+    // grid-tracking flag and full coverage at capture time, so neither a shrunk full-column
+    // selection nor a drag-selected range that merely reached both ends comes through here - both
+    // name records, and re-pinning either would let `Ctrl+Enter` fill rows the user never selected.
+    if (spansAxis) {
+      const anchor = visualRange.from[coordinateKey];
+
+      fromBoundary = anchor !== null && anchor < 0 ? anchor : 0;
+      toBoundary = axisLength - 1;
+    }
+
+    const survivingFromEnd = this.#nearestSurvivingVisualIndex(physicalSpan, axis, true);
+    const survivingToEnd = this.#nearestSurvivingVisualIndex(physicalSpan, axis, false);
+    // Every corner a trim removed has to be replaced by an index in the POST-update visual space.
+    // The corner's own PRE-update slot is not one: it and a surviving corner rebased through the
+    // mapper differ by however many records the same update trimmed ABOVE the range, so mixing them
+    // slides the restored range down onto records the user never selected, and the next fill writes
+    // into them. A survivor of the range's own span is in the right space by construction.
+    //
+    // The focus falls back the same way `from` does, which keeps it inside the shrunk range. Losing
+    // it is not what drops a layer: the editor bound to a trimmed focus is discarded by
+    // `EditorManager` on the hook behind this one, and that decision reads the editor's OWN captured
+    // physical index rather than this highlight.
+    //
+    // With NO survivor there is no such index, and what happens then is decided by the focus's own
+    // pre-update slot, on the rule `Selection#deselectIfHighlightStranded()` already applies to a
+    // selection with no editor: keep a coordinate that still ADDRESSES something, drop one that
+    // addresses nothing. A slot the trim left inside the grid is a parking spot for the cursor, not
+    // a claim about records - the editor is discarded, and the next keystroke re-prepares against
+    // whichever record now sits there, so the write lands on a real record instead of appending. All
+    // three corners take that one slot together, so the range collapses onto that single cell rather
+    // than spanning whatever now sits between two independently stale corners. A slot the trim left
+    // PAST the last index addresses nothing, is not clamped inward onto a record the trim merely slid
+    // into view, and drops the layer instead.
+    //
+    // Only the ACTIVE layer parks: the user keeps typing there, and `re-prepares from post-trim state
+    // when the user keeps typing after the discard` pins that. A non-active layer with nothing left
+    // is dropped, as is one whose focus alone is gone - moving another layer's highlight onto a
+    // neighbouring record would make `applyAndCommit` paint a selection the user never made. When it
+    // is the active layer that has nothing addressable left, `restorePhysicalSelection()` clears the
+    // whole selection rather than promoting a bystander into the active slot.
+    //
+    // A GRID-TRACKING extent is the exception to the drop, and the same exception
+    // `deselectIfHighlightStranded()` already carries: its corners name no records, so only its
+    // focus can strand, and clamping that focus is what a shorter grid always meant. Dropping a
+    // still-valid full-column or select-all selection because the row its focus sat on went away
+    // would be a regression against the no-editor repair, which clamps it.
+    const focusVisualIndex = visualRange.highlight[coordinateKey];
+    const isFocusSlotAddressable = focusVisualIndex !== null &&
+      focusVisualIndex >= 0 && focusVisualIndex < axisLength;
+    let fallbackVisualIndex = null;
+
+    if (survivingFromEnd === null) {
+      if (spansAxis) {
+        fallbackVisualIndex = clamp(focusVisualIndex ?? 0, 0, axisLength - 1);
+      } else if (isActiveLayer && isFocusSlotAddressable) {
+        fallbackVisualIndex = focusVisualIndex;
+      }
+    }
+
+    const highlight = this.#createVisualCoords(
+      physicalRange.highlight, visualRange.highlight, axis, undefined,
+      isActiveLayer || spansAxis ? survivingFromEnd ?? fallbackVisualIndex : null);
+    const from = this.#createVisualCoords(
+      physicalRange.from, visualRange.from, axis, fromBoundary, survivingFromEnd ?? fallbackVisualIndex);
+    const to = this.#createVisualCoords(
+      physicalRange.to, visualRange.to, axis, toBoundary, survivingToEnd ?? fallbackVisualIndex);
+
+    if (!highlight || !from || !to) {
+      return null;
+    }
+
+    if (this.#coversForeignRecords(from, to, physicalSpan, spansAxis, axis)) {
+      // The rectangle gained a record the user never selected, and a `CellRange` cannot exclude it.
+      // The active layer collapses onto its focus, which is the one coordinate the user is
+      // demonstrably on; a bystander layer is dropped rather than painted over strangers.
+      if (!isActiveLayer) {
+        return null;
+      }
+
+      const focusOnly = this.#createVisualCoords(
+        physicalRange.highlight, visualRange.highlight, axis, undefined,
+        survivingFromEnd ?? fallbackVisualIndex);
+
+      return focusOnly ? this.tableProps.createCellRange(focusOnly, focusOnly.clone(), focusOnly.clone()) : null;
+    }
+
+    return this.tableProps.createCellRange(highlight, from, to);
+  }
+
+  /**
+   * Tells whether a restored rectangle covers a record the captured range did not.
+   *
+   * A trimming map does not only REMOVE records: `IndexMapper` raises `trimmedIndexesChanged` for any
+   * trimming-map write, so clearing a filter or calling `untrimRow()` reaches the restore too. The
+   * survivors of a removal stay contiguous, which is what lets a shrunk range still be one
+   * `CellRange` - but a record REVEALED between two corners lands inside the rectangle those corners
+   * describe, and `Ctrl+Enter` would then fill a row the user never selected.
+   *
+   * Grid-tracking extents are exempt: their corners name no records, so covering a revealed record
+   * is exactly what they are supposed to do.
+   *
+   * @param {CellCoords} from The restored `from` corner.
+   * @param {CellCoords} to The restored `to` corner.
+   * @param {number[]} physicalSpan The physical indexes the range covered before the update.
+   * @param {boolean} spansAxis Whether the range's extent along this axis covered the whole axis.
+   * @param {'row'|'column'} axis The mapper axis being restored.
+   * @returns {boolean}
+   */
+  #coversForeignRecords(
+    from: CellCoords,
+    to: CellCoords,
+    physicalSpan: number[],
+    spansAxis: boolean,
+    axis: IndexAxis,
+  ): boolean {
+    if (spansAxis || physicalSpan.length === 0) {
+      return false;
+    }
+
+    const coordinateKey = axis === 'row' ? 'row' : 'col';
+    const fromIndex = from[coordinateKey];
+    const toIndex = to[coordinateKey];
+
+    if (fromIndex === null || toIndex === null) {
+      return false;
+    }
+
+    const indexMapper = axis === 'row' ? this.tableProps.rowIndexMapper : this.tableProps.columnIndexMapper;
+    const selectedRecords = new Set(physicalSpan);
+    const lowerIndex = Math.min(fromIndex, toIndex);
+    const upperIndex = Math.max(fromIndex, toIndex);
+
+    for (let visualIndex = Math.max(lowerIndex, 0); visualIndex <= upperIndex; visualIndex++) {
+      const physicalIndex = this.#getPhysicalIndex(visualIndex, indexMapper);
+
+      if (physicalIndex !== null && physicalIndex >= 0 && !selectedRecords.has(physicalIndex)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Re-indexes a set of layer markers after unresolved ranges are removed. Every piece of selection
+   * state keyed by layer index goes through this - the two header-selection sets and the two
+   * grid-tracking extent sets - because dropping one layer shifts every layer below it.
+   *
+   * @param {Set<number>} layers The original layer indexes.
+   * @param {Array} restoredRanges The ranges that survived restoration.
+   * @returns {Set<number>} Markers aligned with the restored range array.
+   */
+  #remapLayerSet(
+    layers: Set<number>,
+    restoredRanges: Array<{ range: CellRange; originalLayerIndex: number }>,
+  ): Set<number> {
+    const remappedLayers = new Set<number>();
+
+    restoredRanges.forEach(({ originalLayerIndex }, restoredLayerIndex) => {
+      if (layers.has(originalLayerIndex)) {
+        remappedLayers.add(restoredLayerIndex);
+      }
+    });
+
+    return remappedLayers;
   }
 
   /**

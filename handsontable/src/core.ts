@@ -804,6 +804,43 @@ export default function Core(
     trimmedIndexesChanged: boolean;
     hiddenIndexesChanged: boolean;
   };
+  type IndexAxis = 'row' | 'column';
+
+  /**
+   * Tells whether an update is a PURE TRIM, which is the only shape the physical selection snapshot
+   * can be restored across. Trimming only removes records, so the survivors of a rectangular range
+   * stay contiguous and a `CellRange` still describes them; a permutation can scatter them.
+   *
+   * @param {object} indexesChangesState The state object of the index mapper's cache update.
+   * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
+   * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
+   * @returns {boolean}
+   */
+  const shouldRestoreSelection = (
+    { indexesSequenceChanged, trimmedIndexesChanged }: IndexesChangesState
+  ): boolean => trimmedIndexesChanged && !indexesSequenceChanged;
+
+  /**
+   * Snapshots the selection in PHYSICAL coordinates before an index mapper rebuilds its caches.
+   *
+   * It has to happen here: `IndexMapper#updateCache()` rebuilds every cache before it fires
+   * `cacheUpdated`, so by then the pre-update visual space is gone and the records the selection
+   * was laid on cannot be recovered. `Selection` takes the snapshot only while an editor is open -
+   * a selection with no editor is repaired by `repairSelection()` below, on a different rule.
+   *
+   * @param {object} indexesChangesState The state object of the index mapper's cache update.
+   * @param {'row'|'column'} axis The mapper axis that is about to be updated.
+   */
+  const onBeforeIndexMapperCacheUpdate = (
+    indexesChangesState: IndexesChangesState,
+    axis: IndexAxis,
+  ): void => {
+    // Called for EVERY update, restorable or not, because the capture pushes onto a per-axis stack
+    // that `afterCacheUpdate` pops. `updateCache()` can nest - a `hidingChangesObservable` consumer
+    // that writes a trimming map runs a whole inner update inside this one's window - and only a
+    // balanced push/pop keeps the inner update from discarding the entry this one will read.
+    this.selection.capturePhysicalSelection(axis, shouldRestoreSelection(indexesChangesState));
+  };
 
   /**
    * Reacts to an index-map cache update, and reports whether an editor was open when it landed.
@@ -817,17 +854,31 @@ export default function Core(
    * @param {object} indexesChangesState The state object of the index mapper's cache update.
    * @param {boolean} indexesChangesState.hiddenIndexesChanged Whether the hidden indexes changed.
    * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
+   * @param {'row'|'column'} axis The mapper axis that was updated.
    * @returns {boolean}
    */
   const onIndexMapperCacheUpdate = (
-    { hiddenIndexesChanged, trimmedIndexesChanged }: IndexesChangesState
+    indexesChangesState: IndexesChangesState,
+    axis: IndexAxis,
   ): boolean => {
+    const { hiddenIndexesChanged, trimmedIndexesChanged } = indexesChangesState;
+
     this.forceFullRender = true;
 
     // Sampled HERE, before the public cache-update hooks run, because `EditorManager` discards a
     // stranded editor inside those hooks - by the time the selection repair reads this, an editor
     // that was open when the trim landed is already gone.
     const hadOpenEditor = editorManager?.isEditorOpened() === true;
+
+    // Restored BEFORE `commit()`, which is the only order that works: the restore puts every layer
+    // back on its surviving records, and `commit()` then walks the highlight off whatever the same
+    // update hid. Reversed, `commit()` would move the highlight before the snapshot lands and the
+    // restore would overwrite its answer.
+    // The snapshot is only CONSUMED here; the pop belongs to `afterCacheUpdate`, so this stays
+    // correct when a nested update pushed and popped its own entry in between.
+    if (shouldRestoreSelection(indexesChangesState)) {
+      this.selection.restorePhysicalSelection(axis);
+    }
 
     if (hiddenIndexesChanged) {
       this.selection.commit();
@@ -932,8 +983,27 @@ export default function Core(
     }
   };
 
+  this.columnIndexMapper.addLocalHook(
+    'beforeCacheUpdate',
+    (indexesChangesState: IndexesChangesState) =>
+      onBeforeIndexMapperCacheUpdate(indexesChangesState, 'column'),
+  );
+  this.rowIndexMapper.addLocalHook(
+    'beforeCacheUpdate',
+    (indexesChangesState: IndexesChangesState) =>
+      onBeforeIndexMapperCacheUpdate(indexesChangesState, 'row'),
+  );
+  this.columnIndexMapper.addLocalHook(
+    'afterCacheUpdate',
+    () => this.selection.discardPhysicalSelectionSnapshot('column'),
+  );
+  this.rowIndexMapper.addLocalHook(
+    'afterCacheUpdate',
+    () => this.selection.discardPhysicalSelectionSnapshot('row'),
+  );
+
   this.columnIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexesChangesState) => {
-    const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState);
+    const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState, 'column');
     // Read and RECORDED before the public hook, both for the same reason: what a consumer does must
     // not rewrite this update's answer, and must not be undone by it either. A consumer calling
     // `alter()` from the hook nests a cache update that advances the counter itself, so writing a
@@ -945,19 +1015,31 @@ export default function Core(
 
     lastColumnIndexCount = indexCount;
 
-    this.runHooks('afterColumnSequenceCacheUpdate', indexesChangesState);
+    // Deferred to HERE, not sent from the restore: `afterDeselect` closes the editor, and closing it
+    // saves - so it must not run until `EditorManager` has discarded the editor whose record the
+    // trim removed, which it does inside the hook above. In a `finally` because a consumer of that
+    // public hook may throw, and a debt left unpaid would fire on the next unrelated cache update.
+    try {
+      this.runHooks('afterColumnSequenceCacheUpdate', indexesChangesState);
+    } finally {
+      this.selection.notifyDeferredDeselect('column');
+    }
 
     repairSelection(isStructuralChange, indexesChangesState, hadOpenEditor);
   });
 
   this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexesChangesState) => {
-    const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState);
+    const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState, 'row');
     const indexCount = this.rowIndexMapper.getNumberOfIndexes();
     const isStructuralChange = indexCount !== lastRowIndexCount;
 
     lastRowIndexCount = indexCount;
 
-    this.runHooks('afterRowSequenceCacheUpdate', indexesChangesState);
+    try {
+      this.runHooks('afterRowSequenceCacheUpdate', indexesChangesState);
+    } finally {
+      this.selection.notifyDeferredDeselect('row');
+    }
 
     repairSelection(isStructuralChange, indexesChangesState, hadOpenEditor);
   });
