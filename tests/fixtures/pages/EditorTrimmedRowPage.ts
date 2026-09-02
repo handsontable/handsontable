@@ -36,7 +36,7 @@ interface ManualColumnMovePlugin {
 }
 
 interface HandsontableFixture {
-  addHook(name: string, callback: () => unknown): void;
+  addHook(name: string, callback: (...args: unknown[]) => unknown): void;
   getSelectedRangeActive(): { from: { row: number | null } } | undefined;
   getSelected(): number[][] | undefined;
   selectCells(ranges: number[][]): void;
@@ -383,6 +383,23 @@ export class EditorTrimmedRowPage {
       });
       hot.alter('remove_row', target as number, 1);
     }, [removeIndex, trimRow] as [number, number]);
+  }
+
+  /**
+   * Removes a row and filters in ONE synchronous block, with no task boundary between the two -
+   * the shape plain application code produces with `hot.alter('remove_row', 1);
+   * hot.getPlugin('filters').filter();`. A strand window that outlives `alter()` leaks into the
+   * filter, which then commits the stranded editor through its stale coordinates.
+   */
+  async removeRowThenFilterSameTask(row: number, column: number, values: string[]): Promise<void> {
+    await this.page.evaluate(([target, targetColumn, targetValues]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      const filters = hot.getPlugin('filters');
+
+      hot.alter('remove_row', target as number, 1);
+      filters.addCondition(targetColumn as number, 'by_value', [targetValues]);
+      filters.filter();
+    }, [row, column, values] as [number, number, string[]]);
   }
 
   /**

@@ -1219,6 +1219,11 @@ export default function Core(
      * @param {boolean} [keepEmptyRows] Optional. Flag for skipping the post-alter empty row and column adjustment.
      */
     alter(action: string, index: number | number[][] | undefined, amount = 1, source: string, keepEmptyRows: boolean) {
+      // A structural change strands an open editor between its cache update and its selection
+      // repair (`shiftRows()`/`shiftColumns()` below); until this call's own tail, a reconcile
+      // must tolerate the stranded editor rather than discard the pending edit. Depth-counted,
+      // so an `alter()` a hook fires from inside this one cannot lift this call's protection.
+      editorManager.suspendStrandDiscards();
 
       const skipAlter = instance.runHooks('beforeAlter', action, index, amount, source, keepEmptyRows);
 
@@ -1471,6 +1476,14 @@ export default function Core(
       if (!keepEmptyRows) {
         grid.adjustRowsAndCols(); // makes sure that we did not add rows that will be removed in next refresh
       }
+
+      // The alter's synchronous work is done: `selection.shiftRows()` (or `shiftColumns()`, for
+      // the column actions - `#recaptureEditedRecord()` opens the scope on either axis) has had
+      // its chance to re-prepare an editor the change stranded. Closing the scope here rather
+      // than on a deferred timeout is what lets a trimming change that follows in the SAME task -
+      // `alter('remove_row', ...)` and then `Filters#filter()` - discard the stranded edit
+      // instead of committing through it and appending records (DEV-2739).
+      editorManager.resumeStrandDiscards();
 
       instance.view.adjustElementsSize();
       instance.view.render();
@@ -3440,6 +3453,13 @@ export default function Core(
       (newDataMap: DataMapInstance) => {
         datamap = newDataMap;
 
+        // `fitToLength()` strands an open editor the same way `alter()`'s removal does (a
+        // shrinking dataset renumbers the physical space under it), and `selection.refresh()`
+        // below is this operation's re-prepare chance - so the same structural-change scope
+        // applies, or a trimming change in the same task commits through the stranded editor
+        // and appends records (DEV-2739 review).
+        editorManager.suspendStrandDiscards();
+
         instance.columnIndexMapper.fitToLength(this.getInitialColumnCount());
         instance.rowIndexMapper.fitToLength(this.countSourceRows());
 
@@ -3447,6 +3467,8 @@ export default function Core(
         selection.markSource('updateData');
         selection.refresh();
         selection.markEndSource();
+
+        editorManager.resumeStrandDiscards();
       }, {
 
         hotInstance: instance,
