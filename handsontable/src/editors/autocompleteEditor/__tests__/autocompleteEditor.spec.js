@@ -2426,7 +2426,9 @@ describe('AutocompleteEditor', () => {
       editorInput.val('e');
 
       await keyDownUp('e'); // e
-      await waitForNextAnimationFrames(2);
+      // Every choice contains a lowercase 'e', so the queried list settles at the full 9 rows.
+      // Poll for that state instead of guessing how long the editor's deferred query takes.
+      await waitUntil(() => getActiveEditor().htEditor?.getData().length === 9);
 
       {
         const ac = getActiveEditor();
@@ -2449,7 +2451,9 @@ describe('AutocompleteEditor', () => {
         await keyDownUp('e'); // E (same as 'e')
       }
 
-      await waitForNextAnimationFrames(2);
+      // The case-sensitive query for an uppercase 'E' matches nothing - the emptied list IS the
+      // asserted behavior, so polling for it cannot mask a failure.
+      await waitUntil(() => getActiveEditor().htEditor?.getData().length === 0);
 
       {
         const ac = getActiveEditor();
