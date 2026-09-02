@@ -556,7 +556,73 @@ export function empty(element: Element): void {
   }
 }
 
-export const HTML_CHARACTERS = /(<([^>]*)>|&([^;]*);)/;
+/**
+ * Decides whether a string is written through `innerHTML` (markup, so it has to reach the
+ * sanitizer) or `textContent` (plain text, which cannot inject anything).
+ *
+ * Every alternative is deliberately shaped to require something that could actually be parsed as
+ * markup, and must stay that way. A looser test - matching any `<` with a later `>`, or any `&`
+ * with a later `;` - routes ordinary prose such as `Smith & Sons, Ltd.; est. 1920` or
+ * `Score < 50 > threshold` to `innerHTML`. Under a Trusted Types policy that write throws, and
+ * because `fastInnerHTML` has no `catch` the error propagates out of header rendering and takes
+ * the whole grid down, from a `colHeaders` string containing no markup at all.
+ *
+ * The four alternatives are, in order: a tag, a markup declaration or processing instruction, a
+ * named character reference (`&amp;`, `&frac12;`), and a numeric one (`&#169;`, `&#x1F600;`).
+ *
+ * The tag alternative requires a tag-like shape - `<`, an optional `/`, then an ASCII letter - and
+ * excludes `<` from the run that follows, which is what keeps it linear. With `[^>]*` there, a
+ * label of `'<a'.repeat(40000)` backtracks for over a second on the main thread; `[^<>]*` answers
+ * the same in a fraction of a millisecond. The one input the two disagree on is a `<` inside an
+ * attribute value with no other tag in the string (`<a x="<">`), which lands on the text path - the
+ * inert side. This matters beyond rendering: `sanitizeHTML` runs this test over a whole `text/html`
+ * clipboard payload on paste.
+ *
+ * The declaration alternative is why a comment, a doctype, `<![CDATA[`, or `<?xml?>` still takes
+ * the HTML path. None of them can build an element, so nothing here is a sink concern; they are
+ * kept on it because the `html` cell type and `allowHtml` sources render markup deliberately, and
+ * dropping declarations to the text path would print them literally where they used to disappear
+ * into the parser. It deliberately does not require a closing `>`: an unterminated declaration is
+ * still not prose, and leaving the `>` out keeps this alternative free of a quantifier.
+ *
+ * The alternatives sit side by side rather than nested inside one group, which is what keeps the
+ * pattern inside the complexity budget the `typescript:S5843` quality gate enforces - nesting an
+ * alternation inside another one prices every quantifier under it a level higher. They are all
+ * non-capturing: this value is public, and capture groups on it were a shape consumers could read
+ * (`match[1]` used to equal `match[0]`) while nothing in the grid ever did. Exposing no groups is
+ * honest about that, where renumbering them silently would not be.
+ *
+ * The numeric alternative writes the `x` as optional rather than splitting decimal from
+ * hexadecimal, so it also admits `&#abc;` - `#` with hexadecimal digits but no `x`. That is not a
+ * reference, so this errs toward treating a handful of unrealistic strings as markup. The
+ * sanitizer seeing slightly too much is the safe direction to be imprecise in.
+ *
+ * Two residuals, both deliberate. The semicolon-less legacy named form (`&copy 2024`, which a
+ * parser still decodes, with a parse error) is out of scope, so such content now renders literally;
+ * the old pattern only decoded it when an unrelated `;` happened to appear later in the same
+ * string, which made the behavior depend on the rest of the value. And the tag alternative still
+ * matches prose shaped like a tag, `Type <Enter> to continue` or `<none>`, because the only way to
+ * exclude it is a tag-name allowlist, which would drop custom elements from headers. Such a label
+ * still reaches `innerHTML`, and so still throws under a Trusted Types policy - the accidental
+ * crash this pattern narrows is reduced, not eliminated.
+ *
+ * The named form requires at least two characters on purpose. HTML defines no single-letter named
+ * reference - the shortest are two, such as `&lt;` and `&ni;` - so the floor costs nothing and it
+ * is what keeps `R&D; notes` out of the sink. Matching by shape cannot be exact: `&Dx;` is not a
+ * reference either, yet it is spelled like one. Testing the ~2200 real names would mean a table
+ * lookup on a path that runs for every rendered header, and a browser renders an unknown
+ * reference literally anyway, so shape is where this stops.
+ *
+ * It stays unanchored, so a string mixing prose with a real reference (`Smith & Sons; &amp; more`)
+ * still matches on the reference and still reaches the sanitizer.
+ *
+ * The `i` flag carries the case-insensitivity that tag names and hexadecimal digits need anyway
+ * (`<IMG SRC=x>`, `&#X41;`), which is what lets the character classes stay this short. There is
+ * deliberately no `g` flag: it would make `.test()` stateful through `lastIndex`, so consecutive
+ * calls on the same pattern would disagree about identical content.
+ */
+export const HTML_CHARACTERS =
+  /(?:<\/?[a-z][^<>]*>)|(?:<[!?])|(?:&[a-z][a-z\d]+;)|(?:&#x?[\da-f]+;)/i;
 
 /**
  * Shared "warn once" key for every missing-sanitizer warning, so that all DOM
