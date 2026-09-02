@@ -804,6 +804,43 @@ export default function Core(
     trimmedIndexesChanged: boolean;
     hiddenIndexesChanged: boolean;
   };
+  type IndexAxis = 'row' | 'column';
+
+  /**
+   * Tells whether an update is a PURE TRIM, which is the only shape the physical selection snapshot
+   * can be restored across. Trimming only removes records, so the survivors of a rectangular range
+   * stay contiguous and a `CellRange` still describes them; a permutation can scatter them.
+   *
+   * @param {object} indexesChangesState The state object of the index mapper's cache update.
+   * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
+   * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
+   * @returns {boolean}
+   */
+  const shouldRestoreSelection = (
+    { indexesSequenceChanged, trimmedIndexesChanged }: IndexesChangesState
+  ): boolean => trimmedIndexesChanged && !indexesSequenceChanged;
+
+  /**
+   * Snapshots the selection in PHYSICAL coordinates before an index mapper rebuilds its caches.
+   *
+   * It has to happen here: `IndexMapper#updateCache()` rebuilds every cache before it fires
+   * `cacheUpdated`, so by then the pre-update visual space is gone and the records the selection
+   * was laid on cannot be recovered. `Selection` takes the snapshot only while an editor is open -
+   * a selection with no editor is repaired by `repairSelection()` below, on a different rule.
+   *
+   * @param {object} indexesChangesState The state object of the index mapper's cache update.
+   * @param {'row'|'column'} axis The mapper axis that is about to be updated.
+   */
+  const onBeforeIndexMapperCacheUpdate = (
+    indexesChangesState: IndexesChangesState,
+    axis: IndexAxis,
+  ): void => {
+    // Called for EVERY update, restorable or not, because the capture pushes onto a per-axis stack
+    // that `afterCacheUpdate` pops. `updateCache()` can nest - a `hidingChangesObservable` consumer
+    // that writes a trimming map runs a whole inner update inside this one's window - and only a
+    // balanced push/pop keeps the inner update from discarding the entry this one will read.
+    this.selection.capturePhysicalSelection(axis, shouldRestoreSelection(indexesChangesState));
+  };
 
   /**
    * Reacts to an index-map cache update, and reports whether an editor was open when it landed.
@@ -817,17 +854,31 @@ export default function Core(
    * @param {object} indexesChangesState The state object of the index mapper's cache update.
    * @param {boolean} indexesChangesState.hiddenIndexesChanged Whether the hidden indexes changed.
    * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
+   * @param {'row'|'column'} axis The mapper axis that was updated.
    * @returns {boolean}
    */
   const onIndexMapperCacheUpdate = (
-    { hiddenIndexesChanged, trimmedIndexesChanged }: IndexesChangesState
+    indexesChangesState: IndexesChangesState,
+    axis: IndexAxis,
   ): boolean => {
+    const { hiddenIndexesChanged, trimmedIndexesChanged } = indexesChangesState;
+
     this.forceFullRender = true;
 
     // Sampled HERE, before the public cache-update hooks run, because `EditorManager` discards a
     // stranded editor inside those hooks - by the time the selection repair reads this, an editor
     // that was open when the trim landed is already gone.
     const hadOpenEditor = editorManager?.isEditorOpened() === true;
+
+    // Restored BEFORE `commit()`, which is the only order that works: the restore puts every layer
+    // back on its surviving records, and `commit()` then walks the highlight off whatever the same
+    // update hid. Reversed, `commit()` would move the highlight before the snapshot lands and the
+    // restore would overwrite its answer.
+    // The snapshot is only CONSUMED here; the pop belongs to `afterCacheUpdate`, so this stays
+    // correct when a nested update pushed and popped its own entry in between.
+    if (shouldRestoreSelection(indexesChangesState)) {
+      this.selection.restorePhysicalSelection(axis);
+    }
 
     if (hiddenIndexesChanged) {
       this.selection.commit();
@@ -932,8 +983,27 @@ export default function Core(
     }
   };
 
+  this.columnIndexMapper.addLocalHook(
+    'beforeCacheUpdate',
+    (indexesChangesState: IndexesChangesState) =>
+      onBeforeIndexMapperCacheUpdate(indexesChangesState, 'column'),
+  );
+  this.rowIndexMapper.addLocalHook(
+    'beforeCacheUpdate',
+    (indexesChangesState: IndexesChangesState) =>
+      onBeforeIndexMapperCacheUpdate(indexesChangesState, 'row'),
+  );
+  this.columnIndexMapper.addLocalHook(
+    'afterCacheUpdate',
+    () => this.selection.discardPhysicalSelectionSnapshot('column'),
+  );
+  this.rowIndexMapper.addLocalHook(
+    'afterCacheUpdate',
+    () => this.selection.discardPhysicalSelectionSnapshot('row'),
+  );
+
   this.columnIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexesChangesState) => {
-    const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState);
+    const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState, 'column');
     // Read and RECORDED before the public hook, both for the same reason: what a consumer does must
     // not rewrite this update's answer, and must not be undone by it either. A consumer calling
     // `alter()` from the hook nests a cache update that advances the counter itself, so writing a
@@ -945,19 +1015,31 @@ export default function Core(
 
     lastColumnIndexCount = indexCount;
 
-    this.runHooks('afterColumnSequenceCacheUpdate', indexesChangesState);
+    // Deferred to HERE, not sent from the restore: `afterDeselect` closes the editor, and closing it
+    // saves - so it must not run until `EditorManager` has discarded the editor whose record the
+    // trim removed, which it does inside the hook above. In a `finally` because a consumer of that
+    // public hook may throw, and a debt left unpaid would fire on the next unrelated cache update.
+    try {
+      this.runHooks('afterColumnSequenceCacheUpdate', indexesChangesState);
+    } finally {
+      this.selection.notifyDeferredDeselect('column');
+    }
 
     repairSelection(isStructuralChange, indexesChangesState, hadOpenEditor);
   });
 
   this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexesChangesState) => {
-    const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState);
+    const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState, 'row');
     const indexCount = this.rowIndexMapper.getNumberOfIndexes();
     const isStructuralChange = indexCount !== lastRowIndexCount;
 
     lastRowIndexCount = indexCount;
 
-    this.runHooks('afterRowSequenceCacheUpdate', indexesChangesState);
+    try {
+      this.runHooks('afterRowSequenceCacheUpdate', indexesChangesState);
+    } finally {
+      this.selection.notifyDeferredDeselect('row');
+    }
 
     repairSelection(isStructuralChange, indexesChangesState, hadOpenEditor);
   });
@@ -1137,6 +1219,11 @@ export default function Core(
      * @param {boolean} [keepEmptyRows] Optional. Flag for skipping the post-alter empty row and column adjustment.
      */
     alter(action: string, index: number | number[][] | undefined, amount = 1, source: string, keepEmptyRows: boolean) {
+      // A structural change strands an open editor between its cache update and its selection
+      // repair (`shiftRows()`/`shiftColumns()` below); until this call's own tail, a reconcile
+      // must tolerate the stranded editor rather than discard the pending edit. Depth-counted,
+      // so an `alter()` a hook fires from inside this one cannot lift this call's protection.
+      editorManager.suspendStrandDiscards();
 
       const skipAlter = instance.runHooks('beforeAlter', action, index, amount, source, keepEmptyRows);
 
@@ -1389,6 +1476,14 @@ export default function Core(
       if (!keepEmptyRows) {
         grid.adjustRowsAndCols(); // makes sure that we did not add rows that will be removed in next refresh
       }
+
+      // The alter's synchronous work is done: `selection.shiftRows()` (or `shiftColumns()`, for
+      // the column actions - `#recaptureEditedRecord()` opens the scope on either axis) has had
+      // its chance to re-prepare an editor the change stranded. Closing the scope here rather
+      // than on a deferred timeout is what lets a trimming change that follows in the SAME task -
+      // `alter('remove_row', ...)` and then `Filters#filter()` - discard the stranded edit
+      // instead of committing through it and appending records (DEV-2739).
+      editorManager.resumeStrandDiscards();
 
       instance.view.adjustElementsSize();
       instance.view.render();
@@ -3358,6 +3453,13 @@ export default function Core(
       (newDataMap: DataMapInstance) => {
         datamap = newDataMap;
 
+        // `fitToLength()` strands an open editor the same way `alter()`'s removal does (a
+        // shrinking dataset renumbers the physical space under it), and `selection.refresh()`
+        // below is this operation's re-prepare chance - so the same structural-change scope
+        // applies, or a trimming change in the same task commits through the stranded editor
+        // and appends records (DEV-2739 review).
+        editorManager.suspendStrandDiscards();
+
         instance.columnIndexMapper.fitToLength(this.getInitialColumnCount());
         instance.rowIndexMapper.fitToLength(this.countSourceRows());
 
@@ -3365,6 +3467,8 @@ export default function Core(
         selection.markSource('updateData');
         selection.refresh();
         selection.markEndSource();
+
+        editorManager.resumeStrandDiscards();
       }, {
 
         hotInstance: instance,
@@ -4245,12 +4349,21 @@ export default function Core(
    * Returns the property name that corresponds with the given column index.
    * If the data source is an array of arrays, it returns the columns index.
    *
+   * When the column index points at no existing column, the method hands the argument back
+   * unchanged. It does not signal an unknown column, so the result on its own never tells you
+   * whether that column exists.
+   *
+   * The result can also be `null`, in two cases: an argument that is not an integer comes straight
+   * back, and a column declared as `{ data: null }` resolves to `null` for an index that is
+   * perfectly valid. Test the result before you use it as a property name.
+   *
    * @memberof Core#
    * @function colToProp
-   * @param {number} column Visual column index.
-   * @returns {string|number} Column property or physical column index. When the column's `data`
-   *   option is an accessor function, that function is returned at runtime – check
-   *   `typeof` before treating the result as a property name.
+   * @param {number} column Visual column index. An argument that is not an integer comes back
+   *   unchanged, so the declared type is narrower than what the method accepts at runtime.
+   * @returns {string|number|null} Column property, physical column index, `null`, or the passed
+   *   argument. When the column's `data` option is an accessor function, that function is returned
+   *   at runtime – check `typeof` before treating the result as a property name.
    */
   this.colToProp = function(column: number) {
     return datamap.colToProp(column);
@@ -4259,10 +4372,30 @@ export default function Core(
   /**
    * Returns column index that corresponds with the given property.
    *
+   * When the property matches no column, the method hands the argument back unchanged, so the
+   * result on its own never tells you whether that column exists.
+   *
+   * The result can also be `null`, and for a **trimmed** column which of the two you get depends on
+   * how the property is declared. A property held in the column cache – object data, or one named
+   * by a `columns[].data` entry – resolves through [[Core#toVisualColumn]] and comes back
+   * `null`. A bare physical index on array data comes back unchanged instead, which does not
+   * identify a usable visual column.
+   *
+   * So validate the result before using it as a column index: `Number.isInteger()` alone lets the
+   * second case through, and a [[Core#countCols]] comparison alone lets `null` through, because
+   * `null` compares as `0`.
+   *
+   * The TypeScript declaration is narrower than what runs at both ends. It narrows the result to
+   * `number`, so neither a returned property name nor `null` is visible to the type checker, and it
+   * narrows the parameter to `string | number`, so passing a `columns[].data` accessor function
+   * works at runtime but does not type-check.
+   *
    * @memberof Core#
    * @function propToCol
-   * @param {string|number} prop Property name or physical column index.
-   * @returns {number} Visual column index.
+   * @param {string|number|Function} prop Property name, physical column index, or a `columns[].data`
+   *   accessor function.
+   * @returns {string|number|Function|null} Visual column index, `null` when a cached property's
+   *   column is trimmed, or the passed argument.
    */
   this.propToCol = function(prop: string | number) {
     return datamap.propToCol(prop) as number;

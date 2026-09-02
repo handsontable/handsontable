@@ -371,10 +371,12 @@ class DataSource {
    * @param {number} row Physical row index.
    * @param {number|string|Function} prop Property, physical column index, or a `columns[].data`
    *   accessor function.
+   * @param {Array|object} [dataRow] A representation of the data row. Pass it to read several
+   *   columns of one row without re-running the `modifyRowData` hook per column.
    * @returns {*}
    */
-  getAtCellByProp(row: number, prop: number | string | DataAccessorFn): unknown {
-    return this.getAtPhysicalCell(row, prop, this.modifyRowData(row));
+  getAtCellByProp(row: number, prop: number | string | DataAccessorFn, dataRow?: unknown): unknown {
+    return this.getAtPhysicalCell(row, prop, dataRow === undefined ? this.modifyRowData(row) : dataRow);
   }
 
   /**
