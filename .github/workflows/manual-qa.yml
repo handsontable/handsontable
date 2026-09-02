@@ -50,5 +50,44 @@ jobs:
     environment: manual-qa
     runs-on: ubuntu-latest
     steps:
-      - name: Record the sign-off
-        run: echo 'Manual QA signed off — the approver and any comment are recorded on this run''s manual-qa deployment review.'
+      # Fail CLOSED on configuration drift. Reaching this step is NOT proof a
+      # human approved: a missing environment is auto-created UNPROTECTED, and
+      # dropping the required-reviewers rule has the same effect — the job then
+      # runs straight through and the gate silently passes. So assert the
+      # control's OUTCOME (an approval recorded against this run) rather than
+      # trusting its configuration.
+      - name: Assert a human approval is recorded for this run
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            let approvals;
+
+            try {
+              // Raw request: the reusable workflow shares the parent's run id,
+              // and this endpoint lists the environment approvals for it.
+              const response = await github.request(
+                'GET /repos/{owner}/{repo}/actions/runs/{run_id}/approvals',
+                { owner, repo, run_id: context.runId },
+              );
+
+              approvals = response.data;
+            } catch (error) {
+              core.setFailed(`Could not read this run's approvals (${error.status} ${error.message}). `
+                + 'The manual-QA gate cannot confirm a human signed off, so it fails closed. '
+                + 'If this is a token-permission error, grant `actions: read` to the Tests workflow.');
+              return;
+            }
+
+            const signOff = approvals.find((approval) => approval.state === 'approved'
+              && (approval.environments || []).some((environment) => environment.name === 'manual-qa'));
+
+            if (!signOff) {
+              core.setFailed('This job ran without a recorded manual-qa approval, which means the '
+                + '`manual-qa` environment has no required reviewers (a missing environment is '
+                + 'auto-created unprotected). Configure it — required reviewers plus "Prevent '
+                + 'self-review" — and re-run; the gate is not enforcing anything until then.');
+              return;
+            }
+            core.notice(`Manual QA signed off by @${signOff.user.login}`
+              + `${signOff.comment ? `: ${signOff.comment}` : ''}.`);

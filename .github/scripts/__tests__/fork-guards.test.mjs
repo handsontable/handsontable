@@ -78,6 +78,7 @@ const GUARDED_SITES = [
   ['.github/workflows/pr-cleanup.yml', '  purge-visual-screenshots:'],
   ['.github/workflows/visual-cleanup.yml', '  reset-approval:'],
   ['.github/workflows/pr-manual-qa-label.yml', '  sync:'],
+  ['.github/workflows/pr-manual-qa-label.yml', '  arm:'],
 ];
 
 test('every fork-hostile site carries both halves of the canonical guard', () => {

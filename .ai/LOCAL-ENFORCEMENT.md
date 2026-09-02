@@ -93,9 +93,12 @@ sign-off. While it waits, CI Gate cannot report, so the merge stays blocked
 without any job going red; a rejection turns CI Gate red. Unticked PRs
 *skip* the module — shown as skipped, never as a misleading green "passed",
 with no runner spent. Approval is per run: a new push re-asks the reviewers.
-Enforcement is decided per run too, but it **auto-arms**: ticking the box
-after a run already went green re-runs that Tests run, so the PR cannot sit
-mergeable with the box newly ticked. The reverse never happens by itself —
+Enforcement is decided per run too, but it **auto-arms**: a ticked box whose
+Tests run went green *without* the gate re-runs that run — checked on every PR
+event and again when a Tests run completes, so ticking the box mid-pipeline is
+covered too. The sign-off job also fails closed: it asserts that an approval is
+actually recorded for the run, so a missing or drifted `manual-qa` environment
+turns CI Gate red instead of passing silently. The reverse never happens by itself —
 automation here only ever ADDS the human gate. To drop enforcement, untick
 and press **"Re-run all jobs"** (or push), so a person owns the decision. This **adds** a recorded human pass; it
 never replaces the presence gate or the test requirement. Do not use it to
