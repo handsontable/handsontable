@@ -374,6 +374,9 @@ test('formatReport names every finding as file:line with its rule, and says how 
   assert.match(report, /waitUntil\(/, 'the fix path (a condition wait) must be named');
   assert.match(report, /eslint-disable-next-line/, 'the documented exception must be named');
   assert.match(report, /LOCAL-ENFORCEMENT\.md/);
+  // An author hit by a reformat must learn the trade-off from the report itself,
+  // not from a doc they have not opened.
+  assert.match(report, /re-indented or moved lines count as added/i);
 });
 
 test('formatReport of no findings is a one-line pass', () => {

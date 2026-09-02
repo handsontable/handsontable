@@ -37,21 +37,39 @@ the single source of truth for the rule set; pre-push and CI run the same script
 so the local scope is exactly the CI scope. Three things to know:
 
 - **What blocks:** a `sleep()`, `it.flaky()`/`fit.flaky()`, or `xit`/`it.skip`/
-  `xdescribe`/`describe.skip` on a line you added. A **moved** line (deleted and
-  re-added verbatim) counts as added — a diff cannot tell a move from an
-  addition, and ignoring re-added text would let a new `sleep()` hide behind any
-  deleted one. Moving a `sleep()` is the moment to replace it.
+  `xdescribe`/`describe.skip` on a line you added. **Re-indented or moved lines
+  count as added** — a diff cannot tell a move or a reformat from an addition,
+  and ignoring re-added text would let a new `sleep()` hide behind any deleted
+  one. A reformat that touches a legacy `sleep()` is the moment to replace it.
+  A **renamed** file is different: the diff runs with rename detection over the
+  whole branch, so a plain `git mv` of a debt-laden spec adds no line and does
+  not block; only the lines you changed inside it count.
 - **How to satisfy it:** wait for the *condition*, not the clock —
   `await waitUntil(() => …)`, a hook promise, or `waitForNextAnimationFrames()`
   (`handsontable/test/helpers/common.js`). A broken or flaky legacy spec migrates
   to Playwright (`tests/e2e/`) instead of gaining a delay. For a genuine
   exception, disable the rule on that line **with a ticket**:
   `// eslint-disable-next-line handsontable/no-fixed-sleep-in-spec -- DEV-xxxx: <why no condition exists>`.
-- **When it skips (never a false block):** no base ref to diff against, no
-  changed spec/unit file, no added line in them, ESLint not installed or exiting
-  2 (config/parse gap), unparsable output, or a killed child — each prints a
-  notice and exits 0. Exit 1 means exactly one thing: the finding list is
-  non-empty. The output is Markdown; CI `tee`s it into the step summary.
+- **Which base:** pre-push diffs against the merge-base of `origin/develop`
+  (then `develop`) with HEAD; CI diffs against the PR's base SHA (`GATE_BASE`).
+  On a branch cut from `develop` and targeting it, the two agree. On a branch
+  targeting `release/*`, or stacked on another feature branch, pre-push also
+  sees the lines the parent branch added since it left `develop`, so it may
+  report a `sleep()` that is not yours. Confirm with
+  `node .github/scripts/lint-ratchet.mjs --base <parent>` (for example
+  `--base origin/release/18.1`): a clean run there is the verdict CI gives,
+  because CI diffs against the PR base. To get the push through, disable the
+  rule on that line with a ticket (the comment above), or rebase once the
+  parent has merged. CI's verdict against the PR base is authoritative.
+- **When it skips (never a false block):** no base to diff against (an unknown
+  ref, or one with no merge-base with HEAD — a clone too shallow to reach the
+  fork point; the ratchet never diffs against the requested commit itself, which
+  would read everything the base gained since the fork as yours), a failed
+  `git diff`, no changed spec/unit file, no added line in them, ESLint not
+  installed or exiting 2 (config/parse gap), unparsable output, or a killed
+  child — each prints a notice and exits 0. Exit 1 means exactly one thing: the
+  finding list is non-empty. The output is Markdown; CI `tee`s it into the step
+  summary.
 
 **Changed unit tests** run too — fast (Jest maps to `src`, no build), in both the
 Stop hook and pre-push. A Jest *infra* failure (couldn't start) warns instead of

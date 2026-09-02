@@ -104,7 +104,7 @@ function newSidePath(header) {
  * Handles `-U0` output (no context), hunks whose count is omitted (`+38 @@`
  * means one line), renames (the hunks land under the NEW path; a pure rename
  * prints no hunk, so nothing is added) and deletions (`+++ /dev/null` is
- * dropped). Header lines are recognised only OUTSIDE a hunk — the hunk's line
+ * dropped). Header lines are recognized only OUTSIDE a hunk — the hunk's line
  * counts say where it ends — so an added line whose text begins with `++ `
  * (printed as `+++ …`) cannot be mistaken for a file header.
  *
@@ -239,7 +239,9 @@ export function formatReport(findings) {
     '## Determinism ratchet',
     '',
     `❌ ${findings.length} warn-level determinism finding(s) sit on lines this branch **added**. `
-      + 'Pre-existing occurrences stay warnings; new ones block.',
+      + 'Pre-existing occurrences stay warnings; new ones block. Re-indented or moved lines count as added — '
+      + 'a diff cannot tell a move from an addition — so a `sleep()` that only changed position or indentation '
+      + 'is the moment to replace it. A renamed file adds nothing on its own.',
     '',
     ...findings.map(f => `- \`${f.file}:${f.line}\` — \`${f.ruleId}\`: ${f.message}`),
     '',

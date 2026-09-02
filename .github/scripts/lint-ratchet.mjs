@@ -13,15 +13,17 @@
  * only, and the script exits 0 before spawning anything when none changed or
  * when the diff added no line to them.
  *
- * Never a false block. Every tooling gap — no base ref to diff against, ESLint
- * missing or exiting 2 (config/parse gap), unparsable output, an unexpected
- * throw — prints a notice and exits 0; CI's full lint stays authoritative.
- * Exit 1 means exactly one thing: the finding list is non-empty.
+ * Never a false block. Every tooling gap — no base to diff against (an unknown
+ * ref, or one with no merge-base with HEAD), a failed diff, ESLint missing or
+ * exiting 2 (config/parse gap), unparsable output, an unexpected throw — prints
+ * a notice and exits 0; CI's full lint stays authoritative. Exit 1 means
+ * exactly one thing: the finding list is non-empty.
  *
  * Usage:  node .github/scripts/lint-ratchet.mjs [--base <ref>]
  * Env:    GATE_BASE   Base ref/SHA (CI passes github.event.pull_request.base.sha).
  *         `--base` wins over GATE_BASE; with neither, the merge-base with
- *         origin/develop (then develop) is used.
+ *         origin/develop (then develop) is used. The diff always runs from the
+ *         MERGE-BASE of that ref with HEAD, never from the ref itself.
  */
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -86,25 +88,21 @@ function skip(reason) {
 
 /**
  * Resolve the commit to diff against: the merge-base of the requested ref (or
- * the trunk) with HEAD, so only this branch's own changes are read. Falls back
- * to the requested commit itself when no merge-base exists (a shallow CI
- * clone), and to null when nothing usable was found.
+ * the trunk) with HEAD, so only this branch's own changes are read. Null when
+ * no merge-base exists — an unknown ref, or a clone too shallow to reach the
+ * fork point. Never the requested commit itself: a diff against a
+ * non-ancestor reads every line the base gained since the fork as a line this
+ * branch added, and the gate would block on someone else's work. CI checks
+ * out with `fetch-depth: 0`, so the merge-base is always reachable there and
+ * a fallback would buy nothing.
  *
  * @param {string} requested A ref/SHA from `--base` or `GATE_BASE`, or ''.
  * @returns {string|null} A commit SHA, or null.
  */
 function resolveBase(requested) {
-  if (requested) {
-    const mergeBase = git(['merge-base', requested, 'HEAD']);
+  const refs = requested ? [requested] : ['origin/develop', 'develop'];
 
-    if (mergeBase) {
-      return mergeBase;
-    }
-
-    return git(['rev-parse', '--verify', '--quiet', `${requested}^{commit}`]) || null;
-  }
-
-  for (const ref of ['origin/develop', 'develop']) {
+  for (const ref of refs) {
     const mergeBase = git(['merge-base', ref, 'HEAD']);
 
     if (mergeBase) {
@@ -117,10 +115,13 @@ function resolveBase(requested) {
 
 try {
   const { values } = parseArgs({ options: { base: { type: 'string' } }, strict: false });
-  const base = resolveBase(values.base || process.env.GATE_BASE || '');
+  const requested = values.base || process.env.GATE_BASE || '';
+  const base = resolveBase(requested);
 
   if (!base) {
-    skip('no base ref to diff against (pass --base <ref> or set GATE_BASE)');
+    skip(requested
+      ? `no merge-base between "${requested}" and HEAD (unknown ref, or a clone too shallow to reach the fork point)`
+      : 'no base ref to diff against (pass --base <ref> or set GATE_BASE)');
   }
 
   // Deleted files carry no added line and would make ESLint fail on a missing
@@ -136,13 +137,23 @@ try {
 
   // `-U0`: added lines only, no context to walk. The prefixes are pinned so a
   // user's `diff.noprefix` / `diff.mnemonicPrefix` cannot change the header
-  // shape the parser expects; `-M` keeps a renamed spec's untouched lines from
-  // reading as added.
+  // shape the parser expects. Deliberately NOT limited to the candidates: a
+  // pathspec naming only a renamed spec's NEW path hides its old path from
+  // `-M`, so a pure `git mv` would read as a new file with every legacy line
+  // added. The whole branch diff keeps both sides visible, and the candidate
+  // filter is applied to the parsed result instead.
   const diff = git([
-    'diff', '-U0', '--no-color', '--no-ext-diff', '-M', '--src-prefix=a/', '--dst-prefix=b/',
-    base, 'HEAD', '--', ...candidates,
+    'diff', '-U0', '--no-color', '--no-ext-diff', '-M', '--src-prefix=a/', '--dst-prefix=b/', base, 'HEAD',
   ]);
-  const addedLines = parseAddedLines(diff);
+
+  // A changed candidate always prints at least its `diff --git` header, so no
+  // output is a failed git call (or a diff over the buffer cap), not a clean one.
+  if (!diff) {
+    skip('git diff produced no output (a git error, or a diff over the 64 MB cap)');
+  }
+
+  const candidateSet = new Set(candidates);
+  const addedLines = new Map([...parseAddedLines(diff)].filter(([file]) => candidateSet.has(file)));
   const addedTotal = [...addedLines.values()].reduce((sum, lines) => sum + lines.size, 0);
 
   if (addedTotal === 0) {
