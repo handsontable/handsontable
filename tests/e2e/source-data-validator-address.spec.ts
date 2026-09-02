@@ -44,6 +44,17 @@ test.describe('sourceDataValidator cell address', () => {
     expect(result.sourceRow0).toEqual([ null, 'r0c1', 'r0c2', 'r0c3', 'r0c4', 'r0c5' ]);
   });
 
+  test('blanks the column it validated when `columns[].data` is an accessor function', async () => {
+    // An accessor function is the third address shape: `colToProp()` returns the function itself,
+    // and it owns both the read and the write. Column 2 rejects, so only `c2` may be cleared.
+    const result = await grid.run({ accessors: true, targetColumn: 2 });
+
+    expect(result.seenValues).toEqual(['r0c2', 'r1c2', 'r2c2']);
+    expect(result.sourceRow0).toEqual({
+      c0: 'r0c0', c1: 'r0c1', c2: null, c3: 'r0c3', c4: 'r0c4', c5: 'r0c5',
+    });
+  });
+
   test('blanks the validated column when nothing remaps the source indexes', async () => {
     const result = await grid.run({ targetColumn: 2 });
 

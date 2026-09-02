@@ -62,9 +62,29 @@
      * destroyed inside this call.
      */
     window.htRunSourceDataValidator = (scenario) => {
-      const data = Array.from({ length: 3 }, (_, r) => Array.from({ length: 6 }, (_, c) => `r${r}c${c}`));
+      const useObjects = scenario.accessors === true;
+      // Array rows for the index-addressed scenarios, object rows for the accessor one — an
+      // accessor is handed the whole row, so it needs named keys to read and write through.
+      const data = Array.from({ length: 3 }, (_, r) => (useObjects
+        ? Object.fromEntries(Array.from({ length: 6 }, (_, c) => [`c${c}`, `r${r}c${c}`]))
+        : Array.from({ length: 6 }, (_, c) => `r${r}c${c}`)));
       const seen = [];
-      const columns = (scenario.columns ?? [{}, {}, {}, {}, {}, {}]).map((column, index) => (
+      // A `columns[].data` accessor function: reading with no value, writing with one. This is the
+      // third address shape `colToProp()` can return, next to a string key and a source index.
+      const declaredColumns = useObjects
+        ? Array.from({ length: 6 }, (_, index) => ({
+          data: (row, value) => {
+            const key = `c${index}`;
+
+            if (value === undefined) {
+              return row[key];
+            }
+
+            row[key] = value;
+          },
+        }))
+        : (scenario.columns ?? [{}, {}, {}, {}, {}, {}]);
+      const columns = declaredColumns.map((column, index) => (
         index === scenario.targetColumn
           ? Object.assign({}, column, {
             allowInvalid: false,

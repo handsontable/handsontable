@@ -10,6 +10,11 @@ export interface ValidatorScenario {
   columns?: { data?: string | number }[];
   /** The `manualColumnMove` setting. */
   manualColumnMove?: number[];
+  /**
+   * Address every column with a `columns[].data` accessor function over object rows, instead of
+   * the default index-addressed array rows.
+   */
+  accessors?: boolean;
 }
 
 /**
@@ -18,8 +23,11 @@ export interface ValidatorScenario {
 export interface ValidatorResult {
   /** Every value the rejecting validator was handed, in visit order. */
   seenValues: unknown[];
-  /** Physical source row 0 after validation blanked whatever it judged invalid. */
-  sourceRow0: unknown[];
+  /**
+   * Physical source row 0 after validation blanked whatever it judged invalid. An array for the
+   * index-addressed scenarios, an object when `accessors` is set.
+   */
+  sourceRow0: unknown[] | Record<string, unknown>;
 }
 
 /**

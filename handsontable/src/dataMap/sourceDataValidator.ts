@@ -185,6 +185,12 @@ function validatePerCell(
   const metaManager = hotInstance._getMetaManager();
 
   for (let row = 0; row < rowSourceCount; row += 1) {
+    // The row representation depends on the row alone, so it is resolved at most once per row
+    // instead of once per column — `modifyRowData` runs a hook, and rows with no validated cell
+    // must not pay for it at all.
+    let dataRow;
+    let hasDataRow = false;
+
     for (let col = 0; col < colSourceCount; col += 1) {
       const visualRow = rowIndexMapper.getVisualFromPhysicalIndex(row);
       const visualColumn = columnIndexMapper.getVisualFromPhysicalIndex(col);
@@ -200,10 +206,15 @@ function validatePerCell(
         continue;
       }
 
+      if (!hasDataRow) {
+        dataRow = dataSource.modifyRowData(row);
+        hasDataRow = true;
+      }
+
       // The prop is the source address of this physical column; `getAtCell()` would resolve `col`
       // as a *visual* index and read another column whenever the two differ.
       const prop = resolveProp(hotInstance, visualColumn);
-      const value = dataSource.getAtPhysicalCell(row, prop, dataSource.modifyRowData(row));
+      const value = dataSource.getAtSourceProp(row, prop, dataRow);
 
       validateSourceCell(cellMeta, value, row, col, prop, dataSource, invalidByMessageType, source);
     }
@@ -240,10 +251,14 @@ function validateBatched(
       continue;
     }
 
+    // Resolved once per row, not once per column: every column of this row shares it, and
+    // `modifyRowData` runs a hook on each call.
+    const dataRow = dataSource.modifyRowData(row);
+
     for (let i = 0; i < columns.length; i += 1) {
       const { physicalColumn, prop, cellMeta } = columns[i];
       // Read by the column's source address, for the same reason as in `validatePerCell()`.
-      const value = dataSource.getAtPhysicalCell(row, prop, dataSource.modifyRowData(row));
+      const value = dataSource.getAtSourceProp(row, prop, dataRow);
 
       validateSourceCell(cellMeta, value, row, physicalColumn, prop, dataSource, invalidByMessageType, source);
     }

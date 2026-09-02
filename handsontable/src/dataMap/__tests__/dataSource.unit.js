@@ -66,6 +66,63 @@ describe('DataSource', () => {
     });
   });
 
+  describe('getAtSourceProp', () => {
+    it('should read by a string prop', () => {
+      const dataSource = new DataSource(createHotMock(), [{ artist: 'A1' }, { artist: 'A2' }]);
+
+      expect(dataSource.getAtSourceProp(1, 'artist')).toBe('A2');
+    });
+
+    it('should read by a source column index', () => {
+      const dataSource = new DataSource(createHotMock(), [['a', 'b'], ['c', 'd']]);
+
+      expect(dataSource.getAtSourceProp(1, 1)).toBe('d');
+    });
+
+    it('should read through a column accessor function', () => {
+      const accessor = (row, value) => {
+        if (value === undefined) {
+          return row.v;
+        }
+
+        row.v = value;
+      };
+      const dataSource = new DataSource(createHotMock(), [{ v: 'A1' }, { v: 'A2' }]);
+
+      expect(dataSource.getAtSourceProp(0, accessor)).toBe('A1');
+    });
+
+    it('should resolve the row through `modifyRowData` when no row is passed', () => {
+      const data = [
+        { artist: 'Parent', __children: [{ artist: 'Child' }] },
+        { artist: 'Second parent' },
+      ];
+      const dataSource = new DataSource(createHotMock({
+        modifyRowData: rowIndex => (rowIndex === 1 ? data[0].__children[0] : data[rowIndex]),
+      }), data);
+
+      expect(dataSource.getAtSourceProp(1, 'artist')).toBe('Child');
+    });
+
+    it('should use the passed row and not call `modifyRowData` again', () => {
+      const data = [['a', 'b']];
+      const dataSource = new DataSource(createHotMock({ modifyRowData: row => data[row] }), data);
+      const spy = jest.spyOn(dataSource, 'modifyRowData');
+
+      expect(dataSource.getAtSourceProp(0, 1, ['x', 'y'])).toBe('y');
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should read the same value as `getAtCell` when no remapping is in play', () => {
+      const data = [['a', 'b']];
+      const dataSource = new DataSource(createHotMock(), data);
+
+      dataSource.colToProp = column => column;
+
+      expect(dataSource.getAtSourceProp(0, 1)).toBe(dataSource.getAtCell(0, 1));
+    });
+  });
+
   describe('getData()', () => {
     it('returns a fresh outer array on every call (array data)', () => {
       const dataSource = new DataSource(createHotMock(), [['a', 'b'], ['c', 'd']]);
