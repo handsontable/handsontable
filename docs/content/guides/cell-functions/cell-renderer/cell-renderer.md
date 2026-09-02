@@ -533,7 +533,7 @@ If you did't find a suitable _Handsontable event_ put the cell content into a wr
 
 ## Changes made outside a renderer do not survive
 
-Handsontable reuses `td` elements as you scroll, so before it runs a renderer it resets the element. It clears the cell's `class` attribute, and removes its inline `style`, its `dir` attribute, and its accessibility attributes. Only what a renderer writes back survives.
+Handsontable resets a cell's `td` element before it runs a renderer, so only what a renderer writes back survives. [Understanding rendering](@/guides/optimization/rendering/rendering.md#why-direct-dom-changes-disappear) lists exactly what the reset clears.
 
 ::: warning
 

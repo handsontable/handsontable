@@ -29,13 +29,13 @@ Learn what a render does, which cells it covers, what it costs, and when you nee
 
 Handsontable does not keep every cell of your data set in the DOM. It renders only the part of the grid that you can see, plus a small buffer around it. As you scroll, it reuses the same DOM elements for new cells. This is called [row virtualization](@/guides/rows/row-virtualization/row-virtualization.md) and [column virtualization](@/guides/columns/column-virtualization/column-virtualization.md), and it is what lets the grid hold hundreds of thousands of records without freezing the browser.
 
-A render is the step that brings those DOM elements back in sync with your data and your configuration. Handsontable runs it for you at the right moments, so most applications never call [`render()`](@/api/core.md#render) at all. You need it in one situation: when you change something that Handsontable cannot detect on its own, such as cell metadata.
+A render is the step that brings those DOM elements back in sync with your data and your configuration. Handsontable runs it for you at the right moments, so most applications never call [`render()`](@/api/core.md#render) at all. You need it when you change something that Handsontable cannot detect on its own -- cell metadata, or a value outside the grid that one of your renderers reads.
 
 ::: only-for react
 
 ::: tip
 
-To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+To use the Handsontable API, you'll need access to the Handsontable instance. Use a reference to the `HotTable` component and read its `hotInstance` property.
 
 For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
 
@@ -47,7 +47,7 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 
 ::: tip
 
-To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+To use the Handsontable API, you'll need access to the Handsontable instance. Use a reference to the `HotTable` component and read its `hotInstance` property.
 
 For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
 
@@ -111,22 +111,36 @@ hot.setCellMeta(0, 0, 'className', 'my-highlight');
 hot.render(); // without this, the class is stored but not visible
 ```
 
-To apply several such changes with a single render, wrap them in [`batch()`](@/api/core.md#batch):
+Because [`setCellMeta()`](@/api/core.md#setcellmeta) never renders on its own, several calls followed by one [`render()`](@/api/core.md#render) already cost exactly one render:
+
+```js
+hot.setCellMeta(0, 0, 'className', 'my-highlight');
+hot.setCellMeta(1, 0, 'readOnly', true);
+hot.setCellMeta(2, 0, 'type', 'date');
+hot.render(); // one render applies all three changes
+```
+
+::: warning
+
+[`batch()`](@/api/core.md#batch) does not repaint the grid by itself. It suppresses the renders that other operations would have triggered, and adds none of its own. A callback holding nothing but [`setCellMeta()`](@/api/core.md#setcellmeta) calls therefore leaves the grid unpainted.
+
+When you mix metadata changes with CRUD operations, batch the sequence and call [`render()`](@/api/core.md#render) **inside** the callback:
 
 ```js
 hot.batch(() => {
+  hot.alter('insert_row_above', 5, 45);
   hot.setCellMeta(0, 0, 'className', 'my-highlight');
-  hot.setCellMeta(1, 0, 'readOnly', true);
-  hot.setCellMeta(2, 0, 'type', 'date');
+  hot.render();
 });
-// one render applies all three changes
 ```
+
+:::
 
 The same applies when an external condition that your renderer reads has changed, but your data has not. If your renderer colors rows based on a value held outside the grid, update that value and then call [`render()`](@/api/core.md#render).
 
 ### Why direct DOM changes disappear
 
-Handsontable reuses `td` elements as you scroll, so before it runs a renderer it resets the element. It clears the cell's `class` attribute, and removes its inline `style`, its `dir` attribute, and its accessibility attributes. Only what a renderer writes back survives.
+Handsontable reuses `td` elements as you scroll, so before it runs a renderer it resets the element: the cell's `class` attribute, its inline `style`, its `dir` attribute, and its accessibility attributes are all cleared. Treat anything written onto a `td` from outside a renderer as lost at the next render, and rely only on what a renderer writes back.
 
 This is why a change you make straight on the DOM disappears at the next render:
 
@@ -151,13 +165,15 @@ Two hooks let you see the rendering cycle:
 - [`beforeRender`](@/api/hooks.md#beforerender) fires before the cells are drawn.
 - [`afterRender`](@/api/hooks.md#afterrender) fires after they are drawn.
 
-Both receive an `isForced` argument. It is `true` for a full render, which is what [`render()`](@/api/core.md#render) triggers, and `false` for the lighter render that runs while you scroll.
+Both receive an `isForced` argument. It is `true` for a full render, which is what [`render()`](@/api/core.md#render) triggers, and `false` for a lighter render that repositions the grid without redrawing the cells -- a selection move, for example.
 
 ```js
 hot.addHook('afterRender', (isForced) => {
-  console.log(isForced ? 'full render' : 'scroll render');
+  console.log(isForced ? 'full render' : 'light render');
 });
 ```
+
+Scrolling does not fire either hook. The engine repaints the viewport directly while you scroll, without going through the render path these hooks observe.
 
 Use these hooks to count renders while you profile. If you see many in a row for one user action, batch that action.
 
@@ -165,7 +181,7 @@ Use these hooks to count renders while you profile. If you see many in a row for
 
 ### There is no per-cell or per-row render
 
-[`render()`](@/api/core.md#render) is the only public method that repaints the grid, and it always redraws the whole rendered part. You cannot repaint one cell or one row on its own.
+Every repaint redraws the whole rendered part. You cannot repaint one cell or one row on its own, and no API offers it.
 
 This is a deliberate trade. Virtualization already keeps the drawn cell count low and roughly constant, so a render is bounded by the size of the viewport rather than the size of your data. The lever you have is the number of renders, not their size. Use [`batch()`](@/api/core.md#batch) to keep that number down.
 
@@ -177,9 +193,11 @@ Three methods repaint the grid, and they are not interchangeable.
 |---|---|---|
 | [`render()`](@/api/core.md#render) | Redraws the rendered cells. Leaves the configuration alone. | Cell metadata or an external value your renderer reads has changed. |
 | [`updateSettings()`](@/api/core.md#updatesettings) | Applies new configuration options, reinitializes the affected plugins, then renders. | An option, a column definition, or the data source has changed. |
-| [`refreshDimensions()`](@/api/core.md#refreshdimensions) | Re-measures the container and, if its size changed, resizes the grid's elements and renders. | The container was resized by something outside Handsontable. |
+| [`refreshDimensions()`](@/api/core.md#refreshdimensions) | Re-measures the container, then resizes the grid's elements and renders when the size changed. | The container was resized while the grid was hidden. |
 
-Pick the narrowest one that does the job. [`updateSettings()`](@/api/core.md#updatesettings) does the most work of the three, so do not reach for it when a render is enough. For container sizing, see [Grid size](@/guides/getting-started/grid-size/grid-size.md).
+Pick the narrowest one that does the job. [`updateSettings()`](@/api/core.md#updatesettings) does the most work of the three, so do not reach for it when a render is enough.
+
+You rarely need [`refreshDimensions()`](@/api/core.md#refreshdimensions) at all: Handsontable calls it for you on a window resize and through a `ResizeObserver` on the container. The gap is a container resized while the grid is hidden, inside a `display: none` tab or accordion. The observer callback is skipped there, so call the method yourself once the grid becomes visible again. On a grid with no fixed `height` -- one that scrolls with the page -- the method renders on every call, even when the size did not change, so it is not free in a resize or scroll handler. For container sizing, see [Grid size](@/guides/getting-started/grid-size/grid-size.md).
 
 ## Related articles
 
