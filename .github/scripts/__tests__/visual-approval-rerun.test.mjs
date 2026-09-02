@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
 import {
-  APPROVAL_LABEL, COMPARE_JOB, NO_RUN_GRACE_MS, decide,
+  APPROVAL_LABEL, COMPARE_JOB, NO_RUN_GRACE_MS, decide, selectRun,
 } from '../lib/visual-approval-rerun.mjs';
 
 const root = repoRoot();
@@ -19,6 +19,25 @@ const approve = (overrides = {}) => decide({
   prHeadSha: 'abc',
   labeledHeadSha: 'abc',
   ...overrides,
+});
+
+// One commit can head two open pull requests, and each gets its own run for the
+// identical `head_sha`, so the newest is not necessarily ours. The first version
+// of this filtered on `run.pull_requests` — which GitHub leaves EMPTY on
+// same-repo `pull_request` runs, making it a no-op that read like a check.
+test('the run is picked by head branch, not by being the newest', () => {
+  const mine = { id: 2, head_branch: 'feature/mine' };
+  const sibling = { id: 1, head_branch: 'feature/theirs' };
+
+  assert.equal(selectRun([sibling, mine], 'feature/mine').id, 2);
+});
+
+test('no run for this branch is no run at all, rather than someone else\'s', () => {
+  assert.equal(selectRun([{ id: 1, head_branch: 'feature/theirs' }], 'feature/mine'), null);
+});
+
+test('an empty run list selects nothing', () => {
+  assert.equal(selectRun([], 'feature/mine'), null);
 });
 
 test('a failed gate under the label is re-run', () => {

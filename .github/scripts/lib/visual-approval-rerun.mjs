@@ -30,6 +30,31 @@ export const COMPARE_JOB = 'Visual / Compare';
 export const NO_RUN_GRACE_MS = 5 * 60 * 1000;
 
 /**
+ * Pick the run that belongs to this pull request.
+ *
+ * One commit can head more than one open pull request, and each gets its own
+ * run for the identical `head_sha` — so the newest is not necessarily ours.
+ * `head_branch` separates two pull requests raised from DIFFERENT branches that
+ * happen to sit on the same commit.
+ *
+ * It does not separate one branch raised against two bases (a backport opened
+ * against `develop` and a release branch): those runs agree on every field the
+ * run object exposes. `run.pull_requests` would settle it, but GitHub leaves it
+ * EMPTY on same-repo `pull_request` runs — verified against run 33610031096,
+ * which returns `pull_requests: []` — so filtering on it is a no-op dressed up
+ * as a check. In that residual case the worst outcome is a re-run spent on the
+ * sibling pull request's build; no approval crosses over, because each run's
+ * gate reads its own pull request's labels.
+ *
+ * @param {Array<{head_branch: string}>} runs Candidate runs, newest first.
+ * @param {string} headRef The pull request's head branch.
+ * @returns {object|null} The matching run, or `null` when none matches.
+ */
+export function selectRun(runs, headRef) {
+  return runs.find(run => run.head_branch === headRef) ?? null;
+}
+
+/**
  * @typedef {object} Decision
  * @property {'wait'|'rerun'|'skip'} action What the caller should do next.
  * @property {string} reason One line for the job log, explaining the action.

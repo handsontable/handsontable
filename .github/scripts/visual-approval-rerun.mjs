@@ -40,7 +40,9 @@
  */
 
 import { setTimeout as sleep } from 'node:timers/promises';
-import { APPROVAL_LABEL, COMPARE_JOB, decide } from './lib/visual-approval-rerun.mjs';
+import {
+  APPROVAL_LABEL, COMPARE_JOB, decide, selectRun,
+} from './lib/visual-approval-rerun.mjs';
 
 const API = process.env.GITHUB_API_URL || 'https://api.github.com';
 const token = process.env.GH_TOKEN;
@@ -142,7 +144,7 @@ async function api(path, init = {}) {
  * The event payload carries both, but it is a snapshot of the moment the label
  * was applied — the very staleness this script exists to work around.
  *
- * @returns {Promise<{headSha: string, labels: string[]}>} The live state.
+ * @returns {Promise<{headSha: string, headRef: string, state: string, labels: string[]}>} The live state.
  */
 async function readPullRequest() {
   const pr = await api(`/repos/${repo}/pulls/${prNumber}`);
@@ -156,9 +158,10 @@ async function readPullRequest() {
 }
 
 /**
- * Find the newest `test.yml` run for a commit.
+ * Fetch the `test.yml` runs for a commit and hand them to `selectRun`.
  *
  * @param {string} headSha The commit to look for.
+ * @param {string} headRef The pull request's head branch.
  * @returns {Promise<object|null>} The run, or `null` when none exists yet.
  */
 async function readRun(headSha, headRef) {
@@ -167,20 +170,7 @@ async function readRun(headSha, headRef) {
     `/repos/${repo}/actions/workflows/${workflowFile}/runs?${query}`
   );
 
-  // One commit can head more than one open pull request, and each gets its own
-  // run for the identical `head_sha` — so the newest is not necessarily ours.
-  // `head_branch` separates two pull requests raised from DIFFERENT branches
-  // that happen to sit on the same commit.
-  //
-  // It does not separate one branch raised against two bases (a backport opened
-  // against `develop` and a release branch): those runs agree on every field the
-  // run object exposes. `run.pull_requests` would settle it, but GitHub leaves
-  // it EMPTY on same-repo `pull_request` runs — verified against run
-  // 33610031096, which returns `pull_requests: []` — so filtering on it is a
-  // no-op dressed up as a check. In that residual case the worst outcome is a
-  // re-run spent on the sibling pull request's build; no approval crosses over,
-  // because each run's gate reads its own pull request's labels.
-  return runs.find(run => run.head_branch === headRef) ?? null;
+  return selectRun(runs, headRef);
 }
 
 /**
@@ -260,7 +250,16 @@ if (process.exitCode) {
   console.log(`::notice::[dry run] ${decision.reason}`);
 } else {
   console.log(decision.reason);
-  await api(`/repos/${repo}/actions/runs/${run.id}/rerun-failed-jobs`, { method: 'POST' });
-  console.log(`::notice::Re-running the failed jobs of ${run.html_url}. `
-    + `The gate reads \`${APPROVAL_LABEL}\` on this attempt and turns green.`);
+
+  // Inside its own try for the same reason the poll loop has one: this is the
+  // call the whole workflow exists to make, and it is not retried, so a 403 or
+  // a 409 here would otherwise end as a bare stack trace — a red check with no
+  // annotation and nothing telling the contributor the approval was dropped.
+  try {
+    await api(`/repos/${repo}/actions/runs/${run.id}/rerun-failed-jobs`, { method: 'POST' });
+    console.log(`::notice::Re-running the failed jobs of ${run.html_url}. `
+      + `The gate reads \`${APPROVAL_LABEL}\` on this attempt and turns green.`);
+  } catch (error) {
+    giveUp(`Could not re-run ${run.html_url}: ${error.message}.`);
+  }
 }
