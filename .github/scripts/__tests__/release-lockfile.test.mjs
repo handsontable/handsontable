@@ -467,6 +467,10 @@ test('first-rc-build reports the example lockfiles before the gate and the commi
     + 'so this one goes above it, never between the two.'
   );
 
+  // Reaches the step's own keys only. A comment block sits at the same indentation as the `- `
+  // line, so `steps()` closes the current step on it and drops it: a gate path written in a
+  // comment ABOVE this step is invisible here. 'the gate is not quietly dropped from a site' is
+  // the backstop for that, because it counts raw occurrences across the whole file.
   assert.equal(
     report.body.includes(GATE),
     false,
