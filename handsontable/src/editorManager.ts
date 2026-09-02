@@ -87,30 +87,32 @@ class EditorManager {
    */
   #editedPhysicalColumn: number | null = null;
   /**
-   * Whether a structural change stranded the editor during the `alter()` call that is currently
-   * running.
+   * How many structural-change scopes are currently open. While it is above zero, the
+   * unresolvable-editor discard in `#reconcileEditorWithIndexMaps()` is suspended.
    *
-   * `alter()` emits its cache update before `selection.shiftRows()`, so between the two the editor
-   * legitimately sits on a coordinate that resolves to nothing while a `prepareEditor()` is still
-   * coming. Anything that reconciles inside that window – a plugin trimming from `afterRemoveRow`,
-   * say – would otherwise read the editor as unusable and discard an edit that was about to commit.
+   * A structural change emits its cache update before its selection repair – `alter()` before
+   * `selection.shiftRows()`/`shiftColumns()`, `updateData()` before `selection.refresh()` – so in
+   * between the editor legitimately sits on a coordinate that resolves to nothing while a
+   * `prepareEditor()` is still coming. Anything that reconciles inside that span – a plugin
+   * trimming from `afterRemoveRow`, say – would otherwise read the editor as unusable and discard
+   * an edit that was about to commit.
    *
-   * The window closes when `alter()` finishes its synchronous work – the core calls
-   * `closeStrandWindow()` at the end of `alter()` – or earlier, when a successful re-prepare
-   * re-derives the editor's coordinates. It must not outlive that boundary: a window still open
-   * when a later trimming change arrives suppresses the discard in
-   * `#reconcileEditorWithIndexMaps()`, and that change's own selection work then commits through
+   * A DEPTH rather than a flag, because the operations nest: an `alter()` fired from a hook inside
+   * another `alter()` must not lift the outer call's protection when its own scope ends – the
+   * outer selection repair has not run yet (DEV-2739 review).
+   *
+   * The suspension must not outlive the outermost scope: still suspended when a later trimming
+   * change arrives, the discard is skipped and that change's own selection work commits through
    * the stranded coordinates and APPENDS records – `alter('remove_row', ...)` followed by
    * `Filters#filter()` in the same task (DEV-2739).
    *
-   * A zero-delay timeout backstops the openers no `alter()` tail closes: a structural cache
-   * update fired outside `alter()`, or an `alter()` a thrown hook aborted before its tail ran.
-   * The backstop is a timeout rather than a paired hook so nothing a plugin cancels can hold the
-   * window open permanently.
+   * A structural cache update fired with NO scope open (a caller core does not wrap) gets no
+   * suspension: the next reconcile discards a stranded editor immediately, which loses the pending
+   * edit but can never append – the safe direction.
    *
-   * @type {boolean}
+   * @type {number}
    */
-  #strandedInCurrentAlter = false;
+  #strandDiscardsSuspended = 0;
   /**
    * Reacts to a ROW index-map cache update.
    *
@@ -219,21 +221,34 @@ class EditorManager {
   }
 
   /**
-   * Closes the strand window a structural change opened during the current `alter()` call.
+   * Opens a structural-change scope: until the matching `resumeStrandDiscards()`, a reconcile that
+   * finds the editor stranded on an unresolvable coordinate tolerates it instead of discarding,
+   * because the operation's own selection repair – `shiftRows()`/`shiftColumns()` for `alter()`,
+   * `selection.refresh()` for `updateData()` – is still coming and may re-derive the editor's
+   * coordinates.
    *
-   * The core calls this at the end of `alter()`'s synchronous work, once `selection.shiftRows()`
-   * has had its chance to re-prepare the stranded editor. From this point on a trimming change
-   * that finds the editor unresolvable discards the pending edit instead of tolerating it – which
-   * is what keeps a `Filters#filter()` following the `alter()` in the SAME task from committing
-   * through the stranded coordinates and appending records (DEV-2739).
-   *
-   * An `alter()` nested inside another one (fired from a hook) closes the outer window on its own
-   * tail too. That early close narrows the outer call's protection, but only toward a discard of
-   * the pending edit – never toward the appending commit this window exists to prevent – and the
-   * outer re-prepare, when it comes, re-derives the editor's state independently of the window.
+   * The scopes are depth-counted, so an `alter()` fired from a hook inside another `alter()`
+   * cannot lift the outer call's protection when its own scope ends. A scope is synchronous by
+   * contract; the zero-delay timeout heals a scope a thrown hook aborted before its
+   * `resumeStrandDiscards()` ran, bounding a leaked suspension to the current task.
    */
-  closeStrandWindow(): void {
-    this.#strandedInCurrentAlter = false;
+  suspendStrandDiscards(): void {
+    this.#strandDiscardsSuspended += 1;
+
+    this.hot._registerTimeout(() => {
+      this.#strandDiscardsSuspended = 0;
+    }, 0);
+  }
+
+  /**
+   * Closes one structural-change scope opened by `suspendStrandDiscards()`. When the outermost
+   * scope closes, a trimming change that finds the editor unresolvable discards the pending edit
+   * instead of tolerating it – which is what keeps a `Filters#filter()` following the operation
+   * in the SAME task from committing through the stranded coordinates and appending records
+   * (DEV-2739).
+   */
+  resumeStrandDiscards(): void {
+    this.#strandDiscardsSuspended = Math.max(0, this.#strandDiscardsSuspended - 1);
   }
 
   /**
@@ -245,8 +260,6 @@ class EditorManager {
     // `beforeChange` that cancels the change, for instance) would disable the guard for the rest
     // of the instance's life rather than for that one edit.
     this.#hiddenCellCloseArmed = false;
-    // A successful re-prepare is the end of any strand window.
-    this.#strandedInCurrentAlter = false;
 
     if (this.activeEditor && this.activeEditor.isWaiting()) {
       this.closeEditor(false, false, (dataSaved: boolean) => {
@@ -531,14 +544,6 @@ class EditorManager {
     if (physicalRow === null || physicalColumn === null) {
       this.#editedPhysicalRow = null;
       this.#editedPhysicalColumn = null;
-      this.#strandedInCurrentAlter = true;
-
-      // Backstop only: `alter()` closes the window explicitly at the end of its synchronous work
-      // (`closeStrandWindow()`). This timeout covers a structural cache update fired outside
-      // `alter()`, and an `alter()` a thrown hook aborted before its tail ran.
-      this.hot._registerTimeout(() => {
-        this.#strandedInCurrentAlter = false;
-      }, 0);
 
       return;
     }
@@ -654,14 +659,15 @@ class EditorManager {
     // commit through those coordinates is what `applyChanges()` satisfies by APPENDING records, so
     // the edit is dropped here rather than at the next keystroke.
     //
-    // Not while `#strandedInCurrentAlter` is set: inside the `alter()` that stranded it the editor
-    // reads as unusable only because `selection.shiftRows()` has not run yet, and the re-prepare
-    // behind it is about to make the coordinates good again.
+    // Not while a structural-change scope is open: inside the operation that stranded it the
+    // editor reads as unusable only because the operation's selection repair – `shiftRows()`/
+    // `shiftColumns()` for `alter()`, `selection.refresh()` for `updateData()` – has not run yet,
+    // and the re-prepare behind it may be about to make the coordinates good again.
     //
     // Only reached with no captured record. While one exists it is the better guide - it survives a
     // trim that leaves the editor's own stale coordinates unresolvable, which is the ordinary rebind.
     if (this.#editedPhysicalRow === null || this.#editedPhysicalColumn === null) {
-      if (!this.#strandedInCurrentAlter &&
+      if (this.#strandDiscardsSuspended === 0 &&
           (this.hot.rowIndexMapper.getPhysicalFromVisualIndex(editor.row!) === null ||
            this.hot.columnIndexMapper.getPhysicalFromVisualIndex(editor.col!) === null)) {
         if (isEditing) {

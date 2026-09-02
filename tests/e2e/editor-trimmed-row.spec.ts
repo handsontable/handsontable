@@ -900,4 +900,71 @@ test.describe('an index-map change nested inside a removal', () => {
       ]);
       expect(await grid.sourceRowCount()).toBe(4);
     });
+
+  /**
+   * The reentrancy shape from the DEV-2739 review: a listener on the strand-making cache update
+   * fires a NESTED `alter()` (an amount-0 removal - it changes nothing, but runs `alter()`'s
+   * full selection and tail machinery), and a trim lands after that nested tail while the OUTER
+   * removal's own repair is still coming. Probing this live showed the nested call's selection
+   * step re-derives the stranded editor's coordinates BEFORE its tail ends the scope - the
+   * rescue and the scope end travel together - so today no discard window opens even under a
+   * non-reentrant protection. This case pins that end-to-end invariant (the edit survives nested
+   * churn and commits to the record it was typed into), and the depth-counted scopes make it
+   * structural rather than emergent: a refactor that reorders the nested tail ahead of the
+   * selection step fails here instead of shipping the discard regression.
+   */
+  test('keeps the edit when a nested alter() ends inside the removal that stranded it',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.openEditorAndType(4, 0, 'EDITED');
+
+      // Removes `'A0'`; the cache-update listener then runs the amount-0 nested alter and trims
+      // what is by then physical row 0 (`'A1'`), all before the outer removal shifts the selection.
+      await grid.removeRowWithNestedAlterAndTrim(0, 0);
+
+      await expect.poll(() => grid.editorState()).toBe('STATE_EDITING');
+
+      await grid.commitWithEnter();
+
+      await expect.poll(() => grid.sourceData()).toEqual([
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['EDITED', 'B4'],
+      ]);
+      expect(await grid.sourceRowCount()).toBe(4);
+    });
+});
+
+/**
+ * `updateData()` strands an editor through the same mechanism as a removal - `fitToLength()`
+ * renumbers the physical space under it - and `selection.refresh()` is its re-prepare chance. The
+ * protection that tolerates the strand during the operation must end with the operation, exactly
+ * as it does for `alter()`, or the same-task filter commits through the stale coordinates and
+ * appends records to the freshly loaded data (DEV-2739 review).
+ */
+test.describe('updateData strands the editor', () => {
+  test('discards when a filter lands in the same task as a shrinking updateData',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.openEditorAndType(4, 0, 'EDITED');
+
+      await grid.updateDataThenFilterSameTask([
+        ['X0', 'Y0'],
+        ['X1', 'Y1'],
+        ['X2', 'Y2'],
+      ], 0, ['X2']);
+
+      expect(await grid.committedChangeCount()).toBe(0);
+      expect(await grid.sourceRowCount()).toBe(3);
+      expect(await grid.sourceData()).toEqual([
+        ['X0', 'Y0'],
+        ['X1', 'Y1'],
+        ['X2', 'Y2'],
+      ]);
+    });
 });
