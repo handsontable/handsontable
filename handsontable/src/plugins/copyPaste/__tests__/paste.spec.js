@@ -99,6 +99,13 @@ describe('CopyPaste', () => {
 
       expected[3][4] = 'Kia';
       expect(getData()).toEqual(expected);
+
+      // `getData()` is bounded by `countCols()`, so on its own it cannot tell a dropped value from
+      // one written into a column the grid does not render. The paste is three wide and starts on
+      // the last column, so check the source row too: `allowInsertColumn: false` must drop the two
+      // overflow values rather than park them past the end of the row.
+      expect(getSourceDataAtRow(3).length).toBe(5);
+      expect(getDataAtCell(3, 5)).toBe(null);
     });
 
     it('should shift data down instead of overwrite when paste (when allowInsertRow = false)', async() => {

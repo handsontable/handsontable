@@ -329,23 +329,16 @@ A paste that runs past the last column adds the columns it needs when the
 [`columns`](@/api/options.md#columns) option, and
 [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) is left on.
 
-In every other configuration the column count is fixed. An object data source takes its columns
-from the first row or from [`dataSchema`](@/api/options.md#dataschema), and a `columns` option
-states them outright. The values that reach past the last column are still written, but to a
-property named after the column index, so no column displays them.
-[`getSourceData()`](@/api/core.md#getsourcedata) returns those properties and
-[`countSourceCols()`](@/api/core.md#countsourcecols) counts them.
+In every other configuration the column count is fixed. With an array data source the values that
+reach past the last column are still written, to the matching array index, so
+[`getSourceData()`](@/api/core.md#getsourcedata) returns them while the grid never displays them.
 
-::: tip
-
-On an object data source this write is deprecated as of 18.2.0 and will be ignored from 19.0.0 on,
-because the value can never become a column there - it only adds a key your
-[`dataSchema`](@/api/options.md#dataschema) does not declare. Set
-[`allowInsertColumn`](@/api/options.md#allowinsertcolumn) to `false` to drop such values today, or
-use [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) to write a field the grid shows no
-column for.
-
-:::
+An object data source takes its columns from the first row or from
+[`dataSchema`](@/api/options.md#dataschema), and cannot grow. Handsontable therefore drops the
+values that reach past the last column instead of writing them, and reports no
+[`afterChange`](@/api/hooks.md#afterchange) entry for them. This keeps the paste from adding
+properties your data schema does not declare, which no column could then display. To write a field
+the grid shows no column for, use [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop).
 
 The [`beforePaste`](@/api/hooks.md#beforepaste) and [`afterPaste`](@/api/hooks.md#afterpaste) hooks
 receive the content already squared off to the widest row, so what they report matches what the grid

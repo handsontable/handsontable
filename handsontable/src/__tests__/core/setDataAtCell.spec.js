@@ -588,5 +588,46 @@ describe('Core.setDataAtCell', () => {
       expect(countCols()).toBe(5);
       expect(getDataAtCell(0, 4)).toBe(null);
     });
+
+    it('should skip the change when the object data source can never gain the target column', async() => {
+      const data = [
+        { id: 1, name: 'Ted Right', address: '' },
+        { id: 2, name: 'Frank Honest', address: '' },
+      ];
+
+      handsontable({
+        data,
+        dataSchema: { id: null, name: null },
+      });
+
+      await setDataAtCell(0, 2, 'Frank Honest');
+
+      // The schema declares two columns and an object data source cannot grow, so no column will
+      // ever exist at index 2. Writing the value would put it on a literal `2` key beside the
+      // declared ones (#5409). `address` is not a column either, so it must not receive it
+      // instead.
+      expect(countCols()).toBe(2);
+      expect(Object.keys(data[0])).toEqual(['id', 'name', 'address']);
+      expect(data[0].address).toBe('');
+    });
+
+    it('should keep writing past the last column of an array data source capped by `columns`', async() => {
+      const data = createSpreadsheetData(3, 3);
+
+      handsontable({
+        data,
+        columns: [{}, {}],
+      });
+
+      await setDataAtCell(0, 2, 'foo');
+
+      // Array data is deliberately not capped the way an object data source is. The index names a
+      // real array slot rather than a positional key on a named record, `colToProp()` hands it
+      // back unchanged by design (#5945), and the value reads back - so the write must keep
+      // landing even though `columns` shows no column for it.
+      expect(countCols()).toBe(2);
+      expect(data[0][2]).toBe('foo');
+      expect(getDataAtCell(0, 2)).toBe('foo');
+    });
   });
 });
