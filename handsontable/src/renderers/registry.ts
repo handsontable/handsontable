@@ -94,7 +94,7 @@ export type RendererType = typeof AUTOCOMPLETE_RENDERER | typeof BASE_RENDERER |
  * @example
  * ```typescript
  * const myRenderer = rendererFactory(({ td, value, cellProperties }) => {
- *   td.innerHTML = '';
+ *   td.replaceChildren();
  *   const div = document.createElement('div');
  *   div.textContent = value || '';
  *   div.style.color = cellProperties.customColor || 'black';

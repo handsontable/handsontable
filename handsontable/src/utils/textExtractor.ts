@@ -48,6 +48,12 @@ export function getTextExtractor(hot: HotInstance): boolean | TextExtractorFn {
  * The markup is parsed inside a `<template>`, whose content belongs to an inert document: scripts do
  * not run and no resource is fetched, so a hostile string cannot act during extraction.
  *
+ * Inert is not the same as policy-free. Assigning to `innerHTML` is a Trusted Types sink even on a
+ * `<template>`, so under `require-trusted-types-for 'script'` this throws unless the `sanitizer`
+ * returns a `TrustedHTML`. That is the same boundary `fastInnerHTML` has, gated on the same
+ * `HTML_CHARACTERS` predicate and the same content, and it is reachable only when the user opts in
+ * with `textExtractor: true`.
+ *
  * @param {object} hot The Handsontable instance.
  * @param {string} html The HTML string to reduce.
  * @param {string} sanitizerContext The DOM surface passed to a configured `sanitizer`.
@@ -75,9 +81,22 @@ function extractDisplayText(hot: HotInstance, html: string, sanitizerContext: Sa
   // configured and the content carries markup, which is guidance about writing to the DOM. Repeating
   // it here would fire the warning during an export, where nothing is written to the DOM at all.
   const rendered = typeof sanitizer === 'function' ? sanitizer(html, sanitizerContext) ?? '' : html;
+
+  if (rendered === '') {
+    // A sanitizer that stripped the payload entirely leaves nothing to parse, and there is no
+    // harmless way to ask for it: `innerHTML = ''` is a Trusted Types sink whatever the value, so
+    // under `require-trusted-types-for 'script'` the empty string throws and takes the export down.
+    return '';
+  }
+
   const template = hot.rootDocument.createElement('template');
 
-  template.innerHTML = rendered;
+  // The sanitizer's value reaches the sink exactly as returned, the same rule `fastInnerHTML`
+  // follows: a page enforcing Trusted Types hands back a `TrustedHTML`, which the sink accepts and
+  // a plain string is rejected in place of, so this must never coerce, concatenate, or re-test the
+  // value. The cast is only for the DOM lib's `string` typing; `TrustedHTML` is absent from it at
+  // this TypeScript version.
+  template.innerHTML = rendered as string;
 
   // `textContent` reports the source text of elements the browser never paints, so a header of
   // `'<script>alert(1)</script>Total'` displays as `Total` but would extract as `'alert(1)Total'`.

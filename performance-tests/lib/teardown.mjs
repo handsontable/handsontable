@@ -130,9 +130,15 @@ function collectIterationValues(parsedResults) {
   }
 
   for (const key of catKeys) {
-    values.categories[key] = parsedResults
-      .map(r => r.categories?.[key])
-      .filter(v => typeof v === 'number');
+    // Index-aligned to the iteration, never compacted. Dropping the entries where a category
+    // recorded nothing would both understate that category's own spread and, once the arrays are
+    // recombined into an active total, pair one iteration's scripting with another's painting.
+    // An iteration that recorded no time in a category recorded zero of it.
+    values.categories[key] = parsedResults.map((r) => {
+      const value = r.categories?.[key];
+
+      return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+    });
   }
 
   values.rangeEnd = parsedResults.map(r => r.rangeEnd);
@@ -214,6 +220,11 @@ export default async function teardown() {
 
       golden = {
         timestamp: new Date().toISOString(),
+        // Marked explicitly. The reports must not describe this as a develop baseline: every delta
+        // against it is 0% by construction, and a timestamp alone is indistinguishable from a real
+        // single-run golden, which would let "within tolerance" be claimed for a run compared
+        // against itself.
+        isSelfCompare: true,
         scenarios: stripInternalFields(scenarioResults),
       };
     }
@@ -237,6 +248,10 @@ export default async function teardown() {
     baseBranch: 'develop',
     pagesUrl: process.env.PAGES_URL || null,
     crossWindowScenarios: mismatched,
+    // PERF_COMMIT_SHA is the PR head on the pull_request path, where GITHUB_SHA is the ephemeral
+    // merge commit that exists on no branch. See the env block in performance-tests.yml.
+    commit: process.env.PERF_COMMIT_SHA || process.env.GITHUB_SHA || null,
+    runId: process.env.GITHUB_RUN_ID || null,
   };
 
   const report = buildReport(scenarioResults, golden, meta);

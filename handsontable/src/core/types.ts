@@ -118,8 +118,13 @@ export interface HotInstance {
   toVisualColumn(column: number): number;
   /**
    * Both answer `null` when the argument names no column that currently exists and is visible.
-   * The `null` is part of the contract, not an edge case — validate the result before using it as
-   * an index or a property name.
+   * `colToProp` also answers `null` for a column declared as `{ data: null }`, which binds to no
+   * source property. The `null` is part of the contract, not an edge case – validate the result
+   * before using it as an index or a property name.
+   *
+   * The parameters stay narrower than what runs: `propToCol` resolves a `columns[].data` accessor
+   * function at runtime and hands an unmatched property straight back, and `colToProp` hands back
+   * any non-integer argument, but neither is accepted here.
    */
   propToCol(prop: string | number): number | null;
   colToProp(column: number): string | number | null;

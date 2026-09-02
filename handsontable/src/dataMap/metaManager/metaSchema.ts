@@ -3451,6 +3451,12 @@ export default (): Record<string, unknown> => {
      * When [`selectionMode`](@/api/options.md#selectionmode) is set to `'single'`, copying is
      * limited to a single cell.
      *
+     * A text selection cannot span a frozen area and the rest of the grid, because the two are
+     * rendered as separate tables. Selecting text inside a frozen row or column works, but as soon
+     * as you drag the pointer out of the area you started in, the selection is cleared.
+     *
+     * Headers are not selectable, whether or not they are frozen.
+     *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
@@ -7980,7 +7986,9 @@ export default (): Record<string, unknown> => {
      * The function receives the raw HTML string and a second argument (source) naming the write surface
      * (`'header'`, `'password'`, `'contextMenu'`, `'selectEditor'`, `'dialog'`, `'notification'`,
      * `'CopyPaste.paste'`, `'CopyPaste.paste.sourceData'`), so you can apply different rules per source.
-     * It must return a string that is safe to assign to `innerHTML`.
+     * It must return a string that is safe to assign to `innerHTML`, or a `TrustedHTML` when the page
+     * enforces [Trusted Types](@/guides/security/security/security.md#trusted-types-and-csp). Handsontable
+     * passes the returned value to the DOM unchanged, so a `TrustedHTML` keeps its trust.
      *
      * In TypeScript, annotate that parameter with the exported `SanitizerContext` type
      * (see [TypeScript types](@/guides/tools-and-building/typescript-types/typescript-types.md))
@@ -8032,9 +8040,11 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // Trusted Types: wrap sanitization in a policy so the sink accepts the result.
-     * // Add the policy name to the CSP trusted-types directive (e.g. trusted-types default handsontable).
-     * const policy = window.trustedTypes?.createPolicy('handsontable', {
+     * // Trusted Types: wrap sanitization in a policy so the sink accepts the result. Handsontable
+     * // needs no policy of its own - it builds its own markup as DOM nodes - so the directive only
+     * // has to name yours (e.g. trusted-types my-app-sanitizer). Name it after your application:
+     * // `createPolicy` throws when the same name is created twice.
+     * const policy = window.trustedTypes?.createPolicy('my-app-sanitizer', {
      *   createHTML: (input) => myLibrary.sanitize(input),
      * });
      *

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable Trusted Types e2e fixture</title>
+  <!--
+    DEV-2617. The page enforces Trusted Types with the STRICTEST configuration a
+    real application can have:
+
+      * `require-trusted-types-for 'script'` turns every HTML/script sink into a
+        typed sink, so a plain string assigned to `innerHTML` throws.
+      * The `trusted-types` allowlist names ONLY this fixture's own two policies:
+        `e2e-bootstrap` (see below) and `e2e-sanitizer`, which stands in for the policy an
+        application enforcing Trusted Types would wrap its own sanitizer in.
+        It deliberately does NOT contain `default` — a default policy launders
+        every unclaimed string and would make this test pass against a library
+        that writes raw HTML everywhere. It equally does
+        not name any Handsontable policy, because the whole point of the fixture
+        is that Handsontable needs none: it must work here by not producing HTML
+        strings at all, not by being granted an exemption.
+
+    Setting the header via <meta> rather than a real response header keeps the
+    fixture self-contained; the static server serves plain files and templates
+    nothing.
+  -->
+  <meta http-equiv="Content-Security-Policy"
+        content="require-trusted-types-for 'script'; trusted-types e2e-bootstrap e2e-sanitizer">
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Record every CSP violation the page produces, before anything else runs, so a
+    // violation raised while the bundle evaluates is captured too. The spec asserts
+    // this list is empty; the `sample` is what names the offending sink, so failures
+    // are readable without a debugger.
+    window.htViolations = [];
+    document.addEventListener('securitypolicyviolation', (event) => {
+      window.htViolations.push({
+        directive: event.violatedDirective,
+        sample: event.sample,
+      });
+    });
+
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document. An ABSENT param
+    // keeps the default (main / plain UMD) so the fixture stays browsable by
+    // hand; an unknown value THROWS instead of falling back, so a typo in the
+    // project config is one red leg rather than a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+
+    // The other fixtures reach the themed stylesheet and the bundle through
+    // `document.write()`. Under enforcement that throws (it is a TrustedHTML
+    // sink), and so do `script.src = url` and `script.setAttribute('src', url)`
+    // (both TrustedScriptURL sinks). A stylesheet `link.href` is not a script
+    // sink and needs nothing.
+    const themeLink = document.createElement('link');
+
+    themeLink.rel = 'stylesheet';
+    themeLink.href = '/handsontable/styles/ht-theme-' + window.htTheme + '.min.css';
+    document.head.appendChild(themeLink);
+
+    // This fixture's own policy, used ONLY to load the bundle under test, because
+    // the bundle path is chosen at runtime from the query param and a parser-inserted
+    // <script src> cannot be. It does not weaken the assertion: a NAMED policy is
+    // reachable only through the reference held here, Handsontable never sees it, and
+    // the CSP grants nothing else. It also mirrors reality — an application running
+    // under enforcement legitimately has policies for bootstrapping its own code. What
+    // the spec proves is that Handsontable requires no policy of its own.
+    const bootstrapPolicy = window.trustedTypes.createPolicy('e2e-bootstrap', {
+      createScriptURL: url => url,
+    });
+    const bundleScript = document.createElement('script');
+
+    bundleScript.src = bootstrapPolicy.createScriptURL('/handsontable/dist/' + window.htBundle);
+    // Synchronous ordering: the inline module below runs on load, not before.
+    bundleScript.addEventListener('load', () => {
+      window.htBundleReady = true;
+      document.dispatchEvent(new CustomEvent('ht-bundle-ready'));
+    });
+    document.head.appendChild(bundleScript);
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+  <button type="button" data-testid="open-dialog">Open dialog</button>
+  <button type="button" data-testid="paste-html">Paste HTML</button>
+  <button type="button" data-testid="export-file">Export file</button>
+  <button type="button" data-testid="show-loading">Show loading</button>
+  <button type="button" data-testid="open-context-menu">Open context menu</button>
+  <!--
+    Surfaces whose success or failure the spec reads. `data-testid="status"` carries
+    the construction outcome so a throw inside the constructor is reported as a
+    readable message instead of an empty page and a timeout.
+  -->
+  <pre data-testid="status"></pre>
+
+  <script>
+    // Both paths, because the bundle script is appended dynamically and so loads async while the
+    // parser-inserted stylesheet in <head> blocks this script. With a warm cache and slow CSS the
+    // event can fire BEFORE this listener exists, and every test then times out on an empty status
+    // element. `window.htBundleReady` is set for exactly this case.
+    const init = () => {
+      const container = document.querySelector('[data-testid="grid"]');
+      const status = document.querySelector('[data-testid="status"]');
+      const params = new URLSearchParams(location.search);
+
+      container.className = `ht-theme-${window.htTheme}`;
+
+      // `?sanitizer=trusted` configures a sanitizer that returns a TrustedHTML, which is what a
+      // page under enforcement must do. Its value has to reach the clipboard parser intact:
+      // anything that rewrites it on the way collapses the trust and the parser rejects it.
+      const sanitizerPolicy = window.trustedTypes.createPolicy('e2e-sanitizer', {
+        createHTML: markup => markup,
+      });
+
+      // `?license=expired` exercises the license branding bar (`helpers/mixed.ts`), and
+      // `?license=invalid` the Core-owned lock screen (`utils/licenseBranding/lockScreen.ts`),
+      // which is a separate surface with its own markup. A LAPSED key renders the bottom bar; a
+      // key that cannot be read renders the blocking modal instead.
+      const licenseKey = ({
+        expired: 'd0134-95841-770f2-c4f21-3751d',
+        invalid: 'not-a-key',
+      })[params.get('license')] ?? 'non-commercial-and-evaluation';
+
+      // `?colHeader=markup` and `?colHeader=prose` put content into a HEADER, which is the one
+      // surface that still reaches `innerHTML` through `fastInnerHTML`. `prose` carries no markup
+      // at all - `HTML_CHARACTERS` matches any `&` with a later `;`, so an ampersand and a
+      // semicolon in the same string are enough. Cell data is deliberately not parameterized:
+      // `textRenderer` writes through `fastInnerText`, so it never reaches the sink.
+      const headerContent = ({
+        markup: '<b>ID</b>',
+        prose: 'Smith & Sons, Ltd.; est. 1920',
+      })[params.get('colHeader')];
+
+      // `?empty=1` renders the empty data state, `?pagination=1` the pagination bar. Both build
+      // their UI from a `TemplateSpec` and neither ran under enforcement before.
+      const isEmpty = params.get('empty') === '1';
+
+      try {
+        window.hot = new Handsontable(container, {
+          data: isEmpty ? [] : [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
+          // `nestedHeaders` is what builds the hidden ghost table, the sink that
+          // fails first today. Swapped for plain `colHeaders` when a header payload is
+          // requested, because that is what routes through `fastInnerHTML`.
+          ...(headerContent
+            ? { colHeaders: [headerContent, 'B'] }
+            : {
+              nestedHeaders: [
+                [{ label: 'Group', colspan: 2 }],
+                ['A', 'B'],
+              ],
+            }),
+          rowHeaders: true,
+          width: 400,
+          height: 200,
+          licenseKey,
+          emptyDataState: isEmpty,
+          pagination: params.get('pagination') === '1',
+          sanitizer: params.get('sanitizer') === 'trusted'
+            ? markup => sanitizerPolicy.createHTML(markup)
+            : undefined,
+        });
+
+        status.textContent = 'CONSTRUCTED';
+      } catch (error) {
+        status.textContent = `CONSTRUCT-THREW: ${error.message}`;
+
+        return;
+      }
+
+      document.querySelector('[data-testid="paste-html"]').addEventListener('click', () => {
+        try {
+          const clipboardData = new DataTransfer();
+
+          // Both flavours, as any real copy carries, and with DIFFERENT values so the spec can
+          // tell which one landed. Under enforcement the HTML flavour only reaches the parser as a
+          // `TrustedHTML`, so a page with no `sanitizer` must fall back to the plain-text one
+          // rather than lose the paste.
+          clipboardData.setData('text/html', '<table><tbody><tr><td>P1</td><td>P2</td></tr></tbody></table>');
+          clipboardData.setData('text/plain', 'T1\tT2');
+          window.hot.selectCell(0, 0);
+          window.hot.getPlugin('copyPaste').onPaste(
+            new ClipboardEvent('paste', { clipboardData, bubbles: true, cancelable: true })
+          );
+          status.textContent = `PASTED: ${window.hot.getDataAtCell(0, 0)},${window.hot.getDataAtCell(0, 1)}`;
+        } catch (error) {
+          status.textContent = `PASTE-THREW: ${error.message}`;
+        }
+      });
+
+      document.querySelector('[data-testid="show-loading"]').addEventListener('click', async() => {
+        try {
+          // `loading: true` at construct does NOT build the overlay - it is only built on
+          // `show()`/`update()`, which is why a repro that merely constructs the grid looks clean.
+          window.hot.updateSettings({ loading: true });
+          window.hot.getPlugin('loading').show();
+
+          // the dialog paints on a frame, so give it one before reading
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+          const overlay = document.querySelector('.ht-loading__content');
+
+          status.textContent = overlay
+            ? `LOADING: ${overlay.querySelectorAll('.ht-loading__icon-svg').length} spinner`
+            : 'LOADING-MISSING';
+        } catch (error) {
+          status.textContent = `LOADING-THREW: ${error.message}`;
+        }
+      });
+
+      document.querySelector('[data-testid="open-context-menu"]').addEventListener('click', async() => {
+        try {
+          // A read-only selection makes the `readOnly` item render its checkmark through
+          // `markLabelAsSelected`, which is the surface that still builds markup as a string.
+          window.hot.updateSettings({
+            contextMenu: ['make_read_only'],
+            cells: () => ({ readOnly: true }),
+          });
+          window.hot.selectCell(0, 0);
+          window.hot.getPlugin('contextMenu').open({ top: 10, left: 10 });
+
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+          const item = document.querySelector('.htContextMenu .htItemWrapper');
+
+          status.textContent = item
+            ? `MENU: ${item.querySelectorAll('span.selected').length} checkmark`
+            : 'MENU-MISSING';
+        } catch (error) {
+          status.textContent = `MENU-THREW: ${error.message}`;
+        }
+      });
+
+      document.querySelector('[data-testid="export-file"]').addEventListener('click', async() => {
+        try {
+          // The export progress dialog only renders for a BINARY formatter with the dialog plugin
+          // enabled (`exportFile.ts`), which is the path that reaches `buildExportDialogContent`.
+          // `downloadFileAsync` is required for a binary format; `downloadFile` rejects one.
+          //
+          // The export itself cannot complete here: `xlsx` needs an ExcelJS engine passed through
+          // the plugin's `engines` option, and bundling it would add a large dependency for no
+          // gain. That does not matter, because the DIALOG is the surface under test and the plugin
+          // shows it BEFORE it does any export work - `exportFile.ts` waits a double
+          // `requestAnimationFrame` so the dialog paints first. So the export is started, not
+          // awaited, and its rejection is swallowed.
+          window.hot.updateSettings({ dialog: true });
+
+          const exporting = window.hot.getPlugin('exportFile')
+            .downloadFileAsync('xlsx', { filename: 'tt' })
+            .catch(() => {});
+
+          // two frames, matching the plugin's own wait, then read what it built
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+          const exportDialog = document.querySelector('.ht-dialog.ht-loading');
+
+          status.textContent = exportDialog
+            ? `EXPORT-DIALOG: ${exportDialog.querySelectorAll('.ht-loading__icon-svg').length} spinner`
+            : 'EXPORT-DIALOG-MISSING';
+
+          await exporting;
+        } catch (error) {
+          status.textContent = `EXPORT-THREW: ${error.message}`;
+        }
+      });
+
+      document.querySelector('[data-testid="open-dialog"]').addEventListener('click', () => {
+        try {
+          window.hot.updateSettings({ dialog: true });
+          window.hot.getPlugin('dialog').show({ content: 'Dialog content' });
+          status.textContent = 'DIALOG-OPENED';
+        } catch (error) {
+          status.textContent = `DIALOG-THREW: ${error.message}`;
+        }
+      });
+    };
+
+    if (window.htBundleReady) {
+      init();
+    } else {
+      document.addEventListener('ht-bundle-ready', init);
+    }
+  </script>
+</body>
+</html>

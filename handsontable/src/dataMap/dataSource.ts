@@ -379,6 +379,24 @@ class DataSource {
   }
 
   /**
+   * Returns a single value addressed by its property, without translating it first.
+   *
+   * `getAtCell()` takes a *visual column index* and resolves it through `colToProp()`. A caller that
+   * already holds a prop must not go through it – a numeric prop (an array-data source index, or a
+   * `columns[].data` index) would be translated a second time and read a different column.
+   *
+   * @param {number} row Physical row index.
+   * @param {number|string|Function} prop Property, physical column index, or a `columns[].data`
+   *   accessor function.
+   * @param {Array|object} [dataRow] A representation of the data row. Pass it to read several
+   *   columns of one row without re-running the `modifyRowData` hook per column.
+   * @returns {*}
+   */
+  getAtCellByProp(row: number, prop: number | string | DataAccessorFn, dataRow?: unknown): unknown {
+    return this.getAtPhysicalCell(row, prop, dataRow === undefined ? this.modifyRowData(row) : dataRow);
+  }
+
+  /**
    * Returns source data by passed range.
    *
    * @param {object} [start] Object with physical `row` and `col` keys (or visual column index, if data type is an array of objects).

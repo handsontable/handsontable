@@ -154,4 +154,30 @@ describe('Core.propToCol', () => {
 
     expect(seenColumns).toEqual([null]);
   });
+
+  it('should return `null` for a bare physical index whose column is trimmed (array data)',
+    async() => {
+      const hot = handsontable({
+        data: [
+          ['a0', 'a1', 'a2', 'a3'],
+          ['b0', 'b1', 'b2', 'b3'],
+        ]
+      });
+
+      const trimmingMap = hot.columnIndexMapper
+        .createAndRegisterIndexMap('spec-trim-array', 'trimming');
+
+      trimmingMap.setValueAtIndex(1, true);
+
+      await render();
+
+      expect(hot.toVisualColumn(1)).toBe(null);
+
+      // Plain array data caches no properties, so this takes the uncached branch. It used to fall
+      // back to the passed index, which addressed a DIFFERENT column — visual 1 is physical 2 here
+      // — so the caller got a wrong answer rather than an unknown one. Tracked as DEV-2726 and
+      // pinned as a known defect by #13325; both branches now answer `null`.
+      expect(propToCol(1)).toBe(null);
+      expect(hot.toPhysicalColumn(1)).toBe(2);
+    });
 });
