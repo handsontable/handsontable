@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a bug where pasting or writing past the last column of an object data source added properties the `dataSchema` never declared, named after the column index, which no column could then display.",
+  "type": "fixed",
+  "issueOrPR": 5409,
+  "breaking": true,
+  "framework": "none"
+}
