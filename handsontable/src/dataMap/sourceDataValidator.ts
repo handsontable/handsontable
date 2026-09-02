@@ -115,11 +115,13 @@ function collectColumnMappings(
     const visualColumn = hotInstance.columnIndexMapper.getVisualFromPhysicalIndex(physicalColumn);
 
     if (visualColumn !== null) {
-      columns.push({
-        physicalColumn,
-        visualColumn,
-        sourceColumn: hotInstance.colToProp(visualColumn),
-      });
+      const sourceColumn = hotInstance.colToProp(visualColumn);
+
+      // A column that resolves to no source address — one declared as `{ data: null }` — has
+      // nothing to read a value from and nothing to blank, so it is left out of the scan.
+      if (sourceColumn !== null) {
+        columns.push({ physicalColumn, visualColumn, sourceColumn });
+      }
     }
   }
 
