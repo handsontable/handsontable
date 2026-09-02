@@ -1,35 +1,27 @@
 name: PR Manual QA label
 
-# Two jobs serving one invariant: IF the manual-QA box is ticked, THEN the
-# latest Tests run for the head commit must actually contain the gate.
+# One job serving one invariant: IF the PR ticks "MANUAL QA NEEDED", THEN it
+# carries the red `Requires Manual QA` label and the latest Tests run for the
+# head commit actually contains the gate.
 #
-# `sync`  — mirrors the tickbox onto the red `Requires Manual QA` label, so a
-#           PR waiting for a human pass is recognizable in the PR list. The
-#           label is created on first use in red and re-asserted on every run,
-#           so it cannot drift to another colour. It is a MARKER, never the
-#           trigger: the gate is the tickbox that the Checks scope router reads
-#           (checks.yml) plus the environment-approval job (manual-qa.yml).
-# `arm`    — enforces the invariant. Enforcement is decided per RUN, when the
-#           scope router reads the box, so ticking the box later would leave a
-#           green PR mergeable with no gate. This job re-runs the latest Tests
-#           run whenever the box is ticked and that run finished successfully
-#           WITHOUT the Manual QA module. It is state-based and idempotent, not
-#           transition-based: it re-checks on every PR event AND when a Tests
-#           run completes — that second trigger is what closes the window where
-#           the box is ticked while the pipeline is still running (the PR event
-#           cannot re-run an in-progress run, and re-running mid-flight would
-#           just throw work away).
+# APPLY-ONLY, and AUTO-ARM but NEVER AUTO-DISARM. An unticked box does nothing
+# at all: the label is a marker (like every other label here, it can be removed
+# by hand), and a gate already waiting on the environment is dropped by a person
+# pressing "Re-run all jobs" — never by automation, so the audit trail always
+# names a human. The gate itself is the tickbox the Checks scope router reads
+# (checks.yml) plus the environment-approval job (manual-qa.yml); this workflow
+# never decides anything.
 #
-# AUTO-ARM, NEVER AUTO-DISARM. Automation here only ever ADDS the human gate.
-# Unticking does not lift a gate already waiting: press "Re-run all jobs" (or
-# push) so a person drops it and it is recorded as their action.
+# Two triggers, because arming must survive both orderings. A PR event cannot
+# arm a run that is still in progress (and re-running mid-flight would just
+# discard work), so the Tests completion event re-checks; and a completion
+# event cannot exist for a box ticked after the run finished, so the PR event
+# covers that. The check is state-based, so running it twice is harmless.
 #
 # It runs on the plain `pull_request` trigger — the base-ref variant that hands
 # a write token to a fork's branch is banned repo-wide and asserted by
 # .github/scripts/__tests__/fork-guards.test.mjs — so fork and Dependabot PRs
-# get no label and no PR-event arming (their read-only token would 403). They
-# are still armed by the `workflow_run` path, which runs in the base repo, and
-# the gate itself applies to them in full.
+# are served only by the `workflow_run` path, which runs in the base repo.
 on:
   pull_request:
     types: [opened, edited, reopened, synchronize]
@@ -39,137 +31,76 @@ on:
 
 permissions:
   contents: read
+  # Labelling a pull request is billed to BOTH scopes (GitHub answers a label
+  # write with `x-accepted-github-permissions: issues=write; pull_requests=write`).
   issues: write
   pull-requests: write
-  # `arm` re-runs the Tests workflow.
+  # Re-running the Tests workflow to arm the gate.
   actions: write
 
 concurrency:
-  # Per PR on PR events; per run on completion events (the run's PR is not
-  # known until the script resolves it).
   group: pr-manual-qa-label-${{ github.event.pull_request.number || github.event.workflow_run.id }}
   cancel-in-progress: true
 
 jobs:
-  sync:
-    name: sync the label with the tickbox
-    # Fork PRs and Dependabot PRs run on a read-only GITHUB_TOKEN, so the label
-    # write would 403. Canonical guard — see the fork-guard bullet in AGENTS.md
-    # and .github/scripts/__tests__/fork-guards.test.mjs.
-    if: github.event_name == 'pull_request'
-      && (github.event.pull_request.head.repo.full_name == github.repository
-          && github.actor != 'dependabot[bot]')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Apply or remove the manual-QA label
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
-        with:
-          script: |
-            // Keep in sync with the tickbox regex in checks.yml and the
-            // template line in .github/PULL_REQUEST_TEMPLATE.md.
-            const TICKED = /^\s*-\s*\[[xX]\]\s+This change needs a manual QA pass/m;
-            const LABEL = 'Requires Manual QA';
-            const COLOR = 'b60205'; // GitHub's red — a stop sign in the PR list.
-            const DESCRIPTION = 'Waits for a manual-qa environment sign-off before it can merge';
-            const { owner, repo } = context.repo;
-
-            // Assert the label's appearance every time: created on first use,
-            // and repaired if someone recolours it by hand. Without this the
-            // first addLabels call would invent a random colour.
-            const ensureLabel = async () => {
-              try {
-                const { data: existing } = await github.rest.issues.getLabel({ owner, repo, name: LABEL });
-
-                if (existing.color === COLOR && existing.description === DESCRIPTION) return;
-
-                await github.rest.issues.updateLabel({
-                  owner, repo, name: LABEL, color: COLOR, description: DESCRIPTION,
-                });
-                core.notice(`Restored the "${LABEL}" label's colour and description.`);
-              } catch (error) {
-                if (error.status !== 404) throw error;
-
-                await github.rest.issues.createLabel({
-                  owner, repo, name: LABEL, color: COLOR, description: DESCRIPTION,
-                });
-                core.notice(`Created the "${LABEL}" label.`);
-              }
-            };
-
-            const prNumber = context.payload.pull_request.number;
-            // Live read: another workflow may have moved the labels since this
-            // event was queued.
-            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
-            const ticked = TICKED.test(pr.body || '');
-            const labelled = pr.labels.some((label) => label.name === LABEL);
-
-            if (ticked === labelled) {
-              core.notice(`Label already ${labelled ? 'applied' : 'absent'} — nothing to do.`);
-              return;
-            }
-            if (ticked) {
-              await ensureLabel();
-              await github.rest.issues.addLabels({ owner, repo, issue_number: prNumber, labels: [LABEL] });
-              core.notice(`Applied "${LABEL}" — this PR waits for a manual-qa sign-off.`);
-              return;
-            }
-            await github.rest.issues.removeLabel({ owner, repo, issue_number: prNumber, name: LABEL });
-            core.notice(`Removed "${LABEL}" — the manual-QA box is no longer ticked. `
-              + 'Enforcement is NOT lifted automatically: a Tests run already waiting on the '
-              + 'manual-qa environment stays waiting. Press "Re-run all jobs" (or push) to '
-              + 'evaluate the unticked box and drop the gate.');
-
   arm:
-    name: arm the gate when the box is ticked
+    name: label and arm when the box is ticked
     # On a Tests completion this must always run (base-repo context, full
-    # token — this is what arms fork PRs). On a PR event it needs the write
-    # token, so it carries the canonical fork/Dependabot guard.
+    # token — this is what serves fork PRs). On a PR event it needs the write
+    # token, so it carries the canonical fork/Dependabot guard: see the
+    # fork-guard bullet in AGENTS.md.
     if: github.event_name != 'pull_request'
       || (github.event.pull_request.head.repo.full_name == github.repository
           && github.actor != 'dependabot[bot]')
     runs-on: ubuntu-latest
     steps:
-      - name: Re-run Tests if the gate is missing
+      - name: Label the PR and re-run Tests if the gate is missing
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
         with:
           script: |
-            const TICKED = /^\s*-\s*\[[xX]\]\s+This change needs a manual QA pass/m;
+            // The regex and the label are pinned by
+            // .github/scripts/__tests__/manual-qa-gate.test.mjs against
+            // checks.yml and the PR template, which must all agree.
+            const TICKED = /^\s*-\s*\[[xX]\]\s+MANUAL QA NEEDED/m;
+            const LABEL = 'Requires Manual QA';
             const TESTS = '.github/workflows/test.yml';
-            // A run re-run this many times without the module appearing is a
-            // bug, not a race — stop instead of looping on the runners.
+            // No module after this many attempts is a bug, not a race.
             const MAX_ATTEMPTS = 3;
             const { owner, repo } = context.repo;
             const completed = context.payload.workflow_run;
 
-            // Resolve the pull request this event is about.
-            let prNumber = context.payload.pull_request?.number;
+            let prNumber = context.payload.pull_request?.number ?? completed?.pull_requests?.[0]?.number;
 
             if (!prNumber && completed) {
-              // `pull_requests` is empty for fork runs, so fall back to the
-              // commit's associated PRs.
-              prNumber = completed.pull_requests?.[0]?.number;
+              // `pull_requests` is empty for fork runs.
+              const { data: associated } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                owner, repo, commit_sha: completed.head_sha,
+              });
 
-              if (!prNumber) {
-                const { data: associated } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-                  owner, repo, commit_sha: completed.head_sha,
-                });
-                prNumber = associated.find((candidate) => candidate.state === 'open')?.number;
-              }
+              prNumber = associated.find((candidate) => candidate.state === 'open')?.number;
             }
             if (!prNumber) {
-              core.notice('No open pull request for this event — nothing to arm.');
+              core.notice('No open pull request for this event — nothing to do.');
               return;
             }
 
             const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
 
             if (!TICKED.test(pr.body || '')) {
-              core.notice('Manual QA not requested — nothing to arm.');
+              core.notice('Manual QA not requested — nothing to do. (Unticking never removes the '
+                + 'label or lifts a waiting gate: remove the label by hand, and press "Re-run all '
+                + 'jobs" to drop the gate.)');
               return;
             }
 
-            // Only ever act on the CURRENT head: a run for an superseded commit
-            // is irrelevant, and its checks no longer gate the merge.
+            // Marker only. Idempotent, and the label already exists in red, so
+            // this never invents a colour.
+            await github.rest.issues.addLabels({ owner, repo, issue_number: prNumber, labels: [LABEL] });
+
+            // Enforcement is decided per RUN, when the scope router reads the
+            // box, so a box ticked after the fact would leave a green PR
+            // mergeable with no gate. Assert otherwise, against the CURRENT
+            // head — a run for a superseded commit no longer gates the merge.
             const { data: runs } = await github.rest.actions.listWorkflowRunsForRepo({
               owner, repo, head_sha: pr.head.sha, per_page: 50,
             });
@@ -182,33 +113,28 @@ jobs:
               return;
             }
             if (latest.status !== 'completed') {
-              // Cannot re-run an in-progress run, and doing so would discard
-              // work. The `workflow_run` completion event brings us back here.
               core.notice(`Tests run ${latest.id} is ${latest.status}; this job re-checks when it completes.`);
               return;
             }
             if (latest.conclusion !== 'success') {
-              // A red pipeline already blocks the merge, so there is no gate to
-              // skip — and re-running here could loop when the failure is in
-              // `Checks` itself (which would keep the module from ever being
-              // created).
+              // A red pipeline blocks the merge already, so there is no gate to
+              // skip — and re-running could loop when the failure is in
+              // `Checks` itself, which would keep the module from being created.
               core.notice(`Tests run ${latest.id} concluded ${latest.conclusion} — the merge is blocked already.`);
               return;
             }
 
-            // Did that run actually contain the gate?
             const { data: jobs } = await github.rest.actions.listJobsForWorkflowRunAttempt({
               owner, repo, run_id: latest.id, attempt_number: latest.run_attempt, per_page: 100,
             });
-            const armed = jobs.jobs.some((job) => job.name.includes('Manual QA'));
 
-            if (armed) {
+            if (jobs.jobs.some((job) => job.name.includes('Manual QA'))) {
               core.notice(`Tests run ${latest.id} already carries the manual-QA gate.`);
               return;
             }
             if (latest.run_attempt >= MAX_ATTEMPTS) {
-              core.setFailed(`Tests run ${latest.id} has no manual-QA job after ${latest.run_attempt} attempts, `
-                + 'though the box is ticked. Not re-running again — investigate the Checks scope job.');
+              core.setFailed(`Tests run ${latest.id} still has no manual-QA job after `
+                + `${latest.run_attempt} attempts, though the box is ticked. Investigate the Checks scope job.`);
               return;
             }
 

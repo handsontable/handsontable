@@ -221,7 +221,7 @@ jobs:
             require("fs").appendFileSync(process.env.GITHUB_OUTPUT, "list=" + JSON.stringify(w) + "\n");
           '
 
-      # Manual QA is requested by ticking "This change needs a manual QA pass"
+      # Manual QA is requested by ticking "MANUAL QA NEEDED"
       # in the PR description (the template carries the line — its wording is
       # this regex's contract). Read LIVE, never from the frozen event payload:
       # that is what lets pr-manual-qa-label.yml arm the gate on an existing
@@ -238,11 +238,11 @@ jobs:
               owner: context.repo.owner, repo: context.repo.repo,
               pull_number: context.payload.pull_request.number,
             });
-            const requested = /^\s*-\s*\[[xX]\]\s+This change needs a manual QA pass/m.test(pr.body || '');
+            const requested = /^\s*-\s*\[[xX]\]\s+MANUAL QA NEEDED/m.test(pr.body || '');
             core.setOutput('requested', String(requested));
             core.notice(requested
               ? 'Manual QA requested — the Manual QA sign-off job will wait for a manual-qa environment approval.'
-              : 'Manual QA not requested — to request it, tick "This change needs a manual QA pass" in the PR description and press "Re-run all jobs".');
+              : 'Manual QA not requested — to request it, tick "MANUAL QA NEEDED" in the PR description (the label workflow then re-runs this pipeline to arm the gate).');
 
   presence:
     name: test presence

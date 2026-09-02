@@ -13,9 +13,9 @@ import { repoRoot } from '../lib/repo-root.mjs';
 //   2. the PR template carries the line the regex matches, so rewording the
 //      template silently disables the gate for every new PR;
 //   3. the label workflow MUTATES labels on a pull request, which GitHub bills
-//      to `pull-requests: write` — with only `issues: write` the add succeeds
-//      and the REMOVE 403s (observed on PR #13179), so unticking the box left
-//      a red "Requires Manual QA" label behind.
+//      to `pull-requests: write` as well as `issues: write` — granting only one
+//      of them 403s (observed on PR #13179), and the failure surfaces on a real
+//      PR rather than anywhere a local check would see it.
 //
 // Text-based, like fork-guards.test.mjs: no YAML parser is a dependency of the
 // repo root, and these are shape assertions, not behavior.
@@ -24,9 +24,9 @@ const root = repoRoot();
 const read = (rel) => readFileSync(path.join(root, rel), 'utf8');
 
 // The one true tickbox pattern, as written in the workflows.
-const REGEX_LITERAL = String.raw`/^\s*-\s*\[[xX]\]\s+This change needs a manual QA pass/m`;
+const REGEX_LITERAL = String.raw`/^\s*-\s*\[[xX]\]\s+MANUAL QA NEEDED/m`;
 // The template line's wording is the regex's contract.
-const TEMPLATE_LINE = 'This change needs a manual QA pass';
+const TEMPLATE_LINE = 'MANUAL QA NEEDED';
 
 test('the tickbox regex is identical everywhere it is duplicated', () => {
   for (const file of ['.github/workflows/checks.yml', '.github/workflows/pr-manual-qa-label.yml']) {
@@ -55,13 +55,13 @@ test('the PR template carries the line the regex matches, and only unticked', ()
   );
 });
 
-test('the label workflow can both add and REMOVE the label', () => {
+test('the label workflow holds every scope a PR label write needs', () => {
   const workflow = read('.github/workflows/pr-manual-qa-label.yml');
   const permissions = workflow.slice(workflow.indexOf('\npermissions:'), workflow.indexOf('\nconcurrency:'));
 
-  // Adding a label to a PR is accepted with `issues: write` alone; removing one
-  // is not. Without this, unticking the box fails with a 403 and the PR keeps a
-  // red label that no longer reflects its state.
+  // GitHub answers a PR label write with
+  // `x-accepted-github-permissions: issues=write; pull_requests=write` (observed
+  // as a 403 on PR #13179 when only `issues: write` was granted), so both stay.
   assert.match(
     permissions,
     /pull-requests: write/,

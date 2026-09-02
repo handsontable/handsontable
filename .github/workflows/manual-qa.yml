@@ -1,7 +1,7 @@
 name: Manual QA
 
 # The tracked human exception — a GitLab-style manual gate inside the Tests
-# DAG, armed by ticking "This change needs a manual QA pass" in the PR
+# DAG, armed by ticking "MANUAL QA NEEDED" in the PR
 # description (the template carries the line; say in one line what to
 # check). The Checks scope router reads the box LIVE (see checks.yml), and
 # test.yml calls this module ONLY when it is ticked — an unticked PR skips

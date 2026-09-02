@@ -77,7 +77,6 @@ const GUARDED_SITES = [
   ['.github/workflows/visual.yml', 'name: Comment the visual verdict on the pull request'],
   ['.github/workflows/pr-cleanup.yml', '  purge-visual-screenshots:'],
   ['.github/workflows/visual-cleanup.yml', '  reset-approval:'],
-  ['.github/workflows/pr-manual-qa-label.yml', '  sync:'],
   ['.github/workflows/pr-manual-qa-label.yml', '  arm:'],
 ];
 
