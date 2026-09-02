@@ -1151,6 +1151,39 @@ test.describe('a removal that strands the editor', () => {
         ['A4', 'B4'],
       ]);
     });
+
+  /**
+   * The same strand with NO task boundary at all: `alter()` and `filter()` in one synchronous
+   * block, one line of application code apart. The window that protects the editor INSIDE
+   * `alter()` must be closed by the time `alter()` returns - a window closed on a zero-delay
+   * timeout instead is still open when the filter runs, skips the discard, and the filter's
+   * re-selection commits through visual row 4 and appends four records. Unlike the case above,
+   * which needs the filter to outrun the timer, this fails deterministically on the unfixed code.
+   */
+  test('discards when the filter lands in the same task as the removal',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+
+      await grid.selectRangeWithFocusAt([0, 0, 4, 0], 4, 0);
+      await grid.typeOnSelection('EDITED');
+
+      // The strand premise, pinned before the combined action: the editor is open at the focus.
+      await expect.poll(() => grid.editorRow()).toBe(4);
+      expect(await grid.sourceRowCount()).toBe(5);
+
+      await grid.removeRowThenFilterSameTask(1, 0, ['A2']);
+
+      expect(await grid.committedChangeCount()).toBe(0);
+      expect(await grid.sourceRowCount()).toBe(4);
+      expect(await grid.sourceData()).toEqual([
+        ['A0', 'B0'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['A4', 'B4'],
+      ]);
+    });
 });
 
 /**
@@ -1185,7 +1218,22 @@ test.describe('an index-map change nested inside a removal', () => {
       ]);
       expect(await grid.sourceRowCount()).toBe(4);
     });
+
+  // A variant nesting an ALTER (not just a trim) inside the removal deliberately has no case
+  // here: on unchanged develop the nested call's selection machinery and the outer
+  // `selection.shiftRows()` adjust the editor twice, and the commit lands one record up - a
+  // load-dependent, pre-existing defect at either nesting depth (`afterRemoveRow` or the
+  // cache-update hook). DEV-2755 owns that shape and carries the repro; a pin here would be
+  // permanently racy against a defect this suite's subject neither causes nor fixes.
 });
+
+// `updateData()` strands an editor through the same mechanism as a removal - `fitToLength()`
+// renumbers the physical space under it - so its completion callback carries the same
+// structural-change scope `alter()` does (DEV-2739 review). A case asserting the same-task
+// `updateData()` + `filter()` end state deliberately does NOT live here: with the scope in
+// place the calm path discards, but under load the operation's own refresh-vs-resume timing
+// still lets the commit through ~50% of the time on unchanged develop - DEV-2756 owns that
+// nondeterminism and carries the repro.
 
 /**
  * Whether a layer's extent TRACKS THE GRID rather than naming records decides whether the restore
