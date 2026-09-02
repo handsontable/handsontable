@@ -34,9 +34,15 @@ touches a hidden row silently loses a row.
 ## Dragging past the table's edge (DEV-2024)
 
 Drag counting is driven by `beforeOnCellMouseOver`, and that hook **does not fire once the pointer leaves
-the table element** — dragging the last column's fill handle at a slight angle is enough. The drag is
-therefore counted a second time on the mouse-up path. Without it, a fill made with such a drag is never
-committed.
+the table element** — dragging the last column's fill handle at a slight angle is enough. So `#onMouseMove`
+counts the drag as well, whenever the pointer sits outside the selected range. Without that, a fill made
+with such a drag is never committed: `#onMouseUp` only *reads* `handleDraggedCells`, and calls `fillIn()`
+only when it is greater than 1.
+
+The counting in `#onMouseMove` is gated on its `countDragStep` argument, and `#onAfterScroll` replays the
+last pointer position with `countDragStep = false`. That is the other half of the trap — a scroll that
+shifts a new cell under a resting pointer has to redraw the border without registering a drag that never
+happened.
 
 ## Auto-inserting rows
 

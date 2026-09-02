@@ -60,13 +60,20 @@ Clipboard markup is parsed with `DOMParser`, which has no browsing context, so n
 the markup is read. **Never `importNode` those nodes into the live document** — that makes them live again.
 Background in `../../../.ai/CONCERNS.md`.
 
-**`parseFromString` is itself a Trusted Types sink, so the source-data parse is wrapped in a `try`/`catch`
-that degrades instead of failing** (DEV-2617). Under `require-trusted-types-for 'script'` it throws unless
-the value came from a policy — which it did not when no `sanitizer` is configured, or when one is configured
-and returns a plain string. Losing the source-data flavor costs object-key fidelity on an internal paste;
-letting the throw escape would kill the paste outright, so the catch warns
-(`#warnClipboardParseRefused`) and the `text/html` branch carries the paste. Do not "tidy" that catch away,
-and do not widen it to the `text/html` parse — that one has no fallback left.
+**`parseFromString` is itself a Trusted Types sink, so *both* parses are wrapped in a `try`/`catch` that
+degrades instead of failing** (DEV-2617). Under `require-trusted-types-for 'script'` it throws unless the
+value came from a policy — which it did not when no `sanitizer` is configured, or when one is configured and
+returns a plain string. Each catch warns through `#warnClipboardParseRefused`, then falls back differently:
+
+- **The source-data parse** loses only object-key fidelity on an internal paste; the `text/html` branch
+  carries the paste.
+- **The `text/html` parse** falls back to `text/plain`, losing the cell types and styling the HTML flavor
+  carried — but **only when there is something to fall back to.** An empty `text/plain` parses into
+  `[['']]`, which the guard in `onPaste` does not stop, so assigning it would blank the target cell.
+  Leaving `pastedData` as `undefined` makes the paste a no-op instead, which is the better outcome for a
+  payload that was valid markup the parser simply refused.
+
+Do not "tidy" either catch away.
 
 ## Copy is not a sanitizer surface — it is a text surface
 
@@ -95,9 +102,12 @@ reject values, and that is only known after reading their cell meta.
 
 ## Header copying
 
-Four options control it — `copyColumnHeaders`, `copyColumnGroupHeaders`, `copyColumnHeadersOnly`, and
-`pasteMode` (`'overwrite'` | `'shift_down'` | `'shift_right'`). All default off except `pasteMode:
-'overwrite'`. `rowsLimit` / `columnsLimit` default to `Infinity`.
+Three options control it — `copyColumnHeaders`, `copyColumnGroupHeaders` and `copyColumnHeadersOnly` —
+and all three default to `false`. `rowsLimit` / `columnsLimit` default to `Infinity`.
+
+`pasteMode` (`'overwrite'` | `'shift_down'` | `'shift_right'`, default `'overwrite'`) is **not** a header
+option. It is handed straight to `populateFromArray()` as the paste method, so it only decides how pasted
+data lands relative to the selection.
 
 In the header path, the `row` argument doubles as the **header level** — a signature quirk worth knowing
 before reading `copyableRanges.ts`.

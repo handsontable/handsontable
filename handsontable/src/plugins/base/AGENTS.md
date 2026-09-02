@@ -79,10 +79,12 @@ Details that bite:
     into `#hooks`, and `removeHooks` removes that same reference — so an inline wrapper registered through
     `this.addHook` *is* cleaned up by `disablePlugin()`. Identity only matters when you register on
     `this.hot.addHook` and later call `this.hot.removeHook` with a separately built function.
-  - **About 27 inline-wrapper sites already exist**, across 11 plugins (autoColumnSize, autoRowSize,
-    columnSummary, formulas, emptyDataState, dragToScroll, comments, customBorders, mergeCells, dialog,
-    contextMenu, dropdownMenu). They work. **Do not bulk-rewrite them in a compliance pass** — two of them
-    hold listeners deliberately left bound past `disablePlugin()`. Use the arrow field for new code.
+  - **Inline-wrapper sites already exist in bulk** — at least 38 through `this.addHook` alone, spread over
+    16 plugins, including the auto-size pair, `columnSummary`, `formulas`, `comments`, `customBorders`,
+    `mergeCells`, `contextMenu`, `dropdownMenu`, `dialog` and `emptyDataState`. Grep `this.addHook('` for
+    the current set rather than trusting that number. They work, and by the point above they are torn down
+    correctly, so **rewriting them is churn with no functional gain** — do not do it in a compliance pass.
+    Use the arrow field for new code.
   Never `.bind(this)`: that *does* build a new function per call, so the reference you registered is not the
   one you can remove.
 - `addHook`'s third argument is an **order index**: negative runs before the un-indexed listeners, positive

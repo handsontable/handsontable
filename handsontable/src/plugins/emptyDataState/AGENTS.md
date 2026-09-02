@@ -52,9 +52,12 @@ Two details:
 
 ## Selection on hide
 
-Hiding the placeholder re-selects `(0, 0)` with scrolling suppressed, then fires
-`afterEmptyDataStateHide`. The suppressed scroll is deliberate — a scroll-into-view here would jump the
-viewport as data arrives.
+`show()` captures the current selection through `selection.exportSelection()`. `#hide()` restores it with
+`selection.importSelection()` and re-renders, so the selection the user had comes back when data arrives.
+
+Only when nothing was captured — no ranges — does it fall back to selecting `(0, 0)`, and there **scrolling
+is suppressed**. That is deliberate: a scroll-into-view on an arriving dataset would jump the viewport.
+Either way, `afterEmptyDataStateHide` fires last.
 
 ## Where to look next
 

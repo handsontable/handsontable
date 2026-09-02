@@ -67,10 +67,17 @@ DOM write it replaced.
 refreshed. A summary result must stay excluded from the ranges of the endpoints being refreshed, whatever
 its own source column is.
 
-## `afterCreateRow` ordering with TrimRows
+## The `afterCreateRow` deferral, and the stale comment above it
 
-TrimRows' `afterCreateRow` fires *after* this plugin's, so the range recreation is deferred to the next
-available hook. Do not collapse that back into the original handler.
+When `settingsType === 'function'`, `resetSetupAfterStructureAlteration()` does not recreate the ranges
+inline — it defers them to `addHookOnce('beforeViewRender', …)`, because a trimming plugin's
+`afterCreateRow` has to run first for the endpoint value to come out right. **Do not collapse that back
+into the original handler.**
+
+The comment above it (`endpoints.ts:393`) blames TrimRows, and that attribution is stale: `trimRows.ts`
+registers **no hooks at all**. `nestedRows.ts` is the trimmer that does register `afterCreateRow`
+(`nestedRows.ts:167`). So check what still depends on the ordering before you touch the deferral — the
+comment names the wrong plugin, which is not the same as naming a problem that no longer exists.
 
 ## Where to look next
 
