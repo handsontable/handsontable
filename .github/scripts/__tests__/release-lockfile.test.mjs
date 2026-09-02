@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
 
@@ -28,6 +30,11 @@ const read = rel => readFileSync(path.join(root, rel), 'utf8');
 const GATE = '.github/scripts/lockfile-float-gate.mjs';
 const BUMP_STEP = 'Update lockfile for version change';
 const COMMIT_STEP = 'Commit and push';
+
+// The example-lockfile surface (DEV-2714). Report-only, and a different file from the gate, so
+// the gate's pinned occurrence count stays untouched.
+const REPORT_SCRIPT = '.github/scripts/example-lockfile-report.mjs';
+const EXAMPLE_CLEAN_SCRIPT = 'examples/scripts/clean-subpackages.mjs';
 
 // One gate after each of the three version bumps, and one before each of the three
 // release commits -- every step in between is a chance to touch the lockfile, and
@@ -349,5 +356,143 @@ test('every step that reads $VERSION also sets it', () => {
       + 'it silently passes. Assign it from `needs.<job>.outputs.version`, or hand it in '
       + 'through `env:`.'
     );
+  }
+});
+
+// The nine tracked example lockfiles (`examples/next/<category>/<framework>/package-lock.json`)
+// are the same failure mode one layer out, and they had the same cause: `examples:install`
+// deleted them and reinstalled, so a release cut re-resolved 104 `latest` leaf specifiers and
+// committed the result through `first-rc-build`'s bare `git add .`. The float gate cannot see
+// them -- it hardcodes `pnpm-lock.yaml`. With the lockfile present npm honours the locked edge
+// even for a dist-tag spec, so keeping the file is what makes the install reproducible; deleting
+// it is the whole defect. `--reset-lockfiles` is the deliberate refresh, run by hand and landed
+// on `develop` where CI and `npm audit` see it (DEV-2714).
+test('the examples clean step keeps the lockfiles unless asked', () => {
+  const source = read(EXAMPLE_CLEAN_SCRIPT);
+  const removals = [...source.matchAll(/^(\s*)removes\.push\(([^\n]*)$/gm)];
+
+  assert.ok(removals.length > 0, `${EXAMPLE_CLEAN_SCRIPT}: no \`removes.push(...)\` calls found`);
+
+  const isLockfile = ([, , call]) => /package-lock\.json|pnpm-lock\.yaml/.test(call);
+  const lockfileRemovals = removals.filter(isLockfile);
+
+  assert.equal(
+    lockfileRemovals.length,
+    2,
+    `${EXAMPLE_CLEAN_SCRIPT}: expected the \`package-lock.json\` and \`pnpm-lock.yaml\` `
+    + `removals, found ${lockfileRemovals.length}.`
+  );
+
+  // Guarded means indented deeper than the removals that run unconditionally, which is what
+  // sitting inside the `if (resetLockfiles)` block looks like. Text-based on purpose: the
+  // regression to catch is a future edit moving these two lines back out of the block.
+  const baseline = Math.min(...removals.filter(match => !isLockfile(match)).map(([, indent]) => indent.length));
+
+  for (const [, indent, call] of lockfileRemovals) {
+    assert.ok(
+      indent.length > baseline,
+      `${EXAMPLE_CLEAN_SCRIPT}: \`${call.trim()}\` is not inside the \`--reset-lockfiles\` `
+      + 'guard. Deleting a tracked example lockfile on every install makes the next install '
+      + 're-resolve 104 `latest` specifiers, and `first-rc-build` commits whatever comes out '
+      + '(DEV-2714).'
+    );
+  }
+
+  assert.match(
+    source,
+    /resetLockfiles\s*=\s*args\.includes\('--reset-lockfiles'\)/,
+    `${EXAMPLE_CLEAN_SCRIPT}: the \`--reset-lockfiles\` opt-in is gone, so nothing can refresh `
+    + 'the lockfiles on purpose (DEV-2714).'
+  );
+});
+
+// Report-only, and it must stay that way: these trees build documentation demos and visual-test
+// fixtures and ship in no bundle, so a transitive bump there must not red a release candidate.
+// Its position is load-bearing in one direction -- it has to sit ABOVE the float gate, because
+// 'every release commit is preceded by the gate' asserts the gate is the step IMMEDIATELY before
+// `Commit and push`.
+test('first-rc-build reports the example lockfiles before the gate and the commit', () => {
+  const { source, offset } = job(read('.github/workflows/publish.yml'), 'first-rc-build');
+  const all = steps(source);
+  const report = all.find(step => step.body.includes(REPORT_SCRIPT));
+
+  assert.ok(
+    report,
+    'publish.yml: `first-rc-build` installs the examples and commits them with `git add .`, so '
+    + `it must run ${REPORT_SCRIPT}. Without it a re-resolved example lockfile reaches the `
+    + 'release branch with nobody told (DEV-2714).'
+  );
+
+  // The job carries two gate calls -- one after the version bump, one before the commit. The
+  // second is the one the report has to stay above, so look backwards from the commit.
+  const commit = all.findIndex(step => step.name === COMMIT_STEP);
+
+  assert.notEqual(commit, -1, 'publish.yml: `first-rc-build` lost its `Commit and push` step');
+
+  const gate = all.findLastIndex((step, index) => index < commit && step.body.includes(GATE));
+
+  assert.notEqual(gate, -1, 'publish.yml: `first-rc-build` lost the gate before its commit');
+
+  assert.ok(
+    all.indexOf(report) < gate && gate < commit,
+    `publish.yml:${offset + report.line}: expected the example lockfile report, then the float `
+    + 'gate, then the commit. The gate has to be the step immediately before `Commit and push`, '
+    + 'so this one goes above it, never between the two.'
+  );
+
+  assert.equal(
+    report.body.includes(GATE),
+    false,
+    `publish.yml:${offset + report.line}: this step names ${GATE}, which inflates the raw `
+    + `occurrence count that "the gate is not quietly dropped from a site" pins at `
+    + `${EXPECTED_GATES}. Call it "the float gate" in prose instead.`
+  );
+});
+
+// The report runs between a build and a `git add .` in the one job that cuts the first RC. A
+// crash there would take the release down over files that ship nowhere, so exiting 0 is part of
+// the contract, not an implementation detail -- and `execFileSync` throws on any other code.
+test('the example lockfile report never fails the release', () => {
+  const fixture = mkdtempSync(path.join(tmpdir(), 'example-lockfile-report-'));
+
+  try {
+    const gitInFixture = args => execFileSync('git', args, { cwd: fixture, encoding: 'utf8' });
+    const tracked = path.join('examples', 'next', 'docs', 'js', 'package-lock.json');
+    const ignoredLeaf = path.join('examples', 'next', 'docs', 'js', 'demo', 'package-lock.json');
+    const uncovered = path.join('examples', 'next', 'docs', 'svelte', 'package-lock.json');
+    const write = (rel, contents) => {
+      mkdirSync(path.dirname(path.join(fixture, rel)), { recursive: true });
+      writeFileSync(path.join(fixture, rel), contents);
+    };
+
+    gitInFixture(['init', '--quiet', '--initial-branch', 'main']);
+    gitInFixture(['config', 'user.email', 'test@example.com']);
+    gitInFixture(['config', 'user.name', 'Test']);
+    write(path.join('examples', '.gitignore'), '*/docs/js/*/package-lock.json\n');
+    write(tracked, '{"lockfileVersion":3}\n');
+    gitInFixture(['add', '.']);
+    gitInFixture(['commit', '--quiet', '-m', 'fixture']);
+
+    write(tracked, '{"lockfileVersion":3,"floated":true}\n');
+    // Ignored, so `git add .` cannot commit it and the report must stay quiet about it.
+    write(ignoredLeaf, '{}\n');
+    // At a path no ignore pattern reaches, which is what `git add .` really would commit.
+    write(uncovered, '{}\n');
+
+    const summaryPath = path.join(fixture, 'summary.md');
+    const stdout = execFileSync('node', [path.join(root, REPORT_SCRIPT), fixture], {
+      cwd: fixture,
+      encoding: 'utf8',
+      // The audit leg needs a registry; the reporting shape is what this asserts.
+      env: { ...process.env, SKIP_AUDIT: '1', GITHUB_STEP_SUMMARY: summaryPath },
+    });
+
+    for (const output of [stdout, readFileSync(summaryPath, 'utf8')]) {
+      assert.match(output, /examples\/next\/docs\/js\/package-lock\.json/);
+      assert.match(output, /examples\/next\/docs\/svelte\/package-lock\.json/);
+      assert.doesNotMatch(output, /examples\/next\/docs\/js\/demo\/package-lock\.json/);
+    }
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
   }
 });
