@@ -930,6 +930,39 @@ describe('DomElement helper', () => {
 
       expect(warnSpy).not.toHaveBeenCalled();
     });
+
+    it('should clear the element rather than assign an empty string when the sanitizer strips everything', () => {
+      // `innerHTML` is a Trusted Types sink whatever the value, so writing `''` throws under
+      // `require-trusted-types-for 'script'`. A sanitizer that strips a payload entirely must
+      // leave a blank cell, not take the grid down.
+      const element = document.createElement('div');
+      const child = document.createElement('span');
+
+      element.appendChild(child);
+
+      const setter = jasmine.createSpy('innerHTML setter');
+
+      Object.defineProperty(element, 'innerHTML', {
+        configurable: true,
+        get: () => '',
+        set: setter,
+      });
+
+      fastInnerHTML(element, '<b>x</b>', () => '');
+
+      expect(setter).not.toHaveBeenCalled();
+      expect(element.childNodes.length).toBe(0);
+    });
+
+    it('should also clear when the sanitizer returns nothing at all', () => {
+      const element = document.createElement('div');
+
+      element.appendChild(document.createElement('span'));
+
+      fastInnerHTML(element, '<b>x</b>', () => undefined as unknown as string);
+
+      expect(element.childNodes.length).toBe(0);
+    });
   });
 
   //

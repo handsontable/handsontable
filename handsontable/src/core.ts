@@ -15,7 +15,7 @@ import {
   objectEach
 } from './helpers/object';
 import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray, pivot } from './helpers/array';
-import { instanceToHTML } from './utils/parseTable';
+import { instanceToHTML, instanceToTableElement } from './utils/parseTable';
 import { staticRegister } from './utils/staticRegister';
 import { getPlugin, getPluginsNames } from './plugins/registry';
 import type { BasePlugin } from './plugins/base/base';
@@ -6733,11 +6733,8 @@ export default function Core(
    */
   this.toTableElement = (): HTMLTableElement | null => {
     const rootDocument = instance.rootDocument as Document;
-    const tempElement = rootDocument.createElement('div');
 
-    tempElement.insertAdjacentHTML('afterbegin', instanceToHTML(instance as HotInstance));
-
-    return tempElement.firstElementChild as HTMLTableElement | null;
+    return instanceToTableElement(instance as HotInstance, rootDocument);
   };
 
   this.timeouts = [];
