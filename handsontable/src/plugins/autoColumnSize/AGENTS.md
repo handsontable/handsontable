@@ -10,8 +10,12 @@ Two facts to get right before anything else:
   behaves like `true` (the opposite of `autoRowSize`, which is off by default), **and any `colWidths`
   setting silently disables the plugin.** Check `isEnabled()` first when a grid "is not measuring": on a
   grid that declares `colWidths` there is nothing to find in the sampler or the ghost table.
-- **`PLUGIN_PRIORITY = 10`, the lowest of all plugins**, so it enables first and its `modifyColWidth`
-  listener sits at the head of that hook's list.
+- **`PLUGIN_PRIORITY = 10` is the lowest of all plugins, so it enables first — but that is not what puts
+  its `modifyColWidth` listener at the head of the hook.** The listener is registered with an explicit
+  **order index of `-10`**. Priority orders `enablePlugin()`, not hook callbacks (`../base/AGENTS.md`). The
+  indexes on that hook are: this plugin `-10`, `nestedHeaders` unindexed, `manualColumnResize` `+1`,
+  `hiddenColumns` `+2`, `stretchColumns` `+10`. **Drop the `-10` and any negative-index listener silently
+  outranks the measured width.**
 
 ## The measurement pipeline
 

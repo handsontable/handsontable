@@ -3,7 +3,7 @@
 The `pagination` plugin limits the grid to one page of rows and renders a pager below it. Read this before
 touching `pagination.ts`, `ui.ts` or anything in `strategies/`.
 
-**This plugin is the lifecycle gold standard** — the root `../../../AGENTS.md` names
+**This plugin is the lifecycle gold standard** — the core-package `../../../AGENTS.md` names
 `pagination.ts` as the file to copy when writing a new plugin. Keep it that way: if you shortcut the
 lifecycle here, you teach every future plugin the shortcut.
 
@@ -41,11 +41,13 @@ note in `../base/AGENTS.md`.
   the **bottom slot**. **The element stays detached until then** — do not `appendChild` it yourself.
 - **With a custom `uiContainer`**: the UI installs itself there and the slot registration is skipped.
 
-The manager exists only on the root instance. `isEnabled()` is gated on `isRootInstance`, so the
-`isRootInstance` half of the placement guard is **always false in practice**; it stays as a statement of the
-requirement, **not** as support for a nested grid. A direct `enablePlugin()` call on a non-root instance
-dies earlier, in the UI, which reads `rootGridElement`. The same guard is mirrored later in the file with a
-comment pointing back — keep both, and keep the comments.
+The manager exists only on the root instance. `isEnabled()` is already gated on `isRootInstance`, so by
+the time `enablePlugin()` reaches that guard **the `isRootInstance` half is always true and its else-branch
+is unreachable**; it stays as a statement of the requirement, **not** as support for a nested grid. (The
+source comment at `pagination.ts:262` says "always false in practice", meaning the non-root *case* never
+arises — read it that way, it is easy to take backwards.) A direct `enablePlugin()` call on a non-root
+instance dies earlier, in the UI, which reads `rootGridElement`. The same guard is mirrored later in the
+file with a comment pointing back — keep both, and keep the comments.
 
 ## Two page-size strategies
 

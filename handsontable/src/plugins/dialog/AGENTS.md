@@ -36,8 +36,8 @@ separate defects made this ordering necessary:
    into a single document (WCAG 4.1.1), which a GUID cannot do.
 
 Unknown keys inside `template` pass `SETTINGS_VALIDATORS` untouched — `BasePlugin` iterates the validator's
-own keys only — so a value the library authors must be kept out of the caller's reach by construction, not
-by validation.
+own keys only — so a value the library itself must control has to be kept out of the caller's reach by
+construction, not by validation.
 
 The general rule this is the worked example of — a value interpolated into an HTML *attribute* is resolved
 at the render site, never trusted from a validator in another file — is in `../../../AGENTS.md`.

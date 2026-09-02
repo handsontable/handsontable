@@ -32,9 +32,13 @@ isDragging() { return this.enabled && this.#pressed && this.#dragged; }
 ```
 
 ColumnSorting asks this **on release** to tell a click apart from a drag, so the two plugins cannot disagree
-about where that line is. The drag tolerance is a **local constant that deliberately matches
-ColumnSorting's** — plugins do not import each other, so the value is duplicated with a comment saying so.
-Change one and you must change the other.
+about where that line is — it has no tolerance logic of its own, it just calls
+`manualColumnMove?.isDragging()`.
+
+**So `POINTER_DRAG_TOLERANCE = 3` in this file is the single source of truth for that threshold.** Do not go
+looking for a second copy in ColumnSorting and do not add one: the comments at `manualColumnMove.ts:19` and
+`:716` claim the value is duplicated there, and they are stale — `columnSorting/` contains no tolerance
+constant, no `Math.abs`, and no press-origin tracking.
 
 A press that never traveled is a click, not a move, and bailing out on that also keeps
 `beforeColumnMove` / `afterColumnMove` from firing on every header click. The full protocol on the sorting

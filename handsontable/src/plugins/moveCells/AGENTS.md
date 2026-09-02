@@ -8,24 +8,28 @@ ask whether this plugin accepted a press. It is internal, not public API.
 
 ## Four guards before anything is written, and each one earns its place
 
-`moveCellRange()` runs roughly six full passes over the source and target regions before a single value
+`moveCellRange()` runs **seven** full passes over the source and target regions before a single value
 changes: two read-only scans, two movable-meta collections, the value snapshot, plus UndoRedo's two region
-snapshots. The undo stack then retains two whole value matrices. So the guards run **first**, before any
-hook fires, so that neither UndoRedo nor Formulas snapshots anything:
+snapshots. The undo stack then retains two whole value matrices. (The `CELLS_LIMIT` doc comment in the
+source says "roughly six" while enumerating the same seven — the enumeration is the accurate half.) So the
+guards run **first**, before any hook fires, so that neither UndoRedo nor Formulas snapshots anything:
 
 1. **A move onto itself is a no-op.** Without the guard, a plain click on the move band — mousedown and
    mouseup in the same cell — runs the whole commit pipeline for zero data change: a HyperFormula mutation,
    a rewrite of the source region, and an undo entry that pushes the user's real edits out of the stack.
 2. **`CELLS_LIMIT = 100000`.** The drag path cannot produce a range near that size; the ceiling protects the
    public `moveCellRange` API called with a programmatically built range. An unbounded range freezes the tab.
-3. **A read-only cell vetoes the move from *either* end.** The target case is the expected one. The source case
-   matters just as much: `populateFromArray` skips read-only cells (`core.ts` exempts only
-   `'UndoRedo.undo'`), so without the check the source values survive and the move silently degrades into a
-   copy. With Formulas active it is worse — HyperFormula has already relocated the cell, so the engine and
-   the data source diverge.
-4. **Source bounds are checked too**, for the same public-API reason: a caller-built range past the grid
-   edge reads `undefined` off the end of the data source and writes it into the target instead of failing
-   cleanly.
+3. **One combined `if` covers bounds *and* read-only from either end.** The target read-only case is the
+   expected one; the **source** case matters just as much, because `populateFromArray` skips read-only cells
+   (`core.ts` exempts only `'UndoRedo.undo'`), so without the check the source values survive and the move
+   silently degrades into a copy. With Formulas active it is worse — HyperFormula has already relocated the
+   cell, so the engine and the data source diverge. Bounds ride along for the same public-API reason: a
+   caller-built range past the grid edge reads `undefined` off the end of the data source and writes it into
+   the target instead of failing cleanly.
+4. **A merged cell overlapping *either* region rejects the move.** When MergeCells is enabled,
+   `mergedCellsCollection.getWithinRange()` is checked against the source **and** the target range, and a
+   hit returns `false`. This is the guard that makes `moveCellRange()` "return false for no visible reason"
+   on a grid with `mergeCells` — check it first when debugging that.
 
 ## `afterMoveCells` fires BEFORE the target is selected
 
@@ -78,5 +82,11 @@ off the edge.
 
 ## Testing
 
-- `npm run test:e2e --prefix handsontable -- --testPathPattern='moveCells'`
-- `npm run test:unit --prefix handsontable -- --testPathPattern='moveCells'`
+This plugin has **no legacy Jasmine spec** — `--testPathPattern='moveCells'` on `test:e2e` matches nothing
+and passes vacuously. Its E2E coverage is Playwright:
+
+- `cd tests && npx playwright test e2e/move-cells-api.spec.ts e2e/move-zone.spec.ts e2e/move-cells-undo.spec.ts`
+  (plus `e2e/formulas-move-cells.spec.ts` and `e2e/formulas-move-cells-undo.spec.ts` for the engine path)
+- `npm run test:unit --prefix handsontable -- --testPathPattern='moveCells'` — `__tests__/` holds
+  `rangeGuards`, `readOnlyVeto`, `noopMove`, `metaFootprint`, `hookArgumentSafety` and `helpers`, one per
+  rule above

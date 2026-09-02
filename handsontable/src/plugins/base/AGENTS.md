@@ -71,8 +71,20 @@ Details that bite:
   plugins keep their recalculation listener bound so double-click autofit still works while disabled. So do
   not convert these in a compliance pass — an instance-level hook needs a guard that tolerates being
   disabled, and the reason belongs in a comment.
-- Hook callbacks must be **arrow function class fields** passed directly: `this.addHook('afterX', this.#onAfterX)`.
-  Never `.bind(this)` and never an inline wrapper — `removeHooks` matches by identity.
+- **Prefer arrow function class fields, passed directly**: `this.addHook('afterX', this.#onAfterX)`. This is
+  the house rule (`../../../AGENTS.md` states it as Required) and it is what makes a listener nameable,
+  greppable and individually removable with `removeHooks(name)`. Two corrections to how it is usually
+  justified, both worth knowing before you enforce it:
+  - **The plugin's own `addHook` does not care about identity.** It pushes whatever reference it was handed
+    into `#hooks`, and `removeHooks` removes that same reference — so an inline wrapper registered through
+    `this.addHook` *is* cleaned up by `disablePlugin()`. Identity only matters when you register on
+    `this.hot.addHook` and later call `this.hot.removeHook` with a separately built function.
+  - **About 27 inline-wrapper sites already exist**, across 11 plugins (autoColumnSize, autoRowSize,
+    columnSummary, formulas, emptyDataState, dragToScroll, comments, customBorders, mergeCells, dialog,
+    contextMenu, dropdownMenu). They work. **Do not bulk-rewrite them in a compliance pass** — two of them
+    hold listeners deliberately left bound past `disablePlugin()`. Use the arrow field for new code.
+  Never `.bind(this)`: that *does* build a new function per call, so the reference you registered is not the
+  one you can remove.
 - `addHook`'s third argument is an **order index**: negative runs before the un-indexed listeners, positive
   after. Reach for it only when two plugins must observe the same hook in a fixed order.
 
@@ -101,10 +113,13 @@ top-level setting is truthy". It is checked in two places, and **they do not beh
 | `init()`'s deferred enable | warns **and writes `getSettings()[PLUGIN_KEY] = false`**, then returns |
 | `onUpdateSettings` branch 3 | warns and calls `disablePlugin()`; the setting is left alone |
 
-Two consequences. A grid blocked at init reports its own option as `false`, so a test asserting
-`getSettings().pagination === true` fails and removing the conflicting option later does not bring the
-plugin back at init. And `isHardConflictBlocked()` warns as a *side effect*, so a blocked plugin can emit
-the same warning twice for one `updateSettings()` call.
+The consequence: a grid blocked at init reports its own option as `false`, so a test asserting
+`getSettings().pagination === true` fails, and removing the conflicting option later does not bring the
+plugin back at init.
+
+Note `isHardConflictBlocked()` warns as a *side effect* of being asked, which reads like a double-warning
+hazard and is not one: branch 2 **returns** when it blocks, so branch 3 is only reached when branch 2 did
+not warn, and branch 3 returns after warning once. One `updateSettings()` pass warns at most once.
 
 The check is `!!settings[incompatibleSettingKey]`. It is a *setting* key, not a plugin key, so it also
 catches options no plugin owns (`fixedRowsTop`).
@@ -150,7 +165,9 @@ without a priority in registration order. Registering two plugins on the same pr
 | | | 950 | dataProvider |
 | | | 1000 | undoRedo |
 
-Free slots to pick a new number from: 180, 270, and the 380–890 range. `900`+ is reserved for plugins that
+Free slots to pick a new number from: 180, 270, 340, and the 380–890 range. **340 is the only gap between
+the trimming plugins (330) and the overlay plugins (350+)**, so it is the slot for a plugin that must enable
+after trimming and before the overlays. `900`+ is reserved for plugins that
 must see every other plugin's state already settled (Pagination, DataProvider, UndoRedo).
 
 **Priority orders `enablePlugin()`, and nothing else.** It does *not* order hook callbacks by itself — it

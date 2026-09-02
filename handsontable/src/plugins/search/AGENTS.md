@@ -63,7 +63,7 @@ There is a standing `// TODO: #4972` on this handler.
 ## Where to look next
 
 - `className` normalization and `afterGetCellMeta` hygiene, in full: `../hiddenColumns/AGENTS.md` and the
-  root `../../../AGENTS.md`.
+  core-package `../../../AGENTS.md`.
 - Cell meta eviction and `_persistedMetaProps`: `../../dataMap/metaManager/AGENTS.md`.
 - The other plugin that writes declarative meta for styling: `../columnSummary/AGENTS.md`.
 - Filtering rows rather than marking them: `../filters/AGENTS.md`.

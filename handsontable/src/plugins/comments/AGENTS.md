@@ -43,7 +43,7 @@ tooltip never appears at all (#8624 / DEV-2596). So:
   pointer move never reaches, so today it is hygiene with no visible behavior. Do not build on it.
 
 Grid-wide shadow-DOM rules (`getDeepActiveElement()`, `getShadowHostChain()`, `composedPath()`) are in the
-root `../../../AGENTS.md`.
+core-package `../../../AGENTS.md`.
 
 ## The size clamp must run BEFORE `observeSize()`
 

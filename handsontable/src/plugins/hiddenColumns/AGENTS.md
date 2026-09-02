@@ -13,7 +13,7 @@ The map type is **`'hiding'`**, registered on `columnIndexMapper` under the plug
 leaves the visual space altogether.
 
 That difference is why hiding does not strand a selection the way trimming does — the full rule is in the
-root `../../../AGENTS.md` and in `../trimRows/AGENTS.md`. Tier details:
+core-package `../../../AGENTS.md` and in `../trimRows/AGENTS.md`. Tier details:
 `../../../.ai/INDEX-MAPPING.md`.
 
 ## The `init` local hook has to be replayed by hand

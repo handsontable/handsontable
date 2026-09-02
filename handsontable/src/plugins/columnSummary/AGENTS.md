@@ -39,7 +39,7 @@ Two related helpers, with a deliberate split:
 
   **The two tests are exclusive, not OR-ed**, and that matters: a *visible* destination cell still holds the
   user's own value on the first calculation pass, before any result was written, and that value counts
-  towards the summary. Three long-standing specs pin exactly that.
+  toward the summary. Three long-standing specs pin exactly that.
 
 ## Empty ranges report "Not enough data", not `NaN` (DEV-2691)
 

@@ -13,7 +13,7 @@ src/plugins/{pluginName}/
 ├── AGENTS.md             # Plugin knowledge file — REQUIRED (see below)
 ├── CLAUDE.md             # symlink -> AGENTS.md, never a copy
 ├── types.ts              # (optional) exported plugin-local types
-├── __tests__/            # Tests (*.spec.js for E2E, *.unit.js for unit)
+├── __tests__/            # *.unit.js unit tests (new E2E is Playwright, in tests/e2e/)
 └── {submodules}/         # Additional files (UI classes, strategies, etc.)
 ```
 
@@ -53,7 +53,7 @@ destroy()        // Null out all fields. Call super.destroy() AT THE END.
 
 **Private fields** - Use `#` prefix for all internal state. No `@private` JSDoc.
 
-**Hook callbacks** (**required pattern**) - All `#on*` methods that are passed to `addHook` must be arrow function class fields, not regular methods. This is mandatory, not optional:
+**Hook callbacks** (**required for new code**) - Pass `#on*` handlers to `addHook` as arrow function class fields, not as inline wrappers or `.bind(this)`:
 
 ```ts
 // ✅ Correct — arrow field, passed directly
@@ -66,18 +66,20 @@ enablePlugin() {
   super.enablePlugin();
 }
 
-// ❌ Wrong — regular method wrapped in an inline arrow
+// ⚠️ Avoid in new code — inline wrapper around a regular method
 enablePlugin() {
   this.addHook('afterLoadData',
-    (data, init, src) => this.#onAfterLoadData(data, init, src));  // never do this
+    (data, init, src) => this.#onAfterLoadData(data, init, src));
   super.enablePlugin();
 }
 
-// ❌ Wrong — .bind(this)
+// ❌ Wrong — .bind(this) builds a new function per call
 this.addHook('afterLoadData', this.#onAfterLoadData.bind(this));  // never do this
 ```
 
-Why: arrow fields capture `this` at construction time so `removeHook` can match the exact reference. Inline wrappers create new function instances on each `enablePlugin()` call, which means `removeHook` can never clean them up.
+Why: an arrow field is a named, greppable reference you can remove individually with `removeHooks(name)`, and `.bind(this)` returns a **new** function each call, so the reference you registered is not one you can ever remove.
+
+**Two things this rule is often given a wrong reason for.** The plugin's own `addHook` stores whatever reference it was handed in `#hooks` and `removeHooks` removes that same reference — so an inline wrapper registered through `this.addHook` **is** cleaned up by `disablePlugin()`. Identity only bites on `this.hot.addHook` + a separately built `this.hot.removeHook` argument. And about **27 inline-wrapper sites already exist** across 11 plugins; they work, and two of them hold listeners deliberately left bound past `disablePlugin()`. Use the arrow field for new code; **do not bulk-rewrite the existing sites.**
 
 If the hook with a priority argument:
 ```ts
@@ -170,7 +172,9 @@ It answers **"what must I never get wrong here, and where do I look next"** — 
 which the source and its JSDoc already say. So write down what a reader cannot recover by reading the code:
 the reason a guard exists, the ordering that is load-bearing, the shortcut that looks right and is wrong.
 
-Sections every one carries:
+Sections a new file must carry (10 of the pre-existing files predate this and are missing `## Where to look
+next` or `## Testing` — that is a known gap, not a licence to skip them, and not an invitation to go fix
+those 10 in an unrelated change):
 
 1. `# {PluginName} plugin — {one-line focus}`, then one or two sentences naming the files this covers and
    saying **"Read this before touching X."**
@@ -183,7 +187,8 @@ Sections every one carries:
 5. `## Testing` — the targeted commands, and anything non-obvious about the suite (a `__tests__/` split, a
    spec that fails for an unrelated reason, a case that needs a real device).
 
-**Length follows the plugin, not a template.** `stretchColumns/AGENTS.md` is three bullets and complete;
+**Length follows the plugin, not a template.** `stretchColumns/AGENTS.md` is three bullets and says
+everything that plugin needs (it predates the section rules above, so it has no `## Testing`);
 `base/AGENTS.md` is long because it holds the contract for all 42 plugins. Short and true beats long and
 padded — read one of each before writing yours.
 

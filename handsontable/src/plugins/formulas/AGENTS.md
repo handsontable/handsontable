@@ -1,6 +1,6 @@
 # Formulas plugin — the HyperFormula bridge
 
-The `formulas` plugin connects the grid to HyperFormula. Read this before touching `formulas.ts` (3.3k
+The `formulas` plugin connects the grid to HyperFormula. Read this before touching `formulas.ts` (3.4k
 lines), `indexSyncer/axisSyncer.ts`, `engine/`, `utils.ts` or `hyperlinkUrl.ts`.
 
 HyperFormula is a **user-supplied peer dependency** (a devDependency here for tests only). It is bundled

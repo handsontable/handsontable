@@ -77,7 +77,8 @@ index **1**.
 
 `has-sort-indicator` goes on the header container, not the label. Padding on the label would enlarge the
 area that sorts on click — exactly what it must not do. It is a class rather than a `:has()` selector
-because `:has()` is banned in this package (see the root `AGENTS.md`).
+because `:has()` is banned in this package (see the **monorepo-root** `../../../../AGENTS.md` — that ban is
+declared there, not in the core-package file).
 
 `sortAction` is required before reserving: the CSS that pulls the indicator out of the flex row is keyed on
 it, and with `headerAction: false` the label shows an indicator but keeps its full width, so reserving would

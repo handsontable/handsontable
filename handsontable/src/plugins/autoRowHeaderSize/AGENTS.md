@@ -81,5 +81,9 @@ A row with no renderable index is hidden, so no header of it is drawn and none i
 
 ## Testing
 
-- `npm run test:e2e --prefix handsontable -- --testPathPattern='autoRowHeaderSize'`
+This plugin has **no legacy Jasmine spec** — `--testPathPattern='autoRowHeaderSize'` on `test:e2e` matches
+nothing and passes vacuously. Its E2E coverage is Playwright:
+
+- `cd tests && npx playwright test e2e/auto-row-header-size.spec.ts` (page object:
+  `tests/fixtures/pages/AutoRowHeaderSizePage.ts`)
 - `npm run test:unit --prefix handsontable -- --testPathPattern='autoRowHeaderSize'`
