@@ -35,8 +35,10 @@ changes. In that case:
    unreachable, download the `visual-diff-report` artifact from the workflow run instead.
 2. Decide what the differences mean:
       - They are a regression. Push a commit that removes them, and the check goes green.
-      - They are intentional. Add the `visual-approved` label to the pull request, then re-run the
-        **Compare** job. Approval covers the whole build — there is no per-screenshot review.
+      - They are intentional. Add the `visual-approved` label to the pull request. That is the whole
+        step: the **Visual approval rerun** workflow re-runs the failed jobs for you, and the check
+        goes green. If the rest of the pipeline is still running, the re-run starts once it finishes.
+        Approval covers the whole build — there is no per-screenshot review.
 
 Approval binds to one set of screenshots. Pushing a new commit removes the `visual-approved` label, so
 screenshots nobody has looked at never inherit an earlier approval.
@@ -44,7 +46,8 @@ screenshots nobody has looked at never inherit an earlier approval.
 Two cases the label cannot solve:
 
 - **Your pull request comes from a fork, or from Dependabot.** Those runs get no secrets, so nothing can
-  clear the label when you push again — which means it is ignored there rather than trusted. The check
+  clear the label when you push again — which means it is ignored there rather than trusted, and no
+  automatic re-run is started either. The check
   reports the real verdict, the workflow run's job summary carries it, and the `visual-diff-report`
   artifact holds the images. To accept intentional differences, a maintainer has to re-raise the branch
   from the main repository.
@@ -100,7 +103,8 @@ flowchart TD
 
     FAIL --> REVIEW["Open the report URL<br/>or the visual-diff-report artifact"]
     REVIEW -->|"a regression: fix it"| PR
-    REVIEW -->|"intentional: add the label"| PR
+    REVIEW -->|"intentional: add the label"| RERUN["visual-approval-rerun.yml<br/>re-runs the failed jobs"]
+    RERUN --> KPR
 
     KBR -.->|"rewrites the baseline"| BUCKET[("Cloudflare R2<br/>base/BRANCH/actual/")]
     SEED -.-> BUCKET
@@ -111,7 +115,7 @@ flowchart TD
 
 Two behaviors are worth reading off the diagram:
 
-- **Approval is all or nothing.** The `visual-approved` label accepts every difference in the build at once. Pushing a new commit removes the label, so an approval covers exactly the screenshots someone looked at.
+- **Approval is all or nothing, and the label is the only step.** The `visual-approved` label accepts every difference in the build at once, and `visual-approval-rerun.yml` re-runs the failed jobs so the check turns green on its own. Pushing a new commit removes the label, so an approval covers exactly the screenshots someone looked at — and a push during the wait cancels the re-run rather than approving a build nobody read.
 - **A missing baseline never blocks.** The first build for a branch promotes its own screenshots to the golden records and passes. The next build of that branch replaces them, so an unreviewed baseline survives at most one merge.
 
 ## Visual tests structure
@@ -147,7 +151,8 @@ There main demo available for all frameworks is served on `/`. There are additio
 
 ## Run visual tests through GitHub Actions
 
-Our GitHub Actions configuration runs the visual tests automatically, but you can run them manually as well:
+Our GitHub Actions configuration runs the visual tests automatically, and the `visual-approved` label
+re-runs them for you. To start a re-run by hand anyway:
 
 1. On GitHub, at the bottom of your pull request, find the **Visual / Compare** check. Select **Details**.
 2. On the left, next to the **Compare** job, select 🔄.

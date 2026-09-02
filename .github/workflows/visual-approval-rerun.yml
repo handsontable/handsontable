@@ -1,0 +1,68 @@
+name: Visual approval rerun
+
+# Re-runs the failed visual gate when `visual-approved` is applied, so the label
+# is the whole action rather than step one of two.
+#
+# The gate in `visual.yml` reads the label live, but only a NEW attempt runs it,
+# and nothing started one — so a labelled pull request kept its red
+# `Visual / Compare`, and with it a red `CI Gate`, until someone pressed
+# "Re-run jobs" by hand.
+#
+# Separate from `visual-cleanup.yml` for the reason that file gives for being
+# separate from `pr-cleanup.yml`: these workflows are split by TRIGGER, one
+# pipeline per event. `labeled` is not `synchronize`/`reopened`, and the two jobs
+# need different write grants (`actions` here, `pull-requests` there).
+on:
+  pull_request:
+    types: [ labeled ]
+
+permissions:
+  contents: read
+
+# Re-applying the label restarts the wait rather than running a second waiter
+# against the same pull request.
+#
+# The label name is part of the key, and has to be: `labeled` fires for EVERY
+# label, and a run's concurrency group is resolved when the run is created --
+# before the job's `if:` skips it. Keyed on the number alone, someone adding
+# `bug` or `docs` while this waits would cancel the waiter and then skip its own
+# job, so nothing re-runs and nothing reports why.
+concurrency:
+  group: visual-approval-rerun-${{ github.event.number }}-${{ github.event.label.name }}
+  cancel-in-progress: true
+
+jobs:
+  rerun-visual-gate:
+    name: Re-run the visual gate
+    # Fork and Dependabot pull requests hold a read-only token, so the re-run
+    # POST would 403. They are excluded here for the same reason `visual.yml`
+    # ignores the label on those runs at all: `visual-cleanup.yml` cannot strip
+    # it there, so it could never be trusted in the first place.
+    if: github.event_name == 'pull_request'
+      && github.event.label.name == 'visual-approved'
+      && (github.event.pull_request.head.repo.full_name == github.repository
+          && github.actor != 'dependabot[bot]')
+    runs-on: ubuntu-latest
+    # Above WAIT_TIMEOUT_MINUTES, so the script's own message is what a
+    # contributor reads when the pipeline outlasts the wait.
+    timeout-minutes: 100
+    permissions:
+      contents: read
+      # `rerun-failed-jobs`. The only write this workflow needs.
+      actions: write
+      pull-requests: read
+    steps:
+      # No `fetch-depth: 0`: the script reads everything over the API and needs
+      # nothing from the git graph.
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+
+      - name: Re-run the failed jobs once the pipeline finishes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.number }}
+          # Long enough to outlast a full pull request pipeline, because the
+          # comment that prompts the approval is posted mid-run.
+          WAIT_TIMEOUT_MINUTES: 90
+          POLL_INTERVAL_SECONDS: 60
+        run: node ./.github/scripts/visual-approval-rerun.mjs
