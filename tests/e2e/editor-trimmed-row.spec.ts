@@ -604,25 +604,309 @@ test.describe('an index-map change on the column axis', () => {
 });
 
 /**
- * The two commit paths the rebind cannot reach, pinned so they stay merely lossy.
+ * Commit paths that read selection coordinates after an editor rebind caused by trimming.
  *
- * Neither is a defect this change introduced - both produced the row-appending corruption before it,
- * and both now lose the edit instead. They are recorded here because "the edit lands on the right
- * record" is the guarantee in `#reconcileEditorWithIndexMaps()`'s JSDoc, and these are its two
- * documented exceptions. A future change that turns either back into a write must fail here.
- *
- * Losing the edit is NOT the desired end state - it is where this repair stops. Making the value
- * survive means moving the selection with the record, tracked as DEV-2680, which inverts both of
- * these cases into asserting the value lands on the edited record.
+ * Both `DropdownEditor#finishEditing()` and Ctrl+Enter's `BaseEditor#saveValue()` use the active
+ * selection. For a pure trim, the selection follows surviving physical records as the mapper
+ * rebuilds. Sequence permutations keep their visual range because one rectangular range cannot
+ * represent records that a move or sort makes non-contiguous.
  */
-test.describe('commit paths the rebind cannot reach', () => {
+test.describe('commit paths that read the selection after trimming', () => {
+  /**
+   * Selecting an entire column uses `-1` as the range's row-header sentinel. When the editor's
+   * record moves, only real visual coordinates may move; shifting the sentinel makes the selection
+   * invalid.
+   */
+  test('preserves a whole-column selection when rows are trimmed',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectColumnWithFocusAndType(0, 0, 'EDITED');
+
+      await expect.poll(() => grid.selected()).toEqual([[-1, 0, 4, 0]]);
+      await expect.poll(() => grid.editorRow()).toBe(0);
+
+      await grid.trimRows([3, 4]);
+
+      await expect.poll(() => grid.selected()).toEqual([[-1, 0, 2, 0]]);
+      await expect.poll(() => grid.isEntireColumnSelected()).toBe(true);
+      await expect.poll(() => grid.editorRow()).toBe(0);
+
+      await grid.commitWithEnter();
+
+      expect(await grid.sourceRowCount()).toBe(5);
+      expect(await grid.sourceData()).toEqual([
+        ['EDITED', 'B0'],
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['A4', 'B4'],
+      ]);
+    });
+
+  /**
+   * Trimming a record out of a non-active layer must remove that layer instead of moving it onto a
+   * neighboring record. The active layer and its pending edit still follow their surviving record.
+   */
+  test('drops unresolved layers without changing the source or firing selection hooks',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectRangesAndType([[0, 0, 1, 0], [4, 0, 4, 1]], 'EDITED');
+
+      const beforeState = await page.evaluate(() => {
+        const hot = (window as Window & {
+          hot: {
+            addHook(name: string, callback: () => void): void;
+            getSelectedRange(): Array<{ from: { row: number; col: number }; to: { row: number; col: number };
+              highlight: { row: number; col: number } }>;
+            selection: {
+              getActiveSelectionLayerIndex(): number; getSelectionSource(): string; markSource(source: string): void;
+            };
+          };
+          selectionHookCalls: number;
+        }).hot;
+
+        hot.selection.markSource('editor-rebase-test');
+        (window as Window & { selectionHookCalls: number }).selectionHookCalls = 0;
+        hot.addHook('afterSelection', () => {
+          (window as Window & { selectionHookCalls: number }).selectionHookCalls += 1;
+        });
+
+        return {
+          activeLayer: hot.selection.getActiveSelectionLayerIndex(),
+          source: hot.selection.getSelectionSource(),
+          ranges: hot.getSelectedRange(),
+        };
+      });
+
+      await grid.trimRows([0]);
+
+      const afterState = await page.evaluate(() => {
+        const hot = (window as Window & {
+          hot: {
+            getSelectedRange(): Array<{ from: { row: number; col: number }; to: { row: number; col: number };
+              highlight: { row: number; col: number } }>;
+            selection: { getActiveSelectionLayerIndex(): number; getSelectionSource(): string };
+          };
+          selectionHookCalls: number;
+        }).hot;
+
+        return {
+          activeLayer: hot.selection.getActiveSelectionLayerIndex(),
+          source: hot.selection.getSelectionSource(),
+          ranges: hot.getSelectedRange(),
+          selectionHookCalls: (window as Window & { selectionHookCalls: number }).selectionHookCalls,
+        };
+      });
+
+      expect(beforeState).toEqual({
+        activeLayer: 1,
+        source: 'editor-rebase-test',
+        ranges: [
+          { from: { row: 0, col: 0 }, to: { row: 1, col: 0 }, highlight: { row: 0, col: 0 } },
+          { from: { row: 4, col: 0 }, to: { row: 4, col: 1 }, highlight: { row: 4, col: 0 } },
+        ],
+      });
+      expect(afterState).toEqual({
+        activeLayer: 0,
+        source: 'editor-rebase-test',
+        ranges: [
+          { from: { row: 3, col: 0 }, to: { row: 3, col: 1 }, highlight: { row: 3, col: 0 } },
+        ],
+        selectionHookCalls: 0,
+      });
+      expect(await grid.highlightedAreaCorners()).toEqual([[3, 0, 3, 1]]);
+    });
+
+  /**
+   * `saveValue()` fills the ACTIVE range on `Ctrl+Enter`, so dropping a partially trimmed active
+   * layer does not merely lose the highlight - it hands the commit to whichever layer inherits the
+   * active slot. The user selected physical rows 1-3 and typed into row 3; trimming row 1 leaves
+   * rows 2 and 3 selected. Dropping the layer instead filled physical row 4, from the other layer -
+   * two records the user never opened an editor on.
+   */
+  test('commits to the surviving selected records when the active range loses a corner',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectRangesAndType([[4, 0, 4, 1], [3, 0, 1, 0]], 'EDITED');
+      await grid.trimRows([1]);
+      await grid.commitWithCtrlOrMetaEnter();
+
+      expect(await grid.sourceRowCount()).toBe(5);
+      expect(await grid.sourceData()).toEqual([
+        ['A0', 'B0'],
+        ['A1', 'B1'],
+        ['EDITED', 'B2'],
+        ['EDITED', 'B3'],
+        ['A4', 'B4'],
+      ]);
+    });
+
+  /**
+   * The shrink keeps the range describing the records the user selected, so the layer stays active
+   * and the editor stays on its own record instead of being orphaned onto another layer.
+   */
+  test('shrinks the active range onto its surviving records rather than dropping it',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectRangesAndType([[4, 0, 4, 0], [1, 0, 0, 0]], 'EDITED');
+      await grid.trimRows([0]);
+
+      await expect.poll(() => grid.selected()).toEqual([[3, 0, 3, 0], [0, 0, 0, 0]]);
+      await expect.poll(() => grid.activeSelectionLayer()).toBe(1);
+      await expect.poll(() => grid.editorRow()).toBe(0);
+      await expect.poll(() => grid.isEditorOpen()).toBe(true);
+      expect(await grid.sourceData()).toEqual(UNTOUCHED);
+    });
+
+  /**
+   * The restored corners have to live in ONE index space. A corner whose record survived is rebased
+   * through the post-update mapper; a corner whose record was trimmed used to fall back to the
+   * visual slot it held BEFORE the update. When the same trim also removes records ABOVE the range,
+   * those two spaces differ by exactly that many records, so the restored range slides off its
+   * survivors - and `Ctrl+Enter`, which fills the active range, writes to the wrong ones.
+   *
+   * Physical rows 1-4 are selected with the focus on row 1. Trimming rows 0 and 1 leaves rows 2, 3
+   * and 4 selected at visual 0-2. Mixing the spaces pinned `from` to the stale visual 1 and left
+   * `to` at the rebased visual 2, dropping physical row 2 out of the fill.
+   */
+  test('keeps the active range on its survivors when the trim removes its focus and rows above it',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectRangesAndType([[1, 0, 4, 0]], 'EDITED');
+      await grid.trimRows([0, 1]);
+
+      await expect.poll(() => grid.selected()).toEqual([[0, 0, 2, 0]]);
+
+      await grid.typeOnSelection('AGAIN');
+
+      await expect.poll(() => grid.isEditorOpen()).toBe(true);
+      await grid.commitWithCtrlOrMetaEnter();
+
+      expect(await grid.sourceRowCount()).toBe(5);
+      expect(await grid.sourceData()).toEqual([
+        ['A0', 'B0'],
+        ['A1', 'B1'],
+        ['AGAIN', 'B2'],
+        ['AGAIN', 'B3'],
+        ['AGAIN', 'B4'],
+      ]);
+    });
+
+  /**
+   * The other half of the same index-space mix, and the severe one: with the trim removing more
+   * records above the range than the range has survivors, the stale `from` slot lands BELOW the
+   * rebased `to`, so the restored range covers records the trim merely slid into those visual slots.
+   * Physical rows 2 and 3 are selected; trimming rows 0-2 leaves only physical row 3, but the range
+   * used to span visual 0-1 - physical rows 3 AND 4, and row 4 was never selected.
+   */
+  test('does not widen the active range onto records the trim slid in behind it',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectRangesAndType([[2, 0, 3, 0]], 'EDITED');
+      await grid.trimRows([0, 1, 2]);
+
+      await expect.poll(() => grid.selected()).toEqual([[0, 0, 0, 0]]);
+      expect(await grid.highlightedAreaCorners()).toEqual([]);
+      // The focus record is trimmed, so `EditorManager` discards the edit and nothing is written.
+      expect(await grid.sourceData()).toEqual(UNTOUCHED);
+    });
+
+  /**
+   * With NO survivor left there is no post-update index to shrink onto, and the range parks on the
+   * focus's pre-update slot, which this trim leaves in range - the next keystroke re-prepares
+   * against the record now sitting there and writes to it, rather than appending. All three corners
+   * take that one slot together: letting `to` keep its own stale slot spanned whatever now sits
+   * between two independently stale corners - here physical row 4, which was never selected.
+   */
+  test('collapses a fully trimmed active range onto one parked cell',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectRangesAndType([[1, 0, 2, 0]], 'EDITED');
+      await grid.watchHook('afterDeselect');
+      await grid.trimRows([1, 2]);
+
+      await expect.poll(() => grid.selected()).toEqual([[1, 0, 1, 0]]);
+      expect(await grid.sourceData()).toEqual(UNTOUCHED);
+      // A parked selection is still a selection, so nothing is deselected.
+      expect(await grid.hookCalls('afterDeselect')).toBe(0);
+    });
+
+  /**
+   * The other end of the same rule. Trimming rows 0, 1 and 3 leaves two rows, so the focus's
+   * pre-update slot - visual row 3 - addresses nothing at all, and the range is DROPPED rather than
+   * clamped inward onto row 1, which the trim merely slid into view. A range parked there would be
+   * repainted over a record the user never chose, and the next fill or paste would write into it:
+   * the shape `Selection#deselectIfHighlightStranded()` drops for a selection with no editor, and
+   * `selection-trimmed-row.spec.ts` pins from the other side.
+   */
+  test('drops a fully trimmed active range whose own slot the trim left out of range',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectRangesAndType([[3, 0, 3, 0]], 'EDITED');
+      await grid.watchHook('afterDeselect');
+      await grid.trimRows([0, 1, 3]);
+
+      await expect.poll(() => grid.selected()).toBeUndefined();
+      expect(await grid.sourceData()).toEqual(UNTOUCHED);
+      expect(await grid.sourceRowCount()).toBe(5);
+      // The drop is a real deselection, and it is announced as one - `deselectIfHighlightStranded()`
+      // does that for the same shape without an editor. It is announced AFTER the public
+      // cache-update hooks, because `afterDeselect` closes the editor and closing it saves: the
+      // untouched source above is what proves the pending edit was discarded rather than committed
+      // through the coordinates this drop abandons.
+      expect(await grid.hookCalls('afterDeselect')).toBe(1);
+    });
+
+  test('repaints a surviving multi-cell layer when the active layer is a single cell',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectRangesAndType([[2, 0, 3, 1], [4, 0, 4, 0]], 'EDITED');
+      await grid.trimRows([0]);
+
+      await expect.poll(() => grid.selected()).toEqual([[1, 0, 2, 1], [3, 0, 3, 0]]);
+      await expect.poll(() => grid.activeSelectionLayer()).toBe(1);
+      expect(await grid.highlightedAreaCorners()).toEqual([[1, 0, 2, 1], [3, 0, 3, 0]]);
+    });
+
+  test('does not widen a multi-cell selection when a moved row crosses it',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectRangeWithFocusAt([0, 0, 2, 0], 0, 0);
+      await grid.typeOnSelection('EDITED');
+      await grid.moveRow(4, 1);
+
+      await expect.poll(() => grid.selected()).toEqual([[0, 0, 2, 0]]);
+      expect(await grid.sourceRowCount()).toBe(5);
+      expect(await grid.sourceData()).toEqual(UNTOUCHED);
+    });
+
   /**
    * `DropdownEditor#finishEditing()` rewrites the commit into a discard when the active range no
    * longer contains `(this.row, this.col)`. The rebind moves those coordinates and nothing moves the
    * selection, so `Enter` discards. On develop this appended two records and wrote `'EDITED'` onto
    * the second of them.
    */
-  test('a dropdown edit is lost, not misplaced, after a trim moves its record',
+  test('a dropdown edit commits to its record after a trim moves it',
     async({ page, theme, bundle }) => {
       const grid = new EditorTrimmedRowPage(page, theme, bundle, { editor: 'dropdown' });
 
@@ -634,31 +918,48 @@ test.describe('commit paths the rebind cannot reach', () => {
       await grid.trimRows([0, 1]);
 
       await expect.poll(() => grid.editorRow()).toBe(2);
+      await expect.poll(() => grid.isEditorOpen()).toBe(true);
 
       await grid.commitWithEnter();
 
       expect(await grid.sourceRowCount()).toBe(5);
-      expect(await grid.sourceData()).toEqual(UNTOUCHED);
+      expect(await grid.sourceData()).toEqual([
+        ['A0', 'B0'],
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['EDITED', 'B4'],
+      ]);
     });
 
   /**
    * `BaseEditor#saveValue()` reads the SELECTION corners under `ctrlDown`, never the editor's own
-   * coordinates, so the rebind is invisible to it. The selection was left past the last visible row
-   * by the trim, so nothing is written at all.
+   * coordinates. Ctrl+Enter only saves a multi-cell selection, because TextEditor uses that shortcut
+   * to insert a newline for one selected cell.
    */
-  test('a Ctrl+Enter commit is lost, not misplaced, after a trim',
+  test('a Ctrl+Enter commit writes to its record after a trim',
     async({ page, theme, bundle }) => {
       const grid = new EditorTrimmedRowPage(page, theme, bundle);
 
       await grid.goto();
-      await grid.openEditorAndType(4, 0, 'EDITED');
+      await grid.selectRangeWithFocusAt([4, 0, 4, 1], 4, 0);
+      await grid.typeOnSelection('EDITED');
 
       await grid.trimRows([0, 1]);
 
-      await grid.commitWithCtrlEnter();
+      await expect.poll(() => grid.editorRow()).toBe(2);
+      await expect.poll(() => grid.isEditorOpen()).toBe(true);
+
+      await grid.commitWithCtrlOrMetaEnter();
 
       expect(await grid.sourceRowCount()).toBe(5);
-      expect(await grid.sourceData()).toEqual(UNTOUCHED);
+      expect(await grid.sourceData()).toEqual([
+        ['A0', 'B0'],
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['EDITED', 'EDITED'],
+      ]);
     });
 });
 
@@ -726,6 +1027,23 @@ test.describe('a data swap under an open editor', () => {
  * the public hook being fired by hand.
  */
 test.describe('edges of the repair', () => {
+  /**
+   * Rebuilding a selection against an empty visual grid must clear it. A fallback visual index of
+   * zero would otherwise leave an addressable-looking selection that a later keystroke can append to.
+   */
+  test('deselects when a trim removes every row while an editor is open',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.openEditorAndType(0, 0, 'EDITED');
+      await grid.trimRows([0, 1, 2, 3, 4]);
+
+      await expect.poll(() => grid.selected()).toBeUndefined();
+      expect(await grid.sourceRowCount()).toBe(5);
+      expect(await grid.sourceData()).toEqual(UNTOUCHED);
+    });
+
   /**
    * Clicking a cell runs `prepareEditor()`, so an editor exists in `VIRGIN` holding that cell's
    * coordinates, `TD`, `prop`, `originalValue` and cell meta - and nothing re-prepares it when a trim
@@ -965,6 +1283,149 @@ test.describe('updateData strands the editor', () => {
         ['X0', 'Y0'],
         ['X1', 'Y1'],
         ['X2', 'Y2'],
+      ]);
+    });
+});
+
+/**
+ * Whether a layer's extent TRACKS THE GRID rather than naming records decides whether the restore
+ * re-pins it to the axis boundaries or shrinks it onto survivors, and it is measured at capture
+ * time from the range itself.
+ *
+ * Neither state set can answer it. `selectedByRowHeader` / `selectedByColumnHeader` are written only
+ * when a header is actually rendered - `selectAll()` writes `selectedByColumnHeader` only when
+ * `rowFrom < 0`, and with the default `colHeaders: false` that is never, so `Ctrl+A` did not
+ * register as grid-tracking at all. And both those sets and the `…ExtentSpansGrid` pair are STICKY:
+ * they survive a `Shift+Up` that shrinks the selection, so reading either would grow a shrunk
+ * selection back to the whole column.
+ */
+test.describe('a grid-tracking extent through a restore', () => {
+  /**
+   * An UNTRIM is the only shape that separates re-pinning from shrinking. On a removal the two agree
+   * by construction - a select-all's span covers every record, so its surviving records ARE the
+   * whole remaining grid - which is why this case is written against rows coming back.
+   */
+  test('re-pins a select-all onto the rows an untrim brought back',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.trimRows([1, 3]);
+      await grid.selectEverythingWithoutHeaders();
+      await grid.listenAndType('EDITED');
+      // The select-all was laid over three records; five are visible now. A range shrunk onto the
+      // captured span would still cover only three of them, and the select-all would silently stop
+      // meaning "everything".
+      await grid.untrimRows([1, 3]);
+
+      await expect.poll(() => grid.selected()).toEqual([[0, 0, 4, 1]]);
+
+      // `Ctrl+Enter` fills the active range, so the range this restore produced is what decides
+      // where the pending edit lands.
+      await grid.commitWithCtrlOrMetaEnter();
+
+      expect(await grid.sourceRowCount()).toBe(5);
+      expect(await grid.sourceData()).toEqual([
+        ['EDITED', 'EDITED'],
+        ['EDITED', 'EDITED'],
+        ['EDITED', 'EDITED'],
+        ['EDITED', 'EDITED'],
+        ['EDITED', 'EDITED'],
+      ]);
+    });
+
+  test('does not grow a shrunk select-all back over the row it excluded',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectEverythingWithoutHeaders();
+      // Shift+Up: rows 0-3 now, and row 4 is deliberately outside the selection. The layer's
+      // grid-tracking flag is sticky and still set, so only the geometry knows it was shrunk.
+      await grid.shrinkSelectionUpwards();
+      await grid.listenAndType('EDITED');
+      await grid.trimRows([0]);
+
+      // Rows 1-3 survive as visual 0-2 of the four that remain. Re-pinning to the axis boundaries
+      // would restore 0-3 instead, silently taking row 4 back in.
+      await expect.poll(() => grid.selected()).toEqual([[0, 0, 2, 1]]);
+
+      // The trim took the focus's own record, so `EditorManager` discarded the pending edit - the
+      // fill below is a fresh gesture, and it writes the new focus's value (`A1`). What it proves is
+      // the RANGE it writes through: rows 1-3 and not row 4, which a re-pinned selection would have
+      // taken back in.
+      await grid.commitWithCtrlOrMetaEnter();
+
+      expect(await grid.sourceRowCount()).toBe(5);
+      expect(await grid.sourceData()).toEqual([
+        ['A0', 'B0'],
+        ['A1', 'A1'],
+        ['A1', 'A1'],
+        ['A1', 'A1'],
+        ['A4', 'B4'],
+      ]);
+    });
+
+  test('does not re-pin a drag-selected range that merely reached both ends of the grid',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.trimRows([1, 3]);
+      // Geometrically this covers every visible row, but it carries no grid-tracking flag: the user
+      // dragged over three records. Re-pinning it would make an untrim grow it onto the two records
+      // that came back, which the user never selected.
+      await grid.selectRangeAndType([0, 0, 2, 0], 'EDITED');
+      await grid.untrimRows([1, 3]);
+
+      await expect.poll(() => grid.selected()).toEqual([[0, 0, 0, 0]]);
+
+      await grid.commitWithEnter();
+
+      expect(await grid.sourceRowCount()).toBe(5);
+      expect(await grid.sourceData()).toEqual([
+        ['EDITED', 'B0'],
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['A4', 'B4'],
+      ]);
+    });
+});
+
+/**
+ * `IndexMapper` raises `trimmedIndexesChanged` for ANY trimming-map write, so clearing a filter or
+ * calling `untrimRow()` reaches the restore exactly as a trim does. The survivors of a removal stay
+ * contiguous, which is what lets a shrunk range still be one `CellRange` - but a record REVEALED
+ * between two corners lands inside the rectangle they describe, and no `CellRange` can exclude it.
+ */
+test.describe('a trimming update that reveals records', () => {
+  test('does not widen the active range onto a record an untrim revealed between its corners',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.trimRows([2]);
+      // Visual 1-2 is physical 1 and 3 while physical 2 is trimmed away.
+      await grid.selectRangesAndType([[1, 0, 2, 0]], 'EDITED');
+      await grid.untrimRows([2]);
+
+      // Physical 2 reappears between the selected records. The range collapses onto its focus rather
+      // than covering a record the user never selected - `A2` would otherwise be inside the range a
+      // fill writes through.
+      await expect.poll(() => grid.selected()).toEqual([[1, 0, 1, 0]]);
+
+      // Plain Enter, because the range is now a single cell and `Ctrl+Enter` inserts a line break
+      // there rather than filling. The edit still has to land on the record it was typed into.
+      await grid.commitWithEnter();
+
+      expect(await grid.sourceRowCount()).toBe(5);
+      expect(await grid.sourceData()).toEqual([
+        ['A0', 'B0'],
+        ['EDITED', 'B1'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['A4', 'B4'],
       ]);
     });
 });

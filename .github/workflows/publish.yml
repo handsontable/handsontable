@@ -1400,7 +1400,10 @@ jobs:
 
               # Check if a merge PR already exists before pushing (idempotent for workflow re-runs)
               MERGE_BRANCH="merge/${RELEASE_BRANCH##*/}-to-develop"
-              EXISTING_PR=$(gh pr list --base develop --head "${MERGE_BRANCH}" --json url --jq '.[0].url // empty')
+              # `|| true` keeps `bash -e` from exiting here. If the App has no pull-requests
+              # access at all, this lookup fails, and without the guard the step dies
+              # before the branch is even pushed -- so the fallback below could never run.
+              EXISTING_PR=$(gh pr list --base develop --head "${MERGE_BRANCH}" --json url --jq '.[0].url // empty' || true)
 
               if [ -n "$EXISTING_PR" ]; then
                 PR_URL="$EXISTING_PR"
@@ -1409,12 +1412,29 @@ jobs:
                 git checkout -b "${MERGE_BRANCH}" origin/${RELEASE_BRANCH}
                 git push -u origin "${MERGE_BRANCH}"
 
-                PR_URL=$(gh pr create \
+                # The branch is pushed by now, so a `gh pr create` denial must not lose
+                # it. On 18.1.0 the App had no `pull_requests: write`, this call died
+                # with "Resource not accessible by integration (createPullRequest)",
+                # `pr-url` stayed empty, and Slack reported the generic "merge failed"
+                # instead of naming the branch a human needed to open a PR from.
+                if PR_URL=$(gh pr create \
                   --base develop \
                   --head "${MERGE_BRANCH}" \
                   --title "Merge ${RELEASE_BRANCH} back to develop" \
-                  --body "Automatic merge from the release workflow had conflicts that need manual resolution.")
-                echo "::notice::PR created for manual merge to develop: ${PR_URL}"
+                  --body "Automatic merge from the release workflow had conflicts that need manual resolution."); then
+                  echo "::notice::PR created for manual merge to develop: ${PR_URL}"
+                else
+                  PR_URL="${{ github.server_url }}/${{ github.repository }}/compare/develop...${MERGE_BRANCH}?expand=1"
+                  echo "::warning::Could not open the merge PR (check the release App's \`pull_requests: write\` permission)."
+                  echo "::warning::The branch is pushed -- open it by hand: ${PR_URL}"
+
+                  {
+                    echo "### :warning: Merge to develop needs a PR opened by hand"
+                    echo
+                    echo "\`${MERGE_BRANCH}\` is pushed, but this job could not open the PR."
+                    echo "Open it here: ${PR_URL}"
+                  } >> $GITHUB_STEP_SUMMARY
+                fi
               fi
 
               echo "pr-url=${PR_URL}" >> $GITHUB_OUTPUT
@@ -1671,6 +1691,7 @@ jobs:
         with:
           ref: ${{ needs.stable-build.outputs.release-branch }}
           fetch-depth: 0
+          persist-credentials: false
 
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         name: Install pnpm
@@ -1698,7 +1719,16 @@ jobs:
           done
           echo "All packages published successfully."
 
-      - name: Unpack handsontable tarball for CDN purge
+      # `handsontable/tmp` feeds two later steps: the CDN purge, and `docs:api` --
+      # docs/scripts/jsdoc-convert reads `pathToSource: '../../../handsontable/tmp'`.
+      # Unpacking the published tarball documents exactly what shipped, and is far
+      # cheaper than rebuilding from source.
+      #
+      # `docs-api` guards only against an EMPTY `handsontable/tmp`. A `tar` that dies
+      # partway, after `base.js` has already landed, leaves a partial tree that reads as
+      # fine -- so `docs-commit` gates on this step's outcome as well.
+      - name: Unpack handsontable tarball
+        id: unpack-tarball
         continue-on-error: true
         run: |
           mkdir -p handsontable/tmp
@@ -1724,11 +1754,28 @@ jobs:
         continue-on-error: true
         run: pnpm install --frozen-lockfile
 
+      # A push made with `secrets.GITHUB_TOKEN` does not trigger workflows, so the docs
+      # branch must be pushed with the App token or `docs-production.yml` never runs and
+      # the release's docs are never deployed.
+      #
+      # Minted here rather than at the top of the job on purpose. Only the docs steps
+      # need it, so a rotated key or a 5xx from the token endpoint must not fail the job
+      # before `Publish` and cost the release its npm upload. Keeping it late also keeps
+      # the 60-minute installation-token lifetime well clear of `docs-commit`, which is
+      # the last step to use it.
+      - name: Generate release bot token
+        id: release-token
+        continue-on-error: true
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # https://github.com/actions/create-github-app-token/releases/tag/v3.2.0
+        with:
+          client-id: ${{ secrets.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
       - name: Create or update docs production branch
         id: docs-branch
         continue-on-error: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.release-token.outputs.token }}
         run: |
           VERSION='${{ needs.stable-build.outputs.version }}'
           # Strip patch version: "16.0.0" → "16.0"
@@ -1745,33 +1792,39 @@ jobs:
           else
             echo "Creating new docs branch ${DOCS_BRANCH} from tag ${VERSION}..."
             git checkout -b "$DOCS_BRANCH" "$VERSION"
-
-            # Remove /content/api/ from docs/.gitignore so generated API docs can be committed
-            BEFORE=$(wc -l < docs/.gitignore)
-            grep -v '^/content/api/$' docs/.gitignore > docs/.gitignore.tmp && mv docs/.gitignore.tmp docs/.gitignore
-            AFTER=$(wc -l < docs/.gitignore)
-
-            if [ "$((BEFORE - 1))" != "$AFTER" ]; then
-              echo "::error::docs/.gitignore modification produced unexpected result (before: ${BEFORE}, after: ${AFTER})"
-              exit 1
-            fi
           fi
 
-      - name: Regenerate docs API and legacy versions
+          # The generated API reference stays gitignored -- `docs/.gitignore` holds
+          # `/content/api/*` plus three `!` negations, and editing that by line count
+          # broke on every release from 17.1.0 to 18.1.0. The commit step force-adds
+          # the directory instead, which needs no edit and cannot drift.
+
+      # `docs/` is a pnpm workspace package and ships no `package-lock.json`, so the
+      # `npm ci` this step used to run always died with EUSAGE. The `Install
+      # dependencies` step above already populated `docs/node_modules` from the root.
+      # The old third command, `docs:scripts:generate-legacy-docs-versions`, no longer
+      # exists in `docs/package.json` -- this workflow was its last reference.
+      - name: Regenerate docs API
         id: docs-api
         continue-on-error: true
         run: |
-          cd docs
-          npm ci
-          npm run docs:api
-          npm run docs:scripts:generate-legacy-docs-versions
+          if [ ! -f handsontable/tmp/base.js ]; then
+            echo "::error::handsontable/tmp is empty, so docs:api has no source to read."
+            echo "::error::The \`Unpack handsontable tarball\` step must succeed before this one."
+            exit 1
+          fi
 
+          npm --prefix docs run docs:api
+
+      # The old guard here compared line counts. `@handsontable/angular-wrapper` is
+      # absent from `docs/package.json` on the release tag, so adding it always grows
+      # the file by one line and the guard always failed -- on 18.0.0 and 18.1.0 alike,
+      # after the write had already succeeded. Assert the value that was written.
       - name: Update @handsontable/angular-wrapper version in docs
         id: docs-angular
         continue-on-error: true
         run: |
           VERSION='${{ needs.stable-build.outputs.version }}'
-          BEFORE=$(wc -l < docs/package.json)
 
           node -e "
             import fs from 'fs';
@@ -1780,11 +1833,92 @@ jobs:
             fs.writeFileSync('docs/package.json', JSON.stringify(pkg, null, 2) + '\n', 'utf8');
           "
 
-          AFTER=$(wc -l < docs/package.json)
-          if [ "$BEFORE" != "$AFTER" ]; then
-            echo "::error::docs/package.json modification changed line count (before: ${BEFORE}, after: ${AFTER})"
+          WROTE=$(node -p "require('./docs/package.json').devDependencies['@handsontable/angular-wrapper']")
+          if [ "$WROTE" != "~${VERSION}" ]; then
+            # Revert before failing. The commit step stages `docs/package.json`, so a
+            # bare `exit 1` would leave the bad file on disk to be committed and pushed.
+            git checkout -- docs/package.json
+            echo "::error::docs/package.json devDependency is '${WROTE}', expected '~${VERSION}'"
             exit 1
           fi
+
+      # `docs-production.yml` runs `pnpm install --frozen-lockfile` at the repo root, so
+      # the devDependency added above must reach `pnpm-lock.yaml` or every docs deploy
+      # dies on ERR_PNPM_OUTDATED_LOCKFILE. This is the third kind of `--lockfile-only`
+      # call in this file: not a version bump (those are gated by
+      # `lockfile-float-gate.mjs`) and not a merge-conflict resolution, but a real
+      # dependency addition on a docs-only branch that never reaches a registry.
+      # So instead of the float gate's "must not change at all", this step asserts the
+      # intended entry landed and that no OTHER package lost its resolved identity.
+      - name: Update lockfile for the docs devDependency
+        id: docs-lockfile
+        continue-on-error: true
+        run: |
+          # Every `run:` block is its own shell, so this must be set here even though the
+          # sibling steps set it too. Left unset, the assertion below still finds a
+          # `specifier: ~` line and passes on ANY tilde version -- including a stale one
+          # an earlier partial failure left on the branch.
+          VERSION='${{ needs.stable-build.outputs.version }}'
+
+          pnpm install --lockfile-only
+
+          git diff --stat -- pnpm-lock.yaml
+
+          # First, the change must actually have landed. `linkWorkspacePackages: true`
+          # means `~X.Y.0` can resolve to the in-repo wrapper as a `link:`, which adds
+          # nothing under `packages:` -- so the float check below would pass identically
+          # whether pnpm wrote the importer entry or not. This step is the only thing
+          # between the release and ERR_PNPM_OUTDATED_LOCKFILE, so assert the positive.
+          if ! sed -n '/^  docs:$/,/^  [a-zA-Z]/p' pnpm-lock.yaml \
+               | grep -A 2 "'@handsontable/angular-wrapper':" \
+               | grep -q "specifier: ~${VERSION}"; then
+            git checkout -- pnpm-lock.yaml
+            echo "::error::pnpm-lock.yaml's docs importer does not record"
+            echo "::error::'@handsontable/angular-wrapper' at ~${VERSION}, so"
+            echo "::error::docs-production.yml would still fail --frozen-lockfile."
+            exit 1
+          fi
+
+          # Then, nothing else may have moved. A DEV-2667 float re-resolves EXISTING
+          # packages, so it always REMOVES their old `name@version` identity (core-js
+          # 3.37 -> 3.50 removes `core-js@3.37.0`). Checking removals alone is therefore
+          # enough, and it leaves room for the wrapper to pull in a genuinely new
+          # transitive dependency, which only ever adds identities.
+          #
+          # Line counts cannot express this: a first release ADDS the devDependency, but
+          # a patch release onto an existing prod-docs branch REWRITES it -- 18.1.0 ->
+          # 18.1.1 is a delete-plus-add -- so a "no deletions" rule would fail every
+          # patch release's docs step.
+          identities() {
+            sed -n '/^packages:/,/^snapshots:/p' "$1" \
+              | grep -E "^  '?[^ ].*@.*:$" \
+              | sort
+          }
+
+          git show HEAD:pnpm-lock.yaml > /tmp/lock-before.yaml
+          identities /tmp/lock-before.yaml > /tmp/ids-before
+          identities pnpm-lock.yaml > /tmp/ids-after
+
+          REMOVED=$(diff /tmp/ids-before /tmp/ids-after \
+            | grep -E '^<' \
+            | grep -v '@handsontable/angular-wrapper' \
+            || true)
+
+          if [ -n "$REMOVED" ]; then
+            # Revert before failing, or the commit step stages the floated lockfile and
+            # pushes it -- which is the very thing this check exists to stop.
+            git checkout -- pnpm-lock.yaml
+            echo "::error::pnpm-lock.yaml re-resolved packages other than the docs"
+            echo "::error::devDependency, so the docs toolchain floated (DEV-2667):"
+            echo "$REMOVED" | head -40 | while IFS= read -r LINE; do
+              echo "::error::  ${LINE}"
+            done
+            echo "::error::Land the intended lockfile change on develop, let CI verify it,"
+            echo "::error::then re-run this job."
+            exit 1
+          fi
+
+          echo "Only the docs devDependency changed. No other package re-resolved."
 
       - name: Update docs changelog
         id: docs-changelog
@@ -1793,42 +1927,94 @@ jobs:
           CHANGELOG_CONTENT: ${{ steps.docs-changelog-content.outputs.content }}
         run: node .github/scripts/update-docs-changelog.mjs '${{ needs.stable-build.outputs.version }}'
 
+      # This used to run a bare `git add .` in a workspace that also holds the
+      # downloaded release artifacts, so every release committed four `_tmp_packs/*.tgz`
+      # (5.5 MB+) onto the docs branch. Stage the paths this job actually produces.
+      # `-f` is what gets the generated API reference past `docs/.gitignore`.
+      #
+      # The `if:` matters more than it looks. Every step above is `continue-on-error`, so
+      # without it this step pushes whatever half-assembled state the failures left --
+      # and because the push now uses the App token, that push TRIGGERS
+      # `docs-production.yml`. A failed `docs-lockfile` would otherwise ship a
+      # `docs/package.json` whose devDependency the lockfile does not match, and the
+      # deploy would die on ERR_PNPM_OUTDATED_LOCKFILE: exactly the failure this job is
+      # meant to prevent. A skipped push leaves the branch untouched and reviewable.
       - name: Commit and push docs branch
         id: docs-commit
         continue-on-error: true
+        if: >-
+          steps.unpack-tarball.outcome == 'success'
+          && steps.release-token.outcome == 'success'
+          && steps.docs-changelog-content.outcome == 'success'
+          && steps.docs-deps.outcome == 'success'
+          && steps.docs-branch.outcome == 'success'
+          && steps.docs-api.outcome == 'success'
+          && steps.docs-angular.outcome == 'success'
+          && steps.docs-lockfile.outcome == 'success'
+          && steps.docs-changelog.outcome == 'success'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.release-token.outputs.token }}
         run: |
           VERSION='${{ needs.stable-build.outputs.version }}'
           DOCS_BRANCH="${DOCS_BRANCH_PREFIX}${VERSION%.*}"
 
-          git add .
+          git add pnpm-lock.yaml docs/package.json docs/content/guides
+          git add -f docs/content/api
 
           git commit -m "${VERSION}" || echo "No changes to commit"
           git push origin "$DOCS_BRANCH"
 
+      # Every docs step above is `continue-on-error`, which sets its `conclusion` to
+      # success and leaves the real result only in `outcome`. The Actions UI therefore
+      # shows a fully green step list even when the branch is unusable -- that is how
+      # 17.1.0, 18.0.0 and 18.1.0 all shipped broken docs branches unnoticed. Name the
+      # failing steps in the job summary, which needs no token and survives log expiry.
       - name: Set docs result output
         id: docs-result
         if: always()
+        env:
+          OUTCOMES: >-
+            unpack-tarball:${{ steps.unpack-tarball.outcome }}
+            release-token:${{ steps.release-token.outcome }}
+            docs-changelog-content:${{ steps.docs-changelog-content.outcome }}
+            docs-deps:${{ steps.docs-deps.outcome }}
+            docs-branch:${{ steps.docs-branch.outcome }}
+            docs-api:${{ steps.docs-api.outcome }}
+            docs-angular:${{ steps.docs-angular.outcome }}
+            docs-lockfile:${{ steps.docs-lockfile.outcome }}
+            docs-changelog:${{ steps.docs-changelog.outcome }}
+            docs-commit:${{ steps.docs-commit.outcome }}
         run: |
-          if [ "${{ steps.docs-changelog-content.outcome }}" = "failure" ] || \
-             [ "${{ steps.docs-deps.outcome }}" = "failure" ] || \
-             [ "${{ steps.docs-branch.outcome }}" = "failure" ] || \
-             [ "${{ steps.docs-api.outcome }}" = "failure" ] || \
-             [ "${{ steps.docs-angular.outcome }}" = "failure" ] || \
-             [ "${{ steps.docs-changelog.outcome }}" = "failure" ] || \
-             [ "${{ steps.docs-commit.outcome }}" = "failure" ]; then
+          FAILED=""
+          MISSING=""
+
+          for ENTRY in $OUTCOMES; do
+            STEP="${ENTRY%%:*}"
+            OUTCOME="${ENTRY##*:}"
+
+            case "$OUTCOME" in
+              failure) FAILED="${FAILED} ${STEP}" ;;
+              success) ;;
+              *) MISSING="${MISSING} ${STEP}" ;;
+            esac
+          done
+
+          if [ -n "$FAILED" ]; then
             echo "result=failure" >> $GITHUB_OUTPUT
-          elif [ "${{ steps.docs-changelog-content.outcome }}" = "success" ] && \
-               [ "${{ steps.docs-deps.outcome }}" = "success" ] && \
-               [ "${{ steps.docs-branch.outcome }}" = "success" ] && \
-               [ "${{ steps.docs-api.outcome }}" = "success" ] && \
-               [ "${{ steps.docs-angular.outcome }}" = "success" ] && \
-               [ "${{ steps.docs-changelog.outcome }}" = "success" ] && \
-               [ "${{ steps.docs-commit.outcome }}" = "success" ]; then
-            echo "result=success" >> $GITHUB_OUTPUT
-          else
+
+            {
+              echo "### :x: Docs branch update failed"
+              echo
+              echo "Failed steps:"
+              for STEP in $FAILED; do echo "- \`${STEP}\`"; done
+              echo
+              echo "The push was skipped, so the docs branch still holds its previous"
+              echo "state. Fix the cause, then re-run this job."
+            } >> $GITHUB_STEP_SUMMARY
+          elif [ -n "$MISSING" ]; then
             echo "result=skipped" >> $GITHUB_OUTPUT
+          else
+            echo "result=success" >> $GITHUB_OUTPUT
           fi
 
   # ============================================================
@@ -1927,7 +2113,7 @@ jobs:
             FAILURE_NOTES="${FAILURE_NOTES}• *Docs*: branch update failed. Manual intervention required — check the <${RUN_URL}|Actions run> and update the docs branch manually.${NL}"
           fi
           if [ -n "$DEVELOP_MERGE_PR" ]; then
-            FAILURE_NOTES="${FAILURE_NOTES}• *GitHub*: merge to develop had conflicts. A <${DEVELOP_MERGE_PR}|PR was created> for manual resolution.${NL}"
+            FAILURE_NOTES="${FAILURE_NOTES}• *GitHub*: merge to develop had conflicts and needs manual resolution: <${DEVELOP_MERGE_PR}|resolve it here>.${NL}"
           elif [ "$DEVELOP_MERGE_RESULT" = "failure" ]; then
             FAILURE_NOTES="${FAILURE_NOTES}• *GitHub*: merge to develop failed. Check the <${RUN_URL}|Actions run> and merge manually.${NL}"
           fi
