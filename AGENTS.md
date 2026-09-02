@@ -19,6 +19,7 @@ Route to the lowest correct scope. `AGENTS.md` answers "what must I never get wr
 | Anything monorepo-wide (build orchestration, release, workspace) | This file; `.ai/` (root) |
 | Working inside a linked git worktree (`.claude/worktrees/`) | `.ai/WORKTREES.md` |
 | Core grid internals (`handsontable/src/`) | `handsontable/AGENTS.md`; `handsontable/.ai/` |
+| One specific plugin (`handsontable/src/plugins/<name>/`) | that plugin's own `AGENTS.md` — every plugin has one; `handsontable/src/plugins/base/AGENTS.md` for the plugin contract and the `PLUGIN_PRIORITY` table |
 | Rendering engine (`handsontable/src/3rdparty/walkontable/`) | `handsontable/src/3rdparty/walkontable/AGENTS.md`; `handsontable/src/3rdparty/walkontable/.ai/` |
 | Documentation site (`docs/`) | `docs/AGENTS.md` |
 | React wrapper | `wrappers/react-wrapper/AGENTS.md` |
