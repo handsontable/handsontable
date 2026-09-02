@@ -35,6 +35,10 @@ on:
       # True when the PR touches anything outside the CI pipeline (.github/**).
       # Lint + the code-quality scans gate on it, so a pipeline-only PR skips them.
       outside-ci: { value: '${{ jobs.scope.outputs.outside-ci }}' }
+      # True when a handsontable spec/unit file may have changed — the trees the
+      # determinism ratchet (lint.yml) reads. Same trees as RATCHETED_FILES in
+      # .github/scripts/lib/lint-ratchet.mjs.
+      lint-ratchet: { value: '${{ jobs.scope.outputs.lint-ratchet }}' }
       # Precomputed here so the Integration wrapper matrix fans out with NO
       # per-module setup job (matrix context is illegal in a job-level if).
       wrapper-matrix: { value: '${{ jobs.scope.outputs.wrapper-matrix }}' }
@@ -62,6 +66,7 @@ jobs:
       pkg-preview: ${{ steps.path-filter.outputs.pkg-preview }}
       docs: ${{ steps.path-filter.outputs.docs }}
       outside-ci: ${{ steps.path-filter.outputs.outside-ci }}
+      lint-ratchet: ${{ steps.path-filter.outputs.lint-ratchet }}
       wrapper-matrix: ${{ steps.wrappers.outputs.list }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
@@ -192,6 +197,13 @@ jobs:
             # make it match nearly everything.
             outside-ci:
               - '!./.github/{workflows,actions}/**'
+            # The two trees the handsontable lint task covers and specs live in
+            # (`src/` holds the co-located `__tests__/`, `test/` the rest). The
+            # ratchet script re-selects `*.spec.js` / `*.unit.{js,ts}` itself and
+            # exits 0 when the PR gained no such line, so this only saves a runner.
+            lint-ratchet:
+              - './handsontable/src/**'
+              - './handsontable/test/**'
 
       # Build the Integration wrapper matrix from the scope flags (run-all → all
       # three). Emitting it here means the wrapper job fans out with no extra

@@ -69,6 +69,7 @@ jobs:
     uses: ./.github/workflows/lint.yml
     with:
       run-visual: ${{ needs.checks.outputs.run-all == 'true' || needs.checks.outputs.test-visual == 'true' }}
+      run-ratchet: ${{ needs.checks.outputs.run-all == 'true' || needs.checks.outputs.lint-ratchet == 'true' }}
     secrets: inherit
 
   code-quality:

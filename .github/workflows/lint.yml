@@ -1,13 +1,18 @@
 name: Lint
 
 # Linters — core (JS/TS/CSS/D.TS) always; the visual-tests package lint only
-# when its scope changed. Called by test.yml on PRs (a merged PR already proved
+# when its scope changed; the determinism ratchet only when a handsontable
+# spec/unit tree changed. Called by test.yml on PRs (a merged PR already proved
 # lint, so no trunk runs).
 on:
   workflow_call:
     inputs:
       run-visual:
         description: 'Also lint the visual-tests package (its scope changed)'
+        type: boolean
+        default: false
+      run-ratchet:
+        description: 'Also run the determinism ratchet (a handsontable spec/unit tree changed)'
         type: boolean
         default: false
 
@@ -32,3 +37,24 @@ jobs:
       - uses: ./.github/actions/setup-workspace
       - name: Lint
         run: npm run in visual-tests lint
+
+  # The frozen Jasmine suite's determinism rules (no-fixed-sleep-in-spec,
+  # no-new-it-flaky, no-skipped-test) are `warn`, and `npm run lint` above exits
+  # 0 with warnings. This job is the ratchet: the same rules on a line the PR
+  # ADDED fail; pre-existing debt stays a warning. The same script blocks in the
+  # pre-push hook, so local scope == CI scope. PR-only — it diffs against the PR
+  # base, and needs the base's history (fetch-depth 0), not a build. No token,
+  # no secret: safe on fork and Dependabot PRs without a guard.
+  determinism-ratchet:
+    name: determinism ratchet
+    runs-on: ubuntu-latest
+    if: inputs.run-ratchet && github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-workspace
+      - name: Fail on new sleep() / it.flaky() / skip in the changed specs
+        run: set -o pipefail; node .github/scripts/lint-ratchet.mjs | tee -a "$GITHUB_STEP_SUMMARY"
+        env:
+          GATE_BASE: ${{ github.event.pull_request.base.sha }}

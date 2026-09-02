@@ -18,10 +18,40 @@ the same floor with no manual step. (Manual fallback: `npx lefthook install` and
 | Agent-time (Claude Code) | `PostToolUse` (Edit/Write) | `eslint --fix` the edited spec | genuine lint errors in that spec |
 | Agent-time (Claude Code) | `Stop` (turn end) | new-Jasmine check + the touched Playwright specs + the touched **unit** tests | a **new** `*.spec.js`; a **failing** touched spec or unit test |
 | **pre-commit** (lefthook) | `scripts/lint-staged.mjs` | `eslint --fix` staged source/specs (determinism + anti-gaming), re-stage fixes | lint **errors** (warnings surface) |
-| **pre-push** (lefthook) | `scripts/pre-push.mjs` | presence gate (block) → eslint on changed → test-weakening detector (warn) → changed Playwright specs → changed **unit** tests | missing test; lint errors; a failing spec or unit test |
-| CI | `test.yml` + gates | the authoritative mirror of the above | see the pipeline |
+| **pre-push** (lefthook) | `scripts/pre-push.mjs` | presence gate (block) → eslint on changed → **determinism ratchet** (block) → test-weakening detector (warn) → changed Playwright specs → changed **unit** tests | missing test; lint errors; a **new** `sleep()`/`it.flaky()`/skip on an added spec line; a failing spec or unit test |
+| CI | `test.yml` + gates | the authoritative mirror of the above (the ratchet is `Lint / determinism ratchet`) | see the pipeline |
 
 Same rules, escalating authority: **agent-time → pre-commit → pre-push → CI.**
+
+**The determinism ratchet** (`.github/scripts/lint-ratchet.mjs`, pure logic in
+`.github/scripts/lib/lint-ratchet.mjs`). The frozen Jasmine suite carries ~560
+`sleep()` calls, so `handsontable/no-fixed-sleep-in-spec`, `handsontable/no-new-it-flaky`
+and `handsontable/no-skipped-test` are `warn` in `handsontable/.eslintrc.js`, and
+nothing else consumes warnings — `npm run lint` exits 0 with them. The ratchet
+closes that gap without red-walling the debt: it lints only the changed
+`handsontable/**/*.{spec,unit}.js` / `*.unit.ts` files, intersects the warnings
+with the lines the branch **added** (`git diff -U0` against the merge-base), and
+**exits 1 when any of the three rules fires on an added line**. A pre-existing
+occurrence on an unchanged line stays a warning. `RATCHETED_RULES` in the lib is
+the single source of truth for the rule set; pre-push and CI run the same script,
+so the local scope is exactly the CI scope. Three things to know:
+
+- **What blocks:** a `sleep()`, `it.flaky()`/`fit.flaky()`, or `xit`/`it.skip`/
+  `xdescribe`/`describe.skip` on a line you added. A **moved** line (deleted and
+  re-added verbatim) counts as added — a diff cannot tell a move from an
+  addition, and ignoring re-added text would let a new `sleep()` hide behind any
+  deleted one. Moving a `sleep()` is the moment to replace it.
+- **How to satisfy it:** wait for the *condition*, not the clock —
+  `await waitUntil(() => …)`, a hook promise, or `waitForNextAnimationFrames()`
+  (`handsontable/test/helpers/common.js`). A broken or flaky legacy spec migrates
+  to Playwright (`tests/e2e/`) instead of gaining a delay. For a genuine
+  exception, disable the rule on that line **with a ticket**:
+  `// eslint-disable-next-line handsontable/no-fixed-sleep-in-spec -- DEV-xxxx: <why no condition exists>`.
+- **When it skips (never a false block):** no base ref to diff against, no
+  changed spec/unit file, no added line in them, ESLint not installed or exiting
+  2 (config/parse gap), unparsable output, or a killed child — each prints a
+  notice and exits 0. Exit 1 means exactly one thing: the finding list is
+  non-empty. The output is Markdown; CI `tee`s it into the step summary.
 
 **Changed unit tests** run too — fast (Jest maps to `src`, no build), in both the
 Stop hook and pre-push. A Jest *infra* failure (couldn't start) warns instead of
@@ -87,7 +117,7 @@ presence gate or the test requirement. Do not use it to dodge writing tests.
 
 ## 2. Creating or changing enforcement hooks (git + agent) — exact rules
 
-- **Location.** Git hooks → `lefthook.yml` + `scripts/` (`pre-push.mjs`, `lint-staged.mjs`, `lint-files.mjs`). Agent hooks → `scripts/claude/` (`post-tool-use.mjs`, `stop.mjs`, `session.mjs`), wired in `.claude/settings.json`. Shared, pure classifiers and layout helpers → `.github/scripts/lib/` (`presence-gate.mjs`, `test-weakening.mjs`, `repo-root.mjs`).
+- **Location.** Git hooks → `lefthook.yml` + `scripts/` (`pre-push.mjs`, `lint-staged.mjs`, `lint-files.mjs`). Agent hooks → `scripts/claude/` (`post-tool-use.mjs`, `stop.mjs`, `session.mjs`), wired in `.claude/settings.json`. Shared, pure classifiers and layout helpers → `.github/scripts/lib/` (`presence-gate.mjs`, `test-weakening.mjs`, `lint-ratchet.mjs`, `repo-root.mjs`).
 - **Must work in a linked worktree.** Agent-driven work runs in `git worktree` checkouts, so never derive the repo layout from git or the cwd: take the root from `repoRoot()` (`.github/scripts/lib/repo-root.mjs`) and per-checkout state from `gitDir(root)`. A hook exports `GIT_DIR`, and with it set `git rev-parse --show-toplevel` returns the *cwd*, not the work tree; in a worktree `<root>/.git` is a **file**, so writing under it fails with ENOTDIR. Strip `GIT_DIR`/`GIT_WORK_TREE` from the environment of any child you spawn with an explicit `cwd`.
 - **Pure + tested.** Put the decision logic in a **pure function** in a lib and **unit-test it** (`scripts/__tests__/`, `.github/scripts/__tests__/`, run with `node --test`). **A hook change ships a test change** — this rule applies to the enforcement machinery too.
 - **Must not false-block.** Skip config/parse gaps (ESLint exit 2), record only **repo-relative, in-repo** paths (never scratchpad/out-of-repo), tolerate a missing base ref. A hook that fires on a false positive gets disabled — that is worse than no hook.

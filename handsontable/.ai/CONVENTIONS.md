@@ -67,6 +67,9 @@
 | `handsontable/require-await` | Specific HOT API calls must be `await`-ed in `*.spec.js` (full list in `handsontable/.eslintrc.js` lines 84-151) |
 | `handsontable/no-fixed-sleep-in-spec` | No fixed `sleep()` delay in `*.spec.js` — wait for a condition instead. `warn` (surfaces the frozen suite's legacy debt without red-walling CI); new E2E belongs in Playwright |
 | `handsontable/no-new-it-flaky` | No new `it.flaky()`/`fit.flaky()` — fix the flake at its source or migrate the spec to Playwright. `warn` for the same reason |
+| `handsontable/no-skipped-test` | No `xit`/`it.skip`/`xdescribe`/`describe.skip` in `*.spec.js`/`*.unit.js`. `warn` (existing skips must not red-wall) |
+
+The three `warn` rules above are **ratcheted**: a warning on a line your branch *adds* fails pre-push and CI (`.github/scripts/lint-ratchet.mjs`; the rule list is `RATCHETED_RULES` in `.github/scripts/lib/lint-ratchet.mjs`), while pre-existing occurrences stay warnings. Satisfy it with a condition wait or a `// eslint-disable-next-line <rule> -- <ticket>: <reason>` for a genuine exception — see `.ai/LOCAL-ENFORCEMENT.md`.
 | `no-restricted-globals` | Source: `window`, `document`, `console`, `Handsontable` banned. Tests: only `fit`, `fdescribe` banned |
 | `compat/compat` | Browser API compatibility check (off in test files) |
 

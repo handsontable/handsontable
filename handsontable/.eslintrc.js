@@ -235,6 +235,10 @@ module.exports = {
         // existing sleep()/it.flaky() debt must surface without red-walling CI.
         // Escalation to error happens in the flip-to-blocking task once the
         // debt is burned down. New E2E belongs in Playwright (tests/e2e).
+        // A NEW occurrence on a line a branch adds is already blocked: the
+        // diff-scoped ratchet (.github/scripts/lint-ratchet.mjs, pre-push + CI
+        // lint) fails on these three warn rules wherever they hit an added line.
+        // Keep its RATCHETED_RULES list in step with the levels here.
         'handsontable/no-fixed-sleep-in-spec': 'warn',
         'handsontable/no-new-it-flaky': 'warn',
         // Anti-gaming (green-for-the-sake-of-green) guards. Focus is ERROR — a

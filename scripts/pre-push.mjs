@@ -5,14 +5,16 @@
  * run so a new test is proven before it is pushed. Bypassable with
  * `git push --no-verify` — CI is the real guarantee.
  *
- * Scoped to stay fast: it runs the presence gate (no build) and only the
- * Playwright specs the push touches. The full unit/E2E suites are CI's job.
+ * Scoped to stay fast: it runs the presence gate (no build), the determinism
+ * ratchet on the changed spec files, and only the Playwright specs the push
+ * touches. The full unit/E2E suites are CI's job.
  */
 import { execSync, spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { repoRoot } from '../.github/scripts/lib/repo-root.mjs';
+import { selectRatchetedFiles } from '../.github/scripts/lib/lint-ratchet.mjs';
 import { lintable, runEslint } from './lint-files.mjs';
 import { filterCached, recordGreen } from './e2e-run-cache.mjs';
 
@@ -75,6 +77,18 @@ export function changedUnitTests(changed) {
  */
 export function unitTestPattern(unitFile) {
   return unitFile.replace(/^handsontable\//, '');
+}
+
+/**
+ * Does the push touch a file the determinism ratchet applies to? The ratchet
+ * CLI makes the same decision itself and exits 0 at once; deciding here too
+ * saves the spawn on the common source-only push. Pure so it can be unit-tested.
+ *
+ * @param {string[]} changed Repo-relative changed paths.
+ * @returns {boolean} True when `.github/scripts/lint-ratchet.mjs` must run.
+ */
+export function needsDeterminismRatchet(changed) {
+  return selectRatchetedFiles(changed).length > 0;
 }
 
 /**
@@ -291,6 +305,28 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   //    test, determinism/anti-gaming violations, etc.). Warnings surface, don't block.
   if (runEslint(lintable(changed), { cwd: root }) === 1) {
     process.exit(1);
+  }
+
+  // 2b) Determinism ratchet — blocking. The warn-level sleep()/it.flaky()/skip
+  //     rules stay warnings on the frozen suite's existing debt, but one on a
+  //     line THIS push added is an error. Same script and rule set as CI
+  //     (lint.yml), so the local scope is exactly the CI scope. The CLI skips
+  //     (exit 0, with a notice) on every tooling gap it can meet — no base ref,
+  //     ESLint missing or exiting 2 — so the only exit 1 is a real finding; a
+  //     child killed before it could answer is infra and does not block either.
+  if (needsDeterminismRatchet(changed)) {
+    const ratchet = spawnSync('node', [path.join(root, '.github/scripts/lint-ratchet.mjs')], {
+      stdio: 'inherit',
+      cwd: root,
+      env: { ...env, GATE_BASE: base },
+    });
+
+    if (isSpawnInfraFailure(ratchet)) {
+      console.log(`pre-push: the determinism ratchet could not complete (${
+        ratchet.error?.code || ratchet.signal}) — skipping; CI runs it.`);
+    } else if (ratchet.status !== 0) {
+      process.exit(ratchet.status);
+    }
   }
 
   // 3) Surface weakened specs (assertions removed / skip/focus added). Non-blocking,
