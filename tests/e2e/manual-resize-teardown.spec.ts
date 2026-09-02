@@ -15,11 +15,14 @@ import { ManualResizeTeardownPage } from '../fixtures/pages/ManualResizeTeardown
  * because the core resolves the cell from `event.target`. The guide is inert by comparison
  * (`display: none` without `active`), so only its attachment is observable.
  *
- * Every teardown assertion here is `toHaveCount(0)` or a behavioral read, never a visibility
- * matcher: the guide is already `display: none` and the handle has a real box at `opacity: 0`,
- * which Playwright reports as visible, so neither matcher can tell attached-but-inert from
- * detached and both would be green on the unfixed code. `toBeHidden()` appears once, on the
- * guide, and there it states the inertness rather than the teardown.
+ * Attachment is asserted with `toHaveCount`, never with a visibility matcher. Both matchers are
+ * blind here: the guide is already `display: none`, and the handle has a real box at
+ * `opacity: 0`, which Playwright reports as VISIBLE - so neither can tell attached-but-inert from
+ * detached, and a spec built on either would be green on the unfixed code. `toBeHidden()` appears
+ * once, on the guide, and there it states the inertness rather than the teardown.
+ *
+ * Five of these tests are red on unfixed code: the four detach cases and the swallowed click. The
+ * rest are pins, and each says so where it could be mistaken for coverage it does not provide.
  */
 test.describe('Manual resize handle and guide teardown', () => {
   let grid: ManualResizeTeardownPage;
@@ -55,7 +58,12 @@ test.describe('Manual resize handle and guide teardown', () => {
     // A drag is what attaches the guide, so this is the only way to reach a teardown that has both
     // elements to detach.
     await grid.dragRowHandle(2, 30);
+
+    // Both counts are the test's PREMISE, not a repeated wait: `dragResizeHandle` waits for the
+    // handle and never for the guide, so without this a drag that failed to reach `#onMouseDown`
+    // on some leg of the matrix would leave the guide assertion below passing on nothing.
     await expect(grid.rowHandle).toHaveCount(1);
+    await expect(grid.rowGuide).toHaveCount(1);
 
     await grid.parkPointer();
     await grid.setResizeOption('manualRowResize', false);
@@ -66,7 +74,9 @@ test.describe('Manual resize handle and guide teardown', () => {
 
   test('detaches both column elements when the plugin is turned off after a drag', async () => {
     await grid.dragColumnHandle(2, 40);
+
     await expect(grid.columnHandle).toHaveCount(1);
+    await expect(grid.columnGuide).toHaveCount(1);
 
     await grid.parkPointer();
     await grid.setResizeOption('manualColumnResize', false);
@@ -88,7 +98,12 @@ test.describe('Manual resize handle and guide teardown', () => {
     await grid.parkPointer();
     await grid.setResizeOption('manualRowResize', false);
 
-    await page.mouse.click(box!.x + (box!.width / 2), box!.y + (box!.height / 2));
+    // Biased to the top of the 10px band, not its centre. The handle is positioned at
+    // `headerTop - 6 + headerHeight`, so its centre lands one pixel inside the header and a
+    // theme's header height or a fractional device pixel ratio can round that onto the NEXT row,
+    // which would select row 3 and fail for a reason that has nothing to do with the fix. The
+    // whole band is the orphan's box, so any point in it is equally a hit on the orphan.
+    await page.mouse.click(box!.x + (box!.width / 2), box!.y + 2);
 
     // Row 2 selected through its header. On the unfixed code the orphan is the click's target, the
     // core resolves no cell from it, and nothing is selected at all.
@@ -136,9 +151,9 @@ test.describe('Manual resize handle and guide teardown', () => {
   test('keeps the row handle attached through a double-click autoresize', async () => {
     await grid.hoverRowHeader(2);
 
-    const box = await grid.rowHandle.boundingBox();
+    const boxBefore = await grid.rowHandle.boundingBox();
 
-    expect(box).not.toBeNull();
+    expect(boxBefore).not.toBeNull();
 
     // `setupHandlePosition()` early-returns on the second "mouseup" of a double-click
     // (`shouldSkipResizeHandlePositioning` rejects a click count above one), so a teardown wired
@@ -147,21 +162,51 @@ test.describe('Manual resize handle and guide teardown', () => {
     await grid.rowHandle.dblclick();
 
     await expect(grid.rowHandle).toHaveCount(1);
-    // Past the 500ms `afterMouseDownTimeout`, which re-runs the positioning.
-    await expect.poll(
-      () => grid.rowHandle.count(), { timeout: 3000 }
-    ).toBe(1);
+
+    // ...and still be attached once the 500ms `afterMouseDownTimeout` has run. Reaching that
+    // boundary needs an observable that CANNOT be true before it: the timeout resets the click
+    // count, and until it does, `shouldSkipResizeHandlePositioning()` makes every `mouseover`
+    // early-return, so the handle cannot move off row 2. Polling the count alone would resolve on
+    // its first evaluation and observe nothing. The autoresize is no use either - it sets the row
+    // to `max(startHeight, renderedHeight)`, which single-line content leaves unchanged.
+    await expect.poll(async () => {
+      await grid.parkPointer();
+      await grid.rowHeader(4).hover();
+
+      const box = await grid.rowHandle.boundingBox();
+
+      return box !== null && Math.abs(box.y - boxBefore!.y) > 2;
+    }, { timeout: 5000 }).toBe(true);
+
+    await expect(grid.rowHandle).toHaveCount(1);
   });
 
-  test('leaves nothing of its own in the container after destroy', async () => {
+  test('detaches the handle when the plugin itself is destroyed', async () => {
+    await grid.hoverRowHeader(2);
+    await expect(grid.rowHandle).toHaveCount(1);
+
+    await grid.parkPointer();
+    // The plugin alone, with the grid left alive. A grid-level `destroy()` cannot observe the
+    // plugin's `destroy()` at all - see the next test - so this is the only assertion that holds
+    // the override to anything. Nothing may touch the grid after this call.
+    await grid.destroyResizePlugin('manualRowResize');
+
+    await expect(grid.rowHandle).toHaveCount(0);
+  });
+
+  test('leaves nothing in the container after the grid is destroyed', async () => {
     await grid.hoverRowHeader(2);
     await expect(grid.rowHandle).toHaveCount(1);
 
     await grid.parkPointer();
     await grid.destroyGrid();
 
+    // A PIN, not a red-to-green case: `Core#destroy()` runs `empty(rootContainer)` BEFORE it
+    // iterates the plugins, and the handle lives inside that container, so this passes with the
+    // plugins' own `destroy()` override reverted. What it guards is that ordering - if the
+    // container emptying ever moved after the plugin loop, the override would be the only thing
+    // keeping the container clean, and this test would be the one to notice.
     await expect(grid.rowHandle).toHaveCount(0);
-    await expect(grid.columnHandle).toHaveCount(0);
     await expect(grid.grid.locator('*')).toHaveCount(0);
   });
 });

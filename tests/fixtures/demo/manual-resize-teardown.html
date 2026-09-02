@@ -86,6 +86,21 @@
     };
 
     /**
+     * Destroys one resize plugin while the grid stays alive.
+     *
+     * This is the only way to observe the plugin's own `destroy()`. A grid-level `destroy()` runs
+     * `empty(rootContainer)` BEFORE it iterates the plugins, so by the time `plugin.destroy()` is
+     * reached the elements are already gone and the override cannot be seen to do anything. The
+     * grid is unusable afterwards - `BasePlugin#destroy()` deletes the plugin's `hot` reference -
+     * so a test calling this must not touch the grid again.
+     *
+     * @param {string} pluginName Either `manualRowResize` or `manualColumnResize`.
+     */
+    window.destroyResizePlugin = function(pluginName) {
+      window.grid.getPlugin(pluginName).destroy();
+    };
+
+    /**
      * The current selection, as `getSelected()` reports it. A test that proves an orphaned handle
      * no longer swallows a header click reads this rather than a DOM class, because selecting a
      * whole row through its header is the user-visible thing the orphan blocked.

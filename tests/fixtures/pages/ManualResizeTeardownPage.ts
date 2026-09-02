@@ -35,6 +35,21 @@ export class ManualResizeTeardownPage extends ManualResizePage {
   }
 
   /**
+   * Destroys one resize plugin while the grid stays alive, which is the only way to observe the
+   * plugin's own `destroy()` - a grid-level destroy empties the container before it reaches the
+   * plugins. The grid must not be touched afterwards.
+   *
+   * @param {'manualRowResize'|'manualColumnResize'} pluginName The plugin to destroy.
+   */
+  async destroyResizePlugin(
+    pluginName: 'manualRowResize' | 'manualColumnResize'
+  ): Promise<void> {
+    await this.page.evaluate(name => (window as unknown as {
+      destroyResizePlugin: (n: string) => void
+    }).destroyResizePlugin(name), pluginName);
+  }
+
+  /**
    * The current selection, as `getSelected()` reports it.
    *
    * @returns {Promise<number[][] | undefined>}

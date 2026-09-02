@@ -535,20 +535,26 @@ export class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Detaches the resize handle and the resize guide from the root element, clears their active
-   * state and releases the pressed flag. Shared by the context menu handler, `disablePlugin()`
-   * and `destroy()`, so a plugin that is turned off leaves nothing of its own in the container.
+   * Detaches the resize handle and the resize guide from the root element and clears their active
+   * state. Shared by the context menu handler, `disablePlugin()` and `destroy()`, so a plugin that
+   * is turned off leaves nothing of its own in the container.
    *
    * Both elements are detached with `remove()`, which is a no-op on an element that has no
    * parent. The guide is attached only once a "mousedown" over the handle reaches
    * `#onMouseDown`, so a context menu opened over a merely hovered handle reaches a guide that
    * was never attached, and `removeChild` threw there (DEV-2708).
+   *
+   * The pressed flag is deliberately NOT reset here. `updatePlugin()` runs
+   * `disablePlugin(); enablePlugin();` on any `updateSettings()` carrying the plugin's own key,
+   * which is what a framework wrapper sends on every re-render - clearing the flag there would
+   * make the "mouseup" that ends an in-flight drag take the idle branch, so the drag would be
+   * dropped with no `afterRowResize`/`afterColumnResize` and the dragged size never confirmed.
+   * The context menu handler resets it at its own call site, where aborting the drag is the point.
    */
   #detachHandleAndGuide() {
     this.hideHandleAndGuide();
     this.#handle.remove();
     this.#guide.remove();
-    this.#pressed = false;
   }
 
   /**
@@ -803,6 +809,7 @@ export class ManualRowResize extends BasePlugin {
   #onContextMenu() {
     this.#detachHandleAndGuide();
 
+    this.#pressed = false;
     this.#isTriggeredByRMB = true;
 
     // There is thrown "mouseover" event right after opening a context menu. This flag inform that handle
