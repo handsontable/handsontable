@@ -38,11 +38,13 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   `Handsontable` is still undefined. The spec then fails inside its first
   `page.evaluate()` with a bare `Handsontable is not defined` — far from the
   cause, and only under load. Wait for the bundle itself in `goto()`, with
-  `await page.waitForFunction(() => 'Handsontable' in window)`, before
-  asserting on any fixture status. `expect` is the wrong tool for that wait:
-  `dist/handsontable.js` is ~6 MB uncompressed and every worker pulls its own
-  copy, so a cold or busy server outlasts the 10s `expect` timeout, while
-  `waitForFunction` polls against the test budget.
+  `await page.waitForFunction(() => 'Handsontable' in window, undefined,
+  { polling: 100 })`, before asserting on any fixture status. `expect` is the
+  wrong tool for that wait: `dist/handsontable.js` is ~6 MB uncompressed and
+  every worker pulls its own copy, so a cold or busy server outlasts the 10s
+  `expect` timeout, while `waitForFunction` polls against the test budget. The
+  explicit `{ polling }` is not optional — see Determinism below for why the
+  rAF default times out on a healthy page.
 - The `umd` legs run the BASE bundle: **no HyperFormula** (a formulas fixture
   loads HF as an external script beside the bundle, or the plugin logs a
   warning and silently stays off) and **no languages pack** (an i18n fixture
@@ -172,7 +174,9 @@ The waits lint cannot see live in page objects. Never get these wrong:
 - `page.waitForFunction()` always passes an explicit `{ polling: <ms> }`. The
   default polls on `requestAnimationFrame`, which parallel-worker load starves
   past the timeout on a healthy page — 3 mute timeouts in ~700 runs of
-  `hidden-init-rerender.spec.ts`, 0 after switching to timer polling.
+  `hidden-init-rerender.spec.ts`, 0 after switching to timer polling. The page
+  objects written before this rule still call it with the default; that debt
+  is ticketed for a sweep, and a new page object never copies it.
 - A page-object method that scrolls or mutates the grid ends on a RENDER-STATE
   probe (the first rendered row, a draw counter), never on
   `scrollTop`/`scrollLeft`: the scroll position settles before the rAF-batched

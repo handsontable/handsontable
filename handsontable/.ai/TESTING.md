@@ -278,7 +278,7 @@ await selectCell(0, 0);                 // helpers already await the scroll they
 await waitUntil(() => spy.calls.count() > 0);  // the condition-based waiter (test/helpers/common.js)
 await sleep(...);                        // ← avoid; if you must, root-cause it and add a real waiter
 ```
-For new Playwright tests use web-first, auto-retrying assertions (`await expect(locator).toBeVisible()`); see the `handsontable-playwright-e2e` skill. Existing `sleep()` sites are baselined by lint, but a broken or flaky legacy test is a signal to migrate it (see below), not to add another delay.
+For new Playwright tests use web-first, auto-retrying assertions (`await expect(locator).toBeVisible()`); see the `handsontable-playwright-e2e` skill. Every `sleep()` call warns today — `handsontable/no-fixed-sleep-in-spec` runs at warn level so the existing debt surfaces without red-walling CI — and a diff-scoped ratchet that fails a NEW `sleep()` on an added line is landing in a sibling PR. A broken or flaky legacy test is a signal to migrate it (see below), not to add another delay.
 
 **Unit tests are synchronous:** `handsontable/require-async-in-it` and `handsontable/require-await` are both off for `*.unit.js`.
 
@@ -643,7 +643,7 @@ it('should maintain selections after render', async() => {
 
 **Async Utilities:**
 - `waitUntil(condition, timeout = 4000)` -- Polls `condition` every frame; rejects with a named reason on timeout. The replacement for `sleep()` and `waitForNextAnimationFrames()` in an edited spec
-- `sleep(delay = 100)` -- Promise-based delay (baselined legacy sites only; never a new one)
+- `sleep(delay = 100)` -- Promise-based delay (every call lint-warns today, and a diff-scoped ratchet that fails a new one on an added line is landing; never add one)
 - `promisfy(fn)` -- Convert callback to Promise
 
 **DOM Event Helpers** (from `test/helpers/mouseEvents.js`):

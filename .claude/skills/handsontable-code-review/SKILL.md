@@ -1,6 +1,6 @@
 ---
 name: handsontable-code-review
-description: Use when reviewing changed or staged code, a branch, or a PR in the Handsontable monorepo across architecture, code quality, performance, and accessibility. Covers SOLID / Law of Demeter / plugin decoupling / breaking-changes policy, custom ESLint rules / JSDoc / naming / cognitive complexity, large-array and render-batching performance, and WCAG 2.1 AA + keyboard navigation. Trigger when asked to review changes, check a diff against Handsontable conventions, assess architectural correctness, spot performance regressions, or verify accessibility — and as the design lens before or while implementing any core change.
+description: Use when reviewing changed or staged code, a branch, or a PR in the Handsontable monorepo across architecture, code quality, performance, accessibility, and tests. Covers SOLID / Law of Demeter / plugin decoupling / breaking-changes policy, custom ESLint rules / JSDoc / naming / cognitive complexity, large-array and render-batching performance, WCAG 2.1 AA + keyboard navigation, and the tests a change ships (a named exercising test per new path, scoped mutation, a ticket on every weakened assertion). Trigger when asked to review changes, check a diff against Handsontable conventions, assess architectural correctness, spot performance regressions, verify accessibility, or judge whether a change's tests prove it — and as the design lens before or while implementing any core change.
 ---
 
 # Handsontable code review
