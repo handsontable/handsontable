@@ -80,8 +80,11 @@ nuance no snapshot covers, a high-risk area — or a QA-owned pass such as an
 RC adversarial sweep or a screen-reader check), tick **"This change needs a
 manual QA pass"** in the PR description (author or agent may tick it; the
 template carries the line, and its wording is machine-read — keep it
-verbatim) and say in one line what to check. The Checks scope router reads
-the box live and routes the Manual QA module only when ticked; its
+verbatim) and say in one line what to check. The PR is labelled
+**`Requires Manual QA`** so the request is visible in the PR list
+(`pr-manual-qa-label.yml` — a marker only, never the trigger; fork and
+Dependabot PRs skip the label but not the gate). The Checks scope router
+reads the box live and routes the Manual QA module only when ticked; its
 `sign-off` job then waits on the **`manual-qa` environment approval**: a
 designated reviewer (the environment's required-reviewers list; self-review
 is blocked — and an agent can request a check but never clear one) clicks

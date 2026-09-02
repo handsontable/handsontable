@@ -1,0 +1,78 @@
+name: PR Manual QA label
+
+# Makes the manual-QA request VISIBLE in the pull-request list. The gate itself
+# is the `Manual QA / sign-off` job in the Tests pipeline (see manual-qa.yml);
+# this workflow only mirrors the request onto a label, so a PR waiting for a
+# human pass is recognizable without opening it.
+#
+# Ticking "This change needs a manual QA pass" in the PR description applies
+# the label; unticking removes it. It fires on `edited` too, so ticking the box
+# after opening is picked up immediately — unlike the gate, which needs a
+# "Re-run all jobs" press.
+#
+# Deliberately standalone, NOT a Tests module: it needs `issues: write`, and a
+# nested job-level permission request inside a reusable module is validated
+# against the caller's grant at run startup (see the develop.yml note in
+# AGENTS.md). Nothing depends on this workflow, so it can never take CI Gate
+# down. It runs on the plain `pull_request` trigger — the base-ref variant that
+# hands a write token to a fork's branch is banned repo-wide, and asserted by
+# .github/scripts/__tests__/fork-guards.test.mjs — so the trade-off is that fork
+# and Dependabot PRs get no label (the guard below skips them, since their
+# read-only token would 403). The GATE still applies to them in full.
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: pr-manual-qa-label-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    name: sync the label with the tickbox
+    # Fork PRs and Dependabot PRs run on a read-only GITHUB_TOKEN, so the label
+    # write would 403. Canonical guard (all three halves) — see the fork-guard
+    # bullet in AGENTS.md and .github/scripts/__tests__/fork-guards.test.mjs.
+    if: github.event_name != 'pull_request'
+      || (github.event.pull_request.head.repo.full_name == github.repository
+          && github.actor != 'dependabot[bot]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Apply or remove the manual-QA label
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
+        with:
+          script: |
+            // Keep in sync with the tickbox regex in checks.yml and the
+            // template line in .github/PULL_REQUEST_TEMPLATE.md.
+            const LABEL = 'Requires Manual QA';
+            const prNumber = context.payload.pull_request.number;
+            // Live read: another workflow may have moved the labels since this
+            // event was queued.
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber,
+            });
+            const ticked = /^\s*-\s*\[[xX]\]\s+This change needs a manual QA pass/m.test(pr.body || '');
+            const labelled = pr.labels.some((label) => label.name === LABEL);
+
+            if (ticked === labelled) {
+              core.notice(`Label already ${labelled ? 'applied' : 'absent'} — nothing to do.`);
+              return;
+            }
+            if (ticked) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: prNumber, labels: [LABEL],
+              });
+              core.notice(`Applied "${LABEL}" — this PR waits for a manual-qa sign-off.`);
+              return;
+            }
+            await github.rest.issues.removeLabel({
+              owner: context.repo.owner, repo: context.repo.repo,
+              issue_number: prNumber, name: LABEL,
+            });
+            core.notice(`Removed "${LABEL}" — the manual-QA box is no longer ticked.`);

@@ -72,6 +72,7 @@ const GUARDED_SITES = [
   ['.github/workflows/code-quality.yml', '  sonarcloud:'],
   ['.github/workflows/code-quality.yml', '  fossa:'],
   ['.github/workflows/docs.yml', '  preview:'],
+  ['.github/workflows/pr-manual-qa-label.yml', '  sync:'],
 ];
 
 test('every fork-hostile site carries both halves of the canonical guard', () => {
