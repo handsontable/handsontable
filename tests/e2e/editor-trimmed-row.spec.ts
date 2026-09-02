@@ -833,6 +833,39 @@ test.describe('a removal that strands the editor', () => {
         ['A4', 'B4'],
       ]);
     });
+
+  /**
+   * The same strand with NO task boundary at all: `alter()` and `filter()` in one synchronous
+   * block, one line of application code apart. The window that protects the editor INSIDE
+   * `alter()` must be closed by the time `alter()` returns - a window closed on a zero-delay
+   * timeout instead is still open when the filter runs, skips the discard, and the filter's
+   * re-selection commits through visual row 4 and appends four records. Unlike the case above,
+   * which needs the filter to outrun the timer, this fails deterministically on the unfixed code.
+   */
+  test('discards when the filter lands in the same task as the removal',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+
+      await grid.selectRangeWithFocusAt([0, 0, 4, 0], 4, 0);
+      await grid.typeOnSelection('EDITED');
+
+      // The strand premise, pinned before the combined action: the editor is open at the focus.
+      await expect.poll(() => grid.editorRow()).toBe(4);
+      expect(await grid.sourceRowCount()).toBe(5);
+
+      await grid.removeRowThenFilterSameTask(1, 0, ['A2']);
+
+      expect(await grid.committedChangeCount()).toBe(0);
+      expect(await grid.sourceRowCount()).toBe(4);
+      expect(await grid.sourceData()).toEqual([
+        ['A0', 'B0'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['A4', 'B4'],
+      ]);
+    });
 });
 
 /**

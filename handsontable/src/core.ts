@@ -1390,6 +1390,13 @@ export default function Core(
         grid.adjustRowsAndCols(); // makes sure that we did not add rows that will be removed in next refresh
       }
 
+      // The alter's synchronous work is done: `selection.shiftRows()` has had its chance to
+      // re-prepare an editor the removal stranded. Closing the strand window here rather than on
+      // the zero-delay backstop timeout is what lets a trimming change that follows in the SAME
+      // task - `alter('remove_row', ...)` and then `Filters#filter()` - discard the stranded edit
+      // instead of committing through it and appending records (DEV-2739).
+      editorManager.closeStrandWindow();
+
       instance.view.adjustElementsSize();
       instance.view.render();
     },
