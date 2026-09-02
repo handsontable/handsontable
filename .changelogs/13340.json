@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed unavailable context menu and column menu items being shown as rows labeled with their raw configuration key.",
+  "type": "fixed",
+  "issueOrPR": 13340,
+  "breaking": false,
+  "framework": "none"
+}
