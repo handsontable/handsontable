@@ -21,6 +21,18 @@
  * — a reviewer/agent still decides whether a reduction was legitimate (e.g. a real
  * refactor that merged two assertions, or a timing-dependent count that a bound
  * describes more honestly).
+ *
+ * Known blind spots, so a reviewer reads a finding — or its absence — correctly:
+ *
+ * - Every counter is a regex over raw text, so an `expect(` or a matcher inside
+ *   a comment or a string literal counts like live code (inherited from
+ *   `countAssertions`). Commenting an assertion out therefore does NOT read as a
+ *   removal, and a comment that quotes `toBe(` inflates the histogram.
+ * - `detectPrecisionWidening` pairs the digits that changed largest-with-largest
+ *   once the unchanged ones cancel out. When one change both widens and tightens
+ *   in the same file, the reported pairs need not be the real edits, and a
+ *   widening can hide behind a larger tightening: `5 → 4` next to `1 → 6`
+ *   reports nothing.
  */
 
 /**
@@ -85,6 +97,8 @@ const CLOSE_TO_DEFAULT_DIGITS = 2;
 
 /**
  * Count assertion calls (`expect(` and common assertion-helper names) in a source string.
+ * Text-based: a call inside a comment or a string literal counts too (see the
+ * module header).
  *
  * @param {string} src The spec file contents.
  * @returns {number} The number of assertion-like calls.
@@ -116,7 +130,8 @@ export function countSkipFocus(src) {
 /**
  * Count every `EXACT_MATCHERS` / `BOUNDED_MATCHERS` call in a source string, by
  * matcher name. Matchers that do not occur are absent (not zero), so the result
- * reads as a sparse histogram.
+ * reads as a sparse histogram. Text-based like `countAssertions`: a matcher
+ * named inside a comment or a string literal counts too.
  *
  * @param {string} src The spec file contents.
  * @returns {Record<string, number>} Matcher name → number of calls.
@@ -202,7 +217,7 @@ function splitTopLevelArgs(src, start) {
       i += 1;
 
       while (i < src.length && src[i] !== ch) {
-        i += ch === '\\' ? 2 : 1;
+        i += src[i] === '\\' ? 2 : 1;
       }
       i += 1;
       continue;
@@ -300,7 +315,10 @@ function multisetDifference(a, b) {
  * digits value that disappeared paired with a smaller one that appeared. The
  * digits that survive both revisions cancel out first, so a reorder is not a
  * finding, and the leftovers pair largest-with-largest — a heuristic, like the
- * rest of this module.
+ * rest of this module: when one change both widens and tightens in the same
+ * file, the reported pairs need not be the real edits, and a widening can hide
+ * behind a larger tightening (`5 → 4` beside `1 → 6` reports nothing). See the
+ * module header.
  *
  * @param {string} before The spec contents at the base revision.
  * @param {string} after The spec contents at the head revision.

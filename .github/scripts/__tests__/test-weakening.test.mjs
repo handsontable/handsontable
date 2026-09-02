@@ -253,6 +253,32 @@ test('detectPrecisionWidening ignores tightening, unchanged calls, and a non-lit
   ), null, 'a digits argument that is not an integer literal cannot be judged, so it never flags');
 });
 
+test('detectPrecisionWidening reads the digits argument past an escaped quote in the first argument', () => {
+  // The argument scanner skips string literals. An escaped quote inside one
+  // (`'a\'b'`) must not end the literal early — otherwise the stray closing
+  // quote opens a second "string" that runs to end of file, the list never
+  // closes, and a real widening goes unreported. `String.raw` keeps each input
+  // byte-for-byte what the spec file would contain.
+  assert.deepEqual(detectPrecisionWidening(
+    String.raw`expect(x).toBeCloseTo(f('a\'b'), 5);`,
+    String.raw`expect(x).toBeCloseTo(f('a\'b'), 2);`,
+  ), { kind: 'precision-widened', widenings: [{ from: 5, to: 2 }] }, 'escaped single quote');
+
+  // One escaped quote, deliberately: with an even count a broken scanner falls
+  // back into sync by accident and the case would pass without the fix.
+  assert.deepEqual(detectPrecisionWidening(
+    String.raw`expect(x).toBeCloseTo(g("5\" tall"), 4);`,
+    String.raw`expect(x).toBeCloseTo(g("5\" tall"), 1);`,
+  ), { kind: 'precision-widened', widenings: [{ from: 4, to: 1 }] }, 'escaped double quote');
+
+  // An escaped backslash right before the closing quote (`'a\\'`) must consume
+  // only its own partner, so the quote that follows still closes the literal.
+  assert.deepEqual(detectPrecisionWidening(
+    String.raw`expect(x).toBeCloseTo(f('a\\'), 5);`,
+    String.raw`expect(x).toBeCloseTo(f('a\\'), 3);`,
+  ), { kind: 'precision-widened', widenings: [{ from: 5, to: 3 }] }, 'escaped backslash before the closing quote');
+});
+
 test('detectPrecisionWidening treats an omitted digits argument as the default of 2', () => {
   // Jest and Jasmine both default `numDigits` to 2, so dropping the argument
   // from `toBeCloseTo(x, 5)` widens the tolerance.

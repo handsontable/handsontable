@@ -293,8 +293,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     process.exit(1);
   }
 
-  // 3) Surface weakened specs (assertions removed / skip/focus added). Non-blocking,
-  //    same as CI — it is a signal for the author, not a hard gate.
+  // 3) Surface weakened specs (assertions removed, skip/focus added, an exact
+  //    matcher downgraded to a bounded one, a toBeCloseTo tolerance widened).
+  //    Non-blocking, same as CI — it is a signal for the author, not a hard gate.
   spawnSync('node', [path.join(root, '.github/scripts/test-weakening-gate.mjs')], {
     stdio: 'inherit',
     cwd: root,
