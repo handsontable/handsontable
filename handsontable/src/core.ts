@@ -4327,12 +4327,21 @@ export default function Core(
    * Returns the property name that corresponds with the given column index.
    * If the data source is an array of arrays, it returns the columns index.
    *
+   * When the column index points at no existing column, the method hands the argument back
+   * unchanged. It does not signal an unknown column, so the result on its own never tells you
+   * whether that column exists.
+   *
+   * The result can also be `null`, in two cases: an argument that is not an integer comes straight
+   * back, and a column declared as `{ data: null }` resolves to `null` for an index that is
+   * perfectly valid. Test the result before you use it as a property name.
+   *
    * @memberof Core#
    * @function colToProp
-   * @param {number} column Visual column index.
-   * @returns {string|number} Column property or physical column index. When the column's `data`
-   *   option is an accessor function, that function is returned at runtime – check
-   *   `typeof` before treating the result as a property name.
+   * @param {number} column Visual column index. An argument that is not an integer comes back
+   *   unchanged, so the declared type is narrower than what the method accepts at runtime.
+   * @returns {string|number|null} Column property, physical column index, `null`, or the passed
+   *   argument. When the column's `data` option is an accessor function, that function is returned
+   *   at runtime – check `typeof` before treating the result as a property name.
    */
   this.colToProp = function(column: number) {
     return datamap.colToProp(column);
@@ -4341,10 +4350,30 @@ export default function Core(
   /**
    * Returns column index that corresponds with the given property.
    *
+   * When the property matches no column, the method hands the argument back unchanged, so the
+   * result on its own never tells you whether that column exists.
+   *
+   * The result can also be `null`, and for a **trimmed** column which of the two you get depends on
+   * how the property is declared. A property held in the column cache – object data, or one named
+   * by a `columns[].data` entry – resolves through [[Core#toVisualColumn]] and comes back
+   * `null`. A bare physical index on array data comes back unchanged instead, which does not
+   * identify a usable visual column.
+   *
+   * So validate the result before using it as a column index: `Number.isInteger()` alone lets the
+   * second case through, and a [[Core#countCols]] comparison alone lets `null` through, because
+   * `null` compares as `0`.
+   *
+   * The TypeScript declaration is narrower than what runs at both ends. It narrows the result to
+   * `number`, so neither a returned property name nor `null` is visible to the type checker, and it
+   * narrows the parameter to `string | number`, so passing a `columns[].data` accessor function
+   * works at runtime but does not type-check.
+   *
    * @memberof Core#
    * @function propToCol
-   * @param {string|number} prop Property name or physical column index.
-   * @returns {number} Visual column index.
+   * @param {string|number|Function} prop Property name, physical column index, or a `columns[].data`
+   *   accessor function.
+   * @returns {string|number|Function|null} Visual column index, `null` when a cached property's
+   *   column is trimmed, or the passed argument.
    */
   this.propToCol = function(prop: string | number) {
     return datamap.propToCol(prop) as number;
