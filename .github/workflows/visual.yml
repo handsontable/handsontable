@@ -55,6 +55,14 @@ jobs:
             npm run in handsontable build:es
             npm run in handsontable build:commonjs
             npm run in handsontable build:languages.es
+            # The `exports` map that `postbuild:partial` verifies below names the
+            # type declarations, so this path has to emit them too or the check
+            # fails on eight missing `.d.ts`/`.d.mts` files. Same pair, same
+            # order as build.yml's ES+CJS job, whose tree passes that check.
+            # `downlevel:types` has no package.json shim, so it goes through the
+            # dispatcher exactly as build.yml calls it.
+            npm run in handsontable build:types
+            (cd handsontable && node scripts/run.mjs downlevel:types)
           fi
 
       - name: Download the Handsontable UMD build artifact
