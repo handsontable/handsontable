@@ -70,7 +70,7 @@ describe('Core.colToProp', () => {
     expect(colToProp(0)).toBe('date');
     // Since #7031: an index past the last column names no column, so it resolves to `null`
     // rather than being handed back.
-    expect(propToCol(10)).toBe(null);
+    expect(colToProp(10)).toBe(null);
   });
 
   it('should return `null` for an index that names no column', async() => {
