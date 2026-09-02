@@ -29,6 +29,10 @@ import hotConfig from '../hot.config.js';
  * `@handsontable/vue3` shipped four releases advertising `types: "./index.d.ts"` with no
  * declaration files in the tarball at all (DEV-2732). A broken pointer is invisible at runtime:
  * the package installs, imports and bundles fine, and only a TypeScript consumer sees `TS7016`.
+ *
+ * Precondition: every package this script knows about must already be built. That was always
+ * true — the version check imports each package's built entry file — so run it after
+ * `npm run build`, not from a clean checkout.
  */
 
 const packagesInfo = {
