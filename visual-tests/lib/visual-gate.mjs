@@ -168,16 +168,33 @@ export function evaluate({
       '**If these differences are a regression** — push a commit that fixes them. The check',
       'goes green on its own.',
       '',
-      '**If these differences are intentional** — add the **`visual-approved`** label to this',
-      'pull request to accept them as the new baseline. Nothing else is needed: the label',
-      're-runs this check for you, and it goes green. If the rest of the pipeline is still',
-      'running, the re-run starts once it finishes.',
-      '',
-      'Approval is all-or-nothing: the label accepts every difference in this build at once,',
-      'so read the report before applying it.',
-      '',
-      '> The label is removed automatically on every push, so an approval only ever covers',
-      '> the screenshots someone actually looked at. If you push again, re-apply it.',
+      // `seeded` is false on exactly the runs where the label is ignored, so it
+      // is also what says whether promising an automatic re-run is honest. A
+      // fork contributor reads this in the job summary — the sticky comment is
+      // guarded off there — so "nothing else is needed" would be a promise
+      // nothing keeps.
+      ...(seeded
+        ? [
+          '**If these differences are intentional** — add the **`visual-approved`** label to',
+          'this pull request to accept them as the new baseline. The label also re-runs the',
+          'failed jobs, so the visual check turns green without a manual re-run. If the rest of',
+          'the pipeline is still running, the re-run starts once it finishes. Any other job that',
+          'is red stays red.',
+          '',
+          'Approval is all-or-nothing: the label accepts every difference in this build at once,',
+          'so read the report before applying it.',
+          '',
+          '> The label is removed automatically on every push, so an approval only ever covers',
+          '> the screenshots someone actually looked at. If you push again, re-apply it.',
+        ]
+        : [
+          '**If these differences are intentional** — the **`visual-approved`** label does not',
+          'work here. A fork or Dependabot run gets no secrets, so nothing can clear the label',
+          'when you push again; it is ignored rather than trusted, and no re-run is started.',
+          '',
+          'A maintainer has to re-raise this branch from the main repository to accept these',
+          'differences.',
+        ]),
       '',
     ].join('\n'),
   };

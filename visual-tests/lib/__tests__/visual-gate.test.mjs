@@ -128,7 +128,22 @@ test('an approved verdict says so rather than reprinting the instructions', () =
   const v = evaluate({ report: report({ changed: 5 }), approved: true });
 
   assert.match(v.comment, /changes approved/);
-  assert.doesNotMatch(v.comment, /Add the \*\*`visual-approved`\*\* label/);
+  // Anchored on the section heading, not on a sentence: the wording of the
+  // instructions is edited freely, and an assertion pinned to a phrasing that
+  // no branch emits any more passes whatever the approved branch prints.
+  assert.doesNotMatch(v.comment, /### What to do next/);
+});
+
+test('a run that cannot approve is not told to apply the label', () => {
+  // Fork and Dependabot runs read this in the job summary — the sticky comment
+  // is guarded off there — and their label is ignored, so instructions to apply
+  // it are a promise nothing keeps.
+  const v = evaluate({ report: report({ changed: 5 }), seeded: false });
+
+  assert.equal(v.blocked, true);
+  assert.match(v.comment, /### What to do next/);
+  assert.match(v.comment, /re-raise this branch from the main repository/);
+  assert.doesNotMatch(v.comment, /add the \*\*`visual-approved`\*\* label to/);
 });
 
 test('approval cannot fabricate a pass out of an unreadable report', () => {

@@ -41,8 +41,13 @@ const prNumber = process.env.PR_NUMBER;
 const workflowFile = process.env.WORKFLOW_FILE || 'test.yml';
 const pollSeconds = Number(process.env.POLL_INTERVAL_SECONDS || 60);
 const deadlineMs = Date.now() + (Number(process.env.WAIT_TIMEOUT_MINUTES || 90) * 60 * 1000);
-// Set by the unit-testable dry run in CI debugging and by local invocations, so
-// the decision can be exercised without spending a build.
+// The head commit as it was when the label was applied. An approval covers the
+// screenshots someone actually looked at, so if the head moves the approval no
+// longer applies. Nothing derives this from the run: the run is looked up BY the
+// live head, so its own `head_sha` can never disagree with it.
+const labeledHeadSha = process.env.LABELED_HEAD_SHA || '';
+// No workflow sets this. It exists so the whole decision path can be exercised
+// against a real pull request from a shell, without spending a build.
 const dryRun = process.env.DRY_RUN === 'true';
 
 if (!token || !repo || !prNumber) {
@@ -97,10 +102,25 @@ async function api(path, init = {}) {
 
     lastError = new Error(`${method} ${path} -> ${response.status} ${await response.text()}`);
 
-    // A 4xx other than a rate limit is a real answer — a deleted run, a token
-    // without the grant — and repeating it only delays the report.
-    if (response.status < 500 && response.status !== 429) {
+    // GitHub reports BOTH rate limits as 403, not 429: a primary exhaustion
+    // zeroes `x-ratelimit-remaining`, a secondary one sets `retry-after`. Since
+    // this poller spends two requests a minute for up to an hour and a half
+    // against a budget shared with every other workflow, that is the failure it
+    // is most likely to meet — treating it as fatal would throw away the
+    // approval over the one error worth waiting out.
+    const retryAfter = Number(response.headers.get('retry-after'));
+    const rateLimited = response.status === 429
+      || (response.status === 403
+        && (response.headers.get('x-ratelimit-remaining') === '0' || retryAfter > 0));
+
+    // Any other 4xx is a real answer — a deleted run, a token without the grant
+    // — and repeating it only delays the report.
+    if (response.status < 500 && !rateLimited) {
       break;
+    }
+
+    if (retryAfter > 0) {
+      await sleep(Math.min(retryAfter, 60) * 1000);
     }
   }
 
@@ -118,7 +138,7 @@ async function api(path, init = {}) {
 async function readPullRequest() {
   const pr = await api(`/repos/${repo}/pulls/${prNumber}`);
 
-  return { headSha: pr.head.sha, labels: pr.labels.map(({ name }) => name) };
+  return { headSha: pr.head.sha, state: pr.state, labels: pr.labels.map(({ name }) => name) };
 }
 
 /**
@@ -128,12 +148,19 @@ async function readPullRequest() {
  * @returns {Promise<object|null>} The run, or `null` when none exists yet.
  */
 async function readRun(headSha) {
-  const query = `head_sha=${headSha}&event=pull_request&per_page=1`;
+  const query = `head_sha=${headSha}&event=pull_request&per_page=10`;
   const { workflow_runs: runs } = await api(
     `/repos/${repo}/actions/workflows/${workflowFile}/runs?${query}`
   );
 
-  return runs[0] ?? null;
+  // One commit can head two open pull requests — the same branch raised against
+  // `develop` and against a release branch is a normal backport. Both produce a
+  // run for the identical `head_sha`, so taking the newest blindly can re-run
+  // the other pull request's build. `pull_requests` is empty on some runs, and
+  // an empty list is "unknown", not "not mine" — dropping those would leave
+  // nothing to re-run at all.
+  return runs.find(run => !run.pull_requests?.length
+    || run.pull_requests.some(({ number }) => String(number) === String(prNumber))) ?? null;
 }
 
 /**
@@ -162,30 +189,51 @@ const startedAt = Date.now();
 let decision = null;
 let run = null;
 
-while (Date.now() < deadlineMs) {
-  const { headSha, labels } = await readPullRequest();
-
-  run = await readRun(headSha);
-  decision = decide({
-    run,
-    jobs: run && run.status === 'completed' ? await readJobs(run.id) : [],
-    labels,
-    prHeadSha: headSha,
-    elapsedMs: Date.now() - startedAt,
-  });
-
-  if (decision.action !== 'wait') {
-    break;
-  }
-
-  console.log(`Waiting: ${decision.reason}`);
-  await sleep(pollSeconds * 1000);
+/**
+ * The message every unhappy ending shares: say what to do instead.
+ *
+ * @param {string} why What went wrong.
+ * @returns {undefined}
+ */
+function giveUp(why) {
+  console.error(`::error::${why} Re-run the \`${COMPARE_JOB}\` job by hand to apply the `
+    + `\`${APPROVAL_LABEL}\` label.`);
+  process.exitCode = 1;
 }
 
-if (!decision || decision.action === 'wait') {
-  console.error(`::error::Gave up waiting for the ${workflowFile} run to finish. `
-    + `Re-run the \`${COMPARE_JOB}\` job by hand to apply the \`${APPROVAL_LABEL}\` label.`);
-  process.exitCode = 1;
+try {
+  while (Date.now() < deadlineMs) {
+    const { headSha, state, labels } = await readPullRequest();
+
+    run = await readRun(headSha);
+    decision = decide({
+      run,
+      jobs: run && run.status === 'completed' ? await readJobs(run.id) : [],
+      labels,
+      prHeadSha: headSha,
+      prState: state,
+      labeledHeadSha,
+      elapsedMs: Date.now() - startedAt,
+    });
+
+    if (decision.action !== 'wait') {
+      break;
+    }
+
+    console.log(`Waiting: ${decision.reason}`);
+    await sleep(pollSeconds * 1000);
+  }
+} catch (error) {
+  // Without this the poll loop's rejection reaches the top level as a bare
+  // stack trace: a red check, no annotation, and nothing telling the
+  // contributor their approval was dropped or what to do about it.
+  giveUp(`The GitHub API call failed: ${error.message}.`);
+}
+
+if (process.exitCode) {
+  // The catch above already reported; do not also act on a stale decision.
+} else if (!decision || decision.action === 'wait') {
+  giveUp(`Gave up waiting for the ${workflowFile} run to finish.`);
 } else if (decision.action === 'skip') {
   console.log(`::notice::${decision.reason}`);
 } else if (dryRun) {

@@ -13,7 +13,12 @@ const read = (rel) => readFileSync(path.join(root, rel), 'utf8');
 const completedRun = { id: 1, status: 'completed', head_sha: 'abc', html_url: 'https://example.test/1' };
 const failedCompare = [{ name: COMPARE_JOB, conclusion: 'failure' }];
 const approve = (overrides = {}) => decide({
-  run: completedRun, jobs: failedCompare, labels: [APPROVAL_LABEL], prHeadSha: 'abc', ...overrides,
+  run: completedRun,
+  jobs: failedCompare,
+  labels: [APPROVAL_LABEL],
+  prHeadSha: 'abc',
+  labeledHeadSha: 'abc',
+  ...overrides,
 });
 
 test('a failed gate under the label is re-run', () => {
@@ -66,13 +71,35 @@ test('a stripped label ends the wait instead of polling to the deadline', () => 
   assert.match(reason, /no longer on the pull request/);
 });
 
-test('a superseded run is not re-run', () => {
-  // Re-running an old attempt puts it back into test.yml's per-ref concurrency
-  // group, where it can cancel the run for the commit under review.
+test('a push after the label was applied cancels the re-run', () => {
+  // Compared against the commit the LABEL was applied to, never against the
+  // run's own head_sha: the caller looks the run up by the live head, so
+  // `run.head_sha === prHeadSha` always holds and a check against it is dead
+  // code that would let the waiter follow the new commit and approve a build
+  // nobody reviewed. Note the run here still reports the old `head_sha` — the
+  // decision must not depend on it.
   const { action, reason } = approve({ prHeadSha: 'def' });
 
   assert.equal(action, 'skip');
-  assert.match(reason, /superseded/);
+  assert.match(reason, /head commit moved from abc to def/);
+});
+
+test('the run\'s own head_sha cannot stand in for the labelled commit', () => {
+  // The state the wrapper actually produces: it queried the run BY the live
+  // head, so the run agrees with `prHeadSha`. Only `labeledHeadSha` can tell
+  // that a push happened, and without it this would wrongly re-run.
+  const pushed = { ...completedRun, head_sha: 'def' };
+
+  assert.equal(approve({ run: pushed, prHeadSha: 'def' }).action, 'skip');
+});
+
+test('a closed pull request is not re-run', () => {
+  // pr-cleanup.yml purges `pr-<n>/` on close and fires only on `closed`, so a
+  // re-run would republish screenshots that nothing will ever purge again.
+  const { action, reason } = approve({ prState: 'closed' });
+
+  assert.equal(action, 'skip');
+  assert.match(reason, /orphan screenshots in R2/);
 });
 
 test('a build whose gate never ran is left alone', () => {
@@ -112,6 +139,21 @@ test('the workflow triggers on the label, and grants exactly the write it needs'
   assert.match(workflow, new RegExp(`github\\.event\\.label\\.name == '${APPROVAL_LABEL}'`));
   assert.match(workflow, /actions: write/);
   assert.match(workflow, /node \.\/\.github\/scripts\/visual-approval-rerun\.mjs/);
+  // Without this the script cannot tell that a push happened, because it looks
+  // the run up by the live head.
+  assert.match(workflow, /LABELED_HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/);
+});
+
+test('Dependabot is excluded by the pull request author, not only by the actor', () => {
+  // On a `labeled` event `github.actor` is whoever APPLIED the label, so on a
+  // Dependabot pull request the canonical clause passes and the job runs. The
+  // re-run is then spent for nothing: it keeps the run's original actor, so
+  // visual.yml's IS_UNTRUSTED stays true and the gate still refuses the label.
+  const workflow = read('.github/workflows/visual-approval-rerun.yml');
+
+  assert.match(workflow, /github\.event\.pull_request\.user\.login != 'dependabot\[bot\]'/);
+  // The canonical shape stays too — fork-guards.test.mjs asserts it.
+  assert.match(workflow, /github\.actor != 'dependabot\[bot\]'/);
 });
 
 test('the concurrency group is keyed by label as well as by pull request', () => {

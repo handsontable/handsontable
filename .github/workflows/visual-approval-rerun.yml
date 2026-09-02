@@ -34,12 +34,21 @@ concurrency:
 jobs:
   rerun-visual-gate:
     name: Re-run the visual gate
-    # Fork and Dependabot pull requests hold a read-only token, so the re-run
-    # POST would 403. They are excluded here for the same reason `visual.yml`
-    # ignores the label on those runs at all: `visual-cleanup.yml` cannot strip
-    # it there, so it could never be trusted in the first place.
+    # Fork and Dependabot pull requests are excluded for the same reason
+    # `visual.yml` ignores the label on those runs at all: `visual-cleanup.yml`
+    # cannot strip it there, so it could never be trusted in the first place.
+    #
+    # `pull_request.user.login` carries the Dependabot half, and has to. On a
+    # `labeled` event `github.actor` is whoever APPLIED the label, so on a
+    # Dependabot pull request it is a maintainer and the canonical clause below
+    # passes. The re-run would then be spent for nothing: a re-run keeps the
+    # run's original actor, so `visual.yml`'s `IS_UNTRUSTED` is still true, the
+    # gate still hard-codes `approved=false`, and the check comes back red. The
+    # canonical clause stays because it is the shape `fork-guards.test.mjs`
+    # asserts, and because it is still correct on every other event.
     if: github.event_name == 'pull_request'
       && github.event.label.name == 'visual-approved'
+      && github.event.pull_request.user.login != 'dependabot[bot]'
       && (github.event.pull_request.head.repo.full_name == github.repository
           && github.actor != 'dependabot[bot]')
     runs-on: ubuntu-latest
@@ -61,6 +70,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.number }}
+          # The commit the approval covers. Read from the event, never from the
+          # run: the script looks the run up BY the live head, so the run's own
+          # `head_sha` can never disagree and could not detect a push.
+          LABELED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           # Long enough to outlast a full pull request pipeline, because the
           # comment that prompts the approval is posted mid-run.
           WAIT_TIMEOUT_MINUTES: 90

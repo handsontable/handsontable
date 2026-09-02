@@ -38,16 +38,19 @@ export const NO_RUN_GRACE_MS = 5 * 60 * 1000;
 /**
  * Decide whether the failed run may be re-run now.
  *
- * The checks are ordered so that the two states which end the wait — the label
- * is gone, or a newer commit arrived — are read before the "still running"
- * branch. Ordered the other way, a pull request that was pushed to during the
- * wait would poll to the deadline before noticing it had nothing left to do.
+ * The checks are ordered so that the states which end the wait — the label is
+ * gone, the pull request closed, a newer commit arrived — are read before the
+ * "still running" branch. Ordered the other way, a pull request that was pushed
+ * to during the wait would poll to the deadline before noticing it had nothing
+ * left to do.
  *
  * @param {object} options Inputs, all read fresh on every poll.
  * @param {object|null} [options.run] The newest `test.yml` run for the head commit.
  * @param {Array<{name: string, conclusion: string|null}>} [options.jobs] That run's jobs, latest attempt.
  * @param {string[]} [options.labels] The pull request's labels, read live.
  * @param {string} [options.prHeadSha] The pull request's head commit, read live.
+ * @param {string} [options.prState] The pull request's state, read live.
+ * @param {string} [options.labeledHeadSha] The head commit at the moment the label was applied.
  * @param {number} [options.elapsedMs] How long the caller has been polling.
  * @param {string} [options.label] The approval label.
  * @param {string} [options.compareJob] The gate job's name.
@@ -59,18 +62,43 @@ export function decide({
   jobs = [],
   labels = [],
   prHeadSha = '',
+  prState = 'open',
+  labeledHeadSha = '',
   elapsedMs = 0,
   label = APPROVAL_LABEL,
   compareJob = COMPARE_JOB,
   noRunGraceMs = NO_RUN_GRACE_MS,
 }) {
-  // `visual-cleanup.yml` strips the label on every push, so this is how a push
-  // during the wait cancels the re-run rather than approving screenshots that
-  // no longer exist.
+  // `visual-cleanup.yml` strips the label on every push, so this is the first of
+  // the two ways a push during the wait cancels the re-run.
   if (!labels.includes(label)) {
     return {
       action: 'skip',
       reason: `The \`${label}\` label is no longer on the pull request, so there is nothing to approve.`,
+    };
+  }
+
+  // A re-run of a closed pull request's build republishes `pr-<n>/<sha>/` to R2,
+  // and `pr-cleanup.yml` fires on `closed` — which has already happened — so
+  // nothing would ever purge it again.
+  if (prState !== 'open') {
+    return {
+      action: 'skip',
+      reason: `The pull request is ${prState}, so re-running its build would only orphan screenshots in R2.`,
+    };
+  }
+
+  // The second, and the one that does not depend on another workflow winning a
+  // race: compare against the commit the label was applied to, NOT against the
+  // run's own `head_sha`. The caller looks the run up BY the live head, so
+  // `run.head_sha === prHeadSha` always holds and a check against it is dead
+  // code — it would let the waiter quietly follow a new commit and approve a
+  // build nobody reviewed, exactly what the label is supposed to prevent.
+  if (labeledHeadSha && prHeadSha !== labeledHeadSha) {
+    return {
+      action: 'skip',
+      reason: `The head commit moved from ${labeledHeadSha} to ${prHeadSha} after the label was applied, `
+        + 'so the approval no longer covers what would be re-run.',
     };
   }
 
@@ -85,18 +113,6 @@ export function decide({
         action: 'wait',
         reason: `No Tests run for ${prHeadSha || 'this commit'} yet.`,
       };
-  }
-
-  // Belt and braces with the label check above: the label is stripped by a
-  // separate workflow that can lag, and re-running a superseded attempt would
-  // put an old commit's build back into `test.yml`'s per-ref concurrency group,
-  // where it can cancel the run for the commit people are actually reviewing.
-  if (run.head_sha !== prHeadSha) {
-    return {
-      action: 'skip',
-      reason: `A newer commit (${prHeadSha}) was pushed, so run ${run.id} is superseded. `
-        + 'Its own build reads the label when it reaches the gate.',
-    };
   }
 
   if (run.status !== 'completed') {
