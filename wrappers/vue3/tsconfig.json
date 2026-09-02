@@ -8,8 +8,9 @@
     "sourceMap": true,
     "baseUrl": ".",
     "experimentalDecorators": true,
+    "skipLibCheck": true,
     "declaration": true,
-    "declarationDir": "./",
+    "declarationDir": "./types",
     "types": [
       "jest"
     ]

@@ -29,8 +29,14 @@
 
 ## Build & Test
 
-- Build: Rollup 4
+- Build: Rollup 4. The last build step is `prepare:types` (`scripts/prepare-types.mjs`), which emits the
+  published `.d.ts` with **`vue-tsc`** — not plain `tsc`. Plain `tsc` resolves the SFC imports through the
+  `declare module '*.vue'` shim in `src/vue.d.ts` and emits an `index.d.ts` in which `HotTable` is `any`:
+  declarations that silence TS7016 while checking nothing (DEV-2732).
 - Test: `npm run test --prefix wrappers/vue3` (Jest + @vue/test-utils)
+- Type surface: `npm run test:types --prefix wrappers/vue3` (`test/types/*.types.ts`). It checks the
+  **emitted** root declarations, so build first. Run it after any change to `src/index.ts`, `src/types.ts`,
+  or the declaration pipeline.
 - **Test paradigm:** the presence gate covers `wrappers/**` — a wrapper source change must ship a matching test. The Jest suite here is **jsdom** (props, deep-watch reactivity, lifecycle). Anything user-visible / real-browser goes to **Playwright E2E** in `tests/e2e/` — see the `handsontable-playwright-e2e` skill (Vue reactivity / deep-watch gotchas in its `references/wrappers.md`). Local gates + exact rules: `.ai/LOCAL-ENFORCEMENT.md`.
 
 ## Common Pitfalls
