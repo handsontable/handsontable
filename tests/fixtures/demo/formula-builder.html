@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable FormulaBuilder e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Active theme from the ?theme= query param set by the Playwright project.
+    // Mapped through a fixed allowlist to a LITERAL (default main), so a crafted
+    // ?theme= can never be reflected into the document — no XSS. Exposed as
+    // window.htTheme so the grid init below reuses the sanitized value.
+    window.htTheme = ({ horizon: 'horizon', classic: 'classic' })[new URLSearchParams(location.search).get('theme')] || 'main';
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    /* The FormulaBuilder adapter clips its highlight overlay via overflow:hidden
+       on the grid root, which makes Handsontable treat the container as
+       size-defined - so the fixture gives it an explicit height, as real
+       integrations do. */
+    #grid { height: 320px; }
+  </style>
+</head>
+<body>
+  <!--
+    FormulaBuilder plugin e2e fixture. Cells are stamped with data-testid via a
+    renderer (data-testid="cell-<row>-<col>"). The @hfe/core module is loaded as
+    a native ES module straight from node_modules (locally that resolves through
+    the pnpm link; in CI it requires the package to be installed) and injected
+    into the plugin via the `builder` setting.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script src="/handsontable/dist/handsontable.full.min.js"></script>
+  <script src="/handsontable/dist/hyperformula/hyperformula.full.min.js"></script>
+  <script type="module">
+    import * as FormulaBuilderModule from '/handsontable/node_modules/@hfe/core/dist/index.js';
+
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    window.hot = new Handsontable(container, {
+      data: [
+        [1, 2, '=A1+B1'],
+        [3, 4, '=A2+B2'],
+        [5, 6, '=SUM(C1:C2)'],
+        ['', '', ''],
+        ['', '', ''],
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      renderer: testIdRenderer,
+      editor: 'formula',
+      formulas: {
+        engine: HyperFormula,
+      },
+      formulaBuilder: {
+        builder: FormulaBuilderModule,
+        showFormulaBar: true,
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

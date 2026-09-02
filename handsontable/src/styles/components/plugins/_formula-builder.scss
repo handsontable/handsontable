@@ -1,0 +1,144 @@
+// Formula Builder
+
+@mixin output {
+  .handsontable,
+  [class*="ht-theme-"] {
+    /* Core tokens */
+    --hfe-font-family:
+      var(--ht-font-family), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --hfe-font-size: var(--ht-font-size);
+    --hfe-line-height: var(--ht-line-height);
+    --hfe-formula-bar-input-focus-ring: var(--ht-accent-color, var(--hfe-color-focus-ring));
+    --hfe-gap: var(--ht-gap-size);
+    --hfe-color-background: var(--ht-cell-editor-background-color);
+    --hfe-color-foreground: var(--ht-cell-editor-foreground-color);
+    --hfe-color-foreground-secondary: var(--ht-foreground-secondary-color);
+    --hfe-color-accent: var(--ht-accent-color);
+    --hfe-color-border: var(--ht-border-color);
+    --hfe-color-error: var(--ht-notification-error-accent);
+    --hfe-color-highlight: color-mix(
+      in srgb,
+      var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity),
+      transparent
+    );
+
+    /* Shadow */
+    --hfe-shadow-x: var(--ht-shadow-x);
+    --hfe-shadow-y: var(--ht-shadow-y);
+    --hfe-shadow-blur: var(--ht-shadow-blur);
+    --hfe-shadow-opacity: var(--ht-shadow-opacity);
+    --hfe-color-shadow: color-mix(
+      in srgb,
+      var(--ht-shadow-color) var(--ht-shadow-opacity),
+      transparent
+    );
+
+    /* Editor box */
+    --hfe-padding-vertical: var(--ht-cell-vertical-padding);
+    --hfe-padding-horizontal: var(--ht-cell-horizontal-padding);
+    --hfe-border-width: var(--ht-cell-editor-border-width);
+    --hfe-border-width-focus: var(--ht-cell-editor-border-width);
+    --hfe-color-caret: var(--ht-cell-editor-foreground-color);
+    --hfe-editor-color-border: var(--ht-cell-editor-border-color);
+    --hfe-color-focus-ring: var(--ht-cell-editor-border-color);
+
+    /* Dropdown */
+    --hfe-menu-item-padding-horizontal: var(--ht-menu-item-horizontal-padding);
+    --hfe-menu-item-padding-vertical: var(--ht-menu-item-vertical-padding);
+    --hfe-menu-item-border-radius: 0;
+    --hfe-menu-padding-horizontal: var(--ht-menu-horizontal-padding);
+    --hfe-menu-padding-vertical: var(--ht-menu-vertical-padding);
+    --hfe-menu-border-radius: var(--ht-menu-border-radius);
+    --hfe-menu-border-width: var(--ht-menu-border-width);
+    --hfe-menu-border-color: var(--ht-menu-border-color);
+    --hfe-menu-background: var(--ht-background-color);
+    --hfe-menu-kbd-row-border-color: var(--ht-background-color);
+    --hfe-menu-chip-background: var(--ht-accent-color);
+    --hfe-menu-chip-foreground: var(--ht-background-color);
+    --hfe-menu-chip-border-radius: var(--ht-chip-border-radius);
+    --hfe-menu-shadow: var(--ht-menu-shadow-x) var(--ht-menu-shadow-y) var(--ht-menu-shadow-blur)
+      color-mix(in srgb, var(--ht-menu-shadow-color) var(--ht-menu-shadow-opacity), transparent);
+
+    /* Token */
+    --hfe-token-fn-unknown: var(--ht-notification-error-accent);
+    --hfe-token-num: var(--ht-foreground-color);
+    --hfe-token-str: var(--ht-foreground-color);
+    --hfe-token-bool: var(--ht-foreground-color);
+    --hfe-token-op: var(--ht-foreground-color);
+    --hfe-token-paren: var(--ht-foreground-color);
+    --hfe-token-paren-err: var(--ht-notification-error-accent);
+    --hfe-token-paren-match: var(--ht-accent-color);
+    --hfe-token-bracket: var(--ht-foreground-color);
+    --hfe-token-sep: var(--ht-foreground-color);
+    --hfe-token-ident: var(--ht-foreground-color);
+    --hfe-token-err: var(--ht-notification-error-accent);
+    --hfe-token-ref-invalid: var(--ht-notification-error-accent);
+    --hfe-token-comment: var(--ht-read-only-color);
+
+    /* Error popup */
+    --hfe-error-padding-horizontal: var(--ht-comments-textarea-horizontal-padding);
+    --hfe-error-padding-vertical: var(--ht-comments-textarea-vertical-padding);
+
+    /* Formula bar */
+    --hfe-formula-bar-background: var(--ht-background-color);
+    --hfe-formula-bar-foreground: var(--ht-foreground-color);
+    --hfe-formula-bar-border: var(--ht-border-color);
+    --hfe-formula-bar-border-width: 1px;
+    --hfe-formula-bar-border-radius: var(--ht-border-radius);
+    --hfe-formula-bar-padding-vertical: var(--ht-cell-vertical-padding);
+    --hfe-formula-bar-padding-horizontal: var(--ht-cell-horizontal-padding);
+  }
+
+  .handsontable .hfe-editor {
+    /* Handsontable's global reset forces content-box on every div inside .hot - restore. */
+    box-sizing: border-box !important;
+    outline: none;
+  }
+
+  .handsontable .hfe-editor--focused {
+    outline: none;
+  }
+
+  .handsontable .ht-formula-builder__inline-editor .hfe-editor {
+    box-shadow: none;
+
+    /* The host positions every cell editor 1px above/left of the TD to cover the
+       grid line, so the overlay text would land 1px off the cell text. Pad one
+       extra px on both axes to compensate - the same trick the core text editor
+       uses (5px 9px against the cell's 4px 8px). Scoped to the inline editor;
+       the formula bar has no such offset. */
+    --hfe-padding-vertical: calc(var(--ht-cell-vertical-padding) + 1px);
+    --hfe-padding-horizontal: calc(var(--ht-cell-horizontal-padding) + 1px);
+  }
+
+  .handsontable .ht-formula-builder__inline-editor .hfe-editor::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: var(--hfe-border-width) solid var(--hfe-editor-color-border);
+    pointer-events: none;
+  }
+
+  .handsontable .hfe-editor__input,
+  .handsontable .hfe-overlay {
+    /* Handsontable's reset forces content-box here too - restore. */
+    box-sizing: border-box;
+    font-weight: var(--ht-font-weight, 400);
+  }
+
+  .handsontable .hfe-fn-help__learn-more,
+  .handsontable .hfe-fn-help__learn-more:hover {
+    color: var(--hfe-color-foreground);
+  }
+
+  .handsontable td.ht-formula-builder__editing-cell {
+    color: transparent;
+  }
+
+  /* Scoped to the grid root and theme roots so a host-page element whose class
+     merely contains "hfe-" is never affected. */
+  .handsontable [class*="hfe-"],
+  [class*="ht-theme-"] [class*="hfe-"] {
+    color-scheme: inherit;
+  }
+}

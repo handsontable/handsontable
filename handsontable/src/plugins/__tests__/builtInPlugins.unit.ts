@@ -33,6 +33,7 @@ describe('built-in plugins', () => {
       'ExportFile',
       'Filters',
       'Formulas',
+      'FormulaBuilder',
       'NestedHeaders',
       'CollapsibleColumns',
       'NestedRows',

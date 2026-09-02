@@ -43,6 +43,7 @@ import {
   EmptyDataState,
   ExportFile,
   Filters,
+  FormulaBuilder,
   Formulas,
   HiddenColumns,
   HiddenRows,
@@ -141,6 +142,7 @@ const _dropdownMenu: Handsontable.plugins.DropdownMenu = new DropdownMenu(hot);
 const _emptyDataState: Handsontable.plugins.EmptyDataState = new EmptyDataState(hot);
 const _exportFile: Handsontable.plugins.ExportFile = new ExportFile(hot);
 const _filters: Handsontable.plugins.Filters = new Filters(hot);
+const _formulaBuilder: Handsontable.plugins.FormulaBuilder = new FormulaBuilder(hot);
 const _formulas: Handsontable.plugins.Formulas = new Formulas(hot);
 const _hiddenColumns: Handsontable.plugins.HiddenColumns = new HiddenColumns(hot);
 const _hiddenRows: Handsontable.plugins.HiddenRows = new HiddenRows(hot);

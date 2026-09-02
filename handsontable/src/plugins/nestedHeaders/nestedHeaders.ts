@@ -357,6 +357,13 @@ export class NestedHeaders extends BasePlugin {
    */
   #expectedNextKeyboardHighlightCoords: { row: number; col: number } | null = null;
   /**
+   * Whether an earlier `beforeOnCellMouseDown` listener already suppressed column
+   * selection for the current mousedown - when set, the span selection normally
+   * applied in `afterOnCellMouseDown` is skipped (mirrors how the mouse-over path
+   * respects `controller.column`).
+   */
+  #externallySuppressedColumnSelection = false;
+  /**
    * Determines if the widths map should be updated.
    */
   #updateWidthsMap = false;
@@ -1024,6 +1031,7 @@ export class NestedHeaders extends BasePlugin {
   ) => {
     this.#rowspanHeaderNavigationContextRow = null;
     this.#expectedNextKeyboardHighlightCoords = null;
+    this.#externallySuppressedColumnSelection = controller.column === true;
 
     const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
 
@@ -1036,6 +1044,12 @@ export class NestedHeaders extends BasePlugin {
    * Initiates a column selection when a nested header cell is clicked, selecting all columns covered by the header span.
    */
   #onAfterOnCellMouseDown = (event: MouseEvent, coords: CellCoords) => {
+    if (this.#externallySuppressedColumnSelection) {
+      this.#externallySuppressedColumnSelection = false;
+
+      return;
+    }
+
     if (coords.row === null || coords.col === null) {
       return;
     }

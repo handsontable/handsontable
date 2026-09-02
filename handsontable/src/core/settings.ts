@@ -256,6 +256,7 @@ export interface GridSettings {
   dropdownMenu?: boolean | object | string[];
   emptyDataState?: boolean | object;
   filters?: boolean | object;
+  formulaBuilder?: boolean | { builder: unknown; showFormulaBar?: boolean; [key: string]: unknown };
   formulas?: boolean | { engine: unknown; sheetName?: string; hyperlinks?: boolean; [key: string]: unknown };
   hiddenColumns?: boolean | object;
   hiddenRows?: boolean | object;
