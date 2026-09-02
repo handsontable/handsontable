@@ -40,7 +40,7 @@ on:
 permissions:
   contents: read
   issues: write
-  pull-requests: read
+  pull-requests: write
   # `arm` re-runs the Tests workflow.
   actions: write
 
