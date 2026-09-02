@@ -6,6 +6,8 @@ import {
   findCatchSwallows,
   findGamingSignals,
   findDeterminismSmells,
+  findViewportSmells,
+  findUnassertedCaptures,
   extractChangedSymbols,
   assessRelevance,
   getMutationStatus,
@@ -262,4 +264,191 @@ test('runMutation surfaces a failed stryker run as a reason, not a throw', () =>
 
   assert.equal(result.available, true);
   assert.match(result.reason, /stryker run failed: stryker exploded/);
+});
+
+// --- theme-sensitive-viewport: a rendered-row count without a pinned viewport ---
+test('viewport smell: a rendered-count assertion in a describe with no width/height and no scroll is flagged', () => {
+  const src = `
+    describe('virtual rendering', () => {
+      beforeEach(async() => {
+        handsontable({ data: createSpreadsheetData(100, 10) });
+      });
+
+      it('renders only the visible rows', async() => {
+        expect(countVisibleRows()).toBe(10);
+        expect(getRenderedRowsCount()).toBe(12);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(src), 2);
+
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.ok(score.determinismSmells.some(s => s.type === 'theme-sensitive-viewport' && s.count === 2));
+  assert.equal(score.verdict, 'suspect');
+  assert.ok(score.problems.some(p => p.type === 'determinism-smells' && /theme-sensitive-viewport/.test(p.detail)));
+});
+
+test('viewport smell: an explicit width/height or a scrollViewportTo in the describe pins the viewport', () => {
+  const pinned = `
+    describe('virtual rendering', () => {
+      beforeEach(async() => {
+        handsontable({ data: createSpreadsheetData(100, 10), width: 400, height: 200 });
+      });
+      it('renders only the visible rows', async() => {
+        expect(countVisibleRows()).toBe(10);
+      });
+    });
+  `;
+  const scrolled = `
+    describe('virtual rendering', () => {
+      it('renders the rows around the scroll target', async() => {
+        handsontable({ data: createSpreadsheetData(100, 10) });
+        await scrollViewportTo({ row: 50, verticalSnap: 'top' });
+        expect(getRenderedRowsCount()).toBeGreaterThan(0);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(pinned), 0);
+  assert.equal(findViewportSmells(scrolled), 0);
+});
+
+test('viewport smell: a viewport pinned in an OUTER describe covers the nested describe', () => {
+  const src = `
+    describe('pagination', () => {
+      beforeEach(async() => {
+        handsontable({ data: createSpreadsheetData(100, 10), height: 300 });
+      });
+      describe('page size', () => {
+        it('shows one page of rows', async() => {
+          expect(countVisibleRows()).toBe(10);
+        });
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(src), 0);
+});
+
+test('viewport smell: colWidths/rowHeights are not a viewport, and Playwright :visible counts are covered', () => {
+  const sized = `
+    describe('rows', () => {
+      beforeEach(async() => {
+        handsontable({ data: createSpreadsheetData(100, 10), rowHeights: 23, colWidths: 50 });
+      });
+      it('counts', async() => { expect(countRenderedRows()).toBe(10); });
+    });
+  `;
+  const playwright = `
+    test.describe('virtual rows', () => {
+      test('renders a window of rows', async({ page }) => {
+        const grid = new GridPage(page);
+        await grid.goto();
+        await expect(page.locator('.ht_master tbody tr:visible')).toHaveCount(12);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(sized), 1, 'rowHeights/colWidths do not pin the viewport');
+  assert.equal(findViewportSmells(playwright), 1);
+  const dataCount = 'it("plain", () => { expect(countRows()).toBe(3); });';
+
+  assert.equal(findViewportSmells(dataCount), 0, 'a data count is not a rendered count');
+});
+
+test('viewport smell: comments neither pin the viewport nor count as a rendered-count read', () => {
+  // The words `height:` and `:visible` appear only in prose here — the grid setup itself pins nothing.
+  const proseOnly = `
+    describe('rows', () => {
+      beforeEach(async() => {
+        // No width/height: the grid takes the page layout's size.
+        handsontable({ data: createSpreadsheetData(100, 10) });
+      });
+      /* a :visible count follows */
+      it('counts', async() => { expect(countVisibleRows()).toBe(27); });
+    });
+  `;
+
+  assert.equal(findViewportSmells(proseOnly), 1, 'the comment must not read as a pinned viewport');
+  assert.equal(findViewportSmells('// tr:visible is what we count\nit("x", () => { expect(a).toBe(1); });'), 0);
+});
+
+// --- unasserted-capture: an awaited value that never reaches an assertion ---
+test('unasserted capture: a `const x = await …` never used in an assertion is flagged, by name', () => {
+  const src = `
+    test('reads the row count', async({ page }) => {
+      const grid = new GridPage(page);
+      await grid.goto();
+      const rows = await grid.rowCount();
+      const first = await grid.cell(0, 0).textContent();
+      await expect(grid.cell(0, 0)).toBeVisible();
+    });
+  `;
+  const captures = findUnassertedCaptures(src);
+
+  assert.equal(captures.length, 2);
+  assert.deepEqual(captures.map(c => c.name).sort(), ['first', 'rows']);
+  assert.equal(captures[0].test, 'reads the row count');
+
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.ok(score.structureSmells.some(s => s.type === 'unasserted-capture' && s.count === 2));
+  assert.equal(score.verdict, 'suspect');
+  assert.ok(score.problems.some(p => p.type === 'structure-smells' && /rows/.test(p.detail)));
+});
+
+test('unasserted capture: a capture used inside expect(...), its matcher chain, or an assertion helper is fine', () => {
+  const src = `
+    it('asserts every capture', async() => {
+      const rows = await grid.rowCount();
+      const expected = await readExpected();
+      const editor = await grid.openEditor(1, 1);
+      const cell = await grid.cellLocator(0, 0);
+      expect(rows).toBe(expected);
+      await editor.expectVisible();
+      await expect(cell).toHaveText('A1');
+    });
+  `;
+
+  assert.deepEqual(findUnassertedCaptures(src), []);
+  assert.deepEqual(scoreTestSource(src, { mutation: MUTATION_STUB }).structureSmells, []);
+});
+
+test('unasserted capture: only awaited captures count, the scope is the test body, and comments do not assert', () => {
+  const src = `
+    const shared = await setup();
+    it('one', async() => {
+      const grid = new GridPage(page);
+      let count = await grid.rowCount();
+      expect(count).toBe(5);
+    });
+    it('two', async() => {
+      const other = await grid.rowCount();
+      // expect(other).toBe(5);
+      expect(1).toBe(1);
+    });
+  `;
+  const captures = findUnassertedCaptures(src);
+
+  assert.deepEqual(captures.map(c => [c.test, c.name]), [['two', 'other']]);
+});
+
+test('the new smells leave a clean, meaningful test clean', () => {
+  const src = `
+    test.describe('virtual rendering', () => {
+      test('renders a window of rows', async({ page }) => {
+        const grid = new GridPage(page);
+        await grid.goto({ width: 400, height: 300 });
+        const rows = await grid.renderedRowCount();
+        expect(rows).toBe(12);
+      });
+    });
+  `;
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.deepEqual(score.determinismSmells, []);
+  assert.deepEqual(score.structureSmells, []);
+  assert.equal(score.verdict, 'meaningful');
 });

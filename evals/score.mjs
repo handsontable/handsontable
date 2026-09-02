@@ -248,8 +248,247 @@ export function findGamingSignals(src) {
 }
 
 /**
+ * Matches the opening of a describe block: `describe(`, `fdescribe(`,
+ * `xdescribe(`, and the dot forms (`test.describe(`, `describe.only(`,
+ * `test.describe.serial(`). `describe.each([…])(` is excluded — its first paren
+ * holds the table, not the suite body.
+ */
+const DESCRIBE_CALL_RE = /(?<![\w$.])(?:[xf]describe|(?:test\.)?describe(?:\.(?!each\b)\w+)*)\s*\(/g;
+
+/**
+ * A rendered-count read: the legacy-suite helpers (`countVisibleRows()`,
+ * `countRenderedCols()`, `getRenderedRowsCount()`) and a `:visible` selector
+ * (the Playwright-tier way to count what is on screen).
+ */
+const RENDERED_COUNT_RE = /(?<![\w$])(?:countVisible\w*|countRendered\w*|getRendered\w*Count)\s*\(|:visible\b/g;
+
+/**
+ * What pins a viewport so a rendered count is deterministic across themes:
+ * an explicit `width:`/`height:` in the grid setup, or a `scrollViewportTo`.
+ * `rowHeights:`/`colWidths:` do not match (case-sensitive, word-bounded).
+ */
+const VIEWPORT_PIN_RE = /\b(?:width|height)\s*:|\bscrollViewportTo\b/;
+
+/**
+ * An awaited value captured into a plain identifier: `const x = await …`.
+ * Destructuring captures are out of scope.
+ */
+const AWAITED_CAPTURE_RE = /(?<![\w$.])(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*await\b/g;
+
+/**
+ * The start of an assertion call, including namespaced forms (`expect.poll(`,
+ * `assert.equal(`). Shares its name family with `countAssertions`.
+ */
+const ASSERTION_CALL_RE = /(?<![\w$])(?:expect|assert|verify)\w*(?:\.\w+)*\s*\(/g;
+
+/**
+ * Replace every comment with spaces of the same length, so a prose mention
+ * ("no width/height: …", a commented-out `expect(rows)`) cannot satisfy or
+ * trigger a detector, while every index stays valid. String literals are
+ * skipped so a `//` inside one (a URL) is not read as a comment.
+ *
+ * @param {string} src The spec file contents.
+ * @returns {string} The source with comment bodies blanked.
+ */
+function blankComments(src) {
+  let out = '';
+  let i = 0;
+
+  while (i < src.length) {
+    const ch = src[i];
+    const next = src[i + 1];
+
+    if (ch === '\'' || ch === '"' || ch === '`') {
+      const end = skipString(src, i);
+
+      out += src.slice(i, end);
+      i = end;
+      continue;
+    }
+
+    if (ch === '/' && next === '/') {
+      const eol = src.indexOf('\n', i);
+      const stop = eol === -1 ? src.length : eol;
+
+      out += ' '.repeat(stop - i);
+      i = stop;
+      continue;
+    }
+
+    if (ch === '/' && next === '*') {
+      const close = src.indexOf('*/', i + 2);
+      const stop = close === -1 ? src.length : close + 2;
+
+      out += src.slice(i, stop).replace(/[^\n]/g, ' ');
+      i = stop;
+      continue;
+    }
+
+    out += ch;
+    i += 1;
+  }
+
+  return out;
+}
+
+/**
+ * Locate every describe block as an index range plus its body text.
+ *
+ * @param {string} src The spec file contents.
+ * @returns {{start: number, end: number, body: string}[]} One entry per describe.
+ */
+function describeScopes(src) {
+  const scopes = [];
+
+  for (const match of src.matchAll(DESCRIBE_CALL_RE)) {
+    const open = match.index + match[0].length - 1;
+    const close = scanBalanced(src, open);
+    const end = close === -1 ? src.length : close;
+
+    scopes.push({ start: open, end, body: src.slice(open + 1, end) });
+  }
+
+  return scopes;
+}
+
+/**
+ * Locate every test block as its title and body text.
+ *
+ * @param {string} src The spec file contents.
+ * @returns {{title: string, body: string}[]} One entry per it()/test() block.
+ */
+function testBodies(src) {
+  const bodies = [];
+
+  for (const match of src.matchAll(TEST_CALL_RE)) {
+    const openParen = match.index + match[0].length - 1;
+    const closeParen = scanBalanced(src, openParen);
+    const body = closeParen === -1 ? src.slice(openParen + 1) : src.slice(openParen + 1, closeParen);
+    const titleMatch = body.match(/^\s*(['"`])((?:\\.|(?!\1).)*)\1/);
+
+    bodies.push({ title: titleMatch ? titleMatch[2] : '(untitled)', body });
+  }
+
+  return bodies;
+}
+
+/**
+ * Count rendered-count reads whose viewport is not pinned: no enclosing
+ * describe (or, for a top-level test, the whole file) sets an explicit
+ * `width`/`height` or scrolls with `scrollViewportTo`. Row heights differ per
+ * theme (main/horizon/classic), so an unpinned "how many rows rendered" count
+ * is a different number on each leg of the theme matrix.
+ *
+ * @param {string} src The spec file contents.
+ * @returns {number} The number of unpinned rendered-count reads.
+ */
+export function findViewportSmells(src) {
+  const code = blankComments(src);
+  const scopes = describeScopes(code);
+  let count = 0;
+
+  for (const match of code.matchAll(RENDERED_COUNT_RE)) {
+    const enclosing = scopes.filter(scope => scope.start <= match.index && match.index <= scope.end);
+    const texts = enclosing.length > 0 ? enclosing.map(scope => scope.body) : [code];
+
+    if (!texts.some(text => VIEWPORT_PIN_RE.test(text))) {
+      count += 1;
+    }
+  }
+
+  return count;
+}
+
+/**
+ * Index ranges covered by assertion calls in a test body: the argument list of
+ * `expect(…)`/`assert…(…)`/`verify…(…)` plus the matcher chain that follows
+ * (`.not.toBe(…)`, `.resolves.toEqual(…)`), so a value used only as the
+ * expected side still counts as asserted.
+ *
+ * @param {string} body The test body.
+ * @returns {[number, number][]} Inclusive `[start, end]` index pairs.
+ */
+function assertionSpans(body) {
+  const spans = [];
+
+  for (const match of body.matchAll(ASSERTION_CALL_RE)) {
+    const start = match.index;
+    let close = scanBalanced(body, start + match[0].length - 1);
+
+    if (close === -1) {
+      spans.push([start, body.length]);
+      continue;
+    }
+
+    // Follow the matcher chain: `.name` segments, then a call.
+    for (;;) {
+      const chain = /^\s*(?:\??\.\s*[A-Za-z_$][\w$]*\s*)+\(/.exec(body.slice(close + 1));
+
+      if (!chain) {
+        break;
+      }
+
+      const next = scanBalanced(body, close + chain[0].length);
+
+      if (next === -1) {
+        close = body.length;
+        break;
+      }
+      close = next;
+    }
+    spans.push([start, close]);
+  }
+
+  return spans;
+}
+
+/**
+ * Find awaited captures (`const x = await …`) inside test bodies whose
+ * identifier never reaches an assertion: not inside an assertion call or its
+ * matcher chain, and not the receiver of an assertion helper (`x.expectFoo(`).
+ * A value fetched and then dropped is the shape of a test that runs code
+ * without checking it.
+ *
+ * @param {string} src The spec file contents.
+ * @returns {{test: string, name: string}[]} One entry per unasserted capture.
+ */
+export function findUnassertedCaptures(src) {
+  const captures = [];
+
+  for (const { title, body } of testBodies(blankComments(src))) {
+    const spans = assertionSpans(body);
+
+    for (const capture of body.matchAll(AWAITED_CAPTURE_RE)) {
+      const name = capture[1];
+      const from = capture.index + capture[0].length;
+      const useRe = new RegExp(`(?<![\\w$.])${name.replace(/\$/g, '\\$')}(?![\\w$])`, 'g');
+      const receiverRe = /^\s*\??\.\s*(?:expect|assert|verify)\w*\s*\(/;
+      let asserted = false;
+
+      for (const use of body.slice(from).matchAll(useRe)) {
+        const index = use.index + from;
+
+        if (spans.some(([start, end]) => index >= start && index <= end)
+          || receiverRe.test(body.slice(index + name.length))) {
+          asserted = true;
+          break;
+        }
+      }
+
+      if (!asserted) {
+        captures.push({ test: title, name });
+      }
+    }
+  }
+
+  return captures;
+}
+
+/**
  * Detect determinism smells — fixed sleeps and load-state waits that make a
- * test timing-dependent instead of condition-based (web-first waits).
+ * test timing-dependent instead of condition-based (web-first waits), plus a
+ * rendered-row count with no pinned viewport, which reads differently on each
+ * theme of the matrix.
  *
  * @param {string} src The spec file contents.
  * @returns {{type: string, count: number}[]} One entry per smell type found.
@@ -270,7 +509,34 @@ export function findDeterminismSmells(src) {
     }
   }
 
+  const viewport = findViewportSmells(src);
+
+  if (viewport > 0) {
+    smells.push({ type: 'theme-sensitive-viewport', count: viewport });
+  }
+
   return smells;
+}
+
+/**
+ * Detect structure smells — shapes that let a test run code without checking
+ * it. Today: awaited captures that never reach an assertion.
+ *
+ * @param {string} src The spec file contents.
+ * @returns {{type: string, count: number, detail: string}[]} One entry per smell type found.
+ */
+export function findStructureSmells(src) {
+  const captures = findUnassertedCaptures(src);
+
+  if (captures.length === 0) {
+    return [];
+  }
+
+  return [{
+    type: 'unasserted-capture',
+    count: captures.length,
+    detail: captures.map(capture => `\`${capture.name}\` in "${capture.test}"`).join(', '),
+  }];
 }
 
 /**
@@ -439,6 +705,7 @@ export function scoreTestSource(src, options = {}) {
   const hollowTests = blocks.filter(block => block.assertions === 0).map(block => block.title);
   const gamingSignals = findGamingSignals(src);
   const determinismSmells = findDeterminismSmells(src);
+  const structureSmells = findStructureSmells(src);
   const relevance = options.diff ? assessRelevance(src, options.diff) : null;
   const problems = [];
   const warnings = [];
@@ -468,6 +735,13 @@ export function scoreTestSource(src, options = {}) {
     });
   }
 
+  if (structureSmells.length > 0) {
+    problems.push({
+      type: 'structure-smells',
+      detail: structureSmells.map(smell => `${smell.type}(${smell.count}): ${smell.detail}`).join('; '),
+    });
+  }
+
   if (relevance && !relevance.covered) {
     warnings.push({
       type: 'diff-not-referenced',
@@ -481,6 +755,7 @@ export function scoreTestSource(src, options = {}) {
     hollowTests,
     gamingSignals,
     determinismSmells,
+    structureSmells,
     relevance,
     mutation: options.mutation ?? getMutationStatus(),
     problems,

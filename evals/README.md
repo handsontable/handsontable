@@ -57,23 +57,29 @@ tests at the same quality is better.
 
 ```
 evals/fixtures/<case>/
-  case.md        # the change brief an agent receives, plus rubric notes
-  change.diff    # optional — the source diff, feeds the relevance signal
-  reference/     # hand-written example(s) of a meaningful test for the case
+  case.md          # the change brief an agent receives, plus rubric notes
+  change.diff      # optional — the source diff, feeds the relevance signal
+  reference/       # hand-written example(s) of a meaningful test for the case
+  counterexample/  # optional — a test that carries the smell the case is about;
+                   # the harness FAILS if the scorer lets it through
 ```
 
-The three cases cover the representative change kinds from the eval design: a
-**bug fix** (`bug-fix-number-helper`, a numeric-helper edge case), a **feature**
-(`feature-percent-helper`, a small new helper API), and a **granular
-interaction** (`e2e-escape-cancels-edit`, keyboard-driven editor behavior on
-the Playwright tier).
+The first three cases cover the representative change kinds from the eval
+design: a **bug fix** (`bug-fix-number-helper`, a numeric-helper edge case), a
+**feature** (`feature-percent-helper`, a small new helper API), and a
+**granular interaction** (`e2e-escape-cancels-edit`, keyboard-driven editor
+behavior on the Playwright tier). Two more each pin one scorer smell with a
+reference/counterexample pair: `e2e-rendered-rows-viewport`
+(`theme-sensitive-viewport`) and `e2e-unasserted-capture`
+(`unasserted-capture`).
 
 Reference tests are written exactly as they would land in their real tier
 (`handsontable/src/helpers/__tests__/`, `tests/e2e/`), so their imports resolve
 there — the harness scores them statically, it does not execute them. To add a
 case, create the folder with `case.md` and at least one reference test;
 `run-eval.mjs` picks it up automatically and fails if the reference does not
-score clean.
+score clean — or if a `counterexample/` file scores clean, which means the
+smell it demonstrates is documented but not detected.
 
 ## What the scorer measures
 
@@ -86,10 +92,11 @@ source of truth with the CI weakening detector.
 | `tests`, `assertions` | Block and assertion counts — the count matters (fewer tests for the same quality is better). |
 | `hollowTests` | `it()`/`test()` blocks with no `expect`/`assert`/`verify` call — a test that only executes code. |
 | `gamingSignals` | `.only`/`.skip`/`xit`/`fit`, `it.flaky`, `fixme`/`todo`, and failure-swallowing `try/catch`. |
-| `determinismSmells` | `sleep(`, `waitForTimeout`, `networkidle` — timing-based instead of condition-based waits. |
+| `determinismSmells` | `sleep(`, `waitForTimeout`, `networkidle` — timing-based instead of condition-based waits — and `theme-sensitive-viewport`: a rendered-count read (`countVisible*()`, `countRendered*()`, `getRendered*Count()`, a `:visible` selector) inside a describe whose grid setup pins no `width`/`height` and never calls `scrollViewportTo`. Row height differs per theme, so that count is a different number on each leg of the theme matrix. |
+| `structureSmells` | `unasserted-capture`: a `const x = await …` in a test body whose `x` never reaches an assertion — not inside `expect(…)`/`assert…(…)`, its matcher chain, or as the receiver of an `x.expect…(` helper. A value fetched and dropped is code run without being checked. |
 | `relevance` | With `--diff`: does the test reference any changed symbol? Warning-only (E2E tests assert behavior, not symbols). |
 | `mutation` | The dependency-gated ceiling; stubbed until StrykerJS is approved. |
-| `verdict` | `meaningful` when there is at least one test block, no hollow test, no gaming signal, and no determinism smell; otherwise `suspect` with `problems`. |
+| `verdict` | `meaningful` when there is at least one test block, no hollow test, no gaming signal, no determinism smell, and no structure smell; otherwise `suspect` with `problems`. |
 
 The signals are heuristic and text-based, like the weakening detector they
 build on: strong signals to surface, not proof. A reviewer or the mutation

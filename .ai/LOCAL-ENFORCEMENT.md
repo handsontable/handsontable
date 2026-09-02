@@ -35,6 +35,24 @@ hook-spawned test run also passes `TEST_RUN_MAX_BUFFER` (64 MB) so the run reach
 its summary rather than dying on Node's 1 MB default. The trade-off is deliberate:
 a genuinely failing run whose output overflows stops blocking locally, and CI
 catches it.
+**The presence gate also prints advisory warnings — never a block.** Below its
+verdict the CLI (`.github/scripts/test-presence-gate.mjs`; detectors in
+`.github/scripts/lib/presence-warnings.mjs`) lists heuristic signals that leave
+the exit code untouched in either `GATE_MODE` (pre-push `block` included):
+**frozen-suite growth** (≥3 new `it`/`it.each`/`fit` blocks appended to *modified*
+Jasmine specs — the gate counts an edited `*.spec.js` as coverage, so this is the
+only place appended blocks surface; state the justification in the PR if the
+frozen tier is right), the **empty red-spec field** (the PR ticks "Bug fix" but
+leaves the template's "spec that fails without this fix" line blank — CI only: the
+`presence` job in `checks.yml` fetches the *live* body into `GATE_PR_BODY_FILE`
+the way the Manual QA job does; locally the check is skipped silently), **RTL
+correlation** (source added `isRtl`/`layoutDirection` logic and no test line
+mentions RTL), and **Walkontable routing** (engine source changed with nothing
+under `handsontable/src/3rdparty/walkontable/test/` or `tests/e2e/walkontable/`).
+In CI each one is also a `::warning` annotation. A new detector is a pure
+function in that lib plus a `node --test` case in
+`.github/scripts/__tests__/presence-warnings.test.mjs`; a gap in the input (no
+body, no diff) must be silence, never a finding.
 **Coverage is a CI floor, not a hook** (it needs a full instrumented run, too slow
 for a hook): the `[CHECK] Coverage floor` job measures the percent of *added*
 executable lines the unit tests cover (`.github/scripts/diff-coverage-gate.mjs`,
@@ -87,7 +105,7 @@ presence gate or the test requirement. Do not use it to dodge writing tests.
 
 ## 2. Creating or changing enforcement hooks (git + agent) — exact rules
 
-- **Location.** Git hooks → `lefthook.yml` + `scripts/` (`pre-push.mjs`, `lint-staged.mjs`, `lint-files.mjs`). Agent hooks → `scripts/claude/` (`post-tool-use.mjs`, `stop.mjs`, `session.mjs`), wired in `.claude/settings.json`. Shared, pure classifiers and layout helpers → `.github/scripts/lib/` (`presence-gate.mjs`, `test-weakening.mjs`, `repo-root.mjs`).
+- **Location.** Git hooks → `lefthook.yml` + `scripts/` (`pre-push.mjs`, `lint-staged.mjs`, `lint-files.mjs`). Agent hooks → `scripts/claude/` (`post-tool-use.mjs`, `stop.mjs`, `session.mjs`), wired in `.claude/settings.json`. Shared, pure classifiers and layout helpers → `.github/scripts/lib/` (`presence-gate.mjs`, `presence-warnings.mjs`, `test-weakening.mjs`, `repo-root.mjs`).
 - **Must work in a linked worktree.** Agent-driven work runs in `git worktree` checkouts, so never derive the repo layout from git or the cwd: take the root from `repoRoot()` (`.github/scripts/lib/repo-root.mjs`) and per-checkout state from `gitDir(root)`. A hook exports `GIT_DIR`, and with it set `git rev-parse --show-toplevel` returns the *cwd*, not the work tree; in a worktree `<root>/.git` is a **file**, so writing under it fails with ENOTDIR. Strip `GIT_DIR`/`GIT_WORK_TREE` from the environment of any child you spawn with an explicit `cwd`.
 - **Pure + tested.** Put the decision logic in a **pure function** in a lib and **unit-test it** (`scripts/__tests__/`, `.github/scripts/__tests__/`, run with `node --test`). **A hook change ships a test change** — this rule applies to the enforcement machinery too.
 - **Must not false-block.** Skip config/parse gaps (ESLint exit 2), record only **repo-relative, in-repo** paths (never scratchpad/out-of-repo), tolerate a missing base ref. A hook that fires on a false positive gets disabled — that is worse than no hook.
