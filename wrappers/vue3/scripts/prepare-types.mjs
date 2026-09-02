@@ -7,11 +7,13 @@
  * silence TS7016 while checking nothing. `vue-tsc` resolves the SFCs for real.
  *
  * Logic:
- *  1. Run `vue-tsc` to emit declarations into `types/`.
- *  2. Move the generated files to the wrapper root:
+ *  1. Clear the previous output — the `types/` staging directory and the flattened root
+ *     `.d.ts` — so a declaration for a since-renamed source file cannot survive.
+ *  2. Run `vue-tsc` to emit declarations into `types/`.
+ *  3. Move the generated files to the wrapper root:
  *     - If `types/src/` exists, move its contents up and remove `types/`.
  *     - If `types/` exists (no `src/` sub-dir), move its contents up and remove `types/`.
- *  3. Fail loudly if the compiler errored or emitted nothing. A silent skip here is how
+ *  4. Fail loudly if the compiler errored or emitted nothing. A silent skip here is how
  *     the package shipped four releases advertising `types` with no declarations at all.
  */
 
@@ -29,15 +31,26 @@ const typesSrcDir = join(typesDir, 'src');
 
 const exists = async(path) => access(path).then(() => true, () => false);
 
-// Step 1: always regenerate. A stale `types/` must never be flattened into the package,
-// so there is deliberately no "skip when the directory already exists" shortcut.
+// Step 1: always regenerate, from a clean slate. A stale `types/` must never be flattened
+// into the package, so there is deliberately no "skip when the directory already exists"
+// shortcut; and the flattened root `.d.ts` are cleared too, because the move below only
+// overwrites what vue-tsc re-emits. Without this, running `prepare:types` on its own after
+// renaming a source file leaves the old file's declaration at the package root. The `build`
+// script's `clean` step covers this case, but this script is also its own entry point.
 await rm(typesDir, { recursive: true, force: true });
+
+const staleDeclarations = (await readdir(root)).filter(entry => entry.endsWith('.d.ts'));
+
+await Promise.all(staleDeclarations.map(entry => rm(join(root, entry), { force: true })));
 
 console.log('Running vue-tsc to generate declaration files...');
 
 await execAsync(
   'pnpm exec vue-tsc -p tsconfig.json --emitDeclarationOnly --declaration --declarationDir ./types',
-  { cwd: root }
+  // vue-tsc's diagnostics are the whole point of a failure here, and Node's default 1 MB
+  // pipe would abort the child with ENOBUFS before they arrive — the same trap the test
+  // hooks avoid with TEST_RUN_MAX_BUFFER. See .ai/LOCAL-ENFORCEMENT.md.
+  { cwd: root, maxBuffer: 64 * 1024 * 1024 }
 );
 
 // Step 2: determine which directory to move and flatten into the wrapper root.

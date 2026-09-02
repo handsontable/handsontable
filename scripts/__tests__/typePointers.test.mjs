@@ -60,8 +60,33 @@ describe('collectTypePointers', () => {
     );
   });
 
-  it('ignores a non-string types value rather than reporting a bogus target', () => {
+  it('ignores a types value that names nothing rather than reporting a bogus target', () => {
     assert.deepEqual(collectTypePointers({ types: 42, exports: { '.': { types: null } } }), []);
+  });
+
+  it('collects every leaf of a `types` condition that is itself split by condition', () => {
+    // The shape publint recommends for the dual-package masquerade. Returning early on a
+    // non-string here would silently skip both pointers.
+    const pointers = collectTypePointers({
+      exports: {
+        '.': { types: { import: './index.d.mts', require: './index.d.cts' } },
+      },
+    });
+
+    assert.deepEqual(pointers, [
+      { field: 'pkg.exports["."].types.import', target: './index.d.mts' },
+      { field: 'pkg.exports["."].types.require', target: './index.d.cts' },
+    ]);
+  });
+
+  it('collects every leaf of a `types` condition given as a fallback array', () => {
+    assert.deepEqual(
+      collectTypePointers({ exports: { '.': { types: ['./a.d.ts', './b.d.ts'] } } }),
+      [
+        { field: 'pkg.exports["."].types[0]', target: './a.d.ts' },
+        { field: 'pkg.exports["."].types[1]', target: './b.d.ts' },
+      ]
+    );
   });
 
   it('returns nothing for a manifest that declares no types at all', () => {

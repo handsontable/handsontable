@@ -92,7 +92,21 @@ function verifyTypePointers(subdir, sourcePackageJson) {
     return;
   }
 
-  const publishManifest = JSON.parse(readFileSync(publishManifestPath, 'utf8'));
+  let publishManifest = null;
+
+  try {
+    publishManifest = JSON.parse(readFileSync(publishManifestPath, 'utf8'));
+
+  } catch (error) {
+    // Report through the same collector as every other failure, so a half-written manifest
+    // surfaces as a named problem rather than a raw stack trace.
+    brokenTypePointers.push(
+      `${sourcePackageJson.name} - could not read ${publishManifestPath}: ${error.message}`
+    );
+
+    return;
+  }
+
   const missing = findMissingTypePointers(
     publishManifest,
     target => existsSync(join(publishDir, target))

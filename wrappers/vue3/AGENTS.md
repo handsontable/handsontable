@@ -33,6 +33,10 @@
   published `.d.ts` with **`vue-tsc`** — not plain `tsc`. Plain `tsc` resolves the SFC imports through the
   `declare module '*.vue'` shim in `src/vue.d.ts` and emits an `index.d.ts` in which `HotTable` is `any`:
   declarations that silence TS7016 while checking nothing (DEV-2732).
+- `skipLibCheck` is on for the declaration build because this package pins `typescript@4.9.5` while `vue`
+  resolves to 3.5.x, whose own `.d.ts` use `NoInfer` (TS 5.4) and `ToggleEvent` (TS 5.5 `lib.dom`). It is a
+  stand-in for that version skew, not a fix — it suppresses diagnostics inside `.d.ts` only, so the `.ts`
+  and `.vue` sources stay fully checked. Drop it if the package moves to TypeScript 5.
 - Test: `npm run test --prefix wrappers/vue3` (Jest + @vue/test-utils)
 - Type surface: `npm run test:types --prefix wrappers/vue3` (`test/types/*.types.ts`). It checks the
   **emitted** root declarations, so build first. Run it after any change to `src/index.ts`, `src/types.ts`,

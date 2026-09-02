@@ -13,6 +13,38 @@
  */
 
 /**
+ * Collect every string leaf beneath a `types` condition.
+ *
+ * A `types` condition is usually a plain string, but it may itself hold a conditions object
+ * (`{ import: './x.d.mts', require: './x.d.cts' }` — the shape publint recommends for the
+ * dual-package masquerade) or an array of fallbacks. Every leaf is a target that has to
+ * resolve, so returning early on a non-string would silently skip a real pointer.
+ *
+ * @param {unknown} node The current node beneath a `types` key.
+ * @param {string} path Field path of the current node, for the error message.
+ * @returns {{ field: string, target: string }[]} Every target the condition names.
+ */
+function collectTypesTargets(node, path) {
+  if (typeof node === 'string') {
+    return [{ field: path, target: node }];
+  }
+
+  if (node === null || node === undefined) {
+    return [];
+  }
+
+  if (Array.isArray(node)) {
+    return node.flatMap((entry, index) => collectTypesTargets(entry, `${path}[${index}]`));
+  }
+
+  if (typeof node !== 'object') {
+    return [];
+  }
+
+  return Object.entries(node).flatMap(([key, value]) => collectTypesTargets(value, `${path}.${key}`));
+}
+
+/**
  * Walk an `exports` map and yield every `types` condition it declares, with the field path
  * that reached it.
  *
@@ -38,7 +70,7 @@ function collectExportsTypes(node, path) {
 
   return Object.entries(node).flatMap(([key, value]) => {
     if (key === 'types') {
-      return typeof value === 'string' ? [{ field: `${path}.types`, target: value }] : [];
+      return collectTypesTargets(value, `${path}.types`);
     }
 
     // Subpath keys are bracketed and condition keys are dotted, so the field path reads
