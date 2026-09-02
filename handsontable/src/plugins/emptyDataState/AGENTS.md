@@ -52,7 +52,7 @@ Two details:
 
 ## Selection on hide
 
-`show()` captures the current selection through `selection.exportSelection()`. `#hide()` restores it with
+`#show()` captures the current selection through `selection.exportSelection()`. `#hide()` restores it with
 `selection.importSelection()` and re-renders, so the selection the user had comes back when data arrives.
 
 Only when nothing was captured — no ranges — does it fall back to selecting `(0, 0)`, and there **scrolling
