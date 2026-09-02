@@ -24,7 +24,7 @@ Boost your grid's performance by setting a constant column size, suspending rend
 
 Handsontable performs multiple calculations to display the grid properly. The most demanding actions are performed on load, change, and scroll events. Every single operation decreases the performance, but most of them are unavoidable.
 
-The optimizations on this page come from measuring Handsontable's execution times in various configurations. Each one applies only in certain cases. Check which ones fit your application.
+The optimizations on this page come from measuring Handsontable's execution times in various configurations. Each one applies only in certain cases. Check which ones fit your application. To see how those measurements work, browse the [performance test suite](https://github.com/handsontable/handsontable/tree/develop/performance-tests) in the Handsontable repository. It runs scripted interactions in a real browser and records the timings.
 
 ## Set constant row and column sizes
 
