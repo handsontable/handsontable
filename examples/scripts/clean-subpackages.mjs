@@ -16,6 +16,17 @@ const args = process.argv.slice(2);
 const resetLockfiles = args.includes('--reset-lockfiles');
 const [version] = args.filter(arg => !arg.startsWith('--'));
 
+// Without a version the script falls through to the no-version branch below, which cleans the
+// `examples` workspace root and nothing under it. Silently doing that in answer to
+// `--reset-lockfiles` would look like the refresh succeeded while all nine framework lockfiles
+// sat untouched.
+if (resetLockfiles && !version) {
+  console.error('--reset-lockfiles needs the examples version to reset, for example: '
+    + 'node ./scripts/clean-subpackages.mjs next --reset-lockfiles');
+
+  process.exit(1);
+}
+
 if (version) {
   console.log(`Removing:
   ${version}/**/(js|ts|angular|angular-*|react|react-wrapper|vue*)/node_modules
@@ -51,5 +62,8 @@ if (version) {
   ./package-lock.json`);
 
   rimraf.sync('./node_modules');
+  // The `examples` workspace root's own lockfile, which is untracked (`examples/.gitignore` does
+  // not need a rule for it because it has never been committed). Nothing depends on its
+  // resolution, so this one stays unconditional.
   rimraf.sync('./package-lock.json');
 }

@@ -32,8 +32,9 @@ import { appendFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-// Tracked shared lockfiles only. `:(glob)` so `**` spans directory levels, which the default
-// pathspec syntax does not do.
+// `:(glob)` asks for strict pathname semantics: a single `*` stops at a `/`, and only `**` spans
+// directory levels. Without it git's default matching lets `*` swallow separators, so a pattern
+// meant for one level quietly matches any depth.
 const LOCKFILE_PATHSPEC = ':(glob)examples/**/package-lock.json';
 
 /**
@@ -67,7 +68,8 @@ export function git(args, cwd) {
  * under `examples/` -- which `git add .` would commit into the release.
  *
  * @param {string} cwd Repository root.
- * @returns {{changed: string[], untracked: string[], stat: string}} The report's raw material.
+ * @returns {{changed: string[], untracked: string[], stat: string, failed: boolean}} The report's
+ *   raw material, and whether any git call failed.
  */
 export function collect(cwd) {
   const names = git(['diff', '--name-only', 'HEAD', '--', LOCKFILE_PATHSPEC], cwd);
@@ -75,7 +77,15 @@ export function collect(cwd) {
   const others = git(['ls-files', '--others', '--exclude-standard', '--', LOCKFILE_PATHSPEC], cwd);
   const lines = value => (value ? value.split('\n').filter(Boolean) : []);
 
-  return { changed: lines(names), untracked: lines(others), stat: stat || '' };
+  // `null` is a failed command, `''` is a command that found nothing. Collapsing the two would
+  // turn an unborn `HEAD`, an ownership refusal, or a git that rejects the pathspec into a
+  // confident all-clear, which is the failure this whole step exists to prevent.
+  return {
+    changed: lines(names),
+    untracked: lines(others),
+    stat: stat || '',
+    failed: names === null || stat === null || others === null,
+  };
 }
 
 /**
@@ -99,6 +109,9 @@ export function auditSummary(lockfile, cwd) {
       cwd: path.join(cwd, path.dirname(lockfile)),
       maxBuffer: 64 * 1024 * 1024,
       stdio: ['ignore', 'pipe', 'ignore'],
+      // A hanging registry would otherwise stall `first-rc-build` with nothing to catch. The
+      // kill lands in the `catch` below and reads as an unavailable audit.
+      timeout: 60_000,
     });
   } catch (error) {
     // npm exits non-zero when it finds advisories, and still prints the report.
@@ -136,7 +149,13 @@ export function auditSummary(lockfile, cwd) {
  * @returns {string} Markdown, without a trailing newline.
  */
 export function report(state, audit) {
-  const { changed, untracked, stat } = state;
+  const { changed, untracked, stat, failed } = state;
+
+  if (failed) {
+    return 'Could not determine whether the example lockfiles changed: at least one `git` call '
+      + 'failed (see the job log for the error). Treat this as unknown, not as unchanged, and '
+      + 'check `git status -- examples` on the release branch before trusting the commit.';
+  }
 
   if (changed.length === 0 && untracked.length === 0) {
     return 'The tracked example lockfiles are unchanged. This release installs the dependency '
@@ -180,8 +199,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   console.log(body);
 
   if (process.env.GITHUB_STEP_SUMMARY) {
-    appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${body}\n`);
+    try {
+      appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${body}\n`);
+    } catch (error) {
+      // The step summary is where the report is meant to be read, but it is not worth a release
+      // for: stdout already carries the same text into the job log.
+      console.log(`Could not write the job summary: ${error.message}`);
+    }
   }
-
-  process.exit(0);
 }

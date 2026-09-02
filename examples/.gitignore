@@ -4,16 +4,26 @@ dist
 
 # Per-example lockfiles, created by running `npm install` inside an example folder. Only the
 # shared framework-level lockfile is tracked. See the explanation in /examples/README.md.
-# One pattern per framework directory that exists, for both categories: a stale name (the
-# directories are `angular-wrapper`, `react-wrapper` and `vue3`) silently ignores nothing, and a
-# leaf lockfile that slips through is committed by the release job's bare `git add .`.
+#
+# One pattern per framework name the install globs accept (`examples/package.json`'s
+# `internal.framework_dirs` and `scripts/clean-subpackages.mjs`), in both categories, including
+# names no directory uses today: `examples:version` copies a tree verbatim, and a name with no
+# pattern puts its leaf lockfiles back within reach of the release job's bare `git add .`. A stale
+# name silently ignores nothing, which is how `angular`, `react` and `vue` left 5 of the 23 leaf
+# paths uncovered while the directories were named `angular-wrapper`, `react-wrapper` and `vue3`.
+*/docs/angular/*/package-lock.json
 */docs/angular-wrapper/*/package-lock.json
 */docs/js/*/package-lock.json
+*/docs/react/*/package-lock.json
 */docs/react-wrapper/*/package-lock.json
 */docs/ts/*/package-lock.json
+*/docs/vue/*/package-lock.json
 */docs/vue3/*/package-lock.json
+*/visual-tests/angular/*/package-lock.json
 */visual-tests/angular-wrapper/*/package-lock.json
 */visual-tests/js/*/package-lock.json
+*/visual-tests/react/*/package-lock.json
 */visual-tests/react-wrapper/*/package-lock.json
 */visual-tests/ts/*/package-lock.json
+*/visual-tests/vue/*/package-lock.json
 */visual-tests/vue3/*/package-lock.json

@@ -3,6 +3,7 @@
  */
 import execa from 'execa';
 import fs from 'fs-extra';
+import path from 'path';
 import thisPackageJson from '../package.json' with { type: 'json' };
 import glob from 'glob';
 import yargs from 'yargs';
@@ -36,19 +37,61 @@ const ANGULAR_BUILDER_PACKAGE = '@angular-devkit/build-angular';
 // Checks whether a framework example directory holds an Angular example.
 const isAngularExample = frameworkUrl => /angular/.test(frameworkUrl);
 
+// Turn a builder's `peerDependencies.typescript` range into the tilde spec the examples pin.
+const typescriptSpecFromPeerRange = (peerRange) => {
+  const lowerBound = peerRange?.match(/>=?\s*(\d+)\.(\d+)/);
+
+  return lowerBound ? `~${lowerBound[1]}.${lowerBound[2]}.0` : null;
+};
+
+// The builder version a framework directory's lockfile installs, and the TypeScript range that
+// version declares. `lockfileVersion: 3` records `peerDependencies` per package, so the range
+// comes out of the committed resolution with no registry call.
+//
+// This is what keeps the alignment honest. The lockfiles are reused rather than re-resolved, so
+// `latest` no longer decides which Angular installs -- the lockfile does. Reading the range from
+// `latest` instead would move the examples' TypeScript pin on the day Angular bumps its range
+// while the lockfile still installs the older builder, and `--legacy-peer-deps` would swallow
+// the resulting peer conflict until `ng build` failed on the compiler's own version check.
+const lockedTypescriptRange = (frameworkUrl, exampleDir) => {
+  let lockfile;
+
+  try {
+    lockfile = fs.readJsonSync(`${frameworkUrl}/package-lock.json`);
+  } catch {
+    // No lockfile: the tree is being resolved from scratch, so `latest` is the right answer.
+    return null;
+  }
+
+  const packages = lockfile.packages ?? {};
+  // The builder may be hoisted to the framework root or kept under the example's own tree.
+  const candidates = [
+    `${exampleDir}/node_modules/${ANGULAR_BUILDER_PACKAGE}`,
+    `node_modules/${ANGULAR_BUILDER_PACKAGE}`,
+  ];
+
+  for (const key of candidates) {
+    const peerRange = packages[key]?.peerDependencies?.typescript;
+
+    if (peerRange) {
+      return peerRange;
+    }
+  }
+
+  return null;
+};
+
 // Each Angular major supports a narrow TypeScript range, declared by the
 // `@angular-devkit/build-angular` peer dependency (e.g. Angular 22 -> `typescript >=6.0 <6.1`,
-// Angular 21 -> `>=5.9 <6.0`). The examples track the `latest` Angular, so the matching
-// TypeScript version moves over time. Resolve it from the builder peer instead of hard-coding it.
+// Angular 21 -> `>=5.9 <6.0`). Resolve it from the builder peer instead of hard-coding it.
 const resolveAngularTypescriptRange = async (builderSpec) => {
   const { stdout } = await execa('npm', [
     'view', `${ANGULAR_BUILDER_PACKAGE}@${builderSpec}`, 'peerDependencies.typescript'
   ]);
   // `npm view` lists one range per matching version (ascending); the last line is the newest.
   const newestRange = stdout.trim().split('\n').pop().trim();
-  const lowerBound = newestRange.match(/>=?\s*(\d+)\.(\d+)/);
 
-  return lowerBound ? `~${lowerBound[1]}.${lowerBound[2]}.0` : null;
+  return typescriptSpecFromPeerRange(newestRange);
 };
 
 // Aligns the `typescript` devDependency of every Angular example in `frameworkUrl` with the
@@ -69,7 +112,12 @@ const alignTypescriptWithAngular = async (frameworkUrl) => {
       continue;
     }
 
-    const typescriptRange = await resolveAngularTypescriptRange(builderSpec);
+    const exampleDir = path.basename(path.dirname(packageJsonPath));
+    const lockedRange = lockedTypescriptRange(frameworkUrl, exampleDir);
+    // Follow the lockfile when there is one, and the registry only when there is not.
+    const typescriptRange = lockedRange
+      ? typescriptSpecFromPeerRange(lockedRange)
+      : await resolveAngularTypescriptRange(builderSpec);
 
     if (typescriptRange && devDependencies.typescript !== typescriptRange) {
       const previousRange = devDependencies.typescript;

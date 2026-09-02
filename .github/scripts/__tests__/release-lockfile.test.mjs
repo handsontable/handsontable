@@ -406,6 +406,33 @@ test('the examples clean step keeps the lockfiles unless asked', () => {
   );
 });
 
+// Without a version the script cleans the `examples` workspace root and nothing under it, so a
+// refresh that forgets the version argument would report success with all nine framework
+// lockfiles untouched.
+test('the examples clean step refuses --reset-lockfiles without a version', () => {
+  const fixture = mkdtempSync(path.join(tmpdir(), 'example-clean-noversion-'));
+
+  try {
+    assert.throws(
+      () => execFileSync('node', [path.join(root, EXAMPLE_CLEAN_SCRIPT), '--reset-lockfiles'], {
+        cwd: fixture,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      }),
+      error => {
+        assert.equal(error.status, 1);
+        assert.match(error.stderr, /needs the examples version/);
+
+        return true;
+      },
+      `${EXAMPLE_CLEAN_SCRIPT}: \`--reset-lockfiles\` with no version must fail loudly, not clean `
+      + 'the workspace root and report nothing (DEV-2714).'
+    );
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
 // Report-only, and it must stay that way: these trees build documentation demos and visual-test
 // fixtures and ship in no bundle, so a transitive bump there must not red a release candidate.
 // Its position is load-bearing in one direction -- it has to sit ABOVE the float gate, because
@@ -492,6 +519,33 @@ test('the example lockfile report never fails the release', () => {
       assert.match(output, /examples\/next\/docs\/svelte\/package-lock\.json/);
       assert.doesNotMatch(output, /examples\/next\/docs\/js\/demo\/package-lock\.json/);
     }
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+// The degradation the script's docstring promises, and the one a release is most likely to hit
+// through a bad argument: no `HEAD` to diff against. Every `git diff` fails, and the report must
+// neither throw between the build and the commit nor claim the lockfiles are unchanged -- a
+// false all-clear is worse than no report, because it is the thing an operator would trust.
+test('the example lockfile report survives a checkout it cannot diff', () => {
+  const fixture = mkdtempSync(path.join(tmpdir(), 'example-lockfile-report-nohead-'));
+
+  try {
+    // Initialized but never committed, so `HEAD` does not resolve.
+    execFileSync('git', ['init', '--quiet', '--initial-branch', 'main'], { cwd: fixture, encoding: 'utf8' });
+
+    const stdout = execFileSync('node', [path.join(root, REPORT_SCRIPT), fixture], {
+      cwd: fixture,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+      env: { ...process.env, SKIP_AUDIT: '1' },
+    });
+
+    assert.match(stdout, /Could not determine/);
+    // The all-clear sentence specifically, not the word "unchanged" -- the failure message uses
+    // it too, in "not as unchanged".
+    assert.doesNotMatch(stdout, /lockfiles are unchanged/);
   } finally {
     rmSync(fixture, { recursive: true, force: true });
   }

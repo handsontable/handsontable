@@ -339,7 +339,13 @@ jobs:
       # must not red a release candidate. It must not be invisible either.
       # Must stay ABOVE the float gate: `release-lockfile.test.mjs` asserts the
       # gate is the step immediately before `Commit and push`.
+      #
+      # Runs even after a failed step, because the lockfiles are a candidate
+      # cause: if the examples install or build broke, the diff is the first
+      # thing the operator needs, and a step that only runs on the happy path
+      # would have nothing to say exactly when it matters. The job still fails.
       - name: Report example lockfile changes
+        if: ${{ !cancelled() }}
         run: node .github/scripts/example-lockfile-report.mjs
 
       # Re-check right before `git add .`, because this job builds every package
