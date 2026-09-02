@@ -7,9 +7,12 @@ import { DropdownMenuFreezeColumnPage } from '../fixtures/pages/DropdownMenuFree
  *
  * The two menus build their item lists from separate hooks — `afterContextMenuDefaultOptions` and
  * `afterDropdownMenuDefaultOptions` — and ManualColumnFreeze registered only the first. A key the
- * dropdown menu has never heard of does not raise anything: `ItemsFactory` turns it into a bare
+ * dropdown menu had never heard of raised nothing: `ItemsFactory` turned it into a bare
  * `{ name, key }` placeholder. So the menu rendered a row labelled with the RAW KEY, carrying no
  * callback and no `hidden()`, and clicking it closed the menu without freezing anything.
+ *
+ * That placeholder is gone as of DEV-2758 — an unresolvable key is skipped and warned about
+ * instead — so the `manualColumnFreeze disabled` block at the bottom now pins the skip.
  *
  * That failure mode is why the label assertions below check the translated text rather than just
  * "a row is there" — the broken build rendered a row too.
@@ -292,22 +295,48 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
   });
 
   test.describe('manualColumnFreeze disabled', () => {
-    // Not coverage of this fix: it pins ItemsFactory's unknown-key fallback, which is what #5429
-    // reported seeing. The assertion holds on the unfixed build too, by design.
-    test('renders ItemsFactory placeholder rows, since nothing resolves the keys', async () => {
+    // The entries belong to the plugin, so with it off nothing resolves either key. ItemsFactory
+    // used to emit a `{ name, key }` placeholder for each, and the menu rendered a row labelled
+    // with the RAW KEY that did nothing when clicked — the shape #5429 reported. Those rows are
+    // now skipped, which is what this block pins (DEV-2758).
+    test('skips the unresolvable keys instead of rendering raw-key rows', async () => {
       await grid.openColumnMenu(PLUGIN_OFF, 'Charlie');
 
       const items = await grid.visibleDropdownMenuItems();
 
-      // The entries belong to the plugin, so with it off nothing resolves the keys and ItemsFactory
-      // emits its placeholder for each — the very rows the whole bug consisted of. Pinned as the
-      // real behavior rather than asserting the translated label is absent, which would pass on the
-      // broken build too and prove nothing.
-      expect(items).toEqual(['freeze_column', 'unfreeze_column']);
+      // Every item was dropped, so the menu falls back to its empty-list entry. Asserted as an
+      // exact list, because a build that skipped only one of the two keys would still satisfy
+      // the absence checks below.
+      expect(items).toEqual(['No available options']);
+      expect(items).not.toContain('freeze_column');
+      expect(items).not.toContain('unfreeze_column');
+    });
 
-      await grid.clickDropdownMenuItem('freeze_column');
+    test('freezes nothing, since there is no row left to click', async () => {
+      await grid.openColumnMenu(PLUGIN_OFF, 'Charlie');
+      await grid.closeDropdownMenu();
 
+      // The placeholder row used to be clickable and carried no callback. Dropping it must not
+      // leave some other path that still freezes through a disabled plugin.
       expect(await grid.fixedColumnsStart(PLUGIN_OFF)).toBe(0);
+      expect(await grid.columnHeaders(PLUGIN_OFF)).toEqual(
+        DropdownMenuFreezeColumnPage.COLUMN_HEADERS
+      );
+    });
+
+    test('warns on the console so the developer can find the key', async () => {
+      // Dropping the row silently would trade a visible defect for an invisible one. The warning
+      // is the replacement signal, and it names the key that could not be resolved.
+      //
+      // `prepareMenuItems()` runs once from `enablePlugin`, so the warning is emitted while the
+      // grid is being built — the developer sees it without opening the menu at all. That is
+      // before the `beforeEach` navigation returns, hence the listener plus a second visit.
+      const warnings = grid.collectUnresolvedKeyWarnings();
+
+      await grid.goto();
+
+      expect(warnings.join('\n')).toContain('freeze_column');
+      expect(warnings.join('\n')).toContain('unfreeze_column');
     });
   });
 });

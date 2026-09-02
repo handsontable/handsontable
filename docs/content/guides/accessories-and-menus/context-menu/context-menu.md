@@ -125,6 +125,69 @@ The `filter_by_condition`, `filter_by_condition2`, `filter_operators`, `filter_b
 `filter_action_bar` items build the filtering interface and take effect only in the dropdown (column)
 menu, not in the context menu. See [Filter menu items](@/guides/accessories-and-menus/column-menu/column-menu.md#filter-menu-items).
 
+The table above lists every key you can use. A key that is not on it is skipped, and Handsontable
+logs a console warning naming it. A key is also skipped when the plugin it needs is not enabled, so
+check the "Requires" column when an item does not appear.
+
+### Command names are not menu item keys
+
+Some commands are addressed with a `parent:child` name, such as `alignment:left`. Those names work
+with [`executeCommand()`](@/api/contextMenu.md#executecommand), which runs a command directly:
+
+::: only-for javascript
+```js
+hot.getPlugin('contextMenu').executeCommand('alignment:left');
+```
+:::
+
+::: only-for react
+```jsx
+hotRef.current.hotInstance.getPlugin('contextMenu').executeCommand('alignment:left');
+```
+:::
+
+They are not menu item keys. Listing `alignment:left` in `contextMenu` does not create a "Left"
+item, because only the keys in the table above are resolved.
+
+To show part of a submenu, keep the predefined submenu items and filter out the ones you don't
+want. The items you keep carry their own actions, so they keep working:
+
+::: only-for javascript
+```js
+const hot = new Handsontable(container, {
+  contextMenu: true,
+  afterContextMenuDefaultOptions(options) {
+    const alignment = options.items.find(item => item.key === 'alignment');
+    const verticalKeys = ['alignment:top', 'alignment:middle', 'alignment:bottom'];
+
+    alignment.submenu.items = alignment.submenu.items
+      .filter(item => !verticalKeys.includes(item.key));
+  },
+});
+```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  contextMenu={true}
+  afterContextMenuDefaultOptions={(options) => {
+    const alignment = options.items.find(item => item.key === 'alignment');
+    const verticalKeys = ['alignment:top', 'alignment:middle', 'alignment:bottom'];
+
+    alignment.submenu.items = alignment.submenu.items
+      .filter(item => !verticalKeys.includes(item.key));
+  }}
+/>
+```
+:::
+
+The alignment submenu then offers only the horizontal options. For the column menu, use
+`afterDropdownMenuDefaultOptions` instead.
+
+To build a submenu item of your own, give it a `name` and a `callback`. A custom item runs only the
+`callback` you write — it does not inherit an action from a predefined key of the same name.
+
 To see the context menu, right-click on a cell. On touch devices, long-press a cell to open the context menu.
 
 ::: only-for javascript

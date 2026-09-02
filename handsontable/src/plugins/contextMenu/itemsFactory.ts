@@ -1,6 +1,7 @@
 import type { HotInstance } from '../../core/types';
 import { objectEach, isObject, extend } from '../../helpers/object';
 import { arrayEach } from '../../helpers/array';
+import { warnOnce } from '../../helpers/console';
 import {
   SEPARATOR,
   ITEMS,
@@ -26,6 +27,13 @@ export class ItemsFactory {
    * @type {Array}
    */
   declare defaultOrderPattern: string[];
+  /**
+   * Whether `setPredefinedItems()` has already run. Until it has, the registry holds only the
+   * built-in items, so a key contributed by a plugin is legitimately still unresolvable.
+   *
+   * @type {boolean}
+   */
+  #predefinedItemsSet = false;
 
   /**
    * Initializes the items factory with a Handsontable instance and an optional default ordering pattern for menu items.
@@ -84,6 +92,7 @@ export class ItemsFactory {
       this.defaultOrderPattern.push(menuItemKey);
     });
     this.predefinedItems = items;
+    this.#predefinedItemsSet = true;
   }
 
   /**
@@ -94,7 +103,27 @@ export class ItemsFactory {
    * @returns {Array}
    */
   getItems(pattern: unknown = null) {
-    return getItems(pattern, this.defaultOrderPattern, this.predefinedItems);
+    return getItems(
+      pattern,
+      this.defaultOrderPattern,
+      this.predefinedItems,
+      this.#predefinedItemsSet ? (name: string) => this.#warnUnresolvedKey(name) : null
+    );
+  }
+
+  /**
+   * Reports a menu item key that names nothing, once per grid instance per key.
+   *
+   * @param {string} name The unresolved menu item key.
+   */
+  #warnUnresolvedKey(name: string) {
+    warnOnce(
+      this.hot.rootElement,
+      `menu-unresolved-item-key:${name}`,
+      `Handsontable: the menu item key "${name}" does not match any available menu item, so it ` +
+      'was skipped. Check the key for typos, and make sure the plugin that provides it is ' +
+      'enabled and contributes items to this menu.'
+    );
   }
 }
 
@@ -102,10 +131,16 @@ export class ItemsFactory {
  * @param {object[]} itemsPattern The user defined menu items collection.
  * @param {object[]} defaultPattern The menu default items collection.
  * @param {object} items Additional options.
+ * @param {Function|null} reportUnresolvedKey When given, a string key that names no available item
+ *                                            is skipped and passed to this callback instead of
+ *                                            being turned into a placeholder item.
  * @returns {object[]} Returns parsed and merged menu items collection ready to render.
  */
 function getItems(
-  itemsPattern: unknown = null, defaultPattern: string[] = [], items: Record<string, Record<string, unknown>> = {}
+  itemsPattern: unknown = null,
+  defaultPattern: string[] = [],
+  items: Record<string, Record<string, unknown>> = {},
+  reportUnresolvedKey: ((name: string) => void) | null = null
 ) {
   const result: Record<string, unknown>[] = [];
   let pattern: unknown = itemsPattern;
@@ -138,10 +173,24 @@ function getItems(
     arrayEach(pattern as string[], (name: string, key: number) => {
       let item: Record<string, unknown> = items[name];
 
-      // A predefined item name with no entry in the items map. The `allowInsert*`/`allowRemove*`
-      // options do not reach here – they hide their items at render time via `hidden()`.
-      if (!item && ITEMS.indexOf(name) >= 0) {
-        return;
+      // An array entry may be a full item definition object instead of a key. It is merged in
+      // below, so it must never be treated as an unresolved key.
+      if (!item && !isObject(name)) {
+        // A predefined item name with no entry in the items map. The `allowInsert*`/`allowRemove*`
+        // options do not reach here – they hide their items at render time via `hidden()`.
+        if (ITEMS.indexOf(name) >= 0) {
+          return;
+        }
+
+        // The key names nothing available. Before the default-options hook has run that is
+        // expected – plugin entries are still missing and need a placeholder to merge into (see
+        // `setPredefinedItems` and issue #9894) – so only the post-hook pass skips them. Emitting
+        // a placeholder there is what rendered the raw key string as a dead menu row (issue #5429).
+        if (reportUnresolvedKey) {
+          reportUnresolvedKey(name);
+
+          return;
+        }
       }
       if (!item) {
         item = { name, key: `${key}` };

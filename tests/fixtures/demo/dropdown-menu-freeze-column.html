@@ -131,7 +131,8 @@
         contextMenu: MENU_KEYS,
       }),
       // Same keys, plugin OFF. Nothing contributes the entries, so both keys stay unknown to the
-      // menu and render as the raw-key placeholder rows ItemsFactory emits for any unknown key.
+      // menu. They used to render as the raw-key placeholder rows ItemsFactory emitted for any
+      // unknown key; they are now skipped, leaving the menu's empty-list entry (DEV-2758).
       'plugin-off': build('plugin-off', {
         manualColumnFreeze: false,
         dropdownMenu: MENU_KEYS,

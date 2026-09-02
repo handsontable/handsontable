@@ -166,6 +166,24 @@ export class DropdownMenuFreezeColumnPage {
     }, menuSelector);
   }
 
+  /**
+   * Start collecting console warnings, and return the live array they land in.
+   *
+   * Filtered to the unresolved-key warning so unrelated console noise (a license notice, say)
+   * cannot make the assertion pass on its own.
+   */
+  collectUnresolvedKeyWarnings(): string[] {
+    const warnings: string[] = [];
+
+    this.page.on('console', (message) => {
+      if (message.type() === 'warning' && message.text().includes('does not match any available')) {
+        warnings.push(message.text());
+      }
+    });
+
+    return warnings;
+  }
+
   /** Pick one entry from the open column header menu. */
   async clickDropdownMenuItem(label: string): Promise<void> {
     await this.menuItem('.htDropdownMenu', label).click();

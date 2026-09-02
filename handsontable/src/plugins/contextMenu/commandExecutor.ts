@@ -67,17 +67,30 @@ export class CommandExecutor {
    * @param {*} params Arguments passed to command task.
    */
   execute(commandName: string, ...params: unknown[]) {
-    const commandSplit = commandName.split(':');
-    const commandNamePrimary = commandSplit[0];
-
-    const subCommandName = commandSplit.length === 2 ? commandSplit[1] : null;
-    let command = this.commands[commandNamePrimary];
+    // A command can be registered under a key that itself contains a colon, because object-form
+    // menu `items` use their key verbatim. Match the whole name first, so such a command is found
+    // instead of the split below looking up a parent command that was never registered — which
+    // threw `Menu command '<parent>' not exists.` on click.
+    let command = this.commands[commandName];
 
     if (!command) {
-      throwWithCause(`Menu command '${commandNamePrimary}' not exists.`);
-    }
-    if (subCommandName && command.submenu) {
-      command = findSubCommand(subCommandName, command.submenu.items)!;
+      const commandSplit = commandName.split(':');
+      const commandNamePrimary = commandSplit[0];
+      const subCommandName = commandSplit.length === 2 ? commandSplit[1] : null;
+
+      command = this.commands[commandNamePrimary];
+
+      if (!command) {
+        throwWithCause(`Menu command '${commandNamePrimary}' not exists.`);
+      }
+      if (subCommandName && command.submenu) {
+        command = findSubCommand(subCommandName, command.submenu.items)!;
+
+        // A subcommand name that matches no submenu entry leaves nothing to run.
+        if (!command) {
+          return;
+        }
+      }
     }
     if (command.disabled === true) {
       return;
@@ -96,7 +109,7 @@ export class CommandExecutor {
     if (typeof this.commonCallback === 'function') {
       callbacks.push(this.commonCallback);
     }
-    params.unshift(commandSplit.join(':'));
+    params.unshift(commandName);
     arrayEach(callbacks, callback => callback.apply(this.hot, params));
   }
 }
