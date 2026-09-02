@@ -2,9 +2,9 @@ import '@angular/compiler';
 import globalJsdom from 'global-jsdom';
 import chalk from 'chalk';
 import glob from 'glob';
-import { existsSync, readFileSync } from 'fs';
-import { dirname, join, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   displayConfirmationMessage,
   displayErrorMessage

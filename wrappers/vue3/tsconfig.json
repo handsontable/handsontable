@@ -9,6 +9,7 @@
     "baseUrl": ".",
     "experimentalDecorators": true,
     "skipLibCheck": true,
+    "strictNullChecks": true,
     "declaration": true,
     "declarationDir": "./types",
     "types": [

@@ -21,6 +21,15 @@ import HotTableDefault, { HotColumn, HotTable, HotTableProps, VueProps } from '.
  */
 type IsAny<T> = 0 extends (1 & T) ? true : false;
 
+/**
+ * True only when the type still admits `null`. Guarding a member with this catches the
+ * declaration build losing `strictNullChecks`: without it the checker folds
+ * `Handsontable | null` down to `Handsontable`, and the package ships a type that makes
+ * `hotTableRef.value.hotInstance.getData()` compile before mount and then throw at runtime.
+ * `IsAny` is asserted alongside every use, since `null extends any` also holds.
+ */
+type IsNullable<T> = null extends T ? true : false;
+
 // The components must carry real component types, not `any`.
 const hotTableIsNotAny: IsAny<typeof HotTable> = false;
 const hotTableDefaultIsNotAny: IsAny<typeof HotTableDefault> = false;
@@ -37,12 +46,20 @@ type HotTableInstance = InstanceType<typeof HotTable>;
 
 const instance = null as unknown as HotTableInstance;
 
+// The nullable members must stay nullable in the emit. `hotInstance` returns `null` before
+// `hotInit()` and after the grid is destroyed; `columnSettings` is `null` until the first
+// `getColumnSettings()`. Both are asserted positively, so a declaration build that drops
+// `strictNullChecks` turns these lines red instead of silently shipping a non-null type.
 const hotInstanceIsNotAny: IsAny<HotTableInstance['hotInstance']> = false;
-const getData: (...args: never[]) => unknown = instance.hotInstance.getData;
-const updateSettings: (...args: never[]) => unknown = instance.hotInstance.updateSettings;
+const hotInstanceIsNullable: IsNullable<HotTableInstance['hotInstance']> = true;
+const hotInstance = instance.hotInstance as NonNullable<HotTableInstance['hotInstance']>;
+const getData: (...args: never[]) => unknown = hotInstance.getData;
+const updateSettings: (...args: never[]) => unknown = hotInstance.updateSettings;
 
 const columnSettingsIsNotAny: IsAny<HotTableInstance['columnSettings']> = false;
-const firstColumnLicenseKey: HotTableProps['licenseKey'] = instance.columnSettings[0].licenseKey;
+const columnSettingsIsNullable: IsNullable<HotTableInstance['columnSettings']> = true;
+const columnSettings = instance.columnSettings as NonNullable<HotTableInstance['columnSettings']>;
+const firstColumnLicenseKey: HotTableProps['licenseKey'] = columnSettings[0].licenseKey;
 
 const getColumnSettingsIsNotAny: IsAny<HotTableInstance['getColumnSettings']> = false;
 const hotInit: () => void = instance.hotInit;
@@ -53,6 +70,7 @@ const refreshColumns: () => void = instance.refreshColumns;
 // in the releases that did ship declarations.
 const settings: HotTableProps = { data: [[1, 2]], rowHeaders: true, licenseKey: 'non-commercial-and-evaluation' };
 const nestedSettings: HotTableProps['settings'] = { colHeaders: true };
+const vuePropsIsNotAny: IsAny<VueProps<{ a: 1 }>> = false;
 const vueProps: VueProps<{ readOnly: boolean }> = { readOnly: 'anything' };
 
 // `HotTableProps` must still extend `GridSettings`, not be a bare property bag.
@@ -70,15 +88,20 @@ export {
   hotTableDefaultIsNotAny,
   hotColumnIsNotAny,
   hotInstanceIsNotAny,
+  hotInstanceIsNullable,
+  hotInstance,
   getData,
   updateSettings,
   columnSettingsIsNotAny,
+  columnSettingsIsNullable,
+  columnSettings,
   firstColumnLicenseKey,
   getColumnSettingsIsNotAny,
   hotInit,
   refreshColumns,
   settings,
   nestedSettings,
+  vuePropsIsNotAny,
   vueProps,
   gridSettings,
   badNestedSettings,

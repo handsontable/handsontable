@@ -21579,7 +21579,7 @@ snapshots:
       postcss-modules-scope: 3.2.1(postcss@8.5.12)
       postcss-modules-values: 4.0.0(postcss@8.5.12)
       postcss-value-parser: 4.2.0
-      semver: 7.8.4
+      semver: 7.7.1
     optionalDependencies:
       '@rspack/core': 1.7.11(@swc/helpers@0.5.23)
       webpack: 5.105.0(esbuild@0.28.0)(lightningcss@1.32.0)(postcss@8.5.12)
@@ -23939,7 +23939,7 @@ snapshots:
       '@babel/parser': 7.29.7
       '@istanbuljs/schema': 0.1.6
       istanbul-lib-coverage: 3.2.2
-      semver: 7.8.4
+      semver: 7.7.1
     transitivePeerDependencies:
       - supports-color
 
@@ -26341,7 +26341,7 @@ snapshots:
 
   npm-install-checks@7.1.2:
     dependencies:
-      semver: 7.8.4
+      semver: 7.7.1
 
   npm-normalize-package-bin@4.0.0: {}
 
@@ -26349,7 +26349,7 @@ snapshots:
     dependencies:
       hosted-git-info: 8.1.0
       proc-log: 5.0.0
-      semver: 7.8.4
+      semver: 7.7.1
       validate-npm-package-name: 6.0.2
 
   npm-packlist@9.0.0:
@@ -26361,7 +26361,7 @@ snapshots:
       npm-install-checks: 7.1.2
       npm-normalize-package-bin: 4.0.0
       npm-package-arg: 12.0.2
-      semver: 7.8.4
+      semver: 7.7.1
 
   npm-registry-fetch@18.0.2:
     dependencies:
@@ -26857,7 +26857,7 @@ snapshots:
       cosmiconfig: 9.0.2(typescript@5.8.3)
       jiti: 1.21.7
       postcss: 8.5.12
-      semver: 7.8.4
+      semver: 7.7.1
     optionalDependencies:
       '@rspack/core': 1.7.11(@swc/helpers@0.5.23)
       webpack: 5.105.0(esbuild@0.28.0)(lightningcss@1.32.0)(postcss@8.5.12)

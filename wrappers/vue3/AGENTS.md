@@ -37,6 +37,12 @@
   resolves to 3.5.x, whose own `.d.ts` use `NoInfer` (TS 5.4) and `ToggleEvent` (TS 5.5 `lib.dom`). It is a
   stand-in for that version skew, not a fix — it suppresses diagnostics inside `.d.ts` only, so the `.ts`
   and `.vue` sources stay fully checked. Drop it if the package moves to TypeScript 5.
+- **`strictNullChecks` must stay on in `tsconfig.json`.** It is what makes the emit truthful, not a style
+  preference: with null checks off the checker folds `Handsontable | null` down to `Handsontable`, so the
+  published type says `hotInstance` is never `null` when it is `null` before `hotInit()` and after the grid
+  is destroyed — `hotTableRef.value.hotInstance.getData()` then compiles and throws. `test/types` asserts
+  the `| null` survives, so turning the flag off goes red rather than shipping. Keep the nullable data
+  members annotated (`null as Handsontable | null`), never widened with `as unknown as`.
 - Test: `npm run test --prefix wrappers/vue3` (Jest + @vue/test-utils)
 - Type surface: `npm run test:types --prefix wrappers/vue3` (`test/types/*.types.ts`). It checks the
   **emitted** root declarations, so build first. Run it after any change to `src/index.ts`, `src/types.ts`,

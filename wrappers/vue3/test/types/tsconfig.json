@@ -10,6 +10,13 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "types": [],
+    // `skipLibCheck` is a stand-in for the TypeScript 4.9.5 vs vue 3.5.x skew described in
+    // `wrappers/vue3/AGENTS.md`, not a free choice: without it the checker fails inside vue's
+    // own `.d.ts`. The cost is that it also silences diagnostics inside the files under test,
+    // which are all `.d.ts` — so an emitted declaration naming a type `vue-tsc` could not
+    // express would ship broken and this suite would stay green. The `IsAny` assertions below
+    // still catch a collapse to `any`. Core's equivalent (`handsontable/test/types/tsconfig.json`)
+    // sets `false`; set it here too when this package moves to TypeScript 5.
     "skipLibCheck": true
   },
   "include": [
