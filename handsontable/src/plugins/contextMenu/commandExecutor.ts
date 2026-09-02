@@ -67,30 +67,11 @@ export class CommandExecutor {
    * @param {*} params Arguments passed to command task.
    */
   execute(commandName: string, ...params: unknown[]) {
-    // A command can be registered under a key that itself contains a colon, because object-form
-    // menu `items` use their key verbatim. Match the whole name first, so such a command is found
-    // instead of the split below looking up a parent command that was never registered — which
-    // threw `Menu command '<parent>' not exists.` on click.
-    let command = this.commands[commandName];
+    const command = this.#findCommand(commandName);
 
+    // A subcommand name that matches no submenu entry leaves nothing to run.
     if (!command) {
-      const commandSplit = commandName.split(':');
-      const commandNamePrimary = commandSplit[0];
-      const subCommandName = commandSplit.length === 2 ? commandSplit[1] : null;
-
-      command = this.commands[commandNamePrimary];
-
-      if (!command) {
-        throwWithCause(`Menu command '${commandNamePrimary}' not exists.`);
-      }
-      if (subCommandName && command.submenu) {
-        command = findSubCommand(subCommandName, command.submenu.items)!;
-
-        // A subcommand name that matches no submenu entry leaves nothing to run.
-        if (!command) {
-          return;
-        }
-      }
+      return;
     }
     if (command.disabled === true) {
       return;
@@ -111,6 +92,39 @@ export class CommandExecutor {
     }
     params.unshift(commandName);
     arrayEach(callbacks, callback => callback.apply(this.hot, params));
+  }
+
+  /**
+   * Resolves a command name to the descriptor that should run.
+   *
+   * @param {string} commandName Command id, optionally a `parent:child` subcommand name.
+   * @returns {object|undefined} The command, or `undefined` when a subcommand name matches no
+   *                             entry in its parent's submenu.
+   */
+  #findCommand(commandName: string): CommandDescriptor | undefined {
+    // A command can be registered under a key that itself contains a colon, because object-form
+    // menu `items` use their key verbatim. Match the whole name first, so such a command is found
+    // instead of the split below looking up a parent command that was never registered — which
+    // threw `Menu command '<parent>' not exists.` on click.
+    const exactMatch = this.commands[commandName];
+
+    if (exactMatch) {
+      return exactMatch;
+    }
+
+    const commandSplit = commandName.split(':');
+    const commandNamePrimary = commandSplit[0];
+    const subCommandName = commandSplit.length === 2 ? commandSplit[1] : null;
+    const command = this.commands[commandNamePrimary];
+
+    if (!command) {
+      throwWithCause(`Menu command '${commandNamePrimary}' not exists.`);
+    }
+    if (subCommandName && command.submenu) {
+      return findSubCommand(subCommandName, command.submenu.items);
+    }
+
+    return command;
   }
 }
 
