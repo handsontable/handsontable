@@ -358,6 +358,54 @@ test('viewport smell: colWidths/rowHeights are not a viewport, and Playwright :v
   assert.equal(findViewportSmells(dataCount), 0, 'a data count is not a rendered count');
 });
 
+test('viewport smell: a `:visible` selector is a rendered-count read only when something counts it', () => {
+  // Interaction and single-element reads on a visible-filtered locator count nothing.
+  const clicks = `
+    test.describe('context menu', () => {
+      test('opens on the visible cell', async({ page }) => {
+        await page.locator('td:visible').click();
+        const corner = page.locator('.wtBorder.corner:visible').first();
+        await expect(corner).toBeVisible();
+        await expect(page.locator('.htContextMenu:visible')).toBeVisible();
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(clicks), 0, 'a bare :visible click or .first() is not a count');
+
+  // The same selectors become rendered counts when a count is taken on them.
+  const counted = `
+    test.describe('virtual rows', () => {
+      test('counts inline', async({ page }) => {
+        await expect(page.locator('tbody tr:visible')).toHaveCount(12);
+      });
+      test('counts a captured locator', async({ page }) => {
+        const rows = page.locator('tbody tr:visible');
+        const before = await rows.count();
+        await page.mouse.wheel(0, 3000);
+        await expect(rows).not.toHaveCount(before + 1);
+      });
+      test('counts by expect().count', async({ page }) => {
+        const cells = page.locator('td:visible');
+        expect(await cells.count()).toBeGreaterThan(0);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(counted), 3, 'one read per counted :visible selector');
+
+  // A captured locator that is only interacted with later stays a non-count.
+  const capturedClick = `
+    test('captures then clicks', async({ page }) => {
+      const cell = page.locator('td:visible');
+      await cell.click();
+      await expect(cell).toBeFocused();
+    });
+  `;
+
+  assert.equal(findViewportSmells(capturedClick), 0);
+});
+
 test('viewport smell: comments neither pin the viewport nor count as a rendered-count read', () => {
   // The words `height:` and `:visible` appear only in prose here — the grid setup itself pins nothing.
   const proseOnly = `
@@ -433,6 +481,22 @@ test('unasserted capture: only awaited captures count, the scope is the test bod
   const captures = findUnassertedCaptures(src);
 
   assert.deepEqual(captures.map(c => [c.test, c.name]), [['two', 'other']]);
+});
+
+test('unasserted capture: a `$`-bearing identifier is matched literally, so its assertion is found', () => {
+  // `$` is the one regex metacharacter an identifier can carry; escaped, `$rows`
+  // finds its use inside expect(); unescaped it would read as an end anchor and
+  // every `$`-named capture would be reported as unasserted.
+  const src = `
+    it('uses dollar names', async() => {
+      const $rows = await grid.rowCount();
+      const $$total = await grid.totalRows();
+      const $dropped = await grid.cell(0, 0).textContent();
+      expect($rows).toBe($$total);
+    });
+  `;
+
+  assert.deepEqual(findUnassertedCaptures(src).map(c => c.name), ['$dropped']);
 });
 
 test('the new smells leave a clean, meaningful test clean', () => {

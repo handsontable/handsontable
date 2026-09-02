@@ -228,10 +228,14 @@ jobs:
       # Manual QA job does), not the frozen event payload, so an author who
       # fills the field after opening the PR is heard on the next run. A
       # read-only call, so it works on the fork/Dependabot token too; any
-      # failure only skips that one advisory check — the gate reads the file
-      # when it exists and stays silent when it does not.
+      # failure only skips that one advisory check — the script catches API
+      # errors, `continue-on-error` covers an action-runtime failure the script
+      # cannot catch (so it can never fail this job and, through test.yml's
+      # needs, the CI Gate), and the gate reads the file when it exists and
+      # stays silent when it does not.
       - name: Read the live pull-request body
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
+        continue-on-error: true
         env:
           BODY_FILE: ${{ runner.temp }}/pr-body.md
         with:

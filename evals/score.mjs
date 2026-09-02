@@ -256,11 +256,23 @@ export function findGamingSignals(src) {
 const DESCRIBE_CALL_RE = /(?<![\w$.])(?:[xf]describe|(?:test\.)?describe(?:\.(?!each\b)\w+)*)\s*\(/g;
 
 /**
- * A rendered-count read: the legacy-suite helpers (`countVisibleRows()`,
- * `countRenderedCols()`, `getRenderedRowsCount()`) and a `:visible` selector
- * (the Playwright-tier way to count what is on screen).
+ * A rendered-count read through the legacy-suite helpers: `countVisibleRows()`,
+ * `countRenderedCols()`, `getRenderedRowsCount()`.
  */
-const RENDERED_COUNT_RE = /(?<![\w$])(?:countVisible\w*|countRendered\w*|getRendered\w*Count)\s*\(|:visible\b/g;
+const RENDERED_COUNT_HELPER_RE = /(?<![\w$])(?:countVisible\w*|countRendered\w*|getRendered\w*Count)\s*\(/g;
+
+/**
+ * A `:visible` selector — the Playwright-tier way to name what is on screen.
+ * It is a rendered-count read only when something counts it (see
+ * `isCountedVisibleSelector`); a `:visible` click or `.first()` counts nothing.
+ */
+const VISIBLE_SELECTOR_RE = /:visible\b/g;
+
+/**
+ * A count taken inside one statement: the `toHaveCount(` matcher, a `.count()`
+ * call, or a legacy `countVisible*()` helper.
+ */
+const COUNT_SHAPE_RE = /\btoHaveCount\s*\(|\.count\s*\(|(?<![\w$])countVisible\w*\s*\(/;
 
 /**
  * What pins a viewport so a rendered count is deterministic across themes:
@@ -280,6 +292,16 @@ const AWAITED_CAPTURE_RE = /(?<![\w$.])(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*
  * `assert.equal(`). Shares its name family with `countAssertions`.
  */
 const ASSERTION_CALL_RE = /(?<![\w$])(?:expect|assert|verify)\w*(?:\.\w+)*\s*\(/g;
+
+/**
+ * Escape a string for literal use inside a RegExp.
+ *
+ * @param {string} text The literal text.
+ * @returns {string} The text with every regex metacharacter escaped.
+ */
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 /**
  * Replace every comment with spaces of the same length, so a prose mention
@@ -373,11 +395,66 @@ function testBodies(src) {
 }
 
 /**
+ * Bounds of the statement holding `index`: from the previous `;` to the next
+ * one (or the text's ends). Semicolons rather than newlines, so a matcher
+ * chain wrapped over several lines stays one statement.
+ *
+ * @param {string} code The source text (comments blanked).
+ * @param {number} index An index inside the statement.
+ * @returns {[number, number]} The `[start, end)` bounds.
+ */
+function statementBounds(code, index) {
+  const start = code.lastIndexOf(';', index) + 1;
+  const next = code.indexOf(';', index);
+
+  return [start, next === -1 ? code.length : next];
+}
+
+/**
+ * Is the `:visible` selector at `index` counted? Either its own statement
+ * counts it (`await expect(page.locator('tr:visible')).toHaveCount(12)`,
+ * `expect(await grid.locator('td:visible').count())`), or the statement
+ * captures the locator into an identifier that a later statement in the same
+ * scope counts (`const rows = page.locator('tr:visible'); … rows.count()`,
+ * `expect(rows).not.toHaveCount(…)`). A `:visible` that is clicked, hovered,
+ * or narrowed with `.first()` is not a count.
+ *
+ * @param {string} code The source text (comments blanked).
+ * @param {number} index Index of the `:visible` match.
+ * @param {number} scopeEnd End index of the innermost enclosing describe (or the text).
+ * @returns {boolean} True when the selector feeds a count.
+ */
+function isCountedVisibleSelector(code, index, scopeEnd) {
+  const [start, end] = statementBounds(code, index);
+  const statement = code.slice(start, end);
+
+  if (COUNT_SHAPE_RE.test(statement)) {
+    return true;
+  }
+
+  const capture = statement.match(/(?<![\w$.])(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=/);
+
+  if (!capture) {
+    return false;
+  }
+
+  const name = escapeRegExp(capture[1]);
+  const countedLater = new RegExp(
+    `(?<![\\w$.])${name}\\s*\\.\\s*count\\s*\\(`
+    + `|expect\\s*\\(\\s*${name}\\s*\\)(?:\\s*\\.\\s*\\w+)*\\s*\\.\\s*toHaveCount\\s*\\(`,
+  );
+
+  return countedLater.test(code.slice(end, scopeEnd));
+}
+
+/**
  * Count rendered-count reads whose viewport is not pinned: no enclosing
  * describe (or, for a top-level test, the whole file) sets an explicit
  * `width`/`height` or scrolls with `scrollViewportTo`. Row heights differ per
  * theme (main/horizon/classic), so an unpinned "how many rows rendered" count
- * is a different number on each leg of the theme matrix.
+ * is a different number on each leg of the theme matrix. A read is a legacy
+ * `count*`/`getRendered*Count` helper call or a `:visible` selector that
+ * something counts.
  *
  * @param {string} src The spec file contents.
  * @returns {number} The number of unpinned rendered-count reads.
@@ -385,10 +462,19 @@ function testBodies(src) {
 export function findViewportSmells(src) {
   const code = blankComments(src);
   const scopes = describeScopes(code);
+  const enclosingOf = index => scopes.filter(scope => scope.start <= index && index <= scope.end);
+  const helperReads = [...code.matchAll(RENDERED_COUNT_HELPER_RE)].map(match => match.index);
+  const visibleReads = [...code.matchAll(VISIBLE_SELECTOR_RE)]
+    .map(match => match.index)
+    .filter((index) => {
+      const scopeEnd = Math.min(code.length, ...enclosingOf(index).map(scope => scope.end));
+
+      return isCountedVisibleSelector(code, index, scopeEnd);
+    });
   let count = 0;
 
-  for (const match of code.matchAll(RENDERED_COUNT_RE)) {
-    const enclosing = scopes.filter(scope => scope.start <= match.index && match.index <= scope.end);
+  for (const index of [...helperReads, ...visibleReads]) {
+    const enclosing = enclosingOf(index);
     const texts = enclosing.length > 0 ? enclosing.map(scope => scope.body) : [code];
 
     if (!texts.some(text => VIEWPORT_PIN_RE.test(text))) {
@@ -461,7 +547,7 @@ export function findUnassertedCaptures(src) {
     for (const capture of body.matchAll(AWAITED_CAPTURE_RE)) {
       const name = capture[1];
       const from = capture.index + capture[0].length;
-      const useRe = new RegExp(`(?<![\\w$.])${name.replace(/\$/g, '\\$')}(?![\\w$])`, 'g');
+      const useRe = new RegExp(`(?<![\\w$.])${escapeRegExp(name)}(?![\\w$])`, 'g');
       const receiverRe = /^\s*\??\.\s*(?:expect|assert|verify)\w*\s*\(/;
       let asserted = false;
 

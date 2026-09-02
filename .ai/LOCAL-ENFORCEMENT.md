@@ -45,9 +45,12 @@ only place appended blocks surface; state the justification in the PR if the
 frozen tier is right), the **empty red-spec field** (the PR ticks "Bug fix" but
 leaves the template's "spec that fails without this fix" line blank — CI only: the
 `presence` job in `checks.yml` fetches the *live* body into `GATE_PR_BODY_FILE`
-the way the Manual QA job does; locally the check is skipped silently), **RTL
-correlation** (source added `isRtl`/`layoutDirection` logic and no test line
-mentions RTL), and **Walkontable routing** (engine source changed with nothing
+the way the Manual QA job does; locally the check is skipped silently — an
+answer on the line below the template line counts, a sibling item or the next
+heading does not), **RTL correlation** (source added `isRtl`/`layoutDirection`
+logic and no test-side line mentions RTL — a test file, or any file under
+`tests/**`, page objects and helpers included), and **Walkontable routing**
+(engine source changed with nothing
 under `handsontable/src/3rdparty/walkontable/test/` or `tests/e2e/walkontable/`).
 In CI each one is also a `::warning` annotation. A new detector is a pure
 function in that lib plus a `node --test` case in

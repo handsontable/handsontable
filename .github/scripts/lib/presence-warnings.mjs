@@ -16,8 +16,14 @@
  * - red-spec field — the PR ticks "Bug fix" but leaves the template's "spec
  *   that fails without this fix" line empty. CI only (needs the live body).
  * - RTL correlation — source added `isRtl`/`layoutDirection` logic and no
- *   test line mentions RTL.
- * - Walkontable routing — engine source changed with no engine-tier test.
+ *   test-side line mentions RTL. Test-side is a file the gate classifies as
+ *   'test' plus anything under `tests/**`: a Playwright page object or helper
+ *   there is 'neither' to the gate (it is not coverage), yet it is where the
+ *   RTL setup usually lands.
+ * - Walkontable routing — engine source changed with no engine-tier test. It
+ *   deliberately requires classify(path) === 'source' (a spec or helper under
+ *   `walkontable/test/` is never "the engine changed") and ignores a D status
+ *   (a deletion needs no new coverage).
  */
 import { classify, isFrozenJasmineSpec } from './presence-gate.mjs';
 
@@ -38,6 +44,11 @@ const SOURCE_RTL_RE = /isRtl|layoutDirection/;
  * `layoutDirection: 'rtl'`).
  */
 const TEST_RTL_RE = /rtl|layoutDirection/i;
+
+/**
+ * The Playwright package: specs, page objects, fixtures, and helpers alike.
+ */
+const TESTS_PACKAGE_RE = /^tests\//;
 
 const WALKONTABLE_SOURCE_RE = /^handsontable\/src\/3rdparty\/walkontable\/src\//;
 const WALKONTABLE_TEST_RE = [
@@ -145,6 +156,40 @@ export function frozenSuiteGrowth(files, { threshold = 3 } = {}) {
 }
 
 /**
+ * Strip HTML comments from a Markdown body. An index scanner rather than a
+ * regex replace: removing one comment can splice its neighbors into a new
+ * `<!--` (`<!<!-- -->--`), which a single pass leaves behind, so after each
+ * removal the scan resumes just before the seam and runs until no opener is
+ * left. Comments do not nest — the first `-->` closes — and an unterminated
+ * `<!--` hides the rest of the text, as it does in the rendered body.
+ *
+ * @param {string} text The body text.
+ * @returns {string} The text with every comment removed.
+ */
+export function stripHtmlComments(text) {
+  let out = text;
+  let from = 0;
+
+  for (;;) {
+    const open = out.indexOf('<!--', from);
+
+    if (open === -1) {
+      return out;
+    }
+
+    const close = out.indexOf('-->', open + 4);
+
+    if (close === -1) {
+      return out.slice(0, open);
+    }
+
+    out = out.slice(0, open) + out.slice(close + 3);
+    // The splice may have formed a new opener across the seam: `<!` + `--`.
+    from = Math.max(0, open - 3);
+  }
+}
+
+/**
  * Red-spec field: the PR body ticks "Bug fix" but the template's "For a bug
  * fix — the spec that fails without this fix:" line carries nothing after the
  * colon once HTML comments (the `<!-- name -->` placeholder) are stripped. A
@@ -159,29 +204,75 @@ export function redSpecFieldMissing(body) {
     return false;
   }
 
-  const text = body.replace(/<!--[\s\S]*?-->/g, '');
+  const text = stripHtmlComments(body);
   const bugFixTicked = /^\s*-\s*\[[xX]\]\s+Bug fix\b/m.test(text);
 
   if (!bugFixTicked) {
     return false;
   }
 
-  const line = text.match(/^\s*-\s*For a bug fix\s*[-–—]\s*the spec that fails without this fix:(.*)$/m);
+  const line = text.match(/^([ \t]*)-\s*For a bug fix\s*[-–—]\s*the spec that fails without this fix:(.*)$/m);
 
   if (!line) {
     return false;
   }
 
-  return line[1].trim() === '';
+  if (line[2].trim() !== '') {
+    return false;
+  }
+
+  return !hasContinuation(text.slice(line.index + line[0].length), line[1].length);
+}
+
+/**
+ * Does the text after the template line carry the answer? The next non-blank
+ * line counts when it is free text or a list item nested deeper than the
+ * template line; a sibling item (the next template line) or a heading (the
+ * next section) means nothing was written.
+ *
+ * @param {string} rest The body text after the template line.
+ * @param {number} indent The template line's indentation width.
+ * @returns {boolean} True when a continuation line holds content.
+ */
+function hasContinuation(rest, indent) {
+  for (const raw of rest.split('\n')) {
+    if (raw.trim() === '') {
+      continue;
+    }
+
+    if (/^\s*#/.test(raw)) {
+      return false;
+    }
+
+    const item = raw.match(/^([ \t]*)(?:[-*+]|\d+[.)])\s/);
+
+    return !(item && item[1].length <= indent);
+  }
+
+  return false;
+}
+
+/**
+ * Is the file on the test side for the RTL pairing? The gate's 'test' class
+ * plus anything under `tests/**`: a Playwright page object or helper there is
+ * 'neither' to the gate (it is not coverage), yet it is where the RTL setup
+ * (`initGrid({ layoutDirection: 'rtl' })`) usually lands, and a spec that
+ * calls it need not spell "rtl" itself.
+ *
+ * @param {string} path Repo-relative path.
+ * @returns {boolean} True for a test file or any file of the Playwright package.
+ */
+function isTestSide(path) {
+  return classify(path) === 'test' || TESTS_PACKAGE_RE.test(path);
 }
 
 /**
  * RTL correlation: production source gained `isRtl`/`layoutDirection` logic
- * and no test file gained a line that mentions RTL at all.
+ * and no test-side file gained a line that mentions RTL at all.
  *
  * @param {{path: string, added: string[]}[]} files Parsed diff files.
  * @returns {{sourceFiles: string[]}|null} The source files with new RTL logic,
- *   or null when there is none or a test line pairs it.
+ *   or null when there is none or a test-side line pairs it.
  */
 export function rtlCorrelation(files) {
   const sourceFiles = files
@@ -192,7 +283,7 @@ export function rtlCorrelation(files) {
     return null;
   }
 
-  const testMentionsRtl = files.some(file => classify(file.path) === 'test'
+  const testMentionsRtl = files.some(file => isTestSide(file.path)
     && file.added.some(line => TEST_RTL_RE.test(line)));
 
   return testMentionsRtl ? null : { sourceFiles };
@@ -256,7 +347,7 @@ export function collectWarnings({ changes = [], diff = '', prBody } = {}) {
   if (rtl) {
     warnings.push({
       type: 'rtl-correlation',
-      message: 'RTL logic changed (`isRtl` / `layoutDirection` added in source) with no test line mentioning RTL. '
+      message: 'RTL logic changed (`isRtl` / `layoutDirection` added in source) with no test-side line mentioning RTL. '
         + 'Cover the change under `layoutDirection: \'rtl\'` too — mirrored offsets are the classic escape.',
       files: rtl.sourceFiles,
     });

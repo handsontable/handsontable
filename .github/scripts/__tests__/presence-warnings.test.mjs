@@ -1,9 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { repoRoot } from '../lib/repo-root.mjs';
+import { classify } from '../lib/presence-gate.mjs';
 import {
   parseUnifiedDiff,
   countNewTestBlocks,
   frozenSuiteGrowth,
+  stripHtmlComments,
   redSpecFieldMissing,
   rtlCorrelation,
   walkontableRouting,
@@ -123,10 +128,32 @@ test('frozen-suite growth sums across files and honors a custom threshold', () =
   assert.equal(frozenSuiteGrowth(files, { threshold: 5 }), null);
 });
 
+// --- stripHtmlComments ---
+test('stripHtmlComments removes every comment, including one that a single pass would re-form', () => {
+  assert.equal(stripHtmlComments('a <!-- x --> b'), 'a  b');
+  assert.equal(stripHtmlComments('a<!-- x -->b<!-- y -->c'), 'abc');
+
+  // Removing the inner `<!-- -->` splices `<!` and `--` into a new `<!--`. A
+  // single regex pass leaves it behind (CodeQL js/incomplete-multi-character-sanitization).
+  const nested = '<!<!-- -->--';
+
+  assert.equal(stripHtmlComments(nested).includes('<!--'), false, nested);
+  assert.equal(stripHtmlComments(`${nested} tail`).includes('<!--'), false, `${nested} tail`);
+  assert.equal(stripHtmlComments(`<!<!<!-- --><!-- -->----`).includes('<!--'), false, 'two seams');
+
+  // Comments do not nest: the first `-->` closes the comment.
+  assert.equal(stripHtmlComments('a<!-- x <!-- y -->b -->c'), 'ab -->c');
+  // An unterminated comment hides the rest, as it does in the rendered body.
+  assert.equal(stripHtmlComments('kept <!-- lost'), 'kept ');
+  assert.equal(stripHtmlComments(''), '');
+});
+
 // --- redSpecFieldMissing ---
 const TEMPLATE_LINE = '- For a bug fix — the spec that fails without this fix: <!-- name -->';
 const BUG_FIX_TICKED = '- [x] Bug fix (non-breaking change which fixes an issue)';
 const BUG_FIX_UNTICKED = '- [ ] Bug fix (non-breaking change which fixes an issue)';
+const EMPTY_LINE = '- For a bug fix — the spec that fails without this fix:';
+const NEXT_TEMPLATE_LINE = '- Demo page / recorded trace (for UI changes): n/a';
 
 test('a ticked Bug fix box with the red-spec line left as the template placeholder warns', () => {
   const body = ['### Test evidence', TEMPLATE_LINE, '', '### Types of changes', BUG_FIX_TICKED].join('\n');
@@ -162,6 +189,53 @@ test('the red-spec line is matched with a hyphen or an en dash as well as the te
   }
 });
 
+test('a red-spec answer written on the next line — free text or a nested list — counts as filled', () => {
+  const freeText = [EMPTY_LINE, '  `tests/e2e/filters.spec.ts` — "keeps the filter after undo"', NEXT_TEMPLATE_LINE, BUG_FIX_TICKED];
+  const nestedList = [EMPTY_LINE, '  - `tests/e2e/filters.spec.ts`', '  - `tests/e2e/undo.spec.ts`', NEXT_TEMPLATE_LINE, BUG_FIX_TICKED];
+  const afterBlank = [EMPTY_LINE, '', '  n/a — tooling change', NEXT_TEMPLATE_LINE, BUG_FIX_TICKED];
+
+  assert.equal(redSpecFieldMissing(freeText.join('\n')), false, 'free text on the next line');
+  assert.equal(redSpecFieldMissing(nestedList.join('\n')), false, 'a nested list under the line');
+  assert.equal(redSpecFieldMissing(afterBlank.join('\n')), false, 'text after a blank line');
+  // GitHub bodies carry CRLF line endings.
+  assert.equal(redSpecFieldMissing(freeText.join('\r\n')), false, 'CRLF body');
+});
+
+test('an empty red-spec line followed by the next template item or a heading is still empty', () => {
+  const nextItem = [EMPTY_LINE, NEXT_TEMPLATE_LINE, BUG_FIX_TICKED];
+  const nextHeading = [EMPTY_LINE, '', '### How has this been tested?', 'Ran it.', BUG_FIX_TICKED];
+  const endOfBody = [BUG_FIX_TICKED, EMPTY_LINE];
+
+  assert.equal(redSpecFieldMissing(nextItem.join('\n')), true, 'a sibling list item is not an answer');
+  assert.equal(redSpecFieldMissing(nextHeading.join('\n')), true, 'the next section is not an answer');
+  assert.equal(redSpecFieldMissing(endOfBody.join('\n')), true, 'nothing follows');
+  assert.equal(redSpecFieldMissing(nextItem.join('\r\n')), true, 'CRLF body');
+});
+
+test('the presence job reads the live body on a step that cannot fail the job, and hands the file to the gate', () => {
+  const workflow = readFileSync(path.join(repoRoot(), '.github/workflows/checks.yml'), 'utf8');
+  const lines = workflow.split('\n');
+  const at = lines.findIndex(line => /-\s+name:\s+Read the live pull-request body/.test(line));
+
+  assert.notEqual(at, -1, 'the body-reading step exists');
+
+  // The step's own keys run until the next `- name:` (its sibling step).
+  const step = [];
+
+  for (let i = at + 1; i < lines.length && !/^\s*-\s+name:/.test(lines[i]); i += 1) {
+    step.push(lines[i]);
+  }
+
+  // An action-runtime failure here must skip one advisory check, never fail
+  // `presence` — and through test.yml's needs, the CI Gate.
+  assert.ok(step.some(line => /^\s*continue-on-error:\s*true\s*$/.test(line)), 'continue-on-error: true on the body step');
+
+  const gateStep = lines.findIndex(line => /-\s+name:\s+Evaluate test-presence gate \(warn\)/.test(line));
+
+  assert.ok(gateStep > at, 'the gate runs after the body is read');
+  assert.ok(lines.slice(gateStep, gateStep + 8).some(line => /GATE_PR_BODY_FILE:/.test(line)), 'the gate gets the body file');
+});
+
 // --- rtlCorrelation ---
 const RTL_SOURCE = fileDiff('handsontable/src/tableView.ts', [
   '  if (this.hot.isRtl()) {',
@@ -189,6 +263,32 @@ test('RTL logic in source is paired by any test line mentioning rtl or layoutDir
 
     assert.equal(rtlCorrelation(files), null, testLine);
   }
+});
+
+test('RTL logic in source is paired by a Playwright page object or helper under tests/**, which the gate classifies as neither', () => {
+  const pageObject = 'tests/fixtures/pages/GridPage.ts';
+  const helper = 'tests/support/layout.ts';
+
+  assert.equal(classify(pageObject), 'neither', 'a page object is not coverage for the gate');
+
+  for (const testSide of [pageObject, helper]) {
+    const paired = parseUnifiedDiff([
+      RTL_SOURCE,
+      fileDiff(testSide, ['  async initRtlGrid() { return this.initGrid({ layoutDirection: \'rtl\' }); }']),
+    ].join('\n'));
+
+    assert.equal(rtlCorrelation(paired), null, `${testSide} pairs the source change`);
+  }
+
+  // The tests/** file has to mention RTL itself — its presence alone pairs nothing.
+  const silentHelper = parseUnifiedDiff([RTL_SOURCE, fileDiff(pageObject, ['  async goto() {}'])].join('\n'));
+
+  assert.ok(rtlCorrelation(silentHelper), 'a tests/** change that never mentions RTL does not pair');
+
+  // Outside tests/** and outside the gate's test set, a mention is prose, not coverage.
+  const docsOnly = parseUnifiedDiff([RTL_SOURCE, fileDiff('docs/content/guides/rtl.md', ['RTL layout'])].join('\n'));
+
+  assert.ok(rtlCorrelation(docsOnly), 'a docs mention does not pair');
 });
 
 test('RTL correlation is silent when no source line mentions isRtl/layoutDirection, or only a test does', () => {
