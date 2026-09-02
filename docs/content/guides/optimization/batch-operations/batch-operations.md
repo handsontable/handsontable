@@ -47,11 +47,13 @@ Batch CRUD operations, to avoid unnecessary rendering cycles and boost your grid
 
 ## Overview
 
-Within Handsontable, every CRUD operation ends with a [`render()`](@/api/core.md#render). In most cases, this is considered expected behaviour. The table has to reflect the requested changes at some point. However, sometimes you may find this mechanism slightly excessive.
+Within Handsontable, every CRUD operation ends with a [`render()`](@/api/core.md#render). In most cases, this is considered expected behavior. The table has to reflect the requested changes at some point. However, sometimes you may find this mechanism slightly excessive.
 
-For example, if you wrote a custom function that uses several CRUD operations, those CRUD operations will call a [`render()`](@/api/core.md#render) for each API method. You only need one render at the end, which is sufficient to reflect all the changes. You can treat those combined operations as a single action and let the render wait for them to complete. To do this, use suspend the render to batch the operations.
+For example, if you wrote a custom function that uses several CRUD operations, those CRUD operations will call a [`render()`](@/api/core.md#render) for each API method. You only need one render at the end, which is sufficient to reflect all the changes. You can treat those combined operations as a single action and let the render wait for them to complete. To do this, suspend the render to batch the operations.
 
-This can improve the overall performance of the application. Batching several operations can decrease the number of renders, so any API call that ends with a render will benefit from this improvement. It results in less layout trashing, fewer freezes, and a more responsive feel.
+This can improve the overall performance of the application. Batching several operations can decrease the number of renders, so any API call that ends with a render will benefit from this improvement. It results in less layout thrashing, fewer freezes, and a more responsive feel.
+
+To learn what a single render does, which cells it covers, and what it costs, see [Understanding rendering](@/guides/optimization/rendering/rendering.md).
 
 There are several API methods you can use for suspending, but [`batch()`](@/api/core.md#batch) is the most universal method. It is a callback function where the [`render()`](@/api/core.md#render) is executed after all operations provided inside of the body are completed. It is best practice to use this method as it's safer and easier to use. You just need to place all operations that you want to batch inside a closure. Handsontable takes care of the suspending and performs a single [`render()`](@/api/core.md#render) at the end.
 
@@ -144,7 +146,7 @@ Methods names that are prefixed with `suspend\*`, i.e., [`suspendRender()`](@/ap
 
 #### batch
 
-This method supsends both rendering and other operations. It is universal and especially useful if you want to batch multiple API calls within the application.
+This method suspends both rendering and other operations. It is universal and especially useful if you want to batch multiple API calls within the application.
 
 ```js
 hot.batch(() => {
@@ -274,6 +276,7 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 
 <div class="boxes-list">
 
+- [Understanding rendering](@/guides/optimization/rendering/rendering.md)
 - [Performance](@/guides/optimization/performance/performance.md)
 - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
 - [Saving data](@/guides/getting-started/saving-data/saving-data.md)
@@ -312,7 +315,7 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 - [isRenderSuspended()](@/api/core.md#isrendersuspended)
 - [render()](@/api/core.md#render)
 - [resumeExecution()](@/api/core.md#resumeexecution)
-- [resumeRender()](@/api/core.md#render)
+- [resumeRender()](@/api/core.md#resumerender)
 - [suspendRender()](@/api/core.md#suspendrender)
 
 </div>

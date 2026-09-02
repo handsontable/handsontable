@@ -162,6 +162,7 @@ const buildingAndToolingItems = [
 ];
 
 const optimizationItems = [
+  { path: 'guides/optimization/rendering/rendering' },
   { path: 'guides/optimization/batch-operations/batch-operations' },
   // TODO { path: 'guides/optimization/touch-events/touch-events' },
   { path: 'guides/optimization/performance/performance' },

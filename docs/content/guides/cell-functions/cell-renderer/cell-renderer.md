@@ -531,6 +531,34 @@ Before deciding to attach an event listener in cell renderer make sure, that the
 
 If you did't find a suitable _Handsontable event_ put the cell content into a wrapping `<div>`, attach the event listener to the wrapper and then put it into the table cell.
 
+## Changes made outside a renderer do not survive
+
+Handsontable reuses `td` elements as you scroll, so before it runs a renderer it resets the element. It clears the cell's `class` attribute, and removes its inline `style`, its `dir` attribute, and its accessibility attributes. Only what a renderer writes back survives.
+
+::: warning
+
+Anything you write straight onto a cell's DOM node disappears at the next render:
+
+```js
+// Do not do this. The next render removes the class.
+hot.getCell(0, 0).classList.add('my-highlight');
+```
+
+:::
+
+You have two supported ways to make a visual change stick:
+
+- Store it in the cell's metadata, so that a built-in renderer reapplies it on every render. Because [`setCellMeta()`](@/api/core.md#setcellmeta) does not repaint the grid, follow it with [`render()`](@/api/core.md#render):
+
+  ```js
+  hot.setCellMeta(0, 0, 'className', 'my-highlight');
+  hot.render();
+  ```
+
+- Write a custom renderer. A renderer runs on every render, so what it writes is always reapplied.
+
+For the full picture of when a render happens and what it covers, see [Understanding rendering](@/guides/optimization/rendering/rendering.md).
+
 ## Performance considerations
 
 Cell renderers are called separately for every displayed cell, during every table render. Table can be rendered multiple times during its lifetime (after table scroll, after table sorting, after cell edit etc.), therefore you should keep your `renderer` functions as simple and fast as possible or you might experience a performance drop, especially when dealing with large sets of data.
