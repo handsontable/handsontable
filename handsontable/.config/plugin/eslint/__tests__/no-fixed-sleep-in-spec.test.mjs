@@ -1,6 +1,8 @@
-// RuleTester coverage for the frozen-tier determinism rule. Runs under
-// `node --test` (root `npm run test:tooling`), so ESLint's RuleTester is pointed
-// at node:test's describe/it instead of the Mocha globals it looks for by default.
+// RuleTester coverage for the frozen-tier determinism rule. Runs under `node --test`
+// through `npm run test:eslint-rules` in the handsontable package (CI: the `Lint / core`
+// job, which has ESLint installed - the dependency-free root `test:tooling` job must not
+// import it), so ESLint's RuleTester is pointed at node:test's describe/it instead of the
+// Mocha globals it looks for by default.
 import { describe, it } from 'node:test';
 import eslint from 'eslint';
 import rule from '../rules/no-fixed-sleep-in-spec.js';
@@ -30,6 +32,10 @@ tester.run('no-fixed-sleep-in-spec', rule, {
     'window.setTimeout(callback, hot.getSettings().debounce);',
     // Handsontable's own destroy-safe timer helper is not the global timer.
     'hot._registerTimeout(callback, 100);',
+    // Neither is a `setTimeout` METHOD on some other object: a wrapper, a fake-timer facade, a
+    // test double. Only the global timer (bare, `window.`, `globalThis.`) is a wait on the page.
+    'scheduler.setTimeout(callback, 100);',
+    'this.timers.setTimeout(callback, 250);',
     // Spying on or clearing a timer does not wait on it.
     'spyOn(window, "setTimeout");',
     'clearTimeout(timerId);',
@@ -61,6 +67,10 @@ tester.run('no-fixed-sleep-in-spec', rule, {
     },
     {
       code: 'window.setTimeout(resolve, 50);',
+      errors: [{ messageId: 'noSetTimeout' }],
+    },
+    {
+      code: 'globalThis.setTimeout(resolve, 50);',
       errors: [{ messageId: 'noSetTimeout' }],
     },
     {

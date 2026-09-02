@@ -15,26 +15,28 @@ function isFixedDuration(node) {
 }
 
 /**
- * Resolve the called name of `foo(...)` and `obj.foo(...)` alike.
+ * Whether the callee is the GLOBAL timer: a bare `setTimeout` or one reached through `window` /
+ * `globalThis`. A `setTimeout` method on any other object (`hot._registerTimeout`-style wrappers,
+ * a fake-timer facade, a test double) is that object's contract, not a fixed wait on the page,
+ * so it is deliberately not judged here - the same scope the Playwright tier's ban uses.
  *
  * @param {object} callee The CallExpression callee node.
- * @returns {string|null} The identifier or property name, or null for computed shapes.
+ * @returns {boolean}
  */
-function calledName(callee) {
+function isGlobalTimerCall(callee) {
   if (!callee) {
-    return null;
+    return false;
   }
 
   if (callee.type === 'Identifier') {
-    return callee.name;
+    return callee.name === 'setTimeout';
   }
 
-  if (callee.type === 'MemberExpression' && !callee.computed && callee.property
-    && callee.property.type === 'Identifier') {
-    return callee.property.name;
-  }
-
-  return null;
+  return callee.type === 'MemberExpression' && !callee.computed
+    && callee.object && callee.object.type === 'Identifier'
+    && (callee.object.name === 'window' || callee.object.name === 'globalThis')
+    && callee.property && callee.property.type === 'Identifier'
+    && callee.property.name === 'setTimeout';
 }
 
 module.exports = {
@@ -63,8 +65,8 @@ module.exports = {
   create(context) {
     return {
       /**
-       * Flag the three fixed-delay shapes: a direct `sleep(...)` call, a `setTimeout` (bare or as
-       * `window.setTimeout`) whose delay is a non-zero numeric literal, and any
+       * Flag the three fixed-delay shapes: a direct `sleep(...)` call, a global `setTimeout` (bare,
+       * `window.setTimeout`, or `globalThis.setTimeout`) whose delay is a non-zero numeric literal, and any
        * `waitForNextAnimationFrames(...)`.
        *
        * @param {object} node The CallExpression node.
@@ -79,7 +81,7 @@ module.exports = {
           return;
         }
 
-        if (calledName(callee) === 'setTimeout' && isFixedDuration(node.arguments[1])) {
+        if (isGlobalTimerCall(callee) && isFixedDuration(node.arguments[1])) {
           context.report({ node, messageId: 'noSetTimeout' });
 
           return;
