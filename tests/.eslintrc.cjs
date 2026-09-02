@@ -3,9 +3,10 @@
 // legacy config loader requires CJS.
 //
 // This tier is greenfield — there is no legacy debt to baseline — so the
-// determinism bans ship at `error`, not `warn`. A fixed delay or a
-// `networkidle` wait must never enter a Playwright spec: wait for a
-// condition (a web-first assertion, a locator state) instead.
+// determinism bans ship at `error`, not `warn`. A fixed delay (`waitForTimeout`,
+// `sleep`, a `setTimeout` — including one hidden inside `page.evaluate`) or a
+// `networkidle` wait must never enter a Playwright spec: wait for a condition
+// (a web-first assertion, a locator state, `expect.poll` on a data probe) instead.
 //
 // Scope is deliberately minimal: the @typescript-eslint PARSER (so `.ts`
 // specs parse) plus core `no-restricted-syntax` bans. It does NOT pull in
@@ -34,6 +35,12 @@ module.exports = {
       {
         selector: "CallExpression[callee.name='sleep']",
         message: 'No fixed sleep() delay — wait for a condition instead. See .claude/skills/handsontable-playwright-e2e/references/determinism.md.',
+      },
+      {
+        // Bare `setTimeout(` and `window.setTimeout(` alike — the usual disguise is a timer inside
+        // `page.evaluate` once `waitForTimeout` is banned.
+        selector: "CallExpression[callee.name='setTimeout'], CallExpression[callee.property.name='setTimeout']",
+        message: 'No setTimeout() in a spec — a fixed timer is not a wait. Poll a data probe with expect.poll, or use a web-first assertion. A justified exception (a scheduling barrier, never a duration) carries the same eslint-disable line as test.fixme below, naming the owning task, so it stays counted and attributable. See tests/AGENTS.md.',
       },
       {
         selector: "Literal[value='networkidle']",

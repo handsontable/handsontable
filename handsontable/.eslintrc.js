@@ -184,6 +184,22 @@ module.exports = {
         'import/no-relative-packages': 'off',
       }
     },
+    // The custom ESLint rules' own RuleTester tests run as ESM under `node --test` (root
+    // `npm run test:tooling`), so a relative import must carry the extension Node's ESM resolver
+    // requires — the same allowance the root config gives `scripts/**/*.mjs`.
+    {
+      files: ['.config/plugin/eslint/__tests__/*.mjs'],
+      rules: {
+        'import/extensions': [
+          'error',
+          'never',
+          {
+            js: ['error', 'always'],
+            mjs: ['error', 'always'],
+          }
+        ],
+      }
+    },
     {
       files: [
         'test/**',
@@ -232,9 +248,11 @@ module.exports = {
         'handsontable/restricted-module-imports': 'off',
         'handsontable/require-async-in-it': 'error',
         // Determinism guards for the frozen Jasmine suite. WARN, not error: the
-        // existing sleep()/it.flaky() debt must surface without red-walling CI.
-        // Escalation to error happens in the flip-to-blocking task once the
-        // debt is burned down. New E2E belongs in Playwright (tests/e2e).
+        // existing sleep()/setTimeout(fn, <ms>)/waitForNextAnimationFrames()/it.flaky()
+        // debt must surface without red-walling CI. The condition-based replacement
+        // is the `waitUntil()` spec global (test/helpers/common.js). Escalation to
+        // error happens in the flip-to-blocking task once the debt is burned down.
+        // New E2E belongs in Playwright (tests/e2e).
         'handsontable/no-fixed-sleep-in-spec': 'warn',
         'handsontable/no-new-it-flaky': 'warn',
         // Anti-gaming (green-for-the-sake-of-green) guards. Focus is ERROR — a

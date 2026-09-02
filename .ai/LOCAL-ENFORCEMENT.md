@@ -73,6 +73,29 @@ Machine-enforced by the presence gate; full decision rules in
 
 Full discipline: the `test-writing-discipline` skill.
 
+### The determinism rules (what lint bans, per tier)
+
+One rule, three enforcement points, so the local hooks, CI, and the evals scorer
+agree on what a "fixed wait" is:
+
+| Tier | Where | Level | Flags |
+|---|---|---|---|
+| Playwright (`tests/`) | `tests/.eslintrc.cjs` (`no-restricted-syntax`) | **error** | `waitForTimeout(`, `sleep(`, `setTimeout(` (bare or `window.`, inside `page.evaluate` too), `'networkidle'`, `.only`, `.skip`, bare `test.fixme` |
+| Frozen Jasmine + Jest (`*.spec.js`, `*.unit.js`) | `handsontable/no-fixed-sleep-in-spec` (`handsontable/.config/plugin/eslint/rules/`) | warn | `sleep(` (`noSleep`), `setTimeout(fn, <numeric literal>)` (`noSetTimeout`), `waitForNextAnimationFrames(` (`noFrameWait`) |
+| Evals scorer | `evals/score.mjs` `findDeterminismSmells()` | verdict `suspect` | `sleep-call`, `wait-for-timeout`, `network-idle`, `set-timeout`, `fixed-frame-wait` |
+
+The replacement is always a condition: a web-first assertion or `expect.poll` on
+the Playwright tier, the `waitUntil(condition, timeout)` spec global
+(`handsontable/test/helpers/common.js`) on the frozen tier. The Playwright tier's
+only sanctioned exception is a 0ms scheduling barrier that lets a negative
+assertion prove "nothing else fired"; it carries the same eslint-disable line as
+`test.fixme`, naming the owning task (`tests/AGENTS.md`). The frozen tier stays
+at **warn** until the debt is burned down — the count is the burn-down's backlog,
+not a gate. The rule's RuleTester coverage lives in
+`handsontable/.config/plugin/eslint/__tests__/` and every scorer signal has a
+fixture under `evals/fixtures/<case>/counterexamples/` that must score `suspect`;
+both run under `npm run test:tooling`.
+
 ### The tracked human exception (the manual-QA tickbox)
 
 When automated coverage genuinely cannot judge a change (subtle UX, a visual
@@ -89,7 +112,8 @@ presence gate or the test requirement. Do not use it to dodge writing tests.
 
 - **Location.** Git hooks → `lefthook.yml` + `scripts/` (`pre-push.mjs`, `lint-staged.mjs`, `lint-files.mjs`). Agent hooks → `scripts/claude/` (`post-tool-use.mjs`, `stop.mjs`, `session.mjs`), wired in `.claude/settings.json`. Shared, pure classifiers and layout helpers → `.github/scripts/lib/` (`presence-gate.mjs`, `test-weakening.mjs`, `repo-root.mjs`).
 - **Must work in a linked worktree.** Agent-driven work runs in `git worktree` checkouts, so never derive the repo layout from git or the cwd: take the root from `repoRoot()` (`.github/scripts/lib/repo-root.mjs`) and per-checkout state from `gitDir(root)`. A hook exports `GIT_DIR`, and with it set `git rev-parse --show-toplevel` returns the *cwd*, not the work tree; in a worktree `<root>/.git` is a **file**, so writing under it fails with ENOTDIR. Strip `GIT_DIR`/`GIT_WORK_TREE` from the environment of any child you spawn with an explicit `cwd`.
-- **Pure + tested.** Put the decision logic in a **pure function** in a lib and **unit-test it** (`scripts/__tests__/`, `.github/scripts/__tests__/`, run with `node --test`). **A hook change ships a test change** — this rule applies to the enforcement machinery too.
+- **Pure + tested.** Put the decision logic in a **pure function** in a lib and **unit-test it** (`scripts/__tests__/`, `.github/scripts/__tests__/`, run with `node --test`). **A hook change ships a test change** — this rule applies to the enforcement machinery too. A custom ESLint rule is machinery as well: it gets RuleTester coverage in `handsontable/.config/plugin/eslint/__tests__/*.test.mjs` (ESLint's `RuleTester` pointed at `node:test`'s `describe`/`it`), and a scorer signal gets a `counterexamples/` fixture (`evals/README.md`). Both globs are in the root `test:tooling` script, which is what CI's `tooling tests` job runs — a new test directory that is not in that script never runs anywhere.
+- **A custom ESLint rule is live only after `pnpm install`.** `eslint-plugin-handsontable` is a `file:` dependency, and pnpm materializes those as a *copy* under `node_modules/.pnpm/`, not a symlink. Until you reinstall (`pnpm install --frozen-lockfile --offline`, under a minute), every lint run — the hooks, `npm run lint`, a `--format json` debt count — executes the rule as it was at the previous install, while the RuleTester tests (which import the source file) already pass. Verify with `diff` against the copy before trusting a lint result that disagrees with the tests.
 - **Must not false-block.** Skip config/parse gaps (ESLint exit 2), record only **repo-relative, in-repo** paths (never scratchpad/out-of-repo), tolerate a missing base ref. A hook that fires on a false positive gets disabled — that is worse than no hook.
 - **Must stay fast.** No build in the pre-push or agent hooks; run only the **changed scope**. Heavy/full-suite work is CI's job.
 - **Bound what you feed the agent.** An agent hook's failure message is a conversation message, so its cost is re-paid on every later request in the session — never paste a raw run or lint report into it. Pass it through `condenseTestOutput()` (`scripts/pre-push.mjs`): noise stripped, repeats collapsed, the excerpt anchored at the failing test so the diagnosis survives, capped at 120 lines / 8 KB. The caps are structural, not filter-dependent — filter-proof input still condenses. A hook writing to a **terminal** (pre-push) keeps printing in full up to `TERMINAL_OUTPUT_LIMIT`.

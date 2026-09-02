@@ -65,12 +65,14 @@
 | `handsontable/restricted-module-imports` | No imports from barrel index files (`plugins/index`, `editors/index`, `renderers/index`, `validators/index`, `cellTypes/index`, `i18n/index`). Import from specific submodule paths. Only exception: `src/registry.ts` |
 | `handsontable/require-async-in-it` | All `it()` callbacks in `*.spec.js` must be `async`. Disabled for `*.unit.js` |
 | `handsontable/require-await` | Specific HOT API calls must be `await`-ed in `*.spec.js` (full list in `handsontable/.eslintrc.js` lines 84-151) |
-| `handsontable/no-fixed-sleep-in-spec` | No fixed `sleep()` delay in `*.spec.js` — wait for a condition instead. `warn` (surfaces the frozen suite's legacy debt without red-walling CI); new E2E belongs in Playwright |
+| `handsontable/no-fixed-sleep-in-spec` | No fixed delay in `*.spec.js` / `*.unit.js`: `sleep()` (`noSleep`), a `setTimeout` — bare or `window.setTimeout` — whose delay is a numeric literal (`noSetTimeout`), and any `waitForNextAnimationFrames()` (`noFrameWait`). Replace all three with the `waitUntil(condition, timeout)` spec global from `test/helpers/common.js`. `warn` (surfaces the frozen suite's legacy debt without red-walling CI); new E2E belongs in Playwright. RuleTester coverage: `.config/plugin/eslint/__tests__/` (root `npm run test:tooling`) |
 | `handsontable/no-new-it-flaky` | No new `it.flaky()`/`fit.flaky()` — fix the flake at its source or migrate the spec to Playwright. `warn` for the same reason |
 | `no-restricted-globals` | Source: `window`, `document`, `console`, `Handsontable` banned. Tests: only `fit`, `fdescribe` banned |
 | `compat/compat` | Browser API compatibility check (off in test files) |
 
-The Playwright tier (`tests/`) has its own config (`tests/.eslintrc.cjs`) with the `@typescript-eslint` parser and `no-restricted-syntax` bans for `page.waitForTimeout()`, `sleep()`, and `'networkidle'` — at `error`, since that tier is greenfield with no debt to baseline.
+The Playwright tier (`tests/`) has its own config (`tests/.eslintrc.cjs`) with the `@typescript-eslint` parser and `no-restricted-syntax` bans for `page.waitForTimeout()`, `sleep()`, `setTimeout()` (bare or `window.`, which also catches a timer hidden inside `page.evaluate`), `'networkidle'`, `.only`, `.skip`, and bare `test.fixme` — at `error`, since that tier is greenfield with no debt to baseline. A justified `setTimeout` (a 0ms scheduling barrier, never a duration) carries the same eslint-disable line as `test.fixme`, naming the owning task; see `tests/AGENTS.md`. The evals scorer (`evals/score.mjs`) mirrors both tiers' bans as `determinismSmells`.
+
+**Editing a custom rule needs a `pnpm install` before the change is live.** `eslint-plugin-handsontable` is a `file:.config/plugin/eslint` dependency, and pnpm materializes a `file:` dependency as a *copy* under `node_modules/.pnpm/`, not a symlink — so ESLint keeps running the rule as it was at the last install. The RuleTester tests import the rule source directly and are unaffected; a lint run (local or the `--format json` debt count) is not. `pnpm install --frozen-lockfile --offline` refreshes the copy in under a minute.
 
 **Test file overrides (relaxed rules in `handsontable/.eslintrc.js`):**
 - `jsdoc/require-jsdoc`: off in `*.unit.js` and `*.spec.js`

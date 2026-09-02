@@ -1,5 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   scanBalanced,
   extractTestBlocks,
@@ -12,6 +15,7 @@ import {
   parseMutationReport,
   runMutation,
   scoreTestSource,
+  scoreTestFile,
 } from '../score.mjs';
 
 const MUTATION_STUB = { available: false, reason: 'stryker not installed' };
@@ -136,6 +140,70 @@ test('determinism smells: sleep(, waitForTimeout, and networkidle are detected',
   assert.ok(score.problems.some(p => p.type === 'determinism-smells'));
 });
 
+test('determinism smells: setTimeout( and waitForNextAnimationFrames( are detected', () => {
+  const src = `
+    it('waits blindly, in disguise', async() => {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      await page.evaluate(() => new Promise(resolve => window.setTimeout(resolve, 50)));
+      await waitForNextAnimationFrames(2);
+      expect(x).toBe(1);
+    });
+  `;
+  const smells = findDeterminismSmells(src);
+  const byType = Object.fromEntries(smells.map(s => [s.type, s.count]));
+
+  assert.deepEqual(byType, { 'set-timeout': 2, 'fixed-frame-wait': 1 });
+
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.equal(score.verdict, 'suspect');
+  assert.ok(score.problems.some(p => p.type === 'determinism-smells'));
+});
+
+test('determinism smells: timer look-alikes and the condition-based waiters are not smells', () => {
+  const src = `
+    it('waits on the condition', async() => {
+      hot._registerTimeout(callback, 100);
+      clearTimeout(timerId);
+      await waitUntil(() => spy.calls.count() === 1);
+      await waitForNextAnimationFramesToSettle();
+      await expect.poll(() => grid.rowCount()).toBe(5);
+      expect(x).toBe(1);
+    });
+  `;
+
+  assert.deepEqual(findDeterminismSmells(src), []);
+});
+
+test('the counterexample fixtures each carry exactly the one smell they exist to prove', async() => {
+  const counterexamples = fileURLToPath(
+    new URL('../fixtures/e2e-escape-cancels-edit/counterexamples/', import.meta.url),
+  );
+  const setTimeoutScore = await scoreTestFile(join(counterexamples, 'escape-cancels-edit-set-timeout.spec.ts'));
+  const frameWaitScore = await scoreTestFile(join(counterexamples, 'escape-cancels-edit-frame-wait.spec.js'));
+
+  assert.deepEqual(setTimeoutScore.determinismSmells, [{ type: 'set-timeout', count: 1 }]);
+  assert.equal(setTimeoutScore.verdict, 'suspect');
+  assert.deepEqual(setTimeoutScore.problems.map(p => p.type), ['determinism-smells']);
+
+  assert.deepEqual(frameWaitScore.determinismSmells, [{ type: 'fixed-frame-wait', count: 1 }]);
+  assert.equal(frameWaitScore.verdict, 'suspect');
+  assert.deepEqual(frameWaitScore.problems.map(p => p.type), ['determinism-smells']);
+});
+
+test('run-eval: every reference scores meaningful and every counterexample scores suspect', () => {
+  const runEval = fileURLToPath(new URL('../run-eval.mjs', import.meta.url));
+  const output = execFileSync(process.execPath, [runEval, '--json'], { encoding: 'utf8' });
+  const { results, structuralErrors } = JSON.parse(output);
+  const byRole = role => results.filter(result => result.role === role);
+
+  assert.deepEqual(structuralErrors, []);
+  assert.ok(byRole('reference').length >= 3, 'the three reference cases are scored');
+  assert.ok(byRole('counterexample').length >= 2, 'the counterexamples are scored');
+  assert.ok(byRole('reference').every(result => result.score.verdict === 'meaningful'));
+  assert.ok(byRole('counterexample').every(result => result.score.verdict === 'suspect'));
+});
+
 test('a clean, meaningful test scores clean', () => {
   const src = `
     import { test, expect } from '@playwright/test';
@@ -236,7 +304,9 @@ test('runMutation scopes stryker with --mutate and parses the report (injected I
   const result = runMutation(['src/helpers/errors.ts'], {
     status: { available: true },
     run: cmd => calls.push(cmd),
-    readReport: () => ({ files: { 'src/helpers/errors.ts': { mutants: [{ status: 'Killed' }, { status: 'Killed' }] } } }),
+    readReport: () => ({
+      files: { 'src/helpers/errors.ts': { mutants: [{ status: 'Killed' }, { status: 'Killed' }] } },
+    }),
   });
 
   assert.match(calls[0], /--mutate 'src\/helpers\/errors\.ts'/);
@@ -256,7 +326,9 @@ test('runMutation refuses an unscoped (whole-tree) run', () => {
 test('runMutation surfaces a failed stryker run as a reason, not a throw', () => {
   const result = runMutation(['src/a.ts'], {
     status: { available: true },
-    run: () => { throw new Error('stryker exploded\nstack…'); },
+    run: () => {
+      throw new Error('stryker exploded\nstack…');
+    },
     readReport: () => ({}),
   });
 

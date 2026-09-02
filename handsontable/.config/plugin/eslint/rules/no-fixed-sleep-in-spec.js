@@ -1,31 +1,89 @@
+/**
+ * Is the node a numeric literal (`100`, `0`, `1e3`)?
+ *
+ * A fixed duration is the only shape the rule judges statically. A computed
+ * delay (`setTimeout(fn, delay)`) or a bare hand-off (`setTimeout(fn)`) is
+ * deliberate scheduling the rule cannot tell from a wait, so it stays silent.
+ *
+ * @param {object} node An AST node, or undefined.
+ * @returns {boolean} True for a numeric Literal.
+ */
+function isNumericLiteral(node) {
+  return Boolean(node) && node.type === 'Literal' && typeof node.value === 'number';
+}
+
+/**
+ * Resolve the called name of `foo(...)` and `obj.foo(...)` alike.
+ *
+ * @param {object} callee The CallExpression callee node.
+ * @returns {string|null} The identifier or property name, or null for computed shapes.
+ */
+function calledName(callee) {
+  if (!callee) {
+    return null;
+  }
+
+  if (callee.type === 'Identifier') {
+    return callee.name;
+  }
+
+  if (callee.type === 'MemberExpression' && !callee.computed && callee.property
+    && callee.property.type === 'Identifier') {
+    return callee.property.name;
+  }
+
+  return null;
+}
+
 module.exports = {
   meta: {
     type: 'suggestion',
 
     docs: {
-      description: 'Disallows fixed `sleep()` delays in spec files — wait for a condition instead',
+      description: 'Disallows fixed delays in spec files — `sleep()`, a `setTimeout` with a literal '
+        + 'duration, and `waitForNextAnimationFrames()` — wait for a condition with `waitUntil()` instead',
       category: 'Custom',
       recommended: false,
       fixable: false,
     },
 
     messages: {
-      noSleep: 'Do not use a fixed sleep() delay. Wait for the condition — a hook, a DOM state, or a '
-        + 'web-first assertion. See handsontable/.ai/TESTING.md.',
+      noSleep: 'Do not use a fixed sleep() delay. Wait for the condition with waitUntil(() => …) — '
+        + 'a hook having fired, a DOM state, a data probe. See handsontable/.ai/TESTING.md.',
+      noSetTimeout: 'Do not wait on a setTimeout() with a fixed duration — a timer is not a wait. '
+        + 'Poll the condition with waitUntil(() => …) instead. See handsontable/.ai/TESTING.md.',
+      noFrameWait: 'Do not wait on waitForNextAnimationFrames() — a frame count is a fixed delay measured in '
+        + 'frames, not the state you need. Poll it with waitUntil(() => …) instead. '
+        + 'See handsontable/.ai/TESTING.md.',
     },
   },
 
   create(context) {
     return {
       /**
-       * Flag any direct `sleep(...)` call.
+       * Flag the three fixed-delay shapes: a direct `sleep(...)` call, a `setTimeout` (bare or as
+       * `window.setTimeout`) whose delay is a numeric literal, and any `waitForNextAnimationFrames(...)`.
        *
        * @param {object} node The CallExpression node.
        * @returns {void}
        */
       CallExpression(node) {
-        if (node.callee && node.callee.type === 'Identifier' && node.callee.name === 'sleep') {
+        const callee = node.callee;
+
+        if (callee && callee.type === 'Identifier' && callee.name === 'sleep') {
           context.report({ node, messageId: 'noSleep' });
+
+          return;
+        }
+
+        if (calledName(callee) === 'setTimeout' && isNumericLiteral(node.arguments[1])) {
+          context.report({ node, messageId: 'noSetTimeout' });
+
+          return;
+        }
+
+        if (callee && callee.type === 'Identifier' && callee.name === 'waitForNextAnimationFrames') {
+          context.report({ node, messageId: 'noFrameWait' });
         }
       },
     };

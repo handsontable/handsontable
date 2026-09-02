@@ -157,10 +157,16 @@ result, check who owns the port with `lsof -i :8123`. Background in
 ## Determinism
 
 Ships at `error` in `.eslintrc.cjs`: no `waitForTimeout`, `sleep`,
-`networkidle`, `.only`, `.skip`, or bare `test.fixme` in specs. Wait on
-web-first assertions; `expect.poll` for data probes. `test.fixme` is the
-tracked exception for a real product bug: it requires an eslint-disable line
-naming the task (`// eslint-disable-next-line no-restricted-syntax --
-DEV-1234: <why>`), which keeps every parked test counted and attributable.
-Full rules: the `handsontable-playwright-e2e` skill and its
-`references/determinism.md`.
+`setTimeout` (bare or `window.setTimeout`, and inside `page.evaluate` too —
+that is where a banned `waitForTimeout` usually reappears), `networkidle`,
+`.only`, `.skip`, or bare `test.fixme` in specs. Wait on web-first assertions;
+`expect.poll` for data probes. `test.fixme` is the tracked exception for a real
+product bug: it requires an eslint-disable line naming the task
+(`// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`), which
+keeps every parked test counted and attributable. A `setTimeout` that is a
+**scheduling barrier** rather than a duration (a chain of 0ms macrotasks that
+lets a negative assertion prove "nothing else fired" — `expect.poll` cannot
+prove a negative) takes the same disable line, naming the owning work and
+carrying a TODO for the probe that will replace it; `e2e/customBorders.spec.ts`
+`macrotaskBarrier()` is the one such site. Full rules: the
+`handsontable-playwright-e2e` skill and its `references/determinism.md`.

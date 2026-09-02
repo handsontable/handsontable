@@ -15,11 +15,11 @@ import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { resolve, dirname } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
+import { countAssertions, countSkipFocus } from '../.github/scripts/lib/test-weakening.mjs';
 
 // The handsontable package dir, resolved from THIS file's location (evals/) so
 // mutation runs work regardless of the caller's cwd.
 const HOT_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'handsontable');
-import { countAssertions, countSkipFocus } from '../.github/scripts/lib/test-weakening.mjs';
 
 /**
  * Matches the opening of a test block: `it(`, `test(`, the focused/skipped
@@ -248,8 +248,10 @@ export function findGamingSignals(src) {
 }
 
 /**
- * Detect determinism smells — fixed sleeps and load-state waits that make a
- * test timing-dependent instead of condition-based (web-first waits).
+ * Detect determinism smells — fixed sleeps, fixed timers, frame-count waits, and
+ * load-state waits that make a test timing-dependent instead of condition-based
+ * (web-first waits, `expect.poll`, the frozen tier's `waitUntil()`). Mirrors the
+ * lint bans in `tests/.eslintrc.cjs` and `handsontable/no-fixed-sleep-in-spec`.
  *
  * @param {string} src The spec file contents.
  * @returns {{type: string, count: number}[]} One entry per smell type found.
@@ -259,6 +261,9 @@ export function findDeterminismSmells(src) {
     ['sleep-call', /\bsleep\s*\(/g],
     ['wait-for-timeout', /\bwaitForTimeout\s*\(/g],
     ['network-idle', /\bnetworkidle\b/g],
+    // The `\b` keeps `_registerTimeout(` and `clearTimeout(` out; `window.setTimeout(` is in.
+    ['set-timeout', /\bsetTimeout\s*\(/g],
+    ['fixed-frame-wait', /\bwaitForNextAnimationFrames\s*\(/g],
   ];
   const smells = [];
 
@@ -410,8 +415,11 @@ export function runMutation(sourceFiles, deps = {}) {
   }
 
   const cwd = deps.cwd ?? HOT_DIR;
-  const run = deps.run ?? ((cmd) => execSync(cmd, { cwd, shell: '/bin/bash', stdio: 'pipe', encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
-  const readReport = deps.readReport ?? (() => JSON.parse(readFileSync(resolve(cwd, 'reports/mutation/mutation.json'), 'utf8')));
+  const run = deps.run ?? (cmd => execSync(cmd, {
+    cwd, shell: '/bin/bash', stdio: 'pipe', encoding: 'utf8', maxBuffer: 64 * 1024 * 1024,
+  }));
+  const readReport = deps.readReport
+    ?? (() => JSON.parse(readFileSync(resolve(cwd, 'reports/mutation/mutation.json'), 'utf8')));
 
   try {
     // Pinned Babel transform + commonjs env — Stryker's worker cwd breaks

@@ -872,10 +872,17 @@ test.describe('CustomBorders progressive application (customBordersProgressive)'
   /**
    * Resolve after three chained 0ms macrotasks in the page. Progressive batches are scheduled
    * on 0ms timeouts, so any pending (stale) batch is guaranteed to have fired before this
-   * resolves - a scheduling barrier for negative assertions, not a duration wait.
+   * resolves - a scheduling barrier for negative assertions, not a duration wait. That is why
+   * it carries the tier's setTimeout exception: a negative ("no further batch fired") cannot be
+   * polled for, so `expect.poll` is not a replacement here.
+   *
+   * TODO (owned by the CustomBorders progressive-application work, #13166): expose a "batch
+   * queue is empty" probe on the fixture and assert on it, then delete this barrier and its
+   * eslint exception.
    */
   async function macrotaskBarrier(page: Page): Promise<void> {
     await page.evaluate(() => new Promise((resolve) => {
+      // eslint-disable-next-line no-restricted-syntax -- CustomBorders progressive-application work: a 0ms macrotask barrier for negative assertions, not a duration wait (see the JSDoc above)
       setTimeout(() => setTimeout(() => setTimeout(resolve, 0), 0), 0);
     }));
   }

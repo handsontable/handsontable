@@ -18,7 +18,7 @@
     "lint": "npm run eslint && npm run all lint -- --if-present && npm run lint --prefix performance-tests && npm run lint --prefix tests",
     "eslint": "eslint .github/scripts/ bin/changelog bin/lib scripts/",
     "test": "npm run all test -- -e=examples",
-    "test:tooling": "node --test .github/scripts/__tests__/*.test.mjs scripts/__tests__/*.test.mjs scripts/claude/__tests__/*.test.mjs evals/__tests__/*.test.mjs performance-tests/lib/__tests__/*.test.mjs visual-tests/lib/__tests__/*.test.mjs",
+    "test:tooling": "node --test .github/scripts/__tests__/*.test.mjs scripts/__tests__/*.test.mjs scripts/claude/__tests__/*.test.mjs evals/__tests__/*.test.mjs handsontable/.config/plugin/eslint/__tests__/*.test.mjs performance-tests/lib/__tests__/*.test.mjs visual-tests/lib/__tests__/*.test.mjs",
     "build": "npm run all build -- -e=examples",
     "freeze": "node scripts/freeze.mjs",
     "release": "node scripts/release.mjs",
