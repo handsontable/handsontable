@@ -119,23 +119,72 @@ const consoleMessages: Record<string, (params: { keyValidityDate?: string; hotVe
     us at support@handsontable.com.`,
   non_commercial: () => '',
 };
-const domMessages: Record<string, (params: { keyValidityDate?: string; hotVersion?: string }) => string> = {
-  invalid: () => toSingleLine`
-    The license key for Handsontable is invalid.\x20
-    <a href="https://handsontable.com/docs/tutorial-license-key.html" target="_blank">Read more</a> on how to\x20
-    install it properly or contact us at <a href="mailto:support@handsontable.com">support@handsontable.com</a>.`,
-  expired: ({ keyValidityDate, hotVersion }: { keyValidityDate?: string; hotVersion?: string }) => toSingleLine`
-    The license key for Handsontable expired on ${keyValidityDate}, and is not valid for the installed\x20
-    version ${hotVersion}. <a href="https://handsontable.com/pricing" target="_blank">Renew</a> your\x20
-    license key or downgrade to a version released prior to ${keyValidityDate}. If you need any\x20
-    help, contact us at <a href="mailto:sales@handsontable.com">sales@handsontable.com</a>.`,
-  missing: () => toSingleLine`
-    The license key for Handsontable is missing. Use your purchased key to activate the product.\x20
-    Alternatively, you can activate Handsontable to use for non-commercial purposes by\x20
-    passing the key: 'non-commercial-and-evaluation'.\x20
-    <a href="https://handsontable.com/docs/tutorial-license-key.html" target="_blank">Read more</a> about it in\x20
-    the documentation or contact us at <a href="mailto:support@handsontable.com">support@handsontable.com</a>.`,
-  non_commercial: () => '',
+
+/**
+ * One piece of a license bar message: a run of text, or a link.
+ *
+ * The messages used to be HTML strings assigned to `innerHTML`. That is a Trusted Types sink, so
+ * a page enforcing `require-trusted-types-for 'script'` threw while rendering the bar. Describing
+ * the message as parts and building the nodes touches no sink, and keeps the copy - which is
+ * transcribed from the license specification - in exactly one place.
+ */
+type MessagePart = string | { text: string; href: string; target?: string };
+
+/**
+ * Renders license bar message parts into an element.
+ *
+ * @param {HTMLElement} target The element to fill.
+ * @param {Array} parts The message parts.
+ * @param {Document} ownerDocument The document to build the nodes in.
+ */
+function _renderMessageParts(target: HTMLElement, parts: MessagePart[], ownerDocument: Document) {
+  parts.forEach((part) => {
+    if (typeof part === 'string') {
+      target.appendChild(ownerDocument.createTextNode(part));
+
+      return;
+    }
+
+    const anchorElement = ownerDocument.createElement('a');
+
+    anchorElement.setAttribute('href', part.href);
+
+    if (part.target) {
+      anchorElement.setAttribute('target', part.target);
+    }
+
+    anchorElement.textContent = part.text;
+    target.appendChild(anchorElement);
+  });
+}
+
+const domMessages: Record<string, (params: { keyValidityDate?: string; hotVersion?: string }) => MessagePart[]> = {
+  invalid: () => [
+    'The license key for Handsontable is invalid. ',
+    { text: 'Read more', href: 'https://handsontable.com/docs/tutorial-license-key.html', target: '_blank' },
+    ' on how to install it properly or contact us at ',
+    { text: 'support@handsontable.com', href: 'mailto:support@handsontable.com' },
+    '.',
+  ],
+  expired: ({ keyValidityDate, hotVersion }: { keyValidityDate?: string; hotVersion?: string }) => [
+    `The license key for Handsontable expired on ${keyValidityDate}, and is not valid for the installed ` +
+      `version ${hotVersion}. `,
+    { text: 'Renew', href: 'https://handsontable.com/pricing', target: '_blank' },
+    ` your license key or downgrade to a version released prior to ${keyValidityDate}. If you need any ` +
+      'help, contact us at ',
+    { text: 'sales@handsontable.com', href: 'mailto:sales@handsontable.com' },
+    '.',
+  ],
+  missing: () => [
+    'The license key for Handsontable is missing. Use your purchased key to activate the product. ' +
+      'Alternatively, you can activate Handsontable to use for non-commercial purposes by ' +
+      'passing the key: \'non-commercial-and-evaluation\'. ',
+    { text: 'Read more', href: 'https://handsontable.com/docs/tutorial-license-key.html', target: '_blank' },
+    ' about it in the documentation or contact us at ',
+    { text: 'support@handsontable.com', href: 'mailto:support@handsontable.com' },
+    '.',
+  ],
+  non_commercial: () => [],
 };
 
 /**
@@ -274,16 +323,38 @@ const entitlementConsoleNotifications: Partial<Record<LicenseStateKey, Entitleme
  * Core-owned lock screen instead of a bar (see `_BLOCKING_MODAL_STATES` below
  * and `utils/licenseBranding/lockScreen.ts`), and a non-trial license never
  * renders a bar - it is developer-facing only in 18.1.
+ *
+ * The soft-stopped trial DOES carry a bar even though its badge popover auto-opens with the same two
+ * sentences. That duplication is deliberate: the bar is the only license surface with a focusable
+ * link and a registered focus scope (`utils/licenseNotification.ts`), while the popover is
+ * pointer-only by design (`tabIndex = -1` throughout, no focus scope, no `aria-live`). The bar is
+ * also the only surface left once the popover is dismissed - on a grid with no corner cell, nothing
+ * can reopen the popover for the rest of the instance's life. Removing this entry was tried and
+ * reverted (DEV-2709) for exactly those two reasons; leave it in place until the popover can carry
+ * the message on its own.
+ *
+ * Note the shape here is NOT what the specification literally describes. S4.1's soft-stop row reads
+ * "Console error. Trial: + modal", and no modal renders for `trial_soft_stop` - `LOCK_CONTENT` has
+ * no entry for it. Either "modal" is meant loosely for the auto-opening popover, or the state is
+ * missing a surface. That question predates DEV-2709 and is still open; this comment records the
+ * divergence rather than settling it.
  */
-const entitlementDomMessages: Partial<Record<LicenseStateKey, (params: EntitlementMessageParams) => string>> = {
-  trial_soft_stop: () => toSingleLine`
-    ${_LICENSE_EXPIRED_TITLE} ${_PURCHASE_LICENSE_TEXT}\x20
-    <a href="mailto:sales@handsontable.com">Contact Sales</a>.`,
-  release_expired: ({ licensedUntil, hotVersion }) => toSingleLine`
-    The license key for Handsontable expired on ${licensedUntil}, and is not valid for the installed\x20
-    version ${hotVersion}. <a href="https://handsontable.com/pricing" target="_blank">Renew</a> your license\x20
-    key or downgrade to a version released on or before ${licensedUntil}. If you need any help, contact us\x20
-    at <a href="mailto:sales@handsontable.com">sales@handsontable.com</a>.`,
+const entitlementDomMessages:
+Partial<Record<LicenseStateKey, (params: EntitlementMessageParams) => MessagePart[]>> = {
+  trial_soft_stop: () => [
+    `${_LICENSE_EXPIRED_TITLE} ${_PURCHASE_LICENSE_TEXT} `,
+    { text: 'Contact Sales', href: 'mailto:sales@handsontable.com' },
+    '.',
+  ],
+  release_expired: ({ licensedUntil, hotVersion }) => [
+    `The license key for Handsontable expired on ${licensedUntil}, and is not valid for the installed ` +
+      `version ${hotVersion}. `,
+    { text: 'Renew', href: 'https://handsontable.com/pricing', target: '_blank' },
+    ` your license key or downgrade to a version released on or before ${licensedUntil}. ` +
+      'If you need any help, contact us at ',
+    { text: 'sales@handsontable.com', href: 'mailto:sales@handsontable.com' },
+    '.',
+  ],
 };
 
 /**
@@ -436,16 +507,14 @@ export function _injectProductInfo(
       hotVersion,
     });
 
-    if (message) {
-      const messageNode = document.createElement('div');
-      const innerNode = document.createElement('div');
+    if (message.length > 0) {
+      const ownerDocument = element.ownerDocument;
+      const messageNode = ownerDocument.createElement('div');
+      const innerNode = ownerDocument.createElement('div');
 
       messageNode.className = `handsontable ${className}`;
       innerNode.className = `${className}_inner`;
-      innerNode.innerHTML = domMessages[domMessageState]({
-        keyValidityDate,
-        hotVersion,
-      });
+      _renderMessageParts(innerNode, message, ownerDocument);
 
       messageNode.appendChild(innerNode);
       element.appendChild(messageNode);
@@ -745,7 +814,7 @@ function _injectEntitlementProductInfo(
 
   messageNode.className = `handsontable ${className}`;
   innerNode.className = `${className}_inner`;
-  innerNode.innerHTML = buildDomMessage(params);
+  _renderMessageParts(innerNode, buildDomMessage(params), ownerDocument);
 
   messageNode.appendChild(innerNode);
   element.appendChild(messageNode);

@@ -448,12 +448,12 @@ const settings = {
 Three more things to know about this setup:
 
 - [`getSourceData()`](@/api/core.md#getsourcedata) returns copies of the row objects, so you can't re-stamp the row indexes through it. Hold on to the array you passed as [`data`](@/api/options.md#data).
-- Undo of a row removal restores the row object, which carries no cell values. To bring the values back, record them in [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow) and put them back in [`afterCreateRow`](@/api/hooks.md#aftercreaterow) when `source` is `'UndoRedo.undo'`.
+- Undo of a row removal restores the removed cell values through your column accessors, so you don't have to record them yourself. The values are written after the row is back in the grid, so the [`afterCreateRow`](@/api/hooks.md#aftercreaterow) hook above has to give the restored row its slot in the column arrays first.
 - [`columns`](@/api/options.md#columns) fixes the number of columns, so [`alter()`](@/api/core.md#alter) can't insert one. To add a column, push a new array onto your source and call [`updateSettings()`](@/api/core.md#updatesettings) with a new [`columns`](@/api/options.md#columns) array.
 
 ### Identify changed columns in hooks
 
-When you use a [function data source](#function-data-source-and-schema), each column's [`data`](@/api/options.md#data) option is a getter/setter function. In [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange), the second element of each change tuple is `prop`. With function-based columns, `prop` is that accessor function -- not a property name or a column index.
+When you use a [function data source](#function-data-source-and-schema), each column's [`data`](@/api/options.md#data) option is a getter/setter function. In [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange), the second element of each change tuple is `prop`. With function-based columns, `prop` is that accessor function -- not a property name or a column index. In TypeScript, the accessor's type is exported as `ColumnDataGetterSetterFunction` (see [TypeScript types](@/guides/tools-and-building/typescript-types/typescript-types.md#data-types)).
 
 To find which column changed, call [`propToCol()`](@/api/core.md#proptocol) on the `prop` value:
 
@@ -849,6 +849,94 @@ hot.populateFromArray(1, 1, newValues, 2, 2);
 </li>
 </ol>
 
+## Empty cell values
+
+An empty cell can hold either `null` or an empty string (`''`). The two look the same in the grid,
+but they are different values in your data source, and the difference matters as soon as the data
+leaves the grid. An empty string in a `numeric`, `date` or `time` column is a string where a number
+or a date is expected, and `''` is not the same value as `NULL` to a database.
+
+By default, the way a cell is emptied decides which value it gets:
+
+| How the cell is emptied                                     | Stored value |
+| ----------------------------------------------------------- | ------------ |
+| Pressing <kbd>**Delete**</kbd> or <kbd>**Backspace**</kbd>   | `null`       |
+| [`setDataAtCell()`](@/api/core.md#setdataatcell) with `null` | `null`       |
+| Filling a blank cell across a range                          | `null`       |
+| Merging cells over data                                      | `null`       |
+| Clearing the cell editor and confirming                      | `''`         |
+| Pasting a blank cell                                         | `''`         |
+
+Set [`emptyValue`](@/api/options.md#emptyvalue) to `null` to make every one of those paths store
+`null`:
+
+```js
+const hot = new Handsontable(container, {
+  data: getData(),
+  emptyValue: null,
+});
+```
+
+You can set it for the whole grid, or only for the columns whose type makes an empty string wrong:
+
+```js
+const hot = new Handsontable(container, {
+  data: getData(),
+  columns: [
+    // a text column keeps storing an empty string
+    { data: 'name' },
+    // these store `null` when emptied
+    { data: 'amount', type: 'numeric', emptyValue: null },
+    { data: 'due', type: 'date', emptyValue: null },
+  ],
+});
+```
+
+The option changes only what an emptied cell stores. A `0` or a `false` is a real value, not an empty
+cell, and is never affected.
+
+A column whose configuration already gives `''` a meaning keeps it. In a
+[`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) column, an `''` used as
+[`checkedTemplate`](@/api/options.md#checkedtemplate) or
+[`uncheckedTemplate`](@/api/options.md#uncheckedtemplate) is one of the two states the column defines,
+not an empty cell. In an
+[`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) or
+[`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column, an `''` listed in
+[`source`](@/api/options.md#source) is an option you can pick. Both keep storing `''`.
+
+::: tip
+
+Only an array [`source`](@/api/options.md#source) is checked this way. A function `source` answers
+through a callback, and the value is stored before that callback runs, so a blank option it returns
+goes unnoticed and `emptyValue` applies to the column like any other.
+
+:::
+
+::: tip
+
+Opening a cell editor and confirming it without typing anything never changes the cell, whatever
+`emptyValue` is set to.
+
+Nothing is written, and no [`afterChange`](@/api/hooks.md#afterchange) hook fires. That holds whether
+or not the cell has a [`validator`](@/api/options.md#validator). Because there is no change,
+[`beforeChange`](@/api/hooks.md#beforechange) does not run either, so a handler that cancels changes
+has nothing to cancel on such a confirm.
+
+A validated cell is still validated on that confirm, so
+[`allowInvalid`](@/api/options.md#allowinvalid) keeps behaving as it always has and an invalid value
+still holds the editor open. The validator runs against the cell's stored value directly, which is
+why no write is needed to trigger it.
+
+:::
+
+::: tip
+
+Pasting from outside the grid cannot preserve the difference between `null` and `''`. A clipboard
+holds text or HTML, and neither can mark a cell as `null`, so a blank pasted cell follows the
+`emptyValue` setting like any other emptied cell.
+
+:::
+
 ## Working with a copy of data
 
 When working with a copy of data for Handsontable, it is best practice is to clone the data source before loading it into Handsontable. This can be done with `structuredClone(data)` or legacy `JSON.parse(JSON.stringify(data))` or another deep-cloning function.
@@ -908,6 +996,7 @@ When the full dataset lives on a server, use [`dataProvider`](@/api/options.md#d
 - [data](@/api/options.md#data)
 - [dataProvider](@/api/options.md#dataprovider)
 - [dataSchema](@/api/options.md#dataschema)
+- [emptyValue](@/api/options.md#emptyvalue)
 
 </div>
 

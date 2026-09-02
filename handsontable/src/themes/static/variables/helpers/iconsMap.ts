@@ -30,7 +30,8 @@ ${prefix}.changeType::before {
 }
 
 ${prefix}.htUISelectCaption::after,
-.htAutocompleteArrow::after {
+.htAutocompleteArrow::after,
+${prefix}.ht-multi-select-arrow::after {
   ${icon(icons, "selectArrow")}
 }
 

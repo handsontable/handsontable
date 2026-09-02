@@ -73,6 +73,45 @@ describe('sanitizer', () => {
       expect(sanitizer).toHaveBeenCalledWith('a &amp; b', 'CopyPaste.paste');
     });
 
+    it('should not warn for prose that merely contains `&` and `;`', () => {
+      // The warning is gated on the same test `fastInnerHTML` uses to pick a write path. Prose
+      // like this is not markup, so warning about it was noise on grids that write ordinary
+      // labels - and it pointed at a raw write that should never have been raw.
+      const warnSpy = spyOn(console, 'warn');
+
+      expect(sanitizeHTML(createHot(), 'Smith & Sons, Ltd.; est. 1920', 'header'))
+        .toBe('Smith & Sons, Ltd.; est. 1920');
+      expect(sanitizeHTML(createHot(), 'R&D; notes', 'header')).toBe('R&D; notes');
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not warn for prose that merely contains `<` and `>`', () => {
+      const warnSpy = spyOn(console, 'warn');
+
+      expect(sanitizeHTML(createHot(), 'Score < 50 > threshold', 'header'))
+        .toBe('Score < 50 > threshold');
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should still warn for prose that also holds a real character reference', () => {
+      // The test is unanchored, so the reference is what it matches on. This content genuinely
+      // reaches `innerHTML`, so the warning still belongs.
+      const warnSpy = spyOn(console, 'warn');
+
+      sanitizeHTML(createHot(), 'Smith & Sons; &amp; more', 'header');
+
+      expect(warnSpy).toHaveBeenCalledWith(jasmine.stringMatching(/without a sanitizer/));
+    });
+
+    it('should pass prose to a configured sanitizer regardless of the markup test', () => {
+      // Only the warning is gated. A configured sanitizer runs above the gate, so an auditing or
+      // length-capping one still sees every payload.
+      const sanitizer = jasmine.createSpy('sanitizer').and.returnValue('clean');
+
+      expect(sanitizeHTML(createHot({ sanitizer }), 'R&D; notes', 'header')).toBe('clean');
+      expect(sanitizer).toHaveBeenCalledWith('R&D; notes', 'header');
+    });
+
     it('should return the content unchanged and warn when no sanitizer is configured', () => {
       const warnSpy = spyOn(console, 'warn');
 

@@ -44,7 +44,7 @@ Thank you for your contribution!
 
 ## Contributor License Agreement
 
-Handsoncode publishes the code it merges — in open-source releases and in commercial products. Doing that requires the right to use, relicense, and distribute your contribution, and the Contributor License Agreement (CLA) is the record of that permission. You keep the copyright to your work; the CLA grants Handsoncode a licence to it.
+Handsoncode publishes the code it merges — in open-source releases and in commercial products. Doing that requires the right to use, relicense, and distribute your contribution, and the Contributor License Agreement (CLA) is the record of that permission. You keep the copyright to your work; the CLA grants Handsoncode a license to it.
 
 **Sign it once, for every project.** The signature is recorded against your GitHub account, not against a repository, and covers both [Handsontable](https://github.com/handsontable/handsontable) and [HyperFormula](https://github.com/handsontable/hyperformula). If you have already signed for either one, you are done.
 

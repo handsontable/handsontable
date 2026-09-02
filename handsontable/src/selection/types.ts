@@ -70,3 +70,34 @@ export interface SelectionFocusPosition {
   row?: number;
   col?: number;
 }
+
+/**
+ * The whole selection state, as `Selection#exportSelection()` returns it. Declared once and
+ * consumed by every stash-and-restore consumer (`dialog` and `emptyDataState` both are), because
+ * a consumer that restates the shape drifts from it: enumerating the fields by hand is what
+ * dropped `rowExtentSpansGrid`/`columnExtentSpansGrid` from the `dialog` restore, and a dropped
+ * flag turns the next trim's clamp into a deselect with nothing to report it.
+ */
+export interface SelectionState {
+  ranges: CellRange[];
+  activeRange: CellRange | undefined;
+  activeSelectionLayer: number;
+  selectedByRowHeader: number[];
+  selectedByColumnHeader: number[];
+  disableHeadersHighlight: boolean;
+  rowExtentSpansGrid: number[];
+  columnExtentSpansGrid: number[];
+}
+
+/**
+ * The state `Selection#importSelection()` accepts. Derived from {@link SelectionState} rather than
+ * restated, so the two cannot drift apart.
+ *
+ * It differs on two points. `activeRange` is required, because the import reads its highlight. The
+ * two grid-span arrays stay optional, because the method has always defaulted them and the
+ * export/import pair is documented for external callers, who may hand back an older shape.
+ */
+export type ImportedSelectionState =
+  Omit<SelectionState, 'activeRange' | 'rowExtentSpansGrid' | 'columnExtentSpansGrid'>
+  & Partial<Pick<SelectionState, 'rowExtentSpansGrid' | 'columnExtentSpansGrid'>>
+  & { activeRange: CellRange };

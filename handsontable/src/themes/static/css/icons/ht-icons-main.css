@@ -25,7 +25,8 @@
 }
 
 .htUISelectCaption::after,
-.htAutocompleteArrow::after {
+.htAutocompleteArrow::after,
+.ht-multi-select-arrow::after {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;

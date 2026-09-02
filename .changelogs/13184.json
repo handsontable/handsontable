@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed being unable to move a column by dragging its header while column sorting is enabled. Sorting by clicking a header now happens on mouse up instead of mouse down, and only the header label and its sort indicator sort on click. A click on a column header no longer fires `beforeColumnMove` and `afterColumnMove`, which previously ran even though no column moved.",
-  "type": "fixed",
-  "issueOrPR": 13184,
-  "breaking": false,
-  "framework": "none"
-}

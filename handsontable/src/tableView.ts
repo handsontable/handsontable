@@ -8,13 +8,14 @@ import {
   addClass,
   removeClass,
   clearTextSelection,
+  closest,
+  isChildOf,
   empty,
   eventTargetEl,
   fastInnerHTML,
   fastInnerText,
   getScrollbarWidth,
   hasClass,
-  isChildOf,
   getDeepActiveElement,
   getShadowHostChain,
   isHTMLElement,
@@ -28,7 +29,13 @@ import {
 import EventManager from './eventManager';
 import { formatCellValue, renderCell } from './renderers/renderCell';
 import { RenderSizeProbe } from './renderSizeProbe';
-import { isImmediatePropagationStopped, isRightClick, isLeftClick, isMiddleClick } from './helpers/dom/event';
+import {
+  isImmediatePropagationStopped,
+  isRightClick,
+  isLeftClick,
+  isMiddleClick,
+} from './helpers/dom/event';
+import { getMouseEventTouchOrigin, TOUCH_SYNTHESIZED_MOUSE_WINDOW } from './helpers/dom/inputOrigin';
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
@@ -278,6 +285,13 @@ class TableView {
    */
   #selectionMouseDown = false;
   /**
+   * Name of the overlay the current mouse drag started in, or `null` when no drag is in progress.
+   * Used to keep a text selection from spreading past the overlay it began in.
+   *
+   * @type {string|null}
+   */
+  #textSelectionOverlay: string | null = null;
+  /**
    * @type {boolean}
    */
   #mouseDown: boolean = false;
@@ -315,10 +329,11 @@ class TableView {
   #mouseDownLastPos: {row: number, col: number} | null = null;
   /**
    * Flag indicating that a touch interaction just ended. Set to `true` on
-   * `touchend` and reset asynchronously via `_registerTimeout`. Used together with
-   * `sourceCapabilities.firesTouchEvents` (Chrome/Blink) to detect synthetic
-   * mouse events that Android fires after touch interactions. These synthetic
-   * events can falsely trigger the outside-click handler, closing editors or
+   * `touchend` and reset asynchronously via `_registerTimeout` after
+   * `TOUCH_SYNTHESIZED_MOUSE_WINDOW`, shared with Walkontable's mouse listeners so both layers
+   * use the same fallback window. Used together with `sourceCapabilities.firesTouchEvents`
+   * (Chrome/Blink) to detect synthetic mouse events that Android fires after touch interactions.
+   * These synthetic events can falsely trigger the outside-click handler, closing editors or
    * popups that just opened via double-tap.
    *
    * @type {boolean}
@@ -519,7 +534,14 @@ class TableView {
 
       this.#selectionMouseDown = true;
 
-      if (!this.isTextSelectionAllowed(eventTargetEl(event)!)) {
+      const mouseDownTarget = eventTargetEl(event)!;
+
+      // Only `fragmentSelection` reads this, so a grid using the default pays no overlay lookup.
+      this.#textSelectionOverlay = this.settings.fragmentSelection
+        ? this.#getRenderingOverlayName(mouseDownTarget)
+        : null;
+
+      if (!this.isTextSelectionAllowed(mouseDownTarget)) {
         clearTextSelection(rootWindow);
         event.preventDefault();
         rootWindow.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
@@ -533,9 +555,22 @@ class TableView {
       }
 
       this.#selectionMouseDown = false;
+      this.#textSelectionOverlay = null;
     });
     this.eventManager.addEventListener(rootElement, 'mousemove', (event) => {
-      if (this.#selectionMouseDown && !this.isTextSelectionAllowed(eventTargetEl(event)!)) {
+      if (!this.#selectionMouseDown) {
+        return;
+      }
+
+      const target = eventTargetEl(event)!;
+      // Confinement applies to `fragmentSelection` only, and never to an input: the editor's
+      // textarea lives outside every clone, so a drag reaching it would otherwise count as leaving
+      // the starting overlay and cancel a gesture `isTextSelectionAllowed` explicitly permits.
+      const leftItsOverlay = this.#textSelectionOverlay !== null &&
+        !isInput(target) &&
+        this.#hasLeftTextSelectionOverlay(target);
+
+      if (!this.isTextSelectionAllowed(target) || leftItsOverlay) {
         // Clear selection only when fragmentSelection is enabled, otherwise clearing selection breaks the IME editor.
         if (this.settings.fragmentSelection) {
           clearTextSelection(rootWindow);
@@ -566,6 +601,12 @@ class TableView {
       if (this.#isSyntheticMouseEvent(event)) {
         return;
       }
+
+      // The listener on `rootElement` never sees a release outside the grid, so clear the drag state
+      // here too. Left set, a later hover over the grid would look like a drag still in progress and
+      // wipe whatever the user has selected on the host page.
+      this.#selectionMouseDown = false;
+      this.#textSelectionOverlay = null;
 
       const activeElement = getDeepActiveElement(rootDocument);
       const activeHTMLElement = isHTMLElement(activeElement) ? activeElement : null;
@@ -627,11 +668,17 @@ class TableView {
 
       // Clear the flag after the browser's synthetic mouse event sequence completes.
       // Android dispatches mousedown/mouseup/click asynchronously after touchend,
-      // so the flag must survive across multiple event loop ticks.
+      // so the flag must survive across multiple event loop ticks. The window is shared
+      // with Walkontable's mouse listeners (`TOUCH_SYNTHESIZED_MOUSE_WINDOW`), so both
+      // layers use the same fallback window.
+      // The policies deliberately differ: Walkontable drops only the first pending pair
+      // (veto → pending → ceiling), while this layer keeps
+      // `getMouseEventTouchOrigin(event) ?? #recentTouchEnd` — a Blink-flagged pair must never
+      // run the outside-click handling that closes editors.
       this.#recentTouchEndTimeout = this.hot._registerTimeout(() => {
         this.#recentTouchEnd = false;
         this.#recentTouchEndTimeout = null;
-      }, 400);
+      }, TOUCH_SYNTHESIZED_MOUSE_WINDOW);
     });
 
     this.eventManager.addEventListener(documentElement, 'mousedown', (event) => {
@@ -1637,15 +1684,15 @@ class TableView {
       return true;
     }
 
-    const isChildOfTableBody = isChildOf(el, this._wt.wtTable.spreader);
+    const isSelectableArea = this.#isSelectableTableArea(el);
 
-    if (this.settings.fragmentSelection === true && isChildOfTableBody) {
+    if (this.settings.fragmentSelection === true && isSelectableArea) {
       return true;
     }
 
     const isSingleCell = this.hot.getSelectedRangeActive()?.isSingleCell() ?? false;
 
-    if (this.settings.fragmentSelection === 'cell' && isSingleCell && isChildOfTableBody) {
+    if (this.settings.fragmentSelection === 'cell' && isSingleCell && isSelectableArea) {
       return true;
     }
 
@@ -1654,6 +1701,99 @@ class TableView {
     }
 
     return false;
+  }
+
+  /**
+   * Resolves the Walkontable instance that renders the given element: the overlay clone that owns
+   * it, or the master instance when the element sits outside every clone.
+   *
+   * @param {HTMLElement} el The element to resolve.
+   * @returns {Walkontable}
+   */
+  #getOwningWt(el: HTMLElement) {
+    return this._wt.wtOverlays.getParentOverlay(el) ?? this._wt;
+  }
+
+  /**
+   * Resolves the table whose rendered area holds the given element, or `null` when the element sits
+   * outside every table — the grid's own scrollbars and padding, or the page around it.
+   *
+   * A frozen cell lives in an overlay clone, which is a sibling of the master table rather than its
+   * descendant, so the owning table has to be resolved before anything can be asked about the
+   * element — testing against the master alone rejects every cell in a frozen row, frozen column, or
+   * corner (#4980).
+   *
+   * Matching is by rendered area rather than by `TABLE`, because a table renders more than its
+   * cells: the selection borders are appended to the spreader beside it. `getParentOverlay` misses
+   * those and reports a frozen area's borders as the master's, which is wrong in both directions —
+   * the border reads as unselectable, and as a different overlay from the cells it sits between.
+   *
+   * @param {HTMLElement} el The element to resolve.
+   * @returns {Walkontable|null}
+   */
+  #getRenderingWt(el: HTMLElement) {
+    const overlay = this._wt.wtOverlays.getParentOverlayByRenderedArea(el);
+
+    if (overlay !== null) {
+      return overlay;
+    }
+
+    return isChildOf(el, this._wt.wtTable.spreader) ? this._wt : null;
+  }
+
+  /**
+   * Checks whether the element belongs to the selectable area of the table that renders it.
+   *
+   * Everything that table renders counts, not just the cells. A multi-cell drag passes over the
+   * selection borders, and rejecting one cancels a selection that is still inside the same area —
+   * which is exactly what `fragmentSelection: true` exists to allow. Headers are the one exception:
+   * column headers sit in the THEAD and row headers are `TH` elements inside the TBODY's own rows,
+   * and every grid with headers renders them into a clone, so allowing them here would make header
+   * labels selectable on any grid that has headers at all, frozen or not.
+   *
+   * @param {HTMLElement} el The element to check.
+   * @returns {boolean}
+   */
+  #isSelectableTableArea(el: HTMLElement) {
+    const wt = this.#getRenderingWt(el);
+
+    if (wt === null) {
+      return false;
+    }
+
+    // The spreader bounds the walk. `closest` runs past an `until` that is not an ancestor, and
+    // would then leave the grid entirely and match a `TH` on the host page.
+    return closest(el, ['TH'], wt.wtTable.spreader) === null;
+  }
+
+  /**
+   * Checks whether the pointer has moved out of the overlay the current text selection started in.
+   *
+   * Each frozen area is rendered as a separate table, and those tables sit next to the master table
+   * in the DOM in an order that does not follow the visual layout. A native selection range that
+   * spans two of them therefore picks up cells the pointer never crossed, so a selection is confined
+   * to the overlay it began in.
+   *
+   * @param {HTMLElement} el The element currently under the pointer.
+   * @returns {boolean}
+   */
+  #hasLeftTextSelectionOverlay(el: HTMLElement) {
+    return this.#getRenderingOverlayName(el) !== this.#textSelectionOverlay;
+  }
+
+  /**
+   * Names the overlay whose rendered area holds the given element, or `null` when it sits outside
+   * every table.
+   *
+   * This is not `getElementOverlayName`, which resolves by `TABLE` and so reports a frozen area's
+   * selection borders as the master's. Naming a border differently from the cells it sits between
+   * would read as leaving the overlay and cancel a drag that never left it.
+   *
+   * @param {HTMLElement} el The element to name.
+   * @returns {string|null}
+   */
+  #getRenderingOverlayName(el: HTMLElement) {
+    return this.#getRenderingWt(el)?.wtTable.name ?? null;
   }
 
   /**
@@ -1675,16 +1815,11 @@ class TableView {
    * Uses `sourceCapabilities.firesTouchEvents` (Chrome/Blink) when available,
    * falls back to the `#recentTouchEnd` flag for other browsers (Firefox, Safari).
    *
-   * @param {MouseEvent} event The mouse event to check.
-   * @private
+   * @param {Event} event The mouse event to check.
    * @returns {boolean}
    */
-  #isSyntheticMouseEvent(event: Event & { sourceCapabilities?: { firesTouchEvents: boolean } }) {
-    if (event.sourceCapabilities) {
-      return event.sourceCapabilities.firesTouchEvents === true;
-    }
-
-    return this.#recentTouchEnd;
+  #isSyntheticMouseEvent(event: Event): boolean {
+    return getMouseEventTouchOrigin(event) ?? this.#recentTouchEnd;
   }
 
   /**
@@ -1936,7 +2071,7 @@ class TableView {
     element: HTMLElement, index: number, content: (index: number, headerLevel?: number) => unknown, headerLevel = 0
   ) {
     let renderedIndex = index;
-    const parentOverlay = this._wt.wtOverlays.getParentOverlay(element) || this._wt;
+    const parentOverlay = this.#getOwningWt(element);
 
     // prevent wrong calculations from SampleGenerator
     if (element.parentNode) {
@@ -2233,7 +2368,7 @@ class TableView {
    * @returns {'master'|'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'}
    */
   getElementOverlayName(element: HTMLElement) {
-    return (this._wt.wtOverlays.getParentOverlay(element) ?? this._wt).wtTable.name;
+    return this.#getOwningWt(element).wtTable.name;
   }
 
   /**

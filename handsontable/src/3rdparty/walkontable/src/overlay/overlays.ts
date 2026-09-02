@@ -926,12 +926,18 @@ class Overlays {
   }
 
   /**
-   * Get the parent overlay of the provided element.
+   * Finds the overlay clone that holds the provided element, by the given containment test.
+   *
+   * Shared by the two public lookups below so the overlay list stays in one place: adding an overlay
+   * type to one list and forgetting the other would silently leave the two answering differently.
    *
    * @param {HTMLElement} element An element to process.
+   * @param {Function} isHeldBy Decides whether a clone's table holds the element.
    * @returns {WalkontableInstance|null}
    */
-  getParentOverlay(element: HTMLElement): WalkontableInstance | null {
+  #findParentOverlay(
+    element: HTMLElement, isHeldBy: (wtTable: Table, el: HTMLElement) => boolean
+  ): WalkontableInstance | null {
     if (!element) {
       return null;
     }
@@ -950,12 +956,36 @@ class Overlays {
         return;
       }
 
-      if (overlay.clone && overlay.clone.wtTable.TABLE.contains(element)) { // todo demeter
+      if (overlay.clone && isHeldBy(overlay.clone.wtTable, element)) { // todo demeter
         result = overlay.clone;
       }
     });
 
     return result;
+  }
+
+  /**
+   * Get the overlay whose rendered area contains the provided element.
+   *
+   * This matches against each clone's spreader rather than its `TABLE`, so it also resolves the
+   * elements an overlay renders beside its table — the selection borders, which are appended to the
+   * spreader. `getParentOverlay` misses those and reports them as the master's.
+   *
+   * @param {HTMLElement} element An element to process.
+   * @returns {WalkontableInstance|null}
+   */
+  getParentOverlayByRenderedArea(element: HTMLElement): WalkontableInstance | null {
+    return this.#findParentOverlay(element, (wtTable, el) => wtTable.spreader.contains(el));
+  }
+
+  /**
+   * Get the parent overlay of the provided element.
+   *
+   * @param {HTMLElement} element An element to process.
+   * @returns {WalkontableInstance|null}
+   */
+  getParentOverlay(element: HTMLElement): WalkontableInstance | null {
+    return this.#findParentOverlay(element, (wtTable, el) => wtTable.TABLE.contains(el));
   }
 
   /**

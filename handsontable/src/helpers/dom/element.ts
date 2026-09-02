@@ -2,7 +2,7 @@ import { A11Y_HIDDEN } from '../a11y';
 import { isSafariBefore261, isMobileBrowser, isIpadOS, isWindowsOS } from '../browser';
 import { throwWithCause } from '../../helpers/errors';
 import { warnOnce } from '../../helpers/console';
-import type { SanitizerContext } from '../../core/settings';
+import type { SanitizerContext, TrustedHTMLLike } from '../../core/settings';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -529,9 +529,25 @@ export function removeTextNodes(element: Node): void {
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/11 - no siginificant improvement with Chrome remove() method.
  *
- * @param {HTMLElement} element An element to clear.
+ * Prefer this over `innerHTML = ''` for the UI containers the grid clears - dialogs, the
+ * pagination bar, a cell. That assignment reads as "assign nothing", but `innerHTML` is a Trusted
+ * Types sink whatever the value, so under `require-trusted-types-for 'script'` an empty string
+ * throws exactly like markup would. Removing the children touches no sink and behaves identically
+ * on browsers that do not implement Trusted Types.
+ *
+ * Scoped to small child counts on purpose. Measured in Chromium, this is a couple of microseconds
+ * faster up to about three children and around 1.4x slower attached (2.5x detached) at ten
+ * thousand, with the crossover near thirty. Every call site in the grid is well under that; a
+ * wholesale grid-body clear is the shape that loses, and wants `replaceChildren()` instead - which
+ * is not a sink either.
+ *
+ * Typed as `Element` rather than `HTMLElement` because that is all the function needs -
+ * it reads `lastChild` and calls `removeChild`, both of which come from `Node`. The
+ * narrower type forced a cast on callers holding a plain `Element`.
+ *
+ * @param {Element} element An element to clear.
  */
-export function empty(element: HTMLElement): void {
+export function empty(element: Element): void {
   let child;
 
   /* eslint-disable no-cond-assign */
@@ -540,7 +556,73 @@ export function empty(element: HTMLElement): void {
   }
 }
 
-export const HTML_CHARACTERS = /(<([^>]*)>|&([^;]*);)/;
+/**
+ * Decides whether a string is written through `innerHTML` (markup, so it has to reach the
+ * sanitizer) or `textContent` (plain text, which cannot inject anything).
+ *
+ * Every alternative is deliberately shaped to require something that could actually be parsed as
+ * markup, and must stay that way. A looser test - matching any `<` with a later `>`, or any `&`
+ * with a later `;` - routes ordinary prose such as `Smith & Sons, Ltd.; est. 1920` or
+ * `Score < 50 > threshold` to `innerHTML`. Under a Trusted Types policy that write throws, and
+ * because `fastInnerHTML` has no `catch` the error propagates out of header rendering and takes
+ * the whole grid down, from a `colHeaders` string containing no markup at all.
+ *
+ * The four alternatives are, in order: a tag, a markup declaration or processing instruction, a
+ * named character reference (`&amp;`, `&frac12;`), and a numeric one (`&#169;`, `&#x1F600;`).
+ *
+ * The tag alternative requires a tag-like shape - `<`, an optional `/`, then an ASCII letter - and
+ * excludes `<` from the run that follows, which is what keeps it linear. With `[^>]*` there, a
+ * label of `'<a'.repeat(40000)` backtracks for over a second on the main thread; `[^<>]*` answers
+ * the same in a fraction of a millisecond. The one input the two disagree on is a `<` inside an
+ * attribute value with no other tag in the string (`<a x="<">`), which lands on the text path - the
+ * inert side. This matters beyond rendering: `sanitizeHTML` runs this test over a whole `text/html`
+ * clipboard payload on paste.
+ *
+ * The declaration alternative is why a comment, a doctype, `<![CDATA[`, or `<?xml?>` still takes
+ * the HTML path. None of them can build an element, so nothing here is a sink concern; they are
+ * kept on it because the `html` cell type and `allowHtml` sources render markup deliberately, and
+ * dropping declarations to the text path would print them literally where they used to disappear
+ * into the parser. It deliberately does not require a closing `>`: an unterminated declaration is
+ * still not prose, and leaving the `>` out keeps this alternative free of a quantifier.
+ *
+ * The alternatives sit side by side rather than nested inside one group, which is what keeps the
+ * pattern inside the complexity budget the `typescript:S5843` quality gate enforces - nesting an
+ * alternation inside another one prices every quantifier under it a level higher. They are all
+ * non-capturing: this value is public, and capture groups on it were a shape consumers could read
+ * (`match[1]` used to equal `match[0]`) while nothing in the grid ever did. Exposing no groups is
+ * honest about that, where renumbering them silently would not be.
+ *
+ * The numeric alternative writes the `x` as optional rather than splitting decimal from
+ * hexadecimal, so it also admits `&#abc;` - `#` with hexadecimal digits but no `x`. That is not a
+ * reference, so this errs toward treating a handful of unrealistic strings as markup. The
+ * sanitizer seeing slightly too much is the safe direction to be imprecise in.
+ *
+ * Two residuals, both deliberate. The semicolon-less legacy named form (`&copy 2024`, which a
+ * parser still decodes, with a parse error) is out of scope, so such content now renders literally;
+ * the old pattern only decoded it when an unrelated `;` happened to appear later in the same
+ * string, which made the behavior depend on the rest of the value. And the tag alternative still
+ * matches prose shaped like a tag, `Type <Enter> to continue` or `<none>`, because the only way to
+ * exclude it is a tag-name allowlist, which would drop custom elements from headers. Such a label
+ * still reaches `innerHTML`, and so still throws under a Trusted Types policy - the accidental
+ * crash this pattern narrows is reduced, not eliminated.
+ *
+ * The named form requires at least two characters on purpose. HTML defines no single-letter named
+ * reference - the shortest are two, such as `&lt;` and `&ni;` - so the floor costs nothing and it
+ * is what keeps `R&D; notes` out of the sink. Matching by shape cannot be exact: `&Dx;` is not a
+ * reference either, yet it is spelled like one. Testing the ~2200 real names would mean a table
+ * lookup on a path that runs for every rendered header, and a browser renders an unknown
+ * reference literally anyway, so shape is where this stops.
+ *
+ * It stays unanchored, so a string mixing prose with a real reference (`Smith & Sons; &amp; more`)
+ * still matches on the reference and still reaches the sanitizer.
+ *
+ * The `i` flag carries the case-insensitivity that tag names and hexadecimal digits need anyway
+ * (`<IMG SRC=x>`, `&#X41;`), which is what lets the character classes stay this short. There is
+ * deliberately no `g` flag: it would make `.test()` stateful through `lastIndex`, so consecutive
+ * calls on the same pattern would disagree about identical content.
+ */
+export const HTML_CHARACTERS =
+  /(?:<\/?[a-z][^<>]*>)|(?:<[!?])|(?:&[a-z][a-z\d]+;)|(?:&#x?[\da-f]+;)/i;
 
 /**
  * Shared "warn once" key for every missing-sanitizer warning, so that all DOM
@@ -578,7 +660,7 @@ const defaultSanitizerWarnScope = {};
  *
  * @param {HTMLElement} element An element to write into.
  * @param {string} content The text to write.
- * @param {boolean|function(string, SanitizerContext): string} [sanitizer] When a function, use it as the sanitizer; when `false`,
+ * @param {boolean|function(string, SanitizerContext): (string|object)} [sanitizer] When a function, use it as the sanitizer; when `false`,
  * write the content as raw HTML on purpose (no warning); when `true` (the default), write the content as raw HTML and
  * warn once that no sanitizer is configured.
  * @param {SanitizerContext} [context] The sanitization context passed as the second argument to a custom sanitizer function, and
@@ -588,11 +670,11 @@ const defaultSanitizerWarnScope = {};
  */
 export function fastInnerHTML(
   element: HTMLElement, content: string,
-  sanitizer: boolean | ((html: string, context: SanitizerContext) => string) = true,
+  sanitizer: boolean | ((html: string, context: SanitizerContext) => string | TrustedHTMLLike) = true,
   context: SanitizerContext = 'innerHTML',
   scope: object = defaultSanitizerWarnScope): void {
   if (HTML_CHARACTERS.test(content)) {
-    let sanitized: string;
+    let sanitized: string | TrustedHTMLLike;
 
     if (typeof sanitizer === 'function') {
       // `?? ''` rather than `?? content`: a sanitizer that returns nothing for input it strips
@@ -611,7 +693,21 @@ export function fastInnerHTML(
       sanitized = content;
     }
 
-    element.innerHTML = sanitized;
+    if (sanitized === '') {
+      // A sanitizer that stripped the payload entirely leaves nothing to write. Clearing the
+      // element is not the same as assigning `''` to `innerHTML`: that is a Trusted Types sink
+      // whatever the value, so under `require-trusted-types-for 'script'` the empty string throws
+      // and a stripped cell takes the grid down instead of rendering blank.
+      empty(element);
+
+      return;
+    }
+
+    // The sanitizer's value reaches the sink exactly as returned. A page enforcing Trusted Types
+    // hands back a `TrustedHTML`, which the sink accepts and a plain string is rejected in place
+    // of - so this must never coerce, concatenate, or re-test the value. The cast is only for the
+    // DOM lib's `string` typing; `TrustedHTML` is absent from it at this TypeScript version.
+    element.innerHTML = sanitized as string;
   } else {
     fastInnerText(element, content);
   }

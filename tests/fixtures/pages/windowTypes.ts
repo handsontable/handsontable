@@ -24,6 +24,7 @@ interface FixtureCellRange {
 export interface FixtureHotInstance {
   getDataAtCell(row: number, col: number): CellValue;
   getSourceDataAtCell(row: number, col: number): CellValue;
+  getSourceData(): unknown[];
   setDataAtCell(row: number, col: number, value: CellValue): void;
   getCellMeta(row: number, col: number): { className?: string, readOnly?: boolean };
   getPlugin(name: 'formulas'): {
@@ -36,6 +37,7 @@ export interface FixtureHotInstance {
     isUndoAvailable(): boolean,
     isRedoAvailable(): boolean,
     doneActions: unknown[],
+    ignoreNewActions: boolean,
   };
   getPlugin(name: 'moveCells'): {
     moveCellRange(sourceRange: unknown, targetTopLeft: unknown, isCopy?: boolean): boolean,
@@ -131,10 +133,20 @@ export interface MoveCellsHookRecord {
   isCopy: boolean;
 }
 
+/**
+ * Hook counters the DEV-2687 touch tap-to-edit fixture exposes on `window.hookCounts`.
+ */
+export type HookCounterName =
+  'beforeOnCellMouseDown' | 'beforeOnCellMouseUp' | 'afterBeginEditing' | 'afterCreateRow' | 'click';
+
 declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
+    /** #5833 fixture: the "getter" grid – constructor rows with a non-configurable derived getter. */
+    hotGetter: FixtureHotInstance;
+    /** #5833 fixture: the "accessor" grid – the docs' function-data-source pattern (function `columns[].data`). */
+    hotAccessor: FixtureHotInstance;
     /** The Handsontable constructor loaded by the fixture — exposes the global hooks bucket. */
     Handsontable: {
       hooks: {
@@ -147,6 +159,18 @@ declare global {
     initSelectionGrid(overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the mobile drag-to-scroll fixture grid with the given setting overrides. */
     initMobileGrid(overrides?: Record<string, unknown>): boolean;
+    /** Rebuilds the fragmentSelection fixture grid with the given setting overrides. */
+    initFragmentSelectionGrid(overrides?: Record<string, unknown>): boolean;
+    /** Returns the text the browser currently reports as selected (fragmentSelection fixture). */
+    readTextSelection(): string;
+    /** Drops any existing text selection (fragmentSelection fixture). */
+    clearTextSelection(): boolean;
+    /** Reports whether a selection border, a cell, or neither is under a point (fragmentSelection fixture). */
+    elementUnder(x: number, y: number): string;
+    /** Resets the count of mouse moves that landed on a selection border (fragmentSelection fixture). */
+    resetBorderMoveCount(): boolean;
+    /** Returns how many mouse moves landed on a selection border since the reset (fragmentSelection fixture). */
+    getBorderMoveCount(): number;
     /** Recorded moveCells hook calls for the current grid instance. */
     moveCellsHookLog: MoveCellsHookRecord[];
     /** Recorded NestedRows collapse/expand hook calls, in firing order. */
@@ -157,5 +181,12 @@ declare global {
     setBeforeRowMoveVeto(shouldVeto: boolean): boolean;
     /** Makes the fixture's `beforeColumnMove` listener return `false`. */
     setBeforeColumnMoveVeto(shouldVeto: boolean): boolean;
+    /** Per-hook invocation counters of the touch tap-to-edit fixture (DEV-2687). */
+    hookCounts: Record<HookCounterName, number>;
+    /**
+     * Chromium-only InputDeviceCapabilities constructor, used to stamp synthetic mouse events
+     * with their origin (DEV-2687).
+     */
+    InputDeviceCapabilities: new (init: { firesTouchEvents: boolean }) => { firesTouchEvents: boolean };
   }
 }
