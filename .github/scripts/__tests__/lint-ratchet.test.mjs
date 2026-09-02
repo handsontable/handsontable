@@ -368,7 +368,9 @@ test('formatReport names every finding as file:line with its rule, and says how 
     { file: SPEC, line: 38, ruleId: SLEEP, message: 'Do not use a fixed sleep() delay.' },
   ]);
 
-  assert.match(report, new RegExp(`${SPEC.replace(/[./]/g, '\\$&')}:38`));
+  // A plain substring check: building a RegExp from a path needs full metacharacter escaping
+  // (CodeQL js/incomplete-sanitization flags a partial one), and nothing here needs a pattern.
+  assert.ok(report.includes(`${SPEC}:38`), 'the report names the finding as file:line');
   assert.match(report, /no-fixed-sleep-in-spec/);
   assert.match(report, /Do not use a fixed sleep\(\) delay\./);
   assert.match(report, /waitUntil\(/, 'the fix path (a condition wait) must be named');

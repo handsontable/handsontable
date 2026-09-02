@@ -121,8 +121,10 @@ function git(root, args) {
  * lib copied under `.github/scripts/` (`repoRoot()` is anchored to the script's
  * own location, so the copy resolves the fixture as its root), the stub ESLint
  * under `handsontable/node_modules/eslint/bin/eslint.js`, and one committed spec
- * carrying a legacy `sleep()`. Only the spec is tracked; the tooling stays
- * untracked so it never appears in a diff.
+ * carrying a legacy `sleep()`. The tests stage everything (`git add -A`), so the
+ * copied tooling and the stub are tracked and DO appear in the whole-branch diff;
+ * the CLI's candidate filter (spec/unit files under `handsontable/`) is what keeps
+ * those paths out of the findings, which is exactly the behavior under test.
  *
  * @returns {string} The fixture root.
  */
