@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed `colToProp()` and `propToCol()` to return `null` when the column index or property names no column that exists and is visible, instead of returning the passed argument (#7031). Both TypeScript declarations widened to include `null`. A property name your data does not use is still returned unchanged, and the `modifyData` hook now receives `null` as its column argument for a numeric property that names no column.",
+  "type": "changed",
+  "issueOrPR": 13330,
+  "breaking": true,
+  "framework": "none"
+}
