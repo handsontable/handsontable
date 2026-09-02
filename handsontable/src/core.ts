@@ -793,24 +793,173 @@ export default function Core(
 
   this.selection = selection;
 
-  const onIndexMapperCacheUpdate = ({ hiddenIndexesChanged }: { hiddenIndexesChanged: boolean }) => {
+  /**
+   * The state object an index mapper sends with every `cacheUpdated`. All three flags are always
+   * present - `IndexMapper#updateCache()` builds the object literal - so none of them is optional.
+   * Declared once because four sites read it, and a partial payload at any of them would
+   * destructure to `undefined` and silently skip a repair.
+   */
+  type IndexesChangesState = {
+    indexesSequenceChanged: boolean;
+    trimmedIndexesChanged: boolean;
+    hiddenIndexesChanged: boolean;
+  };
+
+  /**
+   * Reacts to an index-map cache update, and reports whether an editor was open when it landed.
+   *
+   * That answer is RETURNED rather than stored, because both axes share this function: a column
+   * update nested inside the row hooks would overwrite a shared flag, and by then `EditorManager`
+   * has discarded the stranded editor, so it would write `false` and the outer row repair would run
+   * the full record test instead of the narrower one - dropping a selection the editor deliberately
+   * kept. Returning it gives each axis its own value.
+   *
+   * @param {object} indexesChangesState The state object of the index mapper's cache update.
+   * @param {boolean} indexesChangesState.hiddenIndexesChanged Whether the hidden indexes changed.
+   * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
+   * @returns {boolean}
+   */
+  const onIndexMapperCacheUpdate = (
+    { hiddenIndexesChanged, trimmedIndexesChanged }: IndexesChangesState
+  ): boolean => {
     this.forceFullRender = true;
+
+    // Sampled HERE, before the public cache-update hooks run, because `EditorManager` discards a
+    // stranded editor inside those hooks - by the time the selection repair reads this, an editor
+    // that was open when the trim landed is already gone.
+    const hadOpenEditor = editorManager?.isEditorOpened() === true;
 
     if (hiddenIndexesChanged) {
       this.selection.commit();
+
+      // `commit()` can move the highlight onto the nearest visible cell, so the record it points at
+      // has to be re-read - but NOT when the same update also trimmed something. The repair below
+      // is about to compare the captured record against the post-trim state, and re-reading here
+      // would rebase it onto whichever record now sits at the stale coordinate, which is the very
+      // thing that comparison exists to detect.
+      if (!trimmedIndexesChanged) {
+        this.selection.recaptureHighlightRecord();
+      }
+    }
+
+    return hadOpenEditor;
+  };
+
+  let lastRowIndexCount = this.rowIndexMapper.getNumberOfIndexes();
+  let lastColumnIndexCount = this.columnIndexMapper.getNumberOfIndexes();
+
+  /**
+   * Drops a selection that a TRIMMING index map has left pointing at something other than the
+   * record it was put on.
+   *
+   * A hidden row keeps its place in the visual space, so `selection.commit()` above is enough for
+   * it. A trimmed row leaves that space, so the highlight's visual coordinate can outlive its
+   * record - and a write through such a coordinate makes `applyChanges()` APPEND records to the
+   * data set. `Selection#deselectIfHighlightStranded()` holds the rule and the reasoning.
+   *
+   * TWO changes invalidate the captured record instead of stranding the selection, and both are
+   * answered by re-reading it from the visual coordinate, which came through them intact:
+   *
+   *   - a STRUCTURAL change (a row or column insert or remove) renumbers the physical space. It
+   *     raises `trimmedIndexesChanged` exactly as a filter does, so the flag cannot tell them apart
+   *     - but the SIZE of that space can, since only an insert or a remove changes it. This is the
+   *     same discrimination `EditorManager` makes for an open editor.
+   *   - a PERMUTATION (a sort, a row move) rewrites which physical index each visual index maps to
+   *     while trimming nothing. Left unhandled it does not merely blur the record test, it INVERTS
+   *     it: after a sort the captured index names a different record, so a healthy selection is
+   *     dropped and a genuinely stranded one is kept.
+   *
+   * An editor changes what this may do, and WHICH editor state matters is the whole subtlety. Two
+   * readings are taken, because `EditorManager` acts between them inside the public hooks:
+   *
+   *   - An editor STILL open afterwards was rebound onto its record, and it owns the selection -
+   *     the pending commit goes through the editor's own coordinates, and `CopyPaste` refuses to
+   *     paste while an editor is open. Nothing here may interfere; moving the selection to follow
+   *     that editor is a separate change.
+   *   - An editor that was open BEFORE and is gone now was discarded, because the trim took its
+   *     record away. Nothing owns the selection any more, and the corruption is live again: the
+   *     highlight outlives the editor and the next paste appends records. So the repair runs - but
+   *     only against a coordinate that addresses NOTHING. `EditorManager` deliberately leaves a
+   *     still-addressable coordinate alone so the next keystroke re-prepares against the record now
+   *     under the cursor, and a write there lands on a real record rather than appending.
+   *
+   * @param {boolean} isStructuralChange Whether that axis's physical index count just changed.
+   * @param {object} indexesChangesState The state object of the index mapper's cache update.
+   * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
+   * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
+   */
+  const repairSelection = (
+    isStructuralChange: boolean,
+    { trimmedIndexesChanged, indexesSequenceChanged }: IndexesChangesState,
+    hadOpenEditor: boolean
+  ) => {
+    if (!this.selection.isSelected()) {
+      return;
+    }
+
+    if (isStructuralChange) {
+      this.selection.recaptureHighlightRecord();
+
+      return;
+    }
+
+    // A permutation is repaired FIRST and does not return, because one cache update can carry both
+    // it and a trim - `hot.batch()` around a sort and a filter collapses them into one. Recapturing
+    // here leaves the trim below testing a record that is current, which is what the selection is
+    // actually sitting on; skipping it would run that test against the pre-permutation index and
+    // invert it, dropping a healthy selection and keeping a stranded one.
+    if (indexesSequenceChanged) {
+      this.selection.recaptureHighlightRecord();
+    }
+
+    if (!trimmedIndexesChanged) {
+      return;
+    }
+
+    // EVERY path that leaves the selection in place re-reads the record under it, because a trim
+    // this repair tolerates still moves the record the highlight addresses - trimming a row above
+    // it is the documented gap. Leaving the old capture in place would make it drift: the next trim
+    // would judge the selection against a record it no longer sits on, dropping a healthy selection
+    // when that record goes and keeping a stranded one when it stays.
+    if (editorManager?.isEditorOpened()) {
+      this.selection.recaptureHighlightRecord();
+
+      return;
+    }
+
+    if (!this.selection.deselectIfHighlightStranded({ unresolvableOnly: hadOpenEditor })) {
+      this.selection.recaptureHighlightRecord();
     }
   };
 
-  this.columnIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: { hiddenIndexesChanged: boolean }) => {
-    onIndexMapperCacheUpdate(indexesChangesState);
+  this.columnIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexesChangesState) => {
+    const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState);
+    // Read and RECORDED before the public hook, both for the same reason: what a consumer does must
+    // not rewrite this update's answer, and must not be undone by it either. A consumer calling
+    // `alter()` from the hook nests a cache update that advances the counter itself, so writing a
+    // pre-hook snapshot back afterwards would rewind it - and the next update would then look
+    // structural and skip the stranded-selection test. The count is already final when
+    // `cacheUpdated` fires, so reading it early costs nothing.
+    const indexCount = this.columnIndexMapper.getNumberOfIndexes();
+    const isStructuralChange = indexCount !== lastColumnIndexCount;
+
+    lastColumnIndexCount = indexCount;
 
     this.runHooks('afterColumnSequenceCacheUpdate', indexesChangesState);
+
+    repairSelection(isStructuralChange, indexesChangesState, hadOpenEditor);
   });
 
-  this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: { hiddenIndexesChanged: boolean }) => {
-    onIndexMapperCacheUpdate(indexesChangesState);
+  this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexesChangesState) => {
+    const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState);
+    const indexCount = this.rowIndexMapper.getNumberOfIndexes();
+    const isStructuralChange = indexCount !== lastRowIndexCount;
+
+    lastRowIndexCount = indexCount;
 
     this.runHooks('afterRowSequenceCacheUpdate', indexesChangesState);
+
+    repairSelection(isStructuralChange, indexesChangesState, hadOpenEditor);
   });
 
   this.selection.addLocalHook('afterSetRangeEnd', (

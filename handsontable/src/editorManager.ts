@@ -585,12 +585,14 @@ class EditorManager {
    * there is no record left to follow. Discarding is what keeps a following `Filters#filter()` from
    * committing through those coordinates and appending records.
    *
-   * Two further limits. An index-map change does NOT adjust the selection – `core.ts` calls
-   * `selection.commit()` only for `hiddenIndexesChanged` – so the highlight can be left past the last
-   * row, and typing into it grows the data set. That is reachable with no editor involved at all and
-   * is a separate defect; this method does not paper over it. And an editor parked in `WAITING` is
-   * not reconciled: `finishEditing()` has already run `saveValue()` by then, so there is nothing
-   * left to redirect.
+   * Two further limits. The selection is repaired separately and on a different rule: `core.ts`
+   * DROPS a selection a trimming map left pointing at another record (`Selection#
+   * deselectIfHighlightStranded()`), rather than moving it, and it skips that repair entirely while
+   * an editor is open – so with an editor in play the rebind here is the only thing acting, exactly
+   * as before. One shape stays open on the selection side, with no editor involved: a trim ABOVE
+   * the highlight that leaves its coordinate in range while shifting the record out from under it.
+   * And an editor parked in `WAITING` is not reconciled: `finishEditing()` has already run
+   * `saveValue()` by then, so there is nothing left to redirect.
    *
    * No core plugin registers a TRIMMING map on the column axis, so that half runs for user-registered
    * maps only; core plugins do permute the column sequence (`manualColumnMove`, `manualColumnFreeze`)

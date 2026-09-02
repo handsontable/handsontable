@@ -1,6 +1,12 @@
 import type { default as CellCoords } from '../3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from '../3rdparty/walkontable/src/cell/range';
-import type { SelectionFocusPosition, SelectionSettings, SelectionTableProps } from './types';
+import type {
+  ImportedSelectionState,
+  SelectionFocusPosition,
+  SelectionSettings,
+  SelectionState,
+  SelectionTableProps,
+} from './types';
 import type { IndexMapper } from '../translations';
 import Highlight, {
   AREA_TYPE,
@@ -66,6 +72,8 @@ function snapToNearestVisible(indexMapper: IndexMapper, index: number, isSingleL
  * @property {number[]} selectedByRowHeader The state of the selected row headers.
  * @property {number[]} selectedByColumnHeader The state of the selected column headers.
  * @property {boolean} disableHeadersHighlight The state of the disable headers highlight.
+ * @property {number[]} rowExtentSpansGrid The layers whose row extent spans the whole grid.
+ * @property {number[]} columnExtentSpansGrid The layers whose column extent spans the whole grid.
  */
 
 /**
@@ -178,6 +186,50 @@ class Selection {
    * @type {number | null}
    */
   #handlesHoveredLayer: number | null = null;
+  /**
+   * The PHYSICAL row of the record the active highlight points at, or `null` when there is no
+   * selection or the highlight sits on a header.
+   *
+   * The highlight itself stores a VISUAL coordinate, which a trimming index map can invalidate
+   * without touching it - the collapsed visual space no longer holds the record the user picked.
+   * The physical index is what survives that, and `IndexMapper#updateCache()` rebuilds every cache
+   * BEFORE it fires `cacheUpdated`, so it cannot be recovered afterwards. It has to be captured
+   * while the selection is being laid, which is what `#captureHighlightRecord()` does.
+   *
+   * @type {number | null}
+   */
+  #highlightPhysicalRow: number | null = null;
+  /**
+   * The PHYSICAL column of the record the active highlight points at, or `null`. The column twin of
+   * {@link Selection#highlightPhysicalRow}.
+   *
+   * @type {number | null}
+   */
+  #highlightPhysicalColumn: number | null = null;
+  /**
+   * The selection layers whose ROW extent spans the whole grid by construction rather than naming
+   * particular records - a full-column selection or a select-all.
+   *
+   * Kept per LAYER, like the header-selection sets beside it: a non-contiguous selection can hold a
+   * full column in one layer and a plain cell range in another, and the repair judges whichever
+   * layer is active.
+   *
+   * Recorded by the API that creates such a selection, because nothing about the resulting range
+   * can be read back to tell the two apart later. The tempting signals all fail: the range's own
+   * corner is only negative when the grid renders headers (`colHeaders` is off by default),
+   * `isEntireColumnSelected()` measures the range against the CURRENT row count that a trim has
+   * already changed, and the header-selection sets exclude a corner select-all by design.
+   *
+   * @type {Set<number>}
+   */
+  #rowExtentSpansGrid = new Set<number>();
+  /**
+   * The selection layers whose COLUMN extent spans the whole grid by construction - a full-row
+   * selection or a select-all. The column counterpart of {@link Selection#rowExtentSpansGrid}.
+   *
+   * @type {Set<number>}
+   */
+  #columnExtentSpansGrid = new Set<number>();
 
   /**
    * Initializes the Selection manager with grid settings and table API references, and sets up transformation modules and highlight layers.
@@ -403,7 +455,16 @@ class Selection {
     if (this.getLayerLevel() === 0) {
       this.selectedByRowHeader.clear();
       this.selectedByColumnHeader.clear();
+      // Dropped with the header sets, and for the same reason: a fresh selection at layer 0
+      // replaces whatever the previous one spanned.
+      this.#rowExtentSpansGrid.clear();
+      this.#columnExtentSpansGrid.clear();
     }
+
+    // Captured here as well as in `setRangeFocus()`, for the `fragment` path: it leaves the
+    // highlight written above as the final one, because `setRangeEnd()` never runs.
+    this.#captureHighlightRecord();
+
     if (!fragment) {
       this.setRangeEnd(coords);
     }
@@ -735,6 +796,12 @@ class Selection {
       this.#isFocusSelectionChanged = true;
       this.runLocalHooks('afterSetFocus', cellRange.highlight);
     }
+
+    // Last, because two things move the highlight after it is written above: `syncWith()` snaps it
+    // onto the nearest visible cell, and a consumer of `afterSetFocus` can reassign it outright -
+    // `mergeCells` does, to pull the focus onto a merged parent. Capturing any earlier records the
+    // cell the focus was on BEFORE the merge, so the next trim judges the wrong record.
+    this.#captureHighlightRecord();
   }
 
   /**
@@ -829,6 +896,9 @@ class Selection {
       const clampToVisibleRow = (visualRow: number): number =>
         snapToNearestVisible(this.tableProps.rowIndexMapper, visualRow, isSingleRow);
 
+      const rowExtentSpansGrid = new Set(this.#rowExtentSpansGrid);
+      const columnExtentSpansGrid = new Set(this.#columnExtentSpansGrid);
+
       // Remove from the stack the last added selection as that selection below will be
       // replaced by new transformed selection.
       this.getSelectedRange().pop();
@@ -860,6 +930,11 @@ class Selection {
       if (isSelectedByColumnHeader) {
         this.selectedByColumnHeader.add(this.getLayerLevel());
       }
+
+      // Re-laying the range through `setRangeStartOnly()` cleared these, and a shift does not change
+      // what the selection spans - a full column is still a full column after a row is inserted.
+      this.#rowExtentSpansGrid = rowExtentSpansGrid;
+      this.#columnExtentSpansGrid = columnExtentSpansGrid;
 
       this.setRangeEnd(coordsEnd);
       this.markEndSource();
@@ -900,6 +975,9 @@ class Selection {
       const clampToVisibleColumn = (visualColumn: number): number =>
         snapToNearestVisible(this.tableProps.columnIndexMapper, visualColumn, isSingleColumn);
 
+      const rowExtentSpansGrid = new Set(this.#rowExtentSpansGrid);
+      const columnExtentSpansGrid = new Set(this.#columnExtentSpansGrid);
+
       // Remove from the stack the last added selection as that selection below will be
       // replaced by new transformed selection.
       this.getSelectedRange().pop();
@@ -931,6 +1009,11 @@ class Selection {
       if (isSelectedByColumnHeader) {
         this.selectedByColumnHeader.add(this.getLayerLevel());
       }
+
+      // Re-laying the range through `setRangeStartOnly()` cleared these, and a shift does not change
+      // what the selection spans - a full column is still a full column after a row is inserted.
+      this.#rowExtentSpansGrid = rowExtentSpansGrid;
+      this.#columnExtentSpansGrid = columnExtentSpansGrid;
 
       this.setRangeEnd(coordsEnd);
       this.markEndSource();
@@ -972,6 +1055,80 @@ class Selection {
     this.runLocalHooks('afterIsMultipleSelection', isMultipleListener);
 
     return isMultipleListener.value;
+  }
+
+  /**
+   * Captures the record the active highlight points at, so a later trimming index map can be asked
+   * whether that record is still there. Runs wherever the highlight settles - see
+   * {@link Selection#highlightPhysicalRow} for why it cannot be read back on demand.
+   *
+   * @private
+   */
+  #captureHighlightRecord() {
+    const highlight = this.getActiveSelectedRange()?.highlight;
+
+    if (!highlight) {
+      this.#highlightPhysicalRow = null;
+      this.#highlightPhysicalColumn = null;
+
+      return;
+    }
+
+    const { row, col } = highlight;
+
+    // A header carries no record, so there is nothing to follow - a negative index captures as
+    // `null` and the stranded check then falls back to the range test for that axis.
+    this.#highlightPhysicalRow = row === null || row < 0 ?
+      null : this.tableProps.rowIndexMapper.getPhysicalFromVisualIndex(row);
+    this.#highlightPhysicalColumn = col === null || col < 0 ?
+      null : this.tableProps.columnIndexMapper.getPhysicalFromVisualIndex(col);
+  }
+
+  /**
+   * Tells whether one axis of a coordinate has been left past the last index.
+   *
+   * Applied to the highlight AND to both range corners, because a paste sizes its fill loop from
+   * the corners: a range whose far corner outruns the axis writes down to it and appends records,
+   * whatever the highlight is doing.
+   *
+   * @private
+   * @param {number | null} visualIndex The visual index on that axis.
+   * @param {number} count The number of visual indexes on that axis.
+   * @returns {boolean}
+   */
+  #isAxisOutOfRange(visualIndex: number | null, count: number): boolean {
+    // Headers are outside the record space and keep their own coordinates. An axis trimmed away
+    // ENTIRELY is excluded too: that is a grid with nothing on that axis rather than a stale
+    // selection, and selecting headers over it stays meaningful - copying with every row trimmed
+    // yields an empty table, and column headers still copy. Established, tested behavior.
+    if (visualIndex === null || visualIndex < 0 || count === 0) {
+      return false;
+    }
+
+    return visualIndex > count - 1;
+  }
+
+  /**
+   * Tells whether one axis of the highlight no longer addresses the record it was captured on,
+   * although the coordinate itself still addresses something.
+   *
+   * This is the half an open editor is exempt from: a write through such a coordinate lands on a
+   * real record rather than appending, and `EditorManager` keeps the selection there on purpose.
+   *
+   * @private
+   * @param {number | null} visualIndex The highlight's visual index on that axis.
+   * @param {number | null} physicalIndex The captured physical index on that axis, if any.
+   * @param {IndexMapper} indexMapper The index mapper for that axis.
+   * @param {number} count The number of visual indexes on that axis.
+   * @returns {boolean}
+   */
+  #isAxisRecordGone(
+    visualIndex: number | null, physicalIndex: number | null, indexMapper: IndexMapper, count: number): boolean {
+    if (visualIndex === null || visualIndex < 0 || count === 0 || physicalIndex === null) {
+      return false;
+    }
+
+    return indexMapper.getVisualFromPhysicalIndex(physicalIndex) === null;
   }
 
   /**
@@ -1279,6 +1436,160 @@ class Selection {
     // TODO: collections selectedByColumnHeader and selectedByRowHeader should be clear too.
     this.selectedRange.clear();
     this.highlight.clear();
+    this.#highlightPhysicalRow = null;
+    this.#highlightPhysicalColumn = null;
+    this.#rowExtentSpansGrid.clear();
+    this.#columnExtentSpansGrid.clear();
+  }
+
+  /**
+   * Re-reads the record the active highlight points at from its VISUAL coordinate.
+   *
+   * Called when a structural change (a row or column insert or remove) has renumbered the physical
+   * space: the captured physical index then addresses a different record, while the visual
+   * coordinate came through intact because the index mapper moved the visual space with it. So the
+   * visual side is the trustworthy one here, and the record is read back from it - the same repair
+   * `EditorManager#recaptureEditedRecord()` applies to the edited cell.
+   *
+   * Called for the same reason after a PERMUTATION (a sort, a row move), which rewrites the
+   * visual-to-physical mapping while trimming nothing.
+   *
+   * This method is not part of the public API and should not be called by a consumer.
+   *
+   * @private
+   */
+  recaptureHighlightRecord() {
+    this.#captureHighlightRecord();
+  }
+
+  /**
+   * Deselects when a trimming index map has left the active highlight pointing at something other
+   * than the record it was put on. Returns whether the selection was dropped.
+   *
+   * A trimmed row leaves the visual space entirely, unlike a hidden one, so the highlight's visual
+   * coordinate can outlive the record it addressed. Writing through such a coordinate is what makes
+   * `applyChanges()` APPEND records to the data set - a paste, a Ctrl+Enter commit or an autofill
+   * all read the selection corners directly - so the selection is dropped rather than moved.
+   *
+   * Three shapes reach that corruption and all are checked here:
+   *   - the record is gone, and the coordinate now addresses a different one that took its place;
+   *   - the record survives further up, and the coordinate is left past the last row;
+   *   - the highlight is fine but a CORNER of the range is left past the last row, which a paste
+   *     still writes down to.
+   *
+   * ONE shape is deliberately not covered: a trim above the highlight that leaves the coordinate in
+   * range while shifting the record out from under it (trimming row 0 with row 3 highlighted moves
+   * that record to visual 2, and visual 3 now holds its neighbor). Closing it means deselecting on
+   * every trim above the selection, which is a wider behavior change than this repair takes on.
+   *
+   * The rule reads the ACTIVE layer's highlight only. When it fires the whole selection goes, so a
+   * stranded coordinate in a non-active layer of a multi-layer selection is not tracked.
+   *
+   * This method is not part of the public API and should not be called by a consumer.
+   *
+   * @private
+   * @param {object} [options] Options.
+   * @param {boolean} [options.unresolvableOnly=false] Drop only a coordinate that addresses nothing
+   *                                                   at all, leaving one whose record merely
+   *                                                   changed. Set while an editor is open, where
+   *                                                   `EditorManager` keeps the selection on purpose
+   *                                                   so the user can carry on typing into the cell
+   *                                                   now under the cursor - a write there lands on
+   *                                                   a real record, while an unresolvable
+   *                                                   coordinate would append new ones.
+   * @returns {boolean}
+   */
+  deselectIfHighlightStranded({ unresolvableOnly = false }: { unresolvableOnly?: boolean } = {}): boolean {
+    if (!this.isSelected()) {
+      return false;
+    }
+
+    const range = this.getActiveSelectedRange();
+
+    if (!range) {
+      return false;
+    }
+
+    const { highlight, from, to } = range;
+    const { row, col } = highlight;
+    const maxRow = this.tableProps.rowIndexMapper.getNotTrimmedIndexesLength() - 1;
+    const maxColumn = this.tableProps.columnIndexMapper.getNotTrimmedIndexesLength() - 1;
+
+    // Both counts are sized from the index mappers rather than `countRows()`/`countCols()`: those
+    // read through the DataMap, which `updateData()` tears down and rebuilds while cache updates
+    // are still firing. The mappers own the trimmed visual space anyway, which is what is tested.
+    //
+    // The two measures differ only where `maxRows`/`maxCols` binds - `DataMap#getLength()` is
+    // `Math.min(notTrimmedLength, maxRows)` - which makes this test the more permissive of the two,
+    // while `applyChanges()` grows the data set against the clamped one. That gap is unreachable:
+    // it is non-empty only when the setting is below the not-trimmed length, and in exactly that
+    // case a trim leaves the clamped count untouched, so a coordinate that was in range before the
+    // trim is still in range after it.
+    //
+    // The HIGHLIGHT is tested alongside both corners. It normally sits between them, so the corner
+    // test usually subsumes it - but it is checked in its own right rather than by assumption,
+    // because nothing in this class holds the highlight inside the range, and a highlight the
+    // corners do not cover is exactly the coordinate a commit would write through.
+    const isRowOutOfRange =
+      this.#isAxisOutOfRange(row, maxRow + 1) ||
+      this.#isAxisOutOfRange(from.row, maxRow + 1) ||
+      this.#isAxisOutOfRange(to.row, maxRow + 1);
+    const isColumnOutOfRange =
+      this.#isAxisOutOfRange(col, maxColumn + 1) ||
+      this.#isAxisOutOfRange(from.col, maxColumn + 1) ||
+      this.#isAxisOutOfRange(to.col, maxColumn + 1);
+
+    if (isRowOutOfRange || isColumnOutOfRange) {
+      // A header anchor says an extent TRACKS THE GRID rather than naming records, and it says so
+      // PER AXIS. Anchoring in the column header (`from.row < 0`) is what makes a full-column
+      // selection span every row, so a shorter grid means a shorter selection and clamping is what
+      // it already meant. Anchoring in the row header (`from.col < 0`) says the same about columns.
+      //
+      // The two must not be conflated: a full-row selection is anchored in the ROW header, yet its
+      // row index still names one particular record. Clamping that onto whichever row survives
+      // would slide the selection to a neighbor, and the next paste would overwrite it - the silent
+      // wrong-record write this repair exists to prevent. So each axis is judged by its own anchor.
+      //
+      // Read from the header-selection state rather than the range's corners. A negative corner
+      // says the same thing only when the grid HAS headers - `selectColumns()` on a grid without
+      // `colHeaders`, which is the default, anchors `from.row` at 0 - so testing the coordinate
+      // would drop exactly the full-column selections this branch exists to keep. The state sets
+      // are written by `selectColumns()`/`selectRows()` whether or not headers are rendered, and
+      // `refresh()` carries them across, so they survive the trim.
+      //
+      // `isEntireColumnSelected()` cannot answer this either: it compares the range height against
+      // the CURRENT row count, which the trim has already changed, so it reads false exactly here.
+      const activeLayer = this.getActiveSelectionLayerIndex();
+      const isRowExtentTracked = this.#rowExtentSpansGrid.has(activeLayer);
+      const isColumnExtentTracked = this.#columnExtentSpansGrid.has(activeLayer);
+
+      if ((isRowOutOfRange && !isRowExtentTracked) || (isColumnOutOfRange && !isColumnExtentTracked)) {
+        this.deselect();
+
+        return true;
+      }
+
+      this.refresh();
+
+      return false;
+    }
+
+    if (unresolvableOnly) {
+      return false;
+    }
+
+    const isRecordGone =
+      this.#isAxisRecordGone(row, this.#highlightPhysicalRow, this.tableProps.rowIndexMapper, maxRow + 1) ||
+      this.#isAxisRecordGone(col, this.#highlightPhysicalColumn,
+        this.tableProps.columnIndexMapper, maxColumn + 1);
+
+    if (!isRecordGone) {
+      return false;
+    }
+
+    this.deselect();
+
+    return true;
   }
 
   /**
@@ -1350,6 +1661,12 @@ class Selection {
     this.setRangeStartOnly(startCoords, undefined, highlight);
 
     this.#disableHeadersHighlight = disableHeadersHighlight ?? false;
+
+    // Recorded for BOTH axes and without a header condition. The header-state writes below are
+    // deliberately conditional - they drive header highlighting, which only means something when a
+    // header is rendered - so they cannot answer "does this extent span the grid".
+    this.#rowExtentSpansGrid.add(this.getLayerLevel());
+    this.#columnExtentSpansGrid.add(this.getLayerLevel());
 
     if (columnFrom < 0) {
       this.selectedByRowHeader.add(this.getLayerLevel());
@@ -1479,6 +1796,8 @@ class Selection {
 
       this.setRangeStartOnly(from, undefined, highlight);
       this.selectedByColumnHeader.add(this.getLayerLevel());
+      // A column selection covers every row by construction, so its row extent follows the grid.
+      this.#rowExtentSpansGrid.add(this.getLayerLevel());
       this.setRangeEnd(to);
       this.runLocalHooks('afterSelectColumns', from, to, highlight);
 
@@ -1543,6 +1862,8 @@ class Selection {
 
       this.setRangeStartOnly(from, undefined, highlight);
       this.selectedByRowHeader.add(this.getLayerLevel());
+      // A row selection covers every column by construction.
+      this.#columnExtentSpansGrid.add(this.getLayerLevel());
       this.setRangeEnd(to);
       this.runLocalHooks('afterSelectRows', from, to, highlight);
 
@@ -1571,10 +1892,9 @@ class Selection {
     selectedByRowHeader,
     selectedByColumnHeader,
     disableHeadersHighlight,
-  }: {
-    ranges: CellRange[]; activeRange: CellRange; activeSelectionLayer: number;
-    selectedByRowHeader: number[]; selectedByColumnHeader: number[]; disableHeadersHighlight: boolean;
-  }) {
+    rowExtentSpansGrid = [],
+    columnExtentSpansGrid = [],
+  }: ImportedSelectionState) {
     if (ranges.length === 0) {
       return;
     }
@@ -1586,6 +1906,8 @@ class Selection {
 
     this.selectedByRowHeader = new Set(selectedByRowHeader);
     this.selectedByColumnHeader = new Set(selectedByColumnHeader);
+    this.#rowExtentSpansGrid = new Set(rowExtentSpansGrid);
+    this.#columnExtentSpansGrid = new Set(columnExtentSpansGrid);
 
     this.setActiveSelectionLayerIndex(0);
 
@@ -1605,7 +1927,7 @@ class Selection {
    *
    * @returns {SelectionState}
    */
-  exportSelection() {
+  exportSelection(): SelectionState {
     return {
       ranges: Array.from(this.selectedRange).map(range => range.clone()),
       activeRange: this.getActiveSelectedRange(),
@@ -1613,6 +1935,12 @@ class Selection {
       selectedByRowHeader: Array.from(this.selectedByRowHeader),
       selectedByColumnHeader: Array.from(this.selectedByColumnHeader),
       disableHeadersHighlight: this.#disableHeadersHighlight,
+      // Carried like the header state beside it: a consumer that stashes the selection, deselects,
+      // and restores it later - `dialog` and `emptyDataState` both do - would otherwise hand back a
+      // full-column or select-all selection that no longer knows it spans the grid, and the next
+      // trim would drop it instead of clamping it.
+      rowExtentSpansGrid: Array.from(this.#rowExtentSpansGrid),
+      columnExtentSpansGrid: Array.from(this.#columnExtentSpansGrid),
     };
   }
 
@@ -1645,6 +1973,8 @@ class Selection {
 
     const selectedByRowHeader = new Set(this.selectedByRowHeader);
     const selectedByColumnHeader = new Set(this.selectedByColumnHeader);
+    const rowExtentSpansGrid = new Set(this.#rowExtentSpansGrid);
+    const columnExtentSpansGrid = new Set(this.#columnExtentSpansGrid);
 
     this.clear();
     this.setExpectedLayers(ranges.length);
@@ -1673,6 +2003,8 @@ class Selection {
 
     this.selectedByRowHeader = selectedByRowHeader;
     this.selectedByColumnHeader = selectedByColumnHeader;
+    this.#rowExtentSpansGrid = rowExtentSpansGrid;
+    this.#columnExtentSpansGrid = columnExtentSpansGrid;
 
     this.finish();
     this.markEndSource();
@@ -1704,6 +2036,13 @@ class Selection {
         .commit()
         .syncWith(cellRange);
     }
+
+    // `syncWith()` above can move the visual highlight onto the nearest visible cell, so the record
+    // it points at goes stale here. Re-reading it is deliberately NOT done inside this method: a
+    // single cache update can carry a hiding change and a trimming one together, and a re-read
+    // would rebase the captured record onto whichever record now sits at the stale coordinate,
+    // defeating the very test the caller is about to run. The Core owns that call and makes it only
+    // when nothing was trimmed - see `repairSelection()` in `core.ts`.
 
     // Rewriting rendered ranges going through all layers.
     for (let layerLevel = 0; layerLevel < this.selectedRange.size(); layerLevel += 1) {
