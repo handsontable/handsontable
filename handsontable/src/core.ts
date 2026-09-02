@@ -2645,7 +2645,9 @@ export default function Core(
       changes.push([
         visualRow,
         inputProp,
-        dataSource.getAtCell(this.toPhysicalRow(visualRow), inputProp as string | number),
+        // The input is a prop, so it is read back as one. Routing it through `getAtCell()` would
+        // resolve it as a visual column index and read another column whenever the two differ.
+        dataSource.getAtCellByProp(this.toPhysicalRow(visualRow), inputProp as string | number),
         newValue,
       ]);
     }
@@ -4549,7 +4551,8 @@ export default function Core(
         changesForHook.push([
           changeRow,
           changeProp,
-          dataSource.getAtCell(changeRow, changeProp), // The previous value.
+          // `changeProp` is already a prop, so it is read back as one – see `getAtCellByProp()`.
+          dataSource.getAtCellByProp(changeRow, changeProp), // The previous value.
           newValue,
         ]);
       });
