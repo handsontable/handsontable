@@ -115,6 +115,16 @@ describe('DataSource', () => {
 
       expect(dataSource.getAtCellByProp(1, 'artist')).toBe('Child');
     });
+
+    it('should use a passed row representation instead of resolving one again', () => {
+      // What lets a caller read many columns of one row without re-running the hook per column.
+      const data = [['a', 'b']];
+      const dataSource = new DataSource(createHotMock({ modifyRowData: row => data[row] }), data);
+      const modifyRowData = jest.spyOn(dataSource, 'modifyRowData');
+
+      expect(dataSource.getAtCellByProp(0, 1, ['x', 'y'])).toBe('y');
+      expect(modifyRowData).not.toHaveBeenCalled();
+    });
   });
 
   describe('getData()', () => {

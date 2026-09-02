@@ -116,6 +116,15 @@ export interface HotInstance {
   toPhysicalColumn(column: number): number;
   toVisualRow(row: number): number;
   toVisualColumn(column: number): number;
+  /**
+   * These two signatures are narrower than what runs, at both ends. Both methods hand an unmatched
+   * argument straight back, and both can return `null` – `propToCol` for a trimmed column whose
+   * property is cached, `colToProp` for a column declared as `{ data: null }`. Validate the result
+   * before using it as an index or a property name.
+   *
+   * The parameters are narrower too: `propToCol` resolves a `columns[].data` accessor function at
+   * runtime, and `colToProp` hands back any non-integer argument, but neither is accepted here.
+   */
   propToCol(prop: string | number): number;
   colToProp(column: number): string | number;
 

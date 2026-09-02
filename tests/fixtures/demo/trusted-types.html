@@ -133,10 +133,11 @@
       })[params.get('license')] ?? 'non-commercial-and-evaluation';
 
       // `?colHeader=markup` and `?colHeader=prose` put content into a HEADER, which is the one
-      // surface that still reaches `innerHTML` through `fastInnerHTML`. `prose` carries no markup
-      // at all - `HTML_CHARACTERS` matches any `&` with a later `;`, so an ampersand and a
-      // semicolon in the same string are enough. Cell data is deliberately not parameterized:
-      // `textRenderer` writes through `fastInnerText`, so it never reaches the sink.
+      // surface that still reaches `innerHTML` through `fastInnerHTML`. `markup` is the only one
+      // that gets there: `HTML_CHARACTERS` matches a markup shape, so `prose` - an ampersand and a
+      // semicolon in ordinary text - takes the `textContent` path instead. Cell data is
+      // deliberately not parameterized: `textRenderer` writes through `fastInnerText`, so it never
+      // reaches the sink.
       const headerContent = ({
         markup: '<b>ID</b>',
         prose: 'Smith & Sons, Ltd.; est. 1920',

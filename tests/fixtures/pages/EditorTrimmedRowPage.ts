@@ -36,15 +36,26 @@ interface ManualColumnMovePlugin {
 }
 
 interface HandsontableFixture {
-  addHook(name: string, callback: () => unknown): void;
+  addHook(name: string, callback: (...args: unknown[]) => unknown): void;
+  getSelectedRangeActive(): { from: { row: number | null } } | undefined;
   getSelected(): number[][] | undefined;
   selectCells(ranges: number[][]): void;
-  selectColumns(column: number): void;
-  selectAll(): void;
+  selectColumns(
+    startColumn: number,
+    endColumn?: number,
+    focusPosition?: number | { row?: number; col?: number },
+  ): boolean;
+  selectAll(includeRowHeaders?: boolean, includeColumnHeaders?: boolean): void;
   deselectCell(): void;
   selectRows(row: number): void;
   selection: {
     transformFocus(row: number, col: number): void;
+    transformEnd(rowDelta: number, colDelta: number): void;
+    isEntireColumnSelected(): boolean;
+    getActiveSelectionLayerIndex(): number;
+    highlight: {
+      getAreas(): Array<{ isEmpty(): boolean; getCorners(): number[] }>;
+    };
     exportSelection(): unknown;
     importSelection(state: unknown): void;
   };
@@ -59,6 +70,7 @@ interface HandsontableFixture {
   getSourceData(): unknown[][];
   countSourceRows(): number;
   countRows(): number;
+  listen(): void;
   getPlugin(name: string): FiltersPlugin & TrimRowsPlugin & ColumnSortingPlugin & ManualRowMovePlugin
     & ManualColumnMovePlugin & CopyPastePlugin & HiddenRowsPlugin & DialogPlugin;
   populateFromArray(
@@ -266,6 +278,33 @@ export class EditorTrimmedRowPage {
   }
 
   /**
+   * Selects multiple ranges through the public API, then opens the editor on the active range.
+   */
+  async selectRangesAndType(ranges: number[][], value: string): Promise<void> {
+    await this.page.evaluate((targetRanges) => {
+      (window as Window & { hot: HandsontableFixture }).hot.selectCells(targetRanges);
+    }, ranges);
+    await this.page.keyboard.type(value);
+
+    await expect.poll(() => this.isEditorOpen()).toBe(true);
+  }
+
+  /**
+   * Selects a complete column with its focus on a data cell, then opens the editor there.
+   */
+  async selectColumnWithFocusAndType(column: number, focusRow: number, value: string): Promise<void> {
+    await this.page.evaluate(([targetColumn, targetRow]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+
+      hot.selectColumns(targetColumn as number, targetColumn as number, { row: targetRow as number });
+      hot.listen();
+    }, [column, focusRow] as [number, number]);
+    await this.page.keyboard.type(value);
+
+    await expect.poll(() => this.isEditorOpen()).toBe(true);
+  }
+
+  /**
    * Moves one column through `manualColumnMove`, permuting the COLUMN sequence.
    */
   async moveColumn(column: number, finalIndex: number): Promise<void> {
@@ -313,13 +352,6 @@ export class EditorTrimmedRowPage {
   }
 
   /**
-   * Commits with Ctrl+Enter, which reads the SELECTION corners rather than the editor's coordinates.
-   */
-  async commitWithCtrlEnter(): Promise<void> {
-    await this.page.keyboard.press('Control+Enter');
-  }
-
-  /**
    * Returns the VISUAL column the active editor is currently bound to.
    */
   async editorCol(): Promise<number | null> {
@@ -351,6 +383,23 @@ export class EditorTrimmedRowPage {
       });
       hot.alter('remove_row', target as number, 1);
     }, [removeIndex, trimRow] as [number, number]);
+  }
+
+  /**
+   * Removes a row and filters in ONE synchronous block, with no task boundary between the two -
+   * the shape plain application code produces with `hot.alter('remove_row', 1);
+   * hot.getPlugin('filters').filter();`. A strand window that outlives `alter()` leaks into the
+   * filter, which then commits the stranded editor through its stale coordinates.
+   */
+  async removeRowThenFilterSameTask(row: number, column: number, values: string[]): Promise<void> {
+    await this.page.evaluate(([target, targetColumn, targetValues]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      const filters = hot.getPlugin('filters');
+
+      hot.alter('remove_row', target as number, 1);
+      filters.addCondition(targetColumn as number, 'by_value', [targetValues]);
+      filters.filter();
+    }, [row, column, values] as [number, number, string[]]);
   }
 
   /**
@@ -422,6 +471,13 @@ export class EditorTrimmedRowPage {
    */
   async commitWithEnter(): Promise<void> {
     await this.page.keyboard.press('Enter');
+  }
+
+  /**
+   * Commits a multi-cell edit with the platform-specific Control or Meta modifier.
+   */
+  async commitWithCtrlOrMetaEnter(): Promise<void> {
+    await this.page.keyboard.press('ControlOrMeta+Enter');
   }
 
   /**
@@ -538,6 +594,36 @@ export class EditorTrimmedRowPage {
    */
   async selected(): Promise<number[][] | undefined> {
     return this.page.evaluate(() => (window as Window & { hot: HandsontableFixture }).hot.getSelected());
+  }
+
+  /**
+   * Reports whether the active range and its header marker still describe a complete column.
+   */
+  async isEntireColumnSelected(): Promise<boolean> {
+    return this.page.evaluate(() => (
+      (window as Window & { hot: HandsontableFixture }).hot.selection.isEntireColumnSelected()
+    ));
+  }
+
+  /**
+   * Returns the corners of area-highlight layers that still contain a drawable range.
+   */
+  async highlightedAreaCorners(): Promise<number[][]> {
+    return this.page.evaluate(() => (
+      (window as Window & { hot: HandsontableFixture }).hot.selection.highlight
+        .getAreas()
+        .filter(area => !area.isEmpty())
+        .map(area => area.getCorners())
+    ));
+  }
+
+  /**
+   * Returns the index of the selection layer that owns the focus highlight.
+   */
+  async activeSelectionLayer(): Promise<number> {
+    return this.page.evaluate(() => (
+      (window as Window & { hot: HandsontableFixture }).hot.selection.getActiveSelectionLayerIndex()
+    ));
   }
 
   /**
@@ -694,5 +780,92 @@ export class EditorTrimmedRowPage {
 
       hot.populateFromArray(row, column, [[written]], null, null, 'edit');
     }, value);
+  }
+
+  /**
+   * Starts counting how often a grid hook fires, so a spec can assert that it ran - or stayed
+   * silent - across an index-map update.
+   */
+  async watchHook(name: string): Promise<void> {
+    await this.page.evaluate((hookName) => {
+      const target = window as Window & { hot: HandsontableFixture; hookCalls?: Record<string, number> };
+
+      target.hookCalls = target.hookCalls ?? {};
+      target.hookCalls[hookName] = 0;
+
+      target.hot.addHook(hookName, () => {
+        (window as Window & { hookCalls: Record<string, number> }).hookCalls[hookName] += 1;
+      });
+    }, name);
+  }
+
+  /**
+   * Returns how many times a watched hook has fired, or `null` when that name was never watched -
+   * never `0`, which would let a misspelled hook name or a missing `watchHook()` call pass as
+   * evidence that the hook stayed silent.
+   */
+  async hookCalls(name: string): Promise<number | null> {
+    return this.page.evaluate((hookName) => {
+      const counters = (window as Window & { hookCalls?: Record<string, number> }).hookCalls;
+
+      return counters && hookName in counters ? counters[hookName] : null;
+    }, name);
+  }
+
+  /**
+   * Selects the whole grid WITHOUT anchoring in either header, then types to open the editor.
+   *
+   * The no-header anchoring is what makes this reach the restore at all: a corner anchored in a
+   * header has no physical index, so `#hasResolvedPhysicalRange()` rejects that layer and the
+   * selection is left to the no-editor repair, which clamps it. This shape carries the
+   * grid-tracking flag with resolvable corners, which is the one the restore has to re-pin.
+   */
+  async selectEverythingWithoutHeaders(): Promise<void> {
+    await this.page.evaluate(() => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+
+      hot.selectAll(false, false);
+      hot.listen();
+    });
+  }
+
+  /**
+   * Types into whatever the grid has selected, opening the editor. Separate from the selection step
+   * because a selection gesture that runs AFTER the typing commits the editor - `transformEnd()`
+   * does - which would leave the trim under test with no editor at all.
+   */
+  async listenAndType(value: string): Promise<void> {
+    await this.page.evaluate(() => (window as Window & { hot: HandsontableFixture }).hot.listen());
+    await this.page.keyboard.type(value);
+
+    await expect.poll(() => this.isEditorOpen()).toBe(true);
+  }
+
+  /**
+   * Selects one range and types, without going through the DOM. Used where the range has to be laid
+   * exactly, including a range that happens to reach both ends of an axis while still naming
+   * records.
+   */
+  async selectRangeAndType(range: number[], value: string): Promise<void> {
+    await this.page.evaluate((targetRange) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+
+      hot.selectCells([targetRange]);
+      hot.listen();
+    }, range);
+    await this.page.keyboard.type(value);
+
+    await expect.poll(() => this.isEditorOpen()).toBe(true);
+  }
+
+  /**
+   * Shrinks the active selection's `to` corner, the `Shift+Up` gesture. Used on a grid-tracking
+   * selection, whose `…ExtentSpansGrid` flag keeps saying "spans the grid" afterwards - the range
+   * itself is the only state that knows it was shrunk.
+   */
+  async shrinkSelectionUpwards(steps = 1): Promise<void> {
+    await this.page.evaluate((rowSteps) => {
+      (window as Window & { hot: HandsontableFixture }).hot.selection.transformEnd(-rowSteps, 0);
+    }, steps);
   }
 }

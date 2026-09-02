@@ -28,7 +28,21 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   Never hardcode a bundle `<script src=…>`.
 - Thread `bundle` end-to-end: fixture allowlist → page-object constructor
   (`(page, theme = 'main', bundle = 'umd')`) → `goto()` query params → spec
-  destructure. Miss one link and a leg silently tests the wrong build.
+  destructure. Miss one link and a leg silently tests the wrong build. The
+  constructor default is what hides it: omit `bundle` in the spec's
+  `test.beforeEach` and every leg loads plain UMD, so the `-min` legs go green
+  without ever touching the minified bundle.
+- **A fixture's own `ready` flag does not prove the bundle loaded.** The
+  `document.write`-injected bundle script and the block that installs the
+  fixture helper are separate, so a page can report `ready` while
+  `Handsontable` is still undefined. The spec then fails inside its first
+  `page.evaluate()` with a bare `Handsontable is not defined` — far from the
+  cause, and only under load. Wait for the bundle itself in `goto()`, with
+  `await page.waitForFunction(() => 'Handsontable' in window)`, before
+  asserting on any fixture status. `expect` is the wrong tool for that wait:
+  `dist/handsontable.js` is ~6 MB uncompressed and every worker pulls its own
+  copy, so a cold or busy server outlasts the 10s `expect` timeout, while
+  `waitForFunction` polls against the test budget.
 - The `umd` legs run the BASE bundle: **no HyperFormula** (a formulas fixture
   loads HF as an external script beside the bundle, or the plugin logs a
   warning and silently stays off) and **no languages pack** (an i18n fixture
