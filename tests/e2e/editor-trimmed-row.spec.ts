@@ -836,10 +836,13 @@ test.describe('commit paths that read the selection after trimming', () => {
 
       await grid.goto();
       await grid.selectRangesAndType([[1, 0, 2, 0]], 'EDITED');
+      await grid.watchHook('afterDeselect');
       await grid.trimRows([1, 2]);
 
       await expect.poll(() => grid.selected()).toEqual([[1, 0, 1, 0]]);
       expect(await grid.sourceData()).toEqual(UNTOUCHED);
+      // A parked selection is still a selection, so nothing is deselected.
+      expect(await grid.hookCalls('afterDeselect')).toBe(0);
     });
 
   /**
@@ -856,11 +859,18 @@ test.describe('commit paths that read the selection after trimming', () => {
 
       await grid.goto();
       await grid.selectRangesAndType([[3, 0, 3, 0]], 'EDITED');
+      await grid.watchHook('afterDeselect');
       await grid.trimRows([0, 1, 3]);
 
       await expect.poll(() => grid.selected()).toBeUndefined();
       expect(await grid.sourceData()).toEqual(UNTOUCHED);
       expect(await grid.sourceRowCount()).toBe(5);
+      // The drop is a real deselection, and it is announced as one - `deselectIfHighlightStranded()`
+      // does that for the same shape without an editor. It is announced AFTER the public
+      // cache-update hooks, because `afterDeselect` closes the editor and closing it saves: the
+      // untouched source above is what proves the pending edit was discarded rather than committed
+      // through the coordinates this drop abandons.
+      expect(await grid.hookCalls('afterDeselect')).toBe(1);
     });
 
   test('repaints a surviving multi-cell layer when the active layer is a single cell',

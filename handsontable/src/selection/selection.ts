@@ -209,6 +209,12 @@ class Selection {
     column: null,
   };
   /**
+   * Whether a restore dropped the whole selection and still owes an `afterDeselect`.
+   *
+   * @type {boolean}
+   */
+  #deferredDeselect = false;
+  /**
    * Visual layer index of the range currently hovered while `selectionHandles` is on, or `null`.
    *
    * @type {number | null}
@@ -2052,9 +2058,7 @@ class Selection {
     }
 
     if (this.tableProps.countRows() === 0 || this.tableProps.countCols() === 0) {
-      this.clear();
-      this.selectedByRowHeader.clear();
-      this.selectedByColumnHeader.clear();
+      this.#clearForRestore();
 
       return;
     }
@@ -2082,13 +2086,8 @@ class Selection {
     // layers go with it there too, for the same reason - the fill and paste paths read the ACTIVE
     // range, so promoting a bystander layer would hand them a selection the user never made.
     //
-    // Cleared rather than deselected, like the empty-grid branch above and for the same reason: the
-    // mapper is still unwinding its cache update, and `deselect()` would run `afterDeselect` inside
-    // it, where a consumer can select and prepare an editor against caches that are mid-rebuild.
     if (restoredRanges.length === 0 || activeSelectionLayer === -1) {
-      this.clear();
-      this.selectedByRowHeader.clear();
-      this.selectedByColumnHeader.clear();
+      this.#clearForRestore();
 
       return;
     }
@@ -2114,6 +2113,44 @@ class Selection {
 
     if (activeRange && this.highlight.isEnabledFor(FOCUS_TYPE, activeRange.highlight)) {
       this.highlight.getFocus().add(activeRange.highlight).commit().syncWith(activeRange);
+    }
+  }
+
+  /**
+   * Drops the whole selection from inside a restore, and OWES the `afterDeselect` that a
+   * `deselect()` would have run.
+   *
+   * The notification cannot be sent from here. `Core` answers `afterDeselect` with
+   * `EditorManager#closeEditor()`, which SAVES the pending value, and this runs before the public
+   * cache-update hooks - so the editor whose record the trim removed is still open, and closing it
+   * would commit the edit through the coordinates this drop exists to abandon, appending records.
+   * `EditorManager` discards that editor inside those hooks; `notifyDeferredDeselect()` fires
+   * afterwards, when closing is a no-op. On develop the same drop went through
+   * `deselectIfHighlightStranded()`, which is already past that point, which is why it could
+   * deselect directly.
+   */
+  #clearForRestore(): void {
+    this.clear();
+    this.selectedByRowHeader.clear();
+    this.selectedByColumnHeader.clear();
+    this.inProgress = false;
+    this.#deferredDeselect = true;
+  }
+
+  /**
+   * Runs an `afterDeselect` that a restore owes, once the public cache-update hooks have run. Stays
+   * silent when anything re-selected in the meantime - a `Filters#filter()` re-selecting the
+   * highlighted column is the case - because the selection the notification would describe is back.
+   */
+  notifyDeferredDeselect(): void {
+    if (!this.#deferredDeselect) {
+      return;
+    }
+
+    this.#deferredDeselect = false;
+
+    if (!this.isSelected()) {
+      this.runLocalHooks('afterDeselect');
     }
   }
 

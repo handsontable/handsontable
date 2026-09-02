@@ -1017,6 +1017,11 @@ export default function Core(
 
     this.runHooks('afterColumnSequenceCacheUpdate', indexesChangesState);
 
+    // Deferred to HERE, not sent from the restore: `afterDeselect` closes the editor, and closing it
+    // saves - so it must not run until `EditorManager` has discarded the editor whose record the
+    // trim removed, which it does inside the hook above.
+    this.selection.notifyDeferredDeselect();
+
     repairSelection(isStructuralChange, indexesChangesState, hadOpenEditor);
   });
 
@@ -1028,6 +1033,8 @@ export default function Core(
     lastRowIndexCount = indexCount;
 
     this.runHooks('afterRowSequenceCacheUpdate', indexesChangesState);
+
+    this.selection.notifyDeferredDeselect();
 
     repairSelection(isStructuralChange, indexesChangesState, hadOpenEditor);
   });

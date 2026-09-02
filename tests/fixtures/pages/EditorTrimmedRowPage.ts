@@ -763,4 +763,30 @@ export class EditorTrimmedRowPage {
       hot.populateFromArray(row, column, [[written]], null, null, 'edit');
     }, value);
   }
+
+  /**
+   * Starts counting how often a grid hook fires, so a spec can assert that it ran - or stayed
+   * silent - across an index-map update.
+   */
+  async watchHook(name: string): Promise<void> {
+    await this.page.evaluate((hookName) => {
+      const target = window as Window & { hot: HandsontableFixture; hookCalls?: Record<string, number> };
+
+      target.hookCalls = target.hookCalls ?? {};
+      target.hookCalls[hookName] = 0;
+
+      target.hot.addHook(hookName, () => {
+        (window as Window & { hookCalls: Record<string, number> }).hookCalls[hookName] += 1;
+      });
+    }, name);
+  }
+
+  /**
+   * Returns how many times a watched hook has fired.
+   */
+  async hookCalls(name: string): Promise<number> {
+    return this.page.evaluate((hookName) => (
+      (window as Window & { hookCalls?: Record<string, number> }).hookCalls?.[hookName] ?? 0
+    ), name);
+  }
 }
