@@ -87,6 +87,13 @@ Details that bite:
   one you can remove.
 - `addHook`'s third argument is an **order index**: negative runs before the un-indexed listeners, positive
   after. Reach for it only when two plugins must observe the same hook in a fixed order.
+- **A plugin's `ui.ts` builds DOM through `buildTemplate()` (`helpers/dom/template.ts`), never an HTML
+  string.** Every HTML parse entry point is a Trusted Types sink, so a plain string is rejected under a CSP
+  carrying `require-trusted-types-for 'script'` and the plugin dies where it writes. Clear with `empty()` or
+  `replaceChildren()`, never `innerHTML = ''`. Library-authored copy goes through `htmlToPlainText()`
+  (`helpers/string.ts`); grid *content* leaving the DOM goes through `textExtractor`. Full rule:
+  `../../../AGENTS.md`; worked examples in `../dialog/AGENTS.md`, `../emptyDataState/AGENTS.md` and
+  `../loading/AGENTS.md`.
 
 ## `onUpdateSettings` is a state machine, and the order of its branches is the contract
 

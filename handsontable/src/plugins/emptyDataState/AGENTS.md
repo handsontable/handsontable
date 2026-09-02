@@ -31,8 +31,11 @@ the checks above it, not by a cast.
 rule as `../dialog/AGENTS.md`, which spells out why duplicating `['primary', 'secondary']` inline caused a
 drift between the two.
 
-Titles still go through `stripTags()`, matching `../dialog/`. It is the shipped behavior, so keep the two
-together and treat any change as a behavior change.
+Titles go through `htmlToPlainText()` (`helpers/string.ts`) and are set as `text:` on a `TemplateSpec` in
+`ui.ts` — DEV-2617 removed this plugin's HTML sinks. The helper is `stripTags()` plus character-reference
+decoding, so the surface renders what it rendered when it still wrote through `innerHTML`, and it inherits
+that limit (`'5 < 10 rows'` → `'5 '`). Acceptable for library-authored copy, never for a user's header or
+cell value. `../dialog/` uses the same helper — keep the two together.
 
 ## The horizontal wheel handler exists because the body is replaced
 

@@ -27,21 +27,33 @@ called `show`". Do not use them to count calls.
 `disablePlugin()` calls `hide()` **before** `super.disablePlugin()`, so the overlay cannot outlive the
 plugin.
 
-## `content.ts`: the icon is markup, the text is escaped
+## `content.ts` returns DOM nodes, and four things about it are load-bearing
 
-The split is intentional and each half is documented at the parameter:
+DEV-2617 rewrote this file. It used to return an **HTML string** that the Dialog plugin wrote through
+`fastInnerHTML` — a Trusted Types sink, so `loading.show()` threw under a CSP carrying
+`require-trusted-types-for 'script'` and the overlay never rendered. It was easy to miss because the grid
+constructs cleanly: the overlay is only built on `show()`/`update()`.
 
-- **`icon` is written as markup on purpose**, so the default SVG spinner — and any replacement — renders.
-  **Never pass a value derived from user input here.**
-- **`title` and `description` go through `escapeHtml()`**, so markup passed there shows up literally
-  instead of being interpreted.
+It now builds a `TemplateSpec` through `buildTemplate()` (`helpers/dom/template.ts`). Four rules:
 
-Note this plugin uses `escapeHtml()`, not the `stripTags()` that `../dialog/` and `../emptyDataState/` use
-for their titles. `escapeHtml` is the right tool — stripping drops everything from a `<` to the next `>`, so
-`'Loaded 5 < 10 rows'` becomes `'Loaded 5 '`. The other two keep `stripTags` only because that is the
-behavior they shipped with.
+1. **It returns an ELEMENT, not a `DocumentFragment`.** Dialog stores `content` in its settings and
+   re-reads it on every render (`#renderDialog`), and **appending a fragment empties it** — so the first
+   render showed the overlay and the next one showed an empty box. Re-appending the same element is a no-op.
+2. **The spinner spec carries `ns: SVG_NS`.** An `<svg>` created through `createElement` without the SVG
+   namespace is an unknown HTML element that renders **nothing at all, with no error**. Descendants inherit
+   it, so only the root needs it.
+3. **`LOADING_CLASS_NAME` is imported from `helpers/constants`, not re-exported through `./loading`.** The
+   two modules import each other, and `DEFAULT_ICON_SPEC` reads the class name at **module scope** — a
+   cyclic binding read that early lands in the temporal dead zone and throws
+   `Cannot access '_constants' before initialization` when a wrapper loads the ESM build. `PLUGIN_KEY` and
+   `DEFAULT_ICON` stay cyclic safely because they are only read inside the function body.
+4. **`title` and `description` are `text:` nodes** — markup passed there shows up literally. Only a
+   **custom** `icon` still goes through `fastInnerHTML`, because that option is documented as markup; the
+   built-in spinner is recognized by identity (`icon === DEFAULT_ICON`) and built as nodes. A custom icon is
+   the caller's own markup, so it is passed the resolved `sanitizer` and a `warnScope` and obeys their
+   policy like any other value they hand the grid. **Never pass a value derived from user input.**
 
-Element ids are namespaced `${id}-loading-title` / `-description`, and `id` comes from the dialog's
+Element ids stay namespaced `${id}-loading-title` / `-description`, and `id` comes from the dialog's
 GUID-derived value — see the `template.id` rule in `../dialog/AGENTS.md` for why it must not be
 caller-supplied.
 

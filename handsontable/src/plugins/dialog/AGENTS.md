@@ -27,11 +27,13 @@ wrapper-placement rule is in `../../../AGENTS.md`.
 useTemplate({ ...template, id: this.hot.guid })
 ```
 
-The template interpolates the id into the `id` attribute of its title and description elements. Two
+The id reaches the `id` attribute of the title and description elements (`templates/confirm.ts`). Two
 separate defects made this ordering necessary:
 
 1. A caller-supplied `template.id` carrying a quote **broke out of that attribute** — the `html` tagged
-   template assigns to `innerHTML`, and `stripTags()` escapes no quotes.
+   template that built this surface assigned to `innerHTML`, and `stripTags()` escapes no quotes. DEV-2617
+   replaced that template with a `TemplateSpec`, so the injection route is closed; the ordering stays
+   because the WCAG reason below stands on its own.
 2. Even a *benign* custom id was wrong: two grids configured with the same one emit duplicate element ids
    into a single document (WCAG 4.1.1), which a GUID cannot do.
 
@@ -61,12 +63,17 @@ normalizes action types in `#normalizeOptions` instead.
 Passing both throws (`throwWithCause`). The check compares each against `DEFAULT_SETTINGS`, so "not the
 default" is what counts as "supplied".
 
-## Titles still use `stripTags()`
+## Titles are DOM text now, via `htmlToPlainText()`
 
-That is the behavior the plugin shipped with, so it stays — even though `escapeHtml()` is the better tool
-for a text-position value (stripping drops everything from a `<` to the next `>`, so `'5 < 10 rows'`
-silently becomes `'5 '`). `emptyDataState` matches. Do not change one without the other, and treat it as a
-behavior change.
+DEV-2617 removed this plugin's HTML sinks. `templates/confirm.ts` is a `TemplateSpec`, and the title,
+description and button labels are set as `text:` through `htmlToPlainText()` (`helpers/string.ts`) — which
+is `stripTags()` plus character-reference decoding, chosen so the surfaces render exactly what they rendered
+while they still wrote through `innerHTML`.
+
+That means it **inherits `stripTags`'s limit**: `'Loaded 5 < 10 rows'` still becomes `'Loaded 5 '`. That is
+an accepted trade for a phrase the library or a language pack authors, and it is **never** acceptable for a
+user's header or cell value — those go through `textExtractor`. `emptyDataState` uses the same helper for
+the same reason; keep the two together, and treat a change as a behavior change.
 
 ## Show forces a reflow before the transition class
 

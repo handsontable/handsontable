@@ -85,12 +85,17 @@ through its own stack (`beforeUndo` calls `engine.undo()`). **The two stacks mus
 number of actions on both sides. The full rule, including which action types write cell data and therefore
 need catching up in `afterUndo`/`afterRedo`, is in `../formulas/AGENTS.md`.
 
-## A caution about the existing specs
+## The prop double-translation bug is FIXED (DEV-2721)
 
-`UndoRedo.spec.js:1668` currently passes **because of** a known prop double-translation bug
-(issues #4118 / #7031): `setDataAtRowProp` reads the old value through `getAtCell`, which re-runs
-`colToProp`, and undo faithfully replays the bad value. If you fix that bug, expect that spec to fail — the
-spec is wrong, not the fix.
+Historical, kept because the failure shape is instructive. `setDataAtRowProp` used to read the old value
+through `getAtCell`, which re-ran `colToProp`, so undo faithfully replayed a wrong value
+(issues #4118 / #7031). PR #13322 fixed it — the old value is now read **by prop**
+(`getAtCellByProp`) — and fixed the spec in the same change.
+
+**The lesson is the part to keep: a spec can pass *because of* a bug.** The object-data undo spec passed
+while `name` never changed, because it wrote a literal `"0"` key and read the old value from `name`. The
+spec now addresses the cell by the object's own key and carries a comment saying so. When a data-addressing
+fix makes a green spec go red, suspect the spec.
 
 ## Where to look next
 

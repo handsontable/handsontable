@@ -60,6 +60,14 @@ Clipboard markup is parsed with `DOMParser`, which has no browsing context, so n
 the markup is read. **Never `importNode` those nodes into the live document** — that makes them live again.
 Background in `../../../.ai/CONCERNS.md`.
 
+**`parseFromString` is itself a Trusted Types sink, so the source-data parse is wrapped in a `try`/`catch`
+that degrades instead of failing** (DEV-2617). Under `require-trusted-types-for 'script'` it throws unless
+the value came from a policy — which it did not when no `sanitizer` is configured, or when one is configured
+and returns a plain string. Losing the source-data flavor costs object-key fidelity on an internal paste;
+letting the throw escape would kill the paste outright, so the catch warns
+(`#warnClipboardParseRefused`) and the `text/html` branch carries the paste. Do not "tidy" that catch away,
+and do not widen it to the `text/html` parse — that one has no fallback left.
+
 ## Copy is not a sanitizer surface — it is a text surface
 
 Content leaving the grid as *text* goes through `utils/textExtractor.ts`, never through `sanitizer` —
