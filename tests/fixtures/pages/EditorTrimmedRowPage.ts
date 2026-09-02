@@ -403,50 +403,6 @@ export class EditorTrimmedRowPage {
   }
 
   /**
-   * Removes a row while a listener on the strand-making cache update itself runs a NESTED
-   * `alter()` (amount 0, so it changes nothing but still runs `alter()`'s full selection and
-   * tail machinery) and then a trim. The listener runs after the manager marked the editor
-   * stranded and before the OUTER removal's own `selection.shiftRows()` - the deepest point a
-   * user hook can reach into the protected span.
-   */
-  async removeRowWithNestedAlterAndTrim(removeIndex: number, trimRow: number): Promise<void> {
-    await this.page.evaluate(([target, trimmed]) => {
-      const hot = (window as Window & { hot: HandsontableFixture }).hot;
-      let fired = false;
-
-      hot.addHook('afterRowSequenceCacheUpdate', (state?: unknown) => {
-        const changeSource = (state as { indexesChangeSource?: string } | undefined)?.indexesChangeSource;
-
-        if (fired || changeSource !== 'remove') {
-          return;
-        }
-        fired = true;
-
-        hot.alter('remove_row', 0, 0);
-        hot.getPlugin('trimRows').trimRows([trimmed as number]);
-      });
-      hot.alter('remove_row', target as number, 1);
-    }, [removeIndex, trimRow] as [number, number]);
-  }
-
-  /**
-   * Replaces the data with a SHORTER set and filters in one synchronous block. `updateData()`
-   * strands an open editor the same way a removal does - `fitToLength()` renumbers the physical
-   * space - so a strand protection that `updateData()` never closes leaks into the filter, which
-   * commits through the stranded coordinates and appends records to the fresh data.
-   */
-  async updateDataThenFilterSameTask(data: unknown[][], column: number, values: string[]): Promise<void> {
-    await this.page.evaluate(([nextData, targetColumn, targetValues]) => {
-      const hot = (window as Window & { hot: HandsontableFixture }).hot;
-      const filters = hot.getPlugin('filters');
-
-      hot.updateData(nextData as unknown[][]);
-      filters.addCondition(targetColumn as number, 'by_value', [targetValues]);
-      filters.filter();
-    }, [data, column, values] as [unknown[][], number, string[]]);
-  }
-
-  /**
    * Removes rows through `alter()`. This shifts PHYSICAL indexes, unlike a trimming map, and still
    * emits a trimming-map change - the one way the captured record can go stale without the guard
    * being able to tell.
