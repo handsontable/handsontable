@@ -15,7 +15,9 @@ interface FixtureWindow extends Window {
   hot: HandsontableFixture;
   htHookLog: HookLogEntry[];
   buildMainGrid(options?: { blockRefresh?: boolean }): void;
-  buildIframeGrid(options?: { width?: number; height?: number; blockRefresh?: boolean }): Promise<void>;
+  buildIframeGrid(options?: {
+    width?: number; height?: number; blockRefresh?: boolean; columns?: number;
+  }): Promise<void>;
 }
 
 /**
@@ -56,9 +58,24 @@ export class RefreshDimensionsPage {
    * resolves only after the iframe's copied stylesheets loaded, so the grid's first measurement
    * already reflects the final CSS.
    */
-  async buildIframeGrid(options: { width?: number; height?: number; blockRefresh?: boolean } = {}): Promise<void> {
+  async buildIframeGrid(
+    options: { width?: number; height?: number; blockRefresh?: boolean; columns?: number } = {},
+  ): Promise<void> {
     await this.page.evaluate(opts => (window as unknown as FixtureWindow).buildIframeGrid(opts), options);
     await expect.poll(() => this.iframeCellCount()).toBeGreaterThan(0);
+  }
+
+  /**
+   * Counts the columns rendered in the iframe grid's first data row. With a data set wider than
+   * the iframe, horizontal virtualization ties this number to the viewport width the last
+   * dimensions refresh adopted - the render-level effect of the window-resize pipeline.
+   */
+  async iframeRenderedColumnCount(): Promise<number> {
+    return this.page.evaluate(() => {
+      const doc = document.querySelector<HTMLIFrameElement>('[data-testid="frame"]')!.contentDocument!;
+
+      return doc.querySelectorAll('.ht_master .htCore tbody tr:first-child td').length;
+    });
   }
 
   /**
@@ -83,6 +100,19 @@ export class RefreshDimensionsPage {
   }
 
   /**
+   * Returns the most recent invocation of ONE hook, or `null` when it has not fired yet. The probe
+   * to poll when a trigger may deliver more than once: taking the array's last element from a
+   * separate round trip races a further before/after pair landing in between, whereas the last
+   * `after` entry is the latest COMPLETED refresh whatever else arrives (DEV-2744 review).
+   */
+  async lastEntry(hook: 'before' | 'after'): Promise<HookLogEntry | null> {
+    return this.page.evaluate(
+      which => (window as unknown as FixtureWindow).htHookLog.filter(item => item.hook === which).at(-1) ?? null,
+      hook,
+    );
+  }
+
+  /**
    * Empties the hook log, so what a case asserts afterwards can only have come from that case's
    * own trigger - never from the observer's initial delivery during the build.
    */
@@ -93,11 +123,18 @@ export class RefreshDimensionsPage {
   }
 
   /**
-   * Resizes the main grid's root element, which the ResizeObserver pipeline reacts to.
+   * Resizes the main grid's root element, which the ResizeObserver pipeline reacts to. Returns
+   * the hook-log length read SYNCHRONOUSLY after the mutation, in the same task - the observable
+   * form of the legacy rAF-sync contract: a resize never fires the hooks synchronously, only on a
+   * later frame.
    */
-  async resizeRoot(width: number): Promise<void> {
-    await this.page.evaluate(px => {
-      (window as unknown as FixtureWindow).hot.rootElement.style.width = `${px}px`;
+  async resizeRoot(width: number): Promise<number> {
+    return this.page.evaluate(px => {
+      const fixtureWindow = window as unknown as FixtureWindow;
+
+      fixtureWindow.hot.rootElement.style.width = `${px}px`;
+
+      return fixtureWindow.htHookLog.length;
     }, width);
   }
 

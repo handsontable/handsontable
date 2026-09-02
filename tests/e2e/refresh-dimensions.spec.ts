@@ -46,7 +46,9 @@ test.describe('a sized grid in the main document (ResizeObserver pipeline)', () 
       await expect.poll(() => grid.hookLogLength()).toBe(2);
       await grid.clearHookLog();
 
-      await grid.resizeRoot(200);
+      // The resize never fires the hooks synchronously - delivery is deferred to a later frame.
+      // This is the legacy rAF-sync contract, read in the same task as the mutation.
+      expect(await grid.resizeRoot(200)).toBe(0);
 
       await expect.poll(() => grid.hookLogLength()).toBe(2);
 
@@ -104,11 +106,11 @@ test.describe('a sized grid in the main document (ResizeObserver pipeline)', () 
 
     expect(await grid.hookLogLength()).toBe(0);
 
-    // Positive control: unhiding delivers the size the root grew to while hidden.
+    // Positive control: unhiding delivers the size the root grew to while hidden. Polled on the
+    // last COMPLETED refresh (the latest `after` entry), because the observer stays attached and
+    // may deliver again between a length poll and a separate read of the log.
     await grid.setRootDisplay('');
-    await expect.poll(() => grid.hookLogLength()).toBeGreaterThanOrEqual(2);
-
-    expect((await grid.hookLog()).at(-1)).toEqual(
+    await expect.poll(() => grid.lastEntry('after')).toEqual(
       entry('after', { width: 120, height: 100 }, { width: 200, height: 100 }, true),
     );
 
@@ -122,9 +124,7 @@ test.describe('a sized grid in the main document (ResizeObserver pipeline)', () 
     expect(await grid.hookLogLength()).toBe(0);
 
     await grid.setBodyDisplay('');
-    await expect.poll(() => grid.hookLogLength()).toBeGreaterThanOrEqual(2);
-
-    expect((await grid.hookLog()).at(-1)).toEqual(
+    await expect.poll(() => grid.lastEntry('after')).toEqual(
       entry('after', { width: 200, height: 100 }, { width: 240, height: 100 }, true),
     );
   });
@@ -135,12 +135,17 @@ test.describe('a grid inside an iframe (window-resize pipeline)', () => {
     const grid = new RefreshDimensionsPage(page, theme, bundle);
 
     await grid.goto();
-    await grid.buildIframeGrid();
+    // 20 columns against a 500 px viewport: the refresh's render effect is now visible as a
+    // change in how many columns render (the positive control for the blocked case below).
+    await grid.buildIframeGrid({ columns: 20 });
     await grid.clearHookLog();
+
+    const renderedBefore = await grid.iframeRenderedColumnCount();
 
     await grid.setIframeWidth(50);
 
     await expect.poll(() => grid.hookLogLength()).toBe(2);
+    await expect.poll(() => grid.iframeRenderedColumnCount()).toBeLessThan(renderedBefore);
 
     const log = await grid.hookLog();
     const measured = await grid.measuredIframe();
@@ -159,6 +164,37 @@ test.describe('a grid inside an iframe (window-resize pipeline)', () => {
     expect(log[0].curr.height).toBeGreaterThan(0);
   });
 
+  test('returning false from beforeRefreshDimensions blocks the window-resize refresh',
+    async({ page, theme, bundle }) => {
+      const grid = new RefreshDimensionsPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.buildIframeGrid({ columns: 20, blockRefresh: true });
+      await grid.clearHookLog();
+
+      const renderedBefore = await grid.iframeRenderedColumnCount();
+
+      await grid.setIframeWidth(50);
+
+      // The window pipeline reaches the same gate: `before` reports the shrunken viewport it was
+      // about to adopt, and nothing follows.
+      await expect.poll(() => grid.lastEntry('before')).not.toBeNull();
+
+      const before = (await grid.lastEntry('before'))!;
+      const measured = await grid.measuredIframe();
+
+      expect(before.prev).toEqual({ width: 500, height: 0 });
+      expect(before.action).toBe(true);
+      expect(before.curr.width).toBe(measured.viewportWidth);
+
+      // Bounded settle for the negative half; the `before` entry above is the positive control.
+      await grid.afterAnimationFrames(3);
+
+      expect(await grid.hookLog()).toHaveLength(1);
+      // The block reached the view: the column count is still the one the 500 px viewport chose.
+      expect(await grid.iframeRenderedColumnCount()).toBe(renderedBefore);
+    });
+
   test('reports unchanged dimensions with no possible action when the grid size is pinned',
     async({ page, theme, bundle }) => {
       const grid = new RefreshDimensionsPage(page, theme, bundle);
@@ -172,12 +208,14 @@ test.describe('a grid inside an iframe (window-resize pipeline)', () => {
 
       await grid.setIframeWidth(50);
 
-      await expect.poll(() => grid.hookLogLength()).toBe(2);
-
       // The window resized, the grid did not: the hooks still fire, reporting no possible action.
-      expect(await grid.hookLog()).toEqual([
-        entry('before', { width: 300, height: 300 }, { width: 300, height: 300 }, false),
+      // Polled on the latest entry of each hook rather than read as a whole log, for the same
+      // reason as the hidden-root case - one shape for every multi-delivery-capable trigger.
+      await expect.poll(() => grid.lastEntry('after')).toEqual(
         entry('after', { width: 300, height: 300 }, { width: 300, height: 300 }, false),
-      ]);
+      );
+      expect(await grid.lastEntry('before')).toEqual(
+        entry('before', { width: 300, height: 300 }, { width: 300, height: 300 }, false),
+      );
     });
 });

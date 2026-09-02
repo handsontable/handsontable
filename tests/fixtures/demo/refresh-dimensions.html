@@ -85,7 +85,10 @@
     // not from a ResizeObserver. Resolves only after the copied stylesheets finished loading, so
     // the grid measures its final CSS from the first render on - the settle the legacy fixture
     // approximated with `sleep(50)`.
-    window.buildIframeGrid = ({ width, height, blockRefresh = false } = {}) => {
+    // `columns` widens the data set past the iframe (20 × 50 px against a 500 px viewport), so
+    // horizontal virtualization makes the refresh OBSERVABLE: how many columns render depends on
+    // the viewport width the refresh adopted - or, when blocked, did not.
+    window.buildIframeGrid = ({ width, height, blockRefresh = false, columns = 2 } = {}) => {
       const iframe = document.querySelector('[data-testid="frame"]');
       const doc = iframe.contentDocument;
 
@@ -111,7 +114,9 @@
         doc.body.appendChild(container);
 
         const settings = Object.assign({
-          data: DATA,
+          data: columns === 2
+            ? DATA
+            : DATA.map((row, rowIndex) => Array.from({ length: columns }, (unused, col) => `R${rowIndex}C${col}`)),
           licenseKey: 'non-commercial-and-evaluation',
         }, buildHooks(blockRefresh));
 
