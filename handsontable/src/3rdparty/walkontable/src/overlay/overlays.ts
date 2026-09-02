@@ -926,6 +926,45 @@ class Overlays {
   }
 
   /**
+   * Finds the overlay clone that holds the provided element, by the given containment test.
+   *
+   * Shared by the two public lookups below so the overlay list stays in one place: adding an overlay
+   * type to one list and forgetting the other would silently leave the two answering differently.
+   *
+   * @param {HTMLElement} element An element to process.
+   * @param {Function} isHeldBy Decides whether a clone's table holds the element.
+   * @returns {WalkontableInstance|null}
+   */
+  #findParentOverlay(
+    element: HTMLElement, isHeldBy: (wtTable: Table, el: HTMLElement) => boolean
+  ): WalkontableInstance | null {
+    if (!element) {
+      return null;
+    }
+
+    const overlays = [
+      this.topOverlay,
+      this.inlineStartOverlay,
+      this.bottomOverlay,
+      this.topInlineStartCornerOverlay,
+      this.bottomInlineStartCornerOverlay
+    ];
+    let result = null;
+
+    arrayEach(overlays, (overlay) => {
+      if (!overlay) {
+        return;
+      }
+
+      if (overlay.clone && isHeldBy(overlay.clone.wtTable, element)) { // todo demeter
+        result = overlay.clone;
+      }
+    });
+
+    return result;
+  }
+
+  /**
    * Get the overlay whose rendered area contains the provided element.
    *
    * This matches against each clone's spreader rather than its `TABLE`, so it also resolves the
@@ -936,30 +975,7 @@ class Overlays {
    * @returns {WalkontableInstance|null}
    */
   getParentOverlayByRenderedArea(element: HTMLElement): WalkontableInstance | null {
-    if (!element) {
-      return null;
-    }
-
-    const overlays = [
-      this.topOverlay,
-      this.inlineStartOverlay,
-      this.bottomOverlay,
-      this.topInlineStartCornerOverlay,
-      this.bottomInlineStartCornerOverlay
-    ];
-    let result = null;
-
-    arrayEach(overlays, (overlay) => {
-      if (!overlay) {
-        return;
-      }
-
-      if (overlay.clone && overlay.clone.wtTable.spreader.contains(element)) { // todo demeter
-        result = overlay.clone;
-      }
-    });
-
-    return result;
+    return this.#findParentOverlay(element, (wtTable, el) => wtTable.spreader.contains(el));
   }
 
   /**
@@ -969,30 +985,7 @@ class Overlays {
    * @returns {WalkontableInstance|null}
    */
   getParentOverlay(element: HTMLElement): WalkontableInstance | null {
-    if (!element) {
-      return null;
-    }
-
-    const overlays = [
-      this.topOverlay,
-      this.inlineStartOverlay,
-      this.bottomOverlay,
-      this.topInlineStartCornerOverlay,
-      this.bottomInlineStartCornerOverlay
-    ];
-    let result = null;
-
-    arrayEach(overlays, (overlay) => {
-      if (!overlay) {
-        return;
-      }
-
-      if (overlay.clone && overlay.clone.wtTable.TABLE.contains(element)) { // todo demeter
-        result = overlay.clone;
-      }
-    });
-
-    return result;
+    return this.#findParentOverlay(element, (wtTable, el) => wtTable.TABLE.contains(el));
   }
 
   /**

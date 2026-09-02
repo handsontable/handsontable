@@ -109,12 +109,11 @@
     };
 
     /**
-     * Reports what kind of element is under a point: a selection border, a cell, or neither.
+     * Forces a hit test at a point, which is how a drag gets paced.
      *
-     * A drag across a cell boundary passes over the selection border that sits between the cells,
-     * and that element is what a containment test can wrongly reject. Calling this between mouse
-     * moves also paces the drag: Playwright's synthetic moves are fast enough to coalesce, and
-     * without a hit test in between the border may never become a move's target at all.
+     * Playwright's synthetic mouse moves are fast enough that the browser merges them, and without a
+     * pause in between the selection border between two cells never becomes a move's target. Calling
+     * this after each step is what makes the drag behave like a real user's.
      */
     window.elementUnder = function(x, y) {
       const el = document.elementFromPoint(x, y);
@@ -128,6 +127,40 @@
       }
 
       return el.closest('td') ? 'cell' : 'other';
+    };
+
+    let borderMoveCount = 0;
+
+    // Counts the mouse moves whose target was a selection border.
+    //
+    // A drag across a cell boundary passes over the border div that sits between the cells, and that
+    // element — rendered beside the table rather than inside it — is what a containment test can
+    // wrongly reject. The count is taken from the real `mousemove` targets, not from a hit test at
+    // the step positions: the border is crossed at an intermediate move, so sampling the steps
+    // reports zero even on a drag that did cross it. A test asserts this is above zero, so a gesture
+    // that stops reaching the border fails loudly instead of passing while covering nothing.
+    document.addEventListener('mousemove', (event) => {
+      const className = event.target && event.target.className ? String(event.target.className) : '';
+
+      if (className.indexOf('wtBorder') > -1) {
+        borderMoveCount += 1;
+      }
+    }, true);
+
+    /**
+     * Resets the count of mouse moves that landed on a selection border.
+     */
+    window.resetBorderMoveCount = function() {
+      borderMoveCount = 0;
+
+      return true;
+    };
+
+    /**
+     * Returns how many mouse moves have landed on a selection border since the last reset.
+     */
+    window.getBorderMoveCount = function() {
+      return borderMoveCount;
     };
 
     // Built on `load`, not during parsing. A container that still measures zero when Handsontable

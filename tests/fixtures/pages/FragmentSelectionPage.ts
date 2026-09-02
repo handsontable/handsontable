@@ -184,7 +184,7 @@ export class FragmentSelectionPage {
    * @param {number} fromCol Visual column index the drag starts in.
    * @param {number} toCol Visual column index the drag ends in.
    */
-  async dragAcrossCells(overlay: OverlayName, row: number, fromCol: number, toCol: number): Promise<void> {
+  async dragAcrossCells(overlay: OverlayName, row: number, fromCol: number, toCol: number): Promise<number> {
     const from = await this.cell(overlay, row, fromCol).boundingBox();
     const to = await this.cell(overlay, row, toCol).boundingBox();
 
@@ -199,15 +199,14 @@ export class FragmentSelectionPage {
     await this.#assertDragStaysInsideGrid(
       `cells ${fromCol}..${toCol} in row ${row} of the ${overlay} overlay`, startX, endX, y);
 
+    await this.page.evaluate(() => window.resetBorderMoveCount());
     await this.page.mouse.move(startX, y);
     await this.page.mouse.down();
 
     // Small steps, with a hit test after each one. The hit test is not an assertion — it is what
-    // paces the drag. Playwright's synthetic moves are fast enough that the browser coalesces them,
-    // and without the pause between them the selection border between two cells never becomes a
-    // move's target, so the gesture stops covering the case it exists for. Its return value is
-    // deliberately unused: it samples only the step positions, while the border is hit at an
-    // intermediate one, so it cannot prove the crossing. The selected text does that instead.
+    // paces the drag. Playwright's synthetic moves are fast enough that the browser merges them, and
+    // without the pause between them the selection border between two cells never becomes a move's
+    // target, so the gesture stops covering the case it exists for.
     for (let step = 1; step <= 20; step += 1) {
       const x = startX + (((endX - startX) * step) / 20);
 
@@ -216,6 +215,12 @@ export class FragmentSelectionPage {
     }
 
     await this.page.mouse.up();
+
+    // How many mouse moves actually landed on a selection border. Taken from the real event targets
+    // rather than the hit tests above, which sample only the step positions and miss a border
+    // crossed between two of them. A caller asserts this is above zero, so a drag that stops
+    // reaching the border fails loudly instead of passing while covering nothing.
+    return this.page.evaluate(() => window.getBorderMoveCount());
   }
 
   /**

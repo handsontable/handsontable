@@ -125,15 +125,18 @@ test.describe('fragmentSelection in frozen areas', () => {
     // `fragmentSelection: true` means "text selection in multiple cells at a time", so this covers
     // the option's headline behavior, which every other test here only exercises inside one cell.
     //
-    // It does NOT cover the related trap: a drag over a cell boundary can land a mousemove on the
-    // selection border between the cells, and a containment test narrow enough to reject that
-    // element cancels the whole gesture. Whether the border ends up under the pointer depends on
-    // timing, so it could not be pinned deterministically here — it is checked by hand instead.
+    // A drag over a cell boundary also lands a mousemove on the selection border between the cells.
+    // That element is rendered beside the table rather than inside it, so a containment test narrow
+    // enough to reject it cancels the whole gesture — which broke this while every single-cell test
+    // stayed green.
     await grid.initGrid({ fragmentSelection: true });
     await grid.clearTextSelection();
 
-    await grid.dragAcrossCells('master', 1, 0, 2);
+    const borderHits = await grid.dragAcrossCells('master', 1, 0, 2);
 
+    // The gesture only covers anything if a move actually landed on the border, so that is asserted
+    // first — otherwise a drag that stepped over it would pass while proving nothing.
+    expect(borderHits).toBeGreaterThan(0);
     expect(await grid.selectedText()).toContain('R1C1');
   });
 
@@ -150,13 +153,14 @@ test.describe('fragmentSelection in frozen areas', () => {
     await grid.initGrid({ fixedColumnsStart: 3, colWidths: 150, fragmentSelection: true });
     await grid.clearTextSelection();
 
-    await grid.dragAcrossCells('inlineStart', 1, 0, 2);
+    const borderHits = await grid.dragAcrossCells('inlineStart', 1, 0, 2);
 
-    const selected = await grid.selectedText();
+    // The border is the whole point here: a frozen area's borders were the ones misattributed.
+    expect(borderHits).toBeGreaterThan(0);
 
     // The drag ends at the third cell's edge, so it takes text from the first two and stops there.
     // What matters is that it survived at all: without the fix this same gesture selected nothing.
-    expect(selected).toContain('R1C1');
+    expect(await grid.selectedText()).toContain('R1C1');
   });
 
   test('does not make header text selectable, frozen or not', async () => {
