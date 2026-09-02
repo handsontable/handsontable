@@ -110,12 +110,14 @@ const collectPublishedEntries = (changelogContents) => {
  * @returns {string} The contents without that section, or unchanged when it is absent.
  */
 const excludeVersionSection = (changelogContents, version) => {
-  const start = changelogContents.indexOf(`## [${version}]`);
+  const escapedVersion = version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const heading = changelogContents.match(new RegExp(`^## \\[${escapedVersion}\\]`, 'm'));
 
-  if (start === -1) {
+  if (heading === null) {
     return changelogContents;
   }
 
+  const start = heading.index;
   const nextStart = changelogContents.indexOf('\n## [', start + 1);
 
   return changelogContents.slice(0, start) + (nextStart === -1 ? '' : changelogContents.slice(nextStart));
@@ -132,9 +134,11 @@ const excludeVersionSection = (changelogContents, version) => {
  * They carry different severities. A pull request number cannot ship twice, so
  * a `private` number hit is conclusive. A `public` number is a GitHub *issue*
  * number, which two releases may legitimately cite when a partial fix is
- * followed by a complete one, and one title may legitimately appear in two
- * sections when a fix is backported to several release lines - so those warn
- * instead of failing.
+ * followed by a complete one - but a partial fix gets a new title, so a
+ * `public` number hit that also matches the title key is not that case, and
+ * escalates to an error the same way a `private` hit does. One title may
+ * still legitimately appear in two sections when a fix is backported to
+ * several release lines, so a title-only hit always warns instead of failing.
  *
  * @param {Array<{file: string, entry: object}>} pendingEntries Pending entries and their paths.
  * @param {string} changelogContents The contents of `CHANGELOG.md`.
@@ -157,7 +161,8 @@ const findRepublishedEntries = (pendingEntries, changelogContents) => {
       issuesOrigin: entry.issuesOrigin,
       citedSection,
       titleSection,
-      severity: citedSection !== undefined && entry.issuesOrigin === 'private' ? 'error' : 'warning'
+      severity: citedSection !== undefined
+        && (entry.issuesOrigin === 'private' || titleSection !== undefined) ? 'error' : 'warning'
     });
 
     return found;

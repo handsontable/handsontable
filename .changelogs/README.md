@@ -122,7 +122,7 @@ It is side-effect free (as in it does nothing outside of your local copy of this
 
 ## No entry may be published twice
 
-`consume` and `sync` both refuse to compile a pending entry whose change `CHANGELOG.md` already publishes. Without that check the same change gets announced in two consecutive releases, which happened at most releases up to 18.1.0.
+`consume` and `sync` both check a pending entry against what `CHANGELOG.md` already publishes, and refuse to compile it when that match is conclusive; a less certain match only warns. Without that check the same change gets announced in two consecutive releases, which happened at most releases up to 18.1.0.
 
 The cause is that a pending `.json` file can outlive the release-to-develop merge-back after the release branch has already consumed it. Two merge shapes produce it, and neither is easy to spot:
 
@@ -134,10 +134,11 @@ Rather than trying to recognize either shape, the check asserts the one thing bo
 | Match | Result |
 |---|---|
 | `issueOrPR` already cited in `CHANGELOG.md`, and `issuesOrigin` is `private` | **fails** |
-| `issueOrPR` already cited, and `issuesOrigin` is `public` | warns |
-| the entry's title already published, under any number | warns |
+| `issueOrPR` already cited, `issuesOrigin` is `public`, and the title also matches | **fails** |
+| `issueOrPR` already cited, `issuesOrigin` is `public`, and the title does not match | warns |
+| only the entry's title already published, under any number | warns |
 
-A pull request number cannot ship twice, so a `private` number match is conclusive. The other two can be legitimate: a public **issue** number may be cited by two releases when a partial fix is followed by a complete one, and one title may appear in two sections when a fix is backported to several release lines. Both keys are still needed — a wrong link in the published entry hides the number, and rewording an entry on one branch hides the title.
+A pull request number cannot ship twice, so a `private` number match is conclusive. A public **issue** number may legitimately be cited by two releases when a partial fix is followed by a complete one — but a partial fix gets a new title, so a `public` number match that also matches the title is not that case, and fails the same way a `private` match does. A title-only match may still legitimately appear in two sections when a fix is backported to several release lines, so it always warns. Both keys are still needed — a wrong link in the published entry hides the number, and rewording an entry on one branch hides the title.
 
 `sync` targets one version section and already skips entries present in it, so there the check looks at every *other* section.
 

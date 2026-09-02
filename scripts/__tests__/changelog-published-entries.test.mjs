@@ -109,6 +109,29 @@ test('excludeVersionSection leaves the contents alone when the version is absent
   assert.equal(excludeVersionSection(CHANGELOG, '99.0.0'), CHANGELOG);
 });
 
+test('excludeVersionSection is anchored to the start of a line, not a substring match anywhere', () => {
+  const changelogWithInlineMention = [
+    '# Changelog',
+    '',
+    '## [18.0.1] - 2026-07-01',
+    '',
+    '### Fixed',
+    // Mentions a version heading mid-line - must not be mistaken for the real heading.
+    `- Documented the upgrade path past ## [18.0.0] for older installs. ${link(13400)}`,
+    '',
+    '## [18.0.0] - 2026-06-30',
+    '',
+    '### Fixed',
+    `- Fixed cell meta being reset by \`updateSettings\`. ${link(12811)}`,
+    ''
+  ].join('\n');
+
+  const { numbers } = collectPublishedEntries(excludeVersionSection(changelogWithInlineMention, '18.0.0'));
+
+  assert.equal(numbers.has('12811'), false, 'the real 18.0.0 section must be gone');
+  assert.equal(numbers.get('13400'), '18.0.1', '18.0.1 must survive, not be truncated mid-line');
+});
+
 test('excludeVersionSection keeps the target section from blocking a sync into it', () => {
   const pending = [{ file: '.changelogs/12451.json', entry: entry({ issueOrPR: 12451 }) }];
 
@@ -163,6 +186,21 @@ test('a public issue number already published only warns', () => {
   assert.equal(records.length, 1);
   assert.equal(records[0].citedSection, '17.1.0');
   assert.equal(records[0].severity, 'warning');
+});
+
+test('a public issue number already published escalates to error when the title also matches', () => {
+  const records = findRepublishedEntries(
+    [{
+      file: '.changelogs/7555.json',
+      entry: entry({ issuesOrigin: 'public', issueOrPR: 7555, title: 'Fixed a public issue only partly.' })
+    }],
+    CHANGELOG
+  );
+
+  assert.equal(records.length, 1);
+  assert.equal(records[0].citedSection, '17.1.0');
+  assert.equal(records[0].titleSection, '17.1.0');
+  assert.equal(records[0].severity, 'error', 'both keys agreeing rules out the partial-fix exception');
 });
 
 test('a framework prefix does not hide a republished title', () => {
