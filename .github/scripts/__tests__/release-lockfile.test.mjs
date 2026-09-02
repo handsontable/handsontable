@@ -46,6 +46,11 @@ const EXPECTED_GATES = 6;
 // Pinning the total means a NEW `--lockfile-only` site cannot appear unnoticed.
 const EXPECTED_LOCKFILE_ONLY_CALLS = 6;
 
+// The two steps that have to agree about the docs outcomes. Named once, because the
+// whole point of the assertions below is that a step id reaches BOTH of them.
+const DOCS_PUSH_STEP = 'Commit and push docs branch';
+const DOCS_RESULT_STEP = 'Set docs result output';
+
 /**
  * Every YAML file that GitHub Actions executes: workflows and the composite actions
  * they call. Composite actions already run `pnpm install`, so a `--force` added there
@@ -137,6 +142,31 @@ function steps(source) {
 }
 
 /**
+ * One job's source, so an assertion about `stable-publish` cannot be satisfied by a step
+ * that happens to sit in a neighboring job.
+ *
+ * `offset` is what keeps a failure message pointing at the real file: line numbers from
+ * `steps()` are relative to whatever source it was handed.
+ *
+ * @param {string} source Workflow source.
+ * @param {string} name The job key, as written at two-space indent.
+ * @returns {{source: string, offset: number}} The job's lines and its start line.
+ */
+function job(source, name) {
+  const lines = source.split('\n');
+  const start = lines.indexOf(`  ${name}:`);
+
+  assert.notEqual(start, -1, `publish.yml: no \`${name}:\` job`);
+
+  const end = lines.findIndex((line, index) => index > start && /^ {2}\S/.test(line));
+
+  return {
+    source: lines.slice(start, end === -1 ? lines.length : end).join('\n'),
+    offset: start,
+  };
+}
+
+/**
  * The arguments of every `pnpm install` in a file.
  *
  * Scoped to each command's own logical line -- through backslash continuations, but
@@ -207,9 +237,9 @@ test('no new --lockfile-only site appears ungated', () => {
     `publish.yml: expected ${EXPECTED_LOCKFILE_ONLY_CALLS} \`pnpm install --lockfile-only\` `
     + `calls, found ${found}. Three follow a version bump and are gated; two resolve a `
     + 'pnpm-lock.yaml merge conflict in `stable-merge` and legitimately rewrite the file; '
-    + 'one adds the docs devDependency on the `prod-docs/*` branch and is checked for an '
-    + 'no other package losing its resolved identity. A new one needs a deliberate '
-    + 'decision about which kind it is '
+    + 'one adds the docs devDependency on the `prod-docs/*` branch, and is checked for '
+    + 'that entry landing with no other package losing its resolved identity. A new one '
+    + 'needs a deliberate decision about which kind it is '
     + '(DEV-2667).'
   );
 });
@@ -248,6 +278,76 @@ test('every release commit is preceded by the gate', () => {
       `publish.yml:${commit.line}: this step runs \`git add .\`, so it must be preceded by `
       + 'the lockfile gate -- otherwise anything the build touched reaches the release '
       + 'commit unchecked (DEV-2667).'
+    );
+  }
+});
+
+// Every docs step in `stable-publish` is `continue-on-error`, so a failure there sets
+// `conclusion` to success and survives only in `outcome`. Two steps have to read it:
+// `docs-commit`, which must not push a branch assembled from failed steps, and
+// `docs-result`, which is the only place an operator learns which step broke. Carrying
+// an `id:` is what marks a step's result as meant to be read -- `Purge jsDelivr CDN
+// cache` deliberately has none, because the CDN cannot affect what the branch contains.
+test('every docs step outcome reaches the push gate and the summary', () => {
+  const { source, offset } = job(read('.github/workflows/publish.yml'), 'stable-publish');
+  const all = steps(source);
+  const gate = all.find(step => step.name === DOCS_PUSH_STEP);
+  const summary = all.find(step => step.name === DOCS_RESULT_STEP);
+
+  assert.ok(gate, `publish.yml: no "${DOCS_PUSH_STEP}" step in \`stable-publish\``);
+  assert.ok(summary, `publish.yml: no "${DOCS_RESULT_STEP}" step in \`stable-publish\``);
+
+  // `docs-result` is not `continue-on-error`, so the filter drops it by itself; the gate
+  // is excluded by name, because it cannot gate itself.
+  const reported = all.filter(step => step !== gate
+    && /\n\s+continue-on-error:\s*true/.test(step.body)
+    && /\n\s+id:\s*\S+/.test(step.body));
+
+  assert.ok(
+    reported.length > 0,
+    'publish.yml: found no reportable docs steps, so the job slice above is wrong'
+  );
+
+  for (const step of reported) {
+    const [, id] = /\n\s+id:\s*(\S+)/.exec(step.body);
+    const line = step.line + offset;
+
+    assert.ok(
+      gate.body.includes(`steps.${id}.outcome == 'success'`),
+      `publish.yml:${line}: \`${id}\` is continue-on-error, so its failure lives `
+      + `only in \`outcome\`. "${DOCS_PUSH_STEP}" must require `
+      + `\`steps.${id}.outcome == 'success'\`, or a docs branch assembled from a failed `
+      + 'step gets pushed -- and that push triggers docs-production.yml.'
+    );
+
+    assert.ok(
+      summary.body.includes(`${id}:\${{ steps.${id}.outcome }}`),
+      `publish.yml:${line}: \`${id}\` is missing from "${DOCS_RESULT_STEP}"'s `
+      + 'OUTCOMES, so a failure there names no cause in the job summary and the release '
+      + `looks green. Add \`${id}:\${{ steps.${id}.outcome }}\`.`
+    );
+  }
+});
+
+// A `run:` block is its own shell, so `$VERSION` is empty in any step that does not set
+// it. That does not break loudly -- it WEAKENS whatever is built on it. In
+// `docs-lockfile`, `grep "specifier: ~${VERSION}"` degrades from "the version this
+// release intends" to "any tilde specifier at all", which a stale entry left behind by
+// an earlier partial failure passes.
+test('every step that reads $VERSION also sets it', () => {
+  for (const step of steps(read('.github/workflows/publish.yml'))) {
+    const body = withoutComments(step.body);
+
+    if (!/\$\{?VERSION\b/.test(body)) {
+      continue;
+    }
+
+    assert.ok(
+      /\n\s+VERSION[=:]/.test(body),
+      `publish.yml:${step.line}: this step reads \`$VERSION\` but never sets it. Each `
+      + '`run:` block is a separate shell, so it expands empty and every check built on '
+      + 'it silently passes. Assign it from `needs.<job>.outputs.version`, or hand it in '
+      + 'through `env:`.'
     );
   }
 });

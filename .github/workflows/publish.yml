@@ -1714,6 +1714,10 @@ jobs:
       # docs/scripts/jsdoc-convert reads `pathToSource: '../../../handsontable/tmp'`.
       # Unpacking the published tarball documents exactly what shipped, and is far
       # cheaper than rebuilding from source.
+      #
+      # `docs-api` guards only against an EMPTY `handsontable/tmp`. A `tar` that dies
+      # partway, after `base.js` has already landed, leaves a partial tree that reads as
+      # fine -- so `docs-commit` gates on this step's outcome as well.
       - name: Unpack handsontable tarball
         id: unpack-tarball
         continue-on-error: true
@@ -1841,6 +1845,12 @@ jobs:
         id: docs-lockfile
         continue-on-error: true
         run: |
+          # Every `run:` block is its own shell, so this must be set here even though the
+          # sibling steps set it too. Left unset, the assertion below still finds a
+          # `specifier: ~` line and passes on ANY tilde version -- including a stale one
+          # an earlier partial failure left on the branch.
+          VERSION='${{ needs.stable-build.outputs.version }}'
+
           pnpm install --lockfile-only
 
           git diff --stat -- pnpm-lock.yaml
@@ -1924,7 +1934,8 @@ jobs:
         id: docs-commit
         continue-on-error: true
         if: >-
-          steps.release-token.outcome == 'success'
+          steps.unpack-tarball.outcome == 'success'
+          && steps.release-token.outcome == 'success'
           && steps.docs-changelog-content.outcome == 'success'
           && steps.docs-deps.outcome == 'success'
           && steps.docs-branch.outcome == 'success'
@@ -1954,6 +1965,7 @@ jobs:
         if: always()
         env:
           OUTCOMES: >-
+            unpack-tarball:${{ steps.unpack-tarball.outcome }}
             release-token:${{ steps.release-token.outcome }}
             docs-changelog-content:${{ steps.docs-changelog-content.outcome }}
             docs-deps:${{ steps.docs-deps.outcome }}
