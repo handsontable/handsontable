@@ -13,6 +13,7 @@ vue:
   metaTitle: MultiSelect cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Collect user input with a list of multiple-selection choices, by using the MultiSelect cell type.
 
@@ -130,6 +131,20 @@ You can provide the `source` option as an array of objects with `key` and `value
 :::
 
 :::
+
+## Opening the dropdown
+
+Every MultiSelect cell shows a dropdown indicator at its trailing edge, matching the one you see on [autocomplete](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) and [dropdown](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cells, so a MultiSelect cell reads as a list cell at a glance. The indicator stays visible when the cell holds no values.
+
+The two look alike but are separate elements. If you target the indicator from CSS or a test, MultiSelect uses the class `ht-multi-select-arrow`, while autocomplete and dropdown cells use `htAutocompleteArrow`.
+
+You can open the dropdown in three ways:
+
+- Click the indicator once.
+- Double-click anywhere in the cell.
+- Select the cell and press <kbd>**Enter**</kbd>.
+
+A single click anywhere else in the cell selects the cell without opening the dropdown. That keeps range selection and drag-to-select available.
 
 ## Keyboard navigation
 

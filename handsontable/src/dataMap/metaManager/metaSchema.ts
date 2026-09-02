@@ -3451,6 +3451,12 @@ export default (): Record<string, unknown> => {
      * When [`selectionMode`](@/api/options.md#selectionmode) is set to `'single'`, copying is
      * limited to a single cell.
      *
+     * A text selection cannot span a frozen area and the rest of the grid, because the two are
+     * rendered as separate tables. Selecting text inside a frozen row or column works, but as soon
+     * as you drag the pointer out of the area you started in, the selection is cleared.
+     *
+     * Headers are not selectable, whether or not they are frozen.
+     *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *

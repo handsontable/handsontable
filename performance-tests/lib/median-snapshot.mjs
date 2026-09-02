@@ -2,6 +2,7 @@
 // snapshots, so a PR is compared against recent trend instead of one run.
 
 import { formatHeapMinBytesLabel, formatHeapMaxBytesLabel } from '../trace-parser.mjs';
+import { calcCv, sumActive } from './thresholds.mjs';
 
 // How many of the newest marks-valid develop snapshots to median over. Small
 // enough that a real regression introduced mid-window isn't diluted by twice
@@ -121,6 +122,12 @@ function medianScenario(entries) {
     // treats a missing field as 'auto-zoom' -- an unset value here would make
     // every scenario read as cross-window-mismatched on every PR.
     windowSource: 'marks',
+    // How far apart the runs behind this median sit, as a CV of their active time. The
+    // per-iteration values are stripped before a golden is saved, so this is the only
+    // spread the baseline side can report -- and it is the more useful one: it measures
+    // run-to-run variance (11-19% per scenario), where the current run's own intra-run
+    // CV measures only how stable three back-to-back iterations were (0.9-4%).
+    spread: calcCv(entries.map(entry => sumActive(entry.categories || {}))),
     ...(hookTimingValues.length > 0 ? { hookTiming: median(hookTimingValues) } : {}),
   };
 }
