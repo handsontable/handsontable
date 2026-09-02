@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RefreshDimensions hooks fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+  <iframe data-testid="frame" width="500" height="60"></iframe>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    // Every entry is one hook invocation: which hook ran, the previous and current dimensions it
+    // was given (cloned - the grid passes live objects), and whether it reported that a resize
+    // action is possible. Specs assert on this log, so a wait can poll for the delivery instead of
+    // guessing how long the resize-event -> rAF -> hook pipeline takes.
+    window.htHookLog = [];
+
+    const logDimensions = dims => ({ width: dims.width, height: dims.height });
+    const buildHooks = blockRefresh => ({
+      beforeRefreshDimensions(previousDimensions, currentDimensions, actionPossible) {
+        window.htHookLog.push({
+          hook: 'before',
+          prev: logDimensions(previousDimensions),
+          curr: logDimensions(currentDimensions),
+          action: actionPossible,
+        });
+
+        return blockRefresh ? false : undefined;
+      },
+      afterRefreshDimensions(previousDimensions, currentDimensions, actionPossible) {
+        window.htHookLog.push({
+          hook: 'after',
+          prev: logDimensions(previousDimensions),
+          curr: logDimensions(currentDimensions),
+          action: actionPossible,
+        });
+      },
+    });
+    const DATA = [
+      ['A0', 'B0'],
+      ['A1', 'B1'],
+      ['A2', 'B2'],
+      ['A3', 'B3'],
+      ['A4', 'B4'],
+    ];
+
+    // A sized grid in the main document: overlay-scroll mode, so its container is watched by the
+    // ResizeObserver pipeline - one delivery on observe (the "initial delivery"), then one per
+    // real container resize.
+    window.buildMainGrid = ({ blockRefresh = false } = {}) => {
+      const container = document.querySelector('[data-testid="grid"]');
+
+      container.className = `ht-theme-${window.htTheme}`;
+
+      window.hot = new Handsontable(container, Object.assign({
+        data: DATA,
+        width: 120,
+        height: 100,
+        afterRenderer(td, row, col) {
+          td.setAttribute('data-testid', `cell-${row}-${col}`);
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      }, buildHooks(blockRefresh)));
+    };
+
+    // A grid inside the iframe, created by THIS document's Handsontable on a node of the iframe's
+    // document - the cross-document shape the legacy suite exercised. With no width/height it runs
+    // in window-scroll mode, so dimension refreshes come from the iframe window's resize events,
+    // not from a ResizeObserver. Resolves only after the copied stylesheets finished loading, so
+    // the grid measures its final CSS from the first render on - the settle the legacy fixture
+    // approximated with `sleep(50)`.
+    window.buildIframeGrid = ({ width, height, blockRefresh = false } = {}) => {
+      const iframe = document.querySelector('[data-testid="frame"]');
+      const doc = iframe.contentDocument;
+
+      doc.open('text/html', 'replace');
+      doc.write('<!doctype html><html><head></head><body style="margin: 0"></body></html>');
+      doc.close();
+
+      const stylesheetsReady = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+        .map(link => new Promise((resolve, reject) => {
+          const copy = doc.createElement('link');
+
+          copy.rel = 'stylesheet';
+          copy.href = link.href;
+          copy.addEventListener('load', resolve, { once: true });
+          copy.addEventListener('error', () => reject(new Error('Stylesheet failed: ' + link.href)), { once: true });
+          doc.head.appendChild(copy);
+        }));
+
+      return Promise.all(stylesheetsReady).then(() => {
+        const container = doc.createElement('div');
+
+        container.className = `ht-theme-${window.htTheme}`;
+        doc.body.appendChild(container);
+
+        const settings = Object.assign({
+          data: DATA,
+          licenseKey: 'non-commercial-and-evaluation',
+        }, buildHooks(blockRefresh));
+
+        if (width !== undefined) {
+          settings.width = width;
+          settings.height = height;
+        }
+
+        window.hot = new Handsontable(container, settings);
+      });
+    };
+  </script>
+</body>
+</html>
