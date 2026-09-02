@@ -109,6 +109,9 @@ export interface FixtureHotInstance {
   addHookOnce(name: string, callback: () => unknown): void;
   getSelectedLast(): number[];
   countRows(): number;
+  countEmptyRows(ending?: boolean): number;
+  isEmptyRow(row: number): boolean;
+  isEmptyCol(col: number): boolean;
   toVisualRow(row: number): number | null;
   toPhysicalRow(row: number): number | null;
   selectCell(row: number, col: number): boolean;
@@ -161,6 +164,8 @@ declare global {
     initMobileGrid(overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the fragmentSelection fixture grid with the given setting overrides. */
     initFragmentSelectionGrid(overrides?: Record<string, unknown>): boolean;
+    /** Rebuilds the GH #5069 nested-`dataSchema` + `minSpareRows` fixture grid. */
+    initNestedSchemaGrid(overrides?: Record<string, unknown>): boolean;
     /** Returns the text the browser currently reports as selected (fragmentSelection fixture). */
     readTextSelection(): string;
     /** Drops any existing text selection (fragmentSelection fixture). */

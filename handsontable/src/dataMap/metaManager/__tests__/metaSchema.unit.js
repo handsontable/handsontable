@@ -158,6 +158,118 @@ describe('metaSchema', () => {
 
       expect(defaults.isEmptyRow.call(hotEmpty, 0)).toBe(true);
     });
+
+    // A column bound to a nested property (`{ data: 'meta.active' }`) gets a dot-separated
+    // `colToProp`, while `getDataAtCell` returns the leaf value behind that path.
+    function createRowMockNested({ props, values, dataSchema, dataDotNotation = true }) {
+      return {
+        getSettings: () => ({ dataSchema, dataDotNotation }),
+        getSchema: () => dataSchema,
+        countCols: () => props.length,
+        // The mock holds a single row, mirroring one spare row full of schema defaults.
+        getDataAtCell: (row, col) => (row === 0 ? values[col] : null),
+        colToProp: col => props[col],
+      };
+    }
+
+    it('should return true when a nested dataSchema default is reached through a dotted column path (GH #5069)', () => {
+      const defaults = metaSchemaFactory();
+      const hot = createRowMockNested({
+        props: ['name', 'meta.active'],
+        values: [null, false],
+        dataSchema: { name: null, meta: { active: false } },
+      });
+
+      expect(defaults.isEmptyRow.call(hot, 0)).toBe(true);
+    });
+
+    it('should return false when a nested value differs from its dataSchema default (GH #5069)', () => {
+      const defaults = metaSchemaFactory();
+      const hot = createRowMockNested({
+        props: ['name', 'meta.active'],
+        values: [null, true],
+        dataSchema: { name: null, meta: { active: false } },
+      });
+
+      expect(defaults.isEmptyRow.call(hot, 0)).toBe(false);
+    });
+
+    it('should compare an object-typed value against its nested dataSchema default (GH #5069)', () => {
+      const defaults = metaSchemaFactory();
+      const schema = { meta: { tags: { a: 1 } } };
+
+      expect(defaults.isEmptyRow.call(createRowMockNested({
+        props: ['meta.tags'],
+        values: [{ a: 1 }],
+        dataSchema: schema,
+      }), 0)).toBe(true);
+
+      expect(defaults.isEmptyRow.call(createRowMockNested({
+        props: ['meta.tags'],
+        values: [{ a: 2 }],
+        dataSchema: schema,
+      }), 0)).toBe(false);
+    });
+
+    it('should read a dotted property as a literal key when `dataDotNotation` is disabled', () => {
+      const defaults = metaSchemaFactory();
+      const hot = createRowMockNested({
+        props: ['meta.active'],
+        values: [false],
+        dataSchema: { 'meta.active': false },
+        dataDotNotation: false,
+      });
+
+      expect(defaults.isEmptyRow.call(hot, 0)).toBe(true);
+    });
+
+    it('should prefer an own literal dotted key over the path walk while `dataDotNotation` is ON', () => {
+      // `DataMap#get` — the reader behind the compared value — tests `hasOwnProperty(row, prop)`
+      // FIRST and only then walks the path, so a schema declaring the dotted key literally must
+      // resolve here too. Walking unconditionally reintroduces the GH #5069 growth for this
+      // config: the value side resolves `false` while the default side would read `schema.meta`.
+      const defaults = metaSchemaFactory();
+      const hot = createRowMockNested({
+        props: ['meta.active'],
+        values: [false],
+        dataSchema: { 'meta.active': false },
+        dataDotNotation: true,
+      });
+
+      expect(defaults.isEmptyRow.call(hot, 0)).toBe(true);
+    });
+
+    it('should not resolve a dotted path inside the duck-schema when no dataSchema is set', () => {
+      // Without an explicit `dataSchema`, `getSchema()` returns the duck-schema. Walking a dotted
+      // path into it would newly report a real row whose nested object holds only `null` leaves
+      // as empty — a behavior change for grids that never set `dataSchema`, so the walk stays
+      // gated on an explicit schema.
+      const defaults = metaSchemaFactory();
+      const hot = createRowMockNested({
+        props: ['meta.tags'],
+        values: [{ a: null }],
+        dataSchema: undefined,
+        dataDotNotation: true,
+      });
+
+      // The mock's getSchema() stands in for the duck-schema of `{ meta: { tags: { a: null } } }`.
+      hot.getSchema = () => ({ meta: { tags: { a: null } } });
+
+      expect(defaults.isEmptyRow.call(hot, 0)).toBe(false);
+    });
+
+    it('should not throw when a dotted path runs through a null in the dataSchema', () => {
+      const defaults = metaSchemaFactory();
+      const hot = createRowMockNested({
+        props: ['meta.active'],
+        values: [false],
+        dataSchema: { meta: null },
+      });
+
+      // No default resolves through `meta`, so the value cannot be a default one.
+      expect(() => defaults.isEmptyRow.call(hot, 0)).not.toThrow();
+      expect(defaults.isEmptyRow.call(hot, 0)).toBe(false);
+    });
   });
 
   describe('isEmptyCol()', () => {
@@ -243,6 +355,51 @@ describe('metaSchema', () => {
       const hot = createHotMockObjects({ data: [{ meta: null }, { meta: null }] });
 
       expect(defaults.isEmptyCol.call(hot, 0)).toBe(true);
+    });
+
+    // A single column bound to a nested property, with one value per row.
+    function createColMockNested({ prop, values, dataSchema, dataDotNotation = true }) {
+      return {
+        getSettings: () => ({ dataSchema, dataDotNotation }),
+        getSchema: () => dataSchema,
+        countRows: () => values.length,
+        getDataAtCell: row => values[row],
+        colToProp: () => prop,
+      };
+    }
+
+    it('should return true when every cell holds a nested dataSchema default reached through a dotted path (GH #5069)', () => {
+      const defaults = metaSchemaFactory();
+      const hot = createColMockNested({
+        prop: 'meta.active',
+        values: [false, false],
+        dataSchema: { name: null, meta: { active: false } },
+      });
+
+      expect(defaults.isEmptyCol.call(hot, 0)).toBe(true);
+    });
+
+    it('should return false when any cell differs from its nested dataSchema default (GH #5069)', () => {
+      const defaults = metaSchemaFactory();
+      const hot = createColMockNested({
+        prop: 'meta.active',
+        values: [false, true],
+        dataSchema: { name: null, meta: { active: false } },
+      });
+
+      expect(defaults.isEmptyCol.call(hot, 0)).toBe(false);
+    });
+
+    it('should not throw when a dotted path runs through a null in the dataSchema', () => {
+      const defaults = metaSchemaFactory();
+      const hot = createColMockNested({
+        prop: 'meta.active',
+        values: [false, false],
+        dataSchema: { meta: null },
+      });
+
+      expect(() => defaults.isEmptyCol.call(hot, 0)).not.toThrow();
+      expect(defaults.isEmptyCol.call(hot, 0)).toBe(false);
     });
   });
 

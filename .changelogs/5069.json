@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed `minSpareRows` and `minSpareCols` repeatedly adding rows and columns when `dataSchema` sets a default value on a nested property, such as `{ data: 'meta.active' }`.",
+  "type": "fixed",
+  "issueOrPR": 5069,
+  "breaking": false,
+  "framework": "none"
+}

@@ -248,13 +248,15 @@ export function mixin(Base: Function, ...mixins: object[]): object {
 }
 
 /**
- * Checks if two objects or arrays are (deep) equal.
+ * Checks if two values are (deep) equal. Objects, arrays, dates, primitives, `null` and
+ * `undefined` are all comparable – the parameters are `unknown` so that a caller holding a
+ * value of unknown shape does not have to assert one just to compare it.
  *
- * @param {object|Array} object1 The first object to compare.
- * @param {object|Array} object2 The second object to compare.
+ * @param {*} object1 The first value to compare.
+ * @param {*} object2 The second value to compare.
  * @returns {boolean}
  */
-export function isObjectEqual(object1: object | unknown[], object2: object | unknown[]): boolean {
+export function isObjectEqual(object1: unknown, object2: unknown): boolean {
   const stableStringify = (obj: unknown): string => {
     if (obj === undefined) {
       return 'undefined';
