@@ -60,7 +60,7 @@ import type { ShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcuts/contexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
-import { warn, removedWarnOnce } from './helpers/console';
+import { warn, removedWarnOnce, deprecatedWarnOnce } from './helpers/console';
 import { throwWithCause } from './helpers/errors';
 import {
   install as installAccessibilityAnnouncer,
@@ -2650,6 +2650,19 @@ export default function Core(
    * Set new value to a cell. To change many cells at once (recommended way), pass an array of `changes` in format
    * `[[row, col, value],...]` as the first argument.
    *
+   * Writing past the last column creates the missing columns only where the grid can create them: an
+   * array-of-arrays [`data`](@/api/options.md#data) source with no [`columns`](@/api/options.md#columns) option and
+   * [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) left on. In every other configuration the column count
+   * is fixed, and the value is instead written to a property named after the column index. That property is not part
+   * of your [`dataSchema`](@/api/options.md#dataschema) and no column displays it, but
+   * [`getSourceData()`](@/api/core.md#getsourcedata) returns it and
+   * [`countSourceCols()`](@/api/core.md#countsourcecols) counts it.
+   *
+   * On an **object** data source that write is **deprecated as of 18.2.0** and will be ignored from 19.0.0 on: the
+   * value cannot become a column there, so it only adds a key the schema never declared. To write a field the grid
+   * shows no column for, address it by property name with
+   * [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead.
+   *
    * @memberof Core#
    * @function setDataAtCell
    * @param {number|Array} row Visual row index or array of changes in format `[[row, col, value],...]`.
@@ -2684,6 +2697,25 @@ export default function Core(
       const visualColumnIndex = typeof visualColumn === 'number' ? visualColumn : 0;
 
       if (visualColumnIndex >= this.countCols()) {
+        // No column exists at this index, and on an object data source none ever can -
+        // `createCol()` refuses one ("you can only have as much columns as defined in first data
+        // row, data schema or in the 'columns' setting"), which is why `applyChanges()` skips
+        // creating it. The index then travels on as the property name, so `dataMap.set()` mints a
+        // positional key on a row whose other fields are named: `{ 2: 'x', id: 1 }` (#5409). No
+        // column renders it, yet it reaches every consumer that serializes the row. Deprecated in
+        // 18.2.0; the write is skipped from 19.0.0 on.
+        //
+        // An array data source is not warned about: there the index names a real array slot rather
+        // than a positional key on a named record, so extending the row is type-consistent, and
+        // `applyChanges()` creates the column outright when the source allows it.
+        if (instance.dataType === 'object') {
+          deprecatedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
+            'Writing past the last column of an object data source is deprecated and will be ' +
+            'ignored in Handsontable 19.0.0. The value currently lands on a property named after ' +
+            'the column index, which no column can display. Use `setDataAtRowProp()` to write a ' +
+            'field the grid shows no column for.');
+        }
+
         prop = visualColumnIndex;
 
       } else {
