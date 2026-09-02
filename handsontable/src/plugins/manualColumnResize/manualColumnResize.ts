@@ -253,6 +253,8 @@ export class ManualColumnResize extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.#detachHandleAndGuide();
+
     if (this.#disposeMapObserver) {
       this.#disposeMapObserver();
       this.#disposeMapObserver = null;
@@ -549,6 +551,23 @@ export class ManualColumnResize extends BasePlugin {
   }
 
   /**
+   * Detaches the resize handle and the resize guide from the root element, clears their active
+   * state and releases the pressed flag. Shared by the context menu handler, `disablePlugin()`
+   * and `destroy()`, so a plugin that is turned off leaves nothing of its own in the container.
+   *
+   * Both elements are detached with `remove()`, which is a no-op on an element that has no
+   * parent. The guide is attached only once a "mousedown" over the handle reaches
+   * `#onMouseDown`, so a context menu opened over a merely hovered handle reaches a guide that
+   * was never attached, and `removeChild` threw there (DEV-2708).
+   */
+  #detachHandleAndGuide() {
+    this.hideHandleAndGuide();
+    this.#handle.remove();
+    this.#guide.remove();
+    this.#pressed = false;
+  }
+
+  /**
    * Checks if provided element is considered a column header.
    *
    * @private
@@ -782,15 +801,8 @@ export class ManualColumnResize extends BasePlugin {
    * Callback for "contextmenu" event triggered on element showing move handle. It removes handle and guide elements.
    */
   #onContextMenu() {
-    this.hideHandleAndGuide();
-    // Both elements are detached with `remove()`, which is a no-op on an element that has no
-    // parent. The guide is attached only once a "mousedown" over the handle reaches `#onMouseDown`,
-    // so a context menu opened over a merely hovered handle reaches a guide that was never
-    // attached, and `removeChild` threw there (DEV-2708).
-    this.#handle.remove();
-    this.#guide.remove();
+    this.#detachHandleAndGuide();
 
-    this.#pressed = false;
     this.#isTriggeredByRMB = true;
 
     // There is thrown "mouseover" event right after opening a context menu. This flag inform that handle
@@ -866,6 +878,7 @@ export class ManualColumnResize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.#detachHandleAndGuide();
     super.destroy();
   }
 }

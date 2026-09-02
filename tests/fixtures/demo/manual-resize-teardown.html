@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Manual resize teardown e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    DEV-2719. Both resize plugins append their handle and their guide to the root element lazily -
+    the handle on `mouseover` over a header, the guide on `mousedown` over the handle - and nothing
+    detached them again except the context-menu handler. `hideHandleAndGuide()` only stripped the
+    `active` class, so turning the plugin off with `updateSettings()` left the elements in the
+    user's container.
+
+    An orphaned handle is not merely untidy. It is `opacity: 0` at rest, so nothing looks wrong,
+    but it carries `z-index: 210`, `pointer-events: auto`, `cursor: row-resize` and `opacity: 1`
+    on `:hover` - so it lights up for a feature that is off and it SWALLOWS the click on the header
+    underneath it, because the core resolves the cell from `event.target`. An orphaned guide is
+    inert by comparison (`display: none` without `active`), so only its attachment is observable.
+
+    Nothing here can be checked in jsdom: the handle only exists once the header has a layout box.
+  -->
+  <h2>Rows and columns</h2>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    window.grid = new Handsontable(container, {
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      colHeaders: true,
+      rowHeaders: true,
+      manualRowResize: true,
+      manualColumnResize: true,
+      width: 600,
+      height: 400,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    /**
+     * Turns a resize plugin off the way an application does, through `updateSettings()`. That runs
+     * the plugin's `disablePlugin()`, which is the teardown that left the elements behind.
+     *
+     * @param {string} option Either `manualRowResize` or `manualColumnResize`.
+     * @param {boolean|number[]} value The value to set.
+     */
+    window.setResizeOption = function(option, value) {
+      window.grid.updateSettings({ [option]: value });
+    };
+
+    /**
+     * Destroys the grid. The container is the host page's, so whatever the plugins left in it
+     * survives the instance.
+     */
+    window.destroyGrid = function() {
+      window.grid.destroy();
+    };
+
+    /**
+     * The current selection, as `getSelected()` reports it. A test that proves an orphaned handle
+     * no longer swallows a header click reads this rather than a DOM class, because selecting a
+     * whole row through its header is the user-visible thing the orphan blocked.
+     *
+     * @returns {Array[]|undefined}
+     */
+    window.selectedRange = function() {
+      return window.grid.getSelected();
+    };
+
+    /**
+     * The rendered height of a visual row, so a test can prove a drag after a re-enable actually
+     * resized it.
+     *
+     * @param {number} row The visual row index.
+     * @returns {number}
+     */
+    window.renderedRowHeight = function(row) {
+      return window.grid.getCell(row, 0).parentNode.getBoundingClientRect().height;
+    };
+  </script>
+</body>
+</html>
