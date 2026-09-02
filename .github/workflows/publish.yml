@@ -1383,6 +1383,13 @@ jobs:
 
           git checkout develop
 
+          assert_no_republished_changelog_entries() {
+            if ! bin/changelog consume --date 2050-01-01 --dry-run; then
+              echo "::error::Refusing to push: the merge reintroduced an already-published changelog entry. Resolve the .changelogs conflict manually."
+              exit 1
+            fi
+          }
+
           if ! git merge origin/${RELEASE_BRANCH} --no-edit; then
             UNRESOLVED=$(git diff --name-only --diff-filter=U)
             UNEXPECTED=$(echo "$UNRESOLVED" | grep -v '^pnpm-lock.yaml$' || true)
@@ -1416,9 +1423,11 @@ jobs:
               pnpm install --lockfile-only
               git add pnpm-lock.yaml
               git commit --no-edit
+              assert_no_republished_changelog_entries
               git push origin develop
             fi
           else
+            assert_no_republished_changelog_entries
             git push origin develop
           fi
 
