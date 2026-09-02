@@ -114,6 +114,7 @@ Walkontable has its own dedicated test runner. Do NOT mix Walkontable tests with
 - **Run tests**: `npm run test:walkontable --prefix handsontable`
 - **Test location**: `src/3rdparty/walkontable/test/`
 - Always test with frozen rows and columns enabled to cover overlay edge cases.
+- **Where a geometry change gets its spec.** A change to viewport calculation, overlay positioning, row or column sizing, or scroll sync gets an engine-tier spec, not a core-tier one. The existing Jasmine specs under `src/3rdparty/walkontable/test/` may be edited; new coverage goes to `tests/e2e/walkontable/*.spec.ts` with a page object in `tests/fixtures/pages/walkontable/` (reference: `frozen-column-row-heights.spec.ts` + `FrozenTallCellPage.ts`). A page-object method that scrolls ends on a render-state probe (the first rendered row, a draw counter), never on `scrollTop` — the redraw is rAF-batched and lands after the scroll position settles. Rules: `handsontable-playwright-e2e`, `references/determinism.md`.
 
 ## Key source files
 

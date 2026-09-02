@@ -121,9 +121,13 @@ it('should open editor on double-tap', async() => {
 
 Use `simulateTouch(target)` when you need to test the full Android event sequence including synthetic mouse events.
 
-## Flaky test handling
+## Waiting in an edited spec (hard rules)
 
-Use `it.flaky()` for timing-sensitive tests (auto-retries up to 3 times).
+The frozen suite's flakiness is timing debt. An edit must not add to it, and a broken or flaky spec migrates (see the top of this file) — these rules cover the edit you MUST make in place.
+
+- **A rendered-DOM count assertion pins the viewport first.** `countRenderedRows()`, `countRenderedCols()`, and any `tbody tr` count depend on how many rows the container shows, which varies per theme and per machine. Size the container with `containerHeightForRows(n)` or `scrollViewportTo()` the target into view before counting. An unpinned count is a per-theme coin flip.
+- **`waitUntil(condition, timeout)` replaces `sleep()` and `waitForNextAnimationFrames()`.** It is a spec global from `test/helpers/common.js`: it polls the condition every frame and rejects with a named reason when the state never arrives. `waitForNextAnimationFrames()` is a fixed sleep denominated in frames — it awaits at most 2 real frames (`normalizeFrameCount` caps it) and pads the rest of the request with 16 ms per frame — so it is `sleep()` in a different unit. Existing `sleep()` sites are baselined by lint; new ones are not.
+- **`it.flaky()` is not a wait.** A retry hides a race, it does not remove one; new `it.flaky()` sites are lint-warned (`handsontable/no-new-it-flaky`). A spec that needs a retry is a spec to migrate to Playwright.
 
 ## What to test for plugins
 

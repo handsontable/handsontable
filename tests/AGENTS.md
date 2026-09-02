@@ -164,3 +164,28 @@ naming the task (`// eslint-disable-next-line no-restricted-syntax --
 DEV-1234: <why>`), which keeps every parked test counted and attributable.
 Full rules: the `handsontable-playwright-e2e` skill and its
 `references/determinism.md`.
+
+The waits lint cannot see live in page objects. Never get these wrong:
+
+- `setTimeout` inside `page.evaluate()` is `sleep()` moved into the browser.
+  Expose a data probe method and `expect.poll` it from the spec.
+- `page.waitForFunction()` always passes an explicit `{ polling: <ms> }`. The
+  default polls on `requestAnimationFrame`, which parallel-worker load starves
+  past the timeout on a healthy page — 3 mute timeouts in ~700 runs of
+  `hidden-init-rerender.spec.ts`, 0 after switching to timer polling.
+- A page-object method that scrolls or mutates the grid ends on a RENDER-STATE
+  probe (the first rendered row, a draw counter), never on
+  `scrollTop`/`scrollLeft`: the scroll position settles before the rAF-batched
+  redraw, so the next DOM read describes the previous frame (the
+  `frozen-column-row-heights` gap).
+- A trigger that can deliver more than once is asserted by polling the LATEST
+  entry of its kind — filter the log for the hook, `.at(-1)`, inside one
+  `expect.poll` (`RefreshDimensionsPage.lastEntry()`). Never `.at(-1)` on a
+  whole log read in a separate round trip: a further pair can land between the
+  poll and the read.
+- A fixture build fails loud: the fixture captures a constructor throw into a
+  window field, and `goto()` rethrows it — and on timeout rethrows with a page
+  snapshot — so a "never became ready" timeout names its cause
+  (`HiddenInitRerenderPage.goto()`).
+- A negative assertion ("nothing fired") uses a bounded settle ONLY when the
+  same test carries a positive control that proved the machinery was alive.

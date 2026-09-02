@@ -212,6 +212,9 @@ Separate test runner - do NOT mix with main E2E tests:
 
 Tests in: `src/3rdparty/walkontable/test/`
 
+New engine coverage is Playwright: `tests/e2e/walkontable/*.spec.ts`, page objects in
+`tests/fixtures/pages/walkontable/`. The Jasmine specs here may be edited, not added to.
+
 For detailed guidance: use skills `walkontable-dev`, `walkontable-testing`
 
 ## MCP Tools: code-review-graph

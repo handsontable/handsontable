@@ -239,7 +239,7 @@ it.flaky('should handle a timing-sensitive operation', async() => {
 });
 ```
 
-The test description is prefixed with `[flaky]` in CI output for visibility. Defined in `test/helpers/it-themes-extension.js`.
+The test description is prefixed with `[flaky]` in CI output for visibility. Defined in `test/helpers/it-themes-extension.js`. New `it.flaky()` sites are lint-warned (`handsontable/no-new-it-flaky`): a retry hides a race, it does not remove one — a spec that needs one migrates to Playwright (see "The Jasmine suite is frozen" below).
 
 **HOT Methods Requiring `await` (from `handsontable/.eslintrc.js`):**
 
@@ -275,6 +275,7 @@ Do **not** add `await sleep(100)` / `sleep(200)` to new tests. A fixed delay is 
 ```javascript
 // legacy Jasmine E2E: await the state, not the clock
 await selectCell(0, 0);                 // helpers already await the scroll they trigger
+await waitUntil(() => spy.calls.count() > 0);  // the condition-based waiter (test/helpers/common.js)
 await sleep(...);                        // ← avoid; if you must, root-cause it and add a real waiter
 ```
 For new Playwright tests use web-first, auto-retrying assertions (`await expect(locator).toBeVisible()`); see the `handsontable-playwright-e2e` skill. Existing `sleep()` sites are baselined by lint, but a broken or flaky legacy test is a signal to migrate it (see below), not to add another delay.
@@ -300,6 +301,8 @@ Machine-enforced by the presence gate (`.github/scripts/test-presence-gate.mjs`)
 - Adding a **new** `*.spec.js` is blocked; new E2E goes to Playwright.
 - **Editing** an existing `*.spec.js` for routine maintenance is fine.
 - But if a legacy Jasmine test is **broken or flaky, fix it by migrating it to Playwright** (delete the `*.spec.js`, write the equivalent `tests/e2e/*.spec.ts`) rather than patching Jasmine. That is how the suite gradually migrates — the tests that hurt most move first.
+- **Migrate, don't patch — and if you must edit, `waitUntil()`.** A routine edit to a frozen spec that has to wait for state uses `waitUntil(condition, timeout)` (a spec global from `test/helpers/common.js`) — never a new `sleep()`, and never `waitForNextAnimationFrames()`, which is a fixed sleep denominated in frames (it awaits at most 2 real frames and pads the rest of the request with 16 ms per frame). A rendered-DOM count assertion pins the viewport first (`containerHeightForRows()`, or `scrollViewportTo()` the target into view).
+- **The flake ledger.** A legacy spec that is red or flaky across **two or more distinct CI runs** gets a migration ticket the next sprint. That is the trigger — not a third failure and not a reviewer's patience. The RefreshDimensions and display-none rerender specs both waited on the ledger until this rule existed (#13334, #13336).
 
 ## Mocking
 
@@ -639,7 +642,8 @@ it('should maintain selections after render', async() => {
 - `createSpreadsheetData(rows, cols)` -- Grid with coordinates as values ('A1', 'B2', etc.)
 
 **Async Utilities:**
-- `sleep(delay = 100)` -- Promise-based delay
+- `waitUntil(condition, timeout = 4000)` -- Polls `condition` every frame; rejects with a named reason on timeout. The replacement for `sleep()` and `waitForNextAnimationFrames()` in an edited spec
+- `sleep(delay = 100)` -- Promise-based delay (baselined legacy sites only; never a new one)
 - `promisfy(fn)` -- Convert callback to Promise
 
 **DOM Event Helpers** (from `test/helpers/mouseEvents.js`):
