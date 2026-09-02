@@ -184,9 +184,12 @@ module.exports = {
         'import/no-relative-packages': 'off',
       }
     },
-    // The custom ESLint rules' own RuleTester tests run as ESM under `node --test` (root
-    // `npm run test:tooling`), so a relative import must carry the extension Node's ESM resolver
-    // requires — the same allowance the root config gives `scripts/**/*.mjs`.
+    // The custom ESLint rules' own RuleTester tests run as ESM under `node --test`
+    // (`npm run test:eslint-rules`; CI's `Lint / core` job), so a relative import must carry the
+    // extension Node's ESM resolver requires — the same allowance the root config gives
+    // `scripts/**/*.mjs`. Per-extension values are plain 'always' | 'never' strings:
+    // eslint-plugin-import compares them with `===`, so an array value would be silently ignored
+    // and the override would enforce nothing.
     {
       files: ['.config/plugin/eslint/__tests__/*.mjs'],
       rules: {
@@ -194,8 +197,8 @@ module.exports = {
           'error',
           'never',
           {
-            js: ['error', 'always'],
-            mjs: ['error', 'always'],
+            js: 'always',
+            mjs: 'always',
           }
         ],
       }

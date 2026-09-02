@@ -21,6 +21,10 @@ tester.run('no-fixed-sleep-in-spec', rule, {
     'await waitUntil(() => spy.calls.count() === 1, 1000);',
     // A timer with no fixed duration is a scheduling hand-off, not a wait.
     'setTimeout(done);',
+    // So is a 0 ms timer: it yields one macrotask (a scheduling barrier), it does not wait a duration.
+    'setTimeout(done, 0);',
+    'window.setTimeout(resolve, 0);',
+    'await new Promise(resolve => setTimeout(resolve, 0));',
     // A computed delay is deliberate scheduling the rule cannot judge statically.
     'setTimeout(callback, delay);',
     'window.setTimeout(callback, hot.getSettings().debounce);',
@@ -51,7 +55,8 @@ tester.run('no-fixed-sleep-in-spec', rule, {
       errors: [{ messageId: 'noSetTimeout' }],
     },
     {
-      code: 'setTimeout(() => done(), 0);',
+      // The smallest non-zero literal is already a duration, not a hand-off.
+      code: 'setTimeout(() => done(), 1);',
       errors: [{ messageId: 'noSetTimeout' }],
     },
     {

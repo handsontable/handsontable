@@ -1,15 +1,17 @@
 /**
- * Is the node a numeric literal (`100`, `0`, `1e3`)?
+ * Is the node a non-zero numeric literal (`100`, `1`, `1e3`)?
  *
  * A fixed duration is the only shape the rule judges statically. A computed
  * delay (`setTimeout(fn, delay)`) or a bare hand-off (`setTimeout(fn)`) is
  * deliberate scheduling the rule cannot tell from a wait, so it stays silent.
+ * A literal `0` is a hand-off too: it yields one macrotask (a scheduling
+ * barrier) and waits no duration, so it is exempt as well.
  *
  * @param {object} node An AST node, or undefined.
- * @returns {boolean} True for a numeric Literal.
+ * @returns {boolean} True for a numeric Literal other than `0`.
  */
-function isNumericLiteral(node) {
-  return Boolean(node) && node.type === 'Literal' && typeof node.value === 'number';
+function isFixedDuration(node) {
+  return Boolean(node) && node.type === 'Literal' && typeof node.value === 'number' && node.value !== 0;
 }
 
 /**
@@ -40,7 +42,7 @@ module.exports = {
     type: 'suggestion',
 
     docs: {
-      description: 'Disallows fixed delays in spec files — `sleep()`, a `setTimeout` with a literal '
+      description: 'Disallows fixed delays in spec files — `sleep()`, a `setTimeout` with a non-zero literal '
         + 'duration, and `waitForNextAnimationFrames()` — wait for a condition with `waitUntil()` instead',
       category: 'Custom',
       recommended: false,
@@ -62,7 +64,8 @@ module.exports = {
     return {
       /**
        * Flag the three fixed-delay shapes: a direct `sleep(...)` call, a `setTimeout` (bare or as
-       * `window.setTimeout`) whose delay is a numeric literal, and any `waitForNextAnimationFrames(...)`.
+       * `window.setTimeout`) whose delay is a non-zero numeric literal, and any
+       * `waitForNextAnimationFrames(...)`.
        *
        * @param {object} node The CallExpression node.
        * @returns {void}
@@ -76,7 +79,7 @@ module.exports = {
           return;
         }
 
-        if (calledName(callee) === 'setTimeout' && isNumericLiteral(node.arguments[1])) {
+        if (calledName(callee) === 'setTimeout' && isFixedDuration(node.arguments[1])) {
           context.report({ node, messageId: 'noSetTimeout' });
 
           return;

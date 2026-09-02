@@ -179,16 +179,29 @@ test('the counterexample fixtures each carry exactly the one smell they exist to
   const counterexamples = fileURLToPath(
     new URL('../fixtures/e2e-escape-cancels-edit/counterexamples/', import.meta.url),
   );
-  const setTimeoutScore = await scoreTestFile(join(counterexamples, 'escape-cancels-edit-set-timeout.spec.ts'));
-  const frameWaitScore = await scoreTestFile(join(counterexamples, 'escape-cancels-edit-frame-wait.spec.js'));
+  // One counterexample per determinism signal, so every signal is proven to fire on its own.
+  const expectedByFile = {
+    'escape-cancels-edit-sleep.spec.js': 'sleep-call',
+    'escape-cancels-edit-wait-for-timeout.spec.ts': 'wait-for-timeout',
+    'escape-cancels-edit-network-idle.spec.ts': 'network-idle',
+    'escape-cancels-edit-set-timeout.spec.ts': 'set-timeout',
+    'escape-cancels-edit-frame-wait.spec.js': 'fixed-frame-wait',
+  };
 
-  assert.deepEqual(setTimeoutScore.determinismSmells, [{ type: 'set-timeout', count: 1 }]);
-  assert.equal(setTimeoutScore.verdict, 'suspect');
-  assert.deepEqual(setTimeoutScore.problems.map(p => p.type), ['determinism-smells']);
+  assert.deepEqual(
+    Object.values(expectedByFile).sort(),
+    findDeterminismSmells('sleep( waitForTimeout( networkidle setTimeout( waitForNextAnimationFrames(')
+      .map(smell => smell.type).sort(),
+    'the table above names every signal the scorer knows',
+  );
 
-  assert.deepEqual(frameWaitScore.determinismSmells, [{ type: 'fixed-frame-wait', count: 1 }]);
-  assert.equal(frameWaitScore.verdict, 'suspect');
-  assert.deepEqual(frameWaitScore.problems.map(p => p.type), ['determinism-smells']);
+  for (const [file, type] of Object.entries(expectedByFile)) {
+    const score = await scoreTestFile(join(counterexamples, file));
+
+    assert.deepEqual(score.determinismSmells, [{ type, count: 1 }], file);
+    assert.equal(score.verdict, 'suspect', file);
+    assert.deepEqual(score.problems.map(p => p.type), ['determinism-smells'], file);
+  }
 });
 
 test('run-eval: every reference scores meaningful and every counterexample scores suspect', () => {
@@ -199,7 +212,7 @@ test('run-eval: every reference scores meaningful and every counterexample score
 
   assert.deepEqual(structuralErrors, []);
   assert.ok(byRole('reference').length >= 3, 'the three reference cases are scored');
-  assert.ok(byRole('counterexample').length >= 2, 'the counterexamples are scored');
+  assert.ok(byRole('counterexample').length >= 5, 'the counterexamples (one per determinism signal) are scored');
   assert.ok(byRole('reference').every(result => result.score.verdict === 'meaningful'));
   assert.ok(byRole('counterexample').every(result => result.score.verdict === 'suspect'));
 });
