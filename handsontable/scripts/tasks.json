@@ -136,6 +136,12 @@
       "deps": ["downlevel:types"],
       "mode": "inherit"
     },
+    "test:eslint-rules": {
+      "cmd": "node --test \".config/plugin/eslint/__tests__/*.test.mjs\"",
+      "deps": [],
+      "mode": "inherit",
+      "note": "RuleTester coverage of the custom ESLint rules. Imports `eslint`, so it needs this package's node_modules — that is why it is NOT in the root `test:tooling` glob (CI's `tooling tests` job installs nothing); the `Lint / core` job runs it."
+    },
     "test:e2e.dump": {
       "cmd": "npm --silent run build:styles && cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-e2e env-cmd -f ../hot.config.js rspack ./test/helpers/index.js ./test/e2e/index.js",
       "deps": [],
