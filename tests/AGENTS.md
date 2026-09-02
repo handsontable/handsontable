@@ -157,9 +157,11 @@ result, check who owns the port with `lsof -i :8123`. Background in
 ## Determinism
 
 Ships at `error` in `.eslintrc.cjs`: no `waitForTimeout`, `sleep`,
-`setTimeout` (bare or `window.setTimeout`, and inside `page.evaluate` too —
-that is where a banned `waitForTimeout` usually reappears), `networkidle`,
-`.only`, `.skip`, or bare `test.fixme` in specs. Wait on web-first assertions;
+`setTimeout` (the global timer only — bare, `window.setTimeout`, or
+`globalThis.setTimeout` — and inside `page.evaluate` too, which is where a
+banned `waitForTimeout` usually reappears; `test.setTimeout(ms)` and
+`testInfo.setTimeout(ms)` set a budget, not a wait, and stay legal),
+`networkidle`, `.only`, `.skip`, or bare `test.fixme` in specs. Wait on web-first assertions;
 `expect.poll` for data probes. `test.fixme` is the tracked exception for a real
 product bug: it requires an eslint-disable line naming the task
 (`// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`), which

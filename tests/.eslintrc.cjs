@@ -37,9 +37,11 @@ module.exports = {
         message: 'No fixed sleep() delay — wait for a condition instead. See .claude/skills/handsontable-playwright-e2e/references/determinism.md.',
       },
       {
-        // Bare `setTimeout(` and `window.setTimeout(` alike — the usual disguise is a timer inside
-        // `page.evaluate` once `waitForTimeout` is banned.
-        selector: "CallExpression[callee.name='setTimeout'], CallExpression[callee.property.name='setTimeout']",
+        // The global timer only: bare `setTimeout(`, `window.setTimeout(`, and `globalThis.setTimeout(` —
+        // the usual disguise is a timer inside `page.evaluate` once `waitForTimeout` is banned. The member
+        // form is pinned to the global object on purpose: Playwright's `test.setTimeout(ms)` and
+        // `testInfo.setTimeout(ms)` set a budget, not a wait, and must stay legal.
+        selector: "CallExpression[callee.name='setTimeout'], CallExpression[callee.object.name='window'][callee.property.name='setTimeout'], CallExpression[callee.object.name='globalThis'][callee.property.name='setTimeout']",
         message: 'No setTimeout() in a spec — a fixed timer is not a wait. Poll a data probe with expect.poll, or use a web-first assertion. A justified exception (a scheduling barrier, never a duration) carries the same eslint-disable line as test.fixme below, naming the owning task, so it stays counted and attributable. See tests/AGENTS.md.',
       },
       {
