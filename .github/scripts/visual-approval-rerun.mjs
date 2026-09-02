@@ -25,6 +25,14 @@
  * workflow boundary to the caller's dependent job is not something to bet the
  * merge gate on.
  *
+ * Polling rather than `on: workflow_run: [completed]`, which would need no wait
+ * at all: a `workflow_run` workflow always runs the copy of itself on the
+ * DEFAULT branch, so a change to it could never be exercised by the pull request
+ * that makes the change — including the pull request that introduced this file.
+ * The cost is one idle runner for the length of a pipeline. Minutes are free on
+ * a public repository, but the concurrent-job slot is real; revisit this if
+ * approvals ever become frequent enough to contend for one.
+ *
  * All branching lives in `./lib/visual-approval-rerun.mjs`, which is pure and
  * unit-tested; this wrapper only talks to the API and sleeps.
  *
@@ -72,12 +80,15 @@ async function api(path, init = {}) {
   const attempts = method === 'GET' ? 3 : 1;
   let lastError = null;
 
+  // Set from a `retry-after` when the server names its own delay, so the loop
+  // waits that long INSTEAD of the linear backoff rather than on top of it.
+  let backoffMs = 0;
+  let response;
+
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     if (attempt > 1) {
-      await sleep(attempt * 5000);
+      await sleep(backoffMs || attempt * 5000);
     }
-
-    let response;
 
     try {
       response = await fetch(`${API}${path}`, {
@@ -119,9 +130,7 @@ async function api(path, init = {}) {
       break;
     }
 
-    if (retryAfter > 0) {
-      await sleep(Math.min(retryAfter, 60) * 1000);
-    }
+    backoffMs = retryAfter > 0 ? Math.min(retryAfter, 60) * 1000 : 0;
   }
 
   throw lastError;
@@ -138,7 +147,12 @@ async function api(path, init = {}) {
 async function readPullRequest() {
   const pr = await api(`/repos/${repo}/pulls/${prNumber}`);
 
-  return { headSha: pr.head.sha, state: pr.state, labels: pr.labels.map(({ name }) => name) };
+  return {
+    headSha: pr.head.sha,
+    headRef: pr.head.ref,
+    state: pr.state,
+    labels: pr.labels.map(({ name }) => name),
+  };
 }
 
 /**
@@ -147,20 +161,26 @@ async function readPullRequest() {
  * @param {string} headSha The commit to look for.
  * @returns {Promise<object|null>} The run, or `null` when none exists yet.
  */
-async function readRun(headSha) {
+async function readRun(headSha, headRef) {
   const query = `head_sha=${headSha}&event=pull_request&per_page=10`;
   const { workflow_runs: runs } = await api(
     `/repos/${repo}/actions/workflows/${workflowFile}/runs?${query}`
   );
 
-  // One commit can head two open pull requests — the same branch raised against
-  // `develop` and against a release branch is a normal backport. Both produce a
-  // run for the identical `head_sha`, so taking the newest blindly can re-run
-  // the other pull request's build. `pull_requests` is empty on some runs, and
-  // an empty list is "unknown", not "not mine" — dropping those would leave
-  // nothing to re-run at all.
-  return runs.find(run => !run.pull_requests?.length
-    || run.pull_requests.some(({ number }) => String(number) === String(prNumber))) ?? null;
+  // One commit can head more than one open pull request, and each gets its own
+  // run for the identical `head_sha` — so the newest is not necessarily ours.
+  // `head_branch` separates two pull requests raised from DIFFERENT branches
+  // that happen to sit on the same commit.
+  //
+  // It does not separate one branch raised against two bases (a backport opened
+  // against `develop` and a release branch): those runs agree on every field the
+  // run object exposes. `run.pull_requests` would settle it, but GitHub leaves
+  // it EMPTY on same-repo `pull_request` runs — verified against run
+  // 33610031096, which returns `pull_requests: []` — so filtering on it is a
+  // no-op dressed up as a check. In that residual case the worst outcome is a
+  // re-run spent on the sibling pull request's build; no approval crosses over,
+  // because each run's gate reads its own pull request's labels.
+  return runs.find(run => run.head_branch === headRef) ?? null;
 }
 
 /**
@@ -203,9 +223,9 @@ function giveUp(why) {
 
 try {
   while (Date.now() < deadlineMs) {
-    const { headSha, state, labels } = await readPullRequest();
+    const { headSha, headRef, state, labels } = await readPullRequest();
 
-    run = await readRun(headSha);
+    run = await readRun(headSha, headRef);
     decision = decide({
       run,
       jobs: run && run.status === 'completed' ? await readJobs(run.id) : [],
