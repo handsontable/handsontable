@@ -56,6 +56,8 @@ test('every ratcheted rule is configured in handsontable/.eslintrc.js', () => {
   // would emit nothing under the old id and the intersection would always be
   // empty. Pin the ids against the config that produces the warnings.
   const require = createRequire(import.meta.url);
+  // The config lives at a path resolved from the repo root at runtime; the rule wants a literal.
+  // eslint-disable-next-line import/no-dynamic-require
   const config = require(path.join(repoRoot(), 'handsontable/.eslintrc.js'));
   const configured = new Map();
 
@@ -220,7 +222,7 @@ test('parseAddedLines tolerates CRLF and the no-newline marker', () => {
     '+await sleep(1);',
     '+await sleep(2);',
     '\\ No newline at end of file',
-    `+++ b/handsontable/src/other.spec.js`,
+    '+++ b/handsontable/src/other.spec.js',
     '@@ -0,0 +1 @@',
     '+x',
   ].join('\r\n');

@@ -187,7 +187,10 @@ test('a pure `git mv` of a spec that carries a legacy sleep() adds no line and p
   // Unrelated source noise in the same commit, as a migration PR would carry.
   // It is not a ratcheted file, so it must neither be linted nor counted.
   mkdirSync(path.join(root, 'handsontable/src/helpers'), { recursive: true });
-  writeFileSync(path.join(root, 'handsontable/src/helpers/timing.ts'), 'export const sleep = ms => new Promise(r => setTimeout(r, ms));\n');
+  writeFileSync(
+    path.join(root, 'handsontable/src/helpers/timing.ts'),
+    'export const sleep = ms => new Promise(r => setTimeout(r, ms));\n',
+  );
   git(root, ['add', '-A']);
   git(root, ['commit', '-q', '-m', 'rename the spec']);
 
