@@ -28,7 +28,13 @@ import {
 import EventManager from './eventManager';
 import { formatCellValue, renderCell } from './renderers/renderCell';
 import { RenderSizeProbe } from './renderSizeProbe';
-import { isImmediatePropagationStopped, isRightClick, isLeftClick, isMiddleClick } from './helpers/dom/event';
+import {
+  isImmediatePropagationStopped,
+  isRightClick,
+  isLeftClick,
+  isMiddleClick,
+} from './helpers/dom/event';
+import { getMouseEventTouchOrigin, TOUCH_SYNTHESIZED_MOUSE_WINDOW } from './helpers/dom/inputOrigin';
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
@@ -41,6 +47,8 @@ import {
   A11Y_ROWCOUNT,
   A11Y_TREEGRID
 } from './helpers/a11y';
+import { parsePixelSize } from './utils/pixelSize';
+import { warnOnce } from './helpers/console';
 
 /**
  * Checks whether a size setting (`rowHeights`, `minRowHeights`, or `colWidths`) guarantees a uniform
@@ -52,6 +60,129 @@ import {
  */
 function isUniformSizeSetting(value: unknown): boolean {
   return value === undefined || value === null || typeof value === 'number';
+}
+
+/**
+ * Renders a rejected setting value for the warning message.
+ *
+ * Nothing here may throw. This runs inside a Walkontable settings getter during a draw, and only on
+ * the path that is already falling back, so a throw would turn a soft fallback into a dead grid.
+ *
+ * `JSON.stringify` throws on a `BigInt` and on a circular object. `String()` is not safe either: it
+ * throws on an object with no prototype (`Object.create(null)`) and on one whose `toString`,
+ * `valueOf`, or `Symbol.toPrimitive` throws – and a framework can hand any of those to a setting.
+ * `Object.prototype.toString` never calls user code, so it is the fallback.
+ *
+ * @param {*} value The value that could not be read.
+ * @returns {string}
+ */
+function describeValue(value: unknown): string {
+  if (typeof value === 'string') {
+    return `"${value}"`;
+  }
+
+  try {
+    return String(value);
+  } catch {
+    return Object.prototype.toString.call(value);
+  }
+}
+
+/**
+ * Resolves one entry of a header size setting into a number of pixels.
+ *
+ * Warns once per grid instance when the value cannot be read as a pixel size, then returns `null` so
+ * the caller falls back to its own default rather than rendering a broken size.
+ *
+ * @param {*} value The configured value.
+ * @param {object} scope The object the one-time warning is bound to.
+ * @param {string} optionName The option's name, used in the warning message.
+ * @returns {number|null}
+ */
+function resolveHeaderSizeEntry(value: unknown, scope: object, optionName: string): number | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  const size = parsePixelSize(value);
+
+  if (size === null) {
+    const described = describeValue(value);
+
+    warnOnce(
+      // The value is part of the key, not just the message. Keyed on the option name alone, a later
+      // `updateSettings` with a different bad value would print nothing and the console would only
+      // ever name the first one.
+      scope,
+      `invalid-header-size-${optionName}-${described}`,
+      `Handsontable: the \`${optionName}\` option expects a number of pixels, such as \`100\`, ` +
+      `\`'100'\`, or \`'100px'\`. The value ${described} cannot be read as a pixel size, ` +
+      'so it is ignored and the default size is used instead. A negative number is kept as it is, ' +
+      'but a negative string is rejected the same way this value was.'
+    );
+
+    return null;
+  }
+
+  return size;
+}
+
+/**
+ * Checks whether a header size entry is already a number, or is empty and therefore stands for
+ * "use the default size for this level".
+ *
+ * @param {*} entry The array entry to check.
+ * @returns {boolean}
+ */
+function isResolvedHeaderSizeEntry(entry: unknown): entry is number | null | undefined {
+  return typeof entry === 'number' || entry === null || entry === undefined;
+}
+
+/**
+ * Resolves the `rowHeaderWidth` and `columnHeaderHeight` settings into the numbers the rendering
+ * engine needs.
+ *
+ * Both options are documented as pixel numbers, and the sizing code downstream requires real
+ * numbers: the row header width guard replaces a non-number with the default column width, and the
+ * column header height merge skips anything that is not a number. Resolving the value here – the one
+ * place each option crosses from the grid settings into Walkontable – satisfies that requirement
+ * without adding a branch to the per-cell sizing code that runs on every draw.
+ *
+ * The `'100'` and `'100px'` string forms are accepted alongside a plain number, so a value arriving
+ * from an attribute, a JSON config, or a framework template still resolves.
+ *
+ * A value that is already a number, or an array already made of numbers, is returned by reference,
+ * so the common path allocates nothing. An array holding a string is re-resolved on every read, and
+ * the setting is read a few times per draw. That is left as it is on purpose: a cache keyed on the
+ * array's identity would answer stale after an in-place edit of the caller's own array, which costs
+ * more than the handful of regex matches it would save on a configuration almost nobody writes.
+ *
+ * @param {*} value The configured setting value.
+ * @param {object} scope The object the one-time warning is bound to.
+ * @param {string} optionName The option's name, used in the warning message.
+ * @returns {number|Array|undefined}
+ */
+function resolveHeaderSizeSetting(
+  value: unknown,
+  scope: object,
+  optionName: string
+): number | Array<number | null | undefined> | undefined {
+  if (value === undefined || typeof value === 'number') {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    const entries: unknown[] = value;
+
+    // Returning the same array keeps the already-numeric case allocation-free on every draw.
+    if (entries.every(isResolvedHeaderSizeEntry)) {
+      return entries;
+    }
+
+    return entries.map(entry => resolveHeaderSizeEntry(entry, scope, optionName));
+  }
+
+  return resolveHeaderSizeEntry(value, scope, optionName) ?? undefined;
 }
 
 /**
@@ -190,10 +321,11 @@ class TableView {
   #mouseDownLastPos: {row: number, col: number} | null = null;
   /**
    * Flag indicating that a touch interaction just ended. Set to `true` on
-   * `touchend` and reset asynchronously via `_registerTimeout`. Used together with
-   * `sourceCapabilities.firesTouchEvents` (Chrome/Blink) to detect synthetic
-   * mouse events that Android fires after touch interactions. These synthetic
-   * events can falsely trigger the outside-click handler, closing editors or
+   * `touchend` and reset asynchronously via `_registerTimeout` after
+   * `TOUCH_SYNTHESIZED_MOUSE_WINDOW`, shared with Walkontable's mouse listeners so both layers
+   * use the same fallback window. Used together with `sourceCapabilities.firesTouchEvents`
+   * (Chrome/Blink) to detect synthetic mouse events that Android fires after touch interactions.
+   * These synthetic events can falsely trigger the outside-click handler, closing editors or
    * popups that just opened via double-tap.
    *
    * @type {boolean}
@@ -502,11 +634,17 @@ class TableView {
 
       // Clear the flag after the browser's synthetic mouse event sequence completes.
       // Android dispatches mousedown/mouseup/click asynchronously after touchend,
-      // so the flag must survive across multiple event loop ticks.
+      // so the flag must survive across multiple event loop ticks. The window is shared
+      // with Walkontable's mouse listeners (`TOUCH_SYNTHESIZED_MOUSE_WINDOW`), so both
+      // layers use the same fallback window.
+      // The policies deliberately differ: Walkontable drops only the first pending pair
+      // (veto → pending → ceiling), while this layer keeps
+      // `getMouseEventTouchOrigin(event) ?? #recentTouchEnd` — a Blink-flagged pair must never
+      // run the outside-click handling that closes editors.
       this.#recentTouchEndTimeout = this.hot._registerTimeout(() => {
         this.#recentTouchEnd = false;
         this.#recentTouchEndTimeout = null;
-      }, 400);
+      }, TOUCH_SYNTHESIZED_MOUSE_WINDOW);
     });
 
     this.eventManager.addEventListener(documentElement, 'mousedown', (event) => {
@@ -1315,7 +1453,8 @@ class TableView {
       },
       onBeforeTouchScroll: () => this.hot.runHooks('beforeTouchScroll'),
       onAfterMomentumScroll: () => this.hot.runHooks('afterMomentumScroll'),
-      onModifyRowHeaderWidth: (rowHeaderWidth: number) => this.hot.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
+      onModifyRowHeaderWidth: (rowHeaderWidth: number | number[]) =>
+        this.hot.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
       onModifyGetCellCoords: (
         renderableRowIndex: number, renderableColumnIndex: number, topmost: boolean, source: string
       ): (number | null)[] | undefined => {
@@ -1402,10 +1541,19 @@ class TableView {
         }
         this.hot.runHooks('afterViewportColumnCalculatorOverride', calc);
       },
-      rowHeaderWidth: () => this.settings.rowHeaderWidth,
+      // Scoped to this `TableView`, not to `hot.rootElement`: the container outlives `destroy()`, so
+      // a component that remounts on the same node would inherit the old instance's warned-keys set
+      // and stay silent for the rest of the page.
+      rowHeaderWidth: () => resolveHeaderSizeSetting(
+        this.settings.rowHeaderWidth, this, 'rowHeaderWidth'
+      ),
       columnHeaderHeight: () => {
         const hookHeight = this.hot.runHooks('modifyColumnHeaderHeight');
-        const configured = this.settings.columnHeaderHeight;
+        // Resolved before the merge below reads it, because that merge only accepts numbers – and
+        // before the `levels === 0` shortcut, which returns the value without going through it.
+        const configured = resolveHeaderSizeSetting(
+          this.settings.columnHeaderHeight, this, 'columnHeaderHeight'
+        );
         const probe = this.renderSizeProbe.columnHeaderHeights;
         // Merge the three provided-height sources per header level: the `columnHeaderHeight` option
         // (scalar or per-level array), the `modifyColumnHeaderHeight` hook (AutoRowSize), and the
@@ -1540,16 +1688,11 @@ class TableView {
    * Uses `sourceCapabilities.firesTouchEvents` (Chrome/Blink) when available,
    * falls back to the `#recentTouchEnd` flag for other browsers (Firefox, Safari).
    *
-   * @param {MouseEvent} event The mouse event to check.
-   * @private
+   * @param {Event} event The mouse event to check.
    * @returns {boolean}
    */
-  #isSyntheticMouseEvent(event: Event & { sourceCapabilities?: { firesTouchEvents: boolean } }) {
-    if (event.sourceCapabilities) {
-      return event.sourceCapabilities.firesTouchEvents === true;
-    }
-
-    return this.#recentTouchEnd;
+  #isSyntheticMouseEvent(event: Event): boolean {
+    return getMouseEventTouchOrigin(event) ?? this.#recentTouchEnd;
   }
 
   /**

@@ -117,6 +117,37 @@ export class BaseEditor {
    */
   originalValue: unknown = null;
   /**
+   * What the editor held the moment it finished opening, captured only when it was seeded from the
+   * cell's own value. `finishEditing()` compares against it to tell a real edit from a confirm that
+   * changed nothing.
+   *
+   * Stays `null` whenever the guard must not apply: the editor was not seeded (fast edit mode, where
+   * the user's first keystroke supplies the value), or it was seeded with a caller-supplied string.
+   * Both keep the unconditional save they have always had.
+   */
+  #valueBeforeEdit: unknown = null;
+
+  /**
+   * Whether `#valueBeforeEdit` holds a baseline at all.
+   *
+   * Kept separate from the value: `getValue()` is typed `unknown`, and a custom editor is free to
+   * return `null` or `undefined` from it. Using the value itself as the "armed" marker would arm the
+   * guard with `undefined` for such an editor, `undefined === undefined` would hold on every confirm,
+   * and the cell could never be saved.
+   */
+  #hasValueBeforeEdit: boolean = false;
+
+  /**
+   * Re-arms the unchanged-edit guard after the editor's content has been reloaded from the data
+   * source, so the baseline describes what the editor shows now rather than what it showed when it
+   * opened. Does nothing while the guard is disarmed.
+   */
+  protected resetValueBeforeEdit(): void {
+    if (this.#hasValueBeforeEdit) {
+      this.#valueBeforeEdit = this.getValue();
+    }
+  }
+  /**
    * Object containing the cell's properties.
    *
    * @type {object}
@@ -305,10 +336,18 @@ export class BaseEditor {
 
     // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
     // otherwise IME (editor for Asia users) doesn't work.
+    // `seededFromCell` records whether the editor was filled from the cell's own value, which is the
+    // only case the no-op guard in `finishEditing()` may act on.
+    let seededFromCell = false;
+    let seededValue: unknown = null;
+
     if (this.isInFullEditMode()) {
       const originalValue = getValueGetterValue(this.originalValue, this.hot.getCellMeta(this.row, this.col));
       const stringifiedInitialValue = typeof newInitialValue === 'string' ?
         newInitialValue : stringify(originalValue);
+
+      seededFromCell = typeof newInitialValue !== 'string';
+      seededValue = stringifiedInitialValue;
 
       this.setValue(stringifiedInitialValue);
     }
@@ -316,6 +355,15 @@ export class BaseEditor {
     this.open(event);
     this._opened = true;
     this.focus();
+
+    // The baseline is the string the CELL's value produced, not what the editor ended up showing.
+    // The two differ whenever an editor substitutes something of its own - `DateEditor` swaps in
+    // `defaultDate` for an empty cell - and in that case the editor is genuinely offering a value the
+    // cell does not hold, so confirming has to save it. Reading `getValue()` back here instead made
+    // every confirm on such a cell compare equal, and a `date` column could no longer store its
+    // `defaultDate` from the editor at all.
+    this.#hasValueBeforeEdit = seededFromCell;
+    this.#valueBeforeEdit = seededFromCell ? seededValue : null;
 
     // only rerender the selections (FillHandle should disappear when beginEditing is triggered)
     hotInstance.view.render();
@@ -332,8 +380,6 @@ export class BaseEditor {
    * @param {Function} callback The callback function, fired after editor closing.
    */
   finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: Function): void {
-    let val: unknown;
-
     if (callback) {
       const previousCloseCallback = this._closeCallback;
 
@@ -367,14 +413,37 @@ export class BaseEditor {
         return;
       }
 
+      // Ctrl/Meta + Enter over a real range copies the edited value into every other cell of the
+      // selection, so an unchanged editor still has work to do there. Over a single cell it writes
+      // only the edited cell, which makes it the same gesture as a plain Enter. A missing range has
+      // no other cells to fill either, so `?? true` reads it as single and leaves the guard armed.
+      // `!== true` did the opposite: it sent a missing range into the fill branch, which wrote the
+      // editor's `''` over a `null` cell - the #3927 case this guard exists to stop.
+      const fillsOtherCells = ctrlDown === true &&
+        (this.hot.getSelectedRangeActive()?.isSingle() ?? true) === false;
+
       let value = this.getValue();
 
+      // Normalization runs BEFORE the comparison, so an unchanged confirm still trims whitespace and
+      // still runs `valueParser` exactly as it always did. Comparing first would silently drop both
+      // for a cell whose content the user did not touch.
       if (this.cellProperties.trimWhitespace) {
         value = typeof value === 'string' ? String.prototype.trim.call(value || '') : value;
       }
 
       if (typeof this.cellProperties.valueParser === 'function') {
         value = this.cellProperties.valueParser(value, this.cellProperties);
+      }
+
+      // The editor still holds exactly what it was opened with, so the user confirmed without changing
+      // anything. Writing the editor's stringified value back over the cell is what turned a `null`
+      // into `''` (#3927), so an unchanged confirm must not go through the normal save path.
+      const isUnchanged = !fillsOtherCells && this.#hasValueBeforeEdit && value === this.#valueBeforeEdit;
+
+      if (isUnchanged) {
+        this.#finishUnchangedEdit();
+
+        return;
       }
 
       this.state = EDITOR_STATE.WAITING;
@@ -390,6 +459,43 @@ export class BaseEditor {
         this.discardEditor(true);
       }
     }
+  }
+
+  /**
+   * Closes an editor whose content the user never changed, without writing anything.
+   *
+   * Nothing is written on either branch, so the stored value is untouched and no `afterChange` fires
+   * for an edit that never happened - whether or not the cell has a validator. Writing the value back
+   * to trigger validation was tried and rejected: re-entering the write path re-applies `valueSetter`
+   * and `emptyValue` to an already-stored value, which can change it, and it made the event fire in a
+   * validated column but not an unvalidated one, a split nothing in the configuration predicted.
+   *
+   * A validated cell is still validated, because `allowInvalid: false` has to keep the editor open on
+   * an invalid value however the user got there. `discardEditor()` is driven from `postAfterValidate`
+   * rather than from `validateCell()`'s own callback: the callback runs first, and closing from there
+   * leaves the `allowInvalid: false` reopen unable to hold the editor open.
+   *
+   * Renders on the way out, matching `beginEditing()` and the `cancelChanges()` path. The normal save
+   * path gets its render from `populateFromArray()`, which this one deliberately never reaches.
+   */
+  #finishUnchangedEdit(): void {
+    if (!this.hot.getCellValidator(this.cellProperties)) {
+      this.state = EDITOR_STATE.FINISHED;
+      this.discardEditor(true);
+      this.hot.view.render();
+
+      return;
+    }
+
+    this.state = EDITOR_STATE.WAITING;
+
+    this.hot.addHookOnce('postAfterValidate', (result: unknown) => {
+      this.state = EDITOR_STATE.FINISHED;
+      this.discardEditor(result as boolean);
+      this.hot.view.render();
+    });
+
+    this.hot.validateCell(this.originalValue, this.cellProperties, () => {}, 'edit');
   }
 
   /**
@@ -427,6 +533,12 @@ export class BaseEditor {
 
       this._opened = false;
       this._fullEditMode = false;
+      // Released only once the editor really closes - this branch. `allowInvalid: false` returns to
+      // EDITING through the branch above without closing, so the baseline has to survive that: a
+      // rejected edit leaves the same editor open, and disarming here would let the NEXT confirm of
+      // that session write the editor's stringified value, reintroducing #3927.
+      this.#hasValueBeforeEdit = false;
+      this.#valueBeforeEdit = null;
       this.state = EDITOR_STATE.VIRGIN;
       this._fireCallbacks(true);
 

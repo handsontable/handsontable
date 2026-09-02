@@ -452,6 +452,276 @@ describe('MergeCells', () => {
       expect(TD.getAttribute('rowspan')).toBe(null);
       expect(TD.getAttribute('colspan')).toBe(null);
     });
+
+    it('should not emit the change hooks again when the `mergeCells` config is re-applied unchanged (#7555)', async() => {
+      const beforeChange = jasmine.createSpy('beforeChange');
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2'],
+          ['A3', 'B3', 'C3'],
+        ],
+        mergeCells: [{ row: 1, col: 0, rowspan: 2, colspan: 2 }],
+        beforeChange,
+        afterChange,
+      });
+
+      // The first application clears every cell the merge area covers except its anchor.
+      expect(beforeChange.calls.count()).toBe(1);
+      expect(beforeChange.calls.mostRecent().args[0]).toEqual([
+        [1, 1, 'B2', null],
+        [2, 0, 'A3', null],
+        [2, 1, 'B3', null],
+      ]);
+
+      beforeChange.calls.reset();
+      afterChange.calls.reset();
+
+      // Framework wrappers resend every setting on each render, so an unchanged `mergeCells` value
+      // arrives again. Re-clearing the same cells would write nothing but still emit, which loops a
+      // store-driven integration that re-renders in response to the hook.
+      await updateSettings({
+        mergeCells: [{ row: 1, col: 0, rowspan: 2, colspan: 2 }],
+      });
+
+      expect(beforeChange.calls.count()).toBe(0);
+      expect(afterChange.calls.count()).toBe(0);
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1'],
+        ['A2', null, 'C2'],
+        [null, null, 'C3'],
+      ]);
+    });
+
+    it('should populate only the newly added merge area when the `mergeCells` config is extended', async() => {
+      const beforeChange = jasmine.createSpy('beforeChange');
+
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1', 'D1'],
+          ['A2', 'B2', 'C2', 'D2'],
+          ['A3', 'B3', 'C3', 'D3'],
+        ],
+        mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 2 }],
+        beforeChange,
+      });
+
+      beforeChange.calls.reset();
+
+      await updateSettings({
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 1, colspan: 2 },
+          { row: 2, col: 2, rowspan: 1, colspan: 2 },
+        ],
+      });
+
+      expect(beforeChange.calls.count()).toBe(1);
+      expect(beforeChange.calls.mostRecent().args[0]).toEqual([
+        [2, 3, 'D3', null],
+      ]);
+    });
+
+    it('should stay quiet on a re-apply when the visual and physical column order differ', async() => {
+      const beforeChange = jasmine.createSpy('beforeChange');
+      const mergeCells = [{ row: 0, col: 0, rowspan: 2, colspan: 2 }];
+
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2'],
+          ['A3', 'B3', 'C3'],
+        ],
+        // Visual column 0 is physical 2, visual 1 is physical 0. Reading the stored value with a
+        // physical index would land on the anchor column and see a value that was never cleared.
+        manualColumnMove: [2, 0, 1],
+        mergeCells,
+        beforeChange,
+      });
+
+      const dataAfterMerge = getData();
+
+      beforeChange.calls.reset();
+
+      await updateSettings({ mergeCells });
+      await updateSettings({ mergeCells });
+
+      expect(beforeChange.calls.count()).toBe(0);
+      expect(getData()).toEqual(dataAfterMerge);
+    });
+
+    it('should stay quiet on a re-apply when a `valueGetter` makes a cleared cell read back non-null', async() => {
+      const beforeChange = jasmine.createSpy('beforeChange');
+
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2'],
+          ['A3', 'B3', 'C3'],
+        ],
+        // The displayed value of a cleared cell is no longer `null`, so the decision to skip has to
+        // read the stored value instead.
+        columns: [{ valueGetter: value => value ?? 'N/A' }, { valueGetter: value => value ?? 'N/A' }, {}],
+        mergeCells: [{ row: 1, col: 0, rowspan: 2, colspan: 2 }],
+        beforeChange,
+      });
+
+      beforeChange.calls.reset();
+
+      await updateSettings({ mergeCells: [{ row: 1, col: 0, rowspan: 2, colspan: 2 }] });
+      await updateSettings({ mergeCells: [{ row: 1, col: 0, rowspan: 2, colspan: 2 }] });
+
+      expect(beforeChange.calls.count()).toBe(0);
+      expect(getSourceData()).toEqual([
+        ['A1', 'B1', 'C1'],
+        ['A2', null, 'C2'],
+        [null, null, 'C3'],
+      ]);
+    });
+
+    it('should keep trying to clear a covered cell whose clearing write is cancelled', async() => {
+      // Documented limitation: the skip is decided from the stored value, so a handler that refuses
+      // the write leaves the cell filled and every re-apply tries again.
+      const beforeChange = jasmine.createSpy('beforeChange').and.returnValue(false);
+
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2'],
+          ['A3', 'B3', 'C3'],
+        ],
+        mergeCells: [{ row: 1, col: 0, rowspan: 2, colspan: 2 }],
+        beforeChange,
+      });
+
+      beforeChange.calls.reset();
+
+      await updateSettings({ mergeCells: [{ row: 1, col: 0, rowspan: 2, colspan: 2 }] });
+
+      expect(beforeChange.calls.count()).toBe(1);
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+        ['A3', 'B3', 'C3'],
+      ]);
+    });
+
+    it('should still clear the covered cells of newly passed data when `mergeCells` is unchanged', async() => {
+      const beforeChange = jasmine.createSpy('beforeChange');
+
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2'],
+          ['A3', 'B3', 'C3'],
+        ],
+        mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }],
+        beforeChange,
+      });
+
+      beforeChange.calls.reset();
+
+      // The new data brings real values back into the covered cells, so they are cleared again. Only
+      // a re-apply that would change nothing is skipped.
+      await updateSettings({
+        data: [
+          ['X1', 'Y1', 'Z1'],
+          ['X2', 'Y2', 'Z2'],
+          ['X3', 'Y3', 'Z3'],
+        ],
+        mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }],
+      });
+
+      expect(beforeChange.calls.count()).toBe(1);
+      expect(getData()).toEqual([
+        ['X1', null, 'Z1'],
+        [null, null, 'Z2'],
+        ['X3', 'Y3', 'Z3'],
+      ]);
+    });
+
+    it('should settle after one re-population when the `mergeCells` config is re-applied over a sorted grid', async() => {
+      const beforeChange = jasmine.createSpy('beforeChange');
+      const mergeCells = [{ row: 1, col: 0, rowspan: 2, colspan: 2 }];
+
+      handsontable({
+        data: [
+          ['A1', 'B1', 5],
+          ['A2', 'B2', 3],
+          ['A3', 'B3', 4],
+          ['A4', 'B4', 1],
+          ['A5', 'B5', 2],
+        ],
+        mergeCells,
+        columnSorting: true,
+        beforeChange,
+      });
+
+      // Sorting moves other rows under the merge area, so the covered cells hold values again.
+      getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      expect(getData()).toEqual([
+        ['A4', 'B4', 1],
+        ['A5', 'B5', 2],
+        ['A2', null, 3],
+        [null, null, 4],
+        ['A1', 'B1', 5],
+      ]);
+
+      beforeChange.calls.reset();
+
+      await updateSettings({ mergeCells });
+
+      // Those values are cleared once, and only the cells that still held one are touched.
+      expect(beforeChange.calls.count()).toBe(1);
+      expect(beforeChange.calls.mostRecent().args[0]).toEqual([
+        [1, 1, 'B5', null],
+        [2, 0, 'A2', null],
+      ]);
+      expect(getData()).toEqual([
+        ['A4', 'B4', 1],
+        ['A5', null, 2],
+        [null, null, 3],
+        [null, null, 4],
+        ['A1', 'B1', 5],
+      ]);
+
+      beforeChange.calls.reset();
+
+      // From here the area is empty again, so further re-applies stay silent.
+      await updateSettings({ mergeCells });
+      await updateSettings({ mergeCells });
+
+      expect(beforeChange.calls.count()).toBe(0);
+    });
+
+    it('should populate the merge area again when the `mergeCells` config changes its span', async() => {
+      const beforeChange = jasmine.createSpy('beforeChange');
+
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2'],
+          ['A3', 'B3', 'C3'],
+        ],
+        mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 2 }],
+        beforeChange,
+      });
+
+      beforeChange.calls.reset();
+
+      await updateSettings({
+        mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }],
+      });
+
+      expect(beforeChange.calls.count()).toBe(1);
+      expect(beforeChange.calls.mostRecent().args[0]).toEqual([
+        [0, 1, null, null],
+        [1, 0, 'A2', null],
+        [1, 1, 'B2', null],
+      ]);
+    });
   });
 
   describe('loadData', () => {

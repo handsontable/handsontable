@@ -101,6 +101,9 @@ To decide how a column summary is calculated, you can use one of the following s
 | `average` | Returns the sum of all values in a column,<br>divided by the number of non-empty cells in that column. |
 | `custom`  | Lets you implement a [custom summary function](#implement-a-custom-summary-function).                  |
 
+If a column holds no values to calculate from, `min`, `max`, and `average` return `Not enough data`.
+The `sum` and `count` functions return `0`.
+
 ### Column summary options
 
 You can customize each of your column summaries with configuration options.

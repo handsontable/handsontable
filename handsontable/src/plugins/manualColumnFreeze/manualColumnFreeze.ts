@@ -2,6 +2,7 @@ import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import freezeColumnItem from './contextMenuItem/freezeColumn';
 import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
+import { SEPARATOR } from '../contextMenu/predefinedItems';
 
 Hooks.getSingleton().register('beforeColumnFreeze');
 Hooks.getSingleton().register('afterColumnFreeze');
@@ -12,11 +13,22 @@ export const PLUGIN_KEY = 'manualColumnFreeze';
 export const PLUGIN_PRIORITY = 110;
 
 /**
+ * Hook order index that places this plugin's dropdown menu entries after the Filters interface.
+ *
+ * Callbacks run in registration order, which follows plugin priority, and this plugin (110) is
+ * enabled before Filters (250). A positive index defers this one past every callback registered at
+ * the default index, so the freeze entries land at the end of the column menu instead of pushing
+ * the filter interface down.
+ */
+const AFTER_FILTERS_ORDER_INDEX = 1;
+
+/**
  * @plugin ManualColumnFreeze
  * @class ManualColumnFreeze
  *
  * @description
- * This plugin allows to manually "freeze" and "unfreeze" a column using an entry in the Context Menu or using API.
+ * This plugin allows to manually "freeze" and "unfreeze" a column using an entry in the Context Menu,
+ * an entry in the Dropdown Menu, or using API.
  * You can turn it on by setting a {@link Options#manualColumnFreeze} property to `true`.
  *
  * @example
@@ -65,9 +77,15 @@ export class ManualColumnFreeze extends BasePlugin {
       return;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', (options: unknown) => {
-      this.#addContextMenuEntry(options as Record<string, unknown>);
-    });
+    this.addHook('afterContextMenuDefaultOptions', this.#onAfterMenuDefaultOptions);
+    // The dropdown menu builds its items from a separate hook, so the entries have to be added
+    // twice. Without this the `freeze_column` / `unfreeze_column` keys resolve to inert
+    // placeholder rows there. See issue #5429.
+    //
+    // `AFTER_FILTERS_ORDER_INDEX` runs this after the callbacks registered at the default index,
+    // which keeps the entries below the Filters interface (`filters.ts` registers this hook at the
+    // default index and makes up the bulk of the column menu).
+    this.addHook('afterDropdownMenuDefaultOptions', this.#onAfterMenuDefaultOptions, AFTER_FILTERS_ORDER_INDEX);
     this.addHook('beforeColumnMove', this.#onBeforeColumnMove);
 
     super.enablePlugin();
@@ -167,14 +185,25 @@ export class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Adds the manualColumnFreeze context menu entries.
+   * Collects this plugin's entries for a menu that is building its default options. Registered on
+   * both the context menu and the dropdown menu hooks.
    *
    * @private
-   * @param {object} options Context menu options.
+   * @param {object} options Menu options.
    */
-  #addContextMenuEntry(options: Record<string, unknown>) {
+  #onAfterMenuDefaultOptions = (options: unknown) => {
+    this.#addMenuEntries(options as Record<string, unknown>);
+  };
+
+  /**
+   * Adds the manualColumnFreeze entries to a menu. Shared by the context menu and the dropdown menu.
+   *
+   * @private
+   * @param {object} options Menu options.
+   */
+  #addMenuEntries(options: Record<string, unknown>) {
     (options.items as unknown[]).push(
-      { name: '---------' },
+      { name: SEPARATOR },
       freezeColumnItem(this),
       unfreezeColumnItem(this)
     );

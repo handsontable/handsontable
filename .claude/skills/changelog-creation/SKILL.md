@@ -98,9 +98,27 @@ node bin/changelog entry
 
 This walks you through each field and writes the JSON file for you. You can also create the file manually -- the format is simple enough.
 
-## One Entry Per PR
+## One Entry Per Changelog Section
 
-Create **one changelog entry per PR**, even if the PR fixes multiple issues. The title should describe the overall change, not list individual issues.
+**Never add two entries that land in the same `CHANGELOG.md` section for the same package.** One entry per PR is the norm. The authoritative rule lives in [`.changelogs/README.md`](../../../.changelogs/README.md); this section is the short form.
+
+That holds even when the PR fixes several issues or makes several distinct user-facing changes. The title describes the overall change; it does not list individual issues.
+
+Do **not** add a second entry with the same `type` and `framework` because:
+
+- the PR fixes a second bug that has no issue of its own — fold it into the one title;
+- the changes feel unrelated — if they are genuinely unrelated, they belong in separate PRs.
+
+A second entry **is** correct when it lands elsewhere — a different `type`, or a different `framework`. A public issue fixed alongside a private behavior change is the common case: `fixed` plus `changed`. Those cannot fold into one file, because a file carries one `type` and `type` picks the section.
+
+Before you commit, list what the branch adds:
+
+```bash
+git fetch origin develop
+git diff --name-only --diff-filter=A origin/develop...HEAD -- '.changelogs/*.json'
+```
+
+Read the `type` and `framework` of every path it lists. Two paths that share both are wrong — fold them together and delete the extra. Swap `develop` for the PR's base branch when you target a release branch.
 
 ## Checklist
 
@@ -112,3 +130,4 @@ Create **one changelog entry per PR**, even if the PR fixes multiple issues. The
 6. Leave `issuesOrigin` as `"private"` unless the entry cites a real public GitHub issue number — see [Issue Origin](#issue-origin).
 7. Name the file `<PR-number>.json` and set `"issueOrPR"` to the same number. Do not guess or infer the number — read it from the created PR. Write to `<repo-root>/.changelogs/<PR-number>.json` — **not** inside any package subdirectory (e.g. `handsontable/.changelogs/` is wrong). With `"public"`, both the filename and `issueOrPR` use the **issue** number instead.
 8. Commit and push the new changelog file to the same feature branch so the open PR picks it up.
+9. Confirm no two files the branch adds under `.changelogs/` share the same `type` and `framework` — see [One Entry Per Changelog Section](#one-entry-per-changelog-section).

@@ -29,16 +29,27 @@ export class RowMoveAction extends BaseAction {
   }
 
   /**
-   * Registers the `beforeRowMove` hook listener that records a new RowMoveAction whenever rows are moved.
+   * Registers the `afterRowMove` hook listener that records a new RowMoveAction whenever rows are moved.
+   *
+   * Recording runs on `afterRowMove`, not `beforeRowMove`. UndoRedo registers its actions from its own
+   * constructor, while plugins register in `enablePlugin` (via `beforeInit`) and settings hooks are
+   * attached later still, so this is always the first instance listener on the hook. `Hooks.run` threads
+   * a listener's return value into the next listener's first argument, so every veto is raised after this
+   * listener has already run: the old `rows === false` guard caught no plugin or settings veto at all, and
+   * a cancelled move always reached the stack. `afterRowMove` never fires for a vetoed move, and its
+   * `orderChanged` argument is `false` when the move was impossible or left the order intact, so gating on
+   * it also keeps no-op moves off the stack.
    */
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
-    hot.addHook('beforeRowMove', (rows: unknown, finalIndex: unknown) => {
-      if (rows === false) {
+    hot.addHook('afterRowMove', (movedRows, finalIndex, _dropIndex, _movePossible, orderChanged) => {
+      // Only a global `Handsontable.hooks.add` listener runs ahead of this one, and its return value
+      // would replace `movedRows` — guard the shape before `RowMoveAction` calls `.slice()` on it.
+      if (!orderChanged || !Array.isArray(movedRows)) {
         return;
       }
 
       (undoRedoPlugin as { done: (...args: unknown[]) => void }).done(
-        () => new RowMoveAction({ rows: rows as number[], finalIndex: finalIndex as number })
+        () => new RowMoveAction({ rows: movedRows, finalIndex })
       );
     });
   }

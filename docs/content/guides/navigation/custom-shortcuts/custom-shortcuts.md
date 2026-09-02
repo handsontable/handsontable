@@ -416,7 +416,7 @@ The `control/meta` key name is specific to Handsontable. It matches `Control` on
 
 ## API reference
 
-For the list of [options](@/guides/getting-started/configuration-options/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) related to keyboard navigation, see the following API reference pages:
+For the list of [options](@/guides/configuration/configuration-options/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) related to keyboard navigation, see the following API reference pages:
 
 **APIs**
 

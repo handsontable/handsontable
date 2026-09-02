@@ -20,6 +20,7 @@ vue:
   metaTitle: Dialog - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Dialog
+menuTag: updated
 ---
 Display modal dialogs, alerts, loading indicators, and notifications to enhance user interaction and provide feedback in your data grid application.
 
@@ -30,6 +31,8 @@ Display modal dialogs, alerts, loading indicators, and notifications to enhance 
 The Dialog plugin provides a modal dialog system for Handsontable that allows you to display custom content in modal dialogs that overlay the table. This is useful for showing notifications, error messages, loading indicators, or any other interactive content that requires user attention.
 
 The dialog system is designed to be flexible and customizable, supporting various content types including plain text, HTML, and DOM elements. It also provides options for styling, animations, and user interaction controls.
+
+The plugin works on the main grid only. A grid nested in a cell, that is a cell of the [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, has no overlay layer to render a dialog into, so the [`dialog`](@/api/options.md#dialog) option has no effect there.
 
 ## Basic configuration
 

@@ -13,11 +13,13 @@ import {
 } from '../../helpers/dom/element';
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
-import { deprecatedWarn } from '../../helpers/console';
+import { deprecatedWarnOnce } from '../../helpers/console';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import {
+  COLUMN_SIZE_OPTIONS,
   getElementScaleFactor,
   normalizeVisualDelta,
+  redeclaresManualSizes,
   shouldRefreshHandleAfterAutoResize,
   shouldSkipResizeHandlePositioning,
 } from './utils';
@@ -49,6 +51,17 @@ export class ManualColumnResize extends BasePlugin {
    */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
+  }
+
+  /**
+   * Returns the setting keys that trigger a plugin update after an `updateSettings()` call. The
+   * `colWidths` option is listed alongside the plugin's own key, so that re-declaring the column
+   * widths discards the widths kept from earlier manual resizing.
+   *
+   * @returns {string[]}
+   */
+  static get SETTING_KEYS(): string[] {
+    return [PLUGIN_KEY, ...COLUMN_SIZE_OPTIONS];
   }
 
   /**
@@ -203,12 +216,37 @@ export class ManualColumnResize extends BasePlugin {
    *
    * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
    *  - [`manualColumnResize`](@/api/options.md#manualcolumnresize)
+   *  - [`colWidths`](@/api/options.md#colwidths)
+   *
+   * Passing `colWidths` re-declares the column widths, so the widths kept from earlier manual
+   * resizing are discarded. A grid whose `manualColumnResize` option is an array keeps that array
+   * instead, whether the array arrives in this call or was set when the grid was built.
+   *
+   * @param {object} [newSettings] The config object passed to `updateSettings()`.
    */
-  updatePlugin() {
-    this.disablePlugin();
-    this.enablePlugin();
+  updatePlugin(newSettings?: Record<string, unknown>) {
+    // Re-initialize only when the plugin's own option was declared. `#onMapInit` replays the
+    // declared `manualColumnResize` array, so re-initializing on a `colWidths`-only update would
+    // revert a column the user had since dragged to the array's width - neither the dragged width
+    // nor the one being requested.
+    if (newSettings === undefined || newSettings[PLUGIN_KEY] !== undefined) {
+      this.disablePlugin();
+      this.enablePlugin();
 
-    super.updatePlugin();
+    } else {
+      // `BasePlugin#onUpdateSettings` feeds `updatePluginSettings()` with `newSettings[PLUGIN_KEY]`,
+      // which a `colWidths`-only update does not carry. Restore the option from the merged settings
+      // so `getSetting()` keeps reporting it.
+      this.updatePluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
+    }
+
+    // Runs after the re-initialization, so that the widths replayed on the map's `init` hook are
+    // discarded too.
+    if (redeclaresManualSizes(newSettings, COLUMN_SIZE_OPTIONS, this.hot.getSettings()[PLUGIN_KEY])) {
+      this.clearManualSizes();
+    }
+
+    super.updatePlugin(newSettings);
   }
 
   /**
@@ -226,25 +264,29 @@ export class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op and will be removed in a
-   * future major release.
+   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op.
    *
-   * @deprecated
+   * @deprecated Since 18.0.0. The `PersistentState` plugin was removed in 17.0.0, so this method
+   * does nothing. It will be removed in 19.0.0. Persist column widths yourself with
+   * the `afterColumnResize` hook and the `manualColumnResize` option.
    */
   saveManualColumnWidths(): void {
-    deprecatedWarn('`saveManualColumnWidths()` is deprecated and will be removed in a future major release. ' +
+    deprecatedWarnOnce('ManualColumnResize.saveManualColumnWidths',
+      '`saveManualColumnWidths()` is deprecated and will be removed in Handsontable 19.0.0. ' +
       'The PersistentState plugin has been removed.');
   }
 
   /**
-   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op and will be removed in a
-   * future major release.
+   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op.
    *
-   * @deprecated
+   * @deprecated Since 18.0.0. The `PersistentState` plugin was removed in 17.0.0, so this method
+   * returns an empty array. It will be removed in 19.0.0. Restore column widths yourself
+   * by passing an array to the `manualColumnResize` option.
    * @returns {Array}
    */
   loadManualColumnWidths(): Array<number | null> {
-    deprecatedWarn('`loadManualColumnWidths()` is deprecated and will be removed in a future major release. ' +
+    deprecatedWarnOnce('ManualColumnResize.loadManualColumnWidths',
+      '`loadManualColumnWidths()` is deprecated and will be removed in Handsontable 19.0.0. ' +
       'The PersistentState plugin has been removed.');
 
     return [];
@@ -278,14 +320,55 @@ export class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Clears the cache for the specified column index.
+   * Clears the width stored for the specified column, so the column falls back to the width coming
+   * from the [`colWidths`](@/api/options.md#colwidths) option, or to the built-in default width.
+   * Call `render()` afterwards to repaint the grid.
+   *
+   * @example
+   * ```js
+   * const resizePlugin = hot.getPlugin('manualColumnResize');
+   *
+   * resizePlugin.clearManualSize(0);
+   * hot.render();
+   * ```
    *
    * @param {number} column Visual column index.
    */
   clearManualSize(column: number): void {
+    // The map only exists while the plugin is enabled, and a disabled plugin stores no widths.
+    if (!this.enabled) {
+      return;
+    }
+
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
-    this.#columnWidthsMap.setValueAtIndex(physicalColumn, null);
+    // An out-of-range visual index resolves to `null`, which would write an entry under the string
+    // "null" and invalidate the width cache for nothing.
+    if (physicalColumn !== null) {
+      this.#columnWidthsMap.setValueAtIndex(physicalColumn, null);
+    }
+  }
+
+  /**
+   * Clears the widths stored for every column, so the columns fall back to the widths coming from
+   * the [`colWidths`](@/api/options.md#colwidths) option, or to the built-in default width. Call
+   * `render()` afterwards to repaint the grid.
+   *
+   * @example
+   * ```js
+   * const resizePlugin = hot.getPlugin('manualColumnResize');
+   *
+   * resizePlugin.clearManualSizes();
+   * hot.render();
+   * ```
+   */
+  clearManualSizes(): void {
+    this.#config = [];
+
+    // The map only exists while the plugin is enabled, and a disabled plugin stores no widths.
+    if (this.enabled) {
+      this.#columnWidthsMap.clear();
+    }
   }
 
   /**
@@ -700,8 +783,12 @@ export class ManualColumnResize extends BasePlugin {
    */
   #onContextMenu() {
     this.hideHandleAndGuide();
-    this.hot.rootElement.removeChild(this.#handle);
-    this.hot.rootElement.removeChild(this.#guide);
+    // Both elements are detached with `remove()`, which is a no-op on an element that has no
+    // parent. The guide is attached only once a "mousedown" over the handle reaches `#onMouseDown`,
+    // so a context menu opened over a merely hovered handle reaches a guide that was never
+    // attached, and `removeChild` threw there (DEV-2708).
+    this.#handle.remove();
+    this.#guide.remove();
 
     this.#pressed = false;
     this.#isTriggeredByRMB = true;

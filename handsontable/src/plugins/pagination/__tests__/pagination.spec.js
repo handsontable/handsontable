@@ -270,4 +270,98 @@ describe('Pagination', () => {
 
     expect(rowIndexMapper().getRenderableIndexesLength()).toBe(50);
   });
+
+  describe('nested grid (non-root instance)', () => {
+    it('should not enable the plugin in a grid nested in the `handsontable` cell type', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            data: createSpreadsheetData(10, 2),
+            pagination: { pageSize: 5 },
+          },
+        }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const innerHot = getActiveEditor().htEditor;
+
+      // The pagination bar needs the FocusScopeManager, the LayoutManager and the root grid element,
+      // and all three belong to the root instance only. The plugin declines to enable instead of
+      // throwing (DEV-2641).
+      expect(getActiveEditor().isOpened()).toBe(true);
+      expect(innerHot.countRows()).toBe(10);
+      expect(innerHot.getPlugin('pagination').isEnabled()).toBe(false);
+      expect(innerHot.getPlugin('pagination').enabled).toBe(false);
+
+      // An update carrying the plugin's own key reaches the enable-on-update branch of
+      // `BasePlugin#onUpdateSettings`, which the editor's own width/height update does not.
+      await innerHot.updateSettings({ pagination: { pageSize: 5 } });
+
+      expect(innerHot.getPlugin('pagination').isEnabled()).toBe(false);
+      expect(innerHot.getPlugin('pagination').enabled).toBe(false);
+    });
+
+    it('should not fire page-change hooks from the public methods on a nested grid', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            data: createSpreadsheetData(20, 2),
+            pagination: { pageSize: 5 },
+          },
+        }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const innerHot = getActiveEditor().htEditor;
+      const afterPageChange = jasmine.createSpy('afterPageChange');
+      const afterPageSizeChange = jasmine.createSpy('afterPageSizeChange');
+
+      innerHot.addHook('afterPageChange', afterPageChange);
+      innerHot.addHook('afterPageSizeChange', afterPageSizeChange);
+
+      // The plugin is disabled here, so the paging methods must stay quiet. Without the `enabled`
+      // check they announced `afterPageChange(1, 1)` - a page change that never happened.
+      innerHot.getPlugin('pagination').setPage(3);
+      innerHot.getPlugin('pagination').nextPage();
+      innerHot.getPlugin('pagination').setPageSize(10);
+
+      expect(afterPageChange).not.toHaveBeenCalled();
+      expect(afterPageSizeChange).not.toHaveBeenCalled();
+      expect(innerHot.rowIndexMapper.getRenderableIndexesLength()).toBe(20);
+    });
+
+    it('should keep paging the root grid while a nested grid asks for pagination too', async() => {
+      handsontable({
+        data: createSpreadsheetData(20, 2),
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            data: createSpreadsheetData(10, 2),
+            pagination: { pageSize: 5 },
+          },
+        }, {}],
+        pagination: { pageSize: 8 },
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const innerHot = getActiveEditor().htEditor;
+
+      // The root grid pages as configured, while the nested grid renders all of its rows because
+      // its own pagination never enables.
+      expect(getPlugin('pagination').enabled).toBe(true);
+      expect(rowIndexMapper().getRenderableIndexesLength()).toBe(8);
+      expect(innerHot.countRows()).toBe(10);
+      expect(innerHot.rowIndexMapper.getRenderableIndexesLength()).toBe(10);
+    });
+  });
 });

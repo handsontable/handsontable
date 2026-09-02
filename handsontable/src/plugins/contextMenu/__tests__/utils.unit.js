@@ -1,4 +1,9 @@
-import { getAlignmentClasses } from 'handsontable/plugins/contextMenu/utils';
+import {
+  getAlignmentClasses,
+  getAlignmentComparatorByClass,
+  prepareHorizontalAlignClass,
+  prepareVerticalAlignClass,
+} from 'handsontable/plugins/contextMenu/utils';
 
 function createRange(coords) {
   return {
@@ -36,6 +41,129 @@ describe('contextMenu/utils', () => {
       expect(Object.keys(classes)).toEqual(['0', '1']);
       expect(classes[0][0]).toBe('0:0');
       expect(classes[1][1]).toBe('1:1');
+    });
+  });
+
+  describe('prepareHorizontalAlignClass', () => {
+    it('should add the alignment class to a cell that has none', () => {
+      expect(prepareHorizontalAlignClass('', 'htLeft')).toBe('htLeft');
+      expect(prepareHorizontalAlignClass('class_name', 'htRight')).toBe('class_name htRight');
+    });
+
+    it('should replace the previous horizontal alignment and keep the other classes', () => {
+      expect(prepareHorizontalAlignClass('class_name htLeft', 'htRight')).toBe('class_name htRight');
+      expect(prepareHorizontalAlignClass('class_name htCenter htMiddle', 'htJustify'))
+        .toBe('class_name htMiddle htJustify');
+    });
+
+    it('should not touch the vertical alignment class', () => {
+      expect(prepareHorizontalAlignClass('htMiddle', 'htLeft')).toBe('htMiddle htLeft');
+    });
+
+    it('should be idempotent when the same alignment is applied twice', () => {
+      expect(prepareHorizontalAlignClass('class_name htRight', 'htRight')).toBe('class_name htRight');
+    });
+
+    it('should keep a custom class that merely contains an alignment class name (#7122)', () => {
+      expect(prepareHorizontalAlignClass('htLeftPanel', 'htRight')).toBe('htLeftPanel htRight');
+    });
+
+    it('should drop a competing horizontal alignment even when the picked one is already there', () => {
+      expect(prepareHorizontalAlignClass('htLeft htCenter', 'htCenter')).toBe('htCenter');
+      expect(prepareHorizontalAlignClass('class_name htLeft htRight', 'htRight')).toBe('class_name htRight');
+    });
+
+    it('should accept an array `className`, as the documented settings allow (#7122)', () => {
+      expect(prepareHorizontalAlignClass(['class_name', 'htLeft'], 'htRight')).toBe('class_name htRight');
+    });
+  });
+
+  describe('prepareVerticalAlignClass', () => {
+    it('should add the alignment class to a cell that has none', () => {
+      expect(prepareVerticalAlignClass('', 'htTop')).toBe('htTop');
+      expect(prepareVerticalAlignClass('class_name', 'htMiddle')).toBe('class_name htMiddle');
+    });
+
+    it('should replace the previous vertical alignment and keep the other classes', () => {
+      expect(prepareVerticalAlignClass('class_name htTop', 'htBottom')).toBe('class_name htBottom');
+      expect(prepareVerticalAlignClass('class_name htMiddle htRight', 'htTop')).toBe('class_name htRight htTop');
+    });
+
+    it('should not touch the horizontal alignment class', () => {
+      expect(prepareVerticalAlignClass('htRight', 'htTop')).toBe('htRight htTop');
+    });
+
+    it('should be idempotent when the same alignment is applied twice', () => {
+      expect(prepareVerticalAlignClass('class_name htTop', 'htTop')).toBe('class_name htTop');
+    });
+
+    it('should keep a custom class that merely contains an alignment class name (#7122)', () => {
+      expect(prepareVerticalAlignClass('htTopBar', 'htBottom')).toBe('htTopBar htBottom');
+    });
+
+    it('should drop a competing vertical alignment even when the picked one is already there', () => {
+      expect(prepareVerticalAlignClass('htTop htMiddle', 'htMiddle')).toBe('htMiddle');
+      expect(prepareVerticalAlignClass('class_name htTop htBottom', 'htBottom')).toBe('class_name htBottom');
+    });
+
+    it('should accept an array `className`, as the documented settings allow (#7122)', () => {
+      expect(prepareVerticalAlignClass(['class_name', 'htTop'], 'htBottom')).toBe('class_name htBottom');
+    });
+  });
+
+  describe('alignment class names, issue #7122', () => {
+    it('should keep the space between the class names through the reported sequence', () => {
+      // Right -> Middle -> Justify, on a cell that already has a custom class.
+      const afterRight = prepareHorizontalAlignClass('class_name', 'htRight');
+      const afterMiddle = prepareVerticalAlignClass(afterRight, 'htMiddle');
+      const afterJustify = prepareHorizontalAlignClass(afterMiddle, 'htJustify');
+
+      expect(afterRight).toBe('class_name htRight');
+      expect(afterMiddle).toBe('class_name htRight htMiddle');
+      // Used to return 'class_namehtMiddle htJustify', losing both `class_name` and `htMiddle`.
+      expect(afterJustify).toBe('class_name htMiddle htJustify');
+    });
+
+    it('should keep the space between the class names through the mirrored sequence', () => {
+      // Middle -> Right -> Top, the same defect on the vertical helper.
+      const afterMiddle = prepareVerticalAlignClass('class_name', 'htMiddle');
+      const afterRight = prepareHorizontalAlignClass(afterMiddle, 'htRight');
+      const afterTop = prepareVerticalAlignClass(afterRight, 'htTop');
+
+      expect(afterMiddle).toBe('class_name htMiddle');
+      expect(afterRight).toBe('class_name htMiddle htRight');
+      // Used to return 'class_namehtRight htTop'.
+      expect(afterTop).toBe('class_name htRight htTop');
+    });
+
+    it('should not emit the alignment twice when it is passed to the other axis helper', () => {
+      // Not reachable through `align()`, but both helpers are exported and called directly here.
+      expect(prepareVerticalAlignClass('htLeft', 'htLeft')).toBe('htLeft');
+      expect(prepareHorizontalAlignClass('class_name htTop', 'htTop')).toBe('class_name htTop');
+    });
+
+    it('should not report an alignment for a custom class that merely contains its name', () => {
+      const hotMock = className => ({ getCellMetaTransient: () => ({ className }) });
+
+      expect(getAlignmentComparatorByClass('htLeft').call(hotMock('htLeft'), 0, 0)).toBe(true);
+      expect(getAlignmentComparatorByClass('htLeft').call(hotMock(['htLeft']), 0, 0)).toBe(true);
+      expect(getAlignmentComparatorByClass('htLeft').call(hotMock('htLeftPanel'), 0, 0)).toBe(false);
+      expect(getAlignmentComparatorByClass('htTop').call(hotMock('htTopBar htBottom'), 0, 0)).toBe(false);
+      expect(getAlignmentComparatorByClass('htLeft').call(hotMock(undefined), 0, 0)).toBe(false);
+    });
+
+    it('should never emit doubled, leading or trailing spaces', () => {
+      const results = [
+        prepareHorizontalAlignClass('htLeft', 'htRight'),
+        prepareHorizontalAlignClass('class_name htLeft', 'htRight'),
+        prepareVerticalAlignClass('htTop', 'htBottom'),
+        prepareVerticalAlignClass('class_name  htTop', 'htBottom'),
+      ];
+
+      results.forEach((result) => {
+        expect(result).not.toMatch(/ {2}/);
+        expect(result).toBe(result.trim());
+      });
     });
   });
 });

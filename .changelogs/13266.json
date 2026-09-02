@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the alignment options dropping the cell's other class names, and undoing an alignment leaving the cell aligned left.",
+  "type": "fixed",
+  "issueOrPR": 13266,
+  "breaking": false,
+  "framework": "none"
+}

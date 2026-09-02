@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Improved index-map performance: writing an unchanged value into scalar-valued index maps (hiding, trimming, order sequence, and the automatic or manual row/column size maps) no longer rebuilds the index caches.",
-  "type": "changed",
-  "issueOrPR": 13080,
-  "breaking": false,
-  "framework": "none"
-}

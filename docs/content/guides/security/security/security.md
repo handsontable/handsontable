@@ -132,6 +132,8 @@ Cell values are unaffected. They are written as text, so no cell content reaches
 
 Pasting needs the same sanitizer and degrades rather than failing: the clipboard parser is a sink, so without one Handsontable pastes the plain-text flavor of the clipboard instead of the HTML flavor, and logs one warning.
 
+Setting [`textExtractor`](@/api/options.md#textextractor) to `true` opts into the same header boundary. The built-in extraction parses a header to read the text a reader sees, so a header spelled the way described above needs the policy-backed sanitizer too. An extractor function of your own does not: Handsontable calls it and uses what it returns, so nothing reaches a sink.
+
 Your own data is the part that still needs a policy, because Handsontable writes it on your behalf. Wrap your sanitizer in one and return its `createHTML` result:
 
 ```js

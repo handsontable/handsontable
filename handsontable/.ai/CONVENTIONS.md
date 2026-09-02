@@ -140,16 +140,18 @@ export function throwWithCause(message) {
 **Available Functions:**
 - `log(...args)` -- General logging
 - `warn(...args)` -- Warning messages
-- `deprecatedWarn(message)` -- Deprecated feature warnings (prefixed with "Deprecated: ")
+- `removedWarnOnce(key, message)` -- For APIs that no longer exist (an option kept in `REMOVED_OPTIONS` in `core.ts`). Same once-per-key record as `deprecatedWarnOnce`, but no `Deprecated:` prefix: a removed API is gone, not deprecated, and the message must name the removing version.
+- `deprecatedWarnOnce(key, message)` -- Preferred for deprecated public APIs: prints `Deprecated: <message>` once per `key` per page. There is no repeat-every-call variant: a deprecation that must print on every call is a design smell, use `warn` and say why.
+- `_resetDeprecationWarnings()` -- Test-only. The once-per-key record is module-global and shared by `deprecatedWarnOnce` and `removedWarnOnce`, so call this in `beforeEach` of any spec asserting on a deprecation or removal warning; otherwise the assertion passes whenever an earlier spec printed that warning.
 - `info(...args)` -- Informational messages
 - `error(...args)` -- Error messages
 
 **Usage Pattern:**
 ```javascript
-import { warn, deprecatedWarn } from './helpers/console';
+import { warn, deprecatedWarnOnce } from './helpers/console';
 
 warn('Both `rowHeights` and `minRowHeights` are defined. The `minRowHeights` will be ignored.');
-deprecatedWarn('The `getTotalRows()` method is deprecated. Use `countRows()` instead.');
+deprecatedWarnOnce('Core.getTotalRows', 'The `getTotalRows()` method is deprecated. Use `countRows()` instead.');
 ```
 
 **Why not `console` directly:**

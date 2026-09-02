@@ -59,6 +59,19 @@ export default {
         metaTitle: 'AutoColumnSize - Angular Data Grid | Handsontable',
       },
     },
+    'AutoRowHeaderSize.md': {
+      id: 'ty441i4v',
+      metaTitle: 'AutoRowHeaderSize - JavaScript Data Grid | Handsontable',
+      description: 'Use the AutoRowHeaderSize plugin with its API options and methods to set the row header width based on its longest label.',
+      react: {
+        id: 's8rcdjwl',
+        metaTitle: 'AutoRowHeaderSize - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: '1iiq9p4n',
+        metaTitle: 'AutoRowHeaderSize - Angular Data Grid | Handsontable',
+      },
+    },
     'AutoRowSize.md': {
       id: 'fm3dhdw8',
       metaTitle: 'AutoRowSize - JavaScript Data Grid | Handsontable',

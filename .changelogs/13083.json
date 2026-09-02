@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Improved the performance of the MergeCells plugin: scrolling, extending large selections, and moving the focus with the keyboard no longer slow down with the grid or selection size.",
-  "type": "changed",
-  "issueOrPR": 13083,
-  "breaking": false,
-  "framework": "none"
-}

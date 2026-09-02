@@ -1,0 +1,1729 @@
+{
+  "generatedFrom": "handsontable/src/dataMap/metaManager/metaSchema.ts",
+  "levels": [
+    "grid",
+    "columns",
+    "cells",
+    "cell"
+  ],
+  "total": 170,
+  "counts": {
+    "grid": 106,
+    "grid columns cells cell": 59,
+    "grid columns": 4,
+    "columns": 1
+  },
+  "options": [
+    {
+      "name": "activeHeaderClassName",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "0.38.2",
+      "note": null
+    },
+    {
+      "name": "allowEmpty",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "allowHtml",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "allowInsertColumn",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "allowInsertRow",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "allowInvalid",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "allowRemoveColumn",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "allowRemoveRow",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "ariaTags",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "14.0.0",
+      "note": "The switch is grid level. A per-cell value only changes that cell's ARIA attributes."
+    },
+    {
+      "name": "autoColumnSize",
+      "category": "AutoColumnSize",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "autoRowHeaderSize",
+      "category": "AutoRowHeaderSize",
+      "levels": [
+        "grid"
+      ],
+      "since": "18.2.0",
+      "note": null
+    },
+    {
+      "name": "autoRowSize",
+      "category": "AutoRowSize",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "autoWrapCol",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "autoWrapRow",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "bindRowsWithHeaders",
+      "category": "BindRowsWithHeaders",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "cell",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "cells",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": "A grid-level function that is called for every cell."
+    },
+    {
+      "name": "checkedTemplate",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "className",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "colHeaders",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "collapsibleColumns",
+      "category": "CollapsibleColumns",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "colorScheme",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "18.1.0",
+      "note": null
+    },
+    {
+      "name": "columnHeaderHeight",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "columns",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "columnSorting",
+      "category": "ColumnSorting",
+      "levels": [
+        "grid",
+        "columns"
+      ],
+      "since": null,
+      "note": "Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. Read from the raw `columns` setting, like `title`."
+    },
+    {
+      "name": "columnSummary",
+      "category": "ColumnSummary",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "colWidths",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "commentedCellClassName",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "comments",
+      "category": "Comments",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "contextMenu",
+      "category": "ContextMenu",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "copyable",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "copyPaste",
+      "category": "CopyPaste",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "currentColClassName",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "currentHeaderClassName",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "currentRowClassName",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "customBorders",
+      "category": "CustomBorders",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "customBordersProgressive",
+      "category": "CustomBorders",
+      "levels": [
+        "grid"
+      ],
+      "since": "18.1.0",
+      "note": null
+    },
+    {
+      "name": "data",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns"
+      ],
+      "since": null,
+      "note": "Sets the data set at the grid level and the column's data property inside `columns`."
+    },
+    {
+      "name": "dataDotNotation",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "14.4.0",
+      "note": null
+    },
+    {
+      "name": "dataProvider",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "17.1.0",
+      "note": null
+    },
+    {
+      "name": "dataSchema",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "dateFormat",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "dateTimeFormat",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "18.1.0",
+      "note": null
+    },
+    {
+      "name": "defaultDate",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "density",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "18.1.0",
+      "note": null
+    },
+    {
+      "name": "dialog",
+      "category": "Dialog",
+      "levels": [
+        "grid"
+      ],
+      "since": "16.1.0",
+      "note": null
+    },
+    {
+      "name": "disableVisualSelection",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": "Row and column headers read the grid-level value only, and so does the check that gates dragging a selection with `moveCells`."
+    },
+    {
+      "name": "dragToScroll",
+      "category": "DragToScroll",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "dropdownMenu",
+      "category": "DropdownMenu",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "editor",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "emptyDataState",
+      "category": "EmptyDataState",
+      "levels": [
+        "grid"
+      ],
+      "since": "16.2.0",
+      "note": null
+    },
+    {
+      "name": "emptyValue",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "18.3.0",
+      "note": null
+    },
+    {
+      "name": "enterBeginsEditing",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "enterCommits",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "17.0.0",
+      "note": null
+    },
+    {
+      "name": "enterMoves",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "exportFile",
+      "category": "ExportFile",
+      "levels": [
+        "grid"
+      ],
+      "since": "17.1.0",
+      "note": null
+    },
+    {
+      "name": "fillHandle",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "filter",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "filteringCaseSensitive",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "filters",
+      "category": "Filters",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "filterSelectedItems",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "fixedColumnsLeft",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "fixedColumnsStart",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "fixedRowsBottom",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "fixedRowsTop",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "formulas",
+      "category": "Formulas",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "fragmentSelection",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "hashLength",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "hashRevealDelay",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "17.2.0",
+      "note": null
+    },
+    {
+      "name": "hashSymbol",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "headerClassName",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns"
+      ],
+      "since": "14.5.0",
+      "note": "Applies to column headers, so it stops at the column level."
+    },
+    {
+      "name": "height",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "hiddenColumns",
+      "category": "HiddenColumns",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "hiddenRows",
+      "category": "HiddenRows",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "imeFastEdit",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "14.0.0",
+      "note": null
+    },
+    {
+      "name": "initialState",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "16.1.0",
+      "note": null
+    },
+    {
+      "name": "injectCoreCss",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "17.0.0",
+      "note": null
+    },
+    {
+      "name": "invalidCellClassName",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "isEmptyCol",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "isEmptyRow",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "label",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "language",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "layout",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "18.0.0",
+      "note": null
+    },
+    {
+      "name": "layoutDirection",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "licenseKey",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "loading",
+      "category": "Loading",
+      "levels": [
+        "grid"
+      ],
+      "since": "16.1.0",
+      "note": null
+    },
+    {
+      "name": "locale",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "manualColumnFreeze",
+      "category": "ManualColumnFreeze",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "manualColumnMove",
+      "category": "ManualColumnMove",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "manualColumnResize",
+      "category": "ManualColumnResize",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "manualRowMove",
+      "category": "ManualRowMove",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "manualRowResize",
+      "category": "ManualRowResize",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "maxCols",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "maxRows",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "maxSelections",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "17.0.0",
+      "note": null
+    },
+    {
+      "name": "mergeCells",
+      "category": "MergeCells",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "minCols",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "minRowHeights",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "16.2.0",
+      "note": null
+    },
+    {
+      "name": "minRows",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "minSpareCols",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "minSpareRows",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "moveCells",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "18.1.0",
+      "note": null
+    },
+    {
+      "name": "multiColumnSorting",
+      "category": "MultiColumnSorting",
+      "levels": [
+        "grid",
+        "columns"
+      ],
+      "since": null,
+      "note": "Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. Read from the raw `columns` setting, like `title`."
+    },
+    {
+      "name": "navigableHeaders",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "14.0.0",
+      "note": null
+    },
+    {
+      "name": "nestedHeaders",
+      "category": "NestedHeaders",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "nestedRows",
+      "category": "NestedRows",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "notification",
+      "category": "Notification",
+      "levels": [
+        "grid"
+      ],
+      "since": "17.1.0",
+      "note": null
+    },
+    {
+      "name": "noWordWrapClassName",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "numericFormat",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "0.35.0",
+      "note": null
+    },
+    {
+      "name": "observeDOMVisibility",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "outsideClickDeselects",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "pagination",
+      "category": "Pagination",
+      "levels": [
+        "grid"
+      ],
+      "since": "16.1.0",
+      "note": null
+    },
+    {
+      "name": "parsePastedValue",
+      "category": "CopyPaste",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "17.0.0",
+      "note": null
+    },
+    {
+      "name": "placeholder",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "placeholderCellClassName",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "preserveNumericLiteral",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "18.1.0",
+      "note": null
+    },
+    {
+      "name": "preserveTextValue",
+      "category": "Formulas",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "18.1.0",
+      "note": null
+    },
+    {
+      "name": "preventOverflow",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "readOnly",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "readOnlyCellClassName",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "renderAllColumns",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "14.1.0",
+      "note": null
+    },
+    {
+      "name": "renderAllRows",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "renderer",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "rowHeaders",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "rowHeaderWidth",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "rowHeights",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "sanitizer",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "17.0.0",
+      "note": null
+    },
+    {
+      "name": "search",
+      "category": "Search",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": "The plugin toggle is grid level. `queryMethod` and `callback` resolve per cell."
+    },
+    {
+      "name": "searchInput",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "17.0.0",
+      "note": null
+    },
+    {
+      "name": "selectionHandles",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "18.1.0",
+      "note": null
+    },
+    {
+      "name": "selectionMode",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "selectOptions",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "skipColumnOnPaste",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "skipRowOnPaste",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "sortByRelevance",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "source",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "sourceDataValidator",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "17.0.0",
+      "note": null
+    },
+    {
+      "name": "sourceDataWarningMessage",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "17.0.0",
+      "note": null
+    },
+    {
+      "name": "sourceSortFunction",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "17.0.0",
+      "note": null
+    },
+    {
+      "name": "startCols",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "startRows",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "stretchH",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "strict",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "tableClassName",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "tabMoves",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "tabNavigation",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "14.0.0",
+      "note": null
+    },
+    {
+      "name": "textEllipsis",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "16.0.0",
+      "note": null
+    },
+    {
+      "name": "textExtractor",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "18.2.0",
+      "note": null
+    },
+    {
+      "name": "theme",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "17.0.0",
+      "note": null
+    },
+    {
+      "name": "themeName",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "15.0.0",
+      "note": null
+    },
+    {
+      "name": "timeFormat",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "title",
+      "category": "Core",
+      "levels": [
+        "columns"
+      ],
+      "since": null,
+      "note": "Read from the raw `columns` setting rather than the meta chain, so a `cells` function cannot set it."
+    },
+    {
+      "name": "trimDropdown",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "trimRows",
+      "category": "TrimRows",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "trimWhitespace",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "type",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "uncheckedTemplate",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "undo",
+      "category": "UndoRedo",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "validator",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "valueFormatter",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "17.0.0",
+      "note": null
+    },
+    {
+      "name": "valueGetter",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "16.1.0",
+      "note": null
+    },
+    {
+      "name": "valueParser",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "17.0.0",
+      "note": null
+    },
+    {
+      "name": "valueSetter",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "16.1.0",
+      "note": null
+    },
+    {
+      "name": "viewportColumnRenderingOffset",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "viewportColumnRenderingThreshold",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "1.14.7",
+      "note": null
+    },
+    {
+      "name": "viewportRowRenderingOffset",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "viewportRowRenderingThreshold",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "1.14.7",
+      "note": null
+    },
+    {
+      "name": "visibleRows",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "width",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": "Sets the grid width at the grid level and the column width inside `columns`. Only row 0 is read, so a `cells` or `cell` value must target row 0."
+    },
+    {
+      "name": "wordWrap",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    }
+  ]
+}

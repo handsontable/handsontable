@@ -4,7 +4,7 @@ import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import { arrayEach, arrayFilter, arrayMap } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import * as C from '../../../i18n/constants';
-import { unifyColumnValues, intersectValues } from '../utils';
+import { unifyColumnValues, intersectValues, createArrayAssertion } from '../utils';
 import { getSortComparatorForMeta } from '../sortComparators';
 import { BaseComponent } from './_base';
 import { MultipleSelectUI } from '../ui/multipleSelect';
@@ -34,8 +34,8 @@ interface FilteredRow {
 export interface StateInfo {
   editedConditionStack: ConditionStack;
   dependentConditionStacks: ConditionStack[];
-  conditionArgsChange: unknown;
   filteredRowsFactory: (physicalColumn: number, conditionsStack?: ConditionStack) => FilteredRow[];
+  columnValuesFactory?: (physicalColumn: number) => FilteredRow[];
   [key: string]: unknown;
 }
 
@@ -143,6 +143,11 @@ export class ValueComponent extends BaseComponent {
 
       select.setItems(value.itemsSnapshot);
       select.setValue(value.args[0]);
+      // A restored `by_value` state with nothing selected is the record of a deliberate "Clear" -
+      // the condition exists, it just excludes every value. This is the only place that knows it:
+      // `reset()` runs for a column carrying no condition, where an empty list means the opposite
+      // and must not turn a column the user never filtered into one that hides every row.
+      select.setCleared(Array.isArray(value.args[0]) && (value.args[0] as unknown[]).length === 0);
       select.setLocale(value.locale);
 
       return;
@@ -160,8 +165,11 @@ export class ValueComponent extends BaseComponent {
     const select = this.getMultipleSelectElement();
     const availableItems = select.getItems();
 
+    // `isSelectedAllValues()` compares the item list against the whole selection, so it already
+    // answers `true` for an empty list with nothing selected. Testing the list for emptiness on its
+    // own would report "no condition" while values the list cannot show are still excluding rows.
     return {
-      command: { key: select.isSelectedAllValues() || !availableItems.length ? CONDITION_NONE : CONDITION_BY_VALUE },
+      command: { key: select.isSelectedAllValues() ? CONDITION_NONE : CONDITION_BY_VALUE },
       args: [select.getValue()],
       itemsSnapshot: availableItems
     };
@@ -171,12 +179,12 @@ export class ValueComponent extends BaseComponent {
    * Update state of component.
    *
    * @param {object} stateInfo Information about state containing stack of edited column,
-   * stack of dependent conditions, data factory and optional condition arguments change. It's described by object containing keys:
-   * `editedConditionStack`, `dependentConditionStacks`, `visibleDataFactory` and `conditionArgsChange`.
+   * stack of dependent conditions and the data factory. It's described by object containing keys:
+   * `editedConditionStack`, `dependentConditionStacks` and `filteredRowsFactory`.
    */
   updateState(stateInfo: StateInfo) {
     const updateColumnState = (
-      physicalColumn: number, conditions: ConditionEntry[], conditionArgsChange: unknown,
+      physicalColumn: number, conditions: ConditionEntry[],
       filteredRowsFactory: (physicalColumn: number, conditionsStack?: ConditionStack) => FilteredRow[],
       conditionsStack?: ConditionStack
     ) => {
@@ -187,17 +195,23 @@ export class ValueComponent extends BaseComponent {
       if (firstByValueCondition) {
         const filteredRows = filteredRowsFactory(physicalColumn, conditionsStack);
 
-        if (conditionArgsChange) {
-          firstByValueCondition.args[0] = conditionArgsChange;
-        }
+        const selectedArgs = firstByValueCondition.args[0] as unknown[];
+        const { itemsSnapshot } = this.#buildItemsSnapshot(filteredRows, selectedArgs);
 
-        const { itemsSnapshot, selectedValues } = this.#buildItemsSnapshot(
-          physicalColumn, filteredRows, firstByValueCondition.args[0] as unknown[]);
+        // Read from the column being refreshed, not from the edited one - this runs for the
+        // dependent column too. `getCellMetaTransient` takes VISUAL coordinates, while every column
+        // index in this file is physical.
+        const visualColumn = this.hot?.toVisualColumn(physicalColumn) ?? physicalColumn;
 
-        const column = stateInfo.editedConditionStack.column;
-
-        state.locale = this.hot?.getCellMetaTransient(0, column).locale;
-        state.args = [selectedValues];
+        state.locale = this.hot?.getCellMetaTransient(0, visualColumn).locale;
+        // The whole selection, minus the values that have left the column altogether, and copied so
+        // the component state, `options.value` and the condition collection stop sharing one array.
+        // `itemsSnapshot` already carries the checked flags for the visible values; the rest has to
+        // survive so that confirming a narrowed list does not shrink the condition to what is on
+        // screen. Keeping a value that exists nowhere would be worse than losing it: the list could
+        // never show it again, so "select all" could never empty the column and the header would
+        // read as filtered for good.
+        state.args = [this.#pruneToExistingValues(physicalColumn, selectedArgs, stateInfo)];
         state.command = getConditionDescriptor(CONDITION_BY_VALUE);
         state.itemsSnapshot = itemsSnapshot;
 
@@ -209,23 +223,24 @@ export class ValueComponent extends BaseComponent {
       this.state?.setValueAtIndex(physicalColumn, state);
     };
 
+    // Both columns are refreshed the same way: the value list is rebuilt so newly introduced values
+    // show up, and the checked set stays whatever the user picked, narrowed to the values that still
+    // exist. Nothing here may re-select a value on the user's behalf - that is what made an edit in a
+    // filtered column add its new value to the condition (issue #6471), and what leaked the edited
+    // column's value set into the dependent column (issue #8874).
     updateColumnState(
       stateInfo.editedConditionStack.column,
       stateInfo.editedConditionStack.conditions,
-      stateInfo.conditionArgsChange,
       stateInfo.filteredRowsFactory
     );
 
     // Update the next "by_value" component (filter column conditions added after this condition).
     // Its list of values has to be updated. As the new values by default are unchecked,
     // the further component update is unnecessary.
-    // `conditionArgsChange` is scoped to the edited column and must not be reapplied here -
-    // doing so overwrites the dependent column's by_value args with the edited column's value set (issue #8874).
     if (stateInfo.dependentConditionStacks.length) {
       updateColumnState(
         stateInfo.dependentConditionStacks[0].column,
         stateInfo.dependentConditionStacks[0].conditions,
-        undefined,
         stateInfo.filteredRowsFactory,
         stateInfo.editedConditionStack
       );
@@ -233,44 +248,71 @@ export class ValueComponent extends BaseComponent {
   }
 
   /**
+   * Drops the selected values that no longer appear anywhere in the column.
+   *
+   * A value leaves the item list for two very different reasons, and they must not be treated
+   * alike: another column's filter hides its rows, in which case it has to survive; or it was
+   * edited away, in which case keeping it strands a value the list can never show again.
+   *
+   * Only the column's own values are normalized (`unifyColumnValues` applies `toEmptyString`); the
+   * stored selection is compared as written. That is deliberate. `getDataMapAtColumn()` normalizes
+   * every cell value the same way, so a selection naming a blank as a raw `null` - which only the
+   * public `addCondition()` can produce, never the dropdown - matches no row to begin with, and
+   * neither checks the blank in the list. Dropping it is the point: it is a value the user can
+   * never see or untick.
+   *
+   * @param {number} physicalColumn The physical column index the selection belongs to.
+   * @param {Array} selectedArgs The stored selection.
+   * @param {object} stateInfo The state payload, carrying the full-column reader.
+   * @returns {Array} The selection without the values that left the column.
+   */
+  #pruneToExistingValues(physicalColumn: number, selectedArgs: unknown[], stateInfo: StateInfo): unknown[] {
+    const columnValuesFactory = stateInfo.columnValuesFactory;
+
+    if (typeof columnValuesFactory !== 'function' || selectedArgs.length === 0) {
+      return [...selectedArgs];
+    }
+
+    const columnRows = columnValuesFactory(physicalColumn);
+    const comparator = getSortComparatorForMeta(columnRows[0]?.meta);
+    const existingValues = unifyColumnValues(arrayMap(columnRows, row => row.value), comparator);
+    const exists = createArrayAssertion(existingValues);
+
+    return selectedArgs.filter(value => exists(value));
+  }
+
+  /**
    * Builds the item list shown in the "filter by value" box for a single column.
    *
-   * @param {number} physicalColumn The physical column index the items belong to.
    * @param {Array} filteredRows Data-map entries of the rows the list is built from.
    * @param {Array} selectedArgs Values that stay checked.
-   * @returns {{itemsSnapshot: Array, selectedValues: Array}} The item list and the checked values.
+   * @returns {{itemsSnapshot: Array}} The item list, each entry carrying its checked flag.
    */
-  #buildItemsSnapshot(physicalColumn: number, filteredRows: FilteredRow[], selectedArgs: unknown[]) {
+  #buildItemsSnapshot(filteredRows: FilteredRow[], selectedArgs: unknown[]) {
     const defaultBlankCellValue = this.hot?.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS) ?? '';
     const rowValues = arrayMap(filteredRows, row => row.value);
     // The map feeds only the `modifyFiltersMultiSelectValue` hook. Building it costs one
     // meta-pipeline read per filtered row, so skip it when the hook is not registered.
-    // The rows are addressed through the entry's own `row` property - the coordinate stamps
-    // on `row.meta` are shared with other meta readers and may have been overwritten.
+    // The entry's own `meta` is used rather than a fresh read: `row.row` and `physicalColumn` are
+    // both physical, while `getCellMetaTransient` takes visual coordinates, so re-reading handed the
+    // hook another cell's meta under any sort or filter. `reset()` reads `row.meta` for the same
+    // purpose, and now both paths agree.
     const rowMetaMap = this.hot?.hasHook('modifyFiltersMultiSelectValue')
-      ? new Map(
-        filteredRows.map((row: FilteredRow) =>
-          [row.value, this.hot?.getCellMetaTransient(row.row, physicalColumn)])
-      )
+      ? new Map(filteredRows.map((row: FilteredRow) => [row.value, row.meta]))
       : null;
     const columnMeta = filteredRows[0]?.meta;
     const comparator = getSortComparatorForMeta(columnMeta);
     const unifiedRowValues = unifyColumnValues(rowValues, comparator);
-    const selectedValues: unknown[] = [];
     const itemsSnapshot = intersectValues(
       unifiedRowValues,
       selectedArgs,
       defaultBlankCellValue,
       (item: Record<string, unknown>) => {
-        if (item.checked) {
-          selectedValues.push(item.value);
-        }
-
         this.#triggerModifyMultipleSelectionValueHook(item, rowMetaMap);
       }
     );
 
-    return { itemsSnapshot, selectedValues };
+    return { itemsSnapshot };
   }
 
   /**

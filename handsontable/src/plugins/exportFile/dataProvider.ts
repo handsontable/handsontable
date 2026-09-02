@@ -1,4 +1,6 @@
 import type { HotInstance } from '../../core/types';
+import { extractText } from '../../utils/textExtractor';
+import { normalizeExportOptions } from './utils';
 import type { SummaryEndpoint } from '../columnSummary/columnSummary';
 
 interface MergeCellDescriptor {
@@ -60,13 +62,7 @@ class DataProvider {
    * @param {object} options Object with specified options.
    */
   setOptions(options: Record<string, unknown>) {
-    if (options && 'columnHeaders' in options && !('colHeaders' in options)) {
-      this.options = { ...options, colHeaders: options.columnHeaders };
-
-      return;
-    }
-
-    this.options = options;
+    this.options = normalizeExportOptions(options);
   }
 
   /**
@@ -129,7 +125,7 @@ class DataProvider {
         if (this.options.exportHiddenRows === false && this._isHiddenRow(row)) {
           continue;
         }
-        headers.push(rowHeaders[row]);
+        headers.push(extractText(this.hot, rowHeaders[row], 'ExportFile.rowHeader'));
       }
     }
 
@@ -152,7 +148,7 @@ class DataProvider {
         if (this.options.exportHiddenColumns === false && this._isHiddenColumn(column)) {
           continue;
         }
-        headers.push(colHeaders[column]);
+        headers.push(extractText(this.hot, colHeaders[column], 'ExportFile.columnHeader'));
       }
     }
 
@@ -585,7 +581,11 @@ class DataProvider {
       // from the user-supplied `headerClassName` string.
       const className = (treeNodeData?.headerClassNames ?? []).join(' ');
 
-      layerHeaders.push({ label: treeNodeData?.label ?? '', colspan: effectiveColspan, className });
+      layerHeaders.push({
+        label: extractText(this.hot, treeNodeData?.label ?? '', 'ExportFile.columnHeader'),
+        colspan: effectiveColspan,
+        className,
+      });
 
       return col + origColspan;
     }
@@ -627,7 +627,11 @@ class DataProvider {
       // from the user-supplied `headerClassName` string.
       const className = (settings?.headerClassNames ?? []).join(' ');
 
-      layerHeaders.push({ label: settings?.label ?? '', colspan: visibleColspan, className });
+      layerHeaders.push({
+        label: extractText(this.hot, settings?.label ?? '', 'ExportFile.columnHeader'),
+        colspan: visibleColspan,
+        className,
+      });
 
       return col + spanColspan;
     }

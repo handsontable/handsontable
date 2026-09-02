@@ -1,4 +1,9 @@
 import { stringify } from './mixed';
+import { deprecatedWarnOnce } from './console';
+
+// Re-exported to keep `substitute` reachable from its documented `helpers/string` path. The
+// implementation lives in a leaf module so that `helpers/console` can use it without a cycle.
+export { substitute } from './templateString';
 
 /**
  * Convert string to upper case first letter.
@@ -74,24 +79,6 @@ export function isJSON(string: string) {
  */
 export function isPercentValue(value: string): boolean {
   return /^(?:\d\d?%|100%)$/.test(value);
-}
-
-/**
- * Substitute strings placed between square brackets into value defined in `variables` object. String names defined in
- * square brackets must be the same as property name of `variables` object.
- *
- * @param {string} template Template string.
- * @param {object} variables Object which contains all available values which can be injected into template.
- * @returns {string}
- */
-export function substitute(template: string, variables: Record<string, unknown> = {}): string {
-  return (`${template}`).replace(/(?:\\)?\[([^[\]]+)]/g, (match, name) => {
-    if (match.charAt(0) === '\\') {
-      return match.substr(1, match.length - 1);
-    }
-
-    return variables[name] === undefined ? '' : String(variables[name]);
-  });
 }
 
 /**
@@ -268,12 +255,17 @@ export function escapeHtml(string: string): string {
 /**
  * Returns the string unchanged.
  *
- * @deprecated Default sanitization is now a pass-through. Use the sanitizer
- * configuration option to supply a custom sanitizer function.
+ * @deprecated Since 18.0.0. Handsontable no longer bundles an HTML sanitizer; this helper is a
+ * pass-through and will be removed in 19.0.0. Supply your own sanitizer through the
+ * `sanitizer` configuration option instead.
  * @param {string} string String to return.
  * @returns {string}
  */
 export function sanitize(string: string): string {
+  deprecatedWarnOnce('helper.sanitize',
+    '`sanitize()` is deprecated and will be removed in Handsontable 19.0.0. ' +
+    'It returns its input unchanged. Use the `sanitizer` option to supply your own sanitizer.');
+
   return string;
 }
 

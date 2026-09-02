@@ -323,6 +323,21 @@ const entitlementConsoleNotifications: Partial<Record<LicenseStateKey, Entitleme
  * Core-owned lock screen instead of a bar (see `_BLOCKING_MODAL_STATES` below
  * and `utils/licenseBranding/lockScreen.ts`), and a non-trial license never
  * renders a bar - it is developer-facing only in 18.1.
+ *
+ * The soft-stopped trial DOES carry a bar even though its badge popover auto-opens with the same two
+ * sentences. That duplication is deliberate: the bar is the only license surface with a focusable
+ * link and a registered focus scope (`utils/licenseNotification.ts`), while the popover is
+ * pointer-only by design (`tabIndex = -1` throughout, no focus scope, no `aria-live`). The bar is
+ * also the only surface left once the popover is dismissed - on a grid with no corner cell, nothing
+ * can reopen the popover for the rest of the instance's life. Removing this entry was tried and
+ * reverted (DEV-2709) for exactly those two reasons; leave it in place until the popover can carry
+ * the message on its own.
+ *
+ * Note the shape here is NOT what the specification literally describes. S4.1's soft-stop row reads
+ * "Console error. Trial: + modal", and no modal renders for `trial_soft_stop` - `LOCK_CONTENT` has
+ * no entry for it. Either "modal" is meant loosely for the auto-opening popover, or the state is
+ * missing a surface. That question predates DEV-2709 and is still open; this comment records the
+ * divergence rather than settling it.
  */
 const entitlementDomMessages:
 Partial<Record<LicenseStateKey, (params: EntitlementMessageParams) => MessagePart[]>> = {
@@ -772,7 +787,7 @@ function _injectEntitlementProductInfo(
     if (notification) {
       // The global `console`, not the `helpers/console` wrappers: importing them would put this
       // module - the leaf that `function`, `object`, `string` and `dateTime` all import - at the top
-      // of a cycle (`console` imports `substitute` from `string`, and `string` imports from here).
+      // of a cycle (`console` imports `isDefined` from here).
       // The frozen legacy path prints the same way. Disabled per line, not per file - the blanket
       // exemptions end above, so everything else here is linted normally.
       // eslint-disable-next-line no-console, no-restricted-globals
