@@ -374,6 +374,22 @@ describe('buildHtmlReport -- scenario absent from the baseline', () => {
   test('is not counted as not-assessed, which is reserved for a failed comparison', () => {
     assert.equal(newScenario().notAssessed, false);
   });
+
+  test('is counted in its own noBaseline bucket, not folded into Neutral', () => {
+    // "Neutral" claims the scenario is flat against its baseline -- the one thing not known about a
+    // scenario the baseline does not contain at all. Before this bucket existed it fell into the
+    // remainder, i.e. Neutral, the same "assessed by omission" failure notAssessed exists to
+    // prevent for a failed comparison.
+    const payload = payloadOf(buildHtmlReport(
+      { sorting: currentScenario(), 'brand-new': currentScenario() },
+      { timestamp: 't', scenarios: { sorting: goldenScenario() } },
+      {}
+    ));
+    const brandNew = payload.scenarios.find(s => s.name === 'brand-new');
+
+    assert.equal(payload.summary.noBaseline, 1);
+    assert.equal(brandNew.hasBaseline, false);
+  });
 });
 
 describe('buildHtmlReport -- dashboard and filters agree', () => {
@@ -402,9 +418,25 @@ describe('buildHtmlReport -- dashboard and filters agree', () => {
   test('every scenario falls into exactly one dashboard bucket', () => {
     const { summary } = mixed();
     const buckets = summary.regressions + summary.improvements + summary.neutral
-      + summary.notAssessed;
+      + summary.notAssessed + summary.noBaseline;
 
     assert.equal(buckets, summary.total);
+  });
+
+  test('a scenario absent from the baseline falls into noBaseline, not Neutral', () => {
+    const payload = payloadOf(buildHtmlReport(
+      {
+        flat: currentScenario(),
+        'brand-new': currentScenario(),
+      },
+      { timestamp: 't', scenarios: { flat: goldenScenario() } },
+      {}
+    ));
+    const flagged = payload.scenarios.filter(s => !s.hasBaseline);
+
+    assert.equal(flagged.length, payload.summary.noBaseline);
+    assert.equal(payload.summary.noBaseline, 1);
+    assert.equal(payload.summary.neutral, 1, 'only the flat scenario counts as Neutral');
   });
 
   test('the not-assessed flag drives both the counter and the filterable set', () => {

@@ -264,11 +264,16 @@ function buildTimingBreakdown(current, golden) {
 function buildRegressionCallouts(results, goldenScenarios, crossWindow) {
   const callouts = [];
   const skipped = [];
+  const noBaseline = [];
 
   for (const [name, current] of orderedScenarioEntries(results)) {
     const golden = goldenScenarios[name];
 
     if (!golden) {
+      // Not in the baseline at all -- new, or omitted by the median window -- which is not the
+      // same as a comparison that failed. Reported by name rather than silently dropped, so a
+      // scenario missing from every count above has somewhere honest to land.
+      noBaseline.push(formatTitle(name));
       continue;
     }
 
@@ -276,7 +281,12 @@ function buildRegressionCallouts(results, goldenScenarios, crossWindow) {
     const { change: totalPct, incomplete, label } = totalDelta(current, golden, isCrossWindow);
 
     if (incomplete) {
-      skipped.push(`${formatTitle(name)} (${label})`);
+      // A window mismatch withholds heap too (jsHeapMaxBytes is a maximum over the samples inside
+      // the parsed window, invalid across two different windows), so a reader must not conclude
+      // heap was still assessed just because it isn't called out separately below.
+      const heapNote = isCrossWindow ? '; heap also not assessed' : '';
+
+      skipped.push(`${formatTitle(name)} (${label}${heapNote})`);
     }
 
     // Heap survives a baseline that missed a timing category -- the two are measured independently.
@@ -312,12 +322,23 @@ function buildRegressionCallouts(results, goldenScenarios, crossWindow) {
   }
 
   // A scenario whose baseline is unusable was neither cleared nor flagged, so say so rather than
-  // letting it fall silently into "within tolerance". Scoped to the total, because heap may still
-  // have been assessed for the same scenario -- otherwise the note would contradict a callout
-  // standing directly above it.
-  const note = skipped.length > 0
-    ? `\n\n<sub>Total delta not assessed: ${skipped.join(', ')}.</sub>`
-    : '';
+  // letting it fall silently into "within tolerance". Scoped to the total by default, because heap
+  // survives a baseline that only missed a timing category -- the two are measured independently --
+  // and calling heap unassessed there would contradict a callout standing directly above it. A
+  // window mismatch is the exception: it invalidates heap too, and that entry says so explicitly.
+  const notes = [];
+
+  if (skipped.length > 0) {
+    notes.push(`Total delta not assessed: ${skipped.join(', ')}.`);
+  }
+
+  // Not in the baseline at all, which "within tolerance" cannot claim either -- there is nothing to
+  // be flat against. Kept distinct from `skipped`, which is baselines that exist but disagree.
+  if (noBaseline.length > 0) {
+    notes.push(`No baseline yet: ${noBaseline.join(', ')}.`);
+  }
+
+  const note = notes.length > 0 ? `\n\n<sub>${notes.join(' ')}</sub>` : '';
 
   if (callouts.length === 0) {
     return `All assessed scenarios within tolerance \u2705${note}`;

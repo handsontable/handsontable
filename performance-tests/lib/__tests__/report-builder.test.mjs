@@ -429,6 +429,64 @@ describe('buildReport -- cross-window heap', () => {
     assert.ok(report.includes('JS heap'));
     assert.ok(report.includes('Total delta not assessed'));
   });
+
+  test('says heap is also not assessed when the total is withheld for a window mismatch', () => {
+    // The "Total delta not assessed" note used to read the same regardless of cause, but a window
+    // mismatch withholds heap too (jsHeapMaxBytes is a maximum over the samples inside the parsed
+    // window) while a baseline-incomplete comparison does not (heap is independent of timing).
+    const report = buildReport(
+      { sorting: currentScenario() },
+      golden({ sorting: goldenScenario() }),
+      { crossWindowScenarios: ['sorting'] }
+    );
+
+    assert.ok(report.includes('heap also not assessed'));
+  });
+
+  test('does not say heap is also not assessed for a baseline-incomplete comparison', () => {
+    const report = buildReport(
+      { filtering: currentScenario() },
+      golden({
+        filtering: goldenScenario({ categories: { scripting: 20, rendering: 0, painting: 0 } }),
+      }),
+      {}
+    );
+
+    assert.ok(!report.includes('heap also not assessed'));
+  });
+});
+
+describe('buildReport -- scenario missing from the baseline entirely', () => {
+  test('reports it as having no baseline rather than dropping it silently', () => {
+    // A scenario just added to the suite, or one the median window omitted, is not in
+    // `goldenScenarios` at all. Silently `continue`-ing past it (as the summary table already does)
+    // means it is neither "within tolerance" nor "not assessed" -- it does not appear anywhere.
+    const report = buildReport(
+      {
+        sorting: currentScenario(),
+        filtering: currentScenario(),
+      },
+      golden({ sorting: goldenScenario() }),
+      {}
+    );
+
+    assert.ok(report.includes('No baseline yet'));
+    assert.ok(report.includes('Filtering'));
+  });
+
+  test('does not fold a missing baseline into "Total delta not assessed"', () => {
+    const report = buildReport(
+      {
+        sorting: currentScenario(),
+        filtering: currentScenario(),
+      },
+      golden({ sorting: goldenScenario() }),
+      {}
+    );
+    const noBaselineLine = report.split('\n').find(line => line.includes('No baseline yet'));
+
+    assert.ok(!noBaselineLine.includes('Total delta not assessed'));
+  });
 });
 
 describe('buildReport -- provenance', () => {

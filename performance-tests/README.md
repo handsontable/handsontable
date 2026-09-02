@@ -186,7 +186,9 @@ comparable to the baseline, which is what `CV base` reports. When the second num
 delta beside it is measured against a moving target.
 
 `n/a` means the spread is genuinely unknown, not zero. The baseline spread is absent in golden mode,
-in the self-compare fallback, and whenever the history window is too thin for a median.
+in the self-compare fallback, in the single-run `latest.json` fallback (fewer than
+`MIN_VALID_SNAPSHOTS` qualifying develop snapshots, so `computeMedianSnapshot` returns `null`), and
+whenever the history window is too thin for a median.
 
 ### Thresholds
 
@@ -213,17 +215,21 @@ constant to the knee of its curve.
 
 ### What the report refuses to publish
 
-A percentage is withheld, and rendered as `baseline incomplete`, when the comparison cannot support
-one:
+A percentage is withheld when the comparison cannot support one. The label names the cause --
+`baseline incomplete`, `capture incomplete`, or `window mismatch` -- and the reasons are:
 
-- The baseline recorded zero for an active category that the current run did record. That is a
-  failed capture, not a cheap operation, and dividing into it is what produced the `+115.7%`
-  regressions this reporting layer was rewritten to stop.
-- The two sides were measured through different trace windows (`windowSource` disagrees). After the
-  measurement fix this is a safety net rather than a common case.
+- The baseline recorded zero for an active category that the current run did record
+  (`baseline incomplete`). That is a failed capture, not a cheap operation, and dividing into it is
+  what produced the `+115.7%` regressions this reporting layer was rewritten to stop.
+- This run recorded zero for an active category that the baseline did record (`capture incomplete`).
+  The mirror case: a capture failure on this run's side is no more supportable than one on the
+  baseline's, and would otherwise publish a fake win a reader cannot tell from a real one.
+- The two sides were measured through different trace windows (`windowSource` disagrees, rendered
+  `window mismatch`). After the measurement fix this is a safety net rather than a common case.
 
-Such a scenario is listed under "Not assessed" rather than folded into "within tolerance": it was
-neither cleared nor flagged, and the comment says so.
+Such a scenario is listed under "Not assessed" in the HTML report (the markdown comment says "Total
+delta not assessed") rather than folded into "within tolerance": it was neither cleared nor flagged,
+and the comment says so.
 
 The **Trace window** row is informational and never coloured. After the measurement fix it is
 mark-to-mark harness wall clock, which on the scroll scenarios is 500 sequential wheel round trips

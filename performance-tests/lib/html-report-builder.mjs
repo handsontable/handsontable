@@ -183,6 +183,10 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
   // against was not cleared, and a dashboard that shows it beside the genuinely flat ones is the
   // same "assessed by omission" failure the withheld delta exists to prevent.
   const notAssessed = scenarios.filter(s => s.notAssessed).length;
+  // A scenario the baseline does not contain at all (new, or omitted by the median window) is not
+  // flat against a baseline -- there is nothing to be flat against. Without its own bucket it falls
+  // into the Neutral remainder below, claiming the one thing not known about it.
+  const noBaseline = scenarios.filter(s => !s.hasBaseline).length;
 
   return {
     meta: {
@@ -217,7 +221,8 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
       regressions,
       improvements,
       notAssessed,
-      neutral: scenarios.length - regressions - improvements - notAssessed,
+      noBaseline,
+      neutral: scenarios.length - regressions - improvements - notAssessed - noBaseline,
     },
     hasBaseline: hasGolden,
     scenarios,
@@ -671,8 +676,11 @@ a:hover { text-decoration: underline; }
 .metrics-table .bold { font-weight: 600; }
 .metrics-table .num { font-variant-numeric: tabular-nums; text-align: right; }
 /* Not scoped to .metrics-table: the baseline-spread note in a card header carries this class too,
-   and a table-only rule made that flag a silent no-op. */
+   and a table-only rule made that flag a silent no-op. The card-header rule below beats
+   .card-header .baseline-spread (two classes) on specificity, so the warning colour actually wins
+   there instead of just the bold weight. */
 .cv-warn { color: #cf222e; font-weight: 600; }
+.card-header .baseline-spread.cv-warn { color: #cf222e; }
 
 /* Hook timing */
 .hook-timing {
@@ -780,6 +788,9 @@ function buildScript() {
     if (data.summary.notAssessed > 0) {
       dash.appendChild(counterCard(data.summary.notAssessed, 'Not assessed', 'unknown'));
     }
+    if (data.summary.noBaseline > 0) {
+      dash.appendChild(counterCard(data.summary.noBaseline, 'No baseline', 'unknown'));
+    }
     return dash;
   }
 
@@ -809,6 +820,10 @@ function buildScript() {
     // Neutral -- less discoverable than before, not more.
     if (data.summary.notAssessed > 0) {
       filters.push(['notAssessed', 'Not assessed']);
+    }
+
+    if (data.summary.noBaseline > 0) {
+      filters.push(['noBaseline', 'No baseline']);
     }
 
     for (const [mode, text] of filters) {
@@ -880,13 +895,15 @@ function buildScript() {
     } else if (filterMode === 'improvement') {
       list = list.filter(s => s.status === 'improvement');
     } else if (filterMode === 'neutral') {
-      // Excludes the not-assessed, matching the counter card of the same name. Without this the
-      // Neutral list is longer than the Neutral count, and a scenario nothing could be said about
-      // reads as one that was checked and cleared.
+      // Excludes the not-assessed and the no-baseline scenarios, matching the counter card of the
+      // same name. Without this the Neutral list is longer than the Neutral count, and a scenario
+      // nothing could be said about reads as one that was checked and cleared.
       list = list.filter(s => !s.isRegression && s.status !== 'regression'
-        && s.status !== 'improvement' && !s.notAssessed);
+        && s.status !== 'improvement' && !s.notAssessed && s.hasBaseline);
     } else if (filterMode === 'notAssessed') {
       list = list.filter(s => s.notAssessed);
+    } else if (filterMode === 'noBaseline') {
+      list = list.filter(s => !s.hasBaseline);
     }
 
     // Sort
