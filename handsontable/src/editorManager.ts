@@ -9,6 +9,7 @@ import { getEditorInstance } from './editors/registry';
 import { EDITOR_STATE } from './editors/baseEditor';
 import type { BaseEditor } from './editors/baseEditor';
 import EventManager from './eventManager';
+import { colToPropOrIndex } from './helpers/columnProp';
 
 /**
  * Manages the lifecycle of cell editors — opening, closing, and delegating keyboard events to
@@ -264,9 +265,11 @@ class EditorManager {
     // the table's viewport.
     if (td) {
       const editorClass = this.hot.getCellEditor(this.cellProperties);
-      // The cell is rendered, so the column resolves; the fallback keeps the editor receiving the
-      // index for the column it was already given before `colToProp()` began answering `null`.
-      const prop = this.hot.colToProp(visualColumnToCheck) ?? visualColumnToCheck;
+      // Keeps the editor receiving the column reference it was already given before `colToProp()`
+      // began answering `null`. An unbound column (`{ data: null }`) has always reached `prepare()`
+      // as `null`; its signature declares `string | number`, so the cast keeps that long-standing
+      // mismatch here instead of widening the editor contract in this PR.
+      const prop = colToPropOrIndex(this.hot, visualColumnToCheck) as string | number;
       const originalValue =
         this.hot.getSourceDataAtCell(this.hot.toPhysicalRow(visualRowToCheck), visualColumnToCheck);
 

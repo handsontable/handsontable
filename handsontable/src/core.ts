@@ -86,6 +86,7 @@ import type { default as EditorManagerInstance } from './editorManager';
 import type { BaseEditor } from './editors/baseEditor';
 import type { default as MetaManagerInstance } from './dataMap/metaManager';
 import DataMap from './dataMap/dataMap';
+import { colToPropOrIndex } from './helpers/columnProp';
 
 let activeGuid: string | null = null;
 
@@ -2471,14 +2472,11 @@ export default function Core(
       // setDataAtCell validates that column is numeric above (throws if not number).
       const visualColumnIndex = typeof visualColumn === 'number' ? visualColumn : 0;
 
-      const resolvedProp = visualColumnIndex >= this.countCols()
-        ? null
-        : datamap.colToProp(visualColumnIndex);
-
       // An index that names no column keeps reaching `beforeChange` / `afterChange` as the index
       // itself, the way it always has — those payloads are a public contract, and `null` there
-      // would say "no column" for a change the caller can see landing.
-      prop = resolvedProp === null ? visualColumnIndex : resolvedProp;
+      // would say "no column" for a change the caller can see landing. An unbound column keeps
+      // its `null` property instead, so the write does not land on a neighbour's source field.
+      prop = colToPropOrIndex(instance, visualColumnIndex) as string | number;
 
       changes.push([
         visualRow,
@@ -3437,7 +3435,7 @@ export default function Core(
    * @returns {string}
    */
   this.getCopyableData = function(row: number, column: number) {
-    return datamap.getCopyable(row, datamap.colToProp(column) ?? column) as string;
+    return datamap.getCopyable(row, colToPropOrIndex(instance, column)) as string;
   };
 
   /**
@@ -3451,7 +3449,7 @@ export default function Core(
    * @returns {string}
    */
   this.getCopyableSourceData = function(row: number, column: number) {
-    return dataSource.getCopyable(row, datamap.colToProp(column) ?? column) as string;
+    return dataSource.getCopyable(row, colToPropOrIndex(instance, column)) as string;
   };
 
   /**
@@ -4230,7 +4228,7 @@ export default function Core(
    * @returns {*} Data at cell.
    */
   this.getDataAtCell = function(row: number, column: number) {
-    return datamap.get(row, datamap.colToProp(column) ?? column);
+    return datamap.get(row, colToPropOrIndex(instance, column));
   };
 
   /**

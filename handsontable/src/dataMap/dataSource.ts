@@ -361,12 +361,19 @@ class DataSource {
    */
   getAtCell(row: number, columnOrProp: number | string | DataAccessorFn): unknown {
     const dataRow = this.modifyRowData(row);
-    // Falls back to the index for a column `colToProp()` cannot resolve, so a source read past
-    // `countCols()` reaches the stored value as it did before, and `modifySourceData` keeps
-    // receiving a column address rather than `null`.
-    const prop = typeof columnOrProp === 'function'
-      ? columnOrProp
-      : this.colToProp(columnOrProp) ?? columnOrProp;
+    let prop: unknown = columnOrProp;
+
+    if (typeof columnOrProp !== 'function') {
+      prop = this.colToProp(columnOrProp);
+
+      // An index that names no column falls back to the index, so a source read past
+      // `countCols()` reaches the stored value as it did before, and `modifySourceData` keeps
+      // receiving a column address rather than `null`. A column that exists but is unbound
+      // (`{ data: null }`) keeps its `null` property — the index would name a neighbour's field.
+      if (prop === null && this.hot!.toPhysicalColumn(columnOrProp as number) === null) {
+        prop = columnOrProp;
+      }
+    }
 
     return this.getAtPhysicalCell(row, prop as number | string | DataAccessorFn, dataRow);
   }

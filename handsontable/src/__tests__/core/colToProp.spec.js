@@ -140,4 +140,22 @@ describe('Core.colToProp', () => {
 
     expect(seen[seen.length - 1]).toEqual([0, 1, 0, 1]);
   });
+
+  it('should keep an unbound column unbound', async() => {
+    handsontable({
+      data: [['first', 'second']],
+      columns: [{ data: 1 }, { data: null }],
+    });
+
+    // `{ data: null }` declares a column with no source binding — the sparkline recipe ships one.
+    // `colToProp()` answers `null` for it, and that `null` means "no property", not "no column".
+    // Substituting the index would bind the column to the source field column 0 already reads.
+    expect(colToProp(1)).toBe(null);
+    expect(getDataAtCell(0, 1)).toBe(null);
+
+    await setDataAtCell(0, 1, 'CHANGED');
+
+    expect(getDataAtCell(0, 0)).toBe('second');
+    expect(getSourceDataAtRow(0)).toEqual(['first', 'second']);
+  });
 });
