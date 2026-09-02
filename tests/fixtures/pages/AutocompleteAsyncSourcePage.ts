@@ -11,6 +11,7 @@ interface EditorFixture {
 
 interface HandsontableFixture {
   getSelected(): number[][] | undefined;
+  getDataAtCell(row: number, column: number): unknown;
   getActiveEditor(): EditorFixture | undefined;
   isListening(): boolean;
   scrollViewportTo(options: { row: number, verticalSnap: string }): void;
@@ -42,6 +43,7 @@ interface PageOptions {
   editor?: 'autocomplete' | 'dropdown';
   scenario?: 'plain' | 'scroll' | 'ordering';
   validator?: 'none' | 'slowAsync';
+  strict?: boolean;
 }
 
 /**
@@ -59,6 +61,7 @@ export class AutocompleteAsyncSourcePage {
   readonly editor: string;
   readonly scenario: string;
   readonly validator: string;
+  readonly strict: boolean;
   readonly outsideInput: Locator;
 
   constructor(page: Page, theme = 'main', bundle = 'umd', options: PageOptions = {}) {
@@ -68,6 +71,7 @@ export class AutocompleteAsyncSourcePage {
     this.editor = options.editor ?? 'autocomplete';
     this.scenario = options.scenario ?? 'plain';
     this.validator = options.validator ?? 'none';
+    this.strict = options.strict ?? false;
     this.outsideInput = page.getByTestId('outside-input');
   }
 
@@ -76,7 +80,8 @@ export class AutocompleteAsyncSourcePage {
    */
   async goto(): Promise<void> {
     const query = `theme=${this.theme}&bundle=${this.bundle}` +
-      `&editor=${this.editor}&scenario=${this.scenario}&validator=${this.validator}`;
+      `&editor=${this.editor}&scenario=${this.scenario}&validator=${this.validator}` +
+      `&strict=${this.strict}`;
 
     await this.page.goto(`/tests/fixtures/demo/autocomplete-async-source.html?${query}`);
 
@@ -360,5 +365,18 @@ export class AutocompleteAsyncSourcePage {
    */
   async selected(): Promise<number[][] | undefined> {
     return this.page.evaluate(() => (window as unknown as FixtureWindow).hot.getSelected());
+  }
+
+  /**
+   * Returns a cell's COMMITTED value, read from the dataset rather than the rendered text.
+   *
+   * The editor's own element keeps the typed string, so reading the DOM cannot tell a value that
+   * reached the dataset apart from one still sitting in the textarea.
+   */
+  async cellValue(row: number, col: number): Promise<unknown> {
+    return this.page.evaluate(
+      ([r, c]) => (window as unknown as FixtureWindow).hot.getDataAtCell(r, c),
+      [row, col],
+    );
   }
 }

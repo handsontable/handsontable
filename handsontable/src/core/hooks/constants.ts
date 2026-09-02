@@ -3190,7 +3190,7 @@ export const REGISTERED_HOOKS = [
    * whose content size depends on the viewport that is being computed (for example, merged cells) opts
    * out this way; user code can also return `false` to disable single-pass rendering.
    *
-   * @since 18.0.0
+   * @since 18.1.0
    * @event Hooks#modifySinglePassLayout
    * @param {boolean} singlePassLayout `true` when single-pass rendering is currently enabled.
    * @returns {boolean|void} Return `false` to force the legacy measure-then-render path.

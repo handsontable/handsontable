@@ -15,8 +15,8 @@ import { SourceDataValidatorPage } from '../fixtures/pages/SourceDataValidatorPa
 test.describe('sourceDataValidator cell address', () => {
   let grid: SourceDataValidatorPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new SourceDataValidatorPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new SourceDataValidatorPage(page, theme, bundle);
     await grid.goto();
   });
 

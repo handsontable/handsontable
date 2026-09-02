@@ -567,8 +567,9 @@ class EditorManager {
    * That the selection does not follow bounds what the rebind can promise, and the boundary is worth
    * stating precisely. A plain text commit reads `this.row`/`this.col` and lands on the right record.
    * Two paths do not: an editor whose `finishEditing()` vetoes on a moved range rewrites the commit
-   * into a discard (`DropdownEditor`, and the `date`, `autocomplete` and `handsontable` types built
-   * on it), and a Ctrl+Enter commit reads the SELECTION corners rather than the editor's coordinates
+   * into a discard (`DropdownEditor` only - `autocomplete` lost that override when #12285 moved it
+   * down, and `date` is built on `TextEditor`, not on this line at all), and a Ctrl+Enter commit
+   * reads the SELECTION corners rather than the editor's coordinates
    * (`BaseEditor#saveValue()`). On both the edit is lost rather than misplaced – which is what this
    * method exists to guarantee, and strictly better than the row-appending corruption they produced
    * before it – but the value does not survive. Making it survive means moving the selection with the
@@ -584,12 +585,14 @@ class EditorManager {
    * there is no record left to follow. Discarding is what keeps a following `Filters#filter()` from
    * committing through those coordinates and appending records.
    *
-   * Two further limits. An index-map change does NOT adjust the selection – `core.ts` calls
-   * `selection.commit()` only for `hiddenIndexesChanged` – so the highlight can be left past the last
-   * row, and typing into it grows the data set. That is reachable with no editor involved at all and
-   * is a separate defect; this method does not paper over it. And an editor parked in `WAITING` is
-   * not reconciled: `finishEditing()` has already run `saveValue()` by then, so there is nothing
-   * left to redirect.
+   * Two further limits. The selection is repaired separately and on a different rule: `core.ts`
+   * DROPS a selection a trimming map left pointing at another record (`Selection#
+   * deselectIfHighlightStranded()`), rather than moving it, and it skips that repair entirely while
+   * an editor is open – so with an editor in play the rebind here is the only thing acting, exactly
+   * as before. One shape stays open on the selection side, with no editor involved: a trim ABOVE
+   * the highlight that leaves its coordinate in range while shifting the record out from under it.
+   * And an editor parked in `WAITING` is not reconciled: `finishEditing()` has already run
+   * `saveValue()` by then, so there is nothing left to redirect.
    *
    * No core plugin registers a TRIMMING map on the column axis, so that half runs for user-registered
    * maps only; core plugins do permute the column sequence (`manualColumnMove`, `manualColumnFreeze`)
@@ -696,9 +699,18 @@ class EditorManager {
    *
    * The edit is finished rather than cancelled, which for most editors means it is COMMITTED - the
    * same outcome clicking the pager already produces, since that is an outside click and therefore
-   * deselects. The final say belongs to the editor: `DropdownEditor#finishEditing()` rewrites the
-   * flag to a discard when the active range no longer contains the edited cell, and
-   * `selection.commit()` runs before these hooks, so a dropdown can legitimately discard here.
+   * deselects. The final say still belongs to the editor: `DropdownEditor#finishEditing()` rewrites
+   * the flag to a discard when the active range no longer contains the edited cell. On THIS path it
+   * does not fire - `core.ts` calls `selection.commit()` for a hiding change, and that re-derives
+   * the highlights without moving the range, so the range still contains the edited cell (measured
+   * over 600 runs while chasing DEV-2676). A deselect from any other source still makes it fire.
+   *
+   * DEV-2676 was mistaken for that veto and was not it: the value lost here came from
+   * `AutocompleteEditor`'s choice list, whose highlight is moved by a query deferred 10 ms behind
+   * the keystrokes, so a commit forced inside that window read the match for the PREVIOUS keystroke
+   * and `HandsontableEditor#finishEditing()` copied it over the typed text. The editors now refuse
+   * a stale match (`canCommitInnerSelection()`), so this path commits what was typed.
+   *
    * Where the commit is REJECTED - a validator returned `false` under `allowInvalid: false`, which
    * re-selects the hidden cell and restores `EDITING` - the edit is reverted instead, because an
    * editor surviving on a cell the user cannot see is the bug being fixed.

@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { dragResizeHandle } from '../gestures';
 
 /**
  * Page Object for the manual resize vs size option fixture (issue #4371).
@@ -70,22 +71,7 @@ export class ManualResizeSizeOptionResetPage {
 
     await expect(handle).toBeVisible();
 
-    const box = await handle.boundingBox();
-
-    if (!box) {
-      throw new Error('The row resize handle has no layout box.');
-    }
-
-    const x = box.x + (box.width / 2);
-    const y = box.y + (box.height / 2);
-
-    await this.page.mouse.move(x, y);
-    await this.page.mouse.down();
-    // Several moves, because the plugin tracks the drag through `mousemove` and a single jump can
-    // be swallowed as a click.
-    await this.page.mouse.move(x, y + (deltaY / 2));
-    await this.page.mouse.move(x, y + deltaY);
-    await this.page.mouse.up();
+    await dragResizeHandle(this.page, handle, { y: deltaY });
   }
 
   /**
@@ -106,20 +92,7 @@ export class ManualResizeSizeOptionResetPage {
 
     await expect(handle).toBeVisible();
 
-    const box = await handle.boundingBox();
-
-    if (!box) {
-      throw new Error('The column resize handle has no layout box.');
-    }
-
-    const x = box.x + (box.width / 2);
-    const y = box.y + (box.height / 2);
-
-    await this.page.mouse.move(x, y);
-    await this.page.mouse.down();
-    await this.page.mouse.move(x + (deltaX / 2), y);
-    await this.page.mouse.move(x + deltaX, y);
-    await this.page.mouse.up();
+    await dragResizeHandle(this.page, handle, { x: deltaX });
   }
 
   /**

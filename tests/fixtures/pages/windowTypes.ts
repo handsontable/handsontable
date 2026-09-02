@@ -159,6 +159,18 @@ declare global {
     initSelectionGrid(overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the mobile drag-to-scroll fixture grid with the given setting overrides. */
     initMobileGrid(overrides?: Record<string, unknown>): boolean;
+    /** Rebuilds the fragmentSelection fixture grid with the given setting overrides. */
+    initFragmentSelectionGrid(overrides?: Record<string, unknown>): boolean;
+    /** Returns the text the browser currently reports as selected (fragmentSelection fixture). */
+    readTextSelection(): string;
+    /** Drops any existing text selection (fragmentSelection fixture). */
+    clearTextSelection(): boolean;
+    /** Reports whether a selection border, a cell, or neither is under a point (fragmentSelection fixture). */
+    elementUnder(x: number, y: number): string;
+    /** Resets the count of mouse moves that landed on a selection border (fragmentSelection fixture). */
+    resetBorderMoveCount(): boolean;
+    /** Returns how many mouse moves landed on a selection border since the reset (fragmentSelection fixture). */
+    getBorderMoveCount(): number;
     /** Recorded moveCells hook calls for the current grid instance. */
     moveCellsHookLog: MoveCellsHookRecord[];
     /** Recorded NestedRows collapse/expand hook calls, in firing order. */

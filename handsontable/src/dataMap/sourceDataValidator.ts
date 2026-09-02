@@ -8,26 +8,15 @@ import { stringify } from '../helpers/mixed';
 
 type InvalidItems = Map<string, Array<{ row: number; col: number; value: unknown; message?: string }>>;
 
-type ColumnValidator = {
+type ColumnMapping = {
   physicalColumn: number;
-  prop: string | number | DataAccessorFn;
-  cellMeta: CellProperties;
+  visualColumn: number;
+  sourceColumn: string | number | DataAccessorFn;
 };
 
-/**
- * Resolves the source address of a physical column – the key or index the value actually lives
- * under, which is what `columns[].data` remaps and what a moved column keeps.
- *
- * `colToProp()` takes a *visual* index, so the physical one has to be translated first. A column
- * with no visual index (trimmed) has no address here; callers skip those before asking.
- *
- * @param {HotInstance} hotInstance The Handsontable instance.
- * @param {number} visualColumn Visual column index.
- * @returns {string|number|Function} The property, source index, or `columns[].data` accessor.
- */
-function resolveProp(hotInstance: HotInstance, visualColumn: number): string | number | DataAccessorFn {
-  return hotInstance.colToProp(visualColumn) as string | number | DataAccessorFn;
-}
+type ColumnValidator = ColumnMapping & {
+  cellMeta: CellProperties;
+};
 
 /**
  * Runs source-data validator for a single cell.
@@ -67,7 +56,7 @@ export function runSourceDataValidator(value: unknown, cellMeta: CellProperties,
  * @param {unknown} value The source value to validate.
  * @param {number} physicalRow The physical row index.
  * @param {number} physicalColumn The physical column index, used for the aggregated warning.
- * @param {string|number|Function} prop The column's source address, used to read and to blank.
+ * @param {string|number|Function} sourceColumn The column's source address, used to blank the value.
  * @param {object} dataSource The data source used to blank invalid values.
  * @param {Map} invalidByMessageType The accumulator of invalid entries keyed by warning message.
  * @param {string} [source] The source identifier of the operation.
@@ -78,7 +67,7 @@ function validateSourceCell(
   value: unknown,
   physicalRow: number,
   physicalColumn: number,
-  prop: string | number | DataAccessorFn,
+  sourceColumn: string | number | DataAccessorFn,
   dataSource: DataSource,
   invalidByMessageType: InvalidItems,
   source?: string
@@ -98,7 +87,7 @@ function validateSourceCell(
   if (cellMeta.allowInvalid === false) {
     // Blanked at the same address the value was read from. Passing the physical column here
     // instead cleared a different cell whenever `columns[].data` remapped the source indexes.
-    dataSource.setAtCell(physicalRow, prop, null);
+    dataSource.setAtCell(physicalRow, sourceColumn, null);
   }
 
   const message = cellMeta.sourceDataWarningMessage;
@@ -112,6 +101,41 @@ function validateSourceCell(
 }
 
 /**
+ * Resolves the source, physical, and visual coordinate mapping once for every non-trimmed column.
+ *
+ * `sourceColumn` is the address the value actually lives under — the key or index that
+ * `columns[].data` remaps and that a moved column keeps. `colToProp()` takes a *visual* index, so
+ * the physical one has to be translated first. A trimmed column has no visual index, and no
+ * address here.
+ *
+ * @param {HotInstance} hotInstance The Handsontable instance.
+ * @param {number} colSourceCount The number of physical source columns.
+ * @returns {Array} The resolved column mappings.
+ */
+function collectColumnMappings(
+  hotInstance: HotInstance,
+  colSourceCount: number
+): ColumnMapping[] {
+  const columns: ColumnMapping[] = [];
+
+  for (let physicalColumn = 0; physicalColumn < colSourceCount; physicalColumn += 1) {
+    const visualColumn = hotInstance.columnIndexMapper.getVisualFromPhysicalIndex(physicalColumn);
+
+    if (visualColumn !== null) {
+      columns.push({
+        physicalColumn,
+        visualColumn,
+        // A `columns[].data` accessor comes back as the function itself, which owns both the read
+        // and the write.
+        sourceColumn: hotInstance.colToProp(visualColumn) as string | number | DataAccessorFn,
+      });
+    }
+  }
+
+  return columns;
+}
+
+/**
  * Inspects column-level meta (one uncached sample per column, O(cols)) to decide how source-data
  * validation should run. Meta is resolved through `getCellMetaUncached`, so the sample reflects the
  * global and column layers only — the `cells` function and the `before`/`afterGetCellMeta` hooks are
@@ -121,22 +145,19 @@ function validateSourceCell(
  * any column carries a validator that may depend on per-row meta.
  *
  * @param {HotInstance} hotInstance The Handsontable instance.
- * @param {number} colSourceCount The number of physical source columns.
+ * @param {Array} columnMappings The source, physical, and visual coordinate mapping for non-trimmed columns.
  * @returns {object} `{ fullScan, columns }` — when `fullScan` is `true`, `columns` is empty.
  */
 function collectColumnValidators(
   hotInstance: HotInstance,
-  colSourceCount: number
+  columnMappings: ColumnMapping[]
 ): { fullScan: boolean; columns: ColumnValidator[] } {
   const metaManager = hotInstance._getMetaManager();
   const columns: ColumnValidator[] = [];
 
-  for (let physicalColumn = 0; physicalColumn < colSourceCount; physicalColumn += 1) {
-    const visualColumn = hotInstance.columnIndexMapper.getVisualFromPhysicalIndex(physicalColumn);
-
-    if (visualColumn === null) {
-      continue;
-    }
+  for (let i = 0; i < columnMappings.length; i += 1) {
+    const columnMapping = columnMappings[i];
+    const { physicalColumn, visualColumn } = columnMapping;
 
     const cellMeta = metaManager
       .getCellMetaUncached(0, physicalColumn, { visualRow: 0, visualColumn });
@@ -152,7 +173,7 @@ function collectColumnValidators(
       return { fullScan: true, columns: [] };
     }
 
-    columns.push({ physicalColumn, prop: resolveProp(hotInstance, visualColumn), cellMeta });
+    columns.push({ ...columnMapping, cellMeta });
   }
 
   return { fullScan: false, columns };
@@ -168,7 +189,7 @@ function collectColumnValidators(
  * @param {HotInstance} hotInstance The Handsontable instance.
  * @param {DataSource} dataSource The data source.
  * @param {number} rowSourceCount The number of physical source rows.
- * @param {number} colSourceCount The number of physical source columns.
+ * @param {Array} columnMappings The source, physical, and visual coordinate mapping for non-trimmed columns.
  * @param {Map} invalidByMessageType The accumulator of invalid entries keyed by warning message.
  * @param {string} [source] The source identifier of the operation.
  * @returns {void}
@@ -177,30 +198,31 @@ function validatePerCell(
   hotInstance: HotInstance,
   dataSource: DataSource,
   rowSourceCount: number,
-  colSourceCount: number,
+  columnMappings: ColumnMapping[],
   invalidByMessageType: InvalidItems,
   source?: string
 ): void {
-  const { rowIndexMapper, columnIndexMapper } = hotInstance;
+  const { rowIndexMapper } = hotInstance;
   const metaManager = hotInstance._getMetaManager();
 
   for (let row = 0; row < rowSourceCount; row += 1) {
+    const visualRow = rowIndexMapper.getVisualFromPhysicalIndex(row);
+
+    if (visualRow === null) {
+      continue;
+    }
+
     // The row representation depends on the row alone, so it is resolved at most once per row
     // instead of once per column — `modifyRowData` runs a hook, and rows with no validated cell
     // must not pay for it at all.
-    let dataRow;
+    let dataRow: unknown = null;
     let hasDataRow = false;
 
-    for (let col = 0; col < colSourceCount; col += 1) {
-      const visualRow = rowIndexMapper.getVisualFromPhysicalIndex(row);
-      const visualColumn = columnIndexMapper.getVisualFromPhysicalIndex(col);
-
-      if (visualRow === null || visualColumn === null) {
-        continue;
-      }
+    for (let i = 0; i < columnMappings.length; i += 1) {
+      const { physicalColumn, visualColumn, sourceColumn } = columnMappings[i];
 
       const cellMeta = metaManager
-        .getCellMetaUncached(row, col, { visualRow, visualColumn });
+        .getCellMetaUncached(row, physicalColumn, { visualRow, visualColumn });
 
       if (!isFunction(cellMeta.sourceDataValidator)) {
         continue;
@@ -211,12 +233,13 @@ function validatePerCell(
         hasDataRow = true;
       }
 
-      // The prop is the source address of this physical column; `getAtCell()` would resolve `col`
-      // as a *visual* index and read another column whenever the two differ.
-      const prop = resolveProp(hotInstance, visualColumn);
-      const value = dataSource.getAtSourceProp(row, prop, dataRow);
+      // Read by the column's source address; `getAtCell()` would resolve it as a *visual* index
+      // and reach another column whenever the two differ.
+      const value = dataSource.getAtSourceProp(row, sourceColumn, dataRow);
 
-      validateSourceCell(cellMeta, value, row, col, prop, dataSource, invalidByMessageType, source);
+      validateSourceCell(
+        cellMeta, value, row, physicalColumn, sourceColumn, dataSource, invalidByMessageType, source
+      );
     }
   }
 }
@@ -256,11 +279,13 @@ function validateBatched(
     const dataRow = dataSource.modifyRowData(row);
 
     for (let i = 0; i < columns.length; i += 1) {
-      const { physicalColumn, prop, cellMeta } = columns[i];
+      const { physicalColumn, sourceColumn, cellMeta } = columns[i];
       // Read by the column's source address, for the same reason as in `validatePerCell()`.
-      const value = dataSource.getAtSourceProp(row, prop, dataRow);
+      const value = dataSource.getAtSourceProp(row, sourceColumn, dataRow);
 
-      validateSourceCell(cellMeta, value, row, physicalColumn, prop, dataSource, invalidByMessageType, source);
+      validateSourceCell(
+        cellMeta, value, row, physicalColumn, sourceColumn, dataSource, invalidByMessageType, source
+      );
     }
   }
 }
@@ -312,7 +337,8 @@ export function runSourceDataValidators(hotInstance: HotInstance, source?: strin
   const settings = hotInstance.getSettings();
   const dataSource = hotInstance._getDataSource();
   const invalidByMessageType: InvalidItems = new Map();
-  const { fullScan, columns } = collectColumnValidators(hotInstance, colSourceCount);
+  const columnMappings = collectColumnMappings(hotInstance, colSourceCount);
+  const { fullScan, columns } = collectColumnValidators(hotInstance, columnMappings);
   const hasStoredMeta = hasStoredPerCellMeta(hotInstance, settings);
 
   // Nothing carries (or could carry) a source-data validator — skip the scan entirely.
@@ -321,7 +347,7 @@ export function runSourceDataValidators(hotInstance: HotInstance, source?: strin
   }
 
   if (fullScan || hasStoredMeta) {
-    validatePerCell(hotInstance, dataSource, rowSourceCount, colSourceCount, invalidByMessageType, source);
+    validatePerCell(hotInstance, dataSource, rowSourceCount, columnMappings, invalidByMessageType, source);
   } else {
     const toVisualRow = (row: number) => hotInstance.rowIndexMapper.getVisualFromPhysicalIndex(row);
 

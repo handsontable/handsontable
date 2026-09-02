@@ -12,16 +12,16 @@ import { runSourceDataValidators } from '../sourceDataValidator';
  * @param {Function} [options.validator] The `sourceDataValidator` placed on every resolved cell meta.
  * @param {boolean} [options.allowInvalid] The `allowInvalid` meta value.
  * @param {object} [options.settings] The settings returned by `getSettings`.
- * @param {Function} [options.getValue] Maps `(row, prop)` to a source value.
+ * @param {Function} [options.getValue] Maps `(row, col)` to a source value.
  * @param {Function} [options.toVisualRow] Maps a physical row to its visual index (or `null`).
- * @param {Function} [options.colToProp] Maps a visual column to its source address. Defaults to the
- *   identity, which is what an array-of-arrays grid with no `columns` setting does.
+ * @param {Function} [options.toVisualColumn] Maps a physical column to its visual index (or `null`).
+ * @param {Function} [options.colToProp] Maps a visual column to its source property.
  * @param {Array} [options.userDefinedCellMetas] Imperatively-set cell metas (`setCellMeta`) to report.
  * @returns {object} The mock and its spies.
  */
 function createMockHot({
   rows, cols, validator, allowInvalid, settings = {}, getValue, toVisualRow = row => row,
-  colToProp = column => column, userDefinedCellMetas = [],
+  toVisualColumn = col => col, colToProp = col => col, userDefinedCellMetas = [],
 } = {}) {
   const getCellMetaUncached = jest.fn((physicalRow, physicalColumn, { visualRow, visualColumn }) => {
     const meta = {
@@ -42,26 +42,32 @@ function createMockHot({
 
     return meta;
   });
-  // Reads go through the prop, exactly as the source data itself is keyed — never through a
-  // visual column index, which `columns[].data` and a column move both detach from the address.
-  const getAtSourceProp = jest.fn((row, prop) => (getValue ? getValue(row, prop) : `${row}-${prop}`));
+  const getAtCell = jest.fn((row, col) => (getValue ? getValue(row, col) : `${row}-${col}`));
+  const modifyRowData = jest.fn(row => ({ row }));
+  const getAtPhysicalCell = jest.fn((row, col) => getAtCell(row, col));
+  // Mirrors the real `DataSource#getAtSourceProp`, which is the validator's only read entry point
+  // and delegates to the `@private` `getAtPhysicalCell`, resolving the row itself when not given one.
+  const getAtSourceProp = jest.fn((row, prop, dataRow) => getAtPhysicalCell(
+    row, prop, dataRow === undefined ? modifyRowData(row) : dataRow
+  ));
   const setAtCell = jest.fn();
-  const modifyRowData = jest.fn(row => `row-${row}`);
   const hot = {
     countSourceRows: () => rows,
     countSourceCols: () => cols,
     getSettings: () => settings,
-    colToProp: jest.fn(colToProp),
-    _getDataSource: () => ({ getAtSourceProp, setAtCell, modifyRowData }),
+    _getDataSource: () => ({ modifyRowData, getAtPhysicalCell, getAtSourceProp, setAtCell }),
+    colToProp,
     rowIndexMapper: { getVisualFromPhysicalIndex: toVisualRow },
-    columnIndexMapper: { getVisualFromPhysicalIndex: col => col },
+    columnIndexMapper: { getVisualFromPhysicalIndex: toVisualColumn },
     _getMetaManager: () => ({
       getCellMetaUncached,
       getUserDefinedCellMetas: () => userDefinedCellMetas,
     }),
   };
 
-  return { hot, getCellMetaUncached, getAtSourceProp, setAtCell, modifyRowData };
+  return {
+    hot, getCellMetaUncached, getAtCell, getAtPhysicalCell, getAtSourceProp, modifyRowData, setAtCell,
+  };
 }
 
 /**
@@ -121,19 +127,19 @@ describe('runSourceDataValidators', () => {
   });
 
   it('should skip the row scan entirely when no validator is configured', () => {
-    const { hot, getCellMetaUncached, getAtSourceProp } = createMockHot({ rows: 1000, cols: 8 });
+    const { hot, getCellMetaUncached, getAtCell } = createMockHot({ rows: 1000, cols: 8 });
 
     runSourceDataValidators(hot, 'init');
 
     // Only the per-column sample — no per-cell work.
     expect(getCellMetaUncached).toHaveBeenCalledTimes(8);
-    expect(getAtSourceProp).not.toHaveBeenCalled();
+    expect(getAtCell).not.toHaveBeenCalled();
   });
 
   it('should skip the scan when a `cells` function is configured but no validator exists', () => {
     // The regression from the forum report: a `cells` function must NOT force full-dataset meta
     // resolution when nothing carries a source-data validator.
-    const { hot, getCellMetaUncached, getAtSourceProp } = createMockHot({
+    const { hot, getCellMetaUncached, getAtCell } = createMockHot({
       rows: 30000,
       cols: 20,
       settings: { cells: () => ({ className: 'x' }) },
@@ -143,7 +149,7 @@ describe('runSourceDataValidators', () => {
 
     // Only the per-column probe runs — the 600k-cell scan is skipped.
     expect(getCellMetaUncached).toHaveBeenCalledTimes(20);
-    expect(getAtSourceProp).not.toHaveBeenCalled();
+    expect(getAtCell).not.toHaveBeenCalled();
   });
 
   it('should NOT force per-cell meta for a `cells` function when the validator is column-level', () => {
@@ -211,7 +217,7 @@ describe('runSourceDataValidators', () => {
   it('should still scan when a `cell` array is present even if the column probe finds no validator', () => {
     // No column validator, but a stored cell might carry one — the scan must run (not skip). With no
     // validator on any cell here it does no validation work, but it must NOT skip the array case.
-    const { hot, getCellMetaUncached, getAtSourceProp } = createMockHot({
+    const { hot, getCellMetaUncached, getAtCell } = createMockHot({
       rows: 20,
       cols: 3,
       settings: { cell: [{ row: 5, col: 1 }] },
@@ -221,7 +227,7 @@ describe('runSourceDataValidators', () => {
 
     expect(getCellMetaUncached).toHaveBeenCalledTimes(3 + (20 * 3));
     // No validator anywhere, so no source value is read.
-    expect(getAtSourceProp).not.toHaveBeenCalled();
+    expect(getAtCell).not.toHaveBeenCalled();
   });
 
   it('should keep the batched path when no `cell` array or imperative meta are present', () => {
@@ -250,9 +256,47 @@ describe('runSourceDataValidators', () => {
     expect(setAtCell).toHaveBeenCalledWith(1, 1, null);
   });
 
-  // `columns: [{ data: 2 }, { data: 3 }]` maps column 0 onto source index 2. The validator used to
-  // read through the visual index and blank through the physical one, so it judged one cell and
-  // cleared another (DEV-2722).
+  it.each([
+    ['batched', true],
+    ['per-cell', false],
+  ])('should translate columns when reading and blanking source values (%s path)', (_path, rowIndependent) => {
+    const validator = makeValidator(rowIndependent, () => false);
+    const toVisualColumn = jest.fn(physicalColumn => 1 - physicalColumn);
+    const colToProp = jest.fn(visualColumn => (visualColumn === 0 ? 'second' : 'first'));
+    const { hot, getAtCell, getAtPhysicalCell, modifyRowData, setAtCell } = createMockHot({
+      rows: 2,
+      cols: 2,
+      validator,
+      allowInvalid: false,
+      toVisualColumn,
+      colToProp,
+    });
+
+    runSourceDataValidators(hot, 'init');
+
+    expect(getAtCell.mock.calls).toEqual([
+      [0, 'first'],
+      [0, 'second'],
+      [1, 'first'],
+      [1, 'second'],
+    ]);
+    expect(getAtPhysicalCell.mock.calls).toEqual([
+      [0, 'first', { row: 0 }],
+      [0, 'second', { row: 0 }],
+      [1, 'first', { row: 1 }],
+      [1, 'second', { row: 1 }],
+    ]);
+    expect(setAtCell.mock.calls).toEqual([
+      [0, 'first', null],
+      [0, 'second', null],
+      [1, 'first', null],
+      [1, 'second', null],
+    ]);
+    expect(modifyRowData).toHaveBeenCalledTimes(2);
+    expect(toVisualColumn).toHaveBeenCalledTimes(2);
+    expect(colToProp).toHaveBeenCalledTimes(2);
+  });
+
   it('should read and blank at the column source address when `columns[].data` remaps it (batched path)', () => {
     const validator = makeValidator(true, value => value !== 'bad');
     const { hot, setAtCell, getAtSourceProp } = createMockHot({
@@ -360,8 +404,8 @@ describe('runSourceDataValidators', () => {
     expect(getAtSourceProp).toHaveBeenCalledTimes(5 * 10);
     expect(modifyRowData).toHaveBeenCalledTimes(5);
     // Every column of a row is read against that row's single representation.
-    expect(getAtSourceProp).toHaveBeenCalledWith(0, 0, 'row-0');
-    expect(getAtSourceProp).toHaveBeenCalledWith(0, 9, 'row-0');
+    expect(getAtSourceProp).toHaveBeenCalledWith(0, 0, { row: 0 });
+    expect(getAtSourceProp).toHaveBeenCalledWith(0, 9, { row: 0 });
   });
 
   it('should run `modifyRowData` once per row on the per-cell path, and skip rows it never reads', () => {
@@ -456,7 +500,7 @@ describe('runSourceDataValidators', () => {
     });
     // Physical rows 1 and 3 are trimmed (no visual index); row 0 stays visible so the column probe
     // still picks the batched path.
-    const { hot, getAtSourceProp } = createMockHot({
+    const { hot, getAtCell } = createMockHot({
       rows: 4,
       cols: 2,
       validator,
@@ -467,7 +511,7 @@ describe('runSourceDataValidators', () => {
     runSourceDataValidators(hot, 'init');
 
     // Only the visible rows (0 and 2) are read and validated.
-    expect(getAtSourceProp).toHaveBeenCalledTimes(2 * 2);
+    expect(getAtCell).toHaveBeenCalledTimes(2 * 2);
     expect(seen.sort()).toEqual(['0:0', '0:1', '2:0', '2:1']);
   });
 

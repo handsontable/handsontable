@@ -57,6 +57,12 @@ export class SourceDataValidatorPage {
       `/tests/fixtures/demo/source-data-validator-address.html?theme=${this.theme}&bundle=${this.bundle}`
     );
 
+    // The uncompressed bundle is several megabytes, and every worker pulls its own copy, so this
+    // wait can outlast the `expect` timeout on a cold or busy server. `waitForFunction` polls
+    // against the test budget instead, and the fixture installs its helper and reports `ready`
+    // in the block right after the bundle's own script.
+    await this.page.waitForFunction(() => 'Handsontable' in window);
+
     await expect(this.status).toHaveText('ready');
   }
 
