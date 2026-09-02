@@ -58,7 +58,8 @@ The full rules live in that skill's `references/architecture.md` — load it for
 ## File layout
 
 ```
-src/plugins/{pluginName}/        index.ts, {pluginName}.ts, types.ts?, __tests__/
+src/plugins/{pluginName}/        index.ts, {pluginName}.ts, types.ts?, __tests__/,
+                                 AGENTS.md + CLAUDE.md->AGENTS.md (required)
 src/editors/{editorName}/        index.ts, {editorName}.ts
 src/renderers/{rendererName}/    index.ts, {rendererName}.ts
 src/validators/{validatorName}/  index.ts, {validatorName}.ts
