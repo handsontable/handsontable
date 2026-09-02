@@ -554,9 +554,9 @@ export const REGISTERED_HOOKS = [
   'afterDataProviderFetchAbort',
 
   /**
-   * Queried to determine if the instance uses an external data source (complete [[Options#dataProvider]] configuration).
+   * Queried to determine if the instance uses an external data source (complete {@link Options#dataProvider} configuration).
    * When the DataProvider plugin is enabled, it adds an instance handler in `enablePlugin()`. Callbacks may return
-   * `true`, `false`, or `undefined`; the value propagates through the hook chain like other [[Hooks#run]] hooks.
+   * `true`, `false`, or `undefined`; the value propagates through the hook chain like in any other hook.
    *
    * @event Hooks#hasExternalDataSource
    * @since 17.1.0
@@ -3009,9 +3009,9 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link Pagination} plugin after changing the page. This hook is fired when
-   * {@link Options#pagination} option is enabled. When a complete [[Options#dataProvider]] configuration
+   * {@link Options#pagination} option is enabled. When a complete {@link Options#dataProvider} configuration
    * handles paging, {@link DataProvider} loads the requested page via `fetchRows`. {@link Pagination} then aligns its
-   * UI from [[Hooks#afterDataProviderFetch]].
+   * UI from {@link Hooks#afterDataProviderFetch}.
    *
    * @since 16.1.0
    * @event Hooks#afterPageChange
@@ -3034,9 +3034,9 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link Pagination} plugin after changing the page size. This hook is fired when
-   * {@link Options#pagination} option is enabled. When a complete [[Options#dataProvider]] configuration
+   * {@link Options#pagination} option is enabled. When a complete {@link Options#dataProvider} configuration
    * handles paging, {@link DataProvider} loads page 1 for the new size via `fetchRows`. {@link Pagination} then aligns
-   * its UI from [[Hooks#afterDataProviderFetch]].
+   * its UI from {@link Hooks#afterDataProviderFetch}.
    *
    * @since 16.1.0
    * @event Hooks#afterPageSizeChange

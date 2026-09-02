@@ -45,8 +45,8 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *
  * In order to enable the empty data state mechanism, {@link Options#emptyDataState} option must be set to `true`.
  *
- * When [[Options#dataProvider]] is enabled, the loading overlay is toggled from DataProvider fetch hooks
- * ([[Hooks#beforeDataProviderFetch]], [[Hooks#afterDataProviderFetch]], [[Hooks#afterDataProviderFetchError]]).
+ * When {@link Options#dataProvider} is enabled, the loading overlay is toggled from DataProvider fetch hooks
+ * ({@link Hooks#beforeDataProviderFetch}, {@link Hooks#afterDataProviderFetch}, {@link Hooks#afterDataProviderFetchError}).
  *
  * The plugin provides several configuration options to customize the empty data state behavior and appearance:
  * - `message`: Message to display in the empty data state overlay.

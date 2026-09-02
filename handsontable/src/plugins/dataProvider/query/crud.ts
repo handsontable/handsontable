@@ -409,7 +409,7 @@ export function buildManualUpdateRowPayloads(
  * Calls `onRowsUpdate`, success/error hooks, then re-fetches or re-renders.
  *
  * @param {Core} hot Handsontable instance.
- * @param {{ getOnRowsUpdate: function(): *, fetchData: function(): Promise<*>, logError: function(...*): void, onRequestFailed?: function(string, Error): void }} callbacks Callbacks for IO and logging (`getOnRowsUpdate` returns `onRowsUpdate` or a falsy value). `onRequestFailed` receives `'update'` only; when `fetchData` rejects after a successful update, the caller's `fetchData` implementation is responsible for error UI (for example [[DataProvider#fetchData]] shows a notification and rethrows).
+ * @param {{ getOnRowsUpdate: function(): *, fetchData: function(): Promise<*>, logError: function(...*): void, onRequestFailed?: function(string, Error): void }} callbacks Callbacks for IO and logging (`getOnRowsUpdate` returns `onRowsUpdate` or a falsy value). `onRequestFailed` receives `'update'` only; when `fetchData` rejects after a successful update, the caller's `fetchData` implementation is responsible for error UI (for example {@link DataProvider#fetchData} shows a notification and rethrows).
  * @param {object[]} rowPayloads Per-row `RowUpdatePayload` objects (`types/plugins/dataProvider/dataProvider.d.ts`).
  * @param {object} [options] Optional flags.
  * @param {function(): void} [options.revertOptimistic] Restores previous cell values when the request fails.
@@ -678,7 +678,7 @@ type BeforeAlterForCrudCtx = {
 };
 
 /**
- * @param {object} ctx Same shape as [[handleBeforeAlterForCrud]].
+ * @param {object} ctx Same shape as `handleBeforeAlterForCrud()`.
  * @param {'insert_row_above'|'insert_row_below'} action Insert direction.
  * @param {number|Array|undefined|null} index Row index or alter grouping.
  * @param {number} amount Row count when `index` is a number.
@@ -713,7 +713,7 @@ function handleInsertRowAlterForCrud(
 }
 
 /**
- * @param {object} ctx Same shape as [[handleBeforeAlterForCrud]].
+ * @param {object} ctx Same shape as `handleBeforeAlterForCrud()`.
  * @param {number|Array|undefined|null} index Row index or alter grouping.
  * @param {number} amount Row count when `index` is a number.
  * @returns {boolean|undefined} `false` when the alter is handled.

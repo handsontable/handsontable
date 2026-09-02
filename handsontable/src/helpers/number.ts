@@ -57,8 +57,8 @@ export function isNumericLike(value: unknown): boolean {
 
 /**
  * Whether the string is an integer with comma-separated thousands groups only.
- * This matches the grouping rule used by [[getParsedNumber]] when the cell uses a dot as the
- * decimal separator. It is not implied by [[isNumericLike]] because `isNumeric` allows at most
+ * This matches the grouping rule used by `getParsedNumber()` when the cell uses a dot as the
+ * decimal separator. It is not implied by `isNumericLike()` because `isNumeric` allows at most
  * one comma-delimited segment.
  *
  * @param {string} value The raw string value.
@@ -246,7 +246,7 @@ export function getParsedNumber(numericData: string, options: { decimalSeparator
  * Converts a decimal or scientific-notation numeric string to its plain decimal form
  * (`1e2` → `100`, `1e-7` → `0.0000001`). Leading zeros and a leading `+` are dropped, and the
  * `.5`/`5.` shorthands gain the missing digit. Trailing fractional zeros are kept — they carry
- * the information [[isLossyNumericConversion]] detects. A string that does not match the plain
+ * the information `isLossyNumericConversion()` detects. A string that does not match the plain
  * number grammar is returned trimmed but otherwise unchanged.
  *
  * @param {string} numericText The numeric string to normalize.

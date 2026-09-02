@@ -2736,9 +2736,9 @@ export default (): Record<string, unknown> => {
      * | `loading`     | `boolean`       | When `true`, shows a loading spinner (used for server fetch state). |
      *
      * If you set the `message` option to a function, the `source` argument can be `"unknown"`, `"filters"`, or `"loading"`.
-     * With [[Options#dataProvider]], the `"loading"` branch follows DataProvider fetch hooks (`beforeDataProviderFetch`,
+     * With {@link Options#dataProvider}, the `"loading"` branch follows DataProvider fetch hooks (`beforeDataProviderFetch`,
      * `afterDataProviderFetch`, and related hooks) using the same rules as server-backed loading in the DataProvider plugin.
-     * Internal refetches (for example after column sort or CRUD) set `skipLoading` on [[Hooks#beforeDataProviderFetch]] so the
+     * Internal refetches (for example after column sort or CRUD) set `skipLoading` on {@link Hooks#beforeDataProviderFetch} so the
      * EmptyDataState plugin can omit the loading overlay for those requests.
      *
      * If you set the `buttons` option to an array, each item requires following properties:
