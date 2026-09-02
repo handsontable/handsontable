@@ -33,6 +33,7 @@ import type {
   CellMeta,
   CellProperties,
   ColumnSettings,
+  ColumnDataGetterSetterFunction,
   SourceRowData,
   IndexMapper,
 } from 'handsontable';
@@ -48,6 +49,11 @@ const sourceRow1: SourceRowData = { name: 'test' };
 const sourceRow2: SourceRowData = ['a', 1];
 const changeSource: ChangeSource = 'edit';
 const cellChange: CellChange = [0, 0, null, 'next'];
+const columnAccessor: ColumnDataGetterSetterFunction = (row: RowObject | CellValue[], value?: CellValue) => {
+  if (value === undefined) {
+    return Array.isArray(row) ? row[0] : row.name;
+  }
+};
 const numericFormat: Intl.NumberFormatOptions = { style: 'currency', currency: 'USD' };
 
 // CellCoords and CellRange are runtime value exports — constructible
@@ -80,6 +86,7 @@ import type {
   CellMeta as CellMeta3,
   CellProperties as CellProperties3,
   ColumnSettings as ColumnSettings3,
+  ColumnDataGetterSetterFunction as ColumnDataGetterSetterFunction3,
   SourceRowData as SourceRowData3,
   IndexMapper as IndexMapper3,
 } from 'handsontable/base';
@@ -91,3 +98,4 @@ const baseIndexMapper = new BaseIndexMapperValue();
 // Verify base types are structurally equivalent to the full-entry types
 const _settings3: GridSettings3 = settings;
 const _source3: SourceRowData3 = sourceRow2;
+const _accessor3: ColumnDataGetterSetterFunction3 = columnAccessor;

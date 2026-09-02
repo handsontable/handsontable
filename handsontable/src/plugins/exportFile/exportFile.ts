@@ -636,7 +636,9 @@ export class ExportFile extends BasePlugin {
 
     if (hasDialog && formatter.binary) {
       dialogPlugin.show({
-        content: buildExportDialogContent(this.hot.getTranslatedPhrase(EXPORT_FILE_DIALOG_TITLE)),
+        content: buildExportDialogContent(
+          this.hot.getTranslatedPhrase(EXPORT_FILE_DIALOG_TITLE), this.hot.rootDocument
+        ),
         customClassName: LOADING_CLASS_NAME,
         background: 'semi-transparent',
         closable: false,

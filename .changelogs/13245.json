@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an open cell editor staying visible over an unrelated row, and committing to a row you could no longer see, when the edited cell was hidden - for example by turning a Pagination page or hiding its row or column.",
-  "type": "fixed",
-  "issueOrPR": 13245,
-  "breaking": false,
-  "framework": "none"
-}

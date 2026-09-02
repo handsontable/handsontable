@@ -1,5 +1,8 @@
-import { instanceToHTML, _dataToHTML, htmlToGridSettings } from '../parseTable';
+import {
+  instanceToHTML, instanceToTableElement, _dataToHTML, htmlToGridSettings
+} from '../parseTable';
 import Handsontable from '../../index';
+import { stripTags } from '../../helpers/string';
 import { registerCellType, TextCellType } from '../../cellTypes';
 
 registerCellType(TextCellType);
@@ -606,5 +609,157 @@ describe('htmlToGridSettings', () => {
         ['1 2 3 4 5\r\nbr\r\n6 7 8 9 0']
       ]);
     });
+  });
+});
+
+describe('instanceToTableElement', () => {
+  /**
+   * Parses the string form the DOM form replaced, so the two can be compared node for node.
+   *
+   * @param {string} html The markup produced by `instanceToHTML`.
+   * @returns {HTMLElement} The parsed table.
+   */
+  function parseTableHTML(html: string): HTMLElement {
+    const wrapper = document.createElement('div');
+
+    wrapper.innerHTML = html;
+
+    return wrapper.firstElementChild as HTMLElement;
+  }
+
+  it.each([
+    ['plain values', [['A1', 'B1'], ['A2', 'B2']]],
+    ['empty cells', [['A1', null], ['', 'B2']]],
+    ['angle brackets', [['<script>alert(1)</script>', 'a > b']]],
+    ['spaces and tabs', [['a  b', 'c\td']]],
+    ['newlines', [['line1\nline2', 'a\r\nb\r\nc']]],
+    ['a trailing newline', [['ends with\n', '\nstarts with']]],
+    // A lone carriage return matches neither the encoder's newline pattern nor the split below, so
+    // it survives into the string and the HTML parser normalizes it. Missed by the first version.
+    ['a lone carriage return', [['before\rafter', 'a\r\rb']]],
+    // The encoder escapes only `<` and `>`, so a character reference already present in the data
+    // reached the parser intact and was decoded. Also missed by the first version.
+    ['character references in the data', [['a&nbsp;b', '&amp;lt; &#38; &#x26;']]],
+    ['a reference that could double-decode', [['&amp;lt;', '&amp;amp;nbsp;']]],
+    ['tabs next to spaces', [['a\t b', ' \ta\t ']]],
+  ])('should build the same table the parsed HTML form produced - %s', (_label, data) => {
+    const hot = new Handsontable(document.createElement('div'), {
+      data,
+      colHeaders: true,
+      rowHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const built = instanceToTableElement(hot, document);
+    const parsed = parseTableHTML(instanceToHTML(hot));
+
+    // `outerHTML` compares structure, attributes, and text in one assertion, and reports the
+    // difference readably when the two diverge.
+    expect(built.outerHTML).toBe(parsed.outerHTML);
+
+    hot.destroy();
+  });
+
+  it('should keep markup in headers, as the parsed string form did', () => {
+    // `colHeaders: ['<b>ID</b>']` is a documented pattern. Writing the header as text would render
+    // the tags literally and silently change what `toTableElement()` returns.
+    const hot = new Handsontable(document.createElement('div'), {
+      data: [['A1', 'B1']],
+      colHeaders: ['<b>ID</b>', 'Plain'],
+      rowHeaders: ['<i>1</i>'],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const built = instanceToTableElement(hot, document);
+
+    expect(built.querySelector('thead th:nth-child(2)')!.innerHTML).toBe('<b>ID</b>');
+    expect(built.outerHTML).toBe(parseTableHTML(instanceToHTML(hot)).outerHTML);
+
+    hot.destroy();
+  });
+
+  it('should parse a payload that is not a plain string without normalizing it away', () => {
+    // `replaceTdCellsWithTextContent()` walks `html.length`. A `TrustedHTML` has none, so
+    // normalizing it returned an empty string and the parse found no table at all.
+    const trustedLike = {
+      toString: () => '<table><tbody><tr><td>A1</td><td>B1</td></tr></tbody></table>',
+    };
+
+    expect(htmlToGridSettings(trustedLike, document)?.data).toEqual([['A1', 'B1']]);
+  });
+
+  it('should build a table without a thead when column headers are off', () => {
+    const hot = new Handsontable(document.createElement('div'), {
+      data: [['A1']],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const built = instanceToTableElement(hot, document);
+
+    expect(built.tHead).toBe(null);
+    expect(built.outerHTML).toBe(parseTableHTML(instanceToHTML(hot)).outerHTML);
+
+    hot.destroy();
+  });
+});
+
+describe('header sanitizing parity between toHTML and toTableElement', () => {
+  /**
+   * Builds a grid with a header carrying markup.
+   *
+   * @param {Function} [sanitizer] The `sanitizer` option, when the test configures one.
+   * @returns {object} The Handsontable instance.
+   */
+  function gridWithMarkupHeader(sanitizer?: (html: string) => string) {
+    return new Handsontable(document.createElement('div'), {
+      data: [['A1', 'B1']],
+      colHeaders: ['<b>ID</b>', 'Name'],
+      licenseKey: 'non-commercial-and-evaluation',
+      ...(sanitizer ? { sanitizer } : {}),
+    });
+  }
+
+  it('should put the header through the sanitizer in both representations', () => {
+    // `stripTags` rather than a hand-rolled `replace(/<[^>]*>/g, '')`: a single-pass regex is
+    // incomplete sanitization, since `<<script>script>` re-forms a tag after one pass. The helper
+    // loops until the string stops changing, which is also what a real sanitizer does.
+    const hot = gridWithMarkupHeader(stripTags);
+    const fromString = instanceToHTML(hot as never);
+    const fromDom = instanceToTableElement(hot as never, document);
+
+    // These two describe the same grid. `toHTML()` used to interpolate the header raw, so a
+    // stripping sanitizer left the `<b>` in one and removed it from the other.
+    expect(fromString).toContain('<th>ID</th>');
+    expect(fromString).not.toContain('<b>');
+    expect(fromDom.querySelectorAll('th')[0].innerHTML).toBe('ID');
+
+    hot.destroy();
+  });
+
+  it('should keep header markup in both representations when no sanitizer is configured', () => {
+    const hot = gridWithMarkupHeader();
+    const fromString = instanceToHTML(hot as never);
+    const fromDom = instanceToTableElement(hot as never, document);
+
+    expect(fromString).toContain('<th><b>ID</b></th>');
+    expect(fromDom.querySelectorAll('th')[0].innerHTML).toBe('<b>ID</b>');
+
+    hot.destroy();
+  });
+
+  it('should not warn about a missing sanitizer from either read-only API', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const hot = gridWithMarkupHeader();
+
+    warnSpy.mockClear();
+    instanceToHTML(hot as never);
+    instanceToTableElement(hot as never, document);
+
+    // Both are read-only: neither writes to the page, so "HTML content is being written to the
+    // DOM" would name a surface the caller never looked at. The written markup is unchanged.
+    expect(warnSpy.mock.calls.filter(c => String(c[0]).includes('without a sanitizer'))).toEqual([]);
+
+    warnSpy.mockRestore();
+    hot.destroy();
   });
 });

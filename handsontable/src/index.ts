@@ -214,7 +214,7 @@ export { IndexMapper } from './translations';
 // Named type exports for user-facing API — direct from canonical sources
 export type { GridSettings, Events, SanitizerContext, TextExtractorContext } from './core/settings';
 export type {
-  CellValue, CellChange, RowObject, ChangeSource,
+  CellValue, CellChange, ColumnDataGetterSetterFunction, RowObject, ChangeSource,
   CellMeta, CellProperties, ColumnSettings, SourceRowData, RemoveIndexSignature
 } from './settings';
 export type { RangeType, HotInstance } from './core/types';

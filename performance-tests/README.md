@@ -63,13 +63,15 @@ Each scenario measures a specific user interaction pattern:
 
 | Scenario | Grid size | Action | Notes |
 |---|---|---|---|
-| **scroll-down** | 5000 x 10 | `mouse.wheel(0, 350)` x 500 | Vertical scroll from top |
-| **scroll-up** | 5000 x 10 | `mouse.wheel(0, -350)` x 500 | Pre-scrolls to bottom, then scrolls up |
+| **scroll-down** | 10000 x 50 | `mouse.wheel(0, 350)` x 500 | Vertical scroll from top |
+| **scroll-up** | 10000 x 50 | `mouse.wheel(0, -350)` x 500 | Pre-scrolls to bottom, then scrolls up |
 | **scroll-right** | 10 x 5000 | `mouse.wheel(350, 0)` x 500 | Horizontal scroll from left |
 | **scroll-left** | 10 x 5000 | `mouse.wheel(-350, 0)` x 500 | Pre-scrolls to right, then scrolls left |
-| **filtering** | 1000 x 1000 | `filters.addCondition()` + `filter()` | Hook timing: beforeFilter -> afterFilter |
-| **sorting** | 1000 x 1000 | `columnSorting.sort()` | Hook timing: beforeColumnSort -> afterColumnSort |
+| **filtering** | 100000 x 100 | `filters.addCondition()` + `filter()` | Hook timing: beforeFilter -> afterFilter |
+| **sorting** | 100000 x 100 | `columnSorting.sort()` | Hook timing: beforeColumnSort -> afterColumnSort |
 | **cell-editing** | 5000 x 10 | selectCell + Enter + type + Enter x 20 | Sequential cell edits |
+| **initial-load** | 100000 x 100 | `new Handsontable(...)` | Grid construction only |
+| **source-data-validator-load** | 100000 x 100 | `new Handsontable(...)` with `sourceDataValidator` | Same fixture as initial-load plus the one option |
 
 Each scenario runs **1 warmup iteration** (discarded) followed by **3 measured iterations** with CDP tracing.
 
@@ -175,7 +177,70 @@ Additional metrics from `UpdateCounters`:
 - DOM node count (min/max)
 - Event listener count (min/max)
 
-**CV%** (coefficient of variation) is shown per metric. Values above 15% are flagged with `!!!` -- these indicate unstable measurements that may not be reliable for comparison.
+### Reading a delta
+
+Two spreads appear beside every delta, and they answer different questions. Both are a coefficient
+of variation over the sample standard deviation, and both are flagged above `CV_WARNING_THRESHOLD`
+(15%).
+
+| Column | What it measures | Typical value |
+|---|---|---|
+| **CV run** | How much the three iterations of this one run disagreed | under 4% on most scenarios |
+| **CV base** | How far apart the develop runs behind the median baseline sit | 11-19% |
+
+A tight `CV run` says the run measured itself consistently. It says nothing about whether the run is
+comparable to the baseline, which is what `CV base` reports. When the second number is wide, the
+delta beside it is measured against a moving target.
+
+`n/a` means the spread is genuinely unknown, not zero. The baseline spread is absent in golden mode,
+in the self-compare fallback, in the single-run `latest.json` fallback (fewer than
+`MIN_VALID_SNAPSHOTS` qualifying develop snapshots, so `computeMedianSnapshot` returns `null`), and
+whenever the history window is too thin for a median.
+
+### Thresholds
+
+Timing and heap are called out on separate thresholds, in `lib/thresholds.mjs`:
+
+| Constant | Value | Why |
+|---|---|---|
+| `REGRESSION_CALLOUT_THRESHOLD_TIMING` | 15 | Timing's run-to-run CV is 11-19%, so a lower bar fires mostly on noise |
+| `REGRESSION_CALLOUT_THRESHOLD_HEAP` | 5 | Heap's run-to-run CV is 0.4-3.6%, so it can be judged an order of magnitude tighter |
+
+Neither number is a guess, and neither should be changed by eye. Both come from replaying every
+develop golden against a median of the goldens before it: every such comparison measures develop
+against develop, so every delta it produces is noise, and the rate at which a threshold fires on
+that set is its false-positive rate. Reproduce it with:
+
+```bash
+git fetch origin gh-pages
+node scripts/replay-goldens.mjs --since 2026-08-27
+```
+
+The script prints the curve for both metrics and marks the value currently in force. Re-run it after
+any change to how the suite measures or to which baseline it compares against, and move each
+constant to the knee of its curve.
+
+### What the report refuses to publish
+
+A percentage is withheld when the comparison cannot support one. The label names the cause --
+`baseline incomplete`, `capture incomplete`, or `window mismatch` -- and the reasons are:
+
+- The baseline recorded zero for an active category that the current run did record
+  (`baseline incomplete`). That is a failed capture, not a cheap operation, and dividing into it is
+  what produced the `+115.7%` regressions this reporting layer was rewritten to stop.
+- This run recorded zero for an active category that the baseline did record (`capture incomplete`).
+  The mirror case: a capture failure on this run's side is no more supportable than one on the
+  baseline's, and would otherwise publish a fake win a reader cannot tell from a real one.
+- The two sides were measured through different trace windows (`windowSource` disagrees, rendered
+  `window mismatch`). After the measurement fix this is a safety net rather than a common case.
+
+Such a scenario is listed under "Not assessed" in the HTML report (the markdown comment says "Total
+delta not assessed") rather than folded into "within tolerance": it was neither cleared nor flagged,
+and the comment says so.
+
+The **Trace window** row is informational and never coloured. After the measurement fix it is
+mark-to-mark harness wall clock, which on the scroll scenarios is 500 sequential wheel round trips
+sitting at a run-to-run CV of 0.0-0.2% regardless of what the grid does.
 
 ## Adding a new scenario
 

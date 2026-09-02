@@ -8,7 +8,8 @@ import type {
   CellRange as WalkontableCellRange,
 } from '../3rdparty/walkontable/src';
 import type {
-  CellChange, ChangeSource, RowObject, CellValue, CellProperties, ColumnSettings, RemoveIndexSignature,
+  CellChange, ChangeSource, RowObject, CellValue, CellProperties, ColumnSettings,
+  ColumnDataGetterSetterFunction, RemoveIndexSignature,
 } from '../settings';
 import type { ColumnConditions } from '../plugins/filters';
 import type { LayoutConfig } from './layout';
@@ -78,6 +79,21 @@ export type SanitizerContext =
   | 'CopyPaste.paste'
   | 'CopyPaste.paste.sourceData'
   | (string & {});
+
+/**
+ * A value a Trusted Types sink accepts in place of a plain string.
+ *
+ * Structural on purpose. `TrustedHTML` is not in the DOM lib of the TypeScript version this
+ * package compiles against, and declaring it as a global here would collide with
+ * `@types/trusted-types` in any project that installs it, or with a future DOM lib. Matching the
+ * shape instead means a real `TrustedHTML` satisfies it without anyone declaring anything.
+ *
+ * A `sanitizer` may return one: under `require-trusted-types-for 'script'` a sink rejects plain
+ * strings, so a page enforcing Trusted Types has to hand back the output of its own policy.
+ * Handsontable passes that value to the sink untouched - it is never concatenated, re-tested, or
+ * otherwise turned back into a string, any of which would strip the trust.
+ */
+export type TrustedHTMLLike = { toString(): string };
 
 /**
  * The consumer surface passed as the second argument to the `textExtractor` option, so an extractor
@@ -179,6 +195,7 @@ export interface GridSettings {
   copyable?: boolean;
   copyPaste?: boolean | object;
   editor?: string | (new (...args: unknown[]) => unknown) | boolean;
+  emptyValue?: CellValue;
   enterBeginsEditing?: boolean;
   enterMoves?: { col: number; row: number } | ((event: KeyboardEvent) => { col: number; row: number });
   fillHandle?: boolean | string | { autoInsertRow?: boolean; direction?: string };
@@ -321,8 +338,10 @@ export interface GridSettings {
   // which breaks any body that uses the parameter as a definite string. Both are build breaks on
   // upgrade, so the contract is published as the exported `SanitizerContext` type that a user opts
   // into on their own parameter - see its docs above.
+  //
+  // Returning a `TrustedHTML` is supported for pages enforcing Trusted Types; see `TrustedHTMLLike`.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  sanitizer?: (html: string, ...args: any[]) => string;
+  sanitizer?: (html: string, ...args: any[]) => string | TrustedHTMLLike;
 
   // Content projection
   // The second parameter is absorbed by `...args: any[]` for the same reason as `sanitizer` above:
@@ -709,7 +728,13 @@ export interface GridSettings {
   modifyRowHeight?: (height: number, row: number, source?: string) => void | number;
   modifyRowHeightByOverlayName?: (height: number, row: number, overlayType: string) => void | number;
   modifySinglePassLayout?: (singlePassLayout: boolean) => void | boolean;
-  modifySourceData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
+  // Method syntax on purpose: the `column` parameter was widened after the hook started receiving
+  // a `columns[].data` accessor function, and only bivariant method-style checking keeps existing
+  // `(row, column: number, ...)` handlers assignable under `strictFunctionTypes`.
+  modifySourceData?(
+    row: number, column: number | string | ColumnDataGetterSetterFunction,
+    valueHolder: { value: CellValue }, ioMode: 'get' | 'set'
+  ): void;
   modifyTransformEnd?: (delta: WalkontableCellCoords) => void;
   modifyTransformFocus?: (delta: WalkontableCellCoords) => void;
   modifyTransformStart?: (delta: WalkontableCellCoords) => void;

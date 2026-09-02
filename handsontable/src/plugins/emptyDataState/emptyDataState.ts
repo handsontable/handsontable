@@ -4,7 +4,7 @@ import { isObject } from '../../helpers/object';
 import { isButtonType } from '../../helpers/uiButton';
 import { isRootInstance } from '../../utils/rootInstance';
 import * as C from '../../i18n/constants';
-import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
+import type { SelectionState } from '../../selection/types';
 
 /**
  * Local type-guard narrowing `unknown` to `Record<string, unknown>`.
@@ -25,15 +25,6 @@ type MessageSetting =
   | Record<string, unknown>
   | ((source: string) => string | Record<string, unknown>)
   | undefined;
-
-interface SelectionState {
-  ranges: CellRange[];
-  activeRange: CellRange | undefined;
-  activeSelectionLayer: number;
-  selectedByRowHeader: number[];
-  selectedByColumnHeader: number[];
-  disableHeadersHighlight: boolean;
-}
 
 export const PLUGIN_KEY = 'emptyDataState';
 export const PLUGIN_PRIORITY = 370;

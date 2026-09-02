@@ -114,14 +114,14 @@ const HotTableInner = forwardRef<
    * @returns {Handsontable.GridSettings} New global set of settings for Handsontable.
    */
   const createNewGlobalSettings = (init: boolean = false, prevProps: HotTableProps = {}): Handsontable.GridSettings => {
-    const initOnlySettingKeys = !isHotInstanceDestroyed() ? // Needed for React's double-rendering.
-      ((getHotInstance()?.getSettings() as any)?._initOnlySettings || []) :
-      [];
+    const liveSettings = !isHotInstanceDestroyed() ? getHotInstance()?.getSettings() : undefined;
+    const initOnlySettingKeys = (liveSettings as any)?._initOnlySettings || [];
     const newSettings = SettingsMapper.getSettings(
       props, {
         prevProps,
         isInit: init,
-        initOnlySettingKeys
+        initOnlySettingKeys,
+        currentSettings: liveSettings
       }
     );
 

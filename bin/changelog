@@ -14,6 +14,9 @@ const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 
 const hotConfig = require('../hot.config');
+const {
+  excludeVersionSection, findRepublishedEntries, formatRepublishedReport
+} = require('./lib/published-entries');
 
 const isTTY = process.stdin.isTTY;
 
@@ -155,6 +158,30 @@ const assertChangelogEntryFormat = (input) => {
   };
 };
 
+/**
+ * Reports the pending entries that `changelogContents` already publishes, and
+ * exits when any of them is conclusive. Every offender is listed in one pass so
+ * that clearing several of them takes one run.
+ *
+ * @param {Array<{file: string, entry: object}>} pendingEntries Pending entries and their paths.
+ * @param {string} changelogContents The changelog text to treat as already published.
+ */
+const assertNoRepublishedEntries = (pendingEntries, changelogContents) => {
+  const report = formatRepublishedReport(findRepublishedEntries(pendingEntries, changelogContents));
+
+  if (report.warnings.length) {
+    console.log();
+    console.log(chalk.yellow(report.warningMessage));
+  }
+
+  if (report.errors.length) {
+    console.log();
+    console.log(chalk.red(report.errorMessage));
+
+    process.exit(1);
+  }
+};
+
 const createEntryCommand = async(args) => {
   const argTitle = args.title ? args.title.join(' ') : undefined;
   const answers = isTTY ? await inquirer.prompt([
@@ -289,6 +316,17 @@ const consumeCommand = async(args) => {
   const ungroupedEntries = (await Promise.all(changelogEntryFiles.map(p => fs.readFile(p, 'utf8'))))
     .map(contents => assertChangelogEntryFormat(JSON.parse(contents)));
 
+  // Asserted here, before the dry run bails out, so that the `--dry-run` that
+  // `checks.yml` puts on every pull request enforces it too - not only the
+  // release. See `bin/lib/published-entries.js` for what it catches and why.
+  assertNoRepublishedEntries(
+    ungroupedEntries.map((entry, i) => ({
+      file: path.relative(process.cwd(), changelogEntryFiles[i]),
+      entry
+    })),
+    existingChangelogContents
+  );
+
   const groupedEntries = lodash.groupBy(ungroupedEntries, 'type');
   const groupedPairs = lodash.sortBy(lodash
     .toPairs(groupedEntries), ([key]) => changelogEntryTypes.indexOf(key));
@@ -400,9 +438,19 @@ const syncCommand = async(args) => {
     return;
   }
 
-  const newEntries = (await Promise.all(entryFiles.map(p => fs.readFile(p, 'utf8'))))
-    .map(c => assertChangelogEntryFormat(JSON.parse(c)))
-    .filter(e => !section.includes(`/${e.issueOrPR})`));
+  const pendingEntries = (await Promise.all(entryFiles.map(p => fs.readFile(p, 'utf8'))))
+    .map((c, i) => ({
+      file: path.relative(process.cwd(), entryFiles[i]),
+      entry: assertChangelogEntryFormat(JSON.parse(c))
+    }))
+    .filter(({ entry }) => !section.includes(`/${entry.issueOrPR})`));
+
+  // The filter above only dedups against the section being synced into, so an
+  // entry already published in an *earlier* section would be added a second
+  // time here. Assert against every other section, with the target one cut out.
+  assertNoRepublishedEntries(pendingEntries, excludeVersionSection(text, version));
+
+  const newEntries = pendingEntries.map(({ entry }) => entry);
 
   if (!newEntries.length) {
     console.log(`All changelog entries are already present in version ${version}.`);

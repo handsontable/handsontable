@@ -10,7 +10,7 @@ import type { IndexMapper } from '../translations';
 import type CellCoords from '../3rdparty/walkontable/src/cell/coords';
 import type CellRange from '../3rdparty/walkontable/src/cell/range';
 import type { Events, GridSettings } from './settings';
-import type { CellProperties } from '../settings';
+import type { CellProperties, ColumnDataGetterSetterFunction } from '../settings';
 import type { default as SelectionManager } from '../selection/selection';
 import type { default as ViewInstance } from '../tableView';
 import type { ShortcutManager } from '../shortcuts/manager';
@@ -116,6 +116,15 @@ export interface HotInstance {
   toPhysicalColumn(column: number): number;
   toVisualRow(row: number): number;
   toVisualColumn(column: number): number;
+  /**
+   * These two signatures are narrower than what runs, at both ends. Both methods hand an unmatched
+   * argument straight back, and both can return `null` – `propToCol` for a trimmed column whose
+   * property is cached, `colToProp` for a column declared as `{ data: null }`. Validate the result
+   * before using it as an index or a property name.
+   *
+   * The parameters are narrower too: `propToCol` resolves a `columns[].data` accessor function at
+   * runtime, and `colToProp` hands back any non-integer argument, but neither is accepted here.
+   */
   propToCol(prop: string | number): number;
   colToProp(column: number): string | number;
 
@@ -128,7 +137,7 @@ export interface HotInstance {
   getDataAtRowProp(row: number, prop: string): unknown;
   getSourceData(row?: number, column?: number, row2?: number, column2?: number): unknown[] | object[];
   getSourceDataArray(row?: number, column?: number, row2?: number, column2?: number): unknown[][];
-  getSourceDataAtCell(row: number, column: number): unknown;
+  getSourceDataAtCell(row: number, column: number | string | ColumnDataGetterSetterFunction): unknown;
   getSourceDataAtCol(column: number): unknown[];
   getSourceDataAtRow(row: number): unknown;
   getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): string;
@@ -136,7 +145,10 @@ export interface HotInstance {
   getCopyableSourceData(row: number, column: number): string;
   setDataAtCell(row: number | unknown[][], column?: number | string | null, value?: unknown, source?: string): void;
   setDataAtRowProp(row: number | unknown[][], prop?: string | number, value?: unknown, source?: string): void;
-  setSourceDataAtCell(row: number | unknown[][], column?: number | string, value?: unknown, source?: string): void;
+  setSourceDataAtCell(
+    row: number | unknown[][], column?: number | string | ColumnDataGetterSetterFunction,
+    value?: unknown, source?: string
+  ): void;
   loadData(data: unknown[], source?: string): void;
   updateData(data: unknown[][] | object[], source?: string): void;
   emptySelectedCells(source?: string): void;

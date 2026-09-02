@@ -1275,6 +1275,26 @@ export default (): Record<string, unknown> => {
      * of your columns. Otherwise, every column with an undefined width defaults back to 50px,
      * which may cut longer columns names.
      *
+     * A column resized by dragging keeps its width until the width is re-declared. Passing
+     * `colWidths` to [`updateSettings()`](@/api/core.md#updatesettings) re-declares the widths and
+     * discards the ones stored by the {@link ManualColumnResize} plugin. To keep the stored widths,
+     * leave `colWidths` out of the call.
+     *
+     * Passing [`manualColumnResize`](#manualColumnResize) as an array in the same call **replaces**
+     * the stored widths with that array rather than keeping them.
+     *
+     * These cases never discard the stored widths:
+     *
+     * - A `colWidths` **function**. It states no fixed width, so it is left alone.
+     * - A grid whose `manualColumnResize` option is already a non-empty array. The plugin replays
+     *   that array, so the stored widths stay.
+     * - The React, Angular and Vue wrappers, when the `colWidths` prop did not change. An unchanged
+     *   prop is not forwarded, so re-applying the same value resets nothing.
+     *
+     * In each case, call
+     * [`ManualColumnResize#clearManualSizes()`](@/api/manualColumnResize.md#clearmanualsizes)
+     * followed by `render()`.
+     *
      * Read more:
      * - [Column width](@/guides/columns/column-width/column-width.md)
      * - [Hooks: `modifyColWidth`](@/api/hooks.md#modifyColWidth)
@@ -3430,6 +3450,12 @@ export default (): Record<string, unknown> => {
      * [`selectionMode`](@/api/options.md#selectionmode) that allows selecting more than one cell.
      * When [`selectionMode`](@/api/options.md#selectionmode) is set to `'single'`, copying is
      * limited to a single cell.
+     *
+     * A text selection cannot span a frozen area and the rest of the grid, because the two are
+     * rendered as separate tables. Selecting text inside a frozen row or column works, but as soon
+     * as you drag the pointer out of the area you started in, the selection is cleared.
+     *
+     * Headers are not selectable, whether or not they are frozen.
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -6013,8 +6039,29 @@ export default (): Record<string, unknown> => {
      * | A function  | Set row heights dynamically,<br>on each render                                                      | `rowHeights(visualRowIndex) { return visualRowIndex * 10; }` |
      * | `undefined` | Used by the [modifyRowHeight](@/api/hooks.md#modifyRowHeight) hook,<br>to detect row height changes | `rowHeights: undefined`                                      |
      *
-     * The `rowHeights` option also sets the minimum row height that can be set
-     * via the {@link ManualRowResize} and {@link AutoRowSize} plugins (if they are enabled).
+     * When the {@link AutoRowSize} plugin is enabled, `rowHeights` sets the minimum row height, so a
+     * row still grows to fit its content.
+     *
+     * When {@link AutoRowSize} is disabled, a row resized by dragging keeps its height until the
+     * height is re-declared. Passing `rowHeights` or [`minRowHeights`](#minRowHeights) to
+     * [`updateSettings()`](@/api/core.md#updatesettings) re-declares the heights and discards the
+     * ones stored by the {@link ManualRowResize} plugin. To keep the stored heights, leave both
+     * options out of the call.
+     *
+     * Passing [`manualRowResize`](#manualRowResize) as an array in the same call **replaces** the
+     * stored heights with that array rather than keeping them.
+     *
+     * These cases never discard the stored heights:
+     *
+     * - A `rowHeights` **function**. It states no fixed height, so it is left alone.
+     * - A grid whose `manualRowResize` option is already a non-empty array. The plugin replays that
+     *   array, so the stored heights stay.
+     * - The React, Angular and Vue wrappers, when the `rowHeights` prop did not change. An unchanged
+     *   prop is not forwarded, so re-applying the same value resets nothing.
+     *
+     * In each case, call
+     * [`ManualRowResize#clearManualSizes()`](@/api/manualRowResize.md#clearmanualsizes) followed by
+     * `render()`.
      *
      * Read more:
      * - [Row height](@/guides/rows/row-height/row-height.md)
@@ -7495,6 +7542,94 @@ export default (): Record<string, unknown> => {
 
     /**
      * @description
+     * The `emptyValue` option sets the value stored when a cell ends up empty.
+     *
+     * A cell can be emptied in several ways, and by default they do not agree on what to store. The
+     * <kbd>**Delete**</kbd> key, the [`setDataAtCell()`](@/api/core.md#setdataatcell) method, filling
+     * a blank cell across a range, and merging cells over data all store `null`. Clearing the
+     * [cell editor](@/guides/cell-functions/cell-editor/cell-editor.md) and confirming, or pasting a
+     * blank cell, store an empty string (`''`). Set `emptyValue` to `null` to make every one of those
+     * paths agree on `null`.
+     *
+     * The mapping is one-way: it rewrites an empty string to the value you set, and never the other
+     * way round. Paths that already store `null` are untouched.
+     *
+     * | Setting                 | Description                                                     |
+     * | ----------------------- | --------------------------------------------------------------- |
+     * | `''` (default)          | Leave an emptied cell as the empty string the write produced    |
+     * | `null`                  | Store `null` instead                                            |
+     * | `undefined`             | Same as the default — the option counts as unset                |
+     * | Any other value         | Store that value instead                                        |
+     *
+     * Set `emptyValue: null` when the cell's value leaves the grid — saved to a server, written to a
+     * database, or read by a formula. An empty string in a `numeric`, `date` or `time` column is a
+     * string where a number, a date or nothing at all is expected, and `''` is not the same value as
+     * `NULL` to a database. It also matches how spreadsheets tell a blank cell from an empty string:
+     * `ISBLANK()` is `true` for `null` and `false` for `''`.
+     *
+     * The option applies to every **write** path: the editor, a paste, a fill,
+     * [`setDataAtCell()`](@/api/core.md#setdataatcell) and
+     * [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell). Writing `''` through either API
+     * with `emptyValue: null` set stores `null`.
+     *
+     * ::: tip
+     * Loading data is not a write. [`loadData()`](@/api/core.md#loaddata),
+     * [`updateData()`](@/api/core.md#updatedata), the initial [`data`](#data) and
+     * `updateSettings({ data })` all bypass this option, so an `''` already present in the data you
+     * load stays an `''`. A grid can therefore hold both `''` and `null` at once. Normalize the data
+     * before you load it if that matters to you.
+     *
+     * Undo and redo are exempt too: they restore what the cell held before, verbatim.
+     * :::
+     *
+     * A [`valueSetter`](#valuesetter) runs first, so a custom setter that returns `''` still means
+     * "empty" and is mapped as well.
+     *
+     * A column whose configuration already gives `''` a meaning keeps it. In a `checkbox` column, an
+     * `''` used as [`checkedTemplate`](#checkedtemplate) or [`uncheckedTemplate`](#uncheckedtemplate)
+     * is one of the two states the column defines, not an empty cell. In an `autocomplete` or
+     * `dropdown` column, an `''` listed in [`source`](#source) is an option you can pick. Both keep
+     * storing `''`.
+     *
+     * ::: tip
+     * Only an array [`source`](#source) is checked this way. A function `source` answers through a
+     * callback, and the value is stored before that callback runs, so a blank option it returns goes
+     * unnoticed and `emptyValue` applies to the column like any other.
+     * :::
+     *
+     * ::: tip
+     * Pasting from outside the grid cannot preserve this distinction. A clipboard holding text or HTML
+     * has no way to mark a cell as `null`, so an empty pasted cell follows the `emptyValue` setting
+     * like any other emptied cell.
+     * :::
+     *
+     * This option can be set at any level of the [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     *
+     * @memberof Options#
+     * @since 18.3.0
+     * @type {*}
+     * @default ''
+     * @category Core
+     * @configScope grid columns cells cell
+     *
+     * @example
+     * ```js
+     * // store `null` in every emptied cell of the grid
+     * emptyValue: null,
+     *
+     * // or per column: keep text columns storing `''`, and store `null` in the typed ones
+     * columns: [
+     *   { data: 'name' },
+     *   { data: 'amount', type: 'numeric', emptyValue: null },
+     *   { data: 'due', type: 'date', emptyValue: null }
+     * ]
+     * ```
+     */
+    emptyValue: '',
+
+    /**
+     * @description
      * The `viewportColumnRenderingOffset` option configures the number of columns
      * to be rendered outside of the grid's viewport.
      *
@@ -7846,7 +7981,9 @@ export default (): Record<string, unknown> => {
      * The function receives the raw HTML string and a second argument (source) naming the write surface
      * (`'header'`, `'password'`, `'contextMenu'`, `'selectEditor'`, `'dialog'`, `'notification'`,
      * `'CopyPaste.paste'`, `'CopyPaste.paste.sourceData'`), so you can apply different rules per source.
-     * It must return a string that is safe to assign to `innerHTML`.
+     * It must return a string that is safe to assign to `innerHTML`, or a `TrustedHTML` when the page
+     * enforces [Trusted Types](@/guides/security/security/security.md#trusted-types-and-csp). Handsontable
+     * passes the returned value to the DOM unchanged, so a `TrustedHTML` keeps its trust.
      *
      * In TypeScript, annotate that parameter with the exported `SanitizerContext` type
      * (see [TypeScript types](@/guides/tools-and-building/typescript-types/typescript-types.md))
@@ -7898,9 +8035,11 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // Trusted Types: wrap sanitization in a policy so the sink accepts the result.
-     * // Add the policy name to the CSP trusted-types directive (e.g. trusted-types default handsontable).
-     * const policy = window.trustedTypes?.createPolicy('handsontable', {
+     * // Trusted Types: wrap sanitization in a policy so the sink accepts the result. Handsontable
+     * // needs no policy of its own - it builds its own markup as DOM nodes - so the directive only
+     * // has to name yours (e.g. trusted-types my-app-sanitizer). Name it after your application:
+     * // `createPolicy` throws when the same name is created twice.
+     * const policy = window.trustedTypes?.createPolicy('my-app-sanitizer', {
      *   createHTML: (input) => myLibrary.sanitize(input),
      * });
      *

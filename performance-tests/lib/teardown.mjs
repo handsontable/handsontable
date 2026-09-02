@@ -130,9 +130,15 @@ function collectIterationValues(parsedResults) {
   }
 
   for (const key of catKeys) {
-    values.categories[key] = parsedResults
-      .map(r => r.categories?.[key])
-      .filter(v => typeof v === 'number');
+    // Index-aligned to the iteration, never compacted. Dropping the entries where a category
+    // recorded nothing would both understate that category's own spread and, once the arrays are
+    // recombined into an active total, pair one iteration's scripting with another's painting.
+    // An iteration that recorded no time in a category recorded zero of it.
+    values.categories[key] = parsedResults.map((r) => {
+      const value = r.categories?.[key];
+
+      return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+    });
   }
 
   values.rangeEnd = parsedResults.map(r => r.rangeEnd);
@@ -169,7 +175,12 @@ export default async function teardown() {
 
   // Save golden snapshots
   if (mode === 'golden') {
-    const savedPath = await saveSnapshots(stripInternalFields(scenarioResults));
+    const metadata = {
+      commit: process.env.GITHUB_SHA || null,
+      runId: process.env.GITHUB_RUN_ID || null,
+      runNumber: process.env.GITHUB_RUN_NUMBER || null,
+    };
+    const savedPath = await saveSnapshots(stripInternalFields(scenarioResults), metadata);
 
     console.log(`Golden snapshots saved to ${savedPath}`);
 
@@ -194,13 +205,26 @@ export default async function teardown() {
     if (golden) {
       const goldenCount = Object.keys(golden.scenarios || {}).length;
 
-      console.log(`Golden baseline loaded (${goldenCount} scenarios from ${golden.timestamp})`);
+      if (golden.isMedian) {
+        console.log(
+          `Golden baseline is a median of ${golden.medianWindowSize} marks-valid develop run(s), ` +
+          `newest ${golden.timestamp} (${goldenCount} scenarios). Source runs: ` +
+          `${(golden.medianSourceTimestamps || []).join(', ')}`
+        );
+      } else {
+        console.log(`Golden baseline loaded (${goldenCount} scenarios from ${golden.timestamp})`);
+      }
     } else if (mode === 'compare') {
       // Self-compare: use current results as golden so charts always render
       console.log('No golden baseline found -- self-comparing for chart preview');
 
       golden = {
         timestamp: new Date().toISOString(),
+        // Marked explicitly. The reports must not describe this as a develop baseline: every delta
+        // against it is 0% by construction, and a timestamp alone is indistinguishable from a real
+        // single-run golden, which would let "within tolerance" be claimed for a run compared
+        // against itself.
+        isSelfCompare: true,
         scenarios: stripInternalFields(scenarioResults),
       };
     }
@@ -224,6 +248,10 @@ export default async function teardown() {
     baseBranch: 'develop',
     pagesUrl: process.env.PAGES_URL || null,
     crossWindowScenarios: mismatched,
+    // PERF_COMMIT_SHA is the PR head on the pull_request path, where GITHUB_SHA is the ephemeral
+    // merge commit that exists on no branch. See the env block in performance-tests.yml.
+    commit: process.env.PERF_COMMIT_SHA || process.env.GITHUB_SHA || null,
+    runId: process.env.GITHUB_RUN_ID || null,
   };
 
   const report = buildReport(scenarioResults, golden, meta);

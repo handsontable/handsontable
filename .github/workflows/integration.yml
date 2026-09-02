@@ -138,9 +138,6 @@ jobs:
       - name: Publish preview packages
         run: |
           npx pkg-pr-new publish \
-            --template ./examples/prs/js \
-            --template ./examples/prs/ts \
-            --template ./examples/prs/react \
             ./handsontable/tmp \
             './wrappers/angular-wrapper/dist/hot-table' \
             ./wrappers/react-wrapper \
