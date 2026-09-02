@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  countAssertions, countSkipFocus, detectWeakening, parseNameStatus,
+  BOUNDED_MATCHERS, EXACT_MATCHERS, countAssertions, countSkipFocus, detectMatcherDowngrade,
+  detectPrecisionWidening, detectWeakening, formatFinding, matcherHistogram, parseNameStatus,
 } from '../lib/test-weakening.mjs';
 
 test('countAssertions counts expect() and assert/verify helpers', () => {
@@ -22,7 +23,7 @@ test('detectWeakening flags removed assertions', () => {
   const { findings, severity } = detectWeakening(before, after);
 
   assert.equal(findings.length, 1);
-  assert.equal(findings[0].type, 'assertions-removed');
+  assert.equal(findings[0].kind, 'assertions-removed');
   assert.equal(severity, 'warn');
 });
 
@@ -39,7 +40,7 @@ test('detectWeakening flags a newly added skip', () => {
   const after = 'it.skip("x", () => { expect(a).toBe(1); });';
   const { findings } = detectWeakening(before, after);
 
-  assert.ok(findings.some(f => f.type === 'skip-or-focus-added'));
+  assert.ok(findings.some(f => f.kind === 'skip-or-focus-added'));
 });
 
 test('detectWeakening is quiet when assertions grow and nothing is skipped', () => {
@@ -57,8 +58,8 @@ test('detectWeakening flags a NEWLY ADDED spec born with a skip (diffed against 
   const added = 'it.skip("x", () => { expect(a).toBe(1); }); xit("y", () => {});';
   const { findings, severity } = detectWeakening('', added, { sourceChanged: true });
 
-  assert.ok(findings.some(f => f.type === 'skip-or-focus-added'));
-  assert.equal(findings.find(f => f.type === 'skip-or-focus-added').after, 2);
+  assert.ok(findings.some(f => f.kind === 'skip-or-focus-added'));
+  assert.equal(findings.find(f => f.kind === 'skip-or-focus-added').after, 2);
   assert.equal(severity, 'flag');
 });
 
@@ -69,6 +70,215 @@ test('detectWeakening stays quiet for a healthy newly added spec', () => {
 
   assert.equal(findings.length, 0);
   assert.equal(severity, 'ok');
+});
+
+test('EXACT_MATCHERS and BOUNDED_MATCHERS are disjoint tables pinning the documented split', () => {
+  const overlap = EXACT_MATCHERS.filter(matcher => BOUNDED_MATCHERS.includes(matcher));
+
+  assert.deepEqual(overlap, []);
+  assert.ok(EXACT_MATCHERS.includes('toBe'));
+  assert.ok(EXACT_MATCHERS.includes('toHaveBeenCalledTimes'));
+  assert.ok(BOUNDED_MATCHERS.includes('toBeGreaterThanOrEqual'));
+  assert.ok(BOUNDED_MATCHERS.includes('toBeCloseTo'));
+  assert.ok(Object.isFrozen(EXACT_MATCHERS));
+  assert.ok(Object.isFrozen(BOUNDED_MATCHERS));
+});
+
+test('matcherHistogram counts each matcher by name without confusing shared prefixes', () => {
+  // `toBe(` must not swallow `toBeGreaterThan(`, `toMatch(` must not swallow
+  // `toMatchObject(`, `toContain(` must not swallow `toContainEqual(`; `.not.`
+  // and a chain broken across lines still count.
+  const src = `
+    expect(a).toBe(1);
+    expect(b).not.toBe(2);
+    expect(c)
+      .toBeGreaterThan(0);
+    expect(d).toMatch(/x/);
+    expect(e).toMatchObject({ x: 1 });
+    expect(f).toContain('a');
+    expect(g).toContainEqual({ a: 1 });
+    expect(spy).toHaveBeenCalledTimes(3);
+  `;
+
+  assert.deepEqual(matcherHistogram(src), {
+    toBe: 2,
+    toBeGreaterThan: 1,
+    toMatch: 1,
+    toMatchObject: 1,
+    toContain: 1,
+    toContainEqual: 1,
+    toHaveBeenCalledTimes: 1,
+  });
+  assert.deepEqual(matcherHistogram(''), {});
+  assert.deepEqual(matcherHistogram(null), {});
+});
+
+test('detectMatcherDowngrade flags exact → bounded even when the assertion count ROSE', () => {
+  // The first real miss: `toHaveBeenCalledTimes(300)` became
+  // `toBeGreaterThanOrEqual(300)` while a third assertion was added, so the
+  // count-only detector saw growth and stayed silent.
+  const before = `
+    it('renders every row once', async() => {
+      expect(renderSpy).toHaveBeenCalledTimes(300);
+      expect(countRows()).toBe(300);
+    });
+  `;
+  const after = `
+    it('renders every row once', async() => {
+      expect(renderSpy.mock.calls.length).toBeGreaterThanOrEqual(300);
+      expect(countRows()).toBe(300);
+      expect(countCols()).toBe(10);
+    });
+  `;
+
+  assert.ok(countAssertions(after) > countAssertions(before), 'premise: the assertion count rose');
+
+  assert.deepEqual(detectMatcherDowngrade(before, after), {
+    kind: 'matcher-downgrade',
+    exactDrops: [{ matcher: 'toHaveBeenCalledTimes', from: 1, to: 0 }],
+    boundedRises: [{ matcher: 'toBeGreaterThanOrEqual', from: 0, to: 1 }],
+  });
+
+  const { findings, severity } = detectWeakening(before, after, { sourceChanged: true });
+
+  assert.ok(!findings.some(f => f.kind === 'assertions-removed'), 'the count detector stays quiet here');
+  assert.ok(findings.some(f => f.kind === 'matcher-downgrade'));
+  assert.equal(severity, 'flag');
+});
+
+test('detectMatcherDowngrade flags a deleted exact assertion replaced by a loose one (count FLAT)', () => {
+  // The second real miss: a committed-value `toBe` was deleted while another
+  // assertion was added, so the count stayed flat.
+  const before = `
+    expect(getDataAtCell(1, 1)).toBe('committed');
+    expect(isEditorOpened()).toBe(false);
+  `;
+  const after = `
+    expect(isEditorOpened()).toBe(false);
+    expect(getDataAtCell(1, 1)).toBeDefined();
+  `;
+
+  assert.equal(countAssertions(before), countAssertions(after), 'premise: the assertion count is flat');
+
+  assert.deepEqual(detectMatcherDowngrade(before, after), {
+    kind: 'matcher-downgrade',
+    exactDrops: [{ matcher: 'toBe', from: 2, to: 1 }],
+    boundedRises: [{ matcher: 'toBeDefined', from: 0, to: 1 }],
+  });
+
+  const { findings } = detectWeakening(before, after);
+
+  assert.deepEqual(findings.map(f => f.kind), ['matcher-downgrade']);
+});
+
+test('detectMatcherDowngrade is quiet on a pure addition of assertions', () => {
+  const before = 'expect(a).toBe(1);';
+  const after = 'expect(a).toBe(1); expect(b).toEqual([1]); expect(c).toBeGreaterThan(0); expect(d).toContain(1);';
+
+  assert.equal(detectMatcherDowngrade(before, after), null);
+
+  const { findings, severity } = detectWeakening(before, after, { sourceChanged: true });
+
+  assert.deepEqual(findings, []);
+  assert.equal(severity, 'ok');
+});
+
+test('detectMatcherDowngrade is quiet when a non-matcher assertion helper is renamed', () => {
+  const before = 'verifyCell(0, 0, "A1"); expect(x).toBe(1);';
+  const after = 'verifyCellValue(0, 0, "A1"); expect(x).toBe(1);';
+
+  assert.equal(detectMatcherDowngrade(before, after), null);
+  assert.deepEqual(detectWeakening(before, after).findings, []);
+});
+
+test('detectMatcherDowngrade is quiet on an exact → exact change (toBe → toEqual)', () => {
+  const before = 'expect(a).toBe(1); expect(b).toBe(2);';
+  const after = 'expect(a).toEqual(1); expect(b).toEqual(2);';
+
+  assert.equal(detectMatcherDowngrade(before, after), null);
+  assert.deepEqual(detectWeakening(before, after).findings, []);
+});
+
+test('detectMatcherDowngrade is quiet when a file only ADDS a bounded matcher with no exact drop', () => {
+  const before = 'expect(a).toBe(1);';
+  const after = 'expect(a).toBe(1); expect(b).toBeGreaterThan(0);';
+
+  assert.equal(detectMatcherDowngrade(before, after), null);
+  assert.deepEqual(detectWeakening(before, after).findings, []);
+});
+
+test('detectMatcherDowngrade leaves an exact drop with no bounded rise to the count detector', () => {
+  // A plain removal is already reported as `assertions-removed`; reporting it
+  // twice would only add noise.
+  const before = 'expect(a).toBe(1); expect(b).toBe(2);';
+  const after = 'expect(a).toBe(1);';
+
+  assert.equal(detectMatcherDowngrade(before, after), null);
+  assert.deepEqual(detectWeakening(before, after).findings.map(f => f.kind), ['assertions-removed']);
+});
+
+test('detectPrecisionWidening flags toBeCloseTo digits going down', () => {
+  const before = 'expect(width).toBeCloseTo(expected, 5);';
+  const after = 'expect(width).toBeCloseTo(expected, 2);';
+
+  assert.deepEqual(detectPrecisionWidening(before, after), {
+    kind: 'precision-widened',
+    widenings: [{ from: 5, to: 2 }],
+  });
+
+  const { findings } = detectWeakening(before, after);
+
+  assert.deepEqual(findings.map(f => f.kind), ['precision-widened']);
+});
+
+test('detectPrecisionWidening ignores tightening, unchanged calls, and a non-literal digits argument', () => {
+  assert.equal(detectPrecisionWidening(
+    'expect(x).toBeCloseTo(y, 2);',
+    'expect(x).toBeCloseTo(y, 5);',
+  ), null, 'tightening is not weakening');
+
+  assert.equal(detectPrecisionWidening(
+    'expect(x).toBeCloseTo(Math.max(a, b), 5);',
+    'expect(x).toBeCloseTo(Math.max(a, b), 5);',
+  ), null, 'a comma inside the first argument is not a digits argument');
+
+  assert.deepEqual(detectPrecisionWidening(
+    'expect(x).toBeCloseTo(Math.max(a, b), 5);',
+    'expect(x).toBeCloseTo(Math.max(a, b), 3);',
+  ), { kind: 'precision-widened', widenings: [{ from: 5, to: 3 }] });
+
+  assert.equal(detectPrecisionWidening(
+    'expect(x).toBeCloseTo(y, 5);',
+    'expect(x).toBeCloseTo(y, digits);',
+  ), null, 'a digits argument that is not an integer literal cannot be judged, so it never flags');
+});
+
+test('detectPrecisionWidening treats an omitted digits argument as the default of 2', () => {
+  // Jest and Jasmine both default `numDigits` to 2, so dropping the argument
+  // from `toBeCloseTo(x, 5)` widens the tolerance.
+  assert.deepEqual(detectPrecisionWidening(
+    'expect(x).toBeCloseTo(y, 5);',
+    'expect(x).toBeCloseTo(y);',
+  ), { kind: 'precision-widened', widenings: [{ from: 5, to: 2 }] });
+
+  assert.equal(detectPrecisionWidening(
+    'expect(x).toBeCloseTo(y);',
+    'expect(x).toBeCloseTo(y, 2);',
+  ), null);
+});
+
+test('formatFinding renders every finding kind as one readable line', () => {
+  assert.equal(formatFinding({ kind: 'assertions-removed', before: 5, after: 4 }), 'assertions 5 → 4');
+  assert.equal(formatFinding({ kind: 'skip-or-focus-added', before: 0, after: 1 }), 'skip/focus markers 0 → 1');
+  assert.equal(formatFinding({
+    kind: 'matcher-downgrade',
+    exactDrops: [{ matcher: 'toHaveBeenCalledTimes', from: 1, to: 0 }],
+    boundedRises: [{ matcher: 'toBeGreaterThanOrEqual', from: 0, to: 1 }],
+  }), 'matcher downgrade — exact toHaveBeenCalledTimes 1 → 0; bounded toBeGreaterThanOrEqual 0 → 1');
+  assert.equal(formatFinding({
+    kind: 'precision-widened',
+    widenings: [{ from: 5, to: 2 }],
+  }), 'toBeCloseTo precision widened — 5 → 2 digits');
 });
 
 test('parseNameStatus handles modified, added, and renamed rows', () => {

@@ -41,6 +41,31 @@ executable lines the unit tests cover (`.github/scripts/diff-coverage-gate.mjs`,
 report-only at 80% until calibrated — a unit floor reads 0% for correctly
 E2E-tested changes, so it earns "blocking" only after the numbers are trusted).
 
+**The weakening detector is diff-based and warn-only.** `test-weakening-gate.mjs`
+compares every modified, added, or renamed `*.spec.*` / `*.unit.*` file against the
+merge-base and reports four kinds of finding, each a reviewer signal and never a
+block: `assertions-removed` (the `expect`/`assert*`/`verify*` count dropped),
+`skip-or-focus-added`, `matcher-downgrade`, and `precision-widened`. The last two
+exist because counting alone misses the quieter loosening moves. A
+**matcher downgrade** is an *exact* matcher losing calls **and** a *bounded* one
+gaining calls in the same file — `toHaveBeenCalledTimes(300)` becoming
+`toBeGreaterThanOrEqual(300)` while a third assertion is added makes the count
+rise; a committed-value `toBe` deleted while a `toBeDefined` is added keeps it
+flat; both read as a downgrade. The two tables, `EXACT_MATCHERS` (`toBe`,
+`toEqual`, `toStrictEqual`, `toHaveBeenCalledTimes`, `toHaveLength`,
+`toHaveBeenCalledWith`, `toHaveBeenLastCalledWith`) and `BOUNDED_MATCHERS`
+(`toBeGreaterThanOrEqual`, `toBeLessThanOrEqual`, `toBeGreaterThan`,
+`toBeLessThan`, `toBeCloseTo`, `toBeTruthy`, `toBeFalsy`, `toBeDefined`,
+`toContain`, `toContainEqual`, `toMatch`, `toMatchObject`, `toHaveProperty`),
+live in `.github/scripts/lib/test-weakening.mjs` and are the single source of
+truth for the evals scorer as well. Either half alone is not a finding: a plain
+removal is already `assertions-removed`, and adding a relational assertion is the
+documented pattern for values no token derives. **Precision widening** is a
+`toBeCloseTo(x, digits)` argument going down; an omitted argument counts as the
+framework default of 2, and an argument that is not an integer literal is never
+judged. Replayed over 300 `develop` commits (494 spec files) the two new kinds
+fired on 2 files, so a finding is worth a sentence in review, not a reflex.
+
 **Touched E2E specs run exactly once locally, whichever tool proves them first.**
 The Stop hook and pre-push share a green-run cache (`hot-e2e-green.json` in the
 checkout's git directory — `<root>/.git/` in a clone, `<main>/.git/worktrees/<name>/`

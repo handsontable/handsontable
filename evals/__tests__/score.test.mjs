@@ -163,7 +163,59 @@ test('a clean, meaningful test scores clean', () => {
   assert.deepEqual(score.gamingSignals, []);
   assert.deepEqual(score.determinismSmells, []);
   assert.deepEqual(score.problems, []);
+  // Page-object helpers carry the assertions here, so no matcher is counted and
+  // the loose-matchers warning must stay quiet.
+  assert.deepEqual(score.matchers, { exact: 0, bounded: 0 });
+  assert.deepEqual(score.warnings, []);
   assert.equal(score.verdict, 'meaningful');
+});
+
+test('matchers breaks assertions down into exact and bounded matcher calls', () => {
+  const src = `
+    it('pins and bounds', () => {
+      expect(a).toBe(1);
+      expect(b).toEqual([1]);
+      expect(c).toBeGreaterThan(0);
+    });
+  `;
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.deepEqual(score.matchers, { exact: 2, bounded: 1 });
+  assert.deepEqual(score.warnings, []);
+});
+
+test('a test whose every assertion is a bounded matcher gets a loose-matchers-only warning', () => {
+  // The single-file analogue of the weakening detector's matcher downgrade: no
+  // base revision to diff, but a spec that pins nothing exactly is the shape a
+  // downgrade ends in. Warning-only — a relational assertion is legitimate for
+  // values no token derives — so the verdict is untouched.
+  const src = `
+    it('checks something exists', () => {
+      expect(result).toBeDefined();
+      expect(result.rows).toBeTruthy();
+      expect(result.rows.length).toBeGreaterThan(0);
+    });
+  `;
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.deepEqual(score.matchers, { exact: 0, bounded: 3 });
+  assert.equal(score.verdict, 'meaningful');
+  assert.equal(score.warnings.length, 1);
+  assert.equal(score.warnings[0].type, 'loose-matchers-only');
+  assert.match(score.warnings[0].detail, /toBeDefined/);
+  assert.match(score.warnings[0].detail, /toBeGreaterThan/);
+});
+
+test('loose-matchers-only stays quiet when an exact matcher or a helper assertion is present', () => {
+  const oneExact = 'it("x", () => { expect(a).toBe(1); expect(b).toBeGreaterThan(0); });';
+  // A helper carries one of the two assertions, so the bounded matcher does not
+  // account for every assertion — the scorer cannot tell what the helper pins.
+  const helperAndBounded = `
+    it('x', async() => { await grid.expectCell(0, 0, 'A1'); expect(n).toBeGreaterThan(0); });
+  `;
+
+  assert.deepEqual(scoreTestSource(oneExact, { mutation: MUTATION_STUB }).warnings, []);
+  assert.deepEqual(scoreTestSource(helperAndBounded, { mutation: MUTATION_STUB }).warnings, []);
 });
 
 test('extractChangedSymbols reads declarations, calls, and hunk-header context from a diff', () => {
@@ -236,7 +288,9 @@ test('runMutation scopes stryker with --mutate and parses the report (injected I
   const result = runMutation(['src/helpers/errors.ts'], {
     status: { available: true },
     run: cmd => calls.push(cmd),
-    readReport: () => ({ files: { 'src/helpers/errors.ts': { mutants: [{ status: 'Killed' }, { status: 'Killed' }] } } }),
+    readReport: () => ({
+      files: { 'src/helpers/errors.ts': { mutants: [{ status: 'Killed' }, { status: 'Killed' }] } },
+    }),
   });
 
   assert.match(calls[0], /--mutate 'src\/helpers\/errors\.ts'/);
@@ -256,7 +310,9 @@ test('runMutation refuses an unscoped (whole-tree) run', () => {
 test('runMutation surfaces a failed stryker run as a reason, not a throw', () => {
   const result = runMutation(['src/a.ts'], {
     status: { available: true },
-    run: () => { throw new Error('stryker exploded\nstack…'); },
+    run: () => {
+      throw new Error('stryker exploded\nstack…');
+    },
     readReport: () => ({}),
   });
 

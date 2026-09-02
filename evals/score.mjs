@@ -15,11 +15,13 @@ import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { resolve, dirname } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
+import {
+  BOUNDED_MATCHERS, EXACT_MATCHERS, countAssertions, countSkipFocus, matcherHistogram,
+} from '../.github/scripts/lib/test-weakening.mjs';
 
 // The handsontable package dir, resolved from THIS file's location (evals/) so
 // mutation runs work regardless of the caller's cwd.
 const HOT_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'handsontable');
-import { countAssertions, countSkipFocus } from '../.github/scripts/lib/test-weakening.mjs';
 
 /**
  * Matches the opening of a test block: `it(`, `test(`, the focused/skipped
@@ -410,8 +412,11 @@ export function runMutation(sourceFiles, deps = {}) {
   }
 
   const cwd = deps.cwd ?? HOT_DIR;
-  const run = deps.run ?? ((cmd) => execSync(cmd, { cwd, shell: '/bin/bash', stdio: 'pipe', encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
-  const readReport = deps.readReport ?? (() => JSON.parse(readFileSync(resolve(cwd, 'reports/mutation/mutation.json'), 'utf8')));
+  const run = deps.run ?? (cmd => execSync(cmd, {
+    cwd, shell: '/bin/bash', stdio: 'pipe', encoding: 'utf8', maxBuffer: 64 * 1024 * 1024,
+  }));
+  const readReport = deps.readReport
+    ?? (() => JSON.parse(readFileSync(resolve(cwd, 'reports/mutation/mutation.json'), 'utf8')));
 
   try {
     // Pinned Babel transform + commonjs env — Stryker's worker cwd breaks
@@ -423,6 +428,22 @@ export function runMutation(sourceFiles, deps = {}) {
   } catch (error) {
     return { available: true, reason: `stryker run failed: ${error.message.split('\n')[0]}` };
   }
+}
+
+/**
+ * Split a spec's matcher calls into the exact and bounded halves of the weakening
+ * detector's tables. The single-file counterpart of its `matcher-downgrade`
+ * finding: there is no base revision to diff, but a spec whose every assertion
+ * resolves to a bounded matcher is the shape a downgrade ends in.
+ *
+ * @param {string} src The spec file contents.
+ * @returns {{exact: number, bounded: number}} How many calls pin a value versus bound it.
+ */
+export function countMatchers(src) {
+  const histogram = matcherHistogram(src);
+  const sum = names => names.reduce((total, name) => total + (histogram[name] ?? 0), 0);
+
+  return { exact: sum(EXACT_MATCHERS), bounded: sum(BOUNDED_MATCHERS) };
 }
 
 /**
@@ -440,8 +461,23 @@ export function scoreTestSource(src, options = {}) {
   const gamingSignals = findGamingSignals(src);
   const determinismSmells = findDeterminismSmells(src);
   const relevance = options.diff ? assessRelevance(src, options.diff) : null;
+  const assertions = countAssertions(src);
+  const matchers = countMatchers(src);
   const problems = [];
   const warnings = [];
+
+  // Warning-only: a relational assertion is the documented pattern for values no
+  // token derives. The bound-count must account for EVERY assertion, because a
+  // helper such as `grid.expectCell()` may pin a value the scorer cannot see.
+  if (matchers.exact === 0 && matchers.bounded > 0 && matchers.bounded >= assertions) {
+    const histogram = matcherHistogram(src);
+    const used = BOUNDED_MATCHERS.filter(name => histogram[name]).map(name => `${name} ×${histogram[name]}`);
+
+    warnings.push({
+      type: 'loose-matchers-only',
+      detail: `every assertion uses a bounded matcher (${used.join(', ')}); nothing pins an exact value`,
+    });
+  }
 
   if (blocks.length === 0) {
     problems.push({ type: 'no-test-blocks', detail: 'no it()/test() block found' });
@@ -477,7 +513,8 @@ export function scoreTestSource(src, options = {}) {
 
   return {
     tests: blocks.length,
-    assertions: countAssertions(src),
+    assertions,
+    matchers,
     hollowTests,
     gamingSignals,
     determinismSmells,
