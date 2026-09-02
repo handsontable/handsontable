@@ -41,8 +41,8 @@ on:
       # Precomputed here so the Integration wrapper matrix fans out with NO
       # per-module setup job (matrix context is illegal in a job-level if).
       wrapper-matrix: { value: '${{ jobs.scope.outputs.wrapper-matrix }}' }
-      # True when the PR description ticks "This change needs a manual QA
-      # pass" — routes the Manual QA module (see manual-qa.yml).
+      # True when the PR description ticks "MANUAL QA NEEDED" — routes the
+      # Manual QA module (see manual-qa.yml).
       manual-qa: { value: '${{ jobs.scope.outputs.manual-qa }}' }
 
 jobs:
@@ -223,9 +223,9 @@ jobs:
 
       # Manual QA is requested by ticking "MANUAL QA NEEDED"
       # in the PR description (the template carries the line — its wording is
-      # this regex's contract). Read LIVE, never from the frozen event payload:
-      # that is what lets pr-manual-qa-label.yml arm the gate on an existing
-      # run by simply re-running it when the box is newly ticked. This is only the routing bit — the gate itself (the
+      # this regex's contract). Read LIVE, never from the frozen event payload,
+      # so ticking the box and pressing "Re-run all jobs" arms the gate on an
+      # existing run. This is only the routing bit — the gate itself (the
       # environment-approval sign-off job) lives in manual-qa.yml, and an
       # unticked PR skips that module without spending a runner on it.
       - id: manual-qa
@@ -242,7 +242,7 @@ jobs:
             core.setOutput('requested', String(requested));
             core.notice(requested
               ? 'Manual QA requested — the Manual QA sign-off job will wait for a manual-qa environment approval.'
-              : 'Manual QA not requested — to request it, tick "MANUAL QA NEEDED" in the PR description (the label workflow then re-runs this pipeline to arm the gate).');
+              : 'Manual QA not requested — to request it, tick "MANUAL QA NEEDED" in the PR description and press "Re-run all jobs".');
 
   presence:
     name: test presence

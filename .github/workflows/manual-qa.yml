@@ -18,16 +18,16 @@ name: Manual QA
 # Semantics that follow from the mechanism:
 # - approval is PER RUN: every new push re-asks the reviewers — a fresh QA
 #   pass on fresh code, deliberately;
-# - the box is read live, per run. Ticking it after a run already finished
-#   ARMS the gate anyway: pr-manual-qa-label.yml re-runs that Tests run on
-#   the unticked -> ticked transition, so a green PR cannot stay green with
-#   the box newly ticked. Unticking is NOT symmetric — enforcement is never
-#   lifted by automation; press "Re-run all jobs" (or push) so a person
-#   drops the gate and it is recorded as their action.
+# - the box is read live, but PER RUN: it is evaluated when the Checks scope
+#   router runs. Ticking or unticking it later does not change a run that has
+#   already evaluated it — press "Re-run all jobs" (or push) to re-decide, in
+#   either direction. So a box ticked after the pipeline went green leaves a
+#   mergeable PR until someone re-runs it; that is a known limitation, kept
+#   deliberately in exchange for having no label/arming automation at all.
 #
-# A ticked PR also gets the red `Requires Manual QA` label, so the request is
-# visible in the PR list without opening it (pr-manual-qa-label.yml — a
-# separate workflow; the label is a marker, never the trigger).
+# The red `Manual QA required` label is applied BY THE PR AUTHOR (the
+# `pr-creation` skill instructs it), like every other label in this repo. It
+# is a marker for the PR list, never the trigger.
 #
 # Cutover (repo admin): create the `manual-qa` environment with required
 # reviewers (users or teams) plus "Prevent self-review". It MUST exist with

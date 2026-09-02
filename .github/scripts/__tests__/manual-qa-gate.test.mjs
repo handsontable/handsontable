@@ -4,18 +4,15 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
 
-// The manual-QA gate spans four files that must agree, and two of the ways they
-// can disagree are invisible until a real PR exercises them:
+// The manual-QA gate spans three files that must agree, and both ways they can
+// disagree are invisible until a real PR exercises them:
 //
-//   1. the tickbox regex lives in BOTH checks.yml (which routes the gate) and
-//      pr-manual-qa-label.yml (label + arm). If one drifts, a ticked PR gets a
-//      label with no gate, or a gate with no label;
-//   2. the PR template carries the line the regex matches, so rewording the
-//      template silently disables the gate for every new PR;
-//   3. the label workflow MUTATES labels on a pull request, which GitHub bills
-//      to `pull-requests: write` as well as `issues: write` — granting only one
-//      of them 403s (observed on PR #13179), and the failure surfaces on a real
-//      PR rather than anywhere a local check would see it.
+//   1. the PR template carries the line the Checks router's regex matches, so
+//      rewording either side silently disables the gate for every new PR — and
+//      nothing goes red, the module is simply never routed;
+//   2. the gate module must keep asserting a recorded approval: a missing or
+//      drifted `manual-qa` environment is auto-created UNPROTECTED, and the
+//      job would then run straight through;
 //
 // Text-based, like fork-guards.test.mjs: no YAML parser is a dependency of the
 // repo root, and these are shape assertions, not behavior.
@@ -28,14 +25,12 @@ const REGEX_LITERAL = String.raw`/^\s*-\s*\[[xX]\]\s+MANUAL QA NEEDED/m`;
 // The template line's wording is the regex's contract.
 const TEMPLATE_LINE = 'MANUAL QA NEEDED';
 
-test('the tickbox regex is identical everywhere it is duplicated', () => {
-  for (const file of ['.github/workflows/checks.yml', '.github/workflows/pr-manual-qa-label.yml']) {
-    assert.ok(
-      read(file).includes(REGEX_LITERAL),
-      `${file} does not carry the canonical tickbox regex — the routing, the label and the `
-        + 'arm check would disagree about whether manual QA was requested'
-    );
-  }
+test('the router carries the canonical tickbox regex', () => {
+  assert.ok(
+    read('.github/workflows/checks.yml').includes(REGEX_LITERAL),
+    'checks.yml does not carry the canonical tickbox regex, so the router and the PR template '
+      + 'disagree about whether manual QA was requested'
+  );
 });
 
 test('the PR template carries the line the regex matches, and only unticked', () => {
@@ -53,23 +48,6 @@ test('the PR template carries the line the regex matches, and only unticked', ()
     ticked.test(line.replace('- [ ]', '- [x]')),
     'ticking the template line does not match the regex — the wording and the pattern have drifted'
   );
-});
-
-test('the label workflow holds every scope a PR label write needs', () => {
-  const workflow = read('.github/workflows/pr-manual-qa-label.yml');
-  const permissions = workflow.slice(workflow.indexOf('\npermissions:'), workflow.indexOf('\nconcurrency:'));
-
-  // GitHub answers a PR label write with
-  // `x-accepted-github-permissions: issues=write; pull_requests=write` (observed
-  // as a 403 on PR #13179 when only `issues: write` was granted), so both stay.
-  assert.match(
-    permissions,
-    /pull-requests: write/,
-    'pr-manual-qa-label.yml needs `pull-requests: write` — label REMOVAL 403s without it'
-  );
-  assert.match(permissions, /issues: write/, 'pr-manual-qa-label.yml needs `issues: write` to label at all');
-  // The arm job re-runs the Tests workflow.
-  assert.match(permissions, /actions: write/, 'pr-manual-qa-label.yml needs `actions: write` to re-run Tests');
 });
 
 test('the gate module asserts an approval instead of trusting the environment', () => {

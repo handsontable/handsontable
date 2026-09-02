@@ -80,11 +80,10 @@ nuance no snapshot covers, a high-risk area — or a QA-owned pass such as an
 RC adversarial sweep or a screen-reader check), tick **"MANUAL QA NEEDED"**
 in the PR description (author or agent may tick it; the template carries the
 line, and its wording is machine-read — keep it verbatim) and say in one line
-what to check. The PR gets the red
-**`Requires Manual QA`** label so the request is visible in the PR list
-(`pr-manual-qa-label.yml` — a marker only, never the trigger, and
-apply-only: unticking leaves it in place for a person to remove, exactly like
-every other label here). The Checks scope router
+what to check, and add the red **`Manual QA required`** label so the request
+is visible in the PR list (applied by hand, like every other label here — the
+`pr-creation` skill instructs it; it is a marker, never the trigger). The
+Checks scope router
 reads the box live and routes the Manual QA module only when ticked; its
 `sign-off` job then waits on the **`manual-qa` environment approval**: a
 designated reviewer (the environment's required-reviewers list; self-review
@@ -94,15 +93,14 @@ sign-off. While it waits, CI Gate cannot report, so the merge stays blocked
 without any job going red; a rejection turns CI Gate red. Unticked PRs
 *skip* the module — shown as skipped, never as a misleading green "passed",
 with no runner spent. Approval is per run: a new push re-asks the reviewers.
-Enforcement is decided per run too, but it **auto-arms**: a ticked box whose
-Tests run went green *without* the gate re-runs that run — checked on every PR
-event and again when a Tests run completes, so ticking the box mid-pipeline is
-covered too. The sign-off job also fails closed: it asserts that an approval is
-actually recorded for the run, so a missing or drifted `manual-qa` environment
-turns CI Gate red instead of passing silently. The reverse never happens by itself —
-automation here only ever ADDS the human gate. To drop enforcement, untick
-and press **"Re-run all jobs"** (or push), so a person owns the decision, and
-remove the label by hand. This **adds** a recorded human pass; it
+Enforcement is decided per run too — the box is evaluated when the scope router
+runs — so changing it afterwards needs a **"Re-run all jobs"** to re-decide, in
+either direction. A box ticked after a green run therefore leaves the PR
+mergeable until someone re-runs it; that is a known limitation, accepted in
+exchange for having no labelling or re-running automation at all. The sign-off
+job does fail closed: it asserts that an approval is actually recorded for the
+run, so a missing or drifted `manual-qa` environment turns CI Gate red instead
+of passing silently. This **adds** a recorded human pass; it
 never replaces the presence gate or the test requirement. Do not use it to
 dodge writing tests.
 
