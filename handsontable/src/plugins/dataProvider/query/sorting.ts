@@ -160,7 +160,7 @@ export function applyColumnSortToQueryFromPlugin(hot: HotInstance, queryParamete
   applyColumnSortingToQueryParameters(
     hot.getPlugin(COLUMN_SORTING_PLUGIN_KEY) as unknown as ColumnSortingPluginLike,
     queryParameters,
-    column => String(hot.colToProp(column))
+    column => String(hot.colToProp(column) ?? column)
   );
 }
 
@@ -172,7 +172,7 @@ export function applyColumnSortToQueryFromPlugin(hot: HotInstance, queryParamete
  * @returns {void}
  */
 export function normalizeSortInFetchParams(params: { sort: unknown }, hot: HotInstance): void {
-  params.sort = normalizeSortToQueryFormat(params.sort, col => String(hot.colToProp(col)));
+  params.sort = normalizeSortToQueryFormat(params.sort, col => String(hot.colToProp(col) ?? col));
 }
 
 /**

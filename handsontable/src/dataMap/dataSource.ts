@@ -361,7 +361,12 @@ class DataSource {
    */
   getAtCell(row: number, columnOrProp: number | string | DataAccessorFn): unknown {
     const dataRow = this.modifyRowData(row);
-    const prop = typeof columnOrProp === 'function' ? columnOrProp : this.colToProp(columnOrProp);
+    // Falls back to the index for a column `colToProp()` cannot resolve, so a source read past
+    // `countCols()` reaches the stored value as it did before, and `modifySourceData` keeps
+    // receiving a column address rather than `null`.
+    const prop = typeof columnOrProp === 'function'
+      ? columnOrProp
+      : this.colToProp(columnOrProp) ?? columnOrProp;
 
     return this.getAtPhysicalCell(row, prop as number | string | DataAccessorFn, dataRow);
   }
@@ -418,7 +423,9 @@ class DataSource {
    * @returns {string}
    */
   getCopyable(row: number, prop: string | number | DataAccessorFn | null): unknown {
-    const visualColumn = this.propToCol(prop);
+    // Falls back to the prop, matching `DataMap#getCopyable`, so an out-of-range index still
+    // reaches the meta lookup and the source copyable getter reads back what it did before.
+    const visualColumn = this.propToCol(prop) ?? prop;
 
     // The transient read honors a `cells()`-driven `copyable: false` (the dynamic extension
     // runs) without permanently materializing one meta object per copied cell - `onCopy` walks

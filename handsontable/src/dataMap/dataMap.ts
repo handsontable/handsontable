@@ -251,13 +251,12 @@ class DataMap {
   /**
    * Returns property name that corresponds with the given column index.
    *
-   * The declared return type is the `string|number` shape `Core#colToProp` has always exposed, so
-   * widening it does not leak into consumer code. A `columns[].data` accessor function is handed
-   * back as-is at runtime – code that has to handle it reads the result through `unknown` and
-   * `isDataAccessorFn()`.
+   * A `columns[].data` accessor function is handed back as-is at runtime – code that has to handle
+   * it reads the result through `unknown` and `isDataAccessorFn()`.
    *
    * @param {string|number} column Visual column index or another passed argument.
-   * @returns {string|number} Column property, physical column index, or the passed argument.
+   * @returns {string|number|null} Column property, physical column index, `null` when the index
+   *   names no column that exists and is visible, or the passed argument when it is not an integer.
    */
   colToProp(column: number): string | number | null;
   /* eslint-disable jsdoc/require-jsdoc -- the implementation shares the JSDoc of the overload above */
@@ -296,16 +295,18 @@ class DataMap {
    *   visible column, or the passed argument when it is a property this data set does not use.
    */
   propToCol(prop: string | number | DataAccessorFn | null) {
-    // `null` already means "no column" — most often it arrived from a `colToProp()` that could not
-    // resolve one — so there is nothing to look up.
-    if (prop === null) {
-      return null;
-    }
-
-    const cachedPhysicalIndex = this.propToColCache!.get(prop);
+    // The cache is consulted before `null` is rejected: a column declared `{ data: null }` stores
+    // `null` as its property, so the lookup resolves it to a real column.
+    const cachedPhysicalIndex = this.propToColCache!.get(prop as string | number | DataAccessorFn);
 
     if (cachedPhysicalIndex !== undefined) {
       return this.hot!.toVisualColumn(cachedPhysicalIndex);
+    }
+
+    // No column uses `null` as its property, so it means "no column" — most often it arrived from
+    // a `colToProp()` that could not resolve one.
+    if (prop === null) {
+      return null;
     }
 
     // A property that names no column is handed back unchanged. Only a numeric argument is
@@ -970,7 +971,9 @@ class DataMap {
    * @returns {string}
    */
   getCopyable(row: number, prop: string | number | DataAccessorFn | null) {
-    const colIndex = this.propToCol(prop);
+    // Falls back to the prop so an out-of-range index still reaches the meta lookup, keeping the
+    // copyable getters reading back what they did before `propToCol()` began answering `null`.
+    const colIndex = this.propToCol(prop) ?? prop;
 
     // The transient read honors a `cells()`-driven `copyable: false` (the dynamic extension
     // runs) without permanently materializing one meta object per copied cell - the copy path

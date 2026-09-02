@@ -153,6 +153,26 @@ exception in the next section.
   getters. An out-of-range index reads back what it did before.
 - **Undo and redo** still replay a change that created a column.
 
+### `getDataAtProp()` returns an empty array for an index that names no column
+
+[`getDataAtProp()`](@/api/core.md#getdataatprop) built a column range from the resolved property.
+When a *numeric* property named no column, both ends of that range collapsed to column `0`, so the
+method handed back column 0's values for a column that does not exist. It now returns an empty
+array.
+
+```js
+// A grid with three columns and 100 rows.
+
+// Before 19.0
+hot.getDataAtProp(99); // 100 entries, all null
+
+// 19.0 and later
+hot.getDataAtProp(99); // []
+```
+
+A property name your data set does not use is unaffected — it never resolved to an index, and it
+still does not.
+
 ### One hook does change
 
 [`modifyData`](@/api/hooks.md#modifydata) receives the resolved column as its second argument. When

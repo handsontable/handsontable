@@ -90,8 +90,8 @@ describe('Core.propToCol', () => {
   });
 
   it('should keep growing the grid when a change is addressed past the last column', async() => {
-    // `applyChanges()` reads the bound from the prop itself rather than through `propToCol()`,
-    // which now answers `null` for exactly this case. Auto column growth has to survive that.
+    // `applyChanges()` falls back to the prop when `propToCol()` answers `null`, which is exactly
+    // what it does for an index past the last column. Auto column growth has to survive that.
     handsontable({
       data: [['a0', 'a1', 'a2'], ['b0', 'b1', 'b2']],
     });
@@ -102,5 +102,56 @@ describe('Core.propToCol', () => {
 
     expect(countCols()).toBe(7);
     expect(getDataAtCell(0, 6)).toBe('FAR');
+  });
+
+  it('should not grow the grid when a trimmed column offsets the prop from the column count',
+    async() => {
+      // The prop is a *physical* index, drawn from a wider space than `countCols()` once a column
+      // is trimmed. Comparing it against the count without translating it back grows columns
+      // nobody asked for: here physical 4 is visual 3, the last existing column.
+      const hot = handsontable({
+        data: [['a0', 'a1', 'a2', 'a3', 'a4'], ['b0', 'b1', 'b2', 'b3', 'b4']],
+      });
+
+      const trimmingMap = hot.columnIndexMapper.createAndRegisterIndexMap('spec-trim', 'trimming');
+
+      trimmingMap.setValueAtIndex(0, true);
+
+      await render();
+
+      expect(countCols()).toBe(4);
+
+      await setDataAtCell(0, 3, 'EDGE');
+
+      expect(countCols()).toBe(4);
+      expect(getDataAtCell(0, 3)).toBe('EDGE');
+    });
+
+  it('should resolve a column whose declared property is `null`', async() => {
+    handsontable({
+      data: [['a0', 'a1']],
+      columns: [{ data: null }, { data: 1 }],
+    });
+
+    // `{ data: null }` stores `null` as that column's property, so the property cache has to be
+    // consulted before `null` is read as "no column".
+    expect(propToCol(null)).toBe(0);
+  });
+
+  it('should report `null` to `modifyData` for a numeric property that names no column', async() => {
+    const seenColumns = [];
+
+    handsontable({
+      data: [['a0', 'a1', 'a2']],
+      modifyData(row, column) {
+        seenColumns.push(column);
+      },
+    });
+
+    seenColumns.length = 0;
+
+    getDataAtRowProp(0, 99);
+
+    expect(seenColumns).toEqual([null]);
   });
 });

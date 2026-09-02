@@ -400,12 +400,10 @@ class AutofillCalculations {
     arrayEach(changes, (change) => {
       const changeArr = change as unknown[];
       const rowIndex = changeArr[0] as number;
-      const columnIndex = this.plugin.hot.propToCol(changeArr[1] as string | number);
-
-      // A change addressed at no existing column contributes no bounds.
-      if (columnIndex === null) {
-        return;
-      }
+      // Falls back to the prop. Skipping the change instead would drop its row from the bounds
+      // too, shrinking the range vertically and moving merged areas over the wrong rows.
+      const columnIndex =
+        (this.plugin.hot.propToCol(changeArr[1] as string | number) ?? changeArr[1]) as number;
 
       if (rowMin === null || rowIndex < rowMin) {
         rowMin = rowIndex;

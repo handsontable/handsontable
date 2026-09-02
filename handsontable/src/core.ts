@@ -758,7 +758,9 @@ export default function Core(
     columnIndexMapper: instance.columnIndexMapper,
     countCols: () => instance.countCols() as number,
     countRows: () => instance.countRows() as number,
-    propToCol: (prop: string | number) => datamap.propToCol(prop) as number,
+    // Falls back to the prop: the selection module's contract is non-nullable, and `Math.min()`
+    // would silently coerce a `null` to column 0.
+    propToCol: (prop: string | number) => (datamap.propToCol(prop) ?? prop) as number,
     isEditorOpened: () => {
       const editor = instance.getActiveEditor();
 
@@ -2168,15 +2170,17 @@ export default function Core(
 
       if (instance.dataType === 'array' && (!tableMeta.columns || tableMeta.columns.length === 0) &&
           tableMeta.allowInsertColumn) {
-        // The prop is a physical column index here — array data with no `columns` setting leaves
-        // the property cache empty — so the bound is read from it directly. It must not go through
-        // `propToCol()`, which answers `null` for an index past the last column: exactly the case
-        // this loop exists to handle. The comparison is unchanged for every index that reaches it,
-        // because an in-range prop always resolves below `countCols()` and never entered the loop.
-        const targetColumn = Number(changes[i][1]);
+        // `propToCol()` answers `null` for an index that names no column — exactly the case this
+        // loop exists to handle — so the prop is the fallback. That reproduces the resolution this
+        // loop used before, which fell back the same way. The translation itself must stay: with a
+        // trimmed column the prop is a physical index drawn from a wider space than `countCols()`,
+        // and comparing it raw would grow columns nobody asked for. Re-read on every pass so a
+        // partial creation (a `maxCols` clamp) is seen.
+        const targetColumn = () =>
+          Number(datamap.propToCol(changes[i][1] as string | number) ?? changes[i][1]);
 
-        while (targetColumn > instance.countCols() - 1) {
-          const missingColumns = targetColumn - (instance.countCols() - 1);
+        while (targetColumn() > instance.countCols() - 1) {
+          const missingColumns = targetColumn() - (instance.countCols() - 1);
           const {
             delta: numberOfCreatedColumns
           } = datamap.createCol(undefined, missingColumns, { source: 'auto' });

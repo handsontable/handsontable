@@ -1108,7 +1108,9 @@ class TableView {
         }
 
         const cellProperties = this.hot.getCellMeta<CellProperties>(visualRowToCheck, visualColumnToCheck);
-        const prop = this.hot.colToProp(visualColumnToCheck) as string;
+        // Falls back to the index, matching `GhostTable` and `EditorManager`, so one cell is not
+        // addressed two different ways across the measuring and painting paths.
+        const prop = (this.hot.colToProp(visualColumnToCheck) ?? visualColumnToCheck) as string;
         let value = this.hot.getDataAtRowProp(visualRowToCheck, prop);
 
         if (this.hot.hasHook('beforeValueRender')) {
