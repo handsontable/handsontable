@@ -1,16 +1,16 @@
 ---
 type: reference
-title: Changelog 17.0
-metaTitle: Changelog 17.0 - JavaScript Data Grid | Handsontable
-description: See the full history of changes made to Handsontable 17.0 in each minor and patch release.
+title: Changelog 17.x
+metaTitle: Changelog 17.x - JavaScript Data Grid | Handsontable
+description: See the full history of changes made to Handsontable 17.x in each minor and patch release.
 permalink: /changelog-17
 canonicalUrl: /changelog-17
 react:
-  metaTitle: Changelog 17.0 - React Data Grid | Handsontable
+  metaTitle: Changelog 17.x - React Data Grid | Handsontable
 angular:
-  metaTitle: Changelog 17.0 - Angular Data Grid | Handsontable
+  metaTitle: Changelog 17.x - Angular Data Grid | Handsontable
 vue:
-  metaTitle: Changelog 17.0 - Vue Data Grid | Handsontable
+  metaTitle: Changelog 17.x - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---

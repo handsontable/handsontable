@@ -558,41 +558,32 @@ class EditorManager {
    * rewrites the restore flag – which is harmless here because a discard is what that override would
    * decide anyway once the edited record is gone from the visual space.
    *
-   * A rebind moves the editor's coordinates and NOTHING else – not its pixel position, not the
-   * selection. Neither `render()` nor `view.render()` repositions an open editor, so it stays drawn
-   * over the row it started on for the rest of the edit; on the Filters path that is invisible
-   * because `filter()` closes the editor outright, but on the `trimRows` path it is left painted
-   * over a neighboring row.
+   * For a pure trimming update, `Selection` separately snapshots every layer in physical coordinates
+   * before the cache rebuild and restores surviving ranges afterwards. Keeping that operation out of
+   * this manager prevents selection hooks from preparing an editor while the mapper is still
+   * unwinding. It lets editor-specific commit paths, including DropdownEditor and Ctrl+Enter, keep
+   * targeting a surviving record that moved because earlier records were trimmed. A range that loses
+   * only part of itself shrinks onto its surviving records instead of being dropped, so `Ctrl+Enter`
+   * keeps filling the layer holding the editor rather than one that merely inherited the active slot.
    *
-   * That the selection does not follow bounds what the rebind can promise, and the boundary is worth
-   * stating precisely. A plain text commit reads `this.row`/`this.col` and lands on the right record.
-   * Two paths do not: an editor whose `finishEditing()` vetoes on a moved range rewrites the commit
-   * into a discard (`DropdownEditor` only - `autocomplete` lost that override when #12285 moved it
-   * down, and `date` is built on `TextEditor`, not on this line at all), and a Ctrl+Enter commit
-   * reads the SELECTION corners rather than the editor's coordinates
-   * (`BaseEditor#saveValue()`). On both the edit is lost rather than misplaced – which is what this
-   * method exists to guarantee, and strictly better than the row-appending corruption they produced
-   * before it – but the value does not survive. Making it survive means moving the selection with the
-   * record, which is a larger change than this repair: DEV-2680.
-   *
-   * Both exceptions are pinned by cases in `tests/e2e/editor-trimmed-row.spec.ts` under `commit paths
-   * the rebind cannot reach`. Those cases assert the LOSS on purpose, so a regression back to a write
-   * fails – they are not a statement that losing the edit is the desired end state. DEV-2680 inverts
-   * them.
+   * A sequence permutation is deliberately outside that selection repair. Reordering can make the
+   * records from one rectangular range non-contiguous, which `CellRange` cannot represent without
+   * selecting unrelated records. The editor still follows its own record, but selection-dependent
+   * commit paths retain their existing limitation for sorting and moving.
    *
    * An editor a structural change stranded past the last row is discarded here rather than rebound:
    * its captured record was cleared as unresolvable, and its own coordinates address nothing, so
    * there is no record left to follow. Discarding is what keeps a following `Filters#filter()` from
    * committing through those coordinates and appending records.
    *
-   * Two further limits. The selection is repaired separately and on a different rule: `core.ts`
-   * DROPS a selection a trimming map left pointing at another record (`Selection#
-   * deselectIfHighlightStranded()`), rather than moving it, and it skips that repair entirely while
-   * an editor is open – so with an editor in play the rebind here is the only thing acting, exactly
-   * as before. One shape stays open on the selection side, with no editor involved: a trim ABOVE
-   * the highlight that leaves its coordinate in range while shifting the record out from under it.
-   * And an editor parked in `WAITING` is not reconciled: `finishEditing()` has already run
-   * `saveValue()` by then, so there is nothing left to redirect.
+   * A selection with NO open editor is repaired on a different rule, and by a different piece of
+   * code: `Selection` snapshots only while an editor is open, so `core.ts` instead DROPS a selection
+   * a trimming map left pointing at another record (`Selection#deselectIfHighlightStranded()`)
+   * rather than moving it. One shape stays open there, with no editor involved: a trim ABOVE the
+   * highlight that leaves its coordinate in range while shifting the record out from under it.
+   *
+   * An editor parked in `WAITING` is not reconciled: `finishEditing()` has already run `saveValue()`,
+   * so there is nothing left to redirect.
    *
    * No core plugin registers a TRIMMING map on the column axis, so that half runs for user-registered
    * maps only; core plugins do permute the column sequence (`manualColumnMove`, `manualColumnFreeze`)
