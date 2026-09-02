@@ -17,6 +17,7 @@
     }
     window.htCellType = ({
       autocomplete: 'autocomplete', dropdown: 'dropdown', handsontable: 'handsontable',
+      multiselect: 'multiselect',
     })[htParams.get('cellType') ?? 'autocomplete'];
     if (!window.htCellType) {
       throw new Error('Unknown ?cellType= value: ' + JSON.stringify(htParams.get('cellType')));
@@ -36,26 +37,73 @@
 
     const CHOICES = ['Alpha', 'Alfa', 'Alto'];
 
-    // All three cell types render the SAME arrow: `dropdownRenderer` and `handsontableRenderer`
-    // both delegate to `autocompleteRenderer`, which is where the arrow and its `mousedown`
-    // listener come from. They configure their choices differently though - `autocomplete` and
-    // `dropdown` take a flat `source`, while `handsontable` takes a whole nested grid config -
-    // which is why this fixture exists instead of a third value on the async-source fixture, whose
-    // `source` is a query recorder that a nested grid would never call.
+    // Three of the four cell types render the SAME arrow: `dropdownRenderer` and
+    // `handsontableRenderer` both delegate to `autocompleteRenderer`, which is where
+    // `htAutocompleteArrow` and its `mousedown` listener come from. They configure their choices
+    // differently though - `autocomplete` and `dropdown` take a flat `source`, while `handsontable`
+    // takes a whole nested grid config - which is why this fixture exists instead of a third value
+    // on the async-source fixture, whose `source` is a query recorder that a nested grid would
+    // never call.
+    //
+    // `multiselect` is the fourth, and it reaches a DIFFERENT element and listener:
+    // `.ht-multi-select-arrow`, built by `multiSelectRenderer`. It is covered here anyway so the
+    // affordance shared by every list cell type has one home (#13316).
     const columnByCellType = {
       autocomplete: { type: 'autocomplete', source: CHOICES },
       dropdown: { type: 'dropdown', source: CHOICES },
       handsontable: { type: 'handsontable', handsontable: { data: CHOICES.map(choice => [choice]) } },
+      multiselect: { type: 'multiselect', source: CHOICES },
     };
 
     const column = columnByCellType[window.htCellType];
 
-    // Cells are seeded so the column is not at its default minimum width, which is the width where
-    // a centred click lands on the arrow. Cases here address the arrow directly, so this only keeps
-    // an ordinary cell click available as a control.
+    // A fresh value per cell: `multiselect` stores an array, and sharing one instance across cells
+    // would let a chip removal in one cell show up in the others.
+    const seed = () => (window.htCellType === 'multiselect' ? ['Alpha'] : 'Al');
+
+    // Rows 0 and 1 are seeded so the column is not at its default minimum width, which is the width
+    // where a centred click lands on the arrow. Cases here address the arrow directly, so this only
+    // keeps an ordinary cell click available as a control. Row 2 is left empty on purpose: an empty
+    // list cell is where a missing indicator shows most, and it is the state `multiselect` used to
+    // render completely blank.
+    // `?frozen=1` freezes the first column and adds enough plain columns to scroll past it, so a
+    // spec can reach the state where the frozen cell exists ONLY in the inline-start overlay clone
+    // and no longer in the master table's rendered range. Absent, the grid is exactly the two-column
+    // one every other case here measures against — the param must not move their geometry.
+    const frozen = htParams.get('frozen') === '1';
+    const filler = frozen
+      ? Array.from({ length: 8 }, () => ({}))
+      : [];
+    const fillerCell = frozen ? Array.from({ length: 8 }, (unused, i) => `f${i}`) : [];
+
+    // `?overflow=1` puts more chips in a `multiselect` cell than a fixed narrow column can show, so
+    // the renderer hides the ones that do not fit and adds the `+N` badge. That is the only state
+    // where the indicator's width reservation is observable: with a single chip there is slack, and
+    // a chip can sit under the indicator without any assertion noticing. Only meaningful for
+    // `multiselect` — the other three cell types render text, not chips.
+    const overflow = htParams.get('overflow') === '1';
+    const OVERFLOW_VALUES = ['Alpha', 'Alfa', 'Alto', 'Alpine', 'Almond', 'Altair'];
+
+    // Each mode below builds one grid. Every branch keeps the same `afterRenderer` test ids, so the
+    // page object addresses cells identically whichever mode is on.
+    const settings = overflow
+      ? {
+        data: [[OVERFLOW_VALUES.slice()], [OVERFLOW_VALUES.slice()]],
+        columns: [{ type: 'multiselect', source: OVERFLOW_VALUES }],
+        colWidths: 200,
+      }
+      : {
+        data: [
+          [seed(), seed(), ...fillerCell],
+          [seed(), seed(), ...fillerCell],
+          [null, null, ...fillerCell],
+        ],
+        columns: [column, column, ...filler],
+        ...(frozen ? { fixedColumnsStart: 1, colWidths: 140, width: 420, height: 260 } : {}),
+      };
+
     window.hot = new Handsontable(container, {
-      data: Array.from({ length: 3 }, () => ['Al', 'Al']),
-      columns: [column, column],
+      ...settings,
       colHeaders: true,
       rowHeaders: true,
       // Stamp test ids from `afterRenderer`, not from a grid-level `renderer`: a column `type`

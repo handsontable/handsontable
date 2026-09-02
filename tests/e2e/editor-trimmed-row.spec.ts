@@ -825,7 +825,8 @@ test.describe('commit paths that read the selection after trimming', () => {
 
   /**
    * With NO survivor left there is no post-update index to shrink onto, and the range parks on the
-   * focus's clamped pre-update slot so the next keystroke still lands somewhere. All three corners
+   * focus's pre-update slot, which this trim leaves in range - the next keystroke re-prepares
+   * against the record now sitting there and writes to it, rather than appending. All three corners
    * take that one slot together: letting `to` keep its own stale slot spanned whatever now sits
    * between two independently stale corners - here physical row 4, which was never selected.
    */
@@ -839,6 +840,27 @@ test.describe('commit paths that read the selection after trimming', () => {
 
       await expect.poll(() => grid.selected()).toEqual([[1, 0, 1, 0]]);
       expect(await grid.sourceData()).toEqual(UNTOUCHED);
+    });
+
+  /**
+   * The other end of the same rule. Trimming rows 0, 1 and 3 leaves two rows, so the focus's
+   * pre-update slot - visual row 3 - addresses nothing at all, and the range is DROPPED rather than
+   * clamped inward onto row 1, which the trim merely slid into view. A range parked there would be
+   * repainted over a record the user never chose, and the next fill or paste would write into it:
+   * the shape `Selection#deselectIfHighlightStranded()` drops for a selection with no editor, and
+   * `selection-trimmed-row.spec.ts` pins from the other side.
+   */
+  test('drops a fully trimmed active range whose own slot the trim left out of range',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectRangesAndType([[3, 0, 3, 0]], 'EDITED');
+      await grid.trimRows([0, 1, 3]);
+
+      await expect.poll(() => grid.selected()).toBeUndefined();
+      expect(await grid.sourceData()).toEqual(UNTOUCHED);
+      expect(await grid.sourceRowCount()).toBe(5);
     });
 
   test('repaints a surviving multi-cell layer when the active layer is a single cell',

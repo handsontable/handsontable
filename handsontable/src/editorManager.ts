@@ -576,12 +576,14 @@ class EditorManager {
    * there is no record left to follow. Discarding is what keeps a following `Filters#filter()` from
    * committing through those coordinates and appending records.
    *
+   * A selection with NO open editor is repaired on a different rule, and by a different piece of
+   * code: `Selection` snapshots only while an editor is open, so `core.ts` instead DROPS a selection
+   * a trimming map left pointing at another record (`Selection#deselectIfHighlightStranded()`)
+   * rather than moving it. One shape stays open there, with no editor involved: a trim ABOVE the
+   * highlight that leaves its coordinate in range while shifting the record out from under it.
+   *
    * An editor parked in `WAITING` is not reconciled: `finishEditing()` has already run `saveValue()`,
    * so there is nothing left to redirect.
-   *
-   * Selection changes with no open editor are also outside this repair. `Selection` captures only
-   * while an editor is open, so a trimming update can still leave a standalone highlight out of
-   * range. That broader selection issue is tracked separately as DEV-2679.
    *
    * No core plugin registers a TRIMMING map on the column axis, so that half runs for user-registered
    * maps only; core plugins do permute the column sequence (`manualColumnMove`, `manualColumnFreeze`)
