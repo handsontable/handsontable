@@ -116,8 +116,13 @@ export interface HotInstance {
   toPhysicalColumn(column: number): number;
   toVisualRow(row: number): number;
   toVisualColumn(column: number): number;
-  propToCol(prop: string | number): number;
-  colToProp(column: number): string | number;
+  /**
+   * Both answer `null` when the argument names no column that currently exists and is visible.
+   * The `null` is part of the contract, not an edge case — validate the result before using it as
+   * an index or a property name.
+   */
+  propToCol(prop: string | number): number | null;
+  colToProp(column: number): string | number | null;
 
   // Data access
   getSchema(): unknown[] | Record<string, unknown>;

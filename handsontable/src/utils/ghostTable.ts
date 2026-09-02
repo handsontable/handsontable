@@ -643,7 +643,9 @@ class GhostTable {
       td,
       row,
       column,
-      this.hot!.colToProp(column),
+      // Falls back to the index so a renderer keeps receiving what it did before `colToProp()`
+      // began answering `null` for a column it cannot resolve.
+      this.hot!.colToProp(column) ?? column,
       value,
       cellProperties,
     ];

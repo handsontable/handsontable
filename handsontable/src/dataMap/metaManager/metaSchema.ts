@@ -3843,6 +3843,9 @@ export default (): Record<string, unknown> => {
       const hasExplicitSchema = !!this.getSettings().dataSchema;
       const schema = this.getSchema() as Record<string | number, unknown>;
       const prop = this.colToProp(col);
+      // A column index that names no column has no schema entry to compare against. Every value
+      // read from it is empty anyway, so the comparisons below are never reached in that case.
+      const schemaValue = prop === null ? undefined : schema[prop];
       const rowLen = this.countRows();
 
       for (row = 0; row < rowLen; row++) {
@@ -3850,14 +3853,14 @@ export default (): Record<string, unknown> => {
 
         if (isEmpty(value) === false) {
           if (typeof value === 'object') {
-            if (isObjectEqual(schema[prop] as object | unknown[], value as object | unknown[]) === false) {
+            if (isObjectEqual(schemaValue as object | unknown[], value as object | unknown[]) === false) {
               return false;
             }
 
             continue;
           }
 
-          if (hasExplicitSchema && schema[prop] === value) {
+          if (hasExplicitSchema && schemaValue === value) {
             continue;
           }
 
@@ -3906,16 +3909,18 @@ export default (): Record<string, unknown> => {
 
         if (isEmpty(value) === false) {
           const prop = this.colToProp(col);
+          // See `isEmptyCol()` — a column index that names no column has no schema entry.
+          const schemaValue = prop === null ? undefined : schema[prop];
 
           if (typeof value === 'object') {
-            if (isObjectEqual(schema[prop] as object | unknown[], value as object | unknown[]) === false) {
+            if (isObjectEqual(schemaValue as object | unknown[], value as object | unknown[]) === false) {
               return false;
             }
 
             continue;
           }
 
-          if (hasExplicitSchema && schema[prop] === value) {
+          if (hasExplicitSchema && schemaValue === value) {
             continue;
           }
 

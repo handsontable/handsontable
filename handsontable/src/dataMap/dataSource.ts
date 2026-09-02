@@ -196,8 +196,13 @@ class DataSource {
 
         rangeEach(rangeStart, rangeEnd, (column: number) => {
           const prop = this.colToProp(column);
+          // Only a column with a real property name is read. `null` means the index names no
+          // column — the `columns` option filtered it out — and used to arrive here as the index
+          // itself, which the integer test below rejected. Dropping the `null` check would start
+          // including exactly the columns this branch exists to skip.
+          const hasNamedProperty = prop !== null && !Number.isInteger(prop);
 
-          if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && !Number.isInteger(prop)) {
+          if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && hasNamedProperty) {
             const cellValue = this.getAtPhysicalCell(row, prop as string | number | DataAccessorFn, dataRow);
 
             if (toArray) {
@@ -412,7 +417,7 @@ class DataSource {
    * @since 16.1.0
    * @returns {string}
    */
-  getCopyable(row: number, prop: string | number | DataAccessorFn): unknown {
+  getCopyable(row: number, prop: string | number | DataAccessorFn | null): unknown {
     const visualColumn = this.propToCol(prop);
 
     // The transient read honors a `cells()`-driven `copyable: false` (the dynamic extension

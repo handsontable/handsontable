@@ -813,6 +813,22 @@ export default function Core(
     this.runHooks('afterRowSequenceCacheUpdate', indexesChangesState);
   });
 
+  /**
+   * Translates a selection's column index for the `*ByProp` hooks.
+   *
+   * A selection range uses negative columns as header sentinels – `-1` for a row selection, and
+   * further negative values for the nested-header levels above it – so they are not out-of-range
+   * indexes and must reach the hook unchanged. `colToProp()` cannot tell the two apart and now
+   * answers `null` for both, which would silently replace the sentinel every consumer of these
+   * hooks already handles.
+   *
+   * @param {number} column Visual column index, or a negative header sentinel.
+   * @returns {string|number|null} The column property, or the sentinel unchanged.
+   */
+  function columnToPropForSelection(column: number): string | number | null {
+    return column < 0 ? column : instance.colToProp(column);
+  }
+
   this.selection.addLocalHook('afterSetRangeEnd', (
     cellCoords: {row: number, col: number}, isLastSelectionLayer: boolean
   ) => {
@@ -831,9 +847,9 @@ export default function Core(
     );
     this.runHooks('afterSelectionByProp',
       from.row,
-      instance.colToProp(from.col!),
+      columnToPropForSelection(from.col!),
       to.row,
-      instance.colToProp(to.col!),
+      columnToPropForSelection(to.col!),
       preventScrolling,
       selectionLayerLevel
     );
@@ -906,7 +922,8 @@ export default function Core(
       this.runHooks('afterSelectionEnd',
         from.row, from.col, to.row, to.col, selectionLayerLevel);
       this.runHooks('afterSelectionEndByProp',
-        from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), selectionLayerLevel);
+        from.row, columnToPropForSelection(from.col), to.row,
+        columnToPropForSelection(to.col), selectionLayerLevel);
 
       if (['refresh', 'deselect'].includes(selection.getSelectionSource())) {
         instance.view.render();
@@ -2056,7 +2073,10 @@ export default function Core(
 
     for (let i = changes.length - 1; i >= 0; i--) {
       const [row, prop,, newValue] = changes[i];
-      const visualCol = datamap.propToCol(prop as string | number);
+      // A change can address a column that auto column growth is about to create, and `propToCol()`
+      // answers `null` for one that does not exist yet. Falling back to the prop keeps such a cell
+      // validated against its own column meta, the way it was before `null` became an answer.
+      const visualCol = datamap.propToCol(prop as string | number) ?? prop;
       let cellProperties;
 
       if (Number.isInteger(visualCol)) {
@@ -2148,9 +2168,15 @@ export default function Core(
 
       if (instance.dataType === 'array' && (!tableMeta.columns || tableMeta.columns.length === 0) &&
           tableMeta.allowInsertColumn) {
-        while (Number(datamap.propToCol(changes[i][1] as string | number)) > instance.countCols() - 1) {
-          const missingColumns =
-            Number(datamap.propToCol(changes[i][1] as string | number)) - (instance.countCols() - 1);
+        // The prop is a physical column index here — array data with no `columns` setting leaves
+        // the property cache empty — so the bound is read from it directly. It must not go through
+        // `propToCol()`, which answers `null` for an index past the last column: exactly the case
+        // this loop exists to handle. The comparison is unchanged for every index that reaches it,
+        // because an in-range prop always resolves below `countCols()` and never entered the loop.
+        const targetColumn = Number(changes[i][1]);
+
+        while (targetColumn > instance.countCols() - 1) {
+          const missingColumns = targetColumn - (instance.countCols() - 1);
           const {
             delta: numberOfCreatedColumns
           } = datamap.createCol(undefined, missingColumns, { source: 'auto' });
@@ -2382,7 +2408,9 @@ export default function Core(
 
     for (let i = filteredChanges.length - 1; i >= 0; i--) {
       const [row, prop, , newValue] = filteredChanges[i];
-      const visualColumn = datamap.propToCol(prop as string | number);
+      // Falls back to the prop for a column auto column growth has not created yet — see the same
+      // resolution in `validateChanges()`.
+      const visualColumn = datamap.propToCol(prop as string | number) ?? prop;
       let cellProperties;
 
       if (Number.isInteger(visualColumn)) {
@@ -2439,12 +2467,14 @@ export default function Core(
       // setDataAtCell validates that column is numeric above (throws if not number).
       const visualColumnIndex = typeof visualColumn === 'number' ? visualColumn : 0;
 
-      if (visualColumnIndex >= this.countCols()) {
-        prop = visualColumnIndex;
+      const resolvedProp = visualColumnIndex >= this.countCols()
+        ? null
+        : datamap.colToProp(visualColumnIndex);
 
-      } else {
-        prop = datamap.colToProp(visualColumnIndex);
-      }
+      // An index that names no column keeps reaching `beforeChange` / `afterChange` as the index
+      // itself, the way it always has — those payloads are a public contract, and `null` there
+      // would say "no column" for a change the caller can see landing.
+      prop = resolvedProp === null ? visualColumnIndex : resolvedProp;
 
       changes.push([
         visualRow,
@@ -3403,7 +3433,7 @@ export default function Core(
    * @returns {string}
    */
   this.getCopyableData = function(row: number, column: number) {
-    return datamap.getCopyable(row, datamap.colToProp(column)) as string;
+    return datamap.getCopyable(row, datamap.colToProp(column) ?? column) as string;
   };
 
   /**
@@ -3417,7 +3447,7 @@ export default function Core(
    * @returns {string}
    */
   this.getCopyableSourceData = function(row: number, column: number) {
-    return dataSource.getCopyable(row, datamap.colToProp(column)) as string;
+    return dataSource.getCopyable(row, datamap.colToProp(column) ?? column) as string;
   };
 
   /**
@@ -4094,12 +4124,16 @@ export default function Core(
    * Returns the property name that corresponds with the given column index.
    * If the data source is an array of arrays, it returns the columns index.
    *
+   * Returns `null` when the index names no column that currently exists, the same way
+   * {@link Core#toVisualColumn} and the other index translators report an index they cannot
+   * resolve. Test the result before using it as a property name.
+   *
    * @memberof Core#
    * @function colToProp
    * @param {number} column Visual column index.
-   * @returns {string|number} Column property or physical column index. When the column's `data`
-   *   option is an accessor function, that function is returned at runtime – check
-   *   `typeof` before treating the result as a property name.
+   * @returns {string|number|null} Column property, physical column index, or `null` when the index
+   *   names no column. When the column's `data` option is an accessor function, that function is
+   *   returned at runtime – check `typeof` before treating the result as a property name.
    */
   this.colToProp = function(column: number) {
     return datamap.colToProp(column);
@@ -4108,13 +4142,19 @@ export default function Core(
   /**
    * Returns column index that corresponds with the given property.
    *
+   * Returns `null` when the argument names no column that currently exists and is visible – an
+   * index past the last column, or one whose column is trimmed. A property this data set does not
+   * use is handed back unchanged, so test with `Number.isInteger()` rather than comparing against
+   * {@link Core#countCols}: `null` compares as `0` and would pass such a check.
+   *
    * @memberof Core#
    * @function propToCol
    * @param {string|number} prop Property name or physical column index.
-   * @returns {number} Visual column index.
+   * @returns {number|null} Visual column index, or `null` when the argument names no visible
+   *   column.
    */
   this.propToCol = function(prop: string | number) {
-    return datamap.propToCol(prop) as number;
+    return datamap.propToCol(prop) as number | null;
   };
 
   /**
@@ -4186,7 +4226,7 @@ export default function Core(
    * @returns {*} Data at cell.
    */
   this.getDataAtCell = function(row: number, column: number) {
-    return datamap.get(row, datamap.colToProp(column));
+    return datamap.get(row, datamap.colToProp(column) ?? column);
   };
 
   /**
@@ -4243,11 +4283,19 @@ export default function Core(
    */
   // TODO: Getting data from `datamap` should work on visual indexes.
   this.getDataAtProp = function(prop: string | number) {
-    const columnData = [];
+    const columnData: unknown[] = [];
+    const visualColumn = datamap.propToCol(prop);
+
+    // No column, no values. Building a range from `null` would collapse both ends to column `0`
+    // and hand back that column's data for a property this data set does not have.
+    if (visualColumn === null) {
+      return columnData;
+    }
+
     const dataByRows = datamap.getRange(
-      instance._createCellCoords(0, datamap.propToCol(prop) as number | null) as { row: number; col: number },
+      instance._createCellCoords(0, visualColumn as number) as { row: number; col: number },
       instance._createCellCoords(
-        tableMeta.data.length - 1, datamap.propToCol(prop) as number | null
+        tableMeta.data.length - 1, visualColumn as number
       ) as { row: number; col: number },
       DataMap.DESTINATION_RENDERER
     );

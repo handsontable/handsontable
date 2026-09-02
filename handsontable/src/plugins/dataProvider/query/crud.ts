@@ -292,7 +292,7 @@ export function validateRowChanges(
     entries.forEach(([prop, value]) => {
       const col = hot.propToCol(prop);
 
-      if (col === undefined || col < 0) {
+      if (col === null || col === undefined || col < 0) {
         done();
 
         return;
@@ -364,7 +364,7 @@ export function filterChangesForBatchedServerUpdate(
   return real.filter((c) => {
     const col = hot.propToCol(c[1]);
 
-    if (col === undefined || col < 0) {
+    if (col === null || col === undefined || col < 0) {
       return false;
     }
 

@@ -264,7 +264,9 @@ class EditorManager {
     // the table's viewport.
     if (td) {
       const editorClass = this.hot.getCellEditor(this.cellProperties);
-      const prop = this.hot.colToProp(visualColumnToCheck);
+      // The cell is rendered, so the column resolves; the fallback keeps the editor receiving the
+      // index for the column it was already given before `colToProp()` began answering `null`.
+      const prop = this.hot.colToProp(visualColumnToCheck) ?? visualColumnToCheck;
       const originalValue =
         this.hot.getSourceDataAtCell(this.hot.toPhysicalRow(visualRowToCheck), visualColumnToCheck);
 

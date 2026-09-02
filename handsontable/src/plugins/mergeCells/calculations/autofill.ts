@@ -402,6 +402,11 @@ class AutofillCalculations {
       const rowIndex = changeArr[0] as number;
       const columnIndex = this.plugin.hot.propToCol(changeArr[1] as string | number);
 
+      // A change addressed at no existing column contributes no bounds.
+      if (columnIndex === null) {
+        return;
+      }
+
       if (rowMin === null || rowIndex < rowMin) {
         rowMin = rowIndex;
       }

@@ -85,7 +85,11 @@ export class DataChangeAction extends BaseAction {
         );
 
         clonedChanges.forEach((change: unknown[]) => {
-          change[1] = hot.propToCol(change[1] as string | number);
+          // A change can address a column that does not exist yet – `minSpareCols` and auto column
+          // growth both create it as the change is applied – and `propToCol()` answers `null` for
+          // that. Keeping the original address means the replay still targets the column that ends
+          // up holding the value, which is what it did before `null` became a possible answer.
+          change[1] = hot.propToCol(change[1] as string | number) ?? change[1];
         });
 
         const selected = effectiveLen > 1

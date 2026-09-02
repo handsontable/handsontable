@@ -1264,7 +1264,7 @@ export class Formulas extends BasePlugin {
 
       const visualColumn = this.hot.propToCol(prop);
 
-      if (!isNumeric(visualRow) || !isNumeric(visualColumn)) {
+      if (visualColumn === null || !isNumeric(visualRow) || !isNumeric(visualColumn)) {
         return;
       }
 
@@ -1926,6 +1926,11 @@ export class Formulas extends BasePlugin {
   #onBeforeValidate = (value: unknown, visualRow: number, prop: number | string) => {
     const visualColumn = this.hot.propToCol(prop);
 
+    // A prop that names no existing column has no engine address to validate against.
+    if (visualColumn === null) {
+      return value;
+    }
+
     if (this.isFormulaCellType(visualRow, visualColumn)) {
       const address = {
         row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
@@ -2400,6 +2405,12 @@ export class Formulas extends BasePlugin {
           return;
         }
         const visualColumn = this.hot.propToCol(prop);
+
+        // A change addressed at no existing column has no engine address to sync.
+        if (visualColumn === null) {
+          return;
+        }
+
         const physicalRow = this.hot.toPhysicalRow(visualRow);
         const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
         const address = {
@@ -2486,7 +2497,7 @@ export class Formulas extends BasePlugin {
       // column index for array-based data, through `toVisualColumn`.
       const visualColumn = this.hot.propToCol(prop);
 
-      if (!isNumeric(visualColumn)) {
+      if (visualColumn === null || !isNumeric(visualColumn)) {
         return;
       }
 

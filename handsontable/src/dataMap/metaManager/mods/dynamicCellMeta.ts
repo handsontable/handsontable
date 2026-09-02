@@ -169,7 +169,11 @@ export class DynamicCellMetaMod {
     const visualRow = cellMeta.visualRow as number;
     const visualCol = cellMeta.visualCol as number;
     const hot = this.metaManager.hot;
-    const prop = hot.colToProp(visualCol);
+    // `cellMeta.prop` is public — `beforeValidate` / `afterValidate` and every cell function read
+    // it as the cell's column reference. A meta can be resolved for a column that does not exist
+    // yet (auto column growth resolves the meta before creating the column), and `colToProp()`
+    // answers `null` for that, so the index it always carried is kept as the fallback.
+    const prop = hot.colToProp(visualCol) ?? visualCol;
 
     cellMeta.prop = prop;
 

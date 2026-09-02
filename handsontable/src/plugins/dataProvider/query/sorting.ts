@@ -62,7 +62,7 @@ export function normalizeSortToQueryFormat(
  * @returns {{ column: number, sortOrder: 'asc'|'desc' }|null} Plugin-format sort or null.
  */
 export function querySortToPluginSort(
-  sort: unknown, propToCol: (prop: string) => number
+  sort: unknown, propToCol: (prop: string) => number | null
 ): { column: number; sortOrder: SortOrder } | null {
   if ((sort === null || sort === undefined) || typeof sort !== 'object') {
     return null;
