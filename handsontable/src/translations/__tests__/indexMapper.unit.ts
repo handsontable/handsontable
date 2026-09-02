@@ -2492,17 +2492,49 @@ describe('IndexMapper', () => {
       });
     });
 
+    it('should still resolve the PRE-update visual space inside `beforeCacheUpdate`', () => {
+      const indexMapper = new IndexMapper();
+      const trimmingMap = new TrimmingMap();
+      const readings: Array<number | null> = [];
+
+      indexMapper.initToLength(5);
+      indexMapper.registerMap('trimming', trimmingMap);
+      // The whole reason the hook exists: a consumer captures physical indexes here, and it can only
+      // do that while the visual-to-physical mapping still describes the space the selection was
+      // laid in. Firing this after any cache is rebuilt would silently hand it the new mapping, and
+      // nothing in the payload would say so.
+      indexMapper.addLocalHook('beforeCacheUpdate', () => {
+        readings.push(indexMapper.getPhysicalFromVisualIndex(1));
+      });
+
+      trimmingMap.setValueAtIndex(0, true);
+
+      expect(readings).toEqual([1]);
+      expect(indexMapper.getPhysicalFromVisualIndex(1)).toBe(2);
+
+      indexMapper.unregisterMap('trimming');
+    });
+
     it('should finish the cache-update lifecycle when rebuilding a cache throws', () => {
       const indexMapper = new IndexMapper();
+      const beforeCacheUpdate = jasmine.createSpy('beforeCacheUpdate');
+      const cacheUpdated = jasmine.createSpy('cacheUpdated');
       const afterCacheUpdate = jasmine.createSpy('afterCacheUpdate');
 
       indexMapper.initToLength(5);
+      indexMapper.addLocalHook('beforeCacheUpdate', beforeCacheUpdate);
+      indexMapper.addLocalHook('cacheUpdated', cacheUpdated);
       indexMapper.addLocalHook('afterCacheUpdate', afterCacheUpdate);
       indexMapper.trimmedIndexesChanged = true;
       spyOn(indexMapper.trimmingMapsCollection, 'updateCache').and.throwError('cache failure');
 
       expect(() => indexMapper.updateCache()).toThrowError('cache failure');
+      // The pair is what a consumer balances its own state against, so both halves matter: the
+      // opening hook ran, the `finally` still closed it, and the update that never completed did NOT
+      // announce itself as completed.
+      expect(beforeCacheUpdate).toHaveBeenCalledTimes(1);
       expect(afterCacheUpdate).toHaveBeenCalledTimes(1);
+      expect(cacheUpdated).not.toHaveBeenCalled();
     });
 
     it('should reset the cache when `initToLength` function is called', () => {

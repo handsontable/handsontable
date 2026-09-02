@@ -835,11 +835,11 @@ export default function Core(
     indexesChangesState: IndexesChangesState,
     axis: IndexAxis,
   ): void => {
-    if (shouldRestoreSelection(indexesChangesState)) {
-      this.selection.capturePhysicalSelection(axis);
-    } else {
-      this.selection.discardPhysicalSelectionSnapshot(axis);
-    }
+    // Called for EVERY update, restorable or not, because the capture pushes onto a per-axis stack
+    // that `afterCacheUpdate` pops. `updateCache()` can nest - a `hidingChangesObservable` consumer
+    // that writes a trimming map runs a whole inner update inside this one's window - and only a
+    // balanced push/pop keeps the inner update from discarding the entry this one will read.
+    this.selection.capturePhysicalSelection(axis, shouldRestoreSelection(indexesChangesState));
   };
 
   /**
@@ -874,10 +874,10 @@ export default function Core(
     // back on its surviving records, and `commit()` then walks the highlight off whatever the same
     // update hid. Reversed, `commit()` would move the highlight before the snapshot lands and the
     // restore would overwrite its answer.
+    // The snapshot is only CONSUMED here; the pop belongs to `afterCacheUpdate`, so this stays
+    // correct when a nested update pushed and popped its own entry in between.
     if (shouldRestoreSelection(indexesChangesState)) {
       this.selection.restorePhysicalSelection(axis);
-    } else {
-      this.selection.discardPhysicalSelectionSnapshot(axis);
     }
 
     if (hiddenIndexesChanged) {
@@ -1015,12 +1015,15 @@ export default function Core(
 
     lastColumnIndexCount = indexCount;
 
-    this.runHooks('afterColumnSequenceCacheUpdate', indexesChangesState);
-
     // Deferred to HERE, not sent from the restore: `afterDeselect` closes the editor, and closing it
     // saves - so it must not run until `EditorManager` has discarded the editor whose record the
-    // trim removed, which it does inside the hook above.
-    this.selection.notifyDeferredDeselect();
+    // trim removed, which it does inside the hook above. In a `finally` because a consumer of that
+    // public hook may throw, and a debt left unpaid would fire on the next unrelated cache update.
+    try {
+      this.runHooks('afterColumnSequenceCacheUpdate', indexesChangesState);
+    } finally {
+      this.selection.notifyDeferredDeselect('column');
+    }
 
     repairSelection(isStructuralChange, indexesChangesState, hadOpenEditor);
   });
@@ -1032,9 +1035,11 @@ export default function Core(
 
     lastRowIndexCount = indexCount;
 
-    this.runHooks('afterRowSequenceCacheUpdate', indexesChangesState);
-
-    this.selection.notifyDeferredDeselect();
+    try {
+      this.runHooks('afterRowSequenceCacheUpdate', indexesChangesState);
+    } finally {
+      this.selection.notifyDeferredDeselect('row');
+    }
 
     repairSelection(isStructuralChange, indexesChangesState, hadOpenEditor);
   });

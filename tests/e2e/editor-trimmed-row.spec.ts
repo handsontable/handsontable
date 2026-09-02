@@ -1186,3 +1186,146 @@ test.describe('an index-map change nested inside a removal', () => {
       expect(await grid.sourceRowCount()).toBe(4);
     });
 });
+
+/**
+ * Whether a layer's extent TRACKS THE GRID rather than naming records decides whether the restore
+ * re-pins it to the axis boundaries or shrinks it onto survivors, and it is measured at capture
+ * time from the range itself.
+ *
+ * Neither state set can answer it. `selectedByRowHeader` / `selectedByColumnHeader` are written only
+ * when a header is actually rendered - `selectAll()` writes `selectedByColumnHeader` only when
+ * `rowFrom < 0`, and with the default `colHeaders: false` that is never, so `Ctrl+A` did not
+ * register as grid-tracking at all. And both those sets and the `…ExtentSpansGrid` pair are STICKY:
+ * they survive a `Shift+Up` that shrinks the selection, so reading either would grow a shrunk
+ * selection back to the whole column.
+ */
+test.describe('a grid-tracking extent through a restore', () => {
+  /**
+   * An UNTRIM is the only shape that separates re-pinning from shrinking. On a removal the two agree
+   * by construction - a select-all's span covers every record, so its surviving records ARE the
+   * whole remaining grid - which is why this case is written against rows coming back.
+   */
+  test('re-pins a select-all onto the rows an untrim brought back',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.trimRows([1, 3]);
+      await grid.selectEverythingWithoutHeaders();
+      await grid.listenAndType('EDITED');
+      // The select-all was laid over three records; five are visible now. A range shrunk onto the
+      // captured span would still cover only three of them, and the select-all would silently stop
+      // meaning "everything".
+      await grid.untrimRows([1, 3]);
+
+      await expect.poll(() => grid.selected()).toEqual([[0, 0, 4, 1]]);
+
+      // `Ctrl+Enter` fills the active range, so the range this restore produced is what decides
+      // where the pending edit lands.
+      await grid.commitWithCtrlOrMetaEnter();
+
+      expect(await grid.sourceRowCount()).toBe(5);
+      expect(await grid.sourceData()).toEqual([
+        ['EDITED', 'EDITED'],
+        ['EDITED', 'EDITED'],
+        ['EDITED', 'EDITED'],
+        ['EDITED', 'EDITED'],
+        ['EDITED', 'EDITED'],
+      ]);
+    });
+
+  test('does not grow a shrunk select-all back over the row it excluded',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectEverythingWithoutHeaders();
+      // Shift+Up: rows 0-3 now, and row 4 is deliberately outside the selection. The layer's
+      // grid-tracking flag is sticky and still set, so only the geometry knows it was shrunk.
+      await grid.shrinkSelectionUpwards();
+      await grid.listenAndType('EDITED');
+      await grid.trimRows([0]);
+
+      // Rows 1-3 survive as visual 0-2 of the four that remain. Re-pinning to the axis boundaries
+      // would restore 0-3 instead, silently taking row 4 back in.
+      await expect.poll(() => grid.selected()).toEqual([[0, 0, 2, 1]]);
+
+      // The trim took the focus's own record, so `EditorManager` discarded the pending edit - the
+      // fill below is a fresh gesture, and it writes the new focus's value (`A1`). What it proves is
+      // the RANGE it writes through: rows 1-3 and not row 4, which a re-pinned selection would have
+      // taken back in.
+      await grid.commitWithCtrlOrMetaEnter();
+
+      expect(await grid.sourceRowCount()).toBe(5);
+      expect(await grid.sourceData()).toEqual([
+        ['A0', 'B0'],
+        ['A1', 'A1'],
+        ['A1', 'A1'],
+        ['A1', 'A1'],
+        ['A4', 'B4'],
+      ]);
+    });
+
+  test('does not re-pin a drag-selected range that merely reached both ends of the grid',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.trimRows([1, 3]);
+      // Geometrically this covers every visible row, but it carries no grid-tracking flag: the user
+      // dragged over three records. Re-pinning it would make an untrim grow it onto the two records
+      // that came back, which the user never selected.
+      await grid.selectRangeAndType([0, 0, 2, 0], 'EDITED');
+      await grid.untrimRows([1, 3]);
+
+      await expect.poll(() => grid.selected()).toEqual([[0, 0, 0, 0]]);
+
+      await grid.commitWithEnter();
+
+      expect(await grid.sourceRowCount()).toBe(5);
+      expect(await grid.sourceData()).toEqual([
+        ['EDITED', 'B0'],
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['A4', 'B4'],
+      ]);
+    });
+});
+
+/**
+ * `IndexMapper` raises `trimmedIndexesChanged` for ANY trimming-map write, so clearing a filter or
+ * calling `untrimRow()` reaches the restore exactly as a trim does. The survivors of a removal stay
+ * contiguous, which is what lets a shrunk range still be one `CellRange` - but a record REVEALED
+ * between two corners lands inside the rectangle they describe, and no `CellRange` can exclude it.
+ */
+test.describe('a trimming update that reveals records', () => {
+  test('does not widen the active range onto a record an untrim revealed between its corners',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.trimRows([2]);
+      // Visual 1-2 is physical 1 and 3 while physical 2 is trimmed away.
+      await grid.selectRangesAndType([[1, 0, 2, 0]], 'EDITED');
+      await grid.untrimRows([2]);
+
+      // Physical 2 reappears between the selected records. The range collapses onto its focus rather
+      // than covering a record the user never selected - `A2` would otherwise be inside the range a
+      // fill writes through.
+      await expect.poll(() => grid.selected()).toEqual([[1, 0, 1, 0]]);
+
+      // Plain Enter, because the range is now a single cell and `Ctrl+Enter` inserts a line break
+      // there rather than filling. The edit still has to land on the record it was typed into.
+      await grid.commitWithEnter();
+
+      expect(await grid.sourceRowCount()).toBe(5);
+      expect(await grid.sourceData()).toEqual([
+        ['A0', 'B0'],
+        ['EDITED', 'B1'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['A4', 'B4'],
+      ]);
+    });
+});

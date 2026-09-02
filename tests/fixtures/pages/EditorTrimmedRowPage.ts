@@ -45,11 +45,12 @@ interface HandsontableFixture {
     endColumn?: number,
     focusPosition?: number | { row?: number; col?: number },
   ): boolean;
-  selectAll(): void;
+  selectAll(includeRowHeaders?: boolean, includeColumnHeaders?: boolean): void;
   deselectCell(): void;
   selectRows(row: number): void;
   selection: {
     transformFocus(row: number, col: number): void;
+    transformEnd(rowDelta: number, colDelta: number): void;
     isEntireColumnSelected(): boolean;
     getActiveSelectionLayerIndex(): number;
     highlight: {
@@ -782,11 +783,72 @@ export class EditorTrimmedRowPage {
   }
 
   /**
-   * Returns how many times a watched hook has fired.
+   * Returns how many times a watched hook has fired, or `null` when that name was never watched -
+   * never `0`, which would let a misspelled hook name or a missing `watchHook()` call pass as
+   * evidence that the hook stayed silent.
    */
-  async hookCalls(name: string): Promise<number> {
-    return this.page.evaluate((hookName) => (
-      (window as Window & { hookCalls?: Record<string, number> }).hookCalls?.[hookName] ?? 0
-    ), name);
+  async hookCalls(name: string): Promise<number | null> {
+    return this.page.evaluate((hookName) => {
+      const counters = (window as Window & { hookCalls?: Record<string, number> }).hookCalls;
+
+      return counters && hookName in counters ? counters[hookName] : null;
+    }, name);
+  }
+
+  /**
+   * Selects the whole grid WITHOUT anchoring in either header, then types to open the editor.
+   *
+   * The no-header anchoring is what makes this reach the restore at all: a corner anchored in a
+   * header has no physical index, so `#hasResolvedPhysicalRange()` rejects that layer and the
+   * selection is left to the no-editor repair, which clamps it. This shape carries the
+   * grid-tracking flag with resolvable corners, which is the one the restore has to re-pin.
+   */
+  async selectEverythingWithoutHeaders(): Promise<void> {
+    await this.page.evaluate(() => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+
+      hot.selectAll(false, false);
+      hot.listen();
+    });
+  }
+
+  /**
+   * Types into whatever the grid has selected, opening the editor. Separate from the selection step
+   * because a selection gesture that runs AFTER the typing commits the editor - `transformEnd()`
+   * does - which would leave the trim under test with no editor at all.
+   */
+  async listenAndType(value: string): Promise<void> {
+    await this.page.evaluate(() => (window as Window & { hot: HandsontableFixture }).hot.listen());
+    await this.page.keyboard.type(value);
+
+    await expect.poll(() => this.isEditorOpen()).toBe(true);
+  }
+
+  /**
+   * Selects one range and types, without going through the DOM. Used where the range has to be laid
+   * exactly, including a range that happens to reach both ends of an axis while still naming
+   * records.
+   */
+  async selectRangeAndType(range: number[], value: string): Promise<void> {
+    await this.page.evaluate((targetRange) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+
+      hot.selectCells([targetRange]);
+      hot.listen();
+    }, range);
+    await this.page.keyboard.type(value);
+
+    await expect.poll(() => this.isEditorOpen()).toBe(true);
+  }
+
+  /**
+   * Shrinks the active selection's `to` corner, the `Shift+Up` gesture. Used on a grid-tracking
+   * selection, whose `…ExtentSpansGrid` flag keeps saying "spans the grid" afterwards - the range
+   * itself is the only state that knows it was shrunk.
+   */
+  async shrinkSelectionUpwards(steps = 1): Promise<void> {
+    await this.page.evaluate((rowSteps) => {
+      (window as Window & { hot: HandsontableFixture }).hot.selection.transformEnd(-rowSteps, 0);
+    }, steps);
   }
 }
