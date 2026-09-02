@@ -294,10 +294,12 @@ describe('GhostTable', () => {
       expect(container.querySelector('.colHeader').textContent).toBe('Smith & Sons, Ltd.; est. 1920');
     });
 
-    it('should escape a label that holds no markup, so the template cannot complete a tag', () => {
-      // The label is interpolated into `<span class="colHeader">${label}</span>`, and that closing
-      // tag supplies the `>` this payload is missing. Skipping the sanitizer for a label with no
-      // markup in it therefore never meant the RESULT had no markup.
+    it('should write a label that cannot complete a tag as text, not as markup', () => {
+      // No `>`, so the label does not match `HTML_CHARACTERS` and `fastInnerHTML` resolves to
+      // `fastInnerText`, which builds a text node. Nothing outside the label can complete the tag.
+      // The previous version concatenated the label into `<span class="colHeader">...</span>`,
+      // where that closing tag supplied the `>` this payload is missing, so skipping the sanitizer
+      // for a label with no markup in it did not mean the RESULT had no markup.
       const sanitizer = jest.fn(content => content);
       const { hot, headersStateManager } = createHotMock('<img src=x onerror="throw new Error()"', sanitizer);
       const ghostTable = new GhostTable({ hot, headersStateManager });
@@ -308,10 +310,10 @@ describe('GhostTable', () => {
         .toBe('<img src=x onerror="throw new Error()"');
     });
 
-    it('should measure an escaped prose label as the text the header actually renders', () => {
-      // Escaping is lossless for measurement: an escaped `&`, `<` or `>` renders as the same single
-      // glyph, so the measured string is character-for-character what `fastInnerText` writes into
-      // the rendered header. If it were not, the column would be sized to the wrong width.
+    it('should measure a prose label as the text the header actually renders', () => {
+      // The text path is lossless for measurement: `fastInnerText` writes the label as one text
+      // node, so the measured string is character-for-character what the rendered header holds,
+      // `&`, `<` and `>` included. If it were not, the column would be sized to the wrong width.
       const sanitizer = jest.fn(content => content);
       const label = 'Smith & Sons; 5 < 6 & 7 > 3';
       const { hot, headersStateManager } = createHotMock(label, sanitizer);

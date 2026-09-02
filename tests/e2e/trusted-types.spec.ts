@@ -159,9 +159,10 @@ test.describe('Trusted Types enforcement', () => {
   test.describe('the surviving sink: header content', () => {
     // Cell data is not in scope here and cannot be: `textRenderer` writes through `fastInnerText`,
     // so it never reaches a sink whatever it contains. Headers go through `fastInnerHTML`, and
-    // `HTML_CHARACTERS` sends anything holding a `<`, or an `&` with a later `;`, down the
-    // `innerHTML` path. These two tests pin the boundary and its remedy, so neither can rot
-    // unnoticed the way the original documented claim did.
+    // `HTML_CHARACTERS` sends only a label shaped like markup - a tag, a markup declaration, or a
+    // character reference - down the `innerHTML` path; everything else takes `textContent`. These
+    // two tests pin the boundary and its remedy, so neither can rot unnoticed the way the original
+    // documented claim did.
 
     test('throws for a header holding markup when no sanitizer is configured', async () => {
       await grid.goto({ colHeader: 'markup' });
