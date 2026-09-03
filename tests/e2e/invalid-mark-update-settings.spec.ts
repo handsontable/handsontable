@@ -42,6 +42,72 @@ test.describe('invalid mark across updateSettings', () => {
     });
   }
 
+  test('keeps the mark across consecutive updateSettings calls', async () => {
+    await grid.setDataAtCell(0, 0, 'nope');
+    await grid.resolveValidation();
+
+    await grid.updateSettingsWith('columns');
+    await grid.updateSettingsWith('columns');
+
+    await expect(grid.cell(0, 0)).toHaveClass(/htInvalid/);
+    expect(await grid.cellValidFlag(0, 0)).toBe('false');
+  });
+
+  test('keeps the mark at its shifted position after a row insert', async () => {
+    // Validation has already finished here, so the mark exists before the shift. It has to travel
+    // with the record: the snapshot stores physical coordinates read from the live map keys, so the
+    // row above the inserted one must not inherit it.
+    await grid.setDataAtCell(2, 0, 'nope');
+    await grid.resolveValidation();
+    await expect(grid.cell(2, 0)).toHaveClass(/htInvalid/);
+
+    await grid.insertRowAbove(0, 1);
+    await grid.updateSettingsWith('columns');
+
+    expect(await grid.cellValidFlag(3, 0)).toBe('false');
+    expect(await grid.cellValidFlag(2, 0)).not.toBe('false');
+    await expect(grid.invalidCells()).toHaveCount(1);
+  });
+
+  test('treats a mark in a column the update removes like a setCellMeta value', async () => {
+    // Narrowing `columns` puts the flagged cell out of range. The restore keeps it, exactly as the
+    // #4446 replay keeps an imperative value there, and both come back when the columns grow again.
+    // Asserted side by side so the two paths cannot drift apart.
+    await grid.setDataAtCell(0, 4, 'nope');
+    await grid.resolveValidation();
+    await grid.setCellMeta(0, 4, 'className', 'marker');
+
+    await grid.updateSettingsWith('columns', 3);
+
+    expect(await grid.columnCount()).toBe(3);
+
+    await grid.updateSettingsWith('columns', 5);
+
+    expect(await grid.cellValidFlag(0, 4)).toBe('false');
+    expect(await grid.cellMetaValue(0, 4, 'className')).toBe('marker');
+  });
+
+  test('does not replay the mark once the cell validates again', async () => {
+    // The over-fix guard. The preserved `valid` is a direct meta write, never a user-defined
+    // property - so a corrected cell must not have the old failure replayed onto it by the next
+    // cache clear. It reads back as `undefined` rather than `true`, because the clear re-mints it.
+    await grid.setDataAtCell(0, 0, 'nope');
+    await grid.resolveValidation();
+
+    await grid.updateSettingsWith('columns');
+
+    await grid.setDataAtCell(0, 0, 42);
+    await grid.resolveValidation();
+
+    await expect(grid.cell(0, 0)).not.toHaveClass(/htInvalid/);
+    expect(await grid.cellValidFlag(0, 0)).toBe('true');
+
+    await grid.updateSettingsWith('columns');
+
+    expect(await grid.cellValidFlag(0, 0)).toBe('undefined');
+    await expect(grid.cell(0, 0)).not.toHaveClass(/htInvalid/);
+  });
+
   test('keeps the mark when the validator resolves after the cache was cleared', async () => {
     // The stored meta is handed to the validator by reference; the clear detaches it, so the
     // failure has to be written through to whatever object is stored now.

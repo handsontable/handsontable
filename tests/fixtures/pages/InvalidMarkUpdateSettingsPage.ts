@@ -96,6 +96,27 @@ export class InvalidMarkUpdateSettingsPage {
     await this.page.evaluate(s => { window.hot.updateSettings(s); }, settings);
   }
 
+  /** Writes one cell meta key through the public API (an imperative, user-defined write). */
+  async setCellMeta(row: number, col: number, key: string, value: unknown): Promise<void> {
+    await this.page.evaluate(
+      ({ r, c, k, v }) => { window.hot.setCellMeta(r, c, k, v); },
+      { r: row, c: col, k: key, v: value }
+    );
+  }
+
+  /** Reads one cell meta key, stringified so `undefined` stays distinguishable. */
+  async cellMetaValue(row: number, col: number, key: string): Promise<string> {
+    return this.page.evaluate(
+      ({ r, c, k }) => String((window.hot.getCellMeta(r, c) as Record<string, unknown>)[k]),
+      { r: row, c: col, k: key }
+    );
+  }
+
+  /** The number of columns the grid currently shows. */
+  async columnCount(): Promise<number> {
+    return this.page.evaluate(() => window.hot.countCols());
+  }
+
   /** Inserts rows above the given visual row index. */
   async insertRowAbove(row: number, amount = 1): Promise<void> {
     await this.page.evaluate(
