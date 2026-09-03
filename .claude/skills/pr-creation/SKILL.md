@@ -162,20 +162,9 @@ When asked to update, fix, or re-fill a PR description, use the same temp-file a
 
 ## 6. Changelog Entry (after PR is created)
 
-Every PR that changes source code needs a changelog entry in `.changelogs/`. The filename is always the value of the entry's `issueOrPR` field — that is what `bin/changelog` names it after — so **which number that is depends on `issuesOrigin`**, and only the `private` case needs the PR number:
+Every PR that changes source code needs a changelog entry in `.changelogs/`. `bin/changelog` names the file after the entry's `issueOrPR` field, so the filename is the **PR number** only for a `private` entry — the default, and what the rest of this section assumes. A `public` entry is named after its GitHub issue number instead, and because that number is known before the PR exists, it can be committed together with the code rather than in the round-trip below.
 
-| `issuesOrigin` | `issueOrPR` | Filename | When |
-|---|---|---|---|
-| `private` (the default, most PRs) | the PR number from `gh pr create` | `<PR-number>.json` | Work tracked in ClickUp — every `DEV-xxx` change |
-| `public` | the public GitHub **issue** number | `<issue-number>.json` | The entry cites a real public GitHub issue |
-
-**A `public` entry needs no PR-first round-trip.** Its number is known before the PR exists, so commit it together with the code and skip the extra commit below. Roughly 40% of the entries in `.changelogs/` are `public` — check the split before assuming:
-
-```bash
-grep -h '"issuesOrigin"' .changelogs/*.json | sort | uniq -c
-```
-
-The CI gate only asserts that a source change adds **at least one** entry; it never checks the filename. Authoritative rules, including the full field table: [`.changelogs/README.md`](../../../.changelogs/README.md).
+**Which `issuesOrigin` to use is decided by [`.changelogs/README.md`](../../../.changelogs/README.md), not here** — read it before writing the entry. The CI gate only asserts that a source change adds at least one entry; it never checks the filename.
 
 For a `private` entry, after writing the file:
 

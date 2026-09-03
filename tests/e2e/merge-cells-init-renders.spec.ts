@@ -71,11 +71,18 @@ test.describe('`mergeCells` does not cost extra draws while the grid initializes
       // grid must be merged by the time the constructor returns - never merged only once
       // validation resolves. The draw count is deliberately not asserted here: the deferred write
       // brings its own draw, and how many that ends up being is not a promise this makes.
-      expect((await grid.afterConstruct()).spannedCells).toBe(2);
+      const snapshot = await grid.afterConstruct();
+
+      expect(snapshot.spannedCells).toBe(2);
 
       await expect(grid.cell(1, 1)).toHaveAttribute('rowspan', '2');
 
-      // And the deferred write must not undo them.
-      await expect.poll(() => grid.spannedCells()).toBe(2);
+      // And the deferred write must not undo them. Wait for the draw it brings with it before
+      // looking - polling the span count on its own would resolve on the first sample, which is
+      // the state already asserted above, and would stay green if that write unmerged the grid.
+      await expect.poll(async() => (await grid.renderCounts()).afterRender)
+        .toBeGreaterThan(snapshot.afterRender);
+
+      expect(await grid.spannedCells()).toBe(2);
     });
 });

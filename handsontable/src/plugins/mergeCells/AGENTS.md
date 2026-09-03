@@ -56,11 +56,12 @@ mirroring the old comparison against `undefined`.
 - **The `TR` `background` property is modified so it can be changed asynchronously later.** Only the alpha
   changes, so it is invisible — the TDs' own background covers it. Do not remove it as dead styling.
 
-## The init draw is batched, and two things about it are load-bearing
+## The init draw is batched, and three things about it are load-bearing
 
-`#onAfterInit` applies the declared merges inside `hot.batchRender()` (#5687). Before that it drew the
-grid twice — `generateFromSettings()` clears the cells each area covers through `setDataAtCell()`, which
-renders, and the handler then rendered again. Three rules come out of it, and each has a measured reason.
+`#onAfterInit` applies the declared merges between a `suspendRender()` / `resumeRender()` pair (#5687).
+Before that it drew the grid twice — `generateFromSettings()` clears the cells each area covers through
+`setDataAtCell()`, which renders, and the handler then rendered again. Three rules come out of it, and
+each has a measured reason.
 
 - **Keep the explicit `this.hot.render()` inside the batch.** `resumeRender()` draws through
   `TableView#render`, which picks fast-vs-full from `hot.forceFullRender`, and only `Core#render` sets that
@@ -73,7 +74,14 @@ renders, and the handler then rendered again. Three rules come out of it, and ea
   write would leave such a grid unmerged until validation resolves.
 - **Skip the work entirely when no area is declared.** `mergeCells: true` with no `cells` has nothing to
   apply, and the initial render already shows the final grid, so a draw there repaints an identical table.
-  `batchRender()` always draws on resume, so this has to be a check *around* it, not inside.
+  `resumeRender()` always draws once the pair is entered, so this has to be a check *around* it, not
+  inside.
+
+Do not collapse the pair back into `hot.batchRender()`. That helper is `suspendRender(); fn();
+resumeRender();` with **no `finally`** (`core.ts`), and the clearing write runs user code — a
+`beforeChange` handler, a sync validator. A throw there would skip `resumeRender()` and leave
+`renderSuspendedCounter` above zero for the rest of the instance's life, so every later `render()`
+silently does nothing. The explicit `try`/`finally` here is that guard.
 
 Coverage: `tests/e2e/merge-cells-init-renders.spec.ts` pins the counts and the async-validator ordering.
 `updatePlugin()` is a separate path and is deliberately untouched — `updateSettings()` renders at the end

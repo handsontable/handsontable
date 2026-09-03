@@ -787,13 +787,20 @@ export class MergeCells extends BasePlugin {
    */
   #onAfterInit = () => {
     if (this.getSetting<unknown[]>('cells').length > 0) {
-      this.hot.batchRender(() => {
+      this.hot.suspendRender();
+
+      try {
         this.generateFromSettings();
         // Load-bearing: `resumeRender()` draws through the view, which picks fast-vs-full from
         // `forceFullRender`, and only `Core#render` sets it. Without this the batched draw can be
         // a fast one, which skips the cell renderers that apply the spans.
         this.hot.render();
-      });
+      } finally {
+        // Suspend/resume by hand rather than through `Core#batchRender`, which has no `finally`:
+        // the clearing write runs user code (`beforeChange`, a validator), and a throw there would
+        // otherwise leave rendering suspended for the rest of the instance's life.
+        this.hot.resumeRender();
+      }
     }
 
     this.#initialized = true;

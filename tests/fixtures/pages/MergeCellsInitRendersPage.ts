@@ -9,7 +9,6 @@ export interface InitRenderSnapshot {
 }
 
 interface FixtureWindow extends Window {
-  hot: unknown;
   htAfterConstruct: InitRenderSnapshot;
   htRenderCounts: { afterRender: number; afterRenderer: number };
   htCountSpannedCells(): number;
@@ -45,12 +44,25 @@ export class MergeCellsInitRendersPage {
 
     // The bundle script and the block that builds the grid are separate, so waiting on the
     // fixture's own state without this can fail inside the first evaluate with a bare
-    // `Handsontable is not defined`.
-    await this.page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: 100 });
+    // `Handsontable is not defined`. On timeout, rethrow with a page snapshot - the `-min` legs
+    // run only in CI, where a bare `waitForFunction` timeout cannot be told apart from a bundle
+    // that never loaded.
+    try {
+      await this.page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: 100 });
 
-    await this.page.waitForFunction(
-      () => 'htAfterConstruct' in window || 'htBuildError' in window, undefined, { polling: 100 },
-    );
+      await this.page.waitForFunction(
+        () => 'htAfterConstruct' in window || 'htBuildError' in window, undefined, { polling: 100 },
+      );
+    } catch (timeoutError) {
+      const snapshot = await this.page.evaluate(() => ({
+        readyState: document.readyState,
+        handsontable: typeof (window as { Handsontable?: unknown }).Handsontable,
+        stylesheets: document.styleSheets.length,
+      })).catch(() => 'page unreachable');
+
+      throw new Error(`The fixture never built its grid; page snapshot: ${JSON.stringify(snapshot)}`,
+        { cause: timeoutError });
+    }
 
     const buildError = await this.page.evaluate(
       () => (window as { htBuildError?: string }).htBuildError ?? null,

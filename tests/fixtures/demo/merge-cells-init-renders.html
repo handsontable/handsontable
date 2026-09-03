@@ -59,10 +59,13 @@
     const settings = {
       data: Array.from({ length: 10 }, (unused, row) =>
         Array.from({ length: 10 }, (unusedCol, column) => `${row}-${column}`)),
-      // Fixed box and no headers: every cell renders, nothing is stretched or measured from the
-      // container, so no resize-driven redraw can perturb the count.
+      // Fixed box and no headers, so nothing is stretched or measured from the container and no
+      // resize-driven redraw can perturb the count. The height clears 10 rows on the TALLEST
+      // theme with room to spare - measured: horizon 38px rows = 371px total, main 30px = 291px,
+      // classic 27px = 261px - so every cell really is rendered on all three. At 300 the horizon
+      // rows overflowed and the count only held up because of the row-band overscan.
       width: 700,
-      height: 300,
+      height: 500,
       colWidths: 60,
       rowHeaders: false,
       colHeaders: false,
