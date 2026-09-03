@@ -60,7 +60,7 @@ import type { ShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcuts/contexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
-import { warn, removedWarnOnce } from './helpers/console';
+import { warn, removedWarnOnce, deprecatedWarnOnce } from './helpers/console';
 import { throwWithCause } from './helpers/errors';
 import {
   install as installAccessibilityAnnouncer,
@@ -218,6 +218,29 @@ function warnAboutRemovedOptions(settings: Record<string, unknown>): void {
         `See ${migrationUrl} for the migration path.`);
     }
   });
+}
+
+/**
+ * Validates a single `setDataAtCell` change and returns the visual column index it addresses.
+ *
+ * Kept out of `setDataAtCell` so that method stays within the cognitive complexity limit.
+ *
+ * @param {Array} change A single change in format `[row, column, value]`.
+ * @returns {number} The visual column index the change addresses.
+ */
+function getSetDataAtCellColumn(change: [number, string | number, unknown]): number {
+  if (typeof change !== 'object') {
+    throwWithCause('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
+  }
+
+  const visualColumn = change[1];
+
+  if (typeof visualColumn !== 'number') {
+    // eslint-disable-next-line max-len
+    throwWithCause('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
+  }
+
+  return visualColumn;
 }
 
 /**
@@ -2650,6 +2673,20 @@ export default function Core(
    * Set new value to a cell. To change many cells at once (recommended way), pass an array of `changes` in format
    * `[[row, col, value],...]` as the first argument.
    *
+   * Writing past the last column creates the missing columns only where the grid can create them: an
+   * array-of-arrays [`data`](@/api/options.md#data) source with no [`columns`](@/api/options.md#columns) option and
+   * [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) left on. In every other configuration the column count
+   * is fixed, and the value is instead written to a property named after the column index. That property is not part
+   * of your [`dataSchema`](@/api/options.md#dataschema) and no column displays it, but
+   * [`getSourceData()`](@/api/core.md#getsourcedata) returns it, and
+   * [`countSourceCols()`](@/api/core.md#countsourcecols) counts it only when the write lands on the first row,
+   * because that method reads the first row's keys.
+   *
+   * On an **object** data source – including one whose [`dataSchema`](@/api/options.md#dataschema) is a function –
+   * that write is **deprecated as of 18.2.0** and will be ignored from 19.0.0 on: the value cannot become a column
+   * there, so it only adds a key the schema never declared. To write a field the grid shows no column for, address it
+   * by property name with [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead.
+   *
    * @memberof Core#
    * @function setDataAtCell
    * @param {number|Array} row Visual row index or array of changes in format `[[row, col, value],...]`.
@@ -2671,19 +2708,35 @@ export default function Core(
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       const [visualRow, visualColumn, newValue] = input[i];
-
-      if (typeof input[i] !== 'object') {
-        throwWithCause('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
-      }
-      if (typeof input[i][1] !== 'number') {
-        // eslint-disable-next-line max-len
-        throwWithCause('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
-      }
-
-      // setDataAtCell validates that column is numeric above (throws if not number).
-      const visualColumnIndex = typeof visualColumn === 'number' ? visualColumn : 0;
+      const visualColumnIndex = getSetDataAtCellColumn(input[i]);
 
       if (visualColumnIndex >= this.countCols()) {
+        // No column exists at this index, and on an object-rowed data source none ever can -
+        // `applyChanges()` creates one only when `dataType === 'array'`, no `columns` option is set
+        // and `allowInsertColumn` is on, so `createCol()` is never reached here. (Not to be read as
+        // `isColumnModificationAllowed()`: that tests `'object'` only, so it returns `true` for a
+        // function `dataSchema`.) The index then travels on as the property name, so
+        // `dataMap.set()` mints a positional key on a row whose other fields are named:
+        // `{ 2: 'x', id: 1 }` (#5409). No column renders it, yet it reaches every consumer that
+        // serializes the row. Deprecated in 18.2.0; the write is skipped from 19.0.0 on.
+        //
+        // The predicate mirrors that gate's `=== 'array'` term - so it must be `!== 'array'` here
+        // rather than `=== 'object'`. A function `dataSchema` sets `dataType` to `'function'`
+        // (`replaceData.ts`) and is just as object-rowed and just as unable to gain a column, so
+        // naming only `'object'` would leave it writing the key.
+        //
+        // `countCols() > 0` excludes the degenerate grid that declares no columns at all: an empty
+        // `data: []` is duck-typed to `'object'` because there is no `data[0]` to inspect, and
+        // there every index is "past the last column". Writing to such a grid is how an empty
+        // dataset gets bootstrapped, so it is left exactly as it was.
+        if (instance.dataType !== 'array' && this.countCols() > 0) {
+          deprecatedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
+            'Writing past the last column of an object data source is deprecated and will be ' +
+            'ignored in Handsontable 19.0.0. The value currently lands on a property named after ' +
+            'the column index, which no column can display. Use `setDataAtRowProp()` to write a ' +
+            'field the grid shows no column for.');
+        }
+
         prop = visualColumnIndex;
 
       } else {
