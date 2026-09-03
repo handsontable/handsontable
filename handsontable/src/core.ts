@@ -3915,13 +3915,39 @@ export default function Core(
 
     const columnSetting = tableMeta.columns;
 
-    // Clear cell meta cache. Cell meta set imperatively through `setCellMeta` (for example, by the
-    // user or the context menu) is snapshotted beforehand and replayed afterward, so that it
-    // survives the clear instead of being discarded (see GitHub issue #4446).
+    // The `cell` option is restated when this call passes it - including as an empty array, which is how a
+    // caller removes every previously declared entry. A restatement replaces what the option declared
+    // before, so the earlier entries are neither replayed nor merged.
+    const isCellOptionRestated = isDefined(settings.cell);
+
+    // Clear cell meta cache. Two kinds of write are snapshotted beforehand and replayed afterward so they
+    // survive the clear instead of being discarded: meta set imperatively through `setCellMeta` (for
+    // example, by the user or the context menu - GitHub issue #4446), and meta applied from the
+    // declarative `cell` option on an earlier call (GitHub issue #5661).
     if (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined) {
+      const cellOptionCellMetas = isCellOptionRestated ? [] : metaManager.getCellOptionCellMetas();
       const userDefinedCellMetas = metaManager.getUserDefinedCellMetas();
 
       metaManager.clearCache();
+
+      // Both snapshots are keyed by physical coordinates, so every value goes back onto the record it was
+      // resolved to rather than onto whatever record now sits at the same visual position.
+      //
+      // The two replays cannot disagree, so their relative order carries no meaning: a key is filed under
+      // exactly one origin, and an imperative write over a `cell`-option value has already moved that key
+      // out of the option's bucket. What does matter is that both run before the restated `cell` block
+      // below, which has to win over either (preserving legacy behavior). The carried-over option is
+      // replayed inside its own scope, so it stays filed as declarative and the next update carries it
+      // over again.
+      metaManager.startCellOptionMetaRecording();
+
+      try {
+        cellOptionCellMetas.forEach(({ physicalRow, physicalColumn, key, value }) => {
+          metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
+        });
+      } finally {
+        metaManager.endCellOptionMetaRecording();
+      }
 
       // Replay before the column and `cell` option re-application, so that a value re-stated through
       // the declarative `cell` option still wins on a direct conflict (preserving legacy behavior).
@@ -3947,19 +3973,20 @@ export default function Core(
       }
     }
 
-    if (isDefined(settings.cell)) {
-      // The `cell` option is declarative - it is re-applied from settings on every `updateSettings`
-      // call. Recording is disabled so these writes are not tracked as user-defined (and a key
-      // re-stated here de-marks any imperative value), keeping `updateSettings({ cell: [] })` able
-      // to remove previously declared entries.
-      metaManager.disableUserDefinedMetaRecording();
+    if (isCellOptionRestated) {
+      // Applied last, so a key restated here wins over both the column meta and any imperative value the
+      // replay above put back (preserving legacy behavior). The writes are filed as declarative rather
+      // than user-defined - which also de-marks any imperative value for the same key - so a later call
+      // that does not restate `cell` replays them, and `updateSettings({ cell: [] })` still removes every
+      // previously declared entry.
+      metaManager.startCellOptionMetaRecording();
 
       try {
         (settings.cell as Record<string, unknown>[]).forEach((cell: Record<string, unknown>) => {
           instance.setCellMetaObject(cell.row as number, cell.col as number, cell);
         });
       } finally {
-        metaManager.enableUserDefinedMetaRecording();
+        metaManager.endCellOptionMetaRecording();
       }
     }
 
@@ -4906,9 +4933,14 @@ export default function Core(
   /**
    * Writes a configuration-derived cell meta value declaratively. The value is applied to the cell meta
    * (so it is retained while the cell is released from the viewport by the meta eviction), but is NOT
-   * recorded as user-defined, so an `updateSettings` cache reset clears it and it is re-applied from the
-   * current configuration - exactly like the `cell` option. Used by built-in plugins that derive cell
-   * meta from their own configuration (for example ColumnSummary) and re-apply it on each update.
+   * recorded as user-defined, so an `updateSettings` cache reset clears it and the caller re-applies it
+   * from the current configuration. Used by built-in plugins that derive cell meta from their own
+   * configuration (for example ColumnSummary) and re-apply it on each update.
+   *
+   * This is NOT how the declarative `cell` option behaves: the option's writes are filed in their own
+   * bucket and replayed across the reset, because nothing re-applies them afterwards. A write made here
+   * belongs to no bucket, which is what keeps a stale value from surviving into a configuration that no
+   * longer covers the cell.
    *
    * Unlike the public `setCellMeta`, this does NOT fire `beforeSetCellMeta`/`afterSetCellMeta` and is
    * not vetoable: the write is plugin-internal render state the user never requested, so it must not

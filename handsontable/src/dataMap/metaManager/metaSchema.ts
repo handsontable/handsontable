@@ -135,7 +135,8 @@ export default (): Record<string, unknown> => {
     /**
      * Information on which of the cell meta properties were set imperatively through `setCellMeta`
      * (for example, by the user or by the context menu). These properties are preserved across
-     * `updateSettings` calls, unlike the properties applied from the declarative `cell` option.
+     * `updateSettings` calls. Such a write wins over a `cell` option value the same key carried before -
+     * unless the call restates `cell`, which is applied last and wins over everything.
      *
      * @private
      * @type {Set}
@@ -144,8 +145,23 @@ export default (): Record<string, unknown> => {
     _userDefinedMetaProps: undefined,
 
     /**
-     * Information on which cell meta properties were set through `setCellMeta` - both imperatively
-     * (user, context menu) and declaratively (the `cell` option). Unlike values derived on demand by
+     * Information on which of the cell meta properties were applied from the declarative `cell` option.
+     * These properties are replayed across the cache reset that `updateSettings` performs, unless the call
+     * restates `cell` - restating it replaces every previously declared entry.
+     *
+     * Declarative writes a plugin makes through `Core#_setCellMetaDeclarative` are deliberately not tracked
+     * here: those plugins re-apply their meta from their own configuration after every update and rely on
+     * the reset dropping it.
+     *
+     * @private
+     * @type {Set}
+     * @default undefined
+     */
+    _cellOptionMetaProps: undefined,
+
+    /**
+     * Information on which cell meta properties were set through `setCellMeta` - imperatively (user,
+     * context menu) and declaratively alike, whatever the origin bucket. Unlike values derived on demand by
      * `getCellMeta` (the cascade, the `cells` function, `type` expansion), these are not rebuilt on
      * access, so the viewport-eviction pass keeps any cell whose set is non-empty.
      *
@@ -709,6 +725,11 @@ export default (): Record<string, unknown> => {
      *
      * Each entry's `row` and `col` are **visual** indexes. This differs from the [`cells`](#cells)
      * option, whose `row` and `column` are physical indexes.
+     *
+     * The `cell` option persists across [`updateSettings()`](@/api/core.md#updatesettings) calls that do not
+     * mention it. Passing `cell` again replaces every previously declared entry, so `cell: []` removes them
+     * all. An entry follows its row through sorting and row moves, and a later
+     * [`setCellMeta()`](@/api/core.md#setcellmeta) call on the same property wins over the declared value.
      *
      * Read more:
      * - [Setting options: Setting cell options](@/guides/configuration/configuration-options/configuration-options.md#set-cell-options)

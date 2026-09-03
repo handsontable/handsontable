@@ -302,6 +302,23 @@ describe('Core.setCellMeta', () => {
       expect(getCellMeta(3, 0).readOnly).toBe(true);
     });
 
+    it('should keep an imperative value that overrides a `cell` option value, after `updateSettings` with' +
+      ' the `columns` option', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        cell: [
+          { row: 0, col: 0, readOnly: true },
+        ],
+      });
+
+      await setCellMeta(0, 0, 'readOnly', false);
+
+      await updateSettings({ columns: [{}, {}, {}, {}, {}] });
+
+      // The imperative write came after the declaration, so it stays the newest word for that key.
+      expect(getCellMeta(0, 0).readOnly).toBe(false);
+    });
+
     it('should still fire the `afterCellMetaReset` hook on `updateSettings`', async() => {
       const afterCellMetaReset = jasmine.createSpy('afterCellMetaReset');
 
@@ -315,6 +332,190 @@ describe('Core.setCellMeta', () => {
       await updateSettings({ columns: [{}, {}, {}, {}, {}] });
 
       expect(afterCellMetaReset).toHaveBeenCalled();
+    });
+  });
+
+  describe('preserving the declarative `cell` option across updateSettings (#5661)', () => {
+    it('should preserve the `cell` option after `updateSettings` with the `columns` option', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        cell: [
+          { row: 0, col: 0, readOnly: true },
+        ],
+      });
+
+      expect(getCellMeta(0, 0).readOnly).toBe(true);
+
+      await updateSettings({
+        columns: [{}, {}, {}, {}, {}],
+      });
+
+      expect(getCellMeta(0, 0).readOnly).toBe(true);
+    });
+
+    it('should preserve the `cell` option after `updateSettings` with the `cells` option', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        cell: [
+          { row: 0, col: 0, readOnly: true },
+        ],
+      });
+
+      await updateSettings({
+        cells() {
+          return {};
+        },
+      });
+
+      expect(getCellMeta(0, 0).readOnly).toBe(true);
+    });
+
+    it('should preserve comments declared through the `cell` option after `updateSettings` with the' +
+      ' `columns` option', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        comments: true,
+        cell: [
+          { row: 1, col: 1, comment: { value: 'Some comment' } },
+        ],
+      });
+
+      await updateSettings({
+        columns: [{}, {}, {}, {}, {}],
+      });
+
+      expect(getCellMeta(1, 1).comment).toEqual({ value: 'Some comment' });
+    });
+
+    it('should preserve the `cell` option across multiple consecutive `updateSettings` calls', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        cell: [
+          { row: 0, col: 0, readOnly: true },
+        ],
+      });
+
+      await updateSettings({ columns: [{}, {}, {}, {}, {}] });
+      await updateSettings({ columns: [{}, {}, {}, {}, {}] });
+
+      expect(getCellMeta(0, 0).readOnly).toBe(true);
+    });
+
+    it('should let a `columns` option value reach a cell whose `cell` option value was preserved', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        cell: [
+          { row: 0, col: 0, readOnly: true },
+        ],
+      });
+
+      await updateSettings({
+        columns: [{ className: 'htRight' }, {}, {}, {}, {}],
+      });
+
+      expect(getCellMeta(0, 0).readOnly).toBe(true);
+      expect(getCellMeta(0, 0).className).toBe('htRight');
+    });
+
+    it('should replace the previously declared entries when `updateSettings` restates the `cell` option',
+      async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          cell: [
+            { row: 0, col: 0, readOnly: true },
+          ],
+        });
+
+        await updateSettings({
+          cell: [
+            { row: 1, col: 1, className: 'htRight' },
+          ],
+        });
+
+        expect(getCellMeta(0, 0).readOnly).toBe(false);
+        expect(getCellMeta(1, 1).className).toBe('htRight');
+      });
+
+    it('should remove the previously declared entries when `updateSettings` restates the `cell` option' +
+      ' as an empty array', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        cell: [
+          { row: 0, col: 0, readOnly: true },
+        ],
+      });
+
+      await updateSettings({ cell: [] });
+
+      expect(getCellMeta(0, 0).readOnly).toBe(false);
+    });
+
+    it('should not resurrect a `cell` option value removed with `removeCellMeta`', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        cell: [
+          { row: 0, col: 0, readOnly: true },
+        ],
+      });
+
+      await removeCellMeta(0, 0, 'readOnly');
+
+      await updateSettings({ columns: [{}, {}, {}, {}, {}] });
+
+      expect(getCellMeta(0, 0).readOnly).toBe(false);
+    });
+
+    it('should still drop the `cell` option on `loadData`, which resets cell states by contract', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        cell: [
+          { row: 0, col: 0, readOnly: true },
+        ],
+      });
+
+      await loadData(createSpreadsheetData(5, 5));
+
+      // `loadData` documents that it resets cell states - that is what separates it from `updateData`.
+      expect(getCellMeta(0, 0).readOnly).toBe(false);
+    });
+
+    it('should preserve the `cell` option after `updateData`, which keeps cell states', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        cell: [
+          { row: 0, col: 0, readOnly: true },
+        ],
+      });
+
+      await updateData(createSpreadsheetData(5, 5));
+
+      expect(getCellMeta(0, 0).readOnly).toBe(true);
+    });
+
+    it('should preserve the `cell` option at the moved row, not at the declared visual position', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        manualRowMove: true,
+        cell: [
+          { row: 0, col: 0, readOnly: true },
+        ],
+      });
+
+      getPlugin('manualRowMove').moveRow(0, 4);
+      await render();
+
+      expect(getCellMeta(4, 0).readOnly).toBe(true);
+
+      // The `cells` option is used on purpose: the `columns` path re-initializes the index mappers, which
+      // would drop the move before the replay and hide a visual-versus-physical mistake.
+      await updateSettings({
+        cells() {
+          return {};
+        },
+      });
+
+      expect(getCellMeta(4, 0).readOnly).toBe(true);
+      expect(getCellMeta(0, 0).readOnly).toBe(false);
     });
   });
 });
