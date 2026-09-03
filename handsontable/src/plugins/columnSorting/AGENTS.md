@@ -73,6 +73,30 @@ same place.
 The sorted rows are arrays of the form `[rowIndex, ...values]`, so the only sorted column's value sits at
 index **1**.
 
+## Spare rows are counted, not assumed (#5983)
+
+`getNumberOfRowsToSort()` keeps the trailing spare rows out of the sortable range, and it decides
+how many there are with `hot.countEmptyRows(true)` capped at `minSpareRows`, never from the option
+alone. `minSpareRows` says how many trailing empty rows the Core tops the grid up to, not how many
+are on screen: a filter trims an empty spare row exactly like any other non-matching row, and
+nothing re-creates it while the filter is on (`adjustRowsAndCols()` runs after alters, data changes
+and `updateSettings`, never on `trimmedIndexesChanged`). Subtracting the option from a filtered
+row count therefore excluded the last N **real data rows** from the sort and re-appended them
+unsorted at the bottom. The cap matters in the other direction too: trailing empty rows beyond
+`minSpareRows` are ordinary data and stay in the sort.
+
+`MultiColumnSorting` does not override the method, so both plugins share this and any change to it.
+
+**Known overlap, deliberately left alone.** The count and `fixedRowsBottom` are subtracted
+independently, but a spare row is appended at the end of the data, so it sits *inside* the band
+`fixedRowsBottom` already reserves. With `minSpareRows: 1, fixedRowsBottom: 1` and no filter both
+terms describe the same row, two rows leave the sortable range, and the last real data row is left
+unsorted, which is the #5983 symptom reached through a different option. The fix above did not
+change that (the counted value is never larger than `minSpareRows`, so the subtraction is exactly
+what it always was), and `__tests__/columnSorting.spec.js`'s "should respect `fixedRowsTop`,
+`fixedRowsBottom`, and `minSpareRows` together" currently passes *because* of the double
+subtraction - anyone correcting the overlap has to revisit that expectation first.
+
 ## The sort indicator reserves room on the header *container*
 
 `has-sort-indicator` goes on the header container, not the label. Padding on the label would enlarge the
