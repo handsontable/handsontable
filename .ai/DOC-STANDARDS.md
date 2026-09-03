@@ -12,7 +12,7 @@ The gating policy and a digest of the most-violated rules live in the root `AGEN
 
 ## Documentation branch conventions
 
-- Feature docs branches: `docs/issue-xxxx` (e.g., `docs/issue-9024`), branched from the feature branch or `develop`.
+- Feature docs branches: `docs/DEV-xxxx_Short-Description` (e.g., `docs/DEV-458_Clarify-undo-redo-docs`), branched from the feature branch or `develop`.
 - Release docs branches: `release/x.y.z-docs`, branched from `release/x.y.z`.
 
 ## Writing style rules
