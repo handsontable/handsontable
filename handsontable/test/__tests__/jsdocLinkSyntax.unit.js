@@ -34,12 +34,17 @@ const SKIPPED_DIRS = [
 // `docs/content/api` is regenerated from the core source on every docs build, so scanning it
 // would only re-report what the core-source case already covers. Its `.gitignore` un-ignores
 // three files, though (`/content/api/*` followed by `!introduction.md`, `!plugins.md`,
-// `!sidebar.js`): those are hand-authored and tracked, they are the likeliest place for a
-// hand-written API cross-reference, and they must stay in the scan.
+// `!sidebar.js`): those are hand-authored and tracked, and the prose ones are a likely place
+// for a hand-written API cross-reference, so they stay in the scan. `sidebar.js` is not listed
+// here: it is a data module that renders no prose, and the docs walk asks for `.md` only.
 const GENERATED_API_DIR = join('docs', 'content', 'api');
-const AUTHORED_API_FILES = ['introduction.md', 'plugins.md', 'sidebar.js'];
+const AUTHORED_API_FILES = ['introduction.md', 'plugins.md'];
 
-const TYPEDOC_LINK = /\[\[[A-Za-z_#][A-Za-z0-9_#+.]*\]\]/;
+// The target, plus TypeDoc's optional `|label` form. The label runs to the closing brackets
+// because a real one holds spaces and punctuation (`[[Core#getCellMeta|the getter]]`); matching
+// only label characters would let every multi-word label through. The target itself stays
+// identifier-shaped, which is what keeps array literals such as `[[1, 2], [3, 4]]` out.
+const TYPEDOC_LINK = /\[\[[A-Za-z_#][A-Za-z0-9_#+.]*(?:\|[^\]\n]*)?\]\]/;
 // A JSDoc block: its opening line and its continuation lines. `//` is deliberately absent –
 // jsdoc parses `/**` blocks only, so a `[[Target]]` in a line comment cannot reach a page,
 // and including it would flag commented-out code such as `// data: [[ISO_DATE]]`.
