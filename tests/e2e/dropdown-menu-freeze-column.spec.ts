@@ -7,9 +7,12 @@ import { DropdownMenuFreezeColumnPage } from '../fixtures/pages/DropdownMenuFree
  *
  * The two menus build their item lists from separate hooks — `afterContextMenuDefaultOptions` and
  * `afterDropdownMenuDefaultOptions` — and ManualColumnFreeze registered only the first. A key the
- * dropdown menu has never heard of does not raise anything: `ItemsFactory` turns it into a bare
- * `{ name, key }` placeholder. So the menu rendered a row labelled with the RAW KEY, carrying no
+ * dropdown menu had never heard of raised nothing: `ItemsFactory` turned it into a bare
+ * `{ name, key }` placeholder. So the menu rendered a row labeled with the RAW KEY, carrying no
  * callback and no `hidden()`, and clicking it closed the menu without freezing anything.
+ *
+ * That placeholder is gone as of DEV-2758 — an unresolvable key is skipped and warned about
+ * instead — so the `manualColumnFreeze disabled` block at the bottom now pins the skip.
  *
  * That failure mode is why the label assertions below check the translated text rather than just
  * "a row is there" — the broken build rendered a row too.
@@ -19,7 +22,7 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
 
   const {
     CUSTOM_KEYS, DEFAULT_MENU, CONTEXT_CONTROL, PLUGIN_OFF, TOGGLE, TOGGLE_OFF_START,
-    FILTERS_ORDER, OTHER_KEYS, FREEZE_LABEL, UNFREEZE_LABEL,
+    FILTERS_ORDER, OTHER_KEYS, COLON_KEY, FREEZE_LABEL, UNFREEZE_LABEL,
   } = DropdownMenuFreezeColumnPage;
 
   /** How many rows carry exactly this label. */
@@ -291,23 +294,83 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
     });
   });
 
+  test.describe('a command registered under a whole `parent:child` key', () => {
+    // `executeCommand` rebuilds the item list when the name looks unknown, so that a command
+    // contributed by a plugin enabled since the last build is still reachable. Asking only about
+    // the parent name reports every colon-keyed command as unknown, and each call then re-fires
+    // both item hooks — the noise the check exists to avoid. Never open the menu in here: opening
+    // rebuilds the list by design and would mask the difference.
+    test('is executed without rebuilding the item list', async () => {
+      // Zero to start with. The enable-time build runs before a hook supplied through the
+      // settings is attached, so it is not counted here — which leaves the counter measuring
+      // exactly the rebuilds `executeCommand` triggers, and nothing else.
+      expect(await grid.dropdownDefaultOptionsCalls()).toBe(0);
+
+      await grid.executeDropdownCommand(COLON_KEY, 'alignment:left', 0);
+      await grid.executeDropdownCommand(COLON_KEY, 'alignment:left', 0);
+
+      // Still zero. Asking only about the parent name reports this command as unknown every
+      // time, and each call then rebuilds the list — making this 2.
+      expect(await grid.dropdownDefaultOptionsCalls()).toBe(0);
+    });
+
+    test('runs without throwing', async () => {
+      // The #5027 symptom: the whole name is what the command was registered under, so a lookup
+      // that only ever split on ':' reported `Menu command 'alignment' not exists.`
+      const error = await grid.executeDropdownCommand(COLON_KEY, 'alignment:left', 0);
+
+      expect(error).toBeNull();
+    });
+  });
+
   test.describe('manualColumnFreeze disabled', () => {
-    // Not coverage of this fix: it pins ItemsFactory's unknown-key fallback, which is what #5429
-    // reported seeing. The assertion holds on the unfixed build too, by design.
-    test('renders ItemsFactory placeholder rows, since nothing resolves the keys', async () => {
+    // The entries belong to the plugin, so with it off nothing resolves either key. ItemsFactory
+    // used to emit a `{ name, key }` placeholder for each, and the menu rendered a row labeled
+    // with the RAW KEY that did nothing when clicked — the shape #5429 reported. Those rows are
+    // now skipped, which is what this block pins (DEV-2758).
+    test('skips the unresolvable keys instead of rendering raw-key rows', async () => {
       await grid.openColumnMenu(PLUGIN_OFF, 'Charlie');
 
       const items = await grid.visibleDropdownMenuItems();
 
-      // The entries belong to the plugin, so with it off nothing resolves the keys and ItemsFactory
-      // emits its placeholder for each — the very rows the whole bug consisted of. Pinned as the
-      // real behavior rather than asserting the translated label is absent, which would pass on the
-      // broken build too and prove nothing.
-      expect(items).toEqual(['freeze_column', 'unfreeze_column']);
+      // Every item was dropped, so the menu falls back to its empty-list entry. Asserted as an
+      // exact list, because a build that skipped only one of the two keys would still satisfy
+      // the absence checks below.
+      expect(items).toEqual(['No available options']);
+      expect(items).not.toContain('freeze_column');
+      expect(items).not.toContain('unfreeze_column');
+    });
 
-      await grid.clickDropdownMenuItem('freeze_column');
+    test('reports the key as an unknown command through the API', async () => {
+      // The skipped row is never registered as a command either, so the API path the placeholder
+      // used to leave open now answers plainly instead of accepting the call and doing nothing.
+      // Driving `executeCommand` is the only way to reach that path — opening and closing the
+      // menu would assert nothing, since no build freezes a column just for being opened.
+      const error = await grid.executeDropdownCommand(PLUGIN_OFF, 'freeze_column', 2);
 
+      expect(error).toContain('freeze_column');
       expect(await grid.fixedColumnsStart(PLUGIN_OFF)).toBe(0);
+      expect(await grid.columnHeaders(PLUGIN_OFF)).toEqual(
+        DropdownMenuFreezeColumnPage.COLUMN_HEADERS
+      );
+    });
+
+    test('warns on the console so the developer can find the key', async () => {
+      // Dropping the row silently would trade a visible defect for an invisible one. The warning
+      // is the replacement signal, and it names the key that could not be resolved.
+      //
+      // `prepareMenuItems()` runs once from `enablePlugin`, so the warning is emitted while the
+      // grid is being built — the developer sees it without opening the menu at all. That is
+      // before the `beforeEach` navigation returns, hence the listener plus a second visit.
+      const warnings = grid.collectUnresolvedKeyWarnings();
+
+      await grid.goto();
+
+      // Console events arrive over CDP independently of `goto()` resolving, so the wait has to be
+      // a contract rather than luck — a late message would otherwise fail the run, and a spec
+      // that only passes on retry still fails the job on CI.
+      await expect.poll(() => warnings.join('\n')).toContain('freeze_column');
+      await expect.poll(() => warnings.join('\n')).toContain('unfreeze_column');
     });
   });
 });
