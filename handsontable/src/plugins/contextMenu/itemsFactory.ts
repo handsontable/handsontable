@@ -34,13 +34,22 @@ export class ItemsFactory {
    * @type {boolean}
    */
   #predefinedItemsSet = false;
+  /**
+   * Which menu this factory builds, used to make an unresolved-key warning name its own menu.
+   * Both menus share one grid element, so without it the first to warn silences the other.
+   *
+   * @type {string}
+   */
+  #menuName = 'menu';
 
   /**
-   * Initializes the items factory with a Handsontable instance and an optional default ordering pattern for menu items.
+   * Initializes the items factory with a Handsontable instance, an optional default ordering
+   * pattern for menu items, and the name of the menu it builds.
    */
-  constructor(hotInstance: HotInstance, orderPattern: string[] | null = null) {
+  constructor(hotInstance: HotInstance, orderPattern: string[] | null = null, menuName = 'menu') {
     this.hot = hotInstance;
     this.defaultOrderPattern = orderPattern || [];
+    this.#menuName = menuName;
   }
 
   /**
@@ -119,10 +128,10 @@ export class ItemsFactory {
   #warnUnresolvedKey(name: string) {
     warnOnce(
       this.hot.rootElement,
-      `menu-unresolved-item-key:${name}`,
-      `Handsontable: the menu item key "${name}" does not match any available menu item, so it ` +
-      'was skipped. Check the key for typos, and make sure the plugin that provides it is ' +
-      'enabled and contributes items to this menu.'
+      `menu-unresolved-item-key:${this.#menuName}:${name}`,
+      `Handsontable: the "${this.#menuName}" item key "${name}" does not match any available ` +
+      'menu item, so it was skipped. Check the key for typos, and make sure the plugin that ' +
+      'provides it is enabled and contributes items to this menu.'
     );
   }
 }

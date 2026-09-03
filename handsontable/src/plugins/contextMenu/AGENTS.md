@@ -17,7 +17,11 @@
 
 The two menus build their item lists from separate hooks: `afterContextMenuDefaultOptions` and `afterDropdownMenuDefaultOptions`. A plugin that registers on only one is absent from the other, and **nothing raises**. Until DEV-2758 that was actively misleading: `ItemsFactory` turned a key it could not resolve into a bare `{ name, key }` placeholder, so the menu rendered a row labeled with the RAW KEY that did nothing when clicked. That was issue #5429 — `freeze_column` worked in `contextMenu` and rendered a dead row in `dropdownMenu` for seven years.
 
-An unresolvable key is now **skipped**, with a `warnOnce()` naming it. So the failure is quiet in the UI and loud in the console instead of the other way round. It is still a failure: the item does not appear, so registering on both hooks remains the fix, not the warning.
+An unresolvable key in the **array** form is now **skipped**, with a `warnOnce()` naming both the key and the menu it came from. So the failure is quiet in the UI and loud in the console instead of the other way round. It is still a failure: the item does not appear, so registering on both hooks remains the fix, not the warning.
+
+The menu name comes from `ItemsFactory`'s third constructor argument (each plugin passes its own `PLUGIN_KEY`). It is part of the `warnOnce` dedup key as well as the text, because both menus share one `hot.rootElement` scope — without it, a key unresolvable in *both* menus warns once and names neither.
+
+Two cases are deliberately outside the skip. A key naming a built-in `ITEMS` member with no current entry is dropped silently, exactly as before — `allowInsert*`/`allowRemove*` suppress theirs at render time. And the **object** form of `items` is untouched by this PR: there a plain string value is the item's *label*, not a key to resolve, so nothing is looked up and nothing is reported. Do not describe the skip as covering every unresolvable key.
 
 Register one handler on both hooks, as `manualColumnFreeze.ts` does. Eight plugins still register on the context menu hook only — `comments`, `customBorders`, `copyPaste`, `exportFile`, `mergeCells`, `hiddenRows`, `hiddenColumns`, `nestedRows` — so `copy`, `mergeCells`, `commentsAddEdit`, `borders` and the hiding keys are all still absent as dropdown menu keys.
 
@@ -38,6 +42,8 @@ Object-form `items` take their key verbatim, so `{ items: { 'alignment:left': �
 Reversing 1 and 2 looks equivalent and is not. Both entries exist at once whenever object-form `items` declare the parent *and* the colon key side by side (`{ items: { alignment: {}, 'alignment:left': {…} } }`): the parent carries the predefined submenu with the real callback, while the colon key is the caller's bare `{ name, key }`. Matching the whole name first hands back the bare entry, which has no `callback`, so an alignment that used to work silently stops running. Pinned by `__tests__/commandExecutor.unit.js`.
 
 Both lookups go through `hasOwnProperty()` — `commands` is a plain object, so a bare index answers `toString` and `constructor` with the inherited member, which then slips past every gate in `execute()` and runs the common callback instead of reporting an unknown command.
+
+`hasCommand()` is the boolean form of the same rule. `DropdownMenu#executeCommand` asks it rather than re-implementing the two lookups, because that method rebuilds the whole item list when a name looks unknown — so a copy of the rule that went stale would re-fire both item hooks on every colon-keyed command.
 
 A subcommand name that matches no submenu entry is a `warnOnce()` and a no-op. It previously read `disabled` off `undefined` and threw a `TypeError`; silence would have been worse than either, since a mistyped *parent* still throws.
 

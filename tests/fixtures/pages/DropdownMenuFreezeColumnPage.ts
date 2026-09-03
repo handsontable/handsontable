@@ -26,6 +26,8 @@ export class DropdownMenuFreezeColumnPage {
   static readonly FILTERS_ORDER = 'filters-order';
   /** A custom item list that does not name the freeze keys, with the plugin enabled. */
   static readonly OTHER_KEYS = 'other-keys';
+  /** Object-form `items` keyed by a whole `parent:child` string, with a hook-call counter. */
+  static readonly COLON_KEY = 'colon-key';
 
   /** Every grid the fixture builds. */
   static readonly ALL_GRIDS = [
@@ -37,6 +39,7 @@ export class DropdownMenuFreezeColumnPage {
     DropdownMenuFreezeColumnPage.TOGGLE_OFF_START,
     DropdownMenuFreezeColumnPage.FILTERS_ORDER,
     DropdownMenuFreezeColumnPage.OTHER_KEYS,
+    DropdownMenuFreezeColumnPage.COLON_KEY,
   ];
 
   /** The fixture's named column headers, in their starting order. */
@@ -297,6 +300,18 @@ export class DropdownMenuFreezeColumnPage {
         return null;
       },
       [gridId, command, visualColumn] as [string, string, number]
+    );
+  }
+
+  /**
+   * How many times the `colon-key` grid has run `afterDropdownMenuDefaultOptions`.
+   *
+   * Building the item list fires that hook, so this counter is what separates "the command was
+   * found" from "the list was rebuilt to look for it".
+   */
+  async dropdownDefaultOptionsCalls(): Promise<number> {
+    return this.page.evaluate(
+      () => (window as unknown as { dropdownDefaultOptionsCalls: number }).dropdownDefaultOptionsCalls
     );
   }
 

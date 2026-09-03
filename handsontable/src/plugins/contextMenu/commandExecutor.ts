@@ -96,7 +96,22 @@ export class CommandExecutor {
   }
 
   /**
-   * Resolves a command name to the descriptor that should run.
+   * Checks whether a name resolves to a registered command, using the same two lookups
+   * `execute()` makes — the parent name first, then the whole name.
+   *
+   * @param {string} commandName Command id, optionally a `parent:child` subcommand name.
+   * @returns {boolean}
+   */
+  hasCommand(commandName: string): boolean {
+    const [commandNamePrimary] = commandName.split(':');
+
+    return hasOwnProperty(this.commands, commandNamePrimary) ||
+      hasOwnProperty(this.commands, commandName);
+  }
+
+  /**
+   * Resolves a command name to the descriptor that should run. Throws when the name resolves to
+   * no registered command at all.
    *
    * @param {string} commandName Command id, optionally a `parent:child` subcommand name.
    * @returns {object|undefined} The command, or `undefined` when a subcommand name matches no

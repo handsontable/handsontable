@@ -1,7 +1,7 @@
 import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
 import { arrayEach } from '../../helpers/array';
-import { objectEach, hasOwnProperty } from '../../helpers/object';
+import { objectEach } from '../../helpers/object';
 import { CommandExecutor } from '../contextMenu/commandExecutor';
 import { getDocumentOffsetByElement } from '../contextMenu/utils';
 import {
@@ -273,7 +273,7 @@ export class DropdownMenu extends BasePlugin {
       return;
     }
 
-    this.itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS);
+    this.itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS, PLUGIN_KEY);
 
     const settings = this.hot.getSettings()[PLUGIN_KEY];
     const predefinedItems = {
@@ -599,15 +599,11 @@ export class DropdownMenu extends BasePlugin {
     // a listener would see as noise. And never while the menu is open — it was just built, and a
     // rebuild would swap the items out from under the click that is running this command.
     // A command can also be registered under a key that itself contains a colon, so both names
-    // count as known here — the same two lookups `CommandExecutor#execute()` makes. Testing only
-    // the primary name would rebuild the list on every colon-keyed command, which is exactly the
-    // per-call hook noise this check exists to avoid.
-    const [primaryCommandName] = commandName.split(':');
-    const { commands } = this.commandExecutor;
-    const isCommandKnown = hasOwnProperty(commands, primaryCommandName) ||
-      hasOwnProperty(commands, commandName);
-
-    if (!isCommandKnown && !this.menu?.isOpened()) {
+    // count as known here. `hasCommand()` is the boolean form of the resolution rule `execute()`
+    // applies, and asking it keeps the two from drifting apart. Testing only the primary name
+    // would rebuild the list on every colon-keyed command, which is exactly the per-call hook
+    // noise this check exists to avoid.
+    if (!this.commandExecutor.hasCommand(commandName) && !this.menu?.isOpened()) {
       this.prepareMenuItems();
     }
 

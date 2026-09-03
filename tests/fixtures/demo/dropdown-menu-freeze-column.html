@@ -50,6 +50,7 @@
   <div id="toggle-off-start" class="grid" data-testid="toggle-off-start"></div>
   <div id="filters-order" class="grid" data-testid="filters-order"></div>
   <div id="other-keys" class="grid" data-testid="other-keys"></div>
+  <div id="colon-key" class="grid" data-testid="colon-key"></div>
 
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The
@@ -112,6 +113,10 @@
       }
     }
 
+    // How many times the `colon-key` grid has run `afterDropdownMenuDefaultOptions`. Set before
+    // any grid is built, because the hook fires once during construction.
+    window.dropdownDefaultOptionsCalls = 0;
+
     window.hots = {
       // The reported config: the two keys listed explicitly as dropdown menu items.
       'custom-keys': build('custom-keys', {
@@ -160,6 +165,22 @@
       'other-keys': build('other-keys', {
         manualColumnFreeze: true,
         dropdownMenu: ['col_left', 'col_right'],
+      }),
+      // Object-form `items` keyed by a whole `parent:child` string, which registers the command
+      // under that key verbatim. `executeCommand('alignment:left')` must then find it WITHOUT
+      // rebuilding the item list — the counter below is what proves the list was not rebuilt.
+      'colon-key': build('colon-key', {
+        dropdownMenu: {
+          items: {
+            'alignment:left': {
+              name: 'Left',
+              callback() {},
+            },
+          },
+        },
+        afterDropdownMenuDefaultOptions() {
+          window.dropdownDefaultOptionsCalls += 1;
+        },
       }),
     };
 

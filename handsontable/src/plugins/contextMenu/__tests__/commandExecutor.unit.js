@@ -156,6 +156,50 @@ describe('contextMenu/CommandExecutor', () => {
     });
   });
 
+  describe('hasCommand', () => {
+    // The boolean form of the same resolution rule `execute()` applies. `DropdownMenu#executeCommand`
+    // asks it instead of re-implementing the two lookups, so the two cannot drift apart.
+    it('finds a command registered under its plain name', () => {
+      const executor = new CommandExecutor(hot);
+
+      executor.registerCommand('freeze_column', { key: 'freeze_column' });
+
+      expect(executor.hasCommand('freeze_column')).toBe(true);
+    });
+
+    it('finds a subcommand through its registered parent', () => {
+      const executor = new CommandExecutor(hot);
+
+      executor.registerCommand('alignment', { key: 'alignment', submenu: { items: [] } });
+
+      expect(executor.hasCommand('alignment:left')).toBe(true);
+    });
+
+    it('finds a command registered under its whole colon key', () => {
+      // The case the plain primary-name check misses, which is what made every such call rebuild
+      // the whole item list.
+      const executor = new CommandExecutor(hot);
+
+      executor.registerCommand('alignment:left', { key: 'alignment:left' });
+
+      expect(executor.hasCommand('alignment:left')).toBe(true);
+    });
+
+    it('rejects a name nobody registered', () => {
+      const executor = new CommandExecutor(hot);
+
+      expect(executor.hasCommand('not_a_command')).toBe(false);
+      expect(executor.hasCommand('nothing:here')).toBe(false);
+    });
+
+    it('rejects a name inherited from Object.prototype', () => {
+      const executor = new CommandExecutor(hot);
+
+      expect(executor.hasCommand('toString')).toBe(false);
+      expect(executor.hasCommand('constructor')).toBe(false);
+    });
+  });
+
   describe('the disabled gate', () => {
     it('skips a command disabled by value, matched by its full name', () => {
       const executor = new CommandExecutor(hot);

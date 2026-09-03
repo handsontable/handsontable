@@ -125,9 +125,15 @@ The `filter_by_condition`, `filter_by_condition2`, `filter_operators`, `filter_b
 `filter_action_bar` items build the filtering interface and take effect only in the dropdown (column)
 menu, not in the context menu. See [Filter menu items](@/guides/accessories-and-menus/column-menu/column-menu.md#filter-menu-items).
 
-The table above lists every key you can use. A key that is not on it is skipped, and Handsontable
-logs a console warning naming it. A key is also skipped when the plugin that provides it is not
-enabled, so check the required plugin named beside the key when an item does not appear.
+The table above lists every key you can use in the array form of `contextMenu`. An array key that
+matches no available item is skipped, and Handsontable logs a console warning naming it and the
+menu it came from. That covers a key with a typo in it, and a key whose plugin is not enabled --
+so check the required plugin named beside the key when an item does not appear.
+
+Two cases are skipped without a warning. A key for a built-in item that is turned off, such as
+`row_above` under `allowInsertRow: false`, is left out on purpose. And in the object form of
+`contextMenu`, a plain string value is the item's label rather than a key to look up, so nothing
+is resolved and nothing is reported.
 
 To see the context menu, right-click on a cell. On touch devices, long-press a cell to open the context menu.
 

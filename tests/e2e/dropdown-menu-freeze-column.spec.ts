@@ -22,7 +22,7 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
 
   const {
     CUSTOM_KEYS, DEFAULT_MENU, CONTEXT_CONTROL, PLUGIN_OFF, TOGGLE, TOGGLE_OFF_START,
-    FILTERS_ORDER, OTHER_KEYS, FREEZE_LABEL, UNFREEZE_LABEL,
+    FILTERS_ORDER, OTHER_KEYS, COLON_KEY, FREEZE_LABEL, UNFREEZE_LABEL,
   } = DropdownMenuFreezeColumnPage;
 
   /** How many rows carry exactly this label. */
@@ -291,6 +291,35 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
       expect(await grid.columnHeaders(CONTEXT_CONTROL)).toEqual(
         ['Charlie', 'Alpha', 'Bravo', 'Delta', 'Echo', 'Foxtrot']
       );
+    });
+  });
+
+  test.describe('a command registered under a whole `parent:child` key', () => {
+    // `executeCommand` rebuilds the item list when the name looks unknown, so that a command
+    // contributed by a plugin enabled since the last build is still reachable. Asking only about
+    // the parent name reports every colon-keyed command as unknown, and each call then re-fires
+    // both item hooks — the noise the check exists to avoid. Never open the menu in here: opening
+    // rebuilds the list by design and would mask the difference.
+    test('is executed without rebuilding the item list', async () => {
+      // Zero to start with. The enable-time build runs before a hook supplied through the
+      // settings is attached, so it is not counted here — which leaves the counter measuring
+      // exactly the rebuilds `executeCommand` triggers, and nothing else.
+      expect(await grid.dropdownDefaultOptionsCalls()).toBe(0);
+
+      await grid.executeDropdownCommand(COLON_KEY, 'alignment:left', 0);
+      await grid.executeDropdownCommand(COLON_KEY, 'alignment:left', 0);
+
+      // Still zero. Asking only about the parent name reports this command as unknown every
+      // time, and each call then rebuilds the list — making this 2.
+      expect(await grid.dropdownDefaultOptionsCalls()).toBe(0);
+    });
+
+    test('runs without throwing', async () => {
+      // The #5027 symptom: the whole name is what the command was registered under, so a lookup
+      // that only ever split on ':' reported `Menu command 'alignment' not exists.`
+      const error = await grid.executeDropdownCommand(COLON_KEY, 'alignment:left', 0);
+
+      expect(error).toBeNull();
     });
   });
 
