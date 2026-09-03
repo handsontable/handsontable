@@ -3,17 +3,19 @@
 // For every fixture case in evals/fixtures/ it scores the hand-written
 // reference test(s) — the harness self-test: every reference must clear the
 // meaningfulness bar — and the optional counterexample(s) — the self-test's
-// other half: every counterexample must FAIL the bar, or the scorer has lost a
-// signal — plus any candidate (agent-generated) file passed via
-// `--candidate <case> <file>`. Prints a table; exits 1 when a reference fails
-// its own bar, a counterexample passes it, or a fixture is malformed; 2 on
-// usage errors.
+// other half: every counterexample must FAIL the bar for the one smell its file
+// name declares (`<scenario>.<smell>.spec.ts`, see lib/counterexamples.mjs), or
+// the scorer has lost that signal — plus any candidate (agent-generated) file
+// passed via `--candidate <case> <file>`. Prints a table; exits 1 when a
+// reference fails its own bar, a counterexample is not caught for its declared
+// smell, or a fixture is malformed; 2 on usage errors.
 //
 // Usage: node evals/run-eval.mjs [--candidate <case> <file>]... [--json]
 
 import { readdir, access } from 'node:fs/promises';
 import { join, basename } from 'node:path';
 import { scoreTestFile } from './score.mjs';
+import { expectedSmellOf, missReason } from './lib/counterexamples.mjs';
 
 const EVALS_DIR = import.meta.dirname;
 const FIXTURES_DIR = join(EVALS_DIR, 'fixtures');
@@ -140,7 +142,21 @@ for (const caseName of caseNames) {
   }
 
   for (const file of counterexampleFiles) {
-    results.push({ caseName, role: 'counterexample', score: await scoreTestFile(file, diffOptions) });
+    const expected = expectedSmellOf(basename(file));
+
+    // A file that does not declare a known smell is not a counterexample — it cannot be
+    // "caught", so it must not count as one (a stray README would otherwise pass as caught).
+    if (expected.error) {
+      structuralErrors.push(`${caseName}/counterexamples: ${expected.error}`);
+      continue;
+    }
+
+    results.push({
+      caseName,
+      role: 'counterexample',
+      expectedSmell: expected.smell,
+      score: await scoreTestFile(file, diffOptions),
+    });
   }
 
   for (const candidate of parsed.candidates.filter(c => c.caseName === caseName)) {
@@ -197,8 +213,12 @@ if (parsed.json) {
 const references = results.filter(result => result.role === 'reference');
 const failedReferences = references.filter(result => result.score.verdict !== 'meaningful');
 const counterexamples = results.filter(result => result.role === 'counterexample');
-// A counterexample that scores meaningful means the scorer no longer sees the smell it carries.
-const missedCounterexamples = counterexamples.filter(result => result.score.verdict !== 'suspect');
+// A counterexample is caught only when the scorer flags the one smell its name declares, and
+// nothing else — a verdict of `suspect` alone would also be reached through a hollow test or
+// a `.skip`, with the declared signal already lost.
+const missedCounterexamples = counterexamples
+  .map(result => ({ ...result, reason: missReason(result.score, result.expectedSmell) }))
+  .filter(result => result.reason !== null);
 const candidates = results.filter(result => result.role === 'candidate');
 const meaningfulCandidates = candidates.filter(result => result.score.verdict === 'meaningful');
 const selfTestPassed = failedReferences.length === 0
@@ -211,8 +231,8 @@ if (!parsed.json) {
     + ` counterexamples: ${counterexamples.length - missedCounterexamples.length}/${counterexamples.length} caught`
     + ` — harness self-test ${selfTestPassed ? 'PASSED' : 'FAILED'}.`);
 
-  for (const { caseName, score } of missedCounterexamples) {
-    console.log(`  missed counterexample  ${caseName}/${basename(score.file)}: scored ${score.verdict}`);
+  for (const { caseName, score, reason } of missedCounterexamples) {
+    console.log(`  missed counterexample  ${caseName}/${basename(score.file)}: ${reason}`);
   }
 
   if (candidates.length > 0) {

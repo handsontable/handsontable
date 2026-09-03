@@ -61,15 +61,23 @@ evals/fixtures/<case>/
   case.md           # the change brief an agent receives, plus rubric notes
   change.diff       # optional — the source diff, feeds the relevance signal
   reference/        # hand-written example(s) of a meaningful test for the case
-  counterexamples/  # optional — near-misses the scorer MUST mark `suspect`
+  counterexamples/  # optional — near-misses the scorer MUST mark `suspect`,
+                    # named <scenario>.<smell>.spec.ts (e.g. escape-cancels-edit.set-timeout.spec.ts)
 ```
 
-A counterexample is the reference with exactly one smell added (a fixed
-`setTimeout`, a frame-count wait), so the self-test proves the scorer still sees
-that one signal. `run-eval.mjs` fails when a counterexample scores `meaningful`,
-the same way it fails when a reference scores `suspect`. The scorer is
-text-based, so a counterexample's comments must not spell a banned call with its
-parenthesis, or the file carries two smells instead of the one it exists to prove.
+A counterexample is the reference with exactly one determinism smell added (a
+fixed `setTimeout`, a frame-count wait), and it declares that smell in its file
+name — `<scenario>.<smell>.spec.ts` (or `.spec.js` / `.unit.ts` / `.unit.js`),
+where `<smell>` is one of the scorer's `determinismSmells` ids. The self-test then
+proves the scorer still sees that one signal: `run-eval.mjs` fails when a
+counterexample is not flagged for its declared smell, when it carries a second
+smell or a second problem (a hollow test would keep it `suspect` after the
+declared signal was lost, hiding the regression), or when a file in the folder
+names no known smell (a stray README cannot count as "caught") — the same way it
+fails when a reference scores `suspect`. The contract lives in
+`evals/lib/counterexamples.mjs`. The scorer is text-based, so a counterexample's
+comments must not spell a banned call with its parenthesis, or the file carries
+two smells instead of the one it exists to prove.
 
 The three cases cover the representative change kinds from the eval design: a
 **bug fix** (`bug-fix-number-helper`, a numeric-helper edge case), a **feature**
@@ -82,8 +90,12 @@ Reference tests are written exactly as they would land in their real tier
 there — the harness scores them statically, it does not execute them. To add a
 case, create the folder with `case.md` and at least one reference test;
 `run-eval.mjs` picks it up automatically and fails if the reference does not
-score clean. Add a `counterexamples/` file when a new smell signal lands, so the
-signal has a fixture that proves it fires.
+score clean. Add a `counterexamples/` file when a new determinism-smell signal
+lands, so the signal has a fixture that proves it fires — the scorer test compares
+the fixtures against the exported `DETERMINISM_SIGNALS` list, so a signal without
+its fixture fails `npm run test:tooling`. The hollow-test and gaming signals have
+no fixtures; the inline-source unit tests in `evals/__tests__/score.test.mjs`
+cover them.
 
 ## What the scorer measures
 
@@ -96,7 +108,7 @@ source of truth with the CI weakening detector.
 | `tests`, `assertions` | Block and assertion counts — the count matters (fewer tests for the same quality is better). |
 | `hollowTests` | `it()`/`test()` blocks with no `expect`/`assert`/`verify` call — a test that only executes code. |
 | `gamingSignals` | `.only`/`.skip`/`xit`/`fit`, `it.flaky`, `fixme`/`todo`, and failure-swallowing `try/catch`. |
-| `determinismSmells` | `sleep(`, `waitForTimeout(`, `networkidle`, `setTimeout(` (bare or `window.`), `waitForNextAnimationFrames(` — timing-based instead of condition-based waits. Mirrors the lint bans in `tests/.eslintrc.cjs` and `handsontable/no-fixed-sleep-in-spec`. |
+| `determinismSmells` | `sleep(`, `waitForTimeout(`, `networkidle`, a global `setTimeout(` (bare, `window.`, or `globalThis.`) with a non-zero numeric-literal delay, `waitForNextAnimationFrames(` with anything but a literal `0` — timing-based instead of condition-based waits. Mirrors the lint bans in `tests/.eslintrc.cjs` and `handsontable/no-fixed-sleep-in-spec`, exemptions included: `test.setTimeout(ms)` is a budget, `setTimeout(fn, 0)` and `waitForNextAnimationFrames(0)` are zero-duration hand-offs, and a computed delay cannot be judged statically. |
 | `relevance` | With `--diff`: does the test reference any changed symbol? Warning-only (E2E tests assert behavior, not symbols). |
 | `mutation` | The dependency-gated ceiling; stubbed until StrykerJS is approved. |
 | `verdict` | `meaningful` when there is at least one test block, no hollow test, no gaming signal, and no determinism smell; otherwise `suspect` with `problems`. |

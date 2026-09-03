@@ -248,27 +248,172 @@ export function findGamingSignals(src) {
 }
 
 /**
+ * Split a call's argument list — between its `(` at `openIndex` and the matching `)` at
+ * `closeIndex` — into top-level arguments. Strings, comments, and nested brackets are
+ * skipped, so a comma inside an arrow-function body does not split the list.
+ *
+ * @param {string} src The source text.
+ * @param {number} openIndex Index of the call's opening `(`.
+ * @param {number} closeIndex Index of the matching `)`.
+ * @returns {string[]} The trimmed argument texts; empty for `()`.
+ */
+function splitTopLevelArgs(src, openIndex, closeIndex) {
+  const args = [];
+  let start = openIndex + 1;
+  let i = start;
+
+  while (i < closeIndex) {
+    const ch = src[i];
+    const next = src[i + 1];
+
+    if (ch === '/' && next === '/') {
+      const eol = src.indexOf('\n', i);
+
+      i = eol === -1 ? closeIndex : eol;
+      continue;
+    }
+
+    if (ch === '/' && next === '*') {
+      const end = src.indexOf('*/', i + 2);
+
+      i = end === -1 ? closeIndex : end + 2;
+      continue;
+    }
+
+    if (ch === '\'' || ch === '"' || ch === '`') {
+      i = skipString(src, i);
+      continue;
+    }
+
+    if (ch === '(' || ch === '{' || ch === '[') {
+      const end = scanBalanced(src, i);
+
+      i = end === -1 ? closeIndex : end + 1;
+      continue;
+    }
+
+    if (ch === ',') {
+      args.push(src.slice(start, i));
+      start = i + 1;
+    }
+    i += 1;
+  }
+  args.push(src.slice(start, closeIndex));
+
+  const trimmed = args.map(arg => arg.trim());
+
+  return trimmed.length === 1 && trimmed[0] === '' ? [] : trimmed;
+}
+
+/**
+ * A JavaScript numeric literal: decimal (`100`, `1_000`, `1e3`, `.5`), hex, octal, or binary.
+ */
+const NUMERIC_RE = /^(?:0[xX][\da-fA-F_]+|0[oO][0-7_]+|0[bB][01_]+|(?:\d[\d_]*)?(?:\.\d[\d_]*)?(?:[eE][+-]?\d+)?)$/;
+
+/**
+ * The value of a numeric-literal argument, or NaN when the text is not a numeric literal
+ * (an identifier, a member expression, a call — anything the rule cannot judge statically).
+ *
+ * @param {string|undefined} text One argument's source text.
+ * @returns {number} The literal's value, or NaN.
+ */
+function numericLiteralValue(text) {
+  if (!text || !NUMERIC_RE.test(text)) {
+    return NaN;
+  }
+
+  return Number(text.replaceAll('_', ''));
+}
+
+/**
+ * Count the calls matched by `callRe` whose argument list `isSmell` accepts. `callRe`
+ * must end on the call's `(`; a call whose brackets do not balance is judged on no
+ * arguments at all.
+ *
+ * @param {string} src The source text.
+ * @param {RegExp} callRe A global regex ending on the opening parenthesis.
+ * @param {(args: string[]) => boolean} isSmell Whether this call's arguments make it a smell.
+ * @returns {number} The number of smelly calls.
+ */
+function countCalls(src, callRe, isSmell) {
+  let count = 0;
+
+  for (const match of src.matchAll(callRe)) {
+    const openIndex = match.index + match[0].length - 1;
+    const closeIndex = scanBalanced(src, openIndex);
+    const args = closeIndex === -1 ? [] : splitTopLevelArgs(src, openIndex, closeIndex);
+
+    if (isSmell(args)) {
+      count += 1;
+    }
+  }
+
+  return count;
+}
+
+/**
+ * The global timer only — bare `setTimeout(`, `window.setTimeout(`, `globalThis.setTimeout(`.
+ * The lookbehind rejects `test.setTimeout(` / `testInfo.setTimeout(` (a Playwright budget, not a
+ * wait), any other object's `setTimeout` method, and look-alikes such as `_registerTimeout(`.
+ */
+const GLOBAL_TIMER_CALL_RE = /(?<![\w$.])(?:(?:window|globalThis)\.)?setTimeout\s*\(/g;
+const FRAME_WAIT_CALL_RE = /(?<![\w$.])waitForNextAnimationFrames\s*\(/g;
+
+/**
+ * The determinism smells, in the order they are reported. Each entry is one signal: its
+ * id (the `type` in a score's `determinismSmells`, and the name a counterexample fixture
+ * carries) and the detector that counts it. `DETERMINISM_SIGNALS` below is derived from
+ * this table, so a signal added here is automatically demanded a fixture by the harness
+ * self-test.
+ */
+const DETERMINISM_SMELLS = [
+  { type: 'sleep-call', detect: src => (src.match(/\bsleep\s*\(/g) || []).length },
+  { type: 'wait-for-timeout', detect: src => (src.match(/\bwaitForTimeout\s*\(/g) || []).length },
+  { type: 'network-idle', detect: src => (src.match(/\bnetworkidle\b/g) || []).length },
+  {
+    // The frozen rule's `noSetTimeout`: the global timer with a non-zero numeric-literal delay.
+    // A literal `0` is a macrotask hand-off (the scheduling barrier the Playwright tier
+    // sanctions), and a computed delay cannot be judged statically; both pass, as in the rule.
+    type: 'set-timeout',
+    detect: src => countCalls(src, GLOBAL_TIMER_CALL_RE, (args) => {
+      const delay = numericLiteralValue(args[1]);
+
+      return Number.isFinite(delay) && delay !== 0;
+    }),
+  },
+  {
+    // The frozen rule's `noFrameWait`: any frame-count wait except a literal `0`, which the
+    // helper resolves at once (its `totalFramesToWait === 0` branch) — a hand-off, not a wait.
+    type: 'fixed-frame-wait',
+    detect: src => countCalls(src, FRAME_WAIT_CALL_RE, args => numericLiteralValue(args[0]) !== 0),
+  },
+];
+
+/**
+ * The ids of every determinism smell the scorer knows. The harness self-test compares the
+ * counterexample fixtures against this list, so a new smell cannot land without the fixture
+ * that proves it fires (`evals/README.md`).
+ */
+export const DETERMINISM_SIGNALS = DETERMINISM_SMELLS.map(smell => smell.type);
+
+/**
  * Detect determinism smells — fixed sleeps, fixed timers, frame-count waits, and
  * load-state waits that make a test timing-dependent instead of condition-based
  * (web-first waits, `expect.poll`, the frozen tier's `waitUntil()`). Mirrors the
- * lint bans in `tests/.eslintrc.cjs` and `handsontable/no-fixed-sleep-in-spec`.
+ * lint bans in `tests/.eslintrc.cjs` and `handsontable/no-fixed-sleep-in-spec`,
+ * exemptions included: only the global timer is judged (`test.setTimeout(ms)` is a
+ * budget), only a non-zero numeric-literal delay is a fixed timer (a literal `0` is a
+ * macrotask hand-off, a computed delay is not judged), and `waitForNextAnimationFrames(0)`
+ * resolves at once so it passes too.
  *
  * @param {string} src The spec file contents.
  * @returns {{type: string, count: number}[]} One entry per smell type found.
  */
 export function findDeterminismSmells(src) {
-  const patterns = [
-    ['sleep-call', /\bsleep\s*\(/g],
-    ['wait-for-timeout', /\bwaitForTimeout\s*\(/g],
-    ['network-idle', /\bnetworkidle\b/g],
-    // The `\b` keeps `_registerTimeout(` and `clearTimeout(` out; `window.setTimeout(` is in.
-    ['set-timeout', /\bsetTimeout\s*\(/g],
-    ['fixed-frame-wait', /\bwaitForNextAnimationFrames\s*\(/g],
-  ];
   const smells = [];
 
-  for (const [type, re] of patterns) {
-    const count = (src.match(re) || []).length;
+  for (const { type, detect } of DETERMINISM_SMELLS) {
+    const count = detect(src);
 
     if (count > 0) {
       smells.push({ type, count });

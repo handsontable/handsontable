@@ -1,9 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  DETERMINISM_SIGNALS,
   scanBalanced,
   extractTestBlocks,
   findCatchSwallows,
@@ -17,6 +19,7 @@ import {
   scoreTestSource,
   scoreTestFile,
 } from '../score.mjs';
+import { expectedSmellOf, missReason } from '../lib/counterexamples.mjs';
 
 const MUTATION_STUB = { available: false, reason: 'stryker not installed' };
 
@@ -175,46 +178,126 @@ test('determinism smells: timer look-alikes and the condition-based waiters are 
   assert.deepEqual(findDeterminismSmells(src), []);
 });
 
-test('the counterexample fixtures each carry exactly the one smell they exist to prove', async() => {
+test('set-timeout mirrors the lint bans: a setTimeout method on any other object is that object\'s contract', () => {
+  // Playwright's budgets, a wrapper, a fake-timer facade — none is a wait on the page.
+  const src = `
+    test.setTimeout(30_000);
+    test.describe('slow suite', () => {
+      test('has a budget', async({ page }, testInfo) => {
+        testInfo.setTimeout(60000);
+        scheduler.setTimeout(callback, 100);
+        this.timers.setTimeout(callback, 250);
+        expect(x).toBe(1);
+      });
+    });
+  `;
+
+  assert.deepEqual(findDeterminismSmells(src), []);
+});
+
+test('set-timeout mirrors the lint bans: a literal 0 is a hand-off and a computed delay is not judged', () => {
+  const src = `
+    setTimeout(done);
+    setTimeout(done, 0);
+    window.setTimeout(resolve, 0);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    setTimeout(callback, delay);
+    window.setTimeout(callback, hot.getSettings().debounce);
+    setTimeout(() => setTimeout(() => setTimeout(resolve, 0), 0), 0);
+  `;
+
+  assert.deepEqual(findDeterminismSmells(src), []);
+});
+
+test('set-timeout mirrors the lint bans: the global timer with a non-zero literal delay, in every spelling', () => {
+  const src = `
+    setTimeout(fn, 100);
+    window.setTimeout(fn, 100);
+    globalThis.setTimeout(fn, 100);
+    setTimeout(() => done(), 1);
+    setTimeout(resolve, 1_000);
+    setTimeout(resolve, 1e3);
+    await page.evaluate(() => new Promise((resolve) => {
+      setTimeout(resolve, 300);
+    }));
+  `;
+
+  assert.deepEqual(findDeterminismSmells(src), [{ type: 'set-timeout', count: 7 }]);
+});
+
+test('set-timeout: a nested timer counts once per fixed delay, and the arguments are split at the top level', () => {
+  // The outer delay is the fixed one; the inner 0 ms hand-off and the comma inside the arrow
+  // body must not confuse the argument split.
+  const src = 'setTimeout(() => { setTimeout(resolve, 0); log("a, b"); }, 100);';
+
+  assert.deepEqual(findDeterminismSmells(src), [{ type: 'set-timeout', count: 1 }]);
+});
+
+test('fixed-frame-wait mirrors the lint bans: a literal 0 resolves at once, anything else is a frame wait', () => {
+  const oneFrameWait = [{ type: 'fixed-frame-wait', count: 1 }];
+
+  assert.deepEqual(findDeterminismSmells('await waitForNextAnimationFrames(0);'), []);
+  assert.deepEqual(findDeterminismSmells('await waitForNextAnimationFrames();'), oneFrameWait);
+  assert.deepEqual(findDeterminismSmells('await waitForNextAnimationFrames(2);'), oneFrameWait);
+  assert.deepEqual(findDeterminismSmells('await waitForNextAnimationFrames(frames);'), oneFrameWait);
+});
+
+test('the counterexample fixtures cover every signal the scorer knows, each with exactly its one smell', async() => {
   const counterexamples = fileURLToPath(
     new URL('../fixtures/e2e-escape-cancels-edit/counterexamples/', import.meta.url),
   );
-  // One counterexample per determinism signal, so every signal is proven to fire on its own.
-  const expectedByFile = {
-    'escape-cancels-edit-sleep.spec.js': 'sleep-call',
-    'escape-cancels-edit-wait-for-timeout.spec.ts': 'wait-for-timeout',
-    'escape-cancels-edit-network-idle.spec.ts': 'network-idle',
-    'escape-cancels-edit-set-timeout.spec.ts': 'set-timeout',
-    'escape-cancels-edit-frame-wait.spec.js': 'fixed-frame-wait',
-  };
+  const files = readdirSync(counterexamples);
+  const smellByFile = Object.fromEntries(files.map((file) => {
+    const expected = expectedSmellOf(file);
 
+    assert.equal(expected.error, undefined, `${file}: ${expected.error}`);
+
+    return [file, expected.smell];
+  }));
+
+  // The signal list is exported from the scorer, so a sixth signal added to its table fails
+  // here until the fixture that proves it fires exists.
   assert.deepEqual(
-    Object.values(expectedByFile).sort(),
-    findDeterminismSmells('sleep( waitForTimeout( networkidle setTimeout( waitForNextAnimationFrames(')
-      .map(smell => smell.type).sort(),
-    'the table above names every signal the scorer knows',
+    Object.values(smellByFile).sort(),
+    [...DETERMINISM_SIGNALS].sort(),
+    'one counterexample per determinism signal, so every signal is proven to fire on its own',
   );
 
-  for (const [file, type] of Object.entries(expectedByFile)) {
+  for (const [file, type] of Object.entries(smellByFile)) {
     const score = await scoreTestFile(join(counterexamples, file));
 
     assert.deepEqual(score.determinismSmells, [{ type, count: 1 }], file);
     assert.equal(score.verdict, 'suspect', file);
     assert.deepEqual(score.problems.map(p => p.type), ['determinism-smells'], file);
+    assert.equal(missReason(score, type), null, file);
   }
 });
 
-test('run-eval: every reference scores meaningful and every counterexample scores suspect', () => {
+test('run-eval: every reference scores meaningful and every counterexample is caught for its declared smell', () => {
   const runEval = fileURLToPath(new URL('../run-eval.mjs', import.meta.url));
   const output = execFileSync(process.execPath, [runEval, '--json'], { encoding: 'utf8' });
   const { results, structuralErrors } = JSON.parse(output);
   const byRole = role => results.filter(result => result.role === role);
+  const counterexamples = byRole('counterexample');
 
   assert.deepEqual(structuralErrors, []);
   assert.ok(byRole('reference').length >= 3, 'the three reference cases are scored');
-  assert.ok(byRole('counterexample').length >= 5, 'the counterexamples (one per determinism signal) are scored');
   assert.ok(byRole('reference').every(result => result.score.verdict === 'meaningful'));
-  assert.ok(byRole('counterexample').every(result => result.score.verdict === 'suspect'));
+
+  assert.deepEqual(
+    [...new Set(counterexamples.map(result => result.expectedSmell))].sort(),
+    [...DETERMINISM_SIGNALS].sort(),
+    'the counterexamples declare every determinism signal between them',
+  );
+
+  for (const { caseName, expectedSmell, score } of counterexamples) {
+    assert.deepEqual(
+      score.determinismSmells.map(smell => smell.type),
+      [expectedSmell],
+      `${caseName}/${score.file}: caught for the smell its name declares, and no other`,
+    );
+    assert.equal(missReason(score, expectedSmell), null, `${caseName}/${score.file}`);
+  }
 });
 
 test('a clean, meaningful test scores clean', () => {
