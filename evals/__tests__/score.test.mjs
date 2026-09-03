@@ -8,6 +8,7 @@ import {
   findDeterminismSmells,
   extractChangedSymbols,
   assessRelevance,
+  countMatchers,
   getMutationStatus,
   parseMutationReport,
   runMutation,
@@ -216,6 +217,44 @@ test('loose-matchers-only stays quiet when an exact matcher or a helper assertio
 
   assert.deepEqual(scoreTestSource(oneExact, { mutation: MUTATION_STUB }).warnings, []);
   assert.deepEqual(scoreTestSource(helperAndBounded, { mutation: MUTATION_STUB }).warnings, []);
+});
+
+test('countMatchers returns the histogram behind its totals, classified by the detector\'s matcherKind', () => {
+  // One regex pass: the scorer reads the per-label detail from the same
+  // histogram the totals were summed from.
+  const src = 'expect(a).toBe(1); expect(b).not.toBe(0); expect(fn).toThrow(); expect(c).toBeGreaterThan(0);';
+
+  assert.deepEqual(countMatchers(src), {
+    exact: 1,
+    bounded: 3,
+    histogram: { toBe: 1, 'not.toBe': 1, 'toThrow()': 1, toBeGreaterThan: 1 },
+  });
+  // The score object keeps the two totals only.
+  assert.deepEqual(scoreTestSource(src, { mutation: MUTATION_STUB }).matchers, { exact: 1, bounded: 3 });
+});
+
+test('loose-matchers-only is raised when the only exact-looking matcher is negated', () => {
+  // `.not.toBe(0)` rules one value out; it used to count as the exact `toBe` and
+  // suppress the warning.
+  const src = 'it("x", () => { expect(a).not.toBe(0); expect(b).toBeGreaterThan(0); });';
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.deepEqual(score.matchers, { exact: 0, bounded: 2 });
+  assert.equal(score.warnings.length, 1);
+  assert.equal(score.warnings[0].type, 'loose-matchers-only');
+  assert.match(score.warnings[0].detail, /not\.toBe ×1/);
+});
+
+test('loose-matchers-only stays quiet for a spec that pins a float with toBeCloseTo', () => {
+  // `toBeCloseTo` is bounded in the detector's table, but pinning a value to ten
+  // decimal places is the opposite of loose — the detector's `precision-widened`
+  // owns its loosening. It is the only sensible matcher in the dimension and
+  // export specs, so the warning would fire there constantly.
+  const src = 'it("x", () => { expect(w).toBeCloseTo(123.4567890123, 10); });';
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.deepEqual(score.matchers, { exact: 0, bounded: 1 });
+  assert.deepEqual(score.warnings, []);
 });
 
 test('extractChangedSymbols reads declarations, calls, and hunk-header context from a diff', () => {

@@ -16,25 +16,12 @@ import { createRequire } from 'node:module';
 import { resolve, dirname } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import {
-  BOUNDED_MATCHERS, EXACT_MATCHERS, countAssertions, countSkipFocus, matcherHistogram,
+  TEST_CALL_RE, countAssertions, countSkipFocus, matcherHistogram, matcherKind,
 } from '../.github/scripts/lib/test-weakening.mjs';
 
 // The handsontable package dir, resolved from THIS file's location (evals/) so
 // mutation runs work regardless of the caller's cwd.
 const HOT_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'handsontable');
-
-/**
- * Matches the opening of a test block: `it(`, `test(`, the focused/skipped
- * prefix forms (`fit(`, `xit(`, `xtest(`), and the dot-modifier forms
- * (`it.only(`, `test.skip(`, `test.fixme(`, …). The lookbehind rejects member
- * accesses such as `/re/.test(` and `suite.it(`, and `describe`/`beforeEach`
- * never match because the `(` must follow immediately.
- */
-const TEST_MODIFIERS = 'only|skip|fixme|fails|failing|flaky|concurrent|serial|todo';
-const TEST_CALL_RE = new RegExp(
-  `(?<![\\w$.])(?:[xf](?:it|test)|(?:it|test)(?:\\.(?:${TEST_MODIFIERS}))?)\\s*\\(`,
-  'g',
-);
 
 /**
  * Skip a string literal (single, double, or template quote) starting at `start`.
@@ -133,8 +120,9 @@ export function scanBalanced(src, openIndex) {
 
 /**
  * Extract every it()/test() block from a spec source, with its title and the
- * number of assertion-like calls inside its argument list (the assertion regex
- * is shared with the test-weakening detector).
+ * number of assertion-like calls inside its argument list. The block opener
+ * (`TEST_CALL_RE`) and the assertion regex are shared with the test-weakening
+ * detector, so its `tests-removed` count and this list always agree.
  *
  * @param {string} src The spec file contents.
  * @returns {{marker: string, title: string, assertions: number}[]} One entry per test block.
@@ -432,18 +420,29 @@ export function runMutation(sourceFiles, deps = {}) {
 
 /**
  * Split a spec's matcher calls into the exact and bounded halves of the weakening
- * detector's tables. The single-file counterpart of its `matcher-downgrade`
- * finding: there is no base revision to diff, but a spec whose every assertion
- * resolves to a bounded matcher is the shape a downgrade ends in.
+ * detector's classification. The single-file counterpart of its
+ * `matcher-downgrade` finding: there is no base revision to diff, but a spec
+ * whose every assertion resolves to a bounded matcher is the shape a downgrade
+ * ends in. The histogram the totals were summed from comes back too, so a
+ * caller that needs the per-label detail does not run a second pass.
  *
  * @param {string} src The spec file contents.
- * @returns {{exact: number, bounded: number}} How many calls pin a value versus bound it.
+ * @returns {{exact: number, bounded: number, histogram: Record<string, number>}} How many
+ *   calls pin a value versus bound it, and the per-label histogram behind the totals.
  */
 export function countMatchers(src) {
   const histogram = matcherHistogram(src);
-  const sum = names => names.reduce((total, name) => total + (histogram[name] ?? 0), 0);
+  const totals = { exact: 0, bounded: 0 };
 
-  return { exact: sum(EXACT_MATCHERS), bounded: sum(BOUNDED_MATCHERS) };
+  for (const [label, count] of Object.entries(histogram)) {
+    const kind = matcherKind(label);
+
+    if (kind) {
+      totals[kind] += count;
+    }
+  }
+
+  return { ...totals, histogram };
 }
 
 /**
@@ -462,16 +461,22 @@ export function scoreTestSource(src, options = {}) {
   const determinismSmells = findDeterminismSmells(src);
   const relevance = options.diff ? assessRelevance(src, options.diff) : null;
   const assertions = countAssertions(src);
-  const matchers = countMatchers(src);
+  const { histogram, ...matchers } = countMatchers(src);
   const problems = [];
   const warnings = [];
 
   // Warning-only: a relational assertion is the documented pattern for values no
   // token derives. The bound-count must account for EVERY assertion, because a
   // helper such as `grid.expectCell()` may pin a value the scorer cannot see.
-  if (matchers.exact === 0 && matchers.bounded > 0 && matchers.bounded >= assertions) {
-    const histogram = matcherHistogram(src);
-    const used = BOUNDED_MATCHERS.filter(name => histogram[name]).map(name => `${name} ×${histogram[name]}`);
+  // `toBeCloseTo` is bounded in the table, but it pins a float to N digits, so
+  // it does not make a spec "loose" — the detector's `precision-widened` owns
+  // its loosening.
+  const pinning = matchers.exact + (histogram.toBeCloseTo ?? 0);
+
+  if (pinning === 0 && matchers.bounded > 0 && matchers.bounded >= assertions) {
+    const used = Object.keys(histogram)
+      .filter(label => matcherKind(label) === 'bounded')
+      .map(label => `${label} ×${histogram[label]}`);
 
     warnings.push({
       type: 'loose-matchers-only',

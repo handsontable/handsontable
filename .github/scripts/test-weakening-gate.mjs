@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 /**
  * Test-weakening gate (CLI). Surfaces specs that were *weakened* in this change —
- * assertions removed, a skip/focus added, an exact matcher loosened into a
- * bounded one (`toHaveBeenCalledTimes` → `toBeGreaterThanOrEqual`, `toBe` →
- * `toBeDefined`), or a `toBeCloseTo` tolerance widened — which is the classic
- * "make it green" move. Covers modified, ADDED, and renamed specs: a brand-new
+ * assertions removed, a whole test block deleted, a skip/focus added, an exact
+ * matcher loosened into a bounded one (`toHaveBeenCalledTimes` →
+ * `toBeGreaterThanOrEqual`, `toBe` → `toBeDefined`, `toBe(5)` → `not.toBe(0)`),
+ * or a `toBeCloseTo` tolerance widened — which is the classic "make it green"
+ * move. Covers modified, ADDED, and renamed specs: a brand-new
  * spec born with `.skip`/`.only` satisfies the presence gate while running
  * nothing, so added files are diffed against empty (and renames against their
  * old path, so pre-existing skips don't read as new). Non-blocking (warn): it
@@ -79,11 +80,11 @@ if (flagged.length === 0) {
 }
 
 const lines = ['### Test-weakening gate', '',
-  'These specs were **weakened** in this change — assertions removed, a skip/focus added,',
-  'an exact matcher loosened into a bounded one, or a `toBeCloseTo` tolerance widened. If',
-  'the change is legitimate (a real refactor, or a bound that describes a timing-dependent',
-  'value more honestly), say so in review; otherwise it reads as "make it green" — reconcile',
-  'by fixing the code or the test, not by loosening what it checks.', ''];
+  'These specs were **weakened** in this change — assertions removed, a test block deleted,',
+  'a skip/focus added, an exact matcher loosened into a bounded one, or a `toBeCloseTo`',
+  'tolerance widened. If the change is legitimate (a real refactor, or a bound that describes',
+  'a timing-dependent value more honestly), say so in review; otherwise it reads as "make it',
+  'green" — reconcile by fixing the code or the test, not by loosening what it checks.', ''];
 
 for (const { path, findings, severity } of flagged) {
   const marker = severity === 'flag' ? '🚩' : '⚠️';

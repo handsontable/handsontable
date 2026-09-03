@@ -85,7 +85,7 @@ weakening detector.
 | Field | Signal |
 |---|---|
 | `tests`, `assertions` | Block and assertion counts — the count matters (fewer tests for the same quality is better). |
-| `matchers` | `{ exact, bounded }` — how many matcher calls pin a value (`toBe`, `toEqual`, `toHaveBeenCalledTimes`, …) versus bound it (`toBeGreaterThan`, `toBeTruthy`, `toContain`, …). The single-file analogue of the detector's `matcher-downgrade`: when every assertion resolves to a bounded matcher, a `loose-matchers-only` **warning** is raised — warning-only, because a relational assertion is legitimate where no exact value exists. |
+| `matchers` | `{ exact, bounded }` — how many matcher calls pin a value (`toBe`, `toEqual`, `toHaveBeenCalledTimes`, Playwright's `toHaveText`, …) versus bound it (`toBeGreaterThan`, `toBeTruthy`, `toContain`, `toHaveBeenCalled`, a bare `toThrow()`, …), classified by the detector's `matcherKind`; a negated call (`.not.toBe(0)`) counts as bounded. The single-file analogue of the detector's `matcher-downgrade`: when every assertion resolves to a bounded matcher, a `loose-matchers-only` **warning** is raised — warning-only, because a relational assertion is legitimate where no exact value exists. `toBeCloseTo` never raises it: pinning a float to N digits is not loose (the detector's `precision-widened` owns its loosening). |
 | `hollowTests` | `it()`/`test()` blocks with no `expect`/`assert`/`verify` call — a test that only executes code. |
 | `gamingSignals` | `.only`/`.skip`/`xit`/`fit`, `it.flaky`, `fixme`/`todo`, and failure-swallowing `try/catch`. |
 | `determinismSmells` | `sleep(`, `waitForTimeout`, `networkidle` — timing-based instead of condition-based waits. |
