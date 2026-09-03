@@ -2678,8 +2678,9 @@ export default function Core(
    * [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) left on. In every other configuration the column count
    * is fixed, and the value is instead written to a property named after the column index. That property is not part
    * of your [`dataSchema`](@/api/options.md#dataschema) and no column displays it, but
-   * [`getSourceData()`](@/api/core.md#getsourcedata) returns it and
-   * [`countSourceCols()`](@/api/core.md#countsourcecols) counts it.
+   * [`getSourceData()`](@/api/core.md#getsourcedata) returns it, and
+   * [`countSourceCols()`](@/api/core.md#countsourcecols) counts it only when the write lands on the first row,
+   * because that method reads the first row's keys.
    *
    * On an **object** data source – including one whose [`dataSchema`](@/api/options.md#dataschema) is a function –
    * that write is **deprecated as of 18.2.0** and will be ignored from 19.0.0 on: the value cannot become a column
@@ -2711,17 +2712,18 @@ export default function Core(
 
       if (visualColumnIndex >= this.countCols()) {
         // No column exists at this index, and on an object-rowed data source none ever can -
-        // `createCol()` refuses one ("you can only have as much columns as defined in first data
-        // row, data schema or in the 'columns' setting"), which is why `applyChanges()` skips
-        // creating it. The index then travels on as the property name, so `dataMap.set()` mints a
-        // positional key on a row whose other fields are named: `{ 2: 'x', id: 1 }` (#5409). No
-        // column renders it, yet it reaches every consumer that serializes the row. Deprecated in
-        // 18.2.0; the write is skipped from 19.0.0 on.
+        // `applyChanges()` creates one only when `dataType === 'array'`, no `columns` option is set
+        // and `allowInsertColumn` is on, so `createCol()` is never reached here. (Not to be read as
+        // `isColumnModificationAllowed()`: that tests `'object'` only, so it returns `true` for a
+        // function `dataSchema`.) The index then travels on as the property name, so
+        // `dataMap.set()` mints a positional key on a row whose other fields are named:
+        // `{ 2: 'x', id: 1 }` (#5409). No column renders it, yet it reaches every consumer that
+        // serializes the row. Deprecated in 18.2.0; the write is skipped from 19.0.0 on.
         //
-        // The predicate mirrors `applyChanges()`'s own creation gate, which is `=== 'array'` - so
-        // it must be `!== 'array'` here rather than `=== 'object'`. A function `dataSchema` sets
-        // `dataType` to `'function'` (`replaceData.ts`) and is just as object-rowed and just as
-        // unable to gain a column, so naming only `'object'` would leave it writing the key.
+        // The predicate mirrors that gate's `=== 'array'` term - so it must be `!== 'array'` here
+        // rather than `=== 'object'`. A function `dataSchema` sets `dataType` to `'function'`
+        // (`replaceData.ts`) and is just as object-rowed and just as unable to gain a column, so
+        // naming only `'object'` would leave it writing the key.
         //
         // `countCols() > 0` excludes the degenerate grid that declares no columns at all: an empty
         // `data: []` is duck-typed to `'object'` because there is no `data[0]` to inspect, and

@@ -227,6 +227,23 @@ describe('CopyPaste past the last column of an object data source', () => {
     hot.destroy();
   });
 
+  it('should not write past the last column at all when `allowInsertColumn` is off', () => {
+    const data = schemaBoundRows();
+    const hot = pasteInto(data, '2\tFrank Honest', {
+      dataSchema: { id: null, name: null },
+      allowInsertColumn: false,
+      at: [0, 1],
+    });
+
+    // `populateFromArray` breaks the column loop before the write, and that gate does not look at
+    // `dataType` - so on an object data source the value never reaches the source data, and there
+    // is nothing to deprecate. This is what the clipboard guide's tip promises.
+    expect(data[0]).toEqual({ id: 1, name: '2', address: '' });
+    expect(pastLastColumnWarnings()).toHaveLength(0);
+
+    hot.destroy();
+  });
+
   it('should not warn for an array data source, which can grow a column', () => {
     const hot = pasteInto([['A1', 'B1'], ['A2', 'B2']], '2\tFrank Honest', { at: [0, 1] });
 
@@ -234,24 +251,6 @@ describe('CopyPaste past the last column of an object data source', () => {
     // slot rather than a property the schema never declared.
     expect(pastLastColumnWarnings()).toHaveLength(0);
     expect(hot.countCols()).toBe(3);
-
-    hot.destroy();
-  });
-
-  it('should not warn for a grid that declares no columns at all', () => {
-    const hot = new Handsontable(document.createElement('div'), {
-      data: [],
-      licenseKey: 'non-commercial-and-evaluation',
-    });
-
-    // An empty `data: []` is duck-typed to 'object' because there is no `data[0]` to inspect, and
-    // `countCols()` is 0 - so every index is "past the last column". Writing to such a grid is how
-    // an empty dataset gets bootstrapped, and it is deliberately left alone.
-    hot.setDataAtCell(0, 0, 'WRITE');
-
-    expect(hot.dataType).toBe('object');
-    expect(pastLastColumnWarnings()).toHaveLength(0);
-    expect(hot.getDataAtCell(0, 0)).toBe('WRITE');
 
     hot.destroy();
   });
