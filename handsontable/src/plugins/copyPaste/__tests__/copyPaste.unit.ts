@@ -6,26 +6,32 @@ import { CopyPaste } from '../copyPaste';
 registerCellType(TextCellType);
 registerPlugin(CopyPaste);
 
+/**
+ * Builds a grid, selects a cell, and pastes `text` as the plain-text flavor.
+ *
+ * @param {Array} data The initial data source.
+ * @param {string} text The clipboard text to paste.
+ * @param {object} [settings] Extra grid settings, plus `at` to choose the cell to paste into.
+ * @returns {object} The Handsontable instance, already pasted into.
+ */
+function pasteInto(
+  data: unknown[][] | object[],
+  text: string,
+  { at = [0, 0], ...settings }: Record<string, unknown> & { at?: number[] } = {}
+) {
+  const hot = new Handsontable(document.createElement('div'), {
+    data,
+    licenseKey: 'non-commercial-and-evaluation',
+    ...settings,
+  });
+
+  hot.selectCell(at[0], at[1]);
+  hot.getPlugin('copyPaste').paste(text);
+
+  return hot;
+}
+
 describe('CopyPaste ragged clipboard', () => {
-  /**
-   * Builds a grid, selects the top-left cell, and pastes `text` as the plain-text flavor.
-   *
-   * @param {Array} data The initial data source.
-   * @param {string} text The clipboard text to paste.
-   * @returns {object} The Handsontable instance, already pasted into.
-   */
-  function pasteInto(data: unknown[][] | object[], text: string) {
-    const hot = new Handsontable(document.createElement('div'), {
-      data,
-      licenseKey: 'non-commercial-and-evaluation',
-    });
-
-    hot.selectCell(0, 0);
-    hot.getPlugin('copyPaste').paste(text);
-
-    return hot;
-  }
-
   it('should pad a short row with the empty-cell value rather than undefined', () => {
     const hot = pasteInto([['A1', 'B1', 'C1'], ['A2', 'B2', 'C2']], 'x\ny\tz\tw');
 
@@ -123,30 +129,22 @@ describe('CopyPaste ragged clipboard', () => {
 
 describe('CopyPaste past the last column', () => {
   /**
-   * Builds a grid whose object data source declares two columns through `dataSchema` while its
-   * rows carry a third, undeclared property.
+   * Two rows whose object shape declares `id` and `name` while carrying a third, undeclared
+   * property.
    *
-   * @returns {object} The data source and the Handsontable instance built on it.
+   * @returns {Array} A fresh data source.
    */
-  function buildSchemaBoundGrid() {
-    const data = [
-      { id: 1, name: 'Ted Right', address: '' },
-      { id: 2, name: 'Frank Honest', address: '' },
-    ];
-    const hot = new Handsontable(document.createElement('div'), {
-      data,
-      dataSchema: { id: null, name: null },
-      licenseKey: 'non-commercial-and-evaluation',
-    });
-
-    return { data, hot };
-  }
+  const schemaBoundRows = () => [
+    { id: 1, name: 'Ted Right', address: '' },
+    { id: 2, name: 'Frank Honest', address: '' },
+  ];
 
   it('should not mint a property the data schema never declared', () => {
-    const { data, hot } = buildSchemaBoundGrid();
-
-    hot.selectCell(0, 1);
-    hot.getPlugin('copyPaste').paste('2\tFrank Honest');
+    const data = schemaBoundRows();
+    const hot = pasteInto(data, '2\tFrank Honest', {
+      dataSchema: { id: null, name: null },
+      at: [0, 1],
+    });
 
     // The paste starts on the last column, so its second value has nowhere to land. Writing it
     // put `"Frank Honest"` on a literal `2` key beside the declared ones, which is how a paste
@@ -157,37 +155,56 @@ describe('CopyPaste past the last column', () => {
     hot.destroy();
   });
 
-  it('should not report the dropped value as a change', () => {
-    const { data, hot } = buildSchemaBoundGrid();
-    const changes: unknown[][] = [];
+  it('should not mint a property when `dataSchema` is a function', () => {
+    const data = schemaBoundRows();
+    const hot = pasteInto(data, '2\tFrank Honest', {
+      dataSchema: () => ({ id: null, name: null }),
+      at: [0, 1],
+    });
 
+    // A function `dataSchema` sets `dataType` to 'function', not 'object'. It is just as unable to
+    // gain a column, so a predicate naming only 'object' would leave this case writing the key.
+    expect(hot.dataType).toBe('function');
+    expect(Object.keys(data[0])).toEqual(['id', 'name', 'address']);
+
+    hot.destroy();
+  });
+
+  it('should report the dropped value to neither beforeChange nor afterChange', () => {
+    const data = schemaBoundRows();
+    const hot = new Handsontable(document.createElement('div'), {
+      data,
+      dataSchema: { id: null, name: null },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const seen: Record<string, unknown[][]> = { before: [], after: [] };
+
+    hot.addHook('beforeChange', (cellChanges: unknown[][] | null) => {
+      if (cellChanges) {
+        seen.before.push(...JSON.parse(JSON.stringify(cellChanges)));
+      }
+    });
     hot.addHook('afterChange', (cellChanges: unknown[][] | null) => {
       if (cellChanges) {
-        changes.push(...JSON.parse(JSON.stringify(cellChanges)));
+        seen.after.push(...JSON.parse(JSON.stringify(cellChanges)));
       }
     });
 
     hot.selectCell(0, 1);
     hot.getPlugin('copyPaste').paste('2\tFrank Honest');
 
-    // A change entry for a value the grid did not write would send an integrator syncing from the
-    // hook a property its own schema does not have - and it carried the column index as the
-    // property name, which is what the issue's `beforeChange` workaround had to filter out.
-    expect(changes).toEqual([[0, 'name', 'Ted Right', '2']]);
+    // A change entry for a value the grid did not write would send an integrator syncing from
+    // either hook a property its own schema does not have - and it carried the column index as
+    // the property name, which is what the issue's `beforeChange` workaround had to filter out.
+    expect(seen.before).toEqual([[0, 'name', 'Ted Right', '2']]);
+    expect(seen.after).toEqual([[0, 'name', 'Ted Right', '2']]);
     expect(data[0].name).toBe('2');
 
     hot.destroy();
   });
 
   it('should still grow an array data source that has room to gain a column', () => {
-    const data = [['A1', 'B1'], ['A2', 'B2']];
-    const hot = new Handsontable(document.createElement('div'), {
-      data,
-      licenseKey: 'non-commercial-and-evaluation',
-    });
-
-    hot.selectCell(0, 1);
-    hot.getPlugin('copyPaste').paste('2\tFrank Honest');
+    const hot = pasteInto([['A1', 'B1'], ['A2', 'B2']], '2\tFrank Honest', { at: [0, 1] });
 
     // An array data source with no `columns` setting is the one case where the missing column can
     // be created, so the overflow value must keep landing there.
@@ -199,22 +216,32 @@ describe('CopyPaste past the last column', () => {
 
   it('should keep writing into an array data source that `columns` has narrowed', () => {
     const data: unknown[][] = [['A1', 'B1'], ['A2', 'B2']];
-    const hot = new Handsontable(document.createElement('div'), {
-      data,
-      columns: [{}],
-      licenseKey: 'non-commercial-and-evaluation',
-    });
+    const hot = pasteInto(data, 'x\ty', { columns: [{}], at: [0, 0] });
 
-    hot.selectCell(0, 0);
-    hot.getPlugin('copyPaste').paste('x\ty');
-
-    // Only object data is capped. Here the index names a real array slot rather than a positional
-    // key on a named record, `colToProp()` hands it back unchanged by design (#5945), and the
-    // value reads back - so narrowing this to `isColumnModificationAllowed()` would break array
-    // grids, and does break `formulas.spec.js`'s renamed-sheet spec.
+    // Only object-rowed data is capped. Here the index names a real array slot rather than a
+    // positional key on a named record, `colToProp()` hands it back unchanged by design (#5945),
+    // and the value reads back - so widening this to `isColumnModificationAllowed()` would break
+    // array grids, and does break `formulas.spec.js`'s renamed-sheet spec.
     expect(hot.countCols()).toBe(1);
     expect(data[0][1]).toBe('y');
     expect(hot.getDataAtCell(0, 1)).toBe('y');
+
+    hot.destroy();
+  });
+
+  it('should keep writing into a grid that declares no columns at all', () => {
+    const hot = new Handsontable(document.createElement('div'), {
+      data: [],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // An empty `data: []` is duck-typed to 'object' because there is no `data[0]` to inspect, and
+    // `countCols()` is 0 - so every index is "past the last column". Writing to such a grid is how
+    // an empty dataset gets bootstrapped, and it is deliberately left alone.
+    hot.setDataAtCell(0, 0, 'WRITE');
+
+    expect(hot.dataType).toBe('object');
+    expect(hot.getDataAtCell(0, 0)).toBe('WRITE');
 
     hot.destroy();
   });

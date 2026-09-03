@@ -16,8 +16,6 @@ searchCategory: Guides
 category: Upgrade and migration
 ---
 
-# Migrating from 18.2 to 19.0
-
 [[toc]]
 
 Migrate from Handsontable 18.2 to Handsontable 19.0.
@@ -70,7 +68,9 @@ serialized the row - a save, a request payload, a schema validator.
 
 ### What to change
 
-If you were reading those properties back, address the field by name instead:
+The remedy depends on which path was writing the property.
+
+**For a `setDataAtCell()` call of your own**, address the field by name instead:
 
 ```js
 // Before 19.0 - the property was named after the column index
@@ -86,5 +86,24 @@ hot.getSourceData()[0].city; // 'Boston'
 field to write, so it never has to be resolved from a column, and it still writes fields the grid
 shows no column for.
 
+**For a paste or a [`populateFromArray()`](@/api/core.md#populatefromarray) call**, there is no
+per-cell call site to rewrite, and the overflow no longer reaches
+[`beforeChange`](@/api/hooks.md#beforechange) - so declare the columns before the data arrives:
+
+```js
+// Give the grid a column for every field the pasted content can reach.
+const hot = new Handsontable(container, {
+  data: rows,
+  dataSchema: { id: null, name: null, city: null },
+  colHeaders: ['ID', 'Name', 'City'],
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+If the incoming width is not known up front, use an array-of-arrays
+[`data`](@/api/options.md#data) source, which grows on demand.
+
 Array data sources are unchanged. There the index names a real array slot rather than a property, so
-the write still lands - and where the grid is allowed to grow, the column is created as before.
+the write still lands - and where the grid is allowed to grow, the column is created as before. A
+grid that declares no columns at all is also unchanged, because there is no column structure for a
+write to fall outside of.

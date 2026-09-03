@@ -305,14 +305,15 @@ export default (): Record<string, unknown> => {
      * - An [autofill](@/guides/cell-features/autofill-values/autofill-values.md) that reaches past the last column stops
      *   at the last column.
      * - [`setDataAtCell()`](@/api/core.md#setdataatcell) and [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) no
-     *   longer create the missing columns when you write past the last column. Creating them is only ever possible
-     *   for an array-of-arrays [`data`](#data) source with no [`columns`](#columns) option – in any other
-     *   configuration these methods never add columns, whatever this option is set to. With an array data source the
-     *   write still reaches the source data, so [`getSourceData()`](@/api/core.md#getsourcedata) returns the value
-     *   while the grid never displays it. On an object data source `setDataAtCell()` skips the change outright and
-     *   the source data is left alone – see [`setDataAtCell()`](@/api/core.md#setdataatcell).
-     *   `setDataAtRowProp()` is not affected there: the property you pass names the field to write, so it never has
-     *   to be resolved from a column.
+     *   longer create the missing columns when you write past the last column. The write still reaches the source
+     *   data, so [`getSourceData()`](@/api/core.md#getsourcedata) returns the value while the grid never displays it.
+     *   This bullet applies only when your [`data`](#data) is an array of arrays and you do not set the
+     *   [`columns`](#columns) option – in any other configuration these methods never add columns anyway, whatever
+     *   this option is set to.
+     *
+     * Whether a write past the last column reaches the source data at all is **not** controlled by this option – it
+     * depends on the [`data`](#data) source, and on an object one the change is skipped outright. See
+     * [`setDataAtCell()`](@/api/core.md#setdataatcell), which owns that rule.
      *
      * The option does not stop these ways of adding columns:
      * - The [`alter()`](@/api/core.md#alter) method, including its `insert_col_start` and `insert_col_end` actions.

@@ -322,6 +322,10 @@ two rows of three cells into a selection six columns wide writes the three cells
 A merged cell that reaches past the last column is trimmed to the columns that are there. A footer
 row spanning a table wider than the pasted data lands in one row, without adding empty columns.
 
+The [`beforePaste`](@/api/hooks.md#beforepaste) and [`afterPaste`](@/api/hooks.md#afterpaste) hooks
+receive the content already squared off to the widest row, so what they report matches what the grid
+writes. To paste only the cells that were present, drop the empty ones in `beforePaste`.
+
 ### Pasting wider than the grid
 
 A paste that runs past the last column adds the columns it needs when the
@@ -339,10 +343,6 @@ values that reach past the last column instead of writing them, and reports no
 [`afterChange`](@/api/hooks.md#afterchange) entry for them. This keeps the paste from adding
 properties your data schema does not declare, which no column could then display. To write a field
 the grid shows no column for, use [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop).
-
-The [`beforePaste`](@/api/hooks.md#beforepaste) and [`afterPaste`](@/api/hooks.md#afterpaste) hooks
-receive the content already squared off to the widest row, so what they report matches what the grid
-writes. To paste only the cells that were present, drop the empty ones in `beforePaste`.
 
 ### Extending paste behavior
 

@@ -2652,15 +2652,18 @@ export default function Core(
    *
    * Writing past the last column creates the missing columns only where the grid can create them: an
    * array-of-arrays [`data`](@/api/options.md#data) source with no [`columns`](@/api/options.md#columns) option and
-   * [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) left on. With an array data source that cannot grow,
-   * the value is still written to the matching array index, so
-   * [`getSourceData()`](@/api/core.md#getsourcedata) returns it while the grid never displays it.
+   * [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) left on. In every other configuration the column count
+   * is fixed, and the value is instead written to a property named after the column index. That property is not part
+   * of your [`dataSchema`](@/api/options.md#dataschema) and no column displays it, but
+   * [`getSourceData()`](@/api/core.md#getsourcedata) returns it and
+   * [`countSourceCols()`](@/api/core.md#countsourcecols) counts it.
    *
-   * On an **object** data source the change is **skipped**: its column count comes from the first row or from
-   * [`dataSchema`](@/api/options.md#dataschema) and can never grow, so the value would only add a property named
-   * after the column index — one the schema never declared and no column can display. No value is written, and no
-   * {@link Hooks#beforeChange} or {@link Hooks#afterChange} entry is reported for it. To write a field the grid shows
-   * no column for, address it by property name with [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead.
+   * On an **object** data source – including one whose [`dataSchema`](@/api/options.md#dataschema) is a function –
+   * the change is **skipped**: the value cannot become a column there, so it would only add a property the schema
+   * never declared. No value is written, and no {@link Hooks#beforeChange} or {@link Hooks#afterChange} entry is
+   * reported for it. To write a field the grid shows no column for, address it by property name with
+   * [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead. A grid that declares no columns at all is
+   * exempt – there every index is past the last column, and writing is how an empty dataset gets bootstrapped.
    *
    * @memberof Core#
    * @function setDataAtCell
@@ -2696,20 +2699,25 @@ export default function Core(
       const visualColumnIndex = typeof visualColumn === 'number' ? visualColumn : 0;
 
       if (visualColumnIndex >= this.countCols()) {
-        // No column exists at this index, and on an object data source none ever can -
+        // No column exists at this index, and on an object-rowed data source none ever can -
         // `createCol()` refuses one ("you can only have as much columns as defined in first data
         // row, data schema or in the 'columns' setting"), which is why `applyChanges()` skips
-        // creating it. The index would travel on as the property name, so `dataMap.set()` would
-        // mint a positional key on a row whose other fields are named: `{ 2: 'x', id: 1 }`
-        // (#5409). No column renders it, yet it reaches every consumer that serializes the row.
-        // Deprecated in 18.2.0, skipped from here on - the way a `maxCols` cap that blocks the
-        // column already does.
+        // creating it. The index then travels on as the property name, so `dataMap.set()` mints a
+        // positional key on a row whose other fields are named: `{ 2: 'x', id: 1 }` (#5409). No
+        // column renders it, yet it reaches every consumer that serializes the row. Deprecated in
+        // 18.2.0, skipped from here on - the way a `maxCols` cap that blocks the column already
+        // does.
         //
-        // An array data source is left alone even when `columns` caps its width: there the index
-        // names a real array slot rather than a positional key on a named record, extending the
-        // row is type-consistent, and `colToProp()` hands the index back by design (#5945), which
-        // is what `applyChanges()` grows the grid from.
-        if (instance.dataType === 'object') {
+        // The predicate mirrors `applyChanges()`'s own creation gate, which is `=== 'array'` - so
+        // it must be `!== 'array'` here rather than `=== 'object'`. A function `dataSchema` sets
+        // `dataType` to `'function'` (`replaceData.ts`) and is just as object-rowed and just as
+        // unable to gain a column, so naming only `'object'` would leave it writing the key.
+        //
+        // `countCols() > 0` excludes the degenerate grid that declares no columns at all: an empty
+        // `data: []` is duck-typed to `'object'` because there is no `data[0]` to inspect, and
+        // there every index is "past the last column". Writing to such a grid is how an empty
+        // dataset gets bootstrapped, so it is left exactly as it was.
+        if (instance.dataType !== 'array' && this.countCols() > 0) {
           continue;
         }
 
@@ -2729,6 +2737,14 @@ export default function Core(
 
     if (!changeSource && typeof row === 'object') {
       changeSource = column as string;
+    }
+
+    // Every requested change was skipped above, so there is nothing left to report or apply.
+    // Falling through would run `processChanges([])`, which cancels the active editor - discarding
+    // a value the user is still typing in an unrelated cell - and then render for no work. An
+    // empty `input` keeps its previous path, so `setDataAtCell([])` behaves as it always has.
+    if (input.length > 0 && changes.length === 0) {
+      return;
     }
 
     const processedChanges = processChanges(changes, changeSource);

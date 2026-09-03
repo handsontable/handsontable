@@ -611,6 +611,28 @@ describe('Core.setDataAtCell', () => {
       expect(data[0].address).toBe('');
     });
 
+    it('should leave an open editor alone when every requested change is skipped', async() => {
+      handsontable({
+        data: [
+          { id: 1, name: 'Ted Right' },
+          { id: 2, name: 'Frank Honest' },
+        ],
+        dataSchema: { id: null, name: null },
+      });
+
+      await selectCell(1, 1);
+      await keyDownUp('enter');
+
+      getActiveEditor().setValue('still typing');
+
+      await setDataAtCell(0, 2, 'skipped');
+
+      // With every entry skipped the changes array is empty, and `processChanges([])` cancels the
+      // active editor - which would discard a value the user is still typing in another cell.
+      expect(getActiveEditor().isOpened()).toBe(true);
+      expect(getActiveEditor().getValue()).toBe('still typing');
+    });
+
     it('should keep writing past the last column of an array data source capped by `columns`', async() => {
       const data = createSpreadsheetData(3, 3);
 
