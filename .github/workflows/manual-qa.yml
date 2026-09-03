@@ -1,7 +1,7 @@
 name: Manual QA
 
 # The tracked human exception — a GitLab-style manual gate inside the Tests
-# DAG, armed by ticking "MANUAL QA NEEDED" in the PR
+# DAG, armed by ticking "Manual QA Needed" in the PR
 # description (the template carries the line; say in one line what to
 # check). The Checks scope router reads the box LIVE (see checks.yml), and
 # test.yml calls this module ONLY when it is ticked — an unticked PR skips
@@ -25,9 +25,10 @@ name: Manual QA
 #   mergeable PR until someone re-runs it; that is a known limitation, kept
 #   deliberately in exchange for having no label/arming automation at all.
 #
-# The red `Manual QA required` label is applied BY THE PR AUTHOR (the
+# The red `Requires Manual QA` label is applied BY THE PR AUTHOR (the
 # `pr-creation` skill instructs it), like every other label in this repo. It
-# is a marker for the PR list, never the trigger.
+# is a marker for the PR list, never the trigger — but checks.yml's read-only
+# `manual-qa-label` job fails a same-repo PR that ticks the box without it.
 #
 # Cutover (repo admin): create the `manual-qa` environment with required
 # reviewers (users or teams) plus "Prevent self-review". It MUST exist with

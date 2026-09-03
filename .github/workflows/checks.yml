@@ -10,6 +10,8 @@ name: Checks
 # module on unticked PRs without spending a runner; the gate itself is
 # manual-qa.yml's sign-off job, which holds CI Gate through a `needs` edge
 # while it waits on the manual-qa environment approval — never this router.
+# The one manual-QA thing that IS asserted here is hygiene: a ticked box must
+# carry the `Requires Manual QA` label (the `manual-qa-label` job, read-only).
 on:
   workflow_call:
     inputs:
@@ -41,7 +43,7 @@ on:
       # Precomputed here so the Integration wrapper matrix fans out with NO
       # per-module setup job (matrix context is illegal in a job-level if).
       wrapper-matrix: { value: '${{ jobs.scope.outputs.wrapper-matrix }}' }
-      # True when the PR description ticks "MANUAL QA NEEDED" — routes the
+      # True when the PR description ticks "Manual QA Needed" — routes the
       # Manual QA module (see manual-qa.yml).
       manual-qa: { value: '${{ jobs.scope.outputs.manual-qa }}' }
 
@@ -221,7 +223,7 @@ jobs:
             require("fs").appendFileSync(process.env.GITHUB_OUTPUT, "list=" + JSON.stringify(w) + "\n");
           '
 
-      # Manual QA is requested by ticking "MANUAL QA NEEDED"
+      # Manual QA is requested by ticking "Manual QA Needed"
       # in the PR description (the template carries the line — its wording is
       # this regex's contract). Read LIVE, never from the frozen event payload,
       # so ticking the box and pressing "Re-run all jobs" arms the gate on an
@@ -238,11 +240,44 @@ jobs:
               owner: context.repo.owner, repo: context.repo.repo,
               pull_number: context.payload.pull_request.number,
             });
-            const requested = /^\s*-\s*\[[xX]\]\s+MANUAL QA NEEDED/m.test(pr.body || '');
+            const requested = /^\s*-\s*\[[xX]\]\s+Manual QA Needed/mi.test(pr.body || '');
             core.setOutput('requested', String(requested));
             core.notice(requested
               ? 'Manual QA requested — the Manual QA sign-off job will wait for a manual-qa environment approval.'
-              : 'Manual QA not requested — to request it, tick "MANUAL QA NEEDED" in the PR description and press "Re-run all jobs".');
+              : 'Manual QA not requested — to request it, tick "Manual QA Needed" in the PR description and press "Re-run all jobs".');
+
+  # A ticked "Manual QA Needed" box must come with the red `Requires Manual QA`
+  # label, so the request is visible in the PR list. Labels are applied by hand
+  # (agents: `gh pr create --label "Requires Manual QA"`, per the pr-creation
+  # skill) — this job only ASSERTS it, read-only, so it needs no write scope
+  # inside a reusable module. Same-repo PRs only: a fork contributor cannot
+  # label, and the maintainer who ticks the box for them labels it in the same
+  # motion. Re-run this job after applying the label; it reads the PR live.
+  manual-qa-label:
+    name: manual-qa label
+    runs-on: ubuntu-latest
+    needs: [ scope ]
+    if: >-
+      github.event_name == 'pull_request'
+      && needs.scope.outputs.manual-qa == 'true'
+      && github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - name: Assert the Requires Manual QA label is applied
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
+        with:
+          script: |
+            const LABEL = 'Requires Manual QA';
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner, repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+
+            if (pr.labels.some((label) => label.name === LABEL)) {
+              core.notice(`"${LABEL}" is applied.`);
+              return;
+            }
+            core.setFailed(`"Manual QA Needed" is ticked but the "${LABEL}" label is missing. `
+              + `Apply it — gh pr edit ${pr.number} --add-label "${LABEL}" — and re-run this job.`);
 
   presence:
     name: test presence
