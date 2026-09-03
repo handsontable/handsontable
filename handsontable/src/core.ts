@@ -60,7 +60,7 @@ import type { ShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcuts/contexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
-import { warn, removedWarnOnce, deprecatedWarnOnce } from './helpers/console';
+import { warn, warnOnce, removedWarnOnce, deprecatedWarnOnce } from './helpers/console';
 import { throwWithCause } from './helpers/errors';
 import {
   install as installAccessibilityAnnouncer,
@@ -3985,9 +3985,19 @@ export default function Core(
     //
     // The test is `Array.isArray`, not `isDefined`: `isDefined(null)` is true, so a `cell: null` used to
     // clear the meta cache and then throw on `null.forEach`, leaving the instance with its cache wiped and
-    // the rest of the update - render, dimensions, hooks - never run. A non-array is now ignored, which
-    // leaves the option exactly as it was.
+    // the rest of the update - render, dimensions, hooks - never run. `null` reads as "not passed" and is
+    // ignored silently, the way the other nullable options are cleared.
     const isCellOptionRestated = Array.isArray(settings.cell);
+
+    // Any other non-array is a mistake worth surfacing, most often a single entry that was not wrapped in
+    // an array. Ignoring it in silence would leave the previously declared entries in place and look like
+    // the call did nothing at all. Warned once per instance, because a wrapper that re-sends its settings
+    // on every render would otherwise repeat it on every commit.
+    if (settings.cell !== undefined && settings.cell !== null && !isCellOptionRestated) {
+      warnOnce(instance.rootElement, 'Core.invalidCellOption',
+        'The "cell" option must be an array of objects. The passed value was ignored. ' +
+        'Wrap a single entry in an array: cell: [{ row: 0, col: 0, ... }].');
+    }
 
     /**
      * Clears the cell and column meta caches. Two kinds of write are snapshotted beforehand and replayed

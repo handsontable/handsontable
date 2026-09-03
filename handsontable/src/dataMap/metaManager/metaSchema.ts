@@ -800,7 +800,10 @@ export default (): Record<string, unknown> => {
      * The `cell` option persists across [`updateSettings()`](@/api/core.md#updatesettings) calls that do not
      * mention it. Passing `cell` again replaces every previously declared entry, so `cell: []` removes them
      * all. An entry follows its row through sorting and row moves, and a later
-     * [`setCellMeta()`](@/api/core.md#setcellmeta) call on the same property wins over the declared value.
+     * [`setCellMeta()`](@/api/core.md#setcellmeta) call on the same property wins over the declared value -
+     * until the next call restates `cell`, which wins over everything.
+     *
+     * A value that is not an array is ignored, and reported in the console. Wrap a single entry in an array.
      *
      * Read more:
      * - [Setting options: Setting cell options](@/guides/configuration/configuration-options/configuration-options.md#set-cell-options)

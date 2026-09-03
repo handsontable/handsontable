@@ -510,7 +510,7 @@ describe('Core.setCellMeta', () => {
       expect(replayedMeta.col).toBe(1);
     });
 
-    it('should ignore a `cell` option that is not an array, instead of throwing mid-update', async() => {
+    it('should ignore a `cell` option of `null`, instead of throwing mid-update', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         cell: [
@@ -520,10 +520,58 @@ describe('Core.setCellMeta', () => {
 
       await updateSettings({ cell: null, rowHeaders: true });
 
-      // The update completes, and a non-array leaves the declared entries alone.
+      // The update completes, and `null` leaves the declared entries alone.
       expect(getCellMeta(0, 0).readOnly).toBe(true);
       expect(countRows()).toBe(5);
     });
+
+    it('should warn once about a `cell` option that is not an array, and leave the entries alone',
+      async() => {
+        const warnSpy = spyOn(console, 'warn');
+
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          cell: [
+            { row: 0, col: 0, readOnly: true },
+          ],
+        });
+
+        // A single entry that was not wrapped in an array. Ignoring it in silence would look like the
+        // call did nothing, so it is reported.
+        await updateSettings({ cell: { row: 1, col: 1, readOnly: true } });
+        await updateSettings({ cell: { row: 1, col: 1, readOnly: true } });
+
+        const cellWarnings = warnSpy.calls.allArgs()
+          .filter(([message]) => typeof message === 'string' && message.includes('"cell" option must be'));
+
+        expect(cellWarnings.length).toBe(1);
+        expect(getCellMeta(0, 0).readOnly).toBe(true);
+        expect(getCellMeta(1, 1).readOnly).toBe(false);
+      });
+
+    it('should let a restated `cell` option win over an earlier imperative override of the same key',
+      async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          cell: [
+            { row: 0, col: 0, readOnly: true },
+          ],
+        });
+
+        await setCellMeta(0, 0, 'readOnly', false);
+
+        expect(getCellMeta(0, 0).readOnly).toBe(false);
+
+        // Restating `cell` is the newest word for the key, so it wins over the preserved imperative
+        // value - the same precedence the `#4446` block pins for a value restated in the same call.
+        await updateSettings({
+          cell: [
+            { row: 0, col: 0, readOnly: true },
+          ],
+        });
+
+        expect(getCellMeta(0, 0).readOnly).toBe(true);
+      });
 
     it('should still drop the cell meta ColumnSummary derives from its endpoints, on `updateSettings`' +
       ' with the `columns` option', async() => {
