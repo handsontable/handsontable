@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `@handsontable/vue3` publishing no TypeScript declaration files despite declaring the `types` field, and exposed `HotTableProps` from the package's entry point.",
+  "type": "fixed",
+  "issueOrPR": 13331,
+  "breaking": false,
+  "framework": "vue"
+}
