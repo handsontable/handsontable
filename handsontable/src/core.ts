@@ -60,7 +60,7 @@ import type { ShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcuts/contexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
-import { warn, removedWarnOnce, deprecatedWarnOnce } from './helpers/console';
+import { warn, warnOnce, removedWarnOnce, deprecatedWarnOnce } from './helpers/console';
 import { throwWithCause } from './helpers/errors';
 import {
   install as installAccessibilityAnnouncer,
@@ -630,7 +630,15 @@ export default function Core(
   mergedUserSettings.language = getValidLanguageCode(mergedUserSettings.language as string);
 
   const settingsWithoutHooks = Object.fromEntries(
-    Object.entries(mergedUserSettings).filter(([key]) => {
+    Object.entries(mergedUserSettings).filter(([key, value]) => {
+      // A `cell` that is not an array cannot be applied as cell meta, and `updateSettings` says so. Keep
+      // it out of the global meta as well, or `getSettings().cell` would report a value the grid never
+      // used. Dropping it here leaves the schema default (`[]`) in place. The same rule is applied to
+      // every later call, in the settings loop inside `updateSettings`.
+      if (key === 'cell' && !Array.isArray(value)) {
+        return false;
+      }
+
       return !(Hooks.getSingleton().isRegistered(key) || Hooks.getSingleton().isDeprecated(key));
     })
   );
@@ -3809,9 +3817,14 @@ export default function Core(
    * argument and `"updateData"` as its `source`. If you call `updateSettings` with `data` inside
    * `afterChange`, check the hook's `source` to prevent an infinite loop.
    *
-   * Cell meta set imperatively through {@link Core#setCellMeta} (for example, by the user or the context menu) is preserved across
-   * `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. On a direct conflict, a value re-stated
-   * through the declarative `cell` option takes precedence over the preserved imperative value.
+   * Cell meta is preserved across `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. This
+   * covers both meta set imperatively through {@link Core#setCellMeta} (for example, by the user or the context menu)
+   * and meta applied from the declarative [`cell`](@/api/options.md#cell) option on an earlier call. Preserved meta
+   * stays with its row, so it follows sorting and row moves.
+   *
+   * Passing `cell` restates the option: it replaces every previously declared entry, so `cell: []` removes them all. On
+   * a direct conflict, a value re-stated through `cell` takes precedence over the preserved value. Where `cell` is not
+   * passed, an imperative {@link Core#setCellMeta} made after the declaration wins.
    *
    * This method reinitializes the affected plugins and then renders, so it does more work than a plain
    * [render()](@/api/core.md#render). When only cell metadata changed, call [render()](@/api/core.md#render)
@@ -3840,7 +3853,6 @@ export default function Core(
 
     const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(this);
     let i;
-    let j;
 
     if (isDefined(settings.rows)) {
       throwWithCause('The "rows" setting is no longer supported. Do you mean startRows, minRows or maxRows?');
@@ -3885,7 +3897,13 @@ export default function Core(
         // setting that is not passed leaves the previous value alone. Writing the boolean here would
         // bypass `normalizeEditorSetting()`, which only runs on the layer `updateMeta` calls, and
         // park a bare `true` on the global meta for every cell to inherit.
-        if (i !== 'editor' || settings[i] !== true) {
+        const isUnpassedEditor = i === 'editor' && settings[i] === true;
+        // Same shape for a `cell` that is not an array: the block further down cannot apply it and says
+        // so, so parking it here would leave `getSettings().cell` reporting a value the grid never used
+        // while the previously declared entries are what actually survive.
+        const isUnusableCell = i === 'cell' && !Array.isArray(settings[i]);
+
+        if (!isUnpassedEditor && !isUnusableCell) {
           globalMeta[i] = settings[i];
         }
       }
@@ -3978,6 +3996,118 @@ export default function Core(
 
     const themeOverridesChanged = applyThemeOverrides(settings, init);
 
+    // The `cell` option is restated when this call passes an array - including an empty one, which is how a
+    // caller removes every previously declared entry. A restatement replaces what the option declared
+    // before, so the earlier entries are neither replayed nor merged.
+    //
+    // The test is `Array.isArray`, not `isDefined`: `isDefined(null)` is true, so a `cell: null` used to
+    // clear the meta cache and then throw on `null.forEach`, leaving the instance with its cache wiped and
+    // the rest of the update - render, dimensions, hooks - never run. `null` reads as "not passed" and is
+    // ignored silently, the way the other nullable options are cleared.
+    const isCellOptionRestated = Array.isArray(settings.cell);
+
+    // Any other non-array is a mistake worth surfacing, most often a single entry that was not wrapped in
+    // an array. Ignoring it in silence would leave the previously declared entries in place and look like
+    // the call did nothing at all. Such a value never reaches the global meta either (see the two filters
+    // that drop it), so "ignored" covers `getSettings().cell` as well as the cell meta. Warned once per
+    // instance, because a wrapper that re-sends its settings on every render would otherwise repeat it on
+    // every commit.
+    if (settings.cell !== undefined && settings.cell !== null && !isCellOptionRestated) {
+      warnOnce(instance.rootElement, 'Core.invalidCellOption',
+        'The "cell" option must be an array of objects. The passed value was ignored, and the previously ' +
+        'declared entries were kept. Wrap a single entry in an array: cell: [{ row: 0, col: 0, ... }].');
+    }
+
+    /**
+     * Clears the cell and column meta caches. Two kinds of write are snapshotted beforehand and replayed
+     * afterward so they survive the clear instead of being discarded: meta set imperatively through
+     * `setCellMeta` (for example, by the user or the context menu - GitHub issue #4446), and meta applied
+     * from the declarative `cell` option on an earlier call (GitHub issue #5661).
+     */
+    const resetMetaCaches = () => {
+      const cellOptionCellMetas = isCellOptionRestated ? [] : metaManager.getCellOptionCellMetas();
+      const userDefinedCellMetas = metaManager.getUserDefinedCellMetas();
+
+      metaManager.clearCache();
+
+      // Both snapshots are keyed by physical coordinates, so every value goes back onto the record it was
+      // resolved to rather than onto whatever record now sits at the same visual position.
+      //
+      // The two replays cannot disagree, so their relative order carries no meaning: a key is filed under
+      // exactly one origin, and an imperative write over a `cell`-option value has already moved that key
+      // out of the option's bucket. What does matter is that both run before the restated `cell` block
+      // further down, which has to win over either (preserving legacy behavior). The carried-over option is
+      // replayed inside its own scope, so it stays filed as declarative and the next update carries it
+      // over again.
+      if (cellOptionCellMetas.length > 0) {
+        metaManager.startCellOptionMetaRecording();
+
+        try {
+          cellOptionCellMetas.forEach(({ physicalRow, physicalColumn, key, value }) => {
+            metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
+          });
+        } finally {
+          metaManager.endCellOptionMetaRecording();
+        }
+      }
+
+      // Replay before the column and `cell` option re-application, so that a value re-stated through
+      // the declarative `cell` option still wins on a direct conflict (preserving legacy behavior).
+      userDefinedCellMetas.forEach(({ physicalRow, physicalColumn, key, value }) => {
+        metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
+      });
+    };
+
+    /**
+     * Re-applies the `columns` setting onto the column meta layer.
+     *
+     * @param {number} columnsCount The number of leading columns to apply the setting to.
+     */
+    const applyColumnMeta = (columnsCount: number) => {
+      const columnSetting = tableMeta.columns;
+
+      if (!columnSetting) {
+        return;
+      }
+
+      for (let columnIndex = 0; columnIndex < columnsCount; columnIndex++) {
+        // Use settings provided by user
+        const column = isFunction(columnSetting)
+          ? (columnSetting as (columnIndex: number) => Record<string, unknown>)(columnIndex)
+          : columnSetting[columnIndex];
+
+        if (column) {
+          metaManager.updateColumnMeta(columnIndex, column);
+        }
+      }
+    };
+
+    // The column configuration must reach the meta layer BEFORE the data phase below. `replaceData()`
+    // both renders and runs the source-data validators, and each of them resolves a column's renderer
+    // and its `sourceDataValidator` from the column meta layer - so a call that shortens `columns`
+    // would otherwise paint the new data with the PREVIOUS column's renderer, and validate it against
+    // the previous column's rule, blanking the source value when `allowInvalid` is `false`
+    // (GitHub issue #5543).
+    //
+    // Only the array form is resolved this early. Its length is a physical column count that needs no
+    // dataset, so it is correct here whatever `data` does in the same payload. A `columns` FUNCTION
+    // has no such count before the data phase (`getInitialColumnCount()` would read the previous
+    // dataset width), and probing it here would also call the user's function a second time per
+    // column, per call. The loop further down stays authoritative for both forms.
+    const earlyColumnsSetting = settings.columns !== undefined && Array.isArray(tableMeta.columns)
+      ? tableMeta.columns
+      : null;
+
+    if (earlyColumnsSetting !== null) {
+      resetMetaCaches();
+      // The bound is the array's own length, NOT `countCols()`. `countCols()` caps at `maxCols` and
+      // counts the columns on SCREEN, while this walks PHYSICAL indexes, and the two diverge as soon
+      // as a column is trimmed: with `maxCols: 2`, three `columns` entries and physical column 0
+      // trimmed, the screen shows physical 1 and 2 while a `countCols()` bound stops at physical 1,
+      // so physical 2 renders with nothing from `columns`.
+      applyColumnMeta(earlyColumnsSetting.length);
+    }
+
     // Load data or create data map
     if (instance.runHooks('hasExternalDataSource') === true) {
       // When dataProvider is a complete server-backed config, ignore static data, the plugin loads rows.
@@ -4018,53 +4148,42 @@ export default function Core(
 
     const clen = instance.countCols();
 
-    const columnSetting = tableMeta.columns;
-
-    // Clear cell meta cache. Cell meta set imperatively through `setCellMeta` (for example, by the
-    // user or the context menu) is snapshotted beforehand and replayed afterward, so that it
-    // survives the clear instead of being discarded (see GitHub issue #4446).
-    if (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined) {
-      const userDefinedCellMetas = metaManager.getUserDefinedCellMetas();
-
-      metaManager.clearCache();
-
-      // Replay before the column and `cell` option re-application, so that a value re-stated through
-      // the declarative `cell` option still wins on a direct conflict (preserving legacy behavior).
-      userDefinedCellMetas.forEach(({ physicalRow, physicalColumn, key, value }) => {
-        metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
-      });
+    // Clear the meta caches, unless the early pass above already did it for this call.
+    if (earlyColumnsSetting === null &&
+        (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined)) {
+      resetMetaCaches();
     }
 
-    if (clen > 0) {
-      for (i = 0, j = 0; i < clen; i++) {
-        // Use settings provided by user
-        if (columnSetting) {
-          const column = isFunction(columnSetting)
-            ? (columnSetting as (i: number) => Record<string, unknown>)(i)
-            : columnSetting[j];
-
-          if (column) {
-            metaManager.updateColumnMeta(j, column);
-          }
-        }
-
-        j += 1;
-      }
+    // The pass for everything the early one does not handle: a `columns` FUNCTION, and a payload that
+    // does not name `columns` at all (an update still has to re-read a function that reads external
+    // state). Skipped when the early pass ran, because it could not add anything: for an array,
+    // `getInitialColumnCount()` returns `columns.length`, so `clen` can never exceed the bound the
+    // early pass already used, and re-applying would only pay `extend()` a second time per column -
+    // which the React and Angular wrappers, re-sending `columns` on every commit, would pay per render.
+    if (clen > 0 && earlyColumnsSetting === null) {
+      applyColumnMeta(clen);
     }
 
-    if (isDefined(settings.cell)) {
-      // The `cell` option is declarative - it is re-applied from settings on every `updateSettings`
-      // call. Recording is disabled so these writes are not tracked as user-defined (and a key
-      // re-stated here de-marks any imperative value), keeping `updateSettings({ cell: [] })` able
-      // to remove previously declared entries.
-      metaManager.disableUserDefinedMetaRecording();
+    if (isCellOptionRestated) {
+      // Applied last, so a key restated here wins over both the column meta and any imperative value the
+      // replay above put back (preserving legacy behavior). The writes are filed as declarative rather
+      // than user-defined - which also de-marks any imperative value for the same key - so a later call
+      // that does not restate `cell` replays them, and `updateSettings({ cell: [] })` still removes every
+      // previously declared entry.
+      metaManager.startCellOptionMetaRecording();
 
       try {
         (settings.cell as Record<string, unknown>[]).forEach((cell: Record<string, unknown>) => {
-          instance.setCellMetaObject(cell.row as number, cell.col as number, cell);
+          // `row` and `col` locate the entry - they are not cell meta. `setCellMetaObject` writes every own
+          // key, so leaving them in stores the entry's *visual* coordinates on a meta object that
+          // `getCellMeta` stamps with *physical* ones, and would put two junk keys per declared cell into
+          // the replay snapshot.
+          const { row, col, ...cellSettings } = cell;
+
+          instance.setCellMetaObject(row as number, col as number, cellSettings);
         });
       } finally {
-        metaManager.enableUserDefinedMetaRecording();
+        metaManager.endCellOptionMetaRecording();
       }
     }
 
@@ -5011,9 +5130,14 @@ export default function Core(
   /**
    * Writes a configuration-derived cell meta value declaratively. The value is applied to the cell meta
    * (so it is retained while the cell is released from the viewport by the meta eviction), but is NOT
-   * recorded as user-defined, so an `updateSettings` cache reset clears it and it is re-applied from the
-   * current configuration - exactly like the `cell` option. Used by built-in plugins that derive cell
-   * meta from their own configuration (for example ColumnSummary) and re-apply it on each update.
+   * recorded as user-defined, so an `updateSettings` cache reset clears it and the caller re-applies it
+   * from the current configuration. Used by built-in plugins that derive cell meta from their own
+   * configuration (for example ColumnSummary) and re-apply it on each update.
+   *
+   * This is NOT how the declarative `cell` option behaves: the option's writes are filed in their own
+   * bucket and replayed across the reset, because nothing re-applies them afterwards. A write made here
+   * belongs to no bucket, which is what keeps a stale value from surviving into a configuration that no
+   * longer covers the cell.
    *
    * Unlike the public `setCellMeta`, this does NOT fire `beforeSetCellMeta`/`afterSetCellMeta` and is
    * not vetoable: the write is plugin-internal render state the user never requested, so it must not
