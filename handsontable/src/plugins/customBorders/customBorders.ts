@@ -100,7 +100,7 @@ const DEFAULT_PROGRESSIVE_CHUNK_SIZE = 5000;
  * When a border property is set to an empty object `{}` or an empty string `''`, the default style is applied:
  * **1px solid black**.
  *
- * The plugin also integrates with the [[ContextMenu]] plugin. Adding `'borders'` to the
+ * The plugin also integrates with the {@link ContextMenu} plugin. Adding `'borders'` to the
  * [`contextMenu`](@/api/options.md#contextmenu) items enables users to apply or remove borders on selected cells
  * directly from the right-click menu.
  *

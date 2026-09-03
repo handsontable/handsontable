@@ -3406,15 +3406,11 @@ export default function Core(
    * argument and `"updateData"` as its `source`. If you call `updateSettings` with `data` inside
    * `afterChange`, check the hook's `source` to prevent an infinite loop.
    *
-   * Cell meta set imperatively through [[setCellMeta]] (for example, by the user or the context menu) is preserved across
+   * Cell meta set imperatively through {@link Core#setCellMeta} (for example, by the user or the context menu) is preserved across
    * `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. On a direct conflict, a value re-stated
    * through the declarative `cell` option takes precedence over the preserved imperative value.
    *
-   * Cell meta set imperatively through [[setCellMeta]] (for example, by the user or the context menu) is preserved across
-   * `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. On a direct conflict, a value re-stated
-   * through the declarative `cell` option takes precedence over the preserved imperative value.
-   *
-   * When [[Hooks#hasExternalDataSource]] is true, Handsontable clears and rebinds the placeholder dataset only during
+   * When {@link Hooks#hasExternalDataSource} is true, Handsontable clears and rebinds the placeholder dataset only during
    * initialization or when `settings` includes `data` or `dataProvider`. Other keys alone (for example `height`) do not clear loaded rows.
    * If only `columns` changes, the column map is rebuilt without clearing rows.
    *
@@ -3841,8 +3837,8 @@ export default function Core(
    *
    * It does not include merged per-cell or per-column values. Configuration options cascade from
    * grid to column to cell (see
-   * [Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)).
-   * To read the effective value for a specific cell, use [[getCellMeta]]. To read column-level meta, use [[getColumnMeta]].
+   * [Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)).
+   * To read the effective value for a specific cell, use {@link Core#getCellMeta}. To read column-level meta, use {@link Core#getColumnMeta}.
    *
    * @memberof Core#
    * @function getSettings
@@ -4067,6 +4063,24 @@ export default function Core(
 
   /**
    * Returns column index that corresponds with the given property.
+   *
+   * When the property matches no column, the method hands the argument back unchanged, so the
+   * result on its own never tells you whether that column exists.
+   *
+   * The result can also be `null`, and for a **trimmed** column which of the two you get depends on
+   * how the property is declared. A property held in the column cache – object data, or one named
+   * by a `columns[].data` entry – resolves through {@link Core#toVisualColumn} and comes back
+   * `null`. A bare physical index on array data comes back unchanged instead, which does not
+   * identify a usable visual column.
+   *
+   * So validate the result before using it as a column index: `Number.isInteger()` alone lets the
+   * second case through, and a {@link Core#countCols} comparison alone lets `null` through, because
+   * `null` compares as `0`.
+   *
+   * The TypeScript declaration is narrower than what runs at both ends. It narrows the result to
+   * `number`, so neither a returned property name nor `null` is visible to the type checker, and it
+   * narrows the parameter to `string | number`, so passing a `columns[].data` accessor function
+   * works at runtime but does not type-check.
    *
    * @memberof Core#
    * @function propToCol
@@ -4665,9 +4679,9 @@ export default function Core(
    * Returns the cell properties object for the given `row` and `column` coordinates.
    *
    * The returned object reflects the effective cell configuration after
-   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
-   * (grid, column, and cell levels). To read global grid settings only, use [[getSettings]].
-   * To read column-level meta, use [[getColumnMeta]].
+   * [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
+   * (grid, column, and cell levels). To read global grid settings only, use {@link Core#getSettings}.
+   * To read column-level meta, use {@link Core#getColumnMeta}.
    *
    * @memberof Core#
    * @function getCellMeta
@@ -4704,13 +4718,13 @@ export default function Core(
    * Returns the cell properties object for the given `row` and `column` coordinates without
    * retaining it in the cell meta cache.
    *
-   * Like [[getCellMeta]], the returned object reflects the effective cell configuration after
-   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+   * Like {@link Core#getCellMeta}, the returned object reflects the effective cell configuration after
+   * [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
    * and dynamic extension (the `cells` function and the `beforeGetCellMeta`/`afterGetCellMeta`
    * hooks run). Unlike `getCellMeta`, when the cell has no stored meta object the extension runs
    * on a temporary object that is not saved, so scanning many cells (for example, a whole column
    * or the entire dataset) does not permanently allocate one meta object per visited cell. Cells
-   * that already carry stored meta (for example, written by [[setCellMeta]] or the `cell` option)
+   * that already carry stored meta (for example, written by {@link Core#setCellMeta} or the `cell` option)
    * return their stored object, exactly as `getCellMeta` would.
    *
    * Use this method for read-only bulk scans. Do not write to the returned object - for cells
@@ -4748,9 +4762,9 @@ export default function Core(
    * Returns the meta information for the provided column.
    *
    * The returned object reflects the column-level configuration after
-   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
-   * (grid and column levels). To read global grid settings only, use [[getSettings]].
-   * To read the effective configuration for a specific cell, use [[getCellMeta]].
+   * [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
+   * (grid and column levels). To read global grid settings only, use {@link Core#getSettings}.
+   * To read the effective configuration for a specific cell, use {@link Core#getCellMeta}.
    *
    * @since 14.5.0
    * @memberof Core#
