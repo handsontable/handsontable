@@ -1,5 +1,5 @@
 import { extend } from '../../../helpers/object';
-import { extendByMetaType } from '../utils';
+import { extendByMetaType, normalizeEditorSetting } from '../utils';
 
 /**
  * The table meta object is a layer that keeps all settings of the Handsontable that was passed in
@@ -58,7 +58,9 @@ export default class TableMeta {
    * @param {object} settings An object to merge with.
    */
   updateMeta(settings: Record<string, unknown>) {
-    extend(this.meta, settings);
-    extendByMetaType(this.meta, settings, settings);
+    const normalizedSettings = normalizeEditorSetting(settings);
+
+    extend(this.meta, normalizedSettings);
+    extendByMetaType(this.meta, normalizedSettings, normalizedSettings);
   }
 }

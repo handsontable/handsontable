@@ -9,30 +9,116 @@ We run visual tests automatically by using the following tools:
 | Tool                                                                   | Description                                                                                                                                             |
 | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [Playwright](https://playwright.dev/docs/intro)                        | An open-source testing framework backed by Microsoft. We use it to write and run visual tests.                                                          |
-| [Argos](https://argos-ci.com/docs/visual-testing)                      | An external visual testing service. We use it to compare screenshots.                                                                                   |
+| [reg-suit](https://github.com/reg-viz/reg-suit)                        | An open-source visual regression suite. We use it to compare screenshots and to publish an HTML report.                                                 |
+| [Cloudflare R2](https://developers.cloudflare.com/r2/)                 | Object storage. We use it to hold the golden records and to serve the diff reports.                                                                     |
 | [GitHub Actions](https://github.com/handsontable/handsontable/actions) | GitHub's CI platform. We use it to automate our [test workflows](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml). |
 
 When you push changes to a GitHub pull request:
-1. The [Visual tests linter](https://github.com/handsontable/handsontable/actions/workflows/visual-tests-linter.yml)
-   workflow checks the code of each visual test.
+1. The **Lint / visual tests** check ([`lint.yml`](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/lint.yml))
+   checks the code of each visual test.
 2. The [Tests](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml) workflow runs all
    of Handsontable's tests.
-3. After all tests pass successfully, the [Visual tests](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml#L432-L502)
-   job runs the visual tests and uploads the resulting screenshots to Argos.
-4. Argos compares your feature branch screenshots against the reference branch (`develop`) screenshots
-   (so-called "reference", "baseline" or "golden" screenshots).
+3. After all tests pass successfully, the [Visual](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/visual.yml)
+   workflow runs the visual tests, then compares the resulting screenshots against the golden records.
+4. The golden records come from the branch your pull request targets — usually `develop`. Every build of a
+   base branch rewrites that branch's golden records, so a pull request into `develop`, `master`, or a
+   release branch is compared against the right baseline with no extra configuration.
 
-If Argos spots differences between two corresponding screenshots,
-the **Visual tests** check on on your pull request fails, and you can't merge your changes to `develop`. In that case:
-1. Open the log of the **Visual tests** job:<br>
-   At the bottom of your pull request, find the **Visual tests** check. Select **Details**.
-2. Open the Argos URL and [review the differences](https://argos-ci.com/docs/visual-testing#reviewing-visual-changes).
-   You can:
-      - [Reject the modified screenshots](https://argos-ci.com/docs/visual-testing#-reject-a-build-workflow), update your code,
-        and [re-run the visual tests](#run-visual-tests-through-github-actions).
-      - [Accept the modified screenshots](https://argos-ci.com/docs/visual-testing#-approving-a-build).
-        You can then merge your changes to `develop`.
-        As a result, the modified screenshots become the new baseline.
+   **Exception — LTS branches.** No workflow currently runs the visual tests on a push to `lts/*`, so an
+   LTS baseline is created by the first pull request into that branch and is never replaced. Later LTS
+   pull requests are therefore compared against one contributor's unreviewed screenshots. Treat an LTS
+   result as advisory until an LTS push trigger exists.
+
+If reg-suit spots differences, the **Compare** check on your pull request fails, and you can't merge your
+changes. In that case:
+1. Open the report. The **Visual** workflow comments the report URL on your pull request. If that URL is
+   unreachable, download the `visual-diff-report` artifact from the workflow run instead.
+2. Decide what the differences mean:
+      - They are a regression. Push a commit that removes them, and the check goes green.
+      - They are intentional. Add the `visual-approved` label to the pull request. That is the whole
+        step: the **Visual approval rerun** workflow re-runs the failed jobs for you, so the visual
+        check goes green without a manual re-run. If the rest of the pipeline is still running, the
+        re-run starts once it finishes. Any other job that is red stays red — the label accepts
+        visual differences, nothing else. Approval covers the whole build — there is no
+        per-screenshot review.
+
+Approval binds to one set of screenshots. Pushing a new commit removes the `visual-approved` label, so
+screenshots nobody has looked at never inherit an earlier approval.
+
+Two cases the label cannot solve:
+
+- **Your pull request comes from a fork, or from Dependabot.** Those runs get no secrets, so nothing can
+  clear the label when you push again — which means it is ignored there rather than trusted, and no
+  automatic re-run is started either. The check
+  reports the real verdict, the workflow run's job summary carries it, and the `visual-diff-report`
+  artifact holds the images. To accept intentional differences, a maintainer has to re-raise the branch
+  from the main repository.
+- **A visual change merged into the branch you target.** The golden records always come from that branch's
+  latest build, so once someone else's intentional change lands, your next run inherits their differences
+  as well as yours. **Rebase** — approving would also approve any real regression of your own that the same
+  build contains.
+
+Approval is read live at the moment the gate runs, so it binds to wall-clock time rather than to a commit.
+Applying the label while a newer push is still rendering approves whatever that build produces.
+
+If the branch you target has no golden records yet, the check does not fail. The build promotes its own
+screenshots to that branch's golden records and passes, so a fresh branch cannot wedge every pull request
+opened against it. The next build of the base branch overwrites them with the authoritative render — on
+every base branch except `lts/*`, which has no push trigger (see the exception above).
+
+## How the comparison works
+
+```mermaid
+flowchart TD
+    PR["Push to a pull request"] --> RENDER
+    DEV["Push to develop or a release branch"] --> RENDER
+
+    subgraph RENDER["Render (matrix)"]
+        R1["multi-framework<br/>js + 3 wrappers, 4 themes"]
+        R2["cross-browser<br/>chromium, firefox, webkit"]
+    end
+
+    RENDER --> KEYS{"Which ref?"}
+    KEYS -->|"pull request"| KPR["expected = base/TARGET<br/>actual = pr-NUMBER/SHA"]
+    KEYS -->|"base branch"| KBR["expected = actual = base/BRANCH"]
+
+    KPR --> PROBE
+    KBR --> PROBE
+    PROBE{"Do golden records exist?<br/>GET /base/BRANCH/out.json"}
+
+    PROBE -->|"404, none yet"| SEED["Promote this build to<br/>the golden records"]
+    SEED --> PASS
+
+    PROBE -->|"200"| WHO{"Fork or Dependabot?"}
+    WHO -->|"no, has secrets"| SUIT["reg-suit run<br/>fetch, diff, publish"]
+    WHO -->|"yes, no secrets"| FORK["compare-fork.mjs<br/>anonymous HTTPS, publishes nothing"]
+
+    SUIT --> OUT["screenshots compared<br/>.reg/out.json"]
+    FORK --> OUT
+
+    OUT --> GATE{"visual-gate.mjs<br/>any differences?"}
+    GATE --> COMMENT["visual-gate.mjs writes the comment,<br/>sticky action posts it"]
+    GATE -->|"none"| PASS["Check passes, PR mergeable"]
+    GATE -->|"differences found"| LABEL{"visual-approved<br/>label present?"}
+    LABEL -->|"yes"| PASS
+    LABEL -->|"no"| FAIL["Check fails, PR blocked"]
+
+    FAIL --> REVIEW["Open the report URL<br/>or the visual-diff-report artifact"]
+    REVIEW -->|"a regression: fix it"| PR
+    REVIEW -->|"intentional: add the label"| RERUN["visual-approval-rerun.yml<br/>re-runs the failed jobs"]
+    RERUN --> KPR
+
+    KBR -.->|"rewrites the baseline"| BUCKET[("Cloudflare R2<br/>base/BRANCH/actual/")]
+    SEED -.-> BUCKET
+    BUCKET -.->|"read as expected"| PROBE
+
+    CLOSED["Pull request closed"] --> PURGE["Delete pr-NUMBER/ from R2"]
+```
+
+Two behaviors are worth reading off the diagram:
+
+- **Approval is all or nothing, and the label is the only step.** The `visual-approved` label accepts every difference in the build at once, and `visual-approval-rerun.yml` re-runs the failed jobs so the visual check turns green on its own. An approval covers exactly the screenshots someone looked at: the label is compared against the commit it was applied to, so a push during the wait cancels the pending re-run — and pushing also removes the label outright.
+- **A missing baseline never blocks.** The first build for a branch promotes its own screenshots to the golden records and passes. The next build of that branch replaces them, so an unreviewed baseline survives at most one merge.
 
 ## Visual tests structure
 
@@ -67,25 +153,31 @@ There main demo available for all frameworks is served on `/`. There are additio
 
 ## Run visual tests through GitHub Actions
 
-Our GitHub Actions configuration runs the visual tests automatically, but you can run them manually as well:
+Our GitHub Actions configuration runs the visual tests automatically, and the `visual-approved` label
+re-runs them for you. To start a re-run by hand anyway:
 
-1. On GitHub, at the bottom of your pull request, find the **Visual tests** check. Select **Details**.
-2. On the left, next to the **Visual tests** job, select 🔄.
+1. On GitHub, at the bottom of your pull request, find the **Visual / Compare** check. Select **Details**.
+2. On the left, next to the **Compare** job, select 🔄.
 3. Select **Re-run jobs**.
 
 ## Run visual tests locally
 
-You can manually run visual tests on your machine and then upload the resulting screenshots to Argos.
+You can manually run visual tests on your machine and then compare the resulting screenshots against the
+golden records.
 
 First, prepare your local visual testing environment:
 
 1. Make sure you're using the Node and npm versions mentioned [here](https://handsontable.com/docs/react-data-grid/custom-builds/#build-requirements).
 2. From the `./visual-tests/` directory, run `npm install`.
-3. In the `./visual-tests/` directory, create a file called `.env`. In the file, add the Argos token:
+3. In the `./visual-tests/` directory, create a file called `.env`. In the file, add the R2 credentials:
    ```bash
-   ARGOS_TOKEN=xxx
+   AWS_ACCESS_KEY_ID=xxx
+   AWS_SECRET_ACCESS_KEY=xxx
+   R2_BUCKET_NAME=xxx
+   R2_ENDPOINT=https://xxx.r2.cloudflarestorage.com
+   VISUAL_REPORT_DOMAIN=xxx
    ```
-   Ask your supervisor about the token's value.
+   Ask your supervisor about the values.
 
 To run the visual tests locally:
 
@@ -97,8 +189,14 @@ To run the visual tests locally:
    | `npx playwright test {{ file name }}` | Run a specific test.<br><br>For example: `npx playwright test mouse-wheel`                         |
 
    The resulting screenshots are saved in `./visual-tests/screenshots/`.
-2. From the `./visual-tests/` directory, run `npm run upload`.
-3. Open the Argos URL displayed in the terminal.
+2. From the `./visual-tests/` directory, set the snapshot keys and run the comparison:
+   ```bash
+   REG_EXPECTED_KEY=base/develop REG_ACTUAL_KEY=local/$(git rev-parse --short HEAD) npm run compare
+   ```
+   `compare` loads `./.env` itself if the file exists, so the credentials from step 3 are picked up
+   without exporting them by hand.
+   A local run never writes to `base/`, so it cannot overwrite a golden record.
+3. Open the report URL printed in the terminal, or open `./visual-tests/.reg/index.html` directly.
 
 ## Write a new visual test
 
@@ -114,8 +212,8 @@ To add a new visual test:
       - [Helpers](#helpers)
       - [Take screenshots](#take-screenshots)
 4. Push your changes to a pull request.<br>
-   The [Visual tests linter](https://github.com/handsontable/handsontable/actions/workflows/visual-tests-linter.yml)
-   workflow checks the code of your test.
+   The **Lint / visual tests** check ([`lint.yml`](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/lint.yml))
+   checks the code of your test.
 
 ### Take screenshots
 

@@ -1000,6 +1000,16 @@ export class Filters extends BasePlugin {
       this.#previousConditionStack
     );
 
+    // Captured BEFORE the branch chain below, which is where the trimming map is written
+    // (`setValues()` on the filtering branch, `clear()` on the nothing-to-filter one). Writing the
+    // map fires the index mapper's cache update, and the Core drops a selection that the trim left
+    // pointing at a record that is no longer there - so by the time the re-selection at the end of
+    // this method runs, there may be no selection left to read the column from. Reading it here
+    // also keeps the `beforeFilter` hook able to move the selection, which a consumer may
+    // legitimately do.
+    const selectedHighlightColumn = this.hot.getSelectedRangeActive()?.highlight.col;
+    let isSelectionDropped = false;
+
     if (allowFiltering !== false && needToFilter) {
       const dataFilter = this._createDataFilter();
       const rowIndexesToShow = arrayMap(dataFilter.filter(),
@@ -1022,6 +1032,7 @@ export class Filters extends BasePlugin {
 
       if (!navigableHeaders && !rowIndexesToShow.length) {
         this.hot.deselectCell();
+        isSelectionDropped = true;
       }
 
       this.#previousConditionStack = this.exportConditions();
@@ -1037,15 +1048,25 @@ export class Filters extends BasePlugin {
       this.importConditions(this.#previousConditionStack);
     }
 
-    if (this.hot.selection.isSelected()) {
-      const highlightCol = this.hot.getSelectedRangeActive()?.highlight.col;
+    // The selection is read again here, and the captured value is only a FALLBACK. Both halves
+    // earn their place. A selection can arrive during the call - `emptyDataState` restores the one
+    // it stashed when the grid emptied, which is why the state at entry cannot be the only source -
+    // and a selection can disappear during it, dropped by the Core when the trim strands it, which
+    // is why the state at exit cannot be either.
+    // The captured column is a FALLBACK, and it deliberately outranks a deselect that happened
+    // during the call, because the Core drops a selection this filter's own trim stranded and the
+    // re-selection below is what puts the user back on the column they were working in. The cost is
+    // that a consumer deselecting from `beforeFilter` or a cache-update hook is overruled; a
+    // consumer that wants the grid deselected after filtering should do it from `afterFilter`,
+    // which runs last.
+    const currentHighlightColumn = this.hot.getSelectedRangeActive()?.highlight.col;
+    const columnToSelect = currentHighlightColumn ?? selectedHighlightColumn;
 
-      if (highlightCol !== null && highlightCol !== undefined) {
-        this.hot.selectCell(
-          navigableHeaders ? -1 : 0,
-          highlightCol,
-        );
-      }
+    if (!isSelectionDropped && columnToSelect !== null && columnToSelect !== undefined) {
+      this.hot.selectCell(
+        navigableHeaders ? -1 : 0,
+        columnToSelect,
+      );
     }
 
     if (allowFiltering !== false) {

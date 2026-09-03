@@ -87,12 +87,32 @@ export class EditorHiddenCellPage {
   }
 
   /**
+   * Clicks a cell near its leading edge, to select it without pressing anything interactive.
+   *
+   * A centred `cell.click()` is not safe here. The cell's midpoint drifts with the column width, and
+   * these fixtures let `autoColumnSize` measure it, so the midpoint can land on whatever the
+   * renderer happens to put there. Two live examples: every list cell type right-floats a dropdown
+   * indicator, and `multiselect` also renders a chip whose `×` button suppresses selection through
+   * `beforeOnCellMouseDown`, so a centred press on it selects nothing and this page object's
+   * `selected()` poll times out. The leading edge is padding in every cell type.
+   */
+  async #selectCellByClick(row: number, col: number): Promise<void> {
+    const box = await this.cell(row, col).boundingBox();
+
+    if (!box) {
+      throw new Error(`Cell (${row}, ${col}) is not rendered`);
+    }
+
+    await this.page.mouse.click(box.x + 4, box.y + (box.height / 2));
+
+    await expect.poll(() => this.selected()).toEqual([[row, col, row, col]]);
+  }
+
+  /**
    * Selects a cell and opens its editor with Enter, which works for every editor type.
    */
   async openEditor(row: number, col: number): Promise<void> {
-    await this.cell(row, col).click();
-
-    await expect.poll(() => this.selected()).toEqual([[row, col, row, col]]);
+    await this.#selectCellByClick(row, col);
 
     await this.page.keyboard.press('Enter');
 
@@ -106,9 +126,7 @@ export class EditorHiddenCellPage {
    * `Enter` would keep the old value and put the caret after it.
    */
   async openEditorAndType(row: number, col: number, value: string): Promise<void> {
-    await this.cell(row, col).click();
-
-    await expect.poll(() => this.selected()).toEqual([[row, col, row, col]]);
+    await this.#selectCellByClick(row, col);
 
     await this.page.keyboard.type(value);
 

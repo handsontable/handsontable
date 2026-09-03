@@ -8,13 +8,14 @@ import {
   addClass,
   removeClass,
   clearTextSelection,
+  closest,
+  isChildOf,
   empty,
   eventTargetEl,
   fastInnerHTML,
   fastInnerText,
   getScrollbarWidth,
   hasClass,
-  isChildOf,
   getDeepActiveElement,
   getShadowHostChain,
   isHTMLElement,
@@ -28,7 +29,13 @@ import {
 import EventManager from './eventManager';
 import { formatCellValue, renderCell } from './renderers/renderCell';
 import { RenderSizeProbe } from './renderSizeProbe';
-import { isImmediatePropagationStopped, isRightClick, isLeftClick, isMiddleClick } from './helpers/dom/event';
+import {
+  isImmediatePropagationStopped,
+  isRightClick,
+  isLeftClick,
+  isMiddleClick,
+} from './helpers/dom/event';
+import { getMouseEventTouchOrigin, TOUCH_SYNTHESIZED_MOUSE_WINDOW } from './helpers/dom/inputOrigin';
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
@@ -41,6 +48,8 @@ import {
   A11Y_ROWCOUNT,
   A11Y_TREEGRID
 } from './helpers/a11y';
+import { parsePixelSize } from './utils/pixelSize';
+import { warnOnce } from './helpers/console';
 
 /**
  * Checks whether a size setting (`rowHeights`, `minRowHeights`, or `colWidths`) guarantees a uniform
@@ -52,6 +61,129 @@ import {
  */
 function isUniformSizeSetting(value: unknown): boolean {
   return value === undefined || value === null || typeof value === 'number';
+}
+
+/**
+ * Renders a rejected setting value for the warning message.
+ *
+ * Nothing here may throw. This runs inside a Walkontable settings getter during a draw, and only on
+ * the path that is already falling back, so a throw would turn a soft fallback into a dead grid.
+ *
+ * `JSON.stringify` throws on a `BigInt` and on a circular object. `String()` is not safe either: it
+ * throws on an object with no prototype (`Object.create(null)`) and on one whose `toString`,
+ * `valueOf`, or `Symbol.toPrimitive` throws – and a framework can hand any of those to a setting.
+ * `Object.prototype.toString` never calls user code, so it is the fallback.
+ *
+ * @param {*} value The value that could not be read.
+ * @returns {string}
+ */
+function describeValue(value: unknown): string {
+  if (typeof value === 'string') {
+    return `"${value}"`;
+  }
+
+  try {
+    return String(value);
+  } catch {
+    return Object.prototype.toString.call(value);
+  }
+}
+
+/**
+ * Resolves one entry of a header size setting into a number of pixels.
+ *
+ * Warns once per grid instance when the value cannot be read as a pixel size, then returns `null` so
+ * the caller falls back to its own default rather than rendering a broken size.
+ *
+ * @param {*} value The configured value.
+ * @param {object} scope The object the one-time warning is bound to.
+ * @param {string} optionName The option's name, used in the warning message.
+ * @returns {number|null}
+ */
+function resolveHeaderSizeEntry(value: unknown, scope: object, optionName: string): number | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  const size = parsePixelSize(value);
+
+  if (size === null) {
+    const described = describeValue(value);
+
+    warnOnce(
+      // The value is part of the key, not just the message. Keyed on the option name alone, a later
+      // `updateSettings` with a different bad value would print nothing and the console would only
+      // ever name the first one.
+      scope,
+      `invalid-header-size-${optionName}-${described}`,
+      `Handsontable: the \`${optionName}\` option expects a number of pixels, such as \`100\`, ` +
+      `\`'100'\`, or \`'100px'\`. The value ${described} cannot be read as a pixel size, ` +
+      'so it is ignored and the default size is used instead. A negative number is kept as it is, ' +
+      'but a negative string is rejected the same way this value was.'
+    );
+
+    return null;
+  }
+
+  return size;
+}
+
+/**
+ * Checks whether a header size entry is already a number, or is empty and therefore stands for
+ * "use the default size for this level".
+ *
+ * @param {*} entry The array entry to check.
+ * @returns {boolean}
+ */
+function isResolvedHeaderSizeEntry(entry: unknown): entry is number | null | undefined {
+  return typeof entry === 'number' || entry === null || entry === undefined;
+}
+
+/**
+ * Resolves the `rowHeaderWidth` and `columnHeaderHeight` settings into the numbers the rendering
+ * engine needs.
+ *
+ * Both options are documented as pixel numbers, and the sizing code downstream requires real
+ * numbers: the row header width guard replaces a non-number with the default column width, and the
+ * column header height merge skips anything that is not a number. Resolving the value here – the one
+ * place each option crosses from the grid settings into Walkontable – satisfies that requirement
+ * without adding a branch to the per-cell sizing code that runs on every draw.
+ *
+ * The `'100'` and `'100px'` string forms are accepted alongside a plain number, so a value arriving
+ * from an attribute, a JSON config, or a framework template still resolves.
+ *
+ * A value that is already a number, or an array already made of numbers, is returned by reference,
+ * so the common path allocates nothing. An array holding a string is re-resolved on every read, and
+ * the setting is read a few times per draw. That is left as it is on purpose: a cache keyed on the
+ * array's identity would answer stale after an in-place edit of the caller's own array, which costs
+ * more than the handful of regex matches it would save on a configuration almost nobody writes.
+ *
+ * @param {*} value The configured setting value.
+ * @param {object} scope The object the one-time warning is bound to.
+ * @param {string} optionName The option's name, used in the warning message.
+ * @returns {number|Array|undefined}
+ */
+function resolveHeaderSizeSetting(
+  value: unknown,
+  scope: object,
+  optionName: string
+): number | Array<number | null | undefined> | undefined {
+  if (value === undefined || typeof value === 'number') {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    const entries: unknown[] = value;
+
+    // Returning the same array keeps the already-numeric case allocation-free on every draw.
+    if (entries.every(isResolvedHeaderSizeEntry)) {
+      return entries;
+    }
+
+    return entries.map(entry => resolveHeaderSizeEntry(entry, scope, optionName));
+  }
+
+  return resolveHeaderSizeEntry(value, scope, optionName) ?? undefined;
 }
 
 /**
@@ -153,6 +285,13 @@ class TableView {
    */
   #selectionMouseDown = false;
   /**
+   * Name of the overlay the current mouse drag started in, or `null` when no drag is in progress.
+   * Used to keep a text selection from spreading past the overlay it began in.
+   *
+   * @type {string|null}
+   */
+  #textSelectionOverlay: string | null = null;
+  /**
    * @type {boolean}
    */
   #mouseDown: boolean = false;
@@ -190,10 +329,11 @@ class TableView {
   #mouseDownLastPos: {row: number, col: number} | null = null;
   /**
    * Flag indicating that a touch interaction just ended. Set to `true` on
-   * `touchend` and reset asynchronously via `_registerTimeout`. Used together with
-   * `sourceCapabilities.firesTouchEvents` (Chrome/Blink) to detect synthetic
-   * mouse events that Android fires after touch interactions. These synthetic
-   * events can falsely trigger the outside-click handler, closing editors or
+   * `touchend` and reset asynchronously via `_registerTimeout` after
+   * `TOUCH_SYNTHESIZED_MOUSE_WINDOW`, shared with Walkontable's mouse listeners so both layers
+   * use the same fallback window. Used together with `sourceCapabilities.firesTouchEvents`
+   * (Chrome/Blink) to detect synthetic mouse events that Android fires after touch interactions.
+   * These synthetic events can falsely trigger the outside-click handler, closing editors or
    * popups that just opened via double-tap.
    *
    * @type {boolean}
@@ -394,7 +534,14 @@ class TableView {
 
       this.#selectionMouseDown = true;
 
-      if (!this.isTextSelectionAllowed(eventTargetEl(event)!)) {
+      const mouseDownTarget = eventTargetEl(event)!;
+
+      // Only `fragmentSelection` reads this, so a grid using the default pays no overlay lookup.
+      this.#textSelectionOverlay = this.settings.fragmentSelection
+        ? this.#getRenderingOverlayName(mouseDownTarget)
+        : null;
+
+      if (!this.isTextSelectionAllowed(mouseDownTarget)) {
         clearTextSelection(rootWindow);
         event.preventDefault();
         rootWindow.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
@@ -408,9 +555,22 @@ class TableView {
       }
 
       this.#selectionMouseDown = false;
+      this.#textSelectionOverlay = null;
     });
     this.eventManager.addEventListener(rootElement, 'mousemove', (event) => {
-      if (this.#selectionMouseDown && !this.isTextSelectionAllowed(eventTargetEl(event)!)) {
+      if (!this.#selectionMouseDown) {
+        return;
+      }
+
+      const target = eventTargetEl(event)!;
+      // Confinement applies to `fragmentSelection` only, and never to an input: the editor's
+      // textarea lives outside every clone, so a drag reaching it would otherwise count as leaving
+      // the starting overlay and cancel a gesture `isTextSelectionAllowed` explicitly permits.
+      const leftItsOverlay = this.#textSelectionOverlay !== null &&
+        !isInput(target) &&
+        this.#hasLeftTextSelectionOverlay(target);
+
+      if (!this.isTextSelectionAllowed(target) || leftItsOverlay) {
         // Clear selection only when fragmentSelection is enabled, otherwise clearing selection breaks the IME editor.
         if (this.settings.fragmentSelection) {
           clearTextSelection(rootWindow);
@@ -441,6 +601,12 @@ class TableView {
       if (this.#isSyntheticMouseEvent(event)) {
         return;
       }
+
+      // The listener on `rootElement` never sees a release outside the grid, so clear the drag state
+      // here too. Left set, a later hover over the grid would look like a drag still in progress and
+      // wipe whatever the user has selected on the host page.
+      this.#selectionMouseDown = false;
+      this.#textSelectionOverlay = null;
 
       const activeElement = getDeepActiveElement(rootDocument);
       const activeHTMLElement = isHTMLElement(activeElement) ? activeElement : null;
@@ -502,11 +668,17 @@ class TableView {
 
       // Clear the flag after the browser's synthetic mouse event sequence completes.
       // Android dispatches mousedown/mouseup/click asynchronously after touchend,
-      // so the flag must survive across multiple event loop ticks.
+      // so the flag must survive across multiple event loop ticks. The window is shared
+      // with Walkontable's mouse listeners (`TOUCH_SYNTHESIZED_MOUSE_WINDOW`), so both
+      // layers use the same fallback window.
+      // The policies deliberately differ: Walkontable drops only the first pending pair
+      // (veto → pending → ceiling), while this layer keeps
+      // `getMouseEventTouchOrigin(event) ?? #recentTouchEnd` — a Blink-flagged pair must never
+      // run the outside-click handling that closes editors.
       this.#recentTouchEndTimeout = this.hot._registerTimeout(() => {
         this.#recentTouchEnd = false;
         this.#recentTouchEndTimeout = null;
-      }, 400);
+      }, TOUCH_SYNTHESIZED_MOUSE_WINDOW);
     });
 
     this.eventManager.addEventListener(documentElement, 'mousedown', (event) => {
@@ -1403,10 +1575,19 @@ class TableView {
         }
         this.hot.runHooks('afterViewportColumnCalculatorOverride', calc);
       },
-      rowHeaderWidth: () => this.settings.rowHeaderWidth,
+      // Scoped to this `TableView`, not to `hot.rootElement`: the container outlives `destroy()`, so
+      // a component that remounts on the same node would inherit the old instance's warned-keys set
+      // and stay silent for the rest of the page.
+      rowHeaderWidth: () => resolveHeaderSizeSetting(
+        this.settings.rowHeaderWidth, this, 'rowHeaderWidth'
+      ),
       columnHeaderHeight: () => {
         const hookHeight = this.hot.runHooks('modifyColumnHeaderHeight');
-        const configured = this.settings.columnHeaderHeight;
+        // Resolved before the merge below reads it, because that merge only accepts numbers – and
+        // before the `levels === 0` shortcut, which returns the value without going through it.
+        const configured = resolveHeaderSizeSetting(
+          this.settings.columnHeaderHeight, this, 'columnHeaderHeight'
+        );
         const probe = this.renderSizeProbe.columnHeaderHeights;
         // Merge the three provided-height sources per header level: the `columnHeaderHeight` option
         // (scalar or per-level array), the `modifyColumnHeaderHeight` hook (AutoRowSize), and the
@@ -1503,15 +1684,15 @@ class TableView {
       return true;
     }
 
-    const isChildOfTableBody = isChildOf(el, this._wt.wtTable.spreader);
+    const isSelectableArea = this.#isSelectableTableArea(el);
 
-    if (this.settings.fragmentSelection === true && isChildOfTableBody) {
+    if (this.settings.fragmentSelection === true && isSelectableArea) {
       return true;
     }
 
     const isSingleCell = this.hot.getSelectedRangeActive()?.isSingleCell() ?? false;
 
-    if (this.settings.fragmentSelection === 'cell' && isSingleCell && isChildOfTableBody) {
+    if (this.settings.fragmentSelection === 'cell' && isSingleCell && isSelectableArea) {
       return true;
     }
 
@@ -1520,6 +1701,99 @@ class TableView {
     }
 
     return false;
+  }
+
+  /**
+   * Resolves the Walkontable instance that renders the given element: the overlay clone that owns
+   * it, or the master instance when the element sits outside every clone.
+   *
+   * @param {HTMLElement} el The element to resolve.
+   * @returns {Walkontable}
+   */
+  #getOwningWt(el: HTMLElement) {
+    return this._wt.wtOverlays.getParentOverlay(el) ?? this._wt;
+  }
+
+  /**
+   * Resolves the table whose rendered area holds the given element, or `null` when the element sits
+   * outside every table — the grid's own scrollbars and padding, or the page around it.
+   *
+   * A frozen cell lives in an overlay clone, which is a sibling of the master table rather than its
+   * descendant, so the owning table has to be resolved before anything can be asked about the
+   * element — testing against the master alone rejects every cell in a frozen row, frozen column, or
+   * corner (#4980).
+   *
+   * Matching is by rendered area rather than by `TABLE`, because a table renders more than its
+   * cells: the selection borders are appended to the spreader beside it. `getParentOverlay` misses
+   * those and reports a frozen area's borders as the master's, which is wrong in both directions —
+   * the border reads as unselectable, and as a different overlay from the cells it sits between.
+   *
+   * @param {HTMLElement} el The element to resolve.
+   * @returns {Walkontable|null}
+   */
+  #getRenderingWt(el: HTMLElement) {
+    const overlay = this._wt.wtOverlays.getParentOverlayByRenderedArea(el);
+
+    if (overlay !== null) {
+      return overlay;
+    }
+
+    return isChildOf(el, this._wt.wtTable.spreader) ? this._wt : null;
+  }
+
+  /**
+   * Checks whether the element belongs to the selectable area of the table that renders it.
+   *
+   * Everything that table renders counts, not just the cells. A multi-cell drag passes over the
+   * selection borders, and rejecting one cancels a selection that is still inside the same area —
+   * which is exactly what `fragmentSelection: true` exists to allow. Headers are the one exception:
+   * column headers sit in the THEAD and row headers are `TH` elements inside the TBODY's own rows,
+   * and every grid with headers renders them into a clone, so allowing them here would make header
+   * labels selectable on any grid that has headers at all, frozen or not.
+   *
+   * @param {HTMLElement} el The element to check.
+   * @returns {boolean}
+   */
+  #isSelectableTableArea(el: HTMLElement) {
+    const wt = this.#getRenderingWt(el);
+
+    if (wt === null) {
+      return false;
+    }
+
+    // The spreader bounds the walk. `closest` runs past an `until` that is not an ancestor, and
+    // would then leave the grid entirely and match a `TH` on the host page.
+    return closest(el, ['TH'], wt.wtTable.spreader) === null;
+  }
+
+  /**
+   * Checks whether the pointer has moved out of the overlay the current text selection started in.
+   *
+   * Each frozen area is rendered as a separate table, and those tables sit next to the master table
+   * in the DOM in an order that does not follow the visual layout. A native selection range that
+   * spans two of them therefore picks up cells the pointer never crossed, so a selection is confined
+   * to the overlay it began in.
+   *
+   * @param {HTMLElement} el The element currently under the pointer.
+   * @returns {boolean}
+   */
+  #hasLeftTextSelectionOverlay(el: HTMLElement) {
+    return this.#getRenderingOverlayName(el) !== this.#textSelectionOverlay;
+  }
+
+  /**
+   * Names the overlay whose rendered area holds the given element, or `null` when it sits outside
+   * every table.
+   *
+   * This is not `getElementOverlayName`, which resolves by `TABLE` and so reports a frozen area's
+   * selection borders as the master's. Naming a border differently from the cells it sits between
+   * would read as leaving the overlay and cancel a drag that never left it.
+   *
+   * @param {HTMLElement} el The element to name.
+   * @returns {string|null}
+   */
+  #getRenderingOverlayName(el: HTMLElement) {
+    return this.#getRenderingWt(el)?.wtTable.name ?? null;
   }
 
   /**
@@ -1541,16 +1815,11 @@ class TableView {
    * Uses `sourceCapabilities.firesTouchEvents` (Chrome/Blink) when available,
    * falls back to the `#recentTouchEnd` flag for other browsers (Firefox, Safari).
    *
-   * @param {MouseEvent} event The mouse event to check.
-   * @private
+   * @param {Event} event The mouse event to check.
    * @returns {boolean}
    */
-  #isSyntheticMouseEvent(event: Event & { sourceCapabilities?: { firesTouchEvents: boolean } }) {
-    if (event.sourceCapabilities) {
-      return event.sourceCapabilities.firesTouchEvents === true;
-    }
-
-    return this.#recentTouchEnd;
+  #isSyntheticMouseEvent(event: Event): boolean {
+    return getMouseEventTouchOrigin(event) ?? this.#recentTouchEnd;
   }
 
   /**
@@ -1802,7 +2071,7 @@ class TableView {
     element: HTMLElement, index: number, content: (index: number, headerLevel?: number) => unknown, headerLevel = 0
   ) {
     let renderedIndex = index;
-    const parentOverlay = this._wt.wtOverlays.getParentOverlay(element) || this._wt;
+    const parentOverlay = this.#getOwningWt(element);
 
     // prevent wrong calculations from SampleGenerator
     if (element.parentNode) {
@@ -2099,7 +2368,7 @@ class TableView {
    * @returns {'master'|'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'}
    */
   getElementOverlayName(element: HTMLElement) {
-    return (this._wt.wtOverlays.getParentOverlay(element) ?? this._wt).wtTable.name;
+    return this.#getOwningWt(element).wtTable.name;
   }
 
   /**

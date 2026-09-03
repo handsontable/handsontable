@@ -72,25 +72,26 @@
 - Current mitigation: every sink resolves the option through `getSanitizer()`/`sanitizeHTML()` in `utils/sanitizer.ts` and binds the missing-sanitizer warning to `hot.rootElement`, so a grid warns once no matter how many surfaces write raw HTML. Covered surfaces and their context strings: `'header'` (including nested headers and the ghost table that measures them), `'password'`, `'contextMenu'`, `'selectEditor'`, `'dialog'`, `'notification'`, `'CopyPaste.paste'`.
 - Deliberate exclusions: the `html` cell type (`renderers/htmlRenderer`) and `allowHtml` autocomplete/dropdown sources both pass `false`, meaning raw and silent. PR #7368 (2020) disabled sanitizing for them on purpose, and it held through the DOMPurify era, so a configured sanitizer has never reached them. Whether it should is an open product question. Do not "fix" it as a bug: it is a behavior change under `.ai/BREAKING-CHANGES.md`.
 - Recommendations: keep new HTML sinks going through `utils/sanitizer.ts` rather than reading `getSettings().sanitizer` inline, and give each one its own context string so the warning names it.
+- Not a sanitizer surface: a consumer **outside** the DOM — a file, the clipboard, later a printer or an assistive label — goes through `utils/textExtractor.ts` (`extractText(hot, value, 'Plugin.surface')`) and the grid-level `textExtractor` option instead. Routing one through `sanitizer` looks right and is wrong: a sanitizer returns HTML *source*, so plain headers come back entity-encoded (`R&D` → `R&amp;D`), and an allowlist sanitizer returns `<b>Bold</b>` unchanged. The built-in extraction still calls the configured sanitizer first, under the DOM surface the content belongs to, because a sanitizer may delete text rather than unwrap it. Measured on issue #4088; the full rationale is in the `handsontable/AGENTS.md` bullet.
 
 **Clipboard Paste Parses Into an Inert Document:**
 - Risk: `htmlToGridSettings()` used to write pasted markup into a detached `<div>` of the live document. Detached is not inert: the owning document has a browsing context, so `<img src=x onerror>` in a paste payload loaded and executed.
 - Files: `handsontable/src/utils/parseTable.ts`, `handsontable/src/plugins/copyPaste/copyPaste.ts`
 - Current mitigation: the string path parses with `DOMParser.parseFromString()`, which has no browsing context, so nothing loads or runs while the markup is read. Both clipboard branches (`text/html` and the private `application/ht-source-data-json-html`) are sanitized under `'CopyPaste.paste'`.
 - Recommendations: never `importNode` the parsed nodes back into the live document, which would make them live again. Keep every downstream read on that document read-only.
-- Still open in the same class: `Core#toTableElement()` (`handsontable/src/core.ts:6448`) writes `instanceToHTML()` output into a live-document element with `insertAdjacentHTML`, and `instanceToHTML` escapes cell data but not headers (`utils/parseTable.ts:55`), so a `colHeaders` entry containing markup executes there. No internal caller (it is public API only), and the same label executes when rendered into a real `<th>` anyway, so it is not a trust escalation. A `DOMParser` swap does not fix it either: the function must return a node the caller can insert, and adopting it into the live document reactivates the payload. The real fix is escaping headers in `instanceToHTML`.
+- Closed in the same class: `Core#toTableElement()` used to write `instanceToHTML()` output into a live-document element with `insertAdjacentHTML`, so a `colHeaders` entry containing markup executed there. It now builds the table through `instanceToTableElement()` (`utils/parseTable.ts`), which constructs nodes and writes header text through `textContent`, so nothing is parsed and the header carries no execution path. `instanceToHTML()` still exists for `toHTML()`, which returns a string rather than a node and now sanitizes headers.
 
-**innerHTML Usage in Template Literal Tag:**
-- Risk: The `templateLiteralTag.ts` helper uses `template.innerHTML` to parse tagged template literals. If user-supplied data flows into the template, it could introduce XSS.
-- Files: `handsontable/src/helpers/templateLiteralTag.ts`
-- Current mitigation: The function is used internally for UI element construction, not directly with user data.
-- Recommendations: Add a comment documenting that this function must not be used with unsanitized user input. Consider using `DOMParser` or `textContent` where possible.
+**innerHTML in internal UI construction:**
+- Risk: the `html` tagged template parsed its result with `template.innerHTML`, and `helpers/mixed.ts` wrote license messages through `messageNode.innerHTML`.
+- Files: `handsontable/src/helpers/templateLiteralTag.ts`, `handsontable/src/helpers/mixed.ts`
+- Current mitigation: both are gone. Internal UI is built as a `TemplateSpec` through `buildTemplate()` (`helpers/dom/template.ts`), and the license messages are rendered from a part list with `createTextNode` / `createElement` / `textContent`. The `html` tag was deleted; only `toSingleLine` remains in `templateLiteralTag.ts`.
+- Recommendations: never reintroduce an HTML string for library-authored UI. Every parse entry point is also a Trusted Types sink, so a string there breaks any page enforcing `require-trusted-types-for 'script'`, not only the XSS case.
 
-**innerHTML in Mixed Helper:**
-- Risk: `helpers/mixed.ts` uses `messageNode.innerHTML` to render domain-specific messages.
-- Files: `handsontable/src/helpers/mixed.ts`
-- Current mitigation: The messages are internally generated string templates, not user input.
-- Recommendations: Switch to `textContent` or DOM API construction to eliminate the innerHTML call entirely.
+**The `<template>` parse in the built-in text extractor:**
+- Risk: `extractDisplayText()` assigns to `template.innerHTML` to read the text a header renders as.
+- Files: `handsontable/src/utils/textExtractor.ts`
+- Current mitigation: the content is the user's own header, gated on the same `HTML_CHARACTERS` predicate `fastInnerHTML` uses, and the configured `sanitizer` runs before the parse. The parse happens in a `<template>`, whose content belongs to an inert document, so nothing loads or runs. It is reachable only when the user sets `textExtractor: true`; an extractor function of their own never reaches it. A `TrustedHTML` from the sanitizer passes to the sink unmodified.
+- Recommendations: do not swap it for `stripTags()`. That scans characters instead of parsing, so it drops everything from a `<` onwards and would silently mangle a header such as `'Loaded 5 < 10 rows'` on the export path.
 
 ## Performance Bottlenecks
 

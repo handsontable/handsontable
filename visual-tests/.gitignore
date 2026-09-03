@@ -4,3 +4,4 @@ node_modules/
 /playwright/.cache/
 /screenshots/
 .env
+.reg/

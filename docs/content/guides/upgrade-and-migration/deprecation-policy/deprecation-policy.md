@@ -71,8 +71,8 @@ The following dependencies were deprecated in version 17.0 and removed in versio
 
 | Removed | Deprecated in | Replacement | Migration guide |
 | ------- | ------------- | ----------- | --------------- |
-| `PersistentState` plugin, its `persistentState` option, and the `persistentStateSave`, `persistentStateLoad`, and `persistentStateReset` hooks | 16.1 | Persist state in your application code. The `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, and `loadManualRowHeights()` methods that relied on the plugin are deprecated (see below). | [Changelog 17.0](@/guides/upgrade-and-migration/changelog-17/changelog-17.md) |
-| `hot.undo()`, `hot.redo()`, `hot.clearUndo()`, `hot.isUndoAvailable()`, `hot.isRedoAvailable()`, and `hot.undoRedo` | Before 16.0 | `hot.getPlugin('undoRedo')` | [Changelog 17.0](@/guides/upgrade-and-migration/changelog-17/changelog-17.md) |
+| `PersistentState` plugin, its `persistentState` option, and the `persistentStateSave`, `persistentStateLoad`, and `persistentStateReset` hooks | 16.1 | Persist state in your application code. The `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, and `loadManualRowHeights()` methods that relied on the plugin are deprecated (see below). | [Changelog 17.x](@/guides/upgrade-and-migration/changelog-17/changelog-17.md) |
+| `hot.undo()`, `hot.redo()`, `hot.clearUndo()`, `hot.isUndoAvailable()`, `hot.isRedoAvailable()`, and `hot.undoRedo` | Before 16.0 | `hot.getPlugin('undoRedo')` | [Changelog 17.x](@/guides/upgrade-and-migration/changelog-17/changelog-17.md) |
 
 ## List of current deprecations
 

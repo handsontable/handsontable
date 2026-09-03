@@ -135,7 +135,17 @@ You have two ways to deal with this: set the width yourself, or let Handsontable
 To control the header size, set [`rowHeaderWidth`](@/api/options.md#rowheaderwidth) to one of the following:
 
 - A number - set the same width for every row header.
+- A string - set the same width, written as a pixel size: `'80'` or `'80px'`.
 - An array - set different widths for individual row header levels.
+
+The width is a number of pixels. A string that states a pixel size works too, so a value coming from
+an attribute, a JSON config, or a framework template still applies. You can mix both forms inside the
+array. A value that states no pixel count, such as `'50%'` or `'20em'`, is ignored - the header keeps
+its default width, and Handsontable reports the value once in the browser console. Inside an array
+this applies per level, so one unreadable entry does not disturb the levels around it.
+
+A negative number is kept as it is, because numbers behave exactly as they did before this option
+read strings. A negative string is rejected, so a typo cannot collapse the header.
 
 The [Row headers as an array](#row-headers-as-an-array) example uses custom labels together with `rowHeaderWidth: 80`.
 

@@ -159,6 +159,41 @@ export async function waitForNameAnimationFrames(framesToWait = 1) {
 }
 
 /**
+ * Polls the provided condition on every animation frame until it returns a truthy value, or
+ * rejects after `timeout` milliseconds. The condition-based replacement for a fixed `sleep()` or
+ * a frame-count wait: it resolves as soon as the observable state is really there, and a state
+ * that never arrives fails with a named reason instead of passing a stale assertion later.
+ *
+ * @param {Function} condition A function returning a truthy value once the awaited state is reached.
+ * @param {number} [timeout=4000] How long to keep polling, in milliseconds.
+ * @returns {Promise<void>}
+ */
+export function waitUntil(condition, timeout = 4000) {
+  const startTime = Date.now();
+  const requestFrame = window.requestAnimationFrame ?? (callback => window.setTimeout(callback, 16));
+
+  return new Promise((resolve, reject) => {
+    const check = () => {
+      if (condition()) {
+        resolve();
+
+        return;
+      }
+
+      if (Date.now() - startTime > timeout) {
+        reject(new Error(`waitUntil: the condition was not met within ${timeout}ms`));
+
+        return;
+      }
+
+      requestFrame(check);
+    };
+
+    check();
+  });
+}
+
+/**
  * Normalize frame count input.
  *
  * @param {number} framesToWait The number of frames to normalize.

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed a grid configured with a `width` and no `height` collapsing vertically. Relative widths (`100%`, percentages, viewport units, `calc()` with them) keep scrolling horizontally with the window, while definite pixel/`em` widths clip to their box.",
-  "type": "fixed",
-  "issueOrPR": 13104,
-  "breaking": false,
-  "framework": "none"
-}

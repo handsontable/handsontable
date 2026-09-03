@@ -28,12 +28,66 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   Never hardcode a bundle `<script src=…>`.
 - Thread `bundle` end-to-end: fixture allowlist → page-object constructor
   (`(page, theme = 'main', bundle = 'umd')`) → `goto()` query params → spec
-  destructure. Miss one link and a leg silently tests the wrong build.
+  destructure. Miss one link and a leg silently tests the wrong build. The
+  constructor default is what hides it: omit `bundle` in the spec's
+  `test.beforeEach` and every leg loads plain UMD, so the `-min` legs go green
+  without ever touching the minified bundle.
+- **A fixture's own `ready` flag does not prove the bundle loaded.** The
+  `document.write`-injected bundle script and the block that installs the
+  fixture helper are separate, so a page can report `ready` while
+  `Handsontable` is still undefined. The spec then fails inside its first
+  `page.evaluate()` with a bare `Handsontable is not defined` — far from the
+  cause, and only under load. Wait for the bundle itself in `goto()`, with
+  `await page.waitForFunction(() => 'Handsontable' in window)`, before
+  asserting on any fixture status. `expect` is the wrong tool for that wait:
+  `dist/handsontable.js` is ~6 MB uncompressed and every worker pulls its own
+  copy, so a cold or busy server outlasts the 10s `expect` timeout, while
+  `waitForFunction` polls against the test budget.
 - The `umd` legs run the BASE bundle: **no HyperFormula** (a formulas fixture
   loads HF as an external script beside the bundle, or the plugin logs a
   warning and silently stays off) and **no languages pack** (an i18n fixture
   loads `dist/languages/all.js` explicitly — the Puppeteer harness does that
   for you, this tier does not).
+- **On a cell with a dropdown arrow, a centred `cell.click()` can land on the
+  arrow and open the editor by itself.** `autocompleteRenderer` registers a
+  `mousedown` listener that opens the list whenever the press lands on
+  `.htAutocompleteArrow`, so the editor is already open before your
+  `keyboard.press('Enter')` — and that Enter then correctly commits and closes
+  it. The spec fails at "the editor never opened" with nothing in the log to
+  point at the cause. It is not only `autocomplete` and `dropdown`:
+  `handsontableRenderer` and `dropdownRenderer` both delegate to
+  `autocompleteRenderer`, so `type: 'handsontable'` carries the same arrow.
+  `multiselect` carries one too, but a **different** element and listener —
+  `.ht-multi-select-arrow`, built by `multiSelectRenderer` (#13316) — so a
+  locator written against `.htAutocompleteArrow` finds nothing there, and vice
+  versa. All four render their indicator on an empty cell, at the same icon size
+  and margins, so none of them is the safe one to click centred.
+  `multiselect` adds a SECOND hazard the other three do not have: its chip's `×`
+  button suppresses selection through `beforeOnCellMouseDown`, so a centred press
+  that lands on a chip's `×` selects **nothing** and any wait on
+  `hot.getSelected()` times out with no editor and no selection to explain it.
+  The indicator is also measured by `autoColumnSize`, so adding one moved an
+  auto-sized column's midpoint by ~25px and slid it onto a chip's `×` — that is
+  how `editor-hidden-cell.spec.ts` broke, having passed by 4px before (#13316).
+  Whether the click lands on it is pure geometry, and **the outcome is
+  theme-dependent** — the arrow is right-floated at `var(--ht-icon-size)`, which
+  is 16 px on `main` and `horizon` but 12 px on `classic`, and the deciding term
+  is the theme's cell padding, which leaves the arrow's left edge within about a
+  pixel of the centre. Measured on `main`: at the 50 px default column width the
+  arrow spans x=24–40 while the centre is x=25. So the same centred click can hit
+  on one leg of the theme × bundle matrix and miss on another. An EMPTY cell is
+  the common way to end up at that default width, which is why empty fixtures
+  trip it and seeded ones usually do not — but a long header or narrow content
+  puts the arrow back under the centre, so cell content is not a guarantee
+  either. Click off-centre, or select with `hot.selectCell()`, when the spec
+  means to open the editor with Enter. Root-caused in DEV-2677; the indicator's
+  own coverage is `e2e/cell-dropdown-arrow-button.spec.ts`, over all four cell
+  types.
+- **Seed an `autocomplete` / `dropdown` fixture with a prefix the whole column's
+  choice set shares** (`'Al'` for `Alpha/Alfa/Alto`), so `autocomplete`, which
+  filters by the typed value, renders the same list as `dropdown`, which forces
+  `filter: false`, and one assertion covers both. Reference:
+  `fixtures/demo/autocomplete-async-source.html`.
 - A fixture-served library MUST be a dependency of THIS package, loaded from
   `/tests/node_modules/…` — CI installs only the filtered `handsontable-tests`
   workspace, so a path into any other package's `node_modules` does not exist
@@ -66,6 +120,13 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   on its own, so `scrollTop > 0` passes with the auto-scroller dead. The scroll timer
   reschedules itself, so one `touchmove` past the edge starts it — poll for a further increase
   instead of holding for a fixed time (`waitForTimeout` is banned, see below).
+- Dual-listener devices (iPad with a desktop UA, Windows touchscreens) are emulated with
+  `test.use({ ...devices['Desktop Chrome'], hasTouch: true, browserName: 'chromium' })` — desktop
+  UA keeps `isMobileBrowser()` false while `hasTouch` makes Walkontable register touch AND mouse
+  listeners, and Chromium synthesizes the same mousedown/mouseup/click after `locator.tap()` that
+  iPad Safari does. Drive the pairing timers with `page.clock`. Reference:
+  `e2e/touch-tap-to-edit.spec.ts` (page object in `fixtures/pages/`, not `fixtures/pages/mobile/`,
+  because the fixture is not a mobile-UA grid).
 
 ## Rendering below 100% (zoom / display scaling)
 
