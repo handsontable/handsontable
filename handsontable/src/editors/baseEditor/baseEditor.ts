@@ -656,7 +656,6 @@ export class BaseEditor {
 
     const hasColumnHeaders = this.hot.hasColHeaders();
     const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row ?? 0);
-    const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col ?? 0);
     const nrOfRenderableRowIndexes = this.hot.rowIndexMapper.getRenderableIndexesLength();
     const firstRowIndexOfTheBottomOverlay =
       nrOfRenderableRowIndexes - (this.hot.view._wt.getSetting('fixedRowsBottom') as number);

@@ -45,7 +45,7 @@ test.describe('Row header border ownership', () => {
   });
 
   test('lets the corner header own the same gridline in the header row', async () => {
-    expect(await grid.borders(grid.cornerHeaderCell('row-headers'))).toMatchObject({ end: 1 });
+    expect(await grid.borders(grid.cornerHeaderCell('row-headers'))).toEqual({ start: 1, end: 1 });
     expect(await grid.borders(grid.firstColumnHeaderCell('row-headers'))).toEqual({ start: 0, end: 1 });
   });
 
@@ -92,7 +92,7 @@ test.describe('Row header border ownership', () => {
     // The rules are written with logical properties, so RTL needs no mirror rule: the row header's
     // inline end resolves to its physical left, which is where the seam is in RTL.
     expect(await grid.physicalBorders(grid.rowHeaderCell('rtl'))).toEqual({ left: 1, right: 1 });
-    expect(await grid.physicalBorders(grid.firstBodyCell('rtl'))).toMatchObject({ right: 0 });
+    expect(await grid.physicalBorders(grid.firstBodyCell('rtl'))).toEqual({ left: 1, right: 0 });
 
     const widths = await grid.bodyCellContentWidths('rtl', 4);
 
@@ -105,9 +105,10 @@ test.describe('Row header border ownership', () => {
     expect(levels).toBeGreaterThan(1);
 
     for (let level = 0; level < levels; level++) {
-      expect(await grid.borders(grid.cornerHeaderCell('nested', level))).toMatchObject({ end: 1 });
+      expect(await grid.borders(grid.cornerHeaderCell('nested', level)))
+        .toEqual({ start: 1, end: 1 });
       expect(await grid.borders(grid.firstColumnHeaderCell('nested', level)))
-        .toMatchObject({ start: 0 });
+        .toEqual({ start: 0, end: 1 });
     }
 
     const declared = await grid.declaredColumnWidth();

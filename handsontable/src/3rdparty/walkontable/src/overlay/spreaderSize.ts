@@ -142,5 +142,4 @@ export class SpreaderSize {
 
     hider.style.height = `${parseInt(hider.style.height, 10) + heightDelta}px`;
   }
-
 }
