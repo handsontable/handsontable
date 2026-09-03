@@ -894,7 +894,7 @@ export class ColumnSorting extends BasePlugin {
    * Callback for the `afterDataProviderFetch` hook.
    * Keeps header sort state in sync with query `sort` after server-backed `loadData` (same timing as Pagination).
    *
-   * @param {object} result [[Hooks#afterDataProviderFetch]] payload; reads `columnSortConfig` only.
+   * @param {object} result {@link Hooks#afterDataProviderFetch} payload; reads `columnSortConfig` only.
    */
   readonly #onAfterDataProviderFetch = (result: { columnSortConfig?: Record<string, unknown>[] }) => {
     this.setSortConfig((result?.columnSortConfig ?? []) as unknown as SortConfig[]);
