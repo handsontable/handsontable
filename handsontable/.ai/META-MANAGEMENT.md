@@ -108,6 +108,10 @@ Verified method names and signatures (`index.ts`):
 | `removeColumn(physicalColumn, amount = 1)` | `(number, number)` | void. Removes from both cell-meta and column-meta storage. |
 | `clearCellsCache()` | — | void. Drops all cell meta objects. Keeps column, table, and global meta. |
 | `clearCache()` | — | void. Drops all cell and column meta objects. |
+| `getUserDefinedCellMetas()` | — | Flat snapshot of every cell meta property written through `setCellMeta` (tracked in each cell's `_userDefinedMetaProps`), as `{ physicalRow, physicalColumn, key, value }`. Used by `Core#updateSettings` to replay imperative meta across its `clearCache()` (GitHub issue #4446). |
+| `getInvalidCellMetas()` | — | Physical coordinates of every cell whose own last validation failed, as `{ physicalRow, physicalColumn }`. The validation flow writes `valid` directly, so `getUserDefinedCellMetas()` cannot see it. Own-property read, `valid === false` only — the same predicate `evictRow()` uses. |
+| `restoreInvalidCellMetas(invalidCellMetas)` | `({ physicalRow, physicalColumn }[])` | void. Re-applies the failures captured by `getInvalidCellMetas()`, by direct property write — never through `setCellMeta`, which would record `valid` as user-defined and replay a stale `false` onto a corrected cell (GitHub issue #7553). |
+| `enableUserDefinedMetaRecording()` / `disableUserDefinedMetaRecording()` | — | void. Toggle whether `setCellMeta` writes are tracked as user-defined. Disabled while `updateSettings` applies the declarative `cell` option, so those writes stay declarative. |
 
 `MetaManager` mixes in `localHooks` (`mixin(MetaManager, localHooks)`), so it exposes `addLocalHook`, `removeLocalHook`, `runLocalHooks`, and `clearLocalHooks`. The dynamic-meta modifier uses these.
 

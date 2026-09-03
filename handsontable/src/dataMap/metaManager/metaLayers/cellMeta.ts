@@ -7,6 +7,30 @@ import type ColumnMeta from './columnMeta';
 import type { CellProperties } from '../../../settings';
 
 /**
+ * Tells whether the cell's own last validation failed. The validation flow writes `valid` straight
+ * onto the meta object instead of going through `setMeta`, so this is the only marker such a cell
+ * carries - both the viewport eviction and the `updateSettings` cache clear key their keep rules on
+ * it, and they must agree.
+ *
+ * The read is `hasOwnProperty`-guarded: `valid` is an ordinary meta key, so a grid can inherit
+ * `valid: false` from the column or global layer (`columns: [{ valid: false }]`, or any unrecognized
+ * top-level setting). Reading through the prototype chain would report every materialized cell of
+ * such a grid as invalid and let the restore stamp the flag on as an own property, which then
+ * outlives the setting that produced it and pins the cell against eviction forever.
+ *
+ * Only `false` counts, never `true`: a passing result has no rendered state, and preserving every
+ * validated-valid cell would defeat the memory bound on a fully validated grid. The trade-off is
+ * that such a cell reads back as `undefined` rather than `true`; no core reader distinguishes the
+ * two (all branch on `!== false`).
+ *
+ * @param {object} meta The cell meta object to test.
+ * @returns {boolean}
+ */
+function isFlaggedInvalid(meta: CellProperties): boolean {
+  return hasOwnProperty(meta, 'valid') && meta.valid === false;
+}
+
+/**
  * @class CellMeta
  *
  * The cell meta object is a root of all settings defined for the specific cell rendered by the
@@ -364,16 +388,12 @@ export default class CellMeta {
   }
 
   /**
-   * Returns the physical coordinates of every cell whose last validation failed. The validation flow
-   * writes `valid` straight onto the meta object instead of going through `setMeta`, so such a cell
-   * carries no `_userDefinedMetaProps` entry and `getUserDefinedMetas()` cannot see it. Used together
-   * with `restoreInvalidMetas()` to keep the invalid-cell highlight across the cache clear that
-   * `updateSettings` performs when its payload carries `cell`, `cells` or `columns`.
-   *
-   * Only `valid === false` is reported, never `valid === true` - the same rule `evictRow()` applies,
-   * and for the same reason: a passing result has no rendered state, and a cell that reads back as
-   * `undefined` rather than `true` is indistinguishable to every core reader (all branch on
-   * `!== false`).
+   * Returns the physical coordinates of every cell whose last validation failed. Such a cell carries
+   * no `_userDefinedMetaProps` entry, so `getUserDefinedMetas()` cannot see it - see
+   * `isFlaggedInvalid()` for why, and for the own-property and `false`-only rules this shares with
+   * `evictRow()`. Used together with `restoreInvalidMetas()` to keep the invalid-cell highlight
+   * across the cache clear that `updateSettings` performs when its payload carries `cell`, `cells`
+   * or `columns`.
    *
    * @returns {{physicalRow: number, physicalColumn: number}[]}
    */
@@ -382,7 +402,7 @@ export default class CellMeta {
 
     for (const [physicalRow, rowMap] of this.metas) {
       for (const [physicalColumn, meta] of rowMap) {
-        if (meta.valid === false) {
+        if (isFlaggedInvalid(meta)) {
           result.push({ physicalRow, physicalColumn });
         }
       }
@@ -431,15 +451,10 @@ export default class CellMeta {
     for (const [physicalColumn, meta] of rowMap) {
       const persistedProps = meta._persistedMetaProps as Set<string> | undefined;
       const hasPersistedProps = persistedProps !== undefined && persistedProps.size > 0;
-      // A failed validation result (`valid === false`) is written directly onto the meta object by
-      // the core validation flow (not through `setMeta`) and is not rebuilt on render, so the cell
-      // must survive eviction or the invalid-cell highlight would disappear after scrolling away.
-      // Only `false` is preserved, not `valid === true`: a passing result has no rendered state and
-      // preserving every validated-valid cell would defeat the memory bound on a fully validated grid.
-      // The trade-off is that `getCellMeta().valid` reads back as `undefined` (not `true`) for an
-      // evicted-and-re-minted valid cell until it is validated again; no core reader distinguishes the
-      // two (all branch on `!== false`).
-      const isInvalid = meta.valid === false;
+      // A cell flagged invalid is not rebuilt on render, so it must survive eviction or the
+      // invalid-cell highlight would disappear after scrolling away. Same rule, same predicate as
+      // the `updateSettings` snapshot - see `isFlaggedInvalid()`.
+      const isInvalid = isFlaggedInvalid(meta);
 
       if (hasPersistedProps || isInvalid) {
         hasKeptCell = true;

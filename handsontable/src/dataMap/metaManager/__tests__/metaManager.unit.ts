@@ -271,10 +271,35 @@ describe('MetaManager', () => {
       // Materialized but never validated.
       metaManager.getCellMeta(4, 4, { visualRow: 4, visualColumn: 4 });
 
-      expect(metaManager.getInvalidCellMetas()).toEqual([
-        { physicalRow: 0, physicalColumn: 0 },
-        { physicalRow: 3, physicalColumn: 1 },
-      ]);
+      // Order-independent: the method promises a set of coordinates, not an iteration order.
+      const invalidCellMetas = metaManager.getInvalidCellMetas();
+
+      expect(invalidCellMetas.length).toBe(2);
+      expect(invalidCellMetas).toContainEqual({ physicalRow: 0, physicalColumn: 0 });
+      expect(invalidCellMetas).toContainEqual({ physicalRow: 3, physicalColumn: 1 });
+    });
+
+    it('should ignore a `valid` flag inherited from a higher meta layer', () => {
+      // `valid` is an ordinary meta key, so it can be declared on the column or global layer. Reading
+      // it through the prototype chain would report every materialized cell of such a grid, and the
+      // restore would then stamp the flag on as an own property that outlives the setting.
+      const metaManager = new MetaManager();
+
+      metaManager.updateColumnMeta(0, { valid: false });
+
+      const cellMeta = metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 });
+
+      expect(cellMeta.valid).toBe(false); // inherited, so the cell still reads as invalid
+      expect(metaManager.getInvalidCellMetas()).toEqual([]);
+    });
+
+    it('should report a cell whose own `valid` is false even when a higher layer says otherwise', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.updateColumnMeta(0, { valid: true });
+      metaManager.getCellMeta(1, 0, { visualRow: 1, visualColumn: 0 }).valid = false;
+
+      expect(metaManager.getInvalidCellMetas()).toEqual([{ physicalRow: 1, physicalColumn: 0 }]);
     });
 
     it('should report physical coordinates, so they stay usable after a cache clear', () => {

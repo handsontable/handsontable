@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Fixed a bug where a cell marked as invalid lost its highlight after `updateSettings()` was called with the `cell`, `cells`, or `columns` option, while the cell kept the invalid value. In React, this happened on every re-render of a grid that has `HotColumn` children.",
+  "title": "Fixed a bug where a cell marked as invalid lost its highlight after `updateSettings()` was called with the `cell`, `cells`, or `columns` option, while the cell kept the invalid value. This also affected cells still being checked by an asynchronous validator. In React, it happened on every re-render of a grid that has `HotColumn` children; in Angular, on every change to the `settings` input.",
   "type": "fixed",
   "issueOrPR": 7553,
   "breaking": false,

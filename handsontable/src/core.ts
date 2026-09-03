@@ -2592,6 +2592,25 @@ export default function Core(
             .runHooks('afterValidate', valid, value, cellProperties.visualRow, colArg, source);
           cellProperties.valid = valid;
 
+          // An async validator can still be in flight when `updateSettings` clears the cell meta
+          // cache, which detaches `cellProperties` from the meta store - the result would then land
+          // on an orphaned object and the invalid mark would never appear (GitHub issue #7553).
+          // Re-resolve and write the failure through. Only a failure needs this: `valid === true` has
+          // no rendered state, and a re-minted cell reading back `undefined` instead of `true` is
+          // indistinguishable to every core reader (all branch on `!== false`). The guard skips the
+          // synthetic table-meta object `validateChanges` builds when a change names no visual column.
+          if (valid === false && Number.isInteger(cellProperties.visualCol)) {
+            const storedCellProperties = instance.getCellMeta(
+              cellProperties.visualRow as number,
+              cellProperties.visualCol as number,
+              { skipMetaExtension: true }
+            ) as { valid?: boolean };
+
+            if (storedCellProperties !== cellProperties) {
+              storedCellProperties.valid = valid;
+            }
+          }
+
           done(valid);
           instance.runHooks(
             'postAfterValidate', valid, value, cellProperties.visualRow, colArg, source
@@ -5473,6 +5492,9 @@ export default function Core(
             // `setCellMeta`, which would mark the property as user-persisted and change
             // updateSettings/eviction semantics). Only failures materialize, so retention stays
             // O(invalid cells); the eviction pass already keeps `valid === false` cells.
+            // `validateCell` now makes the same write, for the same reason plus the async-detach
+            // case - this one is kept so the guarantee does not depend on that call site, and both
+            // write the identical value on the identical object.
             instance.getCellMeta(row, column, { skipMetaExtension: true }).valid = false;
           }
           waitingForValidator.removeValidatorFormQueue();

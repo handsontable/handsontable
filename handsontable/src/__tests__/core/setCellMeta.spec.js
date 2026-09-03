@@ -330,8 +330,8 @@ describe('Core.setCellMeta', () => {
       },
     };
 
-    const markCellInvalid = async() => {
-      await setDataAtCell(0, 0, 'nope');
+    const markCellInvalid = async(row = 0, column = 0) => {
+      await setDataAtCell(row, column, 'nope');
       await waitForNextAnimationFrames(7); // wait for async validation
     };
 
@@ -418,8 +418,7 @@ describe('Core.setCellMeta', () => {
       // back when the columns grow again. Asserted side by side so the two paths cannot drift.
       handsontable({ ...settingsWithFailingValidator });
 
-      await setDataAtCell(0, 4, 'nope');
-      await waitForNextAnimationFrames(7); // wait for async validation
+      await markCellInvalid(0, 4);
       await setCellMeta(0, 4, 'className', 'marker');
 
       await updateSettings({ columns: [{}, {}, {}] });
@@ -446,11 +445,57 @@ describe('Core.setCellMeta', () => {
       expect(getCell(0, 0).classList.contains('htInvalid')).toBe(false);
 
       // A restored value must not be replayed on the next cache clear - the preserved `valid` is a
-      // direct meta write, never a user-defined property.
+      // direct meta write, never a user-defined property. The cache clear re-mints the cell, so the
+      // flag reads back as `undefined` rather than `true`; asserting that exactly would also catch a
+      // change that started preserving passing results.
       await updateSettings({ columns: [{}, {}, {}, {}, {}] });
 
-      expect(getCellMeta(0, 0).valid).not.toBe(false);
+      expect(getCellMeta(0, 0).valid).toBeUndefined();
       expect(getCell(0, 0).classList.contains('htInvalid')).toBe(false);
+    });
+
+    it('should keep the mark when an async validator resolves after the cache was cleared', async() => {
+      // The stored meta object is handed to `validateCell` by reference. An `updateSettings` landing
+      // while the validator is still in flight detaches it, so the result has to be written through
+      // the re-resolved meta or the mark never appears.
+      // The validator hands its callback to the test instead of resolving on a timer, so the
+      // ordering is exact: the cache clear provably happens while validation is still pending.
+      let resolveValidation;
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        validator(value, callback) {
+          resolveValidation = () => callback(value !== 'nope');
+        },
+      });
+
+      await setDataAtCell(0, 0, 'nope');
+
+      await updateSettings({ columns: [{}, {}, {}, {}, {}] });
+
+      resolveValidation();
+
+      await waitForNextAnimationFrames(7); // wait for async validation
+
+      expect(getCellMeta(0, 0).valid).toBe(false);
+      expect(getCell(0, 0).classList.contains('htInvalid')).toBe(true);
+    });
+
+    it('should ignore a `valid` flag inherited from the column or grid layer', async() => {
+      // `valid` is an ordinary meta key, so it can be declared above the cell layer. Reading it
+      // through the prototype chain would report every materialized cell as invalid and stamp the
+      // flag on as an own property, which then outlives the setting that produced it.
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        columns: [{ valid: false }, {}, {}, {}, {}],
+      });
+
+      await updateSettings({ columns: [{ valid: false }, {}, {}, {}, {}] });
+      await updateSettings({ columns: [{}, {}, {}, {}, {}] });
+
+      expect(getCellMeta(0, 0).valid).toBeUndefined();
+      expect(getCell(0, 0).classList.contains('htInvalid')).toBe(false);
+      expect(spec().$container.find('td.htInvalid').length).toBe(0);
     });
   });
 });
