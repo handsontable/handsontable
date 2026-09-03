@@ -113,7 +113,9 @@ export class DataChangeAction extends BaseAction {
           // Merge areas this change is about to destroy. Carried inside this action so a single
           // undo step puts back both the data and the geometry - see the MergeCells plugin, which
           // records them from its own `beforeChange` listener at an earlier priority than this one.
-          mergedCells: collectMergedCellsDestroyedByChange(hot),
+          // `source` decides ownership: a paste's validation window can carry other changes, and
+          // none of them may inherit this geometry.
+          mergedCells: collectMergedCellsDestroyedByChange(hot, source),
         });
       };
 

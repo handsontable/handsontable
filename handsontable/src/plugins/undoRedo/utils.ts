@@ -65,14 +65,33 @@ export function collectAffectedMergedCells(hot: HotInstance, axis: 'row' | 'col'
 }
 
 /**
+ * The change source that owns the merge-geometry snapshot. Only a paste destroys merge areas, so
+ * only a paste's own action may carry the geometry.
+ */
+const SNAPSHOT_OWNER_SOURCE = 'CopyPaste.paste';
+
+/**
  * Collects the merge areas a data change is about to destroy, as recorded by the MergeCells plugin
  * itself. Only a multi-cell paste over a merged area reports anything here; every other change
  * yields an empty list, so an ordinary edit never re-merges on undo.
  *
+ * The source check is what keeps the snapshot attached to the change that caused it. MergeCells
+ * reads the same field from its own `afterChange`, so the read cannot consume it, and a paste's
+ * validation window is wide enough for other changes to arrive in between: a validator that
+ * corrects a value writes through `setDataAtCell` with its own `*Validator` source, once per
+ * corrected cell, and each of those raises a `beforeChange` of its own. Without this check every
+ * one of them recorded the paste's geometry, so undoing a single correction re-formed the merge on
+ * top of the values the paste had already written - the very defect this geometry exists to avoid.
+ *
  * @param {Core} hot The Handsontable instance.
+ * @param {string} source The change source, as passed to the `beforeChange` hook.
  * @returns {Array} Array of `{ row, col, rowspan, colspan }` objects.
  */
-export function collectMergedCellsDestroyedByChange(hot: HotInstance) {
+export function collectMergedCellsDestroyedByChange(hot: HotInstance, source: string) {
+  if (source !== SNAPSHOT_OWNER_SOURCE) {
+    return [];
+  }
+
   const mergeCellsPlugin = hot.getPlugin('mergeCells');
 
   if (!mergeCellsPlugin?.enabled) {
@@ -105,11 +124,14 @@ export function remergeCellsGeometryOnly(hot: HotInstance, mergedCells: MergedCe
     return;
   }
 
-  mergedCells.forEach((mergedCell: MergedCell) => {
-    const range = toMergeAreaRange(hot, mergedCell);
+  // `unmergeRange` renders on its own, so without batching an N-merge undo redraws N times.
+  hot.batchRender(() => {
+    mergedCells.forEach((mergedCell: MergedCell) => {
+      const range = toMergeAreaRange(hot, mergedCell);
 
-    mergeCellsPlugin.unmergeRange(range, true);
-    mergeCellsPlugin.mergeRange(range, true, true);
+      mergeCellsPlugin.unmergeRange(range, true);
+      mergeCellsPlugin.mergeRange(range, true, true);
+    });
   });
 
   hot.render();
@@ -132,8 +154,11 @@ export function unmergeCellsGeometryOnly(hot: HotInstance, mergedCells: MergedCe
     return;
   }
 
-  mergedCells.forEach((mergedCell: MergedCell) => {
-    mergeCellsPlugin.unmergeRange(toMergeAreaRange(hot, mergedCell), true);
+  // Same batching as above - `unmergeRange` renders per call.
+  hot.batchRender(() => {
+    mergedCells.forEach((mergedCell: MergedCell) => {
+      mergeCellsPlugin.unmergeRange(toMergeAreaRange(hot, mergedCell), true);
+    });
   });
 }
 

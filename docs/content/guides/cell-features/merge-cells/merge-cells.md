@@ -379,12 +379,9 @@ Every merged range the pasted block reaches is unmerged, not only the one you se
 
 Pasting a single value leaves the merge in place. A single value carries no structure of its own, so it lands in the merged range's top-left cell and the covered cells stay empty.
 
-Both cases are one undo step. A single [`undo()`](@/api/core.md#undo) restores the pasted values and the merged ranges together.
+The merge geometry travels with the paste's own undo entry, so [`undo()`](@/api/core.md#undo) restores the pasted values and the merged ranges together rather than in two steps. A validator that corrects a pasted value adds an undo entry of its own for each cell it corrects, as it does for any other write; those entries revert only their value and leave the merged ranges alone.
 
-Two things this does not do:
-
-- **Copying does not carry the merge.** A merged range copies as its top-left value plus empty cells, so pasting it elsewhere creates no merge. Pasted HTML `rowspan` and `colspan` attributes are flattened the same way: the value lands in the top-left cell of the span and the covered cells are set to `null`.
-- **`pasteMode` other than `'overwrite'` leaves merges alone.** With [`pasteMode`](@/api/options.md#pastemode) set to `'shift_down'` or `'shift_right'`, the paste pushes the existing cells aside instead of overwriting them, and the merged ranges shift along with the rows or columns they sit in.
+One thing this does not do: **copying does not carry the merge.** A merged range copies as its top-left value plus empty cells, so pasting it elsewhere creates no merge. Pasted HTML `rowspan` and `colspan` attributes are flattened the same way: the value lands in the top-left cell of the span and the covered cells are set to `null`.
 
 To keep a merged range intact, cancel the paste from [`beforePaste`](@/api/hooks.md#beforepaste). Returning `false` there stops the whole paste, so nothing is written and no merge is dropped:
 
@@ -398,12 +395,19 @@ new Handsontable(container, {
       return; // a single value never breaks a merge, so let it through
     }
 
-    // `coords` describes the selected area, which is the paste destination. Scan the whole area,
-    // not just its corner: `rowspan` and `colspan` are set only on a merged range's top-left cell,
-    // so a merged range lying inside the selection would go unnoticed.
+    const clipboardRows = data.length;
+    const clipboardColumns = Math.max(...data.map(row => row.length));
+
+    // Measure the area the paste writes, not the selected area: a paste fills the larger of the
+    // copied block and the selection on each axis, so it can reach past the selection. Scan every
+    // cell of that area, because `rowspan` and `colspan` are set only on a merged range's
+    // top-left cell.
     const touchesMergedRange = coords.some(({ startRow, startCol, endRow, endCol }) => {
-      for (let row = startRow; row <= endRow; row += 1) {
-        for (let col = startCol; col <= endCol; col += 1) {
+      const lastRow = startRow + Math.max(clipboardRows, endRow - startRow + 1) - 1;
+      const lastColumn = startCol + Math.max(clipboardColumns, endCol - startCol + 1) - 1;
+
+      for (let row = startRow; row <= lastRow; row += 1) {
+        for (let col = startCol; col <= lastColumn; col += 1) {
           const { rowspan, colspan } = this.getCellMetaTransient(row, col);
 
           if (rowspan > 1 || colspan > 1) {

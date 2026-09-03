@@ -229,8 +229,9 @@ export class MergeCells extends BasePlugin {
 
   /**
    * The merge areas that the paste currently being processed is about to destroy, captured from
-   * `beforeChange` while they are still in the collection. The UndoRedo plugin reads this so that
-   * the geometry rides inside the same undo action as the pasted data.
+   * `beforeChange` while they are still in the collection, and measured against the changes that
+   * survived every other listener. The UndoRedo plugin reads this so that the geometry rides
+   * inside the same undo action as the pasted data.
    *
    * @type {Array}
    */
@@ -294,7 +295,12 @@ export class MergeCells extends BasePlugin {
     // Runs last among the `beforePaste` listeners: another listener may rewrite `pastedData` in
     // place (a supported contract), and the single-cell decision has to see the final block.
     this.addHook('beforePaste', this.#onBeforePaste, 1000);
-    this.addHook('beforeChange', this.#onBeforeChange);
+    // Runs at 900: after every ordinary `beforeChange` listener, so the recorded geometry is
+    // measured against the change set that actually survives, and before `DataChangeAction`'s
+    // listener at 1000, which reads it. A listener that vetoes part of a paste by nulling its
+    // entries therefore shrinks - or empties - what this records, instead of leaving a snapshot
+    // that describes a write that never happened.
+    this.addHook('beforeChange', this.#onBeforeChange, 900);
     this.addHook('afterChange', this.#onAfterChange);
     this.addHook('beforeDrawBorders', this.#onBeforeDrawAreaBorders);
     this.addHook('afterDrawSelection', this.#onAfterDrawSelection);

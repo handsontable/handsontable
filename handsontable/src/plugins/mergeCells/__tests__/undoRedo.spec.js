@@ -799,6 +799,75 @@ describe('MergeCells -> Undo/Redo', () => {
       ]);
     });
 
+    // A validator that corrects a value writes through `setDataAtCell` with a `*Validator` source
+    // (the documented convention - see validators/__tests__/validatorCorrection.spec.js), once per
+    // corrected cell, and each of those raises a `beforeChange` of its own INSIDE the paste's
+    // validation window. Those changes must not inherit the paste's merge geometry: undoing a
+    // single correction would then re-form the merge on top of the values the paste had already
+    // written, which is the same "shown value is not the stored value" defect this fix exists to
+    // remove. Before the source check there were ten actions on the stack for this paste, every
+    // one of them carrying the geometry.
+    it('should not attach the merge geometry to a correcting validator\'s own changes', async() => {
+      const uppercaseValidator = function(value, callback) {
+        if (typeof value === 'string' && value !== value.toUpperCase()) {
+          this.instance.setDataAtCell(this.visualRow, this.visualCol, value.toUpperCase(), 'uppercaseValidator');
+        }
+
+        callback(true);
+      };
+
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        validator: uppercaseValidator,
+        mergeCells: [
+          { row: 5, col: 6, rowspan: 3, colspan: 3 }, // G6:I8
+        ],
+      });
+
+      const plugin = getPlugin('mergeCells');
+      const undoRedo = getPlugin('undoRedo');
+
+      // Each of the nine pasted values is lowercase, so each one draws a correction. Wait for all
+      // nine to land rather than for a fixed delay.
+      const CORRECTIONS_EXPECTED = 9;
+      let corrections = 0;
+      const allCorrected = new Promise((resolve) => {
+        hot().addHook('afterChange', (changes, source) => {
+          if (source === 'uppercaseValidator') {
+            corrections += 1;
+
+            if (corrections === CORRECTIONS_EXPECTED) {
+              resolve();
+            }
+          }
+        });
+      });
+
+      await selectCell(5, 6);
+
+      triggerPaste('a\tb\tc\nd\te\tf\ng\th\ti');
+
+      await allCorrected;
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(0);
+
+      const carryingGeometry = undoRedo.doneActions.filter(action => action.mergedCells.length > 0);
+
+      // Exactly one action owns the geometry: the paste's own.
+      expect(carryingGeometry.length).toBe(1);
+      expect(carryingGeometry[0].changes.length).toBe(9);
+
+      // Undoing a correction reverts its value and leaves the merge alone, so no pasted value ends
+      // up hidden behind a re-formed merge.
+      const undone = settled();
+
+      undoRedo.undo();
+      await undone;
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(0);
+      expect(getCellMeta(5, 7).hidden).toBeFalsy();
+    });
+
     it('should restore only the value when a single pasted value left the merged cell intact', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
