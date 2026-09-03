@@ -106,6 +106,46 @@ Three more things that pass every functional test and only show up in a profile 
 
 When you add a new content-driven measurement, ask which tables actually render the content — measuring the master alone is the trap both of these exist to work around.
 
+## Column-axis border ownership: the row header owns its gridline
+
+The two axes are NOT symmetric, and the column axis is the settled one. On the column axis a row
+header `th` carries its own `border-inline-end` at **every** scroll position, and no `td` standing
+behind a row header carries a `border-inline-start`. So one declared `colWidths` produces one content
+width in every column, and `col.rowHeader` is written verbatim from the `rowHeaderWidth` setting
+whatever the scroll offset (`render/colGroup.ts`).
+
+It used to work the other way round, and that was issue #6673. `td:first-of-type` was given an
+inline-start border on top of the inline-end border every cell has, and `box-sizing: border-box` took
+both out of the same `col` width — so column 0's content box was 1px narrower than everybody else's.
+The row header then dropped its own inline-end border at offset 0 to keep the seam from doubling, and
+a `correctHeaderWidth` flag widened the row header by 1px the moment the grid scrolled, with matching
+compensations in `inlineStartOverlay#scrollTo`, the hider width (`spreaderSize`) and the two column
+calculators (`viewportWidth + 1`). The table therefore changed width by being scrolled. All of that is
+gone; do not reintroduce a scroll-dependent header width or a per-axis `+ 1` in a column calculator —
+`getViewportWidth()` is exact at every offset now.
+
+Consequences worth knowing:
+
+- **`innerBorderInlineStart`, `innerBorderLeft` and `emptyColumns` still get stamped on `.ht_master`**
+  (`overlay/regions/inlineStartOverlay.ts`) and are kept for backward compatibility, but no stylesheet
+  reads them any more. `innerBorderInlineStart` also only toggles when the grid has row headers and NO
+  frozen columns, so it is not a usable "has scrolled" signal in a test — poll the holder's
+  `scrollLeft` instead.
+- **The row axis is unchanged.** `innerBorderTop` / `innerBorderBottom` still shift the layout by 1px,
+  which is what `positionChanged` and the reconciliation draw in `table/drawCycle.ts` exist for, and
+  `columnHeaderBorderCompensation` in `topOverlay`/`spreaderSize` is the vertical twin that stayed.
+  Bringing the row axis into line is a separate change.
+- **Anything positioning an element over a cell must read the cell's border, not its index.** Which
+  cells own an inline-start border is no longer "column 0": with row headers none of them do, and
+  `htFirstDatasetColumnNotRendered` takes it off the first rendered column too. `BaseEditor#getEditedCellRect`
+  keys both the editor's width and its inline-start offset off the same computed border for exactly
+  that reason — key them off different things and the editor is a pixel wider than where it starts,
+  overhanging the next column.
+- Without row headers, column 0 is the first cell of its row and still draws the grid's own
+  inline-start frame inside its declared width. It stays 1px narrower than the rest — deliberately out
+  of scope for #6673, and pinned as a control case in
+  `tests/e2e/row-header-border-ownership.spec.ts`.
+
 ## A table built outside the layout cannot read its own styles
 
 A container that generates no boxes — detached from the document, or a light-DOM child of a shadow

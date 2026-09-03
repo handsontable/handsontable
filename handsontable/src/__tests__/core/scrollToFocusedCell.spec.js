@@ -139,7 +139,7 @@ describe('Core.scrollToFocusedCell', () => {
     await scrollToFocusedCell();
 
     // 2500 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
-    expect(inlineStartOverlay().getScrollPosition()).toBe(2766);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(2765);
     expect(topOverlay().getScrollPosition()).toBe(scrollVBefore);
   });
 

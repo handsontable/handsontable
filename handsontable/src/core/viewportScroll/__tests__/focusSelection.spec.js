@@ -127,14 +127,13 @@ describe('Focus selection scroll', () => {
   });
 
   it('should scroll the viewport horizontally', async() => {
-    // The viewport width shows exactly 4 columns + 1 header col + 15px (scrollbar) + 1px (grid
-    // left-frame border). The 1px slack makes the scroll positions below land on exact
-    // `colWidths` multiples on every theme -- themes that render a 1px cell border-left
-    // consume that slack; themes without it leave it as a 1px gap. Do not re-introduce a
-    // theme-specific `+ 1` on the expected scroll values; the container width already
-    // normalizes the difference.
+    // The viewport width shows exactly 4 columns + 1 header col + 15px (scrollbar), which makes
+    // the scroll positions below land on exact `colWidths` multiples on every theme. This used to
+    // need 1px of extra slack to absorb the border the first data column carried inside its own
+    // width; since #6673 the row header owns that gridline, so every column has the same content
+    // width and no theme needs the slack. Do not re-introduce a `+ 1` on either side.
     const colWidths = 60;
-    const width = getDefaultRowHeaderWidth() + (4 * colWidths) + 16;
+    const width = getDefaultRowHeaderWidth() + (4 * colWidths) + 15;
 
     handsontable({
       data: createSpreadsheetData(5, 50),

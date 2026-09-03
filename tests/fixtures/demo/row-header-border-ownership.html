@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Row header border ownership e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    Issue #6673. With row headers on, the first data column rendered 1px narrower than every other
+    column: the base stylesheet gave `td:first-of-type` an inline-start border on top of the
+    inline-end border every cell has, and `box-sizing: border-box` took both out of the same `col`
+    width. So `colWidths: 75` produced a 73px content box in column 0 and 74px everywhere else.
+
+    The row header drew no inline-end border at scroll offset 0 to keep the seam from doubling, and
+    the engine then widened the row header by 1px as soon as the grid scrolled - so the whole table
+    changed width by scrolling.
+
+    The gridline between the row header and column 0 now belongs to the row header at every scroll
+    position, and no cell behind a row header draws an inline-start border. All of this is geometry,
+    so none of it can be checked in jsdom, where every size reads as zero.
+
+    Every grid is wider than its container, so the same assertions can be made before and after a
+    horizontal scroll.
+  -->
+  <h2>Row headers (the reported case)</h2>
+  <div id="row-headers" data-testid="row-headers"></div>
+
+  <!--
+    A frozen first column renders column 0 in the inline-start clone rather than in the master, and
+    that clone carries its own copy of the cell rules. It is the surface `manualColumnFreeze` used to
+    patch with a physical `border-left: 0 none` override.
+  -->
+  <h2>Row headers with a frozen first column</h2>
+  <div id="frozen" data-testid="frozen"></div>
+
+  <!--
+    In RTL the row header sits on the physical right, so the seam and the border that draws it move
+    with it. The rules are logical properties, which is what makes this work without a mirror rule.
+  -->
+  <h2>Row headers, RTL</h2>
+  <div id="rtl" data-testid="rtl"></div>
+
+  <!--
+    Nested headers add header rows whose first cell is a rowspanned corner. Each level has to reach
+    the same verdict as the single-level case.
+  -->
+  <h2>Row headers with nested headers</h2>
+  <div id="nested" data-testid="nested"></div>
+
+  <!--
+    The control, and the deliberate limit of the fix: with no row header in front of it, column 0 is
+    the first cell of its row and still draws the grid's own inline-start frame inside its width. It
+    stays 1px narrower than the rest, exactly as it always has been.
+  -->
+  <h2>No row headers (control)</h2>
+  <div id="control" data-testid="control"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    // Every column asks for the same width, which is the whole premise: whatever the grid does with
+    // the gridlines, one declared width must produce one content width.
+    const COL_WIDTH = 75;
+    // Far more columns than fit, so there is always somewhere to scroll to.
+    const TOTAL_COLUMNS = 30;
+
+    /**
+     * Builds one grid.
+     *
+     * @param {string} testId The container's test id.
+     * @param {object} settings The settings under test.
+     * @returns {Handsontable} The grid instance.
+     */
+    function buildGrid(testId, settings) {
+      const container = document.querySelector(`[data-testid="${testId}"]`);
+
+      container.className = `ht-theme-${window.htTheme}`;
+
+      return new Handsontable(container, Object.assign({
+        data: Handsontable.helper.createSpreadsheetData(20, TOTAL_COLUMNS),
+        colHeaders: true,
+        rowHeaders: true,
+        colWidths: COL_WIDTH,
+        width: 500,
+        height: 300,
+        licenseKey: 'non-commercial-and-evaluation',
+      }, settings));
+    }
+
+    window.htColWidth = COL_WIDTH;
+    window.grids = {
+      rowHeaders: buildGrid('row-headers', {}),
+      frozen: buildGrid('frozen', { fixedColumnsStart: 1 }),
+      rtl: buildGrid('rtl', { layoutDirection: 'rtl' }),
+      nested: buildGrid('nested', {
+        nestedHeaders: [
+          [{ label: 'Group', colspan: 2 }, { label: 'Pair', colspan: 2 }, 'E', 'F'],
+          ['A', 'B', 'C', 'D', 'E2', 'F2'],
+        ],
+      }),
+      control: buildGrid('control', { rowHeaders: false }),
+    };
+
+    /**
+     * Scrolls one grid horizontally so a column well past the first is at the viewport's start.
+     *
+     * @param {string} name The grid's key in `window.grids`.
+     * @param {number} column The visual column index to snap to the inline start.
+     */
+    window.scrollHorizontallyTo = function(name, column) {
+      window.grids[name].scrollViewportTo({ col: column, horizontalSnap: 'start' });
+    };
+  </script>
+</body>
+</html>

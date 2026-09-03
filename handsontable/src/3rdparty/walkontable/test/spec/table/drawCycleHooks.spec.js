@@ -311,7 +311,7 @@ describe('Table.draw() lifecycle hooks (characterization for the drawCycle refac
     }
   });
 
-  it('should restore the `correctHeaderWidth` flag when the render is skipped', async() => {
+  it('should keep the row header width unchanged across a horizontal scroll whose render is skipped', async() => {
     let skipNextRender = false;
     const wt = walkontable({
       data: getData,
@@ -329,16 +329,25 @@ describe('Table.draw() lifecycle hooks (characterization for the drawCycle refac
 
     wt.draw();
 
-    expect(wt.wtTable.correctHeaderWidth).toBe(false);
+    const rowHeaderWidth = () => wt.wtTable.TABLE.querySelector('tbody tr th').offsetWidth;
+    const widthBeforeScroll = rowHeaderWidth();
 
-    // The flag flips before the `beforeDraw` gate, but the header it describes never re-renders on
-    // a skipped draw. Left advanced, the next draw would see "no change" and keep the stale header
-    // width forever - so the rollback must put the flag back with the rest of the rendered state.
+    expect(widthBeforeScroll).toBeGreaterThan(0);
+
+    // The row header owns its inline-end border at every scroll position, so its width is scroll
+    // independent - a skipped draw cannot leave the DOM describing a width the engine no longer
+    // reports (#6673). Before that change the header grew by 1px once the table scrolled, and the
+    // flag that tracked it had to be rolled back here.
     skipNextRender = true;
     wt.scrollViewportHorizontally(3, 'end');
     wt.draw();
 
-    expect(wt.wtTable.correctHeaderWidth).toBe(false);
+    expect(rowHeaderWidth()).toBe(widthBeforeScroll);
+
+    skipNextRender = false;
+    wt.draw();
+
+    expect(rowHeaderWidth()).toBe(widthBeforeScroll);
   });
 
   it('should fire `beforeDraw` but SKIP `onDraw` when beforeDraw sets skipRender', async() => {

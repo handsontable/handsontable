@@ -85,7 +85,12 @@ describe('IntlDateEditor', () => {
 
     await keyDownUp('F2');
 
-    expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
+    // Every cell here sits behind a row header, which owns the gridline on its
+    // inline-start side, so the editor starts 1px before the cell to cover it (#6673).
+    expect({
+      top: editor.offset().top,
+      left: editor.offset().left + 1,
+    }).toEqual($(getCell(0, 0)).offset());
   });
 
   it('should not highlight the input element by browsers native selection', async() => {

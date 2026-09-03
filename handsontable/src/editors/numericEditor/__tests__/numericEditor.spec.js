@@ -97,7 +97,12 @@ describe('NumericEditor', () => {
 
     await keyDownUp('F2');
 
-    expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
+    // Every cell here sits behind a row header, which owns the gridline on its
+    // inline-start side, so the editor starts 1px before the cell to cover it (#6673).
+    expect({
+      top: editor.offset().top,
+      left: editor.offset().left + 1,
+    }).toEqual($(getCell(0, 0)).offset());
   });
 
   it('should render an editor in specified position while opening an editor from top to bottom when ' +
@@ -122,16 +127,21 @@ describe('NumericEditor', () => {
 
     await keyDownUp('enter');
 
-    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+    // Every cell here sits behind a row header, which owns the gridline on its
+    // inline-start side, so the editor starts 1px before the cell to cover it (#6673).
+    expect({
+      top: editor.offset().top,
+      left: editor.offset().left + 1,
+    }).toEqual($(getCell(0, 0, true)).offset());
 
     await keyDownUp('enter');
     await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
-    // Cells that do not touch the edges of the table have an additional top border.
+    // Cells that do not touch the edges of the table also have an additional top border.
     const editorOffset = () => ({
       top: editor.offset().top + 1,
-      left: editor.offset().left,
+      left: editor.offset().left + 1,
     });
 
     expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
@@ -159,7 +169,10 @@ describe('NumericEditor', () => {
     await keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
-    expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
+    expect({
+      top: editor.offset().top,
+      left: editor.offset().left + 1,
+    }).toEqual($(getCell(5, 0, true)).offset());
 
     await keyDownUp('enter');
     await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
@@ -190,13 +203,18 @@ describe('NumericEditor', () => {
 
     await keyDownUp('enter');
 
-    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+    // Every cell here sits behind a row header, which owns the gridline on its
+    // inline-start side, so the editor starts 1px before the cell to cover it (#6673).
+    expect({
+      top: editor.offset().top,
+      left: editor.offset().left + 1,
+    }).toEqual($(getCell(0, 0, true)).offset());
 
     await selectCell(0, 1);
     await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
-    // Cells that do not touch the edges of the table have an additional left border.
+    // Every cell here sits behind a row header (see above).
     const editorOffset = () => ({
       top: editor.offset().top,
       left: editor.offset().left + 1,
@@ -250,16 +268,21 @@ describe('NumericEditor', () => {
     await keyDownUp('enter');
 
     // First renderable row index.
-    expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
+    // Every cell here sits behind a row header, which owns the gridline on its
+    // inline-start side, so the editor starts 1px before the cell to cover it (#6673).
+    expect({
+      top: editor.offset().top,
+      left: editor.offset().left + 1,
+    }).toEqual($(getCell(1, 0, true)).offset());
 
     await keyDownUp('enter');
     await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
-    // Cells that do not touch the edges of the table have an additional top border.
+    // Cells that do not touch the edges of the table also have an additional top border.
     const editorOffset = () => ({
       top: editor.offset().top + 1,
-      left: editor.offset().left,
+      left: editor.offset().left + 1,
     });
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
@@ -281,7 +304,10 @@ describe('NumericEditor', () => {
     await keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
-    expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
+    expect({
+      top: editor.offset().top,
+      left: editor.offset().left + 1,
+    }).toEqual($(getCell(6, 0, true)).offset());
 
     await keyDownUp('enter');
     await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
@@ -311,13 +337,18 @@ describe('NumericEditor', () => {
     await keyDownUp('enter');
 
     // First renderable column index.
-    expect(editor.offset()).toEqual($(getCell(0, 1, true)).offset());
+    // Every cell here sits behind a row header, which owns the gridline on its
+    // inline-start side, so the editor starts 1px before the cell to cover it (#6673).
+    expect({
+      top: editor.offset().top,
+      left: editor.offset().left + 1,
+    }).toEqual($(getCell(0, 1, true)).offset());
 
     await selectCell(0, 2);
     await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
-    // Cells that do not touch the edges of the table have an additional left border.
+    // Every cell here sits behind a row header (see above).
     const editorOffset = () => ({
       top: editor.offset().top,
       left: editor.offset().left + 1,
