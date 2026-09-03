@@ -3213,15 +3213,55 @@ export default function Core(
   };
 
   /**
-   * Rerender the table. Calling this method starts the process of recalculating, redrawing and applying the changes
-   * to the DOM. While rendering the table all cell renderers are recalled.
+   * Rerenders the table. Calling this method recalculates the layout, redraws the cells, and applies the changes
+   * to the DOM. Every redrawn cell runs its cell renderer and the [cells](@/api/options.md#cells) function again.
+   * The data, the selection, and the scroll position are left as they are.
    *
-   * Calling this method manually is not recommended. Handsontable tries to render itself by choosing the most
-   * optimal moments in its lifecycle. After [setCellMeta()](@/api/core.md#setcellmeta) changes visual cell
-   * properties, call this method to apply them, or wrap multiple calls in [batch()](@/api/core.md#batch).
+   * The render covers the cells that are currently rendered: the viewport plus the buffer set by
+   * [viewportRowRenderingOffset](@/api/options.md#viewportrowrenderingoffset) and
+   * [viewportColumnRenderingOffset](@/api/options.md#viewportcolumnrenderingoffset). It does not cover the whole
+   * data set, unless you turn virtualization off with [renderAllRows](@/api/options.md#renderallrows) or
+   * [renderAllColumns](@/api/options.md#renderallcolumns). The cost therefore scales with the number of rendered
+   * cells and with the work those functions do. The number of records you hold is not what drives it.
+   *
+   * You rarely need to call this method. Handsontable renders itself after every CRUD operation and at other
+   * points in its lifecycle. Call it yourself when you change something Handsontable cannot detect on its own.
+   * The common case is [setCellMeta()](@/api/core.md#setcellmeta), which updates cell metadata without
+   * repainting the grid. Because that method never renders, a sequence of such calls followed by one
+   * `render()` already costs exactly one render.
+   *
+   * When you mix metadata changes with CRUD operations, wrap the whole sequence in
+   * [batch()](@/api/core.md#batch) and call `render()` **inside** the callback. `batch()` on its own only
+   * suppresses the renders the CRUD operations would have triggered; it does not add one, so a callback
+   * holding nothing but [setCellMeta()](@/api/core.md#setcellmeta) calls leaves the grid unpainted.
+   *
+   * There is no API for rendering a single cell or a single row.
+   *
+   * To apply new configuration options, use [updateSettings()](@/api/core.md#updatesettings). To react to a
+   * container that changed size, use [refreshDimensions()](@/api/core.md#refreshdimensions).
+   *
+   * For the full rendering model, see the [Understanding rendering](@/guides/optimization/rendering/rendering.md)
+   * guide.
    *
    * @memberof Core#
    * @function render
+   * @example
+   * ```js
+   * hot.setCellMeta(0, 0, 'className', 'my-highlight');
+   * hot.render(); // without this, the class is stored but not visible
+   *
+   * // several metadata changes, still a single render
+   * hot.setCellMeta(0, 0, 'className', 'my-highlight');
+   * hot.setCellMeta(1, 0, 'readOnly', true);
+   * hot.render();
+   *
+   * // mixed with CRUD operations: batch them, and render inside the callback
+   * hot.batch(() => {
+   *   hot.alter('insert_row_above', 5, 45);
+   *   hot.setCellMeta(0, 0, 'className', 'my-highlight');
+   *   hot.render();
+   * });
+   * ```
    */
   this.render = function() {
     if (this.view) {
@@ -3432,6 +3472,15 @@ export default function Core(
 
   /**
    * Updates dimensions of the table. The method compares previous dimensions with the current ones and updates accordingly.
+   *
+   * You rarely need to call this method. Handsontable already calls it for you on a window resize and through a
+   * `ResizeObserver` on the container. The case it does not cover is a container resized while the grid is
+   * hidden (for example inside a `display: none` tab or accordion): the observer callback is skipped, so call
+   * this method yourself once the grid becomes visible again.
+   *
+   * The method renders when the measured size changed. It also renders unconditionally when the grid scrolls
+   * with the window (no fixed `height`), so on such a grid it is not free even at an unchanged size. To repaint
+   * the cells without re-measuring the container, use [render()](@/api/core.md#render) instead.
    *
    * @memberof Core#
    * @function refreshDimensions
@@ -3764,6 +3813,10 @@ export default function Core(
    * Cell meta set imperatively through {@link Core#setCellMeta} (for example, by the user or the context menu) is preserved across
    * `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. On a direct conflict, a value re-stated
    * through the declarative `cell` option takes precedence over the preserved imperative value.
+   *
+   * This method reinitializes the affected plugins and then renders, so it does more work than a plain
+   * [render()](@/api/core.md#render). When only cell metadata changed, call [render()](@/api/core.md#render)
+   * instead. See the [Understanding rendering](@/guides/optimization/rendering/rendering.md) guide.
    *
    * When {@link Hooks#hasExternalDataSource} is true, Handsontable clears and rebinds the placeholder dataset only during
    * initialization or when `settings` includes `data` or `dataProvider`. Other keys alone (for example `height`) do not clear loaded rows.
@@ -5006,8 +5059,12 @@ export default function Core(
    * Sets a property defined by the `key` property to the meta object of a cell corresponding to params `row` and `column`.
    *
    * This method updates internal cell metadata only. It does not repaint the grid. To reflect visual changes (such as
-   * `className`, `type`, or `readOnly`), call [render()](@/api/core.md#render) afterward, or wrap multiple calls in
-   * [batch()](@/api/core.md#batch).
+   * `className`, `type`, or `readOnly`), call [render()](@/api/core.md#render) afterward. Because this method never
+   * renders on its own, several such calls followed by one [render()](@/api/core.md#render) already cost exactly one
+   * render. Wrapping them in [batch()](@/api/core.md#batch) alone does **not** repaint the grid: `batch()` only
+   * suppresses renders that other operations would have triggered, so it still needs a
+   * [render()](@/api/core.md#render) inside its callback. For why the repaint is a separate step, see the
+   * [Understanding rendering](@/guides/optimization/rendering/rendering.md) guide.
    *
    * @memberof Core#
    * @function setCellMeta
