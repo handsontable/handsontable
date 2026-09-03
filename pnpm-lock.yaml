@@ -7,8 +7,8 @@ settings:
 catalogs:
   default:
     '@playwright/test':
-      specifier: 1.61.1
-      version: 1.61.1
+      specifier: 1.62.1
+      version: 1.62.1
 
 overrides:
   '@babel/core': ^7.11.4
@@ -313,8 +313,8 @@ importers:
         specifier: ^21.1.1
         version: 21.1.1
       '@playwright/test':
-        specifier: 1.61.x
-        version: 1.61.1
+        specifier: 'catalog:'
+        version: 1.62.1
       '@types/node':
         specifier: ^20.11.27
         version: 20.19.42
@@ -509,7 +509,7 @@ importers:
         version: 7.29.7
       '@rspack/cli':
         specifier: ^1.7.11
-        version: 1.7.11(@rspack/core@1.7.11(@swc/helpers@0.5.23))(@types/express@4.17.25)(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26))
+        version: 1.7.11(@rspack/core@1.7.11(@swc/helpers@0.5.23))(@types/express@4.17.25)(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23))
       '@rspack/core':
         specifier: ^1.7.11
         version: 1.7.11(@swc/helpers@0.5.23)
@@ -545,7 +545,7 @@ importers:
         version: 7.0.3
       css-loader:
         specifier: 6.10.0
-        version: 6.10.0(@rspack/core@1.7.11(@swc/helpers@0.5.23))(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26))
+        version: 6.10.0(@rspack/core@1.7.11(@swc/helpers@0.5.23))(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23))
       env-cmd:
         specifier: ^9.0.3
         version: 9.0.3
@@ -644,10 +644,10 @@ importers:
         version: 1.100.0
       sass-loader:
         specifier: ^10.4.1
-        version: 10.5.2(sass@1.100.0)(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26))
+        version: 10.5.2(sass@1.100.0)(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23))
       string-replace-loader:
         specifier: ^3.1.0
-        version: 3.3.0(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26))
+        version: 3.3.0(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23))
       stylelint:
         specifier: ^16.3.1
         version: 16.26.1(typescript@6.0.3)
@@ -656,7 +656,7 @@ importers:
         version: 36.0.1(stylelint@16.26.1(typescript@6.0.3))
       stylelint-config-standard-scss:
         specifier: ^13.1.0
-        version: 13.1.0(postcss@8.5.26)(stylelint@16.26.1(typescript@6.0.3))
+        version: 13.1.0(postcss@8.5.23)(stylelint@16.26.1(typescript@6.0.3))
       stylelint-plugin-handsontable:
         specifier: file:.config/plugin/stylelint
         version: file:handsontable/.config/plugin/stylelint
@@ -669,7 +669,7 @@ importers:
     devDependencies:
       '@playwright/test':
         specifier: 'catalog:'
-        version: 1.61.1
+        version: 1.62.1
       '@typescript-eslint/parser':
         specifier: 8.61.0
         version: 8.61.0(eslint@8.57.1)(typescript@6.0.3)
@@ -683,8 +683,8 @@ importers:
   visual-tests:
     devDependencies:
       '@playwright/test':
-        specifier: ~1.60.0
-        version: 1.60.0
+        specifier: 'catalog:'
+        version: 1.62.1
       '@typescript-eslint/eslint-plugin':
         specifier: ^5.48.1
         version: 5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@5.1.3))(eslint@8.57.1)(typescript@5.1.3)
@@ -1044,6 +1044,9 @@ importers:
       vue-eslint-parser:
         specifier: ^8.0.1
         version: 8.3.0(eslint@8.57.1)
+      vue-tsc:
+        specifier: ^1.8.27
+        version: 1.8.27(typescript@4.9.5)
 
 packages:
 
@@ -4318,14 +4321,9 @@ packages:
     resolution: {integrity: sha512-fdDH1LSGfZdTH2sxdpVMw31BanV28K/Gry0cVFxaNP77neJSkd82mM8ErPNYs9e+0O7SdHBLTDzDgwUuy18RnQ==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
 
-  '@playwright/test@1.60.0':
-    resolution: {integrity: sha512-O71yZIbAh/PxDMNGns37GHBIfrVkEVyn+AXyIa5dOTfb4/xNvRWV+Vv/NMbNCtODB/pO7vLlF2OTmMVLhmr7Ag==}
-    engines: {node: '>=18'}
-    hasBin: true
-
-  '@playwright/test@1.61.1':
-    resolution: {integrity: sha512-8nKv6+0RJSL9FE4jYOEGXnPeM/Hg12qZpmqzZjRh3qM0Y7c3z1mrOTfFLids72RDQYVh9WpLEfR5WdpNX4fkig==}
-    engines: {node: '>=18'}
+  '@playwright/test@1.62.1':
+    resolution: {integrity: sha512-DTcUc8qii+cpHvtOwggMtBRMjKZHXYWdw8syRYu2vtzuq4Wxphqq4NfCs5Zt44L6mA8rfDfj+PHnxFc/FeK6mQ==}
+    engines: {node: '>=20'}
     hasBin: true
 
   '@polka/url@1.0.0-next.29':
@@ -6361,6 +6359,15 @@ packages:
       vite: ^6.4.3
       vue: ^3.2.25
 
+  '@volar/language-core@1.11.1':
+    resolution: {integrity: sha512-dOcNn3i9GgZAcJt43wuaEykSluAuOkQgzni1cuxLxTV0nJKanQztp7FxyswdRILaKH+P2XZMPRp2S4MV/pElCw==}
+
+  '@volar/source-map@1.11.1':
+    resolution: {integrity: sha512-hJnOnwZ4+WT5iupLRnuzbULZ42L7BWWPMmruzwtLhJfpDVoZLjNBxHDi2sY2bgZXCKlpU5XcsMFoYrsQmPhfZg==}
+
+  '@volar/typescript@1.11.1':
+    resolution: {integrity: sha512-iU+t2mas/4lYierSnoFOeRFQUhAEMgsFuQxoxvwn5EdQopw43j+J27a4lt9LMInx1gLJBC6qL14WYGlgymaSMQ==}
+
   '@vue/compiler-core@3.5.16':
     resolution: {integrity: sha512-AOQS2eaQOaaZQoL1u+2rCJIKDruNXVBZSiUD3chnUrsoX5ZTQMaCvXlWNIfxBJuU15r1o7+mpo5223KVtIhAgQ==}
 
@@ -6396,6 +6403,14 @@ packages:
       '@typescript-eslint/parser': ^5.0.0
       eslint: ^6.2.0 || ^7.0.0 || ^8.0.0
       eslint-plugin-vue: ^8.0.1
+      typescript: '*'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
+  '@vue/language-core@1.8.27':
+    resolution: {integrity: sha512-L8Kc27VdQserNaCUNiSFdDl9LWT24ly8Hpwf1ECy3aFb9m6bDhBGQYOujDm21N7EW3moKIOKEanQwe1q5BK+mA==}
+    peerDependencies:
       typescript: '*'
     peerDependenciesMeta:
       typescript:
@@ -7414,6 +7429,9 @@ packages:
   compute-scroll-into-view@3.1.1:
     resolution: {integrity: sha512-VRhuHOLoKYOy4UbilLbUzbYg93XLjv2PncJC50EuTWPA3gaja1UjBsUP/D/9/juV3vQFr6XBEzn9KCAHdUvOHw==}
 
+  computeds@0.0.1:
+    resolution: {integrity: sha512-7CEBgcMjVmitjYo5q8JTJVra6X5mQ20uTThdK+0kR7UEaDrAWEQcRiBtWJzga4eRpP6afNwwLsX2SET2JhVB1Q==}
+
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
@@ -7661,6 +7679,9 @@ packages:
 
   dayjs@1.11.21:
     resolution: {integrity: sha512-98IT+HOahAisibz/yjKbzuOBwYcjJ7BCLPzARyHiyEBmRz4fatF+KPJszEHXsGYjUG234aH/cOjW1wwTbKUZlA==}
+
+  de-indent@1.0.2:
+    resolution: {integrity: sha512-e/1zu3xH5MQryN2zdVaF0OrdNLUbvWxzMbi+iNA6Bky7l1RoP8a2fIbRocyHclXt/arDrrR6lL3TqFD9pMQTsg==}
 
   debounce@1.2.1:
     resolution: {integrity: sha512-XRRe6Glud4rd/ZGQfiV1ruXSfbvfJedlV9Y6zOlP+2K04vBYiJEte6stfFkCP03aMnY5tsipamumUjL14fofug==}
@@ -10683,6 +10704,9 @@ packages:
   msgpackr@1.12.1:
     resolution: {integrity: sha512-4EUH9tQHnMmEgzW/MdAP0KIfa1T9AF+htl0ffe2n5vb2EKn9y2co8ccpgWko6S52Jy1PQZKwRnx5/KkYjtd9MQ==}
 
+  muggle-string@0.3.1:
+    resolution: {integrity: sha512-ckmWDJjphvd/FvZawgygcUeQCxzvohjFO5RxTjj4eq8kw359gFF3E1brjfI+viLMxss5JrHTDRHZvu2/tuy0Qg==}
+
   multicast-dns@7.2.5:
     resolution: {integrity: sha512-2eznPJP8z2BFLX50tf0LuODrpINqP1RVIm/CObbTcBRITQgmC/TjcREF1NeTBzIcR5XO/ukWo+YHOjBbFwIupg==}
     hasBin: true
@@ -11156,6 +11180,9 @@ packages:
     resolution: {integrity: sha512-CiyeOxFT/JZyN5m0z9PfXw4SCBJ6Sygz1Dpl0wqjlhDEGGBP1GnsUVEL0p63hoG1fcj3fHynXi9NYO4nWOL+qQ==}
     engines: {node: '>= 0.8'}
 
+  path-browserify@1.0.1:
+    resolution: {integrity: sha512-b7uo2UCUOYZcnF/3ID0lulOJi/bafxa1xPe7ZPsammBSpjSWQkjNxlt635YGS2MiR9GjvuXCtz2emr3jbsz98g==}
+
   path-exists@3.0.0:
     resolution: {integrity: sha512-bpC7GYwiDYQ4wYLe+FA8lhRjhQCMcQGuSgGGqDkg/QerRWw9CmGRT0iSOVRSZJ29NMLZgIzqaljJ63oaL4NIJQ==}
     engines: {node: '>=4'}
@@ -11271,24 +11298,14 @@ packages:
     resolution: {integrity: sha512-Ie9z/WINcxxLp27BKOCHGde4ITq9UklYKDzVo1nhk5sqGEXU3FpkwP5GM2voTGJkGd9B3Otl+Q4uwSOeSUtOBA==}
     engines: {node: '>=14.16'}
 
-  playwright-core@1.60.0:
-    resolution: {integrity: sha512-9bW6zvX/m0lEbgTKJ6YppOKx8H3VOPBMOCFh2irXFOT4BbHgrx5hPjwJYLT40Lu+4qtD36qKc/Hn56StUW57IA==}
-    engines: {node: '>=18'}
+  playwright-core@1.62.1:
+    resolution: {integrity: sha512-wPYSwEBJY9GHraISXqyqtx0na0LpO3XEX7jNDhntbex7tzUS7kLnZsOlFruFJB4Hi/rhDMjXGqHewDZ68nYZVw==}
+    engines: {node: '>=20'}
     hasBin: true
 
-  playwright-core@1.61.1:
-    resolution: {integrity: sha512-h7Qlt6m4REp25qvIdvbDtVmD4LqVXfpRxhORv9L0jzETM05p4fuPJ3dKyuSXQxDSbXnmS79HAgi9589lGSpLkg==}
-    engines: {node: '>=18'}
-    hasBin: true
-
-  playwright@1.60.0:
-    resolution: {integrity: sha512-hheHdokM8cdqCb0lcE3s+zT4t4W+vvjpGxsZlDnikarzx8tSzMebh3UiFtgqwFwnTnjYQcsyMF8ei2mCO/tpeA==}
-    engines: {node: '>=18'}
-    hasBin: true
-
-  playwright@1.61.1:
-    resolution: {integrity: sha512-DWnY5o3YbLWK4GovuAVwpqL+1VwGNdUGrRr++8j8PtQQzvAVZUIMjKQ90fY689sEJZJBbZVw1rXaOKSTitkzPQ==}
-    engines: {node: '>=18'}
+  playwright@1.62.1:
+    resolution: {integrity: sha512-0M+L3LAD8/nm554LOla9Ayx0j0tmFZ0FBcoQ7F1VuVHpM/XpiC8RcDzBQB8W5+hA8L22THxELzeF+2WcUzvcLg==}
+    engines: {node: '>=20'}
     hasBin: true
 
   pluralize@1.2.1:
@@ -11384,10 +11401,6 @@ packages:
 
   postcss@8.5.23:
     resolution: {integrity: sha512-g50586zr4bZmwFiTlflMu8E0bDTb5I5gertgwAKmsdUlTQIhZtunzUlD1WSzwcVWPoAVpsrA6vlfCD7oXvRwgg==}
-    engines: {node: ^10 || ^12 || >=14}
-
-  postcss@8.5.26:
-    resolution: {integrity: sha512-u82N74LFzG8ca+dD8puPnplTXoGH4fTPpVGuIbt36G3qvNlkvfD0lEAZSxaly3KX8TS/L1A1gsCEmvKmBcVbkQ==}
     engines: {node: ^10 || ^12 || >=14}
 
   preact@10.29.2:
@@ -13517,6 +13530,15 @@ packages:
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     peerDependencies:
       eslint: '>=6.0.0'
+
+  vue-template-compiler@2.7.16:
+    resolution: {integrity: sha512-AYbUWAJHLGGQM7+cNTELw+KsOG9nl2CnSv467WobS5Cv9uk3wFcnr1Etsz2sEIHEZvw1U+o9mRlEO6QbZvUPGQ==}
+
+  vue-tsc@1.8.27:
+    resolution: {integrity: sha512-WesKCAZCRAbmmhuGl3+VrdWItEvfoFIPXOvUJkjULi+x+6G/Dy69yO3TBRJDr9eUlmsNAwVmxsNZxvHKzbkKdg==}
+    hasBin: true
+    peerDependencies:
+      typescript: '*'
 
   vue@3.5.35:
     resolution: {integrity: sha512-cx89fnr+0kVGHiNFG6y6s0bdjypJRFNZn6x3WPstNdQR1bi1mbB7h4v5IBGTsPJU3nK1+0Iqj3Zf+hZWMieR4Q==}
@@ -17757,13 +17779,9 @@ snapshots:
 
   '@pkgr/core@0.1.2': {}
 
-  '@playwright/test@1.60.0':
+  '@playwright/test@1.62.1':
     dependencies:
-      playwright: 1.60.0
-
-  '@playwright/test@1.61.1':
-    dependencies:
-      playwright: 1.61.1
+      playwright: 1.62.1
 
   '@polka/url@1.0.0-next.29': {}
 
@@ -18847,11 +18865,11 @@ snapshots:
       '@rspack/binding-win32-ia32-msvc': 1.7.11
       '@rspack/binding-win32-x64-msvc': 1.7.11
 
-  '@rspack/cli@1.7.11(@rspack/core@1.7.11(@swc/helpers@0.5.23))(@types/express@4.17.25)(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26))':
+  '@rspack/cli@1.7.11(@rspack/core@1.7.11(@swc/helpers@0.5.23))(@types/express@4.17.25)(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23))':
     dependencies:
       '@discoveryjs/json-ext': 0.5.7
       '@rspack/core': 1.7.11(@swc/helpers@0.5.23)
-      '@rspack/dev-server': 1.1.5(@rspack/core@1.7.11(@swc/helpers@0.5.23))(@types/express@4.17.25)(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26))
+      '@rspack/dev-server': 1.1.5(@rspack/core@1.7.11(@swc/helpers@0.5.23))(@types/express@4.17.25)(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23))
       exit-hook: 4.0.0
       webpack-bundle-analyzer: 4.10.2
     transitivePeerDependencies:
@@ -18872,13 +18890,13 @@ snapshots:
     optionalDependencies:
       '@swc/helpers': 0.5.23
 
-  '@rspack/dev-server@1.1.5(@rspack/core@1.7.11(@swc/helpers@0.5.23))(@types/express@4.17.25)(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26))':
+  '@rspack/dev-server@1.1.5(@rspack/core@1.7.11(@swc/helpers@0.5.23))(@types/express@4.17.25)(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23))':
     dependencies:
       '@rspack/core': 1.7.11(@swc/helpers@0.5.23)
       chokidar: 3.6.0
       http-proxy-middleware: 2.0.9(@types/express@4.17.25)
       p-retry: 6.2.1
-      webpack-dev-server: 5.2.2(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26))
+      webpack-dev-server: 5.2.2(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23))
       ws: 8.21.0
     transitivePeerDependencies:
       - '@types/express'
@@ -20011,6 +20029,19 @@ snapshots:
       vite: 7.3.5(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.48.0)
       vue: 3.5.35(typescript@5.8.3)
 
+  '@volar/language-core@1.11.1':
+    dependencies:
+      '@volar/source-map': 1.11.1
+
+  '@volar/source-map@1.11.1':
+    dependencies:
+      muggle-string: 0.3.1
+
+  '@volar/typescript@1.11.1':
+    dependencies:
+      '@volar/language-core': 1.11.1
+      path-browserify: 1.0.1
+
   '@vue/compiler-core@3.5.16':
     dependencies:
       '@babel/parser': 7.29.7
@@ -20084,6 +20115,20 @@ snapshots:
       typescript: 4.9.5
     transitivePeerDependencies:
       - supports-color
+
+  '@vue/language-core@1.8.27(typescript@4.9.5)':
+    dependencies:
+      '@volar/language-core': 1.11.1
+      '@volar/source-map': 1.11.1
+      '@vue/compiler-dom': 3.5.35
+      '@vue/shared': 3.5.35
+      computeds: 0.0.1
+      minimatch: 9.0.9
+      muggle-string: 0.3.1
+      path-browserify: 1.0.1
+      vue-template-compiler: 2.7.16
+    optionalDependencies:
+      typescript: 4.9.5
 
   '@vue/reactivity@3.5.35':
     dependencies:
@@ -21279,6 +21324,8 @@ snapshots:
 
   compute-scroll-into-view@3.1.1: {}
 
+  computeds@0.0.1: {}
+
   concat-map@0.0.1: {}
 
   concurrently@6.5.1:
@@ -21426,7 +21473,7 @@ snapshots:
       utrie: 1.0.2
     optional: true
 
-  css-loader@6.10.0(@rspack/core@1.7.11(@swc/helpers@0.5.23))(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26)):
+  css-loader@6.10.0(@rspack/core@1.7.11(@swc/helpers@0.5.23))(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23)):
     dependencies:
       icss-utils: 5.1.0(postcss@8.5.23)
       postcss: 8.5.23
@@ -21438,7 +21485,7 @@ snapshots:
       semver: 7.8.4
     optionalDependencies:
       '@rspack/core': 1.7.11(@swc/helpers@0.5.23)
-      webpack: 5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26)
+      webpack: 5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23)
 
   css-loader@7.1.2(@rspack/core@1.7.11(@swc/helpers@0.5.23))(webpack@5.105.0(esbuild@0.28.0)(lightningcss@1.32.0)(postcss@8.5.23)):
     dependencies:
@@ -21560,6 +21607,8 @@ snapshots:
   date-fns@4.4.0: {}
 
   dayjs@1.11.21: {}
+
+  de-indent@1.0.2: {}
 
   debounce@1.2.1: {}
 
@@ -26020,6 +26069,8 @@ snapshots:
       msgpackr-extract: 3.0.4
     optional: true
 
+  muggle-string@0.3.1: {}
+
   multicast-dns@7.2.5:
     dependencies:
       dns-packet: 5.6.1
@@ -26580,6 +26631,8 @@ snapshots:
 
   parseurl@1.3.3: {}
 
+  path-browserify@1.0.1: {}
+
   path-exists@3.0.0: {}
 
   path-exists@4.0.0: {}
@@ -26667,19 +26720,11 @@ snapshots:
     dependencies:
       find-up: 6.3.0
 
-  playwright-core@1.60.0: {}
+  playwright-core@1.62.1: {}
 
-  playwright-core@1.61.1: {}
-
-  playwright@1.60.0:
+  playwright@1.62.1:
     dependencies:
-      playwright-core: 1.60.0
-    optionalDependencies:
-      fsevents: 2.3.2
-
-  playwright@1.61.1:
-    dependencies:
-      playwright-core: 1.61.1
+      playwright-core: 1.62.1
     optionalDependencies:
       fsevents: 2.3.2
 
@@ -26744,9 +26789,9 @@ snapshots:
     dependencies:
       postcss: 8.5.23
 
-  postcss-scss@4.0.9(postcss@8.5.26):
+  postcss-scss@4.0.9(postcss@8.5.23):
     dependencies:
-      postcss: 8.5.26
+      postcss: 8.5.23
 
   postcss-selector-parser@6.1.2:
     dependencies:
@@ -26761,12 +26806,6 @@ snapshots:
   postcss-value-parser@4.2.0: {}
 
   postcss@8.5.23:
-    dependencies:
-      nanoid: 3.3.18
-      picocolors: 1.1.1
-      source-map-js: 1.2.1
-
-  postcss@8.5.26:
     dependencies:
       nanoid: 3.3.18
       picocolors: 1.1.1
@@ -27699,14 +27738,14 @@ snapshots:
 
   safer-buffer@2.1.2: {}
 
-  sass-loader@10.5.2(sass@1.100.0)(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26)):
+  sass-loader@10.5.2(sass@1.100.0)(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23)):
     dependencies:
       klona: 2.0.6
       loader-utils: 2.0.4
       neo-async: 2.6.2
       schema-utils: 3.3.0
       semver: 7.8.4
-      webpack: 5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26)
+      webpack: 5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23)
     optionalDependencies:
       sass: 1.100.0
 
@@ -28244,10 +28283,10 @@ snapshots:
       char-regex: 1.0.2
       strip-ansi: 6.0.1
 
-  string-replace-loader@3.3.0(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26)):
+  string-replace-loader@3.3.0(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23)):
     dependencies:
       schema-utils: 4.3.3
-      webpack: 5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26)
+      webpack: 5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23)
 
   string-width@4.2.3:
     dependencies:
@@ -28342,26 +28381,26 @@ snapshots:
     dependencies:
       inline-style-parser: 0.2.7
 
-  stylelint-config-recommended-scss@14.1.0(postcss@8.5.26)(stylelint@16.26.1(typescript@6.0.3)):
+  stylelint-config-recommended-scss@14.1.0(postcss@8.5.23)(stylelint@16.26.1(typescript@6.0.3)):
     dependencies:
-      postcss-scss: 4.0.9(postcss@8.5.26)
+      postcss-scss: 4.0.9(postcss@8.5.23)
       stylelint: 16.26.1(typescript@6.0.3)
       stylelint-config-recommended: 14.0.1(stylelint@16.26.1(typescript@6.0.3))
       stylelint-scss: 6.14.0(stylelint@16.26.1(typescript@6.0.3))
     optionalDependencies:
-      postcss: 8.5.26
+      postcss: 8.5.23
 
   stylelint-config-recommended@14.0.1(stylelint@16.26.1(typescript@6.0.3)):
     dependencies:
       stylelint: 16.26.1(typescript@6.0.3)
 
-  stylelint-config-standard-scss@13.1.0(postcss@8.5.26)(stylelint@16.26.1(typescript@6.0.3)):
+  stylelint-config-standard-scss@13.1.0(postcss@8.5.23)(stylelint@16.26.1(typescript@6.0.3)):
     dependencies:
       stylelint: 16.26.1(typescript@6.0.3)
-      stylelint-config-recommended-scss: 14.1.0(postcss@8.5.26)(stylelint@16.26.1(typescript@6.0.3))
+      stylelint-config-recommended-scss: 14.1.0(postcss@8.5.23)(stylelint@16.26.1(typescript@6.0.3))
       stylelint-config-standard: 36.0.1(stylelint@16.26.1(typescript@6.0.3))
     optionalDependencies:
-      postcss: 8.5.26
+      postcss: 8.5.23
 
   stylelint-config-standard@36.0.1(stylelint@16.26.1(typescript@6.0.3)):
     dependencies:
@@ -28546,16 +28585,16 @@ snapshots:
       ansi-escapes: 4.3.2
       supports-hyperlinks: 2.3.0
 
-  terser-webpack-plugin@5.6.1(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26)(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26)):
+  terser-webpack-plugin@5.6.1(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23)(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23)):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       jest-worker: 27.5.1
       schema-utils: 4.3.3
       terser: 5.39.0
-      webpack: 5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26)
+      webpack: 5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23)
     optionalDependencies:
       '@swc/core': 1.15.41(@swc/helpers@0.5.23)
-      postcss: 8.5.26
+      postcss: 8.5.23
 
   terser-webpack-plugin@5.6.1(esbuild@0.28.0)(lightningcss@1.32.0)(postcss@8.5.23)(webpack@5.105.0(esbuild@0.28.0)(lightningcss@1.32.0)(postcss@8.5.23)):
     dependencies:
@@ -29202,6 +29241,18 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  vue-template-compiler@2.7.16:
+    dependencies:
+      de-indent: 1.0.2
+      he: 1.2.0
+
+  vue-tsc@1.8.27(typescript@4.9.5):
+    dependencies:
+      '@volar/typescript': 1.11.1
+      '@vue/language-core': 1.8.27(typescript@4.9.5)
+      semver: 7.8.4
+      typescript: 4.9.5
+
   vue@3.5.35(typescript@4.9.5):
     dependencies:
       '@vue/compiler-dom': 3.5.35
@@ -29315,7 +29366,7 @@ snapshots:
     transitivePeerDependencies:
       - tslib
 
-  webpack-dev-middleware@7.4.2(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26)):
+  webpack-dev-middleware@7.4.2(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23)):
     dependencies:
       colorette: 2.0.20
       memfs: 4.57.6(tslib@2.8.1)
@@ -29324,7 +29375,7 @@ snapshots:
       range-parser: 1.2.1
       schema-utils: 4.3.3
     optionalDependencies:
-      webpack: 5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26)
+      webpack: 5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23)
     transitivePeerDependencies:
       - tslib
 
@@ -29367,7 +29418,7 @@ snapshots:
       - tslib
       - utf-8-validate
 
-  webpack-dev-server@5.2.2(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26)):
+  webpack-dev-server@5.2.2(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23)):
     dependencies:
       '@types/bonjour': 3.5.13
       '@types/connect-history-api-fallback': 1.5.4
@@ -29395,10 +29446,10 @@ snapshots:
       serve-index: 1.9.2
       sockjs: 0.3.24
       spdy: 4.0.2
-      webpack-dev-middleware: 7.4.2(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26))
+      webpack-dev-middleware: 7.4.2(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23))
       ws: 8.21.0
     optionalDependencies:
-      webpack: 5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26)
+      webpack: 5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23)
     transitivePeerDependencies:
       - bufferutil
       - debug
@@ -29419,7 +29470,7 @@ snapshots:
       typed-assert: 1.0.9
       webpack: 5.105.0(esbuild@0.28.0)(lightningcss@1.32.0)(postcss@8.5.23)
 
-  webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26):
+  webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23):
     dependencies:
       '@types/eslint-scope': 3.7.7
       '@types/estree': 1.0.9
@@ -29443,7 +29494,7 @@ snapshots:
       neo-async: 2.6.2
       schema-utils: 4.3.3
       tapable: 2.3.3
-      terser-webpack-plugin: 5.6.1(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26)(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.26))
+      terser-webpack-plugin: 5.6.1(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23)(webpack@5.105.0(@swc/core@1.15.41(@swc/helpers@0.5.23))(postcss@8.5.23))
       watchpack: 2.5.1
       webpack-sources: 3.5.0
     transitivePeerDependencies:

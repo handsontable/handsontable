@@ -43,6 +43,13 @@ PERF_MODE=golden node scripts/run.mjs
 PERF_MODE=compare node scripts/run.mjs
 ```
 
+The suite measures whatever Chromium the `@playwright/test` pin ships, so the
+golden on gh-pages carries the engine it was measured with. After a Playwright
+bump merges, the first PR runs compare new-engine timings against the
+old-engine golden and their reports can call out "regressions" on untouched
+scenarios — read those callouts accordingly. The develop push that follows the
+merge rewrites the golden, which ends the cross-engine noise.
+
 ### Linting and type checking
 
 ```bash

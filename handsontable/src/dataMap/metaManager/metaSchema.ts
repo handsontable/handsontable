@@ -1,6 +1,70 @@
 import { isEmpty } from '../../helpers/mixed';
-import { isObjectEqual } from '../../helpers/object';
+import { hasOwnProperty, isObjectEqual } from '../../helpers/object';
 import type { HotInstance } from '../../core/types';
+
+/**
+ * Reads a column's default value out of the data schema.
+ *
+ * A column bound to a nested property (`{ data: 'meta.active' }`) has a dot-separated
+ * `colToProp()`, and the cell behind it is read by walking that path. The schema default has to
+ * be read the same way, or the two are not comparable: a flat `schema[prop]` lookup resolves to
+ * `undefined`, so a spare row holding nothing but schema defaults never counts as empty and
+ * `minSpareRows` appends a fresh batch of rows on every change (GH #5069).
+ *
+ * The value under comparison comes from `Core#getDataAtCell` -> `DataMap#get`, so this mirrors
+ * that reader's precedence exactly: **an own key wins over the walk**, even a literal dotted one,
+ * and even while `dataDotNotation` is on. Reading a dotted prop as a path unconditionally breaks
+ * `dataSchema: { 'meta.active': false }`, where the value side resolves the literal key and only
+ * the default side would walk — reintroducing the very growth this helper exists to stop.
+ *
+ * The walk is confined to an explicit `dataSchema`. Without one, `Core#getSchema` returns the
+ * duck-schema, and resolving a dotted path inside it would newly report a row whose nested object
+ * holds only `null` leaves as empty — a behavior change for grids that never set `dataSchema`,
+ * and outside this fix's scope.
+ *
+ * Unlike `getProperty()`, a path that runs into `null` resolves to `undefined` rather than
+ * throwing, because a schema may stop short of the depth a column asks for.
+ *
+ * A function `columns[].data` accessor is read flat, so it resolves to `undefined` — the schema
+ * is a plain template and no accessor is applied to it. That matches the behavior before this
+ * helper existed; such a column is never treated as holding its default.
+ *
+ * @param {object|Array} schema The data schema, as returned by `Core#getSchema`.
+ * @param {string|number} prop Column property, or a physical column index.
+ * @param {boolean|undefined} dataDotNotation Whether a dotted property is a path or a literal
+ *   key. Read for truthiness, matching how `DataMap#get` reads the same setting.
+ * @param {boolean} hasExplicitSchema Whether a `dataSchema` was configured.
+ * @returns {*} The schema default, or `undefined` when the path resolves to nothing.
+ */
+function getSchemaDefault(
+  schema: Record<string | number, unknown>,
+  prop: string | number,
+  dataDotNotation: boolean | undefined,
+  hasExplicitSchema: boolean
+): unknown {
+  // An own key wins, exactly as in `DataMap#get`, so a literal dotted key resolves here too.
+  if (hasOwnProperty(schema, prop)) {
+    return schema[prop];
+  }
+
+  if (!hasExplicitSchema || !dataDotNotation || typeof prop !== 'string' || prop.indexOf('.') === -1) {
+    return schema[prop];
+  }
+
+  let result: unknown = schema;
+
+  for (const name of prop.split('.')) {
+    if (result === null || result === undefined) {
+      return undefined;
+    }
+
+    // The nullish check above is the narrowing; `isObject()` is not a type guard, so there is no
+    // predicate to narrow `unknown` to something indexable. Same shape as `getProperty()`.
+    result = (result as Record<string, unknown>)[name];
+  }
+
+  return result;
+}
 
 /**
  * @alias Options
@@ -305,10 +369,17 @@ export default (): Record<string, unknown> => {
      * - An [autofill](@/guides/cell-features/autofill-values/autofill-values.md) that reaches past the last column stops
      *   at the last column.
      * - [`setDataAtCell()`](@/api/core.md#setdataatcell) and [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) no
-     *   longer create the missing columns when you write past the last column. The write still reaches the source data,
-     *   so [`getSourceData()`](@/api/core.md#getsourcedata) returns the value while the grid never displays it. This
-     *   bullet applies only when your [`data`](#data) is an array of arrays and you do not set the
-     *   [`columns`](#columns) option – in any other configuration these methods never add columns anyway.
+     *   longer create the missing columns when you write past the last column. The write still reaches the source
+     *   data, so [`getSourceData()`](@/api/core.md#getsourcedata) returns the value while the grid never displays it.
+     *   This bullet applies only when your [`data`](#data) is an array of arrays and you do not set the
+     *   [`columns`](#columns) option – in any other configuration these methods never add columns anyway, whatever
+     *   this option is set to.
+     *
+     * This option does not decide whether the value reaches the source data – the write path does. A paste or an
+     * autofill stops at the last column, so nothing is written there at all. A direct
+     * [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) call
+     * writes the value whatever this option is set to. On an object [`data`](#data) source that direct write is
+     * deprecated as of 18.2.0. See [`setDataAtCell()`](@/api/core.md#setdataatcell), which owns that rule.
      *
      * The option does not stop these ways of adding columns:
      * - The [`alter()`](@/api/core.md#alter) method, including its `insert_col_start` and `insert_col_end` actions.
@@ -2736,9 +2807,9 @@ export default (): Record<string, unknown> => {
      * | `loading`     | `boolean`       | When `true`, shows a loading spinner (used for server fetch state). |
      *
      * If you set the `message` option to a function, the `source` argument can be `"unknown"`, `"filters"`, or `"loading"`.
-     * With [[Options#dataProvider]], the `"loading"` branch follows DataProvider fetch hooks (`beforeDataProviderFetch`,
+     * With {@link Options#dataProvider}, the `"loading"` branch follows DataProvider fetch hooks (`beforeDataProviderFetch`,
      * `afterDataProviderFetch`, and related hooks) using the same rules as server-backed loading in the DataProvider plugin.
-     * Internal refetches (for example after column sort or CRUD) set `skipLoading` on [[Hooks#beforeDataProviderFetch]] so the
+     * Internal refetches (for example after column sort or CRUD) set `skipLoading` on {@link Hooks#beforeDataProviderFetch} so the
      * EmptyDataState plugin can omit the loading overlay for those requests.
      *
      * If you set the `buttons` option to an array, each item requires following properties:
@@ -3846,24 +3917,26 @@ export default (): Record<string, unknown> => {
     isEmptyCol(this: HotInstance, col: number) {
       let row;
       let value;
-      const hasExplicitSchema = !!this.getSettings().dataSchema;
+      const { dataSchema, dataDotNotation } = this.getSettings();
+      const hasExplicitSchema = !!dataSchema;
       const schema = this.getSchema() as Record<string | number, unknown>;
       const prop = this.colToProp(col);
       const rowLen = this.countRows();
+      const schemaDefault = getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
 
       for (row = 0; row < rowLen; row++) {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
           if (typeof value === 'object') {
-            if (isObjectEqual(schema[prop] as object | unknown[], value as object | unknown[]) === false) {
+            if (isObjectEqual(schemaDefault, value) === false) {
               return false;
             }
 
             continue;
           }
 
-          if (hasExplicitSchema && schema[prop] === value) {
+          if (hasExplicitSchema && schemaDefault === value) {
             continue;
           }
 
@@ -3903,7 +3976,8 @@ export default (): Record<string, unknown> => {
     isEmptyRow(this: HotInstance, row: number) {
       let col;
       let value;
-      const hasExplicitSchema = !!this.getSettings().dataSchema;
+      const { dataSchema, dataDotNotation } = this.getSettings();
+      const hasExplicitSchema = !!dataSchema;
       const schema = this.getSchema() as Record<string | number, unknown>;
       const colLen = this.countCols();
 
@@ -3912,16 +3986,17 @@ export default (): Record<string, unknown> => {
 
         if (isEmpty(value) === false) {
           const prop = this.colToProp(col);
+          const schemaDefault = getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
 
           if (typeof value === 'object') {
-            if (isObjectEqual(schema[prop] as object | unknown[], value as object | unknown[]) === false) {
+            if (isObjectEqual(schemaDefault, value) === false) {
               return false;
             }
 
             continue;
           }
 
-          if (hasExplicitSchema && schema[prop] === value) {
+          if (hasExplicitSchema && schemaDefault === value) {
             continue;
           }
 
