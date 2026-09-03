@@ -165,9 +165,11 @@ When asked to update, fix, or re-fill a PR description, use the same temp-file a
 
 ## 6. Changelog Entry (after PR is created)
 
-Every PR that changes source code needs a changelog entry in `.changelogs/`. The filename **must** be `{PR-number}.json`, using the PR number returned by `gh pr create` in the previous step. See the `changelog-creation` skill for the JSON schema and title-writing rules.
+Every PR that changes source code needs a changelog entry in `.changelogs/`. `bin/changelog` names the file after the entry's `issueOrPR` field, so the filename is the **PR number** only for a `private` entry — the default, and what the rest of this section assumes. A `public` entry is named after its GitHub issue number instead, and because that number is known before the PR exists, it can be committed together with the code rather than in the round-trip below.
 
-After writing the file:
+**Which `issuesOrigin` to use is decided by [`.changelogs/README.md`](../../../.changelogs/README.md), not here** — read it before writing the entry. The CI gate only asserts that a source change adds at least one entry; it never checks the filename.
+
+For a `private` entry, after writing the file:
 
 1. Commit it on the same branch (`DEV-xxx: Add changelog entry for PR #<number>`).
 2. Push so the PR picks up the new commit.

@@ -367,6 +367,47 @@ describe('MetaManager', () => {
     });
   });
 
+  describe('getCellOptionCellMetas()', () => {
+    it('should pass a method call to CellMeta layer', () => {
+      const metaManager = new MetaManager();
+
+      spyOn(metaManager.cellMeta, 'getCellOptionMetas').and.returnValue(['foo']);
+
+      expect(metaManager.getCellOptionCellMetas()).toEqual(['foo']);
+      expect(metaManager.cellMeta.getCellOptionMetas).toHaveBeenCalledWith();
+    });
+  });
+
+  describe('startCellOptionMetaRecording() / endCellOptionMetaRecording()', () => {
+    it('should pass the method calls to CellMeta layer', () => {
+      const metaManager = new MetaManager();
+
+      spyOn(metaManager.cellMeta, 'startCellOptionMetaRecording');
+      spyOn(metaManager.cellMeta, 'endCellOptionMetaRecording');
+
+      metaManager.startCellOptionMetaRecording();
+      metaManager.endCellOptionMetaRecording();
+
+      expect(metaManager.cellMeta.startCellOptionMetaRecording).toHaveBeenCalledWith();
+      expect(metaManager.cellMeta.endCellOptionMetaRecording).toHaveBeenCalledWith();
+    });
+
+    it('should track a `setCellMeta` write made inside the scope as applied from the `cell` option', () => {
+      // The declarative `cell` option path. Unlike the plugin-declarative writes covered below, these are
+      // replayed across an `updateSettings` cache reset, because nothing re-applies them afterwards.
+      const metaManager = new MetaManager();
+
+      metaManager.startCellOptionMetaRecording();
+      metaManager.setCellMeta(0, 0, 'readOnly', true);
+      metaManager.endCellOptionMetaRecording();
+
+      expect(metaManager.getCellOptionCellMetas()).toEqual([
+        { physicalRow: 0, physicalColumn: 0, key: 'readOnly', value: true },
+      ]);
+      expect(metaManager.getUserDefinedCellMetas()).toEqual([]);
+    });
+  });
+
   describe('enableUserDefinedMetaRecording()', () => {
     it('should pass a method call to CellMeta layer', () => {
       const metaManager = new MetaManager();

@@ -31,6 +31,16 @@ function isFlaggedInvalid(meta: CellProperties): boolean {
 }
 
 /**
+ * One cell meta property captured for replay across a cache reset, located by physical coordinates.
+ */
+export interface CellMetaSnapshotEntry {
+  physicalRow: number;
+  physicalColumn: number;
+  key: string;
+  value: unknown;
+}
+
+/**
  * @class CellMeta
  *
  * The cell meta object is a root of all settings defined for the specific cell rendered by the
@@ -83,6 +93,20 @@ export default class CellMeta {
    * @type {number}
    */
   #userDefinedMetaRecordingSuspendCount = 0;
+  /**
+   * Counts how many `cell`-option recording scopes are open. While the count is above `0`, and user-defined
+   * recording is suspended, `setMeta` files its keys as written by the declarative `cell` option, so they
+   * can be replayed across a cache reset. A counter (rather than a boolean) keeps nested scopes correct,
+   * for the same re-entrancy reason as `#userDefinedMetaRecordingSuspendCount`.
+   *
+   * This distinguishes the `cell` option from the other declarative writer, `Core#_setCellMetaDeclarative`,
+   * which suspends user-defined recording without opening this scope. Plugins using that method (for
+   * example ColumnSummary) re-apply their meta from their own configuration after every update and rely on
+   * a cache reset dropping it, so their keys must stay out of this bucket.
+   *
+   * @type {number}
+   */
+  #cellOptionMetaRecordingCount = 0;
 
   /**
    * Initializes the cell meta layer with a reference to the ColumnMeta layer used as the prototype source for new cell meta objects.
@@ -111,6 +135,39 @@ export default class CellMeta {
    */
   disableUserDefinedMetaRecording() {
     this.#userDefinedMetaRecordingSuspendCount += 1;
+  }
+
+  /**
+   * Opens a `cell`-option recording scope. Writes made inside it are filed as applied from the declarative
+   * `cell` option, so they can be replayed across the cache reset that `updateSettings` performs. The scope
+   * also suspends user-defined recording, because a declarative write must never be mistaken for an
+   * imperative one. Scopes nest; each call must be matched by an `endCellOptionMetaRecording` call.
+   *
+   * Known limitation, shared with `disableUserDefinedMetaRecording`: an imperative `setCellMeta` made from a
+   * hook that fires while this scope is open is filed as a `cell`-option write, so it is replayed but loses
+   * to a restated `cell`. No built-in caller does that. A plugin-declarative write nested here is filed
+   * correctly – see the bucket comment in `setMeta`.
+   */
+  startCellOptionMetaRecording() {
+    this.#cellOptionMetaRecordingCount += 1;
+    this.disableUserDefinedMetaRecording();
+  }
+
+  /**
+   * Closes one `cell`-option recording scope opened by `startCellOptionMetaRecording`, and the user-defined
+   * recording suspension that came with it.
+   *
+   * The two counters move together or not at all. An unbalanced call – one `end` too many, or one on an
+   * error path – must not lift a suspension that a plain `disableUserDefinedMetaRecording()` caller owns:
+   * that would make the next plugin-declarative write read as imperative and be replayed forever.
+   */
+  endCellOptionMetaRecording() {
+    if (this.#cellOptionMetaRecordingCount === 0) {
+      return;
+    }
+
+    this.#cellOptionMetaRecordingCount -= 1;
+    this.enableUserDefinedMetaRecording();
   }
 
   /**
@@ -265,6 +322,7 @@ export default class CellMeta {
       delete cellMeta[key];
       (cellMeta._persistedMetaProps as Set<string> | undefined)?.delete(key);
       (cellMeta._userDefinedMetaProps as Set<string> | undefined)?.delete(key);
+      (cellMeta._cellOptionMetaProps as Set<string> | undefined)?.delete(key);
 
       return;
     }
@@ -280,14 +338,43 @@ export default class CellMeta {
 
     (cellMeta._persistedMetaProps as Set<string>).add(key);
 
+    // A key belongs to exactly one origin bucket, and the newest write decides which. That is what makes an
+    // imperative override of a `cell`-option value survive a cache reset: the key moves to the user-defined
+    // bucket and leaves the `cell`-option one, so only the override is replayed.
+    //
+    // The `cell`-option test is an equality, not `> 0`. Every `cell`-option scope raises both counters, and a
+    // plain `disableUserDefinedMetaRecording()` raises only the suspend one, so the counts differ exactly
+    // when a plugin-declarative scope is open somewhere. Testing `> 0` would file a `_setCellMetaDeclarative`
+    // write nested inside the `cell` loop - reachable, because applying the option fires
+    // `beforeSetCellMeta`/`afterSetCellMeta` - as a `cell`-option write, and it would then be replayed on
+    // every later update: the stranded stale value the third bucket exists to prevent. The reverse nesting
+    // (a `cell` scope opened inside a plugin one) reads as plugin-declarative and is dropped, which is the
+    // pre-fix behavior and therefore safe; it is also unreachable, since `_setCellMetaDeclarative` fires no
+    // hooks and so runs nothing user-controlled inside its scope.
+    const isCellOptionWrite = this.#cellOptionMetaRecordingCount > 0 &&
+      this.#userDefinedMetaRecordingSuspendCount === this.#cellOptionMetaRecordingCount;
+
     if (this.#userDefinedMetaRecordingSuspendCount === 0) {
       if (cellMeta._userDefinedMetaProps === undefined) {
         cellMeta._userDefinedMetaProps = new Set();
       }
 
       (cellMeta._userDefinedMetaProps as Set<string>).add(key);
-    } else {
+      (cellMeta._cellOptionMetaProps as Set<string> | undefined)?.delete(key);
+
+    } else if (isCellOptionWrite) {
+      if (cellMeta._cellOptionMetaProps === undefined) {
+        cellMeta._cellOptionMetaProps = new Set();
+      }
+
+      (cellMeta._cellOptionMetaProps as Set<string>).add(key);
       (cellMeta._userDefinedMetaProps as Set<string> | undefined)?.delete(key);
+
+    } else {
+      // Declarative writes from a plugin (`Core#_setCellMetaDeclarative`). They belong to no bucket: the
+      // plugin re-applies them from its own configuration after every update and relies on the reset.
+      (cellMeta._userDefinedMetaProps as Set<string> | undefined)?.delete(key);
+      (cellMeta._cellOptionMetaProps as Set<string> | undefined)?.delete(key);
     }
   }
 
@@ -310,6 +397,7 @@ export default class CellMeta {
 
     delete cellMeta[key];
     (cellMeta._userDefinedMetaProps as Set<string> | undefined)?.delete(key);
+    (cellMeta._cellOptionMetaProps as Set<string> | undefined)?.delete(key);
     (cellMeta._persistedMetaProps as Set<string> | undefined)?.delete(key);
   }
 
@@ -365,18 +453,44 @@ export default class CellMeta {
    *
    * @returns {{physicalRow: number, physicalColumn: number, key: string, value: *}[]}
    */
-  getUserDefinedMetas(): { physicalRow: number, physicalColumn: number, key: string, value: unknown }[] {
-    const result: { physicalRow: number, physicalColumn: number, key: string, value: unknown }[] = [];
+  getUserDefinedMetas(): CellMetaSnapshotEntry[] {
+    return this.#getMetasByOrigin('_userDefinedMetaProps');
+  }
+
+  /**
+   * Returns a flat snapshot of all cell meta properties that were applied from the declarative `cell` option
+   * (tracked in each cell's `_cellOptionMetaProps`). Used to replay the option across a cache reset during
+   * `updateSettings`, so cells keep it on a call that does not restate `cell`.
+   *
+   * The snapshot is keyed by physical coordinates, so the replay puts every value back on the record it was
+   * resolved to, not on whatever record now sits at the option's visual coordinates.
+   *
+   * @returns {{physicalRow: number, physicalColumn: number, key: string, value: *}[]}
+   */
+  getCellOptionMetas(): CellMetaSnapshotEntry[] {
+    return this.#getMetasByOrigin('_cellOptionMetaProps');
+  }
+
+  /**
+   * Collects a flat snapshot of the cell meta properties filed under one origin bucket. The coordinates are
+   * read from the map keys (physical indexes), not from the meta object's `row`/`col` properties, which are
+   * only populated on `getCellMeta` and become stale after row or column shifts.
+   *
+   * @param {string} originProp Name of the bookkeeping set to read – `_userDefinedMetaProps` or `_cellOptionMetaProps`.
+   * @returns {{physicalRow: number, physicalColumn: number, key: string, value: *}[]}
+   */
+  #getMetasByOrigin(originProp: '_userDefinedMetaProps' | '_cellOptionMetaProps'): CellMetaSnapshotEntry[] {
+    const result: CellMetaSnapshotEntry[] = [];
 
     for (const [physicalRow, rowMap] of this.metas) {
       for (const [physicalColumn, meta] of rowMap) {
-        const userDefinedProps = meta._userDefinedMetaProps as Set<string> | undefined;
+        const props = meta[originProp] as Set<string> | undefined;
 
-        if (userDefinedProps === undefined) {
+        if (props === undefined) {
           continue; // eslint-disable-line no-continue
         }
 
-        userDefinedProps.forEach((key) => {
+        props.forEach((key) => {
           if (hasOwnProperty(meta, key)) {
             result.push({ physicalRow, physicalColumn, key, value: meta[key] });
           }

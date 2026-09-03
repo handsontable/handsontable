@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed pasting a multi-cell block over a merged cell leaving the merge in place, which stored every pasted value but showed only the top-left one. The destination merge is now removed, as in Excel and Google Sheets, and a single undo restores both the data and the merge. Pasting a single value still leaves the merge intact and writes only its top-left cell.",
+  "type": "fixed",
+  "issueOrPR": 5092,
+  "breaking": false,
+  "framework": "none"
+}

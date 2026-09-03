@@ -430,6 +430,17 @@ export default class MetaManager {
   }
 
   /**
+   * Returns a flat snapshot of all cell meta properties applied from the declarative `cell` option, keyed by
+   * physical coordinates. Used to replay the option across a `clearCache` call during `updateSettings`, so
+   * it survives a call that changes `columns` or `cells` without restating `cell`.
+   *
+   * @returns {{physicalRow: number, physicalColumn: number, key: string, value: *}[]}
+   */
+  getCellOptionCellMetas() {
+    return this.cellMeta.getCellOptionMetas();
+  }
+
+  /**
    * Enables tracking of user-defined cell meta properties set through `setCellMeta`.
    */
   enableUserDefinedMetaRecording() {
@@ -438,10 +449,27 @@ export default class MetaManager {
 
   /**
    * Disables tracking of user-defined cell meta properties. Writes made while disabled are treated
-   * as declarative (for example, the `cell` option applied during `updateSettings`).
+   * as declarative and belong to no origin bucket, so a `clearCache` call drops them (for example, the
+   * cell meta ColumnSummary derives from its endpoints).
    */
   disableUserDefinedMetaRecording() {
     this.cellMeta.disableUserDefinedMetaRecording();
+  }
+
+  /**
+   * Opens a `cell`-option recording scope, so writes made inside it are filed as applied from the
+   * declarative `cell` option and can be replayed across a `clearCache` call. Also suspends user-defined
+   * recording. Scopes nest; each call must be matched by an `endCellOptionMetaRecording` call.
+   */
+  startCellOptionMetaRecording() {
+    this.cellMeta.startCellOptionMetaRecording();
+  }
+
+  /**
+   * Closes one `cell`-option recording scope, and the user-defined recording suspension that came with it.
+   */
+  endCellOptionMetaRecording() {
+    this.cellMeta.endCellOptionMetaRecording();
   }
 
   /**
