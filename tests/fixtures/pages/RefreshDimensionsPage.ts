@@ -14,7 +14,9 @@ interface HandsontableFixture {
 interface FixtureWindow extends Window {
   hot: HandsontableFixture;
   htHookLog: HookLogEntry[];
+  htWarnLog: string[];
   buildMainGrid(options?: { blockRefresh?: boolean }): void;
+  buildDvhGrid(): void;
   buildIframeGrid(options?: {
     width?: number; height?: number; blockRefresh?: boolean; columns?: number;
   }): Promise<void>;
@@ -51,6 +53,39 @@ export class RefreshDimensionsPage {
   async buildMainGrid(options: { blockRefresh?: boolean } = {}): Promise<void> {
     await this.page.evaluate(opts => (window as unknown as FixtureWindow).buildMainGrid(opts), options);
     await expect(this.cell(0, 0)).toBeVisible();
+  }
+
+  /**
+   * Builds the grid whose parent is sized in dynamic units (`dvh`), the shape that makes the
+   * ResizeObserver callback re-trigger itself indefinitely. Waits only for the first cell - the point
+   * of the fixture is that the pipeline never settles, so there is no quiet state to wait for.
+   */
+  async buildDvhGrid(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as FixtureWindow).buildDvhGrid());
+    await expect(this.page.locator('#dvh-parent .ht_master td').first()).toBeVisible();
+  }
+
+  /**
+   * Returns the `console.warn` messages the library printed since the page loaded that contain the
+   * given fragment. Filtered rather than returned whole, so an unrelated warning a future release adds
+   * cannot turn a "warned exactly once" assertion red.
+   */
+  async warnLog(fragment: string): Promise<string[]> {
+    return this.page.evaluate(
+      match => (window as unknown as FixtureWindow).htWarnLog.filter(message => message.includes(match)),
+      fragment,
+    );
+  }
+
+  /**
+   * Returns how many times ONE hook fired. The cheap probe for a pipeline whose deliveries are
+   * counted rather than inspected.
+   */
+  async hookCount(hook: 'before' | 'after'): Promise<number> {
+    return this.page.evaluate(
+      which => (window as unknown as FixtureWindow).htHookLog.filter(item => item.hook === which).length,
+      hook,
+    );
   }
 
   /**

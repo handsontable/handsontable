@@ -20,6 +20,7 @@
 <body>
   <div id="grid" data-testid="grid"></div>
   <iframe data-testid="frame" width="500" height="60"></iframe>
+  <div id="dvh-parent" data-testid="dvh-parent"></div>
 
   <script>
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
@@ -30,6 +31,18 @@
     // action is possible. Specs assert on this log, so a wait can poll for the delivery instead of
     // guessing how long the resize-event -> rAF -> hook pipeline takes.
     window.htHookLog = [];
+
+    // Every `console.warn` the library printed. Wrapped here rather than listened for through
+    // Playwright's console event, so a spec can poll the page for the warning in the same round
+    // trip it polls the hook log with, and can never miss one emitted before the listener attached.
+    window.htWarnLog = [];
+
+    const nativeWarn = console.warn.bind(console);
+
+    console.warn = (...args) => {
+      window.htWarnLog.push(args.join(' '));
+      nativeWarn(...args);
+    };
 
     const logDimensions = dims => ({ width: dims.width, height: dims.height });
     const buildHooks = blockRefresh => ({
@@ -77,6 +90,34 @@
         },
         licenseKey: 'non-commercial-and-evaluation',
       }, buildHooks(blockRefresh)));
+    };
+
+    // The endless-ResizeObserver-loop shape: a parent sized in dynamic units whose height the grid's
+    // own refresh feeds back into, plus a sibling element that keeps the two sizes from ever settling
+    // (#11021). `overflow: hidden` makes the parent the grid's trimming container, so the grid runs
+    // in container-scroll mode and its parent is what the ResizeObserver watches - with no such
+    // container the grid scrolls on the window instead and is never observed at all.
+    window.buildDvhGrid = () => {
+      const parent = document.querySelector('[data-testid="dvh-parent"]');
+
+      parent.style.width = '100%';
+      parent.style.minHeight = '100dvh';
+      parent.style.overflow = 'hidden';
+
+      const container = document.createElement('div');
+
+      container.className = `ht-theme-${window.htTheme}`;
+      parent.appendChild(container);
+
+      const sibling = document.createElement('div');
+
+      sibling.textContent = 'Test';
+      parent.appendChild(sibling);
+
+      window.hot = new Handsontable(container, Object.assign({
+        data: [[1, 2], [3, 4]],
+        licenseKey: 'non-commercial-and-evaluation',
+      }, buildHooks(false)));
     };
 
     // A grid inside the iframe, created by THIS document's Handsontable on a node of the iframe's

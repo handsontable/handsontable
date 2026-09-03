@@ -16,8 +16,9 @@ const entry = (
  * grid whose document is an iframe's.
  *
  * `before` and `after` are asserted together through one interleaved log, which also pins their
- * ORDER - something the legacy per-hook files never could. The dvh loop-guard spec stays in the
- * legacy suite until DEV-2740 fixes the guard it tests.
+ * ORDER - something the legacy per-hook files never could. The dvh loop-guard spec followed once
+ * DEV-2740 made the guard trip on delivery cycles instead of wall-clock gaps - see the block at the
+ * bottom of this file.
  */
 test.describe('a sized grid in the main document (ResizeObserver pipeline)', () => {
   test('reports its dimensions once on the observer\'s initial delivery', async({ page, theme, bundle }) => {
@@ -217,5 +218,59 @@ test.describe('a grid inside an iframe (window-resize pipeline)', () => {
       expect(await grid.lastEntry('before')).toEqual(
         entry('before', { width: 300, height: 300 }, { width: 300, height: 300 }, false),
       );
+    });
+});
+
+test.describe('the endless-loop guard (a parent sized in dynamic units)', () => {
+  const WARNING_FRAGMENT = 'fired too many times in direct succession';
+  const WARNING = 'The ResizeObserver callback was fired too many times in direct succession.\n' +
+    'This may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +
+    'with the `dvh` units) to a Handsontable container\'s parent. \n' +
+    'The observer will be disconnected.';
+
+  // Migrated from `afterRefreshDimensions.spec.js` together with the DEV-2740 fix (the legacy spec
+  // was DEV-2668's Flake 1). It could not be made honestly green before that fix: its only success
+  // signal is the guard tripping, the guard counted a succession that a 100 ms wall-clock idle timer
+  // reset, and there is no bound on how long a loaded runner takes to deliver 300 frames with every
+  // gap under 100 ms. Anchored to delivery cycles instead, the trip is bounded by ~300 frames on any
+  // machine, so it can be polled for.
+  test('warns once, stops the cycle, and lets the grid react again after the cooldown',
+    async({ page, theme, bundle }) => {
+      // Two bounded waits on a pipeline that runs at the frame rate: ~300 frames to the trip, then
+      // the guard's cooldown before it resumes. Both are longer than the suite's default budget on a
+      // loaded runner, and neither is a fixed sleep.
+      test.setTimeout(90_000);
+
+      const grid = new RefreshDimensionsPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.buildDvhGrid();
+
+      // The loop occupies every frame, so ~300 of them reach the threshold whatever the machine is
+      // doing. Generous, because a loaded runner's frames are long, not because the count is in doubt.
+      await expect.poll(() => grid.warnLog(WARNING_FRAGMENT), { timeout: 20_000 }).toEqual([WARNING]);
+
+      const refreshesWhenTripped = await grid.hookCount('after');
+
+      // The guard trips on the 300th successive delivery, and the frames already queued at that
+      // moment still run their deferred hook fire - so the total is at least the threshold, never
+      // exactly it.
+      expect(refreshesWhenTripped).toBeGreaterThanOrEqual(300);
+
+      // The observer is disconnected for the whole cooldown, so a bounded run of frames inside it
+      // must add nothing. The poll above is this negative check's positive control: the pipeline
+      // reached 300 deliveries a moment ago, so a frozen count here can only be the disconnect.
+      await grid.afterAnimationFrames(30);
+
+      expect(await grid.hookCount('after')).toBe(refreshesWhenTripped);
+
+      // And the disconnect is temporary: the loop is still there, so it resumes by itself once the
+      // observer is observed again. This is what a grid whose gap-free resize stream was legitimate
+      // gets back - before DEV-2740 the disconnect was permanent and it got nothing.
+      await expect.poll(() => grid.hookCount('after'), { timeout: 20_000 })
+        .toBeGreaterThan(refreshesWhenTripped);
+
+      // Still one warning: the message describes the page's configuration, which has not changed.
+      expect(await grid.warnLog(WARNING_FRAGMENT)).toEqual([WARNING]);
     });
 });
