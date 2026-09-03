@@ -2658,10 +2658,10 @@ export default function Core(
    * [`getSourceData()`](@/api/core.md#getsourcedata) returns it and
    * [`countSourceCols()`](@/api/core.md#countsourcecols) counts it.
    *
-   * On an **object** data source that write is **deprecated as of 18.2.0** and will be ignored from 19.0.0 on: the
-   * value cannot become a column there, so it only adds a key the schema never declared. To write a field the grid
-   * shows no column for, address it by property name with
-   * [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead.
+   * On an **object** data source – including one whose [`dataSchema`](@/api/options.md#dataschema) is a function –
+   * that write is **deprecated as of 18.2.0** and will be ignored from 19.0.0 on: the value cannot become a column
+   * there, so it only adds a key the schema never declared. To write a field the grid shows no column for, address it
+   * by property name with [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead.
    *
    * @memberof Core#
    * @function setDataAtCell
@@ -2697,7 +2697,7 @@ export default function Core(
       const visualColumnIndex = typeof visualColumn === 'number' ? visualColumn : 0;
 
       if (visualColumnIndex >= this.countCols()) {
-        // No column exists at this index, and on an object data source none ever can -
+        // No column exists at this index, and on an object-rowed data source none ever can -
         // `createCol()` refuses one ("you can only have as much columns as defined in first data
         // row, data schema or in the 'columns' setting"), which is why `applyChanges()` skips
         // creating it. The index then travels on as the property name, so `dataMap.set()` mints a
@@ -2705,10 +2705,16 @@ export default function Core(
         // column renders it, yet it reaches every consumer that serializes the row. Deprecated in
         // 18.2.0; the write is skipped from 19.0.0 on.
         //
-        // An array data source is not warned about: there the index names a real array slot rather
-        // than a positional key on a named record, so extending the row is type-consistent, and
-        // `applyChanges()` creates the column outright when the source allows it.
-        if (instance.dataType === 'object') {
+        // The predicate mirrors `applyChanges()`'s own creation gate, which is `=== 'array'` - so
+        // it must be `!== 'array'` here rather than `=== 'object'`. A function `dataSchema` sets
+        // `dataType` to `'function'` (`replaceData.ts`) and is just as object-rowed and just as
+        // unable to gain a column, so naming only `'object'` would leave it writing the key.
+        //
+        // `countCols() > 0` excludes the degenerate grid that declares no columns at all: an empty
+        // `data: []` is duck-typed to `'object'` because there is no `data[0]` to inspect, and
+        // there every index is "past the last column". Writing to such a grid is how an empty
+        // dataset gets bootstrapped, so it is left exactly as it was.
+        if (instance.dataType !== 'array' && this.countCols() > 0) {
           deprecatedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
             'Writing past the last column of an object data source is deprecated and will be ' +
             'ignored in Handsontable 19.0.0. The value currently lands on a property named after ' +

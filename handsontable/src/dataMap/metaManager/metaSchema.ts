@@ -305,12 +305,15 @@ export default (): Record<string, unknown> => {
      * - An [autofill](@/guides/cell-features/autofill-values/autofill-values.md) that reaches past the last column stops
      *   at the last column.
      * - [`setDataAtCell()`](@/api/core.md#setdataatcell) and [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) no
-     *   longer create the missing columns when you write past the last column. Creating them is only ever possible
-     *   for an array-of-arrays [`data`](#data) source with no [`columns`](#columns) option – in any other
-     *   configuration these methods never add columns, whatever this option is set to. Either way the write still
-     *   reaches the source data, so [`getSourceData()`](@/api/core.md#getsourcedata) returns the value while the grid
-     *   never displays it. On an object data source that write is **deprecated as of 18.2.0** and will be ignored
-     *   from 19.0.0 on – see [`setDataAtCell()`](@/api/core.md#setdataatcell).
+     *   longer create the missing columns when you write past the last column. The write still reaches the source
+     *   data, so [`getSourceData()`](@/api/core.md#getsourcedata) returns the value while the grid never displays it.
+     *   This bullet applies only when your [`data`](#data) is an array of arrays and you do not set the
+     *   [`columns`](#columns) option – in any other configuration these methods never add columns anyway, whatever
+     *   this option is set to.
+     *
+     * Whether a write past the last column reaches the source data at all is **not** controlled by this option – it
+     * depends on the [`data`](#data) source, and on an object one it is deprecated as of 18.2.0. See
+     * [`setDataAtCell()`](@/api/core.md#setdataatcell), which owns that rule.
      *
      * The option does not stop these ways of adding columns:
      * - The [`alter()`](@/api/core.md#alter) method, including its `insert_col_start` and `insert_col_end` actions.
