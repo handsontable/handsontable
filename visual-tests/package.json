@@ -20,7 +20,7 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "license": "CC BY 4.0",
   "devDependencies": {
-    "@playwright/test": "~1.60.0",
+    "@playwright/test": "catalog:",
     "@typescript-eslint/eslint-plugin": "^5.48.1",
     "@typescript-eslint/parser": "^5.48.1",
     "chalk": "^4.1.0",

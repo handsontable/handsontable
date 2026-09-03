@@ -191,6 +191,59 @@ Never guess a container from an empty style read, and never cache a layout decis
 - **Before 18.1, a tap on an already-selected cell opened the editor** on these devices (the unsuppressed synthesized pair completed a second double-click match; a first tap on an unselected cell is `preventDefault`-ed and synthesizes nothing). That was a side effect, not a feature; do not "restore" it.
 - Test it in Playwright with `test.use({ ...devices['Desktop Chrome'], hasTouch: true, browserName: 'chromium' })` (`tests/e2e/touch-tap-to-edit.spec.ts`); Chromium synthesizes the same mouse sequence after `locator.tap()`. Use `page.clock` to drive the pairing timers. Script-dispatched `MouseEvent`s have `sourceCapabilities === null` and exercise the WebKit fallback.
 
+## The ResizeObserver loop guard counts frames, not milliseconds
+
+`overlay/resizeMonitor.ts` guards against a parent sized in dynamic units (`dvh`) whose size the grid's
+own dimensions refresh feeds back into — a callback that re-triggers itself forever. Two properties of
+that guard are load-bearing, and both were defects until DEV-2740.
+
+**Never reset the succession on a wall-clock timer.** A `ResizeObserver` delivers at most once per
+rendering frame, so a self-sustaining loop occupies every frame whatever the machine is doing, while the
+frame *interval* stretches without bound under CPU contention. The original guard counted 300 consecutive
+deliveries and zeroed the count after 100 ms of wall-clock quiet, which made the trip a function of CPU
+speed: on a loaded machine every frame outlasted the reset, so the count never reached the threshold and
+the loop ran forever — the guard was disabled in exactly the state it exists for. The count is now reset
+only when a whole frame passes with **no** delivery, which a loop cannot produce.
+
+**Record the delivery synchronously in the observer callback.** Within one frame the browser runs the
+animation-frame callbacks, then style and layout, then delivers the `ResizeObserver` callbacks, then
+paints; and a callback registered during a frame's animation-frame phase lands in the *next* frame's
+list, in registration order. So the quiet-frame watchdog — itself an animation-frame callback — runs
+BEFORE a callback registered by that same frame's observer delivery. Setting the "delivered" flag from
+inside the deferred (rAF) part of the observer callback therefore lets the watchdog read it one frame too
+early and call a busy frame quiet. Only the setting fire may be deferred.
+
+**The disconnect is a cooldown, not a kill.** The guard cannot tell a feedback loop from a gap-free
+legitimate stream — dragging a splitter around the grid for a few seconds also occupies every frame — so
+a permanent disconnect silently ended container-resize reactivity for the instance's lifetime. The
+observer is observed again after a delay that doubles on every trip no quiet frame separated from the
+last one, capped at `RESIZE_LOOP_GUARD_RECONNECT_MAX_DELAY`, and returns to base on the first quiet
+frame. Consequences: the public `observe()` must cancel a pending reconnect (`NativeScrollInput`
+re-registers its listeners whenever the scrollable element changes, so an explicit re-observe can land
+mid-cooldown); a reconnect that finds the wrapper DETACHED must schedule another one rather than give
+up, or a host that parks the grid's subtree outside the document (a framework re-render, a
+`keep-alive` cache, a tab that caches its panel) can land its detach on the timer and restore the
+permanent disconnect through DOM timing alone; and `destroy()` must cancel **three** handles, not
+two - the reconnect timeout, the watchdog frame, and the deferred `onContainerElementResize` fire. All three outlive a task boundary,
+and the third is the easy one to miss: `getSetting()` on a function-valued key invokes the setting
+synchronously, so a delivery that landed one frame before the teardown refreshes the dimensions of a
+torn-down grid. Core's own handler happens to guard `isDestroyed`, which is what keeps that from
+throwing today - do not rely on it. An `#isDestroyed` flag backs the cancels up, because an observer
+entry carries the state from its own snapshot and can be dispatched after the disconnect.
+
+Everything the guard uses comes off the injected `rootWindow` - the timers, the animation frames AND
+the `ResizeObserver` itself. That last one is not cosmetic: for a grid whose document is an iframe's,
+the page-global constructor belongs to another window and delivers observations on that window's
+rendering, which decouples the deliveries from the frames this guard counts and breaks the
+one-delivery-per-frame invariant the whole design rests on. It is built in the constructor rather than
+as a class field, because a field initializer runs before `#deps` is assigned.
+
+The warning text is printed once per instance and pinned verbatim by two specs -
+`tests/e2e/refresh-dimensions.spec.ts` and `test/unit/overlay/resizeMonitor.unit.ts`. Reword it and
+both specs together, never alone. It ends "disconnected and reconnected after a short delay" because
+the original "will be disconnected" described the permanent kill and stopped being true when the
+cooldown replaced it.
+
 ## Known Tech Debt
 
 - The DAO layer has been replaced by constructor injection + the `wire.ts` composition root (see the DI section above) — do not reintroduce DAO getters or `wot`-god-object passing.

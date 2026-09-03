@@ -75,7 +75,7 @@ jobs:
     name: "Playwright ${{ matrix.bundle.label }} (theme: ${{ matrix.theme }})"
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.61.1-noble
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
     if: inputs.run-all || inputs.run-playwright
     strategy:
       fail-fast: false

@@ -111,7 +111,7 @@ Changing your background, font colors, etc., shouldn't lower the performance. Ho
 
 ## Avoid the `cells` option when possible
 
-The [`cells`](@/api/options.md#cells) option is a function invoked before each of Handsontable's [rendering cycles](@/guides/optimization/batch-operations/batch-operations.md). Because it runs on every render for every visible cell, even a small amount of work inside it adds up quickly and can noticeably slow down the grid.
+The [`cells`](@/api/options.md#cells) option is a function invoked before each of Handsontable's [rendering cycles](@/guides/optimization/rendering/rendering.md). Because it runs on every render for every visible cell, even a small amount of work inside it adds up quickly and can noticeably slow down the grid.
 
 Prefer lighter alternatives when they meet your needs:
 
@@ -189,6 +189,7 @@ For more information, see our [Pagination guide](@/guides/rows/rows-pagination/r
 
 <div class="boxes-list">
 
+- [Understanding rendering](@/guides/optimization/rendering/rendering.md)
 - [Batch operations](@/guides/optimization/batch-operations/batch-operations.md)
 - [Row virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
 - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
