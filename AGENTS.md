@@ -19,6 +19,7 @@ Route to the lowest correct scope. `AGENTS.md` answers "what must I never get wr
 | Anything monorepo-wide (build orchestration, release, workspace) | This file; `.ai/` (root) |
 | Working inside a linked git worktree (`.claude/worktrees/`) | `.ai/WORKTREES.md` |
 | Core grid internals (`handsontable/src/`) | `handsontable/AGENTS.md`; `handsontable/.ai/` |
+| One specific plugin (`handsontable/src/plugins/<name>/`) | that plugin's own `AGENTS.md` — every plugin has one; `handsontable/src/plugins/base/AGENTS.md` for the plugin contract and the `PLUGIN_PRIORITY` table |
 | Rendering engine (`handsontable/src/3rdparty/walkontable/`) | `handsontable/src/3rdparty/walkontable/AGENTS.md`; `handsontable/src/3rdparty/walkontable/.ai/` |
 | Documentation site (`docs/`) | `docs/AGENTS.md` |
 | React wrapper | `wrappers/react-wrapper/AGENTS.md` |
@@ -104,7 +105,7 @@ Every code change produced by an agent **must** satisfy all of the following:
 
 1. **Tests are required, and machine-enforced.** A change to `handsontable/src/**` or `wrappers/**` must ship a matching test change (the presence gate checks this on every PR). The *kind* follows the change: **unit** (Jest, `*.unit.js`) for logic, **E2E** for anything a user can see or do — and **new E2E is Playwright** (`tests/e2e/*.spec.ts`); the Jasmine/Puppeteer `*.spec.js` suite is frozen (edit existing specs, but do not add new ones — migrate broken ones to Playwright). A pure refactor needs no new test if declared with a `Refactor-only: <reason>` commit trailer. Full decision rules: `handsontable/.ai/TESTING.md`. The local gates that enforce this **before** a commit/PR (pre-commit + pre-push + the Claude Code hooks) and the exact rules for creating tests, enforcement hooks, and skills are in **`.ai/LOCAL-ENFORCEMENT.md`** (run `npx lefthook install` once).
 2. **Documentation must be updated.** If a change affects the public API, configuration options, hooks, behavior, or user-facing experience, update the corresponding documentation (guides, API reference via JSDoc/Typedoc, migration guide) in the same change. See [Documentation standards](#documentation-standards-all-packages).
-3. **Update AGENTS.md.** If a change introduces new conventions, patterns, constraints, file locations, or gotchas that future agents should know, update the `AGENTS.md` at the correct scope.
+3. **Update AGENTS.md.** If a change introduces new conventions, patterns, constraints, file locations, or gotchas that future agents should know, update the `AGENTS.md` at the correct scope. Two cases are unconditional. **A new plugin must ship its own `handsontable/src/plugins/<name>/AGENTS.md`, with `CLAUDE.md` symlinked to it** — every existing plugin has one, and a plugin without it is as incomplete as one without a barrel export (format and required sections: the `handsontable-plugin-dev` skill). And **a trap discovered while changing an existing plugin belongs in that plugin's `AGENTS.md`**, not in the monorepo-wide files.
 
 ---
 
