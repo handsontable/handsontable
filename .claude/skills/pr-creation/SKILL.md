@@ -9,10 +9,13 @@ Choose the prefix that matches your work:
 
 | Type | Pattern | Example |
 |------|---------|---------|
-| Feature (ClickUp) | `feature/DEV-xxx_Short-Description` | `feature/DEV-627_Forum-Update` |
-| Feature (GitHub) | `feature/issue-xxxx` | `feature/issue-11832` |
-| Docs | `docs/issue-xxxx` | `docs/issue-9500` |
+| Feature (ClickUp, default) | `feature/<TASK-ID>_Short-Description` | `feature/DEV-627_Forum-Update` |
+| Docs (ClickUp) | `docs/<TASK-ID>_Short-Description` | `docs/DEV-458_Clarify-undo-redo-docs` |
+| Feature (public GitHub issue) | `feature/issue-xxxx` | `feature/issue-11832` |
+| Docs (public GitHub issue) | `docs/issue-xxxx` | `docs/issue-9500` |
 | Release | `release/x.y.z` | `release/16.1.0` |
+
+`<TASK-ID>` is the ClickUp custom ID. Its prefix follows the space the task lives in, so it is not always `DEV`: `docs/SU-833_BeforeKeyDown-Return-False-Note` and `feature/PRO-858_Theme-API-e2e-test-data-driven-for-each-theme` are both valid. Copy the prefix from the task, never assume one.
 
 When working from a ClickUp task, the **human-readable custom ID** (e.g. `DEV-627`, `IT-42`) **must** appear in the branch name so ClickUp links automatically. Never use the internal ClickUp hash ID (e.g. `86c9j4fxj`) — it is not a valid task identifier for branch linking.
 
@@ -162,16 +165,11 @@ When asked to update, fix, or re-fill a PR description, use the same temp-file a
 
 ## 6. Changelog Entry (after PR is created)
 
-Every PR that changes source code needs a changelog entry in `.changelogs/`. The filename **must** match `issueOrPR`, and which number that is depends on `issuesOrigin`:
+Every PR that changes source code needs a changelog entry in `.changelogs/`. `bin/changelog` names the file after the entry's `issueOrPR` field, so the filename is the **PR number** only for a `private` entry — the default, and what the rest of this section assumes. A `public` entry is named after its GitHub issue number instead, and because that number is known before the PR exists, it can be committed together with the code rather than in the round-trip below.
 
-| `issuesOrigin` | `issueOrPR` | Filename |
-|---|---|---|
-| `private` — the default, and almost always correct | the PR number from `gh pr create` | `{PR-number}.json` |
-| `public` — only when the entry cites a real public GitHub issue | the **issue** number | `{issue-number}.json` |
+**Which `issuesOrigin` to use is decided by [`.changelogs/README.md`](../../../.changelogs/README.md), not here** — read it before writing the entry. The CI gate only asserts that a source change adds at least one entry; it never checks the filename.
 
-The field picks the link path in the generated `CHANGELOG.md`, so `public` paired with a PR number publishes a link to `/issues/{PR-number}` — a wrong link that also weakens the republish-duplicate check from a hard error to a warning (it still finds the entry, because `findRepublishedEntries` reads the number from the `[#N]` link text, not the URL; it escalates back to an error only when the title matches too). Work tracked only in a private ClickUp task is always `private`. See `.changelogs/README.md` for the authoritative table, and the `changelog-creation` skill for the JSON schema and title-writing rules.
-
-After writing the file:
+For a `private` entry, after writing the file:
 
 1. Commit it on the same branch (`DEV-xxx: Add changelog entry for PR #<number>`).
 2. Push so the PR picks up the new commit.

@@ -1,11 +1,23 @@
 import type { EngineContext } from '../wire';
-import { requestAnimationFrame } from '../../../../helpers/feature';
-import { warn } from '../../../../helpers/console';
+import { warnOnce } from '../../../../helpers/console';
+import {
+  RESIZE_LOOP_GUARD_RECONNECT_DELAY,
+  RESIZE_LOOP_GUARD_RECONNECT_MAX_DELAY,
+  RESIZE_LOOP_GUARD_THRESHOLD,
+} from './constants';
 
 /**
- * Assembles the ResizeMonitor's dependencies from the engine composition context. It needs only the
- * settings accessor (to fire the `onContainerElementResize` setting) and the master table (for the
- * wrapper element it observes) — no callback back into the owning Overlays coordinator.
+ * The `warnOnce` key for the loop-guard warning. The message describes the page's configuration, which
+ * does not change between trips, so it is printed once per monitor - `warnOnce` is scoped on the
+ * instance, so a second grid on the page still gets its own.
+ */
+const LOOP_GUARD_WARN_KEY = 'resizeObserverLoopGuard';
+
+/**
+ * Assembles the ResizeMonitor's dependencies from the engine composition context. It needs the
+ * settings accessor (to fire the `onContainerElementResize` setting), the master table (for the
+ * wrapper element it observes) and the window the timers and animation frames live on - no callback
+ * back into the owning Overlays coordinator.
  *
  * @param {EngineContext} ctx The engine composition context.
  * @returns {object} The ResizeMonitor dependency set.
@@ -14,6 +26,7 @@ export function createResizeMonitorDeps(ctx: EngineContext) {
   return {
     wtSettings: ctx.wtSettings,
     wtTable: ctx.getWtTable(),
+    rootWindow: ctx.rootWindow,
   };
 }
 
@@ -27,9 +40,32 @@ export type ResizeMonitorDeps = ReturnType<typeof createResizeMonitorDeps>;
  * `onContainerElementResize` setting when one is detected.
  *
  * The class owns the `ResizeObserver` plus the endless-loop guard: a dynamic parent size (for example
- * `dvh` units) can make the observer callback re-trigger itself indefinitely, so a rolling count with
- * a short reset window disconnects the observer once the callback fires too many times in direct
- * succession. Extracted from the Overlays coordinator so the loop-guard lifecycle stays self-contained.
+ * `dvh` units) can make the observer callback re-trigger itself indefinitely, so a count of deliveries
+ * in direct succession disconnects the observer once the callback fires too many times in a row.
+ * Extracted from the Overlays coordinator so the loop-guard lifecycle stays self-contained.
+ *
+ * Two properties of that guard are load-bearing, and both were defects before DEV-2740.
+ *
+ * **The succession is measured in delivery cycles, not in wall-clock time.** An observer delivers at
+ * most once per rendering frame, so a self-sustaining loop occupies every frame regardless of how busy
+ * the machine is; the count is therefore reset only when a whole frame passes with no delivery at all.
+ * The wall-clock reset it replaced (100 ms of quiet) made the trip a function of CPU speed: under
+ * contention Chrome stretches frames past 100 ms, so the count reset before the threshold and the loop
+ * ran forever - the guard was disabled in exactly the state it exists for.
+ *
+ * **The disconnect is temporary.** The guard cannot tell a feedback loop from a gap-free legitimate
+ * stream (dragging a splitter around the grid for a few seconds occupies every frame too), so a
+ * permanent disconnect would silently end container-resize reactivity for the instance's lifetime. The
+ * observer is observed again after a cooldown that doubles on every trip that no quiet frame separated
+ * from the last one, up to `RESIZE_LOOP_GUARD_RECONNECT_MAX_DELAY`. A legitimate grid resumes reacting;
+ * a page with a real loop is throttled to a bounded rate.
+ *
+ * The frame ordering is what dictates where the counting happens. Within one frame the browser runs the
+ * animation-frame callbacks, then style and layout, then delivers the `ResizeObserver` callbacks. A
+ * callback registered during a frame's animation-frame phase therefore runs BEFORE one registered by
+ * that same frame's observer delivery. The delivery has to be recorded synchronously, in the observer
+ * callback itself, or the quiet-frame watchdog would read its flag before the delivery that was about
+ * to set it and call a busy frame quiet.
  *
  * @class ResizeMonitor
  */
@@ -49,85 +85,306 @@ export class ResizeMonitor {
   #containerDomResizeCount = 0;
 
   /**
-   * The timeout ID for the ResizeObserver endless-loop-blocking logic.
+   * Whether the observer delivered since the quiet-frame watchdog last looked. Set synchronously in the
+   * observer callback, so a delivery made at the end of a frame is already visible to the watchdog that
+   * runs at the start of the next one.
+   *
+   * @type {boolean}
+   */
+  #deliveredSinceLastFrame = false;
+
+  /**
+   * The animation-frame ID of the quiet-frame watchdog, or `null` while no watchdog is armed.
+   *
+   * @type {number | null}
+   */
+  #quietFrameWatchdogId: number | null = null;
+
+  /**
+   * The timeout ID of the pending reconnect, or `null` while the observer is not in its cooldown.
+   *
+   * @type {number | null}
+   */
+  #reconnectTimeoutId: number | null = null;
+
+  /**
+   * How long the next cooldown lasts, in milliseconds. Doubles on every trip a quiet frame did not
+   * separate from the last one, and returns to the base delay as soon as one does.
    *
    * @type {number}
    */
-  #containerDomResizeCountTimeout: ReturnType<typeof setTimeout> | null = null;
+  #reconnectDelay = RESIZE_LOOP_GUARD_RECONNECT_DELAY;
+
+  /**
+   * The animation-frame ID of the pending `onContainerElementResize` fire, or `null` when none is
+   * pending. At most one can be outstanding: a delivery is broadcast once per rendering update, after
+   * that update already ran its animation-frame callbacks, so the frame this schedules runs before the
+   * next delivery can schedule another.
+   *
+   * @type {number | null}
+   */
+  #settingFrameId: number | null = null;
+
+  /**
+   * Whether the monitor was destroyed. Every callback that outlives a task boundary opens with this,
+   * because cancelling a handle cannot undo a callback the engine already dispatched.
+   *
+   * @type {boolean}
+   */
+  #isDestroyed = false;
 
   /**
    * The instance of the ResizeObserver that observes the size of the Walkontable wrapper element.
    * In case of the size change detection the `onContainerElementResize` is fired.
    *
+   * Constructed in the constructor rather than as a field initializer, because it is built from
+   * `rootWindow` and a field initializer runs before `#deps` is assigned. The realm matters: for a
+   * grid whose document is an iframe's, the page-global `ResizeObserver` belongs to another window
+   * than the timers and frames this class uses, and observations would be delivered on that window's
+   * rendering rather than the grid's.
+   *
    * @type {ResizeObserver}
    */
-  #resizeObserver = new ResizeObserver((entries) => {
-    requestAnimationFrame(() => {
-      if (!Array.isArray(entries) || !entries.length) {
-        return;
-      }
-
-      this.#containerDomResizeCount += 1;
-
-      if (this.#containerDomResizeCount === 300) {
-        warn('The ResizeObserver callback was fired too many times in direct succession.' +
-          '\nThis may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +
-          'with the `dvh` units) to a Handsontable container\'s parent. ' +
-          '\nThe observer will be disconnected.');
-
-        this.#resizeObserver.disconnect();
-      }
-
-      // This logic is required to prevent an endless loop of the ResizeObserver callback.
-      // https://github.com/handsontable/dev-handsontable/issues/1898#issuecomment-2154794817
-      if (this.#containerDomResizeCountTimeout !== null) {
-        clearTimeout(this.#containerDomResizeCountTimeout);
-      }
-
-      this.#containerDomResizeCountTimeout = setTimeout(() => {
-        this.#containerDomResizeCount = 0;
-      }, 100);
-
-      this.#deps.wtSettings.getSetting('onContainerElementResize');
-    });
-  });
+  readonly #resizeObserver: ResizeObserver;
 
   /**
    * @param {ResizeMonitorDeps} deps The ResizeMonitor dependencies.
    */
   constructor(deps: ResizeMonitorDeps) {
     this.#deps = deps;
+    this.#resizeObserver = new deps.rootWindow.ResizeObserver((entries) => {
+      if (this.#isDestroyed || !Array.isArray(entries) || !entries.length) {
+        return;
+      }
+
+      this.#registerDelivery();
+
+      this.#settingFrameId = deps.rootWindow.requestAnimationFrame(() => {
+        this.#settingFrameId = null;
+
+        if (this.#isDestroyed) {
+          return;
+        }
+
+        deps.wtSettings.getSetting('onContainerElementResize');
+      });
+    });
   }
 
   /**
-   * Starts observing the Walkontable wrapper's parent element for size changes. No-op when the
-   * wrapper has no parent element.
+   * Starts observing the Walkontable wrapper's parent element for size changes. No-op when the monitor
+   * was destroyed, and when the wrapper has no parent element.
+   *
+   * The destroyed check is what keeps `destroy()` final: this is a public method, and a call after
+   * teardown would attach the observer again and hold the parent element for the rest of the page's
+   * life. Nothing would throw - every callback bails out on the flag - so the leak would be silent.
+   *
+   * Cancels a pending reconnect first: this method is public and `NativeScrollInput` re-registers its
+   * listeners whenever the scrollable element changes, so an explicit re-observe can land in the middle
+   * of a cooldown and must not leave a timer behind to observe a second time.
+   *
+   * Cancelling that timer is only safe while this call can replace it. When the wrapper is detached
+   * there is nothing to attach to, so a call landing mid-cooldown has to put the reconnect back or it
+   * would consume the retry and leave the container watched by nobody - the permanent disconnect
+   * again, one call further along. A failed attach OUTSIDE a cooldown arms nothing, which is the
+   * behavior this class has always had: a grid built detached is observed when its owner re-registers,
+   * not by a timer that polls for the whole session.
+   *
+   * It deliberately does NOT reset the accumulated backoff, which `resetResizeCount()` does. The two
+   * are not symmetrical: a window resize is evidence about the CAUSE of the deliveries, so the
+   * succession they belong to can be forgotten, while a change of scrollable element says only which
+   * element to watch and nothing about whether the loop went away.
    */
   observe() {
-    const parentElement = this.#deps.wtTable.wtRootElement.parentElement;
+    if (this.#isDestroyed) {
+      return;
+    }
 
-    if (parentElement) {
-      this.#resizeObserver.observe(parentElement);
+    const wasInCooldown = this.#reconnectTimeoutId !== null;
+
+    this.#cancelReconnect();
+
+    if (!this.#attach() && wasInCooldown) {
+      this.#scheduleReconnect();
     }
   }
 
   /**
    * Resets the direct-succession resize counter. Called when a window resize accounts for the size
-   * change, so it is excluded from the endless-loop-blocking logic.
+   * change, so it is excluded from the endless-loop-blocking logic. A window resize is external,
+   * legitimate activity, so it also returns the cooldown to its base length.
    */
   resetResizeCount() {
-    this.#containerDomResizeCount = 0;
+    this.#cancelQuietFrameWatchdog();
+    this.#resetSuccession();
   }
 
   /**
-   * Cleans up on destroy: clears the pending reset timeout and disconnects the observer.
+   * Cleans up on destroy: cancels all three handles that outlive a task boundary - the pending
+   * reconnect, the quiet-frame watchdog and the deferred `onContainerElementResize` fire - and
+   * disconnects the observer.
+   *
+   * All three have to go. `observe()` reads the wrapper's parent element, and `getSetting()` on a
+   * function-valued key invokes the setting synchronously, so a delivery that landed in the frame
+   * before this call would otherwise refresh the dimensions of a torn-down grid. The `#isDestroyed`
+   * flag backs the cancels up, because an observer entry carries the state from its own snapshot and
+   * can be dispatched after this point.
    */
   destroy() {
-    if (this.#containerDomResizeCountTimeout !== null) {
-      clearTimeout(this.#containerDomResizeCountTimeout);
-      this.#containerDomResizeCountTimeout = null;
+    this.#isDestroyed = true;
+
+    this.#cancelReconnect();
+    this.#cancelQuietFrameWatchdog();
+    this.#cancelSettingFrame();
+    this.#resizeObserver.disconnect();
+  }
+
+  /**
+   * Records one observer delivery and trips the guard once they reach the threshold in direct
+   * succession. Runs synchronously in the observer callback - see the class description for why the
+   * deferred part of the callback cannot do this.
+   */
+  #registerDelivery() {
+    this.#containerDomResizeCount += 1;
+    this.#deliveredSinceLastFrame = true;
+
+    this.#armQuietFrameWatchdog();
+
+    if (this.#containerDomResizeCount >= RESIZE_LOOP_GUARD_THRESHOLD) {
+      this.#tripLoopGuard();
+    }
+  }
+
+  /**
+   * Arms the watchdog that breaks the succession. It re-arms itself for as long as deliveries keep
+   * arriving, so it costs one animation frame per frame that the observer is already busy in, and stops
+   * as soon as it finds a frame the observer skipped.
+   */
+  #armQuietFrameWatchdog() {
+    if (this.#quietFrameWatchdogId !== null) {
+      return;
     }
 
+    this.#quietFrameWatchdogId = this.#deps.rootWindow.requestAnimationFrame(() => {
+      this.#quietFrameWatchdogId = null;
+
+      if (this.#isDestroyed) {
+        return;
+      }
+
+      if (this.#deliveredSinceLastFrame) {
+        this.#deliveredSinceLastFrame = false;
+        this.#armQuietFrameWatchdog();
+
+        return;
+      }
+
+      // A whole frame passed with no delivery, so whatever came before it was not a self-sustaining
+      // loop - it cannot skip a frame.
+      this.#resetSuccession();
+    });
+  }
+
+  /**
+   * Disconnects the observer for a cooldown and warns once. The counter is cleared here rather than on
+   * reconnect so that `resetResizeCount()` and a quiet frame during the cooldown stay meaningful.
+   */
+  #tripLoopGuard() {
+    warnOnce(this, LOOP_GUARD_WARN_KEY,
+      'The ResizeObserver callback was fired too many times in direct succession.' +
+      '\nThis may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +
+      'with the `dvh` units) to a Handsontable container\'s parent. ' +
+      '\nThe observer will be disconnected and reconnected after a short delay.');
+
     this.#resizeObserver.disconnect();
+    this.#cancelQuietFrameWatchdog();
+
+    this.#containerDomResizeCount = 0;
+    this.#deliveredSinceLastFrame = false;
+
+    this.#scheduleReconnect();
+  }
+
+  /**
+   * Schedules the end of the cooldown. The delay grows before each attempt and is capped, so a page
+   * whose loop never goes away backs off toward one burst per `RESIZE_LOOP_GUARD_RECONNECT_MAX_DELAY`.
+   *
+   * A reconnect that finds the wrapper detached schedules another one instead of giving up. Without
+   * that, a host that transiently takes the grid's subtree out of the document - a framework re-render,
+   * a `keep-alive` cache, a tab or accordion that parks its panel - could land its detach exactly on
+   * this timer, `#attach()` would no-op, and nothing would ever re-arm: the permanent disconnect this
+   * class exists to remove, back again through DOM timing. The retry rides the same backoff, so a
+   * wrapper that stays detached costs one no-op attempt per capped interval rather than a spinning
+   * timer.
+   */
+  #scheduleReconnect() {
+    this.#reconnectTimeoutId = this.#deps.rootWindow.setTimeout(() => {
+      this.#reconnectTimeoutId = null;
+
+      if (this.#isDestroyed) {
+        return;
+      }
+
+      this.#reconnectDelay = Math.min(this.#reconnectDelay * 2, RESIZE_LOOP_GUARD_RECONNECT_MAX_DELAY);
+
+      if (!this.#attach()) {
+        this.#scheduleReconnect();
+      }
+    }, this.#reconnectDelay);
+  }
+
+  /**
+   * Observes the wrapper's parent element. Returns whether it had one - the wrapper is detached while a
+   * host framework holds the grid's subtree outside the document, and there is nothing to observe then.
+   */
+  #attach(): boolean {
+    const parentElement = this.#deps.wtTable.wtRootElement.parentElement;
+
+    if (!parentElement) {
+      return false;
+    }
+
+    this.#resizeObserver.observe(parentElement);
+
+    return true;
+  }
+
+  /**
+   * Clears the succession: the counter, the delivery flag and the accumulated backoff.
+   */
+  #resetSuccession() {
+    this.#containerDomResizeCount = 0;
+    this.#deliveredSinceLastFrame = false;
+    this.#reconnectDelay = RESIZE_LOOP_GUARD_RECONNECT_DELAY;
+  }
+
+  /**
+   * Cancels the quiet-frame watchdog, if one is armed.
+   */
+  #cancelQuietFrameWatchdog() {
+    if (this.#quietFrameWatchdogId !== null) {
+      this.#deps.rootWindow.cancelAnimationFrame(this.#quietFrameWatchdogId);
+      this.#quietFrameWatchdogId = null;
+    }
+  }
+
+  /**
+   * Cancels the deferred `onContainerElementResize` fire, if one is pending.
+   */
+  #cancelSettingFrame() {
+    if (this.#settingFrameId !== null) {
+      this.#deps.rootWindow.cancelAnimationFrame(this.#settingFrameId);
+      this.#settingFrameId = null;
+    }
+  }
+
+  /**
+   * Cancels the pending reconnect, if the observer is in a cooldown.
+   */
+  #cancelReconnect() {
+    if (this.#reconnectTimeoutId !== null) {
+      this.#deps.rootWindow.clearTimeout(this.#reconnectTimeoutId);
+      this.#reconnectTimeoutId = null;
+    }
   }
 }

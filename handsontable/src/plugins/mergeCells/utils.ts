@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { MergeAreaGeometry } from '../../utils/mergeAreas';
 
 /**
  * Builds a comparison key from a merge area's visual geometry. Two merge areas that cover exactly
@@ -12,9 +13,7 @@ import type { HotInstance } from '../../core/types';
  * @param {number} mergeArea.colspan Number of columns the merge area spans.
  * @returns {string} The comparison key.
  */
-export function toMergeAreaKey(
-  { row, col, rowspan, colspan }: { row: number, col: number, rowspan: number, colspan: number }
-): string {
+export function toMergeAreaKey({ row, col, rowspan, colspan }: MergeAreaGeometry): string {
   return `${row},${col},${rowspan},${colspan}`;
 }
 

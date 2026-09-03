@@ -32,6 +32,9 @@ describe('UndoRedo -> DataChange action', () => {
       selected: [[1, 2]],
       countCols: 5,
       countRows: 5,
+      // Merge areas the change destroyed. Empty here: the MergeCells plugin is not enabled, and an
+      // ordinary edit destroys no merge even when it is.
+      mergedCells: [],
     });
   });
 

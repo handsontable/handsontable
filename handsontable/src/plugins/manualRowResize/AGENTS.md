@@ -10,8 +10,12 @@ The file opens with a standing instruction:
 
 Take it literally. **`../manualColumnResize/AGENTS.md` documents everything the two share** — the foreign
 `SETTING_KEYS` entry and its three `updatePlugin()` consequences, the replayed map `init` hook, the two
-guards on writing a size, the overlay-relative handle resolution, multi-row resize, and the #6926 detached
-`event.target` workaround. The shared helpers are in `../manualResize/AGENTS.md`.
+guards on writing a size, the overlay-relative handle resolution, multi-row resize, the #6926 detached
+`event.target` workaround, and — added under DEV-2719 — the lazy attach/teardown rules for the handle and
+guide plus the `afterMouseDownTimeout()` bail. Those last two are where an orphaned handle silently
+swallows header clicks and why `#pressed` must survive the update cycle; read them before touching
+`disablePlugin()`, `destroy()`, `hideHandleAndGuide()` or `#onMouseUp()` here. The shared helpers are in
+`../manualResize/AGENTS.md`.
 
 What differs for rows:
 

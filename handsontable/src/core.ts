@@ -60,7 +60,7 @@ import type { ShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcuts/contexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
-import { warn, removedWarnOnce } from './helpers/console';
+import { warn, removedWarnOnce, deprecatedWarnOnce } from './helpers/console';
 import { throwWithCause } from './helpers/errors';
 import {
   install as installAccessibilityAnnouncer,
@@ -218,6 +218,29 @@ function warnAboutRemovedOptions(settings: Record<string, unknown>): void {
         `See ${migrationUrl} for the migration path.`);
     }
   });
+}
+
+/**
+ * Validates a single `setDataAtCell` change and returns the visual column index it addresses.
+ *
+ * Kept out of `setDataAtCell` so that method stays within the cognitive complexity limit.
+ *
+ * @param {Array} change A single change in format `[row, column, value]`.
+ * @returns {number} The visual column index the change addresses.
+ */
+function getSetDataAtCellColumn(change: [number, string | number, unknown]): number {
+  if (typeof change !== 'object') {
+    throwWithCause('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
+  }
+
+  const visualColumn = change[1];
+
+  if (typeof visualColumn !== 'number') {
+    // eslint-disable-next-line max-len
+    throwWithCause('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
+  }
+
+  return visualColumn;
 }
 
 /**
@@ -2650,6 +2673,20 @@ export default function Core(
    * Set new value to a cell. To change many cells at once (recommended way), pass an array of `changes` in format
    * `[[row, col, value],...]` as the first argument.
    *
+   * Writing past the last column creates the missing columns only where the grid can create them: an
+   * array-of-arrays [`data`](@/api/options.md#data) source with no [`columns`](@/api/options.md#columns) option and
+   * [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) left on. In every other configuration the column count
+   * is fixed, and the value is instead written to a property named after the column index. That property is not part
+   * of your [`dataSchema`](@/api/options.md#dataschema) and no column displays it, but
+   * [`getSourceData()`](@/api/core.md#getsourcedata) returns it, and
+   * [`countSourceCols()`](@/api/core.md#countsourcecols) counts it only when the write lands on the first row,
+   * because that method reads the first row's keys.
+   *
+   * On an **object** data source – including one whose [`dataSchema`](@/api/options.md#dataschema) is a function –
+   * that write is **deprecated as of 18.2.0** and will be ignored from 19.0.0 on: the value cannot become a column
+   * there, so it only adds a key the schema never declared. To write a field the grid shows no column for, address it
+   * by property name with [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead.
+   *
    * @memberof Core#
    * @function setDataAtCell
    * @param {number|Array} row Visual row index or array of changes in format `[[row, col, value],...]`.
@@ -2671,19 +2708,35 @@ export default function Core(
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       const [visualRow, visualColumn, newValue] = input[i];
-
-      if (typeof input[i] !== 'object') {
-        throwWithCause('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
-      }
-      if (typeof input[i][1] !== 'number') {
-        // eslint-disable-next-line max-len
-        throwWithCause('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
-      }
-
-      // setDataAtCell validates that column is numeric above (throws if not number).
-      const visualColumnIndex = typeof visualColumn === 'number' ? visualColumn : 0;
+      const visualColumnIndex = getSetDataAtCellColumn(input[i]);
 
       if (visualColumnIndex >= this.countCols()) {
+        // No column exists at this index, and on an object-rowed data source none ever can -
+        // `applyChanges()` creates one only when `dataType === 'array'`, no `columns` option is set
+        // and `allowInsertColumn` is on, so `createCol()` is never reached here. (Not to be read as
+        // `isColumnModificationAllowed()`: that tests `'object'` only, so it returns `true` for a
+        // function `dataSchema`.) The index then travels on as the property name, so
+        // `dataMap.set()` mints a positional key on a row whose other fields are named:
+        // `{ 2: 'x', id: 1 }` (#5409). No column renders it, yet it reaches every consumer that
+        // serializes the row. Deprecated in 18.2.0; the write is skipped from 19.0.0 on.
+        //
+        // The predicate mirrors that gate's `=== 'array'` term - so it must be `!== 'array'` here
+        // rather than `=== 'object'`. A function `dataSchema` sets `dataType` to `'function'`
+        // (`replaceData.ts`) and is just as object-rowed and just as unable to gain a column, so
+        // naming only `'object'` would leave it writing the key.
+        //
+        // `countCols() > 0` excludes the degenerate grid that declares no columns at all: an empty
+        // `data: []` is duck-typed to `'object'` because there is no `data[0]` to inspect, and
+        // there every index is "past the last column". Writing to such a grid is how an empty
+        // dataset gets bootstrapped, so it is left exactly as it was.
+        if (instance.dataType !== 'array' && this.countCols() > 0) {
+          deprecatedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
+            'Writing past the last column of an object data source is deprecated and will be ' +
+            'ignored in Handsontable 19.0.0. The value currently lands on a property named after ' +
+            'the column index, which no column can display. Use `setDataAtRowProp()` to write a ' +
+            'field the grid shows no column for.');
+        }
+
         prop = visualColumnIndex;
 
       } else {
@@ -3156,15 +3209,55 @@ export default function Core(
   };
 
   /**
-   * Rerender the table. Calling this method starts the process of recalculating, redrawing and applying the changes
-   * to the DOM. While rendering the table all cell renderers are recalled.
+   * Rerenders the table. Calling this method recalculates the layout, redraws the cells, and applies the changes
+   * to the DOM. Every redrawn cell runs its cell renderer and the [cells](@/api/options.md#cells) function again.
+   * The data, the selection, and the scroll position are left as they are.
    *
-   * Calling this method manually is not recommended. Handsontable tries to render itself by choosing the most
-   * optimal moments in its lifecycle. After [setCellMeta()](@/api/core.md#setcellmeta) changes visual cell
-   * properties, call this method to apply them, or wrap multiple calls in [batch()](@/api/core.md#batch).
+   * The render covers the cells that are currently rendered: the viewport plus the buffer set by
+   * [viewportRowRenderingOffset](@/api/options.md#viewportrowrenderingoffset) and
+   * [viewportColumnRenderingOffset](@/api/options.md#viewportcolumnrenderingoffset). It does not cover the whole
+   * data set, unless you turn virtualization off with [renderAllRows](@/api/options.md#renderallrows) or
+   * [renderAllColumns](@/api/options.md#renderallcolumns). The cost therefore scales with the number of rendered
+   * cells and with the work those functions do. The number of records you hold is not what drives it.
+   *
+   * You rarely need to call this method. Handsontable renders itself after every CRUD operation and at other
+   * points in its lifecycle. Call it yourself when you change something Handsontable cannot detect on its own.
+   * The common case is [setCellMeta()](@/api/core.md#setcellmeta), which updates cell metadata without
+   * repainting the grid. Because that method never renders, a sequence of such calls followed by one
+   * `render()` already costs exactly one render.
+   *
+   * When you mix metadata changes with CRUD operations, wrap the whole sequence in
+   * [batch()](@/api/core.md#batch) and call `render()` **inside** the callback. `batch()` on its own only
+   * suppresses the renders the CRUD operations would have triggered; it does not add one, so a callback
+   * holding nothing but [setCellMeta()](@/api/core.md#setcellmeta) calls leaves the grid unpainted.
+   *
+   * There is no API for rendering a single cell or a single row.
+   *
+   * To apply new configuration options, use [updateSettings()](@/api/core.md#updatesettings). To react to a
+   * container that changed size, use [refreshDimensions()](@/api/core.md#refreshdimensions).
+   *
+   * For the full rendering model, see the [Understanding rendering](@/guides/optimization/rendering/rendering.md)
+   * guide.
    *
    * @memberof Core#
    * @function render
+   * @example
+   * ```js
+   * hot.setCellMeta(0, 0, 'className', 'my-highlight');
+   * hot.render(); // without this, the class is stored but not visible
+   *
+   * // several metadata changes, still a single render
+   * hot.setCellMeta(0, 0, 'className', 'my-highlight');
+   * hot.setCellMeta(1, 0, 'readOnly', true);
+   * hot.render();
+   *
+   * // mixed with CRUD operations: batch them, and render inside the callback
+   * hot.batch(() => {
+   *   hot.alter('insert_row_above', 5, 45);
+   *   hot.setCellMeta(0, 0, 'className', 'my-highlight');
+   *   hot.render();
+   * });
+   * ```
    */
   this.render = function() {
     if (this.view) {
@@ -3375,6 +3468,15 @@ export default function Core(
 
   /**
    * Updates dimensions of the table. The method compares previous dimensions with the current ones and updates accordingly.
+   *
+   * You rarely need to call this method. Handsontable already calls it for you on a window resize and through a
+   * `ResizeObserver` on the container. The case it does not cover is a container resized while the grid is
+   * hidden (for example inside a `display: none` tab or accordion): the observer callback is skipped, so call
+   * this method yourself once the grid becomes visible again.
+   *
+   * The method renders when the measured size changed. It also renders unconditionally when the grid scrolls
+   * with the window (no fixed `height`), so on such a grid it is not free even at an unchanged size. To repaint
+   * the cells without re-measuring the container, use [render()](@/api/core.md#render) instead.
    *
    * @memberof Core#
    * @function refreshDimensions
@@ -3704,15 +3806,15 @@ export default function Core(
    * argument and `"updateData"` as its `source`. If you call `updateSettings` with `data` inside
    * `afterChange`, check the hook's `source` to prevent an infinite loop.
    *
-   * Cell meta set imperatively through [[setCellMeta]] (for example, by the user or the context menu) is preserved across
+   * Cell meta set imperatively through {@link Core#setCellMeta} (for example, by the user or the context menu) is preserved across
    * `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. On a direct conflict, a value re-stated
    * through the declarative `cell` option takes precedence over the preserved imperative value.
    *
-   * Cell meta set imperatively through [[setCellMeta]] (for example, by the user or the context menu) is preserved across
-   * `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. On a direct conflict, a value re-stated
-   * through the declarative `cell` option takes precedence over the preserved imperative value.
+   * This method reinitializes the affected plugins and then renders, so it does more work than a plain
+   * [render()](@/api/core.md#render). When only cell metadata changed, call [render()](@/api/core.md#render)
+   * instead. See the [Understanding rendering](@/guides/optimization/rendering/rendering.md) guide.
    *
-   * When [[Hooks#hasExternalDataSource]] is true, Handsontable clears and rebinds the placeholder dataset only during
+   * When {@link Hooks#hasExternalDataSource} is true, Handsontable clears and rebinds the placeholder dataset only during
    * initialization or when `settings` includes `data` or `dataProvider`. Other keys alone (for example `height`) do not clear loaded rows.
    * If only `columns` changes, the column map is rebuilt without clearing rows.
    *
@@ -3735,7 +3837,6 @@ export default function Core(
 
     const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(this);
     let i;
-    let j;
 
     if (isDefined(settings.rows)) {
       throwWithCause('The "rows" setting is no longer supported. Do you mean startRows, minRows or maxRows?');
@@ -3873,6 +3974,73 @@ export default function Core(
 
     const themeOverridesChanged = applyThemeOverrides(settings, init);
 
+    /**
+     * Clears the cell and column meta caches. Cell meta set imperatively through `setCellMeta` (for
+     * example, by the user or the context menu) is snapshotted beforehand and replayed afterward, so
+     * that it survives the clear instead of being discarded (see GitHub issue #4446).
+     */
+    const resetMetaCaches = () => {
+      const userDefinedCellMetas = metaManager.getUserDefinedCellMetas();
+
+      metaManager.clearCache();
+
+      // Replay before the column and `cell` option re-application, so that a value re-stated through
+      // the declarative `cell` option still wins on a direct conflict (preserving legacy behavior).
+      userDefinedCellMetas.forEach(({ physicalRow, physicalColumn, key, value }) => {
+        metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
+      });
+    };
+
+    /**
+     * Re-applies the `columns` setting onto the column meta layer.
+     *
+     * @param {number} columnsCount The number of leading columns to apply the setting to.
+     */
+    const applyColumnMeta = (columnsCount: number) => {
+      const columnSetting = tableMeta.columns;
+
+      if (!columnSetting) {
+        return;
+      }
+
+      for (let columnIndex = 0; columnIndex < columnsCount; columnIndex++) {
+        // Use settings provided by user
+        const column = isFunction(columnSetting)
+          ? (columnSetting as (columnIndex: number) => Record<string, unknown>)(columnIndex)
+          : columnSetting[columnIndex];
+
+        if (column) {
+          metaManager.updateColumnMeta(columnIndex, column);
+        }
+      }
+    };
+
+    // The column configuration must reach the meta layer BEFORE the data phase below. `replaceData()`
+    // both renders and runs the source-data validators, and each of them resolves a column's renderer
+    // and its `sourceDataValidator` from the column meta layer - so a call that shortens `columns`
+    // would otherwise paint the new data with the PREVIOUS column's renderer, and validate it against
+    // the previous column's rule, blanking the source value when `allowInvalid` is `false`
+    // (GitHub issue #5543).
+    //
+    // Only the array form is resolved this early. Its length is a physical column count that needs no
+    // dataset, so it is correct here whatever `data` does in the same payload. A `columns` FUNCTION
+    // has no such count before the data phase (`getInitialColumnCount()` would read the previous
+    // dataset width), and probing it here would also call the user's function a second time per
+    // column, per call. The loop further down stays authoritative for both forms.
+    const earlyColumnsSetting = settings.columns !== undefined && Array.isArray(tableMeta.columns)
+      ? tableMeta.columns
+      : null;
+
+    if (earlyColumnsSetting !== null) {
+      resetMetaCaches();
+      // The bound is the array's own length, NOT `countCols()`. `countCols()` caps at `maxCols` and
+      // counts the columns on SCREEN, while this walks PHYSICAL indexes, and the two diverge as soon
+      // as a column is trimmed: with `maxCols: 2`, three `columns` entries and physical column 0
+      // trimmed, the screen shows physical 1 and 2 while a `countCols()` bound stops at physical 1,
+      // so physical 2 renders with nothing from `columns`.
+      applyColumnMeta(earlyColumnsSetting.length);
+    }
+
     // Load data or create data map
     if (instance.runHooks('hasExternalDataSource') === true) {
       // When dataProvider is a complete server-backed config, ignore static data, the plugin loads rows.
@@ -3913,38 +4081,20 @@ export default function Core(
 
     const clen = instance.countCols();
 
-    const columnSetting = tableMeta.columns;
-
-    // Clear cell meta cache. Cell meta set imperatively through `setCellMeta` (for example, by the
-    // user or the context menu) is snapshotted beforehand and replayed afterward, so that it
-    // survives the clear instead of being discarded (see GitHub issue #4446).
-    if (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined) {
-      const userDefinedCellMetas = metaManager.getUserDefinedCellMetas();
-
-      metaManager.clearCache();
-
-      // Replay before the column and `cell` option re-application, so that a value re-stated through
-      // the declarative `cell` option still wins on a direct conflict (preserving legacy behavior).
-      userDefinedCellMetas.forEach(({ physicalRow, physicalColumn, key, value }) => {
-        metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
-      });
+    // Clear the meta caches, unless the early pass above already did it for this call.
+    if (earlyColumnsSetting === null &&
+        (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined)) {
+      resetMetaCaches();
     }
 
-    if (clen > 0) {
-      for (i = 0, j = 0; i < clen; i++) {
-        // Use settings provided by user
-        if (columnSetting) {
-          const column = isFunction(columnSetting)
-            ? (columnSetting as (i: number) => Record<string, unknown>)(i)
-            : columnSetting[j];
-
-          if (column) {
-            metaManager.updateColumnMeta(j, column);
-          }
-        }
-
-        j += 1;
-      }
+    // The pass for everything the early one does not handle: a `columns` FUNCTION, and a payload that
+    // does not name `columns` at all (an update still has to re-read a function that reads external
+    // state). Skipped when the early pass ran, because it could not add anything: for an array,
+    // `getInitialColumnCount()` returns `columns.length`, so `clen` can never exceed the bound the
+    // early pass already used, and re-applying would only pay `extend()` a second time per column -
+    // which the React and Angular wrappers, re-sending `columns` on every commit, would pay per render.
+    if (clen > 0 && earlyColumnsSetting === null) {
+      applyColumnMeta(clen);
     }
 
     if (isDefined(settings.cell)) {
@@ -4135,7 +4285,7 @@ export default function Core(
    * It does not include merged per-cell or per-column values. Configuration options cascade from
    * grid to column to cell (see
    * [Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)).
-   * To read the effective value for a specific cell, use [[getCellMeta]]. To read column-level meta, use [[getColumnMeta]].
+   * To read the effective value for a specific cell, use {@link Core#getCellMeta}. To read column-level meta, use {@link Core#getColumnMeta}.
    *
    * @memberof Core#
    * @function getSettings
@@ -4377,12 +4527,12 @@ export default function Core(
    *
    * The result can also be `null`, and for a **trimmed** column which of the two you get depends on
    * how the property is declared. A property held in the column cache – object data, or one named
-   * by a `columns[].data` entry – resolves through [[Core#toVisualColumn]] and comes back
+   * by a `columns[].data` entry – resolves through {@link Core#toVisualColumn} and comes back
    * `null`. A bare physical index on array data comes back unchanged instead, which does not
    * identify a usable visual column.
    *
    * So validate the result before using it as a column index: `Number.isInteger()` alone lets the
-   * second case through, and a [[Core#countCols]] comparison alone lets `null` through, because
+   * second case through, and a {@link Core#countCols} comparison alone lets `null` through, because
    * `null` compares as `0`.
    *
    * The TypeScript declaration is narrower than what runs at both ends. It narrows the result to
@@ -4953,8 +5103,12 @@ export default function Core(
    * Sets a property defined by the `key` property to the meta object of a cell corresponding to params `row` and `column`.
    *
    * This method updates internal cell metadata only. It does not repaint the grid. To reflect visual changes (such as
-   * `className`, `type`, or `readOnly`), call [render()](@/api/core.md#render) afterward, or wrap multiple calls in
-   * [batch()](@/api/core.md#batch).
+   * `className`, `type`, or `readOnly`), call [render()](@/api/core.md#render) afterward. Because this method never
+   * renders on its own, several such calls followed by one [render()](@/api/core.md#render) already cost exactly one
+   * render. Wrapping them in [batch()](@/api/core.md#batch) alone does **not** repaint the grid: `batch()` only
+   * suppresses renders that other operations would have triggered, so it still needs a
+   * [render()](@/api/core.md#render) inside its callback. For why the repaint is a separate step, see the
+   * [Understanding rendering](@/guides/optimization/rendering/rendering.md) guide.
    *
    * @memberof Core#
    * @function setCellMeta
@@ -5005,8 +5159,8 @@ export default function Core(
    *
    * The returned object reflects the effective cell configuration after
    * [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
-   * (grid, column, and cell levels). To read global grid settings only, use [[getSettings]].
-   * To read column-level meta, use [[getColumnMeta]].
+   * (grid, column, and cell levels). To read global grid settings only, use {@link Core#getSettings}.
+   * To read column-level meta, use {@link Core#getColumnMeta}.
    *
    * @memberof Core#
    * @function getCellMeta
@@ -5043,13 +5197,13 @@ export default function Core(
    * Returns the cell properties object for the given `row` and `column` coordinates without
    * retaining it in the cell meta cache.
    *
-   * Like [[getCellMeta]], the returned object reflects the effective cell configuration after
+   * Like {@link Core#getCellMeta}, the returned object reflects the effective cell configuration after
    * [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
    * and dynamic extension (the `cells` function and the `beforeGetCellMeta`/`afterGetCellMeta`
    * hooks run). Unlike `getCellMeta`, when the cell has no stored meta object the extension runs
    * on a temporary object that is not saved, so scanning many cells (for example, a whole column
    * or the entire dataset) does not permanently allocate one meta object per visited cell. Cells
-   * that already carry stored meta (for example, written by [[setCellMeta]] or the `cell` option)
+   * that already carry stored meta (for example, written by {@link Core#setCellMeta} or the `cell` option)
    * return their stored object, exactly as `getCellMeta` would.
    *
    * Use this method for read-only bulk scans. Do not write to the returned object - for cells
@@ -5088,8 +5242,8 @@ export default function Core(
    *
    * The returned object reflects the column-level configuration after
    * [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
-   * (grid and column levels). To read global grid settings only, use [[getSettings]].
-   * To read the effective configuration for a specific cell, use [[getCellMeta]].
+   * (grid and column levels). To read global grid settings only, use {@link Core#getSettings}.
+   * To read the effective configuration for a specific cell, use {@link Core#getCellMeta}.
    *
    * @since 14.5.0
    * @memberof Core#
