@@ -147,18 +147,6 @@ export function waitForNextAnimationFrames(framesToWait = 1) {
 }
 
 /**
- * Wait for the next animation frames.
- *
- * @param {number} [framesToWait=1] The number of animation frames to wait for.
- * @returns {Promise<void>}
- *
- * @deprecated Use waitForNextAnimationFrames instead.
- */
-export async function waitForNameAnimationFrames(framesToWait = 1) {
-  await waitForNextAnimationFrames(framesToWait);
-}
-
-/**
  * Polls the provided condition on every animation frame until it returns a truthy value, or
  * rejects after `timeout` milliseconds. The condition-based replacement for a fixed `sleep()` or
  * a frame-count wait: it resolves as soon as the observable state is really there, and a state

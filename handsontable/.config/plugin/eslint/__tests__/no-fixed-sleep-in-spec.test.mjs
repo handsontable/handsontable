@@ -39,6 +39,9 @@ tester.run('no-fixed-sleep-in-spec', rule, {
     // Spying on or clearing a timer does not wait on it.
     'spyOn(window, "setTimeout");',
     'clearTimeout(timerId);',
+    // A frame count of literal 0 resolves at once (the helper's `totalFramesToWait === 0` branch): the
+    // same zero-duration hand-off as `setTimeout(fn, 0)`, not a wait measured in frames.
+    'await waitForNextAnimationFrames(0);',
     // Naming the helper without calling it (a reference passed to a spy) waits on nothing.
     'const frames = waitForNextAnimationFrames;',
     'expect(typeof waitForNextAnimationFrames).toBe("function");',
@@ -83,6 +86,11 @@ tester.run('no-fixed-sleep-in-spec', rule, {
     },
     {
       code: 'await waitForNextAnimationFrames(3);',
+      errors: [{ messageId: 'noFrameWait' }],
+    },
+    {
+      // Only the literal 0 is the hand-off; a computed count may be 0 at runtime but cannot be judged.
+      code: 'await waitForNextAnimationFrames(frames);',
       errors: [{ messageId: 'noFrameWait' }],
     },
     {

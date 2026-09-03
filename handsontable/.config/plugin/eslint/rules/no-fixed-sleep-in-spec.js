@@ -15,6 +15,21 @@ function isFixedDuration(node) {
 }
 
 /**
+ * Is the node the numeric literal `0`?
+ *
+ * `waitForNextAnimationFrames(0)` resolves at once — the helper takes its
+ * `totalFramesToWait === 0` branch with a minimum elapsed time of 0 — so it is
+ * the same zero-duration hand-off `isFixedDuration` exempts for `setTimeout(fn, 0)`,
+ * not a wait measured in frames.
+ *
+ * @param {object} node An AST node, or undefined.
+ * @returns {boolean} True for the numeric Literal `0`.
+ */
+function isZeroLiteral(node) {
+  return Boolean(node) && node.type === 'Literal' && node.value === 0;
+}
+
+/**
  * Whether the callee is the GLOBAL timer: a bare `setTimeout` or one reached through `window` /
  * `globalThis`. A `setTimeout` method on any other object (`hot._registerTimeout`-style wrappers,
  * a fake-timer facade, a test double) is that object's contract, not a fixed wait on the page,
@@ -45,7 +60,8 @@ module.exports = {
 
     docs: {
       description: 'Disallows fixed delays in spec files — `sleep()`, a `setTimeout` with a non-zero literal '
-        + 'duration, and `waitForNextAnimationFrames()` — wait for a condition with `waitUntil()` instead',
+        + 'duration, and `waitForNextAnimationFrames()` with anything but a literal `0` — wait for a condition '
+        + 'with `waitUntil()` instead',
       category: 'Custom',
       recommended: false,
       fixable: false,
@@ -66,8 +82,8 @@ module.exports = {
     return {
       /**
        * Flag the three fixed-delay shapes: a direct `sleep(...)` call, a global `setTimeout` (bare,
-       * `window.setTimeout`, or `globalThis.setTimeout`) whose delay is a non-zero numeric literal, and any
-       * `waitForNextAnimationFrames(...)`.
+       * `window.setTimeout`, or `globalThis.setTimeout`) whose delay is a non-zero numeric literal, and a
+       * `waitForNextAnimationFrames(...)` whose frame count is anything but a literal `0`.
        *
        * @param {object} node The CallExpression node.
        * @returns {void}
@@ -87,7 +103,8 @@ module.exports = {
           return;
         }
 
-        if (callee && callee.type === 'Identifier' && callee.name === 'waitForNextAnimationFrames') {
+        if (callee && callee.type === 'Identifier' && callee.name === 'waitForNextAnimationFrames'
+          && !isZeroLiteral(node.arguments[0])) {
           context.report({ node, messageId: 'noFrameWait' });
         }
       },
