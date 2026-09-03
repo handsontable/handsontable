@@ -3735,7 +3735,6 @@ export default function Core(
 
     const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(this);
     let i;
-    let j;
 
     if (isDefined(settings.rows)) {
       throwWithCause('The "rows" setting is no longer supported. Do you mean startRows, minRows or maxRows?');
@@ -3873,6 +3872,68 @@ export default function Core(
 
     const themeOverridesChanged = applyThemeOverrides(settings, init);
 
+    /**
+     * Clears the cell and column meta caches. Cell meta set imperatively through `setCellMeta` (for
+     * example, by the user or the context menu) is snapshotted beforehand and replayed afterward, so
+     * that it survives the clear instead of being discarded (see GitHub issue #4446).
+     */
+    const resetMetaCaches = () => {
+      const userDefinedCellMetas = metaManager.getUserDefinedCellMetas();
+
+      metaManager.clearCache();
+
+      // Replay before the column and `cell` option re-application, so that a value re-stated through
+      // the declarative `cell` option still wins on a direct conflict (preserving legacy behavior).
+      userDefinedCellMetas.forEach(({ physicalRow, physicalColumn, key, value }) => {
+        metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
+      });
+    };
+
+    /**
+     * Re-applies the `columns` setting onto the column meta layer.
+     *
+     * @param {number} columnsCount The number of leading columns to apply the setting to.
+     */
+    const applyColumnMeta = (columnsCount: number) => {
+      const columnSetting = tableMeta.columns;
+
+      if (!columnSetting) {
+        return;
+      }
+
+      for (let columnIndex = 0; columnIndex < columnsCount; columnIndex++) {
+        // Use settings provided by user
+        const column = isFunction(columnSetting)
+          ? (columnSetting as (columnIndex: number) => Record<string, unknown>)(columnIndex)
+          : columnSetting[columnIndex];
+
+        if (column) {
+          metaManager.updateColumnMeta(columnIndex, column);
+        }
+      }
+    };
+
+    // The column configuration must reach the meta layer BEFORE the data phase below. `replaceData()`
+    // both renders and runs the source-data validators, and each of them resolves a column's renderer
+    // and its `sourceDataValidator` from the column meta layer - so a call that shortens `columns`
+    // would otherwise paint the new data with the PREVIOUS column's renderer, and validate it against
+    // the previous column's rule, blanking the source value when `allowInvalid` is `false`
+    // (GitHub issue #5543).
+    //
+    // Only the array form is resolved this early. Its length is a physical column count that needs no
+    // dataset, so it is correct here whatever `data` does in the same payload. A `columns` FUNCTION
+    // has no such count before the data phase (`getInitialColumnCount()` would read the previous
+    // dataset width), and probing it here would also call the user's function a second time per
+    // column, per call. The loop further down stays authoritative for both forms.
+    const earlyColumnsSetting = settings.columns !== undefined && Array.isArray(tableMeta.columns)
+      ? tableMeta.columns
+      : null;
+
+    if (earlyColumnsSetting !== null) {
+      resetMetaCaches();
+      applyColumnMeta(Math.min(earlyColumnsSetting.length, tableMeta.maxCols));
+    }
+
     // Load data or create data map
     if (instance.runHooks('hasExternalDataSource') === true) {
       // When dataProvider is a complete server-backed config, ignore static data, the plugin loads rows.
@@ -3913,38 +3974,17 @@ export default function Core(
 
     const clen = instance.countCols();
 
-    const columnSetting = tableMeta.columns;
-
-    // Clear cell meta cache. Cell meta set imperatively through `setCellMeta` (for example, by the
-    // user or the context menu) is snapshotted beforehand and replayed afterward, so that it
-    // survives the clear instead of being discarded (see GitHub issue #4446).
-    if (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined) {
-      const userDefinedCellMetas = metaManager.getUserDefinedCellMetas();
-
-      metaManager.clearCache();
-
-      // Replay before the column and `cell` option re-application, so that a value re-stated through
-      // the declarative `cell` option still wins on a direct conflict (preserving legacy behavior).
-      userDefinedCellMetas.forEach(({ physicalRow, physicalColumn, key, value }) => {
-        metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
-      });
+    // Clear the meta caches, unless the early pass above already did it for this call.
+    if (earlyColumnsSetting === null &&
+        (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined)) {
+      resetMetaCaches();
     }
 
+    // Authoritative pass: it runs for every payload and for both forms of the setting, and its bound
+    // is the settled column count - so it repairs whatever the early pass could not see (a `columns`
+    // function, `maxCols`, and the columns the data phase itself created).
     if (clen > 0) {
-      for (i = 0, j = 0; i < clen; i++) {
-        // Use settings provided by user
-        if (columnSetting) {
-          const column = isFunction(columnSetting)
-            ? (columnSetting as (i: number) => Record<string, unknown>)(i)
-            : columnSetting[j];
-
-          if (column) {
-            metaManager.updateColumnMeta(j, column);
-          }
-        }
-
-        j += 1;
-      }
+      applyColumnMeta(clen);
     }
 
     if (isDefined(settings.cell)) {

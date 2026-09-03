@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>updateSettings with a shortened columns array</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } #toolbar { margin-bottom: .8rem; } </style>
+</head>
+<body>
+  <!--
+    Fixture for GitHub issue #5543. The grid holds two columns bound to two source
+    properties, each with its own renderer. Shrinking `columns` to the second entry
+    alone, in a payload that also carries `data`, used to render once with the
+    renderer of the column that previously sat at that index.
+
+    The final DOM is correct in the broken build too, because a second render
+    repairs it, so the spec cannot assert on cell text. Each renderer therefore
+    RECORDS every call, and flags a value whose shape belongs to another column.
+    Values are seeded so the shapes are unambiguous: column `number` carries
+    numbers, column `string` carries text.
+  -->
+  <div id="toolbar">
+    <button data-testid="shrink-with-data" type="button">Shrink columns with data</button>
+    <button data-testid="shrink-with-theme" type="button">Shrink columns with data and theme</button>
+    <button data-testid="shrink-columns-only" type="button">Shrink columns only</button>
+  </div>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // Every renderer call, in order. `violation` marks a value whose type does not
+    // belong to the column whose renderer received it: the defect, observable only
+    // while it happens.
+    window.htRendererCalls = [];
+
+    const buildData = () => [
+      { number: 1, string: 'Alpha' },
+      { number: 2, string: 'Bravo' },
+      { number: 3, string: 'Charlie' },
+      { number: 4, string: 'Delta' },
+    ];
+
+    const makeRenderer = (name, isOwnShape) => function(instance, td, row, col, prop, value, cellProperties) {
+      window.htRendererCalls.push({
+        renderer: name,
+        col,
+        prop: String(prop),
+        violation: !isOwnShape(value),
+      });
+
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    const numberRenderer = makeRenderer('numberRenderer', value => typeof value === 'number');
+    const stringRenderer = makeRenderer('stringRenderer', value => typeof value === 'string');
+
+    // The reported case keeps one settings object and re-sends the whole thing, so
+    // `data` travels with `columns`. That is what routes the call through
+    // `updateData()`, which renders before the column configuration is applied.
+    window.htSettings = {
+      data: buildData(),
+      colHeaders: ['number', 'string'],
+      rowHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+      columns: [
+        { data: 'number', renderer: numberRenderer },
+        { data: 'string', renderer: stringRenderer },
+      ],
+    };
+
+    window.hot = new Handsontable(container, window.htSettings);
+
+    /**
+     * Drops the first column, so the surviving `string` column moves to index 0.
+     */
+    const shrinkColumns = (extraSettings) => {
+      window.htRendererCalls = [];
+      window.htSettings.columns = [{ data: 'string', renderer: stringRenderer }];
+      window.htSettings.colHeaders = ['string'];
+      window.hot.updateSettings(Object.assign({}, window.htSettings, extraSettings));
+    };
+
+    document.querySelector('[data-testid="shrink-with-data"]')
+      .addEventListener('click', () => shrinkColumns());
+
+    // A theme in the same payload paints a second time, from `useTheme()`, before the
+    // data phase runs. It must stay free of violations too.
+    document.querySelector('[data-testid="shrink-with-theme"]')
+      .addEventListener('click', () => shrinkColumns({ theme: `ht-theme-${window.htTheme}` }));
+
+    // The same shrink without `data`. It takes a different branch of
+    // `updateSettings()` and was already correct, so it guards the fix from
+    // narrowing to the `data` case alone.
+    document.querySelector('[data-testid="shrink-columns-only"]').addEventListener('click', () => {
+      window.htRendererCalls = [];
+      window.htSettings.columns = [{ data: 'string', renderer: stringRenderer }];
+      window.htSettings.colHeaders = ['string'];
+      window.hot.updateSettings({ columns: window.htSettings.columns, colHeaders: window.htSettings.colHeaders });
+    });
+  </script>
+</body>
+</html>
