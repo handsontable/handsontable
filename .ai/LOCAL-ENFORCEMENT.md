@@ -19,7 +19,7 @@ the same floor with no manual step. (Manual fallback: `npx lefthook install` and
 | Agent-time (Claude Code) | `Stop` (turn end) | new-Jasmine check + the touched Playwright specs + the touched **unit** tests | a **new** `*.spec.js`; a **failing** touched spec or unit test |
 | **pre-commit** (lefthook) | `scripts/lint-staged.mjs` | `eslint --fix` staged source/specs (determinism + anti-gaming), re-stage fixes | lint **errors** (warnings surface) |
 | **pre-push** (lefthook) | `scripts/pre-push.mjs` | presence gate (block) → eslint on changed → **determinism ratchet** (block) → test-weakening detector (warn) → changed Playwright specs → changed **unit** tests | missing test; lint errors; a **new** `sleep()`/`it.flaky()`/skip on an added spec line; a failing spec or unit test |
-| CI | `test.yml` + gates | the authoritative mirror of the above (the ratchet is `Lint / determinism ratchet`) | see the pipeline |
+| CI | `test.yml` + gates | the authoritative mirror of the above (the ratchet is a step of `Lint / core`) | see the pipeline |
 
 Same rules, escalating authority: **agent-time → pre-commit → pre-push → CI.**
 
@@ -29,7 +29,11 @@ Same rules, escalating authority: **agent-time → pre-commit → pre-push → C
 and `handsontable/no-skipped-test` are `warn` in `handsontable/.eslintrc.js`, and
 nothing else consumes warnings — `npm run lint` exits 0 with them. The ratchet
 closes that gap without red-walling the debt: it lints only the changed
-`handsontable/**/*.{spec,unit}.js` / `*.unit.ts` files, intersects the warnings
+`handsontable/{src,test}/**/*.{spec,unit}.js` files (`*.unit.ts` is in the
+candidate set too, and is covered the moment the frozen-tier override in
+`handsontable/.eslintrc.js` — `files: ['*.unit.js', '*.spec.js']` today — names
+`*.unit.ts`; until then ESLint reports none of the three rules there, and a
+candidate with no findings never blocks), intersects the warnings
 with the lines the branch **added** (`git diff -U0` against the merge-base), and
 **exits 1 when any of the three rules fires on an added line**. A pre-existing
 occurrence on an unchanged line stays a warning. `RATCHETED_RULES` in the lib is
@@ -51,7 +55,14 @@ so the local scope is exactly the CI scope. Three things to know:
   exception, disable the rule on that line **with a ticket**:
   `// eslint-disable-next-line handsontable/no-fixed-sleep-in-spec -- DEV-xxxx: <why no condition exists>`.
 - **Which base:** pre-push diffs against the merge-base of `origin/develop`
-  (then `develop`) with HEAD; CI diffs against the PR's base SHA (`GATE_BASE`).
+  (then `develop`) with HEAD; CI diffs against the merge-base of the PR's base
+  **branch** with HEAD — `lint.yml` fetches that branch's live tip and passes
+  it as `GATE_BASE=origin/<base.ref>`. Never the event payload's frozen
+  `base.sha`: the checkout is `refs/pull/N/merge`, a "Re-run all jobs" replays
+  an old payload against a merge ref GitHub has since rebuilt, and a branch
+  that merged the base after it forked has the same shape — that SHA is then
+  an ancestor of HEAD, so the merge-base is the SHA itself and every base
+  commit after it would read as a line the PR added.
   On a branch cut from `develop` and targeting it, the two agree. On a branch
   targeting `release/*`, or stacked on another feature branch, pre-push also
   sees the lines the parent branch added since it left `develop`, so it may
@@ -138,7 +149,7 @@ presence gate or the test requirement. Do not use it to dodge writing tests.
 - **Location.** Git hooks → `lefthook.yml` + `scripts/` (`pre-push.mjs`, `lint-staged.mjs`, `lint-files.mjs`). Agent hooks → `scripts/claude/` (`post-tool-use.mjs`, `stop.mjs`, `session.mjs`), wired in `.claude/settings.json`. Shared, pure classifiers and layout helpers → `.github/scripts/lib/` (`presence-gate.mjs`, `test-weakening.mjs`, `lint-ratchet.mjs`, `repo-root.mjs`).
 - **Must work in a linked worktree.** Agent-driven work runs in `git worktree` checkouts, so never derive the repo layout from git or the cwd: take the root from `repoRoot()` (`.github/scripts/lib/repo-root.mjs`) and per-checkout state from `gitDir(root)`. A hook exports `GIT_DIR`, and with it set `git rev-parse --show-toplevel` returns the *cwd*, not the work tree; in a worktree `<root>/.git` is a **file**, so writing under it fails with ENOTDIR. Strip `GIT_DIR`/`GIT_WORK_TREE` from the environment of any child you spawn with an explicit `cwd`.
 - **Pure + tested.** Put the decision logic in a **pure function** in a lib and **unit-test it** (`scripts/__tests__/`, `.github/scripts/__tests__/`, run with `node --test`). **A hook change ships a test change** — this rule applies to the enforcement machinery too.
-- **Must not false-block.** Skip config/parse gaps (ESLint exit 2), record only **repo-relative, in-repo** paths (never scratchpad/out-of-repo), tolerate a missing base ref. A hook that fires on a false positive gets disabled — that is worse than no hook.
+- **Must not false-block.** Skip config/parse gaps (ESLint exit 2), record only **repo-relative, in-repo** paths (never scratchpad/out-of-repo), tolerate a missing base ref. In CI, a blocking diff gate takes its base from the merge-base with the base branch's **live tip** (`origin/<base.ref>`, fetched in the job), never from the payload's frozen `base.sha` — see the ratchet's *Which base* above. A hook that fires on a false positive gets disabled — that is worse than no hook.
 - **Must stay fast.** No build in the pre-push or agent hooks; run only the **changed scope**. Heavy/full-suite work is CI's job.
 - **Bound what you feed the agent.** An agent hook's failure message is a conversation message, so its cost is re-paid on every later request in the session — never paste a raw run or lint report into it. Pass it through `condenseTestOutput()` (`scripts/pre-push.mjs`): noise stripped, repeats collapsed, the excerpt anchored at the failing test so the diagnosis survives, capped at 120 lines / 8 KB. The caps are structural, not filter-dependent — filter-proof input still condenses. A hook writing to a **terminal** (pre-push) keeps printing in full up to `TERMINAL_OUTPUT_LIMIT`.
 - **Know who reads your stderr.** Claude Code forwards a hook's stderr to the agent only on **exit 2**. A non-blocking leg's note lands in the debug log unless a later leg in the same run blocks, so treat those notes as best-effort and never make the flow depend on the agent reading one.

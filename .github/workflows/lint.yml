@@ -1,9 +1,9 @@
 name: Lint
 
 # Linters — core (JS/TS/CSS/D.TS) always; the visual-tests package lint only
-# when its scope changed; the determinism ratchet only when a handsontable
-# spec/unit tree changed. Called by test.yml on PRs (a merged PR already proved
-# lint, so no trunk runs).
+# when its scope changed; the determinism ratchet (a step of `core`) only when
+# a handsontable spec/unit tree changed. Called by test.yml on PRs (a merged PR
+# already proved lint, so no trunk runs).
 on:
   workflow_call:
     inputs:
@@ -22,11 +22,50 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          # Full history only on the runs where the determinism ratchet step
+          # below executes: it diffs from the merge-base with the PR base
+          # branch, which a one-commit clone cannot reach. Every other lint run
+          # keeps the shallow checkout (the pack is close to a gigabyte).
+          fetch-depth: ${{ (inputs.run-ratchet && github.event_name == 'pull_request') && '0' || '1' }}
       - uses: ./.github/actions/setup-workspace
       - name: JavaScript lint
         run: npm run lint
       - name: CSS lint
         run: npm run in handsontable stylelint
+
+      # The frozen Jasmine suite's determinism rules (no-fixed-sleep-in-spec,
+      # no-new-it-flaky, no-skipped-test) are `warn`, and `npm run lint` above
+      # exits 0 with warnings. This step is the ratchet: the same rules on a line
+      # the PR ADDED fail; pre-existing debt stays a warning. The same script
+      # blocks in the pre-push hook, so local scope == CI scope. A step here
+      # rather than its own job: the install is already warm, and `build` needs
+      # this job, so a second runner would sit on the critical path. PR-only,
+      # scope-gated by `run-ratchet`. No token, no secret: safe on fork and
+      # Dependabot PRs without a guard.
+      #
+      # The base is the PR base branch's LIVE tip, fetched right here — never
+      # the event payload's frozen `base.sha`. The checkout is `refs/pull/N/merge`,
+      # whose first parent is the base as it was when GitHub last rebuilt the
+      # merge ref; a "Re-run all jobs" replays an old payload against a newer
+      # merge ref, so `base.sha` is already an ancestor of HEAD, the merge-base
+      # is `base.sha` itself, and every base commit after it would read as a
+      # line this PR added. A branch that merged the base after it forked has
+      # the same shape. Against the live tip the merge-base is the merge ref's
+      # base parent (or the last base commit the branch merged in), and the
+      # diff is the PR's own changes in both cases. The fetch only refreshes
+      # the copy the full-history checkout already holds; should it fail, the
+      # ratchet reads that copy, and with no copy at all it skips (exit 0) —
+      # the gate never blocks on its own tooling.
+      - name: Fail on new sleep() / it.flaky() / skip in the changed specs
+        if: inputs.run-ratchet && github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          set -o pipefail
+          git fetch --no-tags origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}" \
+            || echo "::warning::could not refresh origin/${BASE_REF}; diffing from the checkout's copy"
+          GATE_BASE="origin/${BASE_REF}" node .github/scripts/lint-ratchet.mjs | tee -a "$GITHUB_STEP_SUMMARY"
 
   visual-tests:
     name: visual tests
@@ -37,24 +76,3 @@ jobs:
       - uses: ./.github/actions/setup-workspace
       - name: Lint
         run: npm run in visual-tests lint
-
-  # The frozen Jasmine suite's determinism rules (no-fixed-sleep-in-spec,
-  # no-new-it-flaky, no-skipped-test) are `warn`, and `npm run lint` above exits
-  # 0 with warnings. This job is the ratchet: the same rules on a line the PR
-  # ADDED fail; pre-existing debt stays a warning. The same script blocks in the
-  # pre-push hook, so local scope == CI scope. PR-only — it diffs against the PR
-  # base, and needs the base's history (fetch-depth 0), not a build. No token,
-  # no secret: safe on fork and Dependabot PRs without a guard.
-  determinism-ratchet:
-    name: determinism ratchet
-    runs-on: ubuntu-latest
-    if: inputs.run-ratchet && github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-workspace
-      - name: Fail on new sleep() / it.flaky() / skip in the changed specs
-        run: set -o pipefail; node .github/scripts/lint-ratchet.mjs | tee -a "$GITHUB_STEP_SUMMARY"
-        env:
-          GATE_BASE: ${{ github.event.pull_request.base.sha }}

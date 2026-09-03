@@ -22,7 +22,7 @@ import path from 'node:path';
  * this list (ESLint then blocks it everywhere already); the unit test pins
  * that.
  *
- * @type {readonly string[]}
+ * @type {ReadonlyArray<string>}
  */
 export const RATCHETED_RULES = Object.freeze([
   'handsontable/no-fixed-sleep-in-spec',
@@ -39,7 +39,13 @@ export const RATCHETED_RULES = Object.freeze([
  * tier (`tests/e2e/*.spec.ts`) is deliberately absent: its own config bans
  * `sleep()` / `waitForTimeout()` at `error`, so there is nothing to ratchet.
  *
- * @type {readonly RegExp[]}
+ * `*.unit.ts` is a candidate, not yet a covered tree: the override that turns
+ * the three rules on names `*.unit.js` / `*.spec.js` only, so ESLint reports
+ * none of them for a `.unit.ts` file and the intersection is empty — a
+ * candidate with no findings never blocks. The moment that override names
+ * `*.unit.ts`, the ratchet covers it with no change here.
+ *
+ * @type {ReadonlyArray<RegExp>}
  */
 export const RATCHETED_FILES = Object.freeze([
   /^handsontable\/(src|test)\/.*\.(spec|unit)\.js$/,
@@ -57,41 +63,23 @@ export function selectRatchetedFiles(changed) {
 }
 
 /**
- * Undo git's C-style path quoting (`"b/odd\tname"`): surrounding quotes,
- * `\\`, `\"`, `\t`, `\n`, `\r` and octal escapes.
- *
- * @param {string} p A path as printed in a `+++` header.
- * @returns {string} The unquoted path.
- */
-function unquotePath(p) {
-  if (!p.startsWith('"') || !p.endsWith('"')) {
-    return p;
-  }
-
-  return p.slice(1, -1).replace(/\\([0-7]{3}|[\\"tnr])/g, (_, esc) => {
-    switch (esc) {
-      case 't': return '\t';
-      case 'n': return '\n';
-      case 'r': return '\r';
-      case '"': return '"';
-      case '\\': return '\\';
-      default: return String.fromCharCode(parseInt(esc, 8));
-    }
-  });
-}
-
-/**
  * The new-side path of a `+++` header, or null for `/dev/null` (a deletion).
  * Expects git's default `b/` prefix — the CLI passes `--dst-prefix=b/` so a
- * user's `diff.noprefix` / `diff.mnemonicPrefix` cannot change the shape.
+ * user's `diff.noprefix` / `diff.mnemonicPrefix` cannot change the shape — and
+ * a RAW path: the CLI runs git with `core.quotePath=false`, so a non-ASCII
+ * name (`café.spec.js`) prints as-is and keys the same file as the `-z` name
+ * list. Git still C-quotes a name carrying a control character, a quote or a
+ * backslash (`"b/odd\tname.spec.js"`); no spec in a cross-platform repository
+ * can carry one, and such a header is left unattributed (null) rather than
+ * decoded — an unattributed file is never ratcheted, so never a false block.
  *
  * @param {string} header The full `+++ …` line.
  * @returns {string|null} The repo-relative path, or null.
  */
 function newSidePath(header) {
-  const target = unquotePath(header.slice('+++ '.length).trim());
+  const target = header.slice('+++ '.length).trim();
 
-  if (target === '/dev/null') {
+  if (target === '/dev/null' || target.startsWith('"')) {
     return null;
   }
 
@@ -179,6 +167,21 @@ function relativize(filePath, root) {
 }
 
 /**
+ * Order findings by file (code-point order), then by line.
+ *
+ * @param {{ file: string, line: number }} a A finding.
+ * @param {{ file: string, line: number }} b Another finding.
+ * @returns {number} Negative, zero or positive, as `Array#sort` expects.
+ */
+function byFileThenLine(a, b) {
+  if (a.file !== b.file) {
+    return a.file < b.file ? -1 : 1;
+  }
+
+  return a.line - b.line;
+}
+
+/**
  * Intersect ESLint's findings with the added lines: a message from a ratcheted
  * rule whose line the branch added.
  *
@@ -189,7 +192,7 @@ function relativize(filePath, root) {
  *
  * @param {object[]} results ESLint `--format json` output (parsed).
  * @param {Map<string, Set<number>>} addedLines From `parseAddedLines`.
- * @param {{ rules?: readonly string[], root?: string }} [options] `rules`
+ * @param {{ rules?: ReadonlyArray<string>, root?: string }} [options] `rules`
  *   narrows the rule set (default `RATCHETED_RULES`); `root` relativizes
  *   ESLint's absolute paths.
  * @returns {{ file: string, line: number, ruleId: string, message: string }[]}
@@ -220,7 +223,7 @@ export function selectRatchetedFindings(results, addedLines, { rules = RATCHETED
     }
   }
 
-  return findings.sort((a, b) => (a.file < b.file ? -1 : a.file > b.file ? 1 : a.line - b.line));
+  return findings.sort(byFileThenLine);
 }
 
 /**

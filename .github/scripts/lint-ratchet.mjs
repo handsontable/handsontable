@@ -20,10 +20,14 @@
  * exactly one thing: the finding list is non-empty.
  *
  * Usage:  node .github/scripts/lint-ratchet.mjs [--base <ref>]
- * Env:    GATE_BASE   Base ref/SHA (CI passes github.event.pull_request.base.sha).
- *         `--base` wins over GATE_BASE; with neither, the merge-base with
- *         origin/develop (then develop) is used. The diff always runs from the
- *         MERGE-BASE of that ref with HEAD, never from the ref itself.
+ * Env:    GATE_BASE   Base ref/SHA. CI passes `origin/<PR base branch>` — the
+ *         base's LIVE tip, fetched in lint.yml — never the event payload's
+ *         frozen `base.sha`: once GitHub rebuilt the merge ref, or the branch
+ *         merged the base, that SHA is an ancestor of HEAD and every base
+ *         commit after it would read as this branch's. `--base` wins over
+ *         GATE_BASE; with neither, the merge-base with origin/develop (then
+ *         develop) is used. The diff always runs from the MERGE-BASE of that
+ *         ref with HEAD, never from the ref itself.
  */
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -60,13 +64,16 @@ delete env.GIT_WORK_TREE;
 
 /**
  * Run git in the repo root, returning stdout (empty string on any failure).
+ * `core.quotePath=false` makes git print a non-ASCII path raw instead of as
+ * C-quoted octal bytes, so a `+++` header in the diff and the `-z` name list
+ * key the same file (`café.spec.js`); the parser never decodes escapes.
  *
  * @param {string[]} args Git arguments.
  * @returns {string} Trimmed stdout, or ''.
  */
 function git(args) {
   try {
-    return execFileSync('git', args, {
+    return execFileSync('git', ['-c', 'core.quotePath=false', ...args], {
       cwd: root, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: ESLINT_MAX_BUFFER,
     }).trim();
   } catch {
@@ -95,6 +102,12 @@ function skip(reason) {
  * branch added, and the gate would block on someone else's work. CI checks
  * out with `fetch-depth: 0`, so the merge-base is always reachable there and
  * a fallback would buy nothing.
+ *
+ * The requested ref should be the base branch's live tip. A SHA frozen
+ * earlier — the PR payload's `base.sha` — is an ancestor of HEAD as soon as
+ * the merge ref was rebuilt or the branch merged the base, so the merge-base
+ * is that SHA itself and the base's later commits read as this branch's; the
+ * CLI cannot tell that shape from a genuine fork point, so the caller owns it.
  *
  * @param {string} requested A ref/SHA from `--base` or `GATE_BASE`, or ''.
  * @returns {string|null} A commit SHA, or null.

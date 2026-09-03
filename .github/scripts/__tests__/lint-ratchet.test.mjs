@@ -51,29 +51,98 @@ test('RATCHETED_RULES names exactly the three warn-level determinism rules', () 
   assert.deepEqual([...RATCHETED_RULES], [SLEEP, FLAKY, SKIP]);
 });
 
-test('every ratcheted rule is configured in handsontable/.eslintrc.js', () => {
-  // A renamed or dropped rule would turn the ratchet into a silent no-op: ESLint
-  // would emit nothing under the old id and the intersection would always be
-  // empty. Pin the ids against the config that produces the warnings.
+/**
+ * The level ESLint 8 gives `ruleId` for a file, from an eslintrc-style config:
+ * the top-level `rules`, then every override whose `files` glob matches the
+ * path (and whose `excludedFiles` does not), in order, the last setting
+ * winning. Glob semantics reduced to what this config uses: a pattern without
+ * a slash matches the basename anywhere (minimatch `matchBase`), one with a
+ * slash is relative to the config's directory.
+ *
+ * @param {object} config The loaded `.eslintrc.js` module.
+ * @param {string} relativePath A path relative to the config's directory, forward-slashed.
+ * @param {string} ruleId The rule to resolve.
+ * @returns {string|undefined} `'off'`, `'warn'`, `'error'`, or undefined when nothing sets it.
+ */
+function effectiveLevel(config, relativePath, ruleId) {
+  const matches = pattern => path.posix.matchesGlob(relativePath, pattern.includes('/') ? pattern : `**/${pattern}`);
+  const asLevel = (setting) => {
+    const level = Array.isArray(setting) ? setting[0] : setting;
+
+    return { 0: 'off', 1: 'warn', 2: 'error' }[level] ?? level;
+  };
+  let level = asLevel(config.rules?.[ruleId]);
+
+  for (const override of config.overrides ?? []) {
+    const files = [override.files].flat();
+    const excluded = [override.excludedFiles ?? []].flat();
+
+    if (files.some(matches) && !excluded.some(matches) && override.rules?.[ruleId] !== undefined) {
+      level = asLevel(override.rules[ruleId]);
+    }
+  }
+
+  return level;
+}
+
+test('every ratcheted rule is warn-level for a .spec.js and a .unit.js path in handsontable/.eslintrc.js', () => {
+  // A renamed or dropped rule — or an override whose `files` glob stops
+  // matching the frozen tier — would turn the ratchet into a silent no-op:
+  // ESLint would emit nothing under that id for those files and the
+  // intersection would always be empty. Resolve the level per path the way
+  // ESLint does, for one path of each ratcheted extension. A flattened
+  // id→level map over all overrides would pass with the rules configured for
+  // some unrelated glob, which is exactly the mismatch it cannot catch.
+  //
+  // `*.unit.ts` is deliberately not asserted: RATCHETED_FILES lists it, but the
+  // override that turns these rules on does not name it today, so a `.unit.ts`
+  // file yields no findings and cannot block. The moment the override names
+  // `*.unit.ts`, the ratchet covers it with no change here.
   const require = createRequire(import.meta.url);
   // The config lives at a path resolved from the repo root at runtime; the rule wants a literal.
   // eslint-disable-next-line import/no-dynamic-require
   const config = require(path.join(repoRoot(), 'handsontable/.eslintrc.js'));
-  const configured = new Map();
+  const files = [
+    'src/plugins/filters/__tests__/filters.spec.js',
+    'src/3rdparty/walkontable/test/spec/table.spec.js',
+    'src/helpers/__tests__/number.unit.js',
+    'test/__tests__/esTarget.unit.js',
+  ];
 
-  for (const override of config.overrides ?? []) {
-    for (const [id, level] of Object.entries(override.rules ?? {})) {
-      configured.set(id, Array.isArray(level) ? level[0] : level);
+  for (const file of files) {
+    for (const rule of RATCHETED_RULES) {
+      const level = effectiveLevel(config, file, rule);
+
+      assert.ok(level !== undefined, `${rule} is not configured for ${file} in handsontable/.eslintrc.js`);
+      // The ratchet exists BECAUSE these are warnings. Should one graduate to
+      // `error`, ESLint blocks it everywhere already and the id belongs out of
+      // this list — the test says so instead of letting the two drift apart.
+      assert.equal(level, 'warn', `${rule} is ${level}, not warn, for ${file} — drop it from RATCHETED_RULES`);
     }
   }
+});
 
-  for (const rule of RATCHETED_RULES) {
-    assert.ok(configured.has(rule), `${rule} is not configured in handsontable/.eslintrc.js`);
-    // The ratchet exists BECAUSE these are warnings. Should one graduate to
-    // `error`, ESLint blocks it everywhere already and the id belongs out of
-    // this list — the test says so instead of letting the two drift apart.
-    assert.equal(configured.get(rule), 'warn', `${rule} is no longer warn-level — drop it from RATCHETED_RULES`);
-  }
+test('effectiveLevel resolves overrides the way ESLint does: basename globs, ordered, last one wins', () => {
+  // The helper above is what the config test leans on, so pin its semantics
+  // against a config with the same shapes as handsontable/.eslintrc.js.
+  const config = {
+    rules: { a: 'error' },
+    overrides: [
+      { files: ['test/**', '*.spec.js'], rules: { a: 'warn', b: 1 } },
+      { files: ['*.unit.js'], rules: { b: 'error' } },
+      { files: ['src/**/__tests__/**'], excludedFiles: ['*.types.ts'], rules: { c: ['warn', {}] } },
+    ],
+  };
+
+  assert.equal(effectiveLevel(config, 'src/core.ts', 'a'), 'error', 'top-level rules apply everywhere');
+  assert.equal(effectiveLevel(config, 'src/x/__tests__/x.spec.js', 'a'), 'warn',
+    'a slash-less glob matches the basename anywhere');
+  assert.equal(effectiveLevel(config, 'test/e2e/x.spec.js', 'b'), 'warn', 'a numeric level is normalized');
+  assert.equal(effectiveLevel(config, 'src/x/__tests__/x.unit.js', 'b'), 'error', 'the last matching override wins');
+  assert.equal(effectiveLevel(config, 'src/x/__tests__/x.unit.js', 'c'), 'warn', 'an array setting yields its level');
+  assert.equal(effectiveLevel(config, 'src/x/__tests__/x.types.ts', 'c'), undefined, 'excludedFiles is honored');
+  assert.equal(effectiveLevel(config, 'src/x/__tests__/x.unit.ts', 'b'), undefined,
+    'a glob for another extension does not match');
 });
 
 // --- selectRatchetedFiles: where the ratcheted rules apply ---
@@ -204,15 +273,38 @@ test('parseAddedLines: an added line whose CONTENT starts with "++ " is not read
   assert.equal(added.has('not-a-file.spec.js'), false);
 });
 
-test('parseAddedLines unquotes a path git had to quote', () => {
-  const quoted = 'handsontable/src/__tests__/odd\\tname.spec.js';
+test('parseAddedLines keys a non-ASCII path as git prints it raw under core.quotePath=false', () => {
+  // The CLI runs git with `-c core.quotePath=false`, so `café.spec.js` arrives
+  // as-is — the same string the `-z` name list yields — and no escape decoding
+  // is involved (a per-byte decode of `caf\303\251` produced `cafÃ©`, which
+  // matched nothing and silently dropped the file's added lines).
+  const file = 'handsontable/src/__tests__/café.spec.js';
   const diff = [
-    `+++ "b/${quoted}"`,
+    `+++ b/${file}`,
     '@@ -0,0 +1 @@',
     '+await sleep(1);',
   ].join('\n');
 
-  assert.deepEqual([...parseAddedLines(diff).get('handsontable/src/__tests__/odd\tname.spec.js')], [1]);
+  assert.deepEqual([...parseAddedLines(diff).get(file)], [1]);
+});
+
+test('parseAddedLines leaves a header git still had to C-quote unattributed rather than mis-keyed', () => {
+  // A control character, quote or backslash in a name is quoted regardless of
+  // core.quotePath. No spec in a cross-platform repository can carry one, and
+  // the parser does not decode it: the file is simply not attributed, which is
+  // never a false block. The lines must not land under the quoted string either.
+  const diff = [
+    '+++ "b/handsontable/src/__tests__/odd\\tname.spec.js"',
+    '@@ -0,0 +1 @@',
+    '+await sleep(1);',
+    `+++ b/${SPEC}`,
+    '@@ -0,0 +1 @@',
+    '+await sleep(2);',
+  ].join('\n');
+  const added = parseAddedLines(diff);
+
+  assert.deepEqual([...added.keys()], [SPEC], 'only the raw-path file is keyed');
+  assert.deepEqual([...added.get(SPEC)], [1], 'the quoted file\'s hunk did not leak into the next file');
 });
 
 test('parseAddedLines tolerates CRLF and the no-newline marker', () => {

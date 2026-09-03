@@ -243,8 +243,9 @@ module.exports = {
         'handsontable/no-new-it-flaky': 'warn',
         // Anti-gaming (green-for-the-sake-of-green) guards. Focus is ERROR — a
         // committed .only/fit silently drops the suite and there are 0 today.
-        // Skip is WARN — 21 existing .skip must not red-wall; new skips are caught
-        // by the diff-based test-weakening detector.
+        // Skip is WARN — 21 existing .skip must not red-wall. A NEW skip on a line
+        // a branch adds is blocked by the same diff-scoped ratchet as the sleep
+        // rules above (exit 1 at pre-push, red in the CI lint job).
         'handsontable/no-focused-test': 'error',
         'handsontable/no-skipped-test': 'warn',
         // A test with no assertion is hollow coverage. WARN — heuristic (a test may

@@ -14,6 +14,8 @@ import { repoRoot } from '../lib/repo-root.mjs';
 const SPEC_DIR = 'handsontable/src/renderers/numericRenderer/__tests__';
 const OLD_SPEC = `${SPEC_DIR}/contextMenu.spec.js`;
 const NEW_SPEC = `${SPEC_DIR}/contextMenuRenamed.spec.js`;
+const BASE_SPEC = `${SPEC_DIR}/landedOnTheBase.spec.js`;
+const STUB_PATH = 'handsontable/node_modules/eslint/bin/eslint.js';
 const SLEEP_RULE = 'handsontable/no-fixed-sleep-in-spec';
 
 /**
@@ -154,6 +156,54 @@ function createFixtureRepo() {
 }
 
 /**
+ * Commit an in-place `await sleep(50);` at line 4 of the legacy spec (the
+ * legacy `sleep()` shifts to line 6) — the shape the ratchet must block, and
+ * the one every tooling-gap test starts from so a skip there is provably a
+ * skip of a real finding.
+ *
+ * @param {string} root The fixture root.
+ * @returns {string} The commit to diff against (HEAD before the change).
+ */
+function commitNewSleep(root) {
+  const base = git(root, ['rev-parse', 'HEAD']);
+  const lines = readFileSync(path.join(root, OLD_SPEC), 'utf8').split('\n');
+
+  lines.splice(3, 0, '    await sleep(50);');
+  writeFileSync(path.join(root, OLD_SPEC), lines.join('\n'));
+  git(root, ['commit', '-q', '-am', 'add a sleep']);
+
+  return base;
+}
+
+/**
+ * Fork `feature` off `main`, give it one harmless added line in the legacy spec
+ * (so the ratchet has a line of the branch's own to read), then advance `main`
+ * with a NEW spec carrying a `sleep()` — a base commit the branch never wrote.
+ * Returns the fork commit: the base SHA a PR payload would have frozen.
+ *
+ * @param {string} root The fixture root.
+ * @returns {string} The fork commit.
+ */
+function forkAndAdvanceBase(root) {
+  const fork = git(root, ['rev-parse', 'HEAD']);
+
+  git(root, ['switch', '-q', '-c', 'feature']);
+
+  const lines = readFileSync(path.join(root, OLD_SPEC), 'utf8').split('\n');
+
+  lines.splice(1, 0, '  // a line the branch added');
+  writeFileSync(path.join(root, OLD_SPEC), lines.join('\n'));
+  git(root, ['commit', '-q', '-am', 'feature: a harmless added line']);
+
+  git(root, ['switch', '-q', 'main']);
+  writeFileSync(path.join(root, BASE_SPEC), LEGACY_SPEC);
+  git(root, ['add', BASE_SPEC]);
+  git(root, ['commit', '-q', '-m', 'base: a spec with a sleep() lands after the fork']);
+
+  return fork;
+}
+
+/**
  * Run the CLI copy inside a fixture.
  *
  * @param {string} root The fixture root.
@@ -281,16 +331,137 @@ test('a base that exists but shares no history with HEAD skips instead of diffin
   assert.deepEqual(reportedLocations(run.stdout), [], 'the legacy sleep() must not be read as added');
 });
 
+// --- the base must be the LIVE base branch tip, never the event payload's frozen SHA ---
+
+test('CI shape: a refs/pull/N/merge checkout diffed from the live base tip reads only the branch\'s lines', () => {
+  const root = createFixtureRepo();
+  const fork = forkAndAdvanceBase(root);
+
+  // actions/checkout's default ref on a pull_request run: the PR head merged
+  // into the CURRENT base tip, detached. GitHub rebuilds it whenever either
+  // side moves, so a "Re-run all jobs" sees a newer one than its payload names.
+  git(root, ['switch', '-q', '--detach', 'main']);
+  git(root, ['merge', '-q', '--no-ff', '-m', 'refs/pull/N/merge', 'feature']);
+
+  const live = runRatchet(root, [], { GATE_BASE: 'main' });
+
+  assert.equal(live.status, 0, `exit ${live.status}\n${live.stdout}${live.stderr}`);
+  assert.deepEqual(reportedLocations(live.stdout), [],
+    'the sleep() the BASE added must not be attributed to the branch');
+  // ESLint ran — the branch's own added line was in scope and is clean — rather
+  // than the "gained no line" fast path: the branch's changes were read.
+  assert.match(live.stdout, /no new sleep\(\)/);
+
+  // The defect this pins: the fork (the payload's base.sha) is an ancestor of
+  // the merge commit, so merge-base(fork, HEAD) is the fork itself and every
+  // base commit after it reads as the branch's. lint.yml therefore fetches the
+  // base branch and passes `origin/<base.ref>`, never `base.sha`.
+  const stale = runRatchet(root, [], { GATE_BASE: fork });
+
+  assert.equal(stale.status, 1, `exit ${stale.status}\n${stale.stdout}${stale.stderr}`);
+  assert.deepEqual(reportedLocations(stale.stdout), [`${BASE_SPEC}:5`]);
+});
+
+test('a branch that merged the base after it forked: the live base tip reads only the branch\'s lines', () => {
+  const root = createFixtureRepo();
+  const fork = forkAndAdvanceBase(root);
+
+  git(root, ['switch', '-q', 'feature']);
+  git(root, ['merge', '-q', '--no-ff', '-m', 'merge main into feature', 'main']);
+
+  const live = runRatchet(root, [], { GATE_BASE: 'main' });
+
+  assert.equal(live.status, 0, `exit ${live.status}\n${live.stdout}${live.stderr}`);
+  assert.deepEqual(reportedLocations(live.stdout), []);
+  assert.match(live.stdout, /no new sleep\(\)/);
+
+  // Pinning the PR head instead of the merge ref would not have helped here:
+  // once the base is merged in, the fork SHA is an ancestor of the head too.
+  const stale = runRatchet(root, [], { GATE_BASE: fork });
+
+  assert.equal(stale.status, 1, `exit ${stale.status}\n${stale.stdout}${stale.stderr}`);
+  assert.deepEqual(reportedLocations(stale.stdout), [`${BASE_SPEC}:5`]);
+});
+
+// --- paths: a non-ASCII name must key the same file in the diff and the name list ---
+
+test('a new sleep() in a spec with a non-ASCII name is reported — the path arrives raw, not octal-escaped', () => {
+  const root = createFixtureRepo();
+  const base = git(root, ['rev-parse', 'HEAD']);
+  const spec = `${SPEC_DIR}/café.spec.js`;
+
+  writeFileSync(path.join(root, spec), LEGACY_SPEC);
+  git(root, ['add', spec]);
+  git(root, ['commit', '-q', '-m', 'add a spec with a non-ASCII name']);
+
+  // The case under test: with git's default quoting the `+++` header escapes
+  // the name byte by byte, and a per-byte decode keyed the file as `cafÃ©`.
+  const header = git(root, ['diff', '-U0', base, 'HEAD']).split('\n').find(line => line.startsWith('+++ '));
+
+  assert.match(header, /caf\\303\\251\.spec\.js/, 'git quotes the name unless told otherwise');
+
+  const run = runRatchet(root, ['--base', base]);
+
+  assert.equal(run.status, 1, `exit ${run.status}\n${run.stdout}${run.stderr}`);
+  assert.deepEqual(reportedLocations(run.stdout), [`${spec}:5`]);
+});
+
+// --- tooling gaps: the "never a false block" promise, one branch each ---
+// Each starts from the commit the control test below proves IS blocked, so the
+// exit 0 here is a skip of a real finding, not an empty run.
+
+test('ESLint not installed: skips with a notice and exit 0 instead of blocking', () => {
+  const root = createFixtureRepo();
+  const base = commitNewSleep(root);
+
+  rmSync(path.join(root, STUB_PATH));
+
+  const run = runRatchet(root, ['--base', base]);
+
+  assert.equal(run.status, 0, `exit ${run.status}\n${run.stdout}${run.stderr}`);
+  assert.match(run.stdout, /not installed/);
+  assert.match(run.stdout, /skipped/);
+  assert.deepEqual(reportedLocations(run.stdout), []);
+});
+
+test('ESLint exiting 2 (a config or parse gap): skips, naming the first stderr line, instead of blocking', () => {
+  const root = createFixtureRepo();
+  const base = commitNewSleep(root);
+
+  writeFileSync(path.join(root, STUB_PATH), [
+    'process.stderr.write("Oops! Something went wrong! ESLint: 8.57.1\\n\\nError: Failed to load plugin");',
+    'process.exit(2);',
+    '',
+  ].join('\n'));
+
+  const run = runRatchet(root, ['--base', base]);
+
+  assert.equal(run.status, 0, `exit ${run.status}\n${run.stdout}${run.stderr}`);
+  assert.match(run.stdout, /exited 2/);
+  assert.match(run.stdout, /Oops! Something went wrong!/, 'the notice carries ESLint\'s first stderr line');
+  assert.match(run.stdout, /skipped/);
+  assert.deepEqual(reportedLocations(run.stdout), []);
+});
+
+test('unparsable ESLint output: skips with a notice and exit 0 instead of blocking', () => {
+  const root = createFixtureRepo();
+  const base = commitNewSleep(root);
+
+  writeFileSync(path.join(root, STUB_PATH), 'process.stdout.write("{");\n');
+
+  const run = runRatchet(root, ['--base', base]);
+
+  assert.equal(run.status, 0, `exit ${run.status}\n${run.stdout}${run.stderr}`);
+  assert.match(run.stdout, /no parsable JSON/);
+  assert.match(run.stdout, /skipped/);
+  assert.deepEqual(reportedLocations(run.stdout), []);
+});
+
 // --- control: the gate still bites on a plain in-place addition ---
 
 test('a new sleep() added in place (no rename) is reported at its line', () => {
   const root = createFixtureRepo();
-  const base = git(root, ['rev-parse', 'HEAD']);
-  const lines = readFileSync(path.join(root, OLD_SPEC), 'utf8').split('\n');
-
-  lines.splice(3, 0, '    await sleep(50);'); // new line 4; the legacy one becomes line 6
-  writeFileSync(path.join(root, OLD_SPEC), lines.join('\n'));
-  git(root, ['commit', '-q', '-am', 'add a sleep']);
+  const base = commitNewSleep(root);
 
   const run = runRatchet(root, ['--base', base]);
 
