@@ -17,7 +17,7 @@ import type { GeometryReader } from './domMeasure/geometryReader';
 
 export interface DomBindings {
   rootDocument: Document;
-  rootWindow: Window;
+  rootWindow: Window & typeof globalThis;
   rootElement: HTMLElement;
   rootTable: HTMLTableElement;
   geometryReader: GeometryReader;
@@ -34,7 +34,7 @@ export interface WalkontableInstance {
   drawn: boolean;
   domBindings: DomBindings;
   rootDocument: Document;
-  rootWindow: Window;
+  rootWindow: Window & typeof globalThis;
   eventManager: EventManager;
   activeOverlayName: string;
   wtEvent: WalkontableEvent | Record<string, unknown>;
