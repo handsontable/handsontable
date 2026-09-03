@@ -494,11 +494,12 @@ describe('ColumnSummarySpec', () => {
     // The Delete key clears a cell to `null`, but clearing it in the editor stores `''`. Loading
     // data from a backend brings in `""` the same way. All of them must read as empty - `Number('')`
     // is `0`, so an unguarded check turns a blank cell into a real zero.
-    const clearedInEditor = [[10], [20], [''], [30], [null]];
+    // A factory, not a shared array - the plugin writes its result into the data it was given.
+    const clearedInEditor = () => [[10], [20], [''], [30], [null]];
 
     it('should not count a cell that holds an empty string', async() => {
       handsontable({
-        data: clearedInEditor,
+        data: clearedInEditor(),
         columnSummary: [
           {
             destinationColumn: 0,
@@ -514,7 +515,7 @@ describe('ColumnSummarySpec', () => {
 
     it('should not treat an empty string as zero when calculating the minimum', async() => {
       handsontable({
-        data: clearedInEditor,
+        data: clearedInEditor(),
         columnSummary: [
           {
             destinationColumn: 0,
@@ -548,7 +549,7 @@ describe('ColumnSummarySpec', () => {
 
     it('should not divide by a cell that holds an empty string when calculating the average', async() => {
       handsontable({
-        data: clearedInEditor,
+        data: clearedInEditor(),
         columnSummary: [
           {
             destinationColumn: 0,
@@ -564,7 +565,7 @@ describe('ColumnSummarySpec', () => {
 
     it('should keep the sum unchanged when the range holds an empty string', async() => {
       handsontable({
-        data: clearedInEditor,
+        data: clearedInEditor(),
         columnSummary: [
           {
             destinationColumn: 0,

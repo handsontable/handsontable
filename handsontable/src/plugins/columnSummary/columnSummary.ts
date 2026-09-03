@@ -455,7 +455,7 @@ export class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Counts non-empty cells in the provided row range.
+   * Counts the cells that hold a number in the provided row range.
    *
    * @private
    * @param {object} endpoint Contains the endpoint information.
