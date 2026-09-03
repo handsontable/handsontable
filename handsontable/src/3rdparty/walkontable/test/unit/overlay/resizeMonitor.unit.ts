@@ -170,6 +170,18 @@ describe('ResizeMonitor', () => {
       settingsFired: () => settingsFired,
       pendingTimeouts: () => [...timeouts.values()],
       pendingFrames: () => frames.size,
+      // Runs every queued frame, destroying the monitor before the first one - the shape of a host
+      // that tears the grid down from inside its own animation-frame callback.
+      destroyFromInsideFrame: () => {
+        const queued = [...frames.entries()];
+
+        monitor.destroy();
+
+        queued.forEach(([id, fn]) => {
+          frames.delete(id);
+          fn();
+        });
+      },
       detachWrapper: () => {
         rootElement.parentElement = null;
       },
@@ -414,6 +426,53 @@ describe('ResizeMonitor', () => {
 
     expect(harness.observeCalls()).toBe(1);
     expect(harness.pendingTimeouts()).toEqual([]);
+  });
+
+  it('should put the reconnect back when it is observed mid-cooldown with the wrapper detached', () => {
+    const harness = build();
+
+    harness.monitor.observe();
+    harness.deliverForFrames(RESIZE_LOOP_GUARD_THRESHOLD);
+
+    // `NativeScrollInput` re-registers on a scrollable-element change, which can land inside the
+    // cooldown - and the host may be holding the subtree out of the document at that moment. Cancelling
+    // the retry and attaching nothing would leave the container watched by nobody.
+    harness.detachWrapper();
+    harness.monitor.observe();
+
+    expect(harness.isObserving()).toBe(false);
+    expect(harness.pendingTimeouts()).not.toEqual([]);
+
+    harness.reattachWrapper();
+    harness.advance(RESIZE_LOOP_GUARD_RECONNECT_DELAY * 4);
+
+    expect(harness.isObserving()).toBe(true);
+  });
+
+  it('should arm no reconnect when it is observed with the wrapper detached outside a cooldown', () => {
+    const harness = build();
+
+    harness.detachWrapper();
+    harness.monitor.observe();
+
+    // Unchanged behavior: a grid built detached is observed when its owner re-registers, not by a
+    // timer polling for the rest of the session.
+    expect(harness.pendingTimeouts()).toEqual([]);
+    expect(harness.isObserving()).toBe(false);
+  });
+
+  it('should do nothing in a watchdog frame that outlived destroy', () => {
+    const harness = build();
+
+    harness.monitor.observe();
+    harness.deliver();
+
+    // A destroy dispatched from another animation-frame callback in the same frame cannot unrun a
+    // watchdog frame the engine already queued, so the callback has to bail out on its own.
+    harness.destroyFromInsideFrame();
+
+    expect(harness.pendingFrames()).toBe(0);
+    expect(harness.settingsFired()).toBe(0);
   });
 
   it('should not observe again after it was destroyed mid-cooldown', () => {

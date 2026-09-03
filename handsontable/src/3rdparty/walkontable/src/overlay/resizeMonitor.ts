@@ -173,14 +173,26 @@ export class ResizeMonitor {
    * listeners whenever the scrollable element changes, so an explicit re-observe can land in the middle
    * of a cooldown and must not leave a timer behind to observe a second time.
    *
+   * Cancelling that timer is only safe while this call can replace it. When the wrapper is detached
+   * there is nothing to attach to, so a call landing mid-cooldown has to put the reconnect back or it
+   * would consume the retry and leave the container watched by nobody - the permanent disconnect
+   * again, one call further along. A failed attach OUTSIDE a cooldown arms nothing, which is the
+   * behavior this class has always had: a grid built detached is observed when its owner re-registers,
+   * not by a timer that polls for the whole session.
+   *
    * It deliberately does NOT reset the accumulated backoff, which `resetResizeCount()` does. The two
    * are not symmetrical: a window resize is evidence about the CAUSE of the deliveries, so the
    * succession they belong to can be forgotten, while a change of scrollable element says only which
    * element to watch and nothing about whether the loop went away.
    */
   observe() {
+    const wasInCooldown = this.#reconnectTimeoutId !== null;
+
     this.#cancelReconnect();
-    this.#attach();
+
+    if (!this.#attach() && wasInCooldown) {
+      this.#scheduleReconnect();
+    }
   }
 
   /**
@@ -241,6 +253,10 @@ export class ResizeMonitor {
 
     this.#quietFrameWatchdogId = this.#deps.rootWindow.requestAnimationFrame(() => {
       this.#quietFrameWatchdogId = null;
+
+      if (this.#isDestroyed) {
+        return;
+      }
 
       if (this.#deliveredSinceLastFrame) {
         this.#deliveredSinceLastFrame = false;
