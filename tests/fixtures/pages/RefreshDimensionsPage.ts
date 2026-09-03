@@ -51,7 +51,7 @@ export class RefreshDimensionsPage {
    */
   async goto(): Promise<void> {
     await this.page.goto(`/tests/fixtures/demo/refresh-dimensions.html?theme=${this.theme}&bundle=${this.bundle}`);
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await this.page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: 100 });
   }
 
   /**

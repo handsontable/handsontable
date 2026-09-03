@@ -61,7 +61,7 @@ export class SourceDataValidatorPage {
     // wait can outlast the `expect` timeout on a cold or busy server. `waitForFunction` polls
     // against the test budget instead, and the fixture installs its helper and reports `ready`
     // in the block right after the bundle's own script.
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await this.page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: 100 });
 
     await expect(this.status).toHaveText('ready');
   }

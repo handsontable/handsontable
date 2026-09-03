@@ -33,7 +33,7 @@ export class HeaderMarkupGatePage {
     // Wait for the bundle on its own budget before asserting on anything the fixture rendered.
     // `expect` is the wrong tool for that wait: every worker pulls its own ~6 MB copy of
     // `dist/handsontable.js`, so a cold server outlasts the 10s timeout.
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await this.page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: 100 });
     await expect(this.columnHeader()).toBeVisible();
   }
 

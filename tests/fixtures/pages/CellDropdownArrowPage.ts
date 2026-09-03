@@ -67,7 +67,7 @@ export class CellDropdownArrowPage {
 
     // Wait for the bundle before the cell. The test id comes from the fixture's `afterRenderer`,
     // so "cell not found" alone cannot tell a slow bundle apart from a grid that failed to render.
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await this.page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: 100 });
 
     // Scoped to the master table: with a frozen column, cell (0, 0) is rendered in the inline-start
     // overlay clone as well, and an unscoped test id then matches twice and fails strict mode.

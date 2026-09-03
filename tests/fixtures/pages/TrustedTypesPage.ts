@@ -97,7 +97,7 @@ export class TrustedTypesPage {
     // fixture injects `dist/handsontable.js` through `document.write`, every worker pulls its
     // own ~6 MB copy, and on a cold server the first test outlasts `expect` and fails here
     // rather than where the cause is.
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await this.page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: 100 });
     await expect(this.status).not.toBeEmpty();
   }
 

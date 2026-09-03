@@ -38,11 +38,18 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   `Handsontable` is still undefined. The spec then fails inside its first
   `page.evaluate()` with a bare `Handsontable is not defined` — far from the
   cause, and only under load. Wait for the bundle itself in `goto()`, with
-  `await page.waitForFunction(() => 'Handsontable' in window)`, before
-  asserting on any fixture status. `expect` is the wrong tool for that wait:
-  `dist/handsontable.js` is ~6 MB uncompressed and every worker pulls its own
-  copy, so a cold or busy server outlasts the 10s `expect` timeout, while
+  `await page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: 100 })`,
+  before asserting on any fixture status. `expect` is the wrong tool for that
+  wait: `dist/handsontable.js` is ~6 MB uncompressed and every worker pulls its
+  own copy, so a cold or busy server outlasts the 10s `expect` timeout, while
   `waitForFunction` polls against the test budget.
+- **Every `waitForFunction()` passes an explicit `{ polling: <ms> }`.** The
+  default polls on `requestAnimationFrame`, and parallel-worker load starves
+  rAF callbacks past the timeout while the page is healthy — measured as mute
+  `goto()` timeouts with nothing wrong on the page. `tests/.eslintrc.cjs` bans
+  a call with no options argument and an options literal without `polling`
+  (an options variable is not judged). `HiddenInitRerenderPage.goto()` is the
+  reference shape.
 - The `umd` legs run the BASE bundle: **no HyperFormula** (a formulas fixture
   loads HF as an external script beside the bundle, or the plugin logs a
   warning and silently stays off) and **no languages pack** (an i18n fixture

@@ -37,7 +37,7 @@ export class LayoutSlotFocusPage {
 
     // Wait for the bundle before the cell. The test id comes from the fixture's custom renderer,
     // so "cell not found" alone cannot tell a slow bundle apart from a grid that failed to render.
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await this.page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: 100 });
 
     await expect(this.cell(0, 0)).toBeVisible();
   }
