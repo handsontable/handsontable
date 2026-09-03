@@ -65,6 +65,8 @@ export class ManualResizeContextMenuPage extends ManualResizePage {
       `/tests/fixtures/demo/manual-resize-contextmenu.html?theme=${this.theme}&bundle=${this.bundle}`
     );
 
+    await this.awaitBundle();
+
     await expect(this.grid.locator('.ht_clone_top')).toBeVisible();
     await expect(this.grid.locator('.ht_clone_inline_start')).toBeVisible();
     // The clones exist before their rows are laid out, and every test hovers a header, so wait for

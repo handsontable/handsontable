@@ -149,8 +149,23 @@ export abstract class ManualResizePage {
   }
 
   /**
+   * Waits for the bundle under test to have evaluated. Every `goto()` here must call this before
+   * it asserts on anything the grid rendered.
+   *
+   * A fixture's own readiness is not a substitute: the `document.write`-injected bundle script and
+   * the block that builds the grid are separate, so the page can look ready while `Handsontable`
+   * is still undefined, and the failure then surfaces as a visibility timeout on an overlay clone -
+   * far from the cause, and only on a cold or busy server. `waitForFunction` rather than `expect`,
+   * because it polls against the test budget: `dist/handsontable.js` is ~6MB and every worker
+   * pulls its own copy, which outlasts the 10s `expect` timeout.
+   */
+  async awaitBundle(): Promise<void> {
+    await this.page.waitForFunction(() => 'Handsontable' in window);
+  }
+
+  /**
    * Navigate and wait for the fixture's grid to have rendered - a real DOM condition, never a
-   * sleep.
+   * sleep. Implementations must open with `await this.awaitBundle()`.
    */
   abstract goto(): Promise<void>;
 }

@@ -560,12 +560,24 @@ export class ManualColumnResize extends BasePlugin {
    * `#onMouseDown`, so a context menu opened over a merely hovered handle reaches a guide that
    * was never attached, and `removeChild` threw there (DEV-2708).
    *
-   * The pressed flag is deliberately NOT reset here. `updatePlugin()` runs
-   * `disablePlugin(); enablePlugin();` on any `updateSettings()` carrying the plugin's own key,
-   * which is what a framework wrapper sends on every re-render - clearing the flag there would
-   * make the "mouseup" that ends an in-flight drag take the idle branch, so the drag would be
-   * dropped with no `afterRowResize`/`afterColumnResize` and the dragged size never confirmed.
-   * The context menu handler resets it at its own call site, where aborting the drag is the point.
+   * The pressed flag is deliberately NOT reset here, and that is a trade rather than a safe
+   * default. `updatePlugin()` runs `disablePlugin(); enablePlugin();` on any `updateSettings()`
+   * carrying the plugin's own key, which is what a framework wrapper sends on every re-render -
+   * clearing the flag there would make the "mouseup" that ends an in-flight drag take the idle
+   * branch, so the drag would be dropped with no `afterColumnResize` and the dragged size never confirmed.
+   * That path is common, so it wins. The context menu handler resets the flag at its own call
+   * site, where aborting the drag is the point.
+   *
+   * Two consequences to know, neither introduced here. On a real disable - `manualColumnResize: false`
+   * rather than a re-init - `super.disablePlugin()` clears the events, so the "mouseup" never
+   * arrives and the flag stays latched true; after a later re-enable `#onMouseMove` then reads
+   * plain pointer movement as a drag and writes sizes from a stale start offset. And a drag in
+   * flight when the re-init fires loses both elements until its "mouseup" calls
+   * `setupHandlePosition()` again, because `enablePlugin()` does not re-attach them and
+   * `#onMouseOver` early-returns while the flag is set - the resize itself still lands, so that
+   * one is visual only. An `event.buttons === 0` check in `#onMouseMove` would close the latch,
+   * but the frozen Jasmine helpers simulate "mousemove" without `buttons`, so it reds 41 of the
+   * 147 specs in the two plugin suites and belongs with a sweep of those instead.
    */
   #detachHandleAndGuide() {
     this.hideHandleAndGuide();
@@ -651,6 +663,21 @@ export class ManualColumnResize extends BasePlugin {
    * @fires Hooks#afterColumnResize
    */
   afterMouseDownTimeout() {
+    // A double-click arms this through `hot._registerTimeout`, which is only cleared by
+    // `Core#destroy()` - so an `updateSettings({ manualColumnResize: false })` landing inside the
+    // 500ms window leaves it pending on a plugin that is already off. Everything below would then
+    // be wrong: it runs the resize hooks, writes through `setManualSize()` into a column widths map
+    // `disablePlugin()` has already unregistered, renders, and ends by appending the handle back
+    // into the container the teardown just cleaned. Reset the state the way a completed run does,
+    // so `#onMouseDown` can arm a fresh timer after a re-enable - it only does so while
+    // `#autoresizeTimeout` is null.
+    if (!this.enabled) {
+      this.#autoresizeTimeout = null;
+      this.#dblclick = 0;
+
+      return;
+    }
+
     const shouldRefreshHandlePosition = shouldRefreshHandleAfterAutoResize(
       this.#currentTH,
       this.#dblclick,

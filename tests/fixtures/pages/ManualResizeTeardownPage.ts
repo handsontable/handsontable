@@ -80,11 +80,7 @@ export class ManualResizeTeardownPage extends ManualResizePage {
       `/tests/fixtures/demo/manual-resize-teardown.html?theme=${this.theme}&bundle=${this.bundle}`
     );
 
-    // The `document.write`-injected bundle and the block that builds the grid are separate scripts,
-    // so wait for the bundle itself before anything asserts on the grid. `waitForFunction` polls
-    // against the test budget, which `expect` does not - and `dist/handsontable.js` is large enough
-    // that a cold server outlasts the `expect` timeout.
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await this.awaitBundle();
 
     await expect(this.grid.locator('.ht_clone_top')).toBeVisible();
     await expect(this.grid.locator('.ht_clone_inline_start')).toBeVisible();

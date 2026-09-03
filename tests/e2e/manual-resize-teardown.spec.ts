@@ -111,6 +111,24 @@ test.describe('Manual resize handle and guide teardown', () => {
     await expect.poll(() => grid.selectedRange()).toEqual([[2, -1, 2, 4]]);
   });
 
+  test('stops the orphaned column handle from swallowing the header click', async ({ page }) => {
+    await grid.hoverColumnHeader(2);
+
+    const box = await grid.columnHandle.boundingBox();
+
+    expect(box).not.toBeNull();
+
+    await grid.parkPointer();
+    await grid.setResizeOption('manualColumnResize', false);
+
+    // Biased off the band's centre for the same reason as the row case: the handle sits at
+    // `headerStart - 6 + headerWidth`, so its centre is one pixel inside column 2 and rounding can
+    // put it on the next column.
+    await page.mouse.click(box!.x + 2, box!.y + (box!.height / 2));
+
+    await expect.poll(() => grid.selectedRange()).toEqual([[-1, 2, 4, 2]]);
+  });
+
   test('keeps both row elements attached while the plugin stays on', async () => {
     await grid.dragRowHandle(2, 30);
 
@@ -135,6 +153,11 @@ test.describe('Manual resize handle and guide teardown', () => {
 
   test('keeps resizing after the plugin is turned off and on again', async () => {
     const startHeight = await grid.renderedRowHeight(2);
+
+    // Reveal the handle first, so the count below watches the teardown instead of restating a
+    // page-load fact that is already true.
+    await grid.hoverRowHeader(2);
+    await expect(grid.rowHandle).toHaveCount(1);
 
     await grid.parkPointer();
     await grid.setResizeOption('manualRowResize', false);
@@ -195,6 +218,16 @@ test.describe('Manual resize handle and guide teardown', () => {
     await expect(grid.rowHandle).toHaveCount(0);
   });
 
+  test('detaches the column handle when the plugin itself is destroyed', async () => {
+    await grid.hoverColumnHeader(2);
+    await expect(grid.columnHandle).toHaveCount(1);
+
+    await grid.parkPointer();
+    await grid.destroyResizePlugin('manualColumnResize');
+
+    await expect(grid.columnHandle).toHaveCount(0);
+  });
+
   test('leaves nothing in the container after the grid is destroyed', async () => {
     await grid.hoverRowHeader(2);
     await expect(grid.rowHandle).toHaveCount(1);
@@ -209,5 +242,65 @@ test.describe('Manual resize handle and guide teardown', () => {
     // keeping the container clean, and this test would be the one to notice.
     await expect(grid.rowHandle).toHaveCount(0);
     await expect(grid.grid.locator('*')).toHaveCount(0);
+  });
+});
+
+/**
+ * The pending-autoresize case needs its own describe, because it is the only one that fakes the
+ * clock and that has to be installed before the page loads.
+ *
+ * `#onMouseDown` arms `afterMouseDownTimeout()` through `hot._registerTimeout`, which only
+ * `Core#destroy()` ever clears - `disablePlugin()` does not. So a disable inside the 500ms window
+ * leaves the callback pending on a plugin that is already off, where it runs the resize hooks,
+ * writes through a size map `disablePlugin()` has already unregistered, renders, and ends in
+ * `setupHandlePosition()`, which appends the handle straight back into the container the teardown
+ * just cleaned.
+ *
+ * The clock is what makes crossing that boundary an assertion rather than a sleep: `toHaveCount(0)`
+ * resolves the instant it is true, so simply giving it a longer timeout would observe nothing, and
+ * `waitForTimeout` is banned here for the same reason.
+ */
+test.describe('Manual resize pending autoresize timeout', () => {
+  let grid: ManualResizeTeardownPage;
+
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    await page.clock.install();
+
+    grid = new ManualResizeTeardownPage(page, theme, bundle);
+    await grid.goto();
+  });
+
+  test('does not re-attach the row handle after the plugin was turned off', async ({ page }) => {
+    await grid.hoverRowHeader(2);
+    await expect(grid.rowHandle).toHaveCount(1);
+
+    // Arms the timer.
+    await grid.rowHandle.dblclick();
+
+    await grid.parkPointer();
+    await grid.setResizeOption('manualRowResize', false);
+    await expect(grid.rowHandle).toHaveCount(0);
+
+    // Past the 500ms boundary, deterministically.
+    await page.clock.runFor(1500);
+
+    await expect(grid.rowHandle).toHaveCount(0);
+    await expect(grid.rowGuide).toHaveCount(0);
+  });
+
+  test('does not re-attach the column handle after the plugin was turned off', async ({ page }) => {
+    await grid.hoverColumnHeader(2);
+    await expect(grid.columnHandle).toHaveCount(1);
+
+    await grid.columnHandle.dblclick();
+
+    await grid.parkPointer();
+    await grid.setResizeOption('manualColumnResize', false);
+    await expect(grid.columnHandle).toHaveCount(0);
+
+    await page.clock.runFor(1500);
+
+    await expect(grid.columnHandle).toHaveCount(0);
+    await expect(grid.columnGuide).toHaveCount(0);
   });
 });
