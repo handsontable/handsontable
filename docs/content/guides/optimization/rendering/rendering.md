@@ -165,11 +165,11 @@ Two hooks let you see the rendering cycle:
 - [`beforeRender`](@/api/hooks.md#beforerender) fires before the cells are drawn.
 - [`afterRender`](@/api/hooks.md#afterrender) fires after they are drawn.
 
-Both receive an `isForced` argument. It is `true` for a full render, which is what [`render()`](@/api/core.md#render) triggers, and `false` for a lighter render that repositions the grid without redrawing the cells -- a selection move, for example.
+Both receive an `isForced` argument. It tells you what triggered the render, not how much work it did. It is `true` for a render that [`render()`](@/api/core.md#render), a settings change, or a data change triggered, and `false` for one triggered by something lighter, such as a selection move. A `false` render can still redraw cells: if the selection moves to a row or column that is not rendered yet, Handsontable draws the new band.
 
 ```js
 hot.addHook('afterRender', (isForced) => {
-  console.log(isForced ? 'full render' : 'light render');
+  console.log(isForced ? 'forced render' : 'light render');
 });
 ```
 

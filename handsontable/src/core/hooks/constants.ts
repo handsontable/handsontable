@@ -1847,7 +1847,10 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforeRender
    * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
    *                           data, or a logic that needs a full Handsontable render cycle.
-   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
+   *                           If set to `false`, the rendering gets triggered by something lighter, such as moving
+   *                           the selection. The flag describes what triggered the render, not how much was
+   *                           redrawn: a `false` render still redraws cells when it brings a new row or column
+   *                           band into view. Scrolling does not fire this hook at all.
    */
   'beforeRender',
 
@@ -1857,7 +1860,10 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#afterRender
    * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
    *                           data, or a logic that needs a full Handsontable render cycle.
-   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
+   *                           If set to `false`, the rendering gets triggered by something lighter, such as moving
+   *                           the selection. The flag describes what triggered the render, not how much was
+   *                           redrawn: a `false` render still redraws cells when it brings a new row or column
+   *                           band into view. Scrolling does not fire this hook at all.
    */
   'afterRender',
 
