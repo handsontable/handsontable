@@ -383,18 +383,37 @@ test('the examples clean step keeps the lockfiles unless asked', () => {
     + `removals, found ${lockfileRemovals.length}.`
   );
 
-  // Guarded means indented deeper than the removals that run unconditionally, which is what
-  // sitting inside the `if (resetLockfiles)` block looks like. Text-based on purpose: the
-  // regression to catch is a future edit moving these two lines back out of the block.
-  const baseline = Math.min(...removals.filter(match => !isLockfile(match)).map(([, indent]) => indent.length));
+  // Match the guard's own text, not just the indentation. Indentation alone passes a guard
+  // flipped to `if (!resetLockfiles)`, which deletes the lockfiles on every install except the
+  // refresh -- precisely the regression the message below describes.
+  const lastUnconditional = removals.filter(match => !isLockfile(match)).at(-1);
+  const firstLockfile = lockfileRemovals[0];
+
+  assert.ok(lastUnconditional, `${EXAMPLE_CLEAN_SCRIPT}: no unconditional \`removes.push(...)\``);
+  assert.ok(
+    lastUnconditional.index < firstLockfile.index,
+    `${EXAMPLE_CLEAN_SCRIPT}: the lockfile removals must come after the unconditional ones, so `
+    + 'the guard between them can be checked.'
+  );
+
+  const betweenBlocks = source.slice(
+    lastUnconditional.index + lastUnconditional[0].length,
+    firstLockfile.index
+  );
+
+  assert.match(
+    betweenBlocks,
+    /if\s*\(\s*resetLockfiles\s*\)\s*\{/,
+    `${EXAMPLE_CLEAN_SCRIPT}: the lockfile removals are not inside an \`if (resetLockfiles) {\` `
+    + 'block. Deleting a tracked example lockfile on every install makes the next install '
+    + 're-resolve 104 `latest` specifiers, and `first-rc-build` commits whatever comes out. A '
+    + 'negated guard passes an indentation check while doing exactly that (DEV-2714).'
+  );
 
   for (const [, indent, call] of lockfileRemovals) {
     assert.ok(
-      indent.length > baseline,
-      `${EXAMPLE_CLEAN_SCRIPT}: \`${call.trim()}\` is not inside the \`--reset-lockfiles\` `
-      + 'guard. Deleting a tracked example lockfile on every install makes the next install '
-      + 're-resolve 104 `latest` specifiers, and `first-rc-build` commits whatever comes out '
-      + '(DEV-2714).'
+      indent.length > lastUnconditional[1].length,
+      `${EXAMPLE_CLEAN_SCRIPT}: \`${call.trim()}\` sits outside the guard block it follows.`
     );
   }
 
@@ -523,6 +542,86 @@ test('the example lockfile report never fails the release', () => {
       assert.match(output, /examples\/next\/docs\/svelte\/package-lock\.json/);
       assert.doesNotMatch(output, /examples\/next\/docs\/js\/demo\/package-lock\.json/);
     }
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+// `alignTypescriptWithAngular` writes `devDependencies.typescript` into the Angular leaf
+// manifests at install time, and the same `git add .` commits them. A manifest edit reaching the
+// release branch unreported is the same hazard as a lockfile one.
+test('the example lockfile report covers the manifests too', () => {
+  const fixture = mkdtempSync(path.join(tmpdir(), 'example-lockfile-report-manifest-'));
+
+  try {
+    const gitInFixture = args => execFileSync('git', args, { cwd: fixture, encoding: 'utf8' });
+    const manifest = path.join('examples', 'next', 'docs', 'angular-wrapper', 'demo', 'package.json');
+    const write = (rel, contents) => {
+      mkdirSync(path.dirname(path.join(fixture, rel)), { recursive: true });
+      writeFileSync(path.join(fixture, rel), contents);
+    };
+
+    gitInFixture(['init', '--quiet', '--initial-branch', 'main']);
+    gitInFixture(['config', 'user.email', 'test@example.com']);
+    gitInFixture(['config', 'user.name', 'Test']);
+    write(manifest, '{"devDependencies":{"typescript":"~6.0.0"}}\n');
+    gitInFixture(['add', '.']);
+    gitInFixture(['commit', '--quiet', '-m', 'fixture']);
+
+    write(manifest, '{"devDependencies":{"typescript":"~6.1.0"}}\n');
+
+    const stdout = execFileSync('node', [path.join(root, REPORT_SCRIPT), fixture], {
+      cwd: fixture,
+      encoding: 'utf8',
+      env: { ...process.env, SKIP_AUDIT: '1' },
+    });
+
+    assert.match(stdout, /angular-wrapper\/demo\/package\.json/);
+    assert.doesNotMatch(stdout, /are unchanged/);
+    // A manifest-only change is not reproduced by refreshing the lockfiles, so that recipe must
+    // not be the advice here.
+    assert.match(stdout, /examples:install next/);
+    assert.doesNotMatch(stdout, /--reset-lockfiles/);
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+// An untracked lockfile at an unignored path is not a float: nothing re-resolved, an ignore rule
+// is missing. Reporting it under "changed during this cut" and telling the operator to refresh
+// the lockfiles sends them after a change that is not there.
+test('the example lockfile report names the right remedy for an untracked lockfile', () => {
+  const fixture = mkdtempSync(path.join(tmpdir(), 'example-lockfile-report-untracked-'));
+
+  try {
+    const gitInFixture = args => execFileSync('git', args, { cwd: fixture, encoding: 'utf8' });
+    const tracked = path.join('examples', 'next', 'docs', 'js', 'package-lock.json');
+    const uncovered = path.join('examples', 'next', 'docs', 'svelte', 'package-lock.json');
+    const write = (rel, contents) => {
+      mkdirSync(path.dirname(path.join(fixture, rel)), { recursive: true });
+      writeFileSync(path.join(fixture, rel), contents);
+    };
+
+    gitInFixture(['init', '--quiet', '--initial-branch', 'main']);
+    gitInFixture(['config', 'user.email', 'test@example.com']);
+    gitInFixture(['config', 'user.name', 'Test']);
+    write(tracked, '{"lockfileVersion":3}\n');
+    gitInFixture(['add', '.']);
+    gitInFixture(['commit', '--quiet', '-m', 'fixture']);
+
+    // Nothing tracked changed. The only finding is the unignored path.
+    write(uncovered, '{}\n');
+
+    const stdout = execFileSync('node', [path.join(root, REPORT_SCRIPT), fixture], {
+      cwd: fixture,
+      encoding: 'utf8',
+      env: { ...process.env, SKIP_AUDIT: '1' },
+    });
+
+    assert.match(stdout, /Untracked example lockfiles found/);
+    assert.match(stdout, /\.gitignore/);
+    assert.doesNotMatch(stdout, /changed during this cut/);
+    assert.doesNotMatch(stdout, /--reset-lockfiles/);
   } finally {
     rmSync(fixture, { recursive: true, force: true });
   }

@@ -37,6 +37,13 @@ import { pathToFileURL } from 'node:url';
 // meant for one level quietly matches any depth.
 const LOCKFILE_PATHSPEC = ':(glob)examples/**/package-lock.json';
 
+// The manifests belong here too. `alignTypescriptWithAngular` writes `devDependencies.typescript`
+// straight into the Angular leaf `package.json` files at install time, and the same `git add .`
+// commits them, so a manifest edit could reach the release branch while the lockfile next to it
+// would have been reported. They stay out of the audit loop: `npm audit` needs a lockfile, and a
+// leaf directory has none of its own.
+const MANIFEST_PATHSPEC = ':(glob)examples/**/package.json';
+
 /**
  * Run a git command in `cwd` and return its stdout, or `null` when it fails.
  *
@@ -68,12 +75,13 @@ export function git(args, cwd) {
  * under `examples/` -- which `git add .` would commit into the release.
  *
  * @param {string} cwd Repository root.
- * @returns {{changed: string[], untracked: string[], stat: string, failed: boolean}} The report's
- *   raw material, and whether any git call failed.
+ * @returns {{changed: string[], manifests: string[], untracked: string[], stat: string,
+ *   failed: boolean}} The report's raw material, and whether any git call failed.
  */
 export function collect(cwd) {
   const names = git(['diff', '--name-only', 'HEAD', '--', LOCKFILE_PATHSPEC], cwd);
-  const stat = git(['diff', '--stat', 'HEAD', '--', LOCKFILE_PATHSPEC], cwd);
+  const stat = git(['diff', '--stat', 'HEAD', '--', LOCKFILE_PATHSPEC, MANIFEST_PATHSPEC], cwd);
+  const manifests = git(['diff', '--name-only', 'HEAD', '--', MANIFEST_PATHSPEC], cwd);
   const others = git(['ls-files', '--others', '--exclude-standard', '--', LOCKFILE_PATHSPEC], cwd);
   const lines = value => (value ? value.split('\n').filter(Boolean) : []);
 
@@ -82,9 +90,10 @@ export function collect(cwd) {
   // confident all-clear, which is the failure this whole step exists to prevent.
   return {
     changed: lines(names),
+    manifests: lines(manifests),
     untracked: lines(others),
     stat: stat || '',
-    failed: names === null || stat === null || others === null,
+    failed: names === null || stat === null || manifests === null || others === null,
   };
 }
 
@@ -144,12 +153,13 @@ export function auditSummary(lockfile, cwd) {
 /**
  * Build the report body for a collected state.
  *
- * @param {{changed: string[], untracked: string[], stat: string}} state From `collect`.
+ * @param {{changed: string[], manifests: string[], untracked: string[], stat: string,
+ *   failed: boolean}} state From `collect`.
  * @param {(lockfile: string) => string} audit Severity summary for one lockfile.
  * @returns {string} Markdown, without a trailing newline.
  */
 export function report(state, audit) {
-  const { changed, untracked, stat, failed } = state;
+  const { changed, manifests, untracked, stat, failed } = state;
 
   if (failed) {
     return 'Could not determine whether the example lockfiles changed: at least one `git` call '
@@ -157,17 +167,34 @@ export function report(state, audit) {
       + 'check `git status -- examples` on the release branch before trusting the commit.';
   }
 
-  if (changed.length === 0 && untracked.length === 0) {
-    return 'The tracked example lockfiles are unchanged. This release installs the dependency '
-      + 'set CI tested.';
+  const tracked = changed.length + manifests.length;
+
+  if (tracked === 0 && untracked.length === 0) {
+    return 'The tracked example lockfiles and manifests are unchanged. This release installs the '
+      + 'dependency set CI tested.';
   }
 
-  const out = ['### Example lockfiles changed during this cut', ''];
+  // Two different problems with two different remedies, so they get two different headings. An
+  // untracked lockfile at an unignored path is not a float at all: nothing re-resolved, an ignore
+  // rule is simply missing, and telling the operator to refresh the lockfiles would send them
+  // after a change that is not there.
+  const out = tracked > 0
+    ? ['### Example lockfiles changed during this cut', '']
+    : ['### Untracked example lockfiles found during this cut', ''];
+
+  if (tracked > 0) {
+    out.push('```', stat, '```', '');
+  }
 
   if (changed.length > 0) {
-    out.push('```', stat, '```', '');
     out.push('| Lockfile | npm audit |', '| --- | --- |');
     changed.forEach(lockfile => out.push(`| \`${lockfile}\` | ${audit(lockfile)} |`));
+    out.push('');
+  }
+
+  if (manifests.length > 0) {
+    out.push('Manifests changed (`alignTypescriptWithAngular` writes these at install time):', '');
+    manifests.forEach(manifest => out.push(`- \`${manifest}\``));
     out.push('');
   }
 
@@ -177,11 +204,25 @@ export function report(state, audit) {
     out.push('');
   }
 
+  const landOnDevelop = changed.length > 0
+    // A lockfile moved, so the refresh recipe is the one that reproduces it.
+    ? 'Land the intended change on `develop` (`node ./scripts/clean-subpackages.mjs next '
+      + '--reset-lockfiles` in `examples/`, then review the diff) so the next cut starts from a '
+      + 'reviewed set.'
+    // Manifests only. `--reset-lockfiles` would not reproduce this: run `examples:install` and
+    // commit what the alignment wrote.
+    : 'Only manifests moved, which is `alignTypescriptWithAngular` writing a new TypeScript '
+      + 'range. Run `npm run examples:install next` on `develop` and commit what it writes, so '
+      + 'the next cut starts from a reviewed set.';
+
   out.push(
-    'These files ship in no bundle, so this does not block the release. Land the intended '
-    + 'lockfile change on `develop` (`node ./scripts/clean-subpackages.mjs next '
-    + '--reset-lockfiles` in `examples/`, then review the diff) so the next cut starts from a '
-    + 'reviewed set.'
+    tracked > 0
+      ? `These files ship in no bundle, so this does not block the release. ${landOnDevelop}`
+      : 'Nothing re-resolved, so this does not block the release. `examples/.gitignore` ignores '
+        + 'every lockfile except the shared framework-level ones, so a path listed above is a '
+        + 'shared lockfile that was never committed: either commit it on `develop` as a reviewed '
+        + 'resolution, or add an ignore rule for it there. Until then the release commit picks it '
+        + 'up unreviewed.'
   );
 
   return out.join('\n');
