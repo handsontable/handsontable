@@ -239,6 +239,24 @@ describe('metaSchema', () => {
       expect(defaults.isEmptyRow.call(hot, 0)).toBe(true);
     });
 
+    it('should read a function-typed `columns[].data` accessor flat, without throwing', () => {
+      // `colToProp()` hands back the accessor itself, which is outside its declared
+      // `string | number` type. The schema is a plain template with no accessor applied to it,
+      // so no default can resolve: the lookup must return `undefined` rather than throw, and the
+      // column is never treated as holding its default.
+      const defaults = metaSchemaFactory();
+      const accessor = row => row.meta.active;
+      const hot = createRowMockNested({
+        props: [accessor],
+        values: [false],
+        dataSchema: { meta: { active: false } },
+        dataDotNotation: true,
+      });
+
+      expect(() => defaults.isEmptyRow.call(hot, 0)).not.toThrow();
+      expect(defaults.isEmptyRow.call(hot, 0)).toBe(false);
+    });
+
     it('should not resolve a dotted path inside the duck-schema when no dataSchema is set', () => {
       // Without an explicit `dataSchema`, `getSchema()` returns the duck-schema. Walking a dotted
       // path into it would newly report a real row whose nested object holds only `null` leaves
@@ -396,6 +414,21 @@ describe('metaSchema', () => {
         prop: 'meta.active',
         values: [false, false],
         dataSchema: { meta: null },
+      });
+
+      expect(() => defaults.isEmptyCol.call(hot, 0)).not.toThrow();
+      expect(defaults.isEmptyCol.call(hot, 0)).toBe(false);
+    });
+
+    it('should read a function-typed `columns[].data` accessor flat, without throwing', () => {
+      // Same contract as `isEmptyRow`: the accessor cannot be resolved against the schema
+      // template, so the column is never reported as holding its default.
+      const defaults = metaSchemaFactory();
+      const hot = createColMockNested({
+        prop: row => row.meta.active,
+        values: [false, false],
+        dataSchema: { meta: { active: false } },
+        dataDotNotation: true,
       });
 
       expect(() => defaults.isEmptyCol.call(hot, 0)).not.toThrow();
