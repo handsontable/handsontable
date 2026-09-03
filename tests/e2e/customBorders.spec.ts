@@ -876,13 +876,14 @@ test.describe('CustomBorders progressive application (customBordersProgressive)'
    * it carries the tier's setTimeout exception: a negative ("no further batch fired") cannot be
    * polled for, so `expect.poll` is not a replacement here.
    *
-   * TODO (owned by the CustomBorders progressive-application work, #13166): expose a "batch
-   * queue is empty" probe on the fixture and assert on it, then delete this barrier and its
-   * eslint exception.
+   * TODO (the CustomBorders progressive-application work, #13166): expose a "batch queue is
+   * empty" probe on the fixture and assert on it, then delete this barrier and its eslint
+   * exception. That PR carries no ClickUp task id, so the disable line below names the task
+   * that introduced the setTimeout ban and accepted this one exception to it.
    */
   async function macrotaskBarrier(page: Page): Promise<void> {
     await page.evaluate(() => new Promise((resolve) => {
-      // eslint-disable-next-line no-restricted-syntax -- CustomBorders progressive-application work: a 0ms macrotask barrier for negative assertions, not a duration wait (see the JSDoc above)
+      // eslint-disable-next-line no-restricted-syntax -- DEV-2764: a 0 ms macrotask barrier for negative assertions, not a duration wait (see the JSDoc above)
       setTimeout(() => setTimeout(() => setTimeout(resolve, 0), 0), 0);
     }));
   }

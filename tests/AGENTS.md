@@ -161,7 +161,9 @@ Ships at `error` in `.eslintrc.cjs`: no `waitForTimeout`, `sleep`,
 `globalThis.setTimeout` — and inside `page.evaluate` too, which is where a
 banned `waitForTimeout` usually reappears; `test.setTimeout(ms)` and
 `testInfo.setTimeout(ms)` set a budget, not a wait, and stay legal),
-`networkidle`, `.only`, `.skip`, or bare `test.fixme` in specs. Wait on web-first assertions;
+`networkidle`, `.only`, `.skip`, or bare `test.fixme` in specs **and page
+objects** — the lint script covers `e2e` and `fixtures`, so a timer moved into
+the page object a spec drives is the same fixed wait and is caught there. Wait on web-first assertions;
 `expect.poll` for data probes. `test.fixme` is the tracked exception for a real
 product bug: it requires an eslint-disable line naming the task
 (`// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`), which
