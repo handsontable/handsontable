@@ -50,4 +50,4 @@ any HTML comment — here, inside a comment, it is inert.
 - [ ] I have reviewed the guidelines about [Contributing to Handsontable](https://github.com/handsontable/handsontable/blob/master/CONTRIBUTING.md) and I confirm that my code follows the code style of this project.
 - [ ] I have signed the [Contributor License Agreement](https://cla.handsontable.com/sign) — one signature covers both Handsontable and HyperFormula; the `cla/signed` check on this PR confirms it.
 - [ ] My change requires a change to the documentation.
-- [ ] This change needs a manual QA pass — <!-- describe WHAT to check and why automation can't; a reviewer (not the author) signs off by commenting `/manual-qa passed`, then re-run the "[CHECK] Manual QA" job -->
+- [ ] MANUAL QA NEEDED — <!-- one line: WHAT to check and why automation can't judge it. Also add the red `Manual QA required` label. Ticking holds the Tests run for a manual-qa environment approval by a designated reviewer (never whoever triggered the run). The box is read once per run, so if you change it after the pipeline ran, press "Re-run all jobs". This line is machine-read — keep its wording. -->
