@@ -3704,13 +3704,14 @@ export default function Core(
    * argument and `"updateData"` as its `source`. If you call `updateSettings` with `data` inside
    * `afterChange`, check the hook's `source` to prevent an infinite loop.
    *
-   * Cell meta set imperatively through [[setCellMeta]] (for example, by the user or the context menu) is preserved across
-   * `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. On a direct conflict, a value re-stated
-   * through the declarative `cell` option takes precedence over the preserved imperative value.
+   * Cell meta is preserved across `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. This
+   * covers both meta set imperatively through [[setCellMeta]] (for example, by the user or the context menu) and meta
+   * applied from the declarative [`cell`](@/api/options.md#cell) option on an earlier call. Preserved meta stays with
+   * its row, so it follows sorting and row moves.
    *
-   * Cell meta set imperatively through [[setCellMeta]] (for example, by the user or the context menu) is preserved across
-   * `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. On a direct conflict, a value re-stated
-   * through the declarative `cell` option takes precedence over the preserved imperative value.
+   * Passing `cell` restates the option: it replaces every previously declared entry, so `cell: []` removes them all. On
+   * a direct conflict, a value re-stated through `cell` takes precedence over the preserved value. Where `cell` is not
+   * passed, an imperative [[setCellMeta]] made after the declaration wins.
    *
    * When [[Hooks#hasExternalDataSource]] is true, Handsontable clears and rebinds the placeholder dataset only during
    * initialization or when `settings` includes `data` or `dataProvider`. Other keys alone (for example `height`) do not clear loaded rows.
@@ -3915,10 +3916,15 @@ export default function Core(
 
     const columnSetting = tableMeta.columns;
 
-    // The `cell` option is restated when this call passes it - including as an empty array, which is how a
+    // The `cell` option is restated when this call passes an array - including an empty one, which is how a
     // caller removes every previously declared entry. A restatement replaces what the option declared
     // before, so the earlier entries are neither replayed nor merged.
-    const isCellOptionRestated = isDefined(settings.cell);
+    //
+    // The test is `Array.isArray`, not `isDefined`: `isDefined(null)` is true, so a `cell: null` used to
+    // clear the meta cache and then throw on `null.forEach`, leaving the instance with its cache wiped and
+    // the rest of the update - render, dimensions, hooks - never run. A non-array is now ignored, which
+    // leaves the option exactly as it was.
+    const isCellOptionRestated = Array.isArray(settings.cell);
 
     // Clear cell meta cache. Two kinds of write are snapshotted beforehand and replayed afterward so they
     // survive the clear instead of being discarded: meta set imperatively through `setCellMeta` (for
@@ -3939,14 +3945,16 @@ export default function Core(
       // below, which has to win over either (preserving legacy behavior). The carried-over option is
       // replayed inside its own scope, so it stays filed as declarative and the next update carries it
       // over again.
-      metaManager.startCellOptionMetaRecording();
+      if (cellOptionCellMetas.length > 0) {
+        metaManager.startCellOptionMetaRecording();
 
-      try {
-        cellOptionCellMetas.forEach(({ physicalRow, physicalColumn, key, value }) => {
-          metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
-        });
-      } finally {
-        metaManager.endCellOptionMetaRecording();
+        try {
+          cellOptionCellMetas.forEach(({ physicalRow, physicalColumn, key, value }) => {
+            metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
+          });
+        } finally {
+          metaManager.endCellOptionMetaRecording();
+        }
       }
 
       // Replay before the column and `cell` option re-application, so that a value re-stated through
@@ -3983,7 +3991,13 @@ export default function Core(
 
       try {
         (settings.cell as Record<string, unknown>[]).forEach((cell: Record<string, unknown>) => {
-          instance.setCellMetaObject(cell.row as number, cell.col as number, cell);
+          // `row` and `col` locate the entry - they are not cell meta. `setCellMetaObject` writes every own
+          // key, so leaving them in stores the entry's *visual* coordinates on a meta object that
+          // `getCellMeta` stamps with *physical* ones, and would put two junk keys per declared cell into
+          // the replay snapshot.
+          const { row, col, ...cellSettings } = cell;
+
+          instance.setCellMetaObject(row as number, col as number, cellSettings);
         });
       } finally {
         metaManager.endCellOptionMetaRecording();

@@ -147,7 +147,7 @@ export default (): Record<string, unknown> => {
     /**
      * Information on which of the cell meta properties were applied from the declarative `cell` option.
      * These properties are replayed across the cache reset that `updateSettings` performs, unless the call
-     * restates `cell` - restating it replaces every previously declared entry.
+     * restates `cell` – restating it replaces every previously declared entry.
      *
      * Declarative writes a plugin makes through `Core#_setCellMetaDeclarative` are deliberately not tracked
      * here: those plugins re-apply their meta from their own configuration after every update and rely on
@@ -160,7 +160,7 @@ export default (): Record<string, unknown> => {
     _cellOptionMetaProps: undefined,
 
     /**
-     * Information on which cell meta properties were set through `setCellMeta` - imperatively (user,
+     * Information on which cell meta properties were set through `setCellMeta` – imperatively (user,
      * context menu) and declaratively alike, whatever the origin bucket. Unlike values derived on demand by
      * `getCellMeta` (the cascade, the `cells` function, `type` expansion), these are not rebuilt on
      * access, so the viewport-eviction pass keeps any cell whose set is non-empty.

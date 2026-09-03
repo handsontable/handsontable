@@ -465,6 +465,94 @@ describe('Core.setCellMeta', () => {
       expect(getCellMeta(0, 0).readOnly).toBe(false);
     });
 
+    it('should apply a restated `cell` option passed together with `columns` in one call', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        cell: [
+          { row: 0, col: 0, readOnly: true },
+        ],
+      });
+
+      // Both branches run in this one call: the snapshot is skipped because `cell` is restated, and the
+      // restated block re-applies it after the column meta.
+      await updateSettings({
+        columns: [{ className: 'htRight' }, {}, {}, {}, {}],
+        cell: [
+          { row: 1, col: 1, readOnly: true },
+        ],
+      });
+
+      expect(getCellMeta(0, 0).readOnly).toBe(false);
+      expect(getCellMeta(1, 1).readOnly).toBe(true);
+      expect(getCellMeta(0, 0).className).toBe('htRight');
+    });
+
+    it('should not store the entry\'s `row` and `col` as cell meta', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        cell: [
+          { row: 2, col: 1, readOnly: true },
+        ],
+      });
+
+      // `row`/`col` locate the entry. Storing them would put the entry's visual coordinates on a meta
+      // object that `getCellMeta` stamps with physical ones, and would be replayed on every update.
+      const [meta] = getCellsMeta().filter(({ readOnly }) => readOnly === true);
+
+      expect(meta.row).toBe(2);
+      expect(meta.col).toBe(1);
+
+      await updateSettings({ columns: [{}, {}, {}, {}, {}] });
+
+      const [replayedMeta] = getCellsMeta().filter(({ readOnly }) => readOnly === true);
+
+      expect(replayedMeta.row).toBe(2);
+      expect(replayedMeta.col).toBe(1);
+    });
+
+    it('should ignore a `cell` option that is not an array, instead of throwing mid-update', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        cell: [
+          { row: 0, col: 0, readOnly: true },
+        ],
+      });
+
+      await updateSettings({ cell: null, rowHeaders: true });
+
+      // The update completes, and a non-array leaves the declared entries alone.
+      expect(getCellMeta(0, 0).readOnly).toBe(true);
+      expect(countRows()).toBe(5);
+    });
+
+    it('should still drop the cell meta ColumnSummary derives from its endpoints, on `updateSettings`' +
+      ' with the `columns` option', async() => {
+      // The load-bearing case for keeping plugin-declarative writes out of the replay: the plugin
+      // re-applies them from its own endpoints, so a replayed value would be stranded on a cell the
+      // new endpoints no longer cover.
+      handsontable({
+        data: [[1], [2], [null]],
+        columnSummary: [
+          {
+            destinationRow: 2,
+            destinationColumn: 0,
+            type: 'sum',
+            readOnly: true,
+          },
+        ],
+      });
+
+      expect(getCellMeta(2, 0).className).toBe('columnSummaryResult');
+
+      const metaManager = getInstance()._getMetaManager();
+
+      // The plugin's writes are in neither replay bucket.
+      expect(metaManager.getCellOptionCellMetas()
+        .filter(({ key }) => key === 'className')).toEqual([]);
+      expect(metaManager.getUserDefinedCellMetas()
+        .filter(({ key }) => key === 'className')).toEqual([]);
+    });
+
     it('should still drop the `cell` option on `loadData`, which resets cell states by contract', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),

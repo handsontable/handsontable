@@ -120,7 +120,9 @@ export default class CellMeta {
    * imperative one. Scopes nest; each call must be matched by an `endCellOptionMetaRecording` call.
    *
    * Known limitation, shared with `disableUserDefinedMetaRecording`: an imperative `setCellMeta` made from a
-   * hook that fires while this scope is open is filed as a `cell`-option write. No built-in caller does that.
+   * hook that fires while this scope is open is filed as a `cell`-option write, so it is replayed but loses
+   * to a restated `cell`. No built-in caller does that. A plugin-declarative write nested here is filed
+   * correctly – see the bucket comment in `setMeta`.
    */
   startCellOptionMetaRecording() {
     this.#cellOptionMetaRecordingCount += 1;
@@ -130,12 +132,17 @@ export default class CellMeta {
   /**
    * Closes one `cell`-option recording scope opened by `startCellOptionMetaRecording`, and the user-defined
    * recording suspension that came with it.
+   *
+   * The two counters move together or not at all. An unbalanced call – one `end` too many, or one on an
+   * error path – must not lift a suspension that a plain `disableUserDefinedMetaRecording()` caller owns:
+   * that would make the next plugin-declarative write read as imperative and be replayed forever.
    */
   endCellOptionMetaRecording() {
-    if (this.#cellOptionMetaRecordingCount > 0) {
-      this.#cellOptionMetaRecordingCount -= 1;
+    if (this.#cellOptionMetaRecordingCount === 0) {
+      return;
     }
 
+    this.#cellOptionMetaRecordingCount -= 1;
     this.enableUserDefinedMetaRecording();
   }
 
@@ -310,6 +317,19 @@ export default class CellMeta {
     // A key belongs to exactly one origin bucket, and the newest write decides which. That is what makes an
     // imperative override of a `cell`-option value survive a cache reset: the key moves to the user-defined
     // bucket and leaves the `cell`-option one, so only the override is replayed.
+    //
+    // The `cell`-option test is an equality, not `> 0`. Every `cell`-option scope raises both counters, and a
+    // plain `disableUserDefinedMetaRecording()` raises only the suspend one, so the counts differ exactly
+    // when a plugin-declarative scope is open somewhere. Testing `> 0` would file a `_setCellMetaDeclarative`
+    // write nested inside the `cell` loop - reachable, because applying the option fires
+    // `beforeSetCellMeta`/`afterSetCellMeta` - as a `cell`-option write, and it would then be replayed on
+    // every later update: the stranded stale value the third bucket exists to prevent. The reverse nesting
+    // (a `cell` scope opened inside a plugin one) reads as plugin-declarative and is dropped, which is the
+    // pre-fix behavior and therefore safe; it is also unreachable, since `_setCellMetaDeclarative` fires no
+    // hooks and so runs nothing user-controlled inside its scope.
+    const isCellOptionWrite = this.#cellOptionMetaRecordingCount > 0 &&
+      this.#userDefinedMetaRecordingSuspendCount === this.#cellOptionMetaRecordingCount;
+
     if (this.#userDefinedMetaRecordingSuspendCount === 0) {
       if (cellMeta._userDefinedMetaProps === undefined) {
         cellMeta._userDefinedMetaProps = new Set();
@@ -318,7 +338,7 @@ export default class CellMeta {
       (cellMeta._userDefinedMetaProps as Set<string>).add(key);
       (cellMeta._cellOptionMetaProps as Set<string> | undefined)?.delete(key);
 
-    } else if (this.#cellOptionMetaRecordingCount > 0) {
+    } else if (isCellOptionWrite) {
       if (cellMeta._cellOptionMetaProps === undefined) {
         cellMeta._cellOptionMetaProps = new Set();
       }
@@ -432,7 +452,7 @@ export default class CellMeta {
    * read from the map keys (physical indexes), not from the meta object's `row`/`col` properties, which are
    * only populated on `getCellMeta` and become stale after row or column shifts.
    *
-   * @param {string} originProp Name of the bookkeeping set to read - `_userDefinedMetaProps` or `_cellOptionMetaProps`.
+   * @param {string} originProp Name of the bookkeeping set to read – `_userDefinedMetaProps` or `_cellOptionMetaProps`.
    * @returns {{physicalRow: number, physicalColumn: number, key: string, value: *}[]}
    */
   #getMetasByOrigin(originProp: '_userDefinedMetaProps' | '_cellOptionMetaProps'): CellMetaSnapshotEntry[] {
