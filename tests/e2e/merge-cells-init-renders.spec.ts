@@ -60,6 +60,22 @@ test.describe('`mergeCells` does not cost extra draws while the grid initializes
       await expect(grid.cell(5, 3)).toHaveAttribute('rowspan', '3');
     });
 
+  test('the object form of the setting costs the same one extra draw', async({ page, theme, bundle }) => {
+    const grid = new MergeCellsInitRendersPage(page, theme, bundle, 'object-form');
+
+    await grid.goto();
+
+    const snapshot = await grid.afterConstruct();
+
+    // `mergeCells: { cells: [...] }` reaches the init guard through a different `getSetting()`
+    // branch than the array form above, so it gets its own case rather than being assumed equal.
+    expect(snapshot.afterRender).toBe(2);
+    expect(snapshot.afterRenderer).toBe(2 * CELLS_PER_DRAW);
+    expect(snapshot.spannedCells).toBe(2);
+
+    await expect(grid.cell(1, 1)).toHaveAttribute('rowspan', '2');
+  });
+
   test('merges still apply synchronously when the clearing write validates asynchronously',
     async({ page, theme, bundle }) => {
       const grid = new MergeCellsInitRendersPage(page, theme, bundle, 'async-validator');

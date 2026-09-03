@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Fixed the `mergeCells` plugin rendering the grid two extra times while it initialized.",
+  "title": "Fixed the `mergeCells` plugin drawing the grid more times than needed while it initialized.",
   "type": "fixed",
   "issueOrPR": 5687,
   "breaking": false,

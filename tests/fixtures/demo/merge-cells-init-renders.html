@@ -22,6 +22,7 @@
       none: 'none',
       enabled: 'enabled',
       areas: 'areas',
+      'object-form': 'object-form',
       'async-validator': 'async-validator',
     })[htParams.get('scenario') ?? 'none'];
     if (!window.htScenario) {
@@ -45,10 +46,14 @@
       { row: 1, col: 1, rowspan: 2, colspan: 2 },
       { row: 5, col: 3, rowspan: 3, colspan: 2 },
     ];
+    // `object-form` declares the same areas the long way. It resolves through a different
+    // `getSetting()` branch than the array form (base.ts reads `settings[cells]` for an object and
+    // the settings value itself for an array), which is the input the init guard reads.
     const MERGE_CELLS = {
       none: undefined,
       enabled: true,
       areas: AREAS,
+      'object-form': { cells: AREAS },
       'async-validator': AREAS,
     }[window.htScenario];
 

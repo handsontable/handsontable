@@ -798,7 +798,8 @@ export class MergeCells extends BasePlugin {
       } finally {
         // Suspend/resume by hand rather than through `Core#batchRender`, which has no `finally`:
         // the clearing write runs user code (`beforeChange`, a validator), and a throw there would
-        // otherwise leave rendering suspended for the rest of the instance's life.
+        // otherwise leave the render-suspend counter raised for the rest of the instance's life.
+        // Only that counter is restored here — the throw still propagates, as it did before.
         this.hot.resumeRender();
       }
     }

@@ -1,6 +1,6 @@
 import { type Locator, type Page } from '@playwright/test';
 
-export type MergeCellsScenario = 'none' | 'enabled' | 'areas' | 'async-validator';
+export type MergeCellsScenario = 'none' | 'enabled' | 'areas' | 'object-form' | 'async-validator';
 
 export interface InitRenderSnapshot {
   afterRender: number;
