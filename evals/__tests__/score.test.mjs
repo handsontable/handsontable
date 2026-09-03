@@ -233,6 +233,22 @@ test('set-timeout: a nested timer counts once per fixed delay, and the arguments
   assert.deepEqual(findDeterminismSmells(src), [{ type: 'set-timeout', count: 1 }]);
 });
 
+test('set-timeout: comments beside the delay are stripped, an unbalanced call is a smell', () => {
+  // Comments are stripped from each argument before it is read as a literal — `100 /* ms */` is
+  // still a fixed 100 ms wait and `0 /* hand-off */` is still the exempt zero. A regex literal
+  // holding a bracket defeats the balanced scan; such a call cannot be proven harmless from the
+  // text, so it counts rather than silently passing (the AST-based lint tiers judge the real call).
+  assert.deepEqual(findDeterminismSmells('setTimeout(fn, 100 /* ms */);'), [{ type: 'set-timeout', count: 1 }]);
+  assert.deepEqual(findDeterminismSmells('setTimeout(fn, /* fast */ 100);'), [{ type: 'set-timeout', count: 1 }]);
+  assert.deepEqual(findDeterminismSmells('setTimeout(fn, // settle\n  100);'), [{ type: 'set-timeout', count: 1 }]);
+  assert.deepEqual(findDeterminismSmells('setTimeout(fn, 0 /* hand-off */);'), []);
+  assert.deepEqual(findDeterminismSmells('setTimeout(fn, "100 // not a comment".length);'), []);
+  assert.deepEqual(
+    findDeterminismSmells('setTimeout(() => /\\(/.test(x), 100);'),
+    [{ type: 'set-timeout', count: 1 }],
+  );
+});
+
 test('fixed-frame-wait mirrors the lint bans: a literal 0 resolves at once, anything else is a frame wait', () => {
   const oneFrameWait = [{ type: 'fixed-frame-wait', count: 1 }];
 

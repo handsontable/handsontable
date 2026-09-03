@@ -26,7 +26,7 @@ describe('the test:eslint-rules task', () => {
   });
 
   it('names every RuleTester test file explicitly, so a rename or an unmatched suffix fails the run', () => {
-    const testFiles = readdirSync(resolve(HOT_DIR, RULE_TESTS_DIR)).filter(name => name.endsWith('.mjs'));
+    const testFiles = readdirSync(resolve(HOT_DIR, RULE_TESTS_DIR)).filter(name => name.endsWith('.test.mjs'));
 
     expect(testFiles.length).toBeGreaterThan(0);
 

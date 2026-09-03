@@ -300,9 +300,56 @@ function splitTopLevelArgs(src, openIndex, closeIndex) {
   }
   args.push(src.slice(start, closeIndex));
 
-  const trimmed = args.map(arg => arg.trim());
+  const trimmed = args.map(arg => stripComments(arg).trim());
 
   return trimmed.length === 1 && trimmed[0] === '' ? [] : trimmed;
+}
+
+/**
+ * The argument text with its comments removed, so `100 /* ms *\/` reads as the literal `100`.
+ * Strings are copied through untouched, so a `//` inside a string literal is not a comment.
+ *
+ * @param {string} text One argument's raw source text.
+ * @returns {string} The text without comments.
+ */
+function stripComments(text) {
+  let out = '';
+  let i = 0;
+
+  while (i < text.length) {
+    const ch = text[i];
+    const next = text[i + 1];
+
+    if (ch === '/' && next === '/') {
+      const eol = text.indexOf('\n', i);
+
+      if (eol === -1) {
+        break;
+      }
+      i = eol;
+      continue;
+    }
+
+    if (ch === '/' && next === '*') {
+      const end = text.indexOf('*/', i + 2);
+
+      i = end === -1 ? text.length : end + 2;
+      continue;
+    }
+
+    if (ch === '\'' || ch === '"' || ch === '`') {
+      const end = skipString(text, i);
+
+      out += text.slice(i, end);
+      i = end;
+      continue;
+    }
+
+    out += ch;
+    i += 1;
+  }
+
+  return out;
 }
 
 /**
@@ -327,8 +374,9 @@ function numericLiteralValue(text) {
 
 /**
  * Count the calls matched by `callRe` whose argument list `isSmell` accepts. `callRe`
- * must end on the call's `(`; a call whose brackets do not balance is judged on no
- * arguments at all.
+ * must end on the call's `(`. A call whose brackets the scanner cannot balance — a regex
+ * literal holding a bracket, an unterminated string — counts as a smell: the text-based
+ * scorer cannot prove it harmless, and the AST-based lint tiers judge the real call.
  *
  * @param {string} src The source text.
  * @param {RegExp} callRe A global regex ending on the opening parenthesis.
@@ -341,9 +389,8 @@ function countCalls(src, callRe, isSmell) {
   for (const match of src.matchAll(callRe)) {
     const openIndex = match.index + match[0].length - 1;
     const closeIndex = scanBalanced(src, openIndex);
-    const args = closeIndex === -1 ? [] : splitTopLevelArgs(src, openIndex, closeIndex);
 
-    if (isSmell(args)) {
+    if (closeIndex === -1 || isSmell(splitTopLevelArgs(src, openIndex, closeIndex))) {
       count += 1;
     }
   }
