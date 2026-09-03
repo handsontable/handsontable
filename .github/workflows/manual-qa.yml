@@ -1,41 +1,93 @@
 name: Manual QA
 
-# The tracked human exception — an INDEPENDENT merge gate (nothing depends on
-# it, so its red blocks the merge via branch protection, never the build/test
-# DAG). The PR template carries a tickbox; ticking "needs a manual QA pass"
-# turns this RED until a non-author comments `/manual-qa passed` (then re-run —
-# it reads the LIVE body + comments, not the frozen payload). Unticked → green.
+# The tracked human exception — a GitLab-style manual gate inside the Tests
+# DAG, armed by ticking "MANUAL QA NEEDED" in the PR
+# description (the template carries the line; say in one line what to
+# check). The Checks scope router reads the box LIVE (see checks.yml), and
+# test.yml calls this module ONLY when it is ticked — an unticked PR skips
+# it entirely: shown as skipped, never as a misleading green "passed", and
+# no runner is spent on it. When it does run, the `sign-off` job pauses on
+# the `manual-qa` ENVIRONMENT until a designated reviewer approves the run
+# ("Review pending deployments" on the run page — GitHub records the
+# approver and any comment as the deployment review, and the environment's
+# "Prevent self-review" keeps the person who triggered the run out). While
+# it waits, this module never completes, so CI Gate — which needs it —
+# cannot report and the merge stays blocked; a rejection fails the job and
+# turns CI Gate red.
+#
+# Semantics that follow from the mechanism:
+# - approval is PER RUN: every new push re-asks the reviewers — a fresh QA
+#   pass on fresh code, deliberately;
+# - the box is read live, but PER RUN: it is evaluated when the Checks scope
+#   router runs. Ticking or unticking it later does not change a run that has
+#   already evaluated it — press "Re-run all jobs" (or push) to re-decide, in
+#   either direction. So a box ticked after the pipeline went green leaves a
+#   mergeable PR until someone re-runs it; that is a known limitation, kept
+#   deliberately in exchange for having no label/arming automation at all.
+#
+# The red `Manual QA required` label is applied BY THE PR AUTHOR (the
+# `pr-creation` skill instructs it), like every other label in this repo. It
+# is a marker for the PR list, never the trigger.
+#
+# Cutover (repo admin): create the `manual-qa` environment with required
+# reviewers (users or teams) plus "Prevent self-review". It MUST exist with
+# reviewers before the first ticked PR — a job that references a missing
+# environment silently auto-creates it UNPROTECTED, and the gate would wave
+# everything through. From this pipeline, branch protection needs only
+# "CI Gate" (develop also requires `cla/signed` and `Cursor Bugbot`, which
+# are unrelated to this gate). This gate ADDS a recorded human pass — the
+# test-presence and changelog gates still apply.
 on:
   workflow_call:
 
 jobs:
-  verify:
-    name: verify
+  sign-off:
+    name: sign-off
+    # The manual gate itself: referencing the environment makes GitHub hold
+    # this job until someone on the environment's reviewer list approves the
+    # run. The approval (who, when, optional comment) is the recorded
+    # sign-off — on the run page and via the deployment reviews API.
+    environment: manual-qa
     runs-on: ubuntu-latest
     steps:
-      - name: Evaluate the manual-QA tickbox and sign-off
+      # Fail CLOSED on configuration drift. Reaching this step is NOT proof a
+      # human approved: a missing environment is auto-created UNPROTECTED, and
+      # dropping the required-reviewers rule has the same effect — the job then
+      # runs straight through and the gate silently passes. So assert the
+      # control's OUTCOME (an approval recorded against this run) rather than
+      # trusting its configuration.
+      - name: Assert a human approval is recorded for this run
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
         with:
           script: |
-            const { data: pr } = await github.rest.pulls.get({
-              owner: context.repo.owner, repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
-            });
-            const ticked = /^\s*-\s*\[[xX]\]\s+This change needs a manual QA pass/m.test(pr.body || '');
-            if (!ticked) { core.notice('Manual QA not requested.'); return; }
+            const { owner, repo } = context.repo;
+            let approvals;
 
-            // Sign-off = a `/manual-qa passed` comment from someone who is NOT
-            // the PR author — comment authorship is API-verified identity,
-            // unlike labels or checkbox edits.
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              owner: context.repo.owner, repo: context.repo.repo,
-              issue_number: pr.number, per_page: 100,
-            });
-            const signOff = comments.reverse().find(c =>
-              /^\/manual-qa passed\b/m.test(c.body || '') && c.user.login !== pr.user.login);
-            if (signOff) {
-              core.notice(`Manual QA signed off by @${signOff.user.login}.`);
+            try {
+              // Raw request: the reusable workflow shares the parent's run id,
+              // and this endpoint lists the environment approvals for it.
+              const response = await github.request(
+                'GET /repos/{owner}/{repo}/actions/runs/{run_id}/approvals',
+                { owner, repo, run_id: context.runId },
+              );
+
+              approvals = response.data;
+            } catch (error) {
+              core.setFailed(`Could not read this run's approvals (${error.status} ${error.message}). `
+                + 'The manual-QA gate cannot confirm a human signed off, so it fails closed. '
+                + 'If this is a token-permission error, grant `actions: read` to the Tests workflow.');
               return;
             }
-            core.setFailed('Manual QA requested (tickbox in the PR description) but not signed off yet. '
-              + 'A reviewer who is not the author must comment "/manual-qa passed", then re-run this job.');
+
+            const signOff = approvals.find((approval) => approval.state === 'approved'
+              && (approval.environments || []).some((environment) => environment.name === 'manual-qa'));
+
+            if (!signOff) {
+              core.setFailed('This job ran without a recorded manual-qa approval, which means the '
+                + '`manual-qa` environment has no required reviewers (a missing environment is '
+                + 'auto-created unprotected). Configure it — required reviewers plus "Prevent '
+                + 'self-review" — and re-run; the gate is not enforcing anything until then.');
+              return;
+            }
+            core.notice(`Manual QA signed off by @${signOff.user.login}`
+              + `${signOff.comment ? `: ${signOff.comment}` : ''}.`);
