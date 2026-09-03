@@ -7,7 +7,7 @@ import {
 const WARNING = 'The ResizeObserver callback was fired too many times in direct succession.' +
   '\nThis may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +
   'with the `dvh` units) to a Handsontable container\'s parent. ' +
-  '\nThe observer will be disconnected.';
+  '\nThe observer will be disconnected and reconnected after a short delay.';
 
 describe('ResizeMonitor', () => {
   let warnSpy: jest.SpyInstance;
@@ -42,6 +42,10 @@ describe('ResizeMonitor', () => {
     let observeCalls = 0;
     let disconnectCalls = 0;
     let deliverEntries = (unused: ResizeObserverEntry[], unusedForce?: boolean) => {};
+
+    // A host framework can hold the grid's subtree outside the document, which is what makes the
+    // wrapper's parent go away and come back under the monitor.
+    const rootElement: { parentElement: object | null } = { parentElement: {} };
 
     const timeouts: Map<number, { fn: () => void; at: number }> = new Map();
     const frames: Map<number, () => void> = new Map();
@@ -111,7 +115,7 @@ describe('ResizeMonitor', () => {
           }
         },
       } as never,
-      wtTable: { wtRootElement: { parentElement: {} } } as never,
+      wtTable: { wtRootElement: rootElement } as never,
     });
 
     // One frame: every animation-frame callback queued when the frame started, and only those.
@@ -166,6 +170,12 @@ describe('ResizeMonitor', () => {
       settingsFired: () => settingsFired,
       pendingTimeouts: () => [...timeouts.values()],
       pendingFrames: () => frames.size,
+      detachWrapper: () => {
+        rootElement.parentElement = null;
+      },
+      reattachWrapper: () => {
+        rootElement.parentElement = {};
+      },
     };
   }
 
@@ -365,6 +375,45 @@ describe('ResizeMonitor', () => {
     harness.advance(RESIZE_LOOP_GUARD_RECONNECT_DELAY * 4);
 
     expect(harness.observeCalls()).toBe(2);
+  });
+
+  it('should keep retrying the reconnect while the wrapper is detached', () => {
+    const harness = build();
+
+    harness.monitor.observe();
+    harness.deliverForFrames(RESIZE_LOOP_GUARD_THRESHOLD);
+
+    // A host framework parks the grid's subtree outside the document, and its detach lands exactly on
+    // the reconnect. Giving up here would be the permanent disconnect all over again.
+    harness.detachWrapper();
+    harness.advance(RESIZE_LOOP_GUARD_RECONNECT_DELAY);
+
+    expect(harness.isObserving()).toBe(false);
+    expect(harness.observeCalls()).toBe(1);
+    expect(harness.pendingTimeouts()).not.toEqual([]);
+
+    harness.reattachWrapper();
+    harness.advance(RESIZE_LOOP_GUARD_RECONNECT_DELAY * 2);
+
+    expect(harness.isObserving()).toBe(true);
+    expect(harness.observeCalls()).toBe(2);
+  });
+
+  it('should not retry the reconnect after it was destroyed while the wrapper was detached', () => {
+    const harness = build();
+
+    harness.monitor.observe();
+    harness.deliverForFrames(RESIZE_LOOP_GUARD_THRESHOLD);
+
+    harness.detachWrapper();
+    harness.advance(RESIZE_LOOP_GUARD_RECONNECT_DELAY);
+    harness.monitor.destroy();
+
+    harness.reattachWrapper();
+    harness.advance(RESIZE_LOOP_GUARD_RECONNECT_DELAY * 100);
+
+    expect(harness.observeCalls()).toBe(1);
+    expect(harness.pendingTimeouts()).toEqual([]);
   });
 
   it('should not observe again after it was destroyed mid-cooldown', () => {

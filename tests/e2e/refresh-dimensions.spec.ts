@@ -226,7 +226,7 @@ test.describe('the endless-loop guard (a parent sized in dynamic units)', () => 
   const WARNING = 'The ResizeObserver callback was fired too many times in direct succession.\n' +
     'This may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +
     'with the `dvh` units) to a Handsontable container\'s parent. \n' +
-    'The observer will be disconnected.';
+    'The observer will be disconnected and reconnected after a short delay.';
 
   // Migrated from `afterRefreshDimensions.spec.js` together with the DEV-2740 fix (the legacy spec
   // was DEV-2668's Flake 1). It could not be made honestly green before that fix: its only success

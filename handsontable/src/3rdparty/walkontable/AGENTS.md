@@ -220,8 +220,11 @@ observer is observed again after a delay that doubles on every trip no quiet fra
 last one, capped at `RESIZE_LOOP_GUARD_RECONNECT_MAX_DELAY`, and returns to base on the first quiet
 frame. Consequences: the public `observe()` must cancel a pending reconnect (`NativeScrollInput`
 re-registers its listeners whenever the scrollable element changes, so an explicit re-observe can land
-mid-cooldown), and `destroy()` must cancel **three** handles, not two - the reconnect timeout, the
-watchdog frame, and the deferred `onContainerElementResize` fire. All three outlive a task boundary,
+mid-cooldown); a reconnect that finds the wrapper DETACHED must schedule another one rather than give
+up, or a host that parks the grid's subtree outside the document (a framework re-render, a
+`keep-alive` cache, a tab that caches its panel) can land its detach on the timer and restore the
+permanent disconnect through DOM timing alone; and `destroy()` must cancel **three** handles, not
+two - the reconnect timeout, the watchdog frame, and the deferred `onContainerElementResize` fire. All three outlive a task boundary,
 and the third is the easy one to miss: `getSetting()` on a function-valued key invokes the setting
 synchronously, so a delivery that landed one frame before the teardown refreshes the dimensions of a
 torn-down grid. Core's own handler happens to guard `isDestroyed`, which is what keeps that from
@@ -229,9 +232,10 @@ throwing today - do not rely on it. An `#isDestroyed` flag backs the cancels up,
 entry carries the state from its own snapshot and can be dispatched after the disconnect.
 
 The warning text is printed once per instance and pinned verbatim by two specs -
-`tests/e2e/refresh-dimensions.spec.ts` and `test/unit/overlay/resizeMonitor.unit.ts`. It still reads
-"The observer will be disconnected", which now understates the behavior - reword it and both specs
-together, never alone.
+`tests/e2e/refresh-dimensions.spec.ts` and `test/unit/overlay/resizeMonitor.unit.ts`. Reword it and
+both specs together, never alone. It ends "disconnected and reconnected after a short delay" because
+the original "will be disconnected" described the permanent kill and stopped being true when the
+cooldown replaced it.
 
 ## Known Tech Debt
 

@@ -172,15 +172,15 @@ export class ResizeMonitor {
    * Cancels a pending reconnect first: this method is public and `NativeScrollInput` re-registers its
    * listeners whenever the scrollable element changes, so an explicit re-observe can land in the middle
    * of a cooldown and must not leave a timer behind to observe a second time.
+   *
+   * It deliberately does NOT reset the accumulated backoff, which `resetResizeCount()` does. The two
+   * are not symmetrical: a window resize is evidence about the CAUSE of the deliveries, so the
+   * succession they belong to can be forgotten, while a change of scrollable element says only which
+   * element to watch and nothing about whether the loop went away.
    */
   observe() {
     this.#cancelReconnect();
-
-    const parentElement = this.#deps.wtTable.wtRootElement.parentElement;
-
-    if (parentElement) {
-      this.#resizeObserver.observe(parentElement);
-    }
+    this.#attach();
   }
 
   /**
@@ -266,7 +266,7 @@ export class ResizeMonitor {
       warn('The ResizeObserver callback was fired too many times in direct succession.' +
         '\nThis may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +
         'with the `dvh` units) to a Handsontable container\'s parent. ' +
-        '\nThe observer will be disconnected.');
+        '\nThe observer will be disconnected and reconnected after a short delay.');
     }
 
     this.#resizeObserver.disconnect();
@@ -275,6 +275,22 @@ export class ResizeMonitor {
     this.#containerDomResizeCount = 0;
     this.#deliveredSinceLastFrame = false;
 
+    this.#scheduleReconnect();
+  }
+
+  /**
+   * Schedules the end of the cooldown. The delay grows before each attempt and is capped, so a page
+   * whose loop never goes away backs off toward one burst per `RESIZE_LOOP_GUARD_RECONNECT_MAX_DELAY`.
+   *
+   * A reconnect that finds the wrapper detached schedules another one instead of giving up. Without
+   * that, a host that transiently takes the grid's subtree out of the document - a framework re-render,
+   * a `keep-alive` cache, a tab or accordion that parks its panel - could land its detach exactly on
+   * this timer, `#attach()` would no-op, and nothing would ever re-arm: the permanent disconnect this
+   * class exists to remove, back again through DOM timing. The retry rides the same backoff, so a
+   * wrapper that stays detached costs one no-op attempt per capped interval rather than a spinning
+   * timer.
+   */
+  #scheduleReconnect() {
     this.#reconnectTimeoutId = this.#deps.rootWindow.setTimeout(() => {
       this.#reconnectTimeoutId = null;
 
@@ -284,8 +300,26 @@ export class ResizeMonitor {
 
       this.#reconnectDelay = Math.min(this.#reconnectDelay * 2, RESIZE_LOOP_GUARD_RECONNECT_MAX_DELAY);
 
-      this.observe();
+      if (!this.#attach()) {
+        this.#scheduleReconnect();
+      }
     }, this.#reconnectDelay);
+  }
+
+  /**
+   * Observes the wrapper's parent element. Returns whether it had one - the wrapper is detached while a
+   * host framework holds the grid's subtree outside the document, and there is nothing to observe then.
+   */
+  #attach(): boolean {
+    const parentElement = this.#deps.wtTable.wtRootElement.parentElement;
+
+    if (!parentElement) {
+      return false;
+    }
+
+    this.#resizeObserver.observe(parentElement);
+
+    return true;
   }
 
   /**
