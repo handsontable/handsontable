@@ -1,7 +1,6 @@
 import Handsontable from '../../../index';
 import { registerCellType, TextCellType } from '../../../cellTypes';
 import { registerPlugin } from '../../registry';
-import { _resetDeprecationWarnings } from '../../../helpers/console';
 import { CopyPaste } from '../copyPaste';
 
 registerCellType(TextCellType);
@@ -129,19 +128,6 @@ describe('CopyPaste ragged clipboard', () => {
 });
 
 describe('CopyPaste past the last column of an object data source', () => {
-  let warnSpy: jest.SpyInstance;
-
-  beforeEach(() => {
-    // `deprecatedWarnOnce` records printed warnings module-globally, so without this the
-    // assertions below would depend on the order the specs run in.
-    _resetDeprecationWarnings();
-    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    warnSpy.mockRestore();
-  });
-
   /**
    * Two rows whose object shape declares `id` and `name` while carrying a third, undeclared
    * property.
@@ -153,65 +139,23 @@ describe('CopyPaste past the last column of an object data source', () => {
     { id: 2, name: 'Frank Honest', address: '' },
   ];
 
-  /**
-   * Collects every deprecation warning printed so far that mentions the last-column write.
-   *
-   * @returns {Array} The matching `console.warn` messages.
-   */
-  function pastLastColumnWarnings() {
-    return warnSpy.mock.calls
-      .map(args => String(args[0]))
-      .filter(message => message.includes('past the last column of an object data source'));
-  }
-
-  it('should warn once that the write is deprecated', () => {
-    const hot = pasteInto(schemaBoundRows(), '2\tFrank Honest', {
-      dataSchema: { id: null, name: null },
-      at: [0, 1],
-    });
-    const warnings = pastLastColumnWarnings();
-
-    expect(warnings).toHaveLength(1);
-    expect(warnings[0]).toContain('Deprecated:');
-    expect(warnings[0]).toContain('19.0.0');
-    expect(warnings[0]).toContain('setDataAtRowProp()');
-
-    hot.destroy();
-  });
-
-  it('should still perform the write while the behavior is only deprecated', () => {
+  it('should not mint a property the data schema never declared', () => {
     const data = schemaBoundRows();
     const hot = pasteInto(data, '2\tFrank Honest', {
       dataSchema: { id: null, name: null },
       at: [0, 1],
     });
 
-    // Dropping the value is the 19.0.0 behavior. Until then the write stands, so the deprecation
-    // is a warning rather than a silent behavior change.
-    expect(data[0]).toEqual({ 2: 'Frank Honest', id: 1, name: '2', address: '' });
+    // The paste starts on the last column, so its second value has nowhere to land. Writing it
+    // put `"Frank Honest"` on a literal `2` key beside the declared ones, which is how a paste
+    // used to break the schema it was given (#5409).
+    expect(Object.keys(data[0])).toEqual(['id', 'name', 'address']);
+    expect(hot.getDataAtRow(0)).toEqual([1, '2']);
 
     hot.destroy();
   });
 
-  it('should not repeat the warning on a second paste', () => {
-    const first = pasteInto(schemaBoundRows(), '2\tFrank Honest', {
-      dataSchema: { id: null, name: null },
-      at: [0, 1],
-    });
-
-    first.destroy();
-
-    const second = pasteInto(schemaBoundRows(), '3\tRoger Moore', {
-      dataSchema: { id: null, name: null },
-      at: [0, 1],
-    });
-
-    expect(pastLastColumnWarnings()).toHaveLength(1);
-
-    second.destroy();
-  });
-
-  it('should warn for a `dataSchema` given as a function, which is object-rowed too', () => {
+  it('should not mint a property when `dataSchema` is a function', () => {
     const data = schemaBoundRows();
     const hot = pasteInto(data, '2\tFrank Honest', {
       dataSchema: () => ({ id: null, name: null }),
@@ -221,13 +165,40 @@ describe('CopyPaste past the last column of an object data source', () => {
     // A function `dataSchema` sets `dataType` to 'function', not 'object'. It is just as unable to
     // gain a column, so a predicate naming only 'object' would leave this case writing the key.
     expect(hot.dataType).toBe('function');
-    expect(pastLastColumnWarnings()).toHaveLength(1);
-    expect(data[0]).toEqual({ 2: 'Frank Honest', id: 1, name: '2', address: '' });
+    expect(Object.keys(data[0])).toEqual(['id', 'name', 'address']);
 
     hot.destroy();
   });
 
-  it('should not write past the last column at all when `allowInsertColumn` is off', () => {
+  it('should report the dropped value to neither beforeChange nor afterChange', () => {
+    const data = schemaBoundRows();
+    const seen: Record<string, unknown[][]> = { before: [], after: [] };
+    const hot = pasteInto(data, '2\tFrank Honest', {
+      dataSchema: { id: null, name: null },
+      at: [0, 1],
+      beforeChange: (changes: unknown[][] | null) => {
+        if (changes) {
+          seen.before.push(...JSON.parse(JSON.stringify(changes)));
+        }
+      },
+      afterChange: (changes: unknown[][] | null, source: string) => {
+        if (changes && source !== 'loadData') {
+          seen.after.push(...JSON.parse(JSON.stringify(changes)));
+        }
+      },
+    });
+
+    // A change entry for a value the grid did not write would send an integrator syncing from
+    // either hook a property its own schema does not have - and it carried the column index as
+    // the property name, which is what the issue's `beforeChange` workaround had to filter out.
+    expect(seen.before).toEqual([[0, 'name', 'Ted Right', '2']]);
+    expect(seen.after).toEqual([[0, 'name', 'Ted Right', '2']]);
+    expect(data[0].name).toBe('2');
+
+    hot.destroy();
+  });
+
+  it('should drop the value the same way when `allowInsertColumn` is off', () => {
     const data = schemaBoundRows();
     const hot = pasteInto(data, '2\tFrank Honest', {
       dataSchema: { id: null, name: null },
@@ -235,22 +206,34 @@ describe('CopyPaste past the last column of an object data source', () => {
       at: [0, 1],
     });
 
-    // `populateFromArray` breaks the column loop before the write, and that gate does not look at
-    // `dataType` - so on an object data source the value never reaches the source data, and there
-    // is nothing to deprecate. This is what the clipboard guide's tip promises.
+    // `populateFromArray` breaks the column loop before the write here, so the value never reaches
+    // `setDataAtCell` at all. The outcome matches the guard's: the schema is left intact.
     expect(data[0]).toEqual({ id: 1, name: '2', address: '' });
-    expect(pastLastColumnWarnings()).toHaveLength(0);
 
     hot.destroy();
   });
 
-  it('should not warn for an array data source, which can grow a column', () => {
+  it('should still grow an array data source that has room to gain a column', () => {
     const hot = pasteInto([['A1', 'B1'], ['A2', 'B2']], '2\tFrank Honest', { at: [0, 1] });
 
-    // The missing column is created here, so nothing is deprecated - the index names a real array
-    // slot rather than a property the schema never declared.
-    expect(pastLastColumnWarnings()).toHaveLength(0);
+    // An array data source with no `columns` setting is the one case where the missing column can
+    // be created, so the overflow value must keep landing there.
     expect(hot.countCols()).toBe(3);
+    expect(hot.getDataAtRow(0)).toEqual(['A1', '2', 'Frank Honest']);
+
+    hot.destroy();
+  });
+
+  it('should keep writing into an array data source that `columns` has narrowed', () => {
+    const data: unknown[][] = [['A1', 'B1'], ['A2', 'B2']];
+    const hot = pasteInto(data, 'x\ty', { columns: [{}], at: [0, 0] });
+
+    // Only object-rowed data is capped. Here the index names a real array slot rather than a
+    // positional key on a named record, and the value reads back - so widening the guard to
+    // `isColumnModificationAllowed()` would break array grids, and does break `formulas.spec.js`.
+    expect(hot.countCols()).toBe(1);
+    expect(data[0][1]).toBe('y');
+    expect(hot.getDataAtCell(0, 1)).toBe('y');
 
     hot.destroy();
   });

@@ -378,8 +378,9 @@ export default (): Record<string, unknown> => {
      * This option does not decide whether the value reaches the source data – the write path does. A paste or an
      * autofill stops at the last column, so nothing is written there at all. A direct
      * [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) call
-     * writes the value whatever this option is set to. On an object [`data`](#data) source that direct write is
-     * deprecated as of 18.2.0. See [`setDataAtCell()`](@/api/core.md#setdataatcell), which owns that rule.
+     * writes the value whatever this option is set to, except on an object [`data`](#data) source, where
+     * [`setDataAtCell()`](@/api/core.md#setdataatcell) skips the change outright. See that method, which owns the
+     * rule; `setDataAtRowProp()` is not affected, because the property you pass names the field to write.
      *
      * The option does not stop these ways of adding columns:
      * - The [`alter()`](@/api/core.md#alter) method, including its `insert_col_start` and `insert_col_end` actions.

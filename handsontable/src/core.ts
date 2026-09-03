@@ -60,7 +60,7 @@ import type { ShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcuts/contexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
-import { warn, removedWarnOnce, deprecatedWarnOnce } from './helpers/console';
+import { warn, removedWarnOnce } from './helpers/console';
 import { throwWithCause } from './helpers/errors';
 import {
   install as installAccessibilityAnnouncer,
@@ -2675,17 +2675,16 @@ export default function Core(
    *
    * Writing past the last column creates the missing columns only where the grid can create them: an
    * array-of-arrays [`data`](@/api/options.md#data) source with no [`columns`](@/api/options.md#columns) option and
-   * [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) left on. In every other configuration the column count
-   * is fixed, and the value is instead written to a property named after the column index. That property is not part
-   * of your [`dataSchema`](@/api/options.md#dataschema) and no column displays it, but
-   * [`getSourceData()`](@/api/core.md#getsourcedata) returns it, and
-   * [`countSourceCols()`](@/api/core.md#countsourcecols) counts it only when the write lands on the first row,
-   * because that method reads the first row's keys.
+   * [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) left on. With an array data source that cannot grow,
+   * the value is still written to the matching array index, so
+   * [`getSourceData()`](@/api/core.md#getsourcedata) returns it while the grid never displays it.
    *
    * On an **object** data source – including one whose [`dataSchema`](@/api/options.md#dataschema) is a function –
-   * that write is **deprecated as of 18.2.0** and will be ignored from 19.0.0 on: the value cannot become a column
-   * there, so it only adds a key the schema never declared. To write a field the grid shows no column for, address it
-   * by property name with [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead.
+   * the change is **skipped**: the value cannot become a column there, so it would only add a property the schema
+   * never declared. No value is written, and no {@link Hooks#beforeChange} or {@link Hooks#afterChange} entry is
+   * reported for it. To write a field the grid shows no column for, address it by property name with
+   * [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead. A grid that declares no columns at all is
+   * exempt – there every index is past the last column, and writing is how an empty dataset gets bootstrapped.
    *
    * @memberof Core#
    * @function setDataAtCell
@@ -2718,7 +2717,8 @@ export default function Core(
         // function `dataSchema`.) The index then travels on as the property name, so
         // `dataMap.set()` mints a positional key on a row whose other fields are named:
         // `{ 2: 'x', id: 1 }` (#5409). No column renders it, yet it reaches every consumer that
-        // serializes the row. Deprecated in 18.2.0; the write is skipped from 19.0.0 on.
+        // serializes the row. Deprecated in 18.2.0, skipped from here on - the way a `maxCols` cap
+        // that blocks the column already does.
         //
         // The predicate mirrors that gate's `=== 'array'` term - so it must be `!== 'array'` here
         // rather than `=== 'object'`. A function `dataSchema` sets `dataType` to `'function'`
@@ -2730,11 +2730,7 @@ export default function Core(
         // there every index is "past the last column". Writing to such a grid is how an empty
         // dataset gets bootstrapped, so it is left exactly as it was.
         if (instance.dataType !== 'array' && this.countCols() > 0) {
-          deprecatedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
-            'Writing past the last column of an object data source is deprecated and will be ' +
-            'ignored in Handsontable 19.0.0. The value currently lands on a property named after ' +
-            'the column index, which no column can display. Use `setDataAtRowProp()` to write a ' +
-            'field the grid shows no column for.');
+          continue;
         }
 
         prop = visualColumnIndex;
@@ -2753,6 +2749,14 @@ export default function Core(
 
     if (!changeSource && typeof row === 'object') {
       changeSource = column as string;
+    }
+
+    // Every requested change was skipped above, so there is nothing left to report or apply.
+    // Falling through would run `processChanges([])`, which cancels the active editor - discarding
+    // a value the user is still typing in an unrelated cell - and then render for no work. An
+    // empty `input` keeps its previous path, so `setDataAtCell([])` behaves as it always has.
+    if (input.length > 0 && changes.length === 0) {
+      return;
     }
 
     const processedChanges = processChanges(changes, changeSource);

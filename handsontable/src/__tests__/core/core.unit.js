@@ -19,7 +19,6 @@ import {
   TextCellType,
 } from 'handsontable/cellTypes';
 import { registerRenderer, baseRenderer, textRenderer } from 'handsontable/renderers';
-import { _resetDeprecationWarnings } from 'handsontable/helpers/console';
 import { staticRegister, resolveWithInstance } from '../../utils/staticRegister';
 
 registerCellType(CheckboxCellType);
@@ -167,31 +166,14 @@ describe('Core', () => {
 
 describe('Core.setDataAtCell past the last column', () => {
   let container;
-  let warnSpy;
 
   beforeEach(() => {
     container = document.createElement('div');
-    // `deprecatedWarnOnce` records printed warnings module-globally, so without this the
-    // assertions below would depend on the order the specs run in.
-    _resetDeprecationWarnings();
-    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    warnSpy.mockRestore();
     container.remove();
   });
-
-  /**
-   * Collects every deprecation warning printed so far that mentions the last-column write.
-   *
-   * @returns {Array} The matching `console.warn` messages.
-   */
-  function pastLastColumnWarnings() {
-    return warnSpy.mock.calls
-      .map(args => String(args[0]))
-      .filter(message => message.includes('past the last column of an object data source'));
-  }
 
   /**
    * Builds and initializes a grid.
@@ -207,24 +189,20 @@ describe('Core.setDataAtCell past the last column', () => {
     return core;
   }
 
-  it('should warn when the write lands past the last column of an object data source', () => {
+  it('should skip the write when it lands past the last column of an object data source', () => {
     const data = [{ id: 1, name: 'Ted Right' }];
     const core = build({ data, dataSchema: { id: null, name: null } });
 
     core.setDataAtCell(0, 2, 'x');
 
-    const warnings = pastLastColumnWarnings();
-
-    expect(warnings).toHaveLength(1);
-    expect(warnings[0]).toContain('19.0.0');
-    expect(warnings[0]).toContain('setDataAtRowProp()');
-    // The write still stands while the behavior is only deprecated.
-    expect(data[0]).toEqual({ 2: 'x', id: 1, name: 'Ted Right' });
+    // The value would land on a literal `2` key beside the declared ones, which no column can
+    // display and every consumer serializing the row would then see (#5409).
+    expect(data[0]).toEqual({ id: 1, name: 'Ted Right' });
 
     core.destroy();
   });
 
-  it('should warn for a `dataSchema` given as a function, which is object-rowed too', () => {
+  it('should skip the write for a `dataSchema` given as a function, which is object-rowed too', () => {
     const data = [{ id: 1, name: 'Ted Right' }];
     const core = build({ data, dataSchema: () => ({ id: null, name: null }) });
 
@@ -233,49 +211,60 @@ describe('Core.setDataAtCell past the last column', () => {
     // A function `dataSchema` sets `dataType` to 'function', not 'object'. It is just as unable to
     // gain a column, so a predicate naming only 'object' would leave this case writing the key.
     expect(core.dataType).toBe('function');
-    expect(pastLastColumnWarnings()).toHaveLength(1);
+    expect(data[0]).toEqual({ id: 1, name: 'Ted Right' });
 
     core.destroy();
   });
 
-  it('should warn only once across repeated writes', () => {
+  it('should report the skipped write to neither beforeChange nor afterChange', () => {
+    const seen = { before: [], after: [] };
     const core = build({
       data: [{ id: 1, name: 'Ted Right' }],
       dataSchema: { id: null, name: null },
+      beforeChange: changes => seen.before.push(changes),
+      afterChange: (changes, source) => {
+        if (source !== 'loadData') {
+          seen.after.push(changes);
+        }
+      },
     });
 
     core.setDataAtCell(0, 2, 'x');
-    core.setDataAtCell(0, 3, 'y');
 
-    expect(pastLastColumnWarnings()).toHaveLength(1);
+    // Reporting a change for a value the grid did not write would send an integrator syncing from
+    // either hook a property its own schema does not have.
+    expect(seen.before).toEqual([]);
+    expect(seen.after).toEqual([]);
 
     core.destroy();
   });
 
-  it('should not warn for an array data source, which can grow a column', () => {
+  it('should keep writing into an array data source, which can grow a column', () => {
     const core = build({ data: [['A1', 'B1']] });
 
     core.setDataAtCell(0, 2, 'x');
 
-    expect(pastLastColumnWarnings()).toHaveLength(0);
     expect(core.countCols()).toBe(3);
+    expect(core.getDataAtCell(0, 2)).toBe('x');
 
     core.destroy();
   });
 
-  it('should not warn for an array data source that sets the `columns` option', () => {
-    const core = build({ data: [['A1', 'B1']], columns: [{}, {}] });
+  it('should keep writing into an array data source that sets the `columns` option', () => {
+    const data = [['A1', 'B1']];
+    const core = build({ data, columns: [{}, {}] });
 
     core.setDataAtCell(0, 2, 'x');
 
     // No column is created here either, but the row is an array, so the index names a real array
-    // slot rather than a property no schema declared. Nothing is deprecated.
-    expect(pastLastColumnWarnings()).toHaveLength(0);
+    // slot rather than a property no schema declared. The write stands.
+    expect(data[0][2]).toBe('x');
+    expect(core.getDataAtCell(0, 2)).toBe('x');
 
     core.destroy();
   });
 
-  it('should not warn for a grid that declares no columns at all', () => {
+  it('should keep writing into a grid that declares no columns at all', () => {
     const core = build({ data: [] });
 
     core.setDataAtCell(0, 0, 'WRITE');
@@ -284,7 +273,6 @@ describe('Core.setDataAtCell past the last column', () => {
     // `countCols()` is 0 - so every index is "past the last column". Writing to such a grid is how
     // an empty dataset gets bootstrapped, and it is deliberately left alone.
     expect(core.dataType).toBe('object');
-    expect(pastLastColumnWarnings()).toHaveLength(0);
     expect(core.getDataAtCell(0, 0)).toBe('WRITE');
 
     core.destroy();
