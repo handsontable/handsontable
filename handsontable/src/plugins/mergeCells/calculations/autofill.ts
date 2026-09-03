@@ -1,8 +1,10 @@
 import { extend } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
 import type { HotInstance } from '../../../core/types';
+import type { CellChange } from '../../../settings';
 import type MergedCellsCollection from '../cellsCollection';
 import type MergedCellCoords from '../cellCoords';
+import { getRangeFromChanges } from '../utils';
 
 interface MergeCellsPlugin {
   hot: HotInstance;
@@ -295,7 +297,7 @@ class AutofillCalculations {
    *
    * @param {Array} changes Changes made.
    */
-  recreateAfterDataPopulation(changes: unknown[][]) {
+  recreateAfterDataPopulation(changes: CellChange[]) {
     if (!this.currentFillData) {
       return;
     }
@@ -391,44 +393,8 @@ class AutofillCalculations {
    * @param {Array} changes The changes made.
    * @returns {object} Object with `from` and `to` properties, both containing `row` and `column` keys.
    */
-  getRangeFromChanges(changes: unknown[][]) {
-    let rowMin: number | null = null;
-    let rowMax: number | null = null;
-    let colMin: number | null = null;
-    let colMax: number | null = null;
-
-    arrayEach(changes, (change) => {
-      const changeArr = change as unknown[];
-      const rowIndex = changeArr[0] as number;
-      const columnIndex = this.plugin.hot.propToCol(changeArr[1] as string | number);
-
-      if (rowMin === null || rowIndex < rowMin) {
-        rowMin = rowIndex;
-      }
-
-      if (rowMax === null || rowIndex > rowMax) {
-        rowMax = rowIndex;
-      }
-
-      if (colMin === null || columnIndex < colMin) {
-        colMin = columnIndex;
-      }
-
-      if (colMax === null || columnIndex > colMax) {
-        colMax = columnIndex;
-      }
-    });
-
-    return {
-      from: {
-        row: rowMin ?? 0,
-        column: colMin ?? 0
-      },
-      to: {
-        row: rowMax ?? 0,
-        column: colMax ?? 0
-      }
-    };
+  getRangeFromChanges(changes: (CellChange | null)[]) {
+    return getRangeFromChanges(this.plugin.hot, changes);
   }
 
   /**

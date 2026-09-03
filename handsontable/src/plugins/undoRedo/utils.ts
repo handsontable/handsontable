@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../core/types';
 import { rangeEach } from '../../helpers/number';
+import { toMergeAreaRange, type MergeAreaGeometry as MergedCell } from '../../utils/mergeAreas';
 
 /**
  * Gets all cell metas from the provided range.
@@ -23,13 +24,6 @@ export function getCellMetas(hot: HotInstance, fromRow: number, toRow: number, f
   });
 
   return cellMetas;
-}
-
-interface MergedCell {
-  row: number;
-  col: number;
-  rowspan: number;
-  colspan: number;
 }
 
 /**
@@ -68,6 +62,79 @@ export function collectAffectedMergedCells(hot: HotInstance, axis: 'row' | 'col'
   });
 
   return affected;
+}
+
+/**
+ * Collects the merge areas a data change is about to destroy, as recorded by the MergeCells plugin
+ * itself. Only a multi-cell paste over a merged area reports anything here; every other change
+ * yields an empty list, so an ordinary edit never re-merges on undo.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @returns {Array} Array of `{ row, col, rowspan, colspan }` objects.
+ */
+export function collectMergedCellsDestroyedByChange(hot: HotInstance) {
+  const mergeCellsPlugin = hot.getPlugin('mergeCells');
+
+  if (!mergeCellsPlugin?.enabled) {
+    return [];
+  }
+
+  return mergeCellsPlugin.getPasteUnmergeSnapshot();
+}
+
+/**
+ * Re-applies merge areas that a data change destroyed, restoring their geometry only.
+ *
+ * Unlike {@link restoreMergedCells} this must not repopulate the covered cells: the caller has just
+ * written the pre-change values back, and `mergeRange`'s default population would null them out
+ * again. `preventPopulation` returns the cleared data instead of writing it, and `auto` skips the
+ * settings validation and the overlap check - the geometry came from the grid's own collection, and
+ * the undo entry for it is the caller's own data-change action.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @param {Array} mergedCells Array of `{ row, col, rowspan, colspan }` objects.
+ */
+export function remergeCellsGeometryOnly(hot: HotInstance, mergedCells: MergedCell[]) {
+  if (!mergedCells || mergedCells.length === 0) {
+    return;
+  }
+
+  const mergeCellsPlugin = hot.getPlugin('mergeCells');
+
+  if (!mergeCellsPlugin?.enabled) {
+    return;
+  }
+
+  mergedCells.forEach((mergedCell: MergedCell) => {
+    const range = toMergeAreaRange(hot, mergedCell);
+
+    mergeCellsPlugin.unmergeRange(range, true);
+    mergeCellsPlugin.mergeRange(range, true, true);
+  });
+
+  hot.render();
+}
+
+/**
+ * Drops merge areas again after a redo has re-applied the data change that destroyed them.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @param {Array} mergedCells Array of `{ row, col, rowspan, colspan }` objects.
+ */
+export function unmergeCellsGeometryOnly(hot: HotInstance, mergedCells: MergedCell[]) {
+  if (!mergedCells || mergedCells.length === 0) {
+    return;
+  }
+
+  const mergeCellsPlugin = hot.getPlugin('mergeCells');
+
+  if (!mergeCellsPlugin?.enabled) {
+    return;
+  }
+
+  mergedCells.forEach((mergedCell: MergedCell) => {
+    mergeCellsPlugin.unmergeRange(toMergeAreaRange(hot, mergedCell), true);
+  });
 }
 
 /**

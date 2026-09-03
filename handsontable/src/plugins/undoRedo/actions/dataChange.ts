@@ -2,6 +2,12 @@ import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
 import { BaseAction } from './_base';
 import { deepClone } from '../../../helpers/object';
+import {
+  collectMergedCellsDestroyedByChange,
+  remergeCellsGeometryOnly,
+  unmergeCellsGeometryOnly,
+} from '../utils';
+import type { MergeAreaGeometry } from '../../../utils/mergeAreas';
 
 /**
  * Minimal interface for the UndoRedo plugin used by action classes.
@@ -34,18 +40,25 @@ export class DataChangeAction extends BaseAction {
    * @param {number} countRows The number of rows before data change.
    */
   declare countRows: number;
+  /**
+   * @param {Array} mergedCells Merge areas this change destroyed, as `{ row, col, rowspan, colspan }`
+   *   objects captured before the change landed. Empty for every change that destroys no merge.
+   */
+  declare mergedCells: MergeAreaGeometry[];
 
   /**
    * Initializes the data change action with the recorded cell changes, selection state, and grid dimensions at the time of the change.
    */
-  constructor({ changes, selected, countCols, countRows }: {
-    changes: unknown[][], selected: unknown[], countCols: number, countRows: number
+  constructor({ changes, selected, countCols, countRows, mergedCells = [] }: {
+    changes: unknown[][], selected: unknown[], countCols: number, countRows: number,
+    mergedCells?: MergeAreaGeometry[]
   }) {
     super('change');
     this.changes = changes;
     this.selected = selected;
     this.countCols = countCols;
     this.countRows = countRows;
+    this.mergedCells = mergedCells;
   }
 
   /**
@@ -97,6 +110,10 @@ export class DataChangeAction extends BaseAction {
           selected,
           countCols: hot.countCols(),
           countRows: hot.countRows(),
+          // Merge areas this change is about to destroy. Carried inside this action so a single
+          // undo step puts back both the data and the geometry - see the MergeCells plugin, which
+          // records them from its own `beforeChange` listener at an earlier priority than this one.
+          mergedCells: collectMergedCellsDestroyedByChange(hot),
         });
       };
 
@@ -128,6 +145,10 @@ export class DataChangeAction extends BaseAction {
         hot.alter('remove_col', undefined, columnsToRemove, 'UndoRedo.undo');
       }
 
+      // After the data restore, never before it: re-merging first would clear the very cells the
+      // restore has just refilled.
+      remergeCellsGeometryOnly(hot, this.mergedCells);
+
       hot.scrollToFocusedCell();
       hot.selectCells(this.selected, false, false);
 
@@ -148,6 +169,10 @@ export class DataChangeAction extends BaseAction {
     }
 
     hot.addHookOnce('afterChange', () => {
+      // The redo write carries the `UndoRedo.redo` source, so the MergeCells plugin's own paste
+      // path does not run - the merges it dropped have to be dropped again from here.
+      unmergeCellsGeometryOnly(hot, this.mergedCells);
+
       hot.selectCells(this.selected, false, false);
 
       redoneCallback();

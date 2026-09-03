@@ -371,6 +371,57 @@ hot.updateSettings({
 hot.getDataAtCell(0, 1); // -> null, cleared as usual
 ```
 
+## Copying and pasting over merged cells
+
+Pasting a block of more than one cell over a merged range unmerges that range, and every pasted value becomes visible. Excel and Google Sheets behave the same way: a block with its own rows and columns cannot fit inside a single merged cell, so the merge gives way.
+
+Every merged range the pasted block reaches is unmerged, not only the one you selected. A paste fills the larger of the copied block and the selected range, so it can reach past your selection and clip a neighboring merge.
+
+Pasting a single value leaves the merge in place. A single value carries no structure of its own, so it lands in the merged range's top-left cell and the covered cells stay empty.
+
+Both cases are one undo step. A single [`undo()`](@/api/core.md#undo) restores the pasted values and the merged ranges together.
+
+Two things this does not do:
+
+- **Copying does not carry the merge.** A merged range copies as its top-left value plus empty cells, so pasting it elsewhere creates no merge. Pasted HTML `rowspan` and `colspan` attributes are flattened the same way: the value lands in the top-left cell of the span and the covered cells are set to `null`.
+- **`pasteMode` other than `'overwrite'` leaves merges alone.** With [`pasteMode`](@/api/options.md#pastemode) set to `'shift_down'` or `'shift_right'`, the paste pushes the existing cells aside instead of overwriting them, and the merged ranges shift along with the rows or columns they sit in.
+
+To keep a merged range intact, cancel the paste from [`beforePaste`](@/api/hooks.md#beforepaste). Returning `false` there stops the whole paste, so nothing is written and no merge is dropped:
+
+```js
+new Handsontable(container, {
+  mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }],
+  beforePaste(data, coords) {
+    const isSingleValue = data.length === 1 && data[0].length === 1;
+
+    if (isSingleValue) {
+      return; // a single value never breaks a merge, so let it through
+    }
+
+    // `coords` describes the selected area, which is the paste destination. Scan the whole area,
+    // not just its corner: `rowspan` and `colspan` are set only on a merged range's top-left cell,
+    // so a merged range lying inside the selection would go unnoticed.
+    const touchesMergedRange = coords.some(({ startRow, startCol, endRow, endCol }) => {
+      for (let row = startRow; row <= endRow; row += 1) {
+        for (let col = startCol; col <= endCol; col += 1) {
+          const { rowspan, colspan } = this.getCellMetaTransient(row, col);
+
+          if (rowspan > 1 || colspan > 1) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    });
+
+    if (touchesMergedRange) {
+      return false;
+    }
+  },
+});
+```
+
 ## Effect on viewport getter methods
 
 With merged cells, the rendered range extends to fit any merged cell that crosses the viewport edge. This is the same expansion that the `virtualized` option turns off. As a result, the rendered-range getters can return indexes beyond what you see on the screen:
