@@ -47,7 +47,10 @@ merge-base and reports five kinds of finding, each a reviewer signal and never a
 block: `assertions-removed` (the `expect`/`assert*`/`verify*` count dropped),
 `tests-removed` (the `it()`/`test()` block count dropped while the file still
 exists — deleting the failing test and growing a survivor keeps the assertion
-count flat or rising, so nothing else sees it), `skip-or-focus-added`,
+count flat or rising, so nothing else sees it; a parameterized `it.each` table
+counts one block per row of its array literal, so folding tests into a table is
+quiet and deleting a row is not, and a table the scanner cannot read — a variable,
+a `.map()` call — counts as one), `skip-or-focus-added`,
 `matcher-downgrade`, and `precision-widened`. The last two exist because counting
 alone misses the quieter loosening moves. A **matcher downgrade** is an *exact*
 matcher losing calls **and** a *bounded* one gaining calls in the same file, while
@@ -71,9 +74,12 @@ and presence checks (`toBeGreaterThanOrEqual`, `toBeLessThanOrEqual`,
 `toBeDefined`, `toContain`, `toContainEqual`, `toMatch`, `toMatchObject`,
 `toHaveProperty`, `toHaveBeenCalled`, `toContainText`, `toContainClass`).
 `THROW_MATCHERS` (`toThrow`, `toThrowError`, `toThrowWithCause`) are exact with an
-argument and bounded when bare — `toThrow()` proves only that something threw. A
-negated call (`.not.toBe(0)`) rules one value out and counts as bounded, except
-the two negations that pin a value (`not.toHaveBeenCalled()`, `not.toBeDefined()`;
+argument and bounded when bare — `toThrow()` proves only that something threw —
+and negation flips the pair: a bare `not.toThrow()` pins the one outcome "does not
+throw" and is exact (220 calls in `handsontable/`, none with an argument), while
+`not.toThrow('msg')` rules one error out and is bounded. Any other negated call
+(`.not.toBe(0)`) rules one value out and counts as bounded, except the two
+negations that pin a value (`not.toHaveBeenCalled()`, `not.toBeDefined()`;
 `NEGATION_PINS`), so `toHaveBeenCalledTimes(0)` → `not.toHaveBeenCalled()` is not
 a finding while `toBe(5)` → `not.toBe(0)` is. Playwright's state-only assertions
 (`toBeVisible`, `toBeHidden`, `toBeEnabled`, …) are in no table: they assert a
@@ -84,14 +90,16 @@ relational assertion is the documented pattern for values no token derives.
 **Precision widening** is a `toBeCloseTo(x, digits)` argument going down; an
 omitted argument counts as the framework default of 2, comments between the
 arguments are skipped, an argument that is not an integer literal is never judged,
-and neither is a call whose argument list holds a regex literal — the scanner
-cannot see the literal's brackets, and a misread list must never become a finding.
+and neither is a call whose argument list holds a regex literal in argument or
+operand position (after an operator, an opening bracket, or a keyword such as
+`return`) — the scanner cannot see the literal's brackets, and a misread list must
+never become a finding.
 Replayed over the last 300 `develop` commits (481 spec files compared,
 `origin/develop` at `69dab641b`): `matcher-downgrade` fired once (#13242,
 `toHaveBeenCalledTimes` 2 → 1 beside `toBeGreaterThanOrEqual` 0 → 1 — a real
-loosening), `precision-widened` never, and `tests-removed` 16 times, all on spec
-migrations and the skipped-test burn-down, 14 of them on files
-`assertions-removed` already flagged. Before the totals rule the downgrade kind
+loosening), `precision-widened` never, and `tests-removed` 16 times — 15 on spec
+migrations and the skipped-test burn-down, one on a test deleted with the helper
+it covered (#13244) — 14 of them on files `assertions-removed` already flagged. Before the totals rule the downgrade kind
 fired twice, and the second hit (#13266) was the rename toward a more exact
 matcher above — a false positive. So a matcher finding is one for one on replayed
 history, worth a sentence in review and not a reflex, and a `tests-removed`

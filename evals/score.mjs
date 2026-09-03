@@ -16,7 +16,7 @@ import { createRequire } from 'node:module';
 import { resolve, dirname } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import {
-  TEST_CALL_RE, countAssertions, countSkipFocus, matcherHistogram, matcherKind,
+  TEST_CALL_RE, countAssertions, countSkipFocus, countTableRows, matcherHistogram, matcherKind,
 } from '../.github/scripts/lib/test-weakening.mjs';
 
 // The handsontable package dir, resolved from THIS file's location (evals/) so
@@ -119,19 +119,62 @@ export function scanBalanced(src, openIndex) {
 }
 
 /**
- * Extract every it()/test() block from a spec source, with its title and the
- * number of assertion-like calls inside its argument list. The block opener
- * (`TEST_CALL_RE`) and the assertion regex are shared with the test-weakening
- * detector, so its `tests-removed` count and this list always agree.
+ * Index of the `(` that opens a parameterized block's title-and-body call — the
+ * one that follows the table in `it.each([...])(title, fn)`.
  *
  * @param {string} src The spec file contents.
- * @returns {{marker: string, title: string, assertions: number}[]} One entry per test block.
+ * @param {number} tableOpen Index of the `(` that opens the table.
+ * @returns {number} The index, or -1 when the table never closes or no call follows it.
+ */
+function skipEachTable(src, tableOpen) {
+  const closeTable = scanBalanced(src, tableOpen);
+
+  if (closeTable === -1) {
+    return -1;
+  }
+
+  let i = closeTable + 1;
+
+  while (i < src.length && /\s/.test(src[i])) {
+    i += 1;
+  }
+
+  return src[i] === '(' ? i : -1;
+}
+
+/**
+ * Extract every it()/test() block from a spec source, with its title, the
+ * number of assertion-like calls inside its argument list, and the number of
+ * tests it registers (`rows`: 1, or the row count of a parameterized table).
+ * The block opener (`TEST_CALL_RE`), the row counter, and the assertion regex
+ * are shared with the test-weakening detector, so its `tests-removed` count and
+ * the `rows` total of this list always agree.
+ *
+ * @param {string} src The spec file contents.
+ * @returns {{marker: string, title: string, assertions: number, rows: number}[]} One entry per test block.
  */
 export function extractTestBlocks(src) {
   const blocks = [];
 
   for (const match of src.matchAll(TEST_CALL_RE)) {
-    const openParen = match.index + match[0].length - 1;
+    let openParen = match.index + match[0].length - 1;
+    let rows = 1;
+
+    // A parameterized opener (`it.each([...])(title, fn)`) takes the table
+    // first; the title and the body follow in a second call. Skip the table so
+    // its rows are not read as the block's arguments — every table would come
+    // back untitled and hollow. A table with no call after it stays as it is:
+    // the runner registers no test for it, so "untitled, hollow" is the honest read.
+    if (match.groups.each) {
+      const callParen = skipEachTable(src, openParen);
+
+      rows = countTableRows(src, openParen + 1);
+
+      if (callParen !== -1) {
+        openParen = callParen;
+      }
+    }
+
     const closeParen = scanBalanced(src, openParen);
     const body = closeParen === -1 ? src.slice(openParen + 1) : src.slice(openParen + 1, closeParen);
     const titleMatch = body.match(/^\s*(['"`])((?:\\.|(?!\1).)*)\1/);
@@ -140,6 +183,7 @@ export function extractTestBlocks(src) {
       marker: match[0].replace(/\s*\($/, ''),
       title: titleMatch ? titleMatch[2] : '(untitled)',
       assertions: countAssertions(body),
+      rows,
     });
   }
 
@@ -517,7 +561,9 @@ export function scoreTestSource(src, options = {}) {
   }
 
   return {
-    tests: blocks.length,
+    // One per plain block, one per row of a parameterized table — the count the
+    // detector's `countTestBlocks` reports.
+    tests: blocks.reduce((sum, block) => sum + block.rows, 0),
     assertions,
     matchers,
     hollowTests,

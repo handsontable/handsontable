@@ -42,9 +42,11 @@
  *   matchers outside the tables (`toBeNull`, `toBeUndefined`, `toBeNaN`,
  *   `toBeInstanceOf`).
  * - A negated matcher (`.not.toBe(0)`) rules one value out and counts as
- *   bounded, except the two negations that pin a single value
- *   (`not.toHaveBeenCalled()` is zero calls, `not.toBeDefined()` is
- *   `undefined`). A negated bounded matcher stays bounded.
+ *   bounded, except the negations that pin a single outcome:
+ *   `not.toHaveBeenCalled()` is zero calls, `not.toBeDefined()` is
+ *   `undefined`, and a bare `not.toThrow()` is "does not throw". A negated
+ *   bounded matcher stays bounded, and `not.toThrow('msg')` rules one error
+ *   out, so it is bounded too.
  * - `detectMatcherDowngrade` requires the total exact count not to rise, so a
  *   downgrade made in the same change as a larger addition of exact matchers
  *   (`toBe` → `toBeDefined` beside two new `toEqual`) reports nothing. The rule
@@ -52,15 +54,26 @@
  *   matcher (42 `toBeGreaterThan` → `toBe`) beside a real loosening read as a
  *   downgrade when the labels were compared one by one.
  * - `detectPrecisionWidening` never judges a `toBeCloseTo` whose argument list
- *   holds a regex literal — the scanner cannot see the literal's brackets, and a
- *   misread list would turn a scan failure into an invented finding. It also
+ *   holds a regex literal in argument or operand position (at the start of an
+ *   argument, after an operator, an opening bracket, or a keyword such as
+ *   `return`) — the scanner cannot see the literal's brackets, and a misread
+ *   list would turn a scan failure into an invented finding. A `/` right after
+ *   a closing `)` is ambiguous (`(a) / 2` divides, `if (x) /re/.test(s)` does
+ *   not) and reads as a division. It also
  *   pairs the digits that changed largest-with-largest once the unchanged ones
  *   cancel out. When one change both widens and tightens in the same file, the
  *   reported pairs need not be the real edits, and a widening can hide behind a
  *   larger tightening: `5 → 4` next to `1 → 6` reports nothing.
  * - `tests-removed` counts `it()`/`test()` openers, so a test moved to another
  *   file reads as removed here, and one deleted `describe` reads as every test
- *   it held.
+ *   it held. A parameterized table (`it.each([...])(title, fn)`) counts one
+ *   block per row of its array literal — the tests the runner executes — so
+ *   folding two `it()` into a two-row table is quiet and deleting one row is
+ *   not; a table the scanner cannot read as an array literal (a variable, a
+ *   `.map()` call) counts as one block, and a table written as a tagged
+ *   template (`it.each\`…\`(`) is not counted at all (no spec uses that form).
+ *   `assertions-removed` is not row-aware: the same fold turns two `expect(`
+ *   into one and reads as a drop.
  */
 
 /**
@@ -128,6 +141,9 @@ export const BOUNDED_MATCHERS = Object.freeze([
  * the error, `toThrow()` only proves that something threw. A call with an
  * argument counts as exact; a bare call counts as bounded and is labelled with
  * a `()` suffix in the histogram (`toThrow()`), so the two forms diff apart.
+ * Negation flips the pair: a bare `not.toThrow()` pins the one outcome "does
+ * not throw" and is exact, while `not.toThrow('message')` rules one error out
+ * and is bounded (see `matcherKind`).
  *
  * @type {ReadonlyArray<string>}
  */
@@ -139,8 +155,10 @@ export const THROW_MATCHERS = Object.freeze([
 
 /**
  * Bounded matchers whose negation pins a single value: `not.toHaveBeenCalled()`
- * is exactly zero calls, `not.toBeDefined()` is exactly `undefined`. Every other
- * negation rules one value out and counts as bounded.
+ * is exactly zero calls, `not.toBeDefined()` is exactly `undefined`. The bare
+ * throw matchers pin under negation too (`not.toThrow()`), but their rule
+ * depends on the argument and lives in `matcherKind`. Every other negation
+ * rules one value out and counts as bounded.
  *
  * @type {ReadonlyArray<string>}
  */
@@ -173,11 +191,16 @@ const MATCHER_CALL_RE = new RegExp(
 const EMPTY_ARGS_RE = /\s*\)/y;
 
 /**
- * A `/` that can only open a regex literal: at the start of an argument or right
- * after an operator or an opening bracket. `width / 2` (after an operand) is a
- * division and does not match.
+ * A `/` that can only open a regex literal: at the start of an argument, right
+ * after an operator or an opening bracket, or right after a keyword that takes
+ * an operand (`return /x/`, `typeof /x/`, `case /x/:`). `width / 2` (after an
+ * operand) is a division and does not match, and neither does `newValue / 2` —
+ * the keyword must be a whole word. A `/` after a closing `)` is ambiguous
+ * (`(a) / 2` divides, `if (x) /re/.test(s)` does not) and reads as a division.
  */
-const REGEX_START_RE = /(?:^|[(,=:[!&|?{};+\-*%<>~^])\s*\//;
+const REGEX_START_KEYWORDS = 'return|typeof|case|in|of|await|yield|throw|void|delete|instanceof|new';
+
+const REGEX_START_RE = new RegExp(`(?:^|[(,=:[!&|?{};+\\-*%<>~^]|\\b(?:${REGEX_START_KEYWORDS})\\b)\\s*/`);
 
 /**
  * `toBeCloseTo(value)` without a digits argument compares to 2 decimal places in
@@ -188,16 +211,21 @@ const CLOSE_TO_DEFAULT_DIGITS = 2;
 
 /**
  * Matches the opening of a test block: `it(`, `test(`, the focused/skipped
- * prefix forms (`fit(`, `xit(`, `xtest(`), and the dot-modifier forms
- * (`it.only(`, `test.skip(`, `test.fixme(`, …). The lookbehind rejects member
- * accesses such as `/re/.test(` and `suite.it(`, and `describe`/`beforeEach`
- * never match because the `(` must follow immediately. Shared with the evals
- * scorer (`evals/score.mjs`), so both count the same blocks.
+ * prefix forms (`fit(`, `xit(`, `xtest(`), the dot-modifier forms (`it.only(`,
+ * `test.skip(`, `test.fixme(`, `test.concurrent.only(`, …), and the
+ * parameterized forms (`it.each(`, `test.skip.each(`), where the `(` opens the
+ * table and the `each` group tells a caller that the title and body follow in
+ * a second call. The lookbehind rejects member accesses such as `/re/.test(`
+ * and `suite.it(`; `describe`, `describe.each`, and `beforeEach` are not in the
+ * alternation, and `test.describe(` never matches because the `(` must follow
+ * `test` or one of its modifiers. A table written as a tagged template
+ * (`it.each\`…\`(`) is not matched. Shared with the evals scorer
+ * (`evals/score.mjs`), so both count the same blocks.
  */
 const TEST_MODIFIERS = 'only|skip|fixme|fails|failing|flaky|concurrent|serial|todo';
 
 export const TEST_CALL_RE = new RegExp(
-  `(?<![\\w$.])(?:[xf](?:it|test)|(?:it|test)(?:\\.(?:${TEST_MODIFIERS}))?)\\s*\\(`,
+  `(?<![\\w$.])(?:[xf](?:it|test)|(?:it|test)(?:\\.(?:${TEST_MODIFIERS}))*)(?<each>\\.each)?\\s*\\(`,
   'g',
 );
 
@@ -218,7 +246,9 @@ export function countAssertions(src) {
 }
 
 /**
- * Count focus/skip markers (`it.only`, `describe.skip`, `xit`, `fdescribe`, …) in a source string.
+ * Count focus/skip markers (`it.only`, `describe.skip`, `xit`, `fdescribe`, …) in
+ * a source string. A parameterized opener carries its modifier like any other
+ * (`it.only.each(` is one focus marker).
  *
  * @param {string} src The spec file contents.
  * @returns {number} The number of focus/skip markers.
@@ -227,7 +257,7 @@ export function countSkipFocus(src) {
   if (!src) {
     return 0;
   }
-  const dotForm = src.match(/\b(?:it|test|describe|context)\.(?:skip|only)\s*\(/g) || [];
+  const dotForm = src.match(/\b(?:it|test|describe|context)\.(?:skip|only)(?:\.each)?\s*\(/g) || [];
   const prefixForm = src.match(/\b(?:x(?:it|describe|test)|f(?:it|describe))\s*\(/g) || [];
 
   return dotForm.length + prefixForm.length;
@@ -235,8 +265,9 @@ export function countSkipFocus(src) {
 
 /**
  * Count test blocks (`it(`, `test(`, and their focused/skipped/modifier forms)
- * in a source string. Text-based like `countAssertions`: an opener inside a
- * comment or a string literal counts too.
+ * in a source string. A parameterized table (`it.each([...])(title, fn)`)
+ * counts one block per row (see `countTableRows`). Text-based like
+ * `countAssertions`: an opener inside a comment or a string literal counts too.
  *
  * @param {string} src The spec file contents.
  * @returns {number} The number of test blocks.
@@ -246,7 +277,44 @@ export function countTestBlocks(src) {
     return 0;
   }
 
-  return (src.match(TEST_CALL_RE) || []).length;
+  let count = 0;
+
+  for (const match of src.matchAll(TEST_CALL_RE)) {
+    count += match.groups.each ? countTableRows(src, match.index + match[0].length) : 1;
+  }
+
+  return count;
+}
+
+/**
+ * Count the rows of a parameterized table: the top-level elements of the array
+ * literal that opens right after `it.each(` — the number of tests the runner
+ * registers for that block. A table the scanner cannot read as an array literal
+ * (a variable, a `.map()` call, an unbalanced list) counts as one row: the
+ * minimal claim, never an invented count. Like the `toBeCloseTo` reader, the
+ * scanner can be confused by a regex literal holding a bracket; both revisions
+ * of an unchanged table miscount alike, so that never becomes a finding on its
+ * own. Shared with the evals scorer, so both count the same tests.
+ *
+ * @param {string} src The spec file contents.
+ * @param {number} start Index just past the `(` that opens the table.
+ * @returns {number} The row count, at least 1.
+ */
+export function countTableRows(src, start) {
+  const args = splitTopLevelArgs(src, start);
+
+  if (args === null || !/^\s*\[/.test(args[0])) {
+    return 1;
+  }
+
+  const rows = splitTopLevelArgs(args[0], args[0].indexOf('[') + 1);
+
+  if (rows === null) {
+    return 1;
+  }
+
+  // A trailing comma leaves a whitespace-only last entry.
+  return Math.max(1, rows.filter(row => row.trim() !== '').length);
 }
 
 /**
@@ -291,8 +359,9 @@ function parseLabel(label) {
  * Classify a histogram label as pinning a value (`exact`) or bounding it
  * (`bounded`). The single source of truth for the detectors and the evals
  * scorer: a table name is exact or bounded by its table; a `THROW_MATCHERS`
- * entry is exact with an argument and bounded when bare; a negated call is
- * bounded unless the negation itself pins a value (`NEGATION_PINS`).
+ * entry is exact with an argument and bounded when bare, and negation flips
+ * that pair; any other negated call is bounded unless the negation itself pins
+ * a value (`NEGATION_PINS`).
  *
  * @param {string} label A `matcherHistogram` key.
  * @returns {'exact'|'bounded'|null} The kind, or null for a name outside the tables.
@@ -304,12 +373,15 @@ export function matcherKind(label) {
     return null;
   }
 
-  if (negated) {
-    return NEGATION_PINS.includes(name) ? 'exact' : 'bounded';
+  if (THROW_MATCHERS.includes(name)) {
+    // `toThrow('msg')` pins the error and a bare `toThrow()` only proves that
+    // something threw; negation flips the pair — a bare `not.toThrow()` pins
+    // the one outcome "does not throw", `not.toThrow('msg')` rules one error out.
+    return bare === negated ? 'exact' : 'bounded';
   }
 
-  if (THROW_MATCHERS.includes(name)) {
-    return bare ? 'bounded' : 'exact';
+  if (negated) {
+    return NEGATION_PINS.includes(name) ? 'exact' : 'bounded';
   }
 
   return EXACT_MATCHERS.includes(name) ? 'exact' : 'bounded';

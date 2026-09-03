@@ -2,8 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   BOUNDED_MATCHERS, EXACT_MATCHERS, NEGATION_PINS, THROW_MATCHERS, countAssertions, countSkipFocus,
-  countTestBlocks, detectMatcherDowngrade, detectPrecisionWidening, detectWeakening, formatFinding,
-  matcherHistogram, matcherKind, parseNameStatus,
+  countTableRows, countTestBlocks, detectMatcherDowngrade, detectPrecisionWidening, detectWeakening,
+  formatFinding, matcherHistogram, matcherKind, parseNameStatus,
 } from '../lib/test-weakening.mjs';
 
 test('countAssertions counts expect() and assert/verify helpers', () => {
@@ -16,6 +16,9 @@ test('countSkipFocus counts .skip/.only and x/f prefixed forms', () => {
   assert.equal(countSkipFocus('it.only(() => {}); describe.skip(() => {});'), 2);
   assert.equal(countSkipFocus('xit("a"); fdescribe("b"); xdescribe("c");'), 3);
   assert.equal(countSkipFocus('it("normal", () => {});'), 0);
+  // A parameterized opener carries its modifier like any other.
+  assert.equal(countSkipFocus('it.only.each([[1]])("a", fn); test.skip.each([[1]])("b", fn);'), 2);
+  assert.equal(countSkipFocus('it.each([[1]])("a", fn);'), 0);
 });
 
 test('detectWeakening flags removed assertions', () => {
@@ -166,12 +169,20 @@ test('matcherKind classifies a label by table, by negation, and by a bare throw'
   assert.equal(matcherKind('not.toBeGreaterThan'), 'bounded');
   assert.equal(matcherKind('not.toHaveBeenCalled'), 'exact');
   assert.equal(matcherKind('not.toBeDefined'), 'exact');
-  // The throw family pins the error only when given an argument.
+  // The throw family pins the error only when given an argument, and negation
+  // flips the pair: a bare `not.toThrow()` pins the one outcome "does not
+  // throw" (220 calls in `handsontable/`, none with an argument), while
+  // `not.toThrow('msg')` rules one error out. The bare negation used to
+  // classify bounded, so a spec whose only matcher was `not.toThrow()` read as loose.
   assert.equal(matcherKind('toThrow'), 'exact');
   assert.equal(matcherKind('toThrowError'), 'exact');
   assert.equal(matcherKind('toThrowWithCause'), 'exact');
   assert.equal(matcherKind('toThrow()'), 'bounded');
-  assert.equal(matcherKind('not.toThrow()'), 'bounded');
+  assert.equal(matcherKind('toThrowError()'), 'bounded');
+  assert.equal(matcherKind('not.toThrow()'), 'exact');
+  assert.equal(matcherKind('not.toThrowError()'), 'exact');
+  assert.equal(matcherKind('not.toThrow'), 'bounded');
+  assert.equal(matcherKind('not.toThrowWithCause'), 'bounded');
   // Outside the tables: state-only Playwright assertions and unknown names.
   assert.equal(matcherKind('toBeVisible'), null);
   assert.equal(matcherKind('not.toBeVisible'), null);
@@ -334,6 +345,17 @@ test('detectMatcherDowngrade flags toHaveBeenCalledTimes → toHaveBeenCalled an
     kind: 'matcher-downgrade',
     exactDrops: [{ matcher: 'toThrow', from: 1, to: 0 }],
     boundedRises: [{ matcher: 'toThrow()', from: 0, to: 1 }],
+  });
+
+  // Under negation the pair flips: `not.toThrow()` pins "does not throw", and
+  // narrowing it to `not.toThrow('boom')` lets every other error through.
+  assert.deepEqual(detectMatcherDowngrade(
+    'expect(fn).not.toThrow();',
+    'expect(fn).not.toThrow(\'boom\');',
+  ), {
+    kind: 'matcher-downgrade',
+    exactDrops: [{ matcher: 'not.toThrow()', from: 1, to: 0 }],
+    boundedRises: [{ matcher: 'not.toThrow', from: 0, to: 1 }],
   });
 
   // The other direction tightens, and is not a finding.
@@ -508,6 +530,18 @@ test('detectPrecisionWidening never turns a scan it cannot trust into a finding'
     'expect(x).toBeCloseTo(width / 2, 2);',
   ), { kind: 'precision-widened', widenings: [{ from: 5, to: 2 }] }, 'division');
 
+  // A regex literal after a keyword (`return /x/`) is a regex start too, so the
+  // call is not judged — this shape used to invent a 5 → 2 widening — while an
+  // identifier that merely starts with a keyword still divides and is judged.
+  assert.equal(detectPrecisionWidening(
+    'expect(x).toBeCloseTo(y, 5);',
+    String.raw`expect(x).toBeCloseTo((() => { return /\)/.test(s) ? 1 : 2; })(), 5);`,
+  ), null, 'a bracket inside a regex literal after return');
+  assert.deepEqual(detectPrecisionWidening(
+    'expect(x).toBeCloseTo(newValue / 2, 5);',
+    'expect(x).toBeCloseTo(newValue / 2, 2);',
+  ), { kind: 'precision-widened', widenings: [{ from: 5, to: 2 }] }, 'an identifier starting with a keyword divides');
+
   // An unterminated comment never closes the list: null, never the default.
   assert.equal(detectPrecisionWidening(
     'expect(x).toBeCloseTo(y, 5);',
@@ -561,10 +595,87 @@ test('countTestBlocks counts every it/test opener form and ignores look-alikes',
   assert.equal(countTestBlocks(
     'it("a", fn); test("b", fn); xit("c", fn); fit("d", fn); it.skip("e", fn); test.only("f", fn);',
   ), 6);
+  assert.equal(countTestBlocks('test.concurrent.only("g", fn);'), 1, 'chained modifiers');
   // Member accesses, suites, and hooks are not test blocks.
   assert.equal(countTestBlocks('/re/.test(x); suite.it("a"); describe("d", fn); beforeEach(fn);'), 0);
+  assert.equal(countTestBlocks('test.describe("d", fn); test.beforeEach(fn);'), 0);
   assert.equal(countTestBlocks(''), 0);
   assert.equal(countTestBlocks(null), 0);
+});
+
+test('countTestBlocks counts a parameterized table by its rows, and a table it cannot read as one', () => {
+  // `it.each` used to match nothing: a spec made of tables counted zero blocks,
+  // deleting a table was invisible, and folding two `it()` into one table read
+  // as 2 → 0. A row is a top-level element of the array literal — the tests the
+  // runner registers — whatever its shape.
+  const table = `
+    it.each([
+      ['batched', true],
+      ['per-cell', false],
+      ['nested, with a comma', { rows: [1, 2] }],
+    ])('translates columns (%s path)', (_path, rowIndependent) => {
+      expect(read(rowIndependent)).toBe(1);
+    });
+  `;
+
+  assert.equal(countTestBlocks(table), 3);
+  assert.equal(countTestBlocks('test.each([1, 2])("n %s", fn);'), 2, 'primitive rows');
+  assert.equal(countTestBlocks('it.each([[1], [2],])("n %s", fn);'), 2, 'a trailing comma is not a row');
+  assert.equal(countTestBlocks('it.each([{ a: 1 }, { a: 2 }])("n $a", fn);'), 2, 'object rows');
+  assert.equal(countTableRows('[[1], [2], [3]])("n", fn)', 0), 3);
+  // Modifiers and prefixes ride along; `describe.each` is a suite, not a block,
+  // so the block inside it counts once.
+  assert.equal(countTestBlocks(
+    'xit.each([[1]])("a", fn); test.skip.each([[1]])("b", fn); test.concurrent.only.each([[1], [2]])("c", fn);',
+  ), 4);
+  assert.equal(countTestBlocks('describe.each([[1], [2]])("suite %s", (n) => { it("a", fn); });'), 1);
+  // A table the scanner cannot read as an array literal is the minimal claim: one block.
+  assert.equal(countTestBlocks('it.each(cases)("n %s", fn);'), 1, 'a variable');
+  assert.equal(countTestBlocks('it.each(rows.map(toCase))("n %s", fn);'), 1, 'a call');
+  assert.equal(countTestBlocks('it.each([[1], [2]'), 1, 'an unterminated table');
+  assert.equal(countTestBlocks('it.each([])("n", fn);'), 1, 'an empty table');
+  // Documented blind spot: a table written as a tagged template is not counted
+  // (the cell values, `${…}` expressions in a real table, are elided here).
+  assert.equal(countTestBlocks('it.each`\n  a | b\n  1 | 2\n`("n", fn);'), 0);
+});
+
+test('tests-removed is quiet when two it() fold into one two-row it.each table', () => {
+  // The refactor a reviewer wants left alone. Before the table counted by rows it
+  // read as test blocks 2 → 0. The assertion count is NOT row-aware — two
+  // `expect(` became one — so the count detector still reports; that is the
+  // documented price (module header).
+  const before = `
+    it('f(1)', () => { expect(f(1)).toBe(1); });
+    it('f(2)', () => { expect(f(2)).toBe(2); });
+  `;
+  const after = `
+    it.each([[1], [2]])('f(%s)', (n) => { expect(f(n)).toBe(n); });
+  `;
+
+  assert.equal(countTestBlocks(before), countTestBlocks(after));
+  assert.deepEqual(detectWeakening(before, after).findings.map(f => f.kind), ['assertions-removed']);
+});
+
+test('tests-removed flags a deleted it.each table, and a deleted row, beside a growing survivor', () => {
+  // The parameterized version of the deleted-`it()` shape: the failing coverage
+  // was a table (or one of its rows), and the survivor grew to keep the
+  // assertion count flat, so `assertions-removed` says nothing.
+  const before = `
+    it('a', () => { expect(a).toBe(1); });
+    it.each([[1], [2]])('f(%s)', (n) => { expect(f(n)).toBe(n); });
+  `;
+  const tableDeleted = `
+    it('a', () => { expect(a).toBe(1); expect(b).toBe(2); });
+  `;
+  const rowDeleted = `
+    it('a', () => { expect(a).toBe(1); });
+    it.each([[1]])('f(%s)', (n) => { expect(f(n)).toBe(n); });
+  `;
+
+  assert.equal(countAssertions(before), countAssertions(tableDeleted), 'premise: the assertion count is flat');
+  assert.deepEqual(detectWeakening(before, tableDeleted).findings, [{ kind: 'tests-removed', before: 3, after: 1 }]);
+  assert.equal(countAssertions(before), countAssertions(rowDeleted), 'premise: the assertion count is flat');
+  assert.deepEqual(detectWeakening(before, rowDeleted).findings, [{ kind: 'tests-removed', before: 3, after: 2 }]);
 });
 
 test('tests-removed is quiet when blocks are added or the spec is new', () => {

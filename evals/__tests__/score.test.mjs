@@ -14,6 +14,7 @@ import {
   runMutation,
   scoreTestSource,
 } from '../score.mjs';
+import { countTestBlocks } from '../../.github/scripts/lib/test-weakening.mjs';
 
 const MUTATION_STUB = { available: false, reason: 'stryker not installed' };
 
@@ -52,6 +53,39 @@ test('extractTestBlocks ignores describe, hooks, and member calls such as regex 
   `;
 
   assert.equal(extractTestBlocks(src).length, 0);
+});
+
+test('extractTestBlocks reads a parameterized it.each table as one titled block that runs one test per row', () => {
+  // With the opener matched, the table used to be read as the block's argument
+  // list — every `it.each` came back untitled and hollow. The title and body sit
+  // in the second call; `rows` carries the table's row count so the score's
+  // `tests` agrees with the detector's `countTestBlocks`.
+  const src = `
+    it.each([
+      ['batched', true],
+      ['per-cell', false],
+    ])('translates columns (%s path)', (_path, rowIndependent) => {
+      expect(read(rowIndependent)).toBe(1);
+      expect(blank(rowIndependent)).toBe(2);
+    });
+    describe.each([[1], [2]])('suite %s', (n) => {
+      it('plain', () => { expect(n).toBeGreaterThan(0); });
+    });
+    it.each(cases)('hollow %s', (n) => { run(n); });
+  `;
+  const blocks = extractTestBlocks(src);
+
+  assert.deepEqual(blocks.map(b => [b.marker, b.title, b.assertions, b.rows]), [
+    ['it.each', 'translates columns (%s path)', 2, 2],
+    ['it', 'plain', 1, 1],
+    ['it.each', 'hollow %s', 0, 1],
+  ]);
+
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.equal(score.tests, countTestBlocks(src));
+  assert.equal(score.tests, 4);
+  assert.deepEqual(score.hollowTests, ['hollow %s']);
 });
 
 test('hollow detection flags an it() without any assertion', () => {
@@ -254,6 +288,17 @@ test('loose-matchers-only stays quiet for a spec that pins a float with toBeClos
   const score = scoreTestSource(src, { mutation: MUTATION_STUB });
 
   assert.deepEqual(score.matchers, { exact: 0, bounded: 1 });
+  assert.deepEqual(score.warnings, []);
+});
+
+test('loose-matchers-only stays quiet for a spec whose only matcher is a bare not.toThrow()', () => {
+  // `expect(fn).not.toThrow()` pins the one outcome "does not throw", the way
+  // the NEGATION_PINS do. It used to classify bounded, so a spec that proved
+  // only that a call is safe read as loose.
+  const src = 'it("x", () => { expect(() => f()).not.toThrow(); });';
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.deepEqual(score.matchers, { exact: 1, bounded: 0 });
   assert.deepEqual(score.warnings, []);
 });
 
