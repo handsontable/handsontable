@@ -206,7 +206,7 @@ export class Filters extends BasePlugin {
   #previousConditionStack: ColumnConditions[] = [];
 
   /**
-   * Snapshot of [[#previousConditionStack]] at the start of [[filter]] when the DataProvider plugin is active.
+   * Snapshot of `#previousConditionStack` at the start of `filter()` when the DataProvider plugin is active.
    * Used to restore filter UI after `fetchRows` fails (the fetch request used the in-collection state; this holds the last committed stack).
    *
    * @type {Array}
