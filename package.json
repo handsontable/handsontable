@@ -104,7 +104,25 @@
       "cacache>tar": "^7.5.19",
       "typed-rest-client": "^3.1.0",
       "undici": "^6.28.0",
-      "@astrojs/mdx": "^6.0.1"
+      "@astrojs/mdx": "^6.0.1",
+      "brace-expansion@1": "^1.1.16",
+      "brace-expansion@2": "^2.1.2",
+      "brace-expansion@5": "^5.0.7",
+      "browserslist": "^4.28.7",
+      "fast-uri": "^3.1.6",
+      "http-proxy-middleware@3": "^3.0.7",
+      "immutable": "^5.1.8",
+      "js-yaml@3": "^3.15.1",
+      "js-yaml@4": "^4.3.1",
+      "nanoid@3": "^3.3.18",
+      "pacote": "^21.5.1",
+      "piscina@4": "^4.9.3",
+      "postcss": "^8.5.18",
+      "sharp": "^0.35.0",
+      "shell-quote": "^1.9.0",
+      "svgo@4": "^4.0.2",
+      "external-editor>tmp": "^0.2.6",
+      "vite@6": "^6.4.3"
     },
     "auditConfig": {
       "ignoreCves": [

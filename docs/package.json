@@ -68,7 +68,7 @@
   },
   "devDependencies": {
     "@octokit/rest": "^21.1.1",
-    "@playwright/test": "1.45.x",
+    "@playwright/test": "1.61.x",
     "@types/node": "^20.11.27",
     "@types/pikaday": "^1.7.10",
     "@types/react": "^18.3.31",
