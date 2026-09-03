@@ -2811,7 +2811,7 @@ describe('MergeCells', () => {
       expect(TD.getAttribute('colspan')).toBe('3');
     });
 
-    it('should keep a merge whole when a filter hides a row inside its span', async() => {
+    it('should shrink a merge to its visible rows when a filter hides a row inside its span', async() => {
       handsontable({
         data: createSpreadsheetData(10, 5),
         filters: true,
@@ -2825,6 +2825,16 @@ describe('MergeCells', () => {
 
       await render();
 
+      // a trimmed row has no visual index, so keeping `rowspan: 3` would make the merge reach past its
+      // own rows and onto the one below
+      expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 2, colspan: 3 }]);
+
+      filters.clearConditions();
+      filters.filter();
+
+      await render();
+
+      // the trimmed row is part of the merge again, so the full span comes back
       expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 3, colspan: 3 }]);
     });
 
@@ -2898,8 +2908,10 @@ describe('MergeCells', () => {
 
       const filters = getPlugin('filters');
 
-      // keep only the merge's rows (A5,A6,A7 -> physical 4,5,6), hiding everything above
-      filters.addCondition(0, 'by_value', [['A5', 'A6', 'A7']]);
+      // keep only the merge's rows (physical 4,5,6), hiding everything above. The condition reads
+      // column C, which the merge does not cover — merging cleared A6 and A7, so filtering column A by
+      // those values would hide two of the merge's own rows.
+      filters.addCondition(2, 'by_value', [['C5', 'C6', 'C7']]);
       filters.filter();
 
       await render();
@@ -3044,8 +3056,9 @@ describe('MergeCells', () => {
 
       await render();
 
-      // anchor row gone -> re-anchored to the topmost still-visible row of the span (physical 3 -> visual 0)
-      expect(merges()).toEqual([{ row: 0, col: 2, rowspan: 3, colspan: 3 }]);
+      // anchor row gone -> re-anchored to the topmost still-visible row of the span (physical 3 ->
+      // visual 0), spanning the two rows of the merge that are left
+      expect(merges()).toEqual([{ row: 0, col: 2, rowspan: 2, colspan: 3 }]);
 
       filters.clearConditions();
       filters.filter();
@@ -3222,6 +3235,233 @@ describe('MergeCells', () => {
 
       // the still-hidden merge must not reappear as a phantom footprint at its (shifted) stale coords
       expect(collection.get(merge.row, merge.col)).toBe(false);
+    });
+
+    it('should keep the rows a merge owns when a column is moved while a filter hides some of them',
+      async() => {
+        handsontable({
+          data: createSpreadsheetData(10, 5),
+          filters: true,
+          manualColumnMove: true,
+          mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 3 }], // physical rows 2,3,4
+        });
+        const filters = getPlugin('filters');
+
+        // hide A4 (physical row 3), inside the merge
+        filters.addCondition(0, 'by_value', [['A1', 'A2', 'A3', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']]);
+        filters.filter();
+
+        await render();
+
+        expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 2, colspan: 3 }]);
+
+        // a column move rebuilds every merge; the rows it owns must survive that
+        getPlugin('manualColumnMove').moveColumn(0, 4);
+
+        await render();
+
+        filters.clearConditions();
+        filters.filter();
+
+        await render();
+
+        // the trimmed row is back inside the merge, so the full span is restored
+        expect(merges()[0].rowspan).toBe(3);
+      });
+
+    it('should keep the rows a merge owns when a column is frozen while a filter hides some of them',
+      async() => {
+        handsontable({
+          data: createSpreadsheetData(10, 5),
+          filters: true,
+          manualColumnFreeze: true,
+          mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 3 }],
+        });
+        const filters = getPlugin('filters');
+
+        filters.addCondition(0, 'by_value', [['A1', 'A2', 'A3', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']]);
+        filters.filter();
+
+        await render();
+
+        getPlugin('manualColumnFreeze').freezeColumn(4);
+
+        await render();
+
+        filters.clearConditions();
+        filters.filter();
+
+        await render();
+
+        expect(merges()[0].rowspan).toBe(3);
+      });
+
+    it('should keep a merge that owns trimmed rows when the last of its visible rows is removed', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        trimRows: true,
+        mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 3 }], // physical rows 2,3,4
+      });
+      const trimRows = getPlugin('trimRows');
+
+      // leave only the merge's first row (physical 2) visible
+      trimRows.trimRows([3, 4]);
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 1, colspan: 3 }]);
+
+      // removing that one visible row must not take the two trimmed rows the merge still owns with it
+      await alter('remove_row', 2, 1);
+
+      expect(merges().length).toBe(1);
+
+      trimRows.untrimAll();
+
+      await render();
+
+      // the two rows the merge kept are visible again, and it spans exactly them
+      expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 2, colspan: 3 }]);
+    });
+  });
+
+  describe('nested rows — merge re-anchoring on collapse', () => {
+    const merges = () => getPlugin('mergeCells').mergedCellsCollection.mergedCells
+      .map(({ row, col, rowspan, colspan }) => ({ row, col, rowspan, colspan }));
+
+    // Four groups of a parent plus five children, each covered by a merge in the first column.
+    const nestedData = () => ['P0', 'P1', 'P2', 'P3'].map(category => ({
+      category,
+      __children: [0, 1, 2, 3, 4].map(index => ({ title: `${category} T${index}` })),
+    }));
+    const groupMerges = () => [0, 6, 12, 18].map(row => ({ row, col: 0, rowspan: 6, colspan: 1 }));
+
+    it('should shrink a merge to the collapsed parent row instead of overlapping the group below', async() => {
+      handsontable({
+        data: nestedData(),
+        nestedRows: true,
+        mergeCells: groupMerges(),
+      });
+
+      getPlugin('nestedRows').collapsingUI.collapseChildren(0);
+
+      await render();
+
+      // the collapsed group is one visible row, and the groups below keep their whole span at the
+      // visual positions they moved up to — no two merges claim the same row
+      expect(merges()).toEqual([
+        { row: 0, col: 0, rowspan: 1, colspan: 1 },
+        { row: 1, col: 0, rowspan: 6, colspan: 1 },
+        { row: 7, col: 0, rowspan: 6, colspan: 1 },
+        { row: 13, col: 0, rowspan: 6, colspan: 1 },
+      ]);
+
+      const collection = getPlugin('mergeCells').mergedCellsCollection;
+
+      expect(collection.get(0, 0)).toBe(collection.mergedCells[0]);
+      expect(collection.get(1, 0)).toBe(collection.mergedCells[1]);
+      expect(collection.get(6, 0)).toBe(collection.mergedCells[1]);
+    });
+
+    it('should restore every merge whole when the collapsed parent is expanded again', async() => {
+      handsontable({
+        data: nestedData(),
+        nestedRows: true,
+        mergeCells: groupMerges(),
+      });
+      const collapsingUI = getPlugin('nestedRows').collapsingUI;
+
+      collapsingUI.collapseChildren(0);
+
+      await render();
+
+      collapsingUI.expandChildren(0);
+
+      await render();
+
+      expect(merges()).toEqual(groupMerges());
+
+      // the rows the first merge covers again are marked as covered, not left as empty visible cells
+      expect(getCellMeta(0, 0).rowspan).toBe(6);
+      expect(getCellMeta(1, 0).hidden).toBe(true);
+      expect(getCellMeta(5, 0).hidden).toBe(true);
+      expect(getCellMeta(6, 0).rowspan).toBe(6);
+    });
+
+    it('should re-anchor correctly when two parents are collapsed and expanded in reverse order', async() => {
+      handsontable({
+        data: nestedData(),
+        nestedRows: true,
+        mergeCells: groupMerges(),
+      });
+      const collapsingUI = getPlugin('nestedRows').collapsingUI;
+
+      collapsingUI.collapseChildren(0);
+
+      await render();
+
+      collapsingUI.collapseChildren(6);
+
+      await render();
+
+      expect(merges()).toEqual([
+        { row: 0, col: 0, rowspan: 1, colspan: 1 },
+        { row: 1, col: 0, rowspan: 1, colspan: 1 },
+        { row: 2, col: 0, rowspan: 6, colspan: 1 },
+        { row: 8, col: 0, rowspan: 6, colspan: 1 },
+      ]);
+
+      collapsingUI.expandChildren(6);
+
+      await render();
+
+      expect(merges()).toEqual([
+        { row: 0, col: 0, rowspan: 1, colspan: 1 },
+        { row: 1, col: 0, rowspan: 6, colspan: 1 },
+        { row: 7, col: 0, rowspan: 6, colspan: 1 },
+        { row: 13, col: 0, rowspan: 6, colspan: 1 },
+      ]);
+
+      collapsingUI.expandChildren(0);
+
+      await render();
+
+      expect(merges()).toEqual(groupMerges());
+    });
+
+    it('should not restore a one-cell merge when an unmerge done on a collapsed group is undone', async() => {
+      handsontable({
+        data: nestedData(),
+        nestedRows: true,
+        mergeCells: groupMerges(),
+        undo: true,
+      });
+      const mergeCells = getPlugin('mergeCells');
+
+      getPlugin('nestedRows').collapsingUI.collapseChildren(0);
+
+      await render();
+
+      // the collapsed group draws as one cell, so this is what the undo action records
+      mergeCells.unmerge(0, 0, 0, 0);
+
+      await render();
+
+      expect(merges().length).toBe(3);
+
+      getPlugin('undoRedo').undo();
+
+      await render();
+
+      // a one-cell area is not a merge. Re-creating it would shrink a six-row merge to a single row
+      // for good — visible only once the group is expanded again — so the undo restores nothing.
+      expect(merges().length).toBe(3);
+
+      getPlugin('nestedRows').collapsingUI.expandChildren(0);
+
+      await render();
+
+      expect(merges()).toEqual(groupMerges().slice(1));
     });
   });
 });

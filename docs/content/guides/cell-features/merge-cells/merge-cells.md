@@ -452,6 +452,18 @@ When a merged cell's underlying rows or columns are reordered (through [`manualC
 
 [`undo`](@/api/options.md#undo) and [`redo`](@/api/options.md#redo) restore the pre-move state, including any merges that were split or dropped by the reorder.
 
+## Behavior when rows inside a merge are removed from view
+
+Some features remove rows from the grid entirely: [`filters`](@/api/options.md#filters), [`trimRows`](@/api/options.md#trimrows), and collapsing a parent row of [`nestedRows`](@/api/options.md#nestedrows). A removed row has no position in the grid at all, so a merged cell that covers one spans fewer rows than it did:
+
+- The merged cell moves to the first of its rows that is still shown, and spans only the rows of its own that remain. It never grows over the rows below it.
+- When none of its rows is shown, the merged cell is not displayed.
+- When the rows come back, the merged cell spans them again. Nothing about the merge is lost while its rows are away. A merged cell you create while rows are already removed from view covers only the rows you could see, and does not grow when the rest come back.
+
+[`hiddenRows`](@/api/options.md#hiddenrows) works differently. A hidden row keeps its position, so a merged cell spanning one keeps its configured `rowspan` and simply draws over less space.
+
+One limitation applies to [`undo`](@/api/options.md#undo). Unmerging a merged cell whose rows are all hidden but one records only the single cell you can see, which is not a merged cell, so undoing that unmerge restores nothing. Expand or unfilter the rows first if you want the unmerge to be reversible.
+
 ## Result
 
 Cells at the configured positions are now merged. Users see a single cell spanning multiple rows or columns.

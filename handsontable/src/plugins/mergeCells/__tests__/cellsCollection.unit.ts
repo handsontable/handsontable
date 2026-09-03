@@ -944,6 +944,50 @@ describe('MergeCells', () => {
         expect(collection.get(0, 3)).toBe(mergeA);
       });
 
+      it('should shrink the footprint when the relocation carries a smaller row span', () => {
+        const collection = new MergedCellsCollection({ hot: hotMock });
+        const merge = collection.add({ row: 0, col: 0, rowspan: 3, colspan: 2 }); // (0,0)-(2,1)
+
+        // two of the merge's three rows were trimmed away
+        collection.relocateInMatrix([{ mergedCell: merge, row: 0, col: 0, rowspan: 1 }]);
+
+        expect(merge.rowspan).toBe(1);
+        expect(collection.get(0, 0)).toBe(merge);
+
+        // the rows the merge no longer occupies are free for whatever surfaces there
+        expect(collection.get(1, 0)).toBe(false);
+        expect(collection.get(2, 0)).toBe(false);
+      });
+
+      it('should grow the footprint when the relocation carries a larger row span', () => {
+        const collection = new MergedCellsCollection({ hot: hotMock });
+        const merge = collection.add({ row: 0, col: 0, rowspan: 1, colspan: 2 });
+
+        // the trimmed rows became visible again
+        collection.relocateInMatrix([{ mergedCell: merge, row: 0, col: 0, rowspan: 3 }]);
+
+        expect(merge.rowspan).toBe(3);
+        expect(collection.get(1, 1)).toBe(merge);
+        expect(collection.get(2, 1)).toBe(merge);
+      });
+
+      it('should not let a shrinking merge leave a footprint on top of the merge below it', () => {
+        const collection = new MergedCellsCollection({ hot: hotMock });
+        const mergeA = collection.add({ row: 0, col: 0, rowspan: 3, colspan: 1 }); // (0,0)-(2,0)
+        const mergeB = collection.add({ row: 3, col: 0, rowspan: 3, colspan: 1 }); // (3,0)-(5,0)
+
+        // A's last two rows were trimmed away, so B moves up into the space they occupied
+        collection.relocateInMatrix([
+          { mergedCell: mergeA, row: 0, col: 0, rowspan: 1 },
+          { mergedCell: mergeB, row: 1, col: 0, rowspan: 3 },
+        ]);
+
+        expect(collection.get(0, 0)).toBe(mergeA);
+        expect(collection.get(1, 0)).toBe(mergeB);
+        expect(collection.get(2, 0)).toBe(mergeB);
+        expect(collection.get(3, 0)).toBe(mergeB);
+      });
+
       it('should leave the matrix unchanged for an empty relocation list', () => {
         const collection = new MergedCellsCollection({ hot: hotMock });
         const merge = collection.add({ row: 0, col: 0, rowspan: 2, colspan: 2 });
