@@ -46,6 +46,12 @@ interface MetaManagerLocalHooks {
  */
 export default class MetaManager {
   /**
+   * Counts structural changes (row and column inserts and removes). Read through
+   * `getStructureVersion()`.
+   */
+  #structureVersion = 0;
+
+  /**
    * The Handsontable instance passed to this manager on construction.
    */
   declare hot: unknown;
@@ -388,6 +394,22 @@ export default class MetaManager {
   }
 
   /**
+   * Returns a counter that changes whenever rows or columns are inserted or removed. A cell's
+   * physical coordinates are only meaningful for one value of it: `LazyFactoryMap` re-keys the
+   * stored meta objects on a structural change, but the `row`/`col` fields stamped on those objects
+   * are not rewritten, so a pair captured before the change can name a different cell after it.
+   *
+   * An async validation flow captures this at the start and compares it when the result arrives, so
+   * that a result whose coordinates can no longer be trusted is dropped rather than written onto the
+   * wrong cell.
+   *
+   * @returns {number}
+   */
+  getStructureVersion() {
+    return this.#structureVersion;
+  }
+
+  /**
    * Returns the physical coordinates of every cell whose last validation failed. The validation flow
    * writes `valid` directly onto the meta object, so `getUserDefinedCellMetas` does not cover it.
    * Used to preserve the invalid-cell highlight across a `clearCache` call during `updateSettings`.
@@ -430,6 +452,7 @@ export default class MetaManager {
    * @param {number} [amount=1] An amount of rows to add.
    */
   createRow(physicalRow: number | null, amount = 1) {
+    this.#structureVersion += 1;
     this.cellMeta.createRow(physicalRow, amount);
   }
 
@@ -440,6 +463,7 @@ export default class MetaManager {
    * @param {number} [amount=1] An amount rows to remove.
    */
   removeRow(physicalRow: number, amount = 1) {
+    this.#structureVersion += 1;
     this.cellMeta.removeRow(physicalRow, amount);
   }
 
@@ -451,6 +475,7 @@ export default class MetaManager {
    * @param {number} [amount=1] An amount of columns to add.
    */
   createColumn(physicalColumn: number | null, amount = 1) {
+    this.#structureVersion += 1;
     this.cellMeta.createColumn(physicalColumn, amount);
     this.columnMeta.createColumn(physicalColumn, amount);
   }
@@ -462,6 +487,7 @@ export default class MetaManager {
    * @param {number} [amount=1] An amount of columns to remove.
    */
   removeColumn(physicalColumn: number, amount = 1) {
+    this.#structureVersion += 1;
     this.cellMeta.removeColumn(physicalColumn, amount);
     this.columnMeta.removeColumn(physicalColumn, amount);
   }

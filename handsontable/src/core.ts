@@ -2347,6 +2347,8 @@ export default function Core(
         /* eslint-disable no-loop-func */
         waitingForValidator.addValidatorToQueue();
 
+        const structureVersion = metaManager.getStructureVersion();
+
         instance.validateCell(newValue, cellProperties, (function(index, cellPropertiesReference) {
           return function(result: boolean) {
             if (typeof result !== 'boolean') {
@@ -2361,7 +2363,7 @@ export default function Core(
               cellPropertiesReference.valid = true;
               // ...and the stored meta has to hear about it too, or a cache clear that landed while
               // the validator was running leaves the kept value wearing the rejected edit's mark.
-              persistValidationResult(cellPropertiesReference, true);
+              persistValidationResult(cellPropertiesReference, true, structureVersion);
             }
 
             waitingForValidator.removeValidatorFormQueue();
@@ -2534,13 +2536,27 @@ export default function Core(
    * it has to be rendered. Physical coordinates come off the meta object itself rather than being
    * re-derived from the visual ones, which a row insert or move in the same window would shift.
    *
+   * The coordinates are only usable while the grid's structure has not moved. `LazyFactoryMap`
+   * re-keys stored meta objects when rows or columns are inserted or removed, but the `row`/`col`
+   * fields stamped on those objects are not rewritten - so a pair captured before such a change can
+   * name a different cell after it, and writing through would flag a cell the user never touched.
+   * `structureVersion` is captured when validation starts; when it has moved, the result is dropped
+   * rather than written somewhere it does not belong. The direct write on the captured object still
+   * happened, and that object follows the shift on its own.
+   *
    * @param {object} cellProperties The cell meta object the validator was handed.
    * @param {boolean} valid The validation result to persist.
+   * @param {number} structureVersion The structure version captured when validation started.
    */
   function persistValidationResult(
     cellProperties: Record<string, unknown> & { row?: number, col?: number, visualRow?: number, visualCol?: number },
-    valid: boolean
+    valid: boolean,
+    structureVersion: number
   ) {
+    if (metaManager.getStructureVersion() !== structureVersion) {
+      return;
+    }
+
     const physicalRow = cellProperties.row;
     const physicalColumn = cellProperties.col;
 
@@ -2636,6 +2652,10 @@ export default function Core(
 
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, colArg, source);
 
+      // Captured before the validator runs, so the callback can tell whether the cell's coordinates
+      // still mean what they meant when it started.
+      const structureVersion = metaManager.getStructureVersion();
+
       // To provide consistent behavior, validation should be always asynchronous
       instance._registerMicrotask(() => {
         validator.call(cellProperties, value, (valid: boolean) => {
@@ -2647,7 +2667,7 @@ export default function Core(
             .runHooks('afterValidate', valid, value, cellProperties.visualRow, colArg, source);
           cellProperties.valid = valid;
 
-          persistValidationResult(cellProperties, valid);
+          persistValidationResult(cellProperties, valid, structureVersion);
 
           done(valid);
           instance.runHooks(
