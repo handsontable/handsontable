@@ -77,12 +77,15 @@ Full discipline: the `test-writing-discipline` skill.
 
 When automated coverage genuinely cannot judge a change (subtle UX, a visual
 nuance no snapshot covers, a high-risk area — or a QA-owned pass such as an
-RC adversarial sweep or a screen-reader check), tick **"MANUAL QA NEEDED"**
+RC adversarial sweep or a screen-reader check), tick **"Manual QA Needed"**
 in the PR description (author or agent may tick it; the template carries the
-line, and its wording is machine-read — keep it verbatim) and say in one line
-what to check, and add the red **`Manual QA required`** label so the request
-is visible in the PR list (applied by hand, like every other label here — the
-`pr-creation` skill instructs it; it is a marker, never the trigger). The
+bare line, and its wording is machine-read — keep it verbatim; say what to
+check in the Context section) and apply the red **`Requires Manual QA`**
+label — by hand, like every other label here (`gh pr create --label
+"Requires Manual QA"`; the `pr-creation` skill instructs it). The label is a
+marker, never the trigger, but its presence is **enforced**: the Checks
+module's `manual-qa label` job fails a same-repo PR that ticks the box
+without it. The
 Checks scope router
 reads the box live and routes the Manual QA module only when ticked; its
 `sign-off` job then waits on the **`manual-qa` environment approval**: a

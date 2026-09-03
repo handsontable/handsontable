@@ -50,7 +50,7 @@ jobs:
     secrets: inherit
 
   # The tracked human exception — a manual gate armed by ticking
-  # "MANUAL QA NEEDED" in the PR description (read live by the Checks
+  # "Manual QA Needed" in the PR description (read live by the Checks
   # scope router). Runs ONLY when ticked: the sign-off job then waits on the
   # `manual-qa` environment approval, holding this module in progress so CI
   # Gate (which needs it) cannot report — the merge stays blocked without any
