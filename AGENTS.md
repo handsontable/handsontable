@@ -147,8 +147,12 @@ These standards apply to **all** documentation across the monorepo — guides, t
 
 ### Branch naming
 
-- Feature branches: `feature/issue-xxxx` (e.g., `feature/issue-9024`)
-- Documentation branches: `docs/issue-xxxx` (e.g., `docs/issue-9024`)
+Almost all work is tracked in ClickUp, so the ClickUp form is the default. Put the human-readable custom ID (`DEV-458`, `SU-833`, `PRO-858`, never the internal ClickUp hash) in the branch name so ClickUp links the branch automatically. Most work sits in the `DEV` space, but other spaces keep their own prefix, so copy the ID the task actually carries rather than assuming `DEV`. Separate the ID from the description with an underscore, and use hyphens inside the description.
+
+- Feature branches: `feature/<TASK-ID>_Short-Description` (e.g., `feature/DEV-2740_ResizeObserver-loop-guard`)
+- Documentation branches: `docs/<TASK-ID>_Short-Description` (e.g., `docs/SU-833_BeforeKeyDown-Return-False-Note`)
+
+For the rarer case of work tracked in a public GitHub issue rather than ClickUp, use `feature/issue-xxxx` for code and `docs/issue-xxxx` for documentation (e.g., `feature/issue-11832`).
 
 (Release and LTS branches are maintainer-managed; the `pr-creation` skill has the full convention.)
 
