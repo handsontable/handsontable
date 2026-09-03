@@ -56,6 +56,29 @@ mirroring the old comparison against `undefined`.
 - **The `TR` `background` property is modified so it can be changed asynchronously later.** Only the alpha
   changes, so it is invisible — the TDs' own background covers it. Do not remove it as dead styling.
 
+## The init draw is batched, and two things about it are load-bearing
+
+`#onAfterInit` applies the declared merges inside `hot.batchRender()` (#5687). Before that it drew the
+grid twice — `generateFromSettings()` clears the cells each area covers through `setDataAtCell()`, which
+renders, and the handler then rendered again. Three rules come out of it, and each has a measured reason.
+
+- **Keep the explicit `this.hot.render()` inside the batch.** `resumeRender()` draws through
+  `TableView#render`, which picks fast-vs-full from `hot.forceFullRender`, and only `Core#render` sets that
+  flag. `generateFromSettings()` returns early without writing anything when every covered cell is already
+  `null`, so without the explicit call the batched draw can be a *fast* one — it skips the cell renderers,
+  and the spans never appear.
+- **Never gate that render on "the clearing write already rendered."** Put an async `validator` on any
+  column and the clearing write's own draw lands *after* `afterInit` returns, which **reverses** the order
+  of the two init draws: the handler's render becomes the one that puts the merges on screen. Gating on the
+  write would leave such a grid unmerged until validation resolves.
+- **Skip the work entirely when no area is declared.** `mergeCells: true` with no `cells` has nothing to
+  apply, and the initial render already shows the final grid, so a draw there repaints an identical table.
+  `batchRender()` always draws on resume, so this has to be a check *around* it, not inside.
+
+Coverage: `tests/e2e/merge-cells-init-renders.spec.ts` pins the counts and the async-validator ordering.
+`updatePlugin()` is a separate path and is deliberately untouched — `updateSettings()` renders at the end
+regardless.
+
 ## `cellCoords.ts` handles six structural cases
 
 Adding rows/columns, removing rows/columns, removing the whole merge, removing partially-including-the-start,

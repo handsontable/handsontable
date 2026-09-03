@@ -778,10 +778,24 @@ export class MergeCells extends BasePlugin {
 
   /**
    * `afterInit` hook callback.
+   *
+   * Applying the declared merges used to draw the grid twice: `generateFromSettings()` clears the
+   * cells each area covers through `setDataAtCell()`, which renders on its own, and the merge then
+   * needs a render of its own to span them. Batching collapses the two into a single draw. With no
+   * declared area there is nothing to apply, so the initial render already shows the final grid and
+   * any draw here would repaint an identical table (#5687).
    */
   #onAfterInit = () => {
-    this.generateFromSettings();
-    this.hot.render();
+    if (this.getSetting<unknown[]>('cells').length > 0) {
+      this.hot.batchRender(() => {
+        this.generateFromSettings();
+        // Load-bearing: `resumeRender()` draws through the view, which picks fast-vs-full from
+        // `forceFullRender`, and only `Core#render` sets it. Without this the batched draw can be
+        // a fast one, which skips the cell renderers that apply the spans.
+        this.hot.render();
+      });
+    }
+
     this.#initialized = true;
     this.#captureMergeAnchors();
   };
