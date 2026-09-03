@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a bug where the column summary treated a cell holding an empty string as the number zero, so a blank cell changed the result. The `min`, `max`, `count`, and `average` summaries now skip a cell that is empty or holds only whitespace, matching what the `forceNumeric` option already did, and what a cell cleared with the Delete key already did. Cells holding `true` or `false` still count, so a `sum` summary over a checkbox column keeps counting the ticked boxes.",
+  "type": "fixed",
+  "issueOrPR": 13363,
+  "breaking": false,
+  "framework": "none"
+}
