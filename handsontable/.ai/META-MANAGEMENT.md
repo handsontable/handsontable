@@ -108,6 +108,22 @@ Verified method names and signatures (`index.ts`):
 | `removeColumn(physicalColumn, amount = 1)` | `(number, number)` | void. Removes from both cell-meta and column-meta storage. |
 | `clearCellsCache()` | — | void. Drops all cell meta objects. Keeps column, table, and global meta. |
 | `clearCache()` | — | void. Drops all cell and column meta objects. |
+| `getUserDefinedCellMetas()` | — | Flat snapshot of every property set imperatively through `setCellMeta`, by physical coordinates. |
+| `getCellOptionCellMetas()` | — | Flat snapshot of every property applied from the declarative `cell` option, by physical coordinates. |
+| `startCellOptionMetaRecording()` / `endCellOptionMetaRecording()` | — | void. Opens/closes a scope in which `setCellMeta` writes are filed as applied from the `cell` option. Nests. |
+| `enableUserDefinedMetaRecording()` / `disableUserDefinedMetaRecording()` | — | void. Resumes/suspends filing `setCellMeta` writes as imperative. Nests. |
+
+### What survives an `updateSettings` cache clear
+
+`updateSettings` calls `clearCache()` whenever `columns`, `cells`, or `cell` is passed, then replays part of what it dropped. Which part depends on the recording scope that was open when the value was written — every `setMeta` write belongs to exactly one origin, and the newest write for a key decides which:
+
+| Origin | Scope open at write time | Bookkeeping set | Survives the clear |
+|---|---|---|---|
+| Imperative `setCellMeta` | none | `_userDefinedMetaProps` | yes — replayed |
+| Declarative `cell` option | `startCellOptionMetaRecording()` | `_cellOptionMetaProps` | yes — replayed, unless the call restates `cell` |
+| Plugin-declarative (`Core#_setCellMetaDeclarative`) | `disableUserDefinedMetaRecording()` | none | no — dropped, and the plugin re-applies it |
+
+Both replays run before the `columns` and `cell` re-application, and use the physical coordinates read from the storage keys — so a value returns to the record it was resolved to, not to whatever record now sits at the same visual position. Restating `cell` replaces every previously declared entry (`cell: []` removes them all), which is why its bucket is skipped on those calls.
 
 `MetaManager` mixes in `localHooks` (`mixin(MetaManager, localHooks)`), so it exposes `addLocalHook`, `removeLocalHook`, `runLocalHooks`, and `clearLocalHooks`. The dynamic-meta modifier uses these.
 
