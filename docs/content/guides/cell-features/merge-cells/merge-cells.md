@@ -494,3 +494,5 @@ Cells at the configured positions are now merged. Users see a single cell spanni
 - [MergeCells](@/api/mergeCells.md)
 
 </div>
+
+Microsoft and Excel are registered trademarks of Microsoft Corporation. Google Sheets is a trademark of Google LLC.

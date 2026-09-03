@@ -17,7 +17,7 @@ import { getStyle } from '../../helpers/dom/element';
 import { isChrome } from '../../helpers/browser';
 import { FocusOrder, type FocusNodeData } from './focusOrder';
 import { createMergeCellRenderer } from './renderer';
-import { getRangeFromChanges, sumCellsHeights, toMergeAreaKey } from './utils';
+import { sumCellsHeights, toMergeAreaKey } from './utils';
 import { toMergeAreaRange, type MergeAreaGeometry } from '../../utils/mergeAreas';
 import type { CellChange } from '../../settings';
 
@@ -2048,35 +2048,58 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    this.#pasteUnmergeSnapshot = this.#collectMergesWithinChanges(changes);
+    this.#pasteUnmergeSnapshot = this.#collectMergesFromChanges(changes);
   };
 
   /**
-   * Collects every merge area that overlaps the rectangle a set of changes covers.
+   * Resolves one change entry to the merge area it writes into, or `false` when it writes into
+   * none. Entries another `beforeChange` listener nulled out address no cell and resolve to
+   * `false`.
    *
-   * `countPartials` is on deliberately: a paste writes `max(clipboard extent, selection extent)`,
-   * so the written rectangle can reach past the selection and clip a merge whose top-left corner
-   * the selection never touched. The default, anchor-only match would miss exactly those.
+   * @param {Array} change One `[row, prop, ...]` change entry, or `null`.
+   * @returns {MergedCellCoords|false} The merge area covering the change, or `false`.
+   */
+  #mergeAtChange(change: CellChange | null) {
+    if (!Array.isArray(change)) {
+      return false;
+    }
+
+    const [row, prop] = change;
+    // A `columns[].data` accessor function reaches `prop` as the function itself, which
+    // `propToCol` cannot resolve. Core normalizes the change tuple the same way at every read
+    // site (`core.ts` `processChanges`, `applyChanges`).
+    const column = this.hot.propToCol(prop as string | number);
+
+    return this.mergedCellsCollection.get(row, column);
+  }
+
+  /**
+   * Collects every merge area that a set of changes actually writes into.
+   *
+   * Each change is resolved individually rather than through the rectangle they span, because a
+   * merge can sit inside that rectangle and still receive nothing: `populateFromArray` drops the
+   * change for every cell that is `readOnly`, `skipRowOnPaste` or `skipColumnOnPaste`, so a merge
+   * covering only such cells would be dropped with no value written into it. Resolving per change
+   * still catches a merge that the write only clips, because `MergedCellsCollection#get` matches
+   * from any covered cell and not just the top-left one.
    *
    * @param {Array} changes The changes array.
    * @returns {Array} Array of `{ row, col, rowspan, colspan }` objects.
    */
-  #collectMergesWithinChanges(changes: (CellChange | null)[]): MergeAreaGeometry[] {
-    // A listener ahead of this one may have nulled every entry to veto the write. There are no
-    // coordinates left to measure, and `getRangeFromChanges` would fall back to the origin - which
-    // would snapshot whatever merge covers A1.
-    if (!changes.some(change => Array.isArray(change))) {
-      return [];
-    }
+  #collectMergesFromChanges(changes: (CellChange | null)[]): MergeAreaGeometry[] {
+    const found = new Map<MergedCellCoords, MergeAreaGeometry>();
 
-    const { from, to } = getRangeFromChanges(this.hot, changes);
-    const topStart = this.hot._createCellCoords(from.row, from.column);
-    const bottomEnd = this.hot._createCellCoords(to.row, to.column);
-    const range = this.hot._createCellRange(topStart, topStart, bottomEnd);
+    changes.forEach((change) => {
+      const mergedCell = this.#mergeAtChange(change);
 
-    return this.mergedCellsCollection
-      .getWithinRange(range, true)
-      .map(({ row, col, rowspan, colspan }) => ({ row, col, rowspan, colspan }));
+      if (mergedCell !== false && !found.has(mergedCell)) {
+        const { row, col, rowspan, colspan } = mergedCell;
+
+        found.set(mergedCell, { row, col, rowspan, colspan });
+      }
+    });
+
+    return [...found.values()];
   }
 
   /**
@@ -2089,16 +2112,15 @@ export class MergeCells extends BasePlugin {
    */
   #discardChangesOnCoveredCells(changes: (CellChange | null)[]) {
     changes.forEach((change, index) => {
-      if (!Array.isArray(change)) {
+      const mergedCell = this.#mergeAtChange(change);
+
+      if (mergedCell === false) {
         return;
       }
 
-      const [row, prop] = change;
-      // See `getRangeFromChanges` in `./utils` for why the prop is normalized this way.
-      const column = this.hot.propToCol(prop as string | number);
-      const mergedCell = this.mergedCellsCollection.get(row, column);
+      const [row, prop] = change as CellChange;
 
-      if (mergedCell !== false && (mergedCell.row !== row || mergedCell.col !== column)) {
+      if (mergedCell.row !== row || mergedCell.col !== this.hot.propToCol(prop as string | number)) {
         changes[index] = null;
       }
     });
@@ -2142,12 +2164,19 @@ export class MergeCells extends BasePlugin {
     }
 
     // `unmergeRange` renders on its own, so a multi-merge paste would otherwise redraw once per
-    // merge.
-    this.hot.batchRender(() => {
+    // merge. `batchRender` cannot be used: it has no `try`/`finally`, and `unmergeRange` runs the
+    // `beforeUnmergeCells`/`afterUnmergeCells` hooks whether `auto` is set or not (`auto` is only
+    // forwarded to them). `runHooks` does not catch, so one throwing listener would skip
+    // `resumeRender()` and the grid would never draw again.
+    this.hot.suspendRender();
+
+    try {
       snapshot.forEach((mergeArea) => {
         this.unmergeRange(toMergeAreaRange(this.hot, mergeArea), true);
       });
-    });
+    } finally {
+      this.hot.resumeRender();
+    }
   }
 
   /**

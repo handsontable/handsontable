@@ -2030,6 +2030,59 @@ describe('MergeCells', () => {
       expect(getCellMeta(5, 7).hidden).toBe(true);
     });
 
+    // `populateFromArray` drops the change for every cell that is `readOnly`, `skipRowOnPaste` or
+    // `skipColumnOnPaste`, so a merged range covering only such cells receives nothing at all -
+    // even while it sits inside the rectangle the surviving changes span. Matching the real change
+    // coordinates rather than that rectangle is what keeps it merged.
+    it('should keep a merged cell that the paste skipped entirely (skipColumnOnPaste)', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        // Column 7 is skipped on paste; the merge spans only that column.
+        columns: Array.from({ length: 10 }, (_, column) => (
+          column === 7 ? { skipColumnOnPaste: true } : {}
+        )),
+        mergeCells: [
+          { row: 5, col: 7, rowspan: 2, colspan: 1 }, // H6:H7
+        ],
+      });
+
+      await selectCell(5, 6);
+
+      // A 2x3 block anchored at G6 spans columns 6, 7 and 8 - but nothing is written into 7.
+      await pasteAndSettle('P\tQ\tR\nS\tT\tU');
+
+      const { mergedCells } = getPlugin('mergeCells').mergedCellsCollection;
+
+      expect(mergedCells.length).toBe(1);
+      expect(mergedCells[0].col).toBe(7);
+      // The skipped column keeps both its value and its covered cell.
+      expect(getDataAtCell(5, 7)).toBe('H6');
+      expect(getDataAtCell(6, 7)).toBe(null);
+      expect(getCellMeta(6, 7).hidden).toBe(true);
+      // The columns either side did receive the paste.
+      expect(getDataAtCell(5, 6)).toBe('P');
+      expect(getDataAtCell(5, 8)).toBe('Q');
+    });
+
+    it('should keep a merged cell built entirely of read-only cells', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        columns: Array.from({ length: 10 }, (_, column) => (
+          column === 7 ? { readOnly: true } : {}
+        )),
+        mergeCells: [
+          { row: 5, col: 7, rowspan: 2, colspan: 1 }, // H6:H7
+        ],
+      });
+
+      await selectCell(5, 6);
+
+      await pasteAndSettle('P\tQ\tR\nS\tT\tU');
+
+      expect(getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toBe(1);
+      expect(getDataAtCell(5, 7)).toBe('H6');
+    });
+
     it('should leave the collection untouched when the pasted area touches no merged cell', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),

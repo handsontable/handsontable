@@ -124,15 +124,22 @@ export function remergeCellsGeometryOnly(hot: HotInstance, mergedCells: MergedCe
     return;
   }
 
-  // `unmergeRange` renders on its own, so without batching an N-merge undo redraws N times.
-  hot.batchRender(() => {
+  // `unmergeRange` renders on its own, so without suspending, an N-merge undo redraws N times.
+  // `batchRender` cannot be used: it has no `try`/`finally`, and both `unmergeRange` and
+  // `mergeRange` run their hooks whether `auto` is set or not. One throwing user listener would
+  // otherwise skip `resumeRender()` and leave the grid permanently undrawn.
+  hot.suspendRender();
+
+  try {
     mergedCells.forEach((mergedCell: MergedCell) => {
       const range = toMergeAreaRange(hot, mergedCell);
 
       mergeCellsPlugin.unmergeRange(range, true);
       mergeCellsPlugin.mergeRange(range, true, true);
     });
-  });
+  } finally {
+    hot.resumeRender();
+  }
 
   hot.render();
 }
@@ -154,12 +161,16 @@ export function unmergeCellsGeometryOnly(hot: HotInstance, mergedCells: MergedCe
     return;
   }
 
-  // Same batching as above - `unmergeRange` renders per call.
-  hot.batchRender(() => {
+  // Same suspend-in-`finally` as above, and for the same reason.
+  hot.suspendRender();
+
+  try {
     mergedCells.forEach((mergedCell: MergedCell) => {
       mergeCellsPlugin.unmergeRange(toMergeAreaRange(hot, mergedCell), true);
     });
-  });
+  } finally {
+    hot.resumeRender();
+  }
 }
 
 /**
