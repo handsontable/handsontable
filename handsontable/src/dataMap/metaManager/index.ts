@@ -394,14 +394,19 @@ export default class MetaManager {
   }
 
   /**
-   * Returns a counter that changes whenever rows or columns are inserted or removed. A cell's
-   * physical coordinates are only meaningful for one value of it: `LazyFactoryMap` re-keys the
-   * stored meta objects on a structural change, but the `row`/`col` fields stamped on those objects
-   * are not rewritten, so a pair captured before the change can name a different cell after it.
+   * Returns a counter that changes whenever a captured cell coordinate pair stops meaning what it
+   * meant. Two things do that: a row or column insert or remove, because `LazyFactoryMap` re-keys the
+   * stored meta objects while the `row`/`col` fields stamped on them are not rewritten; and
+   * `clearCellsCache()`, because `loadData` replaces the whole dataset behind those coordinates and
+   * is documented to reset cell state.
    *
    * An async validation flow captures this at the start and compares it when the result arrives, so
    * that a result whose coordinates can no longer be trusted is dropped rather than written onto the
-   * wrong cell.
+   * wrong cell - or onto data that has since been replaced.
+   *
+   * `clearCache()` deliberately does NOT bump it. That is the `updateSettings` path, where the rows
+   * and the data stay put and `restoreInvalidCellMetas()` puts the marks back, so an in-flight result
+   * still belongs to the cell it was started for.
    *
    * @returns {number}
    */
@@ -524,6 +529,9 @@ export default class MetaManager {
    * Clears all saved cell meta objects. It keeps column meta, table meta, and global meta intact.
    */
   clearCellsCache() {
+    // `loadData` replaces the dataset behind every cell, so a coordinate pair captured before this
+    // no longer names the same data - see `getStructureVersion()`.
+    this.#structureVersion += 1;
     this.cellMeta.clearCache();
   }
 

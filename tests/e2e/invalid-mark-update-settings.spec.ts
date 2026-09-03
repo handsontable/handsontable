@@ -166,6 +166,18 @@ test.describe('invalid mark across updateSettings', () => {
     expect(await grid.cellValidFlag(3, 0)).not.toBe('false');
   });
 
+  test('does not mark a cell when loadData resets the grid while the validator runs', async () => {
+    // `loadData` is documented to reset cell state, and it replaces the data behind every
+    // coordinate. A result that arrives afterwards belongs to data that is gone, so it must not be
+    // written through - it would re-mark a cell the reset just cleared.
+    await grid.setDataAtCell(0, 0, 'nope');
+    await grid.loadFreshData();
+    await grid.resolveValidation();
+
+    await expect(grid.invalidCells()).toHaveCount(0);
+    expect(await grid.cellValidFlag(0, 0)).not.toBe('false');
+  });
+
   test('does not treat a `valid` flag inherited from the column layer as a cell failure', async () => {
     // `valid` is an ordinary meta key, so it can be declared above the cell layer. Reading it
     // through the prototype chain would report every materialized cell and stamp the flag on as an

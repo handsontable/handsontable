@@ -117,6 +117,20 @@ export class InvalidMarkUpdateSettingsPage {
     return this.page.evaluate(() => window.hot.countCols());
   }
 
+  /**
+   * Replaces the whole dataset through `loadData`, which is documented to reset cell state. The rows
+   * are built here rather than with `createSpreadsheetData`, so the page object needs nothing from
+   * the Handsontable global beyond the instance itself.
+   */
+  async loadFreshData(rows = 5, columns = 5): Promise<void> {
+    await this.page.evaluate(({ r, c }) => {
+      const data = Array.from({ length: r }, (unusedRow, rowIndex) =>
+        Array.from({ length: c }, (unusedCol, colIndex) => `fresh-${rowIndex}-${colIndex}`));
+
+      window.hot.loadData(data);
+    }, { r: rows, c: columns });
+  }
+
   /** Inserts rows above the given visual row index. */
   async insertRowAbove(row: number, amount = 1): Promise<void> {
     await this.page.evaluate(
