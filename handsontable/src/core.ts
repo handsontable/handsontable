@@ -2359,6 +2359,9 @@ export default function Core(
               changes.splice(index, 1);
               // we cancelled the change, so cell value is still valid
               cellPropertiesReference.valid = true;
+              // ...and the stored meta has to hear about it too, or a cache clear that landed while
+              // the validator was running leaves the kept value wearing the rejected edit's mark.
+              persistValidationResult(cellPropertiesReference, true);
             }
 
             waitingForValidator.removeValidatorFormQueue();
@@ -2516,6 +2519,58 @@ export default function Core(
   };
 
   /**
+   * Writes a validation result onto the cell's CURRENT stored meta object.
+   *
+   * The object a validator is given is captured before it runs, and an `updateSettings` clearing the
+   * meta cache in that window detaches it - a write on it then reaches nothing. Both directions
+   * matter. A failure that never reaches the stored meta leaves the cell unmarked, which is the
+   * async half of GitHub issue #7553. A pass that never reaches it leaves behind the `false` that
+   * `restoreInvalidCellMetas` re-applied for a cell that was invalid when the clear happened, so a
+   * corrected value keeps its red mark - and the same holds for the `allowInvalid: false` cancel
+   * path, where the rejected edit is dropped but the cell would stay flagged.
+   *
+   * The lookup is a peek, so a passing result never materializes a meta object on its own and
+   * `_validateCells` keeps its O(invalid cells) retention bound. A failure does materialize, because
+   * it has to be rendered. Physical coordinates come off the meta object itself rather than being
+   * re-derived from the visual ones, which a row insert or move in the same window would shift.
+   *
+   * @param {object} cellProperties The cell meta object the validator was handed.
+   * @param {boolean} valid The validation result to persist.
+   */
+  function persistValidationResult(
+    cellProperties: Record<string, unknown> & { row?: number, col?: number, visualRow?: number, visualCol?: number },
+    valid: boolean
+  ) {
+    const physicalRow = cellProperties.row;
+    const physicalColumn = cellProperties.col;
+
+    // `validateChanges` builds a synthetic object out of the table meta for a change that names no
+    // visual column. It has no stored counterpart, so there is nothing to write through to.
+    if (!Number.isInteger(physicalRow) || !Number.isInteger(physicalColumn)) {
+      return;
+    }
+
+    const storedCellProperties = metaManager
+      .getCellMetaIfExists(physicalRow as number, physicalColumn as number);
+
+    // Still attached - the caller's direct write already landed on the stored object.
+    if (storedCellProperties === cellProperties) {
+      return;
+    }
+
+    if (storedCellProperties !== undefined) {
+      (storedCellProperties as { valid?: boolean }).valid = valid;
+
+    } else if (valid === false) {
+      (metaManager.getCellMeta(physicalRow as number, physicalColumn as number, {
+        visualRow: cellProperties.visualRow as number,
+        visualColumn: cellProperties.visualCol as number,
+        skipMetaExtension: true,
+      }) as { valid?: boolean }).valid = valid;
+    }
+  }
+
+  /**
    * Validate a single cell.
    *
    * @memberof Core#
@@ -2592,24 +2647,7 @@ export default function Core(
             .runHooks('afterValidate', valid, value, cellProperties.visualRow, colArg, source);
           cellProperties.valid = valid;
 
-          // An async validator can still be in flight when `updateSettings` clears the cell meta
-          // cache, which detaches `cellProperties` from the meta store - the result would then land
-          // on an orphaned object and the invalid mark would never appear (GitHub issue #7553).
-          // Re-resolve and write the failure through. Only a failure needs this: `valid === true` has
-          // no rendered state, and a re-minted cell reading back `undefined` instead of `true` is
-          // indistinguishable to every core reader (all branch on `!== false`). The guard skips the
-          // synthetic table-meta object `validateChanges` builds when a change names no visual column.
-          if (valid === false && Number.isInteger(cellProperties.visualCol)) {
-            const storedCellProperties = instance.getCellMeta(
-              cellProperties.visualRow as number,
-              cellProperties.visualCol as number,
-              { skipMetaExtension: true }
-            ) as { valid?: boolean };
-
-            if (storedCellProperties !== cellProperties) {
-              storedCellProperties.valid = valid;
-            }
-          }
+          persistValidationResult(cellProperties, valid);
 
           done(valid);
           instance.runHooks(

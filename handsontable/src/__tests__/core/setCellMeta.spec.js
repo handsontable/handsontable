@@ -481,6 +481,64 @@ describe('Core.setCellMeta', () => {
       expect(getCell(0, 0).classList.contains('htInvalid')).toBe(true);
     });
 
+    it('should clear the mark when an async correction resolves after the cache was cleared', async() => {
+      // The cell is already invalid, so the cache clear re-applies `valid === false` to the fresh
+      // meta. The passing result then has to reach that same object, or a corrected value keeps its
+      // red mark forever.
+      let resolveValidation;
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        validator(value, callback) {
+          resolveValidation = () => callback(value !== 'nope');
+        },
+      });
+
+      await setDataAtCell(0, 0, 'nope');
+      resolveValidation();
+      await waitForNextAnimationFrames(7); // wait for async validation
+
+      expect(getCellMeta(0, 0).valid).toBe(false);
+
+      await setDataAtCell(0, 0, 42);
+      await updateSettings({ columns: [{}, {}, {}, {}, {}] });
+
+      resolveValidation();
+
+      await waitForNextAnimationFrames(7); // wait for async validation
+
+      expect(getDataAtCell(0, 0)).toBe(42);
+      expect(getCellMeta(0, 0).valid).toBe(true);
+      expect(getCell(0, 0).classList.contains('htInvalid')).toBe(false);
+    });
+
+    it('should not mark a rejected `allowInvalid: false` edit when the cache was cleared mid-flight', async() => {
+      // The change is cancelled, so the cell keeps its previous - valid - value. The cancel path
+      // writes `valid = true` on the object the validator was handed, which the clear detached.
+      let resolveValidation;
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        allowInvalid: false,
+        validator(value, callback) {
+          resolveValidation = () => callback(value !== 'nope');
+        },
+      });
+
+      const originalValue = getDataAtCell(0, 0);
+
+      await setDataAtCell(0, 0, 'nope');
+      await updateSettings({ columns: [{}, {}, {}, {}, {}] });
+
+      resolveValidation();
+
+      await waitForNextAnimationFrames(7); // wait for async validation
+
+      expect(getDataAtCell(0, 0)).toBe(originalValue);
+      expect(getCellMeta(0, 0).valid).not.toBe(false);
+      expect(getCell(0, 0).classList.contains('htInvalid')).toBe(false);
+    });
+
     it('should ignore a `valid` flag inherited from the column or grid layer', async() => {
       // `valid` is an ordinary meta key, so it can be declared above the cell layer. Reading it
       // through the prototype chain would report every materialized cell as invalid and stamp the

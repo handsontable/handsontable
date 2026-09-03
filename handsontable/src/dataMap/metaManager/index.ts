@@ -374,6 +374,20 @@ export default class MetaManager {
   }
 
   /**
+   * Returns the cell meta object only when one is already stored for that cell, and `undefined`
+   * otherwise. Nothing is created, so this is safe on a path that must not materialize meta - the
+   * validation flow uses it to find the cell's *current* meta object without turning a passing
+   * result into a retained object.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @returns {object|undefined}
+   */
+  getCellMetaIfExists(physicalRow: number, physicalColumn: number) {
+    return this.cellMeta.getMetaIfExists(physicalRow, physicalColumn);
+  }
+
+  /**
    * Returns the physical coordinates of every cell whose last validation failed. The validation flow
    * writes `valid` directly onto the meta object, so `getUserDefinedCellMetas` does not cover it.
    * Used to preserve the invalid-cell highlight across a `clearCache` call during `updateSettings`.
