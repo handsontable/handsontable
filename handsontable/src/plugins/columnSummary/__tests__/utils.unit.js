@@ -1,49 +1,49 @@
-import { isNullishOrNaN, roundFloat } from '../utils';
+import { holdsNoNumber, roundFloat } from '../utils';
 
 describe('ColumnSummary utils', () => {
-  describe('isNullishOrNaN', () => {
+  describe('holdsNoNumber', () => {
     it('should report nullish values as empty', () => {
-      expect(isNullishOrNaN(null)).toBe(true);
-      expect(isNullishOrNaN(undefined)).toBe(true);
+      expect(holdsNoNumber(null)).toBe(true);
+      expect(holdsNoNumber(undefined)).toBe(true);
     });
 
     it('should report a value that is not a number as empty', () => {
-      expect(isNullishOrNaN(NaN)).toBe(true);
-      expect(isNullishOrNaN('foo')).toBe(true);
-      expect(isNullishOrNaN('2019-03-22')).toBe(true);
+      expect(holdsNoNumber(NaN)).toBe(true);
+      expect(holdsNoNumber('foo')).toBe(true);
+      expect(holdsNoNumber('2019-03-22')).toBe(true);
     });
 
     // `Number('')` is `0`, so the global `isNaN('')` is `false`. Without an explicit check an empty
     // cell reads as a real zero: `min` over 10/20/30 returns 0 and `count` counts the blank.
     it('should report an empty string as empty', () => {
-      expect(isNullishOrNaN('')).toBe(true);
+      expect(holdsNoNumber('')).toBe(true);
     });
 
     it('should report a whitespace-only string as empty', () => {
-      expect(isNullishOrNaN(' ')).toBe(true);
-      expect(isNullishOrNaN('   ')).toBe(true);
-      expect(isNullishOrNaN('\t')).toBe(true);
-      expect(isNullishOrNaN('\n')).toBe(true);
+      expect(holdsNoNumber(' ')).toBe(true);
+      expect(holdsNoNumber('   ')).toBe(true);
+      expect(holdsNoNumber('\t')).toBe(true);
+      expect(holdsNoNumber('\n')).toBe(true);
     });
 
     it('should report numbers as not empty, including zero', () => {
-      expect(isNullishOrNaN(0)).toBe(false);
-      expect(isNullishOrNaN(-1)).toBe(false);
-      expect(isNullishOrNaN(1.5)).toBe(false);
+      expect(holdsNoNumber(0)).toBe(false);
+      expect(holdsNoNumber(-1)).toBe(false);
+      expect(holdsNoNumber(1.5)).toBe(false);
     });
 
     it('should report a string holding a number as not empty', () => {
-      expect(isNullishOrNaN('0')).toBe(false);
-      expect(isNullishOrNaN('42')).toBe(false);
-      expect(isNullishOrNaN(' 42 ')).toBe(false);
-      expect(isNullishOrNaN('-1.5')).toBe(false);
+      expect(holdsNoNumber('0')).toBe(false);
+      expect(holdsNoNumber('42')).toBe(false);
+      expect(holdsNoNumber(' 42 ')).toBe(false);
+      expect(holdsNoNumber('-1.5')).toBe(false);
     });
 
     // Booleans keep coercing on purpose. A `checkbox` column stores `true`/`false`, and a `sum`
     // summary over one is how you count the ticked boxes - excluding them would break that.
     it('should report booleans as not empty', () => {
-      expect(isNullishOrNaN(true)).toBe(false);
-      expect(isNullishOrNaN(false)).toBe(false);
+      expect(holdsNoNumber(true)).toBe(false);
+      expect(holdsNoNumber(false)).toBe(false);
     });
   });
 

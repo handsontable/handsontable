@@ -48,11 +48,12 @@ from. `average` now does the same: an all-empty range divides by zero, and a mal
 count negative or `NaN`. The guard is `!Number.isFinite(entriesCount) || entriesCount <= 0` — check the
 count, not the sum.
 
-## `isNullishOrNaN` is the single gate for "this cell holds no number" (DEV-2776, #5905)
+## `holdsNoNumber` is the calculation gate for "this cell has nothing to add" (DEV-2776, #5905)
 
-Every summary type decides emptiness through that one helper in `utils.ts` — `getPartialSum`,
-`getPartialMinMax` and `countEmpty` all call it — so a change there moves `sum`, `min`, `max`, `count`
-and `average` together. That is the point: they must agree on what "empty" means.
+Every **built-in** summary type decides emptiness through that one helper in `utils.ts` —
+`getPartialSum`, `getPartialMinMax` and `countEmpty` all call it — so a change there moves `sum`,
+`min`, `max`, `count` and `average` together. That is the point: they must agree on what "empty"
+means. A `custom` function calls nothing and is on its own.
 
 **The trap it exists to close:** the global `isNaN()` coerces with `Number()` first, and `Number('')`
 is `0`, not `NaN`. So a bare `isNaN(value)` reports an empty string as a real value, and the two
@@ -61,12 +62,20 @@ the Delete key clears a cell to `null`, but clearing it **in the editor** stores
 from a backend routinely carries `""`. The symptom was `min` returning `0` for a column of 10/20/30
 and `count` counting the blank. `' '` and `'  '` coerce the same way, hence the `trim()`.
 
-Two things not to "fix" on top of it:
+Three things not to "fix" on top of it:
 
-- **Booleans still count.** `true` coerces to `1`, and a `sum` summary over a `checkbox` column is how
-  you count the ticked boxes. Excluding them would break that.
-- **`forceNumeric` was always right.** It runs `parseFloat('')`, which *is* `NaN`, so that path
-  excluded empty strings before the fix. The default path was the outlier — keep the two in step.
+- **Booleans deliberately still count.** `true` coerces to `1`, and a `sum` summary over a `checkbox`
+  column is how you count the ticked boxes. Excluding them would break that.
+- **`getCellValue`'s data-type check is a second numeric gate, and it is meant to disagree.** It still
+  asks `isNaN(Number(cellValue))`, and it answers a different question: *is this bad data worth
+  telling the user about?* A letter is (it throws when `suppressDataTypeErrors` is `false`); a blank
+  cell is not. Unifying the two would make an empty cell raise "not in a numeric format", which is
+  wrong — an empty cell is not a data-type error. Keep them separate and keep the split deliberate.
+- **`forceNumeric` is not the same rule, so do not "align" the two.** It runs `parseFloat`, which
+  agrees on empty strings (`parseFloat('')` is `NaN`) but *disagrees* on booleans —
+  `parseFloat(true)` is `NaN`, so a checkbox column summed with `forceNumeric: true` yields `0`.
+  It also throws on an empty cell when `suppressDataTypeErrors` is `false`. It is the opt-in
+  "parse a number out of text" path, not the reference implementation.
 
 ## Styling uses `_setCellMetaDeclarative`, not `setCellMeta`
 

@@ -101,9 +101,13 @@ To decide how a column summary is calculated, you can use one of the following s
 | `average` | Returns the sum of all values in a column,<br>divided by the number of cells that hold a number.       |
 | `custom`  | Lets you implement a [custom summary function](#implement-a-custom-summary-function).                  |
 
-Every built-in summary function reads numbers only. A cell is skipped when it is empty, when it holds only
-whitespace, or when it holds text that is not a number. To calculate from cells that hold text, use
-the [`forceNumeric`](#force-numeric-values) option.
+The built-in summary functions calculate from cells that hold a number. A cell is skipped when it is
+empty, when it holds only whitespace, or when it holds text. Checkbox cells still count: `true` reads
+as `1` and `false` as `0`, so a `sum` summary over a checkbox column returns the number of checked
+boxes.
+
+To read a number out of a cell that starts with one, such as `3 kg`, use the
+[`forceNumeric`](#force-numeric-values) option.
 
 If a column holds no values to calculate from, `min`, `max`, and `average` return `Not enough data`.
 The `sum` and `count` functions return `0`.

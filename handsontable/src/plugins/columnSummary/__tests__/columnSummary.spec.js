@@ -627,6 +627,54 @@ describe('ColumnSummarySpec', () => {
       expect(getDataAtCell(4, 0)).toBe(4);
     });
 
+    // The seeded cases above all start with the empty string already in the data. This one covers the
+    // path the reporter actually takes: the value arrives through `afterChange`, which recalculates
+    // the endpoint. An empty cell edited in the editor commits `''`, not `null`.
+    it('should recalculate correctly when an empty string arrives through an edit', async() => {
+      handsontable({
+        data: [[10], [20], [30], [40], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'count'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(4);
+
+      await setDataAtCell(0, 0, '');
+
+      expect(getDataAtCell(4, 0)).toBe(3);
+
+      // Typing a number back in must bring the cell back into the count.
+      await setDataAtCell(0, 0, 15);
+
+      expect(getDataAtCell(4, 0)).toBe(4);
+    });
+
+    it('should recalculate the minimum when a cell is emptied through an edit', async() => {
+      handsontable({
+        data: [[10], [20], [30], [40], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'min'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(10);
+
+      await setDataAtCell(0, 0, '');
+
+      expect(getDataAtCell(4, 0)).toBe(20);
+    });
+
     // Booleans stay countable on purpose: a `checkbox` column stores `true`/`false`, and summing it
     // is how you count the ticked boxes.
     it('should keep summing boolean values, so a checkbox column counts the ticked boxes', async() => {

@@ -1,14 +1,14 @@
 /**
- * Returns `true` if the value holds no number to calculate from: `null`, `undefined`, `NaN`, a
+ * Returns `true` if the value carries no number to calculate from – `null`, `undefined`, `NaN`, a
  * string that is empty or holds only whitespace, or a string that is not numeric.
  *
- * Booleans are deliberately not empty - `true` counts as `1`, which is what makes a `sum` summary
+ * Booleans do carry a number: `true` is `1` and `false` is `0`, which is what makes a `sum` summary
  * over a `checkbox` column count the ticked boxes.
  *
  * @param {*} value The value to check.
  * @returns {boolean}
  */
-export function isNullishOrNaN(value: unknown) {
+export function holdsNoNumber(value: unknown) {
   if (value === null || value === undefined) {
     return true;
   }
