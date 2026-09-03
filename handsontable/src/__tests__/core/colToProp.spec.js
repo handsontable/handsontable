@@ -49,9 +49,9 @@ describe('Core.colToProp', () => {
     columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
     expect(colToProp(0)).toBe(4);
-    // The pass-through below is by design (introduced with the index mappers in #5945) and is what
-    // the API reference documents.
-    expect(colToProp(10)).toBe(10);
+    // Since #7031: an index past the last column names no column, so it resolves to `null`
+    // rather than being handed back.
+    expect(colToProp(10)).toBe(null);
   });
 
   it('should return proper value after calling the function when columns was reorganized (data is array of objects)', async() => {
@@ -68,41 +68,94 @@ describe('Core.colToProp', () => {
     columnIndexMapper().setIndexesSequence([3, 2, 1, 0]);
 
     expect(colToProp(0)).toBe('date');
-    // Was `propToCol(10)` — a copy of the propToCol spec that left `colToProp` out of range
-    // untested. The pass-through below is by design (introduced with the index mappers in #5945)
-    // and is what the API reference documents.
-    expect(colToProp(10)).toBe(10);
+    // Since #7031: an index past the last column names no column, so it resolves to `null`
+    // rather than being handed back.
+    expect(colToProp(10)).toBe(null);
   });
 
-  it('should hand an out-of-range column index back unchanged', async() => {
+  it('should return `null` for an index that names no column', async() => {
     handsontable({
       data: createSpreadsheetData(2, 3),
     });
 
-    expect(colToProp(10)).toBe(10);
-    expect(colToProp(-1)).toBe(-1);
+    expect(colToProp(3)).toBe(null);
+    expect(colToProp(999)).toBe(null);
+    expect(colToProp(-1)).toBe(null);
   });
 
-  it('should hand a non-integer argument back unchanged, `null` included', async() => {
+  it('should return `null` for a column that is trimmed', async() => {
+    const hot = handsontable({
+      data: [
+        { id: 1, name: 'Ted' },
+        { id: 2, name: 'Frank' },
+      ]
+    });
+
+    expect(colToProp(1)).toBe('name');
+
+    const trimmingMap = hot.columnIndexMapper.createAndRegisterIndexMap('spec-trim', 'trimming');
+
+    trimmingMap.setValueAtIndex(1, true);
+
+    await render();
+
+    // Only one column is left, so index 1 names nothing.
+    expect(countCols()).toBe(1);
+    expect(colToProp(1)).toBe(null);
+  });
+
+  it('should still hand back a non-integer argument unchanged', async() => {
     handsontable({
       data: createSpreadsheetData(2, 3),
     });
 
-    // `UndoRedo`'s row-removal action relies on this echo: it feeds `colToProp` the result of
-    // `toVisualColumn`, which is `null` for a trimmed column, and bails out on a non-accessor.
+    // Unchanged by #7031, and `UndoRedo`'s row-removal action depends on the `null` case: it feeds
+    // `colToProp` the result of `toVisualColumn`, then bails out when the answer is not an accessor.
     expect(colToProp(null)).toBe(null);
     expect(colToProp('name')).toBe('name');
   });
 
-  it('should return `null` for a column declared as `{ data: null }`', async() => {
+  it('should keep reporting the header sentinel to the `*ByProp` selection hooks', async() => {
+    const seen = [];
+
     handsontable({
-      data: createSpreadsheetData(2, 2),
-      columns: [{ data: null }, { data: 1 }],
+      data: createSpreadsheetData(2, 3),
+      colHeaders: true,
+      rowHeaders: true,
+      afterSelectionByProp(row, prop, row2, prop2) {
+        seen.push([row, prop, row2, prop2]);
+      },
     });
 
-    // A valid, in-range index that still resolves to `null` — so a `null` result does not mean
-    // "no such column".
-    expect(countCols()).toBe(2);
-    expect(colToProp(0)).toBe(null);
+    // A row selection starts at column `-1`, a header sentinel rather than an out-of-range index.
+    // `colToProp(-1)` is `null` since #7031, so the hook must not route through it — every
+    // consumer of these two hooks already reads `-1` here.
+    await selectRows(0);
+
+    expect(seen[seen.length - 1]).toEqual([0, -1, 0, 2]);
+
+    seen.length = 0;
+
+    await selectCell(0, 1);
+
+    expect(seen[seen.length - 1]).toEqual([0, 1, 0, 1]);
+  });
+
+  it('should keep an unbound column unbound', async() => {
+    handsontable({
+      data: [['first', 'second']],
+      columns: [{ data: 1 }, { data: null }],
+    });
+
+    // `{ data: null }` declares a column with no source binding — the sparkline recipe ships one.
+    // `colToProp()` answers `null` for it, and that `null` means "no property", not "no column".
+    // Substituting the index would bind the column to the source field column 0 already reads.
+    expect(colToProp(1)).toBe(null);
+    expect(getDataAtCell(0, 1)).toBe(null);
+
+    await setDataAtCell(0, 1, 'CHANGED');
+
+    expect(getDataAtCell(0, 0)).toBe('second');
+    expect(getSourceDataAtRow(0)).toEqual(['first', 'second']);
   });
 });

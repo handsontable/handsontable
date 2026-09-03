@@ -122,13 +122,19 @@ function collectColumnMappings(
     const visualColumn = hotInstance.columnIndexMapper.getVisualFromPhysicalIndex(physicalColumn);
 
     if (visualColumn !== null) {
-      columns.push({
-        physicalColumn,
-        visualColumn,
-        // A `columns[].data` accessor comes back as the function itself, which owns both the read
-        // and the write.
-        sourceColumn: hotInstance.colToProp(visualColumn) as string | number | DataAccessorFn,
-      });
+      // A `columns[].data` accessor comes back as the function itself, which owns both the read
+      // and the write.
+      const sourceColumn = hotInstance.colToProp(visualColumn);
+
+      // A column that resolves to no source address — one declared as `{ data: null }` — has
+      // nothing to read a value from and nothing to blank, so it is left out of the scan.
+      if (sourceColumn !== null) {
+        columns.push({
+          physicalColumn,
+          visualColumn,
+          sourceColumn: sourceColumn as string | number | DataAccessorFn,
+        });
+      }
     }
   }
 

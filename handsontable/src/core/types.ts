@@ -117,16 +117,17 @@ export interface HotInstance {
   toVisualRow(row: number): number;
   toVisualColumn(column: number): number;
   /**
-   * These two signatures are narrower than what runs, at both ends. Both methods hand an unmatched
-   * argument straight back, and both can return `null` – `propToCol` for a trimmed column whose
-   * property is cached, `colToProp` for a column declared as `{ data: null }`. Validate the result
+   * Both answer `null` when the argument names no column that currently exists and is visible.
+   * `colToProp` also answers `null` for a column declared as `{ data: null }`, which binds to no
+   * source property. The `null` is part of the contract, not an edge case – validate the result
    * before using it as an index or a property name.
    *
-   * The parameters are narrower too: `propToCol` resolves a `columns[].data` accessor function at
-   * runtime, and `colToProp` hands back any non-integer argument, but neither is accepted here.
+   * The parameters stay narrower than what runs: `propToCol` resolves a `columns[].data` accessor
+   * function at runtime and hands an unmatched property straight back, and `colToProp` hands back
+   * any non-integer argument, but neither is accepted here.
    */
-  propToCol(prop: string | number): number;
-  colToProp(column: number): string | number;
+  propToCol(prop: string | number): number | null;
+  colToProp(column: number): string | number | null;
 
   // Data access
   getSchema(): unknown[] | Record<string, unknown>;

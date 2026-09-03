@@ -50,6 +50,7 @@ import {
 } from './helpers/a11y';
 import { parsePixelSize } from './utils/pixelSize';
 import { warnOnce } from './helpers/console';
+import { colToPropOrIndex } from './helpers/columnProp';
 
 /**
  * Checks whether a size setting (`rowHeights`, `minRowHeights`, or `colWidths`) guarantees a uniform
@@ -1142,7 +1143,9 @@ class TableView {
         }
 
         const cellProperties = this.hot.getCellMeta<CellProperties>(visualRowToCheck, visualColumnToCheck);
-        const prop = this.hot.colToProp(visualColumnToCheck) as string;
+        // Resolved the same way as in `GhostTable` and `EditorManager`, so one cell is not
+        // addressed two different ways across the measuring and painting paths.
+        const prop = colToPropOrIndex(this.hot, visualColumnToCheck) as string;
         let value = this.hot.getDataAtRowProp(visualRowToCheck, prop);
 
         if (this.hot.hasHook('beforeValueRender')) {

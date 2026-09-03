@@ -2090,7 +2090,9 @@ export const REGISTERED_HOOKS = [
    *
    * @event Hooks#modifyData
    * @param {number} row Visual row index.
-   * @param {number} column Visual column index.
+   * @param {number|string|Function|null} column Visual column index. `null` when the property is a
+   *   numeric index that names no column that exists and is visible. A property name the data set
+   *   does not use, or a `columns[].data` accessor function, arrives unchanged.
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */

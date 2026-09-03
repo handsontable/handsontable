@@ -1159,6 +1159,12 @@ export class Filters extends BasePlugin {
       arrayEach(changes, (change) => {
         const [, prop] = change as unknown[];
         const visualColumnIndex = this.hot.propToCol(prop as string | number);
+
+        // A change addressed at no existing column cannot be filtered on.
+        if (visualColumnIndex === null) {
+          return;
+        }
+
         const physicalColumnIndex = this.hot.toPhysicalColumn(visualColumnIndex);
 
         if (this.conditionCollection?.hasConditions(physicalColumnIndex)) {

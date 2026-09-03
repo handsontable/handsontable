@@ -196,8 +196,13 @@ class DataSource {
 
         rangeEach(rangeStart, rangeEnd, (column: number) => {
           const prop = this.colToProp(column);
+          // Only a column with a real property name is read. `null` means the index names no
+          // column — the `columns` option filtered it out — and used to arrive here as the index
+          // itself, which the integer test below rejected. Dropping the `null` check would start
+          // including exactly the columns this branch exists to skip.
+          const hasNamedProperty = prop !== null && !Number.isInteger(prop);
 
-          if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && !Number.isInteger(prop)) {
+          if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && hasNamedProperty) {
             const cellValue = this.getAtPhysicalCell(row, prop as string | number | DataAccessorFn, dataRow);
 
             if (toArray) {
@@ -356,7 +361,19 @@ class DataSource {
    */
   getAtCell(row: number, columnOrProp: number | string | DataAccessorFn): unknown {
     const dataRow = this.modifyRowData(row);
-    const prop = typeof columnOrProp === 'function' ? columnOrProp : this.colToProp(columnOrProp);
+    let prop: unknown = columnOrProp;
+
+    if (typeof columnOrProp !== 'function') {
+      prop = this.colToProp(columnOrProp);
+
+      // An index that names no column falls back to the index, so a source read past
+      // `countCols()` reaches the stored value as it did before, and `modifySourceData` keeps
+      // receiving a column address rather than `null`. A column that exists but is unbound
+      // (`{ data: null }`) keeps its `null` property — the index would name a neighbour's field.
+      if (prop === null && this.hot!.toPhysicalColumn(columnOrProp as number) === null) {
+        prop = columnOrProp;
+      }
+    }
 
     return this.getAtPhysicalCell(row, prop as number | string | DataAccessorFn, dataRow);
   }
@@ -430,8 +447,10 @@ class DataSource {
    * @since 16.1.0
    * @returns {string}
    */
-  getCopyable(row: number, prop: string | number | DataAccessorFn): unknown {
-    const visualColumn = this.propToCol(prop);
+  getCopyable(row: number, prop: string | number | DataAccessorFn | null): unknown {
+    // Falls back to the prop, matching `DataMap#getCopyable`, so an out-of-range index still
+    // reaches the meta lookup and the source copyable getter reads back what it did before.
+    const visualColumn = this.propToCol(prop) ?? prop;
 
     // The transient read honors a `cells()`-driven `copyable: false` (the dynamic extension
     // runs) without permanently materializing one meta object per copied cell - `onCopy` walks
