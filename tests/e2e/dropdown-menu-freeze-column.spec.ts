@@ -8,7 +8,7 @@ import { DropdownMenuFreezeColumnPage } from '../fixtures/pages/DropdownMenuFree
  * The two menus build their item lists from separate hooks — `afterContextMenuDefaultOptions` and
  * `afterDropdownMenuDefaultOptions` — and ManualColumnFreeze registered only the first. A key the
  * dropdown menu had never heard of raised nothing: `ItemsFactory` turned it into a bare
- * `{ name, key }` placeholder. So the menu rendered a row labelled with the RAW KEY, carrying no
+ * `{ name, key }` placeholder. So the menu rendered a row labeled with the RAW KEY, carrying no
  * callback and no `hidden()`, and clicking it closed the menu without freezing anything.
  *
  * That placeholder is gone as of DEV-2758 — an unresolvable key is skipped and warned about
@@ -296,7 +296,7 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
 
   test.describe('manualColumnFreeze disabled', () => {
     // The entries belong to the plugin, so with it off nothing resolves either key. ItemsFactory
-    // used to emit a `{ name, key }` placeholder for each, and the menu rendered a row labelled
+    // used to emit a `{ name, key }` placeholder for each, and the menu rendered a row labeled
     // with the RAW KEY that did nothing when clicked — the shape #5429 reported. Those rows are
     // now skipped, which is what this block pins (DEV-2758).
     test('skips the unresolvable keys instead of rendering raw-key rows', async () => {
@@ -312,12 +312,14 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
       expect(items).not.toContain('unfreeze_column');
     });
 
-    test('freezes nothing, since there is no row left to click', async () => {
-      await grid.openColumnMenu(PLUGIN_OFF, 'Charlie');
-      await grid.closeDropdownMenu();
+    test('reports the key as an unknown command through the API', async () => {
+      // The skipped row is never registered as a command either, so the API path the placeholder
+      // used to leave open now answers plainly instead of accepting the call and doing nothing.
+      // Driving `executeCommand` is the only way to reach that path — opening and closing the
+      // menu would assert nothing, since no build freezes a column just for being opened.
+      const error = await grid.executeDropdownCommand(PLUGIN_OFF, 'freeze_column', 2);
 
-      // The placeholder row used to be clickable and carried no callback. Dropping it must not
-      // leave some other path that still freezes through a disabled plugin.
+      expect(error).toContain('freeze_column');
       expect(await grid.fixedColumnsStart(PLUGIN_OFF)).toBe(0);
       expect(await grid.columnHeaders(PLUGIN_OFF)).toEqual(
         DropdownMenuFreezeColumnPage.COLUMN_HEADERS
@@ -335,8 +337,11 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
 
       await grid.goto();
 
-      expect(warnings.join('\n')).toContain('freeze_column');
-      expect(warnings.join('\n')).toContain('unfreeze_column');
+      // Console events arrive over CDP independently of `goto()` resolving, so the wait has to be
+      // a contract rather than luck — a late message would otherwise fail the run, and a spec
+      // that only passes on retry still fails the job on CI.
+      await expect.poll(() => warnings.join('\n')).toContain('freeze_column');
+      await expect.poll(() => warnings.join('\n')).toContain('unfreeze_column');
     });
   });
 });

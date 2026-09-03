@@ -15,7 +15,7 @@
 
 ## A plugin contributing menu items must register on BOTH hooks
 
-The two menus build their item lists from separate hooks: `afterContextMenuDefaultOptions` and `afterDropdownMenuDefaultOptions`. A plugin that registers on only one is absent from the other, and **nothing raises**. Until DEV-2758 that was actively misleading: `ItemsFactory` turned a key it could not resolve into a bare `{ name, key }` placeholder, so the menu rendered a row labelled with the RAW KEY that did nothing when clicked. That was issue #5429 — `freeze_column` worked in `contextMenu` and rendered a dead row in `dropdownMenu` for seven years.
+The two menus build their item lists from separate hooks: `afterContextMenuDefaultOptions` and `afterDropdownMenuDefaultOptions`. A plugin that registers on only one is absent from the other, and **nothing raises**. Until DEV-2758 that was actively misleading: `ItemsFactory` turned a key it could not resolve into a bare `{ name, key }` placeholder, so the menu rendered a row labeled with the RAW KEY that did nothing when clicked. That was issue #5429 — `freeze_column` worked in `contextMenu` and rendered a dead row in `dropdownMenu` for seven years.
 
 An unresolvable key is now **skipped**, with a `warnOnce()` naming it. So the failure is quiet in the UI and loud in the console instead of the other way round. It is still a failure: the item does not appear, so registering on both hooks remains the fix, not the warning.
 
@@ -27,11 +27,21 @@ Register one handler on both hooks, as `manualColumnFreeze.ts` does. Eight plugi
 
 An array entry can also be a full item definition **object** rather than a key string. Those are merged in further down and must never reach the unresolved-key path, which is why the skip is guarded by `!isObject(name)`.
 
-### `execute()` matches the whole command name before splitting on `:`
+### `execute()` resolves the PARENT name first, and the whole name only as a fallback
 
-Object-form `items` take their key verbatim, so `{ items: { 'alignment:left': … } }` registers a command under the full string. `CommandExecutor#execute()` therefore tries `this.commands[commandName]` first and only then splits — without that, the lookup searched for an `alignment` command that was never registered and threw `Menu command 'alignment' not exists.` on click (issue #5027). The split path still resolves a documented subcommand such as `executeCommand('alignment:left')` against the predefined `alignment` submenu, because nothing registers that key at the top level.
+Object-form `items` take their key verbatim, so `{ items: { 'alignment:left': … } }` registers a command under the full string, colon included. `CommandExecutor#execute()` used to split on `:` unconditionally and look up only the first segment, so that command was never found and a click threw `Menu command 'alignment' not exists.` (issue #5027). `#findCommand()` now falls back to the whole-name lookup — but **only where the split path used to throw**, and the order matters:
 
-Note what this does **not** do: it does not attach a predefined subcommand's callback to a user's item. `{ 'alignment:left': { name: 'Left' } }` renders and no longer throws, but it does nothing when clicked, because the user supplied no `callback`. Resolving predefined subcommand keys at any menu level is the open request in issue #5027 and was deliberately not built — it would mean changing the shallow `extend` merge that #9894 depends on.
+1. `commands[parent]` exists → walk its `submenu` for the subcommand, exactly as before.
+2. Otherwise `commands[<whole name>]` exists → return it.
+3. Otherwise throw.
+
+Reversing 1 and 2 looks equivalent and is not. Both entries exist at once whenever object-form `items` declare the parent *and* the colon key side by side (`{ items: { alignment: {}, 'alignment:left': {…} } }`): the parent carries the predefined submenu with the real callback, while the colon key is the caller's bare `{ name, key }`. Matching the whole name first hands back the bare entry, which has no `callback`, so an alignment that used to work silently stops running. Pinned by `__tests__/commandExecutor.unit.js`.
+
+Both lookups go through `hasOwnProperty()` — `commands` is a plain object, so a bare index answers `toString` and `constructor` with the inherited member, which then slips past every gate in `execute()` and runs the common callback instead of reporting an unknown command.
+
+A subcommand name that matches no submenu entry is a `warnOnce()` and a no-op. It previously read `disabled` off `undefined` and threw a `TypeError`; silence would have been worse than either, since a mistyped *parent* still throws.
+
+Note what none of this does: it does not attach a predefined subcommand's callback to a caller's item. `{ 'alignment:left': { name: 'Left' } }` renders and no longer throws, but it does nothing when clicked, because no `callback` was supplied. Resolving predefined subcommand keys at any menu level is the open request in issue #5027 and was deliberately not built — it would mean changing the shallow `extend` merge that #9894 depends on.
 
 Both menus now rebuild their item list on every `open()` (`prepareMenuItems()`), so the list tracks the current settings. Before that, `DropdownMenu` built its list once in `enablePlugin`, which left it frozen: a plugin enabled later through `updateSettings` never reached the menu, and one disabled later kept entries that still ran. Do not move item building back into `enablePlugin` — and note that the `Menu` instance and its local hooks are still created there, deliberately, so `prepareMenuItems()` stays safe to call repeatedly.
 

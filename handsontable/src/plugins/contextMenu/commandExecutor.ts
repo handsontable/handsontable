@@ -2,6 +2,7 @@ import type { HotInstance } from '../../core/types';
 import { arrayEach } from '../../helpers/array';
 import { throwWithCause } from '../../helpers/errors';
 import { hasOwnProperty } from '../../helpers/object';
+import { warnOnce } from '../../helpers/console';
 
 interface CommandDescriptor {
   key?: string;
@@ -102,29 +103,47 @@ export class CommandExecutor {
    *                             entry in its parent's submenu.
    */
   #findCommand(commandName: string): CommandDescriptor | undefined {
-    // A command can be registered under a key that itself contains a colon, because object-form
-    // menu `items` use their key verbatim. Match the whole name first, so such a command is found
-    // instead of the split below looking up a parent command that was never registered — which
-    // threw `Menu command '<parent>' not exists.` on click.
-    const exactMatch = this.commands[commandName];
-
-    if (exactMatch) {
-      return exactMatch;
-    }
-
     const commandSplit = commandName.split(':');
     const commandNamePrimary = commandSplit[0];
     const subCommandName = commandSplit.length === 2 ? commandSplit[1] : null;
-    const command = this.commands[commandNamePrimary];
 
-    if (!command) {
-      throwWithCause(`Menu command '${commandNamePrimary}' not exists.`);
-    }
-    if (subCommandName && command.submenu) {
-      return findSubCommand(subCommandName, command.submenu.items);
+    // The primary name is resolved FIRST so a parent's submenu keeps precedence over a top-level
+    // command registered under the same `parent:child` key. Both exist whenever object-form
+    // `items` declare the parent and the colon key side by side, and the submenu entry is the one
+    // that carries the action — matching the whole name first would hand back the caller's bare
+    // entry and silently stop running it.
+    if (hasOwnProperty(this.commands, commandNamePrimary)) {
+      const command = this.commands[commandNamePrimary];
+
+      if (!subCommandName || !command.submenu) {
+        return command;
+      }
+
+      const subCommand = findSubCommand(subCommandName, command.submenu.items);
+
+      // Nothing to run. Reported rather than thrown, so a mistyped subcommand is as findable as
+      // a mistyped parent (which throws below) without crashing a click handler.
+      if (!subCommand) {
+        warnOnce(
+          this.hot.rootElement,
+          `menu-unknown-subcommand:${commandName}`,
+          `Handsontable: the menu command "${commandName}" matches no entry in the ` +
+          `"${commandNamePrimary}" submenu, so it did nothing.`
+        );
+      }
+
+      return subCommand;
     }
 
-    return command;
+    // No such parent. A command can still be registered under a key that itself contains a colon,
+    // because object-form menu `items` use their key verbatim — matching the whole name here is
+    // what stops `{ items: { 'alignment:left': … } }` throwing on click. Reached only where the
+    // lookup above used to throw, so it takes nothing away from the split path.
+    if (hasOwnProperty(this.commands, commandName)) {
+      return this.commands[commandName];
+    }
+
+    return throwWithCause(`Menu command '${commandNamePrimary}' not exists.`);
   }
 }
 

@@ -1,4 +1,4 @@
-import { type Page, type Locator, expect } from '@playwright/test';
+import { type Page, type Locator, type ConsoleMessage, expect } from '@playwright/test';
 
 /**
  * Page Object for the "freeze_column / unfreeze_column as dropdown menu keys" fixture
@@ -170,16 +170,19 @@ export class DropdownMenuFreezeColumnPage {
    * Start collecting console warnings, and return the live array they land in.
    *
    * Filtered to the unresolved-key warning so unrelated console noise (a license notice, say)
-   * cannot make the assertion pass on its own.
+   * cannot make the assertion pass on its own. The listener is removed when the test ends, so it
+   * cannot outlive the spec that asked for it.
    */
   collectUnresolvedKeyWarnings(): string[] {
     const warnings: string[] = [];
-
-    this.page.on('console', (message) => {
+    const onConsole = (message: ConsoleMessage) => {
       if (message.type() === 'warning' && message.text().includes('does not match any available')) {
         warnings.push(message.text());
       }
-    });
+    };
+
+    this.page.on('console', onConsole);
+    this.page.once('close', () => this.page.off('console', onConsole));
 
     return warnings;
   }
