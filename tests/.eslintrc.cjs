@@ -12,6 +12,11 @@
 // eslint-plugin-playwright — that richer ruleset is a new third-party
 // dependency and is gated on the team-discussion required by the
 // minimal-dependency policy (see tests/README.md).
+const WAIT_FOR_FUNCTION_POLLING = 'waitForFunction() needs an explicit polling interval — pass `undefined, '
+  + '{ polling: 100 }` (or another interval) as the options argument. The default polls on requestAnimationFrame, '
+  + 'which parallel workers starve, so a healthy page times out with nothing wrong on it. See tests/AGENTS.md '
+  + '(Determinism).';
+
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
@@ -52,14 +57,23 @@ module.exports = {
         message: 'test.fixme() parks a known product bug and is allowed ONLY with an eslint-disable line naming the tracking task (`// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`), so the exception stays counted and attributable. See tests/AGENTS.md.',
       },
       {
-        // Two shapes of the same miss: no options argument at all, and an options literal without `polling`.
-        // An options argument that is not an object literal (a variable, a spread) is not judged.
+        // Three shapes of the same miss: no options argument, an options literal without `polling`, and
+        // that literal wrapped in a type assertion (`as`, `satisfies`, `<T>`). Only a plain options
+        // VARIABLE is not judged; a spread is flagged too, because the rule asks the call site to be
+        // explicit about the interval.
         selector: "CallExpression[callee.property.name='waitForFunction'][arguments.length<3]",
-        message: 'waitForFunction() needs an explicit polling interval — pass `undefined, { polling: 100 }` (or another interval) as the options argument. The default polls on requestAnimationFrame, which parallel workers starve, so a healthy page times out with nothing wrong on it. See .claude/skills/handsontable-playwright-e2e/references/determinism.md.',
+        message: WAIT_FOR_FUNCTION_POLLING,
       },
       {
-        selector: "CallExpression[callee.property.name='waitForFunction'] > ObjectExpression.arguments:nth-child(3):not(:has(Property[key.name='polling']))",
-        message: 'waitForFunction() needs an explicit polling interval — pass `undefined, { polling: 100 }` (or another interval) as the options argument. The default polls on requestAnimationFrame, which parallel workers starve, so a healthy page times out with nothing wrong on it. See .claude/skills/handsontable-playwright-e2e/references/determinism.md.',
+        selector: "CallExpression[callee.property.name='waitForFunction'] > ObjectExpression.arguments:nth-child(3)"
+          + ":not(:has(Property[key.name='polling'], Property[key.value='polling']))",
+        message: WAIT_FOR_FUNCTION_POLLING,
+      },
+      {
+        selector: "CallExpression[callee.property.name='waitForFunction']"
+          + " > :matches(TSAsExpression, TSSatisfiesExpression, TSTypeAssertion).arguments:nth-child(3)"
+          + " > ObjectExpression.expression:not(:has(Property[key.name='polling'], Property[key.value='polling']))",
+        message: WAIT_FOR_FUNCTION_POLLING,
       },
     ],
   },
