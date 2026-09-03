@@ -76,8 +76,10 @@ index **1**.
 ## Spare rows are counted, not assumed (#5983)
 
 `getNumberOfRowsToSort()` keeps the trailing spare rows out of the sortable range, and it decides
-how many there are with `hot.countEmptyRows(true)` capped at `minSpareRows`, never from the option
-alone. `minSpareRows` says how many trailing empty rows the Core tops the grid up to, not how many
+how many there are by counting them with `isEmptyRow()`, capped at `minSpareRows`, never from the
+option alone. The walk stops at the cap on purpose, so do not swap it for `countEmptyRows(true)`:
+that one is uncapped, reads every column of every row it visits, and this runs on every sort.
+`minSpareRows` says how many trailing empty rows the Core tops the grid up to, not how many
 are on screen: a filter trims an empty spare row exactly like any other non-matching row, and
 nothing re-creates it while the filter is on (`adjustRowsAndCols()` runs after alters, data changes
 and `updateSettings`, never on `trimmedIndexesChanged`). Subtracting the option from a filtered
@@ -92,10 +94,17 @@ independently, but a spare row is appended at the end of the data, so it sits *i
 `fixedRowsBottom` already reserves. With `minSpareRows: 1, fixedRowsBottom: 1` and no filter both
 terms describe the same row, two rows leave the sortable range, and the last real data row is left
 unsorted, which is the #5983 symptom reached through a different option. The fix above did not
-change that (the counted value is never larger than `minSpareRows`, so the subtraction is exactly
-what it always was), and `__tests__/columnSorting.spec.js`'s "should respect `fixedRowsTop`,
-`fixedRowsBottom`, and `minSpareRows` together" currently passes *because* of the double
-subtraction - anyone correcting the overlap has to revisit that expectation first.
+change that: the counted value is never larger than `minSpareRows`, so the subtraction is exactly
+what it always was.
+
+Nothing in either sorting suite covers the overlap. `__tests__/columnSorting.spec.js`'s "should
+respect `fixedRowsTop`, `fixedRowsBottom`, and `minSpareRows` together" is the only test in
+`columnSorting/__tests__` or `multiColumnSorting/__tests__` that sets both options, and it is
+blind to it - its `Total` row holds the largest value in the sorted column, so it lands on the
+same row whether or not it took part in the sort, and all four assertions hold either way
+(verified by removing the spare-row term from a built bundle: identical output). Whoever fixes
+the overlap has to give that spec a `Total` value that is not the extreme one before it can say
+anything.
 
 ## The sort indicator reserves room on the header *container*
 

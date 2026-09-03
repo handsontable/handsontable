@@ -65,8 +65,10 @@
         colHeaders: true,
         rowHeaders: true,
         columnSorting: true,
+        // No `dropdownMenu`: the spec drives filtering through the plugin API, the way the
+        // reported repro's button does, and the menu's `.changeType` button would sit right
+        // next to the `span.colHeader` the sort clicks on a 50px column.
         filters: true,
-        dropdownMenu: true,
         minSpareRows: 1,
         // Stamped from a hook rather than a renderer so every cell type keeps its own
         // renderer and still gets an id.

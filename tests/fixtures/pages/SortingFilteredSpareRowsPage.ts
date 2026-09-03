@@ -92,10 +92,15 @@ export class SortingFilteredSpareRowsPage {
   /**
    * Click a column header's sorting label, the gesture the bug report describes, and wait for
    * the indicator so the follow-up assertions run against a sorted grid.
+   *
+   * The expected order is required rather than optional: a second click lands on a label that
+   * already carries `ascending`, so waiting for "either indicator" would resolve the instant the
+   * click is dispatched and never wait for anything. Naming the order makes a lost click fail
+   * here, where it happened, instead of surfacing as a value mismatch further down the test.
    */
-  async sortByHeader(col: number): Promise<void> {
+  async sortByHeader(col: number, expectedOrder: 'ascending' | 'descending'): Promise<void> {
     await this.sortLabel(col).click();
-    await expect(this.sortLabel(col)).toHaveClass(/ascending|descending/);
+    await expect(this.sortLabel(col)).toHaveClass(new RegExp(`\\b${expectedOrder}\\b`));
   }
 
   /**

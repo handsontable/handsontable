@@ -22,13 +22,16 @@ for (const plugin of SORTING_PLUGINS) {
   test.describe(`sorting a filtered grid with minSpareRows (${plugin})`, () => {
     let grid: SortingFilteredSpareRowsPage;
 
+    // Each test builds the grid exactly once, with its own settings. Selecting the plugin here
+    // instead would build a grid that every test then throws away.
     test.beforeEach(async({ page, theme, bundle }) => {
       grid = new SortingFilteredSpareRowsPage(page, theme, bundle);
       await grid.goto();
-      await grid.useSortingPlugin(plugin);
     });
 
     test('sorts every visible row once the filter has trimmed the spare row away', async() => {
+      await grid.useSortingPlugin(plugin);
+
       // Column D `contains '1'` keeps D1 and D10..D13, and trims the empty spare row with them.
       await grid.applyContainsFilter(3, '1');
 
@@ -37,11 +40,11 @@ for (const plugin of SORTING_PLUGINS) {
       // subtracted from the sortable range.
       await expect.poll(() => grid.trailingEmptyRowCount()).toBe(0);
 
-      await grid.sortByHeader(0);
+      await grid.sortByHeader(0, 'ascending');
 
       await expect.poll(() => grid.columnValues(0)).toEqual(['A1', 'A10', 'A11', 'A12', 'A13']);
 
-      await grid.sortByHeader(0);
+      await grid.sortByHeader(0, 'descending');
 
       // A13 was the row left behind at the bottom, unsorted, before the fix.
       await expect.poll(() => grid.columnValues(0)).toEqual(['A13', 'A12', 'A11', 'A10', 'A1']);
@@ -59,8 +62,8 @@ for (const plugin of SORTING_PLUGINS) {
 
       await expect.poll(() => grid.trailingEmptyRowCount()).toBe(0);
 
-      await grid.sortByHeader(0);
-      await grid.sortByHeader(0);
+      await grid.sortByHeader(0, 'ascending');
+      await grid.sortByHeader(0, 'descending');
 
       await expect.poll(() => grid.columnValues(0)).toEqual(['A13', 'A12', 'A11', 'A10', 'A1']);
 
@@ -80,7 +83,7 @@ for (const plugin of SORTING_PLUGINS) {
 
       await expect.poll(() => grid.trailingEmptyRowCount()).toBe(1);
 
-      await grid.sortByHeader(0);
+      await grid.sortByHeader(0, 'ascending');
 
       // Ascending, sorted as text: `A1` leads, the `A1x` block follows, and the spare row is
       // still the `null` at the end instead of the first row.
@@ -105,7 +108,7 @@ for (const plugin of SORTING_PLUGINS) {
 
       await expect.poll(() => grid.trailingEmptyRowCount()).toBe(3);
 
-      await grid.sortByHeader(0);
+      await grid.sortByHeader(0, 'ascending');
 
       await expect.poll(() => grid.columnValues(0)).toEqual([null, null, 'a', 'b', 'c', null]);
 
@@ -119,8 +122,8 @@ for (const plugin of SORTING_PLUGINS) {
       await grid.useSortingPlugin(plugin, { [plugin]: { sortEmptyCells: true } });
 
       await grid.applyContainsFilter(3, '1');
-      await grid.sortByHeader(0);
-      await grid.sortByHeader(0);
+      await grid.sortByHeader(0, 'ascending');
+      await grid.sortByHeader(0, 'descending');
 
       await grid.clearFilter();
 
