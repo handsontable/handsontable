@@ -29,9 +29,15 @@
  * - Every counter is a regex over raw text, so an `expect(`, a matcher, or an
  *   `it(` inside a comment or a string literal counts like live code (inherited
  *   from `countAssertions`). Commenting an assertion out therefore does NOT read
- *   as a removal, and a comment that quotes `toBe(` inflates the histogram. The
- *   one scanner that does skip comments is the `toBeCloseTo` argument reader,
- *   because a comment between the arguments is an ordinary shape there.
+ *   as a removal, and a comment that quotes `toBe(` inflates the histogram. Two
+ *   scanners do skip comments, both built on `splitTopLevelArgs`: the
+ *   `toBeCloseTo` argument reader, because a comment between the arguments is
+ *   an ordinary shape there, and the `it.each` row counter, which inherits the
+ *   behavior. That leaves the block count asymmetric: a commented-out `it(`
+ *   still counts as a live block, so commenting a plain test out is invisible
+ *   to `tests-removed`, while a commented-out row inside a live table is not
+ *   counted and reads as a removed test (2 → 1), and a table commented out
+ *   whole loses its rows and counts as one block.
  * - Only the matchers in the three tables are classified. Playwright's
  *   state-only assertions (`toBeVisible`, `toBeHidden`, `toBeAttached`,
  *   `toBeEnabled`, `toBeChecked`, `toBeFocused`, `toBeInViewport`) assert a
@@ -46,7 +52,10 @@
  *   `not.toHaveBeenCalled()` is zero calls, `not.toBeDefined()` is
  *   `undefined`, and a bare `not.toThrow()` is "does not throw". A negated
  *   bounded matcher stays bounded, and `not.toThrow('msg')` rules one error
- *   out, so it is bounded too.
+ *   out, so it is bounded too. Pinning those three negations as exact has a
+ *   price: an exact → exact swap such as `expect(r).toBe(5)` →
+ *   `expect(() => f()).not.toThrow()` keeps the exact total flat with no
+ *   bounded rise, so it is invisible to `matcher-downgrade`.
  * - `detectMatcherDowngrade` requires the total exact count not to rise, so a
  *   downgrade made in the same change as a larger addition of exact matchers
  *   (`toBe` → `toBeDefined` beside two new `toEqual`) reports nothing. The rule
@@ -210,24 +219,59 @@ const REGEX_START_RE = new RegExp(`(?:^|[(,=:[!&|?{};+\\-*%<>~^]|\\b(?:${REGEX_S
 const CLOSE_TO_DEFAULT_DIGITS = 2;
 
 /**
- * Matches the opening of a test block: `it(`, `test(`, the focused/skipped
- * prefix forms (`fit(`, `xit(`, `xtest(`), the dot-modifier forms (`it.only(`,
- * `test.skip(`, `test.fixme(`, `test.concurrent.only(`, …), and the
- * parameterized forms (`it.each(`, `test.skip.each(`), where the `(` opens the
- * table and the `each` group tells a caller that the title and body follow in
- * a second call. The lookbehind rejects member accesses such as `/re/.test(`
- * and `suite.it(`; `describe`, `describe.each`, and `beforeEach` are not in the
- * alternation, and `test.describe(` never matches because the `(` must follow
- * `test` or one of its modifiers. A table written as a tagged template
- * (`it.each\`…\`(`) is not matched. Shared with the evals scorer
- * (`evals/score.mjs`), so both count the same blocks.
+ * The dot modifiers an opener may chain, in any order and any number
+ * (`test.concurrent.only(`, `it.skip.each(`): Jest's and Jasmine's `only`,
+ * `skip`, `concurrent`, `failing`, `todo`, and Playwright's `fixme`, `fails`,
+ * `flaky`, `serial`.
  */
 const TEST_MODIFIERS = 'only|skip|fixme|fails|failing|flaky|concurrent|serial|todo';
 
-export const TEST_CALL_RE = new RegExp(
-  `(?<![\\w$.])(?:[xf](?:it|test)|(?:it|test)(?:\\.(?:${TEST_MODIFIERS}))*)(?<each>\\.each)?\\s*\\(`,
-  'g',
-);
+/**
+ * The modifiers that focus or skip the block they modify, wherever they sit in
+ * the chain (`.only`, `.concurrent.skip`).
+ */
+const SKIP_FOCUS_MODIFIER_RE = /\.(?:only|skip)\b/;
+
+/**
+ * Build the opener grammar for one family of block names — the single source
+ * of truth for what an opener looks like, so `TEST_CALL_RE` (blocks) and
+ * `countSkipFocus` (focus/skip markers) can never accept different forms. An
+ * opener is a name, either `x`/`f`-prefixed with no modifier chain (`xit`,
+ * `fdescribe`; the `prefix` group) or followed by any chain of `.modifier`
+ * segments drawn from `TEST_MODIFIERS` (the `chain` group), then an optional
+ * `.each` (the `each` group), then the call paren. The lookbehind rejects a
+ * name that continues an identifier; by default it rejects a member access as
+ * well (`/re/.test(`, `suite.it(`), and `memberAccess: true` allows one, which
+ * a suite needs because Playwright spells its suites `test.describe.only(`.
+ *
+ * @param {string} names The block names as a regex alternation (`it|test`).
+ * @param {{memberAccess?: boolean}} [options={}] `memberAccess` allows a `.` right before the name.
+ * @returns {RegExp} A global regex with the `prefix`, `chain`, and `each` groups.
+ */
+function openerRe(names, { memberAccess = false } = {}) {
+  const lookbehind = memberAccess ? '(?<![\\w$])' : '(?<![\\w$.])';
+  const prefixed = `(?<prefix>[xf])(?:${names})`;
+  const chained = `(?:${names})(?<chain>(?:\\.(?:${TEST_MODIFIERS}))*)`;
+
+  return new RegExp(`${lookbehind}(?:${prefixed}|${chained})(?<each>\\.each)?\\s*\\(`, 'g');
+}
+
+/**
+ * Matches the opening of a test block: `it(`, `test(`, the focused/skipped
+ * prefix forms (`fit(`, `xit(`, `xtest(`, `xit.each(`), the dot-modifier forms
+ * (`it.only(`, `test.skip(`, `test.fixme(`, `test.concurrent.only(`, …), and
+ * the parameterized forms (`it.each(`, `test.skip.each(`), where the `(` opens
+ * the table and the `each` group tells a caller that the title and body follow
+ * in a second call. The lookbehind rejects member accesses such as `/re/.test(`
+ * and `suite.it(`; `describe`, `describe.each`, and `beforeEach` are not in the
+ * alternation, and `test.describe(` never matches because the `(` must follow
+ * `test` or one of its modifiers. A table written as a tagged template
+ * (`it.each\`…\`(`) is not matched. Built by `openerRe`, the grammar
+ * `countSkipFocus` reads too, so a focused or skipped opener this regex accepts
+ * is always a marker there. Shared with the evals scorer (`evals/score.mjs`),
+ * so both count the same blocks.
+ */
+export const TEST_CALL_RE = openerRe('it|test');
 
 /**
  * Count assertion calls (`expect(` and common assertion-helper names) in a source string.
@@ -246,9 +290,22 @@ export function countAssertions(src) {
 }
 
 /**
- * Count focus/skip markers (`it.only`, `describe.skip`, `xit`, `fdescribe`, …) in
- * a source string. A parameterized opener carries its modifier like any other
- * (`it.only.each(` is one focus marker).
+ * The openers `countSkipFocus` reads: the test openers of `TEST_CALL_RE` plus
+ * the suites (`describe`, `context`), with a member access allowed because
+ * Playwright spells a focused or skipped suite `test.describe.only(` /
+ * `test.describe.skip(`.
+ */
+const SKIP_FOCUS_OPENER_RE = openerRe('it|test|describe|context', { memberAccess: true });
+
+/**
+ * Count focus/skip markers in a source string: an `x`/`f`-prefixed opener
+ * (`xit`, `fit`, `xdescribe`, `fdescribe`, `xit.each`) or a `skip`/`only`
+ * anywhere in an opener's modifier chain (`it.only`, `describe.skip`,
+ * `test.concurrent.only`, `it.skip.each`). One opener is one marker. The
+ * openers are read with the grammar `TEST_CALL_RE` is built from (`openerRe`),
+ * widened to suites, so every focused or skipped block the block counter
+ * accepts is a marker here — the two counters cannot drift, and the parity
+ * test in `test-weakening.test.mjs` walks the grammar to prove it.
  *
  * @param {string} src The spec file contents.
  * @returns {number} The number of focus/skip markers.
@@ -257,17 +314,24 @@ export function countSkipFocus(src) {
   if (!src) {
     return 0;
   }
-  const dotForm = src.match(/\b(?:it|test|describe|context)\.(?:skip|only)(?:\.each)?\s*\(/g) || [];
-  const prefixForm = src.match(/\b(?:x(?:it|describe|test)|f(?:it|describe))\s*\(/g) || [];
 
-  return dotForm.length + prefixForm.length;
+  let count = 0;
+
+  for (const { groups } of src.matchAll(SKIP_FOCUS_OPENER_RE)) {
+    if (groups.prefix !== undefined || SKIP_FOCUS_MODIFIER_RE.test(groups.chain ?? '')) {
+      count += 1;
+    }
+  }
+
+  return count;
 }
 
 /**
  * Count test blocks (`it(`, `test(`, and their focused/skipped/modifier forms)
  * in a source string. A parameterized table (`it.each([...])(title, fn)`)
  * counts one block per row (see `countTableRows`). Text-based like
- * `countAssertions`: an opener inside a comment or a string literal counts too.
+ * `countAssertions`: an opener inside a comment or a string literal counts too
+ * — a table's rows are the exception (module header).
  *
  * @param {string} src The spec file contents.
  * @returns {number} The number of test blocks.
@@ -292,9 +356,11 @@ export function countTestBlocks(src) {
  * registers for that block. A table the scanner cannot read as an array literal
  * (a variable, a `.map()` call, an unbalanced list) counts as one row: the
  * minimal claim, never an invented count. Like the `toBeCloseTo` reader, the
- * scanner can be confused by a regex literal holding a bracket; both revisions
- * of an unchanged table miscount alike, so that never becomes a finding on its
- * own. Shared with the evals scorer, so both count the same tests.
+ * scanner skips comments — so a commented-out row is not a row, unlike a
+ * commented-out `it(` (module header) — and can be confused by a regex literal
+ * holding a bracket; both revisions of an unchanged table miscount alike, so
+ * that never becomes a finding on its own. Shared with the evals scorer, so
+ * both count the same tests.
  *
  * @param {string} src The spec file contents.
  * @param {number} start Index just past the `(` that opens the table.

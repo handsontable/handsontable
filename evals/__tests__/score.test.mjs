@@ -126,6 +126,27 @@ test('gaming signals: .only, xit, and it.flaky are detected', () => {
   assert.ok(score.problems.some(p => p.type === 'gaming-signals'));
 });
 
+test('gaming signals: a prefixed .each and a skip/only deep in a modifier chain are focus/skip markers', () => {
+  // The scorer shares `countSkipFocus` with the weakening detector; these five
+  // openers used to count as test blocks with no gaming signal at all.
+  const src = `
+    xit.each([[1]])('a', fn);
+    fit.each([[1]])('b', fn);
+    test.concurrent.only('c', () => { expect(a).toBe(1); });
+    test.concurrent.skip('d', () => { expect(b).toBe(2); });
+    test.concurrent.only.each([[1]])('e', fn);
+  `;
+  const byType = Object.fromEntries(findGamingSignals(src).map(s => [s.type, s.count]));
+
+  assert.equal(byType['skip-or-focus'], 5);
+
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.equal(score.tests, 5);
+  assert.equal(score.verdict, 'suspect');
+  assert.ok(score.problems.some(p => p.type === 'gaming-signals'));
+});
+
 test('gaming signals: a try/catch that swallows the failure is detected', () => {
   const swallowing = `
     it('cannot fail', async() => {

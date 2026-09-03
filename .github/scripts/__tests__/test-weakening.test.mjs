@@ -16,9 +16,82 @@ test('countSkipFocus counts .skip/.only and x/f prefixed forms', () => {
   assert.equal(countSkipFocus('it.only(() => {}); describe.skip(() => {});'), 2);
   assert.equal(countSkipFocus('xit("a"); fdescribe("b"); xdescribe("c");'), 3);
   assert.equal(countSkipFocus('it("normal", () => {});'), 0);
-  // A parameterized opener carries its modifier like any other.
+  // A parameterized opener carries its modifier like any other, and so does a
+  // prefixed one — `xit.each(` used to count zero markers.
   assert.equal(countSkipFocus('it.only.each([[1]])("a", fn); test.skip.each([[1]])("b", fn);'), 2);
+  assert.equal(countSkipFocus('xit.each([[1]])("a", fn); fit.each([[1]])("b", fn); xtest.each([[1]])("c", fn);'), 3);
   assert.equal(countSkipFocus('it.each([[1]])("a", fn);'), 0);
+  // `skip`/`only` counts wherever it sits in the modifier chain; the other
+  // modifiers are not markers (the scorer reports `fixme`/`todo` on its own).
+  assert.equal(countSkipFocus(
+    'test.concurrent.only("a", fn); test.concurrent.skip("b", fn); test.skip.concurrent("c", fn);',
+  ), 3);
+  assert.equal(countSkipFocus('test.concurrent("a", fn); test.fixme("b", fn); it.todo("c");'), 0);
+  // Playwright spells a focused or skipped suite through `test.`.
+  assert.equal(countSkipFocus('test.describe.only("s", fn); test.describe.skip("t", fn);'), 2);
+  // An identifier that merely ends in a name is not an opener.
+  assert.equal(countSkipFocus('exit(); benefit.only(); prefix.skip();'), 0);
+});
+
+test('countSkipFocus and countTestBlocks read one opener grammar: every focused or skipped block is one marker', () => {
+  // `countSkipFocus` used to carry its own regex — `.each` only after a dot
+  // modifier, no modifier chain, no prefix before `.each` — so `xit.each(`,
+  // `fit.each(`, `test.concurrent.only(`, `test.concurrent.skip(`, and
+  // `test.concurrent.only.each(` each counted one block and zero markers. Walk
+  // the grammar `TEST_CALL_RE` accepts (both names, both prefixes, every
+  // modifier chain up to two deep, with and without `.each`) and check that a
+  // block is a marker exactly when it is `x`/`f`-prefixed or carries `skip` or
+  // `only` anywhere in its chain.
+  const modifiers = ['only', 'skip', 'fixme', 'fails', 'failing', 'flaky', 'concurrent', 'serial', 'todo'];
+  const chains = [[], ...modifiers.map(m => [m]), ...modifiers.flatMap(a => modifiers.map(b => [a, b]))];
+  const openers = [];
+
+  for (const name of ['it', 'test']) {
+    for (const each of [false, true]) {
+      const call = each ? '.each([[1]])("a", fn);' : '("a", fn);';
+
+      for (const prefix of ['x', 'f']) {
+        openers.push({ src: `${prefix}${name}${call}`, marker: true });
+      }
+      for (const chain of chains) {
+        openers.push({
+          src: `${name}${chain.map(m => `.${m}`).join('')}${call}`,
+          marker: chain.includes('skip') || chain.includes('only'),
+        });
+      }
+    }
+  }
+
+  assert.ok(openers.length > 300, 'premise: the walk covers the grammar');
+
+  for (const { src, marker } of openers) {
+    assert.equal(countTestBlocks(src), 1, `${src} is one block`);
+    assert.equal(countSkipFocus(src), marker ? 1 : 0, `${src} is ${marker ? 'one marker' : 'no marker'}`);
+  }
+});
+
+test('detectWeakening flags a new spec born with a prefixed .each or a skip/only deep in a modifier chain', () => {
+  // The five openers that used to count one block and zero markers each, so a
+  // new spec born with any of them raised no finding at all.
+  const born = [
+    'xit.each([[1]])("a", fn);',
+    'fit.each([[1]])("b", fn);',
+    'test.concurrent.only("c", fn);',
+    'test.concurrent.skip("d", fn);',
+    'test.concurrent.only.each([[1]])("e", fn);',
+  ];
+
+  for (const src of born) {
+    const { findings, severity } = detectWeakening('', src, { sourceChanged: true });
+
+    assert.deepEqual(findings, [{ kind: 'skip-or-focus-added', before: 0, after: 1 }], src);
+    assert.equal(severity, 'flag', src);
+  }
+
+  const spec = born.join('\n');
+
+  assert.equal(countTestBlocks(spec), 5);
+  assert.deepEqual(detectWeakening('', spec).findings, [{ kind: 'skip-or-focus-added', before: 0, after: 5 }]);
 });
 
 test('detectWeakening flags removed assertions', () => {
@@ -171,7 +244,8 @@ test('matcherKind classifies a label by table, by negation, and by a bare throw'
   assert.equal(matcherKind('not.toBeDefined'), 'exact');
   // The throw family pins the error only when given an argument, and negation
   // flips the pair: a bare `not.toThrow()` pins the one outcome "does not
-  // throw" (220 calls in `handsontable/`, none with an argument), while
+  // throw" (179 bare calls in `handsontable/` — 172 `not.toThrow()`, 7
+  // `not.toThrowError()` — and none with an argument), while
   // `not.toThrow('msg')` rules one error out. The bare negation used to
   // classify bounded, so a spec whose only matcher was `not.toThrow()` read as loose.
   assert.equal(matcherKind('toThrow'), 'exact');
@@ -364,6 +438,12 @@ test('detectMatcherDowngrade flags toHaveBeenCalledTimes → toHaveBeenCalled an
     'expect(spy).toHaveBeenCalled();',
     'expect(spy).toHaveBeenCalledTimes(1);',
   ), null);
+
+  // The price of pinning `not.toThrow()` as exact (module header): an exact →
+  // exact swap that trades a value pin for the outcome pin keeps the exact
+  // total flat with no bounded rise, so nothing reports it.
+  assert.equal(detectMatcherDowngrade('expect(r).toBe(5);', 'expect(() => f()).not.toThrow();'), null);
+  assert.deepEqual(detectWeakening('expect(r).toBe(5);', 'expect(() => f()).not.toThrow();').findings, []);
 });
 
 test('detectMatcherDowngrade flags an exact matcher that gained a .not. (toBe(5) → not.toBe(0))', () => {
@@ -637,6 +717,27 @@ test('countTestBlocks counts a parameterized table by its rows, and a table it c
   // Documented blind spot: a table written as a tagged template is not counted
   // (the cell values, `${…}` expressions in a real table, are elided here).
   assert.equal(countTestBlocks('it.each`\n  a | b\n  1 | 2\n`("n", fn);'), 0);
+});
+
+test('a commented-out table row is not counted while a commented-out it() still is (module header)', () => {
+  // The row counter runs on `splitTopLevelArgs`, which skips comments; the
+  // opener regexes do not. So `tests-removed` sees a row commented out, and a
+  // table commented out whole (its rows become unreadable, so it counts as
+  // one), but never a plain `it()` commented out.
+  const two = 'it("a", () => { expect(a).toBe(1); });\nit("b", () => { expect(b).toBe(2); });';
+  const oneCommented = 'it("a", () => { expect(a).toBe(1); });\n// it("b", () => { expect(b).toBe(2); });';
+
+  assert.equal(countTestBlocks(oneCommented), 2);
+  assert.deepEqual(detectWeakening(two, oneCommented).findings, []);
+
+  const table = 'it.each([\n  ["a", 1],\n  ["b", 2],\n])("n %s", fn);';
+  const rowCommented = 'it.each([\n  ["a", 1],\n  // ["b", 2],\n])("n %s", fn);';
+  const tableCommented = '// it.each([\n//   ["a", 1],\n//   ["b", 2],\n// ])("n %s", fn);';
+
+  assert.equal(countTestBlocks(rowCommented), 1);
+  assert.deepEqual(detectWeakening(table, rowCommented).findings, [{ kind: 'tests-removed', before: 2, after: 1 }]);
+  assert.equal(countTestBlocks(tableCommented), 1);
+  assert.deepEqual(detectWeakening(table, tableCommented).findings, [{ kind: 'tests-removed', before: 2, after: 1 }]);
 });
 
 test('tests-removed is quiet when two it() fold into one two-row it.each table', () => {

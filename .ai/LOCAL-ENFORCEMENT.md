@@ -50,8 +50,11 @@ exists — deleting the failing test and growing a survivor keeps the assertion
 count flat or rising, so nothing else sees it; a parameterized `it.each` table
 counts one block per row of its array literal, so folding tests into a table is
 quiet and deleting a row is not, and a table the scanner cannot read — a variable,
-a `.map()` call — counts as one), `skip-or-focus-added`,
-`matcher-downgrade`, and `precision-widened`. The last two exist because counting
+a `.map()` call — counts as one; `assertions-removed` is not row-aware, so the
+fold of two `it()` into one still shows `expect` 2 → 1), `skip-or-focus-added`
+(an `x`/`f`-prefixed opener or a `skip`/`only` anywhere in an opener's modifier
+chain, read with the same opener grammar as the block count, so `xit.each(` and
+`test.concurrent.only(` count), `matcher-downgrade`, and `precision-widened`. The last two exist because counting
 alone misses the quieter loosening moves. A **matcher downgrade** is an *exact*
 matcher losing calls **and** a *bounded* one gaining calls in the same file, while
 the file's total exact count does not rise — `toHaveBeenCalledTimes(300)` becoming
@@ -76,12 +79,16 @@ and presence checks (`toBeGreaterThanOrEqual`, `toBeLessThanOrEqual`,
 `THROW_MATCHERS` (`toThrow`, `toThrowError`, `toThrowWithCause`) are exact with an
 argument and bounded when bare — `toThrow()` proves only that something threw —
 and negation flips the pair: a bare `not.toThrow()` pins the one outcome "does not
-throw" and is exact (220 calls in `handsontable/`, none with an argument), while
+throw" and is exact (179 bare calls in `handsontable/` — 172 `not.toThrow()`, 7
+`not.toThrowError()` — and none with an argument), while
 `not.toThrow('msg')` rules one error out and is bounded. Any other negated call
 (`.not.toBe(0)`) rules one value out and counts as bounded, except the two
 negations that pin a value (`not.toHaveBeenCalled()`, `not.toBeDefined()`;
 `NEGATION_PINS`), so `toHaveBeenCalledTimes(0)` → `not.toHaveBeenCalled()` is not
-a finding while `toBe(5)` → `not.toBe(0)` is. Playwright's state-only assertions
+a finding while `toBe(5)` → `not.toBe(0)` is. Pinning those negations as exact has
+a price: an exact → exact swap such as `expect(r).toBe(5)` →
+`expect(() => f()).not.toThrow()` is invisible to `matcher-downgrade`.
+Playwright's state-only assertions
 (`toBeVisible`, `toBeHidden`, `toBeEnabled`, …) are in no table: they assert a
 state, not a value, so a `toHaveText` → `toBeVisible` swap is invisible to this
 detector (a documented blind spot; see the module header). Either half alone is
