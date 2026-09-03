@@ -3708,9 +3708,8 @@ export default function Core(
    * `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. On a direct conflict, a value re-stated
    * through the declarative `cell` option takes precedence over the preserved imperative value.
    *
-   * Cell meta set imperatively through [[setCellMeta]] (for example, by the user or the context menu) is preserved across
-   * `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. On a direct conflict, a value re-stated
-   * through the declarative `cell` option takes precedence over the preserved imperative value.
+   * A failed validation result is preserved as well, so a cell marked invalid keeps its `htInvalid` class across
+   * `updateSettings`. To reset the validation state, use [`loadData()`](@/api/core.md#loaddata) or validate the cells again.
    *
    * When [[Hooks#hasExternalDataSource]] is true, Handsontable clears and rebinds the placeholder dataset only during
    * initialization or when `settings` includes `data` or `dataProvider`. Other keys alone (for example `height`) do not clear loaded rows.
@@ -3920,6 +3919,12 @@ export default function Core(
     // survives the clear instead of being discarded (see GitHub issue #4446).
     if (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined) {
       const userDefinedCellMetas = metaManager.getUserDefinedCellMetas();
+      // Failed validation results are written straight onto the cell meta by `validateCell`, never
+      // through `setCellMeta`, so the snapshot above cannot see them. Without this, an `updateSettings`
+      // call that merely re-states `cells` or `columns` - which every React render with a `<HotColumn>`
+      // child does - silently drops the invalid-cell highlight while the cell keeps the bad value
+      // (GitHub issue #7553).
+      const invalidCellMetas = metaManager.getInvalidCellMetas();
 
       metaManager.clearCache();
 
@@ -3928,6 +3933,8 @@ export default function Core(
       userDefinedCellMetas.forEach(({ physicalRow, physicalColumn, key, value }) => {
         metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
       });
+
+      metaManager.restoreInvalidCellMetas(invalidCellMetas);
     }
 
     if (clen > 0) {

@@ -374,6 +374,26 @@ export default class MetaManager {
   }
 
   /**
+   * Returns the physical coordinates of every cell whose last validation failed. The validation flow
+   * writes `valid` directly onto the meta object, so `getUserDefinedCellMetas` does not cover it.
+   * Used to preserve the invalid-cell highlight across a `clearCache` call during `updateSettings`.
+   *
+   * @returns {{physicalRow: number, physicalColumn: number}[]}
+   */
+  getInvalidCellMetas() {
+    return this.cellMeta.getInvalidMetas();
+  }
+
+  /**
+   * Re-applies the failed validation results captured by `getInvalidCellMetas`.
+   *
+   * @param {{physicalRow: number, physicalColumn: number}[]} invalidCellMetas Coordinates to flag as invalid.
+   */
+  restoreInvalidCellMetas(invalidCellMetas: { physicalRow: number, physicalColumn: number }[]) {
+    this.cellMeta.restoreInvalidMetas(invalidCellMetas);
+  }
+
+  /**
    * Enables tracking of user-defined cell meta properties set through `setCellMeta`.
    */
   enableUserDefinedMetaRecording() {

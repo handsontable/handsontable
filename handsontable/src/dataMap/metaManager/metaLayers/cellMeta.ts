@@ -364,6 +364,48 @@ export default class CellMeta {
   }
 
   /**
+   * Returns the physical coordinates of every cell whose last validation failed. The validation flow
+   * writes `valid` straight onto the meta object instead of going through `setMeta`, so such a cell
+   * carries no `_userDefinedMetaProps` entry and `getUserDefinedMetas()` cannot see it. Used together
+   * with `restoreInvalidMetas()` to keep the invalid-cell highlight across the cache clear that
+   * `updateSettings` performs when its payload carries `cell`, `cells` or `columns`.
+   *
+   * Only `valid === false` is reported, never `valid === true` - the same rule `evictRow()` applies,
+   * and for the same reason: a passing result has no rendered state, and a cell that reads back as
+   * `undefined` rather than `true` is indistinguishable to every core reader (all branch on
+   * `!== false`).
+   *
+   * @returns {{physicalRow: number, physicalColumn: number}[]}
+   */
+  getInvalidMetas(): { physicalRow: number, physicalColumn: number }[] {
+    const result: { physicalRow: number, physicalColumn: number }[] = [];
+
+    for (const [physicalRow, rowMap] of this.metas) {
+      for (const [physicalColumn, meta] of rowMap) {
+        if (meta.valid === false) {
+          result.push({ physicalRow, physicalColumn });
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Re-applies the failed validation results captured by `getInvalidMetas()`. The write is a direct
+   * property assignment, matching how the validation flow itself records the result. It deliberately
+   * does not go through `setMeta`: that would record `valid` as a user-defined property, and every
+   * later cache clear would then replay a stale `false` onto a cell that has since been corrected.
+   *
+   * @param {{physicalRow: number, physicalColumn: number}[]} invalidMetas Coordinates to flag as invalid.
+   */
+  restoreInvalidMetas(invalidMetas: { physicalRow: number, physicalColumn: number }[]) {
+    invalidMetas.forEach(({ physicalRow, physicalColumn }) => {
+      this.getMeta(physicalRow, physicalColumn).valid = false;
+    });
+  }
+
+  /**
    * Releases render-derived cell meta objects for a single physical row, freeing memory for rows
    * scrolled out of the viewport. A cell is evicted only when it is purely render-derived: it carries
    * no persisted meta props (nothing set through `setMeta`/`setCellMeta`, whether imperatively or via

@@ -317,4 +317,140 @@ describe('Core.setCellMeta', () => {
       expect(afterCellMetaReset).toHaveBeenCalled();
     });
   });
+
+  describe('preserving failed validation results across updateSettings (#7553)', () => {
+    // The validation flow writes `valid` straight onto the cell meta, so the #4446 snapshot above
+    // cannot see it. Without a dedicated snapshot, an `updateSettings` call that merely re-states
+    // `cells`, `cell` or `columns` drops the invalid-cell highlight while the cell keeps the bad
+    // value.
+    const settingsWithFailingValidator = {
+      data: createSpreadsheetData(5, 5),
+      validator(value, callback) {
+        callback(value !== 'nope');
+      },
+    };
+
+    const markCellInvalid = async() => {
+      await setDataAtCell(0, 0, 'nope');
+      await waitForNextAnimationFrames(7); // wait for async validation
+    };
+
+    it('should keep the invalid mark after `updateSettings` with the `cells` option', async() => {
+      handsontable({ ...settingsWithFailingValidator });
+
+      await markCellInvalid();
+
+      expect(getCellMeta(0, 0).valid).toBe(false);
+
+      await updateSettings({
+        cells() {
+          return {};
+        },
+      });
+
+      expect(getCellMeta(0, 0).valid).toBe(false);
+      expect(getCell(0, 0).classList.contains('htInvalid')).toBe(true);
+    });
+
+    it('should keep the invalid mark after `updateSettings` with the `cell` option', async() => {
+      handsontable({ ...settingsWithFailingValidator });
+
+      await markCellInvalid();
+
+      await updateSettings({ cell: [] });
+
+      expect(getCellMeta(0, 0).valid).toBe(false);
+      expect(getCell(0, 0).classList.contains('htInvalid')).toBe(true);
+    });
+
+    it('should keep the invalid mark after `updateSettings` with the `columns` option', async() => {
+      handsontable({ ...settingsWithFailingValidator });
+
+      await markCellInvalid();
+
+      await updateSettings({ columns: [{}, {}, {}, {}, {}] });
+
+      expect(getCellMeta(0, 0).valid).toBe(false);
+      expect(getCell(0, 0).classList.contains('htInvalid')).toBe(true);
+    });
+
+    it('should not mark any other cell as invalid', async() => {
+      handsontable({ ...settingsWithFailingValidator });
+
+      await markCellInvalid();
+
+      await updateSettings({ columns: [{}, {}, {}, {}, {}] });
+
+      expect(spec().$container.find('td.htInvalid').length).toBe(1);
+      expect(getCellMeta(0, 1).valid).toBeUndefined();
+      expect(getCellMeta(1, 0).valid).toBeUndefined();
+    });
+
+    it('should keep the invalid mark across multiple consecutive `updateSettings` calls', async() => {
+      handsontable({ ...settingsWithFailingValidator });
+
+      await markCellInvalid();
+
+      await updateSettings({ columns: [{}, {}, {}, {}, {}] });
+      await updateSettings({ columns: [{}, {}, {}, {}, {}] });
+
+      expect(getCellMeta(0, 0).valid).toBe(false);
+      expect(getCell(0, 0).classList.contains('htInvalid')).toBe(true);
+    });
+
+    it('should keep the invalid mark at its shifted position after inserting a row', async() => {
+      handsontable({ ...settingsWithFailingValidator });
+
+      await markCellInvalid();
+      await alter('insert_row_above', 0, 1);
+
+      await updateSettings({ columns: [{}, {}, {}, {}, {}] });
+
+      // The row above the inserted one must not inherit the mark - the snapshot stores physical
+      // coordinates, so the flag has to travel with the cell rather than stay at row 0.
+      expect(getCellMeta(1, 0).valid).toBe(false);
+      expect(getCellMeta(0, 0).valid).toBeUndefined();
+    });
+
+    it('should treat a mark in a column the update removes the same way as a `setCellMeta` value', async() => {
+      // Narrowing `columns` puts the flagged cell out of range. The restore keeps it, exactly as the
+      // #4446 replay keeps an imperative value there - same materialized meta count, and both come
+      // back when the columns grow again. Asserted side by side so the two paths cannot drift.
+      handsontable({ ...settingsWithFailingValidator });
+
+      await setDataAtCell(0, 4, 'nope');
+      await waitForNextAnimationFrames(7); // wait for async validation
+      await setCellMeta(0, 4, 'className', 'marker');
+
+      await updateSettings({ columns: [{}, {}, {}] });
+
+      expect(countCols()).toBe(3);
+
+      await updateSettings({ columns: [{}, {}, {}, {}, {}] });
+
+      expect(getCellMeta(0, 4).valid).toBe(false);
+      expect(getCellMeta(0, 4).className).toBe('marker');
+    });
+
+    it('should drop the mark once the cell validates again', async() => {
+      handsontable({ ...settingsWithFailingValidator });
+
+      await markCellInvalid();
+
+      await updateSettings({ columns: [{}, {}, {}, {}, {}] });
+
+      await setDataAtCell(0, 0, 'fine');
+      await waitForNextAnimationFrames(7); // wait for async validation
+
+      expect(getCellMeta(0, 0).valid).toBe(true);
+      expect(getCell(0, 0).classList.contains('htInvalid')).toBe(false);
+
+      // A restored value must not be replayed on the next cache clear - the preserved `valid` is a
+      // direct meta write, never a user-defined property.
+      await updateSettings({ columns: [{}, {}, {}, {}, {}] });
+
+      expect(getCellMeta(0, 0).valid).not.toBe(false);
+      expect(getCell(0, 0).classList.contains('htInvalid')).toBe(false);
+    });
+  });
 });
