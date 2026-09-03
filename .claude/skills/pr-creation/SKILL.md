@@ -162,7 +162,14 @@ When asked to update, fix, or re-fill a PR description, use the same temp-file a
 
 ## 6. Changelog Entry (after PR is created)
 
-Every PR that changes source code needs a changelog entry in `.changelogs/`. The filename **must** be `{PR-number}.json`, using the PR number returned by `gh pr create` in the previous step. See the `changelog-creation` skill for the JSON schema and title-writing rules.
+Every PR that changes source code needs a changelog entry in `.changelogs/`. The filename **must** match `issueOrPR`, and which number that is depends on `issuesOrigin`:
+
+| `issuesOrigin` | `issueOrPR` | Filename |
+|---|---|---|
+| `private` — the default, and almost always correct | the PR number from `gh pr create` | `{PR-number}.json` |
+| `public` — only when the entry cites a real public GitHub issue | the **issue** number | `{issue-number}.json` |
+
+The field picks the link path in the generated `CHANGELOG.md`, so `public` paired with a PR number publishes a link to `/issues/{PR-number}` — a wrong link that also hides the entry from the duplicate check. Work tracked only in a private ClickUp task is always `private`. See `.changelogs/README.md` for the authoritative table, and the `changelog-creation` skill for the JSON schema and title-writing rules.
 
 After writing the file:
 
