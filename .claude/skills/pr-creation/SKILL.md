@@ -9,10 +9,13 @@ Choose the prefix that matches your work:
 
 | Type | Pattern | Example |
 |------|---------|---------|
-| Feature (ClickUp, default) | `feature/DEV-xxxx_Short-Description` | `feature/DEV-627_Forum-Update` |
-| Docs (ClickUp) | `docs/DEV-xxxx_Short-Description` | `docs/DEV-458_Clarify-undo-redo-docs` |
+| Feature (ClickUp, default) | `feature/<TASK-ID>_Short-Description` | `feature/DEV-627_Forum-Update` |
+| Docs (ClickUp) | `docs/<TASK-ID>_Short-Description` | `docs/DEV-458_Clarify-undo-redo-docs` |
 | Feature (public GitHub issue) | `feature/issue-xxxx` | `feature/issue-11832` |
+| Docs (public GitHub issue) | `docs/issue-xxxx` | `docs/issue-9500` |
 | Release | `release/x.y.z` | `release/16.1.0` |
+
+`<TASK-ID>` is the ClickUp custom ID. Its prefix follows the space the task lives in, so it is not always `DEV`: `docs/SU-833_BeforeKeyDown-Return-False-Note` and `feature/PRO-858_Theme-API-e2e-test-data-driven-for-each-theme` are both valid. Copy the prefix from the task, never assume one.
 
 When working from a ClickUp task, the **human-readable custom ID** (e.g. `DEV-627`, `IT-42`) **must** appear in the branch name so ClickUp links automatically. Never use the internal ClickUp hash ID (e.g. `86c9j4fxj`) — it is not a valid task identifier for branch linking.
 
