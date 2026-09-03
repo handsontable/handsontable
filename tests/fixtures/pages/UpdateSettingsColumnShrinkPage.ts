@@ -7,10 +7,21 @@ type RendererCall = {
   violation: boolean;
 };
 
+/**
+ * The slice of the grid API this page reads in the browser. Declared locally, the way the other page
+ * objects do it, rather than augmenting `Window` again - `windowTypes.ts` already augments it with
+ * `hot`, and a second augmentation of the same property with a different type is a TS2717 error.
+ * Playwright transpiles without type checking, so CI would stay quiet while an editor with both
+ * files open goes red.
+ */
+interface HandsontableFixture {
+  countCols(): number;
+}
+
 declare global {
   interface Window {
     htRendererCalls: RendererCall[];
-    hot: { countCols(): number };
+    htRenderPasses: number;
   }
 }
 
@@ -97,7 +108,14 @@ export class UpdateSettingsColumnShrinkPage {
    * The grid's current column count.
    */
   columnCount(): Promise<number> {
-    return this.page.evaluate(() => window.hot.countCols());
+    return this.page.evaluate(() => (window as Window & { hot: HandsontableFixture }).hot.countCols());
+  }
+
+  /**
+   * How many render passes the last shrink produced.
+   */
+  renderPasses(): Promise<number> {
+    return this.page.evaluate(() => window.htRenderPasses);
   }
 
   /**

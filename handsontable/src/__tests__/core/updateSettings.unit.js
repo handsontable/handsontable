@@ -354,6 +354,12 @@ describe('Core#updateSettings', () => {
         columns: buildColumns(),
       });
 
+      // Pinned again after the update: `updateData` runs `fitToLength()` and `initIndexMappers()` in
+      // between, so the count this test depends on has to be the one that holds afterwards. Without
+      // this, a trimming map that stopped surviving the update would take `countCols()` to 3 and let
+      // the assertions below pass on unfixed code.
+      expect(core.countCols()).toBe(2);
+
       const metaManager = core._getMetaManager();
 
       // The `columns` array addresses PHYSICAL columns, while the loop that re-applies it is bound by
@@ -367,7 +373,7 @@ describe('Core#updateSettings', () => {
       core.destroy();
     });
 
-    it('should keep the early and late column passes in agreement under `maxCols`', () => {
+    it('should apply the `columns` array by physical index when `maxCols` caps a trimmed grid', () => {
       const rendererA = jest.fn();
       const rendererB = jest.fn();
       const rendererC = jest.fn();
@@ -385,18 +391,30 @@ describe('Core#updateSettings', () => {
 
       core.init();
 
+      const trimmingMap = new TrimmingMap();
+
+      core.columnIndexMapper.registerMap('updateSettingsMaxColsTrim', trimmingMap);
+      trimmingMap.setValueAtIndex(0, true);
+      core.columnIndexMapper.updateCache(true);
+
       core.updateSettings({
         data: [{ a: 1, b: 2, c: 3 }],
         columns: buildColumns(),
       });
 
-      // `countCols()` caps at `maxCols`, so the late pass stops there too. The early pass carries the
-      // same cap, which is what keeps the two bounds in agreement: without it the early pass would
-      // write meta to a column the grid does not render and the late pass never revisits.
+      // `countCols()` caps at `maxCols` and counts the columns on SCREEN, while `columns` addresses
+      // PHYSICAL indexes. With physical column 0 trimmed, the screen shows physical 1 and 2, so a
+      // `countCols()` bound would stop at physical 1 and leave physical 2 with nothing from
+      // `columns` - the same gap the trimming case above closes. The bound is the array's own length.
       expect(core.countCols()).toBe(2);
-      expect(core.getCellMeta(0, 0).renderer).toBe(rendererA);
-      expect(core.getCellMeta(0, 1).renderer).toBe(rendererB);
 
+      const metaManager = core._getMetaManager();
+
+      expect(metaManager.getColumnMeta(0).renderer).toBe(rendererA);
+      expect(metaManager.getColumnMeta(1).renderer).toBe(rendererB);
+      expect(metaManager.getColumnMeta(2).renderer).toBe(rendererC);
+
+      core.columnIndexMapper.unregisterMap('updateSettingsMaxColsTrim');
       core.destroy();
     });
 

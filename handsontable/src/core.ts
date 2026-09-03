@@ -3931,7 +3931,12 @@ export default function Core(
 
     if (earlyColumnsSetting !== null) {
       resetMetaCaches();
-      applyColumnMeta(Math.min(earlyColumnsSetting.length, tableMeta.maxCols));
+      // The bound is the array's own length, NOT `countCols()`. `countCols()` caps at `maxCols` and
+      // counts the columns on SCREEN, while this walks PHYSICAL indexes, and the two diverge as soon
+      // as a column is trimmed: with `maxCols: 2`, three `columns` entries and physical column 0
+      // trimmed, the screen shows physical 1 and 2 while a `countCols()` bound stops at physical 1,
+      // so physical 2 renders with nothing from `columns`.
+      applyColumnMeta(earlyColumnsSetting.length);
     }
 
     // Load data or create data map
@@ -3980,10 +3985,13 @@ export default function Core(
       resetMetaCaches();
     }
 
-    // Authoritative pass: it runs for every payload and for both forms of the setting, and its bound
-    // is the settled column count - so it repairs whatever the early pass could not see (a `columns`
-    // function, `maxCols`, and the columns the data phase itself created).
-    if (clen > 0) {
+    // The pass for everything the early one does not handle: a `columns` FUNCTION, and a payload that
+    // does not name `columns` at all (an update still has to re-read a function that reads external
+    // state). Skipped when the early pass ran, because it could not add anything: for an array,
+    // `getInitialColumnCount()` returns `columns.length`, so `clen` can never exceed the bound the
+    // early pass already used, and re-applying would only pay `extend()` a second time per column -
+    // which the React and Angular wrappers, re-sending `columns` on every commit, would pay per render.
+    if (clen > 0 && earlyColumnsSetting === null) {
       applyColumnMeta(clen);
     }
 

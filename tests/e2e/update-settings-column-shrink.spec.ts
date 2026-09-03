@@ -20,6 +20,7 @@ test.describe('updateSettings with a shortened columns array', () => {
     // Positive control first: an empty recording would make the violation check
     // below pass without exercising anything.
     expect(await grid.rendererCalls()).not.toHaveLength(0);
+    expect(await grid.renderPasses()).toBe(2);
     expect(await grid.violations()).toEqual([]);
 
     // Every recorded call belongs to the one surviving column.
@@ -38,9 +39,14 @@ test.describe('updateSettings with a shortened columns array', () => {
     await grid.goto();
     await grid.shrinkWithTheme();
 
-    // A theme in the payload paints from `useTheme()`, before the data phase. That
-    // paint reads the previous columns AND the previous data, so it is
-    // self-consistent - this pins that it stays so.
+    // The fixture sends a theme that DIFFERS from the one on the container, so `useTheme()` really
+    // runs and paints once more before the data phase - three passes against the two the case above
+    // produces. Without that count this case would silently repeat the first one, which is what
+    // happened while the payload re-sent the container's own theme.
+    expect(await grid.renderPasses()).toBe(3);
+
+    // That extra paint reads the previous columns AND the previous data, so it is self-consistent.
+    // This pins that it stays so.
     expect(await grid.rendererCalls()).not.toHaveLength(0);
     expect(await grid.violations()).toEqual([]);
     expect(await grid.columnCount()).toBe(1);

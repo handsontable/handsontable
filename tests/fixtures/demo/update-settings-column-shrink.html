@@ -64,6 +64,10 @@
     // while it happens.
     window.htRendererCalls = [];
 
+    // One entry per render pass, so a spec can prove a payload really produced the extra paint it
+    // claims to test instead of silently doing the same work as another case.
+    window.htRenderPasses = 0;
+
     const buildData = () => [
       { number: 1, string: 'Alpha' },
       { number: 2, string: 'Bravo' },
@@ -94,6 +98,9 @@
       colHeaders: ['number', 'string'],
       rowHeaders: true,
       licenseKey: 'non-commercial-and-evaluation',
+      beforeRender() {
+        window.htRenderPasses += 1;
+      },
       columns: [
         { data: 'number', renderer: numberRenderer },
         { data: 'string', renderer: stringRenderer },
@@ -107,6 +114,7 @@
      */
     const shrinkColumns = (extraSettings) => {
       window.htRendererCalls = [];
+      window.htRenderPasses = 0;
       window.htSettings.columns = [{ data: 'string', renderer: stringRenderer }];
       window.htSettings.colHeaders = ['string'];
       window.hot.updateSettings(Object.assign({}, window.htSettings, extraSettings));
@@ -115,10 +123,13 @@
     document.querySelector('[data-testid="shrink-with-data"]')
       .addEventListener('click', () => shrinkColumns());
 
-    // A theme in the same payload paints a second time, from `useTheme()`, before the
-    // data phase runs. It must stay free of violations too.
+    // A theme in the same payload paints once MORE, from `useTheme()`, before the data phase runs.
+    // The theme sent has to DIFFER from the one on the container, or `useTheme()` returns at its
+    // `currentThemeName !== settings.theme` guard and this case silently repeats the one above.
+    const otherTheme = window.htTheme === 'main' ? 'horizon' : 'main';
+
     document.querySelector('[data-testid="shrink-with-theme"]')
-      .addEventListener('click', () => shrinkColumns({ theme: `ht-theme-${window.htTheme}` }));
+      .addEventListener('click', () => shrinkColumns({ theme: `ht-theme-${otherTheme}` }));
 
     // The same shrink without `data`. It takes a different branch of
     // `updateSettings()` and was already correct, so it guards the fix from

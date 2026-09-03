@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Fixed `updateSettings()` applying a `columns` array too late when the same call also changed `data`, which could hand a cell renderer a value belonging to another column and let a removed column's `sourceDataValidator` blank the surviving column's source data. A `columns` array now also reaches every physical column on a grid with trimmed columns.",
+  "title": "Fixed a shortened `columns` array, sent together with `data`, rendering and validating a column with the previous column's settings.",
   "type": "fixed",
   "issueOrPR": 5543,
   "breaking": false,
