@@ -169,7 +169,7 @@ Every PR that changes source code needs a changelog entry in `.changelogs/`. The
 | `private` — the default, and almost always correct | the PR number from `gh pr create` | `{PR-number}.json` |
 | `public` — only when the entry cites a real public GitHub issue | the **issue** number | `{issue-number}.json` |
 
-The field picks the link path in the generated `CHANGELOG.md`, so `public` paired with a PR number publishes a link to `/issues/{PR-number}` — a wrong link that also hides the entry from the duplicate check. Work tracked only in a private ClickUp task is always `private`. See `.changelogs/README.md` for the authoritative table, and the `changelog-creation` skill for the JSON schema and title-writing rules.
+The field picks the link path in the generated `CHANGELOG.md`, so `public` paired with a PR number publishes a link to `/issues/{PR-number}` — a wrong link that also weakens the republish-duplicate check from a hard error to a warning (it still finds the entry, because `findRepublishedEntries` reads the number from the `[#N]` link text, not the URL; it escalates back to an error only when the title matches too). Work tracked only in a private ClickUp task is always `private`. See `.changelogs/README.md` for the authoritative table, and the `changelog-creation` skill for the JSON schema and title-writing rules.
 
 After writing the file:
 

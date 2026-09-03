@@ -675,6 +675,44 @@ describe('ColumnSummarySpec', () => {
       expect(getDataAtCell(4, 0)).toBe(20);
     });
 
+    // `forceNumeric` runs `parseFloat`, which is a different rule from the default path. These two
+    // pin where the two disagree, so the split stays deliberate.
+    it('should not sum boolean values when `forceNumeric` is enabled, unlike the default path', async() => {
+      handsontable({
+        data: [[true], [true], [false], [true], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'sum',
+            forceNumeric: true,
+          },
+        ]
+      });
+
+      // `parseFloat(true)` is `NaN`, so every checkbox cell is skipped.
+      expect(getDataAtCell(4, 0)).toBe(0);
+    });
+
+    it('should throw for an empty cell when `forceNumeric` is on and errors are not suppressed', async() => {
+      expect(() => {
+        handsontable({
+          data: [[10], [20], [''], [30], [null]],
+          columnSummary: [
+            {
+              destinationColumn: 0,
+              destinationRow: 4,
+              ranges: [[0, 3]],
+              type: 'sum',
+              forceNumeric: true,
+              suppressDataTypeErrors: false,
+            },
+          ]
+        });
+      }).toThrowError(/is not in a numeric format/);
+    });
+
     // Booleans stay countable on purpose: a `checkbox` column stores `true`/`false`, and summing it
     // is how you count the ticked boxes.
     it('should keep summing boolean values, so a checkbox column counts the ticked boxes', async() => {
