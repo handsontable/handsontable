@@ -1,5 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
+import { baseRenderer } from 'handsontable/renderers/baseRenderer';
 
 registerAllModules();
 
@@ -16,6 +18,9 @@ const data = Array.from({ length: 500 }, (_, index) => ({
   status: STATUSES[index % STATUSES.length],
 }));
 /* end:skip-in-preview */
+
+// The source this recipe reacts to. Writes from anywhere else render normally.
+const REPAINT_SOURCE = 'single-cell-repaint';
 
 // How many times a cell renderer ran. The counter is what makes the difference
 // between the two buttons visible; the timings depend on your machine.
@@ -42,7 +47,7 @@ function expensiveRenderer(instance, td, row, col, prop, value, cellProperties) 
     ? priceFormat.format(value)
     : value;
 
-  Handsontable.renderers.TextRenderer(instance, td, row, col, prop, displayed, cellProperties);
+  textRenderer(instance, td, row, col, prop, displayed, cellProperties);
 
   if (prop === 'status') {
     td.style.fontWeight = value === 'Out of stock' ? '700' : '400';
@@ -111,7 +116,10 @@ function paintCell(hot, td, visualRow, visualColumn) {
     value = hot.runHooks('beforeValueRender', value, cellProperties);
   }
 
-  const renderer = hot.getCellRenderer(rowToRead, columnToRead);
+  // Pass the metadata you already hold. `getCellRenderer(row, column)` would
+  // resolve it again, re-running the `cells` function this recipe exists to
+  // avoid. This is also what Handsontable's own render path does.
+  const renderer = hot.getCellRenderer(cellProperties);
   const rendererArgs = [
     hot,
     td,
@@ -131,7 +139,7 @@ function paintCell(hot, td, visualRow, visualColumn) {
     // chained it. `_isBaseRendererCalled` is internal: check it, and always
     // reset it, or the next full render skips the base renderer for this cell.
     if (!cellProperties._isBaseRendererCalled) {
-      Handsontable.renderers.BaseRenderer(...rendererArgs);
+      baseRenderer(...rendererArgs);
     }
   } finally {
     cellProperties._isBaseRendererCalled = false;
@@ -154,14 +162,9 @@ function paintCell(hot, td, visualRow, visualColumn) {
 }
 
 /**
- * Repaints one cell in every copy of it that exists in the DOM.
- *
- * A cell in a frozen row exists twice: once in the top overlay and once in the
- * main table. Painting only `getCell(row, column)` leaves the second copy
- * showing the old value.
- *
- * Returns the number of elements painted. `0` means the cell is outside the
- * rendered part of the grid, so there is nothing to repaint.
+ * Repaints one cell in the copies of it that `getCell()` can reach: the topmost
+ * one and the one in the main table. Outside a frozen area those are the only
+ * two, and usually the same element.
  */
 function repaintCell(hot, visualRow, visualColumn) {
   const painted = [];
@@ -179,19 +182,31 @@ function repaintCell(hot, visualRow, visualColumn) {
 }
 
 /**
- * Makes `setDataAtCell()` repaint only the cells it changed, instead of
- * redrawing the whole viewport.
+ * Makes writes from `REPAINT_SOURCE` repaint only the cells they changed,
+ * instead of redrawing the whole viewport.
  *
  * The gate is deliberately narrow. Anything it turns down falls through to a
  * normal render, so correctness never depends on the caller reading the rules.
  */
-function installSingleCellRepaint(hot, { maxCells = 8 } = {}) {
+function installSingleCellRepaint(hot, { source, maxCells = 8 } = {}) {
   let pendingChanges = null;
-  let enabled = false;
   const counts = { rows: 0, columns: 0 };
 
-  function isRepaintable(changes) {
-    if (!enabled || !changes || changes.length === 0 || changes.length > maxCells) {
+  /**
+   * A cell in a frozen area exists in more than one table -- up to four, when
+   * both axes are frozen -- and `getCell()` reaches only two of them. Rather
+   * than guess, hand those cells to a normal render.
+   */
+  function isInFrozenArea(row, column) {
+    const { fixedRowsTop, fixedRowsBottom, fixedColumnsStart } = hot.getSettings();
+
+    return row < fixedRowsTop ||
+      row >= hot.countRows() - fixedRowsBottom ||
+      column < fixedColumnsStart;
+  }
+
+  function isRepaintable(changes, changeSource) {
+    if (changeSource !== source || !changes || changes.length === 0 || changes.length > maxCells) {
       return false;
     }
 
@@ -204,8 +219,13 @@ function installSingleCellRepaint(hot, { maxCells = 8 } = {}) {
     return changes.every(([row, prop]) => {
       const column = hot.propToCol(prop);
 
-      // `null` means the cell is not rendered, so there is no element to paint.
-      return typeof column === 'number' && hot.getCell(row, column, true) !== null;
+      if (typeof column !== 'number' || isInFrozenArea(row, column)) {
+        return false;
+      }
+
+      // A missing element means the cell is not rendered, so there is nothing
+      // to paint. `getCell()` answers with `null` or `undefined`.
+      return hot.getCell(row, column, true) != null;
     });
   }
 
@@ -214,30 +234,26 @@ function installSingleCellRepaint(hot, { maxCells = 8 } = {}) {
     counts.columns = hot.countCols();
   });
 
-  hot.addHook('beforeChangeRender', (changes) => {
-    pendingChanges = isRepaintable(changes) ? changes : null;
+  hot.addHook('beforeChangeRender', (changes, changeSource) => {
+    pendingChanges = isRepaintable(changes, changeSource) ? changes : null;
   });
 
+  // Cancel the cell drawing and repaint here, not in `afterChange`. Handsontable
+  // renders the selection at the end of this same draw, so a repaint that runs
+  // afterwards would wipe the selection classes off the cell you just edited.
   hot.addHook('beforeViewRender', (isForced, skipRenderObject) => {
-    if (pendingChanges) {
-      skipRenderObject.skipRender = true;
+    if (!pendingChanges) {
+      return;
     }
-  });
 
-  hot.addHook('afterChange', (changes, source) => {
-    if (pendingChanges && source !== 'loadData') {
-      pendingChanges.forEach(([row, prop]) => {
-        repaintCell(hot, row, hot.propToCol(prop));
-      });
-    }
+    skipRenderObject.skipRender = true;
+
+    pendingChanges.forEach(([row, prop]) => {
+      repaintCell(hot, row, hot.propToCol(prop));
+    });
 
     pendingChanges = null;
   });
-
-  return {
-    enable() { enabled = true; },
-    disable() { enabled = false; },
-  };
 }
 
 const hot = new Handsontable(document.querySelector('#example1'), {
@@ -267,32 +283,26 @@ const hot = new Handsontable(document.querySelector('#example1'), {
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-const singleCellRepaint = installSingleCellRepaint(hot);
+installSingleCellRepaint(hot, { source: REPAINT_SOURCE });
+
 const output = document.querySelector('#repaint-output');
 
 let counter = 0;
 
 /**
- * Writes a new status into a visible cell and reports what the write cost.
+ * Writes a new status into a visible cell and reports what the write cost. The
+ * source decides which path the write takes -- there is no flag to toggle, so
+ * an asynchronous validator cannot land after a window has closed again.
  */
 function updateCell(useRepaint) {
   counter += 1;
-
-  const nextValue = `Active (${counter})`;
-
-  if (useRepaint) {
-    singleCellRepaint.enable();
-  }
-
   rendererCalls = 0;
 
   const startedAt = performance.now();
 
-  hot.setDataAtCell(2, 5, nextValue);
+  hot.setDataAtCell(2, 5, `Active (${counter})`, useRepaint ? REPAINT_SOURCE : 'edit');
 
   const elapsed = performance.now() - startedAt;
-
-  singleCellRepaint.disable();
 
   output.textContent = `${useRepaint ? 'Repaint one cell' : 'Full render'}: ` +
     `${rendererCalls} renderer call${rendererCalls === 1 ? '' : 's'}, ` +
