@@ -523,6 +523,8 @@ describe('Core.setCellMeta', () => {
       // The update completes, and `null` leaves the declared entries alone.
       expect(getCellMeta(0, 0).readOnly).toBe(true);
       expect(countRows()).toBe(5);
+      // "Ignored" has to mean the settings too, not just the cell meta.
+      expect(getSettings().cell).toEqual([{ row: 0, col: 0, readOnly: true }]);
     });
 
     it('should warn once about a `cell` option that is not an array, and leave the entries alone',
@@ -547,7 +549,21 @@ describe('Core.setCellMeta', () => {
         expect(cellWarnings.length).toBe(1);
         expect(getCellMeta(0, 0).readOnly).toBe(true);
         expect(getCellMeta(1, 1).readOnly).toBe(false);
+        // "Ignored" has to mean the settings too: the bad value must not reach `getSettings()`.
+        expect(getSettings().cell).toEqual([{ row: 0, col: 0, readOnly: true }]);
       });
+
+    it('should not keep a non-array `cell` option passed to the constructor in the settings', async() => {
+      spyOn(console, 'warn');
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        cell: { row: 0, col: 0, readOnly: true },
+      });
+
+      expect(getCellMeta(0, 0).readOnly).toBe(false);
+      expect(getSettings().cell).toEqual([]);
+    });
 
     it('should let a restated `cell` option win over an earlier imperative override of the same key',
       async() => {

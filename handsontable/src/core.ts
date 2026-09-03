@@ -630,7 +630,15 @@ export default function Core(
   mergedUserSettings.language = getValidLanguageCode(mergedUserSettings.language as string);
 
   const settingsWithoutHooks = Object.fromEntries(
-    Object.entries(mergedUserSettings).filter(([key]) => {
+    Object.entries(mergedUserSettings).filter(([key, value]) => {
+      // A `cell` that is not an array cannot be applied as cell meta, and `updateSettings` says so. Keep
+      // it out of the global meta as well, or `getSettings().cell` would report a value the grid never
+      // used. Dropping it here leaves the schema default (`[]`) in place. The same rule is applied to
+      // every later call, in the settings loop inside `updateSettings`.
+      if (key === 'cell' && !Array.isArray(value)) {
+        return false;
+      }
+
       return !(Hooks.getSingleton().isRegistered(key) || Hooks.getSingleton().isDeprecated(key));
     })
   );
@@ -3886,7 +3894,13 @@ export default function Core(
         // setting that is not passed leaves the previous value alone. Writing the boolean here would
         // bypass `normalizeEditorSetting()`, which only runs on the layer `updateMeta` calls, and
         // park a bare `true` on the global meta for every cell to inherit.
-        if (i !== 'editor' || settings[i] !== true) {
+        const isUnpassedEditor = i === 'editor' && settings[i] === true;
+        // Same shape for a `cell` that is not an array: the block further down cannot apply it and says
+        // so, so parking it here would leave `getSettings().cell` reporting a value the grid never used
+        // while the previously declared entries are what actually survive.
+        const isUnusableCell = i === 'cell' && !Array.isArray(settings[i]);
+
+        if (!isUnpassedEditor && !isUnusableCell) {
           globalMeta[i] = settings[i];
         }
       }
@@ -3991,12 +4005,14 @@ export default function Core(
 
     // Any other non-array is a mistake worth surfacing, most often a single entry that was not wrapped in
     // an array. Ignoring it in silence would leave the previously declared entries in place and look like
-    // the call did nothing at all. Warned once per instance, because a wrapper that re-sends its settings
-    // on every render would otherwise repeat it on every commit.
+    // the call did nothing at all. Such a value never reaches the global meta either (see the two filters
+    // that drop it), so "ignored" covers `getSettings().cell` as well as the cell meta. Warned once per
+    // instance, because a wrapper that re-sends its settings on every render would otherwise repeat it on
+    // every commit.
     if (settings.cell !== undefined && settings.cell !== null && !isCellOptionRestated) {
       warnOnce(instance.rootElement, 'Core.invalidCellOption',
-        'The "cell" option must be an array of objects. The passed value was ignored. ' +
-        'Wrap a single entry in an array: cell: [{ row: 0, col: 0, ... }].');
+        'The "cell" option must be an array of objects. The passed value was ignored, and the previously ' +
+        'declared entries were kept. Wrap a single entry in an array: cell: [{ row: 0, col: 0, ... }].');
     }
 
     /**

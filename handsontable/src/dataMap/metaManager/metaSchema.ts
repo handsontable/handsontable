@@ -803,7 +803,9 @@ export default (): Record<string, unknown> => {
      * [`setCellMeta()`](@/api/core.md#setcellmeta) call on the same property wins over the declared value -
      * until the next call restates `cell`, which wins over everything.
      *
-     * A value that is not an array is ignored, and reported in the console. Wrap a single entry in an array.
+     * A value that is not an array is ignored, and reported in the console. It does not reach
+     * [`getSettings()`](@/api/core.md#getsettings) either, so the previously declared entries stay in place.
+     * Wrap a single entry in an array.
      *
      * Read more:
      * - [Setting options: Setting cell options](@/guides/configuration/configuration-options/configuration-options.md#set-cell-options)
