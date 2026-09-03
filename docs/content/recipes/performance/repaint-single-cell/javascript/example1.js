@@ -6,17 +6,34 @@ import { baseRenderer } from 'handsontable/renderers/baseRenderer';
 registerAllModules();
 
 /* start:skip-in-preview */
-const CATEGORIES = ['Electronics', 'Furniture', 'Accessories', 'Office'];
+const PRODUCTS = [
+  ['Wireless Keyboard', 'Electronics'],
+  ['USB-C Hub', 'Electronics'],
+  ['Noise-Cancelling Headphones', 'Electronics'],
+  ['Webcam HD', 'Electronics'],
+  ['Ergonomic Chair', 'Furniture'],
+  ['Standing Desk', 'Furniture'],
+  ['Monitor Stand', 'Furniture'],
+  ['Desk Lamp', 'Furniture'],
+  ['Cable Organizer', 'Accessories'],
+  ['Laptop Stand', 'Accessories'],
+  ['Blue Light Glasses', 'Accessories'],
+  ['Whiteboard Markers', 'Office'],
+];
 const STATUSES = ['Active', 'Backorder', 'Out of stock'];
 
-const data = Array.from({ length: 500 }, (_, index) => ({
-  sku: `SKU-${String(index + 1).padStart(4, '0')}`,
-  name: `Product ${index + 1}`,
-  category: CATEGORIES[index % CATEGORIES.length],
-  price: Math.round((20 + ((index * 7) % 480)) * 100) / 100,
-  stock: (index * 13) % 250,
-  status: STATUSES[index % STATUSES.length],
-}));
+const data = Array.from({ length: 500 }, (_, index) => {
+  const [name, category] = PRODUCTS[index % PRODUCTS.length];
+
+  return {
+    sku: `SKU-${String(index + 1).padStart(4, '0')}`,
+    name,
+    category,
+    price: Math.round((20 + ((index * 7) % 480)) * 100) / 100,
+    stock: (index * 13) % 250,
+    status: STATUSES[index % STATUSES.length],
+  };
+});
 /* end:skip-in-preview */
 
 // The source this recipe reacts to. Writes from anywhere else render normally.
@@ -289,8 +306,15 @@ const output = document.querySelector('#repaint-output');
 
 let counter = 0;
 
+// Column 2 (Category) sits well inside the viewport at any container width.
+// Targeting a column that scrolls out of view would be correct but pointless:
+// the gate turns down an unrendered cell, so the write falls back to a full
+// render and the two buttons report the same cost.
+const TARGET_ROW = 2;
+const TARGET_COLUMN = 2;
+
 /**
- * Writes a new status into a visible cell and reports what the write cost. The
+ * Writes a new value into a visible cell and reports what the write cost. The
  * source decides which path the write takes -- there is no flag to toggle, so
  * an asynchronous validator cannot land after a window has closed again.
  */
@@ -300,7 +324,12 @@ function updateCell(useRepaint) {
 
   const startedAt = performance.now();
 
-  hot.setDataAtCell(2, 5, `Active (${counter})`, useRepaint ? REPAINT_SOURCE : 'edit');
+  hot.setDataAtCell(
+    TARGET_ROW,
+    TARGET_COLUMN,
+    `Updated (${counter})`,
+    useRepaint ? REPAINT_SOURCE : 'edit'
+  );
 
   const elapsed = performance.now() - startedAt;
 

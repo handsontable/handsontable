@@ -40,7 +40,7 @@ Handsontable has no built-in per-cell render, and [`render()`](@/api/core.md#ren
 
 The default stops paying off when your renderers are expensive. Every redrawn cell runs its renderer and the [`cells`](@/api/options.md#cells) function again, so one edit re-runs work for the whole viewport. This recipe shows how to skip that render and repaint one cell instead.
 
-Click the two buttons in the example above and compare the renderer-call counts. One edit runs the renderer for every cell on screen -- 66 in that grid -- while the repaint runs it once. Widen the grid or the viewport and the gap grows with it.
+Click the two buttons in the example above and compare the renderer-call counts. One edit runs the renderer for every cell on screen -- dozens of them -- while the repaint runs it once. Widen the grid or the viewport and the gap grows with it, because the number of drawn cells is what the full render pays for.
 
 This recipe is written for the JavaScript build. Read [Framework wrappers](#framework-wrappers-need-more-care) before porting it.
 
