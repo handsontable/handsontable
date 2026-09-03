@@ -11,7 +11,6 @@ const WARNING = 'The ResizeObserver callback was fired too many times in direct 
 
 describe('ResizeMonitor', () => {
   let warnSpy: jest.SpyInstance;
-  let restoreResizeObserver: () => void;
 
   beforeEach(() => {
     warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
@@ -19,7 +18,6 @@ describe('ResizeMonitor', () => {
 
   afterEach(() => {
     warnSpy.mockRestore();
-    restoreResizeObserver?.();
   });
 
   /**
@@ -74,14 +72,11 @@ describe('ResizeMonitor', () => {
       }
     }
 
-    const original = window.ResizeObserver;
-
-    window.ResizeObserver = FakeResizeObserver as unknown as typeof ResizeObserver;
-    restoreResizeObserver = () => {
-      window.ResizeObserver = original;
-    };
-
+    // The observer is built from `rootWindow` for the same reason the timers and frames are: for a grid
+    // whose document is an iframe's, the page-global one belongs to another window and delivers on that
+    // window's rendering, which would decouple the deliveries from the frames the guard counts.
     const rootWindow = {
+      ResizeObserver: FakeResizeObserver as unknown as typeof ResizeObserver,
       setTimeout: (fn: () => void, delay: number) => {
         const id = nextTimeoutId;
 
@@ -473,6 +468,21 @@ describe('ResizeMonitor', () => {
 
     expect(harness.pendingFrames()).toBe(0);
     expect(harness.settingsFired()).toBe(0);
+  });
+
+  it('should refuse to observe after it was destroyed', () => {
+    const harness = build();
+
+    harness.monitor.observe();
+    harness.monitor.destroy();
+
+    // `observe()` is public, so a caller can reach it after teardown. Attaching again would hold the
+    // parent element for the rest of the page's life, and silently: every callback bails out on the
+    // destroyed flag, so nothing would throw to point at it.
+    harness.monitor.observe();
+
+    expect(harness.isObserving()).toBe(false);
+    expect(harness.observeCalls()).toBe(1);
   });
 
   it('should not observe again after it was destroyed mid-cooldown', () => {

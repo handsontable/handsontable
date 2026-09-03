@@ -231,6 +231,13 @@ torn-down grid. Core's own handler happens to guard `isDestroyed`, which is what
 throwing today - do not rely on it. An `#isDestroyed` flag backs the cancels up, because an observer
 entry carries the state from its own snapshot and can be dispatched after the disconnect.
 
+Everything the guard uses comes off the injected `rootWindow` - the timers, the animation frames AND
+the `ResizeObserver` itself. That last one is not cosmetic: for a grid whose document is an iframe's,
+the page-global constructor belongs to another window and delivers observations on that window's
+rendering, which decouples the deliveries from the frames this guard counts and breaks the
+one-delivery-per-frame invariant the whole design rests on. It is built in the constructor rather than
+as a class field, because a field initializer runs before `#deps` is assigned.
+
 The warning text is printed once per instance and pinned verbatim by two specs -
 `tests/e2e/refresh-dimensions.spec.ts` and `test/unit/overlay/resizeMonitor.unit.ts`. Reword it and
 both specs together, never alone. It ends "disconnected and reconnected after a short delay" because

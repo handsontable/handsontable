@@ -1,10 +1,17 @@
 import type { EngineContext } from '../wire';
-import { warn } from '../../../../helpers/console';
+import { warnOnce } from '../../../../helpers/console';
 import {
   RESIZE_LOOP_GUARD_RECONNECT_DELAY,
   RESIZE_LOOP_GUARD_RECONNECT_MAX_DELAY,
   RESIZE_LOOP_GUARD_THRESHOLD,
 } from './constants';
+
+/**
+ * The `warnOnce` key for the loop-guard warning. The message describes the page's configuration, which
+ * does not change between trips, so it is printed once per monitor - `warnOnce` is scoped on the
+ * instance, so a second grid on the page still gets its own.
+ */
+const LOOP_GUARD_WARN_KEY = 'resizeObserverLoopGuard';
 
 /**
  * Assembles the ResizeMonitor's dependencies from the engine composition context. It needs the
@@ -127,47 +134,50 @@ export class ResizeMonitor {
   #isDestroyed = false;
 
   /**
-   * Whether the loop-guard warning was already printed. The warning describes the page's configuration,
-   * which does not change between trips, so it is printed once per instance.
-   *
-   * @type {boolean}
-   */
-  #hasWarned = false;
-
-  /**
    * The instance of the ResizeObserver that observes the size of the Walkontable wrapper element.
    * In case of the size change detection the `onContainerElementResize` is fired.
    *
+   * Constructed in the constructor rather than as a field initializer, because it is built from
+   * `rootWindow` and a field initializer runs before `#deps` is assigned. The realm matters: for a
+   * grid whose document is an iframe's, the page-global `ResizeObserver` belongs to another window
+   * than the timers and frames this class uses, and observations would be delivered on that window's
+   * rendering rather than the grid's.
+   *
    * @type {ResizeObserver}
    */
-  #resizeObserver = new ResizeObserver((entries) => {
-    if (this.#isDestroyed || !Array.isArray(entries) || !entries.length) {
-      return;
-    }
-
-    this.#registerDelivery();
-
-    this.#settingFrameId = this.#deps.rootWindow.requestAnimationFrame(() => {
-      this.#settingFrameId = null;
-
-      if (this.#isDestroyed) {
-        return;
-      }
-
-      this.#deps.wtSettings.getSetting('onContainerElementResize');
-    });
-  });
+  readonly #resizeObserver: ResizeObserver;
 
   /**
    * @param {ResizeMonitorDeps} deps The ResizeMonitor dependencies.
    */
   constructor(deps: ResizeMonitorDeps) {
     this.#deps = deps;
+    this.#resizeObserver = new deps.rootWindow.ResizeObserver((entries) => {
+      if (this.#isDestroyed || !Array.isArray(entries) || !entries.length) {
+        return;
+      }
+
+      this.#registerDelivery();
+
+      this.#settingFrameId = deps.rootWindow.requestAnimationFrame(() => {
+        this.#settingFrameId = null;
+
+        if (this.#isDestroyed) {
+          return;
+        }
+
+        deps.wtSettings.getSetting('onContainerElementResize');
+      });
+    });
   }
 
   /**
-   * Starts observing the Walkontable wrapper's parent element for size changes. No-op when the
-   * wrapper has no parent element.
+   * Starts observing the Walkontable wrapper's parent element for size changes. No-op when the monitor
+   * was destroyed, and when the wrapper has no parent element.
+   *
+   * The destroyed check is what keeps `destroy()` final: this is a public method, and a call after
+   * teardown would attach the observer again and hold the parent element for the rest of the page's
+   * life. Nothing would throw - every callback bails out on the flag - so the leak would be silent.
    *
    * Cancels a pending reconnect first: this method is public and `NativeScrollInput` re-registers its
    * listeners whenever the scrollable element changes, so an explicit re-observe can land in the middle
@@ -186,6 +196,10 @@ export class ResizeMonitor {
    * element to watch and nothing about whether the loop went away.
    */
   observe() {
+    if (this.#isDestroyed) {
+      return;
+    }
+
     const wasInCooldown = this.#reconnectTimeoutId !== null;
 
     this.#cancelReconnect();
@@ -276,14 +290,11 @@ export class ResizeMonitor {
    * reconnect so that `resetResizeCount()` and a quiet frame during the cooldown stay meaningful.
    */
   #tripLoopGuard() {
-    if (!this.#hasWarned) {
-      this.#hasWarned = true;
-
-      warn('The ResizeObserver callback was fired too many times in direct succession.' +
-        '\nThis may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +
-        'with the `dvh` units) to a Handsontable container\'s parent. ' +
-        '\nThe observer will be disconnected and reconnected after a short delay.');
-    }
+    warnOnce(this, LOOP_GUARD_WARN_KEY,
+      'The ResizeObserver callback was fired too many times in direct succession.' +
+      '\nThis may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +
+      'with the `dvh` units) to a Handsontable container\'s parent. ' +
+      '\nThe observer will be disconnected and reconnected after a short delay.');
 
     this.#resizeObserver.disconnect();
     this.#cancelQuietFrameWatchdog();

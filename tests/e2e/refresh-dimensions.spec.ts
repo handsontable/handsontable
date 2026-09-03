@@ -250,25 +250,37 @@ test.describe('the endless-loop guard (a parent sized in dynamic units)', () => 
       // doing. Generous, because a loaded runner's frames are long, not because the count is in doubt.
       await expect.poll(() => grid.warnLog(WARNING_FRAGMENT), { timeout: 20_000 }).toEqual([WARNING]);
 
-      const refreshesWhenTripped = await grid.hookCount('after');
+      // The freeze is asserted from the series the FIXTURE recorded, one sample per frame, starting at
+      // the moment it saw the warning and ending inside the guard's cooldown. Reading the count from
+      // here instead would race the cooldown on exactly the loaded machine this test is about: the
+      // poll above can learn about the warning a whole interval late, and a run of frames driven from
+      // this process stretches with the runner, so the two together can outlast the cooldown and
+      // sample a count the reconnect has already moved.
+      await expect.poll(() => grid.guardSamplingDone(), { timeout: 20_000 }).toBe(true);
 
-      // The guard trips on the 300th successive delivery, and the frames already queued at that
-      // moment still run their deferred hook fire - so the total is at least the threshold, never
-      // exactly it.
-      expect(refreshesWhenTripped).toBeGreaterThanOrEqual(300);
+      const samples = await grid.guardSamples();
 
-      // The observer is disconnected for the whole cooldown, so a bounded run of frames inside it
-      // must add nothing. The poll above is this negative check's positive control: the pipeline
-      // reached 300 deliveries a moment ago, so a frozen count here can only be the disconnect.
-      await grid.afterAnimationFrames(30);
+      // Non-vacuity: the assertion below says nothing without a few frames to compare.
+      expect(samples.length).toBeGreaterThanOrEqual(3);
 
-      expect(await grid.hookCount('after')).toBe(refreshesWhenTripped);
+      // The comparison starts at the third sample because the first two still catch the pipeline
+      // draining. The guard warns synchronously while it counts, so the sampling frame is registered
+      // BEFORE the tripping delivery's own deferred hook fire - the first sample therefore reads the
+      // count one fire short of the threshold, and the second is the first one that can see it.
+      const settled = samples.slice(2).map(sample => sample.refreshes);
+
+      // The loop did reach the threshold: the guard trips on the 300th delivery in direct succession,
+      // and every delivery fires the hook exactly once.
+      expect(settled[0]).toBeGreaterThanOrEqual(300);
+
+      // From there the observer is disconnected, so nothing may move for the rest of the cooldown.
+      expect(settled).toEqual(settled.map(() => settled[0]));
 
       // And the disconnect is temporary: the loop is still there, so it resumes by itself once the
       // observer is observed again. This is what a grid whose gap-free resize stream was legitimate
       // gets back - before DEV-2740 the disconnect was permanent and it got nothing.
       await expect.poll(() => grid.hookCount('after'), { timeout: 20_000 })
-        .toBeGreaterThan(refreshesWhenTripped);
+        .toBeGreaterThan(settled[0]);
 
       // Still one warning: the message describes the page's configuration, which has not changed.
       expect(await grid.warnLog(WARNING_FRAGMENT)).toEqual([WARNING]);

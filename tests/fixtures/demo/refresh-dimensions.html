@@ -37,10 +37,51 @@
     // trip it polls the hook log with, and can never miss one emitted before the listener attached.
     window.htWarnLog = [];
 
+    // One sample per frame of the refresh count, taken for a stretch that STARTS when the loop guard
+    // warns and ends safely inside the guard's cooldown. Sampling in the page rather than from the
+    // spec is what makes the check deterministic: a spec that polls for the warning learns about it up
+    // to a poll interval late, and its own frame waits stretch on a loaded runner, so the pair can add
+    // up past the cooldown and read a count the reconnect has already moved.
+    window.htGuardSamples = [];
+    window.htGuardSamplingDone = false;
+
+    const GUARD_WARNING_FRAGMENT = 'fired too many times in direct succession';
+    // Comfortably below `RESIZE_LOOP_GUARD_RECONNECT_DELAY` (2000 ms) in resizeMonitor.ts. The elapsed
+    // time is checked BEFORE each sample is taken, so every sample is strictly inside the cooldown
+    // however long an individual frame turns out to be.
+    const GUARD_SAMPLE_WINDOW = 1500;
+
+    const countRefreshes = () => window.htHookLog.filter(item => item.hook === 'after').length;
+
+    const startGuardSampling = () => {
+      const warnedAt = performance.now();
+      const step = () => {
+        const elapsed = performance.now() - warnedAt;
+
+        if (elapsed >= GUARD_SAMPLE_WINDOW) {
+          window.htGuardSamplingDone = true;
+
+          return;
+        }
+
+        window.htGuardSamples.push({ elapsed: elapsed, refreshes: countRefreshes() });
+        requestAnimationFrame(step);
+      };
+
+      requestAnimationFrame(step);
+    };
+
     const nativeWarn = console.warn.bind(console);
 
     console.warn = (...args) => {
-      window.htWarnLog.push(args.join(' '));
+      const message = args.join(' ');
+
+      window.htWarnLog.push(message);
+
+      if (message.indexOf(GUARD_WARNING_FRAGMENT) !== -1) {
+        startGuardSampling();
+      }
+
       nativeWarn(...args);
     };
 

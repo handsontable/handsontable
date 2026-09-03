@@ -7,6 +7,11 @@ export interface HookLogEntry {
   action: boolean;
 }
 
+export interface GuardSample {
+  elapsed: number;
+  refreshes: number;
+}
+
 interface HandsontableFixture {
   rootElement: HTMLElement;
 }
@@ -15,6 +20,8 @@ interface FixtureWindow extends Window {
   hot: HandsontableFixture;
   htHookLog: HookLogEntry[];
   htWarnLog: string[];
+  htGuardSamples: GuardSample[];
+  htGuardSamplingDone: boolean;
   buildMainGrid(options?: { blockRefresh?: boolean }): void;
   buildDvhGrid(): void;
   buildIframeGrid(options?: {
@@ -75,6 +82,23 @@ export class RefreshDimensionsPage {
       match => (window as unknown as FixtureWindow).htWarnLog.filter(message => message.includes(match)),
       fragment,
     );
+  }
+
+  /**
+   * Whether the fixture finished its post-warning sampling stretch. The probe to poll before reading
+   * `guardSamples()`.
+   */
+  async guardSamplingDone(): Promise<boolean> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).htGuardSamplingDone);
+  }
+
+  /**
+   * Returns the per-frame refresh counts the fixture recorded after the loop guard warned. Every
+   * sample is taken strictly inside the guard's cooldown, so the series says what the guard did with
+   * no dependence on how fast this process could ask.
+   */
+  async guardSamples(): Promise<GuardSample[]> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).htGuardSamples);
   }
 
   /**
