@@ -221,6 +221,29 @@ function warnAboutRemovedOptions(settings: Record<string, unknown>): void {
 }
 
 /**
+ * Validates a single `setDataAtCell` change and returns the visual column index it addresses.
+ *
+ * Kept out of `setDataAtCell` so that method stays within the cognitive complexity limit.
+ *
+ * @param {Array} change A single change in format `[row, column, value]`.
+ * @returns {number} The visual column index the change addresses.
+ */
+function getSetDataAtCellColumn(change: [number, string | number, unknown]): number {
+  if (typeof change !== 'object') {
+    throwWithCause('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
+  }
+
+  const visualColumn = change[1];
+
+  if (typeof visualColumn !== 'number') {
+    // eslint-disable-next-line max-len
+    throwWithCause('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
+  }
+
+  return visualColumn;
+}
+
+/**
  * Internal Core properties not exposed in HotInstance but accessed by constructor-assigned
  * function expressions. These are implementation details of the Core constructor that
  * cannot be part of the public HotInstance interface.
@@ -2684,17 +2707,7 @@ export default function Core(
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       const [visualRow, visualColumn, newValue] = input[i];
-
-      if (typeof input[i] !== 'object') {
-        throwWithCause('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
-      }
-      if (typeof input[i][1] !== 'number') {
-        // eslint-disable-next-line max-len
-        throwWithCause('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
-      }
-
-      // setDataAtCell validates that column is numeric above (throws if not number).
-      const visualColumnIndex = typeof visualColumn === 'number' ? visualColumn : 0;
+      const visualColumnIndex = getSetDataAtCellColumn(input[i]);
 
       if (visualColumnIndex >= this.countCols()) {
         // No column exists at this index, and on an object-rowed data source none ever can -
