@@ -41,15 +41,15 @@ describe('ResizeMonitor', () => {
     let observing = false;
     let observeCalls = 0;
     let disconnectCalls = 0;
-    let deliverEntries = (unused: ResizeObserverEntry[]) => {};
+    let deliverEntries = (unused: ResizeObserverEntry[], unusedForce?: boolean) => {};
 
     const timeouts: Map<number, { fn: () => void; at: number }> = new Map();
     const frames: Map<number, () => void> = new Map();
 
     class FakeResizeObserver {
       constructor(callback: ResizeObserverCallback) {
-        deliverEntries = (entries) => {
-          if (observing) {
+        deliverEntries = (entries, force = false) => {
+          if (observing || force) {
             callback(entries, this as unknown as ResizeObserver);
           }
         };
@@ -158,6 +158,7 @@ describe('ResizeMonitor', () => {
       advance,
       deliver: () => deliverEntries([{} as ResizeObserverEntry]),
       deliverEmpty: () => deliverEntries([]),
+      deliverAfterDisconnect: () => deliverEntries([{} as ResizeObserverEntry], true),
       deliverForFrames,
       isObserving: () => observing,
       observeCalls: () => observeCalls,
@@ -385,16 +386,42 @@ describe('ResizeMonitor', () => {
     harness.monitor.observe();
     harness.deliver();
 
+    // A delivery arms two frames: the quiet-frame watchdog and the deferred setting fire.
     expect(harness.pendingFrames()).toBe(2);
 
     harness.monitor.destroy();
 
-    // Only the deferred setting fire of the last delivery is left - the watchdog was cancelled, so
-    // the queue drains and nothing re-arms it.
-    expect(harness.pendingFrames()).toBe(1);
+    expect(harness.pendingFrames()).toBe(0);
+  });
 
+  it('should not fire the `onContainerElementResize` setting from a frame that outlived destroy', () => {
+    const harness = build();
+
+    harness.monitor.observe();
+    harness.deliver();
+
+    const firedBefore = harness.settingsFired();
+
+    harness.monitor.destroy();
+    harness.frame();
+
+    // `getSetting()` invokes a function-valued setting synchronously, so a fire surviving here would
+    // refresh the dimensions of a torn-down grid.
+    expect(harness.settingsFired()).toBe(firedBefore);
+  });
+
+  it('should ignore a delivery dispatched after destroy', () => {
+    const harness = build();
+
+    harness.monitor.observe();
+    harness.monitor.destroy();
+
+    // An observer entry carries the state from its own snapshot, so a delivery can land after the
+    // disconnect. The harness dispatches one regardless of the observing flag to model that.
+    harness.deliverAfterDisconnect();
     harness.frame();
 
     expect(harness.pendingFrames()).toBe(0);
+    expect(harness.settingsFired()).toBe(0);
   });
 });

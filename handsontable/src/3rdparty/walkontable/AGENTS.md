@@ -220,8 +220,13 @@ observer is observed again after a delay that doubles on every trip no quiet fra
 last one, capped at `RESIZE_LOOP_GUARD_RECONNECT_MAX_DELAY`, and returns to base on the first quiet
 frame. Consequences: the public `observe()` must cancel a pending reconnect (`NativeScrollInput`
 re-registers its listeners whenever the scrollable element changes, so an explicit re-observe can land
-mid-cooldown), and `destroy()` must cancel both the reconnect timeout and the watchdog frame — the
-reconnect reads the wrapper's parent element after a task boundary.
+mid-cooldown), and `destroy()` must cancel **three** handles, not two - the reconnect timeout, the
+watchdog frame, and the deferred `onContainerElementResize` fire. All three outlive a task boundary,
+and the third is the easy one to miss: `getSetting()` on a function-valued key invokes the setting
+synchronously, so a delivery that landed one frame before the teardown refreshes the dimensions of a
+torn-down grid. Core's own handler happens to guard `isDestroyed`, which is what keeps that from
+throwing today - do not rely on it. An `#isDestroyed` flag backs the cancels up, because an observer
+entry carries the state from its own snapshot and can be dispatched after the disconnect.
 
 The warning text is printed once per instance and pinned verbatim by two specs -
 `tests/e2e/refresh-dimensions.spec.ts` and `test/unit/overlay/resizeMonitor.unit.ts`. It still reads

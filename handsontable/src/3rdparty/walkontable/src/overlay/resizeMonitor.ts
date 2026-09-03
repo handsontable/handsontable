@@ -109,6 +109,24 @@ export class ResizeMonitor {
   #reconnectDelay = RESIZE_LOOP_GUARD_RECONNECT_DELAY;
 
   /**
+   * The animation-frame ID of the pending `onContainerElementResize` fire, or `null` when none is
+   * pending. At most one can be outstanding: a delivery is broadcast once per rendering update, after
+   * that update already ran its animation-frame callbacks, so the frame this schedules runs before the
+   * next delivery can schedule another.
+   *
+   * @type {number | null}
+   */
+  #settingFrameId: number | null = null;
+
+  /**
+   * Whether the monitor was destroyed. Every callback that outlives a task boundary opens with this,
+   * because cancelling a handle cannot undo a callback the engine already dispatched.
+   *
+   * @type {boolean}
+   */
+  #isDestroyed = false;
+
+  /**
    * Whether the loop-guard warning was already printed. The warning describes the page's configuration,
    * which does not change between trips, so it is printed once per instance.
    *
@@ -123,13 +141,19 @@ export class ResizeMonitor {
    * @type {ResizeObserver}
    */
   #resizeObserver = new ResizeObserver((entries) => {
-    if (!Array.isArray(entries) || !entries.length) {
+    if (this.#isDestroyed || !Array.isArray(entries) || !entries.length) {
       return;
     }
 
     this.#registerDelivery();
 
-    this.#deps.rootWindow.requestAnimationFrame(() => {
+    this.#settingFrameId = this.#deps.rootWindow.requestAnimationFrame(() => {
+      this.#settingFrameId = null;
+
+      if (this.#isDestroyed) {
+        return;
+      }
+
       this.#deps.wtSettings.getSetting('onContainerElementResize');
     });
   });
@@ -170,13 +194,22 @@ export class ResizeMonitor {
   }
 
   /**
-   * Cleans up on destroy: cancels the pending reconnect and the quiet-frame watchdog, and disconnects
-   * the observer. Both handles outlive a task boundary, and `observe()` reads the wrapper's parent
-   * element, so neither may be left to fire against a torn-down grid.
+   * Cleans up on destroy: cancels all three handles that outlive a task boundary - the pending
+   * reconnect, the quiet-frame watchdog and the deferred `onContainerElementResize` fire - and
+   * disconnects the observer.
+   *
+   * All three have to go. `observe()` reads the wrapper's parent element, and `getSetting()` on a
+   * function-valued key invokes the setting synchronously, so a delivery that landed in the frame
+   * before this call would otherwise refresh the dimensions of a torn-down grid. The `#isDestroyed`
+   * flag backs the cancels up, because an observer entry carries the state from its own snapshot and
+   * can be dispatched after this point.
    */
   destroy() {
+    this.#isDestroyed = true;
+
     this.#cancelReconnect();
     this.#cancelQuietFrameWatchdog();
+    this.#cancelSettingFrame();
     this.#resizeObserver.disconnect();
   }
 
@@ -244,6 +277,11 @@ export class ResizeMonitor {
 
     this.#reconnectTimeoutId = this.#deps.rootWindow.setTimeout(() => {
       this.#reconnectTimeoutId = null;
+
+      if (this.#isDestroyed) {
+        return;
+      }
+
       this.#reconnectDelay = Math.min(this.#reconnectDelay * 2, RESIZE_LOOP_GUARD_RECONNECT_MAX_DELAY);
 
       this.observe();
@@ -266,6 +304,16 @@ export class ResizeMonitor {
     if (this.#quietFrameWatchdogId !== null) {
       this.#deps.rootWindow.cancelAnimationFrame(this.#quietFrameWatchdogId);
       this.#quietFrameWatchdogId = null;
+    }
+  }
+
+  /**
+   * Cancels the deferred `onContainerElementResize` fire, if one is pending.
+   */
+  #cancelSettingFrame() {
+    if (this.#settingFrameId !== null) {
+      this.#deps.rootWindow.cancelAnimationFrame(this.#settingFrameId);
+      this.#settingFrameId = null;
     }
   }
 
