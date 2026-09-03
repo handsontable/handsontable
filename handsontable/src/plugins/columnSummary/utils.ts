@@ -1,11 +1,25 @@
 /**
- * Returns `true` if the value is one of the type: `null`, `undefined` or `NaN`.
+ * Returns `true` if the value holds no number to calculate from: `null`, `undefined`, `NaN`, a
+ * string that is empty or holds only whitespace, or a string that is not numeric.
+ *
+ * Booleans are deliberately not empty - `true` counts as `1`, which is what makes a `sum` summary
+ * over a `checkbox` column count the ticked boxes.
  *
  * @param {*} value The value to check.
  * @returns {boolean}
  */
 export function isNullishOrNaN(value: unknown) {
-  return value === null || value === undefined || isNaN(value as number);
+  if (value === null || value === undefined) {
+    return true;
+  }
+
+  // `isNaN()` coerces with `Number()` first, and `Number('')` is `0`. Without this an empty cell
+  // reads as a real zero: `min` over 10/20/30 returns 0, and `count` counts the blank.
+  if (typeof value === 'string' && value.trim() === '') {
+    return true;
+  }
+
+  return isNaN(value as number);
 }
 
 /**

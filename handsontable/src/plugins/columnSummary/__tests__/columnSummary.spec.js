@@ -490,6 +490,161 @@ describe('ColumnSummarySpec', () => {
     });
   });
 
+  describe('empty and whitespace-only cells', () => {
+    // The Delete key clears a cell to `null`, but clearing it in the editor stores `''`. Loading
+    // data from a backend brings in `""` the same way. All of them must read as empty - `Number('')`
+    // is `0`, so an unguarded check turns a blank cell into a real zero.
+    const clearedInEditor = [[10], [20], [''], [30], [null]];
+
+    it('should not count a cell that holds an empty string', async() => {
+      handsontable({
+        data: clearedInEditor,
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'count'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(3);
+    });
+
+    it('should not treat an empty string as zero when calculating the minimum', async() => {
+      handsontable({
+        data: clearedInEditor,
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'min'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(10);
+    });
+
+    // Negative values, because a zero slipping into a column of positive numbers leaves `max` right
+    // by accident.
+    it('should not treat an empty string as zero when calculating the maximum', async() => {
+      handsontable({
+        data: [[-10], [-20], [''], [-30], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'max'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(-10);
+    });
+
+    it('should not divide by a cell that holds an empty string when calculating the average', async() => {
+      handsontable({
+        data: clearedInEditor,
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'average'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(20);
+    });
+
+    it('should keep the sum unchanged when the range holds an empty string', async() => {
+      handsontable({
+        data: clearedInEditor,
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'sum'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(60);
+    });
+
+    it('should treat a whitespace-only cell as empty', async() => {
+      handsontable({
+        data: [[10], [20], ['   '], [30], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'count'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(3);
+    });
+
+    it('should report "Not enough data" when every cell in the range holds an empty string', async() => {
+      handsontable({
+        data: [[''], [''], [''], [''], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'min'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe('Not enough data');
+    });
+
+    it('should still count a cell that holds a zero', async() => {
+      handsontable({
+        data: [[0], [10], [20], [30], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'count'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(4);
+    });
+
+    // Booleans stay countable on purpose: a `checkbox` column stores `true`/`false`, and summing it
+    // is how you count the ticked boxes.
+    it('should keep summing boolean values, so a checkbox column counts the ticked boxes', async() => {
+      handsontable({
+        data: [[true], [true], [false], [true], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'sum'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(3);
+    });
+  });
+
   describe('customFunction', () => {
     it('should apply a custom function to the entries in the provided range', async() => {
       handsontable({

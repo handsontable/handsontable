@@ -97,9 +97,13 @@ To decide how a column summary is calculated, you can use one of the following s
 | `sum`     | Returns the sum of all values in a column.                                                             |
 | `min`     | Returns the lowest value in a column.                                                                  |
 | `max`     | Returns the highest value in a column.                                                                 |
-| `count`   | Returns the number of all non-empty cells in a column.                                                 |
-| `average` | Returns the sum of all values in a column,<br>divided by the number of non-empty cells in that column. |
+| `count`   | Returns the number of cells in a column that hold a number.                                            |
+| `average` | Returns the sum of all values in a column,<br>divided by the number of cells that hold a number.       |
 | `custom`  | Lets you implement a [custom summary function](#implement-a-custom-summary-function).                  |
+
+Every summary function reads numbers only. A cell is skipped when it is empty, when it holds only
+whitespace, or when it holds text that is not a number. To calculate from cells that hold text, use
+the [`forceNumeric`](#force-numeric-values) option.
 
 If a column holds no values to calculate from, `min`, `max`, and `average` return `Not enough data`.
 The `sum` and `count` functions return `0`.
