@@ -98,7 +98,7 @@ The built-in tracked actions include:
 - Column sorting (`beforeColumnSort`)
 - Filtering (`beforeFilter`)
 - Row and column moving (`afterRowMove`, `afterColumnMove`)
-- Cell moving and copying (`beforeMoveCells`, `afterMoveCells`)
+- Cell moving and copying (`beforeMoveCells`, `afterMoveCells`), when the [`moveCells`](@/api/options.md#movecells) option is enabled
 - Merge and unmerge (`beforeMergeCells`, `afterUnmergeCells`)
 - Alignment changes (`beforeCellAlignment`)
 
@@ -183,8 +183,8 @@ The following operations are not tracked by default:
 - [Hiding columns](@/guides/columns/column-hiding/column-hiding.md) and [hiding rows](@/guides/rows/row-hiding/row-hiding.md)
 - [Trimming rows](@/guides/rows/row-trimming/row-trimming.md)
 - Generic cell metadata changes that don't register an UndoRedo action (for example, most direct `setCellMeta()` updates)
-- Merges applied from the [`mergeCells`](@/api/options.md#mergecells) setting. UndoRedo tracks the merges and unmerges that run through the context menu and the merge keyboard shortcut.
-- Rows and columns that Handsontable adds on its own to satisfy [`minRows`](@/api/options.md#minrows), [`minCols`](@/api/options.md#mincols), [`minSpareRows`](@/api/options.md#minsparerows), or [`minSpareCols`](@/api/options.md#minsparecols). These carry the `auto` source, which UndoRedo skips, along with the `UndoRedo.undo` and `UndoRedo.redo` sources that its own operations use.
+- Merges applied from the [`mergeCells`](@/api/options.md#mergecells) setting. UndoRedo tracks the merges and unmerges that run through the context menu, the merge keyboard shortcut, and the plugin's [`merge()`](@/api/mergeCells.md#merge) and [`unmerge()`](@/api/mergeCells.md#unmerge) methods.
+- Rows and columns that Handsontable adds on its own to satisfy [`minRows`](@/api/options.md#minrows), [`minCols`](@/api/options.md#mincols), [`minSpareRows`](@/api/options.md#minsparerows), or [`minSpareCols`](@/api/options.md#minsparecols). These carry the `auto` source, which UndoRedo skips. It also skips the `UndoRedo.undo` and `UndoRedo.redo` sources, so its own operations never re-enter the stack.
 
 ## Related keyboard shortcuts
 
