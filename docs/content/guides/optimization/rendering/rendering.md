@@ -185,6 +185,8 @@ Every repaint redraws the whole rendered part. You cannot repaint one cell or on
 
 This is a deliberate trade. Virtualization already keeps the drawn cell count low and roughly constant, so a render is bounded by the size of the viewport rather than the size of your data. The lever you have is the number of renders, not their size. Use [`batch()`](@/api/core.md#batch) to keep that number down.
 
+If your renderers are expensive enough that this still costs too much, the [Repaint a single cell](@/recipes/performance/repaint-single-cell/repaint-single-cell.md) recipe shows how to cancel a render and run one cell's renderer yourself. It is not a substitute for the missing API: it works only on fixed-size grids, and the recipe lists what it gives up.
+
 ### `render()`, `updateSettings()`, and `refreshDimensions()`
 
 Three methods repaint the grid, and they are not interchangeable.

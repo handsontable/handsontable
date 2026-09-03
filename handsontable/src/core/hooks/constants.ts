@@ -1814,6 +1814,12 @@ export const REGISTERED_HOOKS = [
    *
    * __Note:__ In Handsontable 9.x and earlier, the `beforeViewRender` hook was named `beforeRender`.
    *
+   * Setting `skipRender` cancels the cell drawing only. Handsontable still positions the overlays and
+   * redraws the selection, but [`afterViewRender`](@/api/hooks.md#afterviewrender) does not fire, and
+   * nothing re-measures row heights or column widths. For a worked example, and the cases in which
+   * cancelling is unsafe, see the
+   * [Repaint a single cell](@/recipes/performance/repaint-single-cell/repaint-single-cell.md) recipe.
+   *
    * @event Hooks#beforeViewRender
    * @since 10.0.0
    * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of

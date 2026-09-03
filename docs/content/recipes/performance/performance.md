@@ -29,5 +29,6 @@ Current recipes:
 
 - [Lazy loading with pagination](@/recipes/performance/lazy-loading/lazy-loading.md)
 - [Persist and restore column widths and order](@/recipes/performance/persist-column-layout/persist-column-layout.md)
+- [Repaint a single cell instead of the whole viewport](@/recipes/performance/repaint-single-cell/repaint-single-cell.md)
 
 </div>
