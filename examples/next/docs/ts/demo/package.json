@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "http-server": "^14.1.1",
-    "typescript": "4.2.3"
+    "typescript": "^5.0.2"
   },
   "resolutions": {
     "@babel/preset-env": "7.13.8"
