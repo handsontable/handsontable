@@ -45,6 +45,25 @@ jobs:
           path: ./
       - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
       - run: npm run in ${{ matrix.pkg }} build
+      # A `types`/`typings` field naming a file the tarball does not contain is invisible
+      # to every other check here: the wrapper builds, imports and bundles fine, and only a
+      # TypeScript consumer sees TS7016. That is how @handsontable/vue3 shipped four
+      # releases with no declarations at all (DEV-2732). publint reads the packed tarball,
+      # so it sees what consumers get; it honours publishConfig.directory, which is what
+      # makes one invocation work for the Angular wrapper's dist/hot-table tree too.
+      # Warnings and suggestions do not fail it — only errors, which is what we want.
+      # Note: `attw` is deliberately NOT used for this. On a package with no declarations
+      # it short-circuits with "This package does not contain types" and exits 0, so it is
+      # blind to exactly this defect.
+      - name: Verify the published type declarations resolve (publint)
+        run: cd wrappers/${{ matrix.pkg }} && npx -y publint@0.3.21
+      # publint proves the declarations EXIST. This proves they mean something: the
+      # `*.types.ts` contract test asserts the emitted types have not collapsed to `any`,
+      # which is the failure mode a wildcard `*.vue` module shim produces silently. It reads
+      # the declarations the build above emitted, so it cannot live in the (build-less) Types
+      # workflow. `--if-present` keeps the step inert for wrappers with no such script yet.
+      - name: Type-surface contract test
+        run: npm run test:types --if-present --prefix wrappers/${{ matrix.pkg }}
       - run: tar --exclude='node_modules' -zcf ${{ matrix.pkg }}.tar.gz ./wrappers/${{ matrix.pkg }}
       - name: Upload the wrapper build artifact
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0

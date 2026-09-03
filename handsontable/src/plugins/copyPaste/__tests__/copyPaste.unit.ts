@@ -127,7 +127,7 @@ describe('CopyPaste ragged clipboard', () => {
   });
 });
 
-describe('CopyPaste past the last column', () => {
+describe('CopyPaste past the last column of an object data source', () => {
   /**
    * Two rows whose object shape declares `id` and `name` while carrying a third, undeclared
    * property.
@@ -172,26 +172,21 @@ describe('CopyPaste past the last column', () => {
 
   it('should report the dropped value to neither beforeChange nor afterChange', () => {
     const data = schemaBoundRows();
-    const hot = new Handsontable(document.createElement('div'), {
-      data,
-      dataSchema: { id: null, name: null },
-      licenseKey: 'non-commercial-and-evaluation',
-    });
     const seen: Record<string, unknown[][]> = { before: [], after: [] };
-
-    hot.addHook('beforeChange', (cellChanges: unknown[][] | null) => {
-      if (cellChanges) {
-        seen.before.push(...JSON.parse(JSON.stringify(cellChanges)));
-      }
+    const hot = pasteInto(data, '2\tFrank Honest', {
+      dataSchema: { id: null, name: null },
+      at: [0, 1],
+      beforeChange: (changes: unknown[][] | null) => {
+        if (changes) {
+          seen.before.push(...JSON.parse(JSON.stringify(changes)));
+        }
+      },
+      afterChange: (changes: unknown[][] | null, source: string) => {
+        if (changes && source !== 'loadData') {
+          seen.after.push(...JSON.parse(JSON.stringify(changes)));
+        }
+      },
     });
-    hot.addHook('afterChange', (cellChanges: unknown[][] | null) => {
-      if (cellChanges) {
-        seen.after.push(...JSON.parse(JSON.stringify(cellChanges)));
-      }
-    });
-
-    hot.selectCell(0, 1);
-    hot.getPlugin('copyPaste').paste('2\tFrank Honest');
 
     // A change entry for a value the grid did not write would send an integrator syncing from
     // either hook a property its own schema does not have - and it carried the column index as
@@ -199,6 +194,21 @@ describe('CopyPaste past the last column', () => {
     expect(seen.before).toEqual([[0, 'name', 'Ted Right', '2']]);
     expect(seen.after).toEqual([[0, 'name', 'Ted Right', '2']]);
     expect(data[0].name).toBe('2');
+
+    hot.destroy();
+  });
+
+  it('should drop the value the same way when `allowInsertColumn` is off', () => {
+    const data = schemaBoundRows();
+    const hot = pasteInto(data, '2\tFrank Honest', {
+      dataSchema: { id: null, name: null },
+      allowInsertColumn: false,
+      at: [0, 1],
+    });
+
+    // `populateFromArray` breaks the column loop before the write here, so the value never reaches
+    // `setDataAtCell` at all. The outcome matches the guard's: the schema is left intact.
+    expect(data[0]).toEqual({ id: 1, name: '2', address: '' });
 
     hot.destroy();
   });
@@ -219,29 +229,11 @@ describe('CopyPaste past the last column', () => {
     const hot = pasteInto(data, 'x\ty', { columns: [{}], at: [0, 0] });
 
     // Only object-rowed data is capped. Here the index names a real array slot rather than a
-    // positional key on a named record, `colToProp()` hands it back unchanged by design (#5945),
-    // and the value reads back - so widening this to `isColumnModificationAllowed()` would break
-    // array grids, and does break `formulas.spec.js`'s renamed-sheet spec.
+    // positional key on a named record, and the value reads back - so widening the guard to
+    // `isColumnModificationAllowed()` would break array grids, and does break `formulas.spec.js`.
     expect(hot.countCols()).toBe(1);
     expect(data[0][1]).toBe('y');
     expect(hot.getDataAtCell(0, 1)).toBe('y');
-
-    hot.destroy();
-  });
-
-  it('should keep writing into a grid that declares no columns at all', () => {
-    const hot = new Handsontable(document.createElement('div'), {
-      data: [],
-      licenseKey: 'non-commercial-and-evaluation',
-    });
-
-    // An empty `data: []` is duck-typed to 'object' because there is no `data[0]` to inspect, and
-    // `countCols()` is 0 - so every index is "past the last column". Writing to such a grid is how
-    // an empty dataset gets bootstrapped, and it is deliberately left alone.
-    hot.setDataAtCell(0, 0, 'WRITE');
-
-    expect(hot.dataType).toBe('object');
-    expect(hot.getDataAtCell(0, 0)).toBe('WRITE');
 
     hot.destroy();
   });

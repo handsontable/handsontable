@@ -144,6 +144,17 @@ ClickUp task: https://app.clickup.com/t/9015210959/DEV-xxx
 - Include the ClickUp task ID in the PR title when applicable.
 - Start the **Context** section with "The PR fixes/adds/changes/..." -- be direct, no filler.
 - If the PR introduces a breaking change, require the `Breaking change` label and include a migration section with before/after examples. Update migration guides in `docs/content/guides/upgrade-and-migration/`.
+- **If you tick "MANUAL QA NEEDED" in the checklist, also apply the red `Manual QA required` label** so the request is visible in the PR list. Nothing applies it automatically — labels in this repo are applied by hand:
+
+  ```bash
+  # once per repository, if the label does not exist yet
+  gh label create "Manual QA required" --color B60205 \
+    --description "Waits for a manual-qa environment sign-off before it can merge"
+
+  gh pr edit <number> --add-label "Manual QA required"
+  ```
+
+  The label is a **marker only**. The gate is the ticked box, which the Checks scope router reads when the pipeline starts: it holds `Manual QA / sign-off` until a designated reviewer approves the run. Because the box is read once per run, ticking it *after* a pipeline has already gone green does not arm anything — press **"Re-run all jobs"** on the Tests run (and the same applies in reverse after unticking).
 
 ## 5a. Updating an Existing PR's Body
 

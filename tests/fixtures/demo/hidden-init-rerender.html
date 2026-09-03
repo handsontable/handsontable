@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hidden-init rerender fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    // WHAT is hidden at init (the grid's root or its parent) and HOW (an inline style or a
+    // stylesheet rule) - the four shapes core's hidden-init branch must all recover from.
+    window.htHidden = ({
+      'inline-root': 'inline-root',
+      'inline-parent': 'inline-parent',
+      'stylesheet-root': 'stylesheet-root',
+      'stylesheet-parent': 'stylesheet-parent',
+    })[htParams.get('hidden') ?? 'inline-root'];
+    if (!window.htHidden) {
+      throw new Error('Unknown ?hidden= value: ' + JSON.stringify(htParams.get('hidden')));
+    }
+    // The stylesheet variants hide through this attribute rule; an inline `display: block` set by
+    // `revealGrid()` overrides it, which is exactly how the legacy spec revealed them.
+    document.write('<style>[data-hidden-by-stylesheet] { display: none; }</style>');
+  </script>
+</head>
+<body>
+  <div data-testid="parent">
+    <div id="grid" data-testid="grid"></div>
+  </div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+    const parent = document.querySelector('[data-testid="parent"]');
+    const hideTarget = window.htHidden.endsWith('-parent') ? parent : container;
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    if (window.htHidden.startsWith('inline-')) {
+      hideTarget.style.display = 'none';
+    } else {
+      hideTarget.setAttribute('data-hidden-by-stylesheet', '');
+    }
+
+    // Built while hidden - that is the whole scenario. 15 columns with `stretchH: 'all'`, because
+    // stretched column widths are computed from a measured container width, which is exactly what
+    // a hidden init cannot measure and the visibility-triggered rerender must repair.
+    //
+    // Built loudly: a constructor throw is captured where the page object can read and rethrow it,
+    // so a failed build is one diagnosed red instead of a silent wait-for-`hot` timeout.
+    try {
+      window.hot = new Handsontable(container, {
+        data: Array.from({ length: 15 }, (unused, row) =>
+          Array.from({ length: 15 }, (unusedCol, column) => `${row}-${column}`)),
+        rowHeaders: true,
+        colHeaders: true,
+        stretchH: 'all',
+        afterRenderer(td, row, col) {
+          td.setAttribute('data-testid', `cell-${row}-${col}`);
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+
+    /**
+     * Reveals the grid the way the legacy spec did: an inline `display: block` on whatever was
+     * hidden, which overrides both hiding mechanisms.
+     */
+    window.revealGrid = () => {
+      hideTarget.style.display = 'block';
+    };
+  </script>
+</body>
+</html>
