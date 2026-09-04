@@ -10,6 +10,10 @@ on:
         description: 'Both build artifacts (ES+CJS tmp + UMD dist/styles) are available'
         type: boolean
         default: false
+      attw-full:
+        description: 'Walk every exports path (trunk / run-all). PRs keep the typed roots.'
+        type: boolean
+        default: false
 
 jobs:
   check:
@@ -74,17 +78,19 @@ jobs:
         with:
           path: ~/.npm
           key: emitted-types-npx-${{ runner.os }}-ts5.1.6-publint0.3.21-attw0.18.3
+          restore-keys: emitted-types-npx-${{ runner.os }}-
       - name: Install type-check tools
         run: |
           tools="$RUNNER_TEMP/emitted-types-tools"
           mkdir -p "$tools"
           cd "$tools"
           npm init -y >/dev/null
-          npm install --no-package-lock \
+          npm install --no-package-lock --prefer-offline --no-audit --no-fund \
             typescript@5.1.6 \
             publint@0.3.21 \
             @arethetypeswrong/cli@0.18.3
-          echo "$tools/node_modules/.bin" >> "$GITHUB_PATH"
+          echo "TOOLS_BIN=$tools/node_modules/.bin" >> "$GITHUB_ENV"
+          "$tools/node_modules/.bin/tsc" --version | grep -F 'Version 5.1.6'
       - name: Type-check downleveled .d.ts with pinned TS 5.1.6
         run: |
           cd handsontable
@@ -102,23 +108,32 @@ jobs:
               include: ['tmp/**/*.d.ts']
             }, null, 2));
           "
-          tsc -p tsconfig.verify-types.json
+          "$TOOLS_BIN/tsc" -p tsconfig.verify-types.json
           rm tsconfig.verify-types.json
       - name: Check package exports and well-formedness (publint)
         run: |
           cd handsontable/tmp
-          publint
+          "$TOOLS_BIN/publint"
       - name: Check type-declaration resolution (attw)
+        env:
+          ATTW_FULL: ${{ inputs.attw-full }}
         run: |
           cd handsontable/tmp
           # attw walks every exports path × several resolution modes. The
           # package publishes ~200 of those (every plugin, language file,
           # dist/ asset). That analysis alone took ~8 minutes and, with a
-          # cold npx, blew the old 15-minute timeout. tsc already type-checks
-          # every emitted .d.ts and publint already lints the full exports
-          # map, so attw only needs the typed public roots — the dual-package
-          # pair plus settings and themes. false-export-default is Babel CJS
-          # interop.
-          attw --pack . --format table \
-            --entrypoints . base registry settings themes \
-            --ignore-rules false-export-default
+          # cold npx, blew the old 15-minute timeout. PRs check the typed
+          # public roots — tsc type-checks every emitted .d.ts and publint
+          # lints the full exports map. Trunk (run-all) walks every path so
+          # a subpath whose import condition points at a CJS-shaped
+          # declaration cannot land unnoticed. false-export-default is Babel
+          # CJS interop; untyped-resolution / no-resolution are dist/ UMD +
+          # languages (no types) and CSS/theme assets.
+          if [ "$ATTW_FULL" = "true" ]; then
+            "$TOOLS_BIN/attw" --pack . --format table \
+              --ignore-rules false-export-default untyped-resolution no-resolution
+          else
+            "$TOOLS_BIN/attw" --pack . --format table \
+              --entrypoints . base registry settings themes \
+              --ignore-rules false-export-default
+          fi
