@@ -1,4 +1,5 @@
 import { addClass, empty, isShadowRoot, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
+import { PartialRenderState } from './utils/partialRender'; // PROTOTYPE(#9614)
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, isEmpty } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
@@ -647,6 +648,15 @@ export default function Core(
     DynamicCellMetaMod,
     ExtendMetaPropertiesMod,
   ]);
+  // PROTOTYPE(#9614)
+  const partialRender = new PartialRenderState();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (instance as any).__partialRender = partialRender;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (instance as any).__metaManager = metaManager;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (metaManager as any).cellMeta.onWrite = (r: number, c: number) => partialRender.markCell(r, c);
   const tableMeta = metaManager.getTableMeta() as Record<string, unknown> & {
     fixedRowsTop: number;
     fixedRowsBottom: number;
@@ -1034,6 +1044,7 @@ export default function Core(
   );
 
   this.columnIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexesChangesState) => {
+    partialRender.bumpEpoch(); // PROTOTYPE(#9614)
     const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState, 'column');
     // Read and RECORDED before the public hook, both for the same reason: what a consumer does must
     // not rewrite this update's answer, and must not be undone by it either. A consumer calling
@@ -1060,6 +1071,7 @@ export default function Core(
   });
 
   this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexesChangesState) => {
+    partialRender.bumpEpoch(); // PROTOTYPE(#9614)
     const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState, 'row');
     const indexCount = this.rowIndexMapper.getNumberOfIndexes();
     const isStructuralChange = indexCount !== lastRowIndexCount;
@@ -2599,6 +2611,7 @@ export default function Core(
           valid = instance
             .runHooks('afterValidate', valid, value, cellProperties.visualRow, colArg, source);
           cellProperties.valid = valid;
+          partialRender.markCell(cellProperties.row as number, cellProperties.col as number); // PROTOTYPE(#9614)
 
           done(valid);
           instance.runHooks(
@@ -3620,6 +3633,7 @@ export default function Core(
         datamap = newDataMap;
       },
       () => {
+        partialRender.bumpEpoch(); // PROTOTYPE(#9614)
         metaManager.clearCellsCache();
         instance.initIndexMappers();
         grid.adjustRowsAndCols();
@@ -4025,6 +4039,7 @@ export default function Core(
       const cellOptionCellMetas = isCellOptionRestated ? [] : metaManager.getCellOptionCellMetas();
       const userDefinedCellMetas = metaManager.getUserDefinedCellMetas();
 
+      partialRender.bumpEpoch(); // PROTOTYPE(#9614)
       metaManager.clearCache();
 
       // Both snapshots are keyed by physical coordinates, so every value goes back onto the record it was
@@ -4288,6 +4303,7 @@ export default function Core(
       }
 
       selection.updateHighlightClassNames();
+      partialRender.bumpEpoch(); // PROTOTYPE(#9614)
       instance.runHooks('afterUpdateSettings', settings);
     }
 
@@ -5587,6 +5603,7 @@ export default function Core(
             // updateSettings/eviction semantics). Only failures materialize, so retention stays
             // O(invalid cells); the eviction pass already keeps `valid === false` cells.
             instance.getCellMeta(row, column, { skipMetaExtension: true }).valid = false;
+            partialRender.markCell(instance.toPhysicalRow(row), instance.toPhysicalColumn(column)); // PROTOTYPE(#9614)
           }
           waitingForValidator.removeValidatorFormQueue();
         }, 'validateCells');

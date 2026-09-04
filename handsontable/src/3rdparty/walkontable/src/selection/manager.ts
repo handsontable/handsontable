@@ -1,4 +1,5 @@
 import type { WalkontableInstance } from '../types';
+import { getPartialRenderMode, getGlobalRenderEpoch } from '../../../../utils/partialRender'; // PROTOTYPE(#9614)
 import type Selection from './selection';
 
 /**
@@ -71,6 +72,11 @@ export class SelectionManager {
    * @type {Map}
    */
   #selectionBorders = new Map<Selection, Map<WalkontableInstance, Border>>();
+  /** PROTOTYPE(#9614 selection diff): elements that carried selection classes after the previous pass. */
+  #prevApplied = new WeakMap<WalkontableInstance, Set<HTMLElement>>();
+  /** PROTOTYPE(#9614 scan cache): per selection, per overlay, the last scan and the key it is valid for. */
+  #scanCache = new WeakMap<Selection, WeakMap<WalkontableInstance,
+    { key: string; elements: Set<HTMLElement>; extra: Map<HTMLElement, string> }>>();
 
   /**
    * Creates a new SelectionManager instance.
@@ -226,8 +232,32 @@ export class SelectionManager {
       return;
     }
 
-    if (fastDraw) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const selDiff = (globalThis as any).__HOT_SEL_DIFF === true;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const selCache = selDiff && (globalThis as any).__HOT_SEL_CACHE === true;
+    // eslint-disable-next-line max-len, @typescript-eslint/no-unsafe-assignment, no-multi-assign, @typescript-eslint/no-explicit-any
+    const selStats = ((globalThis as any).__HOT_SEL_STATS ??= { scan: 0, apply: 0, passes: 0, written: 0, skipped: 0, removed: 0, scanHits: 0, scanMisses: 0 });
+    const tScan = performance.now();
+    let bandKey = '';
+
+    if (selDiff) {
+      // PROTOTYPE(#9614 selection diff): the MergeCells extra class is recorded by the scanner and
+      // folded into the class map, so it takes part in the diff like any other class.
+      this.#scanner.extraClasses = new Map();
+      const t = this.#activeOverlaysWot!.wtTable;
+
+      // eslint-disable-next-line max-len
+      bandKey = `${t.rowFilter!.offset}|${t.getRenderedRowsCount()}|${t.columnFilter!.offset}|${t.getRenderedColumnsCount()}|${t.getRowHeadersCount()}|${t.getColumnHeadersCount()}|${getGlobalRenderEpoch()}`;
+    } else {
+      this.#scanner.extraClasses = null;
+    }
+
+    if (selDiff) {
+      // no query reset needed - see #applyDiffed
+    } else if (fastDraw || getPartialRenderMode() !== 'off') {
       // there was no rerender, so we need to remove classNames by ourselves
+      // PROTOTYPE(#9614): in partial mode skipped TDs keep last draw's classes, so always reset.
       this.#resetCells();
     }
 
@@ -270,12 +300,51 @@ export class SelectionManager {
       }
 
       if (className) {
-        const elements = this.#scanner
-          .setActiveSelection(selection)
-          .scan() as Set<HTMLElement>;
+        let elements: Set<HTMLElement>;
+        let extra: Map<HTMLElement, string> | null = null;
+
+        if (selCache) {
+          const key = `${selection.getCorners().join(',')}|${bandKey}|${selection.settings.layerLevel}|${className}`;
+          let perWot = this.#scanCache.get(selection);
+
+          if (!perWot) {
+            perWot = new WeakMap();
+            this.#scanCache.set(selection, perWot);
+          }
+
+          const entry = perWot.get(this.#activeOverlaysWot!);
+
+          if (entry && entry.key === key) {
+            elements = entry.elements;
+            extra = entry.extra;
+            selStats.scanHits += 1;
+          } else {
+            this.#scanner.extraClasses = new Map();
+            elements = this.#scanner.setActiveSelection(selection).scan() as Set<HTMLElement>;
+            extra = this.#scanner.extraClasses;
+            perWot.set(this.#activeOverlaysWot!, { key, elements, extra });
+            selStats.scanMisses += 1;
+          }
+        } else {
+          if (selDiff) {
+            this.#scanner.extraClasses = new Map();
+          }
+          elements = this.#scanner.setActiveSelection(selection).scan() as Set<HTMLElement>;
+          extra = this.#scanner.extraClasses;
+        }
+
         const isActiveHeader = selectionType === ACTIVE_HEADER_TYPE;
 
         elements.forEach((element: HTMLElement) => {
+          const extraClass = extra?.get(element);
+
+          if (extraClass) {
+            if (!classNamesMap.has(element)) {
+              classNamesMap.set(element, new Map<string, number>());
+            }
+            classNamesMap.get(element)!.set(extraClass, 1);
+          }
+
           if (classNamesMap.has(element)) {
             const classNamesLayers = classNamesMap.get(element)!;
 
@@ -321,6 +390,18 @@ export class SelectionManager {
       borderInstance?.appear(corners);
     }
 
+    const tApply = performance.now();
+
+    selStats.scan += tApply - tScan;
+
+    if (selDiff) {
+      this.#applyDiffed(classNamesMap, headerAttributesMap, selStats);
+      selStats.apply += performance.now() - tApply;
+      selStats.passes += 1;
+
+      return;
+    }
+
     classNamesMap.forEach((classNamesLayers, element) => {
       const classNames: string[] = Array.from(classNamesLayers).map(([className, occurrenceCount]) => {
         if (occurrenceCount === 1) {
@@ -347,6 +428,117 @@ export class SelectionManager {
     Array.from(headerAttributesMap.keys()).forEach((element) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       setAttribute(element, [...headerAttributesMap.get(element)]);
+    });
+
+    selStats.apply += performance.now() - tApply;
+    selStats.passes += 1;
+  }
+
+  /**
+   * PROTOTYPE(#9614 selection diff). Applies the selection classes and attributes by diffing against
+   * what each element carried after the previous pass. An element whose signature is unchanged is
+   * not touched; an element that was wiped by the cell or header renderer has no signature and is
+   * re-applied; an element that left the selection has its previous classes and attributes removed.
+   */
+  #applyDiffed(
+    classNamesMap: Map<HTMLElement, Map<string, number>>,
+    headerAttributesMap: Map<HTMLElement, Array<[string, unknown]>>,
+    selStats: { written: number; skipped: number; removed: number },
+  ) {
+    const wot = this.#activeOverlaysWot!;
+    const prev = this.#prevApplied.get(wot) ?? new Set<HTMLElement>();
+    const next = new Set<HTMLElement>();
+    const cellAttributes = Array.isArray(this.#selections!.options?.cellAttributes)
+      ? this.#selections!.options.cellAttributes as Array<[string, unknown]> : [];
+
+    classNamesMap.forEach((classNamesLayers, element) => {
+      const classNames: string[] = [];
+
+      classNamesLayers.forEach((occurrenceCount, className) => {
+        classNames.push(className);
+
+        for (let i = 1; i < occurrenceCount; i++) {
+          classNames.push(`${className}-${i}`);
+        }
+      });
+
+      const attrs = element.nodeName === 'TD' ? cellAttributes : (headerAttributesMap.get(element) ?? []);
+      const sig = `${classNames.join(' ')}|${attrs.map(a => `${a[0]}=${a[1]}`).join(' ')}`;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const prevSig = (element as any).__hotSelSig as string | undefined;
+
+      next.add(element);
+
+      if (prevSig === sig) {
+        selStats.skipped += 1;
+
+        return;
+      }
+
+      if (prevSig !== undefined) {
+        this.#removeBySignature(element, prevSig);
+      }
+
+      addClass(element, classNames);
+
+      if (attrs.length > 0) {
+        setAttribute(element, attrs as Array<[string, string | number | boolean]>);
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (element as any).__hotSelSig = sig;
+      selStats.written += 1;
+    });
+
+    prev.forEach((element) => {
+      if (!next.has(element)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const prevSig = (element as any).__hotSelSig as string | undefined;
+
+        if (prevSig !== undefined) {
+          this.#removeBySignature(element, prevSig);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (element as any).__hotSelSig = undefined;
+          selStats.removed += 1;
+        }
+      }
+    });
+
+    this.#prevApplied.set(wot, next);
+  }
+
+  /**
+   * PROTOTYPE(#9614 selection diff). Removes the classes and attributes encoded in a signature.
+   */
+  #removeBySignature(element: HTMLElement, sig: string) {
+    const [classPart, attrPart] = sig.split('|');
+
+    if (classPart) {
+      removeClass(element, classPart.split(' '));
+    }
+
+    if (attrPart) {
+      removeAttribute(element, attrPart.split(' ').map(a => a.split('=')[0]));
+    }
+  }
+
+  /**
+   * PROTOTYPE(#9614 selection diff). Query-based reset restricted to the classes that plugins add
+   * outside the class map (`onBeforeRemoveCellClassNames`, used by MergeCells).
+   */
+  #resetExtraCellClasses() {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const classesToRemove = this.#activeOverlaysWot!.wtSettings.getSetting('onBeforeRemoveCellClassNames');
+
+    if (!Array.isArray(classesToRemove) || classesToRemove.length === 0) {
+      return;
+    }
+
+    classesToRemove.forEach((className: string) => {
+      const nodes = this.#activeOverlaysWot!.wtTable.TABLE.querySelectorAll(`.${className}`);
+
+      for (let i = 0, len = nodes.length; i < len; i++) {
+        removeClass(nodes[i] as HTMLElement, className);
+      }
     });
   }
 

@@ -1159,6 +1159,20 @@ export class Formulas extends BasePlugin {
       // For the Named expression the address is empty, hence the `sheetId` is undefined.
       const sheetId = isHFCellChange(change) ? change.address?.sheet : undefined;
 
+      // PROTOTYPE(#9614): a dependent's displayed value changed without a datamap write.
+      if (isHFCellChange(change) && sheetId === this.sheetId && change.address) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+        const pr = (this.hot as any).__partialRender;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+        const physRow = (this.rowAxisSyncer as any)?.getPhysicalIndexFromHfIndex?.(change.address.row);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+        const physCol = (this.columnAxisSyncer as any)?.getPhysicalIndexFromHfIndex?.(change.address.col);
+
+        if (pr && typeof physRow === 'number' && typeof physCol === 'number') {
+          pr.markCell(physRow, physCol);
+        }
+      }
+
       if (sheetId !== undefined && !affectedSheetIds.has(sheetId)) {
         affectedSheetIds.add(sheetId);
       }

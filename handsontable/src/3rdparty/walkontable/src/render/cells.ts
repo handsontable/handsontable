@@ -4,6 +4,7 @@ import {
   setAttribute,
 } from '../../../../helpers/dom/element';
 import { SharedOrderView } from '../utils/orderView';
+import { getPartialRenderMode } from '../../../../utils/partialRender'; // PROTOTYPE(#9614)
 import { BaseRenderer } from './_base';
 import {
   A11Y_COLINDEX,
@@ -90,22 +91,37 @@ export class CellsRenderer extends BaseRenderer {
           continue; // eslint-disable-line no-continue
         }
 
-        if (!hasClass(TD, 'hide')) { // Workaround for hidden columns plugin
-          TD.className = '';
+        // PROTOTYPE(#9614): the wipe is now a callback the cell renderer runs only when it paints.
+        const wipe = () => {
+          if (!hasClass(TD, 'hide')) { // Workaround for hidden columns plugin
+            TD.className = '';
+          }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (TD as any).__hotSelSig = undefined; // PROTOTYPE(#9614 selection diff)
+
+          TD.removeAttribute('style');
+          TD.removeAttribute('dir');
+
+          // Remove all accessibility-related attributes for the cell to start fresh.
+          removeAttribute(TD, [
+            /aria-(.*)/,
+            /role/
+          ]);
+        };
+        const partial = getPartialRenderMode() !== 'off';
+        let painted = true;
+
+        if (partial) {
+          // eslint-disable-next-line max-len
+          const band = `${this.table.activeOverlayName}|${this.table.rowFilter!.offset}|${rowsToRender}|${this.table.columnFilter!.offset}|${columnsToRender}`;
+
+          painted = this.table.cellRenderer(sourceRowIndex, sourceColumnIndex, TD, wipe, band) !== false;
+        } else {
+          wipe();
+          this.table.cellRenderer(sourceRowIndex, sourceColumnIndex, TD);
         }
 
-        TD.removeAttribute('style');
-        TD.removeAttribute('dir');
-
-        // Remove all accessibility-related attributes for the cell to start fresh.
-        removeAttribute(TD, [
-          /aria-(.*)/,
-          /role/
-        ]);
-
-        this.table.cellRenderer(sourceRowIndex, sourceColumnIndex, TD);
-
-        if (this.table.isAriaEnabled()) {
+        if (painted && this.table.isAriaEnabled()) {
           setAttribute(TD, [
             ...(TD.hasAttribute('role') ? [] : [A11Y_GRIDCELL()]),
             A11Y_TABINDEX(-1),

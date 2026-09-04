@@ -89,6 +89,8 @@ export class RowHeadersRenderer extends BaseRenderer {
         }
 
         TH.className = '';
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (TH as any).__hotSelSig = undefined; // PROTOTYPE(#9614 selection diff)
         TH.removeAttribute('style');
 
         // Remove all accessibility-related attributes for the header to start fresh.

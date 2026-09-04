@@ -22,6 +22,8 @@ export class SelectionScanner {
    * @type {Walkontable}
    */
   #activeOverlaysWot: WalkontableInstance | null = null;
+  /** PROTOTYPE(#9614 scan cache): when set, the `onAfterDrawSelection` class is recorded here instead of written. */
+  extraClasses: Map<HTMLElement, string> | null = null;
 
   /**
    * Sets the Walkontable instance that will be taking into account while scanning the table.
@@ -217,7 +219,11 @@ export class SelectionScanner {
         );
 
       if (typeof additionalSelectionClass === 'string') {
-        addClass(cell, additionalSelectionClass);
+        if (this.extraClasses) {
+          this.extraClasses.set(cell, additionalSelectionClass);
+        } else {
+          addClass(cell, additionalSelectionClass);
+        }
       }
 
       callback(cell);

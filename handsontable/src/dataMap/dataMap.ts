@@ -981,6 +981,19 @@ class DataMap {
   set(row: number, prop: string | number | DataAccessorFn, value: unknown) {
     const physicalRow = this.hot!.toPhysicalRow(row);
     let newValue = value;
+
+    // PROTOTYPE(#9614)
+    {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+      const pr = (this.hot as any).__partialRender;
+
+      if (pr) {
+        const visualColumn = typeof prop === 'function' ? NaN : this.propToCol(prop);
+
+        pr.markCell(physicalRow, typeof visualColumn === 'number'
+          ? this.hot!.toPhysicalColumn(visualColumn) : NaN);
+      }
+    }
     let dataRow: Record<string | number, unknown> = this.dataSource![physicalRow] as Record<string | number, unknown>;
     // TODO: To remove, use 'modifyData' hook instead (see below)
     const modifiedRowData = this.hot!.runHooks('modifyRowData', physicalRow);

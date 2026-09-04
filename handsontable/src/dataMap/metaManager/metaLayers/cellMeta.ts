@@ -85,6 +85,11 @@ export default class CellMeta {
   #cellOptionMetaRecordingCount = 0;
 
   /**
+   * PROTOTYPE(#9614): write-path notification, never on the read path.
+   */
+  onWrite: ((physicalRow: number, physicalColumn: number) => void) | null = null;
+
+  /**
    * Initializes the cell meta layer with a reference to the ColumnMeta layer used as the prototype source for new cell meta objects.
    */
   constructor(columnMeta: ColumnMeta) {
@@ -159,6 +164,7 @@ export default class CellMeta {
 
     extend(meta, normalizedSettings);
     extendByMetaType(meta, normalizedSettings);
+    this.onWrite?.(physicalRow, physicalColumn);
   }
 
   /**
@@ -288,6 +294,8 @@ export default class CellMeta {
   setMeta(physicalRow: number, physicalColumn: number, key: string, value: unknown) {
     const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
 
+    this.onWrite?.(physicalRow, physicalColumn);
+
     // An `editor` of `true` names no editor, so it reads as "the setting was not passed". Dropping
     // the own property lets the cell keep the editor its `type` expands to, or the one inherited
     // from the column and grid layers. Storing the boolean instead would hand a bare `true` to
@@ -375,6 +383,7 @@ export default class CellMeta {
     (cellMeta._userDefinedMetaProps as Set<string> | undefined)?.delete(key);
     (cellMeta._cellOptionMetaProps as Set<string> | undefined)?.delete(key);
     (cellMeta._persistedMetaProps as Set<string> | undefined)?.delete(key);
+    this.onWrite?.(physicalRow, physicalColumn);
   }
 
   /**

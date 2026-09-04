@@ -1126,9 +1126,45 @@ class TableView {
         return isUniformSizeSetting(this.hot.getSettings().colWidths) &&
           !this.hot.hasHook('modifyColWidth');
       },
-      cellRenderer: (renderedRowIndex: number, renderedColumnIndex: number, TD: HTMLTableCellElement) => {
+      cellRenderer: (renderedRowIndex: number, renderedColumnIndex: number, TD: HTMLTableCellElement,
+                     wipe?: () => void, band?: string) => {
         const [visualRowIndex, visualColumnIndex] = this
           .translateFromRenderableToVisualIndex(renderedRowIndex, renderedColumnIndex);
+
+        // PROTOTYPE(#9614) ---------------------------------------------------------------------
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+        const pr = (this.hot as any).__partialRender;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const mode = wipe ? pr?.mode : 'off';
+        let physicalRow = -1;
+        let physicalColumn = -1;
+        let ver = 0;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const stamp = (TD as any).__hotStamp as (undefined | Record<string, unknown>);
+
+        if (mode !== 'off') {
+          physicalRow = this.hot.toPhysicalRow(visualRowIndex) ?? -1;
+          physicalColumn = this.hot.toPhysicalColumn(visualColumnIndex) ?? -1;
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          ver = pr.version(physicalRow, physicalColumn);
+
+          if (mode === 'B') {
+            // The user's opt-out: a stored meta flagged `renderAlways` is never skipped. Read through
+            // the exists-only path so it never materializes a meta object.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+            const stored = (this.hot as any).__metaManager?.cellMeta?.getMetaIfExists?.(physicalRow, physicalColumn);
+            const always = stored?.renderAlways === true;
+
+            if (!always && stamp && stamp.rr === renderedRowIndex && stamp.rc === renderedColumnIndex &&
+                stamp.vr === visualRowIndex && stamp.vc === visualColumnIndex && stamp.band === band &&
+                stamp.epoch === pr.epoch && stamp.ver === ver) {
+              pr.stats.skipped += 1;
+
+              return false;
+            }
+          }
+        }
+        // ------------------------------------------------------------------------------------
 
         // Coords may be modified. For example, by the `MergeCells` plugin. It should affect cell value and cell meta.
         const modifiedCellCoords = this.hot
@@ -1152,6 +1188,30 @@ class TableView {
         const renderer = this.hot.getCellRenderer(cellProperties);
         const formattedValue = formatCellValue(value, cellProperties, renderer);
 
+        // PROTOTYPE(#9614) ---------------------------------------------------------------------
+        if (mode === 'A') {
+          if (cellProperties.renderAlways !== true && stamp && stamp.rr === renderedRowIndex &&
+              stamp.rc === renderedColumnIndex && stamp.vr === visualRowIndex && stamp.vc === visualColumnIndex &&
+              stamp.band === band && stamp.epoch === pr.epoch && stamp.ver === ver &&
+              stamp.value === formattedValue && stamp.renderer === renderer) {
+            pr.stats.skipped += 1;
+
+            return false;
+          }
+        }
+        if (mode !== 'off') {
+          wipe!();
+          pr.stats.rendered += 1;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (TD as any).__hotStamp = {
+            // eslint-disable-next-line object-property-newline
+            rr: renderedRowIndex, rc: renderedColumnIndex, vr: visualRowIndex, vc: visualColumnIndex,
+            // eslint-disable-next-line object-property-newline, @typescript-eslint/no-unsafe-assignment
+            band, epoch: pr.epoch, ver, value: formattedValue, renderer,
+          };
+        }
+        // ------------------------------------------------------------------------------------
+
         this.hot.runHooks('beforeRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
 
         const rendererArgs: Parameters<BaseRenderer> = [
@@ -1167,6 +1227,8 @@ class TableView {
         renderCell(renderer, rendererArgs);
 
         this.hot.runHooks('afterRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
+
+        return true;
       },
       selections: this.hot.selection.highlight,
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,
