@@ -109,6 +109,72 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', ()
       .toBeLessThanOrEqual(1);
   });
 
+  test('marks the root with the per-axis scroll classes', async () => {
+    const root = await grid.rootState();
+
+    expect(root.classes).toContain('htHasScrollX');
+    expect(root.classes).toContain('htVerticallyScrollableByWindow');
+    expect(root.classes).not.toContain('htHorizontallyScrollableByWindow');
+  });
+
+  // The ordering canary of the width/height unification: `height: 'auto'` must keep every column
+  // reachable through the holder. Today the `overflow: clip` shorthand clips both axes (element
+  // mode); once `'auto'` stops writing it, the `overflow-x: clip` longhand carries the same layout
+  // through the split mode. A core change that drops the shorthand before the engine can split the
+  // axes fails here.
+  test('keeps every column reachable with `height: "auto"`', async () => {
+    await grid.rebuild({ height: 'auto' });
+
+    const root = await grid.rootState();
+    const extents = await grid.scrollExtents();
+
+    expect(root.overflowX).toBe('clip');
+    expect(extents.holderScrollWidth).toBeGreaterThan(extents.holderClientWidth);
+    expect(extents.documentScrollWidth).toBeLessThanOrEqual(extents.documentClientWidth);
+
+    await grid.scrollHolderBy(2000);
+
+    await expect(grid.cell(3, 29)).toBeVisible();
+  });
+
+  test('stretches the columns to the root width instead of the page width', async () => {
+    // Four columns (well under 500px) grow to fill the root; the plugin never shrinks columns,
+    // so a dataset wider than the root would keep its widths and scroll instead.
+    const narrowData = Array.from({ length: 50 }, (_, r) => [`R${r + 1}C1`, `R${r + 1}C2`, `R${r + 1}C3`, `R${r + 1}C4`]);
+
+    await grid.rebuild({ stretchH: 'all', data: narrowData });
+
+    const extents = await grid.scrollExtents();
+    const rootBox = await grid.rootBox();
+    const lastCell = await grid.box(grid.cell(2, 3));
+
+    expect(rootBox.width).toBe(500);
+    expect(extents.holderScrollWidth).toBeLessThanOrEqual(extents.holderClientWidth);
+    // The last column reaches the root's end edge, not the page's.
+    expect(Math.abs((lastCell.x + lastCell.width) - (rootBox.x + rootBox.width))).toBeLessThanOrEqual(2);
+  });
+
+  test('moves the horizontal axis to the root when a `width` is set after init', async () => {
+    await grid.rebuild({ width: undefined });
+
+    const before = await grid.axisOwners();
+
+    expect(before.horizontalByWindow).toBe(true);
+
+    await grid.updateSettings({ width: 500 });
+
+    const after = await grid.axisOwners();
+    const extents = await grid.scrollExtents();
+
+    expect(after.horizontalByWindow).toBe(false);
+    expect(after.verticalByWindow).toBe(true);
+    expect(extents.holderScrollWidth).toBeGreaterThan(extents.holderClientWidth);
+
+    await grid.scrollHolderBy(400);
+
+    expect((await grid.scrollExtents()).holderScrollLeft).toBeGreaterThan(0);
+  });
+
   test('keeps the legacy `preventOverflow: "horizontal"` alias on the same layout', async () => {
     await grid.rebuild({ width: undefined, preventOverflow: 'horizontal' }, '500px');
 

@@ -106,6 +106,8 @@ export interface FixtureHotInstance {
     isVerticallyScrollableByWindow(): boolean,
     isHorizontallyScrollableByWindow(): boolean,
   };
+  /** The grid's own root `<div>` – a child of the container passed to the constructor. */
+  rootElement: HTMLElement;
   getFirstFullyVisibleRow(): number;
   getLastFullyVisibleRow(): number;
   getLastRenderedVisibleRow(): number;

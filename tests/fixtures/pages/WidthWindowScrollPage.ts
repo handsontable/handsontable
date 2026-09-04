@@ -132,6 +132,43 @@ export class WidthWindowScrollPage {
     });
   }
 
+  /** Applies settings to the live grid through `updateSettings()` and waits for the render. */
+  async updateSettings(settings: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate((s) => {
+      window.hot.updateSettings(s);
+
+      return new Promise(resolve => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      });
+    }, settings);
+    await this.waitForRender();
+  }
+
+  /**
+   * The grid root's inline overflow longhands and class list. The root is the `<div>` core builds
+   * inside the container (`hot.rootElement`), not the `#grid` container itself.
+   */
+  async rootState(): Promise<{ overflow: string, overflowX: string, classes: string[] }> {
+    return this.page.evaluate(() => {
+      const root = window.hot.rootElement;
+
+      return {
+        overflow: root.style.overflow,
+        overflowX: root.style.overflowX,
+        classes: Array.from(root.classList),
+      };
+    });
+  }
+
+  /** Bounding box of the grid root (`hot.rootElement`), which carries the `width`. */
+  async rootBox(): Promise<{ x: number, y: number, width: number, height: number }> {
+    return this.page.evaluate(() => {
+      const { x, y, width, height } = window.hot.rootElement.getBoundingClientRect();
+
+      return { x, y, width, height };
+    });
+  }
+
   /** The engine's own answer to which element owns each axis. */
   async axisOwners(): Promise<{ verticalByWindow: boolean, horizontalByWindow: boolean }> {
     return this.page.evaluate(() => ({

@@ -4266,8 +4266,16 @@ export default function Core(
       // is preceded by digits (`100vw`), which are word characters, so `\bv` would never match.
       const isRelativeWidth = /%|v(?:w|h|min|max)/i.test(effectiveWidth);
       const isDefiniteWidth = effectiveWidth !== '' && effectiveWidth !== 'auto' && !isRelativeWidth;
+      // `height: 'auto'` is a free height like an unset one: the grid's rows belong to the page. It
+      // still writes the `overflow: clip` shorthand above, so the longhand written here changes
+      // nothing readable today. It is the contract the engine's per-axis trimming reads (the root
+      // owns the horizontal axis, the window the vertical one), and it is what keeps every column
+      // reachable once `'auto'` stops writing the shorthand. Only an unset height may clear the
+      // longhand: for `'auto'` with a relative width the shorthand stays whole, so the clip is not
+      // silently reduced to the vertical axis.
+      const isFreeHeight = effectiveHeight === '' || effectiveHeight === 'auto';
 
-      if (!effectiveHeight) {
+      if (isFreeHeight) {
         const currentOverflowX = instance.rootElement.style.overflowX;
 
         // Only manage the overflow-x we own (`clip`) or that is unset. Preserve a user-defined
@@ -4275,7 +4283,11 @@ export default function Core(
         // by `clip`. Unlike `hidden`, `clip` creates no block formatting context and allows no
         // programmatic scroll.
         if (currentOverflowX === '' || currentOverflowX === 'clip') {
-          instance.rootElement.style.overflowX = isDefiniteWidth ? 'clip' : '';
+          if (isDefiniteWidth) {
+            instance.rootElement.style.overflowX = 'clip';
+          } else if (effectiveHeight === '') {
+            instance.rootElement.style.overflowX = '';
+          }
         }
       }
     }

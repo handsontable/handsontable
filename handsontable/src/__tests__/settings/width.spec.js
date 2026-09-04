@@ -251,6 +251,42 @@ describe('settings', () => {
         expect(holder.getBoundingClientRect().width).toBeAroundValue(200, 1);
       });
 
+      it('should clip the horizontal axis on its own for `height: \'auto\'` and a definite width', async() => {
+        const hot = handsontable({
+          data: createSpreadsheetData(100, 30),
+          rowHeaders: true,
+          colHeaders: true,
+          width: 200,
+          height: 'auto',
+        });
+
+        // `'auto'` is a free height: the root owns the horizontal axis through the `overflow-x`
+        // longhand, the same contract an unset height writes. The `overflow` shorthand still
+        // clips both axes here (the `'auto'` semantics change is a separate step); the longhand
+        // is what keeps the columns reachable once the shorthand goes.
+        expect(hot.rootElement.style.overflowX).toBe('clip');
+        expect(hot.rootElement.style.overflow).toBe('clip');
+
+        const holder = hot.rootElement.querySelector('.wtHolder');
+
+        expect(holder.scrollWidth).toBeGreaterThan(holder.clientWidth);
+      });
+
+      it('should keep the whole `overflow` shorthand for `height: \'auto\'` and a relative width', async() => {
+        const hot = handsontable({
+          data: createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          width: '100%',
+          height: 'auto',
+        });
+
+        // A relative width clears the longhand only for an UNSET height. For `'auto'` that would
+        // reduce the shorthand to the vertical axis and change today's layout.
+        expect(hot.rootElement.style.overflow).toBe('clip');
+        expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('clip');
+      });
+
       it('should not apply overflow clipping when `width` is `auto` and `height` is not provided', async() => {
         const hot = handsontable({
           data: createSpreadsheetData(5, 5),
