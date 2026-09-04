@@ -44,6 +44,20 @@ last pointer position with `countDragStep = false`. That is the other half of th
 shifts a new cell under a resting pointer has to redraw the border without registering a drag that never
 happened.
 
+## Two drag-state fields, one sentinel (GitHub #13370)
+
+`mouseDownOnCellCorner` is the **gesture flag** (set on `afterOnCellCornerMouseDown`, cleared in
+`#onMouseUp`), `handleDraggedCells` is the **step counter**. Only the flag says whether a corner gesture
+is in progress — `fillIn()` legitimately zeroes the counter through `resetSelectionOfDraggedArea()`.
+
+That matters because the corner double-click is not a native `dblclick`: Walkontable synthesizes it
+from the mousedown/mouseup pairs and fires it from its `mouseup` listener on the **holder**, which runs
+before this plugin's `mouseup` listener on the `documentElement` (bubble order). On a copy-down that
+applies, `fillIn()` has therefore already zeroed the counter when `#onMouseUp` runs. Gating the teardown
+on the counter skipped it and left `mouseDownOnCellCorner` stuck, so `#onMouseMove` kept redrawing the
+fill border under a released pointer. Gate any teardown on the flag, never on the counter.
+`tests/e2e/fill-handle-double-click.spec.ts` pins it with a real-pointer double-click.
+
 ## Auto-inserting rows
 
 With `autoInsertRow: true`, dragging past the last row inserts rows (`insert_row_below`) on a 200 ms

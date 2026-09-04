@@ -62,6 +62,7 @@ export interface FixtureHotInstance {
     filter(): void,
   };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
+  getPlugin(name: 'autofill'): { mouseDownOnCellCorner: boolean };
   getPlugin(name: 'multipleSelectionHandles'): { isDragged(): boolean };
   getPlugin(name: 'nestedRows'): {
     collapseAll(): void,
