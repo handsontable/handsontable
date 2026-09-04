@@ -1,6 +1,7 @@
 import type { TableDeps } from '../baseTable';
 import type { GeometryReader } from '../../domMeasure/geometryReader';
 import {
+  isHTMLElement,
   isVisible,
 } from '../../../../../helpers/dom/element';
 import { resolveAxisOwner } from '../../overlay/axisOwner';
@@ -102,7 +103,7 @@ function alignHolderWithSplitOwners(table: Table, ownerX: HTMLElement | Window, 
   const { geometryReader } = table.deps;
   const holderStyle = table.holder.style;
 
-  if (ownerX instanceof HTMLElement) {
+  if (isHTMLElement(ownerX)) {
     const width = Math.min(geometryReader.offsetWidth(ownerX), geometryReader.scrollWidth(ownerX));
 
     holderStyle.width = `${width}px`;
@@ -112,7 +113,7 @@ function alignHolderWithSplitOwners(table: Table, ownerX: HTMLElement | Window, 
     table.hasTableWidth = true;
   }
 
-  if (ownerY instanceof HTMLElement && measureIntrinsicHeight(geometryReader, ownerY) !== 0) {
+  if (isHTMLElement(ownerY) && measureIntrinsicHeight(geometryReader, ownerY) !== 0) {
     const height = Math.min(geometryReader.offsetHeight(ownerY), geometryReader.scrollHeight(ownerY));
 
     holderStyle.height = `${height}px`;
@@ -193,8 +194,8 @@ class MasterTable extends Table {
     // predicates the rest of the engine reads cannot disagree.
     const ownerX = resolveAxisOwner(this.wtRootElement, 'x', preventOverflow);
     const ownerY = resolveAxisOwner(this.wtRootElement, 'y', preventOverflow);
-    const xIsElement = ownerX instanceof HTMLElement;
-    const yIsElement = ownerY instanceof HTMLElement;
+    const xIsElement = isHTMLElement(ownerX);
+    const yIsElement = isHTMLElement(ownerY);
     const trimmingElement = ownerX;
     const { geometryReader } = this.deps;
 
@@ -215,7 +216,7 @@ class MasterTable extends Table {
         // from the single-owner mode must not be replayed when the grid returns to it.
         this.#trimmingCache = null;
       }
-    } else if (fieldsInitialized && trimmingElement instanceof HTMLElement) {
+    } else if (fieldsInitialized && isHTMLElement(trimmingElement)) {
       // Bind ResizeObservers on the first call, and re-bind on the rare draw
       // where the trimming container has changed (HOT reparented in the DOM).
       // Each rebind also nulls the cache, since the previous measurement was

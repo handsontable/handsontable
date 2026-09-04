@@ -49,29 +49,30 @@ export type ScrollSyncDeps = ReturnType<typeof createScrollSyncDeps>;
  * reads and are taken directly (see `walkontable-dev`). Signed, so an RTL holder keeps its negative
  * `scrollLeft` when it is mirrored onto the clones.
  *
+ * The element test is `isHTMLElement`, not `instanceof`: a grid whose DOM is in an iframe driven from
+ * the parent realm holds nodes built by another realm's constructor, and `instanceof HTMLElement`
+ * is false for every one of them. The window offset comes from the injected `rootWindow` for the
+ * same reason — `instanceof Window` misses a cross-realm window just as surely, and a helper that
+ * fell through to `0` reported "not scrolling" on every frame, so the clones never followed.
+ *
  * @param {HTMLElement | Window} element The scrolling element or the window.
+ * @param {Window} rootWindow The grid's own window.
  * @returns {number}
  */
-function readScrollLeft(element: HTMLElement | Window): number {
-  if (element instanceof HTMLElement) {
-    return element.scrollLeft;
-  }
-
-  return element instanceof Window ? element.scrollX : 0;
+function readScrollLeft(element: HTMLElement | Window, rootWindow: Window): number {
+  return isHTMLElement(element) ? element.scrollLeft : rootWindow.scrollX;
 }
 
 /**
- * Reads the vertical scroll offset of the element that scrolls an axis.
+ * Reads the vertical scroll offset of the element that scrolls an axis. Cross-realm safe, for the
+ * reasons given on `readScrollLeft`.
  *
  * @param {HTMLElement | Window} element The scrolling element or the window.
+ * @param {Window} rootWindow The grid's own window.
  * @returns {number}
  */
-function readScrollTop(element: HTMLElement | Window): number {
-  if (element instanceof HTMLElement) {
-    return element.scrollTop;
-  }
-
-  return element instanceof Window ? element.scrollY : 0;
+function readScrollTop(element: HTMLElement | Window, rootWindow: Window): number {
+  return isHTMLElement(element) ? element.scrollTop : rootWindow.scrollY;
 }
 
 /**
@@ -303,8 +304,8 @@ export class ScrollSync {
     // element missed the window's vertical scroll whenever the holder owned the horizontal axis
     // (`preventOverflow: 'horizontal'`, or a definite `width` with no sized `height`), so the
     // vertical scroll callbacks never fired on a page scroll.
-    const scrollX = readScrollLeft(inlineStartOverlay.mainTableScrollableElement);
-    const scrollY = readScrollTop(topOverlay.mainTableScrollableElement);
+    const scrollX = readScrollLeft(inlineStartOverlay.mainTableScrollableElement, this.#deps.rootWindow);
+    const scrollY = readScrollTop(topOverlay.mainTableScrollableElement, this.#deps.rootWindow);
 
     this.#horizontalScrolling = this.#lastScrollX !== scrollX;
     this.#verticalScrolling = this.#lastScrollY !== scrollY;
@@ -374,7 +375,9 @@ export class ScrollSync {
     const inlineStartOverlay = this.#deps.getInlineStartOverlay();
     const masterScrollable = topOverlay.mainTableScrollableElement;
 
-    if (!(masterScrollable instanceof HTMLElement)) {
+    // Cross-realm safe, like the readers above: this guard used to return early for an iframe's
+    // holder, which skipped the clone sync for the instance's whole life.
+    if (!isHTMLElement(masterScrollable)) {
       return;
     }
 

@@ -119,6 +119,21 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   fixture-served HyperFormula artifact + `tests/package.json`, and every file
   under `fixtures/`; rebuilding a bundle or reinstalling the engine re-runs
   affected specs. Do not narrow that hash.
+- **A cross-realm fixture builds the grid INSIDE an iframe from the PARENT's
+  `Handsontable`** (`demo/iframe-width-window-scroll.html`). It is the only
+  fixture that crosses a realm, and it exists because nothing else does: every
+  other fixture passes a node built by the same constructor the engine was
+  compiled against, so a realm-bound `instanceof` in the engine stays green on
+  all of them. Three things follow. The bundle still loads in the PARENT — the
+  fixture is testing that the parent's constructor drives another document's
+  nodes, so loading it inside the iframe would test nothing. The stylesheets go
+  into the IFRAME, after `doc.open()`/`doc.close()` (which replaces the
+  document), and the grid waits for their `load` events — a link that has not
+  applied yet sizes every row and column from an unthemed table. And the page
+  object reads state through the parent (`window.frameDoc`, `window.hot`),
+  not through a Playwright `frameLocator`, because the state under test is the
+  engine's — which element it thinks owns an axis — not the rendered
+  document's. Reference: `e2e/iframe-cross-realm-scroll.spec.ts`.
 
 ## Touch and mobile specs
 

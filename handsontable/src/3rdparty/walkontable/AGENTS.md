@@ -202,6 +202,19 @@ fields. Three rules follow.
   reset in `MasterTable` (`true` still suppresses it), `InlineStartOverlay#getTableParentOffset`, and
   the two header-border suppressions, which are visual rules pinned by
   `src/__tests__/settings/preventOverflow.spec.js`. The option stays forever, without a warning.
+- **Never ask `instanceof HTMLElement` whether an axis owner is an element — use `isHTMLElement()`.**
+  `resolveAxisOwner` takes its realm from `ownerDocument`, so it correctly hands back an iframe's
+  element to a parent-realm caller; `instanceof` then fails to recognize it against the parent's
+  constructor, and the axis silently reads as window-owned. The two halves of the engine then
+  disagree about the same axis: `isHorizontallyScrollableByWindow()` answers `false` while the master
+  lays the holder out in window mode, so it is left `overflow: visible` and never sized, and the
+  columns past the width are unreachable — the exact defect this section exists to remove, one realm
+  over. Scroll offsets have the mirror of it: read them with `isHTMLElement(el) ? el.scrollLeft :
+  rootWindow.scrollX`, off the INJECTED `rootWindow`, because `instanceof Window` misses a
+  cross-realm window just as surely and a fall-through to `0` reports a motionless axis on every
+  frame — the scroll hooks then never fire. Pinned by `tests/e2e/iframe-cross-realm-scroll.spec.ts`,
+  which builds a grid in an iframe from the parent page's constructor; nothing else in the suite
+  crosses a realm, so an `instanceof` reintroduced here stays green everywhere else.
 - **The public, no-axis `getTrimmingContainer()` keeps the single-axis-clip exemption and must not be
   used inside the engine.** It has to name one container for both axes, so it ignores an
   `overflow-x: clip` next to a `visible` vertical axis (DEV-1025). Ask per axis instead.
@@ -257,10 +270,11 @@ the answer is still the window although an element trims the table, the layout h
 the pass is retried on the next draw — but only while the resolved element keeps changing. It is
 checked before anything is rebound, so a pass that cannot settle costs one style read. Two rules make
 that necessary: `getTrimmingContainer` counts `overflow: hidden` and `getScrollableElement` does not,
-so the two can disagree for good, and a table in an iframe driven from the parent realm does exactly
-that — `MasterTable#alignOverlaysWithTrimmingContainer` misses it through a realm-bound `instanceof`
-and leaves the holder `overflow: visible`. Retrying such a table forever rebinds every listener on
-every draw, which also drops whichever scroll event is in flight. Re-arming the flag (through the
+so the two can disagree for good. (An iframe driven from the parent realm used to be the second one:
+`MasterTable#alignOverlaysWithTrimmingContainer` judged the owner with a realm-bound `instanceof` and
+left the holder `overflow: visible`. That is fixed — see the realm rule in the per-axis section
+above.) Retrying such a table forever rebinds every listener on every draw, which also drops
+whichever scroll event is in flight. Re-arming the flag (through the
 public `updateMainScrollableElements`, which `updateSettings` calls whenever `height` moves to or from
 `''`, and which the owner resync above calls when an axis owner moved) forgets the answer the
 previous series gave up on — otherwise the first retry of the new series matches its own stale
