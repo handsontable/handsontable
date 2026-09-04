@@ -112,7 +112,7 @@ export class Autofill extends BasePlugin {
    * Specifies how many cell levels were dragged using the handle.
    *
    * @private
-   * @type {boolean}
+   * @type {number}
    */
   handleDraggedCells = 0;
   /**
@@ -873,11 +873,8 @@ export class Autofill extends BasePlugin {
    * On mouse up listener.
    */
   #onMouseUp() {
-    // Gate on the gesture flag, not on the drag-step counter. The corner double-click is
-    // synthesized by Walkontable from the holder's `mouseup`, which runs before this
-    // `documentElement` listener, and its `fillIn()` has already zeroed `handleDraggedCells`
-    // by then – a counter-based guard would skip the teardown and leave the fill border
-    // following the pointer (GitHub #13370).
+    // Gate on the gesture flag, not on the drag-step counter. See this plugin's AGENTS.md
+    // ("Two drag-state fields, one sentinel") for why the counter is already 0 here (GitHub #13370).
     if (this.mouseDownOnCellCorner) {
       if (this.handleDraggedCells > 1) {
         this.fillIn();
