@@ -91,13 +91,14 @@
 
 /* Exact row heights: the engine pins the row at its provided height and clips the content (a table
    cell cannot be shorter than its in-flow content, so the wrapper is taken out of flow). */
-.handsontable td.htExactHeight,
-.handsontable th.htExactHeight {
+.handsontable tr.htExactRow > td,
+.handsontable tr.htExactRow > th {
   position: relative;
+  height: auto;
   padding: 0;
 }
 
-.handsontable td.htExactHeight > .htCellClip {
+.handsontable tr.htExactRow > td > .htCellClip {
   position: absolute;
   inset: 0 4px;
   overflow: hidden;
@@ -108,7 +109,7 @@
   box-sizing: border-box;
 }
 
-.handsontable tbody th.htExactHeight > .relative {
+.handsontable tbody tr.htExactRow > th > .relative {
   position: absolute;
   inset: 0;
   min-height: 0;

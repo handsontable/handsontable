@@ -568,12 +568,21 @@
     // the normalize block below. The cell drops its own padding: a border-box cell can never be
     // shorter than its padding plus border (17px in `horizon`), and the wrapper's insets carry the
     // same padding, so the content keeps its place.
-    td.htExactHeight {
+    // The marker is on the ROW: the cell renderers reset every cell's class on each draw, and a
+    // per-cell class made the browser recompute the style of the whole band on every draw.
+    // `height: auto` releases the default minimum cell height, so the one cell carrying the
+    // row's height inline decides the row.
+    tr.htExactRow > td,
+    tr.htExactRow > th {
       position: relative;
+      height: auto;
+    }
+
+    tr.htExactRow > td {
       padding: 0;
     }
 
-    td.htExactHeight > .htCellClip {
+    tr.htExactRow > td > .htCellClip {
       position: absolute;
       inset: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);
       overflow: hidden;
@@ -585,23 +594,23 @@
     }
 
     // `vertical-align` on the cell no longer moves out-of-flow content; map it onto the wrapper.
-    td.htExactHeight.htMiddle > .htCellClip,
-    td.htExactHeight.htBottom > .htCellClip {
+    tr.htExactRow > td.htMiddle > .htCellClip,
+    tr.htExactRow > td.htBottom > .htCellClip {
       display: flex;
       flex-direction: column;
     }
 
-    td.htExactHeight.htMiddle > .htCellClip {
+    tr.htExactRow > td.htMiddle > .htCellClip {
       justify-content: center;
     }
 
-    td.htExactHeight.htBottom > .htCellClip {
+    tr.htExactRow > td.htBottom > .htCellClip {
       justify-content: flex-end;
     }
 
     // Row headers already wrap their content in `.relative`; clip that instead of adding a wrapper.
-    // Body rows only — column headers keep their minimum-height semantics and `overflow: visible`.
-    :where(#{$grid-body-row}) > th.htExactHeight > .relative {
+    // Only body rows are ever marked, so column headers keep their minimum-height semantics.
+    tr.htExactRow > th > .relative {
       position: absolute;
       inset: 0;
       min-height: 0;

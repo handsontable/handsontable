@@ -45,13 +45,13 @@ test.describe('walkontable exact row heights', { tag: '@walkontable' }, () => {
     test('renders the row headers at the provided height too', async () => {
       expect(await wt.rowHeight(wt.inlineStartOverlay, 1)).toBe(ROW_HEIGHT);
       expect(await wt.rowHeight(wt.inlineStartOverlay, MULTILINE_ROW)).toBe(ROW_HEIGHT);
-      await expect(wt.rowHeader(wt.inlineStartOverlay, 1)).toHaveClass(/htExactHeight/);
+      await expect(wt.row(wt.inlineStartOverlay, 1)).toHaveClass(/htExactRow/);
     });
 
     test('clips content taller than the row instead of growing the row', async () => {
       expect(await wt.rowHeight(wt.master, MULTILINE_ROW)).toBe(ROW_HEIGHT);
       expect(await wt.isContentClipped(MULTILINE_ROW, MULTILINE_COLUMN)).toBe(true);
-      await expect(wt.cell(MULTILINE_ROW, MULTILINE_COLUMN)).toHaveClass(/htExactHeight/);
+      await expect(wt.row(wt.master, MULTILINE_ROW)).toHaveClass(/htExactRow/);
     });
 
     test('keeps a row with a tall frozen cell at the provided height in both tables', async () => {

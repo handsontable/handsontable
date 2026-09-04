@@ -6,36 +6,44 @@
  * - Floor (the historical shape): the height is written to the row's first cell only. A table
  *   cell's `height` is a minimum in CSS table layout, so the row still grows when any cell's
  *   content is taller, and the oversized-rows measurement then records the real height.
- * - Exact: the height is written to EVERY cell, each cell gets the `htExactHeight` class, and each
- *   data cell's content is moved into a `div.htCellClip` wrapper. The stylesheet takes that wrapper
- *   out of flow (absolutely positioned over the cell's padding box, `overflow: hidden`), which is
- *   the only way a table cell can be shorter than its text. Row headers keep their own `.relative`
- *   wrapper; the class alone lets the stylesheet clip it.
+ * - Exact: the row gets the `htExactRow` class, the height is written to ONE cell (the first that
+ *   spans a single row), and each data cell's content is moved into a `div.htCellClip` wrapper.
+ *   The stylesheet addresses the cells through the row class: it releases their default minimum
+ *   height (so the one cell carrying the height decides the row), drops their padding, and takes
+ *   the wrapper out of flow (absolutely positioned over the cell's padding box, `overflow: hidden`),
+ *   which is the only way a table cell can be shorter than its text. Row headers keep their own
+ *   `.relative` wrapper; the row class alone lets the stylesheet clip it.
  *
- * The cell renderers reset every cell's class and inline style on each draw, so the class and
- * height are re-applied every draw; the wrapper itself is kept across draws because the built-in
- * renderers write through `getCellContentRoot()`. A renderer that wipes the cell costs one re-wrap
- * per draw, on exact rows only.
+ * The marker sits on the row, not on the cells, on purpose: the cell renderers reset every cell's
+ * class and inline style on each draw, and re-marking every cell made the browser recompute the
+ * style of the whole band on every draw. The row renderer leaves the row's class alone, so the
+ * class is written once and the per-draw work is one inline height per row (the same write the
+ * floor shape makes) plus one property read per data cell to confirm its wrapper is in place.
+ *
+ * The wrapper is kept across draws because the built-in renderers write through
+ * `getCellContentRoot()`. A renderer that wipes the cell costs one re-wrap per draw, on exact rows
+ * only.
  */
 import {
   addClass,
   hasClass,
   isHTMLElement,
+  removeClass,
   CELL_CLIP_CLASS,
 } from '../../../../helpers/dom/element';
 import { getBoxAdjustedRowHeight } from '../axisSizing/boxModel';
 
 /**
- * The class every cell of an exact-height row carries. The stylesheet keys the clipping on it.
+ * The class an exact-height row carries. The stylesheet keys the clipping on it.
  *
  * @type {string}
  */
-export const EXACT_HEIGHT_CLASS = 'htExactHeight';
+export const EXACT_ROW_CLASS = 'htExactRow';
 
 /**
  * The rows currently rendered in the exact shape, so a row that switches back to the floor shape
- * (a settings change) gets its wrappers removed once, instead of every floor row being inspected
- * on every draw.
+ * (a settings change, or a reused row element) gets its wrappers removed once, instead of every
+ * floor row being inspected on every draw.
  */
 const exactRows = new WeakSet<HTMLElement>();
 
@@ -114,16 +122,22 @@ function removeClipWrapper(TD: HTMLElement): void {
 }
 
 /**
- * Applies the exact shape: the height on every cell, the class on every cell, the wrapper in every
- * data cell. A cell spanning several rows (a merged cell) gets no height of its own — a single row's
- * height is meaningless for it and the span's rows size it — but it is still wrapped, so content
- * taller than the whole span is clipped to the span.
+ * Applies the exact shape: the class on the row (once), the height on the first cell that spans a
+ * single row, the wrapper in every data cell. A cell spanning several rows (a merged cell) never
+ * carries the height — a single row's height is meaningless for it and the span's rows size it —
+ * but it is still wrapped, so content taller than the whole span is clipped to the span.
  *
  * @param {HTMLElement} TR The row element.
  * @param {string} pixelHeight The height to write, as a CSS length.
  */
 function applyExactShape(TR: HTMLElement, pixelHeight: string): void {
+  if (!exactRows.has(TR)) {
+    addClass(TR, EXACT_ROW_CLASS);
+    exactRows.add(TR);
+  }
+
   const cells = TR.children;
+  let heightCarrier: HTMLElement | null = null;
 
   for (let index = 0; index < cells.length; index++) {
     const cell = cells[index];
@@ -132,25 +146,24 @@ function applyExactShape(TR: HTMLElement, pixelHeight: string): void {
       continue; // eslint-disable-line no-continue
     }
 
-    const rowspan = Number(cell.getAttribute('rowspan') ?? 1);
-
-    if (rowspan <= 1) {
-      cell.style.height = pixelHeight;
+    if (heightCarrier === null && Number(cell.getAttribute('rowspan') ?? 1) <= 1) {
+      heightCarrier = cell;
     }
-
-    addClass(cell, EXACT_HEIGHT_CLASS);
 
     if (cell.tagName === 'TD') {
       ensureClipWrapper(cell);
     }
   }
 
-  exactRows.add(TR);
+  if (heightCarrier !== null) {
+    heightCarrier.style.height = pixelHeight;
+  }
 }
 
 /**
- * Undoes the exact shape on a row that is back on the floor path. The class and the per-cell
- * heights are already gone (the cell renderers reset them on every draw); only the wrappers persist.
+ * Undoes the exact shape on a row that is back on the floor path: the row class and the wrappers.
+ * The inline height needs no care — the cell renderers reset it on every draw, and the floor path
+ * writes its own.
  *
  * @param {HTMLElement} TR The row element.
  */
@@ -165,6 +178,7 @@ function releaseExactShape(TR: HTMLElement): void {
     }
   }
 
+  removeClass(TR, EXACT_ROW_CLASS);
   exactRows.delete(TR);
 }
 
