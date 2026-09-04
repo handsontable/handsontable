@@ -11,27 +11,31 @@ import { type Page, type Locator, expect } from '@playwright/test';
 export class MobileHandlesPage {
   readonly page: Page;
   readonly theme: string;
+  readonly bundle: string;
   readonly grid: Locator;
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.grid = page.getByTestId('grid');
   }
 
   /**
    * Navigate to the fixture and wait for the grid to render.
    */
-  async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/mobile-handles.html?theme=${this.theme}`);
-    await expect(this.cell(0, 0)).toBeVisible();
+  async goto(direction: 'ltr' | 'rtl' = 'ltr'): Promise<void> {
+    await this.page.goto(
+      `/tests/fixtures/demo/mobile-handles.html?theme=${this.theme}&bundle=${this.bundle}&direction=${direction}`
+    );
+    await expect(this.cell(1, 1)).toBeVisible();
   }
 
   /**
    * A single data cell, by visual row/column, via its stable test id.
    */
   cell(row: number, col: number): Locator {
-    return this.page.getByTestId(`cell-${row}-${col}`);
+    return this.page.locator('.ht_master').getByTestId(`cell-${row}-${col}`);
   }
 
   /**
@@ -42,11 +46,21 @@ export class MobileHandlesPage {
   }
 
   /**
+   * Extends the current selection while preserving its top-left corner.
+   */
+  async selectRange(fromRow: number, fromCol: number, toRow: number, toCol: number): Promise<void> {
+    await this.page.evaluate(
+      range => window.hot.selectCell(range.fromRow, range.fromCol, range.toRow, range.toCol),
+      { fromRow, fromCol, toRow, toCol }
+    );
+  }
+
+  /**
    * The top-left mobile selection handle of the focus selection, scoped to
    * the master overlay.
    */
   topHandle(): Locator {
-    return this.page.locator('.ht_master .htBorders .topSelectionHandle').first();
+    return this.page.locator('.ht_master .htBorders .topSelectionHandle:visible').first();
   }
 
   /**
@@ -54,7 +68,7 @@ export class MobileHandlesPage {
    * to the master overlay.
    */
   bottomHandle(): Locator {
-    return this.page.locator('.ht_master .htBorders .bottomSelectionHandle').first();
+    return this.page.locator('.ht_master .htBorders .bottomSelectionHandle:visible').first();
   }
 
   /**
@@ -72,5 +86,17 @@ export class MobileHandlesPage {
       expect(box!.width).toBeGreaterThan(0);
       expect(box!.height).toBeGreaterThan(0);
     }
+  }
+
+  /**
+   * Returns whether the top handle owns the pixels at the center of its visible marker.
+   */
+  async isTopHandleHitAreaAtHandleCenter(): Promise<boolean> {
+    return this.topHandle().evaluate((handle) => {
+      const { left, top, width, height } = handle.getBoundingClientRect();
+      const element = document.elementFromPoint(left + (width / 2), top + (height / 2));
+
+      return element?.closest('.topSelectionHandle-HitArea') !== null;
+    });
   }
 }

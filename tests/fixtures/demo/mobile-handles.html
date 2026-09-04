@@ -5,11 +5,25 @@
   <title>Handsontable mobile selection handles fixture</title>
   <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
   <script>
-    // Active theme from the ?theme= query param set by the Playwright project.
-    // Mapped through a fixed allowlist to a LITERAL (default main), so a crafted
-    // ?theme= can never be reflected into the document — no XSS. Exposed as
-    // window.htTheme so the grid init below reuses the sanitized value.
-    window.htTheme = ({ horizon: 'horizon', classic: 'classic' })[new URLSearchParams(location.search).get('theme')] || 'main';
+    const params = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[params.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(params.get('theme')));
+    }
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[
+      params.get('bundle') ?? 'umd'
+    ];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(params.get('bundle')));
+    }
+
+    window.htDirection = ({ ltr: 'ltr', rtl: 'rtl' })[params.get('direction') ?? 'ltr'];
+    if (!window.htDirection) {
+      throw new Error('Unknown ?direction= value: ' + JSON.stringify(params.get('direction')));
+    }
+
     // Written into <head> so the themed stylesheet is present before first render.
     document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
   </script>
@@ -24,7 +38,9 @@
   -->
   <div id="grid" data-testid="grid"></div>
 
-  <script src="/handsontable/dist/handsontable.full.min.js"></script>
+  <script>
+    document.write(`<script src="/handsontable/dist/${window.htBundle}"><\/script>`);
+  </script>
   <script>
     const container = document.querySelector('[data-testid="grid"]');
 
@@ -35,16 +51,21 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
-    new Handsontable(container, {
+    window.hot = new Handsontable(container, {
       data: [
-        ['A1', 'B1', 'C1'],
-        ['A2', 'B2', 'C2'],
-        ['A3', 'B3', 'C3'],
-        ['A4', 'B4', 'C4'],
-        ['A5', 'B5', 'C5'],
+        ['A1', 'B1', 'C1', 'D1', 'E1'],
+        ['A2', 'B2', 'C2', 'D2', 'E2'],
+        ['A3', 'B3', 'C3', 'D3', 'E3'],
+        ['A4', 'B4', 'C4', 'D4', 'E4'],
+        ['A5', 'B5', 'C5', 'D5', 'E5'],
       ],
+      width: 350,
+      height: 300,
       colHeaders: true,
       rowHeaders: true,
+      fixedRowsTop: 1,
+      fixedColumnsStart: 1,
+      layoutDirection: window.htDirection,
       renderer: testIdRenderer,
       licenseKey: 'non-commercial-and-evaluation',
     });

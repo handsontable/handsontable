@@ -14,13 +14,6 @@ export class CssTransformGridPage {
     await expect(this.page.locator('.ht_master')).toBeVisible();
   }
 
-  async viewportSize(): Promise<{ width: number; height: number }> {
-    return this.page.locator('.ht_master .wtHolder').evaluate((holder) => ({
-      width: holder.clientWidth,
-      height: holder.clientHeight,
-    }));
-  }
-
   async promoteMasterScrollLayer(): Promise<void> {
     await this.page.locator('.ht_master .wtHolder').evaluate((holder) => {
       const element = holder as HTMLElement;

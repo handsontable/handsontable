@@ -19,8 +19,8 @@ test.use({
 test.describe('mobile selection handles', () => {
   let mobileGrid: MobileHandlesPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    mobileGrid = new MobileHandlesPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    mobileGrid = new MobileHandlesPage(page, theme, bundle);
     await mobileGrid.goto();
   });
 
@@ -42,5 +42,22 @@ test.describe('mobile selection handles', () => {
     const secondBox = await mobileGrid.topHandle().boundingBox();
 
     expect(secondBox).not.toEqual(firstBox);
+  });
+
+  test('keep the top handle interactive when a range starts at the frozen-pane boundaries', async () => {
+    await mobileGrid.tapCell(1, 1);
+    await mobileGrid.selectRange(1, 1, 3, 3);
+    await mobileGrid.expectHandlesVisible();
+
+    await expect.poll(() => mobileGrid.isTopHandleHitAreaAtHandleCenter()).toBe(true);
+  });
+
+  test('keep the top handle interactive at the frozen-pane boundaries in RTL', async () => {
+    await mobileGrid.goto('rtl');
+    await mobileGrid.tapCell(1, 1);
+    await mobileGrid.selectRange(1, 1, 3, 3);
+    await mobileGrid.expectHandlesVisible();
+
+    await expect.poll(() => mobileGrid.isTopHandleHitAreaAtHandleCenter()).toBe(true);
   });
 });

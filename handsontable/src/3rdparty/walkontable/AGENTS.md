@@ -46,8 +46,10 @@ pane. `.ht_clone_master: 100` in the z-index map does **not** apply to the maste
 is stamped on the editor container by `src/editors/factory.ts`.
 
 Two related mechanisms that look like counter-examples and are not: the mobile selection handles take
-an inline `zIndex = '9999'` inside their table's stacking context (`border.ts`, legacy #9850), and the
-fill handle is *repositioned* rather than re-layered at the `fixedRowsBottom` line
+an inline `zIndex = '9999'` inside their table's stacking context (`border.ts`, legacy #9850). Because
+that value cannot clear a frozen overlay, a top handle on the `fixedRowsTop` or `fixedColumnsStart`
+boundary is repositioned into the scrollable pane. The fill handle is *repositioned* rather than
+re-layered at the `fixedRowsBottom` line
 (`isCornerLiftedAtBlockEnd`). Handles drawn by a frozen overlay itself need no such treatment: they
 already land flush against the `.wtHolder` edge that clips them, which `border.spec.js` pins to the
 pixel on both axes. Note `.wtHolder` is the clipping box (`overflow: hidden`), while the clone element

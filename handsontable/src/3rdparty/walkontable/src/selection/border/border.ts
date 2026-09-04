@@ -605,15 +605,25 @@ class Border {
   }
 
   /**
-   * @param {number} row The visual row index.
-   * @param {number} col The visual column index.
+   * @param {number} fromRow The visual row index of the selection's top-left corner.
+   * @param {number} fromCol The visual column index of the selection's top-left corner.
+   * @param {number} toRow The visual row index of the selection's bottom-right corner.
+   * @param {number} toCol The visual column index of the selection's bottom-right corner.
    * @param {number} top The top position of the handler.
    * @param {number} left The left position of the handler.
    * @param {number} width The width of the handler.
    * @param {number} height The height of the handler.
    */
   updateMultipleSelectionHandlesPosition(
-    row: number, col: number, top: number, left: number, width: number, height: number) {
+    fromRow: number,
+    fromCol: number,
+    toRow: number,
+    toCol: number,
+    top: number,
+    left: number,
+    width: number,
+    height: number,
+  ) {
     const isRtl = this.wot.wtSettings.getSetting('rtlMode');
     const inlinePosProperty = isRtl ? 'right' : 'left';
     const {
@@ -628,12 +638,20 @@ class Border {
     const hitAreaSize = parseInt(topHitAreaStyles.width, 10);
     const totalTableWidth = this.wot.wtTable.getWidth();
     const totalTableHeight = this.wot.wtTable.getHeight();
+    const isAtFrozenRowBoundary = fromRow === this.wot.wtSettings.getSetting('fixedRowsTop');
+    const isAtFrozenColumnBoundary = fromCol === this.wot.wtSettings.getSetting('fixedColumnsStart');
 
-    topStyles.top = `${parseInt(String(top - handleSize - 1), 10)}px`;
-    topStyles[inlinePosProperty] = `${parseInt(String(left - handleSize - 1), 10)}px`;
+    topStyles.top = `${parseInt(String(isAtFrozenRowBoundary ? top + 1 : top - handleSize - 1), 10)}px`;
+    topStyles[inlinePosProperty] = `${
+      parseInt(String(isAtFrozenColumnBoundary ? left + 1 : left - handleSize - 1), 10)
+    }px`;
 
-    topHitAreaStyles.top = `${parseInt(String(top - ((hitAreaSize / 4) * 3)), 10)}px`;
-    topHitAreaStyles[inlinePosProperty] = `${parseInt(String(left - ((hitAreaSize / 4) * 3)), 10)}px`;
+    topHitAreaStyles.top = `${
+      parseInt(String(isAtFrozenRowBoundary ? top : top - ((hitAreaSize / 4) * 3)), 10)
+    }px`;
+    topHitAreaStyles[inlinePosProperty] = `${
+      parseInt(String(isAtFrozenColumnBoundary ? left : left - ((hitAreaSize / 4) * 3)), 10)
+    }px`;
 
     const bottomHandlerInline = Math.min(
       parseInt(String(left + width), 10),
@@ -665,7 +683,7 @@ class Border {
       topStyles.display = 'block';
       topHitAreaStyles.display = 'block';
 
-      if (this.isSouthEastOfAreaSelection(row, col)) {
+      if (this.isSouthEastOfAreaSelection(toRow, toCol)) {
         bottomStyles.display = 'block';
         bottomHitAreaStyles.display = 'block';
       } else {
@@ -679,8 +697,7 @@ class Border {
       bottomHitAreaStyles.display = 'none';
     }
 
-    if (row === this.wot.wtSettings.getSetting('fixedRowsTop') ||
-        col === this.wot.wtSettings.getSetting('fixedColumnsStart')) {
+    if (isAtFrozenRowBoundary || isAtFrozenColumnBoundary) {
       topStyles.zIndex = '9999';
       topHitAreaStyles.zIndex = '9999';
     } else {
@@ -1639,7 +1656,16 @@ class Border {
     }
 
     if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
-      this.updateMultipleSelectionHandlesPosition(toRow, toColumn, top, inlineStartPos, width, height);
+      this.updateMultipleSelectionHandlesPosition(
+        corners[0],
+        corners[1],
+        toRow,
+        toColumn,
+        top,
+        inlineStartPos,
+        width,
+        height,
+      );
     }
 
     let adjustVisible = this.settings.border?.adjustHandlesVisible;
