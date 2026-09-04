@@ -16,6 +16,7 @@ const WORKFLOW = readFileSync(
   path.join(repoRoot(), '.github/workflows/emitted-types.yml'),
   'utf8'
 );
+const withoutComments = WORKFLOW.replace(/#[^\n]*/g, '');
 
 test('the Emitted Types job budget is at least 30 minutes', () => {
   const timeout = Number(/timeout-minutes:\s*(\d+)/.exec(WORKFLOW)?.[1]);
@@ -27,8 +28,6 @@ test('the Emitted Types job budget is at least 30 minutes', () => {
 });
 
 test('type-check tools are installed once, not via three cold npx -y calls', () => {
-  const withoutComments = WORKFLOW.replace(/#[^\n]*/g, '');
-
   assert.match(
     WORKFLOW,
     /name: Install type-check tools/,
@@ -48,12 +47,12 @@ test('type-check tools are installed once, not via three cold npx -y calls', () 
 
 test('attw checks the typed public roots, not every exports path', () => {
   assert.match(
-    WORKFLOW,
-    /--entrypoints\s+\.\s+base\s+registry\s+settings/,
-    'attw must pass --entrypoints . base registry settings'
+    withoutComments,
+    /--entrypoints\s+\.\s+base\s+registry\s+settings\s+themes/,
+    'attw must pass --entrypoints . base registry settings themes'
   );
   assert.doesNotMatch(
-    WORKFLOW,
+    withoutComments,
     /npx\s+-y\s+@arethetypeswrong\/cli/,
     'do not invoke attw through npx -y'
   );

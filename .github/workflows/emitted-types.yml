@@ -19,7 +19,9 @@ jobs:
     # `cancelled`, and CI Gate treats that as a failure. attw on every export
     # path took ~8 minutes even when `npx -y` was fast; a cold npm day then
     # spent another 4–7 minutes per tool. 30 minutes covers a slow download
-    # plus the analysis. Do not lower this without re-timing a cold run.
+    # plus the analysis, and the non-prebuilt fallback (pnpm install + a full
+    # local `npm run build`) that runs when Build is scope-skipped. Do not
+    # lower this without re-timing a cold run of that fallback too.
     timeout-minutes: 30
     env:
       HOT_PREBUILT: ${{ inputs.hot-prebuilt }}
@@ -106,12 +108,13 @@ jobs:
         run: |
           cd handsontable/tmp
           # attw walks every exports path × several resolution modes. The
-          # package publishes ~200 of those (every plugin, language, theme,
-          # dist/ file). That analysis alone took ~8 minutes and, with a cold
-          # npx, blew the old 15-minute timeout. tsc already type-checks every
-          # emitted .d.ts and publint already lints the full exports map, so
-          # attw only needs the typed public roots — the dual-package pair
-          # plus settings. false-export-default is Babel CJS interop.
+          # package publishes ~200 of those (every plugin, language file,
+          # dist/ asset). That analysis alone took ~8 minutes and, with a
+          # cold npx, blew the old 15-minute timeout. tsc already type-checks
+          # every emitted .d.ts and publint already lints the full exports
+          # map, so attw only needs the typed public roots — the dual-package
+          # pair plus settings and themes. false-export-default is Babel CJS
+          # interop.
           attw --pack . --format table \
-            --entrypoints . base registry settings \
+            --entrypoints . base registry settings themes \
             --ignore-rules false-export-default
