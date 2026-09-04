@@ -127,7 +127,7 @@ const App = () => {
 
 The render prop function receives the following props:
 
-- **`value: T`** - Current editor value
+- **`value: T`** - Current editor value. Updates in the same render as `setValue`.
 - **`setValue: (newValue: T) => void`** - Update the editor value
 - **`finishEditing: () => void`** - Save changes and close the editor
 - **`isOpen: boolean`** - Whether the editor is currently open

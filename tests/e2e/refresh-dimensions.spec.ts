@@ -16,8 +16,9 @@ const entry = (
  * grid whose document is an iframe's.
  *
  * `before` and `after` are asserted together through one interleaved log, which also pins their
- * ORDER - something the legacy per-hook files never could. The dvh loop-guard spec stays in the
- * legacy suite until DEV-2740 fixes the guard it tests.
+ * ORDER - something the legacy per-hook files never could. The dvh loop-guard spec followed once
+ * DEV-2740 made the guard trip on delivery cycles instead of wall-clock gaps - see the block at the
+ * bottom of this file.
  */
 test.describe('a sized grid in the main document (ResizeObserver pipeline)', () => {
   test('reports its dimensions once on the observer\'s initial delivery', async({ page, theme, bundle }) => {
@@ -217,5 +218,71 @@ test.describe('a grid inside an iframe (window-resize pipeline)', () => {
       expect(await grid.lastEntry('before')).toEqual(
         entry('before', { width: 300, height: 300 }, { width: 300, height: 300 }, false),
       );
+    });
+});
+
+test.describe('the endless-loop guard (a parent sized in dynamic units)', () => {
+  const WARNING_FRAGMENT = 'fired too many times in direct succession';
+  const WARNING = 'The ResizeObserver callback was fired too many times in direct succession.\n' +
+    'This may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +
+    'with the `dvh` units) to a Handsontable container\'s parent. \n' +
+    'The observer will be disconnected and reconnected after a short delay.';
+
+  // Migrated from `afterRefreshDimensions.spec.js` together with the DEV-2740 fix (the legacy spec
+  // was DEV-2668's Flake 1). It could not be made honestly green before that fix: its only success
+  // signal is the guard tripping, the guard counted a succession that a 100 ms wall-clock idle timer
+  // reset, and there is no bound on how long a loaded runner takes to deliver 300 frames with every
+  // gap under 100 ms. Anchored to delivery cycles instead, the trip is bounded by ~300 frames on any
+  // machine, so it can be polled for.
+  test('warns once, stops the cycle, and lets the grid react again after the cooldown',
+    async({ page, theme, bundle }) => {
+      // Two bounded waits on a pipeline that runs at the frame rate: ~300 frames to the trip, then
+      // the guard's cooldown before it resumes. Both are longer than the suite's default budget on a
+      // loaded runner, and neither is a fixed sleep.
+      test.setTimeout(90_000);
+
+      const grid = new RefreshDimensionsPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.buildDvhGrid();
+
+      // The loop occupies every frame, so ~300 of them reach the threshold whatever the machine is
+      // doing. Generous, because a loaded runner's frames are long, not because the count is in doubt.
+      await expect.poll(() => grid.warnLog(WARNING_FRAGMENT), { timeout: 20_000 }).toEqual([WARNING]);
+
+      // The freeze is asserted from the series the FIXTURE recorded, one sample per frame, starting at
+      // the moment it saw the warning and ending inside the guard's cooldown. Reading the count from
+      // here instead would race the cooldown on exactly the loaded machine this test is about: the
+      // poll above can learn about the warning a whole interval late, and a run of frames driven from
+      // this process stretches with the runner, so the two together can outlast the cooldown and
+      // sample a count the reconnect has already moved.
+      await expect.poll(() => grid.guardSamplingDone(), { timeout: 20_000 }).toBe(true);
+
+      const samples = await grid.guardSamples();
+
+      // Non-vacuity: the assertion below says nothing without a few frames to compare.
+      expect(samples.length).toBeGreaterThanOrEqual(3);
+
+      // The comparison starts at the third sample because the first two still catch the pipeline
+      // draining. The guard warns synchronously while it counts, so the sampling frame is registered
+      // BEFORE the tripping delivery's own deferred hook fire - the first sample therefore reads the
+      // count one fire short of the threshold, and the second is the first one that can see it.
+      const settled = samples.slice(2).map(sample => sample.refreshes);
+
+      // The loop did reach the threshold: the guard trips on the 300th delivery in direct succession,
+      // and every delivery fires the hook exactly once.
+      expect(settled[0]).toBeGreaterThanOrEqual(300);
+
+      // From there the observer is disconnected, so nothing may move for the rest of the cooldown.
+      expect(settled).toEqual(settled.map(() => settled[0]));
+
+      // And the disconnect is temporary: the loop is still there, so it resumes by itself once the
+      // observer is observed again. This is what a grid whose gap-free resize stream was legitimate
+      // gets back - before DEV-2740 the disconnect was permanent and it got nothing.
+      await expect.poll(() => grid.hookCount('after'), { timeout: 20_000 })
+        .toBeGreaterThan(settled[0]);
+
+      // Still one warning: the message describes the page's configuration, which has not changed.
+      expect(await grid.warnLog(WARNING_FRAGMENT)).toEqual([WARNING]);
     });
 });

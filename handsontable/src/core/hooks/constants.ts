@@ -554,9 +554,9 @@ export const REGISTERED_HOOKS = [
   'afterDataProviderFetchAbort',
 
   /**
-   * Queried to determine if the instance uses an external data source (complete [[Options#dataProvider]] configuration).
+   * Queried to determine if the instance uses an external data source (complete {@link Options#dataProvider} configuration).
    * When the DataProvider plugin is enabled, it adds an instance handler in `enablePlugin()`. Callbacks may return
-   * `true`, `false`, or `undefined`; the value propagates through the hook chain like other [[Hooks#run]] hooks.
+   * `true`, `false`, or `undefined`; the value propagates through the hook chain as in any other hook.
    *
    * @event Hooks#hasExternalDataSource
    * @since 17.1.0
@@ -1847,7 +1847,10 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforeRender
    * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
    *                           data, or a logic that needs a full Handsontable render cycle.
-   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
+   *                           If set to `false`, the rendering gets triggered by something lighter, such as moving
+   *                           the selection. The flag describes what triggered the render, not how much was
+   *                           redrawn: a `false` render still redraws cells when it brings a new row or column
+   *                           band into view. Scrolling does not fire this hook at all.
    */
   'beforeRender',
 
@@ -1857,7 +1860,10 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#afterRender
    * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
    *                           data, or a logic that needs a full Handsontable render cycle.
-   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
+   *                           If set to `false`, the rendering gets triggered by something lighter, such as moving
+   *                           the selection. The flag describes what triggered the render, not how much was
+   *                           redrawn: a `false` render still redraws cells when it brings a new row or column
+   *                           band into view. Scrolling does not fire this hook at all.
    */
   'afterRender',
 
@@ -3009,9 +3015,9 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link Pagination} plugin after changing the page. This hook is fired when
-   * {@link Options#pagination} option is enabled. When a complete [[Options#dataProvider]] configuration
+   * {@link Options#pagination} option is enabled. When a complete {@link Options#dataProvider} configuration
    * handles paging, {@link DataProvider} loads the requested page via `fetchRows`. {@link Pagination} then aligns its
-   * UI from [[Hooks#afterDataProviderFetch]].
+   * UI from {@link Hooks#afterDataProviderFetch}.
    *
    * @since 16.1.0
    * @event Hooks#afterPageChange
@@ -3034,9 +3040,9 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link Pagination} plugin after changing the page size. This hook is fired when
-   * {@link Options#pagination} option is enabled. When a complete [[Options#dataProvider]] configuration
+   * {@link Options#pagination} option is enabled. When a complete {@link Options#dataProvider} configuration
    * handles paging, {@link DataProvider} loads page 1 for the new size via `fetchRows`. {@link Pagination} then aligns
-   * its UI from [[Hooks#afterDataProviderFetch]].
+   * its UI from {@link Hooks#afterDataProviderFetch}.
    *
    * @since 16.1.0
    * @event Hooks#afterPageSizeChange

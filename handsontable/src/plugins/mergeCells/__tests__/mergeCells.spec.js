@@ -1882,6 +1882,253 @@ describe('MergeCells', () => {
     });
   });
 
+  describe('cooperation with the `CopyPaste` plugin', () => {
+    // A validator moves `applyChanges` into a microtask, so the paste is not finished when
+    // `triggerPaste` returns. Wait for the change to be applied AND for the plugin to have reacted
+    // to it: the `orderIndex` puts this listener behind the plugin's own `afterChange` handler,
+    // which is registered at the default index.
+    function pasteAndSettle(text) {
+      const settled = new Promise((resolve) => {
+        hot().addHookOnce('afterChange', resolve, 2000);
+      });
+
+      triggerPaste(text);
+
+      return settled;
+    }
+
+    // The paste writes into every cell of the area, including the ones the merge keeps hidden. Before
+    // the fix the merge survived, so eight of the nine pasted values were stored but never rendered:
+    // the grid showed one value while `getData()` returned nine (#5092).
+    it('should unmerge the destination area when a multi-cell block is pasted over a merged cell', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        mergeCells: [
+          { row: 5, col: 6, rowspan: 3, colspan: 3 }, // G6:I8
+        ],
+      });
+
+      await selectCell(5, 6);
+
+      triggerPaste('a\tb\tc\nd\te\tf\ng\th\ti');
+
+      expect(getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toBe(0);
+      expect(getData(5, 6, 7, 8)).toEqual([
+        ['a', 'b', 'c'],
+        ['d', 'e', 'f'],
+        ['g', 'h', 'i'],
+      ]);
+
+      // Every pasted value has to be visible, so no cell may be left covered.
+      for (let row = 5; row <= 7; row++) {
+        for (let column = 6; column <= 8; column++) {
+          expect(getCellMeta(row, column).hidden).toBeFalsy();
+          expect(getCellMeta(row, column).spanned).toBeFalsy();
+          expect(getCellMeta(row, column).copyable).not.toBe(false);
+        }
+      }
+    });
+
+    // A single pasted value carries no structure, so it must not destroy the merge. It needs an
+    // intervention all the same: a selection touching a merge is expanded to the merge's whole
+    // rectangle and the clipboard is then tiled across it, which without the fix wrote the one value
+    // into all nine cells.
+    it('should keep the merged cell and write only its top-left cell when a single value is pasted', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        mergeCells: [
+          { row: 5, col: 6, rowspan: 3, colspan: 3 }, // G6:I8
+        ],
+      });
+
+      await selectCell(5, 6);
+
+      triggerPaste('ZZ');
+
+      expect(getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toBe(1);
+      expect(getDataAtCell(5, 6)).toBe('ZZ');
+      expect(getData(5, 6, 7, 8)).toEqual([
+        ['ZZ', null, null],
+        [null, null, null],
+        [null, null, null],
+      ]);
+
+      // The covered cells stay covered, so the value is not repeated nine times on screen.
+      expect(getCellMeta(5, 7).hidden).toBe(true);
+      expect(getCellMeta(7, 8).hidden).toBe(true);
+    });
+
+    // A paste writes `max(clipboard extent, selection extent)`, so the written rectangle can reach
+    // past the selection and clip a merge whose top-left corner the selection never touched. An
+    // anchor-only lookup misses exactly those.
+    it('should unmerge a merged cell that only the paste overflow reaches, not the selection', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        mergeCells: [
+          { row: 2, col: 1, rowspan: 2, colspan: 2 }, // B3:C4 - fully inside the written area
+          { row: 1, col: 3, rowspan: 3, colspan: 2 }, // D2:E4 - anchored ABOVE the written area
+        ],
+      });
+
+      await selectCell(2, 1); // expands to the 2x2 merge, B3:C4
+
+      // A 3x3 clipboard overflows that selection and writes B3:D5.
+      triggerPaste('a\tb\tc\nd\te\tf\ng\th\ti');
+
+      expect(getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toBe(0);
+      expect(getCellMeta(2, 3).hidden).toBeFalsy();
+      expect(getDataAtCell(2, 3)).toBe('c');
+    });
+
+    // A validator moves `applyChanges` into a microtask, so `afterPaste` fires BEFORE
+    // `afterChange`. Anything that clears the recorded geometry on `afterPaste` therefore makes
+    // this fix inert on a validated column - and `type: 'numeric'`, `type: 'date'`, `dropdown` and
+    // `autocomplete` all install a validator, so that is the common case, not the exotic one.
+    it('should unmerge the destination area on a validated column too', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        validator: (value, callback) => callback(true),
+        mergeCells: [
+          { row: 5, col: 6, rowspan: 3, colspan: 3 }, // G6:I8
+        ],
+      });
+
+      await selectCell(5, 6);
+
+      await pasteAndSettle('a\tb\tc\nd\te\tf\ng\th\ti');
+
+      expect(getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toBe(0);
+      expect(getData(5, 6, 7, 8)).toEqual([
+        ['a', 'b', 'c'],
+        ['d', 'e', 'f'],
+        ['g', 'h', 'i'],
+      ]);
+      expect(getCellMeta(5, 7).hidden).toBeFalsy();
+      expect(getCellMeta(7, 8).hidden).toBeFalsy();
+    });
+
+    it('should keep the merged cell for a single pasted value on a validated column', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        validator: (value, callback) => callback(true),
+        mergeCells: [
+          { row: 5, col: 6, rowspan: 3, colspan: 3 }, // G6:I8
+        ],
+      });
+
+      await selectCell(5, 6);
+
+      await pasteAndSettle('ZZ');
+
+      expect(getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toBe(1);
+      expect(getDataAtCell(5, 6)).toBe('ZZ');
+      expect(getData(5, 6, 7, 8)).toEqual([
+        ['ZZ', null, null],
+        [null, null, null],
+        [null, null, null],
+      ]);
+      expect(getCellMeta(5, 7).hidden).toBe(true);
+    });
+
+    // `populateFromArray` drops the change for every cell that is `readOnly`, `skipRowOnPaste` or
+    // `skipColumnOnPaste`, so a merged range covering only such cells receives nothing at all -
+    // even while it sits inside the rectangle the surviving changes span. Matching the real change
+    // coordinates rather than that rectangle is what keeps it merged.
+    it('should keep a merged cell that the paste skipped entirely (skipColumnOnPaste)', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        // Column 7 is skipped on paste; the merge spans only that column.
+        columns: Array.from({ length: 10 }, (_, column) => (
+          column === 7 ? { skipColumnOnPaste: true } : {}
+        )),
+        mergeCells: [
+          { row: 5, col: 7, rowspan: 2, colspan: 1 }, // H6:H7
+        ],
+      });
+
+      await selectCell(5, 6);
+
+      // A 2x3 block anchored at G6 spans columns 6, 7 and 8 - but nothing is written into 7.
+      await pasteAndSettle('P\tQ\tR\nS\tT\tU');
+
+      const { mergedCells } = getPlugin('mergeCells').mergedCellsCollection;
+
+      expect(mergedCells.length).toBe(1);
+      expect(mergedCells[0].col).toBe(7);
+      // The skipped column keeps both its value and its covered cell.
+      expect(getDataAtCell(5, 7)).toBe('H6');
+      expect(getDataAtCell(6, 7)).toBe(null);
+      expect(getCellMeta(6, 7).hidden).toBe(true);
+      // The columns either side did receive the paste.
+      expect(getDataAtCell(5, 6)).toBe('P');
+      expect(getDataAtCell(5, 8)).toBe('Q');
+    });
+
+    it('should keep a merged cell built entirely of read-only cells', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        columns: Array.from({ length: 10 }, (_, column) => (
+          column === 7 ? { readOnly: true } : {}
+        )),
+        mergeCells: [
+          { row: 5, col: 7, rowspan: 2, colspan: 1 }, // H6:H7
+        ],
+      });
+
+      await selectCell(5, 6);
+
+      await pasteAndSettle('P\tQ\tR\nS\tT\tU');
+
+      expect(getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toBe(1);
+      expect(getDataAtCell(5, 7)).toBe('H6');
+    });
+
+    it('should leave the collection untouched when the pasted area touches no merged cell', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        mergeCells: [
+          { row: 5, col: 6, rowspan: 3, colspan: 3 }, // G6:I8
+        ],
+      });
+
+      await selectCell(0, 0);
+
+      triggerPaste('a\tb\nc\td');
+
+      const { mergedCells } = getPlugin('mergeCells').mergedCellsCollection;
+
+      expect(mergedCells.length).toBe(1);
+      expect(mergedCells[0].row).toBe(5);
+      expect(mergedCells[0].col).toBe(6);
+      expect(mergedCells[0].rowspan).toBe(3);
+      expect(mergedCells[0].colspan).toBe(3);
+      expect(getData(0, 0, 1, 1)).toEqual([
+        ['a', 'b'],
+        ['c', 'd'],
+      ]);
+    });
+
+    it('should paste HTML carrying rowspan/colspan as plain cells when the plugin is disabled', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        mergeCells: false,
+      });
+
+      await selectCell(0, 0);
+
+      getPlugin('copyPaste').paste(
+        'M1\tX\nY',
+        '<table><tbody><tr><td rowspan="2" colspan="2">M1</td><td>X</td></tr><tr><td>Y</td></tr></tbody></table>'
+      );
+
+      expect(getPlugin('mergeCells').enabled).toBe(false);
+      expect(getData(0, 0, 1, 2)).toEqual([
+        ['M1', null, 'X'],
+        [null, null, 'Y'],
+      ]);
+    });
+  });
+
   describe('Hooks', () => {
     it('should trigger the `beforeOnCellMouseDown` hook with proper coords', async() => {
       let rowOnCellMouseDown;

@@ -9,10 +9,13 @@ Choose the prefix that matches your work:
 
 | Type | Pattern | Example |
 |------|---------|---------|
-| Feature (ClickUp) | `feature/DEV-xxx_Short-Description` | `feature/DEV-627_Forum-Update` |
-| Feature (GitHub) | `feature/issue-xxxx` | `feature/issue-11832` |
-| Docs | `docs/issue-xxxx` | `docs/issue-9500` |
+| Feature (ClickUp, default) | `feature/<TASK-ID>_Short-Description` | `feature/DEV-627_Forum-Update` |
+| Docs (ClickUp) | `docs/<TASK-ID>_Short-Description` | `docs/DEV-458_Clarify-undo-redo-docs` |
+| Feature (public GitHub issue) | `feature/issue-xxxx` | `feature/issue-11832` |
+| Docs (public GitHub issue) | `docs/issue-xxxx` | `docs/issue-9500` |
 | Release | `release/x.y.z` | `release/16.1.0` |
+
+`<TASK-ID>` is the ClickUp custom ID. Its prefix follows the space the task lives in, so it is not always `DEV`: `docs/SU-833_BeforeKeyDown-Return-False-Note` and `feature/PRO-858_Theme-API-e2e-test-data-driven-for-each-theme` are both valid. Copy the prefix from the task, never assume one.
 
 When working from a ClickUp task, the **human-readable custom ID** (e.g. `DEV-627`, `IT-42`) **must** appear in the branch name so ClickUp links automatically. Never use the internal ClickUp hash ID (e.g. `86c9j4fxj`) — it is not a valid task identifier for branch linking.
 
@@ -144,6 +147,17 @@ ClickUp task: https://app.clickup.com/t/9015210959/DEV-xxx
 - Include the ClickUp task ID in the PR title when applicable.
 - Start the **Context** section with "The PR fixes/adds/changes/..." -- be direct, no filler.
 - If the PR introduces a breaking change, require the `Breaking change` label and include a migration section with before/after examples. Update migration guides in `docs/content/guides/upgrade-and-migration/`.
+- **If you tick "MANUAL QA NEEDED" in the checklist, also apply the red `Manual QA required` label** so the request is visible in the PR list. Nothing applies it automatically — labels in this repo are applied by hand:
+
+  ```bash
+  # once per repository, if the label does not exist yet
+  gh label create "Manual QA required" --color B60205 \
+    --description "Waits for a manual-qa environment sign-off before it can merge"
+
+  gh pr edit <number> --add-label "Manual QA required"
+  ```
+
+  The label is a **marker only**. The gate is the ticked box, which the Checks scope router reads when the pipeline starts: it holds `Manual QA / sign-off` until a designated reviewer approves the run. Because the box is read once per run, ticking it *after* a pipeline has already gone green does not arm anything — press **"Re-run all jobs"** on the Tests run (and the same applies in reverse after unticking).
 
 ## 5a. Updating an Existing PR's Body
 
@@ -151,9 +165,11 @@ When asked to update, fix, or re-fill a PR description, use the same temp-file a
 
 ## 6. Changelog Entry (after PR is created)
 
-Every PR that changes source code needs a changelog entry in `.changelogs/`. The filename **must** be `{PR-number}.json`, using the PR number returned by `gh pr create` in the previous step. See the `changelog-creation` skill for the JSON schema and title-writing rules.
+Every PR that changes source code needs a changelog entry in `.changelogs/`. `bin/changelog` names the file after the entry's `issueOrPR` field, so the filename is the **PR number** only for a `private` entry — the default, and what the rest of this section assumes. A `public` entry is named after its GitHub issue number instead, and because that number is known before the PR exists, it can be committed together with the code rather than in the round-trip below.
 
-After writing the file:
+**Which `issuesOrigin` to use is decided by [`.changelogs/README.md`](../../../.changelogs/README.md), not here** — read it before writing the entry. The CI gate only asserts that a source change adds at least one entry; it never checks the filename.
+
+For a `private` entry, after writing the file:
 
 1. Commit it on the same branch (`DEV-xxx: Add changelog entry for PR #<number>`).
 2. Push so the PR picks up the new commit.

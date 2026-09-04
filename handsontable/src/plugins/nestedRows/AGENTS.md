@@ -31,7 +31,7 @@ the index type from *whether the row can be trimmed*, not from the house rule al
 
 | File | Role |
 |---|---|
-| `nestedRows.ts` | The plugin. Lifecycle, 21 core hooks, the shortcut, and the **public API** |
+| `nestedRows.ts` | The plugin. Lifecycle, 22 core hooks, the shortcut, and the **public API** |
 | `data/dataManager.ts` | The tree: flatten, cache, read structure, add/detach/move children |
 | `ui/collapsing.ts` | All collapse/expand logic and the hook choke point |
 | `ui/headers.ts` | The `+`/`-` button and the indent markers in row headers |
