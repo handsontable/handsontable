@@ -42,6 +42,8 @@ The default stops paying off when your renderers are expensive. Every redrawn ce
 
 Click the two buttons in the example above and compare the renderer-call counts. One edit runs the renderer for every cell on screen -- dozens of them -- while the repaint runs it once. Widen the grid or the viewport and the gap grows with it, because the number of drawn cells is what the full render pays for.
 
+Both buttons write to the topmost visible row, and they follow you as you scroll. That is deliberate: a cell scrolled out of view has no `td` to paint, so the gate turns the repaint down and Handsontable renders normally. Scroll the grid and the comparison still holds.
+
 This recipe is written for the JavaScript build. Read [Framework wrappers](#framework-wrappers-need-more-care) before porting it.
 
 ## What You'll Build

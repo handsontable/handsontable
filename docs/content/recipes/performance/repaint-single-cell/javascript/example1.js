@@ -207,6 +207,7 @@ function repaintCell(hot, visualRow, visualColumn) {
  */
 function installSingleCellRepaint(hot, { source, maxCells = 8 } = {}) {
   let pendingChanges = null;
+  let lastOutcome = null;
   const counts = { rows: 0, columns: 0 };
 
   /**
@@ -253,6 +254,12 @@ function installSingleCellRepaint(hot, { source, maxCells = 8 } = {}) {
 
   hot.addHook('beforeChangeRender', (changes, changeSource) => {
     pendingChanges = isRepaintable(changes, changeSource) ? changes : null;
+
+    if (changeSource === source) {
+      // Report what the gate decided, so a fallback is visible rather than
+      // looking like the repaint simply did more work than it promised.
+      lastOutcome = pendingChanges ? 'repainted' : 'declined';
+    }
   });
 
   // Cancel the cell drawing and repaint here, not in `afterChange`. Handsontable
@@ -271,6 +278,10 @@ function installSingleCellRepaint(hot, { source, maxCells = 8 } = {}) {
 
     pendingChanges = null;
   });
+
+  return {
+    getLastOutcome: () => lastOutcome,
+  };
 }
 
 const hot = new Handsontable(document.querySelector('#example1'), {
@@ -300,7 +311,7 @@ const hot = new Handsontable(document.querySelector('#example1'), {
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-installSingleCellRepaint(hot, { source: REPAINT_SOURCE });
+const singleCellRepaint = installSingleCellRepaint(hot, { source: REPAINT_SOURCE });
 
 const output = document.querySelector('#repaint-output');
 
@@ -310,32 +321,43 @@ let counter = 0;
 // Targeting a column that scrolls out of view would be correct but pointless:
 // the gate turns down an unrendered cell, so the write falls back to a full
 // render and the two buttons report the same cost.
-const TARGET_ROW = 2;
 const TARGET_COLUMN = 2;
 
 /**
- * Writes a new value into a visible cell and reports what the write cost. The
- * source decides which path the write takes -- there is no flag to toggle, so
- * an asynchronous validator cannot land after a window has closed again.
+ * Writes a new value into a cell and reports what the write cost. The source
+ * decides which path the write takes -- there is no flag to toggle, so an
+ * asynchronous validator cannot land after a window has closed again.
  */
 function updateCell(useRepaint) {
   counter += 1;
   rendererCalls = 0;
 
+  // Aim at a row that is on screen. A cell scrolled out of view has no `td` to
+  // paint, so the gate turns it down and Handsontable renders normally -- which
+  // is correct, but it would make the two buttons look identical.
+  const targetRow = Math.max(0, hot.getFirstFullyVisibleRow() ?? 0);
   const startedAt = performance.now();
 
   hot.setDataAtCell(
-    TARGET_ROW,
+    targetRow,
     TARGET_COLUMN,
     `Updated (${counter})`,
     useRepaint ? REPAINT_SOURCE : 'edit'
   );
 
   const elapsed = performance.now() - startedAt;
+  const cost = `${rendererCalls} renderer call${rendererCalls === 1 ? '' : 's'}, ` +
+    `${elapsed.toFixed(1)} ms`;
 
-  output.textContent = `${useRepaint ? 'Repaint one cell' : 'Full render'}: ` +
-    `${rendererCalls} renderer call${rendererCalls === 1 ? '' : 's'}, ` +
-    `${elapsed.toFixed(1)} ms.`;
+  if (useRepaint && singleCellRepaint.getLastOutcome() === 'declined') {
+    output.textContent = `Repaint declined for row ${targetRow + 1} -- that cell is not ` +
+      `rendered, so Handsontable rendered normally: ${cost}.`;
+
+    return;
+  }
+
+  output.textContent = `${useRepaint ? 'Repaint one cell' : 'Full render'} ` +
+    `(row ${targetRow + 1}): ${cost}.`;
 }
 
 document.querySelector('#full-render-btn')
