@@ -118,10 +118,10 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', ()
   });
 
   // The ordering canary of the width/height unification: `height: 'auto'` must keep every column
-  // reachable through the holder. Today the `overflow: clip` shorthand clips both axes (element
-  // mode); once `'auto'` stops writing it, the `overflow-x: clip` longhand carries the same layout
-  // through the split mode. A core change that drops the shorthand before the engine can split the
-  // axes fails here.
+  // reachable through the holder. `'auto'` writes no `overflow` shorthand, so the `overflow-x: clip`
+  // longhand alone carries this layout through the engine's split mode (root owns the columns, the
+  // window owns the rows). It passed before the `'auto'` change too, through the element mode, and
+  // fails if core ever drops the longhand or the engine loses the split.
   test('keeps every column reachable with `height: "auto"`', async () => {
     await grid.rebuild({ height: 'auto' });
 

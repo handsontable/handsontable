@@ -267,7 +267,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="viewportRowRenderingOffset" data-levels="grid"></span>[`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset) | Yes | No | No | No | Core |  |
 | <span data-option="viewportRowRenderingThreshold" data-levels="grid"></span>[`viewportRowRenderingThreshold`](@/api/options.md#viewportrowrenderingthreshold) | Yes | No | No | No | Core |  |
 | <span data-option="visibleRows" data-levels="grid columns cells cell"></span>[`visibleRows`](@/api/options.md#visiblerows) | Yes | Yes | Yes | Yes | Core |  |
-| <span data-option="width" data-levels="grid columns cells cell"></span>[`width`](@/api/options.md#width) | Yes | Yes | Yes | Yes | Core | Sets the grid width at the grid level and the column width inside `columns`. Only row 0 is read, so a `cells` or `cell` value must target row 0. |
+| <span data-option="width" data-levels="grid"></span>[`width`](@/api/options.md#width) | Yes | No | No | No | Core | Sets the grid width at the grid level and the column width inside `columns`. Only row 0 is read, so a `cells` or `cell` value must target row 0. |
 | <span data-option="wordWrap" data-levels="grid columns cells cell"></span>[`wordWrap`](@/api/options.md#wordwrap) | Yes | Yes | Yes | Yes | Core |  |
 
 </div>

@@ -3682,19 +3682,30 @@ export default (): Record<string, unknown> => {
      *
      * You can set the `height` option to one of the following:
      *
-     * | Setting                                                                    | Example                    |
-     * | -------------------------------------------------------------------------- | -------------------------- |
-     * | A number of pixels                                                         | `height: 500`              |
-     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `height: '75vw'`           |
-     * | `'auto'`                                                                   | `height: 'auto'`           |
-     * | A function that returns a valid number or string                           | `height() { return 500; }` |
+     * | Setting                                                                    | Example                              |
+     * | -------------------------------------------------------------------------- | ------------------------------------ |
+     * | A number of pixels                                                         | `height: 500`                        |
+     * | A string with a number of pixels                                           | `height: '500'`, `height: '500px'`   |
+     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `height: '50%'`, `height: '75vh'`    |
+     * | `'auto'`                                                                   | `height: 'auto'`                     |
+     * | A function that returns a valid number or string                           | `height() { return 500; }`           |
+     *
+     * Any other value the browser can read as a CSS length or expression (`'20em'`,
+     * `'calc(100% - 40px)'`, `'var(--grid-height)'`) is passed through as written. A value the
+     * browser cannot read as a size (`'abc'`, `-100`, `true`), and a CSS keyword that would
+     * collapse the grid (`'min-content'`, `'inherit'`), is ignored: the grid's height stays as it
+     * was, and a warning is printed once per grid and value.
+     *
+     * A number or a CSS length sizes the grid's box. Handsontable writes
+     * `height: <value>; overflow: clip;` as inline styles on the root element, and the grid
+     * scrolls its rows inside that box.
      *
      * #### How `'auto'` differs from leaving `height` unset
      *
-     * When you set `height: 'auto'`, Handsontable writes `height: auto; overflow: clip;`
-     * as inline styles on the root element. The grid then grows to match its content height.
-     * No internal vertical scrollbar is created, so the page itself scrolls when the grid
-     * exceeds the viewport.
+     * When you set `height: 'auto'`, Handsontable writes `height: auto` as an inline style on the
+     * root element, and nothing else. The grid behaves like a plain block element: it grows to fit
+     * its rows, the nearest scrolling ancestor or the page scrolls it, and off-screen rows stay
+     * virtualized. The inline value overrides a `height` a stylesheet sets on the root element.
      *
      * When you leave `height` unset, Handsontable does not touch the root element's inline
      * styles. Sizing is governed by your CSS, and the nearest ancestor with `overflow: auto`
@@ -3702,10 +3713,13 @@ export default (): Record<string, unknown> => {
      * scrolls. See the [Grid size](@/guides/getting-started/grid-size/grid-size.md) guide for
      * details.
      *
+     * Passing `null` through [`updateSettings()`](@/api/core.md#updatesettings) restores the root
+     * element's initial inline height and the overflow that came with it. A `width` set through
+     * the option is left in place.
+     *
      * ::: tip
-     * With `height: 'auto'`, every row is laid out in the DOM at once. Row-level
-     * virtualization is effectively disabled. Avoid `'auto'` for large datasets and set a
-     * numeric `height` instead, so Handsontable can virtualize off-screen rows.
+     * Inside a parent with a fixed height and `overflow: auto`, a grid with `height: 'auto'` fills
+     * the parent and scrolls inside it rather than growing past it.
      * :::
      *
      * Read more:
@@ -7960,33 +7974,47 @@ export default (): Record<string, unknown> => {
      *
      * You can set the `width` option to one of the following:
      *
-     * | Setting                                                                    | Example                   |
-     * | -------------------------------------------------------------------------- | ------------------------- |
-     * | A number of pixels                                                         | `width: 500`              |
-     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `width: '75vw'`           |
-     * | `'auto'`                                                                   | `width: 'auto'`           |
-     * | A function that returns a valid number or string                           | `width() { return 500; }` |
+     * | Setting                                                                    | Example                            |
+     * | -------------------------------------------------------------------------- | ---------------------------------- |
+     * | A number of pixels                                                         | `width: 500`                       |
+     * | A string with a number of pixels                                           | `width: '500'`, `width: '500px'`   |
+     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `width: '50%'`, `width: '75vw'`    |
+     * | `'auto'`                                                                   | `width: 'auto'`                    |
+     * | A function that returns a valid number or string                           | `width() { return 500; }`          |
+     *
+     * Any other value the browser can read as a CSS length or expression (`'20em'`,
+     * `'calc(100% - 40px)'`, `'var(--grid-width)'`) is passed through as written. A value the
+     * browser cannot read as a size (`'abc'`, `-100`, `true`), and a CSS keyword that would
+     * collapse the grid (`'min-content'`, `'inherit'`), is ignored: the grid's width stays as it
+     * was, and a warning is printed once per grid and value.
      *
      * With `width: 'auto'`, Handsontable writes `width: auto` as an inline style on the root
-     * element. The grid then follows the width of its parent container. Use this value when
-     * you want the grid to stay flexible horizontally while still setting an explicit
-     * [`height`](#height).
+     * element. The grid then follows the width of its parent container, like a plain block
+     * element. Use this value when you want the grid to stay flexible horizontally while still
+     * setting an explicit [`height`](#height).
+     *
+     * Passing `null` through [`updateSettings()`](@/api/core.md#updatesettings) restores the root
+     * element's initial inline width. A `height` set through the option is left in place.
      *
      * ::: tip
-     * A `width` given in pixels (a number, `'500'`, `'500px'`) clips the grid horizontally and the grid
+     * A definite `width` (a number, `'500'`, `'500px'`, `'20em'`) clips the grid horizontally and the grid
      * scrolls its columns inside that width on its own, with or without a [`height`](#height). A relative
-     * width (`'100%'`, `'80vw'`) leaves the horizontal overflow to the page. Setting the height via inline
-     * CSS on the container element is not supported - use the `height` configuration option instead.
+     * width (`'100%'`, `'80vw'`, `'var(--grid-width)'`) leaves the horizontal overflow to the page. Setting
+     * the height via inline CSS on the container element is not supported - use the `height` configuration
+     * option instead.
      * :::
      *
      * Read more:
      * - [Grid size](@/guides/getting-started/grid-size/grid-size.md)
      *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {number|'auto'|string|Function}
      * @default undefined
      * @category Core
-     * @configScope grid columns cells cell
+     * @configScope grid
      *
      * @example
      * ```js

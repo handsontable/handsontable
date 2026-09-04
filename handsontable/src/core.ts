@@ -78,6 +78,7 @@ import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coor
 import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
 import type { CellChange, CellProperties, ColumnDataGetterSetterFunction } from './settings';
 import type { GridHelperInstance, HotInstance, ViewportScrollerInstance } from './core/types';
+import { applyRootSize } from './core/rootSize';
 import type { FocusScopeManager } from './focusManager/scopeManager';
 import type { SelectionTableProps } from './selection/types';
 import type { default as DataMapInstance } from './dataMap/dataMap';
@@ -4192,105 +4193,8 @@ export default function Core(
       runSourceDataValidators(instance, 'init');
     }
 
-    let currentHeight: string | number = instance.rootElement.style.height;
-
-    if (currentHeight !== '') {
-      currentHeight = parseInt(instance.rootElement.style.height, 10);
-    }
-
-    if (init) {
-
-      const initialStyle = instance.rootElement.getAttribute('style');
-
-      if (initialStyle) {
-        instance.rootElement.dataset.initialstyle = instance.rootElement.getAttribute('style') ?? '';
-      }
-    }
-
-    let height = settings.height;
-
-    if (typeof settings.height !== 'undefined') {
-      if (isFunction(height)) {
-        height = (height as () => string | number)();
-      }
-
-      height = instance.runHooks('beforeHeightChange', height);
-
-      if (height === null) {
-
-        const initialStyle = instance.rootElement.dataset.initialstyle;
-
-        if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
-          instance.rootElement.setAttribute('style', initialStyle);
-
-        } else {
-          instance.rootElement.style.height = '';
-          instance.rootElement.style.overflow = '';
-        }
-
-      } else if (height !== undefined) {
-        instance.rootElement.style.height = isNaN(height as number) ? `${height}` : `${height}px`;
-        instance.rootElement.style.overflow = 'clip';
-      }
-    }
-
-    if (typeof settings.width !== 'undefined') {
-      let width = settings.width;
-
-      if (isFunction(width)) {
-        width = (width as () => string | number)();
-      }
-
-      width = instance.runHooks('beforeWidthChange', width);
-      instance.rootElement.style.width = isNaN(width as number) ? `${width}` : `${width}px`;
-    }
-
-    // When height is absent the table uses window scroll, so the `overflow: clip` shorthand from the
-    // height block is not applied. Set overflowX: clip to prevent the inner table from visually
-    // overflowing a constrained width. Read the effective values from the DOM (after both height and
-    // width blocks ran) so partial updateSettings calls see the correct state.
-    // When height IS set, the height block's `overflow: clip` shorthand handles both axes — leave
-    // overflowX untouched to avoid breaking that shorthand.
-    // Only clip for a definite width. A relative width (`100%`, other percentages, viewport units,
-    // or a `calc()` that mixes them in) fills its container, and content wider than that scrolls
-    // with the window — matching the long-standing behavior where the page gains a horizontal
-    // scrollbar and every column stays reachable. Clipping those would silently hide the off-width
-    // columns with no scrollbar. A definite width (`px`, `em`, `rem`, and other absolute lengths)
-    // establishes a fixed box the table must not visually overflow, so it is clipped.
-    if (typeof settings.height !== 'undefined' || typeof settings.width !== 'undefined') {
-      const effectiveHeight = instance.rootElement.style.height;
-      const effectiveWidth = instance.rootElement.style.width;
-      // Relative: percentages and viewport units resolve against an ancestor, so a `%` or a viewport
-      // unit (`vw`/`vh`/`vmin`/`vmax`, and dynamic `dvh`/`svh`/`lvh` via the `vh` match) anywhere —
-      // including inside `calc()` — marks the width as container-driven. No word boundaries: the unit
-      // is preceded by digits (`100vw`), which are word characters, so `\bv` would never match.
-      const isRelativeWidth = /%|v(?:w|h|min|max)/i.test(effectiveWidth);
-      const isDefiniteWidth = effectiveWidth !== '' && effectiveWidth !== 'auto' && !isRelativeWidth;
-      // `height: 'auto'` is a free height like an unset one: the grid's rows belong to the page. It
-      // still writes the `overflow: clip` shorthand above, so the longhand written here changes
-      // nothing readable today. It is the contract the engine's per-axis trimming reads (the root
-      // owns the horizontal axis, the window the vertical one), and it is what keeps every column
-      // reachable once `'auto'` stops writing the shorthand. Only an unset height may clear the
-      // longhand: for `'auto'` with a relative width the shorthand stays whole, so the clip is not
-      // silently reduced to the vertical axis.
-      const isFreeHeight = effectiveHeight === '' || effectiveHeight === 'auto';
-
-      if (isFreeHeight) {
-        const currentOverflowX = instance.rootElement.style.overflowX;
-
-        // Only manage the overflow-x we own (`clip`) or that is unset. Preserve a user-defined
-        // overflow (e.g. `overflow: hidden` restored from the initial style) so it is not stomped
-        // by `clip`. Unlike `hidden`, `clip` creates no block formatting context and allows no
-        // programmatic scroll.
-        if (currentOverflowX === '' || currentOverflowX === 'clip') {
-          if (isDefiniteWidth) {
-            instance.rootElement.style.overflowX = 'clip';
-          } else if (effectiveHeight === '') {
-            instance.rootElement.style.overflowX = '';
-          }
-        }
-      }
-    }
+    // The root's inline `height`, `width`, and `overflow*` have one writer: `core/rootSize.ts`.
+    const rootSize = applyRootSize(instance, settings, init);
 
     if (!init) {
       if (instance.view) {
@@ -4317,8 +4221,7 @@ export default function Core(
       instance.runHooks('afterSetTheme', instance.themeManager.getClassName(), false);
     }
 
-    if (!init && instance.view && (currentHeight === '' || height === '' || height === undefined) &&
-        currentHeight !== height) {
+    if (!init && instance.view && rootSize.scrollOwnerChanged) {
       instance.view._wt.wtOverlays.updateMainScrollableElements();
     }
 

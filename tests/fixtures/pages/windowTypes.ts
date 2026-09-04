@@ -176,6 +176,8 @@ declare global {
     initGrid(overrides?: Record<string, unknown>, containerWidth?: string): boolean;
     /** `afterScrollVertically` calls since the last rebuild (width-window-scroll fixture). */
     verticalScrollCount: number;
+    /** Rebuilds the root-size-options fixture grid with setting overrides and a parent layout class. */
+    initRootSizeGrid(overrides?: Record<string, unknown>, containerClass?: string): boolean;
     /** Rebuilds the selection-features fixture grid with the given setting overrides. */
     initSelectionGrid(overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the mobile drag-to-scroll fixture grid with the given setting overrides. */
