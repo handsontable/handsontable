@@ -128,7 +128,10 @@ test.describe('renderMode: onChange', () => {
     await grid.expectEqualToFullRepaint();
 
     await grid.run(`hot.selectRows(2, 3); ${dataChange}`);
-    expect(await count('.ht_master tbody td.area')).toBe(20);
+    // Two rows across the rendered band. How many columns that is depends on the theme's column
+    // widths, so it is read from the grid rather than hardcoded.
+    expect(await count('.ht_master tbody td.area'))
+      .toBe(2 * await grid.read<number>('hot.countRenderedCols()'));
     await grid.expectEqualToFullRepaint();
 
     await grid.run(`hot.selectColumns(1); ${dataChange}`);
