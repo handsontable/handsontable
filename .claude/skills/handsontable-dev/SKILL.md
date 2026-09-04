@@ -32,6 +32,7 @@ Always invoke `handsontable-code-review` (architecture dimension) alongside the 
 | Build a **demo / test page** | `handsontable-demo-page` |
 | Work on **CSS / themes** | `handsontable-css-dev` |
 | Walkontable rendering engine | `walkontable-dev` / `walkontable-testing` |
+| A rendering-engine **geometry** change needs a spec (viewport, overlays, sizing, scroll sync) | engine tier — edit an existing walkontable Jasmine spec, or add new coverage in `tests/e2e/walkontable/*.spec.ts` (`walkontable-dev`, Testing) |
 | Lint violations | `handsontable/AGENTS.md` (Lint) + `handsontable/.ai/CONVENTIONS.md` |
 | Coordinate translation (physical/visual/renderable) | `coordinate-systems` |
 | i18n / translations | `i18n-translations` |
