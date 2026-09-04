@@ -7973,9 +7973,10 @@ export default (): Record<string, unknown> => {
      * [`height`](#height).
      *
      * ::: tip
-     * For horizontal scrolling to work, you must also set the [`height`](#height) option in Handsontable's configuration.
-     * Setting `width` alone (without `height`) does not activate the scrollable viewport.
-     * Setting the height via inline CSS on the container element is not supported - use the `height` configuration option instead.
+     * A `width` given in pixels (a number, `'500'`, `'500px'`) clips the grid horizontally and the grid
+     * scrolls its columns inside that width on its own, with or without a [`height`](#height). A relative
+     * width (`'100%'`, `'80vw'`) leaves the horizontal overflow to the page. Setting the height via inline
+     * CSS on the container element is not supported - use the `height` configuration option instead.
      * :::
      *
      * Read more:
