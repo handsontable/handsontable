@@ -117,20 +117,14 @@ export class SpreaderSize {
       return scrollableElement.scrollTop >
         Math.max(0, proposedHiderHeight - geometryReader.clientHeight(wtTable.holder));
     };
-    const isScrolledBeyondHiderWidth = () => {
-      if (isWindowScrolled || !(scrollableElement instanceof HTMLElement)) {
-        return false;
-      }
-
-      return scrollableElement.scrollLeft >
-        Math.max(0, proposedHiderWidth - geometryReader.clientWidth(wtTable.holder));
-    };
     const columnHeaderBorderCompensation = isScrolledBeyondHiderHeight() ? 1 : 0;
-    const rowHeaderBorderCompensation = isScrolledBeyondHiderWidth() ? 1 : 0;
 
     // If the elements are being adjusted after scrolling the table from the very beginning to the very end,
-    // we need to adjust the hider dimensions by the header border size. (https://github.com/handsontable/dev-handsontable/issues/1772)
-    hiderStyle.width = `${proposedHiderWidth + rowHeaderBorderCompensation}px`;
+    // we need to adjust the hider height by the column header border size.
+    // (https://github.com/handsontable/dev-handsontable/issues/1772)
+    // The width needs no such compensation: the row header carries its inline-end border at every
+    // scroll position, so the horizontal total never changes by scrolling (#6673).
+    hiderStyle.width = `${proposedHiderWidth}px`;
     hiderStyle.height = `${proposedHiderHeight + columnHeaderBorderCompensation}px`;
 
     topOverlay.adjustElementsSize();
@@ -147,16 +141,5 @@ export class SpreaderSize {
     const { hider } = this.#deps.wtTable;
 
     hider.style.height = `${parseInt(hider.style.height, 10) + heightDelta}px`;
-  }
-
-  /**
-   * Expand the hider horizontally element by the provided delta value.
-   *
-   * @param {number} widthDelta The delta value to expand the hider element by.
-   */
-  expandHiderHorizontallyBy(widthDelta: number) {
-    const { hider } = this.#deps.wtTable;
-
-    hider.style.width = `${parseInt(hider.style.width, 10) + widthDelta}px`;
   }
 }
