@@ -55,7 +55,7 @@ export class UpdateSettingsColumnShrinkPage {
     );
     // The bundle script and the block that builds the grid are separate, so wait
     // for the library itself before asserting on anything the fixture exposes.
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await this.page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: 100 });
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
