@@ -7,9 +7,12 @@ import {
   mockElementDimensions,
   RendererComponent,
   EditorComponent,
+  ImmediateValueEditor,
+  PointerCommitEditor,
   sleep,
   simulateKeyboardEvent,
   simulateMouseEvent,
+  simulatePointerActivation,
   mountComponent,
   mountComponentWithRef,
   customNativeRenderer,
@@ -501,8 +504,8 @@ describe('Renderer configuration using React components', () => {
 });
 
 describe('Editor configuration using React components', () => {
-  it('should use the editor component as Handsontable editor and mount it in the root tree of the document', async () => {
-    mountComponentWithRef<HotTableRef>((
+  it('should mount the editor component inside the Handsontable root portal', async () => {
+    const hotTableComponent = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 3)}
@@ -518,7 +521,63 @@ describe('Editor configuration using React components', () => {
 
     const editorElement = document.querySelector('#editorComponentContainer')!;
 
-    expect(editorElement.parentElement!.parentElement).toBe(document.body);
+    expect(hotTableComponent.hotInstance!.rootPortalElement.contains(editorElement)).toBe(true);
+  });
+
+  it('should commit setValue after a real pointer sequence on the editor control', async () => {
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 3)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }}
+                editor={PointerCommitEditor} />
+    )).hotInstance!;
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getDataAtCell(0, 0)).toEqual('A1');
+
+    await act(async () => {
+      simulatePointerActivation(document.querySelector('#pointerCommitEditor button'));
+    });
+
+    expect(hotInstance.getDataAtCell(0, 0)).toEqual('new-value');
+  });
+
+  it('should update the hook value in the same turn as setValue', async () => {
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 3)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }}
+                editor={ImmediateValueEditor} />
+    )).hotInstance!;
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    await act(async () => {
+      simulateMouseEvent(document.querySelector('#immediateValueSet'), 'click');
+    });
+
+    expect(document.querySelector('#immediateValueDisplay')!.textContent).toEqual('typed');
   });
 
   it('should use the editor component as Handsontable editor, when it\'s passed as component to HotTable editor prop', async () => {

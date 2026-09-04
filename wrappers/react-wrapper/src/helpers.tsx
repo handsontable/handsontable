@@ -189,9 +189,14 @@ export function resolveEditorSetting(
  *
  * @param {Document} doc Document to be used.
  * @param {ComponentType} Editor Editor component or render function.
+ * @param {HTMLElement} [portalHost] Host element to portal into. Falls back to `doc.body` before the table mounts.
  * @returns {ReactPortal} The portal for the editor.
  */
-export function createEditorPortal(doc: Document | null, Editor: HotTableProps['editor'] | undefined | boolean): ReactPortal | null {
+export function createEditorPortal(
+  doc: Document | null,
+  Editor: HotTableProps['editor'] | undefined | boolean,
+  portalHost?: HTMLElement | null
+): ReactPortal | null {
   if (!doc || !Editor || typeof Editor === 'boolean') {
     return null;
   }
@@ -205,7 +210,7 @@ export function createEditorPortal(doc: Document | null, Editor: HotTableProps['
     <div {...containerProps}>
       {editorElement}
     </div>
-    , doc.body);
+    , portalHost ?? doc.body);
 }
 
 /**

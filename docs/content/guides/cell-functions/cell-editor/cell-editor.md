@@ -27,7 +27,7 @@ Each cell can have one editor — a class that manages the editor's DOM element,
 
 Use React components as editors with the `useHotEditor` hook. The hook returns `value`, `setValue`, and `finishEditing`, plus callbacks for the editor lifecycle (`onOpen`, `onClose`, `onPrepare`, `onFocus`).
 
-To prevent the editor from closing when clicked (due to `outsideClickDeselects`), call `event.stopPropagation()` on the `mousedown` event of the editor's root element.
+The wrapper mounts the editor in the grid portal, so a click on the editor does not deselect the cell. Still call `event.stopPropagation()` on the `mousedown` event of the editor's root element as a backup.
 
 ::: example #example1 :react --js 1 --ts 2
 
