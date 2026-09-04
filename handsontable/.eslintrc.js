@@ -235,12 +235,17 @@ module.exports = {
         // existing sleep()/it.flaky() debt must surface without red-walling CI.
         // Escalation to error happens in the flip-to-blocking task once the
         // debt is burned down. New E2E belongs in Playwright (tests/e2e).
+        // A NEW occurrence on a line a branch adds is already blocked: the
+        // diff-scoped ratchet (.github/scripts/lint-ratchet.mjs, pre-push + CI
+        // lint) fails on these three warn rules wherever they hit an added line.
+        // Keep its RATCHETED_RULES list in step with the levels here.
         'handsontable/no-fixed-sleep-in-spec': 'warn',
         'handsontable/no-new-it-flaky': 'warn',
         // Anti-gaming (green-for-the-sake-of-green) guards. Focus is ERROR — a
         // committed .only/fit silently drops the suite and there are 0 today.
-        // Skip is WARN — 21 existing .skip must not red-wall; new skips are caught
-        // by the diff-based test-weakening detector.
+        // Skip is WARN — 21 existing .skip must not red-wall. A NEW skip on a line
+        // a branch adds is blocked by the same diff-scoped ratchet as the sleep
+        // rules above (exit 1 at pre-push, red in the CI lint job).
         'handsontable/no-focused-test': 'error',
         'handsontable/no-skipped-test': 'warn',
         // A test with no assertion is hollow coverage. WARN — heuristic (a test may

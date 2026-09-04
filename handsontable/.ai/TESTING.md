@@ -277,7 +277,7 @@ Do **not** add `await sleep(100)` / `sleep(200)` to new tests. A fixed delay is 
 await selectCell(0, 0);                 // helpers already await the scroll they trigger
 await sleep(...);                        // ← avoid; if you must, root-cause it and add a real waiter
 ```
-For new Playwright tests use web-first, auto-retrying assertions (`await expect(locator).toBeVisible()`); see the `handsontable-playwright-e2e` skill. Existing `sleep()` sites are baselined by lint, but a broken or flaky legacy test is a signal to migrate it (see below), not to add another delay.
+For new Playwright tests use web-first, auto-retrying assertions (`await expect(locator).toBeVisible()`); see the `handsontable-playwright-e2e` skill. Existing `sleep()` sites are baselined by lint (`warn`), but a `sleep()`, `it.flaky()`, or skip on a line your branch **adds** fails pre-push and CI — the determinism ratchet, `.ai/LOCAL-ENFORCEMENT.md`. A broken or flaky legacy test is a signal to migrate it (see below), not to add another delay.
 
 **Unit tests are synchronous:** `handsontable/require-async-in-it` and `handsontable/require-await` are both off for `*.unit.js`.
 
