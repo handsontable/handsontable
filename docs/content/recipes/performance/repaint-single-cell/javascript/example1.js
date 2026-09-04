@@ -145,6 +145,7 @@ function repaintCell(hot, visualRow, visualColumn) {
 function installSingleCellRepaint(hot, { source, maxCells = 8 } = {}) {
   let pendingChanges = null;
   let lastOutcome = null;
+  let renderedBand = null;
   const counts = { rows: 0, columns: 0 };
 
   /**
@@ -184,9 +185,27 @@ function installSingleCellRepaint(hot, { source, maxCells = 8 } = {}) {
     });
   }
 
+  /**
+   * The first row and column the DOM currently holds.
+   *
+   * `getCell()` finds an element by subtracting this offset from the index you
+   * ask for, so as long as the offset has not moved, the element it returns is
+   * the element you validated. The end of the band does not matter: a draw that
+   * plans fewer rows than the DOM already holds still finds them all.
+   */
+  function bandOffset() {
+    return `${hot.getFirstRenderedVisibleRow()}:${hot.getFirstRenderedVisibleColumn()}`;
+  }
+
   hot.addHook('beforeChange', () => {
     counts.rows = hot.countRows();
     counts.columns = hot.countCols();
+  });
+
+  // Runs only when a render actually happened -- a cancelled one never gets
+  // here -- so this always describes the band that is on screen.
+  hot.addHook('afterViewRender', () => {
+    renderedBand = bandOffset();
   });
 
   hot.addHook('beforeChangeRender', (changes, changeSource) => {
@@ -204,6 +223,19 @@ function installSingleCellRepaint(hot, { source, maxCells = 8 } = {}) {
   // afterwards would wipe the selection classes off the cell you just edited.
   hot.addHook('beforeViewRender', (isForced, skipRenderObject) => {
     if (!pendingChanges) {
+      return;
+    }
+
+    // Handsontable works out which rows and columns this draw will lay out
+    // *before* firing this hook. Once the viewport has moved, `getCell()` here
+    // answers with the element that is about to hold your row, not the one
+    // showing it now -- so a repaint would update a cell nobody can see, and
+    // the visible one would keep the old value. Let a render that moves the
+    // band go through; the next change can be cancelled again.
+    if (renderedBand !== null && bandOffset() !== renderedBand) {
+      pendingChanges = null;
+      lastOutcome = 'declined-viewport-moved';
+
       return;
     }
 
@@ -348,10 +380,16 @@ function updateCell(useRepaint) {
     ? `row ${firstRow + 1}, ${hot.getColHeader(firstColumn)}`
     : `${cells.length} cells`;
 
-  if (useRepaint && singleCellRepaint.getLastOutcome() === 'declined') {
-    const reason = cells.length > MAX_REPAINTED_CELLS
-      ? `that is more than the ${MAX_REPAINTED_CELLS} cells the gate repaints in one change`
-      : 'the gate turned this change down';
+  const outcome = singleCellRepaint.getLastOutcome() ?? '';
+
+  if (useRepaint && outcome.startsWith('declined')) {
+    let reason = 'the gate turned this change down';
+
+    if (outcome === 'declined-viewport-moved') {
+      reason = 'the grid scrolled since it was last drawn, so the cells had to be laid out again';
+    } else if (cells.length > MAX_REPAINTED_CELLS) {
+      reason = `that is more than the ${MAX_REPAINTED_CELLS} cells the gate repaints in one change`;
+    }
 
     output.textContent = `Repaint declined for ${where} -- ${reason}, ` +
       `so Handsontable rendered normally: ${cost}.`;

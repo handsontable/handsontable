@@ -197,6 +197,43 @@ And decide from the change itself, through its `source`, rather than by setting 
 
 Falling back is cheap: you lose the optimization for that one edit and keep a correct grid.
 
+### The viewport must not have moved
+
+One condition cannot be checked from the change alone, and getting it wrong is the hardest failure to spot.
+
+Handsontable works out which rows and columns a draw will lay out **before** it fires [`beforeViewRender`](@/api/hooks.md#beforeviewrender). So once the grid has scrolled, [`getCell()`](@/api/core.md#getcell) inside that hook answers with the element that is *about to* hold your row, not the one showing it now. Cancel the render and the DOM is never rebuilt, so the element you painted is not the element the reader is looking at. The value lands in the data, the cell on screen keeps its old text, and the next full render silently makes it look as though nothing was ever wrong.
+
+Track the offset that [`getCell()`](@/api/core.md#getcell) depends on, and refuse to cancel a render that moves it. [`afterViewRender`](@/api/hooks.md#afterviewrender) runs only when a render actually happened, which makes it an accurate record of what is on screen:
+
+```javascript
+let renderedBand = null;
+
+function bandOffset() {
+  return `${hot.getFirstRenderedVisibleRow()}:${hot.getFirstRenderedVisibleColumn()}`;
+}
+
+hot.addHook('afterViewRender', () => {
+  renderedBand = bandOffset();
+});
+
+hot.addHook('beforeViewRender', (isForced, skipRenderObject) => {
+  if (!pendingChanges) {
+    return;
+  }
+
+  if (renderedBand !== null && bandOffset() !== renderedBand) {
+    pendingChanges = null; // this draw has a new band to lay out -- let it run
+
+    return;
+  }
+
+  skipRenderObject.skipRender = true;
+  // ... repaint here
+});
+```
+
+Only the *first* rendered row and column matter. [`getCell()`](@/api/core.md#getcell) finds an element by subtracting that offset from the index you ask for, so a draw that plans fewer rows than the DOM already holds still finds every one of them. Scrolling by a single row moves the offset, which is why a scroll between selecting a cell and editing it has to fall back.
+
 ## Limitations
 
 Handsontable cannot check these for you, so they are your responsibility. Each one is a reason the grid ships no per-cell render.
@@ -278,6 +315,7 @@ Use this recipe on the JavaScript build. If you need it under a wrapper, verify 
 - A frozen cell can exist in up to four tables, and [`getCell()`](@/api/core.md#getcell) reaches only two of them. The count follows the main table's rendered range, not the axis you froze.
 - Row height, column width, and cross-cell dependencies are resolved during a render, so a per-cell repaint cannot maintain them.
 - Cancelling a render also cancels [`afterViewRender`](@/api/hooks.md#afterviewrender), so anything listening for it -- including the framework wrappers -- stops being told.
+- Handsontable resolves a draw's band before [`beforeViewRender`](@/api/hooks.md#beforeviewrender) runs, so inside that hook [`getCell()`](@/api/core.md#getcell) describes the band the draw is about to lay out. Cancel a render that moves the band and you paint an element nobody is looking at.
 
 ## Next steps
 

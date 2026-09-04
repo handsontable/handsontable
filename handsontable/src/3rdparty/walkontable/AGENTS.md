@@ -143,6 +143,19 @@ while `drawn` is false, and a table built outside the layout stays undrawn until
 gate in `Overlays#afterDraw` guards a state the settle test never has to answer for.
 
 Once it settles, the pass does **not** drop the sizes itself. It marks them, and
+**A hook that sets `skipRender` must not resolve elements through `getCell()` first.** `buildRenderFilters()`
+runs *before* the `beforeDraw` hook fires, so inside the hook the filters already describe the band this
+draw is about to lay out, while the DOM still holds the previous one. `Table#getCell` reads the element
+through those filters, so on any draw that moves the band it returns the `td` that will hold the index
+*after* the rebuild — not the one showing it now. A hook that paints through `getCell()` and then cancels
+the render therefore writes into an element the user is not looking at: the data is right, the visible
+cell keeps its old content, and the next full draw hides the evidence. `restoreRenderedStateIfSafe()`
+puts the filters back after the cancel, which is why the same `getCell()` call looks correct when you
+re-run it afterwards — a trap when debugging this. Consumers that cancel a render must first check that
+the band offset (`getFirstRenderedVisibleRow`/`getFirstRenderedVisibleColumn`) has not moved since the
+last draw that actually rendered; the [Repaint a single cell](../../../../docs/content/recipes/performance/repaint-single-cell/repaint-single-cell.md)
+recipe does exactly that. Only the *first* index matters: `getCell` subtracts it from the index asked for.
+
 `Overlays#beforeDraw` drops them on the way into the next draw that renders cells
 (`resetSizesMeasuredBeforeLayoutSettled`), so reset, re-measure and resize run in the order this
 cycle documents. Dropping them after a draw and asking for a redraw leaves them dropped: the request
