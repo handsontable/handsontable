@@ -197,6 +197,14 @@ export function computeMedianSnapshot(
     scenarios[name] = medianScenario(entries);
   }
 
+  // Every scenario dropped by the per-scenario version filter (each one redefined since the
+  // windowed goldens were recorded). A median with no scenarios is not a baseline, and returning
+  // one would let the loader report a baseline was found and the reports render raw numbers with
+  // no reason -- the silent case this module's key exists to prevent.
+  if (Object.keys(scenarios).length === 0) {
+    return null;
+  }
+
   return {
     timestamp: valid[0].timestamp,
     isMedian: true,

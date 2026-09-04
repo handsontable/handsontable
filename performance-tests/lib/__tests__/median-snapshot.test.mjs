@@ -375,14 +375,28 @@ describe('computeMedianSnapshot -- baseline compatibility key', () => {
   });
 
   test('a scenario the current run measures at a new version, with too few matching entries, is omitted', () => {
+    const filtering = { categories: { scripting: 40, rendering: 5, painting: 1 }, windowSource: 'marks' };
     const result = computeMedianSnapshot([
-      keyed('2026-09-03T10:49:00Z', '140.0.7339.16', { sorting: { measurementVersion: 2 } }),
+      keyed('2026-09-03T10:49:00Z', '140.0.7339.16', { sorting: { measurementVersion: 2 }, filtering }),
+      keyed('2026-09-03T10:31:00Z', '140.0.7339.16', { filtering }),
+      keyed('2026-09-03T10:08:00Z', '140.0.7339.16', { filtering }),
+    ], { compatibleWith: { key: KEY, scenarioVersions: { sorting: 2, filtering: 1 } } });
+
+    assert.equal(result.medianWindowSize, 3);
+    assert.equal('sorting' in result.scenarios, false);
+    assert.equal('filtering' in result.scenarios, true);
+  });
+
+  test('returns null, not an empty median, when the version filter leaves no scenario', () => {
+    // Every scenario redefined since the goldens were recorded. A median with no scenarios would be
+    // reported as a baseline that was found, and the reports would render numbers with no reason.
+    const result = computeMedianSnapshot([
+      keyed('2026-09-03T10:49:00Z', '140.0.7339.16'),
       keyed('2026-09-03T10:31:00Z', '140.0.7339.16'),
       keyed('2026-09-03T10:08:00Z', '140.0.7339.16'),
     ], { compatibleWith: { key: KEY, scenarioVersions: { sorting: 2 } } });
 
-    assert.equal(result.medianWindowSize, 3);
-    assert.equal('sorting' in result.scenarios, false);
+    assert.equal(result, null);
   });
 
   test('without a key, behaves as before and reports nothing excluded', () => {

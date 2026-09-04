@@ -9,7 +9,9 @@ import assert from 'node:assert/strict';
 import { rm, mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { saveSnapshots, loadSnapshots, loadBaseline } from '../snapshot-store.mjs';
+import {
+  saveSnapshots, loadSnapshots, loadBaseline, SCENARIO_VERSIONS_MISMATCH_REASON,
+} from '../snapshot-store.mjs';
 
 let baseDir;
 let goldenPath;
@@ -203,6 +205,51 @@ describe('loadSnapshots (history-median path)', () => {
     assert.equal(snapshot, null);
     assert.ok(unavailableReason.includes('Chromium 138.0.1 -> 140.0.1'));
     assert.ok(unavailableReason.includes('two develop pushes'));
+  });
+
+  test('goldens on the right environment but at other scenario versions are refused with their own reason', async() => {
+    await mkdir(historyDir, { recursive: true });
+
+    for (const [file, timestamp] of [['a.json', '2026-09-03T10:49:00Z'], ['b.json', '2026-09-03T10:31:00Z']]) {
+      const snapshot = validSnapshot(timestamp);
+
+      snapshot.environment = { chromium: '140.0.1' };
+      snapshot.harnessVersion = 1;
+      // measurementVersion absent: the default, 1. The run below measures sorting at 2.
+      await writeFile(join(historyDir, file), JSON.stringify(snapshot), 'utf8');
+    }
+
+    const { snapshot, unavailableReason } = await loadBaseline(baseDir, {
+      compatibleWith: { key: { chromium: '140.0.1', harnessVersion: 1 }, scenarioVersions: { sorting: 2 } },
+    });
+
+    assert.equal(snapshot, null);
+    assert.equal(unavailableReason, SCENARIO_VERSIONS_MISMATCH_REASON);
+  });
+
+  test('a single-file golden at other scenario versions is refused, a partial overlap is returned', async() => {
+    const single = validSnapshot('2026-09-03T10:31:00Z');
+
+    single.environment = { chromium: '140.0.1' };
+    single.harnessVersion = 1;
+    single.scenarios.filtering = { categories: { scripting: 40 }, windowSource: 'marks', measurementVersion: 1 };
+    await writeFile(goldenPath, JSON.stringify(single), 'utf8');
+
+    const key = { chromium: '140.0.1', harnessVersion: 1 };
+    const allMismatch = await loadBaseline(baseDir, {
+      compatibleWith: { key, scenarioVersions: { sorting: 2, filtering: 2 } },
+    });
+
+    assert.equal(allMismatch.snapshot, null);
+    assert.equal(allMismatch.unavailableReason, SCENARIO_VERSIONS_MISMATCH_REASON);
+
+    // Sorting still matches: the golden is returned and the teardown withholds filtering on its own.
+    const partial = await loadBaseline(baseDir, {
+      compatibleWith: { key, scenarioVersions: { sorting: 1, filtering: 2 } },
+    });
+
+    assert.equal(partial.snapshot.timestamp, '2026-09-03T10:31:00Z');
+    assert.equal(partial.unavailableReason, null);
   });
 
   test('a single-file golden with no provenance is refused once the run has a key', async() => {
