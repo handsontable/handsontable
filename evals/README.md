@@ -57,23 +57,30 @@ tests at the same quality is better.
 
 ```
 evals/fixtures/<case>/
-  case.md        # the change brief an agent receives, plus rubric notes
-  change.diff    # optional — the source diff, feeds the relevance signal
-  reference/     # hand-written example(s) of a meaningful test for the case
+  case.md          # the change brief an agent receives, plus rubric notes
+  change.diff      # optional — the source diff, feeds the relevance signal
+  reference/       # hand-written example(s) of a meaningful test for the case
+  counterexample/  # optional — a test that carries the smell the case is about;
+                   # the harness FAILS if the scorer lets it through
 ```
 
-The three cases cover the representative change kinds from the eval design: a
-**bug fix** (`bug-fix-number-helper`, a numeric-helper edge case), a **feature**
-(`feature-percent-helper`, a small new helper API), and a **granular
-interaction** (`e2e-escape-cancels-edit`, keyboard-driven editor behavior on
-the Playwright tier).
+The first three cases cover the representative change kinds from the eval
+design: a **bug fix** (`bug-fix-number-helper`, a numeric-helper edge case), a
+**feature** (`feature-percent-helper`, a small new helper API), and a
+**granular interaction** (`e2e-escape-cancels-edit`, keyboard-driven editor
+behavior on the Playwright tier). Two more each pin one scorer smell with a
+reference/counterexample pair: `e2e-rendered-rows-viewport`
+(`theme-sensitive-viewport`) and `e2e-unasserted-capture`
+(`unasserted-capture`).
 
 Reference tests are written exactly as they would land in their real tier
 (`handsontable/src/helpers/__tests__/`, `tests/e2e/`), so their imports resolve
 there — the harness scores them statically, it does not execute them. To add a
 case, create the folder with `case.md` and at least one reference test;
 `run-eval.mjs` picks it up automatically and fails if the reference does not
-score clean.
+score clean — or if a `counterexample/` file trips no smell (a problem, or a
+warning-tier smell such as `unasserted-capture`), which means the smell it
+demonstrates is documented but not detected.
 
 ## What the scorer measures
 
@@ -86,10 +93,11 @@ source of truth with the CI weakening detector.
 | `tests`, `assertions` | Block and assertion counts — the count matters (fewer tests for the same quality is better). |
 | `hollowTests` | `it()`/`test()` blocks with no `expect`/`assert`/`verify` call — a test that only executes code. |
 | `gamingSignals` | `.only`/`.skip`/`xit`/`fit`, `it.flaky`, `fixme`/`todo`, and failure-swallowing `try/catch`. |
-| `determinismSmells` | `sleep(`, `waitForTimeout`, `networkidle` — timing-based instead of condition-based waits. |
+| `determinismSmells` | `sleep(`, `waitForTimeout`, `networkidle` — timing-based instead of condition-based waits — and `theme-sensitive-viewport`: a rendered-count read (the legacy helpers by exact name — `countVisibleRows()`/`countVisibleCols()`, `countRenderedRows()`/`countRenderedCols()`, `getRenderedRowsCount()` — a look-alike such as `countVisibleCustomBorders()` does not read; or a `:visible` selector that something counts — `toHaveCount(` or `.count()` on the selector or on the locator it is captured into; a `:visible` click or `.first()` counts nothing) inside a describe whose grid setup hands no top-level `width`/`height` to an options object (`handsontable({ … })`, `grid.initGrid({ … })`, `new Handsontable(host, { … })`, or a local passed to one whole or spread) and never calls `scrollViewportTo`. A nested `width` (`border: { width: 2 }`, `columns: [{ width: 100 }]`) is not the grid's size, and an expected value (`toEqual({ width: 2, … })`) is not a setup. Row height differs per theme, so that count is a different number on each leg of the theme matrix. |
+| `structureSmells` | `unasserted-capture`: a `const x = await …` in a test body whose value never reaches an assertion — neither `x` nor a local derived from it in one step (`const tokens = String(x).split(' ')`) lands inside `expect(…)`/`assert…(…)`, its matcher chain, or as the receiver of an `x.expect…(` helper. A value fetched and dropped is code run without being checked. **Warning-only** until its precision is measured: over the 69 shipped Playwright specs it flags 4 captures in 3 files, each a value fetched to drive an action (a bounding box for a pointer move, a count for a keyboard loop) whose outcome the test asserts by other means. |
 | `relevance` | With `--diff`: does the test reference any changed symbol? Warning-only (E2E tests assert behavior, not symbols). |
 | `mutation` | The dependency-gated ceiling; stubbed until StrykerJS is approved. |
-| `verdict` | `meaningful` when there is at least one test block, no hollow test, no gaming signal, and no determinism smell; otherwise `suspect` with `problems`. |
+| `verdict` | `meaningful` when there is at least one test block, no hollow test, no gaming signal, and no determinism smell; otherwise `suspect` with `problems`. A structure smell is a warning while its precision is measured, so it never flips the verdict. |
 
 The signals are heuristic and text-based, like the weakening detector they
 build on: strong signals to surface, not proof. A reviewer or the mutation
