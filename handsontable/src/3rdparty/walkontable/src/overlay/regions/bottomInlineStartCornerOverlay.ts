@@ -64,10 +64,8 @@ export class BottomInlineStartCornerOverlay extends Overlay {
    */
   resetFixedPosition() {
     const { wot } = this;
-
-    this.updateTrimmingContainer();
-
     const { clone } = this;
+    const { rootWindow } = this.deps;
 
     if (!(wot.wtTable.holder.parentNode as HTMLElement) || !clone) {
       // removed from DOM
@@ -78,7 +76,12 @@ export class BottomInlineStartCornerOverlay extends Overlay {
 
     overlayRoot.style.top = '';
 
-    if (this.trimmingContainer === this.deps.rootWindow) {
+    // Same rule as the top corner: the positioned form whenever either neighbour's axis is owned by
+    // the window; each neighbour reports a 0 offset on an element-owned axis.
+    const anyAxisOnWindow = this.bottomOverlay.trimmingContainer === rootWindow ||
+      this.inlineStartOverlay.trimmingContainer === rootWindow;
+
+    if (anyAxisOnWindow) {
       const inlineStartOffset = this.inlineStartOverlay.getOverlayOffset();
       const { geometryReader } = this.deps;
       const masterTableRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().TABLE);
@@ -119,7 +122,9 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     //
     // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
     // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`.
-    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, this.deps.rootWindow);
+    // Read off the frozen-bottom-rows overlay, whose axis this strip belongs to, so the two gates
+    // cannot disagree.
+    const clearanceApplies = holderOwnsScrollbars(this.bottomOverlay.trimmingContainer, rootWindow);
     const bottomClearance = this.needFullRender ? axisScrollbarClearance(
       this.deps.geometryReader,
       this.deps.getWtTable().holder,

@@ -86,9 +86,8 @@ export class BottomOverlay extends Overlay {
     overlayRoot.style.top = '';
 
     let overlayPosition = 0;
-    const preventOverflow = this.wtSettings.getSetting<boolean | string>('preventOverflow');
 
-    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
+    if (this.trimmingContainer === rootWindow) {
       overlayPosition = this.getOverlayOffset();
 
       // At non-integer zoom levels (e.g. 90%) the browser physically rounds each row's
@@ -226,11 +225,10 @@ export class BottomOverlay extends Overlay {
     const { rootDocument, rootWindow } = this.deps;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const overlayRootStyle = overlayRoot.style;
-    const preventOverflow = this.wtSettings.getSetting<boolean | string>('preventOverflow');
 
-    // Both strips need this overlay to be laid out against the scrollport; when the window anchors it
-    // instead, `repositionOverlay` never runs and clipping would expose the master for nothing.
-    const rootSized = this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal';
+    // Width is a horizontal question: sized against the scrollport whenever an element owns the
+    // horizontal axis (see `TopOverlay#adjustRootElementSize`).
+    const rootSized = !wtViewport.isHorizontallyScrollableByWindow();
     // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`.
     const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
 
@@ -246,7 +244,8 @@ export class BottomOverlay extends Overlay {
     if (rootSized) {
       let width = wtViewport.getWorkspaceWidth();
 
-      if (wtViewport.hasVerticalScroll()) {
+      // Only the holder's own vertical scrollbar takes width off this overlay - see `TopOverlay`.
+      if (wtViewport.hasVerticalScroll() && !wtViewport.isVerticallyScrollableByWindow()) {
         width = overlayExtentBesideScrollbar(
           width,
           this.deps.geometryReader.clientWidth(wtTable.holder),
@@ -415,10 +414,9 @@ export class BottomOverlay extends Overlay {
    */
   getOverlayOffset() {
     const { rootWindow } = this.deps;
-    const preventOverflow = this.wtSettings.getSetting<boolean | string>('preventOverflow');
     let overlayOffset = 0;
 
-    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical') && this.clone) {
+    if (this.trimmingContainer === rootWindow && this.clone) {
       const rootHeight = this.deps.getWtTable().getTotalHeight();
       const overlayRootHeight = this.clone.wtTable.getTotalHeight();
       const maxOffset = rootHeight - overlayRootHeight;

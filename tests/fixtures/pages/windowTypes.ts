@@ -103,6 +103,12 @@ export interface FixtureHotInstance {
   } | undefined;
   render(): void;
   listen(): void;
+  view: {
+    isVerticallyScrollableByWindow(): boolean,
+    isHorizontallyScrollableByWindow(): boolean,
+  };
+  /** The grid's own root `<div>` – a child of the container passed to the constructor. */
+  rootElement: HTMLElement;
   getFirstFullyVisibleRow(): number;
   getLastFullyVisibleRow(): number;
   getLastRenderedVisibleRow(): number;
@@ -163,8 +169,14 @@ declare global {
         add(key: string, callback: (...args: unknown[]) => unknown): void;
       };
     };
-    /** Rebuilds the formulas fixture grid with the given dataset. */
+    /**
+     * Rebuilds the formulas fixture grid with the given dataset, or – the width-window-scroll
+     * fixture's overload – rebuilds its grid with setting overrides and an optional parent width.
+     */
     initGrid(data: CellValue[][], overrides?: Record<string, unknown>): boolean;
+    initGrid(overrides?: Record<string, unknown>, containerWidth?: string): boolean;
+    /** `afterScrollVertically` calls since the last rebuild (width-window-scroll fixture). */
+    verticalScrollCount: number;
     /** Rebuilds the selection-features fixture grid with the given setting overrides. */
     initSelectionGrid(overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the mobile drag-to-scroll fixture grid with the given setting overrides. */

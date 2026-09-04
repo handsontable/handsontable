@@ -985,14 +985,25 @@ const OVERFLOW_TRIMMING_VALUES = ['scroll', 'hidden', 'auto', 'clip'];
 const OVERFLOW_CONCRETE_VALUES = ['visible', 'clip', 'hidden', 'scroll', 'auto', 'overlay'];
 
 /**
- * Checks whether a single overflow axis traps the table on that axis.
+ * One of the two overflow axes an element can trim on.
+ */
+export type OverflowAxis = 'x' | 'y';
+
+/**
+ * Checks whether a single overflow axis traps the table on that axis, for the single-answer form of
+ * `getTrimmingContainer()` (no `axis` argument).
  *
  * `overflow: clip` establishes no scroll port. When an axis is `clip` while the perpendicular axis
  * stays `visible`, it does not trap the table's scroll — the table still scrolls with the window on
  * the visible axis. A width-constrained, window-scrolled table sets `overflow-x: clip` on its root
- * (see core.ts, DEV-1025); treating that root as the trimming container drops the overlays out of
- * window-scroll mode (frozen rows stop pinning, vertical virtualization stops). Such a single-axis
- * clip must not qualify the axis as trimming.
+ * (see core.ts, DEV-1025). The single-answer form has to name one container for both axes, so
+ * treating that root as the trimming container would drop the overlays out of window-scroll mode
+ * (frozen rows stop pinning, vertical virtualization stops). Such a single-axis clip must not
+ * qualify the axis as trimming there.
+ *
+ * The per-axis form of `getTrimmingContainer()` does not use this exemption: asked about the
+ * horizontal axis alone, an `overflow-x: clip` ancestor is the correct answer, and the vertical axis
+ * gets its own, separate answer.
  *
  * @param {string} axis The `overflow-x`/`overflow-y` value of the axis being tested.
  * @param {string} perpendicular The `overflow` value of the other axis.
@@ -1034,19 +1045,55 @@ function resolveOverflowAxes(el: HTMLElement, computedStyle: CSSStyleDeclaration
 }
 
 /**
+ * Checks whether the element trims the table on the given axis, for the per-axis form of
+ * `getTrimmingContainer()`. Any trapping value on that axis counts; the perpendicular axis is
+ * irrelevant, because the caller resolves it separately.
+ *
+ * @param {HTMLElement} el The element to test.
+ * @param {OverflowAxis} axis The axis to test.
+ * @param {Window | null} rootWindow The element's window, or `null` for a detached document.
+ * @returns {boolean}
+ */
+function elementTrapsAxis(el: HTMLElement, axis: OverflowAxis, rootWindow: Window | null): boolean {
+  if (rootWindow) {
+    const axes = resolveOverflowAxes(el, rootWindow.getComputedStyle(el));
+
+    return OVERFLOW_TRIMMING_VALUES.includes(axes[axis]);
+  }
+
+  const inlineAxis = axis === 'x' ? el.style.overflowX : el.style.overflowY;
+
+  return OVERFLOW_TRIMMING_VALUES.includes(inlineAxis || el.style.overflow);
+}
+
+/**
  * Returns a DOM element responsible for trimming the provided element.
  *
+ * Without `axis`, one container is named for both axes: the nearest ancestor that traps on either
+ * axis, where a single-axis `clip` next to a `visible` axis does not count (see `overflowAxisTraps`).
+ * This is the public `Handsontable.dom.getTrimmingContainer()` contract.
+ *
+ * With `axis`, the answer is per axis: the nearest ancestor whose `overflow-x` (or `overflow-y`) is
+ * `scroll`, `hidden`, `auto`, or `clip`, regardless of the other axis. The two axes can resolve to
+ * different containers — a root with `overflow-x: clip` and no vertical clip trims horizontally
+ * while the window still owns the vertical axis. The rendering engine asks per axis.
+ *
  * @param {HTMLElement} base Base element.
+ * @param {OverflowAxis} [axis] The axis to resolve. Omit for the single-answer form.
  * @returns {HTMLElement} Base element's trimming parent.
  */
-export function getTrimmingContainer(base: HTMLElement): HTMLElement | Window {
+export function getTrimmingContainer(base: HTMLElement, axis?: OverflowAxis): HTMLElement | Window {
   const rootDocument = base.ownerDocument;
   const rootWindow = rootDocument.defaultView;
 
   let el: HTMLElement | null = base.parentElement;
 
   while (el && el.style && rootDocument.body !== el) {
-    if (rootWindow) {
+    if (axis !== undefined) {
+      if (elementTrapsAxis(el, axis, rootWindow)) {
+        return el;
+      }
+    } else if (rootWindow) {
       const { x, y } = resolveOverflowAxes(el, rootWindow.getComputedStyle(el));
 
       if (overflowAxisTraps(x, y) || overflowAxisTraps(y, x)) {

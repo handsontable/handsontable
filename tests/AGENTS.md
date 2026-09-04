@@ -17,6 +17,22 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   (`e2e-main` used to load `full.min` — never assume the hooks cover min.)
 - `handsontable.full.js` and `handsontable.min.js` are deliberately untested
   here — they belong to the nightly on develop (DEV-2058).
+- **Never hardcode a row or column index that sits near the edge of the
+  rendered band.** Each theme's padding feeds `autoColumnSize`, so the same
+  content measures differently: in `width-window-scroll.html` (500px wide, 30
+  columns) a data column is 63px on `classic`, 70px on `main`, and 78px on
+  `horizon`, so after the same 400px holder scroll the master renders columns
+  7–14, 6–12, and 6–11. Column 12 is the LAST one `main` renders there and does
+  not exist on `horizon` — and the local gates only run `e2e-main`, so the spec
+  went green locally and failed in CI with `element(s) not found`, which says
+  nothing about the behavior under test (DEV-2789). Read the rendered range out
+  of the DOM and pick from it (`WidthWindowScrollPage.renderedColumns()`), or
+  scroll to an edge so the target is the first or last index by construction
+  (`scrollHolderToEnd()`). Row heights are the same trap on the other axis,
+  with more room to spare: a window scroll far larger than the viewport leaves
+  the target row well inside the band on every theme, which is why `cell(40, 3)`
+  after an 800px window scroll in the same spec is safe. Distance from the
+  band's edge is what decides, not whether the index is written down.
 
 ## Fixture contract (never get these wrong)
 
@@ -103,6 +119,21 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   fixture-served HyperFormula artifact + `tests/package.json`, and every file
   under `fixtures/`; rebuilding a bundle or reinstalling the engine re-runs
   affected specs. Do not narrow that hash.
+- **A cross-realm fixture builds the grid INSIDE an iframe from the PARENT's
+  `Handsontable`** (`demo/iframe-width-window-scroll.html`). It is the only
+  fixture that crosses a realm, and it exists because nothing else does: every
+  other fixture passes a node built by the same constructor the engine was
+  compiled against, so a realm-bound `instanceof` in the engine stays green on
+  all of them. Three things follow. The bundle still loads in the PARENT — the
+  fixture is testing that the parent's constructor drives another document's
+  nodes, so loading it inside the iframe would test nothing. The stylesheets go
+  into the IFRAME, after `doc.open()`/`doc.close()` (which replaces the
+  document), and the grid waits for their `load` events — a link that has not
+  applied yet sizes every row and column from an unthemed table. And the page
+  object reads state through the parent (`window.frameDoc`, `window.hot`),
+  not through a Playwright `frameLocator`, because the state under test is the
+  engine's — which element it thinks owns an axis — not the rendered
+  document's. Reference: `e2e/iframe-cross-realm-scroll.spec.ts`.
 
 ## Touch and mobile specs
 
