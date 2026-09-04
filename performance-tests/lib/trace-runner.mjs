@@ -4,6 +4,7 @@
 import { writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { MEASURE_START_MARK, MEASURE_END_MARK } from '../trace-parser.mjs';
+import { saveHeapAfterGc } from './heap-after-gc.mjs';
 
 /**
  * Version of the measurement contract this runner implements: what the marked window contains,
@@ -15,8 +16,47 @@ import { MEASURE_START_MARK, MEASURE_END_MARK } from '../trace-parser.mjs';
  * value (see lib/environment.mjs), so the window restarts cleanly instead of averaging two
  * definitions of the same scenario for five develop pushes. A scenario-level redefinition that
  * leaves the runner alone bumps `measurementVersion` in its own scenario.config.mjs instead.
+ *
+ * History:
+ *   1 -- marked window, settle after action and after setup/reset (the first stamped version).
+ *   2 -- a full GC is forced before every measured iteration and after every end mark. The first
+ *        keeps garbage from the previous iteration's reset (a destroyed 100000x100 grid, a reloaded
+ *        dataset) from being collected inside the next window, which is why initial-load's third
+ *        iteration read ~50% slower than its first two; the second reads the live heap.
  */
-export const HARNESS_VERSION = 1;
+export const HARNESS_VERSION = 2;
+
+/**
+ * Forces a full garbage collection in the page's renderer.
+ *
+ * Over a CDP session of its own, never the tracing one: the tracing session is created per
+ * iteration and torn down with `Tracing.end`, while this runs between iterations.
+ *
+ * @param {import('playwright-core').CDPSession} control
+ */
+async function collectGarbage(control) {
+  await control.send('HeapProfiler.collectGarbage');
+}
+
+/**
+ * The used JS heap once everything collectable is gone -- the live set.
+ *
+ * @param {import('playwright-core').CDPSession} control
+ * @returns {Promise<number | null>} bytes, or null when the readback failed
+ */
+async function heapUsedAfterGc(control) {
+  try {
+    await collectGarbage(control);
+
+    const { usedSize } = await control.send('Runtime.getHeapUsage');
+
+    return typeof usedSize === 'number' && Number.isFinite(usedSize) ? usedSize : null;
+  } catch (err) {
+    console.warn(`\n  WARN: heap-after-GC readback failed (${err.message}); recording null for this iteration.`);
+
+    return null;
+  }
+}
 
 /**
  * @param {import('@playwright/test').Page} page
@@ -224,46 +264,65 @@ export async function runTracedScenario({
     }
   }
 
-  // Measured iterations
-  for (let i = 1; i <= iterations; i++) {
-    process.stdout.write(`  Iteration ${i}/${iterations}: tracing`);
+  // One session for the GC calls across all iterations; the tracing session is per iteration.
+  const control = await page.context().newCDPSession(page);
+  const heapAfterGc = [];
 
-    const cdp = await startTracing(page);
+  try {
+    // Measured iterations
+    for (let i = 1; i <= iterations; i++) {
+      // Clean slate: whatever the warmup or the previous reset left behind is collected here, on
+      // no one's clock, rather than inside the window as a major GC billed to the action.
+      await collectGarbage(control);
 
-    // Heartbeat: print dots during actionFn to keep GH Actions log alive
-    const heartbeat = setInterval(() => process.stdout.write('.'), 5000);
+      process.stdout.write(`  Iteration ${i}/${iterations}: tracing`);
 
-    // The mark is taken after CDP has already entered the isolate once, so the
-    // interrupt that carries it stays outside the window it opens.
-    await mark(page, MEASURE_START_MARK);
+      const cdp = await startTracing(page);
 
-    await actionFn(true);
+      // Heartbeat: print dots during actionFn to keep GH Actions log alive
+      const heartbeat = setInterval(() => process.stdout.write('.'), 5000);
 
-    // Inside the window on purpose: the frame this waits for is the work being measured.
-    if (!skipSettle) {
-      await settle(`iteration ${i}`);
+      // The mark is taken after CDP has already entered the isolate once, so the
+      // interrupt that carries it stays outside the window it opens.
+      await mark(page, MEASURE_START_MARK);
+
+      await actionFn(true);
+
+      // Inside the window on purpose: the frame this waits for is the work being measured.
+      if (!skipSettle) {
+        await settle(`iteration ${i}`);
+      }
+
+      await mark(page, MEASURE_END_MARK);
+
+      // Outside the window: a readback here is harness overhead, not measured work.
+      if (afterActionFn) {
+        await afterActionFn();
+      }
+
+      // Also outside the window (the UpdateCounters extrema are taken over the marked samples
+      // only), and after the readbacks so the GC does not compete with them: what the action left
+      // alive, per iteration.
+      heapAfterGc.push(await heapUsedAfterGc(control));
+
+      clearInterval(heartbeat);
+
+      process.stdout.write(' stopping');
+      const traceJson = await stopTracing(cdp);
+
+      const outPath = join(outputDir, `iteration-${i}.json`);
+
+      await writeFile(outPath, traceJson);
+      console.log(` saved (${(traceJson.length / 1024).toFixed(0)} KB)`);
+
+      if (resetFn && i < iterations) {
+        await resetFn();
+        await settleAfterPrepare('reset');
+      }
     }
-
-    await mark(page, MEASURE_END_MARK);
-
-    // Outside the window: a readback here is harness overhead, not measured work.
-    if (afterActionFn) {
-      await afterActionFn();
-    }
-
-    clearInterval(heartbeat);
-
-    process.stdout.write(' stopping');
-    const traceJson = await stopTracing(cdp);
-
-    const outPath = join(outputDir, `iteration-${i}.json`);
-
-    await writeFile(outPath, traceJson);
-    console.log(` saved (${(traceJson.length / 1024).toFixed(0)} KB)`);
-
-    if (resetFn && i < iterations) {
-      await resetFn();
-      await settleAfterPrepare('reset');
-    }
+  } finally {
+    await control.detach().catch(() => {});
   }
+
+  await saveHeapAfterGc(outputDir, heapAfterGc);
 }

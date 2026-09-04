@@ -91,6 +91,9 @@ function medianScenario(entries) {
   if (updateCounterEntries.length > 0) {
     const jsHeapMinBytes = median(updateCounterEntries.map(uc => uc.jsHeapMinBytes));
     const jsHeapMaxBytes = median(updateCounterEntries.map(uc => uc.jsHeapMaxBytes));
+    // Absent on goldens recorded before the runner read the live heap; median() skips those, so a
+    // window mixing old and new entries medians only the ones that have it.
+    const jsHeapAfterGcBytes = median(updateCounterEntries.map(uc => uc.jsHeapAfterGcBytes));
 
     updateCounters = {
       sampleCount: medianRounded(updateCounterEntries.map(uc => uc.sampleCount)) ?? 0,
@@ -98,6 +101,10 @@ function medianScenario(entries) {
       jsHeapMaxBytes,
       jsHeapMinLabel: jsHeapMinBytes === null ? null : formatHeapMinBytesLabel(jsHeapMinBytes),
       jsHeapMaxLabel: jsHeapMaxBytes === null ? null : formatHeapMaxBytesLabel(jsHeapMaxBytes),
+      ...(jsHeapAfterGcBytes === null ? {} : {
+        jsHeapAfterGcBytes,
+        jsHeapAfterGcLabel: formatHeapMaxBytesLabel(jsHeapAfterGcBytes),
+      }),
       documentsMin: medianRounded(updateCounterEntries.map(uc => uc.documentsMin)),
       documentsMax: medianRounded(updateCounterEntries.map(uc => uc.documentsMax)),
       nodesMin: medianRounded(updateCounterEntries.map(uc => uc.nodesMin)),

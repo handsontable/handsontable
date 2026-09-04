@@ -158,6 +158,79 @@ describe('buildHtmlReport -- environment and refusal', () => {
   });
 });
 
+describe('buildHtmlReport -- JS heap after GC', () => {
+  const withAfterGc = (bytes, label) => current(100, {
+    updateCounters: {
+      jsHeapMaxBytes: 100_000_000, jsHeapMaxLabel: '100 MB', jsHeapAfterGcBytes: bytes, jsHeapAfterGcLabel: label,
+    },
+  });
+
+  test('renders the live-heap row with its delta when both sides carry it', () => {
+    const data = payloadOf(buildHtmlReport(
+      { a: withAfterGc(55_000_000, '55.0 MB') },
+      {
+        timestamp: 't',
+        scenarios: {
+          a: golden({
+            updateCounters: {
+              jsHeapMaxBytes: 100_000_000,
+              jsHeapMaxLabel: '100 MB',
+              jsHeapAfterGcBytes: 50_000_000,
+              jsHeapAfterGcLabel: '50.0 MB',
+            },
+          }),
+        },
+      },
+      {}
+    ));
+    const row = data.scenarios[0].memory.find(r => r.label === 'JS heap after GC');
+
+    assert.equal(row.currentDisplay, '55.0 MB');
+    assert.equal(row.baselineDisplay, '50.0 MB');
+    assert.ok(Math.abs(row.change - 10) < 1e-9);
+  });
+
+  test('renders the row without a delta against a baseline recorded before the field existed', () => {
+    const data = payloadOf(buildHtmlReport(
+      { a: withAfterGc(55_000_000, '55.0 MB') }, { timestamp: 't', scenarios: { a: golden() } }, {}
+    ));
+    const row = data.scenarios[0].memory.find(r => r.label === 'JS heap after GC');
+
+    assert.equal(row.currentDisplay, '55.0 MB');
+    assert.equal(row.baselineDisplay, '--');
+    assert.equal(row.change, null);
+  });
+
+  test('omits the row when neither side carries it', () => {
+    const data = payloadOf(buildHtmlReport({ a: current(100) }, { timestamp: 't', scenarios: { a: golden() } }, {}));
+
+    assert.equal(data.scenarios[0].memory.some(r => r.label === 'JS heap after GC'), false);
+  });
+
+  test('the gate still runs on the windowed maximum, not on the live heap', () => {
+    // Live heap doubled, max flat: no regression is called.
+    const data = payloadOf(buildHtmlReport(
+      { a: withAfterGc(100_000_000, '100 MB') },
+      {
+        timestamp: 't',
+        scenarios: {
+          a: golden({
+            updateCounters: {
+              jsHeapMaxBytes: 100_000_000,
+              jsHeapMaxLabel: '100 MB',
+              jsHeapAfterGcBytes: 50_000_000,
+              jsHeapAfterGcLabel: '50.0 MB',
+            },
+          }),
+        },
+      },
+      {}
+    ));
+
+    assert.equal(data.scenarios[0].isRegression, false);
+  });
+});
+
 describe('buildHtmlReport -- per-scenario heap threshold', () => {
   test('each scenario carries its own heap threshold and is gated on it', () => {
     const between = (heapThresholdFor('scroll-left') + REGRESSION_CALLOUT_THRESHOLD_HEAP) / 2;
