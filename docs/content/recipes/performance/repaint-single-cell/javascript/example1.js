@@ -8,7 +8,7 @@ registerAllModules();
 const PRODUCTS = [
   ['Wireless Keyboard', 'Electronics'],
   ['USB-C Hub', 'Electronics'],
-  ['Noise-Cancelling Headphones', 'Electronics'],
+  ['Wireless Earbuds', 'Electronics'],
   ['Webcam HD', 'Electronics'],
   ['Ergonomic Chair', 'Furniture'],
   ['Standing Desk', 'Furniture'],
@@ -245,6 +245,11 @@ const hot = new Handsontable(document.querySelector('#example1'), {
   autoColumnSize: false,
   autoWrapRow: true,
   autoWrapCol: true,
+  // Demo wiring, not part of the technique: keep the selected cell selected
+  // when you click one of the buttons above the grid.
+  outsideClickDeselects(target) {
+    return !target.closest('.example-controls-container');
+  },
   licenseKey: 'non-commercial-and-evaluation',
 });
 
@@ -254,30 +259,52 @@ const output = document.querySelector('#repaint-output');
 
 let counter = 0;
 
-// Column 2 (Category) sits well inside the viewport at any container width.
-// Targeting a column that scrolls out of view would be correct but pointless:
-// the gate turns down an unrendered cell, so the write falls back to a full
-// render and the two buttons report the same cost.
-const TARGET_COLUMN = 2;
+// Used only when nothing is selected yet. Column 2 (Category) sits well inside
+// the viewport at any container width.
+const DEFAULT_COLUMN = 2;
 
 /**
- * Writes a new value into a cell and reports what the write cost. The source
- * decides which path the write takes -- there is no flag to toggle, so an
- * asynchronous validator cannot land after a window has closed again.
+ * Answers which cell to write to: the one you selected, or a visible cell if
+ * you have not selected anything yet.
+ *
+ * `highlight` is the cell you would call current. Reading the range's corners
+ * instead would aim at wherever a drag began, which can be the far end.
+ */
+function targetCell() {
+  const highlight = hot.getSelectedRangeLast()?.highlight;
+
+  if (highlight) {
+    return [highlight.row, highlight.col];
+  }
+
+  return [Math.max(0, hot.getFirstFullyVisibleRow() ?? 0), DEFAULT_COLUMN];
+}
+
+/**
+ * Writes a new value into the selected cell and reports what the write cost.
+ * The source decides which path the write takes -- there is no flag to toggle,
+ * so an asynchronous validator cannot land after a window has closed again.
  */
 function updateCell(useRepaint) {
+  const [row, column] = targetCell();
+
   counter += 1;
+
+  // Select before writing, always. It is what makes the cell visible: a cell
+  // you scrolled away from is scrolled back into view, so the readout can never
+  // name a cell you cannot see.
+  hot.selectCell(row, column);
+
+  // Reset the counter *after* selecting. Scrolling a cell into view is a real
+  // render, and counting it would report the repaint as costing far more than
+  // the one call it actually makes.
   rendererCalls = 0;
 
-  // Aim at a row that is on screen. A cell scrolled out of view has no `td` to
-  // paint, so the gate turns it down and Handsontable renders normally -- which
-  // is correct, but it would make the two buttons look identical.
-  const targetRow = Math.max(0, hot.getFirstFullyVisibleRow() ?? 0);
   const startedAt = performance.now();
 
   hot.setDataAtCell(
-    targetRow,
-    TARGET_COLUMN,
+    row,
+    column,
     `Updated (${counter})`,
     useRepaint ? REPAINT_SOURCE : 'edit'
   );
@@ -285,16 +312,17 @@ function updateCell(useRepaint) {
   const elapsed = performance.now() - startedAt;
   const cost = `${rendererCalls} renderer call${rendererCalls === 1 ? '' : 's'}, ` +
     `${elapsed.toFixed(1)} ms`;
+  const where = `row ${row + 1}, ${hot.getColHeader(column)}`;
 
   if (useRepaint && singleCellRepaint.getLastOutcome() === 'declined') {
-    output.textContent = `Repaint declined for row ${targetRow + 1} -- that cell is not ` +
-      `rendered, so Handsontable rendered normally: ${cost}.`;
+    output.textContent = `Repaint declined for ${where} -- the gate turned that cell ` +
+      `down, so Handsontable rendered normally: ${cost}.`;
 
     return;
   }
 
   output.textContent = `${useRepaint ? 'Repaint one cell' : 'Full render'} ` +
-    `(row ${targetRow + 1}): ${cost}.`;
+    `(${where}): ${cost}.`;
 }
 
 document.querySelector('#full-render-btn')

@@ -42,7 +42,7 @@ The default stops paying off when your renderers are expensive. Every redrawn ce
 
 Click the two buttons in the example above and compare the renderer-call counts. One edit runs the renderer for every cell on screen -- dozens of them -- while the repaint runs it once. Widen the grid or the viewport and the gap grows with it, because the number of drawn cells is what the full render pays for.
 
-Both buttons write to the topmost visible row, and they follow you as you scroll. That is deliberate: a cell scrolled out of view has no `td` to paint, so the gate turns the repaint down and Handsontable renders normally. Scroll the grid and the comparison still holds.
+Select a cell, then click either button to write to it. With nothing selected, the buttons pick a visible cell for you. Each button selects its target before writing, so a cell you have scrolled away from is scrolled back into view -- the readout never names a cell you cannot see. That matters here, because a cell scrolled out of view has no `td` to paint: the gate would turn the repaint down and Handsontable would render normally, which is correct but makes both buttons look alike.
 
 This recipe is written for the JavaScript build. Read [Framework wrappers](#framework-wrappers-need-more-care) before porting it.
 
@@ -205,6 +205,8 @@ Handsontable cannot check these for you, so they are your responsibility. Each o
 Handsontable measures row heights during a render. Skip the render and no re-measurement happens, so a value that makes a row taller breaks the layout: the browser grows the row in the main table, while the row headers and any frozen columns keep the old heights. The two drift apart by the full height difference, and every row below the edit is misaligned.
 
 Use this recipe only with fixed [`rowHeights`](@/api/options.md#rowheights), no [`autoRowSize`](@/api/options.md#autorowsize), and content that cannot wrap onto more lines. The misalignment corrects itself on the next full render, so calling [`render()`](@/api/core.md#render) is the recovery if you hit it.
+
+Setting `rowHeights` is not enough on its own. It is a floor, not a ceiling: a value that wraps onto a second line still grows its row past it, and Handsontable only learns the new height when that row is rendered. Until then it estimates the grid's total height from the configured value, so the scroll range keeps changing as you scroll into rows it has not measured -- the grid appears to jump, and a row index computed from the viewport stops matching what you see. Check that no cell wraps at your narrowest layout, rather than trusting the option.
 
 ### Column widths do not adapt
 
