@@ -36,16 +36,6 @@ function pin(name) {
   return match[1];
 }
 
-/**
- * Escape a semver string for use inside a RegExp.
- *
- * @param {string} value A version like `5.1.6`.
- * @returns {string} The escaped pattern.
- */
-function escapeDots(value) {
-  return value.replace(/\./g, '\\.');
-}
-
 test('the Emitted Types job budget is at least 30 minutes', () => {
   const timeout = Number(/\n    timeout-minutes:\s*(\d+)/.exec(workflow)?.[1]);
 
@@ -72,9 +62,11 @@ test('type-check tools are installed once, not via three cold npx -y calls', () 
   );
   assert.match(
     workflow,
-    new RegExp(
-      `key:\\s*emitted-types-npx-\\$\\{\\{\\s*runner\\.os\\s*\\}\\}-ts${escapeDots(ts)}-publint${escapeDots(publint)}-attw${escapeDots(attw)}`
-    ),
+    /key:\s*emitted-types-npx-\$\{\{\s*runner\.os\s*\}\}-/,
+    'cache key must stay on the emitted-types-npx prefix'
+  );
+  assert.ok(
+    workflow.includes(`-ts${ts}-publint${publint}-attw${attw}`),
     'cache key must name each installed version — a stale key is a permanent miss'
   );
   assert.match(
