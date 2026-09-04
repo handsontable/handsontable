@@ -1,7 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
-import { baseRenderer } from 'handsontable/renderers/baseRenderer';
 
 registerAllModules();
 
@@ -73,27 +72,12 @@ function expensiveRenderer(instance, td, row, col, prop, value, cellProperties) 
 }
 
 /**
- * Resolves the value the renderer receives. Mirrors Handsontable's own
- * precedence: a cell-level `valueFormatter` wins, then the renderer's
- * `valueFormatter` static (the numeric and date renderers set one), then the
- * raw value.
- */
-function formatCellValue(value, cellProperties, renderer) {
-  if (typeof cellProperties.valueFormatter === 'function') {
-    return cellProperties.valueFormatter(value, cellProperties);
-  }
-
-  if (typeof renderer === 'function' && typeof renderer.valueFormatter === 'function') {
-    return renderer.valueFormatter.call(cellProperties, value, cellProperties);
-  }
-
-  return value;
-}
-
-/**
  * Clears the `td` the way Handsontable clears it before every cell render.
- * Handsontable recycles `td` elements while you scroll, so a renderer must
- * always start from a blank element.
+ *
+ * Handsontable also strips `role` and `aria-*` at this point, because it
+ * recycles `td` elements between different cells while you scroll. A repaint
+ * always targets the same cell, so those attributes are already right for it.
+ * Leave them, and you never have to rebuild them.
  */
 function resetCell(td) {
   if (!td.classList.contains('hide')) { // leave the hidden-columns marker alone
@@ -102,80 +86,34 @@ function resetCell(td) {
 
   td.removeAttribute('style');
   td.removeAttribute('dir');
-
-  Array.from(td.attributes).forEach(({ name }) => {
-    if (name === 'role' || name.startsWith('aria-')) {
-      td.removeAttribute(name);
-    }
-  });
 }
 
 /**
- * Runs the cell's renderer against one `td`.
+ * Paints one `td` by handing the work to the very function Handsontable's own
+ * render loop calls once per cell.
+ *
+ * That one call covers the metadata lookup, `MergeCells` coordinates, the
+ * `beforeValueRender` hook, the value formatter, the `beforeRenderer` and
+ * `afterRenderer` hooks, and the base renderer that adds classes such as
+ * `htDimmed` and `htInvalid`. None of it has to be copied here, so none of it
+ * can drift when Handsontable changes.
+ *
+ * It takes renderable indexes, not visual ones, and `hot.view._wt` is internal.
+ * That access is the one internal thing this recipe depends on, and it throws
+ * if it ever moves, rather than quietly painting the wrong thing.
  */
 function paintCell(hot, td, visualRow, visualColumn) {
+  const renderableRow = hot.rowIndexMapper.getRenderableFromVisualIndex(visualRow);
+  const renderableColumn = hot.columnIndexMapper.getRenderableFromVisualIndex(visualColumn);
+
+  if (renderableRow === null || renderableColumn === null) {
+    return false; // a hidden row or column has no cell to paint
+  }
+
   resetCell(td);
+  hot.view._wt.wtSettings.getSettingPure('cellRenderer')(renderableRow, renderableColumn, td);
 
-  let rowToRead = visualRow;
-  let columnToRead = visualColumn;
-  // `MergeCells` rewrites which cell supplies the value and the metadata.
-  const merged = hot.runHooks('modifyGetCellCoords', visualRow, visualColumn, false, 'meta');
-
-  if (Array.isArray(merged)) {
-    [rowToRead, columnToRead] = merged;
-  }
-
-  const cellProperties = hot.getCellMeta(rowToRead, columnToRead);
-  const prop = hot.colToProp(columnToRead);
-  let value = hot.getDataAtRowProp(rowToRead, prop);
-
-  if (hot.hasHook('beforeValueRender')) {
-    value = hot.runHooks('beforeValueRender', value, cellProperties);
-  }
-
-  // Pass the metadata you already hold. `getCellRenderer(row, column)` would
-  // resolve it again, re-running the `cells` function this recipe exists to
-  // avoid. This is also what Handsontable's own render path does.
-  const renderer = hot.getCellRenderer(cellProperties);
-  const rendererArgs = [
-    hot,
-    td,
-    visualRow,
-    visualColumn,
-    prop,
-    formatCellValue(value, cellProperties, renderer),
-    cellProperties,
-  ];
-
-  hot.runHooks('beforeRenderer', td, visualRow, visualColumn, prop, value, cellProperties);
-
-  try {
-    renderer(...rendererArgs);
-
-    // Handsontable runs the base renderer for you, unless your renderer already
-    // chained it. `_isBaseRendererCalled` is internal: check it, and always
-    // reset it, or the next full render skips the base renderer for this cell.
-    if (!cellProperties._isBaseRendererCalled) {
-      baseRenderer(...rendererArgs);
-    }
-  } finally {
-    cellProperties._isBaseRendererCalled = false;
-  }
-
-  hot.runHooks('afterRenderer', td, visualRow, visualColumn, prop, value, cellProperties);
-
-  if (hot.getSettings().ariaTags !== false) {
-    if (!td.hasAttribute('role')) {
-      td.setAttribute('role', 'gridcell');
-    }
-
-    td.setAttribute('tabindex', '-1');
-    td.setAttribute(
-      'aria-colindex',
-      String(hot.columnIndexMapper.getRenderableFromVisualIndex(visualColumn) +
-        hot.countRowHeaders() + 1)
-    );
-  }
+  return true;
 }
 
 /**
@@ -189,9 +127,8 @@ function repaintCell(hot, visualRow, visualColumn) {
   [true, false].forEach((topmost) => {
     const td = hot.getCell(visualRow, visualColumn, topmost);
 
-    if (td && !painted.includes(td)) {
+    if (td && !painted.includes(td) && paintCell(hot, td, visualRow, visualColumn)) {
       painted.push(td);
-      paintCell(hot, td, visualRow, visualColumn);
     }
   });
 

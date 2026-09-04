@@ -46,7 +46,7 @@ Both buttons write to the topmost visible row, and they follow you as you scroll
 
 This recipe is written for the JavaScript build. Read [Framework wrappers](#framework-wrappers-need-more-care) before porting it.
 
-## What You'll Build
+## What you'll build
 
 A product-inventory grid with a deliberately expensive cell renderer, and a `repaintCell()` helper that:
 
@@ -66,24 +66,25 @@ You should be familiar with:
 - Writing a [custom cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md).
 - The [`beforeChange`](@/api/hooks.md#beforechange) hook and the `source` argument that identifies where a change came from.
 
-## Step 1 -- Import the renderers you need
+## Step 1 -- Import the renderer you need
 
-Import the renderer functions directly. The `handsontable/base` entry does not define the `Handsontable.renderers` namespace -- only the full `handsontable` entry does -- so reaching for `Handsontable.renderers.TextRenderer` on a modular build throws:
+Import renderer functions directly. The `handsontable/base` entry does not define the `Handsontable.renderers` namespace -- only the full `handsontable` entry does -- so reaching for `Handsontable.renderers.TextRenderer` on a modular build throws:
 
 ```javascript
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
-import { baseRenderer } from 'handsontable/renderers/baseRenderer';
 
 registerAllModules();
 ```
 
-## Step 2 -- Understand what a render does to a `td`
+## Step 2 -- Paint one cell
 
-Handsontable recycles `td` elements as you scroll, so before it runs a renderer it clears the element: the `class` attribute, the inline `style`, the `dir` attribute, and every accessibility attribute. A renderer always starts from a blank `td`.
+Handsontable's render loop calls one function once per cell. Call that same function, and you get the whole per-cell flow: the metadata lookup, [`MergeCells`](@/api/mergeCells.md) coordinates, the [`beforeValueRender`](@/api/hooks.md#beforevaluerender) hook, the value formatter that `numeric` and `date` cells depend on, the [`beforeRenderer`](@/api/hooks.md#beforerenderer) and [`afterRenderer`](@/api/hooks.md#afterrenderer) hooks, and the base renderer that adds `htDimmed`, `htInvalid` and the alignment classes.
 
-Your repaint has to do the same, or state from the previous value survives into the new one:
+The alternative is to copy that flow by hand. It is the part of a repaint most likely to fall out of step with a future release, and a copy that drifts paints the wrong thing without telling you. Delegating leaves nothing to keep in sync.
+
+Two things the loop does around that call are still yours. First, it clears the `td`. Handsontable recycles `td` elements as you scroll, so a renderer always starts from a blank element:
 
 ```javascript
 function resetCell(td) {
@@ -93,65 +94,38 @@ function resetCell(td) {
 
   td.removeAttribute('style');
   td.removeAttribute('dir');
-
-  Array.from(td.attributes).forEach(({ name }) => {
-    if (name === 'role' || name.startsWith('aria-')) {
-      td.removeAttribute(name);
-    }
-  });
 }
 ```
 
-## Step 3 -- Resolve the value the renderer receives
+Second, the loop strips `role` and every `aria-*` attribute at this point, and your repaint must not. It strips them because a recycled `td` may have held a different cell a moment ago. A repaint always targets the same cell, so those attributes are already correct for it. Leave them, and there is nothing to rebuild.
 
-A renderer does not receive the raw value. Handsontable applies a formatter first: a cell-level `valueFormatter` wins, then the renderer's own `valueFormatter` static, which the `numeric` and `date` renderers set. Reproduce that precedence, or numbers and dates render unformatted:
+Then hand the cell over:
 
 ```javascript
-function formatCellValue(value, cellProperties, renderer) {
-  if (typeof cellProperties.valueFormatter === 'function') {
-    return cellProperties.valueFormatter(value, cellProperties);
+function paintCell(hot, td, visualRow, visualColumn) {
+  const renderableRow = hot.rowIndexMapper.getRenderableFromVisualIndex(visualRow);
+  const renderableColumn = hot.columnIndexMapper.getRenderableFromVisualIndex(visualColumn);
+
+  if (renderableRow === null || renderableColumn === null) {
+    return false; // a hidden row or column has no cell to paint
   }
 
-  if (typeof renderer === 'function' && typeof renderer.valueFormatter === 'function') {
-    return renderer.valueFormatter.call(cellProperties, value, cellProperties);
-  }
+  resetCell(td);
+  hot.view._wt.wtSettings.getSettingPure('cellRenderer')(renderableRow, renderableColumn, td);
 
-  return value;
+  return true;
 }
 ```
 
-## Step 4 -- Run the renderer, and then the base renderer
+Three details decide whether this works:
 
-Resolve the renderer from the cell metadata you already hold. [`getCellRenderer()`](@/api/core.md#getcellrenderer) also accepts a row and a column, but that form looks the metadata up again, re-running the [`cells`](@/api/options.md#cells) function this recipe exists to avoid.
+- **The call takes renderable indexes, not visual ones.** Hidden rows and columns are absent from the renderable space, which is why `getRenderableFromVisualIndex()` can answer `null`.
+- **Read the setting with `getSettingPure()`, not `getSetting()`.** `getSetting()` treats a function setting as something to call for a given cell, and throws here.
+- **`hot.view._wt` is internal.** It is the one part of this recipe that is not public API. It is also the only one, and it throws if it ever moves, instead of failing quietly. Re-test your repaint when you upgrade Handsontable.
 
-Handsontable runs the base renderer after your renderer, unless your renderer chained it itself. The base renderer applies the classes that carry cell state: `htDimmed` for read-only cells, `htInvalid` for cells that failed validation, and the alignment classes.
+If your cells all use a renderer you wrote, and none of them need the state classes the base renderer adds, you need none of this. Call your own renderer directly, passing the metadata from [`getCellMeta()`](@/api/core.md#getcellmeta).
 
-Handsontable tracks the chaining with `_isBaseRendererCalled` on the cell metadata. Two rules matter:
-
-- If you skip the check, a cell that uses a built-in renderer loses those classes.
-- If you forget to reset the flag, it stays on the shared metadata object, and the **next full render** skips the base renderer for that cell. Reset it in a `finally` block, so a renderer that throws cannot leave it set.
-
-```javascript
-const renderer = hot.getCellRenderer(cellProperties);
-
-hot.runHooks('beforeRenderer', td, visualRow, visualColumn, prop, value, cellProperties);
-
-try {
-  renderer(...rendererArgs);
-
-  if (!cellProperties._isBaseRendererCalled) {
-    baseRenderer(...rendererArgs);
-  }
-} finally {
-  cellProperties._isBaseRendererCalled = false;
-}
-
-hot.runHooks('afterRenderer', td, visualRow, visualColumn, prop, value, cellProperties);
-```
-
-`_isBaseRendererCalled` is internal. It is the one part of this recipe that is not public API, so re-test your repaint when you upgrade Handsontable.
-
-## Step 5 -- Cancel the render, and repaint in the same hook
+## Step 3 -- Cancel the render, and repaint in the same hook
 
 [`setDataAtCell()`](@/api/core.md#setdataatcell) always ends in a full render. To stop it, set `skipRender` on the object that [`beforeViewRender`](@/api/hooks.md#beforeviewrender) receives.
 
@@ -187,7 +161,7 @@ hot.addHook('beforeViewRender', (isForced, skipRenderObject) => {
 });
 ```
 
-## Step 6 -- Gate the cases you cannot handle
+## Step 4 -- Gate the cases you cannot handle
 
 This is the step that keeps the recipe safe. Cancel the render only when all of the following hold, and let Handsontable render normally in every other case:
 
@@ -274,7 +248,7 @@ If a renderer reads another cell -- a total, a difference, a status derived from
 
 ### Structural changes need a full render
 
-Anything that changes the shape of the grid has to fall through: [`minSpareRows`](@/api/options.md#minsparerows) adding a row, a new column appearing in object data, a formula cascade, or an asynchronous validator writing more cells. The gate in Step 6 covers these by comparing the row and column counts.
+Anything that changes the shape of the grid has to fall through: [`minSpareRows`](@/api/options.md#minsparerows) adding a row, a new column appearing in object data, a formula cascade, or an asynchronous validator writing more cells. The gate in Step 4 covers these by comparing the row and column counts.
 
 ### Framework wrappers need more care
 
@@ -284,12 +258,12 @@ On a grid whose renderers are React components, that leaves the portal cache cle
 
 Use this recipe on the JavaScript build. If you need it under a wrapper, verify it against your own cell renderers first.
 
-## How It Works - Complete Flow
+## How it works - complete flow
 
 1. You call [`setDataAtCell()`](@/api/core.md#setdataatcell) with the recipe's own `source`.
 2. `beforeChange` records the current row and column counts.
 3. Handsontable writes the value and calls `beforeChangeRender`, where the gate decides whether this change qualifies.
-4. Handsontable starts its render and fires `beforeViewRender`. If the change qualified, `skipRender` cancels the cell drawing and the repaint runs: clear the `td`, resolve the value, run the renderer, run the base renderer, restore the accessibility attributes.
+4. Handsontable starts its render and fires `beforeViewRender`. If the change qualified, `skipRender` cancels the cell drawing and the repaint runs: clear the `td`, then hand it to the same per-cell function the render loop uses.
 5. The draw finishes. Overlay positions and the selection are applied on top of the freshly painted cell, in Handsontable's usual order.
 6. Anything the gate turned down skips steps 4 and 5 and renders normally.
 
@@ -297,7 +271,7 @@ Use this recipe on the JavaScript build. If you need it under a wrapper, verify 
 
 - A render covers the rendered part of the grid, so its cost scales with your renderers, not with your data.
 - [`beforeViewRender`](@/api/hooks.md#beforeviewrender) can cancel the cell drawing while leaving overlays and selection intact -- and it is the right place to repaint, because the selection is applied after it.
-- Repainting a cell means reproducing the `td` reset, the value formatting, and the base-renderer chaining.
+- Handsontable's render loop paints each cell through one function you can call yourself, so a repaint delegates the value formatting, the renderer hooks, and the base-renderer chaining instead of copying them.
 - A frozen cell can exist in up to four tables, and [`getCell()`](@/api/core.md#getcell) reaches only two of them. The count follows the main table's rendered range, not the axis you froze.
 - Row height, column width, and cross-cell dependencies are resolved during a render, so a per-cell repaint cannot maintain them.
 - Cancelling a render also cancels [`afterViewRender`](@/api/hooks.md#afterviewrender), so anything listening for it -- including the framework wrappers -- stops being told.
