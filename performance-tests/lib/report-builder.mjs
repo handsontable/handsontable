@@ -4,12 +4,14 @@
 
 import {
   REGRESSION_CALLOUT_THRESHOLD_TIMING,
-  REGRESSION_CALLOUT_THRESHOLD_HEAP,
   INCOMPARABLE_LABELS,
   activeTotalsPerIteration,
   calcCv,
   fmtCvValue,
+  heapThresholdFor,
   pctChange,
+  relativeToShift,
+  runShift,
   sumActive,
   comparability,
   sumActiveComparable,
@@ -18,21 +20,29 @@ import {
   fmtPctWithEmoji,
   formatTitle,
 } from './thresholds.mjs';
+import { formatEnvironment } from './environment.mjs';
 
 /**
  * @param {Record<string, object>} allScenarioResults -- keyed by scenario name
  * @param {object | null} goldenSnapshots -- golden baseline (or null to self-compare)
- * @param {object} [meta] -- { pagesUrl, crossWindowScenarios, commit, runId }
+ * @param {object} [meta] -- { pagesUrl, crossWindowScenarios, commit, runId, environment,
+ *   baselineUnavailable }
  * @returns {string} full markdown report
  */
 export function buildReport(allScenarioResults, goldenSnapshots, meta = {}) {
   const goldenScenarios = goldenSnapshots?.scenarios || {};
   const hasGolden = Object.keys(goldenScenarios).length > 0;
   const crossWindow = new Set(meta.crossWindowScenarios || []);
+  const assessments = assessScenarios(allScenarioResults, goldenScenarios, crossWindow);
+  // Not on a self-comparison: every delta is 0 there, and a shift of 0.0% would read as a
+  // measurement of the runner.
+  const shift = hasGolden && !goldenSnapshots?.isSelfCompare
+    ? runShift(assessments.map(a => a.totalPct))
+    : null;
   const sections = [];
 
   // Summary table
-  sections.push(buildSummaryTable(allScenarioResults, goldenScenarios, hasGolden, crossWindow));
+  sections.push(buildSummaryTable(assessments, hasGolden, shift));
 
   // Hook timing, for the scenarios that measure it independently of the trace
   const hookTiming = buildHookTimingSection(allScenarioResults, goldenScenarios, hasGolden);
@@ -44,11 +54,11 @@ export function buildReport(allScenarioResults, goldenSnapshots, meta = {}) {
   // Regression callouts (only for scenarios > threshold). Suppressed on a self-comparison, where
   // every delta is 0% by construction and "within tolerance" would be a claim about nothing.
   if (hasGolden && !goldenSnapshots?.isSelfCompare) {
-    sections.push(buildRegressionCallouts(allScenarioResults, goldenScenarios, crossWindow));
+    sections.push(buildRegressionCallouts(assessments, shift));
   }
 
   // Where the baseline came from, so a reader can tell one run from five
-  const provenance = buildProvenanceFooter(goldenSnapshots, meta, hasGolden);
+  const provenance = buildProvenanceFooter(goldenSnapshots, meta, hasGolden, shift, assessments);
 
   if (provenance) {
     sections.push(provenance);
@@ -57,14 +67,51 @@ export function buildReport(allScenarioResults, goldenSnapshots, meta = {}) {
   // Link to full HTML report on GitHub Pages
   if (meta.pagesUrl) {
     sections.push(
-      `\u{1F4CA} **[Full interactive report \u2192](${meta.pagesUrl})**`
+      `\u{1F4CA} **[Full interactive report →](${meta.pagesUrl})**`
     );
   }
 
   return sections.join('\n\n');
 }
 
-// --- summary table ---
+/**
+ * The scenarios a run regressed on, for a caller that needs the list rather than the prose -- the
+ * golden (develop-push) teardown turns each into a `::warning` annotation on the develop run.
+ *
+ * Same assessment as the callouts, so the two cannot disagree -- and the same run shift, so a
+ * consumer can say how far a row sits from the rest of the run the way the callout prose does.
+ *
+ * @param {Record<string, object>} allScenarioResults
+ * @param {object | null} goldenSnapshots
+ * @param {object} [meta]
+ * @returns {Array<{ name: string, title: string, totalPct: number | null, heapPct: number | null,
+ *   timingRegressed: boolean, heapRegressed: boolean, shift: number | null,
+ *   relativePct: number | null }>}
+ */
+export function collectRegressions(allScenarioResults, goldenSnapshots, meta = {}) {
+  if (!goldenSnapshots || goldenSnapshots.isSelfCompare) {
+    return [];
+  }
+
+  const crossWindow = new Set(meta.crossWindowScenarios || []);
+  const assessments = assessScenarios(allScenarioResults, goldenSnapshots.scenarios || {}, crossWindow);
+  const shift = runShift(assessments.map(a => a.totalPct));
+
+  return assessments
+    .filter(a => a.timingRegressed || a.heapRegressed)
+    .map(({ name, title, totalPct, heapPct, timingRegressed, heapRegressed }) => ({
+      name,
+      title,
+      totalPct,
+      heapPct,
+      timingRegressed,
+      heapRegressed,
+      shift,
+      relativePct: relativeToShift(totalPct, shift),
+    }));
+}
+
+// --- assessment ---
 
 // Memory-focused scenarios: their primary metric is JS heap, not trace timing. They are grouped at
 // the bottom of the summary table so the timing scenarios read together at the top.
@@ -125,6 +172,49 @@ function totalDelta(current, golden, isCrossWindow) {
 }
 
 /**
+ * Everything the table, the callouts and the annotations need to know about one scenario, decided
+ * once. Deciding it per render site is how one comment came to print a red heap cell in its table
+ * and clear the same run in its callouts.
+ *
+ * @param {Record<string, object>} results
+ * @param {Record<string, object>} goldenScenarios
+ * @param {Set<string>} crossWindow
+ * @returns {Array<object>}
+ */
+function assessScenarios(results, goldenScenarios, crossWindow) {
+  return orderedScenarioEntries(results).map(([name, current]) => {
+    const golden = goldenScenarios[name];
+    const isCrossWindow = crossWindow.has(name);
+    const { change: totalPct, incomplete, label, shortLabel } = totalDelta(current, golden, isCrossWindow);
+    // Heap survives a missed timing category -- the two are measured independently -- but not a
+    // window mismatch: jsHeapMaxBytes is a maximum over the samples inside the window, so two
+    // windows sample two different things.
+    const heapPct = !golden || isCrossWindow
+      ? null
+      : pctChange(golden.updateCounters?.jsHeapMaxBytes, current.updateCounters?.jsHeapMaxBytes);
+    const heapThreshold = heapThresholdFor(name);
+
+    return {
+      name,
+      title: formatTitle(name),
+      current,
+      golden,
+      isCrossWindow,
+      totalPct,
+      incomplete,
+      label,
+      shortLabel,
+      heapPct,
+      heapThreshold,
+      timingRegressed: totalPct != null && totalPct > REGRESSION_CALLOUT_THRESHOLD_TIMING,
+      heapRegressed: heapPct != null && heapPct > heapThreshold,
+    };
+  });
+}
+
+// --- summary table ---
+
+/**
  * Renders the two spreads a reader needs to weigh a delta, side by side.
  *
  * They measure different things and are not interchangeable. The first is how much the three
@@ -142,63 +232,66 @@ function reliabilityCell(current, golden) {
   return `${fmtCvValue(calcCv(iterationTotals))} / ${fmtCvValue(golden?.spread)}`;
 }
 
-function buildSummaryTable(results, goldenScenarios, hasGolden, crossWindow) {
+function buildSummaryTable(assessments, hasGolden, shift) {
   const headers = hasGolden
     ? [
-      'Scenario', 'Scripting', 'Rendering', 'Painting', 'Total', '\u0394 Total',
-      'CV run / base', 'JS Heap', '\u0394 Heap',
+      'Scenario', 'Scripting', 'Rendering', 'Painting', 'Total', 'Δ Total', 'Δ vs shift',
+      'CV run / base', 'JS Heap', 'Δ Heap',
     ]
     : ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Total', 'CV run', 'JS Heap'];
 
   const rows = [];
 
-  for (const [name, current] of orderedScenarioEntries(results)) {
+  for (const a of assessments) {
+    const { current, golden } = a;
     const cats = current.categories || {};
     const total = sumActive(cats);
     const heap = current.updateCounters?.jsHeapMaxLabel ?? '--';
 
     if (hasGolden) {
-      const golden = goldenScenarios[name];
-      const isCrossWindow = crossWindow.has(name);
-      const { change, incomplete, shortLabel } = totalDelta(current, golden, isCrossWindow);
       // The verdict's own wording. A fixed "baseline incomplete" misattributes a failure of this
       // run's own capture to develop, and sends a maintainer to re-run develop for nothing.
-      const totalChange = incomplete ? shortLabel : fmtPctWithEmoji(change);
-      // Heap survives a missed timing category -- the two are measured independently -- but not a
-      // window mismatch: jsHeapMaxBytes is a maximum over the samples inside the window, so two
-      // windows sample two different things. Gated here as well as in the callouts, so the table
-      // and the callout below it cannot reach opposite verdicts on the same run.
-      const heapChange = isCrossWindow
+      const totalChange = a.incomplete ? a.shortLabel : fmtPctWithEmoji(a.totalPct);
+      // Informational, no emoji: the callout gate runs on the raw delta and a second set of colours
+      // here would let the two columns reach opposite verdicts on one row.
+      const vsShift = fmtPct(relativeToShift(a.totalPct, shift));
+      // Gated here as well as in the callouts, so the table and the callout below it cannot reach
+      // opposite verdicts on the same run.
+      const heapChange = a.isCrossWindow
         // Not the baseline-side label: the heap cell is only ever withheld for a window mismatch,
         // where the baseline captured everything and it is the windows that differ. Saying
         // "baseline incomplete" here gives one row two explanations for one cause.
         ? INCOMPARABLE_LABELS['window-mismatch']
-        : fmtPctWithEmoji(
-          pctChange(golden?.updateCounters?.jsHeapMaxBytes, current.updateCounters?.jsHeapMaxBytes),
-          REGRESSION_CALLOUT_THRESHOLD_HEAP
-        );
+        : fmtPctWithEmoji(a.heapPct, a.heapThreshold);
 
       rows.push([
-        formatTitle(name), fmtMs(cats.scripting), fmtMs(cats.rendering),
-        fmtMs(cats.painting), fmtMs(total), totalChange,
+        a.title, fmtMs(cats.scripting), fmtMs(cats.rendering),
+        fmtMs(cats.painting), fmtMs(total), totalChange, vsShift,
         reliabilityCell(current, golden), heap, heapChange,
       ]);
     } else {
       rows.push([
-        formatTitle(name), fmtMs(cats.scripting), fmtMs(cats.rendering),
+        a.title, fmtMs(cats.scripting), fmtMs(cats.rendering),
         fmtMs(cats.painting), fmtMs(total),
         fmtCvValue(calcCv(activeTotalsPerIteration(current._iterationValues?.categories))), heap,
       ]);
     }
   }
 
+  // The shift sentence only when a shift was estimated; on a self-comparison or a thin table the
+  // column reads "--" and the footer says nothing about it either.
+  const shiftLegend = shift != null
+    ? '`Δ vs shift`: the delta with this run\'s common shift against the baseline removed (see the '
+      + 'footer); callouts use the raw `Δ Total`. '
+    : '';
   const legend = hasGolden
-    ? '\n\n<sub>`CV run / base`: spread across the three iterations of this run, then across the '
+    ? `\n\n<sub>${shiftLegend}`
+      + '`CV run / base`: spread across the three iterations of this run, then across the '
       + 'develop runs behind the baseline. A high second number means the baseline itself moves, '
       + 'so read the delta beside it loosely.</sub>'
     : '';
 
-  return `## \u26A1 Performance Results\n\n${formatMarkdownTable(headers, rows)}${legend}`;
+  return `## ⚡ Performance Results\n\n${formatMarkdownTable(headers, rows)}${legend}`;
 }
 
 // --- hook timing ---
@@ -239,7 +332,7 @@ function buildHookTimingSection(results, goldenScenarios, hasGolden) {
   }
 
   const headers = hasGolden
-    ? ['Scenario', 'Hook', 'CV run', '\u0394 Hook']
+    ? ['Scenario', 'Hook', 'CV run', 'Δ Hook']
     : ['Scenario', 'Hook', 'CV run'];
 
   return `### Hook timing\n\n${formatMarkdownTable(headers, rows)}`;
@@ -261,61 +354,52 @@ function buildTimingBreakdown(current, golden) {
   return parts.join(', ');
 }
 
-function buildRegressionCallouts(results, goldenScenarios, crossWindow) {
+function buildRegressionCallouts(assessments, shift) {
   const callouts = [];
   const skipped = [];
   const noBaseline = [];
 
-  for (const [name, current] of orderedScenarioEntries(results)) {
-    const golden = goldenScenarios[name];
-
-    if (!golden) {
+  for (const a of assessments) {
+    if (!a.golden) {
       // Not in the baseline at all -- new, or omitted by the median window -- which is not the
       // same as a comparison that failed. Reported by name rather than silently dropped, so a
       // scenario missing from every count above has somewhere honest to land.
-      noBaseline.push(formatTitle(name));
+      noBaseline.push(a.title);
       continue;
     }
 
-    const isCrossWindow = crossWindow.has(name);
-    const { change: totalPct, incomplete, label } = totalDelta(current, golden, isCrossWindow);
-
-    if (incomplete) {
+    if (a.incomplete) {
       // A window mismatch withholds heap too (jsHeapMaxBytes is a maximum over the samples inside
       // the parsed window, invalid across two different windows), so a reader must not conclude
       // heap was still assessed just because it isn't called out separately below.
-      const heapNote = isCrossWindow ? '; heap also not assessed' : '';
+      const heapNote = a.isCrossWindow ? '; heap also not assessed' : '';
 
-      skipped.push(`${formatTitle(name)} (${label}${heapNote})`);
+      skipped.push(`${a.title} (${a.label}${heapNote})`);
     }
 
-    // Heap survives a baseline that missed a timing category -- the two are measured independently.
-    // It does not survive a window mismatch: jsHeapMaxBytes is a maximum over the UpdateCounters
-    // samples inside the parsed window, so two different windows sample two different things.
-    const heapPct = isCrossWindow
-      ? null
-      : pctChange(
-        golden.updateCounters?.jsHeapMaxBytes, current.updateCounters?.jsHeapMaxBytes
-      );
-    const timingRegressed = totalPct != null && totalPct > REGRESSION_CALLOUT_THRESHOLD_TIMING;
-    const heapRegressed = heapPct != null && heapPct > REGRESSION_CALLOUT_THRESHOLD_HEAP;
-
-    if (!timingRegressed && !heapRegressed) {
+    if (!a.timingRegressed && !a.heapRegressed) {
       continue;
     }
 
-    const title = formatTitle(name);
-    const header = timingRegressed
-      ? `> \u26A0\uFE0F **${title}** regressed ${fmtPct(totalPct)}`
-      : `> \u26A0\uFE0F **${title}** regressed`;
+    const header = a.timingRegressed
+      ? `> ⚠️ **${a.title}** regressed ${fmtPct(a.totalPct)}`
+      : `> ⚠️ **${a.title}** regressed`;
     const lines = [header];
 
-    if (timingRegressed) {
-      lines.push(`> ${buildTimingBreakdown(current, golden)}`);
+    if (a.timingRegressed) {
+      lines.push(`> ${buildTimingBreakdown(a.current, a.golden)}`);
+
+      // Where the run as a whole sits tells the reader whether this row stands out from it. Prose,
+      // not a verdict: the callout fired on the raw delta and stays fired.
+      const relative = relativeToShift(a.totalPct, shift);
+
+      if (relative != null) {
+        lines.push(`> ${fmtPct(relative)} relative to this run's shift of ${fmtPct(shift)}`);
+      }
     }
 
-    if (heapRegressed) {
-      lines.push(`> JS heap ${fmtPct(heapPct)} larger`);
+    if (a.heapRegressed) {
+      lines.push(`> JS heap ${fmtPct(a.heapPct)} larger`);
     }
 
     callouts.push(lines.join('\n'));
@@ -341,7 +425,7 @@ function buildRegressionCallouts(results, goldenScenarios, crossWindow) {
   const note = notes.length > 0 ? `\n\n<sub>${notes.join(' ')}</sub>` : '';
 
   if (callouts.length === 0) {
-    return `All assessed scenarios within tolerance \u2705${note}`;
+    return `All assessed scenarios within tolerance ✅${note}`;
   }
 
   return `### Regressions\n\n${callouts.join('\n\n')}${note}`;
@@ -350,24 +434,40 @@ function buildRegressionCallouts(results, goldenScenarios, crossWindow) {
 // --- provenance ---
 
 /**
- * States what the deltas above were measured against. Without this the comment reads identically
- * whether the baseline was a five-run median or one fluke develop push.
+ * States what the deltas above were measured against, on what, and how far the whole run sits from
+ * it. Without this the comment reads identically whether the baseline was a five-run median or one
+ * fluke develop push, and whether the runner was a fast one or a slow one.
  *
  * @param {object | null} goldenSnapshots
  * @param {object} meta
  * @param {boolean} hasGolden
+ * @param {number | null} shift
+ * @param {Array<object>} assessments
  * @returns {string}
  */
-function buildProvenanceFooter(goldenSnapshots, meta, hasGolden) {
+function buildProvenanceFooter(goldenSnapshots, meta, hasGolden, shift, assessments) {
   if (!hasGolden) {
-    return '';
+    // A golden (develop-push) run with nothing compatible to compare against -- the first pushes
+    // after a Chromium or harness change. Compare mode falls back to a self-comparison and says why
+    // there; here there is no self-comparison, so say why here or the job summary reads as if the
+    // tooling silently stopped comparing.
+    if (!meta.baselineUnavailable) {
+      return '';
+    }
+
+    const current = formatCurrent(meta);
+
+    return `<sub>No comparable develop baseline: ${meta.baselineUnavailable}.${current}</sub>`;
   }
 
   let baseline;
 
   if (goldenSnapshots?.isSelfCompare) {
-    baseline = 'this run compared against itself, no develop baseline was available '
-      + '(every delta above is 0% by construction)';
+    // The reason the run had nothing to compare against is the one thing a reader of a self-comparison
+    // needs, and "no develop baseline was available" alone sends them to check gh-pages.
+    const why = meta.baselineUnavailable ? `: ${meta.baselineUnavailable}` : ', no develop baseline was available';
+
+    baseline = `this run compared against itself${why} (every delta above is 0% by construction)`;
   } else if (goldenSnapshots?.isMedian) {
     const sources = goldenSnapshots.medianSourceTimestamps || [];
     const range = sources.length > 1
@@ -381,19 +481,52 @@ function buildProvenanceFooter(goldenSnapshots, meta, hasGolden) {
     baseline = 'unknown';
   }
 
-  const currentParts = [];
+  // The browser the baseline was recorded in. Same as the current one whenever the compatibility
+  // key selected it; printed anyway, because a local run without history can compare across it.
+  if (!goldenSnapshots?.isSelfCompare && goldenSnapshots?.environment?.chromium) {
+    baseline += `, Chromium ${goldenSnapshots.environment.chromium}`;
+  }
+
+  const current = formatCurrent(meta);
+
+  let shiftNote = '';
+
+  if (shift != null) {
+    const rows = assessments.filter(a => a.totalPct != null).length;
+
+    shiftNote = ` Run shift: ${fmtPct(shift)} (median Δ across ${rows} scenarios: how much `
+      + 'faster or slower this runner ran than the baseline\'s, which every scenario shares. '
+      + '`Δ vs shift` removes it; callouts use the raw `Δ Total`, because a change that '
+      + 'slows every scenario alike is exactly what the shift cannot see).';
+  }
+
+  return `<sub>Baseline: ${baseline}.${current}${shiftNote}</sub>`;
+}
+
+/**
+ * " Current: commit `abc1234`, run `42`, Chromium ... · CPU ×N · image." -- or '' when nothing is known.
+ *
+ * @param {object} meta
+ * @returns {string}
+ */
+function formatCurrent(meta) {
+  const parts = [];
 
   if (meta.commit) {
-    currentParts.push(`commit \`${String(meta.commit).slice(0, 7)}\``);
+    parts.push(`commit \`${String(meta.commit).slice(0, 7)}\``);
   }
 
   if (meta.runId) {
-    currentParts.push(`run \`${meta.runId}\``);
+    parts.push(`run \`${meta.runId}\``);
   }
 
-  const current = currentParts.length > 0 ? ` Current: ${currentParts.join(', ')}.` : '';
+  const environment = formatEnvironment(meta.environment);
 
-  return `<sub>Baseline: ${baseline}.${current}</sub>`;
+  if (environment) {
+    parts.push(environment);
+  }
+
+  return parts.length > 0 ? ` Current: ${parts.join(', ')}.` : '';
 }
 
 // --- helpers ---

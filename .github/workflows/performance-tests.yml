@@ -65,18 +65,23 @@ jobs:
         if: inputs.hot-prebuilt
         run: tar -zxf dist.tar.gz ./handsontable/dist ./handsontable/styles && rm dist.tar.gz
 
+      # Both modes. A golden (develop-push) run compares the snapshot it records against the
+      # trailing median too, for its report and for `::warning` annotations -- so a shift on
+      # develop is seen on the develop run that introduced it, not on the next five pull requests.
+      # The snapshot it saves is never derived from history (teardown.mjs saves before it loads).
       - name: Fetch golden snapshots from GitHub Pages
-        if: env.PERF_MODE == 'compare'
         run: |
           git fetch origin gh-pages:gh-pages 2>/dev/null || true
           mkdir -p performance-tests/golden
 
           # Single-file fallback, kept for when the history/ fetch below is empty or
-          # has nothing with a marked trace window on every scenario.
-          if git show gh-pages:performance-reports/develop/latest.json > performance-tests/golden/snapshots.json 2>/dev/null; then
+          # has nothing compatible with this run (marked trace window on every scenario,
+          # same Chromium build, same harness version). Compare mode only: in golden mode
+          # the file would be this run's own snapshot.
+          if [ "$PERF_MODE" = "compare" ] && git show gh-pages:performance-reports/develop/latest.json > performance-tests/golden/snapshots.json 2>/dev/null; then
             echo "Golden baseline (latest.json) restored from gh-pages"
           else
-            echo "No golden baseline found on gh-pages -- running without baseline"
+            echo "No single-file golden restored -- relying on the history median"
             rm -f performance-tests/golden/snapshots.json
           fi
 
@@ -134,6 +139,15 @@ jobs:
           path: performance-tests/output
           retention-days: 14
           if-no-files-found: warn
+
+      # Token-free, both modes: on the develop push this is where the run's comparison against
+      # the trailing median is read (the sticky comment below is pull-request only).
+      - name: Write the performance summary to the job summary
+        if: always()
+        run: |
+          if [ -f performance-tests/output/result.md ]; then
+            cat performance-tests/output/result.md >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Deploy golden to GitHub Pages
         if: always() && env.PERF_MODE == 'golden'
