@@ -24,6 +24,13 @@
       throw new Error('Unknown ?direction= value: ' + JSON.stringify(params.get('direction')));
     }
 
+    // Frozen panes are opt-in: index 0 is an ordinary edge without them, and a freeze line with
+    // them, which is exactly the distinction the handle-position specs cover.
+    window.htFrozen = ({ '0': 0, '1': 1 })[params.get('frozen') ?? '0'];
+    if (window.htFrozen === undefined) {
+      throw new Error('Unknown ?frozen= value: ' + JSON.stringify(params.get('frozen')));
+    }
+
     // Written into <head> so the themed stylesheet is present before first render.
     document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
   </script>
@@ -63,8 +70,8 @@
       height: 300,
       colHeaders: true,
       rowHeaders: true,
-      fixedRowsTop: 1,
-      fixedColumnsStart: 1,
+      fixedRowsTop: window.htFrozen,
+      fixedColumnsStart: window.htFrozen,
       layoutDirection: window.htDirection,
       renderer: testIdRenderer,
       licenseKey: 'non-commercial-and-evaluation',

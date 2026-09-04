@@ -638,8 +638,10 @@ class Border {
     const hitAreaSize = parseInt(topHitAreaStyles.width, 10);
     const totalTableWidth = this.wot.wtTable.getWidth();
     const totalTableHeight = this.wot.wtTable.getHeight();
-    const isAtFrozenRowBoundary = fromRow === this.wot.wtSettings.getSetting('fixedRowsTop');
-    const isAtFrozenColumnBoundary = fromCol === this.wot.wtSettings.getSetting('fixedColumnsStart');
+    // Guarded against a zero fixed count, where index 0 is an ordinary edge rather than a freeze
+    // line. Only a real frozen pane can cover the handle, so only it earns the inset.
+    const isAtFrozenRowBoundary = this.isFrozenBoundaryEdge('row', fromRow);
+    const isAtFrozenColumnBoundary = this.isFrozenBoundaryEdge('column', fromCol);
 
     topStyles.top = `${parseInt(String(isAtFrozenRowBoundary ? top + 1 : top - handleSize - 1), 10)}px`;
     topStyles[inlinePosProperty] = `${
@@ -697,7 +699,8 @@ class Border {
       bottomHitAreaStyles.display = 'none';
     }
 
-    if (isAtFrozenRowBoundary || isAtFrozenColumnBoundary) {
+    if (fromRow === this.wot.wtSettings.getSetting('fixedRowsTop') ||
+        fromCol === this.wot.wtSettings.getSetting('fixedColumnsStart')) {
       topStyles.zIndex = '9999';
       topHitAreaStyles.zIndex = '9999';
     } else {

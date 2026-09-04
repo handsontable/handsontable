@@ -22,12 +22,21 @@ export class MobileHandlesPage {
   }
 
   /**
-   * Navigate to the fixture and wait for the grid to render.
+   * Navigate to the fixture and wait for the grid to render. Frozen panes are off by default, so
+   * row 0 and column 0 stay ordinary edges unless `frozen` is set.
    */
-  async goto(direction: 'ltr' | 'rtl' = 'ltr'): Promise<void> {
-    await this.page.goto(
-      `/tests/fixtures/demo/mobile-handles.html?theme=${this.theme}&bundle=${this.bundle}&direction=${direction}`
-    );
+  async goto({ direction = 'ltr', frozen = false }: {
+    direction?: 'ltr' | 'rtl';
+    frozen?: boolean;
+  } = {}): Promise<void> {
+    const query = new URLSearchParams({
+      theme: this.theme,
+      bundle: this.bundle,
+      direction,
+      frozen: frozen ? '1' : '0',
+    });
+
+    await this.page.goto(`/tests/fixtures/demo/mobile-handles.html?${query}`);
     await expect(this.cell(1, 1)).toBeVisible();
   }
 
@@ -98,5 +107,23 @@ export class MobileHandlesPage {
 
       return element?.closest('.topSelectionHandle-HitArea') !== null;
     });
+  }
+
+  /**
+   * Returns whether the top handle hangs off the cell's outer corner (LTR), which is where it
+   * belongs whenever no frozen pane covers that corner. The corner placement leaves the handle
+   * touching the cell edge, while the frozen-pane placement moves it a full handle inside, so
+   * half a handle separates the two.
+   */
+  async isTopHandleOnCellOuterCorner(row: number, col: number): Promise<boolean> {
+    const handleBox = await this.topHandle().boundingBox();
+    const cellBox = await this.cell(row, col).boundingBox();
+
+    if (!handleBox || !cellBox) {
+      return false;
+    }
+
+    return handleBox.y + handleBox.height <= cellBox.y + (handleBox.height / 2)
+      && handleBox.x + handleBox.width <= cellBox.x + (handleBox.width / 2);
   }
 }
