@@ -25,7 +25,10 @@ jobs:
     timeout-minutes: 30
     env:
       HOT_PREBUILT: ${{ inputs.hot-prebuilt }}
-      EMITTED_TYPES_TOOLS: ${{ runner.temp }}/emitted-types-tools
+      # Do not put ${{ runner.* }} in job-level env. A reusable workflow
+      # rejects the `runner` context there, the caller fails at parse time
+      # with 0 jobs, and CI Gate never reports. $RUNNER_TEMP is set on the
+      # runner for every step — use that in the install script instead.
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # https://github.com/pnpm/action-setup/releases/tag/v6.0.8
@@ -73,14 +76,15 @@ jobs:
           key: emitted-types-npx-${{ runner.os }}-ts5.1.6-publint0.3.21-attw0.18.3
       - name: Install type-check tools
         run: |
-          mkdir -p "$EMITTED_TYPES_TOOLS"
-          cd "$EMITTED_TYPES_TOOLS"
+          tools="$RUNNER_TEMP/emitted-types-tools"
+          mkdir -p "$tools"
+          cd "$tools"
           npm init -y >/dev/null
           npm install --no-package-lock \
             typescript@5.1.6 \
             publint@0.3.21 \
             @arethetypeswrong/cli@0.18.3
-          echo "$EMITTED_TYPES_TOOLS/node_modules/.bin" >> "$GITHUB_PATH"
+          echo "$tools/node_modules/.bin" >> "$GITHUB_PATH"
       - name: Type-check downleveled .d.ts with pinned TS 5.1.6
         run: |
           cd handsontable

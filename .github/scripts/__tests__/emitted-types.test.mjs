@@ -45,6 +45,19 @@ test('type-check tools are installed once, not via three cold npx -y calls', () 
   );
 });
 
+test('job-level env does not use the runner context', () => {
+  // Reusable workflows reject ${{ runner.* }} in jobs.<id>.env. The caller
+  // then fails at parse time with 0 jobs, so CI Gate never reports
+  // (DEV-2783, runs 33853301602 / 33853913419).
+  const jobEnv = withoutComments.match(/\n    env:\n([\s\S]*?)\n    steps:/)?.[1] ?? '';
+
+  assert.doesNotMatch(
+    jobEnv,
+    /\$\{\{\s*runner\./,
+    'do not use ${{ runner.* }} in job-level env of a reusable workflow'
+  );
+});
+
 test('attw checks the typed public roots, not every exports path', () => {
   assert.match(
     withoutComments,
