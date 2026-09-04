@@ -154,10 +154,22 @@ Consequences worth knowing:
   keyed on that paints the grid's OUTER frame color. So the same gridline came out
   `--ht-border-color` with plain `rowHeaders` and `--ht-cell-horizontal-border-color` with
   `fixedColumnsStart` — invisible in `horizon`, where the cell-border token is transparent, and
-  visible in the other shape. `_base.scss` pins both the body row header and the corner `th` to the
-  cell-border color under `.htRowHeaders`, with two carve-outs: `.emptyColumns`, where the row header
-  really is the grid's inline-end edge, and `ht__active_highlight-prev`, which is how an active
-  column-0 header now gets its inline-start accent (that pixel moved to the corner).
+  visible in the other shape. `_base.scss` pins the seam owner to the cell-border color under
+  `.htRowHeaders`, with three carve-outs: `.emptyColumns`, where the row header really is the grid's
+  inline-end edge; `ht__active_highlight-prev`, which is how an active column-0 header gets its
+  inline-start accent (that pixel moved to the corner); and `ht__active_highlight`, because the seam
+  is the active row header's own inline-end and the accent has to win there. The grid managed that
+  last one only when scrolled before, since the border was 0px at horizontal offset 0.
+- **A grid can carry more than one row header column**, and then the seam to column 0 is the LAST
+  one's `border-inline-end`. `afterGetRowHeaderRenderers` is a documented hook that appends
+  renderers, and `autoRowHeaderSize` measures each of them, so this is a supported shape rather than
+  a curiosity. The body selector therefore matches every `th` in a body row - all of them are row
+  headers - rather than `th:first-child`; the inner ones need no override because they are never
+  `:last-child`. The HEAD row cannot be handled the same way: CSS cannot count how many corner cells
+  precede the first column header, so that half stays on `:first-child` and a grid with two or more
+  row headers keeps drawing its head-row seam in the frame color. That is what it does today too, so
+  it is a pre-existing quirk this change neither fixes nor worsens - fixing it needs a marker class
+  from the engine on the last row header.
 - Without row headers, column 0 is the first cell of its row and still draws the grid's own
   inline-start frame inside its declared width. It stays 1px narrower than the rest — deliberately out
   of scope for #6673, and pinned as a control case in

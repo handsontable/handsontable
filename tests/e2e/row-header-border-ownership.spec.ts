@@ -155,6 +155,65 @@ test.describe('Row header border ownership', () => {
     }
   });
 
+  test('lets the LAST row header own the seam when the grid has several', async () => {
+    // `afterGetRowHeaderRenderers` is a documented hook and `autoRowHeaderSize` measures each row
+    // header it appends, so more than one row header column is a supported shape. The seam to
+    // column 0 is then the last one's inline-end - and that is the `th` which goes `:last-child` in
+    // the row-header-only overlay, so keying the seam color on `:first-child` alone left it taking
+    // the grid's outer-frame color in that shape while the frozen shape kept the cell-border color.
+    const reference = await grid.inlineEndBorderColor(grid.firstBodyCell('row-headers'));
+
+    expect(await grid.rowHeaderCount('multi-row-headers')).toBe(2);
+    expect(await grid.rowHeaderCount('multi-frozen')).toBe(2);
+
+    for (const testId of ['multi-row-headers', 'multi-frozen']) {
+      expect(await grid.inlineEndBorderColor(grid.lastRowHeaderCell(testId))).toBe(reference);
+      expect(await grid.inlineEndBorderColor(grid.rowHeaderCell(testId))).toBe(reference);
+      expect(await grid.borders(grid.firstBodyCell(testId))).toEqual({ start: 0, end: 1 });
+    }
+
+    const declared = await grid.declaredColumnWidth();
+
+    expect(await grid.bodyCellContentWidths('multi-row-headers', 4))
+      .toEqual([declared - 1, declared - 1, declared - 1, declared - 1]);
+  });
+
+  test('keeps the active accent on the seam an active row header owns', async () => {
+    // The seam color rule must not outrank the active-header accent: the seam is the active row
+    // header's OWN inline-end. The expected value is read from the accent the column axis already
+    // uses - the corner's `ht__active_highlight-prev` edge with column 0 selected - rather than from
+    // a literal, since every theme picks its own. `classic` maps the accent and the cell-border
+    // color to the same value, so only the `main` and `horizon` legs can actually fail this.
+    await grid.selectColumn('rowHeaders', 0);
+
+    const accent = await grid.inlineEndBorderColor(grid.topCloneCornerCell('row-headers'));
+
+    for (const [name, testId] of [
+      ['rowHeaders', 'row-headers'],
+      ['frozen', 'frozen'],
+      ['multiRowHeaders', 'multi-row-headers'],
+      ['multiFrozen', 'multi-frozen'],
+    ]) {
+      // Row 0: `lastRowHeaderCell()` reads the first rendered body row, so that is the row whose
+      // header the selection has to mark active.
+      await grid.selectRow(name, 0);
+
+      expect(await grid.inlineEndBorderColor(grid.lastRowHeaderCell(testId))).toBe(accent);
+
+      // Only the inline END is asserted: with two row headers the last one is not `:first-child`,
+      // so it correctly draws no inline-start border - that one belongs to the first row header,
+      // which carries the grid's outer frame.
+      expect((await grid.borders(grid.lastRowHeaderCell(testId))).end).toBe(1);
+    }
+
+    // The grid used to manage this only when scrolled: the border was 0 at horizontal offset 0 and
+    // 1px once the grid moved, so the accent appeared and disappeared with the scroll position.
+    await grid.scrollHorizontallyTo('rowHeaders', 'row-headers', 12);
+    await grid.selectRow('rowHeaders', 0);
+
+    expect(await grid.inlineEndBorderColor(grid.lastRowHeaderCell('row-headers'))).toBe(accent);
+  });
+
   test('keeps the selection edge on column 0 clear of the row header', async () => {
     await grid.selectCell('rowHeaders', 1, 0);
 

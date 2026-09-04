@@ -381,14 +381,28 @@
     // but the row-header column makes that `th` `:last-child` by structure rather than by position in
     // the grid, so it would take the grid's outer-frame color there while the same grid with
     // `fixedColumnsStart` kept the plain cell-border color — visibly different in a theme whose cell
-    // borders are transparent. `.emptyColumns` is the one case where the row header really is the
-    // grid's inline-end edge, and it keeps the frame rule. `ht__active_highlight-prev` is excluded so
-    // an active column-0 header still gets its inline-start accent from the corner, which is where
-    // that pixel now lives.
+    // borders are transparent.
+    // The BODY selector deliberately has no `:first-child`. Every `th` in a body row IS a row header
+    // (`afterGetRowHeaderRenderers` lets a grid carry several), and the one that owns the seam to
+    // column 0 is the LAST of them — which is exactly the one that goes `:last-child` in the
+    // row-header-only overlay. The inner ones need no override: they are never `:last-child`, so the
+    // base cell rule already gives them this color. In a HEAD row the corner cells cannot be counted
+    // in CSS, so that half stays keyed on `:first-child` and a grid with two or more row headers
+    // keeps drawing its head-row seam in the frame color, exactly as it does today — same value as
+    // before this change, not a new divergence.
+    // Two exclusions. `.emptyColumns` is the one case where the row header really is the grid's
+    // inline-end edge, so it keeps the frame rule. And an ACTIVE header keeps its accent: the seam is
+    // the active row header's own inline-end, and the active column-0 header's inline-start accent is
+    // drawn by the corner (`ht__active_highlight-prev`), which is where that pixel now lives. Without
+    // these two the accent went missing on the seam — and it went missing only in the shape with one
+    // row header, because a second one is not `:first-child`.
     &.htRowHeaders {
       .ht_master:not(.emptyColumns),
       .ht_master:not(.emptyColumns) ~ .handsontable:not(.htGhostTable) {
-        :where(#{$grid-head-row}, #{$grid-body-row}) > th:first-child:not(.ht__active_highlight-prev) {
+        $seam-owner: ":not(.ht__active_highlight):not(.ht__active_highlight-prev)";
+
+        :where(#{$grid-head-row}) > th:first-child#{$seam-owner},
+        :where(#{$grid-body-row}) > th#{$seam-owner} {
           border-inline-end-color: var(--ht-cell-horizontal-border-color);
         }
       }

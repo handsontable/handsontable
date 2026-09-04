@@ -29,7 +29,9 @@ export interface HorizontalMetrics {
  */
 export class RowHeaderBorderOwnershipPage {
   /** Every grid the fixture builds. `goto()` waits for all of them. */
-  static readonly GRID_IDS = ['row-headers', 'frozen', 'rtl', 'nested', 'control', 'empty'];
+  static readonly GRID_IDS = [
+    'row-headers', 'frozen', 'rtl', 'nested', 'control', 'empty', 'multi-row-headers', 'multi-frozen',
+  ];
 
   readonly page: Page;
   readonly theme: string;
@@ -121,6 +123,77 @@ export class RowHeaderBorderOwnershipPage {
     return this.grid(testId)
       .locator('.ht_clone_inline_start table.htCore > tbody > tr').first()
       .locator('th').first();
+  }
+
+  /**
+   * The LAST row header cell of a body row - the one whose inline-end is the seam to column 0. On a
+   * grid with a single row header that is the same cell as `rowHeaderCell()`; with several it is not,
+   * and it is the one that goes `:last-child` in the overlay that renders only the row headers.
+   *
+   * @param {string} testId The grid's test id.
+   * @returns {Locator}
+   */
+  lastRowHeaderCell(testId: string): Locator {
+    return this.grid(testId)
+      .locator('.ht_clone_inline_start table.htCore > tbody > tr').first()
+      .locator('th').last();
+  }
+
+  /**
+   * The corner header cell as the TOP clone renders it. `SelectionManager` stamps
+   * `ht__active_highlight-prev` on the `th` directly before an active header, and for an active
+   * column-0 header that is this element - the corner overlay holds a different `th` and is not
+   * stamped, so the accent has to be read here.
+   *
+   * @param {string} testId The grid's test id.
+   * @returns {Locator}
+   */
+  topCloneCornerCell(testId: string): Locator {
+    return this.grid(testId)
+      .locator('.ht_clone_top table.htCore > thead > tr').first()
+      .locator('th').first();
+  }
+
+  /**
+   * Selects a whole column through the grid's own API, which is what marks its header active.
+   *
+   * @param {string} name The grid's key in `window.grids`.
+   * @param {number} column The visual column index.
+   */
+  async selectColumn(name: string, column: number): Promise<void> {
+    await this.page.evaluate(
+      ([gridName, c]) => (window as unknown as {
+        grids: Record<string, { selectColumns: (column: number) => void }>
+      }).grids[gridName as string].selectColumns(c as number),
+      [name, column]
+    );
+  }
+
+  /**
+   * How many row header columns a body row renders.
+   *
+   * @param {string} testId The grid's test id.
+   * @returns {Promise<number>}
+   */
+  async rowHeaderCount(testId: string): Promise<number> {
+    return this.grid(testId)
+      .locator('.ht_clone_inline_start table.htCore > tbody > tr').first()
+      .locator('th').count();
+  }
+
+  /**
+   * Selects a whole row through the grid's own API, which is what marks its row header active.
+   *
+   * @param {string} name The grid's key in `window.grids`.
+   * @param {number} row The visual row index.
+   */
+  async selectRow(name: string, row: number): Promise<void> {
+    await this.page.evaluate(
+      ([gridName, r]) => (window as unknown as {
+        grids: Record<string, { selectRows: (row: number) => void }>
+      }).grids[gridName as string].selectRows(r as number),
+      [name, row]
+    );
   }
 
   /**
@@ -372,7 +445,9 @@ export class RowHeaderBorderOwnershipPage {
     }
 
     // The control grid has no row headers, so it draws no inline-start clone at all.
-    for (const testId of ['row-headers', 'frozen', 'rtl', 'nested', 'empty']) {
+    for (const testId of [
+      'row-headers', 'frozen', 'rtl', 'nested', 'empty', 'multi-row-headers', 'multi-frozen',
+    ]) {
       await expect(this.grid(testId).locator('.ht_clone_inline_start')).toBeVisible();
     }
   }

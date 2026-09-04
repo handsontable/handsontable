@@ -86,6 +86,19 @@
   <h2>Row headers, no data columns</h2>
   <div id="empty" data-testid="empty"></div>
 
+  <!--
+    Two row header columns, which `afterGetRowHeaderRenderers` makes reachable from the public API
+    and `autoRowHeaderSize` measures one by one. The seam to column 0 is then the LAST row header's
+    inline-end, not the first one's - and the last one is exactly the `th` that goes `:last-child`
+    in the overlay rendering nothing but the row-header columns. Both shapes are here because that
+    is what makes the divergence visible: with `fixedColumnsStart` the same `th` is not last.
+  -->
+  <h2>Two row headers</h2>
+  <div id="multi-row-headers" data-testid="multi-row-headers"></div>
+
+  <h2>Two row headers, frozen column</h2>
+  <div id="multi-frozen" data-testid="multi-frozen"></div>
+
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The
     // closing tag is split so the HTML parser does not end THIS script block.
@@ -121,6 +134,17 @@
       }, settings));
     }
 
+    /**
+     * Appends a second row header column through the documented hook.
+     */
+    const SECOND_ROW_HEADER = {
+      afterGetRowHeaderRenderers(renderers) {
+        renderers.push((row, TH) => {
+          TH.textContent = `#${row}`;
+        });
+      },
+    };
+
     window.htColWidth = COL_WIDTH;
     window.grids = {
       rowHeaders: buildGrid('row-headers', {}),
@@ -134,6 +158,8 @@
       }),
       control: buildGrid('control', { rowHeaders: false }),
       empty: buildGrid('empty', { data: [[], [], []], columns: [] }),
+      multiRowHeaders: buildGrid('multi-row-headers', { ...SECOND_ROW_HEADER }),
+      multiFrozen: buildGrid('multi-frozen', { ...SECOND_ROW_HEADER, fixedColumnsStart: 1 }),
     };
 
     /**
