@@ -151,6 +151,7 @@ jobs:
     uses: ./.github/workflows/emitted-types.yml
     with:
       hot-prebuilt: ${{ needs.build.outputs.umd-built == 'true' && needs.build.outputs.es-cjs-built == 'true' }}
+      attw-full: ${{ needs.checks.outputs.run-all == 'true' }}
     secrets: inherit
 
   visual:
