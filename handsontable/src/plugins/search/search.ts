@@ -231,6 +231,10 @@ export class Search extends BasePlugin {
       });
     });
 
+    // The result class is applied inside `beforeRenderer`, from state only this plugin holds, so a
+    // `renderMode: 'onChange'` cell would keep the previous query's class. Every cell has to paint.
+    this.hot.markAllCellsChanged();
+
     return queryResult;
   }
 

@@ -135,3 +135,12 @@ rows/columns, and navigable headers.** Run both the `selectAll` and `selectCells
 `autofill`, `undoRedo`, `scrolling`, `selection`, `openEditor`, `secondClickDeselects`,
 `pluginCompatibility`, plus `keyboardShortcuts/`, `methods/` and `rtl/`. Unit coverage exists for
 `cellCoords`, `cellsCollection`, `focusOrder`, `selection` and `autofillCalculations`; prefer adding there.
+
+## Rendering under `renderMode: 'onChange'`
+
+Two writes of this plugin are invisible to the incremental render and are marked by hand:
+
+- **Collection changes** (`MergedCellsCollection#add`/`remove`/`clear`) call `hot.markAllCellsChanged()`. A merged block covers cells whose own value and meta never change, and autofill creates blocks with no meta write at all; only an epoch bump repaints them (and drops the selection scan cache, which holds the `fullySelectedMergedCell-N` extra class).
+- **The neighbor height** (`renderer.ts`, `updateNextCellsHeight`, `rowHeaders: false` only) is written on the cell right after the block while *that* cell renders. The origin's `afterRenderer` calls `hot.markCellChanged(row, next)` first, so the neighbor paints in the same draw.
+
+The selection extra class (`afterDrawSelection`) is asked by Walkontable on every draw for every coordinate of the selection and diffed like any other class, so the plugin no longer registers `beforeRemoveCellClassNames` (the hook still exists for external code). The per-coordinate call matters: `getSelectedMergedCellClassName` answers only for a block's **first renderable** coordinate, so a scan that asked once per element would miss the block.

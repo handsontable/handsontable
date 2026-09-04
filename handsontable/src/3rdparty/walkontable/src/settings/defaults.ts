@@ -8,6 +8,8 @@ import type { SettingsPort } from '../ports';
  * @property {Option} facade @todo desc.
  * @property {Option} ariaTags Option `ariaTags`.
  * @property {Option} cellRenderer Option `cellRenderer`.
+ * @property {Option} shouldPaintCell Option `shouldPaintCell` - asked before a cell element is reset and
+ *                                    painted; answering `false` leaves the element exactly as it is.
  * @property {Option} columnHeaders Option `columnHeaders`.
  * @property {Option} columnWidth Option `columnWidth`.
  * @property {Option} currentRowClassName Option `currentRowClassName`.
@@ -26,6 +28,9 @@ import type { SettingsPort } from '../ports';
  * @property {Option} onBeforeHighlightingColumnHeader Option `onBeforeHighlightingColumnHeader`.
  * @property {Option} onBeforeHighlightingRowHeader Option `onBeforeHighlightingRowHeader`.
  * @property {Option} onBeforeRemoveCellClassNames Option `onBeforeRemoveCellClassNames`.
+ * @property {Option} renderEpoch Option `renderEpoch` - a number the host advances on every structural
+ *                                change (index remap, data or settings reload); the selection scan cache
+ *                                keys on it.
  * @property {Option} preventOverflow Option `preventOverflow`.
  * @property {Option} preventWheel Option `preventWheel`.
  * @property {Option} renderAllColumns Option `renderAllColumns`.
@@ -151,6 +156,7 @@ export function getDefaults(settings: SettingsPort): Record<string, unknown> {
     },
     totalRows: undefined,
     totalColumns: undefined,
+    shouldPaintCell: () => true,
     cellRenderer: (row: number, column: number, TD: HTMLTableCellElement) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const cellData = settings.getSetting('data', row, column);
@@ -208,6 +214,7 @@ export function getDefaults(settings: SettingsPort): Record<string, unknown> {
     beforeDraw: null,
     onDraw: null,
     onBeforeRemoveCellClassNames: null,
+    renderEpoch: 0,
     onAfterDrawSelection: null,
     onBeforeDrawBorders: null,
     // viewport scroll hooks

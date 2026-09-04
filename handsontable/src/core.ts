@@ -1,5 +1,5 @@
 import { addClass, empty, isShadowRoot, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
-import { PartialRenderState } from './utils/partialRender'; // PROTOTYPE(#9614)
+import { RenderChangeTracker, markCellMetaChanged } from './core/incrementalRender/renderChangeTracker';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, isEmpty } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
@@ -648,15 +648,8 @@ export default function Core(
     DynamicCellMetaMod,
     ExtendMetaPropertiesMod,
   ]);
-  // PROTOTYPE(#9614)
-  const partialRender = new PartialRenderState();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (instance as any).__partialRender = partialRender;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (instance as any).__metaManager = metaManager;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (metaManager as any).cellMeta.onWrite = (r: number, c: number) => partialRender.markCell(r, c);
+  this.renderChangeTracker = new RenderChangeTracker();
   const tableMeta = metaManager.getTableMeta() as Record<string, unknown> & {
     fixedRowsTop: number;
     fixedRowsBottom: number;
@@ -1044,7 +1037,8 @@ export default function Core(
   );
 
   this.columnIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexesChangesState) => {
-    partialRender.bumpEpoch(); // PROTOTYPE(#9614)
+    this.renderChangeTracker.markAllChanged();
+
     const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState, 'column');
     // Read and RECORDED before the public hook, both for the same reason: what a consumer does must
     // not rewrite this update's answer, and must not be undone by it either. A consumer calling
@@ -1071,7 +1065,8 @@ export default function Core(
   });
 
   this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexesChangesState) => {
-    partialRender.bumpEpoch(); // PROTOTYPE(#9614)
+    this.renderChangeTracker.markAllChanged();
+
     const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState, 'row');
     const indexCount = this.rowIndexMapper.getNumberOfIndexes();
     const isStructuralChange = indexCount !== lastRowIndexCount;
@@ -2611,7 +2606,7 @@ export default function Core(
           valid = instance
             .runHooks('afterValidate', valid, value, cellProperties.visualRow, colArg, source);
           cellProperties.valid = valid;
-          partialRender.markCell(cellProperties.row as number, cellProperties.col as number); // PROTOTYPE(#9614)
+          markCellMetaChanged(cellProperties);
 
           done(valid);
           instance.runHooks(
@@ -2624,6 +2619,7 @@ export default function Core(
       // resolve callback even if validator function was not found
       instance._registerMicrotask(() => {
         cellProperties.valid = true;
+        markCellMetaChanged(cellProperties);
         done(cellProperties.valid, false);
       });
     }
@@ -3292,6 +3288,48 @@ export default function Core(
   };
 
   /**
+   * Marks one cell as changed, so the next render paints it even when its
+   * [`renderMode`](@/api/options.md#rendermode) is `'onChange'` and neither its value nor its meta
+   * changed. Use it for a renderer that reads state outside the grid, after that state changes. The
+   * method does not render; call [`render()`](#render) afterwards.
+   *
+   * Under the default `renderMode: 'always'` every render paints every cell, so the call is a no-op.
+   *
+   * @memberof Core#
+   * @function markCellChanged
+   * @since 18.2.0
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @example
+   * ```js
+   * theme = 'dark'; // state the renderer of cell (0, 0) reads
+   * hot.markCellChanged(0, 0);
+   * hot.render();
+   * ```
+   */
+  this.markCellChanged = function(row: number, column: number) {
+    markCellMetaChanged(instance.getCellMeta(row, column));
+  };
+
+  /**
+   * Marks every cell as changed, so the next render paints all of them regardless of their
+   * [`renderMode`](@/api/options.md#rendermode). The method does not render; call
+   * [`render()`](#render) afterwards.
+   *
+   * @memberof Core#
+   * @function markAllCellsChanged
+   * @since 18.2.0
+   * @example
+   * ```js
+   * hot.markAllCellsChanged();
+   * hot.render(); // repaints every rendered cell, as a render does under `renderMode: 'always'`
+   * ```
+   */
+  this.markAllCellsChanged = function() {
+    instance.renderChangeTracker.markAllChanged();
+  };
+
+  /**
    * The method aggregates multi-line API calls into a callback and postpones the
    * table rendering process. After the execution of the operations, the table is
    * rendered once. As a result, it improves the performance of wrapped operations.
@@ -3633,7 +3671,7 @@ export default function Core(
         datamap = newDataMap;
       },
       () => {
-        partialRender.bumpEpoch(); // PROTOTYPE(#9614)
+        instance.renderChangeTracker.markAllChanged();
         metaManager.clearCellsCache();
         instance.initIndexMappers();
         grid.adjustRowsAndCols();
@@ -4039,7 +4077,6 @@ export default function Core(
       const cellOptionCellMetas = isCellOptionRestated ? [] : metaManager.getCellOptionCellMetas();
       const userDefinedCellMetas = metaManager.getUserDefinedCellMetas();
 
-      partialRender.bumpEpoch(); // PROTOTYPE(#9614)
       metaManager.clearCache();
 
       // Both snapshots are keyed by physical coordinates, so every value goes back onto the record it was
@@ -4303,7 +4340,7 @@ export default function Core(
       }
 
       selection.updateHighlightClassNames();
-      partialRender.bumpEpoch(); // PROTOTYPE(#9614)
+      instance.renderChangeTracker.markAllChanged();
       instance.runHooks('afterUpdateSettings', settings);
     }
 
@@ -5602,8 +5639,10 @@ export default function Core(
             // `setCellMeta`, which would mark the property as user-persisted and change
             // updateSettings/eviction semantics). Only failures materialize, so retention stays
             // O(invalid cells); the eviction pass already keeps `valid === false` cells.
-            instance.getCellMeta(row, column, { skipMetaExtension: true }).valid = false;
-            partialRender.markCell(instance.toPhysicalRow(row), instance.toPhysicalColumn(column)); // PROTOTYPE(#9614)
+            const storedCellMeta = instance.getCellMeta(row, column, { skipMetaExtension: true });
+
+            storedCellMeta.valid = false;
+            markCellMetaChanged(storedCellMeta);
           }
           waitingForValidator.removeValidatorFormQueue();
         }, 'validateCells');

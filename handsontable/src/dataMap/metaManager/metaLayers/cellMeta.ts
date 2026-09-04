@@ -5,6 +5,7 @@ import { isDefined } from '../../../helpers/mixed';
 import { isUnsignedNumber } from '../../../helpers/number';
 import type ColumnMeta from './columnMeta';
 import type { CellProperties } from '../../../settings';
+import { markCellMetaChanged } from '../../../core/incrementalRender/renderChangeTracker';
 
 /**
  * One cell meta property captured for replay across a cache reset, located by physical coordinates.
@@ -85,11 +86,6 @@ export default class CellMeta {
   #cellOptionMetaRecordingCount = 0;
 
   /**
-   * PROTOTYPE(#9614): write-path notification, never on the read path.
-   */
-  onWrite: ((physicalRow: number, physicalColumn: number) => void) | null = null;
-
-  /**
    * Initializes the cell meta layer with a reference to the ColumnMeta layer used as the prototype source for new cell meta objects.
    */
   constructor(columnMeta: ColumnMeta) {
@@ -159,12 +155,30 @@ export default class CellMeta {
    * @param {object} settings An object to merge with.
    */
   updateMeta(physicalRow: number, physicalColumn: number, settings: Record<string, unknown>) {
+    const meta = this.extendMeta(physicalRow, physicalColumn, settings);
+
+    markCellMetaChanged(meta);
+  }
+
+  /**
+   * Merges settings into the cell meta object WITHOUT marking the cell as changed for the render.
+   * This is the path of the per-render dynamic extension (`cells` function, `type` expansion, the
+   * `beforeGetCellMeta`/`afterGetCellMeta` hooks), which re-applies its result on every full render:
+   * counting it as a change would make a `renderMode: 'onChange'` cell paint on every draw.
+   *
+   * @param {number} physicalRow The physical row index which points what cell meta object is updated.
+   * @param {number} physicalColumn The physical column index which points what cell meta object is updated.
+   * @param {object} settings An object to merge with.
+   * @returns {object} The cell meta object.
+   */
+  extendMeta(physicalRow: number, physicalColumn: number, settings: Record<string, unknown>): CellProperties {
     const meta = this.getMeta(physicalRow, physicalColumn);
     const normalizedSettings = normalizeEditorSetting(settings);
 
     extend(meta, normalizedSettings);
     extendByMetaType(meta, normalizedSettings);
-    this.onWrite?.(physicalRow, physicalColumn);
+
+    return meta;
   }
 
   /**
@@ -294,7 +308,7 @@ export default class CellMeta {
   setMeta(physicalRow: number, physicalColumn: number, key: string, value: unknown) {
     const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
 
-    this.onWrite?.(physicalRow, physicalColumn);
+    markCellMetaChanged(cellMeta);
 
     // An `editor` of `true` names no editor, so it reads as "the setting was not passed". Dropping
     // the own property lets the cell keep the editor its `type` expands to, or the one inherited
@@ -383,7 +397,7 @@ export default class CellMeta {
     (cellMeta._userDefinedMetaProps as Set<string> | undefined)?.delete(key);
     (cellMeta._cellOptionMetaProps as Set<string> | undefined)?.delete(key);
     (cellMeta._persistedMetaProps as Set<string> | undefined)?.delete(key);
-    this.onWrite?.(physicalRow, physicalColumn);
+    markCellMetaChanged(cellMeta);
   }
 
   /**

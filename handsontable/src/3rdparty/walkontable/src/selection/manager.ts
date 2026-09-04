@@ -1,5 +1,4 @@
 import type { WalkontableInstance } from '../types';
-import { getPartialRenderMode, getGlobalRenderEpoch } from '../../../../utils/partialRender'; // PROTOTYPE(#9614)
 import type Selection from './selection';
 
 /**
@@ -15,14 +14,18 @@ interface SelectionsContainer {
   };
   [Symbol.iterator](): Iterator<Selection>;
 }
-import {
-  removeClass,
-  addClass,
-  setAttribute,
-  removeAttribute,
-  isHTMLElement
-} from '../../../../helpers/dom/element';
+import { isHTMLElement } from '../../../../helpers/dom/element';
 import { SelectionScanner } from './scanner';
+import type { CellScanResult } from './scanner';
+import {
+  applySelection,
+  buildSelectionSignature,
+  expandLayeredClassNames,
+  getAppliedSelection,
+  removeAppliedSelection,
+} from './appliedSelection';
+import type { SelectionAttribute } from './appliedSelection';
+import { SelectionScanCache, buildBandKey } from './scanCache';
 import Border from './border/border';
 import { ACTIVE_HEADER_TYPE, CUSTOM_SELECTION_TYPE } from './constants';
 
@@ -54,11 +57,18 @@ export class SelectionManager {
    */
   #scanner = new SelectionScanner();
   /**
-   * The Map tracks applied CSS classes. It's used to reset the elements state to their initial state.
+   * The elements that carried selection classes after the previous pass, per overlay. Diffed against
+   * the next pass so an element that left the selection is cleaned up without querying the DOM.
    *
    * @type {WeakMap}
    */
-  #appliedClasses = new WeakMap<WalkontableInstance, Set<string>>();
+  #appliedElements = new WeakMap<WalkontableInstance, Set<HTMLElement>>();
+  /**
+   * The cache of the cell elements each selection layer resolved to (see {@link SelectionScanCache}).
+   *
+   * @type {SelectionScanCache}
+   */
+  #scanCache = new SelectionScanCache();
   /**
    * The Map tracks applied "destroy" listeners for Selection instances.
    *
@@ -72,11 +82,6 @@ export class SelectionManager {
    * @type {Map}
    */
   #selectionBorders = new Map<Selection, Map<WalkontableInstance, Border>>();
-  /** PROTOTYPE(#9614 selection diff): elements that carried selection classes after the previous pass. */
-  #prevApplied = new WeakMap<WalkontableInstance, Set<HTMLElement>>();
-  /** PROTOTYPE(#9614 scan cache): per selection, per overlay, the last scan and the key it is valid for. */
-  #scanCache = new WeakMap<Selection, WeakMap<WalkontableInstance,
-    { key: string; elements: Set<HTMLElement>; extra: Map<HTMLElement, string> }>>();
 
   /**
    * Creates a new SelectionManager instance.
@@ -96,10 +101,6 @@ export class SelectionManager {
   setActiveOverlay(activeWot: WalkontableInstance) {
     this.#activeOverlaysWot = activeWot;
     this.#scanner.setActiveOverlay(this.#activeOverlaysWot);
-
-    if (!this.#appliedClasses.has(this.#activeOverlaysWot!)) {
-      this.#appliedClasses.set(this.#activeOverlaysWot!, new Set());
-    }
 
     return this;
   }
@@ -225,54 +226,30 @@ export class SelectionManager {
   /**
    * Renders all the selections (add CSS classes to cells and draw borders).
    *
-   * @param {boolean} fastDraw Indicates the render cycle type (fast/slow).
+   * The pass first collects, per element, the class names and attributes every layer wants on it,
+   * then applies that collection as a diff against what each element carried after the previous
+   * pass (`appliedSelection.ts`). An element whose selection state is unchanged is not touched, and
+   * the cell and header renderers clear the record of every element they wipe, so a repainted
+   * element is written again. This is what keeps a draw from toggling the classes of every selected
+   * cell, which the browser would otherwise turn into a style recalculation over the whole table.
    */
-  render(fastDraw: boolean) {
+  render() {
     if (this.#selections === null) {
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const selDiff = (globalThis as any).__HOT_SEL_DIFF === true;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const selCache = selDiff && (globalThis as any).__HOT_SEL_CACHE === true;
-    // eslint-disable-next-line max-len, @typescript-eslint/no-unsafe-assignment, no-multi-assign, @typescript-eslint/no-explicit-any
-    const selStats = ((globalThis as any).__HOT_SEL_STATS ??= { scan: 0, apply: 0, passes: 0, written: 0, skipped: 0, removed: 0, scanHits: 0, scanMisses: 0 });
-    const tScan = performance.now();
-    let bandKey = '';
+    const wot = this.#activeOverlaysWot!;
 
-    if (selDiff) {
-      // PROTOTYPE(#9614 selection diff): the MergeCells extra class is recorded by the scanner and
-      // folded into the class map, so it takes part in the diff like any other class.
-      this.#scanner.extraClasses = new Map();
-      const t = this.#activeOverlaysWot!.wtTable;
+    this.#removeLegacyClassNames();
 
-      // eslint-disable-next-line max-len
-      bandKey = `${t.rowFilter!.offset}|${t.getRenderedRowsCount()}|${t.columnFilter!.offset}|${t.getRenderedColumnsCount()}|${t.getRowHeadersCount()}|${t.getColumnHeadersCount()}|${getGlobalRenderEpoch()}`;
-    } else {
-      this.#scanner.extraClasses = null;
-    }
-
-    if (selDiff) {
-      // no query reset needed - see #applyDiffed
-    } else if (fastDraw || getPartialRenderMode() !== 'off') {
-      // there was no rerender, so we need to remove classNames by ourselves
-      // PROTOTYPE(#9614): in partial mode skipped TDs keep last draw's classes, so always reset.
-      this.#resetCells();
-    }
-
+    const bandKey = buildBandKey(wot, wot.wtSettings.getSetting<number>('renderEpoch'));
     const selections: Selection[] = Array.from(this.#selections);
     const classNamesMap = new Map<HTMLElement, Map<string, number>>();
-    const headerAttributesMap = new Map();
+    const headerAttributesMap = new Map<HTMLElement, SelectionAttribute[]>();
 
     for (let i = 0; i < selections.length; i++) {
       const selection = selections[i];
-      const {
-        className,
-        headerAttributes,
-        createLayers,
-        selectionType,
-      } = selection.settings;
+      const { className, selectionType } = selection.settings;
 
       if (!this.#destroyListeners.has(selection)) {
         this.#destroyListeners.add(selection);
@@ -286,7 +263,7 @@ export class SelectionManager {
       // the visible borders get DOM and layout work, mirroring cell virtualization. The visual result
       // is identical to letting `appear()` early-out, just without the O(all-borders) DOM.
       if (selectionType === CUSTOM_SELECTION_TYPE && this.#isCustomSelectionOffscreen(selection)) {
-        this.#selectionBorders.get(selection)?.get(this.#activeOverlaysWot!)?.disappear();
+        this.#selectionBorders.get(selection)?.get(wot)?.disappear();
 
         continue; // eslint-disable-line no-continue
       }
@@ -300,82 +277,7 @@ export class SelectionManager {
       }
 
       if (className) {
-        let elements: Set<HTMLElement>;
-        let extra: Map<HTMLElement, string> | null = null;
-
-        if (selCache) {
-          const key = `${selection.getCorners().join(',')}|${bandKey}|${selection.settings.layerLevel}|${className}`;
-          let perWot = this.#scanCache.get(selection);
-
-          if (!perWot) {
-            perWot = new WeakMap();
-            this.#scanCache.set(selection, perWot);
-          }
-
-          const entry = perWot.get(this.#activeOverlaysWot!);
-
-          if (entry && entry.key === key) {
-            elements = entry.elements;
-            extra = entry.extra;
-            selStats.scanHits += 1;
-          } else {
-            this.#scanner.extraClasses = new Map();
-            elements = this.#scanner.setActiveSelection(selection).scan() as Set<HTMLElement>;
-            extra = this.#scanner.extraClasses;
-            perWot.set(this.#activeOverlaysWot!, { key, elements, extra });
-            selStats.scanMisses += 1;
-          }
-        } else {
-          if (selDiff) {
-            this.#scanner.extraClasses = new Map();
-          }
-          elements = this.#scanner.setActiveSelection(selection).scan() as Set<HTMLElement>;
-          extra = this.#scanner.extraClasses;
-        }
-
-        const isActiveHeader = selectionType === ACTIVE_HEADER_TYPE;
-
-        elements.forEach((element: HTMLElement) => {
-          const extraClass = extra?.get(element);
-
-          if (extraClass) {
-            if (!classNamesMap.has(element)) {
-              classNamesMap.set(element, new Map<string, number>());
-            }
-            classNamesMap.get(element)!.set(extraClass, 1);
-          }
-
-          if (classNamesMap.has(element)) {
-            const classNamesLayers = classNamesMap.get(element)!;
-
-            if (classNamesLayers.has(className as string) && createLayers === true) {
-              classNamesLayers.set(className as string, (classNamesLayers.get(className as string) ?? 0) + 1);
-            } else {
-              classNamesLayers.set(className as string, 1);
-            }
-
-          } else {
-            classNamesMap.set(element, new Map<string, number>([[className as string, 1]]));
-          }
-
-          if (headerAttributes) {
-            if (!headerAttributesMap.has(element)) {
-              headerAttributesMap.set(element, []);
-            }
-
-            if (element.nodeName === 'TH') {
-              const attrs = headerAttributes as Array<[string, string | number | boolean]>;
-
-              headerAttributesMap.get(element).push(...attrs);
-            }
-          }
-
-          // Tag the active-header neighbour classes in this same pass, so the scanned element set is
-          // walked once. Order into `classNamesMap` does not matter — it is applied after the loop.
-          if (isActiveHeader) {
-            this.#markActiveHeaderNeighbor(element, className as string, classNamesMap);
-          }
-        });
+        this.#collectSelection(selection, bandKey, classNamesMap, headerAttributesMap);
       }
 
       const corners = selection.getCorners();
@@ -386,158 +288,171 @@ export class SelectionManager {
         this.#markFrozenBottomRowSeamHeader(corners, className as string, classNamesMap);
       }
 
-      this.#activeOverlaysWot!.getSetting('onBeforeDrawBorders', corners, selectionType);
+      wot.getSetting('onBeforeDrawBorders', corners, selectionType);
       borderInstance?.appear(corners);
     }
 
-    const tApply = performance.now();
-
-    selStats.scan += tApply - tScan;
-
-    if (selDiff) {
-      this.#applyDiffed(classNamesMap, headerAttributesMap, selStats);
-      selStats.apply += performance.now() - tApply;
-      selStats.passes += 1;
-
-      return;
-    }
-
-    classNamesMap.forEach((classNamesLayers, element) => {
-      const classNames: string[] = Array.from(classNamesLayers).map(([className, occurrenceCount]) => {
-        if (occurrenceCount === 1) {
-          return className;
-        }
-
-        return [className, ...Array.from({
-          length: occurrenceCount - 1
-        }, (_, i) => `${className}-${i + 1}`)];
-      }).flat();
-
-      classNames.forEach((className: string) => this.#appliedClasses
-        .get(this.#activeOverlaysWot!)
-        ?.add(className));
-
-      addClass(element, classNames as string[]);
-
-      if (element.nodeName === 'TD' && Array.isArray(this.#selections!.options?.cellAttributes)) {
-        setAttribute(element, this.#selections!.options.cellAttributes);
-      }
-    });
-
-    // Set the attributes for the headers if they're focused.
-    Array.from(headerAttributesMap.keys()).forEach((element) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      setAttribute(element, [...headerAttributesMap.get(element)]);
-    });
-
-    selStats.apply += performance.now() - tApply;
-    selStats.passes += 1;
+    this.#applyCollected(classNamesMap, headerAttributesMap);
   }
 
   /**
-   * PROTOTYPE(#9614 selection diff). Applies the selection classes and attributes by diffing against
-   * what each element carried after the previous pass. An element whose signature is unchanged is
-   * not touched; an element that was wiped by the cell or header renderer has no signature and is
-   * re-applied; an element that left the selection has its previous classes and attributes removed.
+   * Resolves the elements one selection layer covers on the active overlay and records the class
+   * names and attributes it wants on each of them. The header part of the scan runs on every draw
+   * (plugins redirect headers through hooks inside it); the cell part is cached per layer and overlay
+   * and reused while the layer's corners, the rendered band, and the render epoch are unchanged.
+   *
+   * @param {Selection} selection The selection layer.
+   * @param {string} bandKey The active overlay's band key (see {@link buildBandKey}).
+   * @param {Map} classNamesMap The pass's element → class name layers map.
+   * @param {Map} headerAttributesMap The pass's header element → attributes map.
    */
-  #applyDiffed(
+  #collectSelection(
+    selection: Selection,
+    bandKey: string,
     classNamesMap: Map<HTMLElement, Map<string, number>>,
-    headerAttributesMap: Map<HTMLElement, Array<[string, unknown]>>,
-    selStats: { written: number; skipped: number; removed: number },
+    headerAttributesMap: Map<HTMLElement, SelectionAttribute[]>,
   ) {
     const wot = this.#activeOverlaysWot!;
-    const prev = this.#prevApplied.get(wot) ?? new Set<HTMLElement>();
+    const { className, headerAttributes, createLayers, selectionType } = selection.settings;
+    const layered = createLayers === true;
+    const isActiveHeader = selectionType === ACTIVE_HEADER_TYPE;
+
+    this.#scanner.setActiveSelection(selection);
+
+    const cacheKey = `${selection.getCorners().join(',')};${bandKey}`;
+    let cellScan: CellScanResult | undefined = this.#scanCache.get(selection, wot, cacheKey);
+
+    if (cellScan === undefined) {
+      cellScan = this.#scanner.scanCells();
+      this.#scanCache.set(selection, wot, cacheKey, cellScan);
+    }
+
+    const collect = (element: HTMLElement) => {
+      this.#addClassLayer(classNamesMap, element, className as string, layered);
+
+      if (headerAttributes && element.nodeName === 'TH') {
+        const attributes = headerAttributesMap.get(element) ?? [];
+
+        attributes.push(...(headerAttributes as SelectionAttribute[]));
+        headerAttributesMap.set(element, attributes);
+      }
+
+      // Tag the active-header neighbour classes in this same pass, so the scanned element set is
+      // walked once. Order into `classNamesMap` does not matter — it is applied after the loop.
+      if (isActiveHeader) {
+        this.#markActiveHeaderNeighbor(element, className as string, classNamesMap);
+      }
+    };
+
+    // The `onAfterDrawSelection` setting (the public `afterDrawSelection` hook) may name an extra class
+    // for a cell of an area-type layer. Its answer depends on plugin state, so it is asked on every
+    // draw, cache hit or not; only the element lookup is cached.
+    const asksExtraClass = selectionType === 'area' || selectionType === 'fill' || selectionType === 'focus';
+    const { layerLevel } = selection.settings;
+
+    this.#scanner.scanHeaders().forEach(collect);
+    cellScan.cells.forEach((coordinates, element) => {
+      if (asksExtraClass) {
+        coordinates.forEach(([sourceRow, sourceColumn]) => {
+          const extraClassName = wot.getSetting('onAfterDrawSelection', sourceRow, sourceColumn, layerLevel);
+
+          if (typeof extraClassName === 'string') {
+            this.#addClassLayer(classNamesMap, element, extraClassName, false);
+          }
+        });
+      }
+
+      collect(element);
+    });
+  }
+
+  /**
+   * Records one class name for an element. A layered selection type (`createLayers`) counts how many
+   * layers reach the element, which `expandLayeredClassNames` turns into the `<className>-<n>` set.
+   *
+   * @param {Map} classNamesMap The pass's element → class name layers map.
+   * @param {HTMLElement} element The cell or header element.
+   * @param {string} className The class name to record.
+   * @param {boolean} layered Whether repeated occurrences count as layers.
+   */
+  #addClassLayer(
+    classNamesMap: Map<HTMLElement, Map<string, number>>,
+    element: HTMLElement,
+    className: string,
+    layered: boolean,
+  ) {
+    let classNamesLayers = classNamesMap.get(element);
+
+    if (classNamesLayers === undefined) {
+      classNamesLayers = new Map<string, number>();
+      classNamesMap.set(element, classNamesLayers);
+    }
+
+    const occurrences = classNamesLayers.get(className);
+
+    classNamesLayers.set(className, occurrences !== undefined && layered ? occurrences + 1 : 1);
+  }
+
+  /**
+   * Applies the collected class names and attributes as a diff against the previous pass: unchanged
+   * elements are left alone, changed ones are rewritten, and elements that left the selection have
+   * their recorded classes and attributes removed.
+   *
+   * @param {Map} classNamesMap The pass's element → class name layers map.
+   * @param {Map} headerAttributesMap The pass's header element → attributes map.
+   */
+  #applyCollected(
+    classNamesMap: Map<HTMLElement, Map<string, number>>,
+    headerAttributesMap: Map<HTMLElement, SelectionAttribute[]>,
+  ) {
+    const wot = this.#activeOverlaysWot!;
+    const previous = this.#appliedElements.get(wot) ?? new Set<HTMLElement>();
     const next = new Set<HTMLElement>();
-    const cellAttributes = Array.isArray(this.#selections!.options?.cellAttributes)
-      ? this.#selections!.options.cellAttributes as Array<[string, unknown]> : [];
+    const cellAttributes = (this.#selections!.options?.cellAttributes ?? []) as SelectionAttribute[];
 
     classNamesMap.forEach((classNamesLayers, element) => {
-      const classNames: string[] = [];
-
-      classNamesLayers.forEach((occurrenceCount, className) => {
-        classNames.push(className);
-
-        for (let i = 1; i < occurrenceCount; i++) {
-          classNames.push(`${className}-${i}`);
-        }
-      });
-
-      const attrs = element.nodeName === 'TD' ? cellAttributes : (headerAttributesMap.get(element) ?? []);
-      const sig = `${classNames.join(' ')}|${attrs.map(a => `${a[0]}=${a[1]}`).join(' ')}`;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const prevSig = (element as any).__hotSelSig as string | undefined;
+      const classNames = expandLayeredClassNames(classNamesLayers);
+      const attributes = element.nodeName === 'TD' ? cellAttributes : (headerAttributesMap.get(element) ?? []);
+      const signature = buildSelectionSignature(classNames, attributes);
 
       next.add(element);
 
-      if (prevSig === sig) {
-        selStats.skipped += 1;
-
+      if (getAppliedSelection(element) === signature) {
         return;
       }
 
-      if (prevSig !== undefined) {
-        this.#removeBySignature(element, prevSig);
-      }
-
-      addClass(element, classNames);
-
-      if (attrs.length > 0) {
-        setAttribute(element, attrs as Array<[string, string | number | boolean]>);
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (element as any).__hotSelSig = sig;
-      selStats.written += 1;
+      removeAppliedSelection(element);
+      applySelection(element, classNames, attributes, signature);
     });
 
-    prev.forEach((element) => {
+    previous.forEach((element) => {
       if (!next.has(element)) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const prevSig = (element as any).__hotSelSig as string | undefined;
-
-        if (prevSig !== undefined) {
-          this.#removeBySignature(element, prevSig);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (element as any).__hotSelSig = undefined;
-          selStats.removed += 1;
-        }
+        removeAppliedSelection(element);
       }
     });
 
-    this.#prevApplied.set(wot, next);
+    this.#appliedElements.set(wot, next);
   }
 
   /**
-   * PROTOTYPE(#9614 selection diff). Removes the classes and attributes encoded in a signature.
+   * Removes the class names the `onBeforeRemoveCellClassNames` setting names, by querying the table.
+   * Classes the engine applies itself are diffed and need no query; this exists for the public
+   * `beforeRemoveCellClassNames` hook, which predates the diff and may still be used by a plugin that
+   * writes selection classes on its own.
    */
-  #removeBySignature(element: HTMLElement, sig: string) {
-    const [classPart, attrPart] = sig.split('|');
+  #removeLegacyClassNames() {
+    const wot = this.#activeOverlaysWot!;
+    const classNames = wot.wtSettings.getSetting<unknown>('onBeforeRemoveCellClassNames');
 
-    if (classPart) {
-      removeClass(element, classPart.split(' '));
-    }
-
-    if (attrPart) {
-      removeAttribute(element, attrPart.split(' ').map(a => a.split('=')[0]));
-    }
-  }
-
-  /**
-   * PROTOTYPE(#9614 selection diff). Query-based reset restricted to the classes that plugins add
-   * outside the class map (`onBeforeRemoveCellClassNames`, used by MergeCells).
-   */
-  #resetExtraCellClasses() {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const classesToRemove = this.#activeOverlaysWot!.wtSettings.getSetting('onBeforeRemoveCellClassNames');
-
-    if (!Array.isArray(classesToRemove) || classesToRemove.length === 0) {
+    if (!Array.isArray(classNames) || classNames.length === 0) {
       return;
     }
 
-    classesToRemove.forEach((className: string) => {
-      const nodes = this.#activeOverlaysWot!.wtTable.TABLE.querySelectorAll(`.${className}`);
+    classNames.forEach((className: string) => {
+      const elements = wot.wtTable.TABLE.querySelectorAll(`.${className}`);
 
-      for (let i = 0, len = nodes.length; i < len; i++) {
-        removeClass(nodes[i] as HTMLElement, className);
+      for (let i = 0; i < elements.length; i++) {
+        (elements[i] as HTMLElement).classList.remove(className);
       }
     });
   }
@@ -552,7 +467,7 @@ export class SelectionManager {
    * with the class name inside a `:has()` argument, every toggle of it (the selection pass re-applies
    * it on each draw, and it moves between the recycled header nodes while scrolling) forced a style
    * invalidation scaled to the whole host page. The row tag lands on TH elements (not the TR) so the
-   * per-band header render and `#resetCells` fully own its cleanup. Called once per scanned
+   * per-band header render and the applied-selection diff fully own its cleanup. Called once per scanned
    * active-header element, from the class-applying pass in `render`.
    *
    * @param {HTMLElement} element A scanned active-header element.
@@ -784,48 +699,5 @@ export class SelectionManager {
         this.#tagSeamClass(classNamesMap, th, seamClassName);
       }
     }
-  }
-
-  /**
-   * Resets the elements to their initial state (remove the CSS classes that are added in the
-   * previous render cycle).
-   */
-  #resetCells() {
-    const appliedOverlaysClasses = this.#appliedClasses.get(this.#activeOverlaysWot!);
-
-    if (!appliedOverlaysClasses) {
-      return;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const classesToRemove = this.#activeOverlaysWot!.wtSettings.getSetting('onBeforeRemoveCellClassNames');
-
-    if (Array.isArray(classesToRemove)) {
-      for (let i = 0; i < classesToRemove.length; i++) {
-        appliedOverlaysClasses.add(classesToRemove[i]);
-      }
-    }
-
-    appliedOverlaysClasses.forEach((className: string) => {
-      const nodes = this.#activeOverlaysWot!.wtTable.TABLE.querySelectorAll(`.${className}`);
-      let cellAttributes: string[] = [];
-
-      if (Array.isArray(this.#selections!.options?.cellAttributes)) {
-        cellAttributes = this.#selections!.options.cellAttributes.map(el => el[0]);
-      }
-
-      if (Array.isArray(this.#selections!.options?.headerAttributes)) {
-        cellAttributes = [
-          ...cellAttributes, ...this.#selections!.options.headerAttributes.map(el => el[0])];
-      }
-
-      for (let i = 0, len = nodes.length; i < len; i++) {
-        removeClass(nodes[i] as HTMLElement, className);
-
-        removeAttribute(nodes[i] as HTMLElement, cellAttributes);
-      }
-    });
-
-    appliedOverlaysClasses.clear();
   }
 }

@@ -244,6 +244,42 @@ both specs together, never alone. It ends "disconnected and reconnected after a 
 the original "will be disconnected" described the permanent kill and stopped being true when the
 cooldown replaced it.
 
+## The selection pass is a diff, and every wipe must clear the applied record
+
+`selection/manager.ts` no longer resets selection classes by querying the table. It collects, per
+element, the classes and attributes every layer wants, then applies that as a **diff** against the
+signature each element carried after the previous pass (`selection/appliedSelection.ts`, a
+`WeakMap` keyed by element). An unchanged element is not touched, which is what keeps a full draw
+from toggling the classes of every selected cell — on 40000 selected cells that toggle cost ~800 ms
+of style recalculation, not JavaScript. Three consequences:
+
+- **A renderer that resets an element's classes MUST call `clearAppliedSelection(element)`** right
+  after (`render/cells.ts`, `render/rowHeaders.ts`, `render/columnHeaders.ts` do). Without it
+  the record says "applied" while the DOM is blank, and the element stays unselected until the
+  selection changes.
+- **The cell-range scan is cached** per layer and overlay (`selection/scanCache.ts`) under the
+  layer's corners, the rendered band (offsets, counts, header counts), and the host's `renderEpoch`
+  setting. Header scans are not cached: the `onBeforeHighlightingRowHeader`/`ColumnHeader` settings
+  run inside them and plugins redirect headers through those. Anything that changes which cell an
+  element holds without moving the band must advance the epoch — core does it on every index-mapper
+  cache update, data reload, settings update, and `markAllCellsChanged()`.
+- The `onAfterDrawSelection` extra class (MergeCells) is **asked on every draw, for every source
+  coordinate that resolved to an element** — the cached scan keeps the coordinates per element for
+  exactly this. The answer depends on plugin state (MergeCells answers only for a block's first
+  renderable coordinate, and only when every layer covers the block), so it can never be cached,
+  and a merged block reached from several coordinates must be asked for each of them. The class
+  then joins the diff like any other. The query reset survives only for
+  `onBeforeRemoveCellClassNames`, a public hook that predates the diff, and runs only when a
+  plugin returns class names from it.
+
+## `shouldPaintCell`: the host may keep a cell element untouched
+
+`render/cells.ts` asks the `shouldPaintCell` setting before it resets and paints a cell element.
+`false` skips the reset, the `cellRenderer` call, and the ARIA re-stamp for that element. The
+engine keeps no per-cell state of its own here; the host (`TableView` through `CellPainter`) owns
+the stamps and answers from the cell's `renderMode`. The default answers `true`, so a Walkontable
+built without the setting behaves as before. A renderer spec's `TableRendererMock` must provide it.
+
 ## Known Tech Debt
 
 - The DAO layer has been replaced by constructor injection + the `wire.ts` composition root (see the DI section above) — do not reintroduce DAO getters or `wot`-god-object passing.

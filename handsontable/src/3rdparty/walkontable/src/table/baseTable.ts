@@ -1,6 +1,7 @@
 import type { WalkontableInstance } from '../types';
 import type { EngineContext } from '../wire';
 import type Settings from '../settings';
+import type { ShouldPaintCell } from '../render/tableRenderer';
 import type { RowRangeQuery, ColumnRangeQuery } from './rangeQuery/renderedRange';
 import { cellAccess, type CellAccess } from './cellAccess';
 import { domScaffold, type DomScaffold } from './domScaffold';
@@ -314,6 +315,7 @@ class Table {
       rowUtils: this.rowUtils,
       columnUtils: this.columnUtils,
       cellRenderer: this.wtSettings.getSettingPure<Function>('cellRenderer'),
+      shouldPaintCell: this.wtSettings.getSettingPure<ShouldPaintCell>('shouldPaintCell'),
       stylesHandler: this.wtSettings.getSetting('stylesHandler'),
     });
   }

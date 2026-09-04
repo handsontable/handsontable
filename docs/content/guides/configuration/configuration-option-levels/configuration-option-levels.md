@@ -222,6 +222,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="renderAllColumns" data-levels="grid"></span>[`renderAllColumns`](@/api/options.md#renderallcolumns) | Yes | No | No | No | Core |  |
 | <span data-option="renderAllRows" data-levels="grid"></span>[`renderAllRows`](@/api/options.md#renderallrows) | Yes | No | No | No | Core |  |
 | <span data-option="renderer" data-levels="grid columns cells cell"></span>[`renderer`](@/api/options.md#renderer) | Yes | Yes | Yes | Yes | Core |  |
+| <span data-option="renderMode" data-levels="grid columns cells cell"></span>[`renderMode`](@/api/options.md#rendermode) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="rowHeaders" data-levels="grid"></span>[`rowHeaders`](@/api/options.md#rowheaders) | Yes | No | No | No | Core |  |
 | <span data-option="rowHeaderWidth" data-levels="grid"></span>[`rowHeaderWidth`](@/api/options.md#rowheaderwidth) | Yes | No | No | No | Core |  |
 | <span data-option="rowHeights" data-levels="grid"></span>[`rowHeights`](@/api/options.md#rowheights) | Yes | No | No | No | Core |  |

@@ -4,7 +4,7 @@ import {
   setAttribute,
 } from '../../../../helpers/dom/element';
 import { SharedOrderView } from '../utils/orderView';
-import { getPartialRenderMode } from '../../../../utils/partialRender'; // PROTOTYPE(#9614)
+import { clearAppliedSelection } from '../selection/appliedSelection';
 import { BaseRenderer } from './_base';
 import {
   A11Y_COLINDEX,
@@ -63,6 +63,12 @@ export class CellsRenderer extends BaseRenderer {
    */
   render() {
     const { rowsToRender, columnsToRender, rows, rowHeaders } = this.table;
+    const { rowFilter, columnFilter, activeOverlayName } = this.table;
+    // The identity of the rendered band: which source rows and columns the reused elements hold on
+    // this draw. The host compares it against the element's last paint.
+    const band = [
+      activeOverlayName, rowFilter?.offset ?? 0, rowsToRender, columnFilter?.offset ?? 0, columnsToRender,
+    ].join(',');
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
@@ -91,37 +97,28 @@ export class CellsRenderer extends BaseRenderer {
           continue; // eslint-disable-line no-continue
         }
 
-        // PROTOTYPE(#9614): the wipe is now a callback the cell renderer runs only when it paints.
-        const wipe = () => {
-          if (!hasClass(TD, 'hide')) { // Workaround for hidden columns plugin
-            TD.className = '';
-          }
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (TD as any).__hotSelSig = undefined; // PROTOTYPE(#9614 selection diff)
-
-          TD.removeAttribute('style');
-          TD.removeAttribute('dir');
-
-          // Remove all accessibility-related attributes for the cell to start fresh.
-          removeAttribute(TD, [
-            /aria-(.*)/,
-            /role/
-          ]);
-        };
-        const partial = getPartialRenderMode() !== 'off';
-        let painted = true;
-
-        if (partial) {
-          // eslint-disable-next-line max-len
-          const band = `${this.table.activeOverlayName}|${this.table.rowFilter!.offset}|${rowsToRender}|${this.table.columnFilter!.offset}|${columnsToRender}`;
-
-          painted = this.table.cellRenderer(sourceRowIndex, sourceColumnIndex, TD, wipe, band) !== false;
-        } else {
-          wipe();
-          this.table.cellRenderer(sourceRowIndex, sourceColumnIndex, TD);
+        // The host may keep the element as it is (`renderMode: 'onChange'`); then nothing below runs.
+        if (!this.table.shouldPaintCell(sourceRowIndex, sourceColumnIndex, TD as HTMLTableCellElement, band)) {
+          continue; // eslint-disable-line no-continue
         }
 
-        if (painted && this.table.isAriaEnabled()) {
+        if (!hasClass(TD, 'hide')) { // Workaround for hidden columns plugin
+          TD.className = '';
+        }
+
+        clearAppliedSelection(TD);
+        TD.removeAttribute('style');
+        TD.removeAttribute('dir');
+
+        // Remove all accessibility-related attributes for the cell to start fresh.
+        removeAttribute(TD, [
+          /aria-(.*)/,
+          /role/
+        ]);
+
+        this.table.cellRenderer(sourceRowIndex, sourceColumnIndex, TD);
+
+        if (this.table.isAriaEnabled()) {
           setAttribute(TD, [
             ...(TD.hasAttribute('role') ? [] : [A11Y_GRIDCELL()]),
             A11Y_TABINDEX(-1),

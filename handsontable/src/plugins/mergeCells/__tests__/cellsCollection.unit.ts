@@ -21,6 +21,8 @@ describe('MergeCells', () => {
     const hotMock = {
       render: () => {
       },
+      markAllCellsChanged: () => {
+      },
       countCols: () => 100,
       countRows: () => 100,
       _createCellCoords: (row, column) => new CellCoords(row, column),

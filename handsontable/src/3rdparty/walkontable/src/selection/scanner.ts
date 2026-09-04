@@ -1,7 +1,19 @@
 /* eslint-disable no-continue */
 import type { WalkontableInstance } from '../types';
 import type Selection from './selection';
-import { addClass, isHTMLElement } from '../../../../helpers/dom/element';
+import { isHTMLElement } from '../../../../helpers/dom/element';
+
+/**
+ * The cell elements a selection layer resolved to, each with every source coordinate that
+ * resolved to it (a merged cell's element is reached from each coordinate the block covers).
+ * The coordinates let the manager ask the `onAfterDrawSelection` setting for a plugin's extra
+ * class on every draw, for every coordinate, because that answer depends on plugin state
+ * (MergeCells answers only for a block's first renderable coordinate, and only when every
+ * selection layer covers the block) and cannot be cached with the elements.
+ */
+export interface CellScanResult {
+  cells: Map<HTMLElement, Array<[number, number]>>;
+}
 
 /**
  * Selection scanner module scans the rendered cells and headers and if it finds an intersection with
@@ -22,8 +34,6 @@ export class SelectionScanner {
    * @type {Walkontable}
    */
   #activeOverlaysWot: WalkontableInstance | null = null;
-  /** PROTOTYPE(#9614 scan cache): when set, the `onAfterDrawSelection` class is recorded here instead of written. */
-  extraClasses: Map<HTMLElement, string> | null = null;
 
   /**
    * Sets the Walkontable instance that will be taking into account while scanning the table.
@@ -50,46 +60,74 @@ export class SelectionScanner {
   }
 
   /**
-   * Scans the rendered table with selection and returns elements that intersects
-   * with selection coordinates.
+   * Scans the header elements (TH) the selection covers, based on the selection type. Header scans
+   * run hooks that let plugins redirect a header, so the result is never cached.
    *
-   * @returns {HTMLTableElement[]}
+   * @returns {Set<HTMLElement>}
    */
-  scan() {
+  scanHeaders(): Set<HTMLElement> {
     const selectionType = this.#selection!.settings.selectionType;
-    const elements = new Set();
+    const elements = new Set<HTMLElement>();
+    const add = (element: HTMLElement) => elements.add(element);
 
     // TODO(improvement): use heuristics from coords to detect what type of scan
     // the Selection needs instead of using `selectionType` property.
-    if (selectionType === 'active-header') {
-      this.scanColumnsInHeadersRange((element: HTMLElement) => elements.add(element));
-      this.scanRowsInHeadersRange((element: HTMLElement) => elements.add(element));
-
-    } else if (selectionType === 'area') {
-      this.scanCellsRange((element: HTMLElement) => elements.add(element));
-
-    } else if (selectionType === 'focus') {
-      this.scanColumnsInHeadersRange((element: HTMLElement) => elements.add(element));
-      this.scanRowsInHeadersRange((element: HTMLElement) => elements.add(element));
-      this.scanCellsRange((element: HTMLElement) => elements.add(element));
-
-    } else if (selectionType === 'fill') {
-      this.scanCellsRange((element: HTMLElement) => elements.add(element));
-
-    } else if (selectionType === 'header') {
-      this.scanColumnsInHeadersRange((element: HTMLElement) => elements.add(element));
-      this.scanRowsInHeadersRange((element: HTMLElement) => elements.add(element));
-
-    } else if (selectionType === 'row') {
-      this.scanRowsInHeadersRange((element: HTMLElement) => elements.add(element));
-      this.scanRowsInCellsRange((element: HTMLElement) => elements.add(element));
-
-    } else if (selectionType === 'column') {
-      this.scanColumnsInHeadersRange((element: HTMLElement) => elements.add(element));
-      this.scanColumnsInCellsRange((element: HTMLElement) => elements.add(element));
+    switch (selectionType) {
+      case 'active-header':
+      case 'focus':
+      case 'header':
+        this.scanColumnsInHeadersRange(add);
+        this.scanRowsInHeadersRange(add);
+        break;
+      case 'row':
+        this.scanRowsInHeadersRange(add);
+        break;
+      case 'column':
+        this.scanColumnsInHeadersRange(add);
+        break;
+      default:
+        break;
     }
 
     return elements;
+  }
+
+  /**
+   * Scans the cell elements (TD) the selection covers, based on the selection type. The result is
+   * a pure function of the selection corners and the rendered band, so the manager caches it.
+   *
+   * @returns {CellScanResult}
+   */
+  scanCells(): CellScanResult {
+    const selectionType = this.#selection!.settings.selectionType;
+    const result: CellScanResult = { cells: new Map() };
+    const add = (element: HTMLElement, sourceRow: number, sourceColumn: number) => {
+      const coordinates = result.cells.get(element);
+
+      if (coordinates === undefined) {
+        result.cells.set(element, [[sourceRow, sourceColumn]]);
+      } else {
+        coordinates.push([sourceRow, sourceColumn]);
+      }
+    };
+
+    switch (selectionType) {
+      case 'area':
+      case 'fill':
+      case 'focus':
+        this.scanCellsRange(add);
+        break;
+      case 'row':
+        this.scanRowsInCellsRange(add);
+        break;
+      case 'column':
+        this.scanColumnsInCellsRange(add);
+        break;
+      default:
+        break;
+    }
+
+    return result;
   }
 
   /**
@@ -200,33 +238,15 @@ export class SelectionScanner {
    *
    * @param {function(HTMLTableElement): void} callback The callback function to trigger.
    */
-  scanCellsRange(callback: (element: HTMLElement) => void) {
+  scanCellsRange(callback: (element: HTMLElement, sourceRow: number, sourceColumn: number) => void) {
     const { wtTable } = this.#activeOverlaysWot!;
 
     this.#scanCellsRange((sourceRow: number, sourceColumn: number) => {
       const cell = wtTable.getCell(this.#activeOverlaysWot!.createCellCoords(sourceRow, sourceColumn));
 
-      if (!isHTMLElement(cell)) {
-        return;
+      if (isHTMLElement(cell)) {
+        callback(cell, sourceRow, sourceColumn);
       }
-
-      // support for old API
-      const additionalSelectionClass = this.#activeOverlaysWot!
-        .getSetting('onAfterDrawSelection',
-          sourceRow,
-          sourceColumn,
-          this.#selection!.settings.layerLevel,
-        );
-
-      if (typeof additionalSelectionClass === 'string') {
-        if (this.extraClasses) {
-          this.extraClasses.set(cell, additionalSelectionClass);
-        } else {
-          addClass(cell, additionalSelectionClass);
-        }
-      }
-
-      callback(cell);
     });
   }
 
@@ -236,7 +256,7 @@ export class SelectionScanner {
    *
    * @param {function(HTMLTableElement): void} callback The callback function to trigger.
    */
-  scanRowsInCellsRange(callback: (element: HTMLElement) => void) {
+  scanRowsInCellsRange(callback: (element: HTMLElement, sourceRow: number, sourceColumn: number) => void) {
     // eslint-disable-next-line comma-spacing
     const [topRow,, bottomRow,] = this.#selection!.getCorners();
     const { wtTable } = this.#activeOverlaysWot!;
@@ -246,7 +266,7 @@ export class SelectionScanner {
         const cell = wtTable.getCell(this.#activeOverlaysWot!.createCellCoords(sourceRow, sourceColumn));
 
         if (isHTMLElement(cell)) {
-          callback(cell);
+          callback(cell, sourceRow, sourceColumn);
         }
       }
     });
@@ -258,7 +278,7 @@ export class SelectionScanner {
    *
    * @param {function(HTMLTableElement): void} callback The callback function to trigger.
    */
-  scanColumnsInCellsRange(callback: (element: HTMLElement) => void) {
+  scanColumnsInCellsRange(callback: (element: HTMLElement, sourceRow: number, sourceColumn: number) => void) {
     const [, topColumn,, bottomColumn] = this.#selection!.getCorners();
     const { wtTable } = this.#activeOverlaysWot!;
 
@@ -267,7 +287,7 @@ export class SelectionScanner {
         const cell = wtTable.getCell(this.#activeOverlaysWot!.createCellCoords(sourceRow, sourceColumn));
 
         if (isHTMLElement(cell)) {
-          callback(cell);
+          callback(cell, sourceRow, sourceColumn);
         }
       }
     });

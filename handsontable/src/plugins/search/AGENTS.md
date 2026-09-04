@@ -74,3 +74,7 @@ There is a standing `// TODO: #4972` on this handler.
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='search'`
 
 A change to the eviction interaction needs a spec that **scrolls away and back**, not just one that queries.
+
+## Every `query()` invalidates every cell
+
+The result class is applied inside `beforeRenderer`, from the plugin's own state, with no cell meta write. Under `renderMode: 'onChange'` a cell whose value did not change would keep the previous query's class, so `query()` ends with `hot.markAllCellsChanged()`. Do not "optimize" it to the matched cells only: the cells that *stopped* matching need the repaint too.

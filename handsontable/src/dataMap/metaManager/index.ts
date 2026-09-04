@@ -330,6 +330,18 @@ export default class MetaManager {
   }
 
   /**
+   * Merges the per-render dynamic extension into the cell meta object without marking the cell as
+   * changed (see `CellMeta#extendMeta`).
+   *
+   * @param {number} physicalRow The physical row index which points what cell meta object is updated.
+   * @param {number} physicalColumn The physical column index which points what cell meta object is updated.
+   * @param {object} settings An object to merge with.
+   */
+  extendCellMeta(physicalRow: number, physicalColumn: number, settings: Record<string, unknown>) {
+    this.cellMeta.extendMeta(physicalRow, physicalColumn, settings);
+  }
+
+  /**
    * Removes a property defined by the "key" argument from the cell meta object.
    *
    * @param {number} physicalRow The physical row index.

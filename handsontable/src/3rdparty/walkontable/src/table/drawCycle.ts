@@ -282,7 +282,7 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
       // layout — it converges, because the second border-state check finds the class already in
       // place — and render the selections that `refreshAll` would have refreshed.
       placeFixedOverlays(table, ctx);
-      renderActiveSelections(table, ctx.runFastDraw);
+      renderActiveSelections(table);
     }
 
     // Outside the render gate on purpose: the master hider/spreader size is written ONLY here on the
@@ -292,7 +292,7 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
     // full draw.
     wtOverlays.adjustElementsSize();
   } else {
-    renderActiveSelections(table, ctx.runFastDraw);
+    renderActiveSelections(table);
   }
 
   wtOverlays.afterDraw(!ctx.runFastDraw && ctx.performRedraw);
@@ -331,7 +331,7 @@ function runCloneDrawCycle(table: Table, ctx: DrawContext): void {
     }
   }
 
-  renderActiveSelections(table, ctx.runFastDraw);
+  renderActiveSelections(table);
 
   table.deps.setDrawn(true);
 }
@@ -528,10 +528,10 @@ function renderCellBand(
  * @param {Table} table The table (master or clone).
  * @param {boolean} runFastDraw Whether this draw is a fast (reposition-only) draw.
  */
-function renderActiveSelections(table: Table, runFastDraw: boolean): void {
+function renderActiveSelections(table: Table): void {
   table.deps.getSelectionManager()
     .setActiveOverlay(table.facadeGetter())
-    .render(runFastDraw);
+    .render();
 }
 
 /**

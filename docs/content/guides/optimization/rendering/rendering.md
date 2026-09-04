@@ -156,7 +156,7 @@ hot.setCellMeta(0, 0, 'className', 'my-highlight');
 hot.render();
 ```
 
-If you need markup that no option covers, write a [custom renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md). A renderer runs on every render, so what it writes is always reapplied.
+If you need markup that no option covers, write a [custom renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md). A renderer runs on every render, so what it writes is always reapplied. (Under [`renderMode: 'onChange'`](#skip-the-cells-that-did-not-change) it runs whenever the cell changed, which for markup written from the cell's value and meta is the same thing.)
 
 ### Observe renders
 
@@ -179,11 +179,42 @@ Use these hooks to count renders while you profile. If you see many in a row for
 
 ## Trade-offs
 
-### There is no per-cell or per-row render
+### Skip the cells that did not change
 
-Every repaint redraws the whole rendered part. You cannot repaint one cell or one row on its own, and no API offers it.
+By default, every render repaints every rendered cell, and there is no API to repaint one cell on its own. Virtualization keeps the drawn cell count low and roughly constant, so a render is bounded by the size of the viewport rather than the size of your data, and for the built-in renderers a render is cheap. The lever you have is the number of renders. Use [`batch()`](@/api/core.md#batch) to keep that number down.
 
-This is a deliberate trade. Virtualization already keeps the drawn cell count low and roughly constant, so a render is bounded by the size of the viewport rather than the size of your data. The lever you have is the number of renders, not their size. Use [`batch()`](@/api/core.md#batch) to keep that number down.
+When your renderers are slow, the size of a render matters too. The [`renderMode`](@/api/options.md#rendermode) option lets a render skip the cells that did not change since their last paint:
+
+```js
+// skip unchanged cells in the whole grid
+renderMode: 'onChange',
+
+// or only in the column that carries the slow renderer
+columns: [
+  { data: 'chart', renderer: chartRenderer, renderMode: 'onChange' },
+  { data: 'name' },
+],
+```
+
+Under `'onChange'`, a cell is painted only when the element it lands in showed something else after its last paint: another cell (the viewport scrolled), another value, another renderer, a changed cell meta, or a structural change of the grid such as a sort, a filter, an inserted row, a data reload, or a settings update. Everything the grid can see is covered, including a formula whose dependency changed, a validation result, a comment, and a merged cell.
+
+Two kinds of change are invisible to the grid, because nothing in it sees them:
+
+- A value object mutated in place. The grid compares values by identity, so `row.checked = true` on an object the cell already showed does not count.
+- State outside the grid that a renderer reads, such as a theme flag or a store.
+
+For such cells, keep `renderMode: 'always'` (the option cascades, so one column or one cell can opt out), or mark the cell before you render:
+
+```js
+theme = 'dark';
+hot.markCellChanged(0, 0); // paint this cell on the next render, whatever its renderMode
+hot.render();
+
+hot.markAllCellsChanged(); // paint every cell on the next render
+hot.render();
+```
+
+The same applies to a cell meta object you change directly rather than through [`setCellMeta()`](@/api/core.md#setcellmeta): `hot.getCellMeta(0, 0).readOnly = true` is not a change the grid sees. Write through `setCellMeta()`, which is the documented way in every mode.
 
 ### `render()`, `updateSettings()`, and `refreshDimensions()`
 

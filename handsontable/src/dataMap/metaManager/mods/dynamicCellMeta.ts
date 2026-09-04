@@ -23,7 +23,7 @@ import { extendByMetaType, normalizeEditorSetting } from '../utils';
  */
 type MetaManagerWithHot = MetaManagerInstance & {
   hot: HotInstance;
-  updateCellMeta: (...args: unknown[]) => void;
+  extendCellMeta: (...args: unknown[]) => void;
   [key: string]: unknown;
 };
 
@@ -123,7 +123,7 @@ export class DynamicCellMetaMod {
     }
 
     this.#runMetaExtension(cellMeta, (cellSettings) => {
-      this.metaManager.updateCellMeta(physicalRow, physicalColumn, cellSettings);
+      this.metaManager.extendCellMeta(physicalRow, physicalColumn, cellSettings);
     });
 
     let memoRow = this.metaSyncMemo.get(physicalRow);

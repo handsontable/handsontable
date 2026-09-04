@@ -1,6 +1,7 @@
 import { SharedOrderView } from '../utils/orderView';
 import { BaseRenderer } from './_base';
 import { setAttribute, removeAttribute } from '../../../../helpers/dom/element';
+import { clearAppliedSelection } from '../selection/appliedSelection';
 import {
   A11Y_COLINDEX,
   A11Y_ROWHEADER,
@@ -89,8 +90,7 @@ export class RowHeadersRenderer extends BaseRenderer {
         }
 
         TH.className = '';
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (TH as any).__hotSelSig = undefined; // PROTOTYPE(#9614 selection diff)
+        clearAppliedSelection(TH);
         TH.removeAttribute('style');
 
         // Remove all accessibility-related attributes for the header to start fresh.

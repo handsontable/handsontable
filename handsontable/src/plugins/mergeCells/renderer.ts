@@ -130,6 +130,17 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
 
         updateNextCellsHeight.set(row, height / origRowspan);
       }
+
+      if (updateNextCellsHeight.has(row)) {
+        // The height is written on the cell right after the merged block, while that cell renders.
+        // Marking it now, before its turn in the same draw, makes it paint even under
+        // `renderMode: 'onChange'`, where nothing of its own changed.
+        const nextVisualColumn = columnMapper.getVisualFromRenderableIndex(lastMergedColumnIndex + 1);
+
+        if (nextVisualColumn !== null) {
+          hot.markCellChanged(row, nextVisualColumn);
+        }
+      }
     }
 
     const renderedRowIndex = rowMapper.getRenderableFromVisualIndex(row) ?? 0;

@@ -219,6 +219,14 @@ export class Formulas extends BasePlugin {
   #hyperlinksEnabled = false;
 
   /**
+   * The cells rendered as hyperlinks, by physical coordinates (`row,column`). A `HYPERLINK` whose
+   * URL argument lives in another cell keeps its label, so the engine reports no value change for
+   * it; these cells are marked changed on every engine update instead, so a `renderMode: 'onChange'`
+   * cell rebuilds its `href`.
+   */
+  #hyperlinkCells = new Set<string>();
+
+  /**
    * Flag needed to mark if Handsontable was initialized with no data.
    * (Required to work around the fact, that Handsontable auto-generates sample data, when no data is provided).
    *
@@ -404,8 +412,24 @@ export class Formulas extends BasePlugin {
       change as { address?: { sheet: number; row: number; col: number }; newValue: unknown }
     ));
 
+    this.#invalidateHyperlinkCells();
     this.hot.runHooks('afterFormulasValuesUpdate', exportedChanges);
   };
+
+  /**
+   * Marks every cell rendered as a hyperlink as changed, so its `href` is rebuilt on the next render.
+   */
+  #invalidateHyperlinkCells() {
+    this.#hyperlinkCells.forEach((key) => {
+      const [physicalRow, physicalColumn] = key.split(',').map(Number);
+      const visualRow = this.hot.toVisualRow(physicalRow);
+      const visualColumn = this.hot.toVisualColumn(physicalColumn);
+
+      if (visualRow !== null && visualColumn !== null) {
+        this.hot.markCellChanged(visualRow, visualColumn);
+      }
+    });
+  }
 
   /**
    * Called when a named expression is added to the engine instance.
@@ -1158,20 +1182,6 @@ export class Formulas extends BasePlugin {
     dependentCells.forEach((change: unknown) => {
       // For the Named expression the address is empty, hence the `sheetId` is undefined.
       const sheetId = isHFCellChange(change) ? change.address?.sheet : undefined;
-
-      // PROTOTYPE(#9614): a dependent's displayed value changed without a datamap write.
-      if (isHFCellChange(change) && sheetId === this.sheetId && change.address) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-        const pr = (this.hot as any).__partialRender;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-        const physRow = (this.rowAxisSyncer as any)?.getPhysicalIndexFromHfIndex?.(change.address.row);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-        const physCol = (this.columnAxisSyncer as any)?.getPhysicalIndexFromHfIndex?.(change.address.col);
-
-        if (pr && typeof physRow === 'number' && typeof physCol === 'number') {
-          pr.markCell(physRow, physCol);
-        }
-      }
 
       if (sheetId !== undefined && !affectedSheetIds.has(sheetId)) {
         affectedSheetIds.add(sheetId);
@@ -2299,10 +2309,15 @@ export class Formulas extends BasePlugin {
     this.#unwrapHyperlink(TD);
 
     const href = this.#getHyperlinkHref(row, column);
+    const hyperlinkKey = `${this.hot.toPhysicalRow(row)},${this.hot.toPhysicalColumn(column)}`;
 
     if (href === null) {
+      this.#hyperlinkCells.delete(hyperlinkKey);
+
       return;
     }
+
+    this.#hyperlinkCells.add(hyperlinkKey);
 
     const link = this.hot.rootDocument.createElement('a');
 
