@@ -77,7 +77,7 @@ Each scenario measures a specific user interaction pattern:
 | **initial-load** | 100000 x 100 | `new Handsontable(...)` | Grid construction only |
 | **source-data-validator-load** | 100000 x 100 | `new Handsontable(...)` with `sourceDataValidator` | Same fixture as initial-load plus the one option |
 
-Each scenario runs **1 warmup iteration** (discarded) followed by **3 measured iterations** with CDP tracing. The four short-window scenarios (filtering, sorting, initial-load, source-data-validator-load) run **5**: their windows are 50 to 150 ms on a 300 MB heap, where one GC pause moves a mean of three by 10 to 20%, and their iterations cost seconds next to the fixture load. The runner forces a full GC before every measured iteration, so garbage from the previous reset is never collected inside the next window, and reads the live heap after every end mark (`jsHeapAfterGcBytes`, recorded beside the windowed extrema).
+Each scenario runs **1 warmup iteration** (discarded) followed by **3 measured iterations** with CDP tracing. Four scenarios (filtering, sorting, initial-load, source-data-validator-load) run **5**; each states its own reason in its `scenario.config.mjs` (short windows on a 300 to 350 MB heap where one GC pause moves a mean of three by 10 to 20%; for `source-data-validator-load`, a 20% run-to-run spread after removing the runner factor), and their iterations cost seconds next to the fixture load. The runner forces a full GC before every measured iteration, so garbage from the previous reset is never collected inside the next window, and reads the live heap after every end mark (`jsHeapAfterGcBytes`, recorded beside the windowed extrema).
 
 ## Project structure
 
@@ -152,8 +152,9 @@ Two rules follow for anyone writing or changing a scenario:
   `scrollToColumn` wait on trimming, not scroll position, so they return before the scroll
   has rendered; the settle is what makes those resets deterministic.
 
-A category measured as exactly `0`, or a CV of `141.42%` (the CV of `{x, 0, 0}` at three
-iterations), means the window is wrong -- not that the operation was cheap.
+A category measured as exactly `0`, or a CV of `sqrt(n - 1) × 100%` (one nonzero iteration among
+zeros: `141.42%` at three iterations, `200%` at five), means the window is wrong -- not that the
+operation was cheap.
 
 ### Golden baseline workflow
 

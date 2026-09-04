@@ -204,7 +204,7 @@ These combine `scrollViewportTo()` with a deterministic `waitForFunction` that c
 | initial-load | 100000x100 | `new Handsontable(...)` | Grid construction only |
 | source-data-validator-load | 100000x100 | `new Handsontable(...)` with `sourceDataValidator` | initial-load's fixture plus the one option |
 
-Iterations: 3 for the scroll and cell-editing scenarios, 5 for filtering, sorting, initial-load and source-data-validator-load. Those four have 50 to 150 ms windows on a 300 MB heap, where one GC pause inside the window moves a mean of three by 10 to 20%, and their iterations are cheap next to the fixture load. Do not raise the scroll scenarios: each iteration is 500 wheel round trips.
+Iterations: 3 for the scroll and cell-editing scenarios, 5 for filtering, sorting, initial-load and source-data-validator-load. Each of those four states its own reason in its `scenario.config.mjs` (short windows on a 300 to 350 MB heap where one GC pause moves a mean of three by 10 to 20%; for `source-data-validator-load`, a 20% run-to-run spread after removing the runner factor), and their iterations are cheap next to the fixture load. `lib/__tests__/scenario-configs.test.mjs` pins the counts, so change the config and the test together. Do not raise the scroll scenarios: each iteration is 500 wheel round trips.
 
 ## Run Commands
 
@@ -266,8 +266,9 @@ Everything published describes the slice between the two `performance.mark`s tha
   `scrollToRow`/`scrollToColumn` report trimming, not scroll position, so their
   `waitForFunction` returns before the scroll has rendered.
 
-A category measured as exactly `0`, or a CV of `141.42%` (the CV of `{x, 0, 0}` at three
-iterations), means the window is wrong -- not that the operation was cheap.
+A category measured as exactly `0`, or a CV of `sqrt(n - 1) × 100%` (one nonzero iteration among
+zeros: `141.42%` at three iterations, `200%` at five), means the window is wrong -- not that the
+operation was cheap.
 
 1. **Spec** calls `runTracedScenario()` -> forced GC (over a control CDP session), CDP `Tracing.start`, start mark, action, settle, end mark, `afterActionFn`, forced GC + `Runtime.getHeapUsage` readback, `Tracing.end` -> raw JSON per iteration, plus `heap-after-gc.json` for the scenario. The GC before tracing keeps the previous reset's garbage out of the window (initial-load's third iteration read ~50% slower than its first two before it); the readback after the end mark is the live set, recorded as `updateCounters.jsHeapAfterGcBytes`. Both are part of `HARNESS_VERSION` 2.
 2. **Teardown** (`lib/teardown.mjs`) discovers `output/*/iteration-*.json`, calls `parseTrace()` from `trace-parser.mjs`

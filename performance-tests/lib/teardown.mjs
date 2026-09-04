@@ -160,13 +160,14 @@ async function collectScenarioResults() {
       const heapData = JSON.parse(await readFile(heapAfterGcPath, 'utf8'));
       const bytes = typeof heapData.averageBytes === 'number' ? heapData.averageBytes : null;
 
+      // The per-iteration readings stay in heap-after-gc.json (uploaded with the artifact); no
+      // report reads them yet, so they are not carried on _iterationValues.
       if (bytes !== null) {
         averaged.updateCounters = {
           ...(averaged.updateCounters || {}),
           jsHeapAfterGcBytes: bytes,
           jsHeapAfterGcLabel: formatHeapMaxBytesLabel(bytes),
         };
-        averaged._iterationValues.heapAfterGc = heapData.values ?? [];
       }
     }
 
