@@ -2355,6 +2355,8 @@ export default function Core(
         /* eslint-disable no-loop-func */
         waitingForValidator.addValidatorToQueue();
 
+        const structureVersion = metaManager.getStructureVersion();
+
         instance.validateCell(newValue, cellProperties, (function(index, cellPropertiesReference) {
           return function(result: boolean) {
             if (typeof result !== 'boolean') {
@@ -2367,6 +2369,9 @@ export default function Core(
               changes.splice(index, 1);
               // we cancelled the change, so cell value is still valid
               cellPropertiesReference.valid = true;
+              // ...and the stored meta has to hear about it too, or a cache clear that landed while
+              // the validator was running leaves the kept value wearing the rejected edit's mark.
+              persistValidationResult(cellPropertiesReference, true, structureVersion);
             }
 
             waitingForValidator.removeValidatorFormQueue();
@@ -2524,6 +2529,72 @@ export default function Core(
   };
 
   /**
+   * Writes a validation result onto the cell's CURRENT stored meta object.
+   *
+   * The object a validator is given is captured before it runs, and an `updateSettings` clearing the
+   * meta cache in that window detaches it - a write on it then reaches nothing. Both directions
+   * matter. A failure that never reaches the stored meta leaves the cell unmarked, which is the
+   * async half of GitHub issue #7553. A pass that never reaches it leaves behind the `false` that
+   * `restoreInvalidCellMetas` re-applied for a cell that was invalid when the clear happened, so a
+   * corrected value keeps its red mark - and the same holds for the `allowInvalid: false` cancel
+   * path, where the rejected edit is dropped but the cell would stay flagged.
+   *
+   * The lookup is a peek, so a passing result never materializes a meta object on its own and
+   * `_validateCells` keeps its O(invalid cells) retention bound. A failure does materialize, because
+   * it has to be rendered. Physical coordinates come off the meta object itself rather than being
+   * re-derived from the visual ones, which a row insert or move in the same window would shift.
+   *
+   * The coordinates are only usable while the grid's structure has not moved. `LazyFactoryMap`
+   * re-keys stored meta objects when rows or columns are inserted or removed, but the `row`/`col`
+   * fields stamped on those objects are not rewritten - so a pair captured before such a change can
+   * name a different cell after it, and writing through would flag a cell the user never touched.
+   * `structureVersion` is captured when validation starts; when it has moved, the result is dropped
+   * rather than written somewhere it does not belong. The direct write on the captured object still
+   * happened, and that object follows the shift on its own.
+   *
+   * @param {object} cellProperties The cell meta object the validator was handed.
+   * @param {boolean} valid The validation result to persist.
+   * @param {number} structureVersion The structure version captured when validation started.
+   */
+  function persistValidationResult(
+    cellProperties: Record<string, unknown> & { row?: number, col?: number, visualRow?: number, visualCol?: number },
+    valid: boolean,
+    structureVersion: number
+  ) {
+    if (metaManager.getStructureVersion() !== structureVersion) {
+      return;
+    }
+
+    const physicalRow = cellProperties.row;
+    const physicalColumn = cellProperties.col;
+
+    // `validateChanges` builds a synthetic object out of the table meta for a change that names no
+    // visual column. It has no stored counterpart, so there is nothing to write through to.
+    if (!Number.isInteger(physicalRow) || !Number.isInteger(physicalColumn)) {
+      return;
+    }
+
+    const storedCellProperties = metaManager
+      .getCellMetaIfExists(physicalRow as number, physicalColumn as number);
+
+    // Still attached - the caller's direct write already landed on the stored object.
+    if (storedCellProperties === cellProperties) {
+      return;
+    }
+
+    if (storedCellProperties !== undefined) {
+      (storedCellProperties as { valid?: boolean }).valid = valid;
+
+    } else if (valid === false) {
+      (metaManager.getCellMeta(physicalRow as number, physicalColumn as number, {
+        visualRow: cellProperties.visualRow as number,
+        visualColumn: cellProperties.visualCol as number,
+        skipMetaExtension: true,
+      }) as { valid?: boolean }).valid = valid;
+    }
+  }
+
+  /**
    * Validate a single cell.
    *
    * @memberof Core#
@@ -2589,6 +2660,10 @@ export default function Core(
 
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, colArg, source);
 
+      // Captured before the validator runs, so the callback can tell whether the cell's coordinates
+      // still mean what they meant when it started.
+      const structureVersion = metaManager.getStructureVersion();
+
       // To provide consistent behavior, validation should be always asynchronous
       instance._registerMicrotask(() => {
         validator.call(cellProperties, value, (valid: boolean) => {
@@ -2599,6 +2674,8 @@ export default function Core(
           valid = instance
             .runHooks('afterValidate', valid, value, cellProperties.visualRow, colArg, source);
           cellProperties.valid = valid;
+
+          persistValidationResult(cellProperties, valid, structureVersion);
 
           done(valid);
           instance.runHooks(
@@ -3823,6 +3900,9 @@ export default function Core(
    * a direct conflict, a value re-stated through `cell` takes precedence over the preserved value. Where `cell` is not
    * passed, an imperative {@link Core#setCellMeta} made after the declaration wins.
    *
+   * A failed validation result is preserved as well, so a cell marked invalid keeps its `htInvalid` class across
+   * `updateSettings`. To reset the validation state, use [loadData()](@/api/core.md#loaddata) or validate the cells again.
+   *
    * This method reinitializes the affected plugins and then renders, so it does more work than a plain
    * [render()](@/api/core.md#render). When only cell metadata changed, call [render()](@/api/core.md#render)
    * instead. See the [Understanding rendering](@/guides/optimization/rendering/rendering.md) guide.
@@ -4016,14 +4096,22 @@ export default function Core(
     }
 
     /**
-     * Clears the cell and column meta caches. Two kinds of write are snapshotted beforehand and replayed
-     * afterward so they survive the clear instead of being discarded: meta set imperatively through
-     * `setCellMeta` (for example, by the user or the context menu - GitHub issue #4446), and meta applied
-     * from the declarative `cell` option on an earlier call (GitHub issue #5661).
+     * Clears the cell and column meta caches. Three kinds of write are snapshotted beforehand and
+     * replayed afterward so they survive the clear instead of being discarded: meta set imperatively
+     * through `setCellMeta` (for example, by the user or the context menu - GitHub issue #4446), meta
+     * applied from the declarative `cell` option on an earlier call (GitHub issue #5661), and failed
+     * validation results, which the validation flow writes straight onto the meta object rather than
+     * through `setCellMeta`, so neither snapshot above can see them (GitHub issue #7553).
      */
     const resetMetaCaches = () => {
       const cellOptionCellMetas = isCellOptionRestated ? [] : metaManager.getCellOptionCellMetas();
       const userDefinedCellMetas = metaManager.getUserDefinedCellMetas();
+      // Failed validation results are written straight onto the cell meta by `validateCell`, never
+      // through `setCellMeta`, so the snapshot above structurally cannot see them. Without this, an
+      // `updateSettings` call that merely re-states `cells` or `columns` - which every React render
+      // with a `<HotColumn>` child does - silently drops the invalid-cell highlight while the cell
+      // keeps the bad value.
+      const invalidCellMetas = metaManager.getInvalidCellMetas();
 
       metaManager.clearCache();
 
@@ -4053,6 +4141,8 @@ export default function Core(
       userDefinedCellMetas.forEach(({ physicalRow, physicalColumn, key, value }) => {
         metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
       });
+
+      metaManager.restoreInvalidCellMetas(invalidCellMetas);
     };
 
     /**
@@ -5598,6 +5688,9 @@ export default function Core(
             // `setCellMeta`, which would mark the property as user-persisted and change
             // updateSettings/eviction semantics). Only failures materialize, so retention stays
             // O(invalid cells); the eviction pass already keeps `valid === false` cells.
+            // `validateCell` now makes the same write, for the same reason plus the async-detach
+            // case - this one is kept so the guarantee does not depend on that call site, and both
+            // write the identical value on the identical object.
             instance.getCellMeta(row, column, { skipMetaExtension: true }).valid = false;
           }
           waitingForValidator.removeValidatorFormQueue();

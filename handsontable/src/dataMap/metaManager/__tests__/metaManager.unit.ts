@@ -252,6 +252,121 @@ describe('MetaManager', () => {
     });
   });
 
+  describe('getInvalidCellMetas()', () => {
+    it('should pass a method call to CellMeta layer', () => {
+      const metaManager = new MetaManager();
+
+      spyOn(metaManager.cellMeta, 'getInvalidMetas').and.returnValue(['foo']);
+
+      expect(metaManager.getInvalidCellMetas()).toEqual(['foo']);
+      expect(metaManager.cellMeta.getInvalidMetas).toHaveBeenCalledWith();
+    });
+
+    it('should report only the cells whose last validation failed', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).valid = false;
+      metaManager.getCellMeta(1, 2, { visualRow: 1, visualColumn: 2 }).valid = true;
+      metaManager.getCellMeta(3, 1, { visualRow: 3, visualColumn: 1 }).valid = false;
+      // Materialized but never validated.
+      metaManager.getCellMeta(4, 4, { visualRow: 4, visualColumn: 4 });
+
+      // Order-independent: the method promises a set of coordinates, not an iteration order.
+      const invalidCellMetas = metaManager.getInvalidCellMetas();
+
+      expect(invalidCellMetas.length).toBe(2);
+      expect(invalidCellMetas).toContainEqual({ physicalRow: 0, physicalColumn: 0 });
+      expect(invalidCellMetas).toContainEqual({ physicalRow: 3, physicalColumn: 1 });
+    });
+
+    it('should ignore a `valid` flag inherited from a higher meta layer', () => {
+      // `valid` is an ordinary meta key, so it can be declared on the column or global layer. Reading
+      // it through the prototype chain would report every materialized cell of such a grid, and the
+      // restore would then stamp the flag on as an own property that outlives the setting.
+      const metaManager = new MetaManager();
+
+      metaManager.updateColumnMeta(0, { valid: false });
+
+      const cellMeta = metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 });
+
+      expect(cellMeta.valid).toBe(false); // inherited, so the cell still reads as invalid
+      expect(metaManager.getInvalidCellMetas()).toEqual([]);
+    });
+
+    it('should report a cell whose own `valid` is false even when a higher layer says otherwise', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.updateColumnMeta(0, { valid: true });
+      metaManager.getCellMeta(1, 0, { visualRow: 1, visualColumn: 0 }).valid = false;
+
+      expect(metaManager.getInvalidCellMetas()).toEqual([{ physicalRow: 1, physicalColumn: 0 }]);
+    });
+
+    it('should report physical coordinates, so they stay usable after a cache clear', () => {
+      const metaManager = new MetaManager();
+
+      // `visualRow`/`visualCol` are stamped onto the meta object by `getCellMeta`; the snapshot must
+      // not read them, or a grid with moved rows would restore the flag onto the wrong cell.
+      metaManager.getCellMeta(2, 1, { visualRow: 9, visualColumn: 8 }).valid = false;
+
+      expect(metaManager.getInvalidCellMetas()).toEqual([{ physicalRow: 2, physicalColumn: 1 }]);
+    });
+  });
+
+  describe('restoreInvalidCellMetas()', () => {
+    it('should pass a method call to CellMeta layer', () => {
+      const metaManager = new MetaManager();
+
+      spyOn(metaManager.cellMeta, 'restoreInvalidMetas');
+
+      metaManager.restoreInvalidCellMetas([{ physicalRow: 1, physicalColumn: 2 }]);
+
+      expect(metaManager.cellMeta.restoreInvalidMetas)
+        .toHaveBeenCalledWith([{ physicalRow: 1, physicalColumn: 2 }]);
+    });
+
+    it('should bring the failed validation result back after a cache clear', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).valid = false;
+
+      const invalidCellMetas = metaManager.getInvalidCellMetas();
+
+      metaManager.clearCache();
+
+      expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).valid).toBeUndefined();
+
+      metaManager.restoreInvalidCellMetas(invalidCellMetas);
+
+      expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).valid).toBe(false);
+    });
+
+    it('should not record `valid` as a user-defined or persisted meta property', () => {
+      // The restore must be a direct property write. Going through `setCellMeta` would mark `valid`
+      // as user-defined, and every later cache clear would replay a stale `false` onto a cell that
+      // has since been corrected.
+      const metaManager = new MetaManager();
+
+      metaManager.restoreInvalidCellMetas([{ physicalRow: 0, physicalColumn: 0 }]);
+
+      const cellMeta = metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 });
+
+      expect(cellMeta.valid).toBe(false);
+      expect(metaManager.getUserDefinedCellMetas()).toEqual([]);
+      expect(cellMeta._persistedMetaProps).toBeUndefined();
+    });
+
+    it('should leave the other cells untouched', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.restoreInvalidCellMetas([{ physicalRow: 2, physicalColumn: 2 }]);
+
+      expect(metaManager.getCellMeta(2, 2, { visualRow: 2, visualColumn: 2 }).valid).toBe(false);
+      expect(metaManager.getCellMeta(1, 2, { visualRow: 1, visualColumn: 2 }).valid).toBeUndefined();
+      expect(metaManager.getCellMeta(2, 1, { visualRow: 2, visualColumn: 1 }).valid).toBeUndefined();
+    });
+  });
+
   describe('getCellOptionCellMetas()', () => {
     it('should pass a method call to CellMeta layer', () => {
       const metaManager = new MetaManager();

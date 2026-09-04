@@ -62,6 +62,7 @@ export interface FixtureHotInstance {
     filter(): void,
   };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
+  getPlugin(name: 'autofill'): { mouseDownOnCellCorner: boolean };
   getPlugin(name: 'multipleSelectionHandles'): { isDragged(): boolean };
   getPlugin(name: 'nestedRows'): {
     collapseAll(): void,
@@ -184,6 +185,12 @@ declare global {
     initFragmentSelectionGrid(overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the GH #5069 nested-`dataSchema` + `minSpareRows` fixture grid. */
     initNestedSchemaGrid(overrides?: Record<string, unknown>): boolean;
+    /** Rebuilds the GH #7553 invalid-mark fixture grid with the given setting overrides. */
+    initInvalidMarkGrid(overrides?: Record<string, unknown>): boolean;
+    /** Releases the oldest pending validator callback; false when none was waiting (#7553 fixture). */
+    resolveValidation(): boolean;
+    /** How many validator callbacks are waiting to be released (#7553 fixture). */
+    pendingValidationCount(): number;
     /** Rebuilds the GH #5983 sorting-a-filtered-grid-with-`minSpareRows` fixture grid. */
     initSortingSpareRowsGrid(overrides?: Record<string, unknown>): boolean;
     /** Returns the text the browser currently reports as selected (fragmentSelection fixture). */
