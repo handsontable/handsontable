@@ -362,6 +362,9 @@ function buildMemoryMetrics(current, golden, isCrossWindow = false) {
   const pairs = [
     ['Min JS heap', 'jsHeapMinLabel', 'jsHeapMinBytes'],
     ['Max JS heap', 'jsHeapMaxLabel', 'jsHeapMaxBytes'],
+    // The live set after a forced GC (lib/heap-after-gc.mjs). Informational until enough goldens
+    // carry it to derive a threshold; the row is skipped for runs recorded before it existed.
+    ['JS heap after GC', 'jsHeapAfterGcLabel', 'jsHeapAfterGcBytes'],
     ['Min Nodes', 'nodesMin', 'nodesMin'],
     ['Max Nodes', 'nodesMax', 'nodesMax'],
     ['Min Listeners', 'listenersMin', 'listenersMin'],

@@ -5,8 +5,9 @@ import { readdir, readFile, writeFile, mkdir, copyFile } from 'node:fs/promises'
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { parseTrace, averageParsedTraces } from '../trace-parser.mjs';
+import { parseTrace, averageParsedTraces, formatHeapMaxBytesLabel } from '../trace-parser.mjs';
 import { exists } from './fs-utils.mjs';
+import { HEAP_AFTER_GC_FILE } from './heap-after-gc.mjs';
 import { saveSnapshots, loadBaseline } from './snapshot-store.mjs';
 import { buildReport, collectRegressions } from './report-builder.mjs';
 import { buildHtmlReport } from './html-report-builder.mjs';
@@ -149,6 +150,25 @@ async function collectScenarioResults() {
 
       averaged.hookTiming = hookData.averageDeltaMs ?? null;
       averaged._iterationValues.hookTiming = hookData.deltas ?? [];
+    }
+
+    // The live heap the runner read after each end mark (lib/heap-after-gc.mjs). Folded into
+    // updateCounters beside the windowed extrema it is meant to eventually replace as the gate.
+    const heapAfterGcPath = join(scenarioDir, HEAP_AFTER_GC_FILE);
+
+    if (await exists(heapAfterGcPath)) {
+      const heapData = JSON.parse(await readFile(heapAfterGcPath, 'utf8'));
+      const bytes = typeof heapData.averageBytes === 'number' ? heapData.averageBytes : null;
+
+      // The per-iteration readings stay in heap-after-gc.json (uploaded with the artifact); no
+      // report reads them yet, so they are not carried on _iterationValues.
+      if (bytes !== null) {
+        averaged.updateCounters = {
+          ...(averaged.updateCounters || {}),
+          jsHeapAfterGcBytes: bytes,
+          jsHeapAfterGcLabel: formatHeapMaxBytesLabel(bytes),
+        };
+      }
     }
 
     results[entry.name] = averaged;
