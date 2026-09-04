@@ -877,6 +877,25 @@ class MergedCellsCollection {
   }
 
   /**
+   * Drops a batch of merges from both the `mergedCells` list and the lookup matrix, matching them by
+   * identity rather than by coordinates. A merge that no longer covers any row has visual coordinates
+   * that describe nothing, so {@link MergedCellsCollection#remove}'s coordinate lookup cannot find it.
+   *
+   * @param {Array<MergedCellCoords>} merges The merges to drop.
+   */
+  dropMerges(merges: MergedCellCoords[]) {
+    merges.forEach((mergedCell) => {
+      const index = this.mergedCells.indexOf(mergedCell);
+
+      if (index !== -1) {
+        this.mergedCells.splice(index, 1);
+      }
+
+      this.#removeMergedCellFromMatrix(mergedCell);
+    });
+  }
+
+  /**
    * Removes a merged cell from the matrix.
    *
    * @param {MergedCellCoords} mergedCell The merged cell to remove.

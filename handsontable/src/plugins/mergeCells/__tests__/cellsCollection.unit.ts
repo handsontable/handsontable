@@ -1032,6 +1032,48 @@ describe('MergeCells', () => {
       });
     });
 
+    describe('`dropMerges` method', () => {
+      it('should drop the merges from both the list and the lookup matrix', () => {
+        const collection = new MergedCellsCollection({ hot: hotMock });
+        const mergeA = collection.add({ row: 0, col: 0, rowspan: 2, colspan: 2 });
+        const mergeB = collection.add({ row: 5, col: 5, rowspan: 2, colspan: 2 });
+
+        collection.dropMerges([mergeA]);
+
+        expect(collection.mergedCells).toEqual([mergeB]);
+        expect(collection.get(0, 0)).toBe(false);
+        expect(collection.get(1, 1)).toBe(false);
+        expect(collection.get(5, 5)).toBe(mergeB);
+      });
+
+      it('should drop a merge already purged from the matrix, and one whose coordinates match nothing', () => {
+        const collection = new MergedCellsCollection({ hot: hotMock });
+        const purged = collection.add({ row: 0, col: 0, rowspan: 2, colspan: 2 });
+        const survivor = collection.add({ row: 5, col: 5, rowspan: 2, colspan: 2 });
+
+        collection.removeFromMatrix([purged]);
+
+        // the merge kept the stale coordinates it was purged with, and another merge has since taken
+        // the slot they name — dropping by identity must not touch that one
+        purged.row = 5;
+        purged.col = 5;
+
+        collection.dropMerges([purged]);
+
+        expect(collection.mergedCells).toEqual([survivor]);
+      });
+
+      it('should ignore a merge that is not in the list', () => {
+        const collection = new MergedCellsCollection({ hot: hotMock });
+        const merge = collection.add({ row: 0, col: 0, rowspan: 2, colspan: 2 });
+
+        collection.dropMerges([createMergedCell(5, 5, 2, 2)]);
+
+        expect(collection.mergedCells).toEqual([merge]);
+        expect(collection.get(0, 0)).toBe(merge);
+      });
+    });
+
     describe('`getBottomMostRowIndex` method', () => {
       it('should return bottom-most row index of where the merge cells are not intersected', () => {
         const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });

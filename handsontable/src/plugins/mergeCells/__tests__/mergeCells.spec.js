@@ -2931,10 +2931,23 @@ describe('MergeCells', () => {
 
       await render();
 
-      // the anchor follows physical row 2 (A3) to its new visual position; the span stays whole
-      expect(merges()).toEqual([{ row: mc.hot.toVisualRow(2), col: 2, rowspan: 3, colspan: 3 }]);
-      // sanity: the sort actually moved that physical row away from visual row 2
+      // the merge follows its physical rows to the topmost visual position among them, and the span
+      // stays whole — so it covers exactly those three rows (the sort reversed them, so physical row
+      // 4 is now the topmost) instead of reaching down onto rows it does not own
+      expect(merges()).toEqual([{ row: mc.hot.toVisualRow(4), col: 2, rowspan: 3, colspan: 3 }]);
+      expect([2, 3, 4].map(physicalRow => mc.hot.toVisualRow(physicalRow)).sort()).toEqual([4, 5, 6]);
+      // sanity: the sort actually moved the merge's physical rows away from visual row 2
       expect(mc.hot.toVisualRow(2)).not.toBe(2);
+
+      // and it draws over exactly those three rows: the spanning cell is the topmost of them, the
+      // other two are covered by it, and the rows the sort moved next to them are ordinary cells
+      expect(getCell(4, 2).getAttribute('rowspan')).toBe('3');
+      expect(getCellMeta(5, 2).hidden).toBe(true);
+      expect(getCellMeta(6, 2).hidden).toBe(true);
+      expect(getCellMeta(3, 2).hidden).toBeUndefined();
+      expect(getCellMeta(7, 2).hidden).toBeUndefined();
+      expect(getCell(3, 2).getAttribute('rowspan')).toBe(null);
+      expect(getCell(7, 2).getAttribute('rowspan')).toBe(null);
     });
 
     it('should not corrupt the merge anchor when a column is inserted while a filter is active', async() => {
@@ -3158,8 +3171,9 @@ describe('MergeCells', () => {
       expect(mc.hot.toVisualRow(2)).not.toBe(2);
 
       // the trim re-anchor must not be dropped just because the batch also carried a sequence change:
-      // the merge follows its physical anchor to the new visual position instead of staying at row 2
-      expect(merges()[0].row).toBe(mc.hot.toVisualRow(2));
+      // the merge follows its physical rows to the topmost visual position among them (the sort
+      // reversed them, so physical row 4 is now the topmost) instead of staying at row 2
+      expect(merges()[0].row).toBe(mc.hot.toVisualRow(4));
     });
 
     it('should re-anchor a merge after a column sort wrapped in hot.batch() with no filter', async() => {
@@ -3181,8 +3195,9 @@ describe('MergeCells', () => {
       // sanity: the sort moved the merge's physical anchor row away from visual row 2
       expect(mc.hot.toVisualRow(2)).not.toBe(2);
 
-      // the merge follows its physical anchor to the new visual position instead of staying at row 2
-      expect(merges()[0].row).toBe(mc.hot.toVisualRow(2));
+      // the merge follows its physical rows to the topmost visual position among them (the sort
+      // reversed them, so physical row 4 is now the topmost) instead of staying at row 2
+      expect(merges()[0].row).toBe(mc.hot.toVisualRow(4));
     });
 
     it('should not let a row insert re-add a fully hidden (purged) merge to the lookup matrix', async() => {
@@ -3287,6 +3302,37 @@ describe('MergeCells', () => {
         await alter('insert_row_above', 0, 1);
 
         expect(merges()).toEqual([{ row: 8, col: 1, rowspan: 2, colspan: 1 }]);
+      });
+
+    it('should anchor a merge on its topmost visible row after an insert reordered its rows',
+      async() => {
+        handsontable({
+          data: createSpreadsheetData(10, 5),
+          trimRows: true,
+          mergeCells: [{ row: 1, col: 0, rowspan: 4, colspan: 1 }], // physical rows 1,2,3,4
+        });
+        const trimRows = getPlugin('trimRows');
+
+        trimRows.trimRows([2]);
+
+        await render();
+
+        expect(merges()).toEqual([{ row: 1, col: 0, rowspan: 3, colspan: 1 }]);
+
+        // the rows this grows the merge by are appended to the ones it already owns, so from here on
+        // the merge's rows are no longer listed in ascending order
+        await alter('insert_row_above', 2, 2);
+
+        expect(merges()).toEqual([{ row: 1, col: 0, rowspan: 5, colspan: 1 }]);
+
+        // hide the merge's first row too, so the row that heads the list is trimmed away and the next
+        // one in list order is no longer the topmost of the merge
+        trimRows.trimRows([1]);
+
+        await render();
+
+        // the merge sits on the topmost of its visible rows and covers exactly them
+        expect(merges()).toEqual([{ row: 1, col: 0, rowspan: 4, colspan: 1 }]);
       });
 
     it('should keep the rows a merge owns when a column is moved while a filter hides some of them',
@@ -3479,6 +3525,41 @@ describe('MergeCells', () => {
       await render();
 
       expect(merges()).toEqual(groupMerges());
+    });
+
+    it('should drop a merge whose rows were all removed, leaving no merge meta behind', async() => {
+      handsontable({
+        data: nestedData(),
+        nestedRows: true,
+        // the merge covers the five children of the first group, and none of its parent row
+        mergeCells: [{ row: 1, col: 0, rowspan: 5, colspan: 1 }],
+      });
+
+      getPlugin('nestedRows').collapsingUI.collapseChildren(0);
+
+      await render();
+
+      const collection = getPlugin('mergeCells').mergedCellsCollection;
+
+      // every row the merge owns is trimmed, so it is purged from the lookup matrix while staying in
+      // the list, keeping the visual coordinates it was purged with
+      expect(collection.get(1, 0)).toBe(false);
+      expect(merges()).toEqual([{ row: 1, col: 0, rowspan: 5, colspan: 1 }]);
+
+      // removing the collapsed parent takes its five trimmed children with it, so the merge is left
+      // owning nothing and is dropped rather than kept at those stale coordinates
+      await alter('remove_row', 0, 1);
+
+      expect(merges()).toEqual([]);
+      expect(collection.mergedCells.length).toBe(0);
+
+      // the rows the merge covered went with it, so no surviving row is left marked as merged
+      for (let row = 0; row < countRows(); row++) {
+        const { hidden, rowspan, colspan } = getCellMeta(row, 0);
+
+        expect({ row, hidden, rowspan, colspan })
+          .toEqual({ row, hidden: undefined, rowspan: undefined, colspan: undefined });
+      }
     });
 
     it('should not restore a one-cell merge when an unmerge done on a collapsed group is undone', async() => {

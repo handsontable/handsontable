@@ -46,8 +46,15 @@ The plugin listens for the **row trimming map** changing — Filters, `trimRows`
 a merge whose rows get trimmed follows the rows that stay visible. Two things happen, and the second one
 is the part that is easy to get wrong:
 
-- the merge moves to the visual position of the first of its rows that is still visible, and
+- the merge moves to the **topmost** visual position among its rows that are still visible, and
 - its `rowspan` shrinks to the **number of its rows that are still visible**.
+
+"Topmost", not "first in the anchor's list": nothing keeps that list ascending. A row insert appends the
+rows it grew the merge by, and sorting reorders the rows themselves. On a descending sort the first entry
+is the *bottom* row, and anchoring there sent the span down onto rows the merge does not own. The topmost
+rule fixes the top-left only — the span is still one continuous block downwards, so a merge whose visible
+rows are non-contiguous in the visual order (sorting or a row move, never trimming alone) can still cover
+foreign rows.
 
 The clipping is not cosmetic. A trimmed row has no visual index at all, so the visual row space is
 compressed; a merge that kept its declared span would reach past its own rows and onto whatever sits
@@ -57,8 +64,10 @@ rendered `rowspan` instead.
 
 A merge is never dropped because its rows were trimmed. When none of them is visible it is purged from
 the matrix but kept in the list, and it comes back whole once its rows do. Removing the last *visible*
-row of a partly trimmed merge does not delete it either: `#onAfterRemoveRow` remaps the anchors first and
-lets `shiftCollections` drop a merge only once its anchor is empty.
+row of a partly trimmed merge does not delete it either: `#onAfterRemoveRow` remaps the anchors first,
+then drops the merges whose anchor is now empty itself and forbids `shiftCollections` to drop any of the
+rest. The decision cannot be left to the shift: it reads the merge's *visual* coordinates, which for a
+merge purged while all of its rows were trimmed are stale, frozen at the moment it was purged.
 
 The row insert/remove hooks mirror the physical renumbering onto the anchors themselves rather than
 re-deriving them from the merges. They have to: the index mapper emits its cache update **before**

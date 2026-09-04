@@ -452,11 +452,13 @@ When a merged cell's underlying rows or columns are reordered (through [`manualC
 
 [`undo`](@/api/options.md#undo) and [`redo`](@/api/options.md#redo) restore the pre-move state, including any merges that were split or dropped by the reorder.
 
+Sorting through [`columnSorting`](@/api/options.md#columnsorting) or [`multiColumnSorting`](@/api/options.md#multicolumnsorting) also moves a merged cell's rows. The merged cell follows them to the topmost position they now occupy, and keeps its `rowspan`. A sort that scatters those rows leaves the merged cell covering rows it does not belong to, because a merged cell is always one continuous block.
+
 ## Behavior when rows inside a merge are removed from view
 
 Some features remove rows from the grid entirely: [`filters`](@/api/options.md#filters), [`trimRows`](@/api/options.md#trimrows), and collapsing a parent row of [`nestedRows`](@/api/options.md#nestedrows). A removed row has no position in the grid at all, so a merged cell that covers one spans fewer rows than it did:
 
-- The merged cell moves to the first of its rows that is still shown, and spans only the rows of its own that remain. It never grows over the rows below it.
+- The merged cell moves to the topmost of its rows that is still shown, and spans only the rows of its own that remain. It never grows over the rows below it.
 - When none of its rows is shown, the merged cell is not displayed.
 - When the rows come back, the merged cell spans them again. Nothing about the merge is lost while its rows are away. A merged cell you create while rows are already removed from view covers only the rows you could see, and does not grow when the rest come back.
 

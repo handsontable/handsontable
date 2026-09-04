@@ -41,6 +41,30 @@ interface MergeAnchor {
 }
 
 /**
+ * Counts how many of the ascending `values` are smaller than `value`.
+ *
+ * @param {number[]} values Values sorted in ascending order.
+ * @param {number} value The value to compare against.
+ * @returns {number}
+ */
+function countBelow(values: number[], value: number): number {
+  let low = 0;
+  let high = values.length;
+
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2);
+
+    if (values[middle] < value) {
+      low = middle + 1;
+    } else {
+      high = middle;
+    }
+  }
+
+  return low;
+}
+
+/**
  * @plugin MergeCells
  * @class MergeCells
  *
@@ -1043,10 +1067,6 @@ export class MergeCells extends BasePlugin {
 
       const inserted = Array.from({ length: count }, (_, offset) => pivot + offset);
 
-      // Appended rather than sorted in: the list's first entry is what
-      // {@link MergeCells#reanchorMergesToVisibleRows} reads as the merge's top-left, and a merge made
-      // on a sorted grid has a list that does not ascend, so sorting could move the anchor onto
-      // another row of the span.
       return remapped.concat(inserted);
     });
   }
@@ -1061,11 +1081,38 @@ export class MergeCells extends BasePlugin {
    */
   #remapRowAnchorsAfterRemove(physicalRows: number[]) {
     const removed = new Set(physicalRows);
+    // The shift of a surviving row is how many removed rows sit above it, which a sorted copy answers
+    // with a binary search rather than a full scan per row every merge owns. `afterRemoveRow` makes no
+    // promise about the order it reports the removed rows in, hence the copy rather than the argument.
+    const ascending = [...physicalRows].sort((rowA, rowB) => rowA - rowB);
 
     this.#remapAnchors(anchoredRows => anchoredRows
       .filter(physicalRow => !removed.has(physicalRow))
-      .map(physicalRow => physicalRow -
-        physicalRows.reduce((shift, removedRow) => shift + (removedRow < physicalRow ? 1 : 0), 0)));
+      .map(physicalRow => physicalRow - countBelow(ascending, physicalRow)));
+  }
+
+  /**
+   * Drops every merge whose anchor no longer lists a row. The anchor is the authoritative description
+   * of a merge, so one that owns no row is gone whatever its visual coordinates still say — and for a
+   * merge purged from the matrix while all of its rows were trimmed those coordinates are stale,
+   * frozen at the moment it was purged. `shiftCollections` decides from exactly them, so leaving the
+   * decision to it lets the two disagree and keep a merge that owns nothing in the collection, which a
+   * later reorder would translate back into the matrix at that stale position.
+   */
+  #dropMergesWithoutRows() {
+    const dropped = this.mergedCellsCollection.mergedCells
+      .filter(merge => this.#mergeAnchors.get(merge)?.physicalRows.length === 0);
+
+    if (dropped.length === 0) {
+      return;
+    }
+
+    dropped.forEach((merge) => {
+      this.#mergeAnchors.delete(merge);
+      this.#purgedMerges.delete(merge);
+    });
+
+    this.mergedCellsCollection.dropMerges(dropped);
   }
 
   /**
@@ -1137,8 +1184,8 @@ export class MergeCells extends BasePlugin {
 
   /**
    * Derives every merge's visual `row`/`col`/`rowspan` from its captured physical rows. The merge is
-   * placed on the visual position of the first of those rows that is still visible, and spans as many
-   * visual rows as it has visible physical rows. Trimming compresses the visual row space — a trimmed
+   * placed on the **topmost** visual position among those rows that are still visible, and spans as
+   * many visual rows as it has visible physical rows. Trimming compresses the visual row space — a trimmed
    * row has no visual index at all — so a merge that kept its full `rowspan` while some of its rows
    * were trimmed would reach past its own data and onto the rows below, colliding with whatever merge
    * lives there. The full span is preserved in the anchor, so the merge is restored whole once its
@@ -1150,9 +1197,14 @@ export class MergeCells extends BasePlugin {
    * re-added once they become visible again) to avoid leaving a stale entry that a later filter could
    * resolve to as a phantom merge.
    *
-   * A merge whose visible physical rows are not consecutive in the visual order (only reachable by
-   * sorting or moving rows, never by trimming alone) still spans one continuous visual block from its
-   * first visible row, as it did before this derivation was introduced.
+   * Taking the topmost visible row rather than the first one the anchor happens to list makes the
+   * result independent of the list's order, which nothing keeps ascending: a row insert appends the
+   * rows it grew the merge by, and sorting reorders the rows themselves.
+   *
+   * It fixes the top-left, not the span. A merge whose visible physical rows are not consecutive in
+   * the visual order (only reachable by sorting or moving rows, never by trimming alone) still spans
+   * one continuous visual block downwards from that top-left, so it can still cover rows it does not
+   * own — as it did before this derivation was introduced.
    */
   #reanchorMergesToVisibleRows() {
     const { mergedCells } = this.mergedCellsCollection;
@@ -1185,7 +1237,7 @@ export class MergeCells extends BasePlugin {
             return;
           }
 
-          if (visualRow === null) {
+          if (visualRow === null || rowIndex < visualRow) {
             visualRow = rowIndex;
           }
 
@@ -2046,24 +2098,19 @@ export class MergeCells extends BasePlugin {
   #onAfterRemoveRow = (row: number, count: number, physicalRows: number[]) => {
     // Removing renumbers each surviving physical row down by how many removed rows sat above it;
     // mirror that onto the anchors, which stay the authoritative description of the merge. The remap
-    // runs before the shift so the shift can ask the updated anchors whether a merge it wants to drop
-    // still owns rows: while rows inside a merge are trimmed the merge occupies fewer visual rows than
-    // it owns, so removing all of its visible rows must not take the trimmed ones with it.
+    // runs before the shift so the anchors, not the shift, decide which merges are gone: while rows
+    // inside a merge are trimmed it occupies fewer visual rows than it owns, and the shift sees only
+    // the visual ones, so removing all of a merge's visible rows must not take the trimmed ones with
+    // it. A merge left owning nothing is dropped here instead, so the shift never has to rule on one.
     const remapped = Array.isArray(physicalRows);
 
     if (remapped) {
       this.#remapRowAnchorsAfterRemove(physicalRows);
+      this.#dropMergesWithoutRows();
     }
 
-    this.mergedCellsCollection.shiftCollections('up', row, count, (mergedCell) => {
-      if (!remapped) {
-        return true;
-      }
-
-      const anchor = this.#mergeAnchors.get(mergedCell);
-
-      return !anchor || anchor.physicalRows.length === 0;
-    });
+    this.mergedCellsCollection.shiftCollections('up', row, count,
+      mergedCell => !remapped || !this.#mergeAnchors.has(mergedCell));
 
     this.#captureMissingMergeAnchors();
     // `shiftCollections` rebuilt the matrix from every merge, re-adding any currently purged
