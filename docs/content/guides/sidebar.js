@@ -83,6 +83,7 @@ const rowsItems = [
 
 const cellFeaturesItems = [
   { path: 'guides/cell-features/selection/selection' },
+  { path: 'guides/cell-features/move-cells/move-cells' },
   { path: 'guides/cell-features/merge-cells/merge-cells' },
   { path: 'guides/cell-features/conditional-formatting/conditional-formatting' },
   { path: 'guides/cell-features/text-alignment/text-alignment' },
