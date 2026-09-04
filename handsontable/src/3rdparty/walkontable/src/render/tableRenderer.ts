@@ -12,6 +12,14 @@ import type { StylesHandler } from '../types';
 import { getBoxAdjustedRowHeight } from '../axisSizing/boxModel';
 
 /**
+ * Asked for every cell in the rendered band before the cell element is reset and painted.
+ * Answering `false` leaves the element exactly as the previous draw left it.
+ */
+export type ShouldPaintCell = (
+  sourceRow: number, sourceColumn: number, TD: HTMLTableCellElement, band: string
+) => boolean;
+
+/**
  * TableRenderer class collects all renderers and properties necessary for table creation. It's
  * responsible for adjusting and rendering each renderer.
  *
@@ -171,6 +179,13 @@ export class TableRenderer {
    */
   declare cellRenderer: Function;
   /**
+   * Tells whether a cell element has to be reset and painted on this draw (see the
+   * `shouldPaintCell` setting).
+   *
+   * @type {Function}
+   */
+  declare shouldPaintCell: ShouldPaintCell;
+  /**
    * Holds the name of the currently active overlay.
    *
    * @type {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'}
@@ -225,14 +240,20 @@ export class TableRenderer {
    * @param {HTMLTableElement} rootNode The HTML table element to use as the root node for rendering.
    * @param {object} options The configuration options.
    * @param {Function} [options.cellRenderer] The cell renderer function.
+   * @param {Function} [options.shouldPaintCell] The per-cell paint gate.
    * @param {StylesHandler} [options.stylesHandler] The styles handler instance.
    */
   constructor(
     rootNode: HTMLTableElement,
-    { cellRenderer, stylesHandler }: { cellRenderer?: Function; stylesHandler?: StylesHandler } = {}) {
+    { cellRenderer, shouldPaintCell, stylesHandler }: {
+      cellRenderer?: Function;
+      shouldPaintCell?: ShouldPaintCell;
+      stylesHandler?: StylesHandler;
+    } = {}) {
     this.rootNode = rootNode;
     this.rootDocument = this.rootNode.ownerDocument;
     this.cellRenderer = cellRenderer!;
+    this.shouldPaintCell = shouldPaintCell ?? (() => true);
     this.stylesHandler = stylesHandler!;
   }
 

@@ -220,6 +220,7 @@ export interface GridSettings {
   placeholder?: string | number;
   renderAllRows?: boolean;
   renderAllColumns?: boolean;
+  renderMode?: 'always' | 'onChange';
   viewportColumnRenderingOffset?: number | 'auto';
   viewportRowRenderingOffset?: number | 'auto';
   viewportColumnRenderingThreshold?: number | 'auto';

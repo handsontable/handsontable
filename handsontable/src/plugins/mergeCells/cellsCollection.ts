@@ -277,6 +277,7 @@ class MergedCellsCollection {
 
       this.mergedCells.push(newMergedCell);
       this.#addMergedCellToMatrix(newMergedCell);
+      this.hot?.markAllCellsChanged();
 
       return newMergedCell;
     }
@@ -303,6 +304,7 @@ class MergedCellsCollection {
     if (mergedCell && mergedCellIndex !== -1) {
       this.mergedCells.splice(mergedCellIndex, 1);
       this.#removeMergedCellFromMatrix(mergedCell);
+      this.hot?.markAllCellsChanged();
 
       return mergedCell;
     }
@@ -330,6 +332,7 @@ class MergedCellsCollection {
 
     this.mergedCells.length = 0;
     this.mergedCellsMatrix = new Map<number, Map<number, MergedCellCoords>>();
+    this.hot?.markAllCellsChanged();
   }
 
   /**

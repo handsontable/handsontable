@@ -304,7 +304,6 @@ export class MergeCells extends BasePlugin {
     this.addHook('afterChange', this.#onAfterChange);
     this.addHook('beforeDrawBorders', this.#onBeforeDrawAreaBorders);
     this.addHook('afterDrawSelection', this.#onAfterDrawSelection);
-    this.addHook('beforeRemoveCellClassNames', this.#onBeforeRemoveCellClassNames);
     this.addHook('beforeBeginEditing', this.#onBeforeBeginEditing);
     this.addHook('modifyRowHeightByOverlayName', this.#onModifyRowHeightByOverlayName);
     this.addHook('modifySinglePassLayout', this.#onModifySinglePassLayout);
@@ -2246,15 +2245,6 @@ export class MergeCells extends BasePlugin {
 
     return this.selectionCalculations
       .getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection, layerLevel);
-  };
-
-  /**
-   * `beforeRemoveCellClassNames` hook callback.
-   *
-   * @returns {string[]}
-   */
-  #onBeforeRemoveCellClassNames = () => {
-    return this.selectionCalculations.getSelectedMergedCellClassNameToRemove();
   };
 
   /**

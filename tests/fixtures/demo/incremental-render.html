@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - incremental render</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    // The grid shape under test, from a fixed allowlist for the same reason.
+    window.htScenario = ({
+      text: 'text', always: 'always', mixed: 'mixed', 'frozen-merge': 'frozen-merge', formulas: 'formulas', search: 'search',
+      'cells-fn': 'cells-fn', resize: 'resize', 'merge-height': 'merge-height',
+    })[htParams.get('scenario') ?? 'text'];
+    if (!window.htScenario) {
+      throw new Error('Unknown ?scenario= value: ' + JSON.stringify(htParams.get('scenario')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    E2E fixture for the `renderMode` option (skip cells that did not change) and the selection
+    pass that diffs against what each element carried. Every renderer counts its paints per cell
+    into `window.htPaints`, and `window.htSnapshot()` serializes the master and overlay tables with
+    sorted attributes and class tokens, so a spec can compare a skipping render against a forced
+    full repaint byte for byte. The `formulas` scenario runs exactly ONE engine: the `umd` legs
+    load HyperFormula as an external script (the base bundle ships none); the `full-min` legs use
+    the baked-in engine.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    if (window.htBundle === 'handsontable.js' && window.htScenario === 'formulas') {
+      document.write('<scr' + 'ipt src="/tests/node_modules/hyperformula/dist/hyperformula.full.min.js"></scr' + 'ipt>');
+    }
+  </script>
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    window.htPaints = new Map();
+    window.htExternal = 'one';
+
+    // Counts only paints into the grid's own tables. `autoColumnSize` (on by default) runs the
+    // renderers into a detached ghost table to measure widths; those are not cell paints.
+    function countPaint(td, row, col) {
+      if (!container.contains(td)) {
+        return;
+      }
+
+      const key = `${row},${col}`;
+
+      window.htPaints.set(key, (window.htPaints.get(key) ?? 0) + 1);
+    }
+
+    // The text renderer plus a paint counter and a test id.
+    function countingRenderer(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      countPaint(td, row, col);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    }
+
+    // A renderer whose output depends on state the grid cannot see.
+    function externalStateRenderer(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.call(this, instance, td, row, col, prop, `${value}:${window.htExternal}`, cellProperties);
+      countPaint(td, row, col);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    }
+
+    function makeData(rows, cols, fn) {
+      const data = [];
+
+      for (let r = 0; r < rows; r++) {
+        const row = [];
+
+        for (let c = 0; c < cols; c++) {
+          row.push(fn ? fn(r, c) : `r${r}c${c}`);
+        }
+        data.push(row);
+      }
+
+      return data;
+    }
+
+    const base = {
+      licenseKey: 'non-commercial-and-evaluation',
+      rowHeaders: true,
+      colHeaders: true,
+      width: 600,
+      height: 300,
+      renderer: countingRenderer,
+    };
+    const scenarios = {
+      text: () => ({ ...base, data: makeData(200, 10), renderMode: 'onChange' }),
+      always: () => ({ ...base, data: makeData(200, 10), renderMode: 'always' }),
+      mixed: () => ({
+        ...base,
+        data: makeData(20, 4),
+        renderMode: 'onChange',
+        columns: [
+          { renderer: externalStateRenderer, renderMode: 'always' },
+          { renderer: externalStateRenderer },
+          { renderer: countingRenderer },
+          { renderer: countingRenderer },
+        ],
+      }),
+      'frozen-merge': () => ({
+        ...base,
+        data: makeData(60, 8),
+        renderMode: 'onChange',
+        fixedRowsTop: 2,
+        fixedColumnsStart: 2,
+        mergeCells: true,
+      }),
+      formulas: () => ({
+        ...base,
+        data: [['=B1*2', 5, '=HYPERLINK(D1, "label")', 'http://a/'], [1, 2, 3, 4], ['=SUM(B1:B2)', 0, 0, 0]],
+        renderMode: 'onChange',
+        formulas: { engine: HyperFormula, hyperlinks: true },
+      }),
+      search: () => ({ ...base, data: makeData(20, 6), renderMode: 'onChange', search: true }),
+      // The `cells` function reads a flag the test flips between renders.
+      'cells-fn': () => ({
+        ...base,
+        data: makeData(20, 4),
+        renderMode: 'onChange',
+        cells: () => ({ readOnly: window.htLocked === true }),
+      }),
+      // Manual row sizes change how many rows the band holds without touching the index mappers,
+      // so the rendered band can shrink and grow back without a render-epoch change.
+      resize: () => ({ ...base, data: makeData(200, 10), renderMode: 'onChange', manualRowResize: true }),
+      // No row headers: MergeCells then writes the row height on the cell right of a merged block.
+      'merge-height': () => ({
+        ...base,
+        data: makeData(20, 4),
+        renderMode: 'onChange',
+        rowHeaders: false,
+        rowHeights: 40,
+        mergeCells: [{ row: 2, col: 0, rowspan: 2, colspan: 1 }],
+      }),
+    };
+
+    window.hot = new Handsontable(container, scenarios[window.htScenario]());
+
+    // Serializes the master and overlay tables with sorted attributes and class tokens, so two
+    // renders can be compared without depending on attribute or class order.
+    function canon(node) {
+      if (node.nodeType === 3) {
+        return node.nodeValue;
+      }
+      if (node.nodeType !== 1) {
+        return '';
+      }
+
+      const attributes = Array.from(node.attributes)
+        .map(a => `${a.name}=${JSON.stringify(a.name === 'class'
+          ? a.value.split(/\s+/).filter(Boolean).sort().join(' ')
+          : a.value)}`)
+        .sort()
+        .join(' ');
+      const tag = node.tagName.toLowerCase();
+
+      return `<${tag}${attributes ? ` ${attributes}` : ''}>${Array.from(node.childNodes).map(canon).join('')}</${tag}>`;
+    }
+
+    window.htSnapshot = () => Array.from(container.querySelectorAll(
+      '.ht_master table, .ht_clone_inline_start table, .ht_clone_top table, .ht_clone_top_inline_start_corner table'
+    )).map(canon).join('\n');
+
+    window.htResetPaints = () => {
+      window.htPaints = new Map();
+    };
+
+    window.htPaintedCells = () => Array.from(window.htPaints.keys()).sort();
+
+    window.htReady = true;
+  </script>
+</body>
+</html>

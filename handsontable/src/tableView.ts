@@ -1,6 +1,4 @@
 import type { HotInstance } from './core/types';
-import type { BaseRenderer } from './renderers/baseRenderer';
-import type { CellProperties } from './settings';
 import type { IndexMapper } from './translations';
 import type { WalkontableInstance } from './3rdparty/walkontable/src/types';
 import type { RowsCalculationType, ColumnsCalculationType } from './3rdparty/walkontable/src/calculator/viewportBase';
@@ -27,7 +25,7 @@ import {
   getParentWindow,
 } from './helpers/dom/element';
 import EventManager from './eventManager';
-import { formatCellValue, renderCell } from './renderers/renderCell';
+import { CellPainter } from './core/incrementalRender/cellPainter';
 import { RenderSizeProbe } from './renderSizeProbe';
 import {
   isImmediatePropagationStopped,
@@ -349,12 +347,24 @@ class TableView {
    */
   #recentTouchEndTimeout: ReturnType<typeof setTimeout> | null = null;
   /**
+   * Paints cells for the rendering engine and decides which of them need painting.
+   *
+   * @type {CellPainter}
+   */
+  #cellPainter: CellPainter;
+
+  /**
    * @param {Hanstontable} hotInstance Instance of {@link Handsontable}.
    */
   constructor(hotInstance: HotInstance) {
     this.hot = hotInstance;
     this.eventManager = new EventManager(this.hot);
     this.settings = this.hot.getSettings();
+    this.#cellPainter = new CellPainter(
+      this.hot,
+      this.hot.renderChangeTracker,
+      (renderedRow, renderedColumn) => this.translateFromRenderableToVisualIndex(renderedRow, renderedColumn),
+    );
 
     this.createElements();
     this.registerEvents();
@@ -1126,48 +1136,13 @@ class TableView {
         return isUniformSizeSetting(this.hot.getSettings().colWidths) &&
           !this.hot.hasHook('modifyColWidth');
       },
+      shouldPaintCell: (
+        renderedRowIndex: number, renderedColumnIndex: number, TD: HTMLTableCellElement, band: string
+      ) => this.#cellPainter.shouldPaint(renderedRowIndex, renderedColumnIndex, TD, band),
       cellRenderer: (renderedRowIndex: number, renderedColumnIndex: number, TD: HTMLTableCellElement) => {
-        const [visualRowIndex, visualColumnIndex] = this
-          .translateFromRenderableToVisualIndex(renderedRowIndex, renderedColumnIndex);
-
-        // Coords may be modified. For example, by the `MergeCells` plugin. It should affect cell value and cell meta.
-        const modifiedCellCoords = this.hot
-          .runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex, false, 'meta');
-
-        let visualRowToCheck = visualRowIndex;
-        let visualColumnToCheck = visualColumnIndex;
-
-        if (Array.isArray(modifiedCellCoords)) {
-          [visualRowToCheck, visualColumnToCheck] = modifiedCellCoords as [number, number];
-        }
-
-        const cellProperties = this.hot.getCellMeta<CellProperties>(visualRowToCheck, visualColumnToCheck);
-        const prop = this.hot.colToProp(visualColumnToCheck) as string;
-        let value = this.hot.getDataAtRowProp(visualRowToCheck, prop);
-
-        if (this.hot.hasHook('beforeValueRender')) {
-          value = this.hot.runHooks('beforeValueRender', value, cellProperties);
-        }
-
-        const renderer = this.hot.getCellRenderer(cellProperties);
-        const formattedValue = formatCellValue(value, cellProperties, renderer);
-
-        this.hot.runHooks('beforeRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
-
-        const rendererArgs: Parameters<BaseRenderer> = [
-          this.hot as HotInstance,
-          TD,
-          visualRowIndex,
-          visualColumnIndex,
-          prop,
-          formattedValue,
-          cellProperties,
-        ];
-
-        renderCell(renderer, rendererArgs);
-
-        this.hot.runHooks('afterRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
+        this.#cellPainter.paint(renderedRowIndex, renderedColumnIndex, TD);
       },
+      renderEpoch: () => this.hot.renderChangeTracker.epoch,
       selections: this.hot.selection.highlight,
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,
       onWindowResize: () => {
@@ -1456,6 +1431,11 @@ class TableView {
         return newVisualColumn;
       },
       onAfterDrawSelection: (currentRow: number, currentColumn: number, layerLevel: number) => {
+        // Asked once per selected cell per draw, so the hook system is entered only when it has to be.
+        if (!this.hot.hasHook('afterDrawSelection')) {
+          return undefined;
+        }
+
         let cornersOfSelection;
         const [visualRowIndex, visualColumnIndex] =
           this.translateFromRenderableToVisualIndex(currentRow, currentColumn);
