@@ -46,15 +46,26 @@ The plugin listens for the **row trimming map** changing — Filters, `trimRows`
 a merge whose rows get trimmed follows the rows that stay visible. Two things happen, and the second one
 is the part that is easy to get wrong:
 
-- the merge moves to the **topmost** visual position among its rows that are still visible, and
+- the merge moves to the visual position of the first of its rows that is still visible, and
 - its `rowspan` shrinks to the **number of its rows that are still visible**.
 
-"Topmost", not "first in the anchor's list": nothing keeps that list ascending. A row insert appends the
-rows it grew the merge by, and sorting reorders the rows themselves. On a descending sort the first entry
-is the *bottom* row, and anchoring there sent the span down onto rows the merge does not own. The topmost
-rule fixes the top-left only — the span is still one continuous block downwards, so a merge whose visible
-rows are non-contiguous in the visual order (sorting or a row move, never trimming alone) can still cover
-foreign rows.
+**The anchor's row list is ordered by visual position, and every structural edit must preserve that.**
+That invariant is what makes "first in the list" mean "the top-left". The list is captured in visual
+order, so on a descending sort it runs the other way to the physical indexes — and `#remapRowAnchorsAfterInsert`
+therefore *splices* the rows an insert grew a merge by into their visual place rather than appending them.
+Appending was a real defect: a grown row that sits visually above the ones already listed ended up last,
+and once the head was trimmed away the merge re-anchored onto the wrong row.
+
+Do **not** "simplify" the derivation to take the smallest visual index instead. It looks equivalent and is
+not: it also re-anchors merges on a *sorted* grid, where the head of the list is the row that was the
+top-left when the merge was made. Pulling every merge up to its highest visible row lets two merges whose
+rows a sort interleaves collide in the lookup matrix — measured on the merged-cells demo, and pinned by
+`should not let a sort pull two merges onto the same rows in the lookup matrix`. `relocateInMatrix` has no
+overlap guard (unlike `add`, which runs `isOverlapping`), so the second footprint silently wins.
+
+The span is one continuous block downwards from that top-left, so a merge whose visible rows are
+non-contiguous in the visual order (sorting or a row move, never trimming alone) can still cover foreign
+rows. That is pre-existing and unchanged.
 
 The clipping is not cosmetic. A trimmed row has no visual index at all, so the visual row space is
 compressed; a merge that kept its declared span would reach past its own rows and onto whatever sits

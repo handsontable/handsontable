@@ -2931,23 +2931,10 @@ describe('MergeCells', () => {
 
       await render();
 
-      // the merge follows its physical rows to the topmost visual position among them, and the span
-      // stays whole — so it covers exactly those three rows (the sort reversed them, so physical row
-      // 4 is now the topmost) instead of reaching down onto rows it does not own
-      expect(merges()).toEqual([{ row: mc.hot.toVisualRow(4), col: 2, rowspan: 3, colspan: 3 }]);
-      expect([2, 3, 4].map(physicalRow => mc.hot.toVisualRow(physicalRow)).sort()).toEqual([4, 5, 6]);
-      // sanity: the sort actually moved the merge's physical rows away from visual row 2
+      // the anchor follows physical row 2 (A3) to its new visual position; the span stays whole
+      expect(merges()).toEqual([{ row: mc.hot.toVisualRow(2), col: 2, rowspan: 3, colspan: 3 }]);
+      // sanity: the sort actually moved that physical row away from visual row 2
       expect(mc.hot.toVisualRow(2)).not.toBe(2);
-
-      // and it draws over exactly those three rows: the spanning cell is the topmost of them, the
-      // other two are covered by it, and the rows the sort moved next to them are ordinary cells
-      expect(getCell(4, 2).getAttribute('rowspan')).toBe('3');
-      expect(getCellMeta(5, 2).hidden).toBe(true);
-      expect(getCellMeta(6, 2).hidden).toBe(true);
-      expect(getCellMeta(3, 2).hidden).toBeUndefined();
-      expect(getCellMeta(7, 2).hidden).toBeUndefined();
-      expect(getCell(3, 2).getAttribute('rowspan')).toBe(null);
-      expect(getCell(7, 2).getAttribute('rowspan')).toBe(null);
     });
 
     it('should not corrupt the merge anchor when a column is inserted while a filter is active', async() => {
@@ -3171,9 +3158,8 @@ describe('MergeCells', () => {
       expect(mc.hot.toVisualRow(2)).not.toBe(2);
 
       // the trim re-anchor must not be dropped just because the batch also carried a sequence change:
-      // the merge follows its physical rows to the topmost visual position among them (the sort
-      // reversed them, so physical row 4 is now the topmost) instead of staying at row 2
-      expect(merges()[0].row).toBe(mc.hot.toVisualRow(4));
+      // the merge follows its physical anchor to the new visual position instead of staying at row 2
+      expect(merges()[0].row).toBe(mc.hot.toVisualRow(2));
     });
 
     it('should re-anchor a merge after a column sort wrapped in hot.batch() with no filter', async() => {
@@ -3195,9 +3181,8 @@ describe('MergeCells', () => {
       // sanity: the sort moved the merge's physical anchor row away from visual row 2
       expect(mc.hot.toVisualRow(2)).not.toBe(2);
 
-      // the merge follows its physical rows to the topmost visual position among them (the sort
-      // reversed them, so physical row 4 is now the topmost) instead of staying at row 2
-      expect(merges()[0].row).toBe(mc.hot.toVisualRow(4));
+      // the merge follows its physical anchor to the new visual position instead of staying at row 2
+      expect(merges()[0].row).toBe(mc.hot.toVisualRow(2));
     });
 
     it('should not let a row insert re-add a fully hidden (purged) merge to the lookup matrix', async() => {
@@ -3304,7 +3289,7 @@ describe('MergeCells', () => {
         expect(merges()).toEqual([{ row: 8, col: 1, rowspan: 2, colspan: 1 }]);
       });
 
-    it('should anchor a merge on its topmost visible row after an insert reordered its rows',
+    it('should keep the rows an insert grew a merge by in visual order inside the anchor',
       async() => {
         handsontable({
           data: createSpreadsheetData(10, 5),
@@ -3319,21 +3304,63 @@ describe('MergeCells', () => {
 
         expect(merges()).toEqual([{ row: 1, col: 0, rowspan: 3, colspan: 1 }]);
 
-        // the rows this grows the merge by are appended to the ones it already owns, so from here on
-        // the merge's rows are no longer listed in ascending order
+        // the new rows land inside the merge, so it grows over them. Appending them to the anchor
+        // would put rows that sit visually above the ones already listed at the end of the list
         await alter('insert_row_above', 2, 2);
 
         expect(merges()).toEqual([{ row: 1, col: 0, rowspan: 5, colspan: 1 }]);
 
-        // hide the merge's first row too, so the row that heads the list is trimmed away and the next
-        // one in list order is no longer the topmost of the merge
+        // trim the merge's first row too, so the head of the list is gone and the next entry in list
+        // order decides the top-left
         trimRows.trimRows([1]);
 
         await render();
 
-        // the merge sits on the topmost of its visible rows and covers exactly them
+        // that entry is the merge's topmost visible row, because the insert kept the list in visual
+        // order — appending would have put the merge three rows lower
         expect(merges()).toEqual([{ row: 1, col: 0, rowspan: 4, colspan: 1 }]);
       });
+
+    it('should not let a sort pull two merges onto the same rows in the lookup matrix', async() => {
+      // column 2 is the sort key, chosen so that ascending order sends the merges' rows to:
+      //   merge A, physical 0 and 1 -> visual 6 and 1
+      //   merge B, physical 2 and 3 -> visual 3 and 2
+      // Reading the first row in each anchor's list puts A at 6-7 and B at 3-4, which are disjoint.
+      // Reading the topmost row instead puts A at 1-2 and B at 2-3, which collide on visual row 2.
+      const sortKey = [6, 1, 3, 2, 0, 4, 5, 7];
+
+      handsontable({
+        data: sortKey.map((key, row) => [`A${row}`, `B${row}`, key]),
+        columnSorting: true,
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 2, colspan: 2 },
+          { row: 2, col: 0, rowspan: 2, colspan: 2 },
+        ],
+      });
+
+      getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      await render();
+
+      const claimed = new Map();
+      const clashes = [];
+
+      merges().forEach(({ row, col, rowspan, colspan }, index) => {
+        for (let r = row; r < row + rowspan; r++) {
+          for (let c = col; c < col + colspan; c++) {
+            const cell = `${r},${c}`;
+
+            if (claimed.has(cell)) {
+              clashes.push(cell);
+            }
+
+            claimed.set(cell, index);
+          }
+        }
+      });
+
+      expect(clashes).toEqual([]);
+    });
 
     it('should keep the rows a merge owns when a column is moved while a filter hides some of them',
       async() => {

@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Fixed merged cells drawing on top of the rows below them after a collapsed `nestedRows` parent, a filter, or `trimRows` removed rows from inside the merge. A merged cell now spans only the rows of its own that are still shown, is restored to its full span once they come back, and sits on the topmost of those rows, which also stops a merged cell on a descending sort from covering rows it does not belong to.",
+  "title": "Fixed merged cells drawing on top of the rows below them after a collapsed `nestedRows` parent, a filter, or `trimRows` removed rows from inside the merge. A merged cell now spans only the rows of its own that are still shown, and is restored to its full span once they come back.",
   "type": "fixed",
   "issueOrPR": 7686,
   "breaking": false,

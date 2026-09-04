@@ -1037,6 +1037,11 @@ export class MergeCells extends BasePlugin {
    * skips values. A physical comparison then grows a merge the new rows landed outside of, and leaves
    * one they landed inside of alone.
    *
+   * The grown rows are spliced into the list in visual order rather than appended. The list is ordered
+   * by visual position and {@link MergeCells#reanchorMergesToVisibleRows} reads its first still-visible
+   * entry as the merge's top-left, so appending a row that sits visually above the ones already there
+   * would move the top-left onto the wrong row of the span.
+   *
    * @param {number} pivot The physical row the new rows were inserted at.
    * @param {number} count The number of inserted rows.
    * @param {number} insertedRow The visual row the new rows were inserted at.
@@ -1046,12 +1051,11 @@ export class MergeCells extends BasePlugin {
 
     this.#remapAnchors((physicalRows) => {
       const remapped = physicalRows.map(physicalRow => (physicalRow >= pivot ? physicalRow + count : physicalRow));
+      const visualRows = remapped.map(physicalRow => this.hot.toVisualRow(physicalRow));
       let hasRowAbove = false;
       let hasRowBelow = false;
 
-      remapped.forEach((physicalRow) => {
-        const visualRow = this.hot.toVisualRow(physicalRow);
-
+      visualRows.forEach((visualRow) => {
         // A trimmed row has no visual index, so it is on neither side of the inserted block.
         if (visualRow === null) {
           return;
@@ -1066,8 +1070,22 @@ export class MergeCells extends BasePlugin {
       }
 
       const inserted = Array.from({ length: count }, (_, offset) => pivot + offset);
+      // The new rows occupy one unbroken visual block, so they belong just before the first row the
+      // merge already owned that sits below that block. Splicing there rather than appending is what
+      // keeps the list in visual order, which is the order the top-left is read from.
+      let insertAt = remapped.length;
 
-      return remapped.concat(inserted);
+      visualRows.some((visualRow, index) => {
+        if (visualRow === null || visualRow <= lastInsertedRow) {
+          return false;
+        }
+
+        insertAt = index;
+
+        return true;
+      });
+
+      return remapped.slice(0, insertAt).concat(inserted, remapped.slice(insertAt));
     });
   }
 
@@ -1184,7 +1202,7 @@ export class MergeCells extends BasePlugin {
 
   /**
    * Derives every merge's visual `row`/`col`/`rowspan` from its captured physical rows. The merge is
-   * placed on the **topmost** visual position among those rows that are still visible, and spans as
+   * placed on the visual position of the first of those rows that is still visible, and spans as
    * many visual rows as it has visible physical rows. Trimming compresses the visual row space — a trimmed
    * row has no visual index at all — so a merge that kept its full `rowspan` while some of its rows
    * were trimmed would reach past its own data and onto the rows below, colliding with whatever merge
@@ -1197,14 +1215,16 @@ export class MergeCells extends BasePlugin {
    * re-added once they become visible again) to avoid leaving a stale entry that a later filter could
    * resolve to as a phantom merge.
    *
-   * Taking the topmost visible row rather than the first one the anchor happens to list makes the
-   * result independent of the list's order, which nothing keeps ascending: a row insert appends the
-   * rows it grew the merge by, and sorting reorders the rows themselves.
+   * "First in the list" is the merge's top-left because the list is kept in **visual order**: it is
+   * captured in that order, and every structural edit that adds to it preserves it (see
+   * {@link MergeCells#remapRowAnchorsAfterInsert}). Reading the smallest visual index instead would
+   * make the result order-independent, but it would also re-anchor merges on a *sorted* grid, where
+   * the list's head is the row that was the top-left when the merge was made — and pulling every
+   * merge up to its highest visible row lets two of them collide in the lookup matrix.
    *
-   * It fixes the top-left, not the span. A merge whose visible physical rows are not consecutive in
-   * the visual order (only reachable by sorting or moving rows, never by trimming alone) still spans
-   * one continuous visual block downwards from that top-left, so it can still cover rows it does not
-   * own — as it did before this derivation was introduced.
+   * A merge whose visible physical rows are not consecutive in the visual order (only reachable by
+   * sorting or moving rows, never by trimming alone) still spans one continuous visual block from its
+   * first visible row, as it did before this derivation was introduced.
    */
   #reanchorMergesToVisibleRows() {
     const { mergedCells } = this.mergedCellsCollection;
@@ -1237,7 +1257,7 @@ export class MergeCells extends BasePlugin {
             return;
           }
 
-          if (visualRow === null || rowIndex < visualRow) {
+          if (visualRow === null) {
             visualRow = rowIndex;
           }
 
