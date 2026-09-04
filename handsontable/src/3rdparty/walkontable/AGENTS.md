@@ -29,15 +29,16 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 
 `Border` in `src/selection/border/border.ts` has TWO distinct handle systems: `selectionHandles` (mobile touch handles, created by `createMultipleSelectorHandles()`, CSS classes `topSelectionHandle`/`bottomSelectionHandle`) and `adjustHandles` (desktop drag-to-resize handles added in 18.0.0, CSS class `.wtSelectionHandle`, controlled by the `selectionHandles` grid option). Do not conflate them.
 
-## Selection affordances must stay under the overlay clones (z-index < 120)
+## The master table must remain a stacking context below overlay clones
 
-`.ht_master` is `position: relative` with no z-index, so it opens **no stacking context** and every
-element inside it competes directly with the overlay clone divs (`inline_start` 120, `bottom` 130,
-`bottom_inline_start_corner` 150, `top` 160, `top_inline_start_corner` 180). An affordance drawn
-inside the master at 120 or above therefore paints on top of a frozen pane once its cell scrolls
-under one, and wins hit-testing there — the crosshair and the drag are stolen from the frozen cells.
+`.ht_master` is `position: relative` with `z-index: 0`. The explicit zero is load-bearing: it traps
+the scroll holder and every browser-promoted scrolling layer below the overlay clone divs
+(`inline_start` 120, `bottom` 130, `bottom_inline_start_corner` 150, `top` 160,
+`top_inline_start_corner` 180). Removing the stacking context lets the holder compete directly with
+the clones. Under a transformed ancestor, mobile browsers can then composite the scrolling master
+above the frozen panes.
 
-The window 101–119 is reserved for these: the `moveCells` bands (100, inlined by `createMoveZone`),
+The window 101–119 remains reserved for these: the `moveCells` bands (100, inlined by `createMoveZone`),
 the autofill fill handle (`.wtBorder.corner`, 110) and the desktop resize handles
 (`.wtSelectionHandle`, 115). Do not raise any of them to clear something else — every frozen overlay
 draws its own copy of each affordance, so none of them needs to outrank a clone to appear inside a
@@ -45,15 +46,32 @@ pane. `.ht_clone_master: 100` in the z-index map does **not** apply to the maste
 is stamped on the editor container by `src/editors/factory.ts`.
 
 Two related mechanisms that look like counter-examples and are not: the mobile selection handles take
-an inline `zIndex = '9999'` when a selection edge lands on a freeze line (`border.ts`, legacy #9850),
-and the fill handle is *repositioned* rather than re-layered at the `fixedRowsBottom` line
-(`isCornerLiftedAtBlockEnd`). Handles drawn by a frozen overlay itself need no such treatment: they
+an inline `zIndex = '9999'` inside their table's stacking context (`border.ts`, legacy #9850), and the
+fill handle is *repositioned* rather than re-layered at the `fixedRowsBottom` line
+(`isCornerLiftedAtBlockEnd`). Since the master became a stacking context, that 9999 can no longer
+clear a clone, so the master's mobile handles are repositioned instead: the top handle is inset by
+`isTopHandleOccludedByClone` and the bottom handle is lifted by `isBottomHandleOccludedByClone`.
+
+**The trigger for those two is clone presence, not the fixed-pane count, and the difference is not
+cosmetic.** `shouldRenderTopOverlay` is true for `colHeaders` alone, so with `fixedRowsTop: 0` a
+row-0 selection sits flush against the `top` clone exactly as row `fixedRowsTop` does with a frozen
+pane, and an outward-hanging handle dies under it either way. `isFrozenBoundaryEdge` answers the
+narrower "is this a freeze line" question and is the right helper for the fill handle and the
+boundary edges; routing the handle *position* through it silently drops the header case (and, on the
+other axis, `rowHeaders` plus `shouldRenderInlineStartOverlay`). Both helpers also return `false` off
+the master on purpose. Handles drawn by a frozen overlay itself need no treatment: they
 already land flush against the `.wtHolder` edge that clips them, which `border.spec.js` pins to the
 pixel on both axes. Note `.wtHolder` is the clipping box (`overflow: hidden`), while the clone element
 is `overflow: visible` and ends a few pixels earlier — measure the holder, not the clone.
 
-The declarations live in `src/styles/base/_z-index-map.scss`, `css/walkontable.scss` (clone values,
-duplicated — keep in sync) and `src/styles/components/core/_selection.scss` (the affordances).
+One case is *not* covered and is not a regression: with both headers off and no frozen panes, a row-0
+top handle is drawn at a negative offset and the master's `.wtHolder` clips it. It was invisible
+before the stacking context too, so it keeps the outer-corner placement
+(`mobile-selection-handles.spec.ts` pins that branch).
+
+The declarations live in `src/styles/base/_z-index-map.scss`, `css/walkontable.scss` (master and
+clone values, duplicated — keep in sync) and `src/styles/components/core/_selection.scss` (the
+affordances).
 
 ## Naming gotcha: `moveCells` grid option vs. HyperFormula engine method
 
@@ -105,6 +123,75 @@ Three more things that pass every functional test and only show up in a profile 
 - **Steady state must cost zero row-height cache invalidations.** Each one drops the per-draw layout snapshot as well, and with a non-uniform row-size source (`rowHeights`/`minRowHeights` as an array or function, or any non-AutoRowSize `modifyRowHeight` hook) `PositionCache` has no sparse path, so a rebuild is a full prefix-sum walk over every row. Verified by counting: 0 invalidations/draw and an unchanged `createVisibleCalculators` count in every configuration. Two specs in `tests/e2e/walkontable/frozen-column-row-heights.spec.ts` pin the invalidation count at 0 through the fixture's `countRowCacheInvalidations` — the only way to see this class of bug, since the rows stay aligned and every visual assertion passes while it happens.
 
 When you add a new content-driven measurement, ask which tables actually render the content — measuring the master alone is the trap both of these exist to work around.
+
+## Column-axis border ownership: the row header owns its gridline
+
+The two axes are NOT symmetric, and the column axis is the settled one. On the column axis a row
+header `th` carries its own `border-inline-end` at **every** scroll position, and no `td` standing
+behind a row header carries a `border-inline-start`. So one declared `colWidths` produces one content
+width in every column, and `col.rowHeader` is written verbatim from the `rowHeaderWidth` setting
+whatever the scroll offset (`render/colGroup.ts`).
+
+It used to work the other way round, and that was issue #6673. `td:first-of-type` was given an
+inline-start border on top of the inline-end border every cell has, and `box-sizing: border-box` took
+both out of the same `col` width — so column 0's content box was 1px narrower than everybody else's.
+The row header then dropped its own inline-end border at offset 0 to keep the seam from doubling, and
+a `correctHeaderWidth` flag widened the row header by 1px the moment the grid scrolled, with matching
+compensations in `inlineStartOverlay#scrollTo`, the hider width (`spreaderSize`) and the two column
+calculators (`viewportWidth + 1`). The table therefore changed width by being scrolled. All of that is
+gone; do not reintroduce a scroll-dependent header width or a per-axis `+ 1` in a column calculator —
+`getViewportWidth()` is exact at every offset now.
+
+Consequences worth knowing:
+
+- **`innerBorderInlineStart`, `innerBorderLeft` and `emptyColumns` still get stamped on `.ht_master`**
+  (`overlay/regions/inlineStartOverlay.ts`) and are kept for backward compatibility, but no stylesheet
+  reads them any more. `innerBorderInlineStart` also only toggles when the grid has row headers and NO
+  frozen columns, so it is not a usable "has scrolled" signal in a test — poll the holder's
+  `scrollLeft` instead.
+- **The row axis is unchanged.** `innerBorderTop` / `innerBorderBottom` still shift the layout by 1px,
+  which is what `positionChanged` and the reconciliation draw in `table/drawCycle.ts` exist for, and
+  `columnHeaderBorderCompensation` in `topOverlay`/`spreaderSize` is the vertical twin that stayed.
+  Bringing the row axis into line is a separate change.
+- **Anything positioning an element over a cell must read the cell's border, not its index.** Which
+  cells own an inline-start border is no longer "column 0": with row headers none of them do, and
+  `htFirstDatasetColumnNotRendered` takes it off the first rendered column too. `BaseEditor#getEditedCellRect`
+  keys both the editor's width and its inline-start offset off the same computed border for exactly
+  that reason — key them off different things and the editor is a pixel wider than where it starts,
+  overhanging the next column.
+- **Reading the border is not enough for anything the overlays paint over.** The shared pixel in front
+  of column 0 belongs to the inline-start overlay, which is z-index 120 against the selection border
+  layer's 10, so an affordance centred on that gridline is *geometrically* right and *invisible*.
+  `Border#appear` therefore shifts the edge onto the cell's own boundary when the cell either owns an
+  inline-start border **or** has a row-header `th` as its previous sibling. That second test is what
+  keeps a selection on column 0 visible; without it the edge lands at `rowHeaderWidth - 1` and
+  disappears behind the row header. The `customBorders` specs cannot catch it — they count visible
+  elements, and the element is there, just covered.
+- **Ownership covers the seam's COLOR, not only which element draws it.** In the overlay that renders
+  nothing but the row-header column, the row header `th` is also `:last-child`, and the header rule
+  keyed on that paints the grid's OUTER frame color. So the same gridline came out
+  `--ht-border-color` with plain `rowHeaders` and `--ht-cell-horizontal-border-color` with
+  `fixedColumnsStart` — invisible in `horizon`, where the cell-border token is transparent, and
+  visible in the other shape. `_base.scss` pins the seam owner to the cell-border color under
+  `.htRowHeaders`, with three carve-outs: `.emptyColumns`, where the row header really is the grid's
+  inline-end edge; `ht__active_highlight-prev`, which is how an active column-0 header gets its
+  inline-start accent (that pixel moved to the corner); and `ht__active_highlight`, because the seam
+  is the active row header's own inline-end and the accent has to win there. The grid managed that
+  last one only when scrolled before, since the border was 0px at horizontal offset 0.
+- **A grid can carry more than one row header column**, and then the seam to column 0 is the LAST
+  one's `border-inline-end`. `afterGetRowHeaderRenderers` is a documented hook that appends
+  renderers, and `autoRowHeaderSize` measures each of them, so this is a supported shape rather than
+  a curiosity. The body selector therefore matches every `th` in a body row - all of them are row
+  headers - rather than `th:first-child`; the inner ones need no override because they are never
+  `:last-child`. The HEAD row cannot be handled the same way: CSS cannot count how many corner cells
+  precede the first column header, so that half stays on `:first-child` and a grid with two or more
+  row headers keeps drawing its head-row seam in the frame color. That is what it does today too, so
+  it is a pre-existing quirk this change neither fixes nor worsens - fixing it needs a marker class
+  from the engine on the last row header.
+- Without row headers, column 0 is the first cell of its row and still draws the grid's own
+  inline-start frame inside its declared width. It stays 1px narrower than the rest — deliberately out
+  of scope for #6673, and pinned as a control case in
+  `tests/e2e/row-header-border-ownership.spec.ts`.
 
 ## A table built outside the layout cannot read its own styles
 
