@@ -147,7 +147,7 @@ test('the same change with a page object that never mentions RTL warns — the d
   assert.equal(run.status, 0, 'advisories never touch the exit code');
   assert.match(run.stdout, /✅ Pass\./);
   assert.match(run.stdout, /⚠️ \*\*rtl-correlation\*\*/);
-  assert.match(run.stdout, new RegExp(`- \`${SOURCE.replace(/\//g, '\\/')}\``));
+  assert.ok(run.stdout.includes(`- \`${SOURCE}\``), 'the report names the source file');
   assert.match(run.stderr, /^::warning title=Test-presence gate \(rtl-correlation\)::/m);
 });
 
@@ -166,7 +166,7 @@ test('a page object change is advisory input, not coverage: the blocking verdict
 
   assert.equal(paired.status, 1, paired.stdout);
   assert.match(paired.stdout, /❌ Source changed with no matching test change/);
-  assert.match(paired.stdout, new RegExp(`- \`${SOURCE.replace(/\//g, '\\/')}\``));
+  assert.ok(paired.stdout.includes(`- \`${SOURCE}\``), 'the verdict names the source file');
   assert.doesNotMatch(paired.stdout, /rtl-correlation/, 'the page object still pairs the RTL logic below a red verdict');
 
   const warnMode = runGate(buildRepo({ pageObject: PAIRING_LINE }));
