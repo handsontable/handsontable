@@ -23,6 +23,7 @@ interface FixtureCellRange {
  */
 export interface FixtureHotInstance {
   getDataAtCell(row: number, col: number): CellValue;
+  getDataAtCol(col: number): CellValue[];
   getSourceDataAtCell(row: number, col: number): CellValue;
   getSourceData(): unknown[];
   setDataAtCell(row: number, col: number, value: CellValue): void;
@@ -54,6 +55,11 @@ export interface FixtureHotInstance {
   getPlugin(name: 'manualColumnFreeze'): {
     freezeColumn(column: number): void,
     unfreezeColumn(column: number): void,
+  };
+  getPlugin(name: 'filters'): {
+    addCondition(column: number, name: string, args: unknown[]): void,
+    clearConditions(column?: number): void,
+    filter(): void,
   };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
   getPlugin(name: 'multipleSelectionHandles'): { isDragged(): boolean };
@@ -166,6 +172,14 @@ declare global {
     initFragmentSelectionGrid(overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the GH #5069 nested-`dataSchema` + `minSpareRows` fixture grid. */
     initNestedSchemaGrid(overrides?: Record<string, unknown>): boolean;
+    /** Rebuilds the GH #7553 invalid-mark fixture grid with the given setting overrides. */
+    initInvalidMarkGrid(overrides?: Record<string, unknown>): boolean;
+    /** Releases the oldest pending validator callback; false when none was waiting (#7553 fixture). */
+    resolveValidation(): boolean;
+    /** How many validator callbacks are waiting to be released (#7553 fixture). */
+    pendingValidationCount(): number;
+    /** Rebuilds the GH #5983 sorting-a-filtered-grid-with-`minSpareRows` fixture grid. */
+    initSortingSpareRowsGrid(overrides?: Record<string, unknown>): boolean;
     /** Returns the text the browser currently reports as selected (fragmentSelection fixture). */
     readTextSelection(): string;
     /** Drops any existing text selection (fragmentSelection fixture). */

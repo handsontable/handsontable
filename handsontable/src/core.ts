@@ -60,7 +60,7 @@ import type { ShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcuts/contexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
-import { warn, removedWarnOnce, deprecatedWarnOnce } from './helpers/console';
+import { warn, warnOnce, removedWarnOnce, deprecatedWarnOnce } from './helpers/console';
 import { throwWithCause } from './helpers/errors';
 import {
   install as installAccessibilityAnnouncer,
@@ -630,7 +630,15 @@ export default function Core(
   mergedUserSettings.language = getValidLanguageCode(mergedUserSettings.language as string);
 
   const settingsWithoutHooks = Object.fromEntries(
-    Object.entries(mergedUserSettings).filter(([key]) => {
+    Object.entries(mergedUserSettings).filter(([key, value]) => {
+      // A `cell` that is not an array cannot be applied as cell meta, and `updateSettings` says so. Keep
+      // it out of the global meta as well, or `getSettings().cell` would report a value the grid never
+      // used. Dropping it here leaves the schema default (`[]`) in place. The same rule is applied to
+      // every later call, in the settings loop inside `updateSettings`.
+      if (key === 'cell' && !Array.isArray(value)) {
+        return false;
+      }
+
       return !(Hooks.getSingleton().isRegistered(key) || Hooks.getSingleton().isDeprecated(key));
     })
   );
@@ -2347,6 +2355,8 @@ export default function Core(
         /* eslint-disable no-loop-func */
         waitingForValidator.addValidatorToQueue();
 
+        const structureVersion = metaManager.getStructureVersion();
+
         instance.validateCell(newValue, cellProperties, (function(index, cellPropertiesReference) {
           return function(result: boolean) {
             if (typeof result !== 'boolean') {
@@ -2359,6 +2369,9 @@ export default function Core(
               changes.splice(index, 1);
               // we cancelled the change, so cell value is still valid
               cellPropertiesReference.valid = true;
+              // ...and the stored meta has to hear about it too, or a cache clear that landed while
+              // the validator was running leaves the kept value wearing the rejected edit's mark.
+              persistValidationResult(cellPropertiesReference, true, structureVersion);
             }
 
             waitingForValidator.removeValidatorFormQueue();
@@ -2516,6 +2529,72 @@ export default function Core(
   };
 
   /**
+   * Writes a validation result onto the cell's CURRENT stored meta object.
+   *
+   * The object a validator is given is captured before it runs, and an `updateSettings` clearing the
+   * meta cache in that window detaches it - a write on it then reaches nothing. Both directions
+   * matter. A failure that never reaches the stored meta leaves the cell unmarked, which is the
+   * async half of GitHub issue #7553. A pass that never reaches it leaves behind the `false` that
+   * `restoreInvalidCellMetas` re-applied for a cell that was invalid when the clear happened, so a
+   * corrected value keeps its red mark - and the same holds for the `allowInvalid: false` cancel
+   * path, where the rejected edit is dropped but the cell would stay flagged.
+   *
+   * The lookup is a peek, so a passing result never materializes a meta object on its own and
+   * `_validateCells` keeps its O(invalid cells) retention bound. A failure does materialize, because
+   * it has to be rendered. Physical coordinates come off the meta object itself rather than being
+   * re-derived from the visual ones, which a row insert or move in the same window would shift.
+   *
+   * The coordinates are only usable while the grid's structure has not moved. `LazyFactoryMap`
+   * re-keys stored meta objects when rows or columns are inserted or removed, but the `row`/`col`
+   * fields stamped on those objects are not rewritten - so a pair captured before such a change can
+   * name a different cell after it, and writing through would flag a cell the user never touched.
+   * `structureVersion` is captured when validation starts; when it has moved, the result is dropped
+   * rather than written somewhere it does not belong. The direct write on the captured object still
+   * happened, and that object follows the shift on its own.
+   *
+   * @param {object} cellProperties The cell meta object the validator was handed.
+   * @param {boolean} valid The validation result to persist.
+   * @param {number} structureVersion The structure version captured when validation started.
+   */
+  function persistValidationResult(
+    cellProperties: Record<string, unknown> & { row?: number, col?: number, visualRow?: number, visualCol?: number },
+    valid: boolean,
+    structureVersion: number
+  ) {
+    if (metaManager.getStructureVersion() !== structureVersion) {
+      return;
+    }
+
+    const physicalRow = cellProperties.row;
+    const physicalColumn = cellProperties.col;
+
+    // `validateChanges` builds a synthetic object out of the table meta for a change that names no
+    // visual column. It has no stored counterpart, so there is nothing to write through to.
+    if (!Number.isInteger(physicalRow) || !Number.isInteger(physicalColumn)) {
+      return;
+    }
+
+    const storedCellProperties = metaManager
+      .getCellMetaIfExists(physicalRow as number, physicalColumn as number);
+
+    // Still attached - the caller's direct write already landed on the stored object.
+    if (storedCellProperties === cellProperties) {
+      return;
+    }
+
+    if (storedCellProperties !== undefined) {
+      (storedCellProperties as { valid?: boolean }).valid = valid;
+
+    } else if (valid === false) {
+      (metaManager.getCellMeta(physicalRow as number, physicalColumn as number, {
+        visualRow: cellProperties.visualRow as number,
+        visualColumn: cellProperties.visualCol as number,
+        skipMetaExtension: true,
+      }) as { valid?: boolean }).valid = valid;
+    }
+  }
+
+  /**
    * Validate a single cell.
    *
    * @memberof Core#
@@ -2581,6 +2660,10 @@ export default function Core(
 
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, colArg, source);
 
+      // Captured before the validator runs, so the callback can tell whether the cell's coordinates
+      // still mean what they meant when it started.
+      const structureVersion = metaManager.getStructureVersion();
+
       // To provide consistent behavior, validation should be always asynchronous
       instance._registerMicrotask(() => {
         validator.call(cellProperties, value, (valid: boolean) => {
@@ -2591,6 +2674,8 @@ export default function Core(
           valid = instance
             .runHooks('afterValidate', valid, value, cellProperties.visualRow, colArg, source);
           cellProperties.valid = valid;
+
+          persistValidationResult(cellProperties, valid, structureVersion);
 
           done(valid);
           instance.runHooks(
@@ -3806,9 +3891,17 @@ export default function Core(
    * argument and `"updateData"` as its `source`. If you call `updateSettings` with `data` inside
    * `afterChange`, check the hook's `source` to prevent an infinite loop.
    *
-   * Cell meta set imperatively through {@link Core#setCellMeta} (for example, by the user or the context menu) is preserved across
-   * `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. On a direct conflict, a value re-stated
-   * through the declarative `cell` option takes precedence over the preserved imperative value.
+   * Cell meta is preserved across `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. This
+   * covers both meta set imperatively through {@link Core#setCellMeta} (for example, by the user or the context menu)
+   * and meta applied from the declarative [`cell`](@/api/options.md#cell) option on an earlier call. Preserved meta
+   * stays with its row, so it follows sorting and row moves.
+   *
+   * Passing `cell` restates the option: it replaces every previously declared entry, so `cell: []` removes them all. On
+   * a direct conflict, a value re-stated through `cell` takes precedence over the preserved value. Where `cell` is not
+   * passed, an imperative {@link Core#setCellMeta} made after the declaration wins.
+   *
+   * A failed validation result is preserved as well, so a cell marked invalid keeps its `htInvalid` class across
+   * `updateSettings`. To reset the validation state, use [loadData()](@/api/core.md#loaddata) or validate the cells again.
    *
    * This method reinitializes the affected plugins and then renders, so it does more work than a plain
    * [render()](@/api/core.md#render). When only cell metadata changed, call [render()](@/api/core.md#render)
@@ -3881,7 +3974,13 @@ export default function Core(
         // setting that is not passed leaves the previous value alone. Writing the boolean here would
         // bypass `normalizeEditorSetting()`, which only runs on the layer `updateMeta` calls, and
         // park a bare `true` on the global meta for every cell to inherit.
-        if (i !== 'editor' || settings[i] !== true) {
+        const isUnpassedEditor = i === 'editor' && settings[i] === true;
+        // Same shape for a `cell` that is not an array: the block further down cannot apply it and says
+        // so, so parking it here would leave `getSettings().cell` reporting a value the grid never used
+        // while the previously declared entries are what actually survive.
+        const isUnusableCell = i === 'cell' && !Array.isArray(settings[i]);
+
+        if (!isUnpassedEditor && !isUnusableCell) {
           globalMeta[i] = settings[i];
         }
       }
@@ -3974,21 +4073,76 @@ export default function Core(
 
     const themeOverridesChanged = applyThemeOverrides(settings, init);
 
+    // The `cell` option is restated when this call passes an array - including an empty one, which is how a
+    // caller removes every previously declared entry. A restatement replaces what the option declared
+    // before, so the earlier entries are neither replayed nor merged.
+    //
+    // The test is `Array.isArray`, not `isDefined`: `isDefined(null)` is true, so a `cell: null` used to
+    // clear the meta cache and then throw on `null.forEach`, leaving the instance with its cache wiped and
+    // the rest of the update - render, dimensions, hooks - never run. `null` reads as "not passed" and is
+    // ignored silently, the way the other nullable options are cleared.
+    const isCellOptionRestated = Array.isArray(settings.cell);
+
+    // Any other non-array is a mistake worth surfacing, most often a single entry that was not wrapped in
+    // an array. Ignoring it in silence would leave the previously declared entries in place and look like
+    // the call did nothing at all. Such a value never reaches the global meta either (see the two filters
+    // that drop it), so "ignored" covers `getSettings().cell` as well as the cell meta. Warned once per
+    // instance, because a wrapper that re-sends its settings on every render would otherwise repeat it on
+    // every commit.
+    if (settings.cell !== undefined && settings.cell !== null && !isCellOptionRestated) {
+      warnOnce(instance.rootElement, 'Core.invalidCellOption',
+        'The "cell" option must be an array of objects. The passed value was ignored, and the previously ' +
+        'declared entries were kept. Wrap a single entry in an array: cell: [{ row: 0, col: 0, ... }].');
+    }
+
     /**
-     * Clears the cell and column meta caches. Cell meta set imperatively through `setCellMeta` (for
-     * example, by the user or the context menu) is snapshotted beforehand and replayed afterward, so
-     * that it survives the clear instead of being discarded (see GitHub issue #4446).
+     * Clears the cell and column meta caches. Three kinds of write are snapshotted beforehand and
+     * replayed afterward so they survive the clear instead of being discarded: meta set imperatively
+     * through `setCellMeta` (for example, by the user or the context menu - GitHub issue #4446), meta
+     * applied from the declarative `cell` option on an earlier call (GitHub issue #5661), and failed
+     * validation results, which the validation flow writes straight onto the meta object rather than
+     * through `setCellMeta`, so neither snapshot above can see them (GitHub issue #7553).
      */
     const resetMetaCaches = () => {
+      const cellOptionCellMetas = isCellOptionRestated ? [] : metaManager.getCellOptionCellMetas();
       const userDefinedCellMetas = metaManager.getUserDefinedCellMetas();
+      // Failed validation results are written straight onto the cell meta by `validateCell`, never
+      // through `setCellMeta`, so the snapshot above structurally cannot see them. Without this, an
+      // `updateSettings` call that merely re-states `cells` or `columns` - which every React render
+      // with a `<HotColumn>` child does - silently drops the invalid-cell highlight while the cell
+      // keeps the bad value.
+      const invalidCellMetas = metaManager.getInvalidCellMetas();
 
       metaManager.clearCache();
+
+      // Both snapshots are keyed by physical coordinates, so every value goes back onto the record it was
+      // resolved to rather than onto whatever record now sits at the same visual position.
+      //
+      // The two replays cannot disagree, so their relative order carries no meaning: a key is filed under
+      // exactly one origin, and an imperative write over a `cell`-option value has already moved that key
+      // out of the option's bucket. What does matter is that both run before the restated `cell` block
+      // further down, which has to win over either (preserving legacy behavior). The carried-over option is
+      // replayed inside its own scope, so it stays filed as declarative and the next update carries it
+      // over again.
+      if (cellOptionCellMetas.length > 0) {
+        metaManager.startCellOptionMetaRecording();
+
+        try {
+          cellOptionCellMetas.forEach(({ physicalRow, physicalColumn, key, value }) => {
+            metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
+          });
+        } finally {
+          metaManager.endCellOptionMetaRecording();
+        }
+      }
 
       // Replay before the column and `cell` option re-application, so that a value re-stated through
       // the declarative `cell` option still wins on a direct conflict (preserving legacy behavior).
       userDefinedCellMetas.forEach(({ physicalRow, physicalColumn, key, value }) => {
         metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
       });
+
+      metaManager.restoreInvalidCellMetas(invalidCellMetas);
     };
 
     /**
@@ -4097,19 +4251,26 @@ export default function Core(
       applyColumnMeta(clen);
     }
 
-    if (isDefined(settings.cell)) {
-      // The `cell` option is declarative - it is re-applied from settings on every `updateSettings`
-      // call. Recording is disabled so these writes are not tracked as user-defined (and a key
-      // re-stated here de-marks any imperative value), keeping `updateSettings({ cell: [] })` able
-      // to remove previously declared entries.
-      metaManager.disableUserDefinedMetaRecording();
+    if (isCellOptionRestated) {
+      // Applied last, so a key restated here wins over both the column meta and any imperative value the
+      // replay above put back (preserving legacy behavior). The writes are filed as declarative rather
+      // than user-defined - which also de-marks any imperative value for the same key - so a later call
+      // that does not restate `cell` replays them, and `updateSettings({ cell: [] })` still removes every
+      // previously declared entry.
+      metaManager.startCellOptionMetaRecording();
 
       try {
         (settings.cell as Record<string, unknown>[]).forEach((cell: Record<string, unknown>) => {
-          instance.setCellMetaObject(cell.row as number, cell.col as number, cell);
+          // `row` and `col` locate the entry - they are not cell meta. `setCellMetaObject` writes every own
+          // key, so leaving them in stores the entry's *visual* coordinates on a meta object that
+          // `getCellMeta` stamps with *physical* ones, and would put two junk keys per declared cell into
+          // the replay snapshot.
+          const { row, col, ...cellSettings } = cell;
+
+          instance.setCellMetaObject(row as number, col as number, cellSettings);
         });
       } finally {
-        metaManager.enableUserDefinedMetaRecording();
+        metaManager.endCellOptionMetaRecording();
       }
     }
 
@@ -5056,9 +5217,14 @@ export default function Core(
   /**
    * Writes a configuration-derived cell meta value declaratively. The value is applied to the cell meta
    * (so it is retained while the cell is released from the viewport by the meta eviction), but is NOT
-   * recorded as user-defined, so an `updateSettings` cache reset clears it and it is re-applied from the
-   * current configuration - exactly like the `cell` option. Used by built-in plugins that derive cell
-   * meta from their own configuration (for example ColumnSummary) and re-apply it on each update.
+   * recorded as user-defined, so an `updateSettings` cache reset clears it and the caller re-applies it
+   * from the current configuration. Used by built-in plugins that derive cell meta from their own
+   * configuration (for example ColumnSummary) and re-apply it on each update.
+   *
+   * This is NOT how the declarative `cell` option behaves: the option's writes are filed in their own
+   * bucket and replayed across the reset, because nothing re-applies them afterwards. A write made here
+   * belongs to no bucket, which is what keeps a stale value from surviving into a configuration that no
+   * longer covers the cell.
    *
    * Unlike the public `setCellMeta`, this does NOT fire `beforeSetCellMeta`/`afterSetCellMeta` and is
    * not vetoable: the write is plugin-internal render state the user never requested, so it must not
@@ -5510,6 +5676,9 @@ export default function Core(
             // `setCellMeta`, which would mark the property as user-persisted and change
             // updateSettings/eviction semantics). Only failures materialize, so retention stays
             // O(invalid cells); the eviction pass already keeps `valid === false` cells.
+            // `validateCell` now makes the same write, for the same reason plus the async-detach
+            // case - this one is kept so the guarantee does not depend on that call site, and both
+            // write the identical value on the identical object.
             instance.getCellMeta(row, column, { skipMetaExtension: true }).valid = false;
           }
           waitingForValidator.removeValidatorFormQueue();
