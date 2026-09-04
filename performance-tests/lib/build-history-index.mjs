@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 
 // Generates an index.html for the develop/ performance reports directory.
-// Lists all timestamped run directories with links to their reports.
+// Lists all timestamped run directories with links to their reports, plus the commit and the
+// Chromium build each one was recorded on -- the second is what the baseline compatibility key
+// selects on, so a browser change reads as a visible boundary in the list rather than as a
+// week of unexplained deltas.
 //
 // Usage: node build-history-index.mjs <develop-dir-on-gh-pages>
 
-import { readdir, writeFile } from 'node:fs/promises';
+import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const developDir = process.argv[2];
@@ -24,19 +27,59 @@ const runs = entries
   .sort()
   .reverse(); // newest first
 
-const rows = runs.map((name) => {
+/**
+ * @param {string} value
+ * @returns {string}
+ */
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/**
+ * @param {string} name -- the run directory
+ * @returns {Promise<{ commit: string, chromium: string, cpu: string }>} '--' where unknown
+ */
+async function provenanceOf(name) {
+  try {
+    const snapshot = JSON.parse(await readFile(join(developDir, name, 'snapshots.json'), 'utf8'));
+    const env = snapshot.environment || {};
+
+    return {
+      commit: snapshot.commit ? String(snapshot.commit).slice(0, 7) : '--',
+      chromium: env.chromium || '--',
+      cpu: env.cpuModel || '--',
+    };
+  } catch {
+    // A run deployed before snapshots.json carried provenance, or one whose deploy was cut short,
+    // has nothing to show here. Placeholders keep the rest of the index page rendering; a throw
+    // would take every other run's row down with it.
+    return { commit: '--', chromium: '--', cpu: '--' };
+  }
+}
+
+const rows = [];
+
+for (const name of runs) {
   // Parse timestamp back to readable format
   // 2026-04-08T10-15-30Z → 2026-04-08 10:15:30 UTC
   const readable = name
     .replace('Z', '')
     .replace('T', ' ')
     .replace(/ (\d{2})-(\d{2})-(\d{2})$/, ' $1:$2:$3 UTC');
+  const { commit, chromium, cpu } = await provenanceOf(name);
 
-  return `      <tr>
+  rows.push(`      <tr>
         <td><a href="${name}/">${readable}</a></td>
+        <td><code>${escapeHtml(commit)}</code></td>
+        <td>${escapeHtml(chromium)}</td>
+        <td>${escapeHtml(cpu)}</td>
         <td><a href="${name}/snapshots.json">JSON</a></td>
-      </tr>`;
-}).join('\n');
+      </tr>`);
+}
 
 const html = `<!DOCTYPE html>
 <html lang="en">
@@ -47,7 +90,7 @@ const html = `<!DOCTYPE html>
 <style>
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  max-width: 800px;
+  max-width: 1000px;
   margin: 40px auto;
   padding: 0 20px;
   color: #1f2328;
@@ -59,6 +102,7 @@ th { text-align: left; padding: 8px; border-bottom: 2px solid #d0d7de;
 td { padding: 8px; border-bottom: 1px solid #eaeef2; }
 a { color: #0969da; text-decoration: none; }
 a:hover { text-decoration: underline; }
+code { font-size: 12px; }
 .count { color: #656d76; font-size: 14px; }
 </style>
 </head>
@@ -67,10 +111,10 @@ a:hover { text-decoration: underline; }
 <p class="count">${runs.length} run${runs.length !== 1 ? 's' : ''}</p>
 <table>
   <thead>
-    <tr><th>Run</th><th>Data</th></tr>
+    <tr><th>Run</th><th>Commit</th><th>Chromium</th><th>CPU</th><th>Data</th></tr>
   </thead>
   <tbody>
-${rows}
+${rows.join('\n')}
   </tbody>
 </table>
 </body>

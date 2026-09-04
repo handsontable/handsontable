@@ -17,7 +17,12 @@ import {
   CV_WARNING_THRESHOLD,
   BASELINE_INCOMPLETE_LABEL,
   ACTIVE_CATEGORIES,
+  HEAP_THRESHOLDS_BY_SCENARIO,
+  RUN_SHIFT_MIN_ROWS,
   activeTotalsPerIteration,
+  heapThresholdFor,
+  relativeToShift,
+  runShift,
   calcCv,
   comparability,
   classifyChange,
@@ -395,6 +400,60 @@ describe('activeTotalsPerIteration', () => {
       activeTotalsPerIteration({ scripting: [10, 10], idle: [900, 900], other: [50, 50] }),
       [10, 10]
     );
+  });
+});
+
+describe('heapThresholdFor', () => {
+  test('the horizontal scroll scenarios get the wider band, everything else the shared constant', () => {
+    assert.equal(heapThresholdFor('scroll-left'), HEAP_THRESHOLDS_BY_SCENARIO['scroll-left']);
+    assert.equal(heapThresholdFor('scroll-right'), HEAP_THRESHOLDS_BY_SCENARIO['scroll-right']);
+    assert.ok(heapThresholdFor('scroll-left') > REGRESSION_CALLOUT_THRESHOLD_HEAP);
+    assert.equal(heapThresholdFor('scroll-down'), REGRESSION_CALLOUT_THRESHOLD_HEAP);
+    assert.equal(heapThresholdFor('sorting'), REGRESSION_CALLOUT_THRESHOLD_HEAP);
+    assert.equal(heapThresholdFor('brand-new-scenario'), REGRESSION_CALLOUT_THRESHOLD_HEAP);
+  });
+
+  test('no override is ever tighter than the shared constant', () => {
+    for (const value of Object.values(HEAP_THRESHOLDS_BY_SCENARIO)) {
+      assert.ok(value > REGRESSION_CALLOUT_THRESHOLD_HEAP);
+    }
+  });
+});
+
+describe('runShift', () => {
+  test('is the median of the comparable deltas', () => {
+    assert.equal(runShift([-22, -25, -20, -24, -23]), -23);
+    assert.equal(runShift([-22, -25, -20, -24, -23, -21]), -22.5);
+  });
+
+  test('ignores rows with no delta and refuses to estimate from too few', () => {
+    assert.equal(runShift([-22, null, -25, undefined, -20, -24, -23]), -23);
+    assert.equal(runShift([-22, -25, -20, -24]), null, `needs ${RUN_SHIFT_MIN_ROWS} rows`);
+    assert.equal(runShift([]), null);
+    assert.equal(runShift(null), null);
+  });
+
+  test('a couple of genuinely regressed rows do not move it', () => {
+    // Seven flat-ish rows on a runner 20% faster than the baseline, plus two real regressions.
+    assert.equal(runShift([-20, -19, -21, -20, -22, -18, -20, 45, 30]), -20);
+  });
+});
+
+describe('relativeToShift', () => {
+  test('removes the shift as a ratio', () => {
+    assert.ok(Math.abs(relativeToShift(20, 20)) < 1e-9);
+    // 1.40 / 1.20 - 1 = 16.67%, not the 20 a subtraction would report.
+    assert.ok(Math.abs(relativeToShift(40, 20) - 16.666666) < 1e-4);
+    // A row at -10% on a run that is -20% overall is 12.5% slower than the rest of the run.
+    assert.ok(Math.abs(relativeToShift(-10, -20) - 12.5) < 1e-9);
+  });
+
+  test('is null when either side is missing, or the shift leaves nothing to divide by', () => {
+    assert.equal(relativeToShift(null, 10), null);
+    assert.equal(relativeToShift(10, null), null);
+    assert.equal(relativeToShift(NaN, 10), null);
+    assert.equal(relativeToShift(10, -100), null);
+    assert.equal(relativeToShift(10, -150), null);
   });
 });
 

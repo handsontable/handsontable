@@ -283,3 +283,115 @@ describe('computeMedianSnapshot', () => {
     assert.equal(result.scenarios.sorting.spread, 0);
   });
 });
+
+describe('computeMedianSnapshot -- baseline compatibility key', () => {
+  const KEY = { chromium: '140.0.7339.16', harnessVersion: 1 };
+  const provenance = (chromium, harnessVersion = 1) => ({
+    environment: { chromium, cpuModel: 'any' },
+    harnessVersion,
+  });
+  const keyed = (timestamp, chromium, overrides) => ({
+    ...snapshot(timestamp, overrides),
+    ...provenance(chromium),
+  });
+  const sortingAt = scripting => ({ sorting: { categories: { scripting, rendering: 10, painting: 2 } } });
+
+  test('draws only on goldens with the same Chromium build and harness version', () => {
+    // The 09-03 Playwright bump, replayed: the two newest goldens are on the new Chromium, the
+    // three before them on the old one. A key-blind median would be the old browser's numbers.
+    const result = computeMedianSnapshot([
+      keyed('2026-09-03T10:49:00Z', '140.0.7339.16', sortingAt(120)),
+      keyed('2026-09-03T10:31:00Z', '140.0.7339.16', sortingAt(122)),
+      keyed('2026-09-03T10:08:00Z', '138.0.7204.23', sortingAt(150)),
+      keyed('2026-09-03T09:47:00Z', '138.0.7204.23', sortingAt(155)),
+      keyed('2026-09-03T08:22:00Z', '138.0.7204.23', sortingAt(152)),
+    ], { compatibleWith: { key: KEY } });
+
+    assert.equal(result.medianWindowSize, 2);
+    assert.deepEqual(result.medianSourceTimestamps, ['2026-09-03T10:49:00Z', '2026-09-03T10:31:00Z']);
+    assert.equal(result.scenarios.sorting.categories.scripting, 121);
+    assert.equal(result.excludedIncompatible, 3);
+    assert.equal(result.environment.chromium, '140.0.7339.16');
+    assert.equal(result.harnessVersion, 1);
+  });
+
+  test('returns null rather than a median of the other environment when too few match', () => {
+    const result = computeMedianSnapshot([
+      keyed('2026-09-03T10:31:00Z', '140.0.7339.16'),
+      keyed('2026-09-03T10:08:00Z', '138.0.7204.23'),
+      keyed('2026-09-03T09:47:00Z', '138.0.7204.23'),
+    ], { compatibleWith: { key: KEY } });
+
+    assert.equal(result, null);
+  });
+
+  test('excludes goldens with no provenance at all, by the absence of the fields', () => {
+    const result = computeMedianSnapshot([
+      keyed('2026-09-03T10:49:00Z', '140.0.7339.16'),
+      keyed('2026-09-03T10:31:00Z', '140.0.7339.16'),
+      snapshot('2026-08-28T00:00:00Z'),
+      snapshot('2026-08-27T00:00:00Z'),
+    ], { compatibleWith: { key: KEY } });
+
+    assert.equal(result.medianWindowSize, 2);
+    assert.equal(result.excludedIncompatible, 2);
+  });
+
+  test('a different harness version is a different measurement, whatever the browser', () => {
+    const result = computeMedianSnapshot([
+      { ...snapshot('2026-09-03T10:49:00Z'), ...provenance('140.0.7339.16', 2) },
+      { ...snapshot('2026-09-03T10:31:00Z'), ...provenance('140.0.7339.16', 2) },
+      keyed('2026-09-03T10:08:00Z', '140.0.7339.16'),
+    ], { compatibleWith: { key: KEY } });
+
+    assert.equal(result, null);
+  });
+
+  test('a redefined scenario drops its old entries without dropping the snapshot they came from', () => {
+    const filteringAt = scripting => ({
+      categories: { scripting, rendering: 5, painting: 1 }, windowSource: 'marks',
+    });
+    const result = computeMedianSnapshot([
+      keyed('2026-09-03T10:49:00Z', '140.0.7339.16', {
+        sorting: { measurementVersion: 2, categories: { scripting: 60, rendering: 10, painting: 2 } },
+        filtering: filteringAt(40),
+      }),
+      keyed('2026-09-03T10:31:00Z', '140.0.7339.16', {
+        sorting: { measurementVersion: 2, categories: { scripting: 62, rendering: 10, painting: 2 } },
+        filtering: filteringAt(42),
+      }),
+      keyed('2026-09-03T10:08:00Z', '140.0.7339.16', {
+        // measurementVersion absent: the pre-redefinition entry, at the default version 1.
+        sorting: { categories: { scripting: 120, rendering: 10, painting: 2 } },
+        filtering: filteringAt(44),
+      }),
+    ], { compatibleWith: { key: KEY, scenarioVersions: { sorting: 2 } } });
+
+    assert.equal(result.medianWindowSize, 3, 'the old snapshot still serves the unchanged scenario');
+    assert.equal(result.scenarios.sorting.categories.scripting, 61);
+    assert.equal(result.scenarios.sorting.measurementVersion, 2);
+    assert.equal(result.scenarios.filtering.categories.scripting, 42);
+    assert.equal(result.scenarios.filtering.measurementVersion, 1);
+  });
+
+  test('a scenario the current run measures at a new version, with too few matching entries, is omitted', () => {
+    const result = computeMedianSnapshot([
+      keyed('2026-09-03T10:49:00Z', '140.0.7339.16', { sorting: { measurementVersion: 2 } }),
+      keyed('2026-09-03T10:31:00Z', '140.0.7339.16'),
+      keyed('2026-09-03T10:08:00Z', '140.0.7339.16'),
+    ], { compatibleWith: { key: KEY, scenarioVersions: { sorting: 2 } } });
+
+    assert.equal(result.medianWindowSize, 3);
+    assert.equal('sorting' in result.scenarios, false);
+  });
+
+  test('without a key, behaves as before and reports nothing excluded', () => {
+    const result = computeMedianSnapshot([
+      keyed('2026-09-03T10:49:00Z', '140.0.7339.16'),
+      snapshot('2026-08-28T00:00:00Z'),
+    ]);
+
+    assert.equal(result.medianWindowSize, 2);
+    assert.equal(result.excludedIncompatible, 0);
+  });
+});

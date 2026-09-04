@@ -3,14 +3,53 @@
 
 import { readdir, readFile, writeFile, mkdir, copyFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import { parseTrace, averageParsedTraces } from '../trace-parser.mjs';
 import { exists } from './fs-utils.mjs';
-import { saveSnapshots, loadSnapshots } from './snapshot-store.mjs';
-import { buildReport } from './report-builder.mjs';
+import { saveSnapshots, loadBaseline } from './snapshot-store.mjs';
+import { buildReport, collectRegressions } from './report-builder.mjs';
 import { buildHtmlReport } from './html-report-builder.mjs';
+import { HARNESS_VERSION } from './trace-runner.mjs';
+import {
+  DEFAULT_MEASUREMENT_VERSION,
+  currentKey,
+  describeKey,
+  isCompleteKey,
+  readEnvironment,
+} from './environment.mjs';
+import { fmtPct } from './thresholds.mjs';
 
 const OUTPUT_DIR = join(import.meta.dirname, '..', 'output');
+const SCENARIOS_DIR = join(import.meta.dirname, '..', 'scenarios');
+
+/**
+ * The `measurementVersion` a scenario's own config declares. Output directories are named after the
+ * scenario (the config's `name` must match the directory, see the performance-testing skill), so
+ * the config is found by that name.
+ *
+ * @param {string} name
+ * @returns {Promise<number>}
+ */
+async function measurementVersionOf(name) {
+  const configPath = join(SCENARIOS_DIR, name, 'scenario.config.mjs');
+
+  if (!await exists(configPath)) {
+    return DEFAULT_MEASUREMENT_VERSION;
+  }
+
+  try {
+    const { default: config } = await import(pathToFileURL(configPath).href);
+    const version = config?.measurementVersion;
+
+    return typeof version === 'number' && Number.isFinite(version) ? version : DEFAULT_MEASUREMENT_VERSION;
+  } catch (err) {
+    console.warn(`  WARN: could not read ${name}/scenario.config.mjs (${err.message}); ` +
+      `assuming measurementVersion ${DEFAULT_MEASUREMENT_VERSION}`);
+
+    return DEFAULT_MEASUREMENT_VERSION;
+  }
+}
 
 async function collectScenarioResults() {
   if (!await exists(OUTPUT_DIR)) {
@@ -97,6 +136,11 @@ async function collectScenarioResults() {
     // pre-marks baseline is recognised -- see the mismatch check below.
     averaged.windowSource = fellBack.length > 0 ? 'auto-zoom' : 'marks';
 
+    // Which definition of the scenario these numbers measure. Bumped in scenario.config.mjs when a
+    // spec moves work in or out of the window; the median baseline only draws on entries at the
+    // same version (median-snapshot.mjs).
+    averaged.measurementVersion = await measurementVersionOf(entry.name);
+
     // Load hook timing if saved alongside traces
     const hookTimingPath = join(scenarioDir, 'hook-timing.json');
 
@@ -156,6 +200,45 @@ function stripInternalFields(results) {
   );
 }
 
+/**
+ * Prints one GitHub Actions warning annotation per regressed scenario, so a shift on develop is
+ * visible on the develop run that introduced it rather than on the next five pull requests.
+ *
+ * @param {Array<object>} regressions -- from collectRegressions
+ * @param {object} golden
+ */
+function annotateRegressions(regressions, golden) {
+  if (!process.env.GITHUB_ACTIONS || regressions.length === 0) {
+    return;
+  }
+
+  const against = golden.isMedian
+    ? `median of ${golden.medianWindowSize} earlier develop runs`
+    : `develop run ${golden.timestamp}`;
+
+  for (const r of regressions) {
+    const parts = [];
+
+    if (r.timingRegressed) {
+      parts.push(`total ${fmtPct(r.totalPct)}`);
+
+      // Same context the markdown callout gives: a slow runner fires on every row at once, and the
+      // annotation must not read identically to a row that moved on its own.
+      if (r.relativePct != null) {
+        parts.push(`${fmtPct(r.relativePct)} relative to this run's shift of ${fmtPct(r.shift)}`);
+      }
+    }
+
+    if (r.heapRegressed) {
+      parts.push(`JS heap ${fmtPct(r.heapPct)}`);
+    }
+
+    console.log(
+      `::warning title=Performance regression on develop::${r.title} ${parts.join(', ')} against the ${against}`
+    );
+  }
+}
+
 /** Playwright globalTeardown entry point */
 export default async function teardown() {
   console.log('\n=== Performance teardown: processing traces ===\n');
@@ -173,12 +256,25 @@ export default async function teardown() {
 
   const mode = process.env.PERF_MODE;
 
+  // Written by lib/setup.mjs before the scenarios ran: the Chromium build and the machine.
+  const environment = await readEnvironment(OUTPUT_DIR);
+  const key = currentKey(environment);
+
+  if (environment) {
+    console.log(`Environment: ${describeKey(key)}`);
+  } else {
+    console.warn('  WARN: no output/environment.json -- the globalSetup did not run; the snapshot will ' +
+      'carry no Chromium build and the baseline cannot be selected by environment.');
+  }
+
   // Save golden snapshots
   if (mode === 'golden') {
     const metadata = {
       commit: process.env.GITHUB_SHA || null,
       runId: process.env.GITHUB_RUN_ID || null,
       runNumber: process.env.GITHUB_RUN_NUMBER || null,
+      harnessVersion: HARNESS_VERSION,
+      environment,
     };
     const savedPath = await saveSnapshots(stripInternalFields(scenarioResults), metadata);
 
@@ -198,23 +294,47 @@ export default async function teardown() {
 
   // Load golden for comparison
   let golden = null;
+  let baselineUnavailable = null;
 
   if (mode === 'compare' || mode === 'golden') {
-    golden = await loadSnapshots();
+    // Only goldens recorded on this Chromium build, with this harness, at each scenario's current
+    // measurement version may serve as the baseline. A run with no recorded environment cannot be
+    // matched, so it falls back to the unkeyed selection rather than refusing everything.
+    const compatibleWith = isCompleteKey(key)
+      ? {
+        key,
+        scenarioVersions: Object.fromEntries(
+          Object.entries(scenarioResults).map(([name, data]) => [name, data.measurementVersion])
+        ),
+      }
+      : null;
+    const loaded = await loadBaseline(undefined, {
+      compatibleWith,
+      // In golden mode the single-file golden is the snapshot this very run just saved, and a
+      // develop run compared against itself reports 0% on every row. History or nothing.
+      allowSingleFile: mode !== 'golden',
+    });
+
+    golden = loaded.snapshot;
+    baselineUnavailable = loaded.unavailableReason;
 
     if (golden) {
       const goldenCount = Object.keys(golden.scenarios || {}).length;
 
       if (golden.isMedian) {
         console.log(
-          `Golden baseline is a median of ${golden.medianWindowSize} marks-valid develop run(s), ` +
+          `Golden baseline is a median of ${golden.medianWindowSize} compatible develop run(s), ` +
           `newest ${golden.timestamp} (${goldenCount} scenarios). Source runs: ` +
           `${(golden.medianSourceTimestamps || []).join(', ')}`
         );
       } else {
         console.log(`Golden baseline loaded (${goldenCount} scenarios from ${golden.timestamp})`);
       }
-    } else if (mode === 'compare') {
+    } else if (baselineUnavailable) {
+      console.warn(`\n  WARN: no comparable baseline -- ${baselineUnavailable}\n`);
+    }
+
+    if (!golden && mode === 'compare') {
       // Self-compare: use current results as golden so charts always render
       console.log('No golden baseline found -- self-comparing for chart preview');
 
@@ -252,6 +372,8 @@ export default async function teardown() {
     // merge commit that exists on no branch. See the env block in performance-tests.yml.
     commit: process.env.PERF_COMMIT_SHA || process.env.GITHUB_SHA || null,
     runId: process.env.GITHUB_RUN_ID || null,
+    environment,
+    baselineUnavailable,
   };
 
   const report = buildReport(scenarioResults, golden, meta);
@@ -261,6 +383,12 @@ export default async function teardown() {
   await mkdir(OUTPUT_DIR, { recursive: true });
   await writeFile(join(OUTPUT_DIR, 'result.md'), report, 'utf8');
   await writeFile(join(OUTPUT_DIR, 'report.html'), htmlReport, 'utf8');
+
+  // On develop, a regression against the trailing median is the develop push's own news. Annotate
+  // the run so it is seen where it happened; the snapshot is still deployed as recorded.
+  if (mode === 'golden' && golden) {
+    annotateRegressions(collectRegressions(scenarioResults, golden, meta), golden);
+  }
 
   console.log('\nReports written to output/result.md and output/report.html\n');
   console.log(report);

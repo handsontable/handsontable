@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import { rm, mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { saveSnapshots, loadSnapshots } from '../snapshot-store.mjs';
+import { saveSnapshots, loadSnapshots, loadBaseline } from '../snapshot-store.mjs';
 
 let baseDir;
 let goldenPath;
@@ -141,10 +141,11 @@ describe('loadSnapshots (history-median path)', () => {
     assert.equal(golden.scenarios.sorting.categories.scripting, 20);
   });
 
-  test('ignores a leftover history/ dir in golden mode', async() => {
-    // history/ is meant to exist only during a compare-mode run. A leftover dir from
-    // a manual fetch or a reused workspace must not make a golden (develop-push) run
-    // compare its own fresh numbers against old develop runs instead of self-comparing.
+  test('reads history/ in golden mode too, so a develop run is compared against its own trend', async() => {
+    // Until 2026-09 a golden (develop-push) run ignored history/ and compared against itself, so a
+    // shift on develop was invisible on develop and surfaced as a regression on the next five
+    // unrelated pull requests. The snapshot that gets *saved* is still never derived from history;
+    // only the report is.
     process.env.PERF_MODE = 'golden';
 
     await mkdir(historyDir, { recursive: true });
@@ -154,8 +155,74 @@ describe('loadSnapshots (history-median path)', () => {
 
     const golden = await loadSnapshots(baseDir);
 
-    assert.equal(golden.isMedian, undefined);
-    assert.equal(golden.timestamp, '2026-08-29T00:00:00Z');
+    assert.equal(golden.isMedian, true);
+    assert.equal(golden.medianWindowSize, 2);
+  });
+
+  test('with a compatibility key, medians only the goldens that share it', async() => {
+    await mkdir(historyDir, { recursive: true });
+
+    const keyed = (timestamp, chromium, scripting) => {
+      const snapshot = validSnapshot(timestamp);
+
+      snapshot.environment = { chromium };
+      snapshot.harnessVersion = 1;
+      snapshot.scenarios.sorting.categories.scripting = scripting;
+
+      return snapshot;
+    };
+
+    await writeFile(join(historyDir, 'a.json'), JSON.stringify(keyed('2026-09-03T10:49:00Z', '140.0.1', 120)), 'utf8');
+    await writeFile(join(historyDir, 'b.json'), JSON.stringify(keyed('2026-09-03T10:31:00Z', '140.0.1', 122)), 'utf8');
+    await writeFile(join(historyDir, 'c.json'), JSON.stringify(keyed('2026-09-03T10:08:00Z', '138.0.1', 150)), 'utf8');
+    await writeFile(join(historyDir, 'd.json'), JSON.stringify(keyed('2026-09-03T09:47:00Z', '138.0.1', 155)), 'utf8');
+
+    const { snapshot, unavailableReason } = await loadBaseline(baseDir, {
+      compatibleWith: { key: { chromium: '140.0.1', harnessVersion: 1 } },
+    });
+
+    assert.equal(unavailableReason, null);
+    assert.equal(snapshot.medianWindowSize, 2);
+    assert.equal(snapshot.scenarios.sorting.categories.scripting, 121);
+  });
+
+  test('refuses an incompatible single-file fallback and says why, instead of returning it', async() => {
+    await mkdir(historyDir, { recursive: true });
+
+    const old = validSnapshot('2026-09-03T10:08:00Z');
+
+    old.environment = { chromium: '138.0.1' };
+    old.harnessVersion = 1;
+    await writeFile(join(historyDir, 'c.json'), JSON.stringify(old), 'utf8');
+    await writeFile(goldenPath, JSON.stringify(old), 'utf8');
+
+    const { snapshot, unavailableReason } = await loadBaseline(baseDir, {
+      compatibleWith: { key: { chromium: '140.0.1', harnessVersion: 1 } },
+    });
+
+    assert.equal(snapshot, null);
+    assert.ok(unavailableReason.includes('Chromium 138.0.1 -> 140.0.1'));
+    assert.ok(unavailableReason.includes('two develop pushes'));
+  });
+
+  test('a single-file golden with no provenance is refused once the run has a key', async() => {
+    await writeFile(goldenPath, JSON.stringify(validSnapshot('2026-08-29T00:00:00Z')), 'utf8');
+
+    const { snapshot, unavailableReason } = await loadBaseline(baseDir, {
+      compatibleWith: { key: { chromium: '140.0.1', harnessVersion: 1 } },
+    });
+
+    assert.equal(snapshot, null);
+    assert.ok(unavailableReason.includes('Chromium unknown -> 140.0.1'));
+  });
+
+  test('without a key, the single-file golden is returned as before and no reason is given', async() => {
+    await writeFile(goldenPath, JSON.stringify(validSnapshot('2026-08-29T00:00:00Z')), 'utf8');
+
+    const { snapshot, unavailableReason } = await loadBaseline(baseDir);
+
+    assert.equal(snapshot.timestamp, '2026-08-29T00:00:00Z');
+    assert.equal(unavailableReason, null);
   });
 
   test('honors PERF_MEDIAN_WINDOW_SIZE when set', async() => {
