@@ -41,7 +41,20 @@ Example path: `examples/<version_number>/docs/js/basic-example`
 
 The `examples` directory is defined as an npm workspace, as is each `<framework>` directory within it. This allows sharing dependencies across all framework-specific examples.
 
-Dependency sharing is defined by a shared lockfile (`/examples/<version_number>/<category>/<framework>/package-lock.json`) for all examples within each framework. The `examples:install` script manages dependency versions in these shared lockfiles. An individual example can still have its own lockfile (created when running `npm install` inside the example folder), but it is ignored via `/examples/.gitignore`.
+Dependency sharing is defined by a shared lockfile (`/examples/<version_number>/<category>/<framework>/package-lock.json`) for all examples within each framework. An individual example can still have its own lockfile (created when running `npm install` inside the example folder), but it is ignored via `/examples/.gitignore`.
+
+The shared lockfiles are tracked, and `examples:install` reuses them: it installs the dependency set they record instead of re-resolving the manifests. Most leaf dependencies are pinned to `latest`, so a fresh resolution moves whenever the registry does, which is why the resolution is committed rather than recomputed at install time.
+
+To refresh them on purpose, remove them first and reinstall:
+
+```bash
+cd examples
+node ./scripts/clean-subpackages.mjs next --reset-lockfiles
+cd ..
+npm run examples:install next
+```
+
+Review the resulting diff and land it on `develop` as its own change, so CI and `npm audit` see the new set before a release does.
 
 ## Live on production
 

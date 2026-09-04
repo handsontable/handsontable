@@ -128,6 +128,25 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   `e2e/touch-tap-to-edit.spec.ts` (page object in `fixtures/pages/`, not `fixtures/pages/mobile/`,
   because the fixture is not a mobile-UA grid).
 
+## Real-mouse gestures
+
+- `boundingBox()` ignores overflow clipping, and `toBeVisible()` passes for a fully clipped
+  element. Never aim a real-mouse press or drag at box-derived coordinates without first
+  wheel-scrolling the target into the holder's PRESSABLE area (the holder minus the sticky
+  header clones painted over its top/start strips), the way a user reaches off-screen content.
+  A point past the fold silently presses the page body or a header clone, and mid-drag it means
+  "extend the selection past the edge" — drag-to-scroll fires and the selection overshoots the
+  intended range. This class of spec ships green by luck and breaks on a 1px browser row-metric
+  shift (the Playwright 1.62 bump broke exactly one theme this way). Pattern: `FormulasGridPage`.
+- After a drag-select, assert the achieved range (`getSelectedRangeLast()` via `page.evaluate`).
+  Wheel by the EXACT remaining distance — a fixed step turns the poll budget into a hidden reach
+  cap, and a fixed minimum over-corrects few-px overflows and ping-pongs when nearby targets need
+  opposite nudges. Bound waits on the timer-driven auto-scroll by TIME (`expect.poll`), never by
+  a fixed number of pumped mousemoves — an iteration count is a hidden wall-clock budget that
+  shrinks with every Playwright/CDP speedup. Size the poll budgets so goto + gestures + every
+  poll fit the 20s test timeout, or an exhausted wait surfaces as a locationless "Test timeout"
+  instead of its message.
+
 ## Rendering below 100% (zoom / display scaling)
 
 Reach for **CSS `zoom` on the root element**, applied by the fixture before the grid is

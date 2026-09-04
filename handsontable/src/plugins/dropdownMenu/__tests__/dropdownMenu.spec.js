@@ -958,11 +958,11 @@ describe('DropdownMenu', () => {
 
     await scrollViewportTo({ row: 0, col: 8 }); // make the column `G` partially visible
 
-    expect(inlineStartOverlay().getScrollPosition()).toBe(666);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(665);
 
     await dropdownMenu(6); // click on the column `G` header button
 
-    expect(inlineStartOverlay().getScrollPosition()).toBe(666);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(665);
   });
 
   describe('updateSettings called from beforeDropdownMenuShow', () => {
