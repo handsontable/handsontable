@@ -876,7 +876,7 @@ export class Autofill extends BasePlugin {
     // Gate on the gesture flag, not on the drag-step counter. The corner double-click is
     // synthesized by Walkontable from the holder's `mouseup`, which runs before this
     // `documentElement` listener, and its `fillIn()` has already zeroed `handleDraggedCells`
-    // by then - a counter-based guard would skip the teardown and leave the fill border
+    // by then – a counter-based guard would skip the teardown and leave the fill border
     // following the pointer (GitHub #13370).
     if (this.mouseDownOnCellCorner) {
       if (this.handleDraggedCells > 1) {

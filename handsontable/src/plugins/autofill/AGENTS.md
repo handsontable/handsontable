@@ -48,7 +48,7 @@ happened.
 
 `mouseDownOnCellCorner` is the **gesture flag** (set on `afterOnCellCornerMouseDown`, cleared in
 `#onMouseUp`), `handleDraggedCells` is the **step counter**. Only the flag says whether a corner gesture
-is in progress — `fillIn()` legitimately zeroes the counter through `resetSelectionOfDraggedArea()`.
+is in progress – `fillIn()` legitimately zeroes the counter through `resetSelectionOfDraggedArea()`.
 
 That matters because the corner double-click is not a native `dblclick`: Walkontable synthesizes it
 from the mousedown/mouseup pairs and fires it from its `mouseup` listener on the **holder**, which runs

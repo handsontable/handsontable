@@ -42,6 +42,9 @@ test.describe('fill handle double-click', () => {
     expect(await grid.isFillHandlePressed()).toBe(false);
   });
 
+  // Not a regression test for #13370 (every corner mousedown re-arms the drag state, so it passes
+  // on the unfixed code too). It guards the teardown against over-resetting: a fix that tore the
+  // drag state down too eagerly would break the very next drag-fill.
   test('keeps the fill handle usable for a drag after a double-click fill-down', async () => {
     await grid.selectCells(2, 1, 2, 1);
     await grid.doubleClickFillHandle();
