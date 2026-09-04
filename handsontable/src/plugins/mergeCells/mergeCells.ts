@@ -2202,21 +2202,14 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    const snapshot = this.mergedCellsCollection.capturePhysicalSpans('row');
-
-    // `capturePhysicalSpans` walks the merge's visual rows, which while trimming is active cover only
-    // the visible part of it. Take the rows from the anchors instead, so the move translates every row
-    // the merge owns. A trimmed row has no visual index, so it drops out of the translation and the
-    // visual runs it produces are the same either way.
-    snapshot.forEach((unusedPhysicalRows, merge) => {
-      const anchor = this.#mergeAnchors.get(merge);
-
-      if (anchor) {
-        snapshot.set(merge, [...anchor.physicalRows]);
-      }
-    });
-
-    this.#rowMoveSnapshot = snapshot;
+    // Deliberately the merge's own visual rows, not its anchor's physical rows. Supplying the anchor
+    // here looks more faithful and is worse: `translateAfterAxisMove` drops every row with no visual
+    // index, so a merge whose rows are all trimmed would translate to nothing and be deleted from the
+    // collection outright, with no filter change able to bring it back. Read from the visual span it
+    // keeps its stale-but-present coordinates, survives the move, and the re-anchor that follows puts
+    // it back on the rows the transferred anchor names. A trimmed row inside a partly visible merge
+    // makes no difference either way, since it has no visual index to translate.
+    this.#rowMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('row');
   };
 
   /**

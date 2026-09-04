@@ -3394,6 +3394,84 @@ describe('MergeCells', () => {
         expect(merges()[0].rowspan).toBe(3);
       });
 
+    it('should keep the rows a merge owns when a row outside it is moved while a filter hides one',
+      async() => {
+        handsontable({
+          data: createSpreadsheetData(10, 5),
+          filters: true,
+          manualRowMove: true,
+          mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 3 }], // physical rows 2,3,4
+        });
+        const filters = getPlugin('filters');
+
+        // hide A4 (physical row 3), inside the merge
+        filters.addCondition(0, 'by_value', [['A1', 'A2', 'A3', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']]);
+        filters.filter();
+
+        await render();
+
+        expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 2, colspan: 3 }]);
+
+        // A row move translates each merge through the physical rows captured before the move
+        getPlugin('manualRowMove').moveRow(0, 8);
+
+        await render();
+
+        filters.clearConditions();
+        filters.filter();
+
+        await render();
+
+        // the merge still owns exactly the three rows it was created over, whatever the move did to
+        // their visual positions
+        const merge = merges()[0];
+        const owned = Array.from({ length: merge.rowspan }, (_, offset) => toPhysicalRow(merge.row + offset));
+
+        expect(merge.rowspan).toBe(3);
+        expect(owned.slice().sort()).toEqual([2, 3, 4]);
+      });
+
+    it('should keep the rows a fully hidden merge owns when a row is moved', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        filters: true,
+        manualRowMove: true,
+        mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 3 }], // physical rows 2,3,4
+      });
+      const filters = getPlugin('filters');
+
+      // hide every row the merge covers, so it is purged from the matrix and its visual coordinates
+      // stop describing it — visual rows 2,3,4 now hold physical rows 5,6,7
+      filters.addCondition(0, 'by_value', [['A1', 'A2', 'A6', 'A7', 'A8', 'A9', 'A10']]);
+      filters.filter();
+
+      await render();
+
+      // purged from the lookup matrix while kept in the list, with stale visual coordinates
+      const collection = getPlugin('mergeCells').mergedCellsCollection;
+
+      expect(collection.get(2, 2)).toBe(false);
+      expect(collection.mergedCells.length).toBe(1);
+
+      // The move snapshots each merge's physical rows from the anchor rather than by walking its
+      // visual span. For a purged merge that span is stale, so walking it would hand the move three
+      // rows the merge does not own and relocate it onto them.
+      getPlugin('manualRowMove').moveRow(0, 5);
+
+      await render();
+
+      filters.clearConditions();
+      filters.filter();
+
+      await render();
+
+      const merge = merges()[0];
+      const owned = Array.from({ length: merge.rowspan }, (_, offset) => toPhysicalRow(merge.row + offset));
+
+      expect(merge.rowspan).toBe(3);
+      expect(owned.slice().sort()).toEqual([2, 3, 4]);
+    });
+
     it('should keep the rows a merge owns when a column is frozen while a filter hides some of them',
       async() => {
         handsontable({
