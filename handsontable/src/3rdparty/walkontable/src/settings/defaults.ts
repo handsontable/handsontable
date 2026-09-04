@@ -33,6 +33,7 @@ import type { SettingsPort } from '../ports';
  * @property {Option} rowHeaders Option `rowHeaders`.
  * @property {Option} rowHeightOption `rowHeight`.
  * @property {Option} rowHeightByOverlayName Option `rowHeightByOverlayName`.
+ * @property {Option} rowHeightMode Option `rowHeightMode`.
  * @property {Option} shouldRenderBottomOverlay Option `shouldRenderBottomOverlay`.
  * @property {Option} shouldRenderInlineStartOverlay Option `shouldRenderInlineStartOverlay`.
  * @property {Option} shouldRenderTopOverlay Option `shouldRenderTopOverlay`.
@@ -168,6 +169,11 @@ export function getDefaults(settings: SettingsPort): Record<string, unknown> {
     rowHeightByOverlayName() {
       // return undefined means use default size for the rendered cell content
     },
+    // How a provided row height is honored, per row. `'min'` keeps it as a floor the content may
+    // grow past (the historical behavior); `'exact'` renders the row at exactly that height and
+    // clips taller content. A host supplies a function of the source row index; the default is a
+    // literal so the (per row, per draw) read costs nothing when the mode is not in use.
+    rowHeightMode: 'min',
     rowHeightsUniform() {
       // return true only when every row is guaranteed the default height (enables the
       // PositionCache arithmetic fast path). Conservative default: false.

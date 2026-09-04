@@ -693,12 +693,14 @@ export function fastInnerHTML(
       sanitized = content;
     }
 
+    const target = getCellContentRoot(element);
+
     if (sanitized === '') {
       // A sanitizer that stripped the payload entirely leaves nothing to write. Clearing the
       // element is not the same as assigning `''` to `innerHTML`: that is a Trusted Types sink
       // whatever the value, so under `require-trusted-types-for 'script'` the empty string throws
       // and a stripped cell takes the grid down instead of rendering blank.
-      empty(element);
+      empty(target);
 
       return;
     }
@@ -707,7 +709,7 @@ export function fastInnerHTML(
     // hands back a `TrustedHTML`, which the sink accepts and a plain string is rejected in place
     // of - so this must never coerce, concatenate, or re-test the value. The cast is only for the
     // DOM lib's `string` typing; `TrustedHTML` is absent from it at this TypeScript version.
-    element.innerHTML = sanitized as string;
+    target.innerHTML = sanitized as string;
   } else {
     fastInnerText(element, content);
   }
@@ -720,7 +722,8 @@ export function fastInnerHTML(
  * @param {string} content The text to write.
  */
 export function fastInnerText(element: HTMLElement, content: string): void {
-  const child = element.firstChild;
+  const target = getCellContentRoot(element);
+  const child = target.firstChild;
 
   if (child && child.nodeType === 3 && child.nextSibling === null) {
     // fast lane - replace existing text node
@@ -728,9 +731,36 @@ export function fastInnerText(element: HTMLElement, content: string): void {
 
   } else {
     // slow lane - empty element and insert a text node
-    empty(element);
-    element.appendChild(element.ownerDocument.createTextNode(content));
+    empty(target);
+    target.appendChild(target.ownerDocument.createTextNode(content));
   }
+}
+
+/**
+ * The class of the clipping wrapper the rendering engine places inside a cell whose row has an
+ * exact height. A table cell cannot be shorter than its content, so the engine moves the content
+ * into this wrapper, which is taken out of flow and clipped to the cell's padding box.
+ *
+ * @type {string}
+ */
+export const CELL_CLIP_CLASS = 'htCellClip';
+
+/**
+ * Returns the element a cell's content belongs in: the engine's clipping wrapper when the cell
+ * holds one (and nothing else), otherwise the cell itself. Renderers write through this so the
+ * wrapper survives a redraw instead of being wiped and rebuilt on every draw.
+ *
+ * @param {HTMLElement} element The cell element (or any element, which is then returned as-is).
+ * @returns {HTMLElement}
+ */
+export function getCellContentRoot(element: HTMLElement): HTMLElement {
+  const child = element.firstChild;
+
+  if (isHTMLElement(child) && child.nextSibling === null && hasClass(child, CELL_CLIP_CLASS)) {
+    return child;
+  }
+
+  return element;
 }
 
 /**

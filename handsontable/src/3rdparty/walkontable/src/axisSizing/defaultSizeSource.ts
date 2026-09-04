@@ -1,5 +1,5 @@
 import type { default as Settings } from '../settings';
-import type { RowSizeSource, ColumnSizeSource } from './axisSizeSource';
+import type { RowSizeSource, ColumnSizeSource, RowHeightMode } from './axisSizeSource';
 
 /**
  * The engine's own row-size source. Reads the row-height settings/defaults straight from `Settings`,
@@ -37,6 +37,14 @@ export class DefaultRowSizeSource implements RowSizeSource {
    */
   getSizeForOverlay(sourceIndex: number, overlayName: string): number | undefined {
     return this.#wtSettings.getSetting<number | undefined>('rowHeightByOverlayName', sourceIndex, overlayName);
+  }
+
+  /**
+   * @param {number} sourceIndex The source index of the row.
+   * @returns {RowHeightMode}
+   */
+  getMode(sourceIndex: number): RowHeightMode {
+    return this.#wtSettings.getSetting('rowHeightMode', sourceIndex);
   }
 
   /**

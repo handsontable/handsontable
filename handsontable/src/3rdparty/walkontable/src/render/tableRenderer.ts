@@ -9,7 +9,7 @@ import type ColumnFilter from '../filter/column';
 import type RowUtils from '../axisSizing/rowUtils';
 import type ColumnUtils from '../axisSizing/columnUtils';
 import type { StylesHandler } from '../types';
-import { getBoxAdjustedRowHeight } from '../axisSizing/boxModel';
+import { applyRowHeight } from './exactRowHeight';
 
 /**
  * TableRenderer class collects all renderers and properties necessary for table creation. It's
@@ -425,25 +425,23 @@ export class TableRenderer {
 
     const { rowsToRender, rows } = this;
 
-    // Fix for multi-line content and for supporting `rowHeights` option.
+    // Fix for multi-line content and for supporting `rowHeights` option. Must stay after
+    // `cells.render()`: the cell renderer resets every cell's inline style and class on each draw.
+    const rowUtils = this.rowUtils!;
+
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const TR = rows!.getRenderedNode(visibleRowIndex);
-      const rowUtils = this.rowUtils;
 
-      if (TR && TR.firstChild) {
+      if (TR) {
         const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
-        const rowHeight = rowUtils!.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName);
+        const isExact = rowUtils.isExact(sourceRowIndex);
 
-        if (rowHeight) {
-          // Convert the logical row height to the pixel height written to the DOM. In content-box mode
-          // 1px is "replaced" by the row's 1px top border; the shared helper keeps that constant in one
-          // place (see axisSizing/boxModel.ts).
-          const pixelHeight = getBoxAdjustedRowHeight(rowHeight, this.stylesHandler.areCellsBorderBox());
-
-          (TR.firstChild as HTMLElement).style.height = `${pixelHeight}px`;
-        } else {
-          (TR.firstChild as HTMLElement).style.height = '';
-        }
+        applyRowHeight(
+          TR,
+          rowUtils.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName, isExact),
+          isExact,
+          this.stylesHandler.areCellsBorderBox(),
+        );
       }
     }
   }

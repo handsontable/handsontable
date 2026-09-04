@@ -14,7 +14,7 @@
  */
 import { isHTMLElement } from '../../../../helpers/dom/element';
 import { CLONE_BOTTOM } from '../overlay';
-import { getBoxAdjustedRowHeight } from './boxModel';
+import { applyRowHeight } from '../render/exactRowHeight';
 import type { default as Table } from '../table/baseTable';
 
 /**
@@ -160,16 +160,21 @@ function applyRowHeightsToRenderedRows(table: Table): void {
   const renderedRows = TBODY.childNodes;
 
   for (let renderedRowIndex = 0; renderedRowIndex < renderedRows.length; renderedRowIndex++) {
-    const firstChild = renderedRows[renderedRowIndex].firstChild;
+    const TR = renderedRows[renderedRowIndex];
 
-    if (!isHTMLElement(firstChild)) {
+    if (!isHTMLElement(TR)) {
       continue;
     }
 
     const sourceRowIndex = rowFilter.renderedToSource(renderedRowIndex);
-    const rowHeight = table.rowUtils.getHeightByOverlayName(sourceRowIndex, table.name);
+    const isExact = table.rowUtils.isExact(sourceRowIndex);
 
-    firstChild.style.height = rowHeight ? `${getBoxAdjustedRowHeight(rowHeight, borderBoxSizing)}px` : '';
+    applyRowHeight(
+      TR,
+      table.rowUtils.getHeightByOverlayName(sourceRowIndex, table.name, isExact),
+      isExact,
+      borderBoxSizing,
+    );
   }
 }
 
@@ -552,8 +557,17 @@ export function markOversizedRows(
   }
   let rowCount = table.TBODY!.childNodes.length;
   const stylesHandler = table.wtSettings.getSetting('stylesHandler');
+  const { rowUtils } = table;
+  // A uniform exact band has nothing to measure: every row is pinned at its provided height and its
+  // content is clipped, so the DOM can never be taller than the records. Decided before the
+  // geometry read so the band pays no reflow, and needed on its own: the uniform fast path below
+  // compares the band against the DEFAULT height, which an exact band never matches.
+  const isExactBand = rowCount > 0 && table.deps.rowSizeSource.isUniform() &&
+    rowUtils.isExact(table.rowFilter!.renderedToSource(0));
   const expectedTableHeight = rowCount * stylesHandler.getDefaultRowHeight();
-  const actualTableHeight = table.deps.geometryReader.innerHeight(table.TBODY!) - 1;
+  const actualTableHeight = isExactBand
+    ? expectedTableHeight
+    : table.deps.geometryReader.innerHeight(table.TBODY!) - 1;
   const borderBoxSizing = stylesHandler.areCellsBorderBox();
   const rowHeightFn = borderBoxSizing
     ? (element: HTMLElement) => table.deps.geometryReader.outerHeight(element)
@@ -592,6 +606,14 @@ export function markOversizedRows(
   while (rowCount) {
     rowCount -= 1;
     sourceRowIndex = table.rowFilter!.renderedToSource(rowCount);
+
+    // An exact row is never raised by what it renders — its content is clipped to the provided
+    // height. A record it may still hold (from before it became exact) stays wiped, so the
+    // shrink detection below reports the change.
+    if (rowUtils.isExact(sourceRowIndex)) {
+      continue; // eslint-disable-line no-continue
+    }
+
     previousRowHeight = table.getRowHeight(sourceRowIndex);
     currentTr = table.getTrForRow(sourceRowIndex);
     rowHeader = currentTr.querySelector('th');

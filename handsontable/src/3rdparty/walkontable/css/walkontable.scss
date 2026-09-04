@@ -89,6 +89,32 @@
   white-space: pre-wrap;
 }
 
+/* Exact row heights: the engine pins the row at its provided height and clips the content (a table
+   cell cannot be shorter than its in-flow content, so the wrapper is taken out of flow). */
+.handsontable td.htExactHeight,
+.handsontable th.htExactHeight {
+  position: relative;
+  padding: 0;
+}
+
+.handsontable td.htExactHeight > .htCellClip {
+  position: absolute;
+  inset: 0 4px;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.handsontable tbody th.htExactHeight > .relative {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .handsontable th:last-child {
   /* Foundation framework fix */
   border-inline-start: none;

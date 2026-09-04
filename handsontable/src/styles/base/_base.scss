@@ -561,6 +561,53 @@
       box-sizing: border-box;
     }
 
+    // Exact row heights: rows the engine pins at a provided height and clips. A table cell's
+    // `height` is a minimum in CSS table layout, so the content is taken out of flow — the wrapper
+    // fills the cell's padding box and clips, and the cell can then be shorter than its text.
+    // The wrapper resets its own box because it matches `$user-cell-content` and so is exempt from
+    // the normalize block below. The cell drops its own padding: a border-box cell can never be
+    // shorter than its padding plus border (17px in `horizon`), and the wrapper's insets carry the
+    // same padding, so the content keeps its place.
+    td.htExactHeight {
+      position: relative;
+      padding: 0;
+    }
+
+    td.htExactHeight > .htCellClip {
+      position: absolute;
+      inset: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      min-height: 0;
+      box-sizing: border-box;
+    }
+
+    // `vertical-align` on the cell no longer moves out-of-flow content; map it onto the wrapper.
+    td.htExactHeight.htMiddle > .htCellClip,
+    td.htExactHeight.htBottom > .htCellClip {
+      display: flex;
+      flex-direction: column;
+    }
+
+    td.htExactHeight.htMiddle > .htCellClip {
+      justify-content: center;
+    }
+
+    td.htExactHeight.htBottom > .htCellClip {
+      justify-content: flex-end;
+    }
+
+    // Row headers already wrap their content in `.relative`; clip that instead of adding a wrapper.
+    // Body rows only — column headers keep their minimum-height semantics and `overflow: visible`.
+    :where(#{$grid-body-row}) > th.htExactHeight > .relative {
+      position: absolute;
+      inset: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+
     .wtHider {
       width: 0;
     }
