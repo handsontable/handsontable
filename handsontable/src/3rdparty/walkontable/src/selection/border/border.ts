@@ -605,15 +605,25 @@ class Border {
   }
 
   /**
-   * @param {number} row The visual row index.
-   * @param {number} col The visual column index.
+   * @param {number} fromRow The visual row index of the selection's top-left corner.
+   * @param {number} fromCol The visual column index of the selection's top-left corner.
+   * @param {number} toRow The visual row index of the selection's bottom-right corner.
+   * @param {number} toCol The visual column index of the selection's bottom-right corner.
    * @param {number} top The top position of the handler.
    * @param {number} left The left position of the handler.
    * @param {number} width The width of the handler.
    * @param {number} height The height of the handler.
    */
   updateMultipleSelectionHandlesPosition(
-    row: number, col: number, top: number, left: number, width: number, height: number) {
+    fromRow: number,
+    fromCol: number,
+    toRow: number,
+    toCol: number,
+    top: number,
+    left: number,
+    width: number,
+    height: number,
+  ) {
     const isRtl = this.wot.wtSettings.getSetting('rtlMode');
     const inlinePosProperty = isRtl ? 'right' : 'left';
     const {
@@ -628,12 +638,22 @@ class Border {
     const hitAreaSize = parseInt(topHitAreaStyles.width, 10);
     const totalTableWidth = this.wot.wtTable.getWidth();
     const totalTableHeight = this.wot.wtTable.getHeight();
+    // The trigger is the clone, not the freeze count: a rendered `top`/`inline_start` clone owns the
+    // band the handle would hang into, whether it holds a frozen pane or only the headers.
+    const isTopHandleUnderTopClone = this.isTopHandleOccludedByClone('row', fromRow);
+    const isTopHandleUnderInlineStartClone = this.isTopHandleOccludedByClone('column', fromCol);
 
-    topStyles.top = `${parseInt(String(top - handleSize - 1), 10)}px`;
-    topStyles[inlinePosProperty] = `${parseInt(String(left - handleSize - 1), 10)}px`;
+    topStyles.top = `${parseInt(String(isTopHandleUnderTopClone ? top + 1 : top - handleSize - 1), 10)}px`;
+    topStyles[inlinePosProperty] = `${
+      parseInt(String(isTopHandleUnderInlineStartClone ? left + 1 : left - handleSize - 1), 10)
+    }px`;
 
-    topHitAreaStyles.top = `${parseInt(String(top - ((hitAreaSize / 4) * 3)), 10)}px`;
-    topHitAreaStyles[inlinePosProperty] = `${parseInt(String(left - ((hitAreaSize / 4) * 3)), 10)}px`;
+    topHitAreaStyles.top = `${
+      parseInt(String(isTopHandleUnderTopClone ? top : top - ((hitAreaSize / 4) * 3)), 10)
+    }px`;
+    topHitAreaStyles[inlinePosProperty] = `${
+      parseInt(String(isTopHandleUnderInlineStartClone ? left : left - ((hitAreaSize / 4) * 3)), 10)
+    }px`;
 
     const bottomHandlerInline = Math.min(
       parseInt(String(left + width), 10),
@@ -647,12 +667,18 @@ class Border {
     bottomStyles[inlinePosProperty] = `${bottomHandlerInline}px`;
     bottomHitAreaStyles[inlinePosProperty] = `${bottomHandlerAreaInline}px`;
 
+    // Mirror of the top handle: the `bottom` clone owns the band below the `fixedRowsBottom` line
+    // that the handle would otherwise hang into, so pull it fully inside the scrollable pane.
+    const isBottomHandleUnderBottomClone = this.isBottomHandleOccludedByClone(toRow);
+
     const bottomHandlerTop = Math.min(
-      parseInt(String(top + height), 10),
+      parseInt(String(isBottomHandleUnderBottomClone ? top + height - handleSize - 1 : top + height), 10),
       totalTableHeight - handleSize - (handleBorderSize * 2),
     );
     const bottomHandlerAreaTop = Math.min(
-      parseInt(String(top + height - (hitAreaSize / 4)), 10),
+      parseInt(String(
+        isBottomHandleUnderBottomClone ? top + height - hitAreaSize : top + height - (hitAreaSize / 4)
+      ), 10),
       totalTableHeight - hitAreaSize - (handleBorderSize * 2),
     );
 
@@ -665,7 +691,7 @@ class Border {
       topStyles.display = 'block';
       topHitAreaStyles.display = 'block';
 
-      if (this.isSouthEastOfAreaSelection(row, col)) {
+      if (this.isSouthEastOfAreaSelection(toRow, toCol)) {
         bottomStyles.display = 'block';
         bottomHitAreaStyles.display = 'block';
       } else {
@@ -679,14 +705,60 @@ class Border {
       bottomHitAreaStyles.display = 'none';
     }
 
-    if (row === this.wot.wtSettings.getSetting('fixedRowsTop') ||
-        col === this.wot.wtSettings.getSetting('fixedColumnsStart')) {
+    // Deliberately still the raw, unguarded comparison from #9850, unlike the positioning above.
+    // Inside the master this value cannot clear a clone any more, so it only orders the handle
+    // against its siblings; narrowing it would be a behavior change with nothing to gain.
+    if (fromRow === this.wot.wtSettings.getSetting('fixedRowsTop') ||
+        fromCol === this.wot.wtSettings.getSetting('fixedColumnsStart')) {
       topStyles.zIndex = '9999';
       topHitAreaStyles.zIndex = '9999';
     } else {
       topStyles.zIndex = '';
       topHitAreaStyles.zIndex = '';
     }
+  }
+
+  /**
+   * Tells whether the master's top mobile selection handle, drawn hanging outside the selection's
+   * top-start corner, would land under an overlay clone.
+   *
+   * The question is which clone renders, not how many rows or columns are frozen, and the two are
+   * not the same: with `fixedRowsTop: 0` and column headers on, the `top` clone still renders and
+   * row 0's top edge sits flush against it, exactly where row `fixedRowsTop` sits with a frozen
+   * pane. {@link Border#isFrozenBoundaryEdge} answers the narrower freeze-line question and is
+   * therefore wrong here. Only the master needs the test: a clone draws its own copy of the handle,
+   * and its `.wtHolder` clips that copy instead of hiding it under a higher layer.
+   *
+   * @private
+   * @param {'row'|'column'} axis The clone axis to test (`row` for `top`, `column` for `inline_start`).
+   * @param {number} fromIndex The selection's top (`row`) or inline-start (`column`) corner index.
+   * @returns {boolean}
+   */
+  isTopHandleOccludedByClone(axis: 'row' | 'column', fromIndex: number): boolean {
+    if (this.wot.wtTable.name !== 'master') {
+      return false;
+    }
+
+    if (axis === 'row') {
+      return (this.wot.getSetting('shouldRenderTopOverlay') as boolean)
+        && fromIndex === (this.wot.getSetting('fixedRowsTop') as number);
+    }
+
+    return (this.wot.getSetting('shouldRenderInlineStartOverlay') as boolean)
+      && fromIndex === (this.wot.getSetting('fixedColumnsStart') as number);
+  }
+
+  /**
+   * Mirror of {@link Border#isTopHandleOccludedByClone} for the bottom mobile selection handle,
+   * which hangs past the selection's bottom-end corner and so meets the `bottom` clone rather than
+   * the `top` one. No headers case here: the `bottom` clone renders only for `fixedRowsBottom`.
+   *
+   * @private
+   * @param {number} toRow The selection's bottom corner row index, as drawn by this table.
+   * @returns {boolean}
+   */
+  isBottomHandleOccludedByClone(toRow: number): boolean {
+    return this.wot.wtTable.name === 'master' && this.isFrozenBottomBoundaryEdge(toRow);
   }
 
   /**
@@ -1650,7 +1722,16 @@ class Border {
     }
 
     if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
-      this.updateMultipleSelectionHandlesPosition(toRow, toColumn, top, inlineStartPos, width, height);
+      this.updateMultipleSelectionHandlesPosition(
+        corners[0],
+        corners[1],
+        toRow,
+        toColumn,
+        top,
+        inlineStartPos,
+        width,
+        height,
+      );
     }
 
     let adjustVisible = this.settings.border?.adjustHandlesVisible;

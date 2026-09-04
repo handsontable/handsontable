@@ -178,9 +178,14 @@ innerBorderBottom - Property controlled by bottom overlay
 /*
  * Overlay clone layers. Declared twice — here and in `src/styles/base/_z-index-map.scss`, which also
  * documents the 101–119 window reserved for selection affordances drawn inside an overlay. Keep the
- * two lists in sync, and keep every affordance below 120: `.ht_master` opens no stacking context, so
- * anything at or above that value paints over a frozen pane its cell has scrolled under.
+ * two lists in sync.
  */
+.ht_master {
+  // Keep the scrollable table and its browser-promoted scrolling layer below the frozen overlays.
+  // This is required when an ancestor's CSS transform creates a separate compositing context.
+  z-index: 0;
+}
+
 .ht_clone_master {
   z-index: 100;
 }
