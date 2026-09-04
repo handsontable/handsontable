@@ -309,8 +309,16 @@ export default async function teardown() {
   // anything: the two describe different slices of their traces. Say so rather than
   // letting the sticky comment publish four-figure percentages as regressions.
   const windowSourceOf = scenario => scenario.windowSource ?? 'auto-zoom';
+  const versionOf = scenario => scenario.measurementVersion ?? DEFAULT_MEASUREMENT_VERSION;
+  // A scenario redefined since the baseline was recorded (another `measurementVersion`) is the same
+  // situation as a window mismatch -- the two sides measured different quantities under one name --
+  // and is withheld through the same path. The median already filters these out per scenario; this
+  // catches the single-file fallback, which is one whole golden and cannot.
   const crossWindow = (current, baseline) => Object.keys(current)
-    .filter(name => baseline?.[name] && windowSourceOf(baseline[name]) !== windowSourceOf(current[name]));
+    .filter(name => baseline?.[name] && (
+      windowSourceOf(baseline[name]) !== windowSourceOf(current[name])
+      || versionOf(baseline[name]) !== versionOf(current[name])
+    ));
 
   // Load golden for comparison
   let golden = null;
@@ -375,7 +383,7 @@ export default async function teardown() {
   if (mismatched.length > 0) {
     console.warn(
       `\n  WARN: ${mismatched.length} scenario(s) are being compared against a baseline measured ` +
-      `over a different window -- ${mismatched.join(', ')}. ` +
+      `over a different window or at a different measurementVersion -- ${mismatched.join(', ')}. ` +
       'The deltas below are not measurements of a code change; they are the two windows disagreeing. ' +
       'A fresh golden run on develop clears this.\n'
     );
